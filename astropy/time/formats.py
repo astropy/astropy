@@ -6,7 +6,7 @@ from __future__ import (absolute_import, division, print_function,
 import fnmatch
 import time
 import re
-from datetime import datetime, tzinfo, timedelta
+import datetime
 
 import numpy as np
 
@@ -528,7 +528,7 @@ class TimeDatetime(TimeUnique):
 
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for this class
-        if not all(isinstance(val, datetime) for val in val1.flat):
+        if not all(isinstance(val, datetime.datetime) for val in val1.flat):
             raise TypeError('Input values for {0} class must be '
                             'datetime objects'.format(self.name))
         return val1, None
@@ -569,7 +569,7 @@ class TimeDatetime(TimeUnique):
                              flags=['refs_ok'],
                              op_dtypes=7*[iys.dtype] + [np.object])
         for iy, im, id, ihr, imin, isec, ifracsec, out in iterator:
-            out[...] = datetime(iy, im, id, ihr, imin, isec, ifracsec)
+            out[...] = datetime.datetime(iy, im, id, ihr, imin, isec, ifracsec)
 
         return iterator.operands[-1]
 
@@ -611,23 +611,23 @@ class TimeDatetime(TimeUnique):
 
         for iy, im, id, ihr, imin, isec, ifracsec, out in iterator:
             if timezone is not None:
-                out[...] = datetime(iy, im, id, ihr, imin, isec, ifracsec,
-                                    tzinfo=_UTCTimezoneInfo()).astimezone(timezone)
+                out[...] = datetime.datetime(iy, im, id, ihr, imin, isec, ifracsec,
+                                             tzinfo=_UTCTimezoneInfo()).astimezone(timezone)
             else:
-                out[...] = datetime(iy, im, id, ihr, imin, isec, ifracsec)
+                out[...] = datetime.datetime(iy, im, id, ihr, imin, isec, ifracsec)
         return iterator.operands[-1]
 
     value = property(to_value)
 
-class _UTCTimezoneInfo(tzinfo):
+class _UTCTimezoneInfo(datetime.tzinfo):
     """
     Class for a UTC `~datetime.timezone` object, used in the
     `TimeDatetime.to_datetime` method.
     """
     def __init__(self):
-        self._utcoffset = timedelta(0)
+        self._utcoffset = datetime.timedelta(0)
         self._tzname = 'UTC'
-        self._dst = timedelta(0)
+        self._dst = datetime.timedelta(0)
 
     def utcoffset(self, dt):
         return self._utcoffset
@@ -737,7 +737,7 @@ class TimeString(TimeUnique):
         for iy, im, id, ihr, imin, isec, ifracsec in np.nditer(
                 [iys, ims, ids, ihrs, imins, isecs, ifracs]):
             if has_yday:
-                yday = datetime(iy, im, id).timetuple().tm_yday
+                yday = datetime.datetime(iy, im, id).timetuple().tm_yday
 
             yield {'year': int(iy), 'mon': int(im), 'day': int(id),
                    'hour': int(ihr), 'min': int(imin), 'sec': int(isec),

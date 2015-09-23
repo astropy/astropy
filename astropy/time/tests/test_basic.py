@@ -5,8 +5,7 @@
 import copy
 import functools
 import sys
-
-from datetime import datetime, tzinfo, timedelta
+import datetime
 
 import numpy as np
 
@@ -206,7 +205,7 @@ class TestBasic():
         assert allclose_sec(t.unix, 1262304000.0)
         assert allclose_sec(t.cxcsec, 378691266.184)
         assert allclose_sec(t.gps, 946339215.0)
-        assert t.datetime == datetime(2010, 1, 1)
+        assert t.datetime == datetime.datetime(2010, 1, 1)
 
     def test_precision(self):
         """Set the output precision which is used for some formats.  This is
@@ -349,7 +348,7 @@ class TestBasic():
         Time(0.0, 51544.0333981, format='mjd', scale='tai')
         Time('2000:001:12:23:34.0', format='yday', scale='tai')
         Time('2000:001:12:23:34.0Z', format='yday', scale='utc')
-        dt = datetime(2000, 1, 2, 3, 4, 5, 123456)
+        dt = datetime.datetime(2000, 1, 2, 3, 4, 5, 123456)
         Time(dt, format='datetime', scale='tai')
         Time([dt, dt], format='datetime', scale='tai')
 
@@ -358,8 +357,8 @@ class TestBasic():
         Test datetime format, including guessing the format from the input type
         by not providing the format keyword to Time.
         """
-        dt = datetime(2000, 1, 2, 3, 4, 5, 123456)
-        dt2 = datetime(2001, 1, 1)
+        dt = datetime.datetime(2000, 1, 2, 3, 4, 5, 123456)
+        dt2 = datetime.datetime(2001, 1, 1)
         t = Time(dt, scale='utc', precision=9)
         assert t.iso == '2000-01-02 03:04:05.123456000'
         assert t.datetime == dt
@@ -371,7 +370,7 @@ class TestBasic():
         assert np.all(t.value == [dt, dt2])
 
         t = Time('2000-01-01 01:01:01.123456789', scale='tai')
-        assert t.datetime == datetime(2000, 1, 1, 1, 1, 1, 123457)
+        assert t.datetime == datetime.datetime(2000, 1, 1, 1, 1, 1, 123457)
 
         # broadcasting
         dt3 = (dt + (dt2-dt)*np.arange(12)).reshape(4, 3)
@@ -787,7 +786,7 @@ def test_now():
     Tests creating a Time object with the `now` class method.
     """
 
-    now = datetime.utcnow()
+    now = datetime.datetime.utcnow()
     t = Time.now()
 
     assert t.format == 'datetime'
@@ -903,9 +902,9 @@ def test_datetime_tzinfo():
     """
     Test #3160 that time zone info in datetime objects is respected.
     """
-    class TZm6(tzinfo):
+    class TZm6(datetime.tzinfo):
         def utcoffset(self, dt):
-            return timedelta(hours=-6)
+            return datetime.timedelta(hours=-6)
 
     d = datetime(2002, 1, 2, 10, 3, 4, tzinfo=TZm6())
     t = Time(d)
@@ -931,7 +930,7 @@ def test_set_format_basic():
     for format, value in (('jd', 2451577.5),
                           ('mjd', 51577.0),
                           ('cxcsec', 65923200.0),
-                          ('datetime', datetime(2000, 2, 3, 0, 0)),
+                          ('datetime', datetime.datetime(2000, 2, 3, 0, 0)),
                           ('iso', '2000-02-03 00:00:00.000')):
         t = Time('+02000-02-03', format='fits')
         t0 = t.replicate()
@@ -1008,7 +1007,7 @@ def test_isiterable():
     assert isiterable(t2)
 
 def test_to_datetime():
-    class TimezoneInfo(tzinfo):
+    class TimezoneInfo(datetime.tzinfo):
         """
         This defines a timezone with UTC offset ``utcoffset``, meant as
         a replacement for the `datetime.tzinfo` objects output by
@@ -1029,15 +1028,16 @@ def test_to_datetime():
 
         def dst(self, dt):
             if self._dst is None:
-                return timedelta(0)
+                return datetime.timedelta(0)
             else:
                 return self._dst
 
-    tz = TimezoneInfo(utcoffset=timedelta(hours=-10), tzname='US/Hawaii')
+    tz = TimezoneInfo(utcoffset=datetime.timedelta(hours=-10), tzname='US/Hawaii')
     # The above lines produces a `datetime.tzinfo` object similar to:
     #     tzinfo = pytz.timezone('US/Hawaii')
     time = Time('2010-09-03 00:00:00')
     tz_aware_datetime = time.to_datetime(tz)
+    assert tz_aware_datetime.time() == datetime.time(14, 0)
     forced_to_astropy_time = Time(tz_aware_datetime)
     assert tz.tzname(time.datetime) == tz_aware_datetime.tzname()
     assert time == forced_to_astropy_time
@@ -1058,6 +1058,7 @@ def test_to_datetime_pytz():
     time = Time('2010-09-03 00:00:00')
     tz_aware_datetime = time.to_datetime(tz)
     forced_to_astropy_time = Time(tz_aware_datetime)
+    assert tz_aware_datetime.time() == datetime.time(14, 0)
     assert tz.tzname(time.datetime) == tz_aware_datetime.tzname()
     assert time == forced_to_astropy_time
 
