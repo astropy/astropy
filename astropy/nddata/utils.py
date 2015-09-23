@@ -607,11 +607,16 @@ class Cutout2D(object):
                                  'SkyCoord')
             position = skycoord_to_pixel(position, wcs, mode='all')  # (x, y)
 
-        size = np.atleast_1d(size)
-        if len(size) == 1:
+        if np.isscalar(size):
             size = np.repeat(size, 2)
 
-        shape = np.zeros(2)
+        # special handling for a scalar Quantity
+        if isinstance(size, u.Quantity):
+            size = np.atleast_1d(size)
+            if len(size) == 1:
+                size = np.repeat(size, 2)
+
+        shape = np.zeros(2).astype(int)
         pixel_scales = None
         # ``size`` can have a mixture of int and Quantity (and even units),
         # so evaluate each axis separately
