@@ -207,7 +207,7 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
     tables : Table or list of Table objects
         Table(s) to stack along rows (vertically) with the current table
     join_type : str
-        Join type ('inner' | 'exact' | 'outer'), default is 'exact'
+        Join type ('inner' | 'exact' | 'outer'), default is 'outer'
     metadata_conflicts : str
         How to proceed with metadata conflicts. This should be one of:
             * ``'silent'``: silently pick the last conflicting meta-data value
@@ -673,7 +673,7 @@ def _vstack(arrays, join_type='inner', col_name_map=None):
     arrays : list of Tables
         Tables to stack by rows (vertically)
     join_type : str
-        Join type ('inner' | 'exact' | 'outer'), default is 'exact'
+        Join type ('inner' | 'exact' | 'outer'), default is 'inner'
     col_name_map : empty dict or None
         If passed as a dict then it will be updated in-place with the
         mapping of output to input column names.
