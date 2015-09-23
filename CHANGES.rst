@@ -640,6 +640,9 @@ Bug Fixes
     opposed to opening the file with ``fits.open`` and accessing the HDUs
     through the ``HDUList`` object). [#4097]
 
+  - Fix bug where reading a file without a newline failed with an
+    unrelated / unhelpful exception. [#4160]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
