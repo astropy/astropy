@@ -473,30 +473,29 @@ def block_replicate(data, block_size, conserve_sum=True):
 
 
 class Cutout2D(object):
-    """Create a cutout object from a 2D array."""
+    """
+    Create a cutout object from a 2D array.
 
-    def __init__(self, data, position, size=None, wcs=None, mode='trim',
+    The returned object will contain a 2D cutout array.  If
+    ``copy=False`` (default), the cutout array is a view into the
+    original ``data`` array, otherwise the cutout array will contain a
+    copy of the original data.
+
+    If a `~astropy.wcs.WCS` object is input, then the returned object
+    will also contain a copy of the original WCS, but updated for the
+    cutout array.
+
+    For example usage, see :ref:`cutout_images`.
+
+    .. warning::
+
+        The cutout WCS object does not currently handle cases where the
+        input WCS object contains tabular distortions.
+    """
+
+    def __init__(self, data, position, size, wcs=None, mode='trim',
                  fill_value=np.nan, copy=False):
         """
-        The returned object will contain a 2D cutout array.  If
-        ``copy=False`` (default), the cutout array is a view into the
-        original ``data`` array, otherwise the cutout array will contain
-        a copy of the original data.
-
-        If a `~astropy.wcs.WCS` object is input, then the returned
-        object will also contain a copy of the original WCS, but updated
-        for the cutout array.
-
-        The shape of the cutout is determined by the ``shape`` parameter, or
-        ``side_length`` for a square cutout.
-
-        For example usage, see :ref:`cutout_images`.
-
-        .. warning::
-
-            The cutout WCS object does not currently handle cases where
-            the input WCS object contains tabular distortions.
-
         Parameters
         ----------
         data : `~numpy.ndarray`
@@ -509,17 +508,18 @@ class Cutout2D(object):
             `~astropy.coordinates.SkyCoord`, in which case ``wcs`` is a
             required input.
 
-        shape : tuple, optional
-            The shape (``(ny, nx)``) of the cutout array in pixel
-            coordinates (but see the ``mode`` keyword for additional
-            details). May be specified as a `~astropy.units.Quantity`
-            equivalent to pixels.
-
-        side_length : scalar, optional
-            The length (in pixel coordinates) of a side in a square cutout
-            array. ``shape`` will be set to ``(side_length, side_length)``.
-            See the ``mode`` keyword for additional details. May be specified
-            as a `~astropy.units.Quantity` equivalent to pixels.
+        size : int, array-like, `~astropy.units.Quantity`
+            The size of the cutout array along each axis.  If ``size``
+            is a scalar number or a scalar `~astropy.units.Quantity`,
+            then a square cutout of ``size`` will be created.  If
+            ``size`` has two elements, they should be in ``(ny, nx)``
+            order.  Scalar numbers in ``size`` are assumed to be in
+            units of pixels.  ``size`` can also be a
+            `~astropy.units.Quantity` object or contain
+            `~astropy.units.Quantity` objects.  Such
+            `~astropy.unit.Quantity` objects must be in pixel or angular
+            units.  See the ``mode`` keyword for additional details on
+            the final cutout size.
 
         wcs : `~astropy.wcs.WCS`, optional
             A WCS object associated with the input ``data`` array.  If
