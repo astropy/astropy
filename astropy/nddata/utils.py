@@ -475,8 +475,8 @@ def block_replicate(data, block_size, conserve_sum=True):
 class Cutout2D(object):
     """Create a cutout object from a 2D array."""
 
-    def __init__(self, data, position, shape=None, side_length=None, wcs=None,
-                 mode='trim', fill_value=np.nan, copy=False):
+    def __init__(self, data, position, size=None, wcs=None, mode='trim',
+                 fill_value=np.nan, copy=False):
         """
         The returned object will contain a 2D cutout array.  If
         ``copy=False`` (default), the cutout array is a view into the
@@ -600,43 +600,39 @@ class Cutout2D(object):
                                  'SkyCoord')
             position = skycoord_to_pixel(position, wcs, mode='all')  # (x, y)
 
-        if side_length is None and shape is None:
-            raise ValueError("Either side_length or shape must be specified")
+        size = np.atleast_1d(size)
+        if len(size) == 1:
+            size = np.repeat(size, 2)
 
-        if side_length is not None and shape is not None:
-            raise ValueError("Cannot specify both side_length and shape")
-
-        if side_length is not None:
-            shape = (side_length, side_length)
-
-        out_shape = np.zeros(2)
+        shape = np.zeros(2)
         pixel_scales = None
-        for axis, side in enumerate(shape):
-            if isinstance(side, u.Quantity):
+        # ``size`` can have a mixture of int and Quantity (and even units),
+        # so evaluate each axis separately
+        for axis, side in enumerate(size):
+            if not isinstance(side, u.Quantity):
+                shape[axis] = size[axis]     # pixels
+            else:
                 if side.unit is u.pixel:
-                    out_shape[axis] = side.value
+                    shape[axis] = side.value
                 elif side.unit.physical_type == 'angle':
                     if wcs is None:
-                        raise ValueError('wcs must be input if shape has '
-                                         'angular units')
+                        raise ValueError('wcs must be input if any element '
+                                         'of size has angular units')
                     if pixel_scales is None:
                         pixel_scales = u.Quantity(
                             proj_plane_pixel_scales(wcs), wcs.wcs.cunit[axis])
-                    val = (side / pixel_scales[axis]).decompose()
-                    out_shape[axis] = val
+                    shape[axis] = (side / pixel_scales[axis]).decompose()
                 else:
-                    raise ValueError('If shape is a Quantity, then it must '
-                                     'be have pixel or angular units.')
-            else:
-                out_shape[axis] = shape[axis]
-        shape = tuple(out_shape)
-
-        # extract_array and overlap_slices use (y, x) positions
-        pos = position[::-1]
+                    raise ValueError('shape can contain Quantities with only '
+                                     'pixel or angular units')
 
         data = np.asanyarray(data)
+        # reverse position because extract_array and overlap_slices
+        # use (y, x), but keep the input position
+        pos_yx = position[::-1]
+
         cutout_data, input_position_cutout = extract_array(
-            data, shape, pos, mode=mode, fill_value=fill_value,
+            data, tuple(shape), pos_yx, mode=mode, fill_value=fill_value,
             return_position=True)
         if copy:
             cutout_data = np.copy(cutout_data)
@@ -644,7 +640,7 @@ class Cutout2D(object):
 
         self.input_position_cutout = input_position_cutout[::-1]    # (x, y)
         slices_original, slices_cutout = overlap_slices(
-            data.shape, shape, pos, mode=mode)
+            data.shape, shape, pos_yx, mode=mode)
 
         self.slices_original = slices_original
         self.slices_cutout = slices_cutout
@@ -744,8 +740,8 @@ class Cutout2D(object):
 
         height, width = self.shape
         hw, hh = width / 2., height / 2.
-        pos = self.position_original - np.array([hw, hh])
-        patch = mpatches.Rectangle(pos, width, height, 0., **kwargs)
+        pos_xy = self.position_original - np.array([hw, hh])
+        patch = mpatches.Rectangle(pos_xy, width, height, 0., **kwargs)
         ax.add_patch(patch)
         return ax
 

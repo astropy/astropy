@@ -446,3 +446,25 @@ class TestCutout2D(object):
                                                    c.center_cutout[0], c.wcs)
         assert_quantity_allclose(skycoord_original.ra, skycoord_cutout.ra)
         assert_quantity_allclose(skycoord_original.dec, skycoord_cutout.dec)
+
+    def test_shape_scalar(self):
+        shape = 10
+        same as shape = (10, 10)
+
+    def test_shape_scalar_quantity(self):
+        shape = 10. * u.arcsec
+        shape = 10. * u.m     # error
+
+    def test_shape_quantity(self):
+        shape = (10 * u.pix, 10 * u.pix)
+        shape = (10 * u.arcsec, 10 * u.arcsec)
+        shape = (10, 10 * u.pix)
+        shape = (10 * u.pix, 10 * u.arcsec)
+
+    def test_shape_quantity(self):
+        shape = (10 * u.m, 10 * u.m)
+        shape = (10 * u.pix, 10 * u.m)
+
+
+
+
