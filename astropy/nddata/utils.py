@@ -564,34 +564,41 @@ class Cutout2D(object):
         >>> from astropy.nddata.utils import Cutout2D
         >>> from astropy import units as u
         >>> data = np.arange(20.).reshape(5, 4)
-        >>> c1 = Cutout2D(data, (2, 2), (3, 3))
-        >>> print(c1.data)
+        >>> cutout1 = Cutout2D(data, (2, 2), (3, 3))
+        >>> print(cutout1.data)
         [[  5.   6.   7.]
          [  9.  10.  11.]
          [ 13.  14.  15.]]
 
-        >>> print(c1.center_original)
+        >>> print(cutout1.center_original)
         (2.0, 2.0)
-        >>> print(c1.center_cutout)
+        >>> print(cutout1.center_cutout)
         (1.0, 1.0)
-        >>> print(c1.origin_original)
+        >>> print(cutout1.origin_original)
         (1, 1)
 
-        >>> c2 = Cutout2D(data, (0, 0), shape=(3*u.pixel, 3*u.pixel))
-        >>> print(c2.data)
+        >>> cutout2 = Cutout2D(data, (2, 2), 3)
+        >>> print(cutout2.data)
+        [[  5.   6.   7.]
+         [  9.  10.  11.]
+         [ 13.  14.  15.]]
+
+        >>> size = u.Quantity([3, 3], u.pixel)
+        >>> cutout3 = Cutout2D(data, (0, 0), size)
+        >>> print(cutout3.data)
         [[ 0.  1.]
          [ 4.  5.]]
 
-        >>> c3 = Cutout2D(data, (0, 0), shape=(3, 3), mode='partial')
-        >>> print(c3.data)
+        >>> cutout4 = Cutout2D(data, (0, 0), (3 * u.pixel, 3))
+        >>> print(cutout4.data)
+        [[ 0.  1.]
+         [ 4.  5.]]
+
+        >>> cutout5 = Cutout2D(data, (0, 0), (3, 3), mode='partial')
+        >>> print(cutout5.data)
         [[ nan  nan  nan]
          [ nan   0.   1.]
          [ nan   4.   5.]]
-
-        >>> c4 = Cutout2D(data, (0, 0), side_length=3)
-        >>> print(c4.data)
-        [[ 0.  1.]
-         [ 4.  5.]]
         """
 
         if isinstance(position, SkyCoord):
