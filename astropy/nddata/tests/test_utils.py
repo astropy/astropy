@@ -356,6 +356,10 @@ class TestCutout2D(object):
             assert c.slices_original == (slice(1, 4), slice(1, 4))
             assert c.slices_cutout == (slice(0, 3), slice(0, 3))
 
+    def test_size_length(self):
+        with pytest.raises(ValueError):
+            Cutout2D(self.data, (2, 2), (1, 1, 1))
+
     def test_size_units(self):
         for size in [3 * u.cm, (3, 3 * u.K)]:
             with pytest.raises(ValueError):

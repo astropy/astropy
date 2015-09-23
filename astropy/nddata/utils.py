@@ -618,6 +618,9 @@ class Cutout2D(object):
             if len(size) == 1:
                 size = np.repeat(size, 2)
 
+        if len(size) > 2:
+            raise ValueError('size must have at most two elements')
+
         shape = np.zeros(2).astype(int)
         pixel_scales = None
         # ``size`` can have a mixture of int and Quantity (and even units),
