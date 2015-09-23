@@ -9,7 +9,7 @@ from copy import deepcopy
 from .decorators import support_nddata
 from astropy.utils import lazyproperty
 from astropy.coordinates import SkyCoord
-from astropy.wcs.utils import skycoord_to_pixel
+from astropy.wcs.utils import skycoord_to_pixel, proj_plane_pixel_scales
 from astropy import units as u
 
 
@@ -609,7 +609,27 @@ class Cutout2D(object):
         if side_length is not None:
             shape = (side_length, side_length)
 
-        shape = [x.value if u.pixel.is_equivalent(x) else x for x in shape]
+        out_shape = np.zeros(2)
+        pixel_scales = None
+        for axis, side in enumerate(shape):
+            if isinstance(side, u.Quantity):
+                if side.unit is u.pixel:
+                    out_shape[axis] = side.value
+                elif side.unit.physical_type == 'angle':
+                    if wcs is None:
+                        raise ValueError('wcs must be input if shape has '
+                                         'angular units')
+                    if pixel_scales is None:
+                        pixel_scales = u.Quantity(
+                            proj_plane_pixel_scales(wcs), wcs.wcs.cunit[axis])
+                    val = (side / pixel_scales[axis]).decompose()
+                    out_shape[axis] = val
+                else:
+                    raise ValueError('If shape is a Quantity, then it must '
+                                     'be have pixel or angular units.')
+            else:
+                out_shape[axis] = shape[axis]
+        shape = tuple(out_shape)
 
         # extract_array and overlap_slices use (y, x) positions
         pos = position[::-1]
