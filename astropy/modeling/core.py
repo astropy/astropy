@@ -424,12 +424,43 @@ class Model(object):
     This class sets the constraints and other properties for all individual
     parameters and performs parameter validation.
 
+    The following initialization arguments apply to the majority of Model
+    subclasses by default (exceptions include specialized utility models
+    like `~astropy.modeling.mappings.Mapping`).  Parametric models take all
+    their parameters as arguments, followed by any of the following optional
+    keyword arguments:
+
     Parameters
     ----------
     name : str, optional
         A human-friendly name associated with this model instance
         (particularly useful for identifying the individual components of a
         compound model).
+
+    meta : dict, optional
+        An optional dict of user-defined metadata to attach to this model.
+        How this is used and interpreted is up to the user or individual use
+        case.
+
+    n_models : int, optional
+        If given an integer greater than 1, a *model set* is instantiated
+        instead of a single model.  This affects how the parameter arguments
+        are interpreted.  In this case each parameter must be given as a list
+        or array--elements of this array are taken along the first axis (or
+        ``model_set_axis`` if specified), such that the Nth element is the
+        value of that parameter for the Nth model in the set.
+
+        See the section on model sets in the documentation for more details.
+
+    model_set_axis : int, optional
+        This argument only applies when creating a model set (i.e. ``n_models >
+        1``).  It changes how parameter values are interpreted.  Normally the
+        first axis of each input parameter array (properly the 0th axis) is
+        taken as the axis corresponding to the model sets.  However, any axis
+        of an input array may be taken as this "model set axis".  This accepts
+        negative integers as well--for example use ``model_set_axis=-1`` if the
+        last (most rapidly changing) axis should be associated with the model
+        sets.
 
     fixed : dict, optional
         Dictionary ``{parameter_name: bool}`` setting the fixed constraint
