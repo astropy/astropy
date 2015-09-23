@@ -6,6 +6,7 @@ import re
 
 import numpy as np
 
+from ....extern import six
 from ....extern.six.moves import cStringIO as StringIO
 from ....utils import OrderedDict
 from ....tests.helper import pytest
@@ -982,3 +983,41 @@ def test_probably_html():
                   [[1, 2, 3]],
     ):
         assert _probably_html(table) is False
+
+
+def test_table_with_no_newline():
+    """
+    Test that an input file which is completely empty fails in the expected way.
+    Test that an input file with one line but no newline succeeds.
+    """
+    if six.PY3:
+        import io
+        _StringIO = io.BytesIO
+    else:
+        _StringIO = StringIO
+
+    # With guessing
+    table = _StringIO()
+    with pytest.raises(ascii.InconsistentTableError):
+        ascii.read(table)
+
+    # Without guessing
+    table = _StringIO()
+    with pytest.raises(ValueError) as err:
+        ascii.read(table, guess=False, fast_reader=False, format='basic')
+    assert 'No header line found' in str(err.value)
+
+    table = _StringIO()
+    with pytest.raises(ValueError) as err:
+        ascii.read(table, guess=False, fast_reader=True, format='fast_basic')
+    assert 'Inconsistent data column lengths' in str(err.value)
+
+    # Put a single line of column names but with no newline
+    for kwargs in [dict(),
+                   dict(guess=False, fast_reader=False, format='basic'),
+                   dict(guess=False, fast_reader=True, format='fast_basic')]:
+        table = _StringIO()
+        table.write(b'a b')
+        t = ascii.read(table, **kwargs)
+        assert t.colnames == ['a', 'b']
+        assert len(t) == 0
