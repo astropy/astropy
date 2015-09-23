@@ -519,7 +519,7 @@ class Cutout2D(object):
             units of pixels.  ``size`` can also be a
             `~astropy.units.Quantity` object or contain
             `~astropy.units.Quantity` objects.  Such
-            `~astropy.unit.Quantity` objects must be in pixel or angular
+            `~astropy.units.Quantity` objects must be in pixel or angular
             units.  See the ``mode`` keyword for additional details on
             the final cutout size.
 
@@ -635,7 +635,8 @@ class Cutout2D(object):
                     if pixel_scales is None:
                         pixel_scales = u.Quantity(
                             proj_plane_pixel_scales(wcs), wcs.wcs.cunit[axis])
-                    shape[axis] = (side / pixel_scales[axis]).decompose()
+                    shape[axis] = np.int(np.round(
+                        (side / pixel_scales[axis]).decompose()))
                 else:
                     raise ValueError('shape can contain Quantities with only '
                                      'pixel or angular units')
