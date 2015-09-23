@@ -490,7 +490,9 @@ class Cutout2D(object):
     .. warning::
 
         The cutout WCS object does not currently handle cases where the
-        input WCS object contains tabular distortions.
+        input WCS object contains distortion lookup tables described in
+        the `FITS WCS distortion paper
+        <http://www.atnf.csiro.au/people/mcalabre/WCS/dcs_20040422.pdf>`__.
     """
 
     def __init__(self, data, position, size, wcs=None, mode='trim',
