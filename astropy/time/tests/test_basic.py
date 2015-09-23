@@ -906,9 +906,9 @@ def test_datetime_tzinfo():
         def utcoffset(self, dt):
             return datetime.timedelta(hours=-6)
 
-    d = datetime(2002, 1, 2, 10, 3, 4, tzinfo=TZm6())
+    d = datetime.datetime(2002, 1, 2, 10, 3, 4, tzinfo=TZm6())
     t = Time(d)
-    assert t.value == datetime(2002, 1, 2, 16, 3, 4)
+    assert t.value == datetime.datetime(2002, 1, 2, 16, 3, 4)
 
 def test_subfmts_regex():
     """
