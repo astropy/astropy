@@ -8,14 +8,6 @@ import sys
 import ah_bootstrap
 from setuptools import setup
 
-#A dirty hack to get around some early import/configurations ambiguities
-if sys.version_info[0] >= 3:
-    import builtins
-else:
-    import __builtin__ as builtins
-builtins._ASTROPY_SETUP_ = True
-
-import astropy
 from astropy_helpers.setup_helpers import (
     register_commands, adjust_compiler, get_package_info, get_debug_option)
 try:
@@ -25,6 +17,8 @@ except:
     from astropy_helpers.setup_helpers import is_distutils_display_option
 from astropy_helpers.git_helpers import get_git_devstr
 from astropy_helpers.version_helpers import generate_version_py
+
+import astropy
 
 NAME = 'astropy'
 
