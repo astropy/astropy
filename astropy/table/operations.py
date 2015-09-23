@@ -197,7 +197,7 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
 
     A ``join_type`` of 'exact' means that the tables must all have exactly
     the same column names (though the order can vary).  If ``join_type``
-    is 'inner' then the intersection of common columns will be output.
+    is 'inner' then the intersection of common columns will be the output.
     A value of 'outer' (default) means the output will have the union of
     all columns, with table values being masked where no common values are
     available.
@@ -266,8 +266,8 @@ def hstack(tables, join_type='outer',
 
     A ``join_type`` of 'exact' means that the tables must all
     have exactly the same number of rows.  If ``join_type`` is 'inner' then
-    the intersection of rows will be output.  A value of 'outer' (default) means
-    the output will have the union of all rows, with table values being
+    the intersection of rows will be the output.  A value of 'outer' (default)
+    means the output will have the union of all rows, with table values being
     masked where no common values are available.
 
     Parameters
@@ -657,14 +657,14 @@ def _join(left, right, keys=None, join_type='inner',
     return out
 
 
-def _vstack(arrays, join_type='inner', col_name_map=None):
+def _vstack(arrays, join_type='outer', col_name_map=None):
     """
     Stack Tables vertically (by rows)
 
     A ``join_type`` of 'exact' (default) means that the arrays must all
     have exactly the same column names (though the order can vary).  If
     ``join_type`` is 'inner' then the intersection of common columns will
-    be output.  A value of 'outer' means the output will have the union of
+    be the output.  A value of 'outer' means the output will have the union of
     all columns, with array values being masked where no common values are
     available.
 
@@ -673,7 +673,7 @@ def _vstack(arrays, join_type='inner', col_name_map=None):
     arrays : list of Tables
         Tables to stack by rows (vertically)
     join_type : str
-        Join type ('inner' | 'exact' | 'outer'), default is 'inner'
+        Join type ('inner' | 'exact' | 'outer'), default is 'outer'
     col_name_map : empty dict or None
         If passed as a dict then it will be updated in-place with the
         mapping of output to input column names.
@@ -756,14 +756,14 @@ def _vstack(arrays, join_type='inner', col_name_map=None):
     return out
 
 
-def _hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
+def _hstack(arrays, join_type='outer', uniq_col_name='{col_name}_{table_name}',
            table_names=None, col_name_map=None):
     """
     Stack tables horizontally (by columns)
 
     A ``join_type`` of 'exact' (default) means that the arrays must all
     have exactly the same number of rows.  If ``join_type`` is 'inner' then
-    the intersection of rows will be output.  A value of 'outer' means
+    the intersection of rows will be the output.  A value of 'outer' means
     the output will have the union of all rows, with array values being
     masked where no common values are available.
 
@@ -772,7 +772,7 @@ def _hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
     arrays : List of tables
         Tables to stack by columns (horizontally)
     join_type : str
-        Join type ('inner' | 'exact' | 'outer'), default is 'exact'
+        Join type ('inner' | 'exact' | 'outer'), default is 'outer'
     uniq_col_name : str or None
         String generate a unique output column name in case of a conflict.
         The default is '{col_name}_{table_name}'.
