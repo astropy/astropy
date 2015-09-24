@@ -48,17 +48,20 @@ Instead of local copies of IERS files, one can also download them, using
 `iers.IERS_A_URL` and `iers.IERS_B_URL`::
 
     >>> from astropy.utils.iers import IERS_A, IERS_A_URL
-    >>> from astropy.utils.data import download_file
-    >>> iers_a_file = download_file(IERS_A_URL, cache=True)  # doctest: +SKIP
-    >>> iers_a = IERS_A.open(iers_a_file)                    # doctest: +SKIP
+    >>> iers_a = IERS_A.open(IERS_A_URL)                    # doctest: +SKIP
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+try:
+    from urlparse import urlparse
+except ImportError:
+    from urllib.parse import urlparse
+
 import numpy as np
 
 from ...table import Table, QTable
-from ...utils.data import get_pkg_data_filename
+from ...utils.data import get_pkg_data_filename, download_file
 
 __all__ = ['IERS', 'IERS_B', 'IERS_A',
            'FROM_IERS_B', 'FROM_IERS_A', 'FROM_IERS_A_PREDICTION',
@@ -95,16 +98,19 @@ class IERS(QTable):
     iers_table = None
 
     @classmethod
-    def open(cls, file=None, **kwargs):
+    def open(cls, file=None, cache=False, **kwargs):
         """Open an IERS table, reading it from a file if not loaded before.
 
         Parameters
         ----------
         file : str or None
-            full path to the ascii file holding IERS data, for passing on to
-            the `read` class methods (further optional arguments that are
-            available for some IERS subclasses can be added).
+            full local or network path to the ascii file holding IERS data,
+            for passing on to the `read` class methods (further optional
+            arguments that are available for some IERS subclasses can be added).
             If None, use the default location from the `read` class method.
+        cache : bool
+            Whether to use cache. Defaults to False, since IERS files
+            are regularly updated.
 
         Returns
         -------
@@ -117,13 +123,19 @@ class IERS(QTable):
         table if `file=None` (the default).
 
         If a table needs to be re-read from disk, pass on an explicit file
-        loction or use the (sub-class) close method and re-open.
+        location or use the (sub-class) close method and re-open.
+
+        If the location is a network location it is first downloaded via
+        download_file.
 
         For the IERS class itself, an IERS_B sub-class instance is opened.
         """
         if file is not None or cls.iers_table is None:
             if file is not None:
-                kwargs.update(file=file)
+                if urlparse(file).netloc:
+                    kwargs.update(file=download_file(file, cache=cache))
+                else:
+                    kwargs.update(file=file)
             cls.iers_table = cls.read(**kwargs)
         return cls.iers_table
 

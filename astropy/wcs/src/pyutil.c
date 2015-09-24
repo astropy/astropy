@@ -352,24 +352,6 @@ wcserr_fix_to_python_exc(const struct wcserr *err) {
   }
 }
 
-void
-wcserr_units_to_python_exc(const struct wcserr *err) {
-  PyObject *exc;
-  if (err == NULL) {
-    PyErr_SetString(PyExc_RuntimeError, "NULL error object in wcslib");
-  } else {
-    if (err->status > 0 && err->status <= UNITSERR_UNSAFE_TRANS) {
-      exc = PyExc_ValueError;
-    } else {
-      exc = PyExc_RuntimeError;
-    }
-    /* This is technically not thread-safe -- make sure we have the GIL */
-    wcsprintf_set(NULL);
-    wcserr_prt(err, "");
-    PyErr_SetString(exc, wcsprintf_buf());
-  }
-}
-
 /***************************************************************************
   Property helpers
  ***************************************************************************/
@@ -497,6 +479,7 @@ set_int(
   }
 
   if ((unsigned long)value_int > 0x7fffffff) {
+    PyErr_SetString(PyExc_OverflowError, "integer value too large");
     return -1;
   }
 
@@ -674,7 +657,7 @@ set_str_list(
     input_len = PySequence_Size(str);
     if (input_len > maxlen) {
       PyErr_Format(
-          PyExc_TypeError,
+          PyExc_ValueError,
           "Each entry in '%s' must be less than %u characters",
           propname, (unsigned int)maxlen);
       Py_DECREF(str);

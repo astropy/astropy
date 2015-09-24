@@ -308,6 +308,24 @@ class classproperty(property):
         Python descriptors work.  In order to implement such properties on a class
         a metaclass for that class must be implemented.
 
+    Parameters
+    ----------
+    fget : callable
+        The function that computes the value of this property (in particular,
+        the function when this is used as a decorator) a la `property`.
+
+    doc : str, optional
+        The docstring for the property--by default inherited from the getter
+        function.
+
+    lazy : bool, optional
+        If True, caches the value returned by the first call to the getter
+        function, so that it is only called once (used for lazy evaluation
+        of an attribute).  This is analogous to `lazyproperty`.  The ``lazy``
+        argument can also be used when `classproperty` is used as a decorator
+        (see the third example below).  When used in the decorator syntax this
+        *must* be passed in as a keyword argument.
+
     Examples
     --------
 
@@ -345,21 +363,78 @@ class classproperty(property):
         NotImplementedError: classproperty can only be read-only; use a
         metaclass to implement modifiable class-level properties
 
+    When the ``lazy`` option is used, the getter is only called once::
+
+        >>> class Foo(object):
+        ...     @classproperty(lazy=True)
+        ...     def bar(cls):
+        ...         print("Performing complicated calculation")
+        ...         return 1
+        ...
+        >>> Foo.bar
+        Performing complicated calculation
+        1
+        >>> Foo.bar
+        1
+
+    If a subclass inherits a lazy `classproperty` the property is still
+    re-evaluated for the subclass::
+
+        >>> class FooSub(Foo):
+        ...     pass
+        ...
+        >>> FooSub.bar
+        Performing complicated calculation
+        1
+        >>> FooSub.bar
+        1
     """
 
-    def __init__(self, fget, doc=None):
+    def __new__(cls, fget=None, doc=None, lazy=False):
+        if fget is None:
+            # Being used as a decorator--return a wrapper that implements
+            # decorator syntax
+            def wrapper(func):
+                return cls(func, lazy=lazy)
+
+            return wrapper
+
+        return super(classproperty, cls).__new__(cls)
+
+    def __init__(self, fget, doc=None, lazy=False):
+        self._lazy = lazy
+        if lazy:
+            self._cache = {}
         fget = self._wrap_fget(fget)
 
         super(classproperty, self).__init__(fget=fget, doc=doc)
 
+        # There is a buglet in Python where self.__doc__ doesn't
+        # get set properly on instances of property subclasses if
+        # the doc argument was used rather than taking the docstring
+        # from fget
+        if doc is not None:
+            self.__doc__ = doc
+
     def __get__(self, obj, objtype=None):
+        if self._lazy and objtype in self._cache:
+            return self._cache[objtype]
+
         if objtype is not None:
             # The base property.__get__ will just return self here;
             # instead we pass objtype through to the original wrapped
             # function (which takes the class as its sole argument)
-            return self.fget.__wrapped__(objtype)
+            val = self.fget.__wrapped__(objtype)
+        else:
+            val = super(classproperty, self).__get__(obj, objtype=objtype)
 
-        return super(classproperty, self).__get__(obj, objtype=objtype)
+        if self._lazy:
+            if objtype is None:
+                objtype = obj.__class__
+
+            self._cache[objtype] = val
+
+        return val
 
     def getter(self, fget):
         return super(classproperty, self).getter(self._wrap_fget(fget))
@@ -382,7 +457,7 @@ class classproperty(property):
         # Using stock functools.wraps instead of the fancier version
         # found later in this module, which is overkill for this purpose
 
-        @wraps(orig_fget)
+        @functools.wraps(orig_fget)
         def fget(obj):
             return orig_fget(obj.__class__)
 
@@ -392,7 +467,7 @@ class classproperty(property):
         return fget
 
 
-class lazyproperty(object):
+class lazyproperty(property):
     """
     Works similarly to property(), but computes the value only once.
 
@@ -426,20 +501,14 @@ class lazyproperty(object):
     """
 
     def __init__(self, fget, fset=None, fdel=None, doc=None):
-        self._fget = fget
-        self._fset = fset
-        self._fdel = fdel
-        if doc is None:
-            self.__doc__ = fget.__doc__
-        else:
-            self.__doc__ = doc
-        self._key = self._fget.__name__
+        super(lazyproperty, self).__init__(fget, fset, fdel, doc)
+        self._key = self.fget.__name__
 
     def __get__(self, obj, owner=None):
         try:
             return obj.__dict__[self._key]
         except KeyError:
-            val = self._fget(obj)
+            val = self.fget(obj)
             obj.__dict__[self._key] = val
             return val
         except AttributeError:
@@ -449,8 +518,8 @@ class lazyproperty(object):
 
     def __set__(self, obj, val):
         obj_dict = obj.__dict__
-        if self._fset:
-            ret = self._fset(obj, val)
+        if self.fset:
+            ret = self.fset(obj, val)
             if ret is not None and obj_dict.get(self._key) is ret:
                 # By returning the value set the setter signals that it took
                 # over setting the value in obj.__dict__; this mechanism allows
@@ -459,32 +528,10 @@ class lazyproperty(object):
         obj_dict[self._key] = val
 
     def __delete__(self, obj):
-        if self._fdel:
-            self._fdel(obj)
+        if self.fdel:
+            self.fdel(obj)
         if self._key in obj.__dict__:
             del obj.__dict__[self._key]
-
-    def getter(self, fget):
-        return self.__ter(fget, 0)
-
-    def setter(self, fset):
-        return self.__ter(fset, 1)
-
-    def deleter(self, fdel):
-        return self.__ter(fdel, 2)
-
-    def __ter(self, f, arg):
-        args = [self._fget, self._fset, self._fdel, self.__doc__]
-        args[arg] = f
-        cls_ns = sys._getframe(1).f_locals
-        for k, v in six.iteritems(cls_ns):
-            if v is self:
-                property_name = k
-                break
-
-        cls_ns[property_name] = lazyproperty(*args)
-
-        return cls_ns[property_name]
 
 
 class sharedmethod(classmethod):

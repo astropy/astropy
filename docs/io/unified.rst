@@ -49,6 +49,11 @@ Similarly, for writing, the format can be explicitly specified::
 As for the :meth:`~astropy.table.Table.read` method, the format may
 be automatically identified in some cases.
 
+The underlying file handler will also automatically detect various
+compressed data formats and transparently uncompress them as far as
+supported by the Python installation (see
+:meth:`~astropy.utils.data.get_readable_fileobj`).
+
 Any additional arguments specified will depend on the format.  For examples of this see the
 section `Built-in table readers/writers`_.  This section also provides the full list of
 choices for the ``format`` argument.
@@ -158,6 +163,7 @@ indicates which support write functionality.
 ``ascii.sextractor``                         :class:`~astropy.io.ascii.SExtractor`: SExtractor format table
 ``ascii.tab``                            Yes :class:`~astropy.io.ascii.Tab`: Basic table with tab-separated values
 ``ascii.csv``                     .csv   Yes :class:`~astropy.io.ascii.Csv`: Basic table with comma-separated values
+``ascii.ecsv``                   .ecsv   Yes :class:`~astropy.io.ascii.Ecsv`: Basic table with Enhanced CSV (supporting metadata)
 =============================== ====== ===== ============================================================================================
 
 .. note::

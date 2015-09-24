@@ -96,9 +96,23 @@ $(document).ready(function() {{
 
 
 class JSViewer(object):
-    def __init__(self,
-                 use_local_files=False,
-                 display_length=50):
+    """Provides an interactive HTML export of a Table.
+
+    This class provides an interface to the `DataTables
+    <http://datatables.net/>`_ library, which allow to visualize interactively
+    an HTML table. It is used by the `~astropy.table.Table.show_in_browser`
+    method.
+
+    Parameters
+    ----------
+    use_local_files : bool, optional
+        Use local files or a CDN for JavaScript librairies. Default False.
+    display_length : int, optional
+        Number or rows to show. Default to 50.
+
+    """
+
+    def __init__(self, use_local_files=False, display_length=50):
         self._use_local_files = use_local_files
         self.display_length_menu = [[10, 25, 50, 100, 500, 1000, -1],
                                     [10, 25, 50, 100, 500, 1000, "All"]]

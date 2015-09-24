@@ -378,18 +378,18 @@ class WCS(WCSBase):
                     fobj = fits.open(header)
                     close_fds.append(fobj)
                     header = fobj[0].header
-                    header_string = header.tostring()
+                    header_string = header.tostring().rstrip()
                 else:
                     header_string = header
             elif isinstance(header, fits.Header):
-                header_string = header.tostring()
+                header_string = header.tostring().rstrip()
             else:
                 try:
                     # Accept any dict-like object
                     new_header = fits.Header()
                     for dict_key in header.keys():
                         new_header[dict_key] = header[dict_key]
-                    header_string = new_header.tostring()
+                    header_string = new_header.tostring().rstrip()
                 except TypeError:
                     raise TypeError(
                         "header must be a string, an astropy.io.fits.Header "
@@ -404,18 +404,38 @@ class WCS(WCSBase):
                 header_bytes = header_string
                 header_string = header_string.decode('ascii')
 
+            try:
+                tmp_header = fits.Header.fromstring(header_string)
+                self._remove_sip_kw(tmp_header)
+                tmp_header_bytes = tmp_header.tostring().rstrip()
+                if isinstance(tmp_header_bytes, six.text_type):
+                    tmp_header_bytes = tmp_header_bytes.encode('ascii')
+                tmp_wcsprm = _wcs.Wcsprm(header=tmp_header_bytes, key=key,
+                                         relax=relax, keysel=keysel_flags,
+                                         colsel=colsel, warnings=False)
+            except _wcs.NoWcsKeywordsFoundError:
+                est_naxis = 0
+            else:
+                if naxis is not None:
+                    try:
+                        tmp_wcsprm.sub(naxis)
+                    except ValueError:
+                        pass
+                    est_naxis = tmp_wcsprm.naxis
+                else:
+                    est_naxis = 2
+
             header = fits.Header.fromstring(header_string)
 
-            if naxis is None:
-                self.naxis = header.get('NAXIS', 2)
-            else:
-                self.naxis = naxis
-            if self.naxis == 0:
-                self.naxis = 2
+            if est_naxis == 0:
+                est_naxis = 2
+            self.naxis = est_naxis
+
             det2im = self._read_det2im_kw(header, fobj, err=minerr)
             cpdis = self._read_distortion_kw(
                 header, fobj, dist='CPDIS', err=minerr)
             sip = self._read_sip_kw(header)
+            self._remove_sip_kw(header)
 
             header_string = header.tostring()
             header_string = header_string.replace('END' + ' ' * 77, '')
@@ -545,7 +565,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             return
 
         # Nothing to be done if axes don't use SIP distortion parameters
-        if not all(ctype.endswith('-SIP') for ctype in self.wcs.ctype):
+        if self.sip is None:
             return
 
         # Nothing to be done if any radial terms are present...
@@ -953,6 +973,25 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         write_dist(1, self.cpdis1)
         write_dist(2, self.cpdis2)
+
+    def _remove_sip_kw(self, header):
+        """
+        Remove SIP information from a header.
+        """
+        # Never pass SIP CTYPES or other information along to
+        # wcslib
+        for sel in [''] + [chr(i + ord('A')) for i in range(26)]:
+            for axis in ['1', '2']:
+                key = 'CTYPE{0}{1}'.format(axis, sel)
+                val = header.get(key)
+                if val is not None and val.endswith('-SIP'):
+                    header[key] = val[:-4]
+            for prefix in ('A', 'B', 'AP', 'BP'):
+                for i in range(20):
+                    for j in range(20):
+                        key = '{0}_{1}_{2}{3}'.format(prefix, i, j, sel)
+                        if key in header:
+                            del header[key]
 
     def _read_sip_kw(self, header):
         """

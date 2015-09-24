@@ -575,6 +575,10 @@ This output table has all observations that have both optical and X-ray data for
 been split into two columns, ``obs_date_1`` and ``obs_date_2``.  The values are taken from
 the "left" (``optical``) and "right" (``xray``) tables, respectively.
 
+
+Different join options
+~~~~~~~~~~~~~~~~~~~~~~
+
 The table joins so far are known as "inner" joins and represent the strict intersection of
 the two tables on the key columns.
 
@@ -588,8 +592,9 @@ matching values from the right table when available, this is known as a left joi
    M31 2012-01-02  17.0  16.0    --
    M82 2012-10-29  16.2  15.2  45.0
 
-Two of the observations do not have X-ray data, as indicated by the "--" in the table.
-When there are any missing values the output will be a masked table.  You might be
+Two of the observations do not have X-ray data, as indicated by the ``--`` in the table.
+When there are any missing values the output will be a masked table (see
+:ref:`masking_and_missing_values` for more information).  You might be
 surprised that there is no X-ray data for M31 in the output.  Remember that the default
 matching key includes both ``name`` and ``obs_date``.  Specifying the key as only the
 ``name`` column gives::
@@ -616,8 +621,47 @@ Finally, to make a table with the union of rows from both tables do an "outer" j
   NGC3516 2011-11-11    --    --  42.1
 
 
-Identical keys
-~~~~~~~~~~~~~~
+Non-identical key column names
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The |join| function requires the key column names to be identical in the
+two tables. However, in the following one table has a ``'name'`` column
+while the other has an ``'obj_id'`` column::
+
+  >>> optical = Table.read("""name    obs_date    mag_b  mag_v
+  ...                         M31     2012-01-02  17.0   16.0
+  ...                         M82     2012-10-29  16.2   15.2
+  ...                         M101    2012-10-31  15.1   15.5""", format='ascii')
+  >>> xray_1 = Table.read("""   obj_id    obs_date    logLx
+  ...                           NGC3516 2011-11-11  42.1
+  ...                           M31     1999-01-05  43.1
+  ...                           M82     2012-10-29  45.0""", format='ascii')
+
+In order to perform a match based on the names of the objects, one has to
+temporarily rename one of the columns mentioned above, right before creating
+the new table::
+
+  >>> xray_1.rename_column('obj_id', 'name')
+  >>> opt_xray_1 = join(optical, xray_1, keys='name')
+  >>> xray_1.rename_column('name', 'obj_id')
+  >>> print(opt_xray_1)
+  name obs_date_1 mag_b mag_v obs_date_2 logLx
+  ---- ---------- ----- ----- ---------- -----
+  M31 2012-01-02  17.0  16.0 1999-01-05  43.1
+  M82 2012-10-29  16.2  15.2 2012-10-29  45.0
+
+The original ``xray_1`` table remains unchanged after the operation::
+
+  >>> print(xray_1)
+  obj_id  obs_date  logLx
+  ------- ---------- -----
+  NGC3516 2011-11-11  42.1
+      M31 1999-01-05  43.1
+      M82 2012-10-29  45.0
+
+
+Identical key values
+~~~~~~~~~~~~~~~~~~~~
 
 The |Table| join operation works even if there are multiple rows with identical key
 values.  For example the following tables have multiple rows for the key column ``x``::

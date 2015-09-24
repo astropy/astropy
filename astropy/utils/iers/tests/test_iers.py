@@ -10,6 +10,7 @@ from .. import iers
 from .... import units as u
 from ....table import QTable
 from ....time import Time
+from ....extern.six.moves import urllib
 
 
 FILE_NOT_FOUND_ERROR = getattr(__builtins__, 'FileNotFoundError', IOError)
@@ -67,6 +68,13 @@ class TestBasic():
         iers.IERS.close()
         with pytest.raises(FILE_NOT_FOUND_ERROR):
             iers.IERS.open('surely this does not exist')
+
+    def test_open_network_url(self):
+        iers.IERS_A.close()
+        iers.IERS_A.open("file:" + urllib.request.pathname2url(IERS_A_EXCERPT))
+        assert iers.IERS_A.iers_table is not None
+        assert isinstance(iers.IERS_A.iers_table, QTable)
+        iers.IERS_A.close()
 
 class TestIERS_AExcerpt():
     def test_simple(self):

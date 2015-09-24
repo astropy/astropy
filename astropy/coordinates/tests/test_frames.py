@@ -7,8 +7,10 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 
 from ... import units as u
+from ...extern import six
 from ...tests.helper import (pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
+from ...utils import OrderedDescriptorContainer
 from .. import representation
 
 NUMPY_LT_1P7 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 7]
@@ -17,6 +19,7 @@ def test_frame_attribute_descriptor():
     """ Unit tests of the FrameAttribute descriptor """
     from ..baseframe import FrameAttribute
 
+    @six.add_metaclass(OrderedDescriptorContainer)
     class TestFrameAttributes(object):
         attr_none = FrameAttribute()
         attr_2 = FrameAttribute(default=2)

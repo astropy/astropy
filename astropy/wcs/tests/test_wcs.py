@@ -46,7 +46,7 @@ def test_maps():
         assert_array_almost_equal(pix, [[97, 97]], decimal=0)
 
     # get the list of the hdr files that we want to test
-    hdr_file_list = list(get_pkg_data_filenames("maps", "*.hdr"))
+    hdr_file_list = list(get_pkg_data_filenames("maps", pattern="*.hdr"))
 
     # actually perform a test for each one
     for filename in hdr_file_list:
@@ -91,7 +91,7 @@ def test_spectra():
         assert len(all_wcs) == 9
 
     # get the list of the hdr files that we want to test
-    hdr_file_list = list(get_pkg_data_filenames("spectra", "*.hdr"))
+    hdr_file_list = list(get_pkg_data_filenames("spectra", pattern="*.hdr"))
 
     # actually perform a test for each one
     for filename in hdr_file_list:
@@ -332,6 +332,15 @@ def test_warning_about_defunct_keywords():
         header = get_pkg_data_contents(
             'data/defunct_keywords.hdr', encoding='binary')
         w = wcs.WCS(header)
+
+    with catch_warnings(wcs.FITSFixedWarning) as w:
+        run()
+
+    assert len(w) == 4
+    for item in w:
+        assert 'PCi_ja' in str(item.message)
+
+    # Make sure the warnings come out every time...
 
     with catch_warnings(wcs.FITSFixedWarning) as w:
         run()
@@ -799,4 +808,59 @@ def test_hst_wcs():
     hdulist = fits.open(path)
     # wcslib will complain about the distortion parameters if they
     # weren't correctly deleted from the header
+    w = wcs.WCS(hdulist[1].header, hdulist)
+
+    # Exercise the main transformation functions, mainly just for
+    # coverage
+    w.p4_pix2foc([0, 100, 200], [0, -100, 200], 0)
+    w.det2im([0, 100, 200], [0, -100, 200], 0)
+
+    w.cpdis1 = w.cpdis1
+    w.cpdis2 = w.cpdis2
+
+    w.det2im1 = w.det2im1
+    w.det2im2 = w.det2im2
+
+    w.sip = w.sip
+
+    w.cpdis1.cdelt = w.cpdis1.cdelt
+    w.cpdis1.crpix = w.cpdis1.crpix
+    w.cpdis1.crval = w.cpdis1.crval
+    w.cpdis1.data = w.cpdis1.data
+
+    assert w.sip.a_order == 4
+    assert w.sip.b_order == 4
+    assert w.sip.ap_order == 0
+    assert w.sip.bp_order == 0
+    assert_array_equal(w.sip.crpix, [2048., 1024.])
     wcs.WCS(hdulist[1].header, hdulist)
+
+
+def test_list_naxis():
+    path = get_pkg_data_filename("data/dist_lookup.fits.gz")
+
+    hdulist = fits.open(path)
+    # wcslib will complain about the distortion parameters if they
+    # weren't correctly deleted from the header
+    w = wcs.WCS(hdulist[1].header, hdulist, naxis=['celestial'])
+    assert w.naxis == 2
+    assert w.wcs.naxis == 2
+
+    path = get_pkg_data_filename("maps/1904-66_SIN.hdr")
+    with open(path, 'rb') as fd:
+        content = fd.read()
+    w = wcs.WCS(content, naxis=['celestial'])
+    assert w.naxis == 2
+    assert w.wcs.naxis == 2
+
+    w = wcs.WCS(content, naxis=['spectral'])
+    assert w.naxis == 0
+    assert w.wcs.naxis == 0
+
+
+def test_sip_broken():
+    # This header caused wcslib to segfault because it has a SIP
+    # specification in a non-default keyword
+    hdr = get_pkg_data_contents("data/sip-broken.hdr")
+
+    w = wcs.WCS(hdr)

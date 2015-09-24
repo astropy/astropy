@@ -29,6 +29,7 @@ env:
         - PYTHON_VERSION=2.7 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.3 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.4 SETUP_CMD='egg_info'
+        - PYTHON_VERSION=3.5 SETUP_CMD='egg_info'
 
 matrix:
 
@@ -56,12 +57,14 @@ matrix:
           env: PYTHON_VERSION=3.3 SETUP_CMD='test --open-files'
         - os: linux
           env: PYTHON_VERSION=3.4 SETUP_CMD='test --open-files'
+        - os: linux
+          env: PYTHON_VERSION=3.5 SETUP_CMD='test --open-files'
 
         # Now try with all optional dependencies on 2.7 and an appropriate 3.x
         # build (with latest numpy). We also note the code coverage on Python
         # 2.7.
         - os: linux
-          env: PYTHON_VERSION=2.7 SETUP_CMD='test --coverage' OPTIONAL_DEPS=true LC_CTYPE=C.ascii LC_ALL=C.ascii
+          env: PYTHON_VERSION=2.7 SETUP_CMD='test --coverage' OPTIONAL_DEPS=true LC_CTYPE=C.ascii LC_ALL=C.ascii CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
         - os: linux
           env: PYTHON_VERSION=3.4 SETUP_CMD='test' OPTIONAL_DEPS=true LC_CTYPE=C.ascii LC_ALL=C.ascii
 
@@ -91,4 +94,7 @@ script:
     - $MAIN_CMD $SETUP_CMD
 
 after_success:
-    - if [[ $SETUP_CMD == 'test --coverage' ]]; then coveralls --rcfile='astropy/tests/coveragerc'; fi
+    - if [[ $SETUP_CMD == 'test --coverage' ]]; then
+        cpp-coveralls -E ".*convolution.*" -E ".*_erfa.*" -E ".*\.l" -E ".*\.y" -E ".*flexed.*" -E ".*cextern.*" -E ".*_np_utils.*" -E ".*cparser.*" --dump c-coveralls.json;
+        coveralls --merge=c-coveralls.json --rcfile='astropy/tests/coveragerc';
+      fi

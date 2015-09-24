@@ -12,8 +12,13 @@ import numpy as np
 from .core import (Fittable1DModel, Fittable2DModel, Model,
                    ModelDefinitionError, custom_model)
 from .parameters import Parameter, InputParameterError
+from .utils import ellipse_extent
 from ..utils import deprecated
+from ..utils.compat.funcsigs import signature
 from ..extern import six
+
+from .utils import get_inputs_and_params
+
 
 __all__ = sorted([
     'AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D',
@@ -91,6 +96,38 @@ class Gaussian1D(Fittable1DModel):
     amplitude = Parameter(default=1)
     mean = Parameter(default=0)
     stddev = Parameter(default=1)
+    _bounding_box = 'auto'
+
+    def bounding_box_default(self, factor=5.5):
+        """
+        Tuple defining the default ``bounding_box`` limits,
+        ``(x_low, x_high)``
+
+        Parameters
+        ----------
+        factor : float
+            The multiple of `stddev` used to define the limits.
+            The default is 5.5-sigma, corresponding to a relative error < 1e-7.
+
+        Examples
+        --------
+        >>> from astropy.modeling.models import Gaussian1D
+        >>> model = Gaussian1D(mean=0, stddev=2)
+        >>> model.bounding_box
+        (-11.0, 11.0)
+
+        This range can be set directly (see: `astropy.modeling.Model.bounding_box`) or by
+        using a different factor, like:
+
+        >>> model.bounding_box = model.bounding_box_default(factor=2)
+        >>> model.bounding_box
+        (-4.0, 4.0)
+        """
+
+        x0 = self.mean.value
+        dx = factor * self.stddev
+
+        return (x0 - dx, x0 + dx)
 
     @staticmethod
     def evaluate(x, amplitude, mean, stddev):
@@ -240,6 +277,7 @@ class Gaussian2D(Fittable2DModel):
     x_stddev = Parameter(default=1)
     y_stddev = Parameter(default=1)
     theta = Parameter(default=0)
+    _bounding_box = 'auto'
 
     def __init__(self, amplitude=amplitude.default, x_mean=x_mean.default,
                  y_mean=y_mean.default, x_stddev=None, y_stddev=None,
@@ -280,6 +318,43 @@ class Gaussian2D(Fittable2DModel):
         super(Gaussian2D, self).__init__(
             amplitude=amplitude, x_mean=x_mean, y_mean=y_mean,
             x_stddev=x_stddev, y_stddev=y_stddev, theta=theta, **kwargs)
+
+    def bounding_box_default(self, factor=5.5):
+        """
+        Tuple defining the default ``bounding_box`` limits in each dimension,
+        ``((y_low, y_high), (x_low, x_high))``
+
+        The default offset from the mean is 5.5-sigma, corresponding
+        to a relative error < 1e-7. The limits are adjusted for rotation.
+
+        Parameters
+        ----------
+        factor : float, optional
+            The multiple of `x_stddev` and `y_stddev` used to define the limits.
+            The default is 5.5.
+
+        Examples
+        --------
+        >>> from astropy.modeling.models import Gaussian2D
+        >>> model = Gaussian2D(x_mean=0, y_mean=0, x_stddev=1, y_stddev=2)
+        >>> model.bounding_box
+        ((-11.0, 11.0), (-5.5, 5.5))
+
+        This range can be set directly (see: `astropy.modeling.Model.bounding_box`) or by
+        using a different factor like:
+
+        >>> model.bounding_box = model.bounding_box_default(factor=2)
+        >>> model.bounding_box
+        ((-4.0, 4.0), (-2.0, 2.0))
+        """
+
+        a = factor * self.x_stddev
+        b = factor * self.y_stddev
+        theta = self.theta.value
+        dx, dy = ellipse_extent(a, b, theta)
+
+        return ((self.y_mean - dy, self.y_mean + dy),
+                (self.x_mean - dx, self.x_mean + dx))
 
     @staticmethod
     def evaluate(x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
@@ -481,19 +556,19 @@ class Sersic1D(Fittable1DModel):
         import matplotlib.pyplot as plt
 
         plt.figure()
-        plt.subplot(111,xscale='log',yscale='log')
+        plt.subplot(111, xscale='log', yscale='log')
         s1 = Sersic1D(amplitude=1, r_eff=5)
-        r=np.arange(0,100,.01)
+        r=np.arange(0, 100, .01)
 
-        for n in range(1,10):
+        for n in range(1, 10):
              s1.n = n
-             plt.plot(r,s1(r),color='k',alpha=0.5,lw=2)
+             plt.plot(r, s1(r), color=str(float(n) / 15))
 
-        plt.axis([1e-1,30,1e-2,1e3])
-        plt.xlabel('log Radius',fontsize=16)
-        plt.ylabel('log Surface Brightness',fontsize=16)
-        plt.text(.25,1.5,'n=1',fontsize=16)
-        plt.text(.25,300,'n=10',fontsize=16)
+        plt.axis([1e-1, 30, 1e-2, 1e3])
+        plt.xlabel('log Radius')
+        plt.ylabel('log Surface Brightness')
+        plt.text(.25, 1.5, 'n=1')
+        plt.text(.25, 300, 'n=10')
         plt.xticks([])
         plt.yticks([])
         plt.show()
@@ -699,7 +774,7 @@ class Voigt1D(Fittable1DModel):
         import matplotlib.pyplot as plt
 
         plt.figure()
-        x = np.arange(0, 10, 0.1)
+        x = np.arange(0, 10, 0.01)
         v1 = Voigt1D(x_0=5, amplitude_L=10, fwhm_L=0.5, fwhm_G=0.9)
         plt.plot(x, v1(x))
         plt.show()
@@ -747,8 +822,8 @@ class Voigt1D(Fittable1DModel):
         dVdx = np.sum((D/beta - 2 * (X - B) * alpha / np.square(beta)), axis=-1)
         dVdy = np.sum((C/beta - 2 * (Y - A) * alpha / np.square(beta)), axis=-1)
 
-        dyda = [constant * V / amplitude_L,
-                - constant * dVdx * 2 * sqrt_ln2 / fwhm_G,
+        dyda = [-constant * dVdx * 2 * sqrt_ln2 / fwhm_G,
+                constant * V / amplitude_L,
                 constant * (V / fwhm_L + dVdy * sqrt_ln2 / fwhm_G),
                 -constant * (V + (sqrt_ln2 / fwhm_G) * (2 * (x - x_0) * dVdx + fwhm_L * dVdy)) / fwhm_G]
         return dyda
@@ -903,8 +978,8 @@ class Ellipse2D(Fittable2DModel):
         y, x = np.mgrid[0:50, 0:50]
         fig, ax = plt.subplots(1, 1)
         ax.imshow(e(x, y), origin='lower', interpolation='none', cmap='Greys_r')
-        e2 = mpatches.Ellipse((x0, y0), 2*a, 2*b, theta.degree,
-                              edgecolor='red', facecolor='none')
+        e2 = mpatches.Ellipse((x0, y0), 2*a, 2*b, theta.degree, edgecolor='red',
+                              facecolor='none')
         ax.add_patch(e2)
         plt.show()
     """
@@ -915,6 +990,26 @@ class Ellipse2D(Fittable2DModel):
     a = Parameter(default=1)
     b = Parameter(default=1)
     theta = Parameter(default=0)
+    _bounding_box = 'auto'
+
+    def bounding_box_default(self):
+        """
+        Tuple defining the default ``bounding_box`` limits around the ellipse.
+
+        ``((y_low, y_high), (x_low, x_high))``
+
+        References
+        ----------
+        `astropy.modeling.Model.bounding_box`
+        """
+
+        a = self.a
+        b = self.b
+        theta = self.theta.value
+        dx, dy = ellipse_extent(a, b, theta)
+
+        return ((self.y_0 - dy, self.y_0 + dy),
+                (self.x_0 - dx, self.x_0 + dx))
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, a, b, theta):
@@ -1587,21 +1682,22 @@ class Sersic2D(Fittable2DModel):
         from astropy.modeling.models import Sersic2D
         import matplotlib.pyplot as plt
 
-        x,y = np.meshgrid(np.arange(100),np.arange(100))
+        x,y = np.meshgrid(np.arange(100), np.arange(100))
 
-        mod = Sersic2D(amplitude = 1, r_eff = 25, n=4, x_0=50, y_0=50, ellip=.5,theta=-1)
-        img = mod(x,y)
+        mod = Sersic2D(amplitude = 1, r_eff = 25, n=4, x_0=50, y_0=50,
+                       ellip=.5, theta=-1)
+        img = mod(x, y)
         log_img = np.log10(img)
 
 
         plt.figure()
-        plt.imshow(log_img, origin='lower', interpolation='nearest', cmap='binary_r',
-                    vmin=-1, vmax=2)
-        plt.xlabel('x', fontsize=16)
-        plt.ylabel('y', fontsize=16)
-        cbar=plt.colorbar()
-        cbar.set_label('Log Brightness', rotation=270, labelpad=25, fontsize=16)
-        cbar.set_ticks([-1,0,1,2],update_ticks=True)
+        plt.imshow(log_img, origin='lower', interpolation='nearest',
+                   vmin=-1, vmax=2)
+        plt.xlabel('x')
+        plt.ylabel('y')
+        cbar = plt.colorbar()
+        cbar.set_label('Log Brightness', rotation=270, labelpad=25)
+        cbar.set_ticks([-1, 0, 1, 2], update_ticks=True)
         plt.show()
 
     References
@@ -1648,13 +1744,9 @@ class Sersic2D(Fittable2DModel):
 @deprecated('1.0', alternative='astropy.modeling.models.custom_model',
             pending=True)
 def custom_model_1d(func, func_fit_deriv=None):
-    argspec = inspect.getargspec(func)
-    param_values = argspec.defaults
-    nparams = len(param_values)
+    inputs, params = get_inputs_and_params(func)
 
-    if len(argspec.args) == nparams + 1:
-        param_names = argspec.args[-nparams:]
-    else:
+    if len(inputs) != 1:
         raise ModelDefinitionError(
             "All parameters must be keyword arguments")
 

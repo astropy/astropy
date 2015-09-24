@@ -217,9 +217,12 @@ column representation above and how it appears via ``print()`` or ``str()``::
 Likewise a table row and a column from that row can be selected::
 
   >>> t[1]  # Row object corresponding to row 1
-  <Row 1 of table
-   values=(3, 4, 5)
-   dtype=[('a', '<i4'), ('b', '<i8'), ('c', '<i8')]>
+  <Row index=1>
+     a       b     c
+  m sec^-1
+   int32   int32 int32
+  -------- ----- -----
+     3.000     4     5
 
   >>> t[1]['a']  # Column 'a' of row 1
   3

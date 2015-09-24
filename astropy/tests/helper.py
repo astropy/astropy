@@ -18,7 +18,6 @@ import zlib
 import functools
 import multiprocessing
 import os
-import shutil
 import tempfile
 import types
 import warnings
@@ -304,15 +303,24 @@ def _save_coverage(cov, result, rootdir, testing_path):
     # long as 2to3 is needed). Therefore we only do this fix for
     # Python 2.x.
     if six.PY2:
-        d = cov.data
-        cov._harvest_data()
-        for key in d.lines.keys():
+        try:
+            # Coverage 4.0: _harvest_data has been renamed to get_data, the
+            # lines dict is private
+            cov.get_data()
+        except AttributeError:
+            # Coverage < 4.0
+            cov._harvest_data()
+            lines = cov.data.lines
+        else:
+            lines = cov.data._lines
+
+        for key in lines.keys():
             new_path = os.path.relpath(
                 os.path.realpath(key),
                 os.path.realpath(testing_path))
             new_path = os.path.abspath(
                 os.path.join(rootdir, new_path))
-            d.lines[new_path] = d.lines.pop(key)
+            lines[new_path] = lines.pop(key)
 
     color_print('Saving coverage data in .coverage...', 'green')
     cov.save()
@@ -330,9 +338,10 @@ class raises(object):
         def test_foo():
             x = 1/0
 
-    This can also be used a context manager, in which case it is just an alias
-    for the `pytest.raises` context manager (because the two have the same name
-    this help avoid confusion by being flexible).
+    This can also be used a context manager, in which case it is just
+    an alias for the ``pytest.raises`` context manager (because the
+    two have the same name this help avoid confusion by being
+    flexible).
     """
 
     # pep-8 naming exception -- this is a decorator class
@@ -361,7 +370,6 @@ def enable_deprecations_as_exceptions(include_astropy_deprecations=True):
     """
     Turn on the feature that turns deprecations into exceptions.
     """
-
     global _deprecations_as_exceptions
     _deprecations_as_exceptions = True
 
@@ -379,9 +387,6 @@ def treat_deprecations_as_exceptions():
     This completely resets the warning filters and any "already seen"
     warning state.
     """
-    if not _deprecations_as_exceptions:
-        return
-
     # First, totally reset the warning state
     for module in list(six.itervalues(sys.modules)):
         # We don't want to deal with six.MovedModules, only "real"
@@ -389,6 +394,9 @@ def treat_deprecations_as_exceptions():
         if (isinstance(module, types.ModuleType) and
             hasattr(module, '__warningregistry__')):
             del module.__warningregistry__
+
+    if not _deprecations_as_exceptions:
+        return
 
     warnings.resetwarnings()
 
@@ -424,7 +432,7 @@ def treat_deprecations_as_exceptions():
         # py.test's warning.showwarning does not include the line argument
         # on Python 2.6, so we need to explicitly ignore this warning.
         warnings.filterwarnings(
-            "always",
+            "ignore",
             r"functions overriding warnings\.showwarning\(\) must support "
             r"the 'line' argument",
             DeprecationWarning)
@@ -433,20 +441,30 @@ def treat_deprecations_as_exceptions():
         # py.test reads files with the 'U' flag, which is now
         # deprecated in Python 3.4.
         warnings.filterwarnings(
-            "always",
+            "ignore",
             r"'U' mode is deprecated",
             DeprecationWarning)
 
         # BeautifulSoup4 triggers a DeprecationWarning in stdlib's
         # html module.x
         warnings.filterwarnings(
-            "always",
-            "The strict argument and mode are deprecated.",
+            "ignore",
+            r"The strict argument and mode are deprecated\.",
             DeprecationWarning)
         warnings.filterwarnings(
-            "always",
-            "The value of convert_charrefs will become True in 3.5. "
-            "You are encouraged to set the value explicitly.",
+            "ignore",
+            r"The value of convert_charrefs will become True in 3\.5\. "
+            r"You are encouraged to set the value explicitly\.",
+            DeprecationWarning)
+
+    if sys.version_info[:2] >= (3, 5):
+        # py.test raises this warning on Python 3.5.
+        # This can be removed when fixed in py.test.
+        # See https://github.com/pytest-dev/pytest/pull/1009
+        warnings.filterwarnings(
+            "ignore",
+            r"inspect\.getargspec\(\) is deprecated, use "
+            r"inspect\.signature\(\) instead",
             DeprecationWarning)
 
 

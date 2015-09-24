@@ -25,7 +25,7 @@ from ...utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 BLOCK_SIZE = 2880  # the FITS block size
 
 # This regular expression can match a *valid* END card which just consists of
-# the the string 'END' followed by all spaces, or an *invalid* end card which
+# the string 'END' followed by all spaces, or an *invalid* end card which
 # consists of END, followed by any character that is *not* a valid character
 # for a valid FITS keyword (that is, this is not a keyword like 'ENDER' which
 # starts with 'END' but is not 'END'), followed by any arbitrary bytes.  An
@@ -845,7 +845,7 @@ class Header(object):
 
             to insert after an existing keyword.
 
-            The the only advantage of using :meth:`Header.set` is that it
+            The only advantage of using :meth:`Header.set` is that it
             easily replaces the old usage of :meth:`Header.update` both
             conceptually and in terms of function signature.
 
@@ -1359,7 +1359,7 @@ class Header(object):
                 else:
                     extend_cards.append(card)
             else:
-                if unique or update and keyword in self:
+                if (unique or update) and keyword in self:
                     if card.is_blank:
                         extend_cards.append(card)
                         continue
@@ -1442,7 +1442,7 @@ class Header(object):
         Parameters
         ----------
         key : int, str, or tuple
-            The index into the the list of header keywords before which the
+            The index into the list of header keywords before which the
             new keyword should be inserted, or the name of a keyword before
             which the new keyword should be inserted.  Can also accept a
             (keyword, index) tuple for inserting around duplicate keywords.
@@ -2293,7 +2293,7 @@ class _HeaderCommentaryCards(_CardAccessor):
 def _is_astropy_internal():
     """
     Returns True if the stack frame this is called from is in code internal to
-    the the astropy package.
+    the astropy package.
 
     This is used in a few places where hacks are employed for backwards
     compatibility with the old header API, but where we want to avoid using

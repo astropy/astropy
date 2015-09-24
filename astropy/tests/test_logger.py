@@ -188,7 +188,7 @@ def test_exception_logging_enable_twice():
 @pytest.mark.skipif(str("ip is not None"))
 def test_exception_logging_overridden():
     log.enable_exception_logging()
-    sys.excepthook = lambda: None
+    sys.excepthook = lambda etype, evalue, tb: None
     with pytest.raises(LoggingError) as e:
         log.disable_exception_logging()
     assert e.value.args[0] == 'Cannot disable exception logging: sys.excepthook was not set by this logger, or has been overridden'
@@ -259,6 +259,31 @@ def test_exception_logging_origin():
     assert log_list[0].message.startswith(
         "TypeError: homogeneous list must contain only objects of type ")
     assert log_list[0].origin == 'astropy.utils.collections'
+
+
+@pytest.mark.skipif(sys.version_info[:2] >= (3, 5),
+                    reason="Infinite recursion on Python 3.5")
+@pytest.mark.xfail(str("ip is not None"))
+def test_exception_logging_argless_exception():
+    """
+    Regression test for a crash that occurred on Python 3 when logging an
+    exception that was instantiated with no arguments (no message, etc.)
+
+    Regression test for https://github.com/astropy/astropy/pull/4056
+    """
+
+    try:
+        log.enable_exception_logging()
+        with log.log_to_list() as log_list:
+            raise Exception()
+    except Exception as exc:
+        sys.excepthook(*sys.exc_info())
+    else:
+        assert False  # exception should have been raised
+    assert len(log_list) == 1
+    assert log_list[0].levelname == 'ERROR'
+    assert log_list[0].message == 'Exception [astropy.tests.test_logger]'
+    assert log_list[0].origin == 'astropy.tests.test_logger'
 
 
 @pytest.mark.parametrize(('level'), [None, 'DEBUG', 'INFO', 'WARN', 'ERROR'])

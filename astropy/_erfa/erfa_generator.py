@@ -15,6 +15,7 @@ from __future__ import absolute_import, division, print_function
 
 import re
 import os.path
+from astropy.utils.compat.odict import OrderedDict
 
 
 ctype_to_dtype = {'double'     : "numpy.double",
@@ -180,6 +181,17 @@ class Argument(object):
     @property
     def ndim(self):
         return len(self.shape)
+
+    @property
+    def cshape(self):
+        return ''.join(['[{0}]'.format(s) for s in self.shape])
+
+    @property
+    def name_for_call(self):
+        if self.is_ptr:
+            return '_'+self.name
+        else:
+            return '*_'+self.name
 
     def __repr__(self):
         return "Argument('{0}', name='{1}', ctype='{2}', inout_state='{3}')".format(self.definition, self.name, self.ctype, self.inout_state)
@@ -378,7 +390,7 @@ def main(srcdir, outfn, templateloc, verbose=True):
     with open(erfahfn, "r") as f:
         erfa_h = f.read()
 
-    funcs = {}
+    funcs = OrderedDict()
     section_subsection_functions = re.findall('/\* (\w*)/(\w*) \*/\n(.*?)\n\n',
                                               erfa_h, flags=re.DOTALL|re.MULTILINE)
     for section, subsection, functions in section_subsection_functions:

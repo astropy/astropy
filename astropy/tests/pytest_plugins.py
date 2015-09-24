@@ -30,6 +30,7 @@ from .disable_internet import turn_off_internet, turn_on_internet
 from .output_checker import AstropyOutputChecker, FIX, FLOAT_CMP
 from ..utils import OrderedDict
 from ..utils.argparse import writeable_directory
+from ..utils.introspection import resolve_name
 
 # Needed for Python 2.6 compatibility
 try:
@@ -127,6 +128,9 @@ REMOTE_DATA = doctest.register_optionflag('REMOTE_DATA')
 
 def pytest_configure(config):
     treat_deprecations_as_exceptions()
+
+    config.getini('markers').append(
+        'remote_data: Run tests that require data from remote servers')
 
     # Monkeypatch to deny access to remote resources unless explicitly told
     # otherwise
@@ -581,7 +585,7 @@ def pytest_report_header(config):
 
     for module_display, module_name in six.iteritems(PYTEST_HEADER_MODULES):
         try:
-            module = __import__(module_name)
+            module = resolve_name(module_name)
         except ImportError:
             s += "{0}: not available\n".format(module_display)
         else:

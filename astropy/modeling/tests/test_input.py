@@ -305,7 +305,7 @@ class TestEvaluation(object):
         g(x, y)
 
 
-class TestModel_1_1(Fittable1DModel):
+class TModel_1_1(Fittable1DModel):
     p1 = Parameter()
     p2 = Parameter()
 
@@ -330,7 +330,7 @@ class TestSingleInputSingleOutputSingleModel(object):
         Scalar parameters with a scalar input should return a scalar.
         """
 
-        t = TestModel_1_1(1, 10)
+        t = TModel_1_1(1, 10)
         y = t(100)
         assert isinstance(y, float)
         assert np.ndim(y) == 0
@@ -342,7 +342,7 @@ class TestSingleInputSingleOutputSingleModel(object):
         array output of the same shape as the input.
         """
 
-        t = TestModel_1_1(1, 10)
+        t = TModel_1_1(1, 10)
         y = t(np.arange(5) * 100)
         assert isinstance(y, np.ndarray)
         assert np.shape(y) == (5,)
@@ -354,7 +354,7 @@ class TestSingleInputSingleOutputSingleModel(object):
         array output of the same shape as the input.
         """
 
-        t = TestModel_1_1(1, 10)
+        t = TModel_1_1(1, 10)
         y = t(np.arange(6).reshape(2, 3) * 100)
         assert isinstance(y, np.ndarray)
         assert np.shape(y) == (2, 3)
@@ -367,7 +367,7 @@ class TestSingleInputSingleOutputSingleModel(object):
         array output of the same shape as the input.
         """
 
-        t = TestModel_1_1(1, 10)
+        t = TModel_1_1(1, 10)
         y = t(np.arange(12).reshape(2, 3, 2) * 100)
         assert isinstance(y, np.ndarray)
         assert np.shape(y) == (2, 3, 2)
@@ -381,7 +381,7 @@ class TestSingleInputSingleOutputSingleModel(object):
         of the parameters.
         """
 
-        t = TestModel_1_1([1, 2], [10, 20])
+        t = TModel_1_1([1, 2], [10, 20])
         y = t(100)
         assert isinstance(y, np.ndarray)
         assert np.shape(y) == (2,)
@@ -393,7 +393,7 @@ class TestSingleInputSingleOutputSingleModel(object):
         parameters.
         """
 
-        t = TestModel_1_1([1, 2], [10, 20])
+        t = TModel_1_1([1, 2], [10, 20])
         y1 = t([100, 200])
         assert np.shape(y1) == (2,)
         assert np.all(y1 == [111, 222])
@@ -412,7 +412,7 @@ class TestSingleInputSingleOutputSingleModel(object):
         parameters.
         """
 
-        t = TestModel_1_1([[1, 2], [3, 4]], [[10, 20], [30, 40]])
+        t = TModel_1_1([[1, 2], [3, 4]], [[10, 20], [30, 40]])
 
         y1 = t([[100, 200], [300, 400]])
         assert np.shape(y1) == (2, 2)
@@ -435,7 +435,7 @@ class TestSingleInputSingleOutputSingleModel(object):
         parameters.
         """
 
-        t = TestModel_1_1([[[0.01, 0.02, 0.03], [0.04, 0.05, 0.06]],
+        t = TModel_1_1([[[0.01, 0.02, 0.03], [0.04, 0.05, 0.06]],
                            [[0.07, 0.08, 0.09], [0.10, 0.11, 0.12]]],
                           [1, 2, 3])
 
@@ -480,7 +480,7 @@ class TestSingleInputSingleOutputTwoModel(object):
         size equal to the number of models.
         """
 
-        t = TestModel_1_1([1, 2], [10, 20], n_models=2)
+        t = TModel_1_1([1, 2], [10, 20], n_models=2)
 
         y = t(100)
         assert np.shape(y) == (2,)
@@ -493,7 +493,7 @@ class TestSingleInputSingleOutputTwoModel(object):
         all models.
         """
 
-        t = TestModel_1_1([1, 2], [10, 20], n_models=2)
+        t = TModel_1_1([1, 2], [10, 20], n_models=2)
 
         with pytest.raises(ValueError):
             y = t(np.arange(5) * 100)
@@ -520,7 +520,7 @@ class TestSingleInputSingleOutputTwoModel(object):
         all models.
         """
 
-        t = TestModel_1_1([1, 2], [10, 20], n_models=2)
+        t = TModel_1_1([1, 2], [10, 20], n_models=2)
 
         y1 = t(np.arange(6).reshape(2, 3) * 100)
         assert np.shape(y1) == (2, 3)
@@ -539,7 +539,7 @@ class TestSingleInputSingleOutputTwoModel(object):
         all models.
         """
 
-        t = TestModel_1_1([1, 2], [10, 20], n_models=2)
+        t = TModel_1_1([1, 2], [10, 20], n_models=2)
         data = np.arange(12).reshape(2, 3, 2) * 100
 
         y1 = t(data)
@@ -558,7 +558,7 @@ class TestSingleInputSingleOutputTwoModel(object):
         of the parameters.
         """
 
-        t = TestModel_1_1([[1, 2, 3], [4, 5, 6]],
+        t = TModel_1_1([[1, 2, 3], [4, 5, 6]],
                           [[10, 20, 30], [40, 50, 60]], n_models=2)
 
         y = t(100)
@@ -574,7 +574,7 @@ class TestSingleInputSingleOutputTwoModel(object):
         Otherwise all dimensions must be broadcastable.
         """
 
-        t = TestModel_1_1([[1, 2, 3], [4, 5, 6]],
+        t = TModel_1_1([[1, 2, 3], [4, 5, 6]],
                           [[10, 20, 30], [40, 50, 60]], n_models=2)
 
         with pytest.raises(ValueError):
@@ -594,7 +594,7 @@ class TestSingleInputSingleOutputTwoModel(object):
                              [144, 255, 366]])
 
     def test_2d_array_parameters_2d_array_input(self):
-        t = TestModel_1_1([[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
+        t = TModel_1_1([[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
                           [[[10, 20], [30, 40]], [[50, 60], [70, 80]]],
                           n_models=2)
         y1 = t([[100, 200], [300, 400]])
@@ -611,7 +611,7 @@ class TestSingleInputSingleOutputTwoModel(object):
                              [[555, 666], [777, 888]]])
 
     def test_mixed_array_parameters_1d_array_input(self):
-        t = TestModel_1_1([[[0.01, 0.02, 0.03], [0.04, 0.05, 0.06]],
+        t = TModel_1_1([[[0.01, 0.02, 0.03], [0.04, 0.05, 0.06]],
                            [[0.07, 0.08, 0.09], [0.10, 0.11, 0.12]]],
                           [[1, 2, 3], [4, 5, 6]], n_models=2)
 
@@ -624,7 +624,7 @@ class TestSingleInputSingleOutputTwoModel(object):
                             [[14.07, 25.08, 36.09], [14.10, 25.11, 36.12]]])
 
 
-class TestModel_1_2(FittableModel):
+class TModel_1_2(FittableModel):
     inputs = ('x',)
     outputs = ('y', 'z')
 
@@ -654,7 +654,7 @@ class TestSingleInputDoubleOutputSingleModel(object):
         Scalar parameters with a scalar input should return a scalar.
         """
 
-        t = TestModel_1_2(1, 10, 1000)
+        t = TModel_1_2(1, 10, 1000)
         y, z = t(100)
         assert isinstance(y, float)
         assert isinstance(z, float)
@@ -668,7 +668,7 @@ class TestSingleInputDoubleOutputSingleModel(object):
         array output of the same shape as the input.
         """
 
-        t = TestModel_1_2(1, 10, 1000)
+        t = TModel_1_2(1, 10, 1000)
         y, z = t(np.arange(5) * 100)
         assert isinstance(y, np.ndarray)
         assert isinstance(z, np.ndarray)
@@ -682,7 +682,7 @@ class TestSingleInputDoubleOutputSingleModel(object):
         array output of the same shape as the input.
         """
 
-        t = TestModel_1_2(1, 10, 1000)
+        t = TModel_1_2(1, 10, 1000)
         y, z = t(np.arange(6).reshape(2, 3) * 100)
         assert isinstance(y, np.ndarray)
         assert isinstance(z, np.ndarray)
@@ -697,7 +697,7 @@ class TestSingleInputDoubleOutputSingleModel(object):
         array output of the same shape as the input.
         """
 
-        t = TestModel_1_2(1, 10, 1000)
+        t = TModel_1_2(1, 10, 1000)
         y, z = t(np.arange(12).reshape(2, 3, 2) * 100)
         assert isinstance(y, np.ndarray)
         assert isinstance(z, np.ndarray)
@@ -713,7 +713,7 @@ class TestSingleInputDoubleOutputSingleModel(object):
         of the parameters.
         """
 
-        t = TestModel_1_2([1, 2], [10, 20], [1000, 2000])
+        t = TModel_1_2([1, 2], [10, 20], [1000, 2000])
         y, z = t(100)
         assert isinstance(y, np.ndarray)
         assert isinstance(z, np.ndarray)
@@ -727,7 +727,7 @@ class TestSingleInputDoubleOutputSingleModel(object):
         parameters.
         """
 
-        t = TestModel_1_2([1, 2], [10, 20], [1000, 2000])
+        t = TModel_1_2([1, 2], [10, 20], [1000, 2000])
         y1, z1 = t([100, 200])
         assert np.shape(y1) == np.shape(z1) == (2,)
         assert np.all(y1 == [111, 222])
@@ -748,7 +748,7 @@ class TestSingleInputDoubleOutputSingleModel(object):
         parameters.
         """
 
-        t = TestModel_1_2([[1, 2], [3, 4]], [[10, 20], [30, 40]],
+        t = TModel_1_2([[1, 2], [3, 4]], [[10, 20], [30, 40]],
                           [[1000, 2000], [3000, 4000]])
 
         y1, z1 = t([[100, 200], [300, 400]])
@@ -777,7 +777,7 @@ class TestSingleInputDoubleOutputSingleModel(object):
         parameters.
         """
 
-        t = TestModel_1_2([[[0.01, 0.02, 0.03], [0.04, 0.05, 0.06]],
+        t = TModel_1_2([[[0.01, 0.02, 0.03], [0.04, 0.05, 0.06]],
                            [[0.07, 0.08, 0.09], [0.10, 0.11, 0.12]]],
                           [1, 2, 3], [100, 200, 300])
 
@@ -820,7 +820,7 @@ class TestSingleInputDoubleOutputSingleModel(object):
                                [131.10, 232.11, 333.12]]]])
 
 
-class TestInputFormatter(Model):
+class TInputFormatter(Model):
     """
     A toy model to test input/output formatting.
     """
@@ -834,19 +834,19 @@ class TestInputFormatter(Model):
 
 
 def test_format_input_scalars():
-    model = TestInputFormatter()
+    model = TInputFormatter()
     result = model(1, 2)
     assert result == (1, 2)
 
 
 def test_format_input_arrays():
-    model = TestInputFormatter()
+    model = TInputFormatter()
     result = model([1, 1], [2, 2])
     assert_allclose(result, (np.array([1, 1]), np.array([2, 2])))
 
 
 def test_format_input_arrays_transposed():
-    model = TestInputFormatter()
+    model = TInputFormatter()
     input = np.array([[1, 1]]).T, np.array([[2, 2]]).T
     result = model(*input)
     assert_allclose(result, input)

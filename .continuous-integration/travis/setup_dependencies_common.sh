@@ -4,17 +4,22 @@
 conda create --yes -n test -c astropy-ci-extras python=$PYTHON_VERSION pip
 source activate test
 
+# --no-use-wheel requirement is temporary due to
+# https://github.com/astropy/astropy/issues/4180
+# and may be removed once the upstream fix is in place
+export PIP_INSTALL="pip install --no-use-wheel"
+
 # EGG_INFO
 if [[ $SETUP_CMD == egg_info ]]
 then
-  exit  # no more dependencies needed
+  return  # no more dependencies needed
 fi
 
 # PEP8
 if [[ $MAIN_CMD == pep8* ]]
 then
-  pip install pep8
-  exit  # no more dependencies needed
+  $PIP_INSTALL pep8
+  return  # no more dependencies needed
 fi
 
 # CORE DEPENDENCIES
@@ -23,7 +28,7 @@ conda install --yes pytest Cython jinja2 psutil
 # NUMPY
 if [[ $NUMPY_VERSION == dev ]]
 then
-  pip install git+http://github.com/numpy/numpy.git
+  $PIP_INSTALL git+http://github.com/numpy/numpy.git
   export CONDA_INSTALL="conda install --yes python=$PYTHON_VERSION"
 else
   conda install --yes numpy=$NUMPY_VERSION
@@ -37,22 +42,25 @@ fi
 if $OPTIONAL_DEPS
 then
   $CONDA_INSTALL scipy h5py matplotlib pyyaml scikit-image pandas
-  pip install beautifulsoup4
+  $PIP_INSTALL beautifulsoup4
 fi
 
 # DOCUMENTATION DEPENDENCIES
-# build_sphinx needs sphinx and matplotlib (for plot_directive). Note that
-# this matplotlib will *not* work with py 3.x, but our sphinx build is
+# build_sphinx needs sphinx as well as matplotlib and wcsaxes (for plot_directive). 
+# Note that this matplotlib will *not* work with py 3.x, but our sphinx build is
 # currently 2.7, so that's fine
 if [[ $SETUP_CMD == build_sphinx* ]]
 then
   $CONDA_INSTALL Sphinx=1.2.2 Pygments matplotlib
+  $PIP_INSTALL wcsaxes
 fi
 
 # COVERAGE DEPENDENCIES
+# cpp-coveralls must be installed first.  It installs two identical
+# scripts: 'cpp-coveralls' and 'coveralls'.  The latter will overwrite
+# the script installed by 'coveralls', unless it's installed first.
 if [[ $SETUP_CMD == 'test --coverage' ]]
 then
-  pip install coverage coveralls
+  $PIP_INSTALL cpp-coveralls;
+  $PIP_INSTALL coverage coveralls;
 fi
-
-

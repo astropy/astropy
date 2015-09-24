@@ -16,8 +16,9 @@ from ...extern import six
 from ...extern.six.moves import zip
 
 from .base import Base
-from . import utils
+from . import core, utils
 from ..utils import is_effectively_unity
+from ...utils import classproperty
 from ...utils.misc import did_you_mean
 
 
@@ -32,13 +33,30 @@ class CDS(Base):
     <http://vizier.u-strasbg.fr/cgi-bin/Unit>`_.  This format is used
     by VOTable up to version 1.2.
     """
-    def __init__(self):
-        # Build this on the class, so it only gets generated once.
-        if not '_units' in CDS.__dict__:
-            CDS._units = self._generate_unit_names()
 
-        if '_parser' not in CDS.__dict__:
-            CDS._parser, CDS._lexer = self._make_parser()
+    _tokens = (
+        'PRODUCT',
+        'DIVISION',
+        'OPEN_PAREN',
+        'CLOSE_PAREN',
+        'X',
+        'SIGN',
+        'UINT',
+        'UFLOAT',
+        'UNIT'
+    )
+
+    @classproperty(lazy=True)
+    def _units(cls):
+        return cls._generate_unit_names()
+
+    @classproperty(lazy=True)
+    def _parser(cls):
+        return cls._make_parser()
+
+    @classproperty(lazy=True)
+    def _lexer(cls):
+        return cls._make_lexer()
 
     @staticmethod
     def _generate_unit_names():
@@ -54,28 +72,10 @@ class CDS(Base):
         return names
 
     @classmethod
-    def _make_parser(cls):
-        """
-        The grammar here is based on the description in the `Standards
-        for Astronomical Catalogues 2.0
-        <http://cds.u-strasbg.fr/doc/catstd-3.2.htx>`_, which is not
-        terribly precise.  The exact grammar is here is based on the
-        YACC grammar in the `unity library
-        <https://bitbucket.org/nxg/unity/>`_.
-        """
-        from ...extern.ply import lex, yacc
+    def _make_lexer(cls):
+        from ...extern.ply import lex
 
-        tokens = (
-            'PRODUCT',
-            'DIVISION',
-            'OPEN_PAREN',
-            'CLOSE_PAREN',
-            'X',
-            'SIGN',
-            'UINT',
-            'UFLOAT',
-            'UNIT'
-            )
+        tokens = cls._tokens
 
         t_PRODUCT = r'\.'
         t_DIVISION = r'/'
@@ -122,6 +122,23 @@ class CDS(Base):
         lexer = lex.lex(optimize=True, lextab='cds_lextab',
                         outputdir=os.path.dirname(__file__),
                         reflags=re.UNICODE)
+
+        return lexer
+
+    @classmethod
+    def _make_parser(cls):
+        """
+        The grammar here is based on the description in the `Standards
+        for Astronomical Catalogues 2.0
+        <http://cds.u-strasbg.fr/doc/catstd-3.2.htx>`_, which is not
+        terribly precise.  The exact grammar is here is based on the
+        YACC grammar in the `unity library
+        <https://bitbucket.org/nxg/unity/>`_.
+        """
+
+        from ...extern.ply import yacc
+
+        tokens = cls._tokens
 
         def p_main(p):
             '''
@@ -239,7 +256,7 @@ class CDS(Base):
                            outputdir=os.path.dirname(__file__),
                            write_tables=True)
 
-        return parser, lexer
+        return parser
 
     @classmethod
     def _get_unit(cls, t):
@@ -264,7 +281,8 @@ class CDS(Base):
 
         return cls._units[unit]
 
-    def parse(self, s, debug=False):
+    @classmethod
+    def parse(cls, s, debug=False):
         if ' ' in s:
             raise ValueError('CDS unit must not contain whitespace')
 
@@ -274,34 +292,35 @@ class CDS(Base):
         # This is a short circuit for the case where the string
         # is just a single unit name
         try:
-            return self._parse_unit(s, detailed_exception=False)
+            return cls._parse_unit(s, detailed_exception=False)
         except ValueError:
             try:
-                return self._parser.parse(s, lexer=self._lexer, debug=debug)
+                return cls._parser.parse(s, lexer=cls._lexer, debug=debug)
             except ValueError as e:
                 if six.text_type(e):
                     raise ValueError(six.text_type(e))
                 else:
                     raise ValueError("Syntax error")
 
-    def _get_unit_name(self, unit):
+    @staticmethod
+    def _get_unit_name(unit):
         return unit.get_format_name('cds')
 
-    def _format_unit_list(self, units):
+    @classmethod
+    def _format_unit_list(cls, units):
         out = []
         for base, power in units:
             if power == 1:
-                out.append(self._get_unit_name(base))
+                out.append(cls._get_unit_name(base))
             else:
                 out.append('{0}{1}'.format(
-                    self._get_unit_name(base), int(power)))
+                    cls._get_unit_name(base), int(power)))
         return '.'.join(out)
 
-    def to_string(self, unit):
-        from .. import core
-
+    @classmethod
+    def to_string(cls, unit):
         # Remove units that aren't known to the format
-        unit = utils.decompose_to_known_units(unit, self._get_unit_name)
+        unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 
         if isinstance(unit, core.CompositeUnit):
             if(unit.physical_type == 'dimensionless' and
@@ -325,9 +344,9 @@ class CDS(Base):
             if len(pairs) > 0:
                 pairs.sort(key=lambda x: x[1], reverse=True)
 
-                s += self._format_unit_list(pairs)
+                s += cls._format_unit_list(pairs)
 
         elif isinstance(unit, core.NamedUnit):
-            s = self._get_unit_name(unit)
+            s = cls._get_unit_name(unit)
 
         return s

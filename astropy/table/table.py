@@ -6,6 +6,7 @@ from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range as xrange
 
 import re
+import sys
 
 from copy import deepcopy
 
@@ -18,7 +19,7 @@ from ..units import Quantity
 from ..utils import OrderedDict, isiterable, deprecated, minversion
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
-from ..utils.data_info import InfoDescriptor, BaseColumnInfo, MixinInfo, ParentDtypeInfo
+from ..utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo
 from . import groups
 from .pprint import TableFormatter
 from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
@@ -182,10 +183,17 @@ class Table(object):
         """
         return self.as_array()
 
-    def as_array(self):
+    def as_array(self, keep_byteorder=False):
         """
         Return a new copy of the table in the form of a structured np.ndarray or
         np.ma.MaskedArray object (as appropriate).
+
+        Parameters
+        ----------
+        keep_byteorder : bool, optional
+            By default the returned array has all columns in native byte
+            order.  However, if this option is `True` this preserves the
+            byte order of all columns (if any are non-native).
 
         Returns
         -------
@@ -195,11 +203,29 @@ class Table(object):
         if len(self.columns) == 0:
             return None
 
+        sys_byteorder = ('>', '<')[sys.byteorder == 'little']
+        native_order = ('=', sys_byteorder)
+
+        dtype = []
+
         cols = self.columns.values()
-        dtype = [descr(col) for col in cols]
+
+        for col in cols:
+            col_descr = descr(col)
+            byteorder = col.info.dtype.byteorder
+
+            if not keep_byteorder and byteorder not in native_order:
+                new_dt = np.dtype(col_descr[1]).newbyteorder('=')
+                col_descr = (col_descr[0], new_dt, col_descr[2])
+
+            dtype.append(col_descr)
+
         empty_init = ma.empty if self.masked else np.empty
         data = empty_init(len(self), dtype=dtype)
         for col in cols:
+            # When assigning from one array into a field of a structured array,
+            # Numpy will automatically swap thos columns to their destination
+            # byte order where applicable
             data[col.info.name] = col
 
         return data
@@ -579,11 +605,12 @@ class Table(object):
 
         table.columns = columns
 
-    def _base_repr_(self, html=False):
-        descr_vals = [self.__class__.__name__]
-        if self.masked:
-            descr_vals.append('masked=True')
-        descr_vals.append('length={0}'.format(len(self)))
+    def _base_repr_(self, html=False, descr_vals=None, max_width=None, tableid=None):
+        if descr_vals is None:
+            descr_vals = [self.__class__.__name__]
+            if self.masked:
+                descr_vals.append('masked=True')
+            descr_vals.append('length={0}'.format(len(self)))
 
         descr = '<' + ' '.join(descr_vals) + '>\n'
 
@@ -591,10 +618,13 @@ class Table(object):
             from ..utils.xml.writer import xml_escape
             descr = xml_escape(descr)
 
-        tableid = 'table{id}'.format(id=id(self))
-        data_lines, outs = self.formatter._pformat_table(self,
-            tableid=tableid, html=html, max_width=(-1 if html else None),
-            show_name=True, show_unit=None, show_dtype=True)
+        if tableid is None:
+            tableid = 'table{id}'.format(id=id(self))
+
+        data_lines, outs = self.formatter._pformat_table(self, tableid=tableid, html=html,
+                                                         max_width=max_width,
+                                                         show_name=True, show_unit=None,
+                                                         show_dtype=True)
 
         out = descr + '\n'.join(data_lines)
         if six.PY2 and isinstance(out, six.text_type):
@@ -603,10 +633,10 @@ class Table(object):
         return out
 
     def _repr_html_(self):
-        return self._base_repr_(html=True)
+        return self._base_repr_(html=True, max_width=-1)
 
     def __repr__(self):
-        return self._base_repr_(html=False)
+        return self._base_repr_(html=False, max_width=None)
 
     def __unicode__(self):
         return '\n'.join(self.pformat())
@@ -706,17 +736,18 @@ class Table(object):
             Maximum number of rows to export to the table (set low by default
             to avoid memory issues, since the browser view requires duplicating
             the table in memory).  A negative value of ``max_lines`` indicates
-            no row limit
+            no row limit.
         jsviewer : bool
             If `True`, prepends some javascript headers so that the table is
-            rendered as a https://datatables.net data table.  This allows
-            in-browser searching & sorting.  See `JSViewer
-            <http://www.jsviewer.com/>`_
+            rendered as a `DataTables <https://datatables.net>`_ data table.
+            This allows in-browser searching & sorting.
         jskwargs : dict
-            Passed to the `JSViewer`_ init.
+            Passed to the `astropy.table.JSViewer` init. Default to
+            ``{'use_local_files': True}`` which means that the JavaScipt
+            librairies will be served from local copies.
         tableid : str or `None`
-            An html ID tag for the table.  Default is "table{id}", where id is
-            the unique integer id of the table object, id(self).
+            An html ID tag for the table.  Default is ``table{id}``, where id
+            is the unique integer id of the table object, id(self).
         browser : str
             Any legal browser name, e.g. ``'firefox'``, ``'chrome'``,
             ``'safari'`` (for mac, you may need to use ``'open -a
@@ -727,6 +758,8 @@ class Table(object):
         import os
         import webbrowser
         import tempfile
+        from ..extern.six.moves.urllib.parse import urljoin
+        from ..extern.six.moves.urllib.request import pathname2url
 
         # We can't use NamedTemporaryFile here because it gets deleted as
         # soon as it gets garbage collected.
@@ -735,17 +768,18 @@ class Table(object):
         path = os.path.join(tmpdir, 'table.html')
 
         with open(path, 'w') as tmp:
-
             if jsviewer:
                 self.write(tmp, format='jsviewer', css=css, max_lines=max_lines,
                            jskwargs=jskwargs, table_id=tableid)
             else:
                 self.write(tmp, format='html')
 
-            if browser == 'default':
-                webbrowser.open("file://" + path)
-            else:
-                webbrowser.get(browser).open("file://" + path)
+        try:
+            br = webbrowser.get(None if browser == 'default' else browser)
+        except webbrowser.Error:
+            log.error("Browser '%s' not found." % browser)
+        else:
+            br.open(urljoin('file:', pathname2url(path)))
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
                 show_unit=None, show_dtype=False, html=False, tableid=None,
@@ -2174,7 +2208,7 @@ class Table(object):
 
         return cls(out)
 
-    info = InfoDescriptor(TableInfo)
+    info = TableInfo()
 
 
 class QTable(Table):
@@ -2235,7 +2269,7 @@ class NdarrayMixin(np.ndarray):
     """
     Minimal mixin using a simple subclass of numpy array
     """
-    info = InfoDescriptor(ParentDtypeInfo)
+    info = ParentDtypeInfo()
 
     def __new__(cls, obj, *args, **kwargs):
         self = np.array(obj, *args, **kwargs).view(cls)

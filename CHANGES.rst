@@ -36,6 +36,9 @@ New Features
   - Added ``PrecessedGeocentric`` frame, which is based on GCRS, but precessed
     to a specific requested mean equinox. [#3758]
 
+  - Added ``Supergalactic`` frame to support de Vaucouleurs supergalactic
+    coordinates. [#3892]
+
 - ``astropy.cosmology``
 
   - Add Planck 2015 cosmology [#3476]
@@ -59,6 +62,8 @@ New Features
 
   - Add a function ``get_read_trace()`` that returns a traceback of the
     attempted read formats for the last call to ``astropy.io.ascii.read``. [#3688]
+
+  - Supports LZMA decompression via ``get_readable_fileobj`` [#3667]
 
 - ``astropy.io.fits``
 
@@ -98,6 +103,8 @@ New Features
 
   - Added the Voigt profile to existing models. [#3901]
 
+  - Added ``bounding_box`` property and ``render_model`` function [#3909]
+
 - ``astropy.nddata``
 
   - Added ``block_reduce`` and ``block_replicate`` functions. [#3453]
@@ -115,6 +122,10 @@ New Features
 
   - Added ``cenfunc``, ``stdfunc``, and ``axis`` keywords to
     ``sigma_clipped_stats``. [#3792]
+
+  - ``sigma_clip`` automatically masks invalid input values (NaNs, Infs) before
+    performing the clipping [#4051]
+
   - Added the ``histogram`` routine, which is similar to ``np.histogram`` but
     includes several additional options for automatic determination of optimal
     histogram bins. Associated helper routines include ``bayesian_blocks``,
@@ -151,9 +162,16 @@ New Features
     function for the dtype value.  Removed the default "masked=False"
     from the table representation. [#3868, #3869]
 
+  - Updated row representation to be consistent with the corresponding
+    table representation for that row.  Added HTML representation so a
+    row displays nicely in IPython notebook.
+
   - Added capability to include a structured array or recarray in a table
     as a mixin column.  This allows for an approximation of nested tables.
     [#3925]
+
+  - Added ``keep_byteorder`` option to ``Table.as_array()``.  See the
+    "API Changes" section below. [#4080]
 
 - ``astropy.tests``
 
@@ -182,13 +200,31 @@ New Features
   - Added support for functional units, in particular the logarithmic ones
     ``Magnitude``, ``Decibel``, and ``Dex``. [#1894]
 
+  - Quantities now work with the unit support in matplotlib.  See
+    :ref:`plotting-quantities`. [#3981]
+
 - ``astropy.utils``
+
+  - Added new ``OrderedDescriptor`` and ``OrderedDescriptorContainer`` utility
+    classes that make it easier to implement classes with declarative APIs,
+    wherein class-level attributes have an inherit "ordering" to them that is
+    specified by the order in which those attributes are defined in the class
+    declaration (by defining them using special descriptors that have
+    ``OrderedDescriptor`` as a base class).  See the API documentation for
+    these classes for more details. Coordinate frames and models now use this
+    interface. [#3679]
+
+  - The ``get_pkg_data_*`` functions now take an optional ``package`` argument
+    which allows specifying any package to read package data filenames or
+    content out of, as opposed to only being able to use data from the package
+    that the function is called from. [#4079]
 
   - Added function ``dtype_info_name`` to the ``data_info`` module to provide
     the name of a ``dtype`` for human-readable informational purposes. [#3868]
 
   - Added ``classproperty`` decorator--this is to ``property`` as
     ``classmethod`` is to normal instance methods. [#3982]
+  - ``iers.open`` now handles network URLs, as well as local paths. [#3850]
 
   - The ``astropy.utils.wraps`` decorator now takes an optional
     ``exclude_args`` argument not shared by the standard library ``wraps``
@@ -197,6 +233,17 @@ New Features
     certain arguments on the wrapped function to be excluded from the signature
     of the wrapper function.  This is particularly useful when wrapping an
     instance method as a function (to exclude the ``self`` argument). [#4017]
+
+  - ``get_readable_fileobj`` can automatically decompress LZMA ('.xz')
+    files using the ``lzma`` module of Python 3.3+ or, when available, the
+    ``backports.lzma`` package on earlier versions. [#3667]
+
+  - The ``resolve_name`` utility now accepts any number of additional
+    positional arguments that are automatically dotted together with the
+    first ``name`` argument. [#4083]
+
+  - Added ``is_url_in_cache`` for resolving paths to cached files via URLS
+    and checking if files exist. [#4095]
 
 - ``astropy.visualization``
 
@@ -319,7 +366,17 @@ API changes
   - Renamed the ``sigma_clipped_stats`` ``mask_val`` keyword to
     ``mask_value``. [#3595]
 
+  - Changed the default ``iters`` keyword value to 5 in both the
+    ``sigma_clip`` and ``sigma_clipped_stats`` functions. [#4067]
+
 - ``astropy.table``
+
+  - ``Table.as_array()`` always returns a structured array with each column in
+    the system's native byte order.  The optional ``keep_byteorder=True``
+    option will keep each column's data in its original byteorder. [#4080]
+
+  - ``Table.simple_table()`` now creates tables with int64 and float64 types
+    instead of int32 and float64. [#4114]
 
 - ``astropy.tests``
 
@@ -348,7 +405,18 @@ API changes
     - The ``*`` character is accepted as a separator between the scale
       and the units.
 
+  - Unit formatter classes now require the ``parse`` and ``to_string``
+    methods are now required to be classmethods (and the formatter
+    classes themselves are assumed to be singletons that are not
+    instantiated).  As unit formatters are mostly an internal implementation
+    detail this is not likely to affect any users. [#4001]
+
 - ``astropy.utils``
+
+  - All of the ``get_pkg_data_*`` functions take an optional ``package``
+    argument as their second positional argument.  So any code that previously
+    passed other arguments to these functions as positional arguments might
+    break.  Use keyword argument passing instead to mitigate this. [#4079]
 
   - ``astropy.utils.iers`` now uses a ``QTable`` internally, which means that
     the numerical columns are stored as ``Quantity``, with full support for
@@ -424,13 +492,6 @@ Bug fixes
 
 - ``astropy.units``
 
-  - Added frequency-equivalency check when declaring doppler equivalencies
-    [#3728]
-
-  - Define ``floor_divide`` (``//``) for ``Quantity`` to be consistent
-    ``divmod``, such that it only works where the quotient is dimensionless.
-    This guarantees that ``(q1 // q2) * q2 + (q1 % q2) == q1``. [#3817]
-
 - ``astropy.utils``
 
 - ``astropy.visualization``
@@ -447,7 +508,13 @@ Other Changes and Additions
 
 - The version of ``PLY`` that ships with astropy has been updated to 3.6.
 
-1.0.4 (unreleased)
+- WCSAxes is now required for doc builds. [#4074]
+
+- Updated ``astropy.tests`` test runner code to work with Coverage v4.0 when
+  generating test coverage reports. [#4176]
+
+
+1.0.5 (unreleased)
 ------------------
 
 New Features
@@ -458,10 +525,6 @@ New Features
 - ``astropy.constants``
 
 - ``astropy.convolution``
-
-  - Modified Cython functions to release the GIL. This enables convolution
-    to be parallelized effectively and gives large speedups when used with
-    multithreaded task schedulers such as Dask. [#3949]
 
 - ``astropy.coordinates``
 
@@ -534,6 +597,9 @@ API Changes
 
 - ``astropy.utils``
 
+  - ``console`` was updated to support IPython 4.x and Jupyter 1.x.
+    [#4078]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
@@ -545,21 +611,163 @@ Bug Fixes
 
 - ``astropy.constants``
 
+  - Rename units -> unit and error -> uncertainty in the ``repr`` and ``str``
+    of constants to match attribute names. [#4147]
+
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
 
-  - Fix bug where coordinate representation setting gets reset to default
-    value when coordinate array is indexed or sliced. [#3824]
+  - Fix string representation of ``SkyCoord`` objects transformed into
+    the ``AltAz`` frame [#4055]
 
-  - Fixed confusing warning message shown when using dates outside current
-    IERS data. [#3844]
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+  - Fix bug when extending one header (without comments) with another
+    (with comments). [#3967]
+
+  - Somewhat improved resource usage for FITS data--previously a new ``mmap``
+    was opened for each HDU of a FITS file accessed through an ``HDUList``.
+    Each ``mmap`` used up a single file descriptor, causing problems with
+    system resource limits for some users.  Now only a single ``mmap`` is
+    opened, and shared for the data of all HDUs.  Note: The problem still
+    persists with using the "convenience" functions.  For example using
+    ``fits.getdata`` will create one ``mmap`` per HDU read this way (as
+    opposed to opening the file with ``fits.open`` and accessing the HDUs
+    through the ``HDUList`` object). [#4097]
+
+  - Fix bug where reading a file without a newline failed with an
+    unrelated / unhelpful exception. [#4160]
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+  - Cleaned up ``repr`` of models that have no parameters. [#4076]
+
+- ``astropy.nddata``
+
+  - Initializing ``NDDataArray`` from another instance now sets ``flags`` as
+    expected and no longer fails when ``uncertainty`` is set [#4129].
+    Initializing an ``NDData`` subclass from a parent instance
+    (eg. ``NDDataArray`` from ``NDData``) now sets the attributes other than
+    ``data`` as it should [#4137].
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+  - Fix bug when doing outer join on multi-dimensional columns. [#4060]
+
+  - Fix an issue with setting fill value when column dtype is changed. [#4088]
+
+  - Fix bug when unpickling a bare Column where the _parent_table
+    attribute was not set.  This impacted the Column representation. [#4099]
+
+  - Fix issue with the web browser opening with an empty page, and ensure that
+    the url is correctly formatted for Windows. [#4132]
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+  - ``resolve_name`` no longer causes ``sys.modules`` to be cluttered with
+    additional copies of modules under a package imported like
+    ``resolve_name('numpy')``. [#4084]
+
+- ``astropy.visualization``
+
+  - The color for axes labels was set to white. Since white labels on white
+    background are hard to read, the label color has been changed to black. 
+    [#4143]
+  - ``ImageNormalize`` now automatically determines ``vmin``/``vmax``
+    (via the ``autoscale_None`` method) when they have not been set
+    explicitly. [#4117]
+
+- ``astropy.vo``
+
+  - Cone Search validation no longer crashes when the provider gives an
+    incomplete test query. It also ensures search radius for a test query
+    is not too large to avoid timeout. [#4158, #4159]
+
+- ``astropy.wcs``
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Astropy now supports Python 3.5. [#4027]
+
+- Updated tests to support py.test 2.7, and upgraded the bundled copy of
+  py.test to v2.7.3. [#4027]
+
+
+1.0.4 (2015-08-11)
+------------------
+
+New Features
+^^^^^^^^^^^^
+
+- ``astropy.convolution``
+
+  - Modified Cython functions to release the GIL. This enables convolution
+    to be parallelized effectively and gives large speedups when used with
+    multithreaded task schedulers such as Dask. [#3949]
+
+API Changes
+^^^^^^^^^^^
+
+- ``astropy.coordinates``
+
+  - Some transformations for an input coordinate that's a scalar now correctly
+    return a scalar.  This was always the intended behavior, but it may break
+    code that has been written to work-around this bug, so it may be viewed as
+    an unplanned API change [#3920]
+
+- ``astropy.visualization``
+
+  - The ``astropy_mpl_style`` no longer sets ``interactive`` to ``True``, but
+    instead leaves it at the user preference.  This makes using the style
+    compatible with building docs with Sphinx, and other non-interactive
+    contexts. [#4030]
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.coordinates``
+
+  - Fix bug where coordinate representation setting gets reset to default value
+    when coordinate array is indexed or sliced. [#3824]
+
+  - Fixed confusing warning message shown when using dates outside current IERS
+    data. [#3844]
+
+  - ``get_sun`` now yields a scalar when the input time is a scalar (this was a
+    regression in v1.0.3 from v1.0.2) [#3998]
+
+  - Fixed bug where some scalar coordinates were incorrectly being changed to
+    length-1 array coordinates after transforming through certain frames.
+    [#3920]
+
+  - Fixed bug causing the ``separation`` methods of ``SkyCoord`` and frame
+    classes to fail due to infinite recursion [#4033]
+
+  - Made it so that passing in a list of ``SkyCoord`` objects that are in
+    UnitSphericalRepresentation to the ``SkyCoord`` constructor appropriately
+    yields a new object in UnitSphericalRepresentation [#3938]
 
 - ``astropy.cosmology``
 
   - Fixed wCDM to not ignore the Ob0 parameter on initialization. [#3934]
-
-- ``astropy.io.ascii``
 
 - ``astropy.io.fits``
 
@@ -574,24 +782,18 @@ Bug Fixes
 
   - Better handling of the ``BLANK`` keyword when auto-scaling scaled image
     data.  The ``BLANK`` keyword is now removed from the header after
-    auto-scaling is applied, and it is restored properly (with floating
-    point NaNs replaced by the filler value) when updating a file opened with
-    the ``scale_back=True`` argument.  Invalid usage of the ``BLANK`` keyword
-    is also better warned about during validation. [#3865]
+    auto-scaling is applied, and it is restored properly (with floating point
+    NaNs replaced by the filler value) when updating a file opened with the
+    ``scale_back=True`` argument.  Invalid usage of the ``BLANK`` keyword is
+    also better warned about during validation. [#3865]
 
   - Reading memmaped scaled images won't fail when
-    ``do_not_scale_image_data=True`` (that is, since we're just reading the
-    raw / physical data there is no reason mmap can't be used). [#3766]
+    ``do_not_scale_image_data=True`` (that is, since we're just reading the raw
+    / physical data there is no reason mmap can't be used). [#3766]
 
   - Fixed a reference cycle that could sometimes cause FITS table-related
     objects (``BinTableHDU``, ``ColDefs``, etc.) to hang around in memory
     longer than expected. [#4012]
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
 
 - ``astropy.modeling``
 
@@ -600,19 +802,29 @@ Bug Fixes
 
   - Added missing default values for ``Ellipse2D`` parameters. [#3903]
 
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
-
 - ``astropy.time``
+
+  - Fixed iteration of scalar ``Time`` objects so that ``iter()`` correctly
+    raises a ``TypeError`` on them (while still allowing ``Time`` arrays to be
+    iterated). [#4048]
 
 - ``astropy.units``
 
-  - Fix a crash when calling ``astropy.units.cds.enable()``.  This
-    will now "set" rather than "add" units to the active set to avoid
-    the namespace clash with the default units. [#3873]
+  - Added frequency-equivalency check when declaring doppler equivalencies
+    [#3728]
+
+  - Define ``floor_divide`` (``//``) for ``Quantity`` to be consistent
+    ``divmod``, such that it only works where the quotient is dimensionless.
+    This guarantees that ``(q1 // q2) * q2 + (q1 % q2) == q1``. [#3817]
+
+  - Fixed the documentation of supported units to correctly report support for
+    SI prefixes.  Previously the table of supported units incorrectly showed
+    several derived unit as not supporting prefixes, when in fact they do.
+    [#3835]
+
+  - Fix a crash when calling ``astropy.units.cds.enable()``.  This will now
+    "set" rather than "add" units to the active set to avoid the namespace
+    clash with the default units. [#3873]
 
   - Ensure in-place operations on ``float32`` quantities work. [#4007]
 
@@ -623,12 +835,8 @@ Bug Fixes
     version of the class. [#3997]
 
   - The ``wraps`` decorator would copy the wrapped function's name to the
-    wrapper function even when ``'__name__'`` is excluded from the
-    ``assigned`` argument. [#4016]
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
+    wrapper function even when ``'__name__'`` is excluded from the ``assigned``
+    argument. [#4016]
 
 - Misc
 
@@ -642,14 +850,13 @@ Bug Fixes
   - Fixed multiple instances of a bug that prevented Astropy from being used
     when compiled with the ``python -OO`` flag, due to it causing all
     docstrings to be stripped out. [#3923]
-    
+
   - Removed source code template files that were being installed
     accidentally alongside installed Python modules. [#4014]
 
-Other Changes and Additions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-- Nothing changed yet.
+  - Fixed a bug in the exception logging that caused a crash in the exception
+    handler itself on Python 3 when exceptions do not include a message.
+    [#4056]
 
 
 1.0.3 (2015-06-05)

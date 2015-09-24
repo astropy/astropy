@@ -10,6 +10,7 @@ from .decorators import support_nddata
 from astropy.utils import lazyproperty
 from astropy.coordinates import SkyCoord
 from astropy.wcs.utils import skycoord_to_pixel
+from astropy import units as u
 
 
 __all__ = ['extract_array', 'add_array', 'subpixel_indices',
@@ -474,8 +475,8 @@ def block_replicate(data, block_size, conserve_sum=True):
 class Cutout2D(object):
     """Create a cutout object from a 2D array."""
 
-    def __init__(self, data, position, shape, wcs=None, mode='trim',
-                 fill_value=np.nan, copy=False):
+    def __init__(self, data, position, shape=None, side_length=None, wcs=None,
+                 mode='trim', fill_value=np.nan, copy=False):
         """
         The returned object will contain a 2D cutout array.  If
         ``copy=False`` (default), the cutout array is a view into the
@@ -485,6 +486,9 @@ class Cutout2D(object):
         If a `~astropy.wcs.WCS` object is input, then the returned
         object will also contain a copy of the original WCS, but updated
         for the cutout array.
+
+        The shape of the cutout is determined by the ``shape`` parameter, or
+        ``side_length`` for a square cutout.
 
         For example usage, see :ref:`cutout_images`.
 
@@ -505,10 +509,17 @@ class Cutout2D(object):
             `~astropy.coordinates.SkyCoord`, in which case ``wcs`` is a
             required input.
 
-        shape : tuple
+        shape : tuple, optional
             The shape (``(ny, nx)``) of the cutout array in pixel
             coordinates (but see the ``mode`` keyword for additional
-            details).
+            details). May be specified as a `~astropy.units.Quantity`
+            equivalent to pixels.
+
+        side_length : scalar, optional
+            The length (in pixel coordinates) of a side in a square cutout
+            array. ``shape`` will be set to ``(side_length, side_length)``.
+            See the ``mode`` keyword for additional details. May be specified
+            as a `~astropy.units.Quantity` equivalent to pixels.
 
         wcs : `~astropy.wcs.WCS`, optional
             A WCS object associated with the input ``data`` array.  If
@@ -551,6 +562,7 @@ class Cutout2D(object):
         --------
         >>> import numpy as np
         >>> from astropy.nddata.utils import Cutout2D
+        >>> from astropy import units as u
         >>> data = np.arange(20.).reshape(5, 4)
         >>> c1 = Cutout2D(data, (2, 2), (3, 3))
         >>> print(c1.data)
@@ -565,16 +577,21 @@ class Cutout2D(object):
         >>> print(c1.origin_original)
         (1, 1)
 
-        >>> c2 = Cutout2D(data, (0, 0), (3, 3))
+        >>> c2 = Cutout2D(data, (0, 0), shape=(3*u.pixel, 3*u.pixel))
         >>> print(c2.data)
         [[ 0.  1.]
          [ 4.  5.]]
 
-        >>> c3 = Cutout2D(data, (0, 0), (3, 3), mode='partial')
+        >>> c3 = Cutout2D(data, (0, 0), shape=(3, 3), mode='partial')
         >>> print(c3.data)
         [[ nan  nan  nan]
          [ nan   0.   1.]
          [ nan   4.   5.]]
+
+        >>> c4 = Cutout2D(data, (0, 0), side_length=3)
+        >>> print(c4.data)
+        [[ 0.  1.]
+         [ 4.  5.]]
         """
 
         if isinstance(position, SkyCoord):
@@ -583,11 +600,22 @@ class Cutout2D(object):
                                  'SkyCoord')
             position = skycoord_to_pixel(position, wcs, mode='all')  # (x, y)
 
+        if side_length is None and shape is None:
+            raise ValueError("Either side_length or shape must be specified")
+
+        if side_length is not None and shape is not None:
+            raise ValueError("Cannot specify both side_length and shape")
+
+        if side_length is not None:
+            shape = (side_length, side_length)
+
+        shape = [x.value if u.pixel.is_equivalent(x) else x for x in shape]
+
         # extract_array and overlap_slices use (y, x) positions
         pos = position[::-1]
 
         data = np.asanyarray(data)
-        cutout_data, input_position_cutout  = extract_array(
+        cutout_data, input_position_cutout = extract_array(
             data, shape, pos, mode=mode, fill_value=fill_value,
             return_position=True)
         if copy:
@@ -595,8 +623,9 @@ class Cutout2D(object):
         self.data = cutout_data
 
         self.input_position_cutout = input_position_cutout[::-1]    # (x, y)
-        slices_original, slices_cutout = overlap_slices(data.shape, shape,
-                                                    pos, mode=mode)
+        slices_original, slices_cutout = overlap_slices(
+            data.shape, shape, pos, mode=mode)
+
         self.slices_original = slices_original
         self.slices_cutout = slices_cutout
 
@@ -612,10 +641,9 @@ class Cutout2D(object):
 
         # the true origin pixel of the cutout array, including any
         # filled cutout values
-        self._origin_original_true = (self.origin_original[0] -
-                                   self.slices_cutout[1].start,
-                                   self.origin_original[1] -
-                                   self.slices_cutout[0].start)
+        self._origin_original_true = (
+            self.origin_original[0] - self.slices_cutout[1].start,
+            self.origin_original[1] - self.slices_cutout[0].start)
 
         if wcs is not None:
             self.wcs = deepcopy(wcs)

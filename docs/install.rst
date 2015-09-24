@@ -7,7 +7,7 @@ Requirements
 
 Astropy has the following strict requirements:
 
-- `Python <http://www.python.org/>`_ 2.6 (>=2.6.5), 2.7, 3.3, or 3.4
+- `Python <http://www.python.org/>`_ 2.6 (>=2.6.5), 2.7, 3.3, 3.4 or 3.5
 
   - Prior to Astropy v1.0 Python 3.1 and 3.2 are also supported.
 
@@ -336,6 +336,8 @@ packages:
     - `Astropy-helpers <https://github.com/astropy/astropy-helpers>`_ (Astropy
       and most affiliated packages include this as a submodule in the source
       repository, so it does not need to be installed separately.)
+
+    - `WCSAxes <http://wcsaxes.readthedocs.org/en/latest/>`_
 
 .. note::
 

@@ -14,7 +14,7 @@ from ..units import Unit, Quantity
 from ..utils.compat import NUMPY_LT_1_8
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
-from ..utils.data_info import BaseColumnInfo, InfoDescriptor, dtype_info_name
+from ..utils.data_info import BaseColumnInfo, dtype_info_name
 from . import groups
 from . import pprint
 from .np_utils import fix_column_name
@@ -216,7 +216,7 @@ class BaseColumn(np.ndarray):
         else:
             self._parent_table = weakref.ref(table)
 
-    info = InfoDescriptor(ColumnInfo)
+    info = ColumnInfo()
 
     def copy(self, order='C', data=None, copy_data=True):
         """
@@ -284,6 +284,7 @@ class BaseColumn(np.ndarray):
         self.format = format
         self.description = description
         self.meta = meta
+        self._parent_table = None
 
     def __reduce__(self):
         """
@@ -957,8 +958,10 @@ class MaskedColumn(Column, ma.MaskedArray):
 
         # Note: do not set fill_value in the MaskedArray constructor because this does not
         # go through the fill_value workarounds (see _fix_fill_value below).
-        if fill_value is None and hasattr(data, 'fill_value'):
-            fill_value = data.fill_value
+        if fill_value is None and hasattr(data, 'fill_value') and data.fill_value is not None:
+            # Coerce the fill_value to the correct type since `data` may be a
+            # different dtype than self.
+            fill_value = self.dtype.type(data.fill_value)
         self.fill_value = fill_value
 
         self.parent_table = None

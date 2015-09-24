@@ -208,13 +208,13 @@ def test_read_col_starts():
     assert_equal(dat[1][0], "Mary")
     assert_equal(dat[1][2], "192.168.1.")
     assert_equal(dat[2][2], "192.168.1")  # col_end=28 cuts this column off
-    
+
 
 def test_read_detect_col_starts_or_ends():
     """Table with no delimiter with only column start or end values specified"""
     table = """
 #1       9        19                <== Column start indexes
-#|       |         |                <== Column start positions 
+#|       |         |                <== Column start positions
 #<------><--------><------------->  <== Inferred column positions
   John   555- 1234 192.168.1.10
   Mary   555- 2134 192.168.1.123

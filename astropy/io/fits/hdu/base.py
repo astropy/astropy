@@ -4,8 +4,8 @@ from __future__ import division
 
 
 import datetime
-import inspect
 import os
+import sys
 import warnings
 
 import numpy as np
@@ -18,9 +18,10 @@ from ..util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
                     _get_array_mmap, _array_to_file, first)
 from ..verify import _Verify, _ErrList
 
-from ....extern.six import string_types
+from ....extern.six import string_types, add_metaclass
 from ....utils import lazyproperty, deprecated
 from ....utils.compat import ignored
+from ....utils.compat.funcsigs import signature, Parameter
 from ....utils.exceptions import AstropyUserWarning
 
 
@@ -84,9 +85,39 @@ def _hdu_class_from_header(cls, header):
 
     return klass
 
+class _BaseHDUMeta(type):
+    def __init__(cls, name, bases, members):
+        # The sole purpose of this metaclass right now is to add the same
+        # data.deleter to all HDUs with a data property.
+        # It's unfortunate, but there's otherwise no straightforward way
+        # that a property can inherit setters/deleters of the property of the
+        # same name on base classes
+        if 'data' in members:
+            data_prop = members['data']
+            if (isinstance(data_prop, (lazyproperty, property)) and
+                    data_prop.fdel is None):
+                # Don't do anything if the class has already explicitly
+                # set the deleter for its data property
+                def data(self):
+                    # The deleter
+                    if self._file is not None and self._data_loaded:
+                        # Don't even do this unless the *only* reference to the
+                        # .data array is the one we're deleting by deleting
+                        # this attribute; if any other references to the array
+                        # are hanging around (perhaps the user ran ``data =
+                        # hdu.data``) don't even consider this:
+                        if sys.getrefcount(self.data) == 2:
+                            # Add 1 to refcount since by the time this deleter
+                            # is called, the data array isn't actually deleted
+                            # *yet*, but will be shortly after
+                            self._file._maybe_close_mmap(refcount_delta=1)
+
+                setattr(cls, 'data', data_prop.deleter(data))
+
 
 # TODO: Come up with a better __repr__ for HDUs (and for HDULists, for that
 # matter)
+@add_metaclass(_BaseHDUMeta)
 class _BaseHDU(object):
     """Base class for all HDU (header data unit) classes."""
 
@@ -490,14 +521,14 @@ class _BaseHDU(object):
         # self._kwargs.  self._kwargs contains any number of optional arguments
         # that may or may not be valid depending on the HDU type
         cls = _hdu_class_from_header(cls, header)
-        args, varargs, varkwargs, defaults = inspect.getargspec(cls.__init__)
+        sig = signature(cls.__init__)
         new_kwargs = kwargs.copy()
-        if not varkwargs:
+        if Parameter.VAR_KEYWORD not in (x.kind for x in sig.parameters.values()):
             # If __init__ accepts arbitrary keyword arguments, then we can go
             # ahead and pass all keyword arguments; otherwise we need to delete
             # any that are invalid
             for key in kwargs:
-                if key not in args:
+                if key not in sig.parameters:
                     del new_kwargs[key]
 
         hdu = cls(data=DELAYED, header=header, **new_kwargs)

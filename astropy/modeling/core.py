@@ -29,24 +29,26 @@ from itertools import chain, islice
 
 import numpy as np
 
-from ..utils import indent, isiterable, isinstancemethod, metadata
+from ..utils import indent, isinstancemethod, metadata
 from ..extern import six
 from ..extern.six.moves import copyreg
 from ..table import Table
 from ..utils import (deprecated, sharedmethod, find_current_module,
-                     InheritDocstrings)
+                     InheritDocstrings, OrderedDescriptorContainer)
 from ..utils.codegen import make_function_with_signature
+from ..utils.compat.odict import OrderedDict
 from ..utils.compat import ignored
 from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import (array_repr_oneline, check_broadcast, combine_labels,
                     make_binary_operator_eval, ExpressionTree,
-                    IncompatibleShapeError, AliasDict)
+                    IncompatibleShapeError, AliasDict, get_inputs_and_params)
+from ..nddata.utils import add_array, extract_array
 
 from .parameters import Parameter, InputParameterError
 
 
 __all__ = ['Model', 'FittableModel', 'Fittable1DModel', 'Fittable2DModel',
-           'custom_model', 'ModelDefinitionError']
+           'custom_model', 'ModelDefinitionError', 'render_model']
 
 
 class ModelDefinitionError(TypeError):
@@ -72,7 +74,7 @@ def _model_oper(oper, **kwargs):
             left, right, **kwargs)
 
 
-class _ModelMeta(InheritDocstrings, abc.ABCMeta):
+class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
     """
     Metaclass for Model.
 
@@ -98,23 +100,37 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
     creating them.
     """
 
+    # Default empty dict for _parameters_, which will be empty on model
+    # classes that don't have any Parameters
+    _parameters_ = OrderedDict()
+
     def __new__(mcls, name, bases, members):
         # See the docstring for _is_dynamic above
         if '_is_dynamic' not in members:
             members['_is_dynamic'] = mcls._is_dynamic
 
-        parameters = mcls._handle_parameters(name, members)
-        mcls._create_inverse_property(members)
-        mcls._handle_backwards_compat(name, members)
+        return super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
 
-        cls = super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
+    def __init__(cls, name, bases, members):
+        # Make sure OrderedDescriptorContainer gets to run before doing
+        # anything else
+        super(_ModelMeta, cls).__init__(name, bases, members)
 
-        mcls._handle_special_methods(members, cls, parameters)
+        if cls._parameters_:
+            if hasattr(cls, '_param_names'):
+                # Slight kludge to support compound models, where
+                # cls.param_names is a property; could be improved with a
+                # little refactoring but fine for now
+                cls._param_names = tuple(cls._parameters_)
+            else:
+                cls.param_names = tuple(cls._parameters_)
+
+        cls._create_inverse_property(members)
+        cls._handle_backwards_compat(name, members)
+        cls._handle_special_methods(members)
 
         if not inspect.isabstract(cls) and not name.startswith('_'):
-            mcls.registry.add(cls)
-
-        return cls
+            cls.registry.add(cls)
 
     def __repr__(cls):
         """
@@ -228,58 +244,8 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
 
         return new_cls
 
-    @classmethod
-    def _handle_parameters(mcls, name, members):
-        # Handle parameters
-        param_names = members.get('param_names', ())
-        parameters = {}
-        for key, value in members.items():
-            if not isinstance(value, Parameter):
-                continue
-            if not value.name:
-                # Name not explicitly given in the constructor; add the name
-                # automatically via the attribute name
-                value._name = key
-                value._attr = '_' + key
-            if value.name != key:
-                raise ModelDefinitionError(
-                    "Parameters must be defined with the same name as the "
-                    "class attribute they are assigned to.  Parameters may "
-                    "take their name from the class attribute automatically "
-                    "if the name argument is not given when initializing "
-                    "them.")
-            parameters[value.name] = value
-
-        # If no parameters were defined get out early--this is especially
-        # important for PolynomialModels which take a different approach to
-        # parameters, since they can have a variable number of them
-        if parameters:
-            mcls._check_parameters(name, members, param_names, parameters)
-
-        return parameters
-
-    @staticmethod
-    def _check_parameters(name, members, param_names, parameters):
-        # If param_names was declared explicitly we use only the parameters
-        # listed manually in param_names, but still check that all listed
-        # parameters were declared
-        if param_names and isiterable(param_names):
-            for param_name in param_names:
-                if param_name not in parameters:
-                    raise RuntimeError(
-                        "Parameter {0!r} listed in {1}.param_names was not "
-                        "declared in the class body.".format(param_name, name))
-        else:
-            param_names = tuple(param.name for param in
-                                sorted(parameters.values(),
-                                       key=lambda p: p._order))
-            members['param_names'] = param_names
-            members['_param_orders'] = \
-                    dict((name, idx) for idx, name in enumerate(param_names))
-
-    @staticmethod
-    def _create_inverse_property(members):
-        inverse = members.get('inverse', None)
+    def _create_inverse_property(cls, members):
+        inverse = members.get('inverse')
         if inverse is None:
             return
 
@@ -306,11 +272,9 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
 
             self._custom_inverse = value
 
-        members['inverse'] = property(wrapped_fget, fset,
-                                      doc=inverse.__doc__)
+        cls.inverse = property(wrapped_fget, fset, doc=inverse.__doc__)
 
-    @classmethod
-    def _handle_backwards_compat(mcls, name, members):
+    def _handle_backwards_compat(cls, name, members):
         # Backwards compatibility check for 'eval' -> 'evaluate'
         # TODO: Remove sometime after Astropy 1.0 release.
         if 'eval' in members and 'evaluate' not in members:
@@ -319,7 +283,7 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
                 "FittableModel is deprecated; please rename this method to "
                 "'evaluate'.  Otherwise its semantics remain the same.",
                 AstropyDeprecationWarning)
-            members['evaluate'] = members['eval']
+            cls.evaluate = members['eval']
         elif ('evaluate' in members and callable(members['evaluate']) and
                 not getattr(members['evaluate'], '__isabstractmethod__',
                             False)):
@@ -328,10 +292,9 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
             # abstractmethod as well
             alt = '.'.join((name, 'evaluate'))
             deprecate = deprecated('1.0', alternative=alt, name='eval')
-            members['eval'] = deprecate(members['evaluate'])
+            cls.eval = deprecate(members['evaluate'])
 
-    @classmethod
-    def _handle_special_methods(mcls, members, cls, parameters):
+    def _handle_special_methods(cls, members):
         # Handle init creation from inputs
         def update_wrapper(wrapper, cls):
             # Set up the new __call__'s metadata attributes as though it were
@@ -362,14 +325,14 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
             cls.__call__ = new_call
 
         if ('__init__' not in members and not inspect.isabstract(cls) and
-                parameters):
+                cls._parameters_):
             # If *all* the parameters have default values we can make them
             # keyword arguments; otherwise they must all be positional
             # arguments
             if all(p.default is not None
-                   for p in six.itervalues(parameters)):
+                   for p in six.itervalues(cls._parameters_)):
                 args = ('self',)
-                kwargs = [(name, parameters[name].default)
+                kwargs = [(name, cls._parameters_[name].default)
                           for name in cls.param_names]
             else:
                 args = ('self',) + cls.param_names
@@ -461,12 +424,43 @@ class Model(object):
     This class sets the constraints and other properties for all individual
     parameters and performs parameter validation.
 
+    The following initialization arguments apply to the majority of Model
+    subclasses by default (exceptions include specialized utility models
+    like `~astropy.modeling.mappings.Mapping`).  Parametric models take all
+    their parameters as arguments, followed by any of the following optional
+    keyword arguments:
+
     Parameters
     ----------
     name : str, optional
         A human-friendly name associated with this model instance
         (particularly useful for identifying the individual components of a
         compound model).
+
+    meta : dict, optional
+        An optional dict of user-defined metadata to attach to this model.
+        How this is used and interpreted is up to the user or individual use
+        case.
+
+    n_models : int, optional
+        If given an integer greater than 1, a *model set* is instantiated
+        instead of a single model.  This affects how the parameter arguments
+        are interpreted.  In this case each parameter must be given as a list
+        or array--elements of this array are taken along the first axis (or
+        ``model_set_axis`` if specified), such that the Nth element is the
+        value of that parameter for the Nth model in the set.
+
+        See the section on model sets in the documentation for more details.
+
+    model_set_axis : int, optional
+        This argument only applies when creating a model set (i.e. ``n_models >
+        1``).  It changes how parameter values are interpreted.  Normally the
+        first axis of each input parameter array (properly the 0th axis) is
+        taken as the axis corresponding to the model sets.  However, any axis
+        of an input array may be taken as this "model set axis".  This accepts
+        negative integers as well--for example use ``model_set_axis=-1`` if the
+        last (most rapidly changing) axis should be associated with the model
+        sets.
 
     fixed : dict, optional
         Dictionary ``{parameter_name: bool}`` setting the fixed constraint
@@ -581,11 +575,16 @@ class Model(object):
     """A dict-like object to store optional information."""
 
     # By default models either use their own inverse property or have no
-    # inverse at all, but users my also assign a custom inverse to a model,
+    # inverse at all, but users may also assign a custom inverse to a model,
     # optionally; in that case it is of course up to the user to determine
     # whether their inverse is *actually* an inverse to the model they assign
     # it to.
     _custom_inverse = None
+
+    # If a bounding_box_default function is defined in the model,
+    # then the _bounding_box attribute should be set to 'auto' in the model.
+    # Otherwise, the default is None for no bounding box.
+    _bounding_box = None
 
     # Default n_models attribute, so that __len__ is still defined even when a
     # model hasn't completed initialization yet
@@ -783,8 +782,8 @@ class Model(object):
     @property
     def inverse(self):
         """
-        Returns a new `Model` instance which performs the inverse
-        transform, if an analytic inverse is defined for this model.
+        Returns a new `~astropy.modeling.Model` instance which performs the
+        inverse transform, if an analytic inverse is defined for this model.
 
         Even on models that don't have an inverse defined, this property can be
         set with a manually-defined inverse, such a pre-computed or
@@ -792,14 +791,103 @@ class Model(object):
         `~astropy.modeling.polynomial.PolynomialModel`, but not by
         requirement).
 
-        Note to authors of `Model` subclasses:  To define an inverse for a
-        model simply override this property to return the appropriate model
-        representing the inverse.  The machinery that will make the inverse
-        manually-overridable is added automatically by the base class.
+        Note to authors of `~astropy.modeling.Model` subclasses:  To define an
+        inverse for a model simply override this property to return the
+        appropriate model representing the inverse.  The machinery that will
+        make the inverse manually-overridable is added automatically by the
+        base class.
         """
 
         raise NotImplementedError("An analytical inverse transform has not "
                                   "been implemented for this model.")
+
+    @property
+    def bounding_box(self):
+        """
+        A `tuple` of length `n_inputs` defining the bounding box limits, or
+        `None` for no bounding box.
+
+        The default is `None`, unless ``bounding_box_default`` is defined.
+        `bounding_box` can be set manually to an array-like  object of shape
+        ``(model.n_inputs, 2)``. For further usage, including how to set the
+        ``bounding_box_default``, see :ref:`bounding-boxes`
+
+        The limits are ordered according to the `numpy` indexing
+        convention, and are the reverse of the model input order,
+        e.g. for inputs ``('x', 'y', 'z')`` the ``bounding_box`` is defined:
+
+        * for 1D: ``(x_low, x_high)``
+        * for 2D: ``((y_low, y_high), (x_low, x_high))``
+        * for 3D: ``((z_low, z_high), (y_low, y_high), (x_low, x_high))``
+
+        Examples
+        --------
+        Setting the bounding boxes for a 1D, 2D, and custom 3D model.
+
+        >>> from astropy.modeling.models import Gaussian1D, Gaussian2D, custom_model
+        >>> model_1d = Gaussian1D()
+        >>> model_2d = Gaussian2D(x_stddev=1, y_stddev=1)
+
+        Set the bounding box like:
+
+        >>> model_1d.bounding_box = (-5, 5)
+        >>> model_2d.bounding_box = ((-6, 6), (-5, 5))
+
+        For a user-defined 3D model:
+
+        >>> def const3d(x, y, z, amp=1):
+        ...    return amp
+        ...
+        >>> Const3D = custom_model(const3d)
+        >>> model_3d = Const3D()
+        >>> model_3d.bounding_box = ((-6, 6), (-5, 5), (-4, 4))
+
+        To reset the default:
+
+        >>> model_1d.bounding_box = 'auto'
+
+        To turn off the bounding box:
+
+        >>> model_1d.bounding_box = None
+
+        """
+
+        if self._bounding_box == 'auto':
+            return self.bounding_box_default()
+
+        else:
+            return self._bounding_box
+
+    @bounding_box.setter
+    def bounding_box(self, limits):
+        """
+        Assigns the bounding box limits.
+        """
+
+        if limits == 'auto':
+            if not hasattr(self, 'bounding_box_default'):
+                warnings.warn('The default for this model is None.')
+                limits = None
+
+        elif limits is None:
+            pass
+
+        else:
+            nd = self.n_inputs
+            try:
+                if nd == 1:
+                    assert np.shape(limits) == (2,)
+                    limits = tuple(limits)
+
+                else:
+                    assert np.shape(limits) == (nd, 2)
+                    limits = tuple([tuple(lim) for lim in limits])
+
+            except AssertionError:
+                raise AssertionError('If not \'auto\' or None, bounding_box must be '
+                                     'array-like of shape ``(model.n_inputs, 2)``.')
+
+        self._bounding_box = limits
 
     @abc.abstractmethod
     def evaluate(self, *args, **kwargs):
@@ -1353,9 +1441,9 @@ class Model(object):
             columns = [getattr(self, name).value
                        for name in self.param_names]
 
-        param_table = Table(columns, names=self.param_names)
-
-        parts.append(indent(str(param_table), width=4))
+        if columns:
+            param_table = Table(columns, names=self.param_names)
+            parts.append(indent(str(param_table), width=4))
 
         return '\n'.join(parts)
 
@@ -2268,30 +2356,22 @@ def _custom_model_wrapper(func, fit_deriv=None):
             "callable object")
 
     model_name = func.__name__
-    argspec = inspect.getargspec(func)
-    param_values = argspec.defaults or ()
 
-    nparams = len(param_values)
-    param_names = argspec.args[-nparams:]
+    inputs, params = get_inputs_and_params(func)
 
     if (fit_deriv is not None and
-            len(six.get_function_defaults(fit_deriv)) != nparams):
+            len(six.get_function_defaults(fit_deriv)) != len(params)):
         raise ModelDefinitionError("derivative function should accept "
                                    "same number of parameters as func.")
 
-    if nparams:
-        input_names = argspec.args[:-nparams]
-    else:
-        input_names = argspec.args
-
     # TODO: Maybe have a clever scheme for default output name?
-    if input_names:
-        output_names = (input_names[0],)
+    if inputs:
+        output_names = (inputs[0].name,)
     else:
         output_names = ('x',)
 
-    params = dict((name, Parameter(name, default=default))
-                  for name, default in zip(param_names, param_values))
+    params = dict((param.name, Parameter(param.name, default=param.default))
+                  for param in params)
 
     mod = find_current_module(2)
     if mod:
@@ -2302,7 +2382,7 @@ def _custom_model_wrapper(func, fit_deriv=None):
     members = {
         '__module__': str(modname),
         '__doc__': func.__doc__,
-        'inputs': tuple(input_names),
+        'inputs': tuple(x.name for x in inputs),
         'outputs': output_names,
         'evaluate': staticmethod(func),
     }
@@ -2313,6 +2393,95 @@ def _custom_model_wrapper(func, fit_deriv=None):
     members.update(params)
 
     return type(model_name, (FittableModel,), members)
+
+
+def render_model(model, arr=None, coords=None):
+    """
+    Evaluates a model on an input array. Evaluation is limited to
+    a bounding box if the `Model.bounding_box` attribute is set.
+
+    Parameters
+    ----------
+    model : `Model`
+        Model to be evaluated.
+    arr : `numpy.ndarray`, optional
+        Array on which the model is evaluated.
+    coords : array-like, optional
+        Coordinate arrays mapping to ``arr``, such that
+        ``arr[coords] == arr``.
+
+    Returns
+    -------
+    array : `numpy.ndarray`
+        The model evaluated on the input ``arr`` or a new array from ``coords``.
+        If ``arr`` and ``coords`` are both `None`, the returned array is
+        limited to the `Model.bounding_box` limits. If
+        `Model.bounding_box` is `None`, ``arr`` or ``coords`` must be passed.
+
+    Examples
+    --------
+    :ref:`bounding-boxes`
+    """
+
+    bbox = model.bounding_box
+
+    if (coords is None) & (arr is None) & (bbox is None):
+        raise AssertionError('If no bounding_box is set, coords or arr must be input.')
+
+    # for consistent indexing
+    if model.n_inputs == 1:
+        if coords is not None:
+            coords = [coords]
+        if bbox is not None:
+            bbox = [bbox]
+
+    if arr is not None:
+        arr = arr.copy()
+        # Check dimensions match model
+        assert arr.ndim == model.n_inputs
+
+    if coords is not None:
+        # Check dimensions match arr and model
+        coords = np.array(coords)
+        assert len(coords) == model.n_inputs
+        if arr is not None:
+            assert coords[0].shape == arr.shape
+        else:
+            arr = np.zeros(coords[0].shape)
+
+    if bbox is not None:
+        # assures position is at center pixel, important when using add_array
+        pd = pos, delta = np.array([(np.mean(bb), np.ceil((bb[1] - bb[0]) / 2))
+                                    for bb in bbox]).astype(int).T
+
+        if coords is not None:
+            sub_shape = tuple(delta * 2 + 1)
+            sub_coords = np.array([extract_array(c, sub_shape, pos) for c in coords])
+        else:
+            limits = [slice(p - d, p + d + 1, 1) for p, d in pd.T]
+            sub_coords = np.mgrid[limits]
+
+        sub_coords = sub_coords[::-1]
+
+        if arr is None:
+            arr = model(*sub_coords)
+        else:
+            try:
+                arr = add_array(arr, model(*sub_coords), pos)
+            except ValueError:
+                raise ValueError('The `bounding_box` is larger than the input'
+                                ' arr in one or more dimensions. Set '
+                                '`model.bounding_box = None`.')
+    else:
+
+        if coords is None:
+            im_shape = arr.shape
+            limits = [slice(i) for i in im_shape]
+            coords = np.mgrid[limits]
+
+        arr += model(*coords[::-1])
+
+    return arr
 
 
 def _prepare_inputs_single_model(model, params, inputs, **kwargs):

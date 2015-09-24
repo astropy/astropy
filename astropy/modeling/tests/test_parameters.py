@@ -19,7 +19,7 @@ from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
 
 
-class TestParModel(Model):
+class TParModel(Model):
     """
     A toy model to test parameters machinery
     """
@@ -28,7 +28,7 @@ class TestParModel(Model):
     e = Parameter()
 
     def __init__(self, coeff, e, **kwargs):
-        super(TestParModel, self).__init__(coeff=coeff, e=e, **kwargs)
+        super(TParModel, self).__init__(coeff=coeff, e=e, **kwargs)
 
     @staticmethod
     def evaluate(coeff, e):
@@ -98,29 +98,6 @@ def test_parameter_operators():
     assert par == par
     assert -par == -num
     assert abs(par) == abs(num)
-
-
-def test_parameter_name_attribute_mismatch():
-    """
-    It should not be possible to define Parameters on a model with different
-    names from the attributes they are assigned to.
-    """
-
-    def make_bad_class():
-        class BadModel(Model):
-            foo = Parameter('bar')
-
-            def __call__(self): pass
-
-    def make_good_class():
-        class GoodModel(Model):
-            # This is redundant but okay
-            foo = Parameter('foo')
-
-            def __call__(self): pass
-
-    make_good_class()
-    pytest.raises(ModelDefinitionError, make_bad_class)
 
 
 class TestParameters(object):
@@ -352,7 +329,7 @@ class TestParameterInitialization(object):
     """
 
     def test_single_model_scalar_parameters(self):
-        t = TestParModel(10, 1)
+        t = TParModel(10, 1)
         assert len(t) == 1
         assert t.model_set_axis is False
         assert np.all(t.param_sets == [[10], [1]])
@@ -361,7 +338,7 @@ class TestParameterInitialization(object):
         assert t.e.shape == ()
 
     def test_single_model_scalar_and_array_parameters(self):
-        t = TestParModel(10, [1, 2])
+        t = TParModel(10, [1, 2])
         assert len(t) == 1
         assert t.model_set_axis is False
         assert np.issubdtype(t.param_sets.dtype, object)
@@ -373,7 +350,7 @@ class TestParameterInitialization(object):
         assert t.e.shape == (2,)
 
     def test_single_model_1d_array_parameters(self):
-        t = TestParModel([10, 20], [1, 2])
+        t = TParModel([10, 20], [1, 2])
         assert len(t) == 1
         assert t.model_set_axis is False
         assert np.all(t.param_sets == [[[10, 20]], [[1, 2]]])
@@ -384,10 +361,10 @@ class TestParameterInitialization(object):
     def test_single_model_1d_array_different_length_parameters(self):
         with pytest.raises(InputParameterError):
             # Not broadcastable
-            t = TestParModel([1, 2], [3, 4, 5])
+            t = TParModel([1, 2], [3, 4, 5])
 
     def test_single_model_2d_array_parameters(self):
-        t = TestParModel([[10, 20], [30, 40]], [[1, 2], [3, 4]])
+        t = TParModel([[10, 20], [30, 40]], [[1, 2], [3, 4]])
         assert len(t) == 1
         assert t.model_set_axis is False
         assert np.all(t.param_sets == [[[[10, 20], [30, 40]]],
@@ -400,7 +377,7 @@ class TestParameterInitialization(object):
         coeff = np.array([[10, 20], [30, 40], [50, 60]])
         e = np.array([[1, 2], [3, 4], [5, 6]])
 
-        t = TestParModel(coeff, e)
+        t = TParModel(coeff, e)
         assert len(t) == 1
         assert t.model_set_axis is False
         assert np.all(t.param_sets == [[[[10, 20], [30, 40], [50, 60]]],
@@ -410,7 +387,7 @@ class TestParameterInitialization(object):
         assert t.coeff.shape == (3, 2)
         assert t.e.shape == (3, 2)
 
-        t2 = TestParModel(coeff.T, e.T)
+        t2 = TParModel(coeff.T, e.T)
         assert len(t2) == 1
         assert t2.model_set_axis is False
         assert np.all(t2.param_sets == [[[[10, 30, 50], [20, 40, 60]]],
@@ -422,13 +399,13 @@ class TestParameterInitialization(object):
 
         # Not broadcastable
         with pytest.raises(InputParameterError):
-            TestParModel(coeff, e.T)
+            TParModel(coeff, e.T)
 
         with pytest.raises(InputParameterError):
-            TestParModel(coeff.T, e)
+            TParModel(coeff.T, e)
 
     def test_single_model_2d_broadcastable_parameters(self):
-        t = TestParModel([[10, 20, 30], [40, 50, 60]], [1, 2, 3])
+        t = TParModel([[10, 20, 30], [40, 50, 60]], [1, 2, 3])
         assert len(t) == 1
         assert t.model_set_axis is False
         assert len(t.param_sets) == 2
@@ -442,13 +419,13 @@ class TestParameterInitialization(object):
         ([1, 2], [3, 4, 5])])
     def test_two_model_incorrect_scalar_parameters(self, p1, p2):
         with pytest.raises(InputParameterError):
-            TestParModel(p1, p2, n_models=2)
+            TParModel(p1, p2, n_models=2)
 
     @pytest.mark.parametrize('kwargs', [
         {'n_models': 2}, {'model_set_axis': 0},
         {'n_models': 2, 'model_set_axis': 0}])
     def test_two_model_scalar_parameters(self, kwargs):
-        t = TestParModel([10, 20], [1, 2], **kwargs)
+        t = TParModel([10, 20], [1, 2], **kwargs)
         assert len(t) == 2
         assert t.model_set_axis == 0
         assert np.all(t.param_sets == [[10, 20], [1, 2]])
@@ -460,7 +437,7 @@ class TestParameterInitialization(object):
         {'n_models': 2}, {'model_set_axis': 0},
         {'n_models': 2, 'model_set_axis': 0}])
     def test_two_model_scalar_and_array_parameters(self, kwargs):
-        t = TestParModel([10, 20], [[1, 2], [3, 4]], **kwargs)
+        t = TParModel([10, 20], [[1, 2], [3, 4]], **kwargs)
         assert len(t) == 2
         assert t.model_set_axis == 0
         assert len(t.param_sets) == 2
@@ -472,7 +449,7 @@ class TestParameterInitialization(object):
         assert t.e.shape == (2,)
 
     def test_two_model_1d_array_parameters(self):
-        t = TestParModel([[10, 20], [30, 40]], [[1, 2], [3, 4]], n_models=2)
+        t = TParModel([[10, 20], [30, 40]], [[1, 2], [3, 4]], n_models=2)
         assert len(t) == 2
         assert t.model_set_axis == 0
         assert np.all(t.param_sets == [[[10, 20], [30, 40]],
@@ -481,7 +458,7 @@ class TestParameterInitialization(object):
         assert t.coeff.shape == (2,)
         assert t.e.shape == (2,)
 
-        t2 = TestParModel([[10, 20, 30], [40, 50, 60]],
+        t2 = TParModel([[10, 20, 30], [40, 50, 60]],
                           [[1, 2, 3], [4, 5, 6]], n_models=2)
         assert len(t2) == 2
         assert t2.model_set_axis == 0
@@ -495,10 +472,10 @@ class TestParameterInitialization(object):
     def test_two_model_mixed_dimension_array_parameters(self):
         with pytest.raises(InputParameterError):
             # Can't broadcast different array shapes
-            TestParModel([[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
+            TParModel([[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
                          [[9, 10, 11], [12, 13, 14]], n_models=2)
 
-        t = TestParModel([[[10, 20], [30, 40]], [[50, 60], [70, 80]]],
+        t = TParModel([[[10, 20], [30, 40]], [[50, 60], [70, 80]]],
                          [[1, 2], [3, 4]], n_models=2)
         assert len(t) == 2
         assert t.model_set_axis == 0
@@ -513,7 +490,7 @@ class TestParameterInitialization(object):
         assert t.e.shape == (2,)
 
     def test_two_model_2d_array_parameters(self):
-        t = TestParModel([[[10, 20], [30, 40]], [[50, 60], [70, 80]]],
+        t = TParModel([[[10, 20], [30, 40]], [[50, 60], [70, 80]]],
                          [[[1, 2], [3, 4]], [[5, 6], [7, 8]]], n_models=2)
         assert len(t) == 2
         assert t.model_set_axis == 0
@@ -533,7 +510,7 @@ class TestParameterInitialization(object):
         coeff = np.rollaxis(coeff, 0, 3)
         e = np.array([[1, 2], [3, 4]])
         e = np.rollaxis(e, 0, 2)
-        t = TestParModel(coeff, e, model_set_axis=-1)
+        t = TParModel(coeff, e, model_set_axis=-1)
         assert len(t) == 2
         assert t.model_set_axis == -1
         assert len(t.param_sets) == 2
@@ -548,23 +525,23 @@ class TestParameterInitialization(object):
 
     def test_wrong_number_of_params(self):
         with pytest.raises(InputParameterError):
-            TestParModel(coeff=[[1, 2], [3, 4]], e=(2, 3, 4), n_models=2)
+            TParModel(coeff=[[1, 2], [3, 4]], e=(2, 3, 4), n_models=2)
         with pytest.raises(InputParameterError):
-            TestParModel(coeff=[[1, 2], [3, 4]], e=(2, 3, 4), model_set_axis=0)
+            TParModel(coeff=[[1, 2], [3, 4]], e=(2, 3, 4), model_set_axis=0)
 
     def test_wrong_number_of_params2(self):
         with pytest.raises(InputParameterError):
-            m = TestParModel(coeff=[[1, 2], [3, 4]], e=4, n_models=2)
+            m = TParModel(coeff=[[1, 2], [3, 4]], e=4, n_models=2)
         with pytest.raises(InputParameterError):
-            m = TestParModel(coeff=[[1, 2], [3, 4]], e=4, model_set_axis=0)
+            m = TParModel(coeff=[[1, 2], [3, 4]], e=4, model_set_axis=0)
 
     def test_array_parameter1(self):
         with pytest.raises(InputParameterError):
-            t = TestParModel(np.array([[1, 2], [3, 4]]), 1, model_set_axis=0)
+            t = TParModel(np.array([[1, 2], [3, 4]]), 1, model_set_axis=0)
 
     def test_array_parameter2(self):
         with pytest.raises(InputParameterError):
-            m = TestParModel(np.array([[1, 2], [3, 4]]), (1, 1, 11),
+            m = TParModel(np.array([[1, 2], [3, 4]]), (1, 1, 11),
                              model_set_axis=0)
 
     def test_array_parameter4(self):
@@ -573,7 +550,7 @@ class TestParameterInitialization(object):
         size as the number of parameter sets.
         """
 
-        t4 = TestParModel([[1, 2], [3, 4]], [5, 6], model_set_axis=False)
+        t4 = TParModel([[1, 2], [3, 4]], [5, 6], model_set_axis=False)
         assert len(t4) == 1
         assert t4.coeff.shape == (2, 2)
         assert t4.e.shape == (2,)
