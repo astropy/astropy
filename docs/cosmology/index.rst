@@ -325,7 +325,7 @@ species of neutrinos with non-zero mass (which is not included in
 
 Adding massive neutrinos has significant performance implications.
 In particular, the computation of distance measures and lookback times
-are factors of ten slower than in the massless neutrino case.  Therefore,
+are factors of 3-4 slower than in the massless neutrino case.  Therefore,
 if you need to compute a lot of distances in such a cosmology, it is
 particularly useful to calculate them on a grid and use interpolation.
 

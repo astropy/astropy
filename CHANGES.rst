@@ -46,6 +46,8 @@ New Features
   - Distance calculations in cosmologies with massless (or no) neutrinos
     are now > 10x faster for the supplied cosmologies. [#3767]
 
+  - Distances with massive neutrinos are 5-7x faster [#3814]
+
   - ``FLRW._tfunc`` and ``FLRW._xfunc`` are marked as deprecated.  Users
     should use the new public interfaces ``FLRW.lookback_time_integrand``
     and ``FLRW.abs_distance_integrand`` instead. [#3767]

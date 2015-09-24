@@ -265,6 +265,13 @@ class FLRW(Cosmology):
             if self._massivenu:
                 nu_y = self._massivenu_mass / (kB_evK * self._Tnu0)
                 self._nu_y = nu_y.value
+                # This may seem strange, but it turns out to
+                # be much faster to use _nu_y as a python list than
+                # an ndarray for scalar evaluations; see
+                # _massivenu_relative_density_scalar.  So we provide
+                # both -- the ndarray for when z is an ndarray, and
+                # the list version for inside the integrals
+                self._nu_ylist = self._nu_y.tolist()
                 self._Onu0 = self._Ogamma0 * self.nu_relative_density(0)
             else:
                 # This case is particularly simple, so do it directly
@@ -750,7 +757,14 @@ class FLRW(Cosmology):
         analytical fitting formula given in Komatsu et al. 2011, ApJS 192, 18.
         """
 
-        # See Komatsu et al. 2011, eq 26 and the surrounding discussion
+        # This is the vectorized version meant for direct use.
+        # It is substantially more efficient to also have a scalar-only
+        # version (since that is what the distance, etc., integrals
+        # end up calling); see FLRW._get_nufunc_scalar and
+        # FLRW._massivenu_relative_density_scalar.
+
+        # For the mathematical details, see Komatsu et al. 2011, eq 26 and
+        # the surrounding discussion.
         # However, this is modified to handle multiple neutrino masses
         # by computing the above for each mass, then summing
         prefac = 0.22710731766  # 7/8 (4/11)^4/3 -- see any cosmo book
@@ -767,8 +781,8 @@ class FLRW(Cosmology):
         p = 1.83
         invp = 1.0 / p
         if np.isscalar(z):
-            curr_nu_y = self._nu_y / (1.0 + z)  # only includes massive ones
-            rel_mass_per = (1.0 + (0.3173 * curr_nu_y) ** p) ** invp
+            k = 0.3173 / (1.0 + z)
+            rel_mass_per = (1.0 + (k * self._nu_y) ** p) ** invp
             rel_mass = rel_mass_per.sum() + self._nmasslessnu
         else:
             z = np.asarray(z)
@@ -777,6 +791,46 @@ class FLRW(Cosmology):
             rel_mass = rel_mass_per.sum(-1) + self._nmasslessnu
 
         return prefac * self._neff_per_nu * rel_mass
+
+    def _get_nufunc_scalar(self):
+        """ Return the version of the nu relative density function
+        to use in integrals."""
+
+        if self._massivenu:
+            return self._massivenu_relative_density_scalar
+        else:
+            return lambda x : 0.22710731766 * self._Neff
+
+    def _massivenu_relative_density_scalar(self, z):
+        """ Neutrino density function relative to the energy density in
+        photons for massive neutrinos.
+
+        Parameters
+        ----------
+        z : scalar
+           Redshift
+
+        Returns
+        -------
+         f : float
+           The neutrino density scaling factor relative to the density
+           in photons at the specified redshift
+
+        Notes
+        -----
+        This version is specialized to scalar z for performance reasons.
+        It also assumes there are actually massive neutrinos present.
+        """
+
+        # See nu_relative_density for an explanation of the formula
+        # Bizarrely(?), it's -much- faster if _nu_y is available as a
+        # python list instead of a numpy ndarray manipulated using
+        # np.sum, etc.
+        rel_mass = float(self._nmasslessnu)
+        k = 0.3173 / (1.0 + z)
+        for curr_nu_y in self._nu_ylist:
+            rel_mass += ((1.0 + (k * curr_nu_y) ** 1.83)**0.5464480874316939)
+        return 0.22710731766 * self._neff_per_nu * rel_mass
 
     def _w_integrand(self, ln1pz):
         """ Internal convenience function for w(z) integral."""
@@ -1599,7 +1653,7 @@ class LambdaCDM(FLRW):
             self._inv_efunc_scalar = self._lcdm_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0,
-                                           self.nu_relative_density)
+                                           self._get_nufunc_scalar())
 
     def w(self, z):
         """Returns dark energy equation of state at redshift ``z``.
@@ -1805,7 +1859,7 @@ class FlatLambdaCDM(LambdaCDM):
             self._inv_efunc_scalar = self._flcdm_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
                                            self._Ogamma0,
-                                           self.nu_relative_density)
+                                           self._get_nufunc_scalar())
 
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
@@ -1976,7 +2030,7 @@ class wCDM(FLRW):
             self._inv_efunc_scalar = self._wcdm_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0,
-                                           self.nu_relative_density,
+                                           self._get_nufunc_scalar(),
                                            self._w0)
 
     @property
@@ -2204,7 +2258,7 @@ class FlatwCDM(wCDM):
             self._inv_efunc_scalar = self._fwcdm_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
                                            self._Ogamma0,
-                                           self.nu_relative_density,
+                                           self._get_nufunc_scalar(),
                                            self._w0)
 
     def efunc(self, z):
@@ -2382,7 +2436,7 @@ class w0waCDM(FLRW):
             self._inv_efunc_scalar = self._w0wa_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0,
-                                           self.nu_relative_density,
+                                           self._get_nufunc_scalar(),
                                            self._w0, self._wa)
 
     @property
@@ -2573,7 +2627,7 @@ class Flatw0waCDM(w0waCDM):
             self._inv_efunc_scalar = self._fw0wa_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
                                            self._Ogamma0,
-                                           self.nu_relative_density,
+                                           self._get_nufunc_scalar(),
                                            self._w0, self._wa)
 
     def __repr__(self):
@@ -2703,7 +2757,7 @@ class wpwaCDM(FLRW):
             self._inv_efunc_scalar = self._wpwa_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0,
-                                           self.nu_relative_density,
+                                           self._get_nufunc_scalar(),
                                            self._wp, apiv, self._wa)
 
     @property
@@ -2908,7 +2962,7 @@ class w0wzCDM(FLRW):
             self._inv_efunc_scalar = self._w0wz_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0,
-                                           self.nu_relative_density,
+                                           self._get_nufunc_scalar(),
                                            self._w0, self._wz)
 
     @property
