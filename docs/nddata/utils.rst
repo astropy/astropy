@@ -48,9 +48,9 @@ Now, let's display the image:
     data = Gaussian2D(1, 50, 100, 10, 5, theta=0.5)(x, y)
     plt.imshow(data, origin='lower')
 
-Now let's create a cutout array for the single object in this image.
-We create a cutout array centered at position ``(x, y) = (49.7,
-100.1)`` with a size of ``(ny, nx) = (40, 50)`` pixels::
+Now let's create a cutout for the single object in this image.  We
+create a cutout centered at position ``(x, y) = (49.7, 100.1)`` with a
+size of ``(ny, nx) = (40, 50)`` pixels::
 
     >>> from astropy.nddata import Cutout2D
     >>> from astropy import units as u
@@ -86,6 +86,7 @@ image:
 
 .. doctest-skip::
 
+    >>> cutout = Cutout2D(data, position, (40, 50))
     >>> plt.imshow(cutout.data, origin='lower')
 
 .. plot::
@@ -97,8 +98,7 @@ image:
     y, x = np.mgrid[0:500, 0:500]
     data = Gaussian2D(1, 50, 100, 10, 5, theta=0.5)(x, y)
     position = (49.7, 100.1)
-    size = (40, 50)
-    cutout = Cutout2D(data, position, size)
+    cutout = Cutout2D(data, position, (40, 50))
     plt.imshow(cutout.data, origin='lower')
 
 The cutout object can plot its bounding box on the original data using
@@ -298,6 +298,47 @@ its sky coordinates::
 
 As expected, the sky coordinates in the original ``data`` and the
 cutout array agree.
+
+
+2D Cutout using an angular ``size``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The input ``size`` can also be specified as a
+`~astropy.units.Quantity` in angular units, e.g. degrees, arcminutes,
+arcseconds, etc.  For this case, a `~astropy.wcs.WCS` object must be
+input via the ``wcs`` keyword.
+
+For this example, we'll use the data, `~astropy.coordinates.SkyCoord`
+position, and ``wcs`` object from above to create a cutout with size
+1.5 x 2.5 arcseconds::
+
+    >>> size = u.Quantity((1.5, 2.5), u.arcsec)
+    >>> cutout = Cutout2D(data, position, size, wcs=wcs)
+    >>> plt.imshow(cutout.data, origin='lower')   # doctest: +SKIP
+
+.. plot::
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from astropy.modeling.models import Gaussian2D
+    from astropy.nddata import Cutout2D
+    from astropy.coordinates import SkyCoord
+    from astropy.wcs import WCS
+    from astropy import units as u
+    y, x = np.mgrid[0:500, 0:500]
+    data = Gaussian2D(1, 50, 100, 10, 5, theta=0.5)(x, y)
+    position = SkyCoord('13h11m29.96s -01d19m18.7s', frame='icrs')
+    wcs = WCS(naxis=2)
+    rho = np.pi / 3.
+    scale = 0.05 / 3600.
+    wcs.wcs.cd = [[scale*np.cos(rho), -scale*np.sin(rho)],
+                  [scale*np.sin(rho), scale*np.cos(rho)]]
+    wcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+    wcs.wcs.crval = [position.ra.value, position.dec.value]
+    wcs.wcs.crpix = [50, 100]
+    size = u.Quantity((1.5, 2.5), u.arcsec)
+    cutout = Cutout2D(data, position, size, wcs=wcs)
+    plt.imshow(cutout.data, origin='lower')
 
 
 Reference/API
