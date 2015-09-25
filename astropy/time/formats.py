@@ -556,24 +556,6 @@ class TimeDatetime(TimeUnique):
         self.jd1, self.jd2 = erfa_time.dtf_jd(
             self.scale.upper().encode('utf8'), *iterator.operands[1:])
 
-    @property
-    def value(self):
-        iys, ims, ids, ihmsfs = erfa_time.jd_dtf(self.scale.upper()
-                                                 .encode('utf8'),
-                                                 6,  # precision=6 for microsec
-                                                 self.jd1, self.jd2)
-        ihrs = ihmsfs[..., 0]
-        imins = ihmsfs[..., 1]
-        isecs = ihmsfs[..., 2]
-        ifracs = ihmsfs[..., 3]
-        iterator = np.nditer([iys, ims, ids, ihrs, imins, isecs, ifracs, None],
-                             flags=['refs_ok'],
-                             op_dtypes=7*[iys.dtype] + [np.object])
-        for iy, im, id, ihr, imin, isec, ifracsec, out in iterator:
-            out[...] = datetime.datetime(iy, im, id, ihr, imin, isec, ifracsec)
-
-        return iterator.operands[-1]
-
     def to_value(self, timezone=None):
         """
         Convert to (potentially timezone-aware) `~datetime.datetime` object.
@@ -637,7 +619,7 @@ class TimezoneInfo(datetime.tzinfo):
         tzname : string, `None` (optional)
             Name of timezone
         """
-        if utc_offset == 0 and dst == 0:
+        if utc_offset == 0 and dst == 0 and tzname is None:
             tzname = 'UTC'
         self._utcoffset = datetime.timedelta(utc_offset)
         self._tzname = tzname
