@@ -952,6 +952,32 @@ guidance, but if you get stuck the astropy developers are more than happy to
 help.  If you write a format class that is widely useful then we might want to
 include it in the core!
 
+
+Timezones
+---------
+
+When a `~astropy.time.Time` object is constructed from a timezone-aware
+`~datetime.datetime`, no timezone information is saved in the
+`~astropy.time.Time` object. However, `~astropy.time.Time` objects can be
+converted to timezone-aware datetime objects using
+`~astropy.time.Time.to_datetime`::
+
+  >>> from datetime import datetime
+  >>> from astropy.time import Time, TimezoneInfo
+  >>> import astropy.units as u
+  >>> utc_plus_one_hour = TimezoneInfo(utc_offset=1*u.hour)
+  >>> dt_aware = datetime(2000, 1, 1, 0, 0, 0, tzinfo=utc_plus_one_hour)
+  >>> t = Time(dt_aware)  # Loses timezone info, converts to UTC
+  >>> print(t)            # will return UTC
+  1999-12-31 23:00:00
+  >>> print(t.to_datetime(timezone=utc_plus_one_hour)) # to timezone-aware datetime
+  2000-01-01 00:00:00+01:00
+
+Timezone database packages, like `pytz <http://pythonhosted.org/pytz/>`_
+for example, may be more convenient to use to create `~datetime.tzinfo`
+objects used to specify timezones rather than the `~astropy.time.TimezoneInfo`
+object.
+
 Reference/API
 =============
 

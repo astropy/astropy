@@ -604,26 +604,43 @@ class TimeDatetime(TimeUnique):
 
 class TimezoneInfo(datetime.tzinfo):
     """
-    Class for a `~datetime.tzinfo` object, used in the
-    `TimeDatetime.to_datetime` method.
+    Subclass of the `~datetime.tzinfo` object, used in the
+    `TimeDatetime.to_datetime` method to specify timezones.
+
+    It may be safer in most cases to use a timezone database package like
+    `~pytz` rather than defining your own timezones.
     """
-    def __init__(self, utc_offset=0, dst=0, tzname=None):
+    @u.quantity_input(utc_offset=u.day, dst=u.day)
+    def __init__(self, utc_offset=0*u.day, dst=0*u.day, tzname=None):
         """
         Parameters
         ----------
-        utc_offset : int, float (optional)
-            Offset from UTC in days. Defaults to zero (UTC).
-        dst : int, float (optional)
+        utc_offset : `~astropy.units.Quantity` (optional)
+            Offset from UTC in days. Defaults to zero.
+        dst : `~astropy.units.Quantity` (optional)
             Daylight Savings Time offset in days. Defaults to zero
             (no daylight savings).
         tzname : string, `None` (optional)
             Name of timezone
+
+        Examples
+        --------
+        >>> from datetime import datetime
+        >>> from astropy.time import TimezoneInfo  # Specifies a timezone
+        >>> import astropy.units as u
+        >>> utc = TimezoneInfo()    # Defaults to UTC
+        >>> utc_plus_one_hour = TimezoneInfo(utc_offset=1*u.hour)  # UTC+1
+        >>> dt_aware = datetime(2000, 1, 1, 0, 0, 0, tzinfo=utc_plus_one_hour)
+        >>> print(dt_aware)
+        2000-01-01 00:00:00+01:00
+        >>> print(dt_aware.astimezone(utc))
+        1999-12-31 23:00:00+00:00
         """
         if utc_offset == 0 and dst == 0 and tzname is None:
             tzname = 'UTC'
-        self._utcoffset = datetime.timedelta(utc_offset)
+        self._utcoffset = datetime.timedelta(utc_offset.to(u.day).value)
         self._tzname = tzname
-        self._dst = datetime.timedelta(dst)
+        self._dst = datetime.timedelta(dst.to(u.day).value)
 
     def utcoffset(self, dt):
         return self._utcoffset
