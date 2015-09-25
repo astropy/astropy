@@ -31,7 +31,8 @@ __all__ = ['TimeFormat', 'TimeJD', 'TimeMJD', 'TimeFromEpoch', 'TimeUnix',
            'TimeEpochDate', 'TimeBesselianEpoch', 'TimeJulianEpoch',
            'TimeDeltaFormat', 'TimeDeltaSec', 'TimeDeltaJD',
            'TimeEpochDateString', 'TimeBesselianEpochString',
-           'TimeJulianEpochString', 'TIME_FORMATS', 'TIME_DELTA_FORMATS']
+           'TimeJulianEpochString', 'TIME_FORMATS', 'TIME_DELTA_FORMATS',
+           'TimezoneInfo']
 
 __doctest_skip__ = ['TimePlotDate']
 
@@ -612,22 +613,35 @@ class TimeDatetime(TimeUnique):
         for iy, im, id, ihr, imin, isec, ifracsec, out in iterator:
             if timezone is not None:
                 out[...] = datetime.datetime(iy, im, id, ihr, imin, isec, ifracsec,
-                                             tzinfo=_UTCTimezoneInfo()).astimezone(timezone)
+                                             tzinfo=TimezoneInfo()).astimezone(timezone)
             else:
                 out[...] = datetime.datetime(iy, im, id, ihr, imin, isec, ifracsec)
         return iterator.operands[-1]
 
     value = property(to_value)
 
-class _UTCTimezoneInfo(datetime.tzinfo):
+class TimezoneInfo(datetime.tzinfo):
     """
-    Class for a UTC `~datetime.timezone` object, used in the
+    Class for a `~datetime.tzinfo` object, used in the
     `TimeDatetime.to_datetime` method.
     """
-    def __init__(self):
-        self._utcoffset = datetime.timedelta(0)
-        self._tzname = 'UTC'
-        self._dst = datetime.timedelta(0)
+    def __init__(self, utc_offset=0, dst=0, tzname=None):
+        """
+        Parameters
+        ----------
+        utc_offset : int, float (optional)
+            Offset from UTC in days. Defaults to zero (UTC).
+        dst : int, float (optional)
+            Daylight Savings Time offset in days. Defaults to zero
+            (no daylight savings).
+        tzname : string, `None` (optional)
+            Name of timezone
+        """
+        if utc_offset == 0 and dst == 0:
+            tzname = 'UTC'
+        self._utcoffset = datetime.timedelta(utc_offset)
+        self._tzname = tzname
+        self._dst = datetime.timedelta(dst)
 
     def utcoffset(self, dt):
         return self._utcoffset
