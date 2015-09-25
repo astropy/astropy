@@ -1,9 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# TODO: need to download some images used by the jquery-ui css file:
-# images/ui-icons_888888_256x240.png
 
-import os
-import glob
+from os.path import abspath, dirname, join
 
 from .table import Table
 
@@ -18,15 +15,15 @@ class Conf(_config.ConfigNamespace):
     """
 
     jquery_url = _config.ConfigItem(
-        'http://code.jquery.com/jquery-1.11.1.min.js',
+        'https://code.jquery.com/jquery-1.11.3.min.js',
         'The URL to the jquery library.')
 
     datatables_url = _config.ConfigItem(
-        'http://cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js',
+        'https://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js',
         'The URL to the jquery datatables library.')
 
     css_urls = _config.ConfigItem(
-        ['https://code.jquery.com/ui/1.11.1/themes/overcast/jquery-ui.css'],
+        ['https://cdn.datatables.net/1.10.9/css/jquery.dataTables.min.css'],
         'The URLs to the css file(s) to include.', cfgtype='list')
 
 
@@ -41,10 +38,8 @@ DATATABLES_URL = _config.ConfigAlias(
     '0.4', 'DATATABLES_URL', 'datatables_url',
     'astropy.table.jsviewer', 'astropy.table.jsviewer')
 
-
-DATA_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data')
-EXTERN_JS_DIR = os.path.abspath(os.path.join(os.path.dirname(extern.__file__), 'js'))
-
+EXTERN_JS_DIR = abspath(join(dirname(extern.__file__), 'js'))
+EXTERN_CSS_DIR = abspath(join(dirname(extern.__file__), 'css'))
 
 IPYNB_JS_SCRIPT = """
 <script>
@@ -70,8 +65,7 @@ IPYNB_JS_SCRIPT = """
         $('#{tid}').dataTable({{
              "iDisplayLength": {display_length},
              "aLengthMenu": {display_length_menu},
-             "bJQueryUI": true,
-             "sPaginationType": "full_numbers"
+             "pagingType": "full_numbers"
         }});
     }}
     function replace_table() {{
@@ -88,10 +82,16 @@ $(document).ready(function() {{
     $('#{tid}').dataTable({{
      "iDisplayLength": {display_length},
      "aLengthMenu": {display_length_menu},
-     "bJQueryUI": true,
-     "sPaginationType": "full_numbers"
+     "pagingType": "full_numbers"
     }});
 }} );
+"""
+
+
+DEFAULT_CSS = """\
+body {font-family: sans-serif;}
+table.dataTable {width: auto !important; margin: 0 !important;}
+.dataTables_filter, .dataTables_paginate {float: left !important; margin-left:1em}
 """
 
 
@@ -124,15 +124,16 @@ class JSViewer(object):
     @property
     def jquery_urls(self):
         if self._use_local_files:
-            return ['file://' + os.path.join(EXTERN_JS_DIR, 'jquery-1.11.0.js'),
-                    'file://' + os.path.join(EXTERN_JS_DIR, 'jquery.dataTables.js')]
+            return ['file://' + join(EXTERN_JS_DIR, 'jquery-1.11.3.min.js'),
+                    'file://' + join(EXTERN_JS_DIR, 'jquery.dataTables.min.js')]
         else:
             return [conf.jquery_url, conf.datatables_url]
 
     @property
     def css_urls(self):
         if self._use_local_files:
-            return ["file://" + filename for filename in glob.glob(os.path.join(DATA_PATH, '*.css'))]
+            return ['file://' + join(EXTERN_CSS_DIR,
+                                     'jquery.dataTables.min.css')]
         else:
             return conf.css_urls
 
@@ -140,12 +141,9 @@ class JSViewer(object):
         # downloaded from http://datatables.net/download/build/
         datatables_url = conf.datatables_url
         if not datatables_url:
-            datatables_url = 'file://' + os.path.abspath(
-                os.path.join(
-                    os.path.dirname(extern.__file__), 'js',
-                    'jquery.dataTables.js'))
-        return '<script class="jsbin" src="{0}"></script>'.format(
-            datatables_url)
+            datatables_url = 'file://' + join(EXTERN_JS_DIR,
+                                              'jquery.dataTables.min.js')
+        return '<script class="jsbin" src="{0}"></script>'.format(datatables_url)
 
     def _css_files(self):
         return [
@@ -158,8 +156,7 @@ class JSViewer(object):
         js.append(IPYNB_JS_SCRIPT.format(
             display_length=self.display_length,
             display_length_menu=self.display_length_menu,
-            tid=table_id,
-            data_path="file://"+DATA_PATH))
+            tid=table_id))
         return js
 
     def html_js(self, table_id='table0'):
@@ -168,23 +165,26 @@ class JSViewer(object):
                                      tid=table_id).strip()
 
 
-def write_table_jsviewer(table, filename, table_id=None,
-                         css="table,th,td,tr,tbody {border: 1px solid black; border-collapse: collapse;}",
-                         max_lines=5000,
-                         jskwargs={}):
-
+def write_table_jsviewer(table, filename, table_id=None, max_lines=5000,
+                         table_class="display compact", jskwargs=None,
+                         css=DEFAULT_CSS):
     if table_id is None:
         table_id = 'table{id}'.format(id=id(table))
 
+    jskwargs = jskwargs or {}
     jsv = JSViewer(**jskwargs)
 
-    htmldict = {}
-    htmldict['table_id'] = table_id
-    htmldict['css'] = css
-    htmldict['cssfiles'] = jsv.css_urls
-    htmldict['jsfiles'] = jsv.jquery_urls
-    htmldict['js'] =  jsv.html_js(table_id=table_id)
+    htmldict = {
+        'table_id': table_id,
+        'table_class': table_class,
+        'css': css,
+        'cssfiles': jsv.css_urls,
+        'jsfiles': jsv.jquery_urls,
+        'js':  jsv.html_js(table_id=table_id)
+    }
 
+    if max_lines < len(table):
+        table = table[:max_lines]
     table.write(filename, format='html', htmldict=htmldict)
 
 io_registry.register_writer('jsviewer', Table, write_table_jsviewer)

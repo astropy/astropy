@@ -689,7 +689,7 @@ Bug Fixes
 - ``astropy.visualization``
 
   - The color for axes labels was set to white. Since white labels on white
-    background are hard to read, the label color has been changed to black. 
+    background are hard to read, the label color has been changed to black.
     [#4143]
   - ``ImageNormalize`` now automatically determines ``vmin``/``vmax``
     (via the ``autoscale_None`` method) when they have not been set
@@ -1318,6 +1318,8 @@ New Features
     ``astropy.units.Quantity`` objects. [#2950]
 
   - Add ``unique`` convenience method to table. [#3185]
+
+  - New CSS for jsviewer table [#2917, #2982, #4174]
 
 - ``astropy.tests``
 

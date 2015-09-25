@@ -718,20 +718,18 @@ class Table(object):
             else:
                 print(line)
 
-    def show_in_browser(self,
-                        css="table,th,td,tr,tbody {border: 1px solid black; border-collapse: collapse;}",
-                        max_lines=5000,
-                        jsviewer=False,
-                        jskwargs={'use_local_files': True},
-                        tableid=None,
-                        browser='default'):
-        """
-        Render the table in HTML and show it in a web browser.
+    def show_in_browser(self, max_lines=5000, jsviewer=False,
+                        browser='default', jskwargs={'use_local_files': True},
+                        tableid=None, table_class="display compact",
+                        css=None):
+
+        """Render the table in HTML and show it in a web browser.
 
         Parameters
         ----------
         css : string
-            A valid CSS string declaring the formatting for the table
+            A valid CSS string declaring the formatting for the table. Default
+            to ``astropy.table.jsviewer.DEFAULT_CSS``.
         max_lines : int
             Maximum number of rows to export to the table (set low by default
             to avoid memory issues, since the browser view requires duplicating
@@ -748,6 +746,10 @@ class Table(object):
         tableid : str or `None`
             An html ID tag for the table.  Default is ``table{id}``, where id
             is the unique integer id of the table object, id(self).
+        table_class : str or `None`
+            A string with a list of HTML classes used to style the table.
+            Default is "display compact", and other possible values can be
+            found in http://www.datatables.net/manual/styling/classes
         browser : str
             Any legal browser name, e.g. ``'firefox'``, ``'chrome'``,
             ``'safari'`` (for mac, you may need to use ``'open -a
@@ -760,6 +762,10 @@ class Table(object):
         import tempfile
         from ..extern.six.moves.urllib.parse import urljoin
         from ..extern.six.moves.urllib.request import pathname2url
+        from .jsviewer import DEFAULT_CSS
+
+        if css is None:
+            css = DEFAULT_CSS
 
         # We can't use NamedTemporaryFile here because it gets deleted as
         # soon as it gets garbage collected.
@@ -769,8 +775,9 @@ class Table(object):
 
         with open(path, 'w') as tmp:
             if jsviewer:
-                self.write(tmp, format='jsviewer', css=css, max_lines=max_lines,
-                           jskwargs=jskwargs, table_id=tableid)
+                self.write(tmp, format='jsviewer', css=css,
+                           max_lines=max_lines, jskwargs=jskwargs,
+                           table_id=tableid, table_class=table_class)
             else:
                 self.write(tmp, format='html')
 
