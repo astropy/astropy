@@ -605,10 +605,11 @@ class TimeDatetime(TimeUnique):
 class TimezoneInfo(datetime.tzinfo):
     """
     Subclass of the `~datetime.tzinfo` object, used in the
-    `to_datetime` method to specify timezones.
+    to_datetime method to specify timezones.
 
     It may be safer in most cases to use a timezone database package like
-    `~pytz` rather than defining your own timezones.
+    pytz rather than defining your own timezones - this class is mainly
+    a workaround for users without pytz.
     """
     @u.quantity_input(utc_offset=u.day, dst=u.day)
     def __init__(self, utc_offset=0*u.day, dst=0*u.day, tzname=None):
