@@ -605,7 +605,7 @@ class TimeDatetime(TimeUnique):
 class TimezoneInfo(datetime.tzinfo):
     """
     Subclass of the `~datetime.tzinfo` object, used in the
-    `TimeDatetime.to_datetime` method to specify timezones.
+    `to_datetime` method to specify timezones.
 
     It may be safer in most cases to use a timezone database package like
     `~pytz` rather than defining your own timezones.

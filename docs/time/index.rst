@@ -959,8 +959,7 @@ Timezones
 When a `~astropy.time.Time` object is constructed from a timezone-aware
 `~datetime.datetime`, no timezone information is saved in the
 `~astropy.time.Time` object. However, `~astropy.time.Time` objects can be
-converted to timezone-aware datetime objects using
-`~astropy.time.Time.to_datetime`::
+converted to timezone-aware datetime objects::
 
   >>> from datetime import datetime
   >>> from astropy.time import Time, TimezoneInfo

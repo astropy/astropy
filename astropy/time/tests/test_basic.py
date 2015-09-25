@@ -12,9 +12,10 @@ import numpy as np
 from ...tests.helper import pytest, catch_warnings
 from ...extern import six
 from ...utils import isiterable
-from .. import Time, ScaleValueError, erfa_time, TIME_SCALES, TimeString
+from .. import (Time, ScaleValueError, erfa_time, TIME_SCALES, TimeString,
+                TimezoneInfo)
 from ...coordinates import EarthLocation
-
+from ... import units as u
 try:
     import pytz
     HAS_PYTZ = True
@@ -1007,32 +1008,7 @@ def test_isiterable():
     assert isiterable(t2)
 
 def test_to_datetime():
-    class TimezoneInfo(datetime.tzinfo):
-        """
-        This defines a timezone with UTC offset ``utcoffset``, meant as
-        a replacement for the `datetime.tzinfo` objects output by
-        `pytz.timezone`. For example, to simulate a timezone like
-        `pytz.timezone("US/Hawaii")`, try
-        `TimezoneInfo(utcoffset=datetime.timedelta(hours=-10))`
-        """
-        def __init__(self, utcoffset=None, tzname=None, dst=None):
-            self._utcoffset = utcoffset
-            self._tzname = tzname
-            self._dst = dst
-
-        def utcoffset(self, dt):
-            return self._utcoffset
-
-        def tzname(self, dt):
-            return str(self._tzname)
-
-        def dst(self, dt):
-            if self._dst is None:
-                return datetime.timedelta(0)
-            else:
-                return self._dst
-
-    tz = TimezoneInfo(utcoffset=datetime.timedelta(hours=-10), tzname='US/Hawaii')
+    tz = TimezoneInfo(utc_offset=-10*u.hour, tzname='US/Hawaii')
     # The above lines produces a `datetime.tzinfo` object similar to:
     #     tzinfo = pytz.timezone('US/Hawaii')
     time = Time('2010-09-03 00:00:00')
