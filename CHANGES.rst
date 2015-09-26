@@ -656,7 +656,7 @@ Bug Fixes
     ``data`` as it should [#4137].
 
   - ``NDDataBase`` now tries to set the ``parent_nddata`` attribute of the
-    uncertainty.
+    uncertainty. [#4170]
 
 - ``astropy.stats``
 
