@@ -93,6 +93,6 @@ class NDDataBase(object):
         #Try setting the parent for the uncertainty. This is currently an
         #enforced requirement for `StdDevUncertainty` for error propagation.
         try:
-            self.uncertainty.parent_nddata = self
+            self._uncertainty.parent_nddata = self
         except:
             pass
