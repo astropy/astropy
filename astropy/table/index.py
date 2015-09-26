@@ -789,7 +789,8 @@ class TableLoc(object):
 
         if len(rows) == 0: # no matches found
             raise KeyError('No matches found for key {0}'.format(item))
-
+        elif len(rows) == 1: # single row
+            return self.table[rows[0]]
         return self.table[rows]
 
 class TableILoc(TableLoc):

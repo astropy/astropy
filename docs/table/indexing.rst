@@ -16,7 +16,7 @@ Creating an index
 To create an index on a table, use the |add_index| method::
 
    >>> from astropy.table import Table
-   >>> t = Table([(1, 2, 3, 4), (5, 6, 7, 8)], names=('a', 'b'))
+   >>> t = Table([(2, 3, 2, 1), (8, 7, 6, 5)], names=('a', 'b'))
    >>> t.add_index('a')
 
 The optional argument "unique" may be specified to create an index with
@@ -34,17 +34,17 @@ retrieve an index from a table, use the `~astropy.table.Table.indices` property:
    >>> t.indices['a']
     a  rows
    --- ----
-     1    0
-     2    1
-     3    2
-     4    3
+     1    3
+     2    0
+     2    2
+     3    1
    >>> t.indices['a', 'b']
     a   b  rows
    --- --- ----
-     1   5    0
-     2   6    1
-     3   7    2
-     4   8    3
+     1   5    3
+     2   6    2
+     2   8    0
+     3   7    1
 
 
 
@@ -58,11 +58,9 @@ column values (*including* the bounds), or a list or ndarray of column values::
    >>> t = Table([(1, 2, 3, 4), (10, 1, 9, 9)], names=('a', 'b'))
    >>> t.add_index('a')
    >>> t.loc[2]
-   <Table length=1>
-     a     b  
-   int64 int64
-   ----- -----
-       2     1
+   <Row 1 of table
+    values=(2, 1)
+    dtype=[('a', '<i8'), ('b', '<i8')]>
    >>> t.loc[[1, 4]]
    <Table length=2>
      a     b  
