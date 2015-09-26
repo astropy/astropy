@@ -4,7 +4,7 @@ import numpy as np
 from .test_table import SetupData
 from ..bst import BST, FastBST, FastRBT
 from ..sorted_array import SortedArray
-from ..table import Table, QTable, NdarrayMixin
+from ..table import Table, QTable, NdarrayMixin, Row
 from ...table import table_helpers
 from ... import units as u
 from ...coordinates import SkyCoord
@@ -378,6 +378,8 @@ class TestIndex(SetupData):
 
         t2 = t.loc[self.make_val(3)] # single label, with primary key 'a'
         assert_col_equal(t2['a'], [3])
+        assert isinstance(t2, Row)
+
         # list search
         t2 = t.loc[[self.make_val(1), self.make_val(4), self.make_val(2)]]
         assert_col_equal(t2['a'], [1, 4, 2]) # same order as input list

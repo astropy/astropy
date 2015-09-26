@@ -11,7 +11,7 @@ Introduction
 
 `astropy.table` provides functionality for storing and manipulating
 heterogeneous tables of data in a way that is familiar to `numpy` users.  A few
-notable features of this package are:
+notable capabilities of this package are:
 
 * Initialize a table from a wide variety of input data structures and types.
 * Modify a table by adding or removing columns, changing column names,
@@ -22,6 +22,7 @@ notable features of this package are:
 * Interactively scroll through long tables similar to using ``more``.
 * Create a new table by selecting rows or columns from a table.
 * Perform :ref:`table_operations` like database joins and concatenation.
+* Maintain a table index for fast retrieval of table items or ranges.
 * Manipulate multidimensional columns.
 * Methods for :ref:`read_write_tables` to files
 * Hooks for :ref:`subclassing_table` and its component classes
