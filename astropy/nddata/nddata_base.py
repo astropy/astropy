@@ -93,8 +93,6 @@ class NDDataBase(object):
             #enforced requirement for `StdDevUncertainty` for error propagation.
             try:
                 value.parent_nddata = self
-            except:
-                raise AttributeError('Uncertainty must have an attribute '
-                                'parent_nddata.')
+            except AttributeError:
+                pass
         self._uncertainty = value
-        
