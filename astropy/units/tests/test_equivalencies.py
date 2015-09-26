@@ -384,11 +384,14 @@ def test_spectraldensity4():
 
 
 def test_equivalent_units():
-    units = u.g.find_equivalent_units()
-    units_set = set(units)
-    match = set(
-        [u.M_e, u.M_p, u.g, u.kg, u.solMass, u.t, u.u])
-    assert units_set == match
+    from .. import imperial
+    with u.add_enabled_units(imperial):
+        units = u.g.find_equivalent_units()
+        units_set = set(units)
+        match = set(
+            [u.M_e, u.M_p, u.g, u.kg, u.solMass, u.t, u.u,
+             imperial.oz, imperial.lb, imperial.st, imperial.ton])
+        assert units_set == match
 
     r = repr(units)
     assert r.count('\n') == len(units) + 2
