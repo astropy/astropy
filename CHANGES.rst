@@ -1,4 +1,4 @@
-1.1 (unreleased)
+﻿1.1 (unreleased)
 ----------------
 
 New Features
@@ -1767,6 +1767,8 @@ Other Changes and Additions
 - `jinja2 <http://jinja.pocoo.org/docs/dev/>`_>=2.7 is now required to build the
   source code from the git repository, in order to allow the ERFA wrappers to
   be generated. [#3166]
+
+- Added deprecation warning for Python 2.6 [#3779]. 
 
 
 0.4.5 (2015-02-16)
