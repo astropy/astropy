@@ -5,6 +5,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 from ..nddata_base import NDDataBase
+from ..nduncertainty import StdDevUncertainty
 from ...tests.helper import pytest
 
 
@@ -52,9 +53,15 @@ def test_nddata_base_subclass():
     assert a.mask is None
     assert a.unit is None
     assert a.wcs is None
+    a.uncertainty = None
+    with pytest.raises(AttributeError):
+        assert a.uncertainty.parent_nddata is a
     good_uncertainty = MinimalUncertainty(5)
     a.uncertainty = good_uncertainty
     assert a.uncertainty is good_uncertainty
+    assert a.uncertainty.parent_nddata is a
+    a.uncertainty = StdDevUncertainty(None)
+    assert a.uncertainty.parent_nddata is a
     bad_uncertainty = 5
     with pytest.raises(TypeError):
         a.uncertainty = bad_uncertainty
