@@ -121,7 +121,7 @@ class TestIndex(SetupData):
             return
         t = self.t
         t.add_index('a', engine=engine)
-        
+
         # remove individual row
         t2 = t.copy()
         t2.remove_rows(2)
@@ -387,7 +387,7 @@ class TestIndex(SetupData):
             # ndarray search
             t2 = t.loc[np.array([1, 4, 2])]
             assert_col_equal(t2['a'], [1, 4, 2])
-        assert_col_equal(t2['a'], [1, 4, 2]) 
+        assert_col_equal(t2['a'], [1, 4, 2])
         t2 = t.loc[self.make_val(3): self.make_val(5)] # range search
         assert_col_equal(t2['a'], [3, 4, 5])
         t2 = t.loc['b', 5.0:7.0]

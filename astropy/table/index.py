@@ -733,7 +733,7 @@ class TableIndices(list):
             raise IndexError("No index found for {0}".format(item))
 
         return super(TableIndices, self).__getitem__(item)
-                    
+
 
 class TableLoc(object):
     '''
