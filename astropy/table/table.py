@@ -1462,10 +1462,10 @@ class Table(object):
         if name not in self.colnames:
             raise ValueError('Column name {0} is not in the table'.format(name))
 
+        t = self.__class__([col], names=[name])
         cols = OrderedDict(self.columns)
-        cols[name] = col
-        self._init_from_list(data=cols.values(), names=cols.keys(), dtype=[None] * len(cols),
-                             n_cols=len(cols), copy=False)
+        cols[name] = t[name]
+        self._init_from_cols(cols.values())
 
     def remove_row(self, index):
         """
