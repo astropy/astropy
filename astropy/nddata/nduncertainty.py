@@ -245,17 +245,15 @@ class StdDevUncertainty(NDUncertainty):
             Raised if the method does not know how to propagate the
             uncertainties.
         """
-
         self._propagate_compatible(other_nddata)
 
-        if self.array is None:
-            return StdDevUncertainty(other_nddata.uncertainty.array)
-
-        if other_nddata.uncertainty.array is None:
-            return StdDevUncertainty(self.array)
-
         result_uncertainty = StdDevUncertainty()
-        result_uncertainty.array = np.sqrt(self.array**2 +
+        if self.array is None:
+            result_uncertainty.array = other_nddata.uncertainty.array.copy()
+        elif other_nddata.uncertainty.array is None:
+            result_uncertainty.array = self.array.copy()
+        else:
+            result_uncertainty.array = np.sqrt(self.array**2 +
                                            other_nddata.uncertainty.array**2)
 
         return result_uncertainty
@@ -282,17 +280,15 @@ class StdDevUncertainty(NDUncertainty):
             Raised if the method does not know how to propagate the
             uncertainties.
         """
-
         self._propagate_compatible(other_nddata)
 
-        if self.array is None:
-            return StdDevUncertainty(other_nddata.uncertainty.array)
-
-        if other_nddata.uncertainty.array is None:
-            return StdDevUncertainty(self.array)
-
         result_uncertainty = StdDevUncertainty()
-        result_uncertainty.array = np.sqrt(self.array**2 +
+        if self.array is None:
+            result_uncertainty.array = other_nddata.uncertainty.array.copy()
+        elif other_nddata.uncertainty.array is None:
+            result_uncertainty.array = self.array.copy()
+        else:
+            result_uncertainty.array = np.sqrt(self.array**2 +
                                            other_nddata.uncertainty.array**2)
 
         return result_uncertainty
@@ -319,21 +315,19 @@ class StdDevUncertainty(NDUncertainty):
             Raised if the method does not know how to propagate the
             uncertainties.
         """
-
         self._propagate_compatible(other_nddata)
 
-        if self.array is None:
-            return StdDevUncertainty(other_nddata.uncertainty.array
-                                     * self.parent_nddata.data)
-
-        if other_nddata.uncertainty.array is None:
-            return StdDevUncertainty(self.array * other_nddata.data)
-
         result_uncertainty = StdDevUncertainty()
-        result_uncertainty.array = \
-            (np.sqrt((self.array/self.parent_nddata.data)**2
-             + (other_nddata.uncertainty.array/other_nddata.data)**2) *
-             result_data)
+        if self.array is None:
+            result_uncertainty.array = other_nddata.uncertainty.array \
+                                        * self.parent_nddata.data
+        elif other_nddata.uncertainty.array is None:
+            result_uncertainty.array = self.array * other_nddata.data
+        else:
+            result_uncertainty.array = \
+                (np.sqrt((self.array/self.parent_nddata.data)**2
+                 + (other_nddata.uncertainty.array/other_nddata.data)**2) *
+                 result_data)
 
         return result_uncertainty
 
@@ -359,21 +353,19 @@ class StdDevUncertainty(NDUncertainty):
             Raised if the method does not know how to propagate the
             uncertainties.
         """
-
         self._propagate_compatible(other_nddata)
 
-        if self.array is None:
-            return StdDevUncertainty(self.parent_nddata.data *
-                other_nddata.uncertainty.array
-                / (other_nddata.data * other_nddata.data))
-
-        if other_nddata.uncertainty.array is None:
-            return StdDevUncertainty(self.array / other_nddata.data)
-
         result_uncertainty = StdDevUncertainty()
-        result_uncertainty.array = \
-            (np.sqrt((self.array/self.parent_nddata.data)**2
-             + (other_nddata.uncertainty.array/other_nddata.data)**2) *
-             result_data)
+        if self.array is None:
+            result_uncertainty.array = self.parent_nddata.data \
+                * other_nddata.uncertainty.array \
+                / (other_nddata.data * other_nddata.data)
+        elif other_nddata.uncertainty.array is None:
+            result_uncertainty.array = self.array / other_nddata.data
+        else:
+            result_uncertainty.array = \
+                (np.sqrt((self.array/self.parent_nddata.data)**2
+                 + (other_nddata.uncertainty.array/other_nddata.data)**2) *
+                 result_data)
 
         return result_uncertainty
