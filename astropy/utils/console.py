@@ -697,7 +697,7 @@ class ProgressBar(six.Iterator):
             If ``multiprocess`` is `True`, this will affect the size
             of the chunks of ``items`` that are submitted as separate tasks
             to the process pool.  A large step size may make the job
-            complete faster if `items` is very long.
+            complete faster if ``items`` is very long.
         """
 
         results = []
