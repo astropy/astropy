@@ -513,8 +513,9 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
 
        conda create -n myaffilpkg_rel_test astropy <any more dependencies here>
        source activate myaffilpkg_rel_test
-       python setup.py install
-       cd <anywhere not your package's source directory>
+       python setup.py sdist
+       cd dist
+       pip install myaffilpkg-version.tar.gz
        python -c 'import myaffilpkg; myaffilpkg.test()'
        source deactivate
        cd <back to your source>
