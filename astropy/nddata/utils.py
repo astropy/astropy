@@ -523,6 +523,13 @@ class Cutout2D(object):
             units.  See the ``mode`` keyword for additional details on
             the final cutout size.
 
+            .. note::
+                If ``size`` is in angular units, the cutout size is
+                converted to pixels using the pixel scales along each
+                axis of the image at the ``CRPIX`` location.  Projection
+                and other non-linear distortions are not taken into
+                account.
+
         wcs : `~astropy.wcs.WCS`, optional
             A WCS object associated with the input ``data`` array.  If
             ``wcs`` is not `None`, then the returned cutout object will
