@@ -43,6 +43,9 @@ use the latest IERS predictions by running:
 
 
 def cartrepr_from_matmul(pmat, coo, transpose=False):
+    """
+    Note that pmat should be an ndarray, *not* a matrix.
+    """
     if pmat.shape[-2:] != (3, 3):
         raise ValueError("tried to do matrix multiplication with an array that "
                          "doesn't end in 3x3")

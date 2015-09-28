@@ -21,10 +21,10 @@ from .ecliptic import GeocentricTrueEcliptic, BarycentricTrueEcliptic, Heliocent
 from .utils import cartrepr_from_matmul
 
 
-def _gcrs_to_geoecliptic_matrix(equinox):
+def _ecliptic_rotation_matrix(equinox):
     rnpb = erfa.pnm06a(equinox.jd1, equinox.jd2)
     obl = erfa.obl06(equinox.jd1, equinox.jd2)*u.radian
-    return np.dot(rotation_matrix(obl, 'x'), rnpb)
+    return np.asarray(np.dot(rotation_matrix(obl, 'x'), rnpb))
 
 
 @frame_transform_graph.transform(FunctionTransform, GCRS, GeocentricTrueEcliptic)
@@ -36,14 +36,14 @@ def gcrs_to_geoecliptic(from_coo, to_frame):
         frameattrs['obstime'] = to_frame.equinox
         from_coo = from_coo.transform_to(GCRS(**frameattrs))
 
-    rmat = _gcrs_to_geoecliptic_matrix(to_frame.equinox)
+    rmat = _ecliptic_rotation_matrix(to_frame.equinox)
     newrepr = cartrepr_from_matmul(rmat, from_coo)
     return to_frame.realize_frame(newrepr)
 
 
 @frame_transform_graph.transform(FunctionTransform, GeocentricTrueEcliptic, GCRS)
 def geoecliptic_to_gcrs(from_coo, to_frame):
-    rmat = _gcrs_to_geoecliptic_matrix(to_frame.equinox)
+    rmat = _ecliptic_rotation_matrix(to_frame.equinox)
     newrepr = cartrepr_from_matmul(rmat, from_coo, transpose=True)
 
     if np.all(from_coo.equinox == to_frame.obstime):
@@ -58,9 +58,7 @@ def geoecliptic_to_gcrs(from_coo, to_frame):
 
 @frame_transform_graph.transform(DynamicMatrixTransform, ICRS, BarycentricTrueEcliptic)
 def icrs_to_baryecliptic(from_coo, to_frame):
-    rnpb = erfa.pnm06a(to_frame.equinox.jd1, to_frame.equinox.jd2)
-    obl = erfa.obl06(to_frame.equinox.jd1, to_frame.equinox.jd2)*u.radian
-    return np.dot(rotation_matrix(obl, 'x'), rnpb)
+    return _ecliptic_rotation_matrix(to_frame.equinox)
 
 
 @frame_transform_graph.transform(DynamicMatrixTransform, BarycentricTrueEcliptic, ICRS)
@@ -76,10 +74,8 @@ def icrs_to_helioecliptic(from_coo, to_frame):
     #first offset to heliocentric
     heliocart = from_coo.cartesian.xyz + delta_bary_to_helio * u.au
 
-    # now precess to the right orientation
-    rnpb = erfa.pnm06a(to_frame.equinox.jd1, to_frame.equinox.jd2)
-    obl = erfa.obl06(to_frame.equinox.jd1, to_frame.equinox.jd2)*u.radian
-    rmat = np.dot(rotation_matrix(obl, 'x'), rnpb)
+    # now compute the matrix to precess to the right orientation
+    rmat = _ecliptic_rotation_matrix(to_frame.equinox)
 
     # it's not really ICRS because of the offset, but this is digestible by cartrepr_from_matmul
     newrepr = cartrepr_from_matmul(rmat, ICRS(CartesianRepresentation(heliocart)))
@@ -90,9 +86,7 @@ def icrs_to_helioecliptic(from_coo, to_frame):
 def helioecliptic_to_icrs(from_coo, to_frame):
 
     # first un-precess from ecliptic to ICRS orientation
-    rnpb = erfa.pnm06a(to_frame.equinox.jd1, to_frame.equinox.jd2)
-    obl = erfa.obl06(to_frame.equinox.jd1, to_frame.equinox.jd2)*u.radian
-    rmat = np.dot(rotation_matrix(obl, 'x'), rnpb)
+    rmat = _ecliptic_rotation_matrix(from_coo.equinox)
     intermed_repr = cartrepr_from_matmul(rmat, from_coo, transpose=True)
 
     # now offset back to barycentric, which is the correct center for ICRS
