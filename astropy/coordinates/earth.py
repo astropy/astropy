@@ -10,7 +10,6 @@ from .. import units as u
 from .. import _erfa as erfa
 from ..utils import OrderedDict
 from ..utils.exceptions import AstropyUserWarning
-from . import sites
 from . import Longitude, Latitude
 
 try:
@@ -202,11 +201,14 @@ class EarthLocation(u.Quantity):
         --------
         get_site_names : the list of sites that this function can access
         """
+        # need to import inside function to avoid circular dependencies
+        from .sites import get_site
+
         try:
-            el = sites.get_site(site_name, online=True)  # this is always an EarthLocation
+            el = get_site(site_name, online=True)  # this is always an EarthLocation
         except URLError:
             warn(AstropyUserWarning(_NO_ONLINE_SITES_WARNING_MSG))
-            el = sites.get_site(site_name, online=False)  # this is always an EarthLocation
+            el = get_site(site_name, online=False)  # this is always an EarthLocation
 
         if cls is el.__class__:
             return el
@@ -235,11 +237,14 @@ class EarthLocation(u.Quantity):
         get_site : Gets the `~astropy.coordinates.EarthLocation` for one of the
                    sites this returns.
         """
+        # need to import inside function to avoid circular dependencies
+        from .sites import get_site_names
+
         try:
-            return sites.get_site_names(online=True)  # this is always an EarthLocation
+            return get_site_names(show_aliases, online=True)  # this is always an EarthLocation
         except URLError:
             warn(AstropyUserWarning(_NO_ONLINE_SITES_WARNING_MSG))
-            return sites.get_site_names(online=False)  # this is always an EarthLocation
+            return get_site_names(show_aliases, online=False)  # this is always an EarthLocation
 
     @property
     def ellipsoid(self):

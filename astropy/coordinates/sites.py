@@ -28,11 +28,11 @@ _builtin_site_names = []
 
 def _parse_sites_json(jsondb, names, sitedict):
     for site in jsondb:
-        location = EarthLocation.from_geodetic(sitedict[site]['longitude'],
-                                               sitedict[site]['latitude'],
-                                               sitedict[site]['elevation_meters'])
-        names.append(sitedict[site]['name'])
-        for alias in sitedict[site]['aliases']:
+        location = EarthLocation.from_geodetic(jsondb[site]['longitude'],
+                                               jsondb[site]['latitude'],
+                                               jsondb[site]['elevation_meters'])
+        names.append(jsondb[site]['name'])
+        for alias in jsondb[site]['aliases']:
             sitedict[alias.lower()] = location
 
 def _get_builtin_sites():
@@ -40,7 +40,7 @@ def _get_builtin_sites():
     Load observatory database from data/observatories.json and parse them into
     a dictionary in memory.
     """
-    if _site_db.get('_site_db_uninitialized', False):
+    if _builtin_site_dict.get('_site_db_uninitialized', False):
         jsondb = json.loads(get_pkg_data_contents('data/observatories.json'))
         _parse_sites_json(jsondb, _builtin_site_names, _builtin_site_dict)
         del _builtin_site_dict['_site_db_uninitialized']
@@ -84,9 +84,9 @@ def get_site(site_name, online):
     get_site_names : the list of sites that this function can access
     """
     if online:
-        site_db, site_names = download_sites()
+        site_db, site_names = _get_downloaded_sites()
     else:
-        site_db, site_names = _load_builtin_sites()
+        site_db, site_names = _get_builtin_sites()
 
     if site_name.lower() not in site_db:
         # If site name not found, find close matches and suggest them in error
@@ -103,7 +103,7 @@ def get_site(site_name, online):
     return site_db[site_name.lower()]
 
 
-def get_site_names(show_aliases=True, online):
+def get_site_names(show_aliases, online):
     """
     Get list of names of observatories for use with
     `~astropy.coordinates.get_site`.
@@ -127,7 +127,10 @@ def get_site_names(show_aliases=True, online):
     get_site : gets the `~astropy.coordinates.EarthLocation` for one of the
                sites this returns.
     """
-    site_db, site_names = _get_sites_db()
+    if online:
+        site_db, site_names = _get_downloaded_sites()
+    else:
+        site_db, site_names = _get_builtin_sites()
 
     if show_aliases:
         return sorted(site_db.keys())
