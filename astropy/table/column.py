@@ -185,7 +185,7 @@ class BaseColumn(np.ndarray):
                        copy_indices else []
         for index in self.indices:
             index.replace_col(data, self)
-  
+
         return self
 
 

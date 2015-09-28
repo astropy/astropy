@@ -10,6 +10,11 @@ more columns of the table. An index internally sorts the rows of a table based
 on the index column(s), allowing for element retrieval by column value and
 improved performance for certain table operations.
 
+.. Warning::
+
+   The table indexing engine is new and is not yet considered stable.
+   It is recommended to avoid using this engine in production code for now.
+
 Creating an index
 ^^^^^^^^^^^^^^^^^
 
