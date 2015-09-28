@@ -363,7 +363,7 @@ class StdDevUncertainty(NDUncertainty):
             raise IncompatibleUncertaintiesException
 
         if self.array is None:
-            return StdDevUncertainty(self.parent_nddata.data * 
+            return StdDevUncertainty(self.parent_nddata.data *
                 other_nddata.uncertainty.array
                 / (other_nddata.data * other_nddata.data))
 
