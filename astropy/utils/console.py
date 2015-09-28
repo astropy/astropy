@@ -661,7 +661,7 @@ class ProgressBar(six.Iterator):
         pass
 
     @classmethod
-    def map(cls, function, items, multiprocess=False, file=None):
+    def map(cls, function, items, multiprocess=False, file=None, step=100):
         """
         Does a `map` operation while displaying a progress bar with
         percentage complete.
@@ -691,6 +691,13 @@ class ProgressBar(six.Iterator):
             `sys.stdout`.  If `file` is not a tty (as determined by
             calling its `isatty` member, if any), the scrollbar will
             be completely silent.
+
+        step : int, optional
+            Update the progress bar at least every *step* steps (default: 100).
+            If `multiprocess` is `True`, this will affect the size
+            of the chunks of `items` that are submitted as separate tasks
+            to the process pool.  A large step size may make the job
+            complete faster if `items` is very long.
         """
 
         results = []
@@ -699,17 +706,17 @@ class ProgressBar(six.Iterator):
             file = _get_stdout()
 
         with cls(len(items), file=file) as bar:
-            step_size = max(200, bar._bar_length)
-            steps = max(int(float(len(items)) / step_size), 1)
+            default_step = max(int(float(len(items)) / bar._bar_length), 1)
+            chunksize = min(default_step, step)
             if not multiprocess:
                 for i, item in enumerate(items):
                     results.append(function(item))
-                    if (i % steps) == 0:
+                    if (i % chunksize) == 0:
                         bar.update(i)
             else:
                 p = multiprocessing.Pool()
                 for i, result in enumerate(
-                    p.imap_unordered(function, items, steps)):
+                    p.imap_unordered(function, items, chunksize=chunksize)):
                     bar.update(i)
                     results.append(result)
                 p.close()
