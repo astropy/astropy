@@ -223,6 +223,19 @@ class StdDevUncertainty(NDUncertainty):
         if not isinstance(other_nddata.uncertainty, StdDevUncertainty):
             raise IncompatibleUncertaintiesException
 
+        if self._unit is not None:
+            if self._unit is not self.parent_nddata.unit:
+                self.array = (self.array * self._unit).to(
+                                self.parent_nddata.unit).value
+                self._unit = None
+        if other_nddata.uncertainty._unit is not None:
+            if other_nddata.uncertainty._unit is not other_nddata.unit:
+                other_nddata.uncertainty.array = \
+                    (other_nddata.uncertainty.array * 
+                    other_nddata.uncertainty._unit).to(
+                    other_nddata.uncertainty.unit).value
+                other_nddata.uncertainty._unit = None
+
     def propagate_add(self, other_nddata, result_data):
         """
         Propagate uncertainties for addition.
