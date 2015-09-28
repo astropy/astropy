@@ -129,8 +129,13 @@ class NDArithmeticMixin(object):
                 self.unit != operand.unit):
             operand_data = operand.unit.to(self.unit, operand.data)
             if operand.uncertainty:
-                operand_uncert_value = operand.unit.to(self.unit,
+                if hasattr(operand.uncertainty._unit) and \
+                                operand.uncertainty._unit is not None:
+                    operand_uncert_value *= operand.uncertainty._unit
+                else:
+                    operand_uncert_value = operand.unit.to(self.unit,
                                                        operand_uncert_value)
+
         else:
             operand_data = operand.data
 
