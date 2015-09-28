@@ -63,9 +63,11 @@ column values (*including* the bounds), or a list or ndarray of column values::
    >>> t = Table([(1, 2, 3, 4), (10, 1, 9, 9)], names=('a', 'b'))
    >>> t.add_index('a')
    >>> t.loc[2]
-   <Row 1 of table
-    values=(2, 1)
-    dtype=[('a', '<i8'), ('b', '<i8')]>
+   <Row index=1>
+     a     b
+   int64 int64
+   ----- -----
+       2     1
    >>> t.loc[[1, 4]]
    <Table length=2>
      a     b  
@@ -111,9 +113,11 @@ be either an int or a slice, and relates to the sorted order of the index
 rather than column values. For example::
 
    >>> t.iloc[0] # smallest row by value 'a'
-   <Row 0 of table
-    values=(1, 10)
-    dtype=[('a', '<i8'), ('b', '<i8')]>
+   <Row index=0>
+     a     b
+   int64 int64
+   ----- -----
+       1    10
    >>> t.iloc['b', 1:] # all but smallest value of 'b'
    <Table length=3>
      a     b  
