@@ -7,8 +7,6 @@ from warnings import warn
 
 import numpy as np
 from .. import units as u
-from .. import _erfa as erfa
-from ..utils import OrderedDict
 from ..utils.exceptions import AstropyUserWarning
 from . import Longitude, Latitude
 
