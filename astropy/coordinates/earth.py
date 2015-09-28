@@ -182,8 +182,10 @@ class EarthLocation(u.Quantity):
     @classmethod
     def of_site(cls, site_name):
         """
-        Return an object of this class for a known
-        observatory/site by name.
+        Return an object of this class for a known observatory/site by name.
+
+        Note that this is intended as a quick convenience function, not a
+        fully-featured registry of observatories.
 
         Parameters
         ----------
@@ -217,7 +219,7 @@ class EarthLocation(u.Quantity):
     def get_site_names(cls, show_aliases=True):
         """
         Get list of names of observatories for use with
-        `~astropy.coordinates.get_site`.
+        `~astropy.coordinates.EarthLocation.of_site`.
 
         Parameters
         ----------
@@ -232,8 +234,8 @@ class EarthLocation(u.Quantity):
 
         See Also
         --------
-        get_site : Gets the `~astropy.coordinates.EarthLocation` for one of the
-                   sites this returns.
+        of_site : Gets the actual location object for one of the sites names
+                  this returns.
         """
         # need to import inside function to avoid circular dependencies
         from .sites import get_site_names
