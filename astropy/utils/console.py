@@ -694,8 +694,8 @@ class ProgressBar(six.Iterator):
 
         step : int, optional
             Update the progress bar at least every *step* steps (default: 100).
-            If `multiprocess` is `True`, this will affect the size
-            of the chunks of `items` that are submitted as separate tasks
+            If ``multiprocess`` is `True`, this will affect the size
+            of the chunks of ``items`` that are submitted as separate tasks
             to the process pool.  A large step size may make the job
             complete faster if `items` is very long.
         """
