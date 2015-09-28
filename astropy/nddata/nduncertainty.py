@@ -228,8 +228,8 @@ class StdDevUncertainty(NDUncertainty):
                 self.array = (self.array * self._unit).to(
                                 self.parent_nddata.unit).value
                 self._unit = None
-        if other_nddata.uncertainty._unit != None:
-            if other_nddata.uncertainty._unit is not other_nddata.unit:
+        if other_nddata.uncertainty._unit is not None:
+            if other_nddata.uncertainty._unit != other_nddata.unit:
                 other_nddata.uncertainty.array = \
                     (other_nddata.uncertainty.array *
                     other_nddata.uncertainty._unit).to(
