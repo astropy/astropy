@@ -42,16 +42,16 @@ def test_add_remove_site():
     remove_site(new_site_name)
     assert len(_site_db) == initlen
 
-    #now try add/remove with aliases
+    #now check that alias removals works too
     new_site_names = [new_site_name, 'UW']
     add_site(new_site_names, new_site_location)
     assert len(_site_db) == (initlen + 2)
-    remove_site(new_site_name, remove_aliases=True)
+    remove_site(new_site_name)
     assert len(_site_db) == initlen
 
     add_site(new_site_names, new_site_location)
     assert len(_site_db) == (initlen + 2)
-    remove_site(new_site_names[1], remove_aliases=True)
+    remove_site(new_site_names[1])
     assert len(_site_db) == initlen
 
 
