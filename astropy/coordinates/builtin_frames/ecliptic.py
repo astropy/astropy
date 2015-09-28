@@ -74,10 +74,10 @@ class BarycentricTrueEcliptic(BaseCoordinateFrame):
     representation : `BaseRepresentation` or None
         A representation object or None to have no data (or use the other keywords)
     l : `Angle`, optional, must be keyword
-        The ecliptic longitude for this object (``beta`` must also be given and
+        The ecliptic longitude for this object (``b`` must also be given and
         ``representation`` must be None).
     b : `Angle`, optional, must be keyword
-        The ecliptic latitde for this object (``lambda`` must also be given and
+        The ecliptic latitde for this object (``l`` must also be given and
         ``representation`` must be None).
     r : `~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object from the sun's center.
