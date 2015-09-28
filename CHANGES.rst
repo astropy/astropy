@@ -196,6 +196,7 @@ New Features
 
   - Added furlong to imperial units. [#3529]
   - Added mil to imperial units. [#3716]
+  - Added stone to imperial units. [#4192]
 
   - Added support for functional units, in particular the logarithmic ones
     ``Magnitude``, ``Decibel``, and ``Dex``. [#1894]
@@ -688,7 +689,7 @@ Bug Fixes
 - ``astropy.visualization``
 
   - The color for axes labels was set to white. Since white labels on white
-    background are hard to read, the label color has been changed to black. 
+    background are hard to read, the label color has been changed to black.
     [#4143]
   - ``ImageNormalize`` now automatically determines ``vmin``/``vmax``
     (via the ``autoscale_None`` method) when they have not been set
