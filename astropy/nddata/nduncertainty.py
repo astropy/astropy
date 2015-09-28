@@ -233,7 +233,7 @@ class StdDevUncertainty(NDUncertainty):
                 other_nddata.uncertainty.array = \
                     (other_nddata.uncertainty.array *
                     other_nddata.uncertainty._unit).to(
-                    other_nddata.uncertainty.unit).value
+                    other_nddata.uncertainty._unit).value
                 other_nddata.uncertainty._unit = None
 
     def propagate_add(self, other_nddata, result_data):
