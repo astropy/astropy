@@ -1124,10 +1124,16 @@ def is_url_in_cache(url_key):
         estr = '' if len(e.args) < 1 else (': ' + str(e))
         warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
         return False
+
+    if six.PY2 and isinstance(url_key, six.text_type):
+        # shelve DBs don't accept unicode strings in Python 2
+        url_key = url_key.encode('utf-8')
+
     with _open_shelve(urlmapfn, True) as url2hash:
         if url_key in url2hash:
             return True
     return False
+
 
 def _do_download_files_in_parallel(args):
     return download_file(*args, show_progress=False)
