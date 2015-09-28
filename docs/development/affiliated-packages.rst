@@ -504,12 +504,12 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
 #. Check out the release commit with ``git checkout v<version>``.
    Run ``git clean -fxd`` to remove any non-committed files.
 
-#. (optional) Run the tests in a virtual environment that mocks up a
-   "typical user" scenario.  This is not strictly necessary because you ran the
-   tests above, but it can sometimes be useful to catch subtle bugs that might
-   come from you using a customized developer environment.  For more on setting
-   up virtual environments, see :ref:`virtual-envs`, but for the sake of example
-   we will assume you're using `Anaconda <http://conda.pydata.org/docs/>`_. Do::
+#. (optional) Run the tests in an environment that mocks up a "typical user"
+   scenario. This is not strictly necessary because you ran the tests above, but
+   it can sometimes be useful to catch subtle bugs that might come from you
+   using a customized developer environment.  For more on setting up virtual
+   environments, see :ref:`virtual-envs`, but for the sake of example we will
+   assume you're using `Anaconda <http://conda.pydata.org/docs/>`_. Do::
 
        conda create -n myaffilpkg_rel_test astropy <any more dependencies here>
        source activate myaffilpkg_rel_test
