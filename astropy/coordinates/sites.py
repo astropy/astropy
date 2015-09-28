@@ -5,9 +5,8 @@ Observatory Database, and are stored in ``data/observatories.json``.
 Longitudes are listed with positive to the West.
 
 Additions or corrections to the observatory list can be submitted via Pull
-Request to the [astropy GitHub repository](https://github.com/astropy/astropy),
-updating the ``observatories.json`` file.
-
+Request to the [astropy-data GitHub repository](https://github.com/astropy/astropy),
+updating the ``location.json`` file.
 """
 
 from __future__ import (absolute_import, division, print_function,
@@ -16,35 +15,51 @@ from __future__ import (absolute_import, division, print_function,
 import json
 from difflib import get_close_matches
 
-from ..utils.data import get_pkg_data_contents
+from ..utils.data import get_pkg_data_contents, get_file_contents
 from ..extern import six
 from .earth import EarthLocation
 
-__all__ = ['get_site', 'get_site_names', 'add_site', 'remove_site']
+__all__ = ['get_site', 'get_site_names']
 
 # Observatory database and list of names:
-_site_db = None
-_site_names = []
+_builtin_site_dict = {'_site_db_uninitialized': True}
+_builtin_site_names = []
 
 
-def _load_sites():
+def _parse_sites_json(jsondb, names, sitedict):
+    for site in jsondb:
+        location = EarthLocation.from_geodetic(sitedict[site]['longitude'],
+                                               sitedict[site]['latitude'],
+                                               sitedict[site]['elevation_meters'])
+        names.append(sitedict[site]['name'])
+        for alias in sitedict[site]['aliases']:
+            sitedict[alias.lower()] = location
+
+def _get_builtin_sites():
     """
     Load observatory database from data/observatories.json and parse them into
     a dictionary in memory.
     """
-    global _site_db, _site_names
-    _site_db = dict()
-    db = json.loads(get_pkg_data_contents('data/observatories.json'))
-    for site in db:
-        location = EarthLocation.from_geodetic(db[site]['longitude'],
-                                   db[site]['latitude'],
-                                   db[site]['elevation_meters'])
-        _site_names.append(db[site]['name'])
-        for alias in db[site]['aliases']:
-            _site_db[alias.lower()] = location
+    if _site_db.get('_site_db_uninitialized', False):
+        jsondb = json.loads(get_pkg_data_contents('data/observatories.json'))
+        _parse_sites_json(jsondb, _builtin_site_names, _builtin_site_dict)
+        del _builtin_site_dict['_site_db_uninitialized']
 
+    return _builtin_site_dict, _builtin_site_names
 
-def get_site(site_name):
+def _get_downloaded_sites():
+    """
+    Load observatory database from data.astropy.org and parse into data files.
+    """
+    sitedict = {}
+    names = []
+
+    jsondb = json.loads(get_file_contents('http://data.astropy.org/locations.json'))
+    _parse_sites_json(jsondb, names, sitedict)
+
+    return sitedict, names
+
+def get_site(site_name, online):
     """
     Return an `~astropy.coordinates.EarthLocation` object for known observatory.
 
@@ -55,6 +70,9 @@ def get_site(site_name):
     ----------
     site_name : str
         Name of the observatory.
+    online : bool
+        Use the online registry of observatories instead of the version included
+        with astropy.  Requires an active internet connection.
 
     Returns
     -------
@@ -64,15 +82,15 @@ def get_site(site_name):
     See Also
     --------
     get_site_names : the list of sites that this function can access
-    add_site : adds a new site to the list
-    remove_site : remove a site by name from the list of sites
     """
-    if _site_db is None:
-        _load_sites()
+    if online:
+        site_db, site_names = download_sites()
+    else:
+        site_db, site_names = _load_builtin_sites()
 
-    if site_name.lower() not in _site_db:
+    if site_name.lower() not in site_db:
         # If site name not found, find close matches and suggest them in error
-        close_names = get_close_matches(site_name, _site_db)
+        close_names = get_close_matches(site_name, site_db)
         close_names = sorted(close_names, key=lambda x: len(x))
         if close_names:
             errmsg = ('Site not in database. Use ``get_site_names()`` '
@@ -82,10 +100,10 @@ def get_site(site_name):
             errmsg = 'Site "{0}" not in database.'.format(site_name)
         raise KeyError(errmsg)
 
-    return _site_db[site_name.lower()]
+    return site_db[site_name.lower()]
 
 
-def get_site_names(show_aliases=True):
+def get_site_names(show_aliases=True, online):
     """
     Get list of names of observatories for use with
     `~astropy.coordinates.get_site`.
@@ -95,6 +113,9 @@ def get_site_names(show_aliases=True):
     show_aliases : bool
         If True, show the full list observatory names and aliases, or just the
         list of names if False.
+    online : bool
+        Use the online registry of observatories instead of the version included
+        with astropy.  Requires an active internet connection.
 
     Returns
     -------
@@ -105,98 +126,10 @@ def get_site_names(show_aliases=True):
     --------
     get_site : gets the `~astropy.coordinates.EarthLocation` for one of the
                sites this returns.
-    get_site_names : the list of sites names that this function can access
-    remove_site : remove a site by name from the list of sites
-
     """
-    if _site_db is None:
-        _load_sites()
+    site_db, site_names = _get_sites_db()
 
     if show_aliases:
-        return sorted(_site_db.keys())
+        return sorted(site_db.keys())
     else:
-        return sorted(_site_names)
-
-
-def add_site(site_names, location):
-    """
-    Add a site to the list of available observatories.
-
-    Parameters
-    ----------
-    site_names : string or list of strings
-        Name of the observatory.  If a list, all names will be aliases for the
-        same ``location``, and the first will be taken as the canonical name.
-    location : `~astropy.coordinates.EarthLocation`
-        Location of the observatory
-
-    See Also
-    --------
-    get_site : gets the `~astropy.coordinates.EarthLocation` for one of the
-               sites this returns.
-    get_site_names : the list of site names that this function will add to
-    remove_site : remove a site by name from the list of sites
-
-    """
-    if _site_db is None:
-        _load_sites()
-
-    if not isinstance(location, EarthLocation):
-        raise ValueError('Location must be an EarthLocation.')
-
-    if isinstance(site_names, six.string_types):
-        site_names = [site_names]
-
-    firstnamedone = False
-    for name in site_names:
-        if name.lower() not in _site_db.keys():
-            _site_db[name.lower()] = location
-            if not firstnamedone:
-                _site_names.append(name)
-                firstnamedone = True
-        else:
-            raise KeyError('The site "{0}" already exists at (longitude,latitude,'
-                           'elevation)={1}'.format(name, _site_db[name.lower()].to_geodetic()))
-
-
-def remove_site(site_name):
-    """
-    Removes a site (and all its alias) from the list of available observatories.
-
-    Parameters
-    ----------
-    site_name : string
-        Name of the observatory (or one of its aliases) to remove.
-
-    Raises
-    ------
-    KeyError
-        If the name is not in the database
-
-    See Also
-    --------
-    get_site : gets the `~astropy.coordinates.EarthLocation` for one of the
-               sites this returns.
-    get_site_names : the list of site names that this function will add to
-    add_site : adds a new site to the list
-    """
-    lname = site_name.lower()
-    if lname in _site_db:
-        remloc = _site_db.pop(lname)
-
-        # now take care of aliases
-        namestorem = []
-        for name, loc in six.iteritems(_site_db):
-            if remloc is loc:
-                namestorem.append(name)
-        for nm in namestorem:
-            del _site_db[nm]
-
-        # now go through and make sure none of them are in _site_names
-        for nm in namestorem:
-            lnm = nm.lower()
-            if lnm in _site_names:
-                _site_names.remove(lnm)
-    else:
-        msg = 'Site name "{0}" not in the database of sites'
-        raise KeyError(msg.format(lname))
+        return sorted(site_names)

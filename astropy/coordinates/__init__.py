@@ -20,7 +20,6 @@ from .matching import *
 from .representation import *
 from .sky_coordinate import *
 from .funcs import *
-from .sites import *
 
 __doc__ += builtin_frames._transform_graph_docs + """
 

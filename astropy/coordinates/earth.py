@@ -2,10 +2,15 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+from urllib2 import URLError
+from warnings import warn
+
 import numpy as np
 from .. import units as u
 from .. import _erfa as erfa
 from ..utils import OrderedDict
+from ..utils.exceptions import AstropyUserWarning
+from . import sites
 from . import Longitude, Latitude
 
 try:
@@ -19,6 +24,9 @@ __all__ = ['EarthLocation']
 
 # Available ellipsoids (defined in erfam.h, with numbers exposed in erfa).
 ELLIPSOIDS = ('WGS84', 'GRS80', 'WGS72')
+
+_NO_ONLINE_SITES_WARNING_MSG = ('Could not access the online site list. Falling'
+                                'back on the builtin version.')
 
 
 def _check_ellipsoid(ellipsoid=None, default='WGS84'):
@@ -173,6 +181,65 @@ class EarthLocation(u.Quantity):
         self._unit = u.meter
         self._ellipsoid = ellipsoid
         return self.to(height.unit)
+
+    @classmethod
+    def of_site(cls, site_name):
+        """
+        Return an object of this class for a known
+        observatory/site by name.
+
+        Parameters
+        ----------
+        site_name : str
+            Name of the observatory.
+
+        Returns
+        -------
+        site : This class (a `~astropy.coordinates.EarthLocation` or subclass)
+            The location of the observatory.
+
+        See Also
+        --------
+        get_site_names : the list of sites that this function can access
+        """
+        try:
+            el = sites.get_site(site_name, online=True)  # this is always an EarthLocation
+        except URLError:
+            warn(AstropyUserWarning(_NO_ONLINE_SITES_WARNING_MSG))
+            el = sites.get_site(site_name, online=False)  # this is always an EarthLocation
+
+        if cls is el.__class__:
+            return el
+        else:
+            return cls.from_geodetic(*el.to_geodetic())
+
+    @classmethod
+    def get_site_names(cls, show_aliases=True):
+        """
+        Get list of names of observatories for use with
+        `~astropy.coordinates.get_site`.
+
+        Parameters
+        ----------
+        show_aliases : bool
+            If True, show the full list observatory names and aliases, or just the
+            list of names if False.
+
+        Returns
+        -------
+        names : list of str
+            List of valid observatory names
+
+        See Also
+        --------
+        get_site : Gets the `~astropy.coordinates.EarthLocation` for one of the
+                   sites this returns.
+        """
+        try:
+            return sites.get_site_names(online=True)  # this is always an EarthLocation
+        except URLError:
+            warn(AstropyUserWarning(_NO_ONLINE_SITES_WARNING_MSG))
+            return sites.get_site_names(online=False)  # this is always an EarthLocation
 
     @property
     def ellipsoid(self):
