@@ -296,14 +296,14 @@ class CompImageHeader(Header):
 
         if keyword == 'TFIELDS':
             if warn:
-                warnings.warn(msg)
+                warnings.warn(msg, AstropyUserWarning)
             return True
 
         m = TDEF_RE.match(keyword)
 
         if m and m.group('label').upper() in TABLE_KEYWORD_NAMES:
             if warn:
-                warnings.warn(msg)
+                warnings.warn(msg, AstropyUserWarning)
             return True
 
         m = cls._zdef_re.match(keyword)
@@ -313,11 +313,11 @@ class CompImageHeader(Header):
             num = m.group('num')
             if num is not None and label in cls._indexed_compression_keywords:
                 if warn:
-                    warnings.warn(msg)
+                    warnings.warn(msg, AstropyUserWarning)
                 return True
             elif label in cls._compression_keywords:
                 if warn:
-                    warnings.warn(msg)
+                    warnings.warn(msg, AstropyUserWarning)
                 return True
 
         return False
@@ -1217,7 +1217,8 @@ class CompImageHDU(BinTableHDU):
                                            SUBTRACTIVE_DITHER_2]:
                     name = QUANTIZE_METHOD_NAMES[DEFAULT_QUANTIZE_METHOD]
                     warnings.warn('Unknown quantization method provided.  '
-                                  'Default method (%s) used.' % name)
+                                  'Default method (%s) used.' % name,
+                                  AstropyUserWarning)
                     quantize_method = DEFAULT_QUANTIZE_METHOD
 
                 if quantize_method == NO_DITHER:

@@ -136,17 +136,17 @@ def verify_checksums(filename):
     except UserWarning as w:
         remainder = '.. ' + ' '.join(str(w).split(' ')[1:]).strip()
         # if "Checksum" in str(w) or "Datasum" in str(w):
-        log.warn('BAD %r %s' % (filename, remainder))
+        log.warning('BAD %r %s' % (filename, remainder))
         return 1
     if not OPTIONS.ignore_missing:
         for i, hdu in enumerate(hdulist):
             if not hdu._checksum:
-                log.warn('MISSING %r .. Checksum not found in HDU #%d' %
-                         (filename, i))
+                log.warning('MISSING %r .. Checksum not found in HDU #%d' %
+                            (filename, i))
                 return 1
             if not hdu._datasum:
-                log.warn('MISSING %r .. Datasum not found in HDU #%d' %
-                         (filename, i))
+                log.warning('MISSING %r .. Datasum not found in HDU #%d' %
+                            (filename, i))
                 return 1
     if not errors:
         log.info('OK %r' % filename)

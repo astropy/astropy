@@ -40,9 +40,13 @@ References
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import inspect
+import warnings
+
 import numpy as np
 
 from ..utils.compat.funcsigs import signature
+from ..utils.exceptions import AstropyUserWarning
 
 # TODO: implement other fitness functions from appendix B of Scargle 2012
 
@@ -455,9 +459,8 @@ class RegularEvents(FitnessFunc):
 
         eps = 1E-8
         if np.any(N_over_M > 1 + eps):
-            import warnings
             warnings.warn('regular events: N/M > 1.  '
-                          'Is the time step correct?')
+                          'Is the time step correct?', AstropyUserWarning)
 
         one_m_NM = 1 - N_over_M
         N_over_M[N_over_M <= 0] = 1

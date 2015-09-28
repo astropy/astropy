@@ -7,10 +7,12 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import numpy as np
+import warnings
 
 from ..extern import six
 from .representation import UnitSphericalRepresentation
 from .. import units as u
+from ..utils.exceptions import AstropyUserWarning
 
 __all__ = ['match_coordinates_3d', 'match_coordinates_sky', 'search_around_3d',
            'search_around_sky']
@@ -396,15 +398,14 @@ def _get_cartesian_kdtree(coord, attrname_or_kdt='_kdtree', forceunit=None):
         The KD-Tree representing the 3D cartesian representation of the input
         coordinates.
     """
-    from warnings import warn
 
     #without scipy this will immediately fail
     from scipy import spatial
     try:
         KDTree = spatial.cKDTree
     except:
-        warn('C-based KD tree not found, falling back on (much slower) '
-             'python implementation')
+        warnings.warn('C-based KD tree not found, falling back on (much '
+                      'slower) python implementation', AstropyUserWarning)
         KDTree = spatial.KDTree
 
     if attrname_or_kdt is True:  # backwards compatibility for pre v0.4

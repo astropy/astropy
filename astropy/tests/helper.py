@@ -37,7 +37,7 @@ except ImportError:
     pass
 
 from .. import test
-from ..utils.exceptions import (AstropyWarning,
+from ..utils.exceptions import (AstropyUserWarning,
                                 AstropyDeprecationWarning,
                                 AstropyPendingDeprecationWarning)
 
@@ -119,7 +119,7 @@ class TestRunner(object):
                 "The coverage option is ignored on run_tests, since it "
                 "can not be made to work in that context.  Use "
                 "'python setup.py test --coverage' instead.",
-                AstropyWarning)
+                AstropyUserWarning)
 
         all_args = []
 
@@ -139,7 +139,8 @@ class TestRunner(object):
             if not os.path.exists(docs_path):
                 warnings.warn(
                     "Can not test .rst docs, since docs path "
-                    "({0}) does not exist.".format(docs_path))
+                    "({0}) does not exist.".format(docs_path),
+                    AstropyUserWarning)
                 docs_path = None
 
         if test_path:

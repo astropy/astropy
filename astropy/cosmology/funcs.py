@@ -12,6 +12,7 @@ from .core import default_cosmology as _default_cosmology
 from .core import CosmologyError
 from ..units import Quantity
 from ..utils import deprecated
+from ..utils.exceptions import AstropyUserWarning
 
 __all__ = ['z_at_value']
 
@@ -123,7 +124,7 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500):
         warnings.warn("""\
 fval is not bracketed by func(zmin) and func(zmax). This means either
 there is no solution, or that there is more than one solution between
-zmin and zmax satisfying fval = func(z).""")
+zmin and zmax satisfying fval = func(z).""", AstropyUserWarning)
 
     if isinstance(fval_zmin, Quantity):
         unit = fval_zmin.unit
@@ -137,7 +138,7 @@ zmin and zmax satisfying fval = func(z).""")
 
     if ierr != 0:
         warnings.warn('Maximum number of function calls ({}) reached'.format(
-            ncall))
+            ncall), AstropyUserWarning)
 
     if np.allclose(zbest, zmax):
         raise CosmologyError("Best guess z is very close the upper z limit.\n"

@@ -69,6 +69,19 @@ wish to *squelch* deprecation warnings, you can start Python with
 also an Astropy-specific `~astropy.utils.exceptions.AstropyDeprecationWarning`
 which can be used to disable deprecation warnings from Astropy only.
 
+The base class of `~astropy.utils.exceptions.AstropyUserWarning` and
+`~astropy.utils.exceptions.AstropyDeprecationWarning` is called simply
+`~astropy.utils.exceptions.AstropyWarning`.  So *all* warnings coming from
+Astropy can be be disabled with::
+
+    >>> from astropy.utils.exceptions import AstropyWarning
+    >>> warnings.simplefilter('ignore', category=AstropyWarning)
+
+However, it is recommendable to use
+`~astropy.utils.exceptions.AstropyUserWarning` in most cases, and to only
+squelch deprecation warnings once you know they exist and have determined that
+they can be ignored for the time being.
+
 See `the CPython documentation
 <http://docs.python.org/2/using/cmdline.html#cmdoption-W>`__ for more
 information on the -W argument.

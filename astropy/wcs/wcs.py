@@ -62,7 +62,7 @@ if _wcs is not None:
             "that ships with astropy may be used.")
 
 from ..utils.compat import possible_filename
-from ..utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
+from ..utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
 if _wcs is not None:
     assert _wcs._sanity_check(), \
@@ -194,7 +194,7 @@ class NoConvergence(Exception):
         self.slow_conv = kwargs.pop('slow_conv', None)
 
 
-class FITSFixedWarning(AstropyWarning):
+class FITSFixedWarning(AstropyUserWarning):
     """
     The warning raised when the contents of the FITS header have been
     modified to be standards compliant.
@@ -2439,7 +2439,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
             If the ``relax`` keyword argument is not given and any
             keywords were omitted from the output, an
-            `~astropy.utils.exceptions.AstropyWarning` is displayed.
+            `~astropy.utils.exceptions.AstropyUserWarning` is displayed.
             To override this, explicitly pass a value to ``relax``.
 
         key : str
@@ -2528,7 +2528,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                     "Some non-standard WCS keywords were excluded: {0} "
                     "Use the ``relax`` kwarg to control this.".format(
                         ', '.join(missing_keys)),
-                    AstropyWarning)
+                    AstropyUserWarning)
 
         return header
 

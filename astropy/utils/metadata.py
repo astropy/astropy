@@ -12,14 +12,14 @@ import collections
 from copy import deepcopy
 
 from .compat.odict import OrderedDict
-from ..utils.exceptions import AstropyWarning
+from ..utils.exceptions import AstropyUserWarning
 
 
 class MergeConflictError(TypeError):
     pass
 
 
-class MergeConflictWarning(AstropyWarning):
+class MergeConflictWarning(AstropyUserWarning):
     pass
 
 

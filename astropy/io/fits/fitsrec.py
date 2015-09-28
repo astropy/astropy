@@ -604,7 +604,7 @@ class FITS_rec(np.recarray):
         if format.dtype.itemsize == 0:
             warnings.warn(
                 'Field %r has a repeat count of 0 in its format code, '
-                'indicating an empty field.' % key)
+                'indicating an empty field.' % key, AstropyUserWarning)
             return np.array([], dtype=format.dtype)
 
         # If field's base is a FITS_rec, we can run into trouble because it
@@ -798,7 +798,7 @@ class FITS_rec(np.recarray):
                         'TDIM%d value %s does not fit with the size of '
                         'the array items (%d).  TDIM%d will be ignored.'
                         % (indx + 1, self._coldefs.dims[indx],
-                           actual_nitems, indx + 1))
+                           actual_nitems, indx + 1), AstropyUserWarning)
                     dim = None
 
         # further conversion for both ASCII and binary tables
@@ -844,7 +844,8 @@ class FITS_rec(np.recarray):
                     except OverflowError:
                         warnings.warn(
                             "Overflow detected while applying TZERO{0:d}. "
-                            "Returning unscaled data.".format(indx + 1))
+                            "Returning unscaled data.".format(indx + 1),
+                            AstropyUserWarning)
                     else:
                         field = test_overflow
                 else:
@@ -1079,13 +1080,13 @@ class FITS_rec(np.recarray):
 
         if lead < 0:
             warnings.warn('Column %r starting point overlaps the previous '
-                          'column.' % (col_idx + 1))
+                          'column.' % (col_idx + 1), AstropyUserWarning)
 
         trail = starts[col_idx + 1] - starts[col_idx] - spans[col_idx]
 
         if trail < 0:
             warnings.warn('Column %r ending point overlaps the next '
-                          'column.' % (col_idx + 1))
+                          'column.' % (col_idx + 1), AstropyUserWarning)
 
         # TODO: It would be nice if these string column formatting
         # details were left to a specialized class, as is the case

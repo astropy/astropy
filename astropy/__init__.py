@@ -237,10 +237,10 @@ def _initialize_astropy():
         from .utils import _compiler
     except ImportError:
         if is_astropy_source_dir:
-            log.warn('You appear to be trying to import astropy from '
-                     'within a source checkout without building the '
-                     'extension modules first.  Attempting to (re)build '
-                     'extension modules:')
+            log.warning('You appear to be trying to import astropy from '
+                        'within a source checkout without building the '
+                        'extension modules first.  Attempting to (re)build '
+                        'extension modules:')
 
             try:
                 _rebuild_extensions()
