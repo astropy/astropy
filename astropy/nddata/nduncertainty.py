@@ -219,6 +219,10 @@ class StdDevUncertainty(NDUncertainty):
         new_array = self.array[item]
         return self.__class__(new_array, copy=False)
 
+    def _propagate_compatible(self, other_nddata):
+        if not isinstance(other_nddata.uncertainty, StdDevUncertainty):
+            raise IncompatibleUncertaintiesException
+
     def propagate_add(self, other_nddata, result_data):
         """
         Propagate uncertainties for addition.
@@ -242,8 +246,7 @@ class StdDevUncertainty(NDUncertainty):
             uncertainties.
         """
 
-        if not isinstance(other_nddata.uncertainty, StdDevUncertainty):
-            raise IncompatibleUncertaintiesException
+        self._propagate_compatible(other_nddata)
 
         if self.array is None:
             return StdDevUncertainty(other_nddata.uncertainty.array)
@@ -280,8 +283,7 @@ class StdDevUncertainty(NDUncertainty):
             uncertainties.
         """
 
-        if not isinstance(other_nddata.uncertainty, StdDevUncertainty):
-            raise IncompatibleUncertaintiesException
+        self._propagate_compatible(other_nddata)
 
         if self.array is None:
             return StdDevUncertainty(other_nddata.uncertainty.array)
@@ -318,8 +320,7 @@ class StdDevUncertainty(NDUncertainty):
             uncertainties.
         """
 
-        if not isinstance(other_nddata.uncertainty, StdDevUncertainty):
-            raise IncompatibleUncertaintiesException
+        self._propagate_compatible(other_nddata)
 
         if self.array is None:
             return StdDevUncertainty(other_nddata.uncertainty.array
@@ -359,8 +360,7 @@ class StdDevUncertainty(NDUncertainty):
             uncertainties.
         """
 
-        if not isinstance(other_nddata.uncertainty, StdDevUncertainty):
-            raise IncompatibleUncertaintiesException
+        self._propagate_compatible(other_nddata)
 
         if self.array is None:
             return StdDevUncertainty(self.parent_nddata.data *
