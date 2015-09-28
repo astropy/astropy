@@ -12,13 +12,13 @@ from ... import units as u
 from ..baseframe import frame_transform_graph
 from ..transformations import FunctionTransform, DynamicMatrixTransform
 from ..angles import rotation_matrix
+from ..representation import CartesianRepresentation
 from ... import _erfa as erfa
 
 from .icrs import ICRS
 from .gcrs import GCRS
 from .ecliptic import GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic
 from .utils import cartrepr_from_matmul
-from .representation import CartesianRepresentation
 
 
 def _gcrs_to_geoecliptic_matrix(equinox):
