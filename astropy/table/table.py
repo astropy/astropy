@@ -882,6 +882,7 @@ class Table(object):
         """
 
         from .jsviewer import JSViewer
+        from IPython.display import HTML
 
         if tableid is None:
             tableid = 'table{0}-{1}'.format(id(self),
@@ -893,7 +894,7 @@ class Table(object):
         html += jsv.ipynb(tableid, css=css)
         html = html.replace('<table', "<table class='table table-striped "
                             "table-bordered table-condensed' ")
-        return html
+        return HTML(html)
 
     def show_in_browser(self, max_lines=5000, jsviewer=False, ipynb=False,
                         browser='default', jskwargs={'use_local_files': True},
