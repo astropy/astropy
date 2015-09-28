@@ -184,21 +184,21 @@ The default uses ``mode='trim'``, which can result in cutout arrays
 that are smaller than the requested ``size``::
 
     >>> data2 = np.arange(20.).reshape(5, 4)
-    >>> c1 = Cutout2D(data2, (0, 0), (3, 3), mode='trim')
-    >>> print(c1.data)
+    >>> cutout1 = Cutout2D(data2, (0, 0), (3, 3), mode='trim')
+    >>> print(cutout1.data)
     [[ 0.  1.]
      [ 4.  5.]]
-    >>> print(c1.shape)
+    >>> print(cutout1.shape)
     (2, 2)
-    >>> print(c1.position_original, c1.position_cutout)
+    >>> print(cutout1.position_original, cutout1.position_cutout)
     ((0, 0), (0, 0))
 
 With ``mode='partial'``, the cutout will never be trimmed.  Instead it
 will be filled with ``fill_value`` (the default is ``numpy.nan``) if
 the cutout is not fully contained in the data array::
 
-    >>> c2 = Cutout2D(data2, (0, 0), (3, 3), mode='partial')
-    >>> print(c2.data)
+    >>> cutout2 = Cutout2D(data2, (0, 0), (3, 3), mode='partial')
+    >>> print(cutout2.data)
     [[ nan  nan  nan]
      [ nan   0.   1.]
      [ nan   4.   5.]]
@@ -207,13 +207,13 @@ Note that for the ``'partial'`` mode, the positions (and several other
 attributes) are calculated for on the *valid* (non-filled) cutout
 values::
 
-    >>> print(c2.position_original, c2.position_cutout)
+    >>> print(cutout2.position_original, cutout2.position_cutout)
     ((0, 0), (1, 1))
-    >>> print(c2.origin_original, c2.origin_cutout)
+    >>> print(cutout2.origin_original, cutout2.origin_cutout)
     ((0, 0), (1, 1))
-    >>> print(c2.slices_original)
+    >>> print(cutout2.slices_original)
     (slice(0, 2, None), slice(0, 2, None))
-    >>> print(c2.slices_cutout)
+    >>> print(cutout2.slices_cutout)
     (slice(1, 3, None), slice(1, 3, None))
 
 Using ``mode='strict'`` will raise an exception if the cutout is not
@@ -221,7 +221,7 @@ fully contained in the data array:
 
 .. doctest-skip::
 
-    >>> c3 = Cutout2D(data2, (0, 0), (3, 3), mode='strict')
+    >>> cutout3 = Cutout2D(data2, (0, 0), (3, 3), mode='strict')
     PartialOverlapError: Arrays overlap only partially.
 
 
