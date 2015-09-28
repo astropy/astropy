@@ -22,9 +22,9 @@ class GeocentricTrueEcliptic(BaseCoordinateFrame):
     This frame has one frame attribute:
 
     * ``equinox``
-        The date to assume for the .  Determines the location of
-        the x-axis and the location of the Earth (necessary for transformation
-        to non-geocentric systems)
+        The date to assume for this frame.  Determines the location of the
+        x-axis and the location of the Earth (necessary for transformation to
+        non-geocentric systems).
 
     Parameters
     ----------
@@ -65,9 +65,8 @@ class BarycentricTrueEcliptic(BaseCoordinateFrame):
     This frame has one frame attribute:
 
     * ``equinox``
-        The date to assume for the .  Determines the location of
-        the x-axis and the location of the Earth (necessary for transformation
-        to non-geocentric systems)
+        The date to assume for this frame.  Determines the location of the
+        x-axis and the location of the Earth and Sun.
 
     Parameters
     ----------
@@ -108,8 +107,8 @@ class HeliocentricTrueEcliptic(BaseCoordinateFrame):
     This frame has one frame attribute:
 
     * ``equinox``
-        The date to assume for the .  Determines the location of
-        the x-axis and the location of the Earth and Sun.
+        The date to assume for this frame.  Determines the location of the
+        x-axis and the location of the Earth and Sun.
 
     Parameters
     ----------
