@@ -211,6 +211,14 @@ class StdDevUncertainty(NDUncertainty):
                                      "parent data shape")
         self._array = value
 
+    def __getitem__(self, item):
+        """
+            Slice the standard deviation array using standard numpy slicing
+        """
+
+        new_array = self.array[item]
+        return self.__class__(new_array, copy=False)
+
     def propagate_add(self, other_nddata, result_data):
         """
         Propagate uncertainties for addition.
@@ -248,14 +256,6 @@ class StdDevUncertainty(NDUncertainty):
                                            other_nddata.uncertainty.array**2)
 
         return result_uncertainty
-
-    def __getitem__(self, item):
-        """
-            Slice the standard deviation array using standard numpy slicing
-        """
-
-        new_array = self.array[item]
-        return self.__class__(new_array, copy=False)
 
     def propagate_subtract(self, other_nddata, result_data):
         """
