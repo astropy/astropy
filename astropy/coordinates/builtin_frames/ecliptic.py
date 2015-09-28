@@ -8,6 +8,9 @@ from ..baseframe import BaseCoordinateFrame, RepresentationMapping, TimeFrameAtt
 from .utils import EQUINOX_J2000
 
 
+__all__ = ['GeocentricTrueEcliptic', 'BarycentricTrueEcliptic', 'HeliocentricTrueEcliptic']
+
+
 class GeocentricTrueEcliptic(BaseCoordinateFrame):
     """
     Geocentric ecliptic coordinates.  These origin of the coordinates are the
