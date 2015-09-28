@@ -69,6 +69,8 @@ def_unit(['oz', 'ounce'], 28.349523125 * si.g, namespace=_ns,
          doc="International avoirdupois ounce: mass")
 def_unit(['lb', 'lbm', 'pound'], 16 * oz, namespace=_ns,
          doc="International avoirdupois pound: mass")
+def_unit(['st', 'stone'], 14 * lb, namespace=_ns,
+         doc="International avoirdupois stone: mass")
 def_unit(['ton'], 2000 * lb, namespace=_ns,
          doc="International avoirdupois ton: mass")
 
