@@ -29,6 +29,12 @@ class GeocentricTrueEcliptic(BaseCoordinateFrame):
         x-axis and the location of the Earth (necessary for transformation to
         non-geocentric systems).
 
+    .. warning::
+        In the current version of astropy, the ecliptic frames do not yet have
+        stringent accuracy tests.  We recommend you test to "known-good" cases
+        to ensure this frames are what you are looking for. (and then ideally
+        you would contribute these tests to Astropy!)
+
     Parameters
     ----------
     representation : `BaseRepresentation` or None
@@ -71,6 +77,12 @@ class BarycentricTrueEcliptic(BaseCoordinateFrame):
         The date to assume for this frame.  Determines the location of the
         x-axis and the location of the Earth and Sun.
 
+    .. warning::
+        In the current version of astropy, the ecliptic frames do not yet have
+        stringent accuracy tests.  We recommend you test to "known-good" cases
+        to ensure this frames are what you are looking for. (and then ideally
+        you would contribute these tests to Astropy!)
+
     Parameters
     ----------
     representation : `BaseRepresentation` or None
@@ -112,6 +124,12 @@ class HeliocentricTrueEcliptic(BaseCoordinateFrame):
     * ``equinox``
         The date to assume for this frame.  Determines the location of the
         x-axis and the location of the Earth and Sun.
+
+    .. warning::
+        In the current version of astropy, the ecliptic frames do not yet have
+        stringent accuracy tests.  We recommend you test to "known-good" cases
+        to ensure this frames are what you are looking for. (and then ideally
+        you would contribute these tests to Astropy!)
 
     Parameters
     ----------
