@@ -8,7 +8,7 @@ from ..baseframe import BaseCoordinateFrame, RepresentationMapping, TimeFrameAtt
 from .utils import EQUINOX_J2000
 
 
-class GeocentricEcliptic(BaseCoordinateFrame):
+class GeocentricTrueEcliptic(BaseCoordinateFrame):
     """
     Geocentric ecliptic coordinates.  These origin of the coordinates are the
     geocenter (Earth), with the x axis pointing to the *true* (not mean) equinox
@@ -54,7 +54,7 @@ class GeocentricEcliptic(BaseCoordinateFrame):
     equinox = TimeFrameAttribute(default=EQUINOX_J2000)
 
 
-class BarycentricEcliptic(BaseCoordinateFrame):
+class BarycentricTrueEcliptic(BaseCoordinateFrame):
     """
     Barycentric ecliptic coordinates.  These origin of the coordinates are the
     barycenter of the solar system, with the x axis pointing in the direction of

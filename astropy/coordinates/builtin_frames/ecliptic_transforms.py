@@ -16,7 +16,7 @@ from ... import _erfa as erfa
 
 from .icrs import ICRS
 from .gcrs import GCRS
-from .ecliptic import GeocentricEcliptic, BarycentricEcliptic
+from .ecliptic import GeocentricTrueEcliptic, BarycentricTrueEcliptic
 from .utils import cartrepr_from_matmul
 
 
@@ -26,7 +26,7 @@ def _gcrs_to_geoecliptic_matrix(equinox):
     return np.dot(rotation_matrix(obl, 'x'), rnpb)
 
 
-@frame_transform_graph.transform(FunctionTransform, GCRS, GeocentricEcliptic)
+@frame_transform_graph.transform(FunctionTransform, GCRS, GeocentricTrueEcliptic)
 def gcrs_to_geoecliptic(from_coo, to_frame):
     if np.any(from_coo.obstime != to_frame.equinox):
         # if they GCRS obstime and ecliptic equinox are not the same, we first
@@ -40,7 +40,7 @@ def gcrs_to_geoecliptic(from_coo, to_frame):
     return to_frame.realize_frame(newrepr)
 
 
-@frame_transform_graph.transform(FunctionTransform, GeocentricEcliptic, GCRS)
+@frame_transform_graph.transform(FunctionTransform, GeocentricTrueEcliptic, GCRS)
 def geoecliptic_to_gcrs(from_coo, to_frame):
     rmat = _gcrs_to_geoecliptic_matrix(to_frame.equinox)
     newrepr = cartrepr_from_matmul(rmat, from_coo, transpose=True)
@@ -55,15 +55,13 @@ def geoecliptic_to_gcrs(from_coo, to_frame):
         return GCRS(newrepr, **frameattrs).transform_to(to_frame)
 
 
-
-@frame_transform_graph.transform(DynamicMatrixTransform, ICRS, BarycentricEcliptic)
-def icrs_to_helioecliptic(from_coo, to_frame):
+@frame_transform_graph.transform(DynamicMatrixTransform, ICRS, BarycentricTrueEcliptic)
+def icrs_to_baryecliptic(from_coo, to_frame):
     rnpb = erfa.pnm06a(to_frame.equinox.jd1, to_frame.equinox.jd2)
-
     obl = erfa.obl06(to_frame.equinox.jd1, to_frame.equinox.jd2)*u.radian
     return np.dot(rotation_matrix(obl, 'x'), rnpb)
 
 
-@frame_transform_graph.transform(DynamicMatrixTransform, BarycentricEcliptic, ICRS)
-def helioecliptic_to_icrs(from_coo, to_frame):
-    return icrs_to_helioecliptic(to_frame, from_coo).T
+@frame_transform_graph.transform(DynamicMatrixTransform, BarycentricTrueEcliptic, ICRS)
+def baryecliptic_to_icrs(from_coo, to_frame):
+    return icrs_to_baryecliptic(to_frame, from_coo).T
