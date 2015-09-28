@@ -246,6 +246,9 @@ New Features
   - Added ``is_url_in_cache`` for resolving paths to cached files via URLS
     and checking if files exist. [#4095]
 
+  - Added a ``step`` argument to the ``ProgressBar.map`` method to give
+    users control over the update frequency of the progress bar. [#4191]
+
 - ``astropy.visualization``
 
   - Added the ``hist`` function, which is similar to ``plt.hist`` but
