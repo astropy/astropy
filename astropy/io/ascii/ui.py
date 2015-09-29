@@ -423,6 +423,7 @@ def _guess(table, read_kwargs, format, fast_reader):
     # Try to read the table using those args, and if an exception occurs then
     # keep track of the failed guess and move on.
     for guess_kwargs in filtered_guess_kwargs:
+        t0 = time.time()
         try:
             # If guessing will try all Readers then use strict req'ts on column names
             if 'Reader' not in read_kwargs:
@@ -430,7 +431,6 @@ def _guess(table, read_kwargs, format, fast_reader):
 
             reader = get_reader(**guess_kwargs)
             reader.guessing = True
-            t0 = time.time()
             dat = reader.read(table)
             _read_trace.append({'kwargs': guess_kwargs, 'status': 'Success (guessing)',
                                 'dt': '{:.3f} ms'.format((time.time() - t0) * 1000)})
