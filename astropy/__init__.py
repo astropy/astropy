@@ -213,11 +213,15 @@ def _initialize_astropy():
     import os
     import sys
     from warnings import warn
+    from .utils.exceptions import AstropyDeprecationWarning
 
     # If this __init__.py file is in ./astropy/ then import is within a source dir
     source_dir = os.path.abspath(os.path.dirname(__file__))
     is_astropy_source_dir = os.path.exists(os.path.join(source_dir, os.pardir,
                                                         '.astropy-root'))
+
+    if sys.version_info[:2] < (2, 7):
+        warn("Python 2.6 will no longer be supported from Astropy v1.2 onwards.", AstropyDeprecationWarning)
 
     def _rollback_import(message):
         log.error(message)

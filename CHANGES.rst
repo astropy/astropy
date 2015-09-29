@@ -1,4 +1,4 @@
-1.1 (unreleased)
+﻿1.1 (unreleased)
 ----------------
 
 New Features
@@ -1729,6 +1729,11 @@ Bug Fixes
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Astropy v1.1.0 will be the last release series to officially support
+  Python 2.6.  A deprecation warning will now be issued when using Astropy
+  in Python 2.6 (this warning can be disabled through the usual Python warning
+  filtering mechanisms). [#3779]
 
 - The bundled copy of astropy-helpers has been updated to v1.0. [#3515]
 
