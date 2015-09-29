@@ -113,7 +113,7 @@ New Features
   - ``extract_array`` now offers different options to deal with array
     boundaries [#3727]
 
-  - Added a new ``Cutout`` class to create postage stamp image cutouts
+  - Added a new ``Cutout2D`` class to create postage stamp image cutouts
     with optional WCS propagation. [#3823]
 
 - ``astropy.stats``
