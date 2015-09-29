@@ -34,6 +34,7 @@ from .altaz import AltAz
 from .gcrs import GCRS, PrecessedGeocentric
 from .cirs import CIRS
 from .itrs import ITRS
+from .ecliptic import GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic
 
 #need to import transformations so that they get registered in the graph
 from . import icrs_fk5_transforms
@@ -43,11 +44,13 @@ from . import supergalactic_transforms
 from . import icrs_cirs_transforms
 from . import cirs_observed_transforms
 from . import intermediate_rotation_transforms
+from . import ecliptic_transforms
 
 # we define an __all__ because otherwise the transformation modules get included
 __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
            'Supergalactic', 'AltAz', 'GCRS', 'CIRS', 'ITRS',
-           'PrecessedGeocentric']
+           'PrecessedGeocentric', 'GeocentricTrueEcliptic',
+           'BarycentricTrueEcliptic', 'HeliocentricTrueEcliptic']
 
 def _make_transform_graph_docs():
     """

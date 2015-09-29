@@ -39,6 +39,9 @@ New Features
   - Added ``Supergalactic`` frame to support de Vaucouleurs supergalactic
     coordinates. [#3892]
 
+  - Added ecliptic coordinates, including ``GeocentricTrueEcliptic``, 
+    ``BarycentricTrueEcliptic``, and ``HeliocentricTrueEcliptic``. [#3749]
+
 - ``astropy.cosmology``
 
   - Add Planck 2015 cosmology [#3476]

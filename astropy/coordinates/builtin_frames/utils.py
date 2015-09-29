@@ -15,6 +15,7 @@ from ... import units as u
 from ...time import Time
 from ...utils import iers
 from ...utils.exceptions import AstropyWarning
+from ..representation import CartesianRepresentation
 
 # The UTC time scale is not properly defined prior to 1960, so Time('B1950',
 # scale='utc') will emit a warning. Instead, we use Time('B1950', scale='tai')
@@ -39,6 +40,31 @@ use the latest IERS predictions by running:
     >>> iers.IERS.iers_table = iers.IERS_A.open(iers.IERS_A_URL)
 
 """
+
+
+def cartrepr_from_matmul(pmat, coo, transpose=False):
+    """
+    Note that pmat should be an ndarray, *not* a matrix.
+    """
+    if pmat.shape[-2:] != (3, 3):
+        raise ValueError("tried to do matrix multiplication with an array that "
+                         "doesn't end in 3x3")
+    if coo.isscalar:
+        # a simpler path for scalar coordinates
+        if transpose:
+            pmat = pmat.T
+        newxyz = np.sum(pmat * coo.cartesian.xyz, axis=-1)
+    else:
+        xyz = coo.cartesian.xyz.T
+        # these expression are the same as iterating over the first dimension of
+        # pmat and xyz and doing matrix multiplication on each in turn.  resulting
+        # dimension is <coo shape> x 3
+        pmat = pmat.reshape(pmat.size//9, 3, 3)
+        if transpose:
+            pmat = pmat.transpose(0, 2, 1)
+        newxyz = np.sum(pmat * xyz.reshape(xyz.size//3, 1, 3), axis=-1).T
+
+    return CartesianRepresentation(newxyz)
 
 
 def get_polar_motion(time):
