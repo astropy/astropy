@@ -110,9 +110,9 @@ class AstropyTest(Command, object):
         cmd_post = ''  # Commands to run after the test function
 
         if self.coverage:
-           pre, post = self._generate_coverage_commands()
-           cmd_pre += pre
-           cmd_post += post
+            pre, post = self._generate_coverage_commands()
+            cmd_pre += pre
+            cmd_post += post
 
         if six.PY3:
             set_flag = "import builtins; builtins._ASTROPY_TEST_ = True"
