@@ -324,3 +324,29 @@ if not _ASTROPY_SETUP_:
     _initialize_astropy()
 
     from .utils.misc import find_api_page
+
+
+def online_help(query):
+    """
+    Search the online Astropy documentation for the given query.
+    Opens the results in the default web browser.  Requires an active
+    Internet connection.
+
+    Parameters
+    ----------
+    query : str
+        The search query.
+    """
+    from .extern.six.moves.urllib.parse import urlencode
+    import webbrowser
+
+    version = __version__
+    if 'dev' in version:
+        version = 'latest'
+    else:
+        version = 'v' + version
+
+    url = 'http://docs.astropy.org/en/{0}/search.html?{1}'.format(
+        version, urlencode({'q': query}))
+
+    webbrowser.open(url)

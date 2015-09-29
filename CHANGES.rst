@@ -294,6 +294,10 @@ New Features
 
 .. _astroML: http://astroML.org
 
+- There is a new function ``astropy.online_help`` to search the
+  astropy documentation and display the result in a web
+  browser. [#3642]
+
 API changes
 ^^^^^^^^^^^
 
