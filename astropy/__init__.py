@@ -221,7 +221,8 @@ def _initialize_astropy():
                                                         '.astropy-root'))
 
     if sys.version_info[:2] < (2, 7):
-        warn("Python 2.6 will no longer be supported from Astropy v1.2 onwards.", AstropyDeprecationWarning)
+        warn("Python 2.6 will no longer be supported from Astropy v1.2.0 and "
+             "above", AstropyDeprecationWarning)
 
     def _rollback_import(message):
         log.error(message)
