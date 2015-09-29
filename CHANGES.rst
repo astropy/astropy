@@ -172,6 +172,12 @@ New Features
     table representation for that row.  Added HTML representation so a
     row displays nicely in IPython notebook.
 
+  - Added a new table indexing engine allowing for the creation of
+    indices on one or more columns of a table using ``add_index``. These
+    indices enable new functionality such as searching for rows by value
+    using ``loc`` and ``iloc``, as well as increased performance for
+    certain operations. [#3915]
+
   - Added capability to include a structured array or recarray in a table
     as a mixin column.  This allows for an approximation of nested tables.
     [#3925]

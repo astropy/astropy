@@ -4,6 +4,8 @@ from __future__ import (absolute_import, division, print_function,
 from ..extern import six
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range as xrange
+from .sorted_array import SortedArray
+from .index import QueryError, TableIndices, TableLoc, TableILoc
 
 import re
 import sys
@@ -27,6 +29,7 @@ from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
 from .row import Row
 from .np_utils import fix_column_name, recarray_fromrecords
 from .info import TableInfo
+from .index import Index, _IndexModeContext, get_index
 
 # Prior to Numpy 1.6.2, there was a bug (in Numpy) that caused
 # sorting of structured arrays containing Unicode columns to
@@ -159,6 +162,8 @@ class Table(object):
         Copy the input data (default=True).
     rows : numpy ndarray, list of lists, optional
         Row-oriented data for table instead of ``data`` argument
+    copy_indices : bool, optional
+        Copy any indices in the input data (default=True)
     """
 
     meta = MetaData()
@@ -231,13 +236,16 @@ class Table(object):
         return data
 
     def __init__(self, data=None, masked=None, names=None, dtype=None,
-                 meta=None, copy=True, rows=None):
+                 meta=None, copy=True, rows=None, copy_indices=True):
 
         # Set up a placeholder empty table
         self._set_masked(masked)
         self.columns = self.TableColumns()
         self.meta = meta
         self.formatter = self.TableFormatter()
+        self._copy_indices = True # copy indices from this Table by default
+        self._init_indices = copy_indices # whether to copy indices in init
+        self.primary_key = None
 
         # Must copy if dtype are changing
         if not copy and dtype is not None:
@@ -301,6 +309,8 @@ class Table(object):
             init_func = self._init_from_table
             n_cols = len(data.colnames)
             default_names = data.colnames
+            # don't copy indices if the input Table is in non-copy mode
+            self._init_indices = self._init_indices and data._copy_indices
 
         elif data is None:
             if names is None:
@@ -398,6 +408,121 @@ class Table(object):
             data = self
         return self.__class__(data, meta=deepcopy(self.meta))
 
+    @property
+    def indices(self):
+        '''
+        Return the indices associated with columns of the table
+        as a TableIndices object.
+        '''
+        lst = []
+        for column in self.columns.values():
+            for index in column.info.indices:
+                if sum([index is x for x in lst]) == 0: # ensure uniqueness
+                    lst.append(index)
+        return TableIndices(lst)
+
+    @property
+    def loc(self):
+        '''
+        Return a TableLoc object that can be used for retrieving
+        rows by index in a given data range. Note that both loc
+        and iloc work only with single-column indices.
+        '''
+        return TableLoc(self)
+
+    @property
+    def iloc(self):
+        '''
+        Return a TableILoc object that can be used for retrieving
+        indexed rows in the order they appear in the index.
+        '''
+        return TableILoc(self)
+
+    def _get_slice(self, col, item):
+        '''
+        Return either col.get_item(item) if col is a regular Column
+        with indices or col[item] otherwise.
+        '''
+        if col.info.indices:
+            return getattr(col, 'get_item', col.__getitem__)(item)
+        return col[item]
+
+    def add_index(self, colnames, engine=None, unique=False):
+        '''
+        Insert a new index among one or more columns.
+        If there are no indices, make this index the
+        primary table index.
+
+        Parameters
+        ----------
+        colnames : str or list
+            List of column names (or a single column name) to index
+        engine : type or None
+            Indexing engine class to use, from among SortedArray, BST,
+            FastBST, and FastRBT. If the supplied argument is None (by
+            default), use SortedArray.
+        unique : bool (defaults to False)
+            Whether the values of the index must be unique
+        '''
+        if isinstance(colnames, six.string_types):
+            colnames = (colnames,)
+        columns = self.columns[tuple(colnames)].values()
+
+        # make sure all columns support indexing
+        for col in columns:
+            if not getattr(col.info, '_supports_indexing', False):
+                raise ValueError('Cannot create an index on column "{0}", of '
+                                 'type "{1}"'.format(col.info.name, type(col)))
+
+        index = Index(columns, engine=engine, unique=unique)
+        if not self.indices:
+            self.primary_key = colnames
+        for col in columns:
+            col.info.indices.append(index)
+
+    def remove_indices(self, colname):
+        '''
+        Remove all indices involving the given column.
+        If the primary index is removed, the new primary
+        index will be the most recently added remaining
+        index.
+
+        Parameters
+        ----------
+        colname : str
+            Name of column
+        '''
+        col = self.columns[colname]
+        for index in self.indices:
+            try:
+                index.col_position(col.info.name)
+            except ValueError:
+                pass
+            else:
+                for c in index.columns:
+                    c.info.indices.remove(index)
+
+    def index_mode(self, mode):
+        '''
+        Return a context manager for an indexing mode.
+
+        Parameters
+        ----------
+        mode : str
+            Either 'freeze', 'copy_on_getitem', or 'discard_on_copy'.
+            In 'discard_on_copy' mode,
+            indices are not copied whenever columns or tables are copied.
+            In 'freeze' mode, indices are not modified whenever columns are
+            modified; at the exit of the context, indices refresh themselves
+            based on column values. This mode is intended for scenarios in
+            which one intends to make many additions or modifications in an
+            indexed column.
+            In 'copy_on_getitem' mode, indices are copied when taking column
+            slices as well as table slices, so col[i0:i1] will preserve
+            indices.
+        '''
+        return _IndexModeContext(self, mode)
+
     def __array__(self, dtype=None):
         """Support converting Table to np.array via np.array(table).
 
@@ -480,17 +605,17 @@ class Table(object):
             if isinstance(col, (Column, MaskedColumn)):
                 col = self.ColumnClass(name=(name or col.info.name or def_name),
                                        data=col, dtype=dtype,
-                                       copy=copy)
+                                       copy=copy, copy_indices=self._init_indices)
             elif self._add_as_mixin_column(col):
                 # Copy the mixin column attributes if they exist since the copy below
                 # may not get this attribute.
                 if copy:
-                    col = col_copy(col)
+                    col = col_copy(col, copy_indices=self._init_indices)
 
                 col.info.name = name or col.info.name or def_name
             elif isinstance(col, np.ndarray) or isiterable(col):
                 col = self.ColumnClass(name=(name or def_name), data=col, dtype=dtype,
-                                       copy=copy)
+                                       copy=copy, copy_indices=self._init_indices)
             else:
                 raise ValueError('Elements in list initialization must be '
                                  'either Column or list-like')
@@ -572,6 +697,7 @@ class Table(object):
         newcols = [self._convert_col_for_table(col) for col in cols]
         self._make_table_from_cols(self, newcols)
 
+
     def _new_from_slice(self, slice_):
         """Create a new table as a referenced slice from self."""
 
@@ -579,10 +705,15 @@ class Table(object):
         table.meta.clear()
         table.meta.update(deepcopy(self.meta))
         cols = self.columns.values()
-        newcols = [col[slice_] for col in cols]
+
+        for col in cols:
+            col.info._copy_indices = self._copy_indices
+
+        newcols = [self._get_slice(col, slice_) for col in cols]
+        for col in cols:
+            col.info._copy_indices = True
 
         self._make_table_from_cols(table, newcols)
-
         return table
 
     @staticmethod
@@ -900,7 +1031,9 @@ class Table(object):
             if bad_names:
                 raise ValueError('Slice name(s) {0} not valid column name(s)'
                                  .format(', '.join(bad_names)))
-            out = self.__class__([self[x] for x in item], meta=deepcopy(self.meta))
+            out = self.__class__([self[x] for x in item],
+                                 meta=deepcopy(self.meta),
+                                 copy_indices=self._copy_indices)
             out._groups = groups.TableGroups(out, indices=self.groups._indices,
                                              keys=self.groups._keys)
             return out
@@ -926,7 +1059,6 @@ class Table(object):
         # If that column doesn't already exist then create it now.
         if isinstance(item, six.string_types) and item not in self.colnames:
             NewColumn = self.MaskedColumn if self.masked else self.Column
-
             # If value doesn't have a dtype and won't be added as a mixin then
             # convert to a numpy array.
             if not hasattr(value, 'dtype') and not self._add_as_mixin_column(value):
@@ -1384,6 +1516,10 @@ class Table(object):
               2 0.2   y
               3 0.3   z
         """
+        # Update indices
+        for index in self.indices:
+            index.remove_rows(row_specifier)
+
         keep_mask = np.ones(len(self), dtype=np.bool)
         keep_mask[row_specifier] = False
 
@@ -1393,7 +1529,7 @@ class Table(object):
             newcol.info.parent_table = self
             columns[name] = newcol
 
-        self.columns = columns
+        self._replace_cols(columns)
 
         # Revert groups to default (ungrouped) state
         if hasattr(self, '_groups'):
@@ -1857,15 +1993,28 @@ class Table(object):
 
                 columns[name] = newcol
 
+            # insert row in indices
+            for table_index in self.indices:
+                table_index.insert_row(index, vals, self.columns.values())
+
         except Exception as err:
             raise ValueError("Unable to insert row because of exception in column '{0}':\n{1}"
                              .format(name, err))
         else:
-            self.columns = columns
+            self._replace_cols(columns)
 
             # Revert groups to default (ungrouped) state
             if hasattr(self, '_groups'):
                 del self._groups
+
+    def _replace_cols(self, columns):
+        for col, new_col in zip(self.columns.values(), columns.values()):
+            new_col.info.indices = []
+            for index in col.info.indices:
+                index.columns[index.col_position(col.info.name)] = new_col
+                new_col.info.indices.append(index)
+
+        self.columns = columns
 
     def argsort(self, keys=None, kind=None):
         """
@@ -1888,6 +2037,13 @@ class Table(object):
         """
         if isinstance(keys, six.string_types):
             keys = [keys]
+
+        # use index sorted order if possible
+        if keys is not None:
+            index = get_index(self, self[keys])
+            if index is not None:
+                return index.sorted_data()
+
         kwargs = {}
         if keys:
             kwargs['order'] = keys
@@ -1905,7 +2061,7 @@ class Table(object):
         else:
             return data.argsort(**kwargs)
 
-    def sort(self, keys):
+    def sort(self, keys=None):
         '''
         Sort the table according to one or more keys. This operates
         on the existing table and does not return a new table.
@@ -1913,7 +2069,8 @@ class Table(object):
         Parameters
         ----------
         keys : str or list of str
-            The key(s) to order the table by
+            The key(s) to order the table by. If None, use the
+            primary index of the Table.
 
         Examples
         --------
@@ -1938,12 +2095,29 @@ class Table(object):
                    Jo  Miller  15
                   Max  Miller  12
         '''
+        if keys is None:
+            if not self.indices:
+                raise ValueError("Table sort requires input keys or a table index")
+            keys = [x.info.name for x in self.indices[0].columns]
         if type(keys) is not list:
             keys = [keys]
 
         indexes = self.argsort(keys)
+        sort_index = get_index(self, self[keys])
+        if sort_index is not None:
+            # avoid inefficient relabelling of sorted index
+            prev_frozen = sort_index._frozen
+            sort_index._frozen = True
+
         for col in self.columns.values():
             col[:] = col.take(indexes, axis=0)
+
+        if sort_index is not None:
+            # undo index freeze
+            sort_index._frozen = prev_frozen
+            # now relabel the sort index appropriately
+            sort_index.sort()
+
 
     def reverse(self):
         '''
@@ -1975,6 +2149,8 @@ class Table(object):
         '''
         for col in self.columns.values():
             col[:] = col[::-1]
+        for index in self.indices:
+            index.reverse()
 
     @classmethod
     def read(cls, *args, **kwargs):
@@ -2247,8 +2423,9 @@ class QTable(Table):
 
     """
     def __init__(self, data=None, masked=None, names=None, dtype=None,
-                 meta=None, copy=True, rows=None):
-        super(QTable, self).__init__(data, masked, names, dtype, meta, copy, rows)
+                 meta=None, copy=True, rows=None, copy_indices=True):
+        super(QTable, self).__init__(data, masked, names, dtype, meta,
+                                     copy, rows, copy_indices)
 
     def _add_as_mixin_column(self, col):
         """
