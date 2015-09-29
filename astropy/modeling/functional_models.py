@@ -611,7 +611,7 @@ class Sine1D(Fittable1DModel):
     frequency : float
         Oscillation frequency
     phase : float
-        Osciallation phase
+        Oscillation phase
 
     See Also
     --------
