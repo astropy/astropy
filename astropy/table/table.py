@@ -1460,7 +1460,10 @@ class Table(object):
             >>> t.replace_column('a', float_a)
         """
         if name not in self.colnames:
-            raise ValueError('Column name {0} is not in the table'.format(name))
+            raise ValueError('column name {0} is not in the table'.format(name))
+
+        if self[name].indices:
+            raise ValueError('cannot replace a table index column')
 
         t = self.__class__([col], names=[name])
         cols = OrderedDict(self.columns)

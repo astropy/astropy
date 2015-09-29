@@ -1594,3 +1594,13 @@ class TestReplaceColumn(SetupData):
             assert t.colnames == ['a', 'b']
             assert t['a'].meta == {}
             assert t['a'].format is None
+
+    def test_replace_index_column(self, table_types):
+        """Replace index column and generate expected exception"""
+        self._setup(table_types)
+        t = table_types.Table([self.a, self.b])
+        t.add_index('a')
+
+        with pytest.raises(ValueError) as err:
+            t.replace_column('a', [1, 2, 3])
+        assert err.value.args[0] == 'cannot replace a table index column'
