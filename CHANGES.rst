@@ -66,6 +66,8 @@ New Features
 
   - Supports LZMA decompression via ``get_readable_fileobj`` [#3667]
 
+  - Allow ``-`` character is Sextractor format column names. [#4168]
+
 - ``astropy.io.fits``
 
   - Support reading and writing from bzip2 compressed files. i.e. ``.fits.bz2``
