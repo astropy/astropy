@@ -1726,6 +1726,11 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- Astropy v1.1.0 will be the last release series to officially support
+  Python 2.6.  A deprecation warning will now be issued when using Astropy
+  in Python 2.6 (this warning can be disabled through the usual Python warning
+  filtering mechanisms). [#3779]
+
 - The bundled copy of astropy-helpers has been updated to v1.0. [#3515]
 
 - Updated ``astropy.extern.configobj`` to Version 5. Version 5 uses ``six``
@@ -1767,8 +1772,6 @@ Other Changes and Additions
 - `jinja2 <http://jinja.pocoo.org/docs/dev/>`_>=2.7 is now required to build the
   source code from the git repository, in order to allow the ERFA wrappers to
   be generated. [#3166]
-
-- Added deprecation warning for Python 2.6 [#3779]. 
 
 
 0.4.5 (2015-02-16)
