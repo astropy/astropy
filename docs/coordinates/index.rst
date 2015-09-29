@@ -264,8 +264,8 @@ listed below.
    representations
    frames
    sgr-example
-   definitions
    galactocentric
+   definitions
 
 
 In addition, another resource for the capabilities of this package is the
