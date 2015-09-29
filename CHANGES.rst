@@ -530,6 +530,15 @@ Bug fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- The ``./setup.py test`` command is now implemented in the ``astropy.tests``
+  module again (previously its implementation had been moved into
+  astropy-helpers).  However, that made it difficult to synchronize changes
+  to the Astropy test runner with changes to the ``./setup.py test`` UI.
+  astropy-helpers v1.1 and above will detect this implementation of the
+  ``test`` command, when present, and use it instead of the old version that
+  was included in astropy-helpers (most users will not notice any difference
+  as a result of this change). [#4020]
+
 - The repr for ``Table`` no longer displays ``masked=False`` since tables
   are not masked by default anyway. [#3869]
 
