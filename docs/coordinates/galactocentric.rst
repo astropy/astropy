@@ -1,14 +1,16 @@
 .. _coordinates-galactocentric:
 
-==========================================
-Transforming to Galactocentric coordinates
-==========================================
+========================================================
+Description of Galactocentric coordinates transformation
+========================================================
 
 This document describes the mathematics behind the transformation from
 :class:`~astropy.coordinates.ICRS` to `~astropy.coordinates.Galactocentric`
-coordinates. For examples of how to use this transformation in code, see
-the *Examples* section of the
-`~astropy.coordinates.Galactocentric` class documentation.
+coordinates. This is described in detail here both due to the mathematical
+subtleties and the fact that there is no official standard/definition for this
+frame. For examples of how to use this transformation in code, see the
+the *Examples* section of the `~astropy.coordinates.Galactocentric` class
+documentation.
 
 We assume that we start with a 3D position in the ICRS reference frame:
 a Right Ascension, Declination, and heliocentric distance,
@@ -112,4 +114,3 @@ midplane.
 The full transformation is then:
 
 .. math:: \boldsymbol{r}_{\rm GC} = \boldsymbol{H} \left( \boldsymbol{R}\boldsymbol{r}_{\rm icrs} - d_{\rm GC}\hat{\boldsymbol{x}}_{\rm GC}\right).
-
