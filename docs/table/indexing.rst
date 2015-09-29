@@ -60,7 +60,7 @@ Row retrieval can be accomplished using two table properties: `~astropy.table.Ta
 `~astropy.table.Table.iloc`. The `~astropy.table.Table.loc` property can be indexed either by column value, range of
 column values (*including* the bounds), or a list or ndarray of column values::
 
-   >>> t = Table([(1, 2, 3, 4), (10, 1, 9, 9)], names=('a', 'b'))
+   >>> t = Table([(1, 2, 3, 4), (10, 1, 9, 9)], names=('a', 'b'), dtype=['i8', 'i8'])
    >>> t.add_index('a')
    >>> t.loc[2]
    <Row index=1>
