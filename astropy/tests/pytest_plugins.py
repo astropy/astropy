@@ -13,6 +13,7 @@ from ..extern.six.moves import filter
 
 import ast
 import doctest
+import datetime
 import fnmatch
 import imp
 import io
@@ -561,6 +562,8 @@ def pytest_report_header(config):
             TESTED_VERSIONS['Astropy'])
 
     s += "Running tests in {0}.\n\n".format(" ".join(args))
+
+    s += "Date: {0}\n\n".format(datetime.datetime.now().isoformat()[:19])
 
     from platform import platform
     plat = platform()
