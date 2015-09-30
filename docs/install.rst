@@ -33,6 +33,8 @@ Astropy also depends on other packages for optional features:
 
 - `WCSAxes <http://wcsaxes.readthedocs.org/en/latest/>`_: To use `astropy.wcs` to define projections in Matplotlib. 
 
+- `pytz <http://pythonhosted.org/pytz/>`_: To specify and convert between timezones
+
 However, note that these only need to be installed if those particular features
 are needed. Astropy will import even if these dependencies are not installed.
 

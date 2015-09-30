@@ -25,7 +25,7 @@ from ..utils.compat.numpy import broadcast_to
 from ..extern import six
 from .utils import day_frac
 from .formats import (TIME_FORMATS, TIME_DELTA_FORMATS,
-                      TimeJD, TimeUnique, TimeAstropyTime)
+                      TimeJD, TimeUnique, TimeAstropyTime, TimeDatetime)
 # Import TimeFromEpoch to avoid breaking code that followed the old example of
 # making a custom timescale in the documentation.
 from .formats import TimeFromEpoch
@@ -1411,6 +1411,13 @@ class Time(object):
 
     def __ge__(self, other):
         return self._time_difference(other, '>=') >= 0.
+
+    def to_datetime(self, timezone=None):
+        tm = self.replicate(format='datetime')
+        return tm._shaped_like_input(tm._time.to_value(timezone))
+
+    to_datetime.__doc__ = TimeDatetime.to_value.__doc__
+
 
 
 class TimeDelta(Time):

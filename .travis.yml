@@ -90,6 +90,9 @@ matrix:
 install:
     - source .continuous-integration/travis/setup_environment_$TRAVIS_OS_NAME.sh
 
+    # OPTIONAL DEPENDENCIES
+    - if $OPTIONAL_DEPS; then $CONDA_INSTALL pytz; fi
+
 script:
     - $MAIN_CMD $SETUP_CMD
 

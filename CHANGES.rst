@@ -198,6 +198,9 @@ New Features
 
   - Add argmin, argmax, argsort, min, max, ptp, sort methods. [#3581]
 
+  - Add ``Time.to_datetime`` method for converting ``Time`` objects to
+    timezone-aware datetimes. [#4119]
+
 - ``astropy.units``
 
   - Added furlong to imperial units. [#3529]

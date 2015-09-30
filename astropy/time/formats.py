@@ -6,7 +6,7 @@ from __future__ import (absolute_import, division, print_function,
 import fnmatch
 import time
 import re
-from datetime import datetime
+import datetime
 
 import numpy as np
 
@@ -31,7 +31,8 @@ __all__ = ['TimeFormat', 'TimeJD', 'TimeMJD', 'TimeFromEpoch', 'TimeUnix',
            'TimeEpochDate', 'TimeBesselianEpoch', 'TimeJulianEpoch',
            'TimeDeltaFormat', 'TimeDeltaSec', 'TimeDeltaJD',
            'TimeEpochDateString', 'TimeBesselianEpochString',
-           'TimeJulianEpochString', 'TIME_FORMATS', 'TIME_DELTA_FORMATS']
+           'TimeJulianEpochString', 'TIME_FORMATS', 'TIME_DELTA_FORMATS',
+           'TimezoneInfo']
 
 __doctest_skip__ = ['TimePlotDate']
 
@@ -528,7 +529,7 @@ class TimeDatetime(TimeUnique):
 
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for this class
-        if not all(isinstance(val, datetime) for val in val1.flat):
+        if not all(isinstance(val, datetime.datetime) for val in val1.flat):
             raise TypeError('Input values for {0} class must be '
                             'datetime objects'.format(self.name))
         return val1, None
@@ -555,8 +556,30 @@ class TimeDatetime(TimeUnique):
         self.jd1, self.jd2 = erfa_time.dtf_jd(
             self.scale.upper().encode('utf8'), *iterator.operands[1:])
 
-    @property
-    def value(self):
+    def to_value(self, timezone=None):
+        """
+        Convert to (potentially timezone-aware) `~datetime.datetime` object.
+
+        If ``timezone`` is not ``None``, return a timezone-aware datetime
+        object.
+
+        Parameters
+        ----------
+        timezone : {`~datetime.tzinfo`, None} (optional)
+            If not `None`, return timezone-aware datetime.
+
+        Returns
+        -------
+        `~datetime.datetime`
+            If ``timezone`` is not ``None``, output will be timezone-aware.
+        """
+        if timezone is not None:
+            if self._scale != 'utc':
+                raise ScaleValueError("scale is {}, must be 'utc' when timezone "
+                                      "is supplied.".format(self._scale))
+
+        # Rather than define a value property directly, we have a function,
+        # since we want to be able to pass in timezone information.
         iys, ims, ids, ihmsfs = erfa_time.jd_dtf(self.scale.upper()
                                                  .encode('utf8'),
                                                  6,  # precision=6 for microsec
@@ -568,11 +591,66 @@ class TimeDatetime(TimeUnique):
         iterator = np.nditer([iys, ims, ids, ihrs, imins, isecs, ifracs, None],
                              flags=['refs_ok'],
                              op_dtypes=7*[iys.dtype] + [np.object])
-        for iy, im, id, ihr, imin, isec, ifracsec, out in iterator:
-            out[...] = datetime(iy, im, id, ihr, imin, isec, ifracsec)
 
+        for iy, im, id, ihr, imin, isec, ifracsec, out in iterator:
+            if timezone is not None:
+                out[...] = datetime.datetime(iy, im, id, ihr, imin, isec, ifracsec,
+                                             tzinfo=TimezoneInfo()).astimezone(timezone)
+            else:
+                out[...] = datetime.datetime(iy, im, id, ihr, imin, isec, ifracsec)
         return iterator.operands[-1]
 
+    value = property(to_value)
+
+class TimezoneInfo(datetime.tzinfo):
+    """
+    Subclass of the `~datetime.tzinfo` object, used in the
+    to_datetime method to specify timezones.
+
+    It may be safer in most cases to use a timezone database package like
+    pytz rather than defining your own timezones - this class is mainly
+    a workaround for users without pytz.
+    """
+    @u.quantity_input(utc_offset=u.day, dst=u.day)
+    def __init__(self, utc_offset=0*u.day, dst=0*u.day, tzname=None):
+        """
+        Parameters
+        ----------
+        utc_offset : `~astropy.units.Quantity` (optional)
+            Offset from UTC in days. Defaults to zero.
+        dst : `~astropy.units.Quantity` (optional)
+            Daylight Savings Time offset in days. Defaults to zero
+            (no daylight savings).
+        tzname : string, `None` (optional)
+            Name of timezone
+
+        Examples
+        --------
+        >>> from datetime import datetime
+        >>> from astropy.time import TimezoneInfo  # Specifies a timezone
+        >>> import astropy.units as u
+        >>> utc = TimezoneInfo()    # Defaults to UTC
+        >>> utc_plus_one_hour = TimezoneInfo(utc_offset=1*u.hour)  # UTC+1
+        >>> dt_aware = datetime(2000, 1, 1, 0, 0, 0, tzinfo=utc_plus_one_hour)
+        >>> print(dt_aware)
+        2000-01-01 00:00:00+01:00
+        >>> print(dt_aware.astimezone(utc))
+        1999-12-31 23:00:00+00:00
+        """
+        if utc_offset == 0 and dst == 0 and tzname is None:
+            tzname = 'UTC'
+        self._utcoffset = datetime.timedelta(utc_offset.to(u.day).value)
+        self._tzname = tzname
+        self._dst = datetime.timedelta(dst.to(u.day).value)
+
+    def utcoffset(self, dt):
+        return self._utcoffset
+
+    def tzname(self, dt):
+        return str(self._tzname)
+
+    def dst(self, dt):
+        return self._dst
 
 class TimeString(TimeUnique):
     """
@@ -673,7 +751,7 @@ class TimeString(TimeUnique):
         for iy, im, id, ihr, imin, isec, ifracsec in np.nditer(
                 [iys, ims, ids, ihrs, imins, isecs, ifracs]):
             if has_yday:
-                yday = datetime(iy, im, id).timetuple().tm_yday
+                yday = datetime.datetime(iy, im, id).timetuple().tm_yday
 
             yield {'year': int(iy), 'mon': int(im), 'day': int(id),
                    'hour': int(ihr), 'min': int(imin), 'sec': int(isec),
