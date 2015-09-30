@@ -921,7 +921,7 @@ table::
   >>> from astropy import units as u
   >>> t = QTable()
   >>> t['velocity'] = [3, 4] * u.m / u.s
-  >>> type(t['velocity'])
+  >>> type(t['velocity'])  # doctest: +SKIP
   astropy.units.quantity.Quantity
 
 For new code that is quantity-aware we recommend using `~astropy.table.QTable`,
@@ -934,7 +934,7 @@ a `~astropy.table.Column` object with a ``unit`` attribute::
   >>> from astropy.table import Table
   >>> t = Table()
   >>> t['velocity'] = [3, 4] * u.m / u.s
-  >>> type(t['velocity'])
+  >>> type(t['velocity'])  # doctest: +SKIP
   astropy.table.column.Column
   >>> t['velocity'].unit
   Unit("m / s")
