@@ -433,7 +433,7 @@ def _guess(table, read_kwargs, format, fast_reader):
             reader.guessing = True
             dat = reader.read(table)
             _read_trace.append({'kwargs': guess_kwargs, 'status': 'Success (guessing)',
-                                'dt': '{:.3f} ms'.format((time.time() - t0) * 1000)})
+                                'dt': '{0:.3f} ms'.format((time.time() - t0) * 1000)})
             return dat
 
         except (core.InconsistentTableError, ValueError, TypeError, AttributeError,
@@ -441,7 +441,7 @@ def _guess(table, read_kwargs, format, fast_reader):
             _read_trace.append({'kwargs': guess_kwargs,
                                 'status': '{0}: {1}'.format(err.__class__.__name__,
                                                             str(err)),
-                                'dt': '{:.3f} ms'.format((time.time() - t0) * 1000)})
+                                'dt': '{0:.3f} ms'.format((time.time() - t0) * 1000)})
             failed_kwargs.append(guess_kwargs)
     else:
         # Failed all guesses, try the original read_kwargs without column requirements
