@@ -86,6 +86,7 @@ For all the following examples it is assumed that the table has been created as 
 
   >>> from astropy.table import Table, Column
   >>> import numpy as np
+  >>> import astropy.units as u
 
   >>> arr = np.arange(15, dtype=np.int32).reshape(5, 3)
   >>> t = Table(arr, names=('a', 'b', 'c'), meta={'keywords': {'key1': 'val1'}})

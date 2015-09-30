@@ -21,6 +21,9 @@ table from one or more input tables.  This includes:
    * - `Grouped operations`_
      - Group tables and columns by keys
      - `~astropy.table.Table.group_by`
+   * - `Binning`_
+     - Binning tables
+     - `~astropy.table.Table.group_by`
    * - `Stack vertically`_
      - Concatenate input tables along rows
      - `~astropy.table.vstack`
@@ -378,6 +381,59 @@ either `True` or `False`.  For example::
       if np.any(column < 0):
           return False
       return True
+
+.. _table_binning:
+
+Binning
+^^^^^^^
+
+A common tool in analysis is to bin a table based on some reference value.
+Examples:
+
+- Photometry of a binary star in several bands taken over a
+  span of time which should be binned by orbital phase.
+- Reducing the sampling density for a table by combining
+  100 rows at a time.
+- Unevenly sampled historical data which should binned to
+  four points per year.
+
+All of these examples of binning a table can be easily accomplished using
+`grouped operations`_.  The examples in that section are focused on the
+case of discrete key values such as the name of a source.  In this
+section we show a simple yet powerful way of applying grouped operations to
+accomplish binning on key values such as time, phase or row number.
+
+The common theme in all these cases is to convert the key value array into
+a new float- or int-valued array whose values are identical for rows in the same
+output bin.  As an example, generate a fake light curve::
+
+  >>> year = np.linspace(2000.0, 2010.0, 200)  # 200 observations over 10 years
+  >>> period = 1.811
+  >>> y0 = 2005.2
+  >>> mag = 14.0 + 1.2 * np.sin(2 * np.pi * (year - y0) / period)
+  >>> phase = ((year - y0) / period) % 1.0
+  >>> dat = Table([year, phase, mag], names=['year', 'phase', 'mag'])
+
+Now make an array that will be used for binning the data by 0.25 year
+intervals::
+
+  >>> year_bin = np.trunc(year / 0.25)
+
+This has the property that all samples in each 0.25 year bin have the same
+value of ``year_bin``.  Think of ``year_bin`` as the bin number for ``year``.
+Then do the binning by grouping and immediately aggregating with ``np.mean``.
+
+  >>> dat_grouped = dat.group_by(year_bin)
+  >>> dat_binned = dat_grouped.groups.aggregate(np.mean)
+
+Then one might plot the results with ``plt.plot(dat_binned['year'], dat_binned['mag'],
+'.')``.   Alternately one could bin into 10 phase bins::
+
+  >>> phase_bin = np.trunc(phase / 0.1)
+  >>> dat_grouped = dat.group_by(phase_bin)
+  >>> dat_binned = dat_grouped.groups.aggregate(np.mean)
+
+This time plot with ``plt.plot(dat_binned['phase'], dat_binned['mag'])``.
 
 .. _stack-vertically:
 
