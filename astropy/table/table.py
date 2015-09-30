@@ -1453,7 +1453,7 @@ class Table(object):
 
         Examples
         --------
-        Create a table with two columns 'a' and 'b'::
+        Replace column 'a' with a float version of itself::
 
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
             >>> float_a = t['a'].astype(float)
