@@ -46,7 +46,7 @@ class TestConeSearch(object):
     """
     def setup_class(self):
         # If this link is broken, use the next in database that works
-        self.url = 'http://www.nofs.navy.mil/cgi-bin/vo_cone.cgi?CAT=USNO-A2&'
+        self.url = 'http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/252&'
         self.catname = 'USNO-A2'
 
         # Avoid downloading the full database
