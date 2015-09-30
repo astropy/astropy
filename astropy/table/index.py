@@ -1,15 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from copy import deepcopy
-import numpy as np
 
-from ..extern import six
-from .bst import BST, FastBST, FastRBT, MinValue, MaxValue
-from .sorted_array import SortedArray
-from ..time import Time
-
-'''
+"""
 The Index class can use several implementations as its
 engine. Any implementation should implement the following:
 
@@ -37,13 +28,25 @@ Notes
     c[[1, 2]] -> deep copy and reordering of indices
     c[1:2] -> reference
     array.view(Column) -> no indices
-'''
+"""
+
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+from copy import deepcopy
+import numpy as np
+
+from ..extern import six
+from .bst import BST, FastBST, FastRBT, MinValue, MaxValue
+from .sorted_array import SortedArray
+from ..time import Time
+
 
 class QueryError(ValueError):
     '''
     Indicates that a given index cannot handle the supplied query.
     '''
     pass
+
 
 class Index(object):
     '''
@@ -399,6 +402,7 @@ class Index(object):
         memo[id(self)] = index
         return index
 
+
 class SlicedIndex(object):
     '''
     This class provides a wrapper around an actual Index object
@@ -618,6 +622,7 @@ def get_index(table, table_copy):
                 return index
     return None
 
+
 class _IndexModeContext(object):
     '''
     A context manager that allows for special indexing modes, which
@@ -672,6 +677,7 @@ class _IndexModeContext(object):
             for index in self.table.indices:
                 index._frozen = False
                 index.reload()
+
 
 class TableIndices(list):
     '''
@@ -770,6 +776,7 @@ class TableLoc(object):
         elif len(rows) == 1: # single row
             return self.table[rows[0]]
         return self.table[rows]
+
 
 class TableILoc(TableLoc):
     '''
