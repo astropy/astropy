@@ -60,7 +60,7 @@ Quantities`_ for details)::
   >>> from astropy import units as u
   >>> t = QTable()
   >>> t['velocity'] = [3, 4] * u.m / u.s
-  >>> type(t['velocity'])
+  >>> type(t['velocity'])  # doctest: +SKIP
   astropy.units.quantity.Quantity
 
 List of columns
