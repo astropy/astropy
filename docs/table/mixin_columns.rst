@@ -220,18 +220,6 @@ that contain mixin columns:
    * - :ref:`unique-rows`
      - Not implemented yet, uses grouped operations
 
-**Mixin column attributes**
-
-For mixin columns the column attributes ``name``, ``unit``, ``dtype``,
-``format``, ``description`` and ``meta`` are stored in the ``info`` attribute
-
-
-
-dictionary called `_astropy_column_attrs`.  These attributes can be manipulated
-with the functions ``col_getattr`` and ``col_setattr`` which are available in
-the ``astropy.table.column`` module.  These methods are not part of
-the astropy public API and are likely to change in the future.
-
 **ASCII table writing**
 
 Mixin columns can be written out to file using the `astropy.io.ascii` module,
