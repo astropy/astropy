@@ -560,7 +560,19 @@ def pytest_report_header(config):
         s = "\nRunning tests with Astropy version {0}.\n".format(
             TESTED_VERSIONS['Astropy'])
 
-    s += "Running tests in {0}.\n\n".format(" ".join(args))
+    # Per https://github.com/astropy/astropy/pull/4204, strip the rootdir from
+    # each directory argument
+    if hasattr(config, 'rootdir'):
+        rootdir = str(config.rootdir)
+        if not rootdir.endswith(os.sep):
+            rootdir += os.sep
+
+        dirs = [arg[len(rootdir):] if arg.startswith(rootdir) else arg
+                for arg in args]
+    else:
+        dirs = args
+
+    s += "Running tests in {0}.\n\n".format(" ".join(dirs))
 
     from platform import platform
     plat = platform()
