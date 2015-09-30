@@ -486,8 +486,7 @@ def test_read_rdb_wrong_type(fast_reader):
     table = """col1\tcol2
 N\tN
 1\tHello"""
-    err_type = ValueError if not fast_reader else ascii.InconsistentTableError
-    with pytest.raises(err_type):
+    with pytest.raises(ValueError):
         ascii.read(table, Reader=ascii.Rdb, fast_reader=fast_reader)
 
 

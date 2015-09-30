@@ -484,6 +484,10 @@ Bug fixes
   - Fix a segfault in the fast C parser when one of the column headers
     is empty [#3545].
 
+  - Fix several bugs that prevented the fast readers from being used
+    when guessing the file format.  Also improved the read trace
+    information to better understand format guessing. [#4115]
+
 - ``astropy.io.fits``
 
   - Included a new command-line script called ``fitsinfo`` to display
