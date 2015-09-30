@@ -8,7 +8,8 @@ from astropy.coordinates.representation import (SphericalRepresentation,
                                                 UnitSphericalRepresentation)
 from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.transformations import FunctionTransform
-
+from astropy.coordinates import ICRS
+from astropy.coordinates.baseframe import RepresentationMapping
 
 import astropy.units as u
 
@@ -39,8 +40,16 @@ class SphericalWrap180Representation(SphericalRepresentation):
     _unit_representation = UnitSphericalWrap180Representation
 
 
-class myframe(astropy.coordinates.ICRS):
+class myframe(ICRS):
     default_representation = SphericalWrap180Representation
+    frame_specific_representation_info = {
+        'spherical': [RepresentationMapping('lon', 'ra'),
+                      RepresentationMapping('lat', 'dec')]
+    }
+    frame_specific_representation_info['unitspherical'] = \
+    frame_specific_representation_info['unitsphericalwrap180'] = \
+    frame_specific_representation_info['sphericalwrap180'] = \
+        frame_specific_representation_info['spherical']
 
 
 @frame_transform_graph.transform(FunctionTransform,
