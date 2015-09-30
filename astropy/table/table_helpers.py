@@ -142,6 +142,8 @@ class ArrayWrapper(object):
     """
     Minimal mixin using a simple wrapper around a numpy array
     """
+    info = ParentDtypeInfo()
+
     def __init__(self, data):
         self.data = np.array(data)
         if 'info' in getattr(data, '__dict__', ()):
@@ -161,8 +163,6 @@ class ArrayWrapper(object):
 
     def __len__(self):
         return len(self.data)
-
-    info = ParentDtypeInfo()
 
     @property
     def dtype(self):

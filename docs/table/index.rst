@@ -21,11 +21,12 @@ notable capabilities of this package are:
 * Specify a description, units and output formatting for columns.
 * Interactively scroll through long tables similar to using ``more``.
 * Create a new table by selecting rows or columns from a table.
-* Perform :ref:`table_operations` like database joins and concatenation.
+* Perform :ref:`table_operations` like database joins, concatenation, and binning.
 * Maintain a table index for fast retrieval of table items or ranges.
 * Manipulate multidimensional columns.
-* Methods for :ref:`read_write_tables` to files
-* Hooks for :ref:`subclassing_table` and its component classes
+* Handle non-native (mixin) column types within table.
+* Methods for :ref:`read_write_tables` to files.
+* Hooks for :ref:`subclassing_table` and its component classes.
 
 Currently `astropy.table` is used when reading an ASCII table using
 `astropy.io.ascii`.  Future releases of AstroPy are expected to use
@@ -230,7 +231,7 @@ Adding a new row of data to the table is as follows::
   >>> len(t)
   4
 
-Lastly, you can create a table with support for missing values, for example by setting
+You can create a table with support for missing values, for example by setting
 ``masked=True``::
 
   >>> t = Table([a, b, c], names=('a', 'b', 'c'), masked=True, dtype=('i4', 'f8', 'S1'))
@@ -243,6 +244,34 @@ Lastly, you can create a table with support for missing values, for example by s
      --     2.0    x
      --     5.0    y
       5     8.2    z
+
+Lastly, you can include certain object types like `~astropy.time.Time`,
+`~astropy.coordinates.SkyCoord` or `~astropy.units.Quantity` in your table.
+These "mixin" columns behave like a hybrid of a regular `~astropy.table.Column`
+and the native object type (see :ref:`mixin_columns`).  For example::
+
+  >>> from astropy.time import Time
+  >>> from astropy.coordinates import SkyCoord
+  >>> tm = Time(['2000:002', '2002:345'])
+  >>> sc = SkyCoord([10, 20], [-45, +40], unit='deg')
+  >>> t = Table([tm, sc], names=['time', 'skycoord'])
+  >>> t
+  <Table length=2>
+           time          skycoord
+                         deg,deg
+          object          object
+  --------------------- ----------
+  2000:002:00:00:00.000 10.0,-45.0
+  2002:345:00:00:00.000  20.0,40.0
+
+  >>> t['time'].iso
+  array(['2000-01-02 00:00:00.000', '2002-12-11 00:00:00.000'],
+        dtype='|S23')
+
+  >>> t['skycoord'].galactic
+  <SkyCoord (Galactic): (l, b) in deg
+      [(309.48051549, -71.98253481), (128.84961782, -22.54333221)]>
+
 
 .. _using_astropy_table:
 

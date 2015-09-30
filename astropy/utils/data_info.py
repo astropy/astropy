@@ -1,6 +1,13 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+"""
+This module contains functions and methods that relate to the DataInfo
+class which provides a container class for informational attributes
+as well as summary info methods.  This is currently used in the Table
+class.
+"""
+
 # Note: these functions and classes are tested extensively in astropy table
 # tests via their use in providing mixin column info, and in
 # astropy/tests/test_info for providing table and column info summary data.
@@ -19,7 +26,6 @@ import re
 from ..extern import six
 from ..utils import OrderedDict
 from ..utils.compat import NUMPY_LT_1_8
-
 
 # Tuple of filterwarnings kwargs to ignore when calling info
 IGNORE_WARNINGS = (dict(category=RuntimeWarning,

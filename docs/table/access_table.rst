@@ -532,16 +532,19 @@ any array::
          [[ 5,  6],
           [50, 60]]])
 
-Columns and Quantities
-''''''''''''''''''''''
-Columns with units that the `astropy.units` package understands can be
-converted explicitly to ``~astropy.units.Quantity`` objects via the
+.. _columns_with_units:
+
+Columns with Units
+''''''''''''''''''
+
+A `~astropy.table.Column` object with units within a standard
+`~astropy.table.Table` (as opposed to a `~astropy.table.QTable`) has certain
+quantity-related conveniences available.  To begin with, it can be converted
+explicitly to a `~astropy.units.Quantity` object via the
 :attr:`~astropy.table.Column.quantity` property and the
 :meth:`~astropy.table.Column.to` method::
 
-  >>> from astropy.table import Table
-  >>> from astropy import units as u
-  >>> data = [[1., 2., 3.],[40000., 50000., 60000.]]
+  >>> data = [[1., 2., 3.], [40000., 50000., 60000.]]
   >>> t = Table(data, names=('a', 'b'))
   >>> t['a'].unit = u.m
   >>> t['b'].unit = 'km/s'
@@ -597,10 +600,11 @@ expressions (see the warning below for caveats to this)::
     -0.988031624093
      0.893996663601
 
-  This is wrong both in that it says the unit is degrees, *and* ``sin``
-  treated the values and radians rather than degrees.  If at all in
-  doubt that you'll get the right result, the safest choice is to
-  explicitly convert to `~astropy.units.Quantity`::
+  This is wrong both in that it says the unit is degrees, *and* ``sin`` treated
+  the values and radians rather than degrees.  If at all in doubt that you'll
+  get the right result, the safest choice is to either use
+  `~astropy.table.QTable` or to explicitly convert to
+  `~astropy.units.Quantity`::
 
     >>> np.sin(t['angle'].quantity)  # doctest: +FLOAT_CMP
     <Quantity [ 0.5, 1. ]>

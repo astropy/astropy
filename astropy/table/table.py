@@ -2451,7 +2451,9 @@ class QTable(Table):
 
 class NdarrayMixin(np.ndarray):
     """
-    Minimal mixin using a simple subclass of numpy array
+    Mixin column class to allow storage of arbitrary numpy
+    ndarrays within a Table.  This is a subclass of numpy.ndarray
+    and has the same initialization options as ndarray().
     """
     info = ParentDtypeInfo()
 
