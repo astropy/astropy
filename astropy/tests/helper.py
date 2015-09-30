@@ -104,7 +104,7 @@ remote_data = pytest.mark.remote_data
 
 class TestRunner(object):
     def __init__(self, base_path):
-        self.base_path = base_path
+        self.base_path = os.path.abspath(base_path)
 
     def run_tests(self, package=None, test_path=None, args=None, plugins=None,
                   verbose=False, pastebin=None, remote_data=False, pep8=False,
