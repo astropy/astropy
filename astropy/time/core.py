@@ -104,6 +104,7 @@ class TimeInfo(MixinInfo):
     be used as a general way to store meta information.
     """
     attrs_from_parent = set(['unit'])  # unit is read-only and None
+    _supports_indexing = True
 
     @property
     def unit(self):
@@ -792,7 +793,11 @@ class Time(object):
         if self.isscalar:
             raise TypeError('scalar {0!r} object is not subscriptable.'.format(
                 self.__class__.__name__))
-        return self._replicate('__getitem__', item)
+        tm = self._replicate('__getitem__', item)
+        if not tm.isscalar and tm.info.indices:
+            # update indices based on slice
+            tm = self.info.slice_indices(tm, item, len(self))
+        return tm
 
     def reshape(self, *args, **kwargs):
         """Returns a time instance containing the same data with a new shape.

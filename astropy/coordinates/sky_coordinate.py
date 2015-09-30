@@ -49,6 +49,7 @@ class SkyCoordInfo(MixinInfo):
     be used as a general way to store meta information.
     """
     attrs_from_parent = set(['unit'])  # Unit is read-only
+    _supports_indexing = False
 
     @staticmethod
     def default_format(val):

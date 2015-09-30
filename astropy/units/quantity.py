@@ -127,6 +127,7 @@ class QuantityInfo(ParentDtypeInfo):
     be used as a general way to store meta information.
     """
     attrs_from_parent = set(['dtype', 'unit'])  # dtype and unit taken from parent
+    _supports_indexing = True
 
     @staticmethod
     def default_format(val):
@@ -901,12 +902,23 @@ class Quantity(np.ndarray):
                 raise
         # For single elements, ndarray.__getitem__ returns scalars; these
         # need a new view as a Quantity.
-        return out if type(out) is type(self) else self._new_view(out)
+        if type(out) is not type(self):
+            out = self._new_view(out)
+        # adjust indices of slice as necessary
+        if not out.isscalar and out.info.indices:
+            out = self.info.slice_indices(out, key, len(self))
+        return out
 
     def __setitem__(self, i, value):
+        # update indices
+        if not self.isscalar:
+            self.info.adjust_indices(i, value, len(self))
         self.view(np.ndarray).__setitem__(i, self._to_own_unit(value))
 
     def __setslice__(self, i, j, value):
+        # update indices
+        if not self.isscalar:
+            self.info.adjust_indices(slice(i, j), value, len(self))
         self.view(np.ndarray).__setslice__(i, j, self._to_own_unit(value))
 
     # __contains__ is OK
