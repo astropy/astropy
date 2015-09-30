@@ -1442,7 +1442,7 @@ class Table(object):
 
     def replace_column(self, name, col):
         """
-        Replace column `name` with the new `col` object.
+        Replace column ``name`` with the new ``col`` object.
 
         Parameters
         ----------
