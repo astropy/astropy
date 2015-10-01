@@ -39,7 +39,7 @@ New Features
   - Added ``Supergalactic`` frame to support de Vaucouleurs supergalactic
     coordinates. [#3892]
 
-  - Added ecliptic coordinates, including ``GeocentricTrueEcliptic``, 
+  - Added ecliptic coordinates, including ``GeocentricTrueEcliptic``,
     ``BarycentricTrueEcliptic``, and ``HeliocentricTrueEcliptic``. [#3749]
 
 - ``astropy.cosmology``
@@ -539,6 +539,13 @@ Other Changes and Additions
 
 - Updated ``astropy.tests`` test runner code to work with Coverage v4.0 when
   generating test coverage reports. [#4176]
+
+- The migration guide from pre-v0.4 coordinates has been removed to avoid
+  cluttering the ``astropy.coordinates`` documentation with increasingly
+  irrelevant material.  To see the migration guide, we recommend you simply look
+  to the archived documentation for previous versions, e.g.
+  http://docs.astropy.org/en/v1.0/coordinates/index.html#migrating-from-pre-v0-4-coordinates 
+  [#4203]
 
 
 1.0.5 (unreleased)
