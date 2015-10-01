@@ -109,6 +109,18 @@ Finally, columns can also be added from
   >>> del t['h', 'i']
   >>> t.keep_columns(['a', 'b'])
 
+**Replace a column**
+
+For a table with an existing column ``a``, an expression like ``t['a'] = [1, 2,
+3]`` or ``t['a'] = 1`` replaces the data *values* without changing the data
+type or anything else about the column.  In order to entirely replace the
+column with a new column (and potentially change the data type), use the
+:meth:`~astropy.table.Table.replace_column` method.  For instance, to change
+the data type of the ``a`` column from ``int`` to ``float``:
+
+  >>> a_float = t['a'].astype(float)
+  >>> t.replace_column('a', a_float)
+
 **Rename columns**
 ::
 

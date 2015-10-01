@@ -185,6 +185,9 @@ New Features
   - Added ``keep_byteorder`` option to ``Table.as_array()``.  See the
     "API Changes" section below. [#4080]
 
+  - Added a new method ``Table.replace_column()`` to replace an existing
+    column with a new data column. [#4090]
+
 - ``astropy.tests``
 
   - Added new test config options, ``config_dir`` and ``cache_dir``  (these

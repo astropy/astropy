@@ -1560,3 +1560,47 @@ class TestPandas(object):
                     assert column.dtype == t2[name].dtype
                 else:
                     assert column.byteswap().newbyteorder().dtype == t2[name].dtype
+
+
+@pytest.mark.usefixtures('table_types')
+class TestReplaceColumn(SetupData):
+    def test_fail_replace_column(self, table_types):
+        """Raise exception when trying to replace column via table.columns object"""
+        self._setup(table_types)
+        t = table_types.Table([self.a, self.b])
+
+        with pytest.raises(ValueError):
+            t.columns['a'] = [1, 2, 3]
+
+        with pytest.raises(ValueError):
+            t.replace_column('not there', [1, 2, 3])
+
+    def test_replace_column(self, table_types):
+        """Replace existing column with a new column"""
+        self._setup(table_types)
+        t = table_types.Table([self.a, self.b])
+        ta = t['a']
+        tb = t['b']
+
+        vals = [1.2, 3.4, 5.6]
+        for col in (vals,
+                    table_types.Column(vals),
+                    table_types.Column(vals, name='a'),
+                    table_types.Column(vals, name='b')):
+            t.replace_column('a', col)
+            assert np.all(t['a'] == vals)
+            assert t['a'] is not ta  # New a column
+            assert t['b'] is tb  # Original b column unchanged
+            assert t.colnames == ['a', 'b']
+            assert t['a'].meta == {}
+            assert t['a'].format is None
+
+    def test_replace_index_column(self, table_types):
+        """Replace index column and generate expected exception"""
+        self._setup(table_types)
+        t = table_types.Table([self.a, self.b])
+        t.add_index('a')
+
+        with pytest.raises(ValueError) as err:
+            t.replace_column('a', [1, 2, 3])
+        assert err.value.args[0] == 'cannot replace a table index column'
