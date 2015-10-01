@@ -184,8 +184,15 @@ class EarthLocation(u.Quantity):
         """
         Return an object of this class for a known observatory/site by name.
 
-        Note that this is intended as a quick convenience function, not a
-        fully-featured registry of observatories.
+        This is intended as a quick convenience function to get basic site
+        information, not a fully-featured exhaustive registry of observatories
+        and all their properties.
+
+        Note that when this function is called, it will first attempt to
+        download site information from the data.astropy.org server.  If it
+        cannot (i.e., an internet connection is not available), it will fall
+        back on the list included with astropy (which is a limited and dated set
+        of sites).
 
         Parameters
         ----------
@@ -220,6 +227,12 @@ class EarthLocation(u.Quantity):
         """
         Get list of names of observatories for use with
         `~astropy.coordinates.EarthLocation.of_site`.
+
+        Note that when this function is called, it will first attempt to
+        download site information from the data.astropy.org server.  If it
+        cannot (i.e., an internet connection is not available), it will fall
+        back on the list included with astropy (which is a limited and dated set
+        of sites).
 
 
         Returns
