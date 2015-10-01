@@ -71,6 +71,8 @@ New Features
 
   - Allow ``-`` character is Sextractor format column names. [#4168]
 
+  - Improve DAOphot reader to read multi-aperture files [#3535, #4207]
+
 - ``astropy.io.fits``
 
   - Support reading and writing from bzip2 compressed files. i.e. ``.fits.bz2``
