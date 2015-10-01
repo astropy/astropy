@@ -34,12 +34,7 @@ cdef inline object base_getitem(object self, object item, item_getter getitem):
     if (<ndarray>self).ndim > 1 and isinstance(item, INTEGER_TYPES):
         return self.data[item]
 
-    value = getitem(self, item)
-
-    if type(value) is type(self):
-        value = self.info.slice_indices(value, item, len(self))
-
-    return value
+    return getitem(self, item)
 
 
 cdef inline object column_getitem(object self, object item):

@@ -151,8 +151,8 @@ class TestIndex(SetupData):
         col_slice = t['a'][1:3]
         assert_col_equal(col_slice, [2, 3])
         # true column slices discard indices
-        #if isinstance(t['a'], BaseColumn):
-        #    assert len(col_slice.info.indices) == 0
+        if isinstance(t['a'], BaseColumn):
+            assert len(col_slice.info.indices) == 0
 
         # take slice of slice
         t2 = t[::2]
@@ -337,14 +337,14 @@ class TestIndex(SetupData):
         assert np.all(t.indices[0].sorted_data() == [3, 1, 2, 0])
 
         if isinstance(t['a'], BaseColumn):
-            #assert len(t['a'][::-1].info.indices) == 0
+            assert len(t['a'][::-1].info.indices) == 0
             with t.index_mode('copy_on_getitem'):
                 assert len(t['a'][[1, 2]].info.indices) == 1
                 # mode should only affect t
-                #assert len(t2['a'][[1, 2]].info.indices) == 0
+                assert len(t2['a'][[1, 2]].info.indices) == 0
 
-            #assert len(t['a'][::-1].info.indices) == 0
-            #assert len(t2['a'][::-1].info.indices) == 0
+            assert len(t['a'][::-1].info.indices) == 0
+            assert len(t2['a'][::-1].info.indices) == 0
 
     def test_index_retrieval(self, main_col, table_types, engine):
         self._setup(main_col, table_types)

@@ -700,7 +700,13 @@ class Table(object):
         for col in cols:
             col.info._copy_indices = self._copy_indices
 
-        newcols = [col[slice_] for col in cols]
+        def _get_slice(col, slice_):
+            out = col[slice_]
+            if col.info.indices:
+                out = col.info.slice_indices(out, slice_, len(col))
+            return out
+
+        newcols = [_get_slice(col, slice_) for col in cols]
         for col in cols:
             col.info._copy_indices = True
 

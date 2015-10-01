@@ -633,6 +633,8 @@ class _IndexModeContext(object):
     copying/slicing.
     '''
 
+    _col_subclasses = {}
+
     def __init__(self, table, mode):
         '''
         Parameters
@@ -654,6 +656,8 @@ class _IndexModeContext(object):
         '''
         self.table = table
         self.mode = mode
+        # Used by copy_on_getitem
+        self._orig_classes = []
         if mode not in ('freeze', 'discard_on_copy', 'copy_on_getitem'):
             raise ValueError("Expected a mode of either 'freeze', "
                              "'discard_on_copy', or 'copy_on_getitem', got "
@@ -663,7 +667,9 @@ class _IndexModeContext(object):
         if self.mode == 'discard_on_copy':
             self.table._copy_indices = False
         elif self.mode == 'copy_on_getitem':
-            pass
+            for col in self.table.columns.values():
+                self._orig_classes.append(col.__class__)
+                col.__class__ = self._get_copy_on_getitem_shim(col.__class__)
         else:
             for index in self.table.indices:
                 index._frozen = True
@@ -672,11 +678,31 @@ class _IndexModeContext(object):
         if self.mode == 'discard_on_copy':
             self.table._copy_indices = True
         elif self.mode == 'copy_on_getitem':
-            pass
+            for col in reversed(self.table.columns.values()):
+                col.__class__ = self._orig_classes.pop()
         else:
             for index in self.table.indices:
                 index._frozen = False
                 index.reload()
+
+    def _get_copy_on_getitem_shim(self, cls):
+        if cls in self._col_subclasses:
+            return self._col_subclasses[cls]
+
+        def __getitem__(self, item):
+            value = cls.__getitem__(self, item)
+            if type(value) is type(self):
+                value = self.info.slice_indices(value, item, len(self))
+
+            return value
+
+        clsname = '_{0}WithIndexCopy'.format(cls.__name__)
+
+        new_cls = type(clsname, (cls,), {'__getitem__': __getitem__})
+
+        self._col_subclasses[cls] = new_cls
+
+        return new_cls
 
 
 class TableIndices(list):
