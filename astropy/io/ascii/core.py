@@ -961,15 +961,15 @@ def _apply_include_exclude_names(table, names, include_names, exclude_names):
 class BaseReader(object):
     """Class providing methods to read and write an ASCII table using the specified
     header, data, inputter, and outputter instances.
-    
+
     Typical usage is to instantiate a Reader() object and customize the
     ``header``, ``data``, ``inputter``, and ``outputter`` attributes.  Each
     of these is an object of the corresponding class.
-    
+
     There is one method ``inconsistent_handler`` that can be used to customize the
     behavior of ``read()`` in the event that a data row doesn't match the header.
     The default behavior is to raise an InconsistentTableError.
-    
+
     """
 
     names = None
