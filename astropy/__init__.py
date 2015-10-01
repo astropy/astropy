@@ -273,6 +273,9 @@ def _initialize_astropy():
 
 
 def _rebuild_extensions():
+    global __version__
+    global __githash__
+
     import os
     import subprocess
     import sys
@@ -300,6 +303,20 @@ def _rebuild_extensions():
                       'with error code {0}: try rerunning this command '
                       'manually to check what the error was.'.format(
                           sp.returncode))
+
+    # Try re-loading module-level globals from the astropy.version module,
+    # which may not have existed before this function ran
+    try:
+        from .version import version as __version__
+    except ImportError:
+        pass
+
+    try:
+        from .version import githash as __githash__
+    except ImportError:
+        pass
+
+
 # Set the bibtex entry to the article referenced in CITATION
 def _get_bibtex():
     import os
