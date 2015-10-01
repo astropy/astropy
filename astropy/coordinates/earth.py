@@ -2,11 +2,11 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from urllib2 import URLError
 from warnings import warn
 
 import numpy as np
 from .. import units as u
+from ..extern import six
 from ..utils.exceptions import AstropyUserWarning
 from . import Longitude, Latitude
 
@@ -22,8 +22,8 @@ __all__ = ['EarthLocation']
 # Available ellipsoids (defined in erfam.h, with numbers exposed in erfa).
 ELLIPSOIDS = ('WGS84', 'GRS80', 'WGS72')
 
-_NO_ONLINE_SITES_WARNING_MSG = ('Could not access the online site list. Falling'
-                                'back on the builtin version.')
+_NO_ONLINE_SITES_WARNING_MSG = ('Could not access the online site list. '
+                                'Falling back on the builtin version.')
 
 
 def _check_ellipsoid(ellipsoid=None, default='WGS84'):
@@ -213,7 +213,7 @@ class EarthLocation(u.Quantity):
 
         try:
             el = get_site(site_name, online=True)  # this is always an EarthLocation
-        except URLError:
+        except six.moves.urllib.error.URLError:
             warn(AstropyUserWarning(_NO_ONLINE_SITES_WARNING_MSG))
             el = get_site(site_name, online=False)  # this is always an EarthLocation
 
@@ -252,7 +252,7 @@ class EarthLocation(u.Quantity):
 
         try:
             return get_site_names(online=True)
-        except URLError:
+        except six.moves.urllib.error.URLError:
             warn(AstropyUserWarning(_NO_ONLINE_SITES_WARNING_MSG))
             return get_site_names(online=False)
 
