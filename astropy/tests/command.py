@@ -72,7 +72,11 @@ class AstropyTest(Command, object):
          "Don't test the documentation .rst files."),
         ('repeat=', None,
          'How many times to repeat each test (can be used to check for '
-         'sporadic failures).')
+         'sporadic failures).'),
+        ('temp-root=', None,
+         'The root directory in which to create the temporary testing files. '
+         'If unspecified the system default is used (e.g. /tmp) as explained '
+         'in the documentation for tempfile.mkstemp.')
     ]
 
     user_options = _fix_user_options(user_options)
@@ -95,6 +99,7 @@ class AstropyTest(Command, object):
         self.docs_path = None
         self.skip_docs = False
         self.repeat = None
+        self.temp_root = None
 
     def finalize_options(self):
         # Normally we would validate the options here, but that's handled in
@@ -194,7 +199,13 @@ class AstropyTest(Command, object):
         build_cmd = self.get_finalized_command('build')
         new_path = os.path.abspath(build_cmd.build_lib)
 
-        self.tmp_dir = tempfile.mkdtemp(prefix=self.package_name + '-test-')
+        # On OSX the default path for temp files is under /var, but in most
+        # cases on OSX /var is actually a symlink to /private/var; ensure we
+        # dereference that link, because py.test is very sensitive to relative
+        # paths...
+        tmp_dir = tempfile.mkdtemp(prefix=self.package_name + '-test-',
+                                   dir=self.temp_root)
+        self.tmp_dir = os.path.realpath(tmp_dir)
         self.testing_path = os.path.join(self.tmp_dir, os.path.basename(new_path))
         shutil.copytree(new_path, self.testing_path)
 
