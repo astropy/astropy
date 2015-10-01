@@ -240,24 +240,30 @@ class EarthLocation(u.Quantity):
         return cls._get_site_registry().get_site_names()
 
     @classmethod
-    def _get_site_registry(cls, force_download=False):
+    def _get_site_registry(cls, force_download=False, force_builtin=False):
         # need to import inside function to avoid circular dependencies
         from .sites import get_builtin_sites, get_downloaded_sites
 
-        reg = getattr(cls, '_site_registry', None)
-        if force_download or not reg:
-            try:
-                reg = get_downloaded_sites()
-            except six.moves.urllib.error.URLError:
-                if force_download:
-                    raise
-                warn(AstropyUserWarning('Could not access the online site '
-                                        'list. Falling back on the built-in '
-                                        'version, which is rather limited. '
-                                        'If you want to retry the download, '
-                                        'do {0}._get_site_registry(force_download=True)'.format(cls.name)))
-                reg = get_builtin_sites()
-            cls._site_registry = reg
+        if force_builtin and force_download:
+            raise ValueError('Cannot have both force_builtin and force_download True')
+
+        if force_builtin:
+            reg = cls._site_registry = get_builtin_sites()
+        else:
+            reg = getattr(cls, '_site_registry', None)
+            if force_download or not reg:
+                try:
+                    reg = get_downloaded_sites()
+                except six.moves.urllib.error.URLError:
+                    if force_download:
+                        raise
+                    msg = ('Could not access the online site list. Falling '
+                           'back on the built-in version, which is rather '
+                           'limited. If you want to retry the download, do '
+                           '{0}._get_site_registry(force_download=True)')
+                    warn(AstropyUserWarning(msg.format(cls.__name__)))
+                    reg = get_builtin_sites()
+                cls._site_registry = reg
 
         return reg
 

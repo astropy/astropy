@@ -23,7 +23,7 @@ from .. import units as u
 
 class SiteRegistry(object):
     """
-    A bare-bones registry of EarthLocation objects
+    A bare-bones registry of EarthLocation objects.
     """
     def __init__(self):
         # the keys to this are always lower-case
@@ -32,6 +32,19 @@ class SiteRegistry(object):
         self._site_names = []
 
     def get_site(self, site_name):
+        """
+        Returns an EarthLocation for a known site in this registry.
+
+        Parameters
+        ----------
+        site_name : str
+            Name of the observatory (case-insensitive).
+
+        Returns
+        -------
+        site : `~astropy.coordinates.EarthLocation`
+            The location of the observatory.
+        """
         if site_name.lower() not in self._site_dict:
             # If site name not found, find close matches and suggest them in error
             close_names = get_close_matches(site_name, self._site_dict)
@@ -47,9 +60,27 @@ class SiteRegistry(object):
         return self._site_dict[site_name.lower()]
 
     def get_site_names(self):
+        """
+        Returns the names in this registry
+
+        Returns
+        -------
+        site : list of str
+            The names of the sites in this registry
+        """
         return sorted(self._site_names)
 
     def add_site(self, names, locationobj):
+        """
+        Adds a location to the registry.
+
+        Parameters
+        ----------
+        names : list of str
+            All the names this site should go under
+        locationobj: `~astropy.coordinates.EarthLocation`
+            The actual site object
+        """
         for name in names:
             self._site_dict[name.lower()] = locationobj
             self._site_names.append(name)
