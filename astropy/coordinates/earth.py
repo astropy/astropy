@@ -241,6 +241,25 @@ class EarthLocation(u.Quantity):
 
     @classmethod
     def _get_site_registry(cls, force_download=False, force_builtin=False):
+        """
+        Gets the site registry.  The first time this either downloads or loads
+        from the data file packaged with astropy.  Subsequent calls will use the
+        cached version unless explicitly overridden.
+
+        Parameters
+        ----------
+        force_download : bool or str
+            If not False, force replacement of the cached registry with a
+            downloaded version. If a str, that will be used as the URL to
+            download from (if just True, the default URL will be used).
+        force_builtin : bool
+            If True, load from the data file bundled with astropy and set the
+            cache to that.
+
+        returns
+        -------
+        reg : astropy.coordinates.sites.SiteRegistry
+        """
         # need to import inside function to avoid circular dependencies
         from .sites import get_builtin_sites, get_downloaded_sites
 
@@ -253,7 +272,10 @@ class EarthLocation(u.Quantity):
             reg = getattr(cls, '_site_registry', None)
             if force_download or not reg:
                 try:
-                    reg = get_downloaded_sites()
+                    if isinstance(force_download, six.string_types):
+                        reg = get_downloaded_sites(force_download)
+                    else:
+                        reg = get_downloaded_sites()
                 except six.moves.urllib.error.URLError:
                     if force_download:
                         raise
