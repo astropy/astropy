@@ -220,7 +220,9 @@ class EarthLocation(u.Quantity):
         if cls is el.__class__:
             return el
         else:
-            return cls.from_geodetic(*el.to_geodetic())
+            neweel = cls.from_geodetic(*el.to_geodetic())
+            newel.info.name = el.info.name
+            return newel
 
     @classmethod
     def get_site_names(cls):
@@ -249,10 +251,10 @@ class EarthLocation(u.Quantity):
         from .sites import get_site_names
 
         try:
-            return get_site_names(online=True)  # this is always an EarthLocation
+            return get_site_names(online=True)
         except URLError:
             warn(AstropyUserWarning(_NO_ONLINE_SITES_WARNING_MSG))
-            return get_site_names(online=False)  # this is always an EarthLocation
+            return get_site_names(online=False)
 
     @property
     def ellipsoid(self):

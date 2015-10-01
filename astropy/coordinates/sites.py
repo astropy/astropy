@@ -1,11 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Observatories accessible by the `sites` module originate from the IRAF
-Observatory Database, and are stored in ``data/observatories.json``.
-Longitudes are listed with positive to the West.
+Observatories accessible without internet access originate from the IRAF
+Observatory Database, and are stored in ``data/observatories.json``.  This is
+inteded mainly as a fallback file, and the online file is where new changes
+should go.
 
 Additions or corrections to the observatory list can be submitted via Pull
-Request to the [astropy-data GitHub repository](https://github.com/astropy/astropy),
+Request to the [astropy-data GitHub repository](https://github.com/astropy/astropy-data),
 updating the ``location.json`` file.
 """
 
@@ -22,7 +23,7 @@ from .. import units as u
 __all__ = ['get_site', 'get_site_names']
 
 # Observatory database and list of names:
-_builtin_site_dict = {'_site_db_uninitialized': True}
+_builtin_site_dict = {}
 _builtin_site_names = []
 
 def _parse_sites_json(jsondb, names, sitedict):
@@ -30,6 +31,7 @@ def _parse_sites_json(jsondb, names, sitedict):
         location = EarthLocation.from_geodetic(jsondb[site]['longitude'] * u.Unit(jsondb[site]['longitude_unit']),
                                                jsondb[site]['latitude'] * u.Unit(jsondb[site]['latitude_unit']),
                                                jsondb[site]['elevation'] * u.Unit(jsondb[site]['elevation_unit']))
+        location.info.name = jsondb[site]['name']
 
         namestoadd = [site]
         namestoadd.extend(jsondb[site]['aliases'])
@@ -42,10 +44,9 @@ def _get_builtin_sites():
     Load observatory database from data/observatories.json and parse them into
     a dictionary in memory.
     """
-    if _builtin_site_dict.get('_site_db_uninitialized', False):
+    if not _builtin_site_dict:
         jsondb = json.loads(get_pkg_data_contents('data/observatories.json'))
         _parse_sites_json(jsondb, _builtin_site_names, _builtin_site_dict)
-        del _builtin_site_dict['_site_db_uninitialized']
 
     return _builtin_site_dict, _builtin_site_names
 
