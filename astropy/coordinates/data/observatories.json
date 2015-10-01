@@ -1,304 +1,358 @@
 {
-    "BAO": {
-        "aliases": [
-            "BAO", 
-            "Beijing XingLong Observatory"
-        ], 
-        "elevation_meters": 950, 
-        "latitude": "40d23m36s", 
-        "longitude": "117d34m30s", 
-        "name": "Beijing XingLong Observatory", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "NOV": {
-        "aliases": [
-            "National Observatory of Venezuela", 
-            "NOV"
-        ], 
-        "elevation_meters": 3610, 
-        "latitude": "8d47m24s", 
-        "longitude": "289d08m00s", 
-        "name": "National Observatory of Venezuela", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "Palomar": {
-        "aliases": [
-            "Palomar", 
-            "Hale Telescope"
-        ], 
-        "elevation_meters": 1706, 
-        "latitude": "33d21m21.6s", 
-        "longitude": "243d08m13.2s", 
-        "name": "The Hale Telescope", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "aao": {
-        "aliases": [
-            "AAO", 
-            "Anglo-Australian Observatory"
-        ], 
-        "elevation_meters": 1164, 
-        "latitude": "-31d16m37.34s", 
-        "longitude": "149d03m57.91s", 
-        "name": "Anglo-Australian Observatory", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "apo": {
-        "aliases": [
-            "APO", 
-            "Apache Point Observatory", 
-            "Apache Point"
-        ], 
-        "elevation_meters": 2798, 
-        "latitude": "32d46m48s", 
-        "longitude": "254d10m48s", 
-        "name": "Apache Point Observatory", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "bmo": {
-        "aliases": [
-            "Black Moshannon Observatory", 
-            "BMO"
-        ], 
-        "elevation_meters": 738, 
-        "latitude": "40d55m18s", 
-        "longitude": "281d59m42s", 
-        "name": "Black Moshannon Observatory", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "cfht": {
-        "aliases": [
-            "Canada-France-Hawaii Telescope", 
-            "CFHT"
-        ], 
-        "elevation_meters": 4215, 
-        "latitude": "19d49m36s", 
-        "longitude": "204d31m42s", 
-        "name": "Canada-France-Hawaii Telescope", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "ctio": {
-        "aliases": [
-            "Cerro Tololo Interamerican Observatory", 
-            "CTIO", 
-            "Cerro Tololo"
-        ], 
-        "elevation_meters": 2215, 
-        "latitude": "-30d09m55s", 
-        "longitude": "289d11m06s", 
-        "name": "Cerro Tololo Interamerican Observatory", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "dao": {
-        "aliases": [
-            "DAO", 
-            "Dominion Astrophysical Observatory"
-        ], 
-        "elevation_meters": 229, 
-        "latitude": "48d31m18s", 
-        "longitude": "236d35m00s", 
-        "name": "Dominion Astrophysical Observatory", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "ekar": {
-        "aliases": [
-            "ekar", 
-            "Mt. Ekar 182 cm. Telescope"
-        ], 
-        "elevation_meters": 1413, 
-        "latitude": "45d50m54.92s", 
-        "longitude": "11d34m52.08s", 
-        "name": "Mt. Ekar 182 cm. Telescope", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "eso": {
-        "aliases": [
-            "European Southern Observatory", 
-            "ESO"
-        ], 
-        "elevation_meters": 2347, 
-        "latitude": "-29d15m24s", 
-        "longitude": "289d16m12s", 
-        "name": "European Southern Observatory", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "flwo": {
-        "aliases": [
-            "Whipple", 
-            "Whipple Observatory", 
-            "FLWO"
-        ], 
-        "elevation_meters": 2320, 
-        "latitude": "31d40m51.4s", 
-        "longitude": "249d07m21s", 
-        "name": "Whipple Observatory", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "keck": {
-        "aliases": [
-            "keck", 
-            "W. M. Keck Observatory", 
-            "Keck Observatory"
-        ], 
-        "elevation_meters": 4160, 
-        "latitude": "19d49m42s", 
-        "longitude": "204d31m18s", 
-        "name": "W. M. Keck Observatory", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "kpno": {
-        "aliases": [
-            "Kitt Peak", 
-            "KPNO", 
-            "Kitt Peak National Observatory"
-        ], 
-        "elevation_meters": 2120, 
-        "latitude": "31d57m48s", 
-        "longitude": "248d24m00s", 
-        "name": "Kitt Peak National Observatory", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "lapalma": {
-        "aliases": [
-            "lapalma", 
-            "Roque de los Muchachos"
-        ], 
-        "elevation_meters": 2327, 
-        "latitude": "28d45m30s", 
-        "longitude": "342d07m12s", 
-        "name": "Roque de los Muchachos, La Palma", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "lco": {
-        "aliases": [
-            "LCO", 
-            "Las Campanas Observatory"
-        ], 
-        "elevation_meters": 2282, 
-        "latitude": "-29d00m12s", 
-        "longitude": "289d17m54s", 
-        "name": "Las Campanas Observatory", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "lick": {
-        "aliases": [
-            "Lick", 
-            "Lick Observatory"
-        ], 
-        "elevation_meters": 1290, 
-        "latitude": "37d20m36s", 
-        "longitude": "238d21m48s", 
-        "name": "Lick Observatory", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "lowell": {
-        "aliases": [
-            "Lowell Observatory", 
-            "Lowell"
-        ], 
-        "elevation_meters": 2198, 
-        "latitude": "35d05m48s", 
-        "longitude": "248d27m54s", 
-        "name": "Lowell Observatory", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "mcdonald": {
-        "aliases": [
-            "McDonald Observatory", 
-            "mcdonald"
-        ], 
-        "elevation_meters": 2075, 
-        "latitude": "30d40m18.0001s", 
-        "longitude": "255d58m41.9999s", 
-        "name": "McDonald Observatory", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "mdm": {
-        "aliases": [
-            "Michigan-Dartmouth-MIT Observatory", 
-            "MDM"
-        ], 
-        "elevation_meters": 1938, 
-        "latitude": "31d57m00s", 
-        "longitude": "248d23m00s", 
-        "name": "Michigan-Dartmouth-MIT Observatory", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "mmt": {
-        "aliases": [
-            "Multiple Mirror Telescope", 
-            "MMT"
-        ], 
-        "elevation_meters": 2608, 
-        "latitude": "31d41m18s", 
-        "longitude": "249d06m54s", 
-        "name": "Whipple Observatory", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "mso": {
-        "aliases": [
-            "MSO", 
-            "Mt. Stromlo Observatory"
-        ], 
-        "elevation_meters": 767, 
-        "latitude": "-35d19m14.34s", 
-        "longitude": "149d01m27.6s", 
-        "name": "Mt. Stromlo Observatory", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "mtbigelow": {
-        "aliases": [
-            "mtbigelow", 
-            "Catalina Observatory"
-        ], 
-        "elevation_meters": 2510, 
-        "latitude": "32d25m00s", 
-        "longitude": "249d16m06s", 
-        "name": "Catalina Observatory: 61 inch telescope", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "spm": {
-        "aliases": [
-            "Observatorio Astronomico Nacional, San Pedro Martir", 
-            "SPM"
-        ], 
-        "elevation_meters": 2830, 
-        "latitude": "31d01m45s", 
-        "longitude": "244d30m47s", 
-        "name": "Observatorio Astronomico Nacional, San Pedro Martir", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "sso": {
-        "aliases": [
-            "Siding Spring Observatory", 
-            "sso"
-        ], 
-        "elevation_meters": 1149, 
-        "latitude": "-31d16m24.1s", 
-        "longitude": "149d03m40.3s", 
-        "name": "Siding Spring Observatory", 
-        "source": "IRAF Observatory Database"
-    }, 
     "tona": {
+        "source": "IRAF Observatory Database",
+        "elevation": 0,
+        "name": "Observatorio Astronomico Nacional, Tonantzintla",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": 19.032777777777778,
+        "elevation_unit": "meter",
+        "longitude": 261.68611111111113,
         "aliases": [
-            "tona", 
             "Observatorio Astronomico Nacional, Tonantzintla"
-        ], 
-        "elevation_meters": 0, 
-        "latitude": "19d01m58s", 
-        "longitude": "261d41m10s", 
-        "name": "Observatorio Astronomico Nacional, Tonantzintla", 
-        "source": "IRAF Observatory Database"
-    }, 
-    "vbo": {
+        ]
+    },
+    "lick": {
+        "source": "IRAF Observatory Database",
+        "elevation": 1290,
+        "name": "Lick Observatory",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": 37.343333333333334,
+        "elevation_unit": "meter",
+        "longitude": 238.36333333333332,
         "aliases": [
-            "Vainu Bappu Observatory", 
-            "VBO"
-        ], 
-        "elevation_meters": 725, 
-        "latitude": "12d34m35.976s", 
-        "longitude": "78d49m35.76s", 
-        "name": "Vainu Bappu Observatory", 
-        "source": "IRAF Observatory Database"
+            "Lick Observatory"
+        ]
+    },
+    "mdm": {
+        "source": "IRAF Observatory Database",
+        "elevation": 1938,
+        "name": "Michigan-Dartmouth-MIT Observatory",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": 31.95,
+        "elevation_unit": "meter",
+        "longitude": 248.38333333333333,
+        "aliases": [
+            "Michigan-Dartmouth-MIT Observatory"
+        ]
+    },
+    "lapalma": {
+        "source": "IRAF Observatory Database",
+        "elevation": 2327,
+        "name": "Roque de los Muchachos, La Palma",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": 28.758333333333333,
+        "elevation_unit": "meter",
+        "longitude": 342.12,
+        "aliases": [
+            "Roque de los Muchachos"
+        ]
+    },
+    "ctio": {
+        "source": "IRAF Observatory Database",
+        "elevation": 2215,
+        "name": "Cerro Tololo Interamerican Observatory",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": -30.165277777777778,
+        "elevation_unit": "meter",
+        "longitude": 289.185,
+        "aliases": [
+            "Cerro Tololo Interamerican Observatory",
+            "Cerro Tololo"
+        ]
+    },
+    "apo": {
+        "source": "IRAF Observatory Database",
+        "elevation": 2798,
+        "name": "Apache Point Observatory",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": 32.78,
+        "elevation_unit": "meter",
+        "longitude": 254.17999999999998,
+        "aliases": [
+            "Apache Point Observatory",
+            "Apache Point"
+        ]
+    },
+    "BAO": {
+        "source": "IRAF Observatory Database",
+        "elevation": 950,
+        "name": "Beijing XingLong Observatory",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": 40.39333333333333,
+        "elevation_unit": "meter",
+        "longitude": 117.575,
+        "aliases": [
+            "Beijing XingLong Observatory"
+        ]
+    },
+    "mcdonald": {
+        "source": "IRAF Observatory Database",
+        "elevation": 2075,
+        "name": "McDonald Observatory",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": 30.671666694444447,
+        "elevation_unit": "meter",
+        "longitude": 255.97833330555557,
+        "aliases": [
+            "McDonald Observatory"
+        ]
+    },
+    "mtbigelow": {
+        "source": "IRAF Observatory Database",
+        "elevation": 2510,
+        "name": "Catalina Observatory: 61 inch telescope",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": 32.416666666666664,
+        "elevation_unit": "meter",
+        "longitude": 249.26833333333335,
+        "aliases": [
+            "Catalina Observatory"
+        ]
+    },
+    "mso": {
+        "source": "IRAF Observatory Database",
+        "elevation": 767,
+        "name": "Mt. Stromlo Observatory",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": -35.32065,
+        "elevation_unit": "meter",
+        "longitude": 149.02433333333335,
+        "aliases": [
+            "Mt. Stromlo Observatory"
+        ]
+    },
+    "eso": {
+        "source": "IRAF Observatory Database",
+        "elevation": 2347,
+        "name": "European Southern Observatory",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": -29.256666666666668,
+        "elevation_unit": "meter",
+        "longitude": 289.27,
+        "aliases": [
+            "European Southern Observatory"
+        ]
+    },
+    "cfht": {
+        "source": "IRAF Observatory Database",
+        "elevation": 4215,
+        "name": "Canada-France-Hawaii Telescope",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": 19.826666666666668,
+        "elevation_unit": "meter",
+        "longitude": 204.52833333333334,
+        "aliases": [
+            "Canada-France-Hawaii Telescope"
+        ]
+    },
+    "lowell": {
+        "source": "IRAF Observatory Database",
+        "elevation": 2198,
+        "name": "Lowell Observatory",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": 35.09666666666667,
+        "elevation_unit": "meter",
+        "longitude": 248.46499999999997,
+        "aliases": [
+            "Lowell Observatory"
+        ]
+    },
+    "keck": {
+        "source": "IRAF Observatory Database",
+        "elevation": 4160,
+        "name": "W. M. Keck Observatory",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": 19.828333333333333,
+        "elevation_unit": "meter",
+        "longitude": 204.52166666666668,
+        "aliases": [
+            "W. M. Keck Observatory",
+            "Keck Observatory"
+        ]
+    },
+    "Palomar": {
+        "source": "IRAF Observatory Database",
+        "elevation": 1706,
+        "name": "The Hale Telescope",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": 33.356,
+        "elevation_unit": "meter",
+        "longitude": 243.137,
+        "aliases": [
+            "Hale Telescope"
+        ]
+    },
+    "mmt": {
+        "source": "IRAF Observatory Database",
+        "elevation": 2608,
+        "name": "Whipple Observatory",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": 31.688333333333333,
+        "elevation_unit": "meter",
+        "longitude": 249.11499999999998,
+        "aliases": [
+            "Multiple Mirror Telescope"
+        ]
+    },
+    "dao": {
+        "source": "IRAF Observatory Database",
+        "elevation": 229,
+        "name": "Dominion Astrophysical Observatory",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": 48.52166666666667,
+        "elevation_unit": "meter",
+        "longitude": 236.58333333333334,
+        "aliases": [
+            "Dominion Astrophysical Observatory"
+        ]
+    },
+    "bmo": {
+        "source": "IRAF Observatory Database",
+        "elevation": 738,
+        "name": "Black Moshannon Observatory",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": 40.92166666666667,
+        "elevation_unit": "meter",
+        "longitude": 281.995,
+        "aliases": [
+            "Black Moshannon Observatory"
+        ]
+    },
+    "sso": {
+        "source": "IRAF Observatory Database",
+        "elevation": 1149,
+        "name": "Siding Spring Observatory",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": -31.27336111111111,
+        "elevation_unit": "meter",
+        "longitude": 149.06119444444445,
+        "aliases": [
+            "Siding Spring Observatory"
+        ]
+    },
+    "lco": {
+        "source": "IRAF Observatory Database",
+        "elevation": 2282,
+        "name": "Las Campanas Observatory",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": -29.003333333333334,
+        "elevation_unit": "meter",
+        "longitude": 289.29833333333335,
+        "aliases": [
+            "Las Campanas Observatory"
+        ]
+    },
+    "kpno": {
+        "source": "IRAF Observatory Database",
+        "elevation": 2120,
+        "name": "Kitt Peak National Observatory",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": 31.96333333333333,
+        "elevation_unit": "meter",
+        "longitude": 248.4,
+        "aliases": [
+            "Kitt Peak",
+            "Kitt Peak National Observatory"
+        ]
+    },
+    "aao": {
+        "source": "IRAF Observatory Database",
+        "elevation": 1164,
+        "name": "Anglo-Australian Observatory",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": -31.27703888888889,
+        "elevation_unit": "meter",
+        "longitude": 149.06608611111113,
+        "aliases": [
+            "Anglo-Australian Observatory"
+        ]
+    },
+    "flwo": {
+        "source": "IRAF Observatory Database",
+        "elevation": 2320,
+        "name": "Whipple Observatory",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": 31.680944444444446,
+        "elevation_unit": "meter",
+        "longitude": 249.1225,
+        "aliases": [
+            "Whipple",
+            "Whipple Observatory"
+        ]
+    },
+    "ekar": {
+        "source": "IRAF Observatory Database",
+        "elevation": 1413,
+        "name": "Mt. Ekar 182 cm. Telescope",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": 45.84858888888889,
+        "elevation_unit": "meter",
+        "longitude": 11.581133333333334,
+        "aliases": [
+            "Mt. Ekar 182 cm. Telescope"
+        ]
+    },
+    "vbo": {
+        "source": "IRAF Observatory Database",
+        "elevation": 725,
+        "name": "Vainu Bappu Observatory",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": 12.57666,
+        "elevation_unit": "meter",
+        "longitude": 78.8266,
+        "aliases": [
+            "Vainu Bappu Observatory"
+        ]
+    },
+    "NOV": {
+        "source": "IRAF Observatory Database",
+        "elevation": 3610,
+        "name": "National Observatory of Venezuela",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": 8.79,
+        "elevation_unit": "meter",
+        "longitude": 289.1333333333333,
+        "aliases": [
+            "National Observatory of Venezuela"
+        ]
+    },
+    "spm": {
+        "source": "IRAF Observatory Database",
+        "elevation": 2830,
+        "name": "Observatorio Astronomico Nacional, San Pedro Martir",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": 31.029166666666665,
+        "elevation_unit": "meter",
+        "longitude": 244.51305555555555,
+        "aliases": [
+            "Observatorio Astronomico Nacional, San Pedro Martir"
+        ]
     }
 }

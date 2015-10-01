@@ -26,7 +26,7 @@ def test_get_site():
     assert_quantity_allclose(el, 2215*u.m, atol=1*u.m)
 
 def test_get_site_names():
-    names = get_site_names(show_aliases=True, online=False)
+    names = get_site_names(online=False)
     assert 'keck' in names
     assert 'ctio' in names
 
@@ -41,7 +41,7 @@ def test_get_site_online():
                              atol=0.001*u.deg)
     assert_quantity_allclose(el, 4160*u.m, atol=1*u.m)
 
-    names = get_site_names(show_aliases=True, online=True)
+    names = get_site_names(online=True)
     assert 'keck' in names
     assert 'ctio' in names
 

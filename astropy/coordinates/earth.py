@@ -190,7 +190,7 @@ class EarthLocation(u.Quantity):
         Parameters
         ----------
         site_name : str
-            Name of the observatory.
+            Name of the observatory (case-insensitive).
 
         Returns
         -------
@@ -216,16 +216,11 @@ class EarthLocation(u.Quantity):
             return cls.from_geodetic(*el.to_geodetic())
 
     @classmethod
-    def get_site_names(cls, show_aliases=True):
+    def get_site_names(cls):
         """
         Get list of names of observatories for use with
         `~astropy.coordinates.EarthLocation.of_site`.
 
-        Parameters
-        ----------
-        show_aliases : bool
-            If True, show the full list observatory names and aliases, or just the
-            list of names if False.
 
         Returns
         -------
@@ -241,10 +236,10 @@ class EarthLocation(u.Quantity):
         from .sites import get_site_names
 
         try:
-            return get_site_names(show_aliases, online=True)  # this is always an EarthLocation
+            return get_site_names(online=True)  # this is always an EarthLocation
         except URLError:
             warn(AstropyUserWarning(_NO_ONLINE_SITES_WARNING_MSG))
-            return get_site_names(show_aliases, online=False)  # this is always an EarthLocation
+            return get_site_names(online=False)  # this is always an EarthLocation
 
     @property
     def ellipsoid(self):

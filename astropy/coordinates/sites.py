@@ -16,8 +16,8 @@ import json
 from difflib import get_close_matches
 
 from ..utils.data import get_pkg_data_contents, get_file_contents
-from ..extern import six
 from .earth import EarthLocation
+from .. import units as u
 
 __all__ = ['get_site', 'get_site_names']
 
@@ -25,15 +25,17 @@ __all__ = ['get_site', 'get_site_names']
 _builtin_site_dict = {'_site_db_uninitialized': True}
 _builtin_site_names = []
 
-
 def _parse_sites_json(jsondb, names, sitedict):
     for site in jsondb:
-        location = EarthLocation.from_geodetic(jsondb[site]['longitude'],
-                                               jsondb[site]['latitude'],
-                                               jsondb[site]['elevation_meters'])
-        names.append(jsondb[site]['name'])
-        for alias in jsondb[site]['aliases']:
-            sitedict[alias.lower()] = location
+        location = EarthLocation.from_geodetic(jsondb[site]['longitude'] * u.Unit(jsondb[site]['longitude_unit']),
+                                               jsondb[site]['latitude'] * u.Unit(jsondb[site]['latitude_unit']),
+                                               jsondb[site]['elevation'] * u.Unit(jsondb[site]['elevation_unit']))
+
+        namestoadd = [site]
+        namestoadd.extend(jsondb[site]['aliases'])
+        for name in namestoadd:
+            sitedict[name.lower()] = location
+        names.extend(namestoadd)
 
 def _get_builtin_sites():
     """
@@ -69,7 +71,7 @@ def get_site(site_name, online):
     Parameters
     ----------
     site_name : str
-        Name of the observatory.
+        Name of the observatory (case-insensitive).
     online : bool
         Use the online registry of observatories instead of the version included
         with astropy.  Requires an active internet connection.
@@ -103,16 +105,13 @@ def get_site(site_name, online):
     return site_db[site_name.lower()]
 
 
-def get_site_names(show_aliases, online):
+def get_site_names(online):
     """
     Get list of names of observatories for use with
     `~astropy.coordinates.get_site`.
 
     Parameters
     ----------
-    show_aliases : bool
-        If True, show the full list observatory names and aliases, or just the
-        list of names if False.
     online : bool
         Use the online registry of observatories instead of the version included
         with astropy.  Requires an active internet connection.
@@ -132,7 +131,4 @@ def get_site_names(show_aliases, online):
     else:
         site_db, site_names = _get_builtin_sites()
 
-    if show_aliases:
-        return sorted(site_db.keys())
-    else:
-        return sorted(site_names)
+    return sorted(site_names)
