@@ -22,9 +22,6 @@ __all__ = ['EarthLocation']
 # Available ellipsoids (defined in erfam.h, with numbers exposed in erfa).
 ELLIPSOIDS = ('WGS84', 'GRS80', 'WGS72')
 
-_NO_ONLINE_SITES_WARNING_MSG = ('Could not access the online site list. '
-                                'Falling back on the builtin version.')
-
 
 def _check_ellipsoid(ellipsoid=None, default='WGS84'):
     if ellipsoid is None:
@@ -208,14 +205,7 @@ class EarthLocation(u.Quantity):
         --------
         get_site_names : the list of sites that this function can access
         """
-        # need to import inside function to avoid circular dependencies
-        from .sites import get_site
-
-        try:
-            el = get_site(site_name, online=True)  # this is always an EarthLocation
-        except six.moves.urllib.error.URLError:
-            warn(AstropyUserWarning(_NO_ONLINE_SITES_WARNING_MSG))
-            el = get_site(site_name, online=False)  # this is always an EarthLocation
+        el = cls._get_site_registry().get_site(site_name)
 
         if cls is el.__class__:
             return el
@@ -247,14 +237,29 @@ class EarthLocation(u.Quantity):
         of_site : Gets the actual location object for one of the sites names
                   this returns.
         """
-        # need to import inside function to avoid circular dependencies
-        from .sites import get_site_names
+        return cls._get_site_registry().get_site_names()
 
-        try:
-            return get_site_names(online=True)
-        except six.moves.urllib.error.URLError:
-            warn(AstropyUserWarning(_NO_ONLINE_SITES_WARNING_MSG))
-            return get_site_names(online=False)
+    @classmethod
+    def _get_site_registry(cls, force_download=False):
+        # need to import inside function to avoid circular dependencies
+        from .sites import get_builtin_sites, get_downloaded_sites
+
+        reg = getattr(cls, '_site_registry', None)
+        if force_download or not reg:
+            try:
+                reg = get_downloaded_sites()
+            except six.moves.urllib.error.URLError:
+                if force_download:
+                    raise
+                warn(AstropyUserWarning('Could not access the online site '
+                                        'list. Falling back on the built-in '
+                                        'version, which is rather limited. '
+                                        'If you want to retry the download, '
+                                        'do {0}._get_site_registry(force_download=True)'.format(cls.name)))
+                reg = get_builtin_sites()
+            cls._site_registry = reg
+
+        return reg
 
     @property
     def ellipsoid(self):

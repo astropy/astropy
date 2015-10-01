@@ -20,116 +20,65 @@ from ..utils.data import get_pkg_data_contents, get_file_contents
 from .earth import EarthLocation
 from .. import units as u
 
-__all__ = ['get_site', 'get_site_names']
 
-# Observatory database and list of names:
-_builtin_site_dict = {}
-_builtin_site_names = []
+class SiteRegistry(object):
+    """
+    A bare-bones registry of EarthLocation objects
+    """
+    def __init__(self):
+        # the keys to this are always lower-case
+        self._site_dict = {}
+        # these can be whatever case is appropriate
+        self._site_names = []
 
-def _parse_sites_json(jsondb, names, sitedict):
-    for site in jsondb:
-        location = EarthLocation.from_geodetic(jsondb[site]['longitude'] * u.Unit(jsondb[site]['longitude_unit']),
-                                               jsondb[site]['latitude'] * u.Unit(jsondb[site]['latitude_unit']),
-                                               jsondb[site]['elevation'] * u.Unit(jsondb[site]['elevation_unit']))
-        location.info.name = jsondb[site]['name']
+    def get_site(self, site_name):
+        if site_name.lower() not in self._site_dict:
+            # If site name not found, find close matches and suggest them in error
+            close_names = get_close_matches(site_name, self._site_dict)
+            close_names = sorted(close_names, key=lambda x: len(x))
+            if close_names:
+                errmsg = ('Site not in database. Use ``get_site_names()`` '
+                          'to see available sites. Did you mean one of: "{0}"?')
+                errmsg = errmsg.format("', '".join(close_names))
+            else:
+                errmsg = 'Site "{0}" not in database.'.format(site_name)
+            raise KeyError(errmsg)
 
-        namestoadd = [site]
-        namestoadd.extend(jsondb[site]['aliases'])
-        for name in namestoadd:
-            sitedict[name.lower()] = location
-        names.extend(namestoadd)
+        return self._site_dict[site_name.lower()]
 
-def _get_builtin_sites():
+    def get_site_names(self):
+        return sorted(self._site_names)
+
+    def add_site(self, names, locationobj):
+        for name in names:
+            self._site_dict[name.lower()] = locationobj
+            self._site_names.append(name)
+
+    @classmethod
+    def from_json(cls, jsondb):
+        reg = cls()
+        for site in jsondb:
+            location = EarthLocation.from_geodetic(jsondb[site]['longitude'] * u.Unit(jsondb[site]['longitude_unit']),
+                                                   jsondb[site]['latitude'] * u.Unit(jsondb[site]['latitude_unit']),
+                                                   jsondb[site]['elevation'] * u.Unit(jsondb[site]['elevation_unit']))
+            location.info.name = jsondb[site]['name']
+
+            reg.add_site([site] + jsondb[site]['aliases'], location)
+        return reg
+
+
+def get_builtin_sites():
     """
     Load observatory database from data/observatories.json and parse them into
-    a dictionary in memory.
+    a SiteRegistry.
     """
-    if not _builtin_site_dict:
-        jsondb = json.loads(get_pkg_data_contents('data/observatories.json'))
-        _parse_sites_json(jsondb, _builtin_site_names, _builtin_site_dict)
+    jsondb = json.loads(get_pkg_data_contents('data/observatories.json'))
+    return SiteRegistry.from_json(jsondb)
 
-    return _builtin_site_dict, _builtin_site_names
 
-def _get_downloaded_sites():
+def get_downloaded_sites():
     """
-    Load observatory database from data.astropy.org and parse into data files.
+    Load observatory database from data.astropy.org and parse into a SiteRegistry
     """
-    sitedict = {}
-    names = []
-
     jsondb = json.loads(get_file_contents('http://data.astropy.org/locations.json'))
-    _parse_sites_json(jsondb, names, sitedict)
-
-    return sitedict, names
-
-def get_site(site_name, online):
-    """
-    Return an `~astropy.coordinates.EarthLocation` object for known observatory.
-
-    Use `~astropy.coordinates.get_site_names` to see a list of available
-    observatories.
-
-    Parameters
-    ----------
-    site_name : str
-        Name of the observatory (case-insensitive).
-    online : bool
-        Use the online registry of observatories instead of the version included
-        with astropy.  Requires an active internet connection.
-
-    Returns
-    -------
-    `~astropy.coordinates.EarthLocation`
-        The location of the observatory.
-
-    See Also
-    --------
-    get_site_names : the list of sites that this function can access
-    """
-    if online:
-        site_db, site_names = _get_downloaded_sites()
-    else:
-        site_db, site_names = _get_builtin_sites()
-
-    if site_name.lower() not in site_db:
-        # If site name not found, find close matches and suggest them in error
-        close_names = get_close_matches(site_name, site_db)
-        close_names = sorted(close_names, key=lambda x: len(x))
-        if close_names:
-            errmsg = ('Site not in database. Use ``get_site_names()`` '
-                      'to see available sites. Did you mean one of: "{0}"?')
-            errmsg = errmsg.format("', '".join(close_names))
-        else:
-            errmsg = 'Site "{0}" not in database.'.format(site_name)
-        raise KeyError(errmsg)
-
-    return site_db[site_name.lower()]
-
-
-def get_site_names(online):
-    """
-    Get list of names of observatories for use with
-    `~astropy.coordinates.get_site`.
-
-    Parameters
-    ----------
-    online : bool
-        Use the online registry of observatories instead of the version included
-        with astropy.  Requires an active internet connection.
-
-    Returns
-    -------
-    names : list of str
-        List of valid observatory names
-
-    See Also
-    --------
-    get_site : gets the `~astropy.coordinates.EarthLocation` for one of the
-               sites this returns.
-    """
-    if online:
-        site_db, site_names = _get_downloaded_sites()
-    else:
-        site_db, site_names = _get_builtin_sites()
-
-    return sorted(site_names)
+    return SiteRegistry.from_json(jsondb)
