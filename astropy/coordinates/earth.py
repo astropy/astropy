@@ -185,11 +185,14 @@ class EarthLocation(u.Quantity):
         information, not a fully-featured exhaustive registry of observatories
         and all their properties.
 
-        Note that when this function is called, it will first attempt to
-        download site information from the data.astropy.org server.  If it
-        cannot (i.e., an internet connection is not available), it will fall
-        back on the list included with astropy (which is a limited and dated set
-        of sites).
+        .. note::
+            When this function is called, it will first attempt to
+            download site information from the astropy data server.  If it
+            cannot (i.e., an internet connection is not available), it will fall
+            back on the list included with astropy (which is a limited and dated
+            set of sites).  If you think a site should be added, issue a pull
+            request to the
+            `astropy-data repository <https://github.com/astropy/astropy-data>`_ .
 
         Parameters
         ----------
@@ -220,11 +223,14 @@ class EarthLocation(u.Quantity):
         Get list of names of observatories for use with
         `~astropy.coordinates.EarthLocation.of_site`.
 
-        Note that when this function is called, it will first attempt to
-        download site information from the data.astropy.org server.  If it
-        cannot (i.e., an internet connection is not available), it will fall
-        back on the list included with astropy (which is a limited and dated set
-        of sites).
+        .. note::
+            When this function is called, it will first attempt to
+            download site information from the astropy data server.  If it
+            cannot (i.e., an internet connection is not available), it will fall
+            back on the list included with astropy (which is a limited and dated
+            set of sites).  If you think a site should be added, issue a pull
+            request to the
+            `astropy-data repository <https://github.com/astropy/astropy-data>`_ .
 
 
         Returns
