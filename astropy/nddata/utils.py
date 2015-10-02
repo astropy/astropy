@@ -634,10 +634,10 @@ class Cutout2D(object):
         # so evaluate each axis separately
         for axis, side in enumerate(size):
             if not isinstance(side, u.Quantity):
-                shape[axis] = size[axis]     # pixels
+                shape[axis] = np.int(np.round(size[axis]))     # pixels
             else:
                 if side.unit is u.pixel:
-                    shape[axis] = side.value
+                    shape[axis] = np.int(np.round(side.value))
                 elif side.unit.physical_type == 'angle':
                     if wcs is None:
                         raise ValueError('wcs must be input if any element '
