@@ -15,7 +15,7 @@ from ... import units as u
 from .. import AltAz, EarthLocation, SkyCoord, get_sun, ICRS
 from ...time import Time
 
-from ...tests.helper import assert_quantity_allclose
+from ...tests.helper import pytest, assert_quantity_allclose
 from .test_matching import HAS_SCIPY, OLDER_SCIPY
 
 
