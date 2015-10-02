@@ -7,6 +7,7 @@ import numpy as np
 from ...tests.helper import pytest
 from ... import table
 from ...table import Table
+from ...table.table_helpers import simple_table
 from ...extern.six import PY3
 from ...utils import console
 
@@ -568,3 +569,39 @@ def test_html():
         u'<tr><td>1.0</td></tr>',
         u'<tr><td>2.0</td></tr>',
         u'</table>']
+
+def test_align():
+    t = simple_table(2, kinds='iS')
+    assert t.pformat() == [' a   b ',
+                           '--- ---',
+                           '  1   b',
+                           '  2   c']
+    tpf = [' a   b ',
+           '--- ---',
+           ' 1   b ',
+           ' 2   c ']
+    for align in ('^', ['^'], ['^', '^'], ('^',), ('^', '^')):
+        assert tpf == t.pformat(align=align)
+
+    assert t.pformat(align='<') == [' a   b ',
+                                    '--- ---',
+                                    '1   b  ',
+                                    '2   c  ']
+    assert t.pformat(align='0=') == [' a   b ',
+                                     '--- ---',
+                                     '001 00b',
+                                     '002 00c']
+
+    assert t.pformat(align=['<', '^']) == [' a   b ',
+                                           '--- ---',
+                                           '1    b ',
+                                           '2    c ']
+
+    with pytest.raises(TypeError):
+        t.pformat(align=0)
+
+    with pytest.raises(TypeError):
+        t.pprint(align=0)
+
+    with pytest.raises(ValueError):
+        t.pprint(align=['<', '<', '<'])

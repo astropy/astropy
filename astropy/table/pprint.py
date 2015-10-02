@@ -214,10 +214,11 @@ class TableFormatter(object):
         html : bool
             Output column as HTML
 
-        align : str or list
-            Left/right alignment of a column. Default is 'right'. A list
-            of strings can be provided for alignment of tables with multiple
-            columns.
+        align : str or list or tuple
+            Left/right alignment of columns. Default is '>' (right) for all
+            columns. Other allowed values are '<', '^', and '0=' for left,
+            centered, and 0-padded, respectively. A list of strings can be
+            provided for alignment of tables with multiple columns.
 
         Returns
         -------
@@ -424,7 +425,7 @@ class TableFormatter(object):
 
     def _pformat_table(self, table, max_lines=None, max_width=None,
                        show_name=True, show_unit=None, show_dtype=False,
-                       html=False, tableid=None, tableclass=None, align='right'):
+                       html=False, tableid=None, tableclass=None, align='>'):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -459,10 +460,11 @@ class TableFormatter(object):
             CSS classes for the table; only used if html is set.  Default is
             none
 
-        align : str or list
-            Left/right alignment of a column. Default is 'right'. A list
-            of strings can be provided for alignment of tables with multiple
-            columns.
+        align : str or list or tuple
+            Left/right alignment of columns. Default is '>' (right) for all
+            columns. Other allowed values are '<', '^', and '0=' for left,
+            centered, and 0-padded, respectively. A list of strings can be
+            provided for alignment of tables with multiple columns.
 
         Returns
         -------
@@ -482,32 +484,28 @@ class TableFormatter(object):
         if show_unit is None:
             show_unit = any([col.info.unit for col in six.itervalues(table.columns)])
 
-        # Figure out align
-        if isinstance(align, str):
-            align = align
-        elif isinstance(align, list) and len(align) == 1:
-            align = align[0]
-        elif isinstance(align, list) and len(align) == len(table.columns.values()):
-            align = align
-        else:
-            align = 'right'
+        # Coerce align into a correctly-sized list of alignments (if possible)
+        if isinstance(align, six.string_types):
+            align = [align]
 
-        # If align remains a list, need to loop over values
-        if type(align) == list:
-            for i, col in enumerate(table.columns.values()):
-                lines, outs = self._pformat_col(col, max_lines, show_name=show_name,
-                                                show_unit=show_unit, show_dtype=show_dtype,
-                                                align=align[i])
-                if outs['show_length']:
-                    lines = lines[:-1]
-                cols.append(lines)
+        if isinstance(align, (list, tuple)):
+            if len(align) == 1:
+                align = align * len(table.columns)
+            elif len(align) != len(table.columns):
+                raise ValueError('got {0} alignment values instead of 1 or '
+                                 'the number of columns ({1})'
+                                 .format(len(align), len(table.columns)))
         else:
-            for col in six.itervalues(table.columns):
-                lines, outs = self._pformat_col(col, max_lines, show_name=show_name,
-                                                show_unit=show_unit, show_dtype=show_dtype)
-                if outs['show_length']:
-                    lines = lines[:-1]
-                cols.append(lines)
+            raise TypeError('align keyword must be str or list or tuple (got {})'
+                            .format(type(align)))
+
+        for align_, col in izip(align, table.columns.values()):
+            lines, outs = self._pformat_col(col, max_lines, show_name=show_name,
+                                            show_unit=show_unit, show_dtype=show_dtype,
+                                            align=align_)
+            if outs['show_length']:
+                lines = lines[:-1]
+            cols.append(lines)
 
         if not cols:
             return ['<No columns>'], {'show_length': False}
