@@ -603,5 +603,7 @@ def test_align():
     with pytest.raises(TypeError):
         t.pprint(align=0)
 
+    t.pprint()
+
     with pytest.raises(ValueError):
         t.pprint(align=['<', '<', '<'])

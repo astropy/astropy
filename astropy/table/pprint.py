@@ -214,11 +214,10 @@ class TableFormatter(object):
         html : bool
             Output column as HTML
 
-        align : str or list or tuple
+        align : str
             Left/right alignment of columns. Default is '>' (right) for all
             columns. Other allowed values are '<', '^', and '0=' for left,
-            centered, and 0-padded, respectively. A list of strings can be
-            provided for alignment of tables with multiple columns.
+            centered, and 0-padded, respectively.
 
         Returns
         -------
@@ -425,7 +424,7 @@ class TableFormatter(object):
 
     def _pformat_table(self, table, max_lines=None, max_width=None,
                        show_name=True, show_unit=None, show_dtype=False,
-                       html=False, tableid=None, tableclass=None, align='>'):
+                       html=False, tableid=None, tableclass=None, align=None):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -485,6 +484,9 @@ class TableFormatter(object):
             show_unit = any([col.info.unit for col in six.itervalues(table.columns)])
 
         # Coerce align into a correctly-sized list of alignments (if possible)
+        if align is None:
+            align = '>'
+
         if isinstance(align, six.string_types):
             align = [align]
 
