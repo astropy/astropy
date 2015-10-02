@@ -698,7 +698,7 @@ class _IndexModeContext(object):
 
         clsname = '_{0}WithIndexCopy'.format(cls.__name__)
 
-        new_cls = type(clsname, (cls,), {'__getitem__': __getitem__})
+        new_cls = type(str(clsname), (cls,), {'__getitem__': __getitem__})
 
         self._col_subclasses[cls] = new_cls
 
