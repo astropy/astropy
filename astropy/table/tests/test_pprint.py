@@ -576,6 +576,14 @@ def test_align():
                            '--- ---',
                            '  1   b',
                            '  2   c']
+    # Use column format attribute
+    t['a'].format = '<'
+    assert t.pformat() == [' a   b ',
+                           '--- ---',
+                           '1     b',
+                           '2     c']
+
+    # Now override column format attribute with various combinations of align
     tpf = [' a   b ',
            '--- ---',
            ' 1   b ',
@@ -596,6 +604,9 @@ def test_align():
                                            '--- ---',
                                            '1    b ',
                                            '2    c ']
+
+    with pytest.raises(ValueError):
+        t.pformat(align=['fail'])
 
     with pytest.raises(TypeError):
         t.pformat(align=0)

@@ -266,51 +266,27 @@ class TableFormatter(object):
         else:
             col_width = max(len(x) for x in col_strs) if col_strs else 1
 
-            # Center line content and generate dashed headerline
+            # Center line header content and generate dashed headerline
             for i in outs['i_centers']:
                 col_strs[i] = col_strs[i].center(col_width)
             if outs['i_dashes'] is not None:
                 col_strs[outs['i_dashes']] = '-' * col_width
 
-            # Format columns according to alignment
-            justify_methods = {'<': 'ljust', '^': 'center', '>': 'rjust'}
+            # Format columns according to alignment.  `align` arg has precedent, otherwise
+            # use `col.format` if it is a legal alignment string.  If neither applies
+            # then right justify.
+            justify_methods = {'<': 'ljust', '^': 'center', '>': 'rjust', '0=': 'zfill'}
+            align = align or (col.info.format
+                              if col.info.format in justify_methods
+                              else '>')
+
+            # This can only occur if `align` was explicitly provided.
+            if align not in justify_methods:
+                raise ValueError("column align must be one of '<', '^', '>', or '0='")
+
+            justify_method = justify_methods[align]
             for i, col_str in enumerate(col_strs):
-                if align is None:
-                    try:
-                        if col.format[:2] == '0=':
-                            justify = (lambda col_str, col_width:
-                                       getattr(col_str, 'zfill')(col_width))
-                        else:
-                            justify_method = justify_methods.get(col.format[0], None)
-                            if justify_method is None:
-                                justify_method = justify_methods[col.format[1]]
-                                justify = (lambda col_str, col_width:
-                                           getattr(col_str, justify_method)(col_width,
-                                                                            col.format[0]))
-                            else:
-                                justify = (lambda col_str, col_width:
-                                           getattr(col_str, justify_method)(col_width))
-                    except:
-                        justify = (lambda col_str, col_width:
-                                   getattr(col_str, 'rjust')(col_width))
-                else:
-                    if align == '0=':
-                        justify = (lambda col_str, col_width:
-                                       getattr(col_str, 'zfill')(col_width))
-                    elif align in ['<', '^', '>']:
-                        justify_method = justify_methods.get(align, None)
-                        if justify_method is None:
-                            justify_method = justify_methods[col.format[1]]
-                            justify = (lambda col_str, col_width:
-                                       getattr(col_str, justify_method)(col_width,
-                                                                        col.format[0]))
-                        else:
-                            justify = (lambda col_str, col_width:
-                                       getattr(col_str, justify_method)(col_width))
-                    else:
-                        justify = (lambda col_str, col_width:
-                                   getattr(col_str, 'rjust')(col_width))
-                col_strs[i] = justify(col_str, col_width)
+                col_strs[i] = getattr(col_str, justify_method)(col_width)
 
         if outs['show_length']:
             col_strs.append('Length = {0} rows'.format(len(col)))
@@ -499,7 +475,7 @@ class TableFormatter(object):
                                  'the number of columns ({1})'
                                  .format(len(align), n_cols))
         else:
-            raise TypeError('align keyword must be str or list or tuple (got {})'
+            raise TypeError('align keyword must be str or list or tuple (got {0})'
                             .format(type(align)))
 
         for align_, col in izip(align, table.columns.values()):

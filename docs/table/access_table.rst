@@ -441,17 +441,17 @@ Column alignment
 ''''''''''''''''
 
 Individual columns have the ability to be aligned in a number of different
-ways, for an enhanced viewing experience.
+ways, for an enhanced viewing experience::
 
- >>> t1 = Table()
- >>> t1['long column name 1'] = [1,2,3]
- >>> t1['long column name 2'] = [4,5,6]
- >>> t1['long column name 3'] = [7,8,9]
- >>> t1['long column name 4'] = [700000,800000,900000]
- >>> t1['long column name 2'].format = '<'
- >>> t1['long column name 3'].format = '0='
- >>> t1['long column name 4'].format = '^'
- >>> t1.pprint()
+  >>> t = Table()
+  >>> t['long column name 1'] = [1, 2, 3]
+  >>> t['long column name 2'] = [4, 5, 6]
+  >>> t['long column name 3'] = [7, 8, 9]
+  >>> t['long column name 4'] = [700000, 800000, 900000]
+  >>> t['long column name 2'].format = '<'
+  >>> t['long column name 3'].format = '0='
+  >>> t['long column name 4'].format = '^'
+  >>> t.pprint()
    long column name 1 long column name 2 long column name 3 long column name 4
   ------------------ ------------------ ------------------ ------------------
                    1 4                  000000000000000007       700000
@@ -459,26 +459,31 @@ ways, for an enhanced viewing experience.
                    3 6                  000000000000000009       900000
 
 Conveniently, alignment can be handled another way, by passing a list to the
-keyword argument ``align``.
+keyword argument ``align``::
 
- >>> t1 = Table()
- >>> t1['column1'] = [1,2,3,4,5]
- >>> t1['column2'] = [2,4,6,8,10]
- >>> t1.pprint(align=['<','0='])
-   column1 column2
- ------- -------
- 1       0000002
- 2       0000004
- 3       0000006
- 4       0000008
- 5       0000010
+  >>> t = Table()
+  >>> t['column1'] = [1, 2, 3]
+  >>> t['column2'] = [2, 4, 6]
+  >>> t.pprint(align=['<', '0='])
+    column1 column2
+  ------- -------
+  1       0000002
+  2       0000004
+  3       0000006
 
-By default, if the length of the list does not match the number of columns
-within the table, alignment defaults to right-aligned columns. This default
-behavior also holds true even if a single alignment character is passed in as a
-list (e.g., align=['^']), where global alignment of all columns within a table
-is intended. For very large tables, this can be a nuisance, and so looping is the
-recommended solution for this task.
+It is also possible to set the alignment of all columns with a single
+string value::
+
+  >>> t.pprint(align='^')
+  column1 column2
+  ------- -------
+     1       2
+     2       4
+     3       6
+
+Note that if the format of an individual column is set (e.g. to ``'7.3f'`` to
+control the numerical formatting) *and* you also want to control the alignment,
+that must be done via the ``align`` keyword.
 
 pformat() method
 ''''''''''''''''
