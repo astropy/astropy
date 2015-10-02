@@ -7,6 +7,7 @@ from distutils.core import Extension
 from glob import glob
 
 from astropy_helpers import setup_helpers
+from astropy_helpers.distutils_helpers import get_distutils_build_option
 
 
 def get_extensions():
@@ -27,15 +28,20 @@ def get_extensions():
                     '/D', '"_USRDLL"',
                     '/D', '"_CRT_SECURE_NO_DEPRECATE"'])
         else:
-            # All of these switches are to silence warnings from compiling CFITSIO
             cfg['extra_compile_args'].extend([
-                '-Wno-unused-variable', '-Wno-parentheses',
-                '-Wno-uninitialized', '-Wno-format', '-Wno-strict-prototypes',
-                '-Wno-unused', '-Wno-comments', '-Wno-switch',
-                '-Wno-declaration-after-statement',
-                '-Wno-strict-aliasing', '-Wno-return-type', '-Wno-address',
-                '-Wno-unused-result'
+                '-Wno-declaration-after-statement'
             ])
+
+            if not get_distutils_build_option('debug'):
+                # All of these switches are to silence warnings from compiling
+                # CFITSIO
+                cfg['extra_compile_args'].extend([
+                    '-Wno-unused-variable', '-Wno-parentheses',
+                    '-Wno-uninitialized', '-Wno-format',
+                    '-Wno-strict-prototypes', '-Wno-unused', '-Wno-comments',
+                    '-Wno-switch', '-Wno-strict-aliasing', '-Wno-return-type',
+                    '-Wno-address', '-Wno-unused-result'
+                ])
 
         cfitsio_path = os.path.join('cextern', 'cfitsio')
         cfitsio_files = glob(os.path.join(cfitsio_path, '*.c'))
