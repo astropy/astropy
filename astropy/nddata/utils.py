@@ -636,7 +636,7 @@ class Cutout2D(object):
             if not isinstance(side, u.Quantity):
                 shape[axis] = np.int(np.round(size[axis]))     # pixels
             else:
-                if side.unit is u.pixel:
+                if side.unit == u.pixel:
                     shape[axis] = np.int(np.round(side.value))
                 elif side.unit.physical_type == 'angle':
                     if wcs is None:
