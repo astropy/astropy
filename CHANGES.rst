@@ -81,9 +81,6 @@ API Changes
 
 - ``astropy.utils``
 
-  - ``console`` was updated to support IPython 4.x and Jupyter 1.x.
-    [#4078]
-
 - ``astropy.vo``
 
 - ``astropy.wcs``
@@ -168,6 +165,10 @@ Bug Fixes
   - ``resolve_name`` no longer causes ``sys.modules`` to be cluttered with
     additional copies of modules under a package imported like
     ``resolve_name('numpy')``. [#4084]
+
+  - ``console`` was updated to support IPython 4.x and Jupyter 1.x.
+    This should supress a ShimWarning that was appearing at
+    import of astropy with IPython 4.0 or later. [#4078]
 
 - ``astropy.visualization``
 
