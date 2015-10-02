@@ -266,9 +266,6 @@ class EarthLocation(u.Quantity):
         -------
         reg : astropy.coordinates.sites.SiteRegistry
         """
-        # need to import inside function to avoid circular dependencies
-        from .sites import get_builtin_sites, get_downloaded_sites
-
         if force_builtin and force_download:
             raise ValueError('Cannot have both force_builtin and force_download True')
 
@@ -417,3 +414,7 @@ class EarthLocation(u.Quantity):
         return self._new_view(converted.view(self.dtype).reshape(self.shape),
                               unit)
     to.__doc__ = u.Quantity.to.__doc__
+
+
+# need to do this here at the bottom to avoid circular dependencies
+from .sites import get_builtin_sites, get_downloaded_sites
