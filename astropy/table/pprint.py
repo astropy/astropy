@@ -484,19 +484,20 @@ class TableFormatter(object):
             show_unit = any([col.info.unit for col in six.itervalues(table.columns)])
 
         # Coerce align into a correctly-sized list of alignments (if possible)
+        n_cols = len(table.columns)
         if align is None:
-            align = '>'
+            align = [None] * n_cols
 
         if isinstance(align, six.string_types):
             align = [align]
 
         if isinstance(align, (list, tuple)):
             if len(align) == 1:
-                align = align * len(table.columns)
-            elif len(align) != len(table.columns):
+                align = align * n_cols
+            elif len(align) != n_cols:
                 raise ValueError('got {0} alignment values instead of 1 or '
                                  'the number of columns ({1})'
-                                 .format(len(align), len(table.columns)))
+                                 .format(len(align), n_cols))
         else:
             raise TypeError('align keyword must be str or list or tuple (got {})'
                             .format(type(align)))
