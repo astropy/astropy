@@ -15,7 +15,8 @@ from ... import units as u
 from .. import AltAz, EarthLocation, SkyCoord, get_sun, ICRS
 from ...time import Time
 
-from ...tests.helper import assert_quantity_allclose
+from ...tests.helper import pytest, assert_quantity_allclose
+from .test_matching import HAS_SCIPY, OLDER_SCIPY
 
 
 def test_regression_3920():
@@ -110,3 +111,19 @@ def test_regression_4033():
     # in 4033, the following fail with a recursion error
     assert_quantity_allclose(de_wdistaa.separation(alb_wdistaa), 22.2862*u.deg, rtol=1e-3)
     assert_quantity_allclose(alb_wdistaa.separation(deaa), 22.2862*u.deg, rtol=1e-3)
+
+
+@pytest.mark.skipif(str('not HAS_SCIPY'))
+@pytest.mark.skipif(str('OLDER_SCIPY'))
+def test_regression_4082():
+    """
+    Issue: https://github.com/astropy/astropy/issues/4082
+    """
+    from .. import search_around_sky, search_around_3d
+    cat = SkyCoord([10.076,10.00455], [18.54746, 18.54896], unit='deg')
+    search_around_sky(cat[0:1], cat, seplimit=u.arcsec * 60, storekdtree=False)
+    # in the issue, this raises a TypeError
+
+    #also check 3d for good measure, although it's not really affected by this bug directly
+    cat3d = SkyCoord([10.076,10.00455]*u.deg, [18.54746, 18.54896]*u.deg, distance=[0.1,1.5]*u.kpc)
+    search_around_3d(cat3d[0:1], cat3d, 1*u.kpc, storekdtree=False)

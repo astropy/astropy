@@ -332,7 +332,7 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
 
     kdt1 = _get_cartesian_kdtree(ucoords1, storekdtree)
 
-    if hasattr(coords2, storekdtree):
+    if storekdtree and hasattr(coords2, storekdtree):
         #just use the stored KD-Tree
         kdt2 = getattr(coords2, storekdtree)
     else:
@@ -341,8 +341,9 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
         ucoords2 = coords2.realize_frame(urepr2)
 
         kdt2 = _get_cartesian_kdtree(ucoords2, storekdtree)
-        #save the KD-Tree in coords2, *not* ucoords2
-        setattr(coords2, storekdtree, kdt2)
+        if storekdtree:
+            #save the KD-Tree in coords2, *not* ucoords2
+            setattr(coords2, storekdtree, kdt2)
 
     # this is the *cartesian* 3D distance that corresponds to the given angle
     r = (2 * np.sin(Angle(seplimit) / 2.0)).value
