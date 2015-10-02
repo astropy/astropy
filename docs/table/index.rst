@@ -107,7 +107,8 @@ Finally, you can get summary information about the table as follows::
      c    str1
 
 A column with a unit works with and can be easily converted to an
-`~astropy.units.Quantity` object::
+`~astropy.units.Quantity` object (but see :ref:`quantity_and_qtable` for
+a way to natively use `~astropy.units.Quantity` objects in tables)::
 
   >>> t['b'].quantity
   <Quantity [ 2. , 5. , 8.2] s>
@@ -245,7 +246,7 @@ You can create a table with support for missing values, for example by setting
      --     5.0    y
       5     8.2    z
 
-Lastly, you can include certain object types like `~astropy.time.Time`,
+You can include certain object types like `~astropy.time.Time`,
 `~astropy.coordinates.SkyCoord` or `~astropy.units.Quantity` in your table.
 These "mixin" columns behave like a hybrid of a regular `~astropy.table.Column`
 and the native object type (see :ref:`mixin_columns`).  For example::
@@ -264,13 +265,25 @@ and the native object type (see :ref:`mixin_columns`).  For example::
   2000:002:00:00:00.000 10.0,-45.0
   2002:345:00:00:00.000  20.0,40.0
 
-  >>> t['time'].iso
-  array(['2000-01-02 00:00:00.000', '2002-12-11 00:00:00.000'],
-        dtype='|S23')
+The `~astropy.table.QTable` class is a variant of `~astropy.table.Table` that
+allows including a native `~astropy.units.Quantity` in a table instead of
+converting to a `~astropy.table.Column` object (see :ref:`quantity_and_qtable`
+for details)::
 
-  >>> t['skycoord'].galactic
-  <SkyCoord (Galactic): (l, b) in deg
-      [(309.48051549, -71.98253481), (128.84961782, -22.54333221)]>
+  >>> from astropy.table import QTable
+  >>> import astropy.units as u
+  >>> t = QTable()
+  >>> t['dist'] = [1, 2] * u.m
+  >>> t['velocity'] = [3, 4] * u.m / u.s
+  >>> t
+  <QTable length=2>
+    dist  velocity
+     m     m / s
+  float64 float64
+  ------- --------
+      1.0      3.0
+      2.0      4.0
+
 
 
 .. _using_astropy_table:

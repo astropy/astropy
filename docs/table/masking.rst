@@ -174,25 +174,25 @@ attribute.
   >>> t['a'].fill_value = -99
   >>> t['b'].fill_value = 33
 
-  >>> print t.filled()
+  >>> print(t.filled())
    a   b
   --- ---
     1  33
   -99   4
 
-  >>> print t['a'].filled()
+  >>> print(t['a'].filled())
    a
   ---
     1
   -99
 
-  >>> print t['a'].filled(999)
+  >>> print(t['a'].filled(999))
    a
   ---
     1
   999
 
-  >>> print t.filled(1000)
+  >>> print(t.filled(1000))
    a    b
   ---- ----
      1 1000

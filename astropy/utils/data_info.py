@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""
-This module contains functions and methods that relate to the DataInfo
-class which provides a container class for informational attributes
-as well as summary info methods.  This is currently used in the Table
-class.
+"""This module contains functions and methods that relate to the DataInfo class
+which provides a container for informational attributes as well as summary info
+methods.
+
+A DataInfo object is attached to the Quantity, SkyCoord, and Time classes in
+astropy.  Here it allows those classes to be used in Tables and uniformly carry
+table column attributes such as name, format, dtype, meta, and description.
 """
 
 # Note: these functions and classes are tested extensively in astropy table

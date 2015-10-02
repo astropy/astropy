@@ -288,7 +288,7 @@ table and immediately asking the interactive Python interpreter to print the
 table to see what we made.  In real code you might do something like::
 
   >>> table = Table(arr)
-  >>> print table
+  >>> print(table)
    a   b   c
   --- --- ---
     1 2.0   x
@@ -582,11 +582,11 @@ linked, as shown below::
   >>> arr = np.array([(1, 2.0, 'x'),
   ...                 (4, 5.0, 'y')],
   ...                dtype=[('a', 'i8'), ('b', 'f8'), ('c', 'S2')])
-  >>> print arr['a']  # column "a" of the input array
+  >>> print(arr['a'])  # column "a" of the input array
   [1 4]
   >>> t = Table(arr, copy=False)
   >>> t['a'][1] = 99
-  >>> print arr['a']  # arr['a'] got changed when we modified t['a']
+  >>> print(arr['a'])  # arr['a'] got changed when we modified t['a']
   [ 1 99]
 
 Note that when referencing the data it is not possible to change the data types

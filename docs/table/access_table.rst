@@ -12,12 +12,10 @@ Quick overview
 ^^^^^^^^^^^^^^
 
 For the impatient, the code below shows the basics of accessing table data.
-Where relevant there is a comment about what sort of object.  Except where
-noted, the table access returns objects that can be modified in order to
-update table data or properties.
-In cases where is returned and how
-the data contained in that object relate to the original table data
-(i.e. whether it is a copy or reference, see :ref:`copy_versus_reference`).
+Where relevant there is a comment about what sort of object is returned.
+Except where noted, table access returns objects that can be modified in order
+to update the original table data or properties.  See also the section on
+:ref:`copy_versus_reference` to learn more about this topic.
 
 **Make table**
 ::
@@ -63,7 +61,7 @@ the data contained in that object relate to the original table data
 **Print table or column**
 ::
 
-  print t      # Print formatted version of table to the screen
+  print(t)     # Print formatted version of table to the screen
   t.pprint()   # Same as above
   t.pprint(show_unit=True)  # Show column unit
   t.pprint(show_name=False)  # Do not show column names
@@ -71,7 +69,7 @@ the data contained in that object relate to the original table data
 
   t.more()  # Interactively scroll through table like Unix "more"
 
-  print t['a'] # Formatted column values
+  print(t['a'])  # Formatted column values
   t['a'].pprint()  # Same as above, with same options as Table.pprint()
   t['a'].more()  # Interactively scroll through column
 
