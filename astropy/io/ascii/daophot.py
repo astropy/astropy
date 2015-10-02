@@ -25,18 +25,18 @@ from .misc import first_true_index, first_false_index, groupmore
 class DaophotHeader(core.BaseHeader):
     """Read the header from a file produced by the IRAF DAOphot routine."""
 
+    comment = r'\s*#K'
+
+    # Regex for extracting the format strings
+    re_format = re.compile('%-?(\d+)\.?\d?[sdfg]')
+    re_header_keyword = re.compile(r'[#]K'
+                                   r'\s+ (?P<name> \w+)'
+                                   r'\s* = (?P<stuff> .+) $',
+                                   re.VERBOSE)
+    aperture_values = ()
+
     def __init__(self):
         core.BaseHeader.__init__(self)
-        self.comment = r'\s*#K'
-
-        # Regex for extracting the format strings
-        self.re_format = re.compile('%-?(\d+)\.?\d?[sdfg]')
-        self.re_header_keyword = re.compile(r'[#]K'
-                                            r'\s+ (?P<name> \w+)'
-                                            r'\s* = (?P<stuff> .+) $',
-                                            re.VERBOSE)
-
-        self.aperture_values = ()
 
     def parse_col_defs(self, grouped_lines_dict):
         """
