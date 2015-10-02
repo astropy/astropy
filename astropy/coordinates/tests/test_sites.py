@@ -9,7 +9,7 @@ from ..sites import get_builtin_sites, get_downloaded_sites, SiteRegistry
 def test_builtin_sites():
     reg = get_builtin_sites()
 
-    keck = reg.get_site('keck')
+    keck = reg['keck']
     lon, lat, el = keck.to_geodetic()
     assert_quantity_allclose(lon, -1*Longitude('155:28.7', unit=u.deg),
                              atol=0.001*u.deg)
@@ -17,7 +17,7 @@ def test_builtin_sites():
                              atol=0.001*u.deg)
     assert_quantity_allclose(el, 4160*u.m, atol=1*u.m)
 
-    keck = reg.get_site('ctio')
+    keck = reg['ctio']
     lon, lat, el = keck.to_geodetic()
     assert_quantity_allclose(lon, -1*Longitude('70.815', unit=u.deg),
                              atol=0.001*u.deg)
@@ -25,19 +25,19 @@ def test_builtin_sites():
                              atol=0.001*u.deg)
     assert_quantity_allclose(el, 2215*u.m, atol=1*u.m)
 
-    names = reg.get_site_names()
+    names = reg.names
     assert 'keck' in names
     assert 'ctio' in names
 
     with pytest.raises(KeyError):
-        reg.get_site('nonexistent site')
+        reg['nonexistent site']
 
 @pytest.mark.xfail  # remove this when the data file gets uploaded
 @remote_data
 def test_online_stes():
     reg = get_downloaded_sites()
 
-    keck = reg.get_site('keck')
+    keck = reg['keck']
     lon, lat, el = keck.to_geodetic()
     assert_quantity_allclose(lon, -1*Longitude('155:28.7', unit=u.deg),
                              atol=0.001*u.deg)
@@ -45,12 +45,12 @@ def test_online_stes():
                              atol=0.001*u.deg)
     assert_quantity_allclose(el, 4160*u.m, atol=1*u.m)
 
-    names = reg.get_site_names()
+    names = reg.names
     assert 'keck' in names
     assert 'ctio' in names
 
     with pytest.raises(KeyError):
-        reg.get_site('nonexistent site')
+        reg['nonexistent site']
 
 
 @remote_data
@@ -102,16 +102,16 @@ def test_EarthLocation_state_online():
 def test_registry():
     reg = SiteRegistry()
 
-    assert len(reg.get_site_names()) == 0
+    assert len(reg.names) == 0
 
     names = ['sitea', 'site A']
     loc = EarthLocation.from_geodetic(lat=1*u.deg, lon=2*u.deg,height=3*u.km)
     reg.add_site(names, loc)
 
-    assert len(reg.get_site_names()) == 2
+    assert len(reg.names) == 2
 
-    loc1 = reg.get_site('SIteA')
+    loc1 = reg['SIteA']
     assert loc1 is loc
 
-    loc2 = reg.get_site('sIte a')
+    loc2 = reg['sIte a']
     assert loc2 is loc

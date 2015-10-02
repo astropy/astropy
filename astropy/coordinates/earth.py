@@ -208,7 +208,7 @@ class EarthLocation(u.Quantity):
         --------
         get_site_names : the list of sites that this function can access
         """
-        el = cls._get_site_registry().get_site(site_name)
+        el = cls._get_site_registry()[site_name]
 
         if cls is el.__class__:
             return el
@@ -243,7 +243,7 @@ class EarthLocation(u.Quantity):
         of_site : Gets the actual location object for one of the sites names
                   this returns.
         """
-        return cls._get_site_registry().get_site_names()
+        return cls._get_site_registry().names
 
     @classmethod
     def _get_site_registry(cls, force_download=False, force_builtin=False):
