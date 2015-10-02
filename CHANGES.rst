@@ -658,6 +658,9 @@ Bug Fixes
   - Fix string representation of ``SkyCoord`` objects transformed into
     the ``AltAz`` frame [#4055]
 
+  - Fix the ``search_around_sky`` function to allow ``storekdtree`` to be 
+    ``False`` as was intended. [#4082]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
