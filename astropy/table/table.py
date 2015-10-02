@@ -927,7 +927,7 @@ class Table(object):
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
                 show_unit=None, show_dtype=False, html=False, tableid=None,
-                tableclass=None, align='right'):
+                align='right', tableclass=None):
         """Return a list of lines for the formatted string representation of
         the table.
 
