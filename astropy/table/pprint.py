@@ -187,7 +187,6 @@ class TableFormatter(object):
 
         return max_lines, max_width
 
-
     def _pformat_col(self, col, max_lines=None, show_name=True, show_unit=None,
                      show_dtype=False, show_length=None, html=False, align=None):
         """Return a list of formatted string representation of column values.
@@ -225,8 +224,9 @@ class TableFormatter(object):
         lines : list
             List of lines with formatted column values
 
-        n_header : int
-            Number of lines in the header
+        outs : dict
+            Dict which is used to pass back additional values
+            defined within the iterator.
 
         """
         if show_unit is None:
@@ -297,7 +297,7 @@ class TableFormatter(object):
                     if align == '0=':
                         justify = (lambda col_str, col_width:
                                        getattr(col_str, 'zfill')(col_width))
-                    elif align in ['<','^','>']:
+                    elif align in ['<', '^', '>']:
                         justify_method = justify_methods.get(align, None)
                         if justify_method is None:
                             justify_method = justify_methods[col.format[1]]
@@ -317,7 +317,6 @@ class TableFormatter(object):
 
         return col_strs, outs
 
-
     def _pformat_col_iter(self, col, max_lines, show_name, show_unit, outs,
                           show_dtype=False, show_length=None):
         """Iterator which yields formatted string representation of column values.
@@ -335,16 +334,16 @@ class TableFormatter(object):
             for units only if one or more columns has a defined value
             for the unit.
 
+        outs : dict
+            Must be a dict which is used to pass back additional values
+            defined within the iterator.
+
         show_dtype : bool
             Include column dtype (default=False)
 
         show_length : bool
             Include column length at end.  Default is to show this only
             if the column is not shown completely.
-
-        out : dict
-            Must be a dict which is used to pass back additional values
-            defined within the iterator.
         """
         max_lines, _ = self._get_pprint_size(max_lines, -1)
 
@@ -423,10 +422,9 @@ class TableFormatter(object):
         outs['i_centers'] = i_centers
         outs['i_dashes'] = i_dashes
 
-
-    def _pformat_table(self, table, max_lines=None, max_width=None, show_name=True,
-                       show_unit=None, show_dtype=False,
-                       html=False, tableid=None, align='right'):
+    def _pformat_table(self, table, max_lines=None, max_width=None,
+                       show_name=True, show_unit=None, show_dtype=False,
+                       html=False, tableid=None, tableclass=None, align='right'):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -457,6 +455,10 @@ class TableFormatter(object):
             "table{id}", where id is the unique integer id of the table object,
             id(table)
 
+        tableclass : str or list of str or `None`
+            CSS classes for the table; only used if html is set.  Default is
+            none
+
         align : str or list
             Left/right alignment of a column. Default is 'right'. A list
             of strings can be provided for alignment of tables with multiple
@@ -464,11 +466,13 @@ class TableFormatter(object):
 
         Returns
         -------
-        out : str
-            Formatted table as a single string
+        rows : list
+            Formatted table as a list of strings
 
-        n_header : int
-            Number of lines in the header
+        outs : dict
+            Dict which is used to pass back additional values
+            defined within the iterator.
+
         """
         # "Print" all the values into temporary lists by column for subsequent
         # use and to determine the width
@@ -479,18 +483,18 @@ class TableFormatter(object):
             show_unit = any([col.info.unit for col in six.itervalues(table.columns)])
 
         # Figure out align
-        if isinstance(align,str):
+        if isinstance(align, str):
             align = align
-        elif isinstance(align,list) and len(align) == 1:
+        elif isinstance(align, list) and len(align) == 1:
             align = align[0]
-        elif isinstance(align,list) and len(align) == len(table.columns.values()):
+        elif isinstance(align, list) and len(align) == len(table.columns.values()):
             align = align
         else:
             align = 'right'
 
         # If align remains a list, need to loop over values
         if type(align) == list:
-            for i,col in enumerate(table.columns.values()):
+            for i, col in enumerate(table.columns.values()):
                 lines, outs = self._pformat_col(col, max_lines, show_name=show_name,
                                                 show_unit=show_unit, show_dtype=show_dtype,
                                                 align=align[i])
@@ -534,7 +538,15 @@ class TableFormatter(object):
 
             if tableid is None:
                 tableid = 'table{id}'.format(id=id(table))
-            rows.append('<table id="{tid}">'.format(tid=tableid))
+
+            if tableclass is not None:
+                if isinstance(tableclass, list):
+                    tableclass = ' '.join(tableclass)
+                rows.append('<table id="{tid}" class="{tcls}">'.format(
+                    tid=tableid, tcls=tableclass))
+            else:
+                rows.append('<table id="{tid}">'.format(tid=tableid))
+
             for i in range(n_rows):
                 # _pformat_col output has a header line '----' which is not needed here
                 if i == n_header - 1:
@@ -554,9 +566,8 @@ class TableFormatter(object):
 
         return rows, outs
 
-
-    def _more_tabcol(self, tabcol, max_lines=None, max_width=None, show_name=True,
-                     show_unit=None, show_dtype=False):
+    def _more_tabcol(self, tabcol, max_lines=None, max_width=None,
+                     show_name=True, show_unit=None, show_dtype=False):
         """Interactive "more" of a table or column.
 
         Parameters

@@ -927,7 +927,7 @@ class Table(object):
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
                 show_unit=None, show_dtype=False, html=False, tableid=None,
-                align='right'):
+                align='right', tableclass=None):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -971,6 +971,10 @@ class Table(object):
         align : str
             Left/right alignment of a column. Default is 'right'.
 
+        tableclass : str or list of str or `None`
+            CSS classes for the table; only used if html is set.  Default is
+            none
+
         Returns
         -------
         lines : list
@@ -978,10 +982,10 @@ class Table(object):
 
         """
 
-        lines, outs = self.formatter._pformat_table(self, max_lines, max_width,
-                                                    show_name=show_name, show_unit=show_unit,
-                                                    show_dtype=show_dtype, html=html,
-                                                    tableid=tableid, align=align)
+        lines, outs = self.formatter._pformat_table(
+            self, max_lines, max_width, show_name=show_name,
+            show_unit=show_unit, show_dtype=show_dtype, html=html,
+            tableid=tableid, tableclass=tableclass, align=align)
 
         if outs['show_length']:
             lines.append('Length = {0} rows'.format(len(self)))

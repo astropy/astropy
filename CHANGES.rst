@@ -193,6 +193,9 @@ New Features
   - Added a new method ``Table.replace_column()`` to replace an existing
     column with a new data column. [#4090]
 
+  - Added a ``tableclass`` option to ``Table.pformat()`` to allow specifying
+    a list of CSS classes added to the HTML table. [#4131]
+
 - ``astropy.tests``
 
   - Added new test config options, ``config_dir`` and ``cache_dir``  (these
