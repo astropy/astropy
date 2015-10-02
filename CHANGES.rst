@@ -36,6 +36,9 @@ New Features
 
 - ``astropy.table``
 
+  - Added a new ``Table.show_in_notebook`` method that allows to show a table in
+    the IPython notebook using dataTables. [#4197]
+
 - ``astropy.tests``
 
 - ``astropy.time``
