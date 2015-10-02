@@ -548,6 +548,13 @@ class TestVStack():
         with pytest.raises(TableMergeError):
             table.vstack([self.t1, self.t2], join_type='exact')
 
+        t1_reshape = self.t1.copy()
+        t1_reshape['b'].shape = [2, 1]
+        with pytest.raises(TableMergeError) as excinfo:
+            table.vstack([self.t1, t1_reshape])
+        assert "have different shape" in str(excinfo)
+
+
     def test_vstack_one_masked(self):
         t1 = self.t1
         t4 = self.t4
