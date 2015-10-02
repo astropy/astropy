@@ -692,7 +692,6 @@ def test_fractional_rounding_errors_simple():
 
 def test_enable_unit_groupings():
     from ...units import cds
-    assert cds.geoMass not in u.kg.find_equivalent_units()
 
     with cds.enable():
         assert cds.geoMass in u.kg.find_equivalent_units()

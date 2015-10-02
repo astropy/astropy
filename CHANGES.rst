@@ -223,6 +223,7 @@ New Features
   - Added furlong to imperial units. [#3529]
   - Added mil to imperial units. [#3716]
   - Added stone to imperial units. [#4192]
+  - Added Earth Mass (``M_earth``) and Jupiter mass (``M_jup``) to units [#3907]
 
   - Added support for functional units, in particular the logarithmic ones
     ``Magnitude``, ``Decibel``, and ``Dex``. [#1894]

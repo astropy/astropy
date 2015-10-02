@@ -35,13 +35,15 @@ all the existing predefined units of a given type::
   >>> u.g.find_equivalent_units()
     Primary name | Unit definition | Aliases
   [
-    M_e          | 9.10938e-31 kg  |             ,
-    M_p          | 1.67262e-27 kg  |             ,
-    g            | 0.001 kg        | gram        ,
-    kg           | irreducible     | kilogram    ,
-    solMass      | 1.9891e+30 kg   | M_sun, Msun ,
-    t            | 1000 kg         | tonne       ,
-    u            | 1.66054e-27 kg  | Da, Dalton  ,
+    M_e          | 9.10938e-31 kg  |                                  ,
+    M_p          | 1.67262e-27 kg  |                                  ,
+    earthMass    | 5.9742e+24 kg   | M_earth, Mearth                  ,
+    g            | 0.001 kg        | gram                             ,
+    jupiterMass  | 1.8987e+27 kg   | M_jup, Mjup, M_jupiter, Mjupiter ,
+    kg           | irreducible     | kilogram                         ,
+    solMass      | 1.9891e+30 kg   | M_sun, Msun                      ,
+    t            | 1000 kg         | tonne                            ,
+    u            | 1.66054e-27 kg  | Da, Dalton                       ,
   ]
 
 The dimensionless unit
