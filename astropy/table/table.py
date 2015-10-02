@@ -968,12 +968,12 @@ class Table(object):
             "table{id}", where id is the unique integer id of the table object,
             id(self)
 
+        align : str
+            Left/right alignment of a column. Default is 'right'.
+
         tableclass : str or list of str or `None`
             CSS classes for the table; only used if html is set.  Default is
             none
-
-        align : str
-            Left/right alignment of a column. Default is 'right'.
 
         Returns
         -------
