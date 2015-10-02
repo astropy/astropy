@@ -39,11 +39,11 @@ class GeocentricTrueEcliptic(BaseCoordinateFrame):
     ----------
     representation : `BaseRepresentation` or None
         A representation object or None to have no data (or use the other keywords)
-    lambda : `Angle`, optional, must be keyword
+    lamb : `Angle`, optional, must be keyword
         The ecliptic longitude for this object (``beta`` must also be given and
         ``representation`` must be None).
     beta : `Angle`, optional, must be keyword
-        The ecliptic latitde for this object (``lambda`` must also be given and
+        The ecliptic latitde for this object (``lamb`` must also be given and
         ``representation`` must be None).
     delta : `~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object from the geocenter.
@@ -51,7 +51,7 @@ class GeocentricTrueEcliptic(BaseCoordinateFrame):
     """
 
     frame_specific_representation_info = {
-        'unitspherical': [RepresentationMapping('lon', 'lambda'),
+        'unitspherical': [RepresentationMapping('lon', 'lamb'),
                           RepresentationMapping('lat', 'beta')]
     }
     frame_specific_representation_info['spherical'] = \

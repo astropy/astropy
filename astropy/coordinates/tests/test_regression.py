@@ -127,3 +127,16 @@ def test_regression_4082():
     #also check 3d for good measure, although it's not really affected by this bug directly
     cat3d = SkyCoord([10.076,10.00455]*u.deg, [18.54746, 18.54896]*u.deg, distance=[0.1,1.5]*u.kpc)
     search_around_3d(cat3d[0:1], cat3d, 1*u.kpc, storekdtree=False)
+
+
+def test_regression_4210():
+    """
+    Issue: https://github.com/astropy/astropy/issues/4210
+    """
+    crd = SkyCoord(0*u.deg, 0*u.deg, distance=1*u.AU)
+    ecl = crd.geocentrictrueecliptic
+    # bug was that "lambda" is a reserved keyword! So this just exercises
+    # the "lamb" attribute to make sure it actually works
+    ecl.lamb
+    ecl.beta
+    ecl.delta
