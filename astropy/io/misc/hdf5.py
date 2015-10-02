@@ -14,8 +14,10 @@ import warnings
 import numpy as np
 from ...utils.exceptions import AstropyUserWarning
 from ...extern import six
+from ...table import meta
 
 HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'
+META_KEY = '__table_column_meta__'
 
 __all__ = ['read_table_hdf5', 'write_table_hdf5']
 
@@ -138,13 +140,26 @@ def read_table_hdf5(input, path=None):
     table = Table(np.array(input))
 
     # Read the meta-data from the file
-    table.meta.update(input.attrs)
+    if META_KEY in input.attrs:
+        header = meta.get_header_from_yaml(
+            h.decode('utf-8') for h in input.attrs[META_KEY])
+        if 'meta' in list(header.keys()):
+            table.meta = header['meta']
+
+        header_cols = dict((x['name'], x) for x in header['datatype'])
+        for col in table.columns.values():
+            for attr in ('description', 'format', 'unit', 'meta'):
+                if attr in header_cols[col.name]:
+                    setattr(col, attr, header_cols[col.name][attr])
+    else:
+        # Read the meta-data from the file
+        table.meta.update(input.attrs)
 
     return table
 
 
 def write_table_hdf5(table, output, path=None, compression=False,
-                     append=False, overwrite=False):
+                     append=False, overwrite=False, serialize_meta=False):
     """
     Write a Table object to an HDF5 file
 
@@ -221,7 +236,8 @@ def write_table_hdf5(table, output, path=None, compression=False,
         try:
             return write_table_hdf5(table, f, path=path,
                                     compression=compression, append=append,
-                                    overwrite=overwrite)
+                                    overwrite=overwrite,
+                                    serialize_meta=serialize_meta)
         finally:
             f.close()
 
@@ -247,12 +263,23 @@ def write_table_hdf5(table, output, path=None, compression=False,
     else:
         dset = output_group.create_dataset(name, data=table.as_array())
 
-    # Write the meta-data to the file
-    for key in table.meta:
-        val = table.meta[key]
+    if serialize_meta:
+        header_yaml = meta.get_yaml_from_table(table)
+
         try:
-            dset.attrs[key] = val
-        except TypeError:
-            warnings.warn("Attribute `{0}` of type {1} cannot be written to "
-                          "HDF5 files - skipping".format(key, type(val)),
-                          AstropyUserWarning)
+            dset.attrs[META_KEY] = [h.encode('utf8') for h in header_yaml]
+        except Exception as e:
+            warnings.warn("Attributes could not be written to the output HDF5 "
+                          "file: {0}".format(e))
+
+    else:
+        # Write the meta-data to the file
+        for key in table.meta:
+            val = table.meta[key]
+            try:
+                dset.attrs[key] = val
+            except TypeError:
+                warnings.warn("Attribute `{0}` of type {1} cannot be written to "
+                              "HDF5 files - skipping. (Consider specifying "
+                              "serialize_meta=True to write all meta data)".format(key, type(val)),
+                              AstropyUserWarning)

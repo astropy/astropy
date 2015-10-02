@@ -78,6 +78,9 @@ New Features
 
 - ``astropy.io.misc``
 
+  - Support saving all meta information, description and units of tables and columns
+    in HDF5 files [#4103]
+
 - ``astropy.io.votable``
 
   - A new method was added to ``astropy.io.votable.VOTable``,
