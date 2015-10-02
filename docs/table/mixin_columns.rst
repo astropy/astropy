@@ -19,14 +19,7 @@ The available built-in mixin column classes are:
 - |Quantity|
 - |SkyCoord|
 - |Time|
-
-.. Warning::
-
-   The interface for using mixin columns is experimental at this point and it
-   is not recommended to use this feature in production code.  There are known
-   limitations and some table functionality which is not yet implemented for
-   mixin columns.  API changes are likely and since the code is all new there
-   may be some bugs.
+- `~astropy.table.NdarrayMixin`
 
 As a first example we can create a table and add a time column::
 
@@ -125,6 +118,34 @@ You can easily convert |Table| to |QTable| and vice-versa::
   >>> type(t2['velocity'])
   <class 'astropy.table.column.Column'>
 
+Mixin Attributes
+^^^^^^^^^^^^^^^^
+
+The usual column attributes ``name``, ``dtype``, ``unit``, ``format``, and
+``description`` are available in any mixin column via the ``info`` property::
+
+  >>> qt['velocity'].info.name
+  'velocity'
+
+This ``info`` property is a key bit of glue that allows for a
+non-Column object to behave much like a column.
+
+The same ``info`` property is also available in standard
+`~astropy.table.Column` objects.  These ``info`` attributes like
+``t['a'].info.name`` simply refer to the direct `~astropy.table.Column`
+attribute (e.g. ``t['a'].name``) and can be used interchangeably.
+Likewise in a `~astropy.units.Quantity` object, ``info.dtype``
+attribute refers to the native ``dtype`` attribute of the object.
+
+.. Note::
+
+   When writing generalized code that handles column objects which
+   might be mixin columns, one must *always* use the ``info``
+   property to access column attributes.
+
+
+.. _details_and_caveats:
+
 Details and caveats
 ^^^^^^^^^^^^^^^^^^^
 
@@ -199,15 +220,6 @@ that contain mixin columns:
    * - :ref:`unique-rows`
      - Not implemented yet, uses grouped operations
 
-**Mixin column attributes**
-
-For mixin columns the column attributes ``name``, ``unit``, ``dtype``,
-``format``, ``description`` and ``meta`` are currently stored in a simple
-dictionary called `_astropy_column_attrs`.  These attributes can be manipulated
-with the functions ``col_getattr`` and ``col_setattr`` which are available in
-the ``astropy.table.column`` module.  These methods are not part of
-the astropy public API and are likely to change in the future.
-
 **ASCII table writing**
 
 Mixin columns can be written out to file using the `astropy.io.ascii` module,
@@ -230,8 +242,8 @@ with the following properties:
 - Supports getting data as a single item, slicing, or index array access
 - Has a ``shape`` attribute
 - Has a ``__len__`` method for length
-- Has a ``_astropy_column_attrs`` attribute, which tells the |Table| class to
-  use the object natively instead of converting to a |Column|
+- Has an ``info`` class descriptor which is a subclass of the
+  ``astropy.utils.data_info.MixinInfo`` class.
 
 The `Example: ArrayWrapper`_ section shows a working minimal example of a class
 which can be used as a mixin column.  A `pandas.Series
@@ -242,7 +254,8 @@ Other interesting possibilities for mixin columns include:
 
 - Columns which are dynamically computed as a function of other columns (AKA
   spreadsheet)
-- Columns which are themselves a |Table|, i.e. nested tables
+- Columns which are themselves a |Table|, i.e. nested tables.  A `proof of
+  concept <https://github.com/astropy/astropy/pull/3963>`_ is available.
 
 .. _arraywrapper_example:
 
@@ -256,21 +269,26 @@ column.
 
 ::
 
+  from astropy.utils.data_info import ParentDtypeInfo
+
   class ArrayWrapper(object):
       """
       Minimal mixin using a simple wrapper around a numpy array
       """
-      _astropy_column_attrs = None
+      info = ParentDtypeInfo()
 
       def __init__(self, data):
           self.data = np.array(data)
-          col_setattr(self, 'dtype', self.data.dtype)
+          if 'info' in getattr(data, '__dict__', ()):
+              self.info = data.info
 
       def __getitem__(self, item):
           if isinstance(item, (int, np.integer)):
               out = self.data[item]
           else:
               out = self.__class__(self.data[item])
+              if 'info' in self.__dict__:
+                  out.info = self.info
           return out
 
       def __setitem__(self, item, value):
@@ -280,9 +298,13 @@ column.
           return len(self.data)
 
       @property
+      def dtype(self):
+          return self.data.dtype
+
+      @property
       def shape(self):
           return self.data.shape
 
       def __repr__(self):
           return ("<{0} name='{1}' data={2}>"
-                  .format(self.__class__.__name__, col_getattr(self, 'name'), self.data))
+                  .format(self.__class__.__name__, self.info.name, self.data))

@@ -12,12 +12,10 @@ Quick overview
 ^^^^^^^^^^^^^^
 
 For the impatient, the code below shows the basics of accessing table data.
-Where relevant there is a comment about what sort of object.  Except where
-noted, the table access returns objects that can be modified in order to
-update table data or properties.
-In cases where is returned and how
-the data contained in that object relate to the original table data
-(i.e. whether it is a copy or reference, see :ref:`copy_versus_reference`).
+Where relevant there is a comment about what sort of object is returned.
+Except where noted, table access returns objects that can be modified in order
+to update the original table data or properties.  See also the section on
+:ref:`copy_versus_reference` to learn more about this topic.
 
 **Make table**
 ::
@@ -63,7 +61,7 @@ the data contained in that object relate to the original table data
 **Print table or column**
 ::
 
-  print t      # Print formatted version of table to the screen
+  print(t)     # Print formatted version of table to the screen
   t.pprint()   # Same as above
   t.pprint(show_unit=True)  # Show column unit
   t.pprint(show_name=False)  # Do not show column names
@@ -71,7 +69,7 @@ the data contained in that object relate to the original table data
 
   t.more()  # Interactively scroll through table like Unix "more"
 
-  print t['a'] # Formatted column values
+  print(t['a'])  # Formatted column values
   t['a'].pprint()  # Same as above, with same options as Table.pprint()
   t['a'].more()  # Interactively scroll through column
 
@@ -86,6 +84,7 @@ For all the following examples it is assumed that the table has been created as 
 
   >>> from astropy.table import Table, Column
   >>> import numpy as np
+  >>> import astropy.units as u
 
   >>> arr = np.arange(15, dtype=np.int32).reshape(5, 3)
   >>> t = Table(arr, names=('a', 'b', 'c'), meta={'keywords': {'key1': 'val1'}})
@@ -532,16 +531,19 @@ any array::
          [[ 5,  6],
           [50, 60]]])
 
-Columns and Quantities
-''''''''''''''''''''''
-Columns with units that the `astropy.units` package understands can be
-converted explicitly to ``~astropy.units.Quantity`` objects via the
+.. _columns_with_units:
+
+Columns with Units
+''''''''''''''''''
+
+A `~astropy.table.Column` object with units within a standard
+`~astropy.table.Table` (as opposed to a `~astropy.table.QTable`) has certain
+quantity-related conveniences available.  To begin with, it can be converted
+explicitly to a `~astropy.units.Quantity` object via the
 :attr:`~astropy.table.Column.quantity` property and the
 :meth:`~astropy.table.Column.to` method::
 
-  >>> from astropy.table import Table
-  >>> from astropy import units as u
-  >>> data = [[1., 2., 3.],[40000., 50000., 60000.]]
+  >>> data = [[1., 2., 3.], [40000., 50000., 60000.]]
   >>> t = Table(data, names=('a', 'b'))
   >>> t['a'].unit = u.m
   >>> t['b'].unit = 'km/s'
@@ -597,10 +599,11 @@ expressions (see the warning below for caveats to this)::
     -0.988031624093
      0.893996663601
 
-  This is wrong both in that it says the unit is degrees, *and* ``sin``
-  treated the values and radians rather than degrees.  If at all in
-  doubt that you'll get the right result, the safest choice is to
-  explicitly convert to `~astropy.units.Quantity`::
+  This is wrong both in that it says the unit is degrees, *and* ``sin`` treated
+  the values and radians rather than degrees.  If at all in doubt that you'll
+  get the right result, the safest choice is to either use
+  `~astropy.table.QTable` or to explicitly convert to
+  `~astropy.units.Quantity`::
 
     >>> np.sin(t['angle'].quantity)  # doctest: +FLOAT_CMP
     <Quantity [ 0.5, 1. ]>

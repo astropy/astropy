@@ -36,7 +36,7 @@ size, columns, or data are not known.
 .. Note::
    Adding rows requires making a new copy of the entire
    table each time, so in the case of large tables this may be slow.
-   On the other hand, adding columns is quite fast.
+   On the other hand, adding columns is reasonably fast.
 
 ::
 
@@ -51,6 +51,17 @@ size, columns, or data are not known.
 
   >>> t = Table(dtype=[('a', 'f4'), ('b', 'i4'), ('c', 'S2')])
 
+Another option for creating a table is using the `~astropy.table.QTable` class.
+In this case any `~astropy.units.Quantity` column objects will be stored
+natively within the table via the "mixin" column protocol (see `Columns and
+Quantities`_ for details)::
+
+  >>> from astropy.table import QTable
+  >>> from astropy import units as u
+  >>> t = QTable()
+  >>> t['velocity'] = [3, 4] * u.m / u.s
+  >>> type(t['velocity'])  # doctest: +SKIP
+  astropy.units.quantity.Quantity
 
 List of columns
 """""""""""""""
@@ -277,7 +288,7 @@ table and immediately asking the interactive Python interpreter to print the
 table to see what we made.  In real code you might do something like::
 
   >>> table = Table(arr)
-  >>> print table
+  >>> print(table)
    a   b   c
   --- --- ---
     1 2.0   x
@@ -571,11 +582,11 @@ linked, as shown below::
   >>> arr = np.array([(1, 2.0, 'x'),
   ...                 (4, 5.0, 'y')],
   ...                dtype=[('a', 'i8'), ('b', 'f8'), ('c', 'S2')])
-  >>> print arr['a']  # column "a" of the input array
+  >>> print(arr['a'])  # column "a" of the input array
   [1 4]
   >>> t = Table(arr, copy=False)
   >>> t['a'][1] = 99
-  >>> print arr['a']  # arr['a'] got changed when we modified t['a']
+  >>> print(arr['a'])  # arr['a'] got changed when we modified t['a']
   [ 1 99]
 
 Note that when referencing the data it is not possible to change the data types
@@ -894,3 +905,39 @@ fields.  This might look something like::
                   return self.MaskedColumn(name=item, data=values, mask=mask)
 
           # ... and then the rest of the original __getitem__ ...
+
+Columns and Quantities
+""""""""""""""""""""""
+
+Astropy `~astropy.units.Quantity` objects can be handled within tables in two
+complementary ways.  The first method stores the `~astropy.units.Quantity`
+object natively within the table via the "mixin" column protocol.  See the
+sections on :ref:`mixin_columns` and :ref:`quantity_and_qtable` for details,
+but in brief the key difference is using the `~astropy.table.QTable` class to
+indicate that a `~astropy.units.Quantity` should be stored natively within the
+table::
+
+  >>> from astropy.table import QTable
+  >>> from astropy import units as u
+  >>> t = QTable()
+  >>> t['velocity'] = [3, 4] * u.m / u.s
+  >>> type(t['velocity'])  # doctest: +SKIP
+  astropy.units.quantity.Quantity
+
+For new code that is quantity-aware we recommend using `~astropy.table.QTable`,
+but this may not be possible in all situations (particularly when interfacing
+with legacy code that does not handle quantities) and there are
+:ref:`details_and_caveats` that apply.  In this case use the
+`~astropy.table.Table` class, which will convert a `~astropy.units.Quantity` to
+a `~astropy.table.Column` object with a ``unit`` attribute::
+
+  >>> from astropy.table import Table
+  >>> t = Table()
+  >>> t['velocity'] = [3, 4] * u.m / u.s
+  >>> type(t['velocity'])  # doctest: +SKIP
+  astropy.table.column.Column
+  >>> t['velocity'].unit
+  Unit("m / s")
+
+To learn more about using standard `~astropy.table.Column` objects with defined
+units, see the :ref:`columns_with_units` section.

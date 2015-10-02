@@ -21,11 +21,12 @@ notable capabilities of this package are:
 * Specify a description, units and output formatting for columns.
 * Interactively scroll through long tables similar to using ``more``.
 * Create a new table by selecting rows or columns from a table.
-* Perform :ref:`table_operations` like database joins and concatenation.
+* Perform :ref:`table_operations` like database joins, concatenation, and binning.
 * Maintain a table index for fast retrieval of table items or ranges.
 * Manipulate multidimensional columns.
-* Methods for :ref:`read_write_tables` to files
-* Hooks for :ref:`subclassing_table` and its component classes
+* Handle non-native (mixin) column types within table.
+* Methods for :ref:`read_write_tables` to files.
+* Hooks for :ref:`subclassing_table` and its component classes.
 
 Currently `astropy.table` is used when reading an ASCII table using
 `astropy.io.ascii`.  Future releases of AstroPy are expected to use
@@ -106,7 +107,8 @@ Finally, you can get summary information about the table as follows::
      c    str1
 
 A column with a unit works with and can be easily converted to an
-`~astropy.units.Quantity` object::
+`~astropy.units.Quantity` object (but see :ref:`quantity_and_qtable` for
+a way to natively use `~astropy.units.Quantity` objects in tables)::
 
   >>> t['b'].quantity
   <Quantity [ 2. , 5. , 8.2] s>
@@ -230,7 +232,7 @@ Adding a new row of data to the table is as follows::
   >>> len(t)
   4
 
-Lastly, you can create a table with support for missing values, for example by setting
+You can create a table with support for missing values, for example by setting
 ``masked=True``::
 
   >>> t = Table([a, b, c], names=('a', 'b', 'c'), masked=True, dtype=('i4', 'f8', 'S1'))
@@ -243,6 +245,46 @@ Lastly, you can create a table with support for missing values, for example by s
      --     2.0    x
      --     5.0    y
       5     8.2    z
+
+You can include certain object types like `~astropy.time.Time`,
+`~astropy.coordinates.SkyCoord` or `~astropy.units.Quantity` in your table.
+These "mixin" columns behave like a hybrid of a regular `~astropy.table.Column`
+and the native object type (see :ref:`mixin_columns`).  For example::
+
+  >>> from astropy.time import Time
+  >>> from astropy.coordinates import SkyCoord
+  >>> tm = Time(['2000:002', '2002:345'])
+  >>> sc = SkyCoord([10, 20], [-45, +40], unit='deg')
+  >>> t = Table([tm, sc], names=['time', 'skycoord'])
+  >>> t
+  <Table length=2>
+           time          skycoord
+                         deg,deg
+          object          object
+  --------------------- ----------
+  2000:002:00:00:00.000 10.0,-45.0
+  2002:345:00:00:00.000  20.0,40.0
+
+The `~astropy.table.QTable` class is a variant of `~astropy.table.Table` that
+allows including a native `~astropy.units.Quantity` in a table instead of
+converting to a `~astropy.table.Column` object (see :ref:`quantity_and_qtable`
+for details)::
+
+  >>> from astropy.table import QTable
+  >>> import astropy.units as u
+  >>> t = QTable()
+  >>> t['dist'] = [1, 2] * u.m
+  >>> t['velocity'] = [3, 4] * u.m / u.s
+  >>> t
+  <QTable length=2>
+    dist  velocity
+     m     m / s
+  float64 float64
+  ------- --------
+      1.0      3.0
+      2.0      4.0
+
+
 
 .. _using_astropy_table:
 
