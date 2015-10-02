@@ -337,7 +337,8 @@ class TestCutout2D(object):
         self.wcs = wcs
 
     def test_cutout(self):
-        sizes = [3, 3*u.pixel, (3, 3), (3*u.pixel, 3*u.pix), (3., 3*u.pixel)]
+        sizes = [3, 3*u.pixel, (3, 3), (3*u.pixel, 3*u.pix), (3., 3*u.pixel),
+                 (2.9, 3.3)]
         for size in sizes:
             position = (2.1, 1.9)
             c = Cutout2D(self.data, position, size)
