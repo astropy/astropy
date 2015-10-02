@@ -156,6 +156,8 @@ Bug Fixes
   - Fix issue with the web browser opening with an empty page, and ensure that
     the url is correctly formatted for Windows. [#4132]
 
+  - Fix NameError in table stack exception message. [#4213]
+
 - ``astropy.time``
 
 - ``astropy.units``

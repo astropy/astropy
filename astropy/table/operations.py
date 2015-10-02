@@ -477,7 +477,7 @@ def get_descrs(arrays, col_name_map):
         # Make sure all input shapes are the same
         uniq_shapes = set(col.shape[1:] for col in in_cols)
         if len(uniq_shapes) != 1:
-            raise TableMergeError('Key columns {0!r} have different shape'.format(name))
+            raise TableMergeError('Key columns {0!r} have different shape'.format(names))
         shape = uniq_shapes.pop()
 
         out_descrs.append((fix_column_name(out_name), dtype, shape))
