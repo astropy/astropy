@@ -806,7 +806,7 @@ class Table(object):
         return has_info_class(col, MixinInfo) and not isinstance(col, Quantity)
 
     def pprint(self, max_lines=None, max_width=None, show_name=True,
-               show_unit=None, show_dtype=False, align='right'):
+               show_unit=None, show_dtype=False, align=None):
         """Print a formatted string representation of the table.
 
         If no value of ``max_lines`` is supplied then the height of the
@@ -838,8 +838,12 @@ class Table(object):
         show_dtype : bool
             Include a header row for column dtypes (default=True)
 
-        align : str
-            Left/right alignment of a column. Default is 'right'.
+        align : str or list or tuple or `None`
+            Left/right alignment of columns. Default is right (None) for all
+            columns. Other allowed values are '>', '<', '^', and '0=' for
+            right, left, centered, and 0-padded, respectively. A list of
+            strings can be provided for alignment of tables with multiple
+            columns.
         """
         lines, outs = self.formatter._pformat_table(self, max_lines, max_width,
                                                     show_name=show_name, show_unit=show_unit,
@@ -927,7 +931,7 @@ class Table(object):
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
                 show_unit=None, show_dtype=False, html=False, tableid=None,
-                align='right', tableclass=None):
+                align=None, tableclass=None):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -968,8 +972,12 @@ class Table(object):
             "table{id}", where id is the unique integer id of the table object,
             id(self)
 
-        align : str
-            Left/right alignment of a column. Default is 'right'.
+        align : str or list or tuple or `None`
+            Left/right alignment of columns. Default is right (None) for all
+            columns. Other allowed values are '>', '<', '^', and '0=' for
+            right, left, centered, and 0-padded, respectively. A list of
+            strings can be provided for alignment of tables with multiple
+            columns.
 
         tableclass : str or list of str or `None`
             CSS classes for the table; only used if html is set.  Default is

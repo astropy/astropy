@@ -8,6 +8,7 @@ from ..extern.six.moves import xrange
 
 import os
 import sys
+import re
 
 import numpy as np
 
@@ -214,10 +215,10 @@ class TableFormatter(object):
         html : bool
             Output column as HTML
 
-        align : str or list
-            Left/right alignment of a column. Default is 'right'. A list
-            of strings can be provided for alignment of tables with multiple
-            columns.
+        align : str
+            Left/right alignment of columns. Default is '>' (right) for all
+            columns. Other allowed values are '<', '^', and '0=' for left,
+            centered, and 0-padded, respectively.
 
         Returns
         -------
@@ -266,51 +267,43 @@ class TableFormatter(object):
         else:
             col_width = max(len(x) for x in col_strs) if col_strs else 1
 
-            # Center line content and generate dashed headerline
+            # Center line header content and generate dashed headerline
             for i in outs['i_centers']:
                 col_strs[i] = col_strs[i].center(col_width)
             if outs['i_dashes'] is not None:
                 col_strs[outs['i_dashes']] = '-' * col_width
 
-            # Format columns according to alignment
-            justify_methods = {'<': 'ljust', '^': 'center', '>': 'rjust'}
+            # Format columns according to alignment.  `align` arg has precedent, otherwise
+            # use `col.format` if it starts as a legal alignment string.  If neither applies
+            # then right justify.
+            re_fill_align = re.compile(r'(?P<fill>.?)(?P<align>[<^>=])')
+            match = None
+            if align:
+                # If there is an align specified then it must match
+                match = re_fill_align.match(align)
+                if not match:
+                    raise ValueError("column align must be one of '<', '^', '>', or '='")
+            elif isinstance(col.info.format, six.string_types):
+                # col.info.format need not match, in which case rjust gets used
+                match = re_fill_align.match(col.info.format)
+
+            if match:
+                fill_char = match.group('fill')
+                align_char = match.group('align')
+                if align_char == '=':
+                    if fill_char != '0':
+                        raise ValueError("fill character must be '0' for '=' align")
+                    fill_char = ''  # str.zfill gets used which does not take fill char arg
+            else:
+                fill_char = ''
+                align_char = '>'
+
+            justify_methods = {'<': 'ljust', '^': 'center', '>': 'rjust', '=': 'zfill'}
+            justify_method = justify_methods[align_char]
+            justify_args = (col_width, fill_char) if fill_char else (col_width,)
+
             for i, col_str in enumerate(col_strs):
-                if align is None:
-                    try:
-                        if col.format[:2] == '0=':
-                            justify = (lambda col_str, col_width:
-                                       getattr(col_str, 'zfill')(col_width))
-                        else:
-                            justify_method = justify_methods.get(col.format[0], None)
-                            if justify_method is None:
-                                justify_method = justify_methods[col.format[1]]
-                                justify = (lambda col_str, col_width:
-                                           getattr(col_str, justify_method)(col_width,
-                                                                            col.format[0]))
-                            else:
-                                justify = (lambda col_str, col_width:
-                                           getattr(col_str, justify_method)(col_width))
-                    except:
-                        justify = (lambda col_str, col_width:
-                                   getattr(col_str, 'rjust')(col_width))
-                else:
-                    if align == '0=':
-                        justify = (lambda col_str, col_width:
-                                       getattr(col_str, 'zfill')(col_width))
-                    elif align in ['<', '^', '>']:
-                        justify_method = justify_methods.get(align, None)
-                        if justify_method is None:
-                            justify_method = justify_methods[col.format[1]]
-                            justify = (lambda col_str, col_width:
-                                       getattr(col_str, justify_method)(col_width,
-                                                                        col.format[0]))
-                        else:
-                            justify = (lambda col_str, col_width:
-                                       getattr(col_str, justify_method)(col_width))
-                    else:
-                        justify = (lambda col_str, col_width:
-                                   getattr(col_str, 'rjust')(col_width))
-                col_strs[i] = justify(col_str, col_width)
+                col_strs[i] = getattr(col_str, justify_method)(*justify_args)
 
         if outs['show_length']:
             col_strs.append('Length = {0} rows'.format(len(col)))
@@ -424,7 +417,7 @@ class TableFormatter(object):
 
     def _pformat_table(self, table, max_lines=None, max_width=None,
                        show_name=True, show_unit=None, show_dtype=False,
-                       html=False, tableid=None, tableclass=None, align='right'):
+                       html=False, tableid=None, tableclass=None, align=None):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -459,10 +452,11 @@ class TableFormatter(object):
             CSS classes for the table; only used if html is set.  Default is
             none
 
-        align : str or list
-            Left/right alignment of a column. Default is 'right'. A list
-            of strings can be provided for alignment of tables with multiple
-            columns.
+        align : str or list or tuple
+            Left/right alignment of columns. Default is '>' (right) for all
+            columns. Other allowed values are '<', '^', and '0=' for left,
+            centered, and 0-padded, respectively. A list of strings can be
+            provided for alignment of tables with multiple columns.
 
         Returns
         -------
@@ -482,32 +476,27 @@ class TableFormatter(object):
         if show_unit is None:
             show_unit = any([col.info.unit for col in six.itervalues(table.columns)])
 
-        # Figure out align
-        if isinstance(align, str):
-            align = align
-        elif isinstance(align, list) and len(align) == 1:
-            align = align[0]
-        elif isinstance(align, list) and len(align) == len(table.columns.values()):
-            align = align
-        else:
-            align = 'right'
+        # Coerce align into a correctly-sized list of alignments (if possible)
+        n_cols = len(table.columns)
+        if align is None or isinstance(align, six.string_types):
+            align = [align] * n_cols
 
-        # If align remains a list, need to loop over values
-        if type(align) == list:
-            for i, col in enumerate(table.columns.values()):
-                lines, outs = self._pformat_col(col, max_lines, show_name=show_name,
-                                                show_unit=show_unit, show_dtype=show_dtype,
-                                                align=align[i])
-                if outs['show_length']:
-                    lines = lines[:-1]
-                cols.append(lines)
+        elif isinstance(align, (list, tuple)):
+            if len(align) != n_cols:
+                raise ValueError('got {0} alignment values instead of '
+                                 'the number of columns ({1})'
+                                 .format(len(align), n_cols))
         else:
-            for col in six.itervalues(table.columns):
-                lines, outs = self._pformat_col(col, max_lines, show_name=show_name,
-                                                show_unit=show_unit, show_dtype=show_dtype)
-                if outs['show_length']:
-                    lines = lines[:-1]
-                cols.append(lines)
+            raise TypeError('align keyword must be str or list or tuple (got {0})'
+                            .format(type(align)))
+
+        for align_, col in izip(align, table.columns.values()):
+            lines, outs = self._pformat_col(col, max_lines, show_name=show_name,
+                                            show_unit=show_unit, show_dtype=show_dtype,
+                                            align=align_)
+            if outs['show_length']:
+                lines = lines[:-1]
+            cols.append(lines)
 
         if not cols:
             return ['<No columns>'], {'show_length': False}

@@ -7,6 +7,7 @@ import numpy as np
 from ...tests.helper import pytest
 from ... import table
 from ...table import Table
+from ...table.table_helpers import simple_table
 from ...extern.six import PY3
 from ...utils import console
 
@@ -568,3 +569,101 @@ def test_html():
         u'<tr><td>1.0</td></tr>',
         u'<tr><td>2.0</td></tr>',
         u'</table>']
+
+def test_align():
+    t = simple_table(2, kinds='iS')
+    assert t.pformat() == [' a   b ',
+                           '--- ---',
+                           '  1   b',
+                           '  2   c']
+    # Use column format attribute
+    t['a'].format = '<'
+    assert t.pformat() == [' a   b ',
+                           '--- ---',
+                           '1     b',
+                           '2     c']
+
+    # Now override column format attribute with various combinations of align
+    tpf = [' a   b ',
+           '--- ---',
+           ' 1   b ',
+           ' 2   c ']
+    for align in ('^', ['^', '^'], ('^', '^')):
+        assert tpf == t.pformat(align=align)
+
+    assert t.pformat(align='<') == [' a   b ',
+                                    '--- ---',
+                                    '1   b  ',
+                                    '2   c  ']
+    assert t.pformat(align='0=') == [' a   b ',
+                                     '--- ---',
+                                     '001 00b',
+                                     '002 00c']
+
+    assert t.pformat(align=['<', '^']) == [' a   b ',
+                                           '--- ---',
+                                           '1    b ',
+                                           '2    c ']
+
+    # Now use fill characters.  Stress the system using a fill
+    # character that is the same as an align character.
+    t = simple_table(2, kinds='iS')
+
+    assert t.pformat(align='^^') == [' a   b ',
+                                     '--- ---',
+                                     '^1^ ^b^',
+                                     '^2^ ^c^']
+
+    assert t.pformat(align='^>') == [' a   b ',
+                                     '--- ---',
+                                     '^^1 ^^b',
+                                     '^^2 ^^c']
+
+    assert t.pformat(align='^<') == [' a   b ',
+                                     '--- ---',
+                                     '1^^ b^^',
+                                     '2^^ c^^']
+
+    # Complicated interaction (same as narrative docs example)
+    t1 = Table([[1.0, 2.0], [1, 2]], names=['column1', 'column2'])
+    t1['column1'].format = '#^.2f'
+
+    assert t1.pformat() == ['column1 column2',
+                            '------- -------',
+                            '##1.00#       1',
+                            '##2.00#       2']
+
+    assert t1.pformat(align='!<') ==  ['column1 column2',
+                                       '------- -------',
+                                       '1.00!!! 1!!!!!!',
+                                       '2.00!!! 2!!!!!!']
+
+    assert t1.pformat(align=[None, '!<']) == ['column1 column2',
+                                              '------- -------',
+                                              '##1.00# 1!!!!!!',
+                                              '##2.00# 2!!!!!!']
+
+    # Zero fill
+    t['a'].format = '+d'
+    assert t.pformat(align='0=') == [' a   b ',
+                                     '--- ---',
+                                     '+01 00b',
+                                     '+02 00c']
+
+    with pytest.raises(ValueError):
+        t.pformat(align=['fail'])
+
+    with pytest.raises(TypeError):
+        t.pformat(align=0)
+
+    with pytest.raises(TypeError):
+        t.pprint(align=0)
+
+    # Make sure pprint() does not raise an exception
+    t.pprint()
+
+    with pytest.raises(ValueError):
+        t.pprint(align=['<', '<', '<'])
+
+    with pytest.raises(ValueError):
+        t.pprint(align='x=')
