@@ -443,15 +443,15 @@ Column alignment
 Individual columns have the ability to be aligned in a number of different
 ways, for an enhanced viewing experience::
 
-  >>> t = Table()
-  >>> t['long column name 1'] = [1, 2, 3]
-  >>> t['long column name 2'] = [4, 5, 6]
-  >>> t['long column name 3'] = [7, 8, 9]
-  >>> t['long column name 4'] = [700000, 800000, 900000]
-  >>> t['long column name 2'].format = '<'
-  >>> t['long column name 3'].format = '0='
-  >>> t['long column name 4'].format = '^'
-  >>> t.pprint()
+  >>> t1 = Table()
+  >>> t1['long column name 1'] = [1, 2, 3]
+  >>> t1['long column name 2'] = [4, 5, 6]
+  >>> t1['long column name 3'] = [7, 8, 9]
+  >>> t1['long column name 4'] = [700000, 800000, 900000]
+  >>> t1['long column name 2'].format = '<'
+  >>> t1['long column name 3'].format = '0='
+  >>> t1['long column name 4'].format = '^'
+  >>> t1.pprint()
    long column name 1 long column name 2 long column name 3 long column name 4
   ------------------ ------------------ ------------------ ------------------
                    1 4                  000000000000000007       700000
@@ -461,11 +461,11 @@ ways, for an enhanced viewing experience::
 Conveniently, alignment can be handled another way, by passing a list to the
 keyword argument ``align``::
 
-  >>> t = Table()
-  >>> t['column1'] = [1, 2, 3]
-  >>> t['column2'] = [2, 4, 6]
-  >>> t.pprint(align=['<', '0='])
-    column1 column2
+  >>> t1 = Table()
+  >>> t1['column1'] = [1, 2, 3]
+  >>> t1['column2'] = [2, 4, 6]
+  >>> t1.pprint(align=['<', '0='])
+  column1 column2
   ------- -------
   1       0000002
   2       0000004
@@ -474,16 +474,46 @@ keyword argument ``align``::
 It is also possible to set the alignment of all columns with a single
 string value::
 
-  >>> t.pprint(align='^')
+  >>> t1.pprint(align='^')
   column1 column2
   ------- -------
      1       2
      2       4
      3       6
 
-Note that if the format of an individual column is set (e.g. to ``'7.3f'`` to
-control the numerical formatting) *and* you also want to control the alignment,
-that must be done via the ``align`` keyword.
+The fill character for justification can be set as a prefix to the
+alignment character (see `Format Specification Mini-Language
+<https://docs.python.org/3/library/string.html#format-specification-mini-language>`_
+for additional explanation).  This can be done both in the ``align`` argument
+and in the column ``format`` attribute.  Note the interesting interaction below::
+
+  >>> t1 = Table([[1.0, 2.0], [1, 2]], names=['column1', 'column2'])
+
+  >>> t1['column1'].format = '#^.2f'
+  >>> t1.pprint()
+  column1 column2
+  ------- -------
+  ##1.00#       1
+  ##2.00#       2
+
+Now if we set a global align, it seems like our original column format
+got lost::
+
+  >>> t1.pprint(align='!<')
+  column1 column2
+  ------- -------
+  1.00!!! 1!!!!!!
+  2.00!!! 2!!!!!!
+
+The way to avoid this is to explicitly specify the alignment strings
+for every column and use ``None`` where the column format should be
+used::
+
+  >>> t1.pprint(align=[None, '!<'])
+  column1 column2
+  ------- -------
+  ##1.00# 1!!!!!!
+  ##2.00# 2!!!!!!
 
 pformat() method
 ''''''''''''''''

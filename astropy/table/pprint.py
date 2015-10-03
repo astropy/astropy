@@ -8,6 +8,7 @@ from ..extern.six.moves import xrange
 
 import os
 import sys
+import re
 
 import numpy as np
 
@@ -273,20 +274,36 @@ class TableFormatter(object):
                 col_strs[outs['i_dashes']] = '-' * col_width
 
             # Format columns according to alignment.  `align` arg has precedent, otherwise
-            # use `col.format` if it is a legal alignment string.  If neither applies
+            # use `col.format` if it starts as a legal alignment string.  If neither applies
             # then right justify.
-            justify_methods = {'<': 'ljust', '^': 'center', '>': 'rjust', '0=': 'zfill'}
-            align = align or (col.info.format
-                              if col.info.format in justify_methods
-                              else '>')
+            re_fill_align = re.compile(r'(?P<fill>.?)(?P<align>[<^>=])')
+            match = None
+            if align:
+                # If there is an align specified then it must match
+                match = re_fill_align.match(align)
+                if not match:
+                    raise ValueError("column align must be one of '<', '^', '>', or '='")
+            elif isinstance(col.info.format, six.string_types):
+                # col.info.format need not match, in which case rjust gets used
+                match = re_fill_align.match(col.info.format)
 
-            # This can only occur if `align` was explicitly provided.
-            if align not in justify_methods:
-                raise ValueError("column align must be one of '<', '^', '>', or '0='")
+            if match:
+                fill_char = match.group('fill')
+                align_char = match.group('align')
+                if align_char == '=':
+                    if fill_char != '0':
+                        raise ValueError("fill character must be '0' for '=' align")
+                    fill_char = ''  # str.zfill gets used which does not take fill char arg
+            else:
+                fill_char = ''
+                align_char = '>'
 
-            justify_method = justify_methods[align]
+            justify_methods = {'<': 'ljust', '^': 'center', '>': 'rjust', '=': 'zfill'}
+            justify_method = justify_methods[align_char]
+            justify_args = (col_width, fill_char) if fill_char else (col_width,)
+
             for i, col_str in enumerate(col_strs):
-                col_strs[i] = getattr(col_str, justify_method)(col_width)
+                col_strs[i] = getattr(col_str, justify_method)(*justify_args)
 
         if outs['show_length']:
             col_strs.append('Length = {0} rows'.format(len(col)))
@@ -461,17 +478,12 @@ class TableFormatter(object):
 
         # Coerce align into a correctly-sized list of alignments (if possible)
         n_cols = len(table.columns)
-        if align is None:
-            align = [None] * n_cols
+        if align is None or isinstance(align, six.string_types):
+            align = [align] * n_cols
 
-        if isinstance(align, six.string_types):
-            align = [align]
-
-        if isinstance(align, (list, tuple)):
-            if len(align) == 1:
-                align = align * n_cols
-            elif len(align) != n_cols:
-                raise ValueError('got {0} alignment values instead of 1 or '
+        elif isinstance(align, (list, tuple)):
+            if len(align) != n_cols:
+                raise ValueError('got {0} alignment values instead of '
                                  'the number of columns ({1})'
                                  .format(len(align), n_cols))
         else:

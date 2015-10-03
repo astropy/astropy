@@ -588,7 +588,7 @@ def test_align():
            '--- ---',
            ' 1   b ',
            ' 2   c ']
-    for align in ('^', ['^'], ['^', '^'], ('^',), ('^', '^')):
+    for align in ('^', ['^', '^'], ('^', '^')):
         assert tpf == t.pformat(align=align)
 
     assert t.pformat(align='<') == [' a   b ',
@@ -605,6 +605,51 @@ def test_align():
                                            '1    b ',
                                            '2    c ']
 
+    # Now use fill characters.  Stress the system using a fill
+    # character that is the same as an align character.
+    t = simple_table(2, kinds='iS')
+
+    assert t.pformat(align='^^') == [' a   b ',
+                                     '--- ---',
+                                     '^1^ ^b^',
+                                     '^2^ ^c^']
+
+    assert t.pformat(align='^>') == [' a   b ',
+                                     '--- ---',
+                                     '^^1 ^^b',
+                                     '^^2 ^^c']
+
+    assert t.pformat(align='^<') == [' a   b ',
+                                     '--- ---',
+                                     '1^^ b^^',
+                                     '2^^ c^^']
+
+    # Complicated interaction (same as narrative docs example)
+    t1 = Table([[1.0, 2.0], [1, 2]], names=['column1', 'column2'])
+    t1['column1'].format = '#^.2f'
+
+    assert t1.pformat() == ['column1 column2',
+                            '------- -------',
+                            '##1.00#       1',
+                            '##2.00#       2']
+
+    assert t1.pformat(align='!<') ==  ['column1 column2',
+                                       '------- -------',
+                                       '1.00!!! 1!!!!!!',
+                                       '2.00!!! 2!!!!!!']
+
+    assert t1.pformat(align=[None, '!<']) == ['column1 column2',
+                                              '------- -------',
+                                              '##1.00# 1!!!!!!',
+                                              '##2.00# 2!!!!!!']
+
+    # Zero fill
+    t['a'].format = '+d'
+    assert t.pformat(align='0=') == [' a   b ',
+                                     '--- ---',
+                                     '+01 00b',
+                                     '+02 00c']
+
     with pytest.raises(ValueError):
         t.pformat(align=['fail'])
 
@@ -614,7 +659,11 @@ def test_align():
     with pytest.raises(TypeError):
         t.pprint(align=0)
 
+    # Make sure pprint() does not raise an exception
     t.pprint()
 
     with pytest.raises(ValueError):
         t.pprint(align=['<', '<', '<'])
+
+    with pytest.raises(ValueError):
+        t.pprint(align='x=')
