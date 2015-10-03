@@ -75,7 +75,7 @@ format::
 
     def identify_mtf(origin, *args, **kwargs):
         return (isinstance(args[0], six.string_types) and
-                os.path.splitext(args[0].lower())[1] == 'mtf')
+                os.path.splitext(args[0].lower())[1] == '.mtf')
 
 .. note:: Identifier functions should be prepared for arbitrary input - in
           particular, the first argument may not be a filename or file
