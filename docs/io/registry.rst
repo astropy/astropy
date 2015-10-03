@@ -33,8 +33,9 @@ let's assume that we are trying to write a reader/writer for the
 :class:`~astropy.table.Table` class::
 
     from astropy.table import Table
+
     def my_table_reader(filename, some_option=1):
-        ...  # Read in the table by any means necessary
+        # Read in the table by any means necessary
         return table  # should be an instance of Table
 
 Such a function can then be registered with the I/O registry::
@@ -69,8 +70,10 @@ expected for the format. In our example, we want to automatically recognize
 files with filenames ending in ``.mtf`` as being in the ``my-table-format``
 format::
 
+    from astropy.extern import six
+
     def identify_mtf(origin, *args, **kwargs):
-        return (isinstance(args[0], basestring) and
+        return (isinstance(args[0], six.string_types) and
                 args[0].lower().split('.')[-1] in ['mtf'])
 
 .. note:: Identifier functions should be prepared for arbitrary input - in
