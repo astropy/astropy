@@ -270,6 +270,8 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
                     "instance or `None` (where `None` restores the default "
                     "inverse for this model if one is defined.")
 
+            if not isinstance(value, (_CompoundModel, type(None))):
+                value = value.copy()
             self._custom_inverse = value
 
         cls.inverse = property(wrapped_fget, fset, doc=inverse.__doc__)
