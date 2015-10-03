@@ -43,7 +43,7 @@ Such a function can then be registered with the I/O registry::
     from astropy.io import registry
     registry.register_reader('my-table-format', Table, my_table_reader)
 
-where the first arguent is the name of the format, the second argument is the
+where the first argument is the name of the format, the second argument is the
 class that the function returns an instance for, and the third argument is the
 reader itself.
 
@@ -70,11 +70,12 @@ expected for the format. In our example, we want to automatically recognize
 files with filenames ending in ``.mtf`` as being in the ``my-table-format``
 format::
 
+    import os
     from astropy.extern import six
 
     def identify_mtf(origin, *args, **kwargs):
         return (isinstance(args[0], six.string_types) and
-                args[0].lower().split('.')[-1] in ['mtf'])
+                os.path.splitext(args[0].lower())[1] == 'mtf')
 
 .. note:: Identifier functions should be prepared for arbitrary input - in
           particular, the first argument may not be a filename or file
@@ -109,7 +110,7 @@ We then register the writer::
 
    registry.register_writer('my-custom-format', Table, my_table_writer)
 
-and we can write the table out to a file::
+We can write the table out to a file::
 
    t.write('catalog_new.mtf', format='my-table-format')
 
