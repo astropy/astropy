@@ -107,7 +107,7 @@ install:
     - if [[ $SETUP_CMD == build_sphinx* ]]; then $CONDA_INSTALL numpy=$NUMPY_VERSION Sphinx sphinx_rtd_theme matplotlib; fi
 
     # COVERAGE DEPENDENCIES
-    - if [[ $SETUP_CMD == 'test --coverage --remote-data' ]]; then $PIP_INSTALL coverage coveralls; fi
+    - if [[ $SETUP_CMD == 'test --coverage --remote-data' ]]; then $PIP_INSTALL coverage==3.7.1 coveralls; fi
 
 script:
     - python setup.py $SETUP_CMD
