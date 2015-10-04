@@ -337,7 +337,8 @@ class TestCutout2D(object):
         self.wcs = wcs
 
     def test_cutout(self):
-        sizes = [3, 3*u.pixel, (3, 3), (3*u.pixel, 3*u.pix), (3., 3*u.pixel)]
+        sizes = [3, 3*u.pixel, (3, 3), (3*u.pixel, 3*u.pix), (3., 3*u.pixel),
+                 (2.9, 3.3)]
         for size in sizes:
             position = (2.1, 1.9)
             c = Cutout2D(self.data, position, size)
@@ -365,8 +366,19 @@ class TestCutout2D(object):
             with pytest.raises(ValueError):
                 Cutout2D(self.data, (2, 2), size)
 
+    def test_size_pixel(self):
+        """
+        Check size in derived pixel units.
+        """
+        size = 0.3*u.arcsec / (0.1*u.arcsec/u.pixel)
+        c = Cutout2D(self.data, (2, 2), size)
+        assert c.data.shape == (3, 3)
+        assert c.data[0, 0] == 5
+        assert c.slices_original == (slice(1, 4), slice(1, 4))
+        assert c.slices_cutout == (slice(0, 3), slice(0, 3))
+
     def test_size_angle(self):
-        c = Cutout2D(self.data, (2, 2), (0.1* u.arcsec), wcs=self.wcs)
+        c = Cutout2D(self.data, (2, 2), (0.1*u.arcsec), wcs=self.wcs)
         assert c.data.shape == (2, 2)
         assert c.data[0, 0] == 5
         assert c.slices_original == (slice(1, 3), slice(1, 3))
