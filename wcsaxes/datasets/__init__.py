@@ -17,7 +17,7 @@ URL = 'http://data.astropy.org/'
 def fetch_hdu(filename, cache=True):
     """Download a FITS file to the cache and open HDU 0.
     """
-    path = download_file(URL + filename, cache=cache)
+    path = download_file(URL + filename, cache=cache, timeout=30)
     return fits.open(path)[0]
 
 
