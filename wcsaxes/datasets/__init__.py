@@ -1,6 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Downloads the FITS files that are used in image testing and for building documentation.
 """
+
+import time
+
 from astropy.utils.data import download_file
 from astropy.io import fits
 
@@ -11,13 +14,24 @@ __all__ = ['fetch_msx_hdu',
            'fetch_bolocam_hdu',
            ]
 
+MAX_RETRIES = 10
+TIME_BETWEEN_RETRIES = 5
 URL = 'http://data.astropy.org/'
 
 
 def fetch_hdu(filename, cache=True):
     """Download a FITS file to the cache and open HDU 0.
     """
-    path = download_file(URL + filename, cache=cache)
+    for retry in range(MAX_RETRIES):
+        try:
+            path = download_file(URL + filename, cache=cache, timeout=30)
+        except:
+            if retry == MAX_RETRIES - 1:
+                raise
+            else:
+                time.sleep(TIME_BETWEEN_RETRIES)
+        else:
+            break
     return fits.open(path)[0]
 
 
