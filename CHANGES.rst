@@ -196,6 +196,8 @@ New Features
   - Added a ``tableclass`` option to ``Table.pformat()`` to allow specifying
     a list of CSS classes added to the HTML table. [#4131]
 
+  - New CSS for jsviewer table [#2917, #2982, #4174]
+
 - ``astropy.tests``
 
   - Added new test config options, ``config_dir`` and ``cache_dir``  (these
@@ -1369,8 +1371,6 @@ New Features
     ``astropy.units.Quantity`` objects. [#2950]
 
   - Add ``unique`` convenience method to table. [#3185]
-
-  - New CSS for jsviewer table [#2917, #2982, #4174]
 
 - ``astropy.tests``
 
