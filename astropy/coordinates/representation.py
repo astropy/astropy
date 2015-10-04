@@ -42,8 +42,12 @@ class MetaBaseRepresentation(type):
         if cls.__name__ == 'BaseRepresentation':
             return
 
-        REPRESENTATION_CLASSES[cls.get_name()] = cls
+        repr_name = cls.get_name()
 
+        if repr_name in REPRESENTATION_CLASSES:
+            raise ValueError("Representation class {0} already defined".format(repr_name))
+
+        REPRESENTATION_CLASSES[repr_name] = cls
 
 def _fstyle(precision, x):
     fmt_str = '{0:.{precision}f}'

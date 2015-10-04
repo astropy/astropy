@@ -4,6 +4,8 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+from copy import deepcopy
+
 import numpy as np
 from numpy.testing import assert_allclose
 
@@ -11,11 +13,21 @@ from ... import units as u
 from ...tests.helper import pytest
 from ..angles import Longitude, Latitude, Angle
 from ..distances import Distance
-from ..representation import (SphericalRepresentation,
+from ..representation import (REPRESENTATION_CLASSES,
+                              SphericalRepresentation,
                               UnitSphericalRepresentation,
                               CartesianRepresentation,
                               CylindricalRepresentation,
                               PhysicsSphericalRepresentation)
+
+
+def setup_function(func):
+    func.REPRESENTATION_CLASSES_ORIG = deepcopy(REPRESENTATION_CLASSES)
+
+
+def teardown_function(func):
+    REPRESENTATION_CLASSES.clear()
+    REPRESENTATION_CLASSES.update(func.REPRESENTATION_CLASSES_ORIG)
 
 
 def assert_allclose_quantity(q1, q2):
