@@ -40,7 +40,7 @@ User Documentation
 
 .. only:: html
 
-    :doc:`whatsnew/1.0`
+    :doc:`whatsnew/1.1`
     -------------------
 
 .. only:: latex
