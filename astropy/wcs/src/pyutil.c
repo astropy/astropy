@@ -11,6 +11,7 @@
 #include "astropy_wcs/docstrings.h"
 
 #include "wcsfix.h"
+#include "wcshdr.h"
 #include "wcsprintf.h"
 #include "wcsunits.h"
 
@@ -351,6 +352,16 @@ wcserr_fix_to_python_exc(const struct wcserr *err) {
     PyErr_SetString(exc, wcsprintf_buf());
   }
 }
+
+void
+wcshdr_err_to_python_exc(int status) {
+  if (status > 0 && status != WCSHDRERR_PARSER) {
+    PyErr_SetString(PyExc_MemoryError, "Memory allocation error");
+  } else {
+    PyErr_SetString(PyExc_ValueError, "Internal error in wcslib header parser");
+  }
+}
+
 
 /***************************************************************************
   Property helpers
