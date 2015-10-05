@@ -580,101 +580,13 @@ Other Changes and Additions
 1.0.5 (unreleased)
 ------------------
 
-New Features
-^^^^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.sphinx``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
-API Changes
-^^^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
 Bug Fixes
 ^^^^^^^^^
-
-- ``astropy.config``
 
 - ``astropy.constants``
 
   - Rename units -> unit and error -> uncertainty in the ``repr`` and ``str``
     of constants to match attribute names. [#4147]
-
-- ``astropy.convolution``
 
 - ``astropy.coordinates``
 
@@ -683,10 +595,6 @@ Bug Fixes
 
   - Fix the ``search_around_sky`` function to allow ``storekdtree`` to be 
     ``False`` as was intended. [#4082]
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
 
 - ``astropy.io.fits``
 
@@ -706,12 +614,6 @@ Bug Fixes
   - Fix bug where reading a file without a newline failed with an
     unrelated / unhelpful exception. [#4160]
 
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
 - ``astropy.modeling``
 
   - Cleaned up ``repr`` of models that have no parameters. [#4076]
@@ -723,8 +625,6 @@ Bug Fixes
     Initializing an ``NDData`` subclass from a parent instance
     (eg. ``NDDataArray`` from ``NDData``) now sets the attributes other than
     ``data`` as it should [#4137].
-
-- ``astropy.stats``
 
 - ``astropy.table``
 
@@ -739,10 +639,6 @@ Bug Fixes
     the url is correctly formatted for Windows. [#4132]
 
   - Fix NameError in table stack exception message. [#4213]
-
-- ``astropy.time``
-
-- ``astropy.units``
 
 - ``astropy.utils``
 
