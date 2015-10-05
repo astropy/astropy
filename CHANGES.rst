@@ -721,6 +721,9 @@ Bug Fixes
     (eg. ``NDDataArray`` from ``NDData``) now sets the attributes other than
     ``data`` as it should [#4137].
 
+  - ``NDDataBase`` now tries to set the ``parent_nddata`` attribute of the
+    uncertainty. [#4170]
+
 - ``astropy.stats``
 
 - ``astropy.table``

@@ -89,4 +89,10 @@ class NDDataBase(object):
 
                 raise TypeError('Uncertainty must have attribute '
                                 'uncertainty_type whose type is string.')
+            #Try setting the parent for the uncertainty. This is currently an
+            #enforced requirement for `StdDevUncertainty` for error propagation.
+            try:
+                value.parent_nddata = self
+            except AttributeError:
+                pass
         self._uncertainty = value
