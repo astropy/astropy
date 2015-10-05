@@ -42,8 +42,12 @@ class MetaBaseRepresentation(type):
         if cls.__name__ == 'BaseRepresentation':
             return
 
-        REPRESENTATION_CLASSES[cls.get_name()] = cls
+        repr_name = cls.get_name()
 
+        if repr_name in REPRESENTATION_CLASSES:
+            raise ValueError("Representation class {0} already defined".format(repr_name))
+
+        REPRESENTATION_CLASSES[repr_name] = cls
 
 def _fstyle(precision, x):
     fmt_str = '{0:.{precision}f}'
@@ -287,125 +291,6 @@ class CartesianRepresentation(BaseRepresentation):
         return self
 
 
-class SphericalRepresentation(BaseRepresentation):
-    """
-    Representation of points in 3D spherical coordinates.
-
-    Parameters
-    ----------
-    lon, lat : `~astropy.units.Quantity`
-        The longitude and latitude of the point(s), in angular units. The
-        latitude should be between -90 and 90 degrees, and the longitude will
-        be wrapped to an angle between 0 and 360 degrees. These can also be
-        instances of `~astropy.coordinates.Angle`,
-        `~astropy.coordinates.Longitude`, or `~astropy.coordinates.Latitude`.
-
-    distance : `~astropy.units.Quantity`
-        The distance to the point(s). If the distance is a length, it is
-        passed to the :class:`~astropy.coordinates.Distance` class, otherwise
-        it is passed to the :class:`~astropy.units.Quantity` class.
-
-    copy : bool, optional
-        If True arrays will be copied rather than referenced.
-    """
-
-    attr_classes = OrderedDict([('lon', Longitude),
-                                ('lat', Latitude),
-                                ('distance', u.Quantity)])
-    recommended_units = {'lon': u.deg, 'lat': u.deg}
-
-    def __init__(self, lon, lat, distance, copy=True):
-
-        if not isinstance(lon, u.Quantity) or isinstance(lon, Latitude):
-            raise TypeError('lon should be a Quantity, Angle, or Longitude')
-
-        if not isinstance(lat, u.Quantity) or isinstance(lat, Longitude):
-            raise TypeError('lat should be a Quantity, Angle, or Latitude')
-
-        # Let the Longitude and Latitude classes deal with e.g. parsing
-        lon = self.attr_classes['lon'](lon, copy=copy)
-        lat = self.attr_classes['lat'](lat, copy=copy)
-
-        distance = self.attr_classes['distance'](distance, copy=copy)
-        if distance.unit.physical_type == 'length':
-            distance = distance.view(Distance)
-
-        try:
-            lon, lat, distance = broadcast_arrays(lon, lat, distance,
-                                                  subok=True)
-        except ValueError:
-            raise ValueError("Input parameters lon, lat, and distance cannot be broadcast")
-
-        self._lon = lon
-        self._lat = lat
-        self._distance = distance
-
-    @property
-    def lon(self):
-        """
-        The longitude of the point(s).
-        """
-        return self._lon
-
-    @property
-    def lat(self):
-        """
-        The latitude of the point(s).
-        """
-        return self._lat
-
-    @property
-    def distance(self):
-        """
-        The distance from the origin to the point(s).
-        """
-        return self._distance
-
-    def represent_as(self, other_class):
-        # Take a short cut if the other class is a spherical representation
-        if other_class is PhysicsSphericalRepresentation:
-            return PhysicsSphericalRepresentation(phi=self.lon,
-                                                  theta=90 * u.deg - self.lat,
-                                                  r=self.distance)
-        elif other_class is UnitSphericalRepresentation:
-            return UnitSphericalRepresentation(lon=self.lon, lat=self.lat)
-        else:
-            return super(SphericalRepresentation, self).represent_as(other_class)
-
-    def to_cartesian(self):
-        """
-        Converts spherical polar coordinates to 3D rectangular cartesian
-        coordinates.
-        """
-
-        # We need to convert Distance to Quantity to allow negative values.
-        if isinstance(self.distance, Distance):
-            d = self.distance.view(u.Quantity)
-        else:
-            d = self.distance
-
-        x = d * np.cos(self.lat) * np.cos(self.lon)
-        y = d * np.cos(self.lat) * np.sin(self.lon)
-        z = d * np.sin(self.lat)
-
-        return CartesianRepresentation(x=x, y=y, z=z)
-
-    @classmethod
-    def from_cartesian(cls, cart):
-        """
-        Converts 3D rectangular cartesian coordinates to spherical polar
-        coordinates.
-        """
-
-        s = np.hypot(cart.x, cart.y)
-        r = np.hypot(s, cart.z)
-
-        lon = np.arctan2(cart.y, cart.x)
-        lat = np.arctan2(cart.z, s)
-
-        return cls(lon=lon, lat=lat, distance=r)
-
-
 class UnitSphericalRepresentation(BaseRepresentation):
     """
     Representation of points on a unit sphere.
@@ -460,8 +345,6 @@ class UnitSphericalRepresentation(BaseRepresentation):
         """
         return self._lat
 
-    # TODO: implement represent_as for efficient transformations
-
     def to_cartesian(self):
         """
         Converts spherical polar coordinates to 3D rectangular cartesian
@@ -490,14 +373,132 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
     def represent_as(self, other_class):
         # Take a short cut if the other clsss is a spherical representation
-        if other_class is PhysicsSphericalRepresentation:
-            return PhysicsSphericalRepresentation(phi=self.lon,
-                                                  theta=90 * u.deg - self.lat,
-                                                  r=1.0)
-        elif other_class is SphericalRepresentation:
-            return SphericalRepresentation(lon=self.lon, lat=self.lat, distance=1.0)
+        if issubclass(other_class, PhysicsSphericalRepresentation):
+            return other_class(phi=self.lon, theta=90 * u.deg - self.lat, r=1.0)
+        elif issubclass(other_class, SphericalRepresentation):
+            return other_class(lon=self.lon, lat=self.lat, distance=1.0)
         else:
             return super(UnitSphericalRepresentation, self).represent_as(other_class)
+
+
+class SphericalRepresentation(BaseRepresentation):
+    """
+    Representation of points in 3D spherical coordinates.
+
+    Parameters
+    ----------
+    lon, lat : `~astropy.units.Quantity`
+        The longitude and latitude of the point(s), in angular units. The
+        latitude should be between -90 and 90 degrees, and the longitude will
+        be wrapped to an angle between 0 and 360 degrees. These can also be
+        instances of `~astropy.coordinates.Angle`,
+        `~astropy.coordinates.Longitude`, or `~astropy.coordinates.Latitude`.
+
+    distance : `~astropy.units.Quantity`
+        The distance to the point(s). If the distance is a length, it is
+        passed to the :class:`~astropy.coordinates.Distance` class, otherwise
+        it is passed to the :class:`~astropy.units.Quantity` class.
+
+    copy : bool, optional
+        If True arrays will be copied rather than referenced.
+    """
+
+    attr_classes = OrderedDict([('lon', Longitude),
+                                ('lat', Latitude),
+                                ('distance', u.Quantity)])
+    recommended_units = {'lon': u.deg, 'lat': u.deg}
+
+    _unit_representation = UnitSphericalRepresentation
+
+    def __init__(self, lon, lat, distance, copy=True):
+
+        if not isinstance(lon, u.Quantity) or isinstance(lon, Latitude):
+            raise TypeError('lon should be a Quantity, Angle, or Longitude')
+
+        if not isinstance(lat, u.Quantity) or isinstance(lat, Longitude):
+            raise TypeError('lat should be a Quantity, Angle, or Latitude')
+
+        # Let the Longitude and Latitude classes deal with e.g. parsing
+        lon = self.attr_classes['lon'](lon, copy=copy)
+        lat = self.attr_classes['lat'](lat, copy=copy)
+
+        distance = self.attr_classes['distance'](distance, copy=copy)
+        if distance.unit.physical_type == 'length':
+            distance = distance.view(Distance)
+
+        try:
+            lon, lat, distance = broadcast_arrays(lon, lat, distance,
+                                                  subok=True)
+        except ValueError:
+            raise ValueError("Input parameters lon, lat, and distance cannot be broadcast")
+
+        self._lon = lon
+        self._lat = lat
+        self._distance = distance
+
+    @property
+    def lon(self):
+        """
+        The longitude of the point(s).
+        """
+        return self._lon
+
+    @property
+    def lat(self):
+        """
+        The latitude of the point(s).
+        """
+        return self._lat
+
+    @property
+    def distance(self):
+        """
+        The distance from the origin to the point(s).
+        """
+        return self._distance
+
+    def represent_as(self, other_class):
+        # Take a short cut if the other class is a spherical representation
+        if issubclass(other_class, PhysicsSphericalRepresentation):
+            return other_class(phi=self.lon, theta=90 * u.deg - self.lat,
+                               r=self.distance)
+        elif issubclass(other_class, UnitSphericalRepresentation):
+            return other_class(lon=self.lon, lat=self.lat)
+        else:
+            return super(SphericalRepresentation, self).represent_as(other_class)
+
+    def to_cartesian(self):
+        """
+        Converts spherical polar coordinates to 3D rectangular cartesian
+        coordinates.
+        """
+
+        # We need to convert Distance to Quantity to allow negative values.
+        if isinstance(self.distance, Distance):
+            d = self.distance.view(u.Quantity)
+        else:
+            d = self.distance
+
+        x = d * np.cos(self.lat) * np.cos(self.lon)
+        y = d * np.cos(self.lat) * np.sin(self.lon)
+        z = d * np.sin(self.lat)
+
+        return CartesianRepresentation(x=x, y=y, z=z)
+
+    @classmethod
+    def from_cartesian(cls, cart):
+        """
+        Converts 3D rectangular cartesian coordinates to spherical polar
+        coordinates.
+        """
+
+        s = np.hypot(cart.x, cart.y)
+        r = np.hypot(s, cart.z)
+
+        lon = np.arctan2(cart.y, cart.x)
+        lat = np.arctan2(cart.z, s)
+
+        return cls(lon=lon, lat=lat, distance=r)
 
 
 class PhysicsSphericalRepresentation(BaseRepresentation):
@@ -587,13 +588,11 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
 
     def represent_as(self, other_class):
         # Take a short cut if the other clsss is a spherical representation
-        if other_class is SphericalRepresentation:
-            return SphericalRepresentation(lon=self.phi,
-                                           lat=90 * u.deg - self.theta,
-                                           distance=self.r)
-        elif other_class is UnitSphericalRepresentation:
-            return UnitSphericalRepresentation(lon=self.phi,
-                                               lat=90 * u.deg - self.theta)
+        if issubclass(other_class, SphericalRepresentation):
+            return other_class(lon=self.phi, lat=90 * u.deg - self.theta,
+                               distance=self.r)
+        elif issubclass(other_class, UnitSphericalRepresentation):
+            return other_class(lon=self.phi, lat=90 * u.deg - self.theta)
         else:
             return super(PhysicsSphericalRepresentation, self).represent_as(other_class)
 

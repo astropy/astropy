@@ -561,7 +561,7 @@ class BaseCoordinateFrame(object):
                     del repr_kwargs['distance']
                 if (issubclass(self.representation, SphericalRepresentation) and
                         'distance' not in repr_kwargs):
-                    representation_data = UnitSphericalRepresentation(**repr_kwargs)
+                    representation_data = self.representation._unit_representation(**repr_kwargs)
                 else:
                     representation_data = self.representation(**repr_kwargs)
 
@@ -709,7 +709,6 @@ class BaseCoordinateFrame(object):
             if repr_unit:
                 out[repr_name] = repr_unit
         return out
-
 
     def realize_frame(self, representation):
         """
@@ -1103,14 +1102,14 @@ class BaseCoordinateFrame(object):
 
         from .distances import Distance
 
-        if self.data.__class__ == UnitSphericalRepresentation:
+        if issubclass(self.data.__class__, UnitSphericalRepresentation):
             raise ValueError('This object does not have a distance; cannot '
                              'compute 3d separation.')
 
         # do this first just in case the conversion somehow creates a distance
         other_in_self_system = other.transform_to(self)
 
-        if other_in_self_system.__class__ == UnitSphericalRepresentation:
+        if issubclass(other_in_self_system.__class__, UnitSphericalRepresentation):
             raise ValueError('The other object does not have a distance; '
                              'cannot compute 3d separation.')
 
