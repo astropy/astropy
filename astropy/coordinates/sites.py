@@ -113,6 +113,7 @@ class SiteRegistry(Mapping):
             location.info.name = site_info['name']
 
             reg.add_site([site] + site_info['aliases'], location)
+        reg._loaded_jsondb = jsondb
         return reg
 
 
