@@ -1,4 +1,157 @@
-﻿1.1 (unreleased)
+﻿1.2 (unreleased)
+----------------
+
+New Features
+^^^^^^^^^^^^
+
+- ``astropy.analytic_functions``
+
+- ``astropy.config``
+
+- ``astropy.conftest.py``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.votable``
+
+- ``astropy.logger.py``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.tests``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.visualization``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+API changes
+^^^^^^^^^^^
+
+- ``astropy.analytic_functions``
+
+- ``astropy.config``
+
+- ``astropy.conftest.py``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.votable``
+
+- ``astropy.logger.py``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.tests``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.visualization``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+Bug fixes
+^^^^^^^^^
+
+- ``astropy.analytic_functions``
+
+- ``astropy.config``
+
+- ``astropy.conftest.py``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.votable``
+
+- ``astropy.logger.py``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.tests``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.visualization``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+1.1 (unreleased)
 ----------------
 
 New Features
