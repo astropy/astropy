@@ -703,17 +703,13 @@ class Table(object):
         table.meta.update(deepcopy(self.meta))
         cols = self.columns.values()
 
+        newcols = []
         for col in cols:
             col.info._copy_indices = self._copy_indices
-
-        def _get_slice(col, slice_):
-            out = col[slice_]
+            newcol = col[slice_]
             if col.info.indices:
-                out = col.info.slice_indices(out, slice_, len(col))
-            return out
-
-        newcols = [_get_slice(col, slice_) for col in cols]
-        for col in cols:
+                newcol = col.info.slice_indices(newcol, slice_, len(col))
+            newcols.append(newcol)
             col.info._copy_indices = True
 
         self._make_table_from_cols(table, newcols)
@@ -2576,4 +2572,3 @@ class NdarrayMixin(np.ndarray):
         nd_state, own_state = state
         super(NdarrayMixin, self).__setstate__(nd_state)
         self.__dict__.update(own_state)
-
