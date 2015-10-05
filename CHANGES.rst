@@ -175,6 +175,9 @@ Bug Fixes
     This should supress a ShimWarning that was appearing at
     import of astropy with IPython 4.0 or later. [#4078]
 
+  - Temporary downloaded files created by ``get_readable_fileobj`` when passed
+    a URL are now deleted immediately after the file is closed. [#4198]
+
 - ``astropy.visualization``
 
   - The color for axes labels was set to white. Since white labels on white
