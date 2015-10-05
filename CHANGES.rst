@@ -39,6 +39,9 @@ New Features
   - Added ``Supergalactic`` frame to support de Vaucouleurs supergalactic
     coordinates. [#3892]
 
+  - Added functionality to support getting the locations of observatories by
+    name. See ``astropy.coordinates.EarthLocation.of_site``. [#4042]
+
   - Added ecliptic coordinates, including ``GeocentricTrueEcliptic``,
     ``BarycentricTrueEcliptic``, and ``HeliocentricTrueEcliptic``. [#3749]
 

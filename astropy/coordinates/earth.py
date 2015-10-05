@@ -2,10 +2,12 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+from warnings import warn
+
 import numpy as np
 from .. import units as u
-from .. import _erfa as erfa
-from ..utils import OrderedDict
+from ..extern import six
+from ..utils.exceptions import AstropyUserWarning
 from . import Longitude, Latitude
 
 try:
@@ -174,6 +176,122 @@ class EarthLocation(u.Quantity):
         self._ellipsoid = ellipsoid
         return self.to(height.unit)
 
+    @classmethod
+    def of_site(cls, site_name):
+        """
+        Return an object of this class for a known observatory/site by name.
+
+        This is intended as a quick convenience function to get basic site
+        information, not a fully-featured exhaustive registry of observatories
+        and all their properties.
+
+        .. note::
+            When this function is called, it will first attempt to
+            download site information from the astropy data server.  If it
+            cannot (i.e., an internet connection is not available), it will fall
+            back on the list included with astropy (which is a limited and dated
+            set of sites).  If you think a site should be added, issue a pull
+            request to the
+            `astropy-data repository <https://github.com/astropy/astropy-data>`_ .
+
+        Parameters
+        ----------
+        site_name : str
+            Name of the observatory (case-insensitive).
+
+        Returns
+        -------
+        site : This class (a `~astropy.coordinates.EarthLocation` or subclass)
+            The location of the observatory.
+
+        See Also
+        --------
+        get_site_names : the list of sites that this function can access
+        """
+        el = cls._get_site_registry()[site_name]
+
+        if cls is el.__class__:
+            return el
+        else:
+            neweel = cls.from_geodetic(*el.to_geodetic())
+            newel.info.name = el.info.name
+            return newel
+
+    @classmethod
+    def get_site_names(cls):
+        """
+        Get list of names of observatories for use with
+        `~astropy.coordinates.EarthLocation.of_site`.
+
+        .. note::
+            When this function is called, it will first attempt to
+            download site information from the astropy data server.  If it
+            cannot (i.e., an internet connection is not available), it will fall
+            back on the list included with astropy (which is a limited and dated
+            set of sites).  If you think a site should be added, issue a pull
+            request to the
+            `astropy-data repository <https://github.com/astropy/astropy-data>`_ .
+
+
+        Returns
+        -------
+        names : list of str
+            List of valid observatory names
+
+        See Also
+        --------
+        of_site : Gets the actual location object for one of the sites names
+                  this returns.
+        """
+        return cls._get_site_registry().names
+
+    @classmethod
+    def _get_site_registry(cls, force_download=False, force_builtin=False):
+        """
+        Gets the site registry.  The first time this either downloads or loads
+        from the data file packaged with astropy.  Subsequent calls will use the
+        cached version unless explicitly overridden.
+
+        Parameters
+        ----------
+        force_download : bool or str
+            If not False, force replacement of the cached registry with a
+            downloaded version. If a str, that will be used as the URL to
+            download from (if just True, the default URL will be used).
+        force_builtin : bool
+            If True, load from the data file bundled with astropy and set the
+            cache to that.
+
+        returns
+        -------
+        reg : astropy.coordinates.sites.SiteRegistry
+        """
+        if force_builtin and force_download:
+            raise ValueError('Cannot have both force_builtin and force_download True')
+
+        if force_builtin:
+            reg = cls._site_registry = get_builtin_sites()
+        else:
+            reg = getattr(cls, '_site_registry', None)
+            if force_download or not reg:
+                try:
+                    if isinstance(force_download, six.string_types):
+                        reg = get_downloaded_sites(force_download)
+                    else:
+                        reg = get_downloaded_sites()
+                except six.moves.urllib.error.URLError:
+                    if force_download:
+                        raise
+                    msg = ('Could not access the online site list. Falling '
+                           'back on the built-in version, which is rather '
+                           'limited. If you want to retry the download, do '
+                           '{0}._get_site_registry(force_download=True)')
+                    warn(AstropyUserWarning(msg.format(cls.__name__)))
+                    reg = get_builtin_sites()
+                cls._site_registry = reg
+
+        return reg
+
     @property
     def ellipsoid(self):
         """The default ellipsoid used to convert to geodetic coordinates."""
@@ -296,3 +414,7 @@ class EarthLocation(u.Quantity):
         return self._new_view(converted.view(self.dtype).reshape(self.shape),
                               unit)
     to.__doc__ = u.Quantity.to.__doc__
+
+
+# need to do this here at the bottom to avoid circular dependencies
+from .sites import get_builtin_sites, get_downloaded_sites

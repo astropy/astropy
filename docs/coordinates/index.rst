@@ -199,12 +199,24 @@ for a particular named object::
     <SkyCoord (ICRS): (ra, dec) in deg
         (83.82208, -5.39111)>
 
-.. note::
+For sites (primarily observatories) on the Earth, `astropy.coordinates` provides
+a similar quick way to get an `~astropy.coordinates.EarthLocation`::
 
-    `~astropy.coordinates.SkyCoord.from_name` is intended to be a convenience,
-    and is rather simple. If you need precise coordinates for an object you
-    should find the appropriate reference for that measurement and input the
-    coordinates manually.
+    >>> from astropy.coordinates import EarthLocation
+    >>> EarthLocation.of_site('Apache Point Observatory')  # doctest: +REMOTE_DATA +FLOAT_CMP
+    <EarthLocation (-1463969.3018517173, -5166673.342234327, 3434985.7120456537) m>
+
+To see the list of site names available, use
+:func:`astropy.coordinates.EarthLocation.get_site_names`.
+
+.. note::
+    `~astropy.coordinates.SkyCoord.from_name` and
+    `~astropy.coordinates.EarthLocation.of_site` are for convenience, and hence
+    are by design rather simple. If you need precise coordinates for an object
+    you should find the appropriate reference and input the coordinates
+    manually, or use more specialized functionality like that in the
+    `astroquery <http://www.astropy.org/astroquery/>`_ or
+    `astroplan <http://astroplan.readthedocs.org/>`_ affiliated packages.
 
 
 .. _astropy-coordinates-overview:
