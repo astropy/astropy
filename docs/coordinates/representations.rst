@@ -183,5 +183,5 @@ A representation class may also have a ``_unit_representation`` attribute
 (although it is not required). This attribute points to the appropriate
 "unit" representation (i.e., a representation that is dimensionless). This is
 probably only meaningful for subclasses of
-`~astropy.coordinates.SphericalRepresentation`, but may be useful for other
-domain-specific representations.
+`~astropy.coordinates.SphericalRepresentation`, where it is assumed that it
+will be a subclass of `~astropy.coordinates.UnitSphericalRepresentation`.
