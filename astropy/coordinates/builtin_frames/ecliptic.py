@@ -39,25 +39,16 @@ class GeocentricTrueEcliptic(BaseCoordinateFrame):
     ----------
     representation : `BaseRepresentation` or None
         A representation object or None to have no data (or use the other keywords)
-    lam : `Angle`, optional, must be keyword
-        The ecliptic longitude for this object (``beta`` must also be given and
+    lon : `Angle`, optional, must be keyword
+        The ecliptic longitude for this object (``lat`` must also be given and
         ``representation`` must be None).
-    beta : `Angle`, optional, must be keyword
-        The ecliptic latitde for this object (``lam`` must also be given and
+    lat : `Angle`, optional, must be keyword
+        The ecliptic latitde for this object (``lon`` must also be given and
         ``representation`` must be None).
-    delta : `~astropy.units.Quantity`, optional, must be keyword
+    distance : `~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object from the geocenter.
         (``representation`` must be None).
     """
-
-    frame_specific_representation_info = {
-        'unitspherical': [RepresentationMapping('lon', 'lam'),
-                          RepresentationMapping('lat', 'beta')]
-    }
-    frame_specific_representation_info['spherical'] = \
-        frame_specific_representation_info['unitspherical'] + \
-        [RepresentationMapping('distance', 'delta')]
-
     default_representation = SphericalRepresentation
 
     equinox = TimeFrameAttribute(default=EQUINOX_J2000)
@@ -97,15 +88,6 @@ class BarycentricTrueEcliptic(BaseCoordinateFrame):
         The Distance for this object from the sun's center.
         (``representation`` must be None).
     """
-
-    frame_specific_representation_info = {
-        'unitspherical': [RepresentationMapping('lon', 'l'),
-                          RepresentationMapping('lat', 'b')]
-    }
-    frame_specific_representation_info['spherical'] = \
-        frame_specific_representation_info['unitspherical'] + \
-        [RepresentationMapping('distance', 'r')]
-
     default_representation = SphericalRepresentation
 
     equinox = TimeFrameAttribute(default=EQUINOX_J2000)
@@ -145,15 +127,6 @@ class HeliocentricTrueEcliptic(BaseCoordinateFrame):
         The Distance for this object from the sun's center.
         (``representation`` must be None).
     """
-
-    frame_specific_representation_info = {
-        'unitspherical': [RepresentationMapping('lon', 'l'),
-                          RepresentationMapping('lat', 'b')]
-    }
-    frame_specific_representation_info['spherical'] = \
-        frame_specific_representation_info['unitspherical'] + \
-        [RepresentationMapping('distance', 'r')]
-
     default_representation = SphericalRepresentation
 
     equinox = TimeFrameAttribute(default=EQUINOX_J2000)

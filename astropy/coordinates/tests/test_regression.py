@@ -135,8 +135,8 @@ def test_regression_4210():
     """
     crd = SkyCoord(0*u.deg, 0*u.deg, distance=1*u.AU)
     ecl = crd.geocentrictrueecliptic
-    # bug was that "lambda" is a reserved keyword! So this just exercises
-    # the "lamb" attribute to make sure it actually works
-    ecl.lamb
-    ecl.beta
-    ecl.delta
+    # bug was that "lambda", which at the time was the name of the geocentric
+    # ecliptic longitude, is a reserved keyword. So this just makes sure the
+    # new name is are all valid
+    ecl.lon
+
