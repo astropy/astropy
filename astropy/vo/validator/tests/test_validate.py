@@ -83,8 +83,8 @@ class TestConeSearchValidation(object):
         validate.check_conesearch_sites(destdir=local_outdir, parallel=False,
                                         url_list=local_list)
         self._compare_catnames(get_pkg_data_filename(
-            os.path.join(self.datadir, 'conesearch_good_subset.json')),
-            os.path.join(local_outdir, 'conesearch_good.json'))
+            os.path.join(self.datadir, self.filenames['good'])),
+            os.path.join(local_outdir, self.filenames['good']))
 
     def teardown_class(self):
         conf.reset('conesearch_master_list')
