@@ -200,8 +200,7 @@ for a particular named object::
         (83.82208, -5.39111)>
 
 For sites (primarily observatories) on the Earth, `astropy.coordinates` provides
-a similar quick way to get an `~astropy.coordinates.EarthLocation` for a site
-given a name::
+a similar quick way to get an `~astropy.coordinates.EarthLocation`::
 
     >>> from astropy.coordinates import EarthLocation
     >>> EarthLocation.of_site('Apache Point Observatory')  # doctest: +REMOTE_DATA +FLOAT_CMP
