@@ -14,8 +14,11 @@ import hashlib
 import io
 import os
 import sys
+import tempfile
+from ...extern.six.moves.urllib.request import pathname2url
 
-from ..data import _get_download_cache_locs, CacheMissingWarning
+from ..data import (_get_download_cache_locs, CacheMissingWarning,
+                    get_pkg_data_filename, get_readable_fileobj)
 
 TESTURL = 'http://www.astropy.org'
 
@@ -344,3 +347,24 @@ def test_invalid_location_download_noconnect():
     # This should invoke socket's monkeypatched failure
     with pytest.raises(IOError):
         download_file('http://astropy.org/nonexistentfile')
+
+
+def test_get_readable_fileobj_cleans_up_temporary_files(tmpdir, monkeypatch):
+    """checks that get_readable_fileobj leaves no temporary files behind"""
+    # Create a 'file://' URL pointing to a path on the local filesystem
+    local_filename = get_pkg_data_filename(os.path.join('data', 'local.dat'))
+    url = 'file://' + pathname2url(local_filename)
+
+    # Save temporary files to a known location
+    monkeypatch.setattr(tempfile, 'tempdir', str(tmpdir))
+
+    # Call get_readable_fileobj() as a context manager
+    with get_readable_fileobj(url) as fileobj:
+        pass
+
+    # Get listing of files in temporary directory
+    tempdir_listing = tmpdir.listdir()
+
+    # Assert that the temporary file was empty after get_readable_fileobj()
+    # context manager finished running
+    assert len(tempdir_listing) == 0

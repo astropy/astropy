@@ -189,7 +189,8 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
 
     # Get a file object to the content
     if isinstance(name_or_obj, six.string_types):
-        if _is_url(name_or_obj):
+        is_url = _is_url(name_or_obj)
+        if is_url:
             name_or_obj = download_file(
                 name_or_obj, cache=cache, show_progress=show_progress,
                 timeout=remote_timeout)
@@ -197,6 +198,8 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
             fileobj = io.FileIO(name_or_obj, 'r')
         elif six.PY2:
             fileobj = open(name_or_obj, 'rb')
+        if is_url and not cache:
+            delete_fds.append(fileobj)
         close_fds.append(fileobj)
     else:
         fileobj = name_or_obj
