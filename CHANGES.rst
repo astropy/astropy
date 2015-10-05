@@ -577,7 +577,141 @@ Other Changes and Additions
   [#4203]
 
 
-1.0.5 (unreleased)
+1.0.6 (unreleased)
+------------------
+
+New Features
+^^^^^^^^^^^^
+
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.sphinx``
+
+- ``astropy.table``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+API Changes
+^^^^^^^^^^^
+
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Nothing changed yet.
+
+
+1.0.5 (2015-10-05)
 ------------------
 
 Bug Fixes
