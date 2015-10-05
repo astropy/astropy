@@ -132,6 +132,7 @@ def test_regression_4082():
 def test_regression_4210():
     """
     Issue: https://github.com/astropy/astropy/issues/4210
+    Related PR with actual change: https://github.com/astropy/astropy/pull/4211
     """
     crd = SkyCoord(0*u.deg, 0*u.deg, distance=1*u.AU)
     ecl = crd.geocentrictrueecliptic
@@ -139,4 +140,15 @@ def test_regression_4210():
     # ecliptic longitude, is a reserved keyword. So this just makes sure the
     # new name is are all valid
     ecl.lon
+
+    # and for good measure, check the other ecliptic systems are all the same
+    # names for their attributes
+    from ..builtin_frames import ecliptic
+    for frame_name in ecliptic.__all__:
+        eclcls = getattr(ecliptic, frame_name)
+        eclobj = eclcls(1*u.deg, 2*u.deg, 3*u.AU)
+
+        eclobj.lat
+        eclobj.lon
+        eclobj.distance
 
