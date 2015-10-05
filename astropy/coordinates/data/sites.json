@@ -131,17 +131,31 @@
             "Mt. Stromlo Observatory"
         ]
     },
-    "eso": {
+    "lasilla": {
         "source": "IRAF Observatory Database",
         "elevation": 2347,
-        "name": "European Southern Observatory",
+        "name": "La Silla Observatory (ESO)",
         "longitude_unit": "degree",
         "latitude_unit": "degree",
         "latitude": -29.256666666666668,
         "elevation_unit": "meter",
         "longitude": 289.27,
         "aliases": [
-            "European Southern Observatory"
+            "La Silla Observatory"
+        ]
+    },
+    "paranal": {
+        "source": "ESO webpage",
+        "elevation": 2635,
+        "name": "Paranal Observatory (ESO)",
+        "longitude_unit": "degree",
+        "latitude_unit": "degree",
+        "latitude": -24.6252
+        "elevation_unit": "meter",
+        "longitude": 289.597,
+        "aliases": [
+            "Cerro Paranal",
+            "Paranal Observatory"
         ]
     },
     "cfht": {
