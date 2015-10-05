@@ -345,8 +345,6 @@ class UnitSphericalRepresentation(BaseRepresentation):
         """
         return self._lat
 
-    # TODO: implement represent_as for efficient transformations
-
     def to_cartesian(self):
         """
         Converts spherical polar coordinates to 3D rectangular cartesian
@@ -376,7 +374,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
     def represent_as(self, other_class):
         # Take a short cut if the other clsss is a spherical representation
         if issubclass(other_class, PhysicsSphericalRepresentation):
-            return other_class(phi=self.lon,theta=90 * u.deg - self.lat, r=1.0)
+            return other_class(phi=self.lon, theta=90 * u.deg - self.lat, r=1.0)
         elif issubclass(other_class, SphericalRepresentation):
             return other_class(lon=self.lon, lat=self.lat, distance=1.0)
         else:
