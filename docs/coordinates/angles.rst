@@ -129,7 +129,7 @@ Longitude and Latitude objects
 |Longitude| and |Latitude| are two specialized subclasses of the |Angle|
 class that are used for all of the spherical coordinate classes.
 |Longitude| is used to represent values like right ascension, Galactic
-longitude, and azimuth (for ecliptic, Galactic, and Alt-Az coordinates,
+longitude, and azimuth (for Equatorial, Galactic, and Alt-Az coordinates,
 respectively).  |Latitude| is used for declination, Galactic latitude, and
 elevation.
 

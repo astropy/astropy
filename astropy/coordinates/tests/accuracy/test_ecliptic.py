@@ -20,7 +20,9 @@ def test_against_pytpm_doc_example():
     Currently this is only testing against the example given in the pytpm docs
     """
     fk5_in = FK5('12h22m54.899s', '15d49m20.57s', equinox='J2000')
-    pytpm_out = BarycentricTrueEcliptic(l=178.78256462*u.deg, b=16.7597002513*u.deg, equinox='J2000')
+    pytpm_out = BarycentricTrueEcliptic(lon=178.78256462*u.deg,
+                                        lat=16.7597002513*u.deg,
+                                        equinox='J2000')
     astropy_out = fk5_in.transform_to(pytpm_out)
 
     # we check w/i 1 arcmin because there are some subtle differences in pyTPM's ecl definition
@@ -39,7 +41,7 @@ def test_ecliptic_heliobary():
 
     # make sure there's a sizable distance shift - in 3d hundreds of km, but
     # this is 1D so we allow it to be somewhat smaller
-    assert np.abs(bary.r - helio.r) > 1*u.km
+    assert np.abs(bary.distance - helio.distance) > 1*u.km
 
     # now make something that's got the location of helio but in bary's frame.
     # this is a convenience to allow `separation` to work as expected
@@ -56,4 +58,4 @@ def test_ecl_geo():
     gcrs = GCRS(10*u.deg, 20*u.deg, distance=1.5*R_earth)
     gecl = gcrs.transform_to(GeocentricTrueEcliptic)
 
-    assert quantity_allclose(gecl.delta, gcrs.distance)
+    assert quantity_allclose(gecl.distance, gcrs.distance)

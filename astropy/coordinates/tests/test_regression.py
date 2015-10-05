@@ -127,3 +127,28 @@ def test_regression_4082():
     #also check 3d for good measure, although it's not really affected by this bug directly
     cat3d = SkyCoord([10.076,10.00455]*u.deg, [18.54746, 18.54896]*u.deg, distance=[0.1,1.5]*u.kpc)
     search_around_3d(cat3d[0:1], cat3d, 1*u.kpc, storekdtree=False)
+
+
+def test_regression_4210():
+    """
+    Issue: https://github.com/astropy/astropy/issues/4210
+    Related PR with actual change: https://github.com/astropy/astropy/pull/4211
+    """
+    crd = SkyCoord(0*u.deg, 0*u.deg, distance=1*u.AU)
+    ecl = crd.geocentrictrueecliptic
+    # bug was that "lambda", which at the time was the name of the geocentric
+    # ecliptic longitude, is a reserved keyword. So this just makes sure the
+    # new name is are all valid
+    ecl.lon
+
+    # and for good measure, check the other ecliptic systems are all the same
+    # names for their attributes
+    from ..builtin_frames import ecliptic
+    for frame_name in ecliptic.__all__:
+        eclcls = getattr(ecliptic, frame_name)
+        eclobj = eclcls(1*u.deg, 2*u.deg, 3*u.AU)
+
+        eclobj.lat
+        eclobj.lon
+        eclobj.distance
+
