@@ -802,8 +802,6 @@ Bug Fixes
     incomplete test query. It also ensures search radius for a test query
     is not too large to avoid timeout. [#4158, #4159]
 
-- ``astropy.wcs``
-
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
