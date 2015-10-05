@@ -178,3 +178,10 @@ Once you do this, you will then automatically be able to call
 ``represent_as`` to convert other representations to/from your representation
 class.  Your representation will also be available for use in |skycoord|
 and all frame classes.
+
+A representation class may also have a ``_unit_representation`` attribute
+(although it is not required). This attribute points to the appropriate
+"unit" representation (i.e., a representation that is dimensionless). This is
+probably only meaningful for subclasses of
+`~astropy.coordinates.SphericalRepresentation`, but may be useful for other
+domain-specific representations.
