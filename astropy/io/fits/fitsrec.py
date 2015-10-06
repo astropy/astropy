@@ -1034,7 +1034,7 @@ class FITS_rec(np.recarray):
                 if isinstance(self._coldefs, _AsciiColDefs):
                     self._scale_back_ascii(indx, dummy, field)
                 # binary table string column
-                elif isinstance(field, np.chararray):
+                elif isinstance(field, chararray.chararray):
                     self._scale_back_strings(indx, dummy, field)
                 # all other binary table columns
                 else:
@@ -1190,8 +1190,9 @@ def _get_recarray_field(array, key):
     # This is currently needed for backwards-compatibility and for
     # automatic truncation of trailing whitespace
     field = np.recarray.field(array, key)
-    if field.dtype.char in ('S', 'U') and not isinstance(field, np.chararray):
-        field = field.view(np.chararray)
+    if (field.dtype.char in ('S', 'U') and
+            not isinstance(field, chararray.chararray)):
+        field = field.view(chararray.chararray)
     return field
 
 
