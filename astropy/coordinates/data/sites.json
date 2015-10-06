@@ -1,17 +1,4 @@
 {
-    "tona": {
-        "source": "IRAF Observatory Database",
-        "elevation": 0,
-        "name": "Observatorio Astronomico Nacional, Tonantzintla",
-        "longitude_unit": "degree",
-        "latitude_unit": "degree",
-        "latitude": 19.032777777777778,
-        "elevation_unit": "meter",
-        "longitude": 261.68611111111113,
-        "aliases": [
-            "Observatorio Astronomico Nacional, Tonantzintla"
-        ]
-    },
     "lick": {
         "source": "IRAF Observatory Database",
         "elevation": 1290,
@@ -23,19 +10,6 @@
         "longitude": 238.36333333333332,
         "aliases": [
             "Lick Observatory"
-        ]
-    },
-    "mdm": {
-        "source": "IRAF Observatory Database",
-        "elevation": 1938,
-        "name": "Michigan-Dartmouth-MIT Observatory",
-        "longitude_unit": "degree",
-        "latitude_unit": "degree",
-        "latitude": 31.95,
-        "elevation_unit": "meter",
-        "longitude": 248.38333333333333,
-        "aliases": [
-            "Michigan-Dartmouth-MIT Observatory"
         ]
     },
     "lapalma": {
@@ -105,32 +79,6 @@
             "McDonald Observatory"
         ]
     },
-    "mtbigelow": {
-        "source": "IRAF Observatory Database",
-        "elevation": 2510,
-        "name": "Catalina Observatory: 61 inch telescope",
-        "longitude_unit": "degree",
-        "latitude_unit": "degree",
-        "latitude": 32.416666666666664,
-        "elevation_unit": "meter",
-        "longitude": 249.26833333333335,
-        "aliases": [
-            "Catalina Observatory"
-        ]
-    },
-    "mso": {
-        "source": "IRAF Observatory Database",
-        "elevation": 767,
-        "name": "Mt. Stromlo Observatory",
-        "longitude_unit": "degree",
-        "latitude_unit": "degree",
-        "latitude": -35.32065,
-        "elevation_unit": "meter",
-        "longitude": 149.02433333333335,
-        "aliases": [
-            "Mt. Stromlo Observatory"
-        ]
-    },
     "lasilla": {
         "source": "IRAF Observatory Database",
         "elevation": 2347,
@@ -150,7 +98,7 @@
         "name": "Paranal Observatory (ESO)",
         "longitude_unit": "degree",
         "latitude_unit": "degree",
-        "latitude": -24.6252
+        "latitude": -24.6252,
         "elevation_unit": "meter",
         "longitude": 289.597,
         "aliases": [
@@ -214,7 +162,7 @@
     "mmt": {
         "source": "IRAF Observatory Database",
         "elevation": 2608,
-        "name": "Whipple Observatory",
+        "name": "Multiple Mirror Telescope",
         "longitude_unit": "degree",
         "latitude_unit": "degree",
         "latitude": 31.688333333333333,
@@ -222,32 +170,6 @@
         "longitude": 249.11499999999998,
         "aliases": [
             "Multiple Mirror Telescope"
-        ]
-    },
-    "dao": {
-        "source": "IRAF Observatory Database",
-        "elevation": 229,
-        "name": "Dominion Astrophysical Observatory",
-        "longitude_unit": "degree",
-        "latitude_unit": "degree",
-        "latitude": 48.52166666666667,
-        "elevation_unit": "meter",
-        "longitude": 236.58333333333334,
-        "aliases": [
-            "Dominion Astrophysical Observatory"
-        ]
-    },
-    "bmo": {
-        "source": "IRAF Observatory Database",
-        "elevation": 738,
-        "name": "Black Moshannon Observatory",
-        "longitude_unit": "degree",
-        "latitude_unit": "degree",
-        "latitude": 40.92166666666667,
-        "elevation_unit": "meter",
-        "longitude": 281.995,
-        "aliases": [
-            "Black Moshannon Observatory"
         ]
     },
     "sso": {
@@ -290,83 +212,62 @@
             "Kitt Peak National Observatory"
         ]
     },
-    "aao": {
-        "source": "IRAF Observatory Database",
-        "elevation": 1164,
-        "name": "Anglo-Australian Observatory",
+    "haleakala": {
+        "source": "Ifa/University of Hawaii website",
+        "elevation": 3048,
+        "name": "Haleakala Observatories",
         "longitude_unit": "degree",
         "latitude_unit": "degree",
-        "latitude": -31.27703888888889,
+        "latitude": 20.71552,
         "elevation_unit": "meter",
-        "longitude": 149.06608611111113,
+        "longitude": 203.831,
         "aliases": [
-            "Anglo-Australian Observatory"
+            "Haleakala Observatories"
         ]
     },
-    "flwo": {
-        "source": "IRAF Observatory Database",
-        "elevation": 2320,
-        "name": "Whipple Observatory",
+    "gemini_south": {
+        "source": "CTIO Website",
+        "elevation": 2750,
+        "name": "Gemini South",
         "longitude_unit": "degree",
         "latitude_unit": "degree",
-        "latitude": 31.680944444444446,
+        "latitude": -30.24074166666667,
         "elevation_unit": "meter",
-        "longitude": 249.1225,
+        "longitude": 289.2633166666667,
         "aliases": [
-            "Whipple",
-            "Whipple Observatory"
+             "Cerro Pachon",
+             "Gemini South"
         ]
     },
-    "ekar": {
-        "source": "IRAF Observatory Database",
-        "elevation": 1413,
-        "name": "Mt. Ekar 182 cm. Telescope",
+    "lbt": {
+        "source": "LBT website",
+        "elevation": 2902,
+        "name": "Large Binocular Telescope",
         "longitude_unit": "degree",
         "latitude_unit": "degree",
-        "latitude": 45.84858888888889,
+        "latitude": 32.7016,
         "elevation_unit": "meter",
-        "longitude": 11.581133333333334,
+        "longitude": 250.1281,
         "aliases": [
-            "Mt. Ekar 182 cm. Telescope"
+             "Large Binocular Telescope",
+             "Mount Graham International Observatory",
+             "Mt Graham"
         ]
     },
-    "vbo": {
-        "source": "IRAF Observatory Database",
-        "elevation": 725,
-        "name": "Vainu Bappu Observatory",
+    "salt": {
+        "source": "SALT website & google maps",
+        "elevation": 1798,
+        "name": "Southern African Large Telescope",
         "longitude_unit": "degree",
         "latitude_unit": "degree",
-        "latitude": 12.57666,
+        "latitude": -32.375823,
         "elevation_unit": "meter",
-        "longitude": 78.8266,
+        "longitude": 20.810808,
         "aliases": [
-            "Vainu Bappu Observatory"
-        ]
-    },
-    "NOV": {
-        "source": "IRAF Observatory Database",
-        "elevation": 3610,
-        "name": "National Observatory of Venezuela",
-        "longitude_unit": "degree",
-        "latitude_unit": "degree",
-        "latitude": 8.79,
-        "elevation_unit": "meter",
-        "longitude": 289.1333333333333,
-        "aliases": [
-            "National Observatory of Venezuela"
-        ]
-    },
-    "spm": {
-        "source": "IRAF Observatory Database",
-        "elevation": 2830,
-        "name": "Observatorio Astronomico Nacional, San Pedro Martir",
-        "longitude_unit": "degree",
-        "latitude_unit": "degree",
-        "latitude": 31.029166666666665,
-        "elevation_unit": "meter",
-        "longitude": 244.51305555555555,
-        "aliases": [
-            "Observatorio Astronomico Nacional, San Pedro Martir"
+             "SALT",
+             "Southern African Large Telescope",
+             "SAAO",
+             "Sutherland"
         ]
     }
 }
