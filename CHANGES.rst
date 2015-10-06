@@ -1,4 +1,4 @@
-﻿1.1 (unreleased)
+1.1 (unreleased)
 ----------------
 
 New Features
