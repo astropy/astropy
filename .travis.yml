@@ -20,7 +20,7 @@ addons:
 env:
     global:
         # Set defaults to avoid repeating in most cases
-        - NUMPY_VERSION=1.9
+        - NUMPY_VERSION=1.10
         - OPTIONAL_DEPS=false
         - MAIN_CMD='python setup.py'
 
@@ -69,6 +69,8 @@ matrix:
           env: PYTHON_VERSION=3.4 SETUP_CMD='test' OPTIONAL_DEPS=true LC_CTYPE=C.ascii LC_ALL=C.ascii
 
         # Try older numpy versions
+        - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.9 SETUP_CMD='test'
         - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.8 SETUP_CMD='test'
         - os: linux
