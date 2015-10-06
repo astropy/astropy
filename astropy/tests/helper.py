@@ -32,6 +32,9 @@ from ..utils.exceptions import (AstropyWarning,
                                 AstropyPendingDeprecationWarning)
 
 
+# For backward-compatibility with affiliated packages
+from .runner import TestRunner
+
 __all__ = ['raises', 'enable_deprecations_as_exceptions', 'remote_data',
            'treat_deprecations_as_exceptions', 'catch_warnings',
            'assert_follows_unicode_guidelines', 'quantity_allclose',
