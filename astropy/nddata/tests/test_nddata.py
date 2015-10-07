@@ -58,6 +58,27 @@ class FakeNumpyArray(object):
         pass
 
 
+class MinimalUncertainty(object):
+    """
+    Define the minimum attributes acceptable as an uncertainty object.
+    """
+    def __init__(self, value):
+        self._uncertainty = value
+
+    @property
+    def uncertainty_type(self):
+        return "totally and completely fake"
+
+def test_uncertainty_setter():
+    nd = NDData([1,2,3])
+    good_uncertainty = MinimalUncertainty(5)
+    nd.uncertainty = good_uncertainty
+    assert nd.uncertainty is good_uncertainty
+    bad_uncertainty = 5
+    with pytest.raises(TypeError):
+        nd.uncertainty = bad_uncertainty
+
+
 def test_nddata_empty():
     with pytest.raises(TypeError):
         NDData()  # empty initializer should fail
