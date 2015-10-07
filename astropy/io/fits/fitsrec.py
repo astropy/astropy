@@ -430,7 +430,9 @@ class FITS_rec(np.recarray):
                     # strings, but we need to view it as a normal ndarray of
                     # 8-bit ints to fill it with ASCII codes for 'T' and 'F'
                     outarr = field.view(np.uint8, np.ndarray)[:n]
-                elif not isinstance(arr, chararray.chararray):
+                elif arr.dtype.kind not in ('S', 'U'):
+                    # Set up views of numeric columns with the appropriate
+                    # numeric dtype
                     # Fill with the appropriate blanks for the column format
                     data._converted[name] = np.zeros(nrows, dtype=arr.dtype)
                     outarr = data._converted[name][:n]
