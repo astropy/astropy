@@ -734,6 +734,10 @@ Bug Fixes
 
 - ``astropy.vo``
 
+  - Fixed ``check_conesearch_sites`` with ``parallel=True`` on Python >= 3.3
+    and on Windows (it was broken in both those cases for separate reasons).
+    [#2970]
+
 - ``astropy.wcs``
 
 Other Changes and Additions
