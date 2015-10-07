@@ -102,7 +102,8 @@ class NDData(NDDataBase):
                 raise ValueError('Unit provided in initializer does not '
                                  'match data unit.')
         else:
-            if hasattr(data, 'mask'):
+            # We actually need the data to have a mask _and_ data attribute
+            if hasattr(data, 'mask') and hasattr(data, 'data'):
                 self._data = np.array(data.data, subok=True, copy=False)
 
                 if mask is not None:
