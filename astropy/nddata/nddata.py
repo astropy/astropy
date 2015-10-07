@@ -136,7 +136,6 @@ class NDData(NDDataBase):
 
             if isinstance(data, Quantity):
                 self._data = np.array(data.value, subok=True, copy=False)
-                self._mask = mask
 
             elif (not hasattr(data, 'shape') or
                   not hasattr(data, '__getitem__') or
@@ -149,9 +148,10 @@ class NDData(NDDataBase):
                 # non-numerical input to an array of objects).
                 if self._data.dtype == 'O':
                     raise TypeError("Could not convert data to numpy array.")
-                self._mask = mask
             else:
                 self._data = data  # np.array(data, subok=True, copy=False)
+
+            if not hasattr(self, '_mask'):
                 self._mask = mask
 
             self._wcs = wcs
