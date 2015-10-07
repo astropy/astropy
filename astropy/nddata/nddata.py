@@ -72,35 +72,53 @@ class NDData(NDDataBase):
         if isinstance(data, NDData):  # don't use self.__class__ (issue #4137)
             # Of course we need to check the data because subclasses with other
             # init-logic might try to init this class.
-            self._data = data._data
-            self._unit = data.unit  # must set before uncert for NDDataArray
-            self.uncertainty = data.uncertainty
-            self._mask = data.mask
-            self._wcs = data.wcs
-            self._meta = data.meta
+            if unit is not None and data.unit is not None:
+                self._unit = unit
+                log.info("Overwriting NDData's current "
+                         "unit with specified unit")
+            elif data.unit is not None:
+                self._unit = data.unit
+            else:
+                self._unit = None
 
-            if uncertainty is not None:
+            if uncertainty is not None and data.uncertainty is not None:
                 self._uncertainty = uncertainty
-                log.info("Overwriting NDData's current uncertainty being"
-                         " overwritten with specified uncertainty")
+                log.info("Overwriting NDData's current "
+                         "uncertaint with specified uncertainty")
+            elif data.uncertainty is not None:
+                self._uncertainty = data.uncertainty
+            else:
+                self._uncertainty = None
 
-            if mask is not None:
+            if mask is not None and data.mask is not None:
                 self._mask = mask
                 log.info("Overwriting NDData's current "
                          "mask with specified mask")
+            elif data.mask is not None:
+                self._mask = data.mask
+            else:
+                self._mask = None
 
-            if wcs is not None:
+            if wcs is not None and data.wcs is not None:
                 self._wcs = wcs
-                log.info("Overwriting NDData's current wcs with specified wcs")
+                log.info("Overwriting NDData's current "
+                         "wcs with specified wcs")
+            elif data.wcs is not None:
+                self._wcs = data.wcs
+            else:
+                self._wcs = None
 
-            if meta is not None:
+            if meta is not None and data.meta is not None:
                 self._meta = meta
-                log.info("Overwriting NDData's current meta "
-                         "with specified meta")
+                log.info("Overwriting NDData's current "
+                         "meta with specified meta")
+            elif data.meta is not None:
+                self._meta = data.meta
+            else:
+                self._meta = None
 
-            if unit is not None and unit is not data.unit:
-                raise ValueError('Unit provided in initializer does not '
-                                 'match data unit.')
+            self._data = data.data
+
         else:
             # We actually need the data to have a mask _and_ data attribute
             if hasattr(data, 'mask') and hasattr(data, 'data'):
