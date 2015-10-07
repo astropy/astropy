@@ -194,9 +194,6 @@ class NDArithmeticMixin(object):
         return self._arithmetic(
             operand, propagate_uncertainties, "addition", np.add)
 
-    if isinstance(_arithmetic.__doc__, string_types):
-        add.__doc__ = _arithmetic.__doc__.format(name="Add", operator="+")
-
     def subtract(self, operand, propagate_uncertainties=True):
         if propagate_uncertainties:
             propagate_uncertainties = "propagate_subtract"
@@ -205,10 +202,6 @@ class NDArithmeticMixin(object):
         return self._arithmetic(
             operand, propagate_uncertainties, "subtraction", np.subtract)
 
-    if isinstance(_arithmetic.__doc__, string_types):
-        subtract.__doc__ = _arithmetic.__doc__.format(name="Subtract",
-                                                      operator="-")
-
     def multiply(self, operand, propagate_uncertainties=True):
         if propagate_uncertainties:
             propagate_uncertainties = "propagate_multiply"
@@ -216,10 +209,6 @@ class NDArithmeticMixin(object):
             propagate_uncertainties = None
         return self._arithmetic(
             operand, propagate_uncertainties, "multiplication", np.multiply)
-
-    if isinstance(_arithmetic.__doc__, string_types):
-        multiply.__doc__ = _arithmetic.__doc__.format(name="Multiply",
-                                                      operator="*")
 
     def divide(self, operand, propagate_uncertainties=True):
         if propagate_uncertainties:
@@ -230,5 +219,9 @@ class NDArithmeticMixin(object):
             operand, propagate_uncertainties, "division", np.divide)
 
     if isinstance(_arithmetic.__doc__, string_types):
-        divide.__doc__ = _arithmetic.__doc__.format(name="Divide",
-                                                    operator="/")
+        doc = _arithmetic.__doc__
+        add.__doc__ = doc.format(name="Add", operator="+")
+        subtract.__doc__ = doc.format(name="Subtract", operator="-")
+        multiply.__doc__ = doc.format(name="Multiply", operator="*")
+        divide.__doc__ = doc.format(name="Divide", operator="/")
+        del doc
