@@ -38,7 +38,6 @@ class FakeUncertainty(NDUncertainty):
     def array(self):
         pass
 
-
 class FakeNumpyArray(object):
     """
     Class that has a few of the attributes of a numpy array.
@@ -57,7 +56,6 @@ class FakeNumpyArray(object):
     def __array__(self):
         pass
 
-
 class MinimalUncertainty(object):
     """
     Define the minimum attributes acceptable as an uncertainty object.
@@ -74,10 +72,6 @@ def test_uncertainty_setter():
     good_uncertainty = MinimalUncertainty(5)
     nd.uncertainty = good_uncertainty
     assert nd.uncertainty is good_uncertainty
-    bad_uncertainty = 5
-    with pytest.raises(TypeError):
-        nd.uncertainty = bad_uncertainty
-
 
 def test_nddata_empty():
     with pytest.raises(TypeError):
@@ -160,21 +154,8 @@ def test_nddata_mask_valid():
 def test_nddata_uncertainty_init():
     u = StdDevUncertainty(array=np.ones((5, 5)))
     d = NDData(np.ones((5, 5)), uncertainty=u)
-
-    # Expect a TypeError if the uncertainty is missing
-    # attribute uncertainty_type.
-    with pytest.raises(TypeError):
-        NDData(np.array([1]), uncertainty=5)
-
-    # Expect a TypeError if the uncertainty has attribute uncertainty_type
-    # but it is not a string.
-
-    class BadUncertainty(object):
-        def __init__(self):
-            self.uncertainty_type = 5
-
-    with pytest.raises(TypeError):
-        NDData(np.array([1]), uncertainty=BadUncertainty())
+    # Test that the parent_nddata is set.
+    assert d.uncertainty.parent_nddata is d
 
 
 def test_nddata_init_from_nddata_data_argument_only():
