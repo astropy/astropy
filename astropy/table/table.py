@@ -900,7 +900,7 @@ class Table(object):
         html += jsv.ipynb(tableid, css=css)
         return HTML(html)
 
-    def show_in_browser(self, max_lines=5000, jsviewer=False, ipynb=False,
+    def show_in_browser(self, max_lines=5000, jsviewer=False,
                         browser='default', jskwargs={'use_local_files': True},
                         tableid=None, table_class="display compact",
                         css=None):
