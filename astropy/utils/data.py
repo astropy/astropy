@@ -358,7 +358,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
             os.remove(fd.name)
 
 
-def get_file_contents(name_or_obj, encoding=None, cache=False):
+def get_file_contents(*args, **kwargs):
     """
     Retrieves the contents of a filename or file-like object.
 
@@ -370,7 +370,7 @@ def get_file_contents(name_or_obj, encoding=None, cache=False):
         The content of the file (as requested by ``encoding``).
 
     """
-    with get_readable_fileobj(name_or_obj, encoding, cache) as f:
+    with get_readable_fileobj(*args, **kwargs) as f:
         return f.read()
 
 
