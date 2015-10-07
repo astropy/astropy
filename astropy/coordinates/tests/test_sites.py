@@ -32,7 +32,6 @@ def test_builtin_sites():
     with pytest.raises(KeyError):
         reg['nonexistent site']
 
-@pytest.mark.xfail  # remove this when the data file gets uploaded
 @remote_data
 def test_online_stes():
     reg = get_downloaded_sites()
@@ -85,7 +84,6 @@ def test_EarthLocation_state_offline():
     assert oldreg is not newreg
 
 
-@pytest.mark.xfail  # remove this when the data file gets uploaded
 @remote_data
 def test_EarthLocation_state_online():
     EarthLocation._site_registry = None

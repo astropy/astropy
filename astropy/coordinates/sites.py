@@ -113,6 +113,7 @@ class SiteRegistry(Mapping):
             location.info.name = site_info['name']
 
             reg.add_site([site] + site_info['aliases'], location)
+        reg._loaded_jsondb = jsondb
         return reg
 
 
@@ -129,5 +130,5 @@ def get_downloaded_sites(jsonurl='http://data.astropy.org/coordinates/sites.json
     """
     Load observatory database from data.astropy.org and parse into a SiteRegistry
     """
-    jsondb = json.loads(get_file_contents(jsonurl))
+    jsondb = json.loads(get_file_contents(jsonurl, show_progress=False))
     return SiteRegistry.from_json(jsondb)
