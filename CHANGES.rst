@@ -36,9 +36,6 @@ New Features
 
 - ``astropy.table``
 
-  - Added a new ``Table.show_in_notebook`` method that allows to show a table in
-    the IPython notebook using dataTables. [#4197]
-
 - ``astropy.tests``
 
 - ``astropy.time``
@@ -359,6 +356,10 @@ New Features
     a list of CSS classes added to the HTML table. [#4131]
 
   - New CSS for jsviewer table [#2917, #2982, #4174]
+
+  - Added a new ``Table.show_in_notebook`` method that shows an interactive view
+    of a Table (similar to ``Table.show_in_browser(jsviewer=True)``) in an
+    Python/Jupyter notebook. [#4197]
 
 - ``astropy.tests``
 
