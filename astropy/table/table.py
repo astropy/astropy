@@ -742,7 +742,9 @@ class Table(object):
 
         table.columns = columns
 
-    def _base_repr_(self, html=False, descr_vals=None, max_width=None, tableid=None):
+    def _base_repr_(self, html=False, descr_vals=None, max_width=None,
+                    tableid=None, show_dtype=True, max_lines=None,
+                    tableclass=None):
         if descr_vals is None:
             descr_vals = [self.__class__.__name__]
             if self.masked:
@@ -758,10 +760,10 @@ class Table(object):
         if tableid is None:
             tableid = 'table{id}'.format(id=id(self))
 
-        data_lines, outs = self.formatter._pformat_table(self, tableid=tableid, html=html,
-                                                         max_width=max_width,
-                                                         show_name=True, show_unit=None,
-                                                         show_dtype=True)
+        data_lines, outs = self.formatter._pformat_table(
+            self, tableid=tableid, html=html, max_width=max_width,
+            show_name=True, show_unit=None, show_dtype=show_dtype,
+            max_lines=max_lines, tableclass=tableclass)
 
         out = descr + '\n'.join(data_lines)
         if six.PY2 and isinstance(out, six.text_type):
@@ -859,6 +861,45 @@ class Table(object):
             else:
                 print(line)
 
+    def show_in_notebook(self, tableid=None, css=None, display_length=50,
+                         table_class='table table-striped table-bordered '
+                         'table-condensed'):
+        """Render the table in HTML and show it in the IPython notebook.
+
+        Parameters
+        ----------
+        tableid : str or `None`
+            An html ID tag for the table.  Default is ``table{id}-XXX``, where
+            id is the unique integer id of the table object, id(self), and XXX
+            is a random number to avoid conflicts when printing the same table
+            multiple times.
+        table_class : str or `None`
+            A string with a list of HTML classes used to style the table.
+            Default is "table table-striped table-bordered table-condensed",
+            using Bootstrap which is available in the notebook. See `this page
+            <http://getbootstrap.com/css/#tables>`_ for the list of classes.
+        css : string
+            A valid CSS string declaring the formatting for the table. Default
+            to ``astropy.table.jsviewer.DEFAULT_CSS_NB``.
+        display_length : int, optional
+            Number or rows to show. Default to 50.
+
+        """
+
+        from .jsviewer import JSViewer
+        from IPython.display import HTML
+
+        if tableid is None:
+            tableid = 'table{0}-{1}'.format(id(self),
+                                            np.random.randint(1, 1e6))
+
+        jsv = JSViewer(use_local_files=False, display_length=display_length)
+        html = self._base_repr_(html=True, max_width=-1, tableid=tableid,
+                                max_lines=-1, show_dtype=False,
+                                tableclass=table_class)
+        html += jsv.ipynb(tableid, css=css)
+        return HTML(html)
+
     def show_in_browser(self, max_lines=5000, jsviewer=False,
                         browser='default', jskwargs={'use_local_files': True},
                         tableid=None, table_class="display compact",
@@ -910,7 +951,6 @@ class Table(object):
 
         # We can't use NamedTemporaryFile here because it gets deleted as
         # soon as it gets garbage collected.
-
         tmpdir = tempfile.mkdtemp()
         path = os.path.join(tmpdir, 'table.html')
 

@@ -43,39 +43,19 @@ EXTERN_CSS_DIR = abspath(join(dirname(extern.__file__), 'css'))
 
 IPYNB_JS_SCRIPT = """
 <script>
-    function html_repr_full() {{
-        var kernel = IPython.notebook.kernel;
-        var button = $("#MakeTableBrowseable{tid}");
-        var tablename = button.parents()[4].getElementsByClassName("input_area")[0].innerText;
-        tablename = tablename.replace(/\s+/g, '');
-        var command = "print ''.join(" + tablename + ".pformat(html=True, max_lines=1000, max_width=1000, table_id={tid}))";
-        console.log(command);
-        var result = kernel.execute(command, {{'output': callback}}, {{silent:false}});
-        console.log(result);
-    }}
-    function callback(output_type, out) {{
-        console.log(output_type);
-        console.log(out);
-        var button = $("#MakeTableBrowseable{tid}");
-        button[0].parentNode.innerHTML = out.data;
-        return out.data;
-    }}
-    function make_table_browseable() {{
-        console.log("$('#{tid}').dataTable()");
-        $('#{tid}').dataTable({{
-             "iDisplayLength": {display_length},
-             "aLengthMenu": {display_length_menu},
-             "pagingType": "full_numbers"
-        }});
-    }}
-    function replace_table() {{
-        html_repr_full();
-        make_table_browseable();
-    }}
+require.config({{paths: {{
+    datatables: '{datatables_url}'
+}}}});
+require(["datatables"], function(){{
+    console.log("$('#{tid}').dataTable()");
+    $('#{tid}').dataTable({{
+        "iDisplayLength": {display_length},
+        "aLengthMenu": {display_length_menu},
+        "pagingType": "full_numbers"
+    }});
+}});
 </script>
-<button id='MakeTableBrowseable{tid}' onclick="make_table_browseable()">Make Table Browseable</button>
 """
-
 
 HTML_JS_SCRIPT = """
 $(document).ready(function() {{
@@ -88,10 +68,20 @@ $(document).ready(function() {{
 """
 
 
+# Default CSS for the JSViewer writer
 DEFAULT_CSS = """\
 body {font-family: sans-serif;}
 table.dataTable {width: auto !important; margin: 0 !important;}
 .dataTables_filter, .dataTables_paginate {float: left !important; margin-left:1em}
+"""
+
+
+# Default CSS used when rendering a table in the IPython notebook
+DEFAULT_CSS_NB = """\
+table.dataTable {clear: both; width: auto !important; margin: 0 !important;}
+.dataTables_info, .dataTables_length, .dataTables_filter, .dataTables_paginate{
+display: inline-block; margin-right: 1em; }
+.paginate_button { margin-right: 5px; }
 """
 
 
@@ -138,31 +128,26 @@ class JSViewer(object):
             return conf.css_urls
 
     def _jstable_file(self):
-        # downloaded from http://datatables.net/download/build/
-        datatables_url = conf.datatables_url
-        if not datatables_url:
-            datatables_url = 'file://' + join(EXTERN_JS_DIR,
-                                              'jquery.dataTables.min.js')
-        return '<script class="jsbin" src="{0}"></script>'.format(datatables_url)
+        if self._use_local_files:
+            return 'file://' + join(EXTERN_JS_DIR, 'jquery.dataTables.min')
+        else:
+            return conf.datatables_url[:-3]
 
-    def _css_files(self):
-        return [
-            '<link rel="stylesheet" href="{css}" type="text/css">'.format(css=css)
-            for css in self.css_urls]
-
-    def ipynb(self, table_id):
-        js = self._css_files()
-        js.append(self._jstable_file())
-        js.append(IPYNB_JS_SCRIPT.format(
+    def ipynb(self, table_id, css=None):
+        html = '<style>{0}</style>'.format(css if css is not None
+                                           else DEFAULT_CSS_NB)
+        html += IPYNB_JS_SCRIPT.format(
             display_length=self.display_length,
             display_length_menu=self.display_length_menu,
-            tid=table_id))
-        return js
+            datatables_url=self._jstable_file(),
+            tid=table_id)
+        return html
 
     def html_js(self, table_id='table0'):
-        return HTML_JS_SCRIPT.format(display_length=self.display_length,
-                                     display_length_menu=self.display_length_menu,
-                                     tid=table_id).strip()
+        return HTML_JS_SCRIPT.format(
+            display_length=self.display_length,
+            display_length_menu=self.display_length_menu,
+            tid=table_id).strip()
 
 
 def write_table_jsviewer(table, filename, table_id=None, max_lines=5000,
