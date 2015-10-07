@@ -357,6 +357,10 @@ New Features
 
   - New CSS for jsviewer table [#2917, #2982, #4174]
 
+  - Added a new ``Table.show_in_notebook`` method that shows an interactive view
+    of a Table (similar to ``Table.show_in_browser(jsviewer=True)``) in an
+    Python/Jupyter notebook. [#4197]
+
 - ``astropy.tests``
 
   - Added new test config options, ``config_dir`` and ``cache_dir``  (these
