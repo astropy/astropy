@@ -64,29 +64,9 @@ class NDDataBase(object):
         """
         return None
 
-    # uncertainty and its setter are implemented as concrete to enforce the
-    # logic in the uncertainty setter. For a long discussion of the problems
-    # with trying to implement them as abstract (particularly the setter but
-    # not the getter), see http://bugs.python.org/issue11610
-    #
-    # In python >= 3.3 it would be easy to decorate one of these (setter or
-    # getter) as abstract but not the other.
-    @property
+    @abstractproperty
     def uncertainty(self):
         """
         Uncertainty in the data.
-
-        Uncertainty must have an attribute ``uncertainty_type`` that is
-        a string.
         """
-        return self._uncertainty
-
-    @uncertainty.setter
-    def uncertainty(self, value):
-        if value is not None:
-            if (not hasattr(value, 'uncertainty_type') or
-                    not isinstance(value.uncertainty_type, six.string_types)):
-
-                raise TypeError('Uncertainty must have attribute '
-                                'uncertainty_type whose type is string.')
-        self._uncertainty = value
+        return None

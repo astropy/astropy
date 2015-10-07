@@ -12,6 +12,7 @@ from .nddata_base import NDDataBase
 from ..units import Unit, Quantity
 from .. import log
 from ..utils.compat.odict import OrderedDict
+from ..extern import six
 
 from ..config import ConfigAlias
 
@@ -201,3 +202,23 @@ class NDData(NDDataBase):
     @property
     def meta(self):
         return self._meta
+
+    @property
+    def uncertainty(self):
+        """
+        Uncertainty in the data.
+
+        Uncertainty must have an attribute ``uncertainty_type`` that is
+        a string.
+        """
+        return self._uncertainty
+
+    @uncertainty.setter
+    def uncertainty(self, value):
+        if value is not None:
+            if (not hasattr(value, 'uncertainty_type') or
+                    not isinstance(value.uncertainty_type, six.string_types)):
+
+                raise TypeError('Uncertainty must have attribute '
+                                'uncertainty_type whose type is string.')
+        self._uncertainty = value
