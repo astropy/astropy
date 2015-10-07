@@ -1476,9 +1476,9 @@ def _binary_table_byte_swap(data):
 
     orig_dtype = data.dtype
 
-    # We use the dict format for the new dtype because this actually contains
-    # more information (in particular field offsets) than the .descr format
-    new_dtype = {}
+    names = []
+    formats = []
+
     to_swap = []
 
     if sys.byteorder == 'little':
@@ -1489,23 +1489,21 @@ def _binary_table_byte_swap(data):
     for idx, name in enumerate(orig_dtype.names):
         field = _get_recarray_field(data, idx)
 
-        new_dtype[name] = field_descr = orig_dtype.fields[name]
+        field_dtype = orig_dtype.fields[name][0]
+        names.append(name)
+        formats.append(field_dtype)
 
         if isinstance(field, chararray.chararray):
             continue
-
-        field_dtype = field_descr[0]
 
         # only swap unswapped
         # must use field_dtype.base here since for multi-element dtypes,
         # the .str with be '|V<N>' where <N> is the total bytes per element
         if field.itemsize > 1 and field_dtype.base.str[0] in swap_types:
             to_swap.append(field)
-            field_dtype = field_dtype.newbyteorder()
-
-            # Override the new_dtype using the new byteswapped dtype for this
-            # field
-            new_dtype[name] = (field_dtype,) + field_descr[1:]
+            # Override the dtype for this field in the new record dtype with
+            # the byteswapped version
+            formats[-1] = field_dtype.newbyteorder()
 
         # deal with var length table
         recformat = data.columns._recformats[idx]
@@ -1519,7 +1517,7 @@ def _binary_table_byte_swap(data):
     for arr in reversed(to_swap):
         arr.byteswap(True)
 
-    data.dtype = np.dtype(new_dtype)
+    data.dtype = np.dtype(list(zip(names, formats)))
 
     yield data
 
