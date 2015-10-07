@@ -70,8 +70,8 @@ class NDData(NDDataBase):
         super(NDData, self).__init__()
 
         if isinstance(data, NDData):  # don't use self.__class__ (issue #4137)
-            # No need to check the data because data must have successfully
-            # initialized.
+            # Of course we need to check the data because subclasses with other
+            # init-logic might try to init this class.
             self._data = data._data
             self._unit = data.unit  # must set before uncert for NDDataArray
             self.uncertainty = data.uncertainty
@@ -119,6 +119,7 @@ class NDData(NDDataBase):
             if isinstance(data, Quantity):
                 self._data = np.array(data.value, subok=True, copy=False)
                 self._mask = mask
+
             elif (not hasattr(data, 'shape') or
                   not hasattr(data, '__getitem__') or
                   not hasattr(data, '__array__')):
