@@ -19,12 +19,12 @@ class NDDataBase(object):
     Classes that wish to use this interface without inheriting from
     `~astropy.nddata.NDData` should subclass ``NDDataBase`` instead.
 
-    All properties must be overriden by derived classes.
+    All properties and methods must be overriden by derived classes.
     """
 
     @abstractmethod
     def __init__(self):
-        self._uncertainty = None
+        pass
 
     @abstractproperty
     def data(self):
