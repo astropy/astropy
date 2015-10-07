@@ -5,7 +5,6 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import collections
-
 import numpy as np
 
 from .nddata_base import NDDataBase
@@ -17,9 +16,7 @@ from ..extern import six
 
 __all__ = ['NDData']
 
-
 __doctest_skip__ = ['NDData']
-
 
 class NDData(NDDataBase):
     """
@@ -32,8 +29,8 @@ class NDData(NDDataBase):
     Parameters
     -----------
     data : `~numpy.ndarray`, `~numpy.ndarray`-like, or `NDData`
-        The actual data contained in this `NDData` object. If possible, data
-        will not be copied`data`, so you should make copy the ``data`` before
+        The actual data contained in this `NDData` object. If *possible*, data
+        will not be copied `data`, so you should copy the ``data`` before
         passing it in if that's the desired behavior.
 
     uncertainty : any type, optional
@@ -41,12 +38,8 @@ class NDData(NDDataBase):
         attribute named ``uncertainty_type``, but there is otherwise no
         restriction.
 
-    mask : `~numpy.ndarray`-like, optional
-        Mask for the data. The values must be ``False`` where
-        the data is *valid* and ``True`` when it is not (like Numpy
-        masked arrays). If ``data`` is a numpy masked array, providing
-        ``mask`` here will causes the mask from the masked array to be
-        ignored.
+    mask : any type, optional
+        Mask for the data.
 
     wcs : undefined, optional
         WCS-object containing the world coordinate system for the data.
@@ -56,9 +49,7 @@ class NDData(NDDataBase):
         is placed on meta.
 
     unit : `~astropy.units.UnitBase` instance or str, optional
-        The units of the data. If data is an `~astropy.units.Quantity` then
-        ``unit`` is set to the unit of the data; is a unit is also explicitly
-        provided an error is raised.
+        The units of the data.
 
     Notes
     -----
@@ -176,10 +167,21 @@ class NDData(NDDataBase):
 
     @property
     def data(self):
+        """
+        `~numpy.ndarray`: the data
+        """
         return self._data
 
     @property
     def mask(self):
+        """
+        any type: Mask for the data, if any.
+
+        Using `~numpy.ndarray`-like masks containing ``bools`` is *recommended*
+        if the `NDData` is used for any `~numpy.ma.MaskedArray` operations.
+        Valid values should have a corresponding mask value of ``False`` while
+        invalid ones should be ``True`` (following the numpy convention).
+        """
         return self._mask
 
     @mask.setter
@@ -188,23 +190,36 @@ class NDData(NDDataBase):
 
     @property
     def unit(self):
+        """
+        `~astropy.units.Unit`: Unit for the data, if any.
+        """
         return self._unit
 
     @property
     def wcs(self):
+        """
+        any type: WCS for the data, if any.
+
+        Even though nothing is enforced using `~astropy.wcs.WCS` as `WCS`
+        attribute is encouraged.
+        """
         return self._wcs
 
     @property
     def meta(self):
+        """
+        `dict`-like: Meta information, if any.
+        """
         return self._meta
 
     @property
     def uncertainty(self):
         """
-        Uncertainty in the data, if any.
+        any type: Uncertainty in the data, if any.
 
         Uncertainty should have an attribute ``uncertainty_type`` that is
-        a string.
+        a string. `~astropy.nddata.NDUncertainty`-subclasses are recommended,
+        if `~astropy.nddata.NDArithmeticMixin` is used.
         """
         return self._uncertainty
 
