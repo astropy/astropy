@@ -9,6 +9,7 @@ import collections
 import numpy as np
 
 from .nddata_base import NDDataBase
+from .nduncertainty import NDUncertainty
 from ..units import Unit, Quantity
 from .. import log
 from ..utils.compat.odict import OrderedDict
@@ -43,8 +44,9 @@ class NDData(NDDataBase):
         passing it in if that's the desired behavior.
 
     uncertainty : any type, optional
-        Uncertainty on the data. The uncertainty *must* have a string attribute
-        named ``uncertainty_type``, but there is otherwise no restriction.
+        Uncertainty on the data. The uncertainty *should* have a string
+        attribute named ``uncertainty_type``, but there is otherwise no
+        restriction.
 
     mask : `~numpy.ndarray`-like, optional
         Mask for the data. The values must be ``False`` where
@@ -206,9 +208,9 @@ class NDData(NDDataBase):
     @property
     def uncertainty(self):
         """
-        Uncertainty in the data.
+        Uncertainty in the data, if any.
 
-        Uncertainty must have an attribute ``uncertainty_type`` that is
+        Uncertainty should have an attribute ``uncertainty_type`` that is
         a string.
         """
         return self._uncertainty
@@ -218,7 +220,6 @@ class NDData(NDDataBase):
         if value is not None:
             if (not hasattr(value, 'uncertainty_type') or
                     not isinstance(value.uncertainty_type, six.string_types)):
-
-                raise TypeError('Uncertainty must have attribute '
-                                'uncertainty_type whose type is string.')
+                log.info('Uncertainty should have attribute uncertainty_type '
+                         ' whose type is string.')
         self._uncertainty = value
