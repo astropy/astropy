@@ -222,4 +222,8 @@ class NDData(NDDataBase):
                     not isinstance(value.uncertainty_type, six.string_types)):
                 log.info('Uncertainty should have attribute uncertainty_type '
                          ' whose type is string.')
+            elif isinstance(value, NDUncertainty):
+                # If it is a subclass of NDUncertainty we must set the
+                # parent_nddata attribute.
+                value.parent_nddata = self
         self._uncertainty = value
