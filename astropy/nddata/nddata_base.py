@@ -19,8 +19,7 @@ class NDDataBase(object):
     Classes that wish to use this interface without inheriting from
     `~astropy.nddata.NDData` should subclass ``NDDataBase`` instead.
 
-    All properties and methods except uncertainty must be override by derived
-    classes.
+    All properties must be overriden by derived classes.
     """
 
     @abstractmethod
@@ -30,16 +29,14 @@ class NDDataBase(object):
     @abstractproperty
     def data(self):
         """
-        The data; should be capable of behaving like a numpy array, though it
-        need not actually be a numpy array.
+        The data.
         """
         pass
 
     @abstractproperty
     def mask(self):
         """
-        Mask for the data, following the numpy convention that ``True`` means
-        the data should not be used.
+        Mask for the data, if any.
         """
         return None
 
@@ -60,13 +57,13 @@ class NDDataBase(object):
     @abstractproperty
     def meta(self):
         """
-        Metadata, if any, must be dict-like.
+        Meta information, if any.
         """
         return None
 
     @abstractproperty
     def uncertainty(self):
         """
-        Uncertainty in the data.
+        Uncertainty in the data, if any.
         """
         return None
