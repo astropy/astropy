@@ -104,8 +104,6 @@ class NDData(NDDataBase):
         else:
             # We actually need the data to have a mask _and_ data attribute
             if hasattr(data, 'mask') and hasattr(data, 'data'):
-                self._data = np.array(data.data, subok=True, copy=False)
-
                 if mask is not None:
                     self._mask = mask
                     log.info("NDData was created with a masked array, and a "
@@ -114,7 +112,11 @@ class NDData(NDDataBase):
                              "masked array's mask will be ignored.")
                 else:
                     self._mask = data.mask
-            elif isinstance(data, Quantity):
+                # Just save the data for further processing, we could handle
+                # a masked Quantity here or something else entirely.
+                data = data.data
+
+            if isinstance(data, Quantity):
                 self._data = np.array(data.value, subok=True, copy=False)
                 self._mask = mask
             elif (not hasattr(data, 'shape') or
