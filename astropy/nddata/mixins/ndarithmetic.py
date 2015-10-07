@@ -12,8 +12,13 @@ from ... units import dimensionless_unscaled, UnitsError
 from ... import log
 from ...extern.six import string_types
 from ..nduncertainty import IncompatibleUncertaintiesException
+from ...config import ConfigAlias
 
 __all__ = ['NDArithmeticMixin']
+
+WARN_UNSUPPORTED_CORRELATED = ConfigAlias(
+    '0.4', 'WARN_UNSUPPORTED_CORRELATED', 'warn_unsupported_correlated',
+    'astropy.nddata.nddata', 'astropy.nddata')
 
 
 class NDArithmeticMixin(object):
