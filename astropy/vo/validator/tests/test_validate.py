@@ -19,7 +19,6 @@ import tempfile
 # LOCAL
 from .. import conf
 from .. import validate
-from ..exceptions import ValidationMultiprocessingError
 from ...client.vos_catalog import VOSDatabase
 from ....tests.helper import pytest, remote_data
 from ....utils.data import get_pkg_data_filename
@@ -57,30 +56,22 @@ class TestConeSearchValidation(object):
         if os.path.exists(self.out_dir):
             shutil.rmtree(self.out_dir)
 
-        # For some reason, Python 3.3 does not work
-        # using multiprocessing.Pool and callback function.
-        # See http://bugs.python.org/issue16307
-        try:
-            validate.check_conesearch_sites(
-                destdir=self.out_dir, parallel=parallel, url_list=None)
-        except ValidationMultiprocessingError as e:
-            if parallel and sys.version_info >= (3, 3):
-                pytest.xfail('See http://bugs.python.org/issue16307')
-            else:
-                raise
+        validate.check_conesearch_sites(
+            destdir=self.out_dir, parallel=parallel, url_list=None)
 
         for val in self.filenames.values():
             self._compare_catnames(get_pkg_data_filename(
                 os.path.join(self.datadir, val)),
                 os.path.join(self.out_dir, val))
 
-    def test_url_list(self):
+    @pytest.mark.parametrize(('parallel'), [True, False])
+    def test_url_list(self, parallel):
         local_outdir = os.path.join(self.out_dir, 'subtmp1')
         local_list = [
             'http://www.google.com/foo&',
             'http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/252/out&']
-        # Same multiprocessing problem in Python 3.3 as above
-        validate.check_conesearch_sites(destdir=local_outdir, parallel=False,
+        validate.check_conesearch_sites(destdir=local_outdir,
+                                        parallel=parallel,
                                         url_list=local_list)
         self._compare_catnames(get_pkg_data_filename(
             os.path.join(self.datadir, self.filenames['good'])),
