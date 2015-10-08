@@ -69,115 +69,99 @@ class NDData(NDDataBase):
 
         super(NDData, self).__init__()
 
+        # Check if data is any type from which to collect some not explicitly
+        # passed parameters.
         if isinstance(data, NDData):  # don't use self.__class__ (issue #4137)
             # Of course we need to check the data because subclasses with other
             # init-logic might try to init this class.
             if unit is not None and data.unit is not None:
-                self._unit = unit
                 log.info("Overwriting NDData's current "
                          "unit with specified unit")
             elif data.unit is not None:
-                self._unit = data.unit
-            else:
-                self._unit = None
+                unit = data.unit
 
             if uncertainty is not None and data.uncertainty is not None:
-                self._uncertainty = uncertainty
                 log.info("Overwriting NDData's current "
-                         "uncertaint with specified uncertainty")
+                         "uncertainty with specified uncertainty")
             elif data.uncertainty is not None:
-                self._uncertainty = data.uncertainty
-            else:
-                self._uncertainty = None
+                uncertainty = data.uncertainty
 
             if mask is not None and data.mask is not None:
-                self._mask = mask
                 log.info("Overwriting NDData's current "
                          "mask with specified mask")
             elif data.mask is not None:
-                self._mask = data.mask
-            else:
-                self._mask = None
+                mask = data.mask
 
             if wcs is not None and data.wcs is not None:
-                self._wcs = wcs
                 log.info("Overwriting NDData's current "
                          "wcs with specified wcs")
             elif data.wcs is not None:
-                self._wcs = data.wcs
-            else:
-                self._wcs = None
+                wcs = data.wcs
 
             if meta is not None and data.meta is not None:
-                self._meta = meta
                 log.info("Overwriting NDData's current "
                          "meta with specified meta")
             elif data.meta is not None:
-                self._meta = data.meta
-            else:
-                self._meta = None
+                meta = data.meta
 
-            self._data = data.data
+            data = data.data
 
         else:
             # We actually need the data to have a mask _and_ data attribute
             if hasattr(data, 'mask') and hasattr(data, 'data'):
                 if mask is not None:
-                    self._mask = mask
                     log.info("NDData was created with a masked array, and a "
                              "mask was explicitly provided to NDData. The  "
                              "explicitly passed-in mask will be used and the "
                              "masked array's mask will be ignored.")
                 else:
-                    self._mask = data.mask
+                    mask = data.mask
                 # Just save the data for further processing, we could handle
                 # a masked Quantity here or something else entirely.
                 data = data.data
 
             if isinstance(data, Quantity):
-                self._data = np.array(data.value, subok=True, copy=False)
-
-            elif (not hasattr(data, 'shape') or
-                  not hasattr(data, '__getitem__') or
-                  not hasattr(data, '__array__')):
-                # Data doesn't look like a numpy array, try converting it to
-                # one.
-                self._data = np.array(data, subok=True, copy=False)
-                # Quick check to see if what we got out looks like an array
-                # rather than an object (since numpy will convert a
-                # non-numerical input to an array of objects).
-                if self._data.dtype == 'O':
-                    raise TypeError("Could not convert data to numpy array.")
-            else:
-                self._data = data  # np.array(data, subok=True, copy=False)
-
-            if not hasattr(self, '_mask'):
-                self._mask = mask
-
-            self._wcs = wcs
-
-            if meta is None:
-                self._meta = OrderedDict()
-            elif not isinstance(meta, collections.Mapping):
-                raise TypeError("meta attribute must be dict-like")
-            else:
-                self._meta = meta
-
-            if isinstance(data, Quantity):
                 if unit is not None:
-                    raise ValueError("Cannot use the unit argument when data "
-                                     "is a Quantity")
+                    log.info("Overwriting Quantity's current "
+                             "unit with specified unit")
                 else:
-                    self._unit = data.unit
-            else:
-                if unit is not None:
-                    self._unit = Unit(unit)
-                else:
-                    self._unit = None
-            # This must come after self's unit has been set so that the unit
-            # of the uncertainty, if any, can be converted to the unit of the
-            # unit of self.
-            self.uncertainty = uncertainty
+                    unit = data.unit
+                data = data.value
+
+        # Quick check on the parameters if they match the requirements
+        if (not hasattr(data, 'shape') or
+            not hasattr(data, '__getitem__') or
+            not hasattr(data, '__array__')):
+            # Data doesn't look like a numpy array, try converting it to
+            # one.
+            self._data = np.array(data, subok=True, copy=False)
+            # Quick check to see if what we got out looks like an array
+            # rather than an object (since numpy will convert a
+            # non-numerical input to an array of objects).
+            if self._data.dtype == 'O':
+                raise TypeError("Could not convert data to numpy array.")
+        else:
+            self._data = data  # np.array(data, subok=True, copy=False)
+
+        self._mask = mask
+
+        self._wcs = wcs
+
+        if meta is None:
+            self._meta = OrderedDict()
+        elif not isinstance(meta, collections.Mapping):
+            raise TypeError("meta attribute must be dict-like")
+        else:
+            self._meta = meta
+
+        if unit is not None:
+            self._unit = Unit(unit)
+        else:
+            self._unit = None
+        # This must come after self's unit has been set so that the unit
+        # of the uncertainty, if any, can be converted to the unit of the
+        # unit of self.
+        self.uncertainty = uncertainty
 
     def __str__(self):
         return str(self.data)
