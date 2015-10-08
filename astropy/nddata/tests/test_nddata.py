@@ -183,7 +183,10 @@ def test_nddata_init_data_maskedQuantity():
     mq = np.ma.array(q, mask=m)
     nd = NDData(mq)
     assert_array_equal(nd.data,a)
+    # This test failed before the change in nddata init because the masked
+    # arrays data (which in fact was a quantity was directly saved)
     assert nd.unit == u.m
+    assert not isinstance(nd.data, u.Quantity)
     np.testing.assert_array_equal(nd.mask, np.array(m))
 
 
