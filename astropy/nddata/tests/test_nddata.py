@@ -231,13 +231,6 @@ def test_initializing_nddata_from_quantity(data):
     np.testing.assert_array_equal(ndd.data, np.array(data))
 
 
-def test_initializing_nddata_from_quantity_and_unit_raises_error():
-    # Should raise an error if a Quantity is provided for the data and
-    # an explicit unit is given.
-    with pytest.raises(ValueError):
-        NDData([1, 2, 3] * u.adu, unit=u.adu)
-
-
 def test_masked_array_input():
 
     with NumpyRNGContext(12345):
