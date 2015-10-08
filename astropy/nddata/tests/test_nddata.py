@@ -67,6 +67,7 @@ class MinimalUncertainty(object):
     def uncertainty_type(self):
         return "totally and completely fake"
 
+
 def test_uncertainty_setter():
     nd = NDData([1,2,3])
     good_uncertainty = MinimalUncertainty(5)
@@ -196,7 +197,7 @@ def test_nddata_conversion():
 
 @raises(ValueError)
 def test_invalid_unit():
-    d = NDData(np.ones((5, 5)), unit="NotAValidUnit")
+    NDData(np.ones((5, 5)), unit="NotAValidUnit")
 
 
 def test_slicing_not_supported():
@@ -210,13 +211,6 @@ def test_initializing_from_nddata():
     d2 = NDData(d1)
 
     assert d1.data is d2.data
-
-
-def test_initializing_from_nduncertainty():
-    u1 = StdDevUncertainty(np.ones((5, 5)) * 3)
-    u2 = StdDevUncertainty(u1, copy=False)
-
-    assert u1.array is u2.array
 
 
 # Test an array and a scalar because a scalar Quantity does not always
