@@ -174,6 +174,10 @@ class NDData(NDDataBase):
     def data(self):
         """
         `~numpy.ndarray`: the data
+
+        Even though it is only enforced that the `data` is `~numpy.ndarray`
+        which does not contain objects for use with `NDArithmeticMixin` it is
+        assumed that the data array only contains numbers.
         """
         return self._data
 
