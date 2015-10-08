@@ -127,6 +127,7 @@ class NDData(NDDataBase):
                 data = data.value
 
         # Quick check on the parameters if they match the requirements
+        # Could be completely moved inside setters...
         if (not hasattr(data, 'shape') or
             not hasattr(data, '__getitem__') or
             not hasattr(data, '__array__')):
