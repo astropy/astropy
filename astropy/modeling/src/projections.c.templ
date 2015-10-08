@@ -8,6 +8,7 @@
 
 #include <Python.h> /* Python */
 
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h> /* Numpy */
 #include <numpy/npy_math.h> /* Numpy */
 
@@ -41,9 +42,9 @@ static PyObject *do_work(struct prjprm *prj, PyObject *in[2],
                          int (*prjset)(struct prjprm *),
                          int (*prjtrn)(struct prjprm *, int, int, int, int, const double[], const double[], double[], double[], int[]))
 {
-  PyObject* in_array[2] = { NULL, NULL };
-  PyObject* out_array[2] = { NULL, NULL };
-  PyObject* stat_array = NULL;
+  PyArrayObject* in_array[2] = { NULL, NULL };
+  PyArrayObject* out_array[2] = { NULL, NULL };
+  PyArrayObject* stat_array = NULL;
   Py_ssize_t n;
   Py_ssize_t i;
   PyObject* result = NULL;
@@ -60,7 +61,8 @@ static PyObject *do_work(struct prjprm *prj, PyObject *in[2],
      we should broadcast */
 
   for (i = 0; i < 2; ++i) {
-    in_array[i] = PyArray_ContiguousFromObject(in[i], PyArray_DOUBLE, 1, NPY_MAXDIMS);
+    in_array[i] = (PyArrayObject *) PyArray_ContiguousFromObject(
+        in[i], NPY_DOUBLE, 1, NPY_MAXDIMS);
     if (in_array[i] == NULL) {
       goto exit;
     }
@@ -81,15 +83,15 @@ static PyObject *do_work(struct prjprm *prj, PyObject *in[2],
   }
 
   for (i = 0; i < 2; ++i) {
-    out_array[i] = PyArray_SimpleNew(
-        PyArray_NDIM(in_array[0]), PyArray_DIMS(in_array[0]), PyArray_DOUBLE);
+    out_array[i] = (PyArrayObject *) PyArray_SimpleNew(
+        PyArray_NDIM(in_array[0]), PyArray_DIMS(in_array[0]), NPY_DOUBLE);
     if (out_array[i] == NULL) {
       goto exit;
     }
   }
 
-  stat_array = PyArray_SimpleNew(
-      PyArray_NDIM(in_array[0]), PyArray_DIMS(in_array[0]), PyArray_INT);
+  stat_array = (PyArrayObject *) PyArray_SimpleNew(
+      PyArray_NDIM(in_array[0]), PyArray_DIMS(in_array[0]), NPY_INT);
   if (stat_array == NULL) {
     goto exit;
   }

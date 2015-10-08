@@ -222,7 +222,7 @@ Wcs_all_pix2world(
 
   naxis = self->x.wcs->naxis;
 
-  pixcrd = (PyArrayObject*)PyArray_ContiguousFromAny(pixcrd_obj, PyArray_DOUBLE, 2, 2);
+  pixcrd = (PyArrayObject*)PyArray_ContiguousFromAny(pixcrd_obj, NPY_DOUBLE, 2, 2);
   if (pixcrd == NULL) {
     return NULL;
   }
@@ -235,7 +235,7 @@ Wcs_all_pix2world(
     goto exit;
   }
 
-  world = (PyArrayObject*)PyArray_SimpleNew(2, PyArray_DIMS(pixcrd), PyArray_DOUBLE);
+  world = (PyArrayObject*)PyArray_SimpleNew(2, PyArray_DIMS(pixcrd), NPY_DOUBLE);
   if (world == NULL) {
     goto exit;
   }
@@ -302,7 +302,7 @@ Wcs_p4_pix2foc(
     return pixcrd_obj;
   }
 
-  pixcrd = (PyArrayObject*)PyArray_ContiguousFromAny(pixcrd_obj, PyArray_DOUBLE, 2, 2);
+  pixcrd = (PyArrayObject*)PyArray_ContiguousFromAny(pixcrd_obj, NPY_DOUBLE, 2, 2);
   if (pixcrd == NULL) {
     return NULL;
   }
@@ -312,7 +312,7 @@ Wcs_p4_pix2foc(
     goto exit;
   }
 
-  foccrd = (PyArrayObject*)PyArray_SimpleNew(2, PyArray_DIMS(pixcrd), PyArray_DOUBLE);
+  foccrd = (PyArrayObject*)PyArray_SimpleNew(2, PyArray_DIMS(pixcrd), NPY_DOUBLE);
   if (foccrd == NULL) {
     status = 2;
     goto exit;
@@ -370,7 +370,7 @@ Wcs_det2im(
     return detcrd_obj;
   }
 
-  detcrd = (PyArrayObject*)PyArray_ContiguousFromAny(detcrd_obj, PyArray_DOUBLE, 2, 2);
+  detcrd = (PyArrayObject*)PyArray_ContiguousFromAny(detcrd_obj, NPY_DOUBLE, 2, 2);
   if (detcrd == NULL) {
     return NULL;
   }
@@ -380,7 +380,7 @@ Wcs_det2im(
     goto exit;
   }
 
-  imcrd = (PyArrayObject*)PyArray_SimpleNew(2, PyArray_DIMS(detcrd), PyArray_DOUBLE);
+  imcrd = (PyArrayObject*)PyArray_SimpleNew(2, PyArray_DIMS(detcrd), NPY_DOUBLE);
   if (imcrd == NULL) {
     status = 2;
     goto exit;
@@ -433,7 +433,7 @@ Wcs_pix2foc(
     return NULL;
   }
 
-  pixcrd = (PyArrayObject*)PyArray_ContiguousFromAny(pixcrd_obj, PyArray_DOUBLE, 2, 2);
+  pixcrd = (PyArrayObject*)PyArray_ContiguousFromAny(pixcrd_obj, NPY_DOUBLE, 2, 2);
   if (pixcrd == NULL) {
     return NULL;
   }
@@ -443,7 +443,7 @@ Wcs_pix2foc(
     goto _exit;
   }
 
-  foccrd = (PyArrayObject*)PyArray_SimpleNew(2, PyArray_DIMS(pixcrd), PyArray_DOUBLE);
+  foccrd = (PyArrayObject*)PyArray_SimpleNew(2, PyArray_DIMS(pixcrd), NPY_DOUBLE);
   if (foccrd == NULL) {
     goto _exit;
   }

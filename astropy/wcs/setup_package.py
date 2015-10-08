@@ -16,6 +16,7 @@ from distutils.dep_util import newer_group
 
 
 from astropy_helpers import setup_helpers
+from astropy_helpers.distutils_helpers import get_distutils_build_option
 from astropy.extern import six
 
 WCSROOT = os.path.relpath(os.path.dirname(__file__))
@@ -197,7 +198,7 @@ def get_wcslib_cfg(cfg, wcslib_files, include_paths):
         ('_GNU_SOURCE', None)])
 
     if (not setup_helpers.use_system_library('wcslib') or
-        sys.platform == 'win32'):
+            sys.platform == 'win32'):
         write_wcsconfig_h(include_paths)
 
         wcslib_path = join("cextern", "wcslib")  # Path to wcslib
@@ -235,6 +236,17 @@ def get_wcslib_cfg(cfg, wcslib_files, include_paths):
 
     if sys.platform.startswith('linux'):
         cfg['define_macros'].append(('HAVE_SINCOS', None))
+
+    # Squelch a few compilation warnings in WCSLIB
+    if setup_helpers.get_compiler_option() in ('unix', 'mingw32'):
+        if not get_distutils_build_option('debug'):
+            cfg['extra_compile_args'].extend([
+                '-Wno-strict-prototypes',
+                '-Wno-unused-function',
+                '-Wno-unused-value',
+                '-Wno-uninitialized',
+                '-Wno-unused-but-set-variable'])
+
 
 
 def get_extensions():

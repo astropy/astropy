@@ -409,7 +409,7 @@ class _Bootstrapper(object):
     def get_index_dist(self):
         if not self.download:
             log.warn('Downloading {0!r} disabled.'.format(DIST_NAME))
-            return False
+            return None
 
         log.warn(
             "Downloading {0!r}; run setup.py with the --offline option to "

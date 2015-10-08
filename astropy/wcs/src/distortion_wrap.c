@@ -78,7 +78,7 @@ PyDistLookup_init(
     return -1;
   }
 
-  array_obj = (PyArrayObject*)PyArray_ContiguousFromAny(py_array_obj, PyArray_FLOAT32, 2, 2);
+  array_obj = (PyArrayObject*)PyArray_ContiguousFromAny(py_array_obj, NPY_FLOAT32, 2, 2);
   if (array_obj == NULL) {
     return -1;
   }
@@ -183,7 +183,7 @@ PyDistLookup_set_data(
     return 0;
   }
 
-  value_array = (PyArrayObject*)PyArray_ContiguousFromAny(value, PyArray_FLOAT32, 2, 2);
+  value_array = (PyArrayObject*)PyArray_ContiguousFromAny(value, NPY_FLOAT32, 2, 2);
 
   if (value_array == NULL) {
     return -1;

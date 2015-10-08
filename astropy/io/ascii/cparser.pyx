@@ -117,7 +117,7 @@ cdef class FileString:
     cdef:
         object fhandle
         object mmap
-        void *mmap_ptr
+        const void *mmap_ptr
         Py_buffer buf
 
     def __cinit__(self, fname):
