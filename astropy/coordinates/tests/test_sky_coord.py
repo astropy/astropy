@@ -503,12 +503,12 @@ def test_repr():
 @pytest.mark.skipif('NUMPY_LT_1_7')
 def test_repr_altaz():
     sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame='icrs', distance=1 * u.kpc)
-    loc = EarthLocation.from_geodetic(-122*u.deg, -47*u.deg)
+    loc = EarthLocation(-2309223 * u.m, -3695529 * u.m, -4641767 * u.m)
     time = Time('2005-03-21 00:00:00')
     sc4 = sc2.transform_to(AltAz(location=loc, obstime=time))
     assert repr(sc4).startswith("<SkyCoord (AltAz: obstime=2005-03-21 00:00:00.000, "
-                         "location=(-2309222.664660742, -3695528.7655007695, "
-                         "-4641764.788820372) m, pressure=0.0 hPa, "
+                         "location=(-2309223.0, -3695529.0, "
+                                "-4641767.0) m, pressure=0.0 hPa, "
                          "temperature=0.0 deg_C, relative_humidity=0, "
                          "obswl=1.0 micron): (az, alt, distance) in "
                          "(deg, deg, m)\n")
