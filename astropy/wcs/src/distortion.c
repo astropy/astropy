@@ -172,12 +172,16 @@ p4_pix2deltas(
   const double* pix0;
   const double* pixend;
 
+#ifndef NDEBUG
+  unsigned int k;
+#endif
+
   assert(naxes == NAXES);
   assert(lookup != NULL);
   assert(pix != NULL);
   assert(foc != NULL);
+
 #ifndef NDEBUG
-  unsigned int k;
   for (k = 0; k < naxes; ++k) {
     if (lookup[k] != NULL) {
       assert(lookup[k]->data != NULL);
