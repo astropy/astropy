@@ -110,10 +110,8 @@ class NDData(NDDataBase):
             # We actually need the data to have a mask _and_ data attribute
             if hasattr(data, 'mask') and hasattr(data, 'data'):
                 if mask is not None:
-                    log.info("NDData was created with a masked array, and a "
-                             "mask was explicitly provided to NDData. The  "
-                             "explicitly passed-in mask will be used and the "
-                             "masked array's mask will be ignored.")
+                    log.info("Overwriting Masked Objects's current "
+                             "mask with specified mask")
                 else:
                     mask = data.mask
                 # Just save the data for further processing, we could handle
