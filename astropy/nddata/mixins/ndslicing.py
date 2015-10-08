@@ -18,24 +18,56 @@ class NDSlicingMixin(object):
     """
     Mixin to provide slicing on objects using the NDData interface.
 
-    When subclassing, be sure to list the superclasses in the correct order
-    so that the subclass sees NDData as the main superclass. See
-    `~astropy.nddata.NDDataArray` for an example.
 
-    Since `~astropy.nddata.NDData` is not very restrictive about what the
-    additional attributes can be there are a lot of tests while slicing.
-    If a subclass defines more restrictive setter methods for the properties
-    they might want to consider altering `NDSlicingMixin`s methods for
-    slicing (starting with ``_slice_*``). Currently implemented is support for
-    slicing the:
+    Notes
+    -----
+    1. When subclassing, be sure to list the superclasses in the correct order
+       so that the subclass sees NDData as the main superclass. See
+       `~astropy.nddata.NDDataArray` for an example.
 
-    - data (which is enforced to be something like a `~numpy.ndarray`)
-    - mask (if it is a numpy array)
-    - wcs (if it is a numpy array or `~astropy.wcs.WCS` object)
-    - uncertainty (if it is a numpy array or a subclass of `NDUncertainty`)
+    2. Since `~astropy.nddata.NDData` is not very restrictive about what the
+       additional attributes can be there are a lot of tests while slicing.
+       If a subclass defines more restrictive setter methods for the properties
+       they might want to consider altering `NDSlicingMixin`s methods for
+       slicing (starting with ``_slice_*``). Currently implemented is the
+       for slicing the:
 
-    But only if the shapes match the shape of the data (except for the wcs
-    if it is a `WCS` object).
+       - data (which is enforced to be something like a `~numpy.ndarray`)
+       - mask (if it is a numpy array)
+       - wcs (if it is a numpy array or `~astropy.wcs.WCS` object)
+       - uncertainty (if it is a numpy array or a subclass of `NDUncertainty`)
+
+       But only if the shapes match the shape of the data (except for the wcs
+       if it is a `WCS` object). If these attributes do not match those
+       criterias the original property is used but an ``INFO`` message is
+       displayed. The ``meta`` and ``unit`` are simply taken from the original.
+
+    3. Some advice about extending this Mixin in subclasses:
+
+       - if the ``data`` is not a `~numpy.ndarray` or should not be sliceable
+         you may be better of not using this Mixin.
+       - if you have defined an additional property that needs to be sliced
+         extend the ``_slice`` method. Propably the best way to do this is
+         to first call ``kwarg = super(subclass, self)._slice(item)`` in there
+         and then just afterwards add the other sliced properties to the
+         ``kwarg``-dict. Since this kwarg is used to initialize a new
+         instance of the class you need to match the key to the name of the
+         parameter. For example if you use a property called ``flags`` you need
+         to add a new line ``kwargs['flags'] = ...`` to the _slice method.
+         *BUT* the ``__init__`` has to accept a flags parameter otherwise
+         this will fail.
+       - if you have restrictions that are a subset of the above mentioned
+         conditions on the properties do not override or extend the
+         ``_slice_*`` methods. The speed gain is negligible.
+       - if you have a property that does not match the criterias above you may
+         need to extend or override some method here. For example you want a
+         custom made ``uncertainty`` class that does not subclass from
+         `NDUncertainty` or `~numpy.ndarray` to be sliced the best way to do
+         this would be to extend ``_slice_uncertainty(self, item)`` which
+         takes the ``slice`` as ``item`` parameter and returns what the
+         sliced uncertainty should be. The current uncertainty is avaiable
+         using ``self._uncertainty``. Be carful since this can be also ``None``
+         if there is no uncertainty set.
     """
     def __getitem__(self, item):
         # Abort slicing if the data is scalar
@@ -46,14 +78,16 @@ class NDSlicingMixin(object):
         kwargs = self._slice_attr(item)
         return self.__class__(new_data, **kwargs)
 
-    def _slice_attr(self, item):
+    def _slice(self, item):
         """
         Collects the sliced attributes and passes them back as ``kwarg`` for
         the return after slicing.
 
         It passes uncertainty, mask and wcs to their appropriate ``_slice_*``
         method, while `meta` and `unit` are simply taken from the original. The
-        data is assumed to be sliceable and is sliced before.
+        data is assumed to be sliceable and is sliced already before.
+
+        Where possible the return is *not* a copy of the data.
 
         Parameters
         ----------
@@ -65,14 +99,6 @@ class NDSlicingMixin(object):
         kwargs: `dict`
             Containing all the attributes except data after slicing - ready to
             feed them into the ``init``.
-
-        Notes
-        -----
-        Subclasses *normally* don't need to override this method instead they
-        should override the specific ``_slice_*`` methods, except one wishes to
-        slice other attributes as well.
-
-        Where possible the return is *not* a copy of the data.
         """
         kwargs = {}
         # Try to slice some attributes
