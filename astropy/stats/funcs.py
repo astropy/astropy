@@ -953,26 +953,25 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
 
     Obtain a statistic with two outputs on the array
 
-    >>> from scipy.stats import spearmanr
+    >>> test_statistic = lambda x: (np.sum(x), np.mean(x))
     >>> with NumpyRNGContext(1):
-    ...     bootresult = bootstrap(bootarr, 3, bootfunc=spearmanr)
-    ...
+    ...     bootresult = bootstrap(bootarr, 3, bootfunc=test_statistic)
     >>> bootresult
-    array([[ 0.60629737,  0.06314051],
-           [ 0.14159484,  0.69639692],
-           [ 0.54091829,  0.10640863]])
+    array([[ 40. ,   4. ],
+           [ 46. ,   4.6],
+           [ 35. ,   3.5]])
     >>> bootresult.shape
     (3, 2)
 
     Obtain a statistic with two outputs on the array, keeping only the first
     output
 
-    >>> bootfunc = lambda x:spearmanr(x)[0]
+    >>> bootfunc = lambda x:test_statistic(x)[0]
     >>> with NumpyRNGContext(1):
     ...     bootresult = bootstrap(bootarr, 3, bootfunc=bootfunc)
     ...
     >>> bootresult
-    array([ 0.60629737,  0.14159484,  0.54091829])
+    array([ 40.,  46.,  35.])
     >>> bootresult.shape
     (3,)
 
