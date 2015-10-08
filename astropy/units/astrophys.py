@@ -70,15 +70,16 @@ def_unit(['M_e'], _si.m_e.value * si.kg, namespace=_ns,
          doc="Electron mass",
          format={'latex': r'M_{e}', 'unicode': 'Mₑ'})
 # Unified atomic mass unit
-def_unit(['u', 'Da', 'Dalton'], 1.6605387e-27 * si.kg, namespace=_ns,
+def_unit(['u', 'Da', 'Dalton'], _si.u.value * si.kg, namespace=_ns,
          prefixes=True, exclude_prefixes=['a', 'da'],
          doc="Unified atomic mass unit")
 
 ##########################################################################
 # ENERGY
 
-def_unit(['Ry', 'rydberg'], 13.605692 * si.eV, namespace=_ns,
-         prefixes=True,
+def_unit(['Ry', 'rydberg'],
+         _si.Ryd.value * _si.c.value * _si.h.value / _si.e.value * si.eV,
+         namespace=_ns, prefixes=True,
          doc="Rydberg: Energy of a photon whose wavenumber is the Rydberg "
          "constant",
          format={'latex': r'R_{\infty}', 'unicode': 'R∞'})
