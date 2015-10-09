@@ -6,6 +6,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import collections
 import numpy as np
+from copy import deepcopy
 
 from .nddata_base import NDDataBase
 from .nduncertainty import NDUncertainty
@@ -29,9 +30,7 @@ class NDData(NDDataBase):
     Parameters
     -----------
     data : `~numpy.ndarray`, `~numpy.ndarray`-like, or `NDData`
-        The actual data contained in this `NDData` object. If *possible*, data
-        will not be copied `data`, so you should copy the ``data`` before
-        passing it in if that's the desired behavior.
+        The actual data contained in this `NDData` object.
 
     uncertainty : any type, optional
         Uncertainty on the data. The uncertainty *should* have a string
@@ -51,6 +50,11 @@ class NDData(NDDataBase):
     unit : `~astropy.units.UnitBase` instance or str, optional
         The units of the data.
 
+    copy : `bool`
+        ``True`` if the passed parameters should be copied for the new instance
+        or ``False`` if not. This affects every parameter even the data!
+        Default is False.
+
     Notes
     -----
     The data in a `NDData` object should be accessed through the data
@@ -65,7 +69,7 @@ class NDData(NDDataBase):
     """
 
     def __init__(self, data, uncertainty=None, mask=None, wcs=None,
-                 meta=None, unit=None):
+                 meta=None, unit=None, copy=False):
 
         super(NDData, self).__init__()
 
@@ -133,33 +137,35 @@ class NDData(NDDataBase):
             not hasattr(data, '__array__')):
             # Data doesn't look like a numpy array, try converting it to
             # one.
-            self._data = np.array(data, subok=True, copy=False)
+            data = np.array(data, subok=True, copy=False)
             # Quick check to see if what we got out looks like an array
             # rather than an object (since numpy will convert a
             # non-numerical input to an array of objects).
-            if self._data.dtype == 'O':
+            if data.dtype == 'O':
                 raise TypeError("Could not convert data to numpy array.")
-        else:
-            self._data = data  # np.array(data, subok=True, copy=False)
-
-        self._mask = mask
-
-        self._wcs = wcs
 
         if meta is None:
-            self._meta = OrderedDict()
+            meta = OrderedDict()
         elif not isinstance(meta, collections.Mapping):
             raise TypeError("meta attribute must be dict-like")
-        else:
-            self._meta = meta
 
         if unit is not None:
-            self._unit = Unit(unit)
-        else:
-            self._unit = None
-        # This must come after self's unit has been set so that the unit
-        # of the uncertainty, if any, can be converted to the unit of the
-        # unit of self.
+            unit = Unit(unit)
+
+        if copy:
+            data = deepcopy(data)
+            mask = deepcopy(mask)
+            wcs = deepcopy(wcs)
+            meta = deepcopy(meta)
+            uncertainty = deepcopy(uncertainty)
+            # Actually - this is unnecessary but better safe than sorry :-)
+            unit = deepcopy(unit)
+
+        self._data = data
+        self._mask = mask
+        self._wcs = wcs
+        self._meta = meta
+        self._unit = unit
         self.uncertainty = uncertainty
 
     def __str__(self):
@@ -176,7 +182,7 @@ class NDData(NDDataBase):
         `~numpy.ndarray`: the data
 
         Even though it is only enforced that the `data` is `~numpy.ndarray`
-        which does not contain objects for use with `NDArithmeticMixin` it is
+        which does not contain objects. For use with `NDArithmeticMixin` it is
         assumed that the data array only contains numbers.
         """
         return self._data

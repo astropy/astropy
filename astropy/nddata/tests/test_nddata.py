@@ -143,6 +143,12 @@ def test_nddata_init_data_ndarray():
     a[0, 0] = 0
     assert nd_ref.data[0, 0] == 0
 
+    # Except we choose copy=True
+    a = np.ones((10, 10))
+    nd_ref = NDData(a, copy=True)
+    a[0, 0] = 0
+    assert nd_ref.data[0, 0] != 0
+
 
 def test_nddata_init_data_maskedarray():
     with NumpyRNGContext(456):
@@ -162,6 +168,13 @@ def test_nddata_init_data_maskedarray():
     marr.data[11] = 123456789
     assert_array_equal(nd.mask, marr.mask)
     assert_array_equal(nd.data, marr.data)
+
+    # or not if we choose copy=True
+    nd = NDData(marr, copy=True)
+    marr.mask[10] = ~marr.mask[10]
+    marr.data[11] = 0
+    assert nd.mask[10] != marr.mask[10]
+    assert nd.data[11] != marr.data[11]
 
 
 @pytest.mark.parametrize('data', [np.array([1, 2, 3]), 5])
