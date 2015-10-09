@@ -80,7 +80,8 @@ class NDSlicingMixin(object):
         >>> nd[1:3]
         NDDataSliceable([2, 3])
         >>> import numpy as np # Mask has to be a numpy array to be sliceable
-        >>> nd2 = NDDataSliceable(nd, mask=np.array([True, False, True, True, False]))
+        >>> mask = np.array([True, False, True, True, False])
+        >>> nd2 = NDDataSliceable(nd, mask=mask)
         >>> nd2[1:3].mask
         array([False,  True], dtype=bool)
         >>> # But be aware that the slicing only returns references not copies
@@ -88,6 +89,17 @@ class NDSlicingMixin(object):
         >>> nd3.data[0] = 100
         >>> nd2
         NDDataSliceable([  1, 100,   3,   4,   5])
+        >>> # If the mask is not a numpy array a warning is issued
+        >>> nd4 = NDDataSliceable(nd, mask=[False, True])
+        >>> nd5 = nd4[0:2] # doctest: +SKIP
+        INFO: Mask is considered not sliceable. [astropy.nddata.mixins.ndslicing]
+        INFO: Therefore the mask will not be sliced. [astropy.nddata.mixins.ndslicing]
+        >>> # but the data is sliced
+        >>> nd5 # doctest: +SKIP
+        NDDataSliceable([  1, 100])
+        >>> # and the mask is just the mask without slicing
+        >>> nd5.mask # doctest: +SKIP
+        [False, True]
 
     """
     def __getitem__(self, item):
