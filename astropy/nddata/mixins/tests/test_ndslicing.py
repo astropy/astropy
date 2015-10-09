@@ -77,6 +77,34 @@ def test_slicing_all_npndarray():
     assert unit is nd2.unit
     assert meta == nd.meta
 
+    # See what happens for multidimensional properties
+    data = np.arange(1000).reshape(10,10,10)
+    mask = data > 3
+    uncertainty = np.linspace(10,20,1000).reshape(10,10,10)
+    wcs = np.linspace(1,1000,1000).reshape(10,10,10)
+    # Just to have them too
+    unit = u.s
+    meta = {'observer': 'Brian'}
+
+    nd = NDDataSliceable(data, mask=mask, uncertainty=uncertainty, wcs=wcs,
+                         unit=unit, meta=meta)
+    # Slice only 1D
+    nd2 = nd[2:5]
+    assert_array_equal(data[2:5], nd2.data)
+    assert_array_equal(mask[2:5], nd2.mask)
+    assert_array_equal(uncertainty[2:5], nd2.uncertainty)
+    assert_array_equal(wcs[2:5], nd2.wcs)
+    assert unit is nd2.unit
+    assert meta == nd.meta
+    # Slice 3D
+    nd2 = nd[2:5,:,4:7]
+    assert_array_equal(data[2:5,:,4:7], nd2.data)
+    assert_array_equal(mask[2:5,:,4:7], nd2.mask)
+    assert_array_equal(uncertainty[2:5,:,4:7], nd2.uncertainty)
+    assert_array_equal(wcs[2:5,:,4:7], nd2.wcs)
+    assert unit is nd2.unit
+    assert meta == nd.meta
+
 
 def test_slicing_all_npndarray_shape_diff():
     data = np.arange(10)
@@ -91,9 +119,41 @@ def test_slicing_all_npndarray_shape_diff():
     nd2 = nd[2:5]
     assert_array_equal(data[2:5], nd2.data)
     # All other properties should not be sliced since their shape differs!
-    assert_array_equal(mask, nd2.mask)
-    assert_array_equal(uncertainty, nd2.uncertainty)
-    assert_array_equal(wcs, nd2.wcs)
+    assert mask is nd2.mask
+    assert uncertainty is nd2.uncertainty
+    assert wcs is nd2.wcs
+    # But unit and meta remain the same
+    assert unit is nd2.unit
+    assert meta == nd.meta
+
+    # See what happens for multidimensional properties
+    data = np.arange(1000).reshape(10,10,10)
+    mask = (data > 3)[0:9,:,:]
+    uncertainty = np.linspace(10,20,1200).reshape(12,10,10)
+    wcs = np.linspace(1,1000,700).reshape(10,7,10)
+    # Just to have them too
+    unit = u.s
+    meta = {'observer': 'Brian'}
+
+    nd = NDDataSliceable(data, mask=mask, uncertainty=uncertainty, wcs=wcs,
+                         unit=unit, meta=meta)
+    # Slice only 1D
+    nd2 = nd[2:5]
+    assert_array_equal(data[2:5], nd2.data)
+    # All other properties should not be sliced since their shape differs!
+    assert mask is nd2.mask
+    assert uncertainty is nd2.uncertainty
+    assert wcs is nd2.wcs
+    # But unit and meta remain the same
+    assert unit is nd2.unit
+    assert meta == nd.meta
+    # Slice 3D
+    nd2 = nd[2:5,:,4:7]
+    assert_array_equal(data[2:5,:,4:7], nd2.data)
+    # All other properties should not be sliced since their shape differs!
+    assert mask is nd2.mask
+    assert uncertainty is nd2.uncertainty
+    assert wcs is nd2.wcs
     # But unit and meta remain the same
     assert unit is nd2.unit
     assert meta == nd.meta
