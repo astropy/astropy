@@ -13,11 +13,13 @@ from ...nduncertainty import NDUncertainty
 from ....tests.helper import pytest
 from .... import units as u
 
+# Just add the Mixin to NDData
 class NDDataSliceable(NDSlicingMixin, NDData):
 
     pass
 
-
+# Just some uncertainty (following the StdDevUncertainty implementation of
+# storing the uncertainty in a propery 'array') with slicing.
 class SomeUncertainty(NDUncertainty):
 
     def __init__(self, uncertainty, *arg, **kwd):
