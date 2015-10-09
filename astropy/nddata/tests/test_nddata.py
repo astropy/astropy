@@ -20,9 +20,9 @@ from ...utils import NumpyRNGContext
 
 class FakeUncertainty(NDUncertainty):
 
-    def __init__(self, *arg, **kwd):
-        self._unit = None
-        pass
+    @property
+    def uncertainty_type(self):
+        return 'fake'
 
     def propagate_add(self, data, final_data):
         pass

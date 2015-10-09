@@ -22,11 +22,9 @@ class NDDataSliceable(NDSlicingMixin, NDData):
 # storing the uncertainty in a propery 'array') with slicing.
 class SomeUncertainty(NDUncertainty):
 
-    def __init__(self, uncertainty, *arg, **kwd):
-        self._array = uncertainty
-
-    def __getitem__(self, item):
-        return self.__class__(self._array[item])
+    @property
+    def uncertainty_type(self):
+        return 'fake'
 
     def propagate_add(self, data, final_data):
         pass
@@ -39,10 +37,6 @@ class SomeUncertainty(NDUncertainty):
 
     def propagate_divide(self, data, final_data):
         pass
-
-    @property
-    def array(self):
-        return self._array
 
 
 def test_slicing_data():
