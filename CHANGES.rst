@@ -843,6 +843,8 @@ Bug Fixes
 - ``astropy.io.registry``
 
 - ``astropy.io.votable``
+  - Fixed crash with Python compiler optimization level = 2.
+    [#4231]
 
 - ``astropy.modeling``
 
