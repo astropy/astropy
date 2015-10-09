@@ -39,6 +39,7 @@ from ...extern import six
 # STDLIB
 import io
 import re
+import sys
 
 from textwrap import dedent
 from warnings import warn
@@ -1446,7 +1447,8 @@ def _build_doc_string():
     return {'warnings': warnings,
             'exceptions': exceptions}
 
-__doc__ = __doc__.format(**_build_doc_string())
+if sys.flags.optimize < 2:
+    __doc__ = __doc__.format(**_build_doc_string())
 
 __all__.extend([x[0] for x in _get_warning_and_exception_classes('W')])
 __all__.extend([x[0] for x in _get_warning_and_exception_classes('E')])
