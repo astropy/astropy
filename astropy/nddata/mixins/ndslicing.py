@@ -68,6 +68,27 @@ class NDSlicingMixin(object):
          sliced uncertainty should be. The current uncertainty is avaiable
          using ``self._uncertainty``. Be carful since this can be also ``None``
          if there is no uncertainty set.
+
+    Examples
+    --------
+
+        >>> from astropy.nddata import NDData, NDSlicingMixin
+        >>> # You need to make NDData the last superclass like this:
+        >>> class NDDataSliceable(NDSlicingMixin, NDData):
+        >>>     pass
+        >>> nd = NDDataSliceable([1,2,3,4,5])
+        >>> nd[1:3]
+        NDDataSliceable([2, 3])
+        >>> import numpy as np # Mask has to be a numpy array to be sliceable
+        >>> nd2 = NDDataSliceable(nd, mask=np.array([True, False, True, True, False]))
+        >>> nd2[1:3].mask
+        array([False,  True], dtype=bool)
+        >>> # But be aware that the slicing only returns references not copies
+        >>> nd3 = nd2[1:3]
+        >>> nd3.data[0] = 100
+        >>> nd2
+        NDDataSliceable([  1, 100,   3,   4,   5])
+
     """
     def __getitem__(self, item):
         # Abort slicing if the data is scalar
