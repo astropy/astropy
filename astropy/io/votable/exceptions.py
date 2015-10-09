@@ -1446,7 +1446,8 @@ def _build_doc_string():
     return {'warnings': warnings,
             'exceptions': exceptions}
 
-__doc__ = __doc__.format(**_build_doc_string())
+if __doc__ is not None:
+    __doc__ = __doc__.format(**_build_doc_string())
 
 __all__.extend([x[0] for x in _get_warning_and_exception_classes('W')])
 __all__.extend([x[0] for x in _get_warning_and_exception_classes('E')])

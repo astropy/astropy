@@ -687,6 +687,8 @@ Bug Fixes
 
 - ``astropy.io.votable``
 
+  - Fixed crash with Python compiler optimization level = 2. [#4231]
+
 - ``astropy.modeling``
 
 - ``astropy.nddata``
