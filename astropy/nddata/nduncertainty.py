@@ -54,11 +54,14 @@ class NDUncertainty(object):
 
     @property
     def parent_nddata(self):
-        if self._parent_nddata is None:
-            message = "uncertainty is not associated with an NDData object"
+        message = "uncertainty is not associated with an NDData object"
+        try:
+            if self._parent_nddata is None:
+                raise MissingDataAssociationException(message)
+            else:
+                return self._parent_nddata
+        except AttributeError:
             raise MissingDataAssociationException(message)
-        else:
-            return self._parent_nddata
 
     @parent_nddata.setter
     def parent_nddata(self, value):
@@ -176,27 +179,6 @@ class StdDevUncertainty(NDUncertainty):
             self._unit = array.unit
         else:
             self.array = np.array(array, copy=copy, subok=True)
-
-    @property
-    def parent_nddata(self):
-        message = "Uncertainty is not associated with an NDData object"
-        try:
-            if self._parent_nddata is None:
-                raise MissingDataAssociationException(message)
-            else:
-                return self._parent_nddata
-        except AttributeError:
-            raise MissingDataAssociationException(message)
-
-    @parent_nddata.setter
-    def parent_nddata(self, value):
-        if self.array is None or value is None:
-            self._parent_nddata = value
-        else:
-            if value.data.shape != self.array.shape:
-                raise ValueError("parent shape does not match "
-                                 "array data shape")
-        self._parent_nddata = value
 
     @property
     def array(self):
