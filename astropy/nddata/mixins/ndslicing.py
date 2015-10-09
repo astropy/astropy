@@ -18,6 +18,14 @@ class NDSlicingMixin(object):
     """
     Mixin to provide slicing on objects using the NDData interface.
 
+    The most common cases of the properties of `~astropy.nddata.NDData` are
+    covered, i.e. if uncertainty, mask and wcs are ``None`` or
+    `~numpy.ndarray` (see Notes for complete list of restrictions) but since
+    NDData deliberatly enforces nothing on most of it's properties there might
+    be a need to extend this. The `NDSlicingMixin` was designed to allow
+    subclasses to extend just the portion they need changing without having
+    to rewrite the whole Mixin (see Notes for detailed suggestions on how
+    to do that).
 
     Notes
     -----
