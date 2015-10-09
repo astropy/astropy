@@ -45,7 +45,7 @@ class NDSlicingMixin(object):
     3. Some advice about extending this Mixin in subclasses:
 
        - if the ``data`` is not a `~numpy.ndarray` or should not be sliceable
-         you may be better of not using this Mixin.
+         you may be better off not using this Mixin.
        - if you have defined an additional property that needs to be sliced
          extend the ``_slice`` method. Propably the best way to do this is
          to first call ``kwarg = super(subclass, self)._slice(item)`` in there
@@ -62,7 +62,7 @@ class NDSlicingMixin(object):
        - if you have a property that does not match the criterias above you may
          need to extend or override some method here. For example you want a
          custom made ``uncertainty`` class that does not subclass from
-         `NDUncertainty` or `~numpy.ndarray` to be sliced the best way to do
+         `NDUncertainty` or `~numpy.ndarray` to be sliced. The best way to do
          this would be to extend ``_slice_uncertainty(self, item)`` which
          takes the ``slice`` as ``item`` parameter and returns what the
          sliced uncertainty should be. The current uncertainty is avaiable
@@ -73,9 +73,9 @@ class NDSlicingMixin(object):
         # Abort slicing if the data is scalar
         if self._data.shape == ():
             raise TypeError('Scalars cannot be sliced.')
-        # Slice everything defined in _slice_attr and the data
+        # Slice the data but everything else slice in self._slice.
         new_data = self.data[item]
-        kwargs = self._slice_attr(item)
+        kwargs = self._slice(item)
         return self.__class__(new_data, **kwargs)
 
     def _slice(self, item):
@@ -161,7 +161,7 @@ class NDSlicingMixin(object):
         return self._wcs
 
     # Get the documentation in place.
-    if isinstance(_slice_attr.__doc__, string_types):
+    if isinstance(_slice.__doc__, string_types):
         doc = """
         Controls how the {attr} is sliced.
 
