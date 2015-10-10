@@ -23,16 +23,16 @@ class FakeUncertainty(NDUncertainty):
     def uncertainty_type(self):
         return 'fake'
 
-    def propagate_add(self, data, final_data):
+    def _propagate_add(self, data, final_data):
         pass
 
-    def propagate_subtract(self, data, final_data):
+    def _propagate_subtract(self, data, final_data):
         pass
 
-    def propagate_multiply(self, data, final_data):
+    def _propagate_multiply(self, data, final_data):
         pass
 
-    def propagate_divide(self, data, final_data):
+    def _propagate_divide(self, data, final_data):
         pass
 
 

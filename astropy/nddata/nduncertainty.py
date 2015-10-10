@@ -7,7 +7,7 @@ import numpy as np
 from abc import ABCMeta, abstractproperty, abstractmethod
 from copy import deepcopy
 
-from ..utils.compat import ignored
+#from ..utils.compat import ignored
 from ..units import Unit, Quantity
 from ..extern import six
 from .. import log
@@ -29,6 +29,31 @@ class MissingDataAssociationException(Exception):
     This exception should be used to indicate that an uncertainty instance has
     not been associated with a parent `~astropy.nddata.NDData` object.
     """
+
+
+
+# Make a placeholder for the different uncer.
+_propagate_doc = """
+Propagate uncertainties for {operation}.
+
+Parameters
+----------
+other_uncert : {instance} instance
+    The data for the uncertainty of b in a {operator} b
+result_data : `~numpy.ndarray` instance or `~astropy.units.Quantity`
+    The data array that is the result of the {operation}.
+
+Returns
+-------
+result_uncertainty : {instance} instance
+    The resulting uncertainty
+
+Raises
+------
+IncompatibleUncertaintiesException
+    Raised if the method does not know how to propagate the
+    uncertainties.
+"""
 
 
 @six.add_metaclass(ABCMeta)
@@ -101,6 +126,7 @@ class NDUncertainty(object):
 
         self.array = array
         self.unit = unit
+        self.parent_nddata = None # no associated NDData until it is set!
 
     def __getitem__(self, item):
         return self.__class__(self.array[item], unit=self.unit, copy=False)
@@ -163,7 +189,8 @@ class NDUncertainty(object):
         be assumed.
         """
         if self._unit is None:
-            if self.parent_nddata.unit is None:
+            if (self._parent_nddata is None or
+                                    self.parent_nddata.unit is None):
                 return None
             else:
                 return self.parent_nddata.unit
@@ -176,21 +203,106 @@ class NDUncertainty(object):
         else:
             self._unit = Unit(value)
 
+    def propagate(self, operation, other_nddata, result_data):
+        """
+        Calculate the resulting uncertainty of the arithmetic operation.
+
+        Parameters
+        ----------
+        operation: `str` {'addition', 'subtraction', 'multiplication', 'division'}
+            The operation that is performed on the two `NDData` instances.
+        other_nddata: `NDData` instance
+            The second NDData in the arithmetic operation.
+        result_data: `np.ndarray`
+            The result of the arithmetic operations. This saves some duplicate
+            calculations.
+
+        Returns
+        -------
+        resulting_uncertainty: another instance
+            Another instance of the same `NDUncertainty` subclass containing
+            the uncertainty of the result.
+
+        Notes
+        -----
+        First the other uncertainty will be accessed and converted (if the
+        classes are different) then it will call the appropriate `_propagate_*`
+        method for calculating the resulting uncertainty.
+        """
+
+        # Get the other uncertainty (and convert it to a matching one)
+        other_uncert = self._convert_uncertainty(other_nddata.uncertainty)
+
+        if operation == 'addition':
+            result = self._propagate_add(other_uncert, result_data)
+        elif operation == 'subtraction':
+            result = self._propagate_subtract(other_uncert, result_data)
+        elif operation == 'multiplication':
+            result = self._propagate_multiply(other_uncert, result_data)
+        elif operation == 'division':
+            result = self._propagate_divide(other_uncert, result_data)
+        else:
+            raise ValueError('Unsupported operation')
+
+        return self.__class__(result, copy=False)
+
+    def _convert_uncertainty(other_uncert):
+        """
+        Checks that the uncertainties are compatible for propagation.
+
+        Parameters
+        ----------
+        other_uncert: `NDUncertainty` subclass
+            The other uncertainty
+
+        Returns
+        -------
+        other_uncert: `NDUncertainty` subclass
+            but converted to a compatible `NDUncertainty` subclass if
+            necessary.
+
+        Raises
+        ------
+        IncompatibleUncertaintiesException:
+            If the other uncertainty cannot be converted to a compatible
+            `NDUncertainty` subclass.
+
+        Notes
+        -----
+        For most subclasses a simple check that the classes are the same would
+        be sufficient but in case one wishes to create a conversion scheme this
+        would be the right place to implement it.
+        """
+        if isinstance(other_uncert, NDUncertainty):
+            return other_uncert
+        else:
+            raise IncompatibleUncertaintiesException
+
     @abstractmethod
-    def propagate_add(self, other_nddata, result_data):
+    def _propagate_add(self, other_uncert, result_data):
         return None
 
     @abstractmethod
-    def propagate_subtract(self, other_nddata, result_data):
+    def _propagate_subtract(self, other_uncert, result_data):
         return None
 
     @abstractmethod
-    def propagate_multiply(self, other_nddata, result_data):
+    def _propagate_multiply(self, other_uncert, result_data):
         return None
 
     @abstractmethod
-    def propagate_divide(self, other_nddata, result_data):
+    def _propagate_divide(self, other_uncert, result_data):
         return None
+
+    # Apply docstrings
+    _propagate_add.__doc__ = _propagate_doc.format(operation='addition',
+            operator='+', instance='NDUncertainty')
+    _propagate_subtract.__doc__ = _propagate_doc.format(
+            operation='subtraction', operator='-', instance='NDUncertainty')
+    _propagate_multiply.__doc__ = _propagate_doc.format(
+            operation='multiplication', operator='*', instance='NDUncertainty')
+    _propagate_divide.__doc__ = _propagate_doc.format(operation='divison',
+            operator='/', instance='NDUncertainty')
 
 
 class StdDevUncertainty(NDUncertainty):
@@ -200,178 +312,225 @@ class StdDevUncertainty(NDUncertainty):
 
     support_correlated = False
 
-    def __init__(self, array=None, unit=None, copy=True):
-        self._unit = None
-        if array is None:
-            self.array = None
-        elif isinstance(array, StdDevUncertainty):
-            self.array = np.array(array.array, copy=copy, subok=True)
-        elif isinstance(array, Quantity):
-            self.array = np.array(array.value, copy=copy, subok=True)
-            self._unit = array.unit
-        else:
-            self.array = np.array(array, copy=copy, subok=True)
-
     @property
     def uncertainty_type(self):
+        """
+        `str`: Short description which kind of uncertainty is saved
+
+        Defined as abstract property so subclasses *have* to override this
+        and return a string.
+        """
         return 'std'
 
-    def propagate_add(self, other_nddata, result_data):
-        """
-        Propagate uncertainties for addition.
-
-        Parameters
-        ----------
-        other_nddata : NDData instance
-            The data for the second other_nddata in a + b
-        result_data : `~numpy.ndarray` instance
-            The data array that is the result of the addition
-
-        Returns
-        -------
-        result_uncertainty : NDUncertainty instance
-            The resulting uncertainty
-
-        Raises
-        ------
-        IncompatibleUncertaintiesException
-            Raised if the method does not know how to propagate the
-            uncertainties.
-        """
-
-        if not isinstance(other_nddata.uncertainty, StdDevUncertainty):
+    def _convert_uncertainty(self, other_uncert):
+        if isinstance(other_uncert, StdDevUncertainty):
+            return other_uncert
+        else:
             raise IncompatibleUncertaintiesException
 
-        if self.array is None:
-            raise ValueError("standard deviation values are not set")
 
-        if other_nddata.uncertainty.array is None:
-            raise ValueError("standard deviation values are not set "
-                             "in other_nddata")
-
-        result_uncertainty = StdDevUncertainty()
-        result_uncertainty.array = np.sqrt(self.array**2 +
-                                           other_nddata.uncertainty.array**2)
-
-        return result_uncertainty
-
-    def propagate_subtract(self, other_nddata, result_data):
-        """
-        Propagate uncertainties for subtraction.
-
-        Parameters
-        ----------
-        other_nddata : NDData instance
-            The data for the second other_nddata in a + b
-        result_data : `~numpy.ndarray` instance
-            The data array that is the result of the addition
-
-        Returns
-        -------
-        result_uncertainty : NDUncertainty instance
-            The resulting uncertainty
-
-        Raises
-        ------
-        IncompatibleUncertaintiesException
-            Raised if the method does not know how to propagate the
-            uncertainties.
-        """
-
-        if not isinstance(other_nddata.uncertainty, StdDevUncertainty):
-            raise IncompatibleUncertaintiesException
+    def _propagate_add(self, other_uncert, result_data):
 
         if self.array is None:
-            raise ValueError("standard deviation values are not set")
+            if other_uncert.unit is not None and (
+                        self.parent_nddata.unit is not other_uncert.unit):
+                # In case we are dealing with quantities the result of add/sub
+                # will have the unit of the first element.
+                # So if the second element has a unit (so we are dealing with
+                # quantities) and that unit differs from the results unit
+                # (which is just the unit of the first element) we need to
+                # convert the second unit. But since this unit is equal to
+                # the resulting unit we then drop the unit after conversion.
+                return (other_uncert.array * other_uncert.unit).to(
+                            self.parent_nddata.unit).value
+            else:
+                # Copy the result because _propagate will not copy it but for
+                # arithmetic operations users will expect copys.
+                return deepcopy(other_uncert.array)
 
-        if other_nddata.uncertainty.array is None:
-            raise ValueError("standard deviation values are not set "
-                             "in other_nddata")
+        elif other_uncert.array is None:
+            if self.unit is not self.parent_nddata.unit:
+                # Only keep the unit if the unit differs from the data's unit.
+                # in that case the resulting uncertainty will have a different
+                # unit than the resulting data. We just assume that the unit of
+                # the uncertainty was explicitly set different because it would
+                # be to small or high otherwise.
+                return self.array * self.unit
+            else:
+                # Copy the result because _propagate will not copy it but for
+                # arithmetic operations users will expect copys.
+                return deepcopy(self.array)
 
-        result_uncertainty = StdDevUncertainty()
-        result_uncertainty.array = np.sqrt(self.array**2 +
-                                           other_nddata.uncertainty.array**2)
+        else:
+            if self.unit is not other_uncert.unit:
+                # In case the two uncertainties (or data) have different units
+                # we need to convert it to the same because the unit of the
+                # result will have the unit of the first element. In case
+                # the uncertainty of the first element differs from the data
+                # the resulting uncertainties unit will be the unit of the
+                # first elements uncertainty
+                this = self.array * self.unit
+                other = (other_uncert.array * other_uncert.unit).to(self.unit)
+                result = np.sqrt(this**2 + other.array**2)
+                # Compare the result to the unit of the data arithmetics and
+                # if it is the same drop the uncertainty unit. The result
+                # should have a unit otherwise uncertainties with units would
+                # not make a lot of sense, or?
+                if result.unit is result_data.unit:
+                    return result.value
+                else:
+                    return result
+            else:
+                # Since both units are the same we do not need to bother with
+                # quantity arithmetics and can simply use numpy arithmetics
+                # which should be faster.
+                return np.sqrt(self.array**2 + other_uncert.array**2)
 
-        return result_uncertainty
 
-    def propagate_multiply(self, other_nddata, result_data):
-        """
-        Propagate uncertainties for multiplication.
-
-        Parameters
-        ----------
-        other_nddata : NDData instance
-            The data for the second other_nddata in a + b
-        result_data : `~numpy.ndarray` instance
-            The data array that is the result of the addition
-
-        Returns
-        -------
-        result_uncertainty : NDUncertainty instance
-            The resulting uncertainty
-
-        Raises
-        ------
-        IncompatibleUncertaintiesException
-            Raised if the method does not know how to propagate the
-            uncertainties.
-        """
-
-        if not isinstance(other_nddata.uncertainty, StdDevUncertainty):
-            raise IncompatibleUncertaintiesException
-
-        if self.array is None:
-            raise ValueError("standard deviation values are not set")
-
-        if other_nddata.uncertainty.array is None:
-            raise ValueError("standard deviation values are not set in "
-                             "other_nddata")
-
-        result_uncertainty = StdDevUncertainty()
-        result_uncertainty.array = \
-            (np.sqrt((self.array/self.parent_nddata.data)**2
-             + (other_nddata.uncertainty.array/other_nddata.data)**2) *
-             result_data)
-
-        return result_uncertainty
-
-    def propagate_divide(self, other_nddata, result_data):
-        """
-        Propagate uncertainties for division.
-
-        Parameters
-        ----------
-        other_nddata : NDData instance
-            The data for the second other_nddata in a + b
-        result_data : `~numpy.ndarray` instance
-            The data array that is the result of the addition
-
-        Returns
-        -------
-        result_uncertainty : NDUncertainty instance
-            The resulting uncertainty
-
-        Raises
-        ------
-        IncompatibleUncertaintiesException
-            Raised if the method does not know how to propagate the
-            uncertainties.
-        """
-
-        if not isinstance(other_nddata.uncertainty, StdDevUncertainty):
-            raise IncompatibleUncertaintiesException
+    def _propagate_subtract(self, other_uncert, result_data):
+        # Since the formulas are equivalent to addition you should look at the
+        # explanations provided in _propagate_add
 
         if self.array is None:
-            raise ValueError("standard deviation values are not set")
+            if other_uncert.unit is not None and (
+                        self.parent_nddata.unit is not other_uncert.unit):
+                return other_uncert.array * other_uncert.unit
+            else:
+                return deepcopy(other_uncert.array)
 
-        if other_nddata.uncertainty.array is None:
-            raise ValueError("standard deviation values are not set "
-                             "in other_nddata")
+        elif other_uncert.array is None:
+            if self.unit is not None:
+                return self.array * self.unit
+            else:
+                return deepcopy(self.array)
 
-        result_uncertainty = StdDevUncertainty()
-        result_uncertainty.array = \
-            (np.sqrt((self.array/self.parent_nddata.data)**2
-             + (other_nddata.uncertainty.array/other_nddata.data)**2) *
-             result_data)
+        else:
+            if self.unit is not other_uncert.unit:
+                this = self.array * self.unit
+                other = (other_uncert.array * other_uncert.unit).to(self.unit)
+                result = np.sqrt(this**2 + other.array**2)
+                if result.unit is result_data.unit:
+                    return result.value
+                else:
+                    return result
+            else:
+                return np.sqrt(self.array**2 + other_uncert.array**2)
 
-        return result_uncertainty
+
+    def _propagate_multiply(self, other_uncert, result_data):
+
+        # For multiplication we don't need the result as quantity
+        if isinstance(result_data, Quantity):
+            result_data = result_data.value
+
+        if self.array is None:
+            # Assuming the operation is A * B the resulting uncertainty is
+            # A * dB. Since A could have negative values we need to take the
+            # absolute.
+            result = np.abs(self.parent_nddata.data * other_uncert.array)
+            if other_uncert.unit is not other_uncert.parent_nddata.unit:
+                # In case the other uncertainty has a unit different from it's
+                # data we need to keep the unit of the resulting uncertainty
+                # because the user propably had a reason to set different
+                # units.
+                if self.parent_nddata.unit is not None:
+                    return result * other_uncert.unit * self.parent_nddata.unit
+                else:
+                    return result * other_uncert.unit
+            else:
+                # For multiplication the resulting unit is simply the units
+                # multiplied (because there is no decomposing of units in the
+                # arithmetics) so we can simply assume that the unit would be
+                # the same as the result.
+                return result
+
+        elif other_uncert.array is None:
+            # Just like before but the formula is B * dA and everything is
+            # reversed.
+            result = np.abs(other_uncert.parent_nddata.data * self.array)
+            if self.unit is not self.parent_nddata.unit:
+                if other_uncert.parent_nddata.unit is not None:
+                    return result * other_uncert.parent_nddata.unit * self.unit
+                else:
+                    return result * self.unit
+            else:
+                return result
+
+        else:
+            # In this case we just need to catch the case if one uncertainty
+            # has a unit that is not the same as the data's.
+            if self.unit is not self.parent_nddata.unit:
+                left = (self.array * self.unit).to(
+                    self.parent_nddata.unit).value / self.parent_nddata.data
+            else:
+                left = self.array / self.parent_nddata.data
+
+            if other_uncert.unit is not other_uncert.parent_nddata.unit:
+                right = ((other_uncert.array * other_uncert.unit).to(
+                    other_uncert.parent_nddata.unit).value /
+                    other_uncert.parent_nddata.data)
+            else:
+                right = (other_uncert.array / other_uncert.parent_nddata.data)
+
+            return result_data * np.sqrt(left**2+right**2)
+
+
+    def _propagate_divide(self, other_uncert, result_data):
+
+        # For division we don't need the result as quantity
+        if isinstance(result_data, Quantity):
+            result_data = result_data.value
+
+        if self.array is None:
+            # Assuming the operation is A / B the resulting uncertainty is
+            # (A / B) * (dB / B). Since this could have negative values we need
+            # to take the absolute. Also we need (db / B) to be dimensionless
+            # so we convert (if necessary) dB to the same unit as B
+            if other_uncert.unit is not other_uncert.parent_nddata.unit:
+                right = ((other_uncert.array * other_uncert.unit).to(
+                    other_uncert.parent_nddata.unit).value /
+                    other_uncert.parent_nddata.data)
+            else:
+                right = (other_uncert.array / other_uncert.parent_nddata.data)
+            return np.abs(result_data * right)
+
+        elif other_uncert.array is None:
+            # The formula in this case is dA / B. This could be negative so
+            # we need to take the absolute and check that the result has the
+            # right unit
+            result = np.abs(self.array / other_uncert.parent_nddata.data)
+            if self.unit is not self.parent_nddata.unit:
+                if other_uncert.parent_nddata.unit is not None:
+                    return result * other_uncert.parent_nddata.unit * self.unit
+                else:
+                    return result * self.unit
+            else:
+                return result
+
+        else:
+            # Same as for multiplication
+            if self.unit is not self.parent_nddata.unit:
+                left = (self.array * self.unit).to(
+                    self.parent_nddata.unit).value / self.parent_nddata.data
+            else:
+                left = self.array / self.parent_nddata.data
+
+            if other_uncert.unit is not other_uncert.parent_nddata.unit:
+                right = ((other_uncert.array * other_uncert.unit).to(
+                    other_uncert.parent_nddata.unit).value /
+                    other_uncert.parent_nddata.data)
+            else:
+                right = (other_uncert.array / other_uncert.parent_nddata.data)
+
+            return result_data.value * np.sqrt(left**2+right**2)
+
+    # Apply docstrings
+    _propagate_add.__doc__ = _propagate_doc.format(operation='addition',
+        operator='+', instance='StdDevUncertainty')
+    _propagate_subtract.__doc__ = _propagate_doc.format(
+        operation='subtraction', operator='-', instance='StdDevUncertainty')
+    _propagate_multiply.__doc__ = _propagate_doc.format(
+        operation='multiplication', operator='*', instance='StdDevUncertainty')
+    _propagate_divide.__doc__ = _propagate_doc.format(operation='divison',
+        operator='/', instance='StdDevUncertainty')
+    _convert_uncertainty.__doc__ = NDUncertainty._convert_uncertainty.__doc__
