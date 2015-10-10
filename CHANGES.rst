@@ -38,8 +38,8 @@ New Features
 
   - Added ``Supergalactic`` frame to support de Vaucouleurs supergalactic
     coordinates. [#3892]
-  - ``SphericalRepresentation`` now has a ``._unit_representation`` class attribute to specify 
-    an equivalent UnitSphericalRepresentation. This allows subclasses of 
+  - ``SphericalRepresentation`` now has a ``._unit_representation`` class attribute to specify
+    an equivalent UnitSphericalRepresentation. This allows subclasses of
     representations to pair up correctly. [#3757]
 
   - Added functionality to support getting the locations of observatories by
@@ -53,7 +53,7 @@ New Features
   - Add Planck 2015 cosmology [#3476]
 
   - Distance calculations now > 20-40x faster for the supplied
-    cosmologies due to implementing cython scalar versions of
+    cosmologies due to implementing Cython scalar versions of
     ``FLRW.inv_efunc``.[#4127]
 
   - ``FLRW._tfunc`` and ``FLRW._xfunc`` are marked as deprecated.  Users
@@ -577,7 +577,7 @@ Other Changes and Additions
   cluttering the ``astropy.coordinates`` documentation with increasingly
   irrelevant material.  To see the migration guide, we recommend you simply look
   to the archived documentation for previous versions, e.g.
-  http://docs.astropy.org/en/v1.0/coordinates/index.html#migrating-from-pre-v0-4-coordinates 
+  http://docs.astropy.org/en/v1.0/coordinates/index.html#migrating-from-pre-v0-4-coordinates
   [#4203]
 
 
@@ -733,7 +733,7 @@ Bug Fixes
   - Fix string representation of ``SkyCoord`` objects transformed into
     the ``AltAz`` frame [#4055]
 
-  - Fix the ``search_around_sky`` function to allow ``storekdtree`` to be 
+  - Fix the ``search_around_sky`` function to allow ``storekdtree`` to be
     ``False`` as was intended. [#4082]
 
 - ``astropy.io.fits``
@@ -787,7 +787,7 @@ Bug Fixes
     ``resolve_name('numpy')``. [#4084]
 
   - ``console`` was updated to support IPython 4.x and Jupyter 1.x.
-    This should supress a ShimWarning that was appearing at
+    This should suppress a ShimWarning that was appearing at
     import of astropy with IPython 4.0 or later. [#4078]
 
   - Temporary downloaded files created by ``get_readable_fileobj`` when passed

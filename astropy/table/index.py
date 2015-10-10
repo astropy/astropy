@@ -184,7 +184,7 @@ class Index(object):
 
     def get_row_specifier(self, row_specifier):
         '''
-        Return an interable corresponding to the
+        Return an iterable corresponding to the
         input row specifier.
 
         Parameters

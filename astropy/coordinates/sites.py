@@ -2,7 +2,7 @@
 """
 Observatories accessible without internet access originate from the IRAF
 Observatory Database, and are stored in ``data/observatories.json``.  This is
-inteded mainly as a fallback file, and the online file is where new changes
+intended mainly as a fallback file, and the online file is where new changes
 should go.
 
 Additions or corrections to the observatory list can be submitted via Pull
@@ -29,7 +29,7 @@ class SiteRegistry(Mapping):
     This acts as a mapping (dict-like object) but with the important caveat that
     it's always transforms its inputs to lower-case.  So keys are always all
     lower-case, and even if you ask for something that's got mixed case, it will
-    be interepreted as the all lower-case version.
+    be interpreted as the all lower-case version.
     """
     def __init__(self):
         # the keys to this are always lower-case
