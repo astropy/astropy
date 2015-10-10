@@ -165,4 +165,4 @@ def test_uncertainty_correlated():
     fake_uncert = FakeUncertainty([10,2])
     assert not fake_uncert.supports_correlated
     std_uncert = StdDevUncertainty([10,2])
-    assert not std_uncert.supports_correlated
+    assert std_uncert.supports_correlated

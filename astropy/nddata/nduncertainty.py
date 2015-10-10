@@ -131,8 +131,6 @@ class NDUncertainty(object):
        data besides the uncertainty.
     """
 
-    # Indicates whether the class supports the propagation of correlated
-    # uncertainties
     supports_correlated = False
 
     def __init__(self, array=None, unit=None, copy=True):
@@ -245,7 +243,7 @@ class NDUncertainty(object):
                 return self.parent_nddata.unit
         return self._unit
 
-    def propagate(self, operation, other_nddata, result_data):
+    def propagate(self, operation, other_nddata, result_data, correlation):
         """
         Calculate the resulting uncertainty of the arithmetic operation.
 
@@ -258,6 +256,11 @@ class NDUncertainty(object):
         result_data: `np.ndarray`
             The result of the arithmetic operations. This saves some duplicate
             calculations.
+        correlation: `Number` or `np.ndarray`
+            Array or scalar representing the correlation. If the subclass has
+            no support of correlated uncertainties and this parameter is given
+            it will issue a warning and continue as if the uncertainties were
+            uncorrelated (correlation = 0).
 
         Returns
         -------
@@ -271,18 +274,27 @@ class NDUncertainty(object):
         classes are different) then it will call the appropriate `_propagate_*`
         method for calculating the resulting uncertainty.
         """
+        # Check if the subclass supports correlation
+        if not self.supports_correlated:
+            if correlation != 0:
+                log.info("This subclass does not support correlation")
+                correlation = 0
 
         # Get the other uncertainty (and convert it to a matching one)
         other_uncert = self._convert_uncertainty(other_nddata.uncertainty)
 
         if operation == 'addition':
-            result = self._propagate_add(other_uncert, result_data)
+            result = self._propagate_add(other_uncert, result_data,
+                                         correlation)
         elif operation == 'subtraction':
-            result = self._propagate_subtract(other_uncert, result_data)
+            result = self._propagate_subtract(other_uncert, result_data,
+                                              correlation)
         elif operation == 'multiplication':
-            result = self._propagate_multiply(other_uncert, result_data)
+            result = self._propagate_multiply(other_uncert, result_data,
+                                              correlation)
         elif operation == 'division':
-            result = self._propagate_divide(other_uncert, result_data)
+            result = self._propagate_divide(other_uncert, result_data,
+                                            correlation)
         else:
             raise ValueError('Unsupported operation')
 
@@ -321,19 +333,19 @@ class NDUncertainty(object):
             raise IncompatibleUncertaintiesException
 
     @abstractmethod
-    def _propagate_add(self, other_uncert, result_data):
+    def _propagate_add(self, other_uncert, result_data, correlation):
         return None
 
     @abstractmethod
-    def _propagate_subtract(self, other_uncert, result_data):
+    def _propagate_subtract(self, other_uncert, result_data, correlation):
         return None
 
     @abstractmethod
-    def _propagate_multiply(self, other_uncert, result_data):
+    def _propagate_multiply(self, other_uncert, result_data, correlation):
         return None
 
     @abstractmethod
-    def _propagate_divide(self, other_uncert, result_data):
+    def _propagate_divide(self, other_uncert, result_data, correlation):
         return None
 
     # Apply docstrings
@@ -360,7 +372,7 @@ class StdDevUncertainty(NDUncertainty):
     error propagation is mostly done with dimensionless fractions).
     """
 
-    supports_correlated = False
+    supports_correlated = True
 
     @property
     def uncertainty_type(self):
@@ -379,7 +391,7 @@ class StdDevUncertainty(NDUncertainty):
             raise IncompatibleUncertaintiesException
 
 
-    def _propagate_add(self, other_uncert, result_data):
+    def _propagate_add(self, other_uncert, result_data, correlation):
 
         if self.array is None:
             if other_uncert.unit is not None and (
@@ -437,7 +449,7 @@ class StdDevUncertainty(NDUncertainty):
                 return np.sqrt(self.array**2 + other_uncert.array**2)
 
 
-    def _propagate_subtract(self, other_uncert, result_data):
+    def _propagate_subtract(self, other_uncert, result_data, correlation):
         # Since the formulas are equivalent to addition you should look at the
         # explanations provided in _propagate_add
 
@@ -467,7 +479,7 @@ class StdDevUncertainty(NDUncertainty):
                 return np.sqrt(self.array**2 + other_uncert.array**2)
 
 
-    def _propagate_multiply(self, other_uncert, result_data):
+    def _propagate_multiply(self, other_uncert, result_data, correlation):
 
         # For multiplication we don't need the result as quantity
         if isinstance(result_data, Quantity):
@@ -525,7 +537,7 @@ class StdDevUncertainty(NDUncertainty):
             return result_data * np.sqrt(left**2 + right**2)
 
 
-    def _propagate_divide(self, other_uncert, result_data):
+    def _propagate_divide(self, other_uncert, result_data, correlation):
 
         # For division we don't need the result as quantity
         if isinstance(result_data, Quantity):
