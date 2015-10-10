@@ -30,37 +30,6 @@ class NDArithmeticMixin(object):
     `~astropy.nddata.NDDataArray` for an example.
     """
     def _arithmetic(self, operand, propagate_uncertainties, name, operation):
-        """
-        {name} another dataset (``operand``) to this dataset.
-
-        Parameters
-        ----------
-        operand : `~astropy.nddata.NDData`
-            The second operand in the operation a {operator} b
-
-        propagate_uncertainties : bool
-            Whether to propagate uncertainties following the propagation rules
-            defined by the class used for the ``uncertainty`` attribute.
-
-        Returns
-        -------
-        result : `~astropy.nddata.NDData`
-            The resulting dataset
-
-        Notes
-        -----
-        This method requires the datasets to have identical WCS
-        properties, equivalent units, and identical shapes.
-        Meta-data get set to None in the resulting dataset. The unit
-        in the result is the same as the unit in ``self``. Uncertainties
-        are propagated, although correlated errors are not supported
-        by any of the built-in uncertainty classes.  If uncertainties
-        are assumed to be correlated, a warning is issued by default
-        (though this can be disabled via the
-        ``astropy.nddata.conf.warn_unsupported_correlated``
-        configuration item). Values masked in either dataset before
-        the operation are masked in the resulting dataset.
-        """
 
         from .. import conf
 
@@ -224,7 +193,37 @@ class NDArithmeticMixin(object):
             operand, propagate_uncertainties, "division", np.divide)
 
     if isinstance(_arithmetic.__doc__, string_types):
-        doc = _arithmetic.__doc__
+        doc = """
+        {name} another dataset (``operand``) to this dataset.
+
+        Parameters
+        ----------
+        operand : `~astropy.nddata.NDData`
+            The second operand in the operation a {operator} b
+
+        propagate_uncertainties : bool
+            Whether to propagate uncertainties following the propagation rules
+            defined by the class used for the ``uncertainty`` attribute.
+
+        Returns
+        -------
+        result : `~astropy.nddata.NDData`
+            The resulting dataset
+
+        Notes
+        -----
+        This method requires the datasets to have identical WCS
+        properties, equivalent units, and identical shapes.
+        Meta-data get set to None in the resulting dataset. The unit
+        in the result is the same as the unit in ``self``. Uncertainties
+        are propagated, although correlated errors are not supported
+        by any of the built-in uncertainty classes.  If uncertainties
+        are assumed to be correlated, a warning is issued by default
+        (though this can be disabled via the
+        ``astropy.nddata.conf.warn_unsupported_correlated``
+        configuration item). Values masked in either dataset before
+        the operation are masked in the resulting dataset.
+        """
         add.__doc__ = doc.format(name="Add", operator="+")
         subtract.__doc__ = doc.format(name="Subtract", operator="-")
         multiply.__doc__ = doc.format(name="Multiply", operator="*")
