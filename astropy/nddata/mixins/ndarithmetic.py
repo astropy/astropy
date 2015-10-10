@@ -158,8 +158,8 @@ class NDArithmeticMixin(object):
                                                             copy=True)
         else:  # both self and operand have uncertainties
             if (conf.warn_unsupported_correlated and
-                (not self.uncertainty.support_correlated or
-                 not operand.uncertainty.support_correlated)):
+                (not self.uncertainty.supports_correlated or
+                 not operand.uncertainty.supports_correlated)):
                 log.info("The uncertainty classes used do not support the "
                          "propagation of correlated errors, so uncertainties"
                          " will be propagated assuming they are uncorrelated")
