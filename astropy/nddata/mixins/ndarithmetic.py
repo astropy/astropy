@@ -129,8 +129,13 @@ class NDArithmeticMixin(object):
                 self.unit != operand.unit):
             operand_data = operand.unit.to(self.unit, operand.data)
             if operand.uncertainty:
-                operand_uncert_value = operand.unit.to(self.unit,
+                if hasattr(operand.uncertainty, '_unit') and \
+                                operand.uncertainty._unit is not None:
+                    operand_uncert_value *= operand.uncertainty._unit
+                else:
+                    operand_uncert_value = operand.unit.to(self.unit,
                                                        operand_uncert_value)
+
         else:
             operand_data = operand.data
 
@@ -146,18 +151,19 @@ class NDArithmeticMixin(object):
             result.uncertainty = None
         elif self.uncertainty is None and operand.uncertainty is None:
             result.uncertainty = None
-        elif self.uncertainty is None:
-            result.uncertainty = operand_uncertainty
-        elif operand.uncertainty is None:
-            result.uncertainty = self.uncertainty.__class__(self.uncertainty,
-                                                            copy=True)
-        else:  # both self and operand have uncertainties
-            if (conf.warn_unsupported_correlated and
-                (not self.uncertainty.support_correlated or
-                 not operand.uncertainty.support_correlated)):
-                log.info("The uncertainty classes used do not support the "
-                         "propagation of correlated errors, so uncertainties"
-                         " will be propagated assuming they are uncorrelated")
+        else:
+            if self.uncertainty is None:
+                self.uncertainty = operand.uncertainty.__class__(None)
+            elif operand_uncertainty is None:
+                operand_uncertainty = self.uncertainty.__class__(None)
+            else:  # both self and operand have uncertainties
+                if (conf.warn_unsupported_correlated and
+                 (not self.uncertainty.support_correlated or
+                  not operand.uncertainty.support_correlated)):
+                    log.info("The uncertainty classes used do not support the "
+                          "propagation of correlated errors, so uncertainties"
+                          " will be propagated assuming they are uncorrelated")
+
             operand_scaled = operand.__class__(operand_data,
                                                uncertainty=operand_uncertainty,
                                                unit=operand.unit,

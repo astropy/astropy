@@ -211,6 +211,31 @@ class StdDevUncertainty(NDUncertainty):
                                      "parent data shape")
         self._array = value
 
+    def __getitem__(self, item):
+        """
+            Slice the standard deviation array using standard numpy slicing
+        """
+
+        new_array = self.array[item]
+        return self.__class__(new_array, copy=False)
+
+    def _propagate_compatible(self, other_nddata):
+        if not isinstance(other_nddata.uncertainty, StdDevUncertainty):
+            raise IncompatibleUncertaintiesException
+
+        if self._unit is not None:
+            if self._unit != self.parent_nddata.unit:
+                self.array = (self.array * self._unit).to(
+                                self.parent_nddata.unit).value
+                self._unit = None
+        if other_nddata.uncertainty._unit is not None:
+            if other_nddata.uncertainty._unit != other_nddata.unit:
+                other_nddata.uncertainty.array = \
+                    (other_nddata.uncertainty.array *
+                    other_nddata.uncertainty._unit).to(
+                    other_nddata.uncertainty._unit).value
+                other_nddata.uncertainty._unit = None
+
     def propagate_add(self, other_nddata, result_data):
         """
         Propagate uncertainties for addition.
@@ -233,30 +258,18 @@ class StdDevUncertainty(NDUncertainty):
             Raised if the method does not know how to propagate the
             uncertainties.
         """
-
-        if not isinstance(other_nddata.uncertainty, StdDevUncertainty):
-            raise IncompatibleUncertaintiesException
-
-        if self.array is None:
-            raise ValueError("standard deviation values are not set")
-
-        if other_nddata.uncertainty.array is None:
-            raise ValueError("standard deviation values are not set "
-                             "in other_nddata")
+        self._propagate_compatible(other_nddata)
 
         result_uncertainty = StdDevUncertainty()
-        result_uncertainty.array = np.sqrt(self.array**2 +
+        if self.array is None:
+            result_uncertainty.array = other_nddata.uncertainty.array.copy()
+        elif other_nddata.uncertainty.array is None:
+            result_uncertainty.array = self.array.copy()
+        else:
+            result_uncertainty.array = np.sqrt(self.array**2 +
                                            other_nddata.uncertainty.array**2)
 
         return result_uncertainty
-
-    def __getitem__(self, item):
-        """
-            Slice the standard deviation array using standard numpy slicing
-        """
-
-        new_array = self.array[item]
-        return self.__class__(new_array, copy=False)
 
     def propagate_subtract(self, other_nddata, result_data):
         """
@@ -265,9 +278,9 @@ class StdDevUncertainty(NDUncertainty):
         Parameters
         ----------
         other_nddata : NDData instance
-            The data for the second other_nddata in a + b
+            The data for the second other_nddata in a - b
         result_data : `~numpy.ndarray` instance
-            The data array that is the result of the addition
+            The data array that is the result of the subtraction
 
         Returns
         -------
@@ -280,19 +293,15 @@ class StdDevUncertainty(NDUncertainty):
             Raised if the method does not know how to propagate the
             uncertainties.
         """
-
-        if not isinstance(other_nddata.uncertainty, StdDevUncertainty):
-            raise IncompatibleUncertaintiesException
-
-        if self.array is None:
-            raise ValueError("standard deviation values are not set")
-
-        if other_nddata.uncertainty.array is None:
-            raise ValueError("standard deviation values are not set "
-                             "in other_nddata")
+        self._propagate_compatible(other_nddata)
 
         result_uncertainty = StdDevUncertainty()
-        result_uncertainty.array = np.sqrt(self.array**2 +
+        if self.array is None:
+            result_uncertainty.array = other_nddata.uncertainty.array.copy()
+        elif other_nddata.uncertainty.array is None:
+            result_uncertainty.array = self.array.copy()
+        else:
+            result_uncertainty.array = np.sqrt(self.array**2 +
                                            other_nddata.uncertainty.array**2)
 
         return result_uncertainty
@@ -304,9 +313,9 @@ class StdDevUncertainty(NDUncertainty):
         Parameters
         ----------
         other_nddata : NDData instance
-            The data for the second other_nddata in a + b
+            The data for the second other_nddata in a * b
         result_data : `~numpy.ndarray` instance
-            The data array that is the result of the addition
+            The data array that is the result of the multiplication
 
         Returns
         -------
@@ -319,22 +328,19 @@ class StdDevUncertainty(NDUncertainty):
             Raised if the method does not know how to propagate the
             uncertainties.
         """
-
-        if not isinstance(other_nddata.uncertainty, StdDevUncertainty):
-            raise IncompatibleUncertaintiesException
-
-        if self.array is None:
-            raise ValueError("standard deviation values are not set")
-
-        if other_nddata.uncertainty.array is None:
-            raise ValueError("standard deviation values are not set in "
-                             "other_nddata")
+        self._propagate_compatible(other_nddata)
 
         result_uncertainty = StdDevUncertainty()
-        result_uncertainty.array = \
-            (np.sqrt((self.array/self.parent_nddata.data)**2
-             + (other_nddata.uncertainty.array/other_nddata.data)**2) *
-             result_data)
+        if self.array is None:
+            result_uncertainty.array = other_nddata.uncertainty.array \
+                                        * self.parent_nddata.data
+        elif other_nddata.uncertainty.array is None:
+            result_uncertainty.array = self.array * other_nddata.data
+        else:
+            result_uncertainty.array = \
+                (np.sqrt((self.array/self.parent_nddata.data)**2
+                 + (other_nddata.uncertainty.array/other_nddata.data)**2) *
+                 result_data)
 
         return result_uncertainty
 
@@ -345,9 +351,9 @@ class StdDevUncertainty(NDUncertainty):
         Parameters
         ----------
         other_nddata : NDData instance
-            The data for the second other_nddata in a + b
+            The data for the second other_nddata in a / b
         result_data : `~numpy.ndarray` instance
-            The data array that is the result of the addition
+            The data array that is the result of the divison
 
         Returns
         -------
@@ -360,21 +366,19 @@ class StdDevUncertainty(NDUncertainty):
             Raised if the method does not know how to propagate the
             uncertainties.
         """
-
-        if not isinstance(other_nddata.uncertainty, StdDevUncertainty):
-            raise IncompatibleUncertaintiesException
-
-        if self.array is None:
-            raise ValueError("standard deviation values are not set")
-
-        if other_nddata.uncertainty.array is None:
-            raise ValueError("standard deviation values are not set "
-                             "in other_nddata")
+        self._propagate_compatible(other_nddata)
 
         result_uncertainty = StdDevUncertainty()
-        result_uncertainty.array = \
-            (np.sqrt((self.array/self.parent_nddata.data)**2
-             + (other_nddata.uncertainty.array/other_nddata.data)**2) *
-             result_data)
+        if self.array is None:
+            result_uncertainty.array = self.parent_nddata.data \
+                * other_nddata.uncertainty.array \
+                / (other_nddata.data * other_nddata.data)
+        elif other_nddata.uncertainty.array is None:
+            result_uncertainty.array = self.array / other_nddata.data
+        else:
+            result_uncertainty.array = \
+                (np.sqrt((self.array/self.parent_nddata.data)**2
+                 + (other_nddata.uncertainty.array/other_nddata.data)**2) *
+                 result_data)
 
         return result_uncertainty
