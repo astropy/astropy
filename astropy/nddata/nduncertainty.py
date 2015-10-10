@@ -74,7 +74,8 @@ class NDUncertainty(object):
         The array or value (the parameter name is due to historical reasons) of
         the uncertainty. There is nothing enforced but `~numpy.ndarray`,
         `~astropy.units.Quantity` or `NDUncertainty` subclasses are
-        recommended.
+        recommended. If the `array` is `list`-like it will be cast to a
+        `np.ndarray`.
     unit: `~astropy.units.Unit` or `str`, optional
         The unit of the uncertainty `array`. If input is a `str` this will be
         converted to an `~astropy.units.Unit`.
@@ -87,11 +88,18 @@ class NDUncertainty(object):
     1. NDUncertainty is an abstract class and should *never* be instantiated
        directly.
 
-    2. NDUncertainty provides a ``__getitem__`` method so slicing is in theory
+    2. NDUncertainty takes a `unit` parameter and if the `array` is something
+       with a unit (like a `~astropy.units.Quantity` of another
+       `NDUncertainty`) the `unit` parameter is considered the True unit of
+       the `NDUncertainty` instance and a warning is issued that the unit is
+       overwritten. *No* conversion is done while overwriting the unit so the
+       uncertainty `array` is not altered.
+
+    3. NDUncertainty provides a ``__getitem__`` method so slicing is in theory
        supported but that relies on the `array` being something that actually
        can be sliced.
 
-    3. Subclasses need to define:
+    4. Subclasses need to define:
 
        - property ``uncertainty_type`` which should be a small string defining
          the kind of uncertainty. Recommened is ``std`` for standard deviation
@@ -117,7 +125,7 @@ class NDUncertainty(object):
          the appropriate ``_propagate_*`` method and then returns another
          instance of the same class with the results uncertainty.
 
-    4. NDUncertainty and it's subclasses can only be used for uncertainty
+    5. NDUncertainty and it's subclasses can only be used for uncertainty
        propagation if their ``parent_nddata`` is a reference to the `NDData`
        object. This is needed since many kinds of propagation need the actual
        data besides the uncertainty.
@@ -150,15 +158,23 @@ class NDUncertainty(object):
                          "unit with specified unit")
             elif array.unit is not None:
                 unit = array.unit
+            copy = False # since quantity.value calls return a copy
             array = array.value
+
+        elif isinstance(array, list):
+            copy = False # since lists get copied while casting them to ndarray
+            array = np.array(array)
 
         if copy:
             array = deepcopy(array)
             unit = deepcopy(unit)
 
-        self.array = array
-        self.unit = unit
-        self.parent_nddata = None # no associated NDData until it is set!
+        self._array = array
+        if unit is None:
+            self._unit = None
+        else:
+            self._unit = Unit(unit)
+        self.parent_nddata = None # no associated NDData - until it is set!
 
     def __getitem__(self, item):
         """
@@ -210,10 +226,6 @@ class NDUncertainty(object):
         """
         return self._array
 
-    @array.setter
-    def array(self, value):
-        self._array = value
-
     @property
     def unit(self):
         """
@@ -232,13 +244,6 @@ class NDUncertainty(object):
             else:
                 return self.parent_nddata.unit
         return self._unit
-
-    @unit.setter
-    def unit(self, value):
-        if value is None:
-            self._unit = None
-        else:
-            self._unit = Unit(value)
 
     def propagate(self, operation, other_nddata, result_data):
         """
@@ -355,7 +360,7 @@ class StdDevUncertainty(NDUncertainty):
     error propagation is mostly done with dimensionless fractions).
     """
 
-    support_correlated = False
+    supports_correlated = False
 
     @property
     def uncertainty_type(self):
