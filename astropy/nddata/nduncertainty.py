@@ -50,9 +50,16 @@ result_uncertainty : {instance} instance
 
 Raises
 ------
-IncompatibleUncertaintiesException
-    Raised if the method does not know how to propagate the
-    uncertainties.
+ValueError
+    Raised if the uncertainty arrays or resulting data cannot be used together
+    for the arithmetic operation (not broadcastable) or conflicting units.
+
+Notes
+-----
+Handling units (especially if the differ from the parents unit) is done in here
+but be aware that since there are no checks for the unit that incorrect
+assigned units may break the uncertainty propagation even if the resulting data
+(with units) can be computed.
 """
 
 
@@ -89,7 +96,26 @@ class NDUncertainty(object):
        - property ``uncertainty_type`` which should be a small string defining
          the kind of uncertainty. Recommened is ``std`` for standard deviation
          ``var`` for variance (following the ``numpy`` conventions).
-       - tbc...
+       - ``_propagate_add(other_uncertainty, result_data)`` which takes the
+         uncertainty of the other element and the resulting data (or quantity)
+         and calculates the array (or quantity) which represents the resulting
+         uncertainty.
+       - Most of the time a subclass will need to extend or override the
+         ``_convert_uncertainty`` method. This method is responsible for
+         checking that the other uncertainty has a class that can be used for
+         uncertainty propagation. (`NDUncertainty` only checks that it is
+         another instance or subclass of `NDUncertainty`). For subclasses that
+         cannot propagate with arbitary other uncertainties they should check
+         that the other uncertainty has the same class as they are *or* convert
+         it to such a class. (Handling units should be part of the
+         `_propagate_*` methods and *NOT* done in here).
+       - The `propagate(operation, other_nddata, result_data)` method should
+         only be overriden if one wants to allow other operations than
+         ``addition``, ``subtraction``, ``multiplication`` or ``division``.
+         This function is the common entry point of any arithmetic computation
+         that tries to propagate uncertainties and is responsible for calling
+         the appropriate ``_propagate_*`` method and then returns another
+         instance of the same class with the results uncertainty.
 
     4. NDUncertainty and it's subclasses can only be used for uncertainty
        propagation if their ``parent_nddata`` is a reference to the `NDData`
@@ -104,7 +130,12 @@ class NDUncertainty(object):
     def __init__(self, array=None, unit=None, copy=True):
         # It is possible to create an uncertainty from another Uncertainty or
         # a quantity
-        if isinstance(array, StdDevUncertainty):
+        if isinstance(array, NDUncertainty):
+            # Check that the uncertainty type is the same otherwise every
+            # uncertainty could be converted to another uncertainty_type.
+            if array.uncertainty_type != self.uncertainty_type:
+                raise IncompatibleUncertaintiesException
+            # Check if two units are given and take the explicit one then.
             if unit is not None and array.unit is not None:
                 log.info("Overwriting Uncertainty's current "
                          "unit with specified unit")
@@ -113,6 +144,7 @@ class NDUncertainty(object):
             array = array.array
 
         elif isinstance(array, Quantity):
+            # Check if two units are given and take the explicit one then.
             if unit is not None and array.unit is not None:
                 log.info("Overwriting Quantity's current "
                          "unit with specified unit")
@@ -129,6 +161,10 @@ class NDUncertainty(object):
         self.parent_nddata = None # no associated NDData until it is set!
 
     def __getitem__(self, item):
+        """
+        Simple slicing is allowed but returns a reference *not* a copy. This
+        assimilates numpy slicing.
+        """
         return self.__class__(self.array[item], unit=self.unit, copy=False)
 
     @abstractproperty
@@ -185,8 +221,9 @@ class NDUncertainty(object):
 
         Even though it is not enforced the unit should be convertable to the
         ``parent_nddata``s unit. Otherwise uncertainty propagation might give
-        some wrong results. If the unit is not set the unit of the parent will
-        be assumed.
+        some wrong results.
+
+        If the unit is not set the unit of the parent will be returned.
         """
         if self._unit is None:
             if (self._parent_nddata is None or
@@ -307,7 +344,15 @@ class NDUncertainty(object):
 
 class StdDevUncertainty(NDUncertainty):
     """
-    A class for standard deviation uncertainties
+    A class for standard deviation uncertainties.
+
+    This class implements uncertainty propagation for ``addition``,
+    ``subtraction``, ``multiplication`` and ``division`` only with other
+    instances of ``StdDevUncertainty``. The class can fully handle if the
+    uncertainty has a unit that differs from (but is convertable to) the
+    parents `NDData` unit and keeps (if possible) the alternative unit in the
+    resulting uncertainty (except for multiplication and division where the
+    error propagation is mostly done with dimensionless fractions).
     """
 
     support_correlated = False
@@ -472,7 +517,7 @@ class StdDevUncertainty(NDUncertainty):
             else:
                 right = (other_uncert.array / other_uncert.parent_nddata.data)
 
-            return result_data * np.sqrt(left**2+right**2)
+            return result_data * np.sqrt(left**2 + right**2)
 
 
     def _propagate_divide(self, other_uncert, result_data):
@@ -501,7 +546,7 @@ class StdDevUncertainty(NDUncertainty):
             result = np.abs(self.array / other_uncert.parent_nddata.data)
             if self.unit is not self.parent_nddata.unit:
                 if other_uncert.parent_nddata.unit is not None:
-                    return result * other_uncert.parent_nddata.unit * self.unit
+                    return result * self.unit / other_uncert.parent_nddata.unit
                 else:
                     return result * self.unit
             else:
@@ -522,7 +567,7 @@ class StdDevUncertainty(NDUncertainty):
             else:
                 right = (other_uncert.array / other_uncert.parent_nddata.data)
 
-            return result_data.value * np.sqrt(left**2+right**2)
+            return result_data.value * np.sqrt(left**2 + right**2)
 
     # Apply docstrings
     _propagate_add.__doc__ = _propagate_doc.format(operation='addition',
