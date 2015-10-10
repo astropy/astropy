@@ -42,6 +42,9 @@ other_uncert : {instance} instance
     The data for the uncertainty of b in a {operator} b
 result_data : `~numpy.ndarray` instance or `~astropy.units.Quantity`
     The data array that is the result of the {operation}.
+correlation: `Number` or `np.ndarray`
+    Array or scalar representing the correlation. If the subclass does not
+    support correlated uncertainties this will be replaced by 0 (uncorrelated).
 
 Returns
 -------
@@ -432,8 +435,12 @@ class StdDevUncertainty(NDUncertainty):
                 # the resulting uncertainties unit will be the unit of the
                 # first elements uncertainty
                 this = self.array * self.unit
-                other = (other_uncert.array * other_uncert.unit).to(self.unit)
-                result = np.sqrt(this**2 + other.array**2)
+                other = other_uncert.array * other_uncert.unit
+                if correlation != 0:
+                    corr = 2 * correlation * this * other
+                    result = np.sqrt(this**2 + other.array**2 + corr)
+                else:
+                    result = np.sqrt(this**2 + other.array**2)
                 # Compare the result to the unit of the data arithmetics and
                 # if it is the same drop the uncertainty unit. The result
                 # should have a unit otherwise uncertainties with units would
@@ -469,8 +476,12 @@ class StdDevUncertainty(NDUncertainty):
         else:
             if self.unit is not other_uncert.unit:
                 this = self.array * self.unit
-                other = (other_uncert.array * other_uncert.unit).to(self.unit)
-                result = np.sqrt(this**2 + other.array**2)
+                other = other_uncert.array * other_uncert.unit
+                if correlation != 0:
+                    corr = 2 * correlation * this * other
+                    result = np.sqrt(this**2 + other.array**2 - corr)
+                else:
+                    result = np.sqrt(this**2 + other.array**2)
                 if result.unit is result_data.unit:
                     return result.value
                 else:
@@ -534,7 +545,12 @@ class StdDevUncertainty(NDUncertainty):
             else:
                 right = (other_uncert.array / other_uncert.parent_nddata.data)
 
-            return result_data * np.sqrt(left**2 + right**2)
+            # Determine the correlation effect if necessary
+            if correlation != 0:
+                corr = 2 * correlation * left * right
+                return result_data * np.sqrt(left**2 + right**2 + corr)
+            else:
+                return result_data * np.sqrt(left**2 + right**2)
 
 
     def _propagate_divide(self, other_uncert, result_data, correlation):
@@ -584,7 +600,12 @@ class StdDevUncertainty(NDUncertainty):
             else:
                 right = (other_uncert.array / other_uncert.parent_nddata.data)
 
-            return result_data.value * np.sqrt(left**2 + right**2)
+            # Determine the correlation effect if necessary
+            if correlation != 0:
+                corr = 2 * correlation * left * right
+                return result_data * np.sqrt(left**2 + right**2 - corr)
+            else:
+                return result_data * np.sqrt(left**2 + right**2)
 
     # Apply docstrings
     _propagate_add.__doc__ = _propagate_doc.format(operation='addition',
