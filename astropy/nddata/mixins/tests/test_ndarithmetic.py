@@ -8,12 +8,268 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from ...compat import NDDataArray
-from ...nduncertainty import (StdDevUncertainty,
-                              IncompatibleUncertaintiesException,
-                              NDUncertainty)
+from ... import NDData, NDArithmeticMixin
+from ...nduncertainty import NDUncertainty, StdDevUncertainty
+from ....units import UnitsError
 from ....tests.helper import pytest
 from .... import units as u
+
+# Just add the Mixin to NDData
+class NDDataArithmetic(NDArithmeticMixin, NDData):
+
+    pass
+
+
+# Test with Data covers:
+# scalars, 1D, 2D and 3D
+# broadcasting between them
+@pytest.mark.parametrize(('data1','data2'), [
+                         (np.array(5), np.array(10)),
+                         (np.array(5), np.arange(10)),
+                         (np.array(5), np.arange(10).reshape(2,5)),
+                         (np.arange(10), np.ones(10) * 2),
+                         (np.arange(10), np.ones((10,10)) * 2),
+                         (np.arange(10).reshape(2,5), np.ones((2,5)) * 3),
+                         (np.arange(1000).reshape(20,5,10), np.ones((20,5,10)) * 3)
+                         ])
+def test_arithmetics_data(data1, data2):
+
+    nd1 = NDDataArithmetic(data1)
+    nd2 = NDDataArithmetic(data2)
+
+    # Addition
+    nd3 = nd1.add(nd2)
+    assert_array_equal(data1+data2, nd3.data)
+    # Subtraction
+    nd4 = nd1.subtract(nd2)
+    assert_array_equal(data1-data2, nd4.data)
+    # Multiplication
+    nd5 = nd1.multiply(nd2)
+    assert_array_equal(data1*data2, nd5.data)
+    # Division
+    nd6 = nd1.divide(nd2)
+    assert_array_equal(data1/data2, nd6.data)
+    for nd in [nd3, nd4, nd5, nd6]:
+        # Check that broadcasting worked as expected
+        if data1.ndim > data2.ndim:
+            assert data1.shape == nd.data.shape
+        else:
+            assert data2.shape == nd.data.shape
+        # Check all other attributes are not set
+        assert nd.unit is None
+        assert nd.uncertainty is None
+        assert nd.mask is None
+        assert len(nd.meta) == 0
+        assert nd.wcs is None
+
+# Test with Data and unit and covers:
+# identical units (even dimensionless unscaled vs. no unit),
+# equivalent units (such as meter and kilometer)
+# equivalent composite units (such as m/s and km/h)
+@pytest.mark.parametrize(('data1','data2'), [
+    (np.array(5)*u.s, np.array(10)*u.s),
+    (np.array(5)*u.s, np.arange(10)*u.h),
+    (np.array(5)*u.s, np.arange(10).reshape(2,5)*u.min),
+    (np.arange(10)*u.m/u.s, np.ones(10)*2*u.km/u.s),
+    (np.arange(10)*u.m/u.s, np.ones((10,10))*2*u.m/u.h),
+    (np.arange(10).reshape(2,5)*u.m/u.s, np.ones((2,5))*3*u.km/u.h),
+    (np.arange(1000).reshape(20,5,10), np.ones((20,5,10))*3*u.dimensionless_unscaled),
+    (np.array(5), np.array(10)*u.s/u.h),
+    ])
+def test_arithmetics_data_identical_unit(data1, data2):
+
+    nd1 = NDDataArithmetic(data1)
+    nd2 = NDDataArithmetic(data2)
+
+    # Addition
+    nd3 = nd1.add(nd2)
+    ref = data1 + data2
+    ref_unit, ref_data = ref.unit, ref.value
+    assert_array_equal(ref_data, nd3.data)
+    assert nd3.unit == ref_unit
+    # Subtraction
+    nd4 = nd1.subtract(nd2)
+    ref = data1 - data2
+    ref_unit, ref_data = ref.unit, ref.value
+    assert_array_equal(ref_data, nd4.data)
+    assert nd4.unit == ref_unit
+    # Multiplication
+    nd5 = nd1.multiply(nd2)
+    ref = data1 * data2
+    ref_unit, ref_data = ref.unit, ref.value
+    assert_array_equal(ref_data, nd5.data)
+    assert nd5.unit == ref_unit
+    # Division
+    nd6 = nd1.divide(nd2)
+    ref = data1 / data2
+    ref_unit, ref_data = ref.unit, ref.value
+    assert_array_equal(ref_data, nd6.data)
+    assert nd6.unit == ref_unit
+    for nd in [nd3, nd4, nd5, nd6]:
+        # Check that broadcasting worked as expected
+        if data1.ndim > data2.ndim:
+            assert data1.shape == nd.data.shape
+        else:
+            assert data2.shape == nd.data.shape
+        # Check all other attributes are not set
+        assert nd.uncertainty is None
+        assert nd.mask is None
+        assert len(nd.meta) == 0
+        assert nd.wcs is None
+
+# Test with Data and unit and covers:
+# not identical not convertable units
+# one with unit (which is not dimensionless) and one without
+@pytest.mark.parametrize(('data1','data2'), [
+    (np.array(5)*u.s, np.array(10)*u.m),
+    (np.array(5)*u.Mpc, np.array(10)*u.km / u.s),
+    (np.array(5)*u.Mpc, np.array(10)),
+    (np.array(5), np.array(10)*u.s),
+    ])
+def test_arithmetics_data_NOT_identical_unit(data1, data2):
+
+    nd1 = NDDataArithmetic(data1)
+    nd2 = NDDataArithmetic(data2)
+
+    # Addition should not be possible
+    with pytest.raises(UnitsError):
+        nd1.add(nd2)
+    # Subtraction should not be possible
+    with pytest.raises(UnitsError):
+        nd1.subtract(nd2)
+    # Multiplication is possible
+    nd3 = nd1.multiply(nd2)
+    ref = data1 * data2
+    ref_unit, ref_data = ref.unit, ref.value
+    assert_array_equal(ref_data, nd3.data)
+    assert nd3.unit == ref_unit
+    # Division is possible
+    nd4 = nd1.divide(nd2)
+    ref = data1 / data2
+    ref_unit, ref_data = ref.unit, ref.value
+    assert_array_equal(ref_data, nd4.data)
+    assert nd4.unit == ref_unit
+    for nd in [nd3, nd4]:
+        # Check all other attributes are not set
+        assert nd.uncertainty is None
+        assert nd.mask is None
+        assert len(nd.meta) == 0
+        assert nd.wcs is None
+
+# Masks are completely seperated in the NDArithmetics from the data so we need
+# no correlated tests but covering:
+# masks 1D, 2D and mixed cases with broadcasting
+@pytest.mark.parametrize(('mask1','mask2'), [
+    (None, None),
+    (None, False),
+    (True, None),
+    (False, False),
+    (True, False),
+    (False, True),
+    (True, True),
+    (np.array(False), np.array(True)),
+    (np.array(False), np.array([0,1,0,1,1], dtype=np.bool_)),
+    (np.array(True), np.array([[0,1,0,1,1],[1,1,0,1,1]], dtype=np.bool_)),
+    (np.array([0,1,0,1,1], dtype=np.bool_), np.array([1,1,0,0,1], dtype=np.bool_)),
+    (np.array([0,1,0,1,1], dtype=np.bool_), np.array([[0,1,0,1,1],[1,0,0,1,1]], dtype=np.bool_)),
+    (np.array([[0,1,0,1,1],[1,0,0,1,1]], dtype=np.bool_), np.array([[0,1,0,1,1],[1,1,0,1,1]], dtype=np.bool_)),
+    ])
+def test_arithmetics_data_masks(mask1, mask2):
+
+    nd1 = NDDataArithmetic(1, mask=mask1)
+    nd2 = NDDataArithmetic(1, mask=mask2)
+
+    if mask1 is None and mask2 is None:
+        ref_mask = None
+    elif mask1 is None:
+        ref_mask = mask2
+    elif mask2 is None:
+        ref_mask = mask1
+    else:
+        ref_mask = mask1 | mask2
+
+    # Addition
+    nd3 = nd1.add(nd2)
+    assert_array_equal(ref_mask, nd3.mask)
+    # Subtraction
+    nd4 = nd1.subtract(nd2)
+    assert_array_equal(ref_mask, nd4.mask)
+    # Multiplication
+    nd5 = nd1.multiply(nd2)
+    assert_array_equal(ref_mask, nd5.mask)
+    # Division
+    nd6 = nd1.divide(nd2)
+    assert_array_equal(ref_mask, nd6.mask)
+    for nd in [nd3, nd4, nd5, nd6]:
+        # Check all other attributes are not set
+        assert nd.unit is None
+        assert nd.uncertainty is None
+        assert len(nd.meta) == 0
+        assert nd.wcs is None
+
+# Masks can only be used in that way if they are booleans or np.ndarrays of
+# booleans so everything else should result in an TypeError
+# Covered cases:
+# both: strings, integers, floats, classes
+# only one is such a type (which just copies it no exception)
+@pytest.mark.parametrize(('mask1','mask2'), [
+    ('String', 'String'),
+    (100, 100),
+    (2.7, 2.7),
+    ])
+def test_arithmetics_data_invalid_masks(mask1, mask2):
+
+    # Only one mask is not the expected type should work
+
+    nd1 = NDDataArithmetic(1, mask=mask1)
+    nd2 = NDDataArithmetic(1, mask=None)
+
+    assert nd1.add(nd2).mask == mask1
+    assert nd1.subtract(nd2).mask == mask1
+    assert nd1.multiply(nd2).mask == mask1
+    assert nd1.divide(nd2).mask == mask1
+
+    nd1 = NDDataArithmetic(1, mask=None)
+    nd2 = NDDataArithmetic(1, mask=mask2)
+
+    assert nd1.add(nd2).mask == mask2
+    assert nd1.subtract(nd2).mask == mask2
+    assert nd1.multiply(nd2).mask == mask2
+    assert nd1.divide(nd2).mask == mask2
+
+    # Operations should not be possible if both are of some unexpected type
+
+    nd1 = NDDataArithmetic(1, mask=mask1)
+    nd2 = NDDataArithmetic(1, mask=mask2)
+
+    with pytest.raises(TypeError):
+        nd1.add(nd2)
+    with pytest.raises(TypeError):
+        nd1.multiply(nd2)
+    with pytest.raises(TypeError):
+        nd1.subtract(nd2)
+    with pytest.raises(TypeError):
+        nd1.divide(nd2)
+
+# One additional case which can not be easily incorporated in the test above
+# what happens if the masks are numpy ndarrays are not broadcastable
+
+def test_arithmetics_data_invalid_masks_2():
+
+    nd1 = NDDataArithmetic(1, mask=np.array([1,0], dtype=np.bool_))
+    nd2 = NDDataArithmetic(1, mask=np.array([1,0,1], dtype=np.bool_))
+
+    with pytest.raises(ValueError):
+        nd1.add(nd2)
+    with pytest.raises(ValueError):
+        nd1.multiply(nd2)
+    with pytest.raises(ValueError):
+        nd1.subtract(nd2)
+    with pytest.raises(ValueError):
+        nd1.divide(nd2)
+
+from ...compat import NDDataArray
+from ...nduncertainty import IncompatibleUncertaintiesException
 from ....utils import NumpyRNGContext
 
 
