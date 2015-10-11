@@ -16,13 +16,6 @@ from ..extern import six
 from .utils import day_frac, two_sum
 from ..utils.compat.odict import OrderedDict
 
-try:
-    # Not guaranteed available at setup time
-    from . import erfa_time
-except ImportError:
-    if not _ASTROPY_SETUP_:
-        raise
-
 
 __all__ = ['TimeFormat', 'TimeJD', 'TimeMJD', 'TimeFromEpoch', 'TimeUnix',
            'TimeCxcSec', 'TimeGPS', 'TimeDecimalYear',
@@ -281,10 +274,11 @@ class TimeDecimalYear(TimeFormat):
 
         # Possible enhancement: use np.unique to only compute start, stop
         # for unique values of iy_start.
-        jd1_start, jd2_start = erfa_time.dtf_jd(
-            self.scale.upper().encode('utf8'), iy_start, imon, iday, ihr, imin, isec)
-        jd1_end, jd2_end = erfa_time.dtf_jd(
-            self.scale.upper().encode('utf8'), iy_start + 1, imon, iday, ihr, imin, isec)
+        scale = self.scale.upper().encode('utf8')
+        jd1_start, jd2_start = erfa.dtf2d(scale, iy_start, imon, iday,
+                                          ihr, imin, isec)
+        jd1_end, jd2_end = erfa.dtf2d(scale, iy_start + 1, imon, iday,
+                                      ihr, imin, isec)
 
         t_start = Time(jd1_start, jd2_start, scale=self.scale, format='jd')
         t_end = Time(jd1_end, jd2_end, scale=self.scale, format='jd')
@@ -294,9 +288,9 @@ class TimeDecimalYear(TimeFormat):
 
     @property
     def value(self):
-        iy_start, ims, ids, ihmsfs = erfa_time.jd_dtf(self.scale.upper().encode('utf8'),
-                                                 0,  # precision=0
-                                                 self.jd1, self.jd2)
+        scale = self.scale.upper().encode('utf8')
+        iy_start, ims, ids, ihmsfs = erfa.d2dtf(scale, 0,  # precision=0
+                                                self.jd1, self.jd2)
         imon = np.ones_like(iy_start)
         iday = np.ones_like(iy_start)
         ihr = np.zeros_like(iy_start)
@@ -305,10 +299,11 @@ class TimeDecimalYear(TimeFormat):
 
         # Possible enhancement: use np.unique to only compute start, stop
         # for unique values of iy_start.
-        jd1_start, jd2_start = erfa_time.dtf_jd(
-            self.scale.upper().encode('utf8'), iy_start, imon, iday, ihr, imin, isec)
-        jd1_end, jd2_end = erfa_time.dtf_jd(
-            self.scale.upper().encode('utf8'), iy_start + 1, imon, iday, ihr, imin, isec)
+        scale = self.scale.upper().encode('utf8')
+        jd1_start, jd2_start = erfa.dtf2d(scale, iy_start, imon, iday,
+                                          ihr, imin, isec)
+        jd1_end, jd2_end = erfa.dtf2d(scale, iy_start + 1, imon, iday,
+                                      ihr, imin, isec)
 
         dt = (self.jd1 - jd1_start) + (self.jd2 - jd2_start)
         dt_end = (jd1_end - jd1_start) + (jd2_end - jd2_start)
@@ -553,8 +548,8 @@ class TimeDatetime(TimeUnique):
             imin[...] = dt.minute
             dsec[...] = dt.second + dt.microsecond / 1e6
 
-        self.jd1, self.jd2 = erfa_time.dtf_jd(
-            self.scale.upper().encode('utf8'), *iterator.operands[1:])
+        self.jd1, self.jd2 = erfa.dtf2d(self.scale.upper().encode('utf8'),
+                                        *iterator.operands[1:])
 
     def to_value(self, timezone=None):
         """
@@ -580,10 +575,9 @@ class TimeDatetime(TimeUnique):
 
         # Rather than define a value property directly, we have a function,
         # since we want to be able to pass in timezone information.
-        iys, ims, ids, ihmsfs = erfa_time.jd_dtf(self.scale.upper()
-                                                 .encode('utf8'),
-                                                 6,  # precision=6 for microsec
-                                                 self.jd1, self.jd2)
+        scale = self.scale.upper().encode('utf8')
+        iys, ims, ids, ihmsfs = erfa.d2dtf(scale, 6,  # 6 for microsec
+                                           self.jd1, self.jd2)
         ihrs = ihmsfs[..., 0]
         imins = ihmsfs[..., 1]
         isecs = ihmsfs[..., 2]
@@ -722,18 +716,17 @@ class TimeString(TimeUnique):
             iy[...], im[...], id[...], ihr[...], imin[...], dsec[...] = (
                 self.parse_string(val.item(), subfmts))
 
-        self.jd1, self.jd2 = erfa_time.dtf_jd(
-            self.scale.upper().encode('utf8'), *iterator.operands[1:])
+        self.jd1, self.jd2 = erfa.dtf2d(self.scale.upper().encode('utf8'),
+                                        *iterator.operands[1:])
 
     def str_kwargs(self):
         """
         Generator that yields a dict of values corresponding to the
         calendar date and time for the internal JD values.
         """
-        iys, ims, ids, ihmsfs = erfa_time.jd_dtf(self.scale.upper()
-                                                 .encode('utf8'),
-                                                 self.precision,
-                                                 self.jd1, self.jd2)
+        scale = self.scale.upper().encode('utf8'),
+        iys, ims, ids, ihmsfs = erfa.d2dtf(scale, self.precision,
+                                           self.jd1, self.jd2)
 
         # Get the str_fmt element of the first allowed output subformat
         _, _, str_fmt = self._select_subfmts(self.out_subfmt)[0]
@@ -992,21 +985,21 @@ class TimeEpochDate(TimeFormat):
     """
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # validate scale.
-        epoch_to_jd = getattr(erfa_time, self.epoch_to_jd)
+        epoch_to_jd = getattr(erfa, self.epoch_to_jd)
         jd1, jd2 = epoch_to_jd(val1 + val2)
         self.jd1, self.jd2 = day_frac(jd1, jd2)
 
     @property
     def value(self):
-        jd_to_epoch = getattr(erfa_time, self.jd_to_epoch)
+        jd_to_epoch = getattr(erfa, self.jd_to_epoch)
         return jd_to_epoch(self.jd1, self.jd2)
 
 
 class TimeBesselianEpoch(TimeEpochDate):
     """Besselian Epoch year as floating point value(s) like 1950.0"""
     name = 'byear'
-    epoch_to_jd = 'besselian_epoch_jd'
-    jd_to_epoch = 'jd_besselian_epoch'
+    epoch_to_jd = 'epb2jd'
+    jd_to_epoch = 'epb'
 
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes"""
@@ -1022,8 +1015,8 @@ class TimeJulianEpoch(TimeEpochDate):
     """Julian Epoch year as floating point value(s) like 2000.0"""
     name = 'jyear'
     unit = erfa.DJY  # 365.25, the Julian year, for conversion to quantities
-    epoch_to_jd = 'julian_epoch_jd'
-    jd_to_epoch = 'jd_julian_epoch'
+    epoch_to_jd = 'epj2jd'
+    jd_to_epoch = 'epj'
 
 
 class TimeEpochDateString(TimeString):
@@ -1048,12 +1041,12 @@ class TimeEpochDateString(TimeString):
                 years[...] = year
 
         self._check_scale(self._scale)  # validate scale.
-        epoch_to_jd = getattr(erfa_time, self.epoch_to_jd)
+        epoch_to_jd = getattr(erfa, self.epoch_to_jd)
         self.jd1, self.jd2 = epoch_to_jd(iterator.operands[-1])
 
     @property
     def value(self):
-        jd_to_epoch = getattr(erfa_time, self.jd_to_epoch)
+        jd_to_epoch = getattr(erfa, self.jd_to_epoch)
         years = jd_to_epoch(self.jd1, self.jd2)
         # Use old-style format since it is a factor of 2 faster
         str_fmt = self.epoch_prefix + '%.' + str(self.precision) + 'f'
@@ -1064,16 +1057,16 @@ class TimeEpochDateString(TimeString):
 class TimeBesselianEpochString(TimeEpochDateString):
     """Besselian Epoch year as string value(s) like 'B1950.0'"""
     name = 'byear_str'
-    epoch_to_jd = 'besselian_epoch_jd'
-    jd_to_epoch = 'jd_besselian_epoch'
+    epoch_to_jd = 'epb2jd'
+    jd_to_epoch = 'epb'
     epoch_prefix = 'B'
 
 
 class TimeJulianEpochString(TimeEpochDateString):
     """Julian Epoch year as string value(s) like 'J2000.0'"""
     name = 'jyear_str'
-    epoch_to_jd = 'julian_epoch_jd'
-    jd_to_epoch = 'jd_julian_epoch'
+    epoch_to_jd = 'epj2jd'
+    jd_to_epoch = 'epj'
     epoch_prefix = 'J'
 
 
