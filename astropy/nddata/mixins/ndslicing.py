@@ -55,7 +55,7 @@ class NDSlicingMixin(object):
        - if the ``data`` is not a `~numpy.ndarray` or should not be sliceable
          you may be better off not using this Mixin.
        - if you have defined an additional property that needs to be sliced
-         extend the ``_slice`` method. Propably the best way to do this is
+         extend the ``_slice`` method. Probably the best way to do this is
          to first call ``kwarg = super(subclass, self)._slice(item)`` in there
          and then just afterwards add the other sliced properties to the
          ``kwarg``-dict. Since this kwarg is used to initialize a new
