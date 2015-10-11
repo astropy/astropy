@@ -51,90 +51,91 @@ class FakeUncertainty(NDUncertainty):
     def _propagate_divide(self, data, final_data):
         pass
 
-# Test the fake
+# Test the fake (added also StdDevUncertainty which should behave identical)
 
-def test_init_fake_with_list():
-    fake_uncert = FakeUncertainty([1,2,3])
+@pytest.mark.parametrize(('UncertClass'), [FakeUncertainty, StdDevUncertainty])
+def test_init_fake_with_list(UncertClass):
+    fake_uncert = UncertClass([1,2,3])
     assert_array_equal(fake_uncert.array, np.array([1,2,3]))
     # Copy makes no difference since casting a list to an np.ndarray always
     # makes a copy.
     # But let's give the uncertainty a unit too
-    fake_uncert = FakeUncertainty([1,2,3], unit=u.adu)
+    fake_uncert = UncertClass([1,2,3], unit=u.adu)
     assert_array_equal(fake_uncert.array, np.array([1,2,3]))
     assert fake_uncert.unit is u.adu
 
-
-def test_init_fake_with_ndarray():
+@pytest.mark.parametrize(('UncertClass'), [FakeUncertainty, StdDevUncertainty])
+def test_init_fake_with_ndarray(UncertClass):
     uncert = np.arange(100).reshape(10,10)
-    fake_uncert = FakeUncertainty(uncert)
+    fake_uncert = UncertClass(uncert)
     # Numpy Arrays are copied by default
     assert_array_equal(fake_uncert.array, uncert)
     assert fake_uncert.array is not uncert
     # Now try it without copy
-    fake_uncert = FakeUncertainty(uncert, copy=False)
+    fake_uncert = UncertClass(uncert, copy=False)
     assert fake_uncert.array is uncert
     # let's provide a unit
-    fake_uncert = FakeUncertainty(uncert, unit=u.adu)
+    fake_uncert = UncertClass(uncert, unit=u.adu)
     assert_array_equal(fake_uncert.array, uncert)
     assert fake_uncert.array is not uncert
     assert fake_uncert.unit is u.adu
 
-
-def test_init_fake_with_quantity():
+@pytest.mark.parametrize(('UncertClass'), [FakeUncertainty, StdDevUncertainty])
+def test_init_fake_with_quantity(UncertClass):
     uncert = np.arange(10).reshape(2,5) * u.adu
-    fake_uncert = FakeUncertainty(uncert)
+    fake_uncert = UncertClass(uncert)
     # Numpy Arrays are copied by default
     assert_array_equal(fake_uncert.array, uncert.value)
     assert fake_uncert.array is not uncert.value
     assert fake_uncert.unit is u.adu
     # Try without copy (should not work, quantity.value always returns a copy)
-    fake_uncert = FakeUncertainty(uncert, copy=False)
+    fake_uncert = UncertClass(uncert, copy=False)
     assert fake_uncert.array is not uncert.value
     assert fake_uncert.unit is u.adu
     # Now try with an explicit unit parameter too
-    fake_uncert = FakeUncertainty(uncert, unit=u.m)
+    fake_uncert = UncertClass(uncert, unit=u.m)
     assert_array_equal(fake_uncert.array, uncert.value) # No conversion is done
     assert fake_uncert.array is not uncert.value
     assert fake_uncert.unit is u.m # It took the explicit one
 
-
-def test_init_fake_with_fake():
+@pytest.mark.parametrize(('UncertClass'), [FakeUncertainty, StdDevUncertainty])
+def test_init_fake_with_fake(UncertClass):
     uncert = np.arange(5).reshape(5,1)
-    fake_uncert1 = FakeUncertainty(uncert)
-    fake_uncert2 = FakeUncertainty(fake_uncert1)
+    fake_uncert1 = UncertClass(uncert)
+    fake_uncert2 = UncertClass(fake_uncert1)
     assert_array_equal(fake_uncert2.array, uncert)
     assert fake_uncert2.array is not uncert
     # Without making copies
-    fake_uncert1 = FakeUncertainty(uncert, copy=False)
-    fake_uncert2 = FakeUncertainty(fake_uncert1, copy=False)
+    fake_uncert1 = UncertClass(uncert, copy=False)
+    fake_uncert2 = UncertClass(fake_uncert1, copy=False)
     assert_array_equal(fake_uncert2.array, fake_uncert1.array)
     assert fake_uncert2.array is fake_uncert1.array
     # With a unit
     uncert = np.arange(5).reshape(5,1) * u.adu
-    fake_uncert1 = FakeUncertainty(uncert)
-    fake_uncert2 = FakeUncertainty(fake_uncert1)
+    fake_uncert1 = UncertClass(uncert)
+    fake_uncert2 = UncertClass(fake_uncert1)
     assert_array_equal(fake_uncert2.array, uncert.value)
     assert fake_uncert2.array is not uncert.value
     assert fake_uncert2.unit is u.adu
     # With a unit and an explicit unit-parameter
-    fake_uncert2 = FakeUncertainty(fake_uncert1, unit=u.cm)
+    fake_uncert2 = UncertClass(fake_uncert1, unit=u.cm)
     assert_array_equal(fake_uncert2.array, uncert.value)
     assert fake_uncert2.array is not uncert.value
     assert fake_uncert2.unit is u.cm
 
-
-def test_init_fake_with_somethingElse():
+@pytest.mark.parametrize(('UncertClass'), [FakeUncertainty, StdDevUncertainty])
+def test_init_fake_with_somethingElse(UncertClass):
     # What about a dict?
     uncert = {'rdnoise': 2.9, 'gain': 0.6}
-    fake_uncert = FakeUncertainty(uncert)
+    fake_uncert = UncertClass(uncert)
     assert fake_uncert.array == uncert
     # We can pass a unit too but since we cannot do uncertainty propagation
     # the interpretation is up to the user
-    fake_uncert = FakeUncertainty(uncert, unit=u.s)
+    fake_uncert = UncertClass(uncert, unit=u.s)
     assert fake_uncert.array == uncert
     assert fake_uncert.unit is u.s
     # So, now check what happens if copy is False
-    fake_uncert = FakeUncertainty(uncert, copy=False)
+    fake_uncert = UncertClass(uncert, copy=False)
     assert fake_uncert.array == uncert
     assert id(fake_uncert) != id(uncert)
     # dicts cannot be referenced without copy
