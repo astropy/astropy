@@ -398,7 +398,7 @@ class StdDevUncertainty(NDUncertainty):
 
         if self.array is None:
             if other_uncert.unit is not None and (
-                        self.parent_nddata.unit is not other_uncert.unit):
+                        self.parent_nddata.unit != other_uncert.unit):
                 # In case we are dealing with quantities the result of add/sub
                 # will have the unit of the first element.
                 # So if the second element has a unit (so we are dealing with
@@ -414,7 +414,7 @@ class StdDevUncertainty(NDUncertainty):
                 return deepcopy(other_uncert.array)
 
         elif other_uncert.array is None:
-            if self.unit is not self.parent_nddata.unit:
+            if self.unit != self.parent_nddata.unit:
                 # Only keep the unit if the unit differs from the data's unit.
                 # in that case the resulting uncertainty will have a different
                 # unit than the resulting data. We just assume that the unit of
@@ -427,7 +427,7 @@ class StdDevUncertainty(NDUncertainty):
                 return deepcopy(self.array)
 
         else:
-            if self.unit is not other_uncert.unit:
+            if self.unit != other_uncert.unit:
                 # In case the two uncertainties (or data) have different units
                 # we need to convert it to the same because the unit of the
                 # result will have the unit of the first element. In case
@@ -445,7 +445,7 @@ class StdDevUncertainty(NDUncertainty):
                 # if it is the same drop the uncertainty unit. The result
                 # should have a unit otherwise uncertainties with units would
                 # not make a lot of sense, or?
-                if result.unit is result_data.unit:
+                if result.unit == result_data.unit:
                     return result.value
                 else:
                     return result
@@ -462,7 +462,7 @@ class StdDevUncertainty(NDUncertainty):
 
         if self.array is None:
             if other_uncert.unit is not None and (
-                        self.parent_nddata.unit is not other_uncert.unit):
+                        self.parent_nddata.unit != other_uncert.unit):
                 return other_uncert.array * other_uncert.unit
             else:
                 return deepcopy(other_uncert.array)
@@ -474,7 +474,7 @@ class StdDevUncertainty(NDUncertainty):
                 return deepcopy(self.array)
 
         else:
-            if self.unit is not other_uncert.unit:
+            if self.unit != other_uncert.unit:
                 this = self.array * self.unit
                 other = other_uncert.array * other_uncert.unit
                 if correlation != 0:
@@ -482,7 +482,7 @@ class StdDevUncertainty(NDUncertainty):
                     result = np.sqrt(this**2 + other.array**2 - corr)
                 else:
                     result = np.sqrt(this**2 + other.array**2)
-                if result.unit is result_data.unit:
+                if result.unit == result_data.unit:
                     return result.value
                 else:
                     return result
@@ -501,7 +501,7 @@ class StdDevUncertainty(NDUncertainty):
             # A * dB. Since A could have negative values we need to take the
             # absolute.
             result = np.abs(self.parent_nddata.data * other_uncert.array)
-            if other_uncert.unit is not other_uncert.parent_nddata.unit:
+            if other_uncert.unit != other_uncert.parent_nddata.unit:
                 # In case the other uncertainty has a unit different from it's
                 # data we need to keep the unit of the resulting uncertainty
                 # because the user propably had a reason to set different
@@ -521,7 +521,7 @@ class StdDevUncertainty(NDUncertainty):
             # Just like before but the formula is B * dA and everything is
             # reversed.
             result = np.abs(other_uncert.parent_nddata.data * self.array)
-            if self.unit is not self.parent_nddata.unit:
+            if self.unit != self.parent_nddata.unit:
                 if other_uncert.parent_nddata.unit is not None:
                     return result * other_uncert.parent_nddata.unit * self.unit
                 else:
@@ -532,13 +532,13 @@ class StdDevUncertainty(NDUncertainty):
         else:
             # In this case we just need to catch the case if one uncertainty
             # has a unit that is not the same as the data's.
-            if self.unit is not self.parent_nddata.unit:
+            if self.unit != self.parent_nddata.unit:
                 left = (self.array * self.unit).to(
                     self.parent_nddata.unit).value / self.parent_nddata.data
             else:
                 left = self.array / self.parent_nddata.data
 
-            if other_uncert.unit is not other_uncert.parent_nddata.unit:
+            if other_uncert.unit != other_uncert.parent_nddata.unit:
                 right = ((other_uncert.array * other_uncert.unit).to(
                     other_uncert.parent_nddata.unit).value /
                     other_uncert.parent_nddata.data)
@@ -564,7 +564,7 @@ class StdDevUncertainty(NDUncertainty):
             # (A / B) * (dB / B). Since this could have negative values we need
             # to take the absolute. Also we need (db / B) to be dimensionless
             # so we convert (if necessary) dB to the same unit as B
-            if other_uncert.unit is not other_uncert.parent_nddata.unit:
+            if other_uncert.unit != other_uncert.parent_nddata.unit:
                 right = ((other_uncert.array * other_uncert.unit).to(
                     other_uncert.parent_nddata.unit).value /
                     other_uncert.parent_nddata.data)
@@ -577,7 +577,7 @@ class StdDevUncertainty(NDUncertainty):
             # we need to take the absolute and check that the result has the
             # right unit
             result = np.abs(self.array / other_uncert.parent_nddata.data)
-            if self.unit is not self.parent_nddata.unit:
+            if self.unit != self.parent_nddata.unit:
                 if other_uncert.parent_nddata.unit is not None:
                     return result * self.unit / other_uncert.parent_nddata.unit
                 else:
@@ -587,13 +587,13 @@ class StdDevUncertainty(NDUncertainty):
 
         else:
             # Same as for multiplication
-            if self.unit is not self.parent_nddata.unit:
+            if self.unit != self.parent_nddata.unit:
                 left = (self.array * self.unit).to(
                     self.parent_nddata.unit).value / self.parent_nddata.data
             else:
                 left = self.array / self.parent_nddata.data
 
-            if other_uncert.unit is not other_uncert.parent_nddata.unit:
+            if other_uncert.unit != other_uncert.parent_nddata.unit:
                 right = ((other_uncert.array * other_uncert.unit).to(
                     other_uncert.parent_nddata.unit).value /
                     other_uncert.parent_nddata.data)
