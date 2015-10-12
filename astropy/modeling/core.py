@@ -781,6 +781,10 @@ class Model(object):
         `~astropy.modeling.polynomial.PolynomialModel`, but not by
         requirement).
 
+        A custom inverse can be deleted with ``del model.inverse``.  In this
+        case the model's inverse is reset to its default, if a default exists
+        (otherwise the default is to raise `NotImplementedError`).
+
         Note to authors of `~astropy.modeling.Model` subclasses:  To define an
         inverse for a model simply override this property to return the
         appropriate model representing the inverse.  The machinery that will

@@ -194,6 +194,64 @@ set.  For scalar inputs like ``g(0)``, ``model_set_axis=False`` is implied
 automatically.  But for array inputs it is necessary to avoid ambiguity.
 
 
+Model Inverses
+==============
+
+All models have a `Model.inverse <astropy.modeling.Model.inverse>` property
+which may, for some models, return a new model that is the analytic inverse of
+the model it is attached to.  For example::
+
+    >>> from astropy.modeling.models import Linear1D
+    >>> linear = Linear1D(slope=0.8, intercept=1.0)
+    >>> linear.inverse
+    <Linear1D(slope=1.25, intercept=-1.25)>
+
+The inverse of a model will always be a fully instantiated model in its own
+right, and so can be evaluated directly like::
+
+    >>> linear.inverse(2.0)
+    1.25
+
+It is also possible to assign a *custom* inverse to a model.  This may be
+useful, for example, in cases where a model does not have an analytic inverse,
+but may have an approximate inverse that was computed numerically and is
+represented by a polynomial.  This works even if the target model has a
+default analytic inverse--in this case the default is overridden with the
+custom inverse::
+
+    >>> from astropy.modeling.models import Polynomial1D
+    >>> linear.inverse = Polynomial1D(degree=1, c0=-1.25, c1=1.25)
+    >>> linear.inverse
+    <Polynomial1D(1, c0=-1.25, c1=1.25)>
+
+If a custom inverse has been assigned to a model, it can be deleted with
+``del model.inverse``.  This resets the inverse to its default (if one exists).
+If a default does not exist, accessing ``model.inverse`` raises a
+`NotImplementedError`.  For example polynomial models do not have a default
+inverse::
+
+    >>> del linear.inverse
+    >>> linear.inverse
+    <Linear1D(slope=1.25, intercept=-1.25)>
+    >>> p = Polynomial1D(degree=2, c0=1.0, c1=2.0, c2=3.0)
+    >>> p.inverse
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "astropy\modeling\core.py", line 796, in inverse
+        raise NotImplementedError("An analytical inverse transform has not "
+    NotImplementedError: An analytical inverse transform has not been
+    implemented for this model. 
+
+One may certainly compute an inverse and assign it to a polynomial model
+though.
+
+.. note::
+
+    When assigning a custom inverse to a model no validation is performed to
+    ensure that it is actually an inverse or even approximate inverse.  So
+    assign custom inverses at your own risk.
+
+
 Further examples
 ================
 
