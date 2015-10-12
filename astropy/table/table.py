@@ -444,15 +444,6 @@ class Table(object):
         '''
         return TableILoc(self)
 
-    def _get_slice(self, col, item):
-        '''
-        Return either col.get_item(item) if col is a regular Column
-        with indices or col[item] otherwise.
-        '''
-        if col.info.indices:
-            return getattr(col, 'get_item', col.__getitem__)(item)
-        return col[item]
-
     def add_index(self, colnames, engine=None, unique=False):
         '''
         Insert a new index among one or more columns.
@@ -715,7 +706,13 @@ class Table(object):
         for col in cols:
             col.info._copy_indices = self._copy_indices
 
-        newcols = [self._get_slice(col, slice_) for col in cols]
+        def _get_slice(col, slice_):
+            out = col[slice_]
+            if col.info.indices:
+                out = col.info.slice_indices(out, slice_, len(col))
+            return out
+
+        newcols = [_get_slice(col, slice_) for col in cols]
         for col in cols:
             col.info._copy_indices = True
 
