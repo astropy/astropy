@@ -55,13 +55,13 @@ class NDSlicingMixin(object):
        - if the ``data`` is not a `~numpy.ndarray` or should not be sliceable
          you may be better off not using this Mixin.
        - if you have defined an additional property that needs to be sliced
-         extend the ``_slice`` method. Probably the best way to do this is
-         to first call ``kwarg = super(subclass, self)._slice(item)`` in there
-         and then just afterwards add the other sliced properties to the
+         extend :meth:`NDSlicingMixin._slice`. Probably the best way to do this
+         is to first call ``kwarg = super(subclass, self)._slice(item)`` in
+         there and then just afterwards add the other sliced properties to the
          ``kwarg``-dict. Since this kwarg is used to initialize a new
          instance of the class you need to match the key to the name of the
          parameter. For example if you use a property called ``flags`` you need
-         to add a new line ``kwargs['flags'] = ...`` to the _slice method.
+         to add a new line ``kwargs['flags'] = ...`` to :meth:`_slice`.
          *BUT* the ``__init__`` has to accept a flags parameter otherwise
          this will fail.
        - if you have restrictions that are a subset of the above mentioned
@@ -114,7 +114,8 @@ class NDSlicingMixin(object):
         # Abort slicing if the data is scalar
         if self._data.shape == ():
             raise TypeError('Scalars cannot be sliced.')
-        # Slice the data but everything else slice in self._slice.
+
+        # Slice the data but everything else is sliced in self._slice.
         new_data = self.data[item]
         kwargs = self._slice(item)
         return self.__class__(new_data, **kwargs)
@@ -125,21 +126,21 @@ class NDSlicingMixin(object):
         the return after slicing.
 
         It passes uncertainty, mask and wcs to their appropriate ``_slice_*``
-        method, while `meta` and `unit` are simply taken from the original. The
-        data is assumed to be sliceable and is sliced already before.
+        method, while ``meta`` and ``unit`` are simply taken from the original.
+        The data is assumed to be sliceable and is sliced already before.
 
         Where possible the return is *not* a copy of the data.
 
         Parameters
         ----------
         item: Slice
-            The slice passed to ``__getitem__``.
+            The slice passed to :meth:`NDSlicingMixin.__getitem__`.
 
         Returns
         -------
         kwargs: `dict`
             Containing all the attributes except data after slicing - ready to
-            feed them into the ``init``.
+            feed them into the ``__init__()``.
         """
         kwargs = {}
         # Try to slice some attributes
@@ -206,13 +207,13 @@ class NDSlicingMixin(object):
         doc = """
         Controls how the {attr} is sliced.
 
-        Should be called from ``__getitem__`` with `item` being the slice
-        passed to it.
+        Should be called from :meth:`NDSlicingMixin.__getitem__` with `item`
+        being the slice passed to it.
 
         Parameters
         ----------
         item: Slice
-            The slice passed to ``__getitem__``.
+            The slice passed to :meth:`NDSlicingMixin.__getitem__`.
 
         Returns
         -------
@@ -227,8 +228,8 @@ class NDSlicingMixin(object):
         {allowed}.
         The primary purpose of this function is that subclasses using `NDData`
         with `NDSlicingMixin` with other {attr} restrictions need not to
-        override the complete ``__getitem__`` but only need to override this
-        method.
+        override the complete :meth:`NDSlicingMixin.__getitem__` but only need
+        to override this method.
         """
         _slice_uncertainty.__doc__ = doc.format(attr="uncertainty",
             allowed="`~numpy.ndarray` or `NDUncertainty` with the same shape "
