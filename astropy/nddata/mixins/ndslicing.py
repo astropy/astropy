@@ -13,6 +13,7 @@ from ... import log
 
 __all__ = ['NDSlicingMixin']
 
+__doctest_skip__ = ['NDSlicingMixin']
 
 class NDSlicingMixin(object):
     """
