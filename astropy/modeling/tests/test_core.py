@@ -3,14 +3,15 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-import pytest
 import numpy as np
 from numpy.testing.utils import assert_allclose
 from ..core import Model, InputParameterError, custom_model, render_model
 from ..parameters import Parameter
 from .. import models
 
+from ...tests.helper import pytest, catch_warnings
 from ...utils.compat.funcsigs import signature
+from ...utils.exceptions import AstropyDeprecationWarning
 
 
 class NonFittableModel(Model):
@@ -200,10 +201,41 @@ def test_custom_inverse():
     assert_allclose(x, p(p.inverse(x)))
     assert_allclose(x, p.inverse(p(x)))
 
-    p.inverse = None
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        p.inverse = None
+
+    # TODO: This can be removed after Astropy v1.1 or so
+    assert len(w) == 1
 
     with pytest.raises(NotImplementedError):
         p.inverse
+
+
+def test_custom_inverse_reset():
+    """Test resetting a custom inverse to the model's default inverse."""
+
+    class TestModel(Model):
+        inputs = ()
+        outputs = ('y',)
+        @property
+        def inverse(self):
+            return models.Shift()
+
+        @staticmethod
+        def evaluate():
+            return 0
+
+    # The above test model has no meaning, nor does its inverse--this just
+    # tests that setting an inverse and resetting to the default inverse works
+
+    m = TestModel()
+    assert isinstance(m.inverse, models.Shift)
+
+    m.inverse = models.Scale()
+    assert isinstance(m.inverse, models.Scale)
+
+    del m.inverse
+    assert isinstance(m.inverse, models.Shift)
 
 
 def test_render_model_2d():

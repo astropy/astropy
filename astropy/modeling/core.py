@@ -804,7 +804,29 @@ class Model(object):
                 "instance or `None` (where `None` restores the default "
                 "inverse for this model if one is defined.")
 
+        if value is None:
+            warnings.warn(
+                "Currently setting `model.inverse = None` resets the inverse "
+                "to the default inverse (if one exists).  However, starting "
+                "in Astropy 1.2, setting `model.inverse = None` explicitly "
+                "forces a model to have no inverse (such that accessing "
+                "`model.inverse` raises a NotImplementedError) even if that "
+                "model's class has a default inverse.\n\n"
+                "Instead, call `del model.inverse` to reset the inverse to "
+                "its default (if a default exists for that model's class--"
+                "otherwise the model is reset to having no inverse.",
+                AstropyDeprecationWarning)
+
         self._user_inverse = value
+
+    @inverse.deleter
+    def inverse(self):
+        """
+        Resets the model's inverse to its default (if one exists, otherwise
+        the model will have no inverse).
+        """
+
+        del self._user_inverse
 
     @property
     def bounding_box(self):
