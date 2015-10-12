@@ -246,33 +246,22 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
 
     def _create_inverse_property(cls, members):
         inverse = members.get('inverse')
-        if inverse is None:
+        if inverse is None or cls.__bases__[0] is object:
+            # The latter clause is the prevent the below code from running on
+            # the Model base class, which implements the default getter and
+            # setter for .inverse
             return
 
         if isinstance(inverse, property):
-            fget = inverse.fget
-        else:
             # We allow the @property decorator to be omitted entirely from
             # the class definition, though its use should be encouraged for
             # clarity
-            fget = inverse
+            inverse = inverse.fget
 
-        def wrapped_fget(self):
-            if self._custom_inverse is not None:
-                return self._custom_inverse
-
-            return fget(self)
-
-        def fset(self, value):
-            if not isinstance(value, (Model, type(None))):
-                raise ValueError(
-                    "The ``inverse`` attribute may be assigned a `Model` "
-                    "instance or `None` (where `None` restores the default "
-                    "inverse for this model if one is defined.")
-
-            self._custom_inverse = value
-
-        cls.inverse = property(wrapped_fget, fset, doc=inverse.__doc__)
+        # Store the inverse getter internally, then delete the given .inverse
+        # attribute so that cls.inverse resolves to Model.inverse instead
+        cls._inverse = inverse
+        del cls.inverse
 
     def _handle_backwards_compat(cls, name, members):
         # Backwards compatibility check for 'eval' -> 'evaluate'
@@ -579,7 +568,8 @@ class Model(object):
     # optionally; in that case it is of course up to the user to determine
     # whether their inverse is *actually* an inverse to the model they assign
     # it to.
-    _custom_inverse = None
+    _inverse = None
+    _user_inverse = None
 
     # If a bounding_box_default function is defined in the model,
     # then the _bounding_box attribute should be set to 'auto' in the model.
@@ -798,8 +788,23 @@ class Model(object):
         base class.
         """
 
+        if self._user_inverse is not None:
+            return self._user_inverse
+        elif self._inverse is not None:
+            return self._inverse()
+
         raise NotImplementedError("An analytical inverse transform has not "
                                   "been implemented for this model.")
+
+    @inverse.setter
+    def inverse(self, value):
+        if not isinstance(value, (Model, type(None))):
+            raise ValueError(
+                "The ``inverse`` attribute may be assigned a `Model` "
+                "instance or `None` (where `None` restores the default "
+                "inverse for this model if one is defined.")
+
+        self._user_inverse = value
 
     @property
     def bounding_box(self):
@@ -1832,7 +1837,7 @@ class _CompoundModelMeta(_ModelMeta):
             # intermediate compound models are stored in the tree as well then
             # we can immediately check for custom inverses on sub-models when
             # computing the inverse
-            instance._custom_inverse = mcls._make_custom_inverse(
+            instance._user_inverse = mcls._make_user_inverse(
                     operator, left, right)
 
             return instance
@@ -1851,7 +1856,7 @@ class _CompoundModelMeta(_ModelMeta):
         return
 
     @classmethod
-    def _make_custom_inverse(mcls, operator, left, right):
+    def _make_user_inverse(mcls, operator, left, right):
         """
         Generates an inverse `Model` for this `_CompoundModel` when either
         model in the operation has a *custom inverse* that was manually
@@ -1873,7 +1878,7 @@ class _CompoundModelMeta(_ModelMeta):
         """
 
         if not (operator in ('&', '|') and
-                (left._custom_inverse or right._custom_inverse)):
+                (left._user_inverse or right._user_inverse)):
             # These are the only operators that support an inverse right now
             return None
 
