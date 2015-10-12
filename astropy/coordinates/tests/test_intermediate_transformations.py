@@ -63,57 +63,64 @@ def test_icrs_cirs():
     assert_allclose(cirsnod.dec, cirsnod5.dec)
 
 
-def test_icrs_gcrs():
+ra, dec, dist = randomly_sample_sphere(200)
+icrs_coords = [ICRS(ra=ra, dec=dec), ICRS(ra=ra, dec=dec, distance=dist*u.pc)]
+gcrs_frames = [GCRS(), GCRS(obstime=Time('J2005', scale='utc'))]
+
+@pytest.mark.parametrize('icoo', icrs_coords)
+def test_icrs_gcrs(icoo):
     """
     Check ICRS<->GCRS for consistency
     """
-    ra, dec, dist = randomly_sample_sphere(200)
-    inod = ICRS(ra=ra, dec=dec)
-    iwd = ICRS(ra=ra, dec=dec, distance=dist*u.pc)
-
-    gframe1 = GCRS()
-    gcrsnod = inod.transform_to(gframe1)  #uses the default time
+    gcrsnod = icoo.transform_to(gcrs_frames[0])  #uses the default time
     #first do a round-tripping test
-    inod2 = gcrsnod.transform_to(ICRS)
-    assert_allclose(inod.ra, inod2.ra)
-    assert_allclose(inod.dec, inod2.dec)
+    icoo2 = gcrsnod.transform_to(ICRS)
+    assert_allclose(icoo.ra, icoo2.ra)
+    assert_allclose(icoo.dec, icoo2.dec)
 
     #now check that a different time yields different answers
-    gframe2 = GCRS(obstime=Time('J2005', scale='utc'))
-    gcrsnod2 = inod.transform_to(gframe2)
+    gcrsnod2 = icoo.transform_to(gcrs_frames[1])
     assert not allclose(gcrsnod.ra, gcrsnod2.ra, rtol=1e-8, atol=1e-10*u.deg)
     assert not allclose(gcrsnod.dec, gcrsnod2.dec, rtol=1e-8, atol=1e-10*u.deg)
 
-    # parallax effects should be included, so with and w/o distance should be different
-    gcrswd = iwd.transform_to(gframe1)
-    assert not allclose(gcrswd.ra, gcrsnod.ra, rtol=1e-8, atol=1e-10*u.deg)
-    assert not allclose(gcrswd.dec, gcrsnod.dec, rtol=1e-8, atol=1e-10*u.deg)
-    # and the distance should transform at least somehow
-    assert not allclose(gcrswd.distance, iwd.distance, rtol=1e-8,
-                        atol=1e-10*u.pc)
 
     #now check that the cirs self-transform works as expected
-    gcrsnod3 = gcrsnod.transform_to(gframe1)  # should be a no-op
+    gcrsnod3 = gcrsnod.transform_to(gcrs_frames[0])  # should be a no-op
     assert_allclose(gcrsnod.ra, gcrsnod3.ra)
     assert_allclose(gcrsnod.dec, gcrsnod3.dec)
 
-    gcrsnod4 = gcrsnod.transform_to(gframe2)  # should be different
+    gcrsnod4 = gcrsnod.transform_to(gcrs_frames[1])  # should be different
     assert not allclose(gcrsnod4.ra, gcrsnod.ra, rtol=1e-8, atol=1e-10*u.deg)
     assert not allclose(gcrsnod4.dec, gcrsnod.dec, rtol=1e-8, atol=1e-10*u.deg)
 
-    gcrsnod5 = gcrsnod4.transform_to(gframe1)  # should be back to the same
+    gcrsnod5 = gcrsnod4.transform_to(gcrs_frames[0])  # should be back to the same
     assert_allclose(gcrsnod.ra, gcrsnod5.ra, rtol=1e-8, atol=1e-10*u.deg)
     assert_allclose(gcrsnod.dec, gcrsnod5.dec, rtol=1e-8, atol=1e-10*u.deg)
 
     #also make sure that a GCRS with a different geoloc/geovel gets a different answer
     # roughly a moon-like frame
     gframe3 = GCRS(obsgeoloc=[385000., 0, 0]*u.km, obsgeovel=[1, 0, 0]*u.km/u.s)
-    gcrsnod6 = inod.transform_to(gframe3)  # should be different
+    gcrsnod6 = icoo.transform_to(gframe3)  # should be different
     assert not allclose(gcrsnod.ra, gcrsnod6.ra, rtol=1e-8, atol=1e-10*u.deg)
     assert not allclose(gcrsnod.dec, gcrsnod6.dec, rtol=1e-8, atol=1e-10*u.deg)
-    inodviag3 = gcrsnod6.transform_to(ICRS)  # and now back to the original
-    assert_allclose(inod.ra, inodviag3.ra)
-    assert_allclose(inod.dec, inodviag3.dec)
+    icooviag3 = gcrsnod6.transform_to(ICRS)  # and now back to the original
+    assert_allclose(icoo.ra, icooviag3.ra)
+    assert_allclose(icoo.dec, icooviag3.dec)
+
+@pytest.mark.parametrize('gframe', gcrs_frames)
+def test_icrs_gcrs_dist_diff(gframe):
+    """
+    Check that with and without distance give different ICRS<->GCRS answers
+    """
+    gcrsnod = icrs_coords[0].transform_to(gframe)
+    gcrswd = icrs_coords[1].transform_to(gframe)
+
+    # parallax effects should be included, so with and w/o distance should be different
+    assert not allclose(gcrswd.ra, gcrsnod.ra, rtol=1e-8, atol=1e-10*u.deg)
+    assert not allclose(gcrswd.dec, gcrsnod.dec, rtol=1e-8, atol=1e-10*u.deg)
+    # and the distance should transform at least somehow
+    assert not allclose(gcrswd.distance, icrs_coords[1].distance, rtol=1e-8,
+                        atol=1e-10*u.pc)
 
 
 def test_cirs_to_altaz():
