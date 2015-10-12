@@ -39,7 +39,7 @@ class NDArithmeticMixin(object):
         Base method which calculates the result of the arithmetic operation.
 
         This class determines the result of the arithmetic operation on the
-        `data` with respect to their units and then forwards to other methods
+        ``data`` with respect to their units and then forwards to other methods
         to calculate the other properties for the result (like uncertainty).
 
         Parameters
@@ -53,7 +53,7 @@ class NDArithmeticMixin(object):
 
         uncertainty_correlation: ``Number`` or `~numpy.ndarray`
             The correlation (rho) is defined between the uncertainties in
-            sigma_AB = sigma_A * sigma_B * rho. If
+            ``sigma_AB = sigma_A * sigma_B * rho`` (Latex?). If
             `propagate_uncertainty` is ``False`` this will be ignored. A value
             of ``0`` means uncorrelated (which is also the default)
 
@@ -79,9 +79,11 @@ class NDArithmeticMixin(object):
             If ``True`` it will be tried to propagate the uncertainties. If
             ``False`` the results uncertainty will be the uncertainty of the
             instance which called this method.
+
         handle_mask: `bool`
             If ``True`` the mask of the result will be processed by
             `_arithmetic_mask`. If ``False`` the result will not have a mask.
+
         check_wcs: `bool`
             If ``True`` the wcs of both operands will be tested for equality.
             If ``False`` this will not be tested. The result will contain the
@@ -97,7 +99,7 @@ class NDArithmeticMixin(object):
         Notes
         -----
         1. Due to the internal mechanics of `~astropy.units.Quantity` the
-           resulting data might have units like ``km/m```if you divided for
+           resulting data might have units like ``km/m`` if you divided for
            example 100km by 5m. So this class has adopted this behaviour.
         2. Uncertainty propagation allows that the unit of the uncertainty
            differs from the unit of the data. In these cases uncertainty
@@ -149,12 +151,12 @@ class NDArithmeticMixin(object):
         operation: `str`
             see `NDArithmeticMixin.arithmetic` parameter description.
 
-        operand: `NDData` instance or subclass
+        operand: `NDData`-like instance
             The second operand wrapped in an instance of the same class as
             self.
 
         decompose_unit: `bool`
-            see `NDArithmeticMixin.arithmetic` parameter description.
+            see :meth:`NDArithmeticMixin.arithmetic` parameter description.
 
         Returns
         -------
@@ -201,17 +203,17 @@ class NDArithmeticMixin(object):
         Parameters
         ----------
         operation: `str`
-            see `NDArithmeticMixin.arithmetic` parameter description.
+            see :meth:`NDArithmeticMixin.arithmetic` parameter description.
 
-        operand: `NDData` instance or subclass
+        operand: `NDData`-like instance
             The second operand wrapped in an instance of the same class as
             self.
 
         result: `~astropy.units.Quantity` or `~numpy.ndarray`
-            The result of `NDArithmeticMixin._arithmetic_data`.
+            The result of :meth:`NDArithmeticMixin._arithmetic_data`.
 
         correlation: `Number` or `~numpy.ndarray`
-            see `NDArithmeticMixin.arithmetic` parameter description.
+            see :meth:`NDArithmeticMixin.arithmetic` parameter description.
 
         Returns
         -------
@@ -268,7 +270,7 @@ class NDArithmeticMixin(object):
 
         Parameters
         ----------
-        operand: `NDData` instance or subclass
+        operand: `NDData`-like instance
             The second operand wrapped in an instance of the same class as
             self.
 
@@ -331,7 +333,7 @@ class NDArithmeticMixin(object):
             self.
 
         compare_wcs: `bool`
-            see `NDArithmeticMixin.arithmetic` parameter description.
+            see :meth:`NDArithmeticMixin.arithmetic` parameter description.
 
         Returns
         -------
@@ -389,17 +391,17 @@ class NDArithmeticMixin(object):
         Parameters
         ----------
         operation: `str`
-            see `NDArithmeticMixin.arithmetic` parameter description.
+            see :meth:`NDArithmeticMixin.arithmetic` parameter description.
 
-        operand: `NDData` instance or subclass
+        operand: `NDData`-like instance
             The second operand wrapped in an instance of the same class as
             self.
 
         meta_kwds_operate: ``None`` or `list`
-            see `NDArithmeticMixin.arithmetic` parameter description.
+            see :meth:`NDArithmeticMixin.arithmetic` parameter description.
 
         meta_kwds_set: ``None`` or `dict`
-            see `NDArithmeticMixin.arithmetic` parameter description.
+            see :meth:`NDArithmeticMixin.arithmetic` parameter description.
 
         Returns
         -------
@@ -534,12 +536,12 @@ class NDArithmeticMixin(object):
 
         Parameters
         ----------
-        operand : `~astropy.nddata.NDData`
+        operand : `~astropy.nddata.NDData`-like
             The second operand in the operation a {operator} b
 
         kwargs :
             anything that can be passed as optional parameter to
-            `NDArithmeticMixin._arithmetic`.
+            :meth:`NDArithmeticMixin.arithmetic`.
 
         Returns
         -------
@@ -548,7 +550,7 @@ class NDArithmeticMixin(object):
 
         See also
         --------
-        `NDArithmeticMixin.arithmetic`
+        :meth:`NDArithmeticMixin.arithmetic`
         """
         add.__doc__ = doc.format(name="Add", operator="+")
         subtract.__doc__ = doc.format(name="Subtract", operator="-")
