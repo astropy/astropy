@@ -30,6 +30,19 @@ a model may be instantiated with all scalar parameters::
     >>> g
     <Gaussian1D(amplitude=1.0, mean=0.0, stddev=1.0)>
 
+The newly created model instance ``g`` now works like a Gaussian function
+with the given parameters fixed.  It takes a single input::
+
+    >>> g.inputs
+    ('x',)
+    >>> g(x=0)
+    1.0
+
+The model can also be called without explicitly using keyword arguments::
+
+    >>> g(0)
+    1.0
+
 Or it may use all array parameters.  For example if all parameters are 2x2
 arrays the model is computed element-wise using all elements in the arrays::
 
@@ -179,26 +192,6 @@ treated as though any of its dimensions map to models in a model set.  And
 rather, the given input should be used to evaluate all the models in the model
 set.  For scalar inputs like ``g(0)``, ``model_set_axis=False`` is implied
 automatically.  But for array inputs it is necessary to avoid ambiguity.
-
-
-Inputs and Outputs
-==================
-
-Models have an `~astropy.modeling.Model.n_inputs` attribute, which shows how
-many coordinates the model expects as an input. All models expect coordinates
-as separate arguments.  For example a 2-D model expects x and y coordinate
-values to be passed separately, i.e. as two scalars or array-like values.
-
-Models also have an attribute `~astropy.modeling.Model.n_outputs`, which shows
-the number of output coordinates. The `~astropy.modeling.Model.n_inputs` and
-`~astropy.modeling.Model.n_outputs` attributes can be used when chaining
-transforms by adding models in :class:`series
-<astropy.modeling.SerialCompositeModel>` or in :class:`parallel
-<astropy.modeling.SummedCompositeModel>`. Because composite models can be
-nested within other composite models, creating theoretically infinitely complex
-models, a mechanism to map input data to models is needed. In this case the
-input may be wrapped in a `~astropy.modeling.LabeledInput` object-- a dict-like
-object whose items are ``{label: data}`` pairs.
 
 
 Further examples
