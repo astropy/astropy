@@ -1,15 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from copy import deepcopy
-import numpy as np
 
-from ..extern import six
-from .bst import BST, FastBST, FastRBT, MinValue, MaxValue
-from .sorted_array import SortedArray
-from ..time import Time
-
-'''
+"""
 The Index class can use several implementations as its
 engine. Any implementation should implement the following:
 
@@ -37,13 +28,25 @@ Notes
     c[[1, 2]] -> deep copy and reordering of indices
     c[1:2] -> reference
     array.view(Column) -> no indices
-'''
+"""
+
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+from copy import deepcopy
+import numpy as np
+
+from ..extern import six
+from .bst import BST, FastBST, FastRBT, MinValue, MaxValue
+from .sorted_array import SortedArray
+from ..time import Time
+
 
 class QueryError(ValueError):
     '''
     Indicates that a given index cannot handle the supplied query.
     '''
     pass
+
 
 class Index(object):
     '''
@@ -399,6 +402,7 @@ class Index(object):
         memo[id(self)] = index
         return index
 
+
 class SlicedIndex(object):
     '''
     This class provides a wrapper around an actual Index object
@@ -618,6 +622,7 @@ def get_index(table, table_copy):
                 return index
     return None
 
+
 class _IndexModeContext(object):
     '''
     A context manager that allows for special indexing modes, which
@@ -627,6 +632,8 @@ class _IndexModeContext(object):
     and "discard_on_copy", in which indices are discarded upon table
     copying/slicing.
     '''
+
+    _col_subclasses = {}
 
     def __init__(self, table, mode):
         '''
@@ -649,51 +656,67 @@ class _IndexModeContext(object):
         '''
         self.table = table
         self.mode = mode
+        # Used by copy_on_getitem
+        self._orig_classes = []
         if mode not in ('freeze', 'discard_on_copy', 'copy_on_getitem'):
             raise ValueError("Expected a mode of either 'freeze', "
                              "'discard_on_copy', or 'copy_on_getitem', got "
                              "'{0}'".format(mode))
 
     def __enter__(self):
-        from .column import (Column, MaskedColumn, _GetitemColumn,
-                             _GetitemMaskedColumn)
-
         if self.mode == 'discard_on_copy':
             self.table._copy_indices = False
         elif self.mode == 'copy_on_getitem':
-            # we need to change column classes temporarily rather
-            # than adjusting instance methods, since new-style
-            # classes refer directly to the class for special
-            # methods
-            self.columns = []
-            self.masked_columns = []
-
             for col in self.table.columns.values():
-                if isinstance(col, Column):
-                    col.__class__ = _GetitemColumn
-                    self.columns.append(col)
-                elif isinstance(col, MaskedColumn):
-                    col.__class__ = _GetitemMaskedColumn
-                    self.masked_columns.append(col)
+                self._orig_classes.append(col.__class__)
+                col.__class__ = self._get_copy_on_getitem_shim(col.__class__)
         else:
             for index in self.table.indices:
                 index._frozen = True
 
     def __exit__(self, exc_type, exc_value, traceback):
-        from .column import (Column, MaskedColumn, _GetitemColumn,
-                             _GetitemMaskedColumn)
-
         if self.mode == 'discard_on_copy':
             self.table._copy_indices = True
         elif self.mode == 'copy_on_getitem':
-            for col in self.columns:
-                col.__class__ = Column
-            for col in self.masked_columns:
-                col.__class__ = MaskedColumn
+            for col in reversed(self.table.columns.values()):
+                col.__class__ = self._orig_classes.pop()
         else:
             for index in self.table.indices:
                 index._frozen = False
                 index.reload()
+
+    def _get_copy_on_getitem_shim(self, cls):
+        """
+        This creates a subclass of the column's class which overrides that
+        class's ``__getitem__``, such that when returning a slice of the
+        column, the relevant indices are also copied over to the slice.
+
+        Ideally, rather than shimming in a new ``__class__`` we would be able
+        to just flip a flag that is checked by the base class's
+        ``__getitem__``.  Unfortunately, since the flag needs to be a Python
+        variable, this slows down ``__getitem__`` too much in the more common
+        case where a copy of the indices is not needed.  See the docstring for
+        ``astropy.table._column_mixins`` for more information on that.
+        """
+
+        if cls in self._col_subclasses:
+            return self._col_subclasses[cls]
+
+        def __getitem__(self, item):
+            value = cls.__getitem__(self, item)
+            if type(value) is type(self):
+                value = self.info.slice_indices(value, item, len(self))
+
+            return value
+
+        clsname = '_{0}WithIndexCopy'.format(cls.__name__)
+
+        new_cls = type(str(clsname), (cls,), {'__getitem__': __getitem__})
+
+        self._col_subclasses[cls] = new_cls
+
+        return new_cls
+
 
 class TableIndices(list):
     '''
@@ -792,6 +815,7 @@ class TableLoc(object):
         elif len(rows) == 1: # single row
             return self.table[rows[0]]
         return self.table[rows]
+
 
 class TableILoc(TableLoc):
     '''
