@@ -54,7 +54,7 @@ class NDArithmeticMixin(object):
         uncertainty_correlation: ``Number`` or `~numpy.ndarray`
             The correlation (rho) is defined between the uncertainties in
             ``sigma_AB = sigma_A * sigma_B * rho`` (Latex?). If
-            `propagate_uncertainty` is ``False`` this will be ignored. A value
+            ``handle_uncertainties`` is ``False`` this will be ignored. A value
             of ``0`` means uncorrelated (which is also the default)
 
         meta_kwds_operate: ``None`` or `list`
@@ -72,7 +72,7 @@ class NDArithmeticMixin(object):
         meta_kwds_set: ``None`` or `dict`
             If ``None`` there are no keyword settings after the arithmetic
             meta keyword operations. If this is a `dict` each key/value pair
-            in the `meta_kwds_set` will be added (or replaced if the keyword
+            in the ``meta_kwds_set`` will be added (or replaced if the keyword
             already exists) in the results meta.
 
         handle_uncertainties: `bool`

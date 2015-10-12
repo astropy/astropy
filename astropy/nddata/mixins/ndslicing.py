@@ -13,8 +13,6 @@ from ... import log
 
 __all__ = ['NDSlicingMixin']
 
-__doctest_skip__ = ['NDSlicingMixin']
-
 class NDSlicingMixin(object):
     """
     Mixin to provide slicing on objects using the NDData interface.
@@ -38,7 +36,7 @@ class NDSlicingMixin(object):
        additional attributes can be there are a lot of tests while slicing.
        If a subclass defines more restrictive setter methods for the properties
        they might want to consider altering `NDSlicingMixin`s methods for
-       slicing (starting with ``_slice_*``). Currently implemented is the
+       slicing (starting with ``_slice_``). Currently implemented is the
        for slicing the:
 
        - data (which is enforced to be something like a `~numpy.ndarray`)
@@ -47,7 +45,7 @@ class NDSlicingMixin(object):
        - uncertainty (if it is a numpy array or a subclass of `NDUncertainty`)
 
        But only if the shapes match the shape of the data (except for the wcs
-       if it is a `WCS` object). If these attributes do not match those
+       if it is a ``WCS`` object). If these attributes do not match those
        criterias the original property is used but an ``INFO`` message is
        displayed. The ``meta`` and ``unit`` are simply taken from the original.
 
@@ -83,8 +81,7 @@ class NDSlicingMixin(object):
 
         >>> from astropy.nddata import NDData, NDSlicingMixin
         >>> # You need to make NDData the last superclass like this:
-        >>> class NDDataSliceable(NDSlicingMixin, NDData):
-        >>>     pass
+        >>> class NDDataSliceable(NDSlicingMixin, NDData): pass
         >>> nd = NDDataSliceable([1,2,3,4,5])
         >>> nd[1:3]
         NDDataSliceable([2, 3])
@@ -208,7 +205,7 @@ class NDSlicingMixin(object):
         doc = """
         Controls how the {attr} is sliced.
 
-        Should be called from :meth:`NDSlicingMixin.__getitem__` with `item`
+        Should be called from :meth:`NDSlicingMixin.__getitem__` with ``item``
         being the slice passed to it.
 
         Parameters
@@ -237,7 +234,7 @@ class NDSlicingMixin(object):
                     "as the data")
         _slice_mask.__doc__ = doc.format(attr="mask",
             allowed="`~numpy.ndarray` with the same shape as the data")
-        _slice_wcs.__doc__ = doc.format(attr="WCS",
+        _slice_wcs.__doc__ = doc.format(attr="wcs",
             allowed="`~numpy.ndarray` with the same shape as the data or a "
                     "`~astropy.wcs.WCS` object")
         del doc

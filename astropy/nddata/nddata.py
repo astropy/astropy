@@ -23,7 +23,7 @@ class NDData(NDDataBase):
     """
     A basic class for array-based data.
 
-    The key distinction from raw `numpy.ndarray`s is the presence of
+    The key distinction from raw `numpy.ndarray` is the presence of
     additional metadata such as uncertainties, a mask, units,
     and/or a coordinate system.
 
@@ -227,9 +227,9 @@ class NDData(NDDataBase):
     @property
     def wcs(self):
         """
-        any type: WCS for the data, if any.
+        any type: wcs for the data, if any.
 
-        Even though nothing is enforced, using `~astropy.wcs.WCS` as `WCS`
+        Even though nothing is enforced, using `~astropy.wcs.WCS` as ``wcs``
         attribute is encouraged.
         """
         return self._wcs

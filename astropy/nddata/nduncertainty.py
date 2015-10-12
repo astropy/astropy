@@ -32,7 +32,7 @@ class MissingDataAssociationException(Exception):
 
 
 
-# Make a placeholder for the different uncer.
+# Make a placeholder for the different uncertainty propagation methods.
 _propagate_doc = """
 Propagate uncertainties for {operation}.
 
@@ -42,7 +42,7 @@ other_uncert : {instance} instance
     The data for the uncertainty of b in a {operator} b
 result_data : `~numpy.ndarray` instance or `~astropy.units.Quantity`
     The data array that is the result of the {operation}.
-correlation: `Number` or `np.ndarray`
+correlation: `Number` or `~numpy.ndarray`
     Array or scalar representing the correlation. If the subclass does not
     support correlated uncertainties this will be replaced by 0 (uncorrelated).
 
@@ -235,7 +235,7 @@ class NDUncertainty(object):
         `~astropy.units.Unit`: The unit of the uncertainty.
 
         Even though it is not enforced the unit should be convertable to the
-        ``parent_nddata``s unit. Otherwise uncertainty propagation might give
+        ``parent_nddata`` unit. Otherwise uncertainty propagation might give
         wrong results.
 
         If the unit is not set the unit of the parent will be returned.
