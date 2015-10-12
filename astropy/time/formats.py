@@ -274,7 +274,7 @@ class TimeDecimalYear(TimeFormat):
 
         # Possible enhancement: use np.unique to only compute start, stop
         # for unique values of iy_start.
-        scale = self.scale.upper().encode('utf8')
+        scale = self.scale.upper().encode('ascii')
         jd1_start, jd2_start = erfa.dtf2d(scale, iy_start, imon, iday,
                                           ihr, imin, isec)
         jd1_end, jd2_end = erfa.dtf2d(scale, iy_start + 1, imon, iday,
@@ -288,7 +288,7 @@ class TimeDecimalYear(TimeFormat):
 
     @property
     def value(self):
-        scale = self.scale.upper().encode('utf8')
+        scale = self.scale.upper().encode('ascii')
         iy_start, ims, ids, ihmsfs = erfa.d2dtf(scale, 0,  # precision=0
                                                 self.jd1, self.jd2)
         imon = np.ones_like(iy_start)
@@ -299,7 +299,7 @@ class TimeDecimalYear(TimeFormat):
 
         # Possible enhancement: use np.unique to only compute start, stop
         # for unique values of iy_start.
-        scale = self.scale.upper().encode('utf8')
+        scale = self.scale.upper().encode('ascii')
         jd1_start, jd2_start = erfa.dtf2d(scale, iy_start, imon, iday,
                                           ihr, imin, isec)
         jd1_end, jd2_end = erfa.dtf2d(scale, iy_start + 1, imon, iday,
@@ -548,7 +548,7 @@ class TimeDatetime(TimeUnique):
             imin[...] = dt.minute
             dsec[...] = dt.second + dt.microsecond / 1e6
 
-        self.jd1, self.jd2 = erfa.dtf2d(self.scale.upper().encode('utf8'),
+        self.jd1, self.jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
                                         *iterator.operands[1:])
 
     def to_value(self, timezone=None):
@@ -575,7 +575,7 @@ class TimeDatetime(TimeUnique):
 
         # Rather than define a value property directly, we have a function,
         # since we want to be able to pass in timezone information.
-        scale = self.scale.upper().encode('utf8')
+        scale = self.scale.upper().encode('ascii')
         iys, ims, ids, ihmsfs = erfa.d2dtf(scale, 6,  # 6 for microsec
                                            self.jd1, self.jd2)
         ihrs = ihmsfs[..., 0]
@@ -716,7 +716,7 @@ class TimeString(TimeUnique):
             iy[...], im[...], id[...], ihr[...], imin[...], dsec[...] = (
                 self.parse_string(val.item(), subfmts))
 
-        self.jd1, self.jd2 = erfa.dtf2d(self.scale.upper().encode('utf8'),
+        self.jd1, self.jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
                                         *iterator.operands[1:])
 
     def str_kwargs(self):
@@ -724,7 +724,7 @@ class TimeString(TimeUnique):
         Generator that yields a dict of values corresponding to the
         calendar date and time for the internal JD values.
         """
-        scale = self.scale.upper().encode('utf8'),
+        scale = self.scale.upper().encode('ascii'),
         iys, ims, ids, ihmsfs = erfa.d2dtf(scale, self.precision,
                                            self.jd1, self.jd2)
 
