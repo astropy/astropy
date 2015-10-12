@@ -23,17 +23,17 @@ class NDData(NDDataBase):
     """
     A basic class for array-based data.
 
-    The key distinction from raw numpy arrays is the presence of
+    The key distinction from raw `numpy.ndarray`s is the presence of
     additional metadata such as uncertainties, a mask, units,
     and/or a coordinate system.
 
     Parameters
     -----------
     data : `~numpy.ndarray`, `~numpy.ndarray`-like, or `NDData`
-        The actual data contained in this `NDData` object.
+        The actual `data` contained in this `NDData` object.
 
     uncertainty : any type, optional
-        Uncertainty on the data. The uncertainty *should* have a string
+        Uncertainty on the data. The `uncertainty` *should* have a string
         attribute named ``uncertainty_type``, but there is otherwise no
         restriction.
 
@@ -44,10 +44,10 @@ class NDData(NDDataBase):
         WCS-object containing the world coordinate system for the data.
 
     meta : `dict`-like object, optional
-        Metadata for this object. Must be dict-like but no further restriction
-        is placed on meta.
+        Metadata for this object. Must be `dict`-like but no further
+        restriction is placed on meta.
 
-    unit : `~astropy.units.UnitBase` instance or str, optional
+    unit : `~astropy.units.UnitBase` instance or `str`, optional
         The units of the data.
 
     copy : `bool`
@@ -71,13 +71,26 @@ class NDData(NDDataBase):
     def __init__(self, data, uncertainty=None, mask=None, wcs=None,
                  meta=None, unit=None, copy=False):
 
+        # Rather pointless since the NDDataBase does not implement any setting
+        # but before this PR (#4234) the NDDataBase did call the uncertainty
+        # setter and if anyone wants to alter this behaviour again this call
+        # to the superclass NDDataBase should be in here.
         super(NDData, self).__init__()
 
-        # Check if data is any type from which to collect some not explicitly
+        # Check if data is any type from which to collect some implicitly
         # passed parameters.
         if isinstance(data, NDData):  # don't use self.__class__ (issue #4137)
             # Of course we need to check the data because subclasses with other
-            # init-logic might try to init this class.
+            # init-logic might try to init this class. We could skip these
+            # tests if we compared for self.__class__ but that has other
+            # drawbacks.
+
+            # Comparing if there is an explicit and an implicit unit parameter.
+            # If that is the case use the explicit one and issue a warning
+            # that there might be a conflict. In case there is no explicit
+            # unit just overwrite the unit parameter with the NDData.unit
+            # and proceed as if that one was given as parameter. Same for the
+            # other parameters.
             if unit is not None and data.unit is not None:
                 log.info("Overwriting NDData's current "
                          "unit with specified unit")
@@ -111,15 +124,17 @@ class NDData(NDDataBase):
             data = data.data
 
         else:
-            # We actually need the data to have a mask _and_ data attribute
             if hasattr(data, 'mask') and hasattr(data, 'data'):
+                # We actually need the data to have a mask _and_ data attribute
                 if mask is not None:
                     log.info("Overwriting Masked Objects's current "
                              "mask with specified mask")
                 else:
                     mask = data.mask
-                # Just save the data for further processing, we could handle
-                # a masked Quantity here or something else entirely.
+
+                # Just save the data for further processing, we could have
+                # a masked Quantity here or something else entirely. Better to
+                # check it first.
                 data = data.data
 
             if isinstance(data, Quantity):
@@ -140,7 +155,7 @@ class NDData(NDDataBase):
             data = np.array(data, subok=True, copy=False)
             # Quick check to see if what we got out looks like an array
             # rather than an object (since numpy will convert a
-            # non-numerical input to an array of objects).
+            # non-numerical/string inputs to an array of objects).
             if data.dtype == 'O':
                 raise TypeError("Could not convert data to numpy array.")
 
@@ -158,14 +173,17 @@ class NDData(NDDataBase):
             wcs = deepcopy(wcs)
             meta = deepcopy(meta)
             uncertainty = deepcopy(uncertainty)
-            # Actually - this is unnecessary but better safe than sorry :-)
+            # Actually - copying the unit is unnecessary but better safe
+            # than sorry :-)
             unit = deepcopy(unit)
 
+        # Store the attributes
         self._data = data
         self._mask = mask
         self._wcs = wcs
         self._meta = meta
         self._unit = unit
+        # Call the setter for uncertainty to further check the uncertainty
         self.uncertainty = uncertainty
 
     def __str__(self):
@@ -179,7 +197,7 @@ class NDData(NDDataBase):
     @property
     def data(self):
         """
-        `~numpy.ndarray`: the data
+        `~numpy.ndarray`: the data.
         """
         return self._data
 
@@ -191,7 +209,7 @@ class NDData(NDDataBase):
         Using `~numpy.ndarray`-like masks containing ``bools`` is *recommended*
         if the `NDData` is used for any `~numpy.ma.MaskedArray` operations.
         Valid values should have a corresponding mask value of ``False`` while
-        invalid ones should be ``True`` (following the numpy convention).
+        invalid ones should be ``True`` (following the `numpy` convention).
         """
         return self._mask
 
@@ -211,7 +229,7 @@ class NDData(NDDataBase):
         """
         any type: WCS for the data, if any.
 
-        Even though nothing is enforced using `~astropy.wcs.WCS` as `WCS`
+        Even though nothing is enforced, using `~astropy.wcs.WCS` as `WCS`
         attribute is encouraged.
         """
         return self._wcs
@@ -228,21 +246,24 @@ class NDData(NDDataBase):
         """
         any type: Uncertainty in the data, if any.
 
-        Uncertainty should have an attribute ``uncertainty_type`` that is
+        Uncertainty *should* have an attribute ``uncertainty_type`` that is
         a string. `~astropy.nddata.NDUncertainty`-subclasses are recommended,
-        if `~astropy.nddata.NDArithmeticMixin` is used.
+        if `~astropy.nddata.NDArithmeticMixin` with uncertainty propagation
+        is used.
         """
         return self._uncertainty
 
     @uncertainty.setter
     def uncertainty(self, value):
         if value is not None:
+            # Check for the uncertainty_type attribute and that it is a string
+            # and issue a warning if it has not.
             if (not hasattr(value, 'uncertainty_type') or
                     not isinstance(value.uncertainty_type, six.string_types)):
                 log.info('Uncertainty should have attribute uncertainty_type '
                          'whose type is string.')
             if isinstance(value, NDUncertainty):
                 # If it is a subclass of NDUncertainty we must set the
-                # parent_nddata attribute.
+                # parent_nddata attribute. (#4152)
                 value.parent_nddata = self
         self._uncertainty = value
