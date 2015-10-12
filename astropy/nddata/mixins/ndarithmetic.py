@@ -478,7 +478,7 @@ class NDArithmeticMixin(object):
                 else:
                     for i in meta_kwds_operate:
                         result_meta[i] = float(
-                                        operator(operand.meta[i], self.data))
+                                        operator(self.data, operand.meta[i]))
 
         # Lastly, we need to set the keywords that should be set in the results
         # meta

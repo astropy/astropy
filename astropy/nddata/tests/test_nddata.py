@@ -214,7 +214,7 @@ def test_nddata_init_data_nddata():
     nd2 = NDData(nd1)
     assert nd1.data is nd2.data
     # Now let's see what happens if we have all explicitly set
-    nd1 = NDData(np.array([1]), mask=False, uncertainty=10, unit=u.s, 
+    nd1 = NDData(np.array([1]), mask=False, uncertainty=10, unit=u.s,
                  meta={'dest':'mordor'}, wcs=10)
     nd2 = NDData(nd1)
     assert nd2.data is nd1.data
@@ -224,7 +224,7 @@ def test_nddata_init_data_nddata():
     assert nd2.unit == nd1.unit
     assert nd2.meta == nd1.meta
     # now what happens if we overwrite them all too
-    nd3 = NDData(nd1, mask=True, uncertainty=200, unit=u.km, 
+    nd3 = NDData(nd1, mask=True, uncertainty=200, unit=u.km,
                  meta={'observer':'ME'}, wcs=4)
     assert nd3.data is nd1.data
     assert nd3.wcs != nd1.wcs
@@ -239,10 +239,10 @@ def test_nddata_init_data_nddataSubclass():
     bnd = BadNDDataSubclass(False, True, 3, 2, 'gollum', 100)
     # Before changing the NDData init this would not have raised an error but
     # would have lead to a compromised nddata instance
-    with pytest.raises(TypeError): 
+    with pytest.raises(TypeError):
         NDData(bnd)
     # but if it has no actual incompatible attributes it passes
-    bnd_good = BadNDDataSubclass(np.array([1,2]), True, 3, 2, 
+    bnd_good = BadNDDataSubclass(np.array([1,2]), True, 3, 2,
                                  {'enemy':'black knight'}, u.km)
     nd = NDData(bnd_good)
     assert nd.unit == bnd_good.unit
