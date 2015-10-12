@@ -18,6 +18,8 @@ from ..utils.data_info import BaseColumnInfo, dtype_info_name
 from . import groups
 from . import pprint
 from .np_utils import fix_column_name
+
+# These "shims" provide __getitem__ implementations for Column and MaskedColumn
 from ._column_mixins import _ColumnGetitemShim, _MaskedColumnGetitemShim
 from ..config import ConfigAlias
 

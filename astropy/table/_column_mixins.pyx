@@ -1,3 +1,27 @@
+"""
+This module provides mixin bases classes for the Column and MaskedColumn
+classes to provide those classes with their custom __getitem__ implementations.
+
+The reason for this is that implementing a __getitem__ in pure Python actually
+significantly slows down the array subscript operation, especially if it needs
+to call the subclass's __getitem__ (i.e. ndarray.__getitem__ in this case).  By
+providing __getitem__ through a base type implemented in C, the __getitem__
+implementation will go straight into the class's tp_as_mapping->mp_subscript
+slot, rather than going through a class __dict__ and calling a pure Python
+method.  Furthermore, the C implementation of __getitem__ can easily directly
+call the base class's implementation (as seen in _ColumnGetitemShim, which
+directly calls to ndarray->tp_as_mapping->mp_subscript).
+
+The main reason for overriding __getitem__ in the Column class is for
+returning elements out of a multi-dimensional column.  That is, if the
+elements of a Column are themselves arrays, the default ndarray.__getitem__
+applies the subclass to those arrays, so they are returned as Column instances
+(when really they're just an array that was in a Column).  This overrides that
+behavior in the case where the element returned from a single row of the
+Column is itself an array.
+"""
+
+
 import sys
 import numpy as np
 

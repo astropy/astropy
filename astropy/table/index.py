@@ -686,6 +686,19 @@ class _IndexModeContext(object):
                 index.reload()
 
     def _get_copy_on_getitem_shim(self, cls):
+        """
+        This creates a subclass of the column's class which overrides that
+        class's ``__getitem__``, such that when returning a slice of the
+        column, the relevant indices are also copied over to the slice.
+
+        Ideally, rather than shimming in a new ``__class__`` we would be able
+        to just flip a flag that is checked by the base class's
+        ``__getitem__``.  Unfortunately, since the flag needs to be a Python
+        variable, this slows down ``__getitem__`` too much in the more common
+        case where a copy of the indices is not needed.  See the docstring for
+        ``astropy.table._column_mixins`` for more information on that.
+        """
+
         if cls in self._col_subclasses:
             return self._col_subclasses[cls]
 
