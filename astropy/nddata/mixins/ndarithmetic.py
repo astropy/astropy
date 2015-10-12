@@ -8,7 +8,7 @@ from copy import deepcopy
 
 import numpy as np
 
-from ...units import dimensionless_unscaled, Quantity
+from ...units import dimensionless_unscaled
 from ... import log
 from ...extern.six import string_types
 from ..nduncertainty import NDUncertainty
@@ -34,7 +34,7 @@ class NDArithmeticMixin(object):
     def arithmetic(self, operation, operand,
                    uncertainty_correlation=0, meta_kwds_operate=None,
                    meta_kwds_set=None, handle_uncertainties=True,
-                   handle_mask=True, compare_wcs=True):
+                   handle_mask=True, handle_meta=True, compare_wcs=True):
         """
         Base method which calculates the result of the arithmetic operation.
 
@@ -54,8 +54,8 @@ class NDArithmeticMixin(object):
         uncertainty_correlation: ``Number`` or `~numpy.ndarray`
             The correlation (rho) is defined between the uncertainties in
             ``sigma_AB = sigma_A * sigma_B * rho`` (Latex?). If
-            ``handle_uncertainties`` is ``False`` this will be ignored. A value
-            of ``0`` means uncorrelated (which is also the default)
+            ``handle_uncertainties`` is *not* ``True`` this will be ignored. A
+            value of ``0`` means uncorrelated (which is also the default)
 
         meta_kwds_operate: ``None`` or `list`
             If ``None`` no arithmetic meta operations are done. If this is a
@@ -67,34 +67,58 @@ class NDArithmeticMixin(object):
             the keyword of the operand operated with the ``data`` (this is
             only allowed if the data is actually a scalar) of the other
             operand. (There will be more explanation and exampled sometime
-            soon)
+            soon). This parameter will be ignored if ``handle_meta`` is *not*
+            ``True``.
 
         meta_kwds_set: ``None`` or `dict`
             If ``None`` there are no keyword settings after the arithmetic
             meta keyword operations. If this is a `dict` each key/value pair
             in the ``meta_kwds_set`` will be added (or replaced if the keyword
-            already exists) in the results meta.
+            already exists) in the results meta. This parameter will be ignored
+            if ``handle_meta`` is *not* ``True``.
 
-        handle_uncertainties: `bool`
-            If ``True`` it will be tried to propagate the uncertainties. If
-            ``False`` the results uncertainty will be the uncertainty of the
-            instance which called this method.
+        handle_uncertainties: `bool` or ``None``
+            If ``None`` the result will have no uncertainty. If ``False`` the
+            result will have a copied version of the first operand (or the
+            second if the first had no uncertainty). In case this is ``True``
+            the result will have a correctly propagated uncertainty from the
+            uncertainties of the operands.
 
-        handle_mask: `bool`
-            If ``True`` the mask of the result will be processed by
-            `_arithmetic_mask`. If ``False`` the result will not have a mask.
+        handle_mask: `bool` or ``None``
+            If ``None`` the result will have no mask. If ``False`` the result
+            will have a copied version of the mask of the first operand (or
+            if the first operand has no mask then the one from the second is
+            taken). If ``True`` the masks of both operands will be taken into
+            account and combined (by a bitwise ``or`` operation if the
+            :meth:`NDArithmeticMixin._arithmetic_mask` is not overriden).
 
-        check_wcs: `bool`
-            If ``True`` the wcs of both operands will be tested for equality.
-            If ``False`` this will not be tested. The result will contain the
-            wcs information of the first operand except if the first operand
-            has no wcs information and the second has, then the wcs information
-            from the second operand will be kept.
+        handle_mata: `bool` or ``None``
+            If ``None`` the result will have no meta. If ``False`` the result
+            will have a copied version of the meta of the first operand (or
+            if the first operand has no meta then the one from the second is
+            taken). If ``True`` the meta of both operands will be changed
+            depending on ``meta_kwds_operate`` and ``meta_kwds_set``.
+
+        check_wcs: `bool` or ``None``
+            If ``None`` the result will have no wcs and no comparison between
+            the wcs of the operands is made. If ``False`` the result will have
+            the wcs of the first operand (or second if the first had ``None``).
+            If ``True`` the resulting mask will be like in the case of
+            ``False`` but the wcs information is checked if it is the same
+            for both operands (in some cases it would be bad to apply any
+            arithmetic operation on datasets which have different wcs
+            informations). If they do not match a warning is issues.
 
         Returns
         -------
-        result: `NDData` subclass
-            The result as the same class as the first operand in the operation.
+        result: `~numpy.ndarray` or `~astropy.units.Quantity`
+            The resulting data as array (in case both operands were without
+            unit) or as quantity if at least one had a unit.
+
+        kwargs: `dict`
+            kwargs to create a new instance of the same class as the first
+            operand was. The calling method or function is responsible for
+            creating the instance
 
         Notes
         -----
@@ -108,11 +132,6 @@ class NDArithmeticMixin(object):
            now and therefore if you use different units for uncertainty and
            data there might be cases where the uncertainty's unit may seem
            rather odd after an arithmetic operation.
-        3. Internally all properties of the base NDData are determined and then
-           the new subclass is created. So if you need to extend this class to
-           handle other properties as well but keep the existing operations
-           just call ``result=super('yourclass', self)._arithmetic`` and then
-           append the additional properties via setters.
         4. tbc...
         """
         # Convert the operand to the same class this allows for arithmetic
@@ -127,20 +146,52 @@ class NDArithmeticMixin(object):
 
         kwargs = {}
         # First check that the WCS allows the arithmetic operation
-        kwargs['wcs'] = self._arithmetic_wcs(operand, compare_wcs)
+        if compare_wcs is None:
+            kwargs['wcs'] = None
+        elif not compare_wcs:
+            if self.wcs is None:
+                kwargs['wcs'] = operand.wcs
+            else:
+                kwargs['wcs'] = self.wcs
+        else:
+            kwargs['wcs'] = self._arithmetic_wcs(operand, compare_wcs)
         # Then calculate the resulting data (which can but not needs to be a
         # quantity)
         result = self._arithmetic_data(operation, operand)
-        # Determine the other properties (if requested)
-        if handle_uncertainties:
+        # Determine the other properties
+        if handle_uncertainties is None:
+            kwargs['uncertainty'] = None
+        elif not handle_uncertainties:
+            if self.uncertainty is None:
+                kwargs['uncertainty'] = operand.uncertainty
+            else:
+                kwargs['uncertainty'] = self.uncertainty
+        else:
             kwargs['uncertainty'] = self._arithmetic_uncertainty(operation,
                                     operand, result, uncertainty_correlation)
-        if handle_mask:
+        if handle_mask is None:
+            kwargs['mask'] = None
+        elif not handle_mask:
+            if self.mask is None:
+                kwargs['mask'] = operand.mask
+            else:
+                kwargs['mask'] = self.mask
+        else:
             kwargs['mask'] = self._arithmetic_mask(operand)
-        kwargs['meta'] = self._arithmetic_meta(operation, operand,
-                                    meta_kwds_operate, meta_kwds_set)
+
+        if handle_meta is None:
+            kwargs['meta'] = None
+        elif not handle_meta:
+            if len(self.meta) == 0:
+                kwargs['meta'] = operand.meta
+            else:
+                kwargs['meta'] = self.meta
+        else:
+            kwargs['meta'] = self._arithmetic_meta(operation, operand,
+                                        meta_kwds_operate, meta_kwds_set)
+
         # Wrap the individual results into a new instance of the same class.
-        return self.__class__(result, **kwargs)
+        return result, kwargs
 
     def _arithmetic_data(self, operation, operand):
         """
@@ -495,16 +546,20 @@ class NDArithmeticMixin(object):
 
 
     def add(self, operand, **kwargs):
-        return self.arithmetic("addition", operand, **kwargs)
+        result, kwargs = self.arithmetic("addition", operand, **kwargs)
+        return self.__class__(result, **kwargs)
 
     def subtract(self, operand, **kwargs):
-        return self.arithmetic("subtraction", operand, **kwargs)
+        result, kwargs = self.arithmetic("subtraction", operand, **kwargs)
+        return self.__class__(result, **kwargs)
 
     def multiply(self, operand, **kwargs):
-        return self.arithmetic("multiplication", operand, **kwargs)
+        result, kwargs = self.arithmetic("multiplication", operand, **kwargs)
+        return self.__class__(result, **kwargs)
 
     def divide(self, operand, **kwargs):
-        return self.arithmetic("division", operand, **kwargs)
+        result, kwargs = self.arithmetic("division", operand, **kwargs)
+        return self.__class__(result, **kwargs)
 
 
     @classmethod

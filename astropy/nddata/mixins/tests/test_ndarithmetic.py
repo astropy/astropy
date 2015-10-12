@@ -653,7 +653,7 @@ def test_arithmetic_result_not_tied_to_operands_wcs():
 
 
 # first operand has unit km, second has unit m
-@pytest.mark.xfail # TODO First two tests may fail, but I have not checked why 
+@pytest.mark.xfail # TODO First two tests may fail, but I have not checked why
 @pytest.mark.parametrize(('operation','result_unit'), [
                          ('add', u.km),
                          ('subtract', u.km),

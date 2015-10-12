@@ -78,7 +78,7 @@ class NDUncertainty(object):
         the uncertainty. There is nothing enforced but `~numpy.ndarray`,
         `~astropy.units.Quantity` or `NDUncertainty` subclasses are
         recommended. If the `array` is `list`-like it will be cast to a
-        `np.ndarray`.
+        `~numpy.ndarray`.
 
     unit: `~astropy.units.Unit` or `str`, optional
         The unit of the uncertainty ``array``. If input is a `str` this will be
@@ -261,7 +261,7 @@ class NDUncertainty(object):
         other_nddata: `NDData` instance
             The second NDData in the arithmetic operation.
 
-        result_data: `np.ndarray` or `~astropy.units.Quantity`
+        result_data: `~numpy.ndarray` or `~astropy.units.Quantity`
             The result of the arithmetic operations. This saves some duplicate
             calculations.
 

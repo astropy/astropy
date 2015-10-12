@@ -13,6 +13,9 @@ from ... import log
 
 __all__ = ['NDSlicingMixin']
 
+# Need to skip doctest because of inconsistencies between python2 and 3
+__doctest_skip__ = ['NDSlicingMixin']
+
 class NDSlicingMixin(object):
     """
     Mixin to provide slicing on objects using the NDData interface.
@@ -35,8 +38,9 @@ class NDSlicingMixin(object):
     2. Since `~astropy.nddata.NDData` is not very restrictive about what the
        additional attributes can be there are a lot of tests while slicing.
        If a subclass defines more restrictive setter methods for the properties
-       they might want to consider altering `NDSlicingMixin`s methods for
-       slicing (starting with ``_slice_``). Currently implemented is the
+       they might want to consider altering `NDSlicingMixin` methods for
+       slicing (starting with _slice_* e.g.
+       `NDSlicingMixin._slice_uncertainty`). Currently implemented is the
        for slicing the:
 
        - data (which is enforced to be something like a `~numpy.ndarray`)
