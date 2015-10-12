@@ -262,60 +262,134 @@ def test_precessed_geocentric():
     assert_allclose(gcrs_coo.distance, gcrs2_roundtrip.distance)
 
 
-# shared by parametrized tests below
-std_altazs = [AltAz(location=EarthLocation(-90*u.deg, 65*u.deg),
+# shared by parametrized tests below.  Some use the whole AltAz, others use just obstime
+totest_frames = [AltAz(location=EarthLocation(-90*u.deg, 65*u.deg),
                     obstime=Time('J2000')), #J2000 is often a default so this might work when others don't
               AltAz(location=EarthLocation(-90*u.deg, 65*u.deg),
                     obstime=Time('2014-01-01 00:00:00')),
               AltAz(location=EarthLocation(-90*u.deg, 65*u.deg),
                     obstime=Time('2014-08-01 08:00:00')),
               AltAz(location=EarthLocation(120*u.deg, -35*u.deg),
-                    obstime=Time('2014-01-01 00:00:00'))
+                    obstime=Time('2014-01-01 00:00:00')),
+              AltAz(location=EarthLocation(120*u.deg, -35*u.deg),
+                    obstime=Time('J2000'))
               ]
+MOONDIST = 385000*u.km  # approximate moon semi-major orbit axis of moon
+MOONDIST_CART = CartesianRepresentation(3**-0.5*MOONDIST, 3**-0.5*MOONDIST, 3**-0.5*MOONDIST)
+EARTHECC = 0.017 + 0.005 # roughly earth orbital eccentricity, but with an added tolerance
 
-@pytest.mark.parametrize('altaz', std_altazs)
-def test_gcrs_altaz_sun(altaz):
+@pytest.mark.parametrize('testframe', totest_frames)
+def test_gcrs_altaz_sunish(testframe):
     """
     Sanity-check that the sun is at a reasonable distance from any altaz
     """
-    earthecc = 0.017  # roughly earth orbital eccentricity
+    sun = get_sun(testframe.obstime)
 
-    sun = get_sun(altaz.obstime)
     assert sun.frame.name == 'gcrs'
 
     # the .to(u.au) is not necessary, it just makes the asserts on failure more readable
-    assert sun.distance.to(u.au) < (earthecc + 1)*u.au
-    assert sun.distance.to(u.au) > (earthecc - 1)*u.au
+    assert (EARTHECC - 1)*u.au < sun.distance.to(u.au) < (EARTHECC + 1)*u.au
 
-    sunaa = sun.transform_to(altaz)
-    assert sunaa.distance.to(u.au) < (earthecc + 1)*u.au
-    assert sunaa.distance.to(u.au) > (earthecc - 1)*u.au
+    sunaa = sun.transform_to(testframe)
+    assert (EARTHECC - 1)*u.au < sunaa.distance.to(u.au) < (EARTHECC + 1)*u.au
 
 
-@pytest.mark.parametrize('altaz', std_altazs)
-def test_gcrs_altaz_moonish(altaz):
+@pytest.mark.parametrize('testframe', totest_frames)
+def test_gcrs_altaz_moonish(testframe):
     """
-    Sanity-check that an object resembling the moon goes to the right place
+    Sanity-check that an object resembling the moon goes to the right place with
+    a GCRS->AltAz transformation
     """
-    moondist = 385000*u.km  # approximate moon semi-major orbit axis of moon
-    cart = CartesianRepresentation(3**-0.5*moondist, 3**-0.5*moondist, 3**-0.5*moondist)
-    moon = GCRS(cart, obstime=altaz.obstime)
+    moon = GCRS(MOONDIST_CART, obstime=testframe.obstime)
 
-    moonaa = moon.transform_to(altaz)
-    assert np.abs(moonaa.distance - moon.distance).to(u.km) > 1000*u.km
-    assert np.abs(moonaa.distance - moon.distance).to(u.km) < 7000*u.km
+    moonaa = moon.transform_to(testframe)
+
+    #now check that the distance change is similar to earth radius
+    assert 1000*u.km < np.abs(moonaa.distance - moon.distance).to(u.km) < 7000*u.km
 
     #also should add checks that the alt/az are different for different earth locations
 
-@pytest.mark.parametrize('altaz', std_altazs)
-def test_cirs_altaz_moonish(altaz):
-    """
-    Sanity-check that an object resembling the moon goes to the right place if starting from CIRS
-    """
-    moondist = 385000*u.km  # approximate moon semi-major orbit axis of moon
-    cart = CartesianRepresentation(3**-0.5*moondist, 3**-0.5*moondist, 3**-0.5*moondist)
-    moon = CIRS(cart, obstime=altaz.obstime)
 
-    moonaa = moon.transform_to(altaz)
+@pytest.mark.parametrize('testframe', totest_frames)
+def test_gcrs_altaz_bothroutes(testframe):
+    """
+    Repeat of both the moonish and sunish tests above to make sure the two
+    routes through the coordinate graph are consistent with each other
+    """
+    sun = get_sun(testframe.obstime)
+    sunaa_viaicrs = sun.transform_to(ICRS).transform_to(testframe)
+    sunaa_viaitrs = sun.transform_to(ITRS(obstime=testframe.obstime)).transform_to(testframe)
+
+    moon = GCRS(MOONDIST_CART, obstime=testframe.obstime)
+    moonaa_viaicrs = moon.transform_to(ICRS).transform_to(testframe)
+    moonaa_viaitrs = moon.transform_to(ITRS(obstime=testframe.obstime)).transform_to(testframe)
+
+    assert_allclose(sunaa_viaicrs.cartesian.xyz, sunaa_viaitrs.cartesian.xyz)
+    assert_allclose(moonaa_viaicrs.cartesian.xyz, moonaa_viaitrs.cartesian.xyz)
+
+@pytest.mark.parametrize('testframe', totest_frames)
+def test_cirs_altaz_moonish(testframe):
+    """
+    Sanity-check that an object resembling the moon goes to the right place with
+    a CIRS->AltAz transformation
+    """
+    moon = CIRS(MOONDIST_CART, obstime=testframe.obstime)
+
+    moonaa = moon.transform_to(testframe)
     assert np.abs(moonaa.distance - moon.distance).to(u.km) > 1000*u.km
     assert np.abs(moonaa.distance - moon.distance).to(u.km) < 7000*u.km
+
+@pytest.mark.parametrize('testframe', totest_frames)
+def test_cirs_icrs_moonish(testframe):
+    """
+    check that something like the moon goes to about the right distance from the
+    ICRS origin when starting from CIRS
+    """
+    moonish = CIRS(MOONDIST_CART, obstime=testframe.obstime)
+    moonicrs = moonish.transform_to(ICRS)
+
+    assert 0.97*u.au < moonicrs.distance < 1.03*u.au
+
+@pytest.mark.parametrize('testframe', totest_frames)
+def test_gcrs_icrs_moonish(testframe):
+    """
+    check that something like the moon goes to about the right distance from the
+    ICRS origin when starting from GCRS
+    """
+    moonish = GCRS(MOONDIST_CART, obstime=testframe.obstime)
+    moonicrs = moonish.transform_to(ICRS)
+
+    assert 0.97*u.au < moonicrs.distance < 1.03*u.au
+
+@pytest.mark.parametrize('testframe', totest_frames)
+def test_icrs_gcrscirs_sunish(testframe):
+    """
+    check that the ICRS barycenter goes to about the right distance from various
+    ~geocentric frames (other than testframe)
+    """
+    # slight offset to avoid divide-by-zero errors
+    icrs = ICRS(0*u.deg, 0*u.deg, distance=10*u.km)
+
+    gcrs = icrs.transform_to(GCRS(obstime=testframe.obstime))
+    assert (EARTHECC - 1)*u.au < gcrs.distance.to(u.au) < (EARTHECC + 1)*u.au
+
+    cirs = icrs.transform_to(CIRS(obstime=testframe.obstime))
+    assert (EARTHECC - 1)*u.au < cirs.distance.to(u.au) < (EARTHECC + 1)*u.au
+
+    itrs = icrs.transform_to(ITRS(obstime=testframe.obstime))
+    assert (EARTHECC - 1)*u.au < itrs.spherical.distance.to(u.au) < (EARTHECC + 1)*u.au
+
+
+@pytest.mark.parametrize('testframe', totest_frames)
+def test_icrs_altaz_moonish(testframe):
+    """
+    Check that something expressed in *ICRS* as being moon-like goes to the
+    right AltAz distance
+    """
+    earth_icrs_xyz = -get_sun(testframe.obstime).cartesian.xyz
+    moonoffset = [0, 0, MOONDIST.value]*MOONDIST.unit
+    moonish_icrs = ICRS(CartesianRepresentation(earth_icrs_xyz + moonoffset))
+    moonaa = moonish_icrs.transform_to(testframe)
+
+    #now check that the distance change is similar to earth radius
+    assert 1000*u.km < np.abs(moonaa.distance - MOONDIST).to(u.km) < 7000*u.km
