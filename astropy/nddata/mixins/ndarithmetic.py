@@ -172,7 +172,10 @@ class NDArithmeticMixin(object):
         elif operation == 'multiplication':
             operator = np.multiply
         elif operation == 'division':
-            operator = np.divide
+            # Unfortunatly the future import does not implicitly call the
+            # true division of numpy so explicitly call np.true_divide instead
+            # of np.divide (until python2 support is dropped ... just joking)
+            operator = np.true_divide
         else:
             raise ValueError('Unsupported operation')
 
@@ -436,7 +439,7 @@ class NDArithmeticMixin(object):
             elif operation == 'multiplication':
                 operator = np.multiply
             elif operation == 'division':
-                operator = np.divide
+                operator = np.true_divide
             else:
                 raise ValueError('Unsupported operation')
 
