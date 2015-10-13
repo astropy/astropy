@@ -42,7 +42,7 @@ The mixin adds methods on these instances for combining them::
     >>> ndd1.add(ndd2)
     MyNDDataArithmetic([4, 6])
     >>> ndd2.multiply(ndd1)
-    MyNDDataArithmetic([ 3.,  8.])
+    MyNDDataArithmetic([3, 8])
 
 One important note: the order you list the mixins and `~astropy.nddata.NDData`
 matters; the base   class, `~astropy.nddata.NDData` should be on the far
