@@ -40,7 +40,7 @@ with a plain `~astropy.nddata.NDData` object::
 The mixin adds methods on these instances for combining them::
 
     >>> ndd1.add(ndd2)
-    MyNDDataArithmetic([ 4.,  6.])
+    MyNDDataArithmetic([4, 6])
     >>> ndd2.multiply(ndd1)
     MyNDDataArithmetic([ 3.,  8.])
 

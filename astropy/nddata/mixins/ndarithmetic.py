@@ -125,6 +125,7 @@ class NDArithmeticMixin(object):
         1. Due to the internal mechanics of `~astropy.units.Quantity` the
            resulting data might have units like ``km/m`` if you divided for
            example 100km by 5m. So this class has adopted this behaviour.
+
         2. Uncertainty propagation allows that the unit of the uncertainty
            differs from the unit of the data. In these cases uncertainty
            propagation *trys* to keep these units but sometimes this will
@@ -132,7 +133,9 @@ class NDArithmeticMixin(object):
            now and therefore if you use different units for uncertainty and
            data there might be cases where the uncertainty's unit may seem
            rather odd after an arithmetic operation.
-        4. tbc...
+
+        3. tbc...
+
         """
         # Convert the operand to the same class this allows for arithmetic
         # operations with numbers, lists, numpy arrays, numpy masked arrays
