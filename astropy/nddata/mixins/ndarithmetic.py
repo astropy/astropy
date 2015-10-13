@@ -33,7 +33,7 @@ class NDArithmeticMixin(object):
 
     def arithmetic(self, operation, operand,
                    uncertainty_correlation=0, meta_kwds_operate=None,
-                   meta_kwds_set=None, handle_uncertainties=True,
+                   meta_kwds_set=None, propagate_uncertainties=True,
                    handle_mask=True, handle_meta=True, compare_wcs=True):
         """
         Base method which calculates the result of the arithmetic operation.
@@ -54,8 +54,8 @@ class NDArithmeticMixin(object):
         uncertainty_correlation: ``Number`` or `~numpy.ndarray`
             The correlation (rho) is defined between the uncertainties in
             ``sigma_AB = sigma_A * sigma_B * rho`` (Latex?). If
-            ``handle_uncertainties`` is *not* ``True`` this will be ignored. A
-            value of ``0`` means uncorrelated (which is also the default)
+            ``propagate_uncertainties`` is *not* ``True`` this will be ignored.
+            A value of ``0`` means uncorrelated (which is also the default)
 
         meta_kwds_operate: ``None`` or `list`
             If ``None`` no arithmetic meta operations are done. If this is a
@@ -77,7 +77,7 @@ class NDArithmeticMixin(object):
             already exists) in the results meta. This parameter will be ignored
             if ``handle_meta`` is *not* ``True``.
 
-        handle_uncertainties: `bool` or ``None``
+        propagate_uncertainties: `bool` or ``None``
             If ``None`` the result will have no uncertainty. If ``False`` the
             result will have a copied version of the first operand (or the
             second if the first had no uncertainty). In case this is ``True``
@@ -162,9 +162,9 @@ class NDArithmeticMixin(object):
         # quantity)
         result = self._arithmetic_data(operation, operand)
         # Determine the other properties
-        if handle_uncertainties is None:
+        if propagate_uncertainties is None:
             kwargs['uncertainty'] = None
-        elif not handle_uncertainties:
+        elif not propagate_uncertainties:
             if self.uncertainty is None:
                 kwargs['uncertainty'] = operand.uncertainty
             else:
