@@ -520,7 +520,7 @@ class StdDevUncertainty(NDUncertainty):
             result_data = result_data.value
 
         if self.array is None:
-            # Formula sigma = A * dB
+            # Formula sigma = |A| * dB
 
             # We want the result to have the same unit as the result so we
             # only need to convert the unit of the other uncertainty if it is
@@ -533,7 +533,7 @@ class StdDevUncertainty(NDUncertainty):
             return np.abs(self.parent_nddata.data * other)
 
         elif other_uncert.array is None:
-            # Formula sigma = dA * B
+            # Formula sigma = dA * |B|
 
             # Just the reversed case
             if self.unit != self.parent_nddata.unit:
@@ -544,30 +544,34 @@ class StdDevUncertainty(NDUncertainty):
             return np.abs(other_uncert.parent_nddata.data * this)
 
         else:
-            # Formula sigma = AB * sqrt((dA/A)**2 + (dB/B)**2 + 2*dA/A*dB/B)
+            # Formula sigma = |AB| * sqrt((dA/A)**2 + (dB/B)**2 + 2*dA/A*dB/B*cor)
 
-            # In this case we just need to catch the case if one uncertainty
-            # has a unit that is not the same as the data's because we try to
-            # work with dimensionless fractions. Because it allows for numpy
-            # operations instead of the slower quantity operations
+            # This formula is not very handy since it generates NaNs for every
+            # zero in A and B. So we rewrite it:
+
+            # sqrt((dA*B)**2 + (dB*A)**2 + (2 * cor * ABdAdB))
+
+            # To get the dimensions right we need to convert the unit of each
+            # uncertainty to the same unit as it's parent
             if self.unit != self.parent_nddata.unit:
-                left = (self.array * self.unit).to(
-                    self.parent_nddata.unit).value / self.parent_nddata.data
+                left = ((self.array * self.unit).to(
+                        self.parent_nddata.unit).value
+                        * other_uncert.parent_nddata.data)
             else:
-                left = self.array / self.parent_nddata.data
+                left = self.array * other_uncert.parent_nddata.data
 
             if other_uncert.unit != other_uncert.parent_nddata.unit:
                 right = ((other_uncert.array * other_uncert.unit).to(
-                    other_uncert.parent_nddata.unit).value /
-                    other_uncert.parent_nddata.data)
+                        other_uncert.parent_nddata.unit).value
+                        * self.parent_nddata.data)
             else:
-                right = (other_uncert.array / other_uncert.parent_nddata.data)
+                right = other_uncert.array * self.parent_nddata.data
 
             if correlation != 0:
-                corr = 2 * correlation * left * right
-                return np.abs(result_data) * np.sqrt(left**2 + right**2 + corr)
+                corr = (2 * correlation * left * right)
+                return np.sqrt(left**2 + right**2 + corr)
             else:
-                return np.abs(result_data) * np.sqrt(left**2 + right**2)
+                return np.sqrt(left**2 + right**2)
 
 
     def _propagate_divide(self, other_uncert, result_data, correlation):
@@ -577,7 +581,7 @@ class StdDevUncertainty(NDUncertainty):
             result_data = result_data.value
 
         if self.array is None:
-            # Formula sigma = (A / B) * (dB / B)
+            # Formula sigma = |(A / B) * (dB / B)|
 
             # We need (db / B) to be dimensionless so we convert (if necessary)
             # dB to the same unit as B
@@ -590,36 +594,45 @@ class StdDevUncertainty(NDUncertainty):
             return np.abs(result_data * right)
 
         elif other_uncert.array is None:
-            # Formula sigma = dA / B.
+            # Formula sigma = dA / |B|.
 
             # We need to convert dA to the unit of A to have a result that
             # matches the resulting data's unit.
             if self.unit != self.parent_nddata.unit:
-                this = (self.array * self.unit).to(self.parent_nddata.unit)
+                left = (self.array * self.unit).to(
+                        self.parent_nddata.unit).value
             else:
-                this = self.array
-            return np.abs(this / other_uncert.parent_nddata.data)
+                left = self.array
+            return np.abs(left / other_uncert.parent_nddata.data)
 
         else:
-            # Formula sigma = AB * sqrt((dA/A)**2 + (dB/B)**2 - 2*dA/A*dB/B)
+            # Formula sigma = |AB| * sqrt((dA/A)**2 + (dB/B)**2 - 2*dA/A*dB/B*cor)
+
+            # As with multiplication this formula creates NaNs where A is zero
+            # => sigma = sqrt((dA/B)**2 + (AdB/B**2)**2 - 2*cor*AdAdB/B**3)
+            # So we need to calculate the dimensionless dA/B and dB/B to get
+            # a result with the same unit as the data
             if self.unit != self.parent_nddata.unit:
-                left = (self.array * self.unit).to(
-                    self.parent_nddata.unit).value / self.parent_nddata.data
+                left = ((self.array * self.unit).to(
+                        self.parent_nddata.unit).value /
+                        other_uncert.parent_nddata.data)
             else:
-                left = self.array / self.parent_nddata.data
+                left = self.array / other_uncert.parent_nddata.data
+
             if other_uncert.unit != other_uncert.parent_nddata.unit:
                 right = ((other_uncert.array * other_uncert.unit).to(
                     other_uncert.parent_nddata.unit).value /
-                    other_uncert.parent_nddata.data)
+                    other_uncert.parent_nddata.data) * result_data
             else:
-                right = (other_uncert.array / other_uncert.parent_nddata.data)
+                right = (result_data * other_uncert.array /
+                            other_uncert.parent_nddata.data)
             if correlation != 0:
                 corr = 2 * correlation * left * right
                 # This differs from multiplication because the correlation
                 # term needs to be subtracted
-                return np.abs(result_data) * np.sqrt(left**2 + right**2 - corr)
+                return np.sqrt(left**2 + right**2 - corr)
             else:
-                return np.abs(result_data) * np.sqrt(left**2 + right**2)
+                return np.sqrt(left**2 + right**2)
 
     # TODO: Make a decorator that adds the docstrings instead.
 

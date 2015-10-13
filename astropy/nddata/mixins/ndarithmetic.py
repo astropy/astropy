@@ -20,6 +20,99 @@ WARN_UNSUPPORTED_CORRELATED = ConfigAlias(
 
 __all__ = ['NDArithmeticMixin']
 
+def include_docstrings(**kwargs):
+    def set_docstring(some_func):
+        some_func.__doc__ = """
+        {name} another dataset (``operand``) to this dataset.
+
+        Parameters
+        ----------
+        operand : `~astropy.nddata.NDData`-like
+            The second operand in the operation a {operator} b
+
+        operand: `NDData` instance or something that can be converted to one.
+            The second operand in the operation.
+
+        uncertainty_correlation: ``Number`` or `~numpy.ndarray`, optional
+            The correlation (rho) is defined between the uncertainties in
+            ``sigma_AB = sigma_A * sigma_B * rho`` (Latex?). If
+            ``propagate_uncertainties`` is *not* ``True`` this will be ignored.
+            A value of ``0`` means uncorrelated (which is also the default)
+
+        meta_kwds_operate: ``None`` or `list`, optional
+            If ``None`` no arithmetic meta operations are done. If this is a
+            list then each element of the list will be interpreted as a
+            keyword which should be arithmetically changed. In case both
+            operands have not-empty meta properties the resulting meta keyword
+            will be operand1 keyword operated upon operand2 keyword. If only
+            one operand has a not-empty meta, the resulting keyword will be
+            the keyword of the operand operated with the ``data`` (this is
+            only allowed if the data is actually a scalar) of the other
+            operand. (There will be more explanation and exampled sometime
+            soon). This parameter will be ignored if ``handle_meta`` is *not*
+            ``True``. Default is ``None``.
+
+        meta_kwds_set: ``None`` or `dict`, optional
+            If ``None`` there are no keyword settings after the arithmetic
+            meta keyword operations. If this is a `dict` each key/value pair
+            in the ``meta_kwds_set`` will be added (or replaced if the keyword
+            already exists) in the results meta. This parameter will be ignored
+            if ``handle_meta`` is *not* ``True``. Default is ``None``.
+
+        propagate_uncertainties: `bool` or ``None``, optional
+            If ``None`` the result will have no uncertainty. If ``False`` the
+            result will have a copied version of the first operand (or the
+            second if the first had no uncertainty). In case this is ``True``
+            the result will have a correctly propagated uncertainty from the
+            uncertainties of the operands. Default is ``True``.
+
+        handle_mask: `bool` or ``None``, optional
+            If ``None`` the result will have no mask. If ``False`` the result
+            will have a copied version of the mask of the first operand (or
+            if the first operand has no mask then the one from the second is
+            taken). If ``True`` the masks of both operands will be taken into
+            account and combined (by a bitwise ``or`` operation). Default is
+            ``True``.
+
+        handle_meta: `bool` or ``None``, optional
+            If ``None`` the result will have no meta. If ``False`` the result
+            will have a copied version of the meta of the first operand (or
+            if the first operand has no meta then the one from the second is
+            taken). If ``True`` the meta of both operands will be changed
+            depending on ``meta_kwds_operate`` and ``meta_kwds_set``. Default
+            is ``True``.
+
+        check_wcs: `bool` or ``None``, optional
+            If ``None`` the result will have no wcs and no comparison between
+            the wcs of the operands is made. If ``False`` the result will have
+            the wcs of the first operand (or second if the first had ``None``).
+            If ``True`` the resulting mask will be like in the case of
+            ``False`` but the wcs information is checked if it is the same
+            for both operands (in some cases it would be bad to apply any
+            arithmetic operation on datasets which have different wcs
+            informations). If they do not match a warning is issues. Default is
+            ``True``.
+
+        Returns
+        -------
+        result : `~astropy.nddata.NDData`-like
+            The resulting dataset
+
+        Notes
+        -----
+        1. It is not tried to decompose the units, mainly due to the internal
+           mechanics of `~astropy.units.Quantity` the resulting data might have
+           units like ``km/m`` if you divided for example 100km by 5m. So this
+           Mixin has adopted this behaviour.
+
+        See also
+        --------
+        {other}
+
+        """.format(**kwargs)
+        return some_func
+    return set_docstring
+
 
 class NDArithmeticMixin(object):
     """
@@ -28,13 +121,59 @@ class NDArithmeticMixin(object):
     When subclassing, be sure to list the superclasses in the correct order
     so that the subclass sees NDData as the main superclass. See
     `~astropy.nddata.NDDataArray` for an example.
+
+    TODO: Just here because the examples fit more into the main documentation
+    than in here.
+
+    For example::
+
+        >>> from astropy.nddata import NDData, NDArithmeticMixin, NDSlicingMixin
+        >>> class NDDataWithMath(NDArithmeticMixin, NDData): pass
+        >>> nd = NDDataWithMath([1,2,3], unit='meter')
+        >>> nd_inv = nd.division(1, nd)
+        >>> nd.__class__.__name__
+        'NDDataWithMath'
+        >>> nd.data
+        array([ 1.        ,  0.5       ,  0.33333333])
+        >>> nd.unit
+        Unit("1 / m")
+
+    This method also allows that the result of unrelated objects is tried
+    with what this class implements as arithmetics and give a result that
+    is the same class as the class that called the method.
+
+        >>> nd2 = nd.multiplication([1,2],3)
+        >>> nd2.__class__.__name__
+        'NDDataWithMath'
+        >>> nd2.data
+        array([3, 6])
+
+    Since this is a classmethod we don't need an instance to use them:
+
+        >>> nd3 = NDDataWithMath.subtraction(5, NDData([1,2,3]))
+        >>> nd3.__class__.__name__
+        'NDDataWithMath'
+        >>> nd3.data
+        array([4, 3, 2])
+
+    And it allows to handle arithmetics with different subclasses.
+
+        >>> class NDDataWithMathAndSlicing(NDSlicingMixin, NDArithmeticMixin, NDData): pass
+        >>> nd = NDDataWithMath([5,5,5])
+        >>> nd2 = NDDataWithMathAndSlicing([3,2,5])
+        >>> nd3 = nd2.addition(nd, nd2)
+        >>> nd3.__class__.__name__
+        'NDDataWithMathAndSlicing'
+        >>> nd3.data
+        array([ 8,  7, 10])
     """
+
 
     def _arithmetic(self, operation, operand,
                    uncertainty_correlation=0, meta_kwds_operate=None,
                    meta_kwds_set=None, propagate_uncertainties=True,
                    handle_mask=True, handle_meta=True, compare_wcs=True,
-                   **kwargs):
+                   **kwds):
         """
         Base method which calculates the result of the arithmetic operation.
 
@@ -88,7 +227,7 @@ class NDArithmeticMixin(object):
             The resulting data as array (in case both operands were without
             unit) or as quantity if at least one had a unit.
 
-        TODO: Update return kwards description
+        TODO: Update return kwargs description
 
         kwargs: `dict`
             kwargs to create a new instance of the same class as self.
@@ -113,51 +252,52 @@ class NDArithmeticMixin(object):
             kwargs['wcs'] = None
         elif not compare_wcs:
             if self.wcs is None:
-                kwargs['wcs'] = operand.wcs
+                kwargs['wcs'] = deepcopy(operand.wcs)
             else:
-                kwargs['wcs'] = self.wcs
+                kwargs['wcs'] = deepcopy(self.wcs)
         else:
             kwargs['wcs'] = self._arithmetic_wcs(operand, compare_wcs,
-                                                 **kwargs)
+                                                 **kwds)
         # Then calculate the resulting data (which can but not needs to be a
         # quantity)
-        result = self._arithmetic_data(operation, operand, **kwargs)
+        result = self._arithmetic_data(operation, operand, **kwds)
         # Determine the other properties
         if propagate_uncertainties is None:
             kwargs['uncertainty'] = None
         elif not propagate_uncertainties:
             if self.uncertainty is None:
-                kwargs['uncertainty'] = operand.uncertainty
+                kwargs['uncertainty'] = deepcopy(operand.uncertainty)
             else:
-                kwargs['uncertainty'] = self.uncertainty
+                kwargs['uncertainty'] = deepcopy(self.uncertainty)
         else:
             kwargs['uncertainty'] = self._arithmetic_uncertainty(operation,
-                            operand, result, uncertainty_correlation, **kwargs)
+                            operand, result, uncertainty_correlation, **kwds)
         if handle_mask is None:
             kwargs['mask'] = None
         elif not handle_mask:
             if self.mask is None:
-                kwargs['mask'] = operand.mask
+                kwargs['mask'] = deepcopy(operand.mask)
             else:
-                kwargs['mask'] = self.mask
+                kwargs['mask'] = deepcopy(self.mask)
         else:
-            kwargs['mask'] = self._arithmetic_mask(operand, **kwargs)
+            kwargs['mask'] = self._arithmetic_mask(operand, **kwds)
 
         if handle_meta is None:
             kwargs['meta'] = None
         elif not handle_meta:
             if len(self.meta) == 0:
-                kwargs['meta'] = operand.meta
+                kwargs['meta'] = deepcopy(operand.meta)
             else:
-                kwargs['meta'] = self.meta
+                kwargs['meta'] = deepcopy(self.meta)
         else:
             kwargs['meta'] = self._arithmetic_meta(operation, operand,
-                                meta_kwds_operate, meta_kwds_set, **kwargs)
+                                meta_kwds_operate, meta_kwds_set, **kwds)
 
         # Wrap the individual results into a new instance of the same class.
         return result, kwargs
 
-    def _arithmetic_data(self, operation, operand, **kwargs):
+
+    def _arithmetic_data(self, operation, operand, **kwds):
         """
         Calculate the resulting data
 
@@ -208,8 +348,9 @@ class NDArithmeticMixin(object):
 
         return result
 
+
     def _arithmetic_uncertainty(self, operation, operand, result, correlation,
-                                **kwargs):
+                                **kwds):
         """
         Calculate the resulting uncertainty.
 
@@ -274,7 +415,8 @@ class NDArithmeticMixin(object):
             return self.uncertainty.propagate(operation, operand, result,
                                               correlation)
 
-    def _arithmetic_mask(self, operand, **kwargs):
+
+    def _arithmetic_mask(self, operand, **kwds):
         """
         Calculate the resulting mask
 
@@ -330,7 +472,8 @@ class NDArithmeticMixin(object):
             # Now lets calculate the resulting mask (operation enforces copy)
             return self.mask | operand.mask
 
-    def _arithmetic_wcs(self, operand, compare_wcs, **kwargs):
+
+    def _arithmetic_wcs(self, operand, compare_wcs, **kwds):
         """
         Calculate the resulting wcs.
 
@@ -391,8 +534,9 @@ class NDArithmeticMixin(object):
                     log.info("WCS is not equal.")
             return deepcopy(self.wcs)
 
+
     def _arithmetic_meta(self, operation, operand, meta_kwds_operate,
-                         meta_kwds_set, **kwargs):
+                         meta_kwds_set, **kwds):
         """
         Calculate the resulting meta.
 
@@ -507,18 +651,26 @@ class NDArithmeticMixin(object):
         return result_meta
 
 
+    @include_docstrings(name="Add", operator="+",
+                    other=":meth:`NDArithmeticMixin.addition`")
     def add(self, operand, **kwargs):
         result, kwargs = self._arithmetic("addition", operand, **kwargs)
         return self.__class__(result, **kwargs)
 
+    @include_docstrings(name="Subtract", operator="-",
+                    other=":meth:`NDArithmeticMixin.subtraction`")
     def subtract(self, operand, **kwargs):
         result, kwargs = self._arithmetic("subtraction", operand, **kwargs)
         return self.__class__(result, **kwargs)
 
+    @include_docstrings(name="Multiply", operator="*",
+                    other=":meth:`NDArithmeticMixin.multiplication`")
     def multiply(self, operand, **kwargs):
         result, kwargs = self._arithmetic("multiplication", operand, **kwargs)
         return self.__class__(result, **kwargs)
 
+    @include_docstrings(name="Divide", operator="/",
+                    other=":meth:`NDArithmeticMixin.division`")
     def divide(self, operand, **kwargs):
         result, kwargs = self._arithmetic("division", operand, **kwargs)
         return self.__class__(result, **kwargs)
@@ -660,149 +812,3 @@ class NDArithmeticMixin(object):
         """
         operand1 = cls(operand1)
         return operand1.divide(operand2, **kwargs)
-
-    # TODO: Make a decorator that adds the docstrings instead.
-
-    if True:
-        doc = """
-        {name} another dataset (``operand``) to this dataset.
-
-        Parameters
-        ----------
-        operand : `~astropy.nddata.NDData`-like
-            The second operand in the operation a {operator} b
-
-        operand: `NDData` instance or something that can be converted to one.
-            The second operand in the operation.
-
-        uncertainty_correlation: ``Number`` or `~numpy.ndarray`, optional
-            The correlation (rho) is defined between the uncertainties in
-            ``sigma_AB = sigma_A * sigma_B * rho`` (Latex?). If
-            ``propagate_uncertainties`` is *not* ``True`` this will be ignored.
-            A value of ``0`` means uncorrelated (which is also the default)
-
-        meta_kwds_operate: ``None`` or `list`, optional
-            If ``None`` no arithmetic meta operations are done. If this is a
-            list then each element of the list will be interpreted as a
-            keyword which should be arithmetically changed. In case both
-            operands have not-empty meta properties the resulting meta keyword
-            will be operand1 keyword operated upon operand2 keyword. If only
-            one operand has a not-empty meta, the resulting keyword will be
-            the keyword of the operand operated with the ``data`` (this is
-            only allowed if the data is actually a scalar) of the other
-            operand. (There will be more explanation and exampled sometime
-            soon). This parameter will be ignored if ``handle_meta`` is *not*
-            ``True``. Default is ``None``.
-
-        meta_kwds_set: ``None`` or `dict`, optional
-            If ``None`` there are no keyword settings after the arithmetic
-            meta keyword operations. If this is a `dict` each key/value pair
-            in the ``meta_kwds_set`` will be added (or replaced if the keyword
-            already exists) in the results meta. This parameter will be ignored
-            if ``handle_meta`` is *not* ``True``. Default is ``None``.
-
-        propagate_uncertainties: `bool` or ``None``, optional
-            If ``None`` the result will have no uncertainty. If ``False`` the
-            result will have a copied version of the first operand (or the
-            second if the first had no uncertainty). In case this is ``True``
-            the result will have a correctly propagated uncertainty from the
-            uncertainties of the operands. Default is ``True``.
-
-        handle_mask: `bool` or ``None``, optional
-            If ``None`` the result will have no mask. If ``False`` the result
-            will have a copied version of the mask of the first operand (or
-            if the first operand has no mask then the one from the second is
-            taken). If ``True`` the masks of both operands will be taken into
-            account and combined (by a bitwise ``or`` operation). Default is
-            ``True``.
-
-        handle_meta: `bool` or ``None``, optional
-            If ``None`` the result will have no meta. If ``False`` the result
-            will have a copied version of the meta of the first operand (or
-            if the first operand has no meta then the one from the second is
-            taken). If ``True`` the meta of both operands will be changed
-            depending on ``meta_kwds_operate`` and ``meta_kwds_set``. Default
-            is ``True``.
-
-        check_wcs: `bool` or ``None``, optional
-            If ``None`` the result will have no wcs and no comparison between
-            the wcs of the operands is made. If ``False`` the result will have
-            the wcs of the first operand (or second if the first had ``None``).
-            If ``True`` the resulting mask will be like in the case of
-            ``False`` but the wcs information is checked if it is the same
-            for both operands (in some cases it would be bad to apply any
-            arithmetic operation on datasets which have different wcs
-            informations). If they do not match a warning is issues. Default is
-            ``True``.
-
-        Returns
-        -------
-        result : `~astropy.nddata.NDData`-like
-            The resulting dataset
-
-        Notes
-        -----
-        1. It is not tried to decompose the units, mainly due to the internal
-           mechanics of `~astropy.units.Quantity` the resulting data might have
-           units like ``km/m`` if you divided for example 100km by 5m. So this
-           Mixin has adopted this behaviour.
-
-        See also
-        --------
-        {other}
-        """
-        add.__doc__ = doc.format(name="Add", operator="+",
-                            other=":meth:`NDArithmeticMixin.addition`")
-        subtract.__doc__ = doc.format(name="Subtract", operator="-",
-                            other=":meth:`NDArithmeticMixin.subtraction`")
-        multiply.__doc__ = doc.format(name="Multiply", operator="*",
-                            other=":meth:`NDArithmeticMixin.multiplication`")
-        divide.__doc__ = doc.format(name="Divide", operator="/",
-                            other=":meth:`NDArithmeticMixin.division`")
-
-        """
-        # Just here because the examples fit more into the main documentation
-        # than in here.
-        For example::
-
-            >>> from astropy.nddata import NDData, NDArithmeticMixin, NDSlicingMixin
-            >>> class NDDataWithMath(NDArithmeticMixin, NDData): pass
-            >>> nd = NDDataWithMath([1,2,3], unit='meter')
-            >>> nd_inv = nd.division(1, nd)
-            >>> nd.__class__.__name__
-            'NDDataWithMath'
-            >>> nd.data
-            array([ 1.        ,  0.5       ,  0.33333333])
-            >>> nd.unit
-            Unit("1 / m")
-
-        This method also allows that the result of unrelated objects is tried
-        with what this class implements as arithmetics and give a result that
-        is the same class as the class that called the method.
-
-            >>> nd2 = nd.multiplication([1,2],3)
-            >>> nd2.__class__.__name__
-            'NDDataWithMath'
-            >>> nd2.data
-            array([3, 6])
-
-        Since this is a classmethod we don't need an instance to use them:
-
-            >>> nd3 = NDDataWithMath.subtraction(5, NDData([1,2,3]))
-            >>> nd3.__class__.__name__
-            'NDDataWithMath'
-            >>> nd3.data
-            array([4, 3, 2])
-
-        And it allows to handle arithmetics with different subclasses.
-
-            >>> class NDDataWithMathAndSlicing(NDSlicingMixin, NDArithmeticMixin, NDData): pass
-            >>> nd = NDDataWithMath([5,5,5])
-            >>> nd2 = NDDataWithMathAndSlicing([3,2,5])
-            >>> nd3 = nd2.addition(nd, nd2)
-            >>> nd3.__class__.__name__
-            'NDDataWithMathAndSlicing'
-            >>> nd3.data
-            array([ 8,  7, 10])
-        """
-        del doc

@@ -164,6 +164,52 @@ def test_arithmetics_data_unit_NOT_identical(data1, data2):
         assert len(nd.meta) == 0
         assert nd.wcs is None
 
+
+# Tests with wcs (not very senseable because there is no operation between them
+# covering:
+# both set and identical/not identical
+# one set
+# None set
+@pytest.mark.parametrize(('wcs1','wcs2'), [
+    (None, None),
+    (None, 5),
+    (5, None),
+    (5, 5),
+    (7, 5),
+    ])
+def test_arithmetics_data_wcs(wcs1, wcs2):
+
+    nd1 = NDDataArithmetic(1, wcs=wcs1)
+    nd2 = NDDataArithmetic(1, wcs=wcs2)
+
+    if wcs1 is None and wcs2 is None:
+        ref_wcs = None
+    elif wcs1 is None:
+        ref_wcs = wcs2
+    elif wcs2 is None:
+        ref_wcs = wcs1
+    else:
+        ref_wcs = wcs1
+
+    # Addition
+    nd3 = nd1.add(nd2)
+    assert ref_wcs == nd3.wcs
+    # Subtraction
+    nd4 = nd1.subtract(nd2)
+    assert ref_wcs == nd3.wcs
+    # Multiplication
+    nd5 = nd1.multiply(nd2)
+    assert ref_wcs == nd3.wcs
+    # Division
+    nd6 = nd1.divide(nd2)
+    assert ref_wcs == nd3.wcs
+    for nd in [nd3, nd4, nd5, nd6]:
+        # Check all other attributes are not set
+        assert nd.unit is None
+        assert nd.uncertainty is None
+        assert len(nd.meta) == 0
+        assert nd.mask is None
+
 # Masks are completely seperated in the NDArithmetics from the data so we need
 # no correlated tests but covering:
 # masks 1D, 2D and mixed cases with broadcasting
@@ -401,6 +447,7 @@ def test_arithmetics_meta_one_invalid():
 # both have uncertainties (data and uncertainty without unit)
 # tested against manually determined resulting uncertainties to verify the
 # implemented formulas
+# this test only works as long as data1 and data2 do not contain any 0
 def test_arithmetics_stddevuncertainty_basic():
     nd1 = NDDataArithmetic([1,2,3], uncertainty=StdDevUncertainty([1,1,3]))
     nd2 = NDDataArithmetic([2,2,2], uncertainty=StdDevUncertainty([2,2,2]))
@@ -419,15 +466,18 @@ def test_arithmetics_stddevuncertainty_basic():
     # Compare it to the theoretical uncertainty (same as for add)
     assert_array_equal(nd3.uncertainty.array, ref_uncertainty)
 
+    # Multiplication and Division only work with almost equal array comparisons
+    # since the formula implemented and the formula used as reference are
+    # slightly different.
     nd3 = nd1.multiply(nd2)
     nd4 = nd2.multiply(nd1)
     # Inverse operation should result in the same uncertainty
-    assert_array_equal(nd3.uncertainty.array, nd4.uncertainty.array)
+    assert_array_almost_equal(nd3.uncertainty.array, nd4.uncertainty.array)
     # Compare it to the theoretical uncertainty
     ref_uncertainty = np.abs(np.array([2,4,6])) * np.sqrt(
         (np.array([1,1,3]) / np.array([1,2,3]))**2 +
         (np.array([2,2,2]) / np.array([2,2,2]))**2)
-    assert_array_equal(nd3.uncertainty.array, ref_uncertainty)
+    assert_array_almost_equal(nd3.uncertainty.array, ref_uncertainty)
 
     nd3 = nd1.divide(nd2)
     nd4 = nd2.divide(nd1)
@@ -436,11 +486,96 @@ def test_arithmetics_stddevuncertainty_basic():
     ref_uncertainty_1 = np.abs(np.array([1/2,2/2,3/2])) * np.sqrt(
         (np.array([1,1,3]) / np.array([1,2,3]))**2 +
         (np.array([2,2,2]) / np.array([2,2,2]))**2)
-    assert_array_equal(nd3.uncertainty.array, ref_uncertainty_1)
+    assert_array_almost_equal(nd3.uncertainty.array, ref_uncertainty_1)
     ref_uncertainty_2 = np.abs(np.array([2,1,2/3])) * np.sqrt(
         (np.array([1,1,3]) / np.array([1,2,3]))**2 +
         (np.array([2,2,2]) / np.array([2,2,2]))**2)
-    assert_array_equal(nd4.uncertainty.array, ref_uncertainty_2)
+    assert_array_almost_equal(nd4.uncertainty.array, ref_uncertainty_2)
+
+# Tests for correlation, covering
+# correlation between -1 and 1 with correlation term being positive / negative
+# also with one data being once positive and once completly negative
+# The point of this test is to compare the used formula to the theoretical one.
+# TODO: Maybe covering units too but I think that should work because of
+# the next tests. Also this may be reduced somehow.
+@pytest.mark.parametrize(('cor','uncert1','data2'), [
+    (-1, [1,1,3], [2,2,7]),
+    (-0.5, [1,1,3], [2,2,7]),
+    (-0.25, [1,1,3], [2,2,7]),
+    (0, [1,1,3], [2,2,7]),
+    (0.25, [1,1,3], [2,2,7]),
+    (0.5, [1,1,3], [2,2,7]),
+    (1, [1,1,3], [2,2,7]),
+    (-1, [-1,-1,-3], [2,2,7]),
+    (-0.5, [-1,-1,-3], [2,2,7]),
+    (-0.25, [-1,-1,-3], [2,2,7]),
+    (0, [-1,-1,-3], [2,2,7]),
+    (0.25, [-1,-1,-3], [2,2,7]),
+    (0.5, [-1,-1,-3], [2,2,7]),
+    (1, [-1,-1,-3], [2,2,7]),
+    (-1, [1,1,3], [-2,-3,-2]),
+    (-0.5, [1,1,3], [-2,-3,-2]),
+    (-0.25, [1,1,3], [-2,-3,-2]),
+    (0, [1,1,3], [-2,-3,-2]),
+    (0.25, [1,1,3], [-2,-3,-2]),
+    (0.5, [1,1,3], [-2,-3,-2]),
+    (1, [1,1,3], [-2,-3,-2]),
+    (-1, [-1,-1,-3], [-2,-3,-2]),
+    (-0.5, [-1,-1,-3], [-2,-3,-2]),
+    (-0.25, [-1,-1,-3], [-2,-3,-2]),
+    (0, [-1,-1,-3], [-2,-3,-2]),
+    (0.25, [-1,-1,-3], [-2,-3,-2]),
+    (0.5, [-1,-1,-3], [-2,-3,-2]),
+    (1, [-1,-1,-3], [-2,-3,-2]),
+    ])
+def test_arithmetics_stddevuncertainty_basic_with_correlation(cor, uncert1, data2):
+    data1 = np.array([1,2,3])
+    data2 = np.array(data2)
+    uncert1 = np.array(uncert1)
+    uncert2 = np.array([2,2,2])
+    nd1 = NDDataArithmetic(data1, uncertainty=StdDevUncertainty(uncert1))
+    nd2 = NDDataArithmetic(data2, uncertainty=StdDevUncertainty(uncert2))
+    nd3 = nd1.add(nd2, uncertainty_correlation=cor)
+    nd4 = nd2.add(nd1, uncertainty_correlation=cor)
+    # Inverse operation should result in the same uncertainty
+    assert_array_equal(nd3.uncertainty.array, nd4.uncertainty.array)
+    # Compare it to the theoretical uncertainty
+    ref_uncertainty = np.sqrt(uncert1**2 + uncert2**2 + 2 * cor * uncert1 * uncert2)
+    assert_array_equal(nd3.uncertainty.array, ref_uncertainty)
+
+    nd3 = nd1.subtract(nd2, uncertainty_correlation=cor)
+    nd4 = nd2.subtract(nd1, uncertainty_correlation=cor)
+    # Inverse operation should result in the same uncertainty
+    assert_array_equal(nd3.uncertainty.array, nd4.uncertainty.array)
+    # Compare it to the theoretical uncertainty
+    ref_uncertainty = np.sqrt(uncert1**2 + uncert2**2 - 2 * cor * uncert1 * uncert2)
+    assert_array_equal(nd3.uncertainty.array, ref_uncertainty)
+
+    # Multiplication and Division only work with almost equal array comparisons
+    # since the formula implemented and the formula used as reference are
+    # slightly different.
+    nd3 = nd1.multiply(nd2, uncertainty_correlation=cor)
+    nd4 = nd2.multiply(nd1, uncertainty_correlation=cor)
+    # Inverse operation should result in the same uncertainty
+    assert_array_almost_equal(nd3.uncertainty.array, nd4.uncertainty.array)
+    # Compare it to the theoretical uncertainty
+    ref_uncertainty = (np.abs(data1 * data2)) * np.sqrt(
+        (uncert1 / data1)**2 + (uncert2 / data2)**2 +
+        (2 * cor * uncert1 * uncert2 / (data1 * data2)))
+    assert_array_almost_equal(nd3.uncertainty.array, ref_uncertainty)
+
+    nd3 = nd1.divide(nd2, uncertainty_correlation=cor)
+    nd4 = nd2.divide(nd1, uncertainty_correlation=cor)
+    # Inverse operation gives a different uncertainty!
+    # Compare it to the theoretical uncertainty
+    ref_uncertainty_1 = (np.abs(data1 / data2)) * np.sqrt(
+        (uncert1 / data1)**2 + (uncert2 / data2)**2 -
+        (2 * cor * uncert1 * uncert2 / (data1 * data2)))
+    assert_array_almost_equal(nd3.uncertainty.array, ref_uncertainty_1)
+    ref_uncertainty_2 = (np.abs(data2 / data1)) * np.sqrt(
+        (uncert1 / data1)**2 + (uncert2 / data2)**2 -
+        (2 * cor * uncert1 * uncert2 / (data1 * data2)))
+    assert_array_almost_equal(nd4.uncertainty.array, ref_uncertainty_2)
 
 # Covering:
 # only one has an uncertainty (data and uncertainty without unit)
@@ -599,21 +734,48 @@ def test_arithmetics_stddevuncertainty_with_units(uncert1, uncert2):
     assert nd3.uncertainty.unit == nd3_ref.uncertainty.unit
     assert_array_equal(nd3.uncertainty.array, nd3.uncertainty.array)
 
-# TODO: Tests for correlation, especially for multiplication and division
-# there might be failures since the correlation term is dA * dB / (A * B) so
-# for A or B having elements of 0 or close to zero will produce some failures
-# TODO: Check if rewriting the formula fixes these issues since (A*B) is also
-# a prefactor.... might be worth revisiting this even though the other
-# terms will get messier.
 
-# TODO: Tests for the switches (propagate_uncertainty, handle_mask,
-# handle_meta and check_wcs)
+def test_arithmetics_handle_switches():
+    meta1 = {'a': 1}
+    meta2 = {'b': 2}
+    mask1 = True
+    mask2 = False
+    uncertainty1 = StdDevUncertainty([1,2,3])
+    uncertainty2 = StdDevUncertainty([1,2,3])
+    wcs1 = 5
+    wcs2 = 100
+    data1 = [1,1,1]
+    data2 = [1,1,1]
 
-# TODO: Subclassing from NDArithmeticMixin overriding, extending methods
-# (but that's optional or should be done as doctest in the subclassing.rst)
+    nd1 = NDDataArithmetic(data1, meta=meta1, mask=mask1, wcs=wcs1,
+                           uncertainty=uncertainty1)
+    nd2 = NDDataArithmetic(data2, meta=meta2, mask=mask2, wcs=wcs2,
+                           uncertainty=uncertainty2)
+    nd3 = NDDataArithmetic(data1)
 
-# TODO: Catch warnings and infos... (optional since texts may change)
+    # Both have the attributes but option None is chosen
+    nd_ = nd1.add(nd2, propagate_uncertainties=None, handle_meta=None,
+                  handle_mask=None, compare_wcs=None)
+    assert nd_.wcs is None
+    assert len(nd_.meta) == 0
+    assert nd_.mask is None
+    assert nd_.uncertainty is None
 
+    # Only second has attributes and False is chosen
+    nd_ = nd3.add(nd2, propagate_uncertainties=False, handle_meta=False,
+                  handle_mask=False, compare_wcs=False)
+    assert nd_.wcs == wcs2
+    assert nd_.meta == meta2
+    assert nd_.mask == mask2
+    assert_array_equal(nd_.uncertainty.array, uncertainty2.array)
+
+    # Only first has attributes and False is chosen
+    nd_ = nd1.add(nd3, propagate_uncertainties=False, handle_meta=False,
+                  handle_mask=False, compare_wcs=False)
+    assert nd_.wcs == wcs1
+    assert nd_.meta == meta1
+    assert nd_.mask == mask1
+    assert_array_equal(nd_.uncertainty.array, uncertainty1.array)
 
 
 
