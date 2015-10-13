@@ -20,6 +20,9 @@ class NDDataBase(object):
     `~astropy.nddata.NDData` should subclass ``NDDataBase`` instead.
 
     All properties and methods must be overriden by subclasses.
+
+    TODO: Maybe use the docstrings for the properties that I moved to NDData
+    instead of these shortened explanations.
     """
 
     @abstractmethod

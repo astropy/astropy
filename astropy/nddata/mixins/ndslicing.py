@@ -29,6 +29,8 @@ class NDSlicingMixin(object):
     to rewrite the whole Mixin (see Notes for detailed suggestions on how
     to do that).
 
+    TODO: Move Notes to nddata/subclassing.rst
+
     Notes
     -----
     1. When subclassing, be sure to list the superclasses in the correct order
@@ -203,6 +205,8 @@ class NDSlicingMixin(object):
             log.info("WCS is considered not sliceable.")
         log.info("Therefore the WCS will not be sliced.")
         return self._wcs
+
+    # TODO: Make a decorator that adds the docstrings instead.
 
     # Get the documentation in place.
     if isinstance(_slice.__doc__, string_types):

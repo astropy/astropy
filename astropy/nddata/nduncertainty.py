@@ -365,6 +365,8 @@ class NDUncertainty(object):
     def _propagate_divide(self, other_uncert, result_data, correlation):
         return None
 
+    # TODO: Make a decorator that adds the docstrings instead.
+
     # Apply docstrings
     _propagate_add.__doc__ = _propagate_doc.format(operation='addition',
             operator='+', instance='NDUncertainty')
@@ -384,11 +386,10 @@ class StdDevUncertainty(NDUncertainty):
     ``subtraction``, ``multiplication`` and ``division`` but only with other
     instances of `StdDevUncertainty`. The class can fully handle if the
     uncertainty has a unit that differs from (but is convertable to) the
-    parents `NDData` unit and keeps (if possible) the alternative unit in the
-    resulting uncertainty (except for multiplication and division where the
-    error propagation is mostly done with dimensionless fractions). Also
-    support for correlation is possible but that requires that the correlation
-    is an input it cannot handle correlation determination itself.
+    parents `NDData` unit but converts the unit of the propagated uncertainty
+    to the unit of the resulting data. Also support for correlation is possible
+    but that requires that the correlation is an input it cannot handle
+    correlation determination itself.
     """
 
     supports_correlated = True
@@ -411,63 +412,65 @@ class StdDevUncertainty(NDUncertainty):
     def _propagate_add(self, other_uncert, result_data, correlation):
 
         if self.array is None:
+            # Formula sigma = dB
+
             if other_uncert.unit is not None and (
-                        self.parent_nddata.unit != other_uncert.unit):
-                # In case we are dealing with quantities the result of add/sub
-                # will have the unit of the first element.
-                # So if the second element has a unit (so we are dealing with
-                # quantities) and that unit differs from the results unit
-                # (which is just the unit of the first element) we need to
-                # convert the second unit. But since this unit is equal to
-                # the resulting unit we then drop the unit after conversion.
+                        result_data.unit != other_uncert.unit):
+                # If the other uncertainty has a unit and this unit differs
+                # from the unit of the result convert it to the results unit
                 return (other_uncert.array * other_uncert.unit).to(
-                            self.parent_nddata.unit).value
+                            result_data.unit).value
             else:
                 # Copy the result because _propagate will not copy it but for
                 # arithmetic operations users will expect copys.
                 return deepcopy(other_uncert.array)
 
         elif other_uncert.array is None:
-            if self.unit != self.parent_nddata.unit:
-                # Only keep the unit if the unit differs from the data's unit.
-                # in that case the resulting uncertainty will have a different
-                # unit than the resulting data. We just assume that the unit of
-                # the uncertainty was explicitly set different because it would
-                # be to small or high otherwise.
-                return self.array * self.unit
+            # Formula sigma = dA
+
+            if self.unit is not None and self.unit != self.parent_nddata.unit:
+                # If the uncertainty has a different unit than the result we
+                # need to convert it to the results unit.
+                return (self.array * self.unit).to(result_data.unit).value
             else:
                 # Copy the result because _propagate will not copy it but for
                 # arithmetic operations users will expect copys.
                 return deepcopy(self.array)
 
         else:
+            # Formula sigma = sqrt(dA**2 + dB**2 + 2*rho*dA*dB)
+
             if self.unit != other_uncert.unit:
                 # In case the two uncertainties (or data) have different units
-                # we need to convert it to the same because the unit of the
-                # result will have the unit of the first element. In case
-                # the uncertainty of the first element differs from the data
-                # the resulting uncertainties unit will be the unit of the
-                # first elements uncertainty
+                # we need to use quantity operations. The case where only on
+                # has a unit and the other doesn't is not possible with
+                # addition and would have raised an exception in the data
+                # computation
                 this = self.array * self.unit
                 other = other_uncert.array * other_uncert.unit
-                if correlation != 0:
-                    corr = 2 * correlation * this * other
-                    result = np.sqrt(this**2 + other.array**2 + corr)
-                else:
-                    result = np.sqrt(this**2 + other.array**2)
-                # Compare the result to the unit of the data arithmetics and
-                # if it is the same drop the uncertainty unit. The result
-                # should have a unit otherwise uncertainties with units would
-                # not make a lot of sense, or?
+            else:
+                # Since both units are the same or None we can just use
+                # numpy operations
+                this = self.array
+                other = other_uncert.array
+
+            # Determine the result depending on the correlation
+            if correlation != 0:
+                corr = 2 * correlation * this * other
+                result = np.sqrt(this**2 + other**2 + corr)
+            else:
+                result = np.sqrt(this**2 + other**2)
+
+            if isinstance(result, Quantity):
+                # In case we worked with quantities we need to return the
+                # uncertainty that has the same unit as the resulting data
                 if result.unit == result_data.unit:
                     return result.value
                 else:
-                    return result
+                    # Convert it to the data's unit and then drop the unit.
+                    return result.to(result_data.unit).value
             else:
-                # Since both units are the same we do not need to bother with
-                # quantity arithmetics and can simply use numpy arithmetics
-                # which should be faster.
-                return np.sqrt(self.array**2 + other_uncert.array**2)
+                return result
 
 
     def _propagate_subtract(self, other_uncert, result_data, correlation):
@@ -476,32 +479,38 @@ class StdDevUncertainty(NDUncertainty):
 
         if self.array is None:
             if other_uncert.unit is not None and (
-                        self.parent_nddata.unit != other_uncert.unit):
-                return other_uncert.array * other_uncert.unit
+                        result_data.unit != other_uncert.unit):
+                return (other_uncert.array * other_uncert.unit).to(
+                            result_data.unit).value
             else:
                 return deepcopy(other_uncert.array)
-
         elif other_uncert.array is None:
-            if self.unit is not None:
-                return self.array * self.unit
+            if self.unit is not None and self.unit != self.parent_nddata.unit:
+                return (self.array * self.unit).to(result_data.unit).value
             else:
                 return deepcopy(self.array)
-
         else:
+            # Formula sigma = sqrt(dA**2 + dB**2 - 2*rho*dA*dB)
             if self.unit != other_uncert.unit:
                 this = self.array * self.unit
                 other = other_uncert.array * other_uncert.unit
-                if correlation != 0:
-                    corr = 2 * correlation * this * other
-                    result = np.sqrt(this**2 + other.array**2 - corr)
-                else:
-                    result = np.sqrt(this**2 + other.array**2)
+            else:
+                this = self.array
+                other = other_uncert.array
+            if correlation != 0:
+                corr = 2 * correlation * this * other
+                # The only difference to addition is that the correlation is
+                # subtracted.
+                result = np.sqrt(this**2 + other**2 - corr)
+            else:
+                result = np.sqrt(this**2 + other**2)
+            if isinstance(result, Quantity):
                 if result.unit == result_data.unit:
                     return result.value
                 else:
-                    return result
+                    return result.to(result_data.unit).value
             else:
-                return np.sqrt(self.array**2 + other_uncert.array**2)
+                return result
 
 
     def _propagate_multiply(self, other_uncert, result_data, correlation):
@@ -511,41 +520,36 @@ class StdDevUncertainty(NDUncertainty):
             result_data = result_data.value
 
         if self.array is None:
-            # Assuming the operation is A * B the resulting uncertainty is
-            # A * dB. Since A could have negative values we need to take the
-            # absolute.
-            result = np.abs(self.parent_nddata.data * other_uncert.array)
+            # Formula sigma = A * dB
+
+            # We want the result to have the same unit as the result so we
+            # only need to convert the unit of the other uncertainty if it is
+            # different from it's datas unit.
             if other_uncert.unit != other_uncert.parent_nddata.unit:
-                # In case the other uncertainty has a unit different from it's
-                # data we need to keep the unit of the resulting uncertainty
-                # because the user propably had a reason to set different
-                # units.
-                if self.parent_nddata.unit is not None:
-                    return result * other_uncert.unit * self.parent_nddata.unit
-                else:
-                    return result * other_uncert.unit
+                other = (other_uncert.array * other_uncert.unit).to(
+                            other_uncert.parent_nddata.unit).value
             else:
-                # For multiplication the resulting unit is simply the units
-                # multiplied (because there is no decomposing of units in the
-                # arithmetics) so we can simply assume that the unit would be
-                # the same as the result.
-                return result
+                other = other_uncert.array
+            return np.abs(self.parent_nddata.data * other)
 
         elif other_uncert.array is None:
-            # Just like before but the formula is B * dA and everything is
-            # reversed.
-            result = np.abs(other_uncert.parent_nddata.data * self.array)
+            # Formula sigma = dA * B
+
+            # Just the reversed case
             if self.unit != self.parent_nddata.unit:
-                if other_uncert.parent_nddata.unit is not None:
-                    return result * other_uncert.parent_nddata.unit * self.unit
-                else:
-                    return result * self.unit
+                this = (self.array * self.unit).to(
+                                            self.parent_nddata.unit).value
             else:
-                return result
+                this = self.array
+            return np.abs(other_uncert.parent_nddata.data * this)
 
         else:
+            # Formula sigma = AB * sqrt((dA/A)**2 + (dB/B)**2 + 2*dA/A*dB/B)
+
             # In this case we just need to catch the case if one uncertainty
-            # has a unit that is not the same as the data's.
+            # has a unit that is not the same as the data's because we try to
+            # work with dimensionless fractions. Because it allows for numpy
+            # operations instead of the slower quantity operations
             if self.unit != self.parent_nddata.unit:
                 left = (self.array * self.unit).to(
                     self.parent_nddata.unit).value / self.parent_nddata.data
@@ -559,12 +563,11 @@ class StdDevUncertainty(NDUncertainty):
             else:
                 right = (other_uncert.array / other_uncert.parent_nddata.data)
 
-            # Determine the correlation effect if necessary
             if correlation != 0:
                 corr = 2 * correlation * left * right
-                return result_data * np.sqrt(left**2 + right**2 + corr)
+                return np.abs(result_data) * np.sqrt(left**2 + right**2 + corr)
             else:
-                return result_data * np.sqrt(left**2 + right**2)
+                return np.abs(result_data) * np.sqrt(left**2 + right**2)
 
 
     def _propagate_divide(self, other_uncert, result_data, correlation):
@@ -574,10 +577,10 @@ class StdDevUncertainty(NDUncertainty):
             result_data = result_data.value
 
         if self.array is None:
-            # Assuming the operation is A / B the resulting uncertainty is
-            # (A / B) * (dB / B). Since this could have negative values we need
-            # to take the absolute. Also we need (db / B) to be dimensionless
-            # so we convert (if necessary) dB to the same unit as B
+            # Formula sigma = (A / B) * (dB / B)
+
+            # We need (db / B) to be dimensionless so we convert (if necessary)
+            # dB to the same unit as B
             if other_uncert.unit != other_uncert.parent_nddata.unit:
                 right = ((other_uncert.array * other_uncert.unit).to(
                     other_uncert.parent_nddata.unit).value /
@@ -587,39 +590,38 @@ class StdDevUncertainty(NDUncertainty):
             return np.abs(result_data * right)
 
         elif other_uncert.array is None:
-            # The formula in this case is dA / B. This could be negative so
-            # we need to take the absolute and check that the result has the
-            # right unit
-            result = np.abs(self.array / other_uncert.parent_nddata.data)
+            # Formula sigma = dA / B.
+
+            # We need to convert dA to the unit of A to have a result that
+            # matches the resulting data's unit.
             if self.unit != self.parent_nddata.unit:
-                if other_uncert.parent_nddata.unit is not None:
-                    return result * self.unit / other_uncert.parent_nddata.unit
-                else:
-                    return result * self.unit
+                this = (self.array * self.unit).to(self.parent_nddata.unit)
             else:
-                return result
+                this = self.array
+            return np.abs(this / other_uncert.parent_nddata.data)
 
         else:
-            # Same as for multiplication
+            # Formula sigma = AB * sqrt((dA/A)**2 + (dB/B)**2 - 2*dA/A*dB/B)
             if self.unit != self.parent_nddata.unit:
                 left = (self.array * self.unit).to(
                     self.parent_nddata.unit).value / self.parent_nddata.data
             else:
                 left = self.array / self.parent_nddata.data
-
             if other_uncert.unit != other_uncert.parent_nddata.unit:
                 right = ((other_uncert.array * other_uncert.unit).to(
                     other_uncert.parent_nddata.unit).value /
                     other_uncert.parent_nddata.data)
             else:
                 right = (other_uncert.array / other_uncert.parent_nddata.data)
-
-            # Determine the correlation effect if necessary
             if correlation != 0:
                 corr = 2 * correlation * left * right
-                return result_data * np.sqrt(left**2 + right**2 - corr)
+                # This differs from multiplication because the correlation
+                # term needs to be subtracted
+                return np.abs(result_data) * np.sqrt(left**2 + right**2 - corr)
             else:
-                return result_data * np.sqrt(left**2 + right**2)
+                return np.abs(result_data) * np.sqrt(left**2 + right**2)
+
+    # TODO: Make a decorator that adds the docstrings instead.
 
     # Apply docstrings
     _propagate_add.__doc__ = _propagate_doc.format(operation='addition',

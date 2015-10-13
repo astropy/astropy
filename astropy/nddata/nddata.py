@@ -250,6 +250,8 @@ class NDData(NDDataBase):
         a string. `~astropy.nddata.NDUncertainty`-subclasses are recommended,
         if `~astropy.nddata.NDArithmeticMixin` with uncertainty propagation
         is used.
+
+        TODO: Maybe stick with the *must* contain such an attribute?
         """
         return self._uncertainty
 

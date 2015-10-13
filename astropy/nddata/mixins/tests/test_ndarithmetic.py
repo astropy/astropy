@@ -6,11 +6,11 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import numpy as np
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from ... import NDData, NDArithmeticMixin
 from ...nduncertainty import NDUncertainty, StdDevUncertainty
-from ....units import UnitsError
+from ....units import UnitsError, Quantity
 from ....tests.helper import pytest
 from .... import units as u
 
@@ -62,6 +62,14 @@ def test_arithmetics_data(data1, data2):
         assert len(nd.meta) == 0
         assert nd.wcs is None
 
+# Invalid arithmetic operations for data covering:
+# not broadcastable data
+def test_arithmetics_data_invalid():
+    nd1 = NDDataArithmetic([1,2,3])
+    nd2 = NDDataArithmetic([1,2])
+    with pytest.raises(ValueError):
+        nd1.add(nd2)
+
 # Test with Data and unit and covers:
 # identical units (even dimensionless unscaled vs. no unit),
 # equivalent units (such as meter and kilometer)
@@ -76,7 +84,7 @@ def test_arithmetics_data(data1, data2):
     (np.arange(1000).reshape(20,5,10), np.ones((20,5,10))*3*u.dimensionless_unscaled),
     (np.array(5), np.array(10)*u.s/u.h),
     ])
-def test_arithmetics_data_identical_unit(data1, data2):
+def test_arithmetics_data_unit_identical(data1, data2):
 
     nd1 = NDDataArithmetic(data1)
     nd2 = NDDataArithmetic(data2)
@@ -126,7 +134,7 @@ def test_arithmetics_data_identical_unit(data1, data2):
     (np.array(5)*u.Mpc, np.array(10)),
     (np.array(5), np.array(10)*u.s),
     ])
-def test_arithmetics_data_NOT_identical_unit(data1, data2):
+def test_arithmetics_data_unit_NOT_identical(data1, data2):
 
     nd1 = NDDataArithmetic(data1)
     nd2 = NDDataArithmetic(data2)
@@ -217,7 +225,7 @@ def test_arithmetics_data_masks(mask1, mask2):
     (100, 100),
     (2.7, 2.7),
     ])
-def test_arithmetics_data_invalid_masks(mask1, mask2):
+def test_arithmetics_data_masks_invalid(mask1, mask2):
 
     # Only one mask is not the expected type should work
 
@@ -253,8 +261,7 @@ def test_arithmetics_data_invalid_masks(mask1, mask2):
 
 # One additional case which can not be easily incorporated in the test above
 # what happens if the masks are numpy ndarrays are not broadcastable
-
-def test_arithmetics_data_invalid_masks_2():
+def test_arithmetics_data_masks_invalid_2():
 
     nd1 = NDDataArithmetic(1, mask=np.array([1,0], dtype=np.bool_))
     nd2 = NDDataArithmetic(1, mask=np.array([1,0,1], dtype=np.bool_))
@@ -267,6 +274,353 @@ def test_arithmetics_data_invalid_masks_2():
         nd1.subtract(nd2)
     with pytest.raises(ValueError):
         nd1.divide(nd2)
+
+# Covering:
+# both have meta with and without meta_keyword_operations
+def test_arithmetics_meta_both():
+    meta1 = {'exposure': 100, 'dummy': 5}
+    meta2 = {'exposure': 50, 'dummy': 10}
+    nd1 = NDDataArithmetic(1, meta=meta1)
+    nd2 = NDDataArithmetic(1, meta=meta2)
+
+    # No keywords specified to be part of arithmetics
+    nd3 = nd1.add(nd2)
+    assert nd3.meta['exposure'] == 100
+    assert nd3.meta['dummy'] == 5
+
+    # keyword IS specified to be part of arithmetics
+    nd4 = nd1.add(nd2, meta_kwds_operate=['exposure'])
+    assert nd4.meta['exposure'] == 150
+    assert nd4.meta['dummy'] == 5
+
+    nd4 = nd1.subtract(nd2, meta_kwds_operate=['exposure'])
+    assert nd4.meta['exposure'] == 50
+    assert nd4.meta['dummy'] == 5
+
+    nd4 = nd1.multiply(nd2, meta_kwds_operate=['exposure'])
+    assert nd4.meta['exposure'] == 5000
+    assert nd4.meta['dummy'] == 5
+
+    nd4 = nd1.divide(nd2, meta_kwds_operate=['exposure'])
+    assert nd4.meta['exposure'] == 2
+    assert nd4.meta['dummy'] == 5
+
+# Covering:
+# both have meta but the keyword is missing in one of them
+def test_arithmetics_meta_both_invalid():
+    meta1 = {'exposure': 100, 'dummy': 5}
+    meta2 = {'exposures': 50, 'dummy': 10}
+    nd1 = NDDataArithmetic(1, meta=meta1)
+    nd2 = NDDataArithmetic(1, meta=meta2)
+
+    # keyword IS specified to be part of arithmetics but exists only in one
+    with pytest.raises(KeyError):
+        nd1.add(nd2, meta_kwds_operate=['exposure'])
+    with pytest.raises(KeyError):
+        nd1.subtract(nd2, meta_kwds_operate=['exposure'])
+    with pytest.raises(KeyError):
+        nd1.multiply(nd2, meta_kwds_operate=['exposure'])
+    with pytest.raises(KeyError):
+        nd1.divide(nd2, meta_kwds_operate=['exposure'])
+
+# Covering:
+# only first has meta and the other is a scalar
+def test_arithmetics_meta_one():
+    meta1 = {'exposure': 100, 'dummy': 5}
+    nd1 = NDDataArithmetic(1, meta=meta1)
+    nd2 = NDDataArithmetic(50)
+
+    # No keywords specified to be part of arithmetics
+    nd3 = nd1.add(nd2)
+    assert nd3.meta['exposure'] == 100
+    assert nd3.meta['dummy'] == 5
+
+    # keyword IS specified to be part of arithmetics
+    nd4 = nd1.add(nd2, meta_kwds_operate=['exposure'])
+    assert nd4.meta['exposure'] == 150
+    assert nd4.meta['dummy'] == 5
+
+    nd4 = nd1.subtract(nd2, meta_kwds_operate=['exposure'])
+    assert nd4.meta['exposure'] == 50
+    assert nd4.meta['dummy'] == 5
+
+    nd4 = nd1.multiply(nd2, meta_kwds_operate=['exposure'])
+    assert nd4.meta['exposure'] == 5000
+    assert nd4.meta['dummy'] == 5
+
+    nd4 = nd1.divide(nd2, meta_kwds_operate=['exposure'])
+    assert nd4.meta['exposure'] == 2
+    assert nd4.meta['dummy'] == 5
+
+    # Short check that units are ignored:
+    nd2 = NDDataArithmetic(50, unit=u.s)
+    nd4 = nd1.multiply(nd2, meta_kwds_operate=['exposure'])
+    assert nd4.meta['exposure'] == 5000 # would fail if it was a quantity
+
+# Covering:
+# only second has meta and the other is a scalar, the inverse case
+def test_arithmetics_meta_one_inverse():
+    meta1 = {'exposure': 100, 'dummy': 5}
+    nd1 = NDDataArithmetic(1, meta=meta1)
+    nd2 = NDDataArithmetic(50)
+
+    # Now also the inverse operations are of interest
+    nd4 = nd2.add(nd1, meta_kwds_operate=['exposure'])
+    assert nd4.meta['exposure'] == 150
+    assert nd4.meta['dummy'] == 5
+
+    nd4 = nd2.subtract(nd1, meta_kwds_operate=['exposure'])
+    assert nd4.meta['exposure'] == -50
+    assert nd4.meta['dummy'] == 5
+
+    nd4 = nd2.multiply(nd1, meta_kwds_operate=['exposure'])
+    assert nd4.meta['exposure'] == 5000
+    assert nd4.meta['dummy'] == 5
+
+    nd4 = nd2.divide(nd1, meta_kwds_operate=['exposure'])
+    assert nd4.meta['exposure'] == 0.5
+    assert nd4.meta['dummy'] == 5
+
+# Covering:
+# only one has meta and the other is NOT a scalar
+def test_arithmetics_meta_one_invalid():
+    meta1 = {'exposure': 100, 'dummy': 5}
+    nd1 = NDDataArithmetic(1, meta=meta1)
+    nd2 = NDDataArithmetic([1,2,3])
+
+    # Considered invalid would be if only one has a meta and the other
+    # is an ndarray but this case only raises a warning
+    nd3 = nd1.add(nd2, meta_kwds_operate=['exposure'])
+    assert nd3.meta['exposure'] == 100
+
+    # Check also for reverse
+    nd3 = nd2.add(nd1, meta_kwds_operate=['exposure'])
+    assert nd3.meta['exposure'] == 100
+
+# Covering:
+# both have uncertainties (data and uncertainty without unit)
+# tested against manually determined resulting uncertainties to verify the
+# implemented formulas
+def test_arithmetics_stddevuncertainty_basic():
+    nd1 = NDDataArithmetic([1,2,3], uncertainty=StdDevUncertainty([1,1,3]))
+    nd2 = NDDataArithmetic([2,2,2], uncertainty=StdDevUncertainty([2,2,2]))
+    nd3 = nd1.add(nd2)
+    nd4 = nd2.add(nd1)
+    # Inverse operation should result in the same uncertainty
+    assert_array_equal(nd3.uncertainty.array, nd4.uncertainty.array)
+    # Compare it to the theoretical uncertainty
+    ref_uncertainty = np.sqrt(np.array([1,1,3])**2+np.array([2,2,2])**2)
+    assert_array_equal(nd3.uncertainty.array, ref_uncertainty)
+
+    nd3 = nd1.subtract(nd2)
+    nd4 = nd2.subtract(nd1)
+    # Inverse operation should result in the same uncertainty
+    assert_array_equal(nd3.uncertainty.array, nd4.uncertainty.array)
+    # Compare it to the theoretical uncertainty (same as for add)
+    assert_array_equal(nd3.uncertainty.array, ref_uncertainty)
+
+    nd3 = nd1.multiply(nd2)
+    nd4 = nd2.multiply(nd1)
+    # Inverse operation should result in the same uncertainty
+    assert_array_equal(nd3.uncertainty.array, nd4.uncertainty.array)
+    # Compare it to the theoretical uncertainty
+    ref_uncertainty = np.abs(np.array([2,4,6])) * np.sqrt(
+        (np.array([1,1,3]) / np.array([1,2,3]))**2 +
+        (np.array([2,2,2]) / np.array([2,2,2]))**2)
+    assert_array_equal(nd3.uncertainty.array, ref_uncertainty)
+
+    nd3 = nd1.divide(nd2)
+    nd4 = nd2.divide(nd1)
+    # Inverse operation gives a different uncertainty!
+    # Compare it to the theoretical uncertainty
+    ref_uncertainty_1 = np.abs(np.array([1/2,2/2,3/2])) * np.sqrt(
+        (np.array([1,1,3]) / np.array([1,2,3]))**2 +
+        (np.array([2,2,2]) / np.array([2,2,2]))**2)
+    assert_array_equal(nd3.uncertainty.array, ref_uncertainty_1)
+    ref_uncertainty_2 = np.abs(np.array([2,1,2/3])) * np.sqrt(
+        (np.array([1,1,3]) / np.array([1,2,3]))**2 +
+        (np.array([2,2,2]) / np.array([2,2,2]))**2)
+    assert_array_equal(nd4.uncertainty.array, ref_uncertainty_2)
+
+# Covering:
+# only one has an uncertainty (data and uncertainty without unit)
+# tested against the case where the other one has zero uncertainty. (this case
+# must be correct because we tested it in the last case)
+# Also verify that if the result of the data has negative values the resulting
+# uncertainty has no negative values.
+def test_arithmetics_stddevuncertainty_one_missing():
+    nd1 = NDDataArithmetic([1,-2,3])
+    nd1_ref = NDDataArithmetic([1,-2,3], uncertainty=StdDevUncertainty([0,0,0]))
+    nd2 = NDDataArithmetic([2,2,-2], uncertainty=StdDevUncertainty([2,2,2]))
+
+    # Addition
+    nd3 = nd1.add(nd2)
+    nd3_ref = nd1_ref.add(nd2)
+    assert_array_equal(nd3.uncertainty.array, nd3_ref.uncertainty.array)
+    assert_array_equal(np.abs(nd3.uncertainty.array), nd3.uncertainty.array)
+
+    nd3 = nd2.add(nd1)
+    nd3_ref = nd2.add(nd1_ref)
+    assert_array_equal(nd3.uncertainty.array, nd3_ref.uncertainty.array)
+    assert_array_equal(np.abs(nd3.uncertainty.array), nd3.uncertainty.array)
+
+    # Subtraction
+    nd3 = nd1.subtract(nd2)
+    nd3_ref = nd1_ref.subtract(nd2)
+    assert_array_equal(nd3.uncertainty.array, nd3_ref.uncertainty.array)
+    assert_array_equal(np.abs(nd3.uncertainty.array), nd3.uncertainty.array)
+
+    nd3 = nd2.subtract(nd1)
+    nd3_ref = nd2.subtract(nd1_ref)
+    assert_array_equal(nd3.uncertainty.array, nd3_ref.uncertainty.array)
+    assert_array_equal(np.abs(nd3.uncertainty.array), nd3.uncertainty.array)
+
+    # Multiplication
+    nd3 = nd1.multiply(nd2)
+    nd3_ref = nd1_ref.multiply(nd2)
+    assert_array_equal(nd3.uncertainty.array, nd3_ref.uncertainty.array)
+    assert_array_equal(np.abs(nd3.uncertainty.array), nd3.uncertainty.array)
+
+    nd3 = nd2.multiply(nd1)
+    nd3_ref = nd2.multiply(nd1_ref)
+    assert_array_equal(nd3.uncertainty.array, nd3_ref.uncertainty.array)
+    assert_array_equal(np.abs(nd3.uncertainty.array), nd3.uncertainty.array)
+
+    # Division
+    nd3 = nd1.divide(nd2)
+    nd3_ref = nd1_ref.divide(nd2)
+    assert_array_equal(nd3.uncertainty.array, nd3_ref.uncertainty.array)
+    assert_array_equal(np.abs(nd3.uncertainty.array), nd3.uncertainty.array)
+
+    nd3 = nd2.divide(nd1)
+    nd3_ref = nd2.divide(nd1_ref)
+    assert_array_equal(nd3.uncertainty.array, nd3_ref.uncertainty.array)
+    assert_array_equal(np.abs(nd3.uncertainty.array), nd3.uncertainty.array)
+
+# Covering:
+# data with unit and uncertainty with unit (but equivalent units)
+# compared against correctly scaled NDDatas
+@pytest.mark.parametrize(('uncert1', 'uncert2'), [
+    (np.array([1,2,3])*u.m, None),
+    (np.array([1,2,3])*u.cm, None),
+    (None, np.array([1,2,3])*u.m),
+    (None, np.array([1,2,3])*u.cm),
+    (np.array([1,2,3]), np.array([2,3,4])),
+    (np.array([1,2,3])*u.m, np.array([2,3,4])),
+    (np.array([1,2,3]), np.array([2,3,4]))*u.m,
+    (np.array([1,2,3])*u.m, np.array([2,3,4]))*u.m,
+    (np.array([1,2,3])*u.cm, np.array([2,3,4])),
+    (np.array([1,2,3]), np.array([2,3,4]))*u.cm,
+    (np.array([1,2,3])*u.cm, np.array([2,3,4]))*u.cm,
+    (np.array([1,2,3])*u.km, np.array([2,3,4]))*u.cm,
+    ])
+def test_arithmetics_stddevuncertainty_with_units(uncert1, uncert2):
+    # Data has same units
+    data1 = np.array([1,2,3]) * u.m
+    data2 = np.array([-4,7,0]) * u.m
+    if uncert1 is not None:
+        uncert1 = StdDevUncertainty(uncert1)
+        if isinstance(uncert1, Quantity):
+            uncert1_ref = uncert1.to(data1.unit).value
+        else:
+            uncert1_ref = uncert1
+        uncert_ref1 = StdDevUncertainty(uncert1_ref, copy=True)
+    else:
+        uncert1 = None
+        uncert_ref1 = None
+
+    if uncert2 is not None:
+        uncert2 = StdDevUncertainty(uncert2)
+        if isinstance(uncert2, Quantity):
+            uncert2_ref = uncert2.to(data2.unit).value
+        else:
+            uncert2_ref = uncert2
+        uncert_ref2 = StdDevUncertainty(uncert2_ref, copy=True)
+    else:
+        uncert2 = None
+        uncert_ref2 = None
+
+    nd1 = NDDataArithmetic(data1, uncertainty = uncert1)
+    nd2 = NDDataArithmetic(data2, uncertainty = uncert2)
+
+    nd1_ref = NDDataArithmetic(data1, uncertainty = uncert_ref1)
+    nd2_ref = NDDataArithmetic(data2, uncertainty = uncert_ref2)
+
+    # Let's start the tests
+    # Addition
+    nd3 = nd1.add(nd2)
+    nd3_ref = nd1_ref.add(nd2_ref)
+    assert nd3.unit == nd3_ref.unit
+    assert nd3.uncertainty.unit == nd3_ref.uncertainty.unit
+    assert_array_equal(nd3.uncertainty.array, nd3.uncertainty.array)
+
+    nd3 = nd2.add(nd1)
+    nd3_ref = nd2_ref.add(nd1_ref)
+    assert nd3.unit == nd3_ref.unit
+    assert nd3.uncertainty.unit == nd3_ref.uncertainty.unit
+    assert_array_equal(nd3.uncertainty.array, nd3.uncertainty.array)
+
+    # Subtraction
+    nd3 = nd1.subtract(nd2)
+    nd3_ref = nd1_ref.subtract(nd2_ref)
+    assert nd3.unit == nd3_ref.unit
+    assert nd3.uncertainty.unit == nd3_ref.uncertainty.unit
+    assert_array_equal(nd3.uncertainty.array, nd3.uncertainty.array)
+
+    nd3 = nd2.subtract(nd1)
+    nd3_ref = nd2_ref.subtract(nd1_ref)
+    assert nd3.unit == nd3_ref.unit
+    assert nd3.uncertainty.unit == nd3_ref.uncertainty.unit
+    assert_array_equal(nd3.uncertainty.array, nd3.uncertainty.array)
+
+    # Multiplication
+    nd3 = nd1.multiply(nd2)
+    nd3_ref = nd1_ref.multiply(nd2_ref)
+    assert nd3.unit == nd3_ref.unit
+    assert nd3.uncertainty.unit == nd3_ref.uncertainty.unit
+    assert_array_equal(nd3.uncertainty.array, nd3.uncertainty.array)
+
+    nd3 = nd2.multiply(nd1)
+    nd3_ref = nd2_ref.multiply(nd1_ref)
+    assert nd3.unit == nd3_ref.unit
+    assert nd3.uncertainty.unit == nd3_ref.uncertainty.unit
+    assert_array_equal(nd3.uncertainty.array, nd3.uncertainty.array)
+
+    # Division
+    nd3 = nd1.divide(nd2)
+    nd3_ref = nd1_ref.divide(nd2_ref)
+    assert nd3.unit == nd3_ref.unit
+    assert nd3.uncertainty.unit == nd3_ref.uncertainty.unit
+    assert_array_equal(nd3.uncertainty.array, nd3.uncertainty.array)
+
+    nd3 = nd2.divide(nd1)
+    nd3_ref = nd2_ref.divide(nd1_ref)
+    assert nd3.unit == nd3_ref.unit
+    assert nd3.uncertainty.unit == nd3_ref.uncertainty.unit
+    assert_array_equal(nd3.uncertainty.array, nd3.uncertainty.array)
+
+# TODO: Tests for correlation, especially for multiplication and division
+# there might be failures since the correlation term is dA * dB / (A * B) so
+# for A or B having elements of 0 or close to zero will produce some failures
+# TODO: Check if rewriting the formula fixes these issues since (A*B) is also
+# a prefactor.... might be worth revisiting this even though the other
+# terms will get messier.
+
+# TODO: Tests for the switches (propagate_uncertainty, handle_mask,
+# handle_meta and check_wcs)
+
+# TODO: Subclassing from NDArithmeticMixin overriding, extending methods
+# (but that's optional or should be done as doctest in the subclassing.rst)
+
+# TODO: Catch warnings and infos... (optional since texts may change)
+
+
+
+
+
+# Old tests belonging to NDDataArray and only partly touch NDArithmetic itself
+
+
 
 from ...compat import NDDataArray
 from ...nduncertainty import IncompatibleUncertaintiesException

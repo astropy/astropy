@@ -33,13 +33,18 @@ class NDArithmeticMixin(object):
     def _arithmetic(self, operation, operand,
                    uncertainty_correlation=0, meta_kwds_operate=None,
                    meta_kwds_set=None, propagate_uncertainties=True,
-                   handle_mask=True, handle_meta=True, compare_wcs=True):
+                   handle_mask=True, handle_meta=True, compare_wcs=True,
+                   **kwargs):
         """
         Base method which calculates the result of the arithmetic operation.
 
         This class determines the result of the arithmetic operation on the
         ``data`` with respect to their units and then forwards to other methods
         to calculate the other properties for the result (like uncertainty).
+
+        TODO: Simplify some parameter names, descriptions or presence.
+        TODO: Instead of the operation-parameter string use the numpy function
+        as parameter
 
         Parameters
         ----------
@@ -65,11 +70,17 @@ class NDArithmeticMixin(object):
         handle_mask: `bool` or ``None``, optional
             see :meth:`NDArithmeticMixin.add`
 
-        handle_mata: `bool` or ``None``, optional
+        handle_meta: `bool` or ``None``, optional
             see :meth:`NDArithmeticMixin.add`
 
         check_wcs: `bool` or ``None``, optional
             see :meth:`NDArithmeticMixin.add`
+
+        kwargs:
+            Currently not used but every unfamiliar keyword is passed to the
+            different `NDArithmeticMixin._arithmetic_data` (or wcs, ...)
+            methods. See the Notes about subclassing why this can ease
+            altering the behaviour of `NDArithmeticMixin` in subclasses.
 
         Returns
         -------
@@ -77,10 +88,13 @@ class NDArithmeticMixin(object):
             The resulting data as array (in case both operands were without
             unit) or as quantity if at least one had a unit.
 
+        TODO: Update return kwards description
+
         kwargs: `dict`
-            kwargs to create a new instance of the same class as the first
-            operand was. The calling method or function is responsible for
-            creating the instance
+            kwargs to create a new instance of the same class as self.
+            The calling method or function is responsible for
+            creating the instance. This has nothing to with the ``kwargs`` that
+            are passed as parameter.
 
         """
         # Convert the operand to the same class this allows for arithmetic
@@ -103,10 +117,11 @@ class NDArithmeticMixin(object):
             else:
                 kwargs['wcs'] = self.wcs
         else:
-            kwargs['wcs'] = self._arithmetic_wcs(operand, compare_wcs)
+            kwargs['wcs'] = self._arithmetic_wcs(operand, compare_wcs,
+                                                 **kwargs)
         # Then calculate the resulting data (which can but not needs to be a
         # quantity)
-        result = self._arithmetic_data(operation, operand)
+        result = self._arithmetic_data(operation, operand, **kwargs)
         # Determine the other properties
         if propagate_uncertainties is None:
             kwargs['uncertainty'] = None
@@ -117,7 +132,7 @@ class NDArithmeticMixin(object):
                 kwargs['uncertainty'] = self.uncertainty
         else:
             kwargs['uncertainty'] = self._arithmetic_uncertainty(operation,
-                                    operand, result, uncertainty_correlation)
+                            operand, result, uncertainty_correlation, **kwargs)
         if handle_mask is None:
             kwargs['mask'] = None
         elif not handle_mask:
@@ -126,7 +141,7 @@ class NDArithmeticMixin(object):
             else:
                 kwargs['mask'] = self.mask
         else:
-            kwargs['mask'] = self._arithmetic_mask(operand)
+            kwargs['mask'] = self._arithmetic_mask(operand, **kwargs)
 
         if handle_meta is None:
             kwargs['meta'] = None
@@ -137,12 +152,12 @@ class NDArithmeticMixin(object):
                 kwargs['meta'] = self.meta
         else:
             kwargs['meta'] = self._arithmetic_meta(operation, operand,
-                                        meta_kwds_operate, meta_kwds_set)
+                                meta_kwds_operate, meta_kwds_set, **kwargs)
 
         # Wrap the individual results into a new instance of the same class.
         return result, kwargs
 
-    def _arithmetic_data(self, operation, operand):
+    def _arithmetic_data(self, operation, operand, **kwargs):
         """
         Calculate the resulting data
 
@@ -193,7 +208,8 @@ class NDArithmeticMixin(object):
 
         return result
 
-    def _arithmetic_uncertainty(self, operation, operand, result, correlation):
+    def _arithmetic_uncertainty(self, operation, operand, result, correlation,
+                                **kwargs):
         """
         Calculate the resulting uncertainty.
 
@@ -258,7 +274,7 @@ class NDArithmeticMixin(object):
             return self.uncertainty.propagate(operation, operand, result,
                                               correlation)
 
-    def _arithmetic_mask(self, operand):
+    def _arithmetic_mask(self, operand, **kwargs):
         """
         Calculate the resulting mask
 
@@ -314,7 +330,7 @@ class NDArithmeticMixin(object):
             # Now lets calculate the resulting mask (operation enforces copy)
             return self.mask | operand.mask
 
-    def _arithmetic_wcs(self, operand, compare_wcs):
+    def _arithmetic_wcs(self, operand, compare_wcs, **kwargs):
         """
         Calculate the resulting wcs.
 
@@ -376,7 +392,7 @@ class NDArithmeticMixin(object):
             return deepcopy(self.wcs)
 
     def _arithmetic_meta(self, operation, operand, meta_kwds_operate,
-                         meta_kwds_set):
+                         meta_kwds_set, **kwargs):
         """
         Calculate the resulting meta.
 
@@ -507,6 +523,8 @@ class NDArithmeticMixin(object):
         result, kwargs = self._arithmetic("division", operand, **kwargs)
         return self.__class__(result, **kwargs)
 
+    # TODO: Sharedmethod instead of classmethod?
+    # http://docs.astropy.org/en/v1.0.5/api/astropy.utils.decorators.sharedmethod.html#astropy.utils.decorators.sharedmethod
 
     @classmethod
     def addition(cls, operand1, operand2, **kwargs):
@@ -643,6 +661,8 @@ class NDArithmeticMixin(object):
         operand1 = cls(operand1)
         return operand1.divide(operand2, **kwargs)
 
+    # TODO: Make a decorator that adds the docstrings instead.
+
     if True:
         doc = """
         {name} another dataset (``operand``) to this dataset.
@@ -696,7 +716,7 @@ class NDArithmeticMixin(object):
             account and combined (by a bitwise ``or`` operation). Default is
             ``True``.
 
-        handle_mata: `bool` or ``None``, optional
+        handle_meta: `bool` or ``None``, optional
             If ``None`` the result will have no meta. If ``False`` the result
             will have a copied version of the meta of the first operand (or
             if the first operand has no meta then the one from the second is
@@ -727,14 +747,6 @@ class NDArithmeticMixin(object):
            units like ``km/m`` if you divided for example 100km by 5m. So this
            Mixin has adopted this behaviour.
 
-        2. Uncertainty propagation allows that the unit of the uncertainty
-           differs from the unit of the data. In these cases uncertainty
-           propagation *trys* to keep these units but sometimes this will
-           not be possible. Maybe it is possible but that's not so easy right
-           now and therefore if you use different units for uncertainty and
-           data there might be cases where the uncertainty's unit may seem
-           rather odd after an arithmetic operation.
-
         See also
         --------
         {other}
@@ -748,7 +760,9 @@ class NDArithmeticMixin(object):
         divide.__doc__ = doc.format(name="Divide", operator="/",
                             other=":meth:`NDArithmeticMixin.division`")
 
-        examples_for_main_documentation = """
+        """
+        # Just here because the examples fit more into the main documentation
+        # than in here.
         For example::
 
             >>> from astropy.nddata import NDData, NDArithmeticMixin, NDSlicingMixin
