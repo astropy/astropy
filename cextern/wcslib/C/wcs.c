@@ -846,10 +846,10 @@ int wcssub(
         for (jhat = 0; jhat < Nhat; jhat++) {
           if (axmap[jhat] < 0) {
             axmap[jhat] = jhat;
+        }
 
-            /* Make room for an additional DPja.AXIS.j record. */
-            ndp++;
-          }
+          /* Make room for an additional DPja.AXIS.j record. */
+          ndp++;
 
           if (map[axmap[jhat]] == 0) {
             /* Distortion depends on an axis excluded from the subimage. */
