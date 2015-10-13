@@ -650,6 +650,9 @@ Bug fixes
 
 - ``astropy.constants``
 
+  - The constants ``Ry`` and ``u`` are now properly used inside the 
+    corresponding units.  The latter have changed slightly as a result. [#4229]
+
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
@@ -695,6 +698,10 @@ Bug fixes
 - ``astropy.time``
 
 - ``astropy.units``
+
+  - The units ``Ryd`` and ``u`` are no longer hard-coded numbers, but depend
+    on the appropriate values in the ``constants`` module.  As a result, these
+    units now imply slightly different conversions.  [#4229]
 
 - ``astropy.utils``
 
