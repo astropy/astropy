@@ -1,3 +1,17 @@
+WCSLIB version 5.10 (2015/10/09)
+--------------------------------
+
+* C library
+
+  - In wcshdo(), allow output of floating point keyvalues to 15
+    significant digits (was 14), mainly for astropy.
+
+  - In wcspih(), allow unrecognised WAT projection types (tan, etc.) to
+    pass without returning an error.  Reported by Michael Droettboom.
+    Also fixed a bug triggered by SIP keywords in unconventional order,
+    reported by Colin Slater, LSST.
+
+
 WCSLIB version 5.9 (2015/07/21)
 -------------------------------
 
@@ -24,8 +38,9 @@ WCSLIB version 5.8 (2015/07/08)
     wcshdo() to write headers in the form of the distortion function
     used internally (usually TPD).
 
-  - Added the capability, via DPja.DOCORR, for a distortion to be
-    applied as a correction.
+  - Added the capability, via DPja.DOCORR, for a distortion function to
+    to compute an additive correction to the undistorted coordinates
+    (rather than computing the distorted coordinates themselves).
 
   - Added auxiliary variables to TPD via DPja.AUX.jhat.COEFF.m.
 
@@ -2490,4 +2505,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 5.9 2015/07/21 09:20:04 mcalabre Exp $
+$Id: CHANGES,v 5.10 2015/10/09 08:19:17 mcalabre Exp $

@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.9 - an implementation of the FITS WCS standard.
+  WCSLIB 5.10 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcshdr.c,v 5.9.1.2 2015/08/02 07:49:06 mcalabre Exp mcalabre $
+  $Id: wcshdr.c,v 5.10 2015/10/09 08:19:15 mcalabre Exp $
 *===========================================================================*/
 
 #include <ctype.h>
