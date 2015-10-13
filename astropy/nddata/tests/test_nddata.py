@@ -179,12 +179,19 @@ def test_nddata_init_data_maskedarray():
 def test_nddata_init_data_quantity(data):
     # Test an array and a scalar because a scalar Quantity does not always
     # behaves the same way as an array.
-    # Until nddata and quantity are integrated initializing with a quantity
-    # should raise an error.
-    unit = u.adu
-    ndd = NDData(data * unit)
-    assert ndd.unit == unit
-    np.testing.assert_array_equal(ndd.data, np.array(data))
+    quantity = data * u.adu
+    ndd = NDData(quantity)
+    assert ndd.unit == quantity.unit
+    assert_array_equal(ndd.data, np.array(quantity.value))
+    if ndd.data.size > 1:
+        # check that if it is an array it is not copied
+        quantity.value[1] = 100
+        assert ndd.data[1] == quantity.value[1]
+
+        # or is copyied if we choose copy=True
+        ndd = NDData(quantity, copy=True)
+        quantity.value[1] = 5
+        assert ndd.data[1] != quantity.value[1]
 
 
 def test_nddata_init_data_maskedQuantity():
@@ -209,10 +216,17 @@ def test_nddata_init_data_nddata():
     assert nd2.mask == nd1.mask
     assert nd2.unit == nd1.unit
     assert nd2.meta == nd1.meta
+
     # Check that it is copied by reference
     nd1 = NDData(np.ones((5, 5)))
     nd2 = NDData(nd1)
     assert nd1.data is nd2.data
+
+    # Check that it is really copied if copy=True
+    nd2 = NDData(nd1, copy=True)
+    nd1.data[2,3] = 10
+    assert nd1.data[2,3] != nd2.data[2,3]
+
     # Now let's see what happens if we have all explicitly set
     nd1 = NDData(np.array([1]), mask=False, uncertainty=10, unit=u.s,
                  meta={'dest':'mordor'}, wcs=10)
@@ -223,6 +237,7 @@ def test_nddata_init_data_nddata():
     assert nd2.mask == nd1.mask
     assert nd2.unit == nd1.unit
     assert nd2.meta == nd1.meta
+
     # now what happens if we overwrite them all too
     nd3 = NDData(nd1, mask=True, uncertainty=200, unit=u.km,
                  meta={'observer':'ME'}, wcs=4)
