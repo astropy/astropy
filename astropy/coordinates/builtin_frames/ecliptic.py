@@ -4,7 +4,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 from ..representation import SphericalRepresentation
-from ..baseframe import BaseCoordinateFrame, RepresentationMapping, TimeFrameAttribute
+from ..baseframe import BaseCoordinateFrame, TimeFrameAttribute
 from .utils import EQUINOX_J2000
 
 
