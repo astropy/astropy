@@ -12,10 +12,10 @@ import numpy as np
 from ...tests.helper import pytest, catch_warnings
 from ...extern import six
 from ...utils import isiterable
-from .. import (Time, ScaleValueError, erfa_time, TIME_SCALES, TimeString,
-                TimezoneInfo)
+from .. import Time, ScaleValueError, TIME_SCALES, TimeString, TimezoneInfo
 from ...coordinates import EarthLocation
 from ... import units as u
+from ... import _erfa as erfa
 try:
     import pytz
     HAS_PYTZ = True
@@ -273,7 +273,7 @@ class TestBasic():
 
     def test_location_array(self):
         """Check that location arrays are checked for size and used
-        for the corresponding times.  Also checks that erfa_time.d_tdb_tt
+        for the corresponding times.  Also checks that erfa
         can handle array-valued locations, and can broadcast these if needed.
         """
 
@@ -697,16 +697,16 @@ class TestSofaErrors():
         im = np.array([2000], dtype=np.intc)  # bad month
         id = np.array([2000], dtype=np.intc)  # bad day
         with pytest.raises(ValueError):  # bad month, fatal error
-            djm0, djm = erfa_time.cal2jd(iy, im, id)
+            djm0, djm = erfa.cal2jd(iy, im, id)
 
         iy[0] = -5000
         im[0] = 2
         with pytest.raises(ValueError):  # bad year, fatal error
-            djm0, djm = erfa_time.cal2jd(iy, im, id)
+            djm0, djm = erfa.cal2jd(iy, im, id)
 
         iy[0] = 2000
         with catch_warnings() as w:
-            djm0, djm = erfa_time.cal2jd(iy, im, id)
+            djm0, djm = erfa.cal2jd(iy, im, id)
         assert len(w) == 1
         assert 'bad day    (JD computed)' in six.text_type(w[0].message)
 

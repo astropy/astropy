@@ -34,13 +34,6 @@ from .formats import TimeFromEpoch
 __all__ = ['Time', 'TimeDelta', 'TIME_SCALES', 'TIME_DELTA_SCALES',
            'ScaleValueError', 'OperandTypeError']
 
-try:
-    # Not guaranteed available at setup time
-    from . import erfa_time
-except ImportError:
-    if not _ASTROPY_SETUP_:
-        raise
-
 
 TIME_SCALES = ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
 MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
@@ -87,14 +80,14 @@ SCALE_OFFSETS = {('tt', 'tai'): None,
 # triple-level dictionary, yay!
 SIDEREAL_TIME_MODELS = {
     'mean': {
-        'IAU2006': {'function': erfa_time.gmst06, 'scales': ('ut1', 'tt')},
-        'IAU2000': {'function': erfa_time.gmst00, 'scales': ('ut1', 'tt')},
-        'IAU1982': {'function': erfa_time.gmst82, 'scales': ('ut1',)}},
+        'IAU2006': {'function': erfa.gmst06, 'scales': ('ut1', 'tt')},
+        'IAU2000': {'function': erfa.gmst00, 'scales': ('ut1', 'tt')},
+        'IAU1982': {'function': erfa.gmst82, 'scales': ('ut1',)}},
     'apparent': {
-        'IAU2006A': {'function': erfa_time.gst06a, 'scales': ('ut1', 'tt')},
-        'IAU2000A': {'function': erfa_time.gst00a, 'scales': ('ut1', 'tt')},
-        'IAU2000B': {'function': erfa_time.gst00b, 'scales': ('ut1',)},
-        'IAU1994': {'function': erfa_time.gst94, 'scales': ('ut1',)}}}
+        'IAU2006A': {'function': erfa.gst06a, 'scales': ('ut1', 'tt')},
+        'IAU2000A': {'function': erfa.gst00a, 'scales': ('ut1', 'tt')},
+        'IAU2000B': {'function': erfa.gst00b, 'scales': ('ut1',)},
+        'IAU1994': {'function': erfa.gst94, 'scales': ('ut1',)}}}
 
 
 class TimeInfo(MixinInfo):
@@ -424,7 +417,7 @@ class Time(object):
                     args.append(get_dt(jd1, jd2))
                     break
 
-            conv_func = getattr(erfa_time, sys1 + '_' + sys2)
+            conv_func = getattr(erfa, sys1 + sys2)
             jd1, jd2 = conv_func(*args)
         self._time = self.FORMATS[self.format](jd1, jd2, scale, self.precision,
                                                self.in_subfmt, self.out_subfmt,
@@ -1192,7 +1185,7 @@ class Time(object):
             if scale == 'ut1':
                 # calculate UTC using the offset we got; the ERFA routine
                 # is tolerant of leap seconds, so will do this right
-                jd1_utc, jd2_utc = erfa_time.ut1_utc(jd1, jd2, delta)
+                jd1_utc, jd2_utc = erfa.ut1utc(jd1, jd2, delta)
                 # calculate a better estimate using the nearly correct UTC
                 delta = iers_table.ut1_utc(jd1_utc, jd2_utc)
 
@@ -1230,8 +1223,8 @@ class Time(object):
             # TDB or TT) to an approximate UT1.  Since TT and TDB are
             # pretty close (few msec?), assume TT.  Similarly, since the
             # UT1 terms are very small, use UTC instead of UT1.
-            njd1, njd2 = erfa_time.tt_tai(jd1, jd2)
-            njd1, njd2 = erfa_time.tai_utc(njd1, njd2)
+            njd1, njd2 = erfa.tttai(jd1, jd2)
+            njd1, njd2 = erfa.taiutc(njd1, njd2)
             # subtract 0.5, so UT is fraction of the day from midnight
             ut = day_frac(njd1 - 0.5, njd2)[1]
 
@@ -1244,7 +1237,7 @@ class Time(object):
             lon = location.longitude
             rxy = np.hypot(location.x, location.y)
             z = location.z
-            self._delta_tdb_tt = erfa_time.d_tdb_tt(
+            self._delta_tdb_tt = erfa.dtdb(
                 jd1, jd2, ut, lon.to(u.radian).value,
                 rxy.to(u.km).value, z.to(u.km).value)
 
