@@ -194,6 +194,18 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
         warnings.warn("Input data contains invalid values (NaNs or infs), "
                       "which were automatically masked.", AstropyUserWarning)
 
+    if masked is False and HAS_SCIPY is True:
+        if cenfunc is not np.ma.mean or stdfunc is not np.std:
+            warnings.warn("Using np.mean and np.std to calculate the"
+         "sigma limits, ignoring user defined functions..", AstropyUserWarning)
+
+        filtered_data = sigmaclip(data, sigma_lower, sigma_upper)
+        return filtered_data
+    elif masked is False and HAS_SCIPY is False:
+        warnings.warn("Scipy is not present - Cannot use the",
+                "scipy.stats.sigmaclip function. Falling back on ",
+                "astropy.stats.sigma_clip function.", AstropyUserWarning)
+
     filtered_data = np.ma.array(data, copy=copy)
 
     if iters is None:
