@@ -7,7 +7,7 @@ import inspect
 import pickle
 
 from ..decorators import (deprecated_attribute, deprecated, wraps,
-                          sharedmethod, classproperty)
+                          sharedmethod, classproperty, add_docstring)
 from ..exceptions import AstropyDeprecationWarning
 from ...extern import six
 from ...tests.helper import pytest, catch_warnings
@@ -365,3 +365,59 @@ def test_classproperty_docstring():
         foo = classproperty(_get_foo, doc="The foo.")
 
     assert B.__dict__['foo'].__doc__ == "The foo."
+
+
+def test_add_docstring_function():
+    docstring = 'test'
+
+    @add_docstring(docstring)
+    def testfunc():
+        pass
+
+    @add_docstring(docstring, replace=False)
+    def testfunc2():
+        """this is a """
+        pass
+
+    assert inspect.getdoc(testfunc) == docstring
+    assert inspect.getdoc(testfunc2) == 'this is a test'
+
+
+def test_add_docstring_method():
+    docstring = 'test'
+
+    class TestClass(object):
+        @add_docstring(docstring)
+        def testfunc():
+            pass
+
+        @add_docstring(docstring, replace=False)
+        def testfunc2():
+            """this is a """
+            pass
+
+    assert inspect.getdoc(TestClass.testfunc) == docstring
+    assert inspect.getdoc(TestClass.testfunc2) == 'this is a test'
+    instance = TestClass()
+    assert inspect.getdoc(instance.testfunc) == docstring
+    assert inspect.getdoc(instance.testfunc2) == 'this is a test'
+
+
+def test_add_docstring_class():
+    docstring = 'test'
+
+    @add_docstring(docstring)
+    class TestClass(object):
+        pass
+
+    @add_docstring(docstring, replace=False)
+    class TestClass2(object):
+        """this is a """
+        pass
+
+    assert inspect.getdoc(TestClass) == docstring
+    assert inspect.getdoc(TestClass2) == 'this is a test'
+    instance = TestClass()
+    instance2 = TestClass2()
+    assert inspect.getdoc(instance) == docstring
+    assert inspect.getdoc(instance2) == 'this is a test'
