@@ -19,7 +19,7 @@ from ..extern import six
 
 
 __all__ = ['deprecated', 'deprecated_attribute', 'classproperty',
-           'lazyproperty', 'sharedmethod', 'wraps']
+           'lazyproperty', 'sharedmethod', 'wraps', 'add_docstring']
 
 
 def deprecated(since, message='', name='', alternative='', pending=False,
@@ -755,3 +755,76 @@ def _get_function_args(func, exclude_args=()):
                 all_args[arg_type] = None
 
     return all_args
+
+
+def add_docstring(docstring, replace=True):
+    """
+    Useable for replacing a docstring on a function or method or appending
+    to it.
+
+    This decorator keeps the functions signature and only alters the docstring.
+    The primary use-case would be if multiple functions have the same or only
+    a slightly different *long* docstring and you want to DRY
+    (https://de.wikipedia.org/wiki/Don%E2%80%99t_repeat_yourself).
+
+    Parameters
+    ----------
+    docstring: `str`
+        The docstring that will be appended or set for the function/method
+
+    replace: `bool`
+        If ``True`` the original docstring is replaced and if ``False`` the
+        new docstring is added to the original docstring. Default is ``True``
+
+    Notes
+    -----
+    Using this decorator allows Sphinx and the spyder object inspector load the
+    new docstring.
+
+    For example::
+
+        >>> from astropy.utils.decorators import add_docstring
+        >>> doc = '''Perform num1 {op} num2'''
+        >>> @add_docstring(doc.format(op='+'))
+        ... def add(num1, num2):
+        ...     return num1+num2
+        ...
+        >>> help(add) # doctest: +SKIP
+        Help on function add in module __main__:
+        add(num1, num2)
+            Perform num1 + num2
+
+    sometimes only appending some common docstring is required. In that case
+    setting ``replace`` to ``False`` will only append the docstring.
+
+        >>> doc = '''
+        ...       Parameters
+        ...       ----------
+        ...       num1, num2 : Numbers
+        ...       Returns
+        ...       -------
+        ...       result: Number
+        ...       '''
+        >>> @add_docstring(doc, replace=False)
+        ... def add(num1, num2):
+        ...     '''Perform addition.'''
+        ...     return num1+num2
+        ...
+        >>> help(add) # doctest: +SKIP
+        Help on function add in module __main__:
+        add(num1, num2)
+            Perform addition
+            Parameters
+            ----------
+            num1, num2 : Numbers
+            Returns
+            -------
+            result: Number
+    """
+    def set_docstring(func):
+        if replace:
+            func.__doc__ = docstring
+        else:
+            func.__doc__ = func.__doc__ + docstring
+        return func
+    return set_docstring
