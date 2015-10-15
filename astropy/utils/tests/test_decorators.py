@@ -371,16 +371,22 @@ def test_add_docstring_function():
     docstring = 'test'
 
     @add_docstring(docstring)
-    def testfunc():
+    def testfunc1():
         pass
 
-    @add_docstring(docstring, replace=False)
+    @add_docstring(docstring)
     def testfunc2():
         """this is a """
         pass
 
-    assert inspect.getdoc(testfunc) == docstring
-    assert inspect.getdoc(testfunc2) == 'this is a test'
+    @add_docstring(docstring, replace=False)
+    def testfunc3():
+        """this is a """
+        pass
+
+    assert inspect.getdoc(testfunc1) == docstring
+    assert inspect.getdoc(testfunc2) == docstring
+    assert inspect.getdoc(testfunc3) == 'this is a test'
 
 
 def test_add_docstring_method():
@@ -388,19 +394,26 @@ def test_add_docstring_method():
 
     class TestClass(object):
         @add_docstring(docstring)
-        def testfunc():
+        def testfunc1():
             pass
 
-        @add_docstring(docstring, replace=False)
+        @add_docstring(docstring)
         def testfunc2():
             """this is a """
             pass
 
-    assert inspect.getdoc(TestClass.testfunc) == docstring
-    assert inspect.getdoc(TestClass.testfunc2) == 'this is a test'
+        @add_docstring(docstring, replace=False)
+        def testfunc3():
+            """this is a """
+            pass
+
+    assert inspect.getdoc(TestClass.testfunc1) == docstring
+    assert inspect.getdoc(TestClass.testfunc2) == docstring
+    assert inspect.getdoc(TestClass.testfunc3) == 'this is a test'
     instance = TestClass()
-    assert inspect.getdoc(instance.testfunc) == docstring
-    assert inspect.getdoc(instance.testfunc2) == 'this is a test'
+    assert inspect.getdoc(instance.testfunc1) == docstring
+    assert inspect.getdoc(instance.testfunc2) == docstring
+    assert inspect.getdoc(instance.testfunc3) == 'this is a test'
 
 
 @pytest.mark.skipif('six.PY2')
@@ -408,17 +421,25 @@ def test_add_docstring_class():
     docstring = 'test'
 
     @add_docstring(docstring)
-    class TestClass(object):
+    class TestClass1(object):
         pass
 
-    @add_docstring(docstring, replace=False)
+    @add_docstring(docstring)
     class TestClass2(object):
         """this is a """
         pass
 
-    assert inspect.getdoc(TestClass) == docstring
-    assert inspect.getdoc(TestClass2) == 'this is a test'
-    instance = TestClass()
+    @add_docstring(docstring, replace=False)
+    class TestClass3(object):
+        """this is a """
+        pass
+
+    assert inspect.getdoc(TestClass1) == docstring
+    assert inspect.getdoc(TestClass2) == docstring
+    assert inspect.getdoc(TestClass3) == 'this is a test'
+    instance1 = TestClass1()
     instance2 = TestClass2()
-    assert inspect.getdoc(instance) == docstring
-    assert inspect.getdoc(instance2) == 'this is a test'
+    instance3 = TestClass3()
+    assert inspect.getdoc(instance1) == docstring
+    assert inspect.getdoc(instance2) == docstring
+    assert inspect.getdoc(instance3) == 'this is a test'
