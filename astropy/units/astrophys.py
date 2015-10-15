@@ -11,7 +11,11 @@ from __future__ import (absolute_import, division, print_function,
 
 from . import si
 from ..constants import si as _si
-from .core import UnitBase, def_unit, si_prefixes, binary_prefixes
+from .core import (UnitBase, def_unit, si_prefixes, binary_prefixes,
+                   set_enabled_units)
+
+# To ensure si units of the constants can be interpreted.
+set_enabled_units([si])
 
 import numpy as _numpy
 
@@ -20,17 +24,17 @@ _ns = globals()
 ###########################################################################
 # LENGTH
 
-def_unit((['AU', 'au'], ['astronomical_unit']), _si.au.value * si.m, namespace=_ns, prefixes=True,
+def_unit((['AU', 'au'], ['astronomical_unit']), _si.au, namespace=_ns, prefixes=True,
          doc="astronomical unit: approximately the mean Earth--Sun "
          "distance.")
 
-def_unit(['pc', 'parsec'], _si.pc.value * si.m, namespace=_ns, prefixes=True,
+def_unit(['pc', 'parsec'], _si.pc, namespace=_ns, prefixes=True,
          doc="parsec: approximately 3.26 light-years.")
 
-def_unit(['solRad', 'R_sun', 'Rsun'], _si.R_sun.value * si.m, namespace=_ns,
+def_unit(['solRad', 'R_sun', 'Rsun'], _si.R_sun, namespace=_ns,
          doc="Solar radius", prefixes=True,
          format={'latex': r'R_{\odot}', 'unicode': 'R⊙'})
-def_unit(['lyr', 'lightyear'], _si.c.value * si.yr.to(si.s) * si.m,
+def_unit(['lyr', 'lightyear'], (_si.c * si.yr).to(si.m),
          namespace=_ns, prefixes=True, doc="Light year")
 
 
@@ -51,34 +55,35 @@ def_unit(['cycle', 'cy'], 2.0 * _numpy.pi * si.rad,
 ###########################################################################
 # MASS
 
-def_unit(['solMass', 'M_sun', 'Msun'], _si.M_sun.value * si.kg, namespace=_ns,
+def_unit(['solMass', 'M_sun', 'Msun'], _si.M_sun, namespace=_ns,
          prefixes=True, doc="Solar mass",
          format={'latex': r'M_{\odot}', 'unicode': 'M⊙'})
 def_unit(['jupiterMass', 'M_jup', 'Mjup','M_jupiter', 'Mjupiter'],
-         _si.M_jup.value * si.kg, namespace=_ns,
-         prefixes=True, doc="Jupiter mass",
+         _si.M_jup, namespace=_ns, prefixes=True, doc="Jupiter mass",
          # LaTeX jupiter symbol requires wasysym
          format={'latex': r'M_{\rm J}', 'unicode': 'M♃'})
-def_unit(['earthMass', 'M_earth', 'Mearth'], _si.M_earth.value * si.kg, namespace=_ns,
+def_unit(['earthMass', 'M_earth', 'Mearth'], _si.M_earth, namespace=_ns,
          prefixes=True, doc="Earth mass",
          # LaTeX earth symbol requires wasysym
          format={'latex': r'M_{\oplus}', 'unicode': 'M⊕'})
-def_unit(['M_p'], _si.m_p.value * si.kg, namespace=_ns,
-         doc="Proton mass",
+def_unit(['M_p'], _si.m_p, namespace=_ns, doc="Proton mass",
          format={'latex': r'M_{p}', 'unicode': 'Mₚ'})
-def_unit(['M_e'], _si.m_e.value * si.kg, namespace=_ns,
-         doc="Electron mass",
+def_unit(['M_e'], _si.m_e, namespace=_ns, doc="Electron mass",
          format={'latex': r'M_{e}', 'unicode': 'Mₑ'})
 # Unified atomic mass unit
-def_unit(['u', 'Da', 'Dalton'], _si.u.value * si.kg, namespace=_ns,
+def_unit(['u', 'Da', 'Dalton'], _si.u, namespace=_ns,
          prefixes=True, exclude_prefixes=['a', 'da'],
          doc="Unified atomic mass unit")
 
 ##########################################################################
 # ENERGY
 
+# Here, explicitly convert the planck constant to 'eV s' since the constant
+# can override that to give a more precise value that takes into account
+# covariances between e and h.  Eventually, this may also be replaced with
+# just `_si.Ryd.to(eV)`.
 def_unit(['Ry', 'rydberg'],
-         _si.Ryd.value * _si.c.value * _si.h.value / _si.e.value * si.eV,
+         (_si.Ryd * _si.c * _si.h.to(si.eV * si.s)).to(si.eV),
          namespace=_ns, prefixes=True,
          doc="Rydberg: Energy of a photon whose wavenumber is the Rydberg "
          "constant",
@@ -88,7 +93,7 @@ def_unit(['Ry', 'rydberg'],
 ###########################################################################
 # ILLUMINATION
 
-def_unit(['solLum', 'L_sun', 'Lsun'], _si.L_sun.value * si.W, namespace=_ns,
+def_unit(['solLum', 'L_sun', 'Lsun'], _si.L_sun, namespace=_ns,
          prefixes=True, doc="Solar luminance",
          format={'latex': r'L_{\odot}', 'unicode': 'L⊙'})
 
