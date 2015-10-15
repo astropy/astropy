@@ -444,7 +444,9 @@ class FITS_rec(np.recarray):
                 if (inarr.dtype.kind == outarr.dtype.kind and
                         inarr.dtype.kind in ('U', 'S') and
                         inarr.dtype != outarr.dtype):
-                    inarr = inarr.view(outarr.dtype)
+
+                    inarr_rowsize = inarr[0].size
+                    inarr = inarr.flatten().view(outarr.dtype)
 
                 # This is a special case to handle input arrays with
                 # non-trivial TDIMn.
@@ -801,7 +803,7 @@ class FITS_rec(np.recarray):
             if field.ndim > 1:
                 actual_shape = field.shape[1:]
                 if _str:
-                    actual_shape = (field.itemsize,) + actual_shape
+                    actual_shape = actual_shape + (field.itemsize,)
             else:
                 actual_shape = field.shape[0]
 

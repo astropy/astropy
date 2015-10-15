@@ -1264,9 +1264,8 @@ class ColDefs(NotifierMixin):
 
     @lazyproperty
     def dtype(self):
-        dtypes = [f.dtype for idx, f in enumerate(self.formats)]
-        names = [n for idx, n in enumerate(self.names)]
-        return np.dtype(list(zip(names, dtypes)))
+        dtypes = [f.dtype for f in self.formats]
+        return np.dtype(list(zip(self.names, dtypes)))
 
     @lazyproperty
     def _arrays(self):

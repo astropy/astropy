@@ -7,7 +7,7 @@ from numpy import char as chararray
 from ....extern.six.moves import range
 from ....extern.six.moves import cPickle as pickle
 from ....io import fits
-from ....tests.helper import pytest
+from ....tests.helper import pytest, catch_warnings
 
 from ..column import Delayed, NUMPY2FITS
 from ..util import decode_ascii
@@ -1668,6 +1668,49 @@ class TestTableFunctions(FitsTestCase):
 
         assert t.field(1).dtype.str[-1] == '5'
         assert t.field(1).shape == (3, 4, 3)
+
+    def test_bin_table_init_from_string_array_column(self):
+        """
+        Tests two ways of creatine a new `BinTableHDU` from a column of
+        string arrays.
+
+        This tests for a couple different regressions, and ensures that
+        both BinTableHDU(data=arr) and BinTableHDU.from_columns(arr) work
+        equivalently.
+
+        Some of this is redundant with the following test, but checks some
+        subtly different cases.
+        """
+
+        data = [[b'abcd', b'efgh'],
+                [b'ijkl', b'mnop'],
+                [b'qrst', b'uvwx']]
+
+        arr = np.array([(data,), (data,), (data,), (data,), (data,)],
+                       dtype=[('S', '(3, 2)S4')])
+
+        with catch_warnings() as w:
+            tbhdu1 = fits.BinTableHDU(data=arr)
+
+        assert len(w) == 0
+
+        def test_dims_and_roundtrip(tbhdu):
+            assert tbhdu.data['S'].shape == (5, 3, 2)
+            assert tbhdu.data['S'].dtype.str.endswith('U4')
+
+            tbhdu.writeto(self.temp('test.fits'), clobber=True)
+
+            with fits.open(self.temp('test.fits')) as hdul:
+                tbhdu2 = hdul[1]
+                assert tbhdu2.header['TDIM1'] == '(4,2,3)'
+                assert tbhdu2.data['S'].shape == (5, 3, 2)
+                assert tbhdu2.data['S'].dtype.str.endswith('U4')
+                assert np.all(tbhdu2.data['S'] == tbhdu.data['S'])
+
+        test_dims_and_roundtrip(tbhdu1)
+
+        tbhdu2 = fits.BinTableHDU.from_columns(arr)
+        test_dims_and_roundtrip(tbhdu2)
 
     def test_string_array_round_trip(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/201"""
