@@ -403,6 +403,7 @@ def test_add_docstring_method():
     assert inspect.getdoc(instance.testfunc2) == 'this is a test'
 
 
+@pytest.mark.skipif('six.PY2')
 def test_add_docstring_class():
     docstring = 'test'
 
