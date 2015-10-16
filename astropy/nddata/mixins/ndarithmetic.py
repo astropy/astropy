@@ -20,6 +20,7 @@ WARN_UNSUPPORTED_CORRELATED = ConfigAlias(
 
 __all__ = ['NDArithmeticMixin']
 
+
 def include_docstrings(**kwargs):
     def set_docstring(some_func):
         some_func.__doc__ = """
@@ -165,12 +166,11 @@ class NDArithmeticMixin(object):
         array([ 8,  7, 10])
     """
 
-
     def _arithmetic(self, operation, operand,
-                   uncertainty_correlation=0, meta_kwds_operate=None,
-                   meta_kwds_set=None, propagate_uncertainties=True,
-                   handle_mask=True, handle_meta=True, compare_wcs=True,
-                   **kwds):
+                    uncertainty_correlation=0, meta_kwds_operate=None,
+                    meta_kwds_set=None, propagate_uncertainties=True,
+                    handle_mask=True, handle_meta=True, compare_wcs=True,
+                    **kwds):
         """
         Base method which calculates the result of the arithmetic operation.
 
@@ -267,8 +267,8 @@ class NDArithmeticMixin(object):
             else:
                 kwargs['uncertainty'] = deepcopy(self.uncertainty)
         else:
-            kwargs['uncertainty'] = self._arithmetic_uncertainty(operation,
-                            operand, result, uncertainty_correlation, **kwds)
+            kwargs['uncertainty'] = self._arithmetic_uncertainty(
+                operation, operand, result, uncertainty_correlation, **kwds)
         if handle_mask is None:
             kwargs['mask'] = None
         elif not handle_mask:
@@ -287,12 +287,11 @@ class NDArithmeticMixin(object):
             else:
                 kwargs['meta'] = deepcopy(self.meta)
         else:
-            kwargs['meta'] = self._arithmetic_meta(operation, operand,
-                                meta_kwds_operate, meta_kwds_set, **kwds)
+            kwargs['meta'] = self._arithmetic_meta(
+                operation, operand, meta_kwds_operate, meta_kwds_set, **kwds)
 
         # Wrap the individual results into a new instance of the same class.
         return result, kwargs
-
 
     def _arithmetic_data(self, operation, operand, **kwds):
         """
@@ -345,7 +344,6 @@ class NDArithmeticMixin(object):
 
         return result
 
-
     def _arithmetic_uncertainty(self, operation, operand, result, correlation,
                                 **kwds):
         """
@@ -377,11 +375,11 @@ class NDArithmeticMixin(object):
         # Make sure these uncertainties are NDUncertainties so this kind of
         # propagation is possible.
         if (self.uncertainty is not None and
-                        not isinstance(self.uncertainty, NDUncertainty)):
+                not isinstance(self.uncertainty, NDUncertainty)):
             raise TypeError("Uncertainty propagation is only defined for "
                             "subclasses of NDUncertainty.")
         if (operand.uncertainty is not None and
-                        not isinstance(operand.uncertainty, NDUncertainty)):
+                not isinstance(operand.uncertainty, NDUncertainty)):
             raise TypeError("Uncertainty propagation is only defined for "
                             "subclasses of NDUncertainty.")
 
@@ -411,7 +409,6 @@ class NDArithmeticMixin(object):
             # Both have uncertainties so just propagate.
             return self.uncertainty.propagate(operation, operand, result,
                                               correlation)
-
 
     def _arithmetic_mask(self, operand, **kwds):
         """
@@ -451,7 +448,7 @@ class NDArithmeticMixin(object):
                 if isinstance(self.mask, bool):
                     pass
                 elif (isinstance(self.mask, np.ndarray) and
-                                                self.mask.dtype == 'bool'):
+                        self.mask.dtype == 'bool'):
                     pass
                 else:
                     raise TypeError("Mask arithmetics is only defined for "
@@ -460,7 +457,7 @@ class NDArithmeticMixin(object):
                 if isinstance(operand.mask, bool):
                     pass
                 elif (isinstance(operand.mask, np.ndarray) and
-                                                operand.mask.dtype == 'bool'):
+                        operand.mask.dtype == 'bool'):
                     pass
                 else:
                     raise TypeError("Mask arithmetics is only defined for "
@@ -468,7 +465,6 @@ class NDArithmeticMixin(object):
 
             # Now lets calculate the resulting mask (operation enforces copy)
             return self.mask | operand.mask
-
 
     def _arithmetic_wcs(self, operand, compare_wcs, **kwds):
         """
@@ -530,7 +526,6 @@ class NDArithmeticMixin(object):
                 else:
                     log.info("WCS is not equal.")
             return deepcopy(self.wcs)
-
 
     def _arithmetic_meta(self, operation, operand, meta_kwds_operate,
                          meta_kwds_set, **kwds):
@@ -647,27 +642,26 @@ class NDArithmeticMixin(object):
 
         return result_meta
 
-
     @include_docstrings(name="Add", operator="+",
-                    other=":meth:`NDArithmeticMixin.addition`")
+                        other=":meth:`NDArithmeticMixin.addition`")
     def add(self, operand, **kwargs):
         result, kwargs = self._arithmetic("addition", operand, **kwargs)
         return self.__class__(result, **kwargs)
 
     @include_docstrings(name="Subtract", operator="-",
-                    other=":meth:`NDArithmeticMixin.subtraction`")
+                        other=":meth:`NDArithmeticMixin.subtraction`")
     def subtract(self, operand, **kwargs):
         result, kwargs = self._arithmetic("subtraction", operand, **kwargs)
         return self.__class__(result, **kwargs)
 
     @include_docstrings(name="Multiply", operator="*",
-                    other=":meth:`NDArithmeticMixin.multiplication`")
+                        other=":meth:`NDArithmeticMixin.multiplication`")
     def multiply(self, operand, **kwargs):
         result, kwargs = self._arithmetic("multiplication", operand, **kwargs)
         return self.__class__(result, **kwargs)
 
     @include_docstrings(name="Divide", operator="/",
-                    other=":meth:`NDArithmeticMixin.division`")
+                        other=":meth:`NDArithmeticMixin.division`")
     def divide(self, operand, **kwargs):
         result, kwargs = self._arithmetic("division", operand, **kwargs)
         return self.__class__(result, **kwargs)

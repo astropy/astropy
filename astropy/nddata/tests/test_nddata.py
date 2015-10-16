@@ -13,7 +13,7 @@ from numpy.testing import assert_array_equal
 from ..nddata import NDData
 from ...utils.compat.odict import OrderedDict
 from ..nduncertainty import StdDevUncertainty, NDUncertainty
-from ...tests.helper import pytest, raises
+from ...tests.helper import pytest  # , raises
 from ... import units as u
 from ...utils import NumpyRNGContext
 
@@ -59,6 +59,7 @@ class FakeNumpyArray(object):
     def dtype(self):
         return 'fake'
 
+
 class MinimalUncertainty(object):
     """
     Define the minimum attributes acceptable as an uncertainty object.
@@ -69,6 +70,7 @@ class MinimalUncertainty(object):
     @property
     def uncertainty_type(self):
         return "totally and completely fake"
+
 
 class BadNDDataSubclass(NDData):
 
@@ -81,10 +83,10 @@ class BadNDDataSubclass(NDData):
         self._unit = unit
         self._meta = meta
 
-# Setter tests
 
+# Setter tests
 def test_uncertainty_setter():
-    nd = NDData([1,2,3])
+    nd = NDData([1, 2, 3])
     good_uncertainty = MinimalUncertainty(5)
     nd.uncertainty = good_uncertainty
     assert nd.uncertainty is good_uncertainty
@@ -102,19 +104,19 @@ def test_uncertainty_setter():
 
 def test_mask_setter():
     # Since it just changes the _mask attribute everything should work
-    nd = NDData([1,2,3])
+    nd = NDData([1, 2, 3])
     nd.mask = True
     assert nd.mask
     nd.mask = False
     assert not nd.mask
-    #Check that it replaces a mask from init
+    # Check that it replaces a mask from init
     nd = NDData(nd, mask=True)
     assert nd.mask
     nd.mask = False
     assert not nd.mask
 
-# Init tests
 
+# Init tests
 def test_nddata_empty():
     with pytest.raises(TypeError):
         NDData()  # empty initializer should fail
@@ -199,12 +201,12 @@ def test_nddata_init_data_quantity(data):
 
 
 def test_nddata_init_data_maskedQuantity():
-    a = np.array([2,3])
+    a = np.array([2, 3])
     q = a * u.m
     m = False
     mq = np.ma.array(q, mask=m)
     nd = NDData(mq)
-    assert_array_equal(nd.data,a)
+    assert_array_equal(nd.data, a)
     # This test failed before the change in nddata init because the masked
     # arrays data (which in fact was a quantity was directly saved)
     assert nd.unit == u.m
@@ -228,12 +230,12 @@ def test_nddata_init_data_nddata():
 
     # Check that it is really copied if copy=True
     nd2 = NDData(nd1, copy=True)
-    nd1.data[2,3] = 10
-    assert nd1.data[2,3] != nd2.data[2,3]
+    nd1.data[2, 3] = 10
+    assert nd1.data[2, 3] != nd2.data[2, 3]
 
     # Now let's see what happens if we have all explicitly set
     nd1 = NDData(np.array([1]), mask=False, uncertainty=10, unit=u.s,
-                 meta={'dest':'mordor'}, wcs=10)
+                 meta={'dest': 'mordor'}, wcs=10)
     nd2 = NDData(nd1)
     assert nd2.data is nd1.data
     assert nd2.wcs == nd1.wcs
@@ -244,7 +246,7 @@ def test_nddata_init_data_nddata():
 
     # now what happens if we overwrite them all too
     nd3 = NDData(nd1, mask=True, uncertainty=200, unit=u.km,
-                 meta={'observer':'ME'}, wcs=4)
+                 meta={'observer': 'ME'}, wcs=4)
     assert nd3.data is nd1.data
     assert nd3.wcs != nd1.wcs
     assert nd3.uncertainty != nd1.uncertainty
@@ -261,8 +263,8 @@ def test_nddata_init_data_nddataSubclass():
     with pytest.raises(TypeError):
         NDData(bnd)
     # but if it has no actual incompatible attributes it passes
-    bnd_good = BadNDDataSubclass(np.array([1,2]), True, 3, 2,
-                                 {'enemy':'black knight'}, u.km)
+    bnd_good = BadNDDataSubclass(np.array([1, 2]), True, 3, 2,
+                                 {'enemy': 'black knight'}, u.km)
     nd = NDData(bnd_good)
     assert nd.unit == bnd_good.unit
     assert nd.meta == bnd_good.meta
@@ -298,8 +300,8 @@ def test_nddata_init_data_fakes():
     # Check that the data wasn't converted to numpy
     assert isinstance(ndd2.data, FakeNumpyArray)
 
-# Specific parameters
 
+# Specific parameters
 def test_param_uncertainty():
     u = StdDevUncertainty(array=np.ones((5, 5)))
     d = NDData(np.ones((5, 5)), uncertainty=u)
@@ -325,15 +327,15 @@ def test_param_meta():
     # everything dict-like is allowed
     with pytest.raises(TypeError):
         NDData([1], meta=3)
-    nd = NDData([1,2,3], meta={})
+    nd = NDData([1, 2, 3], meta={})
     assert len(nd.meta) == 0
-    nd = NDData([1,2,3])
+    nd = NDData([1, 2, 3])
     assert isinstance(nd.meta, OrderedDict)
     assert len(nd.meta) == 0
     # Test conflicting meta (other NDData)
-    nd2 = NDData(nd, meta={'image':'sun'})
+    nd2 = NDData(nd, meta={'image': 'sun'})
     assert len(nd2.meta) == 1
-    nd3 = NDData(nd2, meta={'image':'moon'})
+    nd3 = NDData(nd2, meta={'image': 'moon'})
     assert len(nd3.meta) == 1
     assert nd3.meta['image'] == 'moon'
 
@@ -349,7 +351,7 @@ def test_param_mask():
     nd3 = NDData(np.ma.array([1], mask=False), mask=True)
     assert nd3.mask
     # (masked quantity)
-    mq = np.ma.array(np.array([2,3])*u.m, mask=False)
+    mq = np.ma.array(np.array([2, 3])*u.m, mask=False)
     nd4 = NDData(mq, mask=True)
     assert nd4.mask
 
@@ -357,14 +359,14 @@ def test_param_mask():
 def test_param_unit():
     with pytest.raises(ValueError):
         NDData(np.ones((5, 5)), unit="NotAValidUnit")
-    NDData([1,2,3], unit='meter')
+    NDData([1, 2, 3], unit='meter')
     # Test conflicting units (quantity as data)
-    q = np.array([1,2,3]) * u.m
+    q = np.array([1, 2, 3]) * u.m
     nd = NDData(q, unit='cm')
     assert nd.unit != q.unit
     assert nd.unit == u.cm
     # (masked quantity)
-    mq = np.ma.array(np.array([2,3])*u.m, mask=False)
+    mq = np.ma.array(np.array([2, 3])*u.m, mask=False)
     nd2 = NDData(mq, unit=u.s)
     assert nd2.unit == u.s
     # (another NDData as data)
@@ -377,12 +379,13 @@ def test_param_unit():
 # and any minimal set of args to pass.
 from ...utils.tests.test_metadata import MetaBaseTest
 
+
 class TestMetaNDData(MetaBaseTest):
     test_class = NDData
     args = np.array([[1.]])
 
-#Representation tests
 
+# Representation tests
 def test_nddata_str():
     arr1d = NDData(np.array([1, 2, 3]))
     assert str(arr1d) == '[1 2 3]'
@@ -418,8 +421,8 @@ def test_nddata_repr():
                 [[5, 6],
                  [7, 8]]])"""[1:])
 
-# Not supported features
 
+# Not supported features
 def test_slicing_not_supported():
     ndd = NDData(np.ones((5, 5)))
     with pytest.raises(TypeError):

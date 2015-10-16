@@ -13,10 +13,12 @@ from ...nduncertainty import NDUncertainty
 from ....tests.helper import pytest
 from .... import units as u
 
+
 # Just add the Mixin to NDData
 class NDDataSliceable(NDSlicingMixin, NDData):
 
     pass
+
 
 # Just some uncertainty (following the StdDevUncertainty implementation of
 # storing the uncertainty in a propery 'array') with slicing.
@@ -49,7 +51,7 @@ def test_slicing_data():
 def test_slicing_data_scalar_fail():
     data = np.array(10)
     nd = NDDataSliceable(data)
-    with pytest.raises(TypeError): # as exc
+    with pytest.raises(TypeError):  # as exc
         nd[:]
     # assert exc.value.args[0] == 'Scalars cannot be sliced.'
 
@@ -57,8 +59,8 @@ def test_slicing_data_scalar_fail():
 def test_slicing_all_npndarray():
     data = np.arange(10)
     mask = data > 3
-    uncertainty = np.linspace(10,20,10)
-    wcs = np.linspace(1,1000,10)
+    uncertainty = np.linspace(10, 20, 10)
+    wcs = np.linspace(1, 1000, 10)
     # Just to have them too
     unit = u.s
     meta = {'observer': 'Brian'}
@@ -74,10 +76,10 @@ def test_slicing_all_npndarray():
     assert meta == nd.meta
 
     # See what happens for multidimensional properties
-    data = np.arange(1000).reshape(10,10,10)
+    data = np.arange(1000).reshape(10, 10, 10)
     mask = data > 3
-    uncertainty = np.linspace(10,20,1000).reshape(10,10,10)
-    wcs = np.linspace(1,1000,1000).reshape(10,10,10)
+    uncertainty = np.linspace(10, 20, 1000).reshape(10, 10, 10)
+    wcs = np.linspace(1, 1000, 1000).reshape(10, 10, 10)
     # Just to have them too
     unit = u.s
     meta = {'observer': 'Brian'}
@@ -93,11 +95,11 @@ def test_slicing_all_npndarray():
     assert unit is nd2.unit
     assert meta == nd.meta
     # Slice 3D
-    nd2 = nd[2:5,:,4:7]
-    assert_array_equal(data[2:5,:,4:7], nd2.data)
-    assert_array_equal(mask[2:5,:,4:7], nd2.mask)
-    assert_array_equal(uncertainty[2:5,:,4:7], nd2.uncertainty)
-    assert_array_equal(wcs[2:5,:,4:7], nd2.wcs)
+    nd2 = nd[2:5, :, 4:7]
+    assert_array_equal(data[2:5, :, 4:7], nd2.data)
+    assert_array_equal(mask[2:5, :, 4:7], nd2.mask)
+    assert_array_equal(uncertainty[2:5, :, 4:7], nd2.uncertainty)
+    assert_array_equal(wcs[2:5, :, 4:7], nd2.wcs)
     assert unit is nd2.unit
     assert meta == nd.meta
 
@@ -105,8 +107,8 @@ def test_slicing_all_npndarray():
 def test_slicing_all_npndarray_shape_diff():
     data = np.arange(10)
     mask = (data > 3)[0:9]
-    uncertainty = np.linspace(10,20,15)
-    wcs = np.linspace(1,1000,12)
+    uncertainty = np.linspace(10, 20, 15)
+    wcs = np.linspace(1, 1000, 12)
     unit = u.s
     meta = {'observer': 'Brian'}
 
@@ -123,10 +125,10 @@ def test_slicing_all_npndarray_shape_diff():
     assert meta == nd.meta
 
     # See what happens for multidimensional properties
-    data = np.arange(1000).reshape(10,10,10)
-    mask = (data > 3)[0:9,:,:]
-    uncertainty = np.linspace(10,20,1200).reshape(12,10,10)
-    wcs = np.linspace(1,1000,700).reshape(10,7,10)
+    data = np.arange(1000).reshape(10, 10, 10)
+    mask = (data > 3)[0:9, :, :]
+    uncertainty = np.linspace(10, 20, 1200).reshape(12, 10, 10)
+    wcs = np.linspace(1, 1000, 700).reshape(10, 7, 10)
     # Just to have them too
     unit = u.s
     meta = {'observer': 'Brian'}
@@ -144,8 +146,8 @@ def test_slicing_all_npndarray_shape_diff():
     assert unit is nd2.unit
     assert meta == nd.meta
     # Slice 3D
-    nd2 = nd[2:5,:,4:7]
-    assert_array_equal(data[2:5,:,4:7], nd2.data)
+    nd2 = nd[2:5, :, 4:7]
+    assert_array_equal(data[2:5, :, 4:7], nd2.data)
     # All other properties should not be sliced since their shape differs!
     assert mask is nd2.mask
     assert uncertainty is nd2.uncertainty
@@ -157,7 +159,7 @@ def test_slicing_all_npndarray_shape_diff():
 
 def test_slicing_uncertainty_is_nduncertainty():
     data = np.arange(10)
-    uncertainty = SomeUncertainty(np.linspace(10,20,10))
+    uncertainty = SomeUncertainty(np.linspace(10, 20, 10))
 
     nd = NDDataSliceable(data, uncertainty=uncertainty)
     nd2 = nd[2:5]
@@ -165,7 +167,7 @@ def test_slicing_uncertainty_is_nduncertainty():
     assert_array_equal(uncertainty.array[2:5], nd2.uncertainty.array)
 
     # Check the NDUncertainty with a wrong shape is not considered sliceable
-    uncertainty_wrong = SomeUncertainty(np.linspace(10,20,15))
+    uncertainty_wrong = SomeUncertainty(np.linspace(10, 20, 15))
     nd = NDDataSliceable(data, uncertainty=uncertainty_wrong)
     nd2 = nd[2:5]
     assert_array_equal(data[2:5], nd2.data)
