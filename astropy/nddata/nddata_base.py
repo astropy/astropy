@@ -6,23 +6,21 @@ from __future__ import (absolute_import, division, print_function,
 
 from abc import ABCMeta, abstractproperty, abstractmethod
 
-from ..extern import six
+from ..extern.six import add_metaclass
 
 __all__ = ['NDDataBase']
 
 
-@six.add_metaclass(ABCMeta)
+@add_metaclass(ABCMeta)
 class NDDataBase(object):
     """
-    Base metaclass that defines the interface for NDData.
+    Base metaclass that defines the interface for `NDData`-like classes.
 
-    Classes that wish to use this interface without inheriting from
-    `~astropy.nddata.NDData` should subclass ``NDDataBase`` instead.
+    Classes that wish to use this interface without inheriting the restrictions
+    and internal representations of `~astropy.nddata.NDData` should subclass
+    ``NDDataBase`` instead.
 
-    All properties and methods must be overriden by subclasses.
-
-    TODO: Maybe use the docstrings for the properties that I moved to NDData
-    instead of these shortened explanations.
+    TODO: Copy parameter docstrings from NDData here(?!)
     """
 
     @abstractmethod
@@ -60,7 +58,7 @@ class NDDataBase(object):
     @abstractproperty
     def meta(self):
         """
-        Meta information, if any.
+        Meta information about the data, if any.
         """
         return None
 

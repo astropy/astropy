@@ -7,7 +7,7 @@ import numpy as np
 from abc import ABCMeta, abstractproperty, abstractmethod
 from copy import deepcopy
 
-#from ..utils.compat import ignored
+# from ..utils.compat import ignored
 from ..units import Unit, Quantity
 from ..extern import six
 from .. import log
@@ -29,7 +29,6 @@ class MissingDataAssociationException(Exception):
     This exception should be used to indicate that an uncertainty instance has
     not been associated with a parent `~astropy.nddata.NDData` object.
     """
-
 
 
 # Make a placeholder for the different uncertainty propagation methods.
@@ -169,7 +168,7 @@ class NDUncertainty(object):
             array = array.value
 
         elif isinstance(array, list):
-            copy = False # since lists get copied while casting them to ndarray
+            copy = False  # converting to ndarray copies lists automatically
             array = np.array(array)
 
         if copy:
@@ -181,7 +180,7 @@ class NDUncertainty(object):
             self._unit = None
         else:
             self._unit = Unit(unit)
-        self.parent_nddata = None # no associated NDData - until it is set!
+        self.parent_nddata = None  # no associated NDData - until it is set!
 
     def __getitem__(self, item):
         """
@@ -242,7 +241,7 @@ class NDUncertainty(object):
         """
         if self._unit is None:
             if (self._parent_nddata is None or
-                                    self.parent_nddata.unit is None):
+                    self.parent_nddata.unit is None):
                 return None
             else:
                 return self.parent_nddata.unit
@@ -368,14 +367,76 @@ class NDUncertainty(object):
     # TODO: Make a decorator that adds the docstrings instead.
 
     # Apply docstrings
-    _propagate_add.__doc__ = _propagate_doc.format(operation='addition',
-            operator='+', instance='NDUncertainty')
+    _propagate_add.__doc__ = _propagate_doc.format(
+        operation='addition', operator='+', instance='NDUncertainty')
     _propagate_subtract.__doc__ = _propagate_doc.format(
-            operation='subtraction', operator='-', instance='NDUncertainty')
+        operation='subtraction', operator='-', instance='NDUncertainty')
     _propagate_multiply.__doc__ = _propagate_doc.format(
-            operation='multiplication', operator='*', instance='NDUncertainty')
-    _propagate_divide.__doc__ = _propagate_doc.format(operation='divison',
-            operator='/', instance='NDUncertainty')
+        operation='multiplication', operator='*', instance='NDUncertainty')
+    _propagate_divide.__doc__ = _propagate_doc.format(
+        operation='divison', operator='/', instance='NDUncertainty')
+
+
+class UnknownUncertainty(NDUncertainty):
+    """
+    This implements any kind of unknown uncertainty type.
+
+    The main purpose of having an unknown uncertainty class is to prevent
+    uncertainty propagation since this is not clearly defined without
+    giving a type.
+
+    Parameters
+    ----------
+    see `NDUncertainty`
+    """
+
+    supports_correlated = False
+
+    @property
+    def uncertainty_type(self):
+        """
+        `str`: ``'unknown'``
+            `UnknownUncertainty` implements any kind of unknown uncertainty
+            type.
+        """
+        return 'unknown'
+
+    def _convert_uncertainty(other_uncert):
+        """
+        Checks that the uncertainties are compatible for propagation.
+
+        Since we don't know which kind of uncertainty is saved this method
+        always raises an Exception.
+
+        Parameters
+        ----------
+        other_uncert: `NDUncertainty` subclass
+            The other uncertainty
+
+        Raises
+        ------
+        IncompatibleUncertaintiesException:
+            Always since we cannot propagate without knowing which kind of
+            uncertainty is saved.
+        """
+        msg = "Uncertainties of unknown type cannot be propagated."
+        raise IncompatibleUncertaintiesException(msg)
+
+    def _propagate_add(self, other_uncert, result_data, correlation):
+        """Not possible for unknown uncertainty types."""
+        return None
+
+    def _propagate_subtract(self, other_uncert, result_data, correlation):
+        """Not possible for unknown uncertainty types."""
+        return None
+
+    def _propagate_multiply(self, other_uncert, result_data, correlation):
+        """Not possible for unknown uncertainty types."""
+        return None
+
+    def _propagate_divide(self, other_uncert, result_data, correlation):
+        """Not possible for unknown uncertainty types."""
+        return None
 
 
 class StdDevUncertainty(NDUncertainty):
@@ -390,6 +451,10 @@ class StdDevUncertainty(NDUncertainty):
     to the unit of the resulting data. Also support for correlation is possible
     but that requires that the correlation is an input it cannot handle
     correlation determination itself.
+
+    Parameters
+    ----------
+    see `NDUncertainty`
     """
 
     supports_correlated = True
@@ -397,7 +462,7 @@ class StdDevUncertainty(NDUncertainty):
     @property
     def uncertainty_type(self):
         """
-        `str`: ``std``
+        `str`: ``'std'``
             `StdDevUncertainty` implements standard deviation.
         """
         return 'std'
@@ -407,7 +472,6 @@ class StdDevUncertainty(NDUncertainty):
             return other_uncert
         else:
             raise IncompatibleUncertaintiesException
-
 
     def _propagate_add(self, other_uncert, result_data, correlation):
 
@@ -472,7 +536,6 @@ class StdDevUncertainty(NDUncertainty):
             else:
                 return result
 
-
     def _propagate_subtract(self, other_uncert, result_data, correlation):
         # Since the formulas are equivalent to addition you should look at the
         # explanations provided in _propagate_add
@@ -512,7 +575,6 @@ class StdDevUncertainty(NDUncertainty):
             else:
                 return result
 
-
     def _propagate_multiply(self, other_uncert, result_data, correlation):
 
         # For multiplication we don't need the result as quantity
@@ -544,7 +606,7 @@ class StdDevUncertainty(NDUncertainty):
             return np.abs(other_uncert.parent_nddata.data * this)
 
         else:
-            # Formula sigma = |AB| * sqrt((dA/A)**2 + (dB/B)**2 + 2*dA/A*dB/B*cor)
+            # Formula sigma = |AB|*sqrt((dA/A)**2+(dB/B)**2+2*dA/A*dB/B*cor)
 
             # This formula is not very handy since it generates NaNs for every
             # zero in A and B. So we rewrite it:
@@ -555,15 +617,15 @@ class StdDevUncertainty(NDUncertainty):
             # uncertainty to the same unit as it's parent
             if self.unit != self.parent_nddata.unit:
                 left = ((self.array * self.unit).to(
-                        self.parent_nddata.unit).value
-                        * other_uncert.parent_nddata.data)
+                        self.parent_nddata.unit).value *
+                        other_uncert.parent_nddata.data)
             else:
                 left = self.array * other_uncert.parent_nddata.data
 
             if other_uncert.unit != other_uncert.parent_nddata.unit:
                 right = ((other_uncert.array * other_uncert.unit).to(
-                        other_uncert.parent_nddata.unit).value
-                        * self.parent_nddata.data)
+                        other_uncert.parent_nddata.unit).value *
+                        self.parent_nddata.data)
             else:
                 right = other_uncert.array * self.parent_nddata.data
 
@@ -572,7 +634,6 @@ class StdDevUncertainty(NDUncertainty):
                 return np.sqrt(left**2 + right**2 + corr)
             else:
                 return np.sqrt(left**2 + right**2)
-
 
     def _propagate_divide(self, other_uncert, result_data, correlation):
 
@@ -606,7 +667,7 @@ class StdDevUncertainty(NDUncertainty):
             return np.abs(left / other_uncert.parent_nddata.data)
 
         else:
-            # Formula sigma = |AB| * sqrt((dA/A)**2 + (dB/B)**2 - 2*dA/A*dB/B*cor)
+            # Formula sigma = |AB|*sqrt((dA/A)**2+(dB/B)**2-2*dA/A*dB/B*cor)
 
             # As with multiplication this formula creates NaNs where A is zero
             # => sigma = sqrt((dA/B)**2 + (AdB/B**2)**2 - 2*cor*AdAdB/B**3)
@@ -625,7 +686,7 @@ class StdDevUncertainty(NDUncertainty):
                     other_uncert.parent_nddata.data) * result_data
             else:
                 right = (result_data * other_uncert.array /
-                            other_uncert.parent_nddata.data)
+                         other_uncert.parent_nddata.data)
             if correlation != 0:
                 corr = 2 * correlation * left * right
                 # This differs from multiplication because the correlation
@@ -637,12 +698,12 @@ class StdDevUncertainty(NDUncertainty):
     # TODO: Make a decorator that adds the docstrings instead.
 
     # Apply docstrings
-    _propagate_add.__doc__ = _propagate_doc.format(operation='addition',
-        operator='+', instance='StdDevUncertainty')
+    _propagate_add.__doc__ = _propagate_doc.format(
+        operation='addition', operator='+', instance='StdDevUncertainty')
     _propagate_subtract.__doc__ = _propagate_doc.format(
         operation='subtraction', operator='-', instance='StdDevUncertainty')
     _propagate_multiply.__doc__ = _propagate_doc.format(
         operation='multiplication', operator='*', instance='StdDevUncertainty')
-    _propagate_divide.__doc__ = _propagate_doc.format(operation='divison',
-        operator='/', instance='StdDevUncertainty')
+    _propagate_divide.__doc__ = _propagate_doc.format(
+        operation='divison', operator='/', instance='StdDevUncertainty')
     _convert_uncertainty.__doc__ = NDUncertainty._convert_uncertainty.__doc__

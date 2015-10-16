@@ -9,7 +9,8 @@ import numpy as np
 from numpy.testing import assert_array_equal
 
 from ..nduncertainty import (StdDevUncertainty, NDUncertainty,
-                             IncompatibleUncertaintiesException)
+                             IncompatibleUncertaintiesException,
+                             UnknownUncertainty)
 from ...tests.helper import pytest
 from ... import units as u
 
@@ -33,6 +34,8 @@ from ... import units as u
 
 # Not really fake but the minimum an uncertainty has to override not to be
 # abstract.
+
+
 class FakeUncertainty(NDUncertainty):
 
     @property
@@ -53,20 +56,24 @@ class FakeUncertainty(NDUncertainty):
 
 # Test the fake (added also StdDevUncertainty which should behave identical)
 
-@pytest.mark.parametrize(('UncertClass'), [FakeUncertainty, StdDevUncertainty])
+
+@pytest.mark.parametrize(('UncertClass'), [FakeUncertainty, StdDevUncertainty,
+                                           UnknownUncertainty])
 def test_init_fake_with_list(UncertClass):
-    fake_uncert = UncertClass([1,2,3])
-    assert_array_equal(fake_uncert.array, np.array([1,2,3]))
+    fake_uncert = UncertClass([1, 2, 3])
+    assert_array_equal(fake_uncert.array, np.array([1, 2, 3]))
     # Copy makes no difference since casting a list to an np.ndarray always
     # makes a copy.
     # But let's give the uncertainty a unit too
-    fake_uncert = UncertClass([1,2,3], unit=u.adu)
-    assert_array_equal(fake_uncert.array, np.array([1,2,3]))
+    fake_uncert = UncertClass([1, 2, 3], unit=u.adu)
+    assert_array_equal(fake_uncert.array, np.array([1, 2, 3]))
     assert fake_uncert.unit is u.adu
 
-@pytest.mark.parametrize(('UncertClass'), [FakeUncertainty, StdDevUncertainty])
+
+@pytest.mark.parametrize(('UncertClass'), [FakeUncertainty, StdDevUncertainty,
+                                           UnknownUncertainty])
 def test_init_fake_with_ndarray(UncertClass):
-    uncert = np.arange(100).reshape(10,10)
+    uncert = np.arange(100).reshape(10, 10)
     fake_uncert = UncertClass(uncert)
     # Numpy Arrays are copied by default
     assert_array_equal(fake_uncert.array, uncert)
@@ -80,9 +87,11 @@ def test_init_fake_with_ndarray(UncertClass):
     assert fake_uncert.array is not uncert
     assert fake_uncert.unit is u.adu
 
-@pytest.mark.parametrize(('UncertClass'), [FakeUncertainty, StdDevUncertainty])
+
+@pytest.mark.parametrize(('UncertClass'), [FakeUncertainty, StdDevUncertainty,
+                                           UnknownUncertainty])
 def test_init_fake_with_quantity(UncertClass):
-    uncert = np.arange(10).reshape(2,5) * u.adu
+    uncert = np.arange(10).reshape(2, 5) * u.adu
     fake_uncert = UncertClass(uncert)
     # Numpy Arrays are copied by default
     assert_array_equal(fake_uncert.array, uncert.value)
@@ -94,13 +103,15 @@ def test_init_fake_with_quantity(UncertClass):
     assert fake_uncert.unit is u.adu
     # Now try with an explicit unit parameter too
     fake_uncert = UncertClass(uncert, unit=u.m)
-    assert_array_equal(fake_uncert.array, uncert.value) # No conversion is done
+    assert_array_equal(fake_uncert.array, uncert.value)  # No conversion done
     assert fake_uncert.array is not uncert.value
-    assert fake_uncert.unit is u.m # It took the explicit one
+    assert fake_uncert.unit is u.m  # It took the explicit one
 
-@pytest.mark.parametrize(('UncertClass'), [FakeUncertainty, StdDevUncertainty])
+
+@pytest.mark.parametrize(('UncertClass'), [FakeUncertainty, StdDevUncertainty,
+                                           UnknownUncertainty])
 def test_init_fake_with_fake(UncertClass):
-    uncert = np.arange(5).reshape(5,1)
+    uncert = np.arange(5).reshape(5, 1)
     fake_uncert1 = UncertClass(uncert)
     fake_uncert2 = UncertClass(fake_uncert1)
     assert_array_equal(fake_uncert2.array, uncert)
@@ -111,7 +122,7 @@ def test_init_fake_with_fake(UncertClass):
     assert_array_equal(fake_uncert2.array, fake_uncert1.array)
     assert fake_uncert2.array is fake_uncert1.array
     # With a unit
-    uncert = np.arange(5).reshape(5,1) * u.adu
+    uncert = np.arange(5).reshape(5, 1) * u.adu
     fake_uncert1 = UncertClass(uncert)
     fake_uncert2 = UncertClass(fake_uncert1)
     assert_array_equal(fake_uncert2.array, uncert.value)
@@ -123,7 +134,9 @@ def test_init_fake_with_fake(UncertClass):
     assert fake_uncert2.array is not uncert.value
     assert fake_uncert2.unit is u.cm
 
-@pytest.mark.parametrize(('UncertClass'), [FakeUncertainty, StdDevUncertainty])
+
+@pytest.mark.parametrize(('UncertClass'), [FakeUncertainty, StdDevUncertainty,
+                                           UnknownUncertainty])
 def test_init_fake_with_somethingElse(UncertClass):
     # What about a dict?
     uncert = {'rdnoise': 2.9, 'gain': 0.6}
@@ -145,7 +158,7 @@ def test_init_fake_with_somethingElse(UncertClass):
 def test_init_fake_with_StdDevUncertainty():
     # Different instances of uncertainties are not directly convertable so this
     # should fail
-    uncert = np.arange(5).reshape(5,1)
+    uncert = np.arange(5).reshape(5, 1)
     std_uncert = StdDevUncertainty(uncert)
     with pytest.raises(IncompatibleUncertaintiesException):
         FakeUncertainty(std_uncert)
@@ -156,14 +169,14 @@ def test_init_fake_with_StdDevUncertainty():
 
 
 def test_uncertainty_type():
-    fake_uncert = FakeUncertainty([10,2])
+    fake_uncert = FakeUncertainty([10, 2])
     assert fake_uncert.uncertainty_type == 'fake'
-    std_uncert = StdDevUncertainty([10,2])
+    std_uncert = StdDevUncertainty([10, 2])
     assert std_uncert.uncertainty_type == 'std'
 
 
 def test_uncertainty_correlated():
-    fake_uncert = FakeUncertainty([10,2])
+    fake_uncert = FakeUncertainty([10, 2])
     assert not fake_uncert.supports_correlated
-    std_uncert = StdDevUncertainty([10,2])
+    std_uncert = StdDevUncertainty([10, 2])
     assert std_uncert.supports_correlated

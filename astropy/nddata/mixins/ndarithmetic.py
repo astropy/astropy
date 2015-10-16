@@ -27,11 +27,8 @@ def include_docstrings(**kwargs):
 
         Parameters
         ----------
-        operand : `~astropy.nddata.NDData`-like
+        operand: `NDData`-like instance or convertable to one.
             The second operand in the operation a {operator} b
-
-        operand: `NDData` instance or something that can be converted to one.
-            The second operand in the operation.
 
         uncertainty_correlation: ``Number`` or `~numpy.ndarray`, optional
             The correlation (rho) is defined between the uncertainties in

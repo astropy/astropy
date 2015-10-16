@@ -55,6 +55,10 @@ class FakeNumpyArray(object):
     def __array__(self):
         pass
 
+    @property
+    def dtype(self):
+        return 'fake'
+
 class MinimalUncertainty(object):
     """
     Define the minimum attributes acceptable as an uncertainty object.

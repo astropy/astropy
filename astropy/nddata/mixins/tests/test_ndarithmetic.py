@@ -14,6 +14,9 @@ from ....units import UnitsError, Quantity
 from ....tests.helper import pytest
 from .... import units as u
 
+# TODO: Tests with UnknownUncertainty
+
+
 # Just add the Mixin to NDData
 class NDDataArithmetic(NDArithmeticMixin, NDData):
 
@@ -23,14 +26,15 @@ class NDDataArithmetic(NDArithmeticMixin, NDData):
 # Test with Data covers:
 # scalars, 1D, 2D and 3D
 # broadcasting between them
-@pytest.mark.parametrize(('data1','data2'), [
+@pytest.mark.parametrize(('data1', 'data2'), [
                          (np.array(5), np.array(10)),
                          (np.array(5), np.arange(10)),
-                         (np.array(5), np.arange(10).reshape(2,5)),
+                         (np.array(5), np.arange(10).reshape(2, 5)),
                          (np.arange(10), np.ones(10) * 2),
-                         (np.arange(10), np.ones((10,10)) * 2),
-                         (np.arange(10).reshape(2,5), np.ones((2,5)) * 3),
-                         (np.arange(1000).reshape(20,5,10), np.ones((20,5,10)) * 3)
+                         (np.arange(10), np.ones((10, 10)) * 2),
+                         (np.arange(10).reshape(2, 5), np.ones((2, 5)) * 3),
+                         (np.arange(1000).reshape(20, 5, 10),
+                          np.ones((20, 5, 10)) * 3)
                          ])
 def test_arithmetics_data(data1, data2):
 
@@ -62,27 +66,31 @@ def test_arithmetics_data(data1, data2):
         assert len(nd.meta) == 0
         assert nd.wcs is None
 
+
 # Invalid arithmetic operations for data covering:
 # not broadcastable data
 def test_arithmetics_data_invalid():
-    nd1 = NDDataArithmetic([1,2,3])
-    nd2 = NDDataArithmetic([1,2])
+    nd1 = NDDataArithmetic([1, 2, 3])
+    nd2 = NDDataArithmetic([1, 2])
     with pytest.raises(ValueError):
         nd1.add(nd2)
+
 
 # Test with Data and unit and covers:
 # identical units (even dimensionless unscaled vs. no unit),
 # equivalent units (such as meter and kilometer)
 # equivalent composite units (such as m/s and km/h)
-@pytest.mark.parametrize(('data1','data2'), [
-    (np.array(5)*u.s, np.array(10)*u.s),
-    (np.array(5)*u.s, np.arange(10)*u.h),
-    (np.array(5)*u.s, np.arange(10).reshape(2,5)*u.min),
-    (np.arange(10)*u.m/u.s, np.ones(10)*2*u.km/u.s),
-    (np.arange(10)*u.m/u.s, np.ones((10,10))*2*u.m/u.h),
-    (np.arange(10).reshape(2,5)*u.m/u.s, np.ones((2,5))*3*u.km/u.h),
-    (np.arange(1000).reshape(20,5,10), np.ones((20,5,10))*3*u.dimensionless_unscaled),
-    (np.array(5), np.array(10)*u.s/u.h),
+@pytest.mark.parametrize(('data1', 'data2'), [
+    (np.array(5) * u.s, np.array(10) * u.s),
+    (np.array(5) * u.s, np.arange(10) * u.h),
+    (np.array(5) * u.s, np.arange(10).reshape(2, 5) * u.min),
+    (np.arange(10) * u.m / u.s, np.ones(10) * 2 * u.km / u.s),
+    (np.arange(10) * u.m / u.s, np.ones((10, 10)) * 2 * u.m / u.h),
+    (np.arange(10).reshape(2, 5) * u.m / u.s,
+     np.ones((2, 5)) * 3 * u.km / u.h),
+    (np.arange(1000).reshape(20, 5, 10),
+     np.ones((20, 5, 10)) * 3 * u.dimensionless_unscaled),
+    (np.array(5), np.array(10) * u.s / u.h),
     ])
 def test_arithmetics_data_unit_identical(data1, data2):
 
