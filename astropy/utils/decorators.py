@@ -764,7 +764,7 @@ def replace_and_format_docstring(docstring, *args, **kwargs):
 
     This decorator keeps the objects signature and only alters the saved
     ``__doc__`` property (so it cannot be used as class decorator in python2).
-    The formatting works like :func:`str.format` and if the decorated object
+    The formatting works like :meth:`str.format` and if the decorated object
     already has a docstring this docstring can be included in the new
     documentation if you use the ``{original_doc}`` placeholder.
     It's primary use is if multiple functions have the same or only
@@ -781,10 +781,10 @@ def replace_and_format_docstring(docstring, *args, **kwargs):
         it will use the decorated functions docstring and format it.
 
     arg:
-        passed to :func:`str.format`.
+        passed to :meth:`str.format`.
 
     kwargs:
-        passed to :func:`str.format`. If the function has a (not empty)
+        passed to :meth:`str.format`. If the function has a (not empty)
         docstring the original docstring is added to the kwargs with the
         keyword ``original_doc``.
 
@@ -960,7 +960,7 @@ def replace_and_format_docstring(docstring, *args, **kwargs):
     """
     def set_docstring(func):
         # Not a string so assume we want the saved doc from the object
-        if not isinstance(docstring, str):
+        if not isinstance(docstring, six.string_types):
             doc = docstring.__doc__
         elif docstring != 'self':
             doc = docstring
