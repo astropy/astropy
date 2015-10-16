@@ -48,7 +48,7 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
     else:
         #compute the distance as just the cartesian sum from moving to the Earth
         #we have to do this because the ERFA functions throw away distance info
-        distance = np.sum((astrom['eb']*u.au + icrs_coo.cartesian.xyz.T)**2, -1)**0.5
+        distance = np.sum((-astrom['eb']*u.au + icrs_coo.cartesian.xyz.T)**2, -1)**0.5
         rep = SphericalRepresentation(lat=u.Quantity(cirs_dec, u.radian, copy=False),
                                       lon=u.Quantity(cirs_ra, u.radian, copy=False),
                                       distance=distance, copy=False)
@@ -74,7 +74,7 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
     else:
         #compute the distance as just the cartesian sum from moving to the SSB
         #we have to do this because the ERFA functions throw away distance info
-        distance = np.sum((-astrom['eb']*u.au + cirs_coo.cartesian.xyz.T)**2, -1)**0.5
+        distance = np.sum((astrom['eb']*u.au + cirs_coo.cartesian.xyz.T)**2, -1)**0.5
         rep = SphericalRepresentation(lat=u.Quantity(icrs_dec, u.radian, copy=False),
                                       lon=u.Quantity(icrs_ra, u.radian, copy=False),
                                       distance=distance, copy=False)
@@ -124,7 +124,7 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
     else:
         #compute the distance as just the cartesian sum from moving to the Earth
         #we have to do this because the ERFA functions throw away distance info
-        distance = np.sum((astrom['eb']*u.au + icrs_coo.cartesian.xyz.T)**2, -1)**0.5
+        distance = np.sum((-astrom['eb']*u.au + icrs_coo.cartesian.xyz.T)**2, -1)**0.5
         rep = SphericalRepresentation(lat=u.Quantity(gcrs_dec, u.radian, copy=False),
                                       lon=u.Quantity(gcrs_ra, u.radian, copy=False),
                                       distance=distance, copy=False)
