@@ -775,10 +775,10 @@ def replace_and_format_docstring(docstring, *args, **kwargs):
     ----------
     docstring: `str` or ``object``
         The docstring that will replace the docstring of the decorated
-        function/method. If it is an object like a function or class it will
+        object. If it is an object like a function or class it will
         take the docstring of this object. If it is a string it will use the
         string itself. One special case is if the string is ``'self'`` then
-        it will use the decorated functions docstring and format it.
+        it will use the decorated functions docstring and formats it.
 
     arg:
         passed to :meth:`str.format`.
@@ -791,11 +791,11 @@ def replace_and_format_docstring(docstring, *args, **kwargs):
     Raises
     ------
     ValueError:
-        If the interpreted (if it was ``'self'`` or not a string) ``docstring``
-        is empty.
+        If the ``docstring`` (or interpreted docstring if it was ``'self'`` or
+        not a string) is empty.
 
     IndexError, KeyError:
-        If a placeholder in the interpreted ``docstring`` was not filled. see
+        If a placeholder in the (interpreted) ``docstring`` was not filled. see
         :meth:`str.format` for more information.
 
     Notes
@@ -803,10 +803,13 @@ def replace_and_format_docstring(docstring, *args, **kwargs):
     Using this decorator allows, for example Sphinx, to parse the
     correct docstring.
 
-    There might be problems with certain objects which have a nor-writable
-    ``__doc__`` attribute. Like class objects before python 3.
+    There might be problems with certain objects which have a not-writable
+    ``__doc__`` attribute. Like classes in python2.
 
-    Replacing a current docstring is very easy::
+    Examples
+    --------
+
+    Replacing the current docstring is very easy::
 
         >>> from astropy.utils.decorators import replace_and_format_docstring
         >>> doc = '''Perform num1 + num2'''
@@ -918,7 +921,8 @@ def replace_and_format_docstring(docstring, *args, **kwargs):
                 result of num1 + num2
 
     But be aware that this decorator *only* formats the given docstring not
-    the docstring that is formulated inside the function itself::
+    the strings passed as ``args`` or ``kwargs`` (not even the original
+    docstring)::
 
         >>> @replace_and_format_docstring(doc, 'addition', op='+')
         ... def yet_another_add(num1, num2):
@@ -939,8 +943,7 @@ def replace_and_format_docstring(docstring, *args, **kwargs):
                 result of num1 + num2
             This one is good for {0}.
 
-    To work around it you could specify the docstring to be ``'self'``
-    but then the ``args`` and ``kwargs`` don't get formatted::
+    To work around it you could specify the docstring to be ``'self'``::
 
         >>> @replace_and_format_docstring('self', 'addition')
         ... def last_add_i_swear(num1, num2):
@@ -955,8 +958,7 @@ def replace_and_format_docstring(docstring, *args, **kwargs):
 
     Using it with ``'self'`` as docstring allows to use the decorator twice on
     an object to first parse the new docstring and then to parse the original
-    docstring. But since this decorator performs string operations using it
-    too often might affect the performance.
+    docstring or the ``args`` and ``kwargs``.
     """
     def set_docstring(func):
         # Not a string so assume we want the saved doc from the object
@@ -971,8 +973,7 @@ def replace_and_format_docstring(docstring, *args, **kwargs):
             func.__doc__ = None
 
         if not doc:
-            # I guess there is nothing which does contain no doc but better be
-            # prepared.
+            # In case the docstring is empty it's probably not what was wanted.
             raise ValueError('docstring must be a string or containing a'
                              'docstring that is not empty.')
 
