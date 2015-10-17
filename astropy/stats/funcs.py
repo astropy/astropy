@@ -923,8 +923,10 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
     Returns
     -------
     boot : numpy.ndarray
-        Bootstrapped data. Each row is a bootstrap resample of the data. The
-        columns will correspond to the outputs of bootfunc.
+
+        If bootfunc is None, then each row is a bootstrap resample of the data.
+        If bootfunc is specified, then the columns will correspond to the
+        outputs of bootfunc.
 
     Examples
     --------
