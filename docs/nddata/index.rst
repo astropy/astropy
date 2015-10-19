@@ -39,7 +39,7 @@ Getting started
 
 Of the classes provided by `~astropy.nddata`, the place to start for most
 users will be `~astropy.nddata.NDData`, which by default uses a
-`~numpy-ndarray`-like object to store the data and provides a fully functional
+`~numpy.ndarray`-like object to store the data and provides a fully functional
 (if somewhat restricted) implementation. Designers of new classes should
 also look at `~astropy.nddata.NDDataBase` before deciding what to subclass
 from.
@@ -179,25 +179,33 @@ the previous API or only to extend it.
 
 These changes included:
 
-+ `NDDataBase` now enforces no restrictions. Previous implementations forced
++ `~astropy.nddata.NDDataBase` now enforces no restrictions. Previous
+  implementations forced
   the ``uncertainty`` to match certain requirements, these were dropped.
-+ `NDData` underwent several  bugfixes and documentation updates. But several
++ `~astropy.nddata.NDData` underwent several  bugfixes and documentation
+  updates. But several
   small new functionalities are now included like creating an instance now
   allows for a ``copy`` parameter (default is ``False``) and is less
   restrictive on the ``uncertainty`` (only a Warning is issued if the
   uncertainty does not meet the requirements instead of an Exception).
-+ `NDSlicingMixin` is now more restrictive while slicing ``meta`` attributes
++ `~astropy.nddata.NDSlicingMixin` is now more restrictive while slicing
+  ``meta`` attributes
   like ``uncertainty``, ``wcs`` and ``mask``. But the Mixin was refactored in
   a way that allows subclasses to customize slicing attributes in a different
   way. Visit :ref:`subclassing` for more information.
-+ `NDArithmeticMixin` now allows to customize what attributes are computed
-  during arithmetic operations. As with ``NDSlicingMixin`` these are now
++ `~astropy.nddata.NDArithmeticMixin` now allows to customize what attributes
+  are computed
+  during arithmetic operations. As with `~astropy.nddata.NDSlicingMixin` these
+  are now
   arranged in a way that subclasses can easily manipulate the way one
   attribute is handled. Visit :ref:`subclassing` for more information.
-+ `NDUncertainty` underwent a major revision and is probably not backwards
-  compatible while ``StdDevUncertainy`` has kept most of it's API. For more
++ `~astropy.nddata.NDUncertainty` underwent a major revision and is probably
+  not backwards
+  compatible while ``~astropy.nddata.StdDevUncertainy`` has kept most of it's
+  API. For more
   information look at REFERENCE.
-+ `StdDevUncertainty` now handles ``units`` correctly and allows to compute
++ `~astropy.nddata.StdDevUncertainty` now handles ``units`` correctly and
+  allows to compute
   the propagation with correlation. But only if the correlation is an input
   parameter. Evaluating the correlation itself is still not possible.
 
