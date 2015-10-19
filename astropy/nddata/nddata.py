@@ -40,12 +40,12 @@ class NDData(NDDataBase):
         Uncertainty in the dataset.
         Should have an attribute
         ``uncertainty_type`` that defines what kind of uncertainty is stored,
-        such as ``'std'`` for standard deviation or
-        ``'var'`` for variance. A metaclass defining such an interface is
+        such as ``std`` for standard deviation or
+        ``var`` for variance. A metaclass defining such an interface is
         `~astropy.nddata.NDUncertainty` but isn't mandatory.
         Defaults to ``None``.
 
-        TODO: *Must* or *Should* have this ``uncertainty_type``? (mwcraig)
+        TODO: *Must* or *Should* have this ``uncertainty_type`` ? (mwcraig)
         I implemented UnknownUncertainty to work around that so what is
         saved in _uncertainty has an uncertainty_type but it's unknown :-)
 
@@ -259,7 +259,7 @@ class NDData(NDDataBase):
         """
         any type : Mask for the dataset, if any.
 
-        Masks should follow the `numpy` convention that valid data points are
+        Masks should follow the ``numpy`` convention that valid data points are
         marked by ``False`` and invalid ones with ``True``.
         """
         return self._mask
@@ -295,11 +295,11 @@ class NDData(NDDataBase):
         any type : Uncertainty in the dataset, if any.
 
         Should have an attribute ``uncertainty_type`` that defines what kind of
-        uncertainty is stored, such as ``'std'`` for standard deviation or
-        ``'var'`` for variance. A metaclass defining such an interface is
+        uncertainty is stored, such as ``std`` for standard deviation or
+        ``var`` for variance. A metaclass defining such an interface is
         `~astropy.nddata.NDUncertainty` but isn't mandatory.
 
-        TODO: *Must* or *Should* have this ``uncertainty_type``? (mwcraig)
+        TODO: *Must* or *Should* have this ``uncertainty_type`` ? (mwcraig)
         I implemented UnknownUncertainty to work around that so what is
         saved in _uncertainty has an uncertainty_type but it's unknown :-)
         """
@@ -314,7 +314,7 @@ class NDData(NDDataBase):
         str: The kind of uncertainty that is saved.
 
         The uncertainty_type is using the convention that standard deviation
-        is abbreviated by ``'std'``, variance by ``'var'``, ...
+        is abbreviated by ``std``, variance by ``var``, ...
 
         TODO: This is new and only a shortcut to the uncertainty type since
         the property hides the really saved uncertainty if it is an

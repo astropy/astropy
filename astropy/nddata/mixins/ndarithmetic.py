@@ -208,7 +208,7 @@ class NDArithmeticMixin(object):
         >>> from astropy.nddata import *
         >>> class NDDataWithMath(NDArithmeticMixin, NDData): pass
         >>> nd = NDDataWithMath([1,2,3], unit='meter')
-        >>> nd_inv = nd.division(1, nd)
+        >>> nd_inv = nd.ic_division(1, nd)
         >>> nd.__class__.__name__
         'NDDataWithMath'
         >>> nd.data
@@ -220,7 +220,7 @@ class NDArithmeticMixin(object):
     with what this class implements as arithmetics and give a result that
     is the same class as the class that called the method.
 
-        >>> nd2 = nd.multiplication([1,2],3)
+        >>> nd2 = nd.ic_multiplication([1,2],3)
         >>> nd2.__class__.__name__
         'NDDataWithMath'
         >>> nd2.data
@@ -228,7 +228,7 @@ class NDArithmeticMixin(object):
 
     Since this is a classmethod we don't need an instance to use them:
 
-        >>> nd3 = NDDataWithMath.subtraction(5, NDData([1,2,3]))
+        >>> nd3 = NDDataWithMath.ic_subtraction(5, NDData([1,2,3]))
         >>> nd3.__class__.__name__
         'NDDataWithMath'
         >>> nd3.data
@@ -239,7 +239,7 @@ class NDArithmeticMixin(object):
         >>> class NDDataWithMathAndSlicing(NDSlicingMixin,NDArithmeticMixin, NDData): pass
         >>> nd = NDDataWithMath([5,5,5])
         >>> nd2 = NDDataWithMathAndSlicing([3,2,5])
-        >>> nd3 = nd2.addition(nd, nd2)
+        >>> nd3 = nd2.ic_addition(nd, nd2)
         >>> nd3.__class__.__name__
         'NDDataWithMathAndSlicing'
         >>> nd3.data
@@ -739,7 +739,7 @@ class NDArithmeticMixin(object):
         result, kwargs = self._arithmetic("addition", operand, **kwargs)
         return self.__class__(result, **kwargs)
 
-    @tmp_deco(_arit_doc, name="subtration", op="-")
+    @tmp_deco(_arit_doc, name="subtraction", op="-")
     def subtract(self, operand, **kwargs):
         result, kwargs = self._arithmetic("subtraction", operand, **kwargs)
         return self.__class__(result, **kwargs)
