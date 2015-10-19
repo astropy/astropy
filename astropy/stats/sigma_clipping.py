@@ -6,6 +6,14 @@ import numpy as np
 import warnings
 from ..utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
+try:
+    from scipy.stats import sigmaclip
+    HAS_SCIPY=True
+except:
+    warnings.warn("Scipy is required for some functionality of",
+            "sigma_clip. The `masked` keyword will be forced to `True`.")
+    HAS_SCIPY=False
+
 
 __all__ = ['sigma_clip', 'sigma_clipped_stats']
 
@@ -31,7 +39,8 @@ def sigma_clip(data, **kwargs):
 
 
 def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
-                cenfunc=np.ma.median, stdfunc=np.std, axis=None, copy=True):
+                cenfunc=np.ma.median, stdfunc=np.std, axis=None, copy=True,
+                masked = True):
     """
     sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5, cenfunc=np.ma.median, stdfunc=np.std, axis=None, copy=True)
 
@@ -95,6 +104,11 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
         If `True`, the ``data`` array will be copied.  If `False`, the
         returned masked array data will contain the same array as
         ``data``.  Defaults to `True`.
+    masked: bool, optional
+        if `True` will use Numpy masked arrays to mask points rejected by
+        sigma clipping. If `False` will use the `scipy.stats.sigmaclip` 
+        function which throws away points rejected by sigma clipping. Setting
+        it to `False` can result in significant speedups. Defaults to `True`.
 
     Returns
     -------
@@ -231,7 +245,8 @@ sigma_clip.__doc__ = _sigma_clip.__doc__
 
 def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
                         sigma_lower=None, sigma_upper=None, iters=5,
-                        cenfunc=np.ma.median, stdfunc=np.std, axis=None):
+                        cenfunc=np.ma.median, stdfunc=np.std, axis=None,
+                        masked = True):
     """
     Calculate sigma-clipped statistics from data.
 
@@ -300,6 +315,11 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
         are expected to return an array with the axis dimension removed
         (like the numpy functions).  If `None`, clip over all axes.
         Defaults to `None`.
+
+    masked: bool, optional
+        if `True` will use Numpy masked arrays to mask points rejected by
+        sigma clipping. If `False` will use the `scipy.stats.sigmaclip` 
+        function which throws away points rejected by sigma clipping. Setting
 
     Returns
     -------
