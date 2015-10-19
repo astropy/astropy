@@ -16,6 +16,9 @@ from .. import (EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz,
                 PrecessedGeocentric, CartesianRepresentation,
                 SphericalRepresentation, UnitSphericalRepresentation)
 
+
+from ..._erfa import epv00
+
 from .utils import randomly_sample_sphere
 
 def test_icrs_cirs():
@@ -394,7 +397,9 @@ def test_icrs_altaz_moonish(testframe):
     Check that something expressed in *ICRS* as being moon-like goes to the
     right AltAz distance
     """
-    earth_icrs_xyz = -get_sun(testframe.obstime).cartesian.xyz
+    # we use epv00 instead of get_sun because get_sun includes aberration
+    earth_pv_helio, earth_pv_bary = epv00(testframe.obstime.jd1, testframe.obstime.jd2)
+    earth_icrs_xyz = earth_pv_bary[0]*u.au
     moonoffset = [0, 0, MOONDIST.value]*MOONDIST.unit
     moonish_icrs = ICRS(CartesianRepresentation(earth_icrs_xyz + moonoffset))
     moonaa = moonish_icrs.transform_to(testframe)
