@@ -14,9 +14,12 @@ datasets in astropy through:
   interface to N-dimensional data sets while allowing flexibility in
   how those datasets are represented internally.
 + The `~astropy.nddata.NDData` class, which provides a basic container for
-  gridded N-dimensional datasets.
+  N-dimensional datasets based on `~numpy.ndarray`-like data.
 + Several mixin classes for adding functionality to `~astropy.nddata.NDData`
   containers.
++ Classes for storing uncertainties, like `~astropy.nddata.StdDevUncertainty`
+  for normal distributed uncertainties that are given as the sigma or standard
+  deviation error. A more detailed description is avaiable in REFERENCE.
 + A decorator, `~astropy.nddata.support_nddata`, for facilitating use of
   `~astropy.nddata` objects  in functions in astropy and affiliated packages.
 + General utility functions (:ref:`nddata_utils`) for array operations.
@@ -26,13 +29,20 @@ datasets in astropy through:
   `~astropy.nddata` has changed significantly in astropy 1.0. See the section
   :ref:`nddata_transition` for more information.
 
+.. warning::
+
+  `~astropy.nddata` was subject of further changes in astropy xx. See the
+  section :ref:`nddata_transition_2` for more information.
+
 Getting started
 ===============
 
 Of the classes provided by `~astropy.nddata`, the place to start for most
-users will be `~astropy.nddata.NDData`, which by default uses a numpy array to
-store the data. Designers of new classes should also look at
-`~astropy.nddata.NDDataBase` before deciding what to subclass from.
+users will be `~astropy.nddata.NDData`, which by default uses a
+`~numpy-ndarray`-like object to store the data and provides a fully functional
+(if somewhat restricted) implementation. Designers of new classes should
+also look at `~astropy.nddata.NDDataBase` before deciding what to subclass
+from.
 
 NDData
 ------
@@ -41,7 +51,7 @@ The primary purpose of `~astropy.nddata.NDData` is to act as a *container* for
 data, metadata, and other related information like a mask.
 
 An `~astropy.nddata.NDData` object can be instantiated by passing it an
-n-dimensional Numpy array::
+N-dimensional Numpy array::
 
     >>> import numpy as np
     >>> from astropy.nddata import NDData
@@ -63,18 +73,22 @@ The underlying Numpy array can be accessed via the ``data`` attribute::
 
 Values can be masked using the ``mask`` attribute::
 
-     >>> ndd_masked = NDData(ndd, mask = ndd.data > 0.9)
+    >>> ndd_masked = NDData(ndd2, mask = ndd2.data > 1.5)
+    >>> ndd_masked.mask
+    array([False,  True,  True,  True], dtype=bool)
 
 A mask value of `True` indicates a value that should be ignored, while a mask
-value of `False` indicates a valid value.
-
+value of `False` indicates a valid value. Which is adopted from the
+`~numpy.ma.MaskedArray` convention.
 
 Similar attributes are available to store:
 
 + generic meta-data, in ``meta``,
 + a unit for the data values, in ``unit`` and
 + an uncertainty for the data values, in ``uncertainty``. Note that the
-  ``uncertainty`` must have a string attribute called ``uncertainty_type``.
+  ``uncertainty`` should have a string attribute called ``uncertainty_type``.
++ a world coordinate system in ``wcs`` providing a real-world meaning to the
+  gridded coordinates.
 
 Note that a `~astropy.nddata.NDData` object is not sliceable::
 
@@ -84,17 +98,15 @@ Note that a `~astropy.nddata.NDData` object is not sliceable::
     TypeError: 'NDData' object has no attribute '__getitem__'
 
 
-
 Mixins for additional functionality
 -----------------------------------
 
-Several classes are provided to add functionality to the basic ``NDData``
-container. They include:
+Several classes are provided to add functionality to the basic
+`~astropy.nddata.NDData` container. They include:
 
 + `~astropy.nddata.NDSlicingMixin` to handle slicing of N-dimensional data.
 + `~astropy.nddata.NDArithmeticMixin` to allow arithmetic operations on
-  `~astropy.nddata.NDData` objects that include support propagation of
-  uncertainties (in limited cases).
+  `~astropy.nddata.NDData` objects.
 + `~astropy.nddata.NDIOMixin` to use existing astropy functionality for input
   (with the method ``read``) and output (with the method ``write``).
 
@@ -110,7 +122,8 @@ functionality is provided by the ``NDData`` container and the mixins. The
 order of the classes is important because python works from right to left in
 determining the order in which methods are resolved.
 
-``NDDataSliceable`` is initialized the same way that `~astropy.nddata.NDData` is::
+``NDDataSliceable`` is initialized the same way that `~astropy.nddata.NDData`
+is::
 
     >>> ndd_sliceable = NDDataSliceable([1, 2, 3, 4])
 
@@ -155,6 +168,39 @@ Code that uses the arithemtic methods that used to be included in
 instead subclass `~astropy.nddata.NDDataArray`; that class is equivalent to
 the original `~astropy.nddata.NDData` class.
 
+.. _nddata_transition_2:
+
+Transition to astropy xx
+========================
+
+The `~astropy.nddata` package was subject to another revision mainly to fix
+existing bugs but also to implemented new functionality while trying to keep
+the previous API or only to extend it.
+
+These changes included:
+
++ `NDDataBase` now enforces no restrictions. Previous implementations forced
+  the ``uncertainty`` to match certain requirements, these were dropped.
++ `NDData` underwent several  bugfixes and documentation updates. But several
+  small new functionalities are now included like creating an instance now
+  allows for a ``copy`` parameter (default is ``False``) and is less
+  restrictive on the ``uncertainty`` (only a Warning is issued if the
+  uncertainty does not meet the requirements instead of an Exception).
++ `NDSlicingMixin` is now more restrictive while slicing ``meta`` attributes
+  like ``uncertainty``, ``wcs`` and ``mask``. But the Mixin was refactored in
+  a way that allows subclasses to customize slicing attributes in a different
+  way. Visit :ref:`subclassing` for more information.
++ `NDArithmeticMixin` now allows to customize what attributes are computed
+  during arithmetic operations. As with ``NDSlicingMixin`` these are now
+  arranged in a way that subclasses can easily manipulate the way one
+  attribute is handled. Visit :ref:`subclassing` for more information.
++ `NDUncertainty` underwent a major revision and is probably not backwards
+  compatible while ``StdDevUncertainy`` has kept most of it's API. For more
+  information look at REFERENCE.
++ `StdDevUncertainty` now handles ``units`` correctly and allows to compute
+  the propagation with correlation. But only if the correlation is an input
+  parameter. Evaluating the correlation itself is still not possible.
+
 
 Using ``nddata``
 ================
@@ -164,6 +210,7 @@ Using ``nddata``
 
    nddata.rst
    decorator.rst
+   nduncertainty.rst
    mixins/index.rst
    subclassing.rst
    utils.rst

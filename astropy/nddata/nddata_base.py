@@ -6,21 +6,21 @@ from __future__ import (absolute_import, division, print_function,
 
 from abc import ABCMeta, abstractproperty, abstractmethod
 
-from ..extern.six import add_metaclass
+from ..extern import six
 
 __all__ = ['NDDataBase']
 
 
-@add_metaclass(ABCMeta)
+@six.add_metaclass(ABCMeta)
 class NDDataBase(object):
     """
-    Base metaclass that defines the interface for `NDData`-like classes.
+    Base metaclass that defines the interface for N-dimensional datasets with
+    associated meta informations used in `astropy`.
 
-    Classes that wish to use this interface without inheriting the restrictions
-    and internal representations of `~astropy.nddata.NDData` should subclass
-    ``NDDataBase`` instead.
-
-    TODO: Copy parameter docstrings from NDData here(?!)
+    NDDataBase makes no attempt of restricting any attribute or defines how
+    these are stored. Therefore all properties and methods have to be
+    overridden in subclasses. See `~astropy.nddata.NDData` for a subclass that
+    defines this interface on `~numpy.ndarray`-like based ``data``.
     """
 
     @abstractmethod
@@ -30,41 +30,50 @@ class NDDataBase(object):
     @abstractproperty
     def data(self):
         """
-        The data.
+        The stored dataset.
         """
         pass
 
     @abstractproperty
     def mask(self):
         """
-        Mask for the data, if any.
+        Mask for the dataset.
+
+        Masks should follow the `numpy` convention that valid data points are
+        marked by ``False`` and invalid ones with ``True``.
         """
         return None
 
     @abstractproperty
     def unit(self):
         """
-        Unit for the data, if any.
+        Unit for the dataset.
         """
         return None
 
     @abstractproperty
     def wcs(self):
         """
-        WCS for the data, if any.
+        A world coordinate system (WCS) for the dataset.
         """
         return None
 
     @abstractproperty
     def meta(self):
         """
-        Meta information about the data, if any.
+        Meta information about the dataset.
+
+        Should be `dict`-like.
         """
         return None
 
     @abstractproperty
     def uncertainty(self):
         """
-        Uncertainty in the data, if any.
+        Uncertainty in the dataset.
+
+        Should have an attribute ``uncertainty_type`` that defines what kind of
+        uncertainty is stored, such as ``'std'`` for standard deviation or
+        ``'var'`` for variance.
         """
         return None
