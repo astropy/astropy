@@ -38,8 +38,8 @@ New features in celestial coordinates package
 The :ref:`astropy-coordinates` sub-package now includes the following new
 coordinate frames:
 
-* de Vaucouleur **Supergalactic coordinates**, implemented via the 
-  :class:`~astropy.coordinates.Supergalactic` frame. 
+* de Vaucouleur **Supergalactic coordinates**, implemented via the
+  :class:`~astropy.coordinates.Supergalactic` frame.
 
 * **Ecliptic coordinates**, implemented via the
   :class:`~astropy.coordinates.GeocentricTrueEcliptic`,
@@ -75,7 +75,7 @@ Bayesian models such as `Knuth's rule
 
 .. plot::
    :align: center
-   
+
     import numpy as np
     from astropy.visualization import hist
 
@@ -135,10 +135,10 @@ pandas `DataFrame`_::
     0  1  a
     1  2  b
     2  3  c
-    3  4  d    
+    3  4  d
     >>> type(df)
     <class 'pandas.core.frame.DataFrame'>
-    
+
 A pandas `DataFrame`_ can also easily be converted to an Astropy
 :class:`~astropy.table.Table`::
 
@@ -152,11 +152,11 @@ A pandas `DataFrame`_ can also easily be converted to an Astropy
         2       b
         3       c
         4       d
-        
+
 For more information, see :ref:`pandas`.
-        
+
 .. _whatsnew-1.1-units:
-        
+
 New Units
 ---------
 
@@ -198,6 +198,22 @@ Deprecation and backward-incompatible changes
 
 The v1.1.x series of releases will be the last one supporting Python 2.6.
 Starting with Astropy v1.2, Python 2.7 or later will be required.
+
+
+2D Cutout Images
+----------------
+
+The `astropy.nddata.utils` module now includes a
+`~astropy.nddata.utils.Cutout2D` class to create a postage stamp
+cutout image from a 2D array.  Image cutouts can be generated using
+either pixel or `~astropy.coordinates.SkyCoord` positions.  The cutout
+shapes can be specified in either angular or pixel units.  If an
+optional `~astropy.wcs.WCS` object is input, then the
+`~astropy.nddata.utils.Cutout2D` object will contain an updated
+`~astropy.wcs.WCS` corresponding to the cutout array.
+
+For more information, see :ref:`cutout_images`.
+
 
 Full change log
 ---------------
