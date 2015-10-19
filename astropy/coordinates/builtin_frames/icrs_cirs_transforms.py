@@ -25,36 +25,37 @@ from .cirs import CIRS
 
 @frame_transform_graph.transform(FunctionTransform, ICRS, CIRS)
 def icrs_to_cirs(icrs_coo, cirs_frame):
-    #parallax in arcsec
-    if isinstance(icrs_coo.data, UnitSphericalRepresentation):  # no distance
-        px = 0
-    else:
-        px = 1 / icrs_coo.distance.to(u.parsec).value
-    srepr = icrs_coo.represent_as(UnitSphericalRepresentation)
-    i_ra = srepr.lon.to(u.radian).value
-    i_dec = srepr.lat.to(u.radian).value
-
     #first set up the astrometry context for ICRS<->CIRS
     astrom, eo = erfa.apci13(cirs_frame.obstime.jd1, cirs_frame.obstime.jd2)
 
-    # TODO: possibly switch to something that is like atciq, but skips the first
-    # step, b/c that involves some  wasteful computations b/c pm=0  here
-    cirs_ra, cirs_dec = erfa.atciq(i_ra, i_dec, 0, 0, px, 0, astrom)
+    if icrs_coo.data.get_name() == 'unitspherical'  or icrs_coo.data.to_cartesian().x.unit == u.one:
+        # if no distance, just do the infinite-distance/no parallax calculation
+        usrepr = icrs_coo.represent_as(UnitSphericalRepresentation)
+        i_ra = usrepr.lon.to(u.radian).value
+        i_dec = usrepr.lat.to(u.radian).value
+        cirs_ra, cirs_dec = erfa.atciqz(i_ra, i_dec, astrom)
 
-    dat = icrs_coo.data
-    if dat.get_name() == 'unitspherical'  or dat.to_cartesian().x.unit == u.one:
-        rep = UnitSphericalRepresentation(lat=u.Quantity(cirs_dec, u.radian, copy=False),
-                                          lon=u.Quantity(cirs_ra, u.radian, copy=False),
-                                          copy=False)
+        newrep = UnitSphericalRepresentation(lat=u.Quantity(cirs_dec, u.radian, copy=False),
+                                             lon=u.Quantity(cirs_ra, u.radian, copy=False),
+                                             copy=False)
     else:
-        #compute the distance as just the cartesian sum from moving to the Earth
-        #we have to do this because the ERFA functions throw away distance info
-        distance = np.sum((-astrom['eb']*u.au + icrs_coo.cartesian.xyz.T)**2, -1)**0.5
-        rep = SphericalRepresentation(lat=u.Quantity(cirs_dec, u.radian, copy=False),
-                                      lon=u.Quantity(cirs_ra, u.radian, copy=False),
-                                      distance=distance, copy=False)
+        # When there is a distance,  we first offset for parallax to get the
+        # BCRS coordinate direction and *then* run the ERFA transform for no
+        # parallax/PM. This ensures reversiblity and is more sensible for
+        # inside solar system objects
+        newxyz = icrs_coo.cartesian.xyz.T - astrom['eb']*u.au
+        newcart = CartesianRepresentation(newxyz.T)
 
-    return cirs_frame.realize_frame(rep)
+        srepr = newcart.represent_as(SphericalRepresentation)
+        i_ra = srepr.lon.to(u.radian).value
+        i_dec = srepr.lat.to(u.radian).value
+        cirs_ra, cirs_dec = erfa.atciqz(i_ra, i_dec, astrom)
+
+        newrep = SphericalRepresentation(lat=u.Quantity(cirs_dec, u.radian, copy=False),
+                                         lon=u.Quantity(cirs_ra, u.radian, copy=False),
+                                         distance=srepr.distance, copy=False)
+
+    return cirs_frame.realize_frame(newrep)
 
 @frame_transform_graph.transform(FunctionTransform, CIRS, ICRS)
 def cirs_to_icrs(cirs_coo, icrs_frame):
@@ -62,24 +63,32 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
     cirs_ra = srepr.lon.to(u.radian).value
     cirs_dec = srepr.lat.to(u.radian).value
 
-    #first set up the astrometry context for ICRS<->CIRS
+    # set up the astrometry context for ICRS<->cirs and then convert to BCRS
+    # coordinate direction
     astrom, eo = erfa.apci13(cirs_coo.obstime.jd1, cirs_coo.obstime.jd2)
+    i_ra, i_dec = erfa.aticq(cirs_ra, cirs_dec, astrom)
 
-    icrs_ra, icrs_dec = erfa.aticq(cirs_ra, cirs_dec, astrom)
-
-    dat = cirs_coo.data
-    if dat.get_name() == 'unitspherical'  or dat.to_cartesian().x.unit == u.one:
-        rep = UnitSphericalRepresentation(lat=u.Quantity(icrs_dec, u.radian, copy=False),
-                                          lon=u.Quantity(icrs_ra, u.radian, copy=False),
-                                          copy=False)
+    if cirs_coo.data.get_name() == 'unitspherical'  or cirs_coo.data.to_cartesian().x.unit == u.one:
+        # if no distance, just use the coordinate direction to yield the
+        # infinite-distance/no parallax answer
+        newrep = UnitSphericalRepresentation(lat=u.Quantity(i_dec, u.radian, copy=False),
+                                             lon=u.Quantity(i_ra, u.radian, copy=False),
+                                             copy=False)
     else:
-        #compute the distance as just the cartesian sum from moving to the SSB
-        #we have to do this because the ERFA functions throw away distance info
-        distance = np.sum((astrom['eb']*u.au + cirs_coo.cartesian.xyz.T)**2, -1)**0.5
-        rep = SphericalRepresentation(lat=u.Quantity(icrs_dec, u.radian, copy=False),
-                                      lon=u.Quantity(icrs_ra, u.radian, copy=False),
-                                      distance=distance, copy=False)
-    return icrs_frame.realize_frame(rep)
+        # When there is a distance, apply the parallax/offset to the SSB as the
+        # last step - ensures round-tripping with the icrs_to_cirs transform
+
+        # the distance in intermedrep is *not* a real distance as it does not
+        # include the offset back to the SSB
+        intermedrep = SphericalRepresentation(lat=u.Quantity(i_dec, u.radian, copy=False),
+                                              lon=u.Quantity(i_ra, u.radian, copy=False),
+                                              distance=cirs_coo.distance,
+                                              copy=False)
+
+        newxyz = intermedrep.to_cartesian().xyz.T + astrom['eb']*u.au
+        newrep = CartesianRepresentation(newxyz.T).represent_as(SphericalRepresentation)
+
+    return icrs_frame.realize_frame(newrep)
 
 @frame_transform_graph.transform(FunctionTransform, CIRS, CIRS)
 def cirs_to_cirs(from_coo, to_frame):
