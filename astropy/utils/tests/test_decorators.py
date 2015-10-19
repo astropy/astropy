@@ -8,7 +8,7 @@ import pickle
 
 from ..decorators import (deprecated_attribute, deprecated, wraps,
                           sharedmethod, classproperty,
-                          replace_and_format_docstring)
+                          format_doc)
 from ..exceptions import AstropyDeprecationWarning
 from ...extern import six
 from ...tests.helper import pytest, catch_warnings
@@ -368,62 +368,62 @@ def test_classproperty_docstring():
     assert B.__dict__['foo'].__doc__ == "The foo."
 
 
-def test_replace_and_format_docstring_stringInput_simple():
+def test_format_doc_stringInput_simple():
     # Simple tests with string input
 
     docstring_fail = ''
 
     # Raises an valueerror if input is empty
     with pytest.raises(ValueError):
-        @replace_and_format_docstring(docstring_fail)
+        @format_doc(docstring_fail)
         def testfunc_fail():
             pass
 
     docstring = 'test'
 
     # A first test that replaces an empty docstring
-    @replace_and_format_docstring(docstring)
+    @format_doc(docstring)
     def testfunc_1():
         pass
     assert inspect.getdoc(testfunc_1) == docstring
 
     # Test that it replaces an existing docstring
-    @replace_and_format_docstring(docstring)
+    @format_doc(docstring)
     def testfunc_2():
         '''not test'''
         pass
     assert inspect.getdoc(testfunc_2) == docstring
 
 
-def test_replace_and_format_docstring_stringInput_format():
+def test_format_doc_stringInput_format():
     # Tests with string input and formatting
 
     docstring = 'yes {0} no {opt}'
 
     # Raises an indexerror if not given the formatted args and kwargs
     with pytest.raises(IndexError):
-        @replace_and_format_docstring(docstring)
+        @format_doc(docstring)
         def testfunc1():
             pass
 
     # Test that the formatting is done right
-    @replace_and_format_docstring(docstring, '/', opt='= life')
+    @format_doc(docstring, '/', opt='= life')
     def testfunc2():
         pass
     assert inspect.getdoc(testfunc2) == 'yes / no = life'
 
     # Test that we can include the original docstring
 
-    docstring2 = 'yes {0} no {original_doc}'
+    docstring2 = 'yes {0} no {__doc__}'
 
-    @replace_and_format_docstring(docstring2, '/')
+    @format_doc(docstring2, '/')
     def testfunc3():
         '''= 2 / 2 * life'''
         pass
     assert inspect.getdoc(testfunc3) == 'yes / no = 2 / 2 * life'
 
 
-def test_replace_and_format_docstring_objectInput_simple():
+def test_format_doc_objectInput_simple():
     # Simple tests with object input
 
     def docstring_fail():
@@ -431,7 +431,7 @@ def test_replace_and_format_docstring_objectInput_simple():
 
     # Self input while the function has no docstring raises an error
     with pytest.raises(ValueError):
-        @replace_and_format_docstring(docstring_fail)
+        @format_doc(docstring_fail)
         def testfunc_fail():
             pass
 
@@ -440,20 +440,20 @@ def test_replace_and_format_docstring_objectInput_simple():
         pass
 
     # A first test that replaces an empty docstring
-    @replace_and_format_docstring(docstring0)
+    @format_doc(docstring0)
     def testfunc_1():
         pass
     assert inspect.getdoc(testfunc_1) == inspect.getdoc(docstring0)
 
     # Test that it replaces an existing docstring
-    @replace_and_format_docstring(docstring0)
+    @format_doc(docstring0)
     def testfunc_2():
         '''not test'''
         pass
     assert inspect.getdoc(testfunc_2) == inspect.getdoc(docstring0)
 
 
-def test_replace_and_format_docstring_objectInput_format():
+def test_format_doc_objectInput_format():
     # Tests with object input and formatting
 
     def docstring():
@@ -462,12 +462,12 @@ def test_replace_and_format_docstring_objectInput_format():
 
     # Raises an indexerror if not given the formatted args and kwargs
     with pytest.raises(IndexError):
-        @replace_and_format_docstring(docstring)
+        @format_doc(docstring)
         def testfunc_fail():
             pass
 
     # Test that the formatting is done right
-    @replace_and_format_docstring(docstring, '+', opt='= 2 * test')
+    @format_doc(docstring, '+', opt='= 2 * test')
     def testfunc2():
         pass
     assert inspect.getdoc(testfunc2) == 'test + test = 2 * test'
@@ -475,45 +475,45 @@ def test_replace_and_format_docstring_objectInput_format():
     # Test that we can include the original docstring
 
     def docstring2():
-        '''test {0} test {original_doc}'''
+        '''test {0} test {__doc__}'''
         pass
 
-    @replace_and_format_docstring(docstring2, '+')
+    @format_doc(docstring2, '+')
     def testfunc3():
         '''= 4 / 2 * test'''
         pass
     assert inspect.getdoc(testfunc3) == 'test + test = 4 / 2 * test'
 
 
-def test_replace_and_format_docstring_selfInput_simple():
+def test_format_doc_selfInput_simple():
     # Simple tests with self input
 
     # Self input while the function has no docstring raises an error
     with pytest.raises(ValueError):
-        @replace_and_format_docstring('self')
+        @format_doc('__doc__')
         def testfunc_fail():
             pass
 
     # Test that it keeps an existing docstring
-    @replace_and_format_docstring('self')
+    @format_doc('__doc__')
     def testfunc_1():
         '''not test'''
         pass
     assert inspect.getdoc(testfunc_1) == 'not test'
 
 
-def test_replace_and_format_docstring_selfInput_format():
-    # Tests with string input which is 'self' (special case) and formatting
+def test_format_doc_selfInput_format():
+    # Tests with string input which is '__doc__' (special case) and formatting
 
     # Raises an indexerror if not given the formatted args and kwargs
     with pytest.raises(IndexError):
-        @replace_and_format_docstring('self')
+        @format_doc('__doc__')
         def testfunc_fail():
             '''dum {0} dum {opt}'''
             pass
 
     # Test that the formatting is done right
-    @replace_and_format_docstring('self', 'di', opt='da dum')
+    @format_doc('__doc__', 'di', opt='da dum')
     def testfunc1():
         '''dum {0} dum {opt}'''
         pass
@@ -521,21 +521,21 @@ def test_replace_and_format_docstring_selfInput_format():
 
     # Test that we cannot recursivly insert the original documentation
 
-    @replace_and_format_docstring('self', 'di')
+    @format_doc('__doc__', 'di')
     def testfunc2():
-        '''dum {0} dum {original_doc}'''
+        '''dum {0} dum {__doc__}'''
         pass
     assert inspect.getdoc(testfunc2) == 'dum di dum '
 
 
-def test_replace_and_format_docstring_onMethod():
+def test_format_doc_onMethod():
     # Check if the decorator works on methods too, to spice it up we try double
     # decorator
-    docstring = 'what we do {original_doc}'
+    docstring = 'what we do {__doc__}'
 
     class TestClass(object):
-        @replace_and_format_docstring(docstring)
-        @replace_and_format_docstring('self', 'strange.')
+        @format_doc(docstring)
+        @format_doc('__doc__', 'strange.')
         def test_method(self):
             '''is {0}'''
             pass
@@ -544,11 +544,11 @@ def test_replace_and_format_docstring_onMethod():
 
 
 @pytest.mark.skipif('six.PY2')
-def test_replace_and_format_docstring_onClass():
+def test_format_doc_onClass():
     # Check if the decorator works on classes too
-    docstring = 'what we do {original_doc} {0}{opt}'
+    docstring = 'what we do {__doc__} {0}{opt}'
 
-    @replace_and_format_docstring(docstring, 'strange', opt='.')
+    @format_doc(docstring, 'strange', opt='.')
     class TestClass(object):
         '''is'''
         pass

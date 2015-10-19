@@ -20,7 +20,7 @@ from ..extern import six
 
 __all__ = ['deprecated', 'deprecated_attribute', 'classproperty',
            'lazyproperty', 'sharedmethod', 'wraps',
-           'replace_and_format_docstring']
+           'format_doc']
 
 
 def deprecated(since, message='', name='', alternative='', pending=False,
@@ -758,7 +758,7 @@ def _get_function_args(func, exclude_args=()):
     return all_args
 
 
-def replace_and_format_docstring(docstring, *args, **kwargs):
+def format_doc(docstring, *args, **kwargs):
     """
     Replaces the docstring of the decorated object and then formats it.
 
@@ -766,7 +766,7 @@ def replace_and_format_docstring(docstring, *args, **kwargs):
     ``__doc__`` property (so it cannot be used as class decorator in python2).
     The formatting works like :meth:`str.format` and if the decorated object
     already has a docstring this docstring can be included in the new
-    documentation if you use the ``{original_doc}`` placeholder.
+    documentation if you use the ``{__doc__}`` placeholder.
     It's primary use is if multiple functions have the same or only
     a slightly different *long* docstring and you want to DRY
     (https://de.wikipedia.org/wiki/Don%E2%80%99t_repeat_yourself).
@@ -777,7 +777,7 @@ def replace_and_format_docstring(docstring, *args, **kwargs):
         The docstring that will replace the docstring of the decorated
         object. If it is an object like a function or class it will
         take the docstring of this object. If it is a string it will use the
-        string itself. One special case is if the string is ``'self'`` then
+        string itself. One special case is if the string is ``'__doc__'`` then
         it will use the decorated functions docstring and formats it.
 
     arg:
@@ -786,13 +786,13 @@ def replace_and_format_docstring(docstring, *args, **kwargs):
     kwargs:
         passed to :meth:`str.format`. If the function has a (not empty)
         docstring the original docstring is added to the kwargs with the
-        keyword ``original_doc``.
+        keyword ``'__doc__'``.
 
     Raises
     ------
     ValueError:
-        If the ``docstring`` (or interpreted docstring if it was ``'self'`` or
-        not a string) is empty.
+        If the ``docstring`` (or interpreted docstring if it was ``'__doc__'``
+        or not a string) is empty.
 
     IndexError, KeyError:
         If a placeholder in the (interpreted) ``docstring`` was not filled. see
@@ -811,9 +811,9 @@ def replace_and_format_docstring(docstring, *args, **kwargs):
 
     Replacing the current docstring is very easy::
 
-        >>> from astropy.utils.decorators import replace_and_format_docstring
+        >>> from astropy.utils.decorators import format_doc
         >>> doc = '''Perform num1 + num2'''
-        >>> @replace_and_format_docstring(doc)
+        >>> @format_doc(doc)
         ... def add(num1, num2):
         ...     return num1+num2
         ...
@@ -826,7 +826,7 @@ def replace_and_format_docstring(docstring, *args, **kwargs):
     sometimes instead of replacing you only want to add to it::
 
         >>> doc = '''
-        ...       {original_doc}
+        ...       {__doc__}
         ...       Parameters
         ...       ----------
         ...       num1, num2 : Numbers
@@ -834,7 +834,7 @@ def replace_and_format_docstring(docstring, *args, **kwargs):
         ...       -------
         ...       result: Number
         ...       '''
-        >>> @replace_and_format_docstring(doc)
+        >>> @format_doc(doc)
         ... def add(num1, num2):
         ...     '''Perform addition.'''
         ...     return num1+num2
@@ -862,13 +862,13 @@ def replace_and_format_docstring(docstring, *args, **kwargs):
         ...       -------
         ...       result: Number
         ...           result of num1 {op} num2
-        ...       {original_doc}
+        ...       {__doc__}
         ...       '''
-        >>> @replace_and_format_docstring(doc, 'addition', op='+')
+        >>> @format_doc(doc, 'addition', op='+')
         ... def add(num1, num2):
         ...     return num1+num2
         ...
-        >>> @replace_and_format_docstring(doc, 'subtraction', op='-')
+        >>> @format_doc(doc, 'subtraction', op='-')
         ... def subtract(num1, num2):
         ...     '''Notes: This one has additional notes.'''
         ...     return num1-num2
@@ -903,7 +903,7 @@ def replace_and_format_docstring(docstring, *args, **kwargs):
     object is possible as docstring attribute. You just have to specify the
     object::
 
-        >>> @replace_and_format_docstring(add)
+        >>> @format_doc(add)
         ... def another_add(num1, num2):
         ...     return num1 + num2
         ...
@@ -924,7 +924,7 @@ def replace_and_format_docstring(docstring, *args, **kwargs):
     the strings passed as ``args`` or ``kwargs`` (not even the original
     docstring)::
 
-        >>> @replace_and_format_docstring(doc, 'addition', op='+')
+        >>> @format_doc(doc, 'addition', op='+')
         ... def yet_another_add(num1, num2):
         ...    '''This one is good for {0}.'''
         ...    return num1 + num2
@@ -943,9 +943,9 @@ def replace_and_format_docstring(docstring, *args, **kwargs):
                 result of num1 + num2
             This one is good for {0}.
 
-    To work around it you could specify the docstring to be ``'self'``::
+    To work around it you could specify the docstring to be ``'__doc__'``::
 
-        >>> @replace_and_format_docstring('self', 'addition')
+        >>> @format_doc('__doc__', 'addition')
         ... def last_add_i_swear(num1, num2):
         ...    '''This one is good for {0}.'''
         ...    return num1 + num2
@@ -956,15 +956,15 @@ def replace_and_format_docstring(docstring, *args, **kwargs):
         last_add_i_swear(num1, num2)
             This one is good for addition.
 
-    Using it with ``'self'`` as docstring allows to use the decorator twice on
-    an object to first parse the new docstring and then to parse the original
-    docstring or the ``args`` and ``kwargs``.
+    Using it with ``'__doc__'`` as docstring allows to use the decorator twice
+    on an object to first parse the new docstring and then to parse the
+    original docstring or the ``args`` and ``kwargs``.
     """
     def set_docstring(func):
         # Not a string so assume we want the saved doc from the object
         if not isinstance(docstring, six.string_types):
             doc = docstring.__doc__
-        elif docstring != 'self':
+        elif docstring != '__doc__':
             doc = docstring
         else:
             doc = func.__doc__
@@ -979,7 +979,7 @@ def replace_and_format_docstring(docstring, *args, **kwargs):
 
         # If the original has a not-empty docstring append it to the format
         # kwargs.
-        kwargs['original_doc'] = func.__doc__ or ''
+        kwargs['__doc__'] = func.__doc__ or ''
         func.__doc__ = doc.format(*args, **kwargs)
         return func
     return set_docstring
