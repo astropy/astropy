@@ -201,7 +201,7 @@ These changes included:
   attribute is handled. Visit :ref:`nddata/subclassing` for more information.
 + `~astropy.nddata.NDUncertainty` underwent a major revision and is probably
   not backwards
-  compatible while ``~astropy.nddata.StdDevUncertainy`` has kept most of it's
+  compatible while `~astropy.nddata.StdDevUncertainty` has kept most of it's
   API. For more
   information look at REFERENCE.
 + `~astropy.nddata.StdDevUncertainty` now handles ``units`` correctly and

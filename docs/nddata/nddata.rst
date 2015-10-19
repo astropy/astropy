@@ -208,4 +208,4 @@ array like this::
 The same applies to extracting the data as Quantity::
 
     >>> ndd_quantity = NDData([1, 2, 3, 4], unit="meter")
-    >>> quantity = u.Quantity(ndd_quantity, unit=ndd_quantity.unit)
+    >>> quantity = u.Quantity(ndd_quantity.data, unit=ndd_quantity.unit)
