@@ -219,6 +219,7 @@ def test_arithmetics_data_wcs(wcs1, wcs2):
         assert len(nd.meta) == 0
         assert nd.mask is None
 
+
 # Masks are completely seperated in the NDArithmetics from the data so we need
 # no correlated tests but covering:
 # masks 1D, 2D and mixed cases with broadcasting
@@ -280,7 +281,7 @@ def test_arithmetics_data_masks(mask1, mask2):
 # Covered cases:
 # both: strings, integers, floats, classes
 # only one is such a type (which just copies it no exception)
-@pytest.mark.parametrize(('mask1','mask2'), [
+@pytest.mark.parametrize(('mask1', 'mask2'), [
     ('String', 'String'),
     (100, 100),
     (2.7, 2.7),
@@ -611,9 +612,9 @@ def test_arithmetics_stddevuncertainty_basic_with_correlation(
 # uncertainty has no negative values.
 def test_arithmetics_stddevuncertainty_one_missing():
     nd1 = NDDataArithmetic([1, -2, 3])
-    nd1_ref = NDDataArithmetic([1, -2, 3], 
+    nd1_ref = NDDataArithmetic([1, -2, 3],
                                uncertainty=StdDevUncertainty([0, 0, 0]))
-    nd2 = NDDataArithmetic([2, 2, -2], 
+    nd2 = NDDataArithmetic([2, 2, -2],
                            uncertainty=StdDevUncertainty([2, 2, 2]))
 
     # Addition

@@ -69,7 +69,7 @@ array in expression) then the ``data`` attribute will be set to that object.
 
 The purpose of this mechanism is to allow considerable flexibility in the
 objects used to store the data while providing a useful to default (numpy
-array). For example ``pandas.DataFrame`` or similar.
+array).
 
 Mask
 ----
@@ -176,7 +176,7 @@ can be stored as mutable types you may alter what these attributes contain.
 
 To change the data you may::
 
-    >>> ndd1 = NDData([1, 2, 3, 4)
+    >>> ndd1 = NDData([1, 2, 3, 4])
     >>> ndd1.data = [4, 3, 2, 1]        # doctest: +SKIP
     AttributeError ...
     ...

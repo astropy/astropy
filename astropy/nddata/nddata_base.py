@@ -15,7 +15,7 @@ __all__ = ['NDDataBase']
 class NDDataBase(object):
     """
     Base metaclass that defines the interface for N-dimensional datasets with
-    associated meta informations used in `astropy`.
+    associated meta informations used in ``astropy``.
 
     NDDataBase makes no attempt of restricting any attribute or defines how
     these are stored. Therefore all properties and methods have to be
@@ -39,7 +39,7 @@ class NDDataBase(object):
         """
         Mask for the dataset.
 
-        Masks should follow the `numpy` convention that valid data points are
+        Masks should follow the ``numpy`` convention that valid data points are
         marked by ``False`` and invalid ones with ``True``.
         """
         return None

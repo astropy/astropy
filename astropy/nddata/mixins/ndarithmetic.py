@@ -52,6 +52,10 @@ def tmp_deco(docstring, *args, **kwargs):
 _arit_doc = """
     Performs {name} by evaluating ``self`` {op} ``operand``.
 
+    For the inverse operation or operations between different subclasses take a
+    look at
+    :meth:`~astropy.nddata.NDArithmeticMixin.ic_{name}` .
+
     Parameters
     ----------
     operand: `NDData`-like instance or convertable to one.
@@ -126,10 +130,6 @@ _arit_doc = """
     -------
     result : `~astropy.nddata.NDData`-like
         The resulting dataset
-
-    See also
-    --------
-    :meth:`NDArithmeticMixin.ic_{name}`
     """
 
 _arit_cls_doc = """
@@ -209,11 +209,11 @@ class NDArithmeticMixin(object):
         >>> class NDDataWithMath(NDArithmeticMixin, NDData): pass
         >>> nd = NDDataWithMath([1,2,3], unit='meter')
         >>> nd_inv = nd.ic_division(1, nd)
-        >>> nd.__class__.__name__
+        >>> nd_inv.__class__.__name__
         'NDDataWithMath'
-        >>> nd.data
+        >>> nd_inv.data
         array([ 1.        ,  0.5       ,  0.33333333])
-        >>> nd.unit
+        >>> nd_inv.unit
         Unit("1 / m")
 
     This method also allows that the result of unrelated objects is tried

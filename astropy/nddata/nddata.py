@@ -51,7 +51,7 @@ class NDData(NDDataBase):
 
     mask : any type, optional
         Mask for the dataset.
-        Masks should follow the `numpy` convention that valid data points are
+        Masks should follow the ``numpy`` convention that valid data points are
         marked by ``False`` and invalid ones with ``True``.
         Defaults to ``None``.
 
