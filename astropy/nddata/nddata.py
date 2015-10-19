@@ -55,7 +55,7 @@ class NDData(NDDataBase):
         marked by ``False`` and invalid ones with ``True``.
         Defaults to ``None``.
 
-    wcs : àny type, optional
+    wcs : any type, optional
         A world coordinate system (WCS) for the dataset.
         Default is ``None``.
 
