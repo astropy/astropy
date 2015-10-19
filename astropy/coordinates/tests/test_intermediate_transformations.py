@@ -14,7 +14,7 @@ from ...tests.helper import (pytest,
 from ...time import Time
 from .. import (EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz,
                 PrecessedGeocentric, CartesianRepresentation,
-                SphericalRepresentation)
+                SphericalRepresentation, UnitSphericalRepresentation)
 
 from .utils import randomly_sample_sphere
 
@@ -72,38 +72,39 @@ def test_icrs_gcrs(icoo):
     """
     Check ICRS<->GCRS for consistency
     """
-    gcrsnod = icoo.transform_to(gcrs_frames[0])  #uses the default time
+    gcrscoo = icoo.transform_to(gcrs_frames[0])  #uses the default time
     #first do a round-tripping test
-    icoo2 = gcrsnod.transform_to(ICRS)
+    icoo2 = gcrscoo.transform_to(ICRS)
+    assert_allclose(icoo.distance, icoo2.distance)
     assert_allclose(icoo.ra, icoo2.ra)
     assert_allclose(icoo.dec, icoo2.dec)
+    assert isinstance(icoo2.data, icoo.data.__class__)
 
     #now check that a different time yields different answers
-    gcrsnod2 = icoo.transform_to(gcrs_frames[1])
-    assert not allclose(gcrsnod.ra, gcrsnod2.ra, rtol=1e-8, atol=1e-10*u.deg)
-    assert not allclose(gcrsnod.dec, gcrsnod2.dec, rtol=1e-8, atol=1e-10*u.deg)
-
+    gcrscoo2 = icoo.transform_to(gcrs_frames[1])
+    assert not allclose(gcrscoo.ra, gcrscoo2.ra, rtol=1e-8, atol=1e-10*u.deg)
+    assert not allclose(gcrscoo.dec, gcrscoo2.dec, rtol=1e-8, atol=1e-10*u.deg)
 
     #now check that the cirs self-transform works as expected
-    gcrsnod3 = gcrsnod.transform_to(gcrs_frames[0])  # should be a no-op
-    assert_allclose(gcrsnod.ra, gcrsnod3.ra)
-    assert_allclose(gcrsnod.dec, gcrsnod3.dec)
+    gcrscoo3 = gcrscoo.transform_to(gcrs_frames[0])  # should be a no-op
+    assert_allclose(gcrscoo.ra, gcrscoo3.ra)
+    assert_allclose(gcrscoo.dec, gcrscoo3.dec)
 
-    gcrsnod4 = gcrsnod.transform_to(gcrs_frames[1])  # should be different
-    assert not allclose(gcrsnod4.ra, gcrsnod.ra, rtol=1e-8, atol=1e-10*u.deg)
-    assert not allclose(gcrsnod4.dec, gcrsnod.dec, rtol=1e-8, atol=1e-10*u.deg)
+    gcrscoo4 = gcrscoo.transform_to(gcrs_frames[1])  # should be different
+    assert not allclose(gcrscoo4.ra, gcrscoo.ra, rtol=1e-8, atol=1e-10*u.deg)
+    assert not allclose(gcrscoo4.dec, gcrscoo.dec, rtol=1e-8, atol=1e-10*u.deg)
 
-    gcrsnod5 = gcrsnod4.transform_to(gcrs_frames[0])  # should be back to the same
-    assert_allclose(gcrsnod.ra, gcrsnod5.ra, rtol=1e-8, atol=1e-10*u.deg)
-    assert_allclose(gcrsnod.dec, gcrsnod5.dec, rtol=1e-8, atol=1e-10*u.deg)
+    gcrscoo5 = gcrscoo4.transform_to(gcrs_frames[0])  # should be back to the same
+    assert_allclose(gcrscoo.ra, gcrscoo5.ra, rtol=1e-8, atol=1e-10*u.deg)
+    assert_allclose(gcrscoo.dec, gcrscoo5.dec, rtol=1e-8, atol=1e-10*u.deg)
 
     #also make sure that a GCRS with a different geoloc/geovel gets a different answer
     # roughly a moon-like frame
     gframe3 = GCRS(obsgeoloc=[385000., 0, 0]*u.km, obsgeovel=[1, 0, 0]*u.km/u.s)
-    gcrsnod6 = icoo.transform_to(gframe3)  # should be different
-    assert not allclose(gcrsnod.ra, gcrsnod6.ra, rtol=1e-8, atol=1e-10*u.deg)
-    assert not allclose(gcrsnod.dec, gcrsnod6.dec, rtol=1e-8, atol=1e-10*u.deg)
-    icooviag3 = gcrsnod6.transform_to(ICRS)  # and now back to the original
+    gcrscoo6 = icoo.transform_to(gframe3)  # should be different
+    assert not allclose(gcrscoo.ra, gcrscoo6.ra, rtol=1e-8, atol=1e-10*u.deg)
+    assert not allclose(gcrscoo.dec, gcrscoo6.dec, rtol=1e-8, atol=1e-10*u.deg)
+    icooviag3 = gcrscoo6.transform_to(ICRS)  # and now back to the original
     assert_allclose(icoo.ra, icooviag3.ra)
     assert_allclose(icoo.dec, icooviag3.dec)
 
@@ -312,7 +313,7 @@ def test_gcrs_altaz_moonish(testframe):
     moonaa = moon.transform_to(testframe)
 
     #now check that the distance change is similar to earth radius
-    assert 1000*u.km < np.abs(moonaa.distance - moon.distance).to(u.km) < 7000*u.km
+    assert 1000*u.km < np.abs(moonaa.distance - moon.distance).to(u.au) < 7000*u.km
 
     #also should add checks that the alt/az are different for different earth locations
 
@@ -343,8 +344,8 @@ def test_cirs_altaz_moonish(testframe):
     moon = CIRS(MOONDIST_CART, obstime=testframe.obstime)
 
     moonaa = moon.transform_to(testframe)
-    assert np.abs(moonaa.distance - moon.distance).to(u.km) > 1000*u.km
-    assert np.abs(moonaa.distance - moon.distance).to(u.km) < 7000*u.km
+    assert np.abs(moonaa.distance - moon.distance).to(u.au) > 1000*u.km
+    assert np.abs(moonaa.distance - moon.distance).to(u.au) < 7000*u.km
 
 @pytest.mark.parametrize('testframe', totest_frames)
 def test_cirs_icrs_moonish(testframe):
@@ -399,4 +400,4 @@ def test_icrs_altaz_moonish(testframe):
     moonaa = moonish_icrs.transform_to(testframe)
 
     #now check that the distance change is similar to earth radius
-    assert 1000*u.km < np.abs(moonaa.distance - MOONDIST).to(u.km) < 7000*u.km
+    assert 1000*u.km < np.abs(moonaa.distance - MOONDIST).to(u.au) < 7000*u.km
