@@ -117,3 +117,9 @@ def test_blackbody_array_temperature():
     np.testing.assert_allclose(flux.value,
                                [1.804908e-12,   3.721328e-12,   5.638513e-12],
                                 rtol=1e-5)
+
+    flux = blackbody_nu([2, 4, 6] * u.mm, [100, 200, 300])
+
+    np.testing.assert_allclose(flux.value,
+                               [6.657915e-13,   3.420677e-13,   2.291897e-13],
+                                rtol=1e-5)
