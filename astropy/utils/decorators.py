@@ -974,7 +974,7 @@ def format_doc(docstring, *args, **kwargs):
 
         if not doc:
             # In case the docstring is empty it's probably not what was wanted.
-            raise ValueError('docstring must be a string or containing a'
+            raise ValueError('docstring must be a string or containing a '
                              'docstring that is not empty.')
 
         # If the original has a not-empty docstring append it to the format
