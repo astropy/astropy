@@ -276,14 +276,14 @@ def test_precessed_geocentric():
 # shared by parametrized tests below.  Some use the whole AltAz, others use just obstime
 totest_frames = [AltAz(location=EarthLocation(-90*u.deg, 65*u.deg),
                     obstime=Time('J2000')), #J2000 is often a default so this might work when others don't
+              AltAz(location=EarthLocation(120*u.deg, -35*u.deg),
+                    obstime=Time('J2000')),
               AltAz(location=EarthLocation(-90*u.deg, 65*u.deg),
                     obstime=Time('2014-01-01 00:00:00')),
               AltAz(location=EarthLocation(-90*u.deg, 65*u.deg),
                     obstime=Time('2014-08-01 08:00:00')),
               AltAz(location=EarthLocation(120*u.deg, -35*u.deg),
-                    obstime=Time('2014-01-01 00:00:00')),
-              AltAz(location=EarthLocation(120*u.deg, -35*u.deg),
-                    obstime=Time('J2000'))
+                    obstime=Time('2014-01-01 00:00:00'))
               ]
 MOONDIST = 385000*u.km  # approximate moon semi-major orbit axis of moon
 MOONDIST_CART = CartesianRepresentation(3**-0.5*MOONDIST, 3**-0.5*MOONDIST, 3**-0.5*MOONDIST)
@@ -347,8 +347,7 @@ def test_cirs_altaz_moonish(testframe):
     moon = CIRS(MOONDIST_CART, obstime=testframe.obstime)
 
     moonaa = moon.transform_to(testframe)
-    assert np.abs(moonaa.distance - moon.distance).to(u.au) > 1000*u.km
-    assert np.abs(moonaa.distance - moon.distance).to(u.au) < 7000*u.km
+    assert 1000*u.km < np.abs(moonaa.distance - moon.distance).to(u.km) < 7000*u.km
 
 @pytest.mark.parametrize('testframe', totest_frames)
 def test_cirs_icrs_moonish(testframe):
