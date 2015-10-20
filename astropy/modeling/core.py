@@ -767,8 +767,6 @@ class Model(object):
 
         return self._constraints['ineqcons']
 
-    # *** Public methods ***
-
     @property
     def inverse(self):
         """
@@ -831,6 +829,22 @@ class Model(object):
         """
 
         del self._user_inverse
+
+    @property
+    def has_user_inverse(self):
+        """
+        A flag indicating whether or not a custom inverse model has been
+        assigned to this model by a user, via assignment to ``model.inverse``.
+        """
+
+        return self._user_inverse is not None
+
+    @property
+    def _custom_inverse(self):
+        # Deprecated alias for _user_inverse--included solely for temporary
+        # backwards compatibility for pyasdf--remove after Astropy v1.1
+        # release.
+        return self._user_inverse
 
     @property
     def bounding_box(self):
@@ -919,6 +933,8 @@ class Model(object):
                                      'array-like of shape ``(model.n_inputs, 2)``.')
 
         self._bounding_box = limits
+
+    # *** Public methods ***
 
     @abc.abstractmethod
     def evaluate(self, *args, **kwargs):

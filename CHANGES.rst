@@ -553,6 +553,11 @@ API changes
     been assigned to the model and is still equivalent to setting
     ``model.inverse = None``). [#4236]
 
+  - Adds a ``model.has_user_inverse`` attribute which indicates whether or not
+    a user has assigned a custom inverse to ``model.inverse``.  This is just
+    for informational purposes, for example, for software that introspects
+    model objects. [#4236]
+
   - Renamed the parameters of ``RotateNative2Celestial`` and
     ``RotateCelestial2Native`` from ``phi``, ``theta``, ``psi`` to
     ``lon``, ``lat`` and ``lon_pole``. [#3578]
