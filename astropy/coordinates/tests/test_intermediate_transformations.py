@@ -349,6 +349,10 @@ def test_cirs_altaz_moonish(testframe):
     moonaa = moon.transform_to(testframe)
     assert 1000*u.km < np.abs(moonaa.distance - moon.distance).to(u.km) < 7000*u.km
 
+    #now check that it round-trips
+    moon2 = moonaa.transform_to(moon)
+    assert_allclose(moon.cartesian.xyz, moon2.cartesian.xyz)
+
 @pytest.mark.parametrize('testframe', totest_frames)
 def test_cirs_icrs_moonish(testframe):
     """
