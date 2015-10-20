@@ -128,7 +128,7 @@ def gcrs_to_precessedgeo(from_coo, to_frame):
 
 
 @frame_transform_graph.transform(FunctionTransform, PrecessedGeocentric, GCRS)
-def recessedgeo_to_gcrs(from_coo, to_frame):
+def precessedgeo_to_gcrs(from_coo, to_frame):
     # first un-precess
     pmat = gcrs_precession_mat(from_coo.equinox)
     crepr = cartrepr_from_matmul(pmat, from_coo, transpose=True)

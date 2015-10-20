@@ -22,7 +22,7 @@ from .utils import get_polar_motion, get_dut1utc, PIOVER2
 
 @frame_transform_graph.transform(FunctionTransform, CIRS, AltAz)
 def cirs_to_altaz(cirs_coo, altaz_frame):
-    if np.all(cirs_coo.obstime != altaz_frame.obstime):
+    if np.any(cirs_coo.obstime != altaz_frame.obstime):
         # the only frame attribute for the current CIRS is the obstime, but this
         # would need to be updated if a future change allowed specifying an
         # Earth location algorithm or something
