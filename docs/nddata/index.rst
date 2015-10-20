@@ -192,13 +192,13 @@ These changes included:
   ``meta`` attributes
   like ``uncertainty``, ``wcs`` and ``mask``. But the Mixin was refactored in
   a way that allows subclasses to customize slicing attributes in a different
-  way. Visit :ref:`_nddata_subclassin` for more information.
+  way. Visit :ref:`nddata_subclassin` for more information.
 + `~astropy.nddata.NDArithmeticMixin` now allows to customize what attributes
   are computed
   during arithmetic operations. As with `~astropy.nddata.NDSlicingMixin` these
   are now
   arranged in a way that subclasses can easily manipulate the way one
-  attribute is handled. Visit :ref:`_nddata_subclassin` for more information.
+  attribute is handled. Visit :ref:`nddata_subclassin` for more information.
 + `~astropy.nddata.NDUncertainty` underwent a major revision and is probably
   not backwards
   compatible while `~astropy.nddata.StdDevUncertainty` has kept most of it's

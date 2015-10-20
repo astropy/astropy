@@ -110,10 +110,10 @@ class NDData(NDDataBase):
     See also
     --------
 
-    astropy.nddata.mixins.NDIOMixin
-    astropy.nddata.mixins.NDSlicingMixin
-    astropy.nddata.mixins.NDArithmeticMixin
-    astropy.nddata.NDDataArray
+    NDIOMixin
+    NDSlicingMixin
+    NDArithmeticMixin
+    NDDataArray
     """
 
     def __init__(self, data, uncertainty=None, mask=None, wcs=None,
