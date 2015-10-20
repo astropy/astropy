@@ -40,8 +40,8 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
                                              copy=False)
     else:
         # When there is a distance,  we first offset for parallax to get the
-        # BCRS coordinate direction and *then* run the ERFA transform for no
-        # parallax/PM. This ensures reversiblity and is more sensible for
+        # astrometric coordinate direction and *then* run the ERFA transform for
+        # no parallax/PM. This ensures reversiblity and is more sensible for
         # inside solar system objects
         newxyz = icrs_coo.cartesian.xyz.T - astrom['eb']*u.au
         newcart = CartesianRepresentation(newxyz.T)
@@ -63,8 +63,8 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
     cirs_ra = srepr.lon.to(u.radian).value
     cirs_dec = srepr.lat.to(u.radian).value
 
-    # set up the astrometry context for ICRS<->cirs and then convert to BCRS
-    # coordinate direction
+    # set up the astrometry context for ICRS<->cirs and then convert to
+    # astrometric coordinate direction
     astrom, eo = erfa.apci13(cirs_coo.obstime.jd1, cirs_coo.obstime.jd2)
     i_ra, i_dec = erfa.aticq(cirs_ra, cirs_dec, astrom)
 
