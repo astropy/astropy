@@ -27,16 +27,20 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
         # would need to be updated if a future change allowed specifying an
         # Earth location algorithm or something
         cirs_coo = cirs_coo.transform_to(CIRS(obstime=altaz_frame.obstime))
+
+    # we use the same obstime everywhere now that we know they're the same
+    obstime = cirs_coo.obstime
+
     srepr = cirs_coo.represent_as(UnitSphericalRepresentation)
     cirs_ra = srepr.lon.to(u.radian).value
     cirs_dec = srepr.lat.to(u.radian).value
 
     lon, lat, height = altaz_frame.location.to_geodetic('WGS84')
-    xp, yp = get_polar_motion(cirs_coo.obstime)
+    xp, yp = get_polar_motion(obstime)
 
     #first set up the astrometry context for CIRS<->AltAz
-    astrom = erfa.apio13(cirs_coo.obstime.jd1, cirs_coo.obstime.jd2,
-                         get_dut1utc(cirs_coo.obstime),
+    astrom = erfa.apio13(obstime.jd1, obstime.jd2,
+                         get_dut1utc(obstime),
                          lon.to(u.radian).value, lat.to(u.radian).value,
                          height.to(u.m).value,
                          xp, yp,  # polar motion
@@ -56,7 +60,8 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
     else:
         #now we get the distance as just the cartesian
         #distance from the earth location to the coordinate location
-        distance = altaz_frame.location.itrs.separation_3d(cirs_coo)
+        locitrs = altaz_frame.location.get_itrs(obstime)
+        distance = locitrs.separation_3d(cirs_coo)
         rep = SphericalRepresentation(lat=u.Quantity(PIOVER2 - zen, u.radian, copy=False),
                                       lon=u.Quantity(az, u.radian, copy=False),
                                       distance=distance,
@@ -93,7 +98,8 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
     else:
         #now we get the distance as just the cartesian
         #distance from the earth location to the coordinate location
-        distance = altaz_coo.separation_3d(altaz_coo.location.itrs)
+        locitrs = altaz_coo.location.get_itrs(altaz_coo.obstime)
+        distance = altaz_coo.separation_3d(locitrs)
 
     #the final transform may be a no-op if the obstimes are the same
     return CIRS(ra=cirs_ra*u.radian, dec=cirs_dec*u.radian, distance=distance,

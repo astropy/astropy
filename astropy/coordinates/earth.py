@@ -368,12 +368,32 @@ class EarthLocation(u.Quantity):
     def itrs(self):
         """
         Generates an `~astropy.coordinates.ITRS` object with the coordinates of
-        this object.
+        this object at the default ``obstime``.
         """
-        #potential circular imports prevent this from being up top
+        #circular imports prevent this from being up top
         from .builtin_frames import ITRS
 
         return ITRS(x=self.x, y=self.y, z=self.z)
+
+    def get_itrs(self, obstime):
+        """
+        Generates an `~astropy.coordinates.ITRS` object with the coordinates of
+        this object at the requested ``obstime``.
+
+        Parameters
+        ----------
+        obstime : `~astropy.time.Time`
+            The ``obstime`` to apply to the new `~astropy.coordinates.ITRS`
+
+        Returns
+        -------
+        itrs : `~astropy.coordinates.ITRS`
+            The new object in the ITRS frame
+        """
+        #circular imports prevent this from being up top
+        from .builtin_frames import ITRS
+
+        return ITRS(x=self.x, y=self.y, z=self.z, obstime=obstime)
 
     @property
     def x(self):
