@@ -159,8 +159,6 @@ New Features
 
 - ``astropy.analytic_functions``
 
-  - Fixed a bug that caused blackbody_nu to not accept arrays of temperatures.
-
 - ``astropy.config``
 
   - Added new tools ``set_temp_config`` and ``set_temp_cache`` which can be
@@ -825,6 +823,11 @@ API Changes
 
 Bug Fixes
 ^^^^^^^^^
+
+- ``astropy.analytic_functions``
+
+  - Fixed blackbody analytic functions to properly support arrays of
+    temperatures. [#4251]
 
 - ``astropy.config``
 
