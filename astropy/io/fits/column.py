@@ -12,6 +12,7 @@ from functools import reduce
 import numpy as np
 from numpy import char as chararray
 
+from . import _numpy_hacks as nh
 from .card import Card, CARD_LENGTH
 from .util import (pairwise, _is_int, _convert_array, encode_ascii, cmp,
                    NotifierMixin)
@@ -1297,7 +1298,7 @@ class ColDefs(NotifierMixin):
 
             fields.append((name, dt))
 
-        return np.dtype(fields)
+        return nh.realign_dtype(np.dtype(fields), offsets)
 
     @lazyproperty
     def _arrays(self):

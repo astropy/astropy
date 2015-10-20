@@ -10,13 +10,12 @@ from astropy_helpers import setup_helpers
 from astropy_helpers.distutils_helpers import get_distutils_build_option
 
 
-def get_extensions():
+def _get_compression_extension():
     # 'numpy' will be replaced with the proper path to the numpy includes
     cfg = setup_helpers.DistutilsExtensionArgs()
     cfg['include_dirs'].append('numpy')
-    cfg['sources'].extend(
-        os.path.relpath(fname) for fname in
-        glob(os.path.join(os.path.dirname(__file__), 'src', '*.c')))
+    cfg['sources'].append(os.path.join(os.path.dirname(__file__), 'src',
+                                       'compressionmodule.c'))
 
     if not setup_helpers.use_system_library('cfitsio'):
         if setup_helpers.get_compiler_option() == 'msvc':
@@ -50,7 +49,19 @@ def get_extensions():
     else:
         cfg.update(setup_helpers.pkg_config(['cfitsio'], ['cfitsio']))
 
-    return [Extension('astropy.io.fits.compression', **cfg)]
+    return Extension('astropy.io.fits.compression', **cfg)
+
+
+def _get_numpy_hacks_extension():
+    cfg = setup_helpers.DistutilsExtensionArgs()
+    cfg['include_dirs'].append('numpy')
+    cfg['sources'].append(os.path.join(os.path.dirname(__file__), 'src',
+                                       '_numpy_hacks.c'))
+    return Extension('astropy.io.fits._numpy_hacks', **cfg)
+
+
+def get_extensions():
+    return [_get_compression_extension(), _get_numpy_hacks_extension()]
 
 
 def get_package_data():
