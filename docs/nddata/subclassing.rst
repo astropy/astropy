@@ -1,3 +1,5 @@
+.. _nddata_subclassin:
+
 Subclassing
 ===========
 
