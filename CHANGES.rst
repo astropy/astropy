@@ -6,6 +6,9 @@ New Features
 
 - ``astropy.analytic_functions``
 
+  - Add support for multiple temperatures in blackbody analytic functions.
+    [#4251]
+
 - ``astropy.config``
 
 - ``astropy.conftest.py``
@@ -158,8 +161,6 @@ New Features
 ^^^^^^^^^^^^
 
 - ``astropy.analytic_functions``
-
-  - Fixed a bug that caused blackbody_nu to not accept arrays of temperatures.
 
 - ``astropy.config``
 
