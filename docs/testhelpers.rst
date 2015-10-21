@@ -24,7 +24,7 @@ It is intended to be used as::
     @remote_data
     def test_something():
         """
-        This test downloads something from the intenet
+        This test downloads something from the internet
         """
         # test code here ...
 
