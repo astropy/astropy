@@ -88,6 +88,11 @@ API Changes
 Bug Fixes
 ^^^^^^^^^
 
+- ``astropy.analytic_functions``
+
+  - Fixed blackbody analytic functions to properly support arrays of
+    temperatures. [#4251]
+
 - ``astropy.config``
 
 - ``astropy.constants``

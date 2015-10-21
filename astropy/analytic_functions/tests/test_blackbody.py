@@ -89,9 +89,30 @@ def test_blackbody_exceptions():
     """Test exceptions."""
 
     # Negative temperature
-    with pytest.raises(ValueError):
-        flux = blackbody_nu(1000 * u.AA, -100)
+    with pytest.raises(ValueError) as exc:
+        blackbody_nu(1000 * u.AA, -100)
+    assert exc.value.args[0] == 'Temperature should be positive: -100.0 K'
 
     # Zero wavelength given for conversion to Hz
     with pytest.raises(ZeroDivisionError):
         flux = blackbody_nu(0 * u.AA, 5000)
+
+
+def test_blackbody_array_temperature():
+
+    # Regression test to make sure that the temperature can be an array
+
+    flux = blackbody_nu(1.2 * u.mm, [100, 200, 300] * u.K)
+
+    np.testing.assert_allclose(flux.value,
+                               [1.804908e-12,   3.721328e-12,   5.638513e-12],
+                                rtol=1e-5)
+
+    flux = blackbody_nu([2, 4, 6] * u.mm, [100, 200, 300] * u.K)
+
+    np.testing.assert_allclose(flux.value,
+                               [6.657915e-13,   3.420677e-13,   2.291897e-13],
+                                rtol=1e-5)
+
+    flux = blackbody_nu(np.ones((3, 4)) * u.mm, np.ones(4) * u.K)
+    assert flux.shape == (3, 4)
