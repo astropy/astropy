@@ -246,33 +246,22 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
 
     def _create_inverse_property(cls, members):
         inverse = members.get('inverse')
-        if inverse is None:
+        if inverse is None or cls.__bases__[0] is object:
+            # The latter clause is the prevent the below code from running on
+            # the Model base class, which implements the default getter and
+            # setter for .inverse
             return
 
         if isinstance(inverse, property):
-            fget = inverse.fget
-        else:
             # We allow the @property decorator to be omitted entirely from
             # the class definition, though its use should be encouraged for
             # clarity
-            fget = inverse
+            inverse = inverse.fget
 
-        def wrapped_fget(self):
-            if self._custom_inverse is not None:
-                return self._custom_inverse
-
-            return fget(self)
-
-        def fset(self, value):
-            if not isinstance(value, (Model, type(None))):
-                raise ValueError(
-                    "The ``inverse`` attribute may be assigned a `Model` "
-                    "instance or `None` (where `None` restores the default "
-                    "inverse for this model if one is defined.")
-
-            self._custom_inverse = value
-
-        cls.inverse = property(wrapped_fget, fset, doc=inverse.__doc__)
+        # Store the inverse getter internally, then delete the given .inverse
+        # attribute so that cls.inverse resolves to Model.inverse instead
+        cls._inverse = inverse
+        del cls.inverse
 
     def _handle_backwards_compat(cls, name, members):
         # Backwards compatibility check for 'eval' -> 'evaluate'
@@ -579,7 +568,8 @@ class Model(object):
     # optionally; in that case it is of course up to the user to determine
     # whether their inverse is *actually* an inverse to the model they assign
     # it to.
-    _custom_inverse = None
+    _inverse = None
+    _user_inverse = None
 
     # If a bounding_box_default function is defined in the model,
     # then the _bounding_box attribute should be set to 'auto' in the model.
@@ -777,8 +767,6 @@ class Model(object):
 
         return self._constraints['ineqcons']
 
-    # *** Public methods ***
-
     @property
     def inverse(self):
         """
@@ -791,6 +779,10 @@ class Model(object):
         `~astropy.modeling.polynomial.PolynomialModel`, but not by
         requirement).
 
+        A custom inverse can be deleted with ``del model.inverse``.  In this
+        case the model's inverse is reset to its default, if a default exists
+        (otherwise the default is to raise `NotImplementedError`).
+
         Note to authors of `~astropy.modeling.Model` subclasses:  To define an
         inverse for a model simply override this property to return the
         appropriate model representing the inverse.  The machinery that will
@@ -798,8 +790,61 @@ class Model(object):
         base class.
         """
 
+        if self._user_inverse is not None:
+            return self._user_inverse
+        elif self._inverse is not None:
+            return self._inverse()
+
         raise NotImplementedError("An analytical inverse transform has not "
                                   "been implemented for this model.")
+
+    @inverse.setter
+    def inverse(self, value):
+        if not isinstance(value, (Model, type(None))):
+            raise ValueError(
+                "The ``inverse`` attribute may be assigned a `Model` "
+                "instance or `None` (where `None` restores the default "
+                "inverse for this model if one is defined.")
+
+        if value is None:
+            warnings.warn(
+                "Currently setting `model.inverse = None` resets the inverse "
+                "to the default inverse (if one exists).  However, starting "
+                "in Astropy 1.2, setting `model.inverse = None` explicitly "
+                "forces a model to have no inverse (such that accessing "
+                "`model.inverse` raises a NotImplementedError) even if that "
+                "model's class has a default inverse.\n\n"
+                "Instead, call `del model.inverse` to reset the inverse to "
+                "its default (if a default exists for that model's class--"
+                "otherwise the model is reset to having no inverse.",
+                AstropyDeprecationWarning)
+
+        self._user_inverse = value
+
+    @inverse.deleter
+    def inverse(self):
+        """
+        Resets the model's inverse to its default (if one exists, otherwise
+        the model will have no inverse).
+        """
+
+        del self._user_inverse
+
+    @property
+    def has_user_inverse(self):
+        """
+        A flag indicating whether or not a custom inverse model has been
+        assigned to this model by a user, via assignment to ``model.inverse``.
+        """
+
+        return self._user_inverse is not None
+
+    @property
+    def _custom_inverse(self):
+        # Deprecated alias for _user_inverse--included solely for temporary
+        # backwards compatibility for pyasdf--remove after Astropy v1.1
+        # release.
+        return self._user_inverse
 
     @property
     def bounding_box(self):
@@ -888,6 +933,8 @@ class Model(object):
                                      'array-like of shape ``(model.n_inputs, 2)``.')
 
         self._bounding_box = limits
+
+    # *** Public methods ***
 
     @abc.abstractmethod
     def evaluate(self, *args, **kwargs):
@@ -1832,7 +1879,7 @@ class _CompoundModelMeta(_ModelMeta):
             # intermediate compound models are stored in the tree as well then
             # we can immediately check for custom inverses on sub-models when
             # computing the inverse
-            instance._custom_inverse = mcls._make_custom_inverse(
+            instance._user_inverse = mcls._make_user_inverse(
                     operator, left, right)
 
             return instance
@@ -1851,7 +1898,7 @@ class _CompoundModelMeta(_ModelMeta):
         return
 
     @classmethod
-    def _make_custom_inverse(mcls, operator, left, right):
+    def _make_user_inverse(mcls, operator, left, right):
         """
         Generates an inverse `Model` for this `_CompoundModel` when either
         model in the operation has a *custom inverse* that was manually
@@ -1873,7 +1920,7 @@ class _CompoundModelMeta(_ModelMeta):
         """
 
         if not (operator in ('&', '|') and
-                (left._custom_inverse or right._custom_inverse)):
+                (left._user_inverse or right._user_inverse)):
             # These are the only operators that support an inverse right now
             return None
 

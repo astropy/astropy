@@ -545,6 +545,19 @@ API changes
     with True only if the comparison was true for all elements compared,
     which could lead to confusing circumstances. [#3912]
 
+  - Using ``model.inverse = None`` to reset a model's inverse to its
+    default is deprecated.  In the future this syntax will explicitly make
+    a model not have an inverse (even if it has a default).  Instead, use
+    ``del model.inverse`` to reset a model's inverse to its default (if it
+    has a default, otherwise this just deletes any custom inverse that has
+    been assigned to the model and is still equivalent to setting
+    ``model.inverse = None``). [#4236]
+
+  - Adds a ``model.has_user_inverse`` attribute which indicates whether or not
+    a user has assigned a custom inverse to ``model.inverse``.  This is just
+    for informational purposes, for example, for software that introspects
+    model objects. [#4236]
+
   - Renamed the parameters of ``RotateNative2Celestial`` and
     ``RotateCelestial2Native`` from ``phi``, ``theta``, ``psi`` to
     ``lon``, ``lat`` and ``lon_pole``. [#3578]
