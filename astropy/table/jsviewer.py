@@ -106,7 +106,7 @@ class JSViewer(object):
     Parameters
     ----------
     use_local_files : bool, optional
-        Use local files or a CDN for JavaScript librairies. Default False.
+        Use local files or a CDN for JavaScript libraries. Default False.
     display_length : int, optional
         Number or rows to show. Default to 50.
 

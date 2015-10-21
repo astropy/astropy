@@ -163,7 +163,7 @@ Bug Fixes
   - Fix string representation of ``SkyCoord`` objects transformed into
     the ``AltAz`` frame [#4055]
 
-  - Fix the ``search_around_sky`` function to allow ``storekdtree`` to be 
+  - Fix the ``search_around_sky`` function to allow ``storekdtree`` to be
     ``False`` as was intended. [#4082]
 
 - ``astropy.io.fits``
@@ -217,7 +217,7 @@ Bug Fixes
     ``resolve_name('numpy')``. [#4084]
 
   - ``console`` was updated to support IPython 4.x and Jupyter 1.x.
-    This should supress a ShimWarning that was appearing at
+    This should suppress a ShimWarning that was appearing at
     import of astropy with IPython 4.0 or later. [#4078]
 
   - Temporary downloaded files created by ``get_readable_fileobj`` when passed

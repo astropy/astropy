@@ -714,8 +714,8 @@ class Table(object):
             This allows in-browser searching & sorting.
         jskwargs : dict
             Passed to the `astropy.table.JSViewer` init. Default to
-            ``{'use_local_files': True}`` which means that the JavaScipt
-            librairies will be served from local copies.
+            ``{'use_local_files': True}`` which means that the JavaScript
+            libraries will be served from local copies.
         tableid : str or `None`
             An html ID tag for the table.  Default is ``table{id}``, where id
             is the unique integer id of the table object, id(self).

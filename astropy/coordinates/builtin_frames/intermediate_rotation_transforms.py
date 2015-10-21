@@ -74,7 +74,7 @@ def cartrepr_from_matmul(pmat, coo, transpose=False):
 
 # now the actual transforms
 
-# the priority for the GCRS<->ITRS trasnsforms are higher (=less traveled) to
+# the priority for the GCRS<->ITRS transforms are higher (=less traveled) to
 #make GCRS<->ICRS<->CIRS the preferred route over GCRS<->ITRS<->CIRS
 @frame_transform_graph.transform(FunctionTransform, GCRS, ITRS, priority=1.01)
 def gcrs_to_itrs(gcrs_coo, itrs_frame):
