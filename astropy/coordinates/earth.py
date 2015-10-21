@@ -371,18 +371,18 @@ class EarthLocation(u.Quantity):
         Generates an `~astropy.coordinates.ITRS` object with the coordinates of
         this object at the default ``obstime``.
         """
+        return self.get_itrs(None)
 
-        return ITRS(x=self.x, y=self.y, z=self.z)
-
-    def get_itrs(self, obstime):
+    def get_itrs(self, obstime=None):
         """
         Generates an `~astropy.coordinates.ITRS` object with the coordinates of
         this object at the requested ``obstime``.
 
         Parameters
         ----------
-        obstime : `~astropy.time.Time`
-            The ``obstime`` to apply to the new `~astropy.coordinates.ITRS`
+        obstime : `~astropy.time.Time` or None
+            The ``obstime`` to apply to the new `~astropy.coordinates.ITRS`, or
+            if None, the default ``obstime`` will be used.
 
         Returns
         -------
