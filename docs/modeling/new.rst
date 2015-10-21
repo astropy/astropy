@@ -268,6 +268,11 @@ input``.
             new_intercept = -self.intercept / self.slope
             return LineModel(slope=new_slope, intercept=new_intercept)
 
+.. note::
+
+    The above example is essentially equivalent to the built-in
+    `~astropy.modeling.functional_models.Linear1D` model.
+
 
 Defining New Fitter Classes
 ===========================
