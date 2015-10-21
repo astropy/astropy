@@ -39,7 +39,7 @@ def blackbody_nu(in_x, temperature):
         Frequency, wavelength, or wave number.
         If not a Quantity, it is assumed to be in Hz.
 
-    temperature : number or `~astropy.units.Quantity`
+    temperature : number, array-like, or `~astropy.units.Quantity`
         Blackbody temperature.
         If not a Quantity, it is assumed to be in Kelvin.
 
@@ -64,8 +64,8 @@ def blackbody_nu(in_x, temperature):
         temp = u.Quantity(temperature, u.K, dtype=np.float64)
 
     # Check if input values are physically possible
-    if temp < 0:
-        raise ValueError('Invalid temperature {0}'.format(temp))
+    if np.any(temp < 0):
+        raise ValueError('Temperature should be positive: {0}'.format(temp))
     if not np.all(np.isfinite(freq)) or np.any(freq <= 0):
         warnings.warn('Input contains invalid wavelength/frequency value(s)',
                       AstropyUserWarning)
@@ -87,7 +87,7 @@ def blackbody_lambda(in_x, temperature):
         Frequency, wavelength, or wave number.
         If not a Quantity, it is assumed to be in Angstrom.
 
-    temperature : number or `~astropy.units.Quantity`
+    temperature : number, array-like, or `~astropy.units.Quantity`
         Blackbody temperature.
         If not a Quantity, it is assumed to be in Kelvin.
 
