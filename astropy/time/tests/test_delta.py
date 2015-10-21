@@ -256,7 +256,7 @@ class TestTimeDeltaScales():
         self.dt = dict((scale, self.t[scale]-self.t[scale][0])
                        for scale in TIME_SCALES)
 
-    def test_delta_scales_defintion(self):
+    def test_delta_scales_definition(self):
         for scale in list(TIME_DELTA_SCALES) + [None]:
             TimeDelta([0., 1., 10.], format='sec', scale=scale)
 

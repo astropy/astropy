@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Time utilites.
+"""Time utilities.
 
-In particular, routines to do basic arithmatic on numbers represented by two
+In particular, routines to do basic arithmetic on numbers represented by two
 doubles, using the procedure of Shewchuk, 1997, Discrete & Computational
 Geometry 18(3):305-363 -- http://www.cs.berkeley.edu/~jrs/papers/robustr.pdf
 """
