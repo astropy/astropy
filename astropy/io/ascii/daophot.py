@@ -40,7 +40,7 @@ class DaophotHeader(core.BaseHeader):
 
     def parse_col_defs(self, grouped_lines_dict):
         """
-        Parse a series of column defintion lines like below.  There may be several
+        Parse a series of column definition lines like below.  There may be several
         such blocks in a single file (where continuation characters have already been
         stripped).
         #N ID    XCENTER   YCENTER   MAG         MERR          MSKY           NITER

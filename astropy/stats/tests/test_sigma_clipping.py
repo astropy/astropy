@@ -117,7 +117,7 @@ def test_invalid_sigma_clip():
     result = sigma_clip(data)
 
     # Pre #4051 if data contains any NaN or infs sigma_clip returns the mask
-    # containig `False` only or TypeError if data also contains a masked value.
+    # containing `False` only or TypeError if data also contains a masked value.
 
     assert result.mask[2, 2] == True
     assert result.mask[3, 4] == True
