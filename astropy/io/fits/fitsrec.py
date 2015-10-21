@@ -164,7 +164,11 @@ class FITS_rec(np.recarray):
     `FITS_rec` is the data part of a table HDU's data part.  This is a layer
     over the `~numpy.recarray`, so we can deal with scaled columns.
 
-    It inherits all of the standard methods from `numpy.ndarray`.
+    .. note:: Deprecated Warning:
+        The inherience from base class `np.recarray` is being deprecated. 
+        Functions inherited from `ny.ndarray` are likely broken, and shall be
+        avoided. 
+        
     """
 
     _record_type = FITS_record
