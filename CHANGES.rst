@@ -201,6 +201,8 @@ Bug fixes
 
   - The astropy.utils.compat.fractions module has now been deprecated. Use the
     Python 'fractions' module directly instead. [#4463]
+  - Added ``format_doc`` decorator which allows to replace and/or format the
+    current docstring of an object. [#4242]
 
 - ``astropy.visualization``
 

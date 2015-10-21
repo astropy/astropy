@@ -773,14 +773,14 @@ def format_doc(docstring, *args, **kwargs):
 
     Parameters
     ----------
-    docstring: `str` or ``object``
+    docstring: str or ``object``
         The docstring that will replace the docstring of the decorated
         object. If it is an object like a function or class it will
         take the docstring of this object. If it is a string it will use the
         string itself. One special case is if the string is ``'__doc__'`` then
         it will use the decorated functions docstring and formats it.
 
-    arg:
+    args:
         passed to :meth:`str.format`.
 
     kwargs:
