@@ -4,6 +4,7 @@ from __future__ import division, with_statement, print_function
 import numpy as np
 from numpy import char as chararray
 
+from ....extern import six
 from ....extern.six.moves import range
 from ....extern.six.moves import cPickle as pickle
 from ....io import fits
@@ -1696,7 +1697,10 @@ class TestTableFunctions(FitsTestCase):
 
         def test_dims_and_roundtrip(tbhdu):
             assert tbhdu.data['S'].shape == (5, 3, 2)
-            assert tbhdu.data['S'].dtype.str.endswith('U4')
+            if six.PY3:
+                assert tbhdu.data['S'].dtype.str.endswith('U4')
+            else:
+                assert tbhdu.data['S'].dtype.str.endswith('S4')
 
             tbhdu.writeto(self.temp('test.fits'), clobber=True)
 
@@ -1704,7 +1708,10 @@ class TestTableFunctions(FitsTestCase):
                 tbhdu2 = hdul[1]
                 assert tbhdu2.header['TDIM1'] == '(4,2,3)'
                 assert tbhdu2.data['S'].shape == (5, 3, 2)
-                assert tbhdu2.data['S'].dtype.str.endswith('U4')
+                if six.PY3:
+                    assert tbhdu.data['S'].dtype.str.endswith('U4')
+                else:
+                    assert tbhdu.data['S'].dtype.str.endswith('S4')
                 assert np.all(tbhdu2.data['S'] == tbhdu.data['S'])
 
         test_dims_and_roundtrip(tbhdu1)
