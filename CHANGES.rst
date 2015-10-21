@@ -60,6 +60,8 @@ New Features
 - ``astropy.utils``
 
   - Implemented a generic and extensible way of merging metadata. [#4459]
+  - Added ``format_doc`` decorator which allows to replace and/or format the
+    current docstring of an object. [#4242]
 
 - ``astropy.visualization``
 
