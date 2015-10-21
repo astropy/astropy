@@ -9,6 +9,7 @@ from .. import units as u
 from ..extern import six
 from ..utils.exceptions import AstropyUserWarning
 from . import Longitude, Latitude
+from .builtin_frames import ITRS
 
 try:
     # Not guaranteed available at setup time.
@@ -370,8 +371,6 @@ class EarthLocation(u.Quantity):
         Generates an `~astropy.coordinates.ITRS` object with the coordinates of
         this object at the default ``obstime``.
         """
-        #circular imports prevent this from being up top
-        from .builtin_frames import ITRS
 
         return ITRS(x=self.x, y=self.y, z=self.z)
 
@@ -390,9 +389,6 @@ class EarthLocation(u.Quantity):
         itrs : `~astropy.coordinates.ITRS`
             The new object in the ITRS frame
         """
-        #circular imports prevent this from being up top
-        from .builtin_frames import ITRS
-
         return ITRS(x=self.x, y=self.y, z=self.z, obstime=obstime)
 
     @property
