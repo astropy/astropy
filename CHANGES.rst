@@ -695,6 +695,21 @@ Bug Fixes
     between values that are different types but have the same representation
     (ex: the string '0' versus the number 0). [#4122]
 
+  - Miscellaneous fixes for supporting Numpy 1.10. [#4228]
+
+  - Fixed an issue where writing a column of unicode strings to a FITS table
+    resulted in a quadrupling of size of the column (i.e. the format of the
+    FITS column was 4 characters for every one in the original strings).
+    [#4228]
+
+  - Added support for an obscure case (but nonetheless allowed by the FITS
+    standard) where a column has some TDIMn keyword, but a repeat count in
+    the TFORMn column greater than the number of elements implied by the
+    TDIMn.  For example TFORMn = 100I, but TDIMn = '(5,5)'.  In this case
+    the TDIMn implies 5x5 arrays in the column, but the TFORMn implies
+    a 100 element 1-D array in the column.  In this case the TDIM takes
+    precedence, and the remaining bytes in the column are ignored. [#4228]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -724,7 +739,12 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Nothing changed yet.
+- All tests now pass against Numpy v1.10.x. This implies nominal support for
+  Numpy 1.10.x moving forward (but there may still be unknown issues). For
+  example, there is already a known performance issue with tables containing
+  large multi-dimensional columns--for example, tables that contain entire
+  images in one or more of their columns.  This is a known upstream issue in
+  Numpy. [#4259]
 
 
 1.0.5 (2015-10-05)

@@ -516,6 +516,8 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
             # We have the data to be used.
             # Check the byte order of the data.  If it is little endian we
             # must swap it before calculating the datasum.
+            # TODO: Maybe check this on a per-field basis instead of assuming
+            # that all fields have the same byte order?
             byteorder = \
                 self.data.dtype.fields[self.data.dtype.names[0]][0].str[0]
 
@@ -527,8 +529,9 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
                 byteswapped = False
                 d = self.data
 
-            cs = self._compute_checksum(d.flatten().view(np.uint8),
-                                        blocking=blocking)
+            byte_data = d.view(type=np.ndarray, dtype=np.ubyte)
+
+            cs = self._compute_checksum(byte_data, blocking=blocking)
 
             # If the data was byteswapped in this method then return it to
             # its original little-endian order.
