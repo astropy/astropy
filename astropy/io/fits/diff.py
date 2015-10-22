@@ -1214,6 +1214,14 @@ def diff_values(a, b, tolerance=0.0):
 def report_diff_values(fileobj, a, b, ind=0):
     """Write a diff between two values to the specified file-like object."""
 
+    typea = type(a)
+    typeb = type(b)
+
+    if (isinstance(a, string_types) and not isinstance(b, string_types)):
+        a = repr(a).lstrip('u')
+    elif (isinstance(b, string_types) and not isinstance(a, string_types)):
+        b = repr(b).lstrip('u')
+
     if isinstance(a, (int, float, complex, np.number)):
         a = repr(a)
 
@@ -1233,13 +1241,24 @@ def report_diff_values(fileobj, a, b, ind=0):
                           (num_diffs - 3), ind))
         return
 
+    padding = max(len(typea.__name__), len(typeb.__name__)) + 3
+
     for line in difflib.ndiff(str(a).splitlines(), str(b).splitlines()):
         if line[0] == '-':
             line = 'a>' + line[1:]
+            if typea != typeb:
+                typename = '(' + typea.__name__ + ') '
+                line = typename.rjust(padding) + line
+
         elif line[0] == '+':
             line = 'b>' + line[1:]
+            if typea != typeb:
+                typename = '(' + typeb.__name__ + ') '
+                line = typename.rjust(padding) + line
         else:
             line = ' ' + line
+            if typea != typeb:
+                line = ' ' * padding + line
         fileobj.write(indent(u('  %s\n') % line.rstrip('\n'), ind))
 
 

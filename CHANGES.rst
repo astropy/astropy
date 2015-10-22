@@ -152,6 +152,7 @@ Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 1.1 (unreleased)
+﻿1.1 (unreleased)
 ----------------
 
 New Features
@@ -855,6 +856,10 @@ Bug Fixes
 - ``astropy.io.ascii``
 
 - ``astropy.io.fits``
+
+  - ``fitsdiff`` and related functions now do a better job reporting differences
+    between values that are different types but have the same representation
+    (ex: the string '0' versus the number 0). [#4122]
 
 - ``astropy.io.misc``
 
