@@ -945,14 +945,16 @@ class Model(object):
         A `tuple` of length `n_inputs` defining the bounding box limits, or
         `None` for no bounding box.
 
-        The default limits are given by the `bounding_box_default` method, which
-        in some cases are `None`. `bounding_box` can be set manually to an
-        array-like object of shape ``(model.n_inputs, 2)``. For further usage,
-        including how to set `bounding_box_default`, see :ref:`bounding-boxes`
+        The default limits are given by a ``bounding_box`` property or method
+        defined in the class body of a specific model.  If not defined then
+        this property just raises `NotImplementedError` by default (but may be
+        assigned a custom value by a user).  ``bounding_box`` can be set
+        manually to an array-like object of shape ``(model.n_inputs, 2)``. For
+        further usage, see :ref:`bounding-boxes`
 
         The limits are ordered according to the `numpy` indexing
         convention, and are the reverse of the model input order,
-        e.g. for inputs ``('x', 'y', 'z')``, `bounding_box` is defined:
+        e.g. for inputs ``('x', 'y', 'z')``, ``bounding_box`` is defined:
 
         * for 1D: ``(x_low, x_high)``
         * for 2D: ``((y_low, y_high), (x_low, x_high))``
@@ -961,7 +963,7 @@ class Model(object):
         Examples
         --------
 
-        Setting the `bounding_box` limits for a 1D and 2D model::
+        Setting the ``bounding_box`` limits for a 1D and 2D model:
 
         >>> from astropy.modeling.models import Gaussian1D, Gaussian2D
         >>> model_1d = Gaussian1D()
@@ -969,7 +971,7 @@ class Model(object):
         >>> model_1d.bounding_box = (-5, 5)
         >>> model_2d.bounding_box = ((-6, 6), (-5, 5))
 
-        Setting the bounding_box limits for a user-defined 3D `custom_model`::
+        Setting the bounding_box limits for a user-defined 3D `custom_model`:
 
         >>> from astropy.modeling.models import custom_model
         >>> def const3d(x, y, z, amp=1):
@@ -981,12 +983,12 @@ class Model(object):
 
         To reset ``bounding_box`` to its default limits just delete the
         user-defined value--this will reset it back to the default defined
-        on the class::
+        on the class:
 
         >>> del model_1d.bounding_box
 
         To disable the bounding box entirely (including the default),
-        set ``bounding_box`` to `None`::
+        set ``bounding_box`` to `None`:
 
         >>> model_1d.bounding_box = None
         >>> model_1d.bounding_box  # doctest: +IGNORE_EXCEPTION_DETAIL
@@ -1107,7 +1109,7 @@ class Model(object):
 
         if (coords is None) and (out is None) and (bbox is None):
             raise ValueError('If no bounding_box is set, '
-                                 'coords or out must be input.')
+                             'coords or out must be input.')
 
         # for consistent indexing
         if ndim == 1:
@@ -1128,14 +1130,16 @@ class Model(object):
             try:
                 assert out.ndim == ndim
             except AssertionError:
-                raise AssertionError('The array and model must have the same number '
-                                     'of dimensions.')
+                raise AssertionError(
+                    'The array and model must have the same number '
+                    'of dimensions.')
 
         if bbox is not None:
 
             # assures position is at center pixel, important when using add_array
-            pd = pos, delta = np.array([(np.mean(bb), np.ceil((bb[1] - bb[0]) / 2))
-                                        for bb in bbox]).astype(int).T
+            pd = np.array([(np.mean(bb), np.ceil((bb[1] - bb[0]) / 2))
+                           for bb in bbox]).astype(int).T
+            pos, delta = pd
 
             if coords is not None:
                 sub_shape = tuple(delta * 2 + 1)
@@ -1153,11 +1157,11 @@ class Model(object):
                 try:
                     out = add_array(out, self(*sub_coords), pos)
                 except ValueError:
-                    raise ValueError('The `bounding_box` is larger than the input'
-                                     ' out in one or more dimensions. Set '
-                                     '`model.bounding_box = None`.')
+                    raise ValueError(
+                        'The `bounding_box` is larger than the input out in '
+                        'one or more dimensions. Set '
+                        '`model.bounding_box = None`.')
         else:
-
             if coords is None:
                 im_shape = out.shape
                 limits = [slice(i) for i in im_shape]
