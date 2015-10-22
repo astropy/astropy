@@ -12,8 +12,8 @@ import itertools
 import numpy as np
 from numpy.testing.utils import assert_allclose
 
-from ...tests.helper import pytest
-from ... import units as u
+from ...tests.helper import pytest, assert_quantity_allclose
+from ... import units as u, constants as c
 
 lu_units = [u.dex, u.mag, u.decibel]
 
@@ -69,6 +69,16 @@ class TestLogUnitCreation(object):
 
         with pytest.raises(ValueError):
             lu_cls(physical_unit, u.m)
+
+
+def test_predefined_magnitudes():
+    assert_quantity_allclose((-21.1*u.STmag).physical,
+                             1.*u.erg/u.cm**2/u.s/u.AA)
+    assert_quantity_allclose((-48.6*u.ABmag).physical,
+                             1.*u.erg/u.cm**2/u.s/u.Hz)
+    assert_quantity_allclose((0*u.M_bol).physical, c.L_bol0)
+    assert_quantity_allclose((0*u.m_bol).physical,
+                             c.L_bol0/(4.*np.pi*(10.*c.pc)**2))
 
 
 class TestLogUnitStrings(object):

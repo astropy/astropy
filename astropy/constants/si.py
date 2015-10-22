@@ -118,6 +118,10 @@ kpc = Constant('kpc', "Kiloparsec",
                1000. * au.uncertainty / np.tan(np.radians(1. / 3600.)),
                "Derived from au", system='si')
 
+# Luminosity
+L_bol0 = Constant('L_bol0', "Luminosity for absolute bolometric magnitude 0",
+                  3.0128e28, "W", 0.0, "IAU 2015 Resolution B 2", system='si')
+
 # Wien wavelength displacement law constant
 b_wien = Constant('b_wien', 'Wien wavelength displacement law constant',
                   2.8977721e-3, 'm K', 0.0000026e-3, 'CODATA 2010', system='si')

@@ -4,13 +4,16 @@ from __future__ import (absolute_import, unicode_literals,
                         division, print_function)
 import numpy as np
 
-from .. import CompositeUnit, Unit, UnitsError, dimensionless_unscaled, si
+from .. import (CompositeUnit, Unit, UnitsError, dimensionless_unscaled,
+                si, astrophys)
+from ...constants import L_bol0
 from .core import FunctionUnitBase, FunctionQuantity
 from .units import dex, dB, mag
 
 
 __all__ = ['LogUnit', 'MagUnit', 'DexUnit', 'DecibelUnit',
-           'LogQuantity', 'Magnitude', 'Decibel', 'Dex', 'STmag', 'ABmag']
+           'LogQuantity', 'Magnitude', 'Decibel', 'Dex',
+           'STmag', 'ABmag', 'M_bol', 'm_bol']
 
 
 class LogUnit(FunctionUnitBase):
@@ -320,8 +323,24 @@ AB0 = Unit('AB', 10.**(-0.4*48.6) * 1.e-3 * si.W / si.m**2 / si.Hz,
 ST0 = Unit('ST', 10.**(-0.4*21.1) * 1.e-3 * si.W / si.m**2 / si.AA,
            doc="ST magnitude zero flux density.")
 
+Bol0 = Unit('Bol', L_bol0, doc="Luminosity corresponding to "
+            "absolute bolometric magnitude zero")
+
+bol0 = Unit('bol', L_bol0 / (4 * np.pi * (10.*astrophys.pc)**2),
+            doc="Irradiance corresponding to appparent bolometric magnitude "
+            "zero")
+
+
 STmag = MagUnit(ST0)
 STmag.__doc__ = "ST magnitude: STmag=-21.1 corresponds to 1 erg/s/cm2/A"
 
 ABmag = MagUnit(AB0)
 ABmag.__doc__ = "AB magnitude: ABmag=-48.6 corresponds to 1 erg/s/cm2/Hz"
+
+M_bol = MagUnit(Bol0)
+M_bol.__doc__ = ("Absolute bolometric magnitude: M_bol=0 corresponds to "
+                 "L_bol0={0}".format(Bol0.si))
+
+m_bol = MagUnit(bol0)
+m_bol.__doc__ = ("Apparent bolometric magnitude: m_bol=0 corresponds to "
+                 "f_bol0={0}".format(bol0.si))

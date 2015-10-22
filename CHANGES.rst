@@ -17,6 +17,9 @@ New Features
 
 - ``astropy.constants``
 
+  - Add ``L_bol0``, the luminosity corresponding to absolute bolometric
+    magnitude zero. [#4262]
+  
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
@@ -120,6 +123,9 @@ New Features
 
   - Added a ``represents`` property to allow access to the definition of a
     named unit (e.g., ``u.kpc.represents`` yields ``1000 pc``). [#4806]
+
+  - Add bolometric absolute and apparent magnitudes, ``M_bol`` and ``m_bol``.
+    [#4262]
 
 - ``astropy.utils``
 
