@@ -101,6 +101,11 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Fixed errors in transformations for objects within a few AU of the
+    Earth.  Included substansive changes to transformation machinery
+    that may change distances at levels ~machine precision for other
+    objects. [#4254]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``

@@ -7,6 +7,7 @@ from .. import units as u
 from .. import _erfa as erfa
 from ..utils import OrderedDict
 from . import Longitude, Latitude
+from .builtin_frames import ITRS
 
 try:
     # Not guaranteed available at setup time.
@@ -246,16 +247,27 @@ class EarthLocation(u.Quantity):
         """Convert to a tuple with X, Y, and Z as quantities"""
         return (self.x, self.y, self.z)
 
-    @property
-    def itrs(self):
+    def get_itrs(self, obstime=None):
         """
-        Generates an `~astropy.coordinates.ITRS` object with the coordinates of
-        this object.
-        """
-        #potential circular imports prevent this from being up top
-        from .builtin_frames import ITRS
+        Generates an `~astropy.coordinates.ITRS` object with the location of
+        this object at the requested ``obstime``.
 
-        return ITRS(x=self.x, y=self.y, z=self.z)
+        Parameters
+        ----------
+        obstime : `~astropy.time.Time` or None
+            The ``obstime`` to apply to the new `~astropy.coordinates.ITRS`, or
+            if None, the default ``obstime`` will be used.
+
+        Returns
+        -------
+        itrs : `~astropy.coordinates.ITRS`
+            The new object in the ITRS frame
+        """
+        return ITRS(x=self.x, y=self.y, z=self.z, obstime=obstime)
+
+    itrs = property(get_itrs, doc="""An `~astropy.coordinates.ITRS` object  with
+                                     for the location of this object at the
+                                     default ``obstime``.""")
 
     @property
     def x(self):
