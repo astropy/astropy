@@ -9,6 +9,7 @@ from ....extern.six.moves import range
 from ....extern.six.moves import cPickle as pickle
 from ....io import fits
 from ....tests.helper import pytest, catch_warnings
+from ....utils.compat.numpycompat import NUMPY_LT_1_10
 
 from ..column import Delayed, NUMPY2FITS
 from ..util import decode_ascii
@@ -1826,6 +1827,7 @@ class TestTableFunctions(FitsTestCase):
             assert (h[1].data['strarray'].encode('ascii') == arrb).all()
             assert (h[1].data['intarray'] == arrc).all()
 
+    @pytest.mark.xfail('not NUMPY_LT_1_10')
     def test_mismatched_tform_and_tdim(self):
         """Normally the product of the dimensions listed in a TDIMn keyword
         must be less than or equal to the repeat count in the TFORMn keyword.
