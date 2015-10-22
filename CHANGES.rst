@@ -873,6 +873,14 @@ Bug Fixes
     FITS column was 4 characters for every one in the original strings).
     [#4228]
 
+  - Added support for an obscure case (but nonetheless allowed by the FITS
+    standard) where a column has some TDIMn keyword, but a repeat count in
+    the TFORMn column greater than the number of elements implied by the
+    TDIMn.  For example TFORMn = 100I, but TDIMn = '(5,5)'.  In this case
+    the TDIMn implies 5x5 arrays in the column, but the TFORMn implies
+    a 100 element 1-D array in the column.  In this case the TDIM takes
+    precedence, and the remaining bytes in the column are ignored. [#4228]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
