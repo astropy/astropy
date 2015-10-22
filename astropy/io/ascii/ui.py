@@ -427,6 +427,13 @@ def _guess(table, read_kwargs, format, fast_reader):
     if len(filtered_guess_kwargs) <= 1:
         return None
 
+    # Define whitelist of exceptions that are expected from readers when
+    # processing invalid inputs.  Note that IOError must fall through here
+    # so one cannot simply catch any exception.
+    guess_exception_classes = (core.InconsistentTableError, ValueError, TypeError,
+                               AttributeError, core.OptionalTableImportError,
+                               core.ParameterError, cparser.CParserError)
+
     # Now cycle through each possible reader and associated keyword arguments.
     # Try to read the table using those args, and if an exception occurs then
     # keep track of the failed guess and move on.
@@ -444,8 +451,7 @@ def _guess(table, read_kwargs, format, fast_reader):
                                 'dt': '{0:.3f} ms'.format((time.time() - t0) * 1000)})
             return dat
 
-        except (core.InconsistentTableError, ValueError, TypeError, AttributeError,
-                core.OptionalTableImportError, core.ParameterError, cparser.CParserError) as err:
+        except guess_exception_classes as err:
             _read_trace.append({'kwargs': guess_kwargs,
                                 'status': '{0}: {1}'.format(err.__class__.__name__,
                                                             str(err)),
@@ -461,8 +467,7 @@ def _guess(table, read_kwargs, format, fast_reader):
                                           '(guessing)'})
             return dat
 
-        except (core.InconsistentTableError, ValueError, ImportError,
-                core.OptionalTableImportError, core.ParameterError, cparser.CParserError) as err:
+        except guess_exception_classes as err:
             _read_trace.append({'kwargs': guess_kwargs,
                                 'status': '{0}: {1}'.format(err.__class__.__name__,
                                                             str(err))})
