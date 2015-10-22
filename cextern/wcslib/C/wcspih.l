@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.10 - an implementation of the FITS WCS standard.
+  WCSLIB 5.11 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.l,v 5.10 2015/10/09 08:19:15 mcalabre Exp $
+  $Id: wcspih.l,v 5.11 2015/10/18 09:13:05 mcalabre Exp $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -2214,7 +2214,7 @@ int wcspih_final(
   struct wcsprm **wcs)
 
 {
-  char   field[8], *wp, wpoly[12], wtype[8];
+  char   field[16], *wp, wpoly[12], wtype[8];
   int    i, ialt, idp, ipv, m, npv, n, nterms, omax, omin, status, wctrl[4];
   double A1, A2, A3, B1, B2, B3, CNPIX1, CNPIX2, *crval, Rx, Ry, S, wval,
          X0, Y0, Xc, Yc;

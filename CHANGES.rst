@@ -99,6 +99,8 @@ API changes
 
 - ``astropy.wcs``
 
+  - The included version of wcslib has been upgraded to 5.11.
+
 Bug fixes
 ^^^^^^^^^
 

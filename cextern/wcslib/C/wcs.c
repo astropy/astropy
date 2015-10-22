@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.10 - an implementation of the FITS WCS standard.
+  WCSLIB 5.11 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.c,v 5.10 2015/10/09 08:19:15 mcalabre Exp $
+  $Id: wcs.c,v 5.11 2015/10/18 09:13:05 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -846,10 +846,10 @@ int wcssub(
         for (jhat = 0; jhat < Nhat; jhat++) {
           if (axmap[jhat] < 0) {
             axmap[jhat] = jhat;
-        }
 
-          /* Make room for an additional DPja.AXIS.j record. */
-          ndp++;
+            /* Make room for an additional DPja.AXIS.j record. */
+            ndp++;
+          }
 
           if (map[axmap[jhat]] == 0) {
             /* Distortion depends on an axis excluded from the subimage. */
