@@ -14,6 +14,7 @@ import numpy as np
 from ..extern import six
 from ..extern.six.moves import xrange, zip_longest
 
+from ..utils import isiterable
 from ..utils.compat.funcsigs import signature
 
 
@@ -347,6 +348,77 @@ class AliasDict(MutableMapping):
         store_copy.update(self._store)
 
         return repr(store_copy)
+
+
+class _BoundingBox(tuple):
+    """
+    Base class for models with custom bounding box templates (methods that
+    return an actual bounding box tuple given some adjustable parameters--see
+    for example `~astropy.modeling.models.Gaussian1D.bounding_box`).
+
+    On these classes the ``bounding_box`` property still returns a `tuple`
+    giving the default bounding box for that instance of the model.  But that
+    tuple may also be a subclass of this class that is callable, and allows
+    a new tuple to be returned using a user-supplied value for any adjustable
+    parameters to the bounding box.
+    """
+
+    _model = None
+
+    def __new__(cls, input_, _model=None):
+        self = super(_BoundingBox, cls).__new__(cls, input_)
+        if _model is not None:
+            # Bind this _BoundingBox (most likely a subclass) to a Model
+            # instance so that its __call__ can access the model
+            self._model = _model
+
+        return self
+
+    def __call__(self, *args, **kwargs):
+        raise NotImplementedError(
+            "This bounding box is fixed by the model and does not have "
+            "adjustable parameters.")
+
+    @classmethod
+    def validate(cls, model, bounding_box):
+        """
+        Validate a given bounding box sequence against the given model (which
+        may be either a subclass of `~astropy.modeling.Model` or an instance
+        thereof, so long as the ``.inputs`` attribute is defined.
+
+        Currently this just checks that the bounding_box is either a 2-tuple
+        of lower and upper bounds for 1-D models, or an N-tuple of 2-tuples
+        for N-D models.
+
+        This also returns a normalized version of the bounding_box input to
+        ensure it is always an N-tuple (even for the 1-D case).
+        """
+
+        nd = model.n_inputs
+
+        if nd == 1:
+            msg = ("Bounding box for {0} model must be a sequence of length "
+                   "2 consisting of a lower and upper bound, or a 1-tuple "
+                   "containing such a sequence as its sole element.").format(
+                       model.name)
+
+            assert (isiterable(bounding_box) and
+                        np.shape(bounding_box) in ((2,), (1, 2))), msg
+
+            if len(bounding_box) == 1:
+                return cls((tuple(bounding_box[0]),))
+            else:
+                return cls((tuple(bounding_box),))
+        else:
+            msg = ("Bounding box for {0} model must be a sequence of length "
+                   "{1} (the number of model inputs) consisting of pairs of "
+                   "lower and upper bounds for those inputs on which to "
+                   "evaluate the model.").format(model.name, nd)
+
+            assert (isiterable(bounding_box) and
+                        np.shape(bounding_box) == (nd, 2)), msg
+
+            return cls(tuple(bounds) for bounds in bounding_box)
 
 
 def make_binary_operator_eval(oper, f, g):

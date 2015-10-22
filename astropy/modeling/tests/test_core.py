@@ -322,7 +322,8 @@ def test_render_model_3d():
         return val
 
     class Ellipsoid3D(custom_model(ellipsoid)):
-        def bounding_box_default(self):
+        @property
+        def bounding_box(self):
             return ((self.z0 - self.c, self.z0 + self.c),
                     (self.y0 - self.b, self.y0 + self.b),
                     (self.x0 - self.a, self.x0 + self.a))

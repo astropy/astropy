@@ -22,6 +22,7 @@ import inspect
 import functools
 import operator
 import sys
+import types
 import warnings
 
 from collections import defaultdict
@@ -36,12 +37,14 @@ from ..table import Table
 from ..utils import (deprecated, sharedmethod, find_current_module,
                      InheritDocstrings, OrderedDescriptorContainer)
 from ..utils.codegen import make_function_with_signature
-from ..utils.compat.odict import OrderedDict
 from ..utils.compat import ignored
+from ..utils.compat.funcsigs import signature
+from ..utils.compat.odict import OrderedDict
 from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import (array_repr_oneline, check_broadcast, combine_labels,
                     make_binary_operator_eval, ExpressionTree,
-                    IncompatibleShapeError, AliasDict, get_inputs_and_params)
+                    IncompatibleShapeError, AliasDict, get_inputs_and_params,
+                    _BoundingBox)
 from ..nddata.utils import add_array, extract_array
 
 from .parameters import Parameter, InputParameterError
@@ -126,6 +129,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
                 cls.param_names = tuple(cls._parameters_)
 
         cls._create_inverse_property(members)
+        cls._create_bounding_box_property(members)
         cls._handle_backwards_compat(name, members)
         cls._handle_special_methods(members)
 
@@ -262,6 +266,97 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
         # attribute so that cls.inverse resolves to Model.inverse instead
         cls._inverse = inverse
         del cls.inverse
+
+    def _create_bounding_box_property(cls, members):
+        """
+        Takes any bounding_box defined on a concrete Model subclass (either
+        as a fixed tuple or a property or method) and wraps it in the generic
+        getter/setter interface for the bounding_box attribute.
+        """
+
+        # TODO: Much of this is verbatim from _create_inverse_property--I feel
+        # like there could be a way to generify properties that work this way,
+        # but for the time being that would probably only confuse things more.
+        bounding_box = members.get('bounding_box')
+        if bounding_box is None or cls.__bases__[0] is object:
+            return
+
+        if isinstance(bounding_box, property):
+            bounding_box = bounding_box.fget
+
+        if not callable(bounding_box):
+            # See if it's a hard-coded bounding_box (as a sequence) and
+            # normalize it
+            try:
+                bounding_box = _BoundingBox.validate(cls, bounding_box)
+            except AssertionError as exc:
+                raise ModelDefinitionError(exc.args[0])
+        else:
+            sig = signature(bounding_box)
+            # May be a method that only takes 'self' as an argument (like a
+            # property, but the @property decorator was forgotten)
+            # TODO: Maybe warn in the above case?
+            #
+            # However, if the method takes additional arguments then this is a
+            # parameterized bounding box and should be callable
+            if len(sig.parameters) > 1:
+                bounding_box = \
+                        cls._create_bounding_box_subclass(bounding_box, sig)
+
+        if six.PY2 and isinstance(bounding_box, types.MethodType):
+            bounding_box = bounding_box.__func__
+
+        # See the Model.bounding_box getter definition for how this attribute
+        # is used
+        cls._bounding_box = bounding_box
+        del cls.bounding_box
+
+    def _create_bounding_box_subclass(cls, func, sig):
+        """
+        For Models that take optional arguments for defining their bounding
+        box, we create a subclass of _BoundingBox with a ``__call__`` method
+        that supports those additional arguments.
+
+        Takes the function's Signature as an argument since that is already
+        computed in _create_bounding_box_property, so no need to duplicate that
+        effort.
+        """
+
+        # TODO: Might be convenient if calling the bounding box also
+        # automatically sets the _user_bounding_box.  So that
+        #
+        #    >>> model.bounding_box(arg=1)
+        #
+        # in addition to returning the computed bbox, also sets it, so that
+        # it's a shortcut for
+        #
+        #    >>> model.bounding_box = model.bounding_box(arg=1)
+        #
+        # Not sure if that would be non-obvious / confusing though...
+
+        def __call__(self, **kwargs):
+            return func(self._model, **kwargs)
+
+        kwargs = []
+        for idx, param in enumerate(sig.parameters.values()):
+            if idx == 0:
+                # Presumed to be a 'self' argument
+                continue
+
+            if param.default is param.empty:
+                raise ModelDefinitionError(
+                    'The bounding_box method for {0} is not correctly '
+                    'defined: If defined as a method all arguments to that '
+                    'method (besides self) must be keyword arguments with '
+                    'default values that can be used to compute a default '
+                    'bounding box.'.format(cls.name))
+
+            kwargs.append((param.name, param.default))
+
+        __call__ = make_function_with_signature(__call__, ('self',), kwargs)
+
+        return type(str('_{0}BoundingBox'.format(cls.name)), (_BoundingBox,),
+                    {'__call__': __call__})
 
     def _handle_backwards_compat(cls, name, members):
         # Backwards compatibility check for 'eval' -> 'evaluate'
@@ -571,7 +666,8 @@ class Model(object):
     _inverse = None
     _user_inverse = None
 
-    _bounding_box = 'auto'
+    _bounding_box = None
+    _user_bounding_box = None
 
     # Default n_models attribute, so that __len__ is still defined even when a
     # model hasn't completed initialization yet
@@ -827,13 +923,6 @@ class Model(object):
 
         del self._user_inverse
 
-    def bounding_box_default(self):
-        """
-        Raises a ``NotImplementedError`` by default. This is overridden by defining
-        `bounding_box_default` in the subclass.
-        """
-        raise NotImplementedError("The bounding box is not set for this model.")
-
     @property
     def has_user_inverse(self):
         """
@@ -872,7 +961,7 @@ class Model(object):
         Examples
         --------
 
-        Setting the `bounding_box` limits for a 1D and 2D model.
+        Setting the `bounding_box` limits for a 1D and 2D model::
 
         >>> from astropy.modeling.models import Gaussian1D, Gaussian2D
         >>> model_1d = Gaussian1D()
@@ -880,7 +969,7 @@ class Model(object):
         >>> model_1d.bounding_box = (-5, 5)
         >>> model_2d.bounding_box = ((-6, 6), (-5, 5))
 
-        Setting the bounding_box limits for a user-defined 3D `custom_model`:
+        Setting the bounding_box limits for a user-defined 3D `custom_model`::
 
         >>> from astropy.modeling.models import custom_model
         >>> def const3d(x, y, z, amp=1):
@@ -890,49 +979,81 @@ class Model(object):
         >>> model_3d = Const3D()
         >>> model_3d.bounding_box = ((-6, 6), (-5, 5), (-4, 4))
 
-        To reset `bounding_box` to its default limits:
+        To reset ``bounding_box`` to its default limits just delete the
+        user-defined value--this will reset it back to the default defined
+        on the class::
 
-        >>> model_1d.bounding_box = 'auto'
+        >>> del model_1d.bounding_box
 
-        To turn off or unset `bounding_box`:
+        To disable the bounding box entirely (including the default),
+        set ``bounding_box`` to `None`::
 
         >>> model_1d.bounding_box = None
+        >>> model_1d.bounding_box  # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+          File "<stdin>", line 1, in <module>
+          File "astropy\modeling\core.py", line 980, in bounding_box
+            "No bounding box is defined for this model (note: the "
+        NotImplementedError: No bounding box is defined for this model (note:
+        the bounding box was explicitly disabled for this model; use `del
+        model.bounding_box` to restore the default bounding box, if one is
+        defined for this model).
         """
 
-        if self._bounding_box is None:
-            raise NotImplementedError("No bounding box is set for this model.")
-
-        elif self._bounding_box =='auto':
-            return self.bounding_box_default()
-
-        else:
+        if self._user_bounding_box is not None:
+            if self._user_bounding_box is NotImplemented:
+                raise NotImplementedError(
+                    "No bounding box is defined for this model (note: the "
+                    "bounding box was explicitly disabled for this model; "
+                    "use `del model.bounding_box` to restore the default "
+                    "bounding box, if one is defined for this model).")
+            return self._user_bounding_box
+        elif self._bounding_box is None:
+            raise NotImplementedError(
+                    "No bounding box is defined for this model.")
+        elif isinstance(self._bounding_box, _BoundingBox):
+            # This typically implies a hard-coded bounding box.  This will
+            # probably be rare, but it is an option
             return self._bounding_box
+        elif isinstance(self._bounding_box, types.MethodType):
+            return self._bounding_box()
+        else:
+            # The only other allowed possibility is that it's a _BoundingBox
+            # subclass, so we call it with its default arguments and return an
+            # instance of it (that can be called to recompute the bounding box
+            # with any optional parameters)
+            # (In other words, in this case self._bounding_box is a *class*)
+            bounding_box = self._bounding_box((), _model=self)()
+            return self._bounding_box(bounding_box, _model=self)
 
     @bounding_box.setter
-    def bounding_box(self, limits):
+    def bounding_box(self, bounding_box):
         """
         Assigns the bounding box limits.
         """
 
-        if limits in ('auto', None):
-            pass
-
+        if bounding_box is None:
+            cls = None
+            # We use this to explicitly set an unimplemented bounding box (as
+            # opposed to no user bounding box defined)
+            bounding_box = NotImplemented
+        elif (isinstance(self._bounding_box, type) and
+                issubclass(self._bounding_box, _BoundingBox)):
+            cls = self._bounding_box
         else:
-            nd = self.n_inputs
+            cls = _BoundingBox
+
+        if cls is not None:
             try:
-                if nd == 1:
-                    assert np.shape(limits) == (2,)
-                    limits = tuple(limits)
+                bounding_box = cls.validate(self, bounding_box)
+            except AssertionError as exc:
+                raise ValueError(exc.args[0])
 
-                else:
-                    assert np.shape(limits) == (nd, 2)
-                    limits = tuple([tuple(lim) for lim in limits])
+        self._user_bounding_box = bounding_box
 
-            except AssertionError:
-                raise ValueError('If not \'auto\' or None, bounding_box must be '
-                                     'array-like of shape ``(model.n_inputs, 2)``.')
-
-        self._bounding_box = limits
+    @bounding_box.deleter
+    def bounding_box(self):
+        self._user_bounding_box = None
 
     # *** Public methods ***
 

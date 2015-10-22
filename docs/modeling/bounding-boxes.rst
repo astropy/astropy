@@ -47,7 +47,8 @@ be set by the user to any callable. This is particularly useful for fitting
     ...
     >>> class Ellipsoid3D(custom_model(ellipsoid)):
     ...     # A 3D ellipsoid model
-    ...     def bounding_box_default(self):
+    ...     @property
+    ...     def bounding_box(self):
     ...         return ((self.z0 - self.c, self.z0 + self.c),
     ...                 (self.y0 - self.b, self.y0 + self.b),
     ...                 (self.x0 - self.a, self.x0 + self.a))
@@ -131,7 +132,7 @@ speed increases by approximately a factor of 10 with negligible loss of informat
 	ax = plt.subplot(122)
 	plt.imshow(bb_image, origin='lower')
 	for model in model_list:
-	    dy, dx = np.diff(model.bounding_box_default()).flatten()
+	    dy, dx = np.diff(model.bounding_box).flatten()
 	    pos = (model.x_mean.value - dx / 2, model.y_mean.value - dy / 2)
 	    r = Rectangle(pos, dx, dy, edgecolor='w', facecolor='none', alpha=.25)
 	    ax.add_patch(r)

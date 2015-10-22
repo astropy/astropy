@@ -219,15 +219,14 @@ def test_custom_model_bounding_box():
         return val
 
     class Ellipsoid3D(models.custom_model(ellipsoid)):
-        def bounding_box_default(self):
+        @property
+        def bounding_box(self):
             return ((self.z0 - self.c, self.z0 + self.c),
                     (self.y0 - self.b, self.y0 + self.b),
                     (self.x0 - self.a, self.x0 + self.a))
 
     model = Ellipsoid3D()
     bbox = model.bounding_box
-
-    assert bbox == model.bounding_box_default()
 
     zlim, ylim, xlim = bbox
     dz, dy, dx = np.diff(bbox) / 2
@@ -292,21 +291,22 @@ class Fittable2DModelTester(object):
 
         # testing setter
         model.bounding_box = ((-5, 5), (-5, 5))
+        assert model.bounding_box == ((-5, 5), (-5, 5))
+
         model.bounding_box = None
-        model.bounding_box = 'auto'
+        with pytest.raises(NotImplementedError):
+            model.bounding_box
 
         # test the exception of dimensions don't match
-        try:
+        with pytest.raises(ValueError):
             model.bounding_box = (-5, 5)
-        except ValueError:
-            pass
 
-        try :
+        del model.bounding_box
+
+        try:
             bbox = model.bounding_box
         except NotImplementedError:
             pytest.skip("Bounding_box is not defined for model.")
-
-        assert bbox == model.bounding_box_default()
 
         ylim, xlim = bbox
         dy, dx = np.diff(bbox)/2
@@ -466,20 +466,20 @@ class Fittable1DModelTester(object):
         # testing setter
         model.bounding_box = (-5, 5)
         model.bounding_box = None
-        model.bounding_box = 'auto'
+
+        with pytest.raises(NotImplementedError):
+            model.bounding_box
+
+        del model.bounding_box
 
         # test exception if dimensions don't match
-        try:
+        with pytest.raises(ValueError):
             model.bounding_box = 5
-        except ValueError:
-            pass
 
         try:
             bbox = model.bounding_box
         except NotImplementedError:
             pytest.skip("Bounding_box is not defined for model.")
-
-        assert bbox == model.bounding_box_default()
 
         dx = np.diff(bbox) / 2
         x1 = np.mgrid[slice(bbox[0], bbox[1] + 1)]
