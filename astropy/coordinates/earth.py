@@ -365,17 +365,9 @@ class EarthLocation(u.Quantity):
         """Convert to a tuple with X, Y, and Z as quantities"""
         return (self.x, self.y, self.z)
 
-    @property
-    def itrs(self):
-        """
-        Generates an `~astropy.coordinates.ITRS` object with the coordinates of
-        this object at the default ``obstime``.
-        """
-        return self.get_itrs(None)
-
     def get_itrs(self, obstime=None):
         """
-        Generates an `~astropy.coordinates.ITRS` object with the coordinates of
+        Generates an `~astropy.coordinates.ITRS` object with the location of
         this object at the requested ``obstime``.
 
         Parameters
@@ -390,6 +382,10 @@ class EarthLocation(u.Quantity):
             The new object in the ITRS frame
         """
         return ITRS(x=self.x, y=self.y, z=self.z, obstime=obstime)
+
+    itrs = property(get_itrs, doc="""An `~astropy.coordinates.ITRS` object  with
+                                     for the location of this object at the
+                                     default ``obstime``.""")
 
     @property
     def x(self):
