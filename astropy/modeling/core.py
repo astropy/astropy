@@ -1055,6 +1055,16 @@ class Model(object):
     def bounding_box(self):
         self._user_bounding_box = None
 
+    @property
+    def has_user_bounding_box(self):
+        """
+        A flag indicating whether or not a custom bounding_box has been
+        assigned to this model by a user, via assignment to
+        ``model.bounding_box``.
+        """
+
+        return self._user_bounding_box is not None
+
     # *** Public methods ***
 
     @abc.abstractmethod
