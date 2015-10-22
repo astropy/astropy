@@ -583,15 +583,15 @@ class TestDiff(FitsTestCase):
         """
         Regression test for https://github.com/astropy/astropy/issues/4122
         """
-        
+
         f = io.StringIO()
-        
+
         a = 1.0
         b = '1.0'
-        
+
         report_diff_values(f, a, b)
         out = f.getvalue()
-        
+
         assert out.lstrip('u') == "  (float) a> 1.0\n    (str) b> '1.0'\n           ? +   +\n"
 
     def test_float_comparison(self):
