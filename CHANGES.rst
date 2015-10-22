@@ -309,6 +309,9 @@ New Features
     of several standard formulae for the error bars on the mean of a Poisson variable
     estimated from a single sample.
 
+  - Updated ``bootstrap`` to allow bootstrapping statistics with multiple
+    outputs. [#3601]
+
 - ``astropy.table``
 
   - ``add_column()`` and ``add_columns()`` now have ``rename_duplicate``
