@@ -4,10 +4,11 @@ from __future__ import division, with_statement, print_function
 import numpy as np
 from numpy import char as chararray
 
+from ....extern import six
 from ....extern.six.moves import range
 from ....extern.six.moves import cPickle as pickle
 from ....io import fits
-from ....tests.helper import pytest
+from ....tests.helper import pytest, catch_warnings
 
 from ..column import Delayed, NUMPY2FITS
 from ..util import decode_ascii
@@ -1668,6 +1669,101 @@ class TestTableFunctions(FitsTestCase):
 
         assert t.field(1).dtype.str[-1] == '5'
         assert t.field(1).shape == (3, 4, 3)
+
+    def test_bin_table_init_from_string_array_column(self):
+        """
+        Tests two ways of creatine a new `BinTableHDU` from a column of
+        string arrays.
+
+        This tests for a couple different regressions, and ensures that
+        both BinTableHDU(data=arr) and BinTableHDU.from_columns(arr) work
+        equivalently.
+
+        Some of this is redundant with the following test, but checks some
+        subtly different cases.
+        """
+
+        data = [[b'abcd', b'efgh'],
+                [b'ijkl', b'mnop'],
+                [b'qrst', b'uvwx']]
+
+        arr = np.array([(data,), (data,), (data,), (data,), (data,)],
+                       dtype=[('S', '(3, 2)S4')])
+
+        with catch_warnings() as w:
+            tbhdu1 = fits.BinTableHDU(data=arr)
+
+        assert len(w) == 0
+
+        def test_dims_and_roundtrip(tbhdu):
+            assert tbhdu.data['S'].shape == (5, 3, 2)
+            if six.PY3:
+                assert tbhdu.data['S'].dtype.str.endswith('U4')
+            else:
+                assert tbhdu.data['S'].dtype.str.endswith('S4')
+
+            tbhdu.writeto(self.temp('test.fits'), clobber=True)
+
+            with fits.open(self.temp('test.fits')) as hdul:
+                tbhdu2 = hdul[1]
+                assert tbhdu2.header['TDIM1'] == '(4,2,3)'
+                assert tbhdu2.data['S'].shape == (5, 3, 2)
+                if six.PY3:
+                    assert tbhdu.data['S'].dtype.str.endswith('U4')
+                else:
+                    assert tbhdu.data['S'].dtype.str.endswith('S4')
+                assert np.all(tbhdu2.data['S'] == tbhdu.data['S'])
+
+        test_dims_and_roundtrip(tbhdu1)
+
+        tbhdu2 = fits.BinTableHDU.from_columns(arr)
+        test_dims_and_roundtrip(tbhdu2)
+
+    def test_columns_with_truncating_tdim(self):
+        """
+        According to the FITS standard (section 7.3.2):
+
+            If the number of elements in the array implied by the TDIMn is less
+            than the allocated size of the ar- ray in the FITS file, then the
+            unused trailing elements should be interpreted as containing
+            undefined fill values.
+
+        *deep sigh* What this means is if a column has a repeat count larger
+        than the number of elements indicated by its TDIM (ex: TDIM1 = '(2,2)',
+        but TFORM1 = 6I), then instead of this being an outright error we are
+        to take the first 4 elements as implied by the TDIM and ignore the
+        additional two trailing elements.
+        """
+
+        # It's hard to even successfully create a table like this.  I think
+        # it *should* be difficult, but once created it should at least be
+        # possible to read.
+        arr1 = [[b'ab', b'cd'], [b'ef', b'gh'], [b'ij', b'kl']]
+        arr2 = [1, 2, 3, 4, 5]
+
+        arr = np.array([(arr1, arr2), (arr1, arr2)],
+                       dtype=[('a', '(3, 2)S2'), ('b', '5i8')])
+
+        tbhdu = fits.BinTableHDU(data=arr)
+        tbhdu.writeto(self.temp('test.fits'))
+
+        with open(self.temp('test.fits'), 'rb') as f:
+            raw_bytes = f.read()
+
+        # Aritifically truncate TDIM in the header; this seems to be the
+        # easiest way to do this while getting around pyfits' insistence on the
+        # data and header matching perfectly; again, we have no interest in
+        # making it possible to write files in this format, only read them
+        with open(self.temp('test.fits'), 'wb') as f:
+            f.write(raw_bytes.replace(b'(2,2,3)', b'(2,2,2)'))
+
+        with fits.open(self.temp('test.fits')) as hdul:
+            tbhdu2 = hdul[1]
+            assert tbhdu2.header['TDIM1'] == '(2,2,2)'
+            assert tbhdu2.header['TFORM1'] == '12A'
+            for row in tbhdu2.data:
+                assert np.all(row['a'] == [['ab', 'cd'], ['ef', 'gh']])
+                assert np.all(row['b'] == [1, 2, 3, 4, 5])
 
     def test_string_array_round_trip(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/201"""
