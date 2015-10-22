@@ -12,6 +12,7 @@ from functools import reduce
 import numpy as np
 from numpy import char as chararray
 
+from . import _numpy_hacks as nh
 from .card import Card, CARD_LENGTH
 from .util import (pairwise, _is_int, _convert_array, encode_ascii, cmp,
                    NotifierMixin)
@@ -944,6 +945,12 @@ class Column(NotifierMixin):
         else:
             format = self.format
             dims = self._dims
+
+            if dims:
+                shape = dims[:-1] if 'A' in format else dims
+                shape = (len(array),) + shape
+                array = array.reshape(shape)
+
             if 'P' in format or 'Q' in format:
                 return array
             elif 'A' in format:
@@ -1264,9 +1271,34 @@ class ColDefs(NotifierMixin):
 
     @lazyproperty
     def dtype(self):
-        dtypes = [f.dtype for idx, f in enumerate(self.formats)]
-        names = [n for idx, n in enumerate(self.names)]
-        return np.dtype(list(zip(names, dtypes)))
+        # Note: This previously returned a dtype that just used the raw field
+        # widths based on the format's repeat count, and did not incorporate
+        # field *shapes* as provided by TDIMn keywords.
+        # Now this incorporates TDIMn from the start, which makes *this* method
+        # a little more complicated, but simplifies code elsewhere (for example
+        # fields will have the correct shapes even in the raw recarray).
+        fields = []
+        offsets = [0]
+
+        for name, format_, dim in zip(self.names, self.formats, self._dims):
+            dt = format_.dtype
+
+            if len(offsets) < len(self.formats):
+                # Note: the size of the *original* format_ may be greater than
+                # one would expect from the number of elements determined by
+                # dim.  The FITS format allows this--the rest of the field is
+                # filled with undefined values.
+                offsets.append(offsets[-1] + dt.itemsize)
+
+            if dim:
+                if format_.format == 'A':
+                    dt = np.dtype((dt.char + str(dim[-1]), dim[:-1]))
+                else:
+                    dt = np.dtype((dt.base, dim))
+
+            fields.append((name, dt))
+
+        return nh.realign_dtype(np.dtype(fields), offsets)
 
     @lazyproperty
     def _arrays(self):
@@ -2003,7 +2035,14 @@ def _convert_record2fits(format):
 
     recformat, kind, dtype = _dtype_to_recformat(format)
     shape = dtype.shape
-    option = str(dtype.base.itemsize)
+    itemsize = dtype.base.itemsize
+    if dtype.char == 'U':
+        # Unicode dtype--itemsize is 4 times actual ASCII character length,
+        # which what matters for FITS column formats
+        # Use dtype.base--dtype may be a multi-dimensional dtype
+        itemsize = itemsize // 4
+
+    option = str(itemsize)
 
     ndims = len(shape)
     repeat = 1
@@ -2048,11 +2087,12 @@ def _dtype_to_recformat(dtype):
         dtype = np.dtype(dtype)
 
     kind = dtype.base.kind
-    itemsize = dtype.base.itemsize
-    recformat = kind + str(itemsize)
 
     if kind in ('U', 'S'):
         recformat = kind = 'a'
+    else:
+        itemsize = dtype.base.itemsize
+        recformat = kind + str(itemsize)
 
     return recformat, kind, dtype
 
