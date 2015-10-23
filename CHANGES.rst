@@ -151,6 +151,13 @@ Bug fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- In ``astropy.coordinates``, the transformations between GCRS, CIRS,
+  and ITRS have been adjusted to more logically reflect the order in
+  which they actually apply.  This should not affect most coordinate
+  transformations, but may affect code that is especially sensitive to
+  machine precision effects that change when the order in which
+  transformations occur is changed. [#4255]
+
 1.1 (unreleased)
 ----------------
 
