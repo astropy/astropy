@@ -14,7 +14,7 @@ from ..extern import six
 
 __all__ = ['MissingDataAssociationException',
            'IncompatibleUncertaintiesException', 'NDUncertainty',
-           'StdDevUncertainty']
+           'StdDevUncertainty', 'UnknownUncertainty']
 
 
 # TODO: Delete this and rebase if #4242 is merged.
