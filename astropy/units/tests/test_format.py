@@ -287,13 +287,16 @@ def test_new_style_latex():
 
 
 def test_latex_scale():
-    latex = '$\\mathrm{2.1798721 \\times 10^{-18}\\,\\frac{m^{2}\\,kg}{s^{2}}}$'
-    assert u.Ry.decompose().to_string('latex') == latex
+    fluxunit = u.Unit(1.e-24 * u.erg / (u.cm **2 * u.s * u.Hz))
+    latex = r'$\mathrm{1 \times 10^{-24}\,\frac{erg}{Hz\,s\,cm^{2}}}$'
+    assert fluxunit.to_string('latex') == latex
 
 
 def test_latex_inline_scale():
-    latex_inline = '$\\mathrm{2.1798721 \\times 10^{-18}\\,m^{2}\\,kg\\,s^{-2}}$'
-    assert u.Ry.decompose().to_string('latex_inline') == latex_inline
+    fluxunit = u.Unit(1.e-24 * u.erg / (u.cm **2 * u.s * u.Hz))
+    latex_inline = (r'$\mathrm{1 \times 10^{-24}\,erg'
+                    r'\,Hz^{-1}\,s^{-1}\,cm^{-2}}$')
+    assert fluxunit.to_string('latex_inline') == latex_inline
 
 
 def test_format_styles():
