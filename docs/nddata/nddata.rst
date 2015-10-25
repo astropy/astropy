@@ -67,7 +67,6 @@ Values can be masked using the ``mask`` attribute.  One straightforward way to
 provide a mask is to use a boolean numpy array::
 
      >>> ndd_masked = NDData(ndd, mask = ndd.data > 0.9)
-     INFO: Overwriting NDData's current mask with specified mask [astropy.nddata.nddata]
 
 Another is to simply initialize an `~astropy.nddata.NDData` object  with a
 masked numpy array::

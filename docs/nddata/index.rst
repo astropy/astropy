@@ -64,7 +64,6 @@ The underlying Numpy array can be accessed via the ``data`` attribute::
 Values can be masked using the ``mask`` attribute::
 
      >>> ndd_masked = NDData(ndd, mask = ndd.data > 0.9)
-     INFO: Overwriting NDData's current mask with specified mask [astropy.nddata.nddata]
 
 A mask value of `True` indicates a value that should be ignored, while a mask
 value of `False` indicates a valid value.

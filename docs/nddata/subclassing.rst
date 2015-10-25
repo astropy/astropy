@@ -45,7 +45,6 @@ can do::
     >>> ndd = NDData(array)
     >>> uncertainty = StdDevUncertainty(np.ones((12, 12, 12)) * 0.1)
     >>> ndd_uncertainty = NDData(ndd, uncertainty=uncertainty)
-    INFO: Overwriting NDData's current uncertainty being overwritten with specified uncertainty [astropy.nddata.nddata]
 
 New error classes should sub-class from `~astropy.nddata.NDUncertainty`, and
 should provide methods with the following API::
