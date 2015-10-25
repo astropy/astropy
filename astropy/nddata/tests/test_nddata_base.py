@@ -5,7 +5,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 from ..nddata_base import NDDataBase
-from ...tests.helper import pytest
+# from ...tests.helper import pytest
 
 
 class MinimalSubclass(NDDataBase):
@@ -32,17 +32,9 @@ class MinimalSubclass(NDDataBase):
     def meta(self):
         return super(MinimalSubclass, self).meta
 
-
-class MinimalUncertainty(object):
-    """
-    Define the minimum attributes acceptable as an uncertainty object.
-    """
-    def __init__(self, value):
-        self._uncertainty = value
-
     @property
-    def uncertainty_type(self):
-        return "totally and completely fake"
+    def uncertainty(self):
+        return super(MinimalSubclass, self).uncertainty
 
 
 def test_nddata_base_subclass():
@@ -52,9 +44,4 @@ def test_nddata_base_subclass():
     assert a.mask is None
     assert a.unit is None
     assert a.wcs is None
-    good_uncertainty = MinimalUncertainty(5)
-    a.uncertainty = good_uncertainty
-    assert a.uncertainty is good_uncertainty
-    bad_uncertainty = 5
-    with pytest.raises(TypeError):
-        a.uncertainty = bad_uncertainty
+    assert a.uncertainty is None
