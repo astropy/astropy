@@ -688,6 +688,12 @@ class Linear1D(Fittable1DModel):
         d_intercept = np.ones_like(x)
         return [d_slope, d_intercept]
 
+    @property
+    def inverse(self):
+        new_slope = self.slope ** -1
+        new_intercept = -self.intercept / self.slope
+        return self.__class__(slope=new_slope, intercept=new_intercept)
+
 
 class Lorentz1D(Fittable1DModel):
     """

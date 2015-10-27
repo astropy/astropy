@@ -430,7 +430,9 @@ class FITS_rec(np.recarray):
                     # strings, but we need to view it as a normal ndarray of
                     # 8-bit ints to fill it with ASCII codes for 'T' and 'F'
                     outarr = field.view(np.uint8, np.ndarray)[:n]
-                elif not isinstance(arr, chararray.chararray):
+                elif arr.dtype.kind not in ('S', 'U'):
+                    # Set up views of numeric columns with the appropriate
+                    # numeric dtype
                     # Fill with the appropriate blanks for the column format
                     data._converted[name] = np.zeros(nrows, dtype=arr.dtype)
                     outarr = data._converted[name][:n]
@@ -442,7 +444,9 @@ class FITS_rec(np.recarray):
                 if (inarr.dtype.kind == outarr.dtype.kind and
                         inarr.dtype.kind in ('U', 'S') and
                         inarr.dtype != outarr.dtype):
-                    inarr = inarr.view(outarr.dtype)
+
+                    inarr_rowsize = inarr[0].size
+                    inarr = inarr.flatten().view(outarr.dtype)
 
                 # This is a special case to handle input arrays with
                 # non-trivial TDIMn.
@@ -589,6 +593,28 @@ class FITS_rec(np.recarray):
         """List of column FITS foramts."""
 
         return self._coldefs.formats
+
+    @property
+    def _raw_itemsize(self):
+        """
+        Returns the size of row items that would be written to the raw FITS
+        file, taking into account the possibility of unicode columns being
+        compactified.
+
+        Currently for internal use only.
+        """
+
+        if _has_unicode_fields(self):
+            total_itemsize = 0
+            for field in self.dtype.fields.values():
+                itemsize = field[0].itemsize
+                if field[0].kind == 'U':
+                    itemsize = itemsize // 4
+                total_itemsize += itemsize
+            return total_itemsize
+        else:
+            # Just return the normal itemsize
+            return self.itemsize
 
     def field(self, key):
         """
@@ -777,7 +803,7 @@ class FITS_rec(np.recarray):
             if field.ndim > 1:
                 actual_shape = field.shape[1:]
                 if _str:
-                    actual_shape = (field.itemsize,) + actual_shape
+                    actual_shape = actual_shape + (field.itemsize,)
             else:
                 actual_shape = field.shape[0]
 
@@ -1011,29 +1037,13 @@ class FITS_rec(np.recarray):
                 # ASCII table, convert numbers to strings
                 if isinstance(self._coldefs, _AsciiColDefs):
                     self._scale_back_ascii(indx, dummy, field)
-                # binary table
+                # binary table string column
+                elif isinstance(field, chararray.chararray):
+                    self._scale_back_strings(indx, dummy, field)
+                # all other binary table columns
                 else:
                     if len(field) and isinstance(field[0], np.integer):
                         dummy = np.around(dummy)
-                    elif isinstance(field, np.chararray):
-                        # Ensure that blanks at the end of each string are
-                        # converted to nulls instead of spaces, see Trac #15
-                        # and #111
-                        itemsize = dummy.itemsize
-                        if dummy.dtype.kind == 'U':
-                            pad = self._coldefs._padding_byte
-                        else:
-                            pad = self._coldefs._padding_byte.encode('ascii')
-
-                        for idx in range(len(dummy)):
-                            val = dummy[idx]
-                            dummy[idx] = val + (pad * (itemsize - len(val)))
-
-                        # Encode *after* handling the padding byte or else
-                        # Numpy will complain about trying to append bytes to
-                        # an array
-                        if dummy.dtype.kind == 'U':
-                            dummy = dummy.encode('ascii')
 
                     if field.shape == dummy.shape:
                         field[:] = dummy
@@ -1053,6 +1063,54 @@ class FITS_rec(np.recarray):
 
         # Store the updated heapsize
         self._heapsize = heapsize
+
+    def _scale_back_strings(self, col_idx, input_field, output_field):
+        # There are a few possibilities this has to be able to handle properly
+        # The input_field, which comes from the _converted column is of dtype
+        # 'Sn' (where n in string length) on Python 2--this is maintain the
+        # existing user expectation of not being returned Python 2-style
+        # unicode strings.  One Python 3 the array in _converted is of dtype
+        # 'Un' so that elements read out of the array are normal Python 3 str
+        # objects (i.e. unicode strings)
+        #
+        # At the other end the *output_field* may also be of type 'S' or of
+        # type 'U'.  It will *usually* be of type 'S' (regardless of Python
+        # version) because when reading an existing FITS table the raw data is
+        # just ASCII strings, and represented in Numpy as an S array.
+        # However, when a user creates a new table from scratch, they *might*
+        # pass in a column containing unicode strings (dtype 'U'), especially
+        # on Python 3 where this will be the default.  Therefore the
+        # output_field of the raw array is actually a unicode array.  But we
+        # still want to make sure the data is encodable as ASCII.  Later when
+        # we write out the array we use, in the dtype 'U' case, a different
+        # write routine that writes row by row and encodes any 'U' columns to
+        # ASCII.
+
+        # If the output_field is non-ASCII we will worry about ASCII encoding
+        # later when writing; otherwise we can do it right here
+        if input_field.dtype.kind == 'U' and output_field.dtype.kind == 'S':
+            try:
+                _ascii_encode(input_field, out=output_field)
+            except _UnicodeArrayEncodeError as exc:
+                raise ValueError(
+                    "Could not save column '{0}': Contains characters that "
+                    "cannot be encoded as ASCII as required by FITS, starting "
+                    "at the index {1!r} of the column, and the index {2} of "
+                    "the string at that location.".format(
+                        self._coldefs.names[col_idx],
+                        exc.index[0] if len(exc.index) == 1 else exc.index,
+                        exc.start))
+        else:
+            # Otherwise go ahead and do a direct copy into--if both are type
+            # 'U' we'll handle encoding later
+            input_field = input_field.flatten().view(output_field.dtype)
+            output_field.flat[:] = input_field
+
+        # Ensure that blanks at the end of each string are
+        # converted to nulls instead of spaces, see Trac #15
+        # and #111
+        _rstrip_inplace(output_field)
+
 
     def _scale_back_ascii(self, col_idx, input_field, output_field):
         """
@@ -1136,6 +1194,71 @@ def _get_recarray_field(array, key):
     # This is currently needed for backwards-compatibility and for
     # automatic truncation of trailing whitespace
     field = np.recarray.field(array, key)
-    if field.dtype.char in ('S', 'U') and not isinstance(field, np.chararray):
-        field = field.view(np.chararray)
+    if (field.dtype.char in ('S', 'U') and
+            not isinstance(field, chararray.chararray)):
+        field = field.view(chararray.chararray)
     return field
+
+
+def _rstrip_inplace(array, chars=None):
+    """
+    Performs an in-place rstrip operation on string arrays.
+    This is necessary since the built-in `np.char.rstrip` in Numpy does not
+    perform an in-place calculation.  This can be removed if ever
+    https://github.com/numpy/numpy/issues/6303 is implemented (however, for
+    the purposes of this module the only in-place vectorized string functions
+    we need are rstrip and encode).
+    """
+
+    for item in np.nditer(array, flags=['zerosize_ok'],
+                                 op_flags=['readwrite']):
+        item[...] = item.item().rstrip(chars)
+
+
+class _UnicodeArrayEncodeError(UnicodeEncodeError):
+    def __init__(self, encoding, object_, start, end, reason, index):
+        super(_UnicodeArrayEncodeError, self).__init__(encoding, object_,
+                start, end, reason)
+        self.index = index
+
+
+def _ascii_encode(inarray, out=None):
+    """
+    Takes a unicode array and fills the output string array with the ASCII
+    encodings (if possible) of the elements of the input array.  The two arrays
+    must be the same size (though not necessarily the same shape).
+
+    This is like an inplace version of `np.char.encode` though simpler since
+    it's only limited to ASCII, and hence the size of each character is
+    guaranteed to be 1 byte.
+
+    If any strings are non-ASCII an UnicodeArrayEncodeError is raised--this is
+    just a `UnicodeEncodeError` with an additional attribute for the index of
+    the item that couldn't be encoded.
+    """
+
+    inarray = inarray.flatten()
+    out_dtype = np.dtype('S{0}'.format(inarray.dtype.itemsize // 4))
+    if out is not None:
+        out = out.flatten().view(out_dtype)
+
+    op_dtypes = [inarray.dtype, out_dtype]
+    op_flags = [['readonly'], ['writeonly', 'allocate']]
+    it = np.nditer([inarray, out], op_dtypes=op_dtypes,
+                   op_flags=op_flags, flags=['zerosize_ok'])
+
+    try:
+        for initem, outitem in it:
+            outitem[...] = initem.item().encode('ascii')
+    except UnicodeEncodeError as exc:
+        index = np.unravel_index(it.iterindex, inarray.shape)
+        raise _UnicodeArrayEncodeError(*(exc.args + (index,)))
+
+
+def _has_unicode_fields(array):
+    """
+    Returns True if any fields in a structured array have Unicode dtype.
+    """
+
+    dtypes = (d[0] for d in array.dtype.fields.values())
+    return any(d.kind == 'U' for d in dtypes)

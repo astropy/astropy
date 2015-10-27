@@ -116,7 +116,7 @@ else:
 
 
     def _broadcast_shape(*args):
-        """Returns the shape of the ararys that would result from broadcasting the
+        """Returns the shape of the arrays that would result from broadcasting the
         supplied arrays against each other.
         """
         if not args:

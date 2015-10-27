@@ -269,3 +269,26 @@ def test_bool_column(tmpdir):
     with fits.open(str(tmpdir.join('test.fits'))) as hdul:
         assert hdul[1].data['col0'].dtype == np.dtype('bool')
         assert np.all(hdul[1].data['col0'] == arr)
+
+
+def test_unicode_column(tmpdir):
+    """
+    Test that a column of unicode strings is still written as one
+    byte-per-character in the FITS table (so long as the column can be ASCII
+    encoded).
+
+    Regression test for one of the issues fixed in
+    https://github.com/astropy/astropy/pull/4228
+    """
+
+    t = Table([np.array([u'a', u'b', u'cd'])])
+    t.write(str(tmpdir.join('test.fits')), overwrite=True)
+
+    with fits.open(str(tmpdir.join('test.fits'))) as hdul:
+        assert np.all(hdul[1].data['col0'] == ['a', 'b', 'cd'])
+        assert hdul[1].header['TFORM1'] == '2A'
+
+    t2 = Table([np.array([u'\N{SNOWMAN}'])])
+
+    with pytest.raises(UnicodeEncodeError):
+        t2.write(str(tmpdir.join('test.fits')), overwrite=True)

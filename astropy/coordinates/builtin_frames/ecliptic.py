@@ -4,7 +4,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 from ..representation import SphericalRepresentation
-from ..baseframe import BaseCoordinateFrame, RepresentationMapping, TimeFrameAttribute
+from ..baseframe import BaseCoordinateFrame, TimeFrameAttribute
 from .utils import EQUINOX_J2000
 
 
@@ -19,7 +19,7 @@ class GeocentricTrueEcliptic(BaseCoordinateFrame):
     plane of the ecliptic for that date.
 
     Be aware that the definition of "geocentric" here means that this frame
-    *includes* light deflection from the sun, abberation, etc when transfoming
+    *includes* light deflection from the sun, aberration, etc when transforming
     to/from e.g. ICRS.
 
     This frame has one frame attribute:
@@ -43,7 +43,7 @@ class GeocentricTrueEcliptic(BaseCoordinateFrame):
         The ecliptic longitude for this object (``lat`` must also be given and
         ``representation`` must be None).
     lat : `Angle`, optional, must be keyword
-        The ecliptic latitde for this object (``lon`` must also be given and
+        The ecliptic latitude for this object (``lon`` must also be given and
         ``representation`` must be None).
     distance : `~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object from the geocenter.
@@ -82,7 +82,7 @@ class BarycentricTrueEcliptic(BaseCoordinateFrame):
         The ecliptic longitude for this object (``b`` must also be given and
         ``representation`` must be None).
     b : `Angle`, optional, must be keyword
-        The ecliptic latitde for this object (``l`` must also be given and
+        The ecliptic latitude for this object (``l`` must also be given and
         ``representation`` must be None).
     r : `~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object from the sun's center.
@@ -121,7 +121,7 @@ class HeliocentricTrueEcliptic(BaseCoordinateFrame):
         The ecliptic longitude for this object (``b`` must also be given and
         ``representation`` must be None).
     b : `Angle`, optional, must be keyword
-        The ecliptic latitde for this object (``l`` must also be given and
+        The ecliptic latitude for this object (``l`` must also be given and
         ``representation`` must be None).
     r : `~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object from the sun's center.

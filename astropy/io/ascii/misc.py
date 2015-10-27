@@ -48,7 +48,7 @@ def sortmore(*args, **kw):
         revert to sorting by key function
     globalkey: callable
         Sort by evaluated value for all items in the lists
-        (call signiture of this function needs to be such that it accepts an
+        (call signature of this function needs to be such that it accepts an
         argument tuple of items from each list.
         eg.: globalkey = lambda *l: sum(l) will order all the lists by the
         sum of the items from each list

@@ -24,7 +24,6 @@ from .core import Model
 from .parameters import Parameter, InputParameterError
 
 from ..utils import deprecated
-from ..utils.compat import ignored
 
 from . import _projections
 
@@ -200,7 +199,7 @@ class Pix2Sky_ZenithalPerspective(Pix2SkyProjection, Zenithal):
         return _projections.azpx2s(x, y, mu, np.rad2deg(gamma))
 
     @deprecated('1.1', message='this method was never intended as part of '
-                               'the public API and wil be removed; if you '
+                               'the public API and will be removed; if you '
                                'do need its functionality use '
                                'model.mu.validator(val)')
     def check_mu(self, value):
@@ -300,7 +299,7 @@ class Pix2Sky_SlantZenithalPerspective(Pix2SkyProjection, Zenithal):
             x, y, mu, np.rad2deg(phi0), np.rad2deg(theta0))
 
     @deprecated('1.1', message='this method was never intended as part of '
-                               'the public API and wil be removed; if you '
+                               'the public API and will be removed; if you '
                                'do need its functionality use '
                                'model.mu.validator(val)')
     def check_mu(self, value):

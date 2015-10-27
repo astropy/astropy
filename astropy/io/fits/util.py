@@ -810,7 +810,7 @@ def _array_to_file(arr, outfile):
     # Write one chunk at a time for systems whose fwrite chokes on large
     # writes.
     idx = 0
-    arr = arr.view(type=np.ndarray).flatten()
+    arr = arr.view(np.ndarray).flatten()
     while idx < arr.nbytes:
         write(arr[idx:idx + chunksize], outfile)
         idx += chunksize

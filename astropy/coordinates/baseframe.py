@@ -28,7 +28,6 @@ from .representation import (BaseRepresentation, CartesianRepresentation,
                              SphericalRepresentation,
                              UnitSphericalRepresentation,
                              REPRESENTATION_CLASSES)
-from .earth import EarthLocation
 
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame',
@@ -1176,3 +1175,7 @@ class GenericFrame(BaseCoordinateFrame):
             raise AttributeError("can't set frame attribute '{0}'".format(name))
         else:
             super(GenericFrame, self).__setattr__(name, value)
+
+# doing this import at the bottom prevents a circular import issue that is
+# otherwise present due to EarthLocation needing to import ITRS
+from .earth import EarthLocation

@@ -372,7 +372,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         return cls(lon=lon, lat=lat)
 
     def represent_as(self, other_class):
-        # Take a short cut if the other clsss is a spherical representation
+        # Take a short cut if the other class is a spherical representation
         if issubclass(other_class, PhysicsSphericalRepresentation):
             return other_class(phi=self.lon, theta=90 * u.deg - self.lat, r=1.0)
         elif issubclass(other_class, SphericalRepresentation):
@@ -587,7 +587,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         return self._distance
 
     def represent_as(self, other_class):
-        # Take a short cut if the other clsss is a spherical representation
+        # Take a short cut if the other class is a spherical representation
         if issubclass(other_class, SphericalRepresentation):
             return other_class(lon=self.phi, lat=90 * u.deg - self.theta,
                                distance=self.r)

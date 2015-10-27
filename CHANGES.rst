@@ -191,8 +191,8 @@ New Features
 
   - Added ``Supergalactic`` frame to support de Vaucouleurs supergalactic
     coordinates. [#3892]
-  - ``SphericalRepresentation`` now has a ``._unit_representation`` class attribute to specify 
-    an equivalent UnitSphericalRepresentation. This allows subclasses of 
+  - ``SphericalRepresentation`` now has a ``._unit_representation`` class attribute to specify
+    an equivalent UnitSphericalRepresentation. This allows subclasses of
     representations to pair up correctly. [#3757]
 
   - Added functionality to support getting the locations of observatories by
@@ -206,7 +206,7 @@ New Features
   - Add Planck 2015 cosmology [#3476]
 
   - Distance calculations now > 20-40x faster for the supplied
-    cosmologies due to implementing cython scalar versions of
+    cosmologies due to implementing Cython scalar versions of
     ``FLRW.inv_efunc``.[#4127]
 
   - ``FLRW._tfunc`` and ``FLRW._xfunc`` are marked as deprecated.  Users
@@ -545,6 +545,19 @@ API changes
     with True only if the comparison was true for all elements compared,
     which could lead to confusing circumstances. [#3912]
 
+  - Using ``model.inverse = None`` to reset a model's inverse to its
+    default is deprecated.  In the future this syntax will explicitly make
+    a model not have an inverse (even if it has a default).  Instead, use
+    ``del model.inverse`` to reset a model's inverse to its default (if it
+    has a default, otherwise this just deletes any custom inverse that has
+    been assigned to the model and is still equivalent to setting
+    ``model.inverse = None``). [#4236]
+
+  - Adds a ``model.has_user_inverse`` attribute which indicates whether or not
+    a user has assigned a custom inverse to ``model.inverse``.  This is just
+    for informational purposes, for example, for software that introspects
+    model objects. [#4236]
+
   - Renamed the parameters of ``RotateNative2Celestial`` and
     ``RotateCelestial2Native`` from ``phi``, ``theta``, ``psi`` to
     ``lon``, ``lat`` and ``lon_pole``. [#3578]
@@ -650,6 +663,9 @@ Bug fixes
 
 - ``astropy.constants``
 
+  - The constants ``Ry`` and ``u`` are now properly used inside the 
+    corresponding units.  The latter have changed slightly as a result. [#4229]
+
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
@@ -696,6 +712,10 @@ Bug fixes
 
 - ``astropy.units``
 
+  - The units ``Ryd`` and ``u`` are no longer hard-coded numbers, but depend
+    on the appropriate values in the ``constants`` module.  As a result, these
+    units now imply slightly different conversions.  [#4229]
+
 - ``astropy.utils``
 
 - ``astropy.visualization``
@@ -730,11 +750,18 @@ Other Changes and Additions
   cluttering the ``astropy.coordinates`` documentation with increasingly
   irrelevant material.  To see the migration guide, we recommend you simply look
   to the archived documentation for previous versions, e.g.
-  http://docs.astropy.org/en/v1.0/coordinates/index.html#migrating-from-pre-v0-4-coordinates 
+  http://docs.astropy.org/en/v1.0/coordinates/index.html#migrating-from-pre-v0-4-coordinates
   [#4203]
 
+- In ``astropy.coordinates``, the transformations between GCRS, CIRS,
+  and ITRS have been adjusted to more logically reflect the order in
+  which they actually apply.  This should not affect most coordinate
+  transformations, but may affect code that is especially sensitive to
+  machine precision effects that change when the order in which
+  transformations occur is changed. [#4255]
 
-1.0.6 (unreleased)
+
+1.0.7 (unreleased)
 ------------------
 
 New Features
@@ -844,8 +871,6 @@ Bug Fixes
 
 - ``astropy.io.votable``
 
-  - Fixed crash with Python compiler optimization level = 2. [#4231]
-
 - ``astropy.modeling``
 
 - ``astropy.nddata``
@@ -862,16 +887,72 @@ Bug Fixes
 
 - ``astropy.vo``
 
-  - Fixed ``check_conesearch_sites`` with ``parallel=True`` on Python >= 3.3
-    and on Windows (it was broken in both those cases for separate reasons).
-    [#2970]
-
 - ``astropy.wcs``
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Nothing changed yet.
+
+
+1.0.6 (2015-10-22)
+------------------
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.analytic_functions``
+
+  - Fixed blackbody analytic functions to properly support arrays of
+    temperatures. [#4251]
+
+- ``astropy.coordinates``
+
+  - Fixed errors in transformations for objects within a few AU of the
+    Earth.  Included substansive changes to transformation machinery
+    that may change distances at levels ~machine precision for other
+    objects. [#4254]
+
+- ``astropy.io.fits``
+
+  - ``fitsdiff`` and related functions now do a better job reporting differences
+    between values that are different types but have the same representation
+    (ex: the string '0' versus the number 0). [#4122]
+
+  - Miscellaneous fixes for supporting Numpy 1.10. [#4228]
+
+  - Fixed an issue where writing a column of unicode strings to a FITS table
+    resulted in a quadrupling of size of the column (i.e. the format of the
+    FITS column was 4 characters for every one in the original strings).
+    [#4228]
+
+  - Added support for an obscure case (but nonetheless allowed by the FITS
+    standard) where a column has some TDIMn keyword, but a repeat count in
+    the TFORMn column greater than the number of elements implied by the
+    TDIMn.  For example TFORMn = 100I, but TDIMn = '(5,5)'.  In this case
+    the TDIMn implies 5x5 arrays in the column, but the TFORMn implies
+    a 100 element 1-D array in the column.  In this case the TDIM takes
+    precedence, and the remaining bytes in the column are ignored. [#4228]
+
+- ``astropy.io.votable``
+
+  - Fixed crash with Python compiler optimization level = 2. [#4231]
+
+- ``astropy.vo``
+
+  - Fixed ``check_conesearch_sites`` with ``parallel=True`` on Python >= 3.3
+    and on Windows (it was broken in both those cases for separate reasons).
+    [#2970]
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- All tests now pass against Numpy v1.10.x. This implies nominal support for
+  Numpy 1.10.x moving forward (but there may still be unknown issues). For
+  example, there is already a known performance issue with tables containing
+  large multi-dimensional columns--for example, tables that contain entire
+  images in one or more of their columns.  This is a known upstream issue in
+  Numpy. [#4259]
 
 
 1.0.5 (2015-10-05)
@@ -890,7 +971,7 @@ Bug Fixes
   - Fix string representation of ``SkyCoord`` objects transformed into
     the ``AltAz`` frame [#4055]
 
-  - Fix the ``search_around_sky`` function to allow ``storekdtree`` to be 
+  - Fix the ``search_around_sky`` function to allow ``storekdtree`` to be
     ``False`` as was intended. [#4082]
 
 - ``astropy.io.fits``
@@ -944,7 +1025,7 @@ Bug Fixes
     ``resolve_name('numpy')``. [#4084]
 
   - ``console`` was updated to support IPython 4.x and Jupyter 1.x.
-    This should supress a ShimWarning that was appearing at
+    This should suppress a ShimWarning that was appearing at
     import of astropy with IPython 4.0 or later. [#4078]
 
   - Temporary downloaded files created by ``get_readable_fileobj`` when passed

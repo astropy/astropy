@@ -125,7 +125,7 @@ The flag bits are:
 
 - ``WCSHDR_RADECSYS``: Accept ``RADECSYS``.  This appeared in early
   drafts of WCS Paper I+II and was subsequently replaced by
-  ``RADESYSa``.  The construtor accepts ``RADECSYS`` only if
+  ``RADESYSa``.  The constructor accepts ``RADECSYS`` only if
   ``WCSHDR_AUXIMG`` is also enabled.
 
 - ``WCSHDR_VSOURCE``: Accept ``VSOURCEa`` or ``VSOUna``.  This appeared

@@ -43,8 +43,8 @@ def _get_first_sentence(s):
 
 def _iter_unit_summary(namespace):
     """
-    Generates the ``(unit, doc, rperesents, aliases, prefixes)``
-    tuplse used to format the unit summary docs in `generate_unit_summary`.
+    Generates the ``(unit, doc, represents, aliases, prefixes)``
+    tuple used to format the unit summary docs in `generate_unit_summary`.
     """
 
     from . import core

@@ -20,21 +20,10 @@ from .cirs import CIRS
 from .itrs import ITRS
 from .utils import get_polar_motion
 
-# first define helper functions
-def gcrs_to_itrs_mat(time):
-    #first compute the celestial-to-intermediate matrix
-    c2imat = erfa.c2i06a(time.jd1, time.jd2)
-
-    #now compute the polar motion p-matrix
-    xp, yp = get_polar_motion(time)
-    sp = erfa.sp00(time.jd1, time.jd2)
-    pmmat = erfa.pom00(xp, yp, sp)
-
-    #now determine the Earth Rotation Angle for the input obstime
-    era = erfa.era00(time.jd1, time.jd2)
-
-    return erfa.c2tcio(c2imat, era, pmmat)
-
+# # first define helper functions
+def gcrs_to_cirs_mat(time):
+    #felestial-to-intermediate matrix
+    return erfa.c2i06a(time.jd1, time.jd2)
 
 def cirs_to_itrs_mat(time):
     #compute the polar motion p-matrix
@@ -56,25 +45,23 @@ def gcrs_precession_mat(equinox):
 
 # now the actual transforms
 
-# the priority for the GCRS<->ITRS trasnsforms are higher (=less traveled) to
-#make GCRS<->ICRS<->CIRS the preferred route over GCRS<->ITRS<->CIRS
-@frame_transform_graph.transform(FunctionTransform, GCRS, ITRS, priority=1.01)
-def gcrs_to_itrs(gcrs_coo, itrs_frame):
+@frame_transform_graph.transform(FunctionTransform, GCRS, CIRS)
+def gcrs_to_cirs(gcrs_coo, cirs_frame):
     # first get us to a 0 pos/vel GCRS at the target obstime
-    gcrs_coo2 = gcrs_coo.transform_to(GCRS(obstime=itrs_frame.obstime))
+    gcrs_coo2 = gcrs_coo.transform_to(GCRS(obstime=cirs_frame.obstime))
 
     #now get the pmatrix
-    pmat = gcrs_to_itrs_mat(itrs_frame.obstime)
+    pmat = gcrs_to_cirs_mat(cirs_frame.obstime)
     crepr = cartrepr_from_matmul(pmat, gcrs_coo2)
-    return itrs_frame.realize_frame(crepr)
+    return cirs_frame.realize_frame(crepr)
 
 
-@frame_transform_graph.transform(FunctionTransform, ITRS, GCRS, priority=1.01)
-def itrs_to_gcrs(itrs_coo, gcrs_frame):
+@frame_transform_graph.transform(FunctionTransform, CIRS, GCRS)
+def cirs_to_gcrs(cirs_coo, gcrs_frame):
     #compute the pmatrix, and then multiply by its transpose
-    pmat = gcrs_to_itrs_mat(itrs_coo.obstime)
-    newrepr = cartrepr_from_matmul(pmat, itrs_coo, transpose=True)
-    gcrs = GCRS(newrepr, obstime=itrs_coo.obstime)
+    pmat = gcrs_to_cirs_mat(cirs_coo.obstime)
+    newrepr = cartrepr_from_matmul(pmat, cirs_coo, transpose=True)
+    gcrs = GCRS(newrepr, obstime=cirs_coo.obstime)
 
     #now do any needed offsets (no-op if same obstime and 0 pos/vel)
     return gcrs.transform_to(gcrs_frame)
@@ -128,7 +115,7 @@ def gcrs_to_precessedgeo(from_coo, to_frame):
 
 
 @frame_transform_graph.transform(FunctionTransform, PrecessedGeocentric, GCRS)
-def recessedgeo_to_gcrs(from_coo, to_frame):
+def precessedgeo_to_gcrs(from_coo, to_frame):
     # first un-precess
     pmat = gcrs_precession_mat(from_coo.equinox)
     crepr = cartrepr_from_matmul(pmat, from_coo, transpose=True)
