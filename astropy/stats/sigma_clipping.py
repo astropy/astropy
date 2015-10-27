@@ -215,7 +215,7 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
                 warnings.warn("Using np.mean and np.std to calculate the"
                 "sigma limits, ignoring user defined functions..", AstropyUserWarning)
 
-            filtered_data = sigmaclip(data, sigma_lower, sigma_upper)
+            filtered_data = sigmaclip(data, sigma_lower, sigma_upper)[0]
             return filtered_data
     elif HAS_SCIPY is False:
         if masked is False:
