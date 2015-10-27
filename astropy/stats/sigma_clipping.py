@@ -107,7 +107,7 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
         ``data``.  Defaults to `True`.
     masked: bool, optional
         if `True` will use Numpy masked arrays to mask points rejected by
-        sigma clipping. If `False` will use the `scipy.stats.sigmaclip` 
+        sigma clipping. If `False` will use the `scipy.stats.sigmaclip`
         function which throws away points rejected by sigma clipping. Setting
         it to `False` can result in significant speedups. Defaults to `True`.
 
@@ -222,7 +222,7 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
             warnings.warn("Scipy is not present - Cannot use the",
                     "scipy.stats.sigmaclip function. Falling back on ",
                     "astropy.stats.sigma_clip function.", AstropyUserWarning)
-            # Will continue to use masked arrays for the rest of the code, 
+            # Will continue to use masked arrays for the rest of the code,
             # no need to explicitly set masked to True since the only place it
             # is checked is here
 
@@ -324,7 +324,7 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
 
     masked: bool, optional
         if `True` will use Numpy masked arrays to mask points rejected by
-        sigma clipping. If `False` will use the `scipy.stats.sigmaclip` 
+        sigma clipping. If `False` will use the `scipy.stats.sigmaclip`
         function which throws away points rejected by sigma clipping. Setting
 
     Returns
