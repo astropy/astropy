@@ -9,9 +9,10 @@ from ..utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 try:
     from scipy.stats import sigmaclip
     HAS_SCIPY=True
-except:
-    warnings.warn("Scipy is required for some functionality of",
-            "sigma_clip. The `masked` keyword will be forced to `True`.")
+except ImportError:
+    warnings.warn("Scipy is required for some functionality of"
+            "sigma_clip. The `masked` keyword will be forced to `True`.",
+            AstropyUserWarning)
     HAS_SCIPY=False
 
 
@@ -40,9 +41,9 @@ def sigma_clip(data, **kwargs):
 
 def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
                 cenfunc=np.ma.median, stdfunc=np.std, axis=None, copy=True,
-                masked = True):
+                masked=True):
     """
-    sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5, cenfunc=np.ma.median, stdfunc=np.std, axis=None, copy=True)
+    sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5, cenfunc=np.ma.median, stdfunc=np.std, axis=None, copy=True, masked=True)
 
     Perform sigma-clipping on the provided data.
 
@@ -208,17 +209,22 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
         warnings.warn("Input data contains invalid values (NaNs or infs), "
                       "which were automatically masked.", AstropyUserWarning)
 
-    if masked is False and HAS_SCIPY is True:
-        if cenfunc is not np.ma.mean or stdfunc is not np.std:
-            warnings.warn("Using np.mean and np.std to calculate the"
-         "sigma limits, ignoring user defined functions..", AstropyUserWarning)
+    if HAS_SCIPY is True:
+        if masked is False:
+            if cenfunc is not np.ma.mean or stdfunc is not np.std:
+                warnings.warn("Using np.mean and np.std to calculate the"
+                "sigma limits, ignoring user defined functions..", AstropyUserWarning)
 
-        filtered_data = sigmaclip(data, sigma_lower, sigma_upper)
-        return filtered_data
-    elif masked is False and HAS_SCIPY is False:
-        warnings.warn("Scipy is not present - Cannot use the",
-                "scipy.stats.sigmaclip function. Falling back on ",
-                "astropy.stats.sigma_clip function.", AstropyUserWarning)
+            filtered_data = sigmaclip(data, sigma_lower, sigma_upper)
+            return filtered_data
+    elif HAS_SCIPY is False:
+        if masked is False:
+            warnings.warn("Scipy is not present - Cannot use the",
+                    "scipy.stats.sigmaclip function. Falling back on ",
+                    "astropy.stats.sigma_clip function.", AstropyUserWarning)
+            # Will continue to use masked arrays for the rest of the code, 
+            # no need to explicitly set masked to True since the only place it
+            # is checked is here
 
     filtered_data = np.ma.array(data, copy=copy)
 
@@ -246,7 +252,7 @@ sigma_clip.__doc__ = _sigma_clip.__doc__
 def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
                         sigma_lower=None, sigma_upper=None, iters=5,
                         cenfunc=np.ma.median, stdfunc=np.std, axis=None,
-                        masked = True):
+                        masked=True):
     """
     Calculate sigma-clipped statistics from data.
 
@@ -334,6 +340,7 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
         data = np.ma.masked_values(data, mask_value)
     data_clip = sigma_clip(data, sigma=sigma, sigma_lower=sigma_lower,
                            sigma_upper=sigma_upper, iters=iters,
-                           cenfunc=cenfunc, stdfunc=stdfunc, axis=axis)
+                           cenfunc=cenfunc, stdfunc=stdfunc, axis=axis,
+                           masked=masked)
     goodvals = np.ma.compressed(data_clip)
     return np.mean(goodvals), np.median(goodvals), np.std(goodvals)
