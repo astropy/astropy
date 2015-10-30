@@ -75,6 +75,7 @@ New Features
 
   - Support reading and writing from bzip2 compressed files. i.e. ``.fits.bz2``
     files. [#3789]
+  - Support reading of urlopen objects. [#4165]
 
 - ``astropy.io.misc``
 
