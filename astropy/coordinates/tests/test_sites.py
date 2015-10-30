@@ -113,3 +113,14 @@ def test_registry():
 
     loc2 = reg['sIte a']
     assert loc2 is loc
+
+@remote_data
+def test_non_EarthLocation():
+    """
+    A regression test for a typo bug pointed out at the bottom of
+    https://github.com/astropy/astropy/pull/4042
+    """
+    class EarthLocation2(EarthLocation):
+        pass
+
+    EarthLocation2.of_site('keck')
