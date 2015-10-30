@@ -118,6 +118,8 @@ class _File(object):
             mode not in ('ostream', 'append') and
             _is_url(fileobj)): # This is an URL.
                 self.name = download_file(fileobj, cache=cache)
+        if hasattr(fileobj, 'geturl'):
+            self.name = download_file(fileobj.geturl(), cache=cache)
         else:
             self.name = fileobj_name(fileobj)
 
