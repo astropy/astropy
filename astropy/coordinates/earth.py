@@ -214,7 +214,7 @@ class EarthLocation(u.Quantity):
         if cls is el.__class__:
             return el
         else:
-            neweel = cls.from_geodetic(*el.to_geodetic())
+            newel = cls.from_geodetic(*el.to_geodetic())
             newel.info.name = el.info.name
             return newel
 
