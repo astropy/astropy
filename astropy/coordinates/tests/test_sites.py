@@ -114,7 +114,6 @@ def test_registry():
     loc2 = reg['sIte a']
     assert loc2 is loc
 
-@remote_data
 def test_non_EarthLocation():
     """
     A regression test for a typo bug pointed out at the bottom of
@@ -122,6 +121,11 @@ def test_non_EarthLocation():
     """
     class EarthLocation2(EarthLocation):
         pass
+
+    # This lets keeps us from needing to do remote_data
+    # note that this does *not* mess up the registry for EarthLocation because
+    # registry is cached on a per-class basis
+    EarthLocation2._get_site_registry(force_builtin=True)
 
     el2 = EarthLocation2.of_site('keck')
     assert type(el2) is EarthLocation2
