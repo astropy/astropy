@@ -123,4 +123,6 @@ def test_non_EarthLocation():
     class EarthLocation2(EarthLocation):
         pass
 
-    EarthLocation2.of_site('keck')
+    el2 = EarthLocation2.of_site('keck')
+    assert type(el2) is EarthLocation2
+    assert el2.info.name == 'W. M. Keck Observatory'
