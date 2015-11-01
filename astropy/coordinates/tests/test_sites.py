@@ -131,8 +131,15 @@ def test_non_EarthLocation():
     assert type(el2) is EarthLocation2
     assert el2.info.name == 'W. M. Keck Observatory'
 
-@remote_data
-def test_builtin_matches_remote(download_url=True):
+def check_builtin_matches_remote(download_url=True):
+    """
+    This function checks that the builtin sites registry is consistent with the
+    remote registry (or a registry at some other location).  
+
+    Note that current this is *not* run by the testing suite (because it 
+    doesn't start with "test", and is instead meant to be used as a check 
+    before merging changes in astropy-data)
+    """
     builtin_registry = EarthLocation._get_site_registry(force_builtin=True)
     dl_registry = EarthLocation._get_site_registry(force_download=download_url)
 
