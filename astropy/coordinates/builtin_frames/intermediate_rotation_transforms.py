@@ -22,17 +22,18 @@ from .utils import get_polar_motion
 
 # # first define helper functions
 def gcrs_to_cirs_mat(time):
-    #felestial-to-intermediate matrix
-    return erfa.c2i06a(time.jd1, time.jd2)
+    #celestial-to-intermediate matrix
+    return erfa.c2i06a(time.tt.jd1, time.tt.jd2)
 
 def cirs_to_itrs_mat(time):
     #compute the polar motion p-matrix
     xp, yp = get_polar_motion(time)
-    sp = erfa.sp00(time.jd1, time.jd2)
+    sp = erfa.sp00(time.tt.jd1, time.tt.jd2)
     pmmat = erfa.pom00(xp, yp, sp)
 
     #now determine the Earth Rotation Angle for the input obstime
-    era = erfa.era00(time.jd1, time.jd2)
+    # this should be UT1 used here.
+    era = erfa.era00(time.ut1.jd1, time.ut1.jd2)
 
     #c2tcio expects a GCRS->CIRS matrix, but we just set that to an I-matrix
     #because we're already in CIRS
