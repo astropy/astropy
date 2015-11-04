@@ -72,7 +72,7 @@ def get_polar_motion(time):
     gets the two polar motion components in radians for use with apio13
     """
     #get the polar motion from the IERS table
-    xp, yp, status = iers.IERS.open().pm_xy(time.jd1, time.jd2, return_status=True)
+    xp, yp, status = iers.IERS.open().pm_xy(time, return_status=True)
 
     wmsg = None
     if np.any(status == iers.TIME_BEFORE_IERS_RANGE):
