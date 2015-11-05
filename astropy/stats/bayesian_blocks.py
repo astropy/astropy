@@ -189,9 +189,16 @@ class FitnessFunc(object):
     .. [Scargle2012] Scargle, J et al. (2012)
        http://adsabs.harvard.edu/abs/2012arXiv1207.5578S
     """
-    def __init__(self, p0=0.05, gamma=None):
-        self.p0 = p0
-        self.gamma = gamma
+    def __init__(self, p0=0.05, gamma=None, ncp_prior=None):
+        if p0 is not None:
+            # Set this later, we need N
+            self.p0 = p0
+            self.ncp_prior = None
+        if gamma is not None:
+            self.ncp_prior = -np.log(gamma)
+        if ncp_prior is not None:
+            self.ncp_prior = ncp_prior
+
 
     def validate_input(self, t, x=None, sigma=None):
         """Validate inputs to the model.
@@ -265,16 +272,6 @@ class FitnessFunc(object):
     def fitness(self, **kwargs):
         raise NotImplementedError()
 
-    def prior(self, N, Ntot):
-        """
-        Compute the prior on the number of blocks ``N``,
-        given the maximum possible blocks ``Ntot``.
-        """
-        if self.gamma is None:
-            return self.p0_prior(N, Ntot)
-        else:
-            return self.gamma_prior(N, Ntot)
-
     def p0_prior(self, N, Ntot):
         """
         Empirical prior, parametrized by the false alarm probability ``p0``
@@ -285,18 +282,6 @@ class FitnessFunc(object):
         from http://arxiv.org/abs/1304.2818
         """
         return 4 - np.log(73.53 * self.p0 * (N ** -0.478))
-
-    def gamma_prior(self, N, Ntot):
-        """
-        Basic prior, parametrized by slope gamma.
-        See eq. 3 in Scargle (2012)
-        """
-        if self.gamma == 1:
-            return 0
-        else:
-            return (np.log(1 - self.gamma)
-                    - np.log(1 - self.gamma ** (Ntot + 1))
-                    + N * np.log(self.gamma))
 
     # the fitness_args property will return the list of arguments accepted by
     # the method fitness().  This allows more efficient computation below.
@@ -342,6 +327,8 @@ class FitnessFunc(object):
         best = np.zeros(N, dtype=float)
         last = np.zeros(N, dtype=int)
 
+        if self.ncp_prior is None:
+            self.ncp_prior = self.p0_prior(N, 1)
         #-----------------------------------------------------------------
         # Start with first data cell; add one cell at each iteration
         #-----------------------------------------------------------------
@@ -372,7 +359,8 @@ class FitnessFunc(object):
             # evaluate fitness function
             fit_vec = self.fitness(**kwds)
 
-            A_R = fit_vec - self.prior(R + 1, N)
+            #A_R = fit_vec - self.prior(R + 1, N)
+            A_R = fit_vec - self.ncp_prior
             A_R[1:] += best[:R]
 
             i_max = np.argmax(A_R)
@@ -437,10 +425,9 @@ class RegularEvents(FitnessFunc):
         If specified, then use this gamma to compute the general prior form,
         p ~ gamma^N.  If gamma is specified, p0 is ignored.
     """
-    def __init__(self, dt, p0=0.05, gamma=None):
+    def __init__(self, dt, p0=0.05, gamma=None, ncp_prior=None):
         self.dt = dt
-        self.p0 = p0
-        self.gamma = gamma
+        super(RegularEvents, self).__init__(p0, gamma, ncp_prior) 
 
     def validate_input(self, t, x, sigma):
         t, x, sigma = super(RegularEvents, self).validate_input(t, x, sigma)
@@ -483,9 +470,10 @@ class PointMeasures(FitnessFunc):
     if neither p0 nor gamma is specified, the prior will be computed using
     the empirical form given in section 3.3 of Scargle (2012).
     """
-    def __init__(self, p0=None, gamma=None):
-        self.p0 = p0
-        self.gamma = gamma
+    def __init__(self, p0=0.05, gamma=None, ncp_prior=None):
+        # Can take into account 3.3 equation? The other p0 equation seems to
+        # work well, need to run more tests.
+        super(PointMeasures, self).__init__(p0, gamma, ncp_prior)
 
     def fitness(self, a_k, b_k):
         # eq. 41 from Scargle 2012
@@ -496,11 +484,3 @@ class PointMeasures(FitnessFunc):
             raise ValueError("x must be specified for point measures")
         return super(PointMeasures, self).validate_input(t, x, sigma)
 
-    def prior(self, N, Ntot):
-        if self.gamma is not None:
-            return self.gamma_prior(N, Ntot)
-        elif self.p0 is not None:
-            return self.p0_prior(N, Ntot)
-        else:
-            # eq. at end of sec 3.3 in Scargle 2012
-            return 1.32 + 0.577 * np.log10(N)
