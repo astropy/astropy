@@ -123,3 +123,19 @@ def test_invalid_sigma_clip():
     assert result.mask[3, 4] == True
     assert result.mask[1, 1] == True
 
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_not_masked_sigma_clip():
+    """Test sigma_clip when masked is set to False"""
+    #need to seed the numpy RNG to make sure we don't get some amazingly flukey
+    #random number that breaks one of the tests
+
+    with NumpyRNGContext(12345):
+
+        randvar = randn(10000)
+
+        astropyres = sigma_clip(randvar, sigma=3, iters=None, cenfunc=np.mean,
+                masked=False)
+        scipyres = stats.sigmaclip(randvar, 3, 3)[0]
+
+        assert len(astropyres) == len(scipyres)
+        assert_equal(astropyres, scipyres)
