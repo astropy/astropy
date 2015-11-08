@@ -190,14 +190,9 @@ class FitnessFunc(object):
        http://adsabs.harvard.edu/abs/2012arXiv1207.5578S
     """
     def __init__(self, p0=0.05, gamma=None, ncp_prior=None):
-        if p0 is not None:
-            # Set this later, we need N
-            self.p0 = p0
-            self.ncp_prior = None
-        if gamma is not None:
-            self.ncp_prior = -np.log(gamma)
-        if ncp_prior is not None:
-            self.ncp_prior = ncp_prior
+        self.p0 = p0
+        self.gamma = gamma
+        self.ncp_prior = ncp_prior
 
 
     def validate_input(self, t, x=None, sigma=None):
@@ -272,7 +267,7 @@ class FitnessFunc(object):
     def fitness(self, **kwargs):
         raise NotImplementedError()
 
-    def p0_prior(self, N, Ntot):
+    def p0_prior(self, N):
         """
         Empirical prior, parametrized by the false alarm probability ``p0``
         See  eq. 21 in Scargle (2012)
@@ -288,6 +283,16 @@ class FitnessFunc(object):
     @property
     def _fitness_args(self):
         return signature(self.fitness).parameters.keys()
+
+    def compute_ncp_prior(self, N):
+        """
+        If ``ncp_prior`` is not explicitly defined, compute it from gamma or
+        p0.
+        """
+        if self.gamma is not None:
+            self.ncp_prior = -np.log(self.gamma)
+        elif self.p0 is not None:
+            self.ncp_prior = self.p0_prior(N)
 
     def fit(self, t, x=None, sigma=None):
         """Fit the Bayesian Blocks model given the specified fitness function.
@@ -328,7 +333,7 @@ class FitnessFunc(object):
         last = np.zeros(N, dtype=int)
 
         if self.ncp_prior is None:
-            self.ncp_prior = self.p0_prior(N, 1)
+            self.compute_ncp_prior(N)
         #-----------------------------------------------------------------
         # Start with first data cell; add one cell at each iteration
         #-----------------------------------------------------------------
@@ -359,7 +364,6 @@ class FitnessFunc(object):
             # evaluate fitness function
             fit_vec = self.fitness(**kwds)
 
-            #A_R = fit_vec - self.prior(R + 1, N)
             A_R = fit_vec - self.ncp_prior
             A_R[1:] += best[:R]
 
@@ -396,6 +400,16 @@ class Events(FitnessFunc):
         If specified, then use this gamma to compute the general prior form,
         p ~ gamma^N.  If gamma is specified, p0 is ignored.
     """
+    def __init__(self, p0=0.05, gamma=None, ncp_prior=None):
+        if p0 is not None and gamma is None and ncp_prior is None:
+            import warnings
+            warnings.warn('p0 does not seem to accurately represent the false '
+                          'positive rate for event data. It is highly '
+                          'recommended that you run random trials on signal-'
+                          'free noise to calibrate ncp_prior to achieve a '
+                          'desired false positive rate.')
+        super(Events, self).__init__(p0, gamma, ncp_prior)
+    
     def fitness(self, N_k, T_k):
         # eq. 19 from Scargle 2012
         return N_k * (np.log(N_k) - np.log(T_k))
@@ -471,8 +485,6 @@ class PointMeasures(FitnessFunc):
     the empirical form given in section 3.3 of Scargle (2012).
     """
     def __init__(self, p0=0.05, gamma=None, ncp_prior=None):
-        # Can take into account 3.3 equation? The other p0 equation seems to
-        # work well, need to run more tests.
         super(PointMeasures, self).__init__(p0, gamma, ncp_prior)
 
     def fitness(self, a_k, b_k):
