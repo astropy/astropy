@@ -144,11 +144,24 @@ def test_future_altaz(recwarn):
     """
     from ...utils.exceptions import AstropyWarning
 
+    # this is an ugly hack to get the warning to show up even if it has already
+    # appeared
+    from ..builtin_frames import utils
+    if hasattr(utils, '__warningregistry__'):
+        utils.__warningregistry__.clear()
+
     location = EarthLocation(lat=0*u.deg, lon=0*u.deg)
-    t = Time('J2030')
+    t = Time('J2161')
 
     SkyCoord(1*u.deg, 2*u.deg).transform_to(AltAz(location=location, obstime=t))
-    w1 = recwarn.pop(AstropyWarning)
-    w2 = recwarn.pop(AstropyWarning)
-    assert "Tried to get polar motions for times after IERS data is valid." in str(w1.message)
-    assert "(some) times are outside of range covered by IERS table." in str(w2.message)
+
+    # check that these messages appear among any other warnings
+    messages_to_find = ["Tried to get polar motions for times after IERS data is valid.",
+                        "(some) times are outside of range covered by IERS table."]
+    messages_found = [False for _ in messages_to_find]
+    for w in recwarn.list:
+        if issubclass(w.category, AstropyWarning):
+            for i, message_to_find in enumerate(messages_to_find):
+                if message_to_find in str(w.message):
+                    messages_found[i] = True
+    assert all(messages_found)
