@@ -96,9 +96,8 @@ class Gaussian1D(Fittable1DModel):
     amplitude = Parameter(default=1)
     mean = Parameter(default=0)
     stddev = Parameter(default=1)
-    _bounding_box = 'auto'
 
-    def bounding_box_default(self, factor=5.5):
+    def bounding_box(self, factor=5.5):
         """
         Tuple defining the default ``bounding_box`` limits,
         ``(x_low, x_high)``
@@ -107,7 +106,7 @@ class Gaussian1D(Fittable1DModel):
         ----------
         factor : float
             The multiple of `stddev` used to define the limits.
-            The default is 5.5-sigma, corresponding to a relative error < 1e-7.
+            The default is 5.5, corresponding to a relative error < 1e-7.
 
         Examples
         --------
@@ -116,10 +115,11 @@ class Gaussian1D(Fittable1DModel):
         >>> model.bounding_box
         (-11.0, 11.0)
 
-        This range can be set directly (see: `astropy.modeling.Model.bounding_box`) or by
-        using a different factor, like:
+        This range can be set directly (see: `Model.bounding_box
+        <astropy.modeling.Model.bounding_box>`) or by using a different factor,
+        like:
 
-        >>> model.bounding_box = model.bounding_box_default(factor=2)
+        >>> model.bounding_box = model.bounding_box(factor=2)
         >>> model.bounding_box
         (-4.0, 4.0)
         """
@@ -176,6 +176,37 @@ class GaussianAbsorption1D(Fittable1DModel):
     amplitude = Parameter(default=1)
     mean = Parameter(default=0)
     stddev = Parameter(default=1)
+
+    def bounding_box(self, factor=5.5):
+        """
+        Tuple defining the default ``bounding_box`` limits,
+        ``(x_low, x_high)``
+
+        Parameters
+        ----------
+        factor : float
+            The multiple of `stddev` used to define the limits.
+            The default is 5.5, corresponding to a relative error < 1e-7.
+
+        Examples
+        --------
+        >>> from astropy.modeling.models import Gaussian1D
+        >>> model = Gaussian1D(mean=0, stddev=2)
+        >>> model.bounding_box
+        (-11.0, 11.0)
+
+        This range can be set directly (see: ``help(model.bounding_box)``) or by
+        using a different factor, like:
+
+        >>> model.bounding_box = model.bounding_box(factor=2)
+        >>> model.bounding_box
+        (-4.0, 4.0)
+        """
+
+        x0 = self.mean.value
+        dx = factor * self.stddev
+
+        return (x0 - dx, x0 + dx)
 
     @staticmethod
     def evaluate(x, amplitude, mean, stddev):
@@ -277,7 +308,6 @@ class Gaussian2D(Fittable2DModel):
     x_stddev = Parameter(default=1)
     y_stddev = Parameter(default=1)
     theta = Parameter(default=0)
-    _bounding_box = 'auto'
 
     def __init__(self, amplitude=amplitude.default, x_mean=x_mean.default,
                  y_mean=y_mean.default, x_stddev=None, y_stddev=None,
@@ -319,7 +349,7 @@ class Gaussian2D(Fittable2DModel):
             amplitude=amplitude, x_mean=x_mean, y_mean=y_mean,
             x_stddev=x_stddev, y_stddev=y_stddev, theta=theta, **kwargs)
 
-    def bounding_box_default(self, factor=5.5):
+    def bounding_box(self, factor=5.5):
         """
         Tuple defining the default ``bounding_box`` limits in each dimension,
         ``((y_low, y_high), (x_low, x_high))``
@@ -340,10 +370,11 @@ class Gaussian2D(Fittable2DModel):
         >>> model.bounding_box
         ((-11.0, 11.0), (-5.5, 5.5))
 
-        This range can be set directly (see: `astropy.modeling.Model.bounding_box`) or by
-        using a different factor like:
+        This range can be set directly (see: `Model.bounding_box
+        <astropy.modeling.Model.bounding_box>`) or by using a different factor
+        like:
 
-        >>> model.bounding_box = model.bounding_box_default(factor=2)
+        >>> model.bounding_box = model.bounding_box(factor=2)
         >>> model.bounding_box
         ((-4.0, 4.0), (-2.0, 2.0))
         """
@@ -996,26 +1027,6 @@ class Ellipse2D(Fittable2DModel):
     a = Parameter(default=1)
     b = Parameter(default=1)
     theta = Parameter(default=0)
-    _bounding_box = 'auto'
-
-    def bounding_box_default(self):
-        """
-        Tuple defining the default ``bounding_box`` limits around the ellipse.
-
-        ``((y_low, y_high), (x_low, x_high))``
-
-        References
-        ----------
-        `astropy.modeling.Model.bounding_box`
-        """
-
-        a = self.a
-        b = self.b
-        theta = self.theta.value
-        dx, dy = ellipse_extent(a, b, theta)
-
-        return ((self.y_0 - dy, self.y_0 + dy),
-                (self.x_0 - dx, self.x_0 + dx))
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, a, b, theta):
@@ -1029,6 +1040,22 @@ class Ellipse2D(Fittable2DModel):
         numerator2 = -(xx * sint) + (yy * cost)
         in_ellipse = (((numerator1 / a) ** 2 + (numerator2 / b) ** 2) <= 1.)
         return np.select([in_ellipse], [amplitude])
+
+    @property
+    def bounding_box(self):
+        """
+        Tuple defining the default ``bounding_box`` limits.
+
+        ``((y_low, y_high), (x_low, x_high))``
+        """
+
+        a = self.a
+        b = self.b
+        theta = self.theta.value
+        dx, dy = ellipse_extent(a, b, theta)
+
+        return ((self.y_0 - dy, self.y_0 + dy),
+                (self.x_0 - dx, self.x_0 + dx))
 
 
 class Disk2D(Fittable2DModel):
@@ -1075,6 +1102,17 @@ class Disk2D(Fittable2DModel):
 
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
         return np.select([rr <= R_0 ** 2], [amplitude])
+
+    @property
+    def bounding_box(self):
+        """
+        Tuple defining the default ``bounding_box`` limits.
+
+        ``((y_low, y_high), (x_low, x_high))``
+        """
+
+        return ((self.y_0 - self.R_0, self.y_0 + self.R_0),
+                (self.x_0 - self.R_0, self.x_0 + self.R_0))
 
 
 class Ring2D(Fittable2DModel):
@@ -1145,6 +1183,19 @@ class Ring2D(Fittable2DModel):
         r_range = np.logical_and(rr >= r_in ** 2, rr <= (r_in + width) ** 2)
         return np.select([r_range], [amplitude])
 
+    @property
+    def bounding_box(self):
+        """
+        Tuple defining the default ``bounding_box``.
+
+        ``((y_low, y_high), (x_low, x_high))``
+        """
+
+        dr = self.r_in + self.width
+
+        return ((self.y_0 - dr, self.y_0 + dr),
+                (self.x_0 - dr, self.x_0 + dr))
+
 
 class Delta1D(Fittable1DModel):
     """One dimensional Dirac delta function."""
@@ -1212,6 +1263,18 @@ class Box1D(Fittable1DModel):
         d_width = np.zeros_like(x)
         return [d_amplitude, d_x_0, d_width]
 
+    @property
+    def bounding_box(self):
+        """
+        Tuple defining the default ``bounding_box`` limits.
+
+        ``(x_low, x_high))``
+        """
+
+        dx = self.width / 2
+
+        return (self.x_0 - dx, self.x_0 + dx)
+
 
 class Box2D(Fittable2DModel):
     """
@@ -1266,6 +1329,20 @@ class Box2D(Fittable2DModel):
                                  y <= y_0 + y_width / 2.)
         return np.select([np.logical_and(x_range, y_range)], [amplitude], 0)
 
+    @property
+    def bounding_box(self):
+        """
+        Tuple defining the default ``bounding_box``.
+
+        ``((y_low, y_high), (x_low, x_high))``
+        """
+
+        dx = self.x_width / 2
+        dy = self.y_width / 2
+
+        return ((self.y_0 - dy, self.y_0 + dy),
+                (self.x_0 - dx, self.x_0 + dx))
+
 
 class Trapezoid1D(Fittable1DModel):
     """
@@ -1312,6 +1389,18 @@ class Trapezoid1D(Fittable1DModel):
         val_c = slope * (x4 - x)
         return np.select([range_a, range_b, range_c], [val_a, val_b, val_c])
 
+    @property
+    def bounding_box(self):
+        """
+        Tuple defining the default ``bounding_box`` limits.
+
+        ``(x_low, x_high))``
+        """
+
+        dx = self.width / 2 + self.amplitude / self.slope
+
+        return (self.x_0 - dx, self.x_0 + dx)
+
 
 class TrapezoidDisk2D(Fittable2DModel):
     """
@@ -1351,6 +1440,19 @@ class TrapezoidDisk2D(Fittable2DModel):
         val_1 = amplitude
         val_2 = amplitude + slope * (R_0 - r)
         return np.select([range_1, range_2], [val_1, val_2])
+
+    @property
+    def bounding_box(self):
+        """
+        Tuple defining the default ``bounding_box``.
+
+        ``((y_low, y_high), (x_low, x_high))``
+        """
+
+        dr = self.R_0 + self.amplitude / self.slope
+
+        return ((self.y_0 - dr, self.y_0 + dr),
+                (self.x_0 - dr, self.x_0 + dr))
 
 
 class MexicanHat1D(Fittable1DModel):
