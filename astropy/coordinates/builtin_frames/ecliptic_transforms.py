@@ -22,8 +22,9 @@ from .utils import cartrepr_from_matmul
 
 
 def _ecliptic_rotation_matrix(equinox):
-    rnpb = erfa.pnm06a(equinox.jd1, equinox.jd2)
-    obl = erfa.obl06(equinox.jd1, equinox.jd2)*u.radian
+    eqx_tt = equinox if equinox.scale == 'tt' else equinox.tt
+    rnpb = erfa.pnm06a(eqx_tt.jd1, eqx_tt.jd2)
+    obl = erfa.obl06(eqx_tt.jd1, eqx_tt.jd2)*u.radian
     return np.asarray(np.dot(rotation_matrix(obl, 'x'), rnpb))
 
 
@@ -68,7 +69,8 @@ def baryecliptic_to_icrs(from_coo, to_frame):
 
 @frame_transform_graph.transform(FunctionTransform, ICRS, HeliocentricTrueEcliptic)
 def icrs_to_helioecliptic(from_coo, to_frame):
-    pvh, pvb = erfa.epv00(to_frame.equinox.jd1, to_frame.equinox.jd2)
+    eqx_tdb_to = to_frame.equinox if to_frame.equinox.scale == 'tdb' else to_frame.equinox.tdb
+    pvh, pvb = erfa.epv00(eqx_tdb_to.jd1, eqx_tdb_to.jd2)
     delta_bary_to_helio = pvh[..., 0, :] - pvb[..., 0, :]
 
     #first offset to heliocentric
@@ -90,7 +92,8 @@ def helioecliptic_to_icrs(from_coo, to_frame):
     intermed_repr = cartrepr_from_matmul(rmat, from_coo, transpose=True)
 
     # now offset back to barycentric, which is the correct center for ICRS
-    pvh, pvb = erfa.epv00(from_coo.equinox.jd1, from_coo.equinox.jd2)
+    eqx_tdb_to = from_coo.equinox if from_coo.equinox.scale == 'tdb' else from_coo.equinox.tdb
+    pvh, pvb = erfa.epv00(eqx_tdb_to.jd1, eqx_tdb_to.jd2)
     delta_bary_to_helio = pvh[..., 0, :] - pvb[..., 0, :]
     newrepr = CartesianRepresentation(intermed_repr.cartesian.xyz - delta_bary_to_helio*u.au)
 

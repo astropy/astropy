@@ -147,7 +147,8 @@ def get_sun(time):
     250 km over the 1000-3000.
 
     """
-    earth_pv_helio, earth_pv_bary = erfa.epv00(time.jd1, time.jd2)
+    time_tdb = time if time.scale == 'tdb' else time.tdb
+    earth_pv_helio, earth_pv_bary = erfa.epv00(time_tdb.jd1, time_tdb.jd2)
 
     # We have to manually do aberration because we're outputting directly into
     # GCRS

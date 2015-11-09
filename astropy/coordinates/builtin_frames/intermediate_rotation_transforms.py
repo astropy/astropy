@@ -23,37 +23,32 @@ from .utils import get_polar_motion, get_dut1utc
 # # first define helper functions
 def gcrs_to_cirs_mat(time):
     #celestial-to-intermediate matrix
-    if time.scale != 'tt':
-        time_tt = time.tt
-    else:
-        time_tt = time
+    time_tt = time if time.scale == 'tt' else time.tt
     return erfa.c2i06a(time_tt.jd1, time_tt.jd2)
 
 def cirs_to_itrs_mat(time):
     #compute the polar motion p-matrix
     xp, yp = get_polar_motion(time)
-    if time.scale != 'tt':
-        time_tt = time.tt
-    else:
-        time_tt = time    
+    time_tt = time if time.scale == 'tt' else time.tt
     sp = erfa.sp00(time_tt.jd1, time_tt.jd2)
     pmmat = erfa.pom00(xp, yp, sp)
 
     #now determine the Earth Rotation Angle for the input obstime
-    # this should be UT1 used here.
-    if time.scale != 'ut1':
-        time.delta_ut1_utc = get_dut1utc(time)
-        time_ut1 = time.ut1    
-        era = erfa.era00(time_ut1.jd1, time_ut1.jd2)
+    # era00 accepts UT1, so we convert if need be
+    if time.scale == 'ut1':
+        time_ut1 = time
     else:
-        era = erfa.era00(time.jd1, time.jd2)
+        time.delta_ut1_utc = get_dut1utc(time)
+        time_ut1 = time.ut1
+    era = erfa.era00(time_ut1.jd1, time_ut1.jd2)
 
     #c2tcio expects a GCRS->CIRS matrix, but we just set that to an I-matrix
     #because we're already in CIRS
     return erfa.c2tcio(np.eye(3), era, pmmat)
 
 def gcrs_precession_mat(equinox):
-    gamb, phib, psib, epsa = erfa.pfw06(equinox.jd1, equinox.jd2)
+    eqx_tt = equinox if equinox.scale == 'tt' else equinox.tt
+    gamb, phib, psib, epsa = erfa.pfw06(eqx_tt.jd1, eqx_tt.jd2)
     return erfa.fw2m(gamb, phib, psib, epsa)
 
 
