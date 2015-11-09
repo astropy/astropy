@@ -452,7 +452,7 @@ New Features
 
 - ``astropy.wcs``
 
-  - The included version of wcslib has been upgraded to 5.9.
+  - The included version of wcslib has been upgraded to 5.10. [#4239]
 
     The minimum required version of wcslib in the 4.x series remains 4.24.
 
