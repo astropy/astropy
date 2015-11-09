@@ -69,18 +69,23 @@ def bayesian_blocks(t, x=None, sigma=None,
         the fitness function to use for the model.
         If a string, the following options are supported:
 
-        - 'events' : binned or unbinned event data
-            extra arguments are ``p0``, which gives the false alarm probability
-            to compute the prior, or ``gamma`` which gives the slope of the
-            prior on the number of bins.
-        - 'regular_events' : non-overlapping events measured at multiples
-            of a fundamental tick rate, ``dt``, which must be specified as an
-            additional argument.  The prior can be specified through ``gamma``,
-            which gives the slope of the prior on the number of bins.
-        - 'measures' : fitness for a measured sequence with Gaussian errors
-            The prior can be specified using ``gamma``, which gives the slope
-            of the prior on the number of bins.  If ``gamma`` is not specified,
-            then a simulation-derived prior will be used.
+        - 'events' : binned or unbinned event data.  Arguments are ``gamma``,
+          which gives the slope of the prior on the number of bins, or
+          ``ncp_prior``, which is -ln(gamma).
+        - 'regular_events' : non-overlapping events measured at multiples of a
+          fundamental tick rate, ``dt``, which must be specified as an
+          additional argument.  Extra arguments are ``p0``, which gives the
+          false alarm probability to compute the prior, or ``gamma``, which
+          gives the slope of the prior on the number of bins, or ``ncp_prior``,
+          which is -ln(gamma).
+        - 'measures' : fitness for a measured sequence with Gaussian errors.
+          Extra arguments are ``p0``, which gives the false alarm probability
+          to compute the prior, or ``gamma``, which gives the slope of the
+          prior on the number of bins, or ``ncp_prior``, which is -ln(gamma).
+
+        In all three cases, if more than one of ``p0``, ``gamma``, and
+        ``ncp_prior`` is chosen, ``ncp_prior`` takes precendence over ``gamma``
+        which takes precedence over ``p0``.
 
         Alternatively, the fitness parameter can be an instance of
         :class:`FitnessFunc` or a subclass thereof.
@@ -167,19 +172,13 @@ class FitnessFunc(object):
       Enable specific checks of the input data (``t``, ``x``, ``sigma``)
       to be performed prior to the fit.
 
-    ``prior(self, N, Ntot)``:
-      Specify the form of the Bayesian prior on the number of bins ``N`` given
-      the total number of points ``Ntot``. By default it will call
-      the ``gamma_prior()`` method if ``gamma`` is specified, and otherwise
-      call the ``p0_prior()`` method.
+    ``compute_ncp_prior(self, N)``: If ncp_prior is not defined explicitly,
+      this function is called in order to define it before fitting. This may be
+      calculated from ``gamma``, ``p0``, or whatever method you choose.
 
-    ``p0_prior(self, N, Ntot)``:
+    ``p0_prior(self, N)``:
       Specify the form of the prior given the false-alarm probability ``p0``
       (See Scargle2012_ for details).
-
-    ``gamma_prior(self, N, Ntot)``:
-      Specify the form of the prior given the slope ``gamma`` of the prior
-      on the number of bins (See Scargle2012_ for details).
 
     For examples of implemented fitness functions, see :class:`Events`,
     :class:`RegularEvents`, and :class:`PointMeasures`.
@@ -286,8 +285,8 @@ class FitnessFunc(object):
 
     def compute_ncp_prior(self, N):
         """
-        If ``ncp_prior`` is not explicitly defined, compute it from gamma or
-        p0.
+        If ``ncp_prior`` is not explicitly defined, compute it from ``gamma``
+        or ``p0``.
         """
         if self.gamma is not None:
             self.ncp_prior = -np.log(self.gamma)
@@ -332,6 +331,7 @@ class FitnessFunc(object):
         best = np.zeros(N, dtype=float)
         last = np.zeros(N, dtype=int)
 
+        # Compute ncp_prior if not defined
         if self.ncp_prior is None:
             self.compute_ncp_prior(N)
         #-----------------------------------------------------------------
@@ -394,11 +394,21 @@ class Events(FitnessFunc):
     Parameters
     ----------
     p0 : float (optional)
-        False alarm probability, used to compute the prior on N
-        (see eq. 21 of Scargle 2012).  Default prior is for p0 = 0.
+        False alarm probability, used to compute the prior on N_blocks
+        (see eq. 21 of Scargle 2012).  Default prior is for p0 = 0.05.
+        For the Events type data, ``p0`` does not seem to be an accurate
+        representation of the actual false alarm probability. If you are using
+        this fitness function for a triggering type condition, it is
+        recommended that you run statistical trials on signal-free noise to
+        determine an appropriate value of ``gammaa`` or ``ncp_prior`` to use
+        for a desired false alarm rate.
     gamma : float (optional)
         If specified, then use this gamma to compute the general prior form,
-        p ~ gamma^N.  If gamma is specified, p0 is ignored.
+        p ~ gamma^N_blocks.  If gamma is specified, p0 is ignored.
+    ncp_prior : float (optional)
+        If specified, use the value of ``ncp_prior`` to compute the prior as 
+        above, using the definition ``ncp_prior`` = -ln(gamma).
+        If ``ncp_prior`` is specified, ``gamma`` and ``p0`` is ignored.
     """
     def __init__(self, p0=0.05, gamma=None, ncp_prior=None):
         if p0 is not None and gamma is None and ncp_prior is None:
@@ -433,11 +443,15 @@ class RegularEvents(FitnessFunc):
     dt : float
         tick rate for data
     p0 : float (optional)
-        False alarm probability, used to compute the prior on N
-        (see eq. 21 of Scargle 2012).  Default prior is for p0 = 0.
+        False alarm probability, used to compute the prior on N_blocks
+        (see eq. 21 of Scargle 2012).  Default prior is for p0 = 0.05
     gamma : float (optional)
         If specified, then use this gamma to compute the general prior form,
-        p ~ gamma^N.  If gamma is specified, p0 is ignored.
+        p ~ gamma^N_blocks.  If gamma is specified, p0 is ignored.
+    ncp_prior : float (optional)
+        If specified, use the value of ``ncp_prior`` to compute the prior as 
+        above, using the definition ``ncp_prior`` = -ln(gamma).
+        If ``ncp_prior`` is specified, ``gamma`` and ``p0`` is ignored.
     """
     def __init__(self, dt, p0=0.05, gamma=None, ncp_prior=None):
         self.dt = dt
@@ -473,16 +487,15 @@ class PointMeasures(FitnessFunc):
     Parameters
     ----------
     p0 : float (optional)
-        False alarm probability, used to compute the prior on N
-        (see eq. 21 of Scargle 2012).  Default prior is for p0 = 0.
+        False alarm probability, used to compute the prior on N_blocks
+        (see eq. 21 of Scargle 2012).  Default prior is for p0 = 0.05
     gamma : float (optional)
         If specified, then use this gamma to compute the general prior form,
-        p ~ gamma^N.  If gamma is specified, p0 is ignored.
-
-    Notes
-    -----
-    if neither p0 nor gamma is specified, the prior will be computed using
-    the empirical form given in section 3.3 of Scargle (2012).
+        p ~ gamma^N_blocks.  If gamma is specified, p0 is ignored.
+    ncp_prior : float (optional)
+        If specified, use the value of ``ncp_prior`` to compute the prior as 
+        above, using the definition ``ncp_prior`` = -ln(gamma).
+        If ``ncp_prior`` is specified, ``gamma`` and ``p0`` is ignored.
     """
     def __init__(self, p0=0.05, gamma=None, ncp_prior=None):
         super(PointMeasures, self).__init__(p0, gamma, ncp_prior)
