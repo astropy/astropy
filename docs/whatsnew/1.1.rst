@@ -170,6 +170,8 @@ units such as magnitudes, decibels, and dex::
     >>> logg.physical
     <Quantity 100000.0 cm / s2>
 
+For more information, see :ref:`logarithmic_units`.
+
 In addition, the following units have been added:
 
 * Furlongs (``imperial.furlong``)
@@ -181,7 +183,6 @@ Finally, quantity arrays can now be used in Matplotlib, which will recognize
 the unit and plot the quantities correctly (see :ref:`plotting-quantities`
 for more details on how to enable this).
 
-For more information, see :ref:`logarithmic_units`.
 
 .. _whatsnew-1.1-cosmo:
 
