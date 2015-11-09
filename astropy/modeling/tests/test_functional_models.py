@@ -34,6 +34,7 @@ def test_GaussianAbsorption1D():
     assert_allclose(g_ab(xx), 1 - g_em(xx))
     assert_allclose(g_ab.fit_deriv(xx[0], 0.8, 3000, 20),
                     -np.array(g_em.fit_deriv(xx[0], 0.8, 3000, 20)))
+    assert g_ab.bounding_box == g_em.bounding_box
 
 
 def test_Gaussian2D():

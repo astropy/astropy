@@ -62,5 +62,6 @@ py:meth list.pop
 py:obj list.remove
 py:class classmethod
 py:obj RuntimeError
+py:obj NotImplementedError
 py:obj AttributeError
 py:obj NotImplementedError
