@@ -107,11 +107,11 @@ def test_iau_fullstack(fullstack_icrs,  fullstack_fiducial_altaz,
     assert np.all(addecs < tol), 'largest Dec change is {0} mas, > {1}'.format(np.max(addecs.arcsec*1000), tol)
 
     # check that we're consistent with the ERFA alt/az result
-    xp, yp = u.Quantity(iers.IERS.open().pm_xy(fullstack_times.jd1, fullstack_times.jd2)).to(u.radian).value
+    xp, yp = u.Quantity(iers.IERS.open().pm_xy(fullstack_times.utc.jd1, fullstack_times.utc.jd2)).to(u.radian).value
     lon = fullstack_locations.geodetic[0].to(u.radian).value
     lat = fullstack_locations.geodetic[1].to(u.radian).value
     height = fullstack_locations.geodetic[2].to(u.m).value
-    astrom, eo = erfa.apco13(fullstack_times.jd1, fullstack_times.jd2,
+    astrom, eo = erfa.apco13(fullstack_times.utc.jd1, fullstack_times.utc.jd2,
                              fullstack_times.delta_ut1_utc,
                              lon, lat, height,
                              xp, yp,
