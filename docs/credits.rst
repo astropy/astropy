@@ -79,21 +79,23 @@ Core Package Contributors
 * Karan Grover
 * Kevin Gullikson
 * Hans Moritz Günther
+* Chris Hanley
 * Alex Hagen
 * Paul Hirst
 * Moataz Hisham
 * Michael Hoenig
 * Emma Hogan
 * Derek Homeier
-* Chris Hanley
-* JC Hsu
 * Anthony Horton
+* JC Hsu
+* Lingyi Hu
 * Eric Jeschke
 * Joseph Jon Booker
 * Sarah Kendrew
 * Marten van Kerkwijk
 * Wolfgang Kerzendorf
 * Lennard Kiehl
+* David Kirkby
 * Rashid Khan
 * Dominik Klaes
 * Kacper Kowalik
@@ -104,6 +106,7 @@ Core Package Contributors
 * Pey Lian Lim
 * Joseph Long
 * Joe Lyman
+* Curtis McCully
 * Vinayak Mehta
 * Aaron Meisner
 * Serge Montagnac
