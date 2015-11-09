@@ -406,7 +406,7 @@ class Events(FitnessFunc):
         If specified, then use this gamma to compute the general prior form,
         p ~ gamma^N_blocks.  If gamma is specified, p0 is ignored.
     ncp_prior : float (optional)
-        If specified, use the value of ``ncp_prior`` to compute the prior as 
+        If specified, use the value of ``ncp_prior`` to compute the prior as
         above, using the definition ``ncp_prior`` = -ln(gamma).
         If ``ncp_prior`` is specified, ``gamma`` and ``p0`` is ignored.
     """
@@ -419,7 +419,7 @@ class Events(FitnessFunc):
                           'free noise to calibrate ncp_prior to achieve a '
                           'desired false positive rate.')
         super(Events, self).__init__(p0, gamma, ncp_prior)
-    
+
     def fitness(self, N_k, T_k):
         # eq. 19 from Scargle 2012
         return N_k * (np.log(N_k) - np.log(T_k))
@@ -449,13 +449,13 @@ class RegularEvents(FitnessFunc):
         If specified, then use this gamma to compute the general prior form,
         p ~ gamma^N_blocks.  If gamma is specified, p0 is ignored.
     ncp_prior : float (optional)
-        If specified, use the value of ``ncp_prior`` to compute the prior as 
+        If specified, use the value of ``ncp_prior`` to compute the prior as
         above, using the definition ``ncp_prior`` = -ln(gamma).
         If ``ncp_prior`` is specified, ``gamma`` and ``p0`` is ignored.
     """
     def __init__(self, dt, p0=0.05, gamma=None, ncp_prior=None):
         self.dt = dt
-        super(RegularEvents, self).__init__(p0, gamma, ncp_prior) 
+        super(RegularEvents, self).__init__(p0, gamma, ncp_prior)
 
     def validate_input(self, t, x, sigma):
         t, x, sigma = super(RegularEvents, self).validate_input(t, x, sigma)
@@ -493,7 +493,7 @@ class PointMeasures(FitnessFunc):
         If specified, then use this gamma to compute the general prior form,
         p ~ gamma^N_blocks.  If gamma is specified, p0 is ignored.
     ncp_prior : float (optional)
-        If specified, use the value of ``ncp_prior`` to compute the prior as 
+        If specified, use the value of ``ncp_prior`` to compute the prior as
         above, using the definition ``ncp_prior`` = -ln(gamma).
         If ``ncp_prior`` is specified, ``gamma`` and ``p0`` is ignored.
     """
