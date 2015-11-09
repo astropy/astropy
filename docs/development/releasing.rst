@@ -363,9 +363,9 @@ right version number).
    typical to forget this, so if doesn't exist yet please add one in
    the process of backporting.  See :ref:`changelog-format` for more details.
 
-To aid in this process there is a script called ``suggest_backports.py`` at
-https://gist.github.com/embray/4497178.  The script is not perfect and still
-needs a little work, but it will get most of the work done.  For example, if
+To aid in this process there is a `suggest_backports.py script in the astropy-tools repository <https://github.com/astropy/astropy-tools/blob/master/suggest_backports.py>`_.
+The script is not perfect and still needs a little work, but it will get most of
+the work done.  For example, if
 the current bug fix branch is called 'v0.2.x' run it like so::
 
     $ suggest_backports.py astropy astropy v0.2.x -f backport.sh
