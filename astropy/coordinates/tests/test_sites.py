@@ -1,7 +1,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ...tests.helper import pytest, assert_quantity_allclose, remote_data
+from ...tests.helper import pytest, assert_quantity_allclose, remote_data, quantity_allclose
 from ... import units as u
 from .. import Longitude, Latitude, EarthLocation
 from ..sites import get_builtin_sites, get_downloaded_sites, SiteRegistry
@@ -113,3 +113,53 @@ def test_registry():
 
     loc2 = reg['sIte a']
     assert loc2 is loc
+
+def test_non_EarthLocation():
+    """
+    A regression test for a typo bug pointed out at the bottom of
+    https://github.com/astropy/astropy/pull/4042
+    """
+    class EarthLocation2(EarthLocation):
+        pass
+
+    # This lets keeps us from needing to do remote_data
+    # note that this does *not* mess up the registry for EarthLocation because
+    # registry is cached on a per-class basis
+    EarthLocation2._get_site_registry(force_builtin=True)
+
+    el2 = EarthLocation2.of_site('keck')
+    assert type(el2) is EarthLocation2
+    assert el2.info.name == 'W. M. Keck Observatory'
+
+def check_builtin_matches_remote(download_url=True):
+    """
+    This function checks that the builtin sites registry is consistent with the
+    remote registry (or a registry at some other location).
+
+    Note that current this is *not* run by the testing suite (because it
+    doesn't start with "test", and is instead meant to be used as a check
+    before merging changes in astropy-data)
+    """
+    builtin_registry = EarthLocation._get_site_registry(force_builtin=True)
+    dl_registry = EarthLocation._get_site_registry(force_download=download_url)
+
+    in_dl = {}
+    matches = {}
+    for name in builtin_registry.names:
+        in_dl[name] = name in dl_registry
+        if in_dl[name]:
+            matches[name] = quantity_allclose(builtin_registry[name], dl_registry[name])
+        else:
+            matches[name] = False
+
+    if not all(matches.values()):
+        # this makes sure we actually see which don't match
+        print("In builtin registry but not in download:")
+        for name in in_dl:
+            if not in_dl[name]:
+                print('    ', name)
+        print("In both but not the same value:")
+        for name in matches:
+            if not matches[name] and in_dl[name]:
+                print('    ', name, 'builtin:', builtin_registry[name], 'download:', dl_registry[name])
+        assert False, "Builtin and download registry aren't consistent - failures printed to stdout"

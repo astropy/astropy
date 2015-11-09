@@ -1,5 +1,10 @@
 #!/bin/bash -x
 
+hash -r
+conda config --set always_yes yes --set changeps1 no
+conda update -q conda
+conda info -a
+
 # CONDA
 conda create --yes -n test -c astropy-ci-extras python=$PYTHON_VERSION pip
 source activate test

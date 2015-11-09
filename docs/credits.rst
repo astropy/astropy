@@ -13,14 +13,20 @@ Astropy Project Coordinators
 Core Package Contributors
 =========================
 
+* Ryan Abernathey
 * Shailesh Ahuja
 * Tom Aldcroft
+* Anne Archibald
+* Cristian Ardelean
+* Matteo Bachetti
 * Kyle Barbary
 * Geert Barentsen
+* Pauline Barmby
 * Paul Barrett
 * Andreas Baumbach
 * Chris Beaumont
 * Daniel Bell
+* Kristin Berry
 * Francesco Biscani
 * Thompson Le Blanc
 * Christopher Bonnett
@@ -32,14 +38,18 @@ Core Package Contributors
 * Gustavo Bragança
 * Erik M. Bray
 * Eli Bressert
+* Hannes Breytenbach
 * Hugo Buddelmeijer
+* Doug Burke
 * Mihai Cara
+* Patti Carroll
 * Mabry Cervin
 * Pritish Chakraborty
 * Alex Conley
 * Jean Connelly
 * Simon Conseil
 * Ryan Cooke
+* Yannick Copin
 * Matthew Craig
 * Steven Crawford
 * Neil Crighton
@@ -51,8 +61,8 @@ Core Package Contributors
 * Jörg Dietrich
 * Axel Donath
 * Michael Droettboom
-* Jonathan Eisenhamer
 * Zach Edwards
+* Jonathan Eisenhamer
 * Thomas Erben
 * Henry Ferguson
 * Jonathan Foster
@@ -61,23 +71,31 @@ Core Package Contributors
 * Simon Gibbons
 * Adam Ginsburg
 * Christoph Gohlke
+* Danny Goldstein
 * Perry Greenfield
 * Dylan Gregersen
+* Austen Groener
 * Frédéric Grollier
 * Karan Grover
 * Kevin Gullikson
 * Hans Moritz Günther
+* Chris Hanley
 * Alex Hagen
+* Paul Hirst
+* Moataz Hisham
 * Michael Hoenig
 * Emma Hogan
-* Chris Hanley
-* JC Hsu
+* Derek Homeier
 * Anthony Horton
+* JC Hsu
+* Lingyi Hu
 * Eric Jeschke
+* Joseph Jon Booker
 * Sarah Kendrew
 * Marten van Kerkwijk
 * Wolfgang Kerzendorf
 * Lennard Kiehl
+* David Kirkby
 * Rashid Khan
 * Dominik Klaes
 * Kacper Kowalik
@@ -87,24 +105,32 @@ Core Package Contributors
 * Simon Liedtke
 * Pey Lian Lim
 * Joseph Long
+* Joe Lyman
+* Curtis McCully
+* Vinayak Mehta
 * Aaron Meisner
 * Serge Montagnac
 * José Sabater Montes
+* Brett Morris
 * Michael Mueller
 * Stuart Mumford
 * Demitri Muna
 * Prasanth Nair
 * Bogdan Nicula
+* Asra Nizami
 * Joe Philip Ninan
 * Bryce Nordgren
 * Miruna Oprescu
+* Carl Osterwisch
 * Luigi Paioro
 * Asish Panda
 * Madhura Parikh
+* Neil Parley
 * Sergio Pascual
 * Rohit Patil
 * David Perez-Suarez
 * Ray Plante
+* Orion Poplawski
 * Adrian Price-Whelan
 * J. Xavier Prochaska
 * David Pérez-Suárez
@@ -118,6 +144,7 @@ Core Package Contributors
 * Eloy Salinas
 * Gerrit Schellenberger
 * David Shiga
+* Albert Y. Shih
 * David Shupe
 * Jonathan Sick
 * Leo Singer
@@ -125,15 +152,19 @@ Core Package Contributors
 * Shivan Sornarajah
 * Shantanu Srivastava
 * Ole Streicher
+* Matej Stuchlik
 * Bernardo Sulzbach
 * James Taylor
 * Jeff Taylor
 * Kirill Tchernyshyov
 * Víctor Terrón
+* Scott Thomas
 * Erik Tollerud
 * James Turner
+* Jake VanderPlas
 * Miguel de Val-Borro
 * Jonathan Whitmore
+* Julien Woillez
 * Lisa Walter
 * Benjamin Alan Weaver
 * Jonathan Whitmore

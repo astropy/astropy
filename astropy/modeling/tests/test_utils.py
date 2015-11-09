@@ -8,7 +8,6 @@ import operator
 import numpy as np
 
 from ..utils import ExpressionTree as ET, ellipse_extent
-from ..core import render_model
 from ..models import Ellipse2D
 
 
@@ -91,7 +90,7 @@ def test_ellipse_extent():
 
     model.bounding_box = limits
 
-    actual = render_model(model, coords=coords)
+    actual = model.render(coords=coords)
 
     expected = model(x, y)
 

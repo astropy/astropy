@@ -16863,7 +16863,7 @@ char *wcspihtext;
 #line 1 "wcspih.l"
 /*============================================================================
 
-  WCSLIB 5.9 - an implementation of the FITS WCS standard.
+  WCSLIB 5.10 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -16885,7 +16885,7 @@ char *wcspihtext;
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.c,v 5.9 2015/07/21 09:20:02 mcalabre Exp $
+  $Id: wcspih.c,v 5.10 2015/10/09 08:19:15 mcalabre Exp $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -19237,7 +19237,7 @@ YY_RULE_SETUP
 	      if (vptr) {
 	        if (sipflag) {
 	          /* Translate a SIP keyword into DPja. */
-	          disp = wcsp->lin.dispre;
+	          disp = (*wcs)->lin.dispre;
 	          ipx = (disp->ndp)++;
 	
 	          /* SIP doesn't have alternates. */
@@ -19263,7 +19263,7 @@ YY_RULE_SETUP
 	          } else {
 	            /* Translate a DSS keyword into DQia. */
 	            if (m <= 13 || dbltmp != 0.0) {
-	              disp = wcsp->lin.disseq;
+	              disp = (*wcs)->lin.disseq;
 	              ipx = (disp->ndp)++;
 	
 	              /* DSS doesn't have alternates. */
@@ -19354,7 +19354,12 @@ YY_RULE_SETUP
 	          } else if (valtype == RECORD) {
 	            ipx = (disp->ndp)++;
 	
-	            sprintf(keyword, "%.2s%d%c", keyname, i, a);
+	            if (a == ' ') {
+	              sprintf(keyword, "%.2s%d", keyname, i);
+	            } else {
+	              sprintf(keyword, "%.2s%d%c", keyname, i, a);
+	            }
+	
 	            dpfill(disp->dp+ipx, keyword, strtmp, i, rectype, inttmp,
 	                   dbltmp);
 	          }
@@ -19393,7 +19398,7 @@ case 232:
 (yy_c_buf_p) = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up wcspihtext again */
 YY_RULE_SETUP
-#line 1801 "wcspih.l"
+#line 1806 "wcspih.l"
 {
 	  errmsg = "invalid keyvalue";
 	  BEGIN(ERROR);
@@ -19404,7 +19409,7 @@ case 233:
 (yy_c_buf_p) = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up wcspihtext again */
 YY_RULE_SETUP
-#line 1806 "wcspih.l"
+#line 1811 "wcspih.l"
 {
 	  errmsg = "invalid keyvalue";
 	  BEGIN(ERROR);
@@ -19415,7 +19420,7 @@ case 234:
 (yy_c_buf_p) = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up wcspihtext again */
 YY_RULE_SETUP
-#line 1811 "wcspih.l"
+#line 1816 "wcspih.l"
 {
 	  errmsg = "invalid keyvalue or malformed keycomment";
 	  BEGIN(ERROR);
@@ -19426,7 +19431,7 @@ case 235:
 (yy_c_buf_p) = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up wcspihtext again */
 YY_RULE_SETUP
-#line 1816 "wcspih.l"
+#line 1821 "wcspih.l"
 {
 	  errmsg = "malformed keycomment";
 	  BEGIN(ERROR);
@@ -19437,7 +19442,7 @@ case 236:
 (yy_c_buf_p) = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up wcspihtext again */
 YY_RULE_SETUP
-#line 1821 "wcspih.l"
+#line 1826 "wcspih.l"
 {
 	  if (ipass == npass) {
 	    if (ctrl < 0) {
@@ -19458,7 +19463,7 @@ case 237:
 (yy_c_buf_p) = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up wcspihtext again */
 YY_RULE_SETUP
-#line 1836 "wcspih.l"
+#line 1841 "wcspih.l"
 {
 	  if (ipass == npass) {
 	    (*nreject)++;
@@ -19479,7 +19484,7 @@ YY_RULE_SETUP
 case 238:
 /* rule 238 can match eol */
 YY_RULE_SETUP
-#line 1853 "wcspih.l"
+#line 1858 "wcspih.l"
 {
 	  if (ipass == npass && keep) {
 	    if (hptr < keep) {
@@ -19536,7 +19541,7 @@ case YY_STATE_EOF(COMMENT):
 case YY_STATE_EOF(DISCARD):
 case YY_STATE_EOF(ERROR):
 case YY_STATE_EOF(FLUSH):
-#line 1883 "wcspih.l"
+#line 1888 "wcspih.l"
 {
 	  /* End-of-input. */
 	  if (ipass == 1) {
@@ -19611,10 +19616,10 @@ case YY_STATE_EOF(FLUSH):
 	YY_BREAK
 case 239:
 YY_RULE_SETUP
-#line 1955 "wcspih.l"
+#line 1960 "wcspih.l"
 ECHO;
 	YY_BREAK
-#line 19618 "wcspih.c"
+#line 19623 "wcspih.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -20605,7 +20610,7 @@ void wcspihfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 1954 "wcspih.l"
+#line 1959 "wcspih.l"
 
 
 
@@ -20959,7 +20964,9 @@ int wcspih_final(
       } else if (strcmp(wtype, "zpx") == 0) {
         strcpy(disp->dtype[i], "WAT-ZPX");
       } else {
-        return WCSHDRERR_PARSER;
+        /* Could contain "tan" or something else to be ignored. */
+        lindis(2, &(wcsp->lin), 0x0);
+        return 0;
       }
 
       /* The PROJPn parameters are duplicated on each ZPX axis. */
