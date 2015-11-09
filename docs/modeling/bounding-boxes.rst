@@ -56,7 +56,7 @@ with `~astropy.modeling.custom_model` or as a compound model::
 
 .. warning::
 
-    Note: Currently when creating a new compound model by combining multiple
+    Currently when creating a new compound model by combining multiple
     models, the bounding boxes of the components (if any) are not currently
     combined.  So bounding boxes for compound models must be assigned
     explicitly.  A future release will determine the appropriate bounding box
