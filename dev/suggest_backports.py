@@ -276,9 +276,9 @@ class GithubSuggestBackports(object):
         # Get the last tag that should be in this branch
         for tag in tags:
             tag_ver = pkg_resources.parse_version(tag['name'].lstrip('v'))
-            branch_base_ver = branch_ver[:branch_ver.index('*x')]
+            branch_base_ver = branch_ver.base_version[:branch_ver.base_version.index('.x')]
             cmp_indx = len(branch_base_ver)
-            if tag_ver[:cmp_indx] == branch_ver[:cmp_indx]:
+            if tag_ver.base_version[:cmp_indx] == branch_ver.base_version[:cmp_indx]:
                 self._last_tag = tag
                 return tag
 
