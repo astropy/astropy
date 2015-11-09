@@ -86,7 +86,10 @@ class GithubSuggestBackports(object):
             req.add_header('Authorization', 'Basic ' + self._auth)
         try:
             f = urlopen(req)
-            enc = f.headers.get_content_charset()
+            try:
+                enc = f.headers.get_content_charset()
+            except AttributeError:  #py2 doesn't have get_content_charset
+                enc = f.headers['content-type'].split('charset=')[-1]
             content = f.read().decode(enc)
             response = json.loads(content)
         except HTTPError as e:
