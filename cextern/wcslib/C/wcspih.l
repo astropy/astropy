@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.9 - an implementation of the FITS WCS standard.
+  WCSLIB 5.10 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.l,v 5.9 2015/07/21 09:20:01 mcalabre Exp $
+  $Id: wcspih.l,v 5.10 2015/10/09 08:19:15 mcalabre Exp $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -1647,7 +1647,7 @@ jmp_buf wcspih_abort_jmp_env;
 	      if (vptr) {
 	        if (sipflag) {
 	          /* Translate a SIP keyword into DPja. */
-	          disp = wcsp->lin.dispre;
+	          disp = (*wcs)->lin.dispre;
 	          ipx = (disp->ndp)++;
 	
 	          /* SIP doesn't have alternates. */
@@ -1673,7 +1673,7 @@ jmp_buf wcspih_abort_jmp_env;
 	          } else {
 	            /* Translate a DSS keyword into DQia. */
 	            if (m <= 13 || dbltmp != 0.0) {
-	              disp = wcsp->lin.disseq;
+	              disp = (*wcs)->lin.disseq;
 	              ipx = (disp->ndp)++;
 	
 	              /* DSS doesn't have alternates. */
@@ -1764,7 +1764,12 @@ jmp_buf wcspih_abort_jmp_env;
 	          } else if (valtype == RECORD) {
 	            ipx = (disp->ndp)++;
 	
-	            sprintf(keyword, "%.2s%d%c", keyname, i, a);
+	            if (a == ' ') {
+	              sprintf(keyword, "%.2s%d", keyname, i);
+	            } else {
+	              sprintf(keyword, "%.2s%d%c", keyname, i, a);
+	            }
+	
 	            dpfill(disp->dp+ipx, keyword, strtmp, i, rectype, inttmp,
 	                   dbltmp);
 	          }
@@ -2304,7 +2309,9 @@ int wcspih_final(
       } else if (strcmp(wtype, "zpx") == 0) {
         strcpy(disp->dtype[i], "WAT-ZPX");
       } else {
-        return WCSHDRERR_PARSER;
+        /* Could contain "tan" or something else to be ignored. */
+        lindis(2, &(wcsp->lin), 0x0);
+        return 0;
       }
 
       /* The PROJPn parameters are duplicated on each ZPX axis. */
