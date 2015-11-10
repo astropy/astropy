@@ -237,6 +237,56 @@ def test_bootstrap():
         assert_allclose(np.mean(bootarr), bootresult, atol=0.01)
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_bootstrap_multiple_outputs():
+
+    from scipy.stats import spearmanr
+
+    # test a bootfunc with several output values
+    # return just bootstrapping with one output from bootfunc
+    with NumpyRNGContext(42):
+        bootarr = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
+                            [4, 8, 8, 3, 6, 5, 2, 8, 6, 2]]).T
+
+        answer = np.array((0.19425, 0.02094))
+
+        bootfunc = lambda x:spearmanr(x)[0]
+
+        bootresult = funcs.bootstrap(bootarr, 2,
+                                     bootfunc=bootfunc)
+
+        assert_allclose(answer, bootresult, atol=1e-3)
+
+    # test a bootfunc with several output values
+    # return just bootstrapping with the second output from bootfunc
+    with NumpyRNGContext(42):
+        bootarr = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
+                            [4, 8, 8, 3, 6, 5, 2, 8, 6, 2]]).T
+
+        answer = np.array((0.5907,
+                           0.9541))
+
+        bootfunc = lambda x:spearmanr(x)[1]
+
+        bootresult = funcs.bootstrap(bootarr, 2,
+                                     bootfunc=bootfunc)
+
+        assert_allclose(answer, bootresult, atol=1e-3)
+
+    # return just bootstrapping with two outputs from bootfunc
+    with NumpyRNGContext(42):
+        answer = np.array(((0.1942, 0.5907),
+                           (0.0209, 0.9541),
+                           (0.4286, 0.2165)))
+
+        bootfunc = lambda x:spearmanr(x)
+
+        bootresult = funcs.bootstrap(bootarr, 3,
+                                     bootfunc=bootfunc)
+
+        assert bootresult.shape == (3, 2)
+        assert_allclose(answer, bootresult, atol=1e-3)
+
 def test_mad_std():
     with NumpyRNGContext(12345):
         data = normal(5, 2, size=(100, 100))
