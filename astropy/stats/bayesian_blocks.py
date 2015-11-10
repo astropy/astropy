@@ -400,7 +400,7 @@ class Events(FitnessFunc):
         representation of the actual false alarm probability. If you are using
         this fitness function for a triggering type condition, it is
         recommended that you run statistical trials on signal-free noise to
-        determine an appropriate value of ``gammaa`` or ``ncp_prior`` to use
+        determine an appropriate value of ``gamma`` or ``ncp_prior`` to use
         for a desired false alarm rate.
     gamma : float (optional)
         If specified, then use this gamma to compute the general prior form,
