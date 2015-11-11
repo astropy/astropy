@@ -87,11 +87,10 @@ matrix:
     allow_failures:
       - env: PYTHON_VERSION=2.7 NUMPY_VERSION=dev SETUP_CMD='test'
 
-install:
-    - source .continuous-integration/travis/setup_environment_$TRAVIS_OS_NAME.sh
 
-    # OPTIONAL DEPENDENCIES
-    - if $OPTIONAL_DEPS; then $CONDA_INSTALL pytz; fi
+before_install:
+    - git clone git://github.com/astropy/ci-helpers.git
+    - source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh
 
 script:
     - $MAIN_CMD $SETUP_CMD
