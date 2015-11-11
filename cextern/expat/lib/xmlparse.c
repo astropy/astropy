@@ -4187,11 +4187,11 @@ doProlog(XML_Parser parser,
         doctypeSysid = externalSubsetName;
 #endif /* XML_DTD */
       }
-	  int xmlError = !dtd->standalone;
+      int xmlError = !dtd->standalone;
 #ifdef XML_DTD
       xmlError = xmlError && !paramEntityParsing;
 #endif /* XML_DTD */  
-	  xmlError = xmlError && notStandaloneHandler
+      xmlError = xmlError && notStandaloneHandler
           && !notStandaloneHandler(handlerArg);
       if (xmlError)
         return XML_ERROR_NOT_STANDALONE;
