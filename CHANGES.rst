@@ -670,6 +670,8 @@ Bug fixes
 
 - ``astropy.coordinates``
 
+  - Pickling of ``EarthLocation`` instances now also works on python3. [#4304]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
