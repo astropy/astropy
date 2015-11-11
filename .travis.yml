@@ -21,8 +21,9 @@ env:
     global:
         # Set defaults to avoid repeating in most cases
         - NUMPY_VERSION=1.9
-        - OPTIONAL_DEPS=false
         - MAIN_CMD='python setup.py'
+        - CONDA_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas beautiful-soup'
+        - PIP_DEPENDENCIES='wcsaxes'
 
     matrix:
         - PYTHON_VERSION=2.6 SETUP_CMD='egg_info'
