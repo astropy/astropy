@@ -4180,13 +4180,13 @@ doProlog(XML_Parser parser,
           return XML_ERROR_NO_MEMORY;
         poolFinish(&tempPool);
         handleDefault = XML_FALSE;
-      }
+      } else {
 #ifdef XML_DTD
-      else
         /* use externalSubsetName to make doctypeSysid non-NULL
            for the case where no startDoctypeDeclHandler is set */
         doctypeSysid = externalSubsetName;
 #endif /* XML_DTD */
+      }
 	  int xmlError = !dtd->standalone;
 #ifdef XML_DTD
       xmlError = xmlError && !paramEntityParsing;
