@@ -4187,12 +4187,13 @@ doProlog(XML_Parser parser,
            for the case where no startDoctypeDeclHandler is set */
         doctypeSysid = externalSubsetName;
 #endif /* XML_DTD */
-      if (!dtd->standalone
+	  int xmlError = !dtd->standalone;
 #ifdef XML_DTD
-          && !paramEntityParsing
-#endif /* XML_DTD */
-          && notStandaloneHandler
-          && !notStandaloneHandler(handlerArg))
+      xmlError = xmlError && !paramEntityParsing;
+#endif /* XML_DTD */  
+	  xmlError = xmlError && notStandaloneHandler
+          && !notStandaloneHandler(handlerArg);
+      if (xmlError)
         return XML_ERROR_NOT_STANDALONE;
 #ifndef XML_DTD
       break;
