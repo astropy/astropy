@@ -22,8 +22,8 @@ env:
         # Set defaults to avoid repeating in most cases
         - NUMPY_VERSION=1.9
         - MAIN_CMD='python setup.py'
-        - CONDA_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas beautiful-soup'
-        - PIP_DEPENDENCIES='wcsaxes'
+        - CONDA_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas'
+        - PIP_DEPENDENCIES='beautifulsoup4'
 
     matrix:
         - PYTHON_VERSION=2.6 SETUP_CMD='egg_info'
@@ -41,53 +41,63 @@ matrix:
 
         # Try MacOS X
         - os: osx
-          env: PYTHON_VERSION=2.7 SETUP_CMD='test' OPTIONAL_DEPS=true
+          env: PYTHON_VERSION=2.7 SETUP_CMD='test'
 
         # Check for sphinx doc build warnings - we do this first because it
         # runs for a long time
         - os: linux
-          env: PYTHON_VERSION=2.7 SETUP_CMD='build_sphinx -w'  OPTIONAL_DEPS=true
-          # OPTIONAL_DEPS needed because the plot_directive in sphinx needs them
+          env: PYTHON_VERSION=2.7 SETUP_CMD='build_sphinx -w'
 
-        # Try all python versions with the latest numpy
+        # Try all python versions with the latest numpy, but without the
+        # optional dependencies
         - os: linux
           env: PYTHON_VERSION=2.6 SETUP_CMD='test --open-files'
+               CONDA_DEPENDENCIES='Cython jinja2' PIP_DEPENDENCIES=''
         - os: linux
           env: PYTHON_VERSION=2.7 SETUP_CMD='test --open-files'
+               CONDA_DEPENDENCIES='Cython jinja2' PIP_DEPENDENCIES=''
         - os: linux
           env: PYTHON_VERSION=3.3 SETUP_CMD='test --open-files'
+               CONDA_DEPENDENCIES='Cython jinja2' PIP_DEPENDENCIES=''
         - os: linux
           env: PYTHON_VERSION=3.4 SETUP_CMD='test --open-files'
+               CONDA_DEPENDENCIES='Cython jinja2' PIP_DEPENDENCIES=''
         - os: linux
           env: PYTHON_VERSION=3.5 SETUP_CMD='test --open-files'
+               CONDA_DEPENDENCIES='Cython jinja2' PIP_DEPENDENCIES=''
 
         # Now try with all optional dependencies on 2.7 and an appropriate 3.x
         # build (with latest numpy). We also note the code coverage on Python
         # 2.7.
         - os: linux
-          env: PYTHON_VERSION=2.7 SETUP_CMD='test --coverage' OPTIONAL_DEPS=true LC_CTYPE=C.ascii LC_ALL=C.ascii CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
+          env: PYTHON_VERSION=2.7 SETUP_CMD='test --coverage' LC_CTYPE=C.ascii LC_ALL=C.ascii CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
         - os: linux
-          env: PYTHON_VERSION=3.4 SETUP_CMD='test' OPTIONAL_DEPS=true LC_CTYPE=C.ascii LC_ALL=C.ascii
+          env: PYTHON_VERSION=3.4 SETUP_CMD='test' LC_CTYPE=C.ascii LC_ALL=C.ascii
 
-        # Try older numpy versions
+        # Try older numpy versions without optional dependencies
         - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.8 SETUP_CMD='test'
+               CONDA_DEPENDENCIES='Cython jinja2' PIP_DEPENDENCIES=''
         - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.7 SETUP_CMD='test'
+               CONDA_DEPENDENCIES='Cython jinja2' PIP_DEPENDENCIES=''
         - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.6 SETUP_CMD='test'
+               CONDA_DEPENDENCIES='Cython jinja2' PIP_DEPENDENCIES=''
 
-        # Try developer version of Numpy
+        # Try developer version of Numpy without optional dependencies
         - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=dev SETUP_CMD='test'
+               CONDA_DEPENDENCIES='Cython jinja2' PIP_DEPENDENCIES=''
 
         # Do a PEP8 test
         - os: linux
           env: PYTHON_VERSION=2.7 MAIN_CMD='pep8 astropy --count' SETUP_CMD=''
+               CONDA_DEPENDENCIES='Cython jinja2' PIP_DEPENDENCIES=''
 
     allow_failures:
       - env: PYTHON_VERSION=2.7 NUMPY_VERSION=dev SETUP_CMD='test'
-
+             CONDA_DEPENDENCIES='Cython jinja2' PIP_DEPENDENCIES=''
 
 before_install:
     - git clone git://github.com/astropy/ci-helpers.git
