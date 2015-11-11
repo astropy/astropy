@@ -16,16 +16,16 @@ Astropy has the following strict requirements:
 Astropy also depends on other packages for optional features:
 
 - `h5py <http://h5py.org/>`_: To read/write
-  :class:`~astropy.table.Table` objects from/to HDF5 files
+  :class:`~astropy.table.Table` objects from/to HDF5 files.
 
 - `BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_: To read
-  :class:`~astropy.table.table.Table` objects from HTML files
+  :class:`~astropy.table.table.Table` objects from HTML files.
 
 - `PyYAML <http://pyyaml.org>`_: To read/write
   :class:`~astropy.table.Table` objects from/to the Enhanced CSV ASCII table format.
 
 - `scipy`_: To power a variety of features (currently
-  mainly cosmology-related functionality)
+  mainly cosmology-related functionality).
 
 - `xmllint <http://www.xmlsoft.org/>`_: To validate VOTABLE XML files.
 
@@ -33,7 +33,13 @@ Astropy also depends on other packages for optional features:
 
 - `WCSAxes <http://wcsaxes.readthedocs.org/en/latest/>`_: To use `astropy.wcs` to define projections in Matplotlib. 
 
-- `pytz <http://pythonhosted.org/pytz/>`_: To specify and convert between timezones
+- `pytz <http://pythonhosted.org/pytz/>`_: To specify and convert between timezones.
+
+- `scikit-image <http://scikit-image.org/>`_: To downsample a data array in `astropy.nddata.utils`.
+
+- `pandas <http://pandas.pydata.org/>`_: To read/write
+  :class:`~astropy.table.Table` objects from/to pandas DataFrame objects.
+  
 
 However, note that these only need to be installed if those particular features
 are needed. Astropy will import even if these dependencies are not installed.
