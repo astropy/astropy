@@ -606,11 +606,11 @@ showVersion(XML_Char *prog)
   XML_Char ch;
   const XML_Feature *features = XML_GetFeatureList();
   while ((ch = *s) != 0) {
-    if (ch == '/'
+    int isSpecialCharacter = (ch == '/');
 #if (defined(WIN32) || defined(__WATCOMC__))
-        || ch == '\\'
+    isSpecialCharacter = isSpecialCharacter || (ch == '\\');
 #endif
-        )
+    if (isSpecialCharacter)
       prog = s + 1;
     ++s;
   }
