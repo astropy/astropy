@@ -31,19 +31,23 @@ except NameError:
     OutStream = None
     IPythonIOStream = None
 else:
+    from IPython import version_info
+    ipython_major_version = version_info[0]
+
     try:
         from ipykernel.iostream import OutStream
     except ImportError:
         try:
             from IPython.zmq.iostream import OutStream
         except ImportError:
-            try:
-                from IPython.kernel.zmq.iostream import OutStream
-            except ImportError:
+            if ipython_major_version < 4:
+                try:
+                    from IPython.kernel.zmq.iostream import OutStream
+                except ImportError:
+                    OutStream = None
+            else:
                 OutStream = None
 
-    from IPython import version_info
-    ipython_major_version = version_info[0]
 
     if OutStream is not None:
         from IPython.utils import io as ipyio
