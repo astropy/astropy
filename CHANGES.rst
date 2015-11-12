@@ -699,6 +699,9 @@ Bug fixes
     when guessing the file format.  Also improved the read trace
     information to better understand format guessing. [#4115]
 
+  - Fix an underlying problem that resulted in an uncaught TypeError
+    exception when reading a CDS-format file with guessing enabled. [#4120]
+
 - ``astropy.io.fits``
 
   - Included a new command-line script called ``fitsinfo`` to display
