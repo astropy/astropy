@@ -364,7 +364,9 @@ class Table(object):
             raise TypeError("masked property has not been set to True or False")
 
     def __getstate__(self):
-        return (self.columns.values(), self.meta)
+        columns = OrderedDict((key, col if isinstance(col, BaseColumn) else col_copy(col))
+                              for key, col in self.columns.items())
+        return (columns, self.meta)
 
     def __setstate__(self, state):
         columns, meta = state
@@ -2514,11 +2516,6 @@ class QTable(Table):
         a mixin column.
         """
         return has_info_class(col, MixinInfo)
-
-    def __getstate__(self):
-        columns = dict((key, col if isinstance(col, BaseColumn) else col_copy(col))
-                for key, col in self.columns.items())
-        return (columns, self.meta)
 
     def _convert_col_for_table(self, col):
         if (isinstance(col, Column) and getattr(col, 'unit', None) is not None):
