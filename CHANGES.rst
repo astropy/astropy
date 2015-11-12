@@ -885,6 +885,10 @@ Bug Fixes
 
 - ``astropy.utils``
 
+ - Fixed an issue where if ipython is installed but ipykernel is not
+   installed then importing astropy from the ipython console gave an
+   IPython.kernel deprecation warning. [#4279]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
