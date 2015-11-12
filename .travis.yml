@@ -22,7 +22,7 @@ env:
         # Set defaults to avoid repeating in most cases
         - NUMPY_VERSION=1.9
         - MAIN_CMD='python setup.py'
-        - CONDA_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas'
+        - CONDA_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz'
         - PIP_DEPENDENCIES='beautifulsoup4'
 
     matrix:
