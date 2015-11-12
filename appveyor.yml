@@ -6,10 +6,11 @@ environment:
   global:
       PYTHON: "C:\\conda"
       MINICONDA_VERSION: "latest"
-      CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\.continuous-integration\\appveyor\\windows_sdk.cmd"
+      CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-helpers\\appveyor\\windows_sdk"
       PYTHON_ARCH: "64" # needs to be set for CMD_IN_ENV to succeed. If a mix
                         # of 32 bit and 64 bit builds are needed, move this
                         # to the matrix section.
+      CONDA_DEPENDENCIES: "Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautiful-soup"
 
   matrix:
 
@@ -26,23 +27,11 @@ platform:
     -x64
 
 install:
-    # Install miniconda using a powershell script.
-    - "powershell .continuous-integration/appveyor/install-miniconda.ps1"
+    - "git clone git://github.com/astropy/ci-helpers.git"
+    - "powershell ci-helpers/appveyor/install-miniconda.ps1"
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
 
-    # Install the build and runtime dependencies of the project.
-    - "conda update --yes conda"
-    # Create a conda environment using the astropy bonus packages
-    - "conda create -q --yes -n test -c astropy-ci-extras python=%PYTHON_VERSION%"
-    - "activate test"
-
-    # Check that we have the expected version of Python
-    - "python --version"
-
-    # Install specified version of numpy and dependencies
-    - "conda install -q --yes numpy=%NUMPY_VERSION% pytest Cython scipy h5py beautiful-soup jinja2 pyyaml scikit-image hdf5=1.8.13 pytz"
-
-# Not a .NET project, we build SunPy in the install step instead
+# Not a .NET project, we build Astropy in the install step instead
 build: false
 
 test_script:
