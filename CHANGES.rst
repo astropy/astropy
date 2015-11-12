@@ -116,6 +116,8 @@ Bug Fixes
 
 - ``astropy.table``
 
+  - Fix a bug when pickling a Table with mixin columns (e.g. Time). [#4098]
+
 - ``astropy.time``
 
 - ``astropy.units``

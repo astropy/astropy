@@ -320,7 +320,9 @@ class Table(object):
             raise TypeError("masked property has not been set to True or False")
 
     def __getstate__(self):
-        return (self.columns.values(), self.meta)
+        columns = OrderedDict((key, col if isinstance(col, BaseColumn) else col_copy(col))
+                              for key, col in self.columns.items())
+        return (columns, self.meta)
 
     def __setstate__(self, state):
         columns, meta = state
@@ -2075,8 +2077,3 @@ class QTable(Table):
         If ``col`` is a string then it refers to a column name in this table.
         """
         return super(QTable, self)._is_mixin_column(col, quantity_is_mixin=True)
-
-    def __getstate__(self):
-        columns = dict((key, col if isinstance(col, BaseColumn) else col_copy(col))
-                for key, col in self.columns.items())
-        return (columns, self.meta)
