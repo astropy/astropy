@@ -17,10 +17,12 @@ coordinates (see :ref:`whatsnew-1.1-coords`), new functions to automatically
 determine histogram bins, including the Bayesian blocks algorithm (see
 :ref:`whatsnew-1.1-hist`), a new interface to transform between
 :class:`~astropy.table.Table` objects and pandas `DataFrame`_ objects (see
-:ref:`whatsnew-1.1-pandas`), support for new units, including logarithmic
-units such as magnitudes, dex, and decibels (see :ref:`whatsnew-1.1-units`),
-and support for the Planck 2015 cosmology and significant performance
-improvements in the cosmology sub-package (see :ref:`whatsnew-1.1-cosmo`).
+:ref:`whatsnew-1.1-pandas`), support for table indexing (see
+:ref:`whatsnew-1.1-table-indexing`), support for new units, including
+logarithmic units such as magnitudes, dex, and decibels (see
+:ref:`whatsnew-1.1-units`), and support for the Planck 2015 cosmology and
+significant performance improvements in the cosmology sub-package (see
+:ref:`whatsnew-1.1-cosmo`).
 
 In addition to these major changes, Astropy 1.1 includes a large number of
 smaller improvements and bug fixes, which are described in the
@@ -105,12 +107,16 @@ Bayesian models such as `Knuth's rule
                      fontdict=dict(family='monospace'), size=14)
 
 
-For more informtion, see the :ref:`astropy-visualization-hist` section.
+For more information, see the :ref:`astropy-visualization-hist` section.
+
+
+New features in table package
+-----------------------------
 
 .. _whatsnew-1.1-pandas:
 
 Table interface to Pandas
--------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The `pandas <http://pandas.pydata.org/>`__ package is a package for high
 performance data analysis of table-like structures that is complementary to
@@ -154,6 +160,37 @@ A pandas `DataFrame`_ can also easily be converted to an Astropy
         4       d
 
 For more information, see :ref:`pandas`.
+
+.. _whatsnew-1.1-table-indexing:
+
+Table indexing
+^^^^^^^^^^^^^^
+
+The table sub-package now supports creation of one or more table indices which
+internally sort the rows of the table based on the index column(s).  This
+concept is commonly used in database tables to enhance performance and ensure
+data integrity.
+
+The astropy implementation of indexing provides methods for creating the index,
+accessing rows based on key value or location in the sorted index, and
+maintaining the index when the table is updated (for instance by adding a new
+data row).
+
+As an example, to create an index on a table and retrieve a value::
+
+   >>> from astropy.table import Table
+   >>> t = Table(rows=[('Mary', 48),
+                       ('Jim', 37),
+                       ('Jane', 26),
+                       ('Fred', 50)],
+                 names=('name', 'age'))
+   >>> t.add_index('name')
+   >>> t.loc['Jim']['age']
+   37
+
+Note that the table indexing engine is new and is not yet considered stable, so
+it is not recommended for use in production code at this time.  For more
+information, see :ref:`table-indexing`.
 
 .. _whatsnew-1.1-units:
 
