@@ -10,7 +10,7 @@ environment:
       PYTHON_ARCH: "64" # needs to be set for CMD_IN_ENV to succeed. If a mix
                         # of 32 bit and 64 bit builds are needed, move this
                         # to the matrix section.
-      CONDA_DEPENDENCIES: "Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautiful-soup hdf5=1.8.13"
+      CONDA_DEPENDENCIES: "Cython scipy h5py beautiful-soup jinja2 pyyaml scikit-image hdf5=1.8.13 pytz"
 
   matrix:
 
