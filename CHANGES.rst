@@ -666,7 +666,7 @@ Bug fixes
 
 - ``astropy.constants``
 
-  - The constants ``Ry`` and ``u`` are now properly used inside the 
+  - The constants ``Ry`` and ``u`` are now properly used inside the
     corresponding units.  The latter have changed slightly as a result. [#4229]
 
 - ``astropy.convolution``
