@@ -44,9 +44,10 @@ matrix:
           env: PYTHON_VERSION=2.7 SETUP_CMD='test'
 
         # Check for sphinx doc build warnings - we do this first because it
-        # runs for a long time
+        # runs for a long time. WCSAxes is a dependency for the docs.
         - os: linux
           env: PYTHON_VERSION=2.7 SETUP_CMD='build_sphinx -w'
+               PIP_DEPENDENCIES='beautifulsoup4 wcsaxes'
 
         # Try all python versions with the latest numpy, but without the
         # optional dependencies
