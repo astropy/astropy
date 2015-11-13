@@ -20,6 +20,7 @@ from .. import (EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz,
 from ..._erfa import epv00
 
 from .utils import randomly_sample_sphere
+from ..builtin_frames.utils import get_jd12
 
 def test_icrs_cirs():
     """
@@ -401,7 +402,7 @@ def test_icrs_altaz_moonish(testframe):
     right AltAz distance
     """
     # we use epv00 instead of get_sun because get_sun includes aberration
-    earth_pv_helio, earth_pv_bary = epv00(testframe.obstime.tdb.jd1, testframe.obstime.tdb.jd2)
+    earth_pv_helio, earth_pv_bary = epv00(*get_jd12(testframe.obstime, 'tdb'))
     earth_icrs_xyz = earth_pv_bary[0]*u.au
     moonoffset = [0, 0, MOONDIST.value]*MOONDIST.unit
     moonish_icrs = ICRS(CartesianRepresentation(earth_icrs_xyz + moonoffset))
