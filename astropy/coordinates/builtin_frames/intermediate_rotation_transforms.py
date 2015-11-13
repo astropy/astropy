@@ -18,37 +18,29 @@ from ... import _erfa as erfa
 from .gcrs import GCRS, PrecessedGeocentric
 from .cirs import CIRS
 from .itrs import ITRS
-from .utils import get_polar_motion, get_dut1utc
+from .utils import get_polar_motion, get_dut1utc, get_jd12
 
 # # first define helper functions
 def gcrs_to_cirs_mat(time):
     #celestial-to-intermediate matrix
-    time_tt = time if time.scale == 'tt' else time.tt
-    return erfa.c2i06a(time_tt.jd1, time_tt.jd2)
+    return erfa.c2i06a(*get_jd12(time, 'tt'))
 
 def cirs_to_itrs_mat(time):
     #compute the polar motion p-matrix
     xp, yp = get_polar_motion(time)
-    time_tt = time if time.scale == 'tt' else time.tt
-    sp = erfa.sp00(time_tt.jd1, time_tt.jd2)
+    sp = erfa.sp00(*get_jd12(time, 'tt'))
     pmmat = erfa.pom00(xp, yp, sp)
 
     #now determine the Earth Rotation Angle for the input obstime
     # era00 accepts UT1, so we convert if need be
-    if time.scale == 'ut1':
-        time_ut1 = time
-    else:
-        time.delta_ut1_utc = get_dut1utc(time)
-        time_ut1 = time.ut1
-    era = erfa.era00(time_ut1.jd1, time_ut1.jd2)
+    era = erfa.era00(*get_jd12(time, 'ut1'))
 
     #c2tcio expects a GCRS->CIRS matrix, but we just set that to an I-matrix
     #because we're already in CIRS
     return erfa.c2tcio(np.eye(3), era, pmmat)
 
 def gcrs_precession_mat(equinox):
-    eqx_tt = equinox if equinox.scale == 'tt' else equinox.tt
-    gamb, phib, psib, epsa = erfa.pfw06(eqx_tt.jd1, eqx_tt.jd2)
+    gamb, phib, psib, epsa = erfa.pfw06(*get_jd12(equinox, 'tt'))
     return erfa.fw2m(gamb, phib, psib, epsa)
 
 

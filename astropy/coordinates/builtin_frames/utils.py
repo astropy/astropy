@@ -107,3 +107,32 @@ def get_dut1utc(time):
         msg = e.args[0] + ' Assuming UT1-UTC=0 for coordinate transformations.' + _IERS_HINT
         warnings.warn(msg, AstropyWarning)
         return np.zeros(time.shape)
+
+def get_jd12(time, scale):
+    """
+    Gets ``jd1`` and ``jd2`` from a time object in a particular scale.
+
+    Parameters
+    ----------
+    time : `~astropy.time.Time`
+        The time to get the jds for
+    scale : str
+        The time scale to get the jds for
+
+    Returns
+    -------
+    jd1 : float
+    jd2 : float
+    """
+    if time.scale == scale:
+        newtime = time
+    elif time.scale == 'ut1' or scale == 'ut1':
+        olddt = time.delta_ut1_utc
+        time.delta_ut1_utc = get_dut1utc(time)
+        newtime = getattr(time, scale)
+        time.delta_ut1_utc =  olddt  # ensures no changes to the input `time`
+    else:
+        newtime = getattr(time, scale)
+
+    return newtime.jd1, newtime.jd2
+
