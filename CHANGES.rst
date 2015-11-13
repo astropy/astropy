@@ -865,7 +865,7 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
-  - Pickling of ``EarthLocation`` instances now also works on python3. [#4304]
+  - Pickling of ``EarthLocation`` instances now also works on Python 2. [#4304]
 
 - ``astropy.cosmology``
 
