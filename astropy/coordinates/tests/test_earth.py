@@ -8,6 +8,7 @@ from __future__ import (absolute_import, division, print_function,
 
 """Test initialization of angles not already covered by the API tests"""
 
+import pickle
 import numpy as np
 
 from ..earth import EarthLocation, ELLIPSOIDS
@@ -248,3 +249,11 @@ class TestInput():
             assert allclose_m14(location.z.value, self.z.value)
         else:
             assert not np.all(isclose_m14(location.z.value, self.z.value))
+
+
+def test_pickling():
+    """Regression test against #4304."""
+    el = EarthLocation(0.*u.m, 6000*u.km, 6000*u.km)
+    s = pickle.dumps(el)
+    el2 = pickle.loads(s)
+    assert el == el2
