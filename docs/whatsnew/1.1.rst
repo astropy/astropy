@@ -252,6 +252,19 @@ optional `~astropy.wcs.WCS` object is input, then the
 
 For more information, see :ref:`cutout_images`.
 
+Other significant changes
+-------------------------
+
+The :ref:`astropy-wcs` sub-package now supports (and includes) WCSLIB 5.x,
+which implements support for the distortion representations described in
+[Paper IV: Representations of distortions in FITS world coordinate
+systems](http://www.atnf.csiro.au/people/mcalabre/WCS/) by Calabretta et al,
+including TPV and SIP. Note that for now, Astropy still uses a custom
+implementation of the SIP distortions rather than the ones from WCSLIB, but
+we plan to change this over in the future.
+
+The :ref:`astropy-time` sub-package now includes support for time strings
+formatted using the FITS convention, e.g. ``'2000-01-02T03:04:05(TDB)'``.
 
 Full change log
 ---------------
