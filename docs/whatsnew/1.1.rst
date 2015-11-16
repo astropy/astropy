@@ -18,11 +18,12 @@ determine histogram bins, including the Bayesian blocks algorithm (see
 :ref:`whatsnew-1.1-hist`), a new interface to transform between
 :class:`~astropy.table.Table` objects and pandas `DataFrame`_ objects (see
 :ref:`whatsnew-1.1-pandas`), support for table indexing (see
-:ref:`whatsnew-1.1-table-indexing`), support for new units, including
-logarithmic units such as magnitudes, dex, and decibels (see
-:ref:`whatsnew-1.1-units`), and support for the Planck 2015 cosmology and
-significant performance improvements in the cosmology sub-package (see
-:ref:`whatsnew-1.1-cosmo`).
+:ref:`whatsnew-1.1-table-indexing`), a new ``info`` attribute to get summary
+information about tables and columns (:ref:`whatsnew-1.1-table-info`), support
+for new units, including logarithmic units such as magnitudes, dex, and
+decibels (see :ref:`whatsnew-1.1-units`), and support for the Planck 2015
+cosmology and significant performance improvements in the cosmology sub-package
+(see :ref:`whatsnew-1.1-cosmo`).
 
 In addition to these major changes, Astropy 1.1 includes a large number of
 smaller improvements and bug fixes, which are described in the
@@ -191,6 +192,32 @@ As an example, to create an index on a table and retrieve a value::
 Note that the table indexing engine is new and is not yet considered stable, so
 it is not recommended for use in production code at this time.  For more
 information, see :ref:`table-indexing`.
+
+.. _whatsnew-1.1-table-info:
+
+Table and column info
+^^^^^^^^^^^^^^^^^^^^^
+
+The table sub-package now supports a flexible mechanism to return summary
+information about a table and columns.  For the table of ages defined above::
+
+   >>> t.info
+   <Table length=4>
+   name dtype
+   ---- -----
+   name  str4
+    age int64
+
+   >>> t['age'].info('stats')
+   name = age
+   mean = 40.25
+   std = 9.60143218484
+   min = 26
+   max = 50
+   n_bad = 0
+   length = 4
+
+For more information, see :ref:`table-summary-information`.
 
 .. _whatsnew-1.1-units:
 
