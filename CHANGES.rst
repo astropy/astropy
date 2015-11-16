@@ -450,6 +450,9 @@ New Features
 
 - ``astropy.visualization``
 
+  - Added a function / context manager ``quantity_support`` for enabling
+    seamless ploting of ``Quantity`` instances in matplotlib. [#3981]
+
   - Added the ``hist`` function, which is similar to ``plt.hist`` but
     includes several additional options for automatic determination of optimal
     histogram bins. This functionality was ported from the astroML_ library.
