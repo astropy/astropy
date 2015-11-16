@@ -13,7 +13,8 @@ from ..builtin_frames import (ICRS, FK5, FK4, FK4NoETerms, Galactic,
 from .. import SkyCoord
 from ...tests.helper import (pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
-from .. import Earthlocation
+from .utils import randomly_sample_sphere
+from .. import EarthLocation
 from ...time import Time
 
 # used below in the next parametrized test
