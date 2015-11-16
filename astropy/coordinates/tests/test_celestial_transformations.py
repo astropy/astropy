@@ -13,7 +13,6 @@ from ..builtin_frames import (ICRS, FK5, FK4, FK4NoETerms, Galactic,
 from .. import SkyCoord
 from ...tests.helper import (pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
-from .utils import randomly_sample_sphere
 from .. import EarthLocation
 from ...time import Time
 
@@ -171,7 +170,8 @@ def test_supergalactic():
     supergalactic = Supergalactic(sgl=-174.44*u.degree, sgb=+46.17*u.degree)
     icrs = SkyCoord('17h51m36s -25d18m52s')
     assert supergalactic.separation(icrs) < 0.005 * u.degree
-    
+ 
+@remote_data    
 def test_heliocentric():
     """
     Check GCRS<->Heliocentric coordinate conversion for WHT observing site
@@ -188,6 +188,7 @@ def test_heliocentric():
     difference = np.linalg.norm((helio.cartesian.xyz-helio_slalib).to(u.km))
     assert difference < 14.0
     
+@remote_data
 def test_barycentric():
     """
     Check GCRS<->ICRS coordinate conversion for WHT observing site
