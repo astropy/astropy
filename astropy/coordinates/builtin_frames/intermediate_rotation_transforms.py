@@ -18,21 +18,35 @@ from ... import _erfa as erfa
 from .gcrs import GCRS, PrecessedGeocentric
 from .cirs import CIRS
 from .itrs import ITRS
-from .utils import get_polar_motion
+from .utils import get_polar_motion, get_dut1utc
 
 # # first define helper functions
 def gcrs_to_cirs_mat(time):
-    #felestial-to-intermediate matrix
-    return erfa.c2i06a(time.jd1, time.jd2)
+    #celestial-to-intermediate matrix
+    if time.scale != 'tt':
+        time_tt = time.tt
+    else:
+        time_tt = time
+    return erfa.c2i06a(time_tt.jd1, time_tt.jd2)
 
 def cirs_to_itrs_mat(time):
     #compute the polar motion p-matrix
     xp, yp = get_polar_motion(time)
-    sp = erfa.sp00(time.jd1, time.jd2)
+    if time.scale != 'tt':
+        time_tt = time.tt
+    else:
+        time_tt = time    
+    sp = erfa.sp00(time_tt.jd1, time_tt.jd2)
     pmmat = erfa.pom00(xp, yp, sp)
 
     #now determine the Earth Rotation Angle for the input obstime
-    era = erfa.era00(time.jd1, time.jd2)
+    # this should be UT1 used here.
+    if time.scale != 'ut1':
+        time.delta_ut1_utc = get_dut1utc(time)
+        time_ut1 = time.ut1    
+        era = erfa.era00(time_ut1.jd1, time_ut1.jd2)
+    else:
+        era = erfa.era00(time.jd1, time.jd2)
 
     #c2tcio expects a GCRS->CIRS matrix, but we just set that to an I-matrix
     #because we're already in CIRS
