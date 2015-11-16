@@ -9,7 +9,7 @@ from ...tests.helper import (pytest, quantity_allclose as allclose,
 from .. import Time
 
 def test_corrections():
-    from .. import coordinates as coord, units as u
+    from ... import coordinates as coord, units as u
     wht  = coord.EarthLocation.of_site('lapalma')
     star = coord.SkyCoord("08:08:08 +32:00:00",distance=120*u.pc,unit=(u.hour,u.degree),frame='icrs')
     t = Time("2013-02-02T23:00")
