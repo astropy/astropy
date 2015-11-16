@@ -198,8 +198,7 @@ class TimeFormat(object):
         """
         raise NotImplementedError
 
-    @property
-    def value(self):
+    def value(self, parent=None):
         """
         Return time representation from internal jd1 and jd2.  Must be
         provided by derived classes.
@@ -220,8 +219,7 @@ class TimeJD(TimeFormat):
         self._check_scale(self._scale)  # Validate scale.
         self.jd1, self.jd2 = day_frac(val1, val2)
 
-    @property
-    def value(self):
+    def value(self, parent=None):
         return self.jd1 + self.jd2
 
 
@@ -242,8 +240,7 @@ class TimeMJD(TimeFormat):
         self.jd1, self.jd2 = day_frac(val1, val2)
         self.jd1 += erfa.DJM0  # erfa.DJM0=2400000.5 (from erfam.h)
 
-    @property
-    def value(self):
+    def value(self, parent=None):
         return (self.jd1 - erfa.DJM0) + self.jd2
 
 
@@ -286,8 +283,7 @@ class TimeDecimalYear(TimeFormat):
 
         self.jd1, self.jd2 = day_frac(t_frac.jd1, t_frac.jd2)
 
-    @property
-    def value(self):
+    def value(self, parent=None):
         scale = self.scale.upper().encode('ascii')
         iy_start, ims, ids, ihmsfs = erfa.d2dtf(scale, 0,  # precision=0
                                                 self.jd1, self.jd2)
@@ -370,13 +366,20 @@ class TimeFromEpoch(TimeFormat):
         self.jd1 = tm._time.jd1
         self.jd2 = tm._time.jd2
 
-    @property
-    def value(self):
-        # when we get here, getattr will already have ensured our scale
-        # equals epoch scale, so we can just subtract the epoch and convert
-        time_from_epoch = ((self.jd1 - self.epoch.jd1) +
-                           (self.jd2 - self.epoch.jd2)) / self.unit
+    def value(self, parent=None):
+        # Make sure that scale is the same as epoch scale so we can just
+        # subtract the epoch and convert
+        if self.scale != self.epoch_scale:
+            tm = parent.replicate()
+            tm._set_scale(self.epoch_scale)
+            jd1, jd2 = tm._time.jd1, tm._time.jd2
+        else:
+            jd1, jd2 = self.jd1, self.jd2
+
+        time_from_epoch = ((jd1 - self.epoch.jd1) +
+                           (jd2 - self.epoch.jd2)) / self.unit
         return time_from_epoch
+
 
 
 class TimeUnix(TimeFromEpoch):
@@ -594,7 +597,9 @@ class TimeDatetime(TimeUnique):
                 out[...] = datetime.datetime(iy, im, id, ihr, imin, isec, ifracsec)
         return iterator.operands[-1]
 
-    value = property(to_value)
+    def value(self, parent=None):
+        return self.to_value()
+
 
 class TimezoneInfo(datetime.tzinfo):
     """
@@ -758,8 +763,7 @@ class TimeString(TimeUnique):
         """
         return str_fmt.format(**kwargs)
 
-    @property
-    def value(self):
+    def value(self, parent=None):
         # Select the first available subformat based on current
         # self.out_subfmt
         subfmts = self._select_subfmts(self.out_subfmt)
@@ -967,8 +971,7 @@ class TimeFITS(TimeString):
         else:
             return '{0}({1})'.format(time_str, self._scale.upper())
 
-    @property
-    def value(self):
+    def value(self, parent=None):
         """Convert times to strings, using signed 5 digit if necessary."""
         if 'long' not in self.out_subfmt:
             # If we have times before year 0 or after year 9999, we can
@@ -976,7 +979,7 @@ class TimeFITS(TimeString):
             jd = self.jd1 + self.jd2
             if jd.min() < 1721425.5 or jd.max() >= 5373484.5:
                 self.out_subfmt = 'long' + self.out_subfmt
-        return super(TimeFITS, self).value
+        return super(TimeFITS, self).value()
 
 
 class TimeEpochDate(TimeFormat):
@@ -989,8 +992,7 @@ class TimeEpochDate(TimeFormat):
         jd1, jd2 = epoch_to_jd(val1 + val2)
         self.jd1, self.jd2 = day_frac(jd1, jd2)
 
-    @property
-    def value(self):
+    def value(self, parent=None):
         jd_to_epoch = getattr(erfa, self.jd_to_epoch)
         return jd_to_epoch(self.jd1, self.jd2)
 
@@ -1044,8 +1046,7 @@ class TimeEpochDateString(TimeString):
         epoch_to_jd = getattr(erfa, self.epoch_to_jd)
         self.jd1, self.jd2 = epoch_to_jd(iterator.operands[-1])
 
-    @property
-    def value(self):
+    def value(self, parent=None):
         jd_to_epoch = getattr(erfa, self.jd_to_epoch)
         years = jd_to_epoch(self.jd1, self.jd2)
         # Use old-style format since it is a factor of 2 faster
@@ -1093,8 +1094,7 @@ class TimeDeltaFormat(TimeFormat):
         self._check_scale(self._scale)  # Validate scale.
         self.jd1, self.jd2 = day_frac(val1, val2, divisor=1./self.unit)
 
-    @property
-    def value(self):
+    def value(self, parent=None):
         return (self.jd1 + self.jd2) / self.unit
 
 
