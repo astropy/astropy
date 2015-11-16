@@ -9,10 +9,11 @@ import numpy as np
 from ... import units as u
 from ..distances import Distance
 from ..builtin_frames import (ICRS, FK5, FK4, FK4NoETerms, Galactic,
-                              Supergalactic, Galactocentric)
+                              Supergalactic, Galactocentric, HCRS)
 from .. import SkyCoord
 from ...tests.helper import (pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
+from .. import Earthlocation
 from ...time import Time
 
 # used below in the next parametrized test
@@ -169,3 +170,36 @@ def test_supergalactic():
     supergalactic = Supergalactic(sgl=-174.44*u.degree, sgb=+46.17*u.degree)
     icrs = SkyCoord('17h51m36s -25d18m52s')
     assert supergalactic.separation(icrs) < 0.005 * u.degree
+    
+def test_heliocentric():
+    """
+    Check GCRS<->Heliocentric coordinate conversion for WHT observing site
+    """
+    wht = EarthLocation.of_site('lapalma')
+    t = Time("2013-02-02T23:00")
+    itrs = wht.get_itrs(obstime=t)
+    helio = itrs.transform_to(HCRS(obstime=t))
+    assert allclose(helio.cartesian.xyz,\
+        u.Quantity([ -1.02597256e+11,  9.71725820e+10,  4.21268419e+10],unit=u.m))
+        
+    # now we test against SLALIB answer, should agree to within 14km
+    helio_slalib = u.Quantity([-0.685820296, 0.6495585893, 0.2816005464],unit=u.au)
+    difference = np.linalg.norm((helio.cartesian.xyz-helio_slalib).to(u.km))
+    assert difference < 14.0
+    
+def test_barycentric():
+    """
+    Check GCRS<->ICRS coordinate conversion for WHT observing site
+    """
+    wht = EarthLocation.of_site('lapalma')
+    t = Time("2013-02-02T23:00")
+    itrs = wht.get_itrs(obstime=t)
+    gcrs = itrs.transform_to(GCRS(obstime=t))
+    bary = gcrs.transform_to(ICRS())
+    assert allclose(bary.cartesian.xyz,\
+        u.Quantity([ -1.02758958e+11,  9.68331109e+10,  4.19720938e+10],unit=u.m))
+        
+    # now we test against SLALIB answer, should agree to within 14km
+    bary_slalib = u.Quantity([-0.6869012079, 0.6472893646, 0.2805661191],unit=u.au)
+    difference = np.linalg.norm((bary.cartesian.xyz-bary_slalib).to(u.km))
+    assert difference < 14.0

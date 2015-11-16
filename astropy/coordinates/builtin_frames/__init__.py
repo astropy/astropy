@@ -34,6 +34,7 @@ from .altaz import AltAz
 from .gcrs import GCRS, PrecessedGeocentric
 from .cirs import CIRS
 from .itrs import ITRS
+from .heliocentric import Heliocentric
 from .ecliptic import GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic
 
 #need to import transformations so that they get registered in the graph
@@ -48,7 +49,7 @@ from . import ecliptic_transforms
 
 # we define an __all__ because otherwise the transformation modules get included
 __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
-           'Supergalactic', 'AltAz', 'GCRS', 'CIRS', 'ITRS',
+           'Supergalactic', 'AltAz', 'GCRS', 'CIRS', 'ITRS','Heliocentric',
            'PrecessedGeocentric', 'GeocentricTrueEcliptic',
            'BarycentricTrueEcliptic', 'HeliocentricTrueEcliptic']
 

@@ -19,11 +19,10 @@ from ... import _erfa as erfa
 from .icrs import ICRS
 from .gcrs import GCRS
 from .cirs import CIRS
+from .heliocentric import Heliocentric
 from .utils import get_jd12
 
-
 #first the ICRS/CIRS related transforms
-
 @frame_transform_graph.transform(FunctionTransform, ICRS, CIRS)
 def icrs_to_cirs(icrs_coo, cirs_frame):
     #first set up the astrometry context for ICRS<->CIRS
@@ -112,6 +111,7 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
     #first set up the astrometry context for ICRS<->GCRS
     pv = np.array([gcrs_frame.obsgeoloc.value,
                    gcrs_frame.obsgeovel.value])
+
     jd1, jd2 = get_jd12(gcrs_frame.obstime, 'tdb')
     astrom = erfa.apcs13(jd1, jd2, pv)
 
@@ -143,8 +143,7 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
                                          distance=srepr.distance, copy=False)
 
     return gcrs_frame.realize_frame(newrep)
-
-
+            
 @frame_transform_graph.transform(FunctionTransform, GCRS, ICRS)
 def gcrs_to_icrs(gcrs_coo, icrs_frame):
     srepr = gcrs_coo.represent_as(UnitSphericalRepresentation)
@@ -157,6 +156,7 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
                    gcrs_coo.obsgeovel.value])
     jd1, jd2 = get_jd12(gcrs_coo.obstime, 'tdb')
     astrom = erfa.apcs13(jd1, jd2, pv)
+
     i_ra, i_dec = erfa.aticq(gcrs_ra, gcrs_dec, astrom)
 
     if gcrs_coo.data.get_name() == 'unitspherical'  or gcrs_coo.data.to_cartesian().x.unit == u.one:
@@ -184,6 +184,58 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
 
 @frame_transform_graph.transform(FunctionTransform, GCRS, GCRS)
 def gcrs_to_gcrs(from_coo, to_frame):
+    if np.all(from_coo.obstime == to_frame.obstime):
+        return to_frame.realize_frame(from_coo.data)
+    else:
+        # like CIRS, we do this self-transform via ICRS
+        return from_coo.transform_to(ICRS).transform_to(to_frame)
+
+@frame_transform_graph.transform(FunctionTransform, GCRS, Heliocentric)
+def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
+
+    if np.any(gcrs_coo.obstime != hcrs_frame.obstime):
+        # if they GCRS obstime and HCRS obstime are not the same, we first
+        # have to move to a GCRS where they are.
+        frameattrs = gcrs_coo.get_frame_attr_names()
+        frameattrs['obstime'] = hcrs_frame.obstime
+        gcrs_coo = gcrs_coo.transform_to(GCRS(**frameattrs))
+        
+    srepr = gcrs_coo.represent_as(UnitSphericalRepresentation)
+    gcrs_ra = srepr.lon.to(u.radian).value
+    gcrs_dec = srepr.lat.to(u.radian).value
+
+    # set up the astrometry context for ICRS<->GCRS and then convert to ICRS
+    # coordinate direction
+    pv = np.array([gcrs_coo.obsgeoloc.value,
+                   gcrs_coo.obsgeovel.value])
+    tdb = hcrs_frame.obstime.tdb
+    astrom = erfa.apcs13(tdb.jd1, tdb.jd2, pv)
+    i_ra, i_dec = erfa.aticq(gcrs_ra, gcrs_dec, astrom)
+
+    if gcrs_coo.data.get_name() == 'unitspherical'  or gcrs_coo.data.to_cartesian().x.unit == u.one:
+        # if no distance, just use the coordinate direction to yield the
+        # infinite-distance/no parallax answer
+        newrep = UnitSphericalRepresentation(lat=u.Quantity(i_dec, u.radian, copy=False),
+                                             lon=u.Quantity(i_ra, u.radian, copy=False),
+                                             copy=False)
+    else:
+        # When there is a distance, apply the parallax/offset to the Heliocentre as the
+        # last step - ensures round-tripping with the hcrs_to_gcrs transform
+
+        # the distance in intermedrep is *not* a real distance as it does not
+        # include the offset back to the Heliocentre
+        intermedrep = SphericalRepresentation(lat=u.Quantity(i_dec, u.radian, copy=False),
+                                              lon=u.Quantity(i_ra, u.radian, copy=False),
+                                              distance=gcrs_coo.distance,
+                                              copy=False)
+
+        newxyz = intermedrep.to_cartesian().xyz.T + astrom['eh']*astrom['em']*u.au
+        newrep = CartesianRepresentation(newxyz.T).represent_as(SphericalRepresentation)
+
+    return hcrs_frame.realize_frame(newrep)
+
+@frame_transform_graph.transform(FunctionTransform, Heliocentric, Heliocentric)
+def hcrs_to_hcrs(from_coo, to_frame):
     if np.all(from_coo.obstime == to_frame.obstime):
         return to_frame.realize_frame(from_coo.data)
     else:
