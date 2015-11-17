@@ -584,11 +584,16 @@ class TestSubFormat():
         assert t2.value == '1998-01-01 00:00:00.000'
 
         # Value take from Chandra.Time.DateTime('2010:001:00:00:00').secs
-        t = Time(378691266.184, format='cxcsec', scale='utc')
+        t_cxcsec = 378691266.184
+        t = Time(t_cxcsec, format='cxcsec', scale='utc')
+        assert allclose_sec(t.value, t_cxcsec)
+        assert allclose_sec(t.cxcsec, t_cxcsec)
+        assert allclose_sec(t.tt.value, t_cxcsec)
+        assert allclose_sec(t.tt.cxcsec, t_cxcsec)
         assert t.yday == '2010:001:00:00:00.000'
         t = Time('2010:001:00:00:00.000', scale='utc')
-        assert allclose_sec(t.cxcsec, 378691266.184)
-        assert allclose_sec(t.tt.cxcsec, 378691266.184)
+        assert allclose_sec(t.cxcsec, t_cxcsec)
+        assert allclose_sec(t.tt.cxcsec, t_cxcsec)
 
         # Value from:
         #   d = datetime.datetime(2000, 1, 1)
@@ -815,6 +820,7 @@ def test_datetime_tzinfo():
     d = datetime(2002, 1, 2, 10, 3, 4, tzinfo=TZm6())
     t = Time(d)
     assert t.value == datetime(2002, 1, 2, 16, 3, 4)
+
 
 def test_isiterable():
     """
