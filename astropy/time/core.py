@@ -536,7 +536,7 @@ class Time(object):
     @property
     def value(self):
         """Time value(s) in current format"""
-        return self._shaped_like_input(self._time.value)
+        return self._shaped_like_input(self._time.to_value(parent=self))
 
     def sidereal_time(self, kind, longitude=None, model=None):
         """Calculate sidereal time.
@@ -1055,8 +1055,6 @@ class Time(object):
 
         elif attr in self.FORMATS:
             tm = self.replicate(format=attr)
-            if hasattr(self.FORMATS[attr], 'epoch_scale'):
-                tm._set_scale(self.FORMATS[attr].epoch_scale)
             return tm.value
 
         elif attr in TIME_SCALES:  # allowed ones done above (self.SCALES)

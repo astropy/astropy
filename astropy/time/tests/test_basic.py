@@ -661,11 +661,16 @@ class TestSubFormat():
         assert t2.value == '1998-01-01 00:00:00.000'
 
         # Value take from Chandra.Time.DateTime('2010:001:00:00:00').secs
-        t = Time(378691266.184, format='cxcsec', scale='utc')
+        t_cxcsec = 378691266.184
+        t = Time(t_cxcsec, format='cxcsec', scale='utc')
+        assert allclose_sec(t.value, t_cxcsec)
+        assert allclose_sec(t.cxcsec, t_cxcsec)
+        assert allclose_sec(t.tt.value, t_cxcsec)
+        assert allclose_sec(t.tt.cxcsec, t_cxcsec)
         assert t.yday == '2010:001:00:00:00.000'
         t = Time('2010:001:00:00:00.000', scale='utc')
-        assert allclose_sec(t.cxcsec, 378691266.184)
-        assert allclose_sec(t.tt.cxcsec, 378691266.184)
+        assert allclose_sec(t.cxcsec, t_cxcsec)
+        assert allclose_sec(t.tt.cxcsec, t_cxcsec)
 
         # Value from:
         #   d = datetime.datetime(2000, 1, 1)
@@ -930,7 +935,7 @@ def test_set_format_basic():
     """
     for format, value in (('jd', 2451577.5),
                           ('mjd', 51577.0),
-                          ('cxcsec', 65923200.0),
+                          ('cxcsec', 65923264.184),  # confirmed with Chandra.Time
                           ('datetime', datetime.datetime(2000, 2, 3, 0, 0)),
                           ('iso', '2000-02-03 00:00:00.000')):
         t = Time('+02000-02-03', format='fits')

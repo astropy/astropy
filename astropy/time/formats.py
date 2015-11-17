@@ -205,12 +205,18 @@ class TimeFormat(object):
         """
         raise NotImplementedError
 
+    def to_value(self, parent=None):
+        """
+        Return time representation from internal jd1 and jd2.  This is
+        the base method that ignores ``parent`` and requires that
+        subclasses implement the ``value`` property.  Subclasses that
+        require ``parent`` or have other optional args for ``to_value``
+        should compute and return the value directly.
+        """
+        return self.value
+
     @property
     def value(self):
-        """
-        Return time representation from internal jd1 and jd2.  Must be
-        provided by derived classes.
-        """
         raise NotImplementedError
 
 
@@ -375,13 +381,22 @@ class TimeFromEpoch(TimeFormat):
         self.jd1 = tm._time.jd1
         self.jd2 = tm._time.jd2
 
-    @property
-    def value(self):
-        # when we get here, getattr will already have ensured our scale
-        # equals epoch scale, so we can just subtract the epoch and convert
-        time_from_epoch = ((self.jd1 - self.epoch.jd1) +
-                           (self.jd2 - self.epoch.jd2)) / self.unit
+    def to_value(self, parent=None):
+        # Make sure that scale is the same as epoch scale so we can just
+        # subtract the epoch and convert
+        if self.scale != self.epoch_scale:
+            if parent is None:
+                raise ValueError('cannot compute value without parent Time object')
+            tm = getattr(parent, self.epoch_scale)
+            jd1, jd2 = tm._time.jd1, tm._time.jd2
+        else:
+            jd1, jd2 = self.jd1, self.jd2
+
+        time_from_epoch = ((jd1 - self.epoch.jd1) +
+                           (jd2 - self.epoch.jd2)) / self.unit
         return time_from_epoch
+
+    value = property(to_value)
 
 
 class TimeUnix(TimeFromEpoch):
@@ -556,7 +571,7 @@ class TimeDatetime(TimeUnique):
         self.jd1, self.jd2 = erfa_time.dtf_jd(
             self.scale.upper().encode('utf8'), *iterator.operands[1:])
 
-    def to_value(self, timezone=None):
+    def to_value(self, timezone=None, parent=None):
         """
         Convert to (potentially timezone-aware) `~datetime.datetime` object.
 
