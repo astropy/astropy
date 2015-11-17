@@ -13,9 +13,9 @@ class Heliocentric(BaseCoordinateFrame):
     A coordinate or frame in a Heliocentric system.
 
     This coordinate system is distinct form ICRS mainly in that it is relative 
-    to the Earth's center-of-mass rather than the solar system Barycenter.  
+    to the Sun's center-of-mass rather than the solar system Barycenter.  
     That means this frame should include the effects of abberation (unlike ICRS).
-    Abberation is currently not included, since it is of the order of 50 micro-arcseconds.
+    Abberation is currently not included, since it is of the order of 8 milli-arcseconds.
 
     For more background on the ICRS and related coordinate transformations, see the
     references provided in the  :ref:`astropy-coordinates-seealso` section of the
