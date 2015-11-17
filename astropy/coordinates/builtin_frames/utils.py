@@ -95,6 +95,17 @@ def get_polar_motion(time):
     return xp.to(u.radian).value, yp.to(u.radian).value
 
 
+def _warn_iers(ierserr):
+    """
+    Generate a warning for an IERSRangeerror
+
+    Parameters
+    ----------
+    ierserr : An `~astropy.utils.iers.IERSRangeError`
+    """
+    msg = '{0} Assuming UT1-UTC=0 for coordinate transformations.{1}'
+    warnings.warn(msg.format(ierserr.args[0], _IERS_HINT), AstropyWarning)
+
 def get_dut1utc(time):
     """
     This function is used to get UT1-UTC in coordinates because normally it
@@ -103,9 +114,8 @@ def get_dut1utc(time):
     """
     try:
         return time.delta_ut1_utc
-    except IndexError as e:
-        msg = e.args[0] + ' Assuming UT1-UTC=0 for coordinate transformations.' + _IERS_HINT
-        warnings.warn(msg, AstropyWarning)
+    except iers.IERSRangeError as e:
+        _warn_iers(e)
         return np.zeros(time.shape)
 
 def get_jd12(time, scale):
@@ -126,13 +136,12 @@ def get_jd12(time, scale):
     """
     if time.scale == scale:
         newtime = time
-    elif time.scale == 'ut1' or scale == 'ut1':
-        olddt = time.delta_ut1_utc
-        time.delta_ut1_utc = get_dut1utc(time)
-        newtime = getattr(time, scale)
-        time.delta_ut1_utc =  olddt  # ensures no changes to the input `time`
     else:
-        newtime = getattr(time, scale)
+        try:
+            newtime = getattr(time, scale)
+        except iers.IERSRangeError as e:
+            _warn_iers(e)
+            newtime = time
 
     return newtime.jd1, newtime.jd2
 
