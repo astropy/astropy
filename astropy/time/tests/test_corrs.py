@@ -4,7 +4,7 @@ import itertools
 
 import numpy as np
 
-from ...tests.helper import (pytest, quantity_allclose as allclose, remote_data
+from ...tests.helper import (pytest, quantity_allclose as allclose, remote_data,
                              assert_quantity_allclose as assert_allclose)
 from .. import Time
 
