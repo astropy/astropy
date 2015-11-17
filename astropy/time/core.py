@@ -529,7 +529,7 @@ class Time(object):
     @property
     def value(self):
         """Time value(s) in current format"""
-        return self._shaped_like_input(self._time._to_value(self))
+        return self._shaped_like_input(self._time.to_value(parent=self))
 
     def sidereal_time(self, kind, longitude=None, model=None):
         """Calculate sidereal time.
