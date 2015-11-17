@@ -816,6 +816,9 @@ New Features
 
 - ``astropy.time``
 
+  - Fix incorrect ``value`` attribute for epoch formats like "unix"
+    when ``scale`` is different from the class ``epoch_scale``. [#4313]
+
 - ``astropy.units``
 
 - ``astropy.utils``
