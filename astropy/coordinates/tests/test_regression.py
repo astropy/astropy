@@ -12,7 +12,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 
 from ... import units as u
-from .. import AltAz, EarthLocation, SkyCoord, get_sun, ICRS
+from .. import AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS
 from ...time import Time
 
 from ...tests.helper import pytest, assert_quantity_allclose
@@ -152,3 +152,32 @@ def test_regression_4210():
         eclobj.lon
         eclobj.distance
 
+
+def test_regression_futuretimes_4302(recwarn):
+    """
+    Checks that an error is not raised for future times not covered by IERS
+    tables (at least in a simple transform like CIRS->ITRS that simply requires
+    the UTC<->UT1 conversion).
+
+    Relevant comment: https://github.com/astropy/astropy/pull/4302#discussion_r44836531
+    """
+    from ...utils.exceptions import AstropyWarning
+
+    # this is an ugly hack to get the warning to show up even if it has already
+    # appeared
+    from ..builtin_frames import utils
+    if hasattr(utils, '__warningregistry__'):
+        utils.__warningregistry__.clear()
+
+    future_time = Time('2511-5-1')
+
+    c = CIRS(1*u.deg, 2*u.deg, obstime=future_time)
+    c.transform_to(ITRS(obstime=future_time))
+
+    saw_iers_warnings = False
+    for w in recwarn.list:
+        if issubclass(w.category, AstropyWarning):
+            if '(some) times are outside of range covered by IERS table' in str(w.message):
+                saw_iers_warnings = True
+                break
+    assert saw_iers_warnings, 'Never saw IERS warning'

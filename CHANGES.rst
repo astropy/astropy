@@ -642,6 +642,11 @@ API changes
     units.  Furthermore, the ``ut1_utc`` method now returns a ``Quantity``
     instead of a float or an array (as did ``pm_xy`` already). [#3223]
 
+  -  ``astropy.utils.iers`` now throws an ``IERSRangeError``, a subclass
+     of ``IndexError``, rather than a raw ``IndexError``.  This allows more
+     fine-grained catching of situations where a ``Time`` is beyond the range
+     of the loaded IERS tables. [#4302]
+
 - ``astropy.visualization``
 
 - ``astropy.vo``
@@ -675,6 +680,9 @@ Bug fixes
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
+
+  - Internally, ``coordinates`` now consistently uses the appropriate time
+    scales for using ERFA functions. [#4302]
 
 - ``astropy.cosmology``
 

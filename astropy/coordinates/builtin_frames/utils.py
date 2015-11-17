@@ -72,7 +72,7 @@ def get_polar_motion(time):
     gets the two polar motion components in radians for use with apio13
     """
     #get the polar motion from the IERS table
-    xp, yp, status = iers.IERS.open().pm_xy(time.jd1, time.jd2, return_status=True)
+    xp, yp, status = iers.IERS.open().pm_xy(time, return_status=True)
 
     wmsg = None
     if np.any(status == iers.TIME_BEFORE_IERS_RANGE):
@@ -95,6 +95,17 @@ def get_polar_motion(time):
     return xp.to(u.radian).value, yp.to(u.radian).value
 
 
+def _warn_iers(ierserr):
+    """
+    Generate a warning for an IERSRangeerror
+
+    Parameters
+    ----------
+    ierserr : An `~astropy.utils.iers.IERSRangeError`
+    """
+    msg = '{0} Assuming UT1-UTC=0 for coordinate transformations.{1}'
+    warnings.warn(msg.format(ierserr.args[0], _IERS_HINT), AstropyWarning)
+
 def get_dut1utc(time):
     """
     This function is used to get UT1-UTC in coordinates because normally it
@@ -103,7 +114,34 @@ def get_dut1utc(time):
     """
     try:
         return time.delta_ut1_utc
-    except IndexError as e:
-        msg = e.args[0] + ' Assuming UT1-UTC=0 for coordinate transformations.' + _IERS_HINT
-        warnings.warn(msg, AstropyWarning)
+    except iers.IERSRangeError as e:
+        _warn_iers(e)
         return np.zeros(time.shape)
+
+def get_jd12(time, scale):
+    """
+    Gets ``jd1`` and ``jd2`` from a time object in a particular scale.
+
+    Parameters
+    ----------
+    time : `~astropy.time.Time`
+        The time to get the jds for
+    scale : str
+        The time scale to get the jds for
+
+    Returns
+    -------
+    jd1 : float
+    jd2 : float
+    """
+    if time.scale == scale:
+        newtime = time
+    else:
+        try:
+            newtime = getattr(time, scale)
+        except iers.IERSRangeError as e:
+            _warn_iers(e)
+            newtime = time
+
+    return newtime.jd1, newtime.jd2
+
