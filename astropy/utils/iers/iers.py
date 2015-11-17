@@ -26,7 +26,7 @@ the default IERS B table is loaded as necessary in `Time`::
 But if one is dealing with very recent observations, this does not work::
 
     >>> t2 = Time.now()
-    >>> t2.ut1
+    >>> t2.ut1  # doctest: +SKIP
     Traceback (most recent call last):
     ...
     IERSRangeError: (some) times are outside of range covered by IERS table.
