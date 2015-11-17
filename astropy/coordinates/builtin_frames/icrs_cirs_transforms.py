@@ -19,6 +19,7 @@ from ... import _erfa as erfa
 from .icrs import ICRS
 from .gcrs import GCRS
 from .cirs import CIRS
+from .utils import get_jd12
 
 
 #first the ICRS/CIRS related transforms
@@ -26,7 +27,7 @@ from .cirs import CIRS
 @frame_transform_graph.transform(FunctionTransform, ICRS, CIRS)
 def icrs_to_cirs(icrs_coo, cirs_frame):
     #first set up the astrometry context for ICRS<->CIRS
-    astrom, eo = erfa.apci13(cirs_frame.obstime.jd1, cirs_frame.obstime.jd2)
+    astrom, eo = erfa.apci13(*get_jd12(cirs_frame.obstime, 'tdb'))
 
     if icrs_coo.data.get_name() == 'unitspherical'  or icrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just do the infinite-distance/no parallax calculation
@@ -65,7 +66,7 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
 
     # set up the astrometry context for ICRS<->cirs and then convert to
     # astrometric coordinate direction
-    astrom, eo = erfa.apci13(cirs_coo.obstime.jd1, cirs_coo.obstime.jd2)
+    astrom, eo = erfa.apci13(*get_jd12(cirs_coo.obstime,'tdb'))
     i_ra, i_dec = erfa.aticq(cirs_ra, cirs_dec, astrom)
 
     if cirs_coo.data.get_name() == 'unitspherical'  or cirs_coo.data.to_cartesian().x.unit == u.one:
@@ -111,7 +112,8 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
     #first set up the astrometry context for ICRS<->GCRS
     pv = np.array([gcrs_frame.obsgeoloc.value,
                    gcrs_frame.obsgeovel.value])
-    astrom = erfa.apcs13(gcrs_frame.obstime.jd1, gcrs_frame.obstime.jd2, pv)
+    jd1, jd2 = get_jd12(gcrs_frame.obstime, 'tdb')
+    astrom = erfa.apcs13(jd1, jd2, pv)
 
     if icrs_coo.data.get_name() == 'unitspherical'  or icrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just do the infinite-distance/no parallax calculation
@@ -153,7 +155,8 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
     # coordinate direction
     pv = np.array([gcrs_coo.obsgeoloc.value,
                    gcrs_coo.obsgeovel.value])
-    astrom = erfa.apcs13(gcrs_coo.obstime.jd1, gcrs_coo.obstime.jd2, pv)
+    jd1, jd2 = get_jd12(gcrs_coo.obstime, 'tdb')
+    astrom = erfa.apcs13(jd1, jd2, pv)
     i_ra, i_dec = erfa.aticq(gcrs_ra, gcrs_dec, astrom)
 
     if gcrs_coo.data.get_name() == 'unitspherical'  or gcrs_coo.data.to_cartesian().x.unit == u.one:

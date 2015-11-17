@@ -10,6 +10,7 @@ from numpy import testing as npt
 from ... import units as u
 from ...time import Time
 from ..builtin_frames import ICRS, AltAz
+from ..builtin_frames.utils import get_jd12
 from .. import EarthLocation
 from .. import SkyCoord
 from ...tests.helper import pytest
@@ -107,11 +108,12 @@ def test_iau_fullstack(fullstack_icrs,  fullstack_fiducial_altaz,
     assert np.all(addecs < tol), 'largest Dec change is {0} mas, > {1}'.format(np.max(addecs.arcsec*1000), tol)
 
     # check that we're consistent with the ERFA alt/az result
-    xp, yp = u.Quantity(iers.IERS.open().pm_xy(fullstack_times.jd1, fullstack_times.jd2)).to(u.radian).value
+    xp, yp = u.Quantity(iers.IERS.open().pm_xy(fullstack_times)).to(u.radian).value
     lon = fullstack_locations.geodetic[0].to(u.radian).value
     lat = fullstack_locations.geodetic[1].to(u.radian).value
     height = fullstack_locations.geodetic[2].to(u.m).value
-    astrom, eo = erfa.apco13(fullstack_times.jd1, fullstack_times.jd2,
+    jd1, jd2 = get_jd12(fullstack_times, 'utc')
+    astrom, eo = erfa.apco13(jd1, jd2,
                              fullstack_times.delta_ut1_utc,
                              lon, lat, height,
                              xp, yp,
@@ -144,11 +146,24 @@ def test_future_altaz(recwarn):
     """
     from ...utils.exceptions import AstropyWarning
 
+    # this is an ugly hack to get the warning to show up even if it has already
+    # appeared
+    from ..builtin_frames import utils
+    if hasattr(utils, '__warningregistry__'):
+        utils.__warningregistry__.clear()
+
     location = EarthLocation(lat=0*u.deg, lon=0*u.deg)
-    t = Time('J2030')
+    t = Time('J2161')
 
     SkyCoord(1*u.deg, 2*u.deg).transform_to(AltAz(location=location, obstime=t))
-    w1 = recwarn.pop(AstropyWarning)
-    w2 = recwarn.pop(AstropyWarning)
-    assert "Tried to get polar motions for times after IERS data is valid." in str(w1.message)
-    assert "(some) times are outside of range covered by IERS table." in str(w2.message)
+
+    # check that these messages appear among any other warnings
+    messages_to_find = ["Tried to get polar motions for times after IERS data is valid.",
+                        "(some) times are outside of range covered by IERS table."]
+    messages_found = [False for _ in messages_to_find]
+    for w in recwarn.list:
+        if issubclass(w.category, AstropyWarning):
+            for i, message_to_find in enumerate(messages_to_find):
+                if message_to_find in str(w.message):
+                    messages_found[i] = True
+    assert all(messages_found)

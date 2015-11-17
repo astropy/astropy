@@ -26,10 +26,10 @@ the default IERS B table is loaded as necessary in `Time`::
 But if one is dealing with very recent observations, this does not work::
 
     >>> t2 = Time.now()
-    >>> t2.ut1
+    >>> t2.ut1  # doctest: +SKIP
     Traceback (most recent call last):
     ...
-    IndexError: (some) times are outside of range covered by IERS table.
+    IERSRangeError: (some) times are outside of range covered by IERS table.
 
 In this case, one needs to update the IERS B table or use IERS A instead
 (which also has predictions).  In future versions, this may become
@@ -67,7 +67,8 @@ __all__ = ['IERS', 'IERS_B', 'IERS_A',
            'FROM_IERS_B', 'FROM_IERS_A', 'FROM_IERS_A_PREDICTION',
            'TIME_BEFORE_IERS_RANGE', 'TIME_BEYOND_IERS_RANGE',
            'IERS_A_FILE', 'IERS_A_URL', 'IERS_A_README',
-           'IERS_B_FILE', 'IERS_B_URL', 'IERS_B_README']
+           'IERS_B_FILE', 'IERS_B_URL', 'IERS_B_README',
+           'IERSRangeError']
 
 # IERS-A default file name, URL, and ReadMe with content description
 IERS_A_FILE = 'finals2000A.all'
@@ -87,6 +88,11 @@ TIME_BEYOND_IERS_RANGE = -2
 
 MJD_ZERO = 2400000.5
 
+
+class IERSRangeError(IndexError):
+    """
+    Any error for when dates are outside of the valid range for IERS
+    """
 
 class IERS(QTable):
     """Generic IERS table class, defining interpolation functions.
@@ -184,7 +190,7 @@ class IERS(QTable):
             second part of two-part JD (default 0., ignored if jd1 is Time)
         return_status : bool
             Whether to return status values.  If False (default),
-            raise `IndexError` if any time is out of the range covered
+            raise `IERSRangeError` if any time is out of the range covered
             by the IERS table.
 
         Returns
@@ -213,7 +219,7 @@ class IERS(QTable):
             second part of two-part JD (default 0., ignored if jd1 is Time)
         return_status : bool
             Whether to return status values.  If False (default),
-            raise `IndexError` if any time is out of the range covered
+            raise `IERSRangeError` if any time is out of the range covered
             by the IERS table.
 
         Returns
@@ -281,7 +287,7 @@ class IERS(QTable):
         else:
             # Not returning status, so raise an exception for out-of-range
             if np.any(i1 != i):
-                raise IndexError('(some) times are outside of range covered '
+                raise IERSRangeError('(some) times are outside of range covered '
                                  'by IERS table.')
             return results[0] if len(results) == 1 else results
 

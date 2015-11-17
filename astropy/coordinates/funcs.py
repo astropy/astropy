@@ -20,6 +20,7 @@ from ..utils import isiterable, data
 from .sky_coordinate import SkyCoord
 from .builtin_frames import GCRS, PrecessedGeocentric
 from .representation import SphericalRepresentation, CartesianRepresentation
+from .builtin_frames.utils import get_jd12
 
 __all__ = ['cartesian_to_spherical', 'spherical_to_cartesian', 'get_sun',
            'concatenate', 'get_constellation']
@@ -147,7 +148,7 @@ def get_sun(time):
     250 km over the 1000-3000.
 
     """
-    earth_pv_helio, earth_pv_bary = erfa.epv00(time.jd1, time.jd2)
+    earth_pv_helio, earth_pv_bary = erfa.epv00(*get_jd12(time, 'tdb'))
 
     # We have to manually do aberration because we're outputting directly into
     # GCRS

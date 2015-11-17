@@ -18,7 +18,7 @@ from ... import _erfa as erfa
 
 from .cirs import CIRS
 from .altaz import AltAz
-from .utils import get_polar_motion, get_dut1utc, PIOVER2
+from .utils import get_polar_motion, get_dut1utc, get_jd12, PIOVER2
 
 
 @frame_transform_graph.transform(FunctionTransform, CIRS, AltAz)
@@ -40,7 +40,8 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
     xp, yp = get_polar_motion(obstime)
 
     #first set up the astrometry context for CIRS<->AltAz
-    astrom = erfa.apio13(obstime.jd1, obstime.jd2,
+    jd1, jd2 = get_jd12(obstime, 'utc')
+    astrom = erfa.apio13(jd1, jd2,
                          get_dut1utc(obstime),
                          lon.to(u.radian).value, lat.to(u.radian).value,
                          height.to(u.m).value,
@@ -80,7 +81,8 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
     xp, yp = get_polar_motion(altaz_coo.obstime)
 
     #first set up the astrometry context for ICRS<->CIRS at the altaz_coo time
-    astrom = erfa.apio13(altaz_coo.obstime.jd1, altaz_coo.obstime.jd2,
+    jd1, jd2 = get_jd12(altaz_coo.obstime, 'utc')
+    astrom = erfa.apio13(jd1, jd2,
                          get_dut1utc(altaz_coo.obstime),
                          lon.to(u.radian).value, lat.to(u.radian).value,
                          height.to(u.m).value,
