@@ -12,18 +12,21 @@ Overview
 Astropy 1.1 is a major release that adds significant new functionality since
 the 1.0.x series of releases.
 
-In particular, this release includes support for supergalactic and ecliptic
-coordinates (see :ref:`whatsnew-1.1-coords`), new functions to automatically
-determine histogram bins, including the Bayesian blocks algorithm (see
-:ref:`whatsnew-1.1-hist`), a new interface to transform between
-:class:`~astropy.table.Table` objects and pandas `DataFrame`_ objects (see
-:ref:`whatsnew-1.1-pandas`), support for table indexing (see
-:ref:`whatsnew-1.1-table-indexing`), a new ``info`` attribute to get summary
-information about tables and columns (:ref:`whatsnew-1.1-table-info`), support
-for new units, including logarithmic units such as magnitudes, dex, and
-decibels (see :ref:`whatsnew-1.1-units`), and support for the Planck 2015
-cosmology and significant performance improvements in the cosmology sub-package
-(see :ref:`whatsnew-1.1-cosmo`).
+In particular, this release includes:
+
+* support for supergalactic and ecliptic coordinates (see
+  :ref:`whatsnew-1.1-coords`)
+* new functions to automatically determine histogram bins, including the
+  Bayesian blocks algorithm (see :ref:`whatsnew-1.1-hist`)
+* a new interface to transform between :class:`~astropy.table.Table` objects
+  and pandas `DataFrame`_ objects (see :ref:`whatsnew-1.1-pandas`)
+* support for table indexing (see :ref:`whatsnew-1.1-table-indexing`)
+* a new ``info`` attribute to get summary information about tables and
+  columns (:ref:`whatsnew-1.1-table-info`)
+* support for new units, including logarithmic units such as magnitudes, dex,
+  and decibels (see :ref:`whatsnew-1.1-units`)
+* support for the Planck 2015 cosmology and significant performance
+  improvements in the cosmology sub-package (see :ref:`whatsnew-1.1-cosmo`).
 
 In addition to these major changes, Astropy 1.1 includes a large number of
 smaller improvements and bug fixes, which are described in the
