@@ -2,8 +2,8 @@
 
 .. _astropy-coordinates-remote:
 
-Methods that access remote resources
-------------------------------------
+Usage tips/suggestions for methods that access remote resources
+---------------------------------------------------------------
 
 There are currently two methods that rely on getting remote data to work.
 
