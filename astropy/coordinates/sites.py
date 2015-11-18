@@ -22,6 +22,17 @@ from .earth import EarthLocation
 from .. import units as u
 
 
+class UnknownSiteException(KeyError):
+    def __init__(self, site, attribute, close_names=None):
+        message = "Site '{0}' not in database. Use {1} to see available sites.".format(site, attribute)
+        if close_names:
+            message += " Did you mean one of: '{0}'?'".format("', '".join(close_names))
+        self.site = site
+        self.attribute = attribute
+        self.close_names = close_names
+        return super(UnknownSiteException, self).__init__(message)
+
+
 class SiteRegistry(Mapping):
     """
     A bare-bones registry of EarthLocation objects.
@@ -56,11 +67,7 @@ class SiteRegistry(Mapping):
             close_names = get_close_matches(site_name, self._lowercase_names_to_locations)
             close_names = sorted(close_names, key=lambda x: len(x))
 
-            errmsg = ('Site "{0}" not in database. Use the ``names`` attribute to see '
-                      'available sites.'.format(site_name))
-            if close_names:
-                errmsg += ' Did you mean one of: "{0}"?'.format('", "'.join(close_names))
-            raise KeyError(errmsg)
+            raise UnknownSiteException(site_name, "the 'names' attribute", close_names=close_names)
 
         return self._lowercase_names_to_locations[site_name.lower()]
 
