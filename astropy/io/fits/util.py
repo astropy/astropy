@@ -2,6 +2,7 @@
 
 from __future__ import division
 
+import errno
 import gzip as _system_gzip
 import itertools
 import io
@@ -862,7 +863,18 @@ def _write_string(f, s):
     elif isinstance(f, StringIO) and isinstance(s, np.ndarray):
         # Workaround for StringIO/ndarray incompatibility
         s = s.data
-    f.write(s)
+
+    written = 0
+    while written < len(s):
+        try:
+            n = f.write(s[written:])
+        except IOError as exc:
+            if exc.errno == errno.EINTR:
+                continue
+
+        if n:
+            # n may be None if a non-blocking write fails
+            written += n
 
 
 def _convert_array(array, dtype):
