@@ -218,8 +218,10 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
     # coordinate direction
     pv = np.array([gcrs_coo.obsgeoloc.value,
                    gcrs_coo.obsgeovel.value])
-    tdb = hcrs_frame.obstime.tdb
-    astrom = erfa.apcs13(tdb.jd1, tdb.jd2, pv)
+
+    jd1, jd2 = get_jd12(hcrs_frame.obstime, 'tdb')
+    astrom = erfa.apcs13(jd1, jd2, pv)
+
     i_ra, i_dec = erfa.aticq(gcrs_ra, gcrs_dec, astrom)
     
     # convert to Quantity objects
