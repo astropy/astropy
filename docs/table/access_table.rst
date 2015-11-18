@@ -102,6 +102,8 @@ For all the following examples it is assumed that the table has been created as 
       12.000  13  14
 
 
+.. _table-summary-information:
+
 Summary information
 """""""""""""""""""
 
