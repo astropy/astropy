@@ -2,6 +2,8 @@
 .. |add_index| replace:: :func:`~astropy.table.Table.add_index`
 .. |index_mode| replace:: :func:`~astropy.table.Table.index_mode`
 
+.. _table-indexing:
+
 Table indexing
 --------------
 

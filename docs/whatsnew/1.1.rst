@@ -1,0 +1,306 @@
+.. doctest-skip-all
+
+.. _whatsnew-1.1:
+
+==========================
+What's New in Astropy 1.1?
+==========================
+
+Overview
+--------
+
+Astropy 1.1 is a major release that adds significant new functionality since
+the 1.0.x series of releases.
+
+In particular, this release includes:
+
+* support for supergalactic and ecliptic coordinates (see
+  :ref:`whatsnew-1.1-coords`)
+* new functions to automatically determine histogram bins, including the
+  Bayesian blocks algorithm (see :ref:`whatsnew-1.1-hist`)
+* a new interface to transform between :class:`~astropy.table.Table` objects
+  and pandas `DataFrame`_ objects (see :ref:`whatsnew-1.1-pandas`)
+* support for table indexing (see :ref:`whatsnew-1.1-table-indexing`)
+* a new ``info`` attribute to get summary information about tables and
+  columns (:ref:`whatsnew-1.1-table-info`)
+* support for new units, including logarithmic units such as magnitudes, dex,
+  and decibels (see :ref:`whatsnew-1.1-units`)
+* support for the Planck 2015 cosmology and significant performance
+  improvements in the cosmology sub-package (see :ref:`whatsnew-1.1-cosmo`).
+
+In addition to these major changes, Astropy 1.1 includes a large number of
+smaller improvements and bug fixes, which are described in the
+:ref:`changelog`. By the numbers:
+
+* 785 issues have been closed since v1.0
+* 459 pull requests have been merged since v1.0
+* 159 distinct people have contributed code
+
+.. _whatsnew-1.1-coords:
+
+New features in celestial coordinates package
+---------------------------------------------
+
+The :ref:`astropy-coordinates` sub-package now includes the following new
+coordinate frames:
+
+* de Vaucouleur **Supergalactic coordinates**, implemented via the
+  :class:`~astropy.coordinates.Supergalactic` frame.
+
+* **Ecliptic coordinates**, implemented via the
+  :class:`~astropy.coordinates.GeocentricTrueEcliptic`,
+  :class:`~astropy.coordinates.BarycentricTrueEcliptic`, and
+  :class:`~astropy.coordinates.HeliocentricTrueEcliptic` frames. These
+  coordinates are still experimental, and should be used with care. We would
+  welcome any testing and feedback regarding the accuracy of these
+  transformations from users familiar with these frames.
+
+* **Precessed Geocentric coordinates**, which is based on GCRS, but precessed
+  to a requested mean equinox, implemented via the
+  :class:`~astropy.coordinates.PrecessedGeocentric` frame.
+
+In addition, the sub-package now includes the
+:func:`~astropy.coordinates.get_constellation` function and the :class:`~astropy.coordinates.SkyCoord`
+:meth:`~astropy.coordinates.SkyCoord.get_constellation` method, which can be
+used to determine the constellation that a coordinate is in.
+
+.. _whatsnew-1.1-hist:
+
+Algorithms for choosing histogram bins
+--------------------------------------
+
+The :ref:`stats` and :ref:`astropy-visualization` sub-packages now include
+functions to help automatically select histogram bins, including reference
+rules such as `Scott's rule
+<https://en.wikipedia.org/wiki/Histogram#Number_of_bins_and_width>`_ and
+`Freedman & Diaconis
+<https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule>`_'s rule, and
+Bayesian models such as `Knuth's rule
+<http://arxiv.org/abs/physics/0605197>`_ and `Bayesian Blocks
+<http://adsabs.harvard.edu/abs/2012arXiv1207.5578S>`_:
+
+.. plot::
+   :align: center
+
+    import numpy as np
+    from astropy.visualization import hist
+
+    # generate some complicated data
+    rng = np.random.RandomState(0)
+    t = np.concatenate([-5 + 1.8 * rng.standard_cauchy(500),
+                       -4 + 0.8 * rng.standard_cauchy(2000),
+                       -1 + 0.3 * rng.standard_cauchy(500),
+                       2 + 0.8 * rng.standard_cauchy(1000),
+                       4 + 1.5 * rng.standard_cauchy(1000)])
+
+    # truncate to a reasonable range
+    t = t[(t > -15) & (t < 15)]
+
+    # draw histograms with two different bin widths
+    fig = plt.figure(figsize=(10,7))
+    hist_kwds1 = dict(histtype='stepfilled', alpha=0.2, normed=True)
+
+    fig.subplots_adjust(left=0.1, right=0.95, bottom=0.15)
+    for i, bins in enumerate(['scott', 'freedman', 'knuth', 'blocks']):
+        ax = fig.add_subplot(2,2,i+1)
+        hist(t, bins=bins, ax=ax, histtype='stepfilled',
+             alpha=0.4, normed=True)
+        ax.set_xlabel('t')
+        ax.set_ylabel('P(t)')
+        ax.set_title('hist(t, bins="{0}")'.format(bins),
+                     fontdict=dict(family='monospace'), size=14)
+
+
+For more information, see the :ref:`astropy-visualization-hist` section.
+
+
+New features in table package
+-----------------------------
+
+.. _whatsnew-1.1-pandas:
+
+Table interface to Pandas
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The `pandas <http://pandas.pydata.org/>`__ package is a package for high
+performance data analysis of table-like structures that is complementary to
+the :class:`~astropy.table.Table` class in Astropy.
+
+In order to be able to easily exchange data between the
+:class:`~astropy.table.Table` class and the pandas `DataFrame`_ class (the
+main data structure in pandas), the :class:`~astropy.table.Table` class now
+includes two methods, :meth:`~astropy.table.Table.to_pandas` and
+:meth:`~astropy.table.Table.from_pandas`.
+
+To demonstrate these, we can create a simple table which we convert to a
+pandas `DataFrame`_::
+
+    >>> from astropy.table import Table
+    >>> t = Table()
+    >>> t['a'] = [1, 2, 3, 4]
+    >>> t['b'] = ['a', 'b', 'c', 'd']
+    >>> df = t.to_pandas()
+    >>> df
+       a  b
+    0  1  a
+    1  2  b
+    2  3  c
+    3  4  d
+    >>> type(df)
+    <class 'pandas.core.frame.DataFrame'>
+
+A pandas `DataFrame`_ can also easily be converted to an Astropy
+:class:`~astropy.table.Table`::
+
+    >>> t2 = Table.from_pandas(df)
+    >>> t2
+    <Table length=4>
+      a      b
+    int64 string8
+    ----- -------
+        1       a
+        2       b
+        3       c
+        4       d
+
+For more information, see :ref:`pandas`.
+
+.. _whatsnew-1.1-table-indexing:
+
+Table indexing
+^^^^^^^^^^^^^^
+
+The table sub-package now supports creation of one or more table indices which
+internally sort the rows of the table based on the index column(s).  This
+concept is commonly used in database tables to enhance performance and ensure
+data integrity.
+
+The astropy implementation of indexing provides methods for creating the index,
+accessing rows based on key value or location in the sorted index, and
+maintaining the index when the table is updated (for instance by adding a new
+data row).
+
+As an example, to create an index on a table and retrieve a value::
+
+   >>> from astropy.table import Table
+   >>> t = Table(rows=[('Mary', 48),
+                       ('Jim', 37),
+                       ('Jane', 26),
+                       ('Fred', 50)],
+                 names=('name', 'age'))
+   >>> t.add_index('name')
+   >>> t.loc['Jim']['age']
+   37
+
+Note that the table indexing engine is new and is not yet considered stable, so
+it is not recommended for use in production code at this time.  For more
+information, see :ref:`table-indexing`.
+
+.. _whatsnew-1.1-table-info:
+
+Table and column info
+^^^^^^^^^^^^^^^^^^^^^
+
+The table sub-package now supports a flexible mechanism to return summary
+information about a table and columns.  For the table of ages defined above::
+
+   >>> t.info
+   <Table length=4>
+   name dtype
+   ---- -----
+   name  str4
+    age int64
+
+   >>> t['age'].info('stats')
+   name = age
+   mean = 40.25
+   std = 9.60143218484
+   min = 26
+   max = 50
+   n_bad = 0
+   length = 4
+
+For more information, see :ref:`table-summary-information`.
+
+.. _whatsnew-1.1-units:
+
+New Units
+---------
+
+The :ref:`astropy-units` sub-package now includes support for logarithmic
+units such as magnitudes, decibels, and dex::
+
+    >>> from astropy import units as u
+    >>> logg = 5. * u.dex(u.cm / u.s**2)
+    >>> logg.value
+    5.0
+    >>> logg.physical
+    <Quantity 100000.0 cm / s2>
+
+For more information, see :ref:`logarithmic_units`.
+
+In addition, the following units have been added:
+
+* Furlongs (``imperial.furlong``)
+* Mil (``imperial.mil``)
+* Stone (``imperial.stone``)
+* Earth mass (``units.M_earth``) and Jupiter mass (``units.M_jup``)
+
+Finally, quantity arrays can now be used in Matplotlib, which will recognize
+the unit and plot the quantities correctly (see :ref:`plotting-quantities`
+for more details on how to enable this).
+
+
+.. _whatsnew-1.1-cosmo:
+
+Improvements to cosmology sub-package
+-------------------------------------
+
+The :ref:`astropy-cosmology` sub-package now includes the Planck 2015
+cosmology, and in addition includes significant performance improvements
+(20-40x) for distance calculations, for all the cosmologies provided.
+
+
+Deprecation and backward-incompatible changes
+---------------------------------------------
+
+The v1.1.x series of releases will be the last one supporting Python 2.6.
+Starting with Astropy v1.2, Python 2.7 or later will be required.
+
+
+2D Cutout Images
+----------------
+
+The `astropy.nddata.utils` module now includes a
+`~astropy.nddata.utils.Cutout2D` class to create a postage stamp
+cutout image from a 2D array.  Image cutouts can be generated using
+either pixel or `~astropy.coordinates.SkyCoord` positions.  The cutout
+shapes can be specified in either angular or pixel units.  If an
+optional `~astropy.wcs.WCS` object is input, then the
+`~astropy.nddata.utils.Cutout2D` object will contain an updated
+`~astropy.wcs.WCS` corresponding to the cutout array.
+
+For more information, see :ref:`cutout_images`.
+
+Other significant changes
+-------------------------
+
+The :ref:`astropy-wcs` sub-package now supports (and includes) WCSLIB 5.x,
+which implements support for the distortion representations described in
+[Paper IV: Representations of distortions in FITS world coordinate
+systems](http://www.atnf.csiro.au/people/mcalabre/WCS/) by Calabretta et al,
+including TPV and SIP. Note that for now, Astropy still uses a custom
+implementation of the SIP distortions rather than the ones from WCSLIB, but
+we plan to change this over in the future.
+
+The :ref:`astropy-time` sub-package now includes support for time strings
+formatted using the FITS convention, e.g. ``'2000-01-02T03:04:05(TDB)'``.
+
+Full change log
+---------------
+
+To see a detailed list of all changes in version v1.1, including changes in
+API, please see the :ref:`changelog`.
+
+.. _DataFrame: http://pandas.pydata.org/pandas-docs/dev/generated/pandas.DataFrame.html
+
