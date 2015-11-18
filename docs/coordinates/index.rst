@@ -207,7 +207,7 @@ a similar quick way to get an `~astropy.coordinates.EarthLocation`::
     <EarthLocation (-1463969.3018517173, -5166673.342234327, 3434985.7120456537) m>
 
 To see the list of site names available, use
-:func:`astropy.coordinates.EarthLocation.get_site_names`.
+the :class:`~astropy.coordinates.EarthLocation` :func:`astropy.coordinates.EarthLocation.get_site_names` method.
 
 .. note::
     `~astropy.coordinates.SkyCoord.from_name` and
@@ -217,7 +217,11 @@ To see the list of site names available, use
     manually, or use more specialized functionality like that in the
     `astroquery <http://www.astropy.org/astroquery/>`_ or
     `astroplan <http://astroplan.readthedocs.org/>`_ affiliated packages.
-
+    
+    Also note that these two methods retrieve data from the internet to
+    determine the celestial or Earth coordinates. The online data may be
+    updated, so if you need to guarantee that your scripts are reproducible
+    in the long term, see the :doc:`remote_methods` section.
 
 .. _astropy-coordinates-overview:
 
@@ -278,6 +282,7 @@ listed below.
    sgr-example
    galactocentric
    definitions
+   remote_methods
 
 
 In addition, another resource for the capabilities of this package is the
