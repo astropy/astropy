@@ -872,6 +872,8 @@ def _write_string(f, s):
             if exc.errno == errno.EINTR:
                 continue
 
+            raise
+
         if n:
             # n may be None if a non-blocking write fails
             written += n
