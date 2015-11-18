@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Observatories accessible without internet access originate from the IRAF
-Observatory Database, and are stored in ``data/observatories.json``.  This is
-intended mainly as a fallback file, and the online file is where new changes
-should go.
+Currently the only site accessible without internet access is the Royal
+Greenwich Observatory, as an example (and for testing purposes).  In future
+releases, a canonical set of sites may be bundled into astropy for when the
+online registry is unavailable.
 
 Additions or corrections to the observatory list can be submitted via Pull
 Request to the [astropy-data GitHub repository](https://github.com/astropy/astropy-data),
