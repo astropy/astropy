@@ -568,23 +568,23 @@ class Time(object):
         at a standard location; either the Solar system barycentre or the heliocentre.
         
         Suppose you have a list of times in MJD form. Typically these will be in the UTC
-        timescale. First create an `~astropy.time.Time` object:
+        timescale. First create an `~astropy.time.Time` object::
         
-            from astropy import time, coordinates as coord, units as u
-            times = time.Time([56325.95833333, 56325.978254], format='mjd', scale='utc')
+            >>> from astropy import time, coordinates as coord, units as u
+            >>> times = time.Time([56325.95833333, 56325.978254], format='mjd', scale='utc')
             
         You should then set the ``'location'`` property of the time object to the location
         of the observatory:
         
-            times.location = coord.EarthLocation.of_site('lapalma')
+            >>> times.location = coord.EarthLocation.of_site('lapalma')
             
         This routine can then be used to calculate the light travel time to the
         heliocentre or barycentre, given the sky location of the photon's origin.
-        This should be supplied as a `~coordinates.SkyCoord` object:
+        This should be supplied as a `~coordinates.SkyCoord` object::
         
-            star = coord.SkyCoord("23:23:08.55","+18:24:59.3",unit=(u.deg,u.deg),frame='icrs')
-            ltt_bary  = times.ltt_correction(times,star,'barycentric')
-            ltt_helio = times.ltt_correction(times,star,'heliocentric')
+            >>> star = coord.SkyCoord("23:23:08.55","+18:24:59.3",unit=(u.deg,u.deg),frame='icrs')
+            >>> ltt_bary  = times.ltt_correction(times,star,'barycentric')
+            >>> ltt_helio = times.ltt_correction(times,star,'heliocentric')
             
         This function returns an `~astropy.time.TimeDelta` object, which can be added to
         your times to give the arrival time of the photons at the heliocentre or barycentre.
@@ -597,7 +597,7 @@ class Time(object):
         particularly appropriate. Historically in the astrophysical literature, times 
         corrected to the heliocentre are given in the UTC timescale:
         
-            times_heliocentre = times + ltt_helio
+            >>> times_heliocentre = times + ltt_helio
             
         Corrections to the barycentre are more precise than the heliocentre, because the 
         barycenter is a fixed point where gravity is constant. For maximum accuracy you
@@ -606,7 +606,7 @@ class Time(object):
         rate that a clock would tick at the barycentre. For this reason, barycentric 
         corrected times normally use the TDB timescale:
         
-            time_barycentre  = times.tdb + ltt_bary
+            >>> time_barycentre  = times.tdb + ltt_bary
         
         Parameters
         ---------------
