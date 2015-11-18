@@ -207,7 +207,7 @@ a similar quick way to get an `~astropy.coordinates.EarthLocation`::
     <EarthLocation (-1463969.3018517173, -5166673.342234327, 3434985.7120456537) m>
 
 To see the list of site names available, use
-the :class:`~astropy.coordinates.EarthLocation` :func:`astropy.coordinates.EarthLocation.get_site_names` method.
+:func:`astropy.coordinates.EarthLocation.get_site_names`.
 
 .. note::
     `~astropy.coordinates.SkyCoord.from_name` and

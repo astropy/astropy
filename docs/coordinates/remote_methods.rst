@@ -24,7 +24,7 @@ provides a similar quick way to get an
     <EarthLocation (-1463969.3018517173, -5166673.342234327, 3434985.7120456537) m>
     
 The full list of available observatory names can be obtained with
-the :class:`~astropy.coordinates.EarthLocation` :meth:`~astropy.coordinates.EarthLocation.get_site_names` method.
+ :meth:`astropy.coordinates.EarthLocation.get_site_names`.
 
 While these methods are convenient, there are several considerations to take into account:
 
