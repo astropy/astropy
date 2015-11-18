@@ -434,7 +434,15 @@ def test_highlevel_api():
 def test_highlevel_api_remote():
     m31icrs = coords.SkyCoord.from_name('M31', frame='icrs')
 
-    assert str(m31icrs) == '<SkyCoord (ICRS): (ra, dec) in deg\n    (10.6847083, 41.26875)>'
+    m31str = str(m31icrs)
+    assert m31str.startswith('<SkyCoord (ICRS): (ra, dec) in deg\n    (')
+    assert m31str.endswith(')>')
+    assert '10.68' in m31str
+    assert '41.26' in m31str
+    # The above is essentially a replacement of the below, but tweaked so that
+    # small/moderate changes in what `from_name` returns don't cause the tests
+    # to fail
+    #assert str(m31icrs) == '<SkyCoord (ICRS): (ra, dec) in deg\n    (10.6847083, 41.26875)>'
 
     m31fk4 = coords.SkyCoord.from_name('M31', frame='fk4')
 
