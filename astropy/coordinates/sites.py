@@ -19,18 +19,8 @@ from collections import Mapping
 
 from ..utils.data import get_pkg_data_contents, get_file_contents
 from .earth import EarthLocation
+from .errors import UnknownSiteException
 from .. import units as u
-
-
-class UnknownSiteException(KeyError):
-    def __init__(self, site, attribute, close_names=None):
-        message = "Site '{0}' not in database. Use {1} to see available sites.".format(site, attribute)
-        if close_names:
-            message += " Did you mean one of: '{0}'?'".format("', '".join(close_names))
-        self.site = site
-        self.attribute = attribute
-        self.close_names = close_names
-        return super(UnknownSiteException, self).__init__(message)
 
 
 class SiteRegistry(Mapping):
