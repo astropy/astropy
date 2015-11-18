@@ -21,3 +21,19 @@ def test_SAMPHubServer_run():
     hub.start()
     time.sleep(1)
     hub.stop()
+
+
+def test_SAMPHubServer_run_repeated():
+    """
+    Test that SAMPHub can be restarted after it has been stopped, including
+    when web profile support is enabled.
+    """
+
+    hub = SAMPHubServer(web_profile=True, mode='multiple', pool_size=1)
+    hub.start()
+    time.sleep(1)
+    hub.stop()
+    time.sleep(1)
+    hub.start()
+    time.sleep(1)
+    hub.stop()
