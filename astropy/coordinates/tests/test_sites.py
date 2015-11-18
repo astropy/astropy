@@ -46,14 +46,14 @@ def test_online_stes():
 
 @remote_data
 # this will *try* the online so we have to make it remote_data, even though it
-# falls back on the non-remote version
+# could fall back on the non-remote version
 def test_EarthLocation_basic():
     greenwichel = EarthLocation.of_site('greenwich')
     lon, lat, el = greenwichel.to_geodetic()
-    assert_quantity_allclose(lon, -1*Longitude('51:28:30', unit=u.deg),
-                             atol=0.001*u.deg)
-    assert_quantity_allclose(lat, Latitude('0:0:0', unit=u.deg),
+    assert_quantity_allclose(lon, Longitude('0:0:0', unit=u.deg),
                              atol=10*u.arcsec)
+    assert_quantity_allclose(lat, Latitude('51:28:40', unit=u.deg),
+                             atol=1*u.arcsec)
     assert_quantity_allclose(el, 46*u.m, atol=1*u.m)
 
     names = EarthLocation.get_site_names()
