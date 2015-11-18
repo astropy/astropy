@@ -186,13 +186,17 @@ class EarthLocation(u.Quantity):
         and all their properties.
 
         .. note::
-            When this function is called, it will first attempt to
-            download site information from the astropy data server.  If it
-            cannot (i.e., an internet connection is not available), it will fall
-            back on the list included with astropy (which is a limited and dated
-            set of sites).  If you think a site should be added, issue a pull
-            request to the
+            When this function is called, it will attempt to download site
+            information from the astropy data server. If you would like a site
+            to be added, issue a pull request to the
             `astropy-data repository <https://github.com/astropy/astropy-data>`_ .
+            If a site cannot be found in the registry (i.e., an internet
+            connection is not available), it will fall back on a built-in list,
+            In the future, this bundled list might include a version-controlled
+            list of canonical observatories extracted from the online version,
+            but it currently only contains the Greenwich Royal Observatory as an
+            example case.
+
 
         Parameters
         ----------
