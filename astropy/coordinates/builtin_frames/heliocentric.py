@@ -6,7 +6,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 from ..representation import SphericalRepresentation
 from ..baseframe import (BaseCoordinateFrame, RepresentationMapping,
                          TimeFrameAttribute)
-from .utils import DEFAULT_OBSTIME, EQUINOX_J2000 
+from .utils import DEFAULT_OBSTIME
 
 class Heliocentric(BaseCoordinateFrame):
     """
@@ -51,3 +51,4 @@ class Heliocentric(BaseCoordinateFrame):
 
     default_representation = SphericalRepresentation
     obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
+    
