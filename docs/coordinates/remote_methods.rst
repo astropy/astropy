@@ -30,18 +30,20 @@ While these methods are convenient, there are several considerations to take int
 
 * Since these methods access online data, the data may evolve over time (for
   example, the accuracy of coordinates might improve, and new observatories
-  may be added). However, this means that a script using these and running
+  may be added). Therefore, this means that a script using these and running
   now may give a different answer in five years. Therefore, users concerned
   with reproducibility should not use these methods in their final scripts,
   but can instead use them to get the values required and then hard-code them
   into the scripts. For example, we can check the coordinates of the Kitt
   Peak Observatories using::
 
-    >>> loc = EarthLocation.of_site('Kitt Peak')
+    >>> loc = EarthLocation.of_site('Kitt Peak')  # doctest: +REMOTE_DATA
+
+  Note that this command requires an internet connection.
 
   We can then view the actual cartesian coordinates for the observatory:
   
-    >>> loc
+    >>> loc  # doctest: +REMOTE_DATA
     <EarthLocation (-1994502.6043061386, -5037538.54232911, 3358104.9969029757) m>
     
   This can then easily be converted to code::

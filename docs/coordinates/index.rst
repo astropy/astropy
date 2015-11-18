@@ -281,8 +281,8 @@ listed below.
    frames
    sgr-example
    galactocentric
-   definitions
    remote_methods
+   definitions
 
 
 In addition, another resource for the capabilities of this package is the
