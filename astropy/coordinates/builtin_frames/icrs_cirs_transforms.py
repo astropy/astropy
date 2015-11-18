@@ -44,7 +44,7 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
         # no parallax/PM. This ensures reversiblity and is more sensible for
         # inside solar system objects
         newxyz = intermedrep.to_cartesian().xyz
-        newxyz = np.rollaxis(newxyz,-1,0) -  astrom['eb']*u.au
+        newxyz = np.rollaxis(newxyz,0,newxyz.ndim) -  astrom['eb']*u.au
         # roll xyz back to the first axis
         newxyz  = np.rollaxis(newxyz,-1,0)
         newcart = CartesianRepresentation(newxyz)
@@ -90,7 +90,7 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
 
         newxyz = intermedrep.to_cartesian().xyz
         # roll xyz to last axis and add the barycentre position
-        newxyz = np.rollaxis(newxyz,-1,0) +  astrom['eb']*u.au
+        newxyz = np.rollaxis(newxyz,0,newxyz.ndim) +  astrom['eb']*u.au
         # roll xyz back to the first axis
         newxyz = np.rollaxis(newxyz,-1,0)
         newrep = CartesianRepresentation(newxyz).represent_as(SphericalRepresentation)
@@ -137,7 +137,7 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
         # parallax/PM. This ensures reversiblity and is more sensible for
         # inside solar system objects
         newxyz = intermedrep.to_cartesian().xyz
-        newxyz = np.rollaxis(newxyz,-1,0) - astrom['eb']*u.au
+        newxyz = np.rollaxis(newxyz,0,newxyz.ndim) - astrom['eb']*u.au
         newxyz  = np.rollaxis(newxyz,-1,0)
         newcart = CartesianRepresentation(newxyz)
         
@@ -186,7 +186,7 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
 
         newxyz = intermedrep.to_cartesian().xyz
         # roll xyz to last axis and add the heliocentre position
-        newxyz = np.rollaxis(newxyz,-1,0) + astrom['eb']*u.au
+        newxyz = np.rollaxis(newxyz,0,newxyz.ndim) + astrom['eb']*u.au
         # roll xyz back to the first axis
         newxyz = np.rollaxis(newxyz,-1,0)
         newrep = CartesianRepresentation(newxyz).represent_as(SphericalRepresentation)
@@ -242,7 +242,7 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
 
         newxyz = intermedrep.to_cartesian().xyz
         # roll xyz to last axis and add the heliocentre position
-        newxyz = np.rollaxis(newxyz,-1,0) +  astrom['eh']*astrom['em']*u.au
+        newxyz = np.rollaxis(newxyz,0,newxyz.ndim) +  astrom['eh']*astrom['em']*u.au
         # roll xyz back to the first axis
         newxyz = np.rollaxis(newxyz,-1,0)
         newrep = CartesianRepresentation(newxyz).represent_as(SphericalRepresentation)
