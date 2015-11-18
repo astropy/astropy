@@ -20,12 +20,11 @@ addons:
 env:
     global:
         # Set defaults to avoid repeating in most cases
-        - NUMPY_VERSION=1.9
+        - NUMPY_VERSION=1.10
         - OPTIONAL_DEPS=false
         - MAIN_CMD='python setup.py'
 
     matrix:
-        - PYTHON_VERSION=2.6 SETUP_CMD='egg_info'
         - PYTHON_VERSION=2.7 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.3 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.4 SETUP_CMD='egg_info'
@@ -50,8 +49,6 @@ matrix:
 
         # Try all python versions with the latest numpy
         - os: linux
-          env: PYTHON_VERSION=2.6 SETUP_CMD='test --open-files'
-        - os: linux
           env: PYTHON_VERSION=2.7 SETUP_CMD='test --open-files'
         - os: linux
           env: PYTHON_VERSION=3.3 SETUP_CMD='test --open-files'
@@ -70,11 +67,11 @@ matrix:
 
         # Try older numpy versions
         - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.9 SETUP_CMD='test'
+        - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.8 SETUP_CMD='test'
         - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.7 SETUP_CMD='test'
-        - os: linux
-          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.6 SETUP_CMD='test'
 
         # Try developer version of Numpy
         - os: linux
