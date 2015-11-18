@@ -17,5 +17,9 @@ def test_corrections():
     t.location = wht
     hval = t.heliocentric_correction(star)
     bval = t.barycentric_correction(star)
+    # test against values returned at time of initial creation
+    # these values agree to an independent SLALIB based implementation
+    # to 20 microseconds
     assert allclose(hval.sec,461.43037870502235)
     assert allclose(bval.sec,460.58538779827836)
+    
