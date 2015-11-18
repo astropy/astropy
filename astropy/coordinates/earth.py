@@ -208,7 +208,11 @@ class EarthLocation(u.Quantity):
         --------
         get_site_names : the list of sites that this function can access
         """
-        el = cls._get_site_registry()[site_name]
+        registry = cls._get_site_registry()
+        try:
+            el = registry[site_name]
+        except KeyError as e:
+            raise e.__class__(e.args[0].replace('the ``names`` attribute', '``EarthLocation.get_site_names``'))
 
         if cls is el.__class__:
             return el
