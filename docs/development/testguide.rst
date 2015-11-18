@@ -636,7 +636,7 @@ Testing warnings
 ----------------
 
 In order to test that warnings are triggered as expected in certain
-situations, you can use the ``astropy.tests.helper.catch_warnings``
+situations, you can use the `astropy.tests.helper.catch_warnings`
 context manager.  Unlike the `warnings.catch_warnings` context manager
 in the standard library, this one will reset all warning state before
 hand so one is assured to get the warnings reported, regardless of
@@ -659,7 +659,7 @@ a real-world example::
    function argument to test that warnings are triggered.  This method has
    been found to be problematic in at least one case (`pull request 1174
    <https://github.com/astropy/astropy/pull/1174#issuecomment-20249309>`_)
-   so the ``astropy.tests.helper.catch_warnings`` context manager is
+   so the `astropy.tests.helper.catch_warnings` context manager is
    preferred.
 
 Testing configuration parameters
@@ -670,7 +670,7 @@ are reset to their default values when the test runner starts up.
 
 Sometimes you'll want to test the behavior of code when a certain
 configuration item is set to a particular value.  In that case, you
-can use the ``~astropy.config.ConfigItem.set_temp`` context manager to
+can use the `astropy.config.ConfigItem.set_temp` context manager to
 temporarily set a configuration item to that value, test within that
 context, and have it automatically return to its original value.
 
