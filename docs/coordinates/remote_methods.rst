@@ -11,6 +11,7 @@ The first is the :class:`~astropy.coordinates.SkyCoord` :meth:`~astropy.coordina
 `Sesame <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ to retrieve coordinates
 for a particular named object::
 
+    >>> from astropy.coordinates import SkyCoord
     >>> SkyCoord.from_name("M42")  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
         (83.82208, -5.39111)>
@@ -22,7 +23,7 @@ provides a similar quick way to get an
     >>> from astropy.coordinates import EarthLocation
     >>> EarthLocation.of_site('Apache Point Observatory')  # doctest: +REMOTE_DATA +FLOAT_CMP
     <EarthLocation (-1463969.3018517173, -5166673.342234327, 3434985.7120456537) m>
-    
+
 The full list of available observatory names can be obtained with
  :meth:`astropy.coordinates.EarthLocation.get_site_names`.
 
@@ -42,14 +43,14 @@ While these methods are convenient, there are several considerations to take int
   Note that this command requires an internet connection.
 
   We can then view the actual cartesian coordinates for the observatory:
-  
+
     >>> loc  # doctest: +REMOTE_DATA
     <EarthLocation (-1994502.6043061386, -5037538.54232911, 3358104.9969029757) m>
-    
+
   This can then easily be converted to code::
-  
+
     >>> loc = EarthLocation(-1994502.6043061386, -5037538.54232911, 3358104.9969029757, unit='m')
-  
+
   This latter line can then be included in a script and will ensure that the
   results stay the same over time.
 
@@ -57,7 +58,7 @@ While these methods are convenient, there are several considerations to take int
   accuracy is paramount, we recommend that you determine the celestial or
   Earth coordinates yourself and hard-code these, rather than use the
   convenience methods.
-  
+
 * These methods will not function if an internet connection is not available.
   Therefore, if you need to work on a script while offline, follow the
   instructions in the first bullet point above to hard-code the coordinates
