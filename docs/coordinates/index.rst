@@ -217,7 +217,11 @@ To see the list of site names available, use
     manually, or use more specialized functionality like that in the
     `astroquery <http://www.astropy.org/astroquery/>`_ or
     `astroplan <http://astroplan.readthedocs.org/>`_ affiliated packages.
-
+    
+    Also note that these two methods retrieve data from the internet to
+    determine the celestial or Earth coordinates. The online data may be
+    updated, so if you need to guarantee that your scripts are reproducible
+    in the long term, see the :doc:`remote_methods` section.
 
 .. _astropy-coordinates-overview:
 
@@ -277,6 +281,7 @@ listed below.
    frames
    sgr-example
    galactocentric
+   remote_methods
    definitions
 
 

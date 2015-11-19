@@ -19,6 +19,7 @@ from collections import Mapping
 
 from ..utils.data import get_pkg_data_contents, get_file_contents
 from .earth import EarthLocation
+from .errors import UnknownSiteException
 from .. import units as u
 
 
@@ -56,11 +57,7 @@ class SiteRegistry(Mapping):
             close_names = get_close_matches(site_name, self._lowercase_names_to_locations)
             close_names = sorted(close_names, key=lambda x: len(x))
 
-            errmsg = ('Site "{0}" not in database. Use ``get_names()`` to see '
-                      'available sites.'.format(site_name))
-            if close_names:
-                errmsg += ' Did you mean one of: "{0}"?'.format('", "'.join(close_names))
-            raise KeyError(errmsg)
+            raise UnknownSiteException(site_name, "the 'names' attribute", close_names=close_names)
 
         return self._lowercase_names_to_locations[site_name.lower()]
 
