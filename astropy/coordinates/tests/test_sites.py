@@ -21,8 +21,9 @@ def test_builtin_sites():
     assert 'greenwich' in names
     assert 'example_site' in names
 
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError) as exc:
         reg['nonexistent site']
+    assert exc.value.args[0] == "Site 'nonexistent site' not in database. Use the 'names' attribute to see available sites."
 
 @remote_data
 def test_online_stes():
@@ -40,8 +41,13 @@ def test_online_stes():
     assert 'keck' in names
     assert 'ctio' in names
 
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError) as exc:
         reg['nonexistent site']
+    assert exc.value.args[0] == "Site 'nonexistent site' not in database. Use the 'names' attribute to see available sites."
+
+    with pytest.raises(KeyError) as exc:
+        reg['kec']
+    assert exc.value.args[0] == "Site 'kec' not in database. Use the 'names' attribute to see available sites. Did you mean one of: 'keck'?'"
 
 
 @remote_data
@@ -60,9 +66,9 @@ def test_EarthLocation_basic():
     assert 'greenwich' in names
     assert 'example_site' in names
 
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError) as exc:
         EarthLocation.of_site('nonexistent site')
-
+    assert exc.value.args[0] == "Site 'nonexistent site' not in database. Use EarthLocation.get_site_names to see available sites."
 
 def test_EarthLocation_state_offline():
     EarthLocation._site_registry = None

@@ -9,6 +9,7 @@ from ..extern import six
 from ..utils.exceptions import AstropyUserWarning
 from . import Longitude, Latitude
 from .builtin_frames import ITRS
+from .errors import UnknownSiteException
 
 try:
     # Not guaranteed available at setup time.
@@ -212,7 +213,11 @@ class EarthLocation(u.Quantity):
         --------
         get_site_names : the list of sites that this function can access
         """
-        el = cls._get_site_registry()[site_name]
+        registry = cls._get_site_registry()
+        try:
+            el = registry[site_name]
+        except UnknownSiteException as e:
+            raise UnknownSiteException(e.site, 'EarthLocation.get_site_names', close_names=e.close_names)
 
         if cls is el.__class__:
             return el
