@@ -10,7 +10,8 @@ from ..utils.exceptions import AstropyWarning
 
 __all__ = ['RangeError', 'BoundsError', 'IllegalHourError',
            'IllegalMinuteError', 'IllegalSecondError', 'ConvertError',
-           'IllegalHourWarning', 'IllegalMinuteWarning', 'IllegalSecondWarning']
+           'IllegalHourWarning', 'IllegalMinuteWarning', 'IllegalSecondWarning',
+           'UnknownSiteException']
 
 
 class RangeError(ValueError):
