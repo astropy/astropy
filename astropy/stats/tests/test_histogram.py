@@ -125,9 +125,8 @@ def test_histogram_output():
                            2.20722169, 2.80224813])
 
     counts, bins = histogram(X, bins='blocks')
-    assert_allclose(counts, [3, 27, 41, 29])
-    assert_allclose(bins, [-2.55298982, -1.7162764 , -0.42062562,
-                           0.46422235, 2.26975462])
+    assert_allclose(counts, [10, 61, 29])
+    assert_allclose(bins, [-2.55298982, -1.24381059,  0.46422235,  2.26975462])
 
 
 def test_histogram_badargs(N=1000, rseed=0):
