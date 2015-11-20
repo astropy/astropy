@@ -14,8 +14,7 @@ from .. import conf
 from ..file import _File
 from ..header import Header, _pad_length
 from ..util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
-                    itersubclasses, decode_ascii,
-                    _get_array_mmap, _array_to_file, first)
+                    itersubclasses, decode_ascii, _get_array_mmap, first)
 from ..verify import _Verify, _ErrList
 
 from ....extern.six import string_types, add_metaclass
@@ -727,7 +726,7 @@ class _BaseHDU(object):
 
         raw = self._get_raw_data(self._data_size, 'ubyte', self._data_offset)
         if raw is not None:
-            _array_to_file(raw, fileobj)
+            fileobj.writearray(raw)
             return raw.nbytes
         else:
             return 0

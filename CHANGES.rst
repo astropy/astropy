@@ -884,6 +884,9 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Fixed a regression that could cause writes of large FITS files to be
+    truncated. [#4307]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
