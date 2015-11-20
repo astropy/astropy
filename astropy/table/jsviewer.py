@@ -23,7 +23,7 @@ class Conf(_config.ConfigNamespace):
         'The URL to the jquery datatables library.')
 
     css_urls = _config.ConfigItem(
-        ['https://cdn.datatables.net/1.10.9/css/jquery.dataTables.min.css'],
+        ['https://cdn.datatables.net/1.10.9/css/jquery.dataTables.css'],
         'The URLs to the css file(s) to include.', cfgtype='list')
 
 
@@ -123,7 +123,7 @@ class JSViewer(object):
     def css_urls(self):
         if self._use_local_files:
             return ['file://' + join(EXTERN_CSS_DIR,
-                                     'jquery.dataTables.min.css')]
+                                     'jquery.dataTables.css')]
         else:
             return conf.css_urls
 
