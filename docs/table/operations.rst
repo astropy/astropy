@@ -783,8 +783,8 @@ Unique rows
 Sometimes it makes sense to use only rows with unique key columns or even
 fully unique rows from a table. This can be done using the above described
 :func:`~astropy.table.Table.group_by` method and ``groups`` attribute, or
-with the `~astropy.table.unique` convenience method. The
-`~astropy.table.unique` method returns with a sorted table containing the
+with the `~astropy.table.unique` convenience function. The
+`~astropy.table.unique` function returns with a sorted table containing the
 first row for each unique ``keys`` column value. If no ``keys`` is provided
 it returns with a sorted table containing all the fully unique rows.
 
