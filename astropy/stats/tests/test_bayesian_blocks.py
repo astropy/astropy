@@ -122,14 +122,12 @@ def test_fitness_function_results():
     # Event Data
     t = rng.randn(100)
     edges = bayesian_blocks(t, fitness='events')
-    assert_allclose(edges, [-2.6197451, -1.97361952, -0.71094865,
-                            0.36866702, 1.85227818])
+    assert_allclose(edges, [-2.6197451, -0.71094865, 0.36866702, 1.85227818])
 
     # Event data with repeats
     t[80:] = t[:20]
     edges = bayesian_blocks(t, fitness='events', p0=0.01)
-    assert_allclose(edges, [-2.6197451, -1.97361952, -0.47432431,
-                            -0.46202823,  1.85227818])
+    assert_allclose(edges, [-2.6197451, -0.47432431,-0.46202823, 1.85227818])
 
     # Regular event data
     dt = 0.01
