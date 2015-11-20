@@ -129,6 +129,8 @@ Bug Fixes
  - Fixed an issue where if ipython is installed but ipykernel is not
    installed then importing astropy from the ipython console gave an
    IPython.kernel deprecation warning. [#4279]
+  - Fixed crash that could occur in ``ProgressBar`` when ``astropy`` is
+    imported in an IPython startup script. [#4274]
 
 - ``astropy.vo``
 
