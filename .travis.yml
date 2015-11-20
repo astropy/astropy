@@ -71,6 +71,7 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=2.7 SETUP_CMD='test --coverage'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+               PIP_DEPENDENCIES='cpp-coveralls'
                LC_CTYPE=C.ascii LC_ALL=C.ascii
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
         - os: linux
