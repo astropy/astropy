@@ -71,3 +71,17 @@ that will not be available in the source tree.  In this case,
             raise
 
     from . import version
+
+Speed up your builds with ccache
+--------------------------------
+
+`ccache <https://en.wikipedia.org/wiki/Ccache>`_ is a tool that caches
+compiled sources so that they don't have to be recompiled (so long as they are
+unchanged) even if the outputs have been deleted.  This means that if you
+switch branches or clean your source checkout you can save a lot of time by
+avoiding the majority of re-compiles from scratch.
+
+Because installation and configuration of ccache varies from platform to
+platform, please consult the ccache documentation and/or Google to set up
+ccache on your system--this is strongly encouraged for anyone doing signficant
+development of Astropy or scientific programming in general.
