@@ -26,6 +26,10 @@ except ImportError:
     _CAN_RESIZE_TERMINAL = False
 
 try:
+    from IPython import get_ipython
+except ImportError:
+    pass
+try:
     get_ipython()
 except NameError:
     OutStream = None
