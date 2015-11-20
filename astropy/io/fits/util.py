@@ -864,19 +864,7 @@ def _write_string(f, s):
         # Workaround for StringIO/ndarray incompatibility
         s = s.data
 
-    written = 0
-    while written < len(s):
-        try:
-            n = f.write(s[written:])
-        except IOError as exc:
-            if exc.errno == errno.EINTR:
-                continue
-
-            raise
-
-        if n:
-            # n may be None if a non-blocking write fails
-            written += n
+    f.write(s)
 
 
 def _convert_array(array, dtype):
