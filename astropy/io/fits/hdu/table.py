@@ -17,6 +17,7 @@ from .base import DELAYED, _ValidHDU, ExtensionHDU
 # This module may have many dependencies on pyfits.column, but pyfits.column
 # has fewer dependencies overall, so it's easier to keep table/column-related
 # utilities in pyfits.column
+from .. import _numpy_hacks as nh
 from ..column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_TO_ATTRIBUTE,
                       ATTRIBUTE_TO_KEYWORD, TDEF_RE, Column, ColDefs,
                       _AsciiColDefs, _FormatP, _FormatQ, _makep,
@@ -1478,6 +1479,7 @@ def _binary_table_byte_swap(data):
 
     names = []
     formats = []
+    offsets = []
 
     to_swap = []
 
@@ -1489,9 +1491,10 @@ def _binary_table_byte_swap(data):
     for idx, name in enumerate(orig_dtype.names):
         field = _get_recarray_field(data, idx)
 
-        field_dtype = orig_dtype.fields[name][0]
+        field_dtype, field_offset = orig_dtype.fields[name]
         names.append(name)
         formats.append(field_dtype)
+        offsets.append(field_offset)
 
         if isinstance(field, chararray.chararray):
             continue
@@ -1517,7 +1520,10 @@ def _binary_table_byte_swap(data):
     for arr in reversed(to_swap):
         arr.byteswap(True)
 
-    data.dtype = np.dtype(list(zip(names, formats)))
+    new_dtype = nh.realign_dtype(np.dtype(list(zip(names, formats))),
+                                 offsets)
+
+    data.dtype = new_dtype
 
     yield data
 

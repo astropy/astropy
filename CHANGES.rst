@@ -887,6 +887,11 @@ Bug Fixes
   - Fixed a regression that could cause writes of large FITS files to be
     truncated. [#4307]
 
+  - Astropy v1.0.6 included a fix (#4228) for an obscure case where the TDIM
+    of a table column is smaller than the repeat count of its data format.
+    This updates that fix in such a way that it works with Numpy 1.10 as well.
+    [#4266]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
