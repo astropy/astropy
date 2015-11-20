@@ -885,6 +885,9 @@ Bug Fixes
 
 - ``astropy.utils``
 
+  - Fixed crash that could occur in ``ProgressBar`` when ``astropy`` is
+    imported in an IPython startup script. [#4274]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
