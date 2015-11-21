@@ -901,10 +901,10 @@ Continuous integration
 ----------------------
 
 Astropy uses `Travis <https://travis-ci.org/astropy/astropy>`_ for continuous
-integration on Linux and OSX setups, and `Appveyor
+integration (CI) on Linux and OSX setups, and `Appveyor
 <https://ci.appveyor.com/project/Astropy/astropy>`_ on Windows. These
-continuously test the package for each commit and pull request to notice
-when something breaks.
+continuously test the package for each commit and pull request that is pushed
+to GitHub to notice when something breaks.
 
 Astropy and many affiliated packages use an external package called
 `ci-helpers <https://github.com/astropy/astropy-helpers>`_ to provide
@@ -914,6 +914,6 @@ files to setting up the conda environment, and installing dependencies.
 
 Dependencies can be customized for different packages using the appropriate
 environmental variables in ``.travis.yml`` and ``appveyor.yml``. For more
-details, see the `package-template
+details on how to set up this machinery, see the `package-template
 <https://github.com/astropy/package-template>`_ and `ci-helpers`_.
 
