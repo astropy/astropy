@@ -895,3 +895,25 @@ Python `float` objects and compared numerically.  This means that small
 differences in representation of roundoff digits will be ignored by the
 doctest.  The values are otherwise compared exactly, so more significant
 (albeit possibly small) differences will still be caught by these tests.
+
+
+Continuous integration
+----------------------
+
+Astropy uses `Travis <https://travis-ci.org/astropy/astropy>`_ for continuous
+integration (CI) on Linux and OSX setups, and `Appveyor
+<https://ci.appveyor.com/project/Astropy/astropy>`_ on Windows. These
+continuously test the package for each commit and pull request that is pushed
+to GitHub to notice when something breaks.
+
+Astropy and many affiliated packages use an external package called
+`ci-helpers <https://github.com/astropy/astropy-helpers>`_ to provide
+support for the generic parts of the CI systems. ``ci-helpers`` consists of
+a set of scripts that are used by the ``.travis.yml`` and ``appveyor.yml``
+files to setting up the conda environment, and installing dependencies.
+
+Dependencies can be customized for different packages using the appropriate
+environmental variables in ``.travis.yml`` and ``appveyor.yml``. For more
+details on how to set up this machinery, see the `package-template
+<https://github.com/astropy/package-template>`_ and `ci-helpers`_.
+
