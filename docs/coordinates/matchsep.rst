@@ -60,6 +60,19 @@ defined::
     >>> sep  # doctest: +FLOAT_CMP
     <Distance 28.743988157814094 kpc>
 
+There is also a :meth:`astropy.coordinates.SkyCoord.spherical_offsets_to` method
+for computing angular offsets (e.g., small shifts like you might give a
+telescope operator to move from a bright star to a fainter target.)::
+
+    >>> from astropy.coordinates import SkyCoord
+    >>> bright_star = SkyCoord('8h50m59.75s', '+11d39m22.15s', frame='icrs')
+    >>> faint_galaxy = SkyCoord('8h50m47.92s', '+11d39m32.74s', frame='icrs')
+    >>> dra, ddec = bright_star.spherical_offsets_to(faint_galaxy)
+    >>> dra.to(u.arcsec)  # doctest: +FLOAT_CMP
+    <Angle -173.79057510102513 arcsec>
+    >>> ddec.to(u.arcsec)  # doctest: +FLOAT_CMP
+    <Angle 10.589999999999833 arcsec>
+
 .. _astropy-coordinates-matching:
 
 Matching Catalogs
