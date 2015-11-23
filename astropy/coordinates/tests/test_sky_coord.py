@@ -25,7 +25,7 @@ from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
 from ...coordinates import Latitude, Longitude, EarthLocation
 from ...time import Time
 from ...utils import minversion
-from ...utils.exceptions import AstropyDeprecationWarning
+from ...utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from ...utils.compat import NUMPY_LT_1_7
 
 RA = 1.0 * u.deg
@@ -1166,3 +1166,41 @@ def test_getitem_representation():
     sc = SkyCoord([1, 1] * u.deg, [2, 2] * u.deg)
     sc.representation = 'cartesian'
     assert sc[0].representation is CartesianRepresentation
+
+def test_spherical_offsets(recwarn):
+    i00 = SkyCoord(0*u.arcmin, 0*u.arcmin, frame='icrs')
+    i01 = SkyCoord(0*u.arcmin, 1*u.arcmin, frame='icrs')
+    i10 = SkyCoord(1*u.arcmin, 0*u.arcmin, frame='icrs')
+    i11 = SkyCoord(1*u.arcmin, 1*u.arcmin, frame='icrs')
+    i22 = SkyCoord(2*u.arcmin, 2*u.arcmin, frame='icrs')
+
+    dra, ddec = i00.spherical_offsets_to(i01)
+    assert dra == 0*u.arcmin
+    assert ddec == 1*u.arcmin
+
+    dra, ddec = i00.spherical_offsets_to(i10)
+    assert dra == 1*u.arcmin
+    assert ddec == 0*u.arcmin
+
+    dra, ddec = i10.spherical_offsets_to(i01)
+    assert dra == -1*u.arcmin
+    assert ddec == 1*u.arcmin
+
+    dra, ddec = i11.spherical_offsets_to(i22)
+    assert (0*u.arcmin < dra < 1*u.arcmin)
+    assert ddec == 1*u.arcmin
+
+    fk5 = SkyCoord(0*u.arcmin, 0*u.arcmin, frame='fk5')
+
+    with pytest.raises(ValueError):
+        # different frames should fail
+        i00.spherical_offsets_to(fk5)
+
+
+    #large offset (>1 deg) should give a warning
+    i1deg = ICRS(1*u.deg, 1*u.deg)
+    dra, ddec = i00.spherical_offsets_to(i1deg)
+    assert dra == 1*u.deg
+    assert ddec == 1*u.deg
+    w = recwarn.pop(AstropyWarning)
+    assert 'Small-angle approximation may be incorrect' in str(w.message)
