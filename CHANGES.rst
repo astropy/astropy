@@ -34,6 +34,9 @@ New Features
 
 - ``astropy.stats``
 
+  - Updated ``bootstrap`` to allow bootstrapping statistics with multiple
+    outputs. [#3601]
+
 - ``astropy.table``
 
 - ``astropy.tests``
@@ -307,9 +310,6 @@ New Features
   - A new function ``poisson_conf_interval()`` was added to allow easy calculation
     of several standard formulae for the error bars on the mean of a Poisson variable
     estimated from a single sample.
-
-  - Updated ``bootstrap`` to allow bootstrapping statistics with multiple
-    outputs. [#3601]
 
 - ``astropy.table``
 
