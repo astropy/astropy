@@ -663,3 +663,46 @@ def test_getitem_representation():
     c = ICRS([1, 1] * u.deg, [2, 2] * u.deg)
     c.representation = 'cartesian'
     assert c[0].representation is representation.CartesianRepresentation
+
+def test_spherical_offsets(recwarn):
+    from ...utils.exceptions import AstropyWarning
+    from ..builtin_frames import ICRS, FK5
+
+    i00 = ICRS(0*u.arcmin, 0*u.arcmin)
+    i01 = ICRS(0*u.arcmin, 1*u.arcmin)
+    i10 = ICRS(1*u.arcmin, 0*u.arcmin)
+    i11 = ICRS(1*u.arcmin, 1*u.arcmin)
+    i22 = ICRS(2*u.arcmin, 2*u.arcmin)
+
+    dra, ddec = i00.spherical_offsets_to(i01)
+    assert dra == 0*u.arcmin
+    assert ddec == 1*u.arcmin
+
+    dra, ddec = i00.spherical_offsets_to(i10)
+    assert dra == 1*u.arcmin
+    assert ddec == 0*u.arcmin
+
+    dra, ddec = i10.spherical_offsets_to(i01)
+    assert dra == -1*u.arcmin
+    assert ddec == 1*u.arcmin
+
+    dra, ddec = i11.spherical_offsets_to(i22)
+    assert (0*u.arcmin < dra < 1*u.arcmin)
+    assert ddec == 1*u.arcmin
+
+    fk5 = FK5(0*u.arcmin, 0*u.arcmin)
+
+    with pytest.raises(ValueError):
+        # different frames should fail
+        i00.spherical_offsets_to(fk5)
+
+
+    #large offset (>1 deg) should give a warning
+    i1deg = ICRS(1*u.deg, 1*u.deg)
+    dra, ddec = i00.spherical_offsets_to(i1deg)
+    assert dra == 1*u.deg
+    assert ddec == 1*u.deg
+    w = recwarn.pop(AstropyWarning)
+    assert 'Small-angle approximation may be incorrect' in str(w.message)
+
+
