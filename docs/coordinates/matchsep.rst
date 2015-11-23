@@ -106,8 +106,7 @@ the catalog::
     >>> matches = catalog[idx]  # doctest: +SKIP
     >>> (matches.separation_3d(c) == d3d).all()  # doctest: +SKIP
     True
-    >>> dra = (matches.ra - c.ra).arcmin  # doctest: +SKIP
-    >>> ddec = (matches.dec - c.dec).arcmin  # doctest: +SKIP
+    >>> dra, ddec = c.spherical_offsets_to(matches)  # doctest: +SKIP
 
 This functionality can also be accessed from the
 :func:`~astropy.coordinates.match_coordinates_sky` and
