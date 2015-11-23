@@ -1119,6 +1119,69 @@ class BaseCoordinateFrame(object):
         distval = (dx.value ** 2 + dy.value ** 2 + dz.value ** 2) ** 0.5
         return Distance(distval, dx.unit)
 
+    def spherical_offsets_to(self, tocoord):
+        r"""
+        Computes angular offsets to go *from* this coordinate *to* another.
+
+        Parameters
+        ----------
+        tocoord : `~astropy.coordinates.BaseCoordinateFrame`
+            The coordinate to offset to.
+
+        Returns
+        -------
+        lon_offset : `~astropy.coordinates.Angle`
+            The angular offset in the longitude direction (i.e., RA for
+            equatorial coordinates).
+        lat_offset : `~astropy.coordinates.Angle`
+            The angular offset in the latitude direction (i.e., Dec for
+            equatorial coordinates).
+
+        Raises
+        ------
+        ValueError
+            If the ``tocoord`` is not in the same frame as this one. This is
+            different from the behavior of the `separation`/`separation_3d`
+            methods because the offset components depend critically on the
+            specific choice of frame.
+
+        Notes
+        -----
+        By design, this method follows the traditional definition of offsets
+        defined as:
+
+        .. math::
+
+            \Delta {\rm Dec} = \delta_2 - \delta_1
+
+            \Delta {\rm RA } = (\alpha_2 - \alpha_1) \cos{(\delta_1)}
+
+        where :math:`\alpha` is the longitude coordinate for this frame and
+        :math:`\delta` is the latitude coordinate.  This is fast, but *only*
+        correct in the small-angle case.  For larger offsets, use the
+        :meth:`separation` method or a more appropriate coordinate frame.
+
+        See Also
+        --------
+        separation : for the *total* angular offset (not broken out into components)
+
+        """
+        if not self.is_equivalent_frame(tocoord):
+            raise ValueError('Tried to use spherical_offsets_to with two non-matching frames!')
+
+        self_sph = self.spherical
+        to_sph = tocoord.spherical
+
+        lat_offset = to_sph.lat - self_sph.lat
+        lon_offset = (to_sph.lon - self_sph.lon)*np.cos(self_sph.lat)
+
+        if np.any(np.hypot(lat_offset, lon_offset) < 1*u.deg):
+            warnings.warn('Spherical_offsets_to was used for an offset > 1 '
+                          'degree.  Small-angle approximation may be incorrect '
+                          'in this case!', AstropyWarning)
+
+        return lon_offset, lat_offset
+
     @property
     def cartesian(self):
         """
