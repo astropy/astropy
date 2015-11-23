@@ -72,10 +72,20 @@ Packagers may either use system copies of these JavaScript modules, or require
 use of online versions (perhaps via URLs of cloud-hosted versions of these
 modules).
 
-To change the default paths for these files edit the ``astropy.table.jsviewer``
-module in Astropy to change the default values for the ``jquery_url`` and/or
-``datatables_url`` options.  Use a ``file://`` URL for locally-installed
-versions of these files.
+It is possible to change the default urls for these files by using the Astropy
+`Configuration system <http://docs.astropy.org/en/stable/config/>`_. The default
+configuration file (``$HOME/.astropy/config``) contains a commented section
+``[table.jsviewer]`` with two items for jQuery and DataTables. It is also
+possible to display the default value and modify it by importing the
+configuration module::
+
+    In [1]: from astropy.table.jsviewer import conf
+
+    In [2]: conf.jquery_url
+    Out[2]: u'https://code.jquery.com/jquery-1.11.3.min.js'
+
+    In [3]: conf.jquery_url = '...'
+
 
 Other
 ^^^^^
