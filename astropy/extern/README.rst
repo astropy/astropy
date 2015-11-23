@@ -23,10 +23,17 @@ In particular, this currently includes for Python:
 
 And for JavaScript:
 
-- jQuery_: This is used currently for the browsed-based table viewer feature.
+- jQuery_: This is used currently for the browser-based table viewer feature.
 
 - DataTables_: This is a plug-in for jQuery used also for the browser-based
   table viewer.
+
+Notes for developers about these JavaScript files (*jQuery* and *DataTables*):
+the minified files are the ones that are used in the table viewer feature, but
+the non-minified versions are also present in the ``js/`` sub-directory for
+packaging reasons. These files must also be distributed, to provide the source
+files from which the minified ones can be compiled. This is a requirement for
+Linux distributions such as Debian and Fedora.
 
 
 Notes for third-party packagers
@@ -69,7 +76,6 @@ To change the default paths for these files edit the ``astropy.table.jsviewer``
 module in Astropy to change the default values for the ``jquery_url`` and/or
 ``datatables_url`` options.  Use a ``file://`` URL for locally-installed
 versions of these files.
-
 
 Other
 ^^^^^
