@@ -16,6 +16,8 @@ New Features
 
 - ``astropy.coordinates``
 
+  - Added the ``SkyCoord.spherical_offsets_to`` method. [#4338]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
