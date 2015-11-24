@@ -53,6 +53,7 @@ Core Package Contributors
 * Matthew Craig
 * Steven Crawford
 * Neil Crighton
+* Robert Cross
 * Kelle Cruz
 * Daniel Datsev
 * Matt Davis
