@@ -1827,7 +1827,6 @@ class TestTableFunctions(FitsTestCase):
             assert (h[1].data['strarray'].encode('ascii') == arrb).all()
             assert (h[1].data['intarray'] == arrc).all()
 
-    @pytest.mark.xfail('not NUMPY_LT_1_10')
     def test_mismatched_tform_and_tdim(self):
         """Normally the product of the dimensions listed in a TDIMn keyword
         must be less than or equal to the repeat count in the TFORMn keyword.
@@ -1850,8 +1849,12 @@ class TestTableFunctions(FitsTestCase):
         hdu.writeto(self.temp('test.fits'))
 
         with fits.open(self.temp('test.fits')) as h:
+            assert h[1].header['TFORM1'] == '20I'
+            assert h[1].header['TFORM2'] == '4I'
+            assert h[1].header['TDIM1'] == h[1].header['TDIM2'] == '(2,2)'
             assert (h[1].data['a'] == arra).all()
             assert (h[1].data['b'] == arrb).all()
+            assert h[1].data.itemsize == 48  # 16-bits times 24
 
         # If dims is more than the repeat count in the format specifier raise
         # an error
