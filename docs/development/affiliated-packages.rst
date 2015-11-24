@@ -132,7 +132,8 @@ Starting a new package
     git add <packagename>/conftest.py
 
    You can also uncomment the line ``enable_deprecations_as_exceptions()`` if
-   you want deprecation warnings to make tests fail.
+   you want deprecation warnings to make tests fail. There are also
+   options to customize the information to be printed when running the tests.
 
 #. If you are interested in accurate coverage test results, copy over the
    ``coveragerc`` and the ``setup_package.py`` files to your repository (the
