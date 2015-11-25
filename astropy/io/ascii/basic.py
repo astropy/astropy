@@ -385,4 +385,4 @@ class Rdb(Tab):
     _description = 'Tab-separated with a type definition header line'
 
     header_class = RdbHeader
-    data_class = RdbData 
+    data_class = RdbData
