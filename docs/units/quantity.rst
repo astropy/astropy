@@ -118,7 +118,7 @@ Plotting a quantity with an incompatible unit will raise an exception::
 
 .. doctest-requires:: matplotlib
 
-    >>> plt.plot([1, 2, 3] * u.kg)
+    >>> plt.plot([1, 2, 3] * u.kg)  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
     UnitConversionError: 'kg' (mass) and 'm' (length) are not convertible
