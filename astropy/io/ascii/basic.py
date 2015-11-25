@@ -192,7 +192,7 @@ class TabHeader(BasicHeader):
 
 class TabData(BasicData):
     """
-    Reader for data of tables with tab separated data 
+    Reader for data of tables with tab separated data
     """
     splitter_class = TabDataSplitter
 
@@ -320,17 +320,17 @@ class RdbHeader(TabHeader):
         Line 0: RDB col names
         Line 1: RDB col definitions
         Line 2+: RDB data rows
-        
-        
+
+
         Parameters
         ----------
-        lines : list 
+        lines : list
             List of table lines
-        
+
         Returns
-        -------        
+        -------
         None
-        
+
         """
         header_lines = self.process_lines(lines)   # this is a generator
         header_vals_list = [hl for _, hl in zip(range(2), self.splitter(header_lines))]
@@ -385,4 +385,4 @@ class Rdb(Tab):
     _description = 'Tab-separated with a type definition header line'
 
     header_class = RdbHeader
-    data_class = RdbData
+    data_class = RdbData 
