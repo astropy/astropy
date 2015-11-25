@@ -135,7 +135,7 @@ class DaophotHeader(core.BaseHeader):
 
     def extract_keyword_line(self, line):
         """
-        Extract info from a header keyword line (#K) 
+        Extract info from a header keyword line (#K)
         """
         m = self.re_header_keyword.match(line)
         if m:
@@ -150,14 +150,14 @@ class DaophotHeader(core.BaseHeader):
         Initialize the header Column objects from the table ``lines`` for a DAOphot
         header.  The DAOphot header is specialized so that we just copy the entire BaseHeader
         get_cols routine and modify as needed.
-        
-        
-        
+
+
+
         Parameters
         ----------
-        lines: list 
+        lines: list
             List of table lines
-            
+
         Returns
         ----------
         col : list
@@ -392,4 +392,4 @@ class Daophot(core.BaseReader):
         self.inputter.data = self.data
 
     def write(self, table=None):
-        raise NotImplementedError
+        raise NotImplementedError 
