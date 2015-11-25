@@ -12,6 +12,8 @@ import re
 
 import numpy as np
 
+from ..extern import six
+
 # Much of this code, particularly the parts of floating point handling, is
 # borrowed from the SymPy project with permission.  See licenses/SYMPY.rst
 # for the full SymPy license.
@@ -19,6 +21,8 @@ import numpy as np
 FIX = doctest.register_optionflag('FIX')
 FLOAT_CMP = doctest.register_optionflag('FLOAT_CMP')
 IGNORE_OUTPUT = doctest.register_optionflag('IGNORE_OUTPUT')
+IGNORE_OUTPUT_2 = doctest.register_optionflag('IGNORE_OUTPUT_2')
+IGNORE_OUTPUT_3 = doctest.register_optionflag('IGNORE_OUTPUT_3')
 
 
 class AstropyOutputChecker(doctest.OutputChecker):
@@ -150,7 +154,8 @@ class AstropyOutputChecker(doctest.OutputChecker):
         return False
 
     def check_output(self, want, got, flags):
-        if flags & IGNORE_OUTPUT:
+        if (flags & IGNORE_OUTPUT or (six.PY2 and flags & IGNORE_OUTPUT_2) or
+                (six.PY3 and flags & IGNORE_OUTPUT_3)):
             return True
 
         if flags & FIX:
