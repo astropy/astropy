@@ -90,10 +90,9 @@ than for ``t`` because they are expressed relative to the TT time scale.  Of
 course, from the numbers or strings one could not tell; one format in which
 this information is kept is the ``fits`` format::
 
-  >>> t2.fits
-  array(['1999-01-01T00:01:04.307(TT)', '2010-01-01T00:01:06.184(TT)'],
-        dtype='|S27')
-  
+  >>> print(t2.fits)
+  ['1999-01-01T00:01:04.307(TT)' '2010-01-01T00:01:06.184(TT)']
+
 Finally, some further examples of what is possible.  For details, see
 the API documentation below.
 
