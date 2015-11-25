@@ -90,7 +90,7 @@ feature needs to be explicitly turned on:
 .. doctest-requires:: matplotlib
 
     >>> from astropy.visualization import quantity_support
-    >>> quantity_support()
+    >>> quantity_support()  # doctest: +IGNORE_OUTPUT
     <astropy.visualization.units.MplQuantityConverter ...>
 
 Then |quantity| objects can be passed to matplotlib plotting
