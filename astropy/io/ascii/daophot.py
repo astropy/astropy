@@ -392,4 +392,4 @@ class Daophot(core.BaseReader):
         self.inputter.data = self.data
 
     def write(self, table=None):
-        raise NotImplementedError 
+        raise NotImplementedError
