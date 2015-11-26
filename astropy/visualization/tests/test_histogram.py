@@ -7,10 +7,15 @@ from numpy.testing import assert_allclose
 
 try:
     import matplotlib.pyplot as plt
+    HAS_PLT = True
 except ImportError:
     HAS_PLT = False
-else:
-    HAS_PLT = True
+
+try:
+    import scipy
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
 
 from ...tests.helper import pytest
 
@@ -50,8 +55,15 @@ def test_hist_autobin(rseed=0):
     rng = np.random.RandomState(rseed)
     x = rng.randn(100)
 
-    for bintype in [10, np.arange(-3, 3, 10),
-                    'knuth', 'scott', 'freedman', 'blocks']:
+    # 'knuth' bintype depends on scipy that is optional dependency
+    if HAS_SCIPY:
+        bintypes = [10, np.arange(-3, 3, 10), 'knuth', 'scott',
+                    'freedman', 'blocks']
+    else:
+        bintypes = [10, np.arange(-3, 3, 10), 'scott',
+                    'freedman', 'blocks']
+
+    for bintype in bintypes:
         for range in [None, (-3, 3)]:
             n1, bins1 = histogram(x, bintype, range=range)
             n2, bins2, patches = hist(x, bintype, range=range)
