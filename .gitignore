@@ -15,6 +15,8 @@ MANIFEST
 astropy/version.py
 astropy/cython_version.py
 astropy/wcs/include/wcsconfig.h
+astropy/_erfa/core.py
+astropy/_erfa/core.pyx
 
 # Sphinx
 _build
@@ -28,6 +30,7 @@ docs/api
 dist
 build
 eggs
+.eggs
 parts
 bin
 var
@@ -40,6 +43,7 @@ distribute-*.tar.gz
 .cache
 .tox
 .*.swp
+.*.swo
 *~
 .project
 .pydevproject

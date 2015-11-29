@@ -1,3 +1,4 @@
+include .astropy-root
 include README.rst
 include CHANGES.rst
 
@@ -5,15 +6,14 @@ include ez_setup.py
 include ah_bootstrap.py
 include setup.cfg
 include astropy/tests/coveragerc
-recursive-include astropy *.pyx *.c *.h *.map
+recursive-include astropy *.pyx *.c *.h *.map *.templ
 
 include astropy/astropy.cfg
 
 # We have to explicitly include the following modules, otherwise only the
 # Python 2 versions are included when making a source distribution in Python
 # 2, and similarly for Python 3:
-include astropy/extern/configobj_py2/*.py
-include astropy/extern/configobj_py3/*.py
+include astropy/extern/configobj/*.py
 recursive-include astropy/utils/compat *.py
 
 include astropy/table/tests/notebook_repr_html.ipynb

@@ -12,7 +12,7 @@ from numpy.testing.utils import assert_allclose
 
 from .. import models
 from .. import fitting
-from ..core import Model, Fittable1DModel
+from ..core import Model, FittableModel, Fittable1DModel
 from ..parameters import Parameter
 from ...tests.helper import pytest
 
@@ -68,18 +68,14 @@ class TestInputType(object):
 
 
 class TestFitting(object):
-    """
-    Test various input options to fitting routines
-    """
+    """Test various input options to fitting routines."""
 
     def setup_class(self):
         self.x1 = np.arange(10)
         self.y, self.x = np.mgrid[:10, :10]
 
     def test_linear_fitter_1set(self):
-        """
-        1 set 1D x, 1pset
-        """
+        """1 set 1D x, 1pset"""
 
         expected = np.array([0, 1, 1, 1])
         p1 = models.Polynomial1D(3)
@@ -90,9 +86,7 @@ class TestFitting(object):
         assert_allclose(model.parameters, expected, atol=10 ** (-7))
 
     def test_linear_fitter_Nset(self):
-        """
-        1 set 1D x, 2 sets 1D y, 2 param_sets
-        """
+        """1 set 1D x, 2 sets 1D y, 2 param_sets"""
 
         expected = np.array([[0, 0], [1, 1], [2, 2], [3, 3]])
         p1 = models.Polynomial1D(3, n_models=2)
@@ -107,9 +101,7 @@ class TestFitting(object):
         assert_allclose(model.param_sets, expected, atol=10 ** (-7))
 
     def test_linear_fitter_1dcheb(self):
-        """
-        1 pset, 1 set 1D x, 1 set 1D y, Chebyshev 1D polynomial
-        """
+        """1 pset, 1 set 1D x, 1 set 1D y, Chebyshev 1D polynomial"""
 
         expected = np.array(
             [[2817.2499999999995,
@@ -164,9 +156,7 @@ class TestFitting(object):
             model = pfit(p1, self.x1, y1)
 
     def test_wrong_pset(self):
-        """
-        A case of 1 set of x and multiple sets of y and parameters
-        """
+        """A case of 1 set of x and multiple sets of y and parameters."""
 
         expected = np.array([[1., 0],
                              [1, 1],
@@ -186,9 +176,8 @@ class TestFitting(object):
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_nonlinear_lsqt_1set_1d(self):
-        """
-        1 set 1D x, 1 set 1D y, 1 pset NonLinearFitter
-        """
+        """1 set 1D x, 1 set 1D y, 1 pset NonLinearFitter"""
+
         g1 = models.Gaussian1D(10, mean=3, stddev=.2)
         y1 = g1(self.x1)
         gfit = fitting.LevMarLSQFitter()
@@ -197,9 +186,8 @@ class TestFitting(object):
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_nonlinear_lsqt_Nset_1d(self):
-        """
-        1 set 1D x, 1 set 1D y, 2 param_sets, NonLinearFitter
-        """
+        """1 set 1D x, 1 set 1D y, 2 param_sets, NonLinearFitter"""
+
         with pytest.raises(ValueError):
             g1 = models.Gaussian1D([10.2, 10], mean=[3, 3.2], stddev=[.23, .2],
                                    n_models=2)
@@ -209,9 +197,8 @@ class TestFitting(object):
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_nonlinear_lsqt_1set_2d(self):
-        """
-        1 set 2d x, 1set 2D y, 1 pset, NonLinearFitter
-        """
+        """1 set 2d x, 1set 2D y, 1 pset, NonLinearFitter"""
+
         g2 = models.Gaussian2D(10, x_mean=3, y_mean=4, x_stddev=.3,
                                y_stddev=.2, theta=0)
         z = g2(self.x, self.y)
@@ -221,9 +208,8 @@ class TestFitting(object):
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_nonlinear_lsqt_Nset_2d(self):
-        """
-         1 set 2d x, 1set 2D y, 2 param_sets, NonLinearFitter
-        """
+        """1 set 2d x, 1set 2D y, 2 param_sets, NonLinearFitter"""
+
         with pytest.raises(ValueError):
             g2 = models.Gaussian2D([10, 10], [3, 3], [4, 4], x_stddev=[.3, .3],
                                    y_stddev=[.2, .2], theta=[0, 0], n_models=2)
@@ -264,18 +250,14 @@ class TestEvaluation(object):
         assert_allclose(y1[:, 0], y1[:, 1], atol=10 ** (-12))
 
     def test_p1_1set_1pset(self):
-        """
-        1 data set, 1 pset, Polynomial1D
-        """
+        """1 data set, 1 pset, Polynomial1D"""
 
         p1 = models.Polynomial1D(4)
         y1 = p1(self.x1)
         assert y1.shape == (20,)
 
     def test_p1_nset_npset(self):
-        """
-        N data sets, N param_sets, Polynomial1D
-        """
+        """N data sets, N param_sets, Polynomial1D"""
 
         p1 = models.Polynomial1D(4, n_models=2)
         y1 = p1(np.array([self.x1, self.x1]).T, model_set_axis=-1)
@@ -283,17 +265,14 @@ class TestEvaluation(object):
         assert_allclose(y1[0, :], y1[1, :], atol=10 ** (-12))
 
     def test_p2_1set_1pset(self):
-        """
-        1 pset, 1 2D data set, Polynomial2D
-        """
+        """1 pset, 1 2D data set, Polynomial2D"""
+
         p2 = models.Polynomial2D(5)
         z = p2(self.x, self.y)
         assert z.shape == (10, 10)
 
     def test_p2_nset_npset(self):
-        """
-        N param_sets, N 2D data sets, Poly2d
-        """
+        """N param_sets, N 2D data sets, Poly2d"""
 
         p2 = models.Polynomial2D(5, n_models=2)
         xx = np.array([self.x, self.x])
@@ -326,7 +305,7 @@ class TestEvaluation(object):
         g(x, y)
 
 
-class TestModel_1_1(Fittable1DModel):
+class TModel_1_1(Fittable1DModel):
     p1 = Parameter()
     p2 = Parameter()
 
@@ -351,7 +330,7 @@ class TestSingleInputSingleOutputSingleModel(object):
         Scalar parameters with a scalar input should return a scalar.
         """
 
-        t = TestModel_1_1(1, 10)
+        t = TModel_1_1(1, 10)
         y = t(100)
         assert isinstance(y, float)
         assert np.ndim(y) == 0
@@ -363,7 +342,7 @@ class TestSingleInputSingleOutputSingleModel(object):
         array output of the same shape as the input.
         """
 
-        t = TestModel_1_1(1, 10)
+        t = TModel_1_1(1, 10)
         y = t(np.arange(5) * 100)
         assert isinstance(y, np.ndarray)
         assert np.shape(y) == (5,)
@@ -375,7 +354,7 @@ class TestSingleInputSingleOutputSingleModel(object):
         array output of the same shape as the input.
         """
 
-        t = TestModel_1_1(1, 10)
+        t = TModel_1_1(1, 10)
         y = t(np.arange(6).reshape(2, 3) * 100)
         assert isinstance(y, np.ndarray)
         assert np.shape(y) == (2, 3)
@@ -388,7 +367,7 @@ class TestSingleInputSingleOutputSingleModel(object):
         array output of the same shape as the input.
         """
 
-        t = TestModel_1_1(1, 10)
+        t = TModel_1_1(1, 10)
         y = t(np.arange(12).reshape(2, 3, 2) * 100)
         assert isinstance(y, np.ndarray)
         assert np.shape(y) == (2, 3, 2)
@@ -402,7 +381,7 @@ class TestSingleInputSingleOutputSingleModel(object):
         of the parameters.
         """
 
-        t = TestModel_1_1([1, 2], [10, 20])
+        t = TModel_1_1([1, 2], [10, 20])
         y = t(100)
         assert isinstance(y, np.ndarray)
         assert np.shape(y) == (2,)
@@ -414,7 +393,7 @@ class TestSingleInputSingleOutputSingleModel(object):
         parameters.
         """
 
-        t = TestModel_1_1([1, 2], [10, 20])
+        t = TModel_1_1([1, 2], [10, 20])
         y1 = t([100, 200])
         assert np.shape(y1) == (2,)
         assert np.all(y1 == [111, 222])
@@ -433,7 +412,7 @@ class TestSingleInputSingleOutputSingleModel(object):
         parameters.
         """
 
-        t = TestModel_1_1([[1, 2], [3, 4]], [[10, 20], [30, 40]])
+        t = TModel_1_1([[1, 2], [3, 4]], [[10, 20], [30, 40]])
 
         y1 = t([[100, 200], [300, 400]])
         assert np.shape(y1) == (2, 2)
@@ -456,7 +435,7 @@ class TestSingleInputSingleOutputSingleModel(object):
         parameters.
         """
 
-        t = TestModel_1_1([[[0.01, 0.02, 0.03], [0.04, 0.05, 0.06]],
+        t = TModel_1_1([[[0.01, 0.02, 0.03], [0.04, 0.05, 0.06]],
                            [[0.07, 0.08, 0.09], [0.10, 0.11, 0.12]]],
                           [1, 2, 3])
 
@@ -501,7 +480,7 @@ class TestSingleInputSingleOutputTwoModel(object):
         size equal to the number of models.
         """
 
-        t = TestModel_1_1([1, 2], [10, 20], n_models=2)
+        t = TModel_1_1([1, 2], [10, 20], n_models=2)
 
         y = t(100)
         assert np.shape(y) == (2,)
@@ -514,7 +493,7 @@ class TestSingleInputSingleOutputTwoModel(object):
         all models.
         """
 
-        t = TestModel_1_1([1, 2], [10, 20], n_models=2)
+        t = TModel_1_1([1, 2], [10, 20], n_models=2)
 
         with pytest.raises(ValueError):
             y = t(np.arange(5) * 100)
@@ -541,7 +520,7 @@ class TestSingleInputSingleOutputTwoModel(object):
         all models.
         """
 
-        t = TestModel_1_1([1, 2], [10, 20], n_models=2)
+        t = TModel_1_1([1, 2], [10, 20], n_models=2)
 
         y1 = t(np.arange(6).reshape(2, 3) * 100)
         assert np.shape(y1) == (2, 3)
@@ -560,7 +539,7 @@ class TestSingleInputSingleOutputTwoModel(object):
         all models.
         """
 
-        t = TestModel_1_1([1, 2], [10, 20], n_models=2)
+        t = TModel_1_1([1, 2], [10, 20], n_models=2)
         data = np.arange(12).reshape(2, 3, 2) * 100
 
         y1 = t(data)
@@ -579,7 +558,7 @@ class TestSingleInputSingleOutputTwoModel(object):
         of the parameters.
         """
 
-        t = TestModel_1_1([[1, 2, 3], [4, 5, 6]],
+        t = TModel_1_1([[1, 2, 3], [4, 5, 6]],
                           [[10, 20, 30], [40, 50, 60]], n_models=2)
 
         y = t(100)
@@ -595,7 +574,7 @@ class TestSingleInputSingleOutputTwoModel(object):
         Otherwise all dimensions must be broadcastable.
         """
 
-        t = TestModel_1_1([[1, 2, 3], [4, 5, 6]],
+        t = TModel_1_1([[1, 2, 3], [4, 5, 6]],
                           [[10, 20, 30], [40, 50, 60]], n_models=2)
 
         with pytest.raises(ValueError):
@@ -615,7 +594,7 @@ class TestSingleInputSingleOutputTwoModel(object):
                              [144, 255, 366]])
 
     def test_2d_array_parameters_2d_array_input(self):
-        t = TestModel_1_1([[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
+        t = TModel_1_1([[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
                           [[[10, 20], [30, 40]], [[50, 60], [70, 80]]],
                           n_models=2)
         y1 = t([[100, 200], [300, 400]])
@@ -632,7 +611,7 @@ class TestSingleInputSingleOutputTwoModel(object):
                              [[555, 666], [777, 888]]])
 
     def test_mixed_array_parameters_1d_array_input(self):
-        t = TestModel_1_1([[[0.01, 0.02, 0.03], [0.04, 0.05, 0.06]],
+        t = TModel_1_1([[[0.01, 0.02, 0.03], [0.04, 0.05, 0.06]],
                            [[0.07, 0.08, 0.09], [0.10, 0.11, 0.12]]],
                           [[1, 2, 3], [4, 5, 6]], n_models=2)
 
@@ -645,13 +624,209 @@ class TestSingleInputSingleOutputTwoModel(object):
                             [[14.07, 25.08, 36.09], [14.10, 25.11, 36.12]]])
 
 
-class TestInputFormatter(Model):
+class TModel_1_2(FittableModel):
+    inputs = ('x',)
+    outputs = ('y', 'z')
+
+    p1 = Parameter()
+    p2 = Parameter()
+    p3 = Parameter()
+
+    @staticmethod
+    def evaluate(x, p1, p2, p3):
+        return (x + p1 + p2, x + p1 + p2 + p3)
+
+
+class TestSingleInputDoubleOutputSingleModel(object):
+    """
+    A suite of tests to check various cases of parameter and input combinations
+    on models with n_input = 1 but n_output = 2 on a toy model with n_models=1.
+
+    As of writing there are not enough controls to adjust how outputs from such
+    a model should be formatted (currently the shapes of outputs are assumed to
+    be directly associated with the shapes of corresponding inputs when
+    n_inputs == n_outputs).  For now, the approach taken for cases like this is
+    to assume all outputs should have the same format.
+    """
+
+    def test_scalar_parameters_scalar_input(self):
+        """
+        Scalar parameters with a scalar input should return a scalar.
+        """
+
+        t = TModel_1_2(1, 10, 1000)
+        y, z = t(100)
+        assert isinstance(y, float)
+        assert isinstance(z, float)
+        assert np.ndim(y) == np.ndim(z) == 0
+        assert y == 111
+        assert z == 1111
+
+    def test_scalar_parameters_1d_array_input(self):
+        """
+        Scalar parameters should broadcast with an array input to result in an
+        array output of the same shape as the input.
+        """
+
+        t = TModel_1_2(1, 10, 1000)
+        y, z = t(np.arange(5) * 100)
+        assert isinstance(y, np.ndarray)
+        assert isinstance(z, np.ndarray)
+        assert np.shape(y) == np.shape(z) == (5,)
+        assert np.all(y == [11, 111, 211, 311, 411])
+        assert np.all(z == (y + 1000))
+
+    def test_scalar_parameters_2d_array_input(self):
+        """
+        Scalar parameters should broadcast with an array input to result in an
+        array output of the same shape as the input.
+        """
+
+        t = TModel_1_2(1, 10, 1000)
+        y, z = t(np.arange(6).reshape(2, 3) * 100)
+        assert isinstance(y, np.ndarray)
+        assert isinstance(z, np.ndarray)
+        assert np.shape(y) == np.shape(z) == (2, 3)
+        assert np.all(y == [[11, 111, 211],
+                            [311, 411, 511]])
+        assert np.all(z == (y + 1000))
+
+    def test_scalar_parameters_3d_array_input(self):
+        """
+        Scalar parameters should broadcast with an array input to result in an
+        array output of the same shape as the input.
+        """
+
+        t = TModel_1_2(1, 10, 1000)
+        y, z = t(np.arange(12).reshape(2, 3, 2) * 100)
+        assert isinstance(y, np.ndarray)
+        assert isinstance(z, np.ndarray)
+        assert np.shape(y) == np.shape(z) == (2, 3, 2)
+        assert np.all(y == [[[11, 111], [211, 311], [411, 511]],
+                            [[611, 711], [811, 911], [1011, 1111]]])
+        assert np.all(z == (y + 1000))
+
+    def test_1d_array_parameters_scalar_input(self):
+        """
+        Array parameters should all be broadcastable with each other, and with
+        a scalar input the output should be broadcast to the maximum dimensions
+        of the parameters.
+        """
+
+        t = TModel_1_2([1, 2], [10, 20], [1000, 2000])
+        y, z = t(100)
+        assert isinstance(y, np.ndarray)
+        assert isinstance(z, np.ndarray)
+        assert np.shape(y) == np.shape(z) == (2,)
+        assert np.all(y == [111, 122])
+        assert np.all(z == [1111, 2122])
+
+    def test_1d_array_parameters_1d_array_input(self):
+        """
+        When given an array input it must be broadcastable with all the
+        parameters.
+        """
+
+        t = TModel_1_2([1, 2], [10, 20], [1000, 2000])
+        y1, z1 = t([100, 200])
+        assert np.shape(y1) == np.shape(z1) == (2,)
+        assert np.all(y1 == [111, 222])
+        assert np.all(z1 == [1111, 2222])
+
+        y2, z2 = t([[100], [200]])
+        assert np.shape(y2) == np.shape(z2) == (2, 2)
+        assert np.all(y2 == [[111, 122], [211, 222]])
+        assert np.all(z2 == [[1111, 2122], [1211, 2222]])
+
+        with pytest.raises(ValueError):
+            # Doesn't broadcast
+            y3, z3 = t([100, 200, 300])
+
+    def test_2d_array_parameters_2d_array_input(self):
+        """
+        When given an array input it must be broadcastable with all the
+        parameters.
+        """
+
+        t = TModel_1_2([[1, 2], [3, 4]], [[10, 20], [30, 40]],
+                          [[1000, 2000], [3000, 4000]])
+
+        y1, z1 = t([[100, 200], [300, 400]])
+        assert np.shape(y1) == np.shape(z1) == (2, 2)
+        assert np.all(y1 == [[111, 222], [333, 444]])
+        assert np.all(z1 == [[1111, 2222], [3333, 4444]])
+
+        y2, z2 = t([[[[100]], [[200]]], [[[300]], [[400]]]])
+        assert np.shape(y2) == np.shape(z2) == (2, 2, 2, 2)
+        assert np.all(y2 == [[[[111, 122], [133, 144]],
+                              [[211, 222], [233, 244]]],
+                             [[[311, 322], [333, 344]],
+                              [[411, 422], [433, 444]]]])
+        assert np.all(z2 == [[[[1111, 2122], [3133, 4144]],
+                              [[1211, 2222], [3233, 4244]]],
+                             [[[1311, 2322], [3333, 4344]],
+                              [[1411, 2422], [3433, 4444]]]])
+
+        with pytest.raises(ValueError):
+            # Doesn't broadcast
+            y3, z3 = t([[100, 200, 300], [400, 500, 600]])
+
+    def test_mixed_array_parameters_1d_array_input(self):
+        """
+        When given an array input it must be broadcastable with all the
+        parameters.
+        """
+
+        t = TModel_1_2([[[0.01, 0.02, 0.03], [0.04, 0.05, 0.06]],
+                           [[0.07, 0.08, 0.09], [0.10, 0.11, 0.12]]],
+                          [1, 2, 3], [100, 200, 300])
+
+        y1, z1 = t([10, 20, 30])
+        assert np.shape(y1) == np.shape(z1) == (2, 2, 3)
+        assert_allclose(y1, [[[11.01, 22.02, 33.03], [11.04, 22.05, 33.06]],
+                             [[11.07, 22.08, 33.09], [11.10, 22.11, 33.12]]])
+        assert_allclose(z1, [[[111.01, 222.02, 333.03],
+                              [111.04, 222.05, 333.06]],
+                             [[111.07, 222.08, 333.09],
+                              [111.10, 222.11, 333.12]]])
+
+
+        y2, z2 = t([[[[10]]], [[[20]]], [[[30]]]])
+        assert np.shape(y2) == np.shape(z2) == (3, 2, 2, 3)
+        assert_allclose(y2, [[[[11.01, 12.02, 13.03],
+                               [11.04, 12.05, 13.06]],
+                              [[11.07, 12.08, 13.09],
+                               [11.10, 12.11, 13.12]]],
+                             [[[21.01, 22.02, 23.03],
+                               [21.04, 22.05, 23.06]],
+                              [[21.07, 22.08, 23.09],
+                               [21.10, 22.11, 23.12]]],
+                             [[[31.01, 32.02, 33.03],
+                               [31.04, 32.05, 33.06]],
+                              [[31.07, 32.08, 33.09],
+                               [31.10, 32.11, 33.12]]]])
+
+        assert_allclose(z2, [[[[111.01, 212.02, 313.03],
+                               [111.04, 212.05, 313.06]],
+                              [[111.07, 212.08, 313.09],
+                               [111.10, 212.11, 313.12]]],
+                             [[[121.01, 222.02, 323.03],
+                               [121.04, 222.05, 323.06]],
+                              [[121.07, 222.08, 323.09],
+                               [121.10, 222.11, 323.12]]],
+                             [[[131.01, 232.02, 333.03],
+                               [131.04, 232.05, 333.06]],
+                              [[131.07, 232.08, 333.09],
+                               [131.10, 232.11, 333.12]]]])
+
+
+class TInputFormatter(Model):
     """
     A toy model to test input/output formatting.
     """
 
-    n_inputs = 2
-    n_outputs = 2
+    inputs = ('x', 'y')
+    outputs = ('x', 'y')
 
     @staticmethod
     def evaluate(x, y):
@@ -659,20 +834,19 @@ class TestInputFormatter(Model):
 
 
 def test_format_input_scalars():
-    model = TestInputFormatter()
+    model = TInputFormatter()
     result = model(1, 2)
     assert result == (1, 2)
 
 
 def test_format_input_arrays():
-    model = TestInputFormatter()
+    model = TInputFormatter()
     result = model([1, 1], [2, 2])
     assert_allclose(result, (np.array([1, 1]), np.array([2, 2])))
 
 
-
 def test_format_input_arrays_transposed():
-    model = TestInputFormatter()
+    model = TInputFormatter()
     input = np.array([[1, 1]]).T, np.array([[2, 2]]).T
     result = model(*input)
     assert_allclose(result, input)

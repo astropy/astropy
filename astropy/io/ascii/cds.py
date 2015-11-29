@@ -42,12 +42,17 @@ class CdsHeader(core.BaseHeader):
 
 
     def get_cols(self, lines):
-        """Initialize the header Column objects from the table ``lines`` for a CDS
+        """
+        Initialize the header Column objects from the table ``lines`` for a CDS
         header.
 
-        :param lines: list of table lines
-        :returns: list of table Columns
+        Parameters
+        ----------
+        lines : list
+            List of table lines
+
         """
+
         # Read header block for the table ``self.data.table_name`` from the read
         # me file ``self.readme``.
         if self.readme and self.data.table_name:

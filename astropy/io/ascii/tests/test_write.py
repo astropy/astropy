@@ -2,15 +2,14 @@
 
 # TEST_UNICODE_LITERALS
 
+import os
 import copy
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
-
+from ....extern.six.moves import cStringIO as StringIO
 from ... import ascii
 from .... import table
+from ....tests.helper import pytest
+from .... import units
 
 from .common import setup_function, teardown_function
 
@@ -41,17 +40,17 @@ XCENTER YCENTER
          ),
     dict(kwargs=dict(Writer=ascii.Rdb, exclude_names=['CHI']),
          out="""\
-ID	XCENTER	YCENTER	MAG	MERR	MSKY	NITER	SHARPNESS	PIER	PERROR
-N	N	N	N	N	N	N	N	N	S
-14	138.538	256.405	15.461	0.003	34.85955	4	-0.032	0	No_error
-18	18.114	280.170	22.329	0.206	30.12784	4	-2.544	0	No_error
+ID\tXCENTER\tYCENTER\tMAG\tMERR\tMSKY\tNITER\tSHARPNESS\tPIER\tPERROR
+N\tN\tN\tN\tN\tN\tN\tN\tN\tS
+14\t138.538\t256.405\t15.461\t0.003\t34.85955\t4\t-0.032\t0\tNo_error
+18\t18.114\t280.170\t22.329\t0.206\t30.12784\t4\t-2.544\t0\tNo_error
 """
          ),
     dict(kwargs=dict(Writer=ascii.Tab),
          out="""\
-ID	XCENTER	YCENTER	MAG	MERR	MSKY	NITER	SHARPNESS	CHI	PIER	PERROR
-14	138.538	256.405	15.461	0.003	34.85955	4	-0.032	0.802	0	No_error
-18	18.114	280.170	22.329	0.206	30.12784	4	-2.544	1.104	0	No_error
+ID\tXCENTER\tYCENTER\tMAG\tMERR\tMSKY\tNITER\tSHARPNESS\tCHI\tPIER\tPERROR
+14\t138.538\t256.405\t15.461\t0.003\t34.85955\t4\t-0.032\t0.802\t0\tNo_error
+18\t18.114\t280.170\t22.329\t0.206\t30.12784\t4\t-2.544\t1.104\t0\tNo_error
 """
          ),
     dict(kwargs=dict(Writer=ascii.Csv),
@@ -86,6 +85,7 @@ ID,XCENTER,YCENTER,MAG,MERR,MSKY,NITER,SHARPNESS,CHI,PIER,PERROR
 \\begin{table}
 \\begin{tabular}{ccccccccccc}
 ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PERROR \\\\
+ & pixels & pixels & magnitudes & magnitudes & counts &  &  &  &  & perrors \\\\
 14 & 138.538 & 256.405 & 15.461 & 0.003 & 34.85955 & 4 & -0.032 & 0.802 & 0 & No_error \\\\
 18 & 18.114 & 280.170 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error \\\\
 \\end{tabular}
@@ -95,7 +95,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
     dict(kwargs=dict(Writer=ascii.AASTex),
          out="""\
 \\begin{deluxetable}{ccccccccccc}
-\\tablehead{\\colhead{ID} & \\colhead{XCENTER} & \\colhead{YCENTER} & \\colhead{MAG} & \\colhead{MERR} & \\colhead{MSKY} & \\colhead{NITER} & \\colhead{SHARPNESS} & \\colhead{CHI} & \\colhead{PIER} & \\colhead{PERROR}}
+\\tablehead{\\colhead{ID} & \\colhead{XCENTER} & \\colhead{YCENTER} & \\colhead{MAG} & \\colhead{MERR} & \\colhead{MSKY} & \\colhead{NITER} & \\colhead{SHARPNESS} & \\colhead{CHI} & \\colhead{PIER} & \\colhead{PERROR}\\\\ \\colhead{ } & \\colhead{pixels} & \\colhead{pixels} & \\colhead{magnitudes} & \\colhead{magnitudes} & \\colhead{counts} & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{perrors}}
 \\startdata
 14 & 138.538 & 256.405 & 15.461 & 0.003 & 34.85955 & 4 & -0.032 & 0.802 & 0 & No_error \\\\
 18 & 18.114 & 280.170 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error \\\\
@@ -110,7 +110,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
         out="""\
 \\begin{deluxetable*}{ccccccccccc}[htpb]
 \\tablecaption{Mag values \\label{tab1}}
-\\tablehead{\\colhead{ID} & \\colhead{XCENTER} & \\colhead{YCENTER} & \\colhead{MAG} & \\colhead{MERR} & \\colhead{MSKY} & \\colhead{NITER} & \\colhead{SHARPNESS} & \\colhead{CHI} & \\colhead{PIER} & \\colhead{PERROR}\\\\ \\colhead{ } & \\colhead{[pixel]} & \\colhead{ } & \\colhead{[mag]} & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ }}
+\\tablehead{\\colhead{ID} & \\colhead{XCENTER} & \\colhead{YCENTER} & \\colhead{MAG} & \\colhead{MERR} & \\colhead{MSKY} & \\colhead{NITER} & \\colhead{SHARPNESS} & \\colhead{CHI} & \\colhead{PIER} & \\colhead{PERROR}\\\\ \\colhead{ } & \\colhead{[pixel]} & \\colhead{pixels} & \\colhead{[mag]} & \\colhead{magnitudes} & \\colhead{counts} & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{perrors}}
 \\startdata
 14 & 138.538 & 256.405 & 15.461 & 0.003 & 34.85955 & 4 & -0.032 & 0.802 & 0 & No_error \\\\
 18 & 18.114 & 280.170 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error \\\\
@@ -132,7 +132,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
 \\caption{Mag values \\label{tab1}}
 \\begin{tabular}{|lcccccccccc|}
 ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PERROR \\\\
- & [pixel] &  & [mag] &  &  &  &  &  &  &  \\\\
+ & [pixel] & pixels & [mag] & magnitudes & counts &  &  &  &  & perrors \\\\
 14 & 138.538 & 256.405 & 15.461 & 0.003 & 34.85955 & 4 & -0.032 & 0.802 & 0 & No_error \\\\
 18 & 18.114 & 280.170 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error \\\\
 \\hline
@@ -150,7 +150,7 @@ preamble
 \\begin{tabular}{col_align}
 header_start
 ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PERROR \\\\
- &  &  &  &  &  &  &  &  &  &  \\\\
+ & pixels & pixels & magnitudes & magnitudes & counts &  &  &  &  & perrors \\\\
 header_end
 data_start
 14 & 138.538 & 256.405 & 15.461 & 0.003 & 34.85955 & 4 & -0.032 & 0.802 & 0 & No_error \\\\
@@ -172,19 +172,21 @@ table,th,td{border:1px solid black;  </style>
  </head>
  <body>
   <table>
-   <tr>
-    <th>ID</th>
-    <th>XCENTER</th>
-    <th>YCENTER</th>
-    <th>MAG</th>
-    <th>MERR</th>
-    <th>MSKY</th>
-    <th>NITER</th>
-    <th>SHARPNESS</th>
-    <th>CHI</th>
-    <th>PIER</th>
-    <th>PERROR</th>
-   </tr>
+   <thead>
+    <tr>
+     <th>ID</th>
+     <th>XCENTER</th>
+     <th>YCENTER</th>
+     <th>MAG</th>
+     <th>MERR</th>
+     <th>MSKY</th>
+     <th>NITER</th>
+     <th>SHARPNESS</th>
+     <th>CHI</th>
+     <th>PIER</th>
+     <th>PERROR</th>
+    </tr>
+   </thead>
    <tr>
     <td>14</td>
     <td>138.538</td>
@@ -369,16 +371,21 @@ a,b,c
 ]
 
 
-def check_write_table(test_def, table):
+def check_write_table(test_def, table, fast_writer):
     out = StringIO()
-    ascii.write(table, out, **test_def['kwargs'])
+    try:
+        ascii.write(table, out, fast_writer=fast_writer, **test_def['kwargs'])
+    except ValueError as e: # if format doesn't have a fast writer, ignore
+        if not 'not in the list of formats with fast writers' in str(e):
+            raise e
+        return
     print('Expected:\n%s' % test_def['out'])
     print('Actual:\n%s' % out.getvalue())
     assert [x.strip() for x in out.getvalue().strip().splitlines()] == [
         x.strip() for x in test_def['out'].strip().splitlines()]
 
 
-def check_write_table_via_table(test_def, table):
+def check_write_table_via_table(test_def, table, fast_writer):
     out = StringIO()
 
     test_def = copy.deepcopy(test_def)
@@ -388,30 +395,38 @@ def check_write_table_via_table(test_def, table):
     else:
         format = 'ascii'
 
-    table.write(out, format=format, **test_def['kwargs'])
+    try:
+        table.write(out, format=format,  fast_writer=fast_writer, **test_def['kwargs'])
+    except ValueError as e: # if format doesn't have a fast writer, ignore
+        if not 'not in the list of formats with fast writers' in str(e):
+            raise e
+        return
     print('Expected:\n%s' % test_def['out'])
     print('Actual:\n%s' % out.getvalue())
     assert [x.strip() for x in out.getvalue().strip().splitlines()] == [
         x.strip() for x in test_def['out'].strip().splitlines()]
 
 
-def test_write_table():
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_table(fast_writer):
     table = ascii.get_reader(Reader=ascii.Daophot)
     data = table.read('t/daophot.dat')
 
     for test_def in test_defs:
-        check_write_table(test_def, data)
-        check_write_table_via_table(test_def, data)
+        check_write_table(test_def, data, fast_writer)
+        check_write_table_via_table(test_def, data, fast_writer)
 
 
-def test_write_fill_values():
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_fill_values(fast_writer):
     data = ascii.read(tab_to_fill)
 
     for test_def in test_defs_fill_value:
-        check_write_table(test_def, data)
+        check_write_table(test_def, data, fast_writer)
 
 
-def test_write_fill_masked_different():
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_fill_masked_different(fast_writer):
     '''see discussion in #2255'''
     data = ascii.read(tab_to_fill)
     data = table.Table(data, masked=True)
@@ -419,14 +434,91 @@ def test_write_fill_masked_different():
     data['c'].mask = [False, True]
 
     for test_def in test_def_masked_fill_value:
-        check_write_table(test_def, data)
+        check_write_table(test_def, data, fast_writer)
 
 
-def test_write_no_data_ipac():
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_no_data_ipac(fast_writer):
     """Write an IPAC table that contains no data."""
     table = ascii.get_reader(Reader=ascii.Ipac)
     data = table.read('t/no_data_ipac.dat')
 
     for test_def in test_defs_no_data:
-        check_write_table(test_def, data)
-        check_write_table_via_table(test_def, data)
+        check_write_table(test_def, data, fast_writer)
+        check_write_table_via_table(test_def, data, fast_writer)
+
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_comments(fast_writer):
+    """Write comments in output originally read by io.ascii."""
+    data = ascii.read('#c1\n  # c2\t\na,b,c\n#  c3\n1,2,3')
+    out = StringIO()
+    ascii.write(data, out, format='basic', fast_writer=fast_writer)
+    expected = ['# c1', '# c2', '# c3', 'a b c', '1 2 3']
+    assert out.getvalue().splitlines() == expected
+
+    # header comes before comments for commented-header
+    out = StringIO()
+    ascii.write(data, out, format='commented_header', fast_writer=fast_writer)
+    expected = ['# a b c', '# c1', '# c2', '# c3', '1 2 3']
+    assert out.getvalue().splitlines() == expected
+
+    # setting comment=False should disable comment writing
+    out = StringIO()
+    ascii.write(data, out, format='basic', comment=False, fast_writer=fast_writer)
+    expected = ['a b c', '1 2 3']
+    assert out.getvalue().splitlines() == expected
+
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_strip_names(fast_writer):
+    """Names should be stripped of whitespace by default."""
+    data = table.Table([[1], [2], [3]], names=(' A', 'B ', ' C '))
+    out = StringIO()
+    ascii.write(data, out, format='csv', fast_writer=fast_writer)
+    assert out.getvalue().splitlines()[0] == 'A,B,C'
+
+
+def test_latex_units():
+    """
+    Check to make sure that Latex and AASTex writers attempt to fall
+    back on the **unit** attribute of **Column** if the supplied
+    **latexdict** does not specify units.
+    """
+    t = table.Table([table.Column(name='date', data=['a','b']),
+               table.Column(name='NUV exp.time', data=[1,2])])
+    latexdict = copy.deepcopy(ascii.latexdicts['AA'])
+    latexdict['units'] = {'NUV exp.time':'s'}
+    out = StringIO()
+    expected = '''\
+\\begin{table}{cc}
+\\tablehead{\\colhead{date} & \\colhead{NUV exp.time}\\\\ \\colhead{ } & \\colhead{s}}
+\\startdata
+a & 1 \\\\
+b & 2 \\\\
+\\enddata
+\\end{table}
+'''.replace('\n', os.linesep)
+
+    ascii.write(t, out, format='aastex', latexdict=latexdict)
+    assert out.getvalue() == expected
+    # use unit attribute instead
+    t['NUV exp.time'].unit = units.s
+    t['date'].unit = units.yr
+    out = StringIO()
+    ascii.write(t, out, format='aastex', latexdict=ascii.latexdicts['AA'])
+    assert out.getvalue() == expected.replace(
+        'colhead{s}', 'colhead{$\mathrm{s}$}').replace(
+        'colhead{ }', 'colhead{$\mathrm{yr}$}')
+
+
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_commented_header_comments(fast_writer):
+    """
+    Test the fix for #3562 with confusing exception using comment=False
+    for the commented_header writer.
+    """
+    t = table.Table([[1, 2]])
+    with pytest.raises(ValueError) as err:
+        out = StringIO()
+        ascii.write(t, out, format='commented_header', comment=False,
+                    fast_writer=fast_writer)
+    assert "for the commented_header writer you must supply a string" in str(err.value)

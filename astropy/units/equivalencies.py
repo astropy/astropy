@@ -11,7 +11,9 @@ from ..constants import si as _si
 from . import si
 from . import cgs
 from . import astrophys
+from .function import units as function_units
 from . import dimensionless_unscaled
+from .core import UnitsError
 
 
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
@@ -25,7 +27,7 @@ def dimensionless_angles():
 
     It is special compared to other equivalency pairs in that it
     allows this independent of the power to which the angle is raised,
-    and indepedent of whether it is part of a more complicated unit.
+    and independent of whether it is part of a more complicated unit.
     """
     return [(si.radian, None)]
 
@@ -33,7 +35,7 @@ def dimensionless_angles():
 def logarithmic():
     """Allow logarithmic units to be converted to dimensionless fractions"""
     return [
-        (dimensionless_unscaled, astrophys.dex,
+        (dimensionless_unscaled, function_units.dex,
          lambda x: np.log10(x), lambda x: 10.**x)
     ]
 
@@ -167,10 +169,7 @@ def spectral_density(wav, factor=None):
         return x * wav.to(si.AA, spectral()).value ** 3 / (hc * c_Aps)
 
     return [
-        (si.AA, fnu, converter, iconverter),
         (fla, fnu, converter, iconverter),
-        (si.AA, si.Hz, converter, iconverter),
-        (fla, si.Hz, converter, iconverter),
         (fnu, nufnu, converter_fnu_nufnu, iconverter_fnu_nufnu),
         (fla, lafla, converter_fla_lafla, iconverter_fla_lafla),
         (photlam, fla, converter_photlam_fla, iconverter_photlam_fla),
@@ -209,6 +208,8 @@ def doppler_radio(rest):
     >>> radio_velocity  # doctest: +FLOAT_CMP
     <Quantity -31.209092088877583 km / s>
     """
+
+    assert_is_spectral_unit(rest)
 
     ckms = _si.c.to('km/s').value
 
@@ -274,6 +275,8 @@ def doppler_optical(rest):
     >>> optical_velocity  # doctest: +FLOAT_CMP
     <Quantity -31.20584348799674 km / s>
     """
+
+    assert_is_spectral_unit(rest)
 
     ckms = _si.c.to('km/s').value
 
@@ -347,6 +350,8 @@ def doppler_relativistic(rest):
     >>> relativistic_wavelength  # doctest: +FLOAT_CMP
     <Quantity 2.6116243681798923 mm>
     """
+
+    assert_is_spectral_unit(rest)
 
     ckms = _si.c.to('km/s').value
 
@@ -431,21 +436,25 @@ def brightness_temperature(beam_area, disp):
 
         >>> import numpy as np
         >>> from astropy import units as u
-        >>> beam_area = np.pi*(50*u.arcsec)**2
+        >>> beam_sigma = 50*u.arcsec
+        >>> beam_area = 2*np.pi*(beam_sigma)**2
         >>> freq = 5*u.GHz
         >>> equiv = u.brightness_temperature(beam_area, freq)
         >>> u.Jy.to(u.K, equivalencies=equiv)  # doctest: +FLOAT_CMP
-        7.052588858846446
+        3.526294429423223
         >>> (1*u.Jy).to(u.K, equivalencies=equiv)  # doctest: +FLOAT_CMP
-        <Quantity 7.052588858846446 K>
+        <Quantity 3.526294429423223 K>
 
     VLA synthetic beam::
 
-        >>> beam_area = np.pi*(15*u.arcsec)**2
+        >>> bmaj = 15*u.arcsec
+        >>> bmin = 15*u.arcsec
+        >>> fwhm_to_sigma = 1./(8*np.log(2))**0.5
+        >>> beam_area = 2.*np.pi*(bmaj*bmin/fwhm_to_sigma**2)
         >>> freq = 5*u.GHz
         >>> equiv = u.brightness_temperature(beam_area, freq)
         >>> u.Jy.to(u.K, equivalencies=equiv)  # doctest: +FLOAT_CMP
-        78.36209843162719
+        7.065788175060084
     """
     beam = beam_area.to(si.sr).value
     nu = disp.to(si.GHz, spectral())
@@ -477,3 +486,10 @@ def temperature_energy():
     return [
         (si.K, si.eV, lambda x: x / (_si.e.value / _si.k_B),
          lambda x: x * (_si.e.value / _si.k_B))]
+
+def assert_is_spectral_unit(value):
+    try:
+        value.to(si.Hz, spectral())
+    except (AttributeError, UnitsError) as ex:
+        raise UnitsError("The 'rest' value must be a spectral equivalent "
+                         "(frequency, wavelength, or energy).")

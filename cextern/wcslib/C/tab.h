@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.23 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2014, Mark Calabretta
+  WCSLIB 5.10 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,36 +22,39 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: tab.h,v 4.23 2014/05/11 04:09:38 mcalabre Exp $
+  $Id: tab.h,v 5.10 2015/10/09 08:19:15 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 4.23 - C routines that implement tabular coordinate systems as
-* defined by the FITS World Coordinate System (WCS) standard.  Refer to
-*
-*   "Representations of world coordinates in FITS",
-*   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (paper I)
-*
-*   "Representations of spectral coordinates in FITS",
-*   Greisen, E.W., Calabretta, M.R., Valdes, F.G., & Allen, S.L.
-*   2006, A&A, 446, 747 (Paper III)
-*
-* Refer to the README file provided with WCSLIB for an overview of the
-* library.
+* WCSLIB 5.10 - C routines that implement the FITS World Coordinate System
+* (WCS) standard.  Refer to the README file provided with WCSLIB for an
+* overview of the library.
 *
 *
 * Summary of the tab routines
 * ---------------------------
-* These routines implement the part of the FITS WCS standard that deals with
-* tabular coordinates, i.e. coordinates that are defined via a lookup table.
-* They define methods to be used for computing tabular world coordinates from
-* intermediate world coordinates (a linear transformation of image pixel
-* coordinates), and vice versa.  They are based on the tabprm struct which
-* contains all information needed for the computations.  The struct contains
-* some members that must be set by the user, and others that are maintained
-* by these routines, somewhat like a C++ class but with no encapsulation.
+* Routines in this suite implement the part of the FITS World Coordinate
+* System (WCS) standard that deals with tabular coordinates, i.e. coordinates
+* that are defined via a lookup table, as described in
+*
+=   "Representations of world coordinates in FITS",
+=   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (WCS Paper I)
+=
+=   "Representations of spectral coordinates in FITS",
+=   Greisen, E.W., Calabretta, M.R., Valdes, F.G., & Allen, S.L.
+=   2006, A&A, 446, 747 (WCS Paper III)
+*
+* These routines define methods to be used for computing tabular world
+* coordinates from intermediate world coordinates (a linear transformation
+* of image pixel coordinates), and vice versa.  They are based on the tabprm
+* struct which contains all information needed for the computations.  The
+* struct contains some members that must be set by the user, and others that
+* are maintained by these routines, somewhat like a C++ class but with no
+* encapsulation.
 *
 * tabini(), tabmem(), tabcpy(), and tabfree() are provided to manage the
 * tabprm struct, and another, tabprt(), to print its contents.
+*
+* tabperr() prints the error message(s) (if any) stored in a tabprm struct.
 *
 * A setup routine, tabset(), computes intermediate values in the tabprm struct
 * from parameters in it that were supplied by the user.  The struct always
@@ -193,6 +196,11 @@
 *                       indicating a strict comparison.  In the future, other
 *                       options may be added.
 *
+*   tol       double    Tolerance for comparison of floating-point values.
+*                       For example, for tol == 1e-6, all floating-point
+*                       values in the structs must be equal to the first 6
+*                       decimal places.  A value of 0 implies exact equality.
+*
 *   tab1      const struct tabprm*
 *                       The first tabprm struct to compare.
 *
@@ -235,6 +243,25 @@
 * Given:
 *   tab       const struct tabprm*
 *                       Tabular transformation parameters.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
+*                         1: Null tabprm pointer passed.
+*
+*
+* tabperr() - Print error messages from a tabprm struct
+* -----------------------------------------------------
+* tabperr() prints the error message(s) (if any) stored in a tabprm struct.
+* If there are no errors then nothing is printed.  It uses wcserr_prt(), q.v.
+*
+* Given:
+*   tab       const struct tabprm*
+*                       Tabular transformation parameters.
+*
+*   prefix    const char *
+*                       If non-NULL, each output line will be prefixed with
+*                       this string.
 *
 * Function return value:
 *             int       Status return value:
@@ -464,7 +491,7 @@
 *     inverse table lookup function, tabs2x(), to speed up table searches.
 *
 *   struct wcserr *err
-*     (Returned) If enabled, when an error status is returned this struct
+*     (Returned) If enabled, when an error status is returned, this struct
 *     contains detailed information about the error, see wcserr_enable().
 *
 *   int m_flag
@@ -497,8 +524,6 @@
 
 #ifndef WCSLIB_TAB
 #define WCSLIB_TAB
-
-#include "wcserr.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -576,12 +601,14 @@ int tabmem(struct tabprm *tab);
 
 int tabcpy(int alloc, const struct tabprm *tabsrc, struct tabprm *tabdst);
 
-int tabcmp(int cmp, const struct tabprm *tab1, const struct tabprm *tab2,
-           int *equal);
+int tabcmp(int cmp, double tol, const struct tabprm *tab1,
+           const struct tabprm *tab2, int *equal);
 
 int tabfree(struct tabprm *tab);
 
 int tabprt(const struct tabprm *tab);
+
+int tabperr(const struct tabprm *tab, const char *prefix);
 
 int tabset(struct tabprm *tab);
 

@@ -41,6 +41,12 @@ file::
   \end{tabular}
   \end{table}
 
+There is also a faster Cython engine for writing simple formats,
+which is enabled by default for these formats (see :ref:`fast_ascii_io`).
+To disable this engine, use the parameter ``fast_writer``::
+
+   >>> ascii.write(data, 'values.csv', format='csv', fast_writer=False)  # doctest: +SKIP
+
 Input data format
 ^^^^^^^^^^^^^^^^^
 
@@ -170,11 +176,14 @@ details.
   A one-character string used to separate fields which typically defaults to the space character.
   Other common values might be "," or "|" or "\\t".
 
-**comment** : string defining a comment line in table
-  For the :class:`~astropy.io.ascii.Basic` Writer this defaults to "#".
-  Which and how comments are written depends on the format chosen (e.g.
-  :class:`~astropy.io.ascii.CommentedHeader` puts the comment symbol in the line
-  with the column names).
+**comment** : string defining start of a comment line in output table
+  For the :class:`~astropy.io.ascii.Basic` Writer this defaults to "# ".
+  Which and how comments are written depends on the format chosen.
+  The comments are defined as a list of strings in the input table
+  ``meta['comments']`` element. Comments in the metadata of the given
+  |Table| will normally be written before the header, although
+  :class:`~astropy.io.ascii.CommentedHeader` writes table comments after the
+  commented header. To disable writing comments, set ``comment=False``.
 
 **formats**: dict of data type converters
   For each key (column name) use the given value to convert the column data to a string.
@@ -254,6 +263,11 @@ details.
 
 **fill_exclude_names**: list of column names, which are not affected by ``fill_values``.
   If not supplied, then ``fill_values`` can affect all columns.
+
+**fast_writer**: whether to use the fast Cython writer
+  If this parameter is ``None`` (which it is by default), |write| will attempt
+  to use the faster writer (described in :ref:`fast_ascii_io`) if possible.
+  Specifying ``fast_writer=False`` disables this behavior.
 
 **Writer** : Writer class (*deprecated* in favor of ``format``)
   This specifies the top-level format of the ASCII table to be written, for

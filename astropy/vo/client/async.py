@@ -14,7 +14,7 @@ class AsyncBase(object):
     using :py:class:`concurrent.futures.ThreadPoolExecutor`.
 
     Service request will be forced to run in silent
-    mode by setting ``verbose=False``. Warnings are controled
+    mode by setting ``verbose=False``. Warnings are controlled
     by :py:mod:`warnings` module.
 
     .. note::

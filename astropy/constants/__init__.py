@@ -41,14 +41,15 @@ for _nm, _c in itertools.chain(sorted(vars(si).items()),
                                sorted(vars(cgs).items())):
     if isinstance(_c, Constant) and _c.abbrev not in locals():
         locals()[_c.abbrev] = _c.__class__(_c.abbrev, _c.name, _c.value,
-                                           _c._unit, _c.uncertainty,
+                                           _c._unit_string, _c.uncertainty,
                                            _c.reference)
 
         _lines.append('{0:^10} {1:^14.9g} {2:^16} {3}'.format(
-            _c.abbrev, _c.value, _c._unit, _c.name))
+            _c.abbrev, _c.value, _c._unit_string, _c.name))
 
 _lines.append(_lines[1])
 
-__doc__ += '\n'.join(_lines)
+if __doc__ is not None:
+    __doc__ += '\n'.join(_lines)
 
 del _lines, _nm, _c

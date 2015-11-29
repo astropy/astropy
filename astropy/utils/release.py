@@ -104,6 +104,139 @@ def releaser_middle(data):
     Releaser._sdist_options = _my_sdist_options
 
 
+_NEW_CHANGELOG_TEMPLATE = str("""\
+New Features
+^^^^^^^^^^^^
+
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.sphinx``
+
+- ``astropy.table``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+API Changes
+^^^^^^^^^^^
+
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Nothing changed yet.
+""".rstrip())
+
+
 def postreleaser_before(data):
     """
     postreleaser.before hook to set a different dev_version_template from the
@@ -115,6 +248,7 @@ def postreleaser_before(data):
         return
 
     data['dev_version_template'] = '%(new_version)s.dev'
+    data['nothing_changed_yet'] = _NEW_CHANGELOG_TEMPLATE
 
 
 def postreleaser_middle(data):

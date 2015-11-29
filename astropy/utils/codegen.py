@@ -16,7 +16,7 @@ from .introspection import find_current_module
 from ..extern import six
 
 
-__all__ = ['make_func_with_sig']
+__all__ = ['make_function_with_signature']
 
 
 _ARGNAME_RE = re.compile(r'^[A-Za-z][A-Za-z_]*')
@@ -27,8 +27,8 @@ the ASCII range and not beginning with '_' are allowed, currently.
 """
 
 
-def make_func_with_sig(func, args=(), kwargs={}, varargs=None,
-                       varkwargs=None, name=None):
+def make_function_with_signature(func, args=(), kwargs={}, varargs=None,
+                                 varkwargs=None, name=None):
     """
     Make a new function from an existing function but with the desired
     signature.

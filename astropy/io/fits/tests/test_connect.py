@@ -247,10 +247,10 @@ def test_scale_error():
     b = [2.0, 5.0, 8.2]
     c = ['x', 'y', 'z']
     t = Table([a, b, c], names=('a', 'b', 'c'), meta={'name': 'first table'})
-    t['a'].unit='percent'
+    t['a'].unit='1.2'
     with pytest.raises(UnitScaleError) as exc:
         t.write('t.fits',format='fits', overwrite=True)
-    assert exc.value.args[0]=="The column 'a' could not be stored in FITS format because it has a scale '(1.0)' that is not recognized by the FITS standard. Either scale the data or change the units."
+    assert exc.value.args[0]=="The column 'a' could not be stored in FITS format because it has a scale '(1.2)' that is not recognized by the FITS standard. Either scale the data or change the units."
 
 
 def test_bool_column(tmpdir):
@@ -269,3 +269,26 @@ def test_bool_column(tmpdir):
     with fits.open(str(tmpdir.join('test.fits'))) as hdul:
         assert hdul[1].data['col0'].dtype == np.dtype('bool')
         assert np.all(hdul[1].data['col0'] == arr)
+
+
+def test_unicode_column(tmpdir):
+    """
+    Test that a column of unicode strings is still written as one
+    byte-per-character in the FITS table (so long as the column can be ASCII
+    encoded).
+
+    Regression test for one of the issues fixed in
+    https://github.com/astropy/astropy/pull/4228
+    """
+
+    t = Table([np.array([u'a', u'b', u'cd'])])
+    t.write(str(tmpdir.join('test.fits')), overwrite=True)
+
+    with fits.open(str(tmpdir.join('test.fits'))) as hdul:
+        assert np.all(hdul[1].data['col0'] == ['a', 'b', 'cd'])
+        assert hdul[1].header['TFORM1'] == '2A'
+
+    t2 = Table([np.array([u'\N{SNOWMAN}'])])
+
+    with pytest.raises(UnicodeEncodeError):
+        t2.write(str(tmpdir.join('test.fits')), overwrite=True)

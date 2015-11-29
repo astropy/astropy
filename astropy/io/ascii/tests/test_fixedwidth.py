@@ -8,8 +8,10 @@ except ImportError:
     from io import StringIO
 
 from ... import ascii
+from ..core import InconsistentTableError
 from .common import (assert_equal, assert_almost_equal,
                      setup_function, teardown_function)
+from ....tests.helper import pytest
 
 
 def assert_equal_splitlines(arg1, arg2):
@@ -208,6 +210,30 @@ def test_read_col_starts():
     assert_equal(dat[2][2], "192.168.1")  # col_end=28 cuts this column off
 
 
+def test_read_detect_col_starts_or_ends():
+    """Table with no delimiter with only column start or end values specified"""
+    table = """
+#1       9        19                <== Column start indexes
+#|       |         |                <== Column start positions
+#<------><--------><------------->  <== Inferred column positions
+  John   555- 1234 192.168.1.10
+  Mary   555- 2134 192.168.1.123
+   Bob   555- 4527  192.168.1.9
+   Bill  555-9875  192.255.255.255
+"""
+    for kwargs in ({'col_starts': (1,9,19)},
+                   {'col_ends': (8,18,33)}):
+        dat = ascii.read(table,
+                         Reader=ascii.FixedWidthNoHeader,
+                         names=('Name', 'Phone', 'TCP'),
+                         **kwargs)
+        assert_equal(tuple(dat.dtype.names), ('Name', 'Phone', 'TCP'))
+        assert_equal(dat[0][1], "555- 1234")
+        assert_equal(dat[1][0], "Mary")
+        assert_equal(dat[1][2], "192.168.1.123")
+        assert_equal(dat[3][2], "192.255.255.255")
+
+
 table = """\
 | Col1 |  Col2     |  Col3     |  Col4     |
 | 1.2  | "hello"   |  1        |  a        |
@@ -382,6 +408,42 @@ def test_read_twoline_human():
     assert_almost_equal(dat[1][0], 2.4)
     assert_equal(dat[0][1], '"hello"')
     assert_equal(dat[1][1], "'s worlds")
+
+
+def test_read_twoline_fail():
+    """Test failure if too many different character are on position line.
+
+    The position line shall consist of only one character in addition to
+    the delimiter.
+    """
+    table = """
+| Col1 |   Col2   |
+|------|==========|
+|  1.2 | "hello"  |
+|  2.4 | 's worlds|
+"""
+    with pytest.raises(InconsistentTableError) as excinfo:
+        dat = ascii.read(table, Reader=ascii.FixedWidthTwoLine,
+                         delimiter='|', guess=False)
+    assert 'Position line should only contain delimiters and one other character' in str(excinfo.value)
+
+
+def test_read_twoline_wrong_marker():
+    '''Test failure when position line uses characters prone to ambiguity
+
+    Characters in position line must be part an allowed set because
+    normal letters or numbers will lead to ambiguous tables.
+    '''
+    table = """
+| Col1 |   Col2   |
+|aaaaaa|aaaaaaaaaa|
+|  1.2 | "hello"  |
+|  2.4 | 's worlds|
+"""
+    with pytest.raises(InconsistentTableError) as excinfo:
+        dat = ascii.read(table, Reader=ascii.FixedWidthTwoLine,
+                         delimiter='|', guess=False)
+    assert 'Characters in position line must be part' in str(excinfo.value)
 
 
 def test_write_twoline_normal():

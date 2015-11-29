@@ -2,18 +2,14 @@
 
 # TEST_UNICODE_LITERALS
 
-from distutils import version
-import warnings
-
 import numpy as np
 
 from ...tests.helper import pytest, catch_warnings
-from ...table import Table
+from ...table import Table, TableMergeError
 from ...utils import OrderedDict, metadata
 from ...utils.metadata import MergeConflictError
-from .. import np_utils
 from ... import table
-from ... import log
+
 
 def sort_eq(list1, list2):
     return sorted(list1) == sorted(list2)
@@ -131,7 +127,7 @@ class TestJoin():
         # Check that the common keys are 'a', 'b'
         t12a = table.join(t1, t2, join_type='outer')
         t12b = table.join(t1, t2, join_type='outer', keys=['a', 'b'])
-        assert np.all(t12a._data == t12b._data)
+        assert np.all(t12a.as_array() == t12b.as_array())
 
     def test_both_unmasked_single_key_inner(self):
         t1 = self.t1
@@ -200,7 +196,7 @@ class TestJoin():
 
         # Result should match non-masked result
         t12 = table.join(t1, t2)
-        assert np.all(t12._data == np.array(t1m2._data))
+        assert np.all(t12.as_array() == np.array(t1m2))
 
         # Mask out some values in left table and make sure they propagate
         t1m['b'].mask[1] = True
@@ -236,7 +232,7 @@ class TestJoin():
 
         # Result should match non-masked result
         t12 = table.join(t1, t2)
-        assert np.all(t12._data == np.array(t1m2m._data))
+        assert np.all(t12.as_array() == np.array(t1m2m))
 
         # Mask out some values in both tables and make sure they propagate
         t1m['b'].mask[1] = True
@@ -270,14 +266,14 @@ class TestJoin():
         t1 = self.t1
         t2 = self.t2
         t1['b_1'] = 1  # Add a new column b_1 that will conflict with auto-rename
-        with pytest.raises(np_utils.TableMergeError):
+        with pytest.raises(TableMergeError):
             table.join(t1, t2, keys='a')
 
     def test_missing_keys(self):
         """Merge on a key column that doesn't exist"""
         t1 = self.t1
         t2 = self.t2
-        with pytest.raises(np_utils.TableMergeError):
+        with pytest.raises(TableMergeError):
             table.join(t1, t2, keys=['a', 'not there'])
 
     def test_bad_join_type(self):
@@ -295,7 +291,7 @@ class TestJoin():
         del t1['b']
         del t2['a']
         del t2['b']
-        with pytest.raises(np_utils.TableMergeError):
+        with pytest.raises(TableMergeError):
             table.join(t1, t2)
 
     def test_masked_key_column(self):
@@ -304,7 +300,7 @@ class TestJoin():
         t2 = Table(self.t2, masked=True)
         table.join(t1, t2)  # OK
         t2['a'].mask[0] = True
-        with pytest.raises(np_utils.TableMergeError):
+        with pytest.raises(TableMergeError):
             table.join(t1, t2)
 
     def test_col_meta_merge(self):
@@ -354,6 +350,63 @@ class TestJoin():
             assert warning_lines[0].category == metadata.MergeConflictWarning
             assert ("In merged column 'a' the 'unit' attribute does not match (cm != m)"
                     in str(warning_lines[0].message))
+
+    def test_join_multidimensional(self):
+
+        # Regression test for #2984, which was an issue where join did not work
+        # on multi-dimensional columns.
+
+        t1 = Table()
+        t1['a'] = [1,2,3]
+        t1['b'] = np.ones((3,4))
+
+        t2 = Table()
+        t2['a'] = [1,2,3]
+        t2['c'] = [4,5,6]
+
+        t3 = table.join(t1, t2)
+
+        np.testing.assert_allclose(t3['a'], t1['a'])
+        np.testing.assert_allclose(t3['b'], t1['b'])
+        np.testing.assert_allclose(t3['c'], t2['c'])
+
+
+    def test_join_multidimensional_masked(self):
+        """
+        Test for outer join with multidimensional columns where masking is required.
+        (Issue #4059).
+        """
+        a = table.MaskedColumn([1, 2, 3], name='a')
+        a2 = table.Column([1, 3, 4], name='a')
+        b = table.MaskedColumn([[1, 2],
+                                [3, 4],
+                                [5, 6]],
+                               name='b',
+                               mask=[[1, 0],
+                                     [0, 1],
+                                     [0, 0]])
+        c = table.Column([[1, 1],
+                          [2, 2],
+                          [3, 3]],
+                         name='c')
+        t1 = Table([a, b])
+        t2 = Table([a2, c])
+        t12 = table.join(t1, t2, join_type='inner')
+
+        assert np.all(t12['b'].mask == [[ True, False],
+                                        [False, False]])
+        assert np.all(t12['c'].mask == [[False, False],
+                                        [False, False]])
+
+        t12 = table.join(t1, t2, join_type='outer')
+        assert np.all(t12['b'].mask == [[True, False],
+                                        [False, True],
+                                        [False, False],
+                                        [ True, True]])
+        assert np.all(t12['c'].mask == [[False, False],
+                                        [True, True],
+                                        [False, False],
+                                        [False, False]])
 
 
 class TestVStack():
@@ -430,6 +483,8 @@ class TestVStack():
 
     def test_bad_input_type(self):
         with pytest.raises(TypeError):
+            table.vstack([])
+        with pytest.raises(TypeError):
             table.vstack(1)
         with pytest.raises(TypeError):
             table.vstack([self.t2, 1])
@@ -480,16 +535,25 @@ class TestVStack():
                                   '  1 bar']
 
     def test_stack_incompatible(self):
-        with pytest.raises(np_utils.TableMergeError) as excinfo:
+        with pytest.raises(TableMergeError) as excinfo:
             table.vstack([self.t1, self.t3], join_type='inner')
-        assert "The 'b' columns have incompatible types:" in str(excinfo)
+        assert ("The 'b' columns have incompatible types: {0}"
+                .format([self.t1['b'].dtype.name, self.t3['b'].dtype.name])
+                in str(excinfo))
 
-        with pytest.raises(np_utils.TableMergeError) as excinfo:
+        with pytest.raises(TableMergeError) as excinfo:
             table.vstack([self.t1, self.t3], join_type='outer')
         assert "The 'b' columns have incompatible types:" in str(excinfo)
 
-        with pytest.raises(np_utils.TableMergeError):
+        with pytest.raises(TableMergeError):
             table.vstack([self.t1, self.t2], join_type='exact')
+
+        t1_reshape = self.t1.copy()
+        t1_reshape['b'].shape = [2, 1]
+        with pytest.raises(TableMergeError) as excinfo:
+            table.vstack([self.t1, t1_reshape])
+        assert "have different shape" in str(excinfo)
+
 
     def test_vstack_one_masked(self):
         t1 = self.t1
@@ -556,6 +620,11 @@ class TestVStack():
             assert ("In merged column 'a' the 'unit' attribute does not match (m != km)"
                     in str(warning_lines[1].message))
 
+    def test_vstack_one_table(self):
+        """Regression test for issue #3313"""
+        assert (self.t1 == table.vstack(self.t1)).all()
+        assert (self.t1 == table.vstack([self.t1])).all()
+
 
 class TestHStack():
 
@@ -588,6 +657,17 @@ class TestHStack():
                                        ('d', 1),
                                        ('a', 1),
                                        ('e', 1)])
+
+    def test_stack_same_table(self):
+        """
+        From #2995, test that hstack'ing references to the same table has the
+        expected output.
+        """
+        out = table.hstack([self.t1, self.t1])
+        assert out.pformat() == ['a_1 b_1 a_2 b_2',
+                                 '--- --- --- ---',
+                                 '  0 foo   0 foo',
+                                 '  1 bar   1 bar']
 
     def test_stack_rows(self):
         out = table.hstack([self.t1[0], self.t2[1]])
@@ -626,6 +706,8 @@ class TestHStack():
             out = table.hstack([self.t1, self.t5], join_type='inner', metadata_conflicts='nonsense')
 
     def test_bad_input_type(self):
+        with pytest.raises(TypeError):
+            table.hstack([])
         with pytest.raises(TypeError):
             table.hstack(1)
         with pytest.raises(TypeError):
@@ -669,7 +751,7 @@ class TestHStack():
     def test_stack_incompatible(self):
         # For join_type exact, which will fail here because n_rows
         # does not match
-        with pytest.raises(np_utils.TableMergeError):
+        with pytest.raises(TableMergeError):
             table.hstack([self.t1, self.t3], join_type='exact')
 
     def test_hstack_one_masked(self):
@@ -723,3 +805,63 @@ class TestHStack():
             # Make sure we got a copy of meta, not ref
             t1['b'].meta['b'] = None
             assert out['b'].meta['b'] == [1, 2]
+
+    def test_hstack_one_table(self):
+        """Regression test for issue #3313"""
+        assert (self.t1 == table.hstack(self.t1)).all()
+        assert (self.t1 == table.hstack([self.t1])).all()
+
+
+def test_unique():
+    t = table.Table.read([' a b  c  d',
+                          ' 2 b 7.0 0',
+                          ' 1 c 3.0 5',
+                          ' 2 b 6.0 2',
+                          ' 2 a 4.0 3',
+                          ' 1 a 1.0 7',
+                          ' 2 b 5.0 1',
+                          ' 0 a 0.0 4',
+                          ' 1 a 2.0 6',
+                          ' 1 c 3.0 5',
+                          ], format='ascii')
+
+    tu = table.Table(np.sort(t[:-1]))
+
+    t_all = table.unique(t)
+    assert sort_eq(t_all.pformat(), tu.pformat())
+
+    key1 = 'a'
+    t1 = table.unique(t, key1)
+    assert sort_eq(t1.pformat(), [' a   b   c   d ',
+                                  '--- --- --- ---',
+                                  '  0   a 0.0   4',
+                                  '  1   c 3.0   5',
+                                  '  2   b 7.0   0'])
+
+    key2 = ['a', 'b']
+    t2 = table.unique(t, key2)
+    assert sort_eq(t2.pformat(), [' a   b   c   d ',
+                                  '--- --- --- ---',
+                                  '  0   a 0.0   4',
+                                  '  1   a 1.0   7',
+                                  '  1   c 3.0   5',
+                                  '  2   a 4.0   3',
+                                  '  2   b 7.0   0'])
+
+    t1_m = table.Table(t1, masked=True)
+    t1_m['a'].mask[1] = True
+
+    with pytest.raises(ValueError) as e:
+        t1_mu = table.unique(t1_m)
+    assert e.value.args[0] == ("Cannot unique masked value key columns, remove "
+                               "column 'a' from keys and rerun unique.")
+
+    t1_mu = table.unique(t1_m, silent=True)
+    assert t1_mu.pformat() == [' a   b   c   d ',
+                               '--- --- --- ---',
+                               '  0   a 0.0   4',
+                               '  2   b 7.0   0',
+                               ' --   c 3.0   5']
+
+    with pytest.raises(ValueError) as e:
+        t1_mu = table.unique(t1_m, silent=True, keys='a')

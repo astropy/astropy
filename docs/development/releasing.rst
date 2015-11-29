@@ -69,7 +69,13 @@ procedure is that ensures a consistent release process each time.
     ensure that the latest version is installed in the virtualenv (if you're
     running a csh variant make sure to run ``rehash`` afterwards too)::
 
-        $ pip install zest.releaser --upgrade --force
+        $ pip install zest.releaser==3.49 --upgrade --force
+
+    .. note::
+
+        zest.releaser > 3.49 has a still open issue that prevents our release
+        code from correctly updating the ``VERSION`` variable in our ``setup.py``;
+        see `zestsoftware/zest.releaser#62 <https://github.com/zestsoftware/zest.releaser/pull/62>`_.
 
  9. Ensure that all changes to the code have been committed, then start the
     release by running::
@@ -127,7 +133,7 @@ procedure is that ensures a consistent release process each time.
      the sdist command, which is necessary for the upload command to know
      which distribution to upload::
 
-         $ python setup.py sdist upload
+         $ python setup.py sdist upload --sign
 
  20. Go to https://pypi.python.org/pypi?:action=pkg_edit&name=astropy
      and ensure that only the most recent releases in each actively maintained
@@ -142,7 +148,7 @@ procedure is that ensures a consistent release process each time.
 
          $ git checkout stable
          $ git reset --hard v0.1
-         $ got push origin stable --force
+         $ git push origin stable --force
 
  22. Update Readthedocs so that it builds docs for the corresponding github tag.
      Also verify that the ``stable`` Readthedocs version builds correctly for
@@ -357,9 +363,9 @@ right version number).
    typical to forget this, so if doesn't exist yet please add one in
    the process of backporting.  See :ref:`changelog-format` for more details.
 
-To aid in this process there is a script called ``suggest_backports.py`` at
-https://gist.github.com/embray/4497178.  The script is not perfect and still
-needs a little work, but it will get most of the work done.  For example, if
+To aid in this process there is a `suggest_backports.py script in the astropy-tools repository <https://github.com/astropy/astropy-tools/blob/master/suggest_backports.py>`_.
+The script is not perfect and still needs a little work, but it will get most of
+the work done.  For example, if
 the current bug fix branch is called 'v0.2.x' run it like so::
 
     $ suggest_backports.py astropy astropy v0.2.x -f backport.sh

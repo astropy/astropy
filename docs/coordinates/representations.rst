@@ -30,6 +30,11 @@ so on. The built-in representation classes are:
   cylindrical polar coordinates, represented by a cylindrical radius
   (``rho``), azimuthal angle (``phi``), and height (``z``).
 
+.. Note::
+   For information about using and changing the representation of
+   `~astropy.coordinates.SkyCoord` objects, see the
+   :ref:`astropy-skycoord-representations` section.
+
 Instantiating and converting
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -40,7 +45,8 @@ objects::
     >>> from astropy.coordinates.representation import CartesianRepresentation
     >>> car = CartesianRepresentation(3 * u.kpc, 5 * u.kpc, 4 * u.kpc)
     >>> car
-    <CartesianRepresentation x=3.0 kpc, y=5.0 kpc, z=4.0 kpc>
+    <CartesianRepresentation (x, y, z) in kpc
+        (3.0, 5.0, 4.0)>
 
 Representations can be converted to other representations using the
 ``represent_as`` method::
@@ -48,10 +54,12 @@ Representations can be converted to other representations using the
     >>> from astropy.coordinates.representation import SphericalRepresentation, CylindricalRepresentation
     >>> sph = car.represent_as(SphericalRepresentation)
     >>> sph  # doctest: +FLOAT_CMP
-    <SphericalRepresentation lon=1.03037682652 rad, lat=0.601264216679 rad, distance=7.07106781187 kpc>
+    <SphericalRepresentation (lon, lat, distance) in (rad, rad, kpc)
+        (1.03037682652, 0.601264216679, 7.07106781187)>
     >>> cyl = car.represent_as(CylindricalRepresentation)
     >>> cyl  # doctest: +FLOAT_CMP
-    <CylindricalRepresentation rho=5.83095189485 kpc, phi=1.03037682652 rad, z=4.0 kpc>
+    <CylindricalRepresentation (rho, phi, z) in (kpc, rad, kpc)
+        (5.83095189485, 1.03037682652, 4.0)>
 
 All representations can be converted to each other without loss of
 information, with the exception of
@@ -63,14 +71,17 @@ dimensionless sphere::
     >>> from astropy.coordinates.representation import UnitSphericalRepresentation
     >>> sph_unit = car.represent_as(UnitSphericalRepresentation)
     >>> sph_unit  # doctest: +FLOAT_CMP
-    <UnitSphericalRepresentation lon=1.03037682652 rad, lat=0.601264216679 rad>
+    <UnitSphericalRepresentation (lon, lat) in rad
+        (1.03037682652, 0.601264216679)>
 
 Converting back to cartesian, the absolute scaling information has been
 removed, and the points are still located on a unit sphere:
 
     >>> sph_unit = car.represent_as(UnitSphericalRepresentation)
-    >>> sph_unit.represent_as(CartesianRepresentation)
-    <CartesianRepresentation x=0.4242... , y=0.7071... , z=0.5656... >
+    >>> sph_unit.represent_as(CartesianRepresentation) # doctest: +FLOAT_CMP
+    <CartesianRepresentation (x, y, z) [dimensionless]
+        (0.424264068712, 0.707106781187, 0.565685424949)>
+
 
 Array values
 ^^^^^^^^^^^^
@@ -167,3 +178,10 @@ Once you do this, you will then automatically be able to call
 ``represent_as`` to convert other representations to/from your representation
 class.  Your representation will also be available for use in |skycoord|
 and all frame classes.
+
+A representation class may also have a ``_unit_representation`` attribute
+(although it is not required). This attribute points to the appropriate
+"unit" representation (i.e., a representation that is dimensionless). This is
+probably only meaningful for subclasses of
+`~astropy.coordinates.SphericalRepresentation`, where it is assumed that it
+will be a subclass of `~astropy.coordinates.UnitSphericalRepresentation`.

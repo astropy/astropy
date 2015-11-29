@@ -17,12 +17,10 @@ define new equivalencies.
 
 Equivalencies are used by passing a list of equivalency pairs to the
 ``equivalencies`` keyword argument of :meth:`Quantity.to
-<astropy.units.quantity.Quantity.to>`, :meth:`Unit.to
-<astropy.units.core.UnitBase.to>` or :meth:`Unit.get_converter
-<astropy.units.core.UnitBase.get_converter>` methods.
-Alternatively, if a
-larger piece of code needs the same equivalencies, one can set them
-for a :ref:`given context <equivalency-context>`.
+<astropy.units.quantity.Quantity.to>` or :meth:`Unit.to
+<astropy.units.core.UnitBase.to>` methods.  Alternatively, if a larger
+piece of code needs the same equivalencies, one can set them for a
+:ref:`given context <equivalency-context>`.
 
 Built-in equivalencies
 ----------------------
@@ -40,7 +38,7 @@ Length and angles are not normally convertible, so
   >>> (8.0 * u.arcsec).to(u.parsec)
   Traceback (most recent call last):
     ...
-  UnitsError: 'arcsec' (angle) and 'pc' (length) are not convertible
+  UnitConversionError: 'arcsec' (angle) and 'pc' (length) are not convertible
 
 However, when passing the result of
 :func:`~astropy.units.equivalencies.parallax` as the third argument to the
@@ -70,23 +68,23 @@ dimensionless).  For instance, normally the following raise exceptions::
   >>> u.degree.to('')
   Traceback (most recent call last):
     ...
-  UnitsError: 'deg' (angle) and '' (dimensionless) are not convertible
+  UnitConversionError: 'deg' (angle) and '' (dimensionless) are not convertible
   >>> (u.kg * u.m**2 * (u.cycle / u.s)**2).to(u.J)
   Traceback (most recent call last):
     ...
-  UnitsError: 'cycle2 kg m2 / s2' and 'J' (energy) are not convertible
+  UnitConversionError: 'cycle2 kg m2 / s2' and 'J' (energy) are not convertible
 
 But when passing we pass the proper conversion function,
 :func:`~astropy.units.equivalencies.dimensionless_angles`, it works.
 
-  >>> u.deg.to('', equivalencies=u.dimensionless_angles())
-  0.01745329...
+  >>> u.deg.to('', equivalencies=u.dimensionless_angles())  # doctest: +FLOAT_CMP
+  0.017453292519943295
   >>> (0.5e38 * u.kg * u.m**2 * (u.cycle / u.s)**2).to(u.J,
-  ...                            equivalencies=u.dimensionless_angles())
-  <Quantity 1.97392...e+39 J>
+  ...                            equivalencies=u.dimensionless_angles())  # doctest: +FLOAT_CMP
+  <Quantity 1.9739208802178715e+39 J>
   >>> import numpy as np
-  >>> np.exp((1j*0.125*u.cycle).to('', equivalencies=u.dimensionless_angles()))
-  <Quantity (0.707106781186...+0.707106781186...j)>
+  >>> np.exp((1j*0.125*u.cycle).to('', equivalencies=u.dimensionless_angles()))  # doctest: +FLOAT_CMP
+  <Quantity (0.7071067811865476+0.7071067811865475j)>
 
 The example with complex numbers is also one may well be doing a fair
 number of similar calculations.  For such situations, there is the
@@ -107,15 +105,15 @@ energy can be converted.
 
   >>> ([1000, 2000] * u.nm).to(u.Hz, equivalencies=u.spectral())
   <Quantity [  2.99792458e+14,  1.49896229e+14] Hz>
-  >>> ([1000, 2000] * u.nm).to(u.eV, equivalencies=u.spectral())
-  <Quantity [ 1.239..., 0.619...] eV>
+  >>> ([1000, 2000] * u.nm).to(u.eV, equivalencies=u.spectral())  # doctest: +FLOAT_CMP
+  <Quantity [ 1.23984193, 0.61992096] eV>
 
 These equivalencies even work with non-base units::
 
   >>> # Inches to calories
   >>> from astropy.units import imperial
-  >>> imperial.inch.to(imperial.Cal, equivalencies=u.spectral())
-  1.8691807591...e-27
+  >>> imperial.inch.to(imperial.Cal, equivalencies=u.spectral())  # doctest: +FLOAT_CMP
+  1.869180759162485e-27
 
 Spectral (Doppler) equivalencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -159,8 +157,8 @@ location. For example::
     ...                 equivalencies=u.spectral_density(3500 * u.AA))
     <Quantity 1.5e-23 erg / (cm2 Hz s)>
     >>> (1.5 * u.Jy).to(u.erg / u.cm**2 / u.s / u.micron,
-    ...                 equivalencies=u.spectral_density(3500 * u.AA))
-    <Quantity 3.670928057142...e-08 erg / (cm2 micron s)>
+    ...                 equivalencies=u.spectral_density(3500 * u.AA))  # doctest: +FLOAT_CMP
+    <Quantity 3.670928057142856e-08 erg / (cm2 micron s)>
 
 Brightness Temperature / Flux Density Equivalency
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -173,27 +171,57 @@ only dependent on the aperture size.  See `Tools of Radio Astronomy
 <http://books.google.com/books?id=9KHw6R8rQEMC&pg=PA179&source=gbs_toc_r&cad=4#v=onepage&q&f=false>`__
 for details.
 
-The `~astropy.units.equivalencies.brightness_temperature` equivalency
-requires the beam area and frequency as arguments.  Example::
+.. note:: The brightness temperature mentioned here is the Rayleigh-Jeans 
+          equivalent temperature, which results in a linear relation between
+          flux and temperature. This is the convention that is most often used
+          in relation to observations, but if you are interested in computing
+          the *exact* temperature of a planck function that would produce a
+          given flux, you should not use this equivalency.
+
+The `~astropy.units.equivalencies.brightness_temperature` equivalency requires
+the beam area and frequency as arguments.  Recalling that the area of a 2D
+gaussian is :math:`2 \pi \sigma^2` (see `wikipedia
+<http://en.wikipedia.org/wiki/Gaussian_function#Two-dimensional_Gaussian_function>`_),
+here is an example::
 
     >>> import numpy as np
-    >>> omega_B = np.pi * (50 * u.arcsec)**2
+    >>> beam_sigma = 50*u.arcsec
+    >>> omega_B = 2 * np.pi * beam_sigma**2
     >>> freq = 5 * u.GHz
     >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B, freq))
-    7.052588858...
+    3.526294...
+
+.. note:: Despite the Astropy unit on the left being shown as ``u.Jy``, this is
+          the conversion factor from Jy/beam to K (because ``u.beam`` cannot
+          currently be used as a meaningful unit since it depends on the
+          observations).
+
+If you have beam full-width half-maxima (FWHM), which are often quoted and are
+the values stored in the FITS header keywords BMAJ and BMIN, a more appropriate
+example converts the FWHM to sigma::
+
+    >>> import numpy as np
+    >>> beam_fwhm = 50*u.arcsec
+    >>> fwhm_to_sigma = 1. / (8 * np.log(2))**0.5
+    >>> beam_sigma = beam_fwhm * fwhm_to_sigma
+    >>> omega_B = 2 * np.pi * beam_sigma**2
+    >>> freq = 5 * u.GHz
+    >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B, freq))  # doctest: +FLOAT_CMP
+    19.553928332631582
+
 
 Temperature Energy Equivalency
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This equivalency allows conversion between temperature and its equivalent 
+This equivalency allows conversion between temperature and its equivalent
 in energy (i.e., the temperature multiplied by the Boltzmann constant),
 usually expressed in electronvolts. This is used frequently for
 observations at high-energy, be it for solar or X-ray astronomy. Example::
 
     >>> import astropy.units as u
     >>> t_k = 1e6 * u.K
-    >>> t_k.to(u.eV, equivalencies=u.temperature_energy())
-    <Quantity 86.17332384... eV>
+    >>> t_k.to(u.eV, equivalencies=u.temperature_energy())  # doctest: +FLOAT_CMP
+    <Quantity 86.17332384960955 eV>
 
 Writing new equivalencies
 -------------------------
@@ -221,13 +249,13 @@ for them::
 Note that the equivalency can be used with any other compatible units::
 
   >>> from astropy.units import imperial
-  >>> imperial.gallon.to(imperial.pound, 1, equivalencies=liters_water)
-  8.3454044633335...
+  >>> imperial.gallon.to(imperial.pound, 1, equivalencies=liters_water)  # doctest: +FLOAT_CMP
+  8.345404463333525
 
 And it also works in the other direction::
 
-  >>> imperial.lb.to(imperial.pint, 1, equivalencies=liters_water)
-  0.9586114172355...
+  >>> imperial.lb.to(imperial.pint, 1, equivalencies=liters_water)  # doctest: +FLOAT_CMP
+  0.9586114172355459
 
 A slightly more complicated example: Spectral Doppler Equivalencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -242,10 +270,10 @@ but this example is illustrative::
     >>> freq_to_vel = [(u.GHz, u.km/u.s,
     ... lambda x: (restfreq-x) / restfreq * si.c.to('km/s').value,
     ... lambda x: (1-x/si.c.to('km/s').value) * restfreq )]
-    >>> u.Hz.to(u.km / u.s, 116e9, equivalencies=freq_to_vel)
-    -1895.432192...
+    >>> u.Hz.to(u.km / u.s, 116e9, equivalencies=freq_to_vel)  # doctest: +FLOAT_CMP
+    -1895.4321928669262
     >>> (116e9 * u.Hz).to(u.km / u.s, equivalencies=freq_to_vel)
-    <Quantity -1895.432192... km / s>
+    <Quantity -1895.4321928669262 km / s>
 
 Note that once this is defined for GHz and km/s, it will work for all other
 units of frequency and velocity.  ``x`` is converted from the input frequency
@@ -274,22 +302,22 @@ all kinds of things that ``Hz`` can be converted to::
   >>> u.Hz.find_equivalent_units(equivalencies=u.spectral())
     Primary name | Unit definition        | Aliases
   [
-    AU           | 1.49598e+11 m          | au             ,
-    Angstrom     | 1e-10 m                | AA, angstrom   ,
-    Bq           | 1 / s                  | becquerel      ,
-    Ci           | 2.7027e-11 / s         | curie          ,
-    Hz           | 1 / s                  | Hertz, hertz   ,
-    J            | kg m2 / s2             | Joule, joule   ,
-    Ry           | 2.17987e-18 kg m2 / s2 | rydberg        ,
-    cm           | 0.01 m                 | centimeter     ,
-    eV           | 1.60218e-19 kg m2 / s2 | electronvolt   ,
-    erg          | 1e-07 kg m2 / s2       |                ,
-    k            | 100 / m                | Kayser, kayser ,
-    lyr          | 9.46073e+15 m          | lightyear      ,
-    m            | irreducible            | meter          ,
-    micron       | 1e-06 m                |                ,
-    pc           | 3.08568e+16 m          | parsec         ,
-    solRad       | 6.95508e+08 m          | R_sun, Rsun    ,
+    AU           | 1.49598e+11 m          | au, astronomical_unit ,
+    Angstrom     | 1e-10 m                | AA, angstrom          ,
+    Bq           | 1 / s                  | becquerel             ,
+    Ci           | 2.7027e-11 / s         | curie                 ,
+    Hz           | 1 / s                  | Hertz, hertz          ,
+    J            | kg m2 / s2             | Joule, joule          ,
+    Ry           | 2.17987e-18 kg m2 / s2 | rydberg               ,
+    cm           | 0.01 m                 | centimeter            ,
+    eV           | 1.60218e-19 kg m2 / s2 | electronvolt          ,
+    erg          | 1e-07 kg m2 / s2       |                       ,
+    k            | 100 / m                | Kayser, kayser        ,
+    lyr          | 9.46073e+15 m          | lightyear             ,
+    m            | irreducible            | meter                 ,
+    micron       | 1e-06 m                |                       ,
+    pc           | 3.08568e+16 m          | parsec                ,
+    solRad       | 6.95508e+08 m          | R_sun, Rsun           ,
   ]
 
 .. _equivalency-context:
@@ -309,8 +337,8 @@ simply do:
   >>> import astropy.units as u
   >>> u.set_enabled_equivalencies(u.dimensionless_angles())
   <astropy.units.core._UnitContext object at ...>
-  >>> u.deg.to('')
-  0.01745329...
+  >>> u.deg.to('')  # doctest: +FLOAT_CMP
+  0.017453292519943295
 
 Here, any list of equivalencies could be used, or one could add, e.g.,
 :func:`~astropy.units.equivalencies.spectral` and
@@ -327,5 +355,5 @@ a context manager is provided:
   >>> with u.set_enabled_equivalencies(u.dimensionless_angles()):
   ...    phase = 0.5 * u.cycle
   ...    c = np.exp(1j*phase)
-  >>> c
-  <Quantity (-1+...j) >
+  >>> c  # doctest: +FLOAT_CMP
+  <Quantity (-1+1.2246063538223773e-16j) >

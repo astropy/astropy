@@ -9,6 +9,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 
+import abc
 import contextlib
 import difflib
 import inspect
@@ -20,13 +21,17 @@ import sys
 import traceback
 import unicodedata
 
+from collections import defaultdict
+
 from ..extern import six
 from ..extern.six.moves import urllib
+from ..utils.compat.odict import OrderedDict
 
 
 __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
            'find_api_page', 'is_path_hidden', 'walk_skip_hidden',
-           'JsonCustomEncoder', 'indent', 'InheritDocstrings']
+           'JsonCustomEncoder', 'indent', 'InheritDocstrings',
+           'OrderedDescriptor', 'OrderedDescriptorContainer']
 
 
 def isiterable(obj):
@@ -386,7 +391,7 @@ def strip_accents(s):
         if unicodedata.category(c) != 'Mn')
 
 
-def did_you_mean(s, candidates, n=3, cutoff=0.8):
+def did_you_mean(s, candidates, n=3, cutoff=0.8, fix=None):
     """
     When a string isn't found in a set of candidates, we can be nice
     to provide a list of alternatives in the exception.  This
@@ -406,6 +411,11 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8):
         In the range [0, 1]. Possibilities that don't score at least
         that similar to word are ignored.  See
         `difflib.get_close_matches`.
+
+    fix : callable
+        A callable to modify the results after matching.  It should
+        take a single string and return a sequence of strings
+        containing the fixed matches.
 
     Returns
     -------
@@ -438,13 +448,22 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8):
         capitalized_matches = set()
         for match in matches:
             capitalized_matches.update(candidates_lower[match])
+        matches = capitalized_matches
 
-        matches = sorted(capitalized_matches)
+        if fix is not None:
+            mapped_matches = []
+            for match in matches:
+                mapped_matches.extend(fix(match))
+            matches = mapped_matches
+
+        matches = list(set(matches))
+        matches = sorted(matches)
 
         if len(matches) == 1:
             matches = matches[0]
         else:
-            matches = ', '.join(matches[:-1]) + ' or ' + matches[-1]
+            matches = (', '.join(matches[:-1]) + ' or ' +
+                       matches[-1])
         return 'Did you mean {0}?'.format(matches)
 
     return ''
@@ -477,13 +496,308 @@ class InheritDocstrings(type):
         >>> B.wiggle.__doc__
         u'Wiggle the thingamajig'
     """
+
     def __init__(cls, name, bases, dct):
+        def is_public_member(key):
+            return (
+                (key.startswith('__') and key.endswith('__')
+                 and len(key) > 4) or
+                not key.startswith('_'))
+
         for key, val in six.iteritems(dct):
             if (inspect.isfunction(val) and
-                not key.startswith('_') and
+                is_public_member(key) and
                 val.__doc__ is None):
                 for base in cls.__mro__[1:]:
                     super_method = getattr(base, key, None)
                     if super_method is not None:
                         val.__doc__ = super_method.__doc__
                         break
+
+        super(InheritDocstrings, cls).__init__(name, bases, dct)
+
+
+@six.add_metaclass(abc.ABCMeta)
+class OrderedDescriptor(object):
+    """
+    Base class for descriptors whose order in the class body should be
+    preserved.  Intended for use in concert with the
+    `OrderedDescriptorContainer` metaclass.
+
+    Subclasses of `OrderedDescriptor` must define a value for a class attribute
+    called ``_class_attribute_``.  This is the name of a class attribute on the
+    *container* class for these descriptors, which will be set to an
+    `~collections.OrderedDict` at class creation time.  This
+    `~collections.OrderedDict` will contain a mapping of all class attributes
+    that were assigned instances of the `OrderedDescriptor` subclass, to the
+    instances themselves.  See the documentation for
+    `OrderedDescriptorContainer` for a concrete example.
+
+    Optionally, subclasses of `OrderedDescriptor` may define a value for a
+    class attribute called ``_name_attribute_``.  This should be the name of
+    an attribute on instances of the subclass.  When specified, during
+    creation of a class containing these descriptors, the name attribute on
+    each instance will be set to the name of the class attribute it was
+    assigned to on the class.
+
+    .. note::
+
+        Although this class is intended for use with *descriptors* (i.e.
+        classes that define any of the ``__get__``, ``__set__``, or
+        ``__delete__`` magic methods), this base class is not itself a
+        descriptor, and technically this could be used for classes that are
+        not descriptors too.  However, use with descriptors is the original
+        intended purpose.
+    """
+
+    # This id increments for each OrderedDescriptor instance created, so they
+    # are always ordered in the order they were created.  Class bodies are
+    # guaranteed to be executed from top to bottom.  Not sure if this is
+    # thread-safe though.
+    _nextid = 1
+
+    _class_attribute_ = abc.abstractproperty()
+    """
+    Subclasses should define this attribute to the name of an attribute on
+    classes containing this subclass.  That attribute will contain the mapping
+    of all instances of that `OrderedDescriptor` subclass defined in the class
+    body.  If the same descriptor needs to be used with different classes,
+    each with different names of this attribute, multiple subclasses will be
+    needed.
+    """
+
+    _name_attribute_ = None
+    """
+    Subclasses may optionally define this attribute to specify the name of an
+    attribute on instances of the class that should be filled with the
+    instance's attribute name at class creation time.
+    """
+
+    def __init__(self, *args, **kwargs):
+        # The _nextid attribute is shared across all subclasses so that
+        # different subclasses of OrderedDescriptors can be sorted correctly
+        # between themselves
+        self.__order = OrderedDescriptor._nextid
+        OrderedDescriptor._nextid += 1
+        super(OrderedDescriptor, self).__init__()
+
+    def __lt__(self, other):
+        """
+        Defined for convenient sorting of `OrderedDescriptor` instances, which
+        are defined to sort in their creation order.
+        """
+
+        if (isinstance(self, OrderedDescriptor) and
+                isinstance(other, OrderedDescriptor)):
+            try:
+                return self.__order < other.__order
+            except AttributeError:
+                raise RuntimeError(
+                    'Could not determine ordering for {0} and {1}; at least '
+                    'one of them is not calling super().__init__ in its '
+                    '__init__.'.format(self, other))
+        else:
+            return NotImplemented
+
+
+class OrderedDescriptorContainer(type):
+    """
+    Classes should use this metaclass if they wish to use `OrderedDescriptor`
+    attributes, which are class attributes that "remember" the order in which
+    they were defined in the class body.
+
+    Every subclass of `OrderedDescriptor` has an attribute called
+    ``_class_attribute_``.  For example, if we have
+
+    .. code:: python
+
+        class ExampleDecorator(OrderedDescriptor):
+            _class_attribute_ = '_examples_'
+
+    Then when a class with the `OrderedDescriptorContainer` metaclass is
+    created, it will automatically be assigned a class attribute ``_examples_``
+    referencing an `~collections.OrderedDict` containing all instances of
+    ``ExampleDecorator`` defined in the class body, mapped to by the names of
+    the attributes they were assigned to.
+
+    When subclassing a class with this metaclass, the descriptor dict (i.e.
+    ``_examples_`` in the above example) will *not* contain descriptors
+    inherited from the base class.  That is, this only works by default with
+    decorators explicitly defined in the class body.  However, the subclass
+    *may* define an attribute ``_inherit_decorators_`` which lists
+    `OrderedDescriptor` classes that *should* be added from base classes.
+    See the examples section below for an example of this.
+
+    Examples
+    --------
+
+    >>> from astropy.extern import six
+    >>> from astropy.utils import OrderedDescriptor, OrderedDescriptorContainer
+    >>> class TypedAttribute(OrderedDescriptor):
+    ...     \"\"\"
+    ...     Attributes that may only be assigned objects of a specific type,
+    ...     or subclasses thereof.  For some reason we care about their order.
+    ...     \"\"\"
+    ...
+    ...     _class_attribute_ = 'typed_attributes'
+    ...     _name_attribute_ = 'name'
+    ...     # A default name so that instances not attached to a class can
+    ...     # still be repr'd; useful for debugging
+    ...     name = '<unbound>'
+    ...
+    ...     def __init__(self, type):
+    ...         # Make sure not to forget to call the super __init__
+    ...         super(TypedAttribute, self).__init__()
+    ...         self.type = type
+    ...
+    ...     def __get__(self, obj, objtype=None):
+    ...         if obj is None:
+    ...             return self
+    ...         if self.name in obj.__dict__:
+    ...             return obj.__dict__[self.name]
+    ...         else:
+    ...             raise AttributeError(self.name)
+    ...
+    ...     def __set__(self, obj, value):
+    ...         if not isinstance(value, self.type):
+    ...             raise ValueError('{0}.{1} must be of type {2!r}'.format(
+    ...                 obj.__class__.__name__, self.name, self.type))
+    ...         obj.__dict__[self.name] = value
+    ...
+    ...     def __delete__(self, obj):
+    ...         if self.name in obj.__dict__:
+    ...             del obj.__dict__[self.name]
+    ...         else:
+    ...             raise AttributeError(self.name)
+    ...
+    ...     def __repr__(self):
+    ...         if isinstance(self.type, tuple) and len(self.type) > 1:
+    ...             typestr = '({0})'.format(
+    ...                 ', '.join(t.__name__ for t in self.type))
+    ...         else:
+    ...             typestr = self.type.__name__
+    ...         return '<{0}(name={1}, type={2})>'.format(
+    ...                 self.__class__.__name__, self.name, typestr)
+    ...
+
+    Now let's create an example class that uses this ``TypedAttribute``::
+
+        >>> @six.add_metaclass(OrderedDescriptorContainer)
+        ... class Point2D(object):
+        ...     x = TypedAttribute((float, int))
+        ...     y = TypedAttribute((float, int))
+        ...
+        ...     def __init__(self, x, y):
+        ...         self.x, self.y = x, y
+        ...
+        >>> p1 = Point2D(1.0, 2.0)
+        >>> p1.x
+        1.0
+        >>> p1.y
+        2.0
+        >>> p2 = Point2D('a', 'b')  # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+            ...
+        ValueError: Point2D.x must be of type (float, int>)
+
+    We see that ``TypedAttribute`` works more or less as advertised, but
+    there's nothing special about that.  Let's see what
+    `OrderedDescriptorContainer` did for us::
+
+        >>> Point2D.typed_attributes
+        OrderedDict([('x', <TypedAttribute(name=x, type=(float, int))>),
+        ('y', <TypedAttribute(name=y, type=(float, int))>)])
+
+    If we create a subclass, it does *not* by default add inherited descriptors
+    to ``typed_attributes``::
+
+        >>> class Point3D(Point2D):
+        ...     z = TypedAttribute((float, int))
+        ...
+        >>> Point3D.typed_attributes
+        OrderedDict([('z', <TypedAttribute(name=z, type=(float, int))>)])
+
+    However, if we specify ``_inherit_descriptors_`` from ``Point2D`` then
+    it will do so::
+
+        >>> class Point3D(Point2D):
+        ...     _inherit_descriptors_ = (TypedAttribute,)
+        ...     z = TypedAttribute((float, int))
+        ...
+        >>> Point3D.typed_attributes
+        OrderedDict([('x', <TypedAttribute(name=x, type=(float, int))>),
+        ('y', <TypedAttribute(name=y, type=(float, int))>),
+        ('z', <TypedAttribute(name=z, type=(float, int))>)])
+
+    .. note::
+
+        Hopefully it is clear from these examples that this construction
+        also allows a class of type `OrderedDescriptorContainer` to use
+        multiple different `OrderedDescriptor` classes simultaneously.
+    """
+
+    _inherit_descriptors_ = ()
+
+    def __init__(cls, cls_name, bases, members):
+        descriptors = defaultdict(list)
+        seen = set()
+        inherit_descriptors = ()
+        descr_bases = {}
+
+        for mro_cls in cls.__mro__:
+            for name, obj in mro_cls.__dict__.items():
+                if name in seen:
+                    # Checks if we've already seen an attribute of the given
+                    # name (if so it will override anything of the same name in
+                    # any base class)
+                    continue
+
+                seen.add(name)
+
+                if (not isinstance(obj, OrderedDescriptor) or
+                        (inherit_descriptors and
+                            not isinstance(obj, inherit_descriptors))):
+                    # The second condition applies when checking any
+                    # subclasses, to see if we can inherit any descriptors of
+                    # the given type from subclasses (by default inheritance is
+                    # disabled unless the class has _inherit_descriptors_
+                    # defined)
+                    continue
+
+                if obj._name_attribute_ is not None:
+                    setattr(obj, obj._name_attribute_, name)
+
+                # Don't just use the descriptor's class directly; instead go
+                # through its MRO and find the class on which _class_attribute_
+                # is defined directly.  This way subclasses of some
+                # OrderedDescriptor *may* override _class_attribute_ and have
+                # its own _class_attribute_, but by default all subclasses of
+                # some OrderedDescriptor are still grouped together
+                # TODO: It might be worth clarifying this in the docs
+                if obj.__class__ not in descr_bases:
+                    for obj_cls_base in obj.__class__.__mro__:
+                        if '_class_attribute_' in obj_cls_base.__dict__:
+                            descr_bases[obj.__class__] = obj_cls_base
+                            descriptors[obj_cls_base].append((obj, name))
+                            break
+                else:
+                    # Make sure to put obj first for sorting purposes
+                    obj_cls_base = descr_bases[obj.__class__]
+                    descriptors[obj_cls_base].append((obj, name))
+
+            if not (isinstance(mro_cls, type(cls)) and
+                        mro_cls._inherit_descriptors_):
+                # If _inherit_descriptors_ is undefined then we don't inherit
+                # any OrderedDescriptors from any of the base classes, and
+                # there's no reason to continue through the MRO
+                break
+            else:
+                inherit_descriptors = mro_cls._inherit_descriptors_
+
+        for descriptor_cls, instances in descriptors.items():
+            instances.sort()
+            instances = OrderedDict((key, value) for value, key in instances)
+            setattr(cls, descriptor_cls._class_attribute_, instances)
+
+        super(OrderedDescriptorContainer, cls).__init__(cls_name, bases,
+                                                        members)

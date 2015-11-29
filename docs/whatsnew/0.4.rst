@@ -150,7 +150,7 @@ rather than the intended public API location.
 
 This will affect URLs pointing to specific documentation pages.  For
 example, this URL points to the v0.3 location of the
-`astropy.cosmology.luminosity_distance` function:
+``astropy.cosmology.luminosity_distance`` function:
 
 * http://docs.astropy.org/en/v0.3/api/astropy.cosmology.funcs.luminosity_distance.html
 

@@ -4,19 +4,14 @@
 This module contains the classes and utility functions for distance and
 cartesian coordinates.
 """
-
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-
-import math
 
 import numpy as np
 
 from .. import units as u
-from ..utils import deprecated
 
-__all__ = ['Distance', 'CartesianPoints', 'cartesian_to_spherical',
-           'spherical_to_cartesian']
+__all__ = ['Distance']
 
 
 __doctest_requires__ = {'*': ['scipy.integrate']}
@@ -185,13 +180,14 @@ class Distance(u.Quantity):
         z : float
             The redshift of this distance given the provided ``cosmology``.
         """
-        from ..cosmology import luminosity_distance
         from scipy import optimize
 
-        # FIXME: array: need to make this calculation more vector-friendly
+        if cosmology is None:
+            from ..cosmology import default_cosmology
+            cosmology = default_cosmology.get()
 
-        f = lambda z, d, cos: (luminosity_distance(z, cos).value - d) ** 2
-        return optimize.brent(f, (self.Mpc, cosmology))
+        from ..cosmology import z_at_value
+        return z_at_value(cosmology.luminosity_distance, self, ztol=1.e-10)
 
     @property
     def distmod(self):
@@ -203,159 +199,6 @@ class Distance(u.Quantity):
     def _distmod_to_pc(cls, dm):
         dm = u.Quantity(dm, u.mag)
         return cls(10 ** ((dm.value + 5) / 5.), u.pc, copy=False)
-
-
-@deprecated('v0.4', alternative='astropy.coordinates.CartesianRepresentation')
-class CartesianPoints(u.Quantity):
-    """
-    A cartesian representation of a point in three-dimensional space.
-
-    Parameters
-    ----------
-    x : `~astropy.units.Quantity` or array-like
-        The first cartesian coordinate or a single array or
-        `~astropy.units.Quantity` where the first dimension is length-3.
-    y : `~astropy.units.Quantity` or array-like, optional
-        The second cartesian coordinate.
-    z : `~astropy.units.Quantity` or array-like, optional
-        The third cartesian coordinate.
-    unit : `~astropy.units.UnitBase` object or `None`
-        The physical unit of the coordinate values. If ``x``, ``y``, or ``z``
-        are quantities, they will be converted to this unit.
-    dtype : `~numpy.dtype`, optional
-        See `~astropy.units.Quantity`. Must be given as a keyword argument.
-    copy : bool, optional
-        See `~astropy.units.Quantity`. Must be given as a keyword argument.
-
-    Raises
-    ------
-    UnitsError
-        If the units on ``x``, ``y``, and ``z`` do not match or an invalid
-        unit is given.
-    ValueError
-        If ``y`` and ``z`` don't match ``x``'s shape or ``x`` is not length-3
-    TypeError
-        If incompatible array types are passed into ``x``, ``y``, or ``z``
-
-    """
-
-    #this ensures that __array_wrap__ gets called for ufuncs even when
-    #where a quantity is first, like ``3*u.m + c``
-    __array_priority__ = 10001
-
-    def __new__(cls, x, y=None, z=None, unit=None, dtype=None, copy=True):
-        if y is None and z is None:
-            if len(x) != 3:
-                raise ValueError('Input to CartesianPoints is not length 3')
-
-            qarr = x
-            if unit is None and hasattr(qarr, 'unit'):
-                unit = qarr.unit  # for when a Quantity is given
-        elif y is not None and z is not None:
-            if unit is None:
-                #they must all match units or this fails
-                for coo in (x, y, z):
-                    if hasattr(coo, 'unit'):
-                        if unit is not None and coo.unit != unit:
-                            raise u.UnitsError('Units for `x`, `y`, and `z` do '
-                                               'not match in CartesianPoints   ')
-                        unit = coo.unit
-                #if `unit`  is still None at this point, it means none were
-                #Quantties, which is fine, because it means the user wanted
-                #the unit to be None
-            else:
-                #convert any that are like a Quantity to the given unit
-                if hasattr(x, 'to'):
-                    x = x.to(unit)
-                if hasattr(y, 'to'):
-                    y = y.to(unit)
-                if hasattr(z, 'to'):
-                    z = z.to(unit)
-
-            qarr = [np.asarray(coo) for coo in (x, y, z)]
-            if not (qarr[0].shape == qarr[1].shape == qarr[2].shape):
-                raise ValueError("Shapes for `x`, `y`, and `z` don't match in "
-                                 "CartesianPoints")
-                #let the unit be whatever it is
-        else:
-            raise TypeError('Must give all of `x`, `y`, and `z` or just array in '
-                            'CartesianPoints')
-        try:
-            unit = _convert_to_and_validate_length_unit(unit, True)
-        except TypeError as e:
-            raise u.UnitsError(str(e))
-
-        try:
-            qarr = np.asarray(qarr)
-        except ValueError as e:
-            raise TypeError(str(e))
-
-        if qarr.dtype.kind not in 'iuf':
-            raise TypeError("Unsupported dtype '{0}'".format(qarr.dtype))
-
-        return u.Quantity.__new__(cls, qarr, unit, dtype=dtype, copy=copy)
-
-    def __quantity_subclass__(self, unit):
-        if unit.is_equivalent(u.m):
-            return CartesianPoints, True
-        else:
-            return u.Quantity.__quantity_subclass__(unit)[0], False
-
-    def __array_wrap__(self, obj, context=None):
-        #always convert to CartesianPoints because all operations that would
-        #screw up the units are killed by _convert_to_and_validate_length_unit
-        obj = u.Quantity.__array_wrap__(obj, context=context)
-
-        #always prefer self's unit, if possible
-        if obj.unit.is_equivalent(self.unit):
-            return obj.to(self.unit)
-        else:
-            return obj
-
-    @property
-    def x(self):
-        """
-        The second cartesian coordinate as a `~astropy.units.Quantity`.
-        """
-        return self.view(u.Quantity)[0]
-
-    @property
-    def y(self):
-        """
-        The second cartesian coordinate as a `~astropy.units.Quantity`.
-        """
-        return self.view(u.Quantity)[1]
-
-    @property
-    def z(self):
-        """
-        The third cartesian coordinate as a `~astropy.units.Quantity`.
-        """
-        return self.view(u.Quantity)[2]
-
-    def to_spherical(self):
-        """
-        Converts to the spherical representation of this point.
-
-        Returns
-        -------
-        r : `~astropy.units.Quantity`
-            The radial coordinate (in the same units as this `CartesianPoints`).
-        lat : `~astropy.units.Quantity`
-            The spherical coordinates latitude.
-        lon : `~astropy.units.Quantity`
-            The spherical coordinates longitude.
-
-        """
-        from .angles import Latitude, Longitude
-
-        rarr, latarr, lonarr = cartesian_to_spherical(self.x, self.y, self.z)
-
-        r = Distance(rarr, unit=self.unit)
-        lat = Latitude(latarr, unit=u.radian)
-        lon = Longitude(lonarr, unit=u.radian)
-
-        return r, lat, lon
 
 
 def _convert_to_and_validate_length_unit(unit, allow_dimensionless=False):
@@ -371,103 +214,3 @@ def _convert_to_and_validate_length_unit(unit, allow_dimensionless=False):
 
     return unit
 
-#<------------transformation-related utility functions----------------->
-
-
-def cartesian_to_spherical(x, y, z):
-    """
-    Converts 3D rectangular cartesian coordinates to spherical polar
-    coordinates.
-
-    Note that the resulting angles are latitude/longitude or
-    elevation/azimuthal form.  I.e., the origin is along the equator
-    rather than at the north pole.
-
-    .. note::
-        This is a low-level function used internally in
-        `astropy.coordinates`.  It is provided for users if they really
-        want to use it, but it is recommended that you use the
-        `astropy.coordinates` coordinate systems.
-
-    Parameters
-    ----------
-    x : scalar or array-like
-        The first cartesian coordinate.
-    y : scalar or array-like
-        The second cartesian coordinate.
-    z : scalar or array-like
-        The third cartesian coordinate.
-
-    Returns
-    -------
-    r : float or array
-        The radial coordinate (in the same units as the inputs).
-    lat : float or array
-        The latitude in radians
-    lon : float or array
-        The longitude in radians
-    """
-
-    xsq = x ** 2
-    ysq = y ** 2
-    zsq = z ** 2
-
-    r = (xsq + ysq + zsq) ** 0.5
-    s = (xsq + ysq) ** 0.5
-
-    if np.isscalar(x) and np.isscalar(y) and np.isscalar(z):
-        lon = math.atan2(y, x)
-        lat = math.atan2(z, s)
-    else:
-        lon = np.arctan2(y, x)
-        lat = np.arctan2(z, s)
-
-    return r, lat, lon
-
-
-def spherical_to_cartesian(r, lat, lon):
-    """
-    Converts spherical polar coordinates to rectangular cartesian
-    coordinates.
-
-    Note that the input angles should be in latitude/longitude or
-    elevation/azimuthal form.  I.e., the origin is along the equator
-    rather than at the north pole.
-
-    .. note::
-        This is a low-level function used internally in
-        `astropy.coordinates`.  It is provided for users if they really
-        want to use it, but it is recommended that you use the
-        `astropy.coordinates` coordinate systems.
-
-    Parameters
-    ----------
-    r : scalar or array-like
-        The radial coordinate (in the same units as the inputs).
-    lat : scalar or array-like
-        The latitude in radians
-    lon : scalar or array-like
-        The longitude in radians
-
-    Returns
-    -------
-    x : float or array
-        The first cartesian coordinate.
-    y : float or array
-        The second cartesian coordinate.
-    z : float or array
-        The third cartesian coordinate.
-
-
-    """
-
-    if np.isscalar(r) and np.isscalar(lat) and np.isscalar(lon):
-        x = r * math.cos(lat) * math.cos(lon)
-        y = r * math.cos(lat) * math.sin(lon)
-        z = r * math.sin(lat)
-    else:
-        x = r * np.cos(lat) * np.cos(lon)
-        y = r * np.cos(lat) * np.sin(lon)
-        z = r * np.sin(lat)
-
-    return x, y, z

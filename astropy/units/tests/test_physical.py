@@ -58,3 +58,8 @@ def test_photnu():
 @raises(ValueError)
 def test_redundant_physical_type():
     physical.def_physical_type(u.m, 'utter craziness')
+
+
+def test_data_quantity():
+    assert u.byte.physical_type == 'data quantity'
+    assert u.bit.physical_type == 'data quantity'

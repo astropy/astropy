@@ -13,7 +13,7 @@ __all__ = sorted(['Gaussian1DKernel', 'Gaussian2DKernel', 'CustomKernel',
                   'Box1DKernel', 'Box2DKernel', 'Tophat2DKernel',
                   'Trapezoid1DKernel', 'MexicanHat1DKernel',
                   'MexicanHat2DKernel', 'AiryDisk2DKernel',
-                  'Model1DKernel', 'Model2DKernel',
+                  'Moffat2DKernel', 'Model1DKernel', 'Model2DKernel',
                   'TrapezoidDisk2DKernel', 'Ring2DKernel'])
 
 
@@ -85,7 +85,7 @@ class Gaussian1DKernel(Kernel1D):
                                         0, stddev)
         self._default_size = _round_up_to_odd_integer(8 * stddev)
         super(Gaussian1DKernel, self).__init__(**kwargs)
-        self._truncation = np.abs(1. - 1 / self._normalization)
+        self._truncation = np.abs(1. - self._array.sum())
 
 
 class Gaussian2DKernel(Kernel2D):
@@ -124,7 +124,7 @@ class Gaussian2DKernel(Kernel2D):
     See Also
     --------
     Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel,
-    TrapezoidDisk2DKernel, AiryDisk2DKernel
+    TrapezoidDisk2DKernel, AiryDisk2DKernel, Moffat2DKernel
 
     Examples
     --------
@@ -151,7 +151,7 @@ class Gaussian2DKernel(Kernel2D):
                                         0, stddev, stddev)
         self._default_size = _round_up_to_odd_integer(8 * stddev)
         super(Gaussian2DKernel, self).__init__(**kwargs)
-        self._truncation = np.abs(1. - 1 / self._normalization)
+        self._truncation = np.abs(1. - self._array.sum())
 
 
 class Box1DKernel(Kernel1D):
@@ -258,8 +258,8 @@ class Box2DKernel(Kernel2D):
 
     See Also
     --------
-    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel,
-    TrapezoidDisk2DKernel, AiryDisk2DKernel
+    Gaussian2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel,
+    TrapezoidDisk2DKernel, AiryDisk2DKernel, Moffat2DKernel
 
     Examples
     --------
@@ -323,8 +323,8 @@ class Tophat2DKernel(Kernel2D):
 
     See Also
     --------
-    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel,
-    TrapezoidDisk2DKernel, AiryDisk2DKernel
+    Gaussian2DKernel, Box2DKernel, MexicanHat2DKernel, Ring2DKernel,
+    TrapezoidDisk2DKernel, AiryDisk2DKernel, Moffat2DKernel
 
     Examples
     --------
@@ -363,7 +363,7 @@ class Ring2DKernel(Kernel2D):
         Inner radius of the ring kernel.
     width : number
         Width of the ring kernel.
-    mode: str, optional
+    mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -382,7 +382,8 @@ class Ring2DKernel(Kernel2D):
 
     See Also
     --------
-    Box2DKernel, Gaussian2DKernel, MexicanHat2DKernel, Tophat2DKernel
+    Gaussian2DKernel, Box2DKernel, Tophat2DKernel, MexicanHat2DKernel,
+    Ring2DKernel, AiryDisk2DKernel, Moffat2DKernel
 
     Examples
     --------
@@ -497,8 +498,8 @@ class TrapezoidDisk2DKernel(Kernel2D):
 
     See Also
     --------
-    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel,
-    TrapezoidDisk2DKernel, AiryDisk2DKernel
+    Gaussian2DKernel, Box2DKernel, Tophat2DKernel, MexicanHat2DKernel,
+    Ring2DKernel, AiryDisk2DKernel, Moffat2DKernel
 
     Examples
     --------
@@ -641,8 +642,8 @@ class MexicanHat2DKernel(Kernel2D):
 
     See Also
     --------
-    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel,
-    TrapezoidDisk2DKernel, AiryDisk2DKernel
+    Gaussian2DKernel, Box2DKernel, Tophat2DKernel, Ring2DKernel,
+    TrapezoidDisk2DKernel, AiryDisk2DKernel, Moffat2DKernel
 
     Examples
     --------
@@ -704,8 +705,8 @@ class AiryDisk2DKernel(Kernel2D):
 
     See Also
     --------
-    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel,
-    TrapezoidDisk2DKernel, AiryDisk2DKernel
+    Gaussian2DKernel, Box2DKernel, Tophat2DKernel, MexicanHat2DKernel,
+    Ring2DKernel, TrapezoidDisk2DKernel, AiryDisk2DKernel, Moffat2DKernel
 
     Examples
     --------
@@ -729,6 +730,72 @@ class AiryDisk2DKernel(Kernel2D):
         self._model = models.AiryDisk2D(1, 0, 0, radius)
         self._default_size = _round_up_to_odd_integer(8 * radius)
         super(AiryDisk2DKernel, self).__init__(**kwargs)
+        self.normalize()
+        self._truncation = None
+
+
+class Moffat2DKernel(Kernel2D):
+    """
+    2D Moffat kernel.
+
+    This kernel is a typical model for a seeing limited PSF.
+
+    Parameters
+    ----------
+    gamma : float
+        Core width of the Moffat model.
+    alpha : float
+        Power index of the Moffat model.
+    x_size : odd int, optional
+        Size in x direction of the kernel array. Default = 8 * radius.
+    y_size : odd int, optional
+        Size in y direction of the kernel array. Default = 8 * radius.
+    mode : str, optional
+        One of the following discretization modes:
+            * 'center' (default)
+                Discretize model by taking the value
+                at the center of the bin.
+            * 'linear_interp'
+                Discretize model by performing a bilinear interpolation
+                between the values at the corners of the bin.
+            * 'oversample'
+                Discretize model by taking the average
+                on an oversampled grid.
+            * 'integrate'
+                Discretize model by integrating the
+                model over the bin.
+    factor : number, optional
+        Factor of oversampling. Default factor = 10.
+
+    See Also
+    --------
+    Gaussian2DKernel, Box2DKernel, Tophat2DKernel, MexicanHat2DKernel,
+    Ring2DKernel, TrapezoidDisk2DKernel, AiryDisk2DKernel
+
+    Examples
+    --------
+    Kernel response:
+
+     .. plot::
+        :include-source:
+
+        import matplotlib.pyplot as plt
+        from astropy.convolution import Moffat2DKernel
+        moffat_2D_kernel = Moffat2DKernel(3, 2)
+        plt.imshow(moffat_2D_kernel, interpolation='none', origin='lower')
+        plt.xlabel('x [pixels]')
+        plt.ylabel('y [pixels]')
+        plt.colorbar()
+        plt.show()
+    """
+    _is_bool = False
+
+    def __init__(self, gamma, alpha, **kwargs):
+        self._model = models.Moffat2D((gamma - 1.0) / (np.pi * alpha * alpha),
+                                      0, 0, gamma, alpha)
+        fwhm = 2.0 * alpha * (2.0 ** (1.0 / gamma) - 1.0) ** 0.5
+        self._default_size = _round_up_to_odd_integer(4.0 * fwhm)
+        super(Moffat2DKernel, self).__init__(**kwargs)
         self.normalize()
         self._truncation = None
 

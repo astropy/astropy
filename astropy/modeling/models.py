@@ -7,11 +7,15 @@ Creates a common namespace for all pre-defined models.
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+from .core import custom_model
+from .mappings import *
 from .projections import *
 from .rotations import *
 from .polynomial import *
 from .functional_models import *
 from .powerlaws import *
+
+from ..extern.six import string_types
 
 """
 Attach a docstring explaining constraints to all models which support them.
@@ -50,14 +54,16 @@ CONSTRAINTS_DOC = """
 
 
 MODELS_WITH_CONSTRAINTS = [
-    AiryDisk2D, Beta1D, Beta2D, Box1D, Box2D,
-    Const1D, Const2D, Disk2D, Gaussian1D, GaussianAbsorption1D, Gaussian2D,
+    AiryDisk2D, Moffat1D, Moffat2D, Box1D, Box2D,
+    Const1D, Const2D, Ellipse2D, Disk2D,
+    Gaussian1D, GaussianAbsorption1D, Gaussian2D,
     Linear1D, Lorentz1D, MexicanHat1D, MexicanHat2D,
-    PowerLaw1D, Sine1D, Trapezoid1D, TrapezoidDisk2D,
+    PowerLaw1D, Sersic1D, Sersic2D, Sine1D, Trapezoid1D, TrapezoidDisk2D,
     Chebyshev1D, Chebyshev2D, Legendre2D, Legendre1D,
-    Polynomial1D, Polynomial2D
+    Polynomial1D, Polynomial2D, Voigt1D
 ]
 
 
 for item in MODELS_WITH_CONSTRAINTS:
-    item.__doc__ += CONSTRAINTS_DOC
+    if isinstance(item.__doc__, string_types):
+        item.__doc__ += CONSTRAINTS_DOC

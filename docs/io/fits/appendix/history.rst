@@ -165,7 +165,7 @@ Bug Fixes
   (spacetelescope/PyFITS#53)
 
 - Improved behavior when writing large compressed images on OSX by removing an
-  unncessary check for platform architecture. (spacetelescope/PyFITS#57)
+  unnecessary check for platform architecture. (spacetelescope/PyFITS#57)
 
 - Allow reading FITS files from file-like objects that do not have a
   ``.closed`` attribute (and as such may not even have an "open" vs. "closed"
@@ -194,7 +194,7 @@ Bug Fixes
   (Backported from 3.2.3)
 
 - Improved behavior when writing large compressed images on OSX by removing an
-  unncessary check for platform architecture. (Backported from 3.2.3)
+  unnecessary check for platform architecture. (Backported from 3.2.3)
 
 - Allow reading FITS files from file-like objects that do not have a
   ``.closed`` attribute (and as such may not even have an "open" vs. "closed"
@@ -230,7 +230,7 @@ Bug Fixes
   accepting an integer index as the first argument, it also supports supplying
   a keyword name as the first argument for insertion relative to a specific
   keyword.  It also now supports an optional ``after`` argument.  If
-  ``after=True`` the the insertion is made below the insertion point instead
+  ``after=True`` the insertion is made below the insertion point instead
   of above it. (spacetelescope/PyFITS#12)
 
 - Fixed support for broadcasting of values assigned to table columns.
@@ -304,7 +304,7 @@ Bug Fixes
   accepting an integer index as the first argument, it also supports supplying
   a keyword name as the first argument for insertion relative to a specific
   keyword.  It also now supports an optional ``after`` argument.  If
-  ``after=True`` the the insertion is made below the insertion point instead
+  ``after=True`` the insertion is made below the insertion point instead
   of above it. (Backported from 3.2.1)
 
 - A grab bag of minor performance improvements in headers.
@@ -468,7 +468,7 @@ Other Changes and Additions
   no dithering is used, but the ``SUBTRACTIVE_DITHER_1`` and
   ``SUBTRACTIVE_DITHER_2`` methods can be enabled by passing the correct
   constants to the ``quantize_method`` argument to the ``CompImageHDU``
-  constuctor.  A seed can be manually specified, or automatically generated
+  constructor.  A seed can be manually specified, or automatically generated
   using either the system clock or checksum-based methods via the
   ``dither_seed`` argument.  See the documentation for ``CompImageHDU`` for
   more details. (#198) (spacetelescope/PYFITS#32)
@@ -748,7 +748,7 @@ Bug Fixes
 - Fixed a crash when generating diff reports from diffs using the
   ``ignore_comments`` options. (#181)
 
-- Fixed some bugs with WCS Paper IV record-valued keyword cards:
+- Fixed some bugs with FITS WCS distortion paper record-valued keyword cards:
 
   - Cards that looked kind of like RVKCs but were not intended to be were
     over-permissively treated as such--commentary keywords like COMMENT and
@@ -928,7 +928,7 @@ API Changes
 - A new global variable ``pyfits.EXTENSION_NAME_CASE_SENSITIVE`` was added.
   This serves as a replacement for ``pyfits.setExtensionNameCaseSensitive``
   which is not deprecated and may be removed in a future version.  To enable
-  case-sensitivity of extension names (i.e. treat 'sci' as distict from 'SCI')
+  case-sensitivity of extension names (i.e. treat 'sci' as distinct from 'SCI')
   set ``pyfits.EXTENSION_NAME_CASE_SENSITIVE = True``.  The default is
   ``False``. (r1139)
 
@@ -1070,7 +1070,7 @@ Bug Fixes
 
 - Fixed a bug where opening a file containing compressed image HDUs in
   'update' mode and then immediately closing it without making any changes
-  caused the file to be rewritten unncessarily. (#167)
+  caused the file to be rewritten unnecessarily. (#167)
 
 - Fixed two memory leaks that could occur when writing compressed image data,
   or in some cases when opening files containing compressed image HDUs in
@@ -1407,7 +1407,7 @@ Bug Fixes
 - Fixed a bug where writing a table with zero rows could fail in some cases
   (#72)
 
-- Miscellanous small bug fixes that were causing some tests to fail,
+- Miscellaneous small bug fixes that were causing some tests to fail,
   particularly on Python 3 (#74, #75)
 
 - Fixed a bug where creating a table column from an array in non-native byte
@@ -1950,7 +1950,7 @@ The following bugs were fixed:
   variable length format column from character data (PA format).
 
 - Modified installation code so that when installing on Windows, when a C++
-  compiler compatable with the Python binary is not found, the installation
+  compiler compatible with the Python binary is not found, the installation
   completes with a warning that all optional extension modules failed to
   build.  Previously, an Error was issued and the installation stopped.
 
@@ -2384,7 +2384,7 @@ The following enhancements were made:
     an underlying file object on which the function will be performed.
 
 - Added support for record-valued keyword cards as introduced in the "FITS WCS
-  Paper IV proposal for representing a more general distortion model".
+  proposal for representing a more general distortion model".
 
   - Record-valued keyword cards are string-valued cards where the string is
     interpreted as a definition giving a record field name, and its floating
@@ -2601,13 +2601,7 @@ The following enhancements were made:
       >>> del cl[0]
       >>> print cl['DP1.AXIS.1']
       Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-      File "NP_pyfits.py", line 977, in __getitem__
-        return self.ascard[key].value
-      File "NP_pyfits.py", line 1258, in __getitem__
-        _key = self.index_of(key)
-      File "NP_pyfits.py", line 1403, in index_of
-        raise KeyError, 'Keyword %s not found.' % `key`
+      ...
       KeyError: "Keyword 'DP1.AXIS.1' not found."
       >>> hdr['DP1.AXIS.1']
       4.0
@@ -2903,10 +2897,10 @@ Minor changes since v0.9.6:
 
 - Add output verification in methods flush() and close().
 
-- Modify the the design of the open() function to remove the output_verify
+- Modify the design of the open() function to remove the output_verify
   argument.
 
-- Remove the groups argument in GroupsHDU's contructor.
+- Remove the groups argument in GroupsHDU's constructor.
 
 - Redesign the column definition class to make its column components more
   accessible.  Also to make it conducive for higher level functionalities,
@@ -3079,7 +3073,7 @@ Changes since 0.7.5:
   in order for pyfits to run under numarray 0.4.
 
 - edit _readblock to add the (optional) firstblock argument and raise IOError
-  if the the first 8 characters in the first block is not 'SIMPLE  ' or
+  if the first 8 characters in the first block is not 'SIMPLE  ' or
   'XTENSION'.  Edit the function open to check for IOError to skip the last
   null filled block(s).  Edit readHDU to add the firstblock argument.
 

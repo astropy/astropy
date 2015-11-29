@@ -57,11 +57,7 @@ def get_formats(data_class=None):
         # of the full 'ascii.rdb'.
         ascii_format_class = ('ascii.' + format_class[0], format_class[1])
 
-        # In the following, we use '   ' instead of '' because if the first
-        # format that is added is not deprecated, the data type for this
-        # element would be U0, which Numpy 1.5.x in Python 3 doesn't support,
-        # so we have to give it a non-zero length.
-        deprecated = 'Yes' if ascii_format_class in format_classes else '   '
+        deprecated = 'Yes' if ascii_format_class in format_classes else ''
 
         rows.append((format_class[1].__name__, format_class[0], has_read, has_write,
                      has_identify, deprecated))
@@ -86,6 +82,12 @@ def _update__doc__(data_class, readwrite):
 
     # Get the existing read or write method and its docstring
     class_readwrite_func = getattr(data_class, readwrite)
+
+    if not isinstance(class_readwrite_func.__doc__, six.string_types):
+        # No docstring--could just be test code, or possibly code compiled
+        # without docstrings
+        return
+
     lines = class_readwrite_func.__doc__.splitlines()
 
     # Find the location of the existing formats table if it exists
@@ -315,7 +317,7 @@ def read(cls, *args, **kwargs):
                     try:
                         ctx = get_readable_fileobj(args[0], encoding='binary')
                         fileobj = ctx.__enter__()
-                    except Exception as e:
+                    except Exception:
                         fileobj = None
                     else:
                         args = [fileobj] + list(args[1:])

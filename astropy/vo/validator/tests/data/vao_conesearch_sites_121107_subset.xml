@@ -31,33 +31,6 @@
         <TABLEDATA>
           <TR>
             <TD>Catalog</TD>
-            <TD>GSC23</TD>
-            <TD>HST Guide Star Catalog 2.3</TD>
-            <TD>The Guide Star Catalog II (GSC-II) is an all-sky optical catalog based on 1" resolution scans of the photographic Sky Survey plates, at two epochs and three bandpasses, from the Palomar and UK Schmidt telescopes. This all-sky catalog will ultimately contains positions, proper motions, classifications, and magnitudes in multiple bandpasses for almost a billion objects down to approximately Jpg=21, Fpg=20. The GSC-II is currently used for HST Bright Object Protection and HST pointing. Looking ahead, the GSC-II will form the basis of the Guide Star Catalog for JWST. This was constructed in collaboration with ground-based observatories for use with the GEMINI, VLT and GALILEO telescopes</TD>
-            <TD>Space Telescope Science</TD>
-            <TD>#Optical#</TD>
-            <TD>ivo://archive.stsci.edu/gsc/gsc2.3#1</TD>
-            <TD>2012-03-08T20:39:06</TD>
-            <TD>#Surveys#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD/>
-            <TD>2.3.2</TD>
-            <TD>ivo://archive.stsci.edu/gsc/gsc2.3</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD>2</TD>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://gsss.stsci.edu/webservices/vo/ConeSearch.aspx?CAT=GSC23&amp;amp;</TD>
-            <TD>1</TD>
-            <TD>1000</TD>
-            <TD/>
-            <TD>http://gsss.stsci.edu/Catalogs/GSC/GSC2/GSC2.htm</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
             <TD>I/252</TD>
             <TD>The USNO-A2.0 Catalogue (Monet+ 1998)</TD>
             <TD>USNO-A2.0 is a catalog of 526,280,881 stars, and is based on a re-reduction of the Precision Measuring Machine (PMM) scans that were the basis for the USNO-A1.0 catalog. The major difference between A2.0 and A1.0 is that A1.0 used the Guide Star Catalog (Lasker et al. 1986, see Cat. &amp;lt;I/220&amp;gt;) as its reference frame whereas A2.0 uses the ICRF as realized by the USNO ACT catalog (Urban et al. 1997, see Cat. II/246&amp;gt;). A2.0 presents right ascension and declination (J2000, epoch of the mean of the blue and red plate) and the blue and red magnitude for each star. Usage of the ACT catalog as well as usage of new astrometric and photometric reduction algorithms should provide improved astrometry (mostly in the reduction of systematic errors) and improved photometry (because the brightest stars on each plate had B and V magnitudes measured by the Tycho experiment on the Hipparcos satellite). The basic format of the catalog and its compilation is the same as for A1.0, and most users should be able to migrate to this newer version with minimal effort.

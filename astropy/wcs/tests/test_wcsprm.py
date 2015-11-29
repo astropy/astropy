@@ -7,10 +7,10 @@ import gc
 import locale
 import re
 
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 import numpy as np
 
-from ...tests.helper import pytest, raises
+from ...tests.helper import pytest, raises, catch_warnings
 from ...io import fits
 from .. import wcs
 from .. import _wcs
@@ -80,6 +80,11 @@ def test_cd_invalid():
     w.cd = [1, 0, 0, 1]
 
 
+def test_cdfix():
+    w = _wcs.Wcsprm()
+    w.cdfix()
+
+
 def test_cdelt():
     w = _wcs.Wcsprm()
     assert_array_equal(w.cdelt, [1, 1])
@@ -134,12 +139,24 @@ def test_colax():
     w.colax[0] = 0
     assert_array_equal(w.colax, [0, 54])
 
+    with pytest.raises(ValueError):
+        w.colax = [1, 2, 3]
+
 
 def test_colnum():
     w = _wcs.Wcsprm()
     assert w.colnum == 0
     w.colnum = 42
     assert w.colnum == 42
+
+    with pytest.raises(OverflowError):
+        w.colnum = 0xffffffffffffffffffff
+
+    with pytest.raises(OverflowError):
+        w.colnum = 0xffffffff
+
+    with pytest.raises(TypeError):
+        del w.colnum
 
 
 @raises(TypeError)
@@ -155,6 +172,7 @@ def test_crder():
     w.crder[0] = 0
     assert np.isnan(w.crder[1])
     assert w.crder[0] == 0
+    w.crder = w.crder
 
 
 def test_crota():
@@ -193,6 +211,9 @@ def test_crpix():
     w.crpix[0] = 0
     assert_array_equal(w.crpix, [0, 54])
 
+    with pytest.raises(ValueError):
+        w.crpix = [1, 2, 3]
+
 
 def test_crval():
     w = _wcs.Wcsprm()
@@ -206,11 +227,12 @@ def test_crval():
 
 def test_csyer():
     w = _wcs.Wcsprm()
-    assert w.crder.dtype == np.float
-    assert np.all(np.isnan(w.crder))
-    w.crder[0] = 0
-    assert np.isnan(w.crder[1])
-    assert w.crder[0] == 0
+    assert w.csyer.dtype == np.float
+    assert np.all(np.isnan(w.csyer))
+    w.csyer[0] = 0
+    assert np.isnan(w.csyer[1])
+    assert w.csyer[0] == 0
+    w.csyer = w.csyer
 
 
 def test_ctype():
@@ -232,9 +254,43 @@ def test_ctype():
     assert w.lngtyp == 'RA'
 
 
+def test_ctype_repr():
+    w = _wcs.Wcsprm()
+    assert list(w.ctype) == ['', '']
+    w.ctype = [b'RA-\t--TAN', 'DEC-\n-TAN']
+    assert repr(w.ctype == '["RA-\t--TAN", "DEC-\n-TAN"]')
+
+
+def test_ctype_index_error():
+    w = _wcs.Wcsprm()
+    assert list(w.ctype) == ['', '']
+    with pytest.raises(IndexError):
+        w.ctype[2] = 'FOO'
+
+
+def test_ctype_invalid_error():
+    w = _wcs.Wcsprm()
+    assert list(w.ctype) == ['', '']
+    with pytest.raises(ValueError):
+        w.ctype[0] = 'X' * 100
+    with pytest.raises(TypeError):
+        w.ctype[0] = True
+    with pytest.raises(TypeError):
+        w.ctype = ['a', 0]
+    with pytest.raises(TypeError):
+        w.ctype = None
+    with pytest.raises(ValueError):
+        w.ctype = ['a', 'b', 'c']
+    with pytest.raises(ValueError):
+        w.ctype = ['FOO', 'A' * 100]
+
+
 def test_cubeface():
     w = _wcs.Wcsprm()
     assert w.cubeface == -1
+    w.cubeface = 0
+    with pytest.raises(OverflowError):
+        w.cubeface = -1
 
 
 def test_cunit():
@@ -245,22 +301,29 @@ def test_cunit():
     assert w.cunit[1] == u.km
 
 
-@raises(ValueError)
 def test_cunit_invalid():
     w = _wcs.Wcsprm()
-    w.cunit[0] = 'foo'
+    with catch_warnings() as warns:
+        w.cunit[0] = 'foo'
+    assert len(warns) == 1
+    assert 'foo' in str(warns[0].message)
 
 
-@raises(ValueError)
 def test_cunit_invalid2():
     w = _wcs.Wcsprm()
-    w.cunit = ['foo', 'bar']
+    with catch_warnings() as warns:
+        w.cunit = ['foo', 'bar']
+    assert len(warns) == 2
+    assert 'foo' in str(warns[0].message)
+    assert 'bar' in str(warns[1].message)
 
 
 def test_unit():
     w = wcs.WCS()
     w.wcs.cunit[0] = u.erg
     assert w.wcs.cunit[0] == u.erg
+
+    assert repr(w.wcs.cunit) == "['erg', '']"
 
 
 def test_unit2():
@@ -269,11 +332,29 @@ def test_unit2():
     w.wcs.cunit[0] = myunit
 
 
+def test_unit3():
+    w = wcs.WCS()
+    with pytest.raises(IndexError):
+        w.wcs.cunit[2] = u.m
+    with pytest.raises(ValueError):
+        w.wcs.cunit = [u.m, u.m, u.m]
+
+
+def test_unitfix():
+    w = _wcs.Wcsprm()
+    w.unitfix()
+
+
 def test_cylfix():
     # TODO: We need some data with broken cylindrical projections to
     # test with.  For now, this is just a smoke test.
     w = _wcs.Wcsprm()
     assert w.cylfix() == -1
+
+    assert w.cylfix([0, 1]) == -1
+
+    with pytest.raises(ValueError):
+        w.cylfix([0, 1, 2])
 
 
 def test_dateavg():
@@ -303,6 +384,9 @@ def test_equinox():
     assert w.equinox == 0
     del w.equinox
     assert np.isnan(w.equinox)
+
+    with pytest.raises(TypeError):
+        w.equinox = None
 
 
 def test_fix():
@@ -342,6 +426,18 @@ def test_fix3():
         'celfix': 'No change'}
     assert w.dateobs == '31/12/F9'
     assert np.isnan(w.mjdobs)
+
+
+def test_fix4():
+    w = _wcs.Wcsprm()
+    with pytest.raises(ValueError):
+        w.fix('X')
+
+
+def test_fix5():
+    w = _wcs.Wcsprm()
+    with pytest.raises(ValueError):
+        w.fix(naxis=[0, 1, 2])
 
 
 def test_get_ps():
@@ -436,6 +532,13 @@ def test_lonpole():
     assert np.isnan(w.lonpole)
 
 
+def test_mix():
+    w = _wcs.Wcsprm()
+    w.ctype = [b'RA---TAN', 'DEC--TAN']
+    with pytest.raises(_wcs.InvalidCoordinateError):
+        w.mix(1, 1, [240, 480], 1, 5, [0, 2], [54, 32], 1)
+
+
 def test_mjdavg():
     w = _wcs.Wcsprm()
     assert np.isnan(w.mjdavg)
@@ -490,6 +593,7 @@ def test_pc():
     del w.cd
     assert w.has_pc()
     assert_array_equal(w.pc, [[1, 0], [0, 1]])
+    w.pc = w.pc
 
 
 @raises(AttributeError)
@@ -540,6 +644,7 @@ def test_restfrq():
     assert w.restfrq == 0.0
     w.restfrq = np.nan
     assert np.isnan(w.restfrq)
+    del w.restfrq
 
 
 def test_restwav():
@@ -547,6 +652,7 @@ def test_restwav():
     assert w.restwav == 0.0
     w.restwav = np.nan
     assert np.isnan(w.restwav)
+    del w.restwav
 
 
 def test_set_ps():
@@ -647,7 +753,6 @@ def test_velangl():
     del w.velangl
     assert np.isnan(w.velangl)
 
-
 def test_velosys():
     w = _wcs.Wcsprm()
     assert np.isnan(w.velosys)
@@ -655,6 +760,15 @@ def test_velosys():
     assert w.velosys == 42.0
     del w.velosys
     assert np.isnan(w.velosys)
+
+
+def test_velref():
+    w = _wcs.Wcsprm()
+    assert w.velref == 0.0
+    w.velref = 42.0
+    assert w.velref == 42.0
+    del w.velref
+    assert w.velref == 0.0
 
 
 def test_zsource():
@@ -699,7 +813,7 @@ def test_header_parse():
             'data/header_newlines.fits', encoding='binary') as test_file:
         hdulist = fits.open(test_file)
         w = wcs.WCS(hdulist[0].header)
-    assert w.wcs.ctype[0] == 'RA---TAN-SIP'
+    assert w.wcs.ctype[0] == 'RA---TAN'
 
 
 def test_locale():
@@ -747,6 +861,15 @@ def test_wcs_sub_error_message():
     assert str(e).endswith("axes must None, a sequence or an integer")
 
 
+def test_wcs_sub():
+    # Issue #3356
+    w = _wcs.Wcsprm()
+    w.sub(['latitude'])
+
+    w = _wcs.Wcsprm()
+    w.sub([b'latitude'])
+
+
 def test_compare():
     header = get_pkg_data_contents('data/3d_cd.hdr', encoding='binary')
     w = _wcs.Wcsprm(header)
@@ -759,3 +882,179 @@ def test_compare():
 
     assert not w.compare(w2)
     assert w.compare(w2, _wcs.WCSCOMPARE_ANCILLARY)
+
+    w = _wcs.Wcsprm(header)
+    w2 = _wcs.Wcsprm(header)
+
+    w.cdelt[0] = np.float32(0.00416666666666666666666666)
+    w2.cdelt[0] = np.float64(0.00416666666666666666666666)
+
+    assert not w.compare(w2)
+    assert w.compare(w2, tolerance=1e-6)
+
+
+@pytest.mark.xfail()
+def test_radesys_defaults():
+    w = _wcs.Wcsprm()
+    w.ctype = ['RA---TAN', 'DEC--TAN']
+    w.set()
+    assert w.radesys == "ICRS"
+
+@pytest.mark.xfail()
+def test_radesys_defaults_full():
+
+    # As described in Section 3.1 of the FITS standard "Equatorial and ecliptic
+    # coordinates", for those systems the RADESYS keyword can be used to
+    # indicate the equatorial/ecliptic frame to use. From the standard:
+
+    # "For RADESYSa values of FK4 and FK4-NO-E, any stated equinox is Besselian
+    # and, if neither EQUINOXa nor EPOCH are given, a default of 1950.0 is to
+    # be taken. For FK5, any stated equinox is Julian and, if neither keyword
+    # is given, it defaults to 2000.0.
+
+    # "If the EQUINOXa keyword is given it should always be accompanied by
+    # RADESYS a. However, if it should happen to ap- pear by itself then
+    # RADESYSa defaults to FK4 if EQUINOXa < 1984.0, or to FK5 if EQUINOXa
+    # 1984.0. Note that these defaults, while probably true of older files
+    # using the EPOCH keyword, are not required of them.
+
+    # By default RADESYS is empty
+    w = _wcs.Wcsprm(naxis=2)
+    assert w.radesys == ''
+    assert np.isnan(w.equinox)
+
+    # For non-ecliptic or equatorial systems it is still empty
+    w = _wcs.Wcsprm(naxis=2)
+    for ctype in [('GLON-CAR', 'GLAT-CAR'),
+                  ('SLON-SIN', 'SLAT-SIN')]:
+        w.ctype = ctype
+        w.set()
+        assert w.radesys == ''
+        assert np.isnan(w.equinox)
+
+    for ctype in [('RA---TAN', 'DEC--TAN'),
+                  ('ELON-TAN', 'ELAT-TAN'),
+                  ('DEC--TAN', 'RA---TAN'),
+                  ('ELAT-TAN', 'ELON-TAN')]:
+
+        # Check defaults for RADESYS
+        w = _wcs.Wcsprm(naxis=2)
+        w.ctype = ctype
+        w.set()
+        assert w.radesys == 'ICRS'
+
+        w = _wcs.Wcsprm(naxis=2)
+        w.ctype = ctype
+        w.equinox = 1980
+        w.set()
+        assert w.radesys == 'FK4'
+
+        w = _wcs.Wcsprm(naxis=2)
+        w.ctype = ctype
+        w.equinox = 1984
+        w.set()
+        assert w.radesys == 'FK5'
+
+        w = _wcs.Wcsprm(naxis=2)
+        w.ctype = ctype
+        w.radesys = 'foo'
+        w.set()
+        assert w.radesys == 'foo'
+
+        # Check defaults for EQUINOX
+        w = _wcs.Wcsprm(naxis=2)
+        w.ctype = ctype
+        w.set()
+        assert np.isnan(w.equinox)  # frame is ICRS, no equinox
+
+        w = _wcs.Wcsprm(naxis=2)
+        w.ctype = ctype
+        w.radesys = 'ICRS'
+        w.set()
+        assert np.isnan(w.equinox)
+
+        w = _wcs.Wcsprm(naxis=2)
+        w.ctype = ctype
+        w.radesys = 'FK5'
+        w.set()
+        assert w.equinox == 2000.
+
+        w = _wcs.Wcsprm(naxis=2)
+        w.ctype = ctype
+        w.radesys = 'FK4'
+        w.set()
+        assert w.equinox == 1950
+
+        w = _wcs.Wcsprm(naxis=2)
+        w.ctype = ctype
+        w.radesys = 'FK4-NO-E'
+        w.set()
+        assert w.equinox == 1950
+
+
+def test_iteration():
+    world = np.array(
+        [[-0.58995335, -0.5],
+         [0.00664326, -0.5],
+         [-0.58995335, -0.25],
+         [0.00664326, -0.25],
+         [-0.58995335,  0.],
+         [0.00664326,  0.],
+         [-0.58995335,  0.25],
+         [0.00664326,  0.25],
+         [-0.58995335,  0.5],
+         [0.00664326,  0.5]],
+        np.float
+    )
+
+    w = wcs.WCS()
+    w.wcs.ctype = ['GLON-CAR', 'GLAT-CAR']
+    w.wcs.cdelt = [-0.006666666828, 0.006666666828]
+    w.wcs.crpix = [75.907, 74.8485]
+    x = w.wcs_world2pix(world, 1)
+
+    expected = np.array(
+        [[1.64400000e+02, -1.51498185e-01],
+         [7.49105110e+01, -1.51498185e-01],
+         [1.64400000e+02, 3.73485009e+01],
+         [7.49105110e+01, 3.73485009e+01],
+         [1.64400000e+02, 7.48485000e+01],
+         [7.49105110e+01, 7.48485000e+01],
+         [1.64400000e+02, 1.12348499e+02],
+         [7.49105110e+01, 1.12348499e+02],
+         [1.64400000e+02, 1.49848498e+02],
+         [7.49105110e+01, 1.49848498e+02]],
+        np.float)
+
+    assert_array_almost_equal(x, expected)
+
+    w2 = w.wcs_pix2world(x, 1)
+
+    world[:, 0] %= 360.
+
+    assert_array_almost_equal(w2, world)
+
+
+def test_invalid_args():
+    with pytest.raises(TypeError):
+        w = _wcs.Wcsprm(keysel='A')
+
+    with pytest.raises(ValueError):
+        w = _wcs.Wcsprm(keysel=2)
+
+    with pytest.raises(ValueError):
+        w = _wcs.Wcsprm(colsel=2)
+
+    with pytest.raises(ValueError):
+        w = _wcs.Wcsprm(naxis=64)
+
+    header = get_pkg_data_contents(
+        'spectra/orion-velo-1.hdr', encoding='binary')
+    with pytest.raises(ValueError):
+        w = _wcs.Wcsprm(header, relax='FOO')
+
+    with pytest.raises(ValueError):
+        w = _wcs.Wcsprm(header, naxis=3)
+
+    with pytest.raises(KeyError):
+        w = _wcs.Wcsprm(header, key='A')

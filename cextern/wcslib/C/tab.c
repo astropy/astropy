@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.23 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2014, Mark Calabretta
+  WCSLIB 5.10 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: tab.c,v 4.23 2014/05/11 04:09:38 mcalabre Exp $
+  $Id: tab.c,v 5.10 2015/10/09 08:19:15 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -65,8 +65,8 @@ int tabini(int alloc, int M, const int K[], struct tabprm *tab)
 
   /* Initialize error message handling. */
   err = &(tab->err);
-  if (tab->err && tab->flag != -1) {
-    free(tab->err);
+  if (tab->flag != -1) {
+    if (tab->err) free(tab->err);
   }
   tab->err = 0x0;
 
@@ -98,6 +98,14 @@ int tabini(int alloc, int M, const int K[], struct tabprm *tab)
 
   /* Initialize memory management. */
   if (tab->flag == -1 || tab->m_flag != TABSET) {
+    if (tab->flag == -1) {
+      tab->sense   = 0x0;
+      tab->p0      = 0x0;
+      tab->delta   = 0x0;
+      tab->extrema = 0x0;
+      tab->set_M   = 0;
+    }
+
     tab->m_flag  = 0;
     tab->m_M     = 0;
     tab->m_N     = 0;
@@ -115,14 +123,6 @@ int tabini(int alloc, int M, const int K[], struct tabprm *tab)
     }
 
     if (tab->m_coord == (double *)0x1) tab->m_coord = 0x0;
-  }
-
-  if (tab->flag == -1) {
-    tab->sense   = 0x0;
-    tab->p0      = 0x0;
-    tab->delta   = 0x0;
-    tab->extrema = 0x0;
-    tab->set_M   = 0;
   }
 
 
@@ -412,12 +412,12 @@ int tabcpy(int alloc, const struct tabprm *tabsrc, struct tabprm *tabdst)
 /*--------------------------------------------------------------------------*/
 
 int tabcmp(int cmp,
+           double tol,
            const struct tabprm *tab1,
            const struct tabprm *tab2,
            int *equal)
 
 {
-  int status = 0;
   int m, M, N;
 
   if (tab1  == 0x0) return TABERR_NULL_POINTER;
@@ -434,20 +434,20 @@ int tabcmp(int cmp,
 
   if (!wcsutil_intEq(M, tab1->K, tab2->K) ||
       !wcsutil_intEq(M, tab1->map, tab2->map) ||
-      !wcsutil_Eq(M, tab1->crval, tab2->crval)) {
+      !wcsutil_Eq(M, tol, tab1->crval, tab2->crval)) {
     return 0;
   }
 
   N = M;
   for (m = 0; m < M; m++) {
-    if (!wcsutil_Eq(tab1->K[m], tab1->index[m], tab2->index[m])) {
+    if (!wcsutil_Eq(tab1->K[m], tol, tab1->index[m], tab2->index[m])) {
       return 0;
     }
 
     N *= tab1->K[m];
   }
 
-  if (!wcsutil_Eq(N, tab1->coord, tab2->coord)) {
+  if (!wcsutil_Eq(N, tol, tab1->coord, tab2->coord)) {
     return 0;
   }
 
@@ -569,7 +569,7 @@ int tabprt(const struct tabprm *tab)
   WCSPRINTF_PTR("      crval: ", tab->crval, "\n");
   wcsprintf("            ");
   for (m = 0; m < tab->M; m++) {
-    wcsprintf("  %- 11.5g", tab->crval[m]);
+    wcsprintf("  %#- 11.5g", tab->crval[m]);
   }
   wcsprintf("\n");
 
@@ -583,7 +583,7 @@ int tabprt(const struct tabprm *tab)
         if (k%5 == 0) {
           wcsprintf("\n            ");
         }
-        wcsprintf("  %- 11.5g", tab->index[m][k]);
+        wcsprintf("  %#- 11.5g", tab->index[m][k]);
       }
       wcsprintf("\n");
     }
@@ -605,7 +605,7 @@ int tabprt(const struct tabprm *tab)
 
     wcsprintf("             (*%s)", text);
     for (m = 0; m < tab->M; m++) {
-      wcsprintf("  %- 11.5g", *(dp++));
+      wcsprintf("  %#- 11.5g", *(dp++));
     }
     wcsprintf("\n");
   }
@@ -634,7 +634,7 @@ int tabprt(const struct tabprm *tab)
   if (tab->delta) {
     wcsprintf("            ");
     for (m = 0; m < tab->M; m++) {
-      wcsprintf("  %- 11.5g", tab->delta[m]);
+      wcsprintf("  %#- 11.5g", tab->delta[m]);
     }
     wcsprintf("\n");
   }
@@ -656,7 +656,7 @@ int tabprt(const struct tabprm *tab)
     wcsprintf("             (*,*%s)", text);
     for (m = 0; m < 2*tab->M; m++) {
       if (m == tab->M) wcsprintf("->  ");
-      wcsprintf("  %- 11.5g", *(dp++));
+      wcsprintf("  %#- 11.5g", *(dp++));
     }
     wcsprintf("\n");
   }
@@ -696,6 +696,20 @@ int tabprt(const struct tabprm *tab)
   WCSPRINTF_PTR("    m_coord: ", tab->m_coord, "");
   if (tab->m_coord == tab->coord) wcsprintf("  (= coord)");
   wcsprintf("\n");
+
+  return 0;
+}
+
+/*--------------------------------------------------------------------------*/
+
+int tabperr(const struct tabprm *tab, const char *prefix)
+
+{
+  if (tab == 0x0) return TABERR_NULL_POINTER;
+
+  if (tab->err) {
+    wcserr_prt(tab->err, prefix);
+  }
 
   return 0;
 }
@@ -1306,6 +1320,7 @@ int tabs2x(
       /* Coordinate not found. */
       *statp = 1;
       status = wcserr_set(TAB_ERRMSG(TABERR_BAD_WORLD));
+
     } else {
       /* Determine the intermediate world coordinates. */
       Km = tab->K;

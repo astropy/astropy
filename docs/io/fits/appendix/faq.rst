@@ -1,15 +1,17 @@
 .. doctest-skip-all
 
-PyFITS FAQ
-----------
+.. _io-fits-faq:
+
+astropy.io.fits FAQ
+-------------------
 
 .. contents::
 
 General Questions
 ^^^^^^^^^^^^^^^^^
 
-What is PyFITS?
-"""""""""""""""
+What is PyFITS and how does it relate to Astropy?
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 PyFITS_ is a library written in, and for use with the Python_ programming
 language for reading, writing, and manipulating FITS_ formatted files.  It
@@ -18,9 +20,13 @@ low-level manipulation of headers, and it supports reading image and table
 data as Numpy_ arrays.  It also supports more obscure and non-standard formats
 found in some FITS files.
 
-PyFITS includes two command-line utilities for working with FITS files:
-fitscheck, which can verify and write FITS checksums; and fitsdiff, which can
-analyze and display the differences between two FITS files.
+The `astropy.io.fits` module is identical to PyFITS but with the names changed.
+When development began on Astropy it was clear that one of the core
+requirements would be a FITS reader.  Rather than starting from scratch,
+PyFITS--being the most flexible FITS reader available for Python--was ported
+into Astropy.  There are plans to gradually phase out PyFITS as a stand-alone
+module and deprecate it in favor of `astropy.io.fits`.  See more about that in
+the next question.
 
 Although PyFITS is written mostly in Python, it includes an optional module
 written in C that's required to read/write compressed image data.  However,
@@ -31,6 +37,7 @@ the rest of PyFITS functions without this extension module.
 .. _FITS: http://fits.gsfc.nasa.gov/
 .. _Numpy: http://numpy.scipy.org/
 
+
 What is the development status of PyFITS?
 """""""""""""""""""""""""""""""""""""""""
 
@@ -38,356 +45,37 @@ PyFITS is written and maintained by the Science Software Branch at the `Space
 Telescope Science Institute`_, and is licensed by AURA_ under a `3-clause BSD
 license`_ (see `LICENSE.txt`_ in the PyFITS source code).
 
+It is now primarily developed as primarily as a component of Astropy
+(`astropy.io.fits`) rather than as a stand-alone module.  There are a few
+reasons for this: The first is simply to reduce development effort; the
+overhead of maintaining both PyFITS *and* `astropy.io.fits` in separate code
+bases is non-trivial.  The second is that there are many features of Astropy
+(units, tables, etc.) from which the `astropy.io.fits` module can benefit
+greatly.  Since PyFITS is already integrated into Astropy, it makes more sense
+to continue development there rather than make Astropy a dependency of PyFITS.
+
 PyFITS' current primary developer and active maintainer is `Erik Bray`_, though
-patch submissions are welcome from anyone.  It has a `Trac site`_ where the
-source code can be browsed, and where bug reports may be submitted.  The source
-code resides primarily in an `SVN repository`_ which allows anonymous
-checkouts, though a `Git mirror`_ also exists.  PyFITS also has a `GitHub
-site`_.
+patch submissions are welcome from anyone.  PyFITS is now primarily developed
+in a Git repository for ease of merging to and from Astropy.  Patches and issue
+reports can be posted to the `GitHub project`_ for PyFITS, or for Astropy.
+There is also a legacy `Trac site`_ with some older issue reports still open,
+but new issues should be submitted via GitHub if possible.  An `SVN mirror`_ of
+the repository is still maintained as well.
 
-The current stable release series is 3.0.x.  Each 3.0.x release tries to
+The current stable release series is 3.3.x.  Each 3.3.x release tries to
 contain only bug fixes, and to not introduce any significant behavioral or API
-changes (though this isn't guaranteed to be perfect).  The upcoming 3.1 release
-will contain new features and some API changes, though will try maintain as
-much backwards-compatibility as possible.  After the 3.1 release there may be
-further 3.0.x releases for bug fixes only where possible.  Older versions of
-PyFITS (2.4 and earlier) are no longer actively supported.
-
-PyFITS is also included as a major component of upcoming Astropy_ project as
-the :mod:`astropy.io.fits` module.  The goal is for Astropy to eventually serve
-as a drop-in replacement for PyFITS. However, for the time being PyFITS will
-still be released as an independent product as well, until such time that the
-Astropy project proves successful and widely-adopted.
+changes (though this isn't guaranteed to be perfect).  Patch releases for older
+release series may be released upon request.  Older versions of PyFITS (2.4 and
+earlier) are no longer actively supported.
 
 .. _Space Telescope Science Institute: http://www.stsci.edu/
 .. _AURA: http://www.aura-astronomy.org/
 .. _3-clause BSD license: http://en.wikipedia.org/wiki/BSD_licenses#3-clause_license_.28.22New_BSD_License.22_or_.22Modified_BSD_License.22.29
-.. _LICENSE.txt: https://trac.assembla.com/pyfits/browser/trunk/LICENSE.txt
+.. _LICENSE.txt: https://aeon.stsci.edu/ssb/trac/pyfits/browser/trunk/LICENSE.txt
 .. _Erik Bray: mailto:embray@stsci.edu
-.. _Trac site: https://trac.assembla.com/pyfits/
-.. _SVN repository: https://subversion.assembla.com/svn/pyfits/
-.. _Git mirror: git://github.com/spacetelescope/PyFITS.git
-.. _GitHub site: https://github.com/spacetelescope/PyFITS
-
-
-Build and Installation Questions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Is PyFITS available on Windows?
-"""""""""""""""""""""""""""""""
-
-Yes--the majority of PyFITS is pure Python, and can be installed and used on
-any platform that supports Python (>=2.5).  However, PyFITS includes an
-optional C extension module for reading/writing compressed image HDUs.  As most
-Windows systems are not configured to compile C source code, binary installers
-are also available for Windows.  Though PyFITS can also be installed from
-source even on Windows systems without a compiler by disabling the compression
-module.  See `How do I install PyFITS from source on Windows?`_ for more
-details.
-
-Where is the Windows installer for version X of PyFITS on version Y of Python?
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-Every official PyFITS build for Windows is eventually uploaded to PyPI_.  This
-includes builds for every major Python release from 2.5.x and up, except for
-3.0 as there is no official Numpy release for Python 3.0 on Windows.  The one
-binary module included in these builds was linked with Numpy 1.6.1, though it
-should work with other recent Numpy versions.
-
-Sometimes the Windows binary installers don't go up immediately after every
-PyFITS release.  But if they appear missing they should go up within another
-business day or two.  This has gotten better with recent releases thanks to
-some automation.
-
-.. _PyPI: http://pypi.python.org/pypi/pyfits
-
-Why is the PyFITS installation failing on Windows?
-""""""""""""""""""""""""""""""""""""""""""""""""""
-
-The most likely cause of installation failure on Windows is if building/
-installing from source fails due to the lack of a compiler for the optional C
-extension module.  Such a failure would produce an error that looks something
-like::
-
-    building 'pyfits.compression' extension
-    error: Unable to find vcvarsall.bat
-
-Your best bet in cases like this is to install from one of the binary
-executable installers available for Windows on PyPI.  However, there are still
-cases where you may need to install from source: For example, it's difficult to
-use the binary installers with virtualenv.  See `How do I install PyFITS from
-source on Windows?`_ for more detailed instructions on building on Windows.
-
-See below for a few answers to other specific questions about Windows
-installation. For other installation errors not mentioned by this FAQ, please
-contact help@stsci.edu with a description of the problem.
-
-On Windows Vista or later why can't the installer find Python in the registry?
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-This is a common issue with Windows installers for Python packages that do not
-support the new User Access Control (UAC) framework added in Windows Vista and
-later.  In particular, when a Python is installed "for all users" (as opposed
-to for a single user) it adds entries for that Python installation under the
-``HKEY_LOCAL_MACHINE`` (HKLM) hierarchy and *not* under the
-``HKEY_CURRENT_USER`` (HKCU) hierarchy.  However, depending on your UAC
-settings, if the PyFITS installer is not executed with elevated privileges
-it will not be able to check in HKLM for the required information about your
-Python installation.
-
-In short: If you encounter this problem it's because you need the appropriate
-entries in the Windows registry for Python. You can download `this script`__
-and execute it with the same Python as the one you want to install PyFITS
-into.  For example to add the missing registry entries to your Python 2.7::
-
-    C:\>C:\Python27\python.exe C:\Path\To\Downloads\win_register_python.py
-
-__ https://gist.github.com/embray/6042780#file-win_register_python-py
-
-How do I install PyFITS from source on Windows?
-"""""""""""""""""""""""""""""""""""""""""""""""
-
-There are a few options for building/installing PyFITS from source on Windows.
-
-First of all, as mentioned elsewhere, most of PyFITS is pure-Python.  Only the
-C extension module for reading/writing compressed images needs to be compiled.
-If you don't need compressed image support, PyFITS can be installed without it.
-
-In future releases this will hopefully be even easier, but for now it's
-necessary to edit one file in order to disable the extension module.  Locate
-the `setup.cfg`_ file at the root of the PyFITS source code.  This is the file
-that describes what needs to be installed for PyFITS.  Find the line that reads
-``[extension=pyfits.compression]``.  This is the section that lists what needs
-to be compiled for the extension module.  Comment out every line in the
-extension section by prepending it with a ``#`` character (stopping at the
-``[build_ext]`` line).  It should look like this::
-
-    ...
-    scripts = scripts/fitscheck
-
-    #[extension=pyfits.compression]
-    #sources =
-    #    src/compress.c
-    #    src/fits_hcompress.c
-    #    src/fits_hdecompress.c
-    #    src/fitsio.c
-    #    src/pliocomp.c
-    #    src/compressionmodule.c
-    #    src/quantize.c
-    #    src/ricecomp.c
-    #    src/zlib.c
-    #    src/inffast.c
-    #    src/inftrees.c
-    #    src/trees.c
-    #include_dirs = numpy
-    # Squelch a handful of warnings (which actually cause pip to break in tox and
-    # other environments due to gcc outputting non-ASCII characters in some
-    # terminals; see python issue6135)
-    #extra_compile_args =
-    #    -Wno-unused-function
-    #    -Wno-strict-prototypes
-
-    [build_ext]
-    ...
-
-With these lines properly commented out, rerun ``python setup.py install``, and
-it should skip building/installing the compression module.  PyFITS will work
-fine with out it, but will issue warnings when encountering a compressed image
-that it can't read.
-
-If you do need to compile the compression module, this can still be done on
-Windows with just a little extra work.  By default, Python tries to compile
-extension modules with the same compiler that Python itself was compiled with.
-
-To check what compiler Python was built with, the easiest way is to run::
-
-    python -c "import platform; print platform.python_compiler()"
-
-For the official builds of recent Python versions this should be something
-like::
-
-    MSC v.1500 32 bit (Intel)
-
-For unofficial Windows distributions of Python, such as ActiveState, EPD, or
-Cygwin, your mileage may vary.
-
-As it so happens, MSC v.15xx is the compiler version included with Visual
-C++ 2008.  Luckily, Microsoft distributes a free version of this as `Visual C++
-Express Edition`_.  So for building Python extension modules on Windows this is
-one of the simpler routes.  Just install the free VC++ 2008.  It should install
-a link to the Start Menu at All Programs->Microsoft Visual C++ Express
-Edition->Visual Studio Tools->Visual Studio 2008 Command Prompt.
-
-If you run that link, it should launch a command prompt with reasonable
-environment variables set up for using Visual C++.  Then change directories to
-your copy of the PyFITS source code and re-run ``python setup.py install``.
-You may also need to comment out the ``extra_compile_args`` option in the
-``setup.cfg`` file (its value is the two lines under it after the equal sign).
-Though the need to manually disable this option for MSC will be fixed in a
-future PyFITS version.
-
-Another option is to use gcc through `MinGW`_, which is in fact how the PyFITS
-releases for Windows are currently built.  This article provides a good
-overview of how to set this up: http://seewhatever.de/blog/?p=217
-
-.. _setup.cfg: https://trac.assembla.com/pyfits/browser/trunk/setup.cfg
-.. _Visual C++ Express Edition: http://www.microsoft.com/visualstudio/en-us/products/2008-editions/express
-.. _MinGW: http://www.mingw.org/
-
-Is PyFITS available for Mac OSX?
-""""""""""""""""""""""""""""""""
-
-Yes, but there is no binary package specifically for OSX (such as a .dmg, for
-example).  For OSX just download, build, and install the source package.  This
-is generally easier on OSX than it is on Windows, thanks to the more
-developer-friendly environment.
-
-The only major problem with building on OSX seems to occur for some users of
-10.7 Lion, with misconfigured systems.  See the next question for details on
-that.
-
-To build PyFITS without the optional compression module, follow the
-instructions in `How do I install PyFITS from source on Windows?`_.
-
-Why is the PyFITS installation failing on OSX Lion (10.7)?
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-There is a common problem that affects all Python packages with C extension
-modules (not just PyFITS) for some users of OSX 10.7.  What usually occurs is
-that when building the package several errors will be output, ending with
-something like::
-
-    unable to execute gcc-4.2: No such file or directory
-    error: command 'gcc-4.2' failed with exit status 1
-
-There are a few other errors like it that can occur.  The problem is that when
-you build a C extension, by default it will try to use the same compiler that
-your Python was built with. In this case, since you're using the 32-bit
-universal build of Python it's trying to use the older gcc-4.2 and is trying
-to build with PPC support, which is no longer supported in Xcode.
-
-In this case the best solution is to install the x86-64 build of Python for
-OSX (http://www.python.org/ftp/python/2.7.2/python-2.7.2-macosx10.6.dmg for
-2.7.2).  In fact, this is the build version officially supported for use on
-Lion.  Other, unofficial Python builds such as from `MacPorts`_ may also work.
-
-.. _MacPorts: http://astrofrog.github.com/macports-python/
-
-How do I find out what version of PyFITS I have installed?
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-To output the PyFITS version from the command line, run::
-
-    $ python -c 'import pyfits; print(pyfits.__version__)'
-
-When PyFITS is installed with stsci_python, it is also possible to check the
-installed SVN revision by importing ``pyfits.svn_version``.  Then use
-``dir(pyfits.svn_version)`` to view a list of available attributes.  A
-feature like this will be available soon in standalone versions of PyFITS as
-well.
-
-How do I run the tests for PyFITS?
-""""""""""""""""""""""""""""""""""
-
-Currently the best way to run the PyFITS tests is to download the source code,
-either from a source release or from version control, and to run the tests out
-of the source.  It is not necessary to install PyFITS to run the tests out of
-the source code.
-
-The PyFITS tests require `nose`_ to run.  nose can be installed on any Python
-version using pip or easy_install.  See the nose documentation for more
-details.
-
-With nose installed, it is simple to run the tests on Python 2.x::
-
-    $ python setup.py nosetests
-
-If PyFITS has not already been built, this will build it automatically, then
-run the tests.  This does not cause PyFITS to be installed.
-
-On Python 3.x the situation is a little more complicated.  This is due to the
-fact that PyFITS' source code is not Python 3-compatible out of the box, but
-has to be run through the 2to3 converter.  Normally when you build/install
-PyFITS on Python 3.x, the 2to3 conversion is performed automatically.
-Unfortunately, nose does not know to use the 2to3'd source code, and will
-instead try to import and test the unconverted source code.
-
-To work around this, it is necessary to first build PyFITS (which will run the
-source through 2to3)::
-
-    $ python setup.py build
-
-Then run the ``nosetests`` command, but pointing it to the ``build`` tree
-where the 2to3'd source code and tests reside, using the ``-w`` switch::
-
-    $ python setup.py nosetests -w build/lib.linux-x86_64-3.2
-
-where the exact path of the ``build/lib.*`` directory will vary depending on
-your platform and Python version.
-
-.. _nose: http://readthedocs.org/docs/nose/en/latest/
-
-How can I build a copy of the PyFITS documentation for my own use?
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-First of all, it's worth pointing out that the documentation for the latest
-version of PyFITS can always be downloaded in `PDF form
-<http://stsdas.stsci.edu/download/docs/The_PyFITS_Handbook.pdf>`_ or browsed
-online in `HTML <http://packages.python.org/pyfits>`_.  There are also plans
-to make the docs for older versions of PyFITS, as well as up-to-date
-development docs available online.
-
-Otherwise, to build your own version of the docs either for offline use, or to
-build the development version of the docs there are a few requirements.  The
-most import requirement is `Sphinx`_, which is the toolkit used to generate
-the documentation.  Use ``pip install sphinx`` or ``easy_install sphinx`` to
-install Sphinx.  Using pip or easy_install will install the correct versions
-of Sphinx's basic dependencies, which include docutils, Jinja2, and Pygments.
-
-Next, the docs require STScI's custom Sphinx theme, `stsci.sphinxext`_.  It's
-a simple pure-Python package and can be installed with pip or easy_install.
-
-The next requirement is `numpydoc`_, which is not normally installed with
-Numpy itself.  Install it with pip or easy_install.  Numpy is also required,
-though it is of course a requirement of PyFITS itself.
-
-Finally, it is necessary to have `matplotlib`_, specifically for
-matplotlib.sphinxext.  This is perhaps the most onerous requirement if you do
-not already have it installed. Please refer to the matplotlib documentation for
-details on downloading and installing matplotlib.
-
-It is also necessary to install PyFITS itself in order to generate the API
-documentation.  For this reason, it is a good idea to install Sphinx and
-PyFITS into a `virtualenv`_ in order to build the development version of the
-docs (see below).
-
-With all the requirements installed, change directories into the ``docs/``
-directory in the PyFITS source code, and run::
-
-    $ make html
-
-to build the HTML docs, which will be output to ``build/html``.  To build the
-docs in other formats, please refer to the Sphinx documentation.
-
-To summarize, assuming that you already have Numpy and Matplotlib on your
-Python installation, perform the following steps from within the PyFITS source
-code::
-
-    $ virtualenv --system-site-packages pyfits-docs
-    $ source pyfits-docs/bin/activate
-    $ pip install sphinx
-    $ pip install numpydoc
-    $ pip install stsci.sphinxext
-    $ python setup.py install pyfits
-    $ cd docs/
-    $ make html
-
-
-.. _Sphinx: http://sphinx.pocoo.org/
-.. _stsci.sphinxext: http://pypi.python.org/pypi/stsci.sphinxext
-.. _numpydoc: http://pypi.python.org/pypi/numpydoc
-.. _matplotlib: http://matplotlib.sourceforge.net/
-.. _virtualenv: http://pypi.python.org/pypi/virtualenv
+.. _Trac site: https://aeon.stsci.edu/ssb/trac/pyfits/
+.. _SVN mirror: https://aeon.stsci.edu/ssb/svn/pyfits/
+.. _GitHub project: https://github.com/spacetelescope/PyFITS
 
 
 Usage Questions
@@ -398,165 +86,114 @@ Something didn't work as I expected.  Did I do something wrong?
 
 Possibly.  But if you followed the documentation and things still did not work
 as expected, it is entirely possible that there is a mistake in the
-documentation, a bug in the code, or both.  So feel free to report it as a
-bug.  There are also many, many corner cases in FITS files, with new ones
-discovered almost every week.  PyFITS is always improving, but does not
-support all cases perfectly.  There are some features of the FITS format
-(scaled data, for example) that are difficult to support correctly and can
-sometimes cause unexpected behavior.
+documentation, a bug in the code, or both.  So feel free to report it as a bug.
+There are also many, many corner cases in FITS files, with new ones discovered
+almost every week.  `astropy.io.fits` is always improving, but does not support
+all cases perfectly.  There are some features of the FITS format (scaled data,
+for example) that are difficult to support correctly and can sometimes cause
+unexpected behavior.
 
 For the most common cases, however, such as reading and updating FITS headers,
-images, and tables, PyFITS should be very stable and well-tested.  Before
-every PyFITS release it is ensured that all its tests pass on a variety of
-platforms, and those tests cover the majority of use-cases (until new
-corner cases are discovered).
+images, and tables, `astropy.io.fits`. is very stable and well-tested.  Before
+every Astropy/PyFITS release it is ensured that all its tests pass on a variety
+of platforms, and those tests cover the majority of use-cases (until new corner
+cases are discovered).
 
-PyFITS crashed and output a long string of code.  What do I do?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Astropy crashed and output a long string of code.  What do I do?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This listing of code is what is knows as a `stack trace`_ (or in Python
 parlance a "traceback").  When an unhandled exception occurs in the code,
 causing the program to end, this is a way of displaying where the exception
 occurred and the path through the code that led to it.
 
-As PyFITS is meant to be used as a piece in other software projects, some
-exceptions raised by PyFITS are by design.  For example, one of the most
-common exceptions is a `~.exceptions.KeyError` when an attempt is made to
-read the value of a non-existent keyword in a header::
+As Astropy is meant to be used as a piece in other software projects, some
+exceptions raised by Astropy are by design.  For example, one of the most
+common exceptions is a `~.exceptions.KeyError` when an attempt is made to read
+the value of a non-existent keyword in a header::
 
-    >>> import pyfits
-    >>> h = pyfits.Header()
+    >>> from astropy.io import fits
+    >>> h = fits.Header()
     >>> h['NAXIS']
     Traceback (most recent call last):
       File "<stdin>", line 1, in <module>
-      File "/path/to/pyfits/header.py", line 125, in __getitem__
+      File "/path/to/astropy/io/fits/header.py", line 125, in __getitem__
         return self._cards[self._cardindex(key)].value
-      File "/path/to/pyfits/header.py", line 1535, in _cardindex
+      File "/path/to/astropy/io/fits/header.py", line 1535, in _cardindex
         raise KeyError("Keyword %r not found." % keyword)
     KeyError: "Keyword 'NAXIS' not found."
 
 This indicates that something was looking for a keyword called "NAXIS" that
 does not exist.  If an error like this occurs in some other software that uses
-PyFITS, it may indicate a bug in that software, in that it expected to find a
+Astropy, it may indicate a bug in that software, in that it expected to find a
 keyword that didn't exist in a file.
 
 Most "expected" exceptions will output a message at the end of the traceback
 giving some idea of why the exception occurred and what to do about it.  The
 more vague and mysterious the error message in an exception appears, the more
-likely that it was caused by a bug in PyFITS.  So if you're getting an
+likely that it was caused by a bug in Astropy.  So if you're getting an
 exception and you really don't know why or what to do about it, feel free to
 report it as a bug.
 
 .. _stack trace: http://en.wikipedia.org/wiki/Stack_trace
 
-Why does opening a file work in CFITSIO, ds9, etc. but not in PyFITS?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Why does opening a file work in CFITSIO, ds9, etc. but not in Astropy?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 As mentioned elsewhere in this FAQ, there are many unusual corner cases when
 dealing with FITS files.  It's possible that a file should work, but isn't
 support due to a bug.  Sometimes it's even possible for a file to work in an
-older version of PyFITS, but not a newer version due to a regression that
-isn't tested for yet.
+older version of Astropy or PyFITS, but not a newer version due to a regression
+that isn't tested for yet.
 
 Another problem with the FITS format is that, as old as it is, there are many
-conventions that appear in files from certain sources that do not meet the
-FITS standard.  And yet they are so common-place that it is necessary to
-support them in any FITS readers.  CONTINUE cards are one such example.  There
-are non-standard conventions supported by PyFITS that are not supported by
-CFITSIO and vice-versa.  You may have hit one of those cases.
+conventions that appear in files from certain sources that do not meet the FITS
+standard.  And yet they are so common-place that it is necessary to support
+them in any FITS readers.  CONTINUE cards are one such example.  There are
+non-standard conventions supported by Astropy/PyFITS that are not supported by
+CFITSIO and possibly vice-versa.  You may have hit one of those cases.
 
-If PyFITS is having trouble opening a file, a good way to rule out whether not
-the problem is with PyFITS is to run the file through the `fitsverify`_.  For
-smaller files you can even use the `online FITS verifier`_.  These use CFITSIO
-under the hood, and should give a good indication of whether or not there is
-something erroneous about the file.  If the file is malformatted, fitsverify
-will output errors and warnings.
+If Astropy is having trouble opening a file, a good way to rule out whether not
+the problem is with Astropy is to run the file through the `fitsverify`_
+program.  For smaller files you can even use the `online FITS verifier`_.
+These use CFITSIO under the hood, and should give a good indication of whether
+or not there is something erroneous about the file.  If the file is
+malformatted, fitsverify will output errors and warnings.
 
-If fitsverify confirms no problems with a file, and PyFITS is still having
-trouble opening it (especially if it produces a traceback) then it's likely
-there is a bug in PyFITS.
+If fitsverify confirms no problems with a file, and Astropy is still having
+trouble opening it (especially if it produces a traceback) then it's possible
+there is a bug in Astropy.
 
 .. _fitsverify: http://heasarc.gsfc.nasa.gov/docs/software/ftools/fitsverify/
 .. _online FITS verifier: http://fits.gsfc.nasa.gov/fits_verify.html
 
-How do I turn off the warning messages PyFITS keeps outputting to my console?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-PyFITS uses Python's built-in `warnings`_ subsystem for informing about
+How do I turn off the warning messages Astropy keeps outputting to my console?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Astropy uses Python's built-in `warnings`_ subsystem for informing about
 exceptional conditions in the code that are recoverable, but that the user may
-want to be informed of.  One of the most common warnings in PyFITS occurs when
-updating a header value in such a way that the comment must be truncated to
-preserve space::
+want to be informed of.  One of the most common warnings in `astropy.io.fits`
+occurs when updating a header value in such a way that the comment must be
+truncated to preserve space::
 
     Card is too long, comment is truncated.
 
-Any console output generated by PyFITS can be assumed to be from the warnings
-subsystem.  Fortunately there are two easy ways to quiet these warnings:
-
- 1. Using the `-W option`_ to the ``python`` executable.  Just start Python
-    like::
-
-        $ python -Wignore <scriptname>
-
-    or for short::
-
-        $ python -Wi <scriptname>
-
-    and all warning output will be silenced.
-
- 2. Warnings can be silenced programatically from anywhere within a script.
-    For example, to disable all warnings in a script, add something like::
-
-        import warnings
-        warnings.filterwarnings('ignore')
-
- Another option, instead of ``ignore`` is ``once``, which causes any warning
- to be output only once within the session, rather than repeatedly (such as in
- a loop).  There are many more ways to filter warnings with ``-W`` and the
- warnings module.  For example, it is possible to silence only specific
- warning messages.  Please refer to the Python documentation for more details,
- or ask at help@stsci.edu.
+Any console output generated by Astropy can be assumed to be from the warnings
+subsystem.  See Astropy's documentation on the :ref:`python-warnings` for more
+information on how to control and quiet warnings.
 
 .. _warnings: http://docs.python.org/library/warnings.html
-.. _-W option: http://docs.python.org/using/cmdline.html#cmdoption-W
 
-How can I check if my code is using deprecated PyFITS features?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-PyFITS 3.0 included a major reworking of the code and some of the APIs.  Most
-of the differences are just renaming functions to use a more consistent naming
-scheme.  For example the ``createCard()`` function was renamed to
-``create_card()`` for consistency with a ``lower_case_underscore`` naming
-scheme for functions.
+What convention does Astropy use for indexing, such as of image coordinates?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-There are a few other functions and attributes that were deprecated either
-because they were renamed to something simpler or more consistent, or because
-they were redundant or replaced.
-
-Eventually all deprecated features will be removed in future PyFITS versions
-(though there will be significant warnings in advance).  It is best to check
-whether your code is using deprecated features sooner rather than later.
-
-On Python 2.5, all deprecation warnings are displayed by default, so you may
-have already discovered them.  However, on Python 2.6 and up, deprecation
-warnings are *not* displayed by default.  To show all deprecation warnings,
-start Python like::
-
-    $ python -Wd <scriptname>
-
-Most deprecation issues can be fixed with a simple find/replace.  The warnings
-displayed will let you know how to replace the old interface.
-
-If you have a lot of old code that was written for older versions of PyFITS it
-would be worth doing this.  PyFITS 3.1 introduces a significant rewrite of the
-Header interface, and contains even more deprecations.
-
-What convention does PyFITS use for indexing, such as of image coordinates?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-All arrays and sequences in PyFITS use a zero-based indexing scheme.  For
+All arrays and sequences in Astropy use a zero-based indexing scheme.  For
 example, the first keyword in a header is ``header[0]``, not ``header[1]``.
-This is in accordance with Python itself, as well as C, on which PyFITS is
+This is in accordance with Python itself, as well as C, on which Python is
 based.
 
 This may come as a surprise to veteran FITS users coming from IRAF, where
@@ -588,14 +225,15 @@ axis is the one that varies the fastest.
 
 The discrepancy in axis-ordering may take some getting used to, but it is a
 necessary evil.  Since most other Python and C software assumes row-major
-ordering, trying to enforce column-major ordering in arrays returned by PyFITS
+ordering, trying to enforce column-major ordering in arrays returned by Astropy
 is likely to cause more difficulties than it's worth.
+
 
 How do I open a very large image that won't fit in memory?
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Prior to PyFITS 3.1, when the data portion of an HDU is accessed, the data is
-read into memory in its entirety.  For example::
+In PyFITS, prior to version 3.1, when the data portion of an HDU is accessed,
+the data is read into memory in its entirety.  For example::
 
     >>> hdul = pyfits.open('myimage.fits')
     >>> hdul[0].data
@@ -605,50 +243,53 @@ reads the entire image array from disk into memory.  For very large images or
 tables this is clearly undesirable, if not impossible given the available
 resources.
 
-However, ``pyfits.open()`` has an option to access the data portion of an HDU
-by memory mapping using `mmap`_.  What this means is that accessing the data
-as in the example above only reads portions of the data into memory on demand.
-For example, if I request just a slice of the image, such as
-``hdul[0].data[100:200]``, then just rows 100-200 will be read into memory.
-This happens transparently, as though the entire image were already in memory.
-This works the same way for tables.  For most cases this is your best bet for
-working with large files.
+However, `astropy.io.fits.open` has an option to access the data portion of an
+HDU by memory mapping using `mmap`_.  In both Astropy and newer versions of
+PyFITS this is used by *default*.
 
-To use memory mapping, just add the ``memmap=True`` argument to
-``pyfits.open()``.
+What this means is that accessing the data as in the example above only reads
+portions of the data into memory on demand.  For example, if I request just a
+slice of the image, such as ``hdul[0].data[100:200]``, then just rows 100-200
+will be read into memory.  This happens transparently, as though the entire
+image were already in memory.  This works the same way for tables.  For most
+cases this is your best bet for working with large files.
 
-In PyFITS 3.1, the mmap support is improved enough that ``memmap=True`` is the
-default for all ``pyfits.open()`` calls.  The default can also be controlled
-through an environment variable called ``PYFITS_USE_MEMMAP``.  Setting this to
-``0`` will disable mmap by default.
+To ensure use of memory mapping, just add the ``memmap=True`` argument to
+`fits.open <astropy.io.fits.open>`.  Likewise, using ``memmap=False`` will
+force data to be read entirely into memory.
+
+
+The default can also be controlled through a configuration option called
+``USE_MEMMAP``.  Setting this to ``0`` will disable mmap by default.
 
 Unfortunately, memory mapping does not currently work as well with scaled
 image data, where BSCALE and BZERO factors need to be applied to the data to
 yield physical values.  Currently this requires enough memory to hold the
 entire array, though this is an area that will see improvement in the future.
 
-An alternative, which currently only works for image data (that is,
-non-tables) is the sections interface.  It is largely replaced by the better
-support for memmap, but may still be useful on systems with more limited
-virtual-memory space, such as on 32-bit systems.  Support for scaled image
-data is flakey with sections too, though that will be fixed.  See `the PyFITS
-documentation
-<http://packages.python.org/pyfits/users_guide/users_image.html#data-section>`_
-for more details on working with sections.
+An alternative, which currently only works for image data (that is, non-tables)
+is the sections interface.  It is largely replaced by the better support for
+mmap, but may still be useful on systems with more limited virtual-memory
+space, such as on 32-bit systems.  Support for scaled image data is flakey with
+sections too, though that will be fixed.  See the documentation on :ref:`image
+sections <data-sections>` for more details on using this interface.
 
 .. _mmap: http://en.wikipedia.org/wiki/Mmap
+
 
 How can I create a very large FITS file from scratch?
 """""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This is a very common issue, but unfortunately PyFITS does not come with any
+This is a very common issue, but unfortunately Astropy does not come with any
 built-in facilities for creating large files (larger than will fit in memory)
 from scratch (though it may in the future).
 
 Normally to create a single image FITS file one would do something like::
 
+    >>> import numpy
+    >>> from astropy.io import fits
     >> data = numpy.zeros((40000, 40000), dtype=numpy.float64)
-    >> hdu = pyfits.PrimaryHDU(data=data)
+    >> hdu = fits.PrimaryHDU(data=data)
     >> hdu.writeto('large.fits')
 
 However, a 40000 x 40000 array of doubles is nearly twelve gigabytes!  Most
@@ -665,22 +306,24 @@ though sometimes more.
 Since the first thing we write to a FITS file is the header, we want to write
 enough header blocks so that there is plenty of padding in which to add new
 keywords without having to resize the whole file.  Say you want the header to
-use 4 blocks by default.  Then, excluding the END card which PyFITS will add
+use 4 blocks by default.  Then, excluding the END card which Astropy will add
 automatically, create the header and pad it out to 36 * 4 cards like so::
 
     >>> data = numpy.zeros((100, 100), dtype=numpy.float64)
     # This is a stub array that we'll be using the initialize the HDU; its
     # exact size is irrelevant, as long as it has the desired number of
     # dimensions
-    >>> hdu = pyfits.PrimaryHDU(data=data)
+    >>> hdu = fits.PrimaryHDU(data=data)
     >>> header = hdu.header
     >>> while len(header) < (36 * 4 - 1):
     ...     header.append()  # Adds a blank card to the end
 
 Now adjust the NAXISn keywords to the desired size of the array, and write
 *only* the header out to a file.  Using the ``hdu.writeto()`` method will
-cause PyFITS to "helpfully" reset the NAXISn keywords to match the size of the
-dummy array::
+cause Astropy to "helpfully" reset the NAXISn keywords to match the size of the
+dummy array.  That is because it works hard to ensure that only valid FITS
+files are written.  Instead, we can write *just* the header to a file using
+the `Header.tofile <astropy.io.fits.Header.tofile>` method::
 
     >>> header['NAXIS1'] = 40000
     >>> header['NAXIS2'] = 40000
@@ -692,28 +335,32 @@ most systems by seeking past the end of the file and writing a single byte,
 like so::
 
     >>> with open('large.fits', 'rb+') as fobj:
+    ...     # Seek past the length of the header, plus the length of the
+    ...     # Data we want to write.
+    ...     # The -1 is to account for the final byte taht we are about to
+    ...     # write:
     ...     fobj.seek(len(header.tostring()) + (40000 * 40000 * 8) - 1)
-    ...     # The -1 is to account for the final byte that we are about to
-    ...     # write
     ...     fobj.write('\0')
 
 On modern operating systems this will cause the file (past the header) to be
 filled with zeros out to the ~12GB needed to hold a 40000 x 40000 image.  On
 filesystems that support sparse file creation (most Linux filesystems, but not
-HFS+) this is a very fast, efficient operation.  On other systems your mileage
-may vary.
+the HFS+ filesystem used by most Macs) this is a very fast, efficient
+operation.  On other systems your mileage may vary.
 
 This isn't the only way to build up a large file, but probably one of the
 safest.  This method can also be used to create large multi-extension FITS
 files, with a little care.
 
-For creating very large tables, this method may also be used.  Though it can
-be difficult to determine ahead of time how many rows a table will need.  In
-general, use of PyFITS is discouraged for the creation and manipulation of
-large tables.  The FITS format itself is not designed for efficient on-disk or
-in-memory manipulation of table structures.  For large, heavy-duty table data
-it might be better too look into using `HDF5`_ through the `PyTables`_
-library.
+For creating very large tables, this method may also be used.  Though it can be
+difficult to determine ahead of time how many rows a table will need.  In
+general, use of the `astropy.io.fits` module is currently discouraged for the
+creation and manipulation of large tables.  The FITS format itself is not
+designed for efficient on-disk or in-memory manipulation of table structures.
+For large, heavy-duty table data it might be better too look into using `HDF5`_
+through the `PyTables`_ library.  The :ref:`Astropy Table <astropy-table>`
+interface can provide an abstraction layer between different on-disk table
+formats as well (for example for converting a table between FITS and HDF5).
 
 PyTables makes use of Numpy under the hood, and can be used to write binary
 table data to disk in the same format required by FITS.  It is then possible
@@ -723,22 +370,35 @@ this FAQ might provide an example of how to do this.
 .. _HDF5: http://www.hdfgroup.org/HDF5/
 .. _PyTables: http://www.pytables.org/moin
 
+
 How do I create a multi-extension FITS file from scratch?
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-When you open a FITS file with ``pyfits.open()``, a ``pyfits.HDUList`` object
-is returned, which holds all the HDUs in the file.  This ``HDUList`` class is
-a subclass of Python's builtin ``list``, and can be created from scratch and
-used as such::
+When you open a FITS file with `astropy.io.fits.open`, an
+`~astropy.io.fits.HDUList` object is returned, which holds all the HDUs in the
+file.  This ``HDUList`` class is a subclass of Python's builtin `list`, and can
+be created from scratch and used as such::
 
-    >>> new_hdul = pyfits.HDUList()
-    >>> new_hdul.append(pyfits.ImageHDU())
-    >>> new_hdul.append(pyfits.ImageHDU())
+    >>> from astropy.io import fits
+    >>> new_hdul = fits.HDUList()
+    >>> new_hdul.append(fits.ImageHDU())
+    >>> new_hdul.append(fits.ImageHDU())
+    >>> new_hdul.writeto('test.fits')
+
+Or the HDU instances can be created first (or read from an existing FITS file)
+and the HDUList instantiated like so::
+
+    >>> hdu1 = fits.PrimaryHDU()
+    >>> hdu2 = fits.ImageHDU()
+    >>> new_hdul = fits.HDUList([hdu1, hdu2])
     >>> new_hdul.writeto('test.fits')
 
 That will create a new multi-extension FITS file with two empty IMAGE
 extensions (a default PRIMARY HDU is prepended automatically if one was not
 provided manually).
+
+
+.. _fits-scaled-data-faq:
 
 Why is an image containing integer data being converted unexpectedly to floats?
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -760,7 +420,7 @@ it, because it doesn't happen until the data portion of the HDU is accessed
 (to allow things like updating the header without rescaling the data).  For
 example::
 
-    >>> hdul = pyfits.open('scaled.fits')
+    >>> hdul = fits.open('scaled.fits')
     >>> image = hdul['SCI', 1]
     >>> image.header['BITPIX']
     32
@@ -780,8 +440,8 @@ remain as integers, a great deal of precision is lost.  So it is best to err
 on the side of not losing data, at the cost of causing some confusion at
 first.
 
-If the data must be returned to integers before saving, use the ``scale()``
-method::
+If the data must be returned to integers before saving, use the `ImageHDU.scale
+<astropy.io.fits.hdu.image.ImageHDU.scale>` method::
 
     >>> image.scale('int32')
     >>> image.header['BITPIX']
@@ -790,7 +450,7 @@ method::
 Alternatively, if a file is opened with ``mode='update'`` along with the
 ``scale_back=True`` argument, the original BSCALE and BZERO scaling will
 be automatically re-applied to the data before saving.  Usually this is
-not desireable, especially when converting from floating point back to
+not desirable, especially when converting from floating point back to
 unsigned integer values.  But this may be useful in cases where the raw
 data needs to be modified corresponding to changes in the physical values.
 
@@ -799,10 +459,11 @@ you don't intend for the code to access the data, it's good to err on the side
 of caution here), use the ``do_not_scale_image_data`` argument when opening
 the file::
 
-    >>> hdul = pyfits.open('scaled.fits', do_not_scale_image_data=True)
+    >>> hdul = fits.open('scaled.fits', do_not_scale_image_data=True)
     >>> image = hdul['SCI', 1]
     >>> image.data.dtype
     dtype('int32')
+
 
 Why am I losing precision when I assign floating point values in the header?
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -818,18 +479,387 @@ can be stored in a 64-bit float with full precision.  So FITS also supports a
 "free" format in which the ASCII representation can be stored anywhere, using
 the full 70 bytes of the card (after the keyword).
 
-Currently PyFITS only supports writing fixed format (it can read both
+Currently Astropy/PyFITS only supports writing fixed format (it can read both
 formats), so all floating point values assigned to a header are stored in the
 fixed format.  There are plans to add support for more flexible formatting.
 
 In the meantime it is possible to add or update cards by manually formatting
-the card image::
+the card image from a string, as it should appear in the FITS file::
 
-    >>> c = pyfits.Card.fromstring('FOO     = 1234567890.123456789')
-    >>> h = pyfits.Header()
+    >>> c = fits.Card.fromstring('FOO     = 1234567890.123456789')
+    >>> h = fits.Header()
     >>> h.append(c)
     >>> h
     FOO     = 1234567890.123456789
 
-As long as you don't assign new values to 'FOO' via ``h['FOO'] = 123``, PyFITS
-will maintain the header value exactly as you formatted it.
+As long as you don't assign new values to 'FOO' via ``h['FOO'] = 123``, will
+maintain the header value exactly as you formatted it (as long as it is valid
+according to the FITS standard).
+
+
+Why is reading rows out of a FITS table so slow?
+""""""""""""""""""""""""""""""""""""""""""""""""
+
+Underlying every table data array returned by `astropy.io.fits` is a Numpy
+`~numpy.recarray` which is a Numpy array type specifically for representing
+structured array data (i.e. a table).  As with normal image arrays, Astropy
+accesses the underlying binary data from the FITS file via mmap (see the
+question "`What performance differences are there between astropy.io.fits and
+fitsio?`_" for a deeper explanation of this).  The underlying mmap is then
+exposed as a `~numpy.recarray` and in general this is a very efficient way to
+read the data.
+
+However, for many (if not most) FITS tables it isn't all that simple.  For
+many columns there are conversions that have to take place between the actual
+data that's "on disk" (in the FITS file) and the data values that are returned
+to the user.  For example FITS binary tables represent boolean values
+differently from how Numpy expects them to be represented, "Logical" columns
+need to be converted on the fly to a format Numpy (and hence the user) can
+understand.  This issue also applies to data that is linearly scaled via the
+``TSCALn`` and ``TZEROn`` header keywords.
+
+Supporting all of these "FITS-isms" introduces a lot of overhead that might
+not be necessary for all tables, but are still common nonetheless.  That's
+not to say it can't be faster even while supporting the peculiarities of
+FITS--CFITSIO for example supports all the same features but is orders of
+magnitude faster.  Astropy could do much better here too, and there are many
+known issues causing slowdown.  There are plenty of opportunities for speedups,
+and patches are welcome.  In the meantime for high-performance applications
+with FITS tables some users might find the ``fitsio`` library more to their
+liking.
+
+
+I'm opening many FITS files in a loop and getting OSError: Too many open files
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Say you have some code like:
+
+.. doctest-skip::
+
+    >>> from astropy.io import fits
+    >>> for filename in filenames:
+    ...     hdul = fits.open(filename)
+    ...     for hdu in hdul:
+    ...         hdu_data = hdul.data
+    ...         # Do some stuff with the data
+    ...     hdul.close()
+    ...
+
+The details may differ, but the qualitative point is that the data to many
+HDUs and/or FITS files are being accessed in a loop.  This may result in
+an exception like::
+
+    Traceback (most recent call last):
+      File "<stdin>", line 2, in <module>
+    OSError: [Errno 24] Too many open files: 'my_data.fits'
+
+As explained in the :ref:`note on working with large files <fits-large-files>`,
+because Astropy uses mmap by default to read the data in a FITS file, even if
+you correctly close a file with `HDUList.close <astropy.io.fits.HDUList.close>`
+a handle is kept open to that file so that the memory-mapped data array can
+still be continued to be read transparently.
+
+The way Numpy supports mmap is such that the file mapping is not closed until
+the overlying `~numpy.ndarray` object has no references to it and is freed
+memory.  However, when looping over a large number of files (or even just HDUs)
+rapidly, this may not happen immediately.  Or in some cases if the HDU object
+persists, the data array attached to it may persist too.  The easiest
+workaround is to *manually* delete the ``.data`` attribute on the HDU object so
+that the `~numpy.ndarray` reference is freed and the mmap can be closed:
+
+.. doctest-skip::
+
+    >>> from astropy.io import fits
+    >>> for filename in filenames:
+    ...     hdul = fits.open(filename)
+    ...     for hdu in hdul:
+    ...         hdu_data = hdul.data
+    ...         # Do some stuff with the data
+    ...         # ...
+    ...         # Don't need the data anymore; delete all references to it
+    ...         # so that it can be garbage collected
+    ...         del hdu_data
+    ...         del hdu.data
+    ...     hdul.close()
+    ...
+
+In some extreme cases files are opened and closed fast enough that Python's
+garbage collector does not free them (and hence free the file handles) often
+enough.  To mitigate this your code can manually force a garbage collection
+by calling :func:`gc.collect` at the end of the loop.
+
+In a future release it will be easier to automatically perform this sort of
+cleanup when closing FITS files, where needed.
+
+
+Comparison with Other FITS Readers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+What is the difference between astropy.io.fits and fitsio?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+The `astropy.io.fits` module (originally PyFITS) is a "pure Python" FITS
+reader in that all the code for parsing the FITS file format is in Python,
+though Numpy is used to provide access to the FITS data via the
+`~numpy.ndarray` interface.  `astropy.io.fits` currently also accesses the
+`CFITSIO <http://heasarc.gsfc.nasa.gov/fitsio/fitsio.html>`_ to support the
+FITS Tile Compression convention, but this feature is optional.  It does not
+use CFITSIO outside of reading compressed images.
+
+`fitsio <https://github.com/esheldon/fitsio>`_, on the other hand, is a Python
+wrapper for the CFITSIO library.  All the heavy lifting of reading the FITS
+format is handled by CFITSIO, while ``fitsio`` provides an easier to use
+object-oriented API including providing a Numpy interface to FITS files read
+from CFITSIO.  Much of it is written in C (to provide the interface between
+Python and CFITSIO), and the rest is in Python.  The Python end mostly
+provides the documentation and user-level API.
+
+Because ``fitsio`` wraps CFITSIO it inherits most of its strengths and
+weaknesses, though it has an added strength of providing an easier to use
+API than if one were to use CFITSIO directly.
+
+
+Why did Astropy adopt PyFITS as its FITS reader instead of fitsio?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+When the Astropy project was first started it was clear from the start that
+one of its core components should be a submodule for reading and writing FITS
+files, as many other components would be likely to depend on this
+functionality.  At the time, the ``fitsio`` package was in its infancy (it
+goes back to roughly 2011) while PyFITS had already been established going
+back to before the year 2000).  It was already a mature package with support
+for the vast majority of FITS files found in the wild, including outdated
+formats such as "Random Groups" FITS files still used extensively in the
+radio astronomy community.
+
+Although many aspects of PyFITS' interface have evolved over the years, much
+of it has also remained the same, and is already familiar to astronomers
+working with FITS files in Python.  Most of not all existing training
+materials were also based around PyFITS.  PyFITS was developed at STScI, which
+also put forward significant resources to develop Astropy, with an eye toward
+integrating Astropy into STScI's own software stacks.  As most of the Python
+software at STScI uses PyFITS it was the only practical choice for making that
+transition.
+
+Finally, although CFITSIO (and by extension ``fitsio``) can read any FITS files
+that conform to the FITS standard, it does not support all of the non-standard
+conventions that have been added to FITS files in the wild.  It does have some
+support for some of these conventions (such as CONTINUE cards and, to a limited
+extent, HIERARCH cards), it is not easy to add support for other conventions
+to a large and complex C codebase.
+
+PyFITS' object-oriented design makes supporting non-standard conventions
+somewhat easier in most cases, and as such PyFITS can be more flexible in the
+types of FITS files it can read and return *useful* data from.  This includes
+better support for files that fail to meet the FITS standard, but still contain
+useful data that should still be readable at least well-enough to correct any
+violations of the FITS standard.  For example, a common error in non-English-
+speaking regions is to insert non-ASCII characters into FITS headers.  This
+is not a valid FITS file, but still should be readable in some sense.
+Supporting structural errors such as this is more difficult in CFITSIO which
+assumes a more rigid structure.
+
+
+What performance differences are there between astropy.io.fits and fitsio?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+There are two main performance areas to look at: reading/parsing FITS headers
+and reading FITS data (image-like arrays as well as tables).
+
+In the area of headers ``fitsio`` is significantly faster in most cases.  This
+is due in large part to the (almost) pure C implementation (due to the use of
+CFITSIO), but also due to fact that it is more rigid and does not support as
+many local conventions and other special cases as `astropy.io.fits` tries to
+support in its pure Python implementation.
+
+That said the difference is small, and only likely to be a bottleneck either
+when opening files containing thousands of HDUs, or reading the headers out
+of thousands of FITS files in succession (in either case the difference is
+not even an order of magnitude).
+
+Where data is concerned the situation is a little more complicated, and
+requires some understanding of how PyFITS is implemented versus CFITSIO and
+``fitsio``.  First it's important to understand how they differ in terms of
+memory management.
+
+`astropy.io.fits`/PyFITS uses mmap, by default, to provide access to the raw
+binary data in FITS files.  Mmap is a system call (or in most cases these days
+a wrapper in your libc for a lower-level system call) which allows user-space
+applications to essentially do the same thing your OS is doing when it uses a
+pagefile (swap space) for virtual memory:  It allows data in a file on disk to
+be paged into physical memory one page (or in practice usually several pages)
+at a time on an as-needed basis.  These cached pages of the file are also
+accessible from all processes on the system, so multiple processes can read
+from the same file with little additional overhead.  In the case of reading
+over all the data in the file the performance difference between using mmap
+versus reading the entire data into physical memory at once can vary widely
+between systems, hardware, and depending on what else is happening on the
+system at the moment, but mmap almost always going to be better.
+
+In principle it requires more overhead since accessing each page will result in
+a page fault, and the system requires more requests to the disk.  But in
+practice the OS will optimize this pretty aggressively, especially for the most
+common case of sequential access--also in reality reading the entire thing into
+memory is still going to result in a whole lot of page faults too.  For random
+access having all the data in physical memory is always going to be best,
+though with mmap it's usually going to be pretty good too (one doesn't normally
+access all the data in a file in totally random order--usually a few sections
+of it will be accessed most frequently, the OS will keep those pages in
+physical memory as best it can).  So for the most general case of reading FITS
+files (or most large data on disk) this is the best choice, especially for
+casual users, and is hence enabled by default.
+
+CFITSIO/``fitsio``, on the other hand, doesn't assume the existence of
+technologies like mmap and page caching.  Thus it implements its own LRU cache
+of I/O buffers that store sections of FITS files read from disk in memory in
+FITS' famous 2880 byte chunk size.  The I/O buffers are used heavily in
+particular for keeping the headers in memory.  Though for large data reads (for
+example reading an entire image from a file) it *does* bypass the cache and
+instead does a read directly from disk into a user-provided memory buffer.
+
+However, even when CFITSIO reads direct from the file, this is still largely
+less efficient than using mmap:  Normally when your OS reads a file from disk,
+it caches as much of that read as it can in physical memory (in its page cache)
+so that subsequent access to those same pages does not require a subsequent
+expensive disk read.  This happens when using mmap too, since the data has to
+be copied from disk into RAM at some point.  The difference is that when using
+mmap to access the data, the program is able to read that data *directly* out
+of the OS's page cache (so long as it's only being read).  On the other hand
+when reading data from a file into a local buffer such as with fread(), the
+data is first read into the page cache (if not already present) and then copied
+from the page cache into the local buffer.  So every read performs at least one
+additional memory copy per page read (requiring twice as much physical memory,
+and possibly lots of paging if the file is large and pages need to dropped from
+the cache).
+
+The user API for CFITSIO usually works by having the user allocate a memory
+buffer large enough to hold the image/table they want to read (or at least the
+section they're interested in).  There are some helper functions for
+determining the appropriate amount of space to allocate.  Then you just pass it
+a pointer to your buffer and CFITSIO handles all the reading (usually using the
+process described above), and copies the results into your user buffer.  For
+large reads it reads directly from the file into your buffer.  Though if the
+data needs to be scaled it makes a stop in CFITSIO's own buffer first, then
+writes the rescaled values out to the user buffer (if rescaling has been
+requested).  Regardless, this means that if your program wishes to hold an
+entire image in memory at once it will use as much RAM as the size of the
+data.  For most applications it's better (and sufficient) to write it work on
+smaller sections of the data, but this requires extra complexity.  Using mmap
+on the other hand makes managing this complexity simpler and more efficient.
+
+A very simple and informal test demonstrates this difference.  This test was
+performed on four simple FITS images (one of which is a cube) of dimensions
+256x256, 1024x1024, 4096x4096, and 256x1024x1024.  Each image was generated
+before the test and filled with randomized 64-bit floating point values.  A
+similar test was performed using both `astropy.io.fits` and ``fitsio``:  A
+handle to the FITS file is opened using each library's basic semantics, and
+then the entire data array of the files is copied into a temporary array in
+memory (for example if we were blitting the image to a video buffer).  For
+Astropy the test is written:
+
+.. code:: python
+
+    def read_test_pyfits(filename):
+        with fits.open(filename, memmap=True) as hdul:
+            data = hdul[0].data
+            c = data.copy()
+
+The test was timed in IPython on a Linux system with kernel version 2.6.32, a
+6-core Intel Xeon X5650 CPU clocked at 2.67 GHz per core, and 11.6 GB of RAM
+using:
+
+.. code:: python
+
+    for filename in filenames:
+        print(filename)
+        %timeit read_test_pyfits(filename)
+
+where ``filenames`` is just a list of the aforementioned generated sample
+files.  The results were::
+
+    256x256.fits
+    1000 loops, best of 3: 1.28 ms per loop
+    1024x1024.fits
+    100 loops, best of 3: 4.24 ms per loop
+    4096x4096.fits
+    10 loops, best of 3: 60.6 ms per loop
+    256x1024x1024.fits
+    1 loops, best of 3: 1.15 s per loop
+
+For ``fitsio`` the test was:
+
+.. code:: python
+
+    def read_test_fitsio(filename):
+        with fitsio.FITS(filename) as f:
+            data = f[0].read()
+            c = data.copy()
+
+This was also run in a loop over all the sample files, producing the results::
+
+    256x256.fits
+    1000 loops, best of 3: 476 µs per loop
+    1024x1024.fits
+    100 loops, best of 3: 12.2 ms per loop
+    4096x4096.fits
+    10 loops, best of 3: 136 ms per loop
+    256x1024x1024.fits
+    1 loops, best of 3: 3.65 s per loop
+
+It should be made clear that the sample files were rewritten with new random
+data between the Astropy test and the fitsio test, so they were not reading
+the same data from the OS's page cache.  Fitsio was much faster on the small
+(256x256) image because in that case the time is dominated by parsing the
+headers.  As already explained this is much faster in CFITSIO.  However, as
+the data size goes up and the header parsing no longer dominates the time,
+`astropy.io.fits` using mmap is roughly twice as fast.  This discrepancy would
+be almost entirely due to it requiring roughly half as many in-memory copies
+to read the data, as explained earlier.  That said, more extensive benchmarking
+could be very interesting.
+
+This is also not to say that `astropy.io.fits` does better in all cases.  There
+are some cases where it is currently blown away by fitsio.  See the subsequent
+question.
+
+
+Why is fitsio so much faster than Astropy at reading tables?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+In many cases it isn't--there is either no difference, or it may be a little
+faster in Astropy depending on what you're trying to do with the table and
+what types of columns or how many columns the table has.  There are some
+cases, however, where ``fitsio`` can be radically faster, mostly for reasons
+explained above in "`Why is reading rows out of a FITS table so slow?`_"
+
+In principle a table is no different from, say, an array of pixels.  But
+instead of pixels each element of the array is some kind of record structure
+(for example two floats, a boolean, and a 20 character string field).  Just as
+a 64-bit float is an 8 byte record in an array, a row in such a table can be
+thought of as a 37 byte (in the case of the previous example) record in a 1-D
+array of rows.  So in principle everything that was explained in the answer to
+the question "`What performance differences are there between astropy.io.fits
+and fitsio?`_" applies just as well to tables as it does to any other array.
+
+However, FITS tables have many additional complexities that sometimes preclude
+streaming the data directly from disk, and instead require transformation from
+the on-disk FITS format to a format more immediately useful to the user.  A
+common example is how FITS represents boolean values in binary tables.
+Another, significantly more complicated example, is variable length arrays.
+
+As explained in "`Why is reading rows out of a FITS table so slow?`_",
+`astropy.io.fits`/PyFITS does not currently handle some of these cases as
+efficiently as it could, in particular in cases where a user only wishes to
+read a few rows out of a table.  Fitsio, on the other hand, has a better
+interface for copying one row at a time out of a table and performing the
+necessary transformations on that row *only*, rather than on the entire column
+or columns that the row is taken from.  As such, for many cases ``fitsio`` gets
+much better performance and should be preferred for many performance-critical
+table operations.
+
+Fitsio also exposes a microlanguage (implemented in CFITSIO) for making
+efficient SQL-like queries of tables (single tables only though--no joins or
+anything like that).  This format, described in the `CFITSIO documentation
+<http://heasarc.gsfc.nasa.gov/docs/software/fitsio/c/c_user/node97.html>`_ can
+in some cases perform more efficient selections of rows than might be possible
+with Numpy alone, which requires creating an intermediate mask array in order
+to perform row selection.

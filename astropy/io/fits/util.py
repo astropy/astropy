@@ -2,11 +2,13 @@
 
 from __future__ import division
 
-import gzip
+import errno
+import gzip as _system_gzip
 import itertools
 import io
 import mmap
 import os
+import platform
 import signal
 import string
 import sys
@@ -14,6 +16,9 @@ import tempfile
 import textwrap
 import threading
 import warnings
+import weakref
+
+from distutils.version import LooseVersion
 
 import numpy as np
 
@@ -30,13 +35,135 @@ from ...extern.six import (string_types, integer_types, text_type,
                            binary_type, next)
 from ...extern.six.moves import zip
 from ...utils import wraps
+from ...utils.compat import ignored
+from ...utils.compat import gzip as _astropy_gzip
 from ...utils.exceptions import AstropyUserWarning
+
+
+_GZIP_FILE_TYPES = (_astropy_gzip.GzipFile, _system_gzip.GzipFile)
 
 
 if six.PY3:
     cmp = lambda a, b: (a > b) - (a < b)
 elif six.PY2:
     cmp = cmp
+
+
+class NotifierMixin(object):
+    """
+    Mixin class that provides services by which objects can register
+    listeners to changes on that object.
+
+    All methods provided by this class are underscored, since this is intended
+    for internal use to communicate between classes in a generic way, and is
+    not machinery that should be exposed to users of the classes involved.
+
+    Use the ``_add_listener`` method to register a listener on an instance of
+    the notifier.  This registers the listener with a weak reference, so if
+    no other references to the listener exist it is automatically dropped from
+    the list and does not need to be manually removed.
+
+    Call the ``_notify`` method on the notifier to update all listeners
+    upon changes.  ``_notify('change_type', *args, **kwargs)`` results
+    in calling ``listener._update_change_type(*args, **kwargs)`` on all
+    listeners subscribed to that notifier.
+
+    If a particular listener does not have the appropriate update method
+    it is ignored.
+
+    Examples
+    --------
+
+    >>> class Widget(NotifierMixin):
+    ...     state = 1
+    ...     def __init__(self, name):
+    ...         self.name = name
+    ...     def update_state(self):
+    ...         self.state += 1
+    ...         self._notify('widget_state_changed', self)
+    ...
+    >>> class WidgetListener(object):
+    ...     def _update_widget_state_changed(self, widget):
+    ...         print('Widget {0} changed state to {1}'.format(
+    ...             widget.name, widget.state))
+    ...
+    >>> widget = Widget('fred')
+    >>> listener = WidgetListener()
+    >>> widget._add_listener(listener)
+    >>> widget.update_state()
+    Widget fred changed state to 2
+    """
+
+    _listeners = None
+
+    def _add_listener(self, listener):
+        """
+        Add an object to the list of listeners to notify of changes to this
+        object.  This adds a weakref to the list of listeners that is
+        removed from the listeners list when the listener has no other
+        references to it.
+        """
+
+        if self._listeners is None:
+            self._listeners = weakref.WeakValueDictionary()
+
+        self._listeners[id(listener)] = listener
+
+    def _remove_listener(self, listener):
+        """
+        Removes the specified listener from the listeners list.  This relies
+        on object identity (i.e. the ``is`` operator).
+        """
+
+        if self._listeners is None:
+            return
+
+        with ignored(KeyError):
+            del self._listeners[id(listener)]
+
+    def _notify(self, notification, *args, **kwargs):
+        """
+        Notify all listeners of some particular state change by calling their
+        ``_update_<notification>`` method with the given ``*args`` and
+        ``**kwargs``.
+
+        The notification does not by default include the object that actually
+        changed (``self``), but it certainly may if required.
+        """
+
+        if self._listeners is None:
+            return
+
+        method_name = '_update_{0}'.format(notification)
+        for listener in self._listeners.valuerefs():
+            # Use valuerefs instead of itervaluerefs; see
+            # https://github.com/astropy/astropy/issues/4015
+            listener = listener()  # dereference weakref
+            if listener is None:
+                continue
+
+            if hasattr(listener, method_name):
+                method = getattr(listener, method_name)
+                if callable(method):
+                    method(*args, **kwargs)
+
+    def __getstate__(self):
+        """
+        Exclude listeners when saving the listener's state, since they may be
+        ephemeral.
+        """
+
+        # TODO: This hasn't come up often, but if anyone needs to pickle HDU
+        # objects it will be necessary when HDU objects' states are restored to
+        # re-register themselves as listeners on their new column instances.
+        try:
+            state = super(NotifierMixin, self).__getstate__()
+        except AttributeError:
+            # Chances are the super object doesn't have a getstate
+            state = self.__dict__.copy()
+
+        state['_listeners'] = None
+        return state
 
 
 def first(iterable):
@@ -104,7 +231,7 @@ def ignore_sigint(func):
     @wraps(func)
     def wrapped(*args, **kwargs):
         # Get the name of the current thread and determine if this is a single
-        # treaded application
+        # threaded application
         curr_thread = threading.currentThread()
         single_thread = (threading.activeCount() == 1 and
                          curr_thread.getName() == 'MainThread')
@@ -297,6 +424,15 @@ def fileobj_name(f):
 
     if isinstance(f, string_types):
         return f
+    elif isinstance(f, _GZIP_FILE_TYPES):
+        # The .name attribute on GzipFiles does not always represent the name
+        # of the file being read/written--it can also represent the original
+        # name of the file being compressed
+        # See the documentation at
+        # https://docs.python.org/3/library/gzip.html#gzip.GzipFile
+        # As such, for gzip files only return the name of the underlying
+        # fileobj, if it exists
+        return fileobj_name(f.fileobj)
     elif hasattr(f, 'name'):
         return f.name
     elif hasattr(f, 'filename'):
@@ -356,11 +492,11 @@ def _fileobj_normalize_mode(f):
     # normalize it for them:
     mode = f.mode
 
-    if isinstance(f, gzip.GzipFile):
+    if isinstance(f, _GZIP_FILE_TYPES):
         # GzipFiles can be either readonly or writeonly
-        if mode == gzip.READ:
+        if mode == _system_gzip.READ:
             return 'rb'
-        elif mode == gzip.WRITE:
+        elif mode == _system_gzip.WRITE:
             return 'wb'
         else:
             # This shouldn't happen?
@@ -585,57 +721,129 @@ def fill(text, width, *args, **kwargs):
     return '\n\n'.join(maybe_fill(p) for p in paragraphs)
 
 
+# On MacOS X 10.8 and earlier, there is a bug that causes numpy.fromfile to
+# fail when reading over 2Gb of data. If we detect these versions of MacOS X,
+# we can instead read the data in chunks. To avoid performance penalties at
+# import time, we defer the setting of this global variable until the first
+# time it is needed.
+CHUNKED_FROMFILE = None
+
 def _array_from_file(infile, dtype, count, sep):
     """Create a numpy array from a file or a file-like object."""
 
     if isfile(infile):
-        return np.fromfile(infile, dtype=dtype, count=count, sep=sep)
+
+        global CHUNKED_FROMFILE
+        if CHUNKED_FROMFILE is None:
+            if (sys.platform == 'darwin' and
+                    LooseVersion(platform.mac_ver()[0]) < LooseVersion('10.9')):
+                CHUNKED_FROMFILE = True
+            else:
+                CHUNKED_FROMFILE = False
+
+        if CHUNKED_FROMFILE:
+            chunk_size = int(1024 ** 3 / dtype.itemsize)  # 1Gb to be safe
+            if count < chunk_size:
+                return np.fromfile(infile, dtype=dtype, count=count, sep=sep)
+            else:
+                array = np.empty(count, dtype=dtype)
+                for beg in range(0, count, chunk_size):
+                    end = min(count, beg + chunk_size)
+                    array[beg:end] = np.fromfile(infile, dtype=dtype, count=end - beg, sep=sep)
+                return array
+        else:
+            return np.fromfile(infile, dtype=dtype, count=count, sep=sep)
     else:
         # treat as file-like object with "read" method; this includes gzip file
         # objects, because numpy.fromfile just reads the compressed bytes from
-        # their underlying file object, instead of the decompresed bytes
+        # their underlying file object, instead of the decompressed bytes
         read_size = np.dtype(dtype).itemsize * count
         s = infile.read(read_size)
         return np.fromstring(s, dtype=dtype, count=count, sep=sep)
 
 
+_OSX_WRITE_LIMIT = (2 ** 32) - 1
+_WIN_WRITE_LIMIT = (2 ** 31) - 1
+
 def _array_to_file(arr, outfile):
-    """Write a numpy array to a file or a file-like object."""
+    """
+    Write a numpy array to a file or a file-like object.
+
+    Parameters
+    ----------
+    arr : `~numpy.ndarray`
+        The Numpy array to write.
+    outfile : file-like
+        A file-like object such as a Python file object, an `io.BytesIO`, or
+        anything else with a ``write`` method.  The file object must support
+        the buffer interface in its ``write``.
+
+    If writing directly to an on-disk file this delegates directly to
+    `ndarray.tofile`.  Otherwise a slower Python implementation is used.
+    """
+
 
     if isfile(outfile):
-        def write(a, f):
-            a.tofile(f)
+        write = lambda a, f: a.tofile(f)
     else:
-        # treat as file-like object with "write" method and write the array
-        # via its buffer interface
-        def write(a, f):
-            # StringIO in some versions of Python ask 'if not s' before
-            # writing, which fails for Numpy arrays.  Test ahead of time that
-            # the array is non-empty, then pass in the array buffer directly
-            if isinstance(f, StringIO):
-                if len(a):
-                    f.write(a.data)
-            else:
-                f.write(a)
+        write = _array_to_file_like
 
     # Implements a workaround for a bug deep in OSX's stdlib file writing
     # functions; on 64-bit OSX it is not possible to correctly write a number
-    # of bytes greater than 2 ** 32 and divisble by 4096 (or possibly 8192--
+    # of bytes greater than 2 ** 32 and divisible by 4096 (or possibly 8192--
     # whatever the default blocksize for the filesystem is).
     # This issue should have a workaround in Numpy too, but hasn't been
     # implemented there yet: https://github.com/astropy/astropy/issues/839
-    osx_write_limit = (2 ** 32) - 1
+    #
+    # Apparently Windows has its own fwrite bug:
+    # https://github.com/numpy/numpy/issues/2256
 
-    if (sys.platform == 'darwin' and arr.nbytes >= osx_write_limit + 1 and
+    if (sys.platform == 'darwin' and arr.nbytes >= _OSX_WRITE_LIMIT + 1 and
             arr.nbytes % 4096 == 0):
-        idx = 0
         # chunksize is a count of elements in the array, not bytes
-        chunksize = osx_write_limit // arr.itemsize
-        while idx < arr.nbytes:
-            write(arr[idx:idx + chunksize], outfile)
-            idx += chunksize
+        chunksize = _OSX_WRITE_LIMIT // arr.itemsize
+    elif sys.platform.startswith('win'):
+        chunksize = _WIN_WRITE_LIMIT // arr.itemsize
     else:
-        write(arr, outfile)
+        # Just pass the whole array to the write routine
+        return write(arr, outfile)
+
+    # Write one chunk at a time for systems whose fwrite chokes on large
+    # writes.
+    idx = 0
+    arr = arr.view(np.ndarray).flatten()
+    while idx < arr.nbytes:
+        write(arr[idx:idx + chunksize], outfile)
+        idx += chunksize
+
+
+def _array_to_file_like(arr, fileobj):
+    """
+    Write a `~numpy.ndarray` to a file-like object (which is not supported by
+    `numpy.ndarray.tofile`).
+    """
+
+    if arr.flags.contiguous:
+        # It suffices to just pass the underlying buffer directly to the
+        # fileobj's write (assuming it supports the buffer interface, which
+        # unfortunately there's no simple way to check)
+        fileobj.write(arr.data)
+    elif hasattr(np, 'nditer'):
+        # nditer version for non-contiguous arrays
+        for item in np.nditer(arr):
+            fileobj.write(item.tostring())
+    else:
+        # Slower version for Numpy versions without nditer;
+        # The problem with flatiter is it doesn't preserve the original
+        # byteorder
+        byteorder = arr.dtype.byteorder
+        if ((sys.byteorder == 'little' and byteorder == '>')
+                or (sys.byteorder == 'big' and byteorder == '<')):
+            for item in arr.flat:
+                fileobj.write(item.byteswap().tostring())
+        else:
+            for item in arr.flat:
+                fileobj.write(item.tostring())
 
 
 def _write_string(f, s):
@@ -655,6 +863,7 @@ def _write_string(f, s):
     elif isinstance(f, StringIO) and isinstance(s, np.ndarray):
         # Workaround for StringIO/ndarray incompatibility
         s = s.data
+
     f.write(s)
 
 
@@ -704,52 +913,6 @@ def _str_to_num(val):
         # If this fails then an exception should be raised anyways
         num = float(val)
     return num
-
-
-def _normalize_slice(input, naxis):
-    """
-    Set the slice's start/stop in the regular range.
-    """
-
-    def _normalize(indx, npts):
-        if indx < -npts:
-            indx = 0
-        elif indx < 0:
-            indx += npts
-        elif indx > npts:
-            indx = npts
-        return indx
-
-    _start = input.start
-    if _start is None:
-        _start = 0
-    elif _is_int(_start):
-        _start = _normalize(_start, naxis)
-    else:
-        raise IndexError('Illegal slice %s; start must be integer.' % input)
-
-    _stop = input.stop
-    if _stop is None:
-        _stop = naxis
-    elif _is_int(_stop):
-        _stop = _normalize(_stop, naxis)
-    else:
-        raise IndexError('Illegal slice %s; stop must be integer.' % input)
-
-    if _stop < _start:
-        raise IndexError('Illegal slice %s; stop < start.' % input)
-
-    _step = input.step
-    if _step is None:
-        _step = 1
-    elif _is_int(_step):
-        if _step <= 0:
-            raise IndexError('Illegal slice %s; step must be positive.'
-                             % input)
-    else:
-        raise IndexError('Illegal slice %s; step must be integer.' % input)
-
-    return slice(_start, _stop, _step)
 
 
 def _words_group(input, strlen):

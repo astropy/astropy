@@ -42,7 +42,8 @@ available methods. To do this, after importing the cosmology as in the
 above example, type ``cosmo.`` at the IPython prompt and then press
 the tab key.
 
-All of these methods also accept an array of redshifts as input:
+All of these methods also accept an arbitrarily shaped array of
+redshifts as input:
 
 .. doctest-requires:: scipy
 
@@ -50,14 +51,18 @@ All of these methods also accept an array of redshifts as input:
   >>> cosmo.comoving_distance([0.5, 1.0, 1.5])  # doctest: +FLOAT_CMP
   <Quantity [ 1916.0694236 , 3363.07064333, 4451.74756242] Mpc>
 
-You can create your own arbitrary cosmology using one of the Cosmology
+You can create your own FLRW-like cosmology using one of the Cosmology
 classes::
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
   >>> cosmo
   FlatLambdaCDM(H0=70 km / (Mpc s), Om0=0.3, Tcmb0=2.725 K,
-                Neff=3.04, m_nu=[ 0.  0.  0.] eV)
+                Neff=3.04, m_nu=[ 0.  0.  0.] eV, Ob0=None)
+
+Note the presence of additional cosmological parameters (e.g., ``Neff``,
+the number of effective neutrino species) with default values; these
+can also be specified explicitly in the call to the constructor.
 
 The cosmology subpackage makes use of `~astropy.units`, so in many
 cases returns values with units attached.  Consult the documentation
@@ -82,13 +87,13 @@ you must specify a dark energy model by using one of its subclasses
 instead, such as `~astropy.cosmology.FlatLambdaCDM`.
 
 You can create a new `~astropy.cosmology.FlatLambdaCDM` object with
-arguments giving the Hubble parameter and omega matter (both at z=0)::
+arguments giving the Hubble parameter and Omega matter (both at z=0)::
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
   >>> cosmo
   FlatLambdaCDM(H0=70 km / (Mpc s), Om0=0.3, Tcmb0=2.725 K,
-                Neff=3.04, m_nu=[ 0.  0.  0.] eV)
+                Neff=3.04, m_nu=[ 0.  0.  0.] eV, Ob0=None)
 
 This can also be done more explicitly using units, which is recommended::
 
@@ -149,6 +154,30 @@ flat Universe because photons and neutrinos are included. Also note
 that they are unitless and so are not `~astropy.units.Quantity`
 objects.
 
+It is possible to specify the baryonic matter density at redshift zero
+at class instantiation by passing the keyword argument ``Ob0``::
+
+  >>> from astropy.cosmology import FlatLambdaCDM
+  >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3, Ob0=0.05)
+  >>> cosmo
+  FlatLambdaCDM(H0=70 km / (Mpc s), Om0=0.3, Tcmb0=2.725 K,
+                Neff=3.04, m_nu=[ 0.  0.  0.] eV, Ob0=0.05)
+
+In this case the dark matter only density at redshift zero is
+available as class attribute ``Odm0`` and the redshift evolution of
+dark and baryonic matter densities can be computed using the methods
+``Odm`` and ``Ob``, respectively. If ``Ob0`` is not specified at class
+instantiation it defaults to ``None`` and any method relying on it
+being specified will raise a ``ValueError``:
+
+  >>> from astropy.cosmology import FlatLambdaCDM
+  >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
+  >>> cosmo.Odm(1)
+  Traceback (most recent call last):
+  ...
+  ValueError: Baryonic density not set for this cosmology, unclear
+  meaning of dark matter density
+
 Cosmological instances have an optional ``name`` attribute which can be
 used to describe the cosmology::
 
@@ -156,7 +185,8 @@ used to describe the cosmology::
   >>> cosmo = FlatwCDM(name='SNLS3+WMAP7', H0=71.58, Om0=0.262, w0=-1.016)
   >>> cosmo
   FlatwCDM(name="SNLS3+WMAP7", H0=71.6 km / (Mpc s), Om0=0.262,
-           w0=-1.02, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV)
+           w0=-1.02, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV,
+	   Ob0=None)
 
 This is also an example with a different model for dark energy, a flat
 Universe with a constant dark energy equation of state, but not
@@ -168,7 +198,7 @@ A important point is that the cosmological parameters of each
 instance are immutable -- that is, if you want to change, say,
 ``Om``, you need to make a new instance of the class.  To make
 this more convenient, a ``clone`` operation is provided, which
-allows you to make a copy with specified values changed.  
+allows you to make a copy with specified values changed.
 Note that you can't change the type of cosmology with this operation
 (e.g., flat to non-flat). For example:
 
@@ -216,14 +246,15 @@ the WMAP and Planck satellite data. For example,
 A full list of the pre-defined cosmologies is given by
 ``cosmology.parameters.available``, and summarized below:
 
-========  ============================= ====  ===== =======
-Name      Source                        H0    Om    Flat
-========  ============================= ====  ===== =======
-WMAP5     Komatsu et al. 2009           70.2  0.277 Yes
-WMAP7     Komatsu et al. 2011           70.4  0.272 Yes
-WMAP9     Hinshaw et al. 2013           69.3  0.287 Yes
-Planck13  Planck Collab 2013, Paper XVI 67.8  0.307 Yes
-========  ============================= ====  ===== =======
+========  ============================== ====  ===== =======
+Name      Source                         H0    Om    Flat
+========  ============================== ====  ===== =======
+WMAP5     Komatsu et al. 2009            70.2  0.277 Yes
+WMAP7     Komatsu et al. 2011            70.4  0.272 Yes
+WMAP9     Hinshaw et al. 2013            69.3  0.287 Yes
+Planck13  Planck Collab 2013, Paper XVI  67.8  0.307 Yes
+Planck15  Planck Collab 2015, Paper XIII 67.7  0.307 Yes
+========  ============================== ====  ===== =======
 
 Currently, all are instances of `~astropy.cosmology.FlatLambdaCDM`.
 More details about exactly where each set of parameters come from
@@ -260,13 +291,18 @@ Users can specify their own equation of state by sub-classing
 `~astropy.cosmology.FLRW`.  See the provided subclasses for
 examples. It is recommended, but not required, that all arguments to the
 constructor of a new subclass be available as properties, since the
-``clone`` method assumes this is the case.
+``clone`` method assumes this is the case.  It is also advisable
+to stick to subclassing `~astropy.cosmology.FLRW` rather than one of
+its subclasses, since some of them use internal optimizations that
+also need to be propagated to any subclasses.  Users wishing to
+use similar tricks (which can make distance calculations much faster)
+should consult the cosmology module source code for details.
 
 Photons and Neutrinos
 ---------------------
 The cosmology classes include the contribution to the energy density
 from both photons and neutrinos.  By default, the latter are assumed
-massless.  The three parameters controlling the proporties of these
+massless.  The three parameters controlling the properties of these
 species, which are arguments to the initializers of all the
 cosmological classes, are ``Tcmb0`` (the temperature of the CMB at z=0),
 ``Neff``, the effective number of neutrino species, and ``m_nu``, the rest
@@ -283,8 +319,16 @@ This is not the simple
 :math:`\Omega_{\nu 0} h^2 = \sum_i m_{\nu\, i} / 93.04\,\mathrm{eV}`
 approximation.  Also note that the values of :math:`\Omega_{\nu}(z)`
 include both the kinetic energy and the rest-mass energy components,
-and that the Planck13 cosmology includes a single species of neutrinos
-with non-zero mass (which is not included in :math:`\Omega_{m0}`).
+and that the Planck13 and Planck15 cosmologies includes a single
+species of neutrinos with non-zero mass (which is not included in
+:math:`\Omega_{m0}`).
+
+Adding massive neutrinos can have significant performance implications.
+In particular, the computation of distance measures and lookback times
+are factors of 3-4 slower than in the massless neutrino case.  Therefore,
+if you need to compute a lot of distances in such a cosmology and
+performance is critical, it is particularly useful to calculate them on
+a grid and use interpolation.
 
 The contribution of photons and neutrinos to the total mass-energy density
 can be found as a function of redshift::
@@ -412,10 +456,10 @@ please let us know by `opening an issue at the github repository
 The built in cosmologies use the parameters as listed in the
 respective papers.  These provide only a limited range of precision,
 and so you should not expect derived quantities to match beyond
-that precision.  For example, the Planck 2013 results only provide the
-Hubble constant to 4 digits.  Therefore, the Planck13 built-in
-cosmology should only be expected to match the age of the Universe
-quoted by the Planck team to 4 digits, although they provide 5 in the paper.
+that precision.  For example, the Planck 2013 and 2015 results only provide the
+Hubble constant to 4 digits.  Therefore, they shouldn't be expected
+to match the age quoted by the Planck team to better than that, despite
+the fact that 5 digits are quoted in the papers.
 
 Reference/API
 =============

@@ -14,6 +14,11 @@ and manipulation. ASCII tables store the data in a "human readable" form and
 therefore take up more storage space as well as more processing time since the
 ASCII text needs to be parsed into numerical values.
 
+.. note::
+
+    If you want to read or write a single table in FITS format then the
+    simplest method is often via the high-level :ref:`table_io`.  In particular
+    see the :ref:`Unified I/O FITS <table_io_fits>` section.
 
 Table Data as a Record Array
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -74,7 +79,7 @@ table.  To recap, the simple example in the Quick Tutorial::
     >>> print tbdata[:2]  # show the first two rows
     [(1, 'Sirius', -1.4500000476837158, 'A1V'),
     (2, 'Canopus', -0.73000001907348633, 'F0Ib')]
-    
+
     >>> print tbdata['mag']  # show the values in field "mag"
     [-1.45000005 -0.73000002 -0.1 ]
     >>> print tbdata.field(1)  # columns can be referenced by index too
@@ -92,7 +97,7 @@ and format in TFORM1.
     which that column contains no data.  In such files, the zero-width columns
     are ommitted when accessing the table data, so the indexes of fields might
     change when using the ``field()`` method.  For this reason, if you expect
-    to encounter files containg zero-width columns it is recommended to access
+    to encounter files containing zero-width columns it is recommended to access
     fields by name rather than by index.
 
 

@@ -1,5 +1,25 @@
-NDData overview
-===============
+.. _nddata_details:
+
+NDData
+======
+
+Overview
+--------
+
+The `~astropy.nddata.NDData` class is a container for gridded N-dimensional
+data. It has a ``data`` attribute, which can be any object that presents an
+array-like interface, and optional attributes:
+
++  ``meta``, for metadata
++ ``unit`` for the ``data`` unit
++ ``uncertainty`` for the uncertainty of the data (which could be standard
+  deviation,variance, or something else),
++ ``mask`` for the ``data``
++ ``wcs``, representing the relationship  between ``data`` and world
+  coordinates.
+
+Of these, only ``mask`` and  ``uncertainty`` may be changed after the NDData
+object is created.
 
 Initializing
 ------------
@@ -25,108 +45,91 @@ An `~astropy.nddata.NDData` object can also be instantiated by passing it an
 As above, the data in``ndd2`` is a reference to the data in ``ndd1``, so
 changes to one will affect the other.
 
-This object has a few attributes in common with Numpy:
+It can also be instantiated by passing in an object that can be converted to a
+numpy numerical array::
 
-    >>> ndd.ndim
-    3
-    >>> ndd.shape
-    (12, 12, 12)
-    >>> ndd.dtype
-    dtype('float64')
+    >>> ndd3 = NDData([1, 2, 3, 4])
 
-The underlying Numpy array can be accessed via the ``data`` attribute::
+The final way to instantiate an `~astropy.nddata.NDData` object is with a data
+object that presents a numpy array-like interface. If the object passed to the
+intializer has all three of the attributes ``shape``, ``__getitem__`` (so it
+is indexable) and ``__array__`` (so that it can act like a numpy array in
+expression) then the ``data`` attribute will be set to that object.
 
-    >>> ndd.data
-    array([[[ 0.,  0.,  0., ...
+The purpose of this mechanism is to allow considerable flexibility in the
+objects used to store the data while providing a useful to default (numpy
+array).
 
 Mask
 ----
 
-Values can be masked using the ``mask`` attribute, which should be a boolean
-Numpy array with the same dimensions as the data, e.g.::
+Values can be masked using the ``mask`` attribute.  One straightforward way to
+provide a mask is to use a boolean numpy array::
 
-     >>> ndd.mask = ndd.data > 0.9
+     >>> ndd_masked = NDData(ndd, mask = ndd.data > 0.9)
+     INFO: Overwriting NDData's current mask with specified mask [astropy.nddata.nddata]
+
+Another is to simply initialize an `~astropy.nddata.NDData` object  with a
+masked numpy array::
+
+    >>> masked_array = np.ma.array([1, 2, 3, 4], mask=[1, 0, 0, 1])
+    >>> ndd_masked = NDData(masked_array)
+    >>> ndd_masked.mask
+    array([ True, False, False,  True], dtype=bool)
 
 A mask value of `True` indicates a value that should be ignored, while a mask
 value of `False` indicates a valid value.
 
-Flags
------
+There is no requirement that the mask actually be a numpy array; for example,
+a function which evaluates a mask value as needed is acceptable as long as it
+follows the convention that `True` indicates a value that should be ignored.
 
-Values can be assigned one or more flags. The ``flags`` attribute is used to
-store either a single Numpy array (of any type) with dimensions matching that
-of the data, or a `~astropy.nddata.FlagCollection`, which is
-essentially a dictionary of Numpy arrays (of any type) with the same shape as
-the data. The following example demonstrates setting a single set of integer
-flags::
+Unit
+----
 
-    >>> ndd.flags = np.zeros(ndd.shape)
-    >>> ndd.flags[ndd.data < 0.1] = 1
-    >>> ndd.flags[ndd.data < 0.01] = 2
+The unit of the data can be set by either explicitly providing an astropy unit
+when creating the ``NDData`` object::
 
-but one can also have multiple flag layers with different types::
+    >>> import astropy.units as u
+    >>> ndd_unit = NDData([1, 2, 3, 4], unit="meter")
+    >>> ndd_unit.unit
+    Unit("m")
 
-    >>> from astropy.nddata import FlagCollection
-    >>> ndd.flags = FlagCollection(shape=(12, 12, 12))
-    >>> ndd.flags['photometry'] = np.zeros(ndd.shape, dtype=str)
-    >>> ndd.flags['photometry'][ndd.data > 0.9] = 's'
-    >>> ndd.flags['cosmic_rays'] = np.zeros(ndd.shape, dtype=int)
-    >>> ndd.flags['cosmic_rays'][ndd.data > 0.99] = 99
+or by initializing with data that is an astropy `~astropy.units.Quantity`::
 
-and flags can easily be used to set the mask::
-
-    >>> ndd.mask = ndd.flags['cosmic_rays'] == 99
+    >>> q = [1, 2, 3, 4] * u.meter
+    >>> ndd_unit2 = NDData(q)
+    >>> ndd_unit2.unit
+    Unit("m")
 
 Uncertainties
 -------------
 
 `~astropy.nddata.NDData` objects have an ``uncertainty`` attribute that can be
-used to set the uncertainty on the data values. This is done by using classes
-to represent the uncertainties of a given type. For example, to set standard
-deviation uncertainties on the pixel values, you can do::
+used to set the uncertainty on the data values. The ``uncertainty`` must have
+an attribute ``uncertainty_type`` which is a string.
 
-    >>> from astropy.nddata import StdDevUncertainty
-    >>> ndd.uncertainty = StdDevUncertainty(np.ones((12, 12, 12)) * 0.1)
+While not a requirement, the following ``uncertainty_type`` strings
+are strongly recommended for common ways of specifying normal
+distributions:
+
++ ``"std"``: if ``uncertainty`` stores the standard deviation/sigma
+  (either a single value or on a per-pixel basis).
++ ``"var"``: if ``uncertainty`` stores the variance (either a single
+  value or on a per-pixel basis).
++ ``"ivar"``: if ``uncertainty`` stores the inverse variance (either a
+  single value or on a per-pixel basis).
+
 
 .. note:: For information on creating your own uncertainty classes,
           see :doc:`subclassing`.
 
-Arithmetic
-----------
-
-Provided that the world coordinate system (WCS) and shape match, and that the
-units are consisten, two :class:`~astropy.nddata.NDData` instances can be
-added, subtracted, multiplied or divided from each other, with uncertainty
-propagation, creating a new :class:`~astropy.nddata.NDData` object::
-
-    ndd3 = ndd1.add(ndd2)
-    ndd4 = ndd1.subtract(ndd2)
-    ndd5 = ndd1.multiply(ndd2)
-    ndd6 = ndd1.divide(ndd2)
-
-The purpose of the :meth:`~astropy.nddata.nddata.NDData.add`,
-:meth:`~astropy.nddata.nddata.NDData.subtract`,
-:meth:`~astropy.nddata.nddata.NDData.multiply` and
-:meth:`~astropy.nddata.nddata.NDData.divide` methods is to allow the
-combination of two data objects that have common WCS and shape and units
-consistent with the operation performed, with consistent behavior for masks,
-and with a framework to propagate uncertainties. Currently any flags on the
-operands are dropped so that the result of the operation always has no flags.
-These methods are intended for use by sub-classes and functions that deal with
-more complex combinations.
-
-Entries that are masked in either of the operands are also masked in the
-result.
-
-.. warning:: Uncertainty propagation is still experimental, and does not take
-             into account correlated uncertainties.
-
 Meta-data
 ---------
 
-The :class:`~astropy.nddata.NDData` class includes a ``meta`` attribute
-that defaults to an empty dictionary, and can be used to set overall meta-data
-for the dataset::
+The :class:`~astropy.nddata.NDData` class includes a ``meta`` attribute that
+defaults to an empty ordered dictionary, and can be used to set overall meta-
+data for the dataset::
 
     ndd.meta['exposure_time'] = 340.
     ndd.meta['filter'] = 'J'
@@ -135,24 +138,36 @@ Elements of the meta-data dictionary can be set to any valid Python object::
 
     ndd.meta['history'] = ['calibrated', 'aligned', 'flat-fielded']
 
+The metadata can be any python object that presents a dict-like interface. For
+example, a FITS header can be used as the metadata::
+
+    >>> from astropy.io import fits
+    >>> header = fits.Header()
+    >>> header['observer'] = 'Edwin Hubble'
+    >>> ndd = NDData(np.zeros([10, 10]), meta=header)
+    >>> ndd.meta['observer']
+    'Edwin Hubble'
+
+WCS
+---
+
+At the moment the ``wcs`` attribute can be set to any object, though in the
+future it may be restricted to an `~astropy.wcs.WCS` object once a generalized
+WCS object is developed.
+
 Converting to Numpy arrays
 --------------------------
 
-`~astropy.nddata.NDData` objects can also be easily converted to
-numpy arrays::
+Data should be accessed through the ``data`` attribute::
 
-    >>> import numpy as np
-    >>> arr = np.array(ndd)
-    >>> np.all(arr == mydataarray)  # doctest: +SKIP
-    True
+    >>> array = np.asarray(ndd.data)
 
-If a ``mask`` is defined, this will result in a `~numpy.ma.MaskedArray`, so
-in all cases a useable `numpy.ndarray` or subclass will result. This allows
-straightforward plotting of `~astropy.nddata.NDData` objects with 1-
-and 2-dimensional datasets using Matplotlib::
+Though using ``np.asarray`` is not required it will ensure that an additional
+copy of the data is not made if the data is a numpy array.
 
-    >>> from matplotlib import pyplot as plt  # doctest: +SKIP
-    >>> plt.plot(ndd)  # doctest: +SKIP
+Note that if the data is masked you must explicitly construct a numpy masked
+array like this::
 
-This works because the Matplotlib plotting functions automatically convert
-their inputs using `numpy.array`.
+    >>> input_array = np.ma.array([1, 2, 3, 4], mask=[1, 0, 0, 1])
+    >>> ndd_masked = NDData(input_array)
+    >>> masked_array = np.ma.array(ndd_masked.data, mask=ndd_masked.mask)

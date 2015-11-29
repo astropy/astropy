@@ -13,8 +13,6 @@ from __future__ import absolute_import, division, print_function
 
 import re
 
-import numpy as np
-
 from . import core
 
 class BasicHeader(core.BaseHeader):
@@ -138,6 +136,30 @@ class CommentedHeader(Basic):
     data_class = NoHeaderData
 
 
+    def read(self, table):
+        """
+        Read input data (file-like object, filename, list of strings, or
+        single string) into a Table and return the result.
+        """
+        out = super(CommentedHeader, self).read(table)
+
+        # Strip off first comment since this is the header line for
+        # commented_header format.
+        if 'comments' in out.meta:
+            out.meta['comments'] = out.meta['comments'][1:]
+            if not out.meta['comments']:
+                del out.meta['comments']
+
+        return out
+
+    def write_header(self, lines, meta):
+        """
+        Write comment lines after, rather than before, the header.
+        """
+        self.header.write(lines)
+        self.header.write_comments(lines, meta)
+
+
 class TabHeaderSplitter(core.DefaultSplitter):
     '''Split lines on tab and do not remove whitespace'''
     delimiter = '\t'
@@ -206,7 +228,7 @@ class Csv(Basic):
       2,38.12321,-88.1321,2.2,17.0
 
     Plain csv (comma separated value) files typically contain as many entries
-    as there are columns on each line. In contrast, common spreadsheed editors
+    as there are columns on each line. In contrast, common spreadsheet editors
     stop writing if all remaining cells on a line are empty, which can lead to
     lines where the rightmost entries are missing. This Reader can deal with
     such files.
@@ -222,7 +244,6 @@ class Csv(Basic):
       2,38.12321,-88.1321,2.2,17.0
     """
     _format_name = 'csv'
-    _io_registry_suffix = '.csv'
     _io_registry_can_write = True
     _description = 'Comma-separated-values'
 
@@ -230,16 +251,24 @@ class Csv(Basic):
     data_class = CsvData
 
     def inconsistent_handler(self, str_vals, ncols):
-        '''Adjust row if it is too short.
+        '''
+        Adjust row if it is too short.
 
         If a data row is shorter than the header, add empty values to make it the
         right length.
         Note that this will *not* be called if the row already matches the header.
 
-        :param str_vals: A list of value strings from the current row of the table.
-        :param ncols: The expected number of entries from the table header.
-        :returns:
-            list of strings to be parsed into data entries in the output table.
+        Parameters
+        ----------
+        str_vals : list
+            A list of value strings from the current row of the table.
+        ncols : int
+            The expected number of entries from the table header.
+
+        Returns
+        -------
+        str_vals : list
+            List of strings to be parsed into data entries in the output table.
         '''
         if len(str_vals) < ncols:
             str_vals.extend((ncols - len(str_vals)) * [''])
@@ -291,7 +320,7 @@ class RdbHeader(TabHeader):
         rdb_types = []
         for col in self.cols:
             # Check if dtype.kind is string or unicode.  See help(np.core.numerictypes)
-            rdb_type = 'S' if col.dtype.kind in ('S', 'U') else 'N'
+            rdb_type = 'S' if col.info.dtype.kind in ('S', 'U') else 'N'
             rdb_types.append(rdb_type)
 
         lines.append(self.splitter.join(rdb_types))

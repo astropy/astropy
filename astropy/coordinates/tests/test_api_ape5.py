@@ -17,10 +17,9 @@ deviations from the original APE5 plan.
 import numpy as np
 from numpy.random import randn
 from numpy import testing as npt
-from ...tests.helper import pytest
+from ...tests.helper import (pytest, quantity_allclose as allclose,
+                             assert_quantity_allclose as assert_allclose)
 raises = pytest.raises
-
-from ...extern import six
 
 from ... import units as u
 from ... import time
@@ -133,14 +132,14 @@ def test_representations_api():
     c1 = CartesianRepresentation(x=xarr*u.kpc, y=yarr*u.kpc, z=zarr*u.kpc)
     c2 = CartesianRepresentation(x=xarr*u.kpc, y=yarr*u.kpc, z=zarr*u.pc)
     assert c1.xyz.unit ==  c2.xyz.unit == u.kpc
-    npt.assert_allclose((c1.z / 1000) - c2.z, 0, atol=1e-10)
+    assert_allclose((c1.z / 1000) - c2.z, 0*u.kpc, atol=1e-10*u.kpc)
 
     # representations convert into other representations via  `represent_as`
     srep = SphericalRepresentation(lon=90*u.deg, lat=0*u.deg, distance=1*u.pc)
     crep = srep.represent_as(CartesianRepresentation)
-    npt.assert_allclose(crep.x.value, 0, atol=1e-10)
-    npt.assert_allclose(crep.y.value, 1, atol=1e-10)
-    npt.assert_allclose(crep.z.value, 0, atol=1e-10)
+    assert_allclose(crep.x, 0*u.pc, atol=1e-10*u.pc)
+    assert_allclose(crep.y, 1*u.pc, atol=1e-10*u.pc)
+    assert_allclose(crep.z, 0*u.pc, atol=1e-10*u.pc)
     # The functions that actually do the conversion are defined via methods on the
     # representation classes. This may later be expanded into a full registerable
     # transform graph like the coordinate frames, but initially it will be a simpler
@@ -190,8 +189,9 @@ def test_frame_api():
     # advanced users' use.
 
     # The actual position information is accessed via the representation objects
-    npt.assert_allclose(icrs.represent_as(SphericalRepresentation).lat.to(u.deg), 5*u.deg)
-    npt.assert_allclose(icrs.spherical.lat.to(u.deg), 5*u.deg)  # shorthand for the above
+    assert_allclose(icrs.represent_as(SphericalRepresentation).lat, 5*u.deg)
+    # shorthand for the above
+    assert_allclose(icrs.spherical.lat, 5*u.deg)
     assert icrs.cartesian.z.value > 0
 
     # Many frames have a "default" representation, the one in which they are
@@ -199,15 +199,15 @@ def test_frame_api():
     # coordinates. E.g., most equatorial coordinate systems are spherical with RA and
     # Dec. This works simply as a shorthand for the longer form above
 
-    npt.assert_allclose(icrs.dec.to(u.deg), 5*u.deg)
-    npt.assert_allclose(fk5.ra.to(u.hourangle), 8*u.hourangle)
+    assert_allclose(icrs.dec, 5*u.deg)
+    assert_allclose(fk5.ra, 8*u.hourangle)
 
     assert icrs.representation == SphericalRepresentation
 
     # low-level classes can also be initialized with names valid for that representation
     # and frame:
     icrs_2 = ICRS(ra=8*u.hour, dec=5*u.deg, distance=1*u.kpc)
-    npt.assert_allclose(icrs.ra.to(u.deg), icrs_2.ra.to(u.deg))
+    assert_allclose(icrs.ra, icrs_2.ra)
 
     # and these are taken as the default if keywords are not given:
     #icrs_nokwarg = ICRS(8*u.hour, 5*u.deg, distance=1*u.kpc)
@@ -251,7 +251,7 @@ def test_transform_api():
     fk5_J2001_frame = FK5(equinox=J2001)
 
     # if they do not have data, the string instead is the frame specification
-    assert repr(fk5_J2001_frame) == "<FK5 Frame: equinox=J2001.000>"
+    assert repr(fk5_J2001_frame) == "<FK5 Frame (equinox=J2001.000)>"
 
     #  Note that, although a frame object is immutable and can't have data added, it
     #  can be used to create a new object that does have data by giving the
@@ -272,8 +272,8 @@ def test_transform_api():
     # the frame information:
     samefk5 = fk5.transform_to(FK5)
     # `fk5` was initialized using default `obstime` and `equinox`, so:
-    npt.assert_allclose(samefk5.ra - fk5.ra, 0, atol=1e-10)
-    npt.assert_allclose(samefk5.dec - fk5.dec, 0, atol=1e-10)
+    assert_allclose(samefk5.ra, fk5.ra, atol=1e-10*u.deg)
+    assert_allclose(samefk5.dec, fk5.dec, atol=1e-10*u.deg)
 
     # transforming to a new frame necessarily loses framespec information if that
     # information is not applicable to the new frame.  This means transforms are not
@@ -284,13 +284,13 @@ def test_transform_api():
     # `ic_trans` does not have an `equinox`, so now when we transform back to FK5,
     # it's a *different* RA and Dec
     fk5_trans = ic_trans.transform_to(FK5)
-    assert not np.allclose(fk5_2.ra.to(u.deg), fk5_trans.ra.to(u.deg), rtol=0, atol=1e-10)
+    assert not allclose(fk5_2.ra, fk5_trans.ra, rtol=0, atol=1e-10*u.deg)
 
     # But if you explicitly give the right equinox, all is fine
     fk5_trans_2 = fk5_2.transform_to(FK5(equinox=J2001))
-    npt.assert_allclose(fk5_2.ra.to(u.deg), fk5_trans_2.ra.to(u.deg), rtol=0, atol=1e-10)
+    assert_allclose(fk5_2.ra, fk5_trans_2.ra, rtol=0, atol=1e-10*u.deg)
 
-    # Trying to tansforming a frame with no data is of course an error:
+    # Trying to transforming a frame with no data is of course an error:
     with raises(ValueError):
         FK5(equinox=J2001).transform_to(ICRS)
 
@@ -358,9 +358,7 @@ def test_highlevel_api():
     #funny ways
     #assert repr(sc.frame) == '<ICRS Coordinate: ra=120.0 deg, dec=5.0 deg>'
     rscf = repr(sc.frame)
-    assert '<ICRS Coordinate: ra=' in rscf
-    assert 'deg, dec=' in rscf
-    assert 'deg>' in rscf
+    assert rscf.startswith('<ICRS Coordinate: (ra, dec) in deg')
 
     # and  the string representation will be inherited from the low-level class.
 
@@ -368,9 +366,7 @@ def test_highlevel_api():
     # versions may round the numbers differently
     #assert repr(sc) == '<SkyCoord (ICRS): ra=120.0 deg, dec=5.0 deg>'
     rsc = repr(sc)
-    assert '<SkyCoord (ICRS): ra=' in rsc
-    assert 'deg, dec=' in rsc
-    assert 'deg>' in rsc
+    assert rsc.startswith('<SkyCoord (ICRS): (ra, dec) in deg')
 
     # Supports a variety of possible complex string formats
     sc = coords.SkyCoord('8h00m00s +5d00m00.0s', frame='icrs')
@@ -407,13 +403,13 @@ def test_highlevel_api():
     # But it *is* necessary once we transform to FK5
     sc3 = sc2.transform_to('fk5')
     assert sc3.equinox == J2001
-    npt.assert_allclose(sc1.ra, sc3.ra)
+    assert_allclose(sc1.ra, sc3.ra)
 
     # `SkyCoord` will also include the attribute-style access that is in the
     # v0.2/0.3 coordinate objects.  This will *not* be in the low-level classes
     sc = coords.SkyCoord(ra=8 * u.hour, dec=5 * u.deg, frame='icrs')
     scgal = sc.galactic
-    assert str(scgal).startswith('<SkyCoord (Galactic): l=216.317')
+    assert str(scgal).startswith('<SkyCoord (Galactic): (l, b)')
 
     # the existing `from_name` and `match_to_catalog_*` methods will be moved to the
     # high-level class as convenience functionality.
@@ -438,7 +434,15 @@ def test_highlevel_api():
 def test_highlevel_api_remote():
     m31icrs = coords.SkyCoord.from_name('M31', frame='icrs')
 
-    assert str(m31icrs) == '<SkyCoord (ICRS): ra=10.6847083 deg, dec=41.26875 deg>'
+    m31str = str(m31icrs)
+    assert m31str.startswith('<SkyCoord (ICRS): (ra, dec) in deg\n    (')
+    assert m31str.endswith(')>')
+    assert '10.68' in m31str
+    assert '41.26' in m31str
+    # The above is essentially a replacement of the below, but tweaked so that
+    # small/moderate changes in what `from_name` returns don't cause the tests
+    # to fail
+    #assert str(m31icrs) == '<SkyCoord (ICRS): (ra, dec) in deg\n    (10.6847083, 41.26875)>'
 
     m31fk4 = coords.SkyCoord.from_name('M31', frame='fk4')
 

@@ -7,8 +7,6 @@ from numpy.testing.utils import assert_allclose
 from ... import units as u
 from ...tests.helper import pytest, raises
 
-NUMPY_LT_1P6 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 6]
-
 
 class TestUfuncCoverage(object):
     """Test that we cover all ufunc's"""
@@ -136,7 +134,7 @@ class TestQuantityTrigonometricFuncs(object):
         q3 = q1 / q2
         q4 = 1.
         at2 = np.arctan2(q3, q4)
-        assert_allclose(at2, np.arctan2(q3.to(1).value, q4))
+        assert_allclose(at2.value, np.arctan2(q3.to(1).value, q4))
 
     def test_arctan2_invalid(self):
         with pytest.raises(u.UnitsError) as exc:
@@ -213,35 +211,34 @@ class TestQuantityMathFuncs(object):
         assert np.all(np.multiply(np.arange(3.) * u.m, 2. / u.s) ==
                       np.arange(0, 6., 2.) * u.m / u.s)
 
-    @pytest.mark.parametrize('function', (np.divide, np.true_divide,
-                                          np.floor_divide))
+    @pytest.mark.parametrize('function', (np.divide, np.true_divide))
     def test_divide_scalar(self, function):
         assert function(4. * u.m, 2. * u.s) == function(4., 2.) * u.m / u.s
         assert function(4. * u.m, 2.) == function(4., 2.) * u.m
         assert function(4., 2. * u.s) == function(4., 2.) / u.s
 
-    @pytest.mark.parametrize('function', (np.divide, np.true_divide,
-                                          np.floor_divide))
+    @pytest.mark.parametrize('function', (np.divide, np.true_divide))
     def test_divide_array(self, function):
         assert np.all(function(np.arange(3.) * u.m, 2. * u.s) ==
                       function(np.arange(3.), 2.) * u.m / u.s)
 
-    def test_divmod(self):
+    def test_divmod_and_floor_divide(self):
         inch = u.Unit(0.0254 * u.m)
-        quotient, remainder = divmod(
-            np.array([1., 2., 3.]) * u.m,
-            np.array([3., 4., 5.]) * inch)
+        dividend = np.array([1., 2., 3.]) * u.m
+        divisor = np.array([3., 4., 5.]) * inch
+        quotient = dividend // divisor
         assert_allclose(quotient.value, [13., 19., 23.])
         assert quotient.unit == u.dimensionless_unscaled
+        quotient2, remainder = divmod(dividend, divisor)
+        assert np.all(quotient2 == quotient)
         assert_allclose(remainder.value, [0.0094, 0.0696, 0.079])
-        assert remainder.unit == u.m
+        assert remainder.unit == dividend.unit
 
-        quotient, remainder = divmod(
-            np.array([1., 2., 3.]) * u.m, u.km)
-        assert_allclose(quotient.value, [1., 2., 3.])
-        assert quotient.unit == u.m / u.km
-        assert remainder.value == 0.
-        assert remainder.unit == u.dimensionless_unscaled
+        with pytest.raises(TypeError):
+            divmod(dividend, u.km)
+
+        with pytest.raises(TypeError):
+            dividend // u.km
 
     def test_sqrt_scalar(self):
         assert np.sqrt(4. * u.m) == 2. * u.m ** 0.5
@@ -263,6 +260,16 @@ class TestQuantityMathFuncs(object):
     def test_reciprocal_array(self):
         assert np.all(np.reciprocal(np.array([1., 2., 4.]) * u.m)
                       == np.array([1., 0.5, 0.25]) / u.m)
+
+    # cbrt only introduced in numpy 1.10
+    @pytest.mark.skipif("not hasattr(np, 'cbrt')")
+    def test_cbrt_scalar(self):
+        assert np.cbrt(8. * u.m**3) == 2. * u.m
+
+    @pytest.mark.skipif("not hasattr(np, 'cbrt')")
+    def test_cbrt_array(self):
+        assert np.all(np.cbrt(np.array([1., 8., 64.]) * u.m**3)
+                      == np.array([1., 2., 4.]) * u.m)
 
     def test_power_scalar(self):
         assert np.power(4. * u.m, 2.) == 16. * u.m ** 2
@@ -455,6 +462,18 @@ class TestInvariantUfuncs(object):
     @pytest.mark.parametrize(('ufunc'), [np.add, np.subtract, np.hypot,
                                          np.maximum, np.minimum, np.nextafter,
                                          np.remainder, np.mod, np.fmod])
+    def test_invariant_twoarg_one_arbitrary(self, ufunc):
+
+        q_i1 = np.array([-3.3, 2.1, 10.2]) * u.kg / u.s
+        arbitrary_unit_value = np.array([0.])
+        q_o = ufunc(q_i1, arbitrary_unit_value)
+        assert isinstance(q_o, u.Quantity)
+        assert q_o.unit == q_i1.unit
+        assert_allclose(q_o.value, ufunc(q_i1.value, arbitrary_unit_value))
+
+    @pytest.mark.parametrize(('ufunc'), [np.add, np.subtract, np.hypot,
+                                         np.maximum, np.minimum, np.nextafter,
+                                         np.remainder, np.mod, np.fmod])
     def test_invariant_twoarg_invalid_units(self, ufunc):
 
         q_i1 = 4.7 * u.m
@@ -500,7 +519,6 @@ class TestComparisonUfuncs(object):
 
 class TestInplaceUfuncs(object):
 
-    @pytest.mark.skipif("NUMPY_LT_1P6")
     @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
     def test_one_argument_ufunc_inplace(self, value):
         # without scaling
@@ -517,7 +535,6 @@ class TestInplaceUfuncs(object):
         assert check2.unit == u.dimensionless_unscaled
         assert_allclose(s.value, s2.value)
 
-    @pytest.mark.skipif("NUMPY_LT_1P6")
     @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
     def test_one_argument_ufunc_inplace_2(self, value):
         """Check inplace works with non-quantity input and quantity output"""
@@ -578,7 +595,6 @@ class TestInplaceUfuncs(object):
         assert check is s
         assert np.all(check == value * u.cycle)
 
-    @pytest.mark.skipif("NUMPY_LT_1P6")
     @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
     def test_two_argument_ufunc_inplace_2(self, value):
         s = value * u.cycle
@@ -600,7 +616,6 @@ class TestInplaceUfuncs(object):
         assert check is s
         assert check.unit == u.deg / u.s
 
-    @pytest.mark.skipif("NUMPY_LT_1P6")
     def test_two_argument_ufunc_inplace_3(self):
         s = np.array([1., 2., 3.]) * u.dimensionless_unscaled
         np.add(np.array([1., 2., 3.]), np.array([1., 2., 3.]) * 2., out=s)
@@ -618,3 +633,25 @@ class TestInplaceUfuncs(object):
         s2 += 1. * u.cm
         assert np.all(s[::2] > s_copy[::2])
         assert np.all(s[1::2] == s_copy[1::2])
+
+    def test_ufunc_inplace_non_standard_dtype(self):
+        """Check that inplace operations check properly for casting.
+
+        First two tests that check that float32 is kept close #3976.
+        """
+        a1 = u.Quantity([1, 2, 3, 4], u.m, dtype=np.float32)
+        a1 *= np.float32(10)
+        assert a1.unit is u.m
+        assert a1.dtype == np.float32
+        a2 = u.Quantity([1, 2, 3, 4], u.m, dtype=np.float32)
+        a2 += (20.*u.km)
+        assert a2.unit is u.m
+        assert a2.dtype == np.float32
+        # For integer, in-place only works if no conversion is done.
+        a3 = u.Quantity([1, 2, 3, 4], u.m, dtype=np.int32)
+        a3 += u.Quantity(10, u.m, dtype=np.int64)
+        assert a3.unit is u.m
+        assert a3.dtype == np.int32
+        a4 = u.Quantity([1, 2, 3, 4], u.m, dtype=np.int32)
+        with pytest.raises(TypeError):
+            a4 += u.Quantity(10, u.mm, dtype=np.int64)

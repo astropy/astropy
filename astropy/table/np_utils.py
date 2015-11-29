@@ -5,13 +5,14 @@ join():  Perform a database join of two numpy ndarrays.
 hstack(): Horizontally stack a list of numpy ndarrays.
 vstack(): Vertically stack a list of numpy ndarrays.
 
-Some code and inspriration taken from numpy.lib.recfunctions.join_by().
+Some code and inspiration taken from numpy.lib.recfunctions.join_by().
 Redistribution license restrictions apply.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
 from ..extern.six.moves import zip as izip
+from ..utils.decorators import deprecated
 
 from itertools import chain
 import collections
@@ -24,6 +25,10 @@ from ..utils import OrderedDict
 
 __all__ = ['join', 'hstack', 'vstack', 'TableMergeError']
 
+DEPRECATION_MESSAGE = ('The %(func)s %(obj_type)s is deprecated and may '
+                       'be removed in a future version. '
+                       'Contact the Astropy developers if you need '
+                       'continued support for this function.')
 
 class TableMergeError(ValueError):
     pass
@@ -74,7 +79,8 @@ def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name
             else:
                 # If name is not one of the common column outputs, and it collides
                 # with the names in one of the other arrays, then rename
-                others = (x for x in arrays if x is not array)
+                others = list(arrays)
+                others.pop(idx)
                 if any(name in other.dtype.names for other in others):
                     out_name = uniq_col_name.format(table_name=table_name, col_name=name)
                 col_name_list.append(out_name)
@@ -162,6 +168,7 @@ def common_dtype(cols):
     return arr_common.dtype.str
 
 
+@deprecated('1.0', message=DEPRECATION_MESSAGE)
 def join(left, right, keys=None, join_type='inner',
          uniq_col_name='{col_name}_{table_name}',
          table_names=['1', '2'],
@@ -277,7 +284,7 @@ def join(left, right, keys=None, join_type='inner',
             name, array, array_out, array_mask = right_name, right, right_out, right_mask
         else:
             raise TableMergeError('Unexpected column names (maybe one is ""?)')
-        out[out_name] = array[name].take(array_out)
+        out[out_name] = array[name].take(array_out, axis=0)
         if masked:
             if isinstance(array, ma.MaskedArray):
                 array_mask = array_mask | array[name].mask.take(array_out)
@@ -302,6 +309,7 @@ def _check_for_sequence_of_structured_arrays(arrays):
         raise ValueError('`arrays` arg must include at least one array')
 
 
+@deprecated('1.0', message=DEPRECATION_MESSAGE)
 def vstack(arrays, join_type='inner', col_name_map=None):
     """
     Stack structured arrays vertically (by rows)
@@ -411,6 +419,7 @@ def vstack(arrays, join_type='inner', col_name_map=None):
     return out
 
 
+@deprecated('1.0', message=DEPRECATION_MESSAGE)
 def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
            table_names=None, col_name_map=None):
     """
@@ -514,6 +523,7 @@ def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
     return out
 
 
+@deprecated('1.0', message=DEPRECATION_MESSAGE)
 def get_groups(table, keys):
     """
     Get groups for numpy structured array on specified keys.
@@ -541,7 +551,7 @@ def get_groups(table, keys):
     table = table.ravel()
     len_table = len(table)
 
-    # oined array dtype as a list of descr (name, type_str, shape) tuples
+    # joined array dtype as a list of descr (name, type_str, shape) tuples
     col_name_map = get_col_name_map([table], keys)
     out_descrs = get_descrs([table], col_name_map)
 
@@ -578,3 +588,26 @@ def fix_column_name(val):
             raise
 
     return val
+
+
+def recarray_fromrecords(rec_list):
+    """
+    Partial replacement for `~numpy.core.records.fromrecords` which includes
+    a workaround for the bug with unicode arrays described at:
+    https://github.com/astropy/astropy/issues/3052
+
+    This should not serve as a full replacement for the original function;
+    this only does enough to fulfill the needs of the table module.
+    """
+
+    # Note: This is just copying what Numpy does for converting arbitrary rows
+    # to column arrays in the recarray module; it could be there is a better
+    # way
+    nfields = len(rec_list[0])
+    obj = np.array(rec_list, dtype=object)
+    array_list = [np.array(obj[..., i].tolist()) for i in range(nfields)]
+    formats = []
+    for obj in array_list:
+        formats.append(obj.dtype.str)
+    formats = ','.join(formats)
+    return np.rec.fromarrays(array_list, formats=formats)

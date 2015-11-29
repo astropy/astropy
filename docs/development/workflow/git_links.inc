@@ -16,7 +16,7 @@
 .. _git-osx-installer: http://code.google.com/p/git-osx-installer/downloads/list
 .. _subversion: http://subversion.tigris.org/
 .. _git cheat sheet: http://cheat.errtheblog.com/s/git
-.. _pro git book: http://progit.org/
+.. _pro git book: http://git-scm.com/book
 .. _git svn crash course: http://git-scm.com/course/svn.html
 .. _learn.github: http://learn.github.com/
 .. _network graph visualizer: http://github.com/blog/39-say-hello-to-the-network-graph-visualizer
@@ -24,7 +24,7 @@
 .. _git tutorial: http://schacon.github.com/git/gittutorial.html
 .. _git community book: http://book.git-scm.com/
 .. _git ready: http://www.gitready.com/
-.. _git casts: http://www.gitcasts.com/
+.. _git casts: https://training.github.com/
 .. _Fernando's git page: http://www.fperez.org/py4science/git.html
 .. _git magic: http://www-cs-students.stanford.edu/~blynn/gitmagic/index.html
 .. _git concepts: http://www.eecs.harvard.edu/~cduan/technical/git/

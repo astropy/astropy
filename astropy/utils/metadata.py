@@ -61,7 +61,7 @@ def merge(left, right, merge_func=concat, metadata_conflicts='warn'):
     """
     Merge the ``left`` and ``right`` metadata objects.
 
-    This is a simplistic and limited implemenation at this point.
+    This is a simplistic and limited implementation at this point.
     """
     if not _both_isinstance(left, right, dict):
         raise MergeConflictError('Can only merge two dict-based objects')
@@ -76,7 +76,8 @@ def merge(left, right, merge_func=concat, metadata_conflicts='warn'):
 
         # There is a conflict that must be resolved
         if _both_isinstance(left[key], right[key], dict):
-            out[key] = merge(left[key], right[key], merge_func)
+            out[key] = merge(left[key], right[key], merge_func,
+                             metadata_conflicts=metadata_conflicts)
 
         else:
             try:
@@ -103,7 +104,7 @@ def merge(left, right, merge_func=concat, metadata_conflicts='warn'):
                         raise MergeConflictError('Cannot merge meta key {0!r} types {1!r} and {2!r}'
                                                  .format(key, type(left[key]), type(right[key])))
                     elif metadata_conflicts != 'silent':
-                        raise ValueError('metadata_conflict argument must be one of "silent", "warn", or "error"')
+                        raise ValueError('metadata_conflicts argument must be one of "silent", "warn", or "error"')
                     out[key] = right[key]
                 else:
                     out[key] = right[key]

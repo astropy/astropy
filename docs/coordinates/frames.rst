@@ -28,18 +28,18 @@ is first created::
 
     >>> from astropy.coordinates import ICRS, FK5
     >>> FK5(equinox='J1975')
-    <FK5 Frame: equinox=J1975.000>
+    <FK5 Frame (equinox=J1975.000)>
     >>> ICRS()  # has no attributes
     <ICRS Frame>
     >>> FK5()  # uses default equinox
-    <FK5 Frame: equinox=J2000.000>
+    <FK5 Frame (equinox=J2000.000)>
 
 The specific names of attributes available for a particular frame (and
 their default values)  are available as the class method
 ``get_frame_attr_names``::
 
     >>> FK5.get_frame_attr_names()
-    {'equinox': <Time object: scale='utc' format='jyear_str' value=J2000.000>}
+    OrderedDict([('equinox', <Time object: scale='utc' format='jyear_str' value=J2000.000>)])
 
 You can access any of the attributes on a frame by using standard Python
 attribute access.  Note that for cases like ``equinox``, which are time
@@ -70,9 +70,11 @@ equatorial systems)::
 
     >>> from astropy import units as u
     >>> ICRS(ra=1.1*u.deg, dec=2.2*u.deg)
-    <ICRS Coordinate: ra=1.1 deg, dec=2.2 deg>
+    <ICRS Coordinate: (ra, dec) in deg
+        (1.1, 2.2)>
     >>> FK5(ra=1.1*u.deg, dec=2.2*u.deg, equinox='J1975')
-    <FK5 Coordinate: equinox=J1975.000, ra=1.1 deg, dec=2.2 deg>
+    <FK5 Coordinate (equinox=J1975.000): (ra, dec) in deg
+        (1.1, 2.2)>
 
 These same attributes can be used to access the data in the frames, as
 |Angle| objects (or |Angle| subclasses)::
@@ -114,7 +116,8 @@ itself which represents a point in 3d space.
     >>> from astropy.coordinates import CartesianRepresentation
     >>> icrs.representation = CartesianRepresentation
     >>> icrs  # doctest: +FLOAT_CMP
-    <ICRS Coordinate: x=0.999238614955 , y=0.0174417749028 , z=0.0348994967025 >
+    <ICRS Coordinate: (x, y, z) [dimensionless]
+        (0.999238614955, 0.0174417749028, 0.0348994967025)>
     >>> icrs.x  # doctest: +FLOAT_CMP
     <Quantity 0.9992386149554826>
 
@@ -123,7 +126,8 @@ and affects the set of keywords used to supply the coordinate data.  For
 example to create a coordinate with cartesian data do::
 
     >>> ICRS(x=1*u.kpc, y=2*u.kpc, z=3*u.kpc, representation=CartesianRepresentation)
-    <ICRS Coordinate: x=1.0 kpc, y=2.0 kpc, z=3.0 kpc>
+    <ICRS Coordinate: (x, y, z) in kpc
+        (1.0, 2.0, 3.0)>
 
 For more information about the use of representations in coordinates see the
 :ref:`astropy-skycoord-representations` section, and for details about the
@@ -136,7 +140,8 @@ any  frame attributes required::
     >>> from astropy.coordinates import SphericalRepresentation
     >>> rep = SphericalRepresentation(lon=1.1*u.deg, lat=2.2*u.deg, distance=3.3*u.kpc)
     >>> FK5(rep, equinox='J1975')
-    <FK5 Coordinate: equinox=J1975.000, ra=1.1 deg, dec=2.2 deg, distance=3.3 kpc>
+    <FK5 Coordinate (equinox=J1975.000): (ra, dec, distance) in (deg, deg, kpc)
+        (1.1, 2.2, 3.3)>
 
 A final way is to create a frame object from an already existing frame
 (either one with or without data), using the ``realize_frame`` method. This
@@ -144,10 +149,11 @@ will yield a frame with the same attributes, but new data::
 
     >>> f1 = FK5(equinox='J1975')
     >>> f1
-    <FK5 Frame: equinox=J1975.000>
+    <FK5 Frame (equinox=J1975.000)>
     >>> rep = SphericalRepresentation(lon=1.1*u.deg, lat=2.2*u.deg, distance=3.3*u.kpc)
     >>> f1.realize_frame(rep)
-    <FK5 Coordinate: equinox=J1975.000, ra=1.1 deg, dec=2.2 deg, distance=3.3 kpc>
+    <FK5 Coordinate (equinox=J1975.000): (ra, dec, distance) in (deg, deg, kpc)
+        (1.1, 2.2, 3.3)>
 
 You can check if a frame object has data using the ``has_data`` attribute, and
 if it is preset, it can be accessed from the ``data`` attribute::
@@ -158,7 +164,8 @@ if it is preset, it can be accessed from the ``data`` attribute::
     >>> cooi.has_data
     True
     >>> cooi.data
-    <UnitSphericalRepresentation lon=1.1 deg, lat=2.2 deg>
+    <UnitSphericalRepresentation (lon, lat) in deg
+        (1.1, 2.2)>
 
 All of the above methods can also accept array data (or other Python
 sequences) to create arrays of coordinates::
@@ -181,7 +188,8 @@ an ICRS coordinate::
     >>> from astropy.coordinates import CartesianRepresentation
     >>> cooi = ICRS(ra=0*u.deg, dec=45*u.deg, distance=10*u.pc)
     >>> cooi.represent_as(CartesianRepresentation)  # doctest: +FLOAT_CMP
-    <CartesianRepresentation x=7.07106781187 pc, y=0.0 pc, z=7.07106781187 pc>
+    <CartesianRepresentation (x, y, z) in pc
+        (7.07106781187, 0.0, 7.07106781187)>
 
 Transforming between Frames
 ===========================
@@ -194,9 +202,11 @@ data)::
 
     >>> cooi = ICRS(1.5*u.deg, 2.5*u.deg)
     >>> cooi.transform_to(FK5)  # doctest: +FLOAT_CMP
-    <FK5 Coordinate: equinox=J2000.000, ra=1.50000660527 deg, dec=2.50000238221 deg>
+    <FK5 Coordinate (equinox=J2000.000): (ra, dec) in deg
+        (1.50000660527, 2.50000238221)>
     >>> cooi.transform_to(FK5(equinox='J1975'))  # doctest: +FLOAT_CMP
-    <FK5 Coordinate: equinox=J1975.000, ra=1.17960348105 deg, dec=2.36085320826 deg>
+    <FK5 Coordinate (equinox=J1975.000): (ra, dec) in deg
+        (1.17960348105, 2.36085320826)>
 
 The :ref:`astropy-coordinates-api` includes a list of all of the frames built
 into `astropy.coordinates`, as well as the defined transformations between
@@ -246,8 +256,9 @@ the way you want.  As an example::
   ...      obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
 
   >>> c = MyFrame(R=10*u.deg, D=20*u.deg)
-  >>> c  # doctest: +SKIP
-  <MyFrame Coordinate: equinox=B1950.000, location=None, obstime=B1950.000, R=0.174532... rad, D=0.349065... rad>
+  >>> c  # doctest: +FLOAT_CMP
+  <MyFrame Coordinate (location=None, equinox=B1950.000, obstime=B1950.000): (R, D) in rad
+      (0.174532925199, 0.349065850399)>
   >>> c.equinox
   <Time object: scale='utc' format='byear_str' value=B1950.000>
 

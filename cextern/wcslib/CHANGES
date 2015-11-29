@@ -1,3 +1,370 @@
+WCSLIB version 5.10 (2015/10/09)
+--------------------------------
+
+* C library
+
+  - In wcshdo(), allow output of floating point keyvalues to 15
+    significant digits (was 14), mainly for astropy.
+
+  - In wcspih(), allow unrecognised WAT projection types (tan, etc.) to
+    pass without returning an error.  Reported by Michael Droettboom.
+    Also fixed a bug triggered by SIP keywords in unconventional order,
+    reported by Colin Slater, LSST.
+
+
+WCSLIB version 5.9 (2015/07/21)
+-------------------------------
+
+* C library
+
+  - In disx2p(), make proper allowance for the possibility that the TPD
+    and SIP forward and inverse distortion polynomials may not be of the
+    same degree, reported by Martin Kuemmel.
+
+  - Fix-ups in wcshdo() reported by Michael Droettboom, and several
+    tidy-ups as well.
+
+
+WCSLIB version 5.8 (2015/07/08)
+-------------------------------
+
+* C library
+
+  - DSS (Digitized Sky Survey) coordinates are now handled via TPD, as
+    are the TNX and ZPX "projections".  New test script tdis3 and
+    headers DSS.keyrec, TNX.keyrec, and ZPX.keyrec.
+
+  - New function dishdo() can be used to set a flag that causes
+    wcshdo() to write headers in the form of the distortion function
+    used internally (usually TPD).
+
+  - Added the capability, via DPja.DOCORR, for a distortion function to
+    to compute an additive correction to the undistorted coordinates
+    (rather than computing the distorted coordinates themselves).
+
+  - Added auxiliary variables to TPD via DPja.AUX.jhat.COEFF.m.
+
+  - Bug fix in wcshdo() for TPV, diagnosed by Michael Droettboom.
+
+* Fortran wrappers
+
+  - Wrapper for dishdo().
+
+
+WCSLIB version 5.7 (2015/06/29)
+-------------------------------
+
+* C library
+
+  - Extended wcssub() to handle distortions (and thus wcscopy() also).
+    This required axis mapping to be enabled for SIP distortions within
+    WCSLIB.
+
+  - wcshdo() now handles all distortions currently supported by WCSLIB:
+    SIP, TPV, TPD, and Polynomial.
+
+  - Bug fixes in sphx2s() and sphs2x() for non-unit vector strides for
+    special-case rotations.
+
+  - In wcsset(), modify wcsprm::ctype after translating TPV so that
+    subsequent calls won't try to re-translate it, the PVi_ma records
+    by then having been erased.  Reported by Michael Droettboom.  Also,
+    restore NDPMAX after translating TPV.
+
+  - Bug fixes in discpy(), disprt(), disset(), and disx2p().
+
+  - Added disperr(), prjperr(), spcperr(), spxperr(), and tabperr() to
+    complete the set and make reporting errors slightly more convenient.
+
+* Utilities
+
+  - wcsware has a new option, -o, to print the wcsprm struct in the form
+    of a FITS header using wcshdo().  Also, the -a option has been
+    extended to allow a 0-relative numeric index for selecting an
+    alternate WCS, where the alternates are sequenced alphabetically
+    (without gaps) following the primary representation.
+
+* User manual
+
+  - Documentation generation moved to doxygen 1.8.10 (was 1.8.9.1).
+
+
+WCSLIB version 5.6 (2015/06/14)
+-------------------------------
+
+* C library
+
+  - Bug fixes in wcspih() and sipset() to account for the fact that the
+    independent variables of the SIP polynomial are pixel coordinate
+    offsets from CRPIXja, not pixel coordinates per se.  Diagnosed by
+    Michael Droettboom.
+
+    Validated SIP and TPV handling by comparing the output of
+    'wcsware -x' with that of wcstools 'xy2sky -d -n6' using astropy's
+    SIP test headers, and separate SIP and TPV headers originating from
+    the Palomar Transient Factory provided by David Shupe.
+
+    Changed SIP.keyrec so that CRPIX1 and CRPIX2 differ in value,
+    thereby making tests sensitive to any confusion between the two.
+
+
+WCSLIB version 5.5 (2015/05/05)
+-------------------------------
+
+* C library
+
+  - Bug fixes in wcspih.l for headers with multiple distortions, and for
+    distortion parameter look-alike keywords.
+
+  - Bug fix in sipset() uncovered by valgrind.
+
+
+WCSLIB version 5.4.1 (2015/05/01)
+---------------------------------
+
+* C library
+
+  - Added a fairly lengthy section to the prologue of dis.h describing
+    the Paper IV keywords and the distortion functions currently
+    implemented.
+
+* User manual
+
+  - Added a new section on WCSLIB version numbers.
+
+
+WCSLIB version 5.4 (2015/04/21)
+-------------------------------
+
+* C library
+
+  - Further work on distortions: wcspih() now parses Paper IV distortion
+    keywords (CPDISja, CQDISia, DPja, DQia, etc.), thus handling record-
+    valued keywords.  SIP keywords are also parsed and translated into
+    Paper IV keywords.
+
+  - TPV, SIP, and whereever possible, the general Polynomial distortion
+    function of Paper IV are now implemented by the Template Polynomial
+    Distortion (TPD), that being a superset of TPV and SIP.  TPD, which
+    can also handle 1D distortions and be used for inversions, is also
+    supported as a separate distortion type defined by Paper IV
+    keywords.  TPD efficiently handles 1D distortions and distortions
+    without radial terms.
+
+  - Specialized inverse distortions, such as defined by SIP, are
+    implemented by TPD and recognized by disx2p(), which uses them to
+    compute the initial approximation of its more precise iterative
+    solution.
+
+  - Generalized tdis1.c so that it can do closure tests for SIP headers,
+    and added a SIP test header.
+
+
+WCSLIB version 5.3.1 (2015/04/21)
+---------------------------------
+
+* C library
+
+  - Bug fix in test program tdis1.c reported by Martin Kuemmel.
+
+
+WCSLIB version 5.3 (2015/04/21)
+-------------------------------
+
+First public release of WCSLIB 5.x with distortions capability.
+
+* C library
+
+  - Changed disprm::dtype from char[16] to char[72] for reasons relating
+    to header parsing.
+
+  - More armour plating for disset() and friends.  They also use new
+    utility functions wcsutil_dpkey_int() and wcsutil_dpkey_double() to
+    extract numeric values from a dpkey struct.  This ensures their
+    independence of the data type, the appropriate reporting of dpkey
+    values by disprt(), and (eventually) the appropriate writing of DPja
+    and DQia keyvalues by wcshdo().
+
+  - Augmented the usage comments for dpfill() to explain how numeric
+    values in a dpkey struct are handled.
+
+* Utilities
+
+  - wcsware now uses wcserr to provide a backtrace on errors.  Also
+    fixed a couple of minor annoyances relating to alternate
+    representations.
+
+
+WCSLIB version 5.2 beta release (2015/04/15)
+--------------------------------------------
+
+* C library
+
+  - Further development of disprm and related functions to implement
+    the FITS keywords for distortions introduced in WCS Paper IV, thus
+    changing disprm's ABI once again.
+
+    disprm's model is now similar to wcsprm's handling of PVi_ma and
+    PSi_ma, where the parsed keyrecords are loaded into a set of pvcard
+    and pscard structs and wcsset() does the analysis.  For disprm, the
+    parsed DPja or DQia keyrecords are loaded into a set of dpkey
+    structs for disset() to analyse.
+
+  - New function dpfill() aids in filling a dpkey struct.  Function
+    disparms() has been removed.  It was no longer needed as
+    disprm::parms[][] is now a "returned" member of the struct.
+
+  - Implementation of the general Polynomial distortion function defined
+    in Sect. 3.1 of WCS Paper IV.  The polynomial is defined in terms of
+    Paper IV keywords.
+
+  - Bug fixes in diswarp() and linwarp() reported by
+    Michael Droettboom.
+
+  - Test program tdis1 now tests a TPV header for closure in two ways:
+    directly as a specialist TPV distortion (as before), then by
+    translating it into a general polynomial distortion.  It then also
+    tests that the TPV and polynomial distortions produce the same
+    results.
+
+* Fortran wrappers
+
+  - Changes to the wrappers reflecting changes to disprm.
+
+  - Bug fixes in fitshdr_f.c, and test programs tdis1.f, tfitshdr.f,
+    twcsfix.f, and twcs.f.  All reported and/or fixed by Ole Streicher.
+
+
+WCSLIB version 5.1 beta release (2015/04/07)
+--------------------------------------------
+
+* C library
+
+  - Distortions-related bug fixes to linset(), linp2x(), and linx2p().
+
+  - New functions diswarp() and linwarp() compute statistics of the
+    distortion functions over a specified domain.  Changed tdis1.c to
+    test them.
+
+  - Changes to disprm (so changed ABI).
+
+* Fortran wrappers
+
+  - Wrappers for diswarp() and linwarp().
+
+
+WCSLIB version 5.0 beta release (2015/04/05)
+--------------------------------------------
+
+* C library
+
+  - Implemented the framework of WCS Paper IV (the draft distortions
+    proposal) based on a new struct, disprm, and suite of routines with
+    header dis.h: disini(), disalloc(), discpy(), disfree(), disprt(),
+    disset(), disp2x(), and disx2p().  New test program tdis1.
+
+    Consequent changes to the linprm struct have altered its ABI, thus
+    necessitating an increment in the WCSLIB major verion number.
+
+  - wcsset() now recognises the "TPV" projection proposed in an early
+    draft of WCS Paper II, and translates it into a disprm distortion -
+    by request of Octavi Fors.  Additionally, it recognises "TPU" as
+    equivalent to "TPV" but using a prior distortion (coming before the
+    linear transformation matrix) rather than sequent (coming after it).
+
+  - In wcspih() and wcsbth(), added relaxation flags to allow PC0i_0ja,
+    PV0j_0ma, and PS0j_0ma (i.e. with leading zeroes on the index).
+
+  - Added wcslib_version() to return the WCSLIB version number, as
+    suggested by Ole Streicher.
+
+  - Fixed problems uncovered by valgrind in prjbchk() (reported by
+    Ger van Diepen), sphx2s(), sphx2s(), spcspxe(), spcxpse(), tabini(),
+    and wcshdo_util().
+
+  - Tidied up error reporting, particularly relating to translating
+    status returns from lower-level functions.  New functions linperr()
+    and celperr() report error messages from the structs they contain
+    in addition to their own.
+
+  - Changed output formatting of floating point values in linprt(),
+    celprt(), prjprt(), spcprt(), tabprt(), and wcsprt().  Updated the
+    test output reference files for tbth1, tpih1, twcsfix, twcssub, and
+    twcstab to suit.
+
+  - Tidied up several of the test programs, mostly to free memory
+    explicitly before exit so that valgrind doesn't report (non-)leaks.
+
+* Fortran wrappers
+
+  - Wrappers for the new distortion functions.  New test programs
+    tdis1.f and tdis2.f.
+
+  - Updates following changes to wcspih() and wcsbth().
+
+  - Added wrappers for linperr() and celperr().  Also added prjperr_(),
+    spcperr_(), and tabperr_() as convenient wrappers on wcserr_prt().
+
+  - Wrapper for wcslib_version().
+
+* Utilities
+
+  - Added a "lint" function to wcsware to check a FITS header for
+    conformance to the WCS standard.  New test program twcslint.
+
+* PGSBOX
+
+  - In PGCRLB, fixed an incorrect use of the MOD intrinsic reported by
+    'gfortran -std=f95' via Jean-Baptiste Marquette.
+
+
+WCSLIB version 4.25.1 (2015/01/05)
+----------------------------------
+
+* C library
+
+  - Updated the test output reference files for tpih1, tbth1, twcsfix,
+    and twcstab to account for the change to wcsset() in release 4.25.
+
+* Fortran wrappers
+
+  - Updated the test output reference files for tpih1, twcsfix, and
+    twcstab to account for the change to wcsset() in release 4.25.
+
+* User manual
+
+  - Documentation generation moved to doxygen 1.8.9.1 (was 1.8.8).
+
+
+WCSLIB version 4.25 (2014/12/15)
+----------------------------------
+
+* C library
+
+  - wcsset() now supplies default values for the auxiliary keywords
+    EQUINOXa and RADESYSa if not present in the FITS header.
+
+
+WCSLIB version 4.24 (2014/09/19)
+----------------------------------
+
+* C library
+
+  - Changed API to wcscompare() to allow a tolerance to be specified for
+    floating-point comparisons.  Contributed by Michael Droettboom.
+
+* Fortran wrappers
+
+    Track the change to wcscompare().
+
+* User manual
+
+  - Documentation generation moved to doxygen 1.8.8 (was 1.8.4).
+
+  - Added mention of WCSLIB in "homebrew-science" (MacOSX) in the
+    section on other packages.
+
+
 WCSLIB version 4.23 (2014/05/11)
 --------------------------------
 
@@ -120,8 +487,6 @@ WCSLIB version 4.18 (2013/07/13)
   - Bug fix in celfix() when translating GLS to SFL with non-zero
     reference point.
 
-  - Documentation generation moved to doxygen 1.8.4 (was 1.5.6).
-
 * Fortran wrappers
 
   - Wrappers for the XPH projection functions and corresponding
@@ -140,6 +505,10 @@ WCSLIB version 4.18 (2013/07/13)
     changes prompted by Paddy Leahy.  Also, modified the FITS header
     comment for XPH - it is no longer "experimental", and accept the
     '-x' option (i.e. without qualification) as equivalent to '-xn'.
+
+* User manual
+
+  - Documentation generation moved to doxygen 1.8.4 (was 1.5.6).
 
 
 WCSLIB version 4.17 (2013/01/29)
@@ -331,7 +700,7 @@ WCSLIB version 4.8.3 (2011/11/17)
 * C library
 
   - Minor generalization of the wcserr diagnostics to allow the return
-    of informative messages which are associated with negative status
+    of informative messages, which are associated with negative status
     values.  wcserr_prt() will now recognize and print them as such.
     Added wcserr_clear() to reset (clear) a wcserr struct.
 
@@ -2136,4 +2505,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 4.23 2014/05/11 04:09:39 mcalabre Exp $
+$Id: CHANGES,v 5.10 2015/10/09 08:19:17 mcalabre Exp $

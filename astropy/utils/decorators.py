@@ -2,6 +2,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Sundry function and class decorators."""
 
+from __future__ import print_function
+
 
 import functools
 import inspect
@@ -10,14 +12,14 @@ import textwrap
 import types
 import warnings
 
-from .codegen import make_func_with_sig
+from .codegen import make_function_with_signature
 from .exceptions import (AstropyDeprecationWarning,
                          AstropyPendingDeprecationWarning)
 from ..extern import six
 
 
-
-__all__ = ['deprecated', 'deprecated_attribute', 'lazyproperty', 'wraps']
+__all__ = ['deprecated', 'deprecated_attribute', 'classproperty',
+           'lazyproperty', 'sharedmethod', 'wraps']
 
 
 def deprecated(since, message='', name='', alternative='', pending=False,
@@ -66,7 +68,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         needs to be overridden.
     """
 
-    method_types = (classmethod, staticmethod)
+    method_types = (classmethod, staticmethod, types.MethodType)
 
     def deprecate_doc(old_doc, message):
         """
@@ -80,7 +82,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
                     '\n    %(message)s\n\n' %
                     {'since': since, 'message': message.strip()}) + old_doc)
         if not old_doc:
-            # This is to prevent a spurious 'unexected unindent' warning from
+            # This is to prevent a spurious 'unexpected unindent' warning from
             # docutils when the original docstring was blank.
             new_doc += r'\ '
         return new_doc
@@ -168,21 +170,15 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         # errors. Picklability is required for any class that is
         # documented by Sphinx.
 
-        def __getstate__(self):
-            return super(cls, self).__getstate__()
+        members = cls.__dict__.copy()
 
-        def __setstate__(self, state):
-            return super(cls, self).__setstate__(state)
-
-        d = {
+        members.update({
             '__doc__': deprecate_doc(cls.__doc__, message),
-            '__init__': deprecate_function(cls.__init__, message),
-            '__module__': cls.__module__,
-            '__getstate__': __getstate__,
-            '__setstate__': __setstate__
-        }
+            '__init__': deprecate_function(get_function(cls.__init__),
+                                           message),
+        })
 
-        return type(cls.__name__, (cls,), d)
+        return type(cls)(cls.__name__, cls.__bases__, members)
 
     def deprecate(obj, message=message, name=name, alternative=alternative,
                   pending=pending):
@@ -293,11 +289,189 @@ def deprecated_attribute(name, since, message=None, alternative=None,
     return property(get, set, delete)
 
 
-class lazyproperty(object):
+# TODO: This can still be made to work for setters by implementing an
+# accompanying metaclass that supports it; we just don't need that right this
+# second
+class classproperty(property):
+    """
+    Similar to `property`, but allows class-level properties.  That is,
+    a property whose getter is like a `classmethod`.
+
+    The wrapped method may explicitly use the `classmethod` decorator (which
+    must become before this decorator), or the `classmethod` may be omitted
+    (it is implicit through use of this decorator).
+
+    .. note::
+
+        classproperty only works for *read-only* properties.  It does not
+        currently allow writeable/deleteable properties, due to subtleties of how
+        Python descriptors work.  In order to implement such properties on a class
+        a metaclass for that class must be implemented.
+
+    Parameters
+    ----------
+    fget : callable
+        The function that computes the value of this property (in particular,
+        the function when this is used as a decorator) a la `property`.
+
+    doc : str, optional
+        The docstring for the property--by default inherited from the getter
+        function.
+
+    lazy : bool, optional
+        If True, caches the value returned by the first call to the getter
+        function, so that it is only called once (used for lazy evaluation
+        of an attribute).  This is analogous to `lazyproperty`.  The ``lazy``
+        argument can also be used when `classproperty` is used as a decorator
+        (see the third example below).  When used in the decorator syntax this
+        *must* be passed in as a keyword argument.
+
+    Examples
+    --------
+
+    ::
+
+        >>> class Foo(object):
+        ...     _bar_internal = 1
+        ...     @classproperty
+        ...     def bar(cls):
+        ...         return cls._bar_internal + 1
+        ...
+        >>> Foo.bar
+        2
+        >>> foo_instance = Foo()
+        >>> foo_instance.bar
+        2
+        >>> foo_instance._bar_internal = 2
+        >>> foo_instance.bar  # Ignores instance attributes
+        2
+
+    As previously noted, a `classproperty` is limited to implementing
+    read-only attributes::
+
+        >>> class Foo(object):
+        ...     _bar_internal = 1
+        ...     @classproperty
+        ...     def bar(cls):
+        ...         return cls._bar_internal
+        ...     @bar.setter
+        ...     def bar(cls, value):
+        ...         cls._bar_internal = value
+        ...
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: classproperty can only be read-only; use a
+        metaclass to implement modifiable class-level properties
+
+    When the ``lazy`` option is used, the getter is only called once::
+
+        >>> class Foo(object):
+        ...     @classproperty(lazy=True)
+        ...     def bar(cls):
+        ...         print("Performing complicated calculation")
+        ...         return 1
+        ...
+        >>> Foo.bar
+        Performing complicated calculation
+        1
+        >>> Foo.bar
+        1
+
+    If a subclass inherits a lazy `classproperty` the property is still
+    re-evaluated for the subclass::
+
+        >>> class FooSub(Foo):
+        ...     pass
+        ...
+        >>> FooSub.bar
+        Performing complicated calculation
+        1
+        >>> FooSub.bar
+        1
+    """
+
+    def __new__(cls, fget=None, doc=None, lazy=False):
+        if fget is None:
+            # Being used as a decorator--return a wrapper that implements
+            # decorator syntax
+            def wrapper(func):
+                return cls(func, lazy=lazy)
+
+            return wrapper
+
+        return super(classproperty, cls).__new__(cls)
+
+    def __init__(self, fget, doc=None, lazy=False):
+        self._lazy = lazy
+        if lazy:
+            self._cache = {}
+        fget = self._wrap_fget(fget)
+
+        super(classproperty, self).__init__(fget=fget, doc=doc)
+
+        # There is a buglet in Python where self.__doc__ doesn't
+        # get set properly on instances of property subclasses if
+        # the doc argument was used rather than taking the docstring
+        # from fget
+        if doc is not None:
+            self.__doc__ = doc
+
+    def __get__(self, obj, objtype=None):
+        if self._lazy and objtype in self._cache:
+            return self._cache[objtype]
+
+        if objtype is not None:
+            # The base property.__get__ will just return self here;
+            # instead we pass objtype through to the original wrapped
+            # function (which takes the class as its sole argument)
+            val = self.fget.__wrapped__(objtype)
+        else:
+            val = super(classproperty, self).__get__(obj, objtype=objtype)
+
+        if self._lazy:
+            if objtype is None:
+                objtype = obj.__class__
+
+            self._cache[objtype] = val
+
+        return val
+
+    def getter(self, fget):
+        return super(classproperty, self).getter(self._wrap_fget(fget))
+
+    def setter(self, fset):
+        raise NotImplementedError(
+            "classproperty can only be read-only; use a metaclass to "
+            "implement modifiable class-level properties")
+
+    def deleter(self, fdel):
+        raise NotImplementedError(
+            "classproperty can only be read-only; use a metaclass to "
+            "implement modifiable class-level properties")
+
+    @staticmethod
+    def _wrap_fget(orig_fget):
+        if isinstance(orig_fget, classmethod):
+            orig_fget = orig_fget.__func__
+
+        # Using stock functools.wraps instead of the fancier version
+        # found later in this module, which is overkill for this purpose
+
+        @functools.wraps(orig_fget)
+        def fget(obj):
+            return orig_fget(obj.__class__)
+
+        # Set the __wrapped__ attribute manually for support on Python 2
+        fget.__wrapped__ = orig_fget
+
+        return fget
+
+
+class lazyproperty(property):
     """
     Works similarly to property(), but computes the value only once.
 
-    This essentially memoizes the value of the property by storing the result
+    This essentially memorizes the value of the property by storing the result
     of its computation in the ``__dict__`` of the object instance.  This is
     useful for computing the value of some property that should otherwise be
     invariant.  For example::
@@ -327,29 +501,25 @@ class lazyproperty(object):
     """
 
     def __init__(self, fget, fset=None, fdel=None, doc=None):
-        self._fget = fget
-        self._fset = fset
-        self._fdel = fdel
-        if doc is None:
-            self.__doc__ = fget.__doc__
-        else:
-            self.__doc__ = doc
-        self._key = self._fget.__name__
+        super(lazyproperty, self).__init__(fget, fset, fdel, doc)
+        self._key = self.fget.__name__
 
     def __get__(self, obj, owner=None):
-        if obj is None:
-            return self
         try:
             return obj.__dict__[self._key]
         except KeyError:
-            val = self._fget(obj)
+            val = self.fget(obj)
             obj.__dict__[self._key] = val
             return val
+        except AttributeError:
+            if obj is None:
+                return self
+            raise
 
     def __set__(self, obj, val):
         obj_dict = obj.__dict__
-        if self._fset:
-            ret = self._fset(obj, val)
+        if self.fset:
+            ret = self.fset(obj, val)
             if ret is not None and obj_dict.get(self._key) is ret:
                 # By returning the value set the setter signals that it took
                 # over setting the value in obj.__dict__; this mechanism allows
@@ -358,47 +528,155 @@ class lazyproperty(object):
         obj_dict[self._key] = val
 
     def __delete__(self, obj):
-        if self._fdel:
-            self._fdel(obj)
+        if self.fdel:
+            self.fdel(obj)
         if self._key in obj.__dict__:
             del obj.__dict__[self._key]
 
-    def getter(self, fget):
-        return self.__ter(fget, 0)
 
-    def setter(self, fset):
-        return self.__ter(fset, 1)
+class sharedmethod(classmethod):
+    """
+    This is a method decorator that allows both an instancemethod and a
+    `classmethod` to share the same name.
 
-    def deleter(self, fdel):
-        return self.__ter(fdel, 2)
+    When using `sharedmethod` on a method defined in a class's body, it
+    may be called on an instance, or on a class.  In the former case it
+    behaves like a normal instance method (a reference to the instance is
+    automatically passed as the first ``self`` argument of the method)::
 
-    def __ter(self, f, arg):
-        args = [self._fget, self._fset, self._fdel, self.__doc__]
-        args[arg] = f
-        cls_ns = sys._getframe(1).f_locals
-        for k, v in six.iteritems(cls_ns):
-            if v is self:
-                property_name = k
-                break
+        >>> class Example(object):
+        ...     @sharedmethod
+        ...     def identify(self, *args):
+        ...         print('self was', self)
+        ...         print('additional args were', args)
+        ...
+        >>> ex = Example()
+        >>> ex.identify(1, 2)
+        self was <astropy.utils.decorators.Example object at 0x...>
+        additional args were (1, 2)
 
-        cls_ns[property_name] = lazyproperty(*args)
+    In the latter case, when the `sharedmethod` is called directly from a
+    class, it behaves like a `classmethod`::
 
-        return cls_ns[property_name]
+        >>> Example.identify(3, 4)
+        self was <class 'astropy.utils.decorators.Example'>
+        additional args were (3, 4)
+
+    This also supports a more advanced usage, where the `classmethod`
+    implementation can be written separately.  If the class's *metaclass*
+    has a method of the same name as the `sharedmethod`, the version on
+    the metaclass is delegated to::
+
+        >>> from astropy.extern.six import add_metaclass
+        >>> class ExampleMeta(type):
+        ...     def identify(self):
+        ...         print('this implements the {0}.identify '
+        ...               'classmethod'.format(self.__name__))
+        ...
+        >>> @add_metaclass(ExampleMeta)
+        ... class Example(object):
+        ...     @sharedmethod
+        ...     def identify(self):
+        ...         print('this implements the instancemethod')
+        ...
+        >>> Example().identify()
+        this implements the instancemethod
+        >>> Example.identify()
+        this implements the Example.identify classmethod
+    """
+
+    if sys.version_info[:2] < (2, 7):
+        # Workaround for Python 2.6 which does not have classmethod.__func__
+        @property
+        def __func__(self):
+            try:
+                meth = classmethod.__get__(self, self.__obj__,
+                                           self.__objtype__)
+            except AttributeError:
+                # self.__obj__ not set when called from __get__, but then it
+                # doesn't matter anyways
+                meth = classmethod.__get__(self, None, object)
+            return meth.__func__
+
+        def __getobjwrapper(orig_get):
+            """
+            Used to temporarily set/unset self.__obj__ and self.__objtype__
+            for use by __func__.
+            """
+            def __get__(self, obj, objtype=None):
+                self.__obj__ = obj
+                self.__objtype__ = objtype
+
+                try:
+                    return orig_get(self, obj, objtype)
+                finally:
+                    del self.__obj__
+                    del self.__objtype__
+
+            return __get__
+    else:
+        def __getobjwrapper(func):
+            return func
+
+    @__getobjwrapper
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            mcls = type(objtype)
+            clsmeth = getattr(mcls, self.__func__.__name__, None)
+            if callable(clsmeth):
+                if isinstance(clsmeth, types.MethodType):
+                    # This case will generally only apply on Python 2, which
+                    # uses MethodType for unbound methods; Python 3 has no
+                    # particular concept of unbound methods and will just
+                    # return a function
+                    func = clsmeth.__func__
+                else:
+                    func = clsmeth
+            else:
+                func = self.__func__
+
+            return self._make_method(func, objtype)
+        else:
+            return self._make_method(self.__func__, obj)
+
+    del __getobjwrapper
+
+    if six.PY3:
+        # The 'instancemethod' type of Python 2 and the method type of
+        # Python 3 have slightly different constructors
+        @staticmethod
+        def _make_method(func, instance):
+            return types.MethodType(func, instance)
+    else:
+        @staticmethod
+        def _make_method(func, instance):
+            return types.MethodType(func, instance, type(instance))
 
 
 def wraps(wrapped, assigned=functools.WRAPPER_ASSIGNMENTS,
-          updated=functools.WRAPPER_UPDATES):
+          updated=functools.WRAPPER_UPDATES, exclude_args=()):
     """
     An alternative to `functools.wraps` which also preserves the original
-    function's call signature by way of `~astropy.utils.codegen.make_func_with_sig`.
+    function's call signature by way of
+    `~astropy.utils.codegen.make_function_with_signature`.
+
+    This also adds an optional ``exclude_args`` argument.  If given it should
+    be a sequence of argument names that should not be copied from the wrapped
+    function (either positional or keyword arguments).
 
     The documentation for the original `functools.wraps` follows:
 
     """
 
+    wrapped_args = _get_function_args(wrapped, exclude_args=exclude_args)
+
     def wrapper(func):
-        func = make_func_with_sig(func, name=wrapped.__name__,
-                                  **_get_function_args(wrapped))
+        if '__name__' in assigned:
+            name = wrapped.__name__
+        else:
+            name = func.__name__
+
+        func = make_function_with_signature(func, name=name, **wrapped_args)
         func = functools.update_wrapper(func, wrapped, assigned=assigned,
                                         updated=updated)
         return func
@@ -406,17 +684,18 @@ def wraps(wrapped, assigned=functools.WRAPPER_ASSIGNMENTS,
     return wrapper
 
 
-wraps.__doc__ += functools.wraps.__doc__
+if isinstance(wraps.__doc__, six.string_types):
+    wraps.__doc__ += functools.wraps.__doc__
 
 
 if six.PY3:
-    def _get_function_args(func):
+    def _get_function_args_internal(func):
         """
         Utility function for `wraps`.
 
         Reads the argspec for the given function and converts it to arguments
-        for `make_func_with_sig`.  This requires different implementations on
-        Python 2 versus Python 3.
+        for `make_function_with_signature`.  This requires different
+        implementations on Python 2 versus Python 3.
         """
 
         argspec = inspect.getfullargspec(func)
@@ -435,13 +714,13 @@ if six.PY3:
         return {'args': args, 'kwargs': kwargs, 'varargs': argspec.varargs,
                 'varkwargs': argspec.varkw}
 else:
-    def _get_function_args(func):
+    def _get_function_args_internal(func):
         """
         Utility function for `wraps`.
 
         Reads the argspec for the given function and converts it to arguments
-        for `make_func_with_sig`.  This requires different implementations on
-        Python 2 versus Python 3.
+        for `make_function_with_signature`.  This requires different
+        implementations on Python 2 versus Python 3.
         """
 
         argspec = inspect.getargspec(func)
@@ -455,3 +734,20 @@ else:
 
         return {'args': args, 'kwargs': kwargs, 'varargs': argspec.varargs,
                 'varkwargs': argspec.keywords}
+
+
+def _get_function_args(func, exclude_args=()):
+    all_args = _get_function_args_internal(func)
+
+    if exclude_args:
+        exclude_args = set(exclude_args)
+
+        for arg_type in ('args', 'kwargs'):
+            all_args[arg_type] = [arg for arg in all_args[arg_type]
+                                  if arg not in exclude_args]
+
+        for arg_type in ('varargs', 'varkwargs'):
+            if all_args[arg_type] in exclude_args:
+                all_args[arg_type] = None
+
+    return all_args

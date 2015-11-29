@@ -160,7 +160,7 @@ class TestTimeDelta():
 
         # Include initializers
         dt2 = TimeDelta(dt, format='sec')
-        assert allclose_sec(dt2.val, 86400.0)
+        assert allclose_sec(dt2.value, 86400.0)
 
     def test_neg_abs(self):
         for dt in (self.dt, self.dt_array):
@@ -230,6 +230,18 @@ class TestTimeDelta():
             assert not hasattr(t3, '_delta_tdb_tt')
             assert not hasattr(t3, '_delta_ut1_utc')
 
+    def test_set_format(self):
+        """
+        Test basics of setting format attribute.
+        """
+        dt = TimeDelta(86400.0, format='sec')
+        assert dt.value == 86400.0
+        assert dt.format == 'sec'
+
+        dt.format = 'jd'
+        assert dt.value == 1.0
+        assert dt.format == 'jd'
+
 
 class TestTimeDeltaScales():
     """Test scale conversion for Time Delta.
@@ -244,7 +256,7 @@ class TestTimeDeltaScales():
         self.dt = dict((scale, self.t[scale]-self.t[scale][0])
                        for scale in TIME_SCALES)
 
-    def test_delta_scales_defintion(self):
+    def test_delta_scales_definition(self):
         for scale in list(TIME_DELTA_SCALES) + [None]:
             TimeDelta([0., 1., 10.], format='sec', scale=scale)
 

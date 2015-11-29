@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.23 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2014, Mark Calabretta
+  WCSLIB 5.10 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsulex.l,v 4.23 2014/05/11 04:09:38 mcalabre Exp $
+  $Id: wcsulex.l,v 5.10 2015/10/09 08:19:15 mcalabre Exp $
 *=============================================================================
 *
 * wcsulex.l is a Flex description file containing the definition of a

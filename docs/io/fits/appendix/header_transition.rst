@@ -16,7 +16,7 @@ Header Interface Transition Guide
 
 PyFITS v3.1 included an almost complete rewrite of the :class:`Header`
 interface.  Although the new interface is largely compatible with the old
-interace (whether due to similarities in the design, or backwards-compatibility
+interface (whether due to similarities in the design, or backwards-compatibility
 support), there are enough differences that a full explanation of the new
 interface is merited.
 
@@ -73,7 +73,7 @@ directly through :class:`Header` objects.  It also tries to present headers as
 similar as possible to more a more familiar data structure--an ordered mapping
 (or :class:`~collections.OrderedDict` in Python) for ease of use by new users
 less familiar with the FITS format.  Though there are still many added
-complexities for dealing with the idiosyncracies of the FITS format.
+complexities for dealing with the idiosyncrasies of the FITS format.
 
 
 Deprecation Warnings
@@ -115,7 +115,7 @@ old Header implementation also had a dict-like interface, it did not implement
 the *entire* dict interface as the new Header does.
 
 Although the new Header is used like a dict/mapping in most cases, it also
-supports a `list` interface.  The list-like interace is a bit idiosyncratic in
+supports a `list` interface.  The list-like interface is a bit idiosyncratic in
 that in some contexts the Header acts like a list of values, in some like a
 list of keywords, and in a few contexts like a list of :class:`Card` objects. This
 may be the most difficult aspect of the new design, but there is logic to it.
@@ -183,7 +183,7 @@ surprises.  There are differences, however:
 
       >>> del header[('NAXIS', 1)]
 
-  This will remove an accdential duplicate NAXIS card from the header.
+  This will remove an accidental duplicate NAXIS card from the header.
 
 - Even if there are duplicate keywords, keyword lookups like
   ``header['NAXIS']`` will always return the value associated with the first
@@ -388,7 +388,7 @@ Other Gotchas
   The other type of string representation happens when one calls
   ``repr(header)``.  The `repr` of an object is just meant to be a useful
   string "representation" of the object; in this case the contents of the
-  header but with linebreaks betwen the cards and with the END card and
+  header but with linebreaks between the cards and with the END card and
   padding trailing padding stripped off.  This happens automatically when
   one enters a variable at the Python prompt by itself without a ``print``
   call.
@@ -405,7 +405,7 @@ Other Gotchas
   automatically stripping trailing spaces, so that ``header['KEYWORD1']`` would
   return just ``'Value'``.
 
-  There is, however, one convention used by the IRAF ccdmosiac task for
+  There is, however, one convention used by the IRAF ccdmosaic task for
   representing its `TNX World Coordinate System
   <http://iraf.noao.edu/projects/ccdmosaic/tnx.html>`_ and `ZPX World
   Coordinate System <http://iraf.noao.edu/projects/ccdmosaic/zpx.html>`_

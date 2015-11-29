@@ -16,10 +16,17 @@
 Astropy Core Package Documentation
 ##################################
 
-.. image:: astropy_banner_96.png
-    :width: 485px
-    :height: 96px
-    :target: http://www.astropy.org/
+.. |logo_svg| image:: _static/astropy_banner.svg
+
+.. |logo_png| image:: _static/astropy_banner_96.png
+
+.. raw:: html
+
+   <img src="_images/astropy_banner.svg" onerror="this.src='_images/astropy_banner_96.png'; this.onerror=null;" width="485"/>
+
+.. only:: latex
+
+    .. image:: _static/astropy_logo.pdf
 
 Welcome to the Astropy documentation! Astropy is a community-driven
 package intended to contain much of the core functionality and some common
@@ -33,7 +40,7 @@ User Documentation
 
 .. only:: html
 
-    :doc:`whatsnew/0.4`
+    :doc:`whatsnew/1.1`
     -------------------
 
 .. only:: latex
@@ -41,7 +48,7 @@ User Documentation
     .. toctree::
        :maxdepth: 1
 
-       whatsnew/0.4
+       whatsnew/1.0
 
 **Astropy at a glance**
 
@@ -65,6 +72,7 @@ User Documentation
    coordinates/index
    wcs/index
    modeling/index
+   analytic_functions/index
 
 **Connecting up: Files and I/O**
 
@@ -83,6 +91,7 @@ User Documentation
    :maxdepth: 1
 
    convolution/index
+   visualization/index
    cosmology/index
    stats/index
    vo/index
@@ -97,6 +106,7 @@ User Documentation
    logging
    warnings
    utils/index
+   testhelpers
 
 **Astropy project details**
 
@@ -189,6 +199,10 @@ The developer documentation contains instructions for how to contribute to
 Astropy or affiliated packages, as well as coding, documentation, and
 testing guidelines. For the guiding vision of this process and the project
 as a whole, see :doc:`development/vision`.
+
+There are additional tools of use for developers in the
+`astropy/astropy-tools repository
+<http://github.com/astropy/astropy-tools>`__.
 
 .. toctree::
    :maxdepth: 1

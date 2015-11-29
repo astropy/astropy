@@ -31,10 +31,12 @@ development version or stable version is the active one.
 up. It is well worth your time.
 
 Not sure what your first contribution should be? Take a look at the `Astropy
-issue list`_ and grab one labeled "easy"...but note that even your first "easy"
-fix is likely to take a while if you are not familiar with the Astropy source
-code! The developers are friendly and want you to help, so don't be shy about
-asking questions on the `astropy-dev mailing list`_.
+issue list`_ and grab one labeled "package-novice". These issues are the
+most accessible ones if you are not familiar with the Astropy source
+code. Issues labeled as "effort-low" are expected to take a few hours (at
+most) to address, while the "effort-medium" ones may take a few days. The
+developers are friendly and want you to help, so don't be shy about asking
+questions on the `astropy-dev mailing list`_.
 
 New to `git`_?
 ==============
@@ -311,10 +313,14 @@ In more detail
    the documentation builds and looks correct by running, from the
    ``astropy`` directory::
 
-     python setup.py build_sphinx
+     python setup.py build_docs
 
    The last line should just state ``build succeeded``, and should not mention
    any warnings.  (For more details, see :ref:`documentation-guidelines`.)
+
+   .. note::
+       If the build_docs command is not found, try running ``python setup.py
+       build_sphinx`` instead.
 
 #. Add tests of your new code, if appropriate. Some changes (e.g. to
    documentation) do not need tests. Detailed instructions are at
@@ -432,12 +438,12 @@ The actual rebasing is usually easy::
     git fetch astropy/master  # get the latest development astropy
     git rebase astropy/master my-new-feature
 
-You are more likely to run into *conflics* here--places where the changes you
+You are more likely to run into *conflicts* here--places where the changes you
 made conflict with changes that someone else made--than anywhere else. Ask for
 help if you need it.
 
 After the rebase you need to push your changes to GitHub; you will need force
-the push because `git`_ objects to re-writing the history of the respository
+the push because `git`_ objects to re-writing the history of the repository
 after you have pushed it somewhere::
 
     git push -f

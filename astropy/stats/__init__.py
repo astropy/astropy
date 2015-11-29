@@ -12,3 +12,6 @@ astronomers' needs.
 """
 
 from .funcs import *
+from .sigma_clipping import *
+from .bayesian_blocks import *
+from .histogram import *

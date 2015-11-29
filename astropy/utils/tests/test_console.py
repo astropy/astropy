@@ -163,7 +163,7 @@ def test_progress_bar():
 
 
 def test_progress_bar2():
-    for x in console.ProgressBar.iterate(xrange(50)):
+    for x in console.ProgressBar(xrange(50)):
         pass
 
 
@@ -190,7 +190,7 @@ def test_progress_bar_as_generator():
         sum += x
     assert sum == 1225
 
-@pytest.mark.parametrize("seconds,string",
+@pytest.mark.parametrize(("seconds","string"),
        [(864088," 1w 3d"),
        (187213, " 2d 4h"),
        (3905,   " 1h 5m"),
@@ -200,5 +200,16 @@ def test_progress_bar_as_generator():
 )
 def test_human_time(seconds, string):
     human_time = console.human_time(seconds)
+    assert human_time == string
+
+@pytest.mark.parametrize(("size","string"),
+       [(8640882,"8.6M"),
+       (187213, "187k"),
+       (3905,   "3.9k"),
+       (64,     " 64 "),
+       (2,      "  2 ")]
+)
+def test_human_file_size(size, string):
+    human_time = console.human_file_size(size)
     assert human_time == string
 

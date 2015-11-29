@@ -26,6 +26,7 @@ from warnings import warn
 
 from .. import config as _config
 from ..utils.exceptions import AstropyWarning
+from ..utils.introspection import find_current_module, resolve_name
 
 
 __all__ = [
@@ -35,7 +36,7 @@ __all__ = [
     'get_pkg_data_filenames', 'compute_hash', 'clear_download_cache',
     'CacheMissingWarning', 'get_free_space_in_dir',
     'check_free_space_in_dir', 'download_file',
-    'download_files_in_parallel']
+    'download_files_in_parallel', 'is_url_in_cache']
 
 
 class Conf(_config.ConfigNamespace):
@@ -123,8 +124,9 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     Given a filename or a readable file-like object, return a context
     manager that yields a readable file-like object.
 
-    This supports passing filenames, URLs, and readable file-like
-    objects, any of which can be compressed in gzip or bzip2.
+    This supports passing filenames, URLs, and readable file-like objects,
+    any of which can be compressed in gzip, bzip2 or lzma (xz) if the
+    appropriate compression libraries are provided by the Python installation.
 
     Notes
     -----
@@ -189,7 +191,8 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
 
     # Get a file object to the content
     if isinstance(name_or_obj, six.string_types):
-        if _is_url(name_or_obj):
+        is_url = _is_url(name_or_obj)
+        if is_url:
             name_or_obj = download_file(
                 name_or_obj, cache=cache, show_progress=show_progress,
                 timeout=remote_timeout)
@@ -197,6 +200,8 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
             fileobj = io.FileIO(name_or_obj, 'r')
         elif six.PY2:
             fileobj = open(name_or_obj, 'rb')
+        if is_url and not cache:
+            delete_fds.append(fileobj)
         close_fds.append(fileobj)
     else:
         fileobj = name_or_obj
@@ -230,25 +235,65 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
             fileobj = fileobj_new
     elif signature[:3] == b'BZh':  # bzip2
         try:
+            import bz2
+        except ImportError:
+            for fd in close_fds:
+                fd.close()
+            raise ValueError(
+                ".bz2 format files are not supported since the Python "
+                "interpreter does not include the bz2 module")
+        try:
             # bz2.BZ2File does not support file objects, only filenames, so we
             # need to write the data to a temporary file
-            tmp = NamedTemporaryFile("wb", delete=False)
-            tmp.write(fileobj.read())
-            tmp.close()
-            delete_fds.append(tmp)
-            import bz2
-            fileobj_new = bz2.BZ2File(tmp.name, mode='rb')
+            with NamedTemporaryFile("wb", delete=False) as tmp:
+                tmp.write(fileobj.read())
+                tmp.close()
+                fileobj_new = bz2.BZ2File(tmp.name, mode='rb')
             fileobj_new.read(1)  # need to check that the file is really bzip2
         except IOError:  # invalid bzip2 file
             fileobj.seek(0)
             fileobj_new.close()
+            # raise
         else:
             fileobj_new.seek(0)
             close_fds.append(fileobj_new)
             fileobj = fileobj_new
+    elif signature[:3] == b'\xfd7z':  # xz
+        try:
+            # for Python < 3.3 try backports.lzma; pyliblzma installs as lzma,
+            # but does not support TextIOWrapper
+            if sys.version_info >= (3,3,0):
+                import lzma
+                fileobj_new = lzma.LZMAFile(fileobj, mode='rb')
+            else:
+                from backports import lzma
+                from backports.lzma import LZMAFile
+                # when called with file object, returns a non-seekable instance
+                # need a filename here, too, so have to write the data to a
+                # temporary file
+                with NamedTemporaryFile("wb", delete=False) as tmp:
+                    tmp.write(fileobj.read())
+                    tmp.close()
+                    fileobj_new = LZMAFile(tmp.name, mode='rb')
+            fileobj_new.read(1)  # need to check that the file is really xz
+        except ImportError:
+            for fd in close_fds:
+                fd.close()
+            raise ValueError(
+                ".xz format files are not supported since the Python "
+                "interpreter does not include the lzma module. "
+                "On Python versions < 3.3 consider installing backports.lzma")
+        except (IOError, EOFError) as e:  # invalid xz file
+            fileobj.seek(0)
+            fileobj_new.close()
+            # should we propagate this to the caller to signal bad content?
+            # raise ValueError(e)
+        else:
+            fileobj_new.seek(0)
+            fileobj = fileobj_new
 
-    # By this point, we have a file, io.FileIO, gzip.GzipFile, or
-    # bz2.BZ2File instance opened in binary mode (that is, read
+    # By this point, we have a file, io.FileIO, gzip.GzipFile, bz2.BZ2File
+    # or lzma.LZMAFile instance opened in binary mode (that is, read
     # returns bytes).  Now we need to, if requested, wrap it in a
     # io.TextIOWrapper so read will return unicode based on the
     # encoding parameter.
@@ -262,18 +307,22 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         # A bz2.BZ2File can not be wrapped by a TextIOWrapper,
         # so we decompress it to a temporary file and then
         # return a handle to that.
-        import bz2
-        if isinstance(fileobj, bz2.BZ2File):
-            tmp = NamedTemporaryFile("wb", delete=False)
-            data = fileobj.read()
-            tmp.write(data)
-            tmp.close()
-            delete_fds.append(tmp)
-            if six.PY3:
-                fileobj = io.FileIO(tmp.name, 'r')
-            elif six.PY2:
-                fileobj = open(tmp.name, 'rb')
-            close_fds.append(fileobj)
+        try:
+            import bz2
+        except ImportError:
+            pass
+        else:
+            if isinstance(fileobj, bz2.BZ2File):
+                tmp = NamedTemporaryFile("wb", delete=False)
+                data = fileobj.read()
+                tmp.write(data)
+                tmp.close()
+                delete_fds.append(tmp)
+                if six.PY3:
+                    fileobj = io.FileIO(tmp.name, 'r')
+                elif six.PY2:
+                    fileobj = open(tmp.name, 'rb')
+                close_fds.append(fileobj)
 
         # On Python 2.x, we need to first wrap the regular `file`
         # instance in a `io.FileIO` object before it can be
@@ -309,7 +358,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
             os.remove(fd.name)
 
 
-def get_file_contents(name_or_obj, encoding=None, cache=False):
+def get_file_contents(*args, **kwargs):
     """
     Retrieves the contents of a filename or file-like object.
 
@@ -321,11 +370,11 @@ def get_file_contents(name_or_obj, encoding=None, cache=False):
         The content of the file (as requested by ``encoding``).
 
     """
-    with get_readable_fileobj(name_or_obj, encoding, cache) as f:
+    with get_readable_fileobj(*args, **kwargs) as f:
         return f.read()
 
 
-def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
+def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
     """
     Retrieves a data file from the standard locations for the package and
     provides the file as a file-like object that reads bytes.
@@ -346,9 +395,13 @@ def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
               data server will be queried for the file.
             * A hash like that produced by `compute_hash` can be
               requested, prefixed by 'hash/'
-              e.g. 'hash/395dd6493cc584df1e78b474fb150840'.  The hash
+              e.g. 'hash/34c33b3eb0d56eb9462003af249eff28'.  The hash
               will first be searched for locally, and if not found,
               the Astropy data server will be queried.
+
+    package : str, optional
+        If specified, look for a file relative to the given package, rather
+        than the default of looking relative to the calling module's package.
 
     encoding : str, optional
         When `None` (default), returns a file-like object with a
@@ -393,32 +446,39 @@ def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
     This will retrieve a data file and its contents for the `astropy.wcs`
     tests::
 
-        from astropy.utils.data import get_pkg_data_fileobj
+        >>> from astropy.utils.data import get_pkg_data_fileobj
+        >>> with get_pkg_data_fileobj('data/3d_cd.hdr',
+        ...                           package='astropy.wcs.tests') as fobj:
+        ...     fcontents = fobj.read()
+        ...
 
-        with get_pkg_data_fileobj('data/3d_cd.hdr') as fobj:
-            fcontents = fobj.read()
-
-    This would download a data file from the astropy data server
-    because the ``standards/vega.fits`` file is not present in the
+    This next example would download a data file from the astropy data server
+    because the ``allsky/allsky_rosat.fits`` file is not present in the
     source distribution.  It will also save the file locally so the
     next time it is accessed it won't need to be downloaded.::
 
-        from astropy.utils.data import get_pkg_data_fileobj
-
-        with get_pkg_data_fileobj('standards/vega.fits') as fobj:
-            fcontents = fobj.read()
+        >>> from astropy.utils.data import get_pkg_data_fileobj
+        >>> with get_pkg_data_fileobj('allsky/allsky_rosat.fits',
+        ...                           encoding='binary') as fobj:  # doctest: +REMOTE_DATA
+        ...     fcontents = fobj.read()
+        ...
+        Downloading http://data.astropy.org/allsky/allsky_rosat.fits [Done]
 
     This does the same thing but does *not* cache it locally::
 
-        with get_pkg_data_fileobj('standards/vega.fits', cache=False) as fobj:
-            fcontents = fobj.read()
+        >>> with get_pkg_data_fileobj('allsky/allsky_rosat.fits',
+        ...                           encoding='binary', cache=False) as fobj:  # doctest: +REMOTE_DATA
+        ...     fcontents = fobj.read()
+        ...
+        Downloading http://data.astropy.org/allsky/allsky_rosat.fits [Done]
 
     See Also
     --------
     get_pkg_data_contents : returns the contents of a file or url as a bytes object
     get_pkg_data_filename : returns a local name for a file containing the data
     """
-    datafn = _find_pkg_data_path(data_name)
+
+    datafn = _find_pkg_data_path(data_name, package=package)
     if os.path.isdir(datafn):
         raise IOError("Tried to access a data file that's actually "
                       "a package data directory")
@@ -429,7 +489,8 @@ def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
                                     cache=cache)
 
 
-def get_pkg_data_filename(data_name, show_progress=True, remote_timeout=None):
+def get_pkg_data_filename(data_name, package=None, show_progress=True,
+                          remote_timeout=None):
     """
     Retrieves a data file from the standard locations for the package and
     provides a local filename for the data.
@@ -455,9 +516,13 @@ def get_pkg_data_filename(data_name, show_progress=True, remote_timeout=None):
               data server will be queried for the file.
             * A hash like that produced by `compute_hash` can be
               requested, prefixed by 'hash/'
-              e.g. 'hash/395dd6493cc584df1e78b474fb150840'.  The hash
+              e.g. 'hash/34c33b3eb0d56eb9462003af249eff28'.  The hash
               will first be searched for locally, and if not found,
               the Astropy data server will be queried.
+
+    package : str, optional
+        If specified, look for a file relative to the given package, rather
+        than the default of looking relative to the calling module's package.
 
     show_progress : bool, optional
         Whether to display a progress bar if the file is downloaded
@@ -487,21 +552,21 @@ def get_pkg_data_filename(data_name, show_progress=True, remote_timeout=None):
     This will retrieve the contents of the data file for the `astropy.wcs`
     tests::
 
-        from astropy.utils.data import get_pkg_data_filename
-
-        fn = get_pkg_data_filename('data/3d_cd.hdr')
-        with open(fn) as f:
-            fcontents = f.read()
-
+        >>> from astropy.utils.data import get_pkg_data_filename
+        >>> fn = get_pkg_data_filename('data/3d_cd.hdr',
+        ...                            package='astropy.wcs.tests')
+        >>> with open(fn) as f:
+        ...     fcontents = f.read()
+        ...
 
     This retrieves a data file by hash either locally or from the astropy data
     server::
 
-        from astropy.utils.data import get_pkg_data_filename
-
-        fn = get_pkg_data_filename('hash/da34a7b07ef153eede67387bf950bb32')
-        with open(fn) as f:
-            fcontents = f.read()
+        >>> from astropy.utils.data import get_pkg_data_filename
+        >>> fn = get_pkg_data_filename('hash/34c33b3eb0d56eb9462003af249eff28')  # doctest: +SKIP
+        >>> with open(fn) as f:
+        ...     fcontents = f.read()
+        ...
 
     See Also
     --------
@@ -526,7 +591,7 @@ def get_pkg_data_filename(data_name, show_progress=True, remote_timeout=None):
         else:
             return hashfn
     else:
-        datafn = _find_pkg_data_path(data_name)
+        datafn = _find_pkg_data_path(data_name, package=package)
         if os.path.isdir(datafn):
             raise IOError("Tried to access a data file that's actually "
                           "a package data directory")
@@ -539,7 +604,7 @@ def get_pkg_data_filename(data_name, show_progress=True, remote_timeout=None):
                 timeout=remote_timeout)
 
 
-def get_pkg_data_contents(data_name, encoding=None, cache=True):
+def get_pkg_data_contents(data_name, package=None, encoding=None, cache=True):
     """
     Retrieves a data file from the standard locations and returns its
     contents as a bytes object.
@@ -560,10 +625,15 @@ def get_pkg_data_contents(data_name, encoding=None, cache=True):
               data server will be queried for the file.
             * A hash like that produced by `compute_hash` can be
               requested, prefixed by 'hash/'
-              e.g. 'hash/395dd6493cc584df1e78b474fb150840'.  The hash
+              e.g. 'hash/34c33b3eb0d56eb9462003af249eff28'.  The hash
               will first be searched for locally, and if not found,
               the Astropy data server will be queried.
             * A URL to some other file.
+
+    package : str, optional
+        If specified, look for a file relative to the given package, rather
+        than the default of looking relative to the calling module's package.
+
 
     encoding : str, optional
         When `None` (default), returns a file-like object with a
@@ -605,12 +675,14 @@ def get_pkg_data_contents(data_name, encoding=None, cache=True):
     get_pkg_data_fileobj : returns a file-like object with the data
     get_pkg_data_filename : returns a local name for a file containing the data
     """
-    with get_pkg_data_fileobj(data_name, encoding=encoding, cache=cache) as fd:
+
+    with get_pkg_data_fileobj(data_name, package=package, encoding=encoding,
+                              cache=cache) as fd:
         contents = fd.read()
     return contents
 
 
-def get_pkg_data_filenames(datadir, pattern='*'):
+def get_pkg_data_filenames(datadir, package=None, pattern='*'):
     """
     Returns the path of all of the data files in a given directory
     that match a given glob pattern.
@@ -627,6 +699,10 @@ def get_pkg_data_filenames(datadir, pattern='*'):
               files in ``astropy/pkgname/data``.
             * Remote URLs are not currently supported.
 
+    package : str, optional
+        If specified, look for a file relative to the given package, rather
+        than the default of looking relative to the calling module's package.
+
     pattern : str, optional
         A UNIX-style filename glob pattern to match files.  See the
         `glob` module in the standard library for more information.
@@ -642,14 +718,15 @@ def get_pkg_data_filenames(datadir, pattern='*'):
     This will retrieve the contents of the data file for the `astropy.wcs`
     tests::
 
-        from astropy.utils.data import get_pkg_data_filenames
-
-        for fn in get_pkg_data_filename('maps', '*.hdr'):
-            with open(fn) as f:
-                fcontents = f.read()
+        >>> from astropy.utils.data import get_pkg_data_filenames
+        >>> for fn in get_pkg_data_filenames('maps', 'astropy.wcs.tests',
+        ...                                  '*.hdr'):
+        ...     with open(fn) as f:
+        ...         fcontents = f.read()
+        ...
     """
 
-    path = _find_pkg_data_path(datadir)
+    path = _find_pkg_data_path(datadir, package=package)
     if os.path.isfile(path):
         raise IOError(
             "Tried to access a data directory that's actually "
@@ -662,7 +739,7 @@ def get_pkg_data_filenames(datadir, pattern='*'):
         raise IOError("Path not found")
 
 
-def get_pkg_data_fileobjs(datadir, pattern='*', encoding=None):
+def get_pkg_data_fileobjs(datadir, package=None, pattern='*', encoding=None):
     """
     Returns readable file objects for all of the data files in a given
     directory that match a given glob pattern.
@@ -678,6 +755,10 @@ def get_pkg_data_fileobjs(datadir, pattern='*', encoding=None):
               ``astropy.pkname``, use ``'data'`` to get the
               files in ``astropy/pkgname/data``
             * Remote URLs are not currently supported
+
+    package : str, optional
+        If specified, look for a file relative to the given package, rather
+        than the default of looking relative to the calling module's package.
 
     pattern : str, optional
         A UNIX-style filename glob pattern to match files.  See the
@@ -710,13 +791,16 @@ def get_pkg_data_fileobjs(datadir, pattern='*', encoding=None):
     This will retrieve the contents of the data file for the `astropy.wcs`
     tests::
 
-        from astropy.utils.data import get_pkg_data_filenames
-
-        for fd in get_pkg_data_filename('maps', '*.hdr'):
-            fcontents = fd.read()
+        >>> from astropy.utils.data import get_pkg_data_filenames
+        >>> for fd in get_pkg_data_fileobjs('maps', 'astropy.wcs.tests',
+        ...                                 '*.hdr'):
+        ...     fcontents = fd.read()
+        ...
     """
-    for fn in get_pkg_data_filenames(datadir, pattern):
-        with get_pkg_data_fileobj(fn, encoding=encoding) as fd:
+
+    for fn in get_pkg_data_filenames(datadir, package=package,
+                                     pattern=pattern):
+        with get_readable_fileobj(fn, encoding=encoding) as fd:
             yield fd
 
 
@@ -731,7 +815,7 @@ def compute_hash(localfn):
     Typically, if you wish to write a test that requires a particular data
     file, you will want to submit that file to the astropy data servers, and
     use
-    e.g. ``get_pkg_data_filename('hash/a725fa6ba642587436612c2df0451956')``,
+    e.g. ``get_pkg_data_filename('hash/34c33b3eb0d56eb9462003af249eff28')``,
     but with the hash for your file in place of the hash in the example.
 
     Parameters
@@ -757,32 +841,35 @@ def compute_hash(localfn):
     return h.hexdigest()
 
 
-def _find_pkg_data_path(data_name):
+def _find_pkg_data_path(data_name, package=None):
     """
     Look for data in the source-included data directories and return the
     path.
     """
 
-    from ..utils import find_current_module
+    if package is None:
+        module = find_current_module(1, True)
 
-    module = find_current_module(1, True)
-    if module is None:
-        # not called from inside an astropy package.  So just pass name through
-        return data_name
+        if module is None:
+            # not called from inside an astropy package.  So just pass name
+            # through
+            return data_name
 
-    if not hasattr(module, '__package__') or not module.__package__:
-        # The __package__ attribute may be missing or set to None; see PEP-366,
-        # also astropy issue #1256
-        if '.' in module.__name__:
-            pkgname = module.__name__.rpartition('.')[0]
+        if not hasattr(module, '__package__') or not module.__package__:
+            # The __package__ attribute may be missing or set to None; see
+            # PEP-366, also astropy issue #1256
+            if '.' in module.__name__:
+                package = module.__name__.rpartition('.')[0]
+            else:
+                package = module.__name__
         else:
-            pkgname = module.__name__
+            package = module.__package__
     else:
-        pkgname = module.__package__
+        module = resolve_name(package)
 
-    rootpkgname = pkgname.partition('.')[0]
+    rootpkgname = package.partition('.')[0]
 
-    rootpkg = __import__(rootpkgname)
+    rootpkg = resolve_name(rootpkgname)
 
     module_path = os.path.dirname(module.__file__)
     path = os.path.join(module_path, data_name)
@@ -1018,6 +1105,38 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
 
     return local_path
 
+def is_url_in_cache(url_key):
+    """
+    Check if a download from ``url_key`` is in the cache.
+
+    Parameters
+    ----------
+    url_key : string
+        The URL retrieved
+
+    Returns
+    -------
+    in_cache : bool
+        `True` if a download from ``url_key`` is in the cache
+    """
+    # The code below is modified from astropy.utils.data.download_file()
+    try:
+        dldir, urlmapfn = _get_download_cache_locs()
+    except (IOError, OSError) as e:
+        msg = 'Remote data cache could not be accessed due to '
+        estr = '' if len(e.args) < 1 else (': ' + str(e))
+        warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
+        return False
+
+    if six.PY2 and isinstance(url_key, six.text_type):
+        # shelve DBs don't accept unicode strings in Python 2
+        url_key = url_key.encode('utf-8')
+
+    with _open_shelve(urlmapfn, True) as url2hash:
+        if url_key in url2hash:
+            return True
+    return False
+
 
 def _do_download_files_in_parallel(args):
     return download_file(*args, show_progress=False)
@@ -1232,7 +1351,9 @@ def _acquire_download_cache_lock():
             time.sleep(1)
         else:
             return
-    msg = 'Unable to acquire lock for cache directory ({0} exists)'
+    msg = ("Unable to acquire lock for cache directory ({0} exists). "
+           "You may need to delete the lock if the python interpreter wasn't "
+           "shut down properly.")
     raise RuntimeError(msg.format(lockdir))
 
 

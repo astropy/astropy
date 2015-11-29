@@ -14,7 +14,7 @@ You can control the way that |quantity| and |unit| objects are rendered as
 strings using the new `Format String Syntax
 <http://docs.python.org/library/string.html#format-string-syntax>`__.
 New-style format strings use the ``"{}".format()`` syntax.  Most of
-the format speficiers are simliar to the old ``%``-style formatting,
+the format specifiers are similar to the old ``%``-style formatting,
 so things like ``0.003f`` still work, just in the form
 ``"{:0.003f}".format()``.
 
@@ -122,10 +122,10 @@ formats:
     Unlike the "generic" string format, this will only accept or
     generate units defined in the FITS standard.
 
-  - ``"vounit"``: The `proposed IVOA standard
-    <http://www.ivoa.net/Documents/VOUnits/>`__ for representing units
-    in the VO.  Again, based on the FITS syntax, but the collection of
-    supported units is different.
+  - ``"vounit"``: The `Units in the VO 1.0
+    <http://www.ivoa.net/Documents/VOUnits/>`__ standard for
+    representing units in the VO.  Again, based on the FITS syntax,
+    but the collection of supported units is different.
 
   - ``"cds"``: `Standards for astronomical catalogues from Centre de
     Données astronomiques de Strasbourg
@@ -197,8 +197,8 @@ Normally, passing an unrecognized unit string raises an exception::
   Traceback (most recent call last):
     ...
   ValueError: 'Angstroem' did not parse as fits unit: At col 0, Unit
-  u'Angstroem' not supported by the FITS standard. Did you mean
-  Angstrom or angstrom?
+  'Angstroem' not supported by the FITS standard. Did you mean
+  10**-1 nm, Angstrom (deprecated) or angstrom (deprecated)?
 
 However, the `~astropy.units.Unit` constructor has the keyword
 argument ``parse_strict`` that can take one of three values to control

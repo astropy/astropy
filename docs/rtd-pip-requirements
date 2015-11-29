@@ -1,4 +1,5 @@
 -e git+http://github.com/astropy/astropy-helpers.git#egg=astropy_helpers
-numpy>=1.5.0
+numpy>=1.6.0
 matplotlib
 Cython
+wcsaxes

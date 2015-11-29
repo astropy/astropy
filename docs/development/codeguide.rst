@@ -17,8 +17,8 @@ Interface and Dependencies
 
 * All code must be compatible with Python 2.6, 2.7, as well as 3.3 and
   later.  The use of `six`_ for writing code that is portable between Python
-  2.x and 3.x is encouraged going forward.  However, much of our legacy code
-  still uses `2to3`_ to process Python 2.x files to be compatible with
+  2.x and 3.x is encouraged going forward.  However, much of our affiliate code
+  may still use `2to3`_ to process Python 2.x files to be compatible with
   Python 3.x.
 
 .. _six: http://pythonhosted.org/six/
@@ -164,6 +164,11 @@ Coding Style/Conventions
 * The code will follow the standard `PEP8 Style Guide for Python Code
   <http://www.python.org/dev/peps/pep-0008/>`_. In particular, this includes
   using only 4 spaces for indentation, and never tabs.
+
+* *Follow the existing coding style* within a subpackage and avoid making
+  changes that are purely stylistic.  In particular, there is variation in the
+  maximum line length for different subpackages (typically either 80 or 100
+  characters).  Please try to maintain the style when adding or modifying code.
 
 * One exception is to be made from the PEP8 style: new style relative imports
   of the form ``from . import modname`` are allowed and required for Astropy,
@@ -355,10 +360,10 @@ Writing portable code for Python 2 and 3
 ----------------------------------------
 
 As of astropy 0.3, the `six`_ library is included to allow supporting Python
-2 and 3 from a single code base.  The use of the `2to3`_ tool is being
+2 and 3 from a single code base.  The use of the `2to3`_ tool has been
 phased out in favor of using ``six``.
 
-To start using ``six`` instead of ``2to3`` in a package, you first
+To start using ``six`` instead of ``2to3`` in an affiliate package, you first
 need to put the following in the package's ``setup_package.py`` file::
 
     def requires_2to3():
@@ -494,13 +499,15 @@ literal and repeat all slashes, e.g. ``"\\usepackage{foo}"``.
 The following shows the problem on Python 2::
 
     >>> ur'\u'
-      File "<stdin>", line 1
+    Traceback (most recent call last):
+    ...
     SyntaxError: (unicode error) 'rawunicodeescape' codec can't decode bytes in
     position 0-1: truncated \uXXXX
     >>> ur'\\u'
     u'\\\\u'
     >>> u'\u'
-      File "<stdin>", line 1
+    Traceback (most recent call last):
+    ...
     SyntaxError: (unicode error) 'unicodeescape' codec can't decode bytes in
     position 0-1: truncated \uXXXX escape
     >>> u'\\u'
@@ -519,6 +526,15 @@ of that and still support Python 2::
     position 0-1: truncated \uXXXX escape
     >>> '\\u'
     '\\u'
+
+Compatibility between versions of Numpy
+---------------------------------------
+
+In general, code should aim to be compatible with the lowest supported version
+of NumPy_.  Sometimes, however, it is inefficient to code repeatedly around
+bugs in earlier versions. For those cases, code can be added to
+`astropy.utils.compat.numpy`; see the corresponding :ref:`instructions
+<numpy-compatibility>` for details.
 
 Requirements Specific to Affiliated Packages
 --------------------------------------------

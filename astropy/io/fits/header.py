@@ -10,8 +10,6 @@ import re
 import sys
 import warnings
 
-from collections import defaultdict
-
 from .card import Card, CardList, _pad, KEYWORD_LENGTH
 from .file import _File
 from .util import (encode_ascii, decode_ascii, fileobj_closed,
@@ -27,7 +25,7 @@ from ...utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 BLOCK_SIZE = 2880  # the FITS block size
 
 # This regular expression can match a *valid* END card which just consists of
-# the the string 'END' followed by all spaces, or an *invalid* end card which
+# the string 'END' followed by all spaces, or an *invalid* end card which
 # consists of END, followed by any character that is *not* a valid character
 # for a valid FITS keyword (that is, this is not a keyword like 'ENDER' which
 # starts with 'END' but is not 'END'), followed by any arbitrary bytes.  An
@@ -126,7 +124,7 @@ class Header(object):
         if keyword in self._keyword_indices or keyword in self._rvkc_indices:
             # For the most common case (single, standard form keyword lookup)
             # this will work and is an O(1) check.  If it fails that doesn't
-            # guarantee absense, just that we have to perform the full set of
+            # guarantee absence, just that we have to perform the full set of
             # checks in self._cardindex
             return True
         try:
@@ -565,11 +563,11 @@ class Header(object):
     @classmethod
     def _find_end_card(cls, block, card_len):
         """
-        Utitility method to search a header block for the END card and handle
+        Utility method to search a header block for the END card and handle
         invalid END cards.
 
         This method can also returned a modified copy of the input header block
-        in case an invalid end card needs to be sanitized
+        in case an invalid end card needs to be sanitized.
         """
 
         for mo in HEADER_END_RE.finditer(block):
@@ -834,7 +832,7 @@ class Header(object):
             It should be noted that ``header.set(keyword, value)`` and
             ``header.set(keyword, value, comment)`` are equivalent to
             ``header[keyword] = value`` and
-            ``header[keyword] = (value, comment)`` respectfully.
+            ``header[keyword] = (value, comment)`` respectively.
 
             New keywords can also be inserted relative to existing keywords
             using, for example::
@@ -847,7 +845,7 @@ class Header(object):
 
             to insert after an existing keyword.
 
-            The the only advantage of using :meth:`Header.set` is that it
+            The only advantage of using :meth:`Header.set` is that it
             easily replaces the old usage of :meth:`Header.update` both
             conceptually and in terms of function signature.
 
@@ -1335,7 +1333,7 @@ class Header(object):
         # We don't immediately modify the header, because first we need to sift
         # out any duplicates in the new header prior to adding them to the
         # existing header, but while *allowing* duplicates from the header
-        # being exteded from (see ticket #156)
+        # being extended from (see ticket #156)
         extend_cards = []
 
         for idx, card in enumerate(temp.cards):
@@ -1361,7 +1359,7 @@ class Header(object):
                 else:
                     extend_cards.append(card)
             else:
-                if unique or update and keyword in self:
+                if (unique or update) and keyword in self:
                     if card.is_blank:
                         extend_cards.append(card)
                         continue
@@ -1444,7 +1442,7 @@ class Header(object):
         Parameters
         ----------
         key : int, str, or tuple
-            The index into the the list of header keywords before which the
+            The index into the list of header keywords before which the
             new keyword should be inserted, or the name of a keyword before
             which the new keyword should be inserted.  Can also accept a
             (keyword, index) tuple for inserting around duplicate keywords.
@@ -1660,7 +1658,7 @@ class Header(object):
             existing_card = self._cards[idx]
             existing_card.value = value
             if comment is not None:
-                # '' should be used to explictly blank a comment
+                # '' should be used to explicitly blank a comment
                 existing_card.comment = comment
             if existing_card._modified:
                 self._modified = True
@@ -2295,7 +2293,7 @@ class _HeaderCommentaryCards(_CardAccessor):
 def _is_astropy_internal():
     """
     Returns True if the stack frame this is called from is in code internal to
-    the the astropy package.
+    the astropy package.
 
     This is used in a few places where hacks are employed for backwards
     compatibility with the old header API, but where we want to avoid using

@@ -12,12 +12,20 @@ from contextlib import contextmanager
 
 from . import config as _config
 from . import conf as _conf
-from .extern.six import PY3
+from .extern.six import PY3, text_type
 from .utils import find_current_module
 from .utils.console import color_print
 from .utils.exceptions import AstropyWarning, AstropyUserWarning
 
 __all__ = ['Conf', 'conf', 'log', 'AstropyLogger', 'LoggingError']
+
+# import the logging levels from logging so that one can do:
+# log.setLevel(log.DEBUG), for example
+logging_levels = ['NOTSET', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
+                  'FATAL', ]
+for level in logging_levels:
+    globals()[level] = getattr(logging, level)
+__all__ += logging_levels
 
 
 # Initialize by calling _init_log()
@@ -200,7 +208,7 @@ class AstropyLogger(Logger):
         mod_name = None
         if PY3:
             mod_path, ext = os.path.splitext(mod_path)
-            for name, mod in sys.modules.items():
+            for name, mod in list(sys.modules.items()):
                 try:
                     # Believe it or not this can fail in some cases:
                     # https://github.com/astropy/astropy/issues/2671
@@ -211,7 +219,7 @@ class AstropyLogger(Logger):
                     mod_name = mod.__name__
                     break
         else:  # pragma: py2
-            for name, mod in sys.modules.items():
+            for name, mod in list(sys.modules.items()):
                 try:
                     if getattr(mod, '__file__', '') == mod_path:
                         mod_name = mod.__name__
@@ -276,7 +284,7 @@ class AstropyLogger(Logger):
         if len(value.args) > 0:
             message = '{0}: {1}'.format(etype.__name__, str(value))
         else:
-            message = unicode(etype.__name__)
+            message = text_type(etype.__name__)
 
         if mod is not None:
             self.error(message, extra={'origin': mod.__name__})
@@ -528,7 +536,7 @@ class AstropyLogger(Logger):
             except (IOError, OSError) as e:
                 warnings.warn(
                     'log file {0!r} could not be opened for writing: '
-                    '{1}'.format(log_file_path, unicode(e)), RuntimeWarning)
+                    '{1}'.format(log_file_path, text_type(e)), RuntimeWarning)
             else:
                 formatter = logging.Formatter(conf.log_file_format)
                 fh.setFormatter(formatter)

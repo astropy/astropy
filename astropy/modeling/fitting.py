@@ -2,7 +2,7 @@
 
 """
 This module implements classes (called Fitters) which combine optimization
-algorithms (typically from `scipy.optimize`) with statistic functions to perfom
+algorithms (typically from `scipy.optimize`) with statistic functions to perform
 fitting. Fitters are implemented as callable classes. In addition to the data
 to fit, the ``__call__`` method takes an instance of
 `~astropy.modeling.core.FittableModel` as input, and returns a copy of the
@@ -35,7 +35,6 @@ import numpy as np
 
 from .utils import poly_map_domain
 from ..utils.exceptions import AstropyUserWarning
-from .core import _CompositeModel
 from ..extern import six
 from .optimizers import (SLSQP, Simplex)
 from .statistic import (leastsquare)
@@ -69,7 +68,23 @@ class UnsupportedConstraintError(ModelsError, ValueError):
     """
 
 
-@six.add_metaclass(abc.ABCMeta)
+class _FitterMeta(abc.ABCMeta):
+    """
+    Currently just provides a registry for all Fitter classes.
+    """
+
+    registry = set()
+
+    def __new__(mcls, name, bases, members):
+        cls = super(_FitterMeta, mcls).__new__(mcls, name, bases, members)
+
+        if not inspect.isabstract(cls) and not name.startswith('_'):
+            mcls.registry.add(cls)
+
+        return cls
+
+
+@six.add_metaclass(_FitterMeta)
 class Fitter(object):
     """
     Base class for all fitters.
@@ -77,7 +92,7 @@ class Fitter(object):
     Parameters
     ----------
     optimizer : callable
-        A callble implementing an optimization algorithm
+        A callable implementing an optimization algorithm
     statistic : callable
         Statistic function
     """
@@ -116,7 +131,7 @@ class Fitter(object):
         -----
         The list of arguments (args) is set in the `__call__` method.
         Fitters may overwrite this method, e.g. when statistic functions
-        require other aguments.
+        require other arguments.
 
         """
         model = args[0]
@@ -137,6 +152,10 @@ class Fitter(object):
         raise NotImplementedError("Subclasses should implement this method.")
 
 
+# TODO: I have ongoing branch elsewhere that's refactoring this module so that
+# all the fitter classes in here are Fitter subclasses.  In the meantime we
+# need to specify that _FitterMeta is its metaclass.
+@six.add_metaclass(_FitterMeta)
 class LinearLSQFitter(object):
     """
     A class performing a linear least square fitting.
@@ -322,6 +341,7 @@ class LinearLSQFitter(object):
         return model_copy
 
 
+@six.add_metaclass(_FitterMeta)
 class LevMarLSQFitter(object):
     """
     Levenberg-Marquardt algorithm and least squares statistic.
@@ -350,7 +370,7 @@ class LevMarLSQFitter(object):
 
     supported_constraints = ['fixed', 'tied', 'bounds']
     """
-    The constaint types supported by this fitter type.
+    The constraint types supported by this fitter type.
     """
 
     def __init__(self):
@@ -467,10 +487,11 @@ class LevMarLSQFitter(object):
         for model constraints.
 
         `scipy.optimize.leastsq` expects the function derivative to have the
-        above signature (parlist, (argtuple)). In order to accomodate model
+        above signature (parlist, (argtuple)). In order to accommodate model
         constraints, instead of using p directly, we set the parameter list in
         this function.
         """
+
         if any(model.fixed.values()) or any(model.tied.values()):
 
             if z is None:
@@ -488,7 +509,7 @@ class LevMarLSQFitter(object):
 
             if not model.col_fit_deriv:
                 full_deriv = np.asarray(full_deriv).T
-                residues = np.asarray(full_deriv[np.nonzero(ind)])
+                residues = np.asarray(full_deriv[np.nonzero(ind)]).T
             else:
                 residues = full_deriv[np.nonzero(ind)]
 
@@ -629,6 +650,7 @@ class SimplexLSQFitter(Fitter):
         return model_copy
 
 
+@six.add_metaclass(_FitterMeta)
 class JointFitter(object):
     """
     Fit models which share a parameter.
@@ -664,9 +686,10 @@ class JointFitter(object):
         for model in self.models:
             params = [p.flatten() for p in model.parameters]
             joint_params = self.jointparams[model]
+            param_metrics = model._param_metrics
             for param_name in joint_params:
-                slc = model._param_metrics[param_name][0]
-                del params[slc]
+                slice_ = param_metrics[param_name]['slice']
+                del params[slice_]
             fparams.extend(params)
         return fparams
 
@@ -703,6 +726,7 @@ class JointFitter(object):
             del fitparams[:numfp]
             # recreate the model parameters
             mparams = []
+            param_metrics = model._param_metrics
             for param_name in model.param_names:
                 if param_name in joint_params:
                     index = joint_params.index(param_name)
@@ -710,8 +734,8 @@ class JointFitter(object):
                     # parameter is not a number
                     mparams.extend([jointfitparams[index]])
                 else:
-                    slc = model._param_metrics[param_name][0]
-                    plen = slc.stop - slc.start
+                    slice_ = param_metrics[param_name]['slice']
+                    plen = slice_.stop - slice_.start
                     mparams.extend(mfparams[:plen])
                     del mfparams[:plen]
             modelfit = model.evaluate(margs[:-1], *mparams)
@@ -732,7 +756,7 @@ class JointFitter(object):
 
     def __call__(self, *args):
         """
-        Fit data to these models keeping some of the pramaters common to the
+        Fit data to these models keeping some of the parameters common to the
         two models.
         """
 
@@ -761,6 +785,7 @@ class JointFitter(object):
             del fparams[:numfp]
             # recreate the model parameters
             mparams = []
+            param_metrics = model._param_metrics
             for param_name in model.param_names:
                 if param_name in joint_params:
                     index = joint_params.index(param_name)
@@ -768,8 +793,8 @@ class JointFitter(object):
                     # is not a number
                     mparams.extend([jointfitparams[index]])
                 else:
-                    slc = model._param_metrics[param_name][0]
-                    plen = slc.stop - slc.start
+                    slice_ = param_metrics[param_name]['slice']
+                    plen = slice_.stop - slice_.start
                     mparams.extend(mfparams[:plen])
                     del mfparams[:plen]
             model.parameters = np.array(mparams)
@@ -842,11 +867,13 @@ def _fitter_to_model_params(model, fps):
 
     fit_param_indices = set(fit_param_indices)
     offset = 0
+    param_metrics = model._param_metrics
     for idx, name in enumerate(model.param_names):
         if idx not in fit_param_indices:
             continue
 
-        slice_, shape = model._param_metrics[name]
+        slice_ = param_metrics[name]['slice']
+        shape = param_metrics[name]['shape']
         # This is determining which range of fps (the fitted parameters) maps
         # to parameters of the model
         size = reduce(operator.mul, shape, 1)
@@ -872,7 +899,7 @@ def _fitter_to_model_params(model, fps):
         for idx, name in enumerate(model.param_names):
             if model.tied[name] != False:
                 value = model.tied[name](model)
-                slice_ = model._param_metrics[name][0]
+                slice_ = param_metrics[name]['slice']
                 model.parameters[slice_] = value
 
 
@@ -890,10 +917,11 @@ def _model_to_fit_params(model):
     fitparam_indices = list(range(len(model.param_names)))
     if any(model.fixed.values()) or any(model.tied.values()):
         params = list(model.parameters)
+        param_metrics = model._param_metrics
         for idx, name in list(enumerate(model.param_names))[::-1]:
             if model.fixed[name] or model.tied[name]:
-                sl = model._param_metrics[name][0]
-                del params[sl]
+                slice_ = param_metrics[name]['slice']
+                del params[slice_]
                 del fitparam_indices[idx]
         return (np.array(params), fitparam_indices)
     else:

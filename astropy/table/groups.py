@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
@@ -7,14 +8,19 @@ import platform
 import warnings
 
 import numpy as np
+from .index import get_index
 
 from ..utils.exceptions import AstropyUserWarning
 
 
 __all__ = ['TableGroups', 'ColumnGroups']
 
-
 def table_group_by(table, keys):
+    # index copies are unnecessary and slow down _table_group_by
+    with table.index_mode('discard_on_copy'):
+        return _table_group_by(table, keys)
+
+def _table_group_by(table, keys):
     """
     Get groups for ``table`` on specified ``keys``.
 
@@ -30,7 +36,6 @@ def table_group_by(table, keys):
     grouped_table : Table object with groups attr set accordingly
     """
     from .table import Table
-
     # Pre-convert string to tuple of strings, or Table to the underlying structured array
     if isinstance(keys, six.string_types):
         keys = (keys,)
@@ -58,7 +63,13 @@ def table_group_by(table, keys):
                         .format(type(keys)))
 
     try:
-        idx_sort = table_keys.argsort(kind='mergesort')
+        # take advantage of index internal sort if possible
+        table_index = get_index(table, table_keys) if \
+                      isinstance(table_keys, Table) else None
+        if table_index is not None:
+            idx_sort = table_index.sorted_data()
+        else:
+            idx_sort = table_keys.argsort(kind='mergesort')
         stable_sort = True
     except TypeError:
         # Some versions (likely 1.6 and earlier) of numpy don't support
@@ -105,9 +116,10 @@ def column_group_by(column, keys):
     grouped_column : Column object with groups attr set accordingly
     """
     from .table import Table
+    from .column import Column
 
     if isinstance(keys, Table):
-        keys = keys._data
+        keys = keys.as_array()
 
     if not isinstance(keys, np.ndarray):
         raise TypeError('Keys input must be numpy array, but got {0}'
@@ -117,7 +129,17 @@ def column_group_by(column, keys):
         raise ValueError('Input keys array length {0} does not match column length {1}'
                          .format(len(keys), len(column)))
 
-    idx_sort = keys.argsort()
+    # take advantage of table or column indices, if possible
+    index = None
+    if isinstance(keys, Table):
+        index = get_index(keys)
+    elif hasattr(keys, 'indices') and keys.indices:
+        index = keys.indices[0]
+
+    if index is not None:
+        idx_sort = index.sorted_data()
+    else:
+        idx_sort = keys.argsort()
     keys = keys[idx_sort]
 
     # Get all keys
@@ -235,11 +257,16 @@ class ColumnGroups(BaseGroups):
             else:
                 vals = np.array([func(par_col[i0: i1]) for i0, i1 in izip(i0s, i1s)])
         except Exception:
-            raise TypeError("Cannot aggregate column '{0}'"
-                            .format(par_col.name))
+            raise TypeError("Cannot aggregate column '{0}' with type '{1}'"
+                            .format(par_col.info.name,
+                                    par_col.info.dtype))
 
-        out = par_col.__class__(data=vals, name=par_col.name, description=par_col.description,
-                                unit=par_col.unit, format=par_col.format, meta=par_col.meta)
+        out = par_col.__class__(data=vals,
+                                name=par_col.info.name,
+                                description=par_col.info.description,
+                                unit=par_col.info.unit,
+                                format=par_col.info.format,
+                                meta=par_col.info.meta)
         return out
 
     def filter(self, func):
@@ -316,13 +343,14 @@ class TableGroups(BaseGroups):
         out : Table
             New table with the aggregated rows.
         """
+
         i0s, i1s = self.indices[:-1], self.indices[1:]
         out_cols = []
         parent_table = self.parent_table
 
         for col in six.itervalues(parent_table.columns):
             # For key columns just pick off first in each group since they are identical
-            if col.name in self.key_colnames:
+            if col.info.name in self.key_colnames:
                 new_col = col.take(i0s)
             else:
                 try:

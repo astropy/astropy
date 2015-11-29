@@ -1,3 +1,5 @@
+.. _modeling-new-classes:
+
 Defining New Model Classes
 ==========================
 
@@ -10,22 +12,23 @@ fitting algorithm is to be used and optional if a non-linear fitter is to be
 used.
 
 
-Custom 1-D models
------------------
+Basic custom models
+-------------------
 
-For 1-D models, the `~astropy.modeling.functional_models.custom_model_1d`
-decorator is provided to make it very easy to define new models. The following
-example demonstrates how to set up a model consisting of two Gaussians:
+For most cases, the `~astropy.modeling.custom_model` decorator provides an
+easy way to make a new `~astropy.modeling.Model` class from an existing Python
+callable. The following example demonstrates how to set up a model consisting
+of two Gaussians:
 
 .. plot::
    :include-source:
 
     import numpy as np
-    from astropy.modeling.models import custom_model_1d
+    from astropy.modeling.models import custom_model
     from astropy.modeling.fitting import LevMarLSQFitter
 
     # Define model
-    @custom_model_1d
+    @custom_model
     def sum_of_gaussians(x, amplitude1=1., mean1=-1., sigma1=1.,
                             amplitude2=1., mean2=1., sigma2=1.):
         return (amplitude1 * np.exp(-0.5 * ((x - mean1) / sigma1)**2) +
@@ -45,19 +48,26 @@ example demonstrates how to set up a model consisting of two Gaussians:
 
     # Plot the data and the best fit
     plt.plot(x, y, 'o', color='k')
-    plt.plot(x, m(x), color='r', lw=2)
+    plt.plot(x, m(x))
 
-.. note::
 
-    Currently this shortcut for model definition only works for 1-D models, but
-    it is being expanded to support 2 or greater dimension models.
+This decorator also supports setting a model's
+`~astropy.modeling.FittableModel.fit_deriv` as well as creating models with
+more than one inputs.  It can also be used as a normal factory function (for
+example ``SumOfGaussians = custom_model(sum_of_gaussians)``) rather than as a
+decorator.  See the `~astropy.modeling.custom_model` documentation for more
+examples.
 
 
 A step by step definition of a 1-D Gaussian model
 -------------------------------------------------
 
-The example described in `Custom 1-D models`_ can be used for most 1-D cases,
-but the following section described how to construct model classes in general.
+The example described in `Basic custom models`_ can be used for most simple
+cases, but the following section describes how to construct model classes in
+general.  Defining a full model class may be desirable, for example, to
+provide more specialized parameters, or to implement special functionality not
+supported by the basic `~astropy.modeling.custom_model` factory function.
+
 The details are explained below with a 1-D Gaussian model as an example.  There
 are two base classes for models. If the model is fittable, it should inherit
 from `~astropy.modeling.FittableModel`; if not it should subclass
@@ -68,56 +78,59 @@ the model's class definition using the `~astropy.modeling.Parameter`
 descriptor.  All arguments to the Parameter constructor are optional, and may
 include a default value for that parameter, a text description of the parameter
 (useful for `help` and documentation generation), as well default constraints
-and custom getters/setters for the parameter value.
-
-If the first argument ``name`` is specified it must be identical to the class
-attribute being assigned that Parameter.  As such, Parameters take their name
-from this attribute by default.  In other words, ``amplitude =
-Parameter('amplitude')`` is equivalent to ``amplitude = Parameter()``.  This
-differs from Astropy v0.3.x, where it was necessary to provide the name twice.
+and custom getters/setters for the parameter value.  It is also possible to
+define a "validator" method for each parameter, enabling custom code to check
+whether that parameter's value is valid according to the model definition (for
+example if it must be non-negative).  See the example in
+`Parameter.validator <astropy.modeling.Parameter.validator>` for more details.
 
 ::
 
     from astropy.modeling import FittableModel, Parameter
 
     class Gaussian1D(FittableModel):
+        inputs = ('x',)
+        outputs = ('y',)
+
         amplitude = Parameter()
         mean = Parameter()
         stddev = Parameter()
 
-At a minimum, the ``__init__`` method takes all parameters and a few keyword
-arguments such as values for constraints::
+The ``inputs`` and ``outputs`` class attributes must be tuples of strings
+indicating the number of independent variables that are input to evaluate the
+model, and the number of outputs it returns.  The labels of the inputs and
+outputs (in this case ``'x'`` and ``'y'`` respectively) are currently used for
+informational purposes only and have no requirements on them other than that
+they do not conflict with parameter names.  Outputs may have the same labels as
+inputs (eg. ``inputs = ('x', 'y')`` and ``outputs = ('x', 'y')``).  However,
+inputs must not conflict with each other (eg. ``inputs = ('x', 'x')`` is
+incorrect) and likewise for outputs.  The lengths of these tuples are
+important for specifying the correct number of inputs and outputs.  These
+attributes supersede the ``n_inputs`` and ``n_outputs`` attributes in older
+versions of this package.
 
-    def __init__(self, amplitude, mean, stddev, **kwargs):
-        # Note that this __init__ does nothing different from the base class's
-        # __init__.  The main point of defining it is so that the function
-        # signature is more informative.
-        super(Gaussian1D, self).__init__(
-            amplitude=amplitude, mean=mean, stddev=stddev, **kwargs)
-
-.. note::
-
-    If a parameter is defined with a default value you may make the argument
-    for that parameter in the ``__init__`` optional.  Otherwise it is
-    recommended to make it a required argument.  In the above example none of
-    the parameters have default values.
+There are two helpful base classes in the modeling package that can be used to
+avoid specifying ``inputs`` and ``outputs`` for most common models.  These are
+`~astropy.modeling.Fittable1DModel` and `~astropy.modeling.Fittable2DModel`.
+For example, the real `~astropy.modeling.functional_models.Gaussian1D` model is
+actually a subclass of `~astropy.modeling.Fittable1DModel`.  This helps cut
+down on boilerplate by not having to specify ``inputs`` and ``outputs`` for
+many models (follow the link to Gaussian1D to see its source code, for
+example).
 
 Fittable models can be linear or nonlinear in a regression sense. The default
 value of the `~astropy.modeling.Model.linear` attribute is ``False``.  Linear
-models should define the ``linear`` class attribute as ``True``.
-The `~astropy.modeling.Model.n_inputs` attribute stores the number of
-input variables the model expects.  The
-`~astropy.modeling.Model.n_outputs` attribute stores the number of output
-variables returned after evaluating the model.  These two attributes are used
-with composite models.
+models should define the ``linear`` class attribute as ``True``.  Because this
+model is non-linear we can stick with the default.
 
 Next, provide methods called ``evaluate`` to evaluate the model and
 ``fit_deriv``, to compute its derivatives with respect to parameters.  These
 may be normal methods, `classmethod`, or `staticmethod`, though the convention
 is to use `staticmethod` when the function does not depend on any of the
-object's other attributes (i.e., it does not reference ``self``).  The
-evaluation method takes all input coordinates as separate arguments and all of
-the model's parameters in the same order they would be listed by
+object's other attributes (i.e., it does not reference ``self``) or any of the
+class's other attributes as in the case of `classmethod`.  The evaluation
+method takes all input coordinates as separate arguments and all of the model's
+parameters in the same order they would be listed by
 `~astropy.modeling.Model.param_names`.
 
 For this example::
@@ -126,9 +139,23 @@ For this example::
     def evaluate(x, amplitude, mean, stddev):
         return amplitude * np.exp((-(1 / (2. * stddev**2)) * (x - mean)**2))
 
-The ``fit_deriv`` method takes as input all coordinates as separate arguments.
-There is an option to compute numerical derivatives for nonlinear models in
-which case the ``fit_deriv`` method should be ``None``::
+It should be made clear that the ``evaluate`` method must be designed to take
+the model's parameter values as arguments.  This may seem at odds with the fact
+that the parameter values are already available via attribute of the model
+(eg. ``model.amplitude``).  However, passing the parameter values directly to
+``evaluate`` is a more efficient way to use it in many cases, such as fitting.
+
+Users of your model would not generally use ``evaluate`` directly.  Instead
+they create an instance of the model and call it on some input.  The
+``__call__`` method of models uses ``evaluate`` internally, but users do not
+need to be aware of it.  The default ``__call__`` implementation also handles
+details such as checking that the inputs are correctly formatted and follow
+Numpy's broadcasting rules before attempting to evaluate the model.
+
+Like ``evaluate``, the ``fit_deriv`` method takes as input all coordinates and
+all parameter values as arguments.  There is an option to compute numerical
+derivatives for nonlinear models in which case the ``fit_deriv`` method should
+be ``None``::
 
     @staticmethod
     def fit_deriv(x, amplitude, mean, stddev):
@@ -142,21 +169,39 @@ which case the ``fit_deriv`` method should be ``None``::
         return [d_amplitude, d_mean, d_stddev]
 
 
-Finally, the ``__call__`` method takes the input coordinates as arguments,
-checks that the input arrays are correctly formatted and broadcastable, and
-then passes them along with the the model's parameter values to the
-``evaluate`` method.
+Note that we did *not* have to define an ``__init__`` method or a ``__call__``
+method for our model (this contrasts with Astropy versions 0.4.x and earlier).
+For most models the ``__init__`` follows the same pattern, taking the parameter
+values as positional arguments, followed by several optional keyword arguments
+(constraints, etc.).  The modeling framework automatically generates an
+``__init__`` for your class that has the correct calling signature (see for
+yourself by calling ``help(Gaussian1D.__init__)`` on the example model we just
+defined).
 
-In most cases it is not necessary to reimplement ``__call__``, though it may be
-desirable to override it so that its signature reflects the desired names of
-the input coordinates.  When overriding ``__call__`` it should simply call the
-super-class's ``__call__`` and not do anything else.  The only reason currently
-to override it is to provide a specific argument signature.  It should also
-support ``model_set_axis`` keyword argument, at a minimum::
+There are cases where it might be desirable to define a custom ``__init__``.
+For example, the `~astropy.modeling.functional_models.Gaussian2D` model takes
+an optional ``cov_matrix`` argument which can be used as an alternative way to
+specify the x/y_stddev and theta parameters.  This is perfectly valid so long
+as the ``__init__`` determines appropriate values for the actual parameters and
+then calls the super ``__init__`` with the standard arguments.  Schematically
+this looks something like:
 
-    def __call__(self, x, model_set_axis=None):
-        return super(Gaussian1D, self).__call__(
-            x, model_set_axis=model_set_axis)
+.. code-block:: python
+
+    def __init__(self, amplitude, x_mean, y_mean, x_stddev=None,
+                 y_stddev=None, theta=None, cov_matrix=None, **kwargs):
+        # The **kwargs here should be understood as other keyword arguments
+        # accepted by the basic Model.__init__ (such as constraints)
+        if cov_matrix is not None:
+            # Set x/y_stddev and theta from the covariance matrix
+            x_stddev = ...
+            y_stddev = ...
+            theta = ...
+
+        # Don't pass on cov_matrix since it doesn't mean anything to the base
+        # class
+        super(Gaussian2D, self).__init__(amplitude, x_mean, y_mean, x_stddev,
+                                         y_stddev, theta, **kwargs)
 
 
 Full example
@@ -170,13 +215,6 @@ Full example
         amplitude = Parameter()
         mean = Parameter()
         stddev = Parameter()
-
-        def __init__(self, amplitude, mean, stddev, **kwargs):
-            # Note that this __init__ does nothing different from the base
-            # class's __init__.  The main point of defining it is so that the
-            # function signature is more informative.
-            super(Gaussian1D, self).__init__(
-                amplitude=amplitude, mean=mean, stddev=stddev, **kwargs)
 
         @staticmethod
         def evaluate(x, amplitude, mean, stddev):
@@ -193,13 +231,16 @@ Full example
                         ((x - mean)**2) / (stddev**3))
             return [d_amplitude, d_mean, d_stddev]
 
-        def __call__(self, x, model_set_axis=None):
-            return super(Gaussian1D, self).__call__(
-                x, model_set_axis=model_set_axis)
-
 
 A full example of a LineModel
 -----------------------------
+
+This example demonstrates one other optional feature for model classes, which
+is an *inverse*.  An `~astropy.modeling.Model.inverse` implementation should be
+a `property` that returns a new model instance (not necessarily of the same
+class as the model being inverted) that computes the inverse of that model, so
+that for some model instance with an inverse, ``model.inverse(model(*input)) ==
+input``.
 
 .. code-block:: python
 
@@ -211,10 +252,6 @@ A full example of a LineModel
         intercept = Parameter()
         linear = True
 
-        def __init__(self, slope, intercept, **kwargs):
-            super(LineModel, self).__init__(slope=slope, intercept=intercept,
-                                            **kwargs)
-
         @staticmethod
         def evaluate(x, slope, intercept):
             return slope * x + intercept
@@ -225,9 +262,16 @@ A full example of a LineModel
             d_intercept = np.ones_like(x)
             return [d_slope, d_intercept]
 
-        def __call__(self, x, model_set_axis=None):
-            return super(LineModel, self).__call__(
-                x, model_set_axis=model_set_axis)
+        @property
+        def inverse(self):
+            new_slope = self.slope ** -1
+            new_intercept = -self.intercept / self.slope
+            return LineModel(slope=new_slope, intercept=new_intercept)
+
+.. note::
+
+    The above example is essentially equivalent to the built-in
+    `~astropy.modeling.functional_models.Linear1D` model.
 
 
 Defining New Fitter Classes
@@ -267,7 +311,7 @@ squared residuals is used as a measure of fitting.::
 
 The ``__call__`` method performs the fitting. As a minimum it takes all
 coordinates as separate arguments. Additional arguments are passed as
-necessary.::
+necessary::
 
     def __call__(self, model, x, y , maxiter=MAXITER, epsilon=EPS):
         if model.linear:
@@ -291,7 +335,7 @@ This section describes how to write a new fitter with a user-defined statistic
 function.  The example below shows a specialized class which fits a straight
 line with uncertainties in both variables.
 
-The following import statements are needed.::
+The following import statements are needed::
 
     import numpy as np
     from astropy.modeling.fitting import (_validate_model,
@@ -336,7 +380,7 @@ class.::
 In general, to define a new fitter, all one needs to do is provide a statistic
 function and an optimizer. In this example we will let the optimizer be an
 optional argument to the fitter and will set the statistic to ``chi_line``
-above.::
+above::
 
     class LineFitter(Fitter):
         """
@@ -353,7 +397,7 @@ above.::
             super(LineFitter, self).__init__(optimizer,
                                              statistic=self.statistic)
 
-The last thing to define is the ``__call__`` method.::
+The last thing to define is the ``__call__`` method::
 
     def __call__(self, model, x, y, x_sigma=None, y_sigma=None, **kwargs):
         """

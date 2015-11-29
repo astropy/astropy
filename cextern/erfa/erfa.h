@@ -1,148 +1,21 @@
-//Derived from erfa version 1.1.0
+// This copy of ERFA is bundled with Astropy, based on ERFA v1.2.0
 
 #ifndef ERFAHDEF
 #define ERFAHDEF
-
-#include <math.h>
 
 /*
 **  - - - - - - -
 **   e r f a . h
 **  - - - - - - -
 **
-**  Prototype function declarations and macros for erfa library.
+**  Prototype function declarations for ERFA library.
 **
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 
-/* Star-independent astrometry parameters */
-typedef struct {
-   double pmt;        /* PM time interval (SSB, Julian years) */
-   double eb[3];      /* SSB to observer (vector, au) */
-   double eh[3];      /* Sun to observer (unit vector) */
-   double em;         /* distance from Sun to observer (au) */
-   double v[3];       /* barycentric observer velocity (vector, c) */
-   double bm1;        /* sqrt(1-|v|^2): reciprocal of Lorenz factor */
-   double bpn[3][3];  /* bias-precession-nutation matrix */
-   double along;      /* longitude + s' + dERA(DUT) (radians) */
-   double phi;        /* geodetic latitude (radians) */
-   double xpl;        /* polar motion xp wrt local meridian (radians) */
-   double ypl;        /* polar motion yp wrt local meridian (radians) */
-   double sphi;       /* sine of geodetic latitude */
-   double cphi;       /* cosine of geodetic latitude */
-   double diurab;     /* magnitude of diurnal aberration vector */
-   double eral;       /* "local" Earth rotation angle (radians) */
-   double refa;       /* refraction constant A (radians) */
-   double refb;       /* refraction constant B (radians) */
-} eraASTROM;
-/* (Vectors eb, eh, em and v are all with respect to BCRS axes.) */
-
-/* Body parameters for light deflection */
-typedef struct {
-   double bm;         /* mass of the body (solar masses) */
-   double dl;         /* deflection limiter (radians^2/2) */
-   double pv[2][3];   /* barycentric PV of the body (au, au/day) */
-} eraLDBODY;
-
-/* Pi */
-#define ERFA_DPI (3.141592653589793238462643)
-
-/* 2Pi */
-#define ERFA_D2PI (6.283185307179586476925287)
-
-/* Radians to degrees */
-#define ERFA_DR2D (57.29577951308232087679815)
-
-/* Degrees to radians */
-#define ERFA_DD2R (1.745329251994329576923691e-2)
-
-/* Radians to arcseconds */
-#define ERFA_DR2AS (206264.8062470963551564734)
-
-/* Arcseconds to radians */
-#define ERFA_DAS2R (4.848136811095359935899141e-6)
-
-/* Seconds of time to radians */
-#define ERFA_DS2R (7.272205216643039903848712e-5)
-
-/* Arcseconds in a full circle */
-#define ERFA_TURNAS (1296000.0)
-
-/* Milliarcseconds to radians */
-#define ERFA_DMAS2R (ERFA_DAS2R / 1e3)
-
-/* Length of tropical year B1900 (days) */
-#define ERFA_DTY (365.242198781)
-
-/* Seconds per day. */
-#define ERFA_DAYSEC (86400.0)
-
-/* Days per Julian year */
-#define ERFA_DJY (365.25)
-
-/* Days per Julian century */
-#define ERFA_DJC (36525.0)
-
-/* Days per Julian millennium */
-#define ERFA_DJM (365250.0)
-
-/* Reference epoch (J2000.0), Julian Date */
-#define ERFA_DJ00 (2451545.0)
-
-/* Julian Date of Modified Julian Date zero */
-#define ERFA_DJM0 (2400000.5)
-
-/* Reference epoch (J2000.0), Modified Julian Date */
-#define ERFA_DJM00 (51544.5)
-
-/* 1977 Jan 1.0 as MJD */
-#define ERFA_DJM77 (43144.0)
-
-/* TT minus TAI (s) */
-#define ERFA_TTMTAI (32.184)
-
-/* Astronomical unit (m) */
-#define ERFA_DAU (149597870e3)
-
-/* Speed of light (m/s) */
-#define ERFA_CMPS 299792458.0
-
-/* Light time for 1 au (s) */
-#define ERFA_AULT 499.004782
-
-/* Speed of light (AU per day) */
-#define ERFA_DC (ERFA_DAYSEC / ERFA_AULT)
-
-/* L_G = 1 - d(TT)/d(TCG) */
-#define ERFA_ELG (6.969290134e-10)
-
-/* L_B = 1 - d(TDB)/d(TCB), and TDB (s) at TAI 1977/1/1.0 */
-#define ERFA_ELB (1.550519768e-8)
-#define ERFA_TDB0 (-6.55e-5)
-
-/* Schwarzschild radius of the Sun (au) */
-/* = 2 * 1.32712440041e20 / (2.99792458e8)^2 / 1.49597870700e11 */
-#define ERFA_SRS 1.97412574336e-8
-
-/* ERFA_DINT(A) - truncate to nearest whole number towards zero (double) */
-#define ERFA_DINT(A) ((A)<0.0?ceil(A):floor(A))
-
-/* ERFA_DNINT(A) - round to nearest whole number (double) */
-#define ERFA_DNINT(A) ((A)<0.0?ceil((A)-0.5):floor((A)+0.5))
-
-/* ERFA_DSIGN(A,B) - magnitude of A with sign of B (double) */
-#define ERFA_DSIGN(A,B) ((B)<0.0?-fabs(A):fabs(A))
-
-/* max(A,B) - larger (most +ve) of two numbers (generic) */
-#define ERFA_GMAX(A,B) (((A)>(B))?(A):(B))
-
-/* min(A,B) - smaller (least +ve) of two numbers (generic) */
-#define ERFA_GMIN(A,B) (((A)<(B))?(A):(B))
-
-/* Reference ellipsoids */
-#define ERFA_WGS84 1
-#define ERFA_GRS80 2
-#define ERFA_WGS72 3
-
+#include "erfam.h"
+#include "math.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -180,7 +53,7 @@ void eraApco(double date1, double date2,
              eraASTROM *astrom);
 int eraApco13(double utc1, double utc2, double dut1,
               double elong, double phi, double hm, double xp, double yp,
-              double phpa, double tk, double rh, double wl,
+              double phpa, double tc, double rh, double wl,
               eraASTROM *astrom, double *eo);
 void eraApcs(double date1, double date2, double pv[2][3],
              double ebpv[2][3], double ehp[3],
@@ -195,7 +68,7 @@ void eraApio(double sp, double theta,
              eraASTROM *astrom);
 int eraApio13(double utc1, double utc2, double dut1,
               double elong, double phi, double hm, double xp, double yp,
-              double phpa, double tk, double rh, double wl,
+              double phpa, double tc, double rh, double wl,
               eraASTROM *astrom);
 void eraAtci13(double rc, double dc,
                double pr, double pd, double px, double rv,
@@ -213,7 +86,7 @@ int eraAtco13(double rc, double dc,
               double pr, double pd, double px, double rv,
               double utc1, double utc2, double dut1,
               double elong, double phi, double hm, double xp, double yp,
-              double phpa, double tk, double rh, double wl,
+              double phpa, double tc, double rh, double wl,
               double *aob, double *zob, double *hob,
               double *dob, double *rob, double *eo);
 void eraAtic13(double ri, double di,
@@ -226,7 +99,7 @@ void eraAticqn(double ri, double di, eraASTROM *astrom,
 int eraAtio13(double ri, double di,
               double utc1, double utc2, double dut1,
               double elong, double phi, double hm, double xp, double yp,
-              double phpa, double tk, double rh, double wl,
+              double phpa, double tc, double rh, double wl,
               double *aob, double *zob, double *hob,
               double *dob, double *rob);
 void eraAtioq(double ri, double di, eraASTROM *astrom,
@@ -235,12 +108,12 @@ void eraAtioq(double ri, double di, eraASTROM *astrom,
 int eraAtoc13(const char *type, double ob1, double ob2,
               double utc1, double utc2, double dut1,
               double elong, double phi, double hm, double xp, double yp,
-              double phpa, double tk, double rh, double wl,
+              double phpa, double tc, double rh, double wl,
               double *rc, double *dc);
 int eraAtoi13(const char *type, double ob1, double ob2,
               double utc1, double utc2, double dut1,
               double elong, double phi, double hm, double xp, double yp,
-              double phpa, double tk, double rh, double wl,
+              double phpa, double tc, double rh, double wl,
               double *ri, double *di);
 void eraAtoiq(const char *type,
               double ob1, double ob2, eraASTROM *astrom,
@@ -251,17 +124,16 @@ void eraLdn(int n, eraLDBODY b[], double ob[3], double sc[3],
             double sn[3]);
 void eraLdsun(double p[3], double e[3], double em, double p1[3]);
 void eraPmpx(double rc, double dc, double pr, double pd,
-             double px, double rv, double pmt, double vob[3],
+             double px, double rv, double pmt, double pob[3],
              double pco[3]);
 int eraPmsafe(double ra1, double dec1, double pmr1, double pmd1,
               double px1, double rv1,
               double ep1a, double ep1b, double ep2a, double ep2b,
               double *ra2, double *dec2, double *pmr2, double *pmd2,
               double *px2, double *rv2);
-void eraPvtob(double elong, double phi, double hm,
-              double xp, double yp, double sp, double theta,
-              double pv[2][3]);
-void eraRefco(double phpa, double tk, double rh, double wl,
+void eraPvtob(double elong, double phi, double height, double xp,
+              double yp, double sp, double theta, double pv[2][3]);
+void eraRefco(double phpa, double tc, double rh, double wl,
               double *refa, double *refb);
 
 /* Astronomy/Ephemerides */
@@ -371,8 +243,10 @@ void eraPnm00b(double date1, double date2, double rbpn[3][3]);
 void eraPnm06a(double date1, double date2, double rnpb[3][3]);
 void eraPnm80(double date1, double date2, double rmatpn[3][3]);
 void eraPom00(double xp, double yp, double sp, double rpom[3][3]);
-void eraPr00(double date1, double date2, double *dpsipr, double *depspr);
-void eraPrec76(double ep01, double ep02, double ep11, double ep12,
+void eraPr00(double date1, double date2,
+             double *dpsipr, double *depspr);
+void eraPrec76(double date01, double date02,
+               double date11, double date12,
                double *zeta, double *z, double *theta);
 double eraS00(double date1, double date2, double x, double y);
 double eraS00a(double date1, double date2);
@@ -407,10 +281,6 @@ double eraGst06a(double uta, double utb, double tta, double ttb);
 double eraGst94(double uta, double utb);
 
 /* Astronomy/SpaceMotion */
-int eraPmsafe(double ra1, double dec1, double pmr1, double pmd1,
-              double px1, double rv1, double ep1a, double ep1b,
-              double ep2a, double ep2b, double *ra2, double *dec2,
-              double *pmr2, double *pmd2, double *px2, double *rv2);
 int eraPvstar(double pv[2][3], double *ra, double *dec,
               double *pmr, double *pmd, double *px, double *rv);
 int eraStarpv(double ra, double dec,
@@ -437,6 +307,10 @@ int eraStarpm(double ra1, double dec1,
               double *ra2, double *dec2,
               double *pmr2, double *pmd2, double *px2, double *rv2);
 
+/* Astronomy/GalacticCoordinates */
+void eraG2icrs ( double dl, double db, double *dr, double *dd );
+void eraIcrs2g ( double dr, double dd, double *dl, double *db );
+
 /* Astronomy/GeodeticGeocentric */
 int eraEform(int n, double *a, double *f);
 int eraGc2gd(int n, double xyz[3],
@@ -447,8 +321,6 @@ int eraGd2gc(int n, double elong, double phi, double height,
              double xyz[3]);
 int eraGd2gce(double a, double f,
               double elong, double phi, double height, double xyz[3]);
-void eraPvtob(double elong, double phi, double height, double xp,
-              double yp, double sp, double theta, double pv[2][3]);
 
 /* Astronomy/Timescales */
 int eraD2dtf(const char *scale, int ndp, double d1, double d2,
@@ -562,12 +434,17 @@ void eraS2xpv(double s1, double s2, double pv[2][3], double spv[2][3]);
 void eraSxp(double s, double p[3], double sp[3]);
 void eraSxpv(double s, double pv[2][3], double spv[2][3]);
 
+#ifdef __cplusplus
+}
 #endif
 
+#endif
+
+/* Copyright2 */
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

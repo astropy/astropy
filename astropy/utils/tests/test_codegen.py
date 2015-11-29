@@ -5,15 +5,15 @@ from __future__ import (absolute_import, division, print_function,
 import sys
 import traceback
 
-from ..codegen import make_func_with_sig
+from ..codegen import make_function_with_signature
 from ...tests.helper import pytest
 
 
-def test_make_func_with_sig_lineno():
+def test_make_function_with_signature_lineno():
     """
-    Tests that a function made with ``make_func_with_sig`` is give the correct
-    line number into the module it was created from (i.e. the line
-    ``make_func_with_sig`` was called from).
+    Tests that a function made with ``make_function_with_signature`` is give
+    the correct line number into the module it was created from (i.e. the line
+    ``make_function_with_signature`` was called from).
     """
 
     def crashy_function(*args, **kwargs):
@@ -22,8 +22,10 @@ def test_make_func_with_sig_lineno():
     # Make a wrapper around this function with the signature:
     # crashy_function(a, b)
     # Note: the signature is not really relevant to this test
-    wrapped = make_func_with_sig(crashy_function, ('a', 'b'))
-    line = "wrapped = make_func_with_sig(crashy_function, ('a', 'b'))"
+    wrapped = make_function_with_signature(crashy_function, ('a', 'b'))
+    line = """
+    wrapped = make_function_with_signature(crashy_function, ('a', 'b'))
+    """.strip()
 
     try:
         wrapped(1, 2)
@@ -32,7 +34,7 @@ def test_make_func_with_sig_lineno():
         assert exc_cls is ZeroDivisionError
         # The *last* line in the traceback should be the 1 / 0 line in
         # crashy_function; the next line up should be the line that the
-        # make_func_with_sig call was one
+        # make_function_with_signature call was one
         tb_lines = traceback.format_tb(tb)
         assert '1 / 0' in tb_lines[-1]
         assert line in tb_lines[-2] and 'line =' not in tb_lines[-2]

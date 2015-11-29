@@ -18,7 +18,8 @@ from . import basic
 
 
 class FixedWidthSplitter(core.BaseSplitter):
-    """Split line based on fixed start and end positions for each ``col`` in
+    """
+    Split line based on fixed start and end positions for each ``col`` in
     ``self.cols``.
 
     This class requires that the Header class will have defined ``col.start``
@@ -30,6 +31,7 @@ class FixedWidthSplitter(core.BaseSplitter):
     style so line[start:end] is the desired substring for a column.  This splitter
     class does not have a hook for ``process_lines`` since that is generally not
     useful for fixed-width input.
+
     """
     delimiter_pad = ''
     bookend = False
@@ -63,23 +65,14 @@ class FixedWidthHeaderSplitter(DefaultSplitter):
 
 
 class FixedWidthHeader(basic.BasicHeader):
-    """Fixed width table header reader.
-
-    The key settable class attributes are:
-
-    :param auto_format: format string for auto-generating column names
-    :param start_line: None, int, or a function of ``lines`` that returns None or int
-    :param comment: regular expression for comment lines
-    :param splitter_class: Splitter class for splitting data lines into columns
-    :param position_line: row index of line that specifies position (default = 1)
-    :param position_char: character used to write the position line (default = "-")
-    :param col_starts: list of start positions for each column (0-based counting)
-    :param col_ends: list of end positions (inclusive) for each column
-    :param delimiter_pad: padding around delimiter when writing (default = None)
-    :param bookend: put the delimiter at start and end of line when writing (default = False)
+    """
+    Fixed width table header reader.
     """
     splitter_class = FixedWidthHeaderSplitter
+    """ Splitter class for splitting data lines into columns """
     position_line = None   # secondary header line position
+    """ row index of line that specifies position (default = 1) """
+    set_of_position_line_characters = set(r'`~!#$%^&*-_+=\|":' + "'")
 
     def get_line(self, lines, index):
         for i, line in enumerate(self.process_lines(lines)):
@@ -90,13 +83,17 @@ class FixedWidthHeader(basic.BasicHeader):
         return line
 
     def get_cols(self, lines):
-        """Initialize the header Column objects from the table ``lines``.
+        """
+        Initialize the header Column objects from the table ``lines``.
 
         Based on the previously set Header attributes find or create the column names.
         Sets ``self.cols`` with the list of Columns.
 
-        :param lines: list of table lines
-        :returns: None
+        Parameters
+        ----------
+        lines : list
+            List of table lines
+
         """
 
         # See "else" clause below for explanation of start_line and position_line
@@ -133,6 +130,16 @@ class FixedWidthHeader(basic.BasicHeader):
                 # slice col_ends but expects inclusive col_ends on input (for
                 # more intuitive user interface).
                 line = self.get_line(lines, position_line)
+                if len(set(line) - set([self.splitter.delimiter, ' '])) != 1:
+                    raise InconsistentTableError('Position line should only contain delimiters and one other character, e.g. "--- ------- ---".')
+                    # The line above lies. It accepts white space as well.
+                    # We don't want to encourage using three different
+                    # characters, because that can cause ambiguities, but white
+                    # spaces are so common everywhere that practicality beats
+                    # purity here.
+                charset = self.set_of_position_line_characters.union(set([self.splitter.delimiter, ' ']))
+                if not set(line).issubset(charset):
+                    raise InconsistentTableError('Characters in position line must be part of {0}'.format(charset))
                 vals, self.col_starts, col_ends = self.get_fixedwidth_params(line)
                 self.col_ends = [x - 1 for x in col_ends]
 
@@ -150,26 +157,41 @@ class FixedWidthHeader(basic.BasicHeader):
             col.end = ends[i]
 
     def get_fixedwidth_params(self, line):
-        """Split ``line`` on the delimiter and determine column values and
+        """
+        Split ``line`` on the delimiter and determine column values and
         column start and end positions.  This might include null columns with
         zero length (e.g. for ``header row = "| col1 || col2 | col3 |"`` or
         ``header2_row = "----- ------- -----"``).  The null columns are
         stripped out.  Returns the values between delimiters and the
         corresponding start and end positions.
 
-        :param line: input line
-        :returns: (vals, starts, ends)
+        Parameters
+        ----------
+        line : str
+            Input line
+
+        Returns
+        -------
+        vals : list
+            List of values.
+        starts : list
+            List of starting indices.
+        ends : list
+            List of ending indices.
+
         """
 
-        # If column positions are already specified then just use those, otherwise
-        # figure out positions between delimiters.
+        # If column positions are already specified then just use those.
+        # If neither column starts or ends are given, figure out positions
+        # between delimiters. Otherwise, either the starts or the ends have
+        # been given, so figure out whichever wasn't given.
         if self.col_starts is not None and self.col_ends is not None:
             starts = list(self.col_starts)  # could be any iterable, e.g. np.array
             ends = [x + 1 for x in self.col_ends]  # user supplies inclusive endpoint
             if len(starts) != len(ends):
                 raise ValueError('Fixed width col_starts and col_ends must have the same length')
             vals = [line[start:end].strip() for start, end in zip(starts, ends)]
-        else:
+        elif self.col_starts is None and self.col_ends is None:
             # There might be a cleaner way to do this but it works...
             vals = line.split(self.splitter.delimiter)
             starts = [0]
@@ -184,6 +206,15 @@ class FixedWidthHeader(basic.BasicHeader):
             vals = [x.strip() for x in vals if x]
             if len(vals) != len(starts) or len(vals) != len(ends):
                 raise InconsistentTableError('Error parsing fixed width header')
+        else:
+            # exactly one of col_starts or col_ends is given...
+            if self.col_starts is not None:
+                starts = list(self.col_starts)
+                ends = starts[1:] + [None] # Assume each col ends where the next starts
+            else: # self.col_ends is not None
+                ends = [x + 1 for x in self.col_ends]
+                starts = [0] + ends[:-1] # Assume each col starts where the last ended
+            vals = [line[start:end].strip() for start, end in zip(starts, ends)]
 
         return vals, starts, ends
 
@@ -194,40 +225,28 @@ class FixedWidthHeader(basic.BasicHeader):
 
 
 class FixedWidthData(basic.BasicData):
-    """Base table data reader.
-
-    :param start_line: None, int, or a function of ``lines`` that returns None or int
-    :param end_line: None, int, or a function of ``lines`` that returns None or int
-    :param comment: Regular expression for comment lines
-    :param splitter_class: Splitter class for splitting data lines into columns
     """
-
+    Base table data reader.
+    """
     splitter_class = FixedWidthSplitter
+    """ Splitter class for splitting data lines into columns """
 
     def write(self, lines):
-
-        self._set_fill_values(self.cols)
-        self._set_col_formats()
-        for col in self.cols:
-            col.str_vals = list(col.iter_str_vals())
-        self._replace_vals(self.cols)
-        col_str_iters = [col.str_vals for col in self.cols]
-
         vals_list = []
-        # Col iterator does the formatting defined above so each val is a string
-        # and vals is a tuple of strings for all columns of each row
+        col_str_iters = self.str_vals()
         for vals in zip(*col_str_iters):
             vals_list.append(vals)
 
         for i, col in enumerate(self.cols):
             col.width = max([len(vals[i]) for vals in vals_list])
             if self.header.start_line is not None:
-                col.width = max(col.width, len(col.name))
+                col.width = max(col.width, len(col.info.name))
 
         widths = [col.width for col in self.cols]
 
         if self.header.start_line is not None:
-            lines.append(self.splitter.join([col.name for col in self.cols], widths))
+            lines.append(self.splitter.join([col.info.name for col in self.cols],
+                                            widths))
 
         if self.header.position_line is not None:
             char = self.header.position_char
@@ -243,7 +262,8 @@ class FixedWidthData(basic.BasicData):
 
 
 class FixedWidth(basic.Basic):
-    """Read or write a fixed width table with a single header line that defines column
+    """
+    Read or write a fixed width table with a single header line that defines column
     names and positions.  Examples::
 
       # Bar delimiter in header and data
@@ -266,10 +286,6 @@ class FixedWidth(basic.Basic):
 
     See the :ref:`fixed_width_gallery` for specific usage examples.
 
-    :param col_starts: list of start positions for each column (0-based counting)
-    :param col_ends: list of end positions (inclusive) for each column
-    :param delimiter_pad: padding around delimiter when writing (default = None)
-    :param bookend: put the delimiter at start and end of line when writing (default = False)
     """
     _format_name = 'fixed_width'
     _description = 'Fixed width'
@@ -297,7 +313,8 @@ class FixedWidthNoHeaderData(FixedWidthData):
 
 
 class FixedWidthNoHeader(FixedWidth):
-    """Read or write a fixed width table which has no header line.  Column
+    """
+    Read or write a fixed width table which has no header line.  Column
     names are either input (``names`` keyword) or auto-generated.  Column
     positions are determined either by input (``col_starts`` and ``col_stops``
     keywords) or by splitting the first data line.  In the latter case a
@@ -320,10 +337,6 @@ class FixedWidthNoHeader(FixedWidth):
 
     See the :ref:`fixed_width_gallery` for specific usage examples.
 
-    :param col_starts: list of start positions for each column (0-based counting)
-    :param col_ends: list of end positions (inclusive) for each column
-    :param delimiter_pad: padding around delimiter when writing (default = None)
-    :param bookend: put the delimiter at start and end of line when writing (default = False)
     """
     _format_name = 'fixed_width_no_header'
     _description = 'Fixed width with no header'
@@ -357,7 +370,8 @@ class FixedWidthTwoLineData(FixedWidthData):
 
 
 class FixedWidthTwoLine(FixedWidth):
-    """Read or write a fixed width table which has two header lines.  The first
+    """
+    Read or write a fixed width table which has two header lines.  The first
     header line defines the column names and the second implicitly defines the
     column positions.  Examples::
 
@@ -379,10 +393,6 @@ class FixedWidthTwoLine(FixedWidth):
 
     See the :ref:`fixed_width_gallery` for specific usage examples.
 
-    :param position_line: row index of line that specifies position (default = 1)
-    :param position_char: character used to write the position line (default = "-")
-    :param delimiter_pad: padding around delimiter when writing (default = None)
-    :param bookend: put the delimiter at start and end of line when writing (default = False)
     """
     _format_name = 'fixed_width_two_line'
     _description = 'Fixed width with second header line'

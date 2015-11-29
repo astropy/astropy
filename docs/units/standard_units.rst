@@ -35,13 +35,15 @@ all the existing predefined units of a given type::
   >>> u.g.find_equivalent_units()
     Primary name | Unit definition | Aliases
   [
-    M_e          | 9.10938e-31 kg  |             ,
-    M_p          | 1.67262e-27 kg  |             ,
-    g            | 0.001 kg        | gram        ,
-    kg           | irreducible     | kilogram    ,
-    solMass      | 1.9891e+30 kg   | M_sun, Msun ,
-    t            | 1000 kg         | tonne       ,
-    u            | 1.66054e-27 kg  | Da, Dalton  ,
+    M_e          | 9.10938e-31 kg  |                                  ,
+    M_p          | 1.67262e-27 kg  |                                  ,
+    earthMass    | 5.9742e+24 kg   | M_earth, Mearth                  ,
+    g            | 0.001 kg        | gram                             ,
+    jupiterMass  | 1.8987e+27 kg   | M_jup, Mjup, M_jupiter, Mjupiter ,
+    kg           | irreducible     | kilogram                         ,
+    solMass      | 1.9891e+30 kg   | M_sun, Msun                      ,
+    t            | 1000 kg         | tonne                            ,
+    u            | 1.66054e-27 kg  | Da, Dalton                       ,
   ]
 
 The dimensionless unit
@@ -115,19 +117,21 @@ For example, to enable Imperial units, simply do::
     >>> u.m.find_equivalent_units()  # doctest: +SKIP
       Primary name | Unit definition | Aliases
     [
-      AU           | 1.49598e+11 m   | au               ,
-      Angstrom     | 1e-10 m         | AA, angstrom     ,
-      cm           | 0.01 m          | centimeter       ,
-      ft           | 0.3048 m        | foot             ,
-      inch         | 0.0254 m        |                  ,
-      lyr          | 9.46073e+15 m   | lightyear        ,
-      m            | irreducible     | meter            ,
-      mi           | 1609.34 m       | mile             ,
-      micron       | 1e-06 m         |                  ,
-      nmi          | 1852 m          | nauticalmile, NM ,
-      pc           | 3.08568e+16 m   | parsec           ,
-      solRad       | 6.95508e+08 m   | R_sun            ,
-      yd           | 0.9144 m        | yard             ,
+      AU           | 1.49598e+11 m   | au, astronomical_unit ,
+      Angstrom     | 1e-10 m         | AA, angstrom          ,
+      cm           | 0.01 m          | centimeter            ,
+      ft           | 0.3048 m        | foot                  ,
+      fur          | 201.168 m       | furlong               ,
+      inch         | 0.0254 m        |                       ,
+      lyr          | 9.46073e+15 m   | lightyear             ,
+      m            | irreducible     | meter                 ,
+      mi           | 1609.34 m       | mile                  ,
+      micron       | 1e-06 m         |                       ,
+      mil          | 2.54e-05 m      | thou                  ,
+      nmi          | 1852 m          | nauticalmile, NM      ,
+      pc           | 3.08568e+16 m   | parsec                ,
+      solRad       | 6.95508e+08 m   | R_sun, Rsun           ,
+      yd           | 0.9144 m        | yard                  ,
     ]
 
 

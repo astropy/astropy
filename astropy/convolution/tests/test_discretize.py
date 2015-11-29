@@ -11,8 +11,7 @@ from ...tests.helper import pytest
 
 from ..utils import discretize_model
 from ...modeling.functional_models import (
-    Gaussian1D, Box1D, MexicanHat1D, Trapezoid1D,
-    Gaussian2D, Box2D, MexicanHat2D)
+    Gaussian1D, Box1D, MexicanHat1D, Gaussian2D, Box2D, MexicanHat2D)
 from ...modeling.tests.example_models import models_1D, models_2D
 from ...modeling.tests.test_models import create_model
 
@@ -104,3 +103,52 @@ def test_subpixel_gauss_2D():
     gauss_2D = Gaussian2D(1, 0, 0, 0.1, 0.1)
     values = discretize_model(gauss_2D, (-1, 2), (-1, 2), mode='integrate', factor=100)
     assert_allclose(values.sum(), 2 * np.pi * 0.01, atol=0.00001)
+
+def test_discretize_callable_1d():
+    """
+    Test discretize when a 1d function is passed.
+    """
+    def f(x):
+        return x ** 2
+    y = discretize_model(f, (-5, 6))
+    assert_allclose(y, np.arange(-5, 6) ** 2)
+
+def test_discretize_callable_2d():
+    """
+    Test discretize when a 2d function is passed.
+    """
+    def f(x, y):
+        return x ** 2 + y ** 2
+    actual = discretize_model(f, (-5, 6), (-5, 6))
+    y, x = (np.indices((11, 11)) - 5)
+    desired = x ** 2 + y ** 2
+    assert_allclose(actual, desired)
+
+def test_type_exception():
+    """
+    Test type exception.
+    """
+    with pytest.raises(TypeError) as exc:
+        discretize_model(float(0), (-10, 11))
+    assert exc.value.args[0] == 'Model must be callable.'
+
+def test_dim_exception_1d():
+    """
+    Test dimension exception 1d.
+    """
+    def f(x):
+        return x ** 2
+    with pytest.raises(ValueError) as exc:
+        discretize_model(f, (-10, 11), (-10, 11))
+    assert exc.value.args[0] == "y range specified, but model is only 1-d."
+
+def test_dim_exception_2d():
+    """
+    Test dimension exception 2d.
+    """
+    def f(x, y):
+        return x ** 2 + y ** 2
+    with pytest.raises(ValueError) as exc:
+        discretize_model(f, (-10, 11))
+    assert exc.value.args[0] == "y range not specified, but model is 2-d"
+

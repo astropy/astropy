@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.23 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2014, Mark Calabretta
+  WCSLIB 5.10 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: prj.c,v 4.23 2014/05/11 04:09:38 mcalabre Exp $
+  $Id: prj.c,v 5.10 2015/10/09 08:19:15 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -225,7 +225,7 @@ const struct prjprm *prj;
     if (prj->pvrange/100) {
       wcsprintf(" (0)");
     } else {
-      wcsprintf(" %- 11.5g", prj->pv[0]);
+      wcsprintf(" %#- 11.5g", prj->pv[0]);
       n--;
     }
 
@@ -237,7 +237,7 @@ const struct prjprm *prj;
       if (undefined(prj->pv[i])) {
         wcsprintf("  UNDEFINED   ");
       } else {
-        wcsprintf("  %- 11.5g", prj->pv[i]);
+        wcsprintf("  %#- 11.5g", prj->pv[i]);
       }
     }
     wcsprintf("\n");
@@ -276,11 +276,11 @@ const struct prjprm *prj;
 
   wcsprintf("        w[]:");
   for (i = 0; i < 5; i++) {
-    wcsprintf("  %- 11.5g", prj->w[i]);
+    wcsprintf("  %#- 11.5g", prj->w[i]);
   }
   wcsprintf("\n            ");
   for (i = 5; i < 10; i++) {
-    wcsprintf("  %- 11.5g", prj->w[i]);
+    wcsprintf("  %#- 11.5g", prj->w[i]);
   }
   wcsprintf("\n");
   wcsprintf("          m: %d\n", prj->m);
@@ -289,6 +289,20 @@ const struct prjprm *prj;
     wcsutil_fptr2str((int (*)(void))prj->prjx2s, hext));
   wcsprintf("     prjs2x: %s\n",
     wcsutil_fptr2str((int (*)(void))prj->prjs2x, hext));
+
+  return 0;
+}
+
+/*--------------------------------------------------------------------------*/
+
+int prjperr(const struct prjprm *prj, const char *prefix)
+
+{
+  if (prj == 0x0) return PRJERR_NULL_POINTER;
+
+  if (prj->err) {
+    wcserr_prt(prj->err, prefix);
+  }
 
   return 0;
 }
@@ -312,35 +326,38 @@ int stat[];
   statp  = stat;
   for (itheta = 0; itheta < ntheta; itheta++) {
     for (iphi = 0; iphi < nphi; iphi++, phip += spt, thetap += spt, statp++) {
-      if (*phip < -180.0) {
-        if (*phip < -180.0-tol) {
-          *statp = 1;
-          status = 1;
-        } else {
-          *phip = -180.0;
+      /* Skip values already marked as illegal. */
+      if (*statp == 0) {
+        if (*phip < -180.0) {
+          if (*phip < -180.0-tol) {
+            *statp = 1;
+            status = 1;
+          } else {
+            *phip = -180.0;
+          }
+        } else if (180.0 < *phip) {
+          if (180.0+tol < *phip) {
+            *statp = 1;
+            status = 1;
+          } else {
+            *phip = 180.0;
+          }
         }
-      } else if (180.0 < *phip) {
-        if (180.0+tol < *phip) {
-          *statp = 1;
-          status = 1;
-        } else {
-          *phip = 180.0;
-        }
-      }
 
-      if (*thetap < -90.0) {
-        if (*thetap < -90.0-tol) {
-          *statp = 1;
-          status = 1;
-        } else {
-          *thetap = -90.0;
-        }
-      } else if (90.0 < *thetap) {
-        if (90.0+tol < *thetap) {
-          *statp = 1;
-          status = 1;
-        } else {
-          *thetap = 90.0;
+        if (*thetap < -90.0) {
+          if (*thetap < -90.0-tol) {
+            *statp = 1;
+            status = 1;
+          } else {
+            *thetap = -90.0;
+          }
+        } else if (90.0 < *thetap) {
+          if (90.0+tol < *thetap) {
+            *statp = 1;
+            status = 1;
+          } else {
+            *thetap = 90.0;
+          }
         }
       }
     }
@@ -2405,7 +2422,7 @@ int stat[];
           }
           zd = zd2;
         } else {
-          /* Disect the interval. */
+          /* Dissect the interval. */
           for (j = 0; j < 100; j++) {
             lambda = (r2 - r)/(r2 - r1);
             if (lambda < 0.1) {

@@ -30,7 +30,8 @@ from .constants import SSL_SUPPORT
 
 if SSL_SUPPORT:
     import ssl
-    from .ssl_utils import SafeTransport, SecureXMLRPCServer
+    from .ssl_utils import (SafeTransport, SecureXMLRPCServer,
+                            get_ssl_version_name)
 
 __all__ = ['SAMPHubServer', 'WebProfileDialog']
 
@@ -114,14 +115,14 @@ class SAMPHubServer(object):
         passed from the Hub end of the connection.
 
     ssl_version : int, optional
-        The ``ssl_version`` option specifies which version of the SSL protocol
-        to use. Typically, the server chooses a particular protocol version,
-        and the client must adapt to the server's choice. Most of the versions
-        are not interoperable with the other versions. If not specified the
-        default SSL version is `ssl.PROTOCOL_SSLv23`. This version provides
-        the most compatibility with other versions client side. Other SSL
-        protocol versions are: `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and
-        `ssl.PROTOCOL_TLSv1`.
+        The ``ssl_version`` option specifies which version of the SSL
+        protocol to use. Typically, the server chooses a particular
+        protocol version, and the client must adapt to the server's
+        choice. Most of the versions are not interoperable with the
+        other versions. If not specified, the default SSL version is
+        taken from the default in the installed version of the Python
+        standard `ssl` library.  See the `ssl` documentation for more
+        information.
 
     web_profile : bool, optional
         Enables or disables the Web Profile support.
@@ -165,36 +166,16 @@ class SAMPHubServer(object):
         self._client_timeout = client_timeout
         self._pool_size = pool_size
 
-        if SSL_SUPPORT and ssl_version is None:
-            ssl_version = ssl.PROTOCOL_SSLv23
-
+        # Web profile specific attributes
         self._web_profile = web_profile
-        self._web_profile_server = None
-        self._web_profile_callbacks = {}
-        self._web_profile_requests_queue = queue.Queue(1)
-        self._web_profile_requests_result = queue.Queue(1)
-        self._web_profile_requests_semaphore = queue.Queue(1)
-
         self._web_profile_dialog = web_profile_dialog
-        if self._web_profile_dialog is not None:
-            # TODO: Some sort of duck-typing on the web_profile_dialog object
-            self._web_profile_dialog.queue_request = self._web_profile_requests_queue
-            self._web_profile_dialog.queue_result = self._web_profile_requests_result
         self._web_port = web_port
 
-        if web_profile:
-            try:
-                self._web_profile_server = WebProfileXMLRPCServer(('localhost', self._web_port), log,
-                                                                  logRequests=False,
-                                                                  allow_none=True)
-                self._web_port = self._web_profile_server.socket.getsockname()[1]
-                self._web_profile_server.register_introspection_functions()
-                log.info("Hub set to run with Web Profile support enabled.")
-            except socket.error:
-                log.warn("Port {0} already in use. Impossible to run the "
-                         "Hub with Web Profile support.".format(self._web_port),
-                         SAMPWarning)
-                self._web_profile = web_profile = False
+        self._web_profile_server = None
+        self._web_profile_callbacks = {}
+        self._web_profile_requests_queue = None
+        self._web_profile_requests_result = None
+        self._web_profile_requests_semaphore = None
 
         # SSL general settings
         self._https = https
@@ -215,7 +196,6 @@ class SAMPHubServer(object):
 
         # XML-RPC server settings
         if https:
-
             if key_file is not None and not os.path.isfile(key_file):
                 raise SAMPHubError("Unable to load SSL private key file!")
 
@@ -223,51 +203,12 @@ class SAMPHubServer(object):
                 raise SAMPHubError("Unable to load SSL cert file!")
 
             log.info("Hub set for using SSL.")
-            self._server = SecureXMLRPCServer((self._addr or self._host_name,
-                                               self._port or 0),
-                                              key_file, cert_file, cert_reqs,
-                                              ca_certs, ssl_version, log,
-                                              logRequests=False,
-                                              allow_none=True)
-
-            self._port = self._server.socket.getsockname()[1]
-            self._url = urlunparse(('https',
-                                    "{0}:{1}".format(self._addr or self._host_name,
-                                                     self._port),
-                                    '', '', '', ''))
-        else:
-
-            self._server = ThreadingXMLRPCServer((self._addr or self._host_name,
-                                                  self._port or 0),
-                                                 log, logRequests=False,
-                                                 allow_none=True)
-
-            self._port = self._server.socket.getsockname()[1]
-            self._url = urlunparse(('http',
-                                    "{0}:{1}".format(self._addr or self._host_name,
-                                                     self._port),
-                                    '', '', '', ''))
-
-        self._server.register_introspection_functions()
 
         # Threading stuff
         self._thread_lock = threading.Lock()
-        self._thread_run = threading.Thread(target=self._serve_forever)
-        self._thread_run.daemon = True
-
-        if self._timeout > 0:
-            self._thread_hub_timeout = threading.Thread(target=self._timeout_test_hub,
-                                                        name="Hub timeout test")
-            self._thread_hub_timeout.daemon = True
-        else:
-            self._thread_hub_timeout = None
-
-        if self._client_timeout > 0:
-            self._thread_client_timeout = threading.Thread(target=self._timeout_test_client,
-                                                               name="Client timeout test")
-            self._thread_client_timeout.daemon = True
-        else:
-            self._thread_client_timeout = None
+        self._thread_run = None
+        self._thread_hub_timeout = None
+        self._thread_client_timeout = None
 
         self._launched_threads = []
 
@@ -311,55 +252,106 @@ class SAMPHubServer(object):
         # Public ids counter
         self._client_id_counter = -1
 
-        # Standard Profile only operations
-        self._server.register_function(self._ping, 'samp.hub.ping')
-        self._server.register_function(self._set_xmlrpc_callback, 'samp.hub.setXmlrpcCallback')
-
-        # Standard API operations
-        self._server.register_function(self._register, 'samp.hub.register')
-        self._server.register_function(self._unregister, 'samp.hub.unregister')
-        self._server.register_function(self._declare_metadata, 'samp.hub.declareMetadata')
-        self._server.register_function(self._get_metadata, 'samp.hub.getMetadata')
-        self._server.register_function(self._declare_subscriptions, 'samp.hub.declareSubscriptions')
-        self._server.register_function(self._get_subscriptions, 'samp.hub.getSubscriptions')
-        self._server.register_function(self._get_registered_clients, 'samp.hub.getRegisteredClients')
-        self._server.register_function(self._get_subscribed_clients, 'samp.hub.getSubscribedClients')
-        self._server.register_function(self._notify, 'samp.hub.notify')
-        self._server.register_function(self._notify_all, 'samp.hub.notifyAll')
-        self._server.register_function(self._call, 'samp.hub.call')
-        self._server.register_function(self._call_all, 'samp.hub.callAll')
-        self._server.register_function(self._call_and_wait, 'samp.hub.callAndWait')
-        self._server.register_function(self._reply, 'samp.hub.reply')
-
-        if web_profile:
-
-            # Web Profile methods like Standard Profile
-            self._web_profile_server.register_function(self._ping, 'samp.webhub.ping')
-            self._web_profile_server.register_function(self._unregister, 'samp.webhub.unregister')
-            self._web_profile_server.register_function(self._declare_metadata, 'samp.webhub.declareMetadata')
-            self._web_profile_server.register_function(self._get_metadata, 'samp.webhub.getMetadata')
-            self._web_profile_server.register_function(self._declare_subscriptions, 'samp.webhub.declareSubscriptions')
-            self._web_profile_server.register_function(self._get_subscriptions, 'samp.webhub.getSubscriptions')
-            self._web_profile_server.register_function(self._get_registered_clients, 'samp.webhub.getRegisteredClients')
-            self._web_profile_server.register_function(self._get_subscribed_clients, 'samp.webhub.getSubscribedClients')
-            self._web_profile_server.register_function(self._notify, 'samp.webhub.notify')
-            self._web_profile_server.register_function(self._notify_all, 'samp.webhub.notifyAll')
-            self._web_profile_server.register_function(self._call, 'samp.webhub.call')
-            self._web_profile_server.register_function(self._call_all, 'samp.webhub.callAll')
-            self._web_profile_server.register_function(self._call_and_wait, 'samp.webhub.callAndWait')
-            self._web_profile_server.register_function(self._reply, 'samp.webhub.reply')
-
-            # Methods peculiar for Web Profile
-            self._web_profile_server.register_function(self._web_profile_register, 'samp.webhub.register')
-            self._web_profile_server.register_function(self._web_profile_allowReverseCallbacks, 'samp.webhub.allowReverseCallbacks')
-            self._web_profile_server.register_function(self._web_profile_pullCallbacks, 'samp.webhub.pullCallbacks')
-
     @property
     def id(self):
         """
         The unique hub ID.
         """
         return self._id
+
+    def _register_standard_api(self, server):
+        # Standard Profile only operations
+        server.register_function(self._ping, 'samp.hub.ping')
+        server.register_function(self._set_xmlrpc_callback, 'samp.hub.setXmlrpcCallback')
+
+        # Standard API operations
+        server.register_function(self._register, 'samp.hub.register')
+        server.register_function(self._unregister, 'samp.hub.unregister')
+        server.register_function(self._declare_metadata, 'samp.hub.declareMetadata')
+        server.register_function(self._get_metadata, 'samp.hub.getMetadata')
+        server.register_function(self._declare_subscriptions, 'samp.hub.declareSubscriptions')
+        server.register_function(self._get_subscriptions, 'samp.hub.getSubscriptions')
+        server.register_function(self._get_registered_clients, 'samp.hub.getRegisteredClients')
+        server.register_function(self._get_subscribed_clients, 'samp.hub.getSubscribedClients')
+        server.register_function(self._notify, 'samp.hub.notify')
+        server.register_function(self._notify_all, 'samp.hub.notifyAll')
+        server.register_function(self._call, 'samp.hub.call')
+        server.register_function(self._call_all, 'samp.hub.callAll')
+        server.register_function(self._call_and_wait, 'samp.hub.callAndWait')
+        server.register_function(self._reply, 'samp.hub.reply')
+
+    def _register_web_profile_api(self, server):
+        # Web Profile methods like Standard Profile
+        server.register_function(self._ping, 'samp.webhub.ping')
+        server.register_function(self._unregister, 'samp.webhub.unregister')
+        server.register_function(self._declare_metadata, 'samp.webhub.declareMetadata')
+        server.register_function(self._get_metadata, 'samp.webhub.getMetadata')
+        server.register_function(self._declare_subscriptions, 'samp.webhub.declareSubscriptions')
+        server.register_function(self._get_subscriptions, 'samp.webhub.getSubscriptions')
+        server.register_function(self._get_registered_clients, 'samp.webhub.getRegisteredClients')
+        server.register_function(self._get_subscribed_clients, 'samp.webhub.getSubscribedClients')
+        server.register_function(self._notify, 'samp.webhub.notify')
+        server.register_function(self._notify_all, 'samp.webhub.notifyAll')
+        server.register_function(self._call, 'samp.webhub.call')
+        server.register_function(self._call_all, 'samp.webhub.callAll')
+        server.register_function(self._call_and_wait, 'samp.webhub.callAndWait')
+        server.register_function(self._reply, 'samp.webhub.reply')
+
+        # Methods particularly for Web Profile
+        server.register_function(self._web_profile_register, 'samp.webhub.register')
+        server.register_function(self._web_profile_allowReverseCallbacks, 'samp.webhub.allowReverseCallbacks')
+        server.register_function(self._web_profile_pullCallbacks, 'samp.webhub.pullCallbacks')
+
+    def _start_standard_server(self):
+        if self._https:
+            self._server = SecureXMLRPCServer(
+                (self._addr or self._host_name, self._port or 0),
+                self._key_file, self._cert_file, self._cert_reqs,
+                self._ca_certs, self._ssl_version, log,
+                logRequests=False, allow_none=True)
+
+            prot = 'https'
+        else:
+            self._server = ThreadingXMLRPCServer(
+                    (self._addr or self._host_name, self._port or 0),
+                    log, logRequests=False, allow_none=True)
+            prot = 'http'
+
+        self._port = self._server.socket.getsockname()[1]
+        addr = "{0}:{1}".format(self._addr or self._host_name, self._port)
+        self._url = urlunparse((prot, addr, '', '', '', ''))
+        self._server.register_introspection_functions()
+        self._register_standard_api(self._server)
+
+    def _start_web_profile_server(self):
+        self._web_profile_requests_queue = queue.Queue(1)
+        self._web_profile_requests_result = queue.Queue(1)
+        self._web_profile_requests_semaphore = queue.Queue(1)
+
+        if self._web_profile_dialog is not None:
+            # TODO: Some sort of duck-typing on the web_profile_dialog object
+            self._web_profile_dialog.queue_request = \
+                    self._web_profile_requests_queue
+            self._web_profile_dialog.queue_result = \
+                    self._web_profile_requests_result
+
+        try:
+            self._web_profile_server = WebProfileXMLRPCServer(
+                    ('localhost', self._web_port), log, logRequests=False,
+                    allow_none=True)
+            self._web_port = self._web_profile_server.socket.getsockname()[1]
+            self._web_profile_server.register_introspection_functions()
+            self._register_web_profile_api(self._web_profile_server)
+            log.info("Hub set to run with Web Profile support enabled.")
+        except socket.error:
+            log.warning("Port {0} already in use. Impossible to run the "
+                        "Hub with Web Profile support.".format(self._web_port),
+                        SAMPWarning)
+            self._web_profile = False
+            # Cleanup
+            self._web_profile_requests_queue = None
+            self._web_profile_requests_result = None
+            self._web_profile_requests_semaphore = None
 
     def _launch_thread(self, group=None, target=None, name=None, args=None):
 
@@ -463,26 +455,32 @@ class SAMPHubServer(object):
             process runs in a separated thread. `False` is usually used in a
             Python shell.
         """
+
         if self._is_running:
             raise SAMPHubError("Hub is already running")
 
         if self._lockfile is not None:
             raise SAMPHubError("Hub is not running but lockfile is set")
 
+        if self._web_profile:
+            self._start_web_profile_server()
+
+        self._start_standard_server()
+
         self._lockfile = create_lock_file(lockfilename=self._customlockfilename,
                                           mode=self._mode, hub_id=self.id,
                                           hub_params=self.params)
 
-        self._is_running = True
         self._update_last_activity_time()
-
         self._setup_hub_as_client()
+
         self._start_threads()
 
         log.info("Hub started")
 
         if wait and self._is_running:
             self._thread_run.join()
+            self._thread_run = None
 
     @property
     def params(self):
@@ -510,13 +508,34 @@ class SAMPHubServer(object):
             params['hub.ssl.certificate'] = cert_reqs_types[self._cert_reqs]
 
             # SSL protocol version
-            ssl_protocol_types = ["SSLv2", "SSLv3", "SSLv23", "TLSv1"]
-            params['hub.ssl.protocol'] = ssl_protocol_types[self._ssl_version]
+            params['hub.ssl.protocol'] = get_ssl_version_name(
+                self._ssl_version)
 
         return params
 
     def _start_threads(self):
+        self._thread_run = threading.Thread(target=self._serve_forever)
+        self._thread_run.daemon = True
+
+        if self._timeout > 0:
+            self._thread_hub_timeout = threading.Thread(
+                    target=self._timeout_test_hub,
+                    name="Hub timeout test")
+            self._thread_hub_timeout.daemon = True
+        else:
+            self._thread_hub_timeout = None
+
+        if self._client_timeout > 0:
+            self._thread_client_timeout = threading.Thread(
+                    target=self._timeout_test_client,
+                    name="Client timeout test")
+            self._thread_client_timeout.daemon = True
+        else:
+            self._thread_client_timeout = None
+
+        self._is_running = True
         self._thread_run.start()
+
         if self._thread_hub_timeout is not None:
             self._thread_hub_timeout.start()
         if self._thread_client_timeout is not None:
@@ -548,7 +567,8 @@ class SAMPHubServer(object):
                 os.remove(self._lockfile)
         self._lockfile = None
 
-        # Reset vaiables
+        # Reset variables
+        # TODO: What happens if not all threads are stopped after timeout?
         self._join_all_threads(timeout=10.)
 
         self._hub_msg_id_counter = 0
@@ -570,10 +590,17 @@ class SAMPHubServer(object):
         current_thread = threading.current_thread()
         if self._thread_run is not current_thread:
             self._thread_run.join(timeout=timeout)
+            if not self._thread_run.is_alive():
+                self._thread_run = None
         if self._thread_hub_timeout is not None and self._thread_hub_timeout is not current_thread:
             self._thread_hub_timeout.join(timeout=timeout)
+            if not self._thread_hub_timeout.is_alive():
+                self._thread_hub_timeout = None
         if self._thread_client_timeout is not None and self._thread_client_timeout is not current_thread:
             self._thread_client_timeout.join(timeout=timeout)
+            if not self._thread_client_timeout.is_alive():
+                self._thread_client_timeout = None
+
         self._join_launched_threads(timeout=timeout)
 
     @property
@@ -622,6 +649,10 @@ class SAMPHubServer(object):
                 else:
                     if read_ready:
                         self._web_profile_server.handle_request()
+
+        self._server.server_close()
+        if self._web_profile_server is not None:
+            self._web_profile_server.server_close()
 
     def _notify_shutdown(self):
         msubs = SAMPHubServer.get_mtype_subtypes("samp.hub.event.shutdown")
@@ -1053,50 +1084,16 @@ class SAMPHubServer(object):
                          recipient_public_id))
 
             recipient_private_key = self._public_id_to_private_key(recipient_public_id)
+            arg_params = (sender_public_id, message)
+            samp_method_name = "receiveNotification"
 
-            if recipient_private_key is None:
-                raise SAMPHubError("Invalid client ID")
-
-            for attempt in range(10):
-
-                if not self._is_running:
-                    time.sleep(0.01)
-                    continue
-
-                try:
-
-                    if (self._web_profile and
-                        recipient_private_key in self._web_profile_callbacks):
-
-                        # Web Profile
-                        callback = {"samp.methodName": "receiveNotification",
-                                    "samp.params": [sender_public_id, message]}
-                        self._web_profile_callbacks[recipient_private_key].put(callback)
-
-                    else:
-
-                        # Standard Profile
-                        hub = self._xmlrpc_endpoints[recipient_public_id][1]
-                        hub.samp.client.receiveNotification(recipient_private_key,
-                                                            sender_public_id,
-                                                            message)
-
-                except xmlrpc.Fault as exc:
-                    log.debug("%s XML-RPC endpoint error (attempt %d): %s"
-                              % (recipient_public_id, attempt + 1,
-                                 exc.faultString))
-                    time.sleep(0.01)
-                else:
-                    return
-
-            # If we are here, then the above attempts failed
-            raise SAMPHubError("notification failed after 10 attempts")
+            self._retry_method(recipient_private_key, recipient_public_id, samp_method_name, arg_params)
 
         except Exception as exc:
             warnings.warn("%s notification from client %s to client %s failed [%s]"
                           % (message["samp.mtype"], sender_public_id,
                              recipient_public_id, exc),
-                          SAMPWarning)
+                              SAMPWarning)
 
     def _notify_all(self, private_key, message):
         self._update_last_activity_time(private_key)
@@ -1159,44 +1156,10 @@ class SAMPHubServer(object):
                          recipient_public_id, message["samp.mtype"]))
 
             recipient_private_key = self._public_id_to_private_key(recipient_public_id)
+            arg_params = (sender_public_id, msg_id, message)
+            samp_methodName = "receiveCall"
 
-            if recipient_private_key is None:
-                raise SAMPHubError("Invalid client ID")
-
-            for attempt in range(10):
-
-                if not self._is_running:
-                    time.sleep(0.01)
-                    continue
-
-                try:
-
-                    if (self._web_profile and
-                        recipient_private_key in self._web_profile_callbacks):
-
-                        # Web Profile
-                        callback = {"samp.methodName": "receiveCall",
-                                    "samp.params": [sender_public_id, msg_id, message]}
-                        self._web_profile_callbacks[recipient_private_key].put(callback)
-
-                    else:
-
-                        # Standard Profile
-                        hub = self._xmlrpc_endpoints[recipient_public_id][1]
-                        hub.samp.client.receiveCall(recipient_private_key,
-                                                    sender_public_id, msg_id,
-                                                    message)
-
-                except xmlrpc.Fault as exc:
-                    log.debug("%s XML-RPC endpoint error (attempt %d): %s"
-                              % (recipient_public_id, attempt + 1,
-                                 exc.faultString))
-                    time.sleep(0.01)
-                else:
-                    return
-
-            # If we are here, then the above attempts failed
-            raise SAMPHubError("call failed after 10 attempts")
+            self._retry_method(recipient_private_key, recipient_public_id, samp_methodName, arg_params)
 
         except Exception as exc:
             warnings.warn("%s call %s from client %s to client %s failed [%s,%s]"
@@ -1305,53 +1268,72 @@ class SAMPHubServer(object):
             else:
 
                 recipient_private_key = self._public_id_to_private_key(recipient_public_id)
+                arg_params = (responder_public_id, recipient_msg_tag, response)
+                samp_method_name = "receiveResponse"
 
-                if recipient_private_key is None:
-                    raise SAMPHubError("Invalid client ID")
-
-                for attempt in range(10):
-
-                    if not self._is_running:
-                        time.sleep(0.01)
-                        continue
-
-                    try:
-
-                        if (self._web_profile and
-                            recipient_private_key in self._web_profile_callbacks):
-
-                            # Web Profile
-                            callback = {"samp.methodName": "receiveResponse",
-                                        "samp.params": [responder_public_id,
-                                                        recipient_msg_tag,
-                                                        response]}
-                            self._web_profile_callbacks[recipient_private_key].put(callback)
-
-                        else:
-
-                            # Standard Profile
-                            hub = self._xmlrpc_endpoints[recipient_public_id][1]
-                            hub.samp.client.receiveResponse(recipient_private_key,
-                                                            responder_public_id,
-                                                            recipient_msg_tag,
-                                                            response)
-
-                    except xmlrpc.Fault as exc:
-                        log.debug("%s XML-RPC endpoint error (attempt %d): %s"
-                                  % (recipient_public_id, attempt + 1,
-                                     exc.faultString))
-                        time.sleep(0.01)
-                    else:
-                        return
-
-                # If we are here, then the above attempts failed
-                raise SAMPHubError("reply failed after 10 attempts")
+                self._retry_method(recipient_private_key, recipient_public_id, samp_method_name, arg_params)
 
         except Exception as exc:
             warnings.warn("%s reply from client %s to client %s failed [%s]"
                           % (recipient_msg_tag, responder_public_id,
                              recipient_public_id, exc),
                           SAMPWarning)
+
+    def _retry_method(self, recipient_private_key, recipient_public_id, samp_method_name, arg_params):
+        """
+        This method is used to retry a SAMP call several times.
+
+        Parameters
+        ----------
+        recipient_private_key
+            The private key of the receiver of the call
+        recipient_public_key
+            The public key of the receiver of the call
+        samp_method_name : str
+            The name of the SAMP method to call
+        arg_params : tuple
+            Any additional arguments to be passed to the SAMP method
+        """
+
+        if recipient_private_key is None:
+            raise SAMPHubError("Invalid client ID")
+
+        from . import conf
+
+        for attempt in range(conf.n_retries):
+
+            if not self._is_running:
+                time.sleep(0.01)
+                continue
+
+            try:
+
+                if (self._web_profile and
+                    recipient_private_key in self._web_profile_callbacks):
+
+                    # Web Profile
+                    callback = {"samp.methodName": samp_method_name,
+                                "samp.params": arg_params}
+                    self._web_profile_callbacks[recipient_private_key].put(callback)
+
+                else:
+
+                    # Standard Profile
+                    hub = self._xmlrpc_endpoints[recipient_public_id][1]
+                    getattr(hub.samp.client, samp_method_name)(recipient_private_key, *arg_params)
+
+            except xmlrpc.Fault as exc:
+                log.debug("%s XML-RPC endpoint error (attempt %d): %s"
+                          % (recipient_public_id, attempt + 1,
+                             exc.faultString))
+                time.sleep(0.01)
+            else:
+                return
+
+        # If we are here, then the above attempts failed
+        error_message = method_name + " failed after " + tries + " attempts"
+        raise SAMPHubError(error_message)
+
 
     def _public_id_to_private_key(self, public_id):
 
@@ -1401,7 +1383,7 @@ class SAMPHubServer(object):
         return ""
 
     def _web_profile_register(self, identity_info,
-                              client_address=("uknown", 0),
+                              client_address=("unknown", 0),
                               origin="unknown"):
 
         self._update_last_activity_time()

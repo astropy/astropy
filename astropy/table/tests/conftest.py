@@ -14,10 +14,17 @@ place to put fixtures that are shared between modules.  These fixtures
 can not be defined in a module by a different name and still be shared
 between modules.
 """
+from copy import deepcopy
+import numpy as np
 
 from ...tests.helper import pytest
 from ... import table
+from ...table import table_helpers, Table
+from ... import time
+from ... import units as u
+from ... import coordinates
 from .. import pprint
+from ...utils import OrderedDict
 
 
 @pytest.fixture(params=[table.Column, table.MaskedColumn])
@@ -124,3 +131,50 @@ def table_type(request):
         return MaskedTable
     except AttributeError:
         return table.Table
+
+
+# Stuff for testing mixin columns
+
+MIXIN_COLS = {'quantity': [0, 1, 2, 3] * u.m,
+              'time': time.Time([2000, 2001, 2002, 2003], format='jyear'),
+              'skycoord': coordinates.SkyCoord(ra=[0, 1, 2, 3] * u.deg,
+                                               dec=[0, 1, 2, 3] * u.deg),
+              'arraywrap': table_helpers.ArrayWrapper([0, 1, 2, 3]),
+              'ndarray': np.array([(7, 'a'), (8, 'b'), (9, 'c'), (9, 'c')],
+                           dtype='<i4,|S1').view(table.NdarrayMixin),
+              }
+
+@pytest.fixture(params=sorted(MIXIN_COLS))
+def mixin_cols(request):
+    """
+    Fixture to return a set of columns for mixin testing which includes
+    an index column 'i', two string cols 'a', 'b' (for joins etc), and
+    one of the available mixin column types.
+    """
+    cols = OrderedDict()
+    mixin_cols = deepcopy(MIXIN_COLS)
+    cols['i'] = table.Column([0, 1, 2, 3], name='i')
+    cols['a'] = table.Column(['a', 'b', 'b', 'c'], name='a')
+    cols['b'] = table.Column(['b', 'c', 'a', 'd'], name='b')
+    cols['m'] = mixin_cols[request.param]
+
+    return cols
+
+@pytest.fixture(params=[False, True])
+def T1(request):
+    T = Table.read([' a b c d',
+                 ' 2 c 7.0 0',
+                 ' 2 b 5.0 1',
+                 ' 2 b 6.0 2',
+                 ' 2 a 4.0 3',
+                 ' 0 a 0.0 4',
+                 ' 1 b 3.0 5',
+                 ' 1 a 2.0 6',
+                 ' 1 a 1.0 7',
+                 ], format='ascii')
+    T.meta.update({'ta': 1})
+    T['c'].meta.update({'a': 1})
+    T['c'].description = 'column c'
+    if request.param:
+        T.add_index('a')
+    return T

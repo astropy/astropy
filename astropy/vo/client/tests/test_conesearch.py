@@ -46,7 +46,7 @@ class TestConeSearch(object):
     """
     def setup_class(self):
         # If this link is broken, use the next in database that works
-        self.url = 'http://www.nofs.navy.mil/cgi-bin/vo_cone.cgi?CAT=USNO-A2&'
+        self.url = 'http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/252&'
         self.catname = 'USNO-A2'
 
         # Avoid downloading the full database
@@ -165,8 +165,8 @@ class TestConeSearch(object):
             assert tab.array.size > 0
 
     @pytest.mark.parametrize(('center', 'radius'),
-                             [((SCS_RA, SCS_DEC), 1.0),
-                              (SCS_CENTER, 1.0 * u.degree)])
+                             [((SCS_RA, SCS_DEC), 0.8),
+                              (SCS_CENTER, 0.8 * u.degree)])
     def test_prediction(self,  center, radius):
         """Prediction tests are not very accurate but will have to do."""
         t_1, tab_1 = conesearch.conesearch_timer(

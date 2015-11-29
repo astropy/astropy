@@ -13,22 +13,24 @@ Introduction
 model evaluation and fitting. It currently supports 1-D and 2-D models and
 fitting with parameter constraints.
 
-It is :ref:`designed <modeling-design>` to be easily extensible and flexible.
-Models do not reference fitting algorithms explicitly and new fitting
-algorithms may be added without changing the existing models (though not all
-models can be used with all fitting algorithms due to constraints such as model
-linearity).
+It is designed to be easily extensible and flexible.  Models do not reference
+fitting algorithms explicitly and new fitting algorithms may be added without
+changing the existing models (though not all models can be used with all
+fitting algorithms due to constraints such as model linearity).
 
 The goal is to eventually provide a rich toolset of models and fitters such
 that most users will not need to define new model classes, nor special purpose
 fitting routines (while making it reasonably easy to do when necessary).
 
-.. warning::
+.. note::
 
     `astropy.modeling` is currently a work-in-progress, and thus it is likely
-    there will be significant API changes in later versions of Astropy. If you
-    have specific ideas for how it might be improved, feel free to let us know
-    on the `astropy-dev mailing list`_ or at http://feedback.astropy.org
+    there will still be API changes in later versions of Astropy.  Backwards
+    compatibility support between versions will still be maintained as much as
+    possible, but new features and enhancements are coming in future versions.
+    If you have specific ideas for how it might be improved, feel free to let
+    us know on the `astropy-dev mailing list`_ or at
+    http://feedback.astropy.org
 
 
 Getting started
@@ -52,8 +54,8 @@ parametrized functions::
     >>> g = models.Gaussian1D(amplitude=1.2, mean=0.9, stddev=0.5)
     >>> print(g)
     Model: Gaussian1D
-    Inputs: 1
-    Outputs: 1
+    Inputs: ('x',)
+    Outputs: ('y',)
     Model set size: 1
     Parameters:
         amplitude mean stddev
@@ -123,8 +125,8 @@ and `~astropy.modeling.functional_models.Trapezoid1D` models and the
     # Plot the data with the best-fit model
     plt.figure(figsize=(8,5))
     plt.plot(x, y, 'ko')
-    plt.plot(x, t(x), 'b-', lw=2, label='Trapezoid')
-    plt.plot(x, g(x), 'r-', lw=2, label='Gaussian')
+    plt.plot(x, t(x), label='Trapezoid')
+    plt.plot(x, g(x), label='Gaussian')
     plt.xlabel('Position')
     plt.ylabel('Flux')
     plt.legend(loc=2)
@@ -164,15 +166,17 @@ background in an image.
         p = fit_p(p_init, x, y, z)
 
     # Plot the data with the best-fit model
-    plt.figure(figsize=(8,2.5))
-    plt.subplot(1,3,1)
-    plt.imshow(z, interpolation='nearest', vmin=-1e4, vmax=5e4)
+    plt.figure(figsize=(8, 2.5))
+    plt.subplot(1, 3, 1)
+    plt.imshow(z, origin='lower', interpolation='nearest', vmin=-1e4, vmax=5e4)
     plt.title("Data")
-    plt.subplot(1,3,2)
-    plt.imshow(p(x, y), interpolation='nearest', vmin=-1e4, vmax=5e4)
+    plt.subplot(1, 3, 2)
+    plt.imshow(p(x, y), origin='lower', interpolation='nearest', vmin=-1e4,
+               vmax=5e4)
     plt.title("Model")
-    plt.subplot(1,3,3)
-    plt.imshow(z - p(x, y), interpolation='nearest', vmin=-1e4, vmax=5e4)
+    plt.subplot(1, 3, 3)
+    plt.imshow(z - p(x, y), origin='lower', interpolation='nearest', vmin=-1e4,
+               vmax=5e4)
     plt.title("Residual")
 
 A list of models is provided in the `Reference/API`_ section. The fitting
@@ -186,9 +190,9 @@ Model sets
 ----------
 
 In some cases it is necessary to describe many models of the same type but with
-different parameter values.  This could be done simply by instantiating as many
-instances of a `~astropy.modeling.Model` as are needed.  But that can be
-inefficient for a large number of models.  To that end, all model classes in
+different sets of parameter values.  This could be done simply by instantiating
+as many instances of a `~astropy.modeling.Model` as are needed.  But that can
+be inefficient for a large number of models.  To that end, all model classes in
 `astropy.modeling` can also be used to represent a model *set* which is a
 collection of models of the same type, but with different values for their
 parameters.
@@ -202,8 +206,8 @@ the array corresponds to one model in the set::
     ...                       stddev=[0.1, 0.2], n_models=2)
     >>> print(g)
     Model: Gaussian1D
-    Inputs: 1
-    Outputs: 1
+    Inputs: ('x',)
+    Outputs: ('y',)
     Model set size: 2
     Parameters:
         amplitude mean stddev
@@ -242,30 +246,101 @@ response of each pixel in a data cube.  This can greatly speed up the fitting
 process, especially for linear models.
 
 
+.. _compound-models-intro:
+
+Compound models
+---------------
+.. versionadded:: 1.0
+
+    This feature is experimental and expected to see significant further
+    development, but the basic usage is stable and expected to see wide use.
+
+While the Astropy modeling package makes it very easy to define :doc:`new
+models <new>` either from existing functions, or by writing a
+`~astropy.modeling.Model` subclass, an additional way to create new models is
+by combining them using arithmetic expressions.  This works with models built
+into Astropy, and most user-defined models as well.  For example, it is
+possible to create a superposition of two Gaussians like so::
+
+    >>> from astropy.modeling import models
+    >>> g1 = models.Gaussian1D(1, 0, 0.2)
+    >>> g2 = models.Gaussian1D(2.5, 0.5, 0.1)
+    >>> g1_plus_2 = g1 + g2
+
+The resulting object ``g1_plus_2`` is itself a new model.  Evaluating, say,
+``g1_plus_2(0.25)`` is the same as evaluating ``g1(0.25) + g2(0.25)``::
+
+    >>> g1_plus_2(0.25)  # doctest: +FLOAT_CMP
+    0.5676756958301329
+    >>> g1_plus_2(0.25) == g1(0.25) + g2(0.25)
+    True
+
+This model can be further combined with other models in new expressions.  It is
+also possible to define entire new model *classes* using arithmetic expressions
+of other model classes.  This allows general compound models to be created
+without specifying any parameter values up front.  This more advanced usage is
+explained in more detail in the :ref:`compound model documentation
+<compound-model-classes>`.
+
+These new compound models can also be fitted to data, like most other models:
+
+.. plot::
+    :include-source:
+
+    import numpy as np
+    from astropy.modeling import models, fitting
+
+    # Generate fake data
+    np.random.seed(42)
+    g1 = models.Gaussian1D(1, 0, 0.2)
+    g2 = models.Gaussian1D(2.5, 0.5, 0.1)
+    x = np.linspace(-1, 1, 200)
+    y = g1(x) + g2(x) + np.random.normal(0., 0.2, x.shape)
+
+    # Now to fit the data create a new superposition with initial
+    # guesses for the parameters:
+    gg_init = models.Gaussian1D(1, 0, 0.1) + models.Gaussian1D(2, 0.5, 0.1)
+    fitter = fitting.SLSQPLSQFitter()
+    gg_fit = fitter(gg_init, x, y)
+
+    # Plot the data with the best-fit model
+    plt.figure(figsize=(8,5))
+    plt.plot(x, y, 'ko')
+    plt.plot(x, gg_fit(x))
+    plt.xlabel('Position')
+    plt.ylabel('Flux')
+
+This works for 1-D models, 2-D models, and combinations thereof, though there
+are some complexities involved in correctly matching up the inputs and outputs
+of all models used to build a compound model.  You can learn more details in
+the :doc:`compound-models` documentation.
+
+
 Using `astropy.modeling`
 ========================
 
 .. toctree::
    :maxdepth: 1
 
-   parameters
    models
+   parameters
    fitting
+   compound-models
    new
+   bounding-boxes
    algorithms
-   design
 
 
 Reference/API
 =============
 
 .. automodapi:: astropy.modeling
-.. automodapi:: astropy.modeling.fitting
+.. automodapi:: astropy.modeling.mappings
 .. automodapi:: astropy.modeling.functional_models
-.. automodapi:: astropy.modeling.optimizers
 .. automodapi:: astropy.modeling.powerlaws
 .. automodapi:: astropy.modeling.polynomial
 .. automodapi:: astropy.modeling.projections
-.. automodapi:: astropy.modeling.statistic
 .. automodapi:: astropy.modeling.rotations
-
+.. automodapi:: astropy.modeling.fitting
+.. automodapi:: astropy.modeling.optimizers
+.. automodapi:: astropy.modeling.statistic

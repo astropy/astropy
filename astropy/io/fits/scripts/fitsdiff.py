@@ -22,7 +22,7 @@ data.
 where filename1 filename2 are the two files to be compared.  They may also be
 wild cards, in such cases, they must be enclosed by double or single quotes, or
 they may be directory names.  If both are directory names, all files in each of
-the directories will be included; if only one is directory name, then the
+the directories will be included; if only one is a directory name, then the
 directory name will be prefixed to the file name(s) specified by the other
 argument.  for example::
 
@@ -49,10 +49,11 @@ different pixels values per extension, only report data values larger than
 1.e-6 relative to each other, and will neglect the different values of keywords
 FILENAME and FILTNAM1 (or their very existence).
 
-fitsdiff commandline arguments can also be set using the environment variable
+fitsdiff command-line arguments can also be set using the environment variable
 FITSDIFF_SETTINGS.  If the FITSDIFF_SETTINGS environment variable is present,
 each argument present will override the corresponding argument on the
-commandline.  This environment variable exists to make it easier to change the
+command-line unless the --exact option is specified.  The FITSDIFF_SETTINGS
+environment variable exists to make it easier to change the
 behavior of fitsdiff on a global level, such as in a set of regression tests.
 """.strip()
 
@@ -106,20 +107,26 @@ def handle_options(argv=None):
              'in headers (default %default).')
 
     parser.add_option(
-        '-b', '--no-ignore-blanks', action='store_false', dest='ignore_blanks',
-        default=True,
+        '-b', '--no-ignore-blanks', action='store_false',
+        dest='ignore_blanks', default=True,
         help="Don't ignore trailing blanks (whitespace) in string values.  "
              "Otherwise trailing blanks both in header keywords/values and in "
-             "table column values) are not treated as significant i.e. "
-             "without this option 'ABC   ' and 'ABC' are considered "
-             "equivalent.")
+             "table column values) are not treated as significant i.e., "
+             "without this option 'ABCDEF   ' and 'ABCDEF' are considered "
+             "equivalent. ")
 
     parser.add_option(
         '--no-ignore-blank-cards', action='store_false',
         dest='ignore_blank_cards', default=True,
-        help="Don't ignore entirey blank cards in headers.  Normally fitsdiff "
+        help="Don't ignore entirely blank cards in headers.  Normally fitsdiff "
              "does not consider blank cards when comparing headers, but this "
-             "will ensure that even blank cards match up.")
+             "will ensure that even blank cards match up. ")
+
+    parser.add_option(
+        '--exact', action='store_true',
+        dest='exact_comparisons', default=False,
+        help="Report ALL differences, "
+             "overriding command-line options and FITSDIFF_SETTINGS. ")
 
     parser.add_option(
         '-o', '--output-file', metavar='FILE',
@@ -135,7 +142,7 @@ def handle_options(argv=None):
         help='Comma-separated list of keywords not to be compared.  Keywords '
              'may contain wildcard patterns.  To exclude all keywords, use '
              '"*"; make sure to have double or single quotes around the '
-             'asterisk.')
+             'asterisk on the command-line.')
 
     group.add_option(
         '-c', '--ignore-comments', action='callback', callback=store_list,
@@ -239,6 +246,15 @@ def main():
 
     opts, args = handle_options(argv)
 
+    if opts.exact_comparisons:
+        # override the options so that each is the most restrictive
+        opts.ignore_keywords = []
+        opts.ignore_comments = []
+        opts.ignore_fields = []
+        opts.tolerance = 0.0
+        opts.ignore_blanks = False
+        opts.ignore_blank_cards = False
+
     if not opts.quiet:
         setup_logging(opts.output_file)
     files = match_files(args)
@@ -255,12 +271,15 @@ def main():
     identical = []
     try:
         for a, b in files:
-            # TODO: pass in any additonal arguments here too
+            # TODO: pass in any additional arguments here too
             diff = fits.diff.FITSDiff(
-                a, b, ignore_keywords=opts.ignore_keywords,
+                a, b,
+                ignore_keywords=opts.ignore_keywords,
                 ignore_comments=opts.ignore_comments,
-                ignore_fields=opts.ignore_fields, numdiffs=opts.numdiffs,
-                tolerance=opts.tolerance, ignore_blanks=opts.ignore_blanks,
+                ignore_fields=opts.ignore_fields,
+                numdiffs=opts.numdiffs,
+                tolerance=opts.tolerance,
+                ignore_blanks=opts.ignore_blanks,
                 ignore_blank_cards=opts.ignore_blank_cards)
             diff.report(fileobj=out_file)
             identical.append(diff.identical)

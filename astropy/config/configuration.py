@@ -26,6 +26,7 @@ from warnings import warn
 from ..extern.configobj import configobj, validate
 from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from ..utils import find_current_module
+from ..utils.introspection import resolve_name
 from ..utils.misc import InheritDocstrings
 from .paths import get_config_dir
 
@@ -219,6 +220,11 @@ class ConfigItem(object):
     # this is used to make validation faster so a Validator object doesn't
     # have to be created every time
     _validator = validate.Validator()
+    cfgtype = None
+    """
+    A type specifier like those used as the *values* of a particular key in a
+    ``configspec`` file of ``configobj``.
+    """
 
     def __init__(self, defaultvalue='', description=None, cfgtype=None,
                  module=None, aliases=None):
@@ -276,7 +282,8 @@ class ConfigItem(object):
         return self()
 
     def set(self, value):
-        """ Sets the current value of this `ConfigItem`.
+        """
+        Sets the current value of this ``ConfigItem``.
 
         This also updates the comments that give the description and type
         information.
@@ -289,7 +296,7 @@ class ConfigItem(object):
         Raises
         ------
         TypeError
-            If the provided ``value`` is not valid for this `ConfigItem`.
+            If the provided ``value`` is not valid for this ``ConfigItem``.
         """
         try:
             value = self._validate_val(value)
@@ -307,12 +314,14 @@ class ConfigItem(object):
         Sets this item to a specified value only inside a with block.
 
         Use as::
+
             ITEM = ConfigItem('ITEM', 'default', 'description')
 
             with ITEM.set_temp('newval'):
-                ... do something that wants ITEM's value to be 'newval' ...
+                #... do something that wants ITEM's value to be 'newval' ...
+                print(ITEM)
 
-             # ITEM is now 'default' after the with block
+            # ITEM is now 'default' after the with block
 
         Parameters
         ----------
@@ -328,7 +337,7 @@ class ConfigItem(object):
             self.set(initval)
 
     def reload(self):
-        """ Reloads the value of this `ConfigItem` from the relevant
+        """ Reloads the value of this ``ConfigItem`` from the relevant
         configuration file.
 
         Returns
@@ -373,12 +382,12 @@ class ConfigItem(object):
         return out
 
     def __call__(self):
-        """ Returns the value of this `ConfigItem`
+        """ Returns the value of this ``ConfigItem``
 
         Returns
         -------
         val
-            This item's value, with a type determined by the `cfgtype`
+            This item's value, with a type determined by the ``cfgtype``
             attribute.
 
         Raises
@@ -455,7 +464,7 @@ class ConfigurationItem(ConfigItem):
     """
     A backward-compatibility layer to support the old
     `ConfigurationItem` API.  The only difference between this and
-    `ConfigItem` is that this requires an explicit name to be set as
+    ``ConfigItem`` is that this requires an explicit name to be set as
     the first argument.
     """
     # REMOVE in astropy 0.5
@@ -564,11 +573,7 @@ class ConfigAlias(ConfigItem):
             AstropyDeprecationWarning)
 
     def _get_target(self):
-        if self._new_module not in sys.modules:
-            __import__(self._new_module)
-        mod = sys.modules[self._new_module]
-        cfg = getattr(mod, 'conf')
-        return cfg
+        return resolve_name(self._new_module, 'conf')
 
     def set(self, value):
         self._deprecation_warning()
@@ -727,7 +732,7 @@ def reload_config(packageormod=None):
     sec.reload()
 
 
-def is_unedited_config_file(filename, template_content=None):
+def is_unedited_config_file(content, template_content=None):
     """
     Determines if a config file can be safely replaced because it doesn't
     actually contain any meaningful content.
@@ -739,19 +744,10 @@ def is_unedited_config_file(filename, template_content=None):
     - An exact match to a "legacy" version of the config file prior to
       Astropy 0.4, when APE3 was implemented and the config file
       contained commented-out values by default.
-
-    If the config file is already identical to the template config
-    file, `False` is returned so it is not needlessly overwritten.
     """
     # We want to calculate the md5sum using universal line endings, so
     # that even if the files had their line endings converted to \r\n
     # on Windows, this will still work.
-
-    with io.open(filename, 'rt', encoding='latin-1') as fd:
-        content = fd.read()
-
-    if content == template_content:
-        return False
 
     content = content.encode('latin-1')
 
@@ -812,8 +808,8 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
 
     Raises
     ------
-    ConfigurationDefaultMissingError
-        If the default configuration could not be found.
+    AttributeError
+        If the version number of the package could not determined.
 
     """
 
@@ -826,7 +822,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
         # There is no template configuration file, which basically
         # means the affiliated package is not using the configuration
         # system, so just return.
-        return
+        return False
 
     cfgfn = get_config(pkg).filename
 
@@ -836,16 +832,20 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
     doupdate = False
     if cfgfn is not None:
         if path.exists(cfgfn):
-            doupdate = is_unedited_config_file(cfgfn, template_content)
+            with io.open(cfgfn, 'rt', encoding='latin-1') as fd:
+                content = fd.read()
+
+            identical = (content == template_content)
+
+            if not identical:
+                doupdate = is_unedited_config_file(
+                    content, template_content)
         elif path.exists(path.dirname(cfgfn)):
             doupdate = True
+            identical = False
 
     if version is None:
-        mod = __import__(pkg)
-        if not hasattr(mod, '__version__'):
-            raise ConfigurationDefaultMissingError(
-                'Could not determine version of package {0}'.format(pkg))
-        version = mod.__version__
+        version = resolve_name(pkg, '__version__')
 
     # Don't install template files for dev versions, or we'll end up
     # spamming `~/.astropy/config`.
@@ -863,7 +863,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
             # If we just installed a new template file and we can't
             # update the main configuration file because it has user
             # changes, display a warning.
-            if not doupdate:
+            if not identical and not doupdate:
                 warn(
                     "The configuration options in {0} {1} may have changed, "
                     "your configuration file was not updated in order to "
@@ -872,7 +872,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
                         pkg, version, template_path),
                     ConfigurationChangedWarning)
 
-        if doupdate:
+        if doupdate and not identical:
             with io.open(cfgfn, 'wt', encoding='latin-1') as fw:
                 fw.write(template_content)
             return True
@@ -991,11 +991,6 @@ def _save_config(packageormod=None, filename=None):
         sec.write()
 
 
-_unsafe_import_regex = [r'.*.setup_package']
-_unsafe_import_regex = [('(' + pat + ')') for pat in _unsafe_import_regex]
-_unsafe_import_regex = re.compile('|'.join(_unsafe_import_regex))
-
-
 def generate_all_config_items(pkgornm=None, reset_to_default=False,
                               filename=None):
     """ Given a root package name or package, this function walks
@@ -1027,6 +1022,10 @@ def generate_all_config_items(pkgornm=None, reset_to_default=False,
 
     from ..utils import find_current_module
 
+    unsafe_import_regex = [r'.*.setup_package']
+    unsafe_import_regex = [('(' + pat + ')') for pat in _unsafe_import_regex]
+    unsafe_import_regex = re.compile('|'.join(_unsafe_import_regex))
+
     if pkgornm is None:
         pkgornm = find_current_module(1).__name__.split('.')[0]
 
@@ -1051,7 +1050,7 @@ def generate_all_config_items(pkgornm=None, reset_to_default=False,
     for imper, nm, ispkg in pkgutil.walk_packages(pkgpath, prefix):
         if nm == 'astropy.config.tests.test_configs':
             continue
-        if not _unsafe_import_regex.match(nm):
+        if not unsafe_import_regex.match(nm):
             imper.find_module(nm)
             if reset_to_default:
                 for cfgitem in six.itervalues(get_config_items(nm)):

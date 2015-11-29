@@ -21,6 +21,7 @@ from ...utils.compat.fractions import Fraction
 
 from ... import units as u
 from ... import constants as c
+from .. import utils
 
 
 def test_getting_started():
@@ -32,7 +33,7 @@ def test_getting_started():
         speed_unit = u.cm / u.s
         x = speed_unit.to(imperial.mile / u.hour, 1)
         assert_allclose(x, 0.02236936292054402)
-        speed_converter = speed_unit.get_converter("mile hour^-1")
+        speed_converter = speed_unit._get_converter("mile hour^-1")
         x = speed_converter([1., 1000., 5000.])
         assert_allclose(x, [2.23693629e-02, 2.23693629e+01, 1.11846815e+02])
 
@@ -73,7 +74,7 @@ def test_invalid_compare():
 
 
 def test_convert():
-    assert u.h.get_converter(u.s)(1) == 3600
+    assert u.h._get_converter(u.s)(1) == 3600
 
 
 def test_convert_fail():
@@ -84,7 +85,7 @@ def test_convert_fail():
 
 
 def test_composite():
-    assert (u.cm / u.s * u.h).get_converter(u.m)(1) == 36
+    assert (u.cm / u.s * u.h)._get_converter(u.m)(1) == 36
     assert u.cm * u.cm == u.cm ** 2
 
     assert u.cm * u.cm * u.cm == u.cm ** 3
@@ -176,7 +177,7 @@ def test_unknown_unit3():
     assert not unit.is_equivalent(unit3)
 
     with pytest.raises(ValueError):
-        unit.get_converter(unit3)
+        unit._get_converter(unit3)
 
     x = unit.to_string('latex')
     y = unit2.to_string('cgs')
@@ -283,7 +284,7 @@ def test_complex_compose():
 
 def test_equiv_compose():
     composed = u.m.compose(equivalencies=u.spectral())
-    assert u.Hz in composed
+    assert any([u.Hz] == x.bases for x in composed)
 
 
 def test_empty_compose():
@@ -350,8 +351,8 @@ def test_compose_si_to_cgs():
 
 
 def test_to_cgs():
-    assert u.Pa.to_system(u.cgs)[0]._bases[0] is u.Ba
-    assert u.Pa.to_system(u.cgs)[0]._scale == 10.0
+    assert u.Pa.to_system(u.cgs)[1]._bases[0] is u.Ba
+    assert u.Pa.to_system(u.cgs)[1]._scale == 10.0
 
 
 def test_decompose_to_cgs():
@@ -584,6 +585,13 @@ def test_fits_hst_unit():
     assert x == u.erg * u.s ** -1 * u.cm ** -2 * u.angstrom ** -1
 
 
+def test_barn_prefixes():
+    """Regression test for https://github.com/astropy/astropy/issues/3753"""
+
+    assert u.fbarn is u.femtobarn
+    assert u.pbarn is u.picobarn
+
+
 def test_fractional_powers():
     """See #2069"""
     m = 1e9 * u.Msun
@@ -614,6 +622,10 @@ def test_fractional_powers():
     assert x.powers[0].numerator == 3
     assert x.powers[0].denominator == 7
 
+    x = u.cm ** Fraction(1, 2) * u.cm ** Fraction(2, 3)
+    assert type(x.powers[0]) == Fraction
+    assert x.powers[0] == Fraction(7, 6)
+
 
 def test_inherit_docstrings():
     assert u.UnrecognizedUnit.is_unity.__doc__ == u.UnitBase.is_unity.__doc__
@@ -629,3 +641,86 @@ def test_composite_compose():
     # Issue #2382
     composite_unit = u.s.compose(units=[u.Unit("s")])[0]
     u.s.compose(units=[composite_unit])
+
+
+def test_data_quantities():
+    assert u.byte.is_equivalent(u.bit)
+
+
+def test_compare_with_none():
+    # Ensure that equality comparisons with `None` work, and don't
+    # raise exceptions.  We are deliberately not using `is None` here
+    # because that doesn't trigger the bug.  See #3108.
+    assert not (u.m == None)
+    assert u.m != None
+
+
+def test_validate_power_detect_fraction():
+    frac = utils.validate_power(1.1666666666666665)
+    assert type(frac) == Fraction
+    assert frac.numerator == 7
+    assert frac.denominator == 6
+
+
+def test_complex_fractional_rounding_errors():
+    # See #3788
+
+    kappa = 0.34 * u.cm**2 / u.g
+    r_0 = 886221439924.7849 * u.cm
+    q = 1.75
+    rho_0 = 5e-10 * u.solMass / u.solRad**3
+    y = 0.5
+    beta = 0.19047619047619049
+    a = 0.47619047619047628
+    m_h = 1e6*u.solMass
+
+    t1 = 2 * c.c / (kappa * np.sqrt(np.pi))
+    t2 = (r_0**-q) / (rho_0 * y * beta * (a * c.G * m_h)**0.5)
+
+    result = ((t1 * t2)**-0.8)
+
+    assert result.unit.physical_type == 'length'
+    result.to(u.solRad)
+
+
+def test_fractional_rounding_errors_simple():
+    x = (u.m ** 1.5) ** Fraction(4, 5)
+    assert isinstance(x.powers[0], Fraction)
+    assert x.powers[0].numerator == 6
+    assert x.powers[0].denominator == 5
+
+
+def test_enable_unit_groupings():
+    from ...units import cds
+
+    with cds.enable():
+        assert cds.geoMass in u.kg.find_equivalent_units()
+
+    from ...units import imperial
+    with imperial.enable():
+        assert imperial.inch in u.m.find_equivalent_units()
+
+
+def test_unit_summary_prefixes():
+    """
+    Test for a few units that the unit summary table correctly reports
+    whether or not that unit supports prefixes.
+
+    Regression test for https://github.com/astropy/astropy/issues/3835
+    """
+
+    from .. import astrophys
+
+    for summary in utils._iter_unit_summary(astrophys.__dict__):
+        unit, _, _, _, prefixes = summary
+
+        if unit.name == 'lyr':
+            assert prefixes
+        elif unit.name == 'pc':
+            assert prefixes
+        elif unit.name == 'barn':
+            assert prefixes
+        elif unit.name == 'cycle':
+            assert not prefixes
+        elif unit.name == 'vox':
+            assert prefixes

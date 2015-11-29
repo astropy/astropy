@@ -34,8 +34,9 @@ initial columns.  This is useful for building tables dynamically if the initial
 size, columns, or data are not known.
 
 .. Note::
-   Adding columns or rows requires making a new copy of the entire
-   table table each time, so in the case of large tables this may be slow.
+   Adding rows requires making a new copy of the entire
+   table each time, so in the case of large tables this may be slow.
+   On the other hand, adding columns is reasonably fast.
 
 ::
 
@@ -48,6 +49,19 @@ size, columns, or data are not known.
   >>> t.add_row((1, 2.0, 'x'))
   >>> t.add_row((4, 5.0, 'y'))
 
+  >>> t = Table(dtype=[('a', 'f4'), ('b', 'i4'), ('c', 'S2')])
+
+Another option for creating a table is using the `~astropy.table.QTable` class.
+In this case any `~astropy.units.Quantity` column objects will be stored
+natively within the table via the "mixin" column protocol (see `Columns and
+Quantities`_ for details)::
+
+  >>> from astropy.table import QTable
+  >>> from astropy import units as u
+  >>> t = QTable()
+  >>> t['velocity'] = [3, 4] * u.m / u.s
+  >>> type(t['velocity'])  # doctest: +SKIP
+  astropy.units.quantity.Quantity
 
 List of columns
 """""""""""""""
@@ -60,14 +74,17 @@ keyword or they will be auto-generated as ``col<N>``.
 
 ::
 
-  >>> a = [1, 4]
+  >>> a = np.array([1, 4], dtype=np.int32)
   >>> b = [2.0, 5.0]
   >>> c = ['x', 'y']
   >>> t = Table([a, b, c], names=('a', 'b', 'c'))
   >>> t
-  <Table rows=2 names=('a','b','c')>
-  array([(1, 2.0, 'x'), (4, 5.0, 'y')],
-        dtype=[('a', '<i8'), ('b', '<f8'), ('c', 'S1')])
+  <Table length=2>
+    a      b     c
+  int32 float64 str1
+  ----- ------- ----
+      1     2.0    x
+      4     5.0    y
 
 **Make a new table using columns from the first table**
 
@@ -75,9 +92,12 @@ Once you have a |Table| then you can make new table by selecting columns
 and putting this into a Python list, e.g. ``[ t['c'], t['a'] ]``::
 
   >>> Table([t['c'], t['a']])
-  <Table rows=2 names=('c','a')>
-  array([('x', 1), ('y', 4)],
-        dtype=[('c', 'S1'), ('a', '<i8')])
+  <Table length=2>
+   c     a
+  str1 int32
+  ---- -----
+     x     1
+     y     4
 
 **Make a new table using expressions involving columns**
 
@@ -86,9 +106,12 @@ directly in arithmetic expressions.  This allows for a compact way of making a
 new table with modified column values::
 
   >>> Table([t['a']**2, t['b'] + 10])
-  <Table rows=2 names=('a','b')>
-  array([(1, 12.0), (16, 15.0)],
-        dtype=[('a', '<i8'), ('b', '<f8')])
+  <Table length=2>
+    a      b
+  int32 float64
+  ----- -------
+      1    12.0
+     16    15.0
 
 
 **Different types of column data**
@@ -100,10 +123,14 @@ of different data types to initialize a table::
   >>> b = np.array([[2, 3], [5, 6]])  # vector column
   >>> c = Column(['x', 'y'], name='axis')
   >>> arr = (a, b, c)
-  >>> Table(arr)  # Data column named "c" has a name "axis" that table
-  <Table rows=2 names=('col0','col1','axis')>
-  array([(1, [2, 3], 'x'), (4, [5, 6], 'y')],
-        dtype=[('col0', '<i8'), ('col1', '<i8', (2,)), ('axis', 'S1')])
+  >>> Table(arr)  # doctest: +SKIP
+  <Table length=2>
+   col0 col1 [2] axis
+  int64  int64   str1
+  ----- -------- ----
+      1   2 .. 3    x
+      4   5 .. 6    y
+
 
 Notice that in the third column the existing column name ``'axis'`` is used.
 
@@ -112,22 +139,28 @@ Dict of columns
 """"""""""""""""
 A dictionary of column data can be used to initialize a |Table|.
 
-  >>> arr = {'a': [1, 4],
+  >>> arr = {'a': np.array([1, 4], dtype=np.int32),
   ...        'b': [2.0, 5.0],
   ...        'c': ['x', 'y']}
   >>>
   >>> Table(arr)  # doctest: +SKIP
-  <Table rows=2 names=('a','c','b')>
-  array([(1, 'x', 2.0), (4, 'y', 5.0)],
-        dtype=[('a', '<i8'), ('c', 'S1'), ('b', '<f8')])
+  <Table length=2>
+    a    c      b
+  int32 str1 float64
+  ----- ---- -------
+      1    x     2.0
+      4    y     5.0
 
 **Specify the column order and optionally the data types**
 ::
 
-  >>> Table(arr, names=('a', 'b', 'c'), dtype=('f4', 'i4', 'S2'))
-  <Table rows=2 names=('a','b','c')>
-  array([(1.0, 2, 'x'), (4.0, 5, 'y')],
-        dtype=[('a', '<f4'), ('b', '<i4'), ('c', 'S2')])
+  >>> Table(arr, names=('a', 'b', 'c'), dtype=('f8', 'i4', 'S2'))
+  <Table length=2>
+     a      b    c
+  float64 int32 str2
+  ------- ----- ----
+      1.0     2    x
+      4.0     5    y
 
 **Different types of column data**
 
@@ -136,12 +169,15 @@ The input column data can be any data type that can initialize a |Column| object
   >>> arr = {'a': (1, 4),
   ...        'b': np.array([[2, 3], [5, 6]]),
   ...        'c': Column(['x', 'y'], name='axis')}
-  >>> Table(arr, names=('a', 'b', 'c'))
-  <Table rows=2 names=('a','b','c')>
-  array([(1, [2, 3], 'x'), (4, [5, 6], 'y')],
-        dtype=[('a', '<i8'), ('b', '<i8', (2,)), ('c', 'S1')])
+  >>> Table(arr, names=('a', 'b', 'c'))  # doctest: +SKIP
+  <Table length=2>
+    a   b [2]   c
+  int64 int64  str1
+  ----- ------ ----
+      1 2 .. 3    x
+      4 5 .. 6    y
 
-Notice that the key ``'c'`` takes precendence over the existing column name
+Notice that the key ``'c'`` takes precedence over the existing column name
 ``'axis'`` in the third column.  Also see that the ``'b'`` column is a vector
 column where each row element is itself a 2-element array.
 
@@ -169,7 +205,7 @@ need to use the ``rows`` keyword to create a table::
   ...              (5, 8.2, 'z')]
   >>> t = Table(rows=data_rows, names=('a', 'b', 'c'))
   >>> print(t)
-   a   b   c 
+   a   b   c
   --- --- ---
     1 2.0   x
     4 5.0   y
@@ -185,10 +221,13 @@ list of dict objects.  The keys determine the column names::
 
   >>> data = [{'a': 5, 'b': 10},
   ...         {'a': 15, 'b': 20}]
-  >>> Table(rows=data)
-  <Table rows=2 names=('a','b')>
-  array([(5, 10), (15, 20)],
-        dtype=[('a', '<i8'), ('b', '<i8')])
+  >>> Table(rows=data)  # doctest: +SKIP
+  <Table length=2>
+    a     b
+  int64 int64
+  ----- -----
+      5    10
+     15    20
 
 Every row must have the same set of keys or a ValueError will be thrown::
 
@@ -221,31 +260,35 @@ the difference between a scalar ``1`` (length 0) and an array like
 
 NumPy structured array
 """"""""""""""""""""""
-The structured array is the standard mechanism in `numpy` for storing heterogenous
-table data.  Most scientific I/O packages that read table files (e.g.
-`PyFITS <http://www.stsci.edu/resources/software_hardware/pyfits>`_,
-`vo.table <http://stsdas.stsci.edu/astrolib/vo/html/intro_table.html>`_,
-`asciitable <http://cxc.harvard.edu/contrib/asciitable/>`_)
-will return the table in an object that is based on the structured array.
-A structured array can be created using::
+The structured array is the standard mechanism in `numpy` for storing
+heterogeneous table data.  Most scientific I/O packages that read table
+files (e.g.  `PyFITS
+<http://www.stsci.edu/resources/software_hardware/pyfits>`_, `vo.table
+<http://stsdas.stsci.edu/astrolib/vo/html/intro_table.html>`_, `asciitable
+<http://cxc.harvard.edu/contrib/asciitable/>`_) will return the table in an
+object that is based on the structured array.  A structured array can be
+created using::
 
   >>> arr = np.array([(1, 2.0, 'x'),
   ...                 (4, 5.0, 'y')],
-  ...                dtype=[('a', 'i8'), ('b', 'f8'), ('c', 'S2')])
+  ...                dtype=[('a', 'i4'), ('b', 'f8'), ('c', 'S2')])
 
 From ``arr`` it is simple to create the corresponding |Table| object::
 
   >>> Table(arr)
-  <Table rows=2 names=('a','b','c')>
-  array([(1, 2.0, 'x'), (4, 5.0, 'y')],
-        dtype=[('a', '<i8'), ('b', '<f8'), ('c', 'S2')])
+  <Table length=2>
+    a      b     c
+  int32 float64 str2
+  ----- ------- ----
+      1     2.0    x
+      4     5.0    y
 
 Note that in the above example and most the following ones we are creating a
 table and immediately asking the interactive Python interpreter to print the
 table to see what we made.  In real code you might do something like::
 
   >>> table = Table(arr)
-  >>> print table
+  >>> print(table)
    a   b   c
   --- --- ---
     1 2.0   x
@@ -257,29 +300,48 @@ The column names can be changed from the original values by providing the
 ``names`` argument::
 
   >>> Table(arr, names=('a_new', 'b_new', 'c_new'))
-  <Table rows=2 names=('a_new','b_new','c_new')>
-  array([(1, 2.0, 'x'), (4, 5.0, 'y')],
-        dtype=[('a_new', '<i8'), ('b_new', '<f8'), ('c_new', 'S2')])
+  <Table length=2>
+  a_new  b_new  c_new
+  int32 float64  str2
+  ----- ------- -----
+      1     2.0     x
+      4     5.0     y
+
 
 **New data types**
 
 Likewise the data type for each column can by changed with ``dtype``::
 
   >>> Table(arr, dtype=('f4', 'i4', 'S4'))
-  <Table rows=2 names=('a','b','c')>
-  array([(1.0, 2, 'x'), (4.0, 5, 'y')],
-        dtype=[('a', '<f4'), ('b', '<i4'), ('c', 'S4')])
+  <Table length=2>
+     a      b    c
+  float32 int32 str4
+  ------- ----- ----
+      1.0     2    x
+      4.0     5    y
 
   >>> Table(arr, names=('a_new', 'b_new', 'c_new'), dtype=('f4', 'i4', 'S4'))
-  <Table rows=2 names=('a_new','b_new','c_new')>
-  array([(1.0, 2, 'x'), (4.0, 5, 'y')],
-        dtype=[('a_new', '<f4'), ('b_new', '<i4'), ('c_new', 'S4')])
-
+  <Table length=2>
+   a_new  b_new c_new
+  float32 int32  str4
+  ------- ----- -----
+      1.0     2     x
+      4.0     5     y
 
 
 NumPy homogeneous array
 """""""""""""""""""""""
-A normal `numpy` 2-d array (where all elements have the same type) can be
+A `numpy` 1-d array is treated as a single row table where each element of the
+array corresponds to a column::
+
+  >>> Table(np.array([1, 2, 3]), names=['a', 'b', 'c'], dtype=('i8', 'i8', 'i8'))
+  <Table length=1>
+    a     b     c
+  int64 int64 int64
+  ----- ----- -----
+      1     2     3
+
+A `numpy` 2-d array (where all elements have the same type) can also be
 converted into a |Table|.  In this case the column names are not specified by
 the data and must either be provided by the user or will be automatically
 generated as ``col<N>`` where ``<N>`` is the column number.
@@ -288,19 +350,25 @@ generated as ``col<N>`` where ``<N>`` is the column number.
 ::
 
   >>> arr = np.array([[1, 2, 3],
-  ...                 [4, 5, 6]])
+  ...                 [4, 5, 6]], dtype=np.int32)
   >>> Table(arr)
-  <Table rows=2 names=('col0','col1','col2')>
-  array([(1, 2, 3), (4, 5, 6)],
-        dtype=[('col0', '<i8'), ('col1', '<i8'), ('col2', '<i8')])
+  <Table length=2>
+   col0  col1  col2
+  int32 int32 int32
+  ----- ----- -----
+      1     2     3
+      4     5     6
 
 **Column names and types specified**
 ::
 
   >>> Table(arr, names=('a_new', 'b_new', 'c_new'), dtype=('f4', 'i4', 'S4'))
-  <Table rows=2 names=('a_new','b_new','c_new')>
-  array([(1.0, 2, '3'), (4.0, 5, '6')],
-        dtype=[('a_new', '<f4'), ('b_new', '<i4'), ('c_new', 'S4')])
+  <Table length=2>
+   a_new  b_new c_new
+  float32 int32  str4
+  ------- ----- -----
+      1.0     2     3
+      4.0     5     6
 
 **Referencing the original data**
 
@@ -320,15 +388,18 @@ homogeneous `numpy` array input is interpreted as a list of rows::
   ...        [4, 5, 6]]
   >>> np_arr = np.array(arr)
 
-  >>> Table(arr)    # Two columns, three rows
-  <Table rows=3 names=('col0','col1')>
-  array([(1, 4), (2, 5), (3, 6)],
-        dtype=[('col0', '<i8'), ('col1', '<i8')])
+  >>> print(Table(arr))    # Two columns, three rows
+  col0 col1
+  ---- ----
+     1    4
+     2    5
+     3    6
 
-  >>> Table(np_arr)  # Three columns, two rows
-  <Table rows=2 names=('col0','col1','col2')>
-  array([(1, 2, 3), (4, 5, 6)],
-        dtype=[('col0', '<i8'), ('col1', '<i8'), ('col2', '<i8')])
+  >>> print(Table(np_arr))  # Three columns, two rows
+  col0 col1 col2
+  ---- ---- ----
+     1    2    3
+     4    5    6
 
 This dichotomy is needed to support flexible list input while retaining the
 natural interpretation of 2-d `numpy` arrays where the first index corresponds
@@ -340,25 +411,27 @@ A new table can be created by selecting a subset of columns in an existing
 table::
 
   >>> t = Table(names=('a', 'b', 'c'))
-  >>> t2 = t['c', 'b', 'a']  # Makes a copy of the data
-  >>> print t2
-   c   b   a
-  --- --- ---
+  >>> t['c', 'b', 'a']  # Makes a copy of the data
+  <Table length=0>
+     c       b       a
+  float64 float64 float64
+  ------- ------- -------
 
 An alternate way to use the ``columns`` attribute (explained in the
 `TableColumns`_ section) to initialize a new table.  This let's you choose
 columns by their numerical index or name and supports slicing syntax::
 
   >>> Table(t.columns[0:2])
-  <Table rows=0 names=('a','b')>
-  array([],
-        dtype=[('a', '<f8'), ('b', '<f8')])
+  <Table length=0>
+     a       b
+  float64 float64
+  ------- -------
 
   >>> Table([t.columns[0], t.columns['c']])
-  <Table rows=0 names=('a','c')>
-  array([],
-        dtype=[('a', '<f8'), ('c', '<f8')])
-
+  <Table length=0>
+     a       c
+  float64 float64
+  ------- -------
 
 Initialization Details
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -394,9 +467,12 @@ for the ``data`` argument.
     override the existing ``data`` types.
 
 **numpy ndarray (homogeneous)**
-    The ``data`` ndarray must be at least 2-dimensional, with the first
-    (left-most) index corresponding to row number (table length) and the
-    second index corresponding to column number (table width).  Higher
+    If the ``data`` ndarray is 1-dimensional then it is treated as a single row
+    table where each element of the array corresponds to a column.
+
+    If the ``data`` ndarray is at least 2-dimensional then the first
+    (left-most) index corresponds to row number (table length) and the
+    second index corresponds to column number (table width).  Higher
     dimensions get absorbed in the shape of each table cell.
 
     If provided the ``names`` list must match the "width" of the ``data``
@@ -506,11 +582,11 @@ linked, as shown below::
   >>> arr = np.array([(1, 2.0, 'x'),
   ...                 (4, 5.0, 'y')],
   ...                dtype=[('a', 'i8'), ('b', 'f8'), ('c', 'S2')])
-  >>> print arr['a']  # column "a" of the input array
+  >>> print(arr['a'])  # column "a" of the input array
   [1 4]
   >>> t = Table(arr, copy=False)
   >>> t['a'][1] = 99
-  >>> print arr['a']  # arr['a'] got changed when we modified t['a']
+  >>> print(arr['a'])  # arr['a'] got changed when we modified t['a']
   [ 1 99]
 
 Note that when referencing the data it is not possible to change the data types
@@ -522,19 +598,9 @@ occurs::
     ...
   ValueError: Cannot specify dtype when copy=False
 
-Another caveat in using referenced data is that you cannot add new row to the
-table.  This generates an error because of conflict between the two references
-to the same underlying memory.  Internally, adding a row may involve moving
-the data to a new memory location which would corrupt the input data object.
-`numpy` does not allow this::
-
-  >>> t.add_row([1, 2, 3])
-  Traceback (most recent call last):
-    File "<stdin>", line 1, in <module>
-    File "astropy/table/table.py", line 760, in add_row
-      self._data.resize((newlen,), refcheck=False)
-  ValueError: cannot resize this array: it does not own its data
-
+Another caveat in using referenced data is that you if add a new row to the
+table then the reference to the original data array is lost and instead the
+table will now hold a copy of the original values (in addition to the new row).
 
 Column and TableColumns classes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -613,10 +679,24 @@ Format specifier
 ''''''''''''''''
 
 The format specifier controls the output of column values when a table or column
-is printed or written to an ASCII table.  The format specifier can be either
-a "old-style" or "new-style" format string or a function:
+is printed or written to an ASCII table.  In the simplest case, it is a string
+that can be passed to python's built-in `format
+<https://docs.python.org/library/functions.html#format>`_ function.  For more
+complicated formatting, one can also give "old-style" or "new-style"
+format strings, or even a function:
 
-**Old-style**
+**Plain format specification**
+
+This type of string specifies directly how the value should be formatted,
+using a `format specification mini-language
+<https://docs.python.org/library/string.html#formatspec>`_ that is
+quite similar to C.
+
+   ``".4f"`` will give four digits after the decimal in float format, or
+
+   ``"6d"`` will give integers in 6-character fields.
+
+**Old-style format string**
 
 This corresponds to syntax like ``"%.4f" % value`` as documented in
 `String formatting operations <http://docs.python.org/library/stdtypes.html#string-formatting-operations>`_.
@@ -625,7 +705,7 @@ This corresponds to syntax like ``"%.4f" % value`` as documented in
 
    ``"%6d"`` to print an integer in a 6-character wide field.
 
-**New-style**
+**New-style format string**
 
 This corresponds to syntax like ``"{:.4f}".format(value)`` as documented in
 `format string syntax
@@ -635,8 +715,9 @@ This corresponds to syntax like ``"{:.4f}".format(value)`` as documented in
 
    ``"{:6d}"`` to print an integer in a 6-character wide field.
 
-Note that in either case any Python format string that formats exactly
-one value is valid, so ``{:.4f} angstroms`` or ``Value: %12.2f`` would both work.
+Note that in either format string case any Python string that formats exactly
+one value is valid, so ``{:.4f} angstroms`` or ``Value: %12.2f`` would both
+work.
 
 **Function**
 
@@ -652,7 +733,7 @@ following example this is used to make a LaTeX ready output::
     ...     exp = exp[0] + exp[1:].lstrip('0')
     ...     return '$ {0} \\times 10^{{ {1} }}$' .format(mant, exp)
     >>> t['b'].format = latex_exp
-    >>> t['a'].format = '{0:.4f}'
+    >>> t['a'].format = '.4f'
     >>> import sys
     >>> t.write(sys.stdout, format='latex')
     \begin{table}
@@ -701,13 +782,10 @@ So now look at the ways to select columns from a |TableColumns| object:
 ::
 
   >>> t.columns[1]  # Choose columns by index
-  <Column name='b' unit=None format=None description=None>
-  array([], dtype=float64)
+  <Column name='b' dtype='float64' length=0>
 
   >>> t.columns['b']  # Choose column by name
-  <Column name='b' unit=None format=None description=None>
-  array([], dtype=float64)
-
+  <Column name='b' dtype='float64' length=0>
 
 .. _subclassing_table:
 
@@ -746,7 +824,7 @@ subclasses, but in practice you would override only the necessary subcomponents:
 
 
 Example
-""""""""
+"""""""
 
 As a more practical example, suppose you have a table of data with a certain set of fixed
 columns, but you also want to carry an arbitrary dictionary of keyword=value
@@ -762,19 +840,19 @@ are contained in a numpy object-dtype column named ``params``::
   ...    """
   ...    def __getitem__(self, item):
   ...        if item not in self.colnames:
-  ...            return self.data['params'][item]
+  ...            return super(ParamsRow, self).__getitem__('params')[item]
   ...        else:
-  ...            return self.data[item]
+  ...            return super(ParamsRow, self).__getitem__(item)
   ...
   ...    def keys(self):
   ...        out = [name for name in self.colnames if name != 'params']
-  ...        params = [key.lower() for key in sorted(self.data['params'])]
+  ...        params = [key.lower() for key in sorted(self['params'])]
   ...        return out + params
   ...
   ...    def values(self):
   ...        return [self[key] for key in self.keys()]
 
-Now we put this into action with a trival |Table| subclass::
+Now we put this into action with a trivial |Table| subclass::
 
   >>> class ParamsTable(Table):
   ...     Row = ParamsRow
@@ -827,3 +905,39 @@ fields.  This might look something like::
                   return self.MaskedColumn(name=item, data=values, mask=mask)
 
           # ... and then the rest of the original __getitem__ ...
+
+Columns and Quantities
+""""""""""""""""""""""
+
+Astropy `~astropy.units.Quantity` objects can be handled within tables in two
+complementary ways.  The first method stores the `~astropy.units.Quantity`
+object natively within the table via the "mixin" column protocol.  See the
+sections on :ref:`mixin_columns` and :ref:`quantity_and_qtable` for details,
+but in brief the key difference is using the `~astropy.table.QTable` class to
+indicate that a `~astropy.units.Quantity` should be stored natively within the
+table::
+
+  >>> from astropy.table import QTable
+  >>> from astropy import units as u
+  >>> t = QTable()
+  >>> t['velocity'] = [3, 4] * u.m / u.s
+  >>> type(t['velocity'])  # doctest: +SKIP
+  astropy.units.quantity.Quantity
+
+For new code that is quantity-aware we recommend using `~astropy.table.QTable`,
+but this may not be possible in all situations (particularly when interfacing
+with legacy code that does not handle quantities) and there are
+:ref:`details_and_caveats` that apply.  In this case use the
+`~astropy.table.Table` class, which will convert a `~astropy.units.Quantity` to
+a `~astropy.table.Column` object with a ``unit`` attribute::
+
+  >>> from astropy.table import Table
+  >>> t = Table()
+  >>> t['velocity'] = [3, 4] * u.m / u.s
+  >>> type(t['velocity'])  # doctest: +SKIP
+  astropy.table.column.Column
+  >>> t['velocity'].unit
+  Unit("m / s")
+
+To learn more about using standard `~astropy.table.Column` objects with defined
+units, see the :ref:`columns_with_units` section.

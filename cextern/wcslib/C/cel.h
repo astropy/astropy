@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.23 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2014, Mark Calabretta
+  WCSLIB 5.10 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,36 +22,39 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: cel.h,v 4.23 2014/05/11 04:09:38 mcalabre Exp $
+  $Id: cel.h,v 5.10 2015/10/09 08:19:15 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 4.23 - C routines that implement the FITS World Coordinate System
-* (WCS) standard.  Refer to
-*
-*   "Representations of world coordinates in FITS",
-*   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (Paper I)
-*
-*   "Representations of celestial coordinates in FITS",
-*   Calabretta, M.R., & Greisen, E.W. 2002, A&A, 395, 1077 (Paper II)
-*
-* Refer to the README file provided with WCSLIB for an overview of the
-* library.
+* WCSLIB 5.10 - C routines that implement the FITS World Coordinate System
+* (WCS) standard.  Refer to the README file provided with WCSLIB for an
+* overview of the library.
 *
 *
 * Summary of the cel routines
 * ---------------------------
-* These routines implement the part of the FITS World Coordinate System (WCS)
-* standard that deals with celestial coordinates.  They define methods to be
-* used for computing celestial world coordinates from intermediate world
-* coordinates (a linear transformation of image pixel coordinates), and vice
-* versa.  They are based on the celprm struct which contains all information
-* needed for the computations.  This struct contains some elements that must
-* be set by the user, and others that are maintained by these routines,
-* somewhat like a C++ class but with no encapsulation.
+* Routines in this suite implement the part of the FITS World Coordinate
+* System (WCS) standard that deals with celestial coordinates, as described in
+*
+=   "Representations of world coordinates in FITS",
+=   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (WCS Paper I)
+=
+=   "Representations of celestial coordinates in FITS",
+=   Calabretta, M.R., & Greisen, E.W. 2002, A&A, 395, 1077 (WCS Paper II)
+*
+* These routines define methods to be used for computing celestial world
+* coordinates from intermediate world coordinates (a linear transformation
+* of image pixel coordinates), and vice versa.  They are based on the celprm
+* struct which contains all information needed for the computations.  This
+* struct contains some elements that must be set by the user, and others that
+* are maintained by these routines, somewhat like a C++ class but with no
+* encapsulation.
 *
 * Routine celini() is provided to initialize the celprm struct with default
 * values, celfree() reclaims any memory that may have been allocated to store
 * an error message, and celprt() prints its contents.
+*
+* celperr() prints the error message(s), if any, stored in a celprm struct and
+* the prjprm struct that it contains.
 *
 * A setup routine, celset(), computes intermediate values in the celprm struct
 * from parameters in it that were supplied by the user.  The struct always
@@ -102,6 +105,25 @@
 * Given:
 *   cel       const struct celprm*
 *                       Celestial transformation parameters.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
+*                         1: Null celprm pointer passed.
+*
+* celperr() - Print error messages from a celprm struct
+* -----------------------------------------------------
+* celperr() prints the error message(s), if any, stored in a celprm struct and
+* the prjprm struct that it contains.  If there are no errors then nothing is
+* printed.  It uses wcserr_prt(), q.v.
+*
+* Given:
+*   cel       const struct celprm*
+*                       Coordinate transformation parameters.
+*
+*   prefix    const char *
+*                       If non-NULL, each output line will be prefixed with
+*                       this string.
 *
 * Function return value:
 *             int       Status return value:
@@ -329,7 +351,7 @@
 *     computation.
 *
 *   struct wcserr *err
-*     (Returned) If enabled, when an error status is returned this struct
+*     (Returned) If enabled, when an error status is returned, this struct
 *     contains detailed information about the error, see wcserr_enable().
 *
 *   void *padding
@@ -345,7 +367,6 @@
 #define WCSLIB_CEL
 
 #include "prj.h"
-#include "wcserr.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -407,6 +428,8 @@ int celini(struct celprm *cel);
 int celfree(struct celprm *cel);
 
 int celprt(const struct celprm *cel);
+
+int celperr(const struct celprm *cel, const char *prefix);
 
 int celset(struct celprm *cel);
 

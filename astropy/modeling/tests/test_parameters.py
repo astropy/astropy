@@ -19,7 +19,7 @@ from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
 
 
-class TestParModel(Model):
+class TParModel(Model):
     """
     A toy model to test parameters machinery
     """
@@ -28,7 +28,7 @@ class TestParModel(Model):
     e = Parameter()
 
     def __init__(self, coeff, e, **kwargs):
-        super(TestParModel, self).__init__(coeff=coeff, e=e, **kwargs)
+        super(TParModel, self).__init__(coeff=coeff, e=e, **kwargs)
 
     @staticmethod
     def evaluate(coeff, e):
@@ -78,8 +78,7 @@ def test_parameter_properties():
 
 
 def test_parameter_operators():
-    """Test if the parameter arithmetic operators works,
-    i.e. whether parameters behave like numbers."""
+    """Test if the parameter arithmetic operators work."""
 
     m = MockModel()
     par = m.alpha
@@ -101,37 +100,15 @@ def test_parameter_operators():
     assert abs(par) == abs(num)
 
 
-def test_parameter_name_attribute_mismatch():
-    """It should not be possible to define Parameters on a model with different
-    names from the attributes they are assigned to.
-    """
-
-    def make_bad_class():
-        class BadModel(Model):
-            foo = Parameter('bar')
-
-            def __call__(self): pass
-
-    def make_good_class():
-        class GoodModel(Model):
-            # This is redundant but okay
-            foo = Parameter('foo')
-
-            def __call__(self): pass
-
-    make_good_class()
-    pytest.raises(ModelDefinitionError, make_bad_class)
-
-
 class TestParameters(object):
 
     def setup_class(self):
         """
         Unit tests for parameters
 
-        Read an iraf database file created by onedspec.identify.
-        Use the information to create a 1D Chebyshev model and
-        perform the same fit.
+        Read an iraf database file created by onedspec.identify.  Use the
+        information to create a 1D Chebyshev model and perform the same fit.
+
         Create also a gausian model.
         """
         test_file = get_pkg_data_filename('data/idcompspec.fits')
@@ -152,29 +129,27 @@ class TestParameters(object):
     def test_set_slice(self):
         """
         Tests updating the parameters attribute with a slice.
+
         This is what fitters internally do.
         """
+
         self.model.parameters[:] = np.array([3, 4, 5, 6, 7])
         assert (self.model.parameters == [3., 4., 5., 6., 7.]).all()
 
     def test_set_parameters_as_list(self):
-        """
-        Tests updating parameters using a list.
-        """
+        """Tests updating parameters using a list."""
+
         self.model.parameters = [30, 40, 50, 60, 70]
         assert (self.model.parameters == [30., 40., 50., 60, 70]).all()
 
     def test_set_parameters_as_array(self):
-        """
-        Tests updating parameters using an array.
-        """
+        """Tests updating parameters using an array."""
+
         self.model.parameters = np.array([3, 4, 5, 6, 7])
         assert (self.model.parameters == [3., 4., 5., 6., 7.]).all()
 
     def test_set_as_tuple(self):
-        """
-        Tests updating parameters using a tuple.
-        """
+        """Tests updating parameters using a tuple."""
 
         self.model.parameters = (1, 2, 3, 4, 5)
         assert (self.model.parameters == [1, 2, 3, 4, 5]).all()
@@ -184,21 +159,20 @@ class TestParameters(object):
         Tests updating the parameters attribute when a model's
         parameter (in this case coeff) is updated.
         """
+
         self.model.parameters = [0, 0., 0., 0, 0]
         self.model.c0 = 7
         assert (self.model.parameters == [7, 0., 0., 0, 0]).all()
 
     def test_set_model_attr_num(self):
-        """
-        Update the parameter list when a model's parameter is updated.
-        """
+        """Update the parameter list when a model's parameter is updated."""
+
         self.gmodel.amplitude = 7
         assert (self.gmodel.parameters == [7, 3, 4]).all()
 
     def test_set_item(self):
-        """
-        Update the parameters using indexing.
-        """
+        """Update the parameters using indexing."""
+
         self.model.parameters = [1, 2, 3, 4, 5]
         self.model.parameters[0] = 10.
         assert (self.model.parameters == [10, 2, 3, 4, 5]).all()
@@ -209,22 +183,25 @@ class TestParameters(object):
         Tests raising an error when attempting to reset the parameters
         using a list of a different size.
         """
+
         with pytest.raises(InputParameterError):
             self.model.parameters = [1, 2, 3]
 
     def test_wrong_size2(self):
         """
-        Tests raising an exception when attemppting to update a model's
+        Tests raising an exception when attempting to update a model's
         parameter (in this case coeff) with a sequence of the wrong size.
         """
+
         with pytest.raises(InputParameterError):
             self.model.c0 = [1, 2, 3]
 
     def test_wrong_shape(self):
         """
-        Tests raising an exception when attemppting to update a model's
+        Tests raising an exception when attempting to update a model's
         parameter and the new value has the wrong shape.
         """
+
         with pytest.raises(InputParameterError):
             self.gmodel.amplitude = [1, 2]
 
@@ -234,6 +211,7 @@ class TestParameters(object):
 
         Uses an iraf example.
         """
+
         new_model = self.linear_fitter(self.model, self.x, self.y)
         print(self.y, self.x)
         utils.assert_allclose(new_model.parameters,
@@ -253,7 +231,7 @@ class TestParameters(object):
         p1 = models.Polynomial1D(3, n_models=3)
         utils.assert_equal(p1.parameters, [0.0, 0.0, 0.0, 0, 0, 0,
                                            0, 0, 0, 0, 0, 0])
-        utils.assert_equal(p1.c0, [0, 0, 0])
+        utils.assert_array_equal(p1.c0, [0, 0, 0])
         p1.c0 = [10, 10, 10]
         utils.assert_equal(p1.parameters, [10.0, 10.0, 10.0, 0, 0,
                                            0, 0, 0, 0, 0, 0, 0])
@@ -279,20 +257,22 @@ class TestParameters(object):
         utils.assert_equal(p2.parameters, [2, 3, 1, 2, 4, 5,
                                            1, 1, 2, 2, 5, 5])
 
-    def test_non_fittable_model_parameters1d(self):
+    def test_shift_model_parameters1d(self):
         sh1 = models.Shift(2)
-        sh1.offsets = 3
-        assert(sh1.offsets == 3)
+        sh1.offset = 3
+        assert sh1.offset == 3
+        assert sh1.offset.value == 3
 
-    def test_non_fittable_model_parametersnd(self):
+    def test_scale_model_parametersnd(self):
         sc1 = models.Scale([2, 2])
-        sc1.factors = [3, 3]
-        assert(sc1.factors == [3, 3])
+        sc1.factor = [3, 3]
+        assert np.all(sc1.factor == [3, 3])
+        utils.assert_array_equal(sc1.factor.value, [3, 3])
 
-    def test_non_fittable_model_parameters_wrong_shape(self):
+    def test_parameters_wrong_shape(self):
         sh1 = models.Shift(2)
         with pytest.raises(InputParameterError):
-            sh1.offsets = [3, 3]
+            sh1.offset = [3, 3]
 
 
 class TestMultipleParameterSets(object):
@@ -306,8 +286,7 @@ class TestMultipleParameterSets(object):
 
     def test_change_par(self):
         """
-        Test that a change to one parameter as a set propagates
-        to param_sets.
+        Test that a change to one parameter as a set propagates to param_sets.
         """
         self.gmodel.amplitude = [1, 10]
         utils.assert_almost_equal(
@@ -322,8 +301,8 @@ class TestMultipleParameterSets(object):
 
     def test_change_par2(self):
         """
-        Test that a change to one single parameter in a set propagates
-        to param_sets.
+        Test that a change to one single parameter in a set propagates to
+        param_sets.
         """
         self.gmodel.amplitude[0] = 11
         utils.assert_almost_equal(
@@ -350,7 +329,7 @@ class TestParameterInitialization(object):
     """
 
     def test_single_model_scalar_parameters(self):
-        t = TestParModel(10, 1)
+        t = TParModel(10, 1)
         assert len(t) == 1
         assert t.model_set_axis is False
         assert np.all(t.param_sets == [[10], [1]])
@@ -359,7 +338,7 @@ class TestParameterInitialization(object):
         assert t.e.shape == ()
 
     def test_single_model_scalar_and_array_parameters(self):
-        t = TestParModel(10, [1, 2])
+        t = TParModel(10, [1, 2])
         assert len(t) == 1
         assert t.model_set_axis is False
         assert np.issubdtype(t.param_sets.dtype, object)
@@ -371,7 +350,7 @@ class TestParameterInitialization(object):
         assert t.e.shape == (2,)
 
     def test_single_model_1d_array_parameters(self):
-        t = TestParModel([10, 20], [1, 2])
+        t = TParModel([10, 20], [1, 2])
         assert len(t) == 1
         assert t.model_set_axis is False
         assert np.all(t.param_sets == [[[10, 20]], [[1, 2]]])
@@ -382,10 +361,10 @@ class TestParameterInitialization(object):
     def test_single_model_1d_array_different_length_parameters(self):
         with pytest.raises(InputParameterError):
             # Not broadcastable
-            t = TestParModel([1, 2], [3, 4, 5])
+            t = TParModel([1, 2], [3, 4, 5])
 
     def test_single_model_2d_array_parameters(self):
-        t = TestParModel([[10, 20], [30, 40]], [[1, 2], [3, 4]])
+        t = TParModel([[10, 20], [30, 40]], [[1, 2], [3, 4]])
         assert len(t) == 1
         assert t.model_set_axis is False
         assert np.all(t.param_sets == [[[[10, 20], [30, 40]]],
@@ -398,7 +377,7 @@ class TestParameterInitialization(object):
         coeff = np.array([[10, 20], [30, 40], [50, 60]])
         e = np.array([[1, 2], [3, 4], [5, 6]])
 
-        t = TestParModel(coeff, e)
+        t = TParModel(coeff, e)
         assert len(t) == 1
         assert t.model_set_axis is False
         assert np.all(t.param_sets == [[[[10, 20], [30, 40], [50, 60]]],
@@ -408,7 +387,7 @@ class TestParameterInitialization(object):
         assert t.coeff.shape == (3, 2)
         assert t.e.shape == (3, 2)
 
-        t2 = TestParModel(coeff.T, e.T)
+        t2 = TParModel(coeff.T, e.T)
         assert len(t2) == 1
         assert t2.model_set_axis is False
         assert np.all(t2.param_sets == [[[[10, 30, 50], [20, 40, 60]]],
@@ -420,13 +399,13 @@ class TestParameterInitialization(object):
 
         # Not broadcastable
         with pytest.raises(InputParameterError):
-            TestParModel(coeff, e.T)
+            TParModel(coeff, e.T)
 
         with pytest.raises(InputParameterError):
-            TestParModel(coeff.T, e)
+            TParModel(coeff.T, e)
 
     def test_single_model_2d_broadcastable_parameters(self):
-        t = TestParModel([[10, 20, 30], [40, 50, 60]], [1, 2, 3])
+        t = TParModel([[10, 20, 30], [40, 50, 60]], [1, 2, 3])
         assert len(t) == 1
         assert t.model_set_axis is False
         assert len(t.param_sets) == 2
@@ -435,18 +414,18 @@ class TestParameterInitialization(object):
         assert np.all(t.param_sets[1] == [[1, 2, 3]])
         assert np.all(t.parameters == [10, 20, 30, 40, 50, 60, 1, 2, 3])
 
-    @pytest.mark.parametrize('p1, p2', [
+    @pytest.mark.parametrize(('p1', 'p2'), [
         (1, 2), (1, [2, 3]), ([1, 2], 3), ([1, 2, 3], [4, 5]),
         ([1, 2], [3, 4, 5])])
     def test_two_model_incorrect_scalar_parameters(self, p1, p2):
         with pytest.raises(InputParameterError):
-            TestParModel(p1, p2, n_models=2)
+            TParModel(p1, p2, n_models=2)
 
     @pytest.mark.parametrize('kwargs', [
         {'n_models': 2}, {'model_set_axis': 0},
         {'n_models': 2, 'model_set_axis': 0}])
     def test_two_model_scalar_parameters(self, kwargs):
-        t = TestParModel([10, 20], [1, 2], **kwargs)
+        t = TParModel([10, 20], [1, 2], **kwargs)
         assert len(t) == 2
         assert t.model_set_axis == 0
         assert np.all(t.param_sets == [[10, 20], [1, 2]])
@@ -458,7 +437,7 @@ class TestParameterInitialization(object):
         {'n_models': 2}, {'model_set_axis': 0},
         {'n_models': 2, 'model_set_axis': 0}])
     def test_two_model_scalar_and_array_parameters(self, kwargs):
-        t = TestParModel([10, 20], [[1, 2], [3, 4]], **kwargs)
+        t = TParModel([10, 20], [[1, 2], [3, 4]], **kwargs)
         assert len(t) == 2
         assert t.model_set_axis == 0
         assert len(t.param_sets) == 2
@@ -470,7 +449,7 @@ class TestParameterInitialization(object):
         assert t.e.shape == (2,)
 
     def test_two_model_1d_array_parameters(self):
-        t = TestParModel([[10, 20], [30, 40]], [[1, 2], [3, 4]], n_models=2)
+        t = TParModel([[10, 20], [30, 40]], [[1, 2], [3, 4]], n_models=2)
         assert len(t) == 2
         assert t.model_set_axis == 0
         assert np.all(t.param_sets == [[[10, 20], [30, 40]],
@@ -479,7 +458,7 @@ class TestParameterInitialization(object):
         assert t.coeff.shape == (2,)
         assert t.e.shape == (2,)
 
-        t2 = TestParModel([[10, 20, 30], [40, 50, 60]],
+        t2 = TParModel([[10, 20, 30], [40, 50, 60]],
                           [[1, 2, 3], [4, 5, 6]], n_models=2)
         assert len(t2) == 2
         assert t2.model_set_axis == 0
@@ -493,10 +472,10 @@ class TestParameterInitialization(object):
     def test_two_model_mixed_dimension_array_parameters(self):
         with pytest.raises(InputParameterError):
             # Can't broadcast different array shapes
-            TestParModel([[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
+            TParModel([[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
                          [[9, 10, 11], [12, 13, 14]], n_models=2)
 
-        t = TestParModel([[[10, 20], [30, 40]], [[50, 60], [70, 80]]],
+        t = TParModel([[[10, 20], [30, 40]], [[50, 60], [70, 80]]],
                          [[1, 2], [3, 4]], n_models=2)
         assert len(t) == 2
         assert t.model_set_axis == 0
@@ -511,7 +490,7 @@ class TestParameterInitialization(object):
         assert t.e.shape == (2,)
 
     def test_two_model_2d_array_parameters(self):
-        t = TestParModel([[[10, 20], [30, 40]], [[50, 60], [70, 80]]],
+        t = TParModel([[[10, 20], [30, 40]], [[50, 60], [70, 80]]],
                          [[[1, 2], [3, 4]], [[5, 6], [7, 8]]], n_models=2)
         assert len(t) == 2
         assert t.model_set_axis == 0
@@ -531,7 +510,7 @@ class TestParameterInitialization(object):
         coeff = np.rollaxis(coeff, 0, 3)
         e = np.array([[1, 2], [3, 4]])
         e = np.rollaxis(e, 0, 2)
-        t = TestParModel(coeff, e, model_set_axis=-1)
+        t = TParModel(coeff, e, model_set_axis=-1)
         assert len(t) == 2
         assert t.model_set_axis == -1
         assert len(t.param_sets) == 2
@@ -546,32 +525,32 @@ class TestParameterInitialization(object):
 
     def test_wrong_number_of_params(self):
         with pytest.raises(InputParameterError):
-            TestParModel(coeff=[[1, 2], [3, 4]], e=(2, 3, 4), n_models=2)
+            TParModel(coeff=[[1, 2], [3, 4]], e=(2, 3, 4), n_models=2)
         with pytest.raises(InputParameterError):
-            TestParModel(coeff=[[1, 2], [3, 4]], e=(2, 3, 4), model_set_axis=0)
+            TParModel(coeff=[[1, 2], [3, 4]], e=(2, 3, 4), model_set_axis=0)
 
     def test_wrong_number_of_params2(self):
         with pytest.raises(InputParameterError):
-            m = TestParModel(coeff=[[1, 2], [3, 4]], e=4, n_models=2)
+            m = TParModel(coeff=[[1, 2], [3, 4]], e=4, n_models=2)
         with pytest.raises(InputParameterError):
-            m = TestParModel(coeff=[[1, 2], [3, 4]], e=4, model_set_axis=0)
+            m = TParModel(coeff=[[1, 2], [3, 4]], e=4, model_set_axis=0)
 
     def test_array_parameter1(self):
         with pytest.raises(InputParameterError):
-            t = TestParModel(np.array([[1, 2], [3, 4]]), 1, model_set_axis=0)
+            t = TParModel(np.array([[1, 2], [3, 4]]), 1, model_set_axis=0)
 
     def test_array_parameter2(self):
         with pytest.raises(InputParameterError):
-            m = TestParModel(np.array([[1, 2], [3, 4]]), (1, 1, 11),
+            m = TParModel(np.array([[1, 2], [3, 4]]), (1, 1, 11),
                              model_set_axis=0)
 
     def test_array_parameter4(self):
         """
-        Test multiple parameter model with array-valued parameters of the
-        same size as the number of parameter sets.
+        Test multiple parameter model with array-valued parameters of the same
+        size as the number of parameter sets.
         """
 
-        t4 = TestParModel([[1, 2], [3, 4]], [5, 6], model_set_axis=False)
+        t4 = TParModel([[1, 2], [3, 4]], [5, 6], model_set_axis=False)
         assert len(t4) == 1
         assert t4.coeff.shape == (2, 2)
         assert t4.e.shape == (2,)

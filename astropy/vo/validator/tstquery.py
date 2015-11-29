@@ -7,10 +7,12 @@ In case USVO service is unstable, it does the following:
     #. Try USVO production server.
     #. If fails, try USVO test server (has latest bug fix, but does not
        contain all registered services).
+    #. If SR > 0.1, force SR to be 0.1.
     #. If fails, use RA=0 DEC=0 SR=0.1.
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 # STDLIB
 import warnings
@@ -28,12 +30,12 @@ def parse_cs(id):
         id = id.decode('ascii')
 
     # Production server.
-    url = 'http://vao.stsci.edu/directory/getRecord.aspx?' \
-        'id={0}&format=xml'.format(id)
+    url = ('http://vao.stsci.edu/directory/getRecord.aspx?'
+           'id={0}&format=xml'.format(id))
 
     # Test server (in case production server fails).
-    backup_url = 'http://vaotest.stsci.edu/directory/getRecord.aspx?' \
-        'id={0}&format=xml'.format(id)
+    backup_url = ('http://vaotest.stsci.edu/directory/getRecord.aspx?'
+                  'id={0}&format=xml'.format(id))
 
     tqp = ['ra', 'dec', 'sr']
     d = OrderedDict()
@@ -60,15 +62,29 @@ def parse_cs(id):
         tq = dom.getElementsByTagName('testQuery')
         if tq:
             for key in tqp:
-                d[key.upper()] = tq[0].getElementsByTagName(
-                    key)[0].firstChild.nodeValue.strip()
+                try:
+                    d[key.upper()] = tq[0].getElementsByTagName(
+                        key)[0].firstChild.nodeValue.strip()
+                except Exception as e:  # pragma: no cover
+                    urls_failed = True
+                    urls_errmsg = ('Incomplete testQuery for {0}, '
+                                   'using default'.format(id))
         else: # pragma: no cover
             urls_failed = True
             urls_errmsg = 'No testQuery found for {0}, using default'.format(id)
 
-    # If no testQuery found, use RA=0 DEC=0 SR=1
+    # Handle big SR returning too big a table for some queries, causing
+    # tests to fail due to timeout.
+    default_sr = '0.1'
+
+    # If no testQuery found, use default
     if urls_failed:  # pragma: no cover
-        d = OrderedDict({'RA': '0', 'DEC': '0', 'SR': '0.1'})
+        d = OrderedDict({'RA': '0', 'DEC': '0', 'SR': default_sr})
         warnings.warn(urls_errmsg, AstropyUserWarning)
+    # Force SR to be reasonably small
+    elif d['SR'] > default_sr:
+        warnings.warn('SR={0} is too large, using SR={1} for {2}'.format(
+            d['SR'], default_sr, id), AstropyUserWarning)
+        d['SR'] = default_sr
 
     return d

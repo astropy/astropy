@@ -2,7 +2,7 @@
 A description of the package (`astropy.packagename`)
 ****************************************************
 
-When creating a new subpackage's docuementation, this file should be
+When creating a new subpackage's documentation, this file should be
 copied to a file "index.rst" in a directory corresponding to the name of
 the package. E.g., ``docs/packagename/index.rst``. And don't forget to
 delete this paragraph.

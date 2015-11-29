@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.23 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2014, Mark Calabretta
+  WCSLIB 5.10 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,34 +22,42 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: prj.h,v 4.23 2014/05/11 04:09:38 mcalabre Exp $
+  $Id: prj.h,v 5.10 2015/10/09 08:19:15 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 4.23 - C routines that implement the spherical map projections
-* recognized by the FITS World Coordinate System (WCS) standard.  Refer to
-*
-*   "Representations of world coordinates in FITS",
-*   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (Paper I)
-*
-*   "Representations of celestial coordinates in FITS",
-*   Calabretta, M.R., & Greisen, E.W. 2002, A&A, 395, 1077 (Paper II)
-*
-* Refer to the README file provided with WCSLIB for an overview of the
-* library.
+* WCSLIB 5.10 - C routines that implement the FITS World Coordinate System
+* (WCS) standard.  Refer to the README file provided with WCSLIB for an
+* overview of the library.
 *
 *
 * Summary of the prj routines
 * ---------------------------
-* These routines implement the spherical map projections defined by the FITS
-* WCS standard.  They are based on the prjprm struct which contains all
-* information needed for the computations.  The struct contains some members
-* that must be set by the user, and others that are maintained by these
-* routines, somewhat like a C++ class but with no encapsulation.
+* Routines in this suite  implement the spherical map projections defined by
+* the FITS World Coordinate System (WCS) standard, as described in
+*
+=   "Representations of world coordinates in FITS",
+=   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (WCS Paper I)
+=
+=   "Representations of celestial coordinates in FITS",
+=   Calabretta, M.R., & Greisen, E.W. 2002, A&A, 395, 1077 (WCS Paper II)
+=
+=   "Mapping on the HEALPix grid",
+=   Calabretta, M.R., & Roukema, B.F. 2007, MNRAS, 381, 865 (WCS Paper V)
+=
+=   "Representing the 'Butterfly' Projection in FITS -- Projection Code XPH",
+=   Calabretta, M.R., & Lowe, S.R. 2013, PASA, 30, e050 (WCS Paper VI)
+*
+* These routines are based on the prjprm struct which contains all information
+* needed for the computations.  The struct contains some members that must be
+* set by the user, and others that are maintained by these routines, somewhat
+* like a C++ class but with no encapsulation.
 *
 * Routine prjini() is provided to initialize the prjprm struct with default
 * values, prjfree() reclaims any memory that may have been allocated to store
-* an error message, and prjprt() prints its contents.  prjbchk() performs
-* bounds checking on native spherical coordinates.
+* an error message, and prjprt() prints its contents.
+*
+* prjperr() prints the error message(s) (if any) stored in a prjprm struct.
+* prjbchk() performs bounds checking on native spherical coordinates.
 *
 * Setup routines for each projection with names of the form ???set(), where
 * "???" is the down-cased three-letter projection code, compute intermediate
@@ -69,6 +77,7 @@
 *   - prjini()                Initialization routine for the prjprm struct.
 *   - prjfree()               Reclaim memory allocated for error messages.
 *   - prjprt()                Print the prjprm struct.
+*   - prjperr()               Print error message (if any).
 *   - prjbchk()               Bounds checking on native coordinates.
 *
 *   - prjset(), prjx2s(), prjs2x():   Generic driver routines
@@ -178,6 +187,25 @@
 * Given:
 *   prj       const struct prjprm*
 *                       Projection parameters.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
+*                         1: Null prjprm pointer passed.
+*
+*
+* prjperr() - Print error messages from a prjprm struct
+* -----------------------------------------------------
+* prjperr() prints the error message(s) (if any) stored in a prjprm struct.
+* If there are no errors then nothing is printed.  It uses wcserr_prt(), q.v.
+*
+* Given:
+*   prj       const struct prjprm*
+*                       Projection parameters.
+*
+*   prefix    const char *
+*                       If non-NULL, each output line will be prefixed with
+*                       this string.
 *
 * Function return value:
 *             int       Status return value:
@@ -486,6 +514,9 @@
 *     to suit each projection.  bounds is set to 7 by prjini() by default
 *     which enables all checks.  Zero it to disable all checking.
 *
+*     It is not necessary to reset the prjprm struct (via prjset() or
+*     ???set()) when prjprm::bounds is changed.
+*
 * The remaining members of the prjprm struct are maintained by the setup
 * routines and must not be modified elsewhere:
 *
@@ -557,7 +588,7 @@
 *     (phi_0,theta_0).
 *
 *   struct wcserr *err
-*     (Returned) If enabled, when an error status is returned this struct
+*     (Returned) If enabled, when an error status is returned, this struct
 *     contains detailed information about the error, see wcserr_enable().
 *
 *   void *padding
@@ -575,7 +606,7 @@
 *     projections).
 *
 *   int (*prjx2s)(PRJX2S_ARGS)
-*     (Returned) Pointer to the projection ...
+*     (Returned) Pointer to the spherical projection ...
 *   int (*prjs2x)(PRJ_ARGS)
 *     (Returned) ... and deprojection routines.
 *
@@ -588,8 +619,6 @@
 
 #ifndef WCSLIB_PROJ
 #define WCSLIB_PROJ
-
-#include "wcserr.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -682,6 +711,7 @@ struct prjprm {
 int prjini(struct prjprm *prj);
 int prjfree(struct prjprm *prj);
 int prjprt(const struct prjprm *prj);
+int prjperr(const struct prjprm *prj, const char *prefix);
 int prjbchk(double tol, int nx, int ny, int spt, double phi[], double theta[],
            int stat[]);
 

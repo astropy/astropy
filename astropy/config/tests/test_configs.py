@@ -14,18 +14,67 @@ from ...utils.compat import subprocess
 
 from ...utils.data import get_pkg_data_filename
 from .. import configuration
+from .. import paths
 from ...utils.exceptions import AstropyDeprecationWarning
 
 
 def test_paths():
-    from ..paths import get_config_dir, get_cache_dir
+    assert 'astropy' in paths.get_config_dir()
+    assert 'astropy' in paths.get_cache_dir()
 
-    assert 'astropy' in get_config_dir()
-    assert 'astropy' in get_cache_dir()
+
+def test_set_temp_config(tmpdir, monkeypatch):
+    monkeypatch.setattr(paths.set_temp_config, '_temp_path', None)
+
+    orig_config_dir = paths.get_config_dir()
+    temp_config_dir = str(tmpdir.mkdir('config'))
+    temp_astropy_config = os.path.join(temp_config_dir, 'astropy')
+
+    # Test decorator mode
+    @paths.set_temp_config(temp_config_dir)
+    def test_func():
+        assert paths.get_config_dir() == temp_astropy_config
+
+        # Test temporary restoration of original default
+        with paths.set_temp_config() as d:
+            assert d == orig_config_dir == paths.get_config_dir()
+
+    test_func()
+
+    # Test context manager mode (with cleanup)
+    with paths.set_temp_config(temp_config_dir, delete=True):
+        assert paths.get_config_dir() == temp_astropy_config
+
+    assert not os.path.exists(temp_config_dir)
+
+
+def test_set_temp_cache(tmpdir, monkeypatch):
+    monkeypatch.setattr(paths.set_temp_cache, '_temp_path', None)
+
+    orig_cache_dir = paths.get_cache_dir()
+    temp_cache_dir = str(tmpdir.mkdir('cache'))
+    temp_astropy_cache = os.path.join(temp_cache_dir, 'astropy')
+
+    # Test decorator mode
+    @paths.set_temp_cache(temp_cache_dir)
+    def test_func():
+        assert paths.get_cache_dir() == temp_astropy_cache
+
+        # Test temporary restoration of original default
+        with paths.set_temp_cache() as d:
+            assert d == orig_cache_dir == paths.get_cache_dir()
+
+    test_func()
+
+    # Test context manager mode (with cleanup)
+    with paths.set_temp_cache(temp_cache_dir, delete=True):
+        assert paths.get_cache_dir() == temp_astropy_cache
+
+    assert not os.path.exists(temp_cache_dir)
 
 
 def test_config_file():
-    from ..configuration import get_config, reload_config, save_config
+    from ..configuration import get_config, reload_config
 
     apycfg = get_config('astropy')
     assert apycfg.filename.endswith('astropy.cfg')
@@ -107,7 +156,7 @@ def test_configitem_options(tmpdir):
     while apycfg.parent is not apycfg:
         apycfg = apycfg.parent
     f = tmpdir.join('astropy.cfg')
-    with io.open(f.strpath, 'w', encoding='utf-8') as fd:
+    with io.open(f.strpath, 'wb') as fd:
         apycfg.write(fd)
     with io.open(f.strpath, 'rU', encoding='utf-8') as fd:
         lns = [x.strip() for x in f.readlines()]
@@ -121,11 +170,11 @@ def test_config_noastropy_fallback(monkeypatch):
     there's a problem accessing the astropy directory
     """
     from ...tests.helper import pytest
-    from .. import paths, configuration
 
     # make sure the config directory is not searched
     monkeypatch.setenv(str('XDG_CONFIG_HOME'), 'foo')
     monkeypatch.delenv(str('XDG_CONFIG_HOME'))
+    monkeypatch.setattr(paths.set_temp_config, '_temp_path', None)
 
     # make sure the _find_or_create_astropy_dir function fails as though the
     # astropy dir could not be accessed
@@ -178,17 +227,21 @@ def test_configitem_setters():
 def test_empty_config_file():
     from ..configuration import is_unedited_config_file
 
-    fn = get_pkg_data_filename('data/empty.cfg')
-    assert is_unedited_config_file(fn)
+    def get_content(fn):
+        with io.open(get_pkg_data_filename(fn), 'rt', encoding='latin-1') as fd:
+            return fd.read()
 
-    fn = get_pkg_data_filename('data/not_empty.cfg')
-    assert not is_unedited_config_file(fn)
+    content = get_content('data/empty.cfg')
+    assert is_unedited_config_file(content)
 
-    fn = get_pkg_data_filename('data/astropy.0.3.cfg')
-    assert is_unedited_config_file(fn)
+    content = get_content('data/not_empty.cfg')
+    assert not is_unedited_config_file(content)
 
-    fn = get_pkg_data_filename('data/astropy.0.3.windows.cfg')
-    assert is_unedited_config_file(fn)
+    content = get_content('data/astropy.0.3.cfg')
+    assert is_unedited_config_file(content)
+
+    content = get_content('data/astropy.0.3.windows.cfg')
+    assert is_unedited_config_file(content)
 
 
 def test_alias():

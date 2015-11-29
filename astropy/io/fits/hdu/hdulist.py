@@ -19,10 +19,11 @@ from ..util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
 from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from ....extern.six import string_types
 from ....utils import indent
-from ....utils.exceptions import AstropyUserWarning
+from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
 
-def fitsopen(name, mode='readonly', memmap=None, save_backup=False, **kwargs):
+def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
+             cache=True, **kwargs):
     """Factory function to open a FITS file and return an `HDUList` object.
 
     Parameters
@@ -30,7 +31,7 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False, **kwargs):
     name : file path, file object or file-like object
         File to be opened.
 
-    mode : str
+    mode : str, optional
         Open mode, 'readonly' (default), 'update', 'append', 'denywrite', or
         'ostream'.
 
@@ -38,17 +39,22 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False, **kwargs):
         match the mode the file was opened with, readonly (rb), update (rb+),
         append (ab+), ostream (w), denywrite (rb)).
 
-    memmap : bool
+    memmap : bool, optional
         Is memory mapping to be used?
 
-    save_backup : bool
+    save_backup : bool, optional
         If the file was opened in update or append mode, this ensures that a
         backup of the original file is saved before any changes are flushed.
         The backup has the same name as the original file with ".bak" appended.
         If "file.bak" already exists then "file.bak.1" is used, and so on.
 
-    kwargs : dict
-        optional keyword arguments, possible values are:
+    cache : bool, optional
+        If the file name is a URL, `~astropy.utils.data.download_file` is used
+        to open the file.  This specifies whether or not to save the file
+        locally in Astropy's download cache (default: `True`).
+
+    kwargs : dict, optional
+        additional optional keyword arguments, possible values are:
 
         - **uint** : bool
 
@@ -56,6 +62,8 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False, **kwargs):
             central value and ``BSCALE == 1`` as unsigned integer
             data.  For example, ``int16`` data with ``BZERO = 32768``
             and ``BSCALE = 1`` would be treated as ``uint16`` data.
+            This is enabled by default so that the pseudo-unsigned
+            integer convention is assumed.
 
             Note, for backward compatibility, the kwarg **uint16** may
             be used instead.  The kwarg was renamed when support was
@@ -78,7 +86,7 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False, **kwargs):
 
         - **disable_image_compression** : bool
 
-            If `True`, treates compressed image HDU's like normal
+            If `True`, treats compressed image HDU's like normal
             binary table HDU's.
 
         - **do_not_scale_image_data** : bool
@@ -105,18 +113,29 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False, **kwargs):
 
     """
 
+    from .. import conf
+
     if memmap is None:
-        from .. import conf
-        memmap = conf.use_memmap
+        # distinguish between True (kwarg explicitly set)
+        # and None (preference for memmap in config, might be ignored)
+        memmap = None if conf.use_memmap else False
+    else:
+        memmap = bool(memmap)
 
     if 'uint16' in kwargs and 'uint' not in kwargs:
         kwargs['uint'] = kwargs['uint16']
         del kwargs['uint16']
+        warnings.warn(
+            'The uint16 keyword argument is deprecated since v1.1.0.  Use '
+            'the uint argument instead.', AstropyDeprecationWarning)
+
+    if 'uint' not in kwargs:
+        kwargs['uint'] = conf.enable_uint
 
     if not name:
         raise ValueError('Empty filename: %s' % repr(name))
 
-    return HDUList.fromfile(name, mode, memmap, save_backup, **kwargs)
+    return HDUList.fromfile(name, mode, memmap, save_backup, cache, **kwargs)
 
 
 class HDUList(list, _Verify):
@@ -139,7 +158,7 @@ class HDUList(list, _Verify):
             The opened physical file associated with the `HDUList`.
         """
 
-        self.__file = file
+        self._file = file
         self._save_backup = False
 
         if hdus is None:
@@ -175,6 +194,16 @@ class HDUList(list, _Verify):
 
         idx = self.index_of(key)
         return super(HDUList, self).__getitem__(idx)
+
+    def __contains__(self, item):
+        """
+        Returns `True` if ``HDUList.index_of(item)`` succeeds.
+        """
+        try:
+            self.index_of(item)
+            return True
+        except KeyError:
+            return False
 
     def __setitem__(self, key, hdu):
         """
@@ -237,8 +266,8 @@ class HDUList(list, _Verify):
         self.close()
 
     @classmethod
-    def fromfile(cls, fileobj, mode=None, memmap=False,
-                 save_backup=False, **kwargs):
+    def fromfile(cls, fileobj, mode=None, memmap=None,
+                 save_backup=False, cache=True, **kwargs):
         """
         Creates an `HDUList` instance from a file-like object.
 
@@ -248,7 +277,7 @@ class HDUList(list, _Verify):
         """
 
         return cls._readfrom(fileobj=fileobj, mode=mode, memmap=memmap,
-                             save_backup=save_backup, **kwargs)
+                             save_backup=save_backup, cache=cache, **kwargs)
 
     @classmethod
     def fromstring(cls, data, **kwargs):
@@ -320,7 +349,7 @@ class HDUList(list, _Verify):
 
         """
 
-        if self.__file is not None:
+        if self._file is not None:
             output = self[index].fileinfo()
 
             if not output:
@@ -341,7 +370,7 @@ class HDUList(list, _Verify):
                 output = {'file': f, 'filemode': fm, 'hdrLoc': None,
                           'datLoc': None, 'datSpan': None}
 
-            output['filename'] = self.__file.name
+            output['filename'] = self._file.name
             output['resized'] = self._wasresized()
         else:
             output = None
@@ -537,13 +566,13 @@ class HDUList(list, _Verify):
             When `True`, print verbose messages
         """
 
-        if self.__file.mode not in ('append', 'update', 'ostream'):
+        if self._file.mode not in ('append', 'update', 'ostream'):
             warnings.warn("Flush for '%s' mode is not supported."
-                          % self.__file.mode, AstropyUserWarning)
+                          % self._file.mode, AstropyUserWarning)
             return
 
-        if self._save_backup and self.__file.mode in ('append', 'update'):
-            filename = self.__file.name
+        if self._save_backup and self._file.mode in ('append', 'update'):
+            filename = self._file.name
             if os.path.exists(filename):
                 # The the file doesn't actually exist anymore for some reason
                 # then there's no point in trying to make a backup
@@ -562,7 +591,7 @@ class HDUList(list, _Verify):
 
         self.verify(option=output_verify)
 
-        if self.__file.mode in ('append', 'ostream'):
+        if self._file.mode in ('append', 'ostream'):
             for hdu in self:
                 if verbose:
                     try:
@@ -574,13 +603,13 @@ class HDUList(list, _Verify):
                 if hdu._new:
                     hdu._prewriteto(checksum=hdu._output_checksum)
                     try:
-                        hdu._writeto(self.__file)
+                        hdu._writeto(self._file)
                         if verbose:
                             print('append HDU', hdu.name, extver)
                         hdu._new = False
                     finally:
                         hdu._postwriteto()
-        elif self.__file.mode == 'update':
+        elif self._file.mode == 'update':
             self._flush_update()
 
     def update_extend(self):
@@ -659,7 +688,7 @@ class HDUList(list, _Verify):
         for hdu in self:
             hdu._prewriteto(checksum=checksum)
             try:
-                hdu._writeto(hdulist.__file)
+                hdu._writeto(hdulist._file)
             finally:
                 hdu._postwriteto()
 
@@ -685,12 +714,16 @@ class HDUList(list, _Verify):
             When `True`, close the underlying file object.
         """
 
-        if self.__file:
-            if self.__file.mode in ['append', 'update']:
+        if self._file:
+            if self._file.mode in ['append', 'update']:
                 self.flush(output_verify=output_verify, verbose=verbose)
 
-            if closed and hasattr(self.__file, 'close'):
-                self.__file.close()
+            if closed and hasattr(self._file, 'close'):
+                self._file.close()
+
+        # Give individual HDUs an opportunity to do on-close cleanup
+        for hdu in self:
+            hdu._close(closed=closed)
 
     def info(self, output=None):
         """
@@ -710,10 +743,10 @@ class HDUList(list, _Verify):
         if output is None:
             output = sys.stdout
 
-        if self.__file is None:
+        if self._file is None:
             name = '(No file associated with this HDUList)'
         else:
-            name = self.__file.name
+            name = self._file.name
 
         results = ['Filename: %s' % name,
                    'No.    Name         Type      Cards   Dimensions   Format']
@@ -748,14 +781,14 @@ class HDUList(list, _Verify):
                    HDUList object if an association exists.  Otherwise returns
                    None.
         """
-        if self.__file is not None:
-            if hasattr(self.__file, 'name'):
-                return self.__file.name
+        if self._file is not None:
+            if hasattr(self._file, 'name'):
+                return self._file.name
         return None
 
     @classmethod
     def _readfrom(cls, fileobj=None, data=None, mode=None,
-                  memmap=False, save_backup=False, **kwargs):
+                  memmap=None, save_backup=False, cache=True, **kwargs):
         """
         Provides the implementations from HDUList.fromfile and
         HDUList.fromstring, both of which wrap this method, as their
@@ -765,7 +798,7 @@ class HDUList(list, _Verify):
         if fileobj is not None:
             if not isinstance(fileobj, _File):
                 # instantiate a FITS file object (ffo)
-                ffo = _File(fileobj, mode=mode, memmap=memmap)
+                ffo = _File(fileobj, mode=mode, memmap=memmap, cache=cache)
             else:
                 ffo = fileobj
             # The pyfits mode is determined by the _File initializer if the
@@ -906,12 +939,12 @@ class HDUList(list, _Verify):
 
             # if the HDUList is resized, need to write out the entire contents of
             # the hdulist to the file.
-            if self._resize or self.__file.compression:
+            if self._resize or self._file.compression:
                 self._flush_resize()
             else:
                 # if not resized, update in place
                 for hdu in self:
-                    hdu._writeto(self.__file, inplace=True)
+                    hdu._writeto(self._file, inplace=True)
 
             # reset the modification attributes after updating
             for hdu in self:
@@ -926,24 +959,26 @@ class HDUList(list, _Verify):
         need to be resized.
         """
 
-        old_name = self.__file.name
-        old_memmap = self.__file.memmap
+        old_name = self._file.name
+        old_memmap = self._file.memmap
         name = _tmp_name(old_name)
 
-        if not self.__file.file_like:
+        if not self._file.file_like:
             old_mode = os.stat(old_name).st_mode
-            # The underlying file is an acutal file object.  The HDUList is
+            # The underlying file is an actual file object.  The HDUList is
             # resized, so we need to write it to a tmp file, delete the
             # original file, and rename the tmp file to the original file.
-            if self.__file.compression == 'gzip':
+            if self._file.compression == 'gzip':
                 new_file = gzip.GzipFile(name, mode='ab+')
+            elif self._file.compression == 'bzip2':
+                new_file = bz2.BZ2File(name, mode='w')
             else:
                 new_file = name
 
             hdulist = self.fromfile(new_file, mode='append')
 
             for hdu in self:
-                hdu._writeto(hdulist.__file, inplace=True, copy=True)
+                hdu._writeto(hdulist._file, inplace=True, copy=True)
 
             if sys.platform.startswith('win'):
                 # Collect a list of open mmaps to the data; this well be used
@@ -951,8 +986,8 @@ class HDUList(list, _Verify):
                 mmaps = [(idx, _get_array_mmap(hdu.data), hdu.data)
                          for idx, hdu in enumerate(self) if hdu._has_data]
 
-            hdulist.__file.close()
-            self.__file.close()
+            hdulist._file.close()
+            self._file.close()
 
             if sys.platform.startswith('win'):
                 # Close all open mmaps to the data.  This is only necessary on
@@ -962,7 +997,7 @@ class HDUList(list, _Verify):
                     if mmap is not None:
                         mmap.close()
 
-            os.remove(self.__file.name)
+            os.remove(self._file.name)
 
             # reopen the renamed new file with "update" mode
             os.rename(name, old_name)
@@ -975,7 +1010,7 @@ class HDUList(list, _Verify):
 
             ffo = _File(old_file, mode='update', memmap=old_memmap)
 
-            self.__file = ffo
+            self._file = ffo
 
             for hdu in self:
                 # Need to update the _file attribute and close any open mmaps
@@ -1009,7 +1044,7 @@ class HDUList(list, _Verify):
             # like object.
             self.writeto(name)
             hdulist = self.fromfile(name)
-            ffo = self.__file
+            ffo = self._file
 
             ffo.truncate(0)
             ffo.seek(0)
@@ -1019,7 +1054,7 @@ class HDUList(list, _Verify):
 
             # Close the temporary file and delete it.
             hdulist.close()
-            os.remove(hdulist.__file.name)
+            os.remove(hdulist._file.name)
 
         # reset the resize attributes after updating
         self._resize = False
@@ -1065,7 +1100,7 @@ class HDUList(list, _Verify):
 
             if self._truncate:
                 try:
-                    self.__file.truncate(hdu._data_offset + hdu._data_size)
+                    self._file.truncate(hdu._data_offset + hdu._data_size)
                 except IOError:
                     self._resize = True
                 self._truncate = False

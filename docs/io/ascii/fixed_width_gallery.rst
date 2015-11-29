@@ -16,7 +16,7 @@ for example::
    2.4 's worlds    2    2
 
 There are a number of common variations in the formatting of fixed-width tables
-which :mod:`astropy.io.ascii` can read and write.  The most signicant difference is
+which :mod:`astropy.io.ascii` can read and write.  The most significant difference is
 whether there is no header line (:class:`~astropy.io.ascii.FixedWidthNoHeader`), one
 header line (:class:`~astropy.io.ascii.FixedWidth`), or two header lines
 (:class:`~astropy.io.ascii.FixedWidthTwoLine`).  Next, there are variations in the
@@ -43,9 +43,12 @@ FixedWidth
   ... |  2.4   |'s worlds|
   ... """
   >>> ascii.read(table, format='fixed_width')
-  <Table rows=2 names=('Col1','Col2')>
-  array([(1.2, '"hello"'), (2..., "'s worlds")],
-        dtype=[('Col1', '<f8'), ('Col2', 'S9')])
+  <Table length=2>
+    Col1     Col2
+  float64    str9
+  ------- ---------
+      1.2   "hello"
+      2.4 's worlds
 
 **Typical fixed format table with col names provided**
 ::
@@ -56,10 +59,13 @@ FixedWidth
   ... |  1.2   | "hello" |
   ... |  2.4   |'s worlds|
   ... """
-  >>> ascii.read(table, format='fixed_width', names=('name1', 'name2'))
-  <Table rows=2 names=('name1','name2')>
-  array([(1.2, '"hello"'), (2..., "'s worlds")],
-        dtype=[('name1', '<f8'), ('name2', 'S9')])
+  >>> ascii.read(table, format='fixed_width', names=['name1', 'name2'])
+  <Table length=2>
+   name1    name2
+  float64    str9
+  ------- ---------
+      1.2   "hello"
+      2.4 's worlds
 
 **Weird input table with data values chopped by col extent**
 ::
@@ -70,9 +76,12 @@ FixedWidth
   ...   2.4   sdf's worlds
   ... """
   >>> ascii.read(table, format='fixed_width')
-  <Table rows=2 names=('Col1','Col2')>
-  array([(1.2, '"hel'), (2..., "df's wo")],
-        dtype=[('Col1', '<f8'), ('Col2', 'S7')])
+  <Table length=2>
+    Col1    Col2
+  float64   str7
+  ------- -------
+      1.2    "hel
+      2.4 df's wo
 
 **Table with double delimiters**
 ::
@@ -84,11 +93,13 @@ FixedWidth
   ... |   Bob  | 555-4527 | 192.168.1.9X|
   ... """
   >>> ascii.read(table, format='fixed_width')
-  <Table rows=3 names=('Name','Phone','TCP')>
-  array([('John', '555-1234', '192.168.1.10'),
-         ('Mary', '555-2134', '192.168.1.12'),
-         ('Bob', '555-4527', '192.168.1.9')],
-        dtype=[('Name', 'S4'), ('Phone', 'S8'), ('TCP', 'S12')])
+  <Table length=3>
+  Name  Phone       TCP
+  str4   str8      str12
+  ---- -------- ------------
+  John 555-1234 192.168.1.10
+  Mary 555-2134 192.168.1.12
+   Bob 555-4527  192.168.1.9
 
 **Table with space delimiter**
 ::
@@ -100,11 +111,13 @@ FixedWidth
   ...   Bob  555-4527     192.168.1.9
   ... """
   >>> ascii.read(table, format='fixed_width', delimiter=' ')
-  <Table rows=3 names=('Name','--Phone-','----TCP-----')>
-  array([('John', '555-1234', '192.168.1.10'),
-         ('Mary', '555-2134', '192.168.1.12'),
-         ('Bob', '555-4527', '192.168.1.9')],
-        dtype=[('Name', 'S4'), ('--Phone-', 'S8'), ('----TCP-----', 'S12')])
+  <Table length=3>
+  Name --Phone- ----TCP-----
+  str4   str8      str12
+  ---- -------- ------------
+  John 555-1234 192.168.1.10
+  Mary 555-2134 192.168.1.12
+   Bob 555-4527  192.168.1.9
 
 **Table with no header row and auto-column naming.**
 
@@ -118,11 +131,13 @@ Use header_start and data_start keywords to indicate no header line.
   ... """
   >>> ascii.read(table, format='fixed_width',
   ...            header_start=None, data_start=0)
-  <Table rows=3 names=('col1','col2','col3')>
-  array([('John', '555-1234', '192.168.1.10'),
-         ('Mary', '555-2134', '192.168.1.12'),
-         ('Bob', '555-4527', '192.168.1.9')],
-        dtype=[('col1', 'S4'), ('col2', 'S8'), ('col3', 'S12')])
+  <Table length=3>
+  col1   col2       col3
+  str4   str8      str12
+  ---- -------- ------------
+  John 555-1234 192.168.1.10
+  Mary 555-2134 192.168.1.12
+   Bob 555-4527  192.168.1.9
 
 **Table with no header row and with col names provided.**
 
@@ -136,11 +151,13 @@ keywords to indicate no header line.
   >>> ascii.read(table, format='fixed_width',
   ...                 header_start=None, data_start=0,
   ...                 names=('Name', 'Phone', 'TCP'))
-  <Table rows=3 names=('Name','Phone','TCP')>
-  array([('John', '555-1234', '192.168.1.10'),
-         ('Mary', '555-2134', '192.168.1.12'),
-         ('Bob', '555-4527', '192.168.1.9')],
-        dtype=[('Name', 'S4'), ('Phone', 'S8'), ('TCP', 'S12')])
+  <Table length=3>
+  Name  Phone       TCP
+  str4   str8      str12
+  ---- -------- ------------
+  John 555-1234 192.168.1.10
+  Mary 555-2134 192.168.1.12
+   Bob 555-4527  192.168.1.9
 
 
 FixedWidthNoHeader
@@ -156,11 +173,13 @@ convenience class.**
   ... |   Bob  | 555-4527 | 192.168.1.9|
   ... """
   >>> ascii.read(table, format='fixed_width_no_header')
-  <Table rows=3 names=('col1','col2','col3')>
-  array([('John', '555-1234', '192.168.1.10'),
-         ('Mary', '555-2134', '192.168.1.12'),
-         ('Bob', '555-4527', '192.168.1.9')],
-        dtype=[('col1', 'S4'), ('col2', 'S8'), ('col3', 'S12')])
+  <Table length=3>
+  col1   col2       col3
+  str4   str8      str12
+  ---- -------- ------------
+  John 555-1234 192.168.1.10
+  Mary 555-2134 192.168.1.12
+   Bob 555-4527  192.168.1.9
 
 **Table with no delimiter with column start and end values specified.**
 
@@ -181,11 +200,64 @@ will select the first 6 characters.
   ...                 col_starts=(0, 9, 18),
   ...                 col_ends=(5, 17, 28),
   ...                 )
-  <Table rows=3 names=('Name','Phone','TCP')>
-  array([('John', '555- 1234', '192.168.1.'),
-         ('Mary', '555- 2134', '192.168.1.'),
-         ('Bob', '555- 4527', '192.168.1')],
-        dtype=[('Name', 'S4'), ('Phone', 'S9'), ('TCP', 'S10')])
+  <Table length=3>
+  Name   Phone      TCP
+  str4    str9     str10
+  ---- --------- ----------
+  John 555- 1234 192.168.1.
+  Mary 555- 2134 192.168.1.
+   Bob 555- 4527  192.168.1
+
+**Table with no delimiter with only column start or end values specified.**
+
+If only the col_starts keyword is given, it is assumed that each column
+ends where the next column starts, and the final column ends at the same
+position as the longest line of data.
+
+Conversely, if only the col_ends keyword is given, it is assumed that the first column
+starts at position 0 and that each successive column starts immediately after
+the previous one.
+
+The two examples below read the same table and produce the same result
+::
+
+  >>> table = """
+  ... #1       9        19                <== Column start indexes
+  ... #|       |         |                <== Column start positions
+  ... #<------><--------><------------->  <== Inferred column positions
+  ...   John   555- 1234 192.168.1.10
+  ...   Mary   555- 2134 192.168.1.123
+  ...    Bob   555- 4527  192.168.1.9
+  ...    Bill  555-9875  192.255.255.255
+  ... """
+  >>> ascii.read(table,
+  ...                 format='fixed_width_no_header',
+  ...                 names=('Name', 'Phone', 'TCP'),
+  ...                 col_starts=(1, 9, 19),
+  ...                 )
+  <Table length=4>
+  Name   Phone         TCP
+  str4    str9        str15
+  ---- --------- ---------------
+  John 555- 1234    192.168.1.10
+  Mary 555- 2134   192.168.1.123
+   Bob 555- 4527     192.168.1.9
+  Bill  555-9875 192.255.255.255
+
+  >>> ascii.read(table,
+  ...                 format='fixed_width_no_header',
+  ...                 names=('Name', 'Phone', 'TCP'),
+  ...                 col_ends=(8, 18, 32),
+  ...                 )
+  <Table length=4>
+  Name   Phone        TCP
+  str4    str9       str14
+  ---- --------- --------------
+  John 555- 1234   192.168.1.10
+  Mary 555- 2134  192.168.1.123
+   Bob 555- 4527    192.168.1.9
+  Bill  555-9875 192.255.255.25
+
 
 FixedWidthTwoLine
 """""""""""""""""
@@ -200,9 +272,12 @@ FixedWidthTwoLine
   ...   2.4   's worlds
   ... """
   >>> ascii.read(table, format='fixed_width_two_line')
-  <Table rows=2 names=('Col1','Col2')>
-  array([(1.2, '"hello"'), (2..., "'s worlds")],
-        dtype=[('Col1', '<f8'), ('Col2', 'S9')])
+  <Table length=2>
+    Col1     Col2
+  float64    str9
+  ------- ---------
+      1.2   "hello"
+      2.4 's worlds
 
 **Restructured text table**
 ::
@@ -217,9 +292,12 @@ FixedWidthTwoLine
   ... """
   >>> ascii.read(table, format='fixed_width_two_line',
   ...                 header_start=1, position_line=2, data_end=-1)
-  <Table rows=2 names=('Col1','Col2')>
-  array([(1.2, '"hello"'), (2..., "'s worlds")],
-        dtype=[('Col1', '<f8'), ('Col2', 'S9')])
+  <Table length=2>
+    Col1     Col2
+  float64    str9
+  ------- ---------
+      1.2   "hello"
+      2.4 's worlds
 
 **Text table designed for humans and test having position line before the header line.**
 ::
@@ -234,9 +312,12 @@ FixedWidthTwoLine
   ... """
   >>> ascii.read(table, format='fixed_width_two_line', delimiter='+',
   ...                 header_start=1, position_line=0, data_start=3, data_end=-1)
-  <Table rows=2 names=('Col1','Col2')>
-  array([(1.2, '"hello"'), (2..., "'s worlds")],
-        dtype=[('Col1', '<f8'), ('Col2', 'S9')])
+  <Table length=2>
+    Col1     Col2
+  float64    str9
+  ------- ---------
+      1.2   "hello"
+      2.4 's worlds
 
 Writing
 ^^^^^^^

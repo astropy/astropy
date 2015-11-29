@@ -6,8 +6,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ...extern import six
-from ...tests.helper import pytest
+from ...tests.helper import pytest, assert_quantity_allclose as assert_allclose
 
 import numpy as np
 from numpy import testing as npt
@@ -43,7 +42,7 @@ def test_angle_arrays():
     npt.assert_almost_equal(a6.value, 945.0)
     assert a6.unit is u.degree
 
-    with pytest.raises((TypeError, ValueError)):  # ValueError for numpy 1.5.x
+    with pytest.raises(TypeError):
         # Arrays where the elements are Angle objects are not supported -- it's
         # really tricky to do correctly, if at all, due to the possibility of
         # nesting.
@@ -162,8 +161,8 @@ def test_array_coordinates_transformations(arrshape, distance):
 
     assert g.l.shape == arrshape
 
-    npt.assert_array_almost_equal(g.l.degree, 121.17447049007306)
-    npt.assert_array_almost_equal(g.b.degree, -21.57291080408368)
+    npt.assert_array_almost_equal(g.l.degree, 121.17440967)
+    npt.assert_array_almost_equal(g.b.degree, -21.57299631)
 
     if distance is not None:
         assert g.distance.unit == c.distance.unit
@@ -244,13 +243,13 @@ def test_array_indexing():
     assert c2.dec.degree == -10
 
     c3 = c1[2:5]
-    npt.assert_allclose(c3.ra.degree, [80, 120, 160])
-    npt.assert_allclose(c3.dec.degree, [-50, -30, -10])
+    assert_allclose(c3.ra, [80, 120, 160] * u.deg)
+    assert_allclose(c3.dec, [-50, -30, -10] * u.deg)
 
     c4 = c1[np.array([2, 5, 8])]
 
-    npt.assert_allclose(c4.ra.degree, [80, 200, 320])
-    npt.assert_allclose(c4.dec.degree, [-50, 10, 70])
+    assert_allclose(c4.ra, [80, 200, 320] * u.deg)
+    assert_allclose(c4.dec, [-50, 10, 70] * u.deg)
 
     #now make sure the equinox is preserved
     assert c2.equinox == c1.equinox

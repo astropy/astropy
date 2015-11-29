@@ -9,6 +9,7 @@ import numpy as np
 
 from .. import data, misc
 from ...tests.helper import remote_data
+from ...extern import six
 
 
 def test_isiterable():
@@ -51,3 +52,19 @@ def test_JsonCustomEncoder():
                       cls=misc.JsonCustomEncoder) == '"hello world \\u00c5"'
     assert json.dumps({1: 2},
                       cls=misc.JsonCustomEncoder) == '{"1": 2}'  # default
+
+
+def test_inherit_docstrings():
+    @six.add_metaclass(misc.InheritDocstrings)
+    class Base(object):
+        def __call__(self, *args):
+            "FOO"
+            pass
+
+    class Subclass(Base):
+        def __call__(self, *args):
+            pass
+
+    if Base.__call__.__doc__ is not None:
+        # TODO: Maybe if __doc__ is None this test should be skipped instead?
+        assert Subclass.__call__.__doc__ == "FOO"

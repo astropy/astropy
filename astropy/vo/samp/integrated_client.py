@@ -68,13 +68,13 @@ class SAMPIntegratedClient(object):
         passed from the Hub end of the connection.
 
     ssl_version : int, optional
-        Which version of the SSL protocol to use. Typically, the server chooses
-        a particular protocol version, and the client must adapt to the
-        server's choice. Most of the versions are not interoperable with the
-        other versions. If not specified the default SSL version is
-        `ssl.PROTOCOL_SSLv23`. This version provides the most compatibility
-        with other versions Hub side. Other SSL protocol versions are:
-        `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and `ssl.PROTOCOL_TLSv1`.
+        Which version of the SSL protocol to use. Typically, the
+        server chooses a particular protocol version, and the client
+        must adapt to the server's choice. Most of the versions are
+        not interoperable with the other versions. If not specified,
+        the default SSL version is taken from the default in the
+        installed version of the Python standard `ssl` library.  See
+        the `ssl` documentation for more information.
 
     callable : bool, optional
         Whether the client can receive calls and notifications. If set to
@@ -88,9 +88,29 @@ class SAMPIntegratedClient(object):
 
         self.hub = SAMPHubProxy()
 
-        self.client = SAMPClient(self.hub, name, description, metadata, addr,
-                                 port, https, key_file, cert_file, cert_reqs,
-                                 ca_certs, ssl_version, callable)
+        self.client_arguments = {
+            'name': name,
+            'description': description,
+            'metadata': metadata,
+            'addr': addr,
+            'port': port,
+            'https': https,
+            'key_file': key_file,
+            'cert_file': cert_file,
+            'cert_reqs': cert_reqs,
+            'ca_certs': ca_certs,
+            'ssl_version': ssl_version,
+            'callable': callable,
+        }
+        """
+        Collected arguments that should be passed on to the SAMPClient below.
+        The SAMPClient used to be instantiated in __init__; however, this
+        caused problems with disconnecting and reconnecting to the HUB.
+        The client_arguments is used to maintain backwards compatibility.
+        """
+
+        self.client = None
+        "The client will be instantiated upon connect()."
 
     # GENERAL
 
@@ -147,14 +167,14 @@ class SAMPIntegratedClient(object):
             certificate passed from the Hub end of the connection.
 
         ssl_version : int, optional
-            Which version of the SSL protocol to use. Typically, the server
-            chooses a particular protocol version, and the client must adapt
-            to the server's choice. Most of the versions are not interoperable
-            with the other versions. If not specified the default SSL version
-            is `ssl.PROTOCOL_SSLv3`. This version provides the most
-            compatibility with other versions server side. Other SSL protocol
-            versions are: `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and
-            `ssl.PROTOCOL_TLSv1`.
+            Which version of the SSL protocol to use. Typically, the
+            server chooses a particular protocol version, and the
+            client must adapt to the server's choice. Most of the
+            versions are not interoperable with the other versions. If
+            not specified, the default SSL version is taken from the
+            default in the installed version of the Python standard
+            `ssl` library.  See the `ssl` documentation for more
+            information.
 
         pool_size : int, optional
             The number of socket connections opened to communicate with the
@@ -162,6 +182,16 @@ class SAMPIntegratedClient(object):
         """
         self.hub.connect(hub, hub_params, key_file, cert_file,
                          cert_reqs, ca_certs, ssl_version, pool_size)
+
+        # The client has to be instantiated here and not in __init__() because
+        # this allows disconnecting and reconnecting to the HUB. Nonetheless,
+        # the client_arguments are set in __init__() because the
+        # instantiation of the client used to happen there and this retains
+        # backwards compatibility.
+        self.client = SAMPClient(
+            self.hub,
+            **self.client_arguments
+        )
         self.client.start()
         self.client.register()
 

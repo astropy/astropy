@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.23 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2014, Mark Calabretta
+  WCSLIB 5.10 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,29 +22,32 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spx.h,v 4.23 2014/05/11 04:09:38 mcalabre Exp $
+  $Id: spx.h,v 5.10 2015/10/09 08:19:15 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 4.23 - C routines that implement the spectral coordinate systems
-* recognized by the FITS World Coordinate System (WCS) standard.  Refer to
-*
-*   "Representations of world coordinates in FITS",
-*   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (Paper I)
-*
-*   "Representations of spectral coordinates in FITS",
-*   Greisen, E.W., Calabretta, M.R., Valdes, F.G., & Allen, S.L.
-*   2006, A&A, 446, 747 (Paper III)
-*
-* Refer to the README file provided with WCSLIB for an overview of the
-* library.
+* WCSLIB 5.10 - C routines that implement the FITS World Coordinate System
+* (WCS) standard.  Refer to the README file provided with WCSLIB for an
+* overview of the library.
 *
 *
 * Summary of the spx routines
 * ---------------------------
+* Routines in this suite implement the spectral coordinate systems recognized
+* by the FITS World Coordinate System (WCS) standard, as described in
+*
+=   "Representations of world coordinates in FITS",
+=   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (WCS Paper I)
+=
+=   "Representations of spectral coordinates in FITS",
+=   Greisen, E.W., Calabretta, M.R., Valdes, F.G., & Allen, S.L.
+=   2006, A&A, 446, 747 (WCS Paper III)
+*
 * specx() is a scalar routine that, given one spectral variable (e.g.
 * frequency), computes all the others (e.g. wavelength, velocity, etc.) plus
 * the required derivatives of each with respect to the others.  The results
 * are returned in the spxprm struct.
+*
+* spxperr() prints the error message(s) (if any) stored in a spxprm struct.
 *
 * The remaining routines are all vector conversions from one spectral
 * variable to another.  The API of these functions only differ in whether the
@@ -155,6 +158,25 @@
 * velobeta(), and betavelo() implement vector conversions between wave-like
 * or velocity-like spectral types (i.e. conversions that do not need the rest
 * frequency or wavelength).  They all have the same API.
+*
+*
+* spxperr() - Print error messages from a spxprm struct
+* -----------------------------------------------------
+* spxperr() prints the error message(s) (if any) stored in a spxprm struct.
+* If there are no errors then nothing is printed.  It uses wcserr_prt(), q.v.
+*
+* Given:
+*   spx       const struct spxprm*
+*                       Spectral variables and their derivatives.
+*
+*   prefix    const char *
+*                       If non-NULL, each output line will be prefixed with
+*                       this string.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
+*                         1: Null spxprm pointer passed.
 *
 *
 * freqafrq() - Convert frequency to angular frequency (vector)
@@ -400,7 +422,7 @@
 *     (Returned) ... vice versa [s/m] (constant, = 1/c, always available).
 *
 *   struct wcserr *err
-*     (Returned) If enabled, when an error status is returned this struct
+*     (Returned) If enabled, when an error status is returned, this struct
 *     contains detailed information about the error, see wcserr_enable().
 *
 *   void *padding
@@ -418,8 +440,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "wcserr.h"
 
 extern const char *spx_errmsg[];
 
@@ -484,6 +504,7 @@ struct spxprm {
 int specx(const char *type, double spec, double restfrq, double restwav,
           struct spxprm *specs);
 
+int spxperr(const struct spxprm *spx, const char *prefix);
 
 /* For use in declaring function prototypes, e.g. in spcprm. */
 #define SPX_ARGS double param, int nspec, int instep, int outstep, \

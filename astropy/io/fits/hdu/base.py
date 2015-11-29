@@ -4,30 +4,43 @@ from __future__ import division
 
 
 import datetime
-import inspect
 import os
+import sys
 import warnings
 
 import numpy as np
 
 from .. import conf
-from ..card import Card
 from ..file import _File
-from ..header import Header, HEADER_END_RE, _pad_length
+from ..header import Header, _pad_length
 from ..util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
-                    itersubclasses, encode_ascii, decode_ascii,
-                    _get_array_mmap, _array_to_file, first)
+                    itersubclasses, decode_ascii, _get_array_mmap, first)
 from ..verify import _Verify, _ErrList
 
-from ....extern.six import string_types, next
+from ....extern.six import string_types, add_metaclass
 from ....utils import lazyproperty, deprecated
 from ....utils.compat import ignored
+from ....utils.compat.funcsigs import signature, Parameter
 from ....utils.exceptions import AstropyUserWarning
 
 
 class _Delayed(object):
     pass
 DELAYED = _Delayed()
+
+
+BITPIX2DTYPE = {8: 'uint8', 16: 'int16', 32: 'int32', 64: 'int64',
+                -32: 'float32', -64: 'float64'}
+"""Maps FITS BITPIX values to Numpy dtype names."""
+
+DTYPE2BITPIX = {'uint8': 8, 'int16': 16, 'uint16': 16, 'int32': 32,
+                'uint32': 32, 'int64': 64, 'uint64': 64, 'float32': -32,
+                'float64': -64}
+"""
+Maps Numpy dtype names to FITS BITPIX values (this includes unsigned
+integers, with the assumption that the pseudo-unsigned integer convention
+will be used in this case.
+"""
 
 
 class InvalidHDUException(Exception):
@@ -71,9 +84,39 @@ def _hdu_class_from_header(cls, header):
 
     return klass
 
+class _BaseHDUMeta(type):
+    def __init__(cls, name, bases, members):
+        # The sole purpose of this metaclass right now is to add the same
+        # data.deleter to all HDUs with a data property.
+        # It's unfortunate, but there's otherwise no straightforward way
+        # that a property can inherit setters/deleters of the property of the
+        # same name on base classes
+        if 'data' in members:
+            data_prop = members['data']
+            if (isinstance(data_prop, (lazyproperty, property)) and
+                    data_prop.fdel is None):
+                # Don't do anything if the class has already explicitly
+                # set the deleter for its data property
+                def data(self):
+                    # The deleter
+                    if self._file is not None and self._data_loaded:
+                        # Don't even do this unless the *only* reference to the
+                        # .data array is the one we're deleting by deleting
+                        # this attribute; if any other references to the array
+                        # are hanging around (perhaps the user ran ``data =
+                        # hdu.data``) don't even consider this:
+                        if sys.getrefcount(self.data) == 2:
+                            # Add 1 to refcount since by the time this deleter
+                            # is called, the data array isn't actually deleted
+                            # *yet*, but will be shortly after
+                            self._file._maybe_close_mmap(refcount_delta=1)
+
+                setattr(cls, 'data', data_prop.deleter(data))
+
 
 # TODO: Come up with a better __repr__ for HDUs (and for HDULists, for that
 # matter)
+@add_metaclass(_BaseHDUMeta)
 class _BaseHDU(object):
     """Base class for all HDU (header data unit) classes."""
 
@@ -320,7 +363,7 @@ class _BaseHDU(object):
         Parameters
         ----------
         data : str, bytearray, memoryview, ndarray
-           A byte string contining the HDU's header and data.
+           A byte string containing the HDU's header and data.
 
         checksum : bool, optional
            Check the HDU's checksum and/or datasum.
@@ -477,14 +520,14 @@ class _BaseHDU(object):
         # self._kwargs.  self._kwargs contains any number of optional arguments
         # that may or may not be valid depending on the HDU type
         cls = _hdu_class_from_header(cls, header)
-        args, varargs, varkwargs, defaults = inspect.getargspec(cls.__init__)
+        sig = signature(cls.__init__)
         new_kwargs = kwargs.copy()
-        if not varkwargs:
+        if Parameter.VAR_KEYWORD not in (x.kind for x in sig.parameters.values()):
             # If __init__ accepts arbitrary keyword arguments, then we can go
             # ahead and pass all keyword arguments; otherwise we need to delete
             # any that are invalid
             for key in kwargs:
-                if key not in args:
+                if key not in sig.parameters:
                     del new_kwargs[key]
 
         hdu = cls(data=DELAYED, header=header, **new_kwargs)
@@ -683,7 +726,7 @@ class _BaseHDU(object):
 
         raw = self._get_raw_data(self._data_size, 'ubyte', self._data_offset)
         if raw is not None:
-            _array_to_file(raw, fileobj)
+            fileobj.writearray(raw)
             return raw.nbytes
         else:
             return 0
@@ -756,6 +799,15 @@ class _BaseHDU(object):
         self._data_offset = datloc
         self._data_size = datsize
         self._data_replaced = False
+
+    def _close(self, closed=True):
+        # If the data was mmap'd, close the underlying mmap (this will
+        # prevent any future access to the .data attribute if there are
+        # not other references to it; if there are other references then
+        # it is up to the user to clean those up
+        if (closed and self._data_loaded and
+                _get_array_mmap(self.data) is not None):
+            del self.data
 
 # For backwards-compatibility, though nobody should have
 # been using this directly:
@@ -1232,7 +1284,7 @@ class _ValidHDU(_BaseHDU, _Verify):
             err_text = "'%s' card does not exist." % keyword
             fix_text = "Fixed by inserting a new '%s' card." % keyword
             if fixable:
-                # use repr to accomodate both string and non-string types
+                # use repr to accommodate both string and non-string types
                 # Boolean is also OK in this constructor
                 card = (keyword, fix_value)
 
@@ -1383,7 +1435,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         Verify that the value in the ``DATASUM`` keyword matches the value
         calculated for the ``DATASUM`` of the current HDU data.
 
-        blocking: str, optional
+        blocking : str, optional
             "standard" or "nonstandard", compute sum 2880 bytes at a time, or
             not
 
@@ -1413,7 +1465,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         Verify that the value in the ``CHECKSUM`` keyword matches the
         value calculated for the current HDU CHECKSUM.
 
-        blocking: str, optional
+        blocking : str, optional
             "standard" or "nonstandard", compute sum 2880 bytes at a time, or
             not
 
@@ -1724,7 +1776,7 @@ class ExtensionHDU(_ValidHDU):
                        1, option, errs)
 
         return errs
-# For backwards compatilibity, though this needs to be deprecated
+# For backwards compatibility, though this needs to be deprecated
 # TODO: Mark this as deprecated
 _ExtensionHDU = ExtensionHDU
 

@@ -4,12 +4,9 @@
 
 from __future__ import print_function  # For print debugging with python 2 or 3
 
-from distutils import version
-
 import numpy as np
 
 from ...tests.helper import pytest
-from ... import table
 from ...table import Column, TableColumns
 from ...utils import OrderedDict
 
@@ -115,16 +112,14 @@ class TestInitFromNdarrayHomo(BaseInitFromListLike):
         assert t.colnames == ['col0', 'col1', 'col2']
 
     def test_ndarray_ref(self, table_type):
-        """Init with ndarray and copy=False and show that ValueError is raised
+        """Init with ndarray and copy=False and show that this is a reference
         to input ndarray"""
         self._setup(table_type)
         t = table_type(self.data, copy=False)
         t['col1'][1] = 0
-        assert t._data['col1'][1] == 0
+        assert t.as_array()['col1'][1] == 0
         assert t['col1'][1] == 0
         assert self.data[1][1] == 0
-        # NOTE: assert np.all(t._data == self.data) fails because when
-        # homogenous array is viewcast to structured then the == is False
 
     def test_partial_names_dtype(self, table_type):
         self._setup(table_type)
@@ -225,10 +220,11 @@ class TestInitFromColsList(BaseInitFromListLike):
         assert all(t[name].name == name for name in t.colnames)
 
     def test_ref(self, table_type):
+        """Test that initializing from a list of columns can be done by reference"""
         self._setup(table_type)
-        with pytest.raises(ValueError):
-            table_type(self.data, copy=False)
-
+        t = table_type(self.data, copy=False)
+        t['x'][0] = 100
+        assert self.data[0][0] == 100
 
 @pytest.mark.usefixtures('table_type')
 class TestInitFromNdarrayStruct(BaseInitFromDictLike):
@@ -243,11 +239,12 @@ class TestInitFromNdarrayStruct(BaseInitFromDictLike):
         to input ndarray"""
         self._setup(table_type)
         t = table_type(self.data, copy=False)
-        assert np.all(t._data == self.data)
-        t['x'][1] = 0
-        assert t._data['x'][1] == 0
+
+        t['x'][1] = 0  # Column-wise assignment
+        t[0]['y'] = 0  # Row-wise assignment
         assert self.data['x'][1] == 0
-        assert np.all(t._data == self.data)
+        assert self.data['y'][0] == 0
+        assert np.all(np.array(t) == self.data)
         assert all(t[name].name == name for name in t.colnames)
 
     def test_partial_names_dtype(self, table_type):
@@ -342,11 +339,10 @@ class TestInitFromTable(BaseInitFromDictLike):
     def test_table_ref(self, table_type):
         self._setup(table_type)
         t = table_type(self.data, copy=False)
-        assert np.all(t._data == self.data._data)
         t['x'][1] = 0
-        assert t._data['x'][1] == 0
-        assert self.data._data['x'][1] == 0
-        assert np.all(t._data == self.data._data)
+        assert t['x'][1] == 0
+        assert self.data['x'][1] == 0
+        assert np.all(t.as_array() == self.data.as_array())
         assert all(t[name].name == name for name in t.colnames)
 
     def test_partial_names_dtype(self, table_type):
@@ -372,21 +368,21 @@ class TestInitFromTable(BaseInitFromDictLike):
         t = table_type(self.data)
         t2 = table_type(t.columns['z', 'x', 'y'])
         assert t2.colnames == ['z', 'x', 'y']
-        assert t2._data.dtype.names == ('z', 'x', 'y')
+        assert t2.dtype.names == ('z', 'x', 'y')
 
     def test_init_from_columns_slice(self, table_type):
         self._setup(table_type)
         t = table_type(self.data)
         t2 = table_type(t.columns[0:2])
         assert t2.colnames == ['x', 'y']
-        assert t2._data.dtype.names == ('x', 'y')
+        assert t2.dtype.names == ('x', 'y')
 
     def test_init_from_columns_mix(self, table_type):
         self._setup(table_type)
         t = table_type(self.data)
         t2 = table_type([t.columns[0], t.columns['z']])
         assert t2.colnames == ['x', 'z']
-        assert t2._data.dtype.names == ('x', 'z')
+        assert t2.dtype.names == ('x', 'z')
 
 
 @pytest.mark.usefixtures('table_type')
@@ -395,14 +391,23 @@ class TestInitFromNone():
     # table and adding data.
 
     def test_data_none_with_cols(self, table_type):
-        t = table_type(names=('a', 'b'))
-        assert len(t['a']) == 0
-        assert len(t['b']) == 0
-        assert t.colnames == ['a', 'b']
-        t = table_type(names=('a', 'b'), dtype=('f4', 'i4'))
-        assert t['a'].dtype.type == np.float32
-        assert t['b'].dtype.type == np.int32
-        assert t.colnames == ['a', 'b']
+        """
+        Test different ways of initing an empty table
+        """
+        np_t = np.empty(0, dtype=[(str('a'), 'f4', (2,)),
+                                  (str('b'), 'i4')])
+        for kwargs in ({'names': ('a', 'b')},
+                       {'names': ('a', 'b'), 'dtype': (('f4', (2,)), 'i4')},
+                       {'dtype': [(str('a'), 'f4', (2,)), (str('b'), 'i4')]},
+                       {'dtype': np_t.dtype}):
+            t = table_type(**kwargs)
+            assert t.colnames == ['a', 'b']
+            assert len(t['a']) == 0
+            assert len(t['b']) == 0
+            if 'dtype' in kwargs:
+                assert t['a'].dtype.type == np.float32
+                assert t['b'].dtype.type == np.int32
+                assert t['a'].shape[1:] == (2,)
 
 
 @pytest.mark.usefixtures('table_types')
@@ -418,6 +423,9 @@ class TestInitFromRows():
             assert t.colnames == ['a', 'b']
             assert t['a'].dtype.kind == 'i'
             assert t['b'].dtype.kind in ('S', 'U')
+            # Regression test for
+            # https://github.com/astropy/astropy/issues/3052
+            assert t['b'].dtype.str.endswith('1')
 
         rows = np.arange(6).reshape(2, 3)
         t = table_type(rows=rows, names=('a', 'b', 'c'), dtype=['f8', 'f4', 'i8'])
@@ -433,3 +441,27 @@ class TestInitFromRows():
         with pytest.raises(ValueError) as err:
             table_type(data=[[1]], rows=[[1]])
         assert "Cannot supply both `data` and `rows` values" in str(err)
+
+@pytest.mark.usefixtures('table_type')
+def test_init_and_ref_from_multidim_ndarray(table_type):
+    """
+    Test that initializing from an ndarray structured array with
+    a multi-dim column works for both copy=False and True and that
+    the referencing is as expected.
+    """
+    for copy in (False, True):
+        nd = np.array([(1, [10, 20]),
+                       (3, [30, 40])],
+                      dtype=[(str('a'), 'i8'), (str('b'), 'i8', (2,))])
+        t = table_type(nd, copy=copy)
+        assert t.colnames == ['a', 'b']
+        assert t['a'].shape == (2,)
+        assert t['b'].shape == (2, 2)
+        t['a'][0] = -200
+        t['b'][1][1] = -100
+        if copy:
+            assert nd[str('a')][0] == 1
+            assert nd[str('b')][1][1] == 40
+        else:
+            assert nd[str('a')][0] == -200
+            assert nd[str('b')][1][1] == -100

@@ -13,6 +13,7 @@ from numpy.testing.utils import assert_allclose
 
 # LOCAL
 from ... import units as u
+from ... import constants
 from ...tests.helper import pytest
 
 
@@ -70,17 +71,17 @@ def test_logarithmic(log_unit):
                       1.e-10*log_unit)
 
 
-functions = [u.doppler_optical, u.doppler_radio, u.doppler_relativistic]
+doppler_functions = [u.doppler_optical, u.doppler_radio, u.doppler_relativistic]
 
 
-@pytest.mark.parametrize(('function'), functions)
+@pytest.mark.parametrize(('function'), doppler_functions)
 def test_doppler_frequency_0(function):
     rest = 105.01 * u.GHz
     velo0 = rest.to(u.km/u.s, equivalencies=function(rest))
     assert velo0.value == 0
 
 
-@pytest.mark.parametrize(('function'), functions)
+@pytest.mark.parametrize(('function'), doppler_functions)
 def test_doppler_wavelength_0(function):
     rest = 105.01 * u.GHz
     q1 = 0.00285489437196 * u.m
@@ -88,7 +89,7 @@ def test_doppler_wavelength_0(function):
     np.testing.assert_almost_equal(velo0.value, 0, decimal=6)
 
 
-@pytest.mark.parametrize(('function'), functions)
+@pytest.mark.parametrize(('function'), doppler_functions)
 def test_doppler_energy_0(function):
     rest = 105.01 * u.GHz
     q1 = 0.000434286445543 * u.eV
@@ -96,7 +97,7 @@ def test_doppler_energy_0(function):
     np.testing.assert_almost_equal(velo0.value, 0, decimal=6)
 
 
-@pytest.mark.parametrize(('function'), functions)
+@pytest.mark.parametrize(('function'), doppler_functions)
 def test_doppler_frequency_circle(function):
     rest = 105.01 * u.GHz
     shifted = 105.03 * u.GHz
@@ -105,7 +106,7 @@ def test_doppler_frequency_circle(function):
     np.testing.assert_almost_equal(freq.value, shifted.value, decimal=7)
 
 
-@pytest.mark.parametrize(('function'), functions)
+@pytest.mark.parametrize(('function'), doppler_functions)
 def test_doppler_wavelength_circle(function):
     rest = 105.01 * u.nm
     shifted = 105.03 * u.nm
@@ -114,7 +115,7 @@ def test_doppler_wavelength_circle(function):
     np.testing.assert_almost_equal(wav.value, shifted.value, decimal=7)
 
 
-@pytest.mark.parametrize(('function'), functions)
+@pytest.mark.parametrize(('function'), doppler_functions)
 def test_doppler_energy_circle(function):
     rest = 1.0501 * u.eV
     shifted = 1.0503 * u.eV
@@ -125,13 +126,20 @@ def test_doppler_energy_circle(function):
 
 values_ghz = (999.899940784289,999.8999307714406,999.8999357778647)
 @pytest.mark.parametrize(('function', 'value'),
-                         list(zip(functions, values_ghz)))
+                         list(zip(doppler_functions, values_ghz)))
 def test_30kms(function, value):
     rest = 1000 * u.GHz
     velo = 30 * u.km/u.s
     shifted = velo.to(u.GHz, equivalencies=function(rest))
     np.testing.assert_almost_equal(shifted.value, value, decimal=7)
 
+
+bad_values = (5, 5*u.Jy, None)
+@pytest.mark.parametrize(('function', 'value'),
+                         list(zip(doppler_functions, bad_values)))
+def test_bad_restfreqs(function, value):
+    with pytest.raises(u.UnitsError):
+        function(value)
 
 def test_massenergy():
     # The relative tolerance of these tests is set by the uncertainties
@@ -282,20 +290,6 @@ def test_spectral4(in_val, in_unit):
         assert_allclose(b, in_val)
 
 
-def test_spectraldensity():
-    a = u.AA.to(u.Jy, 1, u.spectral_density(u.eV, 2.2))
-    assert_allclose(a, 1059416252057.8357, rtol=1e-4)
-
-    b = u.Jy.to(u.AA, a, u.spectral_density(u.eV, 2.2))
-    assert_allclose(b, 1)
-
-    c = u.AA.to(u.Jy, 1, u.spectral_density(2.2 * u.eV))
-    assert_allclose(c, 1059416252057.8357, rtol=1e-4)
-
-    d = u.Jy.to(u.AA, c, u.spectral_density(2.2 * u.eV))
-    assert_allclose(d, 1)
-
-
 def test_spectraldensity2():
     flambda = u.erg / u.angstrom / u.cm ** 2 / u.s
     fnu = u.erg / u.Hz / u.cm ** 2 / u.s
@@ -390,11 +384,14 @@ def test_spectraldensity4():
 
 
 def test_equivalent_units():
-    units = u.g.find_equivalent_units()
-    units_set = set(units)
-    match = set(
-        [u.M_e, u.M_p, u.g, u.kg, u.solMass, u.t, u.u])
-    assert units_set == match
+    from .. import imperial
+    with u.add_enabled_units(imperial):
+        units = u.g.find_equivalent_units()
+        units_set = set(units)
+        match = set(
+            [u.M_e, u.M_p, u.g, u.kg, u.solMass, u.t, u.u, u.M_earth,
+             u.M_jup, imperial.oz, imperial.lb, imperial.st, imperial.ton])
+        assert units_set == match
 
     r = repr(units)
     assert r.count('\n') == len(units) + 2
@@ -412,9 +409,9 @@ def test_equivalent_units2():
         units = set(u.Hz.find_equivalent_units(u.spectral()))
         match = set(
             [u.AU, u.Angstrom, imperial.BTU, u.Hz, u.J, u.Ry,
-             imperial.cal, u.cm, u.eV, u.erg, imperial.ft,
+             imperial.cal, u.cm, u.eV, u.erg, imperial.ft, imperial.fur,
              imperial.inch, imperial.kcal, u.lyr, u.m, imperial.mi,
-             u.micron, u.pc, u.solRad, imperial.yd, u.Bq, u.Ci,
+             imperial.mil, u.micron, u.pc, u.solRad, imperial.yd, u.Bq, u.Ci,
              imperial.nmi, u.k])
         assert units == match
 
@@ -464,6 +461,20 @@ def test_equivalency_context():
         with pytest.raises(u.UnitsError):
             phase.to(1, equivalencies=None)
 
+        # test the manager also works in the Quantity constructor.
+        q1 = u.Quantity(phase, u.dimensionless_unscaled)
+        assert_allclose(q1.value, u.cycle.to(u.radian))
+
+        # and also if we use a class that happens to have a unit attribute.
+        class MyQuantityLookalike(np.ndarray):
+            pass
+
+        mylookalike = np.array(1.).view(MyQuantityLookalike)
+        mylookalike.unit = 'cycle'
+        # test the manager also works in the Quantity constructor.
+        q2 = u.Quantity(mylookalike, u.dimensionless_unscaled)
+        assert_allclose(q2.value, u.cycle.to(u.radian))
+
     with u.set_enabled_equivalencies(u.spectral()):
         u.GHz.to(u.cm)
         eq_on = u.GHz.find_equivalent_units()
@@ -475,6 +486,14 @@ def test_equivalency_context():
     assert all(eq in set(eq_on) for eq in eq_off)
     assert set(eq_off) < set(eq_on)
 
+    # Check the equivalency manager also works in ufunc evaluations,
+    # not just using (wrong) scaling. [#2496]
+    l2v = u.doppler_optical(6000 * u.angstrom)
+    l1 = 6010 * u.angstrom
+    assert l1.to(u.km/u.s, equivalencies=l2v) > 100. * u.km / u.s
+    with u.set_enabled_equivalencies(l2v):
+        assert l1 > 100. * u.km / u.s
+        assert abs((l1 - 500. * u.km / u.s).to(u.angstrom)) < 1. * u.km/u.s
 
 def test_equivalency_context_manager():
     base_registry = u.get_current_unit_registry()
@@ -516,9 +535,31 @@ def test_temperature():
     assert_allclose(t_k.to(u.deg_C, u.temperature()).value, -273.15)
     assert_allclose(t_k.to(deg_F, u.temperature()).value, -459.67)
 
+
 def test_temperature_energy():
-    from ... import constants
     x = 1000 * u.K
     y = (x * constants.k_B).to(u.keV)
-    assert_allclose(x.to(u.keV, u.temperature_energy()).value, y)
-    assert_allclose(y.to(u.K, u.temperature_energy()).value, x)
+    assert_allclose(x.to(u.keV, u.temperature_energy()).value, y.value)
+    assert_allclose(y.to(u.K, u.temperature_energy()).value, x.value)
+
+
+def test_compose_equivalencies():
+    x = u.Unit("arcsec").compose(units=(u.pc,), equivalencies=u.parallax())
+    assert x[0] == u.pc
+
+    x = u.Unit("2 arcsec").compose(units=(u.pc,), equivalencies=u.parallax())
+    assert x[0] == u.Unit(0.5 * u.pc)
+
+    x = u.degree.compose(equivalencies=u.dimensionless_angles())
+    assert u.Unit(u.degree.to(u.radian)) in x
+
+    x = (u.nm).compose(units=(u.m, u.s), equivalencies=u.doppler_optical(0.55*u.micron))
+    for y in x:
+        if y.bases == [u.m, u.s]:
+            assert y.powers == [1, -1]
+            assert_allclose(
+                y.scale,
+                u.nm.to(u.m / u.s, equivalencies=u.doppler_optical(0.55 * u.micron)))
+            break
+    else:
+        assert False, "Didn't find speed in compose results"

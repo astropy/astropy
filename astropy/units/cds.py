@@ -35,14 +35,7 @@ def _initialize_module():
 
     # The CDS format also supports power-of-2 prefixes as defined here:
     # http://physics.nist.gov/cuu/Units/binary.html
-    prefixes = core.si_prefixes + [
-        (['Ki'], ['kibi'], 2. ** 10),
-        (['Mi'], ['mebi'], 2. ** 20),
-        (['Gi'], ['gibi'], 2. ** 30),
-        (['Ti'], ['tebi'], 2. ** 40),
-        (['Pi'], ['pebi'], 2. ** 50),
-        (['Ei'], ['exbi'], 2. ** 60)
-        ]
+    prefixes = core.si_prefixes + core.binary_prefixes
 
     # CDS only uses the short prefixes
     prefixes = [(short, short, factor) for (short, long, factor) in prefixes]
@@ -83,7 +76,7 @@ def _initialize_module():
         (['G'], _si.G, "Gravitation constant"),
         (['g'], u.g, "gram"),
         (['gauss'], u.G, "Gauss"),
-        (['geoMass', 'Mgeo'], _si.M_earth, "Earth mass"),
+        (['geoMass', 'Mgeo'], u.M_earth, "Earth mass"),
         (['H'], u.H, "Henry"),
         (['h'], u.h, "hour", ['p']),
         (['hr'], u.h, "hour"),
@@ -92,7 +85,7 @@ def _initialize_module():
         (['inch'], 0.0254 * u.m, "inch"),
         (['J'], u.J, "Joule"),
         (['JD'], u.d, "Julian day", ['M']),
-        (['jovMass', 'Mjup'], _si.M_jup, "Jupiter mass"),
+        (['jovMass', 'Mjup'], u.M_jup, "Jupiter mass"),
         (['Jy'], u.Jy, "Jansky"),
         (['K'], u.K, "Kelvin"),
         (['k'], _si.k_B, "Boltzmann"),
@@ -172,20 +165,23 @@ _initialize_module()
 # This generates a docstring for this module that describes all of the
 # standard units defined here.
 from .utils import generate_unit_summary as _generate_unit_summary
-__doc__ += _generate_unit_summary(globals())
+if __doc__ is not None:
+    __doc__ += _generate_unit_summary(globals())
 
 
 def enable():
     """
     Enable CDS units so they appear in results of
     `~astropy.units.UnitBase.find_equivalent_units` and
-    `~astropy.units.UnitBase.compose`.
+    `~astropy.units.UnitBase.compose`.  This will disable
+    all of the "default" `astropy.units` units, since there
+    are some namespace clashes between the two.
 
     This may be used with the ``with`` statement to enable CDS
     units only temporarily.
     """
     # Local import to avoid cyclical import
-    from .core import add_enabled_units
+    from .core import set_enabled_units
     # Local import to avoid polluting namespace
     import inspect
-    return add_enabled_units(inspect.getmodule(enable))
+    return set_enabled_units(inspect.getmodule(enable))

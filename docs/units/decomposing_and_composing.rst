@@ -16,7 +16,7 @@ methods::
   Unit("2.17987e-18 kg m2 / s2")
 
 You can limit the selection of units that you want to decompose to
-using the `bases` keyword argument::
+using the ``bases`` keyword argument::
 
   >>> u.Ry.decompose(bases=[u.m, u.N])
   Unit("2.17987e-18 m N")
@@ -80,13 +80,13 @@ Built on top of this functionality is a convenience method to convert
 between unit systems.
 
    >>> u.Pa.to_system(u.cgs)
-   [Unit("10 Ba")]
+   [Unit("10 P / s"), Unit("10 Ba")]
 
 There is also a shorthand for this which only returns the first of
 many possible matches::
 
    >>> u.Pa.cgs
-   Unit("10 Ba")
+   Unit("10 P / s")
 
 This is equivalent to decomposing into the new system and then
 composing into the most complex units possible, though
@@ -96,4 +96,4 @@ return the results sorted in the most useful order::
    >>> u.Pa.decompose(bases=u.cgs.bases)
    Unit("10 g / (cm s2)")
    >>> _.compose(units=u.cgs)
-   [Unit("10 Ba")]
+   [Unit("10 Ba"), Unit("10 P / s")]

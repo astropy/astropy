@@ -28,8 +28,12 @@ def_unit(['yd', 'yard'], 3 * ft, namespace=_ns,
          doc="International yard")
 def_unit(['mi', 'mile'], 5280 * ft, namespace=_ns,
          doc="International mile")
+def_unit(['mil', 'thou'], 0.001 * inch, namespace=_ns,
+         doc="Thousandth of an inch")
 def_unit(['nmi', 'nauticalmile', 'NM'], 1852 * si.m, namespace=_ns,
          doc="Nautical mile")
+def_unit(['fur', 'furlong'], 660 * ft, namespace=_ns,
+         doc="Furlong")
 
 
 ###########################################################################
@@ -61,14 +65,14 @@ def_unit(['tsp', 'teaspoon'], tbsp / 3, namespace=_ns,
 ###########################################################################
 # MASS
 
-# Imperial measurements
-# well, force actually, but who uses it that way?
 def_unit(['oz', 'ounce'], 28.349523125 * si.g, namespace=_ns,
-         doc="International avoirdupois ounce")
-def_unit(['lb', 'pound'], 16 * oz, namespace=_ns,
-         doc="International avoirdupois pound")
+         doc="International avoirdupois ounce: mass")
+def_unit(['lb', 'lbm', 'pound'], 16 * oz, namespace=_ns,
+         doc="International avoirdupois pound: mass")
+def_unit(['st', 'stone'], 14 * lb, namespace=_ns,
+         doc="International avoirdupois stone: mass")
 def_unit(['ton'], 2000 * lb, namespace=_ns,
-         doc="International avoirdupois ton")
+         doc="International avoirdupois ton: mass")
 
 
 ###########################################################################
@@ -76,6 +80,15 @@ def_unit(['ton'], 2000 * lb, namespace=_ns,
 
 def_unit(['kn', 'kt', 'knot', 'NMPH'], nmi / si.h, namespace=_ns,
          doc="nautical unit of speed: 1 nmi per hour")
+
+
+###########################################################################
+# FORCE
+
+def_unit('lbf', 32.174049 * lb * ft * si.s**-2, namespace=_ns,
+         doc="Pound: force")
+def_unit(['kip', 'kilopound'], 1000 * lbf, namespace=_ns,
+         doc="Kilopound: force")
 
 
 ##########################################################################
@@ -88,6 +101,13 @@ def_unit(['cal', 'calorie'], 4.184 * si.J, namespace=_ns,
 def_unit(['kcal', 'Cal', 'Calorie', 'kilocal', 'kilocalorie'],
          1000 * cal, namespace=_ns,
          doc="Calorie: colloquial definition of Calorie")
+
+
+##########################################################################
+# PRESSURE
+
+def_unit('psi', lbf * inch ** -2, namespace=_ns,
+         doc="Pound per square inch: pressure")
 
 
 ###########################################################################
@@ -118,7 +138,8 @@ del def_unit
 # This generates a docstring for this module that describes all of the
 # standard units defined here.
 from .utils import generate_unit_summary as _generate_unit_summary
-__doc__ += _generate_unit_summary(globals())
+if __doc__ is not None:
+    __doc__ += _generate_unit_summary(globals())
 
 
 def enable():

@@ -5,9 +5,11 @@ from __future__ import (absolute_import, division, print_function,
 #namedtuple is needed for find_mod_objs so it can have a non-local module
 from collections import namedtuple
 
+from ...extern import six
 from ...tests.helper import pytest
 from .. import introspection
-from ..introspection import find_current_module, find_mod_objs
+from ..introspection import (find_current_module, find_mod_objs,
+                             isinstancemethod)
 
 
 def test_pkg_finder():
@@ -61,3 +63,32 @@ def test_find_mod_objs():
     assert 'namedtuple' not in lnms
     assert 'collections.namedtuple' not in fqns
     assert namedtuple not in objs
+
+
+def test_isinstancemethod():
+    """
+    Note, this is an exact copy of the doctest in `isinstancemethod`'s
+    docstring.
+
+    It is included here as well so that it can be tested on Python 2 and 3
+    which require very different implementations.  Once we enable running
+    doctests on Python 3 this extra test can be dropped.
+    """
+
+    class MetaClass(type):
+        def a_classmethod(cls): pass
+
+    @six.add_metaclass(MetaClass)
+    class MyClass(object):
+        def an_instancemethod(self): pass
+
+        @classmethod
+        def another_classmethod(cls): pass
+
+        @staticmethod
+        def a_staticmethod(): pass
+
+    assert not isinstancemethod(MyClass, MyClass.a_classmethod)
+    assert not isinstancemethod(MyClass, MyClass.another_classmethod)
+    assert not isinstancemethod(MyClass, MyClass.a_staticmethod)
+    assert isinstancemethod(MyClass, MyClass.an_instancemethod)

@@ -6,6 +6,7 @@
 from __future__ import absolute_import, division, print_function
 
 from .core import (InconsistentTableError,
+                   ParameterError,
                    NoType, StrType, NumType, FloatType, IntType, AllType,
                    Column,
                    BaseInputter, ContinuationLinesInputter,
@@ -23,7 +24,14 @@ from .basic import (Basic, BasicHeader, BasicData,
                     Tab,
                     NoHeader,
                     CommentedHeader)
+from .fastbasic import (FastBasic,
+                        FastCsv,
+                        FastTab,
+                        FastNoHeader,
+                        FastCommentedHeader,
+                        FastRdb)
 from .cds import Cds
+from .ecsv import Ecsv
 from .latex import Latex, AASTex, latexdicts
 from .html import HTML
 from .ipac import Ipac
@@ -32,6 +40,6 @@ from .sextractor import SExtractor
 from .fixedwidth import (FixedWidth, FixedWidthNoHeader,
                          FixedWidthTwoLine, FixedWidthSplitter,
                          FixedWidthHeader, FixedWidthData)
-from .ui import (set_guess, get_reader, read, get_writer, write)
+from .ui import (set_guess, get_reader, read, get_writer, write, get_read_trace)
 
 from . import connect

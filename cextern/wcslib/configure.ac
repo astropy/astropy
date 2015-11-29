@@ -1,19 +1,14 @@
 #-----------------------------------------------------------------------------
 # Process this file with autoconf-2.53 or later to produce a configure script.
 #-----------------------------------------------------------------------------
-# N.B. it is necessary to run autoconf on a Mac in order for configure to
-# locate the X11 dylibs for PGPLOT.  Use autoconf-2.61 in MacOSX 10.6.2 or
-# later to avoid spurious messages about deleting conftest.dSYM when
-# configuring in MacOSX 10.6.
-#
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: configure.ac,v 4.23 2014/05/11 04:09:39 mcalabre Exp $
+# $Id: configure.ac,v 5.10 2015/10/09 08:19:17 mcalabre Exp $
 #-----------------------------------------------------------------------------
 
-AC_INIT([WCSLIB], [4.23], [mark@calabretta.id.au], [wcslib-4.23])
+AC_INIT([WCSLIB], [5.10], [mark@calabretta.id.au], [wcslib-5.10])
 AC_PREREQ([2.53])
-AC_REVISION([$Revision: 4.23 $])
+AC_REVISION([$Revision: 5.10 $])
 AC_SUBST([PACKAGE_VERSION])
 AC_DEFINE_UNQUOTED([WCSLIB_VERSION], [$PACKAGE_VERSION], [Define wcslib version])
 
@@ -34,7 +29,7 @@ AC_SUBST([ARCH])
 AC_CHECK_PROG([FLEX], [flex], [flex], [], [], [])
 if test "x$FLEX" = xflex ; then
   # Version 2.5.9 or later is required.
-  V=`flex --version | awk '{print $NF}'`
+  V=`flex --version | awk '{print $2}'`
   W=`echo $V | awk -F. '{if ((($1*100 + $2)*100 + $3) < 20509) print "no"}'`
   if test "x$W" != x ; then
     AC_MSG_NOTICE([Flex version $V is too old, ignored.])

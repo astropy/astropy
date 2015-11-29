@@ -22,7 +22,6 @@ from ..extern import six
 from ..utils.compat.fractions import Fraction
 from ..utils.exceptions import AstropyDeprecationWarning
 
-
 _float_finfo = finfo(float)
 # take float here to ensure comparison with another float is fast
 # give a little margin since often multiple calculations happened
@@ -42,6 +41,48 @@ def _get_first_sentence(s):
     return s.replace('\n', ' ')
 
 
+def _iter_unit_summary(namespace):
+    """
+    Generates the ``(unit, doc, represents, aliases, prefixes)``
+    tuple used to format the unit summary docs in `generate_unit_summary`.
+    """
+
+    from . import core
+
+    # Get all of the units, and keep track of which ones have SI
+    # prefixes
+    units = []
+    has_prefixes = set()
+    for key, val in six.iteritems(namespace):
+        # Skip non-unit items
+        if not isinstance(val, core.UnitBase):
+            continue
+
+        # Skip aliases
+        if key != val.name:
+            continue
+
+        if isinstance(val, core.PrefixUnit):
+            # This will return the root unit that is scaled by the prefix
+            # attached to it
+            has_prefixes.add(val._represents.bases[0].name)
+        else:
+            units.append(val)
+
+    # Sort alphabetically, case insensitive
+    units.sort(key=lambda x: x.name.lower())
+
+    for unit in units:
+        doc = _get_first_sentence(unit.__doc__).strip()
+        represents = ''
+        if isinstance(unit, core.Unit):
+            represents = ":math:`{0}`".format(
+                unit._represents.to_string('latex')[1:-1])
+        aliases = ', '.join('``{0}``'.format(x) for x in unit.aliases)
+
+        yield (unit, doc, represents, aliases, unit.name in has_prefixes)
+
+
 def generate_unit_summary(namespace):
     """
     Generates a summary of units from a given namespace.  This is used
@@ -59,34 +100,6 @@ def generate_unit_summary(namespace):
         A docstring containing a summary table of the units.
     """
 
-    from . import core
-
-    # Get all of the units, and keep track of which ones have SI
-    # prefixes
-    units = []
-    has_prefixes = set()
-    for key, val in list(six.iteritems(namespace)):
-        # Skip non-unit items
-        if not isinstance(val, core.UnitBase):
-            continue
-
-        # Skip aliases
-        if key != val.name:
-            continue
-
-        if isinstance(val, core.PrefixUnit):
-            decomposed = val.decompose()
-            if len(decomposed.bases):
-                has_prefixes.add(val.decompose().bases[0].name)
-            else:
-                has_prefixes.add('dimensionless')
-
-        else:
-            units.append(val)
-
-    # Sort alphabetically, case insensitive
-    units.sort(key=lambda x: x.name.lower())
-
     docstring = io.StringIO()
 
     docstring.write("""
@@ -101,24 +114,14 @@ def generate_unit_summary(namespace):
      - SI Prefixes
 """)
 
-    for unit in units:
-        if unit.name in has_prefixes:
-            unit_has_prefixes = 'Y'
-        else:
-            unit_has_prefixes = 'N'
-        doc = _get_first_sentence(unit.__doc__).strip()
-        represents = ''
-        if isinstance(unit, core.Unit):
-            represents = ":math:`{0}`".format(
-                unit._represents.to_string('latex')[1:-1])
-        aliases = ', '.join('``{0}``'.format(x) for x in unit.aliases)
+    for unit_summary in _iter_unit_summary(namespace):
         docstring.write("""
    * - ``{0}``
      - {1}
      - {2}
      - {3}
-     - {4}
-""".format(unit, doc, represents, aliases, unit_has_prefixes))
+     - {4!s:.1}
+""".format(*unit_summary))
 
     return docstring.getvalue()
 
@@ -210,7 +213,22 @@ def validate_power(p, support_tuples=False):
                 scaled = p * float(i)
                 if((scaled + 4. * _float_finfo.eps) % 1.0 <
                    8. * _float_finfo.eps):
-                    p = Fraction(int(scaled), i)
+                    p = Fraction(int(round(scaled)), i)
                     break
 
     return p
+
+
+def resolve_fractions(a, b):
+    """
+    If either input is a Fraction, convert the other to a Fraction.
+    This ensures that any operation involving a Fraction will use
+    rational arithmetic and preserve precision.
+    """
+    a_is_fraction = isinstance(a, Fraction)
+    b_is_fraction = isinstance(b, Fraction)
+    if a_is_fraction and not b_is_fraction:
+        b = Fraction(b)
+    elif not a_is_fraction and b_is_fraction:
+        a = Fraction(a)
+    return a, b

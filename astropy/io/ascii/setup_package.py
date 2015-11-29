@@ -1,5 +1,19 @@
 # Licensed under a 3-clause BSD style license
+from __future__ import absolute_import
 
+import os
+from distutils.extension import Extension
+
+ROOT = os.path.relpath(os.path.dirname(__file__))
+
+def get_extensions():
+    sources = [os.path.join(ROOT, 'cparser.pyx'),
+               os.path.join(ROOT, 'src', 'tokenizer.c')]
+    ascii_ext = Extension(
+        name="astropy.io.ascii.cparser",
+        include_dirs=["numpy"],
+        sources=sources)
+    return [ascii_ext]
 
 def get_package_data():
     # Installs the testing data files.  Unable to get package_data
@@ -26,6 +40,7 @@ def get_package_data():
                                    't/daophot.dat',
                                    't/daophot2.dat',
                                    't/daophot3.dat',
+                                   't/daophot4.dat',
                                    't/sextractor.dat',
                                    't/sextractor2.dat',
                                    't/daophot.dat.gz',
@@ -34,6 +49,7 @@ def get_package_data():
                                    't/html2.html',
                                    't/ipac.dat',
                                    't/ipac.dat.bz2',
+                                   't/ipac.dat.xz',
                                    't/latex1.tex',
                                    't/latex1.tex.gz',
                                    't/latex2.tex',
@@ -47,6 +63,7 @@ def get_package_data():
                                    't/short.rdb',
                                    't/short.rdb.bz2',
                                    't/short.rdb.gz',
+                                   't/short.rdb.xz',
                                    't/short.tab',
                                    't/simple.txt',
                                    't/simple2.txt',
@@ -62,6 +79,7 @@ def get_package_data():
                                    't/whitespace.dat',
                                    't/simple_csv.csv',
                                    't/simple_csv_missing.csv',
+                                   't/fixed_width_2_line.txt',
                                    ]
     }
 

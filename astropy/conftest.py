@@ -4,4 +4,11 @@
 
 from .tests.pytest_plugins import *
 
-enable_deprecations_as_exceptions()
+try:
+    import matplotlib
+except ImportError:
+    pass
+else:
+    matplotlib.use('Agg')
+
+enable_deprecations_as_exceptions(include_astropy_deprecations=False)

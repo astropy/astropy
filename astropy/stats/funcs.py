@@ -16,147 +16,28 @@ import numpy as np
 from ..extern.six.moves import xrange
 
 
-__all__ = ['sigma_clip', 'binom_conf_interval', 'binned_binom_proportion',
+__all__ = ['binom_conf_interval', 'binned_binom_proportion',
+           'poisson_conf_interval',
            'median_absolute_deviation', 'biweight_location',
-           'biweight_midvariance', 'signal_to_noise_oir_ccd', 'bootstrap']
-
+           'biweight_midvariance', 'signal_to_noise_oir_ccd', 'bootstrap',
+           'mad_std', 'gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm']
 
 __doctest_skip__ = ['binned_binom_proportion']
-__doctest_requires__ = {'binom_conf_interval': ['scipy.special']}
+__doctest_requires__ = {'binom_conf_interval': ['scipy.special'],
+                        'poisson_conf_interval': ['scipy.special']}
 
 
-def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, varfunc=np.var,
-               axis=None, copy=True):
-    """Perform sigma-clipping on the provided data.
+gaussian_sigma_to_fwhm = 2.0 * np.sqrt(2.0 * np.log(2.0))
+"""
+Factor with which to multiply Gaussian 1-sigma standard deviation(s) to
+convert them to full width at half maximum(s).
+"""
 
-    This performs the sigma clipping algorithm - i.e. the data will be iterated
-    over, each time rejecting points that are more than a specified number of
-    standard deviations discrepant.
-
-    .. note::
-        `scipy.stats.sigmaclip
-        <http://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.sigmaclip.html>`_
-        provides a subset of the functionality in this function.
-
-    Parameters
-    ----------
-    data : array-like
-        The data to be sigma-clipped (any shape).
-    sig : float
-        The number of standard deviations (*not* variances) to use as the
-        clipping limit.
-    iters : int or `None`
-        The number of iterations to perform clipping for, or `None` to clip
-        until convergence is achieved (i.e. continue until the last
-        iteration clips nothing).
-    cenfunc : callable
-        The technique to compute the center for the clipping. Must be a
-        callable that takes in a masked array and outputs the central value.
-        Defaults to the median (numpy.median).
-    varfunc : callable
-        The technique to compute the standard deviation about the center. Must
-        be a callable that takes in a masked array and outputs a width
-        estimator::
-
-             deviation**2 > sig**2 * varfunc(deviation)
-
-        Defaults to the variance (numpy.var).
-
-    axis : int or `None`
-        If not `None`, clip along the given axis.  For this case, axis=int will
-        be passed on to cenfunc and varfunc, which are expected to return an
-        array with the axis dimension removed (like the numpy functions).
-        If `None`, clip over all values.  Defaults to `None`.
-    copy : bool
-        If `True`, the data array will be copied.  If `False`, the masked array
-        data will contain the same array as ``data``.  Defaults to `True`.
-
-    Returns
-    -------
-    filtered_data : `numpy.ma.MaskedArray`
-        A masked array with the same shape as ``data`` input, where the points
-        rejected by the algorithm have been masked.
-
-    Notes
-    -----
-     1. The routine works by calculating::
-
-            deviation = data - cenfunc(data [,axis=int])
-
-        and then setting a mask for points outside the range::
-
-            data.mask = deviation**2 > sig**2 * varfunc(deviation)
-
-        It will iterate a given number of times, or until no further points are
-        rejected.
-
-     2. Most numpy functions deal well with masked arrays, but if one would
-        like to have an array with just the good (or bad) values, one can use::
-
-            good_only = filtered_data.data[~filtered_data.mask]
-            bad_only = filtered_data.data[filtered_data.mask]
-
-        However, for multidimensional data, this flattens the array, which may
-        not be what one wants (especially is filtering was done along an axis).
-
-    Examples
-    --------
-
-    This will generate random variates from a Gaussian distribution and return
-    a masked array in which all points that are more than 2 *sample* standard
-    deviation from the median are masked::
-
-        >>> from astropy.stats import sigma_clip
-        >>> from numpy.random import randn
-        >>> randvar = randn(10000)
-        >>> filtered_data = sigma_clip(randvar, 2, 1)
-
-    This will clipping on a similar distribution, but for 3 sigma relative to
-    the sample *mean*, will clip until converged, and does not copy the data::
-
-        >>> from astropy.stats import sigma_clip
-        >>> from numpy.random import randn
-        >>> from numpy import mean
-        >>> randvar = randn(10000)
-        >>> filtered_data = sigma_clip(randvar, 3, None, mean, copy=False)
-
-    This will clip along one axis on a similar distribution with bad points
-    inserted::
-
-        >>> from astropy.stats import sigma_clip
-        >>> from numpy.random import normal
-        >>> from numpy import arange, diag, ones
-        >>> data = arange(5)+normal(0.,0.05,(5,5))+diag(ones(5))
-        >>> filtered_data = sigma_clip(data, axis=0, sig=2.3)
-
-    Note that along the other axis, no points would be masked, as the variance
-    is higher.
-
-    """
-
-    if axis is not None:
-        cenfunc_in = cenfunc
-        varfunc_in = varfunc
-        cenfunc = lambda d: np.expand_dims(cenfunc_in(d, axis=axis), axis=axis)
-        varfunc = lambda d: np.expand_dims(varfunc_in(d, axis=axis), axis=axis)
-
-    filtered_data = np.ma.array(data, copy=copy)
-
-    if iters is None:
-        i = -1
-        lastrej = filtered_data.count() + 1
-        while(filtered_data.count() != lastrej):
-            i += 1
-            lastrej = filtered_data.count()
-            do = filtered_data - cenfunc(filtered_data)
-            filtered_data.mask |= do * do > varfunc(filtered_data) * sig ** 2
-        iters = i + 1
-    else:
-        for i in range(iters):
-            do = filtered_data - cenfunc(filtered_data)
-            filtered_data.mask |= do * do > varfunc(filtered_data) * sig ** 2
-
-    return filtered_data
+gaussian_fwhm_to_sigma = 1. / gaussian_sigma_to_fwhm
+"""
+Factor with which to multiply Gaussian full width at half maximum(s) to
+convert them to 1-sigma standard deviation(s).
+"""
 
 
 # TODO Note scipy dependency
@@ -487,8 +368,7 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
        plt.errorbar(bins, p, xerr=binshw, yerr=perr, ls='none', marker='o',
                     label='estimate')
        X = np.linspace(20., 30., 1000)
-       plt.plot(X, true_efficiency(X), ls='-', color='r',
-                label='true efficiency')
+       plt.plot(X, true_efficiency(X), label='true efficiency')
        plt.ylim(0., 1.)
        plt.title('Detection efficiency vs magnitude')
        plt.xlabel('Magnitude')
@@ -528,8 +408,7 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
        plt.errorbar(bins, p, xerr=binshw, yerr=perr, ls='none', marker='o',
                     label='estimate')
        X = np.linspace(20., 30., 1000)
-       plt.plot(X, true_efficiency(X), ls='-', color='r',
-                label='true efficiency')
+       plt.plot(X, true_efficiency(X), label='true efficiency')
        plt.ylim(0., 1.)
        plt.title('The Wald interval can give nonsensical uncertainties')
        plt.xlabel('Magnitude')
@@ -565,6 +444,204 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
     return bin_ctr, bin_halfwidth, p, perr
 
 
+def poisson_conf_interval(n, interval='root-n', sigma=1):
+    r"""Poisson parameter confidence interval given observed counts
+
+    Parameters
+    ----------
+    n : int or numpy.ndarray
+        Number of counts (0 <= ``n``).
+    interval : {'root-n','root-n-0','pearson','sherpagehrels','frequentist-confidence'}, optional
+        Formula used for confidence interval. See notes for details.
+        Default is ``'root-n'``.
+    sigma : float
+        Number of sigma for confidence interval; only supported for
+        the 'frequentist-confidence' mode.
+
+
+    Returns
+    -------
+    conf_interval : numpy.ndarray
+        ``conf_interval[0]`` and ``conf_interval[1]`` correspond to the lower
+        and upper limits, respectively, for each element in ``n``.
+
+    Notes
+    -----
+
+    The "right" confidence interval to use for Poisson data is a
+    matter of debate. The CDF working group [recommends][pois_eb]
+    using root-n throughout, largely in the interest of
+    comprehensibility, but discusses other possibilities. The ATLAS
+    group also [discusses][ErrorBars] several possibilities but
+    concludes that no single representation is suitable for all cases.
+    The suggestion has also been [floated][ac12] that error bars should be
+    attached to theoretical predictions instead of observed data,
+    which this function will not help with (but it's easy; then you
+    really should use the square root of the theoretical prediction).
+
+    The intervals implemented here are:
+
+    **1. 'root-n'** This is a very widely used standard rule derived
+    from the maximum-likelihood estimator for the mean of the Poisson
+    process. While it produces questionable results for small n and
+    outright wrong results for n=0, it is standard enough that people are
+    (supposedly) used to interpreting these wonky values. The interval is
+
+    .. math::
+
+        CI = (n-\sqrt{n}, n+\sqrt{n})
+
+    **2. 'root-n-0'** This is identical to the above except that where
+    n is zero the interval returned is (0,1).
+
+    **3. 'pearson'** This is an only-slightly-more-complicated rule
+    based on Pearson's chi-squared rule (as [explained][pois_eb] by
+    the CDF working group). It also has the nice feature that
+    if your theory curve touches an endpoint of the interval, then your
+    data point is indeed one sigma away. The interval is
+
+    .. math::
+
+        CI = (n+0.5-\sqrt{n+0.25}, n+0.5+\sqrt{n+0.25})
+
+    **4. 'sherpagehrels'** This rule is used by default in the fitting
+    package 'sherpa'. The [documentation][sherpa_gehrels] claims it is
+    based on a numerical approximation published in
+    [Gehrels 1986][gehrels86] but it does not actually appear there.
+    It is symmetrical, and while the upper limits
+    are within about 1% of those given by 'frequentist-confidence', the
+    lower limits can be badly wrong. The interval is
+
+    .. math::
+
+        CI = (n-1-\sqrt{n+0.75}, n+1+\sqrt{n+0.75})
+
+    **5. 'frequentist-confidence'** These are frequentist central
+    confidence intervals:
+
+    .. math::
+
+        CI = (0.5 F_{\chi^2}^{-1}(\alpha;2n),
+              0.5 F_{\chi^2}^{-1}(1-\alpha;2(n+1)))
+
+    where :math:`F_{\chi^2}^{-1}` is the quantile of the chi-square
+    distribution with the indicated number of degrees of freedom and
+    :math:\alpha is the one-tailed probability of the normal
+    distribution (at the point given by the parameter 'sigma'). See
+    [Maxwell 2011][maxw11] for further details.
+
+    Examples
+    --------
+
+    >>> poisson_conf_interval(np.arange(10), interval='root-n').T
+    array([[  0.        ,   0.        ],
+           [  0.        ,   2.        ],
+           [  0.58578644,   3.41421356],
+           [  1.26794919,   4.73205081],
+           [  2.        ,   6.        ],
+           [  2.76393202,   7.23606798],
+           [  3.55051026,   8.44948974],
+           [  4.35424869,   9.64575131],
+           [  5.17157288,  10.82842712],
+           [  6.        ,  12.        ]])
+
+    >>> poisson_conf_interval(np.arange(10), interval='root-n-0').T
+    array([[  0.        ,   1.        ],
+           [  0.        ,   2.        ],
+           [  0.58578644,   3.41421356],
+           [  1.26794919,   4.73205081],
+           [  2.        ,   6.        ],
+           [  2.76393202,   7.23606798],
+           [  3.55051026,   8.44948974],
+           [  4.35424869,   9.64575131],
+           [  5.17157288,  10.82842712],
+           [  6.        ,  12.        ]])
+
+    >>> poisson_conf_interval(np.arange(10), interval='pearson').T
+    array([[  0.        ,   1.        ],
+           [  0.38196601,   2.61803399],
+           [  1.        ,   4.        ],
+           [  1.69722436,   5.30277564],
+           [  2.43844719,   6.56155281],
+           [  3.20871215,   7.79128785],
+           [  4.        ,   9.        ],
+           [  4.8074176 ,  10.1925824 ],
+           [  5.62771868,  11.37228132],
+           [  6.45861873,  12.54138127]])
+
+    >>> poisson_conf_interval(np.arange(10),
+    ...                       interval='frequentist-confidence').T
+    array([[  0.        ,   1.84102165],
+           [  0.17275378,   3.29952656],
+           [  0.70818544,   4.63785962],
+           [  1.36729531,   5.91818583],
+           [  2.08566081,   7.16275317],
+           [  2.84030886,   8.38247265],
+           [  3.62006862,   9.58364155],
+           [  4.41852954,  10.77028072],
+           [  5.23161394,  11.94514152],
+           [  6.05653896,  13.11020414]])
+
+    >>> poisson_conf_interval(7,
+    ...                       interval='frequentist-confidence').T
+    array([  4.41852954,  10.77028072])
+
+    [pois_eb]: http://www-cdf.fnal.gov/physics/statistics/notes/pois_eb.txt
+
+    [ErrorBars]: http://www.pp.rhul.ac.uk/~cowan/atlas/ErrorBars.pdf
+
+    [ac12]: http://adsabs.harvard.edu/abs/2012EPJP..127...24A
+
+    [maxw11]: http://adsabs.harvard.edu/abs/2011arXiv1102.0822M
+
+    [gehrels86]: http://adsabs.harvard.edu/abs/1986ApJ...303..336G
+
+    [sherpa_gehrels]: http://cxc.harvard.edu/sherpa4.4/statistics/#chigehrels
+
+    """
+
+    if not np.isscalar(n):
+        n = np.asanyarray(n)
+
+    if interval == 'root-n':
+        if sigma!=1:
+            raise ValueError("Only sigma=1 supported for interval %s" % interval)
+        conf_interval = np.array([n-np.sqrt(n),
+                                  n+np.sqrt(n)])
+    elif interval == 'root-n-0':
+        if sigma!=1:
+            raise ValueError("Only sigma=1 supported for interval %s" % interval)
+        conf_interval = np.array([n-np.sqrt(n),
+                                  n+np.sqrt(n)])
+        if np.isscalar(n):
+            if n==0:
+                conf_interval[1] = 1
+        else:
+            conf_interval[1,n==0] = 1
+    elif interval == 'pearson':
+        if sigma!=1:
+            raise ValueError("Only sigma=1 supported for interval %s" % interval)
+        conf_interval = np.array([n+0.5-np.sqrt(n+0.25),
+                                  n+0.5+np.sqrt(n+0.25)])
+    elif interval == 'sherpagehrels':
+        if sigma!=1:
+            raise ValueError("Only sigma=1 supported for interval %s" % interval)
+        conf_interval = np.array([n-1-np.sqrt(n+0.75),
+                                  n+1+np.sqrt(n+0.75)])
+    elif interval == 'frequentist-confidence':
+        import scipy.stats
+        alpha = scipy.stats.norm.sf(sigma)
+        conf_interval = np.array([0.5*scipy.stats.chi2(2*n).ppf(alpha),
+                                  0.5*scipy.stats.chi2(2*n+2).isf(alpha)])
+        if np.isscalar(n):
+            if n==0:
+                conf_interval[0] = 0
+        else:
+            conf_interval[0,n==0] = 0
+    else:
+        raise ValueError("Invalid method for Poisson confidence intervals: %s" % interval)
+    return conf_interval
+
 def median_absolute_deviation(a, axis=None):
     """Compute the median absolute deviation.
 
@@ -573,7 +650,7 @@ def median_absolute_deviation(a, axis=None):
 
     Parameters
     ----------
-    a : array_like
+    a : array-like
         Input array or object that can be converted to an array.
     axis : int, optional
         Axis along which the medians are computed. The default (axis=None)
@@ -642,23 +719,23 @@ def biweight_location(a, c=6.0, M=None):
 
     Parameters
     ----------
-    a : array_like
+    a : array-like
         Input array or object that can be converted to an array.
     c : float
         Tuning constant for the biweight estimator.  Default value is 6.0.
     M : float, optional
-        Initial gues for the biweight location.
+        Initial guess for the biweight location.
 
     Returns
     -------
-    biweight_location: float
+    biweight_location : float
         Returns the biweight location for the array elements.
 
     Examples
     --------
 
     This will generate random variates from a Gaussian distribution and return
-    the median absolute deviation for that distribution::
+    the biweight location of the distribution::
 
     >>> from astropy.stats.funcs import biweight_location
     >>> from numpy.random import randn
@@ -685,8 +762,8 @@ def biweight_location(a, c=6.0, M=None):
     # now remove the outlier points
     mask = np.abs(u) < 1
 
-    u = (1 - u**2)**2
-    return M+(d[mask]*u[mask]).sum()/u[mask].sum()
+    u = (1 - u ** 2) ** 2
+    return M + (d[mask] * u[mask]).sum() / u[mask].sum()
 
 
 def biweight_midvariance(a, c=9.0, M=None):
@@ -700,7 +777,7 @@ def biweight_midvariance(a, c=9.0, M=None):
 
     .. math::
 
-      C_{bl}= n^{1/2} \\frac{[\Sigma_{|u_i|<1} (x_i-M)**2(1-u_i^2)^4]^{0.5}}
+      C_{bl}= (n')^{1/2} \\frac{[\Sigma_{|u_i|<1} (x_i-M)^2(1-u_i^2)^4]^{0.5}}
       {|\Sigma_{|u_i|<1} (1-u_i^2)(1-5u_i^2)|}
 
     where :math:`u_i` is given by
@@ -709,19 +786,30 @@ def biweight_midvariance(a, c=9.0, M=None):
 
       u_{i} = \\frac{(x_i-M)}{cMAD}
 
-    where MAD is the median absolute deviation.  For the midvariance
-    parameter, c is typically uses a value of 9.0.
+    where MAD is the median absolute deviation.
+
+    :math:`n'` is the number of data for which :math:`|u_i| < 1` holds, while the
+    summations are over all i up to n:
+
+    .. math::
+
+        n' = \Sigma_{|u_i|<1}^n 1
+
+    This is slightly different than given in the reference below, but
+    results in a value closer to the true midvariance.
+
+    The midvariance parameter c is typically 9.0.
 
     For more details, see Beers, Flynn, and Gebhardt, 1990, AJ, 100, 32B
 
     Parameters
     ----------
-    a : array_like
+    a : array-like
         Input array or object that can be converted to an array.
     c : float
         Tuning constant for the biweight estimator.  Default value is 9.0.
     M : float, optional
-        Initial gues for the biweight location.
+        Initial guess for the biweight location.
 
     Returns
     -------
@@ -732,7 +820,7 @@ def biweight_midvariance(a, c=9.0, M=None):
     --------
 
     This will generate random variates from a Gaussian distribution and return
-    the median absolute deviation for that distribution::
+    the biweight midvariance of the distribution::
 
     >>> from astropy.stats.funcs import biweight_midvariance
     >>> from numpy.random import randn
@@ -758,9 +846,9 @@ def biweight_midvariance(a, c=9.0, M=None):
     # now remove the outlier points
     mask = np.abs(u) < 1
 
-    u = u**2
+    u = u ** 2
     n = mask.sum()
-    return n**0.5 * (d[mask] * d[mask] * (1 - u[mask])**4).sum()**0.5\
+    return n ** 0.5 * (d[mask] * d[mask] * (1 - u[mask]) ** 4).sum() ** 0.5\
         / np.abs(((1 - u[mask]) * (1 - 5 * u[mask])).sum())
 
 
@@ -787,10 +875,10 @@ def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix,
         make sense.
     dark_eps : float
         Number of thermal electrons per second per pixel. If this is given in
-        DN or ADU, then multipy by the gain to get the value in electrons.
+        DN or ADU, then multiply by the gain to get the value in electrons.
     rd : float
         Read noise of the CCD in electrons. If this is given in
-        DN or ADU, then multipy by the gain to get the value in electrons.
+        DN or ADU, then multiply by the gain to get the value in electrons.
     npix : float
         Size of the aperture in pixels
     gain : float
@@ -801,9 +889,9 @@ def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix,
     SNR : float or numpy.ndarray
         Signal to noise ratio calculated from the inputs
     """
-    signal = t*source_eps*gain
+    signal = t * source_eps * gain
     noise = np.sqrt(t * (source_eps * gain + npix *
-                         (sky_eps * gain + dark_eps)) + npix * rd**2)
+                         (sky_eps * gain + dark_eps)) + npix * rd ** 2)
     return signal / noise
 
 
@@ -819,7 +907,7 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
     Parameters
     ----------
     data : numpy.ndarray
-        N-D array. The boostrap resampling will be performed on the first
+        N-D array. The bootstrap resampling will be performed on the first
         index, so the first index should access the relevant information
         to be bootstrapped.
     bootnum : int
@@ -835,7 +923,59 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
     Returns
     -------
     boot : numpy.ndarray
-        Bootstrapped data. Each row is a bootstrap resample of the data.
+
+        If bootfunc is None, then each row is a bootstrap resample of the data.
+        If bootfunc is specified, then the columns will correspond to the
+        outputs of bootfunc.
+
+    Examples
+    --------
+    Obtain a twice resampled array:
+
+    >>> from astropy.stats import bootstrap
+    >>> import numpy as np
+    >>> from astropy.utils import NumpyRNGContext
+    >>> bootarr = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 0])
+    >>> with NumpyRNGContext(1):
+    ...     bootresult = bootstrap(bootarr, 2)
+    ...
+    >>> bootresult
+    array([[ 6.,  9.,  0.,  6.,  1.,  1.,  2.,  8.,  7.,  0.],
+           [ 3.,  5.,  6.,  3.,  5.,  3.,  5.,  8.,  8.,  0.]])
+    >>> bootresult.shape
+    (2, 10)
+
+    Obtain a statistic on the array
+
+    >>> with NumpyRNGContext(1):
+    ...     bootresult = bootstrap(bootarr, 2, bootfunc=np.mean)
+    ...
+    >>> bootresult
+    array([ 4. ,  4.6])
+
+    Obtain a statistic with two outputs on the array
+
+    >>> test_statistic = lambda x: (np.sum(x), np.mean(x))
+    >>> with NumpyRNGContext(1):
+    ...     bootresult = bootstrap(bootarr, 3, bootfunc=test_statistic)
+    >>> bootresult
+    array([[ 40. ,   4. ],
+           [ 46. ,   4.6],
+           [ 35. ,   3.5]])
+    >>> bootresult.shape
+    (3, 2)
+
+    Obtain a statistic with two outputs on the array, keeping only the first
+    output
+
+    >>> bootfunc = lambda x:test_statistic(x)[0]
+    >>> with NumpyRNGContext(1):
+    ...     bootresult = bootstrap(bootarr, 3, bootfunc=bootfunc)
+    ...
+    >>> bootresult
+    array([ 40.,  46.,  35.])
+    >>> bootresult.shape
+    (3,)
 
     """
     if samples is None:
@@ -847,10 +987,16 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
 
     if bootfunc is None:
         resultdims = (bootnum,) + (samples,) + data.shape[1:]
-        boot = np.empty(resultdims)
     else:
-        resultdims = (bootnum,)
-        boot = np.empty(resultdims)
+        # test number of outputs from bootfunc, avoid single outputs which are
+        # array-like
+        try:
+            resultdims = (bootnum, len(bootfunc(data)))
+        except TypeError:
+            resultdims = (bootnum,)
+
+    # create empty boot array
+    boot = np.empty(resultdims)
 
     for i in xrange(bootnum):
         bootarr = np.random.randint(low=0, high=data.shape[0], size=samples)
@@ -860,3 +1006,42 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
             boot[i] = bootfunc(data[bootarr])
 
     return boot
+
+def mad_std(data):
+    """
+    Calculate a robust standard deviation using the `median absolute
+    deviation (MAD)
+    <http://en.wikipedia.org/wiki/Median_absolute_deviation>`_.
+
+    The standard deviation estimator is given by:
+
+    .. math::
+
+        \\sigma \\approx \\frac{\\textrm{MAD}}{\Phi^{-1}(3/4)} \\approx 1.4826 \ \\textrm{MAD}
+
+    where :math:`\Phi^{-1}(P)` is the normal inverse cumulative
+    distribution function evaluated at probability :math:`P = 3/4`.
+
+    Parameters
+    ----------
+    data : array-like
+        Data array or object that can be converted to an array.
+
+    Returns
+    -------
+    result : float
+        The robust standard deviation of the data.
+
+    Examples
+    --------
+    >>> from astropy.stats import mad_std
+    >>> from astropy.utils import NumpyRNGContext
+    >>> from numpy.random import normal
+    >>> with NumpyRNGContext(12345):
+    ...     data = normal(5, 2, size=(100, 100))
+    ...     mad_std(data)    # doctest: +FLOAT_CMP
+    2.02327646594
+    """
+
+    # NOTE: 1. / scipy.stats.norm.ppf(0.75) = 1.482602218505602
+    return median_absolute_deviation(data) * 1.482602218505602

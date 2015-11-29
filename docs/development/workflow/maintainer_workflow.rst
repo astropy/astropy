@@ -120,7 +120,7 @@ followed by IPython:
 
   * Duplicate of an existing issue
 
-  * A pull request superceded by a new pull request providing an alternate implementation
+  * A pull request superseded by a new pull request providing an alternate implementation
 
 * Open issues should only lack a milestone if:
 
@@ -136,7 +136,7 @@ followed by IPython:
   * The next bug fix releases for any still-supported version lines; for example if 0.4 is in development and
     0.2.x and 0.3.x are still supported there should be milestones for the next 0.2.x and 0.3.x releases.
 
-  * The next X.Y release, ie. the next minor release; this is generally the next release that all development in
+  * The next X.Y release, i.e. the next minor release; this is generally the next release that all development in
     master is aimed toward.
 
   * The next X.Y release +1; for example if 0.3 is the next release, there should also be a milestone for 0.4 for
@@ -226,7 +226,7 @@ Changelog format
 
 The exact formatting of the changelog content is a bit loose for now (though
 it might become stricter if we want to develop more tools around the
-changelog).  The format can be mostly inferred by looking at previous verisons.
+changelog).  The format can be mostly inferred by looking at previous versions.
 Each release gets its own heading (using the ``-`` heading marker) with the
 version and release date.  Releases still under development have
 ``(unreleased)`` as there is no release date yet.
@@ -242,7 +242,7 @@ or that only apply to support modules like ``logging`` or ``utils`` may go
 under a "Misc" group.
 
 The actual texts of the changelog entries are typically just one to three
-sentences--they should be easy to glance over.  Most entires end with a
+sentences--they should be easy to glance over.  Most entries end with a
 reference to an issue/pull request number in square brackets.
 
 A single changelog entry may also reference multiple small changes.  For
