@@ -23,7 +23,9 @@ from .misc import first_true_index, first_false_index, groupmore
 
 
 class DaophotHeader(core.BaseHeader):
-    """Read the header from a file produced by the IRAF DAOphot routine."""
+    """
+    Read the header from a file produced by the IRAF DAOphot routine.
+    """
 
     comment = r'\s*#K'
 
@@ -132,7 +134,9 @@ class DaophotHeader(core.BaseHeader):
             self.names = coldef_dict['#N']
 
     def extract_keyword_line(self, line):
-        """extract info from a header keyword line (#K) """
+        """
+        Extract info from a header keyword line (#K)
+        """
         m = self.re_header_keyword.match(line)
         if m:
             vals = m.group('stuff').strip().rsplit(None, 2)
@@ -142,12 +146,22 @@ class DaophotHeader(core.BaseHeader):
             return m.group('name'), keyword_dict
 
     def get_cols(self, lines):
-        """Initialize the header Column objects from the table ``lines`` for a DAOphot
+        """
+        Initialize the header Column objects from the table ``lines`` for a DAOphot
         header.  The DAOphot header is specialized so that we just copy the entire BaseHeader
         get_cols routine and modify as needed.
 
-        :param lines: list of table lines
-        :returns: list of table Columns
+
+
+        Parameters
+        ----------
+        lines: list
+            List of table lines
+
+        Returns
+        ----------
+        col : list
+            List of table Columns
         """
 
         if not self.names:
@@ -215,7 +229,8 @@ class DaophotInputter(core.ContinuationLinesInputter):
     re_multiline = re.compile(r'(#?)[^\\*#]*(\*?)(\\*) ?$')
 
     def search_multiline(self, lines, depth=150):
-        """Search lines for special continuation character to determine number of
+        """
+        Search lines for special continuation character to determine number of
         continued rows in a datablock.  For efficiency, depth gives the upper
         limit of lines to search.
         """
@@ -300,7 +315,8 @@ class DaophotInputter(core.ContinuationLinesInputter):
 
 
 class Daophot(core.BaseReader):
-    """Read a DAOphot file.
+    """
+    Read a DAOphot file.
     Example::
 
       #K MERGERAD   = INDEF                   scaleunit  %-23.7g
