@@ -522,3 +522,15 @@ def test_commented_header_comments(fast_writer):
         ascii.write(t, out, format='commented_header', comment=False,
                     fast_writer=fast_writer)
     assert "for the commented_header writer you must supply a string" in str(err.value)
+
+
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_byte_string_output(fast_writer):
+    """
+    Test the fix for #4350 where byte strings were output with a
+    leading `b` on Py3.
+    """
+    t = table.Table([['Hello', 'World']], dtype=['S10'])
+    out = StringIO()
+    ascii.write(t, out, fast_writer=fast_writer)
+    assert out.getvalue().splitlines() == ['col0', 'Hello', 'World']
