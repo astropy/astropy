@@ -23,6 +23,8 @@ In particular, this release includes:
 * support for table indexing (see :ref:`whatsnew-1.1-table-indexing`)
 * a new ``info`` attribute to get summary information about tables and
   columns (:ref:`whatsnew-1.1-table-info`)
+* a new `show_in_notebook` method to show a table in Jupyter/IPython notebooks
+  with additional interactivity features
 * support for new units, including logarithmic units such as magnitudes, dex,
   and decibels (see :ref:`whatsnew-1.1-units`)
 * support for the Planck 2015 cosmology and significant performance
