@@ -892,6 +892,9 @@ Bug Fixes
     This updates that fix in such a way that it works with Numpy 1.10 as well.
     [#4266]
 
+  - Fix fast writer so bytestring column output is not prefixed by 'b' in
+    Python 3. [#4350]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
