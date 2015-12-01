@@ -858,7 +858,7 @@ class Table(object):
 
     def show_in_notebook(self, tableid=None, css=None, display_length=50,
                          table_class='table table-striped table-bordered '
-                         'table-condensed', use_local_files=False):
+                         'table-condensed'):
         """Render the table in HTML and show it in the IPython notebook.
 
         Parameters
@@ -878,13 +878,14 @@ class Table(object):
             to ``astropy.table.jsviewer.DEFAULT_CSS_NB``.
         display_length : int, optional
             Number or rows to show. Default to 50.
-        use_local_files : bool
-            If True, the JavaScript libraries will be served from local copies
-            provided with astropy. Otherwise, remote URLS will be used (set from
-            the configuration items in ``astropy.table.jsviewer.conf``). Note
-            that this defaults to False because some browsers don't allow
-            loading of local resources, so the local files cannot be used in the
-            notebook.
+
+        Notes
+        -----
+        Currently, unlike `show_in_browser` (with ``jsviewer=True``), this
+        method needs to access online javascript code repositories.  This is due
+        to modern browsers' limitations on accessing local files.  Hence, if you
+        call this method while offline (and don't have a cached version of
+        jquery and jquery.dataTables), you will not get the jsviewer features.
         """
 
         from .jsviewer import JSViewer
@@ -894,7 +895,7 @@ class Table(object):
             tableid = 'table{0}-{1}'.format(id(self),
                                             np.random.randint(1, 1e6))
 
-        jsv = JSViewer(use_local_files=use_local_files, display_length=display_length)
+        jsv = JSViewer(display_length=display_length)
         html = self._base_repr_(html=True, max_width=-1, tableid=tableid,
                                 max_lines=-1, show_dtype=False,
                                 tableclass=table_class)
