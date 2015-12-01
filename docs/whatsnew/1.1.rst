@@ -222,6 +222,21 @@ information about a table and columns.  For the table of ages defined above::
 
 For more information, see :ref:`table-summary-information`.
 
+
+.. _whatsnew-1.1-table-show-in-notebook:
+
+``show_in_notebook`` method
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:class:`~astropy.table.Table` now has a
+:meth:`~astropy.table.Table.show_in_notebook` method that makes viewing tables
+in Jupyter/IPython notebooks more convenient.  Simply call the method at the
+bottom of a cell (or use the :func:`IPython.display.display` function), and the
+output of the cell will show the table with a searchable, sortable, and
+resizable interface similar to what's available by doing
+``tab.show_in_browser(jsviewer=True)``.
+
+
 .. _whatsnew-1.1-units:
 
 New Units
