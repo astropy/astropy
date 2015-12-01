@@ -879,6 +879,13 @@ class Table(object):
         display_length : int, optional
             Number or rows to show. Default to 50.
 
+        Notes
+        -----
+        Currently, unlike `show_in_browser` (with ``jsviewer=True``), this
+        method needs to access online javascript code repositories.  This is due
+        to modern browsers' limitations on accessing local files.  Hence, if you
+        call this method while offline (and don't have a cached version of
+        jquery and jquery.dataTables), you will not get the jsviewer features.
         """
 
         from .jsviewer import JSViewer
@@ -888,7 +895,7 @@ class Table(object):
             tableid = 'table{0}-{1}'.format(id(self),
                                             np.random.randint(1, 1e6))
 
-        jsv = JSViewer(use_local_files=False, display_length=display_length)
+        jsv = JSViewer(display_length=display_length)
         html = self._base_repr_(html=True, max_width=-1, tableid=tableid,
                                 max_lines=-1, show_dtype=False,
                                 tableclass=table_class)
