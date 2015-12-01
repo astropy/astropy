@@ -899,7 +899,11 @@ cdef class FastWriter:
 
         for col in six.itervalues(table.columns):
             if col.name in self.use_names: # iterate over included columns
-                if col.format is None:
+                # If col.format is None then don't use any formatter to improve
+                # speed.  However, if the column is a byte string and this
+                # is Py3, then use the default formatter (which in this case
+                # does val.decode('utf-8')) in order to avoid a leading 'b'.
+                if col.format is None and not (six.PY3 and col.dtype.kind == 'S'):
                     self.format_funcs.append(None)
                 else:
                     self.format_funcs.append(pprint._format_funcs.get(col.format,
