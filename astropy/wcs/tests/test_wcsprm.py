@@ -820,8 +820,10 @@ def test_locale():
     orig_locale = locale.getlocale(locale.LC_NUMERIC)[0]
 
     try:
-        locale.setlocale(locale.LC_NUMERIC, 'fr_FR')
-    except:
+        # str('fr_FR') because otherwise it will be a unicode string, which
+        # breaks setlocale on Python 2
+        locale.setlocale(locale.LC_NUMERIC, str('fr_FR'))
+    except locale.Error:
         pytest.xfail(
             "Can't set to 'fr_FR' locale, perhaps because it is not installed "
             "on this system")
@@ -830,7 +832,13 @@ def test_locale():
         w = _wcs.Wcsprm(header)
         assert re.search("[0-9]+,[0-9]*", w.to_header()) is None
     finally:
-        locale.setlocale(locale.LC_NUMERIC, orig_locale)
+        if orig_locale is None:
+            # reset to the default setting
+            locale.resetlocale(locale.LC_NUMERIC)
+        else:
+            # restore to whatever the previous value had been set to for
+            # whatever reason
+            locale.setlocale(locale.LC_NUMERIC, orig_locale)
 
 
 @raises(UnicodeEncodeError)
