@@ -474,6 +474,9 @@ API changes
     instantiated).  As unit formatters are mostly an internal implementation
     detail this is not likely to affect any users. [#4001]
 
+  - CGS E&M units are now defined separately from SI E&M units, and have
+    distinct physical types. [#4255]
+
 - ``astropy.utils``
 
   - All of the ``get_pkg_data_*`` functions take an optional ``package``
