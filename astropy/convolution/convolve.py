@@ -450,7 +450,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         # create a boundary region at least as large as the kernel
         if psf_pad is not None:
             warnings.warn("psf_pad was set to {0}, which overrides the "
-                          "boundary='fill' setting.",
+                          "boundary='fill' setting.".format(psf_pad),
                           AstropyUserWarning)
         else:
             psf_pad = True
