@@ -221,7 +221,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 
 
 def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
-                 return_fft=False, fft_pad=True, psf_pad=False,
+                 return_fft=False, fft_pad=None, psf_pad=None,
                  interpolate_nan=False, quiet=False, ignore_edge_zeros=False,
                  min_wt=0.0, normalize_kernel=False, allow_huge=False,
                  fftn=np.fft.fftn, ifftn=np.fft.ifftn,
@@ -284,10 +284,13 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     Other Parameters
     ----------------
     fft_pad : bool, optional
-        Default on.  Zero-pad image to the nearest 2^n
+        Default on.  Zero-pad image to the nearest 2^n.  With boundary='wrap',
+        this will be disabled.
     psf_pad : bool, optional
-        Default off.  Zero-pad image to be at least the sum of the image sizes
-        (in order to avoid edge-wrapping when smoothing)
+        Zero-pad image to be at least the sum of the image sizes to avoid
+        edge-wrapping when smoothing.  This is enabled by default with
+        `boundary='fill'`, but it can be overridden with a boolean option.
+        `boundary='wrap'` and `psf_pad=True` are not compatible.
     crop : bool, optional
         Default on.  Return an image of the size of the largest input image.
         If the images are asymmetric in opposite directions, will return the
@@ -406,11 +409,11 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         kernel[mask] = np.nan
 
     # NaN and inf catching
-    nanmaskarray = np.isnan(array) + np.isinf(array)
+    nanmaskarray = np.isnan(array) | np.isinf(array)
     array[nanmaskarray] = 0
-    nanmaskkernel = np.isnan(kernel) + np.isinf(kernel)
+    nanmaskkernel = np.isnan(kernel) | np.isinf(kernel)
     kernel[nanmaskkernel] = 0
-    if ((nanmaskarray.sum() > 0 or nanmaskkernel.sum() > 0) and
+    if ((np.count_nonzero(nanmaskarray) > 0 or np.count_nonzero(nanmaskkernel) > 0) and
             not interpolate_nan and not quiet):
         warnings.warn("NOT ignoring NaN values even though they are present "
                       " (they are treated as 0)", AstropyUserWarning)
@@ -442,12 +445,21 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
                       "equivalent to the convolve boundary='fill'.  There is "
                       "no FFT equivalent to convolve's "
                       "zero-if-kernel-leaves-boundary", AstropyUserWarning)
-        psf_pad = True
+        # psf_pad can be true or false here
     elif boundary == 'fill':
         # create a boundary region at least as large as the kernel
-        psf_pad = True
+        if psf_pad is not None:
+            warnings.warn("psf_pad was set to {0}, which overrides the "
+                          "boundary='fill' setting.",
+                          AstropyUserWarning)
+        else:
+            psf_pad = True
     elif boundary == 'wrap':
+        if psf_pad:
+            raise ValueError("With boundary='wrap', psf_pad cannot be enabled.")
         psf_pad = False
+        if fft_pad:
+            raise ValueError("With boundary='wrap', fft_pad cannot be enabled.")
         fft_pad = False
         fill_value = 0  # force zero; it should not be used
     elif boundary == 'extend':
