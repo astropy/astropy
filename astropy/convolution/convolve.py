@@ -452,7 +452,10 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
                       "equivalent to the convolve boundary='fill'.  There is "
                       "no FFT equivalent to convolve's "
                       "zero-if-kernel-leaves-boundary", AstropyUserWarning)
-        # psf_pad can be true or false here
+        if psf_pad is None:
+            psf_pad = True
+        if fft_pad is None:
+            fft_pad = True
     elif boundary == 'fill':
         # create a boundary region at least as large as the kernel
         if psf_pad is not None:
@@ -461,6 +464,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
                           AstropyUserWarning)
         else:
             psf_pad = True
+        if fft_pad is None:
+            # default is 'True' according to the docstring
+            fft_pad = True
     elif boundary == 'wrap':
         if psf_pad:
             raise ValueError("With boundary='wrap', psf_pad cannot be enabled.")
