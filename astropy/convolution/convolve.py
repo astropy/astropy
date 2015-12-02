@@ -332,6 +332,13 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         If crop is not set, returns the image, but with the fft-padded size
         instead of the input size
 
+    Notes
+    -----
+        With psf_pad=True and a large PSF, the resulting data can become very
+        large and consume a lot of memory.  See the string
+        `astropy.convolution.profiler_report` for examples of how much memory
+        can be used and how that might affect process times.
+
     Examples
     --------
     >>> convolve_fft([1, 0, 3], [1, 1, 1])
@@ -575,3 +582,118 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         return result
     else:
         return rifft.real
+
+profiler_report = """
+psf_pad=True , fft_pad=True , size=  256  kernelsize=   32 Mem usage max=   444.0 Mbyte.  Array, kernel size are   0.5 Mbyte and   0.0 Mbyte. Time use was  0.415 s
+psf_pad=True , fft_pad=False, size=  256  kernelsize=   32 Mem usage max=   128.9 Mbyte.  Array, kernel size are   0.5 Mbyte and   0.0 Mbyte. Time use was  0.114 s
+psf_pad=False, fft_pad=True , size=  256  kernelsize=   32 Mem usage max=     3.0 Mbyte.  Array, kernel size are   0.5 Mbyte and   0.0 Mbyte. Time use was  0.073 s
+psf_pad=False, fft_pad=False, size=  256  kernelsize=   32 Mem usage max=     0.0 Mbyte.  Array, kernel size are   0.5 Mbyte and   0.0 Mbyte. Time use was  0.069 s
+psf_pad=True , fft_pad=True , size=  256  kernelsize=   64 Mem usage max=    12.3 Mbyte.  Array, kernel size are   0.5 Mbyte and   0.0 Mbyte. Time use was  0.447 s
+psf_pad=True , fft_pad=False, size=  256  kernelsize=   64 Mem usage max=     4.0 Mbyte.  Array, kernel size are   0.5 Mbyte and   0.0 Mbyte. Time use was  0.116 s
+psf_pad=False, fft_pad=True , size=  256  kernelsize=   64 Mem usage max=     3.0 Mbyte.  Array, kernel size are   0.5 Mbyte and   0.0 Mbyte. Time use was  0.070 s
+psf_pad=False, fft_pad=False, size=  256  kernelsize=   64 Mem usage max=     0.0 Mbyte.  Array, kernel size are   0.5 Mbyte and   0.0 Mbyte. Time use was  0.069 s
+psf_pad=True , fft_pad=True , size=  256  kernelsize=  128 Mem usage max=    20.5 Mbyte.  Array, kernel size are   0.5 Mbyte and   0.1 Mbyte. Time use was  0.438 s
+psf_pad=True , fft_pad=False, size=  256  kernelsize=  128 Mem usage max=    22.8 Mbyte.  Array, kernel size are   0.5 Mbyte and   0.1 Mbyte. Time use was  0.207 s
+psf_pad=False, fft_pad=True , size=  256  kernelsize=  128 Mem usage max=     1.2 Mbyte.  Array, kernel size are   0.5 Mbyte and   0.1 Mbyte. Time use was  0.074 s
+psf_pad=False, fft_pad=False, size=  256  kernelsize=  128 Mem usage max=     0.0 Mbyte.  Array, kernel size are   0.5 Mbyte and   0.1 Mbyte. Time use was  0.074 s
+psf_pad=True , fft_pad=True , size=  256  kernelsize=  256 Mem usage max=    29.3 Mbyte.  Array, kernel size are   0.5 Mbyte and   0.5 Mbyte. Time use was  0.427 s
+psf_pad=True , fft_pad=False, size=  256  kernelsize=  256 Mem usage max=     0.0 Mbyte.  Array, kernel size are   0.5 Mbyte and   0.5 Mbyte. Time use was  0.425 s
+psf_pad=False, fft_pad=True , size=  256  kernelsize=  256 Mem usage max=     3.0 Mbyte.  Array, kernel size are   0.5 Mbyte and   0.5 Mbyte. Time use was  0.073 s
+psf_pad=False, fft_pad=False, size=  256  kernelsize=  256 Mem usage max=     0.0 Mbyte.  Array, kernel size are   0.5 Mbyte and   0.5 Mbyte. Time use was  0.075 s
+psf_pad=True , fft_pad=True , size=  300  kernelsize=   37 Mem usage max=    25.7 Mbyte.  Array, kernel size are   0.7 Mbyte and   0.0 Mbyte. Time use was  0.447 s
+psf_pad=True , fft_pad=False, size=  300  kernelsize=   37 Mem usage max=    12.9 Mbyte.  Array, kernel size are   0.7 Mbyte and   0.0 Mbyte. Time use was  3.536 s
+psf_pad=False, fft_pad=True , size=  300  kernelsize=   37 Mem usage max=    16.2 Mbyte.  Array, kernel size are   0.7 Mbyte and   0.0 Mbyte. Time use was  0.462 s
+psf_pad=False, fft_pad=False, size=  300  kernelsize=   37 Mem usage max=     3.4 Mbyte.  Array, kernel size are   0.7 Mbyte and   0.0 Mbyte. Time use was  0.109 s
+psf_pad=True , fft_pad=True , size=  300  kernelsize=   75 Mem usage max=    12.3 Mbyte.  Array, kernel size are   0.7 Mbyte and   0.0 Mbyte. Time use was  0.461 s
+psf_pad=True , fft_pad=False, size=  300  kernelsize=   75 Mem usage max=    23.4 Mbyte.  Array, kernel size are   0.7 Mbyte and   0.0 Mbyte. Time use was  0.202 s
+psf_pad=False, fft_pad=True , size=  300  kernelsize=   75 Mem usage max=    29.5 Mbyte.  Array, kernel size are   0.7 Mbyte and   0.0 Mbyte. Time use was  0.437 s
+psf_pad=False, fft_pad=False, size=  300  kernelsize=   75 Mem usage max=     6.1 Mbyte.  Array, kernel size are   0.7 Mbyte and   0.0 Mbyte. Time use was  0.100 s
+psf_pad=True , fft_pad=True , size=  300  kernelsize=  150 Mem usage max=     8.5 Mbyte.  Array, kernel size are   0.7 Mbyte and   0.2 Mbyte. Time use was  0.427 s
+psf_pad=True , fft_pad=False, size=  300  kernelsize=  150 Mem usage max=    17.7 Mbyte.  Array, kernel size are   0.7 Mbyte and   0.2 Mbyte. Time use was  0.318 s
+psf_pad=False, fft_pad=True , size=  300  kernelsize=  150 Mem usage max=    30.6 Mbyte.  Array, kernel size are   0.7 Mbyte and   0.2 Mbyte. Time use was  0.422 s
+psf_pad=False, fft_pad=False, size=  300  kernelsize=  150 Mem usage max=     3.4 Mbyte.  Array, kernel size are   0.7 Mbyte and   0.2 Mbyte. Time use was  0.106 s
+psf_pad=True , fft_pad=True , size=  300  kernelsize=  300 Mem usage max=   134.3 Mbyte.  Array, kernel size are   0.7 Mbyte and   0.7 Mbyte. Time use was  2.246 s
+psf_pad=True , fft_pad=False, size=  300  kernelsize=  300 Mem usage max=    92.1 Mbyte.  Array, kernel size are   0.7 Mbyte and   0.7 Mbyte. Time use was  0.632 s
+psf_pad=False, fft_pad=True , size=  300  kernelsize=  300 Mem usage max=    25.8 Mbyte.  Array, kernel size are   0.7 Mbyte and   0.7 Mbyte. Time use was  0.432 s
+psf_pad=False, fft_pad=False, size=  300  kernelsize=  300 Mem usage max=     2.6 Mbyte.  Array, kernel size are   0.7 Mbyte and   0.7 Mbyte. Time use was  0.106 s
+psf_pad=True , fft_pad=True , size=  512  kernelsize=   64 Mem usage max=   136.6 Mbyte.  Array, kernel size are   2.1 Mbyte and   0.0 Mbyte. Time use was  2.240 s
+psf_pad=True , fft_pad=False, size=  512  kernelsize=   64 Mem usage max=   113.0 Mbyte.  Array, kernel size are   2.1 Mbyte and   0.0 Mbyte. Time use was  0.595 s
+psf_pad=False, fft_pad=True , size=  512  kernelsize=   64 Mem usage max=    25.7 Mbyte.  Array, kernel size are   2.1 Mbyte and   0.0 Mbyte. Time use was  0.422 s
+psf_pad=False, fft_pad=False, size=  512  kernelsize=   64 Mem usage max=     0.0 Mbyte.  Array, kernel size are   2.1 Mbyte and   0.0 Mbyte. Time use was  0.419 s
+psf_pad=True , fft_pad=True , size=  512  kernelsize=  128 Mem usage max=   124.0 Mbyte.  Array, kernel size are   2.1 Mbyte and   0.1 Mbyte. Time use was  2.244 s
+psf_pad=True , fft_pad=False, size=  512  kernelsize=  128 Mem usage max=   137.8 Mbyte.  Array, kernel size are   2.1 Mbyte and   0.1 Mbyte. Time use was  0.721 s
+psf_pad=False, fft_pad=True , size=  512  kernelsize=  128 Mem usage max=    33.0 Mbyte.  Array, kernel size are   2.1 Mbyte and   0.1 Mbyte. Time use was  0.424 s
+psf_pad=False, fft_pad=False, size=  512  kernelsize=  128 Mem usage max=     0.0 Mbyte.  Array, kernel size are   2.1 Mbyte and   0.1 Mbyte. Time use was  0.413 s
+psf_pad=True , fft_pad=True , size=  512  kernelsize=  256 Mem usage max=   144.9 Mbyte.  Array, kernel size are   2.1 Mbyte and   0.5 Mbyte. Time use was  2.227 s
+psf_pad=True , fft_pad=False, size=  512  kernelsize=  256 Mem usage max=    91.0 Mbyte.  Array, kernel size are   2.1 Mbyte and   0.5 Mbyte. Time use was  1.092 s
+psf_pad=False, fft_pad=True , size=  512  kernelsize=  256 Mem usage max=    59.0 Mbyte.  Array, kernel size are   2.1 Mbyte and   0.5 Mbyte. Time use was  0.426 s
+psf_pad=False, fft_pad=False, size=  512  kernelsize=  256 Mem usage max=     0.0 Mbyte.  Array, kernel size are   2.1 Mbyte and   0.5 Mbyte. Time use was  0.424 s
+psf_pad=True , fft_pad=True , size=  512  kernelsize=  512 Mem usage max=   138.1 Mbyte.  Array, kernel size are   2.1 Mbyte and   2.1 Mbyte. Time use was  2.262 s
+psf_pad=True , fft_pad=False, size=  512  kernelsize=  512 Mem usage max=     2.0 Mbyte.  Array, kernel size are   2.1 Mbyte and   2.1 Mbyte. Time use was  2.271 s
+psf_pad=False, fft_pad=True , size=  512  kernelsize=  512 Mem usage max=   108.0 Mbyte.  Array, kernel size are   2.1 Mbyte and   2.1 Mbyte. Time use was  0.447 s
+psf_pad=False, fft_pad=False, size=  512  kernelsize=  512 Mem usage max=     0.0 Mbyte.  Array, kernel size are   2.1 Mbyte and   2.1 Mbyte. Time use was  0.444 s
+psf_pad=True , fft_pad=True , size=  600  kernelsize=   75 Mem usage max=   132.5 Mbyte.  Array, kernel size are   2.9 Mbyte and   0.0 Mbyte. Time use was  2.295 s
+psf_pad=True , fft_pad=False, size=  600  kernelsize=   75 Mem usage max=   112.1 Mbyte.  Array, kernel size are   2.9 Mbyte and   0.0 Mbyte. Time use was  0.906 s
+psf_pad=False, fft_pad=True , size=  600  kernelsize=   75 Mem usage max=   129.0 Mbyte.  Array, kernel size are   2.9 Mbyte and   0.0 Mbyte. Time use was  2.260 s
+psf_pad=False, fft_pad=False, size=  600  kernelsize=   75 Mem usage max=    69.3 Mbyte.  Array, kernel size are   2.9 Mbyte and   0.0 Mbyte. Time use was  0.623 s
+psf_pad=True , fft_pad=True , size=  600  kernelsize=  150 Mem usage max=    97.3 Mbyte.  Array, kernel size are   2.9 Mbyte and   0.2 Mbyte. Time use was  2.247 s
+psf_pad=True , fft_pad=False, size=  600  kernelsize=  150 Mem usage max=   100.4 Mbyte.  Array, kernel size are   2.9 Mbyte and   0.2 Mbyte. Time use was  1.096 s
+psf_pad=False, fft_pad=True , size=  600  kernelsize=  150 Mem usage max=   136.7 Mbyte.  Array, kernel size are   2.9 Mbyte and   0.2 Mbyte. Time use was  2.274 s
+psf_pad=False, fft_pad=False, size=  600  kernelsize=  150 Mem usage max=   102.2 Mbyte.  Array, kernel size are   2.9 Mbyte and   0.2 Mbyte. Time use was  0.639 s
+psf_pad=True , fft_pad=True , size=  600  kernelsize=  300 Mem usage max=   138.8 Mbyte.  Array, kernel size are   2.9 Mbyte and   0.7 Mbyte. Time use was  2.274 s
+psf_pad=True , fft_pad=False, size=  600  kernelsize=  300 Mem usage max=    80.0 Mbyte.  Array, kernel size are   2.9 Mbyte and   0.7 Mbyte. Time use was  1.642 s
+psf_pad=False, fft_pad=True , size=  600  kernelsize=  300 Mem usage max=   143.1 Mbyte.  Array, kernel size are   2.9 Mbyte and   0.7 Mbyte. Time use was  2.262 s
+psf_pad=False, fft_pad=False, size=  600  kernelsize=  300 Mem usage max=   107.2 Mbyte.  Array, kernel size are   2.9 Mbyte and   0.7 Mbyte. Time use was  0.618 s
+psf_pad=True , fft_pad=True , size=  600  kernelsize=  600 Mem usage max=   570.8 Mbyte.  Array, kernel size are   2.9 Mbyte and   2.9 Mbyte. Time use was  1.040 s
+psf_pad=True , fft_pad=False, size=  600  kernelsize=  600 Mem usage max=   523.0 Mbyte.  Array, kernel size are   2.9 Mbyte and   2.9 Mbyte. Time use was  3.304 s
+psf_pad=False, fft_pad=True , size=  600  kernelsize=  600 Mem usage max=   101.8 Mbyte.  Array, kernel size are   2.9 Mbyte and   2.9 Mbyte. Time use was  2.275 s
+psf_pad=False, fft_pad=False, size=  600  kernelsize=  600 Mem usage max=    92.0 Mbyte.  Array, kernel size are   2.9 Mbyte and   2.9 Mbyte. Time use was  0.649 s
+psf_pad=True , fft_pad=True , size= 1000  kernelsize=  125 Mem usage max=   577.3 Mbyte.  Array, kernel size are   8.0 Mbyte and   0.1 Mbyte. Time use was  1.051 s
+psf_pad=True , fft_pad=False, size= 1000  kernelsize=  125 Mem usage max=   516.0 Mbyte.  Array, kernel size are   8.0 Mbyte and   0.1 Mbyte. Time use was  2.911 s
+psf_pad=False, fft_pad=True , size= 1000  kernelsize=  125 Mem usage max=    79.0 Mbyte.  Array, kernel size are   8.0 Mbyte and   0.1 Mbyte. Time use was  2.352 s
+psf_pad=False, fft_pad=False, size= 1000  kernelsize=  125 Mem usage max=    80.7 Mbyte.  Array, kernel size are   8.0 Mbyte and   0.1 Mbyte. Time use was  1.999 s
+psf_pad=True , fft_pad=True , size= 1000  kernelsize=  250 Mem usage max=   580.0 Mbyte.  Array, kernel size are   8.0 Mbyte and   0.5 Mbyte. Time use was  1.042 s
+psf_pad=True , fft_pad=False, size= 1000  kernelsize=  250 Mem usage max=   516.0 Mbyte.  Array, kernel size are   8.0 Mbyte and   0.5 Mbyte. Time use was  3.591 s
+psf_pad=False, fft_pad=True , size= 1000  kernelsize=  250 Mem usage max=   121.6 Mbyte.  Array, kernel size are   8.0 Mbyte and   0.5 Mbyte. Time use was  2.336 s
+psf_pad=False, fft_pad=False, size= 1000  kernelsize=  250 Mem usage max=    81.5 Mbyte.  Array, kernel size are   8.0 Mbyte and   0.5 Mbyte. Time use was  2.004 s
+psf_pad=True , fft_pad=True , size= 1000  kernelsize=  500 Mem usage max=   567.4 Mbyte.  Array, kernel size are   8.0 Mbyte and   2.0 Mbyte. Time use was  1.083 s
+psf_pad=True , fft_pad=False, size= 1000  kernelsize=  500 Mem usage max=   374.5 Mbyte.  Array, kernel size are   8.0 Mbyte and   2.0 Mbyte. Time use was  5.300 s
+psf_pad=False, fft_pad=True , size= 1000  kernelsize=  500 Mem usage max=   264.2 Mbyte.  Array, kernel size are   8.0 Mbyte and   2.0 Mbyte. Time use was  2.387 s
+psf_pad=False, fft_pad=False, size= 1000  kernelsize=  500 Mem usage max=    80.8 Mbyte.  Array, kernel size are   8.0 Mbyte and   2.0 Mbyte. Time use was  2.010 s
+psf_pad=True , fft_pad=True , size= 1000  kernelsize= 1000 Mem usage max=   581.6 Mbyte.  Array, kernel size are   8.0 Mbyte and   8.0 Mbyte. Time use was  1.065 s
+psf_pad=True , fft_pad=False, size= 1000  kernelsize= 1000 Mem usage max=   320.0 Mbyte.  Array, kernel size are   8.0 Mbyte and   8.0 Mbyte. Time use was  0.999 s
+psf_pad=False, fft_pad=True , size= 1000  kernelsize= 1000 Mem usage max=   557.3 Mbyte.  Array, kernel size are   8.0 Mbyte and   8.0 Mbyte. Time use was  2.518 s
+psf_pad=False, fft_pad=False, size= 1000  kernelsize= 1000 Mem usage max=   128.0 Mbyte.  Array, kernel size are   8.0 Mbyte and   8.0 Mbyte. Time use was  2.079 s
+psf_pad=True , fft_pad=True , size= 1024  kernelsize=  128 Mem usage max=   565.8 Mbyte.  Array, kernel size are   8.4 Mbyte and   0.1 Mbyte. Time use was  1.041 s
+psf_pad=True , fft_pad=False, size= 1024  kernelsize=  128 Mem usage max=   576.0 Mbyte.  Array, kernel size are   8.4 Mbyte and   0.1 Mbyte. Time use was  3.048 s
+psf_pad=False, fft_pad=True , size= 1024  kernelsize=  128 Mem usage max=   111.0 Mbyte.  Array, kernel size are   8.4 Mbyte and   0.1 Mbyte. Time use was  2.252 s
+psf_pad=False, fft_pad=False, size= 1024  kernelsize=  128 Mem usage max=     0.0 Mbyte.  Array, kernel size are   8.4 Mbyte and   0.1 Mbyte. Time use was  2.212 s
+psf_pad=True , fft_pad=True , size= 1024  kernelsize=  256 Mem usage max=   565.0 Mbyte.  Array, kernel size are   8.4 Mbyte and   0.5 Mbyte. Time use was  1.044 s
+psf_pad=True , fft_pad=False, size= 1024  kernelsize=  256 Mem usage max=   576.0 Mbyte.  Array, kernel size are   8.4 Mbyte and   0.5 Mbyte. Time use was  3.702 s
+psf_pad=False, fft_pad=True , size= 1024  kernelsize=  256 Mem usage max=   139.8 Mbyte.  Array, kernel size are   8.4 Mbyte and   0.5 Mbyte. Time use was  2.375 s
+psf_pad=False, fft_pad=False, size= 1024  kernelsize=  256 Mem usage max=     0.0 Mbyte.  Array, kernel size are   8.4 Mbyte and   0.5 Mbyte. Time use was  2.254 s
+psf_pad=True , fft_pad=True , size= 1024  kernelsize=  512 Mem usage max=   551.8 Mbyte.  Array, kernel size are   8.4 Mbyte and   2.1 Mbyte. Time use was  1.073 s
+psf_pad=True , fft_pad=False, size= 1024  kernelsize=  512 Mem usage max=   360.0 Mbyte.  Array, kernel size are   8.4 Mbyte and   2.1 Mbyte. Time use was  5.547 s
+psf_pad=False, fft_pad=True , size= 1024  kernelsize=  512 Mem usage max=   264.0 Mbyte.  Array, kernel size are   8.4 Mbyte and   2.1 Mbyte. Time use was  2.263 s
+psf_pad=False, fft_pad=False, size= 1024  kernelsize=  512 Mem usage max=     8.0 Mbyte.  Array, kernel size are   8.4 Mbyte and   2.1 Mbyte. Time use was  2.270 s
+psf_pad=True , fft_pad=True , size= 1024  kernelsize= 1024 Mem usage max=   577.8 Mbyte.  Array, kernel size are   8.4 Mbyte and   8.4 Mbyte. Time use was  1.088 s
+psf_pad=True , fft_pad=False, size= 1024  kernelsize= 1024 Mem usage max=     8.0 Mbyte.  Array, kernel size are   8.4 Mbyte and   8.4 Mbyte. Time use was  1.056 s
+psf_pad=False, fft_pad=True , size= 1024  kernelsize= 1024 Mem usage max=   448.0 Mbyte.  Array, kernel size are   8.4 Mbyte and   8.4 Mbyte. Time use was  2.309 s
+psf_pad=False, fft_pad=False, size= 1024  kernelsize= 1024 Mem usage max=     0.0 Mbyte.  Array, kernel size are   8.4 Mbyte and   8.4 Mbyte. Time use was  2.318 s
+psf_pad=True , fft_pad=True , size= 2048  kernelsize=  256 Mem usage max=  2376.9 Mbyte.  Array, kernel size are  33.6 Mbyte and   0.5 Mbyte. Time use was  6.332 s
+psf_pad=True , fft_pad=False, size= 2048  kernelsize=  256 Mem usage max=   721.0 Mbyte.  Array, kernel size are  33.6 Mbyte and   0.5 Mbyte. Time use was  1.388 s
+psf_pad=False, fft_pad=True , size= 2048  kernelsize=  256 Mem usage max=   444.1 Mbyte.  Array, kernel size are  33.6 Mbyte and   0.5 Mbyte. Time use was  1.109 s
+psf_pad=False, fft_pad=False, size= 2048  kernelsize=  256 Mem usage max=     0.0 Mbyte.  Array, kernel size are  33.6 Mbyte and   0.5 Mbyte. Time use was  1.095 s
+psf_pad=True , fft_pad=True , size= 2048  kernelsize=  512 Mem usage max=  2250.7 Mbyte.  Array, kernel size are  33.6 Mbyte and   2.1 Mbyte. Time use was  6.277 s
+psf_pad=True , fft_pad=False, size= 2048  kernelsize=  512 Mem usage max=   906.3 Mbyte.  Array, kernel size are  33.6 Mbyte and   2.1 Mbyte. Time use was  1.682 s
+psf_pad=False, fft_pad=True , size= 2048  kernelsize=  512 Mem usage max=   572.0 Mbyte.  Array, kernel size are  33.6 Mbyte and   2.1 Mbyte. Time use was  1.076 s
+psf_pad=False, fft_pad=False, size= 2048  kernelsize=  512 Mem usage max=    32.0 Mbyte.  Array, kernel size are  33.6 Mbyte and   2.1 Mbyte. Time use was  1.061 s
+psf_pad=True , fft_pad=True , size= 2048  kernelsize= 1024 Mem usage max=  2267.0 Mbyte.  Array, kernel size are  33.6 Mbyte and   8.4 Mbyte. Time use was  6.458 s
+psf_pad=True , fft_pad=False, size= 2048  kernelsize= 1024 Mem usage max=  1269.3 Mbyte.  Array, kernel size are  33.6 Mbyte and   8.4 Mbyte. Time use was  3.467 s
+psf_pad=False, fft_pad=True , size= 2048  kernelsize= 1024 Mem usage max=   320.0 Mbyte.  Array, kernel size are  33.6 Mbyte and   8.4 Mbyte. Time use was  1.069 s
+psf_pad=False, fft_pad=False, size= 2048  kernelsize= 1024 Mem usage max=    32.0 Mbyte.  Array, kernel size are  33.6 Mbyte and   8.4 Mbyte. Time use was  1.071 s
+psf_pad=True , fft_pad=True , size= 2048  kernelsize= 2048 Mem usage max=  2304.7 Mbyte.  Array, kernel size are  33.6 Mbyte and  33.6 Mbyte. Time use was  6.456 s
+psf_pad=True , fft_pad=False, size= 2048  kernelsize= 2048 Mem usage max=  2296.9 Mbyte.  Array, kernel size are  33.6 Mbyte and  33.6 Mbyte. Time use was  6.445 s
+psf_pad=False, fft_pad=True , size= 2048  kernelsize= 2048 Mem usage max=   192.0 Mbyte.  Array, kernel size are  33.6 Mbyte and  33.6 Mbyte. Time use was  1.099 s
+psf_pad=False, fft_pad=False, size= 2048  kernelsize= 2048 Mem usage max=     0.0 Mbyte.  Array, kernel size are  33.6 Mbyte and  33.6 Mbyte. Time use was  1.091 s
+"""
