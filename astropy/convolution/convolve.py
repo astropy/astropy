@@ -11,6 +11,8 @@ from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
 from ..utils.exceptions import AstropyUserWarning
 from ..utils.console import human_file_size
 
+from astropy import units as u
+
 
 # Disabling all doctests in this module until a better way of handling warnings
 # in doctests can be determined
@@ -399,8 +401,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     kernshape = kernel.shape
 
     array_size_B = (np.product(arrayshape, dtype=np.int64) *
-                    np.dtype(complex_dtype).itemsize)
-    if array_size_B > 1024**3 and not allow_huge:
+                    np.dtype(complex_dtype).itemsize)*u.byte
+    if array_size_B > 1*u.GB and not allow_huge:
         raise ValueError("Size Error: Arrays will be %s.  Use "
                          "allow_huge=True to override this exception."
                          % human_file_size(array_size_B))
@@ -498,6 +500,14 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         else:
             newshape = np.array([np.max([imsh, kernsh])
                                  for imsh, kernsh in zip(arrayshape, kernshape)])
+
+    # perform a second check after padding
+    array_size_C = (np.product(newshape, dtype=np.int64) *
+                    np.dtype(complex_dtype).itemsize)*u.byte
+    if array_size_C > 1*u.GB and not allow_huge:
+        raise ValueError("Size Error: Arrays will be %s.  Use "
+                         "allow_huge=True to override this exception."
+                         % human_file_size(array_size_C))
 
     # For future reference, this can be used to predict "almost exactly"
     # how much *additional* memory will be used.
