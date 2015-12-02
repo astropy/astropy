@@ -73,13 +73,13 @@ def icrs_to_helioecliptic(from_coo, to_frame):
     delta_bary_to_helio = pvh[..., 0, :] - pvb[..., 0, :]
 
     #first offset to heliocentric
-    heliocart = from_coo.cartesian.xyz + delta_bary_to_helio * u.au
+    heliocart = (from_coo.cartesian.xyz).T + delta_bary_to_helio * u.au
 
     # now compute the matrix to precess to the right orientation
     rmat = _ecliptic_rotation_matrix(to_frame.equinox)
 
     # it's not really ICRS because of the offset, but this is digestible by cartrepr_from_matmul
-    newrepr = cartrepr_from_matmul(rmat, ICRS(CartesianRepresentation(heliocart)))
+    newrepr = cartrepr_from_matmul(rmat, ICRS(CartesianRepresentation(heliocart.T)))
     return to_frame.realize_frame(newrepr)
 
 
