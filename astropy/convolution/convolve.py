@@ -420,8 +420,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     array[nanmaskarray] = 0
     nanmaskkernel = np.isnan(kernel) | np.isinf(kernel)
     kernel[nanmaskkernel] = 0
-    if ((np.count_nonzero(nanmaskarray) > 0 or np.count_nonzero(nanmaskkernel) > 0) and
-            not interpolate_nan and not quiet):
+    if (not interpolate_nan and not quiet and (np.any(nanmaskarray) or
+                                               np.any(nanmaskkernel))):
         warnings.warn("NOT ignoring NaN values even though they are present "
                       " (they are treated as 0)", AstropyUserWarning)
 
@@ -458,7 +458,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
             fft_pad = True
     elif boundary == 'fill':
         # create a boundary region at least as large as the kernel
-        if psf_pad is not None:
+        if psf_pad is False:
             warnings.warn("psf_pad was set to {0}, which overrides the "
                           "boundary='fill' setting.".format(psf_pad),
                           AstropyUserWarning)
