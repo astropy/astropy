@@ -286,3 +286,34 @@ def discretize_integrate_2D(model, x_range, y_range):
             values[j, i] = dblquad(model, x[i], x[i + 1],
                                    lambda x: y[j], lambda x: y[j + 1])[0]
     return values
+
+def profile_memory_usage_convolve_fft():
+    """
+    Utility to profile the memory usage of convolve_fft
+
+    Requires memory_profiler and timeit
+    """
+    from memory_profiler import memory_usage
+    import timeit
+    from astropy import units as u
+    for size in 2**np.arange(8,12,dtype='int'):
+        for psf_pad in (True,False):
+            for fft_pad in (True,False):
+                y=x=np.ones([size,size])
+                memuse = memory_usage((convolve_fft, (x,y,),
+                                       dict(psf_pad=psf_pad, fft_pad=fft_pad)),
+                                      interval=0.01)
+                timeuse = timeit.repeat('convolve_fft(x,y,psf_pad={psf_pad},'
+                                        ' fft_pad={fft_pad})'.format(psf_pad=psf_pad, fft_pad=fft_pad),
+                                        setup=('from astropy.convolution import convolve_fft; import numpy as np;'
+                                               'x=y=np.ones([{size},{size}])'.format(size=size)),
+                                        repeat=3, number=1)
+                print("psf_pad={psf_pad:5s}, fft_pad={fft_pad:5s}, size={size:5d}"
+                      " Mem usage max={0:10.1f}.  Array, kernel size are {1:10.1f} and {2:10.1f}."
+                      " Time use was {meantime:10.3f}"
+                      .format((max(memuse)-min(memuse))*u.MB,
+                              (x.nbytes*u.byte).to(u.MB),
+                              (y.nbytes*u.byte).to(u.MB), psf_pad=str(psf_pad),
+                              fft_pad=str(fft_pad), size=size,
+                              meantime=np.mean(timeuse)*u.s,
+                             ))
