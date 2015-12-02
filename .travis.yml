@@ -3,8 +3,7 @@
 # install Python ourselves using conda.
 language: c
 
-os:
-    - linux
+os: linux
 
 # Setting sudo to false opts in to Travis-CI container-based builds.
 sudo: false
