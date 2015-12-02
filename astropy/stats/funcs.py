@@ -526,7 +526,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1):
 
     where :math:`F_{\chi^2}^{-1}` is the quantile of the chi-square
     distribution with the indicated number of degrees of freedom and
-    :math:\alpha is the one-tailed probability of the normal
+    :math:`\alpha` is the one-tailed probability of the normal
     distribution (at the point given by the parameter 'sigma'). See
     [Maxwell 2011][maxw11] for further details.
 
