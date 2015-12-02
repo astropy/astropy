@@ -31,7 +31,7 @@ Incompatible Conversions
 If you attempt to convert to a incompatible unit, an exception will result:
 
   >>> cms = u.cm / u.s
-  >>> cms.to(u.km)
+  >>> cms.to(u.km)  # doctest: +IGNORE_EXCEPTION_DETAIL
   Traceback (most recent call last):
     ...
   UnitConversionError: 'cm / s' (speed) and 'km' (length) are not convertible

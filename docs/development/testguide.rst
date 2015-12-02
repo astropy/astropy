@@ -870,6 +870,22 @@ traceback is skipped in the example output--only the first and last lines
 of the output are checked.  See the :mod:`doctest` documentation for
 more examples of skipping output.
 
+Ignoring all output
+^^^^^^^^^^^^^^^^^^^
+
+Another possibility for ignoring output is to use the
+``# doctest: +IGNORE_OUTPUT`` flag.  This allows a doctest to execute (and
+check that the code executes without errors), but allows the entire output
+to be ignored in cases where we don't care what the output is.  This differs
+from using ellipses in that we can still provide complete example output, just
+without the test checking that it is exactly right.  For example::
+
+    >>> print('Hello world')  # doctest: +IGNORE_OUTPUT
+    We don't really care what the output is as long as there were no errors...
+
+Similarly the ``IGNORE_OUTPUT_2`` and ``IGNORE_OUTPUT_3`` flags can be used
+to ignore output only on Python 2 or only on Python 3 respectively.
+
 
 Handling float output
 ---------------------

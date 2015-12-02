@@ -90,7 +90,7 @@ feature needs to be explicitly turned on:
 .. doctest-requires:: matplotlib
 
     >>> from astropy.visualization import quantity_support
-    >>> quantity_support()
+    >>> quantity_support()  # doctest: +IGNORE_OUTPUT
     <astropy.visualization.units.MplQuantityConverter ...>
 
 Then |quantity| objects can be passed to matplotlib plotting
@@ -118,7 +118,7 @@ Plotting a quantity with an incompatible unit will raise an exception::
 
 .. doctest-requires:: matplotlib
 
-    >>> plt.plot([1, 2, 3] * u.kg)
+    >>> plt.plot([1, 2, 3] * u.kg)  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
     UnitConversionError: 'kg' (mass) and 'm' (length) are not convertible
@@ -167,7 +167,7 @@ resulting object **has units of the object on the left**:
 Addition and subtraction is not supported between |quantity| objects and basic
 numeric types:
 
-    >>> 13.5 * u.km + 19.412
+    >>> 13.5 * u.km + 19.412  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
       ...
     UnitsError: Can only apply 'add' function to dimensionless

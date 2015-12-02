@@ -28,17 +28,17 @@ and then subsequently use for example ``const.G``. Constants are fully-fledged
 `~astropy.units.Quantity` objects, so you can easily convert them to
 different units for example::
 
-    >>> print const.c
+    >>> print(const.c)
       Name   = Speed of light in vacuum
       Value  = 299792458.0
       Uncertainty  = 0.0
       Unit  = m / s
       Reference = CODATA 2010
 
-    >>> print const.c.to('km/s')
+    >>> print(const.c.to('km/s'))
     299792.458 km / s
 
-    >>> print const.c.to('pc/yr')
+    >>> print(const.c.to('pc/yr'))  # doctest: +FLOAT_CMP
     0.306601393788 pc / yr
 
 and you can use them in conjunction with unit and other non-constant
@@ -46,7 +46,7 @@ and you can use them in conjunction with unit and other non-constant
 
     >>> from astropy import units as u
     >>> F = (const.G * 3. * const.M_sun * 100 * u.kg) / (2.2 * u.au) ** 2
-    >>> print F.to(u.N)
+    >>> print(F.to(u.N))  # doctest: +FLOAT_CMP
     0.367669392028 N
 
 It is possible to convert most constants to cgs using e.g.::

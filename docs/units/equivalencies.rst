@@ -35,7 +35,7 @@ Length and angles are not normally convertible, so
 :meth:`~astropy.units.core.UnitBase.to` raises an exception::
 
   >>> from astropy import units as u
-  >>> (8.0 * u.arcsec).to(u.parsec)
+  >>> (8.0 * u.arcsec).to(u.parsec)  # doctest: +IGNORE_EXCEPTION_DETAIL
   Traceback (most recent call last):
     ...
   UnitConversionError: 'arcsec' (angle) and 'pc' (length) are not convertible
@@ -65,11 +65,11 @@ number of powers to which radian is raised (i.e., including zero and thus
 dimensionless).  For instance, normally the following raise exceptions::
 
   >>> from astropy import units as u
-  >>> u.degree.to('')
+  >>> u.degree.to('')  # doctest: +IGNORE_EXCEPTION_DETAIL
   Traceback (most recent call last):
     ...
   UnitConversionError: 'deg' (angle) and '' (dimensionless) are not convertible
-  >>> (u.kg * u.m**2 * (u.cycle / u.s)**2).to(u.J)
+  >>> (u.kg * u.m**2 * (u.cycle / u.s)**2).to(u.J)  # doctest: +IGNORE_EXCEPTION_DETAIL
   Traceback (most recent call last):
     ...
   UnitConversionError: 'cycle2 kg m2 / s2' and 'J' (energy) are not convertible

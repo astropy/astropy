@@ -73,7 +73,7 @@ keyword.  In this example we also explicitly set the data types for each column:
 There are a few ways to examine the table.  You can get detailed information
 about the table values and column definitions as follows::
 
-  >>> t
+  >>> t  # doctest: +IGNORE_OUTPUT_3
   <Table length=3>
     a      b     c
   int32 float64 str1
@@ -86,7 +86,7 @@ You can also assign a unit to the columns. If any column has a unit
 assigned, all units would be shown as follows::
 
   >>> t['b'].unit = 's'
-  >>> t
+  >>> t  # doctest: +IGNORE_OUTPUT_3
   <Table length=3>
     a      b       c
            s
@@ -98,7 +98,7 @@ assigned, all units would be shown as follows::
 
 Finally, you can get summary information about the table as follows::
 
-  >>> t.info
+  >>> t.info  # doctest: +IGNORE_OUTPUT_3
   <Table length=3>
   name  dtype  unit
   ---- ------- ----
@@ -174,7 +174,7 @@ Access the data by column or row using familiar `numpy` structured array syntax:
   >>> t['a'][1]    # Row 1 of column 'a'
   4
 
-  >>> t[1]         # Row object for table row index=1
+  >>> t[1]         # Row object for table row index=1 # doctest: +IGNORE_OUTPUT_3
   <Row index=1>
     a      b     c
            s
@@ -237,7 +237,7 @@ You can create a table with support for missing values, for example by setting
 
   >>> t = Table([a, b, c], names=('a', 'b', 'c'), masked=True, dtype=('i4', 'f8', 'S1'))
   >>> t['a'].mask = [True, True, False]
-  >>> t
+  >>> t  # doctest: +IGNORE_OUTPUT_3
   <Table masked=True length=3>
     a      b     c
   int32 float64 str1

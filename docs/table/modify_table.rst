@@ -191,7 +191,7 @@ using column selection with ``t['a', 'c']`` in combination with row index select
 
   >>> t = Table([[1, 2], [3, 4], [5, 6]], names=('a', 'b', 'c'))
   >>> t['a', 'c'][1] = (100, 100)
-  >>> print t
+  >>> print(t)
    a   b   c
   --- --- ---
     1   3   5

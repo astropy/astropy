@@ -479,7 +479,7 @@ Normally it is not possible to compose, say, a model with two outputs and a
 function of only one input::
 
     >>> from astropy.modeling.models import Rotation2D
-    >>> Rotation2D | Gaussian1D
+    >>> Rotation2D | Gaussian1D  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
     ModelDefinitionError: Unsupported operands for |: Rotation2D (n_inputs=2, n_outputs=2) and Gaussian1D (n_inputs=1, n_outputs=1); n_outputs for the left-hand model must match n_inputs for the right-hand model.

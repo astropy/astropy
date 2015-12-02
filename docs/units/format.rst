@@ -169,7 +169,7 @@ following formats:
   - ``"console"``: Writes a multi-line representation of the unit
     useful for display in a text console::
 
-      >>> print fluxunit.to_string('console')
+      >>> print(fluxunit.to_string('console'))
        erg
       ------
       s cm^2
@@ -177,7 +177,7 @@ following formats:
   - ``"unicode"``: Same as ``"console"``, except uses Unicode
     characters::
 
-      >>> print u.Ry.decompose().to_string('unicode')  # doctest: +SKIP
+      >>> print(u.Ry.decompose().to_string('unicode'))  # doctest: +SKIP
                       m² kg
       2.1798721×10-¹⁸ ─────
                        s²

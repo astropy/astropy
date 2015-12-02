@@ -55,7 +55,7 @@ This table can be read with the following::
 
   >>> from astropy.io import ascii
   >>> data = ascii.read("sources.dat")  # doctest: +SKIP
-  >>> print data  # doctest: +SKIP
+  >>> print(data)                       # doctest: +SKIP
   obsid redshift  X    Y      object
   ----- -------- ---- ---- -----------
    3102     0.32 4167 4085 Q1250+568-A

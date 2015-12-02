@@ -154,7 +154,7 @@ A dictionary of column data can be used to initialize a |Table|.
 **Specify the column order and optionally the data types**
 ::
 
-  >>> Table(arr, names=('a', 'b', 'c'), dtype=('f8', 'i4', 'S2'))
+  >>> Table(arr, names=('a', 'b', 'c'), dtype=('f8', 'i4', 'S2'))  # doctest: +IGNORE_OUTPUT_3
   <Table length=2>
      a      b    c
   float64 int32 str2
@@ -275,7 +275,7 @@ created using::
 
 From ``arr`` it is simple to create the corresponding |Table| object::
 
-  >>> Table(arr)
+  >>> Table(arr)  # doctest: +IGNORE_OUTPUT_3
   <Table length=2>
     a      b     c
   int32 float64 str2
@@ -299,7 +299,7 @@ table to see what we made.  In real code you might do something like::
 The column names can be changed from the original values by providing the
 ``names`` argument::
 
-  >>> Table(arr, names=('a_new', 'b_new', 'c_new'))
+  >>> Table(arr, names=('a_new', 'b_new', 'c_new'))  # doctest: +IGNORE_OUTPUT_3
   <Table length=2>
   a_new  b_new  c_new
   int32 float64  str2
@@ -312,7 +312,7 @@ The column names can be changed from the original values by providing the
 
 Likewise the data type for each column can by changed with ``dtype``::
 
-  >>> Table(arr, dtype=('f4', 'i4', 'S4'))
+  >>> Table(arr, dtype=('f4', 'i4', 'S4'))  # doctest: +IGNORE_OUTPUT_3
   <Table length=2>
      a      b    c
   float32 int32 str4
@@ -320,7 +320,7 @@ Likewise the data type for each column can by changed with ``dtype``::
       1.0     2    x
       4.0     5    y
 
-  >>> Table(arr, names=('a_new', 'b_new', 'c_new'), dtype=('f4', 'i4', 'S4'))
+  >>> Table(arr, names=('a_new', 'b_new', 'c_new'), dtype=('f4', 'i4', 'S4'))  # doctest: +IGNORE_OUTPUT_3
   <Table length=2>
    a_new  b_new c_new
   float32 int32  str4
@@ -362,7 +362,7 @@ generated as ``col<N>`` where ``<N>`` is the column number.
 **Column names and types specified**
 ::
 
-  >>> Table(arr, names=('a_new', 'b_new', 'c_new'), dtype=('f4', 'i4', 'S4'))
+  >>> Table(arr, names=('a_new', 'b_new', 'c_new'), dtype=('f4', 'i4', 'S4'))  # doctest: +IGNORE_OUTPUT_3
   <Table length=2>
    a_new  b_new c_new
   float32 int32  str4

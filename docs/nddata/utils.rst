@@ -139,11 +139,11 @@ including::
     (25, 20)
 
     >>> # (non-rounded) input position in both the original and cutout arrays
-    >>> print(cutout.input_position_original, cutout.input_position_cutout)    # doctest: +FLOAT_CMP
+    >>> print((cutout.input_position_original, cutout.input_position_cutout))  # doctest: +FLOAT_CMP
     ((49.7, 100.1), (24.700000000000003, 20.099999999999994))
 
     >>> # the origin pixel in both arrays
-    >>> print(cutout.origin_original, cutout.origin_cutout)
+    >>> print((cutout.origin_original, cutout.origin_cutout))
     ((25, 80), (0, 0))
 
     >>> # tuple of slice objects for the original array
@@ -190,7 +190,7 @@ that are smaller than the requested ``size``::
      [ 4.  5.]]
     >>> print(cutout1.shape)
     (2, 2)
-    >>> print(cutout1.position_original, cutout1.position_cutout)
+    >>> print((cutout1.position_original, cutout1.position_cutout))
     ((0, 0), (0, 0))
 
 With ``mode='partial'``, the cutout will never be trimmed.  Instead it
@@ -207,9 +207,9 @@ Note that for the ``'partial'`` mode, the positions (and several other
 attributes) are calculated for on the *valid* (non-filled) cutout
 values::
 
-    >>> print(cutout2.position_original, cutout2.position_cutout)
+    >>> print((cutout2.position_original, cutout2.position_cutout))
     ((0, 0), (1, 1))
-    >>> print(cutout2.origin_original, cutout2.origin_cutout)
+    >>> print((cutout2.origin_original, cutout2.origin_cutout))
     ((0, 0), (1, 1))
     >>> print(cutout2.slices_original)
     (slice(0, 2, None), slice(0, 2, None))

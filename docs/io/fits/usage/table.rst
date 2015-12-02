@@ -76,13 +76,12 @@ table.  To recap, the simple example in the Quick Tutorial::
 
     >>> f = fits.open('bright_stars.fits')  # open a FITS file
     >>> tbdata = f[1].data  # assume the first extension is a table
-    >>> print tbdata[:2]  # show the first two rows
+    >>> print(tbdata[:2])  # show the first two rows
     [(1, 'Sirius', -1.4500000476837158, 'A1V'),
     (2, 'Canopus', -0.73000001907348633, 'F0Ib')]
-
-    >>> print tbdata['mag']  # show the values in field "mag"
+    >>> print(tbdata['mag'])  # show the values in field "mag"
     [-1.45000005 -0.73000002 -0.1 ]
-    >>> print tbdata.field(1)  # columns can be referenced by index too
+    >>> print(tbdata.field(1))  # columns can be referenced by index too
     ['Sirius' 'Canopus' 'Rigil Kent']
 
 Note that in Astropy, when using the ``field()`` method, it is 0-indexed while

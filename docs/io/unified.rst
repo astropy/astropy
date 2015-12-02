@@ -117,7 +117,7 @@ that all supported ASCII table formats will be tried in order to successfully
 parse the input.  For example::
 
   >>> t = Table.read('astropy/io/ascii/tests/t/latex1.tex', format='ascii')
-  >>> print t
+  >>> print(t)
   cola colb colc
   ---- ---- ----
      a    1    2

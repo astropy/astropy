@@ -143,9 +143,9 @@ for a variable length field of int32, The corresponding format spec is,
 e.g. 'PJ(100)'::
 
     >>> f = fits.open('variable_length_table.fits')
-    >>> print f[1].header['tform5']
+    >>> f[1].header['tform5']
     1PI(20)
-    >>> print f[1].data.field(4)[:3]
+    >>> print(f[1].data.field(4)[:3])
     [array([1], dtype=int16) array([88, 2], dtype=int16)
     array([ 1, 88, 3], dtype=int16)]
 
@@ -174,7 +174,7 @@ is regular and the other variable length array::
     ...                                 dtype=np.object))
     >>> c2 = fits.Column(name='xyz', format='2I', array=[[11, 3], [12, 4]])
     >>> tbhdu = fits.BinTableHDU.from_columns([c1, c2])
-    >>> print tbhdu.data
+    >>> print(tbhdu.data)
     FITS_rec([(array([45, 56]), array([11,  3], dtype=int16)),
            (array([11, 12, 13]), array([12,  4], dtype=int16))],
           dtype=[('var', '<i4', 2), ('xyz', '<i2', 2)])
@@ -232,11 +232,11 @@ The content of the HDU can similarly be summarized by using the
 :meth:`HDUList.info` method::
 
     >>> f = fits.open('random_group.fits')
-    >>> print f[0].header['groups']
+    >>> f[0].header['groups']
     True
-    >>> print f[0].header['gcount']
+    >>> f[0].header['gcount']
     7956
-    >>> print f[0].header['pcount']
+    >>> f[0].header['pcount']
     6
     >>> f.info()
     Filename: random_group.fits
@@ -253,7 +253,7 @@ The data part of a random access group HDU is, like other HDUs, in the
 
 Show the data in 100th group, including parameters and data::
 
-    >>> print f[0].data[99]
+    >>> print(f[0].data[99])
     (-8.1987486677035799e-06, 1.2010923615889215e-05,
     -1.011189139244005e-05, 258.0, 2445728., 0.10, array([[[[[ 12.4308672 ,
     0.56860745, 3.99993873],
@@ -276,9 +276,9 @@ The group parameter can be accessed by the :meth:`~GroupData.par` method. Like
 the table :meth:`~FITS_rec.field` method, the argument can be either index or
 name::
 
-    >>> print f[0].data.par(0)[99] # Access group parameter by name or by index
+    >>> f[0].data.par(0)[99]  # Access group parameter by name or by index
     -8.1987486677035799e-06
-    >>> print f[0].data.par('uu--')[99]
+    >>> f[0].data.par('uu--')[99]
     -8.1987486677035799e-06
 
 Note that the parameter name 'date' appears twice. This is a feature in the
@@ -286,13 +286,13 @@ random access group, and it means to add the values together. Thus::
 
     >>> f[0].data.parnames  # get the parameter names
     ['uu--', 'vv--', 'ww--', 'baseline', 'date', 'date']
-    >>> print f[0].data.par(4)[99]  # Duplicate parameter name 'date'
+    >>> f[0].data.par(4)[99]  # Duplicate parameter name 'date'
     2445728.0
-    >>> print f[0].data.par(5)[99]
+    >>> f[0].data.par(5)[99]
     0.10
     >>> # When accessed by name, it adds the values together if the name is
     >>> # shared by more than one parameter
-    >>> print f[0].data.par('date')[99]
+    >>> f[0].data.par('date')[99]
     2445728.10
 
 The :meth:`~GroupData.par` is a method for either the entire data object or one
@@ -300,9 +300,9 @@ data item (a group). So there are two possible ways to get a group parameter
 for a certain group, this is similar to the situation in table data (with its
 :meth:`~FITS_rec.field` method)::
 
-    >>> print f[0].data.par(0)[99]
+    >>> f[0].data.par(0)[99]
     -8.1987486677035799e-06
-    >>> print f[0].data[99].par(0)
+    >>> f[0].data[99].par(0)
     -8.1987486677035799e-06
 
 On the other hand, to modify a group parameter, we can either assign the new
@@ -332,7 +332,7 @@ The image array of the data portion is accessible by the
 :attr:`~GroupData.data` attribute of the data object. A numpy array is
 returned::
 
-    >>> print f[0].data.data[99]
+    >>> print(f[0].data.data[99])
     array([[[[[ 12.4308672 , 0.56860745, 3.99993873],
     [ 12.74043655, 0.31398511, 3.99993873],
     [ 0. , 0. , 3.99993873],
@@ -378,7 +378,7 @@ to create the HDU itself::
     GCOUNT =           10 / number of groups
     PTYPE1 = 'abc '
     PTYPE2 = 'xyz '
-    >>> print hdu.data[:2]
+    >>> print(hdu.data[:2])
     FITS_rec[
     (0.10000000149011612, 42.0, array([[[[ 0., 1., 2., 3., 4.],
     [ 5., 6., 7., 8., 9.]]]], dtype=float32)),
@@ -431,7 +431,7 @@ a FITS file.
 The content of the HDU header may be accessed using the ``.header`` attribute::
 
     >>> f = fits.open('compressed_image.fits')
-    >>> print f[1].header
+    >>> f[1].header
     XTENSION= 'IMAGE   '           / extension type
     BITPIX  =                   16 / array data type
     NAXIS   =                    2 / number of array dimensions
@@ -446,7 +446,7 @@ hidden ``._header`` attribute.  However, all user interface with the HDU header
 should be accomplished through the image header (the ``.header`` attribute)::
 
     >>> f = fits.open('compressed_image.fits')
-    >>> print f[1]._header
+    >>> f[1]._header
     XTENSION= 'BINTABLE'           / binary table extension
     BITPIX  =                    8 / 8-bit bytes
     NAXIS   =                    2 / 2-dimensional binary table

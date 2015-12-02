@@ -205,7 +205,7 @@ Table with those entries masked out by setting the corresponding mask value set 
 ``True``::
 
   >>> dat = ascii.read(weather_data)
-  >>> print dat
+  >>> print(dat)
   day  precip type
   ---- ------ ----
    Mon    1.5 rain
@@ -218,7 +218,7 @@ looks like the following::
 
   >>> dat['precip'].fill_value = -999
   >>> dat['type'].fill_value = 'N/A'
-  >>> print dat.filled()
+  >>> print(dat.filled())
   day  precip type
   ---- ------ ----
    Mon    1.5 rain
@@ -254,7 +254,7 @@ values in with typical placeholders::
   ...          'Tues  -999.0   N/A',
   ...          ' Wed     1.1  snow']
   >>> t = ascii.read(table, fill_values=[('-999.0', '0', 'precip'), ('N/A', '0', 'type')])
-  >>> print t
+  >>> print(t)
   day  precip type
   ---- ------ ----
    Mon    1.5 rain

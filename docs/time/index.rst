@@ -90,10 +90,9 @@ than for ``t`` because they are expressed relative to the TT time scale.  Of
 course, from the numbers or strings one could not tell; one format in which
 this information is kept is the ``fits`` format::
 
-  >>> t2.fits
-  array(['1999-01-01T00:01:04.307(TT)', '2010-01-01T00:01:06.184(TT)'],
-        dtype='|S27')
-  
+  >>> print(t2.fits)
+  ['1999-01-01T00:01:04.307(TT)' '2010-01-01T00:01:06.184(TT)']
+
 Finally, some further examples of what is possible.  For details, see
 the API documentation below.
 
@@ -782,7 +781,7 @@ Use of the |TimeDelta| object is easily illustrated in the few examples below::
   >>> t2 - dt2  # Subtract a TimeDelta from a Time
   <Time object: scale='utc' format='iso' value=2010-01-31 23:59:10.000>
 
-  >>> dt + dt2
+  >>> dt + dt2  # doctest: +FLOAT_CMP
   <TimeDelta object: scale='tai' format='jd' value=31.0005787037>
 
   >>> import numpy as np
@@ -823,7 +822,7 @@ differenced::
 
   >>> dt.tt  # doctest: +FLOAT_CMP
   <TimeDelta object: scale='tt' format='jd' value=364.999999746>
-  >>> dt.tdb
+  >>> dt.tdb  # doctest: +IGNORE_EXCEPTION_DETAIL
   Traceback (most recent call last):
     ...
   ScaleValueError: Cannot convert TimeDelta with scale 'tcg' to scale 'tdb'

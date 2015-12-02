@@ -70,7 +70,7 @@ used with the amplitudes of 1 and 3, and 0.2 is used with amplitudes 2 and 4.
 If any of the parameters have incompatible values this will result in an
 error::
 
-    >>> g = Gaussian1D(amplitude=1, mean=[1, 2], stddev=[1, 2, 3])
+    >>> g = Gaussian1D(amplitude=1, mean=[1, 2], stddev=[1, 2, 3])  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
     InputParameterError: Parameter 'mean' of shape (2,) cannot be broadcast
@@ -114,7 +114,7 @@ If instead we treat the rows as values for two different model sets, this
 particular instantiation will fail, since only one value is given for mean::
 
     >>> g = Gaussian1D(amplitude=[[1, 2], [3, 4]], mean=0.1, stddev=[0.1, 0.2],
-    ...                n_models=2)
+    ...                n_models=2)  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
     InputParameterError: All parameter values must be arrays of dimension at
@@ -265,7 +265,7 @@ The examples here assume this import statement was executed::
       >>> x = np.arange(1, 10, .1)
       >>> g1 = Gaussian1D(amplitude=[10, 9], mean=[2, 3],
       ...                 stddev=[0.15, .1], n_models=2)
-      >>> print g1
+      >>> print(g1)
       Model: Gaussian1D
       Inputs: ('x',)
       Outputs: ('y',)
@@ -279,13 +279,13 @@ The examples here assume this import statement was executed::
   Evaluate all models in the set on one set of input coordinates::
 
       >>> y = g1(x, model_set_axis=False)  # broadcast the array to all models
-      >>> print(y.shape)
+      >>> y.shape
       (2, 90)
 
   or different inputs for each model in the set::
 
       >>> y = g1([x, x + 3])
-      >>> print(y.shape)
+      >>> y.shape
       (2, 90)
 
 .. plot::
@@ -323,7 +323,7 @@ The examples here assume this import statement was executed::
 
       >>> p1 = Polynomial1D(degree=1, n_models=5)
       >>> p1.c1 = [0, 1, 2, 3, 4]
-      >>> print p1
+      >>> print(p1)
       Model: Polynomial1D
       Inputs: ('x',)
       Outputs: ('y',)
@@ -365,5 +365,5 @@ The examples here assume this import statement was executed::
              [  24.,   26.,   28.,   30.,   32.,   34.],
              [  54.,   57.,   60.,   63.,   66.,   69.],
              [  96.,  100.,  104.,  108.,  112.,  116.]])
-      >>> print(y.shape)
+      >>> y.shape
       (5, 6)

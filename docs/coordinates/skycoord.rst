@@ -468,7 +468,7 @@ Transforming to a |SkyCoord| instance is an easy way of ensuring that two
 coordinates are in the exact same reference frame::
 
   >>> sc2 = SkyCoord(3, 4, frame='fk4', unit='deg', obstime='J1978.123', equinox='B1960.0')
-  >>> sc.transform_to(sc2) # doctest: +FLOAT_CMP
+  >>> sc.transform_to(sc2)  # doctest: +FLOAT_CMP
   <SkyCoord (FK4: equinox=B1960.000, obstime=J1978.123): (ra, dec) in deg
       (0.48726331438, 1.77731617297)>
 
