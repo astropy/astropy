@@ -14,18 +14,20 @@ the 1.0.x series of releases.
 
 In particular, this release includes:
 
-* support for supergalactic and ecliptic coordinates (see
+* Support for supergalactic and ecliptic coordinates (see
   :ref:`whatsnew-1.1-coords`)
-* new functions to automatically determine histogram bins, including the
+* New functions to automatically determine histogram bins, including the
   Bayesian blocks algorithm (see :ref:`whatsnew-1.1-hist`)
-* a new interface to transform between :class:`~astropy.table.Table` objects
+* A new interface to transform between :class:`~astropy.table.Table` objects
   and pandas `DataFrame`_ objects (see :ref:`whatsnew-1.1-pandas`)
-* support for table indexing (see :ref:`whatsnew-1.1-table-indexing`)
-* a new ``info`` attribute to get summary information about tables and
+* Support for table indexing (see :ref:`whatsnew-1.1-table-indexing`)
+* A new ``info`` attribute to get summary information about tables and
   columns (:ref:`whatsnew-1.1-table-info`)
-* support for new units, including logarithmic units such as magnitudes, dex,
+* A new :meth:`~astropy.table.Table.show_in_notebook` method to show a table
+  in Jupyter/IPython notebooks with additional interactivity features
+* Support for new units, including logarithmic units such as magnitudes, dex,
   and decibels (see :ref:`whatsnew-1.1-units`)
-* support for the Planck 2015 cosmology and significant performance
+* Support for the Planck 2015 cosmology and significant performance
   improvements in the cosmology sub-package (see :ref:`whatsnew-1.1-cosmo`).
 
 In addition to these major changes, Astropy 1.1 includes a large number of
@@ -221,6 +223,21 @@ information about a table and columns.  For the table of ages defined above::
    length = 4
 
 For more information, see :ref:`table-summary-information`.
+
+
+.. _whatsnew-1.1-table-show-in-notebook:
+
+``show_in_notebook`` method
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:class:`~astropy.table.Table` now has a
+:meth:`~astropy.table.Table.show_in_notebook` method that makes viewing tables
+in Jupyter/IPython notebooks more convenient.  Simply call the method at the
+bottom of a cell (or use the :func:`IPython.display.display` function), and the
+output of the cell will show the table with a searchable, sortable, and
+resizable interface similar to what's available by doing
+``tab.show_in_browser(jsviewer=True)``.
+
 
 .. _whatsnew-1.1-units:
 
