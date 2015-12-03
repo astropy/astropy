@@ -56,10 +56,6 @@ New Features
     cosmologies due to implementing Cython scalar versions of
     ``FLRW.inv_efunc``.[#4127]
 
-  - ``FLRW._tfunc`` and ``FLRW._xfunc`` are marked as deprecated.  Users
-    should use the new public interfaces ``FLRW.lookback_time_integrand``
-    and ``FLRW.abs_distance_integrand`` instead. [#3767]
-
 - ``astropy.io.ascii``
 
   - Automatically use ``guess=False`` when reading if the file ``format`` is
@@ -358,6 +354,10 @@ API changes
 - ``astropy.coordinates``
 
 - ``astropy.cosmology``
+
+  - ``FLRW._tfunc`` and ``FLRW._xfunc`` are marked as deprecated.  Users
+    should use the new public interfaces ``FLRW.lookback_time_integrand``
+    and ``FLRW.abs_distance_integrand`` instead. [#3767]
 
 - ``astropy.io.ascii``
 
