@@ -38,18 +38,6 @@ if hasattr(sys, 'float_repr_style'):
 else:
     legacy_float_repr = sys.platform.startswith('win')
 
-join = os.path.join
-
-
-# Update this to use py.test's tmpdir functionality
-def setup_module():
-    global TMP_DIR
-    TMP_DIR = tempfile.mkdtemp()
-
-
-def teardown_module():
-    shutil.rmtree(TMP_DIR)
-
 
 def assert_validate_schema(filename, version):
     if sys.platform.startswith('win'):
@@ -88,7 +76,7 @@ def test_parse_single_table3():
         table_number=3, pedantic=False)
 
 
-def _test_regression(_python_based=False, binary_mode=1):
+def _test_regression(tmpdir, _python_based=False, binary_mode=1):
     # Read the VOTABLE
     votable = parse(
         get_pkg_data_filename('data/regression.xml'),
@@ -135,11 +123,10 @@ def _test_regression(_python_based=False, binary_mode=1):
         dtypes = new_dtypes
     assert table.array.dtype == dtypes
 
-    votable.to_xml(join(TMP_DIR, "regression.tabledata.xml"),
+    votable.to_xml(str(tmpdir.join("regression.tabledata.xml")),
                    _debug_python_based_parser=_python_based)
-    assert_validate_schema(
-        join(TMP_DIR, "regression.tabledata.xml"),
-        votable.version)
+    assert_validate_schema(str(tmpdir.join("regression.tabledata.xml")),
+                           votable.version)
 
     if binary_mode == 1:
         votable.get_first_table().format = 'binary'
@@ -150,22 +137,20 @@ def _test_regression(_python_based=False, binary_mode=1):
         votable.version = '1.3'
 
     # Also try passing a file handle
-    with open(join(TMP_DIR, "regression.binary.xml"), "wb") as fd:
+    with open(str(tmpdir.join("regression.binary.xml")), "wb") as fd:
         votable.to_xml(fd, _debug_python_based_parser=_python_based)
-    assert_validate_schema(
-        join(TMP_DIR, "regression.binary.xml"),
-        votable.version)
+    assert_validate_schema(str(tmpdir.join("regression.binary.xml")),
+                           votable.version)
     # Also try passing a file handle
-    with open(join(TMP_DIR, "regression.binary.xml"), "rb") as fd:
+    with open(str(tmpdir.join("regression.binary.xml")), "rb") as fd:
         votable2 = parse(fd, pedantic=False,
                          _debug_python_based_parser=_python_based)
     votable2.get_first_table().format = 'tabledata'
-    votable2.to_xml(join(TMP_DIR, "regression.bin.tabledata.xml"),
+    votable2.to_xml(str(tmpdir.join("regression.bin.tabledata.xml")),
                     _astropy_version="testing",
                     _debug_python_based_parser=_python_based)
-    assert_validate_schema(
-        join(TMP_DIR, "regression.bin.tabledata.xml"),
-        votable.version)
+    assert_validate_schema(str(tmpdir.join("regression.bin.tabledata.xml")),
+                           votable.version)
 
     with io.open(
         get_pkg_data_filename(
@@ -173,9 +158,8 @@ def _test_regression(_python_based=False, binary_mode=1):
                 votable.version)),
         'rt', encoding='utf-8') as fd:
         truth = fd.readlines()
-    with io.open(
-        join(TMP_DIR, "regression.bin.tabledata.xml"),
-        'rt', encoding='utf-8') as fd:
+    with io.open(str(tmpdir.join("regression.bin.tabledata.xml")),
+                 'rt', encoding='utf-8') as fd:
         output = fd.readlines()
 
     # If the lines happen to be different, print a diff
@@ -190,11 +174,11 @@ def _test_regression(_python_based=False, binary_mode=1):
 
     # Test implicit gzip saving
     votable2.to_xml(
-        join(TMP_DIR, "regression.bin.tabledata.xml.gz"),
+        str(tmpdir.join("regression.bin.tabledata.xml.gz")),
         _astropy_version="testing",
         _debug_python_based_parser=_python_based)
     with gzip.GzipFile(
-        join(TMP_DIR, "regression.bin.tabledata.xml.gz"), 'rb') as gzfd:
+        str(tmpdir.join("regression.bin.tabledata.xml.gz")), 'rb') as gzfd:
         output = gzfd.readlines()
     output = [x.decode('utf-8').rstrip() for x in output]
     truth = [x.rstrip() for x in truth]
@@ -203,18 +187,18 @@ def _test_regression(_python_based=False, binary_mode=1):
 
 
 @pytest.mark.xfail(str('legacy_float_repr'))
-def test_regression():
-    _test_regression(False)
+def test_regression(tmpdir):
+    _test_regression(tmpdir, False)
 
 
 @pytest.mark.xfail(str('legacy_float_repr'))
-def test_regression_python_based_parser():
-    _test_regression(True)
+def test_regression_python_based_parser(tmpdir):
+    _test_regression(tmpdir, True)
 
 
 @pytest.mark.xfail(str('legacy_float_repr'))
-def test_regression_binary2():
-    _test_regression(False, 2)
+def test_regression_binary2(tmpdir):
+    _test_regression(tmpdir, False, 2)
 
 
 class TestFixups:
@@ -751,7 +735,7 @@ def test_too_many_columns():
         pedantic=False)
 
 
-def test_build_from_scratch():
+def test_build_from_scratch(tmpdir):
     # Create a new VOTable file...
     votable = tree.VOTableFile()
 
@@ -778,9 +762,9 @@ def test_build_from_scratch():
 
     # Now write the whole thing to a file.
     # Note, we have to use the top-level votable file object
-    votable.to_xml(os.path.join(TMP_DIR, "new_votable.xml"))
+    votable.to_xml(str(tmpdir.join("new_votable.xml")))
 
-    votable = parse(os.path.join(TMP_DIR, "new_votable.xml"))
+    votable = parse(str(tmpdir.join("new_votable.xml")))
 
     table = votable.get_first_table()
     assert_array_equal(
@@ -828,18 +812,19 @@ def test_validate():
     assert truth == output
 
 
-def test_gzip_filehandles():
+def test_gzip_filehandles(tmpdir):
     votable = parse(
         get_pkg_data_filename('data/regression.xml'),
         pedantic=False)
 
-    with open(join(TMP_DIR, "regression.compressed.xml"), 'wb') as fd:
+
+    with open(str(tmpdir.join("regression.compressed.xml")), 'wb') as fd:
         votable.to_xml(
             fd,
             compressed=True,
             _astropy_version="testing")
 
-    with open(join(TMP_DIR, "regression.compressed.xml"), 'rb') as fd:
+    with open(str(tmpdir.join("regression.compressed.xml")), 'rb') as fd:
         votable = parse(
             fd,
             pedantic=False)
