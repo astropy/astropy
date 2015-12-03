@@ -283,13 +283,17 @@ def test_select_columns_by_name():
 
 
 class TestParse:
-    def setup_class(self):
+    def setup_class(self, tmpdir):
         self.votable = parse(
             get_pkg_data_filename('data/regression.xml'),
             pedantic=False)
         self.table = self.votable.get_first_table()
         self.array = self.table.array
         self.mask = self.table.array.mask
+        self.tmpdir = tmpdir
+
+    def tmpdir_join_str(self, joinwith):
+        return str(self.tmpdir.join(joinwith))
 
     def test_string_test(self):
         assert issubclass(self.array['string_test'].dtype.type,
@@ -616,8 +620,9 @@ class TestThroughTableData(TestParse):
         votable = parse(
             get_pkg_data_filename('data/regression.xml'),
             pedantic=False)
-        votable.to_xml(join(TMP_DIR, "test_through_tabledata.xml"))
-        self.votable = parse(join(TMP_DIR, "test_through_tabledata.xml"),
+
+        votable.to_xml(self.tmpdir_join_str("test_through_tabledata.xml"))
+        self.votable = parse(self.tmpdir_join_str("test_through_tabledata.xml"),
                            pedantic=False)
         self.table = self.votable.get_first_table()
         self.array = self.table.array
@@ -635,7 +640,7 @@ class TestThroughTableData(TestParse):
 
     def test_schema(self):
         assert_validate_schema(
-            join(TMP_DIR, "test_through_tabledata.xml"), '1.1')
+            self.tmpdir_join_str("test_through_tabledata.xml"), '1.1')
 
 
 class TestThroughBinary(TestParse):
@@ -644,9 +649,10 @@ class TestThroughBinary(TestParse):
             get_pkg_data_filename('data/regression.xml'),
             pedantic=False)
         votable.get_first_table().format = 'binary'
-        votable.to_xml(join(TMP_DIR, "test_through_binary.xml"))
-        self.votable = parse(join(TMP_DIR, "test_through_binary.xml"),
-                           pedantic=False)
+
+        votable.to_xml(self.tmpdir_join_str("test_through_binary.xml"))
+        self.votable = parse(self.tmpdir_join_str("test_through_binary.xml"),
+                             pedantic=False)
         self.table = self.votable.get_first_table()
         self.array = self.table.array
         self.mask = self.table.array.mask
@@ -673,8 +679,9 @@ class TestThroughBinary2(TestParse):
         votable.get_first_table()._config['version_1_3_or_later'] = True
         votable.get_first_table().format = 'binary2'
 
-        votable.to_xml(join(TMP_DIR, "test_through_binary2.xml"))
-        self.votable = parse(join(TMP_DIR, "test_through_binary2.xml"),
+
+        votable.to_xml(self.tmpdir_join_str("test_through_binary2.xml"))
+        self.votable = parse(self.tmpdir_join_str("test_through_binary2.xml"),
                            pedantic=False)
         self.table = self.votable.get_first_table()
         self.array = self.table.array
