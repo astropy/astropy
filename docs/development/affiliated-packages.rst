@@ -133,7 +133,9 @@ Starting a new package
 
    You can also uncomment the line ``enable_deprecations_as_exceptions()`` if
    you want deprecation warnings to make tests fail. There are also
-   options to customize the information to be printed when running the tests.
+   options to customize the information to be printed when running the
+   tests. The package template has comments in the ``conftest.py`` file that
+   indicate what they are.
 
 #. If you are interested in accurate coverage test results, copy over the
    ``coveragerc`` and the ``setup_package.py`` files to your repository (the
