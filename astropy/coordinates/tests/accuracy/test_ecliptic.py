@@ -71,6 +71,7 @@ def test_arraytransforms():
     distance = np.ones((4, ), dtype=float) * u.au
 
     test_icrs = ICRS(ra=ra, dec=dec, distance=distance)
+    test_gcrs = GCRS(test_icrs.data)
 
     bary_arr = test_icrs.transform_to(BarycentricTrueEcliptic)
     assert bary_arr.shape == ra.shape
@@ -78,12 +79,18 @@ def test_arraytransforms():
     helio_arr = test_icrs.transform_to(HeliocentricTrueEcliptic)
     assert helio_arr.shape == ra.shape
 
-    # now check that we also can go back the other way without problems
-    barytoicrs = bary_arr.transform_to(ICRS)
-    assert barytoicrs.shape == test_icrs.shape
+    geo_arr = test_gcrs.transform_to(GeocentricTrueEcliptic)
+    assert geo_arr.shape == ra.shape
 
-    heliotoicrs = helio_arr.transform_to(ICRS)
-    assert heliotoicrs.shape == test_icrs.shape
+    # now check that we also can go back the other way without shape problems
+    bary_icrs = bary_arr.transform_to(ICRS)
+    assert bary_icrs.shape == test_icrs.shape
+
+    helio_icrs = helio_arr.transform_to(ICRS)
+    assert helio_icrs.shape == test_icrs.shape
+
+    geo_gcrs = geo_arr.transform_to(GCRS)
+    assert geo_gcrs.shape == test_gcrs.shape
 
 def test_roundtrip_scalar():
     icrs = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.au)
