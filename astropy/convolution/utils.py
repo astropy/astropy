@@ -2,9 +2,12 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import time
+
 import numpy as np
 from astropy import units as u
-import time
+
+from .convolve import convolve_fft
 
 from ..modeling.core import FittableModel, custom_model
 from ..extern.six.moves import range
