@@ -59,3 +59,23 @@ def test_ecl_geo():
     gecl = gcrs.transform_to(GeocentricTrueEcliptic)
 
     assert quantity_allclose(gecl.distance, gcrs.distance)
+
+
+def test_arraytransforms():
+    """
+    Test that transforms to/from ecliptic coordinates work on array coordinates
+    (not testing for accuracy.)
+    """
+    ra = np.ones((3,), dtype=float) * u.deg
+    dec = np.zeros((3,), dtype=float) * u.deg
+    distance = np.ones((3, ), dtype=float) * u.au
+
+    test_icrs = ICRS(ra=ra, dec=dec, distance=distance)
+
+    helio_arr = test_icrs.transform_to(HeliocentricTrueEcliptic)
+    assert len(helio_arr) == 3
+    #really, if hasn't thrown an exception, it passes
+
+    bary_arr = test_icrs.transform_to(BarycentricTrueEcliptic)
+    assert len(bary_arr) == 3
+    #really, if hasn't thrown an exception, it passes

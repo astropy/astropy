@@ -210,23 +210,3 @@ def test_obstime():
     # because the obstime is different
     assert icrs_50.ra.degree != icrs_75.ra.degree
     assert icrs_50.dec.degree != icrs_75.dec.degree
-
-
-def test_arraytransforms():
-    """
-    Test that transforms on arrays of coordinates function (not testing for
-    accuracy.)
-    """
-    ra = np.ones((3,), dtype=float) * u.deg
-    dec = np.zeros((3,), dtype=float) * u.deg
-    distance = np.ones((3, ), dtype=float) * u.au
-
-    test_icrs = ICRS(ra=ra, dec=dec, distance=distance)
-
-    helio_arr = test_icrs.transform_to(HeliocentricTrueEcliptic)
-    assert len(helio_arr) == 3
-    #really, if hasn't thrown an exception, it passes
-
-    bary_arr = test_icrs.transform_to(BarycentricTrueEcliptic)
-    assert len(bary_arr) == 3
-    #really, if hasn't thrown an exception, it passes
