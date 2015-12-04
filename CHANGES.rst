@@ -154,7 +154,7 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Nothing changed yet.
+- Updated bundled astropy-helpers to v1.0.6. [#4372]
 
 
 1.0.6 (2015-10-22)
