@@ -59,3 +59,51 @@ def test_ecl_geo():
     gecl = gcrs.transform_to(GeocentricTrueEcliptic)
 
     assert quantity_allclose(gecl.distance, gcrs.distance)
+
+
+def test_arraytransforms():
+    """
+    Test that transforms to/from ecliptic coordinates work on array coordinates
+    (not testing for accuracy.)
+    """
+    ra = np.ones((4, ), dtype=float) * u.deg
+    dec = 2*np.ones((4, ), dtype=float) * u.deg
+    distance = np.ones((4, ), dtype=float) * u.au
+
+    test_icrs = ICRS(ra=ra, dec=dec, distance=distance)
+    test_gcrs = GCRS(test_icrs.data)
+
+    bary_arr = test_icrs.transform_to(BarycentricTrueEcliptic)
+    assert bary_arr.shape == ra.shape
+
+    helio_arr = test_icrs.transform_to(HeliocentricTrueEcliptic)
+    assert helio_arr.shape == ra.shape
+
+    geo_arr = test_gcrs.transform_to(GeocentricTrueEcliptic)
+    assert geo_arr.shape == ra.shape
+
+    # now check that we also can go back the other way without shape problems
+    bary_icrs = bary_arr.transform_to(ICRS)
+    assert bary_icrs.shape == test_icrs.shape
+
+    helio_icrs = helio_arr.transform_to(ICRS)
+    assert helio_icrs.shape == test_icrs.shape
+
+    geo_gcrs = geo_arr.transform_to(GCRS)
+    assert geo_gcrs.shape == test_gcrs.shape
+
+def test_roundtrip_scalar():
+    icrs = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.au)
+    gcrs = GCRS(icrs.cartesian)
+
+    bary = icrs.transform_to(BarycentricTrueEcliptic)
+    helio = icrs.transform_to(HeliocentricTrueEcliptic)
+    geo = gcrs.transform_to(GeocentricTrueEcliptic)
+
+    bary_icrs = bary.transform_to(ICRS)
+    helio_icrs = helio.transform_to(ICRS)
+    geo_gcrs = geo.transform_to(GCRS)
+
+    assert quantity_allclose(bary_icrs.cartesian.xyz, icrs.cartesian.xyz)
+    assert quantity_allclose(helio_icrs.cartesian.xyz, icrs.cartesian.xyz)
+    assert quantity_allclose(geo_gcrs.cartesian.xyz, gcrs.cartesian.xyz)
