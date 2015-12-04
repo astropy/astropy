@@ -84,3 +84,15 @@ def test_arraytransforms():
 
     heliotoicrs = helio_arr.transform_to(ICRS)
     assert heliotoicrs.shape == test_icrs.shape
+
+def test_roundtrip_scalar():
+    icrs = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.au)
+
+    bary = test_icrs.transform_to(BarycentricTrueEcliptic)
+    helio = test_icrs.transform_to(HeliocentricTrueEcliptic)
+
+    bary_icrs = bary.transform_to(ICRS)
+    helio_icrs = helio.transform_to(ICRS)
+
+    assert quantity_allclose(bary_icrs.cartesian.xyz, icrs.cartesian.xyz)
+    assert quantity_allclose(helio_icrs.cartesian.xyz, icrs.cartesian.xyz)
