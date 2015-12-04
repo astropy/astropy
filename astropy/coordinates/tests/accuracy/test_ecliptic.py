@@ -67,15 +67,25 @@ def test_arraytransforms():
     (not testing for accuracy.)
     """
     ra = np.ones((3,), dtype=float) * u.deg
-    dec = np.zeros((3,), dtype=float) * u.deg
-    distance = np.ones((3, ), dtype=float) * u.au
+    dec = 2*np.ones((3,), dtype=float) * u.deg
+    distance = np.ones((3,), dtype=float) * u.au
 
     test_icrs = ICRS(ra=ra, dec=dec, distance=distance)
 
     helio_arr = test_icrs.transform_to(HeliocentricTrueEcliptic)
-    assert len(helio_arr) == 3
-    #really, if hasn't thrown an exception, it passes
+    assert helio_arr.shape == ra.shape
 
     bary_arr = test_icrs.transform_to(BarycentricTrueEcliptic)
-    assert len(bary_arr) == 3
-    #really, if hasn't thrown an exception, it passes
+    assert bary_arr.shape == ra.shape
+
+    # now check that we also can go back the other way without problems
+
+    heliotoicrs = helio_arr.transform_to(ICRS)
+    assert quantity_allclose(ra, heliotoicrs.ra)
+    assert quantity_allclose(dec, heliotoicrs.dec)
+    assert quantity_allclose(distance, heliotoicrs.distance)
+
+    barytoicrs = bary_arr.transform_to(ICRS)
+    assert quantity_allclose(ra, barytoicrs.ra)
+    assert quantity_allclose(dec, barytoicrs.dec)
+    assert quantity_allclose(distance, barytoicrs.distance)
