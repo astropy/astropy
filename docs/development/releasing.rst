@@ -119,11 +119,19 @@ procedure is that ensures a consistent release process each time.
 
  17. Create the source distribution by doing::
 
-         $ python setup.py sdist
+         $ git clean -dfx  # just in case
+         $ python setup.py build sdist
 
      Copy the produced ``.tar.gz`` somewhere and verify that you can unpack it,
      build it, and get all the tests to pass.  It would be best to create a new
      virtualenv in which to do this.
+
+     .. note::
+
+         In the future, the ``build`` command should run automatically as a
+         prerequisite for ``sdist``.  But for now, make sure to run it
+         whenever running ``sdist`` to ensure that all Cython sources and
+         other generated files are built.
 
  18. Register the release on PyPI with::
 
@@ -133,7 +141,7 @@ procedure is that ensures a consistent release process each time.
      the sdist command, which is necessary for the upload command to know
      which distribution to upload::
 
-         $ python setup.py sdist upload --sign
+         $ python setup.py build sdist upload --sign
 
  20. Go to https://pypi.python.org/pypi?:action=pkg_edit&name=astropy
      and ensure that only the most recent releases in each actively maintained
