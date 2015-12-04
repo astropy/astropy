@@ -639,7 +639,7 @@ class TestThroughTableData(TestParse):
         # have to use an actual file because assert_validate_schema only works
         # on filenames, not file-like objects
         fn = str(tmpdir.join("test_through_tabledata.xml"))
-        with open(fn, 'w') as f:
+        with open(fn, 'wb') as f:
             f.write(self.xmlout.getvalue())
         assert_validate_schema(fn, '1.1')
 
