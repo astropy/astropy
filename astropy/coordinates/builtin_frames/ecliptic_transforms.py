@@ -19,6 +19,7 @@ from .icrs import ICRS
 from .gcrs import GCRS
 from .ecliptic import GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic
 from .utils import cartrepr_from_matmul, get_jd12
+from ..errors import UnitsError
 
 
 def _ecliptic_rotation_matrix(equinox):
@@ -67,8 +68,16 @@ def baryecliptic_to_icrs(from_coo, to_frame):
     return icrs_to_baryecliptic(to_frame, from_coo).T
 
 
+_NEED_ORIGIN_HINT = ("The input {0} coordinates do not have length units. This "
+                     "probably means you created coordinates with lat/lon but "
+                     "no distance.  Heliocentric<->ICRS transforms cannot "
+                     "function in this case because there is an origin shift.")
+
 @frame_transform_graph.transform(FunctionTransform, ICRS, HeliocentricTrueEcliptic)
 def icrs_to_helioecliptic(from_coo, to_frame):
+    if not u.m.is_equivalent(from_coo.cartesian.x.unit):
+        raise UnitsError(_NEED_ORIGIN_HINT.format(from_coo.__class__.__name__))
+
     pvh, pvb = erfa.epv00(*get_jd12(to_frame.equinox, 'tdb'))
     delta_bary_to_helio = pvh[..., 0, :] - pvb[..., 0, :]
 
@@ -85,6 +94,8 @@ def icrs_to_helioecliptic(from_coo, to_frame):
 
 @frame_transform_graph.transform(FunctionTransform, HeliocentricTrueEcliptic, ICRS)
 def helioecliptic_to_icrs(from_coo, to_frame):
+    if not u.m.is_equivalent(from_coo.cartesian.x.unit):
+        raise UnitsError(_NEED_ORIGIN_HINT.format(from_coo.__class__.__name__))
 
     # first un-precess from ecliptic to ICRS orientation
     rmat = _ecliptic_rotation_matrix(from_coo.equinox)
