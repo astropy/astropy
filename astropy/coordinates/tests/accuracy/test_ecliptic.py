@@ -87,12 +87,16 @@ def test_arraytransforms():
 
 def test_roundtrip_scalar():
     icrs = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.au)
+    gcrs = GCRS(icrs.cartesian)
 
-    bary = test_icrs.transform_to(BarycentricTrueEcliptic)
-    helio = test_icrs.transform_to(HeliocentricTrueEcliptic)
+    bary = icrs.transform_to(BarycentricTrueEcliptic)
+    helio = icrs.transform_to(HeliocentricTrueEcliptic)
+    geo = gcrs.transform_to(GeocentricTrueEcliptic)
 
     bary_icrs = bary.transform_to(ICRS)
     helio_icrs = helio.transform_to(ICRS)
+    geo_gcrs = geo.transform_to(GCRS)
 
     assert quantity_allclose(bary_icrs.cartesian.xyz, icrs.cartesian.xyz)
     assert quantity_allclose(helio_icrs.cartesian.xyz, icrs.cartesian.xyz)
+    assert quantity_allclose(geo_gcrs.cartesian.xyz, gcrs.cartesian.xyz)

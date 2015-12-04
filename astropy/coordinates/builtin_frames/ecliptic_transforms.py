@@ -44,7 +44,7 @@ def gcrs_to_geoecliptic(from_coo, to_frame):
 
 @frame_transform_graph.transform(FunctionTransform, GeocentricTrueEcliptic, GCRS)
 def geoecliptic_to_gcrs(from_coo, to_frame):
-    rmat = _ecliptic_rotation_matrix(to_frame.equinox)
+    rmat = _ecliptic_rotation_matrix(from_coo.equinox)
     newrepr = cartrepr_from_matmul(rmat, from_coo, transpose=True)
 
     if np.all(from_coo.equinox == to_frame.obstime):
