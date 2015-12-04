@@ -93,6 +93,6 @@ def helioecliptic_to_icrs(from_coo, to_frame):
     # now offset back to barycentric, which is the correct center for ICRS
     pvh, pvb = erfa.epv00(*get_jd12(from_coo.equinox, 'tdb'))
     delta_bary_to_helio = pvh[..., 0, :] - pvb[..., 0, :]
-    newrepr = CartesianRepresentation(intermed_repr.cartesian.xyz - delta_bary_to_helio*u.au)
+    newrepr = CartesianRepresentation((intermed_repr.to_cartesian().xyz.T - delta_bary_to_helio*u.au).T)
 
     return to_frame.realize_frame(newrepr)

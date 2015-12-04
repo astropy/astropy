@@ -66,26 +66,21 @@ def test_arraytransforms():
     Test that transforms to/from ecliptic coordinates work on array coordinates
     (not testing for accuracy.)
     """
-    ra = np.ones((3,), dtype=float) * u.deg
-    dec = 2*np.ones((3,), dtype=float) * u.deg
-    distance = np.ones((3,), dtype=float) * u.au
+    ra = np.ones((4, ), dtype=float) * u.deg
+    dec = 2*np.ones((4, ), dtype=float) * u.deg
+    distance = np.ones((4, ), dtype=float) * u.au
 
     test_icrs = ICRS(ra=ra, dec=dec, distance=distance)
-
-    helio_arr = test_icrs.transform_to(HeliocentricTrueEcliptic)
-    assert helio_arr.shape == ra.shape
 
     bary_arr = test_icrs.transform_to(BarycentricTrueEcliptic)
     assert bary_arr.shape == ra.shape
 
+    helio_arr = test_icrs.transform_to(HeliocentricTrueEcliptic)
+    assert helio_arr.shape == ra.shape
+
     # now check that we also can go back the other way without problems
+    barytoicrs = bary_arr.transform_to(ICRS)
+    assert barytoicrs.shape == test_icrs.shape
 
     heliotoicrs = helio_arr.transform_to(ICRS)
-    assert quantity_allclose(ra, heliotoicrs.ra)
-    assert quantity_allclose(dec, heliotoicrs.dec)
-    assert quantity_allclose(distance, heliotoicrs.distance)
-
-    barytoicrs = bary_arr.transform_to(ICRS)
-    assert quantity_allclose(ra, barytoicrs.ra)
-    assert quantity_allclose(dec, barytoicrs.dec)
-    assert quantity_allclose(distance, barytoicrs.distance)
+    assert heliotoicrs.shape == test_icrs.shape
