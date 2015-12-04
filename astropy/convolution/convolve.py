@@ -52,7 +52,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
                 Set values outside the array to the nearest ``array``
                 value.
     fill_value : float, optional
-        The value to use outside the array when using boundary='fill'
+        The value to use outside the array when using ``boundary='fill'``
     normalize_kernel : bool, optional
         Whether to normalize the kernel prior to convolving
 
@@ -286,13 +286,13 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     Other Parameters
     ----------------
     fft_pad : bool, optional
-        Default on.  Zero-pad image to the nearest 2^n.  With boundary='wrap',
-        this will be disabled.
+        Default on.  Zero-pad image to the nearest 2^n.  With
+        ``boundary='wrap'``, this will be disabled.
     psf_pad : bool, optional
         Zero-pad image to be at least the sum of the image sizes to avoid
         edge-wrapping when smoothing.  This is enabled by default with
-        `boundary='fill'`, but it can be overridden with a boolean option.
-        `boundary='wrap'` and `psf_pad=True` are not compatible.
+        ``boundary='fill'``, but it can be overridden with a boolean option.
+        ``boundary='wrap'`` and `psf_pad=True` are not compatible.
     crop : bool, optional
         Default on.  Return an image of the size of the largest input image.
         If the images are asymmetric in opposite directions, will return the
