@@ -9,7 +9,7 @@ import ah_bootstrap
 from setuptools import setup
 
 from astropy_helpers.setup_helpers import (
-    register_commands, adjust_compiler, get_package_info, get_debug_option)
+    register_commands, get_package_info, get_debug_option)
 try:
     from astropy_helpers.distutils_helpers import is_distutils_display_option
 except:
@@ -37,10 +37,6 @@ DOWNLOAD_BASE_URL = 'http://pypi.python.org/packages/source/a/astropy'
 # invoking any other functionality from distutils since it can potentially
 # modify distutils' behavior.
 cmdclassd = register_commands(NAME, VERSION, RELEASE)
-
-# Adjust the compiler in case the default on this platform is to use a
-# broken one.
-adjust_compiler(NAME)
 
 # Freeze build information in version.py
 generate_version_py(NAME, VERSION, RELEASE, get_debug_option(NAME),
