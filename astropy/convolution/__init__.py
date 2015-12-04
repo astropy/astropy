@@ -9,7 +9,7 @@ from .utils import discretize_model
 
 try:
     # Not guaranteed available at setup time
-    from .convolve import convolve, convolve_fft, profiler_report
+    from .convolve import convolve, convolve_fft
 except ImportError:
     if not _ASTROPY_SETUP_:
         raise
