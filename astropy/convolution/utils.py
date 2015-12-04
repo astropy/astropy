@@ -393,6 +393,6 @@ def profile_memory_usage_convolve_fft(sizes=[256,300,512,600,1000,1024,2048],
                           " Time use was {meantime:6.3f}"
                           .format(**these_results))
 
-                    results.append(these_results) 
+                    results.append(these_results)
 
     return results
