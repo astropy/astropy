@@ -3,6 +3,8 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import numpy as np
+from astropy import units as u
+import time
 
 from ..modeling.core import FittableModel, custom_model
 from ..extern.six.moves import range
@@ -299,3 +301,98 @@ def discretize_integrate_2D(model, x_range, y_range):
             values[j, i] = dblquad(lambda y, x: model(x, y), x[i], x[i + 1],
                                    lambda x: y[j], lambda x: y[j + 1])[0]
     return values
+
+def profile_memory_usage_convolve_fft(sizes=[256,300,512,600,1000,1024,2048],
+                                      kernelsizefractions=[1./8., 1./4., 1./2., 1],
+                                      dtype='float64',
+                                      complex_dtype='complex',
+                                     ):
+    """
+    Utility to profile the memory usage of convolve_fft.  Will loop over a
+    range of parameters and image sizes and keep track of how much memory is
+    used and how long the convolutions take.
+
+    Requires memory_profiler and timeit
+
+    Parameters
+    ----------
+    sizes : list
+        List of symmetric 2D image sizes.  i.e., a size of 256 implies a
+        256x256 image.
+    kernelsizefractions : list
+        List of floats.  Each image will be convolved with a kernel of size
+        ``(size * kernelsizefraction)``.  These should be <1 in general.
+    dtype : str
+        The dtype of the arrays to be convolved.  The default is 'float64',
+        as with numpy, but changing this will change the initial amount of
+        memory located.  Using a smaller ``dtype`` (e.g., ``float32`) may
+        result in a *larger* memory use within convolve_fft, unless
+        ``complex_dtype`` is also set to be lower.
+    complex_dtype : str
+        The dtype to use during the convolution.  Options range from
+        ``complex32`` to ``complex256``.
+    """
+    from memory_profiler import memory_usage
+    import timeit
+
+    results = []
+
+    for size in sizes:
+        kernelsizes = [int(size * ksv) for ksv in kernelsizefractions]
+        for kernelsize in kernelsizes:
+            for psf_pad in (True,False):
+                for fft_pad in (True,False):
+                    x=np.ones([size,size], dtype=dtype)
+                    y=np.ones([kernelsize,kernelsize], dtype=dtype)
+
+                    # time the memory profiling test to determine how many
+                    # times to repeat the timing profiling later
+                    t0 = time.time()
+                    # this checks the memory usage many times over the course of the function call
+                    memuse = memory_usage((convolve_fft, (x,y,),
+                                           dict(psf_pad=psf_pad,
+                                                fft_pad=fft_pad,
+                                                complex_dtype=complex_dtype)),
+                                          interval=0.01)
+                    peak_memuse = (max(memuse)-min(memuse))*u.MB
+
+                    if time.time() - t0 < 1:
+                        # for tests that go fast, repeat them a few times for robustness' sake
+                        number = 10
+                    else:
+                        # for tests that go slow, do them once - we're accurate enough already
+                        number = 1
+
+                    timersetup = ('from astropy.convolution import convolve_fft; import numpy as np;'
+                                  'x=np.ones([{size},{size}], dtype="{dtype}");'
+                                  'y=np.ones([{kernelsize},{kernelsize}], dtype="{dtype}");')
+                    timercall = ('convolve_fft(x,y,psf_pad={psf_pad},fft_pad={fft_pad},'
+                                 ' complex_dtype="{complex_dtype}")')
+
+                    timeuse = timeit.repeat(timercall.format(psf_pad=psf_pad,
+                                                             fft_pad=fft_pad,
+                                                             complex_dtype=complex_dtype),
+                                            setup=(timersetup.format(size=size,
+                                                                     kernelsize=kernelsize,
+                                                                     dtype=dtype)),
+                                            repeat=3, number=number)
+
+                    these_results = {'peak_memuse':peak_memuse,
+                                     'psf_pad': psf_pad,
+                                     'fft_pad': fft_pad,
+                                     'size': size,
+                                     'kernelsize': kernelsize,
+                                     'size_mb': (x.nbytes*u.byte).to(u.MB),
+                                     'kernelsize_mb': (y.nbytes*u.byte).to(u.MB),
+                                     'meantime': np.mean(timeuse)*u.s,
+                                     }
+
+
+                    print("psf_pad={psf_pad:5s}, fft_pad={fft_pad:5s}, size={size:5d}  kernelsize={kernelsize:5d}"
+                          " Mem usage max={peak_memuse:8.1f}.  Array, kernel size are {size_mb:5.1f} and {kernelsize_mb:5.1f}."
+                          " Time use was {meantime:6.3f}"
+                          .format(**these_results))
+
+                    results.append(these_results) 
+
+    return results
