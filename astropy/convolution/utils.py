@@ -7,8 +7,6 @@ import time
 import numpy as np
 from astropy import units as u
 
-from .convolve import convolve_fft
-
 from ..modeling.core import FittableModel, custom_model
 from ..extern.six.moves import range
 
@@ -338,6 +336,9 @@ def profile_memory_usage_convolve_fft(sizes=[256,300,512,600,1000,1024,2048],
     from memory_profiler import memory_usage
     import timeit
 
+    # this can't be imported at module level because... I don't know why.
+    from .convolve import convolve_fft
+
     results = []
 
     for size in sizes:
@@ -355,7 +356,8 @@ def profile_memory_usage_convolve_fft(sizes=[256,300,512,600,1000,1024,2048],
                     memuse = memory_usage((convolve_fft, (x,y,),
                                            dict(psf_pad=psf_pad,
                                                 fft_pad=fft_pad,
-                                                complex_dtype=complex_dtype)),
+                                                complex_dtype=complex_dtype,
+                                                boundary=None)),
                                           interval=0.01)
                     peak_memuse = (max(memuse)-min(memuse))*u.MB
 
@@ -370,7 +372,7 @@ def profile_memory_usage_convolve_fft(sizes=[256,300,512,600,1000,1024,2048],
                                   'x=np.ones([{size},{size}], dtype="{dtype}");'
                                   'y=np.ones([{kernelsize},{kernelsize}], dtype="{dtype}");')
                     timercall = ('convolve_fft(x,y,psf_pad={psf_pad},fft_pad={fft_pad},'
-                                 ' complex_dtype="{complex_dtype}")')
+                                 ' complex_dtype="{complex_dtype}, boundary=None")')
 
                     timeuse = timeit.repeat(timercall.format(psf_pad=psf_pad,
                                                              fft_pad=fft_pad,
@@ -391,7 +393,7 @@ def profile_memory_usage_convolve_fft(sizes=[256,300,512,600,1000,1024,2048],
                                      }
 
 
-                    print("psf_pad={psf_pad:5s}, fft_pad={fft_pad:5s}, size={size:5d}  kernelsize={kernelsize:5d}"
+                    print("psf_pad={psf_pad:5}, fft_pad={fft_pad:5}, size={size:5d}  kernelsize={kernelsize:5d}"
                           " Mem usage max={peak_memuse:8.1f}.  Array, kernel size are {size_mb:5.1f} and {kernelsize_mb:5.1f}."
                           " Time use was {meantime:6.3f}"
                           .format(**these_results))

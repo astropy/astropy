@@ -371,6 +371,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
             * 'fill': set values outside the array boundary to fill_value
               (default)
             * 'wrap': periodic boundary
+            * None: Use other parameters (psf_pad, fft_pad) to set the edge
+            behavior
 
         The `None` and 'extend' parameters are not supported for FFT-based
         convolution
