@@ -292,7 +292,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         Zero-pad image to be at least the sum of the image sizes to avoid
         edge-wrapping when smoothing.  This is enabled by default with
         ``boundary='fill'``, but it can be overridden with a boolean option.
-        ``boundary='wrap'`` and `psf_pad=True` are not compatible.
+        ``boundary='wrap'`` and ``psf_pad=True`` are not compatible.
     crop : bool, optional
         Default on.  Return an image of the size of the largest input image.
         If the images are asymmetric in opposite directions, will return the
