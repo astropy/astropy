@@ -137,7 +137,7 @@ type specification (i.e. the value of the TFORM keyword) uses an extra letter
 
     rPt(max)
 
-where r is the column length (this can be absent), t is one of the letter code for regular table data
+where r is the column length (it can be absent), t is one of the letter code for regular table data
 type (L, B, X, I, J, etc. currently, the X format is not supported for variable
 length array field in Astropy), and max is the maximum number of elements. So,
 for a variable length field of int32, The corresponding format spec is,
