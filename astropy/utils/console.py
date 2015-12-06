@@ -75,6 +75,7 @@ from ..config import ConfigAlias
 from ..extern import six
 from ..extern.six.moves import range
 from .. import conf
+from .. import units as u
 
 from .decorators import deprecated
 from .misc import isiterable
@@ -445,6 +446,9 @@ def human_file_size(size):
     size : str
         A human-friendly representation of the size of the file
     """
+    if hasattr(size, 'unit'):
+        size = size.to(u.Byte).value
+
     suffixes = ' kMGTPEZY'
     if size == 0:
         num_scale = 0
