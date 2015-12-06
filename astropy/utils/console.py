@@ -447,7 +447,7 @@ def human_file_size(size):
         A human-friendly representation of the size of the file
     """
     if hasattr(size, 'unit'):
-        size = size.to(u.Byte).value
+        size = size.to(u.byte).value
 
     suffixes = ' kMGTPEZY'
     if size == 0:
