@@ -343,7 +343,7 @@ def profile_memory_usage_convolve_fft(sizes=[256,300,512,600,1000,1024,2048],
 
     for size in sizes:
         kernelsizes = [int(size * ksv) for ksv in kernelsizefractions]
-        for kernelsize in kernelsizes:
+        for kernelsize,kernelsizefraction in zip(kernelsizes,kernelsizefraction):
             for psf_pad in (True,False):
                 for fft_pad in (True,False):
                     x=np.ones([size,size], dtype=dtype)
@@ -390,6 +390,7 @@ def profile_memory_usage_convolve_fft(sizes=[256,300,512,600,1000,1024,2048],
                                      'size_mb': (x.nbytes*u.byte).to(u.MB),
                                      'kernelsize_mb': (y.nbytes*u.byte).to(u.MB),
                                      'meantime': np.mean(timeuse)*u.s,
+                                     'kernelsizefraction': kernelsizefraction,
                                      }
 
 
@@ -401,3 +402,87 @@ def profile_memory_usage_convolve_fft(sizes=[256,300,512,600,1000,1024,2048],
                     results.append(these_results)
 
     return results
+
+def plot_convolve_fft_profiling_results(results):
+    """
+    Create a plot of the results from profile_memory_usage_convolve_fft
+    """
+    import pylab as pl
+
+    # fig = pl.figure(1, figsize=(14,8))
+    # fig.clf()
+    # ax1 = fig.add_subplot(2,1,1)
+    # ax2 = fig.add_subplot(2,1,2)
+
+    kernelsizefractions = list(set([x['kernelsizefraction'] for x in results]))
+
+    labeltemplate = "psf={psf:1} fft={fft:1} KSV={ksv:0.3f}"
+    labeltemplate = "KSV={ksv:0.3f}"
+    # kept for possible future reuse, but this is still too crowded
+    styles = {(True,False): '--',
+              (True,True): '-',
+              (False,True): ":",
+              (False,False): "-."}
+    figure = {(True,False): pl.figure(1),
+              (True,True): pl.figure(2),
+              (False,True): pl.figure(3),
+              (False,False): pl.figure(4),
+             }
+    axes = {}
+    for ind,fig in figure.items():
+        fig.clf()
+        fig.suptitle("psf_pad={0} fft_pad={1}".format(str(ind[0]), str(ind[1])))
+        ax1 = fig.add_subplot(2,1,1)
+        ax2 = fig.add_subplot(2,1,2)
+        axes[ind] = (ax1,ax2)
+
+    for kernelsizefraction in kernelsizefractions:
+        for psf_pad in (True,False):
+            for fft_pad in (True,False):
+
+                sizes = np.array([x['size']
+                                  for x in results
+                                  if (x['psf_pad'] == psf_pad and
+                                      x['fft_pad'] == fft_pad and
+                                      x['kernelsizefraction'] == kernelsizefraction)])
+                times = np.array([x['meantime'].value
+                                  for x in results
+                                  if (x['psf_pad'] == psf_pad and
+                                      x['fft_pad'] == fft_pad and
+                                      x['kernelsizefraction'] == kernelsizefraction)])
+                memus = np.array([x['peak_memuse'].value
+                                  for x in results
+                                  if (x['psf_pad'] == psf_pad and
+                                      x['fft_pad'] == fft_pad and
+                                      x['kernelsizefraction'] == kernelsizefraction)])
+
+                ax1,ax2 = axes[(psf_pad, fft_pad)]
+                ax1.plot(sizes, times, label=labeltemplate.format(psf=str(psf_pad)[0],
+                                                                  fft=str(fft_pad)[0],
+                                                                  ksv=kernelsizefraction),
+                         #linestyle=styles[(psf_pad,fft_pad)],
+                         linewidth=2.0,
+                         alpha=0.5,
+                        )
+                ax2.plot(sizes, memus, label=labeltemplate.format(psf=str(psf_pad)[0],
+                                                                  fft=str(fft_pad)[0],
+                                                                  ksv=kernelsizefraction),
+                         #linestyle=styles[(psf_pad,fft_pad)],
+                         linewidth=2.0,
+                         alpha=0.5,
+                        )
+
+
+    for ind,fig in figure.items():
+        ax1,ax2 = axes[ind]
+        ax1.set_ylabel("Execution time (s)")
+        ax2.set_ylabel("Peak memory use (MB)")
+        ax2.set_xlabel("1D size of image")
+
+        for ax in (ax1,ax2):
+            box = ax.get_position()
+            ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+            ax.set_xlim(0, 2050)
+
+        ax1.legend(loc='best', bbox_to_anchor=(1.05, 0.95))
+        #ax2.legend(loc='best', bbox_to_anchor)
