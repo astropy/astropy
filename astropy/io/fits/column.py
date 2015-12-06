@@ -461,7 +461,9 @@ class Column(NotifierMixin):
                  array=None, ascii=None):
         """
         Construct a `Column` by specifying attributes.  All attributes
-        except `format` can be optional.
+        except format can be optional, see :ref:`column_creation` and
+        :ref:`creating_ascii_table` for more information regarding the
+        ``TFORM`` keyword.
 
         Parameters
         ----------
