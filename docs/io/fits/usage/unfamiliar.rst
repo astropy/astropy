@@ -41,6 +41,7 @@ Note that the formats in the record array refer to the raw data which are ASCII
 strings (therefore 'a11' and 'a5'), but the ``.formats`` attribute of data
 retains the original format specifications ('E10.4' and 'I5').
 
+.. _creating_ascii_table:
 
 Creating an ASCII Table
 """""""""""""""""""""""
