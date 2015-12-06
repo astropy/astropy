@@ -343,7 +343,7 @@ def profile_memory_usage_convolve_fft(sizes=[256,300,512,600,1000,1024,2048],
 
     for size in sizes:
         kernelsizes = [int(size * ksv) for ksv in kernelsizefractions]
-        for kernelsize,kernelsizefraction in zip(kernelsizes,kernelsizefraction):
+        for kernelsize,kernelsizefraction in zip(kernelsizes,kernelsizefractions):
             for psf_pad in (True,False):
                 for fft_pad in (True,False):
                     x=np.ones([size,size], dtype=dtype)
@@ -353,12 +353,16 @@ def profile_memory_usage_convolve_fft(sizes=[256,300,512,600,1000,1024,2048],
                     # times to repeat the timing profiling later
                     t0 = time.time()
                     # this checks the memory usage many times over the course of the function call
-                    memuse = memory_usage((convolve_fft, (x,y,),
-                                           dict(psf_pad=psf_pad,
-                                                fft_pad=fft_pad,
-                                                complex_dtype=complex_dtype,
-                                                boundary=None)),
-                                          interval=0.01)
+                    try:
+                        memuse = memory_usage((convolve_fft, (x,y,),
+                                               dict(psf_pad=psf_pad,
+                                                    fft_pad=fft_pad,
+                                                    complex_dtype=complex_dtype,
+                                                    boundary=None)),
+                                              interval=0.01)
+                    except ValueError:
+                        # don't crash if the files get to be too large
+                        continue
                     peak_memuse = (max(memuse)-min(memuse))*u.MB
 
                     if time.time() - t0 < 1:
@@ -372,7 +376,7 @@ def profile_memory_usage_convolve_fft(sizes=[256,300,512,600,1000,1024,2048],
                                   'x=np.ones([{size},{size}], dtype="{dtype}");'
                                   'y=np.ones([{kernelsize},{kernelsize}], dtype="{dtype}");')
                     timercall = ('convolve_fft(x,y,psf_pad={psf_pad},fft_pad={fft_pad},'
-                                 ' complex_dtype="{complex_dtype}, boundary=None")')
+                                 ' complex_dtype="{complex_dtype}", boundary=None)')
 
                     timeuse = timeit.repeat(timercall.format(psf_pad=psf_pad,
                                                              fft_pad=fft_pad,
@@ -416,7 +420,12 @@ def plot_convolve_fft_profiling_results(results):
 
     kernelsizefractions = list(set([x['kernelsizefraction'] for x in results]))
 
-    labeltemplate = "psf={psf:1} fft={fft:1} KSV={ksv:0.3f}"
+    phasefig = pl.figure(5)
+    phasefig.clf()
+    phaseax = phasefig.gca()
+
+
+    labeltemplate1 = "psf={psf:1} fft={fft:1} KSV={ksv:0.3f}"
     labeltemplate = "KSV={ksv:0.3f}"
     # kept for possible future reuse, but this is still too crowded
     styles = {(True,False): '--',
@@ -472,6 +481,12 @@ def plot_convolve_fft_profiling_results(results):
                          alpha=0.5,
                         )
 
+                phaseax.plot(memus, times, 'o',
+                             label=labeltemplate1.format(psf=str(psf_pad)[0],
+                                                         fft=str(fft_pad)[0],
+                                                         ksv=kernelsizefraction),
+                             markeredgecolor='none', alpha=0.5)
+
 
     for ind,fig in figure.items():
         ax1,ax2 = axes[ind]
@@ -486,3 +501,11 @@ def plot_convolve_fft_profiling_results(results):
 
         ax1.legend(loc='best', bbox_to_anchor=(1.05, 0.95))
         #ax2.legend(loc='best', bbox_to_anchor)
+
+    box = phaseax.get_position()
+    phaseax.set_xlim(0, 2050)
+    phaseax.set_position([box.x0, box.y0, box.width * 0.7, box.height])
+
+    phaseax.set_ylabel("Execution time (s)")
+    phaseax.set_xlabel("Peak memory use (MB)")
+    phaseax.legend(loc='best', bbox_to_anchor=(1.55, 0.95))
