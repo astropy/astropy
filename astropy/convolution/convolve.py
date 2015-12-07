@@ -64,7 +64,6 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
             * 'extend'
                 Set values outside the array to the nearest ``array``
                 value.
-
     fill_value : float, optional
         The value to use outside the array when using ``boundary='fill'``
     normalize_kernel : bool, optional
@@ -373,7 +372,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
               (default)
             * ``'wrap'``: periodic boundary
             * `None`: Use other parameters (psf_pad, fft_pad) to set the edge
-            behavior
+              behavior
 
         The `None` and 'extend' parameters are not supported for FFT-based
         convolution
