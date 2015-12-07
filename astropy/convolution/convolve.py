@@ -19,6 +19,8 @@ from ..modeling.core import _CompoundModelMeta
 
 from ..extern.six.moves import range, zip
 
+from astropy import log
+
 
 # Disabling all doctests in this module until a better way of handling warnings
 # in doctests can be determined
@@ -629,17 +631,18 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
             fsize = 2 ** np.ceil(np.log2(
                 np.max(np.array(arrayshape) + np.array(kernshape))))
         else:
-            # add the shape lists (max of a list of length 4) (smaller)
-            # also makes the shapes square
-            fsize = 2 ** np.ceil(np.log2(np.max(arrayshape + kernshape)))
-        newshape = np.array([fsize for ii in range(array.ndim)], dtype=int)
+            # concatenate the shape lists (max of a list of length 4) (smaller)
+            biggestdim = np.max(shapestack, axis=0)
+            newshape = [_next_regular(x) for x in biggestdim]
     else:
         if psf_pad:
             # just add the biggest dimensions
-            newshape = np.array(arrayshape) + np.array(kernshape)
+            newshape = np.sum(shapestack, axis=0)
         else:
-            newshape = np.array([np.max([imsh, kernsh])
-                                 for imsh, kernsh in zip(arrayshape, kernshape)])
+            # bigger of the two in each dimension
+            newshape = np.max(shapestack, axis=0)
+    log.debug("Input array shape: {0}  Kernel shape: {1}  New shape: {2}"
+              .format(arrayshape, kernshape, newshape))
 
     # perform a second check after padding
     array_size_C = (np.product(newshape, dtype=np.int64) *
