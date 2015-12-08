@@ -46,6 +46,9 @@ New Features
 - ``astropy.units``
 
 - ``astropy.utils``
+  
+  - ``console.human_file_size`` now accepts quantities with byte-equivalent
+    units [#4373]
 
 - ``astropy.visualization``
 
