@@ -115,6 +115,8 @@ Bug fixes
 
 - ``astropy.convolution``
 
+  - Correct a bug in which ``psf_pad`` and ``fft_pad`` would be ignored [#4366]
+
 - ``astropy.coordinates``
 
 - ``astropy.cosmology``
