@@ -533,7 +533,8 @@ def pytest_runtest_teardown(item, nextitem):
 PYTEST_HEADER_MODULES = OrderedDict([('Numpy', 'numpy'),
                                      ('Scipy', 'scipy'),
                                      ('Matplotlib', 'matplotlib'),
-                                     ('h5py', 'h5py')])
+                                     ('h5py', 'h5py'),
+                                     ('Pandas', 'pandas')])
 
 # This always returns with Astropy's version
 from .. import __version__
