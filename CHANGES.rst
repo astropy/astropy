@@ -135,109 +135,12 @@ Other Changes and Additions
 1.0.7 (2015-12-04)
 ------------------
 
-New Features
-^^^^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.sphinx``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-  - Fix incorrect ``value`` attribute for epoch formats like "unix"
-    when ``scale`` is different from the class ``epoch_scale``. [#4313]
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
-API Changes
-^^^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
 Bug Fixes
 ^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
 
 - ``astropy.coordinates``
 
   - Pickling of ``EarthLocation`` instances now also works on Python 2. [#4304]
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
 
 - ``astropy.io.fits``
 
@@ -252,18 +155,6 @@ Bug Fixes
   - Fix fast writer so bytestring column output is not prefixed by 'b' in
     Python 3. [#4350]
 
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
 - ``astropy.table``
 
   - Fix a bug when pickling a Table with mixin columns (e.g. Time). [#4098]
@@ -271,6 +162,8 @@ Bug Fixes
 - ``astropy.time``
 
 - ``astropy.units``
+  - Fix incorrect ``value`` attribute for epoch formats like "unix"
+    when ``scale`` is different from the class ``epoch_scale``. [#4312]
 
 - ``astropy.utils``
 
@@ -430,7 +323,7 @@ Bug Fixes
 - ``astropy.visualization``
 
   - The color for axes labels was set to white. Since white labels on white
-    background are hard to read, the label color has been changed to black. 
+    background are hard to read, the label color has been changed to black.
     [#4143]
   - ``ImageNormalize`` now automatically determines ``vmin``/``vmax``
     (via the ``autoscale_None`` method) when they have not been set
@@ -586,7 +479,7 @@ Bug Fixes
 
 - Misc
 
-  - ``fitscheck`` no longer causes scaled image data to be rescaled when 
+  - ``fitscheck`` no longer causes scaled image data to be rescaled when
     adding checksums to existing files. [#3884]
 
   - Fixed an issue where running ``import astropy`` from within the source
@@ -781,7 +674,7 @@ Bug Fixes
 - ``astropy.time``
 
   - Ensure a ``Column`` without units is treated as an ``array``, not as an
-  - Ensure a ``Column`` without units is treated as an ``array``, not as an 
+  - Ensure a ``Column`` without units is treated as an ``array``, not as an
     dimensionless ``Quantity``. [#3648]
 
 - ``astropy.units``
