@@ -625,7 +625,7 @@ Other Changes and Additions
   transformations occur is changed. [#4255]
 
 
-1.0.7 (unreleased)
+1.0.8 (unreleased)
 ------------------
 
 New Features
@@ -723,24 +723,11 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
-  - Pickling of ``EarthLocation`` instances now also works on Python 2. [#4304]
-
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
 
 - ``astropy.io.fits``
-
-  - Fixed a regression that could cause writes of large FITS files to be
-    truncated. [#4307]
-
-  - Astropy v1.0.6 included a fix (#4228) for an obscure case where the TDIM
-    of a table column is smaller than the repeat count of its data format.
-    This updates that fix in such a way that it works with Numpy 1.10 as well.
-    [#4266]
-
-  - Fix fast writer so bytestring column output is not prefixed by 'b' in
-    Python 3. [#4350]
 
 - ``astropy.io.misc``
 
@@ -756,23 +743,11 @@ Bug Fixes
 
 - ``astropy.table``
 
-  - Fix a bug when pickling a Table with mixin columns (e.g. Time). [#4098]
-
 - ``astropy.time``
-
-  - Fix incorrect ``value`` attribute for epoch formats like "unix"
-    when ``scale`` is different from the class ``epoch_scale``. [#4312]
 
 - ``astropy.units``
 
 - ``astropy.utils``
-
-  - Fixed an issue where if ipython is installed but ipykernel is not
-    installed then importing astropy from the ipython console gave an
-    IPython.kernel deprecation warning. [#4279]
-
-  - Fixed crash that could occur in ``ProgressBar`` when ``astropy`` is
-    imported in an IPython startup script. [#4274]
 
 - ``astropy.vo``
 
@@ -782,6 +757,48 @@ Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Nothing changed yet.
+
+
+1.0.7 (2015-12-04)
+------------------
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.coordinates``
+
+  - Pickling of ``EarthLocation`` instances now also works on Python 2. [#4304]
+
+- ``astropy.io.fits``
+
+  - Fixed a regression that could cause writes of large FITS files to be
+    truncated. [#4307]
+
+  - Astropy v1.0.6 included a fix (#4228) for an obscure case where the TDIM
+    of a table column is smaller than the repeat count of its data format.
+    This updates that fix in such a way that it works with Numpy 1.10 as well.
+    [#4266]
+
+  - Fix fast writer so bytestring column output is not prefixed by 'b' in
+    Python 3. [#4350]
+
+- ``astropy.table``
+
+  - Fix a bug when pickling a Table with mixin columns (e.g. Time). [#4098]
+
+- ``astropy.time``
+
+  - Fix incorrect ``value`` attribute for epoch formats like "unix"
+    when ``scale`` is different from the class ``epoch_scale``. [#4312]
+
+- ``astropy.utils``
+
+  - Fixed an issue where if ipython is installed but ipykernel is not
+    installed then importing astropy from the ipython console gave an
+    IPython.kernel deprecation warning. [#4279]
+
+  - Fixed crash that could occur in ``ProgressBar`` when ``astropy`` is
+    imported in an IPython startup script. [#4274]
 
 
 1.0.6 (2015-10-22)
