@@ -149,6 +149,8 @@ Bug fixes
 
 - ``astropy.vo``
 
+  - Fixed spurious failure for Cone Search prediction test. [#4382]
+
 - ``astropy.wcs``
 
 Other Changes and Additions
