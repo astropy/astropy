@@ -179,7 +179,9 @@ class TestConeSearch(object):
             pedantic=self.pedantic, verbose=self.verbose)
 
         assert n_2 > 0 and n_2 <= n_1 * 1.5
-        assert t_2 > 0 and t_2 <= t_1 * 1.5
+
+        # Timer depends on network latency as well, so upper limit is very lax.
+        assert t_2 > 0 and t_2 <= t_1 * 10
 
     def test_prediction_neg_radius(self):
         with pytest.raises(ConeSearchError):
