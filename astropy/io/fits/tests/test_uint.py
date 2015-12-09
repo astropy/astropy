@@ -7,8 +7,7 @@ import numpy as np
 
 from ....io import fits
 from . import FitsTestCase
-from .util import ignore_warnings
-from ....tests.helper import pytest
+from ....tests.helper import pytest, ignore_warnings
 
 
 class TestUintFunctions(FitsTestCase):

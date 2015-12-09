@@ -15,11 +15,10 @@ from ....extern.six import u, iterkeys, itervalues, iteritems
 from ....extern.six.moves import zip
 from ....io import fits
 from ....io.fits.verify import VerifyWarning
-from ....tests.helper import pytest, catch_warnings
+from ....tests.helper import pytest, catch_warnings, ignore_warnings
 from ....utils.exceptions import AstropyDeprecationWarning
 
 from . import FitsTestCase
-from .util import ignore_warnings
 from ..card import _pad
 from ..header import _pad_length, BLOCK_SIZE
 from ..util import encode_ascii

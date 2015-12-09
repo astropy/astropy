@@ -8,14 +8,13 @@ from ....extern import six
 from ....extern.six.moves import range
 from ....extern.six.moves import cPickle as pickle
 from ....io import fits
-from ....tests.helper import pytest, catch_warnings
+from ....tests.helper import pytest, catch_warnings, ignore_warnings
 from ....utils.compat.numpycompat import NUMPY_LT_1_10
 
 from ..column import Delayed, NUMPY2FITS
 from ..util import decode_ascii
 from ..verify import VerifyError
 from . import FitsTestCase
-from .util import ignore_warnings
 
 
 def comparefloats(a, b):
