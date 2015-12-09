@@ -12,14 +12,18 @@ from numpy.testing import assert_allclose
 
 from ...extern import six
 from ...io import fits
-from ...tests.helper import pytest, assert_follows_unicode_guidelines
+from ...tests.helper import (pytest, assert_follows_unicode_guidelines,
+                             ignore_warnings)
 from ...utils.data import get_pkg_data_filename
 from ... import table
 from ... import units as u
 from .conftest import MaskedTable
 
 try:
-    import pandas
+    with ignore_warnings(DeprecationWarning):
+        # Ignore DeprecationWarning on pandas import in Python 3.5--see
+        # https://github.com/astropy/astropy/issues/4380
+        import pandas
 except ImportError:
     HAS_PANDAS = False
 else:

@@ -19,10 +19,9 @@ except ImportError:
     HAVE_STRINGIO = False
 
 from ....io import fits
-from ....tests.helper import pytest, raises, catch_warnings
+from ....tests.helper import pytest, raises, catch_warnings, ignore_warnings
 from ....utils.exceptions import AstropyDeprecationWarning
 from . import FitsTestCase
-from .util import ignore_warnings
 from ..convenience import _getext
 from ..diff import FITSDiff
 from ..file import _File, GZIP_MAGIC
