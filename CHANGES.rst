@@ -159,8 +159,6 @@ Bug Fixes
 
   - Fix a bug when pickling a Table with mixin columns (e.g. Time). [#4098]
 
-- ``astropy.time``
-
 - ``astropy.units``
   - Fix incorrect ``value`` attribute for epoch formats like "unix"
     when ``scale`` is different from the class ``epoch_scale``. [#4312]
@@ -174,9 +172,6 @@ Bug Fixes
   - Fixed crash that could occur in ``ProgressBar`` when ``astropy`` is
     imported in an IPython startup script. [#4274]
 
-- ``astropy.vo``
-
-- ``astropy.wcs``
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
