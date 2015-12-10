@@ -34,9 +34,9 @@ In addition to these major changes, Astropy 1.1 includes a large number of
 smaller improvements and bug fixes, which are described in the
 :ref:`changelog`. By the numbers:
 
-* 785 issues have been closed since v1.0
-* 459 pull requests have been merged since v1.0
-* 159 distinct people have contributed code
+* 685 issues have been closed since v1.0
+* 408 pull requests have been merged since v1.0
+* 161 distinct people have contributed code
 
 .. _whatsnew-1.1-coords:
 
