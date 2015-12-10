@@ -268,8 +268,11 @@ class TestQuantityMathFuncs(object):
 
     @pytest.mark.skipif("not hasattr(np, 'cbrt')")
     def test_cbrt_array(self):
-        assert np.all(np.cbrt(np.array([1., 8., 64.]) * u.m**3)
-                      == np.array([1., 2., 4.]) * u.m)
+        # Calculate cbrt on both sides since on Windows the cube root of 64
+        # does not exactly equal 4.  See 4388.
+        values = np.array([1., 8., 64.])
+        assert np.all(np.cbrt(values * u.m**3) ==
+                      np.cbrt(values) * u.m)
 
     def test_power_scalar(self):
         assert np.power(4. * u.m, 2.) == 16. * u.m ** 2
