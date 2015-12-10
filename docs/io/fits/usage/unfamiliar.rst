@@ -137,11 +137,11 @@ type specification (i.e. the value of the TFORM keyword) uses an extra letter
 
     rPt(max)
 
-where r is the column length (it can be absent), t is one of the letter code for regular table data
-type (L, B, X, I, J, etc. currently, the X format is not supported for variable
-length array field in Astropy), and max is the maximum number of elements. So,
-for a variable length field of int32, The corresponding format spec is,
-e.g. 'PJ(100)'::
+where r may be 0 or 1 (typically omitted, as it is not applicable to variable 
+length arrays), t is one of the letter code for regular table data type (L, B,
+X, I, J, etc. currently, the X format is not supported for variable length array
+field in Astropy), and max is the maximum number of elements. So, for a variable
+length field of int32, the corresponding format spec is, e.g. 'PJ(100)'::
 
     >>> f = fits.open('variable_length_table.fits')
     >>> f[1].header['tform5']
