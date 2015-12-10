@@ -978,14 +978,9 @@ reduce these to 2 dimensions using the naxis kwarg.
         """
         Remove SIP information from a header.
         """
-        # Never pass SIP CTYPES or other information along to
-        # wcslib
+        # Never pass SIP coefficients to wcslib
+        # CTYPE must be passed with -SIP to wcslib
         for sel in [''] + [chr(i + ord('A')) for i in range(26)]:
-            for axis in ['1', '2']:
-                key = 'CTYPE{0}{1}'.format(axis, sel)
-                val = header.get(key)
-                if val is not None and val.endswith('-SIP'):
-                    header[key] = val[:-4]
             for prefix in ('A', 'B', 'AP', 'BP'):
                 for i in range(20):
                     for j in range(20):
