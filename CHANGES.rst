@@ -1,10 +1,8 @@
-1.1 (unreleased)
+1.1 (2015-12-11)
 ----------------
 
 New Features
 ^^^^^^^^^^^^
-
-- ``astropy.analytic_functions``
 
 - ``astropy.config``
 
@@ -16,8 +14,6 @@ New Features
     an alternative (application specific) download cache for large data files,
     rather than relying on the default cache location in users' home
     directories. [#3975]
-
-- ``astropy.conftest.py``
 
 - ``astropy.constants``
 
@@ -294,8 +290,6 @@ New Features
     histogram bins. This functionality was ported from the astroML_ library.
     [#3756]
 
-- ``astropy.vo``
-
 - ``astropy.wcs``
 
   - The included version of wcslib has been upgraded to 5.10. [#4239]
@@ -341,18 +335,6 @@ New Features
 API changes
 ^^^^^^^^^^^
 
-- ``astropy.analytic_functions``
-
-- ``astropy.config``
-
-- ``astropy.conftest.py``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
 - ``astropy.cosmology``
 
   - ``FLRW._tfunc`` and ``FLRW._xfunc`` are marked as deprecated.  Users
@@ -380,12 +362,6 @@ API changes
     for other classes derived from ``_ImageBaseHDU``) are deprecated.  Instead,
     the ``astropy.io.fits`` module-level constants ``BITPIX2DTYPE`` and
     ``DTYPE2BITPIX`` can be used. [#3916]
-
-- ``astropy.io.misc``
-
-- ``astropy.io.votable``
-
-- ``astropy.logger.py``
 
 - ``astropy.modeling``
 
@@ -418,8 +394,6 @@ API changes
 
   - Added a phase parameter to the Sine1D model. [#3807]
 
-- ``astropy.nddata``
-
 - ``astropy.stats``
 
   - Renamed the ``sigma_clip`` ``sig`` keyword as ``sigma``. [#3595]
@@ -440,8 +414,6 @@ API changes
 
   - ``Table.simple_table()`` now creates tables with int64 and float64 types
     instead of int32 and float64. [#4114]
-
-- ``astropy.tests``
 
 - ``astropy.time``
 
@@ -494,10 +466,6 @@ API changes
      fine-grained catching of situations where a ``Time`` is beyond the range
      of the loaded IERS tables. [#4302]
 
-- ``astropy.visualization``
-
-- ``astropy.vo``
-
 - ``astropy.wcs``
 
   - When compiled with wcslib 5.9 or later, the FITS headers returned
@@ -513,25 +481,15 @@ API changes
 Bug fixes
 ^^^^^^^^^
 
-- ``astropy.analytic_functions``
-
-- ``astropy.config``
-
-- ``astropy.conftest.py``
-
 - ``astropy.constants``
 
   - The constants ``Ry`` and ``u`` are now properly used inside the
     corresponding units.  The latter have changed slightly as a result. [#4229]
 
-- ``astropy.convolution``
-
 - ``astropy.coordinates``
 
   - Internally, ``coordinates`` now consistently uses the appropriate time
     scales for using ERFA functions. [#4302]
-
-- ``astropy.cosmology``
 
 - ``astropy.io.ascii``
 
@@ -550,12 +508,6 @@ Bug fixes
   - Included a new command-line script called ``fitsinfo`` to display
     a summary of the HDUs in one or more FITS files. [#3677]
 
-- ``astropy.io.misc``
-
-- ``astropy.io.votable``
-
-- ``astropy.logger.py``
-
 - ``astropy.modeling``
 
   - ``Simplex`` fitter now correctly passes additional keywords arguments to
@@ -564,29 +516,11 @@ Bug fixes
   - The keyword ``acc`` (for accuracy) is now correctly accepted by
     ``Simplex``. [#3966]
 
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
-
-- ``astropy.tests``
-
-- ``astropy.time``
-
 - ``astropy.units``
 
   - The units ``Ryd`` and ``u`` are no longer hard-coded numbers, but depend
     on the appropriate values in the ``constants`` module.  As a result, these
     units now imply slightly different conversions.  [#4229]
-
-- ``astropy.utils``
-
-- ``astropy.visualization``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -623,140 +557,6 @@ Other Changes and Additions
   transformations, but may affect code that is especially sensitive to
   machine precision effects that change when the order in which
   transformations occur is changed. [#4255]
-
-
-1.0.8 (unreleased)
-------------------
-
-New Features
-^^^^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.sphinx``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
-API Changes
-^^^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
-Bug Fixes
-^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
-Other Changes and Additions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-- Nothing changed yet.
 
 
 1.0.7 (2015-12-04)
