@@ -82,6 +82,11 @@ def blackbody_nu(in_x, temperature):
     boltzm1 = np.expm1(log_boltz)
 
     if _has_buggy_expm1:
+        # Replace incorrect nan results with infs--any result of 'nan' is
+        # incorrect unless the input (in log_boltz) happened to be nan to begin
+        # with.  (As noted in #4393 ideally this would be replaced by a version
+        # of expm1 that doesn't have this bug, rather than fixing incorrect
+        # results after the fact...)
         boltzm1_nans = np.isnan(boltzm1)
         if np.any(boltzm1_nans):
             if boltzm1.isscalar and not np.isnan(log_boltz):
