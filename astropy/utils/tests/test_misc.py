@@ -4,6 +4,8 @@ from __future__ import (absolute_import, division, print_function,
 
 import json
 import os
+from datetime import datetime
+import locale
 
 import numpy as np
 
@@ -68,3 +70,21 @@ def test_inherit_docstrings():
     if Base.__call__.__doc__ is not None:
         # TODO: Maybe if __doc__ is None this test should be skipped instead?
         assert Subclass.__call__.__doc__ == "FOO"
+
+
+def test_set_locale():
+    date = datetime(2000, 10, 1, 0, 0, 0)
+    day_mon = date.strftime('%a, %b')
+
+    with misc.set_locale('en_US'):
+        assert date.strftime('%a, %b') == 'Sun, Oct'
+
+    with misc.set_locale('de_DE'):
+        assert date.strftime('%a, %b') == 'So, Okt'
+
+    # Back to original
+    assert date.strftime('%a, %b') == day_mon
+
+    current = locale.setlocale(locale.LC_ALL)
+    with misc.set_locale(current):
+        assert date.strftime('%a, %b') == day_mon
