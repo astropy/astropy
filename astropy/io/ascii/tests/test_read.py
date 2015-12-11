@@ -5,6 +5,7 @@
 import re
 from io import BytesIO
 from collections import OrderedDict
+import locale
 
 import numpy as np
 
@@ -1126,3 +1127,13 @@ def test_column_conversion_error():
     with pytest.raises(ValueError) as err:
         ascii.read(['a b', '1 2'], guess=False, format='basic', converters={'a': []})
     assert 'no converters' in str(err.value)
+
+def test_non_C_locale_with_fast_reader():
+    """Test code that forces "C" locale while calling fast reader (#4364)"""
+    current = locale.setlocale(locale.LC_ALL)
+    locale.setlocale(locale.LC_ALL, str('fr_FR'))
+    for fast_reader in (True, False, {'use_fast_converter': False}, {'use_fast_converter': True}):
+        t = ascii.read(['a b', '1.5 2'], format='basic', guess=False,
+                       fast_reader=fast_reader)
+        assert t['a'].dtype.kind == 'f'
+    locale.setlocale(locale.LC_ALL, current)
