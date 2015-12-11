@@ -17,6 +17,7 @@ addons:
             - graphviz
             - texlive-latex-extra
             - dvipng
+            - language-pack-de
 env:
     global:
         # Set defaults to avoid repeating in most cases

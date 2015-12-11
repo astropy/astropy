@@ -34,6 +34,14 @@ except ImportError:
 else:
     HAS_PATHLIB = True
 
+try:
+    locale.setlocale(locale.LC_ALL, 'de_DE')
+except:
+    HAS_DE_LOCALE = False
+else:
+    HAS_DE_LOCALE = True
+
+
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_convert_overflow(fast_reader):
     """
@@ -1128,12 +1136,19 @@ def test_column_conversion_error():
         ascii.read(['a b', '1 2'], guess=False, format='basic', converters={'a': []})
     assert 'no converters' in str(err.value)
 
+@pytest.mark.skipif('not HAS_DE_LOCALE')
 def test_non_C_locale_with_fast_reader():
     """Test code that forces "C" locale while calling fast reader (#4364)"""
     current = locale.setlocale(locale.LC_ALL)
-    locale.setlocale(locale.LC_ALL, str('fr_FR'))
-    for fast_reader in (True, False, {'use_fast_converter': False}, {'use_fast_converter': True}):
-        t = ascii.read(['a b', '1.5 2'], format='basic', guess=False,
-                       fast_reader=fast_reader)
-        assert t['a'].dtype.kind == 'f'
-    locale.setlocale(locale.LC_ALL, current)
+
+    try:
+        locale.setlocale(locale.LC_ALL, str('de_DE'))
+
+        for fast_reader in (True, False, {'use_fast_converter': False}, {'use_fast_converter': True}):
+            t = ascii.read(['a b', '1.5 2'], format='basic', guess=False,
+                           fast_reader=fast_reader)
+            assert t['a'].dtype.kind == 'f1'
+    except:
+        raise
+    finally:
+        locale.setlocale(locale.LC_ALL, current)

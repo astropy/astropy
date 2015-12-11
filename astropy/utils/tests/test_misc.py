@@ -12,6 +12,15 @@ import numpy as np
 from .. import data, misc
 from ...tests.helper import remote_data
 from ...extern import six
+from ...tests.helper import pytest
+
+try:
+    locale.setlocale(locale.LC_ALL, 'en_US')
+    locale.setlocale(locale.LC_ALL, 'de_DE')
+except:
+    HAS_LOCALES = False
+else:
+    HAS_LOCALES = True
 
 
 def test_isiterable():
@@ -72,6 +81,7 @@ def test_inherit_docstrings():
         assert Subclass.__call__.__doc__ == "FOO"
 
 
+@pytest.mark.skipif('not HAS_LOCALES')
 def test_set_locale():
     date = datetime(2000, 10, 1, 0, 0, 0)
     day_mon = date.strftime('%a, %b')
