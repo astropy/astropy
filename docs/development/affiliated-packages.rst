@@ -309,7 +309,7 @@ files manually`_ section since this explains what many of the files do.
       git add docs/index.rst
       git mv docs/packagename docs/<packagename>
 
-#. Edit this file (``README.rst``) and delete all of this content, and replace it
+#. Edit the ``README.rst`` file, deleting all of the content and replacing it
    with a short description of your affiliated package.
 
 #.  Open ``docs/<packagename>/index.rst`` and you can start writing the documentation
