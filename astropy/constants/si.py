@@ -124,16 +124,16 @@ b_wien = Constant('b_wien', 'Wien wavelength displacement law constant',
 
 # SOLAR QUANTITIES
 
-# Solar luminosity
-L_sun = Constant('L_sun', "Solar luminosity", 3.846e26, 'W', 0.0005e26,
+# Nominal Solar luminosity
+L_sun = Constant('L_sun', "Solar luminosity", 3.828e26, 'W', 0.0005e26,
                  "Allen's Astrophysical Quantities 4th Ed.", system='si')
 
-# Solar mass
-M_sun = Constant('M_sun', "Solar mass", 1.9891e30, 'kg', 0.00005e30,
+# Nominal Solar mass
+M_sun = Constant('M_sun', "Solar mass", 1.988547e30, 'kg', 0.00005e30,
                  "Allen's Astrophysical Quantities 4th Ed.", system='si')
 
-# Solar radius
-R_sun = Constant('R_sun', "Solar radius", 6.95508e8, 'm', 0.00026e8,
+# Nominal Solar radius
+R_sun = Constant('R_sun', "Solar radius", 6.9566e8, 'm', 0.00026e8,
                  "Allen's Astrophysical Quantities 4th Ed.", system='si')
 
 
@@ -143,7 +143,7 @@ R_sun = Constant('R_sun', "Solar radius", 6.95508e8, 'm', 0.00026e8,
 M_jup = Constant('M_jup', "Jupiter mass", 1.8987e27, 'kg', 0.00005e27,
                  "Allen's Astrophysical Quantities 4th Ed.", system='si')
 
-# Jupiter equatorial radius
+# Nominal Jupiter equatorial radius
 R_jup = Constant('R_jup', "Jupiter equatorial radius", 7.1492e7, 'm',
                  0.00005e7, "Allen's Astrophysical Quantities 4th Ed.",
                  system='si')
@@ -152,7 +152,7 @@ R_jup = Constant('R_jup', "Jupiter equatorial radius", 7.1492e7, 'm',
 M_earth = Constant('M_earth', "Earth mass", 5.9742e24, 'kg', 0.00005e24,
                    "Allen's Astrophysical Quantities 4th Ed.", system='si')
 
-# Earth equatorial radius
-R_earth = Constant('R_earth', "Earth equatorial radius", 6.378136e6, 'm',
+# Nominal Earth equatorial radius
+R_earth = Constant('R_earth', "Earth equatorial radius", 6.3781e6, 'm',
                    0.0000005e6, "Allen's Astrophysical Quantities 4th Ed.",
                    system='si')
