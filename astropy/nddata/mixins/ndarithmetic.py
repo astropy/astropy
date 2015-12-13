@@ -714,8 +714,8 @@ class NDArithmeticMixin(object):
                 # that is a scalar... (ok, at least if we don't want to allow
                 # the meta to contain numpy arrays :-) )
                 if operand.data.size != 1:
-                    log.info("The second operand is not a scalar. Cannot "
-                             "operate meta keywords with array.s")
+                    raise TypeError("The second operand is not a scalar. Can"
+                                    "not operate meta keywords with arrays.")
                 else:
                     for i in meta_kwds_operate:
                         result_meta[i] = float(
@@ -723,8 +723,8 @@ class NDArithmeticMixin(object):
             elif len(operand.meta) > 0:
                 # Same thing but reversed
                 if self.data.size != 1:
-                    log.info("The first operand is not a scalar. Cannot"
-                             "operate meta keywords with arrays.")
+                    raise TypeError("The first operand is not a scalar. Cannot"
+                                    "operate meta keywords with arrays.")
                 else:
                     for i in meta_kwds_operate:
                         result_meta[i] = float(

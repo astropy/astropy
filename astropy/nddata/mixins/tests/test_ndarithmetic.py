@@ -143,7 +143,7 @@ def test_arithmetics_data_unit_identical(data1, data2):
     (np.array(5) * u.Mpc, np.array(10)),
     (np.array(5), np.array(10) * u.s),
     ])
-def test_arithmetics_data_unit_NOT_identical(data1, data2):
+def test_arithmetics_data_unit_not_identical(data1, data2):
 
     nd1 = NDDataArithmetic(data1)
     nd2 = NDDataArithmetic(data2)
