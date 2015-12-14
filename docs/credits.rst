@@ -174,7 +174,6 @@ Core Package Contributors
 * Miguel de Val-Borro
 * Jonathan Whitmore
 * Julien Woillez
-* Jake VanderPlas
 * Lisa Walter
 * Benjamin Alan Weaver
 * Jonathan Whitmore
