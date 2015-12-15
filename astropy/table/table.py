@@ -896,9 +896,17 @@ class Table(object):
                                             np.random.randint(1, 1e6))
 
         jsv = JSViewer(display_length=display_length)
-        html = self._base_repr_(html=True, max_width=-1, tableid=tableid,
-                                max_lines=-1, show_dtype=False,
-                                tableclass=table_class)
+
+        has_row_index = 'row_index' in self.colnames
+        try:
+            self.add_column(self.ColumnClass(name='row_index', data=range(len(self))), index=0)
+            html = self._base_repr_(html=True, max_width=-1, tableid=tableid,
+                                    max_lines=-1, show_dtype=False,
+                                    tableclass=table_class)
+        finally:
+            if not has_row_index:
+                self.remove_column('row_index')
+
         html += jsv.ipynb(tableid, css=css)
         return HTML(html)
 
@@ -958,9 +966,15 @@ class Table(object):
 
         with open(path, 'w') as tmp:
             if jsviewer:
-                self.write(tmp, format='jsviewer', css=css,
-                           max_lines=max_lines, jskwargs=jskwargs,
-                           table_id=tableid, table_class=table_class)
+                has_row_index = 'row_index' in self.colnames
+                try:
+                    self.add_column(self.ColumnClass(name='row_index', data=range(len(self))), index=0)
+                    self.write(tmp, format='jsviewer', css=css,
+                               max_lines=max_lines, jskwargs=jskwargs,
+                               table_id=tableid, table_class=table_class)
+                finally:
+                    if not has_row_index:
+                        self.remove_column('row_index')
             else:
                 self.write(tmp, format='html')
 
