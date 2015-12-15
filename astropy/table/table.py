@@ -858,7 +858,7 @@ class Table(object):
 
     def show_in_notebook(self, tableid=None, css=None, display_length=50,
                          table_class='table table-striped table-bordered '
-                         'table-condensed'):
+                         'table-condensed', add_row_index=True):
         """Render the table in HTML and show it in the IPython notebook.
 
         Parameters
@@ -878,6 +878,10 @@ class Table(object):
             to ``astropy.table.jsviewer.DEFAULT_CSS_NB``.
         display_length : int, optional
             Number or rows to show. Default to 50.
+        add_row_index : bool
+            If True, a column named "row_index" will be added for display
+            purposes.  This shows the index of the row in the table itself,
+            even when the displayed table is re-sorted by another column.
 
         Notes
         -----
@@ -899,12 +903,13 @@ class Table(object):
 
         has_row_index = 'row_index' in self.colnames
         try:
-            self.add_column(self.ColumnClass(name='row_index', data=range(len(self))), index=0)
+            if add_row_index:
+                self.add_column(self.ColumnClass(name='row_index', data=range(len(self))), index=0)
             html = self._base_repr_(html=True, max_width=-1, tableid=tableid,
                                     max_lines=-1, show_dtype=False,
                                     tableclass=table_class)
         finally:
-            if not has_row_index:
+            if add_row_index and not has_row_index:
                 self.remove_column('row_index')
 
         html += jsv.ipynb(tableid, css=css)
@@ -913,15 +918,12 @@ class Table(object):
     def show_in_browser(self, max_lines=5000, jsviewer=False,
                         browser='default', jskwargs={'use_local_files': True},
                         tableid=None, table_class="display compact",
-                        css=None):
+                        css=None, add_row_index=True):
 
         """Render the table in HTML and show it in a web browser.
 
         Parameters
         ----------
-        css : string
-            A valid CSS string declaring the formatting for the table. Default
-            to ``astropy.table.jsviewer.DEFAULT_CSS``.
         max_lines : int
             Maximum number of rows to export to the table (set low by default
             to avoid memory issues, since the browser view requires duplicating
@@ -931,6 +933,11 @@ class Table(object):
             If `True`, prepends some javascript headers so that the table is
             rendered as a `DataTables <https://datatables.net>`_ data table.
             This allows in-browser searching & sorting.
+        browser : str
+            Any legal browser name, e.g. ``'firefox'``, ``'chrome'``,
+            ``'safari'`` (for mac, you may need to use ``'open -a
+            "/Applications/Google Chrome.app" %s'`` for Chrome).  If
+            ``'default'``, will use the system default browser.
         jskwargs : dict
             Passed to the `astropy.table.JSViewer` init. Default to
             ``{'use_local_files': True}`` which means that the JavaScript
@@ -942,11 +949,13 @@ class Table(object):
             A string with a list of HTML classes used to style the table.
             Default is "display compact", and other possible values can be
             found in http://www.datatables.net/manual/styling/classes
-        browser : str
-            Any legal browser name, e.g. ``'firefox'``, ``'chrome'``,
-            ``'safari'`` (for mac, you may need to use ``'open -a
-            "/Applications/Google Chrome.app" %s'`` for Chrome).  If
-            ``'default'``, will use the system default browser.
+        css : string
+            A valid CSS string declaring the formatting for the table. Default
+            to ``astropy.table.jsviewer.DEFAULT_CSS``.
+        add_row_index : bool
+            If True, a column named "row_index" will be added for display
+            purposes.  This shows the index of the row in the table itself,
+            even when the displayed table is re-sorted by another column.
         """
 
         import os
@@ -968,12 +977,15 @@ class Table(object):
             if jsviewer:
                 has_row_index = 'row_index' in self.colnames
                 try:
-                    self.add_column(self.ColumnClass(name='row_index', data=range(len(self))), index=0)
+                    if add_row_index:
+                        self.add_column(self.ColumnClass(name='row_index',
+                                                         data=range(len(self))),
+                                        index=0)
                     self.write(tmp, format='jsviewer', css=css,
                                max_lines=max_lines, jskwargs=jskwargs,
                                table_id=tableid, table_class=table_class)
                 finally:
-                    if not has_row_index:
+                    if add_row_index and not has_row_index:
                         self.remove_column('row_index')
             else:
                 self.write(tmp, format='html')
