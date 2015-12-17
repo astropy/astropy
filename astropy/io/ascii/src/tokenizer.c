@@ -770,13 +770,14 @@ conversion_error:
 //
 
 double xstrtod(const char *str, char **endptr, char decimal,
-               char sci, char tsep, int skip_trailing)
+               char expchar, char tsep, int skip_trailing)
 {
     double number;
     int exponent;
     int negative;
     char *p = (char *) str;
     char exp;
+    char sci;
     int num_digits;
     int num_decimals;
     int max_digits = 17;
@@ -877,7 +878,7 @@ double xstrtod(const char *str, char **endptr, char decimal,
     if (negative) number = -number;
 
     // Process an exponent string
-    sci = toupper(sci);
+    sci = toupper(expchar);
     if (sci == 'A')
     {
         // check for possible Fortran exponential notations, including
