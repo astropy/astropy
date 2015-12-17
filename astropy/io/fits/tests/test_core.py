@@ -1010,6 +1010,21 @@ class TestFileFunctions(FitsTestCase):
         with fits.open(self.temp(filename)) as hdul:
             assert np.all(hdul[0].data == hdu.data)
 
+    def test_open_urlopen(self):
+        """
+        Test reading a urlopen object
+
+        Regression test for https://github.com/astropy/astropy/issues/4165
+        """
+
+        from ....extern.six.moves import urllib
+        from urllib2 import urlopen
+
+        testurl = "file:" + urllib.request.pathname2url(self.data('test0.fits'))
+        f = urlopen(testurl)
+        open_file = fits.open(f)
+        assert len(open_file) == 5
+
     def _test_write_string_bytes_io(self, fileobj):
         """
         Implemented for both test_write_stringio and test_write_bytesio.
