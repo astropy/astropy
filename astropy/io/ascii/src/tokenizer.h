@@ -103,7 +103,7 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols);
 long str_to_long(tokenizer_t *self, char *str);
 double str_to_double(tokenizer_t *self, char *str);
 double xstrtod(const char *str, char **endptr, char decimal,
-               char sci, char tsep, int skip_trailing);
+               char expchar, char tsep, int skip_trailing);
 void start_iteration(tokenizer_t *self, int col);
 char *next_field(tokenizer_t *self, int *size);
 long file_len(FILE *fhandle);
