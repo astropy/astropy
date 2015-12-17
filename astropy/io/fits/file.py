@@ -114,12 +114,13 @@ class _File(object):
         if mode not in PYFITS_MODES:
             raise ValueError("Mode '%s' not recognized" % mode)
 
+        if hasattr(fileobj, 'geturl'):
+            fileobj = fileobj.geturl()
+
         if (isinstance(fileobj, string_types) and
             mode not in ('ostream', 'append') and
             _is_url(fileobj)): # This is an URL.
                 self.name = download_file(fileobj, cache=cache)
-        if hasattr(fileobj, 'geturl'):
-            self.name = download_file(fileobj.geturl(), cache=cache)
         else:
             self.name = fileobj_name(fileobj)
 
