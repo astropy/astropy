@@ -201,6 +201,9 @@ New Features
 
 - ``astropy.vo``
 
+  - Relaxed expected accuracy of Cone Search prediction test to reduce spurious
+    failures. [#4382]
+
 - ``astropy.wcs``
 
 API Changes
