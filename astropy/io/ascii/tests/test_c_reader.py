@@ -908,7 +908,7 @@ def test_data_out_of_range(parallel, read_basic):
                      names=('a', 'b', 'c', 'd'))
     # currently different behaviour by the standard (Python) reader
     #table = read_basic(text, parallel=parallel)
-    table = ascii.read(text, format='basic', guess=False, 
+    table = ascii.read(text, format='basic', guess=False,
                        fast_reader={'parallel': parallel})
     assert_table_equal(table, expected)
 
@@ -917,7 +917,7 @@ def test_data_out_of_range(parallel, read_basic):
     text = 'a b c d\n10.1D+199 3.14d+313 2048D+306 0.6d-414'
     expected = Table([[1.01e+200], ['3.14d+313'], ['2048D+306'], [0.0]],
                      names=('a', 'b', 'c', 'd'))
-    table = ascii.read(text, format='basic', guess=False, 
+    table = ascii.read(text, format='basic', guess=False,
                        fast_reader={'parallel': parallel, 'exponent_style': 'D'})
     assert_table_equal(table, expected)
 
@@ -931,7 +931,7 @@ def test_fortran_reader(parallel):
     using the fast_reader.
     """
     text = 'A B C\n100.01D+99 2.0 3\n4.2d-1 5.0D-1 0.6D4'
-    expected = Table([[1.0001e101, 0.42], [2, 0.5], [3.0, 6000]], 
+    expected = Table([[1.0001e101, 0.42], [2, 0.5], [3.0, 6000]],
                      names=('A', 'B', 'C'))
 
     # C strtod (not-fast converter) can't handle Fortran exp
@@ -942,26 +942,26 @@ def test_fortran_reader(parallel):
     assert 'fast_reader: exponent_style requires use_fast_converter' in str(e)
 
     # Enable multiprocessing and the fast converter
-    table = ascii.read(text, format='basic', guess=False, 
+    table = ascii.read(text, format='basic', guess=False,
                        fast_reader={'parallel': parallel, 'exponent_style': 'D'})
     assert_table_equal(table, expected)
 
     text = 'A B C\n0.10001Q102 20.0Q-1 3\n.42q0 0.5 6.Q3'
-    table = ascii.read(text, format='basic', guess=False, 
+    table = ascii.read(text, format='basic', guess=False,
                        fast_reader={'parallel': parallel, 'exponent_style': 'q'})
     assert_table_equal(table, expected)
 
     # mixes and triple-exponents without any character using autodetect option
     text = 'A B C\n1.0001+101 2.0E0 3\n.42d0 0.5 0.42-123'
     expected['C'][1] = 4.2e-124
-    table = ascii.read(text, format='basic', guess=False, 
+    table = ascii.read(text, format='basic', guess=False,
                        fast_reader={'parallel': parallel, 'exponent_style': 'fortran'})
     assert_table_equal(table, expected)
 
     # additional corner-case checks
     text = 'A B C\n1.0001+101 2.0+000 3\n0.42+000 0.5 .42-000'
     expected['C'][1] = 4.2e-1
-    table = ascii.read(text, format='basic', guess=False, 
+    table = ascii.read(text, format='basic', guess=False,
                        fast_reader={'parallel': parallel, 'exponent_style': 'fortran'})
     assert_table_equal(table, expected)
 
@@ -969,10 +969,10 @@ def test_fortran_reader(parallel):
     # they are parsed as strings
     text = 'A B C D E\n1.0001+1 2.3+10 3+1001 2 8.e3\n.42d0 0.5 3 4.56-123.4 0.42-123'
     expected = Table([['1.0001+1', '.42d0'], ['2.3+10', '0.5'], ['3+1001', '3'],
-                      ['2', '4.56-123.4'], [8000, 4.2e-122]], 
+                      ['2', '4.56-123.4'], [8000, 4.2e-122]],
                      names=('A', 'B', 'C', 'D', 'E'))
     if parallel and TRAVIS:
         pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
-    table = ascii.read(text, format='basic', guess=False, 
+    table = ascii.read(text, format='basic', guess=False,
                        fast_reader={'parallel': parallel, 'exponent_style': 'fortran'})
     assert_table_equal(table, expected)
