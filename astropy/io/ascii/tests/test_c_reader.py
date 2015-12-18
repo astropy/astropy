@@ -901,8 +901,8 @@ def test_data_out_of_range(parallel, read_basic):
     the C parser; such numbers are returned as strings instead, not so
     with the Python parser!
     """
-    if parallel and TRAVIS:
-        pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
+    if TRAVIS:
+        pytest.xfail("Large exponents can sometimes fail on Travis CI")
     text = 'a b c d\n10.1E+199 3.14e+313 2048e+306 0.6E-414'
     expected = Table([[1.01e+200], ['3.14e+313'], ['2048e+306'], ['0.6E-414']],
                      names=('a', 'b', 'c', 'd'))
