@@ -184,6 +184,9 @@ New Features
 
 - ``astropy.io.registry``
 
+  - Allow ``pathlib.Path`` objects (available in Python 3.4 and later) for
+    specifying the file name in registry read / write functions. [#4405]
+
 - ``astropy.io.votable``
 
 - ``astropy.modeling``
