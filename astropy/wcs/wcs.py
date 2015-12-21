@@ -34,6 +34,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import copy
 import io
 import os
+import re
 import textwrap
 import warnings
 import platform
@@ -129,6 +130,11 @@ else:
 # Additional relax bit flags
 WCSHDO_SIP = 0x10000
 
+# Regular expression defining SIP keyword
+# It matches keyword that starts with A, B, AP or B, followed by an underscore then
+# a number in range of 0-19, followed by an underscore and another number
+# in range of 0-19. Keyword optionally ends with a capital letter.
+SIP_KW = re.compile('''^(A|B|AP|BP)_(?:[0-9]|1[0-9])_(?:[0-9]|1[0-9])(|[A-Z])$''')
 
 def _parse_keysel(keysel):
     keysel_flags = 0
@@ -980,13 +986,9 @@ reduce these to 2 dimensions using the naxis kwarg.
         """
         # Never pass SIP coefficients to wcslib
         # CTYPE must be passed with -SIP to wcslib
-        for sel in [''] + [chr(i + ord('A')) for i in range(26)]:
-            for prefix in ('A', 'B', 'AP', 'BP'):
-                for i in range(20):
-                    for j in range(20):
-                        key = '{0}_{1}_{2}{3}'.format(prefix, i, j, sel)
-                        if key in header:
-                            del header[key]
+        for key in (m.group() for m in map(SIP_KW.match, header.keys())
+                    if m is not None):
+            del header[key]
 
     def _read_sip_kw(self, header):
         """
