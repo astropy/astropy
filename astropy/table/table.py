@@ -903,7 +903,7 @@ class Table(object):
 
         has_row_index = 'idx' in self.colnames
         try:
-            if show_row_index:
+            if show_row_index and not has_row_index:
                 self.add_column(self.ColumnClass(name='idx', data=range(len(self))), index=0)
             html = self._base_repr_(html=True, max_width=-1, tableid=tableid,
                                     max_lines=-1, show_dtype=False,
@@ -977,7 +977,7 @@ class Table(object):
             if jsviewer:
                 has_row_index = 'idx' in self.colnames
                 try:
-                    if show_row_index:
+                    if show_row_index and not has_row_index:
                         self.add_column(self.ColumnClass(name='idx',
                                                          data=range(len(self))),
                                         index=0)
