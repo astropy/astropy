@@ -879,7 +879,7 @@ class Table(object):
         display_length : int, optional
             Number or rows to show. Default to 50.
         show_row_index : bool
-            If True, a column named "row_index" will be added for display
+            If True, a column named "idx" will be added for display
             purposes.  This shows the index of the row in the table itself,
             even when the displayed table is re-sorted by another column.
 
@@ -901,16 +901,16 @@ class Table(object):
 
         jsv = JSViewer(display_length=display_length)
 
-        has_row_index = 'row_index' in self.colnames
+        has_row_index = 'idx' in self.colnames
         try:
             if show_row_index:
-                self.add_column(self.ColumnClass(name='row_index', data=range(len(self))), index=0)
+                self.add_column(self.ColumnClass(name='idx', data=range(len(self))), index=0)
             html = self._base_repr_(html=True, max_width=-1, tableid=tableid,
                                     max_lines=-1, show_dtype=False,
                                     tableclass=table_class)
         finally:
             if show_row_index and not has_row_index:
-                self.remove_column('row_index')
+                self.remove_column('idx')
 
         html += jsv.ipynb(tableid, css=css)
         return HTML(html)
@@ -953,7 +953,7 @@ class Table(object):
             A valid CSS string declaring the formatting for the table. Default
             to ``astropy.table.jsviewer.DEFAULT_CSS``.
         show_row_index : bool
-            If True, a column named "row_index" will be added for display
+            If True, a column named "idx" will be added for display
             purposes.  This shows the index of the row in the table itself,
             even when the displayed table is re-sorted by another column.
         """
@@ -975,10 +975,10 @@ class Table(object):
 
         with open(path, 'w') as tmp:
             if jsviewer:
-                has_row_index = 'row_index' in self.colnames
+                has_row_index = 'idx' in self.colnames
                 try:
                     if show_row_index:
-                        self.add_column(self.ColumnClass(name='row_index',
+                        self.add_column(self.ColumnClass(name='idx',
                                                          data=range(len(self))),
                                         index=0)
                     self.write(tmp, format='jsviewer', css=css,
@@ -986,7 +986,7 @@ class Table(object):
                                table_id=tableid, table_class=table_class)
                 finally:
                     if show_row_index and not has_row_index:
-                        self.remove_column('row_index')
+                        self.remove_column('idx')
             else:
                 self.write(tmp, format='html')
 
