@@ -137,11 +137,13 @@ type specification (i.e. the value of the TFORM keyword) uses an extra letter
 
     rPt(max)
 
-where r may be 0 or 1 (typically omitted, as it is not applicable to variable 
-length arrays), t is one of the letter code for regular table data type (L, B,
-X, I, J, etc. currently, the X format is not supported for variable length array
-field in Astropy), and max is the maximum number of elements. So, for a variable
-length field of int32, the corresponding format spec is, e.g. 'PJ(100)'::
+where ``r`` may be 0 or 1 (typically omitted, as it is not applicable to
+variable length arrays), ``t`` is one of the letter codes for basic data types
+(L, B, I, J, etc.; currently, the X format is not supported for variable length
+array field in Astropy), and ``max`` is the maximum number of elements of any
+array in the column. So, for a variable length field of int16, the
+corresponding format spec
+is, e.g.  'PJ(100)'::
 
     >>> f = fits.open('variable_length_table.fits')
     >>> f[1].header['tform5']
@@ -150,11 +152,11 @@ length field of int32, the corresponding format spec is, e.g. 'PJ(100)'::
     [array([1], dtype=int16) array([88, 2], dtype=int16)
     array([ 1, 88, 3], dtype=int16)]
 
-The above example shows a variable length array field of data type int16 and its
+The above example shows a variable length array field of data type int16. Its
 first row has one element, second row has 2 elements etc. Accessing variable
 length fields is almost identical to regular fields, except that operations on
-the whole filed are usually not possible. A user has to process the field row by
-row.
+the whole field simultaneously are usually not possible. A user has to process
+the field row by row as though they are independent arrays.
 
 
 Creating a Variable Length Array Table
