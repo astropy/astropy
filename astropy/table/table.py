@@ -858,7 +858,7 @@ class Table(object):
 
     def show_in_notebook(self, tableid=None, css=None, display_length=50,
                          table_class='table table-striped table-bordered '
-                         'table-condensed', add_row_index=True):
+                         'table-condensed', show_row_index=True):
         """Render the table in HTML and show it in the IPython notebook.
 
         Parameters
@@ -878,7 +878,7 @@ class Table(object):
             to ``astropy.table.jsviewer.DEFAULT_CSS_NB``.
         display_length : int, optional
             Number or rows to show. Default to 50.
-        add_row_index : bool
+        show_row_index : bool
             If True, a column named "row_index" will be added for display
             purposes.  This shows the index of the row in the table itself,
             even when the displayed table is re-sorted by another column.
@@ -903,13 +903,13 @@ class Table(object):
 
         has_row_index = 'row_index' in self.colnames
         try:
-            if add_row_index:
+            if show_row_index:
                 self.add_column(self.ColumnClass(name='row_index', data=range(len(self))), index=0)
             html = self._base_repr_(html=True, max_width=-1, tableid=tableid,
                                     max_lines=-1, show_dtype=False,
                                     tableclass=table_class)
         finally:
-            if add_row_index and not has_row_index:
+            if show_row_index and not has_row_index:
                 self.remove_column('row_index')
 
         html += jsv.ipynb(tableid, css=css)
@@ -918,7 +918,7 @@ class Table(object):
     def show_in_browser(self, max_lines=5000, jsviewer=False,
                         browser='default', jskwargs={'use_local_files': True},
                         tableid=None, table_class="display compact",
-                        css=None, add_row_index=True):
+                        css=None, show_row_index=True):
 
         """Render the table in HTML and show it in a web browser.
 
@@ -952,7 +952,7 @@ class Table(object):
         css : string
             A valid CSS string declaring the formatting for the table. Default
             to ``astropy.table.jsviewer.DEFAULT_CSS``.
-        add_row_index : bool
+        show_row_index : bool
             If True, a column named "row_index" will be added for display
             purposes.  This shows the index of the row in the table itself,
             even when the displayed table is re-sorted by another column.
@@ -977,7 +977,7 @@ class Table(object):
             if jsviewer:
                 has_row_index = 'row_index' in self.colnames
                 try:
-                    if add_row_index:
+                    if show_row_index:
                         self.add_column(self.ColumnClass(name='row_index',
                                                          data=range(len(self))),
                                         index=0)
@@ -985,7 +985,7 @@ class Table(object):
                                max_lines=max_lines, jskwargs=jskwargs,
                                table_id=tableid, table_class=table_class)
                 finally:
-                    if add_row_index and not has_row_index:
+                    if show_row_index and not has_row_index:
                         self.remove_column('row_index')
             else:
                 self.write(tmp, format='html')
