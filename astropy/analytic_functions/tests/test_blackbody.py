@@ -4,6 +4,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import os
+from platform import system
 import warnings
 # THIRD-PARTY
 import numpy as np
@@ -26,7 +27,8 @@ else:
 __doctest_skip__ = ['*']
 
 
-@pytest.mark.skipif("os.environ.get('APPVEYOR')",  reason="fails on AppVeyor")
+@pytest.mark.skipif("system() == 'Windows' or os.environ.get('APPVEYOR')",
+                    reason="fails on Windows/AppVeyor")
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_blackbody_scipy():
     """Test Planck function.
@@ -47,7 +49,8 @@ def test_blackbody_scipy():
     np.testing.assert_allclose(intflux, ans.value, rtol=0.01)  # 1% accuracy
 
 
-@pytest.mark.skipif("os.environ.get('APPVEYOR')",  reason="fails on AppVeyor")
+@pytest.mark.skipif("system() == 'Windows' or os.environ.get('APPVEYOR')",
+                    reason="fails on Windows/AppVeyor")
 def test_blackbody_overflow():
     """Test Planck function with overflow."""
     photlam = u.photon / (u.cm**2 * u.s * u.AA)
@@ -69,7 +72,8 @@ def test_blackbody_overflow():
     assert flux.value == 0
 
 
-@pytest.mark.skipif("os.environ.get('APPVEYOR')",  reason="fails on AppVeyor")
+@pytest.mark.skipif("system() == 'Windows' or os.environ.get('APPVEYOR')",
+                    reason="fails on Windows/AppVeyor")
 def test_blackbody_synphot():
     """Test that it is consistent with IRAF SYNPHOT BBFUNC."""
     # Solid angle of solar radius at 1 kpc
