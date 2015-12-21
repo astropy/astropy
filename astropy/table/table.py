@@ -856,6 +856,14 @@ class Table(object):
             else:
                 print(line)
 
+    def _make_index_row_display_table(self, index_row_name='idx'):
+        if 'idx' not in self.columns:
+            idx_col = self.ColumnClass(name='idx', data=np.arange(len(self)))
+            return self.__class__([idx_col] + self.columns.values(),
+                                           copy=False)
+        else:
+            return self
+
     def show_in_notebook(self, tableid=None, css=None, display_length=50,
                          table_class='table table-striped table-bordered '
                          'table-condensed', show_row_index=True):
@@ -901,16 +909,10 @@ class Table(object):
 
         jsv = JSViewer(display_length=display_length)
 
-        has_row_index = 'idx' in self.colnames
-        try:
-            if show_row_index and not has_row_index:
-                self.add_column(self.ColumnClass(name='idx', data=range(len(self))), index=0)
-            html = self._base_repr_(html=True, max_width=-1, tableid=tableid,
-                                    max_lines=-1, show_dtype=False,
-                                    tableclass=table_class)
-        finally:
-            if show_row_index and not has_row_index:
-                self.remove_column('idx')
+        display_table = self._make_index_row_display_table()
+        html = display_table._base_repr_(html=True, max_width=-1, tableid=tableid,
+                                         max_lines=-1, show_dtype=False,
+                                         tableclass=table_class)
 
         html += jsv.ipynb(tableid, css=css)
         return HTML(html)
@@ -975,18 +977,10 @@ class Table(object):
 
         with open(path, 'w') as tmp:
             if jsviewer:
-                has_row_index = 'idx' in self.colnames
-                try:
-                    if show_row_index and not has_row_index:
-                        self.add_column(self.ColumnClass(name='idx',
-                                                         data=range(len(self))),
-                                        index=0)
-                    self.write(tmp, format='jsviewer', css=css,
-                               max_lines=max_lines, jskwargs=jskwargs,
-                               table_id=tableid, table_class=table_class)
-                finally:
-                    if show_row_index and not has_row_index:
-                        self.remove_column('idx')
+                display_table = self._make_index_row_display_table()
+                display_table.write(tmp, format='jsviewer', css=css,
+                                    max_lines=max_lines, jskwargs=jskwargs,
+                                    table_id=tableid, table_class=table_class)
             else:
                 self.write(tmp, format='html')
 
