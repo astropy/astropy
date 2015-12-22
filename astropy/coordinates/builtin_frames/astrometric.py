@@ -54,11 +54,11 @@ class Astrometric(BaseCoordinateFrame):
     representation : `BaseRepresentation` or None
         A representation object or None to have no data (or use the other
         keywords)
-    galcen_distance : `~astropy.units.Quantity`, optional, must be keyword
+    origin_distance : `~astropy.units.Quantity`, optional, must be keyword
         The distance from the Sun to the Galactic center.
-    galcen_ra : `Angle`, optional, must be keyword
+    origin_ra : `Angle`, optional, must be keyword
         The Right Ascension (RA) of the Galactic center in the ICRS frame.
-    galcen_dec : `Angle`, optional, must be keyword
+    origin_dec : `Angle`, optional, must be keyword
         The Declination (Dec) of the Galactic center in the ICRS frame.
     z_sun : `~astropy.units.Quantity`, optional, must be keyword
         The distance from the Sun to the Galactic midplane.
@@ -76,15 +76,15 @@ class Astrometric(BaseCoordinateFrame):
         ...                dec=[-17.3, 81.52] * u.degree,
         ...                distance=[11.5, 24.12] * u.kpc)
         >>> c.transform_to(coord.Astrometric) # doctest: +FLOAT_CMP
-        <Astrometric Coordinate (galcen_distance=8.3 kpc, galcen_ra=266d24m18.36s, galcen_dec=-28d56m10.23s, z_sun=27.0 pc, roll=0.0 deg): (x, y, z) in kpc
+        <Astrometric Coordinate (origin_distance=8.3 kpc, origin_ra=266d24m18.36s, origin_dec=-28d56m10.23s, z_sun=27.0 pc, roll=0.0 deg): (x, y, z) in kpc
             [(-9.6083818980977, -9.400621883358546, 6.520560663896347),
              (-21.283023068029138, 18.763340128812384, 7.846938548636718)]>
 
     To specify a custom set of parameters, you have to include extra keyword
     arguments when initializing the Astrometric frame object::
 
-        >>> c.transform_to(coord.Astrometric(galcen_distance=8.1*u.kpc)) # doctest: +FLOAT_CMP
-        <Astrometric Coordinate (galcen_distance=8.1 kpc, galcen_ra=266d24m18.36s, galcen_dec=-28d56m10.23s, z_sun=27.0 pc, roll=0.0 deg): (x, y, z) in kpc
+        >>> c.transform_to(coord.Astrometric(origin_distance=8.1*u.kpc)) # doctest: +FLOAT_CMP
+        <Astrometric Coordinate (origin_distance=8.1 kpc, origin_ra=266d24m18.36s, origin_dec=-28d56m10.23s, z_sun=27.0 pc, roll=0.0 deg): (x, y, z) in kpc
             [(-9.407859235565343, -9.400621883358546, 6.520665737962164),
              (-21.08239383088295, 18.763340128812384, 7.84798134569032)]>
 
@@ -103,7 +103,7 @@ class Astrometric(BaseCoordinateFrame):
         >>> c = coord.Astrometric(x=[-8.0, 4.5] * u.kpc,
         ...                          y=[0., 81.52] * u.kpc,
         ...                          z=[21.0, 24120.0] * u.pc,
-        ...                          z_sun=21 * u.pc, galcen_distance=8. * u.kpc)
+        ...                          z_sun=21 * u.pc, origin_distance=8. * u.kpc)
         >>> c.transform_to(coord.ICRS) # doctest: +FLOAT_CMP
         <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
             [(86.25852490164378, 28.85773187391088, 2.7562547481200286e-05),
@@ -113,10 +113,10 @@ class Astrometric(BaseCoordinateFrame):
     default_representation = CartesianRepresentation
 
     # TODO: these can all become QuantityFrameAttribute's once #3217 is merged
-    galcen_distance = FrameAttribute(default=8.3*u.kpc)
-    galcen_ra = FrameAttribute(default=Angle(266.4051*u.degree))
-    galcen_dec = FrameAttribute(default=Angle(-28.936175*u.degree))
-    z_sun = FrameAttribute(default=27.*u.pc)
+    
+    origin_distance = QuantityFrameAttribute(default=0, units=u.kpc)
+    origin_ra = QuantityFrameAttribute(default=0, units=u.degree)
+    origin_dec = QuantitFrameAttribute(default=0, units=u.degree)
 
 
 # ICRS to/from Astrometric ----------------------->
@@ -133,8 +133,8 @@ def icrs_to_astrometric(icrs_coord, astrometric_frame):
     xyz = icrs_coord.cartesian.xyz
 
     # define rotation matrix to align x(ICRS) with the vector to the Galactic center
-    mat1 = rotation_matrix(-astrometric_frame.galcen_dec, 'y')
-    mat2 = rotation_matrix(astrometric_frame.galcen_ra, 'z')
+    mat1 = rotation_matrix(-astrometric_frame.origin_dec, 'y')
+    mat2 = rotation_matrix(astrometric_frame.origin_ra, 'z')
     R1 = mat1 * mat2
 
     # construct transformation matrix
@@ -145,10 +145,10 @@ def icrs_to_astrometric(icrs_coord, astrometric_frame):
     xyz = R.dot(xyz.reshape(xyz.shape[0], np.prod(xyz.shape[1:]))).reshape(orig_shape)
 
     # translate by Sun-Galactic center distance along new x axis
-    xyz[0] = xyz[0] - astrometric_frame.galcen_distance
+    xyz[0] = xyz[0] - astrometric_frame.origin_distance
 
     # rotate about y' to account for tilt due to Sun's height above the plane
-    z_d = (astrometric_frame.z_sun / astrometric_frame.galcen_distance).decompose()
+    z_d = (astrometric_frame.z_sun / astrometric_frame.origin_distance).decompose()
     R = rotation_matrix(-np.arcsin(z_d), 'y')
     xyz = R.dot(xyz.reshape(xyz.shape[0], np.prod(xyz.shape[1:]))).reshape(orig_shape)
 
@@ -168,7 +168,7 @@ def astrometric_to_icrs(astrometric_coord, icrs_frame):
     xyz = astrometric_coord.cartesian.xyz
 
     # rotate about y' to account for tilt due to Sun's height above the plane
-    z_d = (astrometric_coord.z_sun / astrometric_coord.galcen_distance).decompose()
+    z_d = (astrometric_coord.z_sun / astrometric_coord.origin_distance).decompose()
     R = rotation_matrix(np.arcsin(z_d), 'y')
 
     # some reshape hacks to handle ND arrays
@@ -176,11 +176,11 @@ def astrometric_to_icrs(astrometric_coord, icrs_frame):
     xyz = R.dot(xyz.reshape(xyz.shape[0], np.prod(xyz.shape[1:]))).reshape(orig_shape)
 
     # translate by Sun-Galactic center distance along x axis
-    xyz[0] = xyz[0] + astrometric_coord.galcen_distance
+    xyz[0] = xyz[0] + astrometric_coord.origin_distance
 
     # define inverse rotation matrix that aligns x(ICRS) with the vector to the Galactic center
-    mat1 = rotation_matrix(-astrometric_coord.galcen_dec, 'y')
-    mat2 = rotation_matrix(astrometric_coord.galcen_ra, 'z')
+    mat1 = rotation_matrix(-astrometric_coord.origin_dec, 'y')
+    mat2 = rotation_matrix(astrometric_coord.origin_ra, 'z')
     R1 = mat1 * mat2
 
     # construct transformation matrix
