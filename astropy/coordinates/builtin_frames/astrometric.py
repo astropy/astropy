@@ -15,12 +15,6 @@ from ..errors import ConvertError
 
 from .icrs import ICRS
 
-# Measured by minimizing the difference between a plane of coordinates along
-#   l=0, b=[-90,90] and the Galactocentric x-z plane
-# This is not used directly, but accessed via `get_roll0`.  We define it here to
-# prevent having to create new Angle objects every time `get_roll0` is called.
-_ROLL0 = Angle(58.5986320306*u.degree)
-
 class Galactocentric(BaseCoordinateFrame):
     r"""
     A coordinate or frame in the Galactocentric system. This frame
@@ -68,12 +62,6 @@ class Galactocentric(BaseCoordinateFrame):
         The Declination (Dec) of the Galactic center in the ICRS frame.
     z_sun : `~astropy.units.Quantity`, optional, must be keyword
         The distance from the Sun to the Galactic midplane.
-    roll : `Angle`, optional, must be keyword
-        The angle to rotate about the final x-axis, relative to the
-        orientation for Galactic. For example, if this roll angle is 0,
-        the final x-z plane will align with the Galactic coordinates x-z
-        plane. Unless you really know what this means, you probably should
-        not change this!
 
     Examples
     --------
@@ -129,20 +117,7 @@ class Galactocentric(BaseCoordinateFrame):
     galcen_ra = FrameAttribute(default=Angle(266.4051*u.degree))
     galcen_dec = FrameAttribute(default=Angle(-28.936175*u.degree))
     z_sun = FrameAttribute(default=27.*u.pc)
-    roll = FrameAttribute(default=0.*u.deg)
 
-    @classmethod
-    def get_roll0(cls):
-        """
-        The additional roll angle (about the final x axis) necessary to align
-        the final z axis to match the Galactic yz-plane.  Setting the ``roll``
-        frame attribute to  -this method's return value removes this rotation,
-        allowing the use of the `Galactocentric` frame in more general contexts.
-        """
-        # note that the actual value is defined at the module level.  We make at
-        # a property here because this module isn't actually part of the public
-        # API, so it's better for it to be accessable from Galactocentric
-        return _ROLL0
 
 # ICRS to/from Galactocentric ----------------------->
 @frame_transform_graph.transform(FunctionTransform, ICRS, Galactocentric)
@@ -161,9 +136,6 @@ def icrs_to_galactocentric(icrs_coord, galactocentric_frame):
     mat1 = rotation_matrix(-galactocentric_frame.galcen_dec, 'y')
     mat2 = rotation_matrix(galactocentric_frame.galcen_ra, 'z')
     R1 = mat1 * mat2
-
-    # extra roll away from the Galactic x-z plane
-    R2 = rotation_matrix(galactocentric_frame.get_roll0() - galactocentric_frame.roll, 'x')
 
     # construct transformation matrix
     R = R2*R1
@@ -210,9 +182,6 @@ def galactocentric_to_icrs(galactocentric_coord, icrs_frame):
     mat1 = rotation_matrix(-galactocentric_coord.galcen_dec, 'y')
     mat2 = rotation_matrix(galactocentric_coord.galcen_ra, 'z')
     R1 = mat1 * mat2
-
-    # extra roll away from the Galactic x-z plane
-    R2 = rotation_matrix(galactocentric_coord.get_roll0() - galactocentric_coord.roll, 'x')
 
     # construct transformation matrix
     R = R2*R1
