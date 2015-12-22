@@ -135,10 +135,7 @@ def icrs_to_astrometric(icrs_coord, astrometric_frame):
     # define rotation matrix to align x(ICRS) with the vector to the Galactic center
     mat1 = rotation_matrix(-astrometric_frame.origin_dec, 'y')
     mat2 = rotation_matrix(astrometric_frame.origin_ra, 'z')
-    R1 = mat1 * mat2
-
-    # construct transformation matrix
-    R = R2*R1
+    R = mat1 * mat2
 
     # some reshape hacks to handle ND arrays
     orig_shape = xyz.shape
@@ -181,10 +178,7 @@ def astrometric_to_icrs(astrometric_coord, icrs_frame):
     # define inverse rotation matrix that aligns x(ICRS) with the vector to the Galactic center
     mat1 = rotation_matrix(-astrometric_coord.origin_dec, 'y')
     mat2 = rotation_matrix(astrometric_coord.origin_ra, 'z')
-    R1 = mat1 * mat2
-
-    # construct transformation matrix
-    R = R2*R1
+    R = mat1 * mat2
 
     # rotate into ICRS frame
     xyz = np.linalg.inv(R).dot(xyz.reshape(xyz.shape[0], np.prod(xyz.shape[1:]))).reshape(orig_shape)
