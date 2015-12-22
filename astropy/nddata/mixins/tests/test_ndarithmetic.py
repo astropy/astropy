@@ -457,12 +457,12 @@ def test_arithmetics_meta_one_invalid():
 
     # Considered invalid would be if only one has a meta and the other
     # is an ndarray but this case only raises a warning
-    nd3 = nd1.add(nd2, meta_kwds_operate=['exposure'])
-    assert nd3.meta['exposure'] == 100
+    with pytest.raises(TypeError):
+        nd1.add(nd2, meta_kwds_operate=['exposure'])
 
     # Check also for reverse
-    nd3 = nd2.add(nd1, meta_kwds_operate=['exposure'])
-    assert nd3.meta['exposure'] == 100
+    with pytest.raises(TypeError):
+        nd2.add(nd1, meta_kwds_operate=['exposure'])
 
 
 # Covering:
