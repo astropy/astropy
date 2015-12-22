@@ -39,6 +39,10 @@ New Features
 
 - ``astropy.table``
 
+  - ``Table.show_in_notebook`` and ``Table.show_in_browser(jsviewer=True)`` now
+    yield tables with an "idx" column, allowing easy identification of the index
+    of a row even when the table is re-sorted in the browser. [#4404]
+
 - ``astropy.tests``
 
 - ``astropy.time``
