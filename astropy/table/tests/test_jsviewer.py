@@ -1,7 +1,16 @@
 from os.path import abspath, dirname, join
+import textwrap
 
 from ..table import Table
 from ... import extern
+from ...tests.helper import pytest
+
+try:
+  import IPython
+except ImportError:
+  HAS_IPYTHON = False
+else:
+  HAS_IPYTHON = True
 
 EXTERN_DIR = abspath(dirname(extern.__file__))
 
@@ -122,3 +131,24 @@ def test_write_jsviewer_local(tmpdir):
     )
     with open(tmpfile) as f:
         assert f.read().strip() == ref.strip()
+
+
+@pytest.mark.skipif('not HAS_IPYTHON')
+def test_show_in_notebook():
+    t = Table()
+    t['a'] = [1, 2, 3, 4, 5]
+    t['b'] = ['b', 'c', 'a', 'd', 'e']
+
+    htmlstr_windx = t.show_in_notebook(show_row_index=True).data
+    htmlstr_woindx = t.show_in_notebook(show_row_index=False).data
+
+    assert (textwrap.dedent("""
+    <thead><tr><th>idx</th><th>a</th><th>b</th></tr></thead>
+    <tr><td>0</td><td>1</td><td>b</td></tr>
+    <tr><td>1</td><td>2</td><td>c</td></tr>
+    <tr><td>2</td><td>3</td><td>a</td></tr>
+    <tr><td>3</td><td>4</td><td>d</td></tr>
+    <tr><td>4</td><td>5</td><td>e</td></tr>
+    """).strip() in htmlstr_windx)
+
+    assert '<thead><tr><th>a</th><th>b</th></tr></thead>' in htmlstr_woindx
