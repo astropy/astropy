@@ -908,8 +908,10 @@ class Table(object):
                                             np.random.randint(1, 1e6))
 
         jsv = JSViewer(display_length=display_length)
-
-        display_table = self._make_index_row_display_table()
+        if show_row_index:
+            display_table = self._make_index_row_display_table()
+        else:
+            display_table = self
         html = display_table._base_repr_(html=True, max_width=-1, tableid=tableid,
                                          max_lines=-1, show_dtype=False,
                                          tableclass=table_class)
@@ -977,7 +979,10 @@ class Table(object):
 
         with open(path, 'w') as tmp:
             if jsviewer:
-                display_table = self._make_index_row_display_table()
+                if show_row_index:
+                    display_table = self._make_index_row_display_table()
+                else:
+                    display_table = self
                 display_table.write(tmp, format='jsviewer', css=css,
                                     max_lines=max_lines, jskwargs=jskwargs,
                                     table_id=tableid, table_class=table_class)
