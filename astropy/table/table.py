@@ -857,8 +857,8 @@ class Table(object):
                 print(line)
 
     def _make_index_row_display_table(self, index_row_name='idx'):
-        if 'idx' not in self.columns:
-            idx_col = self.ColumnClass(name='idx', data=np.arange(len(self)))
+        if index_row_name not in self.columns:
+            idx_col = self.ColumnClass(name=index_row_name, data=np.arange(len(self)))
             return self.__class__([idx_col] + self.columns.values(),
                                            copy=False)
         else:
