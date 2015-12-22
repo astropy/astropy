@@ -280,7 +280,7 @@ def test_nddata_init_data_nddataSubclass():
     nd = NDData(bnd_good)
     assert nd.unit == bnd_good.unit
     assert nd.meta == bnd_good.meta
-    assert nd.uncertainty.array == bnd_good.uncertainty.array
+    assert nd.uncertainty.array == bnd_good.uncertainty
     assert nd.mask == bnd_good.mask
     assert nd.wcs == bnd_good.wcs
     assert nd.data is bnd_good.data
