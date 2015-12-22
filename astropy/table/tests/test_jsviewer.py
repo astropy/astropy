@@ -6,11 +6,11 @@ from ... import extern
 from ...tests.helper import pytest
 
 try:
-  import IPython
+    import IPython
 except ImportError:
-  HAS_IPYTHON = False
+    HAS_IPYTHON = False
 else:
-  HAS_IPYTHON = True
+    HAS_IPYTHON = True
 
 EXTERN_DIR = abspath(dirname(extern.__file__))
 
