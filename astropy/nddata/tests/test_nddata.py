@@ -111,7 +111,7 @@ def test_uncertainty_setter():
     assert isinstance(nd.uncertainty, FakeUncertainty)
     nd.uncertainty = 10
     assert not isinstance(nd.uncertainty, FakeUncertainty)
-    assert nd.uncertainty == 10
+    assert nd.uncertainty.array == 10
 
 
 def test_mask_setter():

@@ -14,7 +14,6 @@ from .nddata_base import NDDataBase
 from .nduncertainty import NDUncertainty
 from .. import log
 from ..units import Unit, Quantity
-from ..extern import six
 
 __all__ = ['NDData']
 
@@ -63,14 +62,10 @@ class NDData(NDDataBase):
         Uncertainty in the dataset.
         Should have an attribute
         ``uncertainty_type`` that defines what kind of uncertainty is stored,
-        such as ``std`` for standard deviation or
-        ``var`` for variance. A metaclass defining such an interface is
+        such as ``'std'`` for standard deviation or
+        ``'var'`` for variance. A metaclass defining such an interface is
         `~astropy.nddata.NDUncertainty` but isn't mandatory.
         Defaults to ``None``.
-
-        TODO: *Must* or *Should* have this ``uncertainty_type`` ? (mwcraig)
-        I implemented UnknownUncertainty to work around that so what is
-        saved in _uncertainty has an uncertainty_type but it's unknown :-)
 
     mask : any type, optional
         Mask for the dataset.
@@ -124,7 +119,8 @@ class NDData(NDDataBase):
         >>> import astropy.units as u
         >>> q = np.array([1,2,3,4]) * u.m
         >>> nd2 = NDData(q, unit=u.cm)  # doctest: +SKIP
-        INFO: Overwriting Quantity's current unit with specified unit [astropy.nddata.nddata]
+        INFO: Overwriting Quantity's current unit with specified
+        unit [astropy.nddata.nddata]
         >>> nd2.data  # doctest: +SKIP
         array([ 1.,  2.,  3.,  4.])
         >>> nd2.unit  # doctest: +SKIP
@@ -164,8 +160,6 @@ class NDData(NDDataBase):
             # other parameters.
             if (unit is not None and data.unit is not None and
                     unit != data.unit):
-                # TODO: Clarify warning that unit is replaced instead of
-                # converted?
                 log.info("Overwriting NDData's current "
                          "unit with specified unit")
             elif data.unit is not None:
@@ -318,47 +312,21 @@ class NDData(NDDataBase):
         any type : Uncertainty in the dataset, if any.
 
         Should have an attribute ``uncertainty_type`` that defines what kind of
-        uncertainty is stored, such as ``std`` for standard deviation or
-        ``var`` for variance. A metaclass defining such an interface is
+        uncertainty is stored, such as ``'std'`` for standard deviation or
+        ``'var'`` for variance. A metaclass defining such an interface is
         `~astropy.nddata.NDUncertainty` but isn't mandatory.
-
-        TODO: *Must* or *Should* have this ``uncertainty_type`` ? (mwcraig)
-        I implemented UnknownUncertainty to work around that so what is
-        saved in _uncertainty has an uncertainty_type but it's unknown :-)
         """
-        if isinstance(self._uncertainty, UnknownUncertainty):
-            return self._uncertainty.array
-        else:
-            return self._uncertainty
-
-    @property
-    def uncertainty_type(self):
-        """
-        str: The kind of uncertainty that is saved.
-
-        The uncertainty_type is using the convention that standard deviation
-        is abbreviated by ``std``, variance by ``var``, ...
-
-        TODO: This is new and only a shortcut to the uncertainty type since
-        the property hides the really saved uncertainty if it is an
-        ``UnknownUncertainty``.
-        """
-        if self._uncertainty is None:
-            return None
-        else:
-            return self._uncertainty.uncertainty_type
+        return self._uncertainty
 
     @uncertainty.setter
     def uncertainty(self, value):
         if value is not None:
             # There is one requirements on the uncertainty: That
-            # it has an attribute 'uncertainty_type' which is a string.
+            # it has an attribute 'uncertainty_type'.
             # If it does not match this requirement convert it to an unknown
             # uncertainty.
-            if (not hasattr(value, 'uncertainty_type') or
-                    not isinstance(value.uncertainty_type, six.string_types)):
-                log.info('Uncertainty should have attribute uncertainty_type '
-                         'whose type is string.')
+            if not hasattr(value, 'uncertainty_type'):
+                log.info('Uncertainty should have attribute uncertainty_type.')
                 value = UnknownUncertainty(value, copy=False)
 
             # If it is a subclass of NDUncertainty we must set the
