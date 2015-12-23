@@ -253,6 +253,12 @@ API Changes
 Bug Fixes
 ^^^^^^^^^
 
+- ``astropy.analytic_functions``
+
+  - Fixed the blackbody functions' handling of overflows on some platforms
+    (Windows with MSVC, older Linux versions) with a buggy ``expm1`` function.
+    [#4393]
+
 - ``astropy.config``
 
 - ``astropy.constants``
