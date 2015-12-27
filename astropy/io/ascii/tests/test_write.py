@@ -534,3 +534,19 @@ def test_byte_string_output(fast_writer):
     out = StringIO()
     ascii.write(t, out, fast_writer=fast_writer)
     assert out.getvalue().splitlines() == ['col0', 'Hello', 'World']
+
+
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_quoted_empty_field(fast_writer):
+    """
+    Test the fix for #4350 where byte strings were output with a
+    leading `b` on Py3.
+    """
+    t = table.Table([['Hello', ''], ['', '']], dtype=['S10', 'S10'])
+    out = StringIO()
+    ascii.write(t, out, fast_writer=fast_writer)
+    assert out.getvalue().splitlines() == ['col0 col1', 'Hello ""', '"" ""']
+
+    out = StringIO()
+    ascii.write(t, out, fast_writer=fast_writer, delimiter=',')
+    assert out.getvalue().splitlines() == ['col0,col1', 'Hello,', ',']

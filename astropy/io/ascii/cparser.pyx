@@ -952,13 +952,13 @@ cdef class FastWriter:
         if not hasattr(output, 'write'): # output is a filename
             output = open(output, 'w')
             opened_file = True # remember to close file afterwards
-        writer = csv.writer(output,
-                            delimiter=self.delimiter,
-                            doublequote=True,
-                            escapechar=None,
-                            quotechar=self.quotechar,
-                            quoting=csv.QUOTE_MINIMAL,
-                            lineterminator=os.linesep)
+        writer = core.CsvWriter(output,
+                                delimiter=self.delimiter,
+                                doublequote=True,
+                                escapechar=None,
+                                quotechar=self.quotechar,
+                                quoting=csv.QUOTE_MINIMAL,
+                                lineterminator=os.linesep)
         self._write_header(output, writer, header_output, output_types)
 
         # Split rows into N-sized chunks, since we don't want to
