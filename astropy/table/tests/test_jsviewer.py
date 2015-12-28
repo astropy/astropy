@@ -2,6 +2,7 @@ from os.path import abspath, dirname, join
 import textwrap
 
 from ..table import Table
+from ..jsviewer import _get_resource
 from ... import extern
 from ...tests.helper import pytest
 
@@ -12,7 +13,6 @@ except ImportError:
 else:
     HAS_IPYTHON = True
 
-EXTERN_DIR = abspath(dirname(extern.__file__))
 
 REFERENCE = """
 <html>
@@ -125,9 +125,9 @@ def test_write_jsviewer_local(tmpdir):
         table_id='test',
         length='50',
         display_length='10, 25, 50, 100, 500, 1000',
-        datatables_css_url='file://' + join(EXTERN_DIR, 'css', 'jquery.dataTables.css'),
-        datatables_js_url='file://' + join(EXTERN_DIR, 'js', 'jquery.dataTables.min.js'),
-        jquery_url='file://' + join(EXTERN_DIR, 'js', 'jquery-1.11.3.min.js')
+        datatables_css_url=_get_resource('jquery.dataTables.css', 'css'),
+        datatables_js_url=_get_resource('jquery.dataTables.min.js', 'js'),
+        jquery_url=_get_resource('jquery-1.11.3.min.js', 'js')
     )
     with open(tmpfile) as f:
         assert f.read().strip() == ref.strip()
