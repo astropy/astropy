@@ -197,10 +197,16 @@ def _initialize_astropy():
             # Outright broken installation; don't be nice.
             raise
 
-    config_file = get_pkg_data_filename(__package__ + '.cfg')
+    # Can't rely on __package__ since it is not typically set at module import
+    # time (this worked by 'accident' on Python 2.7 since performing a relative
+    # import causes __package__ to be set, but it's not clear that that's
+    # intended behavior)
+    package_name = os.path.basename(__path__[0])
+
+    config_file = get_pkg_data_filename(package_name + '.cfg')
 
     try:
-        config.configuration.update_default_config(__package__, config_file)
+        config.configuration.update_default_config(package_name, config_file)
     except config.configuration.ConfigurationDefaultMissingError as e:
         wmsg = (e.args[0] + " Cannot install default profile. If you are "
                 "importing from source, this is expected.")
