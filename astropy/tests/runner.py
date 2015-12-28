@@ -23,13 +23,18 @@ from ..utils.exceptions import AstropyUserWarning
 
 
 class TestRunner(object):
-    def __init__(self, base_path):
+    def __init__(self, base_path, coverage_enabled=False):
         # base_path should be the root package's directory
         # testing_path is assumed to be the root directory that the package
         # itself is in (such as the source checkout)
         self.base_path = os.path.abspath(base_path)
         self.testing_path = os.path.dirname(self.base_path)
         self.package_name = os.path.basename(self.base_path)
+
+        # Normally we disable the coverage option by default because it isn't
+        # going to work in most contexts.  It only works reliable when used
+        # from `./setup.py test`, so the test command explicitly enables it.
+        self._coverage_enabled = coverage_enabled
 
     def run_tests(self, package=None, test_path=None, args=None, plugins=None,
                   verbose=False, pastebin=None, remote_data=False, pep8=False,
@@ -108,14 +113,16 @@ class TestRunner(object):
         # Don't import pytest until it's actually needed to run the tests
         from .helper import pytest
 
-        if coverage:
-            warnings.warn(
-                "The coverage option is ignored on run_tests, since it "
-                "can not be made to work in that context.  Use "
-                "'python setup.py test --coverage' instead.",
-                AstropyUserWarning)
-
         all_args = []
+
+        if coverage and not self._coverage_enabled:
+            warnings.warn(
+                "The coverage option is ignored by {0}.test, since it "
+                "cannot be guaranteed to work properly in that context. "
+                "Use 'python setup.py test --coverage' from a source "
+                "checkout instead.",
+                AstropyUserWarning)
+            coverage = False
 
         if package is None:
             package_path = self.base_path
@@ -408,13 +415,13 @@ class TestRunner(object):
 
         cmd_pre = (
             'import coverage; '
-            'cov = coverage.coverage(data_file="{0}", config_file="{1}"); '
+            'cov = coverage.coverage(data_file={0!r}, config_file={1!r}); '
             'cov.start(); '.format(
                 os.path.abspath(".coverage"), tmp_coveragerc))
         cmd_post = (
             'cov.stop(); '
             'from astropy.tests.helper import _save_coverage; '
-            '_save_coverage(cov, result, "{0}", "{1}"); '.format(
-                os.path.abspath('.'), self.base_path))
+            '_save_coverage(cov, result, {0!r}, {1!r}); '.format(
+                os.path.abspath('.'), self.testing_path))
 
         return cmd_pre, cmd_post

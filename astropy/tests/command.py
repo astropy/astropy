@@ -137,7 +137,8 @@ class AstropyTest(Command, object):
         self._build_temp_install()
 
         runner = TestRunner(os.path.join(self.testing_path,
-                                         self.package_name))
+                                         self.package_name),
+                            coverage_enabled=True)
         runner_sig = signature(runner.run_tests_in_subprocess)
         kwargs = dict((arg,
                        getattr(self, self.runner_option_map.get(arg, arg)))
