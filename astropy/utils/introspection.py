@@ -175,7 +175,7 @@ def find_current_module(depth=1, finddiff=False):
     ----------
     depth : int
         Specifies how far back to go in the call stack (0-indexed, so that
-        passing in 0 gives back `astropy.utils.misc`).
+        passing in 0 gives back `astropy.utils.introspection`).
     finddiff : bool or list
         If False, the returned ``mod`` will just be ``depth`` frames up from
         the current frame. Otherwise, the function will start at a frame
@@ -292,17 +292,33 @@ def _get_module_from_frame(frm):
         # check to bail out immediately if this fails
         filename = frm.f_globals['__file__']
 
-        # Using __file__ from the frame's globals and getting it into the
-        # form of an absolute path name (absolute for the zip file that is)
-        # with .py at the end works pretty well for looking up the module
-        # using the same means as inspect.getmodule
-        if filename[-4:].lower() in ('.pyc', '.pyo'):
-            filename = filename[:-4] + '.py'
-
+        # Using __file__ from the frame's globals and getting it into the form
+        # of an absolute path name (absolute for the zip file that is) works
+        # pretty well for looking up the module using the same means as
+        # inspect.getmodule; depending on the Python version and/or importer we
+        # may need to try different filename extensions though, as there are
+        # inconsistencies as to when the original source filename is used,
+        # versus when a bytecode filename is used :(
         absfilename = os.path.abspath(filename)
         absfilename = os.path.normcase(os.path.realpath(absfilename))
+        module_filename = None
         if absfilename in inspect.modulesbyfile:
-            return sys.modules.get(inspect.modulesbyfile[absfilename])
+            module_filename = absfilename
+        else:
+            base_filename, orig_ext = os.path.splitext(absfilename)
+            orig_ext = orig_ext.lower()  # Just in case
+            for ext in ['.py', '.pyc', '.pyo']:
+                if ext == orig_ext:
+                    continue
+
+                possible_filename = base_filename + ext
+
+                if possible_filename in inspect.modulesbyfile:
+                    module_filename = possible_filename
+                    break
+
+        if module_filename is not None:
+            return sys.modules.get(inspect.modulesbyfile[module_filename])
 
     # Otherwise there are still some even trickier things that might be
     # possible to track down the module, but we'll leave those out unless we
