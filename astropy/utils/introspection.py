@@ -286,6 +286,14 @@ def _get_module_from_frame(frm):
     if mod is not None:
         return mod
 
+    # As a special case return None when the code filename begins with
+    # <doctest--this means we're running the code as a doctest and it should
+    # appear the same as code running in the main module
+    # inspect.getmodule() fails in that case, but the below code is too clever
+    # and actually manages to find the real module that contains the doctest
+    if frm.f_code.co_filename.startswith('<doctest '):
+        return None
+
     # Check to see if we're importing from a zip file
     if frm and '__file__' in frm.f_globals and '__name__' in frm.f_globals:
         # First ensure that __file__ is available in globals; this is cheap to
