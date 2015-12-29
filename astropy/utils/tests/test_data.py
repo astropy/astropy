@@ -15,10 +15,13 @@ import io
 import os
 import sys
 import tempfile
+import zipfile
 from ...extern.six.moves.urllib.request import pathname2url
 
+from .. import data
 from ..data import (_get_download_cache_locs, CacheMissingWarning,
-                    get_pkg_data_filename, get_readable_fileobj)
+                    get_pkg_data_filename, get_pkg_data_fileobj,
+                    get_readable_fileobj)
 
 TESTURL = 'http://www.astropy.org'
 
@@ -211,6 +214,56 @@ def test_get_pkg_data_contents():
     contents2 = get_pkg_data_contents('data/local.dat')
 
     assert contents1 == contents2
+
+
+def test_get_pkg_data_from_zip(tmpdir, monkeypatch):
+    """
+    Tests extracting a package data resource from a package imported from a zip
+    file.
+
+    See https://github.com/astropy/astropy/pull/960
+    """
+
+    # Temporarily patch the zipfile cache-related globals so as not to
+    # interfere if astropy itself is being run from a zipfile
+    monkeypatch.setattr(data, '_zipfile_temp_dir', None)
+    monkeypatch.setattr(data, '_file_path_cache', {})
+    monkeypatch.setattr(data, '_tempfilestodel', [])
+
+    # Create a fake package to import from and zip it up
+    pkgdir = tmpdir.mkdir('_test_get_pkg_data_')
+    pkgdir.ensure('__init__.py')
+    pkgdir.join('data', 'foo.txt').write('Hello world!', ensure=True)
+
+    pkgzip = tmpdir.join('_test_get_pkg_data_.zip')
+
+    with zipfile.ZipFile(str(pkgzip), 'w') as zf:
+        for filename in pkgdir.visit(fil=lambda f: f.isfile()):
+            zf.write(str(filename), filename.relto(tmpdir))
+
+    sys.path.insert(0, str(pkgzip))
+    try:
+        with get_pkg_data_fileobj(os.path.join('data', 'foo.txt'),
+                                  package='_test_get_pkg_data_') as f:
+            assert f.read() == 'Hello world!'
+            filename = f.name
+            mtime = os.stat(filename).st_mtime
+            # This tests the the file is being read from the temp dir used for
+            # files extracted from the package zip
+            assert '_test_get_pkg_data_-data-' in filename
+
+        # Try a subsequeny read--ensure that the file is the same as in
+        # the previous read (testing caching)
+        with get_pkg_data_fileobj(os.path.join('data', 'foo.txt'),
+                                  package='_test_get_pkg_data_') as f:
+            assert f.read() == 'Hello world!'
+            assert f.name == filename
+            assert os.stat(filename).st_mtime == mtime
+    finally:
+        sys.path.remove(str(pkgzip))
+
+    data._deltemps()
+    assert not os.path.exists(data._zipfile_temp_dir)
 
 
 @remote_data

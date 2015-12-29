@@ -884,7 +884,8 @@ def _find_pkg_data_path(data_name, package=None):
         # Set up a temporary directory in which to store extracted data files
         global _zipfile_temp_dir
         if _zipfile_temp_dir is None or not os.path.isdir(_zipfile_temp_dir):
-            _zipfile_temp_dir = mkdtemp(prefix='astropy-data-')
+            prefix = '{0}-data-'.format(rootpkg_name)
+            _zipfile_temp_dir = mkdtemp(prefix=prefix)
             _tempfilestodel.append(_zipfile_temp_dir)
 
         pkg_path = os.path.join(*package.split('.'))
