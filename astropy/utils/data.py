@@ -892,7 +892,8 @@ def _find_pkg_data_path(data_name, package=None):
         subpkg_dir = os.path.join(_zipfile_temp_dir, pkg_path)
         rootpkg_dir = os.path.join(_zipfile_temp_dir, rootpkg_name)
 
-        with zipfile.ZipFile(loader.archive) as archive:
+        archive = zipfile.ZipFile(loader.archive)
+        try:
             # Before extracting anything ensure we have enough space in /tmp
             path = os.path.join(pkg_path, data_name)
             # Ensure that the path is constructed with forward slashes as
@@ -912,6 +913,8 @@ def _find_pkg_data_path(data_name, package=None):
                         human_file_size(info.file_size)))
 
             archive.extract(path, _zipfile_temp_dir)
+        finally:
+            archive.close()
 
     path = os.path.join(subpkg_dir, data_name)
 
