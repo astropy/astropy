@@ -193,6 +193,8 @@ else:
 edit_on_github_source_root = ""
 edit_on_github_doc_root = "docs"
 
+edit_on_github_skip_regex = '_.*|api/.*'
+
 github_issues_url = 'https://github.com/astropy/astropy/issues/'
 
 # Enable nitpicky mode - which ensures that all references in the docs
