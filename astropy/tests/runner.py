@@ -120,7 +120,7 @@ class TestRunner(object):
                 "The coverage option is ignored by {0}.test, since it "
                 "cannot be guaranteed to work properly in that context. "
                 "Use 'python setup.py test --coverage' from a source "
-                "checkout instead.",
+                "checkout instead.".format(self.package_name),
                 AstropyUserWarning)
             coverage = False
 
@@ -323,7 +323,7 @@ class TestRunner(object):
             with zipfile.ZipFile(importer.archive) as archive:
                 archive.extractall(test_tempdir)
 
-            runner = TestRunner(os.path.join(test_tempdir, pkg_name))
+            runner = cls(os.path.join(test_tempdir, pkg_name))
             test_meth = runner.run_tests_in_subprocess
         else:
             runner = cls(path)
@@ -356,7 +356,7 @@ class TestRunner(object):
         cmd_pre = ''  # Commands to run before the test function
         cmd_post = ''  # Commands to run after the test function
 
-        if kwargs.get('coverage'):
+        if self._coverage_enabled and kwargs.pop('coverage', False):
             pre, post = self._generate_coverage_commands(**kwargs)
             cmd_pre += pre
             cmd_post += post
