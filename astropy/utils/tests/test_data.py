@@ -237,9 +237,12 @@ def test_get_pkg_data_from_zip(tmpdir, monkeypatch):
 
     pkgzip = tmpdir.join('_test_get_pkg_data_.zip')
 
-    with zipfile.ZipFile(str(pkgzip), 'w') as zf:
+    zf = zipfile.ZipFile(str(pkgzip), 'w')
+    try:
         for filename in pkgdir.visit(fil=lambda f: f.isfile()):
             zf.write(str(filename), filename.relto(tmpdir))
+    finally:
+        zf.close()
 
     sys.path.insert(0, str(pkgzip))
     try:
