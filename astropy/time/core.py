@@ -12,6 +12,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import itertools
 from datetime import datetime
+from collections import defaultdict
 
 import numpy as np
 
@@ -437,6 +438,9 @@ class Time(object):
             raise ValueError('precision attribute must be an int between '
                              '0 and 9')
         self._precision = val
+        if hasattr(self, '_time'):
+            self._time.precision = val
+            del self.cache
 
     @property
     def in_subfmt(self):
@@ -451,6 +455,9 @@ class Time(object):
         if not isinstance(val, six.string_types):
             raise ValueError('in_subfmt attribute must be a string')
         self._in_subfmt = val
+        if hasattr(self, '_time'):
+            self._time.in_subfmt = val
+            del self.cache
 
     @property
     def out_subfmt(self):
@@ -464,6 +471,9 @@ class Time(object):
         if not isinstance(val, six.string_types):
             raise ValueError('out_subfmt attribute must be a string')
         self._out_subfmt = val
+        if hasattr(self, '_time'):
+            self._time.out_subfmt = val
+            del self.cache
 
     @property
     def ndim(self):
@@ -1037,18 +1047,47 @@ class Time(object):
         return self[self._advanced_index(self.argsort(axis), axis,
                                          keepdims=True)]
 
+    @property
+    def cache(self):
+        """
+        Return cache for associated with this instance.
+        """
+        if not hasattr(self, '_cache'):
+            self._cache = defaultdict(dict)
+        return self._cache
+
+    @cache.deleter
+    def cache(self):
+        """
+        Clear the cache for this instance.
+        """
+        if hasattr(self, '_cache'):
+            del self._cache
+
     def __getattr__(self, attr):
         """
         Get dynamic attributes to output format or do timescale conversion.
         """
         if attr in self.SCALES and self.scale is not None:
-            tm = self.replicate()
-            tm._set_scale(attr)
-            return tm
+            cache = self.cache['scale']
+            if attr not in cache:
+                if attr == self.scale:
+                    tm = self
+                else:
+                    tm = self.replicate()
+                    tm._set_scale(attr)
+                cache[attr] = tm
+            return cache[attr]
 
         elif attr in self.FORMATS:
-            tm = self.replicate(format=attr)
-            return tm.value
+            cache = self.cache['format']
+            if attr not in cache:
+                if attr == self.format:
+                    tm = self
+                else:
+                    tm = self.replicate(format=attr)
+                cache[attr] = tm.value
+            return cache[attr]
 
         elif attr in TIME_SCALES:  # allowed ones done above (self.SCALES)
             if self.scale is None:
@@ -1192,6 +1231,7 @@ class Time(object):
         if hasattr(val, 'to'):  # Matches Quantity but also TimeDelta.
             val = val.to(u.second).value
         self._delta_ut1_utc = val
+        del self.cache
 
     # Note can't use @property because _get_delta_tdb_tt is explicitly
     # called with the optional jd1 and jd2 args.
@@ -1242,6 +1282,7 @@ class Time(object):
         if hasattr(val, 'to'):  # Matches Quantity but also TimeDelta.
             val = val.to(u.second).value
         self._delta_tdb_tt = val
+        del self.cache
 
     # Note can't use @property because _get_delta_tdb_tt is explicitly
     # called with the optional jd1 and jd2 args.
@@ -1269,13 +1310,13 @@ class Time(object):
         # we need a constant scale to calculate, which is guaranteed for
         # TimeDelta, but not for Time (which can be UTC)
         if other_is_delta:  # T - Tdelta
+            out = self.replicate()
             if self.scale in other.SCALES:
-                out = self.replicate()
                 if other.scale not in (out.scale, None):
                     other = getattr(other, out.scale)
             else:
-                out = getattr(self, (other.scale if other.scale is not None
-                                     else 'tai'))
+                out = getattr(out, (other.scale if other.scale is not None
+                                    else 'tai'))
             # remove attributes that are invalidated by changing time
             for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
                 if hasattr(out, attr):
@@ -1318,13 +1359,13 @@ class Time(object):
         # ideally, we calculate in the scale of the Time item, since that is
         # what we want the output in, but this may not be possible, since
         # TimeDelta cannot be converted arbitrarily
+        out = self.replicate()
         if self.scale in other.SCALES:
-            out = self.replicate()
             if other.scale not in (out.scale, None):
                 other = getattr(other, out.scale)
         else:
-            out = getattr(self, (other.scale if other.scale is not None
-                                 else 'tai'))
+            out = getattr(out.replicate(), (other.scale if other.scale is not None
+                                            else 'tai'))
 
         # remove attributes that are invalidated by changing time
         for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
