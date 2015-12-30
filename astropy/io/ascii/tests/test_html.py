@@ -18,8 +18,8 @@ from ....tests.helper import pytest
 from ....extern.six.moves import cStringIO
 
 # Check to see if the BeautifulSoup dependency is present.
-
 try:
+
     from bs4 import BeautifulSoup, FeatureNotFound
     HAS_BEAUTIFUL_SOUP = True
 except ImportError:
@@ -364,7 +364,7 @@ def test_multicolumn_write():
 
     col1 = [1, 2, 3]
     col2 = [(1.0, 1.0), (2.0, 2.0), (3.0, 3.0)]
-    col3 = [('<a>', '<a>', 'a'), ('<b>', 'b', 'b'), ('c', 'c', 'c')]
+    col3 = [('<a></a>', '<a></a>', 'a'), ('<b></b>', 'b', 'b'), ('c', 'c', 'c')]
     table = Table([col1, col2, col3], names=('C1', 'C2', 'C3'))
     expected = """\
 <html>
@@ -385,15 +385,15 @@ def test_multicolumn_write():
     <td>1</td>
     <td>1.0</td>
     <td>1.0</td>
-    <td><a></td>
-    <td><a></td>
+    <td><a></a></td>
+    <td><a></a></td>
     <td>a</td>
    </tr>
    <tr>
     <td>2</td>
     <td>2.0</td>
     <td>2.0</td>
-    <td><b></td>
+    <td><b></b></td>
     <td>b</td>
     <td>b</td>
    </tr>
@@ -505,6 +505,40 @@ def test_raw_html_write():
     expected = """\
    <tr>
     <td><em>x</em></td>
+    <td><em>y</em></td>
+   </tr>"""
+    assert expected in out.getvalue()
+
+
+@pytest.mark.skipif('not HAS_BLEACH')
+def test_raw_html_write_clean():
+    """
+    Test that columns can contain raw HTML which is not escaped.
+    """
+    import bleach
+
+    t = Table([['<script>x</script>'], ['<p>y</p>'], ['<em>y</em>']], names=['a', 'b', 'c'])
+
+    # Confirm that <script> and <p> get escaped but not <em>
+    out = cStringIO()
+    t.write(out, format='ascii.html', htmldict={'raw_html_cols': t.colnames})
+    expected = """\
+   <tr>
+    <td>&lt;script&gt;x&lt;/script&gt;</td>
+    <td>&lt;p&gt;y&lt;/p&gt;</td>
+    <td><em>y</em></td>
+   </tr>"""
+    assert expected in out.getvalue()
+
+    # Confirm that we can whitelist <p>
+    out = cStringIO()
+    t.write(out, format='ascii.html',
+            htmldict={'raw_html_cols': t.colnames,
+                      'raw_html_clean_kwargs': {'tags': bleach.ALLOWED_TAGS + ['p']}})
+    expected = """\
+   <tr>
+    <td>&lt;script&gt;x&lt;/script&gt;</td>
+    <td><p>y</p></td>
     <td><em>y</em></td>
    </tr>"""
     assert expected in out.getvalue()

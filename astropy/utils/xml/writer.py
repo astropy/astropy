@@ -11,6 +11,11 @@ from ...extern import six
 import contextlib
 import textwrap
 
+try:
+    import bleach
+    HAS_BLEACH = True
+except ImportError:
+    HAS_BLEACH = False
 
 try:
     from . import _iterparser
@@ -148,10 +153,15 @@ class XMLWriter:
         return len(self._tags)
 
     @contextlib.contextmanager
-    def xml_escaping(self, enabled=True):
+    def xml_escaping(self, enabled=True, clean_kwargs=None):
         current_xml_escape_cdata = self.xml_escape_cdata
         if not enabled:
-            self.xml_escape_cdata = lambda x: x
+            if HAS_BLEACH:
+                if clean_kwargs is None:
+                    clean_kwargs = {}
+                self.xml_escape_cdata = lambda x: bleach.clean(x, **clean_kwargs)
+            else:
+                self.xml_escape_cdata = lambda x: x
         yield
         self.xml_escape_cdata = current_xml_escape_cdata
 
