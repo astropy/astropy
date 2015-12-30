@@ -329,7 +329,7 @@ class HTML(core.BaseReader):
         raw_html_cols = self.html.get('raw_html_cols', [])
         if isinstance(raw_html_cols, six.string_types):
             raw_html_cols = [raw_html_cols]  # Allow for a single string as input
-        cols_escaped = [col.name not in raw_html_cols for col in cols]
+        cols_escaped = [col.info.name not in raw_html_cols for col in cols]
 
         # Use XMLWriter to output HTML to lines
         w = writer.XMLWriter(ListWriter(lines))
