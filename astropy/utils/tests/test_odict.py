@@ -23,7 +23,7 @@ from ..compat.odict import OrderedDict
 from ...tests.helper import pytest
 
 #Skips all of these tests if the builtin ordered dict is available
-pytestmark = pytest.mark.skipif(str("sys.version_info >= (2,7)"))
+#pytestmark = pytest.mark.skipif(str("sys.version_info >= (2,7)"))
 
 
 class TestOrderedDict(unittest.TestCase):
@@ -253,6 +253,12 @@ class TestOrderedDict(unittest.TestCase):
         del od['a']
         od['a'] = 1
         self.assertEqual(list(od.items()), [('b', 2), ('a', 1)])
+
+    def test_str(self):
+        od = OrderedDict([('c', 1), ('b', 2), ('a', 3), ('d', 4), ('e', 5), ('f', 6)])
+        self.assertEqual(str(od),
+            "OrderedDict([(u'c', 1), (u'b', 2), (u'a', 3), (u'd', 4), (u'e', 5), (u'f', 6)])")
+        self.assertEqual(str(OrderedDict()), "OrderedDict([])")
 
     def assertIn(self, key, d):
         self.assertTrue(key in d)
