@@ -539,7 +539,11 @@ class Time(object):
     @property
     def value(self):
         """Time value(s) in current format"""
-        return self._shaped_like_input(self._time.to_value(parent=self))
+        # The underlying way to get the time values for the current format is:
+        #     self._shaped_like_input(self._time.to_value(parent=self))
+        # This is done in __getattr__.  By calling getattr(self, self.format)
+        # the ``value`` attribute is cached.
+        return getattr(self, self.format)
 
     def sidereal_time(self, kind, longitude=None, model=None):
         """Calculate sidereal time.
@@ -1050,7 +1054,7 @@ class Time(object):
     @property
     def cache(self):
         """
-        Return cache for associated with this instance.
+        Return the cache associated with this instance.
         """
         if not hasattr(self, '_cache'):
             self._cache = defaultdict(dict)
@@ -1086,7 +1090,8 @@ class Time(object):
                     tm = self
                 else:
                     tm = self.replicate(format=attr)
-                cache[attr] = tm.value
+                value = tm._shaped_like_input(tm._time.to_value(parent=tm))
+                cache[attr] = value
             return cache[attr]
 
         elif attr in TIME_SCALES:  # allowed ones done above (self.SCALES)
@@ -1364,7 +1369,7 @@ class Time(object):
             if other.scale not in (out.scale, None):
                 other = getattr(other, out.scale)
         else:
-            out = getattr(out.replicate(), (other.scale if other.scale is not None
+            out = getattr(out, (other.scale if other.scale is not None
                                             else 'tai'))
 
         # remove attributes that are invalidated by changing time

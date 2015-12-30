@@ -1073,3 +1073,4 @@ def test_cache():
     # Clear the cache
     del t.cache
     assert not hasattr(t, '_cache')
+    assert not t.cache
