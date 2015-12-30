@@ -155,10 +155,6 @@ class Time(object):
         Make a copy of the input values
     """
 
-    _precision = 3  # Precision when for seconds as floating point
-    _in_subfmt = '*'  # Select subformat for inputting string times
-    _out_subfmt = '*'  # Select subformat for outputting string times
-
     SCALES = TIME_SCALES
     """List of time scales"""
 
@@ -200,18 +196,20 @@ class Time(object):
         else:
             self.location = None
 
-        if precision is not None:
-            self.precision = precision
-        if in_subfmt is not None:
-            self.in_subfmt = in_subfmt
-        if out_subfmt is not None:
-            self.out_subfmt = out_subfmt
-
         if isinstance(val, self.__class__):
+            # Update _time formatting parameters if explicitly specified
+            if precision is not None:
+                self._time.precision = precision
+            if in_subfmt is not None:
+                self._time.in_subfmt = in_subfmt
+            if out_subfmt is not None:
+                self._time.out_subfmt = out_subfmt
+
             if scale is not None:
                 self._set_scale(scale)
         else:
-            self._init_from_vals(val, val2, format, scale, copy)
+            self._init_from_vals(val, val2, format, scale, copy,
+                                 precision, in_subfmt, out_subfmt)
 
         if self.location and (self.location.size > 1
                               and self.location.shape != self.shape):
@@ -226,12 +224,19 @@ class Time(object):
                                  'one for each time.'
                                  .format(self.location.shape, self.shape))
 
-    def _init_from_vals(self, val, val2, format, scale, copy):
+    def _init_from_vals(self, val, val2, format, scale, copy,
+                        precision=None, in_subfmt=None, out_subfmt=None):
         """
         Set the internal _format, scale, and _time attrs from user
         inputs.  This handles coercion into the correct shapes and
         some basic input validation.
         """
+        if precision is None:
+            precision = 3
+        if in_subfmt is None:
+            in_subfmt = '*'
+        if out_subfmt is None:
+            out_subfmt = '*'
 
         # Coerce val into an array
         val = _make_array(val, copy)
@@ -253,10 +258,12 @@ class Time(object):
                                                    sorted(self.SCALES)))
 
         # Parse / convert input values into internal jd1, jd2 based on format
-        self._time = self._get_time_fmt(val, val2, format, scale)
+        self._time = self._get_time_fmt(val, val2, format, scale,
+                                        precision, in_subfmt, out_subfmt)
         self._format = self._time.name
 
-    def _get_time_fmt(self, val, val2, format, scale):
+    def _get_time_fmt(self, val, val2, format, scale,
+                      precision, in_subfmt, out_subfmt):
         """
         Given the supplied val, val2, format and scale try to instantiate
         the corresponding TimeFormat class to convert the input values into
@@ -290,8 +297,7 @@ class Time(object):
 
         for format, FormatClass in formats:
             try:
-                return FormatClass(val, val2, scale, self.precision,
-                                   self.in_subfmt, self.out_subfmt)
+                return FormatClass(val, val2, scale, precision, in_subfmt, out_subfmt)
             except UnitConversionError:
                 raise
             except (ValueError, TypeError):
@@ -430,17 +436,15 @@ class Time(object):
         Decimal precision when outputting seconds as floating point (int
         value between 0 and 9 inclusive).
         """
-        return self._precision
+        return self._time.precision
 
     @precision.setter
     def precision(self, val):
         if not isinstance(val, int) or val < 0 or val > 9:
             raise ValueError('precision attribute must be an int between '
                              '0 and 9')
-        self._precision = val
-        if hasattr(self, '_time'):
-            self._time.precision = val
-            del self.cache
+        self._time.precision = val
+        del self.cache
 
     @property
     def in_subfmt(self):
@@ -448,32 +452,28 @@ class Time(object):
         Unix wildcard pattern to select subformats for parsing string input
         times.
         """
-        return self._in_subfmt
+        return self._time.in_subfmt
 
     @in_subfmt.setter
     def in_subfmt(self, val):
         if not isinstance(val, six.string_types):
             raise ValueError('in_subfmt attribute must be a string')
-        self._in_subfmt = val
-        if hasattr(self, '_time'):
-            self._time.in_subfmt = val
-            del self.cache
+        self._time.in_subfmt = val
+        del self.cache
 
     @property
     def out_subfmt(self):
         """
         Unix wildcard pattern to select subformats for outputting times.
         """
-        return self._out_subfmt
+        return self._time.out_subfmt
 
     @out_subfmt.setter
     def out_subfmt(self, val):
         if not isinstance(val, six.string_types):
             raise ValueError('out_subfmt attribute must be a string')
-        self._out_subfmt = val
-        if hasattr(self, '_time'):
-            self._time.out_subfmt = val
-            del self.cache
+        self._time.out_subfmt = val
+        del self.cache
 
     @property
     def ndim(self):
