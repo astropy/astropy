@@ -537,7 +537,7 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
 #. Go back to the master branch and push your changes to github::
 
         git checkout master
-        git push --tags origin master
+        git push --tags origin
 
    Once you have done this, if you use readthedocs, trigger a ``latest`` build
    then go to the project settings, and under **Versions** you should see the
