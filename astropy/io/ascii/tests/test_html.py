@@ -15,7 +15,7 @@ from ....table import Table
 import numpy as np
 
 from ....tests.helper import pytest
-from .common import setup_function, teardown_function
+from ....extern.six.moves import cStringIO
 
 # Check to see if the BeautifulSoup dependency is present.
 
@@ -364,7 +364,7 @@ def test_multicolumn_write():
 
     col1 = [1, 2, 3]
     col2 = [(1.0, 1.0), (2.0, 2.0), (3.0, 3.0)]
-    col3 = [('a', 'a', 'a'), ('b', 'b', 'b'), ('c', 'c', 'c')]
+    col3 = [('<a>', '<a>', 'a'), ('<b>', 'b', 'b'), ('c', 'c', 'c')]
     table = Table([col1, col2, col3], names=('C1', 'C2', 'C3'))
     expected = """\
 <html>
@@ -385,15 +385,15 @@ def test_multicolumn_write():
     <td>1</td>
     <td>1.0</td>
     <td>1.0</td>
-    <td>a</td>
-    <td>a</td>
+    <td><a></td>
+    <td><a></td>
     <td>a</td>
    </tr>
    <tr>
     <td>2</td>
     <td>2.0</td>
     <td>2.0</td>
-    <td>b</td>
+    <td><b></td>
     <td>b</td>
     <td>b</td>
    </tr>
@@ -409,7 +409,8 @@ def test_multicolumn_write():
  </body>
 </html>
     """
-    assert html.HTML().write(table)[0].strip() == expected.strip()
+    out = html.HTML(htmldict={'raw_html_cols': 'C3'}).write(table)[0].strip()
+    assert out == expected.strip()
 
 def test_write_no_multicols():
     """
@@ -476,3 +477,34 @@ def test_multicolumn_read():
                                (['1a', '1'], 3.5)],
                               dtype=[('A', str_type, (2,)), ('B', '<f8')]))
     assert np.all(table == expected)
+
+def test_raw_html_write():
+    """
+    Test that columns can contain raw HTML which is not escaped.
+    """
+    t = Table([['<em>x</em>'], ['<em>y</em>']], names=['a', 'b'])
+
+    # One column contains raw HTML (string input)
+    out = cStringIO()
+    t.write(out, format='ascii.html', htmldict={'raw_html_cols': 'a'})
+    expected = """\
+   <tr>
+    <td><em>x</em></td>
+    <td>&lt;em&gt;y&lt;/em&gt;</td>
+   </tr>"""
+    assert expected in out.getvalue()
+
+    # One column contains raw HTML (list input)
+    out = cStringIO()
+    t.write(out, format='ascii.html', htmldict={'raw_html_cols': ['a']})
+    assert expected in out.getvalue()
+
+    # Two columns contains raw HTML (list input)
+    out = cStringIO()
+    t.write(out, format='ascii.html', htmldict={'raw_html_cols': ['a', 'b']})
+    expected = """\
+   <tr>
+    <td><em>x</em></td>
+    <td><em>y</em></td>
+   </tr>"""
+    assert expected in out.getvalue()
