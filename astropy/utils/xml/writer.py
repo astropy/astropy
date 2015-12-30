@@ -148,6 +148,14 @@ class XMLWriter:
         return len(self._tags)
 
     @contextlib.contextmanager
+    def xml_escaping(self, enabled=True):
+        current_xml_escape_cdata = self.xml_escape_cdata
+        if not enabled:
+            self.xml_escape_cdata = lambda x: x
+        yield
+        self.xml_escape_cdata = current_xml_escape_cdata
+
+    @contextlib.contextmanager
     def tag(self, tag, attrib={}, **extra):
         """
         A convenience method for creating wrapper elements using the
