@@ -47,7 +47,6 @@ def test_setitem_invalid_type(value):
     assert exc.value.args[0] == 'flags should be given as a Numpy array'
 
 
-@pytest.mark.skipif("os.environ.get('APPVEYOR')",  reason="fails on AppVeyor")
 def test_setitem_invalid_shape():
     f = FlagCollection(shape=(1, 2, 3))
     with pytest.raises(ValueError) as exc:
