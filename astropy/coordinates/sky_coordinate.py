@@ -975,6 +975,24 @@ class SkyCoord(object):
 
         return angle_utilities.position_angle(slon, slat, olon, olat)
 
+    def astrometric_frame(self):
+        """
+        Returns the astrometric coordinate system of this `SkyCoord`
+
+        Parameters
+        ----------
+        None
+        
+        Returns
+        -------
+        Astrometric Frame: AstrometricFrame
+            Coordinates of the sky rotated such that the new origin is (olat, olon)
+        """
+        olat = self.represent_as(SphericalRepresentation).lat
+        olon = self.represent_as(SphericalRepresentation).lon
+        dist = self.represent_as(SphericalRepresentation).dist
+        return coord.Astrometric(origin_ra=olon, origin_dec=olat, originorigin_distance=dist)  
+
     def get_constellation(self, short_name=False, constellation_list='iau'):
         """
         Determines the constellation(s) of the coordinates this `SkyCoord`
