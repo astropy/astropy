@@ -173,3 +173,51 @@ def test_supergalactic():
     supergalactic = Supergalactic(sgl=-174.44*u.degree, sgb=+46.17*u.degree)
     icrs = ICRS('17h51m36s -25d18m52s')
     assert supergalactic.separation(icrs) < 0.005 * u.degree
+
+def test_astrometric():
+    # when roll=0 and zsun=0, astrometric and galactocentric should be identical
+    icrs_coord = ICRS(ra=np.linspace(0,360,10)*u.deg,
+                      dec=np.linspace(-90,90,10)*u.deg,
+                      distance=1.*u.kpc)
+
+    am_xyz = icrs_coord.transform_to(Astrometric).cartesian.xyz
+    gc_xyz = icrs_coord.transform_to(Galactocentric(z_sun=0*u.kpc, roll=0*u.deg)).cartesian.xyz
+    diff = np.abs(g_xyz - gc_xyz)
+
+    assert allclose(diff[0], 8.3*u.kpc, atol=1E-5*u.kpc)
+    assert allclose(diff[1:], 0*u.kpc, atol=1E-5*u.kpc)
+
+    # generate some test coordinates
+#    g = Galactic(l=[0,0,45,315]*u.deg, b=[-45,45,0,0]*u.deg,
+#                 distance=[np.sqrt(2)]*4*u.kpc)
+#    xyz = g.transform_to(Galactocentric(galcen_distance=1.*u.kpc, z_sun=0.*u.pc)).cartesian.xyz
+#    true_xyz = np.array([[0,0,-1.],[0,0,1],[0,1,0],[0,-1,0]]).T*u.kpc
+#    assert allclose(xyz.to(u.kpc), true_xyz.to(u.kpc), atol=1E-5*u.kpc)
+
+    # check that ND arrays work
+
+    # from Galactocentric to Galactic
+#    x = np.linspace(-10., 10., 100) * u.kpc
+#    y = np.linspace(-10., 10., 100) * u.kpc
+#    z = np.zeros_like(x)
+
+ #   g1 = Galactocentric(x=x, y=y, z=z)
+ #   g2 = Galactocentric(x=x.reshape(100,1,1), y=y.reshape(100,1,1), z=z.reshape(100,1,1))
+
+ #   g1t = g1.transform_to(Galactic)
+ #   g2t = g2.transform_to(Galactic)
+
+ #   assert_allclose(g1t.cartesian.xyz, g2t.cartesian.xyz[:,:,0,0])
+
+    # from Galactic to Galactocentric
+#    l = np.linspace(15, 30., 100) * u.deg
+#    b = np.linspace(-10., 10., 100) * u.deg
+#    d = np.ones_like(l.value) * u.kpc
+
+#    g1 = Galactic(l=l, b=b, distance=d)
+#    g2 = Galactic(l=l.reshape(100,1,1), b=b.reshape(100,1,1), distance=d.reshape(100,1,1))
+
+#    g1t = g1.transform_to(Galactocentric)
+#    g2t = g2.transform_to(Galactocentric)
+
+#    np.testing.assert_almost_equal(g1t.cartesian.xyz.value, g2t.cartesian.xyz.value[:,:,0,0])
