@@ -6,6 +6,7 @@ import copy
 import functools
 import sys
 import datetime
+from copy import deepcopy
 
 import numpy as np
 
@@ -30,7 +31,13 @@ allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
 allclose_year = functools.partial(np.allclose, rtol=2. ** -52,
                                   atol=0.)  # 14 microsec at current epoch
 
+def setup_function(func):
+    func.FORMATS_ORIG = deepcopy(Time.FORMATS)
 
+
+def teardown_function(func):
+    Time.FORMATS.clear()
+    Time.FORMATS.update(func.FORMATS_ORIG)
 
 
 class TestBasic():
