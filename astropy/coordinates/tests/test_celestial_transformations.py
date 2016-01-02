@@ -11,7 +11,7 @@ from ..distances import Distance
 from .. import transformations as t
 from ..builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, \
                              Supergalactic, Galactocentric, CIRS, GCRS, AltAz, \
-                             ITRS, PrecessedGeocentric
+                             ITRS, PrecessedGeocentric, Astrometric
 from .. import representation as r
 from ..baseframe import frame_transform_graph
 from ...tests.helper import (pytest, quantity_allclose as allclose,
