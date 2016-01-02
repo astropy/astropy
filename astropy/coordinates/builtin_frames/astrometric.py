@@ -8,7 +8,7 @@ import numpy as np
 from ... import units as u
 from ..angles import Angle
 from ..representation import CartesianRepresentation, UnitSphericalRepresentation
-from ..baseframe import (BaseCoordinateFrame, FrameAttribute,
+from ..baseframe import (BaseCoordinateFrame, QuantityFrameAttribute,
                          frame_transform_graph)
 from ..transformations import FunctionTransform
 from ..errors import ConvertError
@@ -114,9 +114,9 @@ class Astrometric(BaseCoordinateFrame):
 
     # TODO: these can all become QuantityFrameAttribute's once #3217 is merged
     
-    origin_distance = QuantityFrameAttribute(default=0, units=u.kpc)
-    origin_ra = QuantityFrameAttribute(default=0, units=u.degree)
-    origin_dec = QuantitFrameAttribute(default=0, units=u.degree)
+    origin_distance = QuantityFrameAttribute(default=0, unit=u.kpc)
+    origin_ra = QuantityFrameAttribute(default=0, unit=u.degree)
+    origin_dec = QuantitFrameAttribute(default=0, unit=u.degree)
 
 
 # ICRS to/from Astrometric ----------------------->
