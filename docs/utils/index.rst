@@ -18,7 +18,13 @@ Astropy.
 
 Because of the mostly standalone and grab-bag nature of these utilities, they
 are generally best understood through their docstrings, and hence this
-documentation does not have detailed sections like the other packages.
+documentation generally does not have detailed sections like the other packages.
+The exception is below:
+
+.. toctree::
+   :maxdepth: 1
+
+   iers
 
 .. note:: The ``astropy.utils.compat`` subpackage is not included in this
     documentation. It contains utility modules for compatibility with
@@ -47,6 +53,9 @@ Reference/API
     :no-inheritance-diagram:
 
 .. automodapi:: astropy.utils.exceptions
+    :no-inheritance-diagram:
+
+.. automodapi:: astropy.utils.iers
     :no-inheritance-diagram:
 
 .. automodapi:: astropy.utils.introspection
