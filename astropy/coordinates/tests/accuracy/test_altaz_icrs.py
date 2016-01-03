@@ -61,7 +61,7 @@ def test_against_hor2eq():
     # that hor2eq assumes.  This is confirmed by the second test which has the
     # atmosphere "off" - the residual difference is small enough to be embedded
     # in the assumptions about "J2000" or rounding errors.
-    assert distance < 5 * u.arcsec
+    assert distance < 10 * u.arcsec
     assert distance_noatm < 0.4 * u.arcsec
 
 
