@@ -16,7 +16,7 @@ from collections import defaultdict
 
 import numpy as np
 
-from .. import units as u
+from .. import units as u, constants as const
 from .. import _erfa as erfa
 from ..units import UnitConversionError
 from ..utils.decorators import lazyproperty
@@ -546,95 +546,95 @@ class Time(object):
         # the ``value`` attribute is cached.
         return getattr(self, self.format)
 
-    def ltt_correction(self, skycoord, kind, location=None):
-        """Calculate light travel time correction to the Solar System barycentre or heliocentre.
-        
-        The frame transformations used to calculate the location 
-        of the barycentre and heliocentre rely on the erfa routine epv00, which is
-        consistent with the JPL DE405 ephemeris to an accuracy of 11.2km,
-        corresponding to a light travel time of 4 microseconds.
+    def ltt_correction(self, skycoord, kind='barycentric', location=None):
+        """Light travel time correction to the barycentre or heliocentre.
 
-        The routine does not perform the geometry correctly for sky locations
-        with finite distances, instead assuming the source is at large distances
-        from the observatory location.
-        
-        Example
-        --------------
-        
-        The arrival times of photons at the observatory are not particularly useful
-        for accurate timing work, such as eclipse/transit timing of binaries or exoplanets.
-        This is because the changing location of the observatory causes photons to arrive
-        early or late. The solution is to calculate the time the photon would have arrived
-        at a standard location; either the Solar system barycentre or the heliocentre.
-        
-        Suppose you have a list of times in MJD form. Typically these will be in the UTC
-        timescale. First create an `~astropy.time.Time` object::
-        
-            >>> from astropy import time, coordinates as coord, units as u
-            >>> times = time.Time([56325.95833333, 56325.978254], format='mjd', scale='utc')
-            
-        You should then set the ``'location'`` property of the time object to the location
-        of the observatory:
-        
-            >>> times.location = coord.EarthLocation.of_site('lapalma')
-            
-        This routine can then be used to calculate the light travel time to the
-        heliocentre or barycentre, given the sky location of the photon's origin.
-        This should be supplied as a `~coordinates.SkyCoord` object::
-        
-            >>> star = coord.SkyCoord("23:23:08.55","+18:24:59.3",unit=(u.deg,u.deg),frame='icrs')
-            >>> ltt_bary  = times.ltt_correction(times,star,'barycentric')
-            >>> ltt_helio = times.ltt_correction(times,star,'heliocentric')
-            
-        This function returns an `~astropy.time.TimeDelta` object, which can be added to
-        your times to give the arrival time of the photons at the heliocentre or barycentre.
-        When doing this, one should be careful about the timescales that you use. For more
-        detailed information on the various timescales, look at 
-        http://astropy.readthedocs.org/en/stable/time/index.html#time-scale.
-        
-        The heliocentre is not a fixed point, and therefore the gravity continually changes
-        at the heliocentre. Thus, the use of a relativistic timescale like TDB is not 
-        particularly appropriate. Historically in the astrophysical literature, times 
-        corrected to the heliocentre are given in the UTC timescale:
-        
-            >>> times_heliocentre = times + ltt_helio
-            
-        Corrections to the barycentre are more precise than the heliocentre, because the 
-        barycenter is a fixed point where gravity is constant. For maximum accuracy you
-        want to have your barycentric corrected times in a timescale that has always
-        ticked at a uniform rate, and ideally one whose tick rate is related to the
-        rate that a clock would tick at the barycentre. For this reason, barycentric 
-        corrected times normally use the TDB timescale:
-        
-            >>> time_barycentre  = times.tdb + ltt_bary
-        
+        The frame transformations used to calculate the location of the solar
+        system barycentre and the heliocentre rely on the erfa routine epv00,
+        which is consistent with the JPL DE405 ephemeris to an accuracy of
+        11.2 km, corresponding to a light travel time of 4 microseconds.
+
+        The routine assumes the source(s) are at large distance, i.e., neglects
+        finite-distance effects.
+
         Parameters
-        ---------------
+        ----------
         skycoord: `~astropy.coordinates.SkyCoord`
-            The sky location to calculate the correction for. 
-        kind: str
-            ``'barycentric'`` or ``'heliocentric'``
-        location: `~astropy.coordinates.EarthLocation`; optional
+            The sky location to calculate the correction for.
+        kind: str, optional
+            ``'barycentric'`` (default) or ``'heliocentric'``
+        location: `~astropy.coordinates.EarthLocation`, optional
             The location of the observatory to calculate the correction for.
             If no location is given, the ``location`` attribute of the Time
             object is used
-        
+
         Returns
-        ---------------
+        -------
         time_offset: `~astropy.time.TimeDelta`
-            the time offset between Earth and the Heliocentre
+            The time offset between the barycentre or Heliocentre and Earth,
+            in TDB seconds.  Should be added to the original time to get the
+            time in the Solar system barycentre or the Heliocentre.
+
+        Examples
+        --------
+        The arrival times of photons at an observatory are not particularly
+        useful for accurate timing work, such as eclipse/transit timing of
+        binaries or exoplanets.  This is because the changing location of the
+        observatory causes photons to arrive early or late. The solution is to
+        calculate the time the photon would have arrived at a standard location;
+        either the Solar system barycentre or the heliocentre.
+
+        Suppose you observed IP Peg on La Palma and have a list of times in MJD
+        form, in the UTC timescale. You then create appropriate
+        `~astropy.time.Time` and `~astropy.coordinates.SkyCoord` objects and
+        calculate light travel times to the barycentre as follows::
+
+          >>> from astropy import time, coordinates as coord, units as u
+          >>> ip_peg = coord.SkyCoord("23:23:08.55", "+18:24:59.3",
+          ...                         unit=(u.hourangle, u.deg), frame='icrs')
+          >>> wht = coord.EarthLocation.of_site('lapalma')  # doctest: +REMOTE_DATA
+          >>> times = time.Time([56325.95833333, 56325.978254], format='mjd',
+          ...                   scale='utc', location=wht)  # doctest: +REMOTE_DATA
+          >>> ltt_bary = times.ltt_correction(ip_peg, 'barycentric')  # doctest: +REMOTE_DATA
+          >>> ltt_helio = times.ltt_correction(ip_peg, 'heliocentric')  # doctest: +REMOTE_DATA
+
+        The method returns an `~astropy.time.TimeDelta` object, which can be
+        added to your times to give the arrival time of the photons at the
+        barycentre or heliocentre.  Here, one should be careful with the
+        timescales used; for more detailed information about timescales, see
+        http://astropy.readthedocs.org/en/stable/time/index.html#time-scale.
+
+        The heliocentre is not a fixed point, and therefore the gravity
+        continually changes at the heliocentre. Thus, the use of a relativistic
+        timescale like TDB is not particularly appropriate, and, historically,
+        times corrected to the heliocentre are given in the UTC timescale:
+
+          >>> times_heliocentre = times.utc + ltt_helio  # doctest: +REMOTE_DATA
+
+        Corrections to the barycentre are more precise than the heliocentre,
+        because the barycenter is a fixed point where gravity is constant. For
+        maximum accuracy you want to have your barycentric corrected times in a
+        timescale that has always ticked at a uniform rate, and ideally one
+        whose tick rate is related to the rate that a clock would tick at the
+        barycentre. For this reason, barycentric corrected times normally use
+        the TDB timescale:
+
+          >>> time_barycentre = times.tdb + ltt_bary  # doctest: +REMOTE_DATA
         """
-        if kind.lower() not in ['barycentric','heliocentric']:
-            raise ValueError("'kind' parameter must be one of 'heliocentric' or 'barycentric'")
+
+        if kind.lower() not in ('barycentric', 'heliocentric'):
+            raise ValueError("'kind' parameter must be one of 'heliocentric' "
+                             "or 'barycentric'")
+
         if location is None:
             if self.location is None:
-                raise ValueError('Time instance needs a EarthLocation setting'
-                                 'to perform heliocentric corrections')
+                raise ValueError('An EarthLocation needs to be set or passed '
+                                 'in to calculate bary- or heliocentric '
+                                 'corrections')
             location = self.location
-        
+
         from ..coordinates import (UnitSphericalRepresentation, CartesianRepresentation,
                                    Heliocentric, ICRS, GCRS, EarthLocation, SkyCoord)
-        from .. import constants as const
 
         if not isinstance(location, EarthLocation):
             raise ValueError("location must be an EarthLocation object")
@@ -643,28 +643,32 @@ class Time(object):
 
         # ensure sky location is ICRS compatible
         if not skycoord.is_transformable_to(ICRS()):
-            raise ValueError("Given skycoord is not transformable to the ICRS frame")
+            raise ValueError("Given skycoord is not transformable to the ICRS")
 
         # get location of observatory in ITRS coordinates at this Time
         itrs = location.get_itrs(obstime=self)
-        if kind == 'heliocentric':
+        if kind.lower() == 'heliocentric':
             # convert to heliocentric coordinates, aligned with ICRS
-            cpos = itrs.transform_to(Heliocentric(obstime=self)).cartesian.xyz.to(u.au)
+            cpos = itrs.transform_to(Heliocentric(obstime=self)).cartesian.xyz
         else:
             # first we need to convert to GCRS coordinates with the correct
             # obstime, since ICRS coordinates have no frame time
             gcrs_coo = itrs.transform_to(GCRS(obstime=self))
             # convert to barycentric (BCRS) coordinates, aligned with ICRS
-            cpos = gcrs_coo.transform_to(ICRS()).cartesian.xyz.to(u.au)                    
+            cpos = gcrs_coo.transform_to(ICRS()).cartesian.xyz
 
         # get unit ICRS vector to star
         spos  = (skycoord.icrs.represent_as(UnitSphericalRepresentation).
                  represent_as(CartesianRepresentation).xyz)
-            
-        # calculate light travel time correction 
-        tcor_val  = (spos * cpos).sum(axis=0) / const.c
-        return TimeDelta(tcor_val, scale='tdb')   
-                            
+
+        # Move X,Y,Z to last dimension, to enable possible broadcasting below.
+        cpos = np.rollaxis(cpos, 0, cpos.ndim)
+        spos = np.rollaxis(spos, 0, spos.ndim)
+
+        # calculate light travel time correction
+        tcor_val  = (spos * cpos).sum(axis=-1) / const.c
+        return TimeDelta(tcor_val, scale='tdb')
+
     def sidereal_time(self, kind, longitude=None, model=None):
         """Calculate sidereal time.
 

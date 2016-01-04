@@ -1,25 +1,32 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import functools
-import itertools
+from ... import units as u
+from ...coordinates import EarthLocation, SkyCoord
+from .. import Time, TimeDelta
 
-import numpy as np
 
-from ...tests.helper import (pytest, quantity_allclose as allclose, remote_data,
-                             assert_quantity_allclose as assert_allclose)
-from .. import Time
+class TestHelioBarioCentric():
+    """
+    Verify time offsets to the solar system barycentre and the heliocentre.
+    Uses the WHT observing site.
 
-@remote_data
-def test_corrections():
-    from ... import coordinates as coord, units as u
-    wht  = coord.EarthLocation.of_site('lapalma')
-    star = coord.SkyCoord("08:08:08 +32:00:00",distance=120*u.pc,unit=(u.hour,u.degree),frame='icrs')
-    t = Time("2013-02-02T23:00")
-    t.location = wht
-    hval = t.heliocentric_correction(star)
-    bval = t.barycentric_correction(star)
-    # test against values returned at time of initial creation
-    # these values agree to an independent SLALIB based implementation
-    # to 20 microseconds
-    assert allclose(hval.sec,461.43037870502235)
-    assert allclose(bval.sec,460.58538779827836)
-    
+    Tests are against values returned at time of initial creation of these
+    routines.  They agree to an independent SLALIB based implementation
+    to 20 microseconds.
+    """
+    def setup(self):
+        wht = EarthLocation(342.12*u.deg, 28.758333333333333*u.deg, 2327*u.m)
+        self.obstime = Time("2013-02-02T23:00", location=wht)
+        self.star = SkyCoord("08:08:08 +32:00:00", unit=(u.hour, u.degree),
+                             frame='icrs')
+
+    def test_heliocentric(self):
+        hval = self.obstime.ltt_correction(self.star, 'heliocentric')
+        assert isinstance(hval, TimeDelta)
+        assert hval.scale == 'tdb'
+        assert abs(hval - 461.43037870502235 * u.s) < 1. * u.us
+
+    def test_barycentric(self):
+        bval = self.obstime.ltt_correction(self.star, 'barycentric')
+        assert isinstance(bval, TimeDelta)
+        assert bval.scale == 'tdb'
+        assert abs(bval - 460.58538779827836 * u.s) < 1. * u.us
