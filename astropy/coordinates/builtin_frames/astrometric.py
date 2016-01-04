@@ -60,8 +60,6 @@ class Astrometric(BaseCoordinateFrame):
         The Right Ascension (RA) of the Galactic center in the ICRS frame.
     origin_dec : `Angle`, optional, must be keyword
         The Declination (Dec) of the Galactic center in the ICRS frame.
-    z_sun : `~astropy.units.Quantity`, optional, must be keyword
-        The distance from the Sun to the Galactic midplane.
 
     Examples
     --------
@@ -116,7 +114,7 @@ class Astrometric(BaseCoordinateFrame):
     
     origin_distance = QuantityFrameAttribute(default=0, unit=u.kpc)
     origin_ra = QuantityFrameAttribute(default=0, unit=u.degree)
-    origin_dec = QuantitFrameAttribute(default=0, unit=u.degree)
+    origin_dec = QuantityFrameAttribute(default=0, unit=u.degree)
 
 
 # ICRS to/from Astrometric ----------------------->
@@ -141,14 +139,6 @@ def icrs_to_astrometric(icrs_coord, astrometric_frame):
     orig_shape = xyz.shape
     xyz = R.dot(xyz.reshape(xyz.shape[0], np.prod(xyz.shape[1:]))).reshape(orig_shape)
 
-    # translate by Sun-Galactic center distance along new x axis
-    xyz[0] = xyz[0] - astrometric_frame.origin_distance
-
-    # rotate about y' to account for tilt due to Sun's height above the plane
-    z_d = (astrometric_frame.z_sun / astrometric_frame.origin_distance).decompose()
-    R = rotation_matrix(-np.arcsin(z_d), 'y')
-    xyz = R.dot(xyz.reshape(xyz.shape[0], np.prod(xyz.shape[1:]))).reshape(orig_shape)
-
     representation = CartesianRepresentation(xyz)
     return astrometric_frame.realize_frame(representation)
 
@@ -164,23 +154,14 @@ def astrometric_to_icrs(astrometric_coord, icrs_frame):
 
     xyz = astrometric_coord.cartesian.xyz
 
-    # rotate about y' to account for tilt due to Sun's height above the plane
-    z_d = (astrometric_coord.z_sun / astrometric_coord.origin_distance).decompose()
-    R = rotation_matrix(np.arcsin(z_d), 'y')
-
-    # some reshape hacks to handle ND arrays
-    orig_shape = xyz.shape
-    xyz = R.dot(xyz.reshape(xyz.shape[0], np.prod(xyz.shape[1:]))).reshape(orig_shape)
-
-    # translate by Sun-Galactic center distance along x axis
-    xyz[0] = xyz[0] + astrometric_coord.origin_distance
-
     # define inverse rotation matrix that aligns x(ICRS) with the vector to the Galactic center
     mat1 = rotation_matrix(-astrometric_coord.origin_dec, 'y')
     mat2 = rotation_matrix(astrometric_coord.origin_ra, 'z')
     R = mat1 * mat2
 
     # rotate into ICRS frame
+    # some reshape hacks to handle ND arrays
+    orig_shape = xyz.shape
     xyz = np.linalg.inv(R).dot(xyz.reshape(xyz.shape[0], np.prod(xyz.shape[1:]))).reshape(orig_shape)
 
     representation = CartesianRepresentation(xyz)
