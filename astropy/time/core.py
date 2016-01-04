@@ -19,6 +19,7 @@ import numpy as np
 from .. import units as u
 from .. import _erfa as erfa
 from ..units import UnitConversionError
+from ..utils.decorators import lazyproperty
 from ..utils.compat.numpycompat import NUMPY_LT_1_7
 from ..utils.compat.misc import override__dir__
 from ..utils.data_info import MixinInfo, data_info_factory
@@ -1051,22 +1052,12 @@ class Time(object):
         return self[self._advanced_index(self.argsort(axis), axis,
                                          keepdims=True)]
 
-    @property
+    @lazyproperty
     def cache(self):
         """
         Return the cache associated with this instance.
         """
-        if not hasattr(self, '_cache'):
-            self._cache = defaultdict(dict)
-        return self._cache
-
-    @cache.deleter
-    def cache(self):
-        """
-        Clear the cache for this instance.
-        """
-        if hasattr(self, '_cache'):
-            del self._cache
+        return defaultdict(dict)
 
     def __getattr__(self, attr):
         """
@@ -1320,8 +1311,8 @@ class Time(object):
                 if other.scale not in (out.scale, None):
                     other = getattr(other, out.scale)
             else:
-                out = getattr(out, (other.scale if other.scale is not None
-                                    else 'tai'))
+                out._set_scale(other.scale if other.scale is not None
+                               else 'tai')
             # remove attributes that are invalidated by changing time
             for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
                 if hasattr(out, attr):
@@ -1342,8 +1333,9 @@ class Time(object):
 
         out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
 
-        if other_is_delta and out.scale != self.scale:
-            return getattr(out, self.scale)
+        if other_is_delta:
+            # Go back to left-side scale if needed
+            out._set_scale(self.scale)
 
         return out
 
@@ -1369,8 +1361,7 @@ class Time(object):
             if other.scale not in (out.scale, None):
                 other = getattr(other, out.scale)
         else:
-            out = getattr(out, (other.scale if other.scale is not None
-                                            else 'tai'))
+            out._set_scale(other.scale if other.scale is not None else 'tai')
 
         # remove attributes that are invalidated by changing time
         for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
@@ -1382,8 +1373,8 @@ class Time(object):
 
         out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
 
-        if out.scale != self.scale:
-            return getattr(out, self.scale)
+        # Go back to left-side scale if needed
+        out._set_scale(self.scale)
 
         return out
 

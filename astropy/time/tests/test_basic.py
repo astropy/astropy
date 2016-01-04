@@ -1056,8 +1056,8 @@ def test_cache():
     t = Time('2010-09-03 00:00:00')
     t2 = Time('2010-09-03 00:00:00')
 
-    # Time starts out with no _cache attribute
-    assert not hasattr(t, '_cache')
+    # Time starts out without a cache
+    assert 'cache' not in t.__dict__
 
     # Access the iso format and confirm that the cached version is as expected
     t.iso
@@ -1068,9 +1068,11 @@ def test_cache():
     assert t.cache['scale']['tai'] == t2.tai
 
     # New Time object after scale transform does not have a cache yet
-    assert not hasattr(t.tt, '_cache')
+    assert 'cache' not in t.tt.__dict__
 
     # Clear the cache
     del t.cache
-    assert not hasattr(t, '_cache')
+    assert 'cache' not in t.__dict__
+    # Check accessing the cache creates an empty dictionary
     assert not t.cache
+    assert 'cache' in t.__dict__
