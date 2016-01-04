@@ -19,6 +19,7 @@ import numpy as np
 from .. import units as u
 from .. import _erfa as erfa
 from ..units import UnitConversionError
+from ..utils.decorators import lazyproperty
 from ..utils.compat.numpycompat import NUMPY_LT_1_7
 from ..utils.compat.misc import override__dir__
 from ..utils.data_info import MixinInfo, data_info_factory
@@ -1051,22 +1052,12 @@ class Time(object):
         return self[self._advanced_index(self.argsort(axis), axis,
                                          keepdims=True)]
 
-    @property
+    @lazyproperty
     def cache(self):
         """
         Return the cache associated with this instance.
         """
-        if not hasattr(self, '_cache'):
-            self._cache = defaultdict(dict)
-        return self._cache
-
-    @cache.deleter
-    def cache(self):
-        """
-        Clear the cache for this instance.
-        """
-        if hasattr(self, '_cache'):
-            del self._cache
+        return defaultdict(dict)
 
     def __getattr__(self, attr):
         """
