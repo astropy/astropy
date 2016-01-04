@@ -43,6 +43,9 @@ New Features
 
 - ``astropy.time``
 
+  - Added caching of scale and format transformations for improved performance.
+    [#4422]
+
 - ``astropy.units``
 
 - ``astropy.utils``
