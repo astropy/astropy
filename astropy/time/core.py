@@ -1311,8 +1311,8 @@ class Time(object):
                 if other.scale not in (out.scale, None):
                     other = getattr(other, out.scale)
             else:
-                out = getattr(out, (other.scale if other.scale is not None
-                                    else 'tai'))
+                out._set_scale(other.scale if other.scale is not None
+                               else 'tai')
             # remove attributes that are invalidated by changing time
             for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
                 if hasattr(out, attr):
@@ -1333,8 +1333,9 @@ class Time(object):
 
         out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
 
-        if other_is_delta and out.scale != self.scale:
-            return getattr(out, self.scale)
+        if other_is_delta:
+            # Go back to left-side scale if needed
+            out._set_scale(self.scale)
 
         return out
 
@@ -1360,8 +1361,7 @@ class Time(object):
             if other.scale not in (out.scale, None):
                 other = getattr(other, out.scale)
         else:
-            out = getattr(out, (other.scale if other.scale is not None
-                                            else 'tai'))
+            out._set_scale(other.scale if other.scale is not None else 'tai')
 
         # remove attributes that are invalidated by changing time
         for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
@@ -1373,8 +1373,8 @@ class Time(object):
 
         out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
 
-        if out.scale != self.scale:
-            return getattr(out, self.scale)
+        # Go back to left-side scale if needed
+        out._set_scale(self.scale)
 
         return out
 
