@@ -17,7 +17,7 @@ from ..utils.data_info import MixinInfo
 
 from .distances import Distance
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
-from .builtin_frames import ICRS
+from .builtin_frames import ICRS, Astrometric
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation)
 
@@ -990,8 +990,8 @@ class SkyCoord(object):
         """
         olat = self.represent_as(SphericalRepresentation).lat
         olon = self.represent_as(SphericalRepresentation).lon
-        dist = self.represent_as(SphericalRepresentation).dist
-        return coord.Astrometric(origin_ra=olon, origin_dec=olat, originorigin_distance=dist)  
+        dist = self.represent_as(SphericalRepresentation).distance
+        return Astrometric(origin_ra=olon, origin_dec=olat, origin_distance=dist)  
 
     def get_constellation(self, short_name=False, constellation_list='iau'):
         """
