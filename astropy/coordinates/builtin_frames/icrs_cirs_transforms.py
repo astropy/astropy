@@ -22,7 +22,8 @@ from .cirs import CIRS
 from .heliocentric import Heliocentric
 from .utils import get_jd12
 
-#first the ICRS/CIRS related transforms
+# First the ICRS/CIRS related transforms
+
 @frame_transform_graph.transform(FunctionTransform, ICRS, CIRS)
 def icrs_to_cirs(icrs_coo, cirs_frame):
     #first set up the astrometry context for ICRS<->CIRS
@@ -43,12 +44,12 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
         # astrometric coordinate direction and *then* run the ERFA transform for
         # no parallax/PM. This ensures reversiblity and is more sensible for
         # inside solar system objects
-        newxyz = intermedrep.to_cartesian().xyz
-        newxyz = np.rollaxis(newxyz,0,newxyz.ndim) -  astrom['eb']*u.au
+        newxyz = icrs_coo.cartesian.xyz
+        newxyz = np.rollaxis(newxyz, 0, newxyz.ndim) - astrom['eb'] * u.au
         # roll xyz back to the first axis
-        newxyz  = np.rollaxis(newxyz,-1,0)
+        newxyz  = np.rollaxis(newxyz, -1, 0)
         newcart = CartesianRepresentation(newxyz)
-        
+
         srepr = newcart.represent_as(SphericalRepresentation)
         i_ra = srepr.lon.to(u.radian).value
         i_dec = srepr.lat.to(u.radian).value
@@ -90,9 +91,9 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
 
         newxyz = intermedrep.to_cartesian().xyz
         # roll xyz to last axis and add the barycentre position
-        newxyz = np.rollaxis(newxyz,0,newxyz.ndim) +  astrom['eb']*u.au
+        newxyz = np.rollaxis(newxyz, 0, newxyz.ndim) + astrom['eb'] * u.au
         # roll xyz back to the first axis
-        newxyz = np.rollaxis(newxyz,-1,0)
+        newxyz = np.rollaxis(newxyz, -1, 0)
         newrep = CartesianRepresentation(newxyz).represent_as(SphericalRepresentation)
 
     return icrs_frame.realize_frame(newrep)
@@ -109,6 +110,7 @@ def cirs_to_cirs(from_coo, to_frame):
         # is sort of glossed over in the current scheme because we are dropping
         # distances anyway.
         return from_coo.transform_to(ICRS).transform_to(to_frame)
+
 
 # Now the GCRS-related transforms to/from ICRS
 
@@ -136,11 +138,11 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
         # BCRS coordinate direction and *then* run the ERFA transform for no
         # parallax/PM. This ensures reversiblity and is more sensible for
         # inside solar system objects
-        newxyz = intermedrep.to_cartesian().xyz
-        newxyz = np.rollaxis(newxyz,0,newxyz.ndim) - astrom['eb']*u.au
-        newxyz  = np.rollaxis(newxyz,-1,0)
+        newxyz = icrs_coo.cartesian.xyz
+        newxyz = np.rollaxis(newxyz, 0, newxyz.ndim) - astrom['eb'] * u.au
+        newxyz  = np.rollaxis(newxyz, -1, 0)
         newcart = CartesianRepresentation(newxyz)
-        
+
         srepr = newcart.represent_as(SphericalRepresentation)
         i_ra = srepr.lon.to(u.radian).value
         i_dec = srepr.lat.to(u.radian).value
@@ -151,7 +153,8 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
                                          distance=srepr.distance, copy=False)
 
     return gcrs_frame.realize_frame(newrep)
-            
+
+
 @frame_transform_graph.transform(FunctionTransform, GCRS, ICRS)
 def gcrs_to_icrs(gcrs_coo, icrs_frame):
     srepr = gcrs_coo.represent_as(UnitSphericalRepresentation)
@@ -186,11 +189,12 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
 
         newxyz = intermedrep.to_cartesian().xyz
         # roll xyz to last axis and add the heliocentre position
-        newxyz = np.rollaxis(newxyz,0,newxyz.ndim) + astrom['eb']*u.au
+        newxyz = np.rollaxis(newxyz, 0, newxyz.ndim) + astrom['eb'] * u.au
         # roll xyz back to the first axis
-        newxyz = np.rollaxis(newxyz,-1,0)
+        newxyz = np.rollaxis(newxyz, -1, 0)
         newrep = CartesianRepresentation(newxyz).represent_as(SphericalRepresentation)
     return icrs_frame.realize_frame(newrep)
+
 
 @frame_transform_graph.transform(FunctionTransform, GCRS, GCRS)
 def gcrs_to_gcrs(from_coo, to_frame):
@@ -199,6 +203,7 @@ def gcrs_to_gcrs(from_coo, to_frame):
     else:
         # like CIRS, we do this self-transform via ICRS
         return from_coo.transform_to(ICRS).transform_to(to_frame)
+
 
 @frame_transform_graph.transform(FunctionTransform, GCRS, Heliocentric)
 def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
@@ -209,7 +214,7 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
         frameattrs = gcrs_coo.get_frame_attr_names()
         frameattrs['obstime'] = hcrs_frame.obstime
         gcrs_coo = gcrs_coo.transform_to(GCRS(**frameattrs))
-        
+
     srepr = gcrs_coo.represent_as(UnitSphericalRepresentation)
     gcrs_ra = srepr.lon.to(u.radian).value
     gcrs_dec = srepr.lat.to(u.radian).value
@@ -223,31 +228,35 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
     astrom = erfa.apcs13(jd1, jd2, pv)
 
     i_ra, i_dec = erfa.aticq(gcrs_ra, gcrs_dec, astrom)
-    
+
     # convert to Quantity objects
     i_ra = u.Quantity(i_ra, u.radian, copy=False)
     i_dec = u.Quantity(i_dec, u.radian, copy=False)
     if gcrs_coo.data.get_name() == 'unitspherical'  or gcrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just use the coordinate direction to yield the
         # infinite-distance/no parallax answer
-        newrep = UnitSphericalRepresentation(lat=i_dec,lon=i_ra,copy=False)
+        newrep = UnitSphericalRepresentation(lat=i_dec, lon=i_ra, copy=False)
     else:
-        # When there is a distance, apply the parallax/offset to the Heliocentre as the
-        # last step - ensures round-tripping with the hcrs_to_gcrs transform
+        # When there is a distance, apply the parallax/offset to the
+        # Heliocentre as the last step to ensure round-tripping with the
+        # hcrs_to_gcrs transform
 
-        # the distance in intermedrep is *not* a real distance as it does not
-        # include the offset back to the Heliocentre
-        intermedrep = SphericalRepresentation(lat=i_dec,lon=i_ra,distance=gcrs_coo.distance,
+        # Note that the distance in intermedrep is *not* a real distance as it
+        # does not include the offset back to the Heliocentre
+        intermedrep = SphericalRepresentation(lat=i_dec, lon=i_ra,
+                                              distance=gcrs_coo.distance,
                                               copy=False)
 
         newxyz = intermedrep.to_cartesian().xyz
         # roll xyz to last axis and add the heliocentre position
-        newxyz = np.rollaxis(newxyz,0,newxyz.ndim) +  astrom['eh']*astrom['em']*u.au
+        newxyz = (np.rollaxis(newxyz, 0, newxyz.ndim) +
+                  astrom['eh'] * astrom['em'] * u.au)
         # roll xyz back to the first axis
-        newxyz = np.rollaxis(newxyz,-1,0)
+        newxyz = np.rollaxis(newxyz, -1, 0)
         newrep = CartesianRepresentation(newxyz).represent_as(SphericalRepresentation)
 
     return hcrs_frame.realize_frame(newrep)
+
 
 @frame_transform_graph.transform(FunctionTransform, Heliocentric, Heliocentric)
 def hcrs_to_hcrs(from_coo, to_frame):

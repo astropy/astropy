@@ -170,6 +170,7 @@ def test_supergalactic():
     supergalactic = Supergalactic(sgl=-174.44*u.degree, sgb=+46.17*u.degree)
     icrs = SkyCoord('17h51m36s -25d18m52s')
     assert supergalactic.separation(icrs) < 0.005 * u.degree
+
  
 @remote_data    
 def test_heliocentric():
@@ -188,20 +189,36 @@ def test_heliocentric():
     difference = np.linalg.norm((helio.cartesian.xyz-helio_slalib).to(u.km))
     assert difference < 14.0
     
-@remote_data
-def test_barycentric():
+
+class TestHelioBarioCentric():
     """
-    Check GCRS<->ICRS coordinate conversion for WHT observing site
+    Check GCRS<->Heliocentric and Barycentric coordinate conversions.
+
+    Uses the WHT observing site (information grabbed from data/sites.json).
     """
-    wht = EarthLocation.of_site('lapalma')
-    t = Time("2013-02-02T23:00")
-    itrs = wht.get_itrs(obstime=t)
-    gcrs = itrs.transform_to(GCRS(obstime=t))
-    bary = gcrs.transform_to(ICRS())
-    assert allclose(bary.cartesian.xyz,\
-        u.Quantity([ -1.02758958e+11,  9.68331109e+10,  4.19720938e+10],unit=u.m))
-        
-    # now we test against SLALIB answer, should agree to within 14km
-    bary_slalib = u.Quantity([-0.6869012079, 0.6472893646, 0.2805661191],unit=u.au)
-    difference = np.linalg.norm((bary.cartesian.xyz-bary_slalib).to(u.km))
-    assert difference < 14.0
+    def setup(self):
+        wht = EarthLocation(342.12*u.deg, 28.758333333333333*u.deg, 2327*u.m)
+        self.obstime = Time("2013-02-02T23:00")
+        self.wht_itrs = wht.get_itrs(obstime=self.obstime)
+
+    def test_heliocentric(self):
+        helio = self.wht_itrs.transform_to(Heliocentric(obstime=self.obstime))
+        # Check it doesn't change from previous times.
+        previous = [-1.02597256e+11, 9.71725820e+10, 4.21268419e+10] * u.m
+        assert_allclose(helio.cartesian.xyz, previous)
+
+        # And that it agrees with SLALIB to within 14km
+        helio_slalib = [-0.685820296, 0.6495585893, 0.2816005464] * u.au
+        assert np.sqrt(((helio.cartesian.xyz -
+                         helio_slalib)**2).sum()) < 14. * u.km
+
+    def test_barycentric(self):
+        gcrs = self.wht_itrs.transform_to(GCRS(obstime=self.obstime))
+        bary = gcrs.transform_to(ICRS())
+        previous = [ -1.02758958e+11, 9.68331109e+10, 4.19720938e+10] * u.m
+        assert_allclose(bary.cartesian.xyz, previous)
+
+        # And that it agrees with SLALIB answer to within 14km
+        bary_slalib = [-0.6869012079, 0.6472893646, 0.2805661191] * u.au
+        assert np.sqrt(((bary.cartesian.xyz -
+                         bary_slalib)**2).sum()) < 14. * u.km
