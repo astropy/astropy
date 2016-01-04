@@ -196,7 +196,7 @@ class Time(object):
         else:
             self.location = None
 
-        if isinstance(val, self.__class__):
+        if isinstance(val, Time):
             # Update _time formatting parameters if explicitly specified
             if precision is not None:
                 self._time.precision = precision
@@ -1505,7 +1505,7 @@ class TimeDelta(Time):
     """Dict of time delta formats."""
 
     def __init__(self, val, val2=None, format=None, scale=None, copy=False):
-        if isinstance(val, self.__class__):
+        if isinstance(val, TimeDelta):
             if scale is not None:
                 self._set_scale(scale)
         else:
