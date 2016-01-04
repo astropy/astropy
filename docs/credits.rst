@@ -5,7 +5,8 @@ Authors and Credits
 Astropy Project Coordinators
 ============================
 
-* Perry Greenfield
+* Tom Aldcroft
+* Kelle Cruz
 * Thomas Robitaille
 * Erik Tollerud
 
