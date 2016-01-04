@@ -644,6 +644,35 @@ process of changing the time scale therefore begins by making a copy of the
 original object and then converting the internal time values in the copy to the
 new time scale.  The new |Time| object is returned by the attribute access.
 
+Caching
+^^^^^^^
+
+The computations for transforming to different time scales or formats can be
+time-consuming for large arrays.  In order to avoid repeated computations, each
+|Time| or |TimeDelta| instance caches such transformations internally::
+
+  >>> t = Time(np.arange(1e6), format='unix', scale='utc')  # doctest: +SKIP
+
+  >>> time x = t.tt  # doctest: +SKIP
+  CPU times: user 263 ms, sys: 4.02 ms, total: 267 ms
+  Wall time: 267 ms
+
+  >>> time x = t.tt  # doctest: +SKIP
+  CPU times: user 28 µs, sys: 9 µs, total: 37 µs
+  Wall time: 32.9 µs
+
+Actions such as changing the output precision or sub-format will clear
+the cache.  In order to explicitly clear the internal cache do::
+
+  >>> del t.cache  # doctest: +SKIP
+
+  >>> time x = t.tt  # doctest: +SKIP
+  CPU times: user 263 ms, sys: 4.02 ms, total: 267 ms
+  Wall time: 267 ms
+
+Since these objects are immutable (cannot be changed internally), this should
+not normally be required.
+
 Transformation offsets
 """"""""""""""""""""""
 
