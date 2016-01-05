@@ -161,7 +161,8 @@ class XMLWriter:
                     clean_kwargs = {}
                 self.xml_escape_cdata = lambda x: bleach.clean(x, **clean_kwargs)
             else:
-                self.xml_escape_cdata = lambda x: x
+                raise ValueError('bleach package is required when HTML escaping is disabled.\n'
+                                 'Use "pip install bleach".')
         yield
         self.xml_escape_cdata = current_xml_escape_cdata
 
