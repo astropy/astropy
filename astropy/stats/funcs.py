@@ -1155,7 +1155,6 @@ def jackknife(data, statistic=None, conf_lvl=None):
     else:
         return resamples
 
-
 def mad_std(data):
     """
     Calculate a robust standard deviation using the `median absolute
