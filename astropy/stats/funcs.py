@@ -1025,9 +1025,9 @@ def jackknife(data, statistic=None, conf_lvl=None):
         Original sample from which the jackknife resamples will be generated.   
     statistic : function
         Any function on the basis of the measured data, e.g, sample mean, 
-        sample variance, etc. The results of this statistic, which will have 
-        the jackknife resamples as input, will be returned. If None, only the
-        jackknife resamples will be returned.
+        sample variance, etc. The jackknife estimate of this statistic 
+        will be returned. If None, only the jackknife resamples will be 
+        returned.
     conf_lvl : float
         Confidence level for the confidence interval of the Jackknife estimate. 
         If None, no confidence interval will be returned.
@@ -1042,10 +1042,10 @@ def jackknife(data, statistic=None, conf_lvl=None):
         If statistic is not None, then the i-th element is the bias-corrected 
         "jackknifed" estimate.
     
-    bias : numpy.float64 
+    bias : numpy.ndarray 
         Jackknife bias.
     
-    std_err : numpy.float64
+    std_err : numpy.ndarray
         Jackknife standard error.
     
     conf_interval : numpy.ndarray
@@ -1105,16 +1105,15 @@ def jackknife(data, statistic=None, conf_lvl=None):
 
     References
     ---------
-    .. [1] McIntosh, Avery. "The Jackknife Estimation Method". 
-    <http://people.bu.edu/aimcinto/jackknife.pdf>   
+    .. [1] McIntosh, Avery. "The Jackknife Estimation Method".
+        <http://people.bu.edu/aimcinto/jackknife.pdf>   
 
-    .. [2] Efron, Bradley. "The Jackknife, the Bootstrap, and other Resampling
-    Plans". Technical Report No. 63, Division of Biostatistics, Stanford 
-    University, December, 1980.
+    .. [2] Efron, Bradley. "The Jackknife, the Bootstrap, and other 
+        Resampling Plans". Technical Report No. 63, Division of Biostatistics, 
+        Stanford University, December, 1980.
 
-    .. [3] Cowles, Kate. "Computing in Statistics: The Jackknife, Lecture 11".
-    <http://homepage.stat.uiowa.edu/~kcowles/s166_2009/lect11.pdf>
-    September, 2009.
+    .. [3] Cowles, Kate. "Computing in Statistics: The Jackknife, Lecture 11". 
+        <http://homepage.stat.uiowa.edu/~kcowles/s166_2009/lect11.pdf> September, 2009.
     """
 
     n = data.shape[0]
