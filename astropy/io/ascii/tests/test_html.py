@@ -364,6 +364,64 @@ def test_multicolumn_write():
 
     col1 = [1, 2, 3]
     col2 = [(1.0, 1.0), (2.0, 2.0), (3.0, 3.0)]
+    col3 = [('a', 'a', 'a'), ('b', 'b', 'b'), ('c', 'c', 'c')]
+    table = Table([col1, col2, col3], names=('C1', 'C2', 'C3'))
+    expected = """\
+<html>
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="text/html;charset=UTF-8" http-equiv="Content-type"/>
+ </head>
+ <body>
+  <table>
+   <thead>
+    <tr>
+     <th>C1</th>
+     <th colspan="2">C2</th>
+     <th colspan="3">C3</th>
+    </tr>
+   </thead>
+   <tr>
+    <td>1</td>
+    <td>1.0</td>
+    <td>1.0</td>
+    <td>a</td>
+    <td>a</td>
+    <td>a</td>
+   </tr>
+   <tr>
+    <td>2</td>
+    <td>2.0</td>
+    <td>2.0</td>
+    <td>b</td>
+    <td>b</td>
+    <td>b</td>
+   </tr>
+   <tr>
+    <td>3</td>
+    <td>3.0</td>
+    <td>3.0</td>
+    <td>c</td>
+    <td>c</td>
+    <td>c</td>
+   </tr>
+  </table>
+ </body>
+</html>
+    """
+    out = html.HTML().write(table)[0].strip()
+    assert out == expected.strip()
+
+@pytest.mark.skipif('not HAS_BLEACH')
+def test_multicolumn_write_escape():
+    """
+    Test to make sure that the HTML writer writes multimensional
+    columns (those with iterable elements) using the colspan
+    attribute of <th>.
+    """
+
+    col1 = [1, 2, 3]
+    col2 = [(1.0, 1.0), (2.0, 2.0), (3.0, 3.0)]
     col3 = [('<a></a>', '<a></a>', 'a'), ('<b></b>', 'b', 'b'), ('c', 'c', 'c')]
     table = Table([col1, col2, col3], names=('C1', 'C2', 'C3'))
     expected = """\
@@ -478,6 +536,7 @@ def test_multicolumn_read():
                               dtype=[('A', str_type, (2,)), ('B', '<f8')]))
     assert np.all(table == expected)
 
+@pytest.mark.skipif('not HAS_BLEACH')
 def test_raw_html_write():
     """
     Test that columns can contain raw HTML which is not escaped.
