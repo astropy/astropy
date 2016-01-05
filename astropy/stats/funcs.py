@@ -1022,7 +1022,8 @@ def jackknife(data, statistic=None, conf_lvl=None):
     Parameters
     ----------
     data : numpy.ndarray
-        Original sample from which the jackknife resamples will be generated.   
+        Original sample (1-D array) from which the jackknife resamples will be 
+        generated.   
     statistic : function, optional
         Any function (or vector of functions) on the basis of the measured data,
         e.g, sample mean, sample variance, etc. The jackknife estimate of 

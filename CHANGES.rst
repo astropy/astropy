@@ -33,6 +33,7 @@ New Features
 - ``astropy.nddata``
 
 - ``astropy.stats``
+  - Added ``jackknife`` resampling method. [#3708]
 
   - Updated ``bootstrap`` to allow bootstrapping statistics with multiple
     outputs. [#3601]
