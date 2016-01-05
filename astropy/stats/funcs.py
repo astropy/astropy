@@ -1023,12 +1023,12 @@ def jackknife(data, statistic=None, conf_lvl=None):
     ----------
     data : numpy.ndarray
         Original sample from which the jackknife resamples will be generated.   
-    statistic : function
-        Any function on the basis of the measured data, e.g, sample mean, 
-        sample variance, etc. The jackknife estimate of this statistic 
-        will be returned. If None, only the jackknife resamples will be 
-        returned.
-    conf_lvl : float
+    statistic : function, optional
+        Any function (or vector of functions) on the basis of the measured data,
+        e.g, sample mean, sample variance, etc. The jackknife estimate of 
+        this statistic will be returned. If None, only the jackknife resamples 
+        will be returned.
+    conf_lvl : float, optional
         Confidence level for the confidence interval of the Jackknife estimate. 
         If None, no confidence interval will be returned.
 
@@ -1038,18 +1038,21 @@ def jackknife(data, statistic=None, conf_lvl=None):
         The i-th row is the i-th jackknife sample, i.e., the original sample 
         with the i-th measurement deleted.
     
-    estimate : numpy.ndarray
+    estimate : numpy.float64 or numpy.ndarray
         If statistic is not None, then the i-th element is the bias-corrected 
         "jackknifed" estimate.
     
-    bias : numpy.ndarray 
-        Jackknife bias.
+    bias : numpy.float64 or numpy.ndarray 
+        If statistic is not None, then the i-th element is the jackknife bias 
+        for each statistic.
     
-    std_err : numpy.ndarray
-        Jackknife standard error.
+    std_err : numpy.float64 or numpy.ndarray
+        If statistic is not None, then the i-th element is the jackknife 
+        standard error for each statistic.
     
     conf_interval : numpy.ndarray
-        Jackknife confidence interval.  
+        If statistic is not None, then the i-th element is the jackknife 
+        confidence interval for each statistic.  
     
     Examples
     --------
@@ -1067,8 +1070,7 @@ def jackknife(data, statistic=None, conf_lvl=None):
            [ 1.,  2.,  3.,  4.,  6.,  7.,  8.,  9.,  0.],
            [ 1.,  2.,  3.,  4.,  5.,  7.,  8.,  9.,  0.],
            [ 1.,  2.,  3.,  4.,  5.,  6.,  8.,  9.,  0.],
-           [ 1.,  2.,  3.,  4.,  5.,  6.,  7.,  9.,  0.],
-           [ 1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  0.],
+
            [ 1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9.]])
     >>> resamples.shape
     (10, 9)
@@ -1101,7 +1103,7 @@ def jackknife(data, statistic=None, conf_lvl=None):
     array([[  2.62347735,   3.89192387],
            [  6.37652265,  14.44140947]])
 
-    IMPORTANT: Note that confidence intervals are represented by columns
+    IMPORTANT: Note that confidence intervals are given as columns
 
     References
     ---------
@@ -1113,13 +1115,12 @@ def jackknife(data, statistic=None, conf_lvl=None):
         Stanford University, December, 1980.
 
     .. [3] Cowles, Kate. "Computing in Statistics: The Jackknife, Lecture 11". 
-        <http://homepage.stat.uiowa.edu/~kcowles/s166_2009/lect11.pdf> September, 2009.
+        <http://homepage.stat.uiowa.edu/~kcowles/s166_2009/lect11.pdf>. 
+        September, 2009.
     """
 
-    n = data.shape[0]
-    
-    assert n > 0, "data must contain at least one measurement"
-    
+    n = data.shape[0] 
+    assert n > 0, "data must contain at least one measurement" 
     resamples = np.empty([n,n-1])
 
     for i in range(n):
