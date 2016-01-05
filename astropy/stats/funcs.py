@@ -1070,7 +1070,7 @@ def jackknife(data, statistic=None, conf_lvl=None):
            [ 1.,  2.,  3.,  4.,  5.,  6.,  7.,  9.,  0.],
            [ 1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  0.],
            [ 1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9.]])
-    >>> jackknife_resamples.shape
+    >>> resamples.shape
     (10, 9)
 
     2. Obtain Jackknife estimate for the mean, its bias, its standard error, 
@@ -1107,9 +1107,11 @@ def jackknife(data, statistic=None, conf_lvl=None):
     ---------
     .. [1] McIntosh, Avery. "The Jackknife Estimation Method". 
     <http://people.bu.edu/aimcinto/jackknife.pdf>   
+
     .. [2] Efron, Bradley. "The Jackknife, the Bootstrap, and other Resampling
-    Plans".Technical Report No. 63, Division of Biostatistics, Stanford 
+    Plans". Technical Report No. 63, Division of Biostatistics, Stanford 
     University, December, 1980.
+
     .. [3] Cowles, Kate. "Computing in Statistics: The Jackknife, Lecture 11".
     <http://homepage.stat.uiowa.edu/~kcowles/s166_2009/lect11.pdf>
     September, 2009.
