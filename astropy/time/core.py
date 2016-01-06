@@ -12,12 +12,14 @@ from __future__ import (absolute_import, division, print_function,
 
 import itertools
 from datetime import datetime
+from collections import defaultdict
 
 import numpy as np
 
 from .. import units as u
 from .. import _erfa as erfa
 from ..units import UnitConversionError
+from ..utils.decorators import lazyproperty
 from ..utils.compat.numpycompat import NUMPY_LT_1_7
 from ..utils.compat.misc import override__dir__
 from ..utils.data_info import MixinInfo, data_info_factory
@@ -154,10 +156,6 @@ class Time(object):
         Make a copy of the input values
     """
 
-    _precision = 3  # Precision when for seconds as floating point
-    _in_subfmt = '*'  # Select subformat for inputting string times
-    _out_subfmt = '*'  # Select subformat for outputting string times
-
     SCALES = TIME_SCALES
     """List of time scales"""
 
@@ -199,18 +197,20 @@ class Time(object):
         else:
             self.location = None
 
-        if precision is not None:
-            self.precision = precision
-        if in_subfmt is not None:
-            self.in_subfmt = in_subfmt
-        if out_subfmt is not None:
-            self.out_subfmt = out_subfmt
+        if isinstance(val, Time):
+            # Update _time formatting parameters if explicitly specified
+            if precision is not None:
+                self._time.precision = precision
+            if in_subfmt is not None:
+                self._time.in_subfmt = in_subfmt
+            if out_subfmt is not None:
+                self._time.out_subfmt = out_subfmt
 
-        if isinstance(val, self.__class__):
             if scale is not None:
                 self._set_scale(scale)
         else:
-            self._init_from_vals(val, val2, format, scale, copy)
+            self._init_from_vals(val, val2, format, scale, copy,
+                                 precision, in_subfmt, out_subfmt)
 
         if self.location and (self.location.size > 1
                               and self.location.shape != self.shape):
@@ -225,12 +225,19 @@ class Time(object):
                                  'one for each time.'
                                  .format(self.location.shape, self.shape))
 
-    def _init_from_vals(self, val, val2, format, scale, copy):
+    def _init_from_vals(self, val, val2, format, scale, copy,
+                        precision=None, in_subfmt=None, out_subfmt=None):
         """
         Set the internal _format, scale, and _time attrs from user
         inputs.  This handles coercion into the correct shapes and
         some basic input validation.
         """
+        if precision is None:
+            precision = 3
+        if in_subfmt is None:
+            in_subfmt = '*'
+        if out_subfmt is None:
+            out_subfmt = '*'
 
         # Coerce val into an array
         val = _make_array(val, copy)
@@ -252,10 +259,12 @@ class Time(object):
                                                    sorted(self.SCALES)))
 
         # Parse / convert input values into internal jd1, jd2 based on format
-        self._time = self._get_time_fmt(val, val2, format, scale)
+        self._time = self._get_time_fmt(val, val2, format, scale,
+                                        precision, in_subfmt, out_subfmt)
         self._format = self._time.name
 
-    def _get_time_fmt(self, val, val2, format, scale):
+    def _get_time_fmt(self, val, val2, format, scale,
+                      precision, in_subfmt, out_subfmt):
         """
         Given the supplied val, val2, format and scale try to instantiate
         the corresponding TimeFormat class to convert the input values into
@@ -289,8 +298,7 @@ class Time(object):
 
         for format, FormatClass in formats:
             try:
-                return FormatClass(val, val2, scale, self.precision,
-                                   self.in_subfmt, self.out_subfmt)
+                return FormatClass(val, val2, scale, precision, in_subfmt, out_subfmt)
             except UnitConversionError:
                 raise
             except (ValueError, TypeError):
@@ -429,14 +437,15 @@ class Time(object):
         Decimal precision when outputting seconds as floating point (int
         value between 0 and 9 inclusive).
         """
-        return self._precision
+        return self._time.precision
 
     @precision.setter
     def precision(self, val):
         if not isinstance(val, int) or val < 0 or val > 9:
             raise ValueError('precision attribute must be an int between '
                              '0 and 9')
-        self._precision = val
+        self._time.precision = val
+        del self.cache
 
     @property
     def in_subfmt(self):
@@ -444,26 +453,28 @@ class Time(object):
         Unix wildcard pattern to select subformats for parsing string input
         times.
         """
-        return self._in_subfmt
+        return self._time.in_subfmt
 
     @in_subfmt.setter
     def in_subfmt(self, val):
         if not isinstance(val, six.string_types):
             raise ValueError('in_subfmt attribute must be a string')
-        self._in_subfmt = val
+        self._time.in_subfmt = val
+        del self.cache
 
     @property
     def out_subfmt(self):
         """
         Unix wildcard pattern to select subformats for outputting times.
         """
-        return self._out_subfmt
+        return self._time.out_subfmt
 
     @out_subfmt.setter
     def out_subfmt(self, val):
         if not isinstance(val, six.string_types):
             raise ValueError('out_subfmt attribute must be a string')
-        self._out_subfmt = val
+        self._time.out_subfmt = val
+        del self.cache
 
     @property
     def ndim(self):
@@ -529,7 +540,11 @@ class Time(object):
     @property
     def value(self):
         """Time value(s) in current format"""
-        return self._shaped_like_input(self._time.to_value(parent=self))
+        # The underlying way to get the time values for the current format is:
+        #     self._shaped_like_input(self._time.to_value(parent=self))
+        # This is done in __getattr__.  By calling getattr(self, self.format)
+        # the ``value`` attribute is cached.
+        return getattr(self, self.format)
 
     def sidereal_time(self, kind, longitude=None, model=None):
         """Calculate sidereal time.
@@ -1037,18 +1052,38 @@ class Time(object):
         return self[self._advanced_index(self.argsort(axis), axis,
                                          keepdims=True)]
 
+    @lazyproperty
+    def cache(self):
+        """
+        Return the cache associated with this instance.
+        """
+        return defaultdict(dict)
+
     def __getattr__(self, attr):
         """
         Get dynamic attributes to output format or do timescale conversion.
         """
         if attr in self.SCALES and self.scale is not None:
-            tm = self.replicate()
-            tm._set_scale(attr)
-            return tm
+            cache = self.cache['scale']
+            if attr not in cache:
+                if attr == self.scale:
+                    tm = self
+                else:
+                    tm = self.replicate()
+                    tm._set_scale(attr)
+                cache[attr] = tm
+            return cache[attr]
 
         elif attr in self.FORMATS:
-            tm = self.replicate(format=attr)
-            return tm.value
+            cache = self.cache['format']
+            if attr not in cache:
+                if attr == self.format:
+                    tm = self
+                else:
+                    tm = self.replicate(format=attr)
+                value = tm._shaped_like_input(tm._time.to_value(parent=tm))
+                cache[attr] = value
+            return cache[attr]
 
         elif attr in TIME_SCALES:  # allowed ones done above (self.SCALES)
             if self.scale is None:
@@ -1192,6 +1227,7 @@ class Time(object):
         if hasattr(val, 'to'):  # Matches Quantity but also TimeDelta.
             val = val.to(u.second).value
         self._delta_ut1_utc = val
+        del self.cache
 
     # Note can't use @property because _get_delta_tdb_tt is explicitly
     # called with the optional jd1 and jd2 args.
@@ -1242,6 +1278,7 @@ class Time(object):
         if hasattr(val, 'to'):  # Matches Quantity but also TimeDelta.
             val = val.to(u.second).value
         self._delta_tdb_tt = val
+        del self.cache
 
     # Note can't use @property because _get_delta_tdb_tt is explicitly
     # called with the optional jd1 and jd2 args.
@@ -1269,13 +1306,13 @@ class Time(object):
         # we need a constant scale to calculate, which is guaranteed for
         # TimeDelta, but not for Time (which can be UTC)
         if other_is_delta:  # T - Tdelta
+            out = self.replicate()
             if self.scale in other.SCALES:
-                out = self.replicate()
                 if other.scale not in (out.scale, None):
                     other = getattr(other, out.scale)
             else:
-                out = getattr(self, (other.scale if other.scale is not None
-                                     else 'tai'))
+                out._set_scale(other.scale if other.scale is not None
+                               else 'tai')
             # remove attributes that are invalidated by changing time
             for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
                 if hasattr(out, attr):
@@ -1296,8 +1333,9 @@ class Time(object):
 
         out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
 
-        if other_is_delta and out.scale != self.scale:
-            return getattr(out, self.scale)
+        if other_is_delta:
+            # Go back to left-side scale if needed
+            out._set_scale(self.scale)
 
         return out
 
@@ -1318,13 +1356,12 @@ class Time(object):
         # ideally, we calculate in the scale of the Time item, since that is
         # what we want the output in, but this may not be possible, since
         # TimeDelta cannot be converted arbitrarily
+        out = self.replicate()
         if self.scale in other.SCALES:
-            out = self.replicate()
             if other.scale not in (out.scale, None):
                 other = getattr(other, out.scale)
         else:
-            out = getattr(self, (other.scale if other.scale is not None
-                                 else 'tai'))
+            out._set_scale(other.scale if other.scale is not None else 'tai')
 
         # remove attributes that are invalidated by changing time
         for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
@@ -1336,8 +1373,8 @@ class Time(object):
 
         out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
 
-        if out.scale != self.scale:
-            return getattr(out, self.scale)
+        # Go back to left-side scale if needed
+        out._set_scale(self.scale)
 
         return out
 
@@ -1459,7 +1496,7 @@ class TimeDelta(Time):
     """Dict of time delta formats."""
 
     def __init__(self, val, val2=None, format=None, scale=None, copy=False):
-        if isinstance(val, self.__class__):
+        if isinstance(val, TimeDelta):
             if scale is not None:
                 self._set_scale(scale)
         else:
