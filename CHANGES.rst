@@ -291,8 +291,6 @@ Bug Fixes
 
 - ``astropy.units``
 
-  - In-place peak-to-peak calculations now work on ``Quantity``. [#4442]    
-
 - ``astropy.utils``
 
 - ``astropy.vo``
@@ -987,6 +985,8 @@ Bug Fixes
 - ``astropy.time``
 
 - ``astropy.units``
+
+  - In-place peak-to-peak calculations now work on ``Quantity``. [#4442]
 
 - ``astropy.utils``
 
