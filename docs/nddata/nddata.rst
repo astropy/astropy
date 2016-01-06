@@ -13,7 +13,7 @@ array-like interface, and optional attributes:
 +  ``meta``, for metadata
 + ``unit`` for the ``data`` unit
 + ``uncertainty`` for the uncertainty of the data (which could be standard
-  deviation,variance, or something else),
+  deviation, variance or something else),
 + ``mask`` for the ``data``
 + ``wcs``, representing the relationship  between ``data`` and world
   coordinates.
@@ -106,7 +106,8 @@ Uncertainties
 
 `~astropy.nddata.NDData` objects have an ``uncertainty`` attribute that can be
 used to set the uncertainty on the data values. The ``uncertainty`` must have
-an attribute ``uncertainty_type`` which is a string.
+an attribute ``uncertainty_type`` otherwise it is wrapped inside an
+`~astropy.nddata.UnknownUncertainty`.
 
 While not a requirement, the following ``uncertainty_type`` strings
 are strongly recommended for common ways of specifying normal

@@ -23,9 +23,36 @@ __doctest_skip__ = ['NDData']
 try:
     from .nduncertainty import UnknownUncertainty
 except ImportError:
+
+    __all__.append('UnknownUncertainty')
+
     from .nduncertainty import StdDevUncertainty
 
     class UnknownUncertainty(StdDevUncertainty):
+        """
+        This is a wrapper for uncertainties that do not have an attribute
+        uncertainty type.
+
+        Parameters
+        ----------
+        args, kwargs:
+            passed to `StdDevUncertainty`.
+
+        Attributes
+        ----------
+        array: any type
+            The uncertainty that is wrapped.
+        parent_nddata: `NDData`
+            The `NDData` which uses this uncertainty.
+        uncertainty_type: ``"unknown"``
+            The type of uncertainty is unknown.
+
+        Notes
+        -----
+        This class is only a temporary implementation until `NDUncertainty`
+        and `NDArithmeticMixin` refactor is done. But it should be fully
+        functional.
+        """
         # We need to change the type of uncertainty
         def __init__(self, *args, **kwargs):
             super(UnknownUncertainty, self).__init__(*args, **kwargs)
@@ -62,8 +89,10 @@ class NDData(NDDataBase):
         Uncertainty in the dataset.
         Should have an attribute
         ``uncertainty_type`` that defines what kind of uncertainty is stored,
-        such as ``'std'`` for standard deviation or
-        ``'var'`` for variance. A metaclass defining such an interface is
+        for example ``"std"`` for standard deviation or
+        ``"var"`` for variance. If the uncertainty has no such attribute the
+        uncertainty is stored inside an `UnknownUncertainty` .
+        A metaclass defining such an interface is
         `~astropy.nddata.NDUncertainty` but isn't mandatory.
         Defaults to ``None``.
 

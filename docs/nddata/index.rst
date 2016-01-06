@@ -74,7 +74,8 @@ Similar attributes are available to store:
 + generic meta-data, in ``meta``,
 + a unit for the data values, in ``unit`` and
 + an uncertainty for the data values, in ``uncertainty``. Note that the
-  ``uncertainty`` must have a string attribute called ``uncertainty_type``.
+  ``uncertainty`` must have a attribute called ``uncertainty_type`` otherwise
+  it will be converted to an `~astropy.nddata.UnknownUncertainty`.
 
 Note that a `~astropy.nddata.NDData` object is not sliceable::
 
