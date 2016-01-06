@@ -1271,8 +1271,11 @@ class Quantity(np.ndarray):
             if unit is None:
                 unit = self.unit
 
-            if not (isinstance(out, Quantity) and
-                    out.__quantity_subclass__(unit)[0] is type(out)):
+            if(isinstance(out, Quantity) and
+               out.__quantity_subclass__(unit)[0] is type(out)):
+                kwargs['out'] = out.view(np.ndarray)
+
+            else:
                 ok_class =  (out.__quantity_subclass__(out, unit)[0]
                              if isinstance(out, Quantity) else Quantity)
                 raise TypeError("out cannot be assigned to a {0} instance; "
