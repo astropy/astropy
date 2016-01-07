@@ -1237,10 +1237,10 @@ def _ascii_encode(inarray, out=None):
     the item that couldn't be encoded.
     """
 
-    inarray = inarray.flatten()
-    out_dtype = np.dtype('S{0}'.format(inarray.dtype.itemsize // 4))
+    out_dtype = np.dtype(('S{0}'.format(inarray.dtype.itemsize // 4),
+                         inarray.dtype.shape))
     if out is not None:
-        out = out.flatten().view(out_dtype)
+        out = out.view(out_dtype)
 
     op_dtypes = [inarray.dtype, out_dtype]
     op_flags = [['readonly'], ['writeonly', 'allocate']]
@@ -1253,6 +1253,8 @@ def _ascii_encode(inarray, out=None):
     except UnicodeEncodeError as exc:
         index = np.unravel_index(it.iterindex, inarray.shape)
         raise _UnicodeArrayEncodeError(*(exc.args + (index,)))
+
+    return it.operands[1]
 
 
 def _has_unicode_fields(array):
