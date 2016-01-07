@@ -123,6 +123,8 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - In-place peak-to-peak calculations now work on ``Quantity``. [#4442]
+
 - ``astropy.utils``
 
   - Fixed ``find_api_page`` to work correctly on python 3.x [#4378]
