@@ -51,7 +51,6 @@ coordinate object into the frame of another::
     <SkyCoord (FK5: equinox=J1980.000): (ra, dec) in deg
         (229.014693505, -1.05560349378)>
 
-
 Additionally, some coordinate frames (including `~astropy.coordinates.FK5`,
 `~astropy.coordinates.FK4`, and `~astropy.coordinates.FK4NoETerms`) support
 "self transformations", meaning the *type* of frame doesn't change, but the
@@ -60,7 +59,7 @@ to another in an equatorial frame. This is done by passing ``transform_to`` a
 frame class with the relevant attributes, as shown below. Note that these
 frames use a default equinox if you don't specify one::
 
-    >>> fk5c = FK5('02h31m49.09s', '+89d15m50.8s')
+    >>> fk5c = SkyCoord('02h31m49.09s', '+89d15m50.8s', frame=FK5)
     >>> fk5c.equinox
     <Time object: scale='utc' format='jyear_str' value=J2000.000>
     >>> fk5c  # doctest: +FLOAT_CMP
@@ -75,8 +74,8 @@ You can also specify the equinox when you create a coordinate using an
 `~astropy.time.Time` object::
 
     >>> from astropy.time import Time
-    >>> fk5c = FK5('02h31m49.09s', '+89d15m50.8s',
-    ...            equinox=Time('J1970', scale='utc'))
+    >>> fk5c = SkyCoord('02h31m49.09s', '+89d15m50.8s',
+    ...                 frame=FK5(equinox=Time('J1970', scale='utc')))
     >>> fk5_2000 = FK5(equinox=Time(2000, format='jyear', scale='utc'))
     >>> fk5c.transform_to(fk5_2000)  # doctest: +FLOAT_CMP
     <SkyCoord (FK5: equinox=2000.0): (ra, dec) in deg
