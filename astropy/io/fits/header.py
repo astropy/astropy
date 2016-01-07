@@ -1517,22 +1517,23 @@ class Header(object):
 
         self._modified = True
 
-    def remove(self, keyword, ignore_missing = False, all = False):
+    def remove(self, keyword, ignore_missing=False, all=False):
         """
         Removes the first instance of the given keyword from the header similar
         to `list.remove` if the Header object is treated as a list of keywords.
-	
+
         Parameters
         ----------
         keyword : str
             The keyword of which to remove the first instance in the header
 
 	ignore_missing : bool, optional
-	    When 'True', ignores Error if keyword is not present. otherwise if
-		keyword is not present Error is raised.
+	    When True, ignores missing keywords.  Otherwise, if the keyword is not present 
+            in the header a `KeyError` is raised.
+
 	all : bool, optional
-	    When 'True', all instances of keyword will be removed.
-            Otherwise only first instance of given keyword is removed.
+	    When True, all instances of keyword will be removed.
+            Otherwise only the first instance of the given keyword is removed.
 
         """
         	
