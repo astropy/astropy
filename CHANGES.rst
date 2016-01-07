@@ -94,6 +94,8 @@ API changes
 
 - ``astropy.units``
 
+  - Remove deprecated ``register`` argument for Unit classes. [#4448]
+
 - ``astropy.utils``
 
 - ``astropy.visualization``
