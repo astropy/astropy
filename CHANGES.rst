@@ -210,6 +210,9 @@ New Features
 
 - ``astropy.utils``
 
+  - ``console.human_file_size`` now accepts quantities with byte-equivalent
+    units [#4373]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
