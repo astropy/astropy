@@ -2391,15 +2391,15 @@ reduce these to 2 dimensions using the naxis kwarg.
             header = fits.Header()
 
         if do_sip and self.sip is not None:
-            for key, val in self._write_sip_kw().items():
-                header[key] = val
+            for kw, val in self._write_sip_kw().items():
+                header[kw] = val
 
         if display_warning:
             full_header = self.to_header(relax=True, key=key)
             missing_keys = []
-            for key, val in full_header.items():
-                if key not in header:
-                    missing_keys.append(key)
+            for kw, val in full_header.items():
+                if kw not in header:
+                    missing_keys.append(kw)
 
             if len(missing_keys):
                 warnings.warn(
