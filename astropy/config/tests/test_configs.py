@@ -299,7 +299,7 @@ def test_configitem_unicode(tmpdir):
     cio = ConfigItem('ასტრონომიის')
 
     class Conf(ConfigNamespace):
-        астрономия = cio
+        tstunicode = cio
 
     conf = Conf()
 
@@ -307,7 +307,7 @@ def test_configitem_unicode(tmpdir):
 
     assert isinstance(cio(), six.text_type)
     assert cio() == 'ასტრონომიის'
-    assert sec['астрономия'] == 'ასტრონომიის'
+    assert sec['tstunicode'] == 'ასტრონომიის'
 
 
 def test_warning_move_to_top_level():
