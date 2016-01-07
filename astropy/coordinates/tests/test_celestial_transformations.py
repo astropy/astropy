@@ -12,6 +12,7 @@ from .. import transformations as t
 from ..builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, \
                              Supergalactic, Galactocentric, CIRS, GCRS, AltAz, \
                              ITRS, PrecessedGeocentric
+from .. import SkyCoord
 from .. import representation as r
 from ..baseframe import frame_transform_graph
 from ...tests.helper import (pytest, quantity_allclose as allclose,
@@ -166,10 +167,10 @@ def test_supergalactic():
 
     # GRB 021219
     supergalactic = Supergalactic(sgl=29.91*u.degree, sgb=+73.72*u.degree)
-    icrs = ICRS('18h50m27s +31d57m17s')
+    icrs = SkyCoord('18h50m27s +31d57m17s')
     assert supergalactic.separation(icrs) < 0.005 * u.degree
 
     # GRB 030320
     supergalactic = Supergalactic(sgl=-174.44*u.degree, sgb=+46.17*u.degree)
-    icrs = ICRS('17h51m36s -25d18m52s')
+    icrs = SkyCoord('17h51m36s -25d18m52s')
     assert supergalactic.separation(icrs) < 0.005 * u.degree
