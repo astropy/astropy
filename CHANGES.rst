@@ -48,6 +48,9 @@ New Features
 
 - ``astropy.units``
 
+  - The option to use tuples to indicate fractional powers of units,
+    deprecated in 0.3.1, has been removed. [#4449]
+
 - ``astropy.utils``
 
 - ``astropy.visualization``
