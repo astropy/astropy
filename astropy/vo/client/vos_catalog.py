@@ -539,7 +539,7 @@ class VOSDatabase(VOSBase):
 
         """
         # Download registry as VO table
-        with conf.remote_timeout.set_temp(timeout):
+        with conf.set_temp('remote_timeout', timeout):
             with get_readable_fileobj(registry_url, **kwargs) as fd:
                 tab_all = parse_single_table(fd, pedantic=False)
 

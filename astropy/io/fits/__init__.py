@@ -81,6 +81,4 @@ from .verify import VerifyError
 __all__ = (['Conf', 'conf'] + card.__all__ + column.__all__ +
            convenience.__all__ + hdu.__all__ +
            ['FITS_record', 'FITS_rec', 'GroupData', 'open', 'Section',
-            'new_table', 'Header', 'VerifyError', 'conf',
-            'EXTENSION_NAME_CASE_SENSITIVE', 'USE_MEMMAP',
-            'ENABLE_RECORD_VALUED_KEYWORD_CARDS'])
+            'new_table', 'Header', 'VerifyError', 'conf'])

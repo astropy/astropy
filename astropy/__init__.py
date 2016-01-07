@@ -312,7 +312,7 @@ def online_help(query):
 
 __dir__ = ['__version__', '__githash__', '__minimum_numpy_version__',
            '__bibtex__', 'test', 'log', 'find_api_page', 'online_help',
-           'online_docs_root', 'conf', 'UNICODE_OUTPUT']
+           'online_docs_root', 'conf']
 
 
 from types import ModuleType as __module_type__
