@@ -68,6 +68,10 @@ API changes
 
 - ``astropy.config``
 
+  - The deprecated ``ConfigurationItem`` and ``ConfigAlias`` classes and the
+    ``save_config``, ``get_config_items``, and ``generate_all_config_items``
+    functions have now been removed. [#2767, #4446]
+
 - ``astropy.conftest.py``
 
 - ``astropy.constants``
@@ -108,6 +112,8 @@ API changes
 
   - The astropy.utils.compat.odict module has now been deprecated. Use the
     Python 'collections' module directly instead. [#4466]
+
+  - The deprecated ``ScienceStateAlias`` class has been removed. [#2767, #4446]
 
 - ``astropy.visualization``
 
