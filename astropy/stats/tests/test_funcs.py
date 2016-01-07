@@ -286,39 +286,6 @@ def test_bootstrap_multiple_outputs():
         assert bootresult.shape == (3, 2)
         assert_allclose(answer, bootresult, atol=1e-3)
 
-def test_jackknife():
-	# BEGIN test jackknife resamples
-    answer = np.array([[2,3,4],[1,3,4],[1,2,4],[1,2,3]])
-    assert_equal(answer,funcs.jackknife(np.array([1,2,3,4])))
-    # END test jackknife resamples
-
-    # BEGIN test from the first example of Ref.[3]
-    # test jackknife estimate, bias, std_err, and conf_interval
-    data = np.array([48, 42, 36, 33, 20, 16, 29, 39, 42, 38, 42, 36, 20, 15, 42,
-        33, 22, 20, 41, 43, 45, 34, 14, 22, 6, 7, 0, 15, 33, 34, 28, 29, 34, 41,
-        4, 13, 32, 38, 24, 25, 47, 27, 41, 41, 24, 28, 26, 14, 30, 28, 41, 40])
-    data = np.reshape(data,(-1,2))
-    data = data[:,1]
-    
-    # true estimate, bias, and std_err
-    answer = (113.7862,-4.376391,22.26572)
-  
-    # calculate the MLE of the variance (biased estimator!)
-    mle_var = lambda x : np.sum((x - np.mean(x))*(x - np.mean(x)))/len(x)
-    assert_allclose(answer,funcs.jackknife(data,mle_var,0.95)[1:4], atol=1e-4)
-
-    # test confidence interval
-    answer = np.array((70.14615,157.42616))
-    assert_allclose(answer,funcs.jackknife(data,mle_var,0.95)[4], atol=1e-4)
-    # END test from the first example of Ref.[3]
-
-    # BEGIN test from the third example of Ref.[3]
-    data = np.array((115,170,142,138,280,470,480,141,390))
-    # true estimate, bias, and std_err
-    answer = (258.4444,0.0,50.25936)
-    assert_allclose(answer,funcs.jackknife(data,np.mean)[1:4], atol=1e-4)
-    # END test from the third example of Ref.[3]
-
 def test_mad_std():
     with NumpyRNGContext(12345):
         data = normal(5, 2, size=(100, 100))
