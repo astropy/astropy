@@ -68,6 +68,8 @@ API changes
 
 - ``astropy.coordinates``
 
+  - Removed compatibility layer for pre-v0.4 API. [#4447]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
