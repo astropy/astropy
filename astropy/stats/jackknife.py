@@ -3,10 +3,11 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import numpy as np
+from scipy.special import erfinv
 
 
 __all__ = ['jackknife_resampling', 'jackknife_stats']
-__doctest_requires__ = {'jackknife_stats':['scipy.special']}
+__doctest_requires__ = {'jackknife_stats': ['scipy.special']}
 
 
 def jackknife_resampling(data):
@@ -74,20 +75,18 @@ def jackknife_resampling(data):
 
     for i in range(n):
         resamples[i] = np.delete(data, i)
- 
+
     return resamples
 
+
 # Note scipy depedency for confidence interval computation
-def jackknife_stats(data, resamples, statistic, conf_lvl=0.95):
+def jackknife_stats(data, statistic, conf_lvl=0.95):
     """ Performs jackknife estimation on the basis of jackknife resamples.
 
     Parameters
     ----------
     data : numpy.ndarray
         Original sample (1-D array).
-    resamples : numpy.ndarray
-        Jackknife resamples. It must be an array with shape (n,n-1), where
-        'n' is the number of measurements of the original sample.
     statistic : function
         Any function (or vector of functions) on the basis of the measured
         data, e.g, sample mean, sample variance, etc. The jackknife estimate of
@@ -101,16 +100,16 @@ def jackknife_stats(data, resamples, statistic, conf_lvl=0.95):
         The i-th element is the bias-corrected "jackknifed" estimate.
 
     bias : numpy.float64 or numpy.ndarray
-        The i-th element is the jackknife bias for each statistic.
+        The i-th element is the jackknife bias.
 
     std_err : numpy.float64 or numpy.ndarray
-        The i-th element is the jackknife standard error for each statistic.
+        The i-th element is the jackknife standard error.
 
     conf_interval : numpy.ndarray
-        If 'statistic' is single-valued, the first and second elements are the
-        lower and upper bounds, respectively. If 'statistic' is vector-valued,
+        If `statistic` is single-valued, the first and second elements are the
+        lower and upper bounds, respectively. If `statistic` is vector-valued,
         each column corresponds to the confidence interval for each component
-        of 'statistic'. The first and second rows contain the lower and upper
+        of `statistic`. The first and second rows contain the lower and upper
         bounds, respectively.
 
     Examples
@@ -140,7 +139,7 @@ def jackknife_stats(data, resamples, statistic, conf_lvl=0.95):
     and its 95% confidence interval:
 
     >>> test_statistic = np.mean
-    >>> estimate, bias, stderr, conf_interval = jackknife_stats(data, resamples, test_statistic, 0.95)
+    >>> estimate, bias, stderr, conf_interval = jackknife_stats(data, test_statistic, 0.95)
     >>> estimate
     4.5
     >>> bias
@@ -153,7 +152,7 @@ def jackknife_stats(data, resamples, statistic, conf_lvl=0.95):
     3. Example for two estimates
 
     >>> test_statistic = lambda x: (np.mean(x), np.var(x))
-    >>> estimate, bias, stderr, conf_interval = jackknife_stats(data, resamples, test_statistic, 0.95)
+    >>> estimate, bias, stderr, conf_interval = jackknife_stats(data, test_statistic, 0.95)
     >>> estimate
     array([ 4.5       ,  9.16666667])
     >>> bias
@@ -167,14 +166,11 @@ def jackknife_stats(data, resamples, statistic, conf_lvl=0.95):
     IMPORTANT: Note that confidence intervals are given as columns
     """
 
-    from scipy.special import erfinv
-
     # make sure original data is proper
     n = data.shape[0]
     assert n > 0, "data must contain at least one measurement"
- 
-    # make sure the shape of resamples is proper
-    assert resamples.shape == (n, n - 1), "shape of input 'resamples' is not proper"
+
+    resamples = jackknife_resampling(data)
 
     stat_data = statistic(data)
     jack_stat = np.apply_along_axis(statistic, 1, resamples)
@@ -184,8 +180,8 @@ def jackknife_stats(data, resamples, statistic, conf_lvl=0.95):
     bias = (n-1)*(mean_jack_stat - stat_data)
 
     # jackknife standard error
-    std_err = np.sqrt((n-1)*np.mean((jack_stat - mean_jack_stat)*(jack_stat
-                      - mean_jack_stat),axis=0))
+    std_err = np.sqrt((n-1)*np.mean((jack_stat - mean_jack_stat)*(jack_stat -
+                                    mean_jack_stat), axis=0))
 
     # bias-corrected "jackknifed estimate"
     estimate = stat_data - bias
@@ -193,6 +189,6 @@ def jackknife_stats(data, resamples, statistic, conf_lvl=0.95):
     # jackknife confidence interval
     assert (conf_lvl > 0 and conf_lvl < 1), "confidence level must be in (0,1)."
     z_score = np.sqrt(2.0)*erfinv(conf_lvl)
-    conf_interval = estimate + z_score*np.array((-std_err,std_err))
+    conf_interval = estimate + z_score*np.array((-std_err, std_err))
 
     return estimate, bias, std_err, conf_interval
