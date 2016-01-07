@@ -13,7 +13,6 @@ from . import vos_catalog
 from .async import AsyncBase
 from .exceptions import ConeSearchError, VOSError
 from ... import units as u
-from ...config.configuration import ConfigAlias
 from ...coordinates import ICRS, BaseCoordinateFrame, Longitude, Latitude, SkyCoord
 from ...units import Quantity
 from ...utils.timer import timefunc, RunTimePredictor
@@ -27,10 +26,6 @@ __all__ = ['AsyncConeSearch', 'conesearch', 'AsyncSearchAll', 'search_all',
 # TODO: Add the ability to add py.test markers (such as remote_data) to
 # doctests
 __doctest_skip__ = ['AsyncConeSearch', 'AsyncSearchAll']
-
-CONESEARCH_DBNAME = ConfigAlias(
-    '0.4', 'CONESEARCH_DBNAME', 'conesearch_dbname',
-    'astropy.vo.client.conesearch', 'astropy.vo')
 
 
 class AsyncConeSearch(AsyncBase):

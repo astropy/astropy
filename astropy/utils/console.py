@@ -71,13 +71,11 @@ else:
         # Just define a dummy class
         class PyreadlineConsole(object): pass
 
-from ..config import ConfigAlias
 from ..extern import six
 from ..extern.six.moves import range
 from .. import conf
 from .. import units as u
 
-from .decorators import deprecated
 from .misc import isiterable
 
 
@@ -85,12 +83,6 @@ __all__ = [
     'isatty', 'color_print', 'human_time', 'human_file_size',
     'ProgressBar', 'Spinner', 'print_code_line', 'ProgressBarOrSpinner',
     'terminal_size']
-
-
-# Only use color by default on Windows if IPython is installed.
-USE_COLOR = ConfigAlias(
-    '0.4', 'USE_COLOR', 'use_color', 'astropy.utils.console', 'astropy')
-
 
 _DEFAULT_ENCODING = 'utf-8'
 

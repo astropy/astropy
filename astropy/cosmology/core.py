@@ -16,7 +16,7 @@ from .. import constants as const
 from .. import units as u
 from ..utils import isiterable, deprecated
 from ..utils.compat.funcsigs import signature
-from ..utils.state import ScienceState, ScienceStateAlias
+from ..utils.state import ScienceState
 
 from . import parameters
 
@@ -2943,6 +2943,3 @@ class default_cosmology(ScienceState):
         else:
             raise TypeError("default_cosmology must be a string or Cosmology instance.")
 
-
-DEFAULT_COSMOLOGY = ScienceStateAlias(
-    '0.4', 'DEFAULT_COSMOLOGY', 'default_cosmology', default_cosmology)

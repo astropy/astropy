@@ -68,20 +68,6 @@ class Conf(_config.ConfigNamespace):
 conf = Conf()
 
 
-DATAURL = _config.ConfigAlias(
-    '0.4', 'DATAURL', 'dataurl')
-REMOTE_TIMEOUT = _config.ConfigAlias(
-    '0.4', 'REMOTE_TIMEOUT', 'remote_timeout')
-COMPUTE_HASH_BLOCK_SIZE = _config.ConfigAlias(
-    '0.4', 'COMPUTE_HASH_BLOCK_SIZE', 'compute_hash_block_size')
-DOWNLOAD_CACHE_BLOCK_SIZE = _config.ConfigAlias(
-    '0.4', 'DOWNLOAD_CACHE_BLOCK_SIZE', 'download_block_size')
-DOWNLOAD_CACHE_LOCK_ATTEMPTS = _config.ConfigAlias(
-    '0.4', 'DOWNLOAD_CACHE_LOCK_ATTEMPTS', 'download_cache_lock_attempts')
-DELETE_TEMPORARY_DOWNLOADS_AT_EXIT = _config.ConfigAlias(
-    '0.4', 'DELETE_TEMPORARY_DOWNLOADS_AT_EXIT', 'delete_temporary_downloads_at_exit')
-
-
 class CacheMissingWarning(AstropyWarning):
     """
     This warning indicates the standard cache directory is not accessible, with
@@ -169,7 +155,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
 
     remote_timeout : float
         Timeout for remote requests in seconds (default is the configurable
-        REMOTE_TIMEOUT, which is 3s by default)
+        `astropy.utils.data.Conf.remote_timeout`, which is 3s by default)
 
     Returns
     -------
@@ -1002,7 +988,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
 
     if timeout is None:
         # use configfile default
-        timeout = REMOTE_TIMEOUT()
+        timeout = conf.remote_timeout()
 
     if cache:
         try:

@@ -30,14 +30,6 @@ class Conf(_config.ConfigNamespace):
 conf = Conf()
 
 
-JQUERY_URL = _config.ConfigAlias(
-    '0.4', 'JQUERY_URL', 'jquery_url',
-    'astropy.table.jsviewer', 'astropy.table.jsviewer')
-
-DATATABLES_URL = _config.ConfigAlias(
-    '0.4', 'DATATABLES_URL', 'datatables_url',
-    'astropy.table.jsviewer', 'astropy.table.jsviewer')
-
 EXTERN_JS_DIR = abspath(join(dirname(extern.__file__), 'js'))
 EXTERN_CSS_DIR = abspath(join(dirname(extern.__file__), 'css'))
 

@@ -56,17 +56,6 @@ class Conf(_config.ConfigNamespace):
 conf = Conf()
 
 
-ENABLE_RECORD_VALUED_KEYWORD_CARDS = _config.ConfigAlias(
-    '0.4', 'ENABLE_RECORD_VALUED_KEYWORD_CARDS',
-    'enable_record_valued_keyword_cards')
-EXTENSION_NAME_CASE_SENSITIVE = _config.ConfigAlias(
-    '0.4', 'EXTENSION_NAME_CASE_SENSITIVE', 'extension_name_case_sensitive')
-STRIP_HEADER_WHITESPACE = _config.ConfigAlias(
-    '0.4', 'STRIP_HEADER_WHITESPACE', 'strip_header_whitespace')
-USE_MEMMAP = _config.ConfigAlias(
-    '0.4', 'USE_MEMMAP', 'use_memmap')
-
-
 # Public API compatibility imports
 # These need to come after the global config variables, as some of the
 # submodules use them

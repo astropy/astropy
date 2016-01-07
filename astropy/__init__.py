@@ -114,7 +114,6 @@ if not _ASTROPY_SETUP_:
 
 from . import config as _config
 
-
 class Conf(_config.ConfigNamespace):
     """
     Configuration parameters for `astropy`.
@@ -145,11 +144,6 @@ class Conf(_config.ConfigNamespace):
         aliases=['astropy.table.pprint.max_width'])
 
 conf = Conf()
-
-
-UNICODE_OUTPUT = _config.ConfigAlias(
-    '0.4', 'UNICODE_OUTPUT', 'unicode_output')
-
 
 # Create the test() function
 from .tests.runner import TestRunner

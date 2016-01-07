@@ -18,10 +18,10 @@ from copy import deepcopy
 # LOCAL
 from .exceptions import VOSError, MissingCatalog, DuplicateCatalogName, DuplicateCatalogURL, InvalidAccessURL
 from ...io.votable import parse_single_table, table, tree, conf
-from ...config import ConfigAlias
+
 from ...io.votable.exceptions import vo_raise, vo_warn, E19, W24, W25
 from ...utils.console import color_print
-from ...utils.data import get_readable_fileobj, REMOTE_TIMEOUT
+from ...utils.data import get_readable_fileobj
 from ...utils.exceptions import AstropyUserWarning
 from ...utils.misc import JsonCustomEncoder
 from ...utils.xml.unescaper import unescape_all
@@ -31,10 +31,6 @@ __all__ = ['VOSBase', 'VOSCatalog', 'VOSDatabase', 'get_remote_catalog_db',
            'call_vo_service', 'list_catalogs']
 
 __dbversion__ = 1
-
-BASEURL = ConfigAlias(
-    '0.4', 'BASEURL', 'vos_baseurl',
-    'astropy.vo.client.vos_catalog', 'astropy.vo')
 
 
 class VOSBase(object):
@@ -523,7 +519,7 @@ class VOSDatabase(VOSBase):
             Pedantic is automatically set to `False` for parsing.
 
         timeout : number
-            Temporarily set ``astropy.utils.data.REMOTE_TIMEOUT`` to
+            Temporarily set `astropy.utils.data.Conf.remote_timeout` to
             this value to avoid time out error while reading the
             entire registry.
 
@@ -543,7 +539,7 @@ class VOSDatabase(VOSBase):
 
         """
         # Download registry as VO table
-        with REMOTE_TIMEOUT.set_temp(timeout):
+        with conf.remote_timeout.set_temp(timeout):
             with get_readable_fileobj(registry_url, **kwargs) as fd:
                 tab_all = parse_single_table(fd, pedantic=False)
 
