@@ -155,6 +155,47 @@ At the moment the ``wcs`` attribute can be set to any object, though in the
 future it may be restricted to an `~astropy.wcs.WCS` object once a generalized
 WCS object is developed.
 
+Initialization with copy
+------------------------
+
+The default way to create an `~astropy.nddata.NDData` instance is to try saving
+the parameters as reference rather than as copy. Sometimes this is not possible
+because the internal mechanics doesn't allow for this. For example if the
+``data`` is a `list` then during initialization this is copied while converting
+to a `~numpy.ndarray`. But it is also possible to enforce copies
+during initialization by setting the ``copy`` parameter to ``True``::
+
+    >>> array = np.array([1, 2, 3, 4])
+    >>> ndd = NDData(array)
+    >>> ndd.data[2] = 10
+    >>> array[2]  # Original array is changed
+    10
+    >>> ndd2 = NDData(array, copy=True)
+    >>> ndd2.data[2] = 3
+    >>> array[2]  # Original array is not changed.
+    10
+
+Conflicting parameters
+----------------------
+
+It is possible to initialize `~astropy.nddata.NDData` with an explicit
+parameter in the initialization call and an implicit one in the ``data``
+parameter. If such a combination is detected a warning is
+issued and the explicit parameter is kept (without any attempt of conversion).
+
+For example with quantities::
+
+    >>> import astropy.units as u
+    >>> quantity = np.array([1, 2, 3, 4]) * u.m
+    >>> ndd = NDData(quantity, unit="cm")  # Explicit unit is cm and implicit is m, keep explicit.
+    INFO: Overwriting Quantity's current unit with specified unit [astropy.nddata.nddata]
+    >>> ndd.unit
+    Unit("cm")
+
+But this can affect the mask if the ``data`` parameter is a `~numpy.ma.MaskedArray`
+or even all attributes if the ``data`` is another `~astropy.nddata.NDData`
+instance.
+
 Converting to Numpy arrays
 --------------------------
 

@@ -12,8 +12,8 @@ from numpy.testing import assert_array_equal
 
 from ..nddata import NDData
 from ...utils.compat.odict import OrderedDict
-from ..nduncertainty import StdDevUncertainty  # , NDUncertainty
-from ...tests.helper import pytest  # , raises
+from ..nduncertainty import StdDevUncertainty
+from ...tests.helper import pytest
 from ... import units as u
 from ...utils import NumpyRNGContext
 
@@ -212,7 +212,7 @@ def test_nddata_init_data_quantity(data):
         assert ndd.data[1] != quantity.value[1]
 
 
-def test_nddata_init_data_maskedQuantity():
+def test_nddata_init_data_masked_quantity():
     a = np.array([2, 3])
     q = a * u.m
     m = False
@@ -267,7 +267,7 @@ def test_nddata_init_data_nddata():
     assert nd3.meta != nd1.meta
 
 
-def test_nddata_init_data_nddataSubclass():
+def test_nddata_init_data_nddata_subclass():
     # There might be some incompatible subclasses of NDData around.
     bnd = BadNDDataSubclass(False, True, 3, 2, 'gollum', 100)
     # Before changing the NDData init this would not have raised an error but

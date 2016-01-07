@@ -17,10 +17,9 @@ class NDDataBase(object):
     Base metaclass that defines the interface for N-dimensional datasets with
     associated meta informations used in ``astropy``.
 
-    NDDataBase makes no attempt of restricting any attribute or defines how
-    these are stored. Therefore all properties and methods have to be
-    overridden in subclasses. See `~astropy.nddata.NDData` for a subclass that
-    defines this interface on `~numpy.ndarray`-like based ``data``.
+    All properties and methods have to be overridden in subclasses. See
+    `~astropy.nddata.NDData` for a subclass that defines this interface on
+    `~numpy.ndarray`-like based ``data``.
     """
 
     @abstractmethod

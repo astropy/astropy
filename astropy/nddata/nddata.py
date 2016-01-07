@@ -19,7 +19,7 @@ __all__ = ['NDData']
 
 __doctest_skip__ = ['NDData']
 
-# TODO: Change this again after combining PRs
+# TODO: Change this again after remerging of ractoring PRs
 try:
     from .nduncertainty import UnknownUncertainty
 except ImportError:
@@ -27,6 +27,9 @@ except ImportError:
     __all__.append('UnknownUncertainty')
 
     from .nduncertainty import StdDevUncertainty
+
+    # Create a temporary unknownuncertainty as long as the real implementation
+    # is not merged.
 
     class UnknownUncertainty(StdDevUncertainty):
         """
@@ -46,12 +49,6 @@ except ImportError:
             The `NDData` which uses this uncertainty.
         uncertainty_type: ``"unknown"``
             The type of uncertainty is unknown.
-
-        Notes
-        -----
-        This class is only a temporary implementation until `NDUncertainty`
-        and `NDArithmeticMixin` refactor is done. But it should be fully
-        functional.
         """
         # We need to change the type of uncertainty
         def __init__(self, *args, **kwargs):
@@ -82,7 +79,7 @@ class NDData(NDDataBase):
 
     Parameters
     -----------
-    data : `~numpy.ndarray`-like, `NDData`-like or list
+    data : `~numpy.ndarray`-like or `NDData`-like
         The dataset.
 
     uncertainty : any type, optional
@@ -168,7 +165,7 @@ class NDData(NDDataBase):
                  meta=None, unit=None, copy=False):
 
         # Rather pointless since the NDDataBase does not implement any setting
-        # but before (#4234) the NDDataBase did call the uncertainty
+        # but before the NDDataBase did call the uncertainty
         # setter. But if anyone wants to alter this behaviour again the call
         # to the superclass NDDataBase should be in here.
         super(NDData, self).__init__()
