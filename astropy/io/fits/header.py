@@ -221,21 +221,11 @@ class Header(object):
                 indices = self._rvkc_indices
 
             if key not in indices:
-                if _is_astropy_internal():
-                    # All internal code is designed to assume that this will
-                    # raise a KeyError, so go ahead and do so
-                    raise KeyError("Keyword '%s' not found." % key)
-                # Warn everyone else.
-                # TODO: Remove this warning and make KeyError the default after
-                # a couple versions (by 3.3, say)
-                warnings.warn(
-                    'Deletion of non-existent keyword %r: '
-                    'In a future Astropy version Header.__delitem__ may be '
-                    'changed so that this raises a KeyError just like a dict '
-                    'would. Please update your code so that KeyErrors are '
-                    'caught and handled when deleting non-existent keywords.' %
-                    key, AstropyDeprecationWarning)
-                return
+		# if keyword is not present raise KeyError.
+		# To delete keyword without caring if they were present, 
+		# Header.remove(Keyword) can be used with optional argument ignore_missing as True
+
+                raise KeyError("Keyword '%s' not found." % key)
             for idx in reversed(indices[key]):
                 # Have to copy the indices list since it will be modified below
                 del self[idx]
@@ -1527,19 +1517,36 @@ class Header(object):
 
         self._modified = True
 
-    def remove(self, keyword):
+    def remove(self, keyword, ignore_missing = False, all = False):
         """
         Removes the first instance of the given keyword from the header similar
         to `list.remove` if the Header object is treated as a list of keywords.
-
+	
         Parameters
         ----------
         keyword : str
             The keyword of which to remove the first instance in the header
 
-        """
+	ignore_missing : bool, optional
+	    When 'True', ignores Error if keyword is not present. otherwise if
+		keyword is not present Error is raised.
+	all : bool, optional
+	    When 'True', all instances of keyword will be removed.
+            Otherwise only first instance of given keyword is removed.
 
-        del self[self.index(keyword)]
+        """
+	
+	try:
+		del self[self.index(keyword)]
+		if all:
+			while keyword in self._keyword_indices:
+				del self[self.index(keyword)]		
+	except ValueError:
+		if ignore_missing:
+			pass
+		else:
+			raise KeyError('Keyword %s not in the header.' % keyword)		
+
 
     def rename_keyword(self, oldkeyword, newkeyword, force=False):
         """
