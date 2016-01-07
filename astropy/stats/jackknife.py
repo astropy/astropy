@@ -3,7 +3,6 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import numpy as np
-from scipy.special import erfinv
 
 
 __all__ = ['jackknife_resampling', 'jackknife_stats']
@@ -79,9 +78,10 @@ def jackknife_resampling(data):
     return resamples
 
 
-# Note scipy depedency for confidence interval computation
 def jackknife_stats(data, statistic, conf_lvl=0.95):
     """ Performs jackknife estimation on the basis of jackknife resamples.
+ 
+    This function requires SciPy <http://www.scipy.org> to be installed.
 
     Parameters
     ----------
@@ -93,6 +93,7 @@ def jackknife_stats(data, statistic, conf_lvl=0.95):
         this statistic will be returned.
     conf_lvl : float
         Confidence level for the confidence interval of the Jackknife estimate.
+        Must be a real-valued number in (0,1).
 
     Returns
     -------
@@ -106,11 +107,11 @@ def jackknife_stats(data, statistic, conf_lvl=0.95):
         The i-th element is the jackknife standard error.
 
     conf_interval : numpy.ndarray
-        If `statistic` is single-valued, the first and second elements are the
-        lower and upper bounds, respectively. If `statistic` is vector-valued,
-        each column corresponds to the confidence interval for each component
-        of `statistic`. The first and second rows contain the lower and upper
-        bounds, respectively.
+        If **statistic** is single-valued, the first and second elements are
+        the lower and upper bounds, respectively. If **statistic** is
+        vector-valued, each column corresponds to the confidence interval for
+        each component of **statistic**. The first and second rows contain the
+        lower and upper bounds, respectively.
 
     Examples
     --------
@@ -165,6 +166,8 @@ def jackknife_stats(data, statistic, conf_lvl=0.95):
 
     IMPORTANT: Note that confidence intervals are given as columns
     """
+
+    from scipy.special import erfinv
 
     # make sure original data is proper
     n = data.shape[0]
