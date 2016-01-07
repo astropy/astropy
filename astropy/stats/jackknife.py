@@ -1,11 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function, 
+from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import numpy as np
 
 
 __all__ = ['jackknife_resampling', 'jackknife_stats']
+__doctest_requires__ = {'jackknife_stats':['scipy.special']}
 
 
 def jackknife_resampling(data):
@@ -33,7 +34,7 @@ def jackknife_resampling(data):
     Examples
     --------
     1. Obtain Jackknife resamples:
-    
+
     >>> import numpy as np
     >>> from astropy.stats import jackknife_resampling
     >>> data = np.array([1,2,3,4,5,6,7,8,9,0])
@@ -64,22 +65,22 @@ def jackknife_resampling(data):
     .. [3] Cowles, Kate. "Computing in Statistics: The Jackknife, Lecture 11".
         <http://homepage.stat.uiowa.edu/~kcowles/s166_2009/lect11.pdf>.
         September, 2009.
-    """ 
+    """
 
     n = data.shape[0]
     assert n > 0, "data must contain at least one measurement"
-    
+
     resamples = np.empty([n, n-1])
 
     for i in range(n):
         resamples[i] = np.delete(data, i)
-    
+ 
     return resamples
 
 # Note scipy depedency for confidence interval computation
 def jackknife_stats(data, resamples, statistic, conf_lvl=0.95):
     """ Performs jackknife estimation on the basis of jackknife resamples.
-    
+
     Parameters
     ----------
     data : numpy.ndarray
@@ -111,7 +112,7 @@ def jackknife_stats(data, resamples, statistic, conf_lvl=0.95):
         each column corresponds to the confidence interval for each component
         of 'statistic'. The first and second rows contain the lower and upper
         bounds, respectively.
-    
+
     Examples
     --------
     1. Obtain Jackknife resamples:
@@ -170,8 +171,8 @@ def jackknife_stats(data, resamples, statistic, conf_lvl=0.95):
 
     # make sure original data is proper
     n = data.shape[0]
-    assert n > 0, "data must contain at least one measurement" 
-    
+    assert n > 0, "data must contain at least one measurement"
+ 
     # make sure the shape of resamples is proper
     assert resamples.shape == (n, n - 1), "shape of input 'resamples' is not proper"
 
