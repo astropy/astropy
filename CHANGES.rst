@@ -102,6 +102,9 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Fixed an bug where updates to string columns in FITS tables were not saved
+    on Python 3. [#4452]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
