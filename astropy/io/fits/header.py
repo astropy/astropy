@@ -1535,17 +1535,17 @@ class Header(object):
             Otherwise only first instance of given keyword is removed.
 
         """
-	
+        	
 	try:
-		del self[self.index(keyword)]
-		if all:
-			while keyword in self._keyword_indices:
-				del self[self.index(keyword)]		
+	    del self[self.index(keyword)]
+	    if all:
+	        while keyword in self._keyword_indices:
+		    del self[self.index(keyword)]		
 	except ValueError:
-		if ignore_missing:
-			pass
-		else:
-			raise KeyError('Keyword %s not in the header.' % keyword)		
+	    if ignore_missing:
+	        pass
+	    else:
+		raise KeyError('Keyword %s not in the header.' % keyword)		
 
 
     def rename_keyword(self, oldkeyword, newkeyword, force=False):
