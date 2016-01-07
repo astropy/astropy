@@ -111,7 +111,7 @@ def test_units_conversion():
 
 def test_units_manipulation():
     # Just do some manipulation and check it's happy
-    (u.kpc * u.yr) ** (1, 3) / u.Myr
+    (u.kpc * u.yr) ** Fraction(1, 3) / u.Myr
     (u.AA * u.erg) ** 9
 
 
