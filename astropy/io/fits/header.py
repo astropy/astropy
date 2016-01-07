@@ -1536,16 +1536,16 @@ class Header(object):
 
         """
         	
-	try:
-	    del self[self.index(keyword)]
-	    if all:
-	        while keyword in self._keyword_indices:
-		    del self[self.index(keyword)]		
-	except ValueError:
-	    if ignore_missing:
-	        pass
-	    else:
-		raise KeyError('Keyword %s not in the header.' % keyword)		
+        try:
+            del self[self.index(keyword)]
+            if all:
+                while keyword in self._keyword_indices:
+                    del self[self.index(keyword)]		
+        except ValueError:
+            if ignore_missing:
+                pass
+            else:
+                raise KeyError('Keyword %s not in the header.' % keyword)		
 
 
     def rename_keyword(self, oldkeyword, newkeyword, force=False):
