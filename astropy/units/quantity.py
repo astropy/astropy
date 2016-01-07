@@ -222,8 +222,9 @@ class Quantity(np.ndarray):
                             subok=True, ndmin=ndmin)
 
         # Maybe list/tuple of Quantity? short-circuit array for speed
-        if(not isinstance(value, np.ndarray) and isiterable(value) and
-           all(isinstance(v, Quantity) for v in value)):
+        if (not isinstance(value, np.ndarray) and isiterable(value) and
+            all(isinstance(v, Quantity) for v in value)):
+            # Convert all quantities to the same unit.
             if unit is None:
                 unit = value[0].unit
             value = [q.to(unit).value for q in value]
@@ -1271,8 +1272,12 @@ class Quantity(np.ndarray):
             if unit is None:
                 unit = self.unit
 
-            if not (isinstance(out, Quantity) and
-                    out.__quantity_subclass__(unit)[0] is type(out)):
+            if (isinstance(out, Quantity) and
+                out.__quantity_subclass__(unit)[0] is type(out)):
+                # Set out to ndarray view to prevent calling __array_prepare__.
+                kwargs['out'] = out.view(np.ndarray)
+
+            else:
                 ok_class =  (out.__quantity_subclass__(out, unit)[0]
                              if isinstance(out, Quantity) else Quantity)
                 raise TypeError("out cannot be assigned to a {0} instance; "
