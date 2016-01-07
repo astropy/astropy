@@ -231,7 +231,6 @@ class TestQuantityStatsFuncs(object):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.m
         assert np.ptp(q1) == 5. * u.m
 
-    @pytest.mark.xfail
     def test_ptp_inplace(self):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.m
         qi = 1.5 * u.s
