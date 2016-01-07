@@ -2305,6 +2305,49 @@ class TestTableFunctions(FitsTestCase):
         # its use in creating the "merged" table
         assert comparerecords(data1, fits.getdata(self.data('tb.fits')))
 
+    def test_update_string_column_inplace(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/4452
+
+        Ensure that changes to values in a string column are saved when
+        a file is opened in ``mode='update'``.
+        """
+
+        data = np.array([('abc',)], dtype=[('a', 'S3')])
+        fits.writeto(self.temp('test.fits'), data)
+
+        with fits.open(self.temp('test.fits'), mode='update') as hdul:
+            hdul[1].data['a'][0] = 'XYZ'
+            assert hdul[1].data['a'][0] == 'XYZ'
+
+        with fits.open(self.temp('test.fits')) as hdul:
+            assert hdul[1].data['a'][0] == 'XYZ'
+
+        # Test update but with a non-trivial TDIMn
+        data = np.array([([['abc', 'def', 'geh'],
+                           ['ijk', 'lmn', 'opq']],)],
+                        dtype=[('a', ('S3', (2, 3)))])
+
+        fits.writeto(self.temp('test2.fits'), data)
+
+        expected = [['abc', 'def', 'geh'],
+                    ['ijk', 'XYZ', 'opq']]
+
+        with fits.open(self.temp('test2.fits'), mode='update') as hdul:
+            assert hdul[1].header['TDIM1'] == '(3,3,2)'
+            # Note: Previously I wrote data['a'][0][1, 1] to address
+            # the single row.  However, this is broken for chararray because
+            # data['a'][0] does *not* return a view of the original array--this
+            # is a bug in chararray though and not a bug in any FITS-specific
+            # code so we'll roll with it for now...
+            # (by the way the bug in question is fixed in newer Numpy versions)
+            hdul[1].data['a'][0, 1, 1] = 'XYZ'
+            assert np.all(hdul[1].data['a'][0] == expected)
+
+        with fits.open(self.temp('test2.fits')) as hdul:
+            assert hdul[1].header['TDIM1'] == '(3,3,2)'
+            assert np.all(hdul[1].data['a'][0] == expected)
+
 
 class TestVLATables(FitsTestCase):
     """Tests specific to tables containing variable-length arrays."""
