@@ -995,6 +995,8 @@ Bug Fixes
 
 - ``astropy.utils``
 
+  - Fixed ``find_api_page`` to work correctly on python 3.x [#4378]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
