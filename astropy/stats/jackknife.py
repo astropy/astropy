@@ -81,7 +81,7 @@ def jackknife_resampling(data):
 def jackknife_stats(data, statistic, conf_lvl=0.95):
     """ Performs jackknife estimation on the basis of jackknife resamples.
  
-    This function requires SciPy <http://www.scipy.org> to be installed.
+    This function requires `SciPy <http://www.scipy.org>`_ to be installed.
 
     Parameters
     ----------
@@ -107,10 +107,10 @@ def jackknife_stats(data, statistic, conf_lvl=0.95):
         The i-th element is the jackknife standard error.
 
     conf_interval : numpy.ndarray
-        If **statistic** is single-valued, the first and second elements are
-        the lower and upper bounds, respectively. If **statistic** is
+        If ``statistic`` is single-valued, the first and second elements are
+        the lower and upper bounds, respectively. If ``statistic`` is
         vector-valued, each column corresponds to the confidence interval for
-        each component of **statistic**. The first and second rows contain the
+        each component of ``statistic``. The first and second rows contain the
         lower and upper bounds, respectively.
 
     Examples
