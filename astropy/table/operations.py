@@ -491,30 +491,13 @@ def common_dtype(cols):
     Only allow columns within the following fundamental numpy data types:
     np.bool_, np.object_, np.number, np.character, np.void
     """
-    def dtype(col):
-        return getattr(col, 'dtype', np.dtype('O'))
-
-    np_types = (np.bool_, np.object_, np.number, np.character, np.void)
-    uniq_types = set(tuple(issubclass(dtype(col).type, np_type) for np_type in np_types)
-                     for col in cols)
-    if len(uniq_types) > 1:
-        # Embed into the exception the actual list of incompatible types.
-        incompat_types = [dtype(col).name for col in cols]
+    try:
+        return metadata.common_dtype(cols)
+    except metadata.MergeConflictError as err:
         tme = TableMergeError('Columns have incompatible types {0}'
-                              .format(incompat_types))
-        tme._incompat_types = incompat_types
+                              .format(err._incompat_types))
+        tme._incompat_types = err._incompat_types
         raise tme
-
-    arrs = [np.empty(1, dtype=dtype(col)) for col in cols]
-
-    # For string-type arrays need to explicitly fill in non-zero
-    # values or the final arr_common = .. step is unpredictable.
-    for arr in arrs:
-        if arr.dtype.kind in ('S', 'U'):
-            arr[0] = '0' * arr.itemsize
-
-    arr_common = np.array([arr[0] for arr in arrs])
-    return arr_common.dtype.str
 
 
 def _join(left, right, keys=None, join_type='inner',

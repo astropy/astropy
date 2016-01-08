@@ -12,6 +12,7 @@ import collections
 from collections import OrderedDict
 from copy import deepcopy
 
+import numpy as np
 from ..utils.exceptions import AstropyWarning
 
 
@@ -23,26 +24,129 @@ class MergeConflictWarning(AstropyWarning):
     pass
 
 
+MERGE_STRATEGY_CLASSES = []
+
+def common_dtype(arrs):
+    """
+    Use numpy to find the common dtype for a list of ndarrays.
+
+    Only allow arrays within the following fundamental numpy data types:
+    np.bool_, np.object_, np.number, np.character, np.void
+
+    Parameters
+    ----------
+    arrs: list of ndarray objects
+
+    """
+    def dtype(arr):
+        return getattr(arr, 'dtype', np.dtype('O'))
+
+    np_types = (np.bool_, np.object_, np.number, np.character, np.void)
+    uniq_types = set(tuple(issubclass(dtype(arr).type, np_type) for np_type in np_types)
+                     for arr in arrs)
+    if len(uniq_types) > 1:
+        # Embed into the exception the actual list of incompatible types.
+        incompat_types = [dtype(arr).name for arr in arrs]
+        tme = MergeConflictError('Arrays have incompatible types {0}'
+                                 .format(incompat_types))
+        tme._incompat_types = incompat_types
+        raise tme
+
+    arrs = [np.empty(1, dtype=dtype(arr)) for arr in arrs]
+
+    # For string-type arrays need to explicitly fill in non-zero
+    # values or the final arr_common = .. step is unpredictable.
+    for arr in arrs:
+        if arr.dtype.kind in ('S', 'U'):
+            arr[0] = '0' * arr.itemsize
+
+    arr_common = np.array([arr[0] for arr in arrs])
+    return arr_common.dtype.str
+
+
+class MergeStrategyMeta(type):
+    """
+    Metaclass that registers MergeStrategy subclasses into the
+    MERGE_STRATEGY_CLASSES registry.
+    """
+
+    def __new__(mcls, name, bases, members):
+        cls = super(MergeStrategyMeta, mcls).__new__(mcls, name, bases, members)
+
+        # Register merging class (except for base MergeStrategy class)
+        if 'types' in members:
+            types = members['types']
+            if isinstance(types, tuple):
+                types = [types]
+            for left, right in reversed(types):
+                MERGE_STRATEGY_CLASSES.insert(0, (left, right, cls))
+
+        return cls
+
+@six.add_metaclass(MergeStrategyMeta)
+class MergeStrategy(object):
+    # Set to False to disable applying this merge strategy
+    enabled = True
+
+    @classmethod
+    def merge_with_catch(cls, left, right):
+        """
+        Call the ``merge()`` method, but catch exceptions and re-raise
+
+        Parameters
+        ----------
+        left: object
+            Left object to be merged
+        right: object
+            Right object to be merged
+
+        Returns
+        -------
+        out: object
+            Merged left and right object
+        """
+        try:
+            return cls.merge(left, right)
+        except Exception as err:
+            raise MergeConflictError(err)
+
+
+class MergePlus(MergeStrategy):
+    """
+    Merge ``left`` and ``right`` objects using the plus operator.
+    """
+    types = [(list, list),
+             (tuple, tuple)]
+
+    @classmethod
+    def merge(cls, left, right):
+        return left + right
+
+
+class MergeNpConcatenate(MergeStrategy):
+    """
+    Merge ``left`` and ``right`` objects using np.concatenate.
+
+    This will upcast a list or tuple to np.ndarray and the output is
+    always ndarray.
+    """
+    types = [(np.ndarray, np.ndarray),
+             (np.ndarray, (list, tuple)),
+             ((list, tuple), np.ndarray)]
+
+    @classmethod
+    def merge(cls, left, right):
+        left, right = np.asanyarray(left), np.asanyarray(right)
+        common_dtype([left, right])  # Ensure left and right have compatible dtype
+        return np.concatenate([left, right])
+
+
 def take_left(left, right):
     return left
 
 
 def take_right(left, right):
     return left
-
-
-def concat(left, right):
-    """
-    Concatenate the ``left`` and ``right`` objects
-
-    Currently only lists and tuples are allowed, but this could change.
-    """
-    if type(left) != type(right):
-        raise MergeConflictError()
-    if any(isinstance(left, cls) for cls in (tuple, list)):
-        return left + right
-    else:
-        raise MergeConflictError()
 
 
 def raise_error(left, right):
@@ -57,7 +161,14 @@ def _both_isinstance(left, right, cls):
     return isinstance(left, cls) and isinstance(right, cls)
 
 
-def merge(left, right, merge_func=concat, metadata_conflicts='warn'):
+def _not_equal(left, right):
+    try:
+        return bool(left != right)
+    except:
+        return True
+
+
+def merge(left, right, merge_func=None, metadata_conflicts='warn'):
     """
     Merge the ``left`` and ``right`` metadata objects.
 
@@ -81,7 +192,18 @@ def merge(left, right, merge_func=concat, metadata_conflicts='warn'):
 
         else:
             try:
-                out[key] = merge_func(left[key], right[key])
+                if merge_func is None:
+                    for left_type, right_type, merge_cls in MERGE_STRATEGY_CLASSES:
+                        if not merge_cls.enabled:
+                            continue
+                        if (isinstance(left[key], left_type) and
+                                isinstance(right[key], right_type)):
+                            out[key] = merge_cls.merge_with_catch(left[key], right[key])
+                            break
+                    else:
+                        raise MergeConflictError
+                else:
+                    out[key] = merge_func(left[key], right[key])
             except MergeConflictError:
 
                 # Pick the metadata item that is not None, or they are both not
@@ -96,15 +218,19 @@ def merge(left, right, merge_func=concat, metadata_conflicts='warn'):
                     out[key] = right[key]
                 elif right[key] is None:
                     out[key] = left[key]
-                elif left[key] != right[key]:
+                elif _not_equal(left[key], right[key]):
                     if metadata_conflicts == 'warn':
-                        warnings.warn('Cannot merge meta key {0!r} types {1!r} and {2!r}, choosing {0}={3!r}'
-                                                 .format(key, type(left[key]), type(right[key]), right[key]), MergeConflictWarning)
+                        warnings.warn('Cannot merge meta key {0!r} types {1!r}'
+                                      ' and {2!r}, choosing {0}={3!r}'
+                                      .format(key, type(left[key]), type(right[key]), right[key]),
+                                      MergeConflictWarning)
                     elif metadata_conflicts == 'error':
-                        raise MergeConflictError('Cannot merge meta key {0!r} types {1!r} and {2!r}'
+                        raise MergeConflictError('Cannot merge meta key {0!r} '
+                                                 'types {1!r} and {2!r}'
                                                  .format(key, type(left[key]), type(right[key])))
                     elif metadata_conflicts != 'silent':
-                        raise ValueError('metadata_conflicts argument must be one of "silent", "warn", or "error"')
+                        raise ValueError('metadata_conflicts argument must be one '
+                                         'of "silent", "warn", or "error"')
                     out[key] = right[key]
                 else:
                     out[key] = right[key]
