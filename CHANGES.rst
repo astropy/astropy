@@ -1,6 +1,9 @@
 1.0.8 (unreleased)
 ------------------
 
+Bug Fixes
+^^^^^^^^^
+
 - ``astropy.io.fits``
 
   - Fixed an bug where updates to string columns in FITS tables were not saved
