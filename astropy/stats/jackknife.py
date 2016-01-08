@@ -10,7 +10,7 @@ __doctest_requires__ = {'jackknife_stats': ['scipy.special']}
 
 
 def jackknife_resampling(data):
-    """Performs jackknife resampling on numpy arrays.
+    """ Performs jackknife resampling on numpy arrays.
 
     Jackknife resampling is a technique to generate 'n' deterministic samples
     of size 'n-1' from a measured sample of size 'n'. Basically, the i-th
@@ -54,7 +54,7 @@ def jackknife_resampling(data):
     (10, 9)
 
     References
-    ---------
+    ----------
     .. [1] McIntosh, Avery. "The Jackknife Estimation Method".
         <http://people.bu.edu/aimcinto/jackknife.pdf>
 
@@ -80,7 +80,7 @@ def jackknife_resampling(data):
 
 def jackknife_stats(data, statistic, conf_lvl=0.95):
     """ Performs jackknife estimation on the basis of jackknife resamples.
- 
+
     This function requires `SciPy <http://www.scipy.org>`_ to be installed.
 
     Parameters
