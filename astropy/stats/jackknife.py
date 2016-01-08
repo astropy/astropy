@@ -31,28 +31,6 @@ def jackknife_resampling(data):
         The i-th row is the i-th jackknife sample, i.e., the original sample
         with the i-th measurement deleted.
 
-    Examples
-    --------
-    1. Obtain Jackknife resamples:
-
-    >>> import numpy as np
-    >>> from astropy.stats import jackknife_resampling
-    >>> data = np.array([1,2,3,4,5,6,7,8,9,0])
-    >>> resamples = jackknife_resampling(data)
-    >>> resamples
-    array([[ 2.,  3.,  4.,  5.,  6.,  7.,  8.,  9.,  0.],
-           [ 1.,  3.,  4.,  5.,  6.,  7.,  8.,  9.,  0.],
-           [ 1.,  2.,  4.,  5.,  6.,  7.,  8.,  9.,  0.],
-           [ 1.,  2.,  3.,  5.,  6.,  7.,  8.,  9.,  0.],
-           [ 1.,  2.,  3.,  4.,  6.,  7.,  8.,  9.,  0.],
-           [ 1.,  2.,  3.,  4.,  5.,  7.,  8.,  9.,  0.],
-           [ 1.,  2.,  3.,  4.,  5.,  6.,  8.,  9.,  0.],
-           [ 1.,  2.,  3.,  4.,  5.,  6.,  7.,  9.,  0.],
-           [ 1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  0.],
-           [ 1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9.]])
-    >>> resamples.shape
-    (10, 9)
-
     References
     ----------
     .. [1] McIntosh, Avery. "The Jackknife Estimation Method".
