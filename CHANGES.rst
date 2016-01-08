@@ -598,7 +598,7 @@ Other Changes and Additions
   transformations occur is changed. [#4255]
 
 
-1.0.8 (unreleased)
+1.0.8 (2016-01-08)
 ------------------
 
 - ``astropy.io.fits``
