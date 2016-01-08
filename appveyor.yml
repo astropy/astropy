@@ -14,14 +14,18 @@ environment:
 
   matrix:
 
-      # We test Python 2.6 and 3.4 because 2.6 is most likely to have issues in
-      # Python 2 (if 2.6 passes, 2.7 virtually always passes) and Python 3.4 is
-      # the latest Python 3 release.
-
       - PYTHON_VERSION: "2.7"
         NUMPY_VERSION: "stable"
       - PYTHON_VERSION: "3.4"
         NUMPY_VERSION: "stable"
+      - PYTHON_VERSION: "3.5"
+        NUMPY_VERSION: "stable"
+
+matrix:
+    fast_finish: true
+    allow_failures:
+        - PYTHON_VERSION: "3.5"
+          NUMPY_VERSION: "stable"
 
 platform:
     -x64
