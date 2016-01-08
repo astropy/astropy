@@ -26,7 +26,7 @@ env:
         - PIP_DEPENDENCIES=''
 
     matrix:
-        - SETUP_CMD='egg_info'
+        - PYTHON_VERSION=2.7 SETUP_CMD='egg_info'
 
 matrix:
     include:
@@ -84,7 +84,7 @@ matrix:
 
         # Do a PEP8 test
         - python: 2.7
-          env: MAIN_CMD='pep8 astropy --count' SETUP_CMD=''
+          env: PYTHON_VERSION=2.7 MAIN_CMD='pep8 astropy --count' SETUP_CMD=''
 
 install:
     - git clone git://github.com/astropy/ci-helpers.git
