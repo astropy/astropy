@@ -26,7 +26,7 @@ env:
         - PIP_DEPENDENCIES=''
 
     matrix:
-        - SETUP_CMD='egg_info'
+        - PYTHON_VERSION=2.7 SETUP_CMD='egg_info'
 
 matrix:
     include:
