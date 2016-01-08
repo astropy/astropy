@@ -69,9 +69,9 @@ def jackknife_stats(data, statistic, conf_lvl=0.95):
         Any function (or vector of functions) on the basis of the measured
         data, e.g, sample mean, sample variance, etc. The jackknife estimate of
         this statistic will be returned.
-    conf_lvl : float
+    conf_lvl : float, optional
         Confidence level for the confidence interval of the Jackknife estimate.
-        Must be a real-valued number in (0,1).
+        Must be a real-valued number in (0,1). Default value is 0.95.
 
     Returns
     -------
