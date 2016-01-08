@@ -869,6 +869,8 @@ Bug Fixes
 
 - ``astropy.io.ascii``
 
+  - Fix bug writing space-delimited file when table has empty fields. [#4417]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``
