@@ -1045,3 +1045,4 @@ def mad_std(data):
 
     # NOTE: 1. / scipy.stats.norm.ppf(0.75) = 1.482602218505602
     return median_absolute_deviation(data) * 1.482602218505602
+
