@@ -428,9 +428,11 @@ Releasing an affiliated package
 ===============================
 
 You can release an affiliated package using the steps given below. In these
-instructions, we assume that the changelog file is named ``CHANGES.rst``, like
-for the astropy core package. If instead you use Markdown, then you should
-replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
+instructions, we assume that the release is made from a fresh clone of the 
+remote "main" repository and not from a forked copy. We also assume that 
+the changelog file is named ``CHANGES.rst``, like for the astropy core 
+package. If instead you use Markdown, then you should replace ``CHANGES.rst`` 
+by ``CHANGES.md`` in the instructions.
 
 #. Make sure that Travis and any other continuous integration is passing.
 
@@ -537,7 +539,7 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
 #. Go back to the master branch and push your changes to github::
 
         git checkout master
-        git push --tags origin
+        git push --tags origin master
 
    Once you have done this, if you use readthedocs, trigger a ``latest`` build
    then go to the project settings, and under **Versions** you should see the
