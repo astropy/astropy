@@ -554,7 +554,7 @@ TESTED_VERSIONS = OrderedDict([('Astropy', __version__)])
 def pytest_report_header(config):
 
     try:
-        stdoutencoding = sys.stdout.encoding
+        stdoutencoding = sys.stdout.encoding or 'ascii'
     except AttributeError:
         stdoutencoding = 'ascii'
 
