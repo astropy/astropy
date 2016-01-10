@@ -27,7 +27,6 @@ env:
         - PIP_DEPENDENCIES=''
 
     matrix:
-        - PYTHON_VERSION=2.6 SETUP_CMD='egg_info'
         - PYTHON_VERSION=2.7 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.3 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.4 SETUP_CMD='egg_info'
@@ -54,8 +53,6 @@ matrix:
 
         # Try all python versions with the latest numpy, but without the
         # optional dependencies
-        - os: linux
-          env: PYTHON_VERSION=2.6 SETUP_CMD='test --open-files'
         - os: linux
           env: PYTHON_VERSION=2.7 SETUP_CMD='test --open-files'
         - os: linux
