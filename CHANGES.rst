@@ -110,6 +110,9 @@ API changes
 
 - ``astropy.utils``
 
+  - The astropy.utils.compat.argparse module has now been deprecated. Use the
+    Python 'argparse' module directly instead. [#4462]
+
   - The astropy.utils.compat.odict module has now been deprecated. Use the
     Python 'collections' module directly instead. [#4466]
 
