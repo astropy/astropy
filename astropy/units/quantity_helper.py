@@ -1,10 +1,11 @@
 # The idea for this module (but no code) was borrowed from the
 # quantities (http://pythonhosted.org/quantities/) package.
 
+from fractions import Fraction
+
 import numpy as np
 from .core import (UnitsError, UnitConversionError, dimensionless_unscaled,
                    get_current_unit_registry)
-from ..utils.compat.fractions import Fraction
 
 
 def _d(unit):

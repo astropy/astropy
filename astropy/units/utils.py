@@ -14,12 +14,12 @@ import numbers
 import io
 import re
 import warnings
+from fractions import Fraction
 
 import numpy as np
 from numpy import finfo
 
 from ..extern import six
-from ..utils.compat.fractions import Fraction
 from ..utils.exceptions import AstropyDeprecationWarning
 
 _float_finfo = finfo(float)
