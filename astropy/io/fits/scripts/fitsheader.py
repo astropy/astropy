@@ -281,7 +281,7 @@ def print_headers_as_table(args):
 
 def main(args=None):
     """This is the main function called by the `fitsheader` script."""
-    from astropy.utils.compat import argparse
+    import argparse
 
     parser = argparse.ArgumentParser(
         description=('Print the header(s) of a FITS file. '

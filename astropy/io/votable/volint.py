@@ -6,7 +6,7 @@ Script support for validating a VO file.
 
 def main(args=None):
     from . import table
-    from astropy.utils.compat import argparse
+    import argparse
 
     parser = argparse.ArgumentParser(
         description=("Check a VOTable file for compliance to the "
