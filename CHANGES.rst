@@ -155,6 +155,9 @@ Bug fixes
 
 - ``astropy.utils``
 
+  - The astropy.utils.compat.fractions module has now been deprecated. Use the
+    Python 'fractions' module directly instead. [#4463]
+
 - ``astropy.visualization``
 
 - ``astropy.vo``
