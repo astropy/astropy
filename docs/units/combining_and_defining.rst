@@ -17,7 +17,7 @@ Units support fractional powers, which retain their precision through
 complex operations.  To do this, it is recommended to use
 `fractions.Fraction` objects.  For example::
 
-  >>> from astropy.utils.compat.fractions import Fraction
+  >>> from fractions import Fraction
   >>> Franklin = u.g ** Fraction(1, 2) * u.cm ** Fraction(3, 2) * u.s ** -1
 
 .. note::
