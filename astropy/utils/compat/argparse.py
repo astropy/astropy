@@ -8,4 +8,3 @@ from argparse import *
 from ..exceptions import AstropyDeprecationWarning
 
 warnings.warn("astropy.utils.compat.argparse is now deprecated - use the argparse module directly instead", AstropyDeprecationWarning)
-
