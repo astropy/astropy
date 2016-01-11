@@ -106,6 +106,9 @@ API changes
 
 - ``astropy.utils``
 
+  - The astropy.utils.compat.odict module has now been deprecated. Use the
+    Python 'collections' module directly instead. [#4466]
+
 - ``astropy.visualization``
 
 - ``astropy.vo``
