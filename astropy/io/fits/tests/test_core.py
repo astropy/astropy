@@ -683,7 +683,7 @@ class TestFileFunctions(FitsTestCase):
         compatibility copy of the ``gzip`` module.
         """
 
-        from ....utils.compat import gzip
+        import gzip
 
         gf = gzip.GzipFile(self._make_gzip_file())
         try:

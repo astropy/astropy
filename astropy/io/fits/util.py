@@ -3,7 +3,7 @@
 from __future__ import division
 
 import errno
-import gzip as _system_gzip
+import gzip
 import itertools
 import io
 import mmap
@@ -36,12 +36,7 @@ from ...extern.six import (string_types, integer_types, text_type,
 from ...extern.six.moves import zip
 from ...utils import wraps
 from ...utils.compat import ignored
-from ...utils.compat import gzip as _astropy_gzip
 from ...utils.exceptions import AstropyUserWarning
-
-
-_GZIP_FILE_TYPES = (_astropy_gzip.GzipFile, _system_gzip.GzipFile)
-
 
 if six.PY3:
     cmp = lambda a, b: (a > b) - (a < b)
@@ -424,7 +419,7 @@ def fileobj_name(f):
 
     if isinstance(f, string_types):
         return f
-    elif isinstance(f, _GZIP_FILE_TYPES):
+    elif isinstance(f, gzip.GzipFile):
         # The .name attribute on GzipFiles does not always represent the name
         # of the file being read/written--it can also represent the original
         # name of the file being compressed
@@ -492,11 +487,11 @@ def _fileobj_normalize_mode(f):
     # normalize it for them:
     mode = f.mode
 
-    if isinstance(f, _GZIP_FILE_TYPES):
+    if isinstance(f, gzip.GzipFile):
         # GzipFiles can be either readonly or writeonly
-        if mode == _system_gzip.READ:
+        if mode == gzip.READ:
             return 'rb'
-        elif mode == _system_gzip.WRITE:
+        elif mode == gzip.WRITE:
             return 'wb'
         else:
             # This shouldn't happen?
