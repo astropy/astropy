@@ -33,7 +33,7 @@ New Features
 - ``astropy.nddata``
 
 - ``astropy.stats``
- 
+
   - Added ``jackknife`` resampling method. [#3708]
 
   - Updated ``bootstrap`` to allow bootstrapping statistics with multiple
@@ -2389,6 +2389,10 @@ Bug Fixes
     returns an ``OrderedDict`` instead of just a ``dict``. [#2845]
 
 - ``astropy.io.fits``
+
+  - Fixed a crash when Delete of a non-existent CompImageHDU header keyword
+    raises KeyError and Fixed a crash when Delete of a non-existent ImageHDU
+    header keyword raises warning. [#2594]
 
   - Fixed a crash when reading scaled float data out of a FITS file that was
     loaded from a string (using ``HDUList.fromfile``) rather than from a file.
