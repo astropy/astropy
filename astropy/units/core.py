@@ -1465,15 +1465,7 @@ class NamedUnit(UnitBase):
     ValueError
         If any of the given unit names are not valid Python tokens.
     """
-    def __init__(self, st, register=None, doc=None, format=None,
-                 namespace=None):
-        if register is not None:
-            warnings.warn(
-                "The registry kwarg was removed in astropy 0.3. "
-                "Use the namespace kwarg to inject the unit into "
-                "a namespace and add_enabled_units() to enable it "
-                "in the global unit registry.",
-                DeprecationWarning)
+    def __init__(self, st, doc=None, format=None, namespace=None):
 
         UnitBase.__init__(self)
 
@@ -1577,16 +1569,6 @@ class NamedUnit(UnitBase):
         Returns all of the long names associated with this unit.
         """
         return self._long_names
-
-    def register(self, add_to_namespace=False):
-        raise NotImplementedError(
-            "The register method has been removed in astropy 0.3. "
-            "Use add_enabled_units/set_enabled_units instead.")
-
-    def deregister(self, remove_from_namespace=False):
-        raise NotImplementedError(
-            "The deregister method has been removed in astropy 0.3. "
-            "Use add_enabled_units/set_enabled_units instead.")
 
     def _inject(self, namespace=None):
         """
@@ -1906,16 +1888,8 @@ class Unit(NamedUnit):
         If any of the given unit names are not valid Python tokens.
     """
 
-    def __init__(self, st, represents=None, register=None, doc=None,
+    def __init__(self, st, represents=None, doc=None,
                  format=None, namespace=None):
-
-        if register is not None:
-            warnings.warn(
-                "The registry kwarg was removed in astropy 0.3. "
-                "Use the namespace kwarg to inject the unit into "
-                "a namespace and add_enabled_units() to enable it "
-                "in the global unit registry.",
-                DeprecationWarning)
 
         represents = Unit(represents)
         self._represents = represents
@@ -1978,7 +1952,7 @@ class CompositeUnit(UnitBase):
                 if not isinstance(base, UnitBase):
                     raise TypeError(
                         "bases must be sequence of UnitBase instances")
-            powers = [validate_power(p, support_tuples=True) for p in powers]
+            powers = [validate_power(p) for p in powers]
 
         self._scale = scale
         self._bases = bases
@@ -2077,8 +2051,7 @@ class CompositeUnit(UnitBase):
         new_parts.sort(key=lambda x: (-x[1], getattr(x[0], 'name', '')))
 
         self._bases = [x[0] for x in new_parts]
-        self._powers = [validate_power(x[1], support_tuples=True)
-                        for x in new_parts]
+        self._powers = [validate_power(x[1]) for x in new_parts]
         self._scale = sanitize_scale(scale)
 
     def __copy__(self):
@@ -2203,9 +2176,8 @@ def _add_prefixes(u, excludes=[], namespace=None, prefixes=False):
                        namespace=namespace, format=format)
 
 
-def def_unit(s, represents=None, register=None, doc=None,
-             format=None, prefixes=False, exclude_prefixes=[],
-             namespace=None):
+def def_unit(s, represents=None, doc=None, format=None, prefixes=False,
+             exclude_prefixes=[], namespace=None):
     """
     Factory function for defining new units.
 
@@ -2261,13 +2233,6 @@ def def_unit(s, represents=None, register=None, doc=None,
         The newly-defined unit, or a matching unit that was already
         defined.
     """
-    if register is not None:
-        warnings.warn(
-            "The register kwarg was removed in astropy 0.3. "
-            "Use the namespace kwarg to inject the unit into "
-            "a namespace and add_enabled_units() to enable it "
-            "in the global unit registry.",
-            DeprecationWarning)
 
     if represents is not None:
         result = Unit(s, represents, namespace=namespace, doc=doc,

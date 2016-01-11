@@ -33,6 +33,8 @@ New Features
 - ``astropy.nddata``
 
 - ``astropy.stats``
+ 
+  - Added ``jackknife`` resampling method. [#3708]
 
   - Updated ``bootstrap`` to allow bootstrapping statistics with multiple
     outputs. [#3601]
@@ -47,6 +49,9 @@ New Features
     [#4422]
 
 - ``astropy.units``
+
+  - The option to use tuples to indicate fractional powers of units,
+    deprecated in 0.3.1, has been removed. [#4449]
 
 - ``astropy.utils``
 
@@ -96,6 +101,8 @@ API changes
 - ``astropy.time``
 
 - ``astropy.units``
+
+  - Remove deprecated ``register`` argument for Unit classes. [#4448]
 
 - ``astropy.utils``
 
@@ -169,89 +176,15 @@ Other Changes and Additions
 New Features
 ^^^^^^^^^^^^
 
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
 - ``astropy.io.registry``
 
   - Allow ``pathlib.Path`` objects (available in Python 3.4 and later) for
     specifying the file name in registry read / write functions. [#4405]
 
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.sphinx``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
 - ``astropy.utils``
 
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
-API Changes
-^^^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
+  - ``console.human_file_size`` now accepts quantities with byte-equivalent
+    units [#4373]
 
 Bug Fixes
 ^^^^^^^^^
@@ -262,43 +195,10 @@ Bug Fixes
     (Windows with MSVC, older Linux versions) with a buggy ``expm1`` function.
     [#4393]
 
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
 - ``astropy.io.fits``
 
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
+  - Fixed an bug where updates to string columns in FITS tables were not saved
+    on Python 3. [#4452]
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -867,7 +767,7 @@ Other Changes and Additions
   transformations occur is changed. [#4255]
 
 
-1.0.8 (unreleased)
+1.0.9 (unreleased)
 ------------------
 
 New Features
@@ -999,6 +899,26 @@ Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Nothing changed yet.
+
+
+1.0.8 (2016-01-08)
+------------------
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.io.fits``
+
+  - Fixed an bug where updates to string columns in FITS tables were not saved
+    on Python 3. [#4452]
+
+- ``astropy.units``
+
+  - In-place peak-to-peak calculations now work on ``Quantity``. [#4442]
+
+- ``astropy.utils``
+
+  - Fixed ``find_api_page`` to work correctly on python 3.x [#4378]
 
 
 1.0.7 (2015-12-04)

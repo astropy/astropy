@@ -3,25 +3,29 @@
 
 environment:
 
-  global:
-      PYTHON: "C:\\conda"
-      MINICONDA_VERSION: "latest"
-      CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-helpers\\appveyor\\windows_sdk.cmd"
-      PYTHON_ARCH: "64" # needs to be set for CMD_IN_ENV to succeed. If a mix
-                        # of 32 bit and 64 bit builds are needed, move this
-                        # to the matrix section.
-      CONDA_DEPENDENCIES: "Cython scipy h5py beautiful-soup jinja2 pyyaml scikit-image hdf5=1.8.13 pytz"
+    global:
+        PYTHON: "C:\\conda"
+        MINICONDA_VERSION: "latest"
+        CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-helpers\\appveyor\\windows_sdk.cmd"
+        PYTHON_ARCH: "64" # needs to be set for CMD_IN_ENV to succeed. If a mix
+                          # of 32 bit and 64 bit builds are needed, move this
+                          # to the matrix section.
+        CONDA_DEPENDENCIES: "Cython scipy h5py beautifulsoup4 jinja2 pyyaml scikit-image pytz"
+    
+    matrix:
+    
+        - PYTHON_VERSION: "2.7"
+          NUMPY_VERSION: "stable"
+        - PYTHON_VERSION: "3.4"
+          NUMPY_VERSION: "stable"
+        - PYTHON_VERSION: "3.5"
+          NUMPY_VERSION: "stable"
 
-  matrix:
-
-      # We test Python 2.6 and 3.4 because 2.6 is most likely to have issues in
-      # Python 2 (if 2.6 passes, 2.7 virtually always passes) and Python 3.4 is
-      # the latest Python 3 release.
-
-      - PYTHON_VERSION: "2.6"
-        NUMPY_VERSION: "1.9.1"
-      - PYTHON_VERSION: "3.4"
-        NUMPY_VERSION: "1.9.1"
+matrix:
+    fast_finish: true
+    allow_failures:
+        - PYTHON_VERSION: "3.5"
+          NUMPY_VERSION: "stable"
 
 platform:
     -x64
@@ -36,5 +40,5 @@ install:
 build: false
 
 test_script:
-  - "%CMD_IN_ENV% python setup.py test"
+    - "%CMD_IN_ENV% python setup.py test"
 

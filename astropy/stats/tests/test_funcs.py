@@ -236,7 +236,6 @@ def test_bootstrap():
         bootresult = np.mean(funcs.bootstrap(bootarr, 10000, bootfunc=np.mean))
         assert_allclose(np.mean(bootarr), bootresult, atol=0.01)
 
-
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_bootstrap_multiple_outputs():
 

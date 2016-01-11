@@ -155,30 +155,20 @@ def sanitize_scale(scale):
 
 
 def validate_power(p, support_tuples=False):
-    """
-    Handles the conversion of a power to a floating point or a
-    rational number.
+    """Convert a power to a floating point value, an integer, or a Fraction.
+
+    If a fractional power can be represented exactly as a floating point
+    number, convert it to a float, to make the math much faster; otherwise,
+    retain it as a `fractions.Fraction` object to avoid losing precision.
+    Conversely, if the value is indistinguishable from a rational number with a
+    low-numbered denominator, convert to a Fraction object.
 
     Parameters
     ----------
-    support_tuples : bool, optional
-        If `True`, treat 2-tuples as `Fraction` objects.  This
-        behavior is deprecated and will be removed in astropy 0.5.
+    p : float, int, Rational, Fraction
+        Power to be converted
     """
-    # For convenience, treat tuples as Fractions
-    if support_tuples and isinstance(p, tuple) and len(p) == 2:
-        # Deprecated in 0.3.1
-        warnings.warn(
-            "Using a tuple as a fractional power is deprecated and may be "
-            "removed in a future version.  Use Fraction(n, d) instead.",
-            AstropyDeprecationWarning)
-        p = Fraction(p[0], p[1])
-
     if isinstance(p, (numbers.Rational, Fraction)):
-        # If the fractional power can be represented *exactly* as a
-        # floating point number, we convert it to a float, to make the
-        # math much faster, otherwise, we retain it as a
-        # `fractions.Fraction` object to avoid losing precision.
         denom = p.denominator
         if denom == 1:
             p = int(p.numerator)
@@ -187,29 +177,28 @@ def validate_power(p, support_tuples=False):
         elif (denom & (denom - 1)) == 0:
             p = float(p)
     else:
-        if not np.isscalar(p):
-            raise ValueError(
-                "Quantities and Units may only be raised to a scalar power")
+        try:
+            p = float(p)
+        except:
+            if not np.isscalar(p):
+                raise ValueError("Quantities and Units may only be raised "
+                                 "to a scalar power")
+            else:
+                raise
 
-        p = float(p)
-
-        # If the value is indistinguishable from a rational number
-        # with a low-numbered denominator, convert to a Fraction
-        # object.  We don't want to convert for denominators that are
-        # a power of 2, since those can be perfectly represented, and
-        # subsequent operations are much faster if they are retained
-        # as floats.  Nor do we need to test values that are divisors
-        # of a higher number, such as 3, since it is already addressed
-        # by 6.
-
-        # First check for denominator of 1
         if (p % 1.0) == 0.0:
+            # Denominators of 1 can just be integers.
             p = int(p)
-        # Leave alone if the denominator is exactly 2, 4 or 8
         elif (p * 8.0) % 1.0 == 0.0:
+            # Leave alone if the denominator is exactly 2, 4 or 8, since this
+            # can be perfectly represented as a float, which means subsequent
+            # operations are much faster.
             pass
         else:
-            for i in [10, 9, 7, 6]:
+            # Convert floats indistinguisable from a rational to Fraction.
+            # Here, we do not need to test values that are divisors of a higher
+            # number, such as 3, since it is already addressed by 6.
+            for i in (10, 9, 7, 6):
                 scaled = p * float(i)
                 if((scaled + 4. * _float_finfo.eps) % 1.0 <
                    8. * _float_finfo.eps):

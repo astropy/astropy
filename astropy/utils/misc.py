@@ -233,21 +233,33 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
         uf = urllib.request.urlopen(baseurl + 'objects.inv', timeout=timeout)
 
     try:
-        # we read these lines so that `oistr` only gets the compressed
-        # contents, not the header information
-        isvers = uf.readline().rstrip().decode('utf-8')  # intersphinx version line
-        proj = uf.readline().rstrip().decode('utf-8')  # project name
-        vers = uf.readline().rstrip().decode('utf-8')  # project version
-        uf.readline().rstrip().decode('utf-8')
-        oistr = uf.read()
+        oiread = uf.read()
+
+        # need to first read/remove the first four lines, which have info before
+        # the compressed section with the actual object inventory
+        idx = -1
+        headerlines = []
+        for _ in range(4):
+            oldidx = idx
+            idx = oiread.index(b'\n', oldidx + 1)
+            headerlines.append(oiread[(oldidx+1):idx].decode('utf-8'))
+
+        # intersphinx version line, project name, and project version
+        ivers, proj, vers, compr  = headerlines
+        if not 'The remainder of this file is compressed using zlib' in compr:
+            raise ValueError('The file downloaded from {0} does not seem to be'
+                             'the usal Sphinx objects.inv format.  Maybe it '
+                             'has changed?'.format(baseurl + 'objects.inv'))
+
+        compressed = oiread[(idx+1):]
     finally:
         uf.close()
 
-    oistr = decompress(oistr).decode('utf-8')
+    decompressed = decompress(compressed).decode('utf-8')
 
     resurl = None
 
-    for l in oistr.strip().splitlines():
+    for l in decompressed.strip().splitlines():
         ls = l.split()
         name = ls[0]
         loc = ls[3]
