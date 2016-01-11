@@ -15,11 +15,12 @@ from copy import deepcopy
 import warnings
 import collections
 import itertools
+from collections import OrderedDict
 
 import numpy as np
 from numpy import ma
 
-from ..utils import OrderedDict, metadata
+from ..utils import metadata
 
 from . import _np_utils
 from .np_utils import fix_column_name, TableMergeError

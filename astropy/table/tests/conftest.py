@@ -14,7 +14,10 @@ place to put fixtures that are shared between modules.  These fixtures
 can not be defined in a module by a different name and still be shared
 between modules.
 """
+
 from copy import deepcopy
+from collections import OrderedDict
+
 import numpy as np
 
 from ...tests.helper import pytest
@@ -24,7 +27,6 @@ from ... import time
 from ... import units as u
 from ... import coordinates
 from .. import pprint
-from ...utils import OrderedDict
 
 
 @pytest.fixture(params=[table.Column, table.MaskedColumn])

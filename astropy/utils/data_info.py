@@ -24,9 +24,9 @@ import numpy as np
 from functools import partial
 import warnings
 import re
+from collections import OrderedDict
 
 from ..extern import six
-from ..utils import OrderedDict
 from ..utils.compat import NUMPY_LT_1_8
 
 # Tuple of filterwarnings kwargs to ignore when calling info

@@ -7,6 +7,7 @@ from ...extern import six
 import multiprocessing
 import os
 import warnings
+from collections import OrderedDict
 
 # LOCAL
 from .exceptions import ValidationMultiprocessingError, InvalidValidationAttribute
@@ -17,7 +18,6 @@ from ...io import votable
 from ...io.votable.exceptions import E19
 from ...io.votable.validator import html, result
 from ...logger import log
-from ...utils import OrderedDict  # For 2.6 compatibility
 from ...utils import data
 from ...utils.exceptions import AstropyUserWarning
 from ...utils.timer import timefunc

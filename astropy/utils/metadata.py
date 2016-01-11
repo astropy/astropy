@@ -9,9 +9,9 @@ from ..extern import six
 import warnings
 
 import collections
+from collections import OrderedDict
 from copy import deepcopy
 
-from .compat.odict import OrderedDict
 from ..utils.exceptions import AstropyWarning
 
 

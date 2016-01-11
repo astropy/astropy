@@ -12,7 +12,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 import inspect
 import warnings
 from copy import deepcopy
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 
 # Dependencies
 import numpy as np
@@ -22,7 +22,7 @@ from ..utils.compat.misc import override__dir__
 from ..extern import six
 from ..utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from .. import units as u
-from ..utils import OrderedDict, OrderedDescriptor, OrderedDescriptorContainer
+from ..utils import OrderedDescriptor, OrderedDescriptorContainer
 from .transformations import TransformGraph
 from .representation import (BaseRepresentation, CartesianRepresentation,
                              SphericalRepresentation,

@@ -5,6 +5,7 @@ from __future__ import print_function
 import os
 import re
 import warnings
+from collections import OrderedDict
 
 import numpy as np
 
@@ -13,7 +14,6 @@ from ... import units as u
 from ...extern import six
 from ...extern.six import string_types
 from ...table import Table
-from ...utils import OrderedDict
 from ...utils.exceptions import AstropyUserWarning
 from astropy.units.format.fits import UnitScaleError
 

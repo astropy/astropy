@@ -5,10 +5,10 @@ from __future__ import (absolute_import, division, print_function,
 
 import re
 import sys
+from collections import OrderedDict
 
 import numpy as np
 
-from ..utils import OrderedDict
 from ..extern import six
 from ..extern.six.moves import zip
 
