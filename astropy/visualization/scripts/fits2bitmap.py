@@ -2,10 +2,8 @@
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-
 from ... import log
-from ...io import fits
-
+from ...io.fits import getdata
 from ..ui import scale_image
 
 
@@ -71,9 +69,12 @@ def fits2bitmap(filename, ext=0, out_fn=None, scale='linear',
     import matplotlib.cm as cm
     import matplotlib.image as mimg
 
-    hdulist = fits.open(filename)
-    image = hdulist[ext].data
-    hdulist.close()
+    try:
+        ext = int(ext)
+    except ValueError:
+        pass
+
+    image = getdata(filename, ext)
     if out_fn is None:
         if filename.endswith('fits.gz'):
             out_fn = filename.replace('.fits.gz', '.png')
@@ -103,7 +104,7 @@ def main(args=None):
 
     parser = argparse.ArgumentParser(
         description='Create a bitmap file from a FITS image.')
-    parser.add_argument('-e', '--ext', metavar='hdu', type=int, default=0,
+    parser.add_argument('-e', '--ext', metavar='hdu', default=0,
                         help='specify the HDU extension number or name')
     parser.add_argument('-o', metavar='filename', type=str, default=None,
                         help='Filename for the output image (Default is a '
