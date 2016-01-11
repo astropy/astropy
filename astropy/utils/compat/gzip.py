@@ -8,5 +8,3 @@ from gzip import *
 from ..exceptions import AstropyDeprecationWarning
 
 warnings.warn("astropy.utils.compat.gzip is now deprecated - use the gzip module directly instead", AstropyDeprecationWarning)
-
-
