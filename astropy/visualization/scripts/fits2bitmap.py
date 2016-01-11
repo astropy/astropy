@@ -75,7 +75,14 @@ def fits2bitmap(filename, ext=0, out_fn=None, scale='linear',
     image = hdulist[ext].data
     hdulist.close()
     if out_fn is None:
-        out_fn = filename.replace('.fits', '.png')
+        if filename.endswith('fits.gz'):
+            out_fn = filename.replace('.fits.gz', '.png')
+        elif filename.endswith('fits.bz2'):
+            out_fn = filename.replace('.fits.bz2', '.png')
+        elif filename.endswith('fits.zip'):
+            out_fn = filename.replace('.fits.zip', '.png')
+        else:
+            out_fn = filename.replace('.fits', '.png')
     if cmap not in cm.datad.keys():
         log.critical('{0} is not a valid matplotlib colormap '
                      'name'.format(cmap))
