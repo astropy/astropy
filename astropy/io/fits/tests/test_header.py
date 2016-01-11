@@ -1384,8 +1384,32 @@ class TestHeaderFunctions(FitsTestCase):
         assert list(header.keys())[-3] == 'TEST1'
 
     def test_remove(self):
-        # TODO: Test the Header.remove() method; add support for ignore_missing
-        pass
+        header = fits.Header([('A', 'B'), ('C', 'D')])
+
+        #When keyword is present in the header it should be removed.
+        header.remove('C')
+        assert len(header) == 1
+        assert list(header) == ['A']
+        assert 'C' not in header
+
+        #When keyword is not present in the header and ignore_missing is False, KeyError should be raised
+        try:
+            header.remove('F')
+        except KeyError as e:
+            assert e.args[0] == "Keyword 'F' not in the header."
+
+        #When keyword is not present and ignore_missing is True, KeyError will be ignored
+        header.remove('F', ignore_missing=True)
+        assert len(header) == 1
+
+        #Test for removing all instances of a keyword
+        header = fits.Header([('A', 'B'), ('C', 'D'), ('A', 'F')])
+        header.remove('A', all=True)
+        assert 'A' not in header
+        assert len(header) == 1
+        assert list(header) == ['C']
+        assert header[0] == 'D'
+
 
     def test_header_comments(self):
         header = fits.Header([('A', 'B', 'C'), ('DEF', 'G', 'H')])
