@@ -111,12 +111,12 @@ def convolve2d_boundary_wrap(np.ndarray[DTYPE_t, ndim=2] f,
         # Need a first pass to replace NaN values with value convolved from
         # neighboring values
         for i in range(nx):
+            iimin = i - wkx
+            iimax = i + wkx + 1
             for j in range(ny):
                 if npy_isnan(f[i, j]):
                     top = 0.
                     bot = 0.
-                    iimin = i - wkx
-                    iimax = i + wkx + 1
                     jjmin = j - wky
                     jjmax = j + wky + 1
                     for ii in range(iimin, iimax):
@@ -139,12 +139,12 @@ def convolve2d_boundary_wrap(np.ndarray[DTYPE_t, ndim=2] f,
 
         # Now run the proper convolution
         for i in range(nx):
+            iimin = i - wkx
+            iimax = i + wkx + 1
             for j in range(ny):
                 if not npy_isnan(fixed[i, j]):
                     top = 0.
                     bot = 0.
-                    iimin = i - wkx
-                    iimax = i + wkx + 1
                     jjmin = j - wky
                     jjmax = j + wky + 1
                     for ii in range(iimin, iimax):
@@ -199,15 +199,15 @@ def convolve3d_boundary_wrap(np.ndarray[DTYPE_t, ndim=3] f,
         # Need a first pass to replace NaN values with value convolved from
         # neighboring values
         for i in range(nx):
+            iimin = i - wkx
+            iimax = i + wkx + 1
             for j in range(ny):
+                jjmin = j - wky
+                jjmax = j + wky + 1
                 for k in range(nz):
                     if npy_isnan(f[i, j, k]):
                         top = 0.
                         bot = 0.
-                        iimin = i - wkx
-                        iimax = i + wkx + 1
-                        jjmin = j - wky
-                        jjmax = j + wky + 1
                         kkmin = k - wkz
                         kkmax = k + wkz + 1
                         for ii in range(iimin, iimax):
@@ -234,15 +234,15 @@ def convolve3d_boundary_wrap(np.ndarray[DTYPE_t, ndim=3] f,
 
         # Now run the proper convolution
         for i in range(nx):
+            iimin = i - wkx
+            iimax = i + wkx + 1
             for j in range(ny):
+                jjmin = j - wky
+                jjmax = j + wky + 1
                 for k in range(nz):
                     if not npy_isnan(fixed[i, j, k]):
                         top = 0.
                         bot = 0.
-                        iimin = i - wkx
-                        iimax = i + wkx + 1
-                        jjmin = j - wky
-                        jjmax = j + wky + 1
                         kkmin = k - wkz
                         kkmax = k + wkz + 1
                         for ii in range(iimin, iimax):
