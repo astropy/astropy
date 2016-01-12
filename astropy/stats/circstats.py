@@ -25,7 +25,7 @@ def _components(data, w=None, p=1, phi=0.0, axis=None):
     # Utility function for computing the generalized rectangular components
     # of the circular data.
     data = np.asarray(data)
- 
+
     assert type(p) is int
     if w is None:
         w = np.ones(data.shape)
