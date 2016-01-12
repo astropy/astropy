@@ -234,14 +234,14 @@ def rayleightest(data, w=None, axis=None):
         explanation.
     axis : int, optional
         Axis along which the Rayleigh test will be performed.
-    
+ 
     Returns
     -------
     p-value : float
         p-value.
-    
+ 
     References
-    ---------
+    ----------
     ..  [1] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
         Series on Multivariate Analysis, Vol. 5, 2001.
     ..  [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in 
@@ -314,16 +314,6 @@ def vtest(data, w=None, mu=0.0, axis=None):
         + 9*z**7)/(4608.0*n*n))
     return p_value
 
-def _A1inv(x):
-    # Utility function used to compute the inverse of the ratio between the 
-    # modified Bessel function of first kind of orders one and zero.
-    import scipy.optimize as opt
-    import scipy.special as sps
-
-    invfunc = lambda y: x*sps.ive(0.0,y) - sps.ive(1.0,y)
-    kappa = opt.brentq(invfunc,0.0,100.0)
-    return kappa
-
 def _A1inv1(x):
     # Approximation for _A1inv(x) according R Package 'CircStats'
     if(x >= 0 and x < 0.53):
@@ -368,13 +358,12 @@ def vonmisesmle(data, axis=None):
 def _A1(x):
     # Utility function that computes the ratio between the modified Bessel 
     # function of first kind of orders one and zero.
-
     import scipy.special as sps
     return sps.ive(1.0,x)/sps.ive(0.0,x)
 
 def _A1deriv(x):
-    # Derivative of A1(x)
-    return 1.0 - A1(x)/x - A1(x)*A1(x)
+    # Derivative of _A1(x)
+    return 1.0 - _A1(x)/x - _A1(x)*_A1(x)
 
 def vonmisescrlb(data, axis=None):
     """ Computes the Cramer-Rao Lower Bound (CRLB) for the parameters of the 
