@@ -21,6 +21,16 @@ def read_table3(readme, data):
     return ascii.read(data, readme=readme)
 
 
+def test_no_description():
+    readme = 't/cds/no_description/ReadMe'
+    data = 't/cds/no_description/table.dat'
+    for read_table in (read_table1, read_table2, read_table3):
+        table = read_table(readme, data)
+        assert_equal(len(table), 4)
+        assert_equal(table['year'][-1], 13)
+        assert_equal(table['month'][-2], 14)
+
+
 def test_multi_header():
     readme = 't/cds/multi/ReadMe'
     data = 't/cds/multi/lhs2065.dat'
@@ -137,3 +147,4 @@ if __name__ == "__main__":  # run from main directory; not from test/
     test_header_from_readme()
     test_multi_header()
     test_glob_header()
+    test_no_description()

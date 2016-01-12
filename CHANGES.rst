@@ -167,6 +167,10 @@ Bug fixes
 
 - ``astropy.wcs``
 
+- ``astropy.io.ascii``
+
+  - Handling of CDS data file when no description is given. [#4474]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
