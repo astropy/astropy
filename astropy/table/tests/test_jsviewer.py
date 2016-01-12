@@ -139,7 +139,8 @@ def test_show_in_notebook():
     t['a'] = [1, 2, 3, 4, 5]
     t['b'] = ['b', 'c', 'a', 'd', 'e']
 
-    htmlstr_windx = t.show_in_notebook(show_row_index=True).data
+    htmlstr_windx = t.show_in_notebook().data  # should default to 'idx'
+    htmlstr_windx_named = t.show_in_notebook(show_row_index='realidx').data
     htmlstr_woindx = t.show_in_notebook(show_row_index=False).data
 
     assert (textwrap.dedent("""
@@ -150,5 +151,8 @@ def test_show_in_notebook():
     <tr><td>3</td><td>4</td><td>d</td></tr>
     <tr><td>4</td><td>5</td><td>e</td></tr>
     """).strip() in htmlstr_windx)
+
+
+    assert '<thead><tr><th>realidx</th><th>a</th><th>b</th></tr></thead>' in htmlstr_windx_named
 
     assert '<thead><tr><th>a</th><th>b</th></tr></thead>' in htmlstr_woindx
