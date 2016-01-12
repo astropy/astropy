@@ -159,10 +159,10 @@ class CompImageHeader(Header):
         else:
             keyword, index = key, None
 
-        if key not in self:
-            raise KeyError("Keyword %r not found." % key)
+        # if key exist in self then call headerfile  __delitem__  method
+        if key in self:
+            super(CompImageHeader, self).__delitem__(key)
 
-        super(CompImageHeader, self).__delitem__(key)
 
         remapped_keyword = self._remap_keyword(keyword)
 

@@ -225,17 +225,7 @@ class Header(object):
                     # All internal code is designed to assume that this will
                     # raise a KeyError, so go ahead and do so
                     raise KeyError("Keyword '%s' not found." % key)
-                # Warn everyone else.
-                # TODO: Remove this warning and make KeyError the default after
-                # a couple versions (by 3.3, say)
-                warnings.warn(
-                    'Deletion of non-existent keyword %r: '
-                    'In a future Astropy version Header.__delitem__ may be '
-                    'changed so that this raises a KeyError just like a dict '
-                    'would. Please update your code so that KeyErrors are '
-                    'caught and handled when deleting non-existent keywords.' %
-                    key, AstropyDeprecationWarning)
-                return
+
             for idx in reversed(indices[key]):
                 # Have to copy the indices list since it will be modified below
                 del self[idx]
