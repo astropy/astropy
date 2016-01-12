@@ -62,6 +62,8 @@ New Features
 
   - Added Bayesian upper limits for Poisson count rates. [#4622]
   
+  - Added ``circstats``; a module for computing circular statistics. [#3705]
+
   - Added ``jackknife`` resampling method. [#3708]
 
   - Updated ``bootstrap`` to allow bootstrapping statistics with multiple
