@@ -103,10 +103,10 @@ class CdsHeader(core.BaseHeader):
                                     (?P<end>   \d+)        \s+
                                     (?P<format> [\w.]+)     \s+
                                     (?P<units> \S+)        \s+
-                                    (?P<name>  \S+)        \s+
-                                    (?P<descr> \S.+)""",
+                                    (?P<name>  \S+)""",
                                 re.VERBOSE)
-
+	re_descr = re.compile(r"""\s+  (?P<descr>[^\n]*)""",re.VERBOSE)
+	
         cols = []
         for line in itertools.islice(lines, i_col_def+4, None):
             if line.startswith('------') or line.startswith('======='):
@@ -120,7 +120,14 @@ class CdsHeader(core.BaseHeader):
                 col.unit = match.group('units')
                 if col.unit == '---':
                     col.unit = None  # "---" is the marker for no unit in CDS table
-                col.description = match.group('descr').strip()
+                if len(line) > match.end():
+		    descr_match = re_descr.match(line[match.end():])
+		    if descr_match:
+			col.description = descr_match.group('descr').strip()
+		    else:
+			col.description = ""
+		else:
+		    col.description = ""
                 col.raw_type = match.group('format')
                 col.type = self.get_col_type(col)
 
