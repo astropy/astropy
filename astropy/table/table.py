@@ -856,7 +856,7 @@ class Table(object):
             else:
                 print(line)
 
-    def _make_index_row_display_table(self, index_row_name='idx'):
+    def _make_index_row_display_table(self, index_row_name):
         if index_row_name not in self.columns:
             idx_col = self.ColumnClass(name=index_row_name, data=np.arange(len(self)))
             return self.__class__([idx_col] + self.columns.values(),
@@ -866,7 +866,7 @@ class Table(object):
 
     def show_in_notebook(self, tableid=None, css=None, display_length=50,
                          table_class='table table-striped table-bordered '
-                         'table-condensed', show_row_index=True):
+                         'table-condensed', show_row_index='idx'):
         """Render the table in HTML and show it in the IPython notebook.
 
         Parameters
@@ -886,10 +886,13 @@ class Table(object):
             to ``astropy.table.jsviewer.DEFAULT_CSS_NB``.
         display_length : int, optional
             Number or rows to show. Defaults to 50.
-        show_row_index : bool
-            If True (default), a column named "idx" will be added for display
-            purposes.  This shows the index of the row in the table itself,
-            even when the displayed table is re-sorted by another column.
+        show_row_index : str or False
+            If this does not evaulate to False, a column with the given name
+            will be added to the version of the table that gets displayed.
+            This new column shows the index of the row in the table itself,
+            even when the displayed table is re-sorted by another column. Note
+            that if a column with this name already exists, this option will be
+            ignored. Defaults to "idx".
 
         Notes
         -----
@@ -909,7 +912,7 @@ class Table(object):
 
         jsv = JSViewer(display_length=display_length)
         if show_row_index:
-            display_table = self._make_index_row_display_table()
+            display_table = self._make_index_row_display_table(show_row_index)
         else:
             display_table = self
         html = display_table._base_repr_(html=True, max_width=-1, tableid=tableid,
@@ -957,9 +960,12 @@ class Table(object):
             A valid CSS string declaring the formatting for the table. Defaults
             to ``astropy.table.jsviewer.DEFAULT_CSS``.
         show_row_index : bool
-            If True (default), a column named "idx" will be added for display
-            purposes.  This shows the index of the row in the table itself,
-            even when the displayed table is re-sorted by another column.
+            If this does not evaulate to False, a column with the given name
+            will be added to the version of the table that gets displayed.
+            This new column shows the index of the row in the table itself,
+            even when the displayed table is re-sorted by another column. Note
+            that if a column with this name already exists, this option will be
+            ignored. Defaults to "idx".
         """
 
         import os
@@ -980,7 +986,7 @@ class Table(object):
         with open(path, 'w') as tmp:
             if jsviewer:
                 if show_row_index:
-                    display_table = self._make_index_row_display_table()
+                    display_table = self._make_index_row_display_table(show_row_index)
                 else:
                     display_table = self
                 display_table.write(tmp, format='jsviewer', css=css,
