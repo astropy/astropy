@@ -78,16 +78,16 @@ def circmean(data, w=None, axis=None):
     >>> import numpy as np
     >>> from astropy.stats.circstats import circmean
     >>> data = np.deg2rad(np.array([51, 67, 40, 109, 31, 358]))
-    >>> circmean(data)
-    0.848704
+    >>> circmean(data) # doctest: +FLOAT_CMP
+    0.84870441244501904
 
     References
     ----------
-    ..  [1] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
-        Series on Multivariate Analysis, Vol. 5, 2001.
-    ..  [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in
-        Circular Statistics (2001)'". 2015.
-        <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
+    .. [1] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
+       Series on Multivariate Analysis, Vol. 5, 2001.
+    .. [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in
+       Circular Statistics (2001)'". 2015.
+       <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
     """
 
     return _angle(data,w,1,0.0,axis)
@@ -122,16 +122,16 @@ def circvar(data, w=None, axis=None):
     >>> import numpy as np
     >>> from astropy.stats.circstats import circvar
     >>> data = np.deg2rad(np.array([51, 67, 40, 109, 31, 358]))
-    >>> circvar(data)
-    0.163563
+    >>> circvar(data) # doctest: +FLOAT_CMP
+    0.16356352748437508
 
     References
     ----------
-    ..  [1] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
-        Series on Multivariate Analysis, Vol. 5, 2001.
-    ..  [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in
-        Circular Statistics (2001)'". 2015.
-        <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
+    .. [1] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
+       Series on Multivariate Analysis, Vol. 5, 2001.
+    .. [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in
+       Circular Statistics (2001)'". 2015.
+       <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
     """
     return 1.0 - _length(data,w,1,0.0,axis)
 
@@ -168,16 +168,16 @@ def circmoment(data, w=None, p=1, centered=False, axis=None):
     >>> import numpy as np
     >>> from astropy.stats.circstats import circmoment
     >>> data = np.deg2rad(np.array([51, 67, 40, 109, 31, 358]))
-    >>> circmoment(data, p=2)
-    (1.588121, 0.480042)
+    >>> circmoment(data, p=2) # doctest: +FLOAT_CMP
+    (1.5881210029361645, 0.48004283892950717)
 
     References
     ----------
-    ..  [1] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
-        Series on Multivariate Analysis, Vol. 5, 2001.
-    ..  [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in
-        Circular Statistics (2001)'". 2015.
-        <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
+    .. [1] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
+       Series on Multivariate Analysis, Vol. 5, 2001.
+    .. [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in
+       Circular Statistics (2001)'". 2015.
+       <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
     """
 
     phi = 0.0
@@ -226,16 +226,16 @@ def circcorrcoef(alpha, beta, w_alpha=None, w_beta=None, ax_alpha=None,
     >>> beta = np.deg2rad(np.array([119, 162, 221, 259, 270, 29, 97, 292, 40,
     ...                             313, 94, 45, 47, 108, 221, 270, 119, 248,
     ...                             270, 45, 23]))
-    >>> circcorcoef(alpha, beta)
-    0.270464
+    >>> circcorrcoef(alpha, beta) # doctest: +FLOAT_CMP
+    0.27046488267488311
 
     References
     ----------
-    ..  [1] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
-        Series on Multivariate Analysis, Vol. 5, 2001.
-    ..  [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in
-        Circular Statistics (2001)'". 2015.
-        <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
+    .. [1] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
+       Series on Multivariate Analysis, Vol. 5, 2001.
+    .. [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in
+       Circular Statistics (2001)'". 2015.
+       <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
     """
 
     alpha = np.asarray(alpha)
@@ -292,16 +292,16 @@ def rayleightest(data, w=None, axis=None):
     ...                  3.0859854, 4.0566486, 2.3463984, 3.7370984, 5.6853310,
     ...                  5.8108009, 3.3921987, 3.2166975, 3.6827617, 4.5055291,
     ...                  3.5295258, 3.0162183, 3.2317242, 3.2778354, 3.1713455])
-    >>> rayleightest(data)
-    2.726928e-13
+    >>> rayleightest(data) # doctest: +FLOAT_CMP
+    2.726928722464598e-13
 
     References
     ----------
-    ..  [1] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
-        Series on Multivariate Analysis, Vol. 5, 2001.
-    ..  [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in
-        Circular Statistics (2001)'". 2015.
-        <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
+    .. [1] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
+       Series on Multivariate Analysis, Vol. 5, 2001.
+    .. [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in
+       Circular Statistics (2001)'". 2015.
+       <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
     """
 
     data = np.asarray(data)
@@ -346,16 +346,16 @@ def vtest(data, w=None, mu=0.0, axis=None):
     >>> from astropy.stats.circstats import vtest
     >>> data = np.array([1.316075, 4.439193, 3.096231, 4.807068, 2.986021,
     ...                  1.756324, 3.046718, 3.299150, 3.360557, 4.842499])
-    >>> vtest(data)
-    0.987142
+    >>> vtest(data) # doctest: +FLOAT_CMP
+    0.98714203652055577
 
     References
     ----------
-    ..  [1] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
-        Series on Multivariate Analysis, Vol. 5, 2001.
-    ..  [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in
-        Circular Statistics (2001)'". 2015.
-        <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
+    .. [1] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
+       Series on Multivariate Analysis, Vol. 5, 2001.
+    .. [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in
+       Circular Statistics (2001)'". 2015.
+       <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
     """
 
     from scipy.stats import norm
@@ -411,16 +411,16 @@ def vonmisesmle(data, axis=None):
     >>> from astropy.stats.circstats import vonmisesmle
     >>> data = np.array([3.3699057, 4.0411630, 0.5014477, 2.6223103, 3.7336524,
     ...                  1.8136389, 4.1566039, 2.7806317, 2.4672173, 2.8493644])
-    >>> vonmisesmle(data)
-    (3.006514, 1.474132)
+    >>> vonmisesmle(data) # doctest: +FLOAT_CMP
+    (3.0065143178219063, 1.474132390391715)
 
     References
     ----------
-    ..  [1] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
-        Series on Multivariate Analysis, Vol. 5, 2001.
-    ..  [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in
-        Circular Statistics (2001)'". 2015.
-        <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
+    .. [1] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
+       Series on Multivariate Analysis, Vol. 5, 2001.
+    .. [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in
+       Circular Statistics (2001)'". 2015.
+       <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
     """
 
     data = np.asarray(data)
@@ -460,17 +460,17 @@ def vonmisescrlb(data, axis=None):
     Examples
     --------
     >>> import numpy as np
-    >>> from astropy.stats.circstats import vonmisesmle
+    >>> from astropy.stats.circstats import vonmisescrlb
     >>> data = np.array([3.3699057, 4.0411630, 0.5014477, 2.6223103, 3.7336524,
     ...                  1.8136389, 4.1566039, 2.7806317, 2.4672173, 2.8493644])
-    >>> vonmisescrlb(data)
-    array([ 0.115040,  0.396398])
+    >>> vonmisescrlb(data) # docstest: +FLOAT_CMP
+    array([ 0.11504084,  0.39639812])
 
     References
     ----------
-    ..  [1] D. L. Dowe et. al.. "Bayesian Estimation of the von Mises
-        Concentration Parameter". Proceedings of the Fifteenth International
-        Workshop on Maximum Entropy and Bayesian Methods. doi=10.1.1.48.5719
+    .. [1] D. L. Dowe et. al.. "Bayesian Estimation of the von Mises
+       Concentration Parameter". Proceedings of the Fifteenth International
+       Workshop on Maximum Entropy and Bayesian Methods. doi=10.1.1.48.5719
     """
 
     n = np.size(data, axis)
