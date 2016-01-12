@@ -21,12 +21,7 @@ from .np_utils import fix_column_name
 
 # These "shims" provide __getitem__ implementations for Column and MaskedColumn
 from ._column_mixins import _ColumnGetitemShim, _MaskedColumnGetitemShim
-from ..config import ConfigAlias
 
-
-AUTO_COLNAME = ConfigAlias(
-    '0.4', 'AUTO_COLNAME', 'auto_colname',
-    'astropy.table.column', 'astropy.table')
 
 # Create a generic TableFormatter object for use by bare columns with no
 # parent table.

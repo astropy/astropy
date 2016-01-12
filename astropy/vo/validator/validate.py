@@ -13,7 +13,6 @@ from collections import OrderedDict
 from .exceptions import ValidationMultiprocessingError, InvalidValidationAttribute
 from ..client import vos_catalog
 from ..client.exceptions import VOSError
-from ...config.configuration import ConfigAlias
 from ...io import votable
 from ...io.votable.exceptions import E19
 from ...io.votable.validator import html, result
@@ -29,18 +28,6 @@ from .tstquery import parse_cs
 
 
 __all__ = ['check_conesearch_sites']
-
-CS_MSTR_LIST = ConfigAlias(
-    '0.4', 'CS_MSTR_LIST', 'conesearch_master_list',
-    'astropy.vo.validator.validate', 'astropy.vo.validator')
-
-CS_URLS = ConfigAlias(
-    '0.4', 'CS_URLS', 'conesearch_urls',
-    'astropy.vo.validator.validate', 'astropy.vo.validator')
-
-NONCRIT_WARNINGS = ConfigAlias(
-    '0.4', 'NONCRIT_WARNINGS', 'noncritical_warnings',
-    'astropy.vo.validator.validate', 'astropy.vo.validator')
 
 
 @timefunc(1)

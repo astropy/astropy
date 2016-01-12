@@ -204,7 +204,7 @@ Deprecation and backward-incompatible changes
 
 - The configuration framework has been re-designed to the scheme of
   `APE3 <https://github.com/astropy/astropy-APEs/blob/master/APE3.rst>`_.
-  The previous framework based on `~astropy.config.ConfigurationItem` is
+  The previous framework based on ``ConfigurationItem`` is
   deprecated, and  will be removed in a future release. Affiliated
   packages should update to the new configuration system, and any users
   who have customized their configuration file should migrate to the new

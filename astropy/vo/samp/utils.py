@@ -14,14 +14,10 @@ from ...extern.six.moves.urllib.error import URLError
 from ...extern.six.moves.urllib.request import urlopen
 from ...extern.six.moves import xmlrpc_client as xmlrpc
 from ...extern.six import StringIO
-from ...config import ConfigAlias
+
 
 from .constants import SAMP_STATUS_ERROR
 from .errors import SAMPProxyError
-
-ALLOW_INTERNET = ConfigAlias(
-    '0.4', 'ALLOW_INTERNET', 'use_internet',
-    'astropy.vo.samp.utils', 'astropy.vo.samp')
 
 
 def internet_on():
