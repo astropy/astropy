@@ -17,7 +17,8 @@ import numpy as np
 
 __all__ = ['circmean','circvar', 'circmoment', 'circcorrcoef', 'rayleightest',
            'vtest', 'vonmisesmle', 'vonmisescrlb']
-__doctest_requires__ = {'vtest': ['scipy.stats']}
+__doctest_requires__ = {'vtest': ['scipy.stats'], 
+                        'vonmisescrlb': ['scipy.special']}
 
 
 def _components(data, w=None, p=1, phi=0.0, axis=None):
@@ -71,9 +72,17 @@ def circmean(data, w=None, axis=None):
     -------
     circmean : float
         Circular mean.
-    
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from astropy.stats.circstats import circmean
+    >>> data = np.deg2rad(np.array([51, 67, 40, 109, 31, 358]))
+    >>> circmean(data)
+    0.84870441244501904
+ 
     References
-    ---------
+    ----------
     ..  [1] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
         Series on Multivariate Analysis, Vol. 5, 2001.
     ..  [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in 
@@ -107,9 +116,17 @@ def circvar(data, w=None, axis=None):
     -------
     circvar : float
         Circular variance.
-    
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from astropy.stats.circstats import circvar
+    >>> data = np.deg2rad(np.array([51, 67, 40, 109, 31, 358]))
+    >>> circvar(data)
+    0.16356352748437508
+ 
     References
-    ---------
+    ----------
     ..  [1] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
         Series on Multivariate Analysis, Vol. 5, 2001.
     ..  [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in
@@ -145,9 +162,17 @@ def circmoment(data, w=None, p=1, centered=False, axis=None):
     circmoment: np.ndarray
         The first are second elements correspond to the direction and length of
         the ``p``-th circular moment.
-    
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from astropy.stats.circstats import circmoment
+    >>> data = np.deg2rad(np.array([51, 67, 40, 109, 31, 358]))
+    >>> circmoment(data, p=2)
+    (1.5881210029361645, 0.48004283892950717)
+
     References
-    ---------
+    ----------
     ..  [1] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
         Series on Multivariate Analysis, Vol. 5, 2001.
     ..  [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in 
@@ -190,9 +215,22 @@ def circcorrcoef(alpha, beta, w_alpha=None, w_beta=None, ax_alpha=None,
     -------
     rho : float
         Circular correlation coefficient
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from astropy.stats.circstats import circcorcoef
+    >>> alpha = np.deg2rad(np.array([356, 97, 211, 232, 343, 292, 157, 302,
+    ...                              335, 302, 324, 85, 324, 340, 157, 238,
+    ...                              254, 146, 232, 122, 329]))
+    >>> beta = np.deg2rad(np.array([119, 162, 221, 259, 270, 29, 97, 292, 40,
+    ...                             313, 94, 45, 47, 108, 221, 270, 119, 248,
+    ...                             270, 45, 23]))
+    >>> circcorcoef(alpha, beta)
+    0.27046488267488311
     
     References
-    ---------
+    ----------
     ..  [1] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
         Series on Multivariate Analysis, Vol. 5, 2001.
     ..  [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in 
@@ -217,10 +255,10 @@ def rayleightest(data, w=None, axis=None):
     This test is  used to indentify a non-uniform distribution, i.e. it is
     designed for detecting an unimodal deviation from uniformity. More
     precisely, it assumes the following hypotheses:
-        - H0 (null hypothesis): The population is distributed uniformly around
-        the circle.
-        - H1 (alternative hypothesis): The population is not distributed
-        uniformly around the circle.
+    - H0 (null hypothesis): The population is distributed uniformly around the
+    circle.
+    - H1 (alternative hypothesis): The population is not distributed uniformly
+    around the circle.
     Small p-values suggest to reject the null hypothesis.
 
     Parameters
@@ -234,12 +272,29 @@ def rayleightest(data, w=None, axis=None):
         explanation.
     axis : int, optional
         Axis along which the Rayleigh test will be performed.
- 
+
     Returns
     -------
     p-value : float
         p-value.
- 
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from astropy.stats.circstats import rayleightest
+    >>> data = np.array([3.8955614, 3.1700932, 3.1804325, 2.7887885, 2.9513829,
+    ...                  3.1140079, 4.5052974, 3.7984484, 3.7510773, 2.9764646,
+    ...                  2.2100108, 2.9529469, 2.9722527, 3.5099678, 2.6844710,
+    ...                  4.5020762, 2.9285673, 2.2871037, 3.5805262, 3.4247286,
+    ...                  2.4355773, 3.7549614, 4.1346585, 2.8426607, 3.3291801,
+    ...                  2.5847791, 2.7217270, 3.4323084, 3.3058256, 3.2147845,
+    ...                  2.4918005, 3.4849414, 0.8249985, 3.4881397, 3.2070389,
+    ...                  3.0859854, 4.0566486, 2.3463984, 3.7370984, 5.6853310,
+    ...                  5.8108009, 3.3921987, 3.2166975, 3.6827617, 4.5055291,
+    ...                  3.5295258, 3.0162183, 3.2317242, 3.2778354, 3.1713455])
+    >>> rayleightest(data)
+    2.726928722464598e-13
+
     References
     ----------
     ..  [1] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
@@ -253,15 +308,15 @@ def rayleightest(data, w=None, axis=None):
     n = np.size(data,axis=axis) 
     Rbar = _length(data,w,1,0.0,axis)
     z = n*Rbar*Rbar 
-    
+
     tmp = 1.0
     if(n < 50):
         tmp = 1.0 + (2.0*z - z*z)/(4.0*n) - (24.0*z - 132.0*z**2.0 +
                 76.0*z**3.0 - 9.0*z**4.0)/(288.0*n*n)
-    
+
     p_value = np.exp(-z)*tmp 
     return p_value
-    
+
 def vtest(data, w=None, mu=0.0, axis=None):
     """ Performs the Rayleigh test of uniformity where the alternative
     hypothesis H1 is assumed to have a known mean angle ``mu``.
@@ -284,9 +339,18 @@ def vtest(data, w=None, mu=0.0, axis=None):
     -------
     p-value : float
         p-value.
-    
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from astropy.stats.circstats import vtest
+    >>> data = np.array([1.316075, 4.439193, 3.096231, 4.807068, 2.986021,
+    ...                  1.756324, 3.046718, 3.299150, 3.360557, 4.842499])
+    >>> vtest(data)
+    0.98714203652055577
+
     References
-    ---------
+    ----------
     ..  [1] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
         Series on Multivariate Analysis, Vol. 5, 2001.
     ..  [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in 
@@ -314,7 +378,7 @@ def vtest(data, w=None, mu=0.0, axis=None):
         + 9*z**7)/(4608.0*n*n))
     return p_value
 
-def _A1inv1(x):
+def _A1inv(x):
     # Approximation for _A1inv(x) according R Package 'CircStats'
     if(x >= 0 and x < 0.53):
         return 2.0*x + x*x*x + (5.0*x**5)/6.0
@@ -340,9 +404,18 @@ def vonmisesmle(data, axis=None):
         the mean (aka location parameter).
     kappa : float
         the concentration parameter.
-    
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from astropy.stats.circstats import vonmisesmle
+    >>> data = np.array([3.3699057, 4.0411630, 0.5014477, 2.6223103, 3.7336524,
+    ...                  1.8136389, 4.1566039, 2.7806317, 2.4672173, 2.8493644])
+    >>> vonmisesmle(data)
+    (3.0065143178219063, 1.474132390391715)
+
     References
-    ---------
+    ----------
     ..  [1] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
         Series on Multivariate Analysis, Vol. 5, 2001.
     ..  [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in 
@@ -352,7 +425,7 @@ def vonmisesmle(data, axis=None):
 
     data = np.asarray(data)
     mu = circmean(data, axis=None)
-    kappa = _A1inv1(np.mean(np.cos(data - mu), axis))
+    kappa = _A1inv(np.mean(np.cos(data - mu), axis))
     return mu, kappa
 
 def _A1(x):
@@ -384,8 +457,17 @@ def vonmisescrlb(data, axis=None):
         The first and second elements corresponds to the CRLB of the mean and
         the concentration parameter, respectively.
     
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from astropy.stats.circstats import vonmisesmle
+    >>> data = np.array([3.3699057, 4.0411630, 0.5014477, 2.6223103, 3.7336524,
+    ...                  1.8136389, 4.1566039, 2.7806317, 2.4672173, 2.8493644])
+    >>> vonmisescrlb(data)
+    array([ 0.11504084,  0.39639812])
+
     References
-    ---------
+    ----------
     ..  [1] D. L. Dowe et. al.. "Bayesian Estimation of the von Mises 
         Concentration Parameter". Proceedings of the Fifteenth International
         Workshop on Maximum Entropy and Bayesian Methods. doi=10.1.1.48.5719
@@ -395,5 +477,5 @@ def vonmisescrlb(data, axis=None):
     mu, kappa = vonmisesmle(data, axis)
 
     det = kappa*n*n*_A1(kappa)*_A1deriv(kappa)
-    crlb = np.array([n*_A1deriv(kappa), kappa*n*_A1(kappa)])/det
+    crlb = (n*_A1deriv(kappa), kappa*n*_A1(kappa))/det
     return crlb

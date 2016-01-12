@@ -111,7 +111,7 @@ def test_vtest():
     assert_allclose(answer, vtest(data), atol=1e-5)
 
 
-def test_vonmissesmle():
+def test_vonmisesmle():
     # testing against R CircStats package
     data = np.array([3.3699057, 4.0411630, 0.5014477, 2.6223103, 3.7336524,
                      1.8136389, 4.1566039, 2.7806317, 2.4672173, 2.8493644])
