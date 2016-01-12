@@ -18,6 +18,7 @@ from ..circstats import _length, circmean, circvar, circmoment, circcorrcoef
 from ..circstats import rayleightest, vtest, vonmisesmle
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test__length():
     # testing against R CircStats package
     # Ref. [1] pages 6 and 125
