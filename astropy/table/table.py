@@ -885,9 +885,9 @@ class Table(object):
             A valid CSS string declaring the formatting for the table. Default
             to ``astropy.table.jsviewer.DEFAULT_CSS_NB``.
         display_length : int, optional
-            Number or rows to show. Default to 50.
+            Number or rows to show. Defaults to 50.
         show_row_index : bool
-            If True, a column named "idx" will be added for display
+            If True (default), a column named "idx" will be added for display
             purposes.  This shows the index of the row in the table itself,
             even when the displayed table is re-sorted by another column.
 
@@ -943,7 +943,7 @@ class Table(object):
             "/Applications/Google Chrome.app" %s'`` for Chrome).  If
             ``'default'``, will use the system default browser.
         jskwargs : dict
-            Passed to the `astropy.table.JSViewer` init. Default to
+            Passed to the `astropy.table.JSViewer` init. Defaults to
             ``{'use_local_files': True}`` which means that the JavaScript
             libraries will be served from local copies.
         tableid : str or `None`
@@ -954,10 +954,10 @@ class Table(object):
             Default is "display compact", and other possible values can be
             found in http://www.datatables.net/manual/styling/classes
         css : string
-            A valid CSS string declaring the formatting for the table. Default
+            A valid CSS string declaring the formatting for the table. Defaults
             to ``astropy.table.jsviewer.DEFAULT_CSS``.
         show_row_index : bool
-            If True, a column named "idx" will be added for display
+            If True (default), a column named "idx" will be added for display
             purposes.  This shows the index of the row in the table itself,
             even when the displayed table is re-sorted by another column.
         """
