@@ -116,7 +116,7 @@ class CdsHeader(core.BaseHeader):
                 if col.unit == '---':
                     col.unit = None  # "---" is the marker for no unit in CDS table
                 if len(line) > match.end():
-		    descr_match = re_descr.match(line[match.end()])
+		    descr_match = re_descr.match(line[match.end():])
 		    if descr_match:
 			col.description = descr_match.group('descr').strip()
 		    else:
