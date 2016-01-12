@@ -108,7 +108,7 @@ class CdsHeader(core.BaseHeader):
         re_descr = re.compile(r"""\s+
                                    (?P<descr>[^\n]*)""",
                               re.VERBOSE)
-	
+
         cols = []
         for line in itertools.islice(lines, i_col_def+4, None):
             if line.startswith('------') or line.startswith('======='):
