@@ -11,7 +11,7 @@ ipac.py:
 from __future__ import absolute_import, division, print_function
 
 import re
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from textwrap import wrap
 from warnings import warn
 
@@ -21,7 +21,6 @@ from ...extern.six.moves import zip
 from . import core
 from . import fixedwidth
 from . import basic
-from ...utils import OrderedDict
 from ...utils.exceptions import AstropyUserWarning
 from ...table.pprint import _format_funcs, _auto_format_func
 

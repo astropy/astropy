@@ -21,11 +21,10 @@ import sys
 import traceback
 import unicodedata
 
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 
 from ..extern import six
 from ..extern.six.moves import urllib
-from ..utils.compat.odict import OrderedDict
 
 
 __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',

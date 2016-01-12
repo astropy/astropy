@@ -9,6 +9,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import abc
 import functools
+from collections import OrderedDict
 
 import numpy as np
 import astropy.units as u
@@ -16,7 +17,6 @@ import astropy.units as u
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from ..extern import six
-from ..utils import OrderedDict
 from ..utils.compat.numpy import broadcast_arrays
 
 __all__ = ["BaseRepresentation", "CartesianRepresentation",

@@ -9,14 +9,13 @@ from ..extern import six
 # STDLIB
 import time
 import warnings
-from collections import Iterable
+from collections import Iterable, OrderedDict
 from functools import partial, wraps
 
 # THIRD-PARTY
 import numpy as np
 
 # LOCAL
-from . import OrderedDict
 from .. import units as u
 from .. import log
 from .. import modeling

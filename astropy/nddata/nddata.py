@@ -5,13 +5,13 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import collections
+from collections import OrderedDict
 
 import numpy as np
 
 from .nddata_base import NDDataBase
 from ..units import Unit, Quantity
 from .. import log
-from ..utils.compat.odict import OrderedDict
 
 from ..config import ConfigAlias
 

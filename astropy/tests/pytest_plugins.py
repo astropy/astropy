@@ -23,6 +23,7 @@ import os
 import re
 import sys
 import types
+from collections import OrderedDict
 
 from ..config.paths import set_temp_config, set_temp_cache
 from .helper import (
@@ -31,7 +32,6 @@ from .helper import (
     ignore_warnings)
 from .disable_internet import turn_off_internet, turn_on_internet
 from .output_checker import AstropyOutputChecker, FIX, FLOAT_CMP
-from ..utils import OrderedDict
 from ..utils.argparse import writeable_directory
 from ..utils.introspection import resolve_name
 

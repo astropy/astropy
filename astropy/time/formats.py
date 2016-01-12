@@ -7,6 +7,7 @@ import fnmatch
 import time
 import re
 import datetime
+from collections import OrderedDict
 
 import numpy as np
 
@@ -14,7 +15,6 @@ from .. import units as u
 from .. import _erfa as erfa
 from ..extern import six
 from .utils import day_frac, two_sum
-from ..utils.compat.odict import OrderedDict
 
 
 __all__ = ['TimeFormat', 'TimeJD', 'TimeMJD', 'TimeFromEpoch', 'TimeUnix',

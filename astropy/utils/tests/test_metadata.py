@@ -1,7 +1,8 @@
 import abc
 
+from collections import OrderedDict
+
 from ..metadata import MetaData, MergeConflictError, merge
-from ..compat.odict import OrderedDict
 from ...tests.helper import pytest
 from ...io import fits
 
