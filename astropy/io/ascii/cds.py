@@ -105,7 +105,9 @@ class CdsHeader(core.BaseHeader):
                                     (?P<units> \S+)        \s+
                                     (?P<name>  \S+)""",
                                 re.VERBOSE)
-	re_descr = re.compile(r"""\s+  (?P<descr>[^\n]*)""",re.VERBOSE)
+        re_descr = re.compile(r"""\s+
+                                   (?P<descr>[^\n]*)""",
+                              re.VERBOSE)
 	
         cols = []
         for line in itertools.islice(lines, i_col_def+4, None):
