@@ -493,8 +493,8 @@ class lazyproperty(property):
     the ``print`` statement is not executed.  Only the return value from the
     first access off ``complicated_property`` is returned.
 
-    If a setter for this property is defined, it will still be possible to
-    manually update the value of the property, if that capability is desired.
+    The lazyproperty also sets up a simple setter and deleter for the property
+    which can be overridden by own setter and deleter methods.
 
     Adapted from the recipe at
     http://code.activestate.com/recipes/363602-lazy-property-evaluation
