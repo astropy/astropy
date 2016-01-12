@@ -21,14 +21,17 @@ def read_table3(readme, data):
     return ascii.read(data, readme=readme)
 
 
-def test_no_description():
-    readme = 't/cds/no_description/ReadMe'
-    data = 't/cds/no_description/table.dat'
+def test_description():
+    readme = 't/cds/description/ReadMe'
+    data = 't/cds/description/table.dat'
     for read_table in (read_table1, read_table2, read_table3):
         table = read_table(readme, data)
-        assert_equal(len(table), 4)
-        assert_equal(table['year'][-1], 13)
-        assert_equal(table['month'][-2], 14)
+        assert_equal(len(table), 10)
+        assert_equal(table['Cluster'].description, 'Cluster name')
+        assert_equal(table['Star'].description, '')
+        assert_equal(table['Wave'].description, 'wave? Wavelength in Angstroms')
+        assert_equal(table['El'].description, 'a')
+        assert_equal(table['ion'].description, '- Ionization stage (1 for neutral element)')
 
 
 def test_multi_header():
@@ -147,4 +150,4 @@ if __name__ == "__main__":  # run from main directory; not from test/
     test_header_from_readme()
     test_multi_header()
     test_glob_header()
-    test_no_description()
+    test_description()

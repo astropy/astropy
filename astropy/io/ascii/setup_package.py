@@ -80,8 +80,8 @@ def get_package_data():
                                    't/simple_csv.csv',
                                    't/simple_csv_missing.csv',
                                    't/fixed_width_2_line.txt',
-                                   't/cds/no_description/ReadMe',
-                                   't/cds/no_description/table.dat',
+                                   't/cds/description/ReadMe',
+                                   't/cds/description/table.dat',
                                    ]
     }
 
