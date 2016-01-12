@@ -141,22 +141,6 @@ class MergeNpConcatenate(MergeStrategy):
         return np.concatenate([left, right])
 
 
-def take_left(left, right):
-    return left
-
-
-def take_right(left, right):
-    return left
-
-
-def raise_error(left, right):
-    """
-    Raise a MergeConflictError if left and right sequences
-    are being merged.
-    """
-    raise MergeConflictError()
-
-
 def _both_isinstance(left, right, cls):
     return isinstance(left, cls) and isinstance(right, cls)
 
