@@ -104,7 +104,7 @@ def convolve2d_boundary_fill(np.ndarray[DTYPE_t, ndim=2] f,
     cdef int wky = nky // 2
     cdef np.ndarray[DTYPE_t, ndim=2] fixed = np.empty([nx, ny], dtype=DTYPE)
     cdef np.ndarray[DTYPE_t, ndim=2] conv = np.empty([nx, ny], dtype=DTYPE)
-    cdef unsigned int i, j, iii, jjj
+    cdef unsigned int i, j, iii, jjj, iii2
     cdef int ii, jj
 
     cdef int iimin, iimax, jjmin, jjmax
@@ -194,7 +194,7 @@ def convolve3d_boundary_fill(np.ndarray[DTYPE_t, ndim=3] f,
     cdef int wkz = nkz // 2
     cdef np.ndarray[DTYPE_t, ndim=3] fixed = np.empty([nx, ny, nz], dtype=DTYPE)
     cdef np.ndarray[DTYPE_t, ndim=3] conv = np.empty([nx, ny, nz], dtype=DTYPE)
-    cdef unsigned int i, j, k, iii, jjj, kkk
+    cdef unsigned int i, j, k, iii, jjj, kkk, iii2, jjj2
     cdef int ii, jj, kk
 
     cdef int iimin, iimax, jjmin, jjmax, kkmin, kkmax

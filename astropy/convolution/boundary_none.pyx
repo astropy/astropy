@@ -103,7 +103,7 @@ def convolve2d_boundary_none(np.ndarray[DTYPE_t, ndim=2] f,
     cdef np.ndarray[DTYPE_t, ndim=2] fixed = np.zeros([nx, ny], dtype=DTYPE)
     cdef np.ndarray[DTYPE_t, ndim=2] conv = np.zeros([nx, ny], dtype=DTYPE)
 
-    cdef unsigned int i, j, ii, jj
+    cdef unsigned int i, j, ii, jj, iii2
 
     cdef int iimin, iimax, jjmin, jjmax
 
@@ -190,7 +190,7 @@ def convolve3d_boundary_none(np.ndarray[DTYPE_t, ndim=3] f,
     cdef np.ndarray[DTYPE_t, ndim=3] fixed = np.zeros([nx, ny, nz], dtype=DTYPE)
     cdef np.ndarray[DTYPE_t, ndim=3] conv = np.zeros([nx, ny, nz], dtype=DTYPE)
 
-    cdef unsigned int i, j, k, ii, jj, kk
+    cdef unsigned int i, j, k, ii, jj, kk, iii2, jjj2
 
     cdef int iimin, iimax, jjmin, jjmax, kkmin, kkmax
 
