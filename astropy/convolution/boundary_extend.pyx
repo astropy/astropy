@@ -123,13 +123,13 @@ def convolve2d_boundary_extend(np.ndarray[DTYPE_t, ndim=2] f,
                     jjmin = j - wky
                     jjmax = j + wky + 1
                     for ii in range(iimin, iimax):
+                        iii = int_min(int_max(ii, 0), nx - 1)
+                        iii2 = <unsigned int>(wkx + ii - i)
                         for jj in range(jjmin, jjmax):
-                            iii = int_min(int_max(ii, 0), nx - 1)
                             jjj = int_min(int_max(jj, 0), ny - 1)
                             val = f[iii, jjj]
                             if not npy_isnan(val):
-                                ker = g[<unsigned int>(wkx + ii - i),
-                                        <unsigned int>(wky + jj - j)]
+                                ker = g[iii2, <unsigned int>(wky + jj - j)]
                                 top += val * ker
                                 bot += ker
 
@@ -151,12 +151,12 @@ def convolve2d_boundary_extend(np.ndarray[DTYPE_t, ndim=2] f,
                     jjmin = j - wky
                     jjmax = j + wky + 1
                     for ii in range(iimin, iimax):
+                        iii = int_min(int_max(ii, 0), nx - 1)
+                        iii2 = <unsigned int>(wkx + ii - i)
                         for jj in range(jjmin, jjmax):
-                            iii = int_min(int_max(ii, 0), nx - 1)
                             jjj = int_min(int_max(jj, 0), ny - 1)
                             val = fixed[iii, jjj]
-                            ker = g[<unsigned int>(wkx + ii - i),
-                                    <unsigned int>(wky + jj - j)]
+                            ker = g[iii2, <unsigned int>(wky + jj - j)]
                             if not npy_isnan(val):
                                 top += val * ker
                                 bot += ker
@@ -214,15 +214,16 @@ def convolve3d_boundary_extend(np.ndarray[DTYPE_t, ndim=3] f,
                         kkmin = k - wkz
                         kkmax = k + wkz + 1
                         for ii in range(iimin, iimax):
+                            iii = int_min(int_max(ii, 0), nx - 1)
+                            iii2 = <unsigned int>(wkx + ii - i)
                             for jj in range(jjmin, jjmax):
+                                jjj = int_min(int_max(jj, 0), ny - 1)
+                                jjj2 = <unsigned int>(wky + jj - j)
                                 for kk in range(kkmin, kkmax):
-                                    iii = int_min(int_max(ii, 0), nx - 1)
-                                    jjj = int_min(int_max(jj, 0), ny - 1)
                                     kkk = int_min(int_max(kk, 0), nz - 1)
                                     val = f[iii, jjj, kkk]
                                     if not npy_isnan(val):
-                                        ker = g[<unsigned int>(wkx + ii - i),
-                                                <unsigned int>(wky + jj - j),
+                                        ker = g[iii2, jjj2,
                                                 <unsigned int>(wkz + kk - k)]
                                         top += val * ker
                                         bot += ker
@@ -248,14 +249,15 @@ def convolve3d_boundary_extend(np.ndarray[DTYPE_t, ndim=3] f,
                         kkmin = k - wkz
                         kkmax = k + wkz + 1
                         for ii in range(iimin, iimax):
+                            iii = int_min(int_max(ii, 0), nx - 1)
+                            iii2 = <unsigned int>(wkx + ii - i)
                             for jj in range(jjmin, jjmax):
+                                jjj = int_min(int_max(jj, 0), ny - 1)
+                                jjj2 = <unsigned int>(wky + jj - j)
                                 for kk in range(kkmin, kkmax):
-                                    iii = int_min(int_max(ii, 0), nx - 1)
-                                    jjj = int_min(int_max(jj, 0), ny - 1)
                                     kkk = int_min(int_max(kk, 0), nz - 1)
                                     val = fixed[iii, jjj, kkk]
-                                    ker = g[<unsigned int>(wkx + ii - i),
-                                            <unsigned int>(wky + jj - j),
+                                    ker = g[iii2, jjj2,
                                             <unsigned int>(wkz + kk - k)]
                                     if not npy_isnan(val):
                                         top += val * ker

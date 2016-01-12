@@ -116,11 +116,11 @@ def convolve2d_boundary_none(np.ndarray[DTYPE_t, ndim=2] f,
                     top = 0.
                     bot = 0.
                     for ii in range(i - wkx, i + wkx + 1):
+                        iii2 = <unsigned int>(wkx + ii - i)
                         for jj in range(j - wky, j + wky + 1):
                             val = f[ii, jj]
                             if not npy_isnan(val):
-                                ker = g[<unsigned int>(wkx + ii - i),
-                                        <unsigned int>(wky + jj - j)]
+                                ker = g[iii2, <unsigned int>(wky + jj - j)]
                                 top += val * ker
                                 bot += ker
                     if bot != 0.:
@@ -137,10 +137,10 @@ def convolve2d_boundary_none(np.ndarray[DTYPE_t, ndim=2] f,
                     top = 0.
                     bot = 0.
                     for ii in range(i - wkx, i + wkx + 1):
+                        iii2 = <unsigned int>(wkx + ii - i)
                         for jj in range(j - wky, j + wky + 1):
                             val = fixed[ii, jj]
-                            ker = g[<unsigned int>(wkx + ii - i),
-                                    <unsigned int>(wky + jj - j)]
+                            ker = g[iii2, <unsigned int>(wky + jj - j)]
                             if not npy_isnan(val):
                                 top += val * ker
                                 bot += ker
@@ -196,12 +196,13 @@ def convolve3d_boundary_none(np.ndarray[DTYPE_t, ndim=3] f,
                         top = 0.
                         bot = 0.
                         for ii in range(i - wkx, i + wkx + 1):
+                            iii2 = <unsigned int>(wkx + ii - i)
                             for jj in range(j - wky, j + wky + 1):
+                                jjj2 = <unsigned int>(wky + jj - j)
                                 for kk in range(k - wkz, k + wkz + 1):
                                     val = f[ii, jj, kk]
                                     if not npy_isnan(val):
-                                        ker = g[<unsigned int>(wkx + ii - i),
-                                                <unsigned int>(wky + jj - j),
+                                        ker = g[iii2, jjj2,
                                                 <unsigned int>(wkz + kk - k)]
                                         top += val * ker
                                         bot += ker
@@ -220,11 +221,12 @@ def convolve3d_boundary_none(np.ndarray[DTYPE_t, ndim=3] f,
                         top = 0.
                         bot = 0.
                         for ii in range(i - wkx, i + wkx + 1):
+                            iii2 = <unsigned int>(wkx + ii - i)
                             for jj in range(j - wky, j + wky + 1):
+                                jjj2 = <unsigned int>(wky + jj - j)
                                 for kk in range(k - wkz, k + wkz + 1):
                                     val = fixed[ii, jj, kk]
-                                    ker = g[<unsigned int>(wkx + ii - i),
-                                            <unsigned int>(wky + jj - j),
+                                    ker = g[iii2, jjj2,
                                             <unsigned int>(wkz + kk - k)]
                                     if not npy_isnan(val):
                                         top += val * ker

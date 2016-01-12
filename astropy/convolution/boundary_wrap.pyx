@@ -120,13 +120,13 @@ def convolve2d_boundary_wrap(np.ndarray[DTYPE_t, ndim=2] f,
                     jjmin = j - wky
                     jjmax = j + wky + 1
                     for ii in range(iimin, iimax):
+                        iii = ii % nx
+                        iii2 = <unsigned int>(wkx + ii - i)
                         for jj in range(jjmin, jjmax):
-                            iii = ii % nx
                             jjj = jj % ny
                             val = f[iii, jjj]
                             if not npy_isnan(val):
-                                ker = g[<unsigned int>(wkx + ii - i),
-                                        <unsigned int>(wky + jj - j)]
+                                ker = g[iii2, <unsigned int>(wky + jj - j)]
                                 top += val * ker
                                 bot += ker
 
@@ -148,12 +148,12 @@ def convolve2d_boundary_wrap(np.ndarray[DTYPE_t, ndim=2] f,
                     jjmin = j - wky
                     jjmax = j + wky + 1
                     for ii in range(iimin, iimax):
+                        iii = ii % nx
+                        iii2 = <unsigned int>(wkx + ii - i)
                         for jj in range(jjmin, jjmax):
-                            iii = ii % nx
                             jjj = jj % ny
                             val = fixed[iii, jjj]
-                            ker = g[<unsigned int>(wkx + ii - i),
-                                    <unsigned int>(wky + jj - j)]
+                            ker = g[iii2, <unsigned int>(wky + jj - j)]
                             if not npy_isnan(val):
                                 top += val * ker
                                 bot += ker
@@ -211,15 +211,16 @@ def convolve3d_boundary_wrap(np.ndarray[DTYPE_t, ndim=3] f,
                         kkmin = k - wkz
                         kkmax = k + wkz + 1
                         for ii in range(iimin, iimax):
+                            iii = ii % nx
+                            iii2 = <unsigned int>(wkx + ii - i)
                             for jj in range(jjmin, jjmax):
+                                jjj = jj % ny
+                                jjj2 = <unsigned int>(wky + jj - j)
                                 for kk in range(kkmin, kkmax):
-                                    iii = ii % nx
-                                    jjj = jj % ny
                                     kkk = kk % nz
                                     val = f[iii, jjj, kkk]
                                     if not npy_isnan(val):
-                                        ker = g[<unsigned int>(wkx + ii - i),
-                                                <unsigned int>(wky + jj - j),
+                                        ker = g[iii2, jjj2,
                                                 <unsigned int>(wkz + kk - k)]
                                         top += val * ker
                                         bot += ker
@@ -245,14 +246,15 @@ def convolve3d_boundary_wrap(np.ndarray[DTYPE_t, ndim=3] f,
                         kkmin = k - wkz
                         kkmax = k + wkz + 1
                         for ii in range(iimin, iimax):
+                            iii = ii % nx
+                            iii2 = <unsigned int>(wkx + ii - i)
                             for jj in range(jjmin, jjmax):
+                                jjj = jj % ny
+                                jjj2 = <unsigned int>(wky + jj - j)
                                 for kk in range(kkmin, kkmax):
-                                    iii = ii % nx
-                                    jjj = jj % ny
                                     kkk = kk % nz
                                     val = fixed[iii, jjj, kkk]
-                                    ker = g[<unsigned int>(wkx + ii - i),
-                                            <unsigned int>(wky + jj - j),
+                                    ker = g[iii2, jjj2,
                                             <unsigned int>(wkz + kk - k)]
                                     if not npy_isnan(val):
                                         top += val * ker
