@@ -3,11 +3,11 @@
 """
 This module contains simple functions for dealing with circular statistics, for
 instance, mean, variance, standard deviation, correlation coefficient, and so
-on. This module also cover tests of uniformity, e.g the Rayleigh and V0 tests.
+on. This module also cover tests of uniformity, e.g., the Rayleigh and V tests.
 The Maximum Likelihood Estimator for the Von Mises distribution along with the
 Cramer-Rao Lower Bounds are also implemented. Almost all of the implementations
 are based on reference [1], which is also the basis for the R package
-'CircStats'.
+'CircStats' [2].
 """
 
 from __future__ import (absolute_import, division, print_function,
@@ -26,31 +26,31 @@ def _components(data, w=None, p=1, phi=0.0, axis=None):
     # of the circular data.
     data = np.asarray(data)
 
-    assert type(p) is int
     if w is None:
         w = np.ones(data.shape)
-    else:
-        assert w.shape == data.shape
+    elif (w.shape != data.shape):
+        raise ValueError('shape of w %s is not equals shape of data %s.'
+                         % (w.shape,data.shape,))
 
-    C = np.sum(w*np.cos(p*(data-phi)), axis)/np.sum(w, axis)
-    S = np.sum(w*np.sin(p*(data-phi)), axis)/np.sum(w, axis)
+    C = np.sum(w * np.cos(p * (data - phi)), axis)/np.sum(w, axis)
+    S = np.sum(w * np.sin(p * (data - phi)), axis)/np.sum(w, axis)
 
-    return C,S
+    return C, S
 
 def _angle(data, w=None, p=1, phi=0.0, axis=None):
     # Utility function for computing the generalized sample mean angle
-    C,S = _components(data,w,p,phi,axis)
-    theta = np.arctan2(S,C)
+    C, S = _components(data, w, p, phi, axis)
+    theta = np.arctan2(S, C)
 
     mask = (S == .0)*(C == .0)
-    if mask.ndim > 0:
+    if np.any(mask):
         theta[mask] = np.nan
     return theta
 
 def _length(data, w=None, p=1, phi=0.0, axis=None):
     # Utility function for computing the generalized sample length
-    C,S = _components(data,w,p,phi,axis)
-    return np.hypot(S,C)
+    C,S = _components(data, w, p, phi, axis)
+    return np.hypot(S, C)
 
 def circmean(data, w=None, axis=None):
     """ Computes the circular mean angle of an array of circular data.
@@ -76,7 +76,7 @@ def circmean(data, w=None, axis=None):
     Examples
     --------
     >>> import numpy as np
-    >>> from astropy.stats.circstats import circmean
+    >>> from astropy.stats import circmean
     >>> data = np.deg2rad(np.array([51, 67, 40, 109, 31, 358]))
     >>> circmean(data) # doctest: +FLOAT_CMP
     0.84870441244501904
@@ -90,14 +90,14 @@ def circmean(data, w=None, axis=None):
        <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
     """
 
-    return _angle(data,w,1,0.0,axis)
+    return _angle(data, w, 1, 0.0, axis)
 
 def circvar(data, w=None, axis=None):
     """ Computes the circular variance of an array of circular data.
 
     There are some concepts for defining measures of dispersion for circular
     data. The variance implemented here is based on the definition given by [1]
-    , which is also the same used by the R package 'CircStats'.
+    , which is also the same used by the R package 'CircStats' [2].
 
     Parameters
     ----------
@@ -120,7 +120,7 @@ def circvar(data, w=None, axis=None):
     Examples
     --------
     >>> import numpy as np
-    >>> from astropy.stats.circstats import circvar
+    >>> from astropy.stats import circvar
     >>> data = np.deg2rad(np.array([51, 67, 40, 109, 31, 358]))
     >>> circvar(data) # doctest: +FLOAT_CMP
     0.16356352748437508
@@ -133,9 +133,9 @@ def circvar(data, w=None, axis=None):
        Circular Statistics (2001)'". 2015.
        <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
     """
-    return 1.0 - _length(data,w,1,0.0,axis)
+    return 1.0 - _length(data, w, 1, 0.0, axis)
 
-def circmoment(data, w=None, p=1, centered=False, axis=None):
+def circmoment(data, w=None, p=1.0, centered=False, axis=None):
     """ Computes the ``p``-th trigonometric circular moment for an array
     of circular data.
 
@@ -148,8 +148,8 @@ def circmoment(data, w=None, p=1, centered=False, axis=None):
         weighting factor for each group such that sum(w,axis) equals the number
         of observations. See [1], remark 1.4, page 22, for detailed
         explanation.
-    p : int, optional
-        Order of the circular moment. Must be integer valued.
+    p : float, optional
+        Order of the circular moment.
     centered : Boolean, optinal
         If ``True``, central circular moments are computed. Default value is
         ``False``.
@@ -166,7 +166,7 @@ def circmoment(data, w=None, p=1, centered=False, axis=None):
     Examples
     --------
     >>> import numpy as np
-    >>> from astropy.stats.circstats import circmoment
+    >>> from astropy.stats import circmoment
     >>> data = np.deg2rad(np.array([51, 67, 40, 109, 31, 358]))
     >>> circmoment(data, p=2) # doctest: +FLOAT_CMP
     (1.5881210029361645, 0.48004283892950717)
@@ -182,9 +182,9 @@ def circmoment(data, w=None, p=1, centered=False, axis=None):
 
     phi = 0.0
     if centered:
-        phi = circmean(data,w,axis)
+        phi = circmean(data, w, axis)
 
-    return _angle(data,w,p,phi,axis), _length(data,w,p,phi,axis)
+    return _angle(data, w, p, phi, axis), _length(data, w, p, phi, axis)
 
 def circcorrcoef(alpha, beta, w_alpha=None, w_beta=None, ax_alpha=None,
                  ax_beta=None):
@@ -219,7 +219,7 @@ def circcorrcoef(alpha, beta, w_alpha=None, w_beta=None, ax_alpha=None,
     Examples
     --------
     >>> import numpy as np
-    >>> from astropy.stats.circstats import circcorrcoef
+    >>> from astropy.stats import circcorrcoef
     >>> alpha = np.deg2rad(np.array([356, 97, 211, 232, 343, 292, 157, 302,
     ...                              335, 302, 324, 85, 324, 340, 157, 238,
     ...                              254, 146, 232, 122, 329]))
@@ -241,10 +241,11 @@ def circcorrcoef(alpha, beta, w_alpha=None, w_beta=None, ax_alpha=None,
     alpha = np.asarray(alpha)
     beta = np.asarray(beta)
 
-    assert np.size(alpha, axis=ax_alpha) == np.size(beta, axis=ax_beta)
+    if(np.size(alpha, axis=ax_alpha) != np.size(beta, axis=ax_beta)):
+        raise ValueError("alpha and beta must be arrays of the same size")
 
-    sin_a = np.sin(alpha - circmean(alpha,w_alpha,ax_alpha))
-    sin_b = np.sin(beta - circmean(beta,w_beta,ax_beta))
+    sin_a = np.sin(alpha - circmean(alpha, w_alpha, ax_alpha))
+    sin_b = np.sin(beta - circmean(beta, w_beta, ax_beta))
     rho = np.sum(sin_a*sin_b)/np.sqrt(np.sum(sin_a*sin_a)*np.sum(sin_b*sin_b))
 
     return rho
@@ -281,7 +282,7 @@ def rayleightest(data, w=None, axis=None):
     Examples
     --------
     >>> import numpy as np
-    >>> from astropy.stats.circstats import rayleightest
+    >>> from astropy.stats import rayleightest
     >>> data = np.array([3.8955614, 3.1700932, 3.1804325, 2.7887885, 2.9513829,
     ...                  3.1140079, 4.5052974, 3.7984484, 3.7510773, 2.9764646,
     ...                  2.2100108, 2.9529469, 2.9722527, 3.5099678, 2.6844710,
@@ -302,13 +303,16 @@ def rayleightest(data, w=None, axis=None):
     .. [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in
        Circular Statistics (2001)'". 2015.
        <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
+    .. [3] M. Chirstman., C. Miller. "Testing a Sample of Directions for
+       Uniformity." Lecture Notes, STA 6934/5805. University of Florida, 2007.
     """
 
     data = np.asarray(data)
-    n = np.size(data,axis=axis)
-    Rbar = _length(data,w,1,0.0,axis)
+    n = np.size(data, axis=axis)
+    Rbar = _length(data, w, 1, 0.0, axis)
     z = n*Rbar*Rbar
 
+    # see [3]
     tmp = 1.0
     if(n < 50):
         tmp = 1.0 + (2.0*z - z*z)/(4.0*n) - (24.0*z - 132.0*z**2.0 +
@@ -343,7 +347,7 @@ def vtest(data, w=None, mu=0.0, axis=None):
     Examples
     --------
     >>> import numpy as np
-    >>> from astropy.stats.circstats import vtest
+    >>> from astropy.stats import vtest
     >>> data = np.array([1.316075, 4.439193, 3.096231, 4.807068, 2.986021,
     ...                  1.756324, 3.046718, 3.299150, 3.360557, 4.842499])
     >>> vtest(data) # doctest: +FLOAT_CMP
@@ -356,30 +360,35 @@ def vtest(data, w=None, mu=0.0, axis=None):
     .. [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in
        Circular Statistics (2001)'". 2015.
        <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
+    .. [3] M. Chirstman., C. Miller. "Testing a Sample of Directions for
+       Uniformity." Lecture Notes, STA 6934/5805. University of Florida, 2007.
     """
 
     from scipy.stats import norm
 
     if w is None:
         w = np.ones(data.shape)
-    else:
-        assert w.shape == data.shape
+    elif (w.shape != data.shape):
+        raise ValueError('shape of w %s is not equals shape of data %s.'
+                         % (w.shape,data.shape,))
 
     data = np.asarray(data)
-    n = np.size(data,axis=axis)
+    n = np.size(data, axis=axis)
 
     R0bar = np.sum(w*np.cos(data-mu),axis)/np.sum(w, axis)
     z = np.sqrt(2.0*n)*R0bar
 
     pz = norm.cdf(z)
     fz = norm.pdf(z)
-
+    
+    # see reference [3]
     p_value = 1 - pz + fz*((3*z - z**3)/(16.0*n) + (15*z + 305*z**3 - 125*z**5
         + 9*z**7)/(4608.0*n*n))
     return p_value
 
 def _A1inv(x):
     # Approximation for _A1inv(x) according R Package 'CircStats'
+    # See http://www.scienceasia.org/2012.38.n1/scias38_118.pdf, equation (4)
     if(x >= 0 and x < 0.53):
         return 2.0*x + x*x*x + (5.0*x**5)/6.0
     elif x < 0.85:
@@ -408,7 +417,7 @@ def vonmisesmle(data, axis=None):
     Examples
     --------
     >>> import numpy as np
-    >>> from astropy.stats.circstats import vonmisesmle
+    >>> from astropy.stats import vonmisesmle
     >>> data = np.array([3.3699057, 4.0411630, 0.5014477, 2.6223103, 3.7336524,
     ...                  1.8136389, 4.1566039, 2.7806317, 2.4672173, 2.8493644])
     >>> vonmisesmle(data) # doctest: +FLOAT_CMP
@@ -432,7 +441,7 @@ def _A1(x):
     # Utility function that computes the ratio between the modified Bessel
     # function of first kind of orders one and zero.
     import scipy.special as sps
-    return sps.ive(1.0,x)/sps.ive(0.0,x)
+    return sps.ive(1.0, x)/sps.ive(0.0, x)
 
 def _A1deriv(x):
     # Derivative of _A1(x)
@@ -460,7 +469,7 @@ def vonmisescrlb(data, axis=None):
     Examples
     --------
     >>> import numpy as np
-    >>> from astropy.stats.circstats import vonmisescrlb
+    >>> from astropy.stats import vonmisescrlb
     >>> data = np.array([3.3699057, 4.0411630, 0.5014477, 2.6223103, 3.7336524,
     ...                  1.8136389, 4.1566039, 2.7806317, 2.4672173, 2.8493644])
     >>> vonmisescrlb(data) # docstest: +FLOAT_CMP
