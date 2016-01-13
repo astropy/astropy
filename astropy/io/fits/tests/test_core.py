@@ -682,9 +682,6 @@ class TestFileFunctions(FitsTestCase):
         This tests reading from a ``GzipFile`` object from Astropy's
         compatibility copy of the ``gzip`` module.
         """
-
-        import gzip
-
         gf = gzip.GzipFile(self._make_gzip_file())
         try:
             assert len(fits.open(gf)) == 5
