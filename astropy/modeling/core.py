@@ -1874,11 +1874,7 @@ class _CompoundModelMeta(_ModelMeta):
 
         raise AttributeError(attr)
 
-    def __repr__(cls):
-        if cls._tree is None:
-            # This case is mostly for debugging purposes
-            return cls._format_cls_repr()
-
+    def _get_expr_comp(cls):
         expression = cls._format_expression()
         components = '\n\n'.join('[{0}]: {1!r}'.format(idx, m)
                                  for idx, m in enumerate(cls._get_submodels()))
@@ -1887,7 +1883,14 @@ class _CompoundModelMeta(_ModelMeta):
             ('Components', '\n' + indent(components))
         ]
 
-        return cls._format_cls_repr(keywords=keywords)
+        return keywords
+
+    def __repr__(cls):
+        if cls._tree is None:
+            # This case is mostly for debugging purposes
+            return cls._format_cls_repr()
+
+        return cls._format_cls_repr(keywords=cls._get_expr_comp())
 
     def __dir__(cls, *args):
         """
@@ -2432,6 +2435,10 @@ class _CompoundModel(Model):
     col_fit_deriv = False
 
     _submodels = None
+
+    def __str__(self):
+        keywords=self._get_expr_comp()
+        return super(_CompoundModel,self)._format_str(keywords=keywords)
 
     def __getattr__(self, attr):
         value = getattr(self.__class__, attr)
