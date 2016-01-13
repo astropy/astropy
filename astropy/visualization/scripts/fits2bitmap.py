@@ -82,7 +82,7 @@ def fits2bitmap(filename, ext=0, out_fn=None, scale='linear',
             out_fn = os.path.splitext(out_fn)[0]
         out_fn += '.png'
 
-    if cmap not in cm.datad.keys():
+    if cmap not in cm.datad:
         log.critical('{0} is not a valid matplotlib colormap '
                      'name'.format(cmap))
         raise SystemExit()
