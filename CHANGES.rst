@@ -60,6 +60,7 @@ New Features
 - ``astropy.utils``
 
   - Implemented a generic and extensible way of merging metadata. [#4459]
+
   - Added ``format_doc`` decorator which allows to replace and/or format the
     current docstring of an object. [#4242]
 
@@ -138,6 +139,9 @@ API changes
     Python 'gzip' module directly instead. [#4464]
 
   - The deprecated ``ScienceStateAlias`` class has been removed. [#2767, #4446]
+
+  - The astropy.utils.compat.subprocess module has now been deprecated. Use the
+    Python 'subprocess' module instead. [#4483]
 
 - ``astropy.visualization``
 
