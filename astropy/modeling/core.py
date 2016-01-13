@@ -1874,23 +1874,19 @@ class _CompoundModelMeta(_ModelMeta):
 
         raise AttributeError(attr)
 
-    def _get_expr_comp(cls):
-        expression = cls._format_expression()
-        components = '\n\n'.join('[{0}]: {1!r}'.format(idx, m)
-                                 for idx, m in enumerate(cls._get_submodels()))
-        keywords = [
-            ('Expression', expression),
-            ('Components', '\n' + indent(components))
-        ]
-
-        return keywords
-
     def __repr__(cls):
         if cls._tree is None:
             # This case is mostly for debugging purposes
             return cls._format_cls_repr()
 
-        return cls._format_cls_repr(keywords=cls._get_expr_comp())
+        expression = cls._format_expression()
+        components = cls._format_components()
+        keywords = [
+            ('Expression', expression),
+            ('Components', '\n' + indent(components))
+        ]
+
+        return cls._format_cls_repr(keywords=keywords)
 
     def __dir__(cls, *args):
         """
@@ -2304,6 +2300,10 @@ class _CompoundModelMeta(_ModelMeta):
         # albeit with more formatting options
         return cls._tree.format_expression(OPERATOR_PRECEDENCE)
 
+    def _format_components(cls):
+        return '\n\n'.join('[{0}]: {1!r}'.format(idx, m)
+                                 for idx, m in enumerate(cls._get_submodels()))
+
     def _normalize_index(cls, index):
         """
         Converts an index given to __getitem__ to either an integer, or
@@ -2437,8 +2437,13 @@ class _CompoundModel(Model):
     _submodels = None
 
     def __str__(self):
-        keywords=self._get_expr_comp()
-        return super(_CompoundModel,self)._format_str(keywords=keywords)
+        expression = self._format_expression()
+        components = self._format_components()
+        keywords = [
+            ('Expression', expression),
+            ('Components', '\n' + indent(components))
+        ]
+        return super(_CompoundModel, self)._format_str(keywords=keywords)
 
     def __getattr__(self, attr):
         value = getattr(self.__class__, attr)
