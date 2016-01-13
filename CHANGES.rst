@@ -134,7 +134,7 @@ Bug fixes
 
 - ``astropy.io.ascii``
 
-  - Fixed handling of CDS data file when no description is given. [#4474]
+  - Fixed handling of CDS data file when no description is given. [#4437]
 
 - ``astropy.io.fits``
 
