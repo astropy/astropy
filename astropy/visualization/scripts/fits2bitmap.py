@@ -75,7 +75,12 @@ def fits2bitmap(filename, ext=0, out_fn=None, scale='linear',
     except ValueError:
         pass
 
+    # NOTE: getdata raises IndexError if no data is found
     image = getdata(filename, ext)
+    if image.ndim != 2:
+        raise ValueError('data in FITS extension {0} is not a 2D '
+                         'array'.format(ext))
+
     if out_fn is None:
         out_fn = os.path.splitext(filename)[0]
         if out_fn.endswith('.fits'):
