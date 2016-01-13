@@ -8,9 +8,9 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import warnings
+from fractions import Fraction
 
 from ...extern import six
-from ...utils.compat.fractions import Fraction
 from ...utils.misc import did_you_mean
 
 

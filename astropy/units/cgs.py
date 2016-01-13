@@ -7,7 +7,7 @@ top-level `astropy.units` namespace.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ..utils.compat.fractions import Fraction
+from fractions import Fraction
 
 from . import si
 from .core import UnitBase, def_unit

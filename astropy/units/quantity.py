@@ -11,6 +11,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 # Standard library
 import numbers
+from fractions import Fraction
 
 import numpy as np
 
@@ -20,7 +21,6 @@ from .core import (Unit, dimensionless_unscaled, UnitBase, UnitsError,
                    get_current_unit_registry)
 from .format.latex import Latex
 from ..utils.compat import NUMPY_LT_1_7, NUMPY_LT_1_8, NUMPY_LT_1_9
-from ..utils.compat.fractions import Fraction
 from ..utils.compat.misc import override__dir__
 from ..utils.misc import isiterable, InheritDocstrings
 from ..utils.data_info import ParentDtypeInfo

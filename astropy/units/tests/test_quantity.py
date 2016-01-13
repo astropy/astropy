@@ -9,6 +9,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import copy
 import decimal
+from fractions import Fraction
 
 import numpy as np
 from numpy.testing import (assert_allclose, assert_array_equal,
@@ -18,7 +19,6 @@ from numpy.testing import (assert_allclose, assert_array_equal,
 from ...tests.helper import raises, pytest
 from ...utils import isiterable, minversion
 from ...utils.compat import NUMPY_LT_1_7
-from ...utils.compat.fractions import Fraction
 from ... import units as u
 from ...units.quantity import _UNIT_NOT_INITIALISED
 from ...extern.six.moves import xrange

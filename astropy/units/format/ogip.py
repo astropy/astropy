@@ -20,9 +20,9 @@ import keyword
 import math
 import os
 import warnings
+from fractions import Fraction
 
 from . import core, generic, utils
-from ...utils.compat.fractions import Fraction
 
 
 class OGIP(generic.Generic):
