@@ -4,6 +4,8 @@
 # TEST_UNICODE_LITERALS
 
 import warnings
+from collections import OrderedDict
+
 import numpy as np
 
 from ...extern import six
@@ -12,7 +14,6 @@ from ... import time
 from ... import coordinates
 from ... import table
 from ...utils.data_info import data_info_factory, dtype_info_name
-from ...utils import OrderedDict
 from ...utils.compat import NUMPY_LT_1_8
 
 def test_table_info_attributes(table_types):

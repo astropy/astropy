@@ -13,11 +13,10 @@ from __future__ import absolute_import, division, print_function
 import re
 import numpy as np
 import itertools as itt
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 
 from . import core
 from . import fixedwidth
-from ...utils import OrderedDict
 from ...extern.six.moves import zip, map
 from .misc import first_true_index, first_false_index, groupmore
 

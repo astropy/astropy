@@ -125,7 +125,7 @@ Data and Configuration
   :mod:`astropy.utils.data` should be used.
 
 * All persistent configuration should use the
-  `astropy.config.ConfigurationItem` mechanism.  Such configuration items
+  :ref:`astropy_config` mechanism.  Such configuration items
   should be placed at the top of the module or package that makes use of them,
   and supply a description sufficient for users to understand what the setting
   changes.

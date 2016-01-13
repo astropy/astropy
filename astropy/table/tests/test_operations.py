@@ -2,11 +2,13 @@
 
 # TEST_UNICODE_LITERALS
 
+from collections import OrderedDict
+
 import numpy as np
 
 from ...tests.helper import pytest, catch_warnings
 from ...table import Table, TableMergeError
-from ...utils import OrderedDict, metadata
+from ...utils import metadata
 from ...utils.metadata import MergeConflictError
 from ... import table
 

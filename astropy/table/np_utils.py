@@ -16,12 +16,12 @@ from ..utils.decorators import deprecated
 
 from itertools import chain
 import collections
+from collections import OrderedDict
 
 import numpy as np
 import numpy.ma as ma
 
 from . import _np_utils
-from ..utils import OrderedDict
 
 __all__ = ['join', 'hstack', 'vstack', 'TableMergeError']
 

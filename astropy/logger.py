@@ -85,18 +85,6 @@ class Conf(_config.ConfigNamespace):
 conf = Conf()
 
 
-LOG_LEVEL = _config.ConfigAlias('0.4', 'LOG_LEVEL', 'log_level')
-USE_COLOR = _config.ConfigAlias(
-    '0.4', 'USE_COLOR', 'use_color', 'astropy.logger', 'astropy')
-LOG_WARNINGS = _config.ConfigAlias('0.4', 'LOG_WARNINGS', 'log_warnings')
-LOG_EXCEPTIONS = _config.ConfigAlias('0.4', 'LOG_EXCEPTIONS', 'log_exceptions')
-LOG_TO_FILE = _config.ConfigAlias('0.4', 'LOG_TO_FILE', 'log_to_file')
-LOG_FILE_PATH = _config.ConfigAlias('0.4', 'LOG_FILE_PATH', 'log_file_path')
-LOG_FILE_LEVEL = _config.ConfigAlias('0.4', 'LOG_FILE_LEVEL', 'log_file_level')
-LOG_FILE_FORMAT = _config.ConfigAlias(
-    '0.4', 'LOG_FILE_FORMAT', 'log_file_format')
-
-
 def _init_log():
     """Initializes the Astropy log--in most circumstances this is called
     automatically when importing astropy.

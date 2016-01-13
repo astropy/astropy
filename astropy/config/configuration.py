@@ -14,13 +14,9 @@ from ..extern import six
 
 from contextlib import contextmanager
 import hashlib
-import inspect
 import io
 from os import path
-import pkgutil
 import re
-import sys
-import types
 from warnings import warn
 
 from ..extern.configobj import configobj, validate
@@ -31,9 +27,9 @@ from ..utils.misc import InheritDocstrings
 from .paths import get_config_dir
 
 
-__all__ = ['ConfigurationItem', 'InvalidConfigurationItemWarning',
-           'ConfigurationMissingWarning', 'get_config', 'save_config',
-           'reload_config', 'ConfigNamespace', 'ConfigItem', 'ConfigAlias']
+__all__ = ['InvalidConfigurationItemWarning',
+           'ConfigurationMissingWarning', 'get_config',
+           'reload_config', 'ConfigNamespace', 'ConfigItem']
 
 
 class InvalidConfigurationItemWarning(AstropyWarning):
@@ -460,148 +456,6 @@ class ConfigItem(object):
         return self._validator.check(self.cfgtype, val)
 
 
-class ConfigurationItem(ConfigItem):
-    """
-    A backward-compatibility layer to support the old
-    `ConfigurationItem` API.  The only difference between this and
-    ``ConfigItem`` is that this requires an explicit name to be set as
-    the first argument.
-    """
-    # REMOVE in astropy 0.5
-
-    def __init__(self, name, defaultvalue='', description=None, cfgtype=None,
-                 module=None, aliases=None):
-        warn(
-            "ConfigurationItem has been deprecated in astropy 0.4. "
-            "Use ConfigItem objects as members of ConfigNamespace subclasses "
-            "instead.  See ConfigNamespace for an example.",
-            AstropyDeprecationWarning)
-
-        # We have to do the automatic module determination here, not
-        # just in ConfigItem, otherwise the extra stack frame will
-        # make it come up with the wrong answer.
-        if module is None:
-            module = find_current_module(2)
-            if module is None:
-                msg1 = 'Cannot automatically determine get_config module, '
-                msg2 = 'because it is not called from inside a valid module'
-                raise RuntimeError(msg1 + msg2)
-            else:
-                module = module.__name__
-
-        super(ConfigurationItem, self).__init__(
-            defaultvalue=defaultvalue,
-            description=description,
-            cfgtype=cfgtype,
-            module=module,
-            aliases=aliases)
-        self.name = name
-
-    def save(self, value=None):
-        """
-        Removed in astropy 0.4.
-        """
-        raise NotImplementedError(
-            "The ability to save config options was removed in astropy 0.4. "
-            "To change config settings, edit '{0}' directly.".
-            format(get_config_filename(self.module)))
-
-
-class ConfigAlias(ConfigItem):
-    """
-    A class that exists to support backward compatibility only.
-
-    This is an alias for a `ConfigItem` that has been moved elsewhere.
-    It inherits from `ConfigItem` only because it implements the same
-    interface, not because any of the methods are reused.
-
-    Parameters
-    ----------
-    since : str
-        The version in which the configuration item was moved.
-
-    old_name : str
-        The old name of the configuration item.  This should be the
-        name of the variable in Python, not in the configuration file.
-
-    new_name : str
-        The new name of the configuration item.  This is both the name
-        of the item in Python and in the configuration file (since as of
-        astropy 0.4, those are always the same thing).
-
-    old_module : str, optional
-        A fully-qualified, dot-separated path to the module in which
-        the configuration item used to be defined.  If not provided, it
-        is the name of the module in which `ConfigAlias` is called.
-
-    new_module : str, optional
-        A fully-qualified, dot-separated path to the module in which
-        the configuration item is now defined.  If not provided, it is
-        the name of the module in which `ConfigAlias` is called.  This
-        string should not contain the ``.conf`` object.  For example, if
-        the new configuration item is in ``astropy.conf.use_unicode``, this
-        value only needs to be ``'astropy'``.
-    """
-    # REMOVE in astropy 0.5
-
-    def __init__(self, since, old_name, new_name, old_module=None, new_module=None):
-        if old_module is None:
-            old_module = find_current_module(2)
-            if old_module is None:
-                msg1 = 'Cannot automatically determine get_config module, '
-                msg2 = 'because it is not called from inside a valid module'
-                raise RuntimeError(msg1 + msg2)
-            else:
-                old_module = old_module.__name__
-
-        if new_module is None:
-            new_module = old_module
-
-        self._since = since
-        self._old_name = old_name
-        self._new_name = new_name
-        self._old_module = old_module
-        self._new_module = new_module
-
-    def _deprecation_warning(self):
-        warn(
-            "Since {0}, config parameter '{1}.{2}' is deprecated. "
-            "Use '{3}.conf.{4}' instead.".format(
-                self._since,
-                self._old_module, self._old_name,
-                self._new_module, self._new_name),
-            AstropyDeprecationWarning)
-
-    def _get_target(self):
-        return resolve_name(self._new_module, 'conf')
-
-    def set(self, value):
-        self._deprecation_warning()
-        setattr(self._get_target(), self._new_name, value)
-
-    def set_temp(self, value):
-        self._deprecation_warning()
-        return self._get_target().set_temp(self._new_name, value)
-
-    def save(self, value=None):
-        self._deprecation_warning()
-        return self._get_target().save(value)
-
-    def reload(self):
-        self._deprecation_warning()
-        return self._get_target().reload(self._new_name)
-
-    def __repr__(self):
-        return repr(getattr(self._get_target().__class__, self._new_name))
-
-    def __str__(self):
-        return str(getattr(self._get_target().__class__, self._new_name))
-
-    def __call__(self):
-        self._deprecation_warning()
-        return getattr(self._get_target(), self._new_name)
-
-
 # this dictionary stores the master copy of the ConfigObj's for each
 # root package
 _cfgobjs = {}
@@ -698,16 +552,6 @@ def get_config(packageormod=None, reload=False):
         return cobj[secname]
     else:
         return cobj
-
-
-def save_config(packageormod=None, filename=None):
-    """
-    Removed in astropy 0.4.
-    """
-    raise NotImplementedError(
-        "The ability to save config options was removed in astropy 0.4. "
-        "To change config settings, edit '{0}' directly.".
-        format(get_config_filename(packageormod)))
 
 
 def reload_config(packageormod=None):
@@ -880,187 +724,4 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
     return False
 
 
-# DEPRECATED FUNCTIONALITY ----------------------------------------
-# Everything below this point should be removed in astropy 0.5
 
-def get_config_items(packageormod=None):
-    """ Returns the `ConfigurationItem` objects associated with a particular
-    module.
-
-    Parameters
-    ----------
-    packageormod : str or None
-        The package or module name or None to get the current module's items.
-
-    Returns
-    -------
-    configitems : dict
-        A dictionary where the keys are the name of the items as the are named
-        in the module, and the values are the associated `ConfigurationItem`
-        objects.
-
-    """
-
-    from ..utils import find_current_module
-
-    if packageormod is None:
-        packageormod = find_current_module(2)
-        if packageormod is None:
-            msg1 = 'Cannot automatically determine get_config module, '
-            msg2 = 'because it is not called from inside a valid module'
-            raise RuntimeError(msg1 + msg2)
-    elif isinstance(packageormod, six.string_types):
-        __import__(packageormod)
-        packageormod = sys.modules[packageormod]
-    elif inspect.ismodule(packageormod):
-        pass
-    else:
-        raise TypeError('packageormod in get_config_items is invalid')
-
-    configitems = {}
-    for n, obj in six.iteritems(packageormod.__dict__):
-        # if it's not a new-style object, it's certainly not a ConfigurationItem
-        if hasattr(obj, '__class__'):
-            fqn = obj.__class__.__module__ + '.' + obj.__class__.__name__
-            if fqn == 'astropy.config.configuration.ConfigurationItem':
-                configitems[n] = obj
-
-    return configitems
-
-
-def _fix_section_blank_lines(sec, recurse=True, gotoroot=True):
-    """
-    Adds a blank line to the comments of any sections in the requested sections,
-    recursing into subsections if `recurse` is True. If `gotoroot` is True,
-    this first goes to the root of the requested section, just like
-    `save_config` and `reload_config` - this does nothing if `sec` is a
-    configobj already.
-    """
-
-    if not hasattr(sec, 'sections'):
-        sec = get_config(sec)
-
-        # look for the section that is its own parent - that's the base object
-        if gotoroot:
-            while sec.parent is not sec:
-                sec = sec.parent
-
-    for isec, snm in enumerate(sec.sections):
-        comm = sec.comments[snm]
-        if len(comm) == 0 or comm[-1] != '':
-            if sec.parent is sec and isec == 0:
-                pass  # don't do it for first section
-            else:
-                comm.append('')
-        if recurse:
-            _fix_section_blank_lines(sec[snm], True, False)
-
-
-def _save_config(packageormod=None, filename=None):
-    """ Saves all configuration settings to the configuration file for the
-    root package of the requested package/module.
-
-    This overwrites any configuration items that have been changed in
-    `ConfigurationItem` objects that are based on the configuration file
-    determined by the *root* package of ``packageormod`` (e.g. 'astropy.cfg'
-    for the 'astropy.config.configuration' module).
-
-    .. note::
-        To save only a single item, use the `ConfigurationItem.save` method -
-        this will save all options in the current session that may have been
-        changed.
-
-    Parameters
-    ----------
-    packageormod : str or None
-        The package or module name - see `get_config` for details.
-
-    filename : str, optional
-        Save the config to a given filename instead of to the default location.
-
-    """
-
-    sec = get_config(packageormod)
-    # look for the section that is its own parent - that's the base object
-    while sec.parent is not sec:
-        sec = sec.parent
-    if filename is not None:
-        with io.open(filename, 'w', encoding='utf-8') as f:
-            sec.write(outfile=f)
-    else:
-        sec.write()
-
-
-def generate_all_config_items(pkgornm=None, reset_to_default=False,
-                              filename=None):
-    """ Given a root package name or package, this function walks
-    through all the subpackages and modules, which should populate any
-    ConfigurationItem objects defined at the module level. If
-    `reset_to_default` is True, it also sets all of the items to their default
-    values, regardless of what the file's value currently is. It then saves the
-    `ConfigObj`.
-
-    Parameters
-    ----------
-    pkgname : str, module, or None
-        The package for which to generate configuration items.  If None,
-        the package of the function that calls this one will be used.
-
-    reset_to_default : bool
-        If True, the configuration items will all be set to their defaults.
-
-    filename : str, optional
-        Save the generated config items to the given filename instead of to
-        the default config file path.
-
-    Returns
-    -------
-    cfgfn : str
-        The filename of the generated configuration item.
-
-    """
-
-    from ..utils import find_current_module
-
-    unsafe_import_regex = [r'.*.setup_package']
-    unsafe_import_regex = [('(' + pat + ')') for pat in _unsafe_import_regex]
-    unsafe_import_regex = re.compile('|'.join(_unsafe_import_regex))
-
-    if pkgornm is None:
-        pkgornm = find_current_module(1).__name__.split('.')[0]
-
-    if isinstance(pkgornm, six.string_types):
-        package = pkgutil.get_loader(pkgornm).load_module(pkgornm)
-    elif (isinstance(pkgornm, types.ModuleType) and
-            '__init__' in pkgornm.__file__):
-        package = pkgornm
-    else:
-        msg = 'generate_all_config_items was not given a package/package name'
-        raise TypeError(msg)
-
-    if hasattr(package, '__path__'):
-        pkgpath = package.__path__
-    elif hasattr(package, '__file__'):
-        pkgpath = path.split(package.__file__)[0]
-    else:
-        raise AttributeError('package to generate config items for does not '
-                             'have __file__ or __path__')
-
-    prefix = package.__name__ + '.'
-    for imper, nm, ispkg in pkgutil.walk_packages(pkgpath, prefix):
-        if nm == 'astropy.config.tests.test_configs':
-            continue
-        if not unsafe_import_regex.match(nm):
-            imper.find_module(nm)
-            if reset_to_default:
-                for cfgitem in six.itervalues(get_config_items(nm)):
-                    cfgitem.set(cfgitem.defaultvalue)
-
-    _fix_section_blank_lines(package.__name__, True, True)
-
-    _save_config(package.__name__, filename=filename)
-
-    if filename is None:
-        return get_config(package.__name__).filename
-    else:
-        return filename

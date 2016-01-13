@@ -929,7 +929,7 @@ def test_representation_str():
 
 
 def test_subclass_representation():
-    from ...utils import OrderedDict
+    from collections import OrderedDict
     from ..builtin_frames import ICRS
 
     class Longitude180(Longitude):

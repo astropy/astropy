@@ -4,11 +4,12 @@
 
 from __future__ import print_function  # For print debugging with python 2 or 3
 
+from collections import OrderedDict
+
 import numpy as np
 
 from ...tests.helper import pytest
 from ...table import Column, TableColumns
-from ...utils import OrderedDict
 
 
 class TestTableColumnsInit():

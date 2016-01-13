@@ -4,12 +4,12 @@
 
 import re
 from io import BytesIO
+from collections import OrderedDict
 
 import numpy as np
 
 from ....extern import six
 from ....extern.six.moves import cStringIO as StringIO
-from ....utils import OrderedDict
 from ....tests.helper import pytest
 from ... import ascii
 from ....table import Table

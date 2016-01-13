@@ -17,9 +17,9 @@ from __future__ import (absolute_import, division, print_function,
 # STDLIB
 import warnings
 from xml.dom import minidom
+from collections import OrderedDict
 
 # LOCAL
-from ...utils import OrderedDict  # For 2.6 compatibility
 from ...utils.data import get_readable_fileobj
 from ...utils.exceptions import AstropyUserWarning
 

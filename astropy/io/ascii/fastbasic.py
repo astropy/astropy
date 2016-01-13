@@ -1,12 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import re
+from collections import OrderedDict
+
 from . import core
 from ...extern import six
 from ...table import Table
 from . import cparser
 from ...extern.six.moves import zip as izip
-from ...utils import OrderedDict
-import re
 
 @six.add_metaclass(core.MetaBaseReader)
 class FastBasic(object):

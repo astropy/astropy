@@ -5,8 +5,8 @@ writing all the meta data associated with an astropy Table object.
 """
 
 import re
+from collections import OrderedDict
 
-from ...utils import OrderedDict
 from ...extern import six
 
 from . import core, basic

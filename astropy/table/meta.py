@@ -1,7 +1,7 @@
 import textwrap
 import copy
+from collections import OrderedDict
 
-from ..utils import OrderedDict
 from ..extern import six
 
 

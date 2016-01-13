@@ -18,6 +18,7 @@ import functools
 import numpy
 import warnings
 import copy
+from collections import OrderedDict
 
 from ...extern import six
 from ...extern.six.moves import zip
@@ -27,7 +28,6 @@ from ...utils.exceptions import AstropyWarning
 from ...table import Table
 from ...utils.compat import ignored
 from ...utils.data import get_readable_fileobj
-from ...utils import OrderedDict
 from . import connect
 
 # Global dictionary mapping format arg to the corresponding Reader class

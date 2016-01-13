@@ -22,16 +22,10 @@ from . import exceptions
 from . import tree
 from ...utils.xml import iterparser
 from ...utils import data
-from ...config import ConfigAlias
 
 
 __all__ = ['parse', 'parse_single_table', 'from_table', 'writeto', 'validate',
            'reset_vo_warnings']
-
-
-PEDANTIC = ConfigAlias(
-    '0.4', 'PEDANTIC', 'pedantic',
-    'astropy.io.votable.table', 'astropy.io.votable')
 
 
 def parse(source, columns=None, invalid='exception', pedantic=None,

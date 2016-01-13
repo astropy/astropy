@@ -3,8 +3,8 @@ This file tests the behaviour of subclasses of Representation and Frames
 """
 
 from copy import deepcopy
+from collections import OrderedDict
 
-from astropy.utils.compat.odict import OrderedDict
 from astropy.coordinates import Longitude, Latitude
 from astropy.coordinates.representation import (REPRESENTATION_CLASSES,
                                                 SphericalRepresentation,

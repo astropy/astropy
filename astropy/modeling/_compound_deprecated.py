@@ -14,11 +14,11 @@ from __future__ import (absolute_import, unicode_literals, division,
 import functools
 import operator
 import warnings
+from collections import OrderedDict
 
 import numpy as np
 
 from ..utils import deprecated, indent
-from ..utils.compat.odict import OrderedDict
 from ..utils.exceptions import AstropyDeprecationWarning
 from .core import Model
 

@@ -9,6 +9,7 @@ from .index import QueryError, TableIndices, TableLoc, TableILoc
 
 import re
 import sys
+from collections import OrderedDict
 
 from copy import deepcopy
 
@@ -18,7 +19,7 @@ from numpy import ma
 from .. import log
 from ..io import registry as io_registry
 from ..units import Quantity
-from ..utils import OrderedDict, isiterable, deprecated, minversion
+from ..utils import isiterable, deprecated, minversion
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
 from ..utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo
