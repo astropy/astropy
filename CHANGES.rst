@@ -55,6 +55,9 @@ New Features
 
 - ``astropy.utils``
 
+  - The astropy.utils.compat.subprocess module has now been deprecated. Use the
+    Python 'subprocess' module instead. [#4483]
+
 - ``astropy.visualization``
 
 - ``astropy.vo``

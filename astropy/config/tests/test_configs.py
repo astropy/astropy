@@ -10,7 +10,7 @@ import sys
 
 from ...tests.helper import catch_warnings
 from ...extern import six
-from ...utils.compat import subprocess
+import subprocess
 
 from ...utils.data import get_pkg_data_filename
 from .. import configuration
