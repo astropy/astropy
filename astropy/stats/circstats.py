@@ -380,7 +380,7 @@ def vtest(data, w=None, mu=0.0, axis=None):
 
     pz = norm.cdf(z)
     fz = norm.pdf(z)
-    
+
     # see reference [3]
     p_value = 1 - pz + fz*((3*z - z**3)/(16.0*n) + (15*z + 305*z**3 - 125*z**5
         + 9*z**7)/(4608.0*n*n))
