@@ -1527,7 +1527,7 @@ class Header(object):
 
         ignore_missing : bool, optional
             When True, ignores missing keywords.  Otherwise, if the keyword is not present
-            in the header a `KeyError` is raised.
+            in the header a KeyError is raised.
 
         all : bool, optional
             When True, all instances of keyword will be removed.
