@@ -2,6 +2,7 @@
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+import os
 from ... import log
 from ...io.fits import getdata
 from ..ui import scale_image
@@ -76,14 +77,11 @@ def fits2bitmap(filename, ext=0, out_fn=None, scale='linear',
 
     image = getdata(filename, ext)
     if out_fn is None:
-        if filename.endswith('fits.gz'):
-            out_fn = filename.replace('.fits.gz', '.png')
-        elif filename.endswith('fits.bz2'):
-            out_fn = filename.replace('.fits.bz2', '.png')
-        elif filename.endswith('fits.zip'):
-            out_fn = filename.replace('.fits.zip', '.png')
-        else:
-            out_fn = filename.replace('.fits', '.png')
+        out_fn = os.path.splitext(filename)[0]
+        if out_fn.endswith('.fits'):
+            out_fn = os.path.splitext(out_fn)[0]
+        out_fn += '.png'
+
     if cmap not in cm.datad.keys():
         log.critical('{0} is not a valid matplotlib colormap '
                      'name'.format(cmap))
