@@ -1535,17 +1535,13 @@ class Header(object):
 
         """
         keyword = Card.normalize_keyword(keyword)
-        try:
-            if keyword not in self._keyword_indices:
-                raise KeyError("Keyword '%s' not in the header." % keyword)
-
+        if keyword in self._keyword_indices:
             del self[self._keyword_indices[keyword][0]]
             if all:
                 while keyword in self._keyword_indices:
                     del self[self._keyword_indices[keyword][0]]
-        except KeyError:
-            if not ignore_missing:
-                raise
+        elif not ignore_missing:
+            raise KeyError("Keyword '%s' not found." % keyword)
 
 
     def rename_keyword(self, oldkeyword, newkeyword, force=False):
