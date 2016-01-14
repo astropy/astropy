@@ -315,8 +315,12 @@ class lazyproperty(object):
     the ``print`` statement is not executed.  Only the return value from the
     first access off ``complicated_property`` is returned.
 
-    If a setter for this property is defined, it will still be possible to
-    manually update the value of the property, if that capability is desired.
+    By default, a setter and deleter are used which simply overwrite and
+    delete, respectively, the value stored in ``__dict__``. Any user-specified
+    setter or deleter is executed before executing these default actions.
+    The one exception is that the default setter is not run if the user setter
+    already sets the new value in ``__dict__`` and returns that value and the
+    returned value is not ``None``.
 
     Adapted from the recipe at
     http://code.activestate.com/recipes/363602-lazy-property-evaluation
