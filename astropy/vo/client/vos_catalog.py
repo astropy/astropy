@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Common utilities for accessing VO simple services."""
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 from ...extern import six
 from ...extern.six.moves import urllib
 
@@ -16,12 +17,15 @@ from collections import defaultdict
 from copy import deepcopy
 
 # LOCAL
-from .exceptions import VOSError, MissingCatalog, DuplicateCatalogName, DuplicateCatalogURL, InvalidAccessURL
-from ...io.votable import parse_single_table, table, tree, conf
-
+from .exceptions import (VOSError, MissingCatalog, DuplicateCatalogName,
+                         DuplicateCatalogURL, InvalidAccessURL)
+from .. import conf as vo_conf
+from ...io.votable import parse_single_table, table, tree
+from ...io.votable import conf as votable_conf
 from ...io.votable.exceptions import vo_raise, vo_warn, E19, W24, W25
 from ...utils.console import color_print
 from ...utils.data import get_readable_fileobj
+from ...utils.data import conf as data_conf
 from ...utils.exceptions import AstropyUserWarning
 from ...utils.misc import JsonCustomEncoder
 from ...utils.xml.unescaper import unescape_all
@@ -539,7 +543,7 @@ class VOSDatabase(VOSBase):
 
         """
         # Download registry as VO table
-        with conf.set_temp('remote_timeout', timeout):
+        with data_conf.set_temp('remote_timeout', timeout):
             with get_readable_fileobj(registry_url, **kwargs) as fd:
                 tab_all = parse_single_table(fd, pedantic=False)
 
@@ -628,10 +632,8 @@ def get_remote_catalog_db(dbname, cache=True, verbose=True):
         A database of VO services.
 
     """
-    from .. import conf
-
     return VOSDatabase.from_json(
-        urllib.parse.urljoin(conf.vos_baseurl, dbname + '.json'),
+        urllib.parse.urljoin(vo_conf.vos_baseurl, dbname + '.json'),
         encoding='utf8', cache=cache,
         show_progress=verbose)
 
@@ -843,7 +845,7 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
                              verbose=verbose)
 
     if pedantic is None:  # pragma: no cover
-        pedantic = conf.pedantic
+        pedantic = votable_conf.pedantic
 
     for name, catalog in catalogs:
         if isinstance(catalog, six.string_types):

@@ -33,7 +33,7 @@ New Features
 - ``astropy.nddata``
 
 - ``astropy.stats``
- 
+
   - Added ``jackknife`` resampling method. [#3708]
 
   - Updated ``bootstrap`` to allow bootstrapping statistics with multiple
@@ -175,6 +175,7 @@ Bug fixes
 
   - The astropy.utils.compat.fractions module has now been deprecated. Use the
     Python 'fractions' module directly instead. [#4463]
+  - Fixed configuration item using old format in test. [#4491]
 
 - ``astropy.visualization``
 
@@ -182,6 +183,7 @@ Bug fixes
 
   - Relaxed expected accuracy of Cone Search prediction test to reduce spurious
     failures. [#4382]
+  - Fixed configuration item using old format in the validator. [#4491]
 
 - ``astropy.wcs``
 
