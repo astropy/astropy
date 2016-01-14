@@ -9,6 +9,7 @@ import tempfile
 import warnings
 import zipfile
 import bz2
+import gzip
 
 from functools import reduce
 
@@ -17,10 +18,9 @@ from numpy import memmap as Memmap
 
 from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
                    fileobj_closed, fileobj_mode, _array_from_file,
-                   _array_to_file, _write_string, _GZIP_FILE_TYPES)
+                   _array_to_file, _write_string)
 from ...extern.six import b, string_types
 from ...extern.six.moves import urllib
-from ...utils.compat import gzip
 from ...utils.data import download_file, _is_url
 from ...utils.decorators import classproperty
 from ...utils.exceptions import AstropyUserWarning
@@ -144,7 +144,7 @@ class _File(object):
 
         self.fileobj_mode = fileobj_mode(self._file)
 
-        if isinstance(fileobj, _GZIP_FILE_TYPES):
+        if isinstance(fileobj, gzip.GzipFile):
             self.compression = 'gzip'
         elif isinstance(fileobj, zipfile.ZipFile):
             # Reading from zip files is supported but not writing (yet)
@@ -311,7 +311,7 @@ class _File(object):
         # present, we implement our own support for it here
         if not hasattr(self._file, 'seek'):
             return
-        if isinstance(self._file, _GZIP_FILE_TYPES):
+        if isinstance(self._file, gzip.GzipFile):
             if whence:
                 if whence == 1:
                     offset = self._file.offset + offset
@@ -576,4 +576,4 @@ def _is_random_access_file_backed(fileobj):
     from an already opened `zipfile.ZipFile` object.
     """
 
-    return isfile(fileobj) or isinstance(fileobj, _GZIP_FILE_TYPES)
+    return isfile(fileobj) or isinstance(fileobj, gzip.GzipFile)

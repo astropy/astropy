@@ -116,6 +116,9 @@ API changes
   - The astropy.utils.compat.odict module has now been deprecated. Use the
     Python 'collections' module directly instead. [#4466]
 
+  - The astropy.utils.compat.gzip module has now been deprecated. Use the
+    Python 'gzip' module directly instead. [#4464]
+
   - The deprecated ``ScienceStateAlias`` class has been removed. [#2767, #4446]
 
 - ``astropy.visualization``

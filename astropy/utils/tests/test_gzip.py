@@ -1,22 +1,13 @@
-# Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
-import io
-
-from ...extern import six
-from ...tests.helper import pytest
-from ..compat import gzip
+from ...tests.helper import catch_warnings
+from ..exceptions import AstropyDeprecationWarning
 
 
-pytestmark = pytest.mark.skipif(str("six.PY2"))
+def test_import_warning():
 
+    with catch_warnings() as w:
+        from ..compat import gzip
 
-def test_gzip(tmpdir):
-    fd = gzip.GzipFile(str(tmpdir.join("test.gz")), 'wb')
-    fd = io.TextIOWrapper(fd, encoding='utf8')
-
-
-def test_gzip2(tmpdir):
-    with gzip.GzipFile(str(tmpdir.join("test.gz")), 'wb') as fd:
-        pass
+    assert len(w) == 1
+    assert w[0].category == AstropyDeprecationWarning
+    assert w[0].message.args[0] == ("astropy.utils.compat.gzip is now deprecated "
+                                    "- use the gzip module directly instead")
