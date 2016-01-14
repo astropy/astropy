@@ -113,6 +113,9 @@ Bug Fixes
 
 - ``astropy.modeling``
 
+  - Fixed display of compound model expressions and components when printing
+    compound model instances. [#4414]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
