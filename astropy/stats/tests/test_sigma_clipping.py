@@ -122,4 +122,3 @@ def test_invalid_sigma_clip():
     assert result.mask[2, 2] == True
     assert result.mask[3, 4] == True
     assert result.mask[1, 1] == True
-

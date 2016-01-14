@@ -47,4 +47,3 @@ def test_reconnect(samp_hub):
     my_client.connect()
     my_client.disconnect()
     my_client.connect()
-

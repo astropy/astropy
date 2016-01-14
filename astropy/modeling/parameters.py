@@ -388,7 +388,7 @@ class Parameter(OrderedDescriptor):
 
         if self._model is not None:
             if not six.callable(value) and value not in (False, None):
-                    raise TypeError("Tied must be a callable")
+                raise TypeError("Tied must be a callable")
             self._model._constraints['tied'][self._name] = value
         else:
             raise AttributeError("can't set attribute 'tied' on Parameter "
@@ -412,12 +412,12 @@ class Parameter(OrderedDescriptor):
             _min, _max = value
             if _min is not None:
                 if not isinstance(_min, numbers.Number):
-                        raise TypeError("Min value must be a number")
+                    raise TypeError("Min value must be a number")
                 _min = float(_min)
 
             if _max is not None:
                 if not isinstance(_max, numbers.Number):
-                        raise TypeError("Max value must be a number")
+                    raise TypeError("Max value must be a number")
                 _max = float(_max)
 
             bounds = self._model._constraints.setdefault('bounds', {})

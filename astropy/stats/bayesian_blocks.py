@@ -511,4 +511,3 @@ class PointMeasures(FitnessFunc):
         if x is None:
             raise ValueError("x must be specified for point measures")
         return super(PointMeasures, self).validate_input(t, x, sigma)
-

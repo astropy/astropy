@@ -243,4 +243,3 @@ def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
         representation = CartesianRepresentation(x=x*c.unit, y=y*c.unit, z=z*c.unit)
 
     return fk4frame.realize_frame(representation)
-

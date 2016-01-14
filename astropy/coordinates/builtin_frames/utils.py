@@ -144,4 +144,3 @@ def get_jd12(time, scale):
             newtime = time
 
     return newtime.jd1, newtime.jd2
-

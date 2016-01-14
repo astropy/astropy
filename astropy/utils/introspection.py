@@ -404,4 +404,3 @@ if six.PY3:
 else:
     def _isinstancemethod(cls, obj):
         return isinstance(obj, types.MethodType) and obj.im_class is cls
-

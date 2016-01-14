@@ -132,8 +132,8 @@ class Angle(u.Quantity):
             raise u.UnitsError("Unit {0} is not an angle".format(self.unit))
 
         if self.dtype.kind not in 'iuf':
-                raise TypeError("Unsupported dtype for "
-                                "Angle:'{0}'".format(angle.dtype))
+            raise TypeError("Unsupported dtype for "
+                            "Angle:'{0}'".format(angle.dtype))
 
         return self
 

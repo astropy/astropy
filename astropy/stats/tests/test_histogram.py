@@ -141,5 +141,3 @@ def test_histogram_badargs(N=1000, rseed=0):
     # bad bins arg gives ValueError
     with pytest.raises(ValueError):
         histogram(x, bins='bad_argument')
-
-

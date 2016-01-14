@@ -722,6 +722,3 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
             return True
 
     return False
-
-
-

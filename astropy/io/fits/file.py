@@ -117,7 +117,7 @@ class _File(object):
         if (isinstance(fileobj, string_types) and
             mode not in ('ostream', 'append') and
             _is_url(fileobj)): # This is an URL.
-                self.name = download_file(fileobj, cache=cache)
+            self.name = download_file(fileobj, cache=cache)
         else:
             self.name = fileobj_name(fileobj)
 

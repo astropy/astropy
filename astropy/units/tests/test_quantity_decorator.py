@@ -192,4 +192,3 @@ def test_kwargs_extra():
     assert isinstance(solarx, u.Quantity)
 
     assert solarx.unit == u.deg
-
