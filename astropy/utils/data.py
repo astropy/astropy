@@ -87,11 +87,10 @@ def _is_url(string):
         The string to test
     """
     url = urllib.parse.urlparse(string)
-    # url[0]==url.scheme, but url[0] is py 2.6-compat
-    # we can't just check that url[0] is not an empty string, because
+    # we can't just check that url.scheme is not an empty string, because
     # file paths in windows would return a non-empty scheme (e.g. e:\\
     # returns 'e').
-    return url[0].lower() in ['http', 'https', 'ftp', 'sftp', 'ssh', 'file']
+    return url.scheme.lower() in ['http', 'https', 'ftp', 'sftp', 'ssh', 'file']
 
 
 def _is_inside(path, parent_path):

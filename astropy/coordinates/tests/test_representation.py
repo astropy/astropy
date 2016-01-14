@@ -520,23 +520,15 @@ class TestCartesianRepresentation(object):
         assert_allclose(s1.z.value, 3)
 
     def test_init_one_array_size_fail(self):
-
         with pytest.raises(ValueError) as exc:
             s1 = CartesianRepresentation(x=[1, 2, 3, 4] * u.pc)
-
-        # exception text differs on Python 2 and Python 3
-        if hasattr(exc.value, 'args'):
-            assert exc.value.args[0].startswith("too many values to unpack")
-        else:
-            #py 2.6 doesn't have `args`
-            assert exc.value == 'too many values to unpack'
+        assert exc.value.args[0].startswith("too many values to unpack")
 
     def test_init_one_array_yz_fail(self):
-
         with pytest.raises(ValueError) as exc:
             s1 = CartesianRepresentation(x=[1, 2, 3, 4] * u.pc, y=[1, 2] * u.pc)
-
-        assert exc.value.args[0] == "x, y, and z are required to instantiate CartesianRepresentation"
+        assert exc.value.args[0] == ("x, y, and z are required to instantiate "
+                                     "CartesianRepresentation")
 
     def test_init_array_nocopy(self):
 

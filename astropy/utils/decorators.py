@@ -93,24 +93,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         the function object.
         """
         if isinstance(func, method_types):
-            try:
-                func = func.__func__
-            except AttributeError:
-                # classmethods in Python2.6 and below lack the __func__
-                # attribute so we need to hack around to get it
-                method = func.__get__(None, object)
-                if isinstance(method, types.FunctionType):
-                    # For staticmethods anyways the wrapped object is just a
-                    # plain function (not a bound method or anything like that)
-                    func = method
-                elif hasattr(method, '__func__'):
-                    func = method.__func__
-                elif hasattr(method, 'im_func'):
-                    func = method.im_func
-                else:
-                    # Nothing we can do really...  just return the original
-                    # classmethod, etc.
-                    return func
+            func = func.__func__
         return func
 
     def deprecate_function(func, message):
@@ -589,38 +572,8 @@ class sharedmethod(classmethod):
         this implements the Example.identify classmethod
     """
 
-    if sys.version_info[:2] < (2, 7):
-        # Workaround for Python 2.6 which does not have classmethod.__func__
-        @property
-        def __func__(self):
-            try:
-                meth = classmethod.__get__(self, self.__obj__,
-                                           self.__objtype__)
-            except AttributeError:
-                # self.__obj__ not set when called from __get__, but then it
-                # doesn't matter anyways
-                meth = classmethod.__get__(self, None, object)
-            return meth.__func__
-
-        def __getobjwrapper(orig_get):
-            """
-            Used to temporarily set/unset self.__obj__ and self.__objtype__
-            for use by __func__.
-            """
-            def __get__(self, obj, objtype=None):
-                self.__obj__ = obj
-                self.__objtype__ = objtype
-
-                try:
-                    return orig_get(self, obj, objtype)
-                finally:
-                    del self.__obj__
-                    del self.__objtype__
-
-            return __get__
-    else:
-        def __getobjwrapper(func):
-            return func
+    def __getobjwrapper(func):
+        return func
 
     @__getobjwrapper
     def __get__(self, obj, objtype=None):

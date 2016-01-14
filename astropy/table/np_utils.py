@@ -16,7 +16,7 @@ from ..utils.decorators import deprecated
 
 from itertools import chain
 import collections
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 
 import numpy as np
 import numpy.ma as ma
@@ -32,17 +32,6 @@ DEPRECATION_MESSAGE = ('The %(func)s %(obj_type)s is deprecated and may '
 
 class TableMergeError(ValueError):
     pass
-
-
-def _counter(iterable):
-    """
-    Count instances of each unique value in ``iterable``.  Returns a dict
-    with the counts.  Would use collections.Counter but this isn't available in 2.6.
-    """
-    counts = collections.defaultdict(int)
-    for val in iterable:
-        counts[val] += 1
-    return counts
 
 
 def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name}',
@@ -88,7 +77,7 @@ def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name
             col_name_map[out_name][idx] = name
 
     # Check for duplicate output column names
-    col_name_count = _counter(col_name_list)
+    col_name_count = Counter(col_name_list)
     repeated_names = [name for name, count in six.iteritems(col_name_count) if count > 1]
     if repeated_names:
         raise TableMergeError('Merging column names resulted in duplicates: {0}.  '
