@@ -24,9 +24,10 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 
     This routine differs from `scipy.ndimage.filters.convolve` because
     it includes a special treatment for ``NaN`` values. Rather than
-    including ``NaN``s in the convolution calculation, which causes large
-    ``NaN`` holes in the convolved image, ``NaN`` values are replaced with
-    interpolated values using the kernel as an interpolation function.
+    including ``NaN`` values in the array in the convolution calculation, which
+    causes large ``NaN`` holes in the convolved array, ``NaN`` values are
+    replaced with interpolated values using the kernel as an interpolation
+    function.
 
     Parameters
     ----------
