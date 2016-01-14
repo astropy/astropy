@@ -338,6 +338,12 @@ class TestColumn():
         with pytest.raises(ValueError):
             c1 = c.insert(1, [100, 200], mask=[True, False, True])
 
+    def test_mask_on_non_masked_column(self):
+        col = table.Column(name='a', data=[1, 2, 3])
+        assert not hasattr(col, 'mask')
+        with pytest.raises(AttributeError):
+            col.mask = [True, False, True]
+            raise AttributeError
 
 class TestAttrEqual():
     """Bunch of tests originally from ATpy that test the attrs_equal method."""
