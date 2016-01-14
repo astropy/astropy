@@ -213,4 +213,3 @@ def _convert_to_and_validate_length_unit(unit, allow_dimensionless=False):
         raise u.UnitsError('Unit "{0}" is not a length type'.format(unit))
 
     return unit
-

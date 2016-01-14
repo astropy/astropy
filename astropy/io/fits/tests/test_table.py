@@ -2758,4 +2758,3 @@ class TestColumnFunctions(FitsTestCase):
         assert table.data.dtype.names == ('foo',)
         assert table.columns.names == ['foo']
         assert table.data.columns.names == ['foo']
-

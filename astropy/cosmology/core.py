@@ -2942,4 +2942,3 @@ class default_cosmology(ScienceState):
             return value
         else:
             raise TypeError("default_cosmology must be a string or Cosmology instance.")
-

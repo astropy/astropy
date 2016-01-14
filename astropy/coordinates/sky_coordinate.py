@@ -1406,8 +1406,8 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             allunitsphrepr = True
             for sc in scs[1:]:
                 if not sc.is_equivalent_frame(scs[0]):
-                        raise ValueError("List of inputs don't have equivalent "
-                                         "frames: {0} != {1}".format(sc, scs[0]))
+                    raise ValueError("List of inputs don't have equivalent "
+                                     "frames: {0} != {1}".format(sc, scs[0]))
                 if allunitsphrepr and not isinstance(sc.data, UnitSphericalRepresentation):
                     allunitsphrepr = False
 

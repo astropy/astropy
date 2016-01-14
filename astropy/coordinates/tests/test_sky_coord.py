@@ -69,13 +69,13 @@ rt_sets = []
 rt_frames = [ICRS, FK4, FK5, Galactic]
 for rt_frame0 in rt_frames:
     for rt_frame1 in rt_frames:
-            for equinox0 in (None, 'J1975.0'):
-                for obstime0 in (None, 'J1980.0'):
-                    for equinox1 in (None, 'J1975.0'):
-                        for obstime1 in (None, 'J1980.0'):
-                            rt_sets.append((rt_frame0, rt_frame1,
-                                            equinox0, equinox1,
-                                            obstime0, obstime1))
+        for equinox0 in (None, 'J1975.0'):
+            for obstime0 in (None, 'J1980.0'):
+                for equinox1 in (None, 'J1975.0'):
+                    for obstime1 in (None, 'J1980.0'):
+                        rt_sets.append((rt_frame0, rt_frame1,
+                                        equinox0, equinox1,
+                                        obstime0, obstime1))
 rt_args = ('frame0','frame1','equinox0','equinox1','obstime0','obstime1')
 
 

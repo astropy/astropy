@@ -122,4 +122,3 @@ def test_blackbody_array_temperature():
 
     flux = blackbody_nu(np.ones((3, 4)) * u.mm, np.ones(4) * u.K)
     assert flux.shape == (3, 4)
-
