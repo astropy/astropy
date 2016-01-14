@@ -130,11 +130,11 @@ else:
 # Additional relax bit flags
 WCSHDO_SIP = 0x10000
 
-# Regular expression defining SIP keyword
-# It matches keyword that starts with A, B, AP or B, followed by an underscore then
-# a number in range of 0-19, followed by an underscore and another number
-# in range of 0-19. Keyword optionally ends with a capital letter.
-SIP_KW = re.compile('''^(A|B|AP|BP)_(?:[0-9]|1[0-9])_(?:[0-9]|1[0-9])(|[A-Z])$''')
+# Regular expression defining SIP keyword It matches keyword that starts with A
+# or B, optionally followed by P, followed by an underscore then a number in
+# range of 0-19, followed by an underscore and another number in range of 0-19.
+# Keyword optionally ends with a capital letter.
+SIP_KW = re.compile('''^[AB]P?_1?[0-9]_1?[0-9][A-Z]?$''')
 
 def _parse_keysel(keysel):
     keysel_flags = 0
