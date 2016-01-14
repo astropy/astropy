@@ -36,7 +36,8 @@ Contents of ``/astropy/somepackage/somemod.py`` ::
                 ...do something else...
 
     def main(args=None):
-        from astropy.utils.compat import argparse
+        
+        import argparse
 
         parser = argparse.ArgumentParser(description='Process some integers.')
         parser.add_argument('-o', '--option', dest='op',action='store_true',

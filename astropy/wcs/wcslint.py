@@ -7,7 +7,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 def main(args=None):
     from . import wcs
-    from astropy.utils.compat import argparse
+    import argparse
 
     parser = argparse.ArgumentParser(
         description=("Check the WCS keywords in a FITS file for "
