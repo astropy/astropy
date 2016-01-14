@@ -472,7 +472,7 @@ def conesearch_timer(*args, **kwargs):
 
 
 def _local_conversion(func, x):
-    """Try ``func(x)`` and replace `~.exceptions.ValueError` with
+    """Try ``func(x)`` and replace `ValueError` with
     ``ConeSearchError``."""
     try:
         y = func(x)
