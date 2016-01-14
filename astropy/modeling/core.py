@@ -1528,8 +1528,7 @@ class _CompoundModelMeta(_ModelMeta):
             return cls._format_cls_repr()
 
         expression = cls._format_expression()
-        components = '\n\n'.join('[{0}]: {1!r}'.format(idx, m)
-                                 for idx, m in enumerate(cls._get_submodels()))
+        components = cls._format_components()
         keywords = [
             ('Expression', expression),
             ('Components', '\n' + indent(components))
@@ -1949,6 +1948,10 @@ class _CompoundModelMeta(_ModelMeta):
         # albeit with more formatting options
         return cls._tree.format_expression(OPERATOR_PRECEDENCE)
 
+    def _format_components(cls):
+        return '\n\n'.join('[{0}]: {1!r}'.format(idx, m)
+                                 for idx, m in enumerate(cls._get_submodels()))
+
     def _normalize_index(cls, index):
         """
         Converts an index given to __getitem__ to either an integer, or
@@ -2080,6 +2083,15 @@ class _CompoundModel(Model):
     col_fit_deriv = False
 
     _submodels = None
+
+    def __str__(self):
+        expression = self._format_expression()
+        components = self._format_components()
+        keywords = [
+            ('Expression', expression),
+            ('Components', '\n' + indent(components))
+        ]
+        return super(_CompoundModel, self)._format_str(keywords=keywords)
 
     def __getattr__(self, attr):
         value = getattr(self.__class__, attr)
