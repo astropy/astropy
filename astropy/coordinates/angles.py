@@ -472,7 +472,7 @@ class Latitude(Angle):
       -90.0 * u.deg <= angle(s) <= +90.0 * u.deg
 
     Any attempt to set a value outside that range will result in a
-    `~.exceptions.ValueError`.
+    `ValueError`.
 
     The input angle(s) can be specified either as an array, list,
     scalar, tuple (see below), string,

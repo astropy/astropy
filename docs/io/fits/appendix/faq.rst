@@ -110,7 +110,7 @@ occurred and the path through the code that led to it.
 
 As Astropy is meant to be used as a piece in other software projects, some
 exceptions raised by Astropy are by design.  For example, one of the most
-common exceptions is a `~.exceptions.KeyError` when an attempt is made to read
+common exceptions is a `KeyError` when an attempt is made to read
 the value of a non-existent keyword in a header::
 
     >>> from astropy.io import fits

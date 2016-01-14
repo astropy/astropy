@@ -317,7 +317,7 @@ class WCS(WCSBase):
        two dimensional.  Therefore, if you try to create a WCS object
        where the core WCS has a different number of dimensions than 2
        and that object also contains a `distortion paper`_ lookup
-       table or `SIP`_ distortion, a `~.exceptions.ValueError`
+       table or `SIP`_ distortion, a `ValueError`
        exception will be raised.  To avoid this, consider using the
        *naxis* kwarg to select two dimensions from the core WCS.
 

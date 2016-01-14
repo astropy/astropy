@@ -1199,7 +1199,7 @@ class Time(object):
             ``astropy.utils.iers``)
         return_status : bool
             Whether to return status values.  If `False` (default), iers
-            raises `~.exceptions.IndexError` if any time is out of the range
+            raises `IndexError` if any time is out of the range
             covered by the IERS table.
 
         Returns

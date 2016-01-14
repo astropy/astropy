@@ -426,7 +426,7 @@ class Header(object):
         endcard : bool, optional
             If True (the default) the header must end with an END card in order
             to be considered valid.  If an END card is not found an
-            `~.exceptions.IOError` is raised.
+            `IOError` is raised.
 
         padding : bool, optional
             If True (the default) the header will be required to be padded out
@@ -1559,7 +1559,7 @@ class Header(object):
         force : bool, optional
             When `True`, if the new keyword already exists in the header, force
             the creation of a duplicate keyword. Otherwise a
-            `~.exceptions.ValueError` is raised.
+            `ValueError` is raised.
         """
 
         oldkeyword = Card.normalize_keyword(oldkeyword)
