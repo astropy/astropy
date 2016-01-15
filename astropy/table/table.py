@@ -857,9 +857,17 @@ class Table(object):
             else:
                 print(line)
 
+    def _make_index_row_display_table(self, index_row_name):
+        if index_row_name not in self.columns:
+            idx_col = self.ColumnClass(name=index_row_name, data=np.arange(len(self)))
+            return self.__class__([idx_col] + self.columns.values(),
+                                           copy=False)
+        else:
+            return self
+
     def show_in_notebook(self, tableid=None, css=None, display_length=50,
                          table_class='table table-striped table-bordered '
-                         'table-condensed'):
+                         'table-condensed', show_row_index='idx'):
         """Render the table in HTML and show it in the IPython notebook.
 
         Parameters
@@ -878,7 +886,14 @@ class Table(object):
             A valid CSS string declaring the formatting for the table. Default
             to ``astropy.table.jsviewer.DEFAULT_CSS_NB``.
         display_length : int, optional
-            Number or rows to show. Default to 50.
+            Number or rows to show. Defaults to 50.
+        show_row_index : str or False
+            If this does not evaulate to False, a column with the given name
+            will be added to the version of the table that gets displayed.
+            This new column shows the index of the row in the table itself,
+            even when the displayed table is re-sorted by another column. Note
+            that if a column with this name already exists, this option will be
+            ignored. Defaults to "idx".
 
         Notes
         -----
@@ -897,24 +912,26 @@ class Table(object):
                                             np.random.randint(1, 1e6))
 
         jsv = JSViewer(display_length=display_length)
-        html = self._base_repr_(html=True, max_width=-1, tableid=tableid,
-                                max_lines=-1, show_dtype=False,
-                                tableclass=table_class)
+        if show_row_index:
+            display_table = self._make_index_row_display_table(show_row_index)
+        else:
+            display_table = self
+        html = display_table._base_repr_(html=True, max_width=-1, tableid=tableid,
+                                         max_lines=-1, show_dtype=False,
+                                         tableclass=table_class)
+
         html += jsv.ipynb(tableid, css=css)
         return HTML(html)
 
     def show_in_browser(self, max_lines=5000, jsviewer=False,
                         browser='default', jskwargs={'use_local_files': True},
                         tableid=None, table_class="display compact",
-                        css=None):
+                        css=None, show_row_index=True):
 
         """Render the table in HTML and show it in a web browser.
 
         Parameters
         ----------
-        css : string
-            A valid CSS string declaring the formatting for the table. Default
-            to ``astropy.table.jsviewer.DEFAULT_CSS``.
         max_lines : int
             Maximum number of rows to export to the table (set low by default
             to avoid memory issues, since the browser view requires duplicating
@@ -924,8 +941,13 @@ class Table(object):
             If `True`, prepends some javascript headers so that the table is
             rendered as a `DataTables <https://datatables.net>`_ data table.
             This allows in-browser searching & sorting.
+        browser : str
+            Any legal browser name, e.g. ``'firefox'``, ``'chrome'``,
+            ``'safari'`` (for mac, you may need to use ``'open -a
+            "/Applications/Google Chrome.app" %s'`` for Chrome).  If
+            ``'default'``, will use the system default browser.
         jskwargs : dict
-            Passed to the `astropy.table.JSViewer` init. Default to
+            Passed to the `astropy.table.JSViewer` init. Defaults to
             ``{'use_local_files': True}`` which means that the JavaScript
             libraries will be served from local copies.
         tableid : str or `None`
@@ -935,11 +957,16 @@ class Table(object):
             A string with a list of HTML classes used to style the table.
             Default is "display compact", and other possible values can be
             found in http://www.datatables.net/manual/styling/classes
-        browser : str
-            Any legal browser name, e.g. ``'firefox'``, ``'chrome'``,
-            ``'safari'`` (for mac, you may need to use ``'open -a
-            "/Applications/Google Chrome.app" %s'`` for Chrome).  If
-            ``'default'``, will use the system default browser.
+        css : string
+            A valid CSS string declaring the formatting for the table. Defaults
+            to ``astropy.table.jsviewer.DEFAULT_CSS``.
+        show_row_index : bool
+            If this does not evaulate to False, a column with the given name
+            will be added to the version of the table that gets displayed.
+            This new column shows the index of the row in the table itself,
+            even when the displayed table is re-sorted by another column. Note
+            that if a column with this name already exists, this option will be
+            ignored. Defaults to "idx".
         """
 
         import os
@@ -959,9 +986,13 @@ class Table(object):
 
         with open(path, 'w') as tmp:
             if jsviewer:
-                self.write(tmp, format='jsviewer', css=css,
-                           max_lines=max_lines, jskwargs=jskwargs,
-                           table_id=tableid, table_class=table_class)
+                if show_row_index:
+                    display_table = self._make_index_row_display_table(show_row_index)
+                else:
+                    display_table = self
+                display_table.write(tmp, format='jsviewer', css=css,
+                                    max_lines=max_lines, jskwargs=jskwargs,
+                                    table_id=tableid, table_class=table_class)
             else:
                 self.write(tmp, format='html')
 
