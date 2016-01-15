@@ -51,7 +51,7 @@ Byte-by-byte Description of file: table.dat
   14- 20  F7.2  0.1nm     Wave      wave
                                     ? Wavelength in Angstroms
   22- 23  A2    ---       El        a
-      24  I1    ---       ion       
+      24  I1    ---       ion       ?=0
                                     - Ionization stage (1 for neutral element)
   26- 30  F5.2  eV        chiEx     Excitation potential
   32- 37  F6.2  ---       loggf     Logarithm of the oscillator strength
