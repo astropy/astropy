@@ -7,7 +7,8 @@
     `astropy.vo.client.tests.test_conesearch`.
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 # STDLIB
 import os
@@ -16,7 +17,8 @@ import tempfile
 
 # LOCAL
 from .. import vos_catalog
-from ..exceptions import VOSError, MissingCatalog, DuplicateCatalogName, DuplicateCatalogURL
+from ..exceptions import (VOSError, MissingCatalog, DuplicateCatalogName,
+                          DuplicateCatalogURL)
 from ....tests.helper import pytest, remote_data
 from ....utils.data import get_pkg_data_filename
 
@@ -204,10 +206,10 @@ def test_db_from_registry():
         but does not check for quality of data.
 
     """
-    from ...validator.validate import CS_MSTR_LIST
+    from ...validator import conf
 
     db = vos_catalog.VOSDatabase.from_registry(
-        CS_MSTR_LIST(), encoding='binary', show_progress=False)
+        conf.conesearch_master_list, encoding='binary', show_progress=False)
 
     # Should have over 9k catalogs; Update test if this changes.
     assert len(db) > 9000

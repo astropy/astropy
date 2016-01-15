@@ -227,7 +227,7 @@ def test_data_noastropy_fallback(monkeypatch):
     lockdir = os.path.join(_get_download_cache_locs()[0], 'lock')
 
     # better yet, set the configuration to make sure the temp files are deleted
-    data.DELETE_TEMPORARY_DOWNLOADS_AT_EXIT.set(True)
+    data.conf.delete_temporary_downloads_at_exit = True
 
     # make sure the config and cache directories are not searched
     monkeypatch.setenv(str('XDG_CONFIG_HOME'), 'foo')
