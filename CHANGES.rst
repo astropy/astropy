@@ -33,7 +33,7 @@ New Features
 - ``astropy.nddata``
 
 - ``astropy.stats``
- 
+
   - Added ``jackknife`` resampling method. [#3708]
 
   - Updated ``bootstrap`` to allow bootstrapping statistics with multiple
@@ -54,9 +54,6 @@ New Features
     deprecated in 0.3.1, has been removed. [#4449]
 
 - ``astropy.utils``
-
-  - The astropy.utils.compat.subprocess module has now been deprecated. Use the
-    Python 'subprocess' module instead. [#4483]
 
 - ``astropy.visualization``
 
@@ -113,10 +110,19 @@ API changes
 
 - ``astropy.utils``
 
+  - The astropy.utils.compat.argparse module has now been deprecated. Use the
+    Python 'argparse' module directly instead. [#4462]
+
   - The astropy.utils.compat.odict module has now been deprecated. Use the
     Python 'collections' module directly instead. [#4466]
 
+  - The astropy.utils.compat.gzip module has now been deprecated. Use the
+    Python 'gzip' module directly instead. [#4464]
+
   - The deprecated ``ScienceStateAlias`` class has been removed. [#2767, #4446]
+
+  - The astropy.utils.compat.subprocess module has now been deprecated. Use the
+    Python 'subprocess' module instead. [#4483]
 
 - ``astropy.visualization``
 
@@ -152,6 +158,9 @@ Bug fixes
 - ``astropy.logger.py``
 
 - ``astropy.modeling``
+
+  - Fixed display of compound model expressions and components when printing
+    compound model instances. [#4414]
 
 - ``astropy.nddata``
 

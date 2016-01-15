@@ -10,5 +10,3 @@ def test_import_warning():
     assert w[0].category == AstropyDeprecationWarning
     assert w[0].message.args[0] == ("astropy.utils.compat.subprocess is now deprecated "
                                     "- use the Python subprocess module directly instead")
-
-
