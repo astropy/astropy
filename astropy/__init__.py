@@ -10,6 +10,10 @@ from __future__ import absolute_import
 
 import sys
 import os
+from warnings import warn
+
+if sys.version_info[:2] < (2, 7):
+    warn("Astropy does not support Python 2.6 since v1.2")
 
 
 def _is_astropy_source(path=None):
@@ -154,13 +158,6 @@ test = TestRunner.make_test_runner_in(__path__[0])
 # configuration file with the defaults
 def _initialize_astropy():
     from . import config
-
-    from warnings import warn
-    from .utils.exceptions import AstropyDeprecationWarning
-
-    if sys.version_info[:2] < (2, 7):
-        warn("Python 2.6 will no longer be supported from Astropy v1.2.0 and "
-             "above", AstropyDeprecationWarning)
 
     def _rollback_import(message):
         log.error(message)
