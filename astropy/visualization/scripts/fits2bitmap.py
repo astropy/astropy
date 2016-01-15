@@ -22,7 +22,8 @@ def fits2bitmap(filename, ext=0, out_fn=None, scale='linear',
     filename : str
         The filename of the FITS file.
     ext : int
-        FITS extension number of the image to convert.  The default is 0.
+        FITS extension name or number of the image to convert.  The
+        default is 0.
     out_fn : str
         The filename of the output bitmap image.  The type of bitmap
         is determined by the filename extension (e.g. '.jpg', '.png').
@@ -70,16 +71,22 @@ def fits2bitmap(filename, ext=0, out_fn=None, scale='linear',
     import matplotlib.cm as cm
     import matplotlib.image as mimg
 
+
+    # __main__ gives ext as a string
     try:
         ext = int(ext)
     except ValueError:
         pass
 
-    # NOTE: getdata raises IndexError if no data is found
-    image = getdata(filename, ext)
+    try:
+        image = getdata(filename, ext)
+    except Exception as e:
+        log.critical(e)
+        return
+
     if image.ndim != 2:
-        raise ValueError('data in FITS extension {0} is not a 2D '
-                         'array'.format(ext))
+        log.critical('data in FITS extension {0} is not a 2D array'
+                     .format(ext))
 
     if out_fn is None:
         out_fn = os.path.splitext(filename)[0]
