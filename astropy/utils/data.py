@@ -207,7 +207,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     if signature[:3] == b'\x1f\x8b\x08':  # gzip
         import struct
         try:
-            from .compat import gzip
+            import gzip
             fileobj_new = gzip.GzipFile(fileobj=fileobj, mode='rb')
             fileobj_new.read(1)  # need to check that the file is really gzip
         except (IOError, EOFError):  # invalid gzip file

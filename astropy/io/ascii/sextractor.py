@@ -83,9 +83,9 @@ class SExtractorHeader(core.BaseHeader):
 
 
 class SExtractorData(core.BaseData):
-        start_line = 0
-        delimiter = ' '
-        comment = r'\s*#'
+    start_line = 0
+    delimiter = ' '
+    comment = r'\s*#'
 
 
 class SExtractor(core.BaseReader):

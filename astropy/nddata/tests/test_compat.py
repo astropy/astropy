@@ -122,4 +122,3 @@ def test_nddataarray_from_nddata():
     assert ndd2.data is ndd1.data
     assert ndd2.uncertainty is ndd1.uncertainty
     assert ndd2.meta is ndd1.meta
-

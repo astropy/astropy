@@ -6,8 +6,7 @@ from __future__ import (absolute_import, division, print_function,
 import copy
 import time
 import sys
-
-from ...utils.compat import argparse
+import argparse
 
 from ... import log, __version__
 

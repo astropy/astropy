@@ -11,6 +11,7 @@ import codecs
 import contextlib
 import io
 import re
+import gzip
 
 from distutils import version
 
@@ -47,7 +48,6 @@ def convert_to_writable_filelike(fd, compressed=False):
     """
     if isinstance(fd, six.string_types):
         if fd.endswith('.gz') or compressed:
-            from ...utils.compat import gzip
             with gzip.GzipFile(fd, 'wb') as real_fd:
                 encoded_fd = io.TextIOWrapper(real_fd, encoding='utf8')
                 yield encoded_fd
@@ -62,7 +62,6 @@ def convert_to_writable_filelike(fd, compressed=False):
         assert six.callable(fd.write)
 
         if compressed:
-            from ...utils.compat import gzip
             fd = gzip.GzipFile(fileobj=fd)
 
         # If we can't write Unicode strings, use a codecs.StreamWriter

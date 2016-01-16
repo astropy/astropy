@@ -92,7 +92,7 @@ def fits2bitmap(filename, ext=0, out_fn=None, scale='linear',
 
 def main(args=None):
 
-    from ...utils.compat import argparse
+    import argparse
 
     parser = argparse.ArgumentParser(
         description='Create a bitmap file from a FITS image.')

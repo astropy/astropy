@@ -18,6 +18,7 @@ import os
 import shutil
 import sys
 import tempfile
+import gzip
 
 # THIRD-PARTY
 from numpy.testing import assert_array_equal
@@ -30,7 +31,6 @@ from ..exceptions import VOTableSpecError, VOWarning
 from ..xmlutil import validate_schema
 from ....utils.data import get_pkg_data_filename, get_pkg_data_filenames
 from ....tests.helper import pytest, raises, catch_warnings
-from ....utils.compat import gzip
 
 # Determine the kind of float formatting in this build of Python
 if hasattr(sys, 'float_repr_style'):

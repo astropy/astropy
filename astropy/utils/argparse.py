@@ -3,7 +3,7 @@
 
 import os
 
-from .compat import argparse
+import argparse
 from ..extern.six import string_types
 
 

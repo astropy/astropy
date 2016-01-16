@@ -147,4 +147,3 @@ def test_euler_angles(axes_order):
 
 
     utils.assert_allclose(mat.T, matrices[axes_order])#get_rotation_matrix(axes_order))
-
