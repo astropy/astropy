@@ -22,6 +22,14 @@ New Features
 
 - ``astropy.io.fits``
 
+  - A new optional argument ``ignore_missing`` is added to ``astropy.io.fits.header.remove()``. When deleting keyword
+    from the header, ``ignore_missing`` is a boolean value specifying whether or not to raise ``KeyError`` when keyword is
+    not present in the header (``False`` by default). [#4445]
+
+  - A new optional argument ``all`` is added to ``astropy.io.fits.header.remove()``. When deleting keyword
+    from the header, ``all`` is a boolean value specifying whether or not to delete all instances of keyword in the header.
+    (``False`` by default). [#4445]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.votable``
@@ -85,6 +93,11 @@ API changes
 - ``astropy.io.ascii``
 
 - ``astropy.io.fits``
+
+  - Two optional boolean arguments ``ignore_missing`` and ``all`` were added to ``Header.remove``.
+    ``ignore_missing`` specifies whether or not to ignore ``KeyError`` when keyword is not
+    preset in the header. ``all`` specifies whether or not to delete all instances of keyword from
+    the header. [#4445]
 
 - ``astropy.io.misc``
 
