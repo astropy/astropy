@@ -2,7 +2,7 @@ import abc
 
 from collections import OrderedDict
 
-from ..metadata import MetaData, MergeConflictError, merge
+from ..metadata import MetaData, MergeConflictError, merge, enable_merge_strategies
 from ...utils import metadata
 from ...tests.helper import pytest
 from ...io import fits
@@ -144,9 +144,9 @@ def test_metadata_merging():
 
 
 def test_metadata_merging_new_strategy():
-    original_merge_strategies = list(metadata.MERGE_STRATEGY_CLASSES)
+    original_merge_strategies = list(metadata.MERGE_STRATEGIES)
 
-    class MergeConcatValsAsList(metadata.MergeStrategy):
+    class MergeNumbersAsList(metadata.MergeStrategy):
         """
         Scalar float or int values are joined in a list.
         """
@@ -156,14 +156,40 @@ def test_metadata_merging_new_strategy():
         def merge(cls, left, right):
             return [left, right]
 
-    # Can't merge two scalar types
-    meta1 = {'k1': 1}
-    meta2 = {'k1': 2}
-    out = merge(meta1, meta2, metadata_conflicts='error')
-    assert out['k1'] == [1, 2]
+    class MergeConcatStrings(metadata.MergePlus):
+        """
+        Scalar string values are concatenated
+        """
+        types = (str, str)
+        enabled = False
 
-    MergeConcatValsAsList.enabled = False
+    # Normally can't merge two scalar types
+    meta1 = {'k1': 1, 'k2': 'a'}
+    meta2 = {'k1': 2, 'k2': 'b'}
+
+    # Enable new merge strategy
+    with enable_merge_strategies(MergeNumbersAsList, MergeConcatStrings):
+        assert MergeNumbersAsList.enabled
+        assert MergeConcatStrings.enabled
+        out = merge(meta1, meta2, metadata_conflicts='error')
+    assert out['k1'] == [1, 2]
+    assert out['k2'] == 'ab'
+    assert not MergeNumbersAsList.enabled
+    assert not MergeConcatStrings.enabled
+
+    # Confirm the default enabled=False behavior
     with pytest.raises(MergeConflictError):
         merge(meta1, meta2, metadata_conflicts='error')
 
-    metadata.MERGE_STRATEGY_CLASSES = original_merge_strategies
+    # Enable all MergeStrategy subclasses
+    with enable_merge_strategies(metadata.MergeStrategy):
+        assert MergeNumbersAsList.enabled
+        assert MergeConcatStrings.enabled
+        out = merge(meta1, meta2, metadata_conflicts='error')
+    assert out['k1'] == [1, 2]
+    assert out['k2'] == 'ab'
+    assert not MergeNumbersAsList.enabled
+    assert not MergeConcatStrings.enabled
+
+
+    metadata.MERGE_STRATEGIES = original_merge_strategies
