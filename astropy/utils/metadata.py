@@ -5,6 +5,7 @@ This module contains helper functions for handling metadata.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
+from ..utils import wraps
 
 import warnings
 
@@ -63,7 +64,6 @@ def common_dtype(arrs):
     arr_common = np.array([arr[0] for arr in arrs])
     return arr_common.dtype.str
 
-
 class MergeStrategyMeta(type):
     """
     Metaclass that registers MergeStrategy subclasses into the
@@ -72,6 +72,19 @@ class MergeStrategyMeta(type):
 
     def __new__(mcls, name, bases, members):
         cls = super(MergeStrategyMeta, mcls).__new__(mcls, name, bases, members)
+
+        # Wrap ``merge`` classmethod to catch any exception and re-raise as
+        # MergeConflictError.
+        if 'merge' in members and isinstance(members['merge'], classmethod):
+            orig_merge = members['merge'].__func__
+            @wraps(orig_merge)
+            def merge(cls, left, right):
+                try:
+                    return orig_merge(cls, left, right)
+                except Exception as err:
+                    raise MergeConflictError(err)
+
+            cls.merge = classmethod(merge)
 
         # Register merging class (except for base MergeStrategy class)
         if 'types' in members:
@@ -83,40 +96,21 @@ class MergeStrategyMeta(type):
 
         return cls
 
+
 @six.add_metaclass(MergeStrategyMeta)
 class MergeStrategy(object):
-    # Set to False to disable applying this merge strategy
-    enabled = True
-
-    @classmethod
-    def merge_with_catch(cls, left, right):
-        """
-        Call the ``merge()`` method, but catch exceptions and re-raise
-
-        Parameters
-        ----------
-        left: object
-            Left object to be merged
-        right: object
-            Right object to be merged
-
-        Returns
-        -------
-        out: object
-            Merged left and right object
-        """
-        try:
-            return cls.merge(left, right)
-        except Exception as err:
-            raise MergeConflictError(err)
+    # Set ``enabled = True`` to globally enable applying this merge strategy
+    enabled = False
 
 
 class MergePlus(MergeStrategy):
     """
-    Merge ``left`` and ``right`` objects using the plus operator.
+    Merge ``left`` and ``right`` objects using the plus operator.  This
+    merge strategy is globally enabled by default.
     """
     types = [(list, list),
              (tuple, tuple)]
+    enabled = True
 
     @classmethod
     def merge(cls, left, right):
@@ -125,7 +119,8 @@ class MergePlus(MergeStrategy):
 
 class MergeNpConcatenate(MergeStrategy):
     """
-    Merge ``left`` and ``right`` objects using np.concatenate.
+    Merge ``left`` and ``right`` objects using np.concatenate.  This
+    merge strategy is globally enabled by default.
 
     This will upcast a list or tuple to np.ndarray and the output is
     always ndarray.
@@ -133,6 +128,7 @@ class MergeNpConcatenate(MergeStrategy):
     types = [(np.ndarray, np.ndarray),
              (np.ndarray, (list, tuple)),
              ((list, tuple), np.ndarray)]
+    enabled = True
 
     @classmethod
     def merge(cls, left, right):
@@ -182,7 +178,7 @@ def merge(left, right, merge_func=None, metadata_conflicts='warn'):
                             continue
                         if (isinstance(left[key], left_type) and
                                 isinstance(right[key], right_type)):
-                            out[key] = merge_cls.merge_with_catch(left[key], right[key])
+                            out[key] = merge_cls.merge(left[key], right[key])
                             break
                     else:
                         raise MergeConflictError
