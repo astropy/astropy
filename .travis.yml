@@ -52,8 +52,6 @@ matrix:
           env: ASTROPY_VERSION=lts SETUP_CMD='test --remote-data'
 
         # Try all python versions with the latest numpy
-        - python: 2.6
-          env: SETUP_CMD='test --remote-data' NUMPY_VERSION=1.9
         - python: 3.3
           env: SETUP_CMD='test --remote-data' NUMPY_VERSION=1.9
 
