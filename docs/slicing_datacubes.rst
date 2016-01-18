@@ -86,7 +86,7 @@ dimensions plotted on the x and y axes in the slice.
 If we don't want to reverse the dimensions plotted, we can simply do:
 
 .. plot::
-   :context: reset
+   :context: close-figs
    :include-source:
    :align: center
 

@@ -12,3 +12,4 @@ wcsaxes/version.py
 .settings
 .idea
 .coverage
+*/cython_version.py
