@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This module contains helper functions for handling metadata.
+This module contains helper functions and classes for handling metadata.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -16,6 +16,10 @@ from copy import deepcopy
 import numpy as np
 from ..utils.exceptions import AstropyWarning
 
+
+__all__ = ['MergeConflictError', 'MergeConflictWarning', 'MERGE_STRATEGIES',
+           'common_dtype', 'MergePlus', 'MergeNpConcatenate', 'MergeStrategy',
+           'MergeStrategyMeta', 'enable_merge_strategies', 'merge', 'MetaData']
 
 class MergeConflictError(TypeError):
     pass
@@ -33,12 +37,12 @@ def common_dtype(arrs):
     Use numpy to find the common dtype for a list of ndarrays.
 
     Only allow arrays within the following fundamental numpy data types:
-    np.bool_, np.object_, np.number, np.character, np.void
+    ``np.bool``, ``np.object``, ``np.number``, ``np.character``, ``np.void``
 
     Parameters
     ----------
     arrs: list of ndarray objects
-
+        Arrays for which to find the common dtype
     """
     def dtype(arr):
         return getattr(arr, 'dtype', np.dtype('O'))
@@ -131,7 +135,7 @@ class MergeStrategy(object):
 
     In most cases (particularly in library code that others might use) it is
     recommended to leave custom strategies disabled and use the
-    `~astropy.utils.metadata.enable_merge_strategy` context manager to locally
+    `~astropy.utils.metadata.enable_merge_strategies` context manager to locally
     enable the desired strategies.  However, if one is confident that the
     new strategy will not produce unexpected behavior, then one can globally
     enable it by setting the ``enabled`` class attribute to ``True``.

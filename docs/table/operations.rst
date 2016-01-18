@@ -849,6 +849,12 @@ By default, a warning is emitted in the last case (both metadata values are not
 - ``'warn'`` - a warning is emitted, the value for the last table is picked
 - ``'error'`` - an exception is raised
 
+The default strategies for merging metadata can be augmented or customized by
+defining subclasses of the `~astropy.utils.metadata.MergeStrategy` base class.
+In most cases one also will use the
+`~astropy.utils.metadata.enable_merge_strategies` for enable the custom
+strategies. The linked documentation strings provide details.
+
 Merging column attributes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
