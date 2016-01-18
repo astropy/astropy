@@ -5,7 +5,7 @@ Installation
 Requirements
 ============
 
-WCSAxes requires Python 2.6, 2.7, 3.2, 3.3, or 3.4 and the following Python
+WCSAxes requires Python 2.7, 3.2, 3.3, or 3.4 and the following Python
 packages to be installed:
 
 * `Numpy <http://www.numpy.org>`_
@@ -44,4 +44,4 @@ configuration, start up python, and type::
     import wcsaxes
     wcsaxes.test()
 
-If there are no errors, you are good to go!    
+If there are no errors, you are good to go!

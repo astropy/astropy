@@ -1,10 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import abc
-
+from collections import OrderedDict
 import numpy as np
 
-from astropy.utils import OrderedDict
 from astropy.extern import six
 
 from matplotlib.lines import Line2D, Path

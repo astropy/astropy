@@ -1,6 +1,8 @@
 0.7 (unreleased)
 ----------------
 
+- Removed support for python 2.6.
+
 - Use wcs_to_celestial from Astropy. Astropy >= 1.0 is now required for
   WCSAxes. [#176]
 
@@ -43,7 +45,7 @@
 0.3 (2014-12-07)
 ----------------
 
-- Fixed a bug that caused axis labels to be incorrectly placed when hiding tick 
+- Fixed a bug that caused axis labels to be incorrectly placed when hiding tick
   labels using ``set_visible(False)``. [#111]
 
 - Fixed a bug that caused tick labels to not always appear. [#110]
