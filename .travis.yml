@@ -12,22 +12,22 @@ addons:
             - dvipng
 
 python:
-    - 2.6
     - 2.7
-    - 3.3
     - 3.4
+    - 3.5
 
 env:
     global:
         # The following versions are the 'default' for tests, unless
         # overidden underneath. They are defined here in order to save having
         # to repeat them for all configurations.
-        - NUMPY_VERSION=1.9
+        - NUMPY_VERSION=1.10
         - ASTROPY_VERSION=stable
         - CONDA_DEPENDENCIES='pyqt nose matplotlib pillow'
         - PIP_DEPENDENCIES='pytest-mpl'
     matrix:
         - SETUP_CMD='egg_info'
+        - SETUP_CMD='test --remote-data'
 
 matrix:
     include:
@@ -44,20 +44,18 @@ matrix:
         # Try Astropy development version
         - python: 2.7
           env: ASTROPY_VERSION=development SETUP_CMD='test --remote-data'
-        - python: 3.3
+        - python: 3.5
           env: ASTROPY_VERSION=development SETUP_CMD='test --remote-data'
 
         # Try all python versions with the latest numpy
         - python: 2.6
-          env: SETUP_CMD='test --remote-data'
-        - python: 2.7
-          env: SETUP_CMD='test --remote-data'
+          env: SETUP_CMD='test --remote-data' NUMPY_VERSION=1.9
         - python: 3.3
-          env: SETUP_CMD='test --remote-data'
-        - python: 3.4
-          env: SETUP_CMD='test --remote-data'
+          env: SETUP_CMD='test --remote-data' NUMPY_VERSION=1.9
 
         # Try older numpy versions
+        - python: 2.7
+          env: NUMPY_VERSION=1.9 SETUP_CMD='test --remote-data'
         - python: 2.7
           env: NUMPY_VERSION=1.8 SETUP_CMD='test --remote-data'
         - python: 2.7
