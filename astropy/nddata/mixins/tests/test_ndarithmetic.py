@@ -283,8 +283,6 @@ def test_arithmetics_data_masks(mask1, mask2):
 # only one is such a type (which just copies it no exception)
 @pytest.mark.parametrize(('mask1', 'mask2'), [
     ('String', 'String'),
-    (100, 100),
-    (2.7, 2.7),
     ])
 def test_arithmetics_data_masks_invalid(mask1, mask2):
 
@@ -336,133 +334,6 @@ def test_arithmetics_data_masks_invalid_2():
         nd1.subtract(nd2)
     with pytest.raises(ValueError):
         nd1.divide(nd2)
-
-
-# Covering:
-# both have meta with and without meta_keyword_operations
-def test_arithmetics_meta_both():
-    meta1 = {'exposure': 100, 'dummy': 5}
-    meta2 = {'exposure': 50, 'dummy': 10}
-    nd1 = NDDataArithmetic(1, meta=meta1)
-    nd2 = NDDataArithmetic(1, meta=meta2)
-
-    # No keywords specified to be part of arithmetics
-    nd3 = nd1.add(nd2)
-    assert nd3.meta['exposure'] == 100
-    assert nd3.meta['dummy'] == 5
-
-    # keyword IS specified to be part of arithmetics
-    nd4 = nd1.add(nd2, meta_kwds_operate=['exposure'])
-    assert nd4.meta['exposure'] == 150
-    assert nd4.meta['dummy'] == 5
-
-    nd4 = nd1.subtract(nd2, meta_kwds_operate=['exposure'])
-    assert nd4.meta['exposure'] == 50
-    assert nd4.meta['dummy'] == 5
-
-    nd4 = nd1.multiply(nd2, meta_kwds_operate=['exposure'])
-    assert nd4.meta['exposure'] == 5000
-    assert nd4.meta['dummy'] == 5
-
-    nd4 = nd1.divide(nd2, meta_kwds_operate=['exposure'])
-    assert nd4.meta['exposure'] == 2
-    assert nd4.meta['dummy'] == 5
-
-
-# Covering:
-# both have meta but the keyword is missing in one of them
-def test_arithmetics_meta_both_invalid():
-    meta1 = {'exposure': 100, 'dummy': 5}
-    meta2 = {'exposures': 50, 'dummy': 10}
-    nd1 = NDDataArithmetic(1, meta=meta1)
-    nd2 = NDDataArithmetic(1, meta=meta2)
-
-    # keyword IS specified to be part of arithmetics but exists only in one
-    with pytest.raises(KeyError):
-        nd1.add(nd2, meta_kwds_operate=['exposure'])
-    with pytest.raises(KeyError):
-        nd1.subtract(nd2, meta_kwds_operate=['exposure'])
-    with pytest.raises(KeyError):
-        nd1.multiply(nd2, meta_kwds_operate=['exposure'])
-    with pytest.raises(KeyError):
-        nd1.divide(nd2, meta_kwds_operate=['exposure'])
-
-
-# Covering:
-# only first has meta and the other is a scalar
-def test_arithmetics_meta_one():
-    meta1 = {'exposure': 100, 'dummy': 5}
-    nd1 = NDDataArithmetic(1, meta=meta1)
-    nd2 = NDDataArithmetic(50)
-
-    # No keywords specified to be part of arithmetics
-    nd3 = nd1.add(nd2)
-    assert nd3.meta['exposure'] == 100
-    assert nd3.meta['dummy'] == 5
-
-    # keyword IS specified to be part of arithmetics
-    nd4 = nd1.add(nd2, meta_kwds_operate=['exposure'])
-    assert nd4.meta['exposure'] == 150
-    assert nd4.meta['dummy'] == 5
-
-    nd4 = nd1.subtract(nd2, meta_kwds_operate=['exposure'])
-    assert nd4.meta['exposure'] == 50
-    assert nd4.meta['dummy'] == 5
-
-    nd4 = nd1.multiply(nd2, meta_kwds_operate=['exposure'])
-    assert nd4.meta['exposure'] == 5000
-    assert nd4.meta['dummy'] == 5
-
-    nd4 = nd1.divide(nd2, meta_kwds_operate=['exposure'])
-    assert nd4.meta['exposure'] == 2
-    assert nd4.meta['dummy'] == 5
-
-    # Short check that units are ignored:
-    nd2 = NDDataArithmetic(50, unit=u.s)
-    nd4 = nd1.multiply(nd2, meta_kwds_operate=['exposure'])
-    assert nd4.meta['exposure'] == 5000  # would fail if it was a quantity
-
-
-# Covering:
-# only second has meta and the other is a scalar, the inverse case
-def test_arithmetics_meta_one_inverse():
-    meta1 = {'exposure': 100, 'dummy': 5}
-    nd1 = NDDataArithmetic(1, meta=meta1)
-    nd2 = NDDataArithmetic(50)
-
-    # Now also the inverse operations are of interest
-    nd4 = nd2.add(nd1, meta_kwds_operate=['exposure'])
-    assert nd4.meta['exposure'] == 150
-    assert nd4.meta['dummy'] == 5
-
-    nd4 = nd2.subtract(nd1, meta_kwds_operate=['exposure'])
-    assert nd4.meta['exposure'] == -50
-    assert nd4.meta['dummy'] == 5
-
-    nd4 = nd2.multiply(nd1, meta_kwds_operate=['exposure'])
-    assert nd4.meta['exposure'] == 5000
-    assert nd4.meta['dummy'] == 5
-
-    nd4 = nd2.divide(nd1, meta_kwds_operate=['exposure'])
-    assert nd4.meta['exposure'] == 0.5
-    assert nd4.meta['dummy'] == 5
-
-
-# Covering:
-# only one has meta and the other is NOT a scalar
-def test_arithmetics_meta_one_invalid():
-    meta1 = {'exposure': 100, 'dummy': 5}
-    nd1 = NDDataArithmetic(1, meta=meta1)
-    nd2 = NDDataArithmetic([1, 2, 3])
-
-    # Considered invalid would be if only one has a meta and the other
-    # is an ndarray but this case only raises a warning
-    with pytest.raises(TypeError):
-        nd1.add(nd2, meta_kwds_operate=['exposure'])
-
-    # Check also for reverse
-    with pytest.raises(TypeError):
-        nd2.add(nd1, meta_kwds_operate=['exposure'])
 
 
 # Covering:
@@ -806,3 +677,104 @@ def test_arithmetics_handle_switches():
     assert nd_.meta == meta1
     assert nd_.mask == mask1
     assert_array_equal(nd_.uncertainty.array, uncertainty1.array)
+
+
+def test_arithmetics_meta_func():
+    def meta_fun_func(meta1, meta2, take='first'):
+        if take == 'first':
+            return meta1
+        else:
+            return meta2
+
+    meta1 = {'a': 1}
+    meta2 = {'a': 3, 'b': 2}
+    mask1 = True
+    mask2 = False
+    uncertainty1 = StdDevUncertainty([1, 2, 3])
+    uncertainty2 = StdDevUncertainty([1, 2, 3])
+    wcs1 = 5
+    wcs2 = 100
+    data1 = [1, 1, 1]
+    data2 = [1, 1, 1]
+
+    nd1 = NDDataArithmetic(data1, meta=meta1, mask=mask1, wcs=wcs1,
+                           uncertainty=uncertainty1)
+    nd2 = NDDataArithmetic(data2, meta=meta2, mask=mask2, wcs=wcs2,
+                           uncertainty=uncertainty2)
+
+    nd3 = nd1.add(nd2, handle_meta=meta_fun_func)
+    assert nd3.meta['a'] == 1
+    assert 'b' not in nd3.meta
+
+    nd4 = nd1.add(nd2, handle_meta=meta_fun_func, meta_take='second')
+    assert nd4.meta['a'] == 3
+    assert nd4.meta['b'] == 2
+
+    with pytest.raises(KeyError):
+        nd1.add(nd2, handle_meta=meta_fun_func, take='second')
+
+
+def test_arithmetics_wcs_func():
+    def wcs_comp_func(wcs1, wcs2, tolerance=0.1):
+        if abs(wcs1 - wcs2) <= tolerance:
+            return True
+        else:
+            return False
+
+    meta1 = {'a': 1}
+    meta2 = {'a': 3, 'b': 2}
+    mask1 = True
+    mask2 = False
+    uncertainty1 = StdDevUncertainty([1, 2, 3])
+    uncertainty2 = StdDevUncertainty([1, 2, 3])
+    wcs1 = 99.99
+    wcs2 = 100
+    data1 = [1, 1, 1]
+    data2 = [1, 1, 1]
+
+    nd1 = NDDataArithmetic(data1, meta=meta1, mask=mask1, wcs=wcs1,
+                           uncertainty=uncertainty1)
+    nd2 = NDDataArithmetic(data2, meta=meta2, mask=mask2, wcs=wcs2,
+                           uncertainty=uncertainty2)
+
+    nd3 = nd1.add(nd2, compare_wcs=wcs_comp_func)
+    assert nd3.wcs == 99.99
+
+    with pytest.raises(ValueError):
+        nd1.add(nd2, compare_wcs=wcs_comp_func, wcs_tolerance=0.00001)
+
+    with pytest.raises(KeyError):
+        nd1.add(nd2, compare_wcs=wcs_comp_func, tolerance=1)
+
+
+def test_arithmetics_mask_func():
+    def mask_sad_func(mask1, mask2, fun=0):
+        if fun > 0.5:
+            return mask2
+        else:
+            return mask1
+
+    meta1 = {'a': 1}
+    meta2 = {'a': 3, 'b': 2}
+    mask1 = [True, False, True]
+    mask2 = [True, False, False]
+    uncertainty1 = StdDevUncertainty([1, 2, 3])
+    uncertainty2 = StdDevUncertainty([1, 2, 3])
+    wcs1 = 99.99
+    wcs2 = 100
+    data1 = [1, 1, 1]
+    data2 = [1, 1, 1]
+
+    nd1 = NDDataArithmetic(data1, meta=meta1, mask=mask1, wcs=wcs1,
+                           uncertainty=uncertainty1)
+    nd2 = NDDataArithmetic(data2, meta=meta2, mask=mask2, wcs=wcs2,
+                           uncertainty=uncertainty2)
+
+    nd3 = nd1.add(nd2, handle_mask=mask_sad_func)
+    assert_array_equal(nd3.mask, nd1.mask)
+
+    nd4 = nd1.add(nd2, handle_mask=mask_sad_func, mask_fun=1)
+    assert_array_equal(nd4.mask, nd2.mask)
+
+    with pytest.raises(KeyError):
+        nd1.add(nd2, handle_mask=mask_sad_func, fun=1)

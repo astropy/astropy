@@ -291,9 +291,10 @@ class NDUncertainty(object):
 
         Parameters
         ----------
-        operation: str
+        operation: callable
             The operation that is performed on the `NDData`. Supported are
-            ``addition``, ``subtraction``, ``multiplication`` and ``division``.
+            `numpy.add`, `numpy.subtract`, `numpy.multiply` and
+            `numpy.true_divide`.
 
         other_nddata: `NDData` instance
             The second NDData in the arithmetic operation.
@@ -340,16 +341,16 @@ class NDUncertainty(object):
         # Get the other uncertainty (and convert it to a matching one)
         other_uncert = self._convert_uncertainty(other_nddata.uncertainty)
 
-        if operation == 'addition':
+        if operation.__name__ == 'add':
             result = self._propagate_add(other_uncert, result_data,
                                          correlation)
-        elif operation == 'subtraction':
+        elif operation.__name__ == 'subtract':
             result = self._propagate_subtract(other_uncert, result_data,
                                               correlation)
-        elif operation == 'multiplication':
+        elif operation.__name__ == 'multiply':
             result = self._propagate_multiply(other_uncert, result_data,
                                               correlation)
-        elif operation == 'division':
+        elif operation.__name__ in ['true_divide', 'divide']:
             result = self._propagate_divide(other_uncert, result_data,
                                             correlation)
         else:
