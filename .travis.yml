@@ -63,7 +63,7 @@ matrix:
         - python: 2.7
           env: NUMPY_VERSION=1.6 SETUP_CMD='test --remote-data'
 
-- before_install:
+before_install:
 
     # Make sure that interactive matplotlib backends work
     - export DISPLAY=:99.0
