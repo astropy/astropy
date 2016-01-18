@@ -6,12 +6,12 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import textwrap
+from collections import OrderedDict
 
 import numpy as np
 from numpy.testing import assert_array_equal
 
 from ..nddata import NDData
-from ...utils.compat.odict import OrderedDict
 from ..nduncertainty import StdDevUncertainty
 from ...tests.helper import pytest
 from ... import units as u
