@@ -150,6 +150,9 @@ Bug fixes
 
 - ``astropy.io.ascii``
 
+  - Fixed handling of CDS data file when no description is given and also
+    included stripping out of markup for missing value from description. [#4437]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``
