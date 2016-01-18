@@ -100,6 +100,14 @@ API changes
 
 - ``astropy.nddata``
 
+  - ``NDData``: added an optional parameter ``copy``
+    which is False by default. If it is True all other parameters are copied
+    before saving them as attributes. If False the parameters are only copied
+    if there is no way of saving them as reference. [#4270]
+
+  - ``NDData``: ``Masked_Quantity`` objects are allowed as ``data``
+    parameter. [#4270]
+
 - ``astropy.stats``
 
 - ``astropy.table``
@@ -167,6 +175,19 @@ Bug fixes
     compound model instances. [#4414]
 
 - ``astropy.nddata``
+
+  - ``NDDataBase`` does not implement a setter or getter for ``uncertainty``,
+    which is now an abstractproperty. [#4270]
+
+  - ``NDData`` wraps the ``uncertainty`` inside an ``UnknownUncertainty``
+    if no ``uncertainty_type`` attribute is present in the uncertainty instead
+    of raising an Exception. [#4270]
+
+  - ``NDData`` The ``uncertainty_type`` of the ``uncertainty`` is no longer
+    required to be a string, but it is still recommended. [#4270]
+
+  - ``NDData`` now sets the ``parent_nddata`` of the ``uncertainty`` if the
+    uncertainty is ``NDUncertainty``-like. [#4152, #4270]
 
 - ``astropy.stats``
 

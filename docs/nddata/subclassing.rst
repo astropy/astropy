@@ -3,7 +3,7 @@ Subclassing
 
 There are a couple of choices to be made in subclassing from the nddata
 package. For the greatest flexibility, subclass from
-`~astropy.nddata.NDDataBase`, which places (almost) no restrictions on any of
+`~astropy.nddata.NDDataBase`, which places no restrictions on any of
 its attributes. In many cases, subclassing `~astropy.nddata.NDData` will work
 instead; it is more straightforward but places some minimal restrictions on
 how the data can be represented.
@@ -12,7 +12,7 @@ how the data can be represented.
 ----------------------------
 
 The class `~astropy.nddata.NDDataBase` is a metaclass -- when subclassing it,
-all properties of `~astropy.nddata.NDDataBase` except ``uncertainty`` *must*
+all properties of `~astropy.nddata.NDDataBase` *must*
 be overriden in the subclass. For an example of how to do this, see the source
 code for `astropy.nddata.NDData`.
 
@@ -45,7 +45,6 @@ can do::
     >>> ndd = NDData(array)
     >>> uncertainty = StdDevUncertainty(np.ones((12, 12, 12)) * 0.1)
     >>> ndd_uncertainty = NDData(ndd, uncertainty=uncertainty)
-    INFO: Overwriting NDData's current uncertainty being overwritten with specified uncertainty [astropy.nddata.nddata]
 
 New error classes should sub-class from `~astropy.nddata.NDUncertainty`, and
 should provide methods with the following API::

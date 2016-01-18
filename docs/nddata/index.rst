@@ -21,11 +21,6 @@ datasets in astropy through:
   `~astropy.nddata` objects  in functions in astropy and affiliated packages.
 + General utility functions (:ref:`nddata_utils`) for array operations.
 
-.. warning::
-
-  `~astropy.nddata` has changed significantly in astropy 1.0. See the section
-  :ref:`nddata_transition` for more information.
-
 Getting started
 ===============
 
@@ -64,7 +59,6 @@ The underlying Numpy array can be accessed via the ``data`` attribute::
 Values can be masked using the ``mask`` attribute::
 
      >>> ndd_masked = NDData(ndd, mask = ndd.data > 0.9)
-     INFO: Overwriting NDData's current mask with specified mask [astropy.nddata.nddata]
 
 A mask value of `True` indicates a value that should be ignored, while a mask
 value of `False` indicates a valid value.
@@ -75,7 +69,8 @@ Similar attributes are available to store:
 + generic meta-data, in ``meta``,
 + a unit for the data values, in ``unit`` and
 + an uncertainty for the data values, in ``uncertainty``. Note that the
-  ``uncertainty`` must have a string attribute called ``uncertainty_type``.
+  ``uncertainty`` must have a attribute called ``uncertainty_type`` otherwise
+  it will be converted to an `~astropy.nddata.UnknownUncertainty`.
 
 Note that a `~astropy.nddata.NDData` object is not sliceable::
 
@@ -131,30 +126,6 @@ of objects that support the NDData interface but need the freedom to define
 their own ways of storing data, unit, metadata and/or other properties. It
 should be used instead of `~astropy.nddata.NDData` as the starting point for
 any class for which the `~astropy.nddata.NDData` class is too restrictive.
-
-.. _nddata_transition:
-
-Transition to astropy 1.0
-=========================
-
-The nddata package underwent substantial revision as a result of `APE 7`_;
-please see that APE for an extensive discussion of the motivation and the
-changes.
-
-The most important changes are that:
-
-+ ``NDData`` does not provide a numpy-like interface; to use its data use the
-  ``data`` attribute instead.
-+ Slicing is no provided in the base `~astropy.nddata.NDData`.
-+ Arithmetic is no longer included in the base `~astropy.nddata.NDData` class.
-
-Code that only uses the metadata features of `~astropy.nddata.NDData` should
-not need to be modified.
-
-Code that uses the arithemtic methods that used to be included in
-`~astropy.nddata.NDData` and relied on it to behave like a numpy array should
-instead subclass `~astropy.nddata.NDDataArray`; that class is equivalent to
-the original `~astropy.nddata.NDData` class.
 
 
 Using ``nddata``
