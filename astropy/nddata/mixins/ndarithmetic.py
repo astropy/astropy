@@ -10,14 +10,7 @@ import numpy as np
 
 from ..nduncertainty import NDUncertainty
 from ...units import dimensionless_unscaled
-from ...config import ConfigAlias
 from ...extern import six
-
-WARN_UNSUPPORTED_CORRELATED = ConfigAlias(
-    '0.4', 'WARN_UNSUPPORTED_CORRELATED', 'warn_unsupported_correlated',
-    'astropy.nddata.nddata', 'astropy.nddata')
-
-from ...wcs import WCS
 
 __all__ = ['NDArithmeticMixin']
 
