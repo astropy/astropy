@@ -16,7 +16,7 @@ python:
     - 2.7
     - 3.3
     - 3.4
-    # This is just for "egg_info".  All other builds are explicitly given in the matrix
+
 env:
     global:
         # The following versions are the 'default' for tests, unless
@@ -24,8 +24,8 @@ env:
         # to repeat them for all configurations.
         - NUMPY_VERSION=1.9
         - ASTROPY_VERSION=stable
-        - CONDA_INSTALL='conda install -c astropy-ci-extras --yes'
-        - PIP_INSTALL='pip install'
+        - CONDA_DEPENDENCIES='pyqt nose matplotlib pillow'
+        - PIP_DEPENDENCIES='pytest-mpl'
     matrix:
         - SETUP_CMD='egg_info'
 
@@ -65,20 +65,7 @@ matrix:
         - python: 2.7
           env: NUMPY_VERSION=1.6 SETUP_CMD='test --remote-data'
 
-before_install:
-
-    # Use utf8 encoding. Should be default, but this is insurance against
-    # future changes
-    - export PYTHONIOENCODING=UTF8
-
-    # http://conda.pydata.org/docs/travis.html#the-travis-yml-file
-    - wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
-    - bash miniconda.sh -b -p $HOME/miniconda
-    - export PATH="$HOME/miniconda/bin:$PATH"
-    - hash -r
-    - conda config --set always_yes yes --set changeps1 no
-    - conda update -q conda
-    - conda info -a
+- before_install:
 
     # Make sure that interactive matplotlib backends work
     - export DISPLAY=:99.0
@@ -88,41 +75,13 @@ before_install:
     - export QT_API=pyqt
 
 install:
-
-    # CONDA
-    - conda create --yes -n test -c astropy-ci-extras python=$TRAVIS_PYTHON_VERSION
-    - source activate test
-
-    # CORE DEPENDENCIES
-    - if [[ $SETUP_CMD != egg_info ]]; then $CONDA_INSTALL numpy=$NUMPY_VERSION pytest pip Cython jinja2; fi
-    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_INSTALL pytest-xdist; fi
-
-    # ASTROPY
-    - if [[ $SETUP_CMD != egg_info ]] && [[ $ASTROPY_VERSION == development ]]; then $PIP_INSTALL git+http://github.com/astropy/astropy.git#egg=astropy; fi
-    - if [[ $SETUP_CMD != egg_info ]] && [[ $ASTROPY_VERSION == stable ]]; then $CONDA_INSTALL numpy=$NUMPY_VERSION astropy; fi
-
-    # OPTIONAL DEPENDENCIES
-    # Here you can add any dependencies your package may have. You can use
-    # conda for packages available through conda, or pip for any other
-    # packages. You should leave the `numpy=$NUMPY_VERSION` in the `conda`
-    # install since this ensures Numpy does not get automatically upgraded.
-    - if [[ $SETUP_CMD != egg_info ]]; then $CONDA_INSTALL numpy=$NUMPY_VERSION nose pyqt matplotlib pillow; fi
-    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_INSTALL pytest-mpl; fi
-
-    # DOCUMENTATION DEPENDENCIES
-    # build_sphinx needs sphinx and matplotlib (for plot_directive). Note that
-    # this matplotlib will *not* work with py 3.x, but our sphinx build is
-    # currently 2.7, so that's fine
-    - if [[ $SETUP_CMD == build_sphinx* ]]; then $CONDA_INSTALL numpy=$NUMPY_VERSION Sphinx sphinx_rtd_theme matplotlib; fi
-
-    # COVERAGE DEPENDENCIES
-    - if [[ $SETUP_CMD == 'test --coverage --remote-data' ]]; then $PIP_INSTALL coverage==3.7.1 coveralls; fi
+    - git clone git://github.com/astropy/ci-helpers.git
+    - source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh
 
 script:
     - python setup.py $SETUP_CMD
 
 after_success:
-    # If coveralls.io is set up for this package, uncomment the line
-    # below and replace "packagename" with the name of your package.
-    # The coveragerc file may be customized as needed for your package.
-    - if [[ $SETUP_CMD == 'test --coverage --remote-data' ]]; then coveralls --rcfile='wcsaxes/tests/coveragerc'; fi
+    - if [[ $SETUP_CMD == 'test --coverage --remote-data' ]]; then
+          coveralls --rcfile='wcsaxes/tests/coveragerc';
+      fi
