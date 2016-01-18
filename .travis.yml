@@ -21,9 +21,9 @@ env:
         # The following versions are the 'default' for tests, unless
         # overidden underneath. They are defined here in order to save having
         # to repeat them for all configurations.
-        - NUMPY_VERSION=1.10
+        - NUMPY_VERSION=stable
         - ASTROPY_VERSION=stable
-        - CONDA_DEPENDENCIES='pyqt nose matplotlib pillow'
+        - CONDA_DEPENDENCIES='pyqt nose matplotlib=1.4.3 pillow'
         - PIP_DEPENDENCIES='pytest-mpl'
     matrix:
         - SETUP_CMD='egg_info'
@@ -41,11 +41,15 @@ matrix:
         - python: 2.7
           env: SETUP_CMD='build_sphinx -w'
 
-        # Try Astropy development version
+        # Try Astropy development and LTS versions
         - python: 2.7
           env: ASTROPY_VERSION=development SETUP_CMD='test --remote-data'
         - python: 3.5
           env: ASTROPY_VERSION=development SETUP_CMD='test --remote-data'
+        - python: 2.7
+          env: ASTROPY_VERSION=lts SETUP_CMD='test --remote-data'
+        - python: 3.5
+          env: ASTROPY_VERSION=lts SETUP_CMD='test --remote-data'
 
         # Try all python versions with the latest numpy
         - python: 2.6
