@@ -110,9 +110,6 @@ class Astrometric(BaseCoordinateFrame):
     """
     default_representation = CartesianRepresentation
 
-    # TODO: these can all become QuantityFrameAttribute's once #3217 is merged
-    
-    origin_distance = QuantityFrameAttribute(default=0, unit=u.kpc)
     origin_ra = QuantityFrameAttribute(default=0, unit=u.degree)
     origin_dec = QuantityFrameAttribute(default=0, unit=u.degree)
 
@@ -122,11 +119,6 @@ class Astrometric(BaseCoordinateFrame):
 def icrs_to_astrometric(icrs_coord, astrometric_frame):
     from ..representation import CartesianRepresentation
     from ..angles import rotation_matrix
-
-    if isinstance(icrs_coord.data, UnitSphericalRepresentation):
-        raise ConvertError("Transforming to a Astrometric frame requires "
-                           "a 3D coordinate, e.g. (angle, angle, distance) or"
-                           " (x, y, z).")
 
     xyz = icrs_coord.cartesian.xyz
 
@@ -146,11 +138,6 @@ def icrs_to_astrometric(icrs_coord, astrometric_frame):
 def astrometric_to_icrs(astrometric_coord, icrs_frame):
     from ..representation import CartesianRepresentation
     from ..angles import rotation_matrix
-
-    if isinstance(astrometric_coord.data, UnitSphericalRepresentation):
-        raise ConvertError("Transforming from a Astrometric frame requires "
-                           "a 3D coordinate, e.g. (angle, angle, distance) or"
-                           " (x, y, z).")
 
     xyz = astrometric_coord.cartesian.xyz
 
