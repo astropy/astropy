@@ -85,9 +85,6 @@ API Changes
 
 - ``astropy.wcs``
 
-  - Fixed possible exception in handling of SIP headers that was introduced in
-    v1.1.1. [#4492]
-
 Bug Fixes
 ^^^^^^^^^
 
@@ -131,6 +128,9 @@ Bug Fixes
 - ``astropy.vo``
 
 - ``astropy.wcs``
+
+  - Fixed possible exception in handling of SIP headers that was introduced in
+    v1.1.1. [#4492]
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
