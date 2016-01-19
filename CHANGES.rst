@@ -219,6 +219,24 @@ Other Changes and Additions
 - Nothing changed yet.
 
 
+1.1.2 (unreleased)
+------------------
+
+New Features
+^^^^^^^^^^^^
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.wcs``
+
+  - Fixed possible exception in handling of SIP headers that was introduced in
+    v1.1.1. [#4492]
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
 1.1.1 (unreleased)
 ------------------
 

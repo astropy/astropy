@@ -130,11 +130,11 @@ else:
 # Additional relax bit flags
 WCSHDO_SIP = 0x10000
 
-# Regular expression defining SIP keyword
-# It matches keyword that starts with A, B, AP or B, followed by an underscore then
-# a number in range of 0-19, followed by an underscore and another number
-# in range of 0-19. Keyword optionally ends with a capital letter.
-SIP_KW = re.compile('''^(A|B|AP|BP)_(?:[0-9]|1[0-9])_(?:[0-9]|1[0-9])(|[A-Z])$''')
+# Regular expression defining SIP keyword It matches keyword that starts with A
+# or B, optionally followed by P, followed by an underscore then a number in
+# range of 0-19, followed by an underscore and another number in range of 0-19.
+# Keyword optionally ends with a capital letter.
+SIP_KW = re.compile('''^[AB]P?_1?[0-9]_1?[0-9][A-Z]?$''')
 
 def _parse_keysel(keysel):
     keysel_flags = 0
@@ -767,7 +767,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                     tables[i] = d_lookup
                 else:
                     warnings.warn('Polynomial distortion is not implemented.\n', AstropyUserWarning)
-                for key in list(header.keys()):
+                for key in list(header):
                     if key.startswith(dp + str('.')):
                         del header[key]
             else:
@@ -920,7 +920,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                     d_lookup = DistortionLookupTable(d_data, d_crpix, d_crval, d_cdelt)
                     tables[i] = d_lookup
 
-                    for key in list(header.keys()):
+                    for key in list(header):
                         if key.startswith(dp + str('.')):
                             del header[key]
                 else:
@@ -986,7 +986,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         """
         # Never pass SIP coefficients to wcslib
         # CTYPE must be passed with -SIP to wcslib
-        for key in (m.group() for m in map(SIP_KW.match, header.keys())
+        for key in (m.group() for m in map(SIP_KW.match, list(header))
                     if m is not None):
             del header[key]
 
