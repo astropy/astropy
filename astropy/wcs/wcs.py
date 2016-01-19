@@ -384,22 +384,24 @@ class WCS(WCSBase):
                     fobj = fits.open(header)
                     close_fds.append(fobj)
                     header = fobj[0].header
-                    header_string = header.tostring().rstrip()
-                else:
-                    header_string = header
-            elif isinstance(header, fits.Header):
-                header_string = header.tostring().rstrip()
-            else:
+            elif isinstance(header, fits.hdu.image._ImageBaseHDU):
+                header = header.header
+            elif not isinstance(header, fits.Header):
                 try:
                     # Accept any dict-like object
-                    new_header = fits.Header()
-                    for dict_key in header.keys():
-                        new_header[dict_key] = header[dict_key]
-                    header_string = new_header.tostring().rstrip()
+                    orig_header = header
+                    header = fits.Header()
+                    for dict_key in orig_header.keys():
+                        header[dict_key] = orig_header[dict_key]
                 except TypeError:
                     raise TypeError(
                         "header must be a string, an astropy.io.fits.Header "
                         "object, or a dict-like object")
+
+            if isinstance(header, fits.Header):
+                header_string = header.tostring().rstrip()
+            else:
+                header_string = header
 
             # Importantly, header is a *copy* of the passed-in header
             # because we will be modifying it

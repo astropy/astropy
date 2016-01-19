@@ -220,6 +220,9 @@ API changes
 
 - ``astropy.wcs``
 
+  - WCS objects can now be initialized with an ImageHDU or
+    PrimaryHDU object. [#4493]
+
 Bug fixes
 ^^^^^^^^^
 
