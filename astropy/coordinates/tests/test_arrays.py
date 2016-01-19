@@ -100,19 +100,19 @@ def test_array_coordinates_creation():
     """
     Test creating coordinates from arrays.
     """
-    from .. import Angle, SkyCoord, CartesianRepresentation
+    from .. import Angle, ICRS, SkyCoord, CartesianRepresentation
 
-    c = SkyCoord(np.array([1, 2])*u.deg, np.array([3, 4])*u.deg)
+    c = ICRS(np.array([1, 2])*u.deg, np.array([3, 4])*u.deg)
     assert not c.ra.isscalar
 
     with pytest.raises(ValueError):
-        c = SkyCoord(np.array([1, 2])*u.deg, np.array([3, 4, 5])*u.deg)
+        c = ICRS(np.array([1, 2])*u.deg, np.array([3, 4, 5])*u.deg)
     with pytest.raises(ValueError):
-        c = SkyCoord(np.array([1, 2, 4, 5])*u.deg, np.array([[3, 4], [5, 6]])*u.deg)
+        c = ICRS(np.array([1, 2, 4, 5])*u.deg, np.array([[3, 4], [5, 6]])*u.deg)
 
     #make sure cartesian initialization also works
     cart = CartesianRepresentation(x=[1., 2.]*u.kpc, y=[3., 4.]*u.kpc, z=[5., 6.]*u.kpc)
-    c = SkyCoord(cart)
+    c = ICRS(cart)
 
     #also ensure strings can be arrays
     c = SkyCoord(['1d0m0s', '2h02m00.3s'], ['3d', '4d'])
