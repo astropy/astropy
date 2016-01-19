@@ -168,9 +168,6 @@ Bug fixes
 
 - ``astropy.modeling``
 
-  - Fixed display of compound model expressions and components when printing
-    compound model instances. [#4414]
-
 - ``astropy.nddata``
 
   - ``NDDataBase`` does not implement a setter or getter for ``uncertainty``,
@@ -1064,6 +1061,9 @@ Bug Fixes
 - ``astropy.io.votable``
 
 - ``astropy.modeling``
+
+  - Fixed display of compound model expressions and components when printing
+    compound model instances. [#4414]
 
 - ``astropy.nddata``
 
