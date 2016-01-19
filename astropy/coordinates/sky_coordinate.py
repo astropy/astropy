@@ -990,8 +990,7 @@ class SkyCoord(object):
         """
         olat = self.represent_as(SphericalRepresentation).lat
         olon = self.represent_as(SphericalRepresentation).lon
-        dist = self.represent_as(SphericalRepresentation).distance
-        return Astrometric(origin_ra=olon, origin_dec=olat, origin_distance=dist)  
+        return Astrometric(origin_ra=olon, origin_dec=olat)
 
     def get_constellation(self, short_name=False, constellation_list='iau'):
         """
