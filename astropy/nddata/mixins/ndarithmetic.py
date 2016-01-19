@@ -68,14 +68,16 @@ _arit_doc = """
         will have a copied version of the mask of the first operand (or
         if the first operand has no mask then the one from the second is
         taken). If it is a callable then the specified callable must
-        create the results ``mask``. Default is :func:`numpy.logical_or`.
+        create the results ``mask`` and if necessary provide a copy.
+        Default is `numpy.logical_or`.
 
     handle_meta : callable, ``False`` or ``None``, optional
         If ``None`` the result will have no meta. If ``False`` the result
         will have a copied version of the meta of the first operand (or
         if the first operand has no meta then the one from the second is
         taken). If it is a callable then the specified callable must
-        create the results ``meta``. Default is ``False``.
+        create the results ``meta`` and if necessary provide a copy.
+        Default is ``False``.
 
     compare_wcs : callable, ``False`` or ``None``, optional
         If ``None`` the result will have no wcs and no comparison between
@@ -83,8 +85,8 @@ _arit_doc = """
         the wcs of the first operand (or second if the first had ``None``).
         If it is a callable then the specified callable must
         compare the ``wcs``. The resulting ``wcs`` will be like if ``False``
-        was given or it raises a ``ValueError`` if the comparison was not
-        successful. Default is ``False``.
+        was given otherwise it raises a ``ValueError`` if the comparison was
+        not successful. Default is ``False``.
 
     uncertainty_correlation : ``Number`` or `~numpy.ndarray`, optional
         The correlation (rho) is defined between the uncertainties in
@@ -263,7 +265,7 @@ class NDArithmeticMixin(object):
 
         kwargs :
             Any other parameter that should be passed to the
-            different :meth:`NDArithmeticMixin._arithmetic_data` (or wcs, ...)
+            different :meth:`NDArithmeticMixin._arithmetic_mask` (or wcs, ...)
             methods.
 
         Returns
@@ -371,6 +373,9 @@ class NDArithmeticMixin(object):
             The second operand wrapped in an instance of the same class as
             self.
 
+        kwds :
+            Additional parameters.
+
         Returns
         -------
         result_data : `~numpy.ndarray` or `~astropy.units.Quantity`
@@ -413,6 +418,9 @@ class NDArithmeticMixin(object):
 
         correlation : `Number` or `~numpy.ndarray`
             see :meth:`NDArithmeticMixin.add` parameter description.
+
+        kwds :
+            Additional parameters.
 
         Returns
         -------
@@ -479,17 +487,18 @@ class NDArithmeticMixin(object):
             The second operand wrapped in an instance of the same class as
             self.
 
-        handle_mask : callable, ``False`` or ``None``, optional
+        handle_mask : callable
             see :meth:`NDArithmeticMixin.add`
+
+        kwds :
+            Additional parameters given to ``handle_mask``.
 
         Returns
         -------
         result_mask : `bool` or `~numpy.ndarray` or None
-            The mask created by a piecewise ``or`` operation. If only one mask
-            was present this mask is returned instead. If neither had a mask
-            ``None`` is returned. This kind of mask combination is only
-            possible if both operands have a mask and this mask is either
-            a boolean or an `~numpy.ndarray` containing booleans.
+            If only one mask was present this mask is returned.
+            If neither had a mask ``None`` is returned. Otherwise
+            ``handle_mask`` must create the returned mask.
         """
 
         # If only one mask is present we need not bother about any type checks
@@ -522,15 +531,21 @@ class NDArithmeticMixin(object):
             The second operand wrapped in an instance of the same class as
             self.
 
-        compare_wcs : callable, ``False`` or ``None``, optional
+        compare_wcs : callable
             see :meth:`NDArithmeticMixin.add` parameter description.
+
+        kwds :
+            Additional parameters given to ``compare_wcs``.
+
+        Raises
+        ------
+        ValueError
+            If ``compare_wcs`` returns ``False``.
 
         Returns
         -------
         result_wcs : any type
-            The WCS information of the first operand is copyied if it is set.
-            If it was not set the second operand will be tryed. If that one
-            had no WCS too ``None`` is returned.
+            The ``wcs`` of the first operand is returned.
         """
 
         # ok, not really arithmetics but we need to check which wcs makes sense
@@ -557,8 +572,11 @@ class NDArithmeticMixin(object):
             The second operand wrapped in an instance of the same class as
             self.
 
-        handle_meta : callable, ``False`` or ``None``, optional
+        handle_meta : callable
             see :meth:`NDArithmeticMixin.add`
+
+        kwds :
+            Additional parameters given to ``handle_meta``.
 
         Returns
         -------

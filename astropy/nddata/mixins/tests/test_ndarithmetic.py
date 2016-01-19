@@ -276,52 +276,9 @@ def test_arithmetics_data_masks(mask1, mask2):
         assert nd.wcs is None
 
 
-# Masks can only be used in that way if they are booleans or np.ndarrays of
-# booleans so everything else should result in an TypeError
-# Covered cases:
-# both: strings, integers, floats, classes
-# only one is such a type (which just copies it no exception)
-@pytest.mark.parametrize(('mask1', 'mask2'), [
-    ('String', 'String'),
-    ])
-def test_arithmetics_data_masks_invalid(mask1, mask2):
-
-    # Only one mask is not the expected type should work
-
-    nd1 = NDDataArithmetic(1, mask=mask1)
-    nd2 = NDDataArithmetic(1, mask=None)
-
-    assert nd1.add(nd2).mask == mask1
-    assert nd1.subtract(nd2).mask == mask1
-    assert nd1.multiply(nd2).mask == mask1
-    assert nd1.divide(nd2).mask == mask1
-
-    nd1 = NDDataArithmetic(1, mask=None)
-    nd2 = NDDataArithmetic(1, mask=mask2)
-
-    assert nd1.add(nd2).mask == mask2
-    assert nd1.subtract(nd2).mask == mask2
-    assert nd1.multiply(nd2).mask == mask2
-    assert nd1.divide(nd2).mask == mask2
-
-    # Operations should not be possible if both are of some unexpected type
-
-    nd1 = NDDataArithmetic(1, mask=mask1)
-    nd2 = NDDataArithmetic(1, mask=mask2)
-
-    with pytest.raises(TypeError):
-        nd1.add(nd2)
-    with pytest.raises(TypeError):
-        nd1.multiply(nd2)
-    with pytest.raises(TypeError):
-        nd1.subtract(nd2)
-    with pytest.raises(TypeError):
-        nd1.divide(nd2)
-
-
 # One additional case which can not be easily incorporated in the test above
 # what happens if the masks are numpy ndarrays are not broadcastable
-def test_arithmetics_data_masks_invalid_2():
+def test_arithmetics_data_masks_invalid():
 
     nd1 = NDDataArithmetic(1, mask=np.array([1, 0], dtype=np.bool_))
     nd2 = NDDataArithmetic(1, mask=np.array([1, 0, 1], dtype=np.bool_))
