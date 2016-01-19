@@ -25,6 +25,17 @@ from ...extern.six.moves import xrange
 from ...extern.six.moves import cPickle as pickle
 from ...extern import six
 
+try:
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    from distutils.version import LooseVersion
+    MATPLOTLIB_LT_14 = LooseVersion(matplotlib.__version__) < LooseVersion("1.4")
+    HAS_MATPLOTLIB = True
+except ImportError:
+    HAS_MATPLOTLIB = False
+
+
 """ The Quantity class will represent a number + unit + uncertainty """
 
 
@@ -1188,3 +1199,26 @@ def test_repr_array_of_quantity():
     else:
         assert repr(a) == 'array([<Quantity 1.0 m>, <Quantity 2.0 s>], dtype=object)'
         assert str(a) == '[<Quantity 1.0 m> <Quantity 2.0 s>]'
+
+
+@pytest.mark.skipif('not HAS_MATPLOTLIB')
+@pytest.mark.xfail('MATPLOTLIB_LT_14')
+class TestQuantityMatplotlib(object):
+    """Test if passing matplotlib quantities works.
+
+    TODO: create PNG output and check against reference image
+          once `astropy.wcsaxes` is merged, which provides
+          the machinery for this.
+
+    See https://github.com/astropy/astropy/issues/1881
+    See https://github.com/astropy/astropy/pull/2139
+    """
+
+    def test_plot(self):
+        data = u.Quantity([4, 5, 6], 's')
+        plt.plot(data)
+
+    def test_scatter(self):
+        x = u.Quantity([4, 5, 6], 'second')
+        y = [1, 3, 4] * u.m
+        plt.scatter(x, y)
