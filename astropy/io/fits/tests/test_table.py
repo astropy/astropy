@@ -2763,7 +2763,7 @@ class TestColumnFunctions(FitsTestCase):
 
     def test_x_column_deepcopy(self):
         """
-        Regression test for #XXX
+        Regression test for https://github.com/astropy/astropy/pull/4514
 
         Tests that columns with the X (bit array) format can be deep-copied.
         """
@@ -2776,7 +2776,7 @@ class TestColumnFunctions(FitsTestCase):
 
     def test_p_column_deepcopy(self):
         """
-        Regression test for #XXX
+        Regression test for https://github.com/astropy/astropy/pull/4514
 
         Tests that columns with the P/Q formats (variable length arrays) can be
         deep-copied.
