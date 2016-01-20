@@ -490,12 +490,12 @@ def test_format_doc_selfInput_simple():
 
     # Self input while the function has no docstring raises an error
     with pytest.raises(ValueError):
-        @format_doc('__doc__')
+        @format_doc(None)
         def testfunc_fail():
             pass
 
     # Test that it keeps an existing docstring
-    @format_doc('__doc__')
+    @format_doc(None)
     def testfunc_1():
         '''not test'''
         pass
@@ -507,13 +507,13 @@ def test_format_doc_selfInput_format():
 
     # Raises an indexerror if not given the formatted args and kwargs
     with pytest.raises(IndexError):
-        @format_doc('__doc__')
+        @format_doc(None)
         def testfunc_fail():
             '''dum {0} dum {opt}'''
             pass
 
     # Test that the formatting is done right
-    @format_doc('__doc__', 'di', opt='da dum')
+    @format_doc(None, 'di', opt='da dum')
     def testfunc1():
         '''dum {0} dum {opt}'''
         pass
@@ -521,7 +521,7 @@ def test_format_doc_selfInput_format():
 
     # Test that we cannot recursivly insert the original documentation
 
-    @format_doc('__doc__', 'di')
+    @format_doc(None, 'di')
     def testfunc2():
         '''dum {0} dum {__doc__}'''
         pass
@@ -535,7 +535,7 @@ def test_format_doc_onMethod():
 
     class TestClass(object):
         @format_doc(docstring)
-        @format_doc('__doc__', 'strange.')
+        @format_doc(None, 'strange.')
         def test_method(self):
             '''is {0}'''
             pass
@@ -543,7 +543,7 @@ def test_format_doc_onMethod():
     assert inspect.getdoc(TestClass.test_method) == 'what we do is strange.'
 
 
-@pytest.mark.skipif('six.PY2')
+#@pytest.mark.skipif('six.PY2')
 def test_format_doc_onClass():
     # Check if the decorator works on classes too
     docstring = 'what we do {__doc__} {0}{opt}'

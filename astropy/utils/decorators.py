@@ -762,22 +762,19 @@ def format_doc(docstring, *args, **kwargs):
     """
     Replaces the docstring of the decorated object and then formats it.
 
-    This decorator keeps the objects signature and only alters the saved
-    ``__doc__`` property (so it cannot be used as class decorator in python2).
     The formatting works like :meth:`str.format` and if the decorated object
     already has a docstring this docstring can be included in the new
     documentation if you use the ``{__doc__}`` placeholder.
-    It's primary use is if multiple functions have the same or only
-    a slightly different *long* docstring and you want to DRY
-    (https://de.wikipedia.org/wiki/Don%E2%80%99t_repeat_yourself).
+    Its primary use is for reusing a *long* docstring in multiple functions
+    when it is the same or only slightly different between them.
 
     Parameters
     ----------
-    docstring : str or object
+    docstring : str or object or None
         The docstring that will replace the docstring of the decorated
         object. If it is an object like a function or class it will
         take the docstring of this object. If it is a string it will use the
-        string itself. One special case is if the string is ``'__doc__'`` then
+        string itself. One special case is if the string is ``None`` then
         it will use the decorated functions docstring and formats it.
 
     args :
@@ -791,7 +788,7 @@ def format_doc(docstring, *args, **kwargs):
     Raises
     ------
     ValueError
-        If the ``docstring`` (or interpreted docstring if it was ``'__doc__'``
+        If the ``docstring`` (or interpreted docstring if it was ``None``
         or not a string) is empty.
 
     IndexError, KeyError
@@ -803,17 +800,13 @@ def format_doc(docstring, *args, **kwargs):
     Using this decorator allows, for example Sphinx, to parse the
     correct docstring.
 
-    There might be problems with certain objects which have a not-writable
-    ``__doc__`` attribute. Like classes in python2.
-
     Examples
     --------
 
     Replacing the current docstring is very easy::
 
         >>> from astropy.utils.decorators import format_doc
-        >>> doc = '''Perform num1 + num2'''
-        >>> @format_doc(doc)
+        >>> @format_doc('''Perform num1 + num2''')
         ... def add(num1, num2):
         ...     return num1+num2
         ...
@@ -943,9 +936,9 @@ def format_doc(docstring, *args, **kwargs):
                 result of num1 + num2
             This one is good for {0}.
 
-    To work around it you could specify the docstring to be ``'__doc__'``::
+    To work around it you could specify the docstring to be `None``::
 
-        >>> @format_doc('__doc__', 'addition')
+        >>> @format_doc(None, 'addition')
         ... def last_add_i_swear(num1, num2):
         ...    '''This one is good for {0}.'''
         ...    return num1 + num2
@@ -956,21 +949,23 @@ def format_doc(docstring, *args, **kwargs):
         last_add_i_swear(num1, num2)
             This one is good for addition.
 
-    Using it with ``'__doc__'`` as docstring allows to use the decorator twice
+    Using it with ``None`` as docstring allows to use the decorator twice
     on an object to first parse the new docstring and then to parse the
     original docstring or the ``args`` and ``kwargs``.
     """
-    def set_docstring(func):
-        # Not a string so assume we want the saved doc from the object
-        if not isinstance(docstring, six.string_types):
-            doc = docstring.__doc__
-        elif docstring != '__doc__':
-            doc = docstring
-        else:
-            doc = func.__doc__
+    def set_docstring(obj):
+        if docstring is None:
+            # None means: use the objects __doc__
+            doc = obj.__doc__
             # Delete documentation in this case so we don't end up with
             # awkwardly self-inserted docs.
-            func.__doc__ = None
+            obj.__doc__ = None
+        elif isinstance(docstring, six.string_types):
+            # String: use the string that was given
+            doc = docstring
+        else:
+            # Something else: Use the __doc__ of this
+            doc = docstring.__doc__
 
         if not doc:
             # In case the docstring is empty it's probably not what was wanted.
@@ -979,7 +974,13 @@ def format_doc(docstring, *args, **kwargs):
 
         # If the original has a not-empty docstring append it to the format
         # kwargs.
-        kwargs['__doc__'] = func.__doc__ or ''
-        func.__doc__ = doc.format(*args, **kwargs)
-        return func
+        kwargs['__doc__'] = obj.__doc__ or ''
+        if six.PY2 and isinstance(obj, type):
+            # For python 2 we must create a subclass because there the __doc__
+            # is not mutable for objects.
+            obj = type(obj.__name__, (obj,), {'__doc__': doc.format(*args, **kwargs),
+                                              '__module__': obj.__module__})
+        else:
+            obj.__doc__ = doc.format(*args, **kwargs)
+        return obj
     return set_docstring
