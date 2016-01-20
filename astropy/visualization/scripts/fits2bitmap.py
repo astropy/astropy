@@ -82,7 +82,7 @@ def fits2bitmap(filename, ext=0, out_fn=None, scale='linear',
         image = getdata(filename, ext)
     except Exception as e:
         log.critical(e)
-        return
+        return 1
 
     if image.ndim != 2:
         log.critical('data in FITS extension {0} is not a 2D array'
@@ -97,7 +97,7 @@ def fits2bitmap(filename, ext=0, out_fn=None, scale='linear',
     if cmap not in cm.datad:
         log.critical('{0} is not a valid matplotlib colormap '
                      'name'.format(cmap))
-        raise SystemExit()
+        return 1
 
     image_scaled = scale_image(image, scale=scale, power=power,
                                asinh_a=asinh_a, min_cut=min_cut,
