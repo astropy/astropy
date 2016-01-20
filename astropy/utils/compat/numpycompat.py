@@ -59,7 +59,7 @@ def _register_patched_dtype_reduce():
 
     if NUMPY_LT_1_7:
         import numpy as np
-        import copy_reg
+        from ...extern.six.moves import copyreg
 
         # Originally this created an alternate constructor that fixed this
         # issue, and returned that constructor from the new reduce_dtype;
@@ -74,7 +74,7 @@ def _register_patched_dtype_reduce():
                 info = (info[0], args) + info[2:]
             return info
 
-        copy_reg.pickle(np.dtype, reduce_dtype)
+        copyreg.pickle(np.dtype, reduce_dtype)
 
 
 if not _ASTROPY_SETUP_:
