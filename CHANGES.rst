@@ -59,6 +59,8 @@ New Features
 
 - ``astropy.utils``
 
+  - Implemented a generic and extensible way of merging metadata. [#4459]
+
 - ``astropy.visualization``
 
 - ``astropy.vo``
