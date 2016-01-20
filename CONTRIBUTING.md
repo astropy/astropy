@@ -39,9 +39,12 @@ include the following:
 - **Changelog entry**: whether you are fixing a bug or adding new
   functionality, you should add an entry to the ``CHANGES.rst`` file that
   includes if possible the issue number (if you are opening a pull request you
-  may not know this yet, but you can add it once the pull request is open). You
-  do not need to include a changelog entry for fixes to bugs introduced in the
-  developer version and which are not present in the stable releases.  In
+  may not know this yet, but you can add it once the pull request is open). If
+  you're not sure where to put the changelog entry, wait at least until a
+  maintainer has reviewed your PR and assigned it to a milestone.
+
+  You do not need to include a changelog entry for fixes to bugs introduced in
+  the developer version and which are not present in the stable releases.  In
   general you do not need to include a changelog entry for minor documentation
   or test updates.  Only user-visible changes (new features/API changes, fixed
   issues) need to be mentioned.  If in doubt ask the core maintainer reviewing
