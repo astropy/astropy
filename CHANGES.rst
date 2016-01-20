@@ -343,6 +343,14 @@ Bug Fixes
 
 - ``astropy.utils``
 
+- ``astropy.visualization``
+
+  - Fixed `fits2bitmap` script to allow ext flag to contain extension
+    names or numbers. [#4468]
+
+  - Fixed `fits2bitmap` default output filename generation for
+    compressed FITS files. [#4468]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
@@ -1084,6 +1092,14 @@ Bug Fixes
 - ``astropy.utils``
 
 - ``astropy.vo``
+
+- ``astropy.visualization``
+
+  - Fixed `fits2bitmap` script to allow ext flag to contain extension
+    names or numbers. [#4468]
+
+  - Fixed `fits2bitmap` default output filename generation for
+    compressed FITS files. [#4468]
 
 - ``astropy.wcs``
 

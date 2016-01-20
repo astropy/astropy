@@ -2,10 +2,9 @@
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-
+import os
 from ... import log
-from ...io import fits
-
+from ...io.fits import getdata
 from ..ui import scale_image
 
 
@@ -23,7 +22,8 @@ def fits2bitmap(filename, ext=0, out_fn=None, scale='linear',
     filename : str
         The filename of the FITS file.
     ext : int
-        FITS extension number of the image to convert.  The default is 0.
+        FITS extension name or number of the image to convert.  The
+        default is 0.
     out_fn : str
         The filename of the output bitmap image.  The type of bitmap
         is determined by the filename extension (e.g. '.jpg', '.png').
@@ -71,15 +71,33 @@ def fits2bitmap(filename, ext=0, out_fn=None, scale='linear',
     import matplotlib.cm as cm
     import matplotlib.image as mimg
 
-    hdulist = fits.open(filename)
-    image = hdulist[ext].data
-    hdulist.close()
+
+    # __main__ gives ext as a string
+    try:
+        ext = int(ext)
+    except ValueError:
+        pass
+
+    try:
+        image = getdata(filename, ext)
+    except Exception as e:
+        log.critical(e)
+        return 1
+
+    if image.ndim != 2:
+        log.critical('data in FITS extension {0} is not a 2D array'
+                     .format(ext))
+
     if out_fn is None:
-        out_fn = filename.replace('.fits', '.png')
-    if cmap not in cm.datad.keys():
+        out_fn = os.path.splitext(filename)[0]
+        if out_fn.endswith('.fits'):
+            out_fn = os.path.splitext(out_fn)[0]
+        out_fn += '.png'
+
+    if cmap not in cm.datad:
         log.critical('{0} is not a valid matplotlib colormap '
                      'name'.format(cmap))
-        raise SystemExit()
+        return 1
 
     image_scaled = scale_image(image, scale=scale, power=power,
                                asinh_a=asinh_a, min_cut=min_cut,
@@ -96,36 +114,42 @@ def main(args=None):
 
     parser = argparse.ArgumentParser(
         description='Create a bitmap file from a FITS image.')
-    parser.add_argument('-e', '--ext', metavar='hdu', type=int, default=0,
-                        help='specify the HDU extension number or name')
+    parser.add_argument('-e', '--ext', metavar='hdu', default=0,
+                        help='Specify the HDU extension number or name '
+                             '(Default is 0).')
     parser.add_argument('-o', metavar='filename', type=str, default=None,
                         help='Filename for the output image (Default is a '
-                        'PNG file with the same name as the FITS file)')
+                        'PNG file with the same name as the FITS file).')
     parser.add_argument('--scale', type=str, default='linear',
                         help='Type of image scaling ("linear", "sqrt", '
-                        '"power", "log", or "asinh")')
+                        '"power", "log", or "asinh") (Default is "linear").')
     parser.add_argument('--power', type=float, default=1.0,
-                        help='Power index for "power" scaling')
+                        help='Power index for "power" scaling (Default is '
+                             '1.0).')
     parser.add_argument('--asinh_a', type=float, default=0.1,
-                        help=('The value in normalized image where the asinh '
-                              'curve transitions from linear to logarithmic '
-                              'behavior (used only for "asinh" scaling)'))
+                        help='The value in normalized image where the asinh '
+                             'curve transitions from linear to logarithmic '
+                             'behavior (used only for "asinh" scaling) '
+                             '(Default is 0.1).')
     parser.add_argument('--min_cut', type=float, default=None,
-                        help='The pixel value of the minimum cut level')
+                        help='The pixel value of the minimum cut level '
+                             '(Default is the image minimum).')
     parser.add_argument('--max_cut', type=float, default=None,
-                        help='The pixel value of the maximum cut level')
+                        help='The pixel value of the maximum cut level '
+                             '(Default is the image maximum).')
     parser.add_argument('--min_percent', type=float, default=None,
-                        help=('The percentile value used to determine the '
-                              'minimum cut level'))
+                        help='The percentile value used to determine the '
+                             'minimum cut level (Default is 0).')
     parser.add_argument('--max_percent', type=float, default=None,
-                        help=('The percentile value used to determine the '
-                              'maximum cut level'))
+                        help='The percentile value used to determine the '
+                             'maximum cut level (Default is 100).')
     parser.add_argument('--percent', type=float, default=None,
-                        help=('The percentage of the image values used to '
-                              'determine the pixel values of the minimum and '
-                              'maximum cut levels'))
+                        help='The percentage of the image values used to '
+                             'determine the pixel values of the minimum and '
+                             'maximum cut levels (Default is 100).')
     parser.add_argument('--cmap', metavar='colormap_name', type=str,
-                        default='Greys_r', help='matplotlib color map name')
+                        default='Greys_r', help='matplotlib color map name '
+                                                '(Default is "Greys_r").')
     parser.add_argument('filename', nargs='+',
                         help='Path to one or more FITS files to convert')
     args = parser.parse_args(args)
