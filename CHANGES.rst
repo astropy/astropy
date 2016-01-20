@@ -478,6 +478,9 @@ New Features
   - Support reading and writing from bzip2 compressed files. i.e. ``.fits.bz2``
     files. [#3789]
 
+  - Included a new command-line script called ``fitsinfo`` to display
+    a summary of the HDUs in one or more FITS files. [#3677]
+
 - ``astropy.io.misc``
 
   - Support saving all meta information, description and units of tables and columns
@@ -904,11 +907,6 @@ Bug fixes
 
   - Fix an underlying problem that resulted in an uncaught TypeError
     exception when reading a CDS-format file with guessing enabled. [#4120]
-
-- ``astropy.io.fits``
-
-  - Included a new command-line script called ``fitsinfo`` to display
-    a summary of the HDUs in one or more FITS files. [#3677]
 
 - ``astropy.modeling``
 
