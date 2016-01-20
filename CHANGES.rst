@@ -102,6 +102,9 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Fixed possible segfault during error handling in FITS tile
+    compression. [#4489]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``

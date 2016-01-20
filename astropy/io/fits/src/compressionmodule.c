@@ -898,7 +898,7 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
     unsigned long long heapsize;
 
     fitsfile* fileptr;
-    FITSfile* Fptr;
+    FITSfile* Fptr = NULL;
     int status = 0;
 
     if (!PyArg_ParseTuple(args, "O:compression.compress_hdu", &hdu))
@@ -977,7 +977,9 @@ fail:
 cleanup:
     if (columns != NULL) {
         PyMem_Free(columns);
-        Fptr->tableptr = NULL;
+	if (Fptr != NULL) {
+	    Fptr->tableptr = NULL;
+	}
     }
 
     if (fileptr != NULL) {
