@@ -45,6 +45,10 @@ New Features
     yield tables with an "idx" column, allowing easy identification of the index
     of a row even when the table is re-sorted in the browser. [#4404]
 
+  - Enhance table and column aggregation to allow access to other table columns
+    and provide for additional arguments in ``aggregate`` that get passed
+    through to the aggregation function. [#4513]
+
 - ``astropy.tests``
 
 - ``astropy.time``

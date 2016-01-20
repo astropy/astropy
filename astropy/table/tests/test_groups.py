@@ -573,3 +573,36 @@ def test_column_filter():
     assert c2.groups[0].pformat() == [' c ', '---', '7.0', '5.0']
     assert c2.groups[1].pformat() == [' c ', '---', '0.0']
     assert c2.groups[2].pformat() == [' c ', '---', '3.0', '2.0', '1.0']
+
+
+def test_table_aggregate_weighted(T1):
+    """
+    Aggregate a table using a custom function that uses another table column
+    and has custom pass-through keyword args.  [#4513]
+    """
+    def average_weighted(col, parent_table=None, i0=None, i1=None, weight_colname='weight'):
+        """
+        Return weighted average of ``col``.  This assumes the ``parent_table``
+        has a column named ``weight``.  The args ``i0`` and ``i1`` represent
+        the slice boundary for the current group being aggregated.
+        """
+        if parent_table is None:
+            raise ValueError('this aggregation function requires astropy >= 1.2')
+        if col.info.name == weight_colname:
+            value = col.sum()
+        else:
+            weight = parent_table[weight_colname][i0: i1]
+            value = (col * weight).sum() / weight.sum()
+
+        return value
+
+    # Table with only summable cols
+    t1 = T1['a', 'c', 'd']
+    tg = t1.group_by('a')
+    tga = tg.groups.aggregate(average_weighted, weight_colname='d')
+    tga['c'].format = '.2f'
+    assert tga.pformat() == [' a   c    d ',
+                             '--- ---- ---',
+                             '  0 0.00   4',
+                             '  1 1.89  18',
+                             '  2 4.83   6']

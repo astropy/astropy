@@ -319,6 +319,55 @@ using `numpy.ufunc.reduceat` include:
 As special cases `numpy.sum` and `numpy.mean` are substituted with their
 respective reduceat methods.
 
+**Advanced aggregation**
+
+The normal aggregation process described above provides only the column in
+question to the aggregation function.  In some cases it is necessary to have
+access to other table columns.  An example is computing a weighted average
+within each table group.  This can be accomplished by expanding the function
+signature of the aggregation function to include three additional keyword
+arguments, as shown in this example::
+
+  >>> def average_weighted(col, parent_table=None, i0=None, i1=None, weight_colname='weight'):
+  ...     """
+  ...     Return weighted average of ``col``.  This assumes the ``parent_table``
+  ...     has a column named ``weight``.  The args ``i0`` and ``i1`` represent
+  ...     the slice boundary for the current group being aggregated.
+  ...     """
+  ...     if parent_table is None:
+  ...         raise ValueError('this aggregation function requires astropy >= 1.2')
+  ...     if col.info.name == weight_colname:
+  ...         # Remove weight column from output by raising an exception here.
+  ...         # Other possibilities include returning the sum of weights, e.g.
+  ...         # value = col.sum()
+  ...         raise ValueError('drop the weight column from output')
+  ...     else:
+  ...         weight = parent_table[weight_colname][i0: i1]
+  ...         value = (col * weight).sum() / weight.sum()
+  ...
+  ...     return value
+
+We can now show how this works in action::
+
+    >>> t = Table.read([' key  wght val val2',
+    ...                 ' 0    1.0   4    1',
+    ...                 ' 1    3.0   5    3',
+    ...                 ' 1    2.0   6    2',
+    ...                 ' 1    1.0   7   17',
+    ...                 ' 2    7.0   0    2',
+    ...                 ' 2    6.0   2   20',
+    ...                 ' 2    4.0   3   15',
+    ...                 ], format='ascii')
+    >>> tg = t.group_by('key')
+    >>> out = tg.groups.aggregate(average_weighted, weight_colname='wght')
+    >>> out['val'].format = '.3f'
+    >>> out['val2'].format = '.3f'
+    >>> print(out)
+    key  val   val2
+    --- ----- ------
+      0 4.000  1.000
+      1 5.667  5.000
+      2 1.412 11.412
 
 Filtering
 ~~~~~~~~~~

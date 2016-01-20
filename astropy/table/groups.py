@@ -6,6 +6,7 @@ from ..extern.six.moves import zip as izip
 
 import platform
 import warnings
+import inspect
 
 import numpy as np
 from .index import get_index
@@ -237,7 +238,28 @@ class ColumnGroups(BaseGroups):
         else:
             return self._keys
 
-    def aggregate(self, func):
+    def aggregate(self, func, **kwargs):
+        """Aggregate each group in the column into a single value by applying the
+        reduction function ``func`` to group values in the column.
+
+        If the ``func`` definition includes keyword arguments ``parent_table``,
+        ``i0`` and ``i1``, then those will be passed to ``func`` along with
+        ``kwargs``.  The values ``i0`` and ``i1`` represent the indices of the
+        current slice being aggregated into a single value.
+
+        Parameters
+        ----------
+        func : function
+            Function that reduces an array of values to a single value
+        kwargs : keyword args
+            Additional keyword args that get passed to ``func``
+
+        Returns
+        -------
+        out : column (same class as object being aggregated)
+            New column with the aggregated rows.
+
+        """
         from .column import MaskedColumn
 
         i0s, i1s = self.indices[:-1], self.indices[1:]
@@ -255,11 +277,19 @@ class ColumnGroups(BaseGroups):
                         func = np.add
                     vals = func.reduceat(par_col, i0s)
             else:
-                vals = np.array([func(par_col[i0: i1]) for i0, i1 in izip(i0s, i1s)])
-        except Exception:
-            raise TypeError("Cannot aggregate column '{0}' with type '{1}'"
-                            .format(par_col.info.name,
-                                    par_col.info.dtype))
+                args = inspect.getargspec(func).args
+                if all(kw in args for kw in ('parent_table', 'i0', 'i1')):
+                    vals = [func(par_col[i0: i1], parent_table=par_col.info.parent_table,
+                                 i0=i0, i1=i1, **kwargs)
+                            for i0, i1 in izip(i0s, i1s)]
+                else:
+                    vals = [func(par_col[i0: i1], **kwargs)
+                            for i0, i1 in izip(i0s, i1s)]
+                vals = np.array(vals)
+
+        except Exception as err:
+            raise TypeError("Cannot aggregate column '{0}' with type '{1} (Error: {2})'"
+                            .format(par_col.info.name, par_col.info.dtype, err))
 
         out = par_col.__class__(data=vals,
                                 name=par_col.info.name,
@@ -328,15 +358,22 @@ class TableGroups(BaseGroups):
         else:
             return self._indices
 
-    def aggregate(self, func):
+    def aggregate(self, func, **kwargs):
         """
         Aggregate each group in the Table into a single row by applying the reduction
         function ``func`` to group values in each column.
+
+        If the ``func`` definition includes keyword arguments ``parent_table``,
+        ``i0`` and ``i1``, then those will be passed to ``func`` along with
+        ``kwargs``.  The values ``i0`` and ``i1`` represent the indices of the
+        current slice being aggregated into a single value.
 
         Parameters
         ----------
         func : function
             Function that reduces an array of values to a single value
+        kwargs : keyword args
+            Additional keyword args that get passed to ``func``
 
         Returns
         -------
@@ -344,7 +381,7 @@ class TableGroups(BaseGroups):
             New table with the aggregated rows.
         """
 
-        i0s, i1s = self.indices[:-1], self.indices[1:]
+        i0s = self.indices[:-1]
         out_cols = []
         parent_table = self.parent_table
 
@@ -354,7 +391,7 @@ class TableGroups(BaseGroups):
                 new_col = col.take(i0s)
             else:
                 try:
-                    new_col = col.groups.aggregate(func)
+                    new_col = col.groups.aggregate(func, **kwargs)
                 except TypeError as err:
                     warnings.warn(six.text_type(err), AstropyUserWarning)
                     continue
