@@ -154,19 +154,50 @@ Prerequisites
 -------------
 
 You will need a compiler suite and the development headers for Python and
-Numpy in order to build Astropy. On Linux, using the package manager for your
-distribution will usually be the easiest route, while on MacOS X you will
-need the XCode command line tools.
-
-The `instructions for building Numpy from source
-<http://docs.scipy.org/doc/numpy/user/install.html>`_ are also a good
-resource for setting up your environment to build Python packages.
+Numpy in order to build Astropy. 
 
 You will also need `Cython <http://cython.org/>`_ (v0.15 or later) and
 `jinja2 <http://jinja.pocoo.org/docs/dev/>`_ (v2.7 or later) installed
 to build from source, unless you are installing a numbered release. (The
 releases packages have the necessary C files packaged with them, and hence do
 not require Cython.)
+
+Prerequisites for Linux
+-----------------------
+
+On Linux, using the package manager for your distribution will usually be 
+the easiest route. In order to build from source, you'll need the python development package
+for your distro.
+
+For Debian/Ubuntu::
+    
+    sudo apt-get install python-dev
+
+For Fedora/RHEL::
+    
+    sudo yum install python-devel
+
+Prerequisites for Mac OS X
+--------------------------
+
+On MacOS X you will need the XCode command line tools which can be installed using
+
+For installing XCode command line tools::
+    
+    xcode-select --install
+
+and follow the onscreen instructions to install the command line tools required.
+
+You'll also need the python development package for Mac OS X to proceed in building
+astropy from source.
+
+To install the python development package for Mac OS X, from a package manager
+like brew, macports or fink.
+
+
+The `instructions for building Numpy from source
+<http://docs.scipy.org/doc/numpy/user/install.html>`_ are also a good
+resource for setting up your environment to build Python packages.
 
 .. note::
 
