@@ -1139,6 +1139,11 @@ Bug Fixes
 
   - Pickling of ``EarthLocation`` instances now also works on Python 2. [#4304]
 
+``astropy.io.ascii``
+
+  - Fix fast writer so bytestring column output is not prefixed by 'b' in
+    Python 3. [#4350]
+
 - ``astropy.io.fits``
 
   - Fixed a regression that could cause writes of large FITS files to be
@@ -1148,9 +1153,6 @@ Bug Fixes
     of a table column is smaller than the repeat count of its data format.
     This updates that fix in such a way that it works with Numpy 1.10 as well.
     [#4266]
-
-  - Fix fast writer so bytestring column output is not prefixed by 'b' in
-    Python 3. [#4350]
 
 - ``astropy.table``
 
