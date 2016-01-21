@@ -1317,7 +1317,7 @@ class BinTableHDU(_TableBaseHDU):
                 recformats[idx] = _FormatP(dt, max=length)
                 data.columns._recformats[idx] = recformats[idx]
                 name = data.columns.names[idx]
-                data._converted[name] = _makep(arr, arr, recformats[idx])
+                data._cache_field(name, _makep(arr, arr, recformats[idx]))
 
         def format_value(col, val):
             # Special formatting for a couple particular data types

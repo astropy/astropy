@@ -401,8 +401,8 @@ class FITS_rec(np.recarray):
                     _wrapx(inarr, outarr, recformat.repeat)
                     continue
             elif isinstance(recformat, _FormatP):
-                data._converted[name] = _makep(inarr, field, recformat,
-                                               nrows=nrows)
+                data._cache_field(name, _makep(inarr, field, recformat,
+                                               nrows=nrows))
                 continue
             # TODO: Find a better way of determining that the column is meant
             # to be FITS L formatted
@@ -413,8 +413,9 @@ class FITS_rec(np.recarray):
                 field[:] = ord('F')
                 # Also save the original boolean array in data._converted so
                 # that it doesn't have to be re-converted
-                data._converted[name] = np.zeros(field.shape, dtype=bool)
-                data._converted[name][:n] = inarr
+                converted = np.zeros(field.shape, dtype=bool)
+                converted[:n] = inarr
+                data._cache_field(name, converted)
                 # TODO: Maybe this step isn't necessary at all if _scale_back
                 # will handle it?
                 inarr = np.where(inarr == False, ord('F'), ord('T'))
@@ -422,9 +423,9 @@ class FITS_rec(np.recarray):
                     columns[idx]._pseudo_unsigned_ints):
                 # Temporary hack...
                 bzero = column.bzero
-                data._converted[name] = np.zeros(field.shape,
-                                                 dtype=inarr.dtype)
-                data._converted[name][:n] = inarr
+                converted = np.zeros(field.shape, dtype=inarr.dtype)
+                converted[:n] = inarr
+                data._cache_field(name, converted)
                 if n < nrows:
                     # Pre-scale rows below the input data
                     field[n:] = -bzero
@@ -444,7 +445,7 @@ class FITS_rec(np.recarray):
                     # Set up views of numeric columns with the appropriate
                     # numeric dtype
                     # Fill with the appropriate blanks for the column format
-                    data._converted[name] = np.zeros(nrows, dtype=arr.dtype)
+                    data._cache_field(name, np.zeros(nrows, dtype=arr.dtype))
                     outarr = data._converted[name][:n]
 
                 outarr[:] = inarr
@@ -515,8 +516,8 @@ class FITS_rec(np.recarray):
                 # the original
                 dummy = self.field(idx)
                 if name in self._converted:
-                    out._converted[name] = \
-                        np.ndarray.__getitem__(self._converted[name], key)
+                    field = np.ndarray.__getitem__(self._converted[name], key)
+                    out._cache_field(name, field)
             del dummy
 
             out._coldefs._arrays = arrays
@@ -610,7 +611,10 @@ class FITS_rec(np.recarray):
     def formats(self):
         """List of column FITS foramts."""
 
-        return self._coldefs.formats
+        if hasattr(self, '_coldefs') and self._coldefs is not None:
+            return self._coldefs.formats
+
+        return None
 
     @property
     def _raw_itemsize(self):
@@ -675,10 +679,30 @@ class FITS_rec(np.recarray):
                 # fields
                 converted = self._convert_other(column, field, recformat)
 
-            self._converted[name] = converted
+            # Note: Never assign values directly into the self._converted dict;
+            # always go through self._cache_field; this way self._converted is
+            # only used to store arrays that are not already direct views of
+            # our own data.
+            self._cache_field(name, converted)
             return converted
 
         return self._converted[name]
+
+    def _cache_field(self, name, field):
+        """
+        Do not store fields in _converted if one of its bases is self!
+
+        This results in a reference cycle that cannot be broken since
+        ndarrays do not participate in cyclic garbage collection.
+        """
+
+        base = field
+        while base is not None and hasattr(base, 'base'):
+            if base is self:
+                return
+            base = base.base
+
+        self._converted[name] = field
 
     def _update_column_attribute_changed(self, column, idx, attr, old_value,
                                          new_value):
