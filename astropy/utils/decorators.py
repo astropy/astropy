@@ -936,7 +936,7 @@ def format_doc(docstring, *args, **kwargs):
                 result of num1 + num2
             This one is good for {0}.
 
-    To work around it you could specify the docstring to be `None``::
+    To work around it you could specify the docstring to be ``None``::
 
         >>> @format_doc(None, 'addition')
         ... def last_add_i_swear(num1, num2):
