@@ -1008,7 +1008,7 @@ class FITS_rec(np.recarray):
         for indx, name in enumerate(self.dtype.names):
             column = self._coldefs[indx]
             recformat = column.format.recformat
-            field = _get_recarray_field(self, indx)
+            raw_field = _get_recarray_field(self, indx)
 
             # add the location offset of the heap area for each
             # variable length column
@@ -1022,33 +1022,32 @@ class FITS_rec(np.recarray):
                 if update_heap_pointers and name in self._converted:
                     # The VLA has potentially been updated, so we need to
                     # update the array descriptors
-                    field[:] = 0  # reset
+                    raw_field[:] = 0  # reset
                     npts = [len(arr) for arr in self._converted[name]]
 
-                    field[:len(npts), 0] = npts
-                    field[1:, 1] = (np.add.accumulate(field[:-1, 0]) *
-                                    dtype.itemsize)
-                    field[:, 1][:] += heapsize
+                    raw_field[:len(npts), 0] = npts
+                    raw_field[1:, 1] = (np.add.accumulate(raw_field[:-1, 0]) *
+                                        dtype.itemsize)
+                    raw_field[:, 1][:] += heapsize
 
-                heapsize += field[:, 0].sum() * dtype.itemsize
+                heapsize += raw_field[:, 0].sum() * dtype.itemsize
                 # Even if this VLA has not been read or updated, we need to
                 # include the size of its constituent arrays in the heap size
                 # total
 
-            if name not in self._converted:
-                continue
-
-            if isinstance(recformat, _FormatX):
-                _wrapx(self._converted[name], field, recformat.repeat)
+            if isinstance(recformat, _FormatX) and name in self._converted:
+                _wrapx(self._converted[name], raw_field, recformat.repeat)
                 continue
 
             _str, _bool, _number, _scale, _zero, bscale, bzero, _ = \
                 self._get_scale_factors(column)
 
+            field = self._converted.get(name, raw_field)
+
             # conversion for both ASCII and binary tables
             if _number or _str:
                 if _number and (_scale or _zero) and column._physical_values:
-                    dummy = self._converted[name].copy()
+                    dummy = field.copy()
                     if _zero:
                         dummy -= bzero
                     if _scale:
@@ -1057,39 +1056,38 @@ class FITS_rec(np.recarray):
                     # their non-physical storage values, so the column should
                     # be mark is not scaled
                     column._physical_values = False
-                elif _str:
-                    dummy = self._converted[name]
-                elif isinstance(self._coldefs, _AsciiColDefs):
-                    dummy = self._converted[name]
+                elif _str or isinstance(self._coldefs, _AsciiColDefs):
+                    dummy = field
                 else:
                     continue
 
                 # ASCII table, convert numbers to strings
                 if isinstance(self._coldefs, _AsciiColDefs):
-                    self._scale_back_ascii(indx, dummy, field)
+                    self._scale_back_ascii(indx, dummy, raw_field)
                 # binary table string column
-                elif isinstance(field, chararray.chararray):
-                    self._scale_back_strings(indx, dummy, field)
+                elif isinstance(raw_field, chararray.chararray):
+                    self._scale_back_strings(indx, dummy, raw_field)
                 # all other binary table columns
                 else:
-                    if len(field) and isinstance(field[0], np.integer):
+                    if len(raw_field) and isinstance(raw_field[0],
+                                                     np.integer):
                         dummy = np.around(dummy)
 
-                    if field.shape == dummy.shape:
-                        field[:] = dummy
+                    if raw_field.shape == dummy.shape:
+                        raw_field[:] = dummy
                     else:
                         # Reshaping the data is necessary in cases where the
                         # TDIMn keyword was used to shape a column's entries
                         # into arrays
-                        field[:] = dummy.ravel().view(field.dtype)
+                        raw_field[:] = dummy.ravel().view(raw_field.dtype)
 
                 del dummy
 
             # ASCII table does not have Boolean type
-            elif _bool:
-                field[:] = np.choose(self._converted[name],
-                                     (np.array([ord('F')], dtype=np.int8)[0],
-                                      np.array([ord('T')], dtype=np.int8)[0]))
+            elif _bool and name in self._converted:
+                choices = (np.array([ord('F')], dtype=np.int8)[0],
+                           np.array([ord('T')], dtype=np.int8)[0])
+                raw_field[:] = np.choose(field, choices)
 
         # Store the updated heapsize
         self._heapsize = heapsize
