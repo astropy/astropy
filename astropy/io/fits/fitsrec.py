@@ -182,13 +182,10 @@ class FITS_rec(np.recarray):
             self = np.recarray.__new__(subtype, input.shape, input.dtype,
                                        buf=input.data, strides=input.strides)
 
-        self._nfields = len(self.dtype.names)
-        self._converted = {}
-        self._heapoffset = 0
-        self._heapsize = 0
-        self._coldefs = None
-        self._gap = 0
-        self._uint = False
+        self._init()
+        if self.dtype.fields:
+            self._nfields = len(self.dtype.fields)
+
         return self
 
     def __setstate__(self, state):
@@ -235,7 +232,7 @@ class FITS_rec(np.recarray):
         if obj is None:
             return
 
-        if isinstance(obj, FITS_rec):
+        if isinstance(obj, FITS_rec) and obj.dtype == self.dtype:
             self._converted = obj._converted
             self._heapoffset = obj._heapoffset
             self._heapsize = obj._heapsize
@@ -243,10 +240,10 @@ class FITS_rec(np.recarray):
             self._nfields = obj._nfields
             self._gap = obj._gap
             self._uint = obj._uint
-        else:
+        elif self.dtype.fields is not None:
             # This will allow regular ndarrays with fields, rather than
             # just other FITS_rec objects
-            self._nfields = len(obj.dtype.names)
+            self._nfields = len(self.dtype.fields)
             self._converted = {}
 
             self._heapoffset = getattr(obj, '_heapoffset', 0)
@@ -267,6 +264,19 @@ class FITS_rec(np.recarray):
 
             if self._coldefs is None:
                 self._coldefs = ColDefs(self)
+        else:
+            self._init()
+
+    def _init(self):
+        """Initializes internal attributes specific to FITS-isms."""
+
+        self._nfields = 0
+        self._converted = {}
+        self._heapoffset = 0
+        self._heapsize = 0
+        self._coldefs = None
+        self._gap = 0
+        self._uint = False
 
     @classmethod
     def from_columns(cls, columns, nrows=0, fill=False):
@@ -480,6 +490,9 @@ class FITS_rec(np.recarray):
         return np.ndarray.__repr__(self)
 
     def __getitem__(self, key):
+        if self._coldefs is None:
+            return super(FITS_rec, self).__getitem__(key)
+
         if isinstance(key, string_types):
             return self.field(key)
         elif isinstance(key, (slice, np.ndarray, tuple, list)):
@@ -519,6 +532,9 @@ class FITS_rec(np.recarray):
             return newrecord
 
     def __setitem__(self, key, value):
+        if self._coldefs is None:
+            return super(FITS_rec, self).__setitem__(key, value)
+
         if isinstance(key, string_types):
             self[key][:] = value
             return
@@ -585,8 +601,10 @@ class FITS_rec(np.recarray):
 
         if hasattr(self, '_coldefs') and self._coldefs is not None:
             return self._coldefs.names
-        else:
+        elif self.dtype.fields:
             return list(self.dtype.names)
+        else:
+            return None
 
     @property
     def formats(self):
