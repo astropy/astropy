@@ -19,7 +19,7 @@ from ...extern.six import string_types
 from ...extern.six.moves import xrange
 from ...utils import lazyproperty
 from ...utils.compat import ignored
-from ...utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from ...utils.exceptions import AstropyDeprecationWarning
 
 
 class FITS_record(object):
@@ -249,21 +249,9 @@ class FITS_rec(np.recarray):
             self._heapoffset = getattr(obj, '_heapoffset', 0)
             self._heapsize = getattr(obj, '_heapsize', 0)
 
-            self._coldefs = None
             self._gap = getattr(obj, '_gap', 0)
             self._uint = getattr(obj, '_uint', False)
-
-            attrs = ['_converted', '_coldefs', '_gap']
-            for attr in attrs:
-                if hasattr(obj, attr):
-                    value = getattr(obj, attr, None)
-                    if value is None:
-                        warnings.warn('Setting attribute %s as None' % attr,
-                                      AstropyUserWarning)
-                    setattr(self, attr, value)
-
-            if self._coldefs is None:
-                self._coldefs = ColDefs(self)
+            self._coldefs = ColDefs(self)
         else:
             self._init()
 
