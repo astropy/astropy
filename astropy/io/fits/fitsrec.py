@@ -499,14 +499,13 @@ class FITS_rec(np.recarray):
                 #
                 arrays.append(self._coldefs._arrays[idx][key])
 
-                # touch all fields to expand the original ._converted dict
-                # so the sliced FITS_rec will view the same scaled columns as
-                # the original
-                dummy = self.field(idx)
+                # Ensure that the sliced FITS_rec will view the same scaled
+                # columns as the original; this is one of the few cases where
+                # it is not necessary to use _cache_field()
                 if name in self._converted:
-                    field = np.ndarray.__getitem__(self._converted[name], key)
-                    out._cache_field(name, field)
-            del dummy
+                    dummy = self._converted[name]
+                    field = np.ndarray.__getitem__(dummy, key)
+                    out._converted[name] = field
 
             out._coldefs._arrays = arrays
             return out
@@ -678,17 +677,29 @@ class FITS_rec(np.recarray):
 
     def _cache_field(self, name, field):
         """
-        Do not store fields in _converted if one of its bases is self!
+        Do not store fields in _converted if one of its bases is self,
+        or if it has a common base with self.
 
         This results in a reference cycle that cannot be broken since
         ndarrays do not participate in cyclic garbage collection.
         """
 
         base = field
-        while base is not None and hasattr(base, 'base'):
-            if base is self:
-                return
-            base = base.base
+        while True:
+            self_base = self
+            while True:
+                if self_base is base:
+                    return
+
+                if getattr(self_base, 'base', None) is not None:
+                    self_base = self_base.base
+                else:
+                    break
+
+            if getattr(base, 'base', None) is not None:
+                base = base.base
+            else:
+                break
 
         self._converted[name] = field
 
