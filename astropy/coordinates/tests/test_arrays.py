@@ -100,8 +100,7 @@ def test_array_coordinates_creation():
     """
     Test creating coordinates from arrays.
     """
-    from .. import Angle
-    from .. import ICRS, CartesianRepresentation
+    from .. import Angle, ICRS, SkyCoord, CartesianRepresentation
 
     c = ICRS(np.array([1, 2])*u.deg, np.array([3, 4])*u.deg)
     assert not c.ra.isscalar
@@ -116,13 +115,13 @@ def test_array_coordinates_creation():
     c = ICRS(cart)
 
     #also ensure strings can be arrays
-    c = ICRS(['1d0m0s', '2h02m00.3s'], ['3d', '4d'])
+    c = SkyCoord(['1d0m0s', '2h02m00.3s'], ['3d', '4d'])
 
     #but invalid strings cannot
     with pytest.raises(ValueError):
-        c = ICRS(Angle(['10m0s', '2h02m00.3s']), Angle(['3d', '4d']))
+        c = SkyCoord(Angle(['10m0s', '2h02m00.3s']), Angle(['3d', '4d']))
     with pytest.raises(ValueError):
-        c = ICRS(Angle(['1d0m0s', '2h02m00.3s']), Angle(['3x', '4d']))
+        c = SkyCoord(Angle(['1d0m0s', '2h02m00.3s']), Angle(['3x', '4d']))
 
 
 def test_array_coordinates_distances():

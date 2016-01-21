@@ -9,6 +9,7 @@ import numpy as np
 
 from ....tests.helper import quantity_allclose
 from .... import units as u
+from ... import SkyCoord
 from ...builtin_frames import FK5, ICRS, GCRS, GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic
 from ....constants import R_sun, R_earth
 
@@ -19,7 +20,7 @@ def test_against_pytpm_doc_example():
 
     Currently this is only testing against the example given in the pytpm docs
     """
-    fk5_in = FK5('12h22m54.899s', '15d49m20.57s', equinox='J2000')
+    fk5_in = SkyCoord('12h22m54.899s', '15d49m20.57s', frame=FK5(equinox='J2000'))
     pytpm_out = BarycentricTrueEcliptic(lon=178.78256462*u.deg,
                                         lat=16.7597002513*u.deg,
                                         equinox='J2000')
