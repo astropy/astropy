@@ -327,6 +327,9 @@ Bug Fixes
   - Fixed possible segfault during error handling in FITS tile
     compression. [#4489]
 
+  - Fixed crash on pickling of binary table columns with the 'X', 'P', or
+    'Q' format. [#4514]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -1069,6 +1072,9 @@ Bug Fixes
 
   - Fixed possible segfault during error handling in FITS tile
     compression. [#4489]
+
+  - Fixed crash on pickling of binary table columns with the 'X', 'P', or
+    'Q' format. [#4514]
 
 - ``astropy.io.misc``
 

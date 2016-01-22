@@ -322,6 +322,9 @@ class _FormatX(str):
         obj.repeat = repeat
         return obj
 
+    def __getnewargs__(self):
+        return (self.repeat,)
+
     @property
     def tform(self):
         return '%sX' % self.repeat
@@ -348,6 +351,9 @@ class _FormatP(str):
         obj.repeat = repeat
         obj.max = max
         return obj
+
+    def __getnewargs__(self):
+        return (self.dtype, self.repeat, self.max)
 
     @classmethod
     def from_tform(cls, format):
