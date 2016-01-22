@@ -2,9 +2,16 @@
 from __future__ import division, with_statement, print_function
 
 import copy
+import gc
 
 import numpy as np
 from numpy import char as chararray
+
+try:
+    import objgraph
+    HAVE_OBJGRAPH = True
+except ImportError:
+    HAVE_OBJGRAPH = False
 
 from ....extern import six
 from ....extern.six.moves import range
@@ -2352,6 +2359,44 @@ class TestTableFunctions(FitsTestCase):
         with fits.open(self.temp('test2.fits')) as hdul:
             assert hdul[1].header['TDIM1'] == '(3,3,2)'
             assert np.all(hdul[1].data['a'][0] == expected)
+
+    @pytest.mark.skipif(str('not HAVE_OBJGRAPH'))
+    def test_reference_leak(self):
+        """Regression test for https://github.com/astropy/astropy/pull/520"""
+
+        # There are still other leads created by reference cycles in FITS_rec
+        # that are not fixed by the fix to #520.  In particular, a known
+        # leak is created by:
+        # self._coldefs [ColDefs] -> ColDefs.columns[n].array [ndarray] ->
+        # ndarray.base [FITS_rec] -> self
+        #
+        # In other words, the columns list in the coldefs attribute of the
+        # FITS_rec, contains Column objects whose .array attributes are updated
+        # to point to fields in the original FITS_rec, creating a cycle.  This
+        # is an outstanding issue with the original design of pyfits, and may
+        # or may not be fixed, depending on how soon FITS_rec is deprecated.
+        #
+        # In the meantime, this test ensures that no *new* FITS_rec objects are
+        # left behind in this one use case, which *is* fixed by #520.  There
+        # are other cases that still create leaks though.
+        existing_fitsrecs = len(objgraph.by_type('FITS_rec'))
+
+        def readfile(filename):
+            with fits.open(filename) as hdul:
+                data = hdul[1].data.copy()
+
+            for colname in data.dtype.names:
+                data[colname]
+
+        readfile(self.data('memtest.fits'))
+
+        # Shouldn't matter since ndarray and subclasses don't participate in
+        # garbage collection, but just in case...
+        gc.collect()
+
+        # Just make sure there aren't more FITS_rec objects remaining in memory
+        # than we started with.
+        assert len(objgraph.by_type('FITS_rec')) <= existing_fitsrecs
 
 
 class TestVLATables(FitsTestCase):
