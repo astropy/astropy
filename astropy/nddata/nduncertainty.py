@@ -46,9 +46,9 @@ other_uncert : `{instance}`
     The data for the uncertainty of b in a {operator} b
 result_data : `~numpy.ndarray` instance or `~astropy.units.Quantity`
     The data array that is the result of the {operation}.
-correlation: `Number` or `~numpy.ndarray`
-    Array or scalar representing the correlation. If the subclass does not
-    support correlated uncertainties this will be replaced by 0 (uncorrelated).
+correlation: number or `~numpy.ndarray`
+    Array or scalar representing the correlation. Must be 0 if the subclass
+    does not support correlated uncertainties.
 
 Returns
 -------
@@ -64,7 +64,7 @@ ValueError
 Notes
 -----
 Handling units (especially if the differ from the parents unit) is done in here
-but be aware that since there are no checks for the unit that incorrect
+but be aware that since there are no checks for the unit, incorrect
 assigned units may break the uncertainty propagation even if the resulting data
 (with units) can be computed.
 """
@@ -124,8 +124,8 @@ class NDUncertainty(object):
        directly.
 
     2. NDUncertainty takes a ``unit`` parameter and if the `array` is something
-       with a unit (like a `~astropy.units.Quantity` of another
-       `NDUncertainty`) the `unit` parameter is considered the True unit of
+       with a unit (like a `~astropy.units.Quantity` or another
+       `NDUncertainty`) the `unit` parameter is considered the true unit of
        the `NDUncertainty` instance and a warning is issued that the unit is
        overwritten. *No* conversion is done while overwriting the unit so the
        uncertainty ``array`` is not altered.
@@ -191,7 +191,6 @@ class NDUncertainty(object):
             # Check if two units are given and take the explicit one then.
             if (unit is not None and array.unit is not None and
                     unit != array.unit):
-                # TODO : Clarify it (see NDData.init for same problem)?
                 log.info("Overwriting Quantity's current "
                          "unit with specified unit")
             elif array.unit is not None:
@@ -303,7 +302,7 @@ class NDUncertainty(object):
             The result of the arithmetic operations. This saves some duplicate
             calculations.
 
-        correlation: ``Number`` or `~numpy.ndarray`
+        correlation: number or `~numpy.ndarray`
             The correlation (rho) is defined between the uncertainties in
             sigma_AB = sigma_A * sigma_B * rho. A value of ``0`` means
             uncorrelated operands.
@@ -317,7 +316,8 @@ class NDUncertainty(object):
         Raises
         ------
         ValueError:
-            If the ``operation`` is not supported.
+            If the ``operation`` is not supported or if correlation is not zero
+            but the subclass does not support correlated uncertainties.
 
         Notes
         -----
@@ -331,12 +331,10 @@ class NDUncertainty(object):
         """
         # Check if the subclass supports correlation
         if not self.supports_correlated:
-            if correlation != 0:
-                log.info("{0} does not support uncertainty propagation with "
-                         "correlation. The operation is thus performed "
-                         "assuming uncorrelated uncertainties"
-                         ".".format(self.__class__.__name__))
-                correlation = 0
+            if isinstance(correlation, np.ndarray) or correlation != 0:
+                raise ValueError("{0} does not support uncertainty propagation"
+                                 " with correlation."
+                                 "".format(self.__class__.__name__))
 
         # Get the other uncertainty (and convert it to a matching one)
         other_uncert = self._convert_uncertainty(other_nddata.uncertainty)
@@ -493,7 +491,7 @@ class StdDevUncertainty(NDUncertainty):
     uncertainty has a unit that differs from (but is convertable to) the
     parents `NDData` unit but converts the unit of the propagated uncertainty
     to the unit of the resulting data. Also support for correlation is possible
-    but that requires that the correlation is an input it cannot handle
+    but that requires that the correlation is an input. It cannot handle
     correlation determination itself.
 
     Parameters
@@ -532,7 +530,7 @@ class StdDevUncertainty(NDUncertainty):
     def _propagate_add(self, other_uncert, result_data, correlation):
 
         if self.array is None:
-            # Formula sigma = dB
+            # Formula: sigma = dB
 
             if other_uncert.unit is not None and (
                         result_data.unit != other_uncert.unit):
@@ -546,7 +544,7 @@ class StdDevUncertainty(NDUncertainty):
                 return deepcopy(other_uncert.array)
 
         elif other_uncert.array is None:
-            # Formula sigma = dA
+            # Formula: sigma = dA
 
             if self.unit is not None and self.unit != self.parent_nddata.unit:
                 # If the uncertainty has a different unit than the result we
@@ -558,11 +556,12 @@ class StdDevUncertainty(NDUncertainty):
                 return deepcopy(self.array)
 
         else:
-            # Formula sigma = sqrt(dA**2 + dB**2 + 2*rho*dA*dB)
+            # Formula: sigma = sqrt(dA**2 + dB**2 + 2*cor*dA*dB)
 
+            # Calculate: dA (this) and dB (other)
             if self.unit != other_uncert.unit:
                 # In case the two uncertainties (or data) have different units
-                # we need to use quantity operations. The case where only on
+                # we need to use quantity operations. The case where only one
                 # has a unit and the other doesn't is not possible with
                 # addition and would have raised an exception in the data
                 # computation
@@ -575,7 +574,7 @@ class StdDevUncertainty(NDUncertainty):
                 other = other_uncert.array
 
             # Determine the result depending on the correlation
-            if correlation != 0:
+            if isinstance(correlation, np.ndarray) or correlation != 0:
                 corr = 2 * correlation * this * other
                 result = np.sqrt(this**2 + other**2 + corr)
             else:
@@ -611,14 +610,14 @@ class StdDevUncertainty(NDUncertainty):
             else:
                 return deepcopy(self.array)
         else:
-            # Formula sigma = sqrt(dA**2 + dB**2 - 2*rho*dA*dB)
+            # Formula: sigma = sqrt(dA**2 + dB**2 - 2*cor*dA*dB)
             if self.unit != other_uncert.unit:
                 this = self.array * self.unit
                 other = other_uncert.array * other_uncert.unit
             else:
                 this = self.array
                 other = other_uncert.array
-            if correlation != 0:
+            if isinstance(correlation, np.ndarray) or correlation != 0:
                 corr = 2 * correlation * this * other
                 # The only difference to addition is that the correlation is
                 # subtracted.
@@ -642,7 +641,7 @@ class StdDevUncertainty(NDUncertainty):
             result_data = result_data.value
 
         if self.array is None:
-            # Formula sigma = |A| * dB
+            # Formula: sigma = |A| * dB
 
             # We want the result to have the same unit as the result so we
             # only need to convert the unit of the other uncertainty if it is
@@ -655,7 +654,7 @@ class StdDevUncertainty(NDUncertainty):
             return np.abs(self.parent_nddata.data * other)
 
         elif other_uncert.array is None:
-            # Formula sigma = dA * |B|
+            # Formula: sigma = dA * |B|
 
             # Just the reversed case
             if self.unit != self.parent_nddata.unit:
@@ -666,22 +665,24 @@ class StdDevUncertainty(NDUncertainty):
             return np.abs(other_uncert.parent_nddata.data * this)
 
         else:
-            # Formula sigma = |AB|*sqrt((dA/A)**2+(dB/B)**2+2*dA/A*dB/B*cor)
+            # Formula: sigma = |AB|*sqrt((dA/A)**2+(dB/B)**2+2*dA/A*dB/B*cor)
 
             # This formula is not very handy since it generates NaNs for every
             # zero in A and B. So we rewrite it:
 
-            # sqrt((dA*B)**2 + (dB*A)**2 + (2 * cor * ABdAdB))
+            # Formula: sigma = sqrt((dA*B)**2 + (dB*A)**2 + (2 * cor * ABdAdB))
 
-            # To get the dimensions right we need to convert the unit of each
-            # uncertainty to the same unit as it's parent
+            # Calculate: dA * B (left)
             if self.unit != self.parent_nddata.unit:
+                # To get the unit right we need to convert the unit of
+                # each uncertainty to the same unit as it's parent
                 left = ((self.array * self.unit).to(
                         self.parent_nddata.unit).value *
                         other_uncert.parent_nddata.data)
             else:
                 left = self.array * other_uncert.parent_nddata.data
 
+            # Calculate: dB * A (right)
             if other_uncert.unit != other_uncert.parent_nddata.unit:
                 right = ((other_uncert.array * other_uncert.unit).to(
                         other_uncert.parent_nddata.unit).value *
@@ -689,7 +690,7 @@ class StdDevUncertainty(NDUncertainty):
             else:
                 right = other_uncert.array * self.parent_nddata.data
 
-            if correlation != 0:
+            if isinstance(correlation, np.ndarray) or correlation != 0:
                 corr = (2 * correlation * left * right)
                 return np.sqrt(left**2 + right**2 + corr)
             else:
@@ -704,11 +705,12 @@ class StdDevUncertainty(NDUncertainty):
             result_data = result_data.value
 
         if self.array is None:
-            # Formula sigma = |(A / B) * (dB / B)|
+            # Formula: sigma = |(A / B) * (dB / B)|
 
-            # We need (db / B) to be dimensionless so we convert (if necessary)
-            # dB to the same unit as B
+            # Calculate: dB / B (right)
             if other_uncert.unit != other_uncert.parent_nddata.unit:
+                # We need (dB / B) to be dimensionless so we convert
+                # (if necessary) dB to the same unit as B
                 right = ((other_uncert.array * other_uncert.unit).to(
                     other_uncert.parent_nddata.unit).value /
                     other_uncert.parent_nddata.data)
@@ -717,24 +719,31 @@ class StdDevUncertainty(NDUncertainty):
             return np.abs(result_data * right)
 
         elif other_uncert.array is None:
-            # Formula sigma = dA / |B|.
+            # Formula: sigma = dA / |B|.
 
-            # We need to convert dA to the unit of A to have a result that
-            # matches the resulting data's unit.
+            # Calculate: dA
             if self.unit != self.parent_nddata.unit:
+                # We need to convert dA to the unit of A to have a result that
+                # matches the resulting data's unit.
                 left = (self.array * self.unit).to(
                         self.parent_nddata.unit).value
             else:
                 left = self.array
+
             return np.abs(left / other_uncert.parent_nddata.data)
 
         else:
-            # Formula sigma = |AB|*sqrt((dA/A)**2+(dB/B)**2-2*dA/A*dB/B*cor)
+            # Formula: sigma = |A/B|*sqrt((dA/A)**2+(dB/B)**2-2*dA/A*dB/B*cor)
 
-            # As with multiplication this formula creates NaNs where A is zero
+            # As with multiplication this formula creates NaNs where A is zero.
+            # So I'll rewrite it again:
             # => sigma = sqrt((dA/B)**2 + (AdB/B**2)**2 - 2*cor*AdAdB/B**3)
-            # So we need to calculate the dimensionless dA/B and dB/B to get
-            # a result with the same unit as the data
+
+            # So we need to calculate dA/B in the same units as the result
+            # and the dimensionless dB/B to get a resulting uncertainty with
+            # the same unit as the data.
+
+            # Calculate: dA/B (left)
             if self.unit != self.parent_nddata.unit:
                 left = ((self.array * self.unit).to(
                         self.parent_nddata.unit).value /
@@ -742,6 +751,7 @@ class StdDevUncertainty(NDUncertainty):
             else:
                 left = self.array / other_uncert.parent_nddata.data
 
+            # Calculate: dB/B (right)
             if other_uncert.unit != other_uncert.parent_nddata.unit:
                 right = ((other_uncert.array * other_uncert.unit).to(
                     other_uncert.parent_nddata.unit).value /
@@ -749,7 +759,8 @@ class StdDevUncertainty(NDUncertainty):
             else:
                 right = (result_data * other_uncert.array /
                          other_uncert.parent_nddata.data)
-            if correlation != 0:
+
+            if isinstance(correlation, np.ndarray) or correlation != 0:
                 corr = 2 * correlation * left * right
                 # This differs from multiplication because the correlation
                 # term needs to be subtracted

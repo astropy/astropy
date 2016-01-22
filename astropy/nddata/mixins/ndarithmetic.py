@@ -14,12 +14,8 @@ from ...extern import six
 
 __all__ = ['NDArithmeticMixin']
 
-
-# TODO: General question of implementing an Operator class #3861? (embray)
-# Maybe a bit too big for these changes.
-
 try:
-    from .utils import format_doc
+    from ...utils import format_doc
 except ImportError:
     # TODO: Delete this and rebase if #4242 is merged.
     def format_doc(docstring, *args, **kwargs):
@@ -38,9 +34,7 @@ except ImportError:
             return func
         return set_docstring
 
-# TODO: Maybe not nice to pollute globals but I felt the same way about
-# polluting the class namespace and this way potential subclasses may or refuse
-# to pull this docstring into their class as well.
+# Global so it doesn't pollute the class dict unnecessarily:
 
 # Docstring templates for add, subtract, multiply, divide methods.
 _arit_doc = """
@@ -52,43 +46,40 @@ _arit_doc = """
 
     Parameters
     ----------
-    operand : `NDData`-like instance or convertable to one.
+    operand : `NDData`-like instance or convertible to one.
         The second operand in the operation.
 
     propagate_uncertainties : `bool` or ``None``, optional
         If ``None`` the result will have no uncertainty. If ``False`` the
-        result will have a copied version of the first operand (or the
-        second if the first had no uncertainty). In case this is ``True``
-        the result will have a correctly propagated uncertainty from the
-        uncertainties of the operands but this assumes that the uncertainties
-        are `StdDevUncertainty`. Default is ``True``.
+        result will have a copied version of the first operand that has an
+        uncertainty. If ``True`` the result will have a correctly propagated
+        uncertainty from the uncertainties of the operands but this assumes
+        that the uncertainties are `StdDevUncertainty`. Default is ``True``.
 
     handle_mask : callable, ``False`` or ``None``, optional
-        If ``None`` the result will have no mask. If ``False`` the result
-        will have a copied version of the mask of the first operand (or
-        if the first operand has no mask then the one from the second is
-        taken). If it is a callable then the specified callable must
+        If ``None`` the result will have no mask. If ``False`` the
+        result will have a copied version of the first operand that has a
+        mask). If it is a callable then the specified callable must
         create the results ``mask`` and if necessary provide a copy.
         Default is `numpy.logical_or`.
 
     handle_meta : callable, ``False`` or ``None``, optional
-        If ``None`` the result will have no meta. If ``False`` the result
-        will have a copied version of the meta of the first operand (or
-        if the first operand has no meta then the one from the second is
-        taken). If it is a callable then the specified callable must
+        If ``None`` the result will have no meta. If ``False`` the
+        result will have a copied version of the first operand that has a
+        (not empty) meta. If it is a callable then the specified callable must
         create the results ``meta`` and if necessary provide a copy.
         Default is ``False``.
 
     compare_wcs : callable, ``False`` or ``None``, optional
         If ``None`` the result will have no wcs and no comparison between
-        the wcs of the operands is made. If ``False`` the result will have
-        the wcs of the first operand (or second if the first had ``None``).
-        If it is a callable then the specified callable must
+        the wcs of the operands is made. If ``False`` the
+        result will have a copied version of the first operand that has a
+        wcs. If it is a callable then the specified callable must
         compare the ``wcs``. The resulting ``wcs`` will be like if ``False``
         was given otherwise it raises a ``ValueError`` if the comparison was
         not successful. Default is ``False``.
 
-    uncertainty_correlation : ``Number`` or `~numpy.ndarray`, optional
+    uncertainty_correlation : number or `~numpy.ndarray`, optional
         The correlation (rho) is defined between the uncertainties in
         ``sigma_AB = sigma_A * sigma_B * rho`` (Latex?). If
         ``propagate_uncertainties`` is *not* ``True`` this will be ignored.
@@ -105,7 +96,7 @@ _arit_doc = """
 
     Notes
     -----
-    In case a ``callable`` is used for ``mask``, ``wcs`` or ``meta`` the
+    If a ``callable`` is used for ``mask``, ``wcs`` or ``meta`` the
     callable must accept the corresponding attributes as first two
     parameters. If the callable also needs additional parameters these can be
     defined as ``kwargs`` and must start with ``"wcs_"`` (for wcs callable) or
@@ -118,7 +109,7 @@ _arit_cls_doc = """
 
     This method is avaiable as classmethod in order to allow arithmetic
     operations between arbitary objects as long as they are convertable to
-    the class that called the method. Therefor the name prefix ``ic_`` which
+    the class that called the method. Therefore the name prefix ``ic_`` which
     stands for ``interclass`` operations.
 
     Parameters
@@ -167,8 +158,8 @@ class NDArithmeticMixin(object):
     interface you can alter the ``propagate_uncertainties`` parameter in
     :meth:`NDArithmeticMixin.add`. ``None`` means that the result will have no
     uncertainty, ``False`` means it takes the uncertainty of the first operand
-    (if this does not exist from the second operand) as the results
-    uncertainty. This behaviour is also explained in the help-page for the
+    (if this does not exist from the second operand) as the result's
+    uncertainty. This behaviour is also explained in the docstring for the
     different arithmetic operations.
 
     Notes
@@ -234,8 +225,8 @@ class NDArithmeticMixin(object):
         """
         Base method which calculates the result of the arithmetic operation.
 
-        This class determines the result of the arithmetic operation on the
-        ``data`` with respect to their units and then forwards to other methods
+        This method determines the result of the arithmetic operation on the
+        ``data`` including their units and then forwards to other methods
         to calculate the other properties for the result (like uncertainty).
 
         Parameters
@@ -275,13 +266,10 @@ class NDArithmeticMixin(object):
             unit) or as quantity if at least one had a unit.
 
         kwargs : `dict`
-            the kwargs should contain all the other attributes (besides data
-            and unit) to create a new instance for the result. Creating the
-            new instance is up to the calling method, for example
+            The kwargs should contain all the other attributes (besides data
+            and unit) needed to create a new instance for the result. Creating
+            the new instance is up to the calling method, for example
             :meth:`NDArithmeticMixin.add`.
-
-            TODO: Reword this? (embray)
-            I did formulate a new text, does this look better to you?
 
         """
         # Convert the operand to the same class this allows for arithmetic
@@ -292,7 +280,6 @@ class NDArithmeticMixin(object):
 
         # Find the appropriate keywords for the appropriate method (not sure
         # if data and uncertainty are ever used ...)
-        # TODO: Ask about data and uncertainty :-)
         kwds2 = {'mask': {}, 'meta': {}, 'wcs': {},
                  'data': {}, 'uncertainty': {}}
         for i in kwds:
@@ -379,7 +366,7 @@ class NDArithmeticMixin(object):
         Returns
         -------
         result_data : `~numpy.ndarray` or `~astropy.units.Quantity`
-            if both operands had no unit the resulting data is a simple numpy
+            If both operands had no unit the resulting data is a simple numpy
             array, but if any of the operands had a unit the return is a
             Quantity.
         """
@@ -416,7 +403,7 @@ class NDArithmeticMixin(object):
         result : `~astropy.units.Quantity` or `~numpy.ndarray`
             The result of :meth:`NDArithmeticMixin._arithmetic_data`.
 
-        correlation : `Number` or `~numpy.ndarray`
+        correlation : number or `~numpy.ndarray`
             see :meth:`NDArithmeticMixin.add` parameter description.
 
         kwds :
@@ -481,7 +468,8 @@ class NDArithmeticMixin(object):
         Parameters
         ----------
         operation : callable
-            see `NDArithmeticMixin._arithmetic` parameter description.
+            see :meth:`NDArithmeticMixin._arithmetic` parameter description.
+            By default, the ``operation`` will be ignored.
 
         operand : `NDData`-like instance
             The second operand wrapped in an instance of the same class as
@@ -495,10 +483,10 @@ class NDArithmeticMixin(object):
 
         Returns
         -------
-        result_mask : `bool` or `~numpy.ndarray` or None
+        result_mask : any type
             If only one mask was present this mask is returned.
             If neither had a mask ``None`` is returned. Otherwise
-            ``handle_mask`` must create the returned mask.
+            ``handle_mask`` must create (and copy) the returned mask.
         """
 
         # If only one mask is present we need not bother about any type checks
@@ -525,7 +513,8 @@ class NDArithmeticMixin(object):
         Parameters
         ----------
         operation : callable
-            see `NDArithmeticMixin._arithmetic` parameter description.
+            see :meth:`NDArithmeticMixin._arithmetic` parameter description.
+            By default, the ``operation`` will be ignored.
 
         operand : `NDData` instance or subclass
             The second operand wrapped in an instance of the same class as
@@ -567,6 +556,7 @@ class NDArithmeticMixin(object):
         ----------
         operation : callable
             see :meth:`NDArithmeticMixin._arithmetic` parameter description.
+            By default, the ``operation`` will be ignored.
 
         operand : `NDData`-like instance
             The second operand wrapped in an instance of the same class as
@@ -580,8 +570,8 @@ class NDArithmeticMixin(object):
 
         Returns
         -------
-        result_meta : `dict`-like
-            The resulting meta dict.
+        result_meta : any type
+            The result of ``handle_meta``.
         """
         # Just return what handle_meta does with both of the metas.
         return handle_meta(self.meta, operand.meta, **kwds)
@@ -644,6 +634,7 @@ class NDArithmeticMixin(object):
         return operand1.divide(operand2, **kwargs)
 
     # TODO: Only temporary since uncertainty setter was changed during refactor
+    # Remove after #4270 is merged.
     @property
     def uncertainty(self):
         return self._uncertainty

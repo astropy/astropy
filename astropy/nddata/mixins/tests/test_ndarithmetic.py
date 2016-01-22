@@ -23,6 +23,12 @@ class NDDataArithmetic(NDArithmeticMixin, NDData):
     pass
 
 
+class StdDevUncertaintyUncorrelated(StdDevUncertainty):
+    @property
+    def supports_correlated(self):
+        return False
+
+
 # Test with Data covers:
 # scalars, 1D, 2D and 3D
 # broadcasting between them
@@ -430,6 +436,38 @@ def test_arithmetics_stddevuncertainty_basic_with_correlation(
         (uncert1 / data1)**2 + (uncert2 / data2)**2 -
         (2 * cor * uncert1 * uncert2 / (data1 * data2)))
     assert_array_almost_equal(nd4.uncertainty.array, ref_uncertainty_2)
+
+
+# Covering:
+# just an example that a np.ndarray works as correlation, no checks for
+# the right result since these were basically done in the function above.
+def test_arithmetics_stddevuncertainty_basic_with_correlation_array():
+    data1 = np.array([1, 2, 3])
+    data2 = np.array([1, 1, 1])
+    uncert1 = np.array([1, 1, 1])
+    uncert2 = np.array([2, 2, 2])
+    cor = np.array([0, 0.25, 0])
+    nd1 = NDDataArithmetic(data1, uncertainty=StdDevUncertainty(uncert1))
+    nd2 = NDDataArithmetic(data2, uncertainty=StdDevUncertainty(uncert2))
+    nd1.add(nd2, uncertainty_correlation=cor)
+
+
+# Covering:
+# That propagate throws an exception when correlation is given but the
+# uncertainty does not support correlation.
+def test_arithmetics_with_correlation_unsupported():
+    data1 = np.array([1, 2, 3])
+    data2 = np.array([1, 1, 1])
+    uncert1 = np.array([1, 1, 1])
+    uncert2 = np.array([2, 2, 2])
+    cor = 3
+    nd1 = NDDataArithmetic(data1,
+                           uncertainty=StdDevUncertaintyUncorrelated(uncert1))
+    nd2 = NDDataArithmetic(data2,
+                           uncertainty=StdDevUncertaintyUncorrelated(uncert2))
+
+    with pytest.raises(ValueError):
+        nd1.add(nd2, uncertainty_correlation=cor)
 
 
 # Covering:
