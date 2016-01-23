@@ -546,7 +546,7 @@ class Time(object):
         # the ``value`` attribute is cached.
         return getattr(self, self.format)
 
-    def ltt_correction(self, skycoord, kind='barycentric', location=None):
+    def light_travel_time(self, skycoord, kind='barycentric', location=None):
         """Light travel time correction to the barycentre or heliocentre.
 
         The frame transformations used to calculate the location of the solar
@@ -595,8 +595,11 @@ class Time(object):
           >>> wht = coord.EarthLocation.of_site('lapalma')  # doctest: +REMOTE_DATA
           >>> times = time.Time([56325.95833333, 56325.978254], format='mjd',
           ...                   scale='utc', location=wht)  # doctest: +REMOTE_DATA
-          >>> ltt_bary = times.ltt_correction(ip_peg, 'barycentric')  # doctest: +REMOTE_DATA
-          >>> ltt_helio = times.ltt_correction(ip_peg, 'heliocentric')  # doctest: +REMOTE_DATA
+          >>> ltt_bary = times.light_travel_time(ip_peg)  # doctest: +REMOTE_DATA
+          
+        If you desire the light travel time to the heliocentre instead then use::
+          
+          >>> ltt_helio = times.light_travel_time(ip_peg, 'heliocentric')  # doctest: +REMOTE_DATA
 
         The method returns an `~astropy.time.TimeDelta` object, which can be
         added to your times to give the arrival time of the photons at the
