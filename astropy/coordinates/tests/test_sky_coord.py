@@ -482,8 +482,6 @@ def test_seps():
     assert sep3d == 1 * u.kpc
 
 def test_repr():
-    # Repr tests must use exact floating point vals because Python 2.6
-    # outputs values like 0.1 as 0.1000000000001.  No workaround found.
     sc1 = SkyCoord(0 * u.deg, 1 * u.deg, frame='icrs')
     sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame='icrs', distance=1 * u.kpc)
 

@@ -35,10 +35,9 @@ from .output_checker import AstropyOutputChecker, FIX, FLOAT_CMP
 from ..utils.argparse import writeable_directory
 from ..utils.introspection import resolve_name
 
-# Needed for Python 2.6 compatibility
 try:
     import importlib.machinery as importlib_machinery
-except ImportError:
+except ImportError:  # Python 2.7
     importlib_machinery = None
 
 # these pytest hooks allow us to mark tests and run the marked tests with

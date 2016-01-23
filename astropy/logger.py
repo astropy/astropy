@@ -418,7 +418,7 @@ class AstropyLogger(Logger):
                 # your code here
         '''
 
-        fh = FileHandler(filename)
+        fh = logging.FileHandler(filename)
         if filter_level is not None:
             fh.setLevel(filter_level)
         if filter_origin is not None:
@@ -473,12 +473,6 @@ class AstropyLogger(Logger):
         yield lh.log_list
         self.removeHandler(lh)
 
-    def setLevel(self, level):
-        """
-        Set the logging level of this logger.
-        """
-        self.level = _checkLevel(level)
-
     def _set_defaults(self):
         '''
         Reset logger to its initial state
@@ -520,7 +514,7 @@ class AstropyLogger(Logger):
                 else:
                     log_file_path = os.path.expanduser(log_file_path)
 
-                fh = FileHandler(log_file_path)
+                fh = logging.FileHandler(log_file_path)
             except (IOError, OSError) as e:
                 warnings.warn(
                     'log file {0!r} could not be opened for writing: '
@@ -536,31 +530,6 @@ class AstropyLogger(Logger):
 
         if conf.log_exceptions:
             self.enable_exception_logging()
-
-
-# The following function is copied from the source code of Python 2.7 and 3.2.
-# This function is not included in Python 2.6 and 3.1, so we have to include it
-# here to provide uniform behavior across versions.
-def _checkLevel(level):
-    '''
-    '''
-    if isinstance(level, int):
-        rv = level
-    elif str(level) == level:
-        if sys.version_info[:2] >= (3, 4):
-            names = logging._nameToLevel
-        else:
-            names = logging._levelNames
-        if level not in names:
-            raise ValueError("Unknown level: %r" % level)
-        rv = names[level]
-    else:
-        raise TypeError("Level not an integer or a valid string: %r" % level)
-    return rv
-
-
-# We now have to be sure that we overload the setLevel in FileHandler, again
-# for compatibility with Python 2.6 and 3.1.
 
 
 class StreamHandler(logging.StreamHandler):
@@ -593,14 +562,6 @@ class StreamHandler(logging.StreamHandler):
         print(": " + record.message, file=stream)
 
 
-class FileHandler(logging.FileHandler):
-    def setLevel(self, level):
-        """
-        Set the logging level of this handler.
-        """
-        self.level = _checkLevel(level)
-
-
 class FilterOrigin(object):
     '''A filter for the record origin'''
     def __init__(self, origin):
@@ -619,9 +580,3 @@ class ListHandler(logging.Handler):
 
     def emit(self, record):
         self.log_list.append(record)
-
-    def setLevel(self, level):
-        """
-        Set the logging level of this handler.
-        """
-        self.level = _checkLevel(level)

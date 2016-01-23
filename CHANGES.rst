@@ -214,7 +214,7 @@ Bug fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Nothing changed yet.
+- Python 2.6 is no longer supported. [#4486]
 
 
 1.1.2 (unreleased)

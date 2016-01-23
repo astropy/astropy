@@ -257,15 +257,6 @@ def treat_deprecations_as_exceptions():
         warnings.filterwarnings("error", ".*", AstropyDeprecationWarning)
         warnings.filterwarnings("error", ".*", AstropyPendingDeprecationWarning)
 
-    if sys.version_info[:2] == (2, 6):
-        # py.test's warning.showwarning does not include the line argument
-        # on Python 2.6, so we need to explicitly ignore this warning.
-        warnings.filterwarnings(
-            "ignore",
-            r"functions overriding warnings\.showwarning\(\) must support "
-            r"the 'line' argument",
-            DeprecationWarning)
-
     if sys.version_info[:2] >= (3, 4):
         # py.test reads files with the 'U' flag, which is now
         # deprecated in Python 3.4.
