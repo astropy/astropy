@@ -13,7 +13,7 @@ import os
 from warnings import warn
 
 if sys.version_info[:2] < (2, 7):
-    warn("Astropy does not support Python 2.6 since v1.2")
+    warn("Astropy does not support Python 2.6 (in v1.2 and later)")
 
 
 def _is_astropy_source(path=None):
