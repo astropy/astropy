@@ -4,7 +4,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from ...utils.data import get_pkg_data_contents, get_pkg_data_filename
 from ...wcs import WCS
 from .. import utils
-from ..utils import proj_plane_pixel_scales, is_proj_plane_distorted, non_celestial_pixel_scales
+from ..utils import (proj_plane_pixel_scales, is_proj_plane_distorted,
+                     non_celestial_pixel_scales, wcs_compare)
 from ...tests.helper import pytest, catch_warnings
 from ...utils.exceptions import AstropyUserWarning
 from ... import units as u
@@ -408,3 +409,33 @@ def test_skycoord_to_pixel_distortions(mode):
 
     assert_allclose(new.ra.degree, ref.ra.degree)
     assert_allclose(new.dec.degree, ref.dec.degree)
+
+
+def test_wcs_compare():
+    # TODO: I did not find any python reference for these constants defined in
+    # https://github.com/astropy/astropy/blob/master/astropy/wcs/src/wcslib_wrap.c#L3491
+    # so I defined them in here.
+    WCSCOMPARE_ANCILLARY = 1  # bit repr: 001
+    WCSCOMPARE_TILING = 2     # bit repr: 010
+    WCSCOMPARE_CRPIX = 4      # bit repr: 100
+
+    wcs1 = WCS()
+    wcs2 = WCS()
+    assert wcs_compare(wcs1, wcs2)
+
+    # Insert different observation dates.
+    wcs1.wcs.dateobs = '100'
+    wcs2.wcs.dateobs = '101'
+    assert not wcs_compare(wcs1, wcs2)
+
+    # Ignore the observation date:
+    assert wcs_compare(wcs1, wcs2, cmp=WCSCOMPARE_ANCILLARY)
+
+    # Ignore CRPIXja differences (but not the observation date)
+    assert not wcs_compare(wcs1, wcs2, cmp=WCSCOMPARE_TILING)
+    assert not wcs_compare(wcs1, wcs2, cmp=WCSCOMPARE_CRPIX)
+
+    # Ignore CRPIXja differences and observation date
+    assert wcs_compare(wcs1, wcs2, cmp=WCSCOMPARE_TILING | WCSCOMPARE_ANCILLARY)
+    assert wcs_compare(wcs1, wcs2, cmp=WCSCOMPARE_CRPIX | WCSCOMPARE_ANCILLARY)
+    assert wcs_compare(wcs1, wcs2, cmp=WCSCOMPARE_TILING | WCSCOMPARE_CRPIX | WCSCOMPARE_ANCILLARY)
