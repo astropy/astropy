@@ -540,7 +540,7 @@ class MexicanHat1DKernel(Kernel1D):
     This kernel is derived from a normalized Gaussian function, by
     computing the second derivative. This results in an amplitude
     at the kernels center of 1. / (sqrt(2 * pi) * width ** 3). The
-    normalization is the same as for `scipy.ndimage.filters.gaussian_laplace`,
+    normalization is the same as for `scipy.ndimage.gaussian_laplace`,
     except for a minus sign.
 
     Parameters
@@ -610,7 +610,7 @@ class MexicanHat2DKernel(Kernel2D):
     This kernel is derived from a normalized Gaussian function, by
     computing the second derivative. This results in an amplitude
     at the kernels center of 1. / (pi * width ** 4). The normalization
-    is the same as for `scipy.ndimage.filters.gaussian_laplace`, except
+    is the same as for `scipy.ndimage.gaussian_laplace`, except
     for a minus sign.
 
     Parameters
