@@ -5,8 +5,7 @@ from ...utils.data import get_pkg_data_contents, get_pkg_data_filename
 from ...wcs import WCS
 from .. import utils
 from ..utils import proj_plane_pixel_scales, is_proj_plane_distorted, non_celestial_pixel_scales
-from ...tests.helper import pytest, catch_warnings
-from ...utils.exceptions import AstropyUserWarning
+from ...tests.helper import pytest
 from ... import units as u
 
 import numpy as np
@@ -212,8 +211,6 @@ def test_wcs_to_celestial_frame():
 
 def test_wcs_to_celestial_frame_extend():
 
-    from ...coordinates.builtin_frames import ICRS, FK5, FK4, Galactic
-    from ...time import Time
 
     mywcs = WCS(naxis=2)
     mywcs.wcs.ctype = ['XOFFSET', 'YOFFSET']

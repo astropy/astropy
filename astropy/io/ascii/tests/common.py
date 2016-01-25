@@ -4,11 +4,9 @@ from __future__ import absolute_import
 
 import os
 
-from distutils import version
 
 import numpy as np
 
-from ... import ascii
 
 __all__ = ['raises', 'assert_equal', 'assert_almost_equal',
            'assert_true', 'setup_function', 'teardown_function',

@@ -26,9 +26,7 @@ try:
 except ImportError:
     pass
 
-from .. import test
-from ..utils.exceptions import (AstropyWarning,
-                                AstropyDeprecationWarning,
+from ..utils.exceptions import (AstropyDeprecationWarning,
                                 AstropyPendingDeprecationWarning)
 
 

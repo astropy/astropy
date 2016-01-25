@@ -9,7 +9,6 @@ Tests for the projected separation stuff
 """
 
 import numpy as np
-from numpy import testing as npt
 
 from ...tests.helper import pytest, assert_quantity_allclose as assert_allclose
 from ... import units as u

@@ -4,7 +4,6 @@
 
 """Test behavior related to masked tables"""
 
-from distutils import version
 import numpy as np
 import numpy.ma as ma
 

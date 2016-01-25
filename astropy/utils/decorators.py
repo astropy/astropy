@@ -7,7 +7,6 @@ from __future__ import print_function
 
 import functools
 import inspect
-import sys
 import textwrap
 import types
 import warnings

@@ -13,7 +13,7 @@ from numpy.testing import utils
 
 from . import irafutil
 from .. import models, fitting
-from ..core import Model, FittableModel, ModelDefinitionError
+from ..core import Model, FittableModel
 from ..parameters import Parameter, InputParameterError
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest

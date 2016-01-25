@@ -15,8 +15,7 @@ from ....table import Table
 import numpy as np
 
 from ....tests.helper import pytest
-from .common import (raises, assert_equal, assert_almost_equal,
-                     assert_true, setup_function, teardown_function)
+from .common import setup_function, teardown_function
 
 # Check to see if the BeautifulSoup dependency is present.
 

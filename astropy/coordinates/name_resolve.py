@@ -16,7 +16,6 @@ import re
 import socket
 
 # Astropy
-from ..extern import six
 from ..extern.six.moves import urllib
 from .. import units as u
 from .sky_coordinate import SkyCoord
@@ -113,7 +112,6 @@ def get_icrs_coordinates(name):
         The object's coordinates in the ICRS frame.
 
     """
-    from .. import conf
 
     database = sesame_database.get()
     # The web API just takes the first letter of the database name

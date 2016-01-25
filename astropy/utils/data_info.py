@@ -452,7 +452,6 @@ class BaseColumnInfo(DataInfo):
         col_len : int
             Length of original object
         '''
-        from ..table.index import Index
         from ..table.sorted_array import SortedArray
         if not getattr(self, '_copy_indices', True):
             # Necessary because MaskedArray will perform a shallow copy

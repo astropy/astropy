@@ -2,12 +2,7 @@
 A simple class to manage a piece of global science state.  See
 :ref:`config-developer` for more details.
 """
-from contextlib import contextmanager
-import warnings
 
-from ..config import ConfigItem
-from .exceptions import AstropyDeprecationWarning
-from ..utils import find_current_module
 
 
 __all__ = ['ScienceState']

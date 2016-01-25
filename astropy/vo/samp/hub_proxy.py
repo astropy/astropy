@@ -14,7 +14,6 @@ from .lockfile_helpers import get_main_running_hub
 from .constants import SSL_SUPPORT
 
 if SSL_SUPPORT:
-    import ssl
     from .ssl_utils import SafeTransport
 
 

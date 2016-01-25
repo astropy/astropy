@@ -26,12 +26,10 @@ import types
 from collections import OrderedDict
 
 from ..config.paths import set_temp_config, set_temp_cache
-from .helper import (
-    pytest, treat_deprecations_as_exceptions,
-    enable_deprecations_as_exceptions,
-    ignore_warnings)
+from .helper import pytest, treat_deprecations_as_exceptions, ignore_warnings
+from .helper import enable_deprecations_as_exceptions  # pylint: disable=W0611
 from .disable_internet import turn_off_internet, turn_on_internet
-from .output_checker import AstropyOutputChecker, FIX, FLOAT_CMP
+from .output_checker import AstropyOutputChecker, FIX
 from ..utils.argparse import writeable_directory
 from ..utils.introspection import resolve_name
 

@@ -188,7 +188,6 @@ def test_converting_units():
     import re
     from ..baseframe import RepresentationMapping
     from ..builtin_frames import ICRS, FK5
-    from ..representation import SphericalRepresentation
 
     # this is a regular expression that with split (see below) removes what's
     # the decimal point  to fix rounding problems
@@ -364,7 +363,6 @@ def test_time_inputs():
     """
     from ...time import Time
     from ..builtin_frames import FK4
-    from ...utils.exceptions import AstropyWarning
 
     c = FK4(1 * u.deg, 2 * u.deg, equinox='J2001.5', obstime='2000-01-01 12:00:00')
     assert c.equinox == Time('J2001.5')

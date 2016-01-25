@@ -13,7 +13,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 # STDLIB
 import os
 import shutil
-import sys
 import tempfile
 
 # LOCAL

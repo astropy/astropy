@@ -20,7 +20,7 @@ from ....utils.exceptions import AstropyDeprecationWarning
 
 from . import FitsTestCase
 from ..card import _pad
-from ..header import _pad_length, BLOCK_SIZE
+from ..header import _pad_length
 from ..util import encode_ascii
 
 

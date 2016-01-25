@@ -6,23 +6,20 @@ parallel.
 """
 
 import os
-import time
 import threading
-import pickle
 import tempfile
 
 from ....extern import six
 from ....extern.six.moves.urllib.request import Request, urlopen
 from ....utils.data import get_readable_fileobj
 
-from .. import SAMPIntegratedClient, SAMPHubServer, SAMP_STATUS_OK
+from .. import SAMPIntegratedClient, SAMPHubServer
 from .web_profile_test_helpers import (AlwaysApproveWebProfileDialog,
                                        SAMPIntegratedWebClient)
 from ..web_profile import CROSS_DOMAIN, CLIENT_ACCESS_POLICY
 
 from .. import conf
 
-from .test_helpers import random_params, Receiver, assert_output, TEST_REPLY
 
 from .test_standard_profile import TestStandardProfile as BaseTestStandardProfile
 

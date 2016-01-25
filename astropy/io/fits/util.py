@@ -2,7 +2,6 @@
 
 from __future__ import division
 
-import errno
 import gzip
 import itertools
 import io

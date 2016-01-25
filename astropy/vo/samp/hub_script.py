@@ -11,7 +11,6 @@ import argparse
 from ... import log, __version__
 
 from .constants import SSL_SUPPORT
-from .errors import SAMPHubError
 from .hub import SAMPHubServer
 
 if SSL_SUPPORT:

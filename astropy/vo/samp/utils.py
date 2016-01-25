@@ -10,7 +10,6 @@ import inspect
 import traceback
 
 from ...extern.six.moves import queue
-from ...extern.six.moves.urllib.error import URLError
 from ...extern.six.moves.urllib.request import urlopen
 from ...extern.six.moves import xmlrpc_client as xmlrpc
 from ...extern.six import StringIO

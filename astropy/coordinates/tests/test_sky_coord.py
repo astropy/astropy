@@ -22,11 +22,12 @@ from ..representation import REPRESENTATION_CLASSES
 from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
                             SphericalRepresentation, CartesianRepresentation,
                             UnitSphericalRepresentation, AltAz)
-from ...coordinates import Latitude, Longitude, EarthLocation
+from ...coordinates import Latitude, EarthLocation
 from ...time import Time
 from ...utils import minversion
 from ...utils.exceptions import AstropyDeprecationWarning
-from ...utils.compat import NUMPY_LT_1_7
+from ...utils.compat import NUMPY_LT_1_7  # pylint: disable=W0611
+
 
 RA = 1.0 * u.deg
 DEC = 2.0 * u.deg

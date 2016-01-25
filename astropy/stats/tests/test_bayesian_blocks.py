@@ -7,7 +7,7 @@ import numpy as np
 
 from ...tests.helper import pytest
 from  numpy.testing import assert_allclose
-from .. import bayesian_blocks, Events, RegularEvents, PointMeasures
+from .. import bayesian_blocks, RegularEvents
 
 
 def test_single_change_point(rseed=0):

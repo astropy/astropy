@@ -9,7 +9,6 @@ except ImportError:
 
 import numpy as np
 
-from ....tests.helper import pytest
 from ... import ascii
 
 from .common import assert_equal, setup_function, teardown_function

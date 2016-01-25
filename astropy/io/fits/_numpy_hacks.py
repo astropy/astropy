@@ -5,7 +5,6 @@ relevant to FITS) or that otherwise require workarounds.
 """
 
 
-import numpy as np
 
 
 def realign_dtype(dtype, offsets):

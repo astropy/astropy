@@ -6,7 +6,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ...extern import six
+from ...extern import six  # pylint: disable=W0611
 from ...extern.six import next
 from ...extern.six.moves import xrange
 

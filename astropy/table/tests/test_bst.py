@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from ..bst import BST
 import pytest
-import random
-import math
 
 def get_tree(TreeType):
     b = TreeType([], [])

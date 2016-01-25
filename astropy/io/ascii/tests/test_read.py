@@ -8,7 +8,6 @@ from collections import OrderedDict
 
 import numpy as np
 
-from ....extern import six
 from ....extern.six.moves import cStringIO as StringIO
 from ....tests.helper import pytest
 from ... import ascii

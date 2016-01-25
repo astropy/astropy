@@ -36,7 +36,7 @@ from copy import deepcopy
 import numpy as np
 
 from ..extern import six
-from .bst import BST, FastBST, FastRBT, MinValue, MaxValue
+from .bst import MinValue, MaxValue
 from .sorted_array import SortedArray
 from ..time import Time
 
