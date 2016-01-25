@@ -52,6 +52,17 @@ class NDUncertainty(object):
     # uncertainties
     supports_correlated = False
 
+    def __init__(self, array=None, copy=True):
+        self._unit = getattr(array, 'unit', None)
+        if array is None:
+            self.array = None
+        elif hasattr(array, 'uncertainty_type'):
+            self.array = np.array(array.array, copy=copy, subok=True)
+            self.uncertainty_type = array.uncertainty_type
+        else:
+            self.array = np.array(array, copy=copy, subok=True)
+
+
     @property
     def parent_nddata(self):
         if self._parent_nddata is None:
@@ -64,7 +75,7 @@ class NDUncertainty(object):
     def parent_nddata(self, value):
         self._parent_nddata = value
 
-    @property
+    @abc.abstractproperty
     def uncertainty_type(self):
         return self._uncertainty_type
 
@@ -74,7 +85,11 @@ class NDUncertainty(object):
             raise ValueError('uncertainty_type must be a string.')
         self._uncertainty_type = value
 
-    @abc.abstractmethod
+    def _raise_not_implemented_arithmetic(self, operation_string):
+        raise NotImplementedError('{0} for this type of uncertainty ({1}) '
+                                  'has not been implemented'.format(
+            operation_string, self.__class__.__name__))
+
     def propagate_add(self, other_nddata, result_data):
         """
         Propagate uncertainties for addition.
@@ -96,8 +111,9 @@ class NDUncertainty(object):
         IncompatibleUncertaintiesException
             Raised if the method does not know how to add the uncertainties
         """
+        self._raise_not_implemented_arithmetic('Adding')
 
-    @abc.abstractmethod
+
     def propagate_subtract(self, other_nddata, result_data):
         """
         Propagate uncertainties for subtraction.
@@ -119,8 +135,9 @@ class NDUncertainty(object):
         IncompatibleUncertaintiesException
             Raised if the method does not know how to add the uncertainties
         """
+        self._raise_not_implemented_arithmetic('Subtracting')
 
-    @abc.abstractmethod
+
     def propagate_multiply(self, other_nddata, result_data):
         """
         Propagate uncertainties for multiplication.
@@ -138,7 +155,8 @@ class NDUncertainty(object):
             The resulting uncertainty
         """
 
-    @abc.abstractmethod
+        self._raise_not_implemented_arithmetic('Multiplying')
+
     def propagate_divide(self, other_nddata, result_data):
         """
         Propagate uncertainties for division.
@@ -156,26 +174,50 @@ class NDUncertainty(object):
             The resulting uncertainty
         """
 
+        self._raise_not_implemented_arithmetic('Dividing')
+
+
+class CustomUncertainty(NDUncertainty):
+    """
+    A class for custom uncertainties
+
+    Parameters
+    ----------
+
+    array: ~np.ndarray
+
+    uncertainty_type: object
+        label to specify what kind of uncertainty you have (str is common)
+    """
+
+    def __init__(self, array, uncertainty_type, copy=True):
+        super(CustomUncertainty, self).__init__(array, copy=copy)
+        self.uncertainty_type = uncertainty_type
+
+class UnknownUncertainty(NDUncertainty):
+    """
+    A class for unknown uncertainties
+
+    Parameters
+    ----------
+
+    array: ~np.ndarray
+    """
+
+    uncertainty_type = 'unknown'
+
+    def __init__(self, array, copy=True):
+        self.array = array
+
+
 
 class StdDevUncertainty(NDUncertainty):
     """
     A class for standard deviation uncertainties
     """
-
+    uncertainty_type = 'std'
     support_correlated = False
 
-    def __init__(self, array=None, copy=True):
-        self._unit = None
-        self.uncertainty_type = 'std'
-        if array is None:
-            self.array = None
-        elif isinstance(array, StdDevUncertainty):
-            self.array = np.array(array.array, copy=copy, subok=True)
-        elif isinstance(array, Quantity):
-            self.array = np.array(array.value, copy=copy, subok=True)
-            self._unit = array.unit
-        else:
-            self.array = np.array(array, copy=copy, subok=True)
 
     @property
     def parent_nddata(self):
@@ -370,7 +412,6 @@ class StdDevUncertainty(NDUncertainty):
         if other_nddata.uncertainty.array is None:
             raise ValueError("standard deviation values are not set "
                              "in other_nddata")
-
         result_uncertainty = StdDevUncertainty()
         result_uncertainty.array = \
             (np.sqrt((self.array/self.parent_nddata.data)**2
@@ -378,3 +419,4 @@ class StdDevUncertainty(NDUncertainty):
              result_data)
 
         return result_uncertainty
+

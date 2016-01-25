@@ -19,6 +19,8 @@ from ....utils import NumpyRNGContext
 
 class FakeUncertainty(NDUncertainty):
 
+    uncertainty_type = 'fake'
+    
     def __init__(self, *arg, **kwd):
         self._unit = None
         pass
