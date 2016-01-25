@@ -400,7 +400,7 @@ def test_preserve_serialized(tmpdir):
     assert t1.meta == t2.meta
 
 
-@pytest.mark.skipif('not HAS_H5PY' or 'not HAS_YAML')
+@pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
 def test_metadata_too_large(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
 
