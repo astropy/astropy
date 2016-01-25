@@ -15,14 +15,8 @@ from ....table import Table
 import numpy as np
 
 from ....tests.helper import pytest
-from ....extern.six.moves import zip as izip
 from .common import (raises, assert_equal, assert_almost_equal,
                      assert_true, setup_function, teardown_function)
-
-try:
-    from itertools import izip
-except ImportError:
-    izip = zip
 
 # Check to see if the BeautifulSoup dependency is present.
 
