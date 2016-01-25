@@ -262,12 +262,6 @@ def ignore_sigint(func):
     return wrapped
 
 
-def first(iterable):
-    """Returns the first element from an iterable."""
-
-    return next(iter(iterable))
-
-
 def pairwise(iterable):
     """Return the items of an iterable paired with its next item.
 
