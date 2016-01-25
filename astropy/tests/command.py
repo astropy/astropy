@@ -226,7 +226,7 @@ class AstropyTest(Command, object):
                 "--coverage can not be used with --parallel")
 
         try:
-            import coverage
+            import coverage  # pylint: disable=W0611
         except ImportError:
             raise ImportError(
                 "--coverage requires that the coverage package is "

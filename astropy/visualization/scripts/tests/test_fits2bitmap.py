@@ -6,7 +6,7 @@ from ....tests.helper import pytest
 from ....io import fits
 
 try:
-    import matplotlib
+    import matplotlib  # pylint: disable=W0611
     HAS_MATPLOTLIB = True
     from ..fits2bitmap import fits2bitmap, main
 except:

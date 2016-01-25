@@ -13,7 +13,7 @@ from ...coordinates import SkyCoord
 from ... import units as u
 
 try:
-    import skimage
+    import skimage  # pylint: disable=W0611
     HAS_SKIMAGE = True
 except ImportError:
     HAS_SKIMAGE = False

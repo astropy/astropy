@@ -7,14 +7,14 @@ except ImportError:
     from io import StringIO
 
 try:
-    import h5py
+    import h5py  # pylint: disable=W0611
 except ImportError:
     HAS_H5PY = False
 else:
     HAS_H5PY = True
 
 try:
-    import yaml
+    import yaml  # pylint: disable=W0611
     HAS_YAML = True
 except ImportError:
     HAS_YAML = False

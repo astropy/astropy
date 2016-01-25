@@ -21,7 +21,7 @@ from ..ecsv import DELIMITERS
 from ... import ascii
 
 try:
-    import yaml
+    import yaml  # pylint: disable=W0611
     HAS_YAML = True
 except ImportError:
     HAS_YAML = False

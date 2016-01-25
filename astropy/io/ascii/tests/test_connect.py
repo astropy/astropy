@@ -12,7 +12,7 @@ files = ['t/cds.dat', 't/ipac.dat', 't/daophot.dat', 't/latex1.tex',
 # Check to see if the BeautifulSoup dependency is present.
 
 try:
-    from bs4 import BeautifulSoup
+    from bs4 import BeautifulSoup  # pylint: disable=W0611
     HAS_BEAUTIFUL_SOUP = True
 except ImportError:
     HAS_BEAUTIFUL_SOUP = False

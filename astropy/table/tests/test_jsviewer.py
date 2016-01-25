@@ -6,7 +6,7 @@ from ... import extern
 from ...tests.helper import pytest
 
 try:
-    import IPython
+    import IPython  # pylint: disable=W0611
 except ImportError:
     HAS_IPYTHON = False
 else:

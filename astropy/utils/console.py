@@ -1025,12 +1025,12 @@ class Getch(object):
 
 class _GetchUnix(object):
     def __init__(self):
-        import tty
-        import sys
+        import tty  # pylint: disable=W0611
+        import sys  # pylint: disable=W0611
 
         # import termios now or else you'll get the Unix
         # version on the Mac
-        import termios
+        import termios  # pylint: disable=W0611
 
     def __call__(self):
         import sys
@@ -1048,7 +1048,7 @@ class _GetchUnix(object):
 
 class _GetchWindows(object):
     def __init__(self):
-        import msvcrt
+        import msvcrt  # pylint: disable=W0611
 
     def __call__(self):
         import msvcrt
