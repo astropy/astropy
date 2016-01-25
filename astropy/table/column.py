@@ -711,11 +711,11 @@ class Column(BaseColumn):
                                           copy=copy, copy_indices=copy_indices)
         return self
 
-    def __set_attr__(self, item):
+    def __setattr__(self, item, value):
         if hasattr(item, 'mask'):
             raise AttributeError("Setting mask on non-masked column")
         else:
-            self = super(Column, self).__set_attr__(item)
+            self = super(Column, self).__setattr__(item, value)
             return self
 
     def _base_repr_(self, html=False):
