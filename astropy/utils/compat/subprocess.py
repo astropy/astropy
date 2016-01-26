@@ -14,6 +14,6 @@ import subprocess
 
 # python2.7 and later provide a check_output method
 if not hasattr(subprocess, 'check_output'):
-    from ._subprocess_py2 import check_output
+    from ._subprocess_py2 import check_output  # pylint: disable=W0611
 
 from subprocess import *

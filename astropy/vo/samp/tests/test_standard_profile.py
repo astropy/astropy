@@ -1,5 +1,3 @@
-import sys
-import time
 import tempfile
 
 from ....tests.helper import pytest
@@ -7,8 +5,7 @@ from ....utils.data import get_pkg_data_filename
 
 from ..hub import SAMPHubServer
 from ..integrated_client import SAMPIntegratedClient
-from ..constants import SAMP_STATUS_OK
-from ..errors import SAMPClientError, SAMPProxyError
+from ..errors import SAMPProxyError
 
 # By default, tests should not use the internet.
 from .. import conf

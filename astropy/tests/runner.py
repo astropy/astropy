@@ -182,7 +182,7 @@ class TestRunner(object):
 
         if pep8:
             try:
-                import pytest_pep8
+                import pytest_pep8  # pylint: disable=W0611
             except ImportError:
                 raise ImportError('PEP8 checking requires pytest-pep8 plugin: '
                                   'http://pypi.python.org/pypi/pytest-pep8')
@@ -201,7 +201,7 @@ class TestRunner(object):
                     "parallel testing.")
 
             try:
-                import psutil
+                import psutil  # pylint: disable=W0611
             except ImportError:
                 raise SystemError(
                     "open file detection requested, but psutil package "
@@ -213,7 +213,7 @@ class TestRunner(object):
 
         if parallel != 0:
             try:
-                import xdist
+                import xdist  # pylint: disable=W0611
             except ImportError:
                 raise ImportError(
                     'Parallel testing requires the pytest-xdist plugin '
@@ -243,7 +243,7 @@ class TestRunner(object):
         # This prevents cyclical import problems that make it
         # impossible to test packages that define Table types on their
         # own.
-        from ..table import Table
+        from ..table import Table  # pylint: disable=W0611
 
         # Have to use nested with statements for cross-Python support
         # Note, using these context managers here is superfluous if the

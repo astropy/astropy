@@ -2,12 +2,10 @@
 import pytest
 import numpy as np
 from .test_table import SetupData
-from ..bst import BST, FastBST, FastRBT
+from ..bst import BST, FastRBT
 from ..sorted_array import SortedArray
-from ..table import Table, QTable, NdarrayMixin, Row
-from ...table import table_helpers
+from ..table import QTable, Row
 from ... import units as u
-from ...coordinates import SkyCoord
 from ...time import Time
 from ..column import BaseColumn
 

@@ -6,7 +6,6 @@ import bz2
 import io
 import mmap
 import os
-import shutil
 import warnings
 import zipfile
 

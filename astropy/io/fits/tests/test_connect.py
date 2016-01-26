@@ -1,5 +1,4 @@
 import os
-import sys
 import warnings
 
 import numpy as np
@@ -9,7 +8,6 @@ from ... import fits
 from .. import HDUList, PrimaryHDU, BinTableHDU
 from ....table import Table
 from .... import units as u
-from .... import log
 from ....tests.helper import pytest, catch_warnings
 from astropy.units.format.fits import UnitScaleError
 

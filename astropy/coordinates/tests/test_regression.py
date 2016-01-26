@@ -16,7 +16,6 @@ from .. import AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS
 from ...time import Time
 
 from ...tests.helper import pytest, assert_quantity_allclose
-from .test_matching import HAS_SCIPY, OLDER_SCIPY
 
 
 def test_regression_3920():

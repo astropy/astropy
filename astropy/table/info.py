@@ -8,7 +8,6 @@ import sys
 import os
 
 import numpy as np
-from ..extern import six
 from ..utils.data_info import DataInfo
 
 __all__ = ['table_info', 'TableInfo']

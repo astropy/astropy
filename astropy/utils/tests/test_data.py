@@ -26,7 +26,7 @@ TESTURL = 'http://www.astropy.org'
 
 
 try:
-    import bz2
+    import bz2  # pylint: disable=W0611
 except ImportError:
     HAS_BZ2 = False
 else:
@@ -36,7 +36,7 @@ try:
     if sys.version_info >= (3,3,0):
         import lzma
     else:
-        from backports import lzma
+        from backports import lzma  # pylint: disable=W0611
 except ImportError:
     HAS_XZ = False
 else:

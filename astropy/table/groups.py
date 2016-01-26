@@ -116,7 +116,6 @@ def column_group_by(column, keys):
     grouped_column : Column object with groups attr set accordingly
     """
     from .table import Table
-    from .column import Column
 
     if isinstance(keys, Table):
         keys = keys.as_array()

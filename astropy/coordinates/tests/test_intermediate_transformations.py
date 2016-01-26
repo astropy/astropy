@@ -14,7 +14,7 @@ from ...tests.helper import (pytest,
 from ...time import Time
 from .. import (EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz,
                 PrecessedGeocentric, CartesianRepresentation,
-                SphericalRepresentation, UnitSphericalRepresentation)
+                SphericalRepresentation)
 
 
 from ..._erfa import epv00

@@ -8,7 +8,6 @@ from collections import OrderedDict
 
 import numpy as np
 
-from ....extern import six
 from ....extern.six.moves import cStringIO as StringIO
 from ....tests.helper import pytest
 from ... import ascii
@@ -21,7 +20,7 @@ from .. import core
 from ..ui import _probably_html, get_read_trace
 
 try:
-    import bz2
+    import bz2  # pylint: disable=W0611
 except ImportError:
     HAS_BZ2 = False
 else:
@@ -787,7 +786,7 @@ def get_testfiles(name=None):
     ]
 
     try:
-        import bs4
+        import bs4  # pylint: disable=W0611
         testfiles.append({'cols': ('Column 1', 'Column 2', 'Column 3'),
                           'name': 't/html.html',
                           'nrows': 3,

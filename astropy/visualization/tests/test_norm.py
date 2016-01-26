@@ -6,7 +6,7 @@ from numpy import ma
 from numpy.testing import assert_allclose
 
 try:
-    import matplotlib
+    import matplotlib  # pylint: disable=W0611
     HAS_MATPLOTLIB = True
 except:
     HAS_MATPLOTLIB = False

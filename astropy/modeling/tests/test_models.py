@@ -8,7 +8,6 @@ Compare the results of some models with other programs.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import types
 
 try:
     import cPickle as pickle
@@ -26,7 +25,6 @@ from ..core import FittableModel
 from ..polynomial import PolynomialBase
 from ...tests.helper import pytest
 
-from ...extern import six
 
 try:
     from scipy import optimize  # pylint: disable=W0611

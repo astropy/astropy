@@ -29,7 +29,6 @@ from .web_profile import WebProfileXMLRPCServer, web_profile_text_dialog
 from .constants import SSL_SUPPORT
 
 if SSL_SUPPORT:
-    import ssl
     from .ssl_utils import (SafeTransport, SecureXMLRPCServer,
                             get_ssl_version_name)
 

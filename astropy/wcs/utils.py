@@ -2,9 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import numpy as np
-import warnings
 from .. import units as u
-from ..utils.exceptions import AstropyUserWarning
 
 __doctest_skip__ = ['wcs_to_celestial_frame']
 

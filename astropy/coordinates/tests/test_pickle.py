@@ -6,7 +6,7 @@ import numpy as np
 
 #Can't test distances without scipy due to cosmology deps
 try:
-    import scipy
+    import scipy  # pylint: disable=W0611
     HAS_SCIPY = True
 except:
     HAS_SCIPY = False

@@ -18,7 +18,7 @@ from ... import _erfa as erfa
 from .gcrs import GCRS, PrecessedGeocentric
 from .cirs import CIRS
 from .itrs import ITRS
-from .utils import get_polar_motion, get_dut1utc, get_jd12
+from .utils import get_polar_motion, get_jd12
 
 # # first define helper functions
 def gcrs_to_cirs_mat(time):

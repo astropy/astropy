@@ -5,7 +5,6 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-import inspect
 
 import numpy as np
 
@@ -14,7 +13,6 @@ from .core import (Fittable1DModel, Fittable2DModel, Model,
 from .parameters import Parameter, InputParameterError
 from .utils import ellipse_extent
 from ..utils import deprecated
-from ..utils.compat.funcsigs import signature
 from ..extern import six
 
 from .utils import get_inputs_and_params

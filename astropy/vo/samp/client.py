@@ -22,7 +22,6 @@ from .constants import SSL_SUPPORT
 from .standard_profile import ThreadingXMLRPCServer
 
 if SSL_SUPPORT:
-    import ssl
     from .ssl_utils import SecureXMLRPCServer
 
 __all__ = ['SAMPClient']

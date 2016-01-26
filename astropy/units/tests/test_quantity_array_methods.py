@@ -5,7 +5,8 @@ import numpy as np
 
 from ... import units as u
 from ...tests.helper import pytest
-from ...utils.compat import NUMPY_LT_1_7, NUMPY_LT_1_8, NUMPY_LT_1_9_1
+from ...utils.compat import NUMPY_LT_1_7
+from ...utils.compat import NUMPY_LT_1_8, NUMPY_LT_1_9_1  # pylint: disable=W0611
 
 
 class TestQuantityArrayCopy(object):

@@ -12,7 +12,7 @@ import numpy as np
 from ... import units as u
 from ..baseframe import frame_transform_graph
 from ..transformations import FunctionTransform
-from ..representation import (SphericalRepresentation, CartesianRepresentation,
+from ..representation import (SphericalRepresentation,
                               UnitSphericalRepresentation)
 from ... import _erfa as erfa
 

@@ -23,7 +23,7 @@ try:
     with ignore_warnings(DeprecationWarning):
         # Ignore DeprecationWarning on pandas import in Python 3.5--see
         # https://github.com/astropy/astropy/issues/4380
-        import pandas
+        import pandas  # pylint: disable=W0611
 except ImportError:
     HAS_PANDAS = False
 else:

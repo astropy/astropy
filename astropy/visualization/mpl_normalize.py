@@ -8,7 +8,7 @@ import numpy as np
 from numpy import ma
 
 try:
-    import matplotlib
+    import matplotlib  # pylint: disable=W0611
     from matplotlib.colors import Normalize
 
     # On older versions of matplotlib Normalize is an old-style class

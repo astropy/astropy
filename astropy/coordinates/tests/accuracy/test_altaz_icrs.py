@@ -12,7 +12,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ....tests.helper import pytest, catch_warnings
 from .... import units as u
-from ....time import Time, TimeDelta
+from ....time import Time
 from ...builtin_frames import AltAz
 from ... import EarthLocation
 from ... import Angle, SkyCoord

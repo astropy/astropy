@@ -180,7 +180,6 @@ class Distance(u.Quantity):
         z : float
             The redshift of this distance given the provided ``cosmology``.
         """
-        from scipy import optimize
 
         if cosmology is None:
             from ..cosmology import default_cosmology

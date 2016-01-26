@@ -4,7 +4,6 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 from ... import units as u
-from ..angles import Angle
 from ..representation import SphericalRepresentation
 from ..baseframe import BaseCoordinateFrame, RepresentationMapping
 from .galactic import Galactic

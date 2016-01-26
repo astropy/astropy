@@ -15,7 +15,6 @@ import difflib
 import inspect
 import json
 import os
-import re
 import signal
 import sys
 import traceback

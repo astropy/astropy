@@ -10,7 +10,6 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 # Standard library
 import inspect
-import warnings
 from copy import deepcopy
 from collections import namedtuple, OrderedDict
 
@@ -20,7 +19,6 @@ import numpy as np
 # Project
 from ..utils.compat.misc import override__dir__
 from ..extern import six
-from ..utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from .. import units as u
 from ..utils import OrderedDescriptor, OrderedDescriptorContainer
 from .transformations import TransformGraph

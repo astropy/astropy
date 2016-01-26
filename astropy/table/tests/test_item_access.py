@@ -5,12 +5,9 @@
 """ Verify item access API in:
 https://github.com/astropy/astropy/wiki/Table-item-access-definition
 """
-from distutils import version
 import numpy as np
 
 from ...tests.helper import pytest
-from ... import table
-from .conftest import MaskedTable
 
 
 @pytest.mark.usefixtures('table_data')

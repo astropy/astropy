@@ -14,10 +14,7 @@ from ....extern.six.moves import xrange
 # STDLIB
 import difflib
 import io
-import os
-import shutil
 import sys
-import tempfile
 import gzip
 
 # THIRD-PARTY

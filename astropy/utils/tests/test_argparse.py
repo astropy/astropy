@@ -5,7 +5,7 @@ from ..exceptions import AstropyDeprecationWarning
 def test_import_warning():
 
     with catch_warnings() as w:
-        from ..compat import argparse
+        from ..compat import argparse  # pylint: disable=W0611
 
     assert len(w) == 1
     assert w[0].category == AstropyDeprecationWarning

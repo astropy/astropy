@@ -22,18 +22,16 @@ try:
     # Import pkg_resources to prevent it from issuing warnings upon being
     # imported from within py.test.  See
     # https://github.com/astropy/astropy/pull/537 for a detailed explanation.
-    import pkg_resources
+    import pkg_resources  # pylint: disable=W0611
 except ImportError:
     pass
 
-from .. import test
-from ..utils.exceptions import (AstropyWarning,
-                                AstropyDeprecationWarning,
+from ..utils.exceptions import (AstropyDeprecationWarning,
                                 AstropyPendingDeprecationWarning)
 
 
 # For backward-compatibility with affiliated packages
-from .runner import TestRunner
+from .runner import TestRunner  # pylint: disable=W0611
 
 __all__ = ['raises', 'enable_deprecations_as_exceptions', 'remote_data',
            'treat_deprecations_as_exceptions', 'catch_warnings',
@@ -238,12 +236,12 @@ def treat_deprecations_as_exceptions():
     # before we turn the warnings into exceptions, we're golden.
     try:
         # A deprecated stdlib module used by py.test
-        import compiler
+        import compiler  # pylint: disable=W0611
     except ImportError:
         pass
 
     try:
-        import scipy
+        import scipy  # pylint: disable=W0611
     except ImportError:
         pass
 
