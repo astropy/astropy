@@ -13,7 +13,7 @@ __all__ = ['add_stokes_axis_to_wcs',
            'wcs_to_celestial_frame', 'proj_plane_pixel_scales',
            'proj_plane_pixel_area', 'is_proj_plane_distorted',
            'non_celestial_pixel_scales', 'skycoord_to_pixel',
-           'pixel_to_skycoord']
+           'pixel_to_skycoord', 'wcs_compare']
 
 
 def add_stokes_axis_to_wcs(wcs, add_before_ind):
@@ -505,3 +505,24 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode='all', cls=None):
     coords = cls(frame.realize_frame(data))
 
     return coords
+
+
+def wcs_compare(wcs1, wcs2, *args, **kwargs):
+    """
+    Compares two `~astropy.wcs.WCS` instances for equality by wrapping
+    :meth:`astropy.wcs.Wcsprm.compare`.
+
+    Parameters
+    ----------
+    wcs1, wcs2 : `astropy.wcs.WCS`
+        The two WCS instances for the comparison.
+
+    args, kwargs :
+        Additional parameters for :meth:`astropy.wcs.Wcsprm.compare`.
+
+    Returns
+    -------
+    equal : bool
+        ``True`` if the WCS are equal enough or ``False`` if not.
+    """
+    return wcs1.wcs.compare(wcs2.wcs, *args, **kwargs)
