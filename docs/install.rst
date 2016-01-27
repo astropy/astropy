@@ -41,7 +41,9 @@ Astropy also depends on other packages for optional features:
 
 - `pandas <http://pandas.pydata.org/>`_: To read/write
   :class:`~astropy.table.Table` objects from/to pandas DataFrame objects.
-  
+
+- `objgraph <https://mg.pov.lt/objgraph/>`_: Used only in tests to test for reference leaks.
+
 
 However, note that these only need to be installed if those particular features
 are needed. Astropy will import even if these dependencies are not installed.
