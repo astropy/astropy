@@ -354,11 +354,18 @@ made. Include the pull request number if the change fixes an issue. An
 example entry, for the changes which fixed
 `issue 1845 <https://github.com/astropy/astropy/pull/1845>`_, is::
 
-  - `astropy.wcs.Wcs.printwcs` will no longer warn that `cdelt` is
+  - ``astropy.wcs.Wcs.printwcs`` will no longer warn that ``cdelt`` is
     being ignored when none was present in the FITS file. [#1845]
 
 If the change is a new feature, rather than an existing issue, you will not be
 able to put in the issue number until *after* you make the pull request.
+
+When writing changelog entries, do not attempt to make API reference links
+by using single-backticks.  This is because the changelog (in its current
+format) runs for the history of the project, and API references you make today
+may not be valid in a future version of Astropy.  However, use of
+double-backticks for monospace rendering of module/class/function/argument
+names and the like is encouraged.
 
 .. _push-to-github:
 
