@@ -183,7 +183,7 @@ Bug fixes
   - ``NDData`` now sets the ``parent_nddata`` of the ``uncertainty`` if the
     uncertainty is ``NDUncertainty``-like. [#4152, #4270]
 
-- ``astropy.stats``
+ - ``astropy.stats``
 
 - ``astropy.table``
 
@@ -990,6 +990,9 @@ New Features
 - ``astropy.modeling``
 
 - ``astropy.nddata``
+
+ - ``NDArithmeticMixin`` check for matching WCS now works with 
+    ``astropy.wcs.WCS`` objects [#4499]
 
 - ``astropy.stats``
 

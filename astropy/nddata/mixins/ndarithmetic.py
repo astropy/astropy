@@ -13,6 +13,8 @@ from ... import log
 from ...extern.six import string_types
 from ..nduncertainty import IncompatibleUncertaintiesException
 
+from ...wcs import WCS
+
 __all__ = ['NDArithmeticMixin']
 
 
@@ -59,8 +61,15 @@ class NDArithmeticMixin(object):
 
         from .. import conf
 
-        if self.wcs != operand.wcs:
-            raise ValueError("WCS properties do not match")
+        if isinstance(self.wcs, WCS):
+            # If an astropy.wcs.WCS object is present need to
+            # use astropy._wcs.Wcsprm.compare to check
+            # equivalence of WCS not __eq__ (#4499)
+            if not self.wcs.wcs.compare(operand.wcs.wcs):
+                raise ValueError("WCS properties do not match")
+        else:
+            if self.wcs != operand.wcs:
+                raise ValueError("WCS properties do not match")
 
         # get a sensible placeholder if .unit is None
         self_unit = self.unit or dimensionless_unscaled
