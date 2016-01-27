@@ -16,6 +16,7 @@ from ....tests.helper import pytest
 from .... import units as u
 from ....utils import NumpyRNGContext
 
+from ....wcs import WCS
 
 class FakeUncertainty(NDUncertainty):
 
@@ -261,10 +262,22 @@ def test_nddata_subtract():
     d3 = d1.subtract(d2)
     assert np.all(d3.data == -1.)
 
+def test_nddata_subtract_with_wcs():
+    # Test arithmetic with identical WCS present #4499
+    w1 = WCS()
+    w2 = w1.deepcopy()
+    d1 = NDDataArray(np.ones((5, 5)), wcs=w1)
+    d2 = NDDataArray(np.ones((5, 5)) * 2., wcs=w2)
+    d3 = d1.subtract(d2)
+    assert np.all(d3.data == -1.)
 
 def test_nddata_subtract_mismatch_wcs():
-    d1 = NDDataArray(np.ones((5, 5)), wcs=1.)
-    d2 = NDDataArray(np.ones((5, 5)) * 2., wcs=2.)
+    # Test using actual WCS objects #4499
+    w1 = WCS()
+    w2 = w1.deepcopy()
+    w2.wcs.crpix = np.array((1.0,0.0))
+    d1 = NDDataArray(np.ones((5, 5)), wcs=w1)
+    d2 = NDDataArray(np.ones((5, 5)) * 2., wcs=w2)
     with pytest.raises(ValueError) as exc:
         d1.subtract(d2)
     assert exc.value.args[0] == "WCS properties do not match"

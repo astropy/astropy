@@ -1035,6 +1035,9 @@ New Features
 
 - ``astropy.nddata``
 
+ - ``NDArithmeticMixin`` check for matching WCS now works with 
+    ``astropy.wcs.WCS`` objects [#4499]
+
 - ``astropy.stats``
 
 - ``astropy.sphinx``
