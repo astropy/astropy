@@ -23,7 +23,7 @@ env:
         - NUMPY_VERSION=1.9
         - MAIN_CMD='python setup.py'
         - CONDA_DEPENDENCIES='Cython jinja2'
-        - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautiful-soup ipython objgraph'
+        - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautiful-soup ipython'
         - PIP_DEPENDENCIES=''
 
     matrix:
@@ -68,7 +68,7 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=2.7 SETUP_CMD='test --coverage'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES='cpp-coveralls'
+               PIP_DEPENDENCIES='cpp-coveralls objgraph'
                LC_CTYPE=C.ascii LC_ALL=C.ascii
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
         - os: linux
