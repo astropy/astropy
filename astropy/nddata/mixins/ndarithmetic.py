@@ -10,29 +10,9 @@ import numpy as np
 
 from ..nduncertainty import NDUncertainty
 from ...units import dimensionless_unscaled
-from ...extern import six
+from ...utils import format_doc
 
 __all__ = ['NDArithmeticMixin']
-
-try:
-    from ...utils import format_doc
-except ImportError:
-    # TODO: Delete this and rebase if #4242 is merged.
-    def format_doc(docstring, *args, **kwargs):
-        def set_docstring(func):
-            if not isinstance(docstring, six.string_types):
-                doc = docstring.__doc__
-            elif docstring != 'self':
-                doc = docstring
-            else:
-                doc = func.__doc__
-                func.__doc__ = None
-            if not doc:
-                raise ValueError
-            kwargs['original_doc'] = func.__doc__ or ''
-            func.__doc__ = doc.format(*args, **kwargs)
-            return func
-        return set_docstring
 
 # Global so it doesn't pollute the class dict unnecessarily:
 
@@ -54,25 +34,25 @@ _arit_doc = """
         result will have a copied version of the first operand that has an
         uncertainty. If ``True`` the result will have a correctly propagated
         uncertainty from the uncertainties of the operands but this assumes
-        that the uncertainties are `StdDevUncertainty`. Default is ``True``.
+        that the uncertainties are `NDUncertainty`-like. Default is ``True``.
 
-    handle_mask : callable, ``False`` or ``None``, optional
-        If ``None`` the result will have no mask. If ``False`` the
+    handle_mask : callable, ``'first_found'`` or ``None``, optional
+        If ``None`` the result will have no mask. If ``'first_found'`` the
         result will have a copied version of the first operand that has a
         mask). If it is a callable then the specified callable must
         create the results ``mask`` and if necessary provide a copy.
         Default is `numpy.logical_or`.
 
-    handle_meta : callable, ``False`` or ``None``, optional
-        If ``None`` the result will have no meta. If ``False`` the
+    handle_meta : callable, ``'first_found'`` or ``None``, optional
+        If ``None`` the result will have no meta. If ``'first_found'`` the
         result will have a copied version of the first operand that has a
         (not empty) meta. If it is a callable then the specified callable must
         create the results ``meta`` and if necessary provide a copy.
         Default is ``False``.
 
-    compare_wcs : callable, ``False`` or ``None``, optional
+    compare_wcs : callable, ``'first_found'`` or ``None``, optional
         If ``None`` the result will have no wcs and no comparison between
-        the wcs of the operands is made. If ``False`` the
+        the wcs of the operands is made. If ``'first_found'`` the
         result will have a copied version of the first operand that has a
         wcs. If it is a callable then the specified callable must
         compare the ``wcs``. The resulting ``wcs`` will be like if ``False``
@@ -80,11 +60,11 @@ _arit_doc = """
         not successful. Default is ``False``.
 
     uncertainty_correlation : number or `~numpy.ndarray`, optional
-        The correlation (rho) is defined between the uncertainties in
-        ``sigma_AB = sigma_A * sigma_B * rho`` (Latex?). If
-        ``propagate_uncertainties`` is *not* ``True`` this will be ignored.
-        A value of ``0`` means uncorrelated (which is also the default).
-        TODO: TeX of formula?
+        The correlation between the two operands is used for correct error
+        propagation for correlated data as given in:
+        https://en.wikipedia.org/wiki/Propagation_of_uncertainty#Example_formulas
+        Default is 0.
+
 
     kwargs :
         Any other parameter that should be passed to the callables used.
@@ -242,13 +222,13 @@ class NDArithmeticMixin(object):
         propagate_uncertainties : `bool` or ``None``, optional
             see :meth:`NDArithmeticMixin.add`
 
-        handle_mask : callable, ``False`` or ``None``, optional
+        handle_mask : callable, ``'first_found'`` or ``None``, optional
             see :meth:`NDArithmeticMixin.add`
 
-        handle_meta : callable, ``False`` or ``None``, optional
+        handle_meta : callable, ``'first_found'`` or ``None``, optional
             see :meth:`NDArithmeticMixin.add`
 
-        compare_wcs : callable, ``False`` or ``None``, optional
+        compare_wcs : callable, ``'first_found'`` or ``None``, optional
             see :meth:`NDArithmeticMixin.add`
 
         uncertainty_correlation : ``Number`` or `~numpy.ndarray`, optional
@@ -295,7 +275,7 @@ class NDArithmeticMixin(object):
         # First check that the WCS allows the arithmetic operation
         if compare_wcs is None:
             kwargs['wcs'] = None
-        elif not compare_wcs:
+        elif compare_wcs == 'first_found':
             if self.wcs is None:
                 kwargs['wcs'] = deepcopy(operand.wcs)
             else:
@@ -323,7 +303,7 @@ class NDArithmeticMixin(object):
 
         if handle_mask is None:
             kwargs['mask'] = None
-        elif not handle_mask:
+        elif handle_mask == 'first_found':
             if self.mask is None:
                 kwargs['mask'] = deepcopy(operand.mask)
             else:
@@ -335,7 +315,7 @@ class NDArithmeticMixin(object):
 
         if handle_meta is None:
             kwargs['meta'] = None
-        elif not handle_meta:
+        elif handle_meta == 'first_found':
             if not self.meta:
                 kwargs['meta'] = deepcopy(operand.meta)
             else:
@@ -632,15 +612,3 @@ class NDArithmeticMixin(object):
     def ic_division(cls, operand1, operand2, **kwargs):
         operand1 = cls(operand1)
         return operand1.divide(operand2, **kwargs)
-
-    # TODO: Only temporary since uncertainty setter was changed during refactor
-    # Remove after #4270 is merged.
-    @property
-    def uncertainty(self):
-        return self._uncertainty
-
-    @uncertainty.setter
-    def uncertainty(self, value):
-        if isinstance(value, NDUncertainty):
-            value.parent_nddata = self
-        self._uncertainty = value

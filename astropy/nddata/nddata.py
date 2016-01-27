@@ -11,59 +11,13 @@ import numpy as np
 from copy import deepcopy
 
 from .nddata_base import NDDataBase
-from .nduncertainty import NDUncertainty
+from .nduncertainty import NDUncertainty, UnknownUncertainty
 from .. import log
 from ..units import Unit, Quantity
 
 __all__ = ['NDData']
 
 __doctest_skip__ = ['NDData']
-
-# TODO: Change this again after remerging of ractoring PRs
-try:
-    from .nduncertainty import UnknownUncertainty
-except ImportError:
-
-    __all__.append('UnknownUncertainty')
-
-    from .nduncertainty import StdDevUncertainty
-
-    # Create a temporary unknownuncertainty as long as the real implementation
-    # is not merged.
-
-    class UnknownUncertainty(StdDevUncertainty):
-        """
-        This is a wrapper for uncertainties that do not have an attribute
-        uncertainty type.
-
-        Parameters
-        ----------
-        args, kwargs:
-            passed to `StdDevUncertainty`.
-
-        Attributes
-        ----------
-        array: any type
-            The uncertainty that is wrapped.
-        parent_nddata: `NDData`
-            The `NDData` which uses this uncertainty.
-        uncertainty_type: ``"unknown"``
-            The type of uncertainty is unknown.
-        """
-        # We need to change the type of uncertainty
-        def __init__(self, *args, **kwargs):
-            super(UnknownUncertainty, self).__init__(*args, **kwargs)
-            self.uncertainty_type = 'unknown'
-
-        # Well we need to define the property to alter the setter
-        @property
-        def parent_nddata(self):
-            return super(UnknownUncertainty, self).parent_nddata
-
-        # We want to skip the shape check.
-        @parent_nddata.setter
-        def parent_nddata(self, value):
-            self._parent_nddata = value
 
 
 class NDData(NDDataBase):

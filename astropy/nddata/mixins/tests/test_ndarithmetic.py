@@ -9,7 +9,7 @@ import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from ... import NDData, NDArithmeticMixin
-from ...nduncertainty import NDUncertainty, StdDevUncertainty
+from ...nduncertainty import StdDevUncertainty
 from ....units import UnitsError, Quantity
 from ....tests.helper import pytest
 from .... import units as u
@@ -658,16 +658,18 @@ def test_arithmetics_handle_switches():
     assert nd_.uncertainty is None
 
     # Only second has attributes and False is chosen
-    nd_ = nd3.add(nd2, propagate_uncertainties=False, handle_meta=False,
-                  handle_mask=False, compare_wcs=False)
+    nd_ = nd3.add(nd2, propagate_uncertainties=False,
+                  handle_meta='first_found', handle_mask='first_found',
+                  compare_wcs='first_found')
     assert nd_.wcs == wcs2
     assert nd_.meta == meta2
     assert nd_.mask == mask2
     assert_array_equal(nd_.uncertainty.array, uncertainty2.array)
 
     # Only first has attributes and False is chosen
-    nd_ = nd1.add(nd3, propagate_uncertainties=False, handle_meta=False,
-                  handle_mask=False, compare_wcs=False)
+    nd_ = nd1.add(nd3, propagate_uncertainties=False,
+                  handle_meta='first_found', handle_mask='first_found',
+                  compare_wcs='first_found')
     assert nd_.wcs == wcs1
     assert nd_.meta == meta1
     assert nd_.mask == mask1
