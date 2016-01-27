@@ -124,7 +124,7 @@ class TestSingleTable(object):
     def test_read_from_fileobj(self, tmpdir):
         filename = str(tmpdir.join('test_read_from_fileobj.fits'))
         hdu = BinTableHDU(self.data)
-        hdu.writeto(filename)
+        hdu.writeto(filename, clobber=True)
         with open(filename, 'rb') as f:
             t = Table.read(f)
         assert equal_data(t, self.data)

@@ -33,6 +33,9 @@ Astropy also depends on other packages for optional features:
 
 - `WCSAxes <http://wcsaxes.readthedocs.org/en/latest/>`_: To use `astropy.wcs` to define projections in Matplotlib. 
 
+- `objgraph <https://mg.pov.lt/objgraph/>`_: Used only in tests to test for reference leaks.
+
+
 However, note that these only need to be installed if those particular features
 are needed. Astropy will import even if these dependencies are not installed.
 

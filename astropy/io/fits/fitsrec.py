@@ -19,7 +19,7 @@ from ...extern.six import string_types
 from ...extern.six.moves import xrange
 from ...utils import lazyproperty
 from ...utils.compat import ignored
-from ...utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from ...utils.exceptions import AstropyDeprecationWarning
 
 
 class FITS_record(object):
@@ -182,13 +182,10 @@ class FITS_rec(np.recarray):
             self = np.recarray.__new__(subtype, input.shape, input.dtype,
                                        buf=input.data, strides=input.strides)
 
-        self._nfields = len(self.dtype.names)
-        self._converted = {}
-        self._heapoffset = 0
-        self._heapsize = 0
-        self._coldefs = None
-        self._gap = 0
-        self._uint = False
+        self._init()
+        if self.dtype.fields:
+            self._nfields = len(self.dtype.fields)
+
         return self
 
     def __setstate__(self, state):
@@ -235,7 +232,7 @@ class FITS_rec(np.recarray):
         if obj is None:
             return
 
-        if isinstance(obj, FITS_rec):
+        if isinstance(obj, FITS_rec) and obj.dtype == self.dtype:
             self._converted = obj._converted
             self._heapoffset = obj._heapoffset
             self._heapsize = obj._heapsize
@@ -243,30 +240,31 @@ class FITS_rec(np.recarray):
             self._nfields = obj._nfields
             self._gap = obj._gap
             self._uint = obj._uint
-        else:
+        elif self.dtype.fields is not None:
             # This will allow regular ndarrays with fields, rather than
             # just other FITS_rec objects
-            self._nfields = len(obj.dtype.names)
+            self._nfields = len(self.dtype.fields)
             self._converted = {}
 
             self._heapoffset = getattr(obj, '_heapoffset', 0)
             self._heapsize = getattr(obj, '_heapsize', 0)
 
-            self._coldefs = None
             self._gap = getattr(obj, '_gap', 0)
             self._uint = getattr(obj, '_uint', False)
+            self._coldefs = ColDefs(self)
+        else:
+            self._init()
 
-            attrs = ['_converted', '_coldefs', '_gap']
-            for attr in attrs:
-                if hasattr(obj, attr):
-                    value = getattr(obj, attr, None)
-                    if value is None:
-                        warnings.warn('Setting attribute %s as None' % attr,
-                                      AstropyUserWarning)
-                    setattr(self, attr, value)
+    def _init(self):
+        """Initializes internal attributes specific to FITS-isms."""
 
-            if self._coldefs is None:
-                self._coldefs = ColDefs(self)
+        self._nfields = 0
+        self._converted = {}
+        self._heapoffset = 0
+        self._heapsize = 0
+        self._coldefs = None
+        self._gap = 0
+        self._uint = False
 
     @classmethod
     def from_columns(cls, columns, nrows=0, fill=False):
@@ -391,8 +389,8 @@ class FITS_rec(np.recarray):
                     _wrapx(inarr, outarr, recformat.repeat)
                     continue
             elif isinstance(recformat, _FormatP):
-                data._converted[name] = _makep(inarr, field, recformat,
-                                               nrows=nrows)
+                data._cache_field(name, _makep(inarr, field, recformat,
+                                               nrows=nrows))
                 continue
             # TODO: Find a better way of determining that the column is meant
             # to be FITS L formatted
@@ -403,8 +401,9 @@ class FITS_rec(np.recarray):
                 field[:] = ord('F')
                 # Also save the original boolean array in data._converted so
                 # that it doesn't have to be re-converted
-                data._converted[name] = np.zeros(field.shape, dtype=bool)
-                data._converted[name][:n] = inarr
+                converted = np.zeros(field.shape, dtype=bool)
+                converted[:n] = inarr
+                data._cache_field(name, converted)
                 # TODO: Maybe this step isn't necessary at all if _scale_back
                 # will handle it?
                 inarr = np.where(inarr == False, ord('F'), ord('T'))
@@ -412,9 +411,9 @@ class FITS_rec(np.recarray):
                     columns[idx]._pseudo_unsigned_ints):
                 # Temporary hack...
                 bzero = column.bzero
-                data._converted[name] = np.zeros(field.shape,
-                                                 dtype=inarr.dtype)
-                data._converted[name][:n] = inarr
+                converted = np.zeros(field.shape, dtype=inarr.dtype)
+                converted[:n] = inarr
+                data._cache_field(name, converted)
                 if n < nrows:
                     # Pre-scale rows below the input data
                     field[n:] = -bzero
@@ -434,7 +433,7 @@ class FITS_rec(np.recarray):
                     # Set up views of numeric columns with the appropriate
                     # numeric dtype
                     # Fill with the appropriate blanks for the column format
-                    data._converted[name] = np.zeros(nrows, dtype=arr.dtype)
+                    data._cache_field(name, np.zeros(nrows, dtype=arr.dtype))
                     outarr = data._converted[name][:n]
 
                 outarr[:] = inarr
@@ -480,6 +479,9 @@ class FITS_rec(np.recarray):
         return np.ndarray.__repr__(self)
 
     def __getitem__(self, key):
+        if self._coldefs is None:
+            return super(FITS_rec, self).__getitem__(key)
+
         if isinstance(key, string_types):
             return self.field(key)
         elif isinstance(key, (slice, np.ndarray, tuple, list)):
@@ -497,14 +499,13 @@ class FITS_rec(np.recarray):
                 #
                 arrays.append(self._coldefs._arrays[idx][key])
 
-                # touch all fields to expand the original ._converted dict
-                # so the sliced FITS_rec will view the same scaled columns as
-                # the original
-                dummy = self.field(idx)
+                # Ensure that the sliced FITS_rec will view the same scaled
+                # columns as the original; this is one of the few cases where
+                # it is not necessary to use _cache_field()
                 if name in self._converted:
-                    out._converted[name] = \
-                        np.ndarray.__getitem__(self._converted[name], key)
-            del dummy
+                    dummy = self._converted[name]
+                    field = np.ndarray.__getitem__(dummy, key)
+                    out._converted[name] = field
 
             out._coldefs._arrays = arrays
             return out
@@ -519,6 +520,9 @@ class FITS_rec(np.recarray):
             return newrecord
 
     def __setitem__(self, key, value):
+        if self._coldefs is None:
+            return super(FITS_rec, self).__setitem__(key, value)
+
         if isinstance(key, string_types):
             self[key][:] = value
             return
@@ -585,14 +589,19 @@ class FITS_rec(np.recarray):
 
         if hasattr(self, '_coldefs') and self._coldefs is not None:
             return self._coldefs.names
-        else:
+        elif self.dtype.fields:
             return list(self.dtype.names)
+        else:
+            return None
 
     @property
     def formats(self):
         """List of column FITS foramts."""
 
-        return self._coldefs.formats
+        if hasattr(self, '_coldefs') and self._coldefs is not None:
+            return self._coldefs.formats
+
+        return None
 
     @property
     def _raw_itemsize(self):
@@ -657,10 +666,42 @@ class FITS_rec(np.recarray):
                 # fields
                 converted = self._convert_other(column, field, recformat)
 
-            self._converted[name] = converted
+            # Note: Never assign values directly into the self._converted dict;
+            # always go through self._cache_field; this way self._converted is
+            # only used to store arrays that are not already direct views of
+            # our own data.
+            self._cache_field(name, converted)
             return converted
 
         return self._converted[name]
+
+    def _cache_field(self, name, field):
+        """
+        Do not store fields in _converted if one of its bases is self,
+        or if it has a common base with self.
+
+        This results in a reference cycle that cannot be broken since
+        ndarrays do not participate in cyclic garbage collection.
+        """
+
+        base = field
+        while True:
+            self_base = self
+            while True:
+                if self_base is base:
+                    return
+
+                if getattr(self_base, 'base', None) is not None:
+                    self_base = self_base.base
+                else:
+                    break
+
+            if getattr(base, 'base', None) is not None:
+                base = base.base
+            else:
+                break
+
+        self._converted[name] = field
 
     def _update_column_attribute_changed(self, column, idx, attr, old_value,
                                          new_value):
@@ -978,7 +1019,7 @@ class FITS_rec(np.recarray):
         for indx, name in enumerate(self.dtype.names):
             column = self._coldefs[indx]
             recformat = column.format.recformat
-            field = _get_recarray_field(self, indx)
+            raw_field = _get_recarray_field(self, indx)
 
             # add the location offset of the heap area for each
             # variable length column
@@ -992,33 +1033,32 @@ class FITS_rec(np.recarray):
                 if update_heap_pointers and name in self._converted:
                     # The VLA has potentially been updated, so we need to
                     # update the array descriptors
-                    field[:] = 0  # reset
+                    raw_field[:] = 0  # reset
                     npts = [len(arr) for arr in self._converted[name]]
 
-                    field[:len(npts), 0] = npts
-                    field[1:, 1] = (np.add.accumulate(field[:-1, 0]) *
-                                    dtype.itemsize)
-                    field[:, 1][:] += heapsize
+                    raw_field[:len(npts), 0] = npts
+                    raw_field[1:, 1] = (np.add.accumulate(raw_field[:-1, 0]) *
+                                        dtype.itemsize)
+                    raw_field[:, 1][:] += heapsize
 
-                heapsize += field[:, 0].sum() * dtype.itemsize
+                heapsize += raw_field[:, 0].sum() * dtype.itemsize
                 # Even if this VLA has not been read or updated, we need to
                 # include the size of its constituent arrays in the heap size
                 # total
 
-            if name not in self._converted:
-                continue
-
-            if isinstance(recformat, _FormatX):
-                _wrapx(self._converted[name], field, recformat.repeat)
+            if isinstance(recformat, _FormatX) and name in self._converted:
+                _wrapx(self._converted[name], raw_field, recformat.repeat)
                 continue
 
             _str, _bool, _number, _scale, _zero, bscale, bzero, _ = \
                 self._get_scale_factors(column)
 
+            field = self._converted.get(name, raw_field)
+
             # conversion for both ASCII and binary tables
             if _number or _str:
                 if _number and (_scale or _zero) and column._physical_values:
-                    dummy = self._converted[name].copy()
+                    dummy = field.copy()
                     if _zero:
                         dummy -= bzero
                     if _scale:
@@ -1027,39 +1067,38 @@ class FITS_rec(np.recarray):
                     # their non-physical storage values, so the column should
                     # be mark is not scaled
                     column._physical_values = False
-                elif _str:
-                    dummy = self._converted[name]
-                elif isinstance(self._coldefs, _AsciiColDefs):
-                    dummy = self._converted[name]
+                elif _str or isinstance(self._coldefs, _AsciiColDefs):
+                    dummy = field
                 else:
                     continue
 
                 # ASCII table, convert numbers to strings
                 if isinstance(self._coldefs, _AsciiColDefs):
-                    self._scale_back_ascii(indx, dummy, field)
+                    self._scale_back_ascii(indx, dummy, raw_field)
                 # binary table string column
-                elif isinstance(field, chararray.chararray):
-                    self._scale_back_strings(indx, dummy, field)
+                elif isinstance(raw_field, chararray.chararray):
+                    self._scale_back_strings(indx, dummy, raw_field)
                 # all other binary table columns
                 else:
-                    if len(field) and isinstance(field[0], np.integer):
+                    if len(raw_field) and isinstance(raw_field[0],
+                                                     np.integer):
                         dummy = np.around(dummy)
 
-                    if field.shape == dummy.shape:
-                        field[:] = dummy
+                    if raw_field.shape == dummy.shape:
+                        raw_field[:] = dummy
                     else:
                         # Reshaping the data is necessary in cases where the
                         # TDIMn keyword was used to shape a column's entries
                         # into arrays
-                        field[:] = dummy.ravel().view(field.dtype)
+                        raw_field[:] = dummy.ravel().view(raw_field.dtype)
 
                 del dummy
 
             # ASCII table does not have Boolean type
-            elif _bool:
-                field[:] = np.choose(self._converted[name],
-                                     (np.array([ord('F')], dtype=np.int8)[0],
-                                      np.array([ord('T')], dtype=np.int8)[0]))
+            elif _bool and name in self._converted:
+                choices = (np.array([ord('F')], dtype=np.int8)[0],
+                           np.array([ord('T')], dtype=np.int8)[0])
+                raw_field[:] = np.choose(field, choices)
 
         # Store the updated heapsize
         self._heapsize = heapsize

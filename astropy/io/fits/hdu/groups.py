@@ -185,14 +185,14 @@ class GroupData(FITS_rec):
                 # TODO: Find a better way to do this than using this interface
                 scale, zero = self._get_scale_factors(column)[3:5]
                 if scale or zero:
-                    self._converted[name] = pardata[idx]
+                    self._cache_field(name, pardata[idx])
                 else:
                     np.rec.recarray.field(self, idx)[:] = pardata[idx]
 
             column = coldefs[self._data_field]
             scale, zero = self._get_scale_factors(column)[3:5]
             if scale or zero:
-                self._converted[self._data_field] = input
+                self._cache_field(self._data_field, input)
             else:
                 np.rec.recarray.field(self, npars)[:] = input
         else:
