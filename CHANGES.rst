@@ -111,6 +111,9 @@ Bug Fixes
   - Fixed crash on pickling of binary table columns with the 'X', 'P', or
     'Q' format. [#4514]
 
+  - Fixed memory / reference leak that could occur when copying a ``FITS_rec``
+    object (the ``.data`` for table HDUs). [#520]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -864,6 +867,9 @@ Bug Fixes
 
   - Fixed crash on pickling of binary table columns with the 'X', 'P', or
     'Q' format. [#4514]
+
+  - Fixed memory / reference leak that could occur when copying a ``FITS_rec``
+    object (the ``.data`` for table HDUs). [#520]
 
 - ``astropy.io.misc``
 
