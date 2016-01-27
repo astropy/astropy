@@ -195,6 +195,8 @@ class FITS_rec(np.recarray):
 
         super(FITS_rec, self).__setstate__(state)
 
+        self._col_weakrefs = weakref.WeakSet()
+
         for attr, value in zip(meta, column_state):
             setattr(self, attr, value)
 
@@ -236,6 +238,7 @@ class FITS_rec(np.recarray):
             self._converted = obj._converted
             self._heapoffset = obj._heapoffset
             self._heapsize = obj._heapsize
+            self._col_weakrefs = obj._col_weakrefs
             self._coldefs = obj._coldefs
             self._nfields = obj._nfields
             self._gap = obj._gap
@@ -251,7 +254,16 @@ class FITS_rec(np.recarray):
 
             self._gap = getattr(obj, '_gap', 0)
             self._uint = getattr(obj, '_uint', False)
+            self._col_weakrefs = weakref.WeakSet()
             self._coldefs = ColDefs(self)
+
+            # Work around chicken-egg problem.  Column.array relies on the
+            # _coldefs attribute to set up ref back to parent FITS_rec; however
+            # in the above line the self._coldefs has not been assigned yet so
+            # this fails.  This patches that up...
+            for col in self._coldefs:
+                del col.array
+                col._parent_fits_rec = weakref.ref(self)
         else:
             self._init()
 
@@ -262,6 +274,7 @@ class FITS_rec(np.recarray):
         self._converted = {}
         self._heapoffset = 0
         self._heapsize = 0
+        self._col_weakrefs = weakref.WeakSet()
         self._coldefs = None
         self._gap = 0
         self._uint = False
@@ -582,6 +595,31 @@ class FITS_rec(np.recarray):
         """
 
         return self._coldefs
+
+    @property
+    def _coldefs(self):
+        return self.__dict__.get('_coldefs')
+
+    @_coldefs.setter
+    def _coldefs(self, cols):
+        self.__dict__['_coldefs'] = cols
+        if isinstance(cols, ColDefs):
+            for col in cols.columns:
+                self._col_weakrefs.add(col)
+
+    @_coldefs.deleter
+    def _coldefs(self):
+        try:
+            del self.__dict__['_coldefs']
+        except KeyError as exc:
+            raise AttributeError(exc.args[0])
+
+    def __del__(self):
+        del self._coldefs
+        if self.dtype.fields is not None:
+            for col in self._col_weakrefs:
+                if col.array is not None:
+                    col.array = col.array.copy()
 
     @property
     def names(self):

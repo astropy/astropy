@@ -590,6 +590,7 @@ class Column(NotifierMixin):
         else:
             self._physical_values = False
 
+        self._parent_fits_rec = None
         self.array = array
 
     def __repr__(self):
@@ -619,6 +620,44 @@ class Column(NotifierMixin):
         """
 
         return hash((self.name.lower(), self.format))
+
+    @property
+    def array(self):
+        if 'array' in self.__dict__:
+            return self.__dict__['array']
+        elif self._parent_fits_rec is not None:
+            parent = self._parent_fits_rec()
+            if parent is not None:
+                return parent[self.name]
+        else:
+            return None
+
+    @array.setter
+    def array(self, array):
+        base = array
+        while True:
+            if (hasattr(base, '_coldefs') and
+                    isinstance(base._coldefs, ColDefs)):
+                for col in base._coldefs:
+                    if col is self and self._parent_fits_rec is None:
+                        self._parent_fits_rec = weakref.ref(base)
+                        return
+
+            if getattr(base, 'base', None) is not None:
+                base = base.base
+            else:
+                break
+
+        self.__dict__['array'] = array
+
+    @array.deleter
+    def array(self):
+        try:
+            del self.__dict__['array']
+        except KeyError:
+            pass
+
+        self._parent_fits_rec = None
 
     @ColumnAttribute('TTYPE')
     def name(col, name):
