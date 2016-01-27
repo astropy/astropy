@@ -200,8 +200,8 @@ class NDArithmeticMixin(object):
 
     def _arithmetic(self, operation, operand,
                     propagate_uncertainties=True, handle_mask=np.logical_or,
-                    handle_meta=False, uncertainty_correlation=0,
-                    compare_wcs=False, **kwds):
+                    handle_meta='first_found', uncertainty_correlation=0,
+                    compare_wcs='first_found', **kwds):
         """
         Base method which calculates the result of the arithmetic operation.
 
