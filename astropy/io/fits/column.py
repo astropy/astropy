@@ -591,6 +591,7 @@ class Column(NotifierMixin):
         else:
             self._physical_values = False
 
+        self._parent_fits_rec = None
         self.array = array
 
     def __repr__(self):
@@ -620,6 +621,123 @@ class Column(NotifierMixin):
         """
 
         return hash((self.name.lower(), self.format))
+
+    @property
+    def array(self):
+        """
+        The Numpy `~numpy.ndarray` associated with this `Column`.
+
+        If the column was instantiated with an array passed to the ``array``
+        argument, this will return that array.  However, if the column is
+        later added to a table, such as via `BinTableHDU.from_columns` as
+        is typically the case, this attribute will be updated to reference
+        the associated field in the table, which may no longer be the same
+        array.
+        """
+
+        # Ideally the .array attribute never would have existed in the first
+        # place, or would have been internal-only.  This is a legacy of the
+        # older design from PyFITS that needs to have continued support, for
+        # now.
+
+        # One of the main problems with this design was that it created a
+        # reference cycle.  When the .array attribute was updated after
+        # creating a FITS_rec from the column (as explained in the docstring) a
+        # reference cycle was created.  This is because the code in BinTableHDU
+        # (and a few other places) does essentially the following:
+        #
+        # data._coldefs = columns  # The ColDefs object holding this Column
+        # for col in columns:
+        #     col.array = data.field(col.name)
+        #
+        # This way each columns .array attribute now points to the field in the
+        # table data.  It's actually a pretty confusing interface (since it
+        # replaces the array originally pointed to by .array), but it's the way
+        # things have been for a long, long time.
+        #
+        # However, this results, in *many* cases, in a reference cycle.
+        # Because the array returned by data.field(col.name), while sometimes
+        # an array that owns its own data, is usually like a slice of the
+        # original data.  It has the original FITS_rec as the array .base.
+        # This results in the following reference cycle (for the n-th column):
+        #
+        #    data -> data._coldefs -> data._coldefs[n] ->
+        #     data._coldefs[n].array -> data._coldefs[n].array.base -> data
+        #
+        # Because ndarray objects do not handled by Python's garbage collector
+        # the reference cycle cannot be broken.  Therefore the FITS_rec's
+        # refcount never goes to zero, its __del__ is never called, and its
+        # memory is never freed.  This didn't occur in *all* cases, but it did
+        # occur in many cases.
+        #
+        # To get around this, Column.array is no longer a simple attribute
+        # like it was previously.  Now each Column has a ._parent_fits_rec
+        # attribute which is a weakref to a FITS_rec object.  Code that
+        # previously assigned each col.array to field in a FITS_rec (as in
+        # the example a few paragraphs above) is still used, however now
+        # array.setter checks if a reference cycle will be created.  And if
+        # so, instead of saving directly to the Column's __dict__, it creates
+        # the ._prent_fits_rec weakref, and all lookups of the column's .array
+        # go through that instead.
+        #
+        # This alone does not fully solve the problem.  Because
+        # _parent_fits_rec is a weakref, if the user ever holds a reference to
+        # the Column, but deletes all references to the underlying FITS_rec,
+        # the .array attribute would suddenly start returning None instead of
+        # the array data.  This problem is resolved on FITS_rec's end.  See the
+        # note in the FITS_rec._coldefs property for the rest of the story.
+
+        # If the Columns's array is not a reference to an existing FITS_rec,
+        # then it is just stored in self.__dict__; otherwise check the
+        # _parent_fits_rec reference if it 's still available.
+        if 'array' in self.__dict__:
+            return self.__dict__['array']
+        elif self._parent_fits_rec is not None:
+            parent = self._parent_fits_rec()
+            if parent is not None:
+                return parent[self.name]
+        else:
+            return None
+
+    @array.setter
+    def array(self, array):
+        # The following looks over the bases of the given array to check if it
+        # has a ._coldefs attribute (i.e. is a FITS_rec) and that that _coldefs
+        # contains this Column itself, and would create a reference cycle if we
+        # stored the array directly in self.__dict__.
+        # In this case it instead sets up the _parent_fits_rec weakref to the
+        # underlying FITS_rec, so that array.getter can return arrays through
+        # self._parent_fits_rec().field(self.name), rather than storing a
+        # hard reference to the field like it used to.
+        base = array
+        while True:
+            if (hasattr(base, '_coldefs') and
+                    isinstance(base._coldefs, ColDefs)):
+                for col in base._coldefs:
+                    if col is self and self._parent_fits_rec is None:
+                        self._parent_fits_rec = weakref.ref(base)
+
+                        # Just in case the user already set .array to their own
+                        # array.
+                        if 'array' in self.__dict__:
+                            del self.__dict__['array']
+                        return
+
+            if getattr(base, 'base', None) is not None:
+                base = base.base
+            else:
+                break
+
+        self.__dict__['array'] = array
+
+    @array.deleter
+    def array(self):
+        try:
+            del self.__dict__['array']
+        except KeyError:
+            pass
+
+        self._parent_fits_rec = None
 
     @ColumnAttribute('TTYPE')
     def name(col, name):

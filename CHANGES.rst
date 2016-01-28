@@ -341,6 +341,10 @@ Bug Fixes
   - Fixed memory / reference leak that could occur when copying a ``FITS_rec``
     object (the ``.data`` for table HDUs). [#520]
 
+  - Fixed a memory / reference leak in ``FITS_rec`` that occurred in a wide
+    range of cases, especially after writing FITS tables to a file, but in
+    other cases as well. [#4539]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -1092,6 +1096,10 @@ Bug Fixes
 
   - Fixed memory / reference leak that could occur when copying a ``FITS_rec``
     object (the ``.data`` for table HDUs). [#520]
+
+  - Fixed a memory / reference leak in ``FITS_rec`` that occurred in a wide
+    range of cases, especially after writing FITS tables to a file, but in
+    other cases as well. [#4539]
 
 - ``astropy.io.misc``
 
