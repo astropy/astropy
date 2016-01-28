@@ -13,15 +13,27 @@ import sys
 from distutils.version import StrictVersion as V
 
 
-_VENDORED = [('six', '1.7.3')]
-_SEARCH_PATH = ['astropy.extern.bundled.', '']
+_VENDORED = {'six': '1.7.3'}
 
 
 class VendorImporter(object):
     """
     A PEP 302 meta path importer for finding optionally-vendored
-    or otherwise naturally-installed packages from __name__.
+    or otherwise naturally-installed packages from root_name.
     """
+
+    def __init__(self, root_name, vendored_packages={}, vendor_pkg=None):
+        self.root_name = root_name
+        self.vendored_packages = {}
+        self.vendor_pkg = vendor_pkg or root_name + 'extern.bundled'
+
+    @property
+    def search_path(self):
+        """
+        Search first the vendor package then as a natural package.
+        """
+        yield self.vendor_pkg + '.'
+        yield ''
 
     @staticmethod
     def _vendored_match(target):
@@ -35,16 +47,11 @@ class VendorImporter(object):
         """
 
         for v in _VENDORED:
-            if isinstance(v, tuple):
-                modname = v[0]
-            else:
-                modname = v
-
-            if target == modname or target.startswith(modname + '.'):
-                return v
+            if target == v or target.startswith(v + '.'):
+                return (v, _VENDORED[v])
 
     def find_module(self, fullname, path=None):
-        root, base, target = fullname.partition(__name__ + '.')
+        root, base, target = fullname.partition(self.root_name + '.')
         if root:
             return
 
@@ -54,19 +61,17 @@ class VendorImporter(object):
         return self
 
     def load_module(self, fullname):
-        root, base, target = fullname.partition(__name__ + '.')
-        vendored = self._vendored_match(target)
-        version = None
-        if isinstance(vendored, tuple):
-            vendored, version = vendored
+        root, base, target = fullname.partition(self.root_name + '.')
+        vendored, version = self._vendored_match(target)
 
-        for prefix in _SEARCH_PATH:
+        for prefix in self.search_path:
+            extant = prefix + target
             try:
-                __import__(prefix + target)
+                __import__(extant)
             except ImportError:
                 continue
 
-            mod = sys.modules[prefix + target]
+            mod = sys.modules[extant]
 
             if target == vendored and version:
                 # Only for top-level modules
@@ -90,12 +95,19 @@ class VendorImporter(object):
             )
 
         sys.modules[fullname] = mod
+        # mysterious hack:
+        # Remove the reference to the extant package/module
+        # on later Python versions to cause relative imports
+        # in the vendor package to resolve the same modules
+        # as those going through this importer.
+        if sys.version_info > (3, 3):
+            del sys.modules[extant]
         return mod
 
     @classmethod
-    def install(cls):
+    def install(cls, *args, **kwargs):
         if not any(isinstance(imp, cls) for imp in sys.meta_path):
-            sys.meta_path.append(cls())
+            sys.meta_path.append(cls(*args, **kwargs))
 
 
-VendorImporter.install()
+VendorImporter.install(__name__, _VENDORED)
