@@ -790,6 +790,28 @@ class Column(NotifierMixin):
         tmp.__dict__ = self.__dict__.copy()
         return tmp
 
+    if sys.version_info < (2, 7):
+        # This is only needed on Python 2.6, where it appears deepcopy has
+        # problems with weakrefs, and especially weak-keyed dicts.
+        def __deepcopy__(self, memo=None):
+            tmp = object.__new__(self.__class__)
+            tmp_dict = dict(self.__dict__)
+            array = self.array
+            listeners = None
+            if array is not None:
+                tmp_dict['array'] = array.copy()
+            tmp_dict['_parent_fits_rec'] = None
+
+            if '_listeners' in tmp_dict:
+                listners = tmp_dict['_listeners']
+                del tmp_dict['_listeners']
+
+            tmp.__dict__ = copy.deepcopy(tmp_dict, memo=memo)
+
+            if listeners is not None:
+                tmp.__dict__['_listeners'] = listeners
+            return tmp
+
     @staticmethod
     def _convert_format(format, cls):
         """The format argument to this class's initializer may come in many

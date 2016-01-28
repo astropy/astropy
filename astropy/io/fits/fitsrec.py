@@ -19,6 +19,7 @@ from ...extern.six import string_types
 from ...extern.six.moves import xrange
 from ...utils import lazyproperty
 from ...utils.compat import ignored
+from ...utils.compat.weakref import WeakSet
 from ...utils.exceptions import AstropyDeprecationWarning
 
 
@@ -195,7 +196,7 @@ class FITS_rec(np.recarray):
 
         super(FITS_rec, self).__setstate__(state)
 
-        self._col_weakrefs = weakref.WeakSet()
+        self._col_weakrefs = WeakSet()
 
         for attr, value in zip(meta, column_state):
             setattr(self, attr, value)
@@ -254,7 +255,7 @@ class FITS_rec(np.recarray):
 
             self._gap = getattr(obj, '_gap', 0)
             self._uint = getattr(obj, '_uint', False)
-            self._col_weakrefs = weakref.WeakSet()
+            self._col_weakrefs = WeakSet()
             self._coldefs = ColDefs(self)
 
             # Work around chicken-egg problem.  Column.array relies on the
@@ -274,7 +275,7 @@ class FITS_rec(np.recarray):
         self._converted = {}
         self._heapoffset = 0
         self._heapsize = 0
-        self._col_weakrefs = weakref.WeakSet()
+        self._col_weakrefs = WeakSet()
         self._coldefs = None
         self._gap = 0
         self._uint = False
@@ -582,8 +583,13 @@ class FITS_rec(np.recarray):
         """
 
         new = super(FITS_rec, self).copy(order=order)
+        new_dict = dict(self.__dict__)
+        del new_dict['_col_weakrefs']
+        new.__dict__ = copy.deepcopy(new_dict)
 
-        new.__dict__ = copy.deepcopy(self.__dict__)
+        # Re-fill _col_weakrefs
+        new.__dict__['_col_weakrefs'] = WeakSet()
+        new._coldefs = new._coldefs
         return new
 
     @property
