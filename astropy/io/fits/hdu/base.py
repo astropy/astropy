@@ -88,16 +88,17 @@ class _BaseHDUMeta(type):
                 def data(self):
                     # The deleter
                     if self._file is not None and self._data_loaded:
+                        data_refcount = sys.getrefcount(self.data)
+                        # Manually delete *now* so that FITS_rec.__del__
+                        # cleanup can happen if applicable
+                        del self.__dict__['data']
                         # Don't even do this unless the *only* reference to the
-                        # .data array is the one we're deleting by deleting
+                        # .data array was the one we're deleting by deleting
                         # this attribute; if any other references to the array
                         # are hanging around (perhaps the user ran ``data =
                         # hdu.data``) don't even consider this:
-                        if sys.getrefcount(self.data) == 2:
-                            # Add 1 to refcount since by the time this deleter
-                            # is called, the data array isn't actually deleted
-                            # *yet*, but will be shortly after
-                            self._file._maybe_close_mmap(refcount_delta=1)
+                        if data_refcount == 2:
+                            self._file._maybe_close_mmap()
 
                 setattr(cls, 'data', data_prop.deleter(data))
 
