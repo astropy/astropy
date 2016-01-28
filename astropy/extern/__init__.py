@@ -38,17 +38,16 @@ class VendorImporter(object):
     @staticmethod
     def _vendored_match(target):
         """
-        Check if the given module/package name is in the _VENDORED
-        module list, or is a subpackage of a module in the _VENDORED
-        list.
+        Check if the given module/package name is in the self.vendored_packages
+        dict, or is a subpackage of a module self.vendored_packages.
 
-        Returns the vendored module name and, if given, a required version
-        for that module.
+        Returns the vendored module name and, if given, a required version for
+        that module.
         """
 
-        for v in _VENDORED:
+        for v in self.vendored_packages:
             if target == v or target.startswith(v + '.'):
-                return (v, _VENDORED[v])
+                return (v, self.vendored_packages[v])
 
     def find_module(self, fullname, path=None):
         root, base, target = fullname.partition(self.root_name + '.')
