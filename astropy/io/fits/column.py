@@ -684,7 +684,7 @@ class Column(NotifierMixin):
         # the Column, but deletes all references to the underlying FITS_rec,
         # the .array attribute would suddenly start returning None instead of
         # the array data.  This problem is resolved on FITS_rec's end.  See the
-        # note in FITS_rec.__del__ for the rest of the story.
+        # note in the FITS_rec._coldefs property for the rest of the story.
 
         # If the Columns's array is not a reference to an existing FITS_rec,
         # then it is just stored in self.__dict__; otherwise check the
