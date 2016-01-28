@@ -113,8 +113,8 @@ def test_regression_4033():
     assert_quantity_allclose(alb_wdistaa.separation(deaa), 22.2862*u.deg, rtol=1e-3)
 
 
-@pytest.mark.skipif(str(not HAS_SCIPY))
-@pytest.mark.skipif(str(OLDER_SCIPY))
+@pytest.mark.skipif(not HAS_SCIPY, reason='No Scipy')
+@pytest.mark.skipif(OLDER_SCIPY, reason='Scipy too old')
 def test_regression_4082():
     """
     Issue: https://github.com/astropy/astropy/issues/4082
