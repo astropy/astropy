@@ -7,10 +7,10 @@ from __future__ import (absolute_import, division, print_function,
 import io
 import os
 import sys
+import subprocess
 
 from ...tests.helper import catch_warnings
 from ...extern import six
-from ...utils.compat import subprocess
 
 from ...utils.data import get_pkg_data_filename
 from .. import configuration
