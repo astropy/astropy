@@ -24,7 +24,7 @@ class VendorImporter(object):
 
     def __init__(self, root_name, vendored_packages={}, vendor_pkg=None):
         self.root_name = root_name
-        self.vendored_packages = {}
+        self.vendored_packages = vendored_packages
         self.vendor_pkg = vendor_pkg or root_name + 'extern.bundled'
 
     @property
@@ -35,8 +35,7 @@ class VendorImporter(object):
         yield self.vendor_pkg + '.'
         yield ''
 
-    @staticmethod
-    def _vendored_match(target):
+    def _vendored_match(self, target):
         """
         Check if the given module/package name is in the self.vendored_packages
         dict, or is a subpackage of a module self.vendored_packages.
