@@ -169,6 +169,9 @@ class TestMultipleHDU(object):
 
         self.hdus = HDUList([hdu1, hdu2, hdu3])
 
+    def teardown_class(self):
+        del self.hdus
+
     def setup_method(self, method):
         warnings.filterwarnings('always')
 

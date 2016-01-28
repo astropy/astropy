@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 from __future__ import division, with_statement, print_function
 
+import contextlib
 import copy
 import gc
 
@@ -2361,23 +2362,6 @@ class TestTableFunctions(FitsTestCase):
     def test_reference_leak(self):
         """Regression test for https://github.com/astropy/astropy/pull/520"""
 
-        # There are still other leads created by reference cycles in FITS_rec
-        # that are not fixed by the fix to #520.  In particular, a known
-        # leak is created by:
-        # self._coldefs [ColDefs] -> ColDefs.columns[n].array [ndarray] ->
-        # ndarray.base [FITS_rec] -> self
-        #
-        # In other words, the columns list in the coldefs attribute of the
-        # FITS_rec, contains Column objects whose .array attributes are updated
-        # to point to fields in the original FITS_rec, creating a cycle.  This
-        # is an outstanding issue with the original design of pyfits, and may
-        # or may not be fixed, depending on how soon FITS_rec is deprecated.
-        #
-        # In the meantime, this test ensures that no *new* FITS_rec objects are
-        # left behind in this one use case, which *is* fixed by #520.  There
-        # are other cases that still create leaks though.
-        existing_fitsrecs = len(objgraph.by_type('FITS_rec'))
-
         def readfile(filename):
             with fits.open(filename) as hdul:
                 data = hdul[1].data.copy()
@@ -2385,15 +2369,71 @@ class TestTableFunctions(FitsTestCase):
             for colname in data.dtype.names:
                 data[colname]
 
-        readfile(self.data('memtest.fits'))
+        with _refcounting('FITS_rec'):
+            readfile(self.data('memtest.fits'))
 
-        # Shouldn't matter since ndarray and subclasses don't participate in
-        # garbage collection, but just in case...
-        gc.collect()
+    @pytest.mark.skipif(str('not HAVE_OBJGRAPH'))
+    def test_reference_leak(self, tmpdir):
+        """
+        Regression test for https://github.com/astropy/astropy/pull/4539
 
-        # Just make sure there aren't more FITS_rec objects remaining in memory
-        # than we started with.
-        assert len(objgraph.by_type('FITS_rec')) <= existing_fitsrecs
+        This actually re-runs a small set of tests that I found, during
+        careful testing, exhibited the reference leaks fixed by #4539, but
+        now with reference counting around each test to ensure that the
+        leaks are fixed.
+        """
+
+        from .test_core import TestCore
+        from .test_connect import TestMultipleHDU
+
+        t1 = TestCore()
+        t1.setup()
+        try:
+            with _refcounting('FITS_rec'):
+                t1.test_add_del_columns2()
+        finally:
+            t1.teardown()
+        del t1
+
+        t2 = self.__class__()
+        for test_name in ['test_recarray_to_bintablehdu',
+                          'test_numpy_ndarray_to_bintablehdu',
+                          'test_new_table_from_recarray',
+                          'test_new_fitsrec']:
+            t2.setup()
+            try:
+                with _refcounting('FITS_rec'):
+                    getattr(t2, test_name)()
+            finally:
+                t2.teardown()
+        del t2
+
+        t3 = TestMultipleHDU()
+        t3.setup_class()
+        try:
+            with _refcounting('FITS_rec'):
+                t3.test_read(tmpdir)
+        finally:
+            t3.teardown_class()
+        del t3
+
+
+@contextlib.contextmanager
+def _refcounting(type_):
+    """
+    Perform the body of a with statement with reference counting for the
+    given type (given by class name)--raises an assertion error if there
+    are more unfreed objects of the given type than when we entered the
+    with statement.
+    """
+
+    gc.collect()
+    refcount = len(objgraph.by_type(type_))
+    yield refcount
+    gc.collect()
+    assert len(objgraph.by_type(type_)) <= refcount, \
+            "More {0!r} objects still in memory than before."
+
 
 
 class TestVLATables(FitsTestCase):

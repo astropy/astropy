@@ -19,6 +19,7 @@ from ...extern.six import string_types
 from ...extern.six.moves import xrange
 from ...utils import lazyproperty
 from ...utils.compat import ignored
+from ...utils.compat.weakref import WeakSet
 from ...utils.exceptions import AstropyDeprecationWarning
 
 
@@ -195,6 +196,8 @@ class FITS_rec(np.recarray):
 
         super(FITS_rec, self).__setstate__(state)
 
+        self._col_weakrefs = WeakSet()
+
         for attr, value in zip(meta, column_state):
             setattr(self, attr, value)
 
@@ -236,6 +239,7 @@ class FITS_rec(np.recarray):
             self._converted = obj._converted
             self._heapoffset = obj._heapoffset
             self._heapsize = obj._heapsize
+            self._col_weakrefs = obj._col_weakrefs
             self._coldefs = obj._coldefs
             self._nfields = obj._nfields
             self._gap = obj._gap
@@ -251,7 +255,16 @@ class FITS_rec(np.recarray):
 
             self._gap = getattr(obj, '_gap', 0)
             self._uint = getattr(obj, '_uint', False)
+            self._col_weakrefs = WeakSet()
             self._coldefs = ColDefs(self)
+
+            # Work around chicken-egg problem.  Column.array relies on the
+            # _coldefs attribute to set up ref back to parent FITS_rec; however
+            # in the above line the self._coldefs has not been assigned yet so
+            # this fails.  This patches that up...
+            for col in self._coldefs:
+                del col.array
+                col._parent_fits_rec = weakref.ref(self)
         else:
             self._init()
 
@@ -262,6 +275,7 @@ class FITS_rec(np.recarray):
         self._converted = {}
         self._heapoffset = 0
         self._heapsize = 0
+        self._col_weakrefs = WeakSet()
         self._coldefs = None
         self._gap = 0
         self._uint = False
@@ -569,8 +583,13 @@ class FITS_rec(np.recarray):
         """
 
         new = super(FITS_rec, self).copy(order=order)
+        new_dict = dict(self.__dict__)
+        del new_dict['_col_weakrefs']
+        new.__dict__ = copy.deepcopy(new_dict)
 
-        new.__dict__ = copy.deepcopy(self.__dict__)
+        # Re-fill _col_weakrefs
+        new.__dict__['_col_weakrefs'] = WeakSet()
+        new._coldefs = new._coldefs
         return new
 
     @property
@@ -582,6 +601,47 @@ class FITS_rec(np.recarray):
         """
 
         return self._coldefs
+
+    @property
+    def _coldefs(self):
+        # This used to be a normal internal attribute, but it was changed to a
+        # property as a quick and transparent way to work around the reference
+        # leak bug fixed in https://github.com/astropy/astropy/pull/4539
+        #
+        # See the long comment in the Column.array property for more details
+        # on this.  But in short, FITS_rec now has a ._col_weakrefs attribute
+        # which is a WeakSet of weakrefs to each Column in _coldefs.
+        #
+        # So whenever ._coldefs is set we also add each Column in the ColDefs
+        # to the weakrefs set.  This is an easy way to find out if a Column has
+        # any references to it external to the FITS_rec (i.e. a user assigned a
+        # column to a variable).  If the column is still in _col_weakrefs then
+        # there are other references to it external to this FITS_rec.  We use
+        # that information in __del__ to save off copies of the array data
+        # for those columns to their Column.array property before our memory
+        # is freed.
+        return self.__dict__.get('_coldefs')
+
+    @_coldefs.setter
+    def _coldefs(self, cols):
+        self.__dict__['_coldefs'] = cols
+        if isinstance(cols, ColDefs):
+            for col in cols.columns:
+                self._col_weakrefs.add(col)
+
+    @_coldefs.deleter
+    def _coldefs(self):
+        try:
+            del self.__dict__['_coldefs']
+        except KeyError as exc:
+            raise AttributeError(exc.args[0])
+
+    def __del__(self):
+        del self._coldefs
+        if self.dtype.fields is not None:
+            for col in self._col_weakrefs:
+                if col.array is not None:
+                    col.array = col.array.copy()
 
     @property
     def names(self):
