@@ -598,6 +598,22 @@ class FITS_rec(np.recarray):
 
     @property
     def _coldefs(self):
+        # This used to be a normal internal attribute, but it was changed to a
+        # property as a quick and transparent way to work around the reference
+        # leak bug fixed in https://github.com/astropy/astropy/pull/4539
+        #
+        # See the long comment in the Column.array property for more details
+        # on this.  But in short, FITS_rec now has a ._col_weakrefs attribute
+        # which is a WeakSet of weakrefs to each Column in _coldefs.
+        #
+        # So whenever ._coldefs is set we also add each Column in the ColDefs
+        # to the weakrefs set.  This is an easy way to find out if a Column has
+        # any references to it external to the FITS_rec (i.e. a user assigned a
+        # column to a variable).  If the column is still in _col_weakrefs then
+        # there are other references to it external to this FITS_rec.  We use
+        # that information in __del__ to save off copies of the array data
+        # for those columns to their Column.array property before our memory
+        # is freed.
         return self.__dict__.get('_coldefs')
 
     @_coldefs.setter
