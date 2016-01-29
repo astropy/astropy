@@ -2751,7 +2751,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     elif format == 'binary2':
                         self._write_binary(2, w, **kwargs)
 
-            if kwargs['version_1_2_or_later']:
+            if kwargs.get('version_1_2_or_later'):
                 for element in self._infos:
                     element.to_xml(w, **kwargs)
 
@@ -3014,9 +3014,7 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
 
     def __repr__(self):
         buff = io.StringIO()
-        XMLWriter(buff).element(
-            self._element_name,
-            attrib=w.object_attrs(self, self._attr_list))
+        Resource.to_xml(self, XMLWriter(buff))
         return buff.getvalue().strip()
 
     @property
