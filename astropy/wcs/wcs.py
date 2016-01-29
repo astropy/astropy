@@ -215,7 +215,7 @@ class WCS(WCSBase):
 
     Parameters
     ----------
-    header : astropy.io.fits header object, string, dict-like, or None, optional
+    header : astropy.io.fits header object, Primary HDU, Image HDU, string, dict-like, or None, optional
         If *header* is not provided or None, the object will be
         initialized to default values.
 

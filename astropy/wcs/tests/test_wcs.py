@@ -929,4 +929,3 @@ def test_passing_ImageHDU():
     wcs_hdu = wcs.WCS(hdulist[1])
     wcs_header = wcs.WCS(hdulist[1].header)
     assert wcs_hdu.wcs.compare(wcs_header.wcs)
->>>>>>> WCS objects can now be initialized with an ImageHDU or PrimaryHDU object. Fixes #4493.
