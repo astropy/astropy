@@ -12,29 +12,17 @@ import numpy as np
 from numpy.testing import assert_array_equal
 
 from ..nddata import NDData
-from ..nduncertainty import StdDevUncertainty
+from ..nduncertainty import NDUncertainty, StdDevUncertainty
 from ...tests.helper import pytest
 from ... import units as u
 from ...utils import NumpyRNGContext
 
 
-# TODO: Changed from NDUncertainty to StdDev because of splitting PRs
-class FakeUncertainty(StdDevUncertainty):
+class FakeUncertainty(NDUncertainty):
 
-    # TODO: Uncomment after remerging of PRs:
-    """
     @property
     def uncertainty_type(self):
         return 'fake'
-    """
-    # TODO: Delete this after remerging ( Shape check is deleted in new uncert)
-    @property
-    def parent_nddata(self):
-        return super(FakeUncertainty, self).parent_nddata
-
-    @parent_nddata.setter
-    def parent_nddata(self, value):
-        self._parent_nddata = value
 
     def _propagate_add(self, data, final_data):
         pass

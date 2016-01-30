@@ -32,6 +32,19 @@ New Features
 
 - ``astropy.nddata``
 
+  - Added ``UnknownUncertainty`` as ``NDUncertainty`` subclass which cannot
+    be used for error propagation. [#4272]
+
+  - ``StdDevUncertainty`` implements error propagation using it's ``unit`` and
+    a given ``correlation`` between the datasets. [#4272]
+
+  - ``NDArithmeticMixin`` allows for arithmetic operations with anything that
+    can be wrapped by the class. [#4272]
+
+  - ``NDArithmeticMixin`` provides methods for arithmetic operations where the
+    first operand is not an ``NDArithmeticMixin`` subclass via classmethods
+    called ``ic_add``, ``ic_subtract``, etc. [#4272]
+
 - ``astropy.stats``
 
   - Added ``jackknife`` resampling method. [#3708]
@@ -115,6 +128,25 @@ API changes
   - ``NDData``: ``Masked_Quantity`` objects are allowed as ``data``
     parameter. [#4270]
 
+  - ``NDUncertainty``: Added ``array``, ``unit`` and ``copy`` as optional
+    parameters. [#4272]
+
+  - ``NDUncertainty``: Public methods ``propagate_add``, etc. are replaced by
+    a general ``propagate`` method. [#4272]
+
+  - ``StdDevUncertainty``: added an optional parameter ``copy`` which is False
+    by default. [#4272]
+
+  - ``NDArithmeticMixin``: Added ``handle_mask``, ``handle_meta`` and
+    ``compare_wcs`` and ``uncertainty_correlation`` as optional parameters.
+    [#4272]
+
+  - ``NDArithmeticMixin``: The optional ``propagate_uncertainties`` parameter
+    can also be ``None``. [#4272]
+
+  - ``NDArithmeticMixin``: Does not compare the wcs for equality except if
+    ``compare_wcs`` is given as function that compares it. [#4272]
+
 - ``astropy.stats``
 
 - ``astropy.table``
@@ -192,6 +224,9 @@ Bug fixes
 
   - ``NDData`` now sets the ``parent_nddata`` of the ``uncertainty`` if the
     uncertainty is ``NDUncertainty``-like. [#4152, #4270]
+
+  - ``NDArithmeticMixin`` does provide correct resulting uncertainties for
+    ``divide`` and ``multiply`` if only one uncertainty was set. [#4152, #4272]
 
  - ``astropy.stats``
 
@@ -1011,7 +1046,7 @@ New Features
 
 - ``astropy.nddata``
 
- - ``NDArithmeticMixin`` check for matching WCS now works with 
+ - ``NDArithmeticMixin`` check for matching WCS now works with
     ``astropy.wcs.WCS`` objects [#4499]
 
 - ``astropy.stats``
