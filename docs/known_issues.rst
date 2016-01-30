@@ -321,6 +321,7 @@ Displaying long docstrings that contain Unicode characters may fail on
 some platforms in the IPython console (prior to IPython version
 0.13.2)::
 
+    .. highlight:: none
     >>> import astropy.units as u
 
     >>> u.Angstrom?
