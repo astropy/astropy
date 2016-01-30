@@ -13,7 +13,8 @@ are based on reference [1], which is also the basis for the R package
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import numpy as np
-
+from astropy.units import Quantity
+from astropy import units as u
 
 __all__ = ['circmean', 'circvar', 'circmoment', 'circcorrcoef', 'rayleightest',
            'vtest', 'vonmisesmle']
@@ -30,7 +31,9 @@ def _components(data, deg=False, w=None, p=1, phi=0.0, axis=None):
                          % (w.shape, data.shape,))
 
     if deg:
-        data = np.deg2rad(data)
+        data = Quantity(data, u.deg)
+    else:
+        data = Quantity(data, u.rad)
 
     C = np.sum(w * np.cos(p * (data - phi)), axis)/np.sum(w, axis)
     S = np.sum(w * np.sin(p * (data - phi)), axis)/np.sum(w, axis)
@@ -91,9 +94,9 @@ def circmean(data, deg=False, w=None, axis=None):
     >>> data_deg = np.array([51, 67, 40, 109, 31, 358])
     >>> data_rad = np.deg2rad(data_deg)
     >>> circmean(data_rad) # doctest: +FLOAT_CMP
-    0.84870441244501904
+    <Quantity 0.848704412445019 rad>
     >>> circmean(data_deg, deg=True) # doctest: +FLOAT_CMP
-    48.627180887229891
+    <Quantity 48.62718088722989 deg>
     >>> from astropy import units as u
     >>> circmean(data_deg*u.deg, deg=True) # doctest: +FLOAT_CMP
     <Quantity 48.62718088722989 deg>
@@ -146,9 +149,9 @@ def circvar(data, deg=False, w=None, axis=None):
     >>> data_deg = np.array([51, 67, 40, 109, 31, 358])
     >>> data_rad = np.deg2rad(data_deg)
     >>> circvar(data_rad) # doctest: +FLOAT_CMP
-    0.16356352748437508
+    <Quantity 0.16356352748437508>
     >>> circvar(data_deg, deg=True) # doctest: +FLOAT_CMP
-    0.16356352748437508
+    <Quantity 0.16356352748437508>
     >>> from astropy import units as u
     >>> circvar(data_rad*u.rad) # doctest: +FLOAT_CMP
     <Quantity 0.16356352748437508>
@@ -206,9 +209,9 @@ def circmoment(data, deg=False, w=None, p=1.0, centered=False, axis=None):
     >>> data_deg = np.array([51, 67, 40, 109, 31, 358])
     >>> data_rad = np.deg2rad(data_deg)
     >>> circmoment(data_rad, p=2) # doctest: +FLOAT_CMP
-    (1.5881210029361645, 0.48004283892950717)
+    (<Quantity 1.5881210029361645 rad>, <Quantity 0.48004283892950717>)
     >>> circmoment(data_deg,deg=True,p=2) # doctest: +FLOAT_CMP
-    (90.992630824325644, 0.48004283892950717)
+    (<Quantity 90.99263082432564 deg>, <Quantity 0.48004283892950717>)
     >>> from astropy import units as u
     >>> circmoment(data_rad*u.rad,p=2) # doctest: +FLOAT_CMP
     (<Quantity 1.5881210029361645 rad>, <Quantity 0.48004283892950717>)
@@ -276,9 +279,9 @@ def circcorrcoef(alpha, beta, deg=False, w_alpha=None, w_beta=None,
     >>> alpha_rad = np.deg2rad(alpha_deg)
     >>> beta_rad = np.deg2rad(beta_deg)
     >>> circcorrcoef(alpha_rad, beta_rad) # doctest: +FLOAT_CMP
-    0.27046488267488311
+    <Quantity 0.2704648826748831>
     >>> circcorrcoef(alpha_deg, beta_deg, deg=True) # doctest: +FLOAT_CMP
-    0.27046488267488311
+    <Quantity 0.2704648826748831>
     >>> from astropy import units as u
     >>> circcorrcoef(alpha_rad*u.rad, beta_rad*u.rad) # doctest: +FLOAT_CMP
     <Quantity 0.2704648826748831>
@@ -298,11 +301,14 @@ def circcorrcoef(alpha, beta, deg=False, w_alpha=None, w_beta=None,
         raise ValueError("alpha and beta must be arrays of the same size")
 
     if deg:
-        alpha = np.deg2rad(alpha)
-        beta = np.deg2rad(beta)
+        alpha = Quantity(alpha, u.deg)
+        beta = Quantity(beta, u.deg)
+    else:
+        alpha = Quantity(alpha, u.rad)
+        beta = Quantity(beta, u.rad)
 
-    mu_a = circmean(alpha, False, w_alpha, ax_alpha)
-    mu_b = circmean(beta, False, w_beta, ax_beta)
+    mu_a = circmean(alpha, deg, w_alpha, ax_alpha)
+    mu_b = circmean(beta, deg, w_beta, ax_beta)
 
     sin_a = np.sin(alpha - mu_a)
     sin_b = np.sin(beta - mu_b)
@@ -362,9 +368,9 @@ def rayleightest(data, deg=False, w=None, axis=None):
     ...                      3.2778354, 3.1713455])
     >>> data_deg = np.rad2deg(data_rad)
     >>> rayleightest(data_rad) # doctest: +FLOAT_CMP
-    2.726928722464598e-13
+    <Quantity 2.726928722464598e-13>
     >>> rayleightest(data_deg, deg=True) # doctest: +FLOAT_CMP
-    2.726928722464598e-13
+    <Quantity 2.726928722464598e-13>
     >>> from astropy import units as u
     >>> rayleightest(data_rad*u.rad) # doctest: +FLOAT_CMP
     <Quantity 2.726928722464598e-13>
@@ -429,17 +435,14 @@ def vtest(data, deg=False, w=None, mu=0.0, axis=None):
     --------
     >>> import numpy as np
     >>> from astropy.stats import vtest
+    >>> from astropy import units as u
     >>> data_rad = np.array([1.316075, 4.439193, 3.096231, 4.807068, 2.986021,
-    ...                      1.756324, 3.046718, 3.299150, 3.360557, 4.842499])
+    ...                      1.756324, 3.046718, 3.299150, 3.360557,
+    ...                      4.842499])*u.rad
     >>> data_deg = np.rad2deg(data_rad)
     >>> vtest(data_rad) # doctest: +FLOAT_CMP
-    0.98714203652055577
-    >>> vtest(data_deg, deg=True) # doctest +FLOAT_CMP
-    0.98714203652055577
-    >>> from astropy import units as u
-    >>> vtest(data_rad*u.rad) # doctest +FLOAT_CMP
     <Quantity 0.9871420365205558>
-    >>> vtest(data_deg*u.deg, deg=True) # doctest +FLOAT_CMP
+    >>> vtest(data_deg, deg=True) # doctest +FLOAT_CMP
     <Quantity 0.9871420365205558>
 
     References
@@ -461,10 +464,6 @@ def vtest(data, deg=False, w=None, mu=0.0, axis=None):
                          % (w.shape, data.shape,))
 
     n = np.size(data, axis=axis)
-
-    if deg:
-        data = np.deg2rad(data)
-        mu = np.deg2rad(mu)
 
     R0bar = np.sum(w*np.cos(data-mu), axis)/np.sum(w, axis)
     z = np.sqrt(2.0*n)*R0bar
@@ -521,9 +520,9 @@ def vonmisesmle(data, deg=False, axis=None):
     ...                      2.4672173, 2.8493644])
     >>> data_deg = np.rad2deg(data_rad)
     >>> vonmisesmle(data_rad) # doctest: +FLOAT_CMP
-    (3.0065143178219063, 1.474132390391715)
+    (<Quantity 3.0065143178219063 rad>, <Quantity 1.474132390391715>)
     >>> vonmisesmle(data_deg, deg=True) # doctest: +FLOAT_CMP
-    (172.26058145684905, 1.474132390391715)
+    (<Quantity 172.26058145684905 deg>, <Quantity 1.474132390391715>)
     >>> from astropy import units as u
     >>> vonmisesmle(data_rad*u.rad) # doctest: +FLOAT_CMP
     (<Quantity 3.0065143178219063 rad>, <Quantity 1.474132390391715>)
@@ -541,10 +540,13 @@ def vonmisesmle(data, deg=False, axis=None):
     mu = circmean(data, deg, axis=None)
 
     if deg:
-        data = np.deg2rad(data)
-        mu_rad = np.deg2rad(mu)
+        #data = np.deg2rad(data)
+        #mu_rad = np.deg2rad(mu)
+        data = Quantity(data, u.deg)
+        mu = Quantity(mu, u.deg)
     else:
-        mu_rad = mu
+        data = Quantity(data, u.rad)
+        mu = Quantity(mu, u.rad)
 
-    kappa = _A1inv(np.mean(np.cos(data - mu_rad), axis))
+    kappa = _A1inv(np.mean(np.cos(data - mu), axis))
     return mu, kappa

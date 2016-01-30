@@ -46,27 +46,18 @@ def test_circmean():
     # testing against R CircStats package
     # Ref[1], page 23
     # testing non-Quantity input
-    data_deg = np.array([51, 67, 40, 109, 31, 358])
+    data_deg = np.array([51, 67, 40, 109, 31, 358])*u.deg
     data_rad = np.deg2rad(data_deg)
     # testing input in radians
-    answer_rad = 0.8487044
-    assert_allclose(answer_rad, circmean(data_rad), atol=1e-4)
-    # testing input in degrees
-    answer_deg = np.rad2deg(answer_rad)
-    assert_allclose(answer_deg, circmean(data_deg, deg=True), atol=1e-4)
-    # testing with Quantity
-    # testing input in radians
-    data_rad = data_rad*u.rad
-    answer_rad = answer_rad*u.rad
+    answer_rad = 0.8487044*u.rad
     assert_equal(answer_rad, np.around(circmean(data_rad), 7))
     # testing input in degrees
-    data_deg = np.rad2deg(data_rad)
     answer_deg = np.around(np.rad2deg(answer_rad), 5)
     assert_equal(answer_deg, np.around(circmean(data_deg, deg=True), 5))
     # testing against scipy.stats.circmean function
     data = np.random.uniform(-np.pi, np.pi, size=(100, 5))
     answer = scipy.stats.circmean(data, np.pi, -np.pi)
-    assert_allclose(answer, circmean(data), atol=1e-6)
+    assert_equal(np.around(answer, 4)*u.rad, np.around(circmean(data), 4))
 
 
 def test_circvar():
@@ -97,18 +88,6 @@ def test_circmoment():
     data_rad = np.deg2rad(data_deg)
     # 2nd, 3rd, and 4th moments
     answer_rad = np.array([1.588121, 1.963919, 2.685556])
-    # testing input in radians
-    assert_allclose(answer_rad, (circmoment(data_rad, p=2)[0],
-                                 circmoment(data_rad, p=3)[0],
-                                 circmoment(data_rad, p=4)[0]), atol=1e-4)
-    # testing input in degrees
-    answer_deg = np.rad2deg(answer_rad)
-    assert_allclose(answer_deg, (circmoment(data_deg, deg=True, p=2)[0],
-                                 circmoment(data_deg, deg=True, p=3)[0],
-                                 circmoment(data_deg, deg=True, p=4)[0]),
-                    atol=1e-4)
-    # testing with Quantity
-    # testing angles
     # testing input in radians
     data_rad = data_rad*u.rad
     angles_answer_rad = answer_rad*u.rad
@@ -240,17 +219,11 @@ def test_vtest():
     # testing against R CircStats package
     # testing non-Quantity
     data_rad = np.array([1.316075, 4.439193, 3.096231, 4.807068, 2.986021,
-                         1.756324, 3.046718, 3.299150, 3.360557, 4.842499])
+                         1.756324, 3.046718, 3.299150, 3.360557,
+                         4.842499])*u.rad
     data_deg = np.rad2deg(data_rad)
     # answer was obtained through R CircStats function v0.test(x)
     answer = 0.987142
-    # testing input in radians
-    assert_allclose(answer, vtest(data_rad), atol=1e-5)
-    # testing input in degrees
-    assert_allclose(answer, vtest(data_deg, deg=True), atol=1e-5)
-    # testing with Quantity
-    data_rad = data_rad*u.rad
-    data_deg = data_deg*u.deg
     # testing input in radians
     assert_allclose(answer, vtest(data_rad), atol=1e-5)
     # testing input in degrees
@@ -262,18 +235,9 @@ def test_vonmisesmle():
     # testing non-Quantity
     data_rad = np.array([3.3699057, 4.0411630, 0.5014477, 2.6223103, 3.7336524,
                          1.8136389, 4.1566039, 2.7806317, 2.4672173,
-                         2.8493644])
+                         2.8493644])*u.rad
     data_deg = np.rad2deg(data_rad)
     # answer was obtained through R CircStats function vm.ml(x)
-    answer_rad = (3.006514, 1.474132)
-    answer_deg = (np.rad2deg(3.006514), 1.474132)
-    # testing input in radians
-    assert_allclose(answer_rad, vonmisesmle(data_rad), atol=1e-5)
-    # testing input in degrees
-    assert_allclose(answer_deg, vonmisesmle(data_deg, deg=True), atol=1e-5)
-    # testing with Quantity
-    data_rad = data_rad*u.rad
-    data_deg = data_deg*u.deg
     answer_rad = (3.006514*u.rad, 1.474132)
     answer_deg = (np.around(np.rad2deg(3.006514), 4)*u.deg, 1.474132)
     # testing input in radians
