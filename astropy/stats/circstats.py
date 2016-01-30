@@ -464,6 +464,13 @@ def vtest(data, deg=False, w=None, mu=0.0, axis=None):
                          % (w.shape, data.shape,))
 
     n = np.size(data, axis=axis)
+    
+    if deg:
+        data = Quantity(data, u.deg)
+        mu = Quantity(mu, u.deg)
+    else:
+        data = Quantity(data, u.rad)
+        mu = Quantity(mu, u.rad)
 
     R0bar = np.sum(w*np.cos(data-mu), axis)/np.sum(w, axis)
     z = np.sqrt(2.0*n)*R0bar
@@ -540,13 +547,9 @@ def vonmisesmle(data, deg=False, axis=None):
     mu = circmean(data, deg, axis=None)
 
     if deg:
-        #data = np.deg2rad(data)
-        #mu_rad = np.deg2rad(mu)
         data = Quantity(data, u.deg)
-        mu = Quantity(mu, u.deg)
     else:
         data = Quantity(data, u.rad)
-        mu = Quantity(mu, u.rad)
 
     kappa = _A1inv(np.mean(np.cos(data - mu), axis))
     return mu, kappa
