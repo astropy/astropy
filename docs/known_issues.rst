@@ -321,10 +321,10 @@ Displaying long docstrings that contain Unicode characters may fail on
 some platforms in the IPython console (prior to IPython version
 0.13.2)::
 
-    >>> import astropy.units as u
+    In [1]: import astropy.units as u
 
-    >>> u.Angstrom?
-    ERROR: UnicodeEncodeError: 'ascii' codec can't encode character u'\xe5' in
+    In [2]: u.Angstrom?
+    Out[2]: ERROR: UnicodeEncodeError: 'ascii' codec can't encode character u'\xe5' in
     position 184: ordinal not in range(128) [IPython.core.page]
 
 This can be worked around by changing the default encoding to ``utf-8``
