@@ -134,7 +134,7 @@ class TestQuantityTrigonometricFuncs(object):
         q3 = q1 / q2
         q4 = 1.
         at2 = np.arctan2(q3, q4)
-        assert_allclose(at2, np.arctan2(q3.to(1).value, q4))
+        assert_allclose(at2.value, np.arctan2(q3.to(1).value, q4))
 
     def test_arctan2_invalid(self):
         with pytest.raises(u.UnitsError) as exc:
@@ -211,35 +211,34 @@ class TestQuantityMathFuncs(object):
         assert np.all(np.multiply(np.arange(3.) * u.m, 2. / u.s) ==
                       np.arange(0, 6., 2.) * u.m / u.s)
 
-    @pytest.mark.parametrize('function', (np.divide, np.true_divide,
-                                          np.floor_divide))
+    @pytest.mark.parametrize('function', (np.divide, np.true_divide))
     def test_divide_scalar(self, function):
         assert function(4. * u.m, 2. * u.s) == function(4., 2.) * u.m / u.s
         assert function(4. * u.m, 2.) == function(4., 2.) * u.m
         assert function(4., 2. * u.s) == function(4., 2.) / u.s
 
-    @pytest.mark.parametrize('function', (np.divide, np.true_divide,
-                                          np.floor_divide))
+    @pytest.mark.parametrize('function', (np.divide, np.true_divide))
     def test_divide_array(self, function):
         assert np.all(function(np.arange(3.) * u.m, 2. * u.s) ==
                       function(np.arange(3.), 2.) * u.m / u.s)
 
-    def test_divmod(self):
+    def test_divmod_and_floor_divide(self):
         inch = u.Unit(0.0254 * u.m)
-        quotient, remainder = divmod(
-            np.array([1., 2., 3.]) * u.m,
-            np.array([3., 4., 5.]) * inch)
+        dividend = np.array([1., 2., 3.]) * u.m
+        divisor = np.array([3., 4., 5.]) * inch
+        quotient = dividend // divisor
         assert_allclose(quotient.value, [13., 19., 23.])
         assert quotient.unit == u.dimensionless_unscaled
+        quotient2, remainder = divmod(dividend, divisor)
+        assert np.all(quotient2 == quotient)
         assert_allclose(remainder.value, [0.0094, 0.0696, 0.079])
-        assert remainder.unit == u.m
+        assert remainder.unit == dividend.unit
 
-        quotient, remainder = divmod(
-            np.array([1., 2., 3.]) * u.m, u.km)
-        assert_allclose(quotient.value, [1., 2., 3.])
-        assert quotient.unit == u.m / u.km
-        assert remainder.value == 0.
-        assert remainder.unit == u.dimensionless_unscaled
+        with pytest.raises(TypeError):
+            divmod(dividend, u.km)
+
+        with pytest.raises(TypeError):
+            dividend // u.km
 
     def test_sqrt_scalar(self):
         assert np.sqrt(4. * u.m) == 2. * u.m ** 0.5
@@ -269,8 +268,11 @@ class TestQuantityMathFuncs(object):
 
     @pytest.mark.skipif("not hasattr(np, 'cbrt')")
     def test_cbrt_array(self):
-        assert np.all(np.cbrt(np.array([1., 8., 64.]) * u.m**3)
-                      == np.array([1., 2., 4.]) * u.m)
+        # Calculate cbrt on both sides since on Windows the cube root of 64
+        # does not exactly equal 4.  See 4388.
+        values = np.array([1., 8., 64.])
+        assert np.all(np.cbrt(values * u.m**3) ==
+                      np.cbrt(values) * u.m)
 
     def test_power_scalar(self):
         assert np.power(4. * u.m, 2.) == 16. * u.m ** 2
@@ -634,3 +636,25 @@ class TestInplaceUfuncs(object):
         s2 += 1. * u.cm
         assert np.all(s[::2] > s_copy[::2])
         assert np.all(s[1::2] == s_copy[1::2])
+
+    def test_ufunc_inplace_non_standard_dtype(self):
+        """Check that inplace operations check properly for casting.
+
+        First two tests that check that float32 is kept close #3976.
+        """
+        a1 = u.Quantity([1, 2, 3, 4], u.m, dtype=np.float32)
+        a1 *= np.float32(10)
+        assert a1.unit is u.m
+        assert a1.dtype == np.float32
+        a2 = u.Quantity([1, 2, 3, 4], u.m, dtype=np.float32)
+        a2 += (20.*u.km)
+        assert a2.unit is u.m
+        assert a2.dtype == np.float32
+        # For integer, in-place only works if no conversion is done.
+        a3 = u.Quantity([1, 2, 3, 4], u.m, dtype=np.int32)
+        a3 += u.Quantity(10, u.m, dtype=np.int64)
+        assert a3.unit is u.m
+        assert a3.dtype == np.int32
+        a4 = u.Quantity([1, 2, 3, 4], u.m, dtype=np.int32)
+        with pytest.raises(TypeError):
+            a4 += u.Quantity(10, u.mm, dtype=np.int64)

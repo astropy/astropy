@@ -55,13 +55,12 @@ int eraJdcalf(int ndp, double dj1, double dj2, int iymdf[4])
 **     P. Kenneth Seidelmann (ed), University Science Books (1992),
 **     Section 12.92 (p604).
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    int j, js;
    double denom, d1, d2, f1, f2, f;
-
 
 /* Denominator of fraction (e.g. 100 for 2 decimal places). */
    if ((ndp >= 0) && (ndp <= 9)) {
@@ -109,7 +108,7 @@ int eraJdcalf(int ndp, double dj1, double dj2, int iymdf[4])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

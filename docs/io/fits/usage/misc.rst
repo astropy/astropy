@@ -37,6 +37,6 @@ between two :class:`Header` objects like so::
     >>> diff.diff_keywords
     (['KEY_B'], ['KEY_C'])
     >>> diff.diff_keyword_values
-    defaultdict(<function <lambda> at ...>, {'KEY_A': [(1, 3)]})
+    defaultdict(..., {'KEY_A': [(1, 3)]})
 
 See the API documentation for details on the different differ classes.

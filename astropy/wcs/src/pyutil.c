@@ -11,6 +11,7 @@
 #include "astropy_wcs/docstrings.h"
 
 #include "wcsfix.h"
+#include "wcshdr.h"
 #include "wcsprintf.h"
 #include "wcsunits.h"
 
@@ -37,14 +38,14 @@ _PyArrayProxy_New(
       nd, (npy_intp*)dims,
       NULL,
       (void*)data,
-      NPY_C_CONTIGUOUS | flags,
+      NPY_ARRAY_C_CONTIGUOUS | flags,
       NULL);
 
   if (result == NULL) {
     return NULL;
   }
   Py_INCREF(self);
-  PyArray_BASE(result) = (PyObject*)self;
+  PyArray_SetBaseObject((PyArrayObject *)result, self);
   return result;
 }
 
@@ -56,7 +57,7 @@ PyArrayProxy_New(
     int typenum,
     const void* data) {
 
-  return _PyArrayProxy_New(self, nd, dims, typenum, data, NPY_WRITEABLE);
+  return _PyArrayProxy_New(self, nd, dims, typenum, data, NPY_ARRAY_WRITEABLE);
 }
 
 /*@null@*/ PyObject*
@@ -353,22 +354,14 @@ wcserr_fix_to_python_exc(const struct wcserr *err) {
 }
 
 void
-wcserr_units_to_python_exc(const struct wcserr *err) {
-  PyObject *exc;
-  if (err == NULL) {
-    PyErr_SetString(PyExc_RuntimeError, "NULL error object in wcslib");
+wcshdr_err_to_python_exc(int status) {
+  if (status > 0 && status != WCSHDRERR_PARSER) {
+    PyErr_SetString(PyExc_MemoryError, "Memory allocation error");
   } else {
-    if (err->status > 0 && err->status <= UNITSERR_UNSAFE_TRANS) {
-      exc = PyExc_ValueError;
-    } else {
-      exc = PyExc_RuntimeError;
-    }
-    /* This is technically not thread-safe -- make sure we have the GIL */
-    wcsprintf_set(NULL);
-    wcserr_prt(err, "");
-    PyErr_SetString(exc, wcsprintf_buf());
+    PyErr_SetString(PyExc_ValueError, "Internal error in wcslib header parser");
   }
 }
+
 
 /***************************************************************************
   Property helpers
@@ -497,6 +490,7 @@ set_int(
   }
 
   if ((unsigned long)value_int > 0x7fffffff) {
+    PyErr_SetString(PyExc_OverflowError, "integer value too large");
     return -1;
   }
 
@@ -544,7 +538,7 @@ set_double_array(
     return -1;
   }
 
-  value_array = (PyArrayObject*)PyArray_ContiguousFromAny(value, PyArray_DOUBLE,
+  value_array = (PyArrayObject*)PyArray_ContiguousFromAny(value, NPY_DOUBLE,
                                                           ndims, ndims);
   if (value_array == NULL) {
     return -1;
@@ -586,7 +580,7 @@ set_int_array(
     return -1;
   }
 
-  value_array = (PyArrayObject*)PyArray_ContiguousFromAny(value, PyArray_INT,
+  value_array = (PyArrayObject*)PyArray_ContiguousFromAny(value, NPY_INT,
                                                           ndims, ndims);
   if (value_array == NULL) {
     return -1;
@@ -674,7 +668,7 @@ set_str_list(
     input_len = PySequence_Size(str);
     if (input_len > maxlen) {
       PyErr_Format(
-          PyExc_TypeError,
+          PyExc_ValueError,
           "Each entry in '%s' must be less than %u characters",
           propname, (unsigned int)maxlen);
       Py_DECREF(str);

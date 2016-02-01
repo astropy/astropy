@@ -41,7 +41,7 @@ void eraBi00(double *dpsibi, double *depsbi, double *dra)
 **     2002.  The MHB2000 code itself was obtained on 9th September 2002
 **     from ftp://maia.usno.navy.mil/conv2000/chapter5/IAU2000A.
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -51,7 +51,6 @@ void eraBi00(double *dpsibi, double *depsbi, double *dra)
 
 /* The ICRS RA of the J2000.0 equinox (Chapront et al., 2002) */
    const double DRA0 = -0.0146 * ERFA_DAS2R;
-
 
 /* Return the results (which are fixed). */
    *dpsibi = DPBIAS;
@@ -64,7 +63,7 @@ void eraBi00(double *dpsibi, double *depsbi, double *dra)
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

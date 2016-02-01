@@ -47,7 +47,7 @@ int eraTdbtcb(double tdb1, double tdb2, double *tcb1, double *tcb2)
 **
 **     IAU 2006 Resolution B3
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -63,7 +63,6 @@ int eraTdbtcb(double tdb1, double tdb2, double *tcb1, double *tcb2)
    static const double elbb = ERFA_ELB/(1.0-ERFA_ELB);
 
    double d, f;
-
 
 /* Result, preserving date format but safeguarding precision. */
    if ( tdb1 > tdb2 ) {
@@ -85,7 +84,7 @@ int eraTdbtcb(double tdb1, double tdb2, double *tcb1, double *tcb2)
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

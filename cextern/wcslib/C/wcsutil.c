@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.24 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2014, Mark Calabretta
+  WCSLIB 5.10 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutil.c,v 4.24 2014/09/18 15:25:00 mcalabre Exp $
+  $Id: wcsutil.c,v 5.10 2015/10/09 08:19:15 mcalabre Exp $
 *===========================================================================*/
 
 #include <ctype.h>
@@ -33,6 +33,7 @@
 
 #include "wcsutil.h"
 #include "wcsmath.h"
+#include "dis.h"
 
 /*--------------------------------------------------------------------------*/
 
@@ -355,4 +356,28 @@ int wcsutil_str2double(const char *buf, const char *format, double *value)
 {
   char ctmp[72];
   return sscanf(wcsutil_dot_to_locale(buf, ctmp), "%lf", value) < 1;
+}
+
+/*--------------------------------------------------------------------------*/
+
+int wcsutil_dpkey_int(const struct dpkey *dp)
+
+{
+  if (dp->type != 0) {
+    return (int)dp->value.f;
+  }
+
+  return dp->value.i;
+}
+
+/*--------------------------------------------------------------------------*/
+
+double wcsutil_dpkey_double(const struct dpkey *dp)
+
+{
+  if (dp->type == 0) {
+    return (double)dp->value.i;
+  }
+
+  return dp->value.f;
 }

@@ -26,18 +26,32 @@ except ImportError:
     _CAN_RESIZE_TERMINAL = False
 
 try:
+    from IPython import get_ipython
+except ImportError:
+    pass
+try:
     get_ipython()
 except NameError:
     OutStream = None
     IPythonIOStream = None
 else:
+    from IPython import version_info
+    ipython_major_version = version_info[0]
+
     try:
-        from IPython.zmq.iostream import OutStream
+        from ipykernel.iostream import OutStream
     except ImportError:
         try:
-            from IPython.kernel.zmq.iostream import OutStream
+            from IPython.zmq.iostream import OutStream
         except ImportError:
-            OutStream = None
+            if ipython_major_version < 4:
+                try:
+                    from IPython.kernel.zmq.iostream import OutStream
+                except ImportError:
+                    OutStream = None
+            else:
+                OutStream = None
+
 
     if OutStream is not None:
         from IPython.utils import io as ipyio
@@ -57,12 +71,11 @@ else:
         # Just define a dummy class
         class PyreadlineConsole(object): pass
 
-from ..config import ConfigAlias
 from ..extern import six
 from ..extern.six.moves import range
 from .. import conf
+from .. import units as u
 
-from .decorators import deprecated
 from .misc import isiterable
 
 
@@ -71,18 +84,12 @@ __all__ = [
     'ProgressBar', 'Spinner', 'print_code_line', 'ProgressBarOrSpinner',
     'terminal_size']
 
-
-# Only use color by default on Windows if IPython is installed.
-USE_COLOR = ConfigAlias(
-    '0.4', 'USE_COLOR', 'use_color', 'astropy.utils.console', 'astropy')
-
-
 _DEFAULT_ENCODING = 'utf-8'
 
 
 def _get_stdout(stderr=False):
     """
-    This utility fucntion contains the logic to determine what streams to use
+    This utility function contains the logic to determine what streams to use
     by default for standard out/err.
 
     Typically this will just return `sys.stdout`, but it contains additional
@@ -431,7 +438,10 @@ def human_file_size(size):
     size : str
         A human-friendly representation of the size of the file
     """
-    suffixes = ' kMGTPEH'
+    if hasattr(size, 'unit'):
+        size = size.to(u.byte).value
+
+    suffixes = ' kMGTPEZY'
     if size == 0:
         num_scale = 0
     else:
@@ -443,7 +453,9 @@ def human_file_size(size):
     num_scale = int(math.pow(1000, num_scale))
     value = size / num_scale
     str_value = str(value)
-    if str_value[2] == '.':
+    if suffix == ' ':
+        str_value = str_value[:str_value.index('.')]
+    elif str_value[2] == '.':
         str_value = str_value[:2]
     else:
         str_value = str_value[:3]
@@ -465,13 +477,17 @@ class ProgressBar(six.Iterator):
         for item in ProgressBar(items):
             item.process()
     """
-    def __init__(self, total_or_items, file=None):
+    def __init__(self, total_or_items, ipython_widget=False, file=None):
         """
         Parameters
         ----------
         total_or_items : int or sequence
             If an int, the number of increments in the process being
             tracked.  If a sequence, the items to iterate over.
+
+        ipython_widget : bool, optional
+            If `True`, the progress bar will display as an IPython
+            notebook widget.
 
         file : writable file-like object, optional
             The file to write the progress bar to.  Defaults to
@@ -481,10 +497,19 @@ class ProgressBar(six.Iterator):
             completely silent.
         """
 
+        if ipython_widget:
+            # Import only if ipython_widget, i.e., widget in IPython
+            # notebook
+            if ipython_major_version < 4:
+                from IPython.html import widgets
+            else:
+                from ipywidgets import widgets
+            from IPython.display import display
+
         if file is None:
             file = _get_stdout()
 
-        if not isatty(file):
+        if not isatty(file) and not ipython_widget:
             self.update = self._silent_update
             self._silent = True
         else:
@@ -503,17 +528,19 @@ class ProgressBar(six.Iterator):
 
         self._file = file
         self._start_time = time.time()
-
-        self._should_handle_resize = (
-            _CAN_RESIZE_TERMINAL and self._file.isatty())
-        self._handle_resize()
-        if self._should_handle_resize:
-            signal.signal(signal.SIGWINCH, self._handle_resize)
-            self._signal_set = True
-        else:
-            self._signal_set = False
-
         self._human_total = human_file_size(self._total)
+        self._ipython_widget = ipython_widget
+
+
+        self._signal_set = False
+        if not ipython_widget:
+            self._should_handle_resize = (
+                _CAN_RESIZE_TERMINAL and self._file.isatty())
+            self._handle_resize()
+            if self._should_handle_resize:
+                signal.signal(signal.SIGWINCH, self._handle_resize)
+                self._signal_set = True
+
         self.update(0)
 
     def _handle_resize(self, signum=None, frame=None):
@@ -548,13 +575,26 @@ class ProgressBar(six.Iterator):
 
     def update(self, value=None):
         """
+        Update progress bar via the console or notebook accordingly.
+        """
+
+        # Update self.value
+        if value is None:
+            value = self._current_value + 1
+        self._current_value = value
+
+        # Choose the appropriate environment
+        if self._ipython_widget:
+            self._update_ipython_widget(value)
+        else:
+            self._update_console(value)
+
+    def _update_console(self, value=None):
+        """
         Update the progress bar to the given value (out of the total
         given to the constructor).
         """
-        if value is None:
-            value = self._current_value = self._current_value + 1
-        else:
-            self._current_value = value
+
         if self._total == 0:
             frac = 1.0
         else:
@@ -592,11 +632,40 @@ class ProgressBar(six.Iterator):
             write(human_time(t))
         self._file.flush()
 
+    def _update_ipython_widget(self, value=None):
+        """
+        Update the progress bar to the given value (out of a total
+        given to the constructor).
+
+        This method is for use in the IPython notebook 2+.
+        """
+
+        # Create and display an empty progress bar widget,
+        # if none exists.
+        if not hasattr(self, '_widget'):
+            # Import only if an IPython widget, i.e., widget in iPython NB
+            if ipython_major_version < 4:
+                from IPython.html import widgets
+                self._widget = widgets.FloatProgressWidget()
+            else:
+                from ipywidgets import widgets
+                self._widget = widgets.FloatProgress()
+            from IPython.display import display
+
+            display(self._widget)
+            self._widget.value = 0
+
+        # Calculate percent completion, and update progress bar
+        percent = (value/self._total) * 100
+        self._widget.value = percent
+        self._widget.description =' ({0:>6s}%)'.format('{0:.2f}'.format(percent))
+
+
     def _silent_update(self, value=None):
         pass
 
     @classmethod
-    def map(cls, function, items, multiprocess=False, file=None):
+    def map(cls, function, items, multiprocess=False, file=None, step=100):
         """
         Does a `map` operation while displaying a progress bar with
         percentage complete.
@@ -626,6 +695,13 @@ class ProgressBar(six.Iterator):
             `sys.stdout`.  If `file` is not a tty (as determined by
             calling its `isatty` member, if any), the scrollbar will
             be completely silent.
+
+        step : int, optional
+            Update the progress bar at least every *step* steps (default: 100).
+            If ``multiprocess`` is `True`, this will affect the size
+            of the chunks of ``items`` that are submitted as separate tasks
+            to the process pool.  A large step size may make the job
+            complete faster if ``items`` is very long.
         """
 
         results = []
@@ -634,17 +710,17 @@ class ProgressBar(six.Iterator):
             file = _get_stdout()
 
         with cls(len(items), file=file) as bar:
-            step_size = max(200, bar._bar_length)
-            steps = max(int(float(len(items)) / step_size), 1)
+            default_step = max(int(float(len(items)) / bar._bar_length), 1)
+            chunksize = min(default_step, step)
             if not multiprocess:
                 for i, item in enumerate(items):
                     results.append(function(item))
-                    if (i % steps) == 0:
+                    if (i % chunksize) == 0:
                         bar.update(i)
             else:
                 p = multiprocessing.Pool()
                 for i, result in enumerate(
-                    p.imap_unordered(function, items, steps)):
+                    p.imap_unordered(function, items, chunksize=chunksize)):
                     bar.update(i)
                     results.append(result)
                 p.close()
@@ -949,12 +1025,12 @@ class Getch(object):
 
 class _GetchUnix(object):
     def __init__(self):
-        import tty
-        import sys
+        import tty  # pylint: disable=W0611
+        import sys  # pylint: disable=W0611
 
         # import termios now or else you'll get the Unix
         # version on the Mac
-        import termios
+        import termios  # pylint: disable=W0611
 
     def __call__(self):
         import sys
@@ -972,7 +1048,7 @@ class _GetchUnix(object):
 
 class _GetchWindows(object):
     def __init__(self):
-        import msvcrt
+        import msvcrt  # pylint: disable=W0611
 
     def __call__(self):
         import msvcrt

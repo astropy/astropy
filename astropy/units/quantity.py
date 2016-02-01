@@ -10,22 +10,20 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 # Standard library
-import re
 import numbers
+from fractions import Fraction
 
 import numpy as np
-NUMPY_LT_1P7 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 7]
-NUMPY_LT_1P8 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 8]
-NUMPY_LT_1P9 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 9]
 
 # AstroPy
 from ..extern import six
 from .core import (Unit, dimensionless_unscaled, UnitBase, UnitsError,
                    get_current_unit_registry)
 from .format.latex import Latex
-from ..utils import lazyproperty
+from ..utils.compat import NUMPY_LT_1_7, NUMPY_LT_1_8, NUMPY_LT_1_9
 from ..utils.compat.misc import override__dir__
 from ..utils.misc import isiterable, InheritDocstrings
+from ..utils.data_info import ParentDtypeInfo
 from .utils import validate_power
 from .. import config as _config
 
@@ -47,7 +45,7 @@ class Conf(_config.ConfigNamespace):
     latex_array_threshold = _config.ConfigItem(100,
         'The maximum size an array Quantity can be before its LaTeX '
         'representation for IPython gets "summarized" (meaning only the first '
-        'and last few elements areshown with "..." between). Setting this to a '
+        'and last few elements are shown with "..." between). Setting this to a '
         'negative number means that the value will instead be whatever numpy '
         'gets from get_printoptions.')
 conf = Conf()
@@ -101,7 +99,12 @@ class QuantityIterator(object):
 
     def __getitem__(self, indx):
         out = self._dataiter.__getitem__(indx)
-        return self._quantity._new_view(out)
+        # For single elements, ndarray.flat.__getitem__ returns scalars; these
+        # need a new view as a Quantity.
+        if isinstance(out, type(self._quantity)):
+            return out
+        else:
+            return self._quantity._new_view(out)
 
     def __setitem__(self, index, value):
         self._dataiter[index] = self._quantity._to_own_unit(value)
@@ -111,14 +114,29 @@ class QuantityIterator(object):
         Return the next value, or raise StopIteration.
         """
         out = next(self._dataiter)
+        # ndarray.flat._dataiter returns scalars, so need a view as a Quantity.
         return self._quantity._new_view(out)
 
     next = __next__
 
 
+class QuantityInfo(ParentDtypeInfo):
+    """
+    Container for meta information like name, description, format.  This is
+    required when the object is used as a mixin column within a table, but can
+    be used as a general way to store meta information.
+    """
+    attrs_from_parent = set(['dtype', 'unit'])  # dtype and unit taken from parent
+    _supports_indexing = True
+
+    @staticmethod
+    def default_format(val):
+        return '{0.value:}'.format(val)
+
+
 @six.add_metaclass(InheritDocstrings)
 class Quantity(np.ndarray):
-    """ A `Quantity` represents a number with some associated unit.
+    """ A `~astropy.units.Quantity` represents a number with some associated unit.
 
     Parameters
     ----------
@@ -189,7 +207,8 @@ class Quantity(np.ndarray):
                 # the above already makes a copy (with float dtype)
                 copy = False
 
-            if not subok and type(value) is not cls:
+            if type(value) is not cls and not (subok and
+                                               isinstance(value, cls)):
                 value = value.view(cls)
 
             if dtype is None:
@@ -203,8 +222,9 @@ class Quantity(np.ndarray):
                             subok=True, ndmin=ndmin)
 
         # Maybe list/tuple of Quantity? short-circuit array for speed
-        if(not isinstance(value, np.ndarray) and isiterable(value) and
-           all(isinstance(v, Quantity) for v in value)):
+        if (not isinstance(value, np.ndarray) and isiterable(value) and
+            all(isinstance(v, Quantity) for v in value)):
+            # Convert all quantities to the same unit.
             if unit is None:
                 unit = value[0].unit
             value = [q.to(unit).value for q in value]
@@ -262,6 +282,13 @@ class Quantity(np.ndarray):
     def __array_finalize__(self, obj):
         self._unit = getattr(obj, '_unit', None)
 
+        # Copy info if the original had `info` defined.  Because of the way the
+        # DataInfo works, `'info' in obj.__dict__` is False until the
+        # `info` attribute is accessed or set.  Note that `obj` can be an
+        # ndarray which doesn't have a `__dict__`.
+        if 'info' in getattr(obj, '__dict__', ()):
+            self.info = obj.info
+
     def __array_prepare__(self, obj, context=None):
         # This method gets called by Numpy whenever a ufunc is called on the
         # array. The object passed in ``obj`` is an empty version of the
@@ -294,23 +321,23 @@ class Quantity(np.ndarray):
         # should be multiplied before being passed to the ufunc, as well as
         # the unit the output from the ufunc will have.
         if function in UFUNC_HELPERS:
-            scales, result_unit = UFUNC_HELPERS[function](function, *units)
+            converters, result_unit = UFUNC_HELPERS[function](function, *units)
         else:
             raise TypeError("Unknown ufunc {0}.  Please raise issue on "
                             "https://github.com/astropy/astropy"
                             .format(function.__name__))
 
-        if any(scale == 0. for scale in scales):
+        if any(converter is False for converter in converters):
             # for two-argument ufuncs with a quantity and a non-quantity,
             # the quantity normally needs to be dimensionless, *except*
             # if the non-quantity can have arbitrary unit, i.e., when it
             # is all zero, infinity or NaN.  In that case, the non-quantity
             # can just have the unit of the quantity
             # (this allows, e.g., `q > 0.` independent of unit)
-            maybe_arbitrary_arg = args[scales.index(0.)]
+            maybe_arbitrary_arg = args[converters.index(False)]
             try:
                 if _can_have_arbitrary_unit(maybe_arbitrary_arg):
-                    scales = [1., 1.]
+                    converters = [None, None]
                 else:
                     raise UnitsError("Can only apply '{0}' function to "
                                      "dimensionless quantities when other "
@@ -365,8 +392,9 @@ class Quantity(np.ndarray):
             # decomposed, which involves being scaled by a float, but since
             # the array is an integer the output then gets converted to an int
             # and truncated.
-            if(any(not np.can_cast(arg, obj.dtype) for arg in args) or
-               np.any(np.array(scales, dtype=obj.dtype) != np.array(scales))):
+            result_dtype = np.result_type(*((args + (float,))
+                                            if any(converters) else args))
+            if not np.can_cast(result_dtype, obj.dtype, casting='same_kind'):
                 raise TypeError("Arguments cannot be cast safely to inplace "
                                 "output with dtype={0}".format(self.dtype))
 
@@ -384,7 +412,7 @@ class Quantity(np.ndarray):
         # the issue is that we can't actually scale the inputs since that
         # would be changing the objects passed to the ufunc, which would not
         # be expected by the user.
-        if any(scale != 1. for scale in scales):
+        if any(converters):
 
             # If self is both output and input (which happens for in-place
             # operations), input will get overwritten with junk. To avoid
@@ -411,7 +439,7 @@ class Quantity(np.ndarray):
                     result._contiguous = self.copy()
 
             # ensure we remember the scales we need
-            result._scales = scales
+            result._converters = converters
 
         # unit output will get (setting _unit could prematurely change input
         # if obj is self, which happens for in-place operations; see above)
@@ -434,10 +462,10 @@ class Quantity(np.ndarray):
 
             # We now need to re-calculate quantities for which the input
             # needed to be scaled.
-            if hasattr(obj, '_scales'):
+            if hasattr(obj, '_converters'):
 
-                scales = obj._scales
-                del obj._scales
+                converters = obj._converters
+                del obj._converters
 
                 # For in-place operations, input will get overwritten with
                 # junk. To avoid that, we hid it in a new object in
@@ -458,19 +486,18 @@ class Quantity(np.ndarray):
 
                 # Set the inputs, rescaling as necessary
                 inputs = []
-                for arg, scale in zip(args, scales):
-                    if scale != 1.:
-                        inputs.append(arg.value * scale)
-                    else:  # for scale==1, input is not necessarily a Quantity
+                for arg, converter in zip(args, converters):
+                    if converter:
+                        inputs.append(converter(arg.value))
+                    else:  # with no conversion, input can be non-Quantity.
                         inputs.append(getattr(arg, 'value', arg))
 
                 # For output arrays that require scaling, we can reuse the
                 # output array to perform the scaling in place, as long as the
                 # array is not integral. Here, we set the obj_array to `None`
                 # when it can not be used to store the scaled result.
-                if(result_unit is not None and
-                   any(not np.can_cast(scaled_arg, obj_array.dtype)
-                       for scaled_arg in inputs)):
+                if not (result_unit is None or
+                        np.can_cast(np.result_type(*inputs), obj_array.dtype)):
                     obj_array = None
 
                 # Re-compute the output using the ufunc
@@ -530,7 +557,7 @@ class Quantity(np.ndarray):
 
         Parameters
         ----------
-        obj : ndarray
+        obj : ndarray or scalar
             The array to create a view of.  If obj is a numpy or python scalar,
             it will be converted to an array scalar.
 
@@ -603,9 +630,11 @@ class Quantity(np.ndarray):
         if equivalencies == []:
             equivalencies = self._equivalencies
         unit = Unit(unit)
-        new_val = np.asarray(
-            self.unit.to(unit, self.value, equivalencies=equivalencies))
+        new_val = self.unit.to(unit, self.view(np.ndarray),
+                               equivalencies=equivalencies)
         return self._new_view(new_val, unit)
+
+    info = QuantityInfo()
 
     @property
     def value(self):
@@ -657,7 +686,7 @@ class Quantity(np.ndarray):
         return self._new_view(self.value * cgs_unit.scale,
                               cgs_unit / cgs_unit.scale)
 
-    @lazyproperty
+    @property
     def isscalar(self):
         """
         True if the `value` of this quantity is a scalar, or False if it
@@ -669,7 +698,7 @@ class Quantity(np.ndarray):
             (e.g. ``np.array(1)``), while this is True for quantities,
             since quantities cannot represent true numpy scalars.
         """
-        return not isiterable(self.value)
+        return not self.shape
 
     # This flag controls whether convenience conversion members, such
     # as `q.m` equivalent to `q.to(u.m).value` are available.  This is
@@ -725,7 +754,7 @@ class Quantity(np.ndarray):
         else:
             return value
 
-    if not NUMPY_LT_1P9:
+    if not NUMPY_LT_1_9:
         # Equality (return False if units do not match) needs to be handled
         # explicitly for numpy >=1.9, since it no longer traps errors.
         def __eq__(self, other):
@@ -758,9 +787,12 @@ class Quantity(np.ndarray):
         """ Multiplication between `Quantity` objects and other objects."""
 
         if isinstance(other, (UnitBase, six.string_types)):
-            return self._new_view(self.copy(), other * self.unit)
+            try:
+                return self._new_view(self.copy(), other * self.unit)
+            except UnitsError:  # let other try to deal with it
+                return NotImplemented
 
-        return np.multiply(self, other)
+        return super(Quantity, self).__mul__(other)
 
     def __imul__(self, other):
         """In-place multiplication between `Quantity` objects and others."""
@@ -769,7 +801,7 @@ class Quantity(np.ndarray):
             self._unit = other * self.unit
             return self
 
-        return np.multiply(self, other, self)
+        return super(Quantity, self).__imul__(other)
 
     def __rmul__(self, other):
         """ Right Multiplication between `Quantity` objects and other
@@ -778,54 +810,60 @@ class Quantity(np.ndarray):
 
         return self.__mul__(other)
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         """ Division between `Quantity` objects and other objects."""
 
         if isinstance(other, (UnitBase, six.string_types)):
-            return self._new_view(self.copy(), self.unit / other)
+            try:
+                return self._new_view(self.copy(), self.unit / other)
+            except UnitsError:  # let other try to deal with it
+                return NotImplemented
 
-        return np.true_divide(self, other)
+        return super(Quantity, self).__truediv__(other)
 
-    def __idiv__(self, other):
+    def __itruediv__(self, other):
         """Inplace division between `Quantity` objects and other objects."""
 
         if isinstance(other, (UnitBase, six.string_types)):
             self._unit = self.unit / other
             return self
 
-        return np.true_divide(self, other, self)
+        return super(Quantity, self).__itruediv__(other)
 
-    def __rdiv__(self, other):
+    def __rtruediv__(self, other):
         """ Right Division between `Quantity` objects and other objects."""
 
         if isinstance(other, (UnitBase, six.string_types)):
             return self._new_view(1. / self.value, other / self.unit)
 
-        return np.divide(other, self)
+        return super(Quantity, self).__rtruediv__(other)
 
-    def __truediv__(self, other):
+    def __div__(self, other):
         """ Division between `Quantity` objects. """
-        return self.__div__(other)
+        return self.__truediv__(other)
 
-    def __itruediv__(self, other):
+    def __idiv__(self, other):
         """ Division between `Quantity` objects. """
-        return self.__idiv__(other)
+        return self.__itruediv__(other)
 
-    def __rtruediv__(self, other):
+    def __rdiv__(self, other):
         """ Division between `Quantity` objects. """
-        return self.__rdiv__(other)
+        return self.__rtruediv__(other)
 
     def __divmod__(self, other):
-        if isinstance(other, (six.string_types, UnitBase)):
-            return (self / other,
-                    self._new_view(np.array(0.), dimensionless_unscaled))
-
         other_value = self._to_own_unit(other)
-        result_tuple = super(Quantity, self.__class__).__divmod__(
-            self.view(np.ndarray), other_value)
+        result_tuple = divmod(self.value, other_value)
 
         return (self._new_view(result_tuple[0], dimensionless_unscaled),
                 self._new_view(result_tuple[1]))
+
+    def __pow__(self, other):
+        if isinstance(other, Fraction):
+            # Avoid getting object arrays by raising the value to a Fraction.
+            return self._new_view(self.value ** float(other),
+                                  self.unit ** other)
+
+        return super(Quantity, self).__pow__(other)
 
     def __pos__(self):
         """
@@ -852,18 +890,33 @@ class Quantity(np.ndarray):
         return quantity_iter()
 
     def __getitem__(self, key):
-        if self.isscalar:
-            raise TypeError(
-                "'{cls}' object with a scalar value does not support "
-                "indexing".format(cls=self.__class__.__name__))
-
-        out = super(Quantity, self).__getitem__(key)
-        return self._new_view(out)
+        try:
+            out = super(Quantity, self).__getitem__(key)
+        except IndexError:
+            # We want zero-dimensional Quantity objects to behave like scalars,
+            # so they should raise a TypeError rather than an IndexError.
+            if self.isscalar:
+                raise TypeError(
+                    "'{cls}' object with a scalar value does not support "
+                    "indexing".format(cls=self.__class__.__name__))
+            else:
+                raise
+        # For single elements, ndarray.__getitem__ returns scalars; these
+        # need a new view as a Quantity.
+        if type(out) is not type(self):
+            out = self._new_view(out)
+        return out
 
     def __setitem__(self, i, value):
+        # update indices
+        if not self.isscalar:
+            self.info.adjust_indices(i, value, len(self))
         self.view(np.ndarray).__setitem__(i, self._to_own_unit(value))
 
     def __setslice__(self, i, j, value):
+        # update indices
+        if not self.isscalar:
+            self.info.adjust_indices(slice(i, j), value, len(self))
         self.view(np.ndarray).__setslice__(i, j, self._to_own_unit(value))
 
     # __contains__ is OK
@@ -921,7 +974,7 @@ class Quantity(np.ndarray):
         if self.unit is None:
             unitstr = _UNIT_NOT_INITIALISED
         else:
-            unitstr = self.unit.to_string()
+            unitstr = str(self.unit)
 
         if unitstr:
             unitstr = ' ' + unitstr
@@ -955,7 +1008,7 @@ class Quantity(np.ndarray):
         lstr
             A LaTeX string with the contents of this Quantity
         """
-        if NUMPY_LT_1P7:
+        if NUMPY_LT_1_7:
             if self.isscalar:
                 latex_value = Latex.format_exponential_notation(self.value)
             else:
@@ -1074,8 +1127,7 @@ class Quantity(np.ndarray):
     # http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html#array-conversion
 
     def item(self, *args):
-        # item returns python built-ins, so use initializer, not _new_view
-        return self.__class__(super(Quantity, self).item(*args), self.unit)
+        return self._new_view(super(Quantity, self).item(*args))
 
     def tolist(self):
         raise NotImplementedError("cannot make a list of Quantities.  Get "
@@ -1083,7 +1135,8 @@ class Quantity(np.ndarray):
 
     def _to_own_unit(self, value, check_precision=True):
         try:
-            _value = value.to(self.unit).value
+            # for speed, "unit.to(...)" instead of "value.to(self.unit).value
+            _value = value.unit.to(self.unit, value.value)
         except AttributeError:
             try:
                 _value = dimensionless_unscaled.to(self.unit, value)
@@ -1219,8 +1272,12 @@ class Quantity(np.ndarray):
             if unit is None:
                 unit = self.unit
 
-            if not (isinstance(out, Quantity) and
-                    out.__quantity_subclass__(unit)[0] is type(out)):
+            if (isinstance(out, Quantity) and
+                out.__quantity_subclass__(unit)[0] is type(out)):
+                # Set out to ndarray view to prevent calling __array_prepare__.
+                kwargs['out'] = out.view(np.ndarray)
+
+            else:
                 ok_class =  (out.__quantity_subclass__(out, unit)[0]
                              if isinstance(out, Quantity) else Quantity)
                 raise TypeError("out cannot be assigned to a {0} instance; "
@@ -1258,7 +1315,7 @@ class Quantity(np.ndarray):
     def round(self, decimals=0, out=None):
         return self._wrap_function(np.round, decimals, out=out)
 
-    if NUMPY_LT_1P7:
+    if NUMPY_LT_1_7:
         # 'keepdims' was not yet available.
         def max(self, axis=None, out=None):
             return self._wrap_function(np.max, axis, out=out)
@@ -1330,7 +1387,7 @@ class Quantity(np.ndarray):
     def ediff1d(self, to_end=None, to_begin=None):
         return self._wrap_function(np.ediff1d, to_end, to_begin)
 
-    if NUMPY_LT_1P8:
+    if NUMPY_LT_1_8:
         def nansum(self, axis=None):
             return self._wrap_function(np.nansum, axis)
     else:
@@ -1350,7 +1407,7 @@ class Quantity(np.ndarray):
         obj : int, slice or sequence of ints
             Object that defines the index or indices before which ``values`` is
             inserted.
-        values : array_like
+        values : array-like
             Values to insert.  If the type of ``values`` is different
             from that of quantity, ``values`` is converted to the matching type.
             ``values`` should be shaped so that it can be broadcast appropriately

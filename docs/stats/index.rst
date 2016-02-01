@@ -25,6 +25,12 @@ See Also
     classes.  The functionality in `astropy.stats` is intended to supplement
     this, *not* replace it.
 
+* :func:`astropy.visualization.hist`
+    The :func:`~astropy.stats.histogram` routine and related functionality
+    defined here are used within the :func:`astropy.visualization.hist`
+    function. For a discussion of these methods for determining histogram
+    binnings, see :ref:`astropy-visualization-hist`.
+
 
 Reference/API
 =============

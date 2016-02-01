@@ -5,39 +5,33 @@ join():  Perform a database join of two numpy ndarrays.
 hstack(): Horizontally stack a list of numpy ndarrays.
 vstack(): Vertically stack a list of numpy ndarrays.
 
-Some code and inspriration taken from numpy.lib.recfunctions.join_by().
+Some code and inspiration taken from numpy.lib.recfunctions.join_by().
 Redistribution license restrictions apply.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
 from ..extern.six.moves import zip as izip
+from ..utils.decorators import deprecated
 
 from itertools import chain
 import collections
+from collections import OrderedDict, Counter
 
 import numpy as np
 import numpy.ma as ma
 
 from . import _np_utils
-from ..utils import OrderedDict
 
 __all__ = ['join', 'hstack', 'vstack', 'TableMergeError']
 
+DEPRECATION_MESSAGE = ('The %(func)s %(obj_type)s is deprecated and may '
+                       'be removed in a future version. '
+                       'Contact the Astropy developers if you need '
+                       'continued support for this function.')
 
 class TableMergeError(ValueError):
     pass
-
-
-def _counter(iterable):
-    """
-    Count instances of each unique value in ``iterable``.  Returns a dict
-    with the counts.  Would use collections.Counter but this isn't available in 2.6.
-    """
-    counts = collections.defaultdict(int)
-    for val in iterable:
-        counts[val] += 1
-    return counts
 
 
 def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name}',
@@ -83,7 +77,7 @@ def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name
             col_name_map[out_name][idx] = name
 
     # Check for duplicate output column names
-    col_name_count = _counter(col_name_list)
+    col_name_count = Counter(col_name_list)
     repeated_names = [name for name, count in six.iteritems(col_name_count) if count > 1]
     if repeated_names:
         raise TableMergeError('Merging column names resulted in duplicates: {0}.  '
@@ -163,6 +157,7 @@ def common_dtype(cols):
     return arr_common.dtype.str
 
 
+@deprecated('1.0', message=DEPRECATION_MESSAGE)
 def join(left, right, keys=None, join_type='inner',
          uniq_col_name='{col_name}_{table_name}',
          table_names=['1', '2'],
@@ -303,6 +298,7 @@ def _check_for_sequence_of_structured_arrays(arrays):
         raise ValueError('`arrays` arg must include at least one array')
 
 
+@deprecated('1.0', message=DEPRECATION_MESSAGE)
 def vstack(arrays, join_type='inner', col_name_map=None):
     """
     Stack structured arrays vertically (by rows)
@@ -412,6 +408,7 @@ def vstack(arrays, join_type='inner', col_name_map=None):
     return out
 
 
+@deprecated('1.0', message=DEPRECATION_MESSAGE)
 def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
            table_names=None, col_name_map=None):
     """
@@ -515,6 +512,7 @@ def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
     return out
 
 
+@deprecated('1.0', message=DEPRECATION_MESSAGE)
 def get_groups(table, keys):
     """
     Get groups for numpy structured array on specified keys.
@@ -542,7 +540,7 @@ def get_groups(table, keys):
     table = table.ravel()
     len_table = len(table)
 
-    # oined array dtype as a list of descr (name, type_str, shape) tuples
+    # joined array dtype as a list of descr (name, type_str, shape) tuples
     col_name_map = get_col_name_map([table], keys)
     out_descrs = get_descrs([table], col_name_map)
 

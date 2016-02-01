@@ -13,15 +13,12 @@ from __future__ import (absolute_import, division, print_function,
 import numbers
 import io
 import re
-import warnings
+from fractions import Fraction
 
 import numpy as np
 from numpy import finfo
 
 from ..extern import six
-from ..utils.compat.fractions import Fraction
-from ..utils.exceptions import AstropyDeprecationWarning
-
 
 _float_finfo = finfo(float)
 # take float here to ensure comparison with another float is fast
@@ -42,6 +39,48 @@ def _get_first_sentence(s):
     return s.replace('\n', ' ')
 
 
+def _iter_unit_summary(namespace):
+    """
+    Generates the ``(unit, doc, represents, aliases, prefixes)``
+    tuple used to format the unit summary docs in `generate_unit_summary`.
+    """
+
+    from . import core
+
+    # Get all of the units, and keep track of which ones have SI
+    # prefixes
+    units = []
+    has_prefixes = set()
+    for key, val in six.iteritems(namespace):
+        # Skip non-unit items
+        if not isinstance(val, core.UnitBase):
+            continue
+
+        # Skip aliases
+        if key != val.name:
+            continue
+
+        if isinstance(val, core.PrefixUnit):
+            # This will return the root unit that is scaled by the prefix
+            # attached to it
+            has_prefixes.add(val._represents.bases[0].name)
+        else:
+            units.append(val)
+
+    # Sort alphabetically, case insensitive
+    units.sort(key=lambda x: x.name.lower())
+
+    for unit in units:
+        doc = _get_first_sentence(unit.__doc__).strip()
+        represents = ''
+        if isinstance(unit, core.Unit):
+            represents = ":math:`{0}`".format(
+                unit._represents.to_string('latex')[1:-1])
+        aliases = ', '.join('``{0}``'.format(x) for x in unit.aliases)
+
+        yield (unit, doc, represents, aliases, unit.name in has_prefixes)
+
+
 def generate_unit_summary(namespace):
     """
     Generates a summary of units from a given namespace.  This is used
@@ -59,34 +98,6 @@ def generate_unit_summary(namespace):
         A docstring containing a summary table of the units.
     """
 
-    from . import core
-
-    # Get all of the units, and keep track of which ones have SI
-    # prefixes
-    units = []
-    has_prefixes = set()
-    for key, val in list(six.iteritems(namespace)):
-        # Skip non-unit items
-        if not isinstance(val, core.UnitBase):
-            continue
-
-        # Skip aliases
-        if key != val.name:
-            continue
-
-        if isinstance(val, core.PrefixUnit):
-            decomposed = val.decompose()
-            if len(decomposed.bases):
-                has_prefixes.add(val.decompose().bases[0].name)
-            else:
-                has_prefixes.add('dimensionless')
-
-        else:
-            units.append(val)
-
-    # Sort alphabetically, case insensitive
-    units.sort(key=lambda x: x.name.lower())
-
     docstring = io.StringIO()
 
     docstring.write("""
@@ -101,24 +112,14 @@ def generate_unit_summary(namespace):
      - SI Prefixes
 """)
 
-    for unit in units:
-        if unit.name in has_prefixes:
-            unit_has_prefixes = 'Y'
-        else:
-            unit_has_prefixes = 'N'
-        doc = _get_first_sentence(unit.__doc__).strip()
-        represents = ''
-        if isinstance(unit, core.Unit):
-            represents = ":math:`{0}`".format(
-                unit._represents.to_string('latex')[1:-1])
-        aliases = ', '.join('``{0}``'.format(x) for x in unit.aliases)
+    for unit_summary in _iter_unit_summary(namespace):
         docstring.write("""
    * - ``{0}``
      - {1}
      - {2}
      - {3}
-     - {4}
-""".format(unit, doc, represents, aliases, unit_has_prefixes))
+     - {4!s:.1}
+""".format(*unit_summary))
 
     return docstring.getvalue()
 
@@ -152,30 +153,20 @@ def sanitize_scale(scale):
 
 
 def validate_power(p, support_tuples=False):
-    """
-    Handles the conversion of a power to a floating point or a
-    rational number.
+    """Convert a power to a floating point value, an integer, or a Fraction.
+
+    If a fractional power can be represented exactly as a floating point
+    number, convert it to a float, to make the math much faster; otherwise,
+    retain it as a `fractions.Fraction` object to avoid losing precision.
+    Conversely, if the value is indistinguishable from a rational number with a
+    low-numbered denominator, convert to a Fraction object.
 
     Parameters
     ----------
-    support_tuples : bool, optional
-        If `True`, treat 2-tuples as `Fraction` objects.  This
-        behavior is deprecated and will be removed in astropy 0.5.
+    p : float, int, Rational, Fraction
+        Power to be converted
     """
-    # For convenience, treat tuples as Fractions
-    if support_tuples and isinstance(p, tuple) and len(p) == 2:
-        # Deprecated in 0.3.1
-        warnings.warn(
-            "Using a tuple as a fractional power is deprecated and may be "
-            "removed in a future version.  Use Fraction(n, d) instead.",
-            AstropyDeprecationWarning)
-        p = Fraction(p[0], p[1])
-
     if isinstance(p, (numbers.Rational, Fraction)):
-        # If the fractional power can be represented *exactly* as a
-        # floating point number, we convert it to a float, to make the
-        # math much faster, otherwise, we retain it as a
-        # `fractions.Fraction` object to avoid losing precision.
         denom = p.denominator
         if denom == 1:
             p = int(p.numerator)
@@ -184,29 +175,28 @@ def validate_power(p, support_tuples=False):
         elif (denom & (denom - 1)) == 0:
             p = float(p)
     else:
-        if not np.isscalar(p):
-            raise ValueError(
-                "Quantities and Units may only be raised to a scalar power")
+        try:
+            p = float(p)
+        except:
+            if not np.isscalar(p):
+                raise ValueError("Quantities and Units may only be raised "
+                                 "to a scalar power")
+            else:
+                raise
 
-        p = float(p)
-
-        # If the value is indistinguishable from a rational number
-        # with a low-numbered denominator, convert to a Fraction
-        # object.  We don't want to convert for denominators that are
-        # a power of 2, since those can be perfectly represented, and
-        # subsequent operations are much faster if they are retained
-        # as floats.  Nor do we need to test values that are divisors
-        # of a higher number, such as 3, since it is already addressed
-        # by 6.
-
-        # First check for denominator of 1
         if (p % 1.0) == 0.0:
+            # Denominators of 1 can just be integers.
             p = int(p)
-        # Leave alone if the denominator is exactly 2, 4 or 8
         elif (p * 8.0) % 1.0 == 0.0:
+            # Leave alone if the denominator is exactly 2, 4 or 8, since this
+            # can be perfectly represented as a float, which means subsequent
+            # operations are much faster.
             pass
         else:
-            for i in [10, 9, 7, 6]:
+            # Convert floats indistinguisable from a rational to Fraction.
+            # Here, we do not need to test values that are divisors of a higher
+            # number, such as 3, since it is already addressed by 6.
+            for i in (10, 9, 7, 6):
                 scaled = p * float(i)
                 if((scaled + 4. * _float_finfo.eps) % 1.0 <
                    8. * _float_finfo.eps):
@@ -216,12 +206,11 @@ def validate_power(p, support_tuples=False):
     return p
 
 
-def add_powers(a, b):
+def resolve_fractions(a, b):
     """
-    Add two powers together, where either may be a floating point
-    number or a Fraction.  If either is Fraction, they are both
-    converted to Fractions so that rational, rather than
-    floating-point, arithmetic is used.
+    If either input is a Fraction, convert the other to a Fraction.
+    This ensures that any operation involving a Fraction will use
+    rational arithmetic and preserve precision.
     """
     a_is_fraction = isinstance(a, Fraction)
     b_is_fraction = isinstance(b, Fraction)
@@ -229,4 +218,4 @@ def add_powers(a, b):
         b = Fraction(b)
     elif not a_is_fraction and b_is_fraction:
         a = Fraction(a)
-    return a + b
+    return a, b

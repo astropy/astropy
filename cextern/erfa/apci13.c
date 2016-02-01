@@ -110,12 +110,11 @@ void eraApci13(double date1, double date2,
 **     eraApci      astrometry parameters, ICRS-CIRS
 **     eraEors      equation of the origins, given NPB matrix and s
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double ehpv[2][3], ebpv[2][3], r[3][3], x, y, s;
-
 
 /* Earth barycentric & heliocentric position/velocity (au, au/d). */
    (void) eraEpv00(date1, date2, ehpv, ebpv);
@@ -141,7 +140,7 @@ void eraApci13(double date1, double date2,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

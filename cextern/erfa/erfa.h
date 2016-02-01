@@ -1,4 +1,4 @@
-// This copy of ERFA is bundled with Astropy, based on ERFA v1.1.1
+// This copy of ERFA is bundled with Astropy, based on ERFA v1.2.0
 
 #ifndef ERFAHDEF
 #define ERFAHDEF
@@ -10,7 +10,7 @@
 **
 **  Prototype function declarations for ERFA library.
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 
@@ -131,6 +131,8 @@ int eraPmsafe(double ra1, double dec1, double pmr1, double pmd1,
               double ep1a, double ep1b, double ep2a, double ep2b,
               double *ra2, double *dec2, double *pmr2, double *pmd2,
               double *px2, double *rv2);
+void eraPvtob(double elong, double phi, double height, double xp,
+              double yp, double sp, double theta, double pv[2][3]);
 void eraRefco(double phpa, double tc, double rh, double wl,
               double *refa, double *refb);
 
@@ -279,10 +281,6 @@ double eraGst06a(double uta, double utb, double tta, double ttb);
 double eraGst94(double uta, double utb);
 
 /* Astronomy/SpaceMotion */
-int eraPmsafe(double ra1, double dec1, double pmr1, double pmd1,
-              double px1, double rv1, double ep1a, double ep1b,
-              double ep2a, double ep2b, double *ra2, double *dec2,
-              double *pmr2, double *pmd2, double *px2, double *rv2);
 int eraPvstar(double pv[2][3], double *ra, double *dec,
               double *pmr, double *pmd, double *px, double *rv);
 int eraStarpv(double ra, double dec,
@@ -309,6 +307,10 @@ int eraStarpm(double ra1, double dec1,
               double *ra2, double *dec2,
               double *pmr2, double *pmd2, double *px2, double *rv2);
 
+/* Astronomy/GalacticCoordinates */
+void eraG2icrs ( double dl, double db, double *dr, double *dd );
+void eraIcrs2g ( double dr, double dd, double *dl, double *db );
+
 /* Astronomy/GeodeticGeocentric */
 int eraEform(int n, double *a, double *f);
 int eraGc2gd(int n, double xyz[3],
@@ -319,8 +321,6 @@ int eraGd2gc(int n, double elong, double phi, double height,
              double xyz[3]);
 int eraGd2gce(double a, double f,
               double elong, double phi, double height, double xyz[3]);
-void eraPvtob(double elong, double phi, double height, double xp,
-              double yp, double sp, double theta, double pv[2][3]);
 
 /* Astronomy/Timescales */
 int eraD2dtf(const char *scale, int ndp, double d1, double d2,
@@ -444,7 +444,7 @@ void eraSxpv(double s, double pv[2][3], double spv[2][3]);
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

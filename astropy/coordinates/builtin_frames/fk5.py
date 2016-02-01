@@ -9,12 +9,15 @@ from ..baseframe import (BaseCoordinateFrame, frame_transform_graph,
 from ..transformations import DynamicMatrixTransform
 from .. import earth_orientation as earth
 
-from .consts import EQUINOX_J2000
+from .utils import EQUINOX_J2000
 
 
 class FK5(BaseCoordinateFrame):
     """
     A coordinate or frame in the FK5 system.
+
+    Note that this is a barycentric version of FK5 - that is, the origin for
+    this frame is the Solar System Barycenter, *not* the Earth geocenter.
 
     Parameters
     ----------

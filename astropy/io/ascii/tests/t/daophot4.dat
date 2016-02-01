@@ -1,0 +1,113 @@
+#K IRAF       = NOAO/IRAFV2.14.1        version    %-23s     
+#K USER       = hannes                  name       %-23s     
+#K HOST       = prometheus              computer   %-23s     
+#K DATE       = 2015-03-11              yyyy-mm-dd %-23s     
+#K TIME       = 15:26:26                hh:mm:ss   %-23s     
+#K PACKAGE    = apphot                  name       %-23s     
+#K TASK       = phot                    name       %-23s     
+#
+#K SCALE      = 1.                      units      %-23.7g   
+#K FWHMPSF    = 4.119713                scaleunit  %-23.7g   
+#K EMISSION   = yes                     switch     %-23b     
+#K DATAMIN    = INDEF                   counts     %-23.7g   
+#K DATAMAX    = 65536.                  counts     %-23.7g   
+#K EXPOSURE   = exposure                keyword    %-23s     
+#K AIRMASS    = airmass                 keyword    %-23s     
+#K FILTER     = filter                  keyword    %-23s     
+#K OBSTIME    = utc-obs                 keyword    %-23s     
+#
+#K NOISE      = poisson                 model      %-23s     
+#K SIGMA      = 41.66582                counts     %-23.7g   
+#K GAIN       = ""                      keyword    %-23s     
+#K EPADU      = 1.                      e-/adu     %-23.7g   
+#K CCDREAD    = ""                      keyword    %-23s     
+#K READNOISE  = 7.49                    e-         %-23.7g   
+#
+#K CALGORITHM = centroid                algorithm  %-23s     
+#K CBOXWIDTH  = 12.                     scaleunit  %-23.7g   
+#K CTHRESHOLD = 3.                      sigma      %-23.7g   
+#K MINSNRATIO = 1.                      number     %-23.7g   
+#K CMAXITER   = 10                      number     %-23d     
+#K MAXSHIFT   = 5.                      scaleunit  %-23.7g   
+#K CLEAN      = no                      switch     %-23b     
+#K RCLEAN     = 1.                      scaleunit  %-23.7g   
+#K RCLIP      = 2.                      scaleunit  %-23.7g   
+#K KCLEAN     = 3.                      sigma      %-23.7g   
+#
+#K SALGORITHM = centroid                algorithm  %-23s     
+#K ANNULUS    = 7.17957                 scaleunit  %-23.7g   
+#K DANNULUS   = 7.82043                 scaleunit  %-23.7g   
+#K SKYVALUE   = 0.                      counts     %-23.7g   
+#K KHIST      = 3.                      sigma      %-23.7g   
+#K BINSIZE    = 0.1                     sigma      %-23.7g   
+#K SMOOTH     = no                      switch     %-23b     
+#K SMAXITER   = 10                      number     %-23d     
+#K SLOCLIP    = 3.                      percent    %-23.7g   
+#K SHICLIP    = 3.                      percent    %-23.7g   
+#K SNREJECT   = 50                      number     %-23d     
+#K SLOREJECT  = 3.                      sigma      %-23.7g   
+#K SHIREJECT  = 3.                      sigma      %-23.7g   
+#K RGROW      = 0.                      scaleunit  %-23.7g   
+#
+#K WEIGHTING  = constant                model      %-23s     
+#K APERTURES  = 1.0, 2.0, 3.0, 4.0, 5.0 scaleunit  %-23s     
+#K ZMAG       = 0.                      zeropoint  %-23.7g   
+#
+#N IMAGE               XINIT     YINIT     ID    COORDS                 LID    \
+#U imagename           pixels    pixels    ##    filename               ##     \
+#F %-23s               %-10.3f   %-10.3f   %-6d  %-23s                  %-6d    
+#
+#N XCENTER    YCENTER    XSHIFT  YSHIFT  XERR    YERR            CIER CERROR   \
+#U pixels     pixels     pixels  pixels  pixels  pixels          ##   cerrors  \
+#F %-14.3f    %-11.3f    %-8.3f  %-8.3f  %-8.3f  %-15.3f         %-5d %-9s      
+#
+#N MSKY           STDEV          SSKEW          NSKY   NSREJ     SIER SERROR   \
+#U counts         counts         counts         npix   npix      ##   serrors  \
+#F %-18.7g        %-15.7g        %-15.7g        %-7d   %-9d      %-5d %-9s      
+#
+#N ITIME          XAIRMASS       IFILTER                OTIME                  \
+#U timeunit       number         name                   timeunit               \
+#F %-18.7g        %-15.7g        %-23s                  %-23s                   
+#
+#N RAPERT   SUM           AREA       FLUX          MAG    MERR   PIER PERROR   \
+#U scale    counts        pixels     counts        mag    mag    ##   perrors  \
+#F %-12.2f  %-14.7g       %-11.7g    %-14.7g       %-7.3f %-6.3f %-5d %-9s      
+#
+20150224.010.bff.fits[*106.579   106.934   1     20150224.010.bff.coo   1      \
+   106.559    108.018    -0.020  1.084   0.101   0.074          0    NoError   \
+   2274.581       35.8673        11.2252        507    34       0    NoError   \
+   15.            INDEF          WL                     18.25805367777778      \
+   1.00     9109.85       3.522305   1098.081      -4.661 0.074 0    NoError  *\
+   2.00     31801.22      12.6082    3122.852      -5.796 0.049 0    NoError  *\
+   3.00     70478.22      28.76358   5053.117      -6.319 0.045 0    NoError  *\
+   4.00     121419.       50.47698   6604.971      -6.609 0.046 0    NoError  *\
+   5.00     186154.5      78.6758    7199.989      -6.703 0.053 0    NoError  *\
+   6.00     266042.9      113.531    7807.418      -6.791 0.060 0    NoError  *\
+   7.00     358247.2      153.8083   8397.668      -6.870 0.067 0    NoError  *\
+   8.00     467542.2      201.7787   8580.032      -6.893 0.077 0    NoError  *\
+   9.00     587422.       254.4993   8542.593      -6.889 0.090 0    NoError  *\
+   10.00    724023.7      314.4823   8708.25       -6.910 0.102 0    NoError  *\
+   11.00    874403.1      380.5716   8762.004      -6.916 0.115 0    NoError  *\
+   12.00    1036954.      452.126    8556.425      -6.891 0.134 0    NoError  *\
+   13.00    1217921.      531.7312   8455.69       -6.878 0.152 0    NoError  *\
+   14.00    1408227.      615.5404   8130.7        -6.835 0.177 0    NoError  *\
+   15.00    1617583.      707.5204   8270.082      -6.854 0.194 0    NoError  * 
+20150224.010.bff.fits[*28.377    105.125   2     20150224.010.bff.coo   2      \
+   28.334     106.194    -0.043  1.069   0.057   0.057          0    NoError   \
+   2255.277       33.60751       14.9162        503    47       0    NoError   \
+   15.            INDEF          WL                     18.25805367777778      \
+   1.00     9725.537      3.433434   1982.191      -5.303 0.042 0    NoError  *\
+   2.00     34708.58      12.786     5872.618      -6.482 0.027 0    NoError  *\
+   3.00     73724.14      28.56388   9304.661      -6.982 0.024 0    NoError  *\
+   4.00     125125.7      50.50517   11222.5       -7.185 0.026 0    NoError  *\
+   5.00     189990.9      78.80913   12254.43      -7.281 0.030 0    NoError  *\
+   6.00     268543.3      113.428    12731.67      -7.322 0.035 0    NoError  *\
+   7.00     360879.8      154.1563   13214.47      -7.362 0.040 0    NoError  *\
+   8.00     467521.8      201.3365   13452.14      -7.382 0.046 0    NoError  *\
+   9.00     588086.8      254.6784   13716.38      -7.403 0.053 0    NoError  *\
+   10.00    723155.3      314.422    14046.6       -7.429 0.059 0    NoError  *\
+   11.00    872591.1      380.4647   14537.59      -7.466 0.066 0    NoError  *\
+   12.00    1035008.      452.6064   14254.72      -7.445 0.076 0    NoError  *\
+   13.00    1212656.      531.2477   14544.82      -7.467 0.083 0    NoError  *\
+   14.00    1404271.      615.9114   15220.43      -7.516 0.089 0    NoError  *\
+   15.00    1610992.      707.2085   16040.83      -7.573 0.094 0    NoError  * 

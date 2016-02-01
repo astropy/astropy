@@ -17,7 +17,6 @@ void eraAtciqn(double rc, double dc, double pr, double pd,
 **  star-independent parameters can be obtained by calling one of the
 **  functions eraApci[13], eraApcg[13], eraApco[13] or eraApcs[13].
 **
-**
 **  If the only light-deflecting body to be taken into account is the
 **  Sun, the eraAtciq function can be used instead.  If in addition the
 **  parallax and proper motions are zero, the eraAtciqz function can be
@@ -101,12 +100,11 @@ void eraAtciqn(double rc, double dc, double pr, double pd,
 **     eraC2s       p-vector to spherical
 **     eraAnp       normalize angle into range 0 to 2pi
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double pco[3], pnat[3], ppr[3], pi[3], w;
-
 
 /* Proper motion and parallax, giving BCRS coordinate direction. */
    eraPmpx(rc, dc, pr, pd, px, rv, astrom->pmt, astrom->eb, pco);
@@ -130,7 +128,7 @@ void eraAtciqn(double rc, double dc, double pr, double pd,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

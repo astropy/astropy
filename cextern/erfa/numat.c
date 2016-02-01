@@ -17,7 +17,6 @@ void eraNumat(double epsa, double dpsi, double deps, double rmatn[3][3])
 **
 **  Notes:
 **
-**
 **  1) The supplied mean obliquity epsa, must be consistent with the
 **     precession-nutation models from which dpsi and deps were obtained.
 **
@@ -41,7 +40,7 @@ void eraNumat(double epsa, double dpsi, double deps, double rmatn[3][3])
 **     P. Kenneth Seidelmann (ed), University Science Books (1992),
 **     Section 3.222-3 (p114).
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -57,7 +56,7 @@ void eraNumat(double epsa, double dpsi, double deps, double rmatn[3][3])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

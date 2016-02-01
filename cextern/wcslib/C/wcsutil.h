@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.24 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2014, Mark Calabretta
+  WCSLIB 5.10 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,8 +22,13 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutil.h,v 4.24 2014/09/18 15:25:00 mcalabre Exp $
+  $Id: wcsutil.h,v 5.10 2015/10/09 08:19:15 mcalabre Exp $
 *=============================================================================
+*
+* WCSLIB 5.10 - C routines that implement the FITS World Coordinate System
+* (WCS) standard.  Refer to the README file provided with WCSLIB for an
+* overview of the library.
+*
 *
 * Summary of the wcsutil routines
 * -------------------------------
@@ -315,10 +320,42 @@
 * Returned:
 *   value     double *  The double value parsed from the string.
 *
+*
+* wcsutil_dpkey_int() - Get the data value in a dpkey struct as int
+* -----------------------------------------------------------------
+* INTERNAL USE ONLY.
+*
+* wcsutil_dpkey_int() returns the data value in a dpkey struct as an integer
+* value.
+*
+* Given and returned:
+*   dp        const struct dpkey *
+*                       Parsed contents of a DPja or DQia keyrecords.
+*
+* Function return value:
+*             int       The record's value as int.
+*
+*
+* wcsutil_dpkey_double() - Get the data value in a dpkey struct as double
+* -----------------------------------------------------------------------
+* INTERNAL USE ONLY.
+*
+* wcsutil_dpkey_double() returns the data value in a dpkey struct as a
+* floating point value.
+*
+* Given and returned:
+*   dp        const struct dpkey *
+*                       Parsed contents of a DPja or DQia keyrecords.
+*
+* Function return value:
+*             double    The record's value as double.
+*
 *===========================================================================*/
 
 #ifndef WCSLIB_WCSUTIL
 #define WCSLIB_WCSUTIL
+
+#include "dis.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -338,6 +375,8 @@ void wcsutil_setBit(int nelem, const int *sel, int bits, int *array);
 char *wcsutil_fptr2str(int (*func)(void), char hext[19]);
 int  wcsutil_str2double(const char *buf, const char *format, double *value);
 void wcsutil_double2str(char *buf, const char *format, double value);
+int    wcsutil_dpkey_int(const struct dpkey *dp);
+double wcsutil_dpkey_double(const struct dpkey *dp);
 
 #ifdef __cplusplus
 }

@@ -145,13 +145,12 @@ void eraRefco(double phpa, double tc, double rh, double wl,
 **
 **     Stone, Ronald C., P.A.S.P. 108, 1051-1058, 1996.
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    int optic;
    double p, t, r, w, ps, pw, tk, wlsq, gamma, beta;
-
 
 /* Decide whether optical/IR or radio case:  switch at 100 microns. */
    optic = ( wl <= 100.0 );
@@ -201,7 +200,7 @@ void eraRefco(double phpa, double tc, double rh, double wl,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

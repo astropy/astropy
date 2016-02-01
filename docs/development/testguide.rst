@@ -355,7 +355,8 @@ Tests that need to make use of a data file should use the
 search locally first, and then on the astropy data server or an arbitrary
 URL, and return a file-like object or a local filename, respectively.  They
 automatically cache the data locally if remote data is obtained, and from
-then on the local copy will be used transparently.
+then on the local copy will be used transparently.  See the next section for
+note specific to dealing with the cache in tests.
 
 They also support the use of an MD5 hash to get a specific version of a data
 file.  This hash can be obtained prior to submitting a file to the astropy
@@ -401,6 +402,33 @@ The ``get_remote_test_data`` will place the files in a temporary directory
 indicated by the ``tempfile`` module, so that the test files will eventually
 get removed by the system. In the long term, once test data files become too
 large, we will need to design a mechanism for removing test data immediately.
+
+Tests that use the file cache
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default, the Astropy test runner sets up a clean file cache in a temporary
+directory that is used only for that test run and then destroyed.  This is to
+ensure consistency between test runs, as well as to not clutter users' caches
+(i.e. the cache directory returned by `~astropy.config.get_cache_dir`) with
+test files.
+
+However, some test authors (especially for affiliated packages) may find it
+desirable to cache files downloaded during a test run in a more permanent
+location (e.g. for large data sets).  To this end the
+`~astropy.config.set_temp_cache` helper may be used.  It can be used either as
+a context manager within a test to temporarily set the cache to a custom
+location, or as a *decorator* that takes effect for an entire test function
+(not including setup or teardown, which would have to be decorated separately).
+
+Furthermore, it is possible to set an option ``cache_dir`` in the py.test
+config file which sets the cache location for the entire test run.  A
+``--cache-dir`` command-line option is also supported (which overrides all
+other settings).  Currently it is not directly supported by the
+``./setup.py test`` command, so it is necessary to use it with the ``-a``
+argument like::
+
+    $ ./setup.py test -a "--cache-dir=/path/to/custom/cache/dir"
+
 
 Tests that create files
 -----------------------
@@ -608,7 +636,7 @@ Testing warnings
 ----------------
 
 In order to test that warnings are triggered as expected in certain
-situations, you can use the ``astropy.tests.helper.catch_warnings``
+situations, you can use the `astropy.tests.helper.catch_warnings`
 context manager.  Unlike the `warnings.catch_warnings` context manager
 in the standard library, this one will reset all warning state before
 hand so one is assured to get the warnings reported, regardless of
@@ -631,7 +659,7 @@ a real-world example::
    function argument to test that warnings are triggered.  This method has
    been found to be problematic in at least one case (`pull request 1174
    <https://github.com/astropy/astropy/pull/1174#issuecomment-20249309>`_)
-   so the ``astropy.tests.helper.catch_warnings`` context manager is
+   so the `astropy.tests.helper.catch_warnings` context manager is
    preferred.
 
 Testing configuration parameters
@@ -642,7 +670,7 @@ are reset to their default values when the test runner starts up.
 
 Sometimes you'll want to test the behavior of code when a certain
 configuration item is set to a particular value.  In that case, you
-can use the ``~astropy.config.ConfigItem.set_temp`` context manager to
+can use the `astropy.config.ConfigItem.set_temp` context manager to
 temporarily set a configuration item to that value, test within that
 context, and have it automatically return to its original value.
 
@@ -839,8 +867,24 @@ The simplest way to generalize the example output is to use the ellipses
 
 This doctest expects an exception with a traceback, but the text of the
 traceback is skipped in the example output--only the first and last lines
-of the output are checked.  See the :mod:``doctest`` documentation for
+of the output are checked.  See the :mod:`doctest` documentation for
 more examples of skipping output.
+
+Ignoring all output
+^^^^^^^^^^^^^^^^^^^
+
+Another possibility for ignoring output is to use the
+``# doctest: +IGNORE_OUTPUT`` flag.  This allows a doctest to execute (and
+check that the code executes without errors), but allows the entire output
+to be ignored in cases where we don't care what the output is.  This differs
+from using ellipses in that we can still provide complete example output, just
+without the test checking that it is exactly right.  For example::
+
+    >>> print('Hello world')  # doctest: +IGNORE_OUTPUT
+    We don't really care what the output is as long as there were no errors...
+
+Similarly the ``IGNORE_OUTPUT_2`` and ``IGNORE_OUTPUT_3`` flags can be used
+to ignore output only on Python 2 or only on Python 3 respectively.
 
 
 Handling float output
@@ -867,3 +911,25 @@ Python `float` objects and compared numerically.  This means that small
 differences in representation of roundoff digits will be ignored by the
 doctest.  The values are otherwise compared exactly, so more significant
 (albeit possibly small) differences will still be caught by these tests.
+
+
+Continuous integration
+----------------------
+
+Astropy uses `Travis <https://travis-ci.org/astropy/astropy>`_ for continuous
+integration (CI) on Linux and OSX setups, and `Appveyor
+<https://ci.appveyor.com/project/Astropy/astropy>`_ on Windows. These
+continuously test the package for each commit and pull request that is pushed
+to GitHub to notice when something breaks.
+
+Astropy and many affiliated packages use an external package called
+`ci-helpers <https://github.com/astropy/astropy-helpers>`_ to provide
+support for the generic parts of the CI systems. ``ci-helpers`` consists of
+a set of scripts that are used by the ``.travis.yml`` and ``appveyor.yml``
+files to setting up the conda environment, and installing dependencies.
+
+Dependencies can be customized for different packages using the appropriate
+environmental variables in ``.travis.yml`` and ``appveyor.yml``. For more
+details on how to set up this machinery, see the `package-template
+<https://github.com/astropy/package-template>`_ and `ci-helpers`_.
+

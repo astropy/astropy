@@ -8,10 +8,8 @@ from __future__ import (absolute_import, division, print_function,
 import warnings
 import numpy as np
 
-from .core import default_cosmology as _default_cosmology
 from .core import CosmologyError
 from ..units import Quantity
-from ..utils import deprecated
 
 __all__ = ['z_at_value']
 

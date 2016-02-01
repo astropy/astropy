@@ -58,6 +58,32 @@ The flag bits are:
 - ``WCSHDR_all``: Accept all extensions recognized by the parser.  (This
   is equivalent to the default behavior or passing `True`).
 
+- ``WCSHDR_reject``: Reject non-standard keyrecords (that are not
+  otherwise explicitly accepted by one of the flags below).  A warning
+  will be displayed by default.
+
+  This flag may be used to signal the presence of non-standard
+  keywords, otherwise they are simply passed over as though they did
+  not exist in the header.  It is mainly intended for testing
+  conformance of a FITS header to the WCS standard.
+
+  Keyrecords may be non-standard in several ways:
+
+  - The keyword may be syntactically valid but with keyvalue of
+    incorrect type or invalid syntax, or the keycomment may be
+    malformed.
+
+  - The keyword may strongly resemble a WCS keyword but not, in fact,
+    be one because it does not conform to the standard.  For example,
+    ``CRPIX01`` looks like a ``CRPIXja`` keyword, but in fact the
+    leading zero on the axis number violates the basic FITS standard.
+    Likewise, ``LONPOLE2`` is not a valid ``LONPOLEa`` keyword in the
+    WCS standard, and indeed there is nothing the parser can sensibly
+    do with it.
+
+  - Use of the keyword may be deprecated by the standard.  Such will
+    be rejected if not explicitly accepted via one of the flags below.
+
 - ``WCSHDR_CROTAia``: Accept ``CROTAia``, ``iCROTna``, ``TCROTna``
 - ``WCSHDR_EPOCHa``:  Accept ``EPOCHa``.
 - ``WCSHDR_VELREFa``: Accept ``VELREFa``.
@@ -80,9 +106,26 @@ The flag bits are:
         ``PROJPn`` is equivalent to ``PVi_ma`` with ``m`` = ``n`` <=
         9, and is associated exclusively with the latitude axis.
 
+
+- ``WCSHDR_CD0i_0ja``: Accept ``CD0i_0ja`` (wcspih()).
+- ``WCSHDR_PC0i_0ja``: Accept ``PC0i_0ja`` (wcspih()).
+- ``WCSHDR_PV0i_0ma``: Accept ``PV0i_0ja`` (wcspih()).
+- ``WCSHDR_PS0i_0ma``: Accept ``PS0i_0ja`` (wcspih()).
+
+        Allow the numerical index to have a leading zero in doubly-
+        parameterized keywords, for example, ``PC01_01``.  WCS Paper I
+        (Sects 2.1.2 & 2.1.4) explicitly disallows leading zeroes.
+        The FITS 3.0 standard document (Sect. 4.1.2.1) states that the
+        index in singly-parameterized keywords (e.g. ``CTYPEia``) "shall
+        not have leading zeroes", and later in Sect. 8.1 that "leading
+        zeroes must not be used" on ``PVi_ma`` and ``PSi_ma``.  However, by an
+        oversight, it is silent on ``PCi_ja`` and ``CDi_ja``.
+
+        Only available if built with wcslib 5.0 or later.
+
 - ``WCSHDR_RADECSYS``: Accept ``RADECSYS``.  This appeared in early
   drafts of WCS Paper I+II and was subsequently replaced by
-  ``RADESYSa``.  The construtor accepts ``RADECSYS`` only if
+  ``RADESYSa``.  The constructor accepts ``RADECSYS`` only if
   ``WCSHDR_AUXIMG`` is also enabled.
 
 - ``WCSHDR_VSOURCE``: Accept ``VSOURCEa`` or ``VSOUna``.  This appeared

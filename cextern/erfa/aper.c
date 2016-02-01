@@ -89,7 +89,7 @@ void eraAper(double theta, eraASTROM *astrom)
 **     aberration and parallax (unless subsumed into the ICRS <-> GCRS
 **     transformation), and atmospheric refraction.
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -101,7 +101,7 @@ void eraAper(double theta, eraASTROM *astrom)
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

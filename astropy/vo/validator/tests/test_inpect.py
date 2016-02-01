@@ -34,8 +34,7 @@ class TestConeSearchResults(object):
 
     def test_catkeys(self):
         assert (self.r.catkeys['good'] ==
-                ['HST Guide Star Catalog 2.3 1',
-                 'The USNO-A2.0 Catalogue (Monet+ 1998) 1'])
+                ['The USNO-A2.0 Catalogue (Monet+ 1998) 1'])
         assert self.r.catkeys['warn'] == []
         assert self.r.catkeys['exception'] == []
         assert self.r.catkeys['error'] == []

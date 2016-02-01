@@ -2,10 +2,10 @@
 Astropy
 =======
 
-.. image:: https://pypip.in/v/astropy/badge.png
+.. image:: https://img.shields.io/pypi/v/astropy.svg
     :target: https://pypi.python.org/pypi/astropy
 
-.. image:: https://pypip.in/d/astropy/badge.png
+.. image:: https://img.shields.io/pypi/dm/astropy.svg
     :target: https://pypi.python.org/pypi/astropy
 
 Astropy (http://astropy.org/) is a package intended to contain much of
@@ -29,11 +29,14 @@ reach out to PyPI.
 Project Status
 --------------
 
-.. image:: https://travis-ci.org/astropy/astropy.png
+.. image:: https://travis-ci.org/astropy/astropy.svg
     :target: https://travis-ci.org/astropy/astropy
 
-.. image:: https://coveralls.io/repos/astropy/astropy/badge.png
+.. image:: https://coveralls.io/repos/astropy/astropy/badge.svg
     :target: https://coveralls.io/r/astropy/astropy
+
+.. image:: https://ci.appveyor.com/api/projects/status/ym7lxajcs5qwm31e/branch/master?svg=true
+    :target: https://ci.appveyor.com/project/Astropy/astropy/branch/master
 
 For an overview of the testing and build status of all packages associated 
 with the Astropy Project, see http://dashboard.astropy.org.

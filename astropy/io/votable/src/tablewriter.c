@@ -272,6 +272,11 @@ write_tabledata(PyObject* self, PyObject *args, PyObject *kwds)
                 if ((str_val =
                      PyObject_CallFunctionObjArgs(converter, array_val, mask_val, NULL))
                     == NULL) goto exit;
+                if (PyBytes_Check(str_val)) {
+                    tmp = PyUnicode_FromEncodedObject(str_val, "utf-8", "ignore");
+                    Py_DECREF(str_val);
+                    str_val = tmp;
+                }
                 if ((str_tmp = PyUnicode_AsUnicode(str_val)) == NULL) {
                     Py_DECREF(str_val);
                     goto exit;

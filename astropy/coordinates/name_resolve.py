@@ -16,18 +16,16 @@ import re
 import socket
 
 # Astropy
-from .. import config as _config
-from ..extern import six
 from ..extern.six.moves import urllib
 from .. import units as u
 from .sky_coordinate import SkyCoord
 from ..utils import data
-from ..utils import state
+from ..utils.state import ScienceState
 
 __all__ = ["get_icrs_coordinates"]
 
 
-class sesame_url(state.ScienceState):
+class sesame_url(ScienceState):
     """
     The URL(s) to Sesame's web-queryable database.
     """
@@ -40,11 +38,7 @@ class sesame_url(state.ScienceState):
         return value
 
 
-SESAME_URL = state.ScienceStateAlias(
-    "0.4", "SESAME_URL", "sesame_url", sesame_url, cfgtype="list")
-
-
-class sesame_database(state.ScienceState):
+class sesame_database(ScienceState):
     """
     This specifies the default database that SESAME will query when
     using the name resolve mechanism in the coordinates
@@ -58,15 +52,6 @@ class sesame_database(state.ScienceState):
         if value not in ['all', 'simbad', 'ned', 'vizier']:
             raise ValueError("Unknown database '{0}'".format(value))
         return value
-
-
-SESAME_DATABASE = state.ScienceStateAlias(
-    "0.4", "SESAME_DATABASE", "sesame_database", sesame_database)
-
-
-NAME_RESOLVE_TIMEOUT = _config.ConfigAlias(
-    '0.4', "NAME_RESOLVE_TIMEOUT", "remote_timeout",
-    "astropy.coordinates.name_resolve", "astropy.utils.data")
 
 
 class NameResolveError(Exception):
@@ -127,7 +112,6 @@ def get_icrs_coordinates(name):
         The object's coordinates in the ICRS frame.
 
     """
-    from .. import conf
 
     database = sesame_database.get()
     # The web API just takes the first letter of the database name

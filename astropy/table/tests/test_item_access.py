@@ -5,12 +5,9 @@
 """ Verify item access API in:
 https://github.com/astropy/astropy/wiki/Table-item-access-definition
 """
-from distutils import version
 import numpy as np
 
 from ...tests.helper import pytest
-from ... import table
-from .conftest import MaskedTable
 
 
 @pytest.mark.usefixtures('table_data')
@@ -130,6 +127,20 @@ class TestTableItems(BaseTestItems):
         assert row['a'] == 0
         assert self.t['a'][1] == 0
         assert self.t[1]['a'] == 0
+
+    def test_empty_iterable_item(self, table_data):
+        """
+        Table item access with [], (), or np.array([]) returns the same table
+        with no rows.
+        """
+        self.t = table_data.Table(table_data.COLS)
+        for item in [], (), np.array([]):
+            t2 = self.t[item]
+            assert not t2
+            assert len(t2) == 0
+            assert t2['a'].attrs_equal(table_data.COLS[0])
+            assert t2['b'].attrs_equal(table_data.COLS[1])
+            assert t2['c'].attrs_equal(table_data.COLS[2])
 
     def test_table_slice(self, table_data):
         """Table slice returns REFERENCE to data"""

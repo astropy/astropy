@@ -10,10 +10,13 @@ from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
+from . import scalar_inv_efuncs
+
 from .. import constants as const
 from .. import units as u
-from ..utils import isiterable
-from ..utils.state import ScienceState, ScienceStateAlias
+from ..utils import isiterable, deprecated
+from ..utils.compat.funcsigs import signature
+from ..utils.state import ScienceState
 
 from . import parameters
 
@@ -26,9 +29,38 @@ from . import parameters
 
 __all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
            "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM", "WMAP5", "WMAP7",
-           "WMAP9", "Planck13", "default_cosmology"]
+           "WMAP9", "Planck13", "Planck15", "default_cosmology"]
 
 __doctest_requires__ = {'*': ['scipy.integrate']}
+
+# Notes about speeding up integrals:
+# ---------------------------------
+#  The supplied cosmology classes use a few tricks to speed
+#  up distance and time integrals.  It is not necessary for
+#  anyone subclassing FLRW to use these tricks -- but if they
+#  do, such calculations may be a lot faster.
+# The first, more basic, idea is that, in many cases, it's a big deal to
+#  provide explicit formulae for inv_efunc rather than simply
+#  setting up de_energy_scale -- assuming there is a nice expression.
+#  As noted above, almost all of the provided classes do this, and
+#  that template can pretty much be followed directly with the appropriate
+#  formula changes.
+# The second, and more advanced, option is to also explicitly
+#  provide a scalar only version of inv_efunc.  This results in a fairly
+#  large speedup (>10x in most cases) in the distance and age integrals,
+#  even if only done in python,  because testing whether the inputs are
+#  iterable or pure scalars turns out to be rather expensive. To take
+#  advantage of this, the key thing is to explicitly set the
+#  instance variables self._inv_efunc_scalar and self._inv_efunc_scalar_args
+#  in the constructor for the subclass, where the latter are all the
+#  arguments except z to _inv_efunc_scalar.
+#
+#  The provided classes do use this optimization, and in fact go
+#  even further and provide optimizations for no radiation, and for radiation
+#  with massless neutrinos coded in cython.  Consult the subclasses for
+#  details, and scalar_inv_efuncs for the details.
+#
+#  However, the important point is that it is -not- necessary to do this.
 
 # Some conversion constants -- useful to compute them once here
 #  and reuse in the initialization rather than have every object do them
@@ -76,34 +108,36 @@ class FLRW(Cosmology):
 
     Om0 : float
         Omega matter: density of non-relativistic matter in units of the
-        critical density at z=0.
+        critical density at z=0.  Note that this does not include
+        massive neutrinos.
 
     Ode0 : float
         Omega dark energy: density of dark energy in units of the critical
         density at z=0.
 
-    Tcmb0 : float or scalar `~astropy.units.Quantity`
-        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
-        Setting this to zero will turn off both photons and neutrinos (even
-        massive ones)
+    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+        Temperature of the CMB z=0. If a float, must be in [K].
+        Default: 2.725 [K]. Setting this to zero will turn off both photons
+        and neutrinos (even massive ones).
 
-    Neff : float
+    Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`
+    m_nu : `~astropy.units.Quantity`, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
         number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Usually this means you must provide three neutrino masses unless
-        you are considering something like a sterile neutrino.
+        Neff. Typically this means you should provide three neutrino masses
+        unless you are considering something like a sterile neutrino.
 
-    name : str
-        Optional name for this cosmological object.
-
-    Ob0 : float
+    Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.
+        density at z=0.  If this is set to None (the default), any
+        computation that requires its value will raise an exception.
+
+    name : str, optional
+        Name for this cosmological object.
 
     Notes
     -----
@@ -112,7 +146,7 @@ class FLRW(Cosmology):
     read only.
     """
     def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04,
-                 m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
+                 m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
 
         # all densities are in units of the critical density
         self._Om0 = float(Om0)
@@ -231,10 +265,14 @@ class FLRW(Cosmology):
             self._Tnu0 = 0.7137658555036082 * self._Tcmb0
 
             # Compute Neutrino Omega and total relativistic component
-            # for massive neutrinos
+            # for massive neutrinos.  We also store a list version,
+            # since that is more efficient to do integrals with (perhaps
+            # surprisingly!  But small python lists are more efficient
+            # than small numpy arrays).
             if self._massivenu:
                 nu_y = self._massivenu_mass / (kB_evK * self._Tnu0)
                 self._nu_y = nu_y.value
+                self._nu_y_list = self._nu_y.tolist()
                 self._Onu0 = self._Ogamma0 * self.nu_relative_density(0)
             else:
                 # This case is particularly simple, so do it directly
@@ -250,6 +288,11 @@ class FLRW(Cosmology):
 
         # Compute curvature density
         self._Ok0 = 1.0 - self._Om0 - self._Ode0 - self._Ogamma0 - self._Onu0
+
+        # Subclasses should override this reference if they provide
+        #  more efficient scalar versions of inv_efunc.
+        self._inv_efunc_scalar = self.inv_efunc
+        self._inv_efunc_scalar_args = ()
 
     def _namelead(self):
         """ Helper function for constructing __repr__"""
@@ -403,8 +446,7 @@ class FLRW(Cosmology):
             return self
 
         # Get constructor arguments
-        import inspect
-        arglist = inspect.getargspec(self.__init__).args
+        arglist = signature(self.__init__).parameters.keys()
 
         # Build the dictionary of values used to construct this
         #  object.  This -assumes- every argument to __init__ has a
@@ -412,7 +454,7 @@ class FLRW(Cosmology):
         #  maybe a user won't do that.  So at least try to have a useful
         #  error message.
         argdict = {}
-        for arg in arglist[1:]:  # Skip self, which should always be first
+        for arg in arglist:
             try:
                 val = getattr(self, arg)
                 argdict[arg] = val
@@ -439,7 +481,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -448,7 +490,7 @@ class FLRW(Cosmology):
           The dark energy equation of state
 
         Notes
-        ------
+        -----
         The dark energy equation of state is defined as
         :math:`w(z) = P(z)/\\rho(z)`, where :math:`P(z)` is the
         pressure at redshift z and :math:`\\rho(z)` is the density
@@ -464,7 +506,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -472,6 +514,11 @@ class FLRW(Cosmology):
         Om : ndarray, or float if input scalar
           The density of non-relativistic matter relative to the critical
           density at each redshift.
+
+        Notes
+        -----
+        This does not include neutrinos, even if non-relativistic
+        at the redshift of interest; see `Onu`.
         """
 
         if isiterable(z):
@@ -483,7 +530,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -509,7 +556,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -522,6 +569,10 @@ class FLRW(Cosmology):
         ------
         ValueError
           If Ob0 is None.
+        Notes
+        -----
+        This does not include neutrinos, even if non-relativistic
+        at the redshift of interest.
         """
 
         if self._Odm0 is None:
@@ -537,7 +588,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -562,7 +613,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -588,7 +639,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -603,11 +654,12 @@ class FLRW(Cosmology):
         return self._Ogamma0 * (1. + z) ** 4 * self.inv_efunc(z) ** 2
 
     def Onu(self, z):
-        """ Return the density parameter for massless neutrinos at redshift ``z``.
+        """ Return the density parameter for massless neutrinos at
+        redshift ``z``.
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -635,7 +687,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -653,7 +705,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -706,7 +758,12 @@ class FLRW(Cosmology):
         analytical fitting formula given in Komatsu et al. 2011, ApJS 192, 18.
         """
 
+        # Note that there is also a scalar-z-only cython implementation of
+        # this in scalar_inv_efuncs.pyx, so if you find a problem in this
+        # you need to update there too.
+
         # See Komatsu et al. 2011, eq 26 and the surrounding discussion
+        # for an explanation of what we are doing here.
         # However, this is modified to handle multiple neutrino masses
         # by computing the above for each mass, then summing
         prefac = 0.22710731766  # 7/8 (4/11)^4/3 -- see any cosmo book
@@ -720,17 +777,15 @@ class FLRW(Cosmology):
                 return prefac * self._Neff *\
                     np.ones(np.asanyarray(z).shape, dtype=np.float)
 
+        # These are purely fitting constants -- see the Komatsu paper
         p = 1.83
-        invp = 1.0 / p
-        if np.isscalar(z):
-            curr_nu_y = self._nu_y / (1.0 + z)  # only includes massive ones
-            rel_mass_per = (1.0 + (0.3173 * curr_nu_y) ** p) ** invp
-            rel_mass = rel_mass_per.sum() + self._nmasslessnu
-        else:
-            z = np.asarray(z)
-            curr_nu_y = self._nu_y / (1. + np.expand_dims(z, axis=-1))
-            rel_mass_per = (1. + (0.3173 * curr_nu_y) ** p) ** invp
-            rel_mass = rel_mass_per.sum(-1) + self._nmasslessnu
+        invp = 0.54644808743  # 1.0 / p
+        k = 0.3173
+
+        z = np.asarray(z)
+        curr_nu_y = self._nu_y / (1. + np.expand_dims(z, axis=-1))
+        rel_mass_per = (1.0 + (k * curr_nu_y) ** p) ** invp
+        rel_mass = rel_mass_per.sum(-1) + self._nmasslessnu
 
         return prefac * self._neff_per_nu * rel_mass
 
@@ -749,7 +804,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -799,7 +854,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -833,7 +888,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -852,20 +907,42 @@ class FLRW(Cosmology):
             Or = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        return 1.0 / np.sqrt(zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) +
-                             Ode0 * self.de_density_scale(z))
+        return (zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) +
+                Ode0 * self.de_density_scale(z))**(-0.5)
 
+    def _lookback_time_integrand_scalar(self, z):
+        """ Integrand of the lookback time.
+
+        Parameters
+        ----------
+        z : float
+          Input redshift.
+
+        Returns
+        -------
+        I : float
+          The integrand for the lookback time
+
+        References
+        ----------
+        Eqn 30 from Hogg 1999.
+        """
+
+        args = self._inv_efunc_scalar_args
+        return self._inv_efunc_scalar(z, *args) / (1.0 + z)
+
+    @deprecated(since=1.1, alternative='lookback_time_integrand')
     def _tfunc(self, z):
         """ Integrand of the lookback time.
 
         Parameters
         ----------
-        z : array_like
-          Input redshifts.
+        z : float or array-like
+          Input redshift.
 
         Returns
         -------
-        I : ndarray, or float if input scalar
+        I : float or array
           The integrand for the lookback time
 
         References
@@ -878,19 +955,66 @@ class FLRW(Cosmology):
         else:
             zp1 = 1. + z
 
-        return 1.0 / (zp1 * self.efunc(z))
+        return self.inv_efunc(z) / zp1
 
+    def lookback_time_integrand(self, z):
+        """ Integrand of the lookback time.
+
+        Parameters
+        ----------
+        z : float or array-like
+          Input redshift.
+
+        Returns
+        -------
+        I : float or array
+          The integrand for the lookback time
+
+        References
+        ----------
+        Eqn 30 from Hogg 1999.
+        """
+
+        if isiterable(z):
+            zp1 = 1.0 + np.asarray(z)
+        else:
+            zp1 = 1. + z
+
+        return self.inv_efunc(z) / zp1
+
+    def _abs_distance_integrand_scalar(self, z):
+        """ Integrand of the absorption distance.
+
+        Parameters
+        ----------
+        z : float
+          Input redshift.
+
+        Returns
+        -------
+        X : float
+          The integrand for the absorption distance
+
+        References
+        ----------
+        See Hogg 1999 section 11.
+        """
+
+        args = self._inv_efunc_scalar_args
+        return (1.0 + z) ** 2 * self._inv_efunc_scalar(z, *args)
+
+    @deprecated(since=1.1, alternative='abs_distance_integrand')
     def _xfunc(self, z):
         """ Integrand of the absorption distance.
 
         Parameters
         ----------
-        z : array_like
-          Input redshifts.
+        z : float or array
+          Input redshift.
 
         Returns
         -------
-        X : ndarray, or float if input scalar
+        X : float or array
           The integrand for the absorption distance
 
         References
@@ -902,14 +1026,38 @@ class FLRW(Cosmology):
             zp1 = 1.0 + np.asarray(z)
         else:
             zp1 = 1. + z
-        return zp1 ** 2 / self.efunc(z)
+        return zp1 ** 2 * self.inv_efunc(z)
+
+    def abs_distance_integrand(self, z):
+        """ Integrand of the absorption distance.
+
+        Parameters
+        ----------
+        z : float or array
+          Input redshift.
+
+        Returns
+        -------
+        X : float or array
+          The integrand for the absorption distance
+
+        References
+        ----------
+        See Hogg 1999 section 11.
+        """
+
+        if isiterable(z):
+            zp1 = 1.0 + np.asarray(z)
+        else:
+            zp1 = 1. + z
+        return zp1 ** 2 * self.inv_efunc(z)
 
     def H(self, z):
         """ Hubble parameter (km/s/Mpc) at redshift ``z``.
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -927,7 +1075,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -949,7 +1097,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar
 
         Returns
@@ -963,18 +1111,34 @@ class FLRW(Cosmology):
         """
 
         from scipy.integrate import quad
-        if not isiterable(z):
-            return self._hubble_time * quad(self._tfunc, 0, z)[0]
+        f = lambda red: quad(self._lookback_time_integrand_scalar, 0, red)[0]
+        return self._hubble_time * vectorize_if_needed(f, z)
 
-        out = np.array([quad(self._tfunc, 0, redshift)[0] for redshift in z])
-        return self._hubble_time * np.array(out)
+    def lookback_distance(self, z):
+        """
+        The lookback distance is the light travel time distance to a given
+        redshift. It is simply c * lookback_time.  It may be used to calculate
+        the proper distance between two redshifts, e.g. for the mean free path
+        to ionizing radiation.
+
+        Parameters
+        ----------
+        z : array-like
+          Input redshifts.  Must be 1D or scalar
+
+        Returns
+        -------
+        d : `~astropy.units.Quantity`
+          Lookback distance in Mpc
+        """
+        return (self.lookback_time(z) * const.c).to(u.Mpc)
 
     def age(self, z):
         """ Age of the universe in Gyr at redshift ``z``.
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -988,18 +1152,16 @@ class FLRW(Cosmology):
         """
 
         from scipy.integrate import quad
-        if not isiterable(z):
-            return self._hubble_time * quad(self._tfunc, z, np.inf)[0]
-
-        out = [quad(self._tfunc, redshift, np.inf)[0] for redshift in z]
-        return self._hubble_time * np.array(out)
+        f = lambda red: quad(self._lookback_time_integrand_scalar,
+                             red, np.inf)[0]
+        return self._hubble_time * vectorize_if_needed(f, z)
 
     def critical_density(self, z):
         """ Critical density in grams per cubic cm at redshift ``z``.
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -1020,7 +1182,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1030,11 +1192,9 @@ class FLRW(Cosmology):
         """
 
         from scipy.integrate import quad
-        if not isiterable(z):
-            return self._hubble_distance * quad(self.inv_efunc, 0, z)[0]
-
-        out = [quad(self.inv_efunc, 0, redshift)[0] for redshift in z]
-        return self._hubble_distance * np.array(out)
+        f = lambda red: quad(self._inv_efunc_scalar, 0, red,
+                             args=self._inv_efunc_scalar_args)[0]
+        return self._hubble_distance * vectorize_if_needed(f, z)
 
     def comoving_transverse_distance(self, z):
         """ Comoving transverse distance in Mpc at a given redshift.
@@ -1046,7 +1206,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1083,7 +1243,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1106,7 +1266,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1134,7 +1294,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z1, z2 : array_like, shape (N,)
+        z1, z2 : array-like, shape (N,)
           Input redshifts. z2 must be large than z1.
 
         Returns
@@ -1172,10 +1332,6 @@ class FLRW(Cosmology):
         if (z1 > z2).any():
             raise ValueError('z2 must greater than z1')
 
-        # z1 < z2
-        if (z2 < z1).any():
-            z1, z2 = z2, z1
-
         dm1 = self.comoving_transverse_distance(z1).value
         dm2 = self.comoving_transverse_distance(z2).value
         dh_2 = self._hubble_distance.value ** 2
@@ -1202,7 +1358,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1217,11 +1373,8 @@ class FLRW(Cosmology):
         """
 
         from scipy.integrate import quad
-        if not isiterable(z):
-            return quad(self._xfunc, 0, z)[0]
-
-        out = np.array([quad(self._xfunc, 0, redshift)[0] for redshift in z])
-        return out
+        f = lambda red: quad(self._abs_distance_integrand_scalar, 0, red)[0]
+        return vectorize_if_needed(f, z)
 
     def distmod(self, z):
         """ Distance modulus at redshift ``z``.
@@ -1231,7 +1384,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1261,7 +1414,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1297,7 +1450,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -1308,7 +1461,7 @@ class FLRW(Cosmology):
         dh = self._hubble_distance
         da = self.angular_diameter_distance(z)
         zp1 = 1.0 + z
-        return dh * (zp1 ** 2.0 * da ** 2.0) / u.Quantity(self.efunc(z),
+        return dh * ((zp1 * da) ** 2.0) / u.Quantity(self.efunc(z),
                                                           u.steradian)
 
     def kpc_comoving_per_arcmin(self, z):
@@ -1317,7 +1470,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1335,7 +1488,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1353,7 +1506,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1371,7 +1524,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1400,25 +1553,32 @@ class LambdaCDM(FLRW):
         critical density at z=0.
 
     Ode0 : float
-        Omega dark energy: density of the cosmological constant in units of the
-        critical density at z=0.
+        Omega dark energy: density of the cosmological constant in units of
+        the critical density at z=0.
 
-    Tcmb0 : float or `~astropy.units.Quantity`
-        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+        Temperature of the CMB z=0. If a float, must be in [K].
+        Default: 2.725 [K]. Setting this to zero will turn off both photons
+        and neutrinos (even massive ones).
 
-    Neff : float
+    Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`
+    m_nu : `~astropy.units.Quantity`, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
         number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Usually this means you must provide three neutrino masses unless
-        you are considering something like a sterile neutrino.
+        Neff. Typically this means you should provide three neutrino masses
+        unless you are considering something like a sterile neutrino.
 
-    name : str
-        Optional name for this cosmological object.
+    Ob0 : float or None, optional
+        Omega baryons: density of baryonic matter in units of the critical
+        density at z=0.  If this is set to None (the default), any
+        computation that requires its value will raise an exception.
+
+    name : str, optional
+        Name for this cosmological object.
 
     Examples
     --------
@@ -1432,17 +1592,33 @@ class LambdaCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04,
-                 m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
+                 m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
 
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
                       Ob0=Ob0)
+
+        # Please see "Notes about speeding up integrals" for discussion
+        # about what is being done here.
+        if self._Tcmb0.value == 0:
+            self._inv_efunc_scalar = scalar_inv_efuncs.lcdm_inv_efunc_norel
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0)
+        elif not self._massivenu:
+            self._inv_efunc_scalar = scalar_inv_efuncs.lcdm_inv_efunc_nomnu
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._Ogamma0 + self._Onu0)
+        else:
+            self._inv_efunc_scalar = scalar_inv_efuncs.lcdm_inv_efunc
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._Ogamma0, self._neff_per_nu,
+                                           self._nmasslessnu,
+                                           self._nu_y_list)
 
     def w(self, z):
         """Returns dark energy equation of state at redshift ``z``.
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -1469,7 +1645,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -1493,7 +1669,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -1525,7 +1701,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -1548,7 +1724,7 @@ class LambdaCDM(FLRW):
             Or = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        return 1.0 / np.sqrt(zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) + Ode0)
+        return (zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) + Ode0)**(-0.5)
 
 
 class FlatLambdaCDM(LambdaCDM):
@@ -1565,22 +1741,29 @@ class FlatLambdaCDM(LambdaCDM):
         Omega matter: density of non-relativistic matter in units of the
         critical density at z=0.
 
-    Tcmb0 : float or `~astropy.units.Quantity`
-        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+        Temperature of the CMB z=0. If a float, must be in [K].
+        Default: 2.725 [K]. Setting this to zero will turn off both photons
+        and neutrinos (even massive ones).
 
-    Neff : float
+    Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`
+    m_nu : `~astropy.units.Quantity`, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
         number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Usually this means you must provide three neutrino masses unless
-        you are considering something like a sterile neutrino.
+        Neff. Typically this means you should provide three neutrino masses
+        unless you are considering something like a sterile neutrino.
 
-    name : str
-        Optional name for this cosmological object.
+    Ob0 : float or None, optional
+        Omega baryons: density of baryonic matter in units of the critical
+        density at z=0.  If this is set to None (the default), any
+        computation that requires its value will raise an exception.
+
+    name : str, optional
+        Name for this cosmological object.
 
     Examples
     --------
@@ -1594,20 +1777,36 @@ class FlatLambdaCDM(LambdaCDM):
     """
 
     def __init__(self, H0, Om0, Tcmb0=2.725, Neff=3.04,
-                 m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
+                 m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
 
-        FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name,
-                      Ob0=Ob0)
+        LambdaCDM.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name,
+                           Ob0=Ob0)
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
+
+        # Please see "Notes about speeding up integrals" for discussion
+        # about what is being done here.
+        if self._Tcmb0.value == 0:
+            self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_norel
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0)
+        elif not self._massivenu:
+            self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_nomnu
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
+                                           self._Ogamma0 + self._Onu0)
+        else:
+            self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
+                                           self._Ogamma0, self._neff_per_nu,
+                                           self._nmasslessnu,
+                                           self._nu_y_list)
 
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -1639,7 +1838,7 @@ class FlatLambdaCDM(LambdaCDM):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -1660,8 +1859,7 @@ class FlatLambdaCDM(LambdaCDM):
         else:
             Or = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
-
-        return 1.0 / np.sqrt(zp1 ** 3 * (Or * zp1 + Om0) + Ode0)
+        return (zp1 ** 3 * (Or * zp1 + Om0) + Ode0)**(-0.5)
 
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Tcmb0={3:.4g}, "\
@@ -1691,31 +1889,34 @@ class wCDM(FLRW):
         Omega dark energy: density of dark energy in units of the critical
         density at z=0.
 
-    w0 : float
+    w0 : float, optional
         Dark energy equation of state at all redshifts. This is
         pressure/density for dark energy in units where c=1. A cosmological
         constant has w0=-1.0.
 
-    Tcmb0 : float or `~astropy.units.Quantity`
-        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+        Temperature of the CMB z=0. If a float, must be in [K].
+        Default: 2.725 [K]. Setting this to zero will turn off both photons
+        and neutrinos (even massive ones).
 
-    Neff : float
+    Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`
+    m_nu : `~astropy.units.Quantity`, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
         number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Usually this means you must provide three neutrino masses unless
-        you are considering something like a sterile neutrino.
+        Neff. Typically this means you should provide three neutrino masses
+        unless you are considering something like a sterile neutrino.
 
-    name : str
-        Optional name for this cosmological object.
-
-    Ob0 : float
+    Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.
+        density at z=0.  If this is set to None (the default), any
+        computation that requires its value will raise an exception.
+
+    name : str, optional
+        Name for this cosmological object.
 
     Examples
     --------
@@ -1729,11 +1930,29 @@ class wCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., Tcmb0=2.725,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
 
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
-                      Ob0=None)
+                      Ob0=Ob0)
         self._w0 = float(w0)
+
+        # Please see "Notes about speeding up integrals" for discussion
+        # about what is being done here.
+        if self._Tcmb0.value == 0:
+            self._inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc_norel
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._w0)
+        elif not self._massivenu:
+            self._inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc_nomnu
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._Ogamma0 + self._Onu0,
+                                           self._w0)
+        else:
+            self._inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._Ogamma0, self._neff_per_nu,
+                                           self._nmasslessnu,
+                                           self._nu_y_list, self._w0)
 
     @property
     def w0(self):
@@ -1745,7 +1964,7 @@ class wCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -1772,7 +1991,7 @@ class wCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -1796,7 +2015,7 @@ class wCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -1826,7 +2045,7 @@ class wCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -1848,8 +2067,8 @@ class wCDM(FLRW):
             Or = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        return 1.0 / np.sqrt(zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) +
-                             Ode0 * zp1 ** (3. * (1. + w0)))
+        return (zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) +
+                Ode0 * zp1 ** (3. * (1. + w0)))**(-0.5)
 
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Ode0={3:.3g}, w0={4:.3g}, "\
@@ -1875,31 +2094,34 @@ class FlatwCDM(wCDM):
         Omega matter: density of non-relativistic matter in units of the
         critical density at z=0.
 
-    w0 : float
+    w0 : float, optional
         Dark energy equation of state at all redshifts. This is
         pressure/density for dark energy in units where c=1. A cosmological
         constant has w0=-1.0.
 
-    Tcmb0 : float or `~astropy.units.Quantity`
-        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+        Temperature of the CMB z=0. If a float, must be in [K].
+        Default: 2.725 [K]. Setting this to zero will turn off both photons
+        and neutrinos (even massive ones).
 
-    Neff : float
+    Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`
+    m_nu : `~astropy.units.Quantity`, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
         number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Usually this means you must provide three neutrino masses unless
-        you are considering something like a sterile neutrino.
+        Neff. Typically this means you should provide three neutrino masses
+        unless you are considering something like a sterile neutrino.
 
-    name : str
-        Optional name for this cosmological object.
-
-    Ob0 : float
+    Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.
+        density at z=0.  If this is set to None (the default), any
+        computation that requires its value will raise an exception.
+
+    name : str, optional
+        Name for this cosmological object.
 
     Examples
     --------
@@ -1913,21 +2135,38 @@ class FlatwCDM(wCDM):
     """
 
     def __init__(self, H0, Om0, w0=-1., Tcmb0=2.725,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
 
-        FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name,
-                      Ob0=Ob0)
-        self._w0 = float(w0)
+        wCDM.__init__(self, H0, Om0, 0.0, w0, Tcmb0, Neff, m_nu,
+                      name=name, Ob0=Ob0)
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
+
+        # Please see "Notes about speeding up integrals" for discussion
+        # about what is being done here.
+        if self._Tcmb0.value == 0:
+            self._inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc_norel
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
+                                           self._w0)
+        elif not self._massivenu:
+            self._inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc_nomnu
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
+                                           self._Ogamma0 + self._Onu0,
+                                           self._w0)
+        else:
+            self._inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
+                                           self._Ogamma0, self._neff_per_nu,
+                                           self._nmasslessnu,
+                                           self._nu_y_list, self._w0)
 
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -1957,7 +2196,7 @@ class FlatwCDM(wCDM):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -1972,15 +2211,15 @@ class FlatwCDM(wCDM):
 
         if isiterable(z):
             z = np.asarray(z)
-        Om0, Ode0, Ok0, w0 = self._Om0, self._Ode0, self._Ok0, self._w0
+        Om0, Ode0, w0 = self._Om0, self._Ode0, self._w0
         if self._massivenu:
             Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
         else:
             Or = self._Ogamma0 + self._Onu0
         zp1 = 1. + z
 
-        return 1. / np.sqrt(zp1 ** 3 * (Or * zp1 + Om0) +
-                            Ode0 * zp1 ** (3. * (1. + w0)))
+        return (zp1 ** 3 * (Or * zp1 + Om0) +
+                Ode0 * zp1 ** (3. * (1. + w0)))**(-0.5)
 
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, w0={3:.3g}, Tcmb0={4:.4g}, "\
@@ -1988,7 +2227,6 @@ class FlatwCDM(wCDM):
         return retstr.format(self._namelead(), self._H0, self._Om0, self._w0,
                              self._Tcmb0, self._Neff, self.m_nu,
                              _float_or_none(self._Ob0))
-
 
 class w0waCDM(FLRW):
     """FLRW cosmology with a CPL dark energy equation of state and curvature.
@@ -2011,34 +2249,37 @@ class w0waCDM(FLRW):
         Omega dark energy: density of dark energy in units of the critical
         density at z=0.
 
-    w0 : float
+    w0 : float, optional
         Dark energy equation of state at z=0 (a=1). This is pressure/density
         for dark energy in units where c=1.
 
-    wa : float
+    wa : float, optional
         Negative derivative of the dark energy equation of state with respect
         to the scale factor. A cosmological constant has w0=-1.0 and wa=0.0.
 
-    Tcmb0 : float or `~astropy.units.Quantity`
-        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+        Temperature of the CMB z=0. If a float, must be in [K].
+        Default: 2.725 [K]. Setting this to zero will turn off both photons
+        and neutrinos (even massive ones).
 
-    Neff : float
+    Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`
+    m_nu : `~astropy.units.Quantity`, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
         number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Usually this means you must provide three neutrino masses unless
-        you are considering something like a sterile neutrino.
+        Neff. Typically this means you should provide three neutrino masses
+        unless you are considering something like a sterile neutrino.
 
-    name : str
-        Optional name for this cosmological object.
-
-    Ob0 : float
+    Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.
+        density at z=0.  If this is set to None (the default), any
+        computation that requires its value will raise an exception.
+
+    name : str, optional
+        Name for this cosmological object.
 
     Examples
     --------
@@ -2052,12 +2293,31 @@ class w0waCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., wa=0., Tcmb0=2.725,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
 
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
                       Ob0=Ob0)
         self._w0 = float(w0)
         self._wa = float(wa)
+
+        # Please see "Notes about speeding up integrals" for discussion
+        # about what is being done here.
+        if self._Tcmb0.value == 0:
+            self._inv_efunc_scalar = scalar_inv_efuncs.w0wacdm_inv_efunc_norel
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._w0, self._wa)
+        elif not self._massivenu:
+            self._inv_efunc_scalar = scalar_inv_efuncs.w0wacdm_inv_efunc_nomnu
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._Ogamma0 + self._Onu0,
+                                           self._w0, self._wa)
+        else:
+            self._inv_efunc_scalar = scalar_inv_efuncs.w0wacdm_inv_efunc
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._Ogamma0, self._neff_per_nu,
+                                           self._nmasslessnu,
+                                           self._nu_y_list, self._w0,
+                                           self._wa)
 
     @property
     def w0(self):
@@ -2074,7 +2334,7 @@ class w0waCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -2101,7 +2361,7 @@ class w0waCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -2137,7 +2397,8 @@ class w0waCDM(FLRW):
 
 
 class Flatw0waCDM(w0waCDM):
-    """FLRW cosmology with a CPL dark energy equation of state and no curvature.
+    """FLRW cosmology with a CPL dark energy equation of state and no
+    curvature.
 
     The equation for the dark energy equation of state uses the
     CPL form as described in Chevallier & Polarski Int. J. Mod. Phys.
@@ -2154,34 +2415,37 @@ class Flatw0waCDM(w0waCDM):
         Omega matter: density of non-relativistic matter in units of the
         critical density at z=0.
 
-    w0 : float
+    w0 : float, optional
         Dark energy equation of state at z=0 (a=1). This is pressure/density
         for dark energy in units where c=1.
 
-    wa : float
+    wa : float, optional
         Negative derivative of the dark energy equation of state with respect
         to the scale factor. A cosmological constant has w0=-1.0 and wa=0.0.
 
-    Tcmb0 : float or `~astropy.units.Quantity`
-        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+        Temperature of the CMB z=0. If a float, must be in [K].
+        Default: 2.725 [K]. Setting this to zero will turn off both photons
+        and neutrinos (even massive ones).
 
-    Neff : float
+    Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`
+    m_nu : `~astropy.units.Quantity`, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
         number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Usually this means you must provide three neutrino masses unless
-        you are considering something like a sterile neutrino.
+        Neff. Typically this means you should provide three neutrino masses
+        unless you are considering something like a sterile neutrino.
 
-    name : str
-        Optional name for this cosmological object.
-
-    Ob0 : float
+    Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.
+        density at z=0.  If this is set to None (the default), any
+        computation that requires its value will raise an exception.
+
+    name : str, optional
+        Name for this cosmological object.
 
     Examples
     --------
@@ -2195,15 +2459,32 @@ class Flatw0waCDM(w0waCDM):
     """
 
     def __init__(self, H0, Om0, w0=-1., wa=0., Tcmb0=2.725,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
 
-        FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name,
-                      Ob0=Ob0)
+        w0waCDM.__init__(self, H0, Om0, 0.0, w0=w0, wa=wa, Tcmb0=Tcmb0,
+                         Neff=Neff, m_nu=m_nu, name=name, Ob0=Ob0)
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
-        self._w0 = float(w0)
-        self._wa = float(wa)
+
+        # Please see "Notes about speeding up integrals" for discussion
+        # about what is being done here.
+        if self._Tcmb0.value == 0:
+            self._inv_efunc_scalar = scalar_inv_efuncs.fw0wacdm_inv_efunc_norel
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
+                                           self._w0, self._wa)
+        elif not self._massivenu:
+            self._inv_efunc_scalar = scalar_inv_efuncs.fw0wacdm_inv_efunc_nomnu
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
+                                           self._Ogamma0 + self._Onu0,
+                                           self._w0, self._wa)
+        else:
+            self._inv_efunc_scalar = scalar_inv_efuncs.fw0wacdm_inv_efunc
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
+                                           self._Ogamma0, self._neff_per_nu,
+                                           self._nmasslessnu,
+                                           self._nu_y_list, self._w0,
+                                           self._wa)
 
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, "\
@@ -2239,37 +2520,40 @@ class wpwaCDM(FLRW):
         Omega dark energy: density of dark energy in units of the critical
         density at z=0.
 
-    wp : float
+    wp : float, optional
         Dark energy equation of state at the pivot redshift zp. This is
         pressure/density for dark energy in units where c=1.
 
-    wa : float
+    wa : float, optional
         Negative derivative of the dark energy equation of state with respect
-        to the scale factor. A cosmological constant has w0=-1.0 and wa=0.0.
+        to the scale factor. A cosmological constant has wp=-1.0 and wa=0.0.
 
-    zp : float
+    zp : float, optional
         Pivot redshift -- the redshift where w(z) = wp
 
-    Tcmb0 : float or `~astropy.units.Quantity`
-        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+        Temperature of the CMB z=0. If a float, must be in [K].
+        Default: 2.725 [K]. Setting this to zero will turn off both photons
+        and neutrinos (even massive ones).
 
-    Neff : float
+    Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`
+    m_nu : `~astropy.units.Quantity`, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
         number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Usually this means you must provide three neutrino masses unless
-        you are considering something like a sterile neutrino.
+        Neff. Typically this means you should provide three neutrino masses
+        unless you are considering something like a sterile neutrino.
 
-    name : str
-        Optional name for this cosmological object.
-
-    Ob0 : float
+    Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.
+        density at z=0.  If this is set to None (the default), any
+        computation that requires its value will raise an exception.
+
+    name : str, optional
+        Name for this cosmological object.
 
     Examples
     --------
@@ -2284,13 +2568,33 @@ class wpwaCDM(FLRW):
 
     def __init__(self, H0, Om0, Ode0, wp=-1., wa=0., zp=0,
                  Tcmb0=2.725, Neff=3.04, m_nu=u.Quantity(0.0, u.eV),
-                 name=None, Ob0=None):
+                 Ob0=None, name=None):
 
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
                       Ob0=Ob0)
         self._wp = float(wp)
         self._wa = float(wa)
         self._zp = float(zp)
+
+        # Please see "Notes about speeding up integrals" for discussion
+        # about what is being done here.
+        apiv = 1.0 / (1.0 + self._zp)
+        if self._Tcmb0.value == 0:
+            self._inv_efunc_scalar = scalar_inv_efuncs.wpwacdm_inv_efunc_norel
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._wp, apiv, self._wa)
+        elif not self._massivenu:
+            self._inv_efunc_scalar = scalar_inv_efuncs.wpwacdm_inv_efunc_nomnu
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._Ogamma0 + self._Onu0,
+                                           self._wp, apiv, self._wa)
+        else:
+            self._inv_efunc_scalar = scalar_inv_efuncs.wpwacdm_inv_efunc
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._Ogamma0, self._neff_per_nu,
+                                           self._nmasslessnu,
+                                           self._nu_y_list, self._wp,
+                                           apiv, self._wa)
 
     @property
     def wp(self):
@@ -2312,7 +2616,7 @@ class wpwaCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -2341,7 +2645,7 @@ class wpwaCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -2402,34 +2706,37 @@ class w0wzCDM(FLRW):
         Omega dark energy: density of dark energy in units of the critical
         density at z=0.
 
-    w0 : float
-        Dark energy equation of state at z=0. This is pressure/density for dark
-        energy in units where c=1. A cosmological constant has w0=-1.0.
+    w0 : float, optional
+        Dark energy equation of state at z=0. This is pressure/density for
+        dark energy in units where c=1.
 
-    wz : float
+    wz : float, optional
         Derivative of the dark energy equation of state with respect to z.
+        A cosmological constant has w0=-1.0 and wz=0.0.
 
-    Tcmb0 : float or `~astropy.units.Quantity`
-        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+        Temperature of the CMB z=0. If a float, must be in [K].
+        Default: 2.725 [K]. Setting this to zero will turn off both photons
+        and neutrinos (even massive ones).
 
-    Neff : float
+    Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : float or ndarray or `~astropy.units.Quantity`
-        Mass of each neutrino species, in eV. If this is a float or scalar
-        Quantity, then all neutrino species are assumed to have that mass. If a
-        ndarray or array Quantity, then these are the values of the mass of
+    m_nu : `~astropy.units.Quantity`, optional
+        Mass of each neutrino species. If this is a scalar Quantity, then all
+        neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
         number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Usually this means you must provide three neutrino masses unless
-        you are considering something like a sterile neutrino.
+        Neff. Typically this means you should provide three neutrino masses
+        unless you are considering something like a sterile neutrino.
 
-    name : str
-        Optional name for this cosmological object.
-
-    Ob0 : float
+    Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.
+        density at z=0.  If this is set to None (the default), any
+        computation that requires its value will raise an exception.
+
+    name : str, optional
+        Name for this cosmological object.
 
     Examples
     --------
@@ -2443,12 +2750,32 @@ class w0wzCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., wz=0., Tcmb0=2.725,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None,
+                 name=None):
 
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
                       Ob0=Ob0)
         self._w0 = float(w0)
         self._wz = float(wz)
+
+        # Please see "Notes about speeding up integrals" for discussion
+        # about what is being done here.
+        if self._Tcmb0.value == 0:
+            self._inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc_norel
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._w0, self._wz)
+        elif not self._massivenu:
+            self._inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc_nomnu
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._Ogamma0 + self._Onu0,
+                                           self._w0, self._wz)
+        else:
+            self._inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._Ogamma0, self._neff_per_nu,
+                                           self._nmasslessnu,
+                                           self._nu_y_list, self._w0,
+                                           self._wz)
 
     @property
     def w0(self):
@@ -2465,7 +2792,7 @@ class w0wzCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -2492,7 +2819,7 @@ class w0wzCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -2525,12 +2852,22 @@ class w0wzCDM(FLRW):
                              self._Ode0, self._w0, self._wz, self._Tcmb0,
                              self._Neff, self.m_nu, _float_or_none(self._Ob0))
 
+
 def _float_or_none(x, digits=3):
     """ Helper function to format a variable that can be a float or None"""
     if x is None:
         return str(x)
     fmtstr = "{0:.{digits}g}".format(x, digits=digits)
     return fmtstr.format(x)
+
+
+def vectorize_if_needed(func, x):
+    """ Helper function to vectorize functions on array inputs"""
+    if isiterable(x):
+        return np.vectorize(func)(x)
+    else:
+        return func(x)
+
 
 # Pre-defined cosmologies. This loops over the parameter sets in the
 # parameters module and creates a LambdaCDM or FlatLambdaCDM instance
@@ -2605,7 +2942,3 @@ class default_cosmology(ScienceState):
             return value
         else:
             raise TypeError("default_cosmology must be a string or Cosmology instance.")
-
-
-DEFAULT_COSMOLOGY = ScienceStateAlias(
-    '0.4', 'DEFAULT_COSMOLOGY', 'default_cosmology', default_cosmology)

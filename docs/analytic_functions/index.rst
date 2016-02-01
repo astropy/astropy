@@ -95,7 +95,7 @@ Plot a blackbody spectrum for 5000 K:
     with np.errstate(all='ignore'):
         flux = blackbody_lambda(waveset, temperature)
 
-    fig, ax = plt.subplots(figsize=(8,5))
+    fig, ax = plt.subplots(figsize=(8, 5))
     ax.plot(waveset.value, flux.value)
     ax.axvline(wavemax.value, ls='--')
     ax.get_yaxis().get_major_formatter().set_powerlimits((0, 1))
@@ -103,6 +103,11 @@ Plot a blackbody spectrum for 5000 K:
     ax.set_ylabel(r'$B_{\lambda}(T)$')
     ax.set_title('Blackbody, T = {0}'.format(temperature))
 
+Note that an array of temperatures can also be given instead of a single
+temperature. In this case, the Numpy broadcasting rules apply: for instance, if
+the frequency and temperature have the same shape, the output will have this
+shape too, while if the frequency is a 2-d array with shape ``(n, m)`` and the
+temperature is an array with shape ``(m,)``, the output will have a shape ``(n, m)``.
 
 See Also
 ========

@@ -11,16 +11,11 @@ import types
 # Compatibility subpackages that should only be used on Python 2
 _py2_packages = set([
     'astropy.extern.configobj_py2',
-    'astropy.utils.compat._fractions_py2',
-    'astropy.utils.compat._gzip_py2',
-    'astropy.utils.compat._odict_py2',
-    'astropy.utils.compat._subprocess_py2'
 ])
 
 # Same but for Python 3
 _py3_packages = set([
     'astropy.extern.configobj_py3',
-    'astropy.utils.compat._gzip_py3'
 ])
 
 

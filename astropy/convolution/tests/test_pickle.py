@@ -1,11 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
-from ...extern.six.moves import cPickle
 from ... import convolution as conv
 from ...tests.helper import pytest, pickle_protocol, check_pickling_recovery
 
-@pytest.mark.parametrize("name,args,kwargs,xfail",
+@pytest.mark.parametrize(("name","args","kwargs","xfail"),
                          [(conv.CustomKernel, [],
                            {'array':np.random.rand(15)},
                            False),

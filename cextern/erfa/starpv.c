@@ -113,7 +113,7 @@ int eraStarpv(double ra, double dec,
 **
 **     Stumpff, P., 1985, Astron.Astrophys. 144, 232-240.
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -133,7 +133,6 @@ int eraStarpv(double ra, double dec,
           d = 0.0, del = 0.0,       /* to prevent */
           odd = 0.0, oddel = 0.0,   /* compiler   */
           od = 0.0, odel = 0.0;     /* warnings   */
-
 
 /* Distance (AU). */
    if (px >= PXMIN) {
@@ -212,7 +211,7 @@ int eraStarpv(double ra, double dec,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

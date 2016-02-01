@@ -31,6 +31,7 @@ from .fastbasic import (FastBasic,
                         FastCommentedHeader,
                         FastRdb)
 from .cds import Cds
+from .ecsv import Ecsv
 from .latex import Latex, AASTex, latexdicts
 from .html import HTML
 from .ipac import Ipac
@@ -39,6 +40,6 @@ from .sextractor import SExtractor
 from .fixedwidth import (FixedWidth, FixedWidthNoHeader,
                          FixedWidthTwoLine, FixedWidthSplitter,
                          FixedWidthHeader, FixedWidthData)
-from .ui import (set_guess, get_reader, read, get_writer, write)
+from .ui import (set_guess, get_reader, read, get_writer, write, get_read_trace)
 
 from . import connect

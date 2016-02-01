@@ -32,11 +32,15 @@ latexdicts = {'AA':  {'tabletype': 'table',
 
 
 def add_dictval_to_list(adict, key, alist):
-    '''add a value from a dictionary to a list
+    '''
+    Add a value from a dictionary to a list
 
-    :param adict: dictionary
-    :param key: key of value
-    :param list: list where value should be added
+    Parameters
+    ----------
+    adict : dictionary
+    key : hashable
+    alist: list
+        List where value should be added
     '''
     if key in adict:
         if isinstance(adict[key], six.string_types):
@@ -46,11 +50,21 @@ def add_dictval_to_list(adict, key, alist):
 
 
 def find_latex_line(lines, latex):
-    '''Find the first line which matches a patters
+    '''
+    Find the first line which matches a patters
 
-    :param lines: list of strings
-    :param latex: search pattern
-    :returns: line number or None, if no match was found
+    Parameters
+    ----------
+    lines : list
+        List of strings
+    latex : str
+        Search pattern
+
+    Returns
+    -------
+    line_num : int, None
+        Line number. Returns None, if no match was found
+
     '''
     re_string = re.compile(latex.replace('\\', '\\\\'))
     for i, line in enumerate(lines):
@@ -101,6 +115,17 @@ class LatexHeader(core.BaseHeader):
         else:
             return None
 
+    def _get_units(self):
+        units = {}
+        col_units = [col.info.unit for col in self.cols]
+        for name, unit in zip(self.colnames, col_units):
+            if unit:
+                try:
+                    units[name] = unit.to_string(format='latex_inline')
+                except AttributeError:
+                    units[name] = unit
+        return units
+
     def write(self, lines):
         if not 'col_align' in self.latex:
             self.latex['col_align'] = len(self.cols) * 'c'
@@ -114,12 +139,12 @@ class LatexHeader(core.BaseHeader):
             lines.append(r'\caption{' + self.latex['caption'] + '}')
         lines.append(self.header_start + r'{' + self.latex['col_align'] + r'}')
         add_dictval_to_list(self.latex, 'header_start', lines)
-        lines.append(self.splitter.join([x.name for x in self.cols]))
-        units = dict((x.name, x.unit.to_string(format='latex_inline')) for x in self.cols if x.unit)
+        lines.append(self.splitter.join(self.colnames))
+        units = self._get_units()
         if 'units' in self.latex:
             units.update(self.latex['units'])
         if units:
-            lines.append(self.splitter.join([units.get(x.name, ' ') for x in self.cols]))
+            lines.append(self.splitter.join([units.get(name, ' ') for name in self.colnames]))
         add_dictval_to_list(self.latex, 'header_end', lines)
 
 
@@ -189,7 +214,7 @@ class Latex(core.BaseReader):
                             latexdict = {'tabletype': 'table*'})
 
         * tablealign : positioning of table in text.
-            The default is not to specifiy a position preference in the text.
+            The default is not to specify a position preference in the text.
             If, e.g. the alignment is ``ht``, then the LaTeX will be ``\\begin{table}[ht]``.
 
         * col_align : Alignment of columns
@@ -338,12 +363,13 @@ class AASTexHeader(LatexHeader):
         add_dictval_to_list(self.latex, 'preamble', lines)
         if 'caption' in self.latex:
             lines.append(r'\tablecaption{' + self.latex['caption'] + '}')
-        tablehead = ' & '.join([r'\colhead{' + x.name + '}' for x in self.cols])
-        units = dict((x.name, x.unit.to_string(format='latex_inline')) for x in self.cols if x.unit)
+        tablehead = ' & '.join([r'\colhead{' + name + '}' for name in self.colnames])
+        units = self._get_units()
         if 'units' in self.latex:
             units.update(self.latex['units'])
         if units:
-            tablehead += r'\\ ' + self.splitter.join([units.get(x.name, ' ') for x in self.cols])
+            tablehead += r'\\ ' + self.splitter.join([units.get(name, ' ')
+                                                      for name in self.colnames])
         lines.append(r'\tablehead{' + tablehead + '}')
 
 

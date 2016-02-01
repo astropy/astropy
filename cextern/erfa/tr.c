@@ -20,13 +20,12 @@ void eraTr(double r[3][3], double rt[3][3])
 **  Called:
 **     eraCr        copy r-matrix
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double wm[3][3];
    int i, j;
-
 
    for (i = 0; i < 3; i++) {
       for (j = 0; j < 3; j++) {
@@ -41,7 +40,7 @@ void eraTr(double r[3][3], double rt[3][3])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

@@ -12,7 +12,7 @@ The VOTable format is an XML standard for the interchange of data represented as
 <PARAM datatype="float" name="INPUT" value="0.000000,0.000000" arraysize="*" unit="km/h" ucd="phys.size;instr.tel">
   <DESCRIPTION>This is the most interesting parameter in the world, and it drinks Dos Equis</DESCRIPTION>
 </PARAM>
-<INFO name="QUERY_STATUS" value="OK">This is some information.</INFO>
+<INFO ID="QUERY_STATUS" name="QUERY_STATUS" value="OK">This is some information.</INFO>
 <RESOURCE type="results">
 <DESCRIPTION>
   This is a resource description
@@ -26,7 +26,7 @@ The VOTable format is an XML standard for the interchange of data represented as
 <DESCRIPTION>
   This describes the table.
 </DESCRIPTION>
-<INFO name="Error" value="One might expect to find some INFO here, too..."/>
+<INFO name="Error" ID="ErrorInfo" value="One might expect to find some INFO here, too..."/>
 <GROUP>
   <PARAMref ref="awesome"/>
 </GROUP>

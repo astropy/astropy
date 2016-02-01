@@ -1,5 +1,4 @@
 import os
-import sys
 import warnings
 
 import numpy as np
@@ -9,11 +8,17 @@ from ... import fits
 from .. import HDUList, PrimaryHDU, BinTableHDU
 from ....table import Table
 from .... import units as u
-from .... import log
 from ....tests.helper import pytest, catch_warnings
 from astropy.units.format.fits import UnitScaleError
 
 DATA = os.path.join(os.path.dirname(__file__), 'data')
+
+try:
+    import pathlib
+except ImportError:
+    HAS_PATHLIB = False
+else:
+    HAS_PATHLIB = True
 
 
 def equal_data(a, b):
@@ -33,6 +38,14 @@ class TestSingleTable(object):
 
     def test_simple(self, tmpdir):
         filename = str(tmpdir.join('test_simple.fits'))
+        t1 = Table(self.data)
+        t1.write(filename, overwrite=True)
+        t2 = Table.read(filename)
+        assert equal_data(t1, t2)
+
+    @pytest.mark.skipif('not HAS_PATHLIB')
+    def test_simple_pathlib(self, tmpdir):
+        filename = pathlib.Path(str(tmpdir.join('test_simple.fits')))
         t1 = Table(self.data)
         t1.write(filename, overwrite=True)
         t2 = Table.read(filename)
@@ -124,7 +137,7 @@ class TestSingleTable(object):
     def test_read_from_fileobj(self, tmpdir):
         filename = str(tmpdir.join('test_read_from_fileobj.fits'))
         hdu = BinTableHDU(self.data)
-        hdu.writeto(filename)
+        hdu.writeto(filename, clobber=True)
         with open(filename, 'rb') as f:
             t = Table.read(f)
         assert equal_data(t, self.data)
@@ -153,6 +166,9 @@ class TestMultipleHDU(object):
         hdu3 = BinTableHDU(self.data2, name='second')
 
         self.hdus = HDUList([hdu1, hdu2, hdu3])
+
+    def teardown_class(self):
+        del self.hdus
 
     def setup_method(self, method):
         warnings.filterwarnings('always')
@@ -247,10 +263,10 @@ def test_scale_error():
     b = [2.0, 5.0, 8.2]
     c = ['x', 'y', 'z']
     t = Table([a, b, c], names=('a', 'b', 'c'), meta={'name': 'first table'})
-    t['a'].unit='percent'
+    t['a'].unit='1.2'
     with pytest.raises(UnitScaleError) as exc:
         t.write('t.fits',format='fits', overwrite=True)
-    assert exc.value.args[0]=="The column 'a' could not be stored in FITS format because it has a scale '(1.0)' that is not recognized by the FITS standard. Either scale the data or change the units."
+    assert exc.value.args[0]=="The column 'a' could not be stored in FITS format because it has a scale '(1.2)' that is not recognized by the FITS standard. Either scale the data or change the units."
 
 
 def test_bool_column(tmpdir):
@@ -269,3 +285,26 @@ def test_bool_column(tmpdir):
     with fits.open(str(tmpdir.join('test.fits'))) as hdul:
         assert hdul[1].data['col0'].dtype == np.dtype('bool')
         assert np.all(hdul[1].data['col0'] == arr)
+
+
+def test_unicode_column(tmpdir):
+    """
+    Test that a column of unicode strings is still written as one
+    byte-per-character in the FITS table (so long as the column can be ASCII
+    encoded).
+
+    Regression test for one of the issues fixed in
+    https://github.com/astropy/astropy/pull/4228
+    """
+
+    t = Table([np.array([u'a', u'b', u'cd'])])
+    t.write(str(tmpdir.join('test.fits')), overwrite=True)
+
+    with fits.open(str(tmpdir.join('test.fits'))) as hdul:
+        assert np.all(hdul[1].data['col0'] == ['a', 'b', 'cd'])
+        assert hdul[1].header['TFORM1'] == '2A'
+
+    t2 = Table([np.array([u'\N{SNOWMAN}'])])
+
+    with pytest.raises(UnicodeEncodeError):
+        t2.write(str(tmpdir.join('test.fits')), overwrite=True)

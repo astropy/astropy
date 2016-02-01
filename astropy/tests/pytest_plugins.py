@@ -13,6 +13,7 @@ from ..extern.six.moves import filter
 
 import ast
 import doctest
+import datetime
 import fnmatch
 import imp
 import io
@@ -22,17 +23,19 @@ import os
 import re
 import sys
 import types
+from collections import OrderedDict
 
-from .helper import (
-    pytest, treat_deprecations_as_exceptions, enable_deprecations_as_exceptions)
+from ..config.paths import set_temp_config, set_temp_cache
+from .helper import pytest, treat_deprecations_as_exceptions, ignore_warnings
+from .helper import enable_deprecations_as_exceptions  # pylint: disable=W0611
 from .disable_internet import turn_off_internet, turn_on_internet
-from .output_checker import AstropyOutputChecker, FIX, FLOAT_CMP
-from ..utils import OrderedDict
+from .output_checker import AstropyOutputChecker, FIX
+from ..utils.argparse import writeable_directory
+from ..utils.introspection import resolve_name
 
-# Needed for Python 2.6 compatibility
 try:
     import importlib.machinery as importlib_machinery
-except ImportError:
+except ImportError:  # Python 2.7
     importlib_machinery = None
 
 # these pytest hooks allow us to mark tests and run the marked tests with
@@ -53,6 +56,20 @@ def pytest_addoption(parser):
     parser.addoption("--doctest-rst", action="store_true",
                      help="enable running doctests in .rst documentation")
 
+    parser.addoption("--config-dir", nargs='?', type=writeable_directory,
+                     help="specify directory for storing and retrieving the "
+                          "Astropy configuration during tests (default is "
+                          "to use a temporary directory created by the test "
+                          "runner); be aware that using an Astropy config "
+                          "file other than the default can cause some tests "
+                          "to fail unexpectedly")
+
+    parser.addoption("--cache-dir", nargs='?', type=writeable_directory,
+                     help="specify directory for storing and retrieving the "
+                          "Astropy cache during tests (default is "
+                          "to use a temporary directory created by the test "
+                          "runner)")
+
     parser.addini("doctest_plus", "enable running doctests with additional "
                   "features not found in the normal doctest plugin")
 
@@ -63,6 +80,27 @@ def pytest_addoption(parser):
     parser.addini("doctest_rst",
                   "Run the doctests in the rst documentation",
                   default=False)
+
+    parser.addini("config_dir",
+                  "specify directory for storing and retrieving the "
+                  "Astropy configuration during tests (default is "
+                  "to use a temporary directory created by the test "
+                  "runner); be aware that using an Astropy config "
+                  "file other than the default can cause some tests "
+                  "to fail unexpectedly", default=None)
+
+    parser.addini("cache_dir",
+                  "specify directory for storing and retrieving the "
+                  "Astropy cache during tests (default is "
+                  "to use a temporary directory created by the test "
+                  "runner)", default=None)
+
+    parser.addini("open_files_ignore",
+                  "when used with the --open-files option, allows "
+                  "specifying names of files that may be ignored when "
+                  "left open between tests--files in this list are matched "
+                  "may be specified by their base name (ignoring their full "
+                  "path) or by absolute path", type="args", default=())
 
     parser.addoption('--repeat', action='store',
                      help='Number of times to repeat each test')
@@ -90,6 +128,9 @@ REMOTE_DATA = doctest.register_optionflag('REMOTE_DATA')
 
 def pytest_configure(config):
     treat_deprecations_as_exceptions()
+
+    config.getini('markers').append(
+        'remote_data: Run tests that require data from remote servers')
 
     # Monkeypatch to deny access to remote resources unless explicitly told
     # otherwise
@@ -251,9 +292,6 @@ class DoctestPlus(object):
         # Directories to ignore when adding doctests
         self._ignore_paths = []
 
-        if run_rst_doctests and six.PY3:
-            self._run_rst_doctests = False
-
     def pytest_ignore_collect(self, path, config):
         """Skip paths that match any of the doctest_norecursedirs patterns."""
 
@@ -311,10 +349,10 @@ class DoctestPlus(object):
             return self._doctest_module_item_cls(path, parent)
         elif self._run_rst_doctests and path.ext == '.rst':
             # Ignore generated .rst files
-            parts = bytes(path).split(os.path.sep)
-            if (path.basename.startswith(b'_') or
-                any(x.startswith(b'_') for x in parts) or
-                any(x == b'api' for x in parts)):
+            parts = str(path).split(os.path.sep)
+            if (path.basename.startswith('_') or
+                    any(x.startswith('_') for x in parts) or
+                    any(x == 'api' for x in parts)):
                 return None
 
             # TODO: Get better names on these items when they are
@@ -411,6 +449,22 @@ def _get_open_file_list():
 
 
 def pytest_runtest_setup(item):
+    config_dir = item.config.getini('config_dir')
+    cache_dir = item.config.getini('cache_dir')
+
+    # Command-line options can override, however
+    config_dir = item.config.getoption('config_dir') or config_dir
+    cache_dir = item.config.getoption('cache_dir') or cache_dir
+
+    # We can't really use context managers directly in py.test (although
+    # py.test 2.7 adds the capability), so this may look a bit hacky
+    if config_dir:
+        item.set_temp_config = set_temp_config(config_dir)
+        item.set_temp_config.__enter__()
+    if cache_dir:
+        item.set_temp_cache = set_temp_cache(cache_dir)
+        item.set_temp_cache.__enter__()
+
     # Store a list of the currently opened files so we can compare
     # against them when the test is done.
     if item.config.getvalue('open_files'):
@@ -422,6 +476,11 @@ def pytest_runtest_setup(item):
 
 
 def pytest_runtest_teardown(item, nextitem):
+    if hasattr(item, 'set_temp_cache'):
+        item.set_temp_cache.__exit__()
+    if hasattr(item, 'set_temp_config'):
+        item.set_temp_config.__exit__()
+
     # a "skipped" test will not have been called with
     # pytest_runtest_setup, so therefore won't have an
     # "open_files" member
@@ -441,10 +500,21 @@ def pytest_runtest_teardown(item, nextitem):
         return
 
     not_closed = set()
+    open_files_ignore = item.config.getini('open_files_ignore')
     for filename in open_files:
-        # astropy.log files are allowed to continue to exist
-        # between test runs
-        if os.path.basename(filename) == 'astropy.log':
+        ignore = False
+
+        for ignored in open_files_ignore:
+            if not os.path.isabs(ignored):
+                if os.path.basename(filename) == ignored:
+                    ignore = True
+                    break
+            else:
+                if filename == ignored:
+                    ignore = True
+                    break
+
+        if ignore:
             continue
 
         if filename not in start_open_files:
@@ -460,20 +530,49 @@ def pytest_runtest_teardown(item, nextitem):
 PYTEST_HEADER_MODULES = OrderedDict([('Numpy', 'numpy'),
                                      ('Scipy', 'scipy'),
                                      ('Matplotlib', 'matplotlib'),
-                                     ('h5py', 'h5py')])
+                                     ('h5py', 'h5py'),
+                                     ('Pandas', 'pandas')])
+
+# This always returns with Astropy's version
+from .. import __version__
+
+TESTED_VERSIONS = OrderedDict([('Astropy', __version__)])
 
 
 def pytest_report_header(config):
-    from .. import __version__
 
     stdoutencoding = getattr(sys.stdout, 'encoding') or 'ascii'
 
-    s = "\nRunning tests with Astropy version {0}.\n".format(__version__)
     if six.PY2:
         args = [x.decode('utf-8') for x in config.args]
     elif six.PY3:
         args = config.args
-    s += "Running tests in {0}.\n\n".format(" ".join(args))
+
+    # TESTED_VERSIONS can contain the affiliated package version, too
+    if len(TESTED_VERSIONS) > 1:
+        for pkg, version in TESTED_VERSIONS.items():
+            if pkg != 'Astropy':
+                s = "\nRunning tests with {0} version {1}.\n".format(
+                    pkg, version)
+    else:
+        s = "\nRunning tests with Astropy version {0}.\n".format(
+            TESTED_VERSIONS['Astropy'])
+
+    # Per https://github.com/astropy/astropy/pull/4204, strip the rootdir from
+    # each directory argument
+    if hasattr(config, 'rootdir'):
+        rootdir = str(config.rootdir)
+        if not rootdir.endswith(os.sep):
+            rootdir += os.sep
+
+        dirs = [arg[len(rootdir):] if arg.startswith(rootdir) else arg
+                for arg in args]
+    else:
+        dirs = args
+
+    s += "Running tests in {0}.\n\n".format(" ".join(dirs))
+
+    s += "Date: {0}\n\n".format(datetime.datetime.now().isoformat()[:19])
 
     from platform import platform
     plat = platform()
@@ -498,7 +597,8 @@ def pytest_report_header(config):
 
     for module_display, module_name in six.iteritems(PYTEST_HEADER_MODULES):
         try:
-            module = __import__(module_name)
+            with ignore_warnings(DeprecationWarning):
+                module = resolve_name(module_name)
         except ImportError:
             s += "{0}: not available\n".format(module_display)
         else:
@@ -515,9 +615,6 @@ def pytest_report_header(config):
             opts.append(op)
     if opts:
         s += "Using Astropy options: {0}.\n".format(" ".join(opts))
-
-    if six.PY3 and (config.getini('doctest_rst') or config.option.doctest_rst):
-        s += "Running doctests in .rst files is not supported on Python 3.x\n"
 
     if not six.PY3:
         s = s.encode(stdoutencoding, 'replace')
@@ -667,6 +764,7 @@ class NoUnicodeLiteralsModule(ModifiedModule):
                 return node
         return NonAsciiLiteral().visit(tree)
 
+
 def pytest_unconfigure():
     """
     Cleanup post-testing
@@ -675,3 +773,26 @@ def pytest_unconfigure():
     # turn_off_internet previously called)
     # this is harmless / does nothing if socket connections were never disabled
     turn_on_internet()
+
+
+def pytest_terminal_summary(terminalreporter):
+    """Output a warning to IPython users in case any tests failed."""
+
+    try:
+        get_ipython()
+    except NameError:
+        return
+
+    if not terminalreporter.stats.get('failed'):
+        # Only issue the warning when there are actually failures
+        return
+
+    terminalreporter.ensure_newline()
+    terminalreporter.write_line(
+        'Some tests are known to fail when run from the IPython prompt; '
+        'especially, but not limited to tests involving logging and warning '
+        'handling.  Unless you are certain as to the cause of the failure, '
+        'please check that the failure occurs outside IPython as well.  See '
+        'http://docs.astropy.org/en/stable/known_issues.html#failing-logging-'
+        'tests-when-running-the-tests-in-ipython for more information.',
+        yellow=True, bold=True)

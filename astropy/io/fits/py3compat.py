@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 from ...extern import six
+from ...utils.compat.numpycompat import NUMPY_LT_1_10
 
 if six.PY3:
     # Stuff to do if Python 3
@@ -57,24 +58,24 @@ if six.PY3:
     # bugs.  The only behavior that's modified is that bugs are fixed, so that
     # should be OK.
 
-    # Fix chararrays; this is necessary in numpy 1.5.1 and below--hopefully
-    # should not be necessary later.  See
-    # http://projects.scipy.org/numpy/ticket/1817
-    # TODO: Maybe do a version check on numpy for this?  (Note: the fix for
-    # this hasn't been accepted in Numpy yet, so a version number check would
-    # not be helpful yet...)
+    # Fix chararrays; this is necessary in numpy 1.9.x and below
+    # The fix for this is in https://github.com/numpy/numpy/pull/5982 and is
+    # available as of Numpy 1.10
 
-    _chararray = numpy.char.chararray
+    if NUMPY_LT_1_10:
+        _chararray = numpy.char.chararray
 
-    class chararray(_chararray):
-        def __getitem__(self, obj):
-            val = numpy.ndarray.__getitem__(self, obj)
-            if isinstance(val, numpy.character):
-                temp = val.rstrip()
-                if numpy.char._len(temp) == 0:
-                    val = ''
-                else:
-                    val = temp
-            return val
-    for m in [numpy.char, numpy.core.defchararray, numpy.core.records]:
-        m.chararray = chararray
+        class chararray(_chararray):
+            def __getitem__(self, obj):
+                val = numpy.ndarray.__getitem__(self, obj)
+                if isinstance(val, numpy.character):
+                    temp = val.rstrip()
+                    if numpy.char._len(temp) == 0:
+                        val = ''
+                    else:
+                        val = temp
+                return val
+
+        for m in [numpy, numpy.char, numpy.core.defchararray,
+                  numpy.core.records]:
+            m.chararray = chararray

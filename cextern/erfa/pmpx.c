@@ -46,7 +46,7 @@ void eraPmpx(double rc, double dc, double pr, double pd,
 **     eraPdp       scalar product of two p-vectors
 **     eraPn        decompose p-vector into modulus and direction
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -58,7 +58,6 @@ void eraPmpx(double rc, double dc, double pr, double pd,
 
    int i;
    double sr, cr, sd, cd, x, y, z, p[3], dt, pxr, w, pdz, pm[3];
-
 
 /* Spherical coordinates to unit vector (and useful functions). */
    sr = sin(rc);
@@ -92,7 +91,7 @@ void eraPmpx(double rc, double dc, double pr, double pd,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

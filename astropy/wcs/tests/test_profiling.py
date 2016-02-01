@@ -23,7 +23,7 @@ def test_maps():
             world = wcsobj.wcs_pix2world(x, 1)
             pix = wcsobj.wcs_world2pix(x, 1)
 
-    hdr_file_list = list(get_pkg_data_filenames("maps", "*.hdr"))
+    hdr_file_list = list(get_pkg_data_filenames("maps", pattern="*.hdr"))
 
     # actually perform a test for each one
     for filename in hdr_file_list:
@@ -62,7 +62,7 @@ def test_spectra():
             world = wcsobj.wcs_pix2world(x, 1)
             pix = wcsobj.wcs_world2pix(x, 1)
 
-    hdr_file_list = list(get_pkg_data_filenames("spectra", "*.hdr"))
+    hdr_file_list = list(get_pkg_data_filenames("spectra", pattern="*.hdr"))
 
     # actually perform a test for each one
     for filename in hdr_file_list:

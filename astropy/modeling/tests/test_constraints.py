@@ -37,7 +37,8 @@ class TestNonLinearConstraints(object):
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_fixed_par(self):
-        g1 = models.Gaussian1D(10, mean=14.9, stddev=.3, fixed={'amplitude': True})
+        g1 = models.Gaussian1D(10, mean=14.9, stddev=.3,
+                               fixed={'amplitude': True})
         fitter = fitting.LevMarLSQFitter()
         model = fitter(g1, self.x, self.ny1)
         assert model.amplitude.value == 10
@@ -51,7 +52,8 @@ class TestNonLinearConstraints(object):
         g1 = models.Gaussian1D(10, mean=14.9, stddev=.3, tied={'mean': tied})
         fitter = fitting.LevMarLSQFitter()
         model = fitter(g1, self.x, self.ny1)
-        utils.assert_allclose(model.mean.value, 50 * model.stddev, rtol=10 ** (-5))
+        utils.assert_allclose(model.mean.value, 50 * model.stddev,
+                              rtol=10 ** (-5))
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_joint_fitter(self):
@@ -70,10 +72,15 @@ class TestNonLinearConstraints(object):
         p2 = [13, .4]
         A = 9.8
         p = np.r_[A, p1, p2]
-        compmodel = lambda A, p, x: A * np.exp(-0.5 / p[1] ** 2 * (x - p[0]) ** 2)
-        errf = lambda p, x1, y1, x2, y2: np.ravel(
-            np.r_[compmodel(p[0], p[1:3], x1) - y1,
-                  compmodel(p[0], p[3:], x2) - y2])
+
+        def compmodel(A, p, x):
+            return A * np.exp(-0.5 / p[1] ** 2 * (x - p[0]) ** 2)
+
+        def errf(p, x1, y1, x2, y2):
+            return np.ravel(
+                np.r_[compmodel(p[0], p[1:3], x1) - y1,
+                      compmodel(p[0], p[3:], x2) - y2])
+
         fitparams, _ = optimize.leastsq(errf, p, args=(x, ny1, x, ny2))
         utils.assert_allclose(jf.fitparams, fitparams, rtol=10 ** (-5))
         utils.assert_allclose(g1.amplitude.value, g2.amplitude.value)
@@ -81,8 +88,13 @@ class TestNonLinearConstraints(object):
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_no_constraints(self):
         g1 = models.Gaussian1D(9.9, 14.5, stddev=.3)
-        func = lambda p, x: p[0] * np.exp(-0.5 / p[2] ** 2 * (x - p[1]) ** 2)
-        errf = lambda p, x, y: func(p, x) - y
+
+        def func(p, x):
+            return p[0] * np.exp(-0.5 / p[2] ** 2 * (x - p[1]) ** 2)
+
+        def errf(p, x, y):
+            return func(p, x) - y
+
         p0 = [9.9, 14.5, 0.3]
         y = g1(self.x)
         n = np.random.randn(100)
@@ -119,7 +131,8 @@ class TestBounds(object):
         guess_slope = 1.1
         guess_intercept = 0.0
         bounds = {'slope': (-1.5, 5.0), 'intercept': (-1.0, 1.0)}
-        line_model = models.Linear1D(guess_slope, guess_intercept, bounds=bounds)
+        line_model = models.Linear1D(guess_slope, guess_intercept,
+                                     bounds=bounds)
         fitter = fitting.LevMarLSQFitter()
         model = fitter(line_model, self.x, self.y)
         slope = model.slope.value
@@ -133,10 +146,13 @@ class TestBounds(object):
         guess_slope = 1.1
         guess_intercept = 0.0
         bounds = {'slope': (-1.5, 5.0), 'intercept': (-1.0, 1.0)}
-        line_model = models.Linear1D(guess_slope, guess_intercept, bounds=bounds)
+        line_model = models.Linear1D(guess_slope, guess_intercept,
+                                     bounds=bounds)
         fitter = fitting.SLSQPLSQFitter()
+
         with ignore_non_integer_warning():
             model = fitter(line_model, self.x, self.y)
+
         slope = model.slope.value
         intercept = model.intercept.value
         assert slope + 10 ** -5 >= bounds['slope'][0]
@@ -224,7 +240,8 @@ def test_set_fixed_1():
 
 
 def test_set_fixed_2():
-    gauss = models.Gaussian1D(amplitude=20, mean=2, stddev=1, fixed={'mean': True})
+    gauss = models.Gaussian1D(amplitude=20, mean=2, stddev=1,
+                              fixed={'mean': True})
     assert gauss.mean.fixed is True
 
 
@@ -235,7 +252,7 @@ def test_set_tied_1():
     gauss = models.Gaussian1D(amplitude=20, mean=2, stddev=1)
     gauss.amplitude.tied = tie_amplitude
     assert gauss.amplitude.tied is not False
-    assert type(gauss.tied['amplitude']) == types.FunctionType
+    assert isinstance(gauss.tied['amplitude'], types.FunctionType)
 
 
 def test_set_tied_2():
@@ -248,7 +265,8 @@ def test_set_tied_2():
 
 
 def test_unset_fixed():
-    gauss = models.Gaussian1D(amplitude=20, mean=2, stddev=1, fixed={'mean': True})
+    gauss = models.Gaussian1D(amplitude=20, mean=2, stddev=1,
+                              fixed={'mean': True})
     gauss.mean.fixed = False
     assert gauss.fixed == {'amplitude': False, 'mean': False, 'stddev': False}
 

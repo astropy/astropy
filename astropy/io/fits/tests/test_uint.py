@@ -6,8 +6,7 @@ import numpy as np
 
 from ....io import fits
 from . import FitsTestCase
-from .util import ignore_warnings
-from ....tests.helper import pytest
+from ....tests.helper import pytest, ignore_warnings
 
 
 class TestUintFunctions(FitsTestCase):
@@ -23,6 +22,7 @@ class TestUintFunctions(FitsTestCase):
     @pytest.mark.parametrize(('utype','compressed'),
         [('u2', False), ('u4', False), ('u8', False), ('u2', True),
          ('u4',True)]) #,('u8',True)])
+    @pytest.mark.skipif("os.environ.get('APPVEYOR')",  reason="fails on AppVeyor")
     def test_uint(self, utype, compressed):
         bits = 8*int(utype[1])
         if platform.architecture()[0] == '64bit' or bits != 64:

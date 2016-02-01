@@ -165,6 +165,7 @@ class TestJointFitter(object):
 class TestLinearLSQFitter(object):
     def test_chebyshev1D(self):
         """Tests fitting a 1D Chebyshev polynomial to some real world data."""
+
         test_file = get_pkg_data_filename(os.path.join('data',
                                                        'idcompspec.fits'))
         with open(test_file) as f:
@@ -219,12 +220,9 @@ class TestLinearLSQFitter(object):
                         rtol=1e-1)
 
 
-
 @pytest.mark.skipif('not HAS_SCIPY')
 class TestNonLinearFitters(object):
-    """
-    Tests non-linear least squares fitting and the SLSQP algorithm
-    """
+    """Tests non-linear least squares fitting and the SLSQP algorithm."""
 
     def setup_class(self):
         self.initial_values = [100, 5, 1]

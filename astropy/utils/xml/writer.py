@@ -150,11 +150,16 @@ class XMLWriter:
     @contextlib.contextmanager
     def tag(self, tag, attrib={}, **extra):
         """
-        A convenience method for use with the ``with`` statement::
+        A convenience method for creating wrapper elements using the
+        ``with`` statement.
 
-            with writer.tag('foo'):
-                writer.element('bar')
-            # </foo> is implicitly closed here
+        Examples
+        --------
+
+        >>> with writer.tag('foo'):  # doctest: +SKIP
+        ...     writer.element('bar')
+        ... # </foo> is implicitly closed here
+        ...
 
         Parameters are the same as to `start`.
         """

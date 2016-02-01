@@ -120,7 +120,7 @@ followed by IPython:
 
   * Duplicate of an existing issue
 
-  * A pull request superceded by a new pull request providing an alternate implementation
+  * A pull request superseded by a new pull request providing an alternate implementation
 
 * Open issues should only lack a milestone if:
 
@@ -136,7 +136,7 @@ followed by IPython:
   * The next bug fix releases for any still-supported version lines; for example if 0.4 is in development and
     0.2.x and 0.3.x are still supported there should be milestones for the next 0.2.x and 0.3.x releases.
 
-  * The next X.Y release, ie. the next minor release; this is generally the next release that all development in
+  * The next X.Y release, i.e. the next minor release; this is generally the next release that all development in
     master is aimed toward.
 
   * The next X.Y release +1; for example if 0.3 is the next release, there should also be a milestone for 0.4 for

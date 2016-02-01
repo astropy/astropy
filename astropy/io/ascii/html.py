@@ -255,7 +255,7 @@ class HTML(core.BaseReader):
 
         * table_id : ID for the input table
             If a string, this defines the HTML id of the table to be processed.
-            If an integer, this specificies the index of the input table in the
+            If an integer, this specifies the index of the input table in the
             available tables. Unless this parameter is given, the reader will
             use the first table found in the input file.
 
@@ -279,6 +279,8 @@ class HTML(core.BaseReader):
         * cssfiles : list of css files to include when writing table.
 
         * js : js script to include in the body when writing table.
+
+        * table_class : css class for the table
     """
 
     _format_name = 'html'
@@ -348,7 +350,12 @@ class HTML(core.BaseReader):
                     html_table_id = self.html['table_id']
                 else:
                     html_table_id = None
-                with w.tag('table', id=html_table_id):
+                if 'table_class' in self.html:
+                    html_table_class = self.html['table_class']
+                    attrib={"class":html_table_class}
+                else:
+                    attrib={}
+                with w.tag('table', id=html_table_id, attrib=attrib):
                     with w.tag('thead'):
                         with w.tag('tr'):
                             for col in cols:
@@ -357,7 +364,7 @@ class HTML(core.BaseReader):
                                     w.start('th', colspan=col.shape[1])
                                 else:
                                     w.start('th')
-                                w.data(col.name.strip())
+                                w.data(col.info.name.strip())
                                 w.end(indent=False)
                         col_str_iters = []
                         for col in cols:
@@ -366,9 +373,9 @@ class HTML(core.BaseReader):
                                 for i in range(span):
                                     # Split up multicolumns into separate columns
                                     new_col = Column([el[i] for el in col])
-                                    col_str_iters.append(new_col.iter_str_vals())
+                                    col_str_iters.append(new_col.info.iter_str_vals())
                             else:
-                                col_str_iters.append(col.iter_str_vals())
+                                col_str_iters.append(col.info.iter_str_vals())
 
                     for row in izip(*col_str_iters):
                         with w.tag('tr'):

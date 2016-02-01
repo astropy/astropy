@@ -180,7 +180,6 @@ class Distance(u.Quantity):
         z : float
             The redshift of this distance given the provided ``cosmology``.
         """
-        from scipy import optimize
 
         if cosmology is None:
             from ..cosmology import default_cosmology
@@ -213,4 +212,3 @@ def _convert_to_and_validate_length_unit(unit, allow_dimensionless=False):
         raise u.UnitsError('Unit "{0}" is not a length type'.format(unit))
 
     return unit
-

@@ -4,13 +4,12 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import collections
-from distutils import version
 
 import numpy as np
-from numpy import ma
 
 from ..extern import six
 from ..utils import deprecated
+from ..utils.compat import NUMPY_LT_1_8
 
 class Row(object):
     """A class to represent one row of a Table object.
@@ -23,9 +22,11 @@ class Row(object):
       ...               dtype=('int32', 'int32'))
       >>> row = table[1]
       >>> row
-      <Row 1 of table
-       values=(2, 4)
-       dtype=[('a', '<i4'), ('b', '<i4')]>
+      <Row index=1>
+        a     b
+      int32 int32
+      ----- -----
+          2     4
       >>> row['a']
       2
       >>> row[1]
@@ -35,6 +36,11 @@ class Row(object):
     def __init__(self, table, index):
         self._table = table
         self._index = index
+
+        n = len(table)
+        if index < -n or index >= n:
+            raise IndexError('index {0} out of range for table with length {1}'
+                             .format(index, len(table)))
 
     def __getitem__(self, item):
         return self._table.columns[item][self._index]
@@ -138,12 +144,14 @@ class Row(object):
                 # ValueError: Setting void-array with object members using buffer. [numpy.ma.core]
                 #
                 # All we do here is re-raise with a more informative message
-                if (six.text_type(err).startswith('Setting void-array with object members')
-                        and version.LooseVersion(np.__version__) < version.LooseVersion('1.8')):
-                    raise ValueError('Cannot convert masked table row with Object type columns '
-                                     'using as_void(), due to a bug in numpy {0}.  Please upgrade '
-                                     'to numpy 1.8 or newer.'
-                                     .format(np.__version__))
+                msg = six.text_type(err)
+                if ('Setting void-array with object members' in msg and
+                        NUMPY_LT_1_8):
+                    raise ValueError(
+                        'Cannot convert masked table row with Object type '
+                        'columns using as_void(), due to a bug in Numpy '
+                        '{0}.  Please upgrade to Numpy 1.8 or newer.'.format(
+                            np.__version__))
                 else:
                     raise
         else:
@@ -166,9 +174,36 @@ class Row(object):
     def dtype(self):
         return self._table.dtype
 
+    def _base_repr_(self, html=False):
+        """
+        Display row as a single-line table but with appropriate header line.
+        """
+        index = self.index if (self.index >= 0) else self.index + len(self._table)
+        table = self._table[index:index + 1]
+        descr_vals = [self.__class__.__name__,
+                      'index={0}'.format(self.index)]
+        if table.masked:
+            descr_vals.append('masked=True')
+
+        return table._base_repr_(html, descr_vals, max_width=-1,
+                                 tableid='table{0}'.format(id(self._table)))
+
+    def _repr_html_(self):
+        return self._base_repr_(html=True)
+
     def __repr__(self):
-        return "<{3} {0} of table\n values={1!r}\n dtype={2}>".format(
-            self.index, self.as_void(), self.dtype, self.__class__.__name__)
+        return self._base_repr_(html=False)
+
+    def __unicode__(self):
+        index = self.index if (self.index >= 0) else self.index + len(self._table)
+        return '\n'.join(self.table[index:index + 1].pformat(max_width=-1))
+    if six.PY3:
+        __str__ = __unicode__
+
+    def __bytes__(self):
+        return six.text_type(self).encode('utf-8')
+    if six.PY2:
+        __str__ = __bytes__
 
 
 collections.Sequence.register(Row)

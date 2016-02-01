@@ -120,7 +120,7 @@ The kernel can then be used directly when calling
 
     # Plot data before and after convolution
     plt.plot(x, y, 'k.')
-    plt.plot(x, z, 'r-', lw=3)
+    plt.plot(x, z)
     plt.show()
 
 

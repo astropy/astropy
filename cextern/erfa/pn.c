@@ -28,12 +28,11 @@ void eraPn(double p[3], double *r, double u[3])
 **     eraZp        zero p-vector
 **     eraSxp       multiply p-vector by scalar
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double w;
-
 
 /* Obtain the modulus and test for zero. */
    w = eraPm(p);
@@ -57,7 +56,7 @@ void eraPn(double p[3], double *r, double u[3])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

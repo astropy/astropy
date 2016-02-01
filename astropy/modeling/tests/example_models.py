@@ -1,7 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Here are all the test parameters and values for the each `~astropy.modeling.FittableModel`
-defined. There is a dictionary for 1D and a dictionary for 2D models.
+Here are all the test parameters and values for the each
+`~astropy.modeling.FittableModel` defined. There is a dictionary for 1D and a
+dictionary for 2D models.
 
 Explanation of keywords of the dictionaries:
 
@@ -53,10 +54,10 @@ from __future__ import (absolute_import, division, print_function,
 
 from ..functional_models import (
     Gaussian1D, Sine1D, Box1D, Linear1D, Lorentz1D,
-    MexicanHat1D, Trapezoid1D, Const1D, Beta1D,
+    MexicanHat1D, Trapezoid1D, Const1D, Moffat1D,
     Gaussian2D, Const2D, Box2D, MexicanHat2D,
-    TrapezoidDisk2D, AiryDisk2D, Beta2D, Disk2D,
-    Ring2D)
+    TrapezoidDisk2D, AiryDisk2D, Moffat2D, Disk2D,
+    Ring2D, Sersic1D, Sersic2D, Voigt1D)
 from ..polynomial import Polynomial1D, Polynomial2D
 from ..powerlaws import (
     PowerLaw1D, BrokenPowerLaw1D, ExponentialCutoffPowerLaw1D,
@@ -74,7 +75,7 @@ models_1D = {
     },
 
     Sine1D: {
-        'parameters': [1, 0.1],
+        'parameters': [1, 0.1, 0],
         'x_values': [0, 2.5],
         'y_values': [0, 1],
         'x_lim': [-10, 10],
@@ -129,7 +130,7 @@ models_1D = {
         'integral': 20
     },
 
-    Beta1D: {
+    Moffat1D: {
         'parameters': [1, 0, 1, 2],
         'x_values': [0, 1, -1, 3, -3],
         'y_values': [1.0, 0.25, 0.25, 0.01, 0.01],
@@ -183,11 +184,28 @@ models_1D = {
         'x_values': [1, 10, 100],
         'y_values': [3, 111, 10101],
         'x_lim': [-3, 3]
-    }
+     },
+
+    Sersic1D: {
+        'parameters': [1, 20, 4],
+        'x_values': [0.1, 1, 10, 100],
+        'y_values': [2.78629391e+02, 5.69791430e+01, 3.38788244e+00,
+                     2.23941982e-02],
+        'requires_scipy': True,
+        'x_lim': [0,10],
+        'log_fit': True
+    },
+
+    Voigt1D: {
+        'parameters': [0, 1, 0.5, 0.9],
+        'x_values': [0, 2, 4, 8, 10],
+        'y_values': [0.520935, 0.017205, 0.003998, 0.000983, 0.000628],
+        'x_lim': [-3, 3]
+     }
 }
 
 
-#2D Models
+# 2D Models
 models_2D = {
     Gaussian2D: {
         'parameters': [1, 0, 0, 1, 1],
@@ -252,7 +270,7 @@ models_2D = {
         'requires_scipy': True
     },
 
-    Beta2D: {
+    Moffat2D: {
         'parameters': [1, 0, 0, 1, 2],
         'x_values': [0, 1, -1, 3, -3],
         'y_values': [0, -1, 3, 1, -3],
@@ -288,5 +306,15 @@ models_2D = {
         'x_lim': [-10, 10],
         'y_lim': [-10, 10],
         'integral': np.pi * (10 ** 2 - 5 ** 2)
+    },
+
+    Sersic2D: {
+        'parameters': [1, 25, 4, 50, 50, 0.5, -1],
+        'x_values': [0.0, 1, 10, 100],
+        'y_values': [1, 100, 0.0, 10],
+        'z_values': [1.686398e-02, 9.095221e-02, 2.341879e-02, 9.419231e-02],
+        'requires_scipy': True,
+        'x_lim': [1, 1e10],
+        'y_lim': [1, 1e10]
     }
 }

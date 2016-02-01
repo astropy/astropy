@@ -7,10 +7,9 @@ import sys
 
 import numpy as np
 
-from .util import ignore_warnings
 from ..verify import VerifyError
 from ....io import fits
-from ....tests.helper import pytest, raises, catch_warnings
+from ....tests.helper import pytest, raises, catch_warnings, ignore_warnings
 from ....utils.exceptions import AstropyUserWarning
 
 from . import FitsTestCase

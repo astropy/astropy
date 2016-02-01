@@ -18,8 +18,7 @@ For this setup we will need flymake_, pyflakes_ and the pep8_ Python
 script, in addition to ``python-mode``.
 
 Flymake comes with Emacs 23. The rest can be obtained from their websites,
-or can be installed using `easy_install
-<http://pythonhosted.org//setuptools/easy_install.html>`_ or `pip`_.
+or can be installed using `pip`_.
 
 Global settings
 ===============

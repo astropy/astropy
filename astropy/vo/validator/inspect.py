@@ -114,7 +114,7 @@ class ConeSearchResults(object):
                 out_ws = cat_db['validate_warnings']
 
             # Warning types contains None if some other Exception was thrown.
-            # There should be only 1 occurence for each warning type.
+            # There should be only 1 occurrence for each warning type.
             # But will put in a loop anyway, just in case.
             while None in out_wt:  # pragma: no cover
                 out_wt[out_wt.index(None)] = 'None'

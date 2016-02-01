@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import absolute_import, division, print_function, unicode_literals
-from ...extern.six.moves import cPickle
 from ... import constants as const
 from ...tests.helper import pytest, pickle_protocol, check_pickling_recovery
 
@@ -11,7 +10,7 @@ originals = [const.Constant('h_fake', 'Not Planck',
              const.e]
 xfails = [True, True, True]
 
-@pytest.mark.parametrize("original,xfail", zip(originals, xfails))
+@pytest.mark.parametrize(("original","xfail"), zip(originals, xfails))
 def test_new_constant(pickle_protocol, original, xfail):
     if xfail:
         pytest.xfail()

@@ -50,7 +50,7 @@ int eraJd2cal(double dj1, double dj2,
 **     P. Kenneth Seidelmann (ed), University Science Books (1992),
 **     Section 12.92 (p604).
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -60,7 +60,6 @@ int eraJd2cal(double dj1, double dj2,
 
    long jd, l, n, i, k;
    double dj, d1, d2, f1, f2, f, d;
-
 
 /* Verify date is acceptable. */
    dj = dj1 + dj2;
@@ -103,7 +102,7 @@ int eraJd2cal(double dj1, double dj2,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

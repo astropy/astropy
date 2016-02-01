@@ -14,6 +14,7 @@ import numpy as np
 
 from .table import Table, Column
 from ..extern.six.moves import zip, range
+from ..utils.data_info import ParentDtypeInfo
 
 class TimingTables(object):
     """
@@ -95,9 +96,9 @@ def simple_table(size=3, cols=None, kinds='ifS', masked=False):
     letters = np.array([c for c in string.ascii_letters])
     for jj, kind in zip(range(cols), cycle(kinds)):
         if kind == 'i':
-            data = np.arange(1, size + 1, dtype=int) + jj
+            data = np.arange(1, size + 1, dtype=np.int64) + jj
         elif kind == 'f':
-            data = np.arange(size, dtype=float) + jj
+            data = np.arange(size, dtype=np.float64) + jj
         elif kind == 'S':
             indices = (np.arange(size) + jj) % len(letters)
             data = letters[indices]
@@ -107,7 +108,7 @@ def simple_table(size=3, cols=None, kinds='ifS', masked=False):
             data = [{val: index} for val, index in zip(vals, indices)]
         else:
             raise ValueError('Unknown data kind')
-        columns.append(Column(data, dtype=kind))
+        columns.append(Column(data))
 
     table = Table(columns, names=names, masked=masked)
     if masked:
@@ -136,3 +137,41 @@ def complex_table():
     table = first_table.to_table()
 
     return table
+
+class ArrayWrapper(object):
+    """
+    Minimal mixin using a simple wrapper around a numpy array
+    """
+    info = ParentDtypeInfo()
+
+    def __init__(self, data):
+        self.data = np.array(data)
+        if 'info' in getattr(data, '__dict__', ()):
+            self.info = data.info
+
+    def __getitem__(self, item):
+        if isinstance(item, (int, np.integer)):
+            out = self.data[item]
+        else:
+            out = self.__class__(self.data[item])
+            if 'info' in self.__dict__:
+                out.info = self.info
+        return out
+
+    def __setitem__(self, item, value):
+        self.data[item] = value
+
+    def __len__(self):
+        return len(self.data)
+
+    @property
+    def dtype(self):
+        return self.data.dtype
+
+    @property
+    def shape(self):
+        return self.data.shape
+
+    def __repr__(self):
+        return ("<{0} name='{1}' data={2}>"
+                .format(self.__class__.__name__, self.info.name, self.data))

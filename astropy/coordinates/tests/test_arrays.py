@@ -6,8 +6,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ...extern import six
-from ...tests.helper import pytest
+from ...tests.helper import pytest, assert_quantity_allclose as assert_allclose
 
 import numpy as np
 from numpy import testing as npt
@@ -101,8 +100,7 @@ def test_array_coordinates_creation():
     """
     Test creating coordinates from arrays.
     """
-    from .. import Angle
-    from .. import ICRS, CartesianRepresentation
+    from .. import Angle, ICRS, SkyCoord, CartesianRepresentation
 
     c = ICRS(np.array([1, 2])*u.deg, np.array([3, 4])*u.deg)
     assert not c.ra.isscalar
@@ -117,13 +115,13 @@ def test_array_coordinates_creation():
     c = ICRS(cart)
 
     #also ensure strings can be arrays
-    c = ICRS(['1d0m0s', '2h02m00.3s'], ['3d', '4d'])
+    c = SkyCoord(['1d0m0s', '2h02m00.3s'], ['3d', '4d'])
 
     #but invalid strings cannot
     with pytest.raises(ValueError):
-        c = ICRS(Angle(['10m0s', '2h02m00.3s']), Angle(['3d', '4d']))
+        c = SkyCoord(Angle(['10m0s', '2h02m00.3s']), Angle(['3d', '4d']))
     with pytest.raises(ValueError):
-        c = ICRS(Angle(['1d0m0s', '2h02m00.3s']), Angle(['3x', '4d']))
+        c = SkyCoord(Angle(['1d0m0s', '2h02m00.3s']), Angle(['3x', '4d']))
 
 
 def test_array_coordinates_distances():
@@ -244,13 +242,13 @@ def test_array_indexing():
     assert c2.dec.degree == -10
 
     c3 = c1[2:5]
-    npt.assert_allclose(c3.ra.degree, [80, 120, 160])
-    npt.assert_allclose(c3.dec.degree, [-50, -30, -10])
+    assert_allclose(c3.ra, [80, 120, 160] * u.deg)
+    assert_allclose(c3.dec, [-50, -30, -10] * u.deg)
 
     c4 = c1[np.array([2, 5, 8])]
 
-    npt.assert_allclose(c4.ra.degree, [80, 200, 320])
-    npt.assert_allclose(c4.dec.degree, [-50, 10, 70])
+    assert_allclose(c4.ra, [80, 200, 320] * u.deg)
+    assert_allclose(c4.dec, [-50, 10, 70] * u.deg)
 
     #now make sure the equinox is preserved
     assert c2.equinox == c1.equinox

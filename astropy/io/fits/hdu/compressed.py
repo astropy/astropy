@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 import ctypes
+import gc
 import math
 import re
 import time
@@ -8,18 +9,18 @@ import warnings
 
 import numpy as np
 
-from .base import DELAYED, ExtensionHDU
-from .image import _ImageBaseHDU, ImageHDU
+from .base import DELAYED, ExtensionHDU, BITPIX2DTYPE, DTYPE2BITPIX
+from .image import ImageHDU
 from .table import BinTableHDU
 from ..card import Card
-from ..column import Column, ColDefs, _FormatP, TDEF_RE
+from ..column import Column, ColDefs, TDEF_RE
 from ..column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
 from ..fitsrec import FITS_rec
 from ..header import Header
-from ..util import _is_pseudo_unsigned, _unsigned_zero, _is_int
+from ..util import (_is_pseudo_unsigned, _unsigned_zero, _is_int,
+                    _get_array_mmap)
 
 from ....extern.six import string_types, iteritems
-from ....extern.six.moves import xrange, filter
 from ....utils import lazyproperty, deprecated
 from ....utils.compat import ignored
 from ....utils.exceptions import (AstropyPendingDeprecationWarning,
@@ -55,12 +56,15 @@ DEFAULT_HCOMP_SMOOTH = 0
 DEFAULT_BLOCK_SIZE = 32
 DEFAULT_BYTE_PIX = 4
 
+CMTYPE_ALIASES = {}
 
 # CFITSIO version-specific features
 if COMPRESSION_SUPPORTED:
     try:
         CFITSIO_SUPPORTS_GZIPDATA = compression.CFITSIO_VERSION >= 3.28
         CFITSIO_SUPPORTS_Q_FORMAT = compression.CFITSIO_VERSION >= 3.35
+        if compression.CFITSIO_VERSION >= 3.35:
+            CMTYPE_ALIASES['RICE_ONE'] = 'RICE_1'
     except AttributeError:
         # This generally shouldn't happen unless running setup.py in an
         # environment where an old build of pyfits exists
@@ -457,7 +461,7 @@ class CompImageHDU(BinTableHDU):
                convention are described at the `FITS Support Office web site
                <http://fits.gsfc.nasa.gov/registry/tilecompression.html>`_.
                Basically, the compressed image tiles are stored in rows of a
-               variable length arrray column in a FITS binary table.  The
+               variable length array column in a FITS binary table.  The
                astropy.io.fits recognizes that this binary table extension
                contains an image and treats it as if it were an image
                extension.  Under this tile-compression format, FITS header
@@ -505,7 +509,7 @@ class CompImageHDU(BinTableHDU):
         range -2 to -100).
 
         Very high compression factors (of 100 or more) can be achieved by using
-        large ``hcomp_scale`` values, however, this can produce undesireable
+        large ``hcomp_scale`` values, however, this can produce undesirable
         'blocky' artifacts in the compressed image.  A variation of the
         HCOMPRESS algorithm (called HSCOMPRESS) can be used in this case to
         apply a small amount of smoothing of the image when it is uncompressed
@@ -523,9 +527,9 @@ class CompImageHDU(BinTableHDU):
         GZIP, RICE, or HCOMPRESS).  This technique produces much higher
         compression factors than simply using the GZIP utility to externally
         compress the whole FITS file, but it also means that the original
-        floating point value pixel values are not exactly perserved.  When done
+        floating point value pixel values are not exactly preserved.  When done
         properly, this integer scaling technique will only discard the
-        insignificant noise while still preserving all the real imformation in
+        insignificant noise while still preserving all the real information in
         the image.  The amount of precision that is retained in the pixel
         values is controlled by the ``quantize_level`` parameter.  Larger
         values will result in compressed images whose pixels more closely match
@@ -545,7 +549,7 @@ class CompImageHDU(BinTableHDU):
         between adjacent scaled integer pixel values will equal 2.0 by default.
         Note that the RMS noise is independently calculated for each tile of
         the image, so the resulting integer scaling factor may fluctuate
-        slightly for each tile.  In some cases, it may be desireable to specify
+        slightly for each tile.  In some cases, it may be desirable to specify
         the exact quantization level to be used, instead of specifying it
         relative to the calculated noise value.  This may be done by specifying
         the negative of desired quantization level for the value of
@@ -598,6 +602,8 @@ class CompImageHDU(BinTableHDU):
             raise Exception('The astropy.io.fits.compression module is not '
                             'available.  Creation of compressed image HDUs is '
                             'disabled.')
+
+        compression_type = CMTYPE_ALIASES.get(compression_type, compression_type)
 
         # Handle deprecated keyword arguments
         compression_opts = {}
@@ -800,6 +806,8 @@ class CompImageHDU(BinTableHDU):
         else:
             compression_type = self._header.get('ZCMPTYPE',
                                                 DEFAULT_COMPRESSION_TYPE)
+            compression_type = CMTYPE_ALIASES.get(compression_type,
+                                                  compression_type)
 
         # If the input image header had BSCALE/BZERO cards, then insert
         # them in the table header.
@@ -1420,7 +1428,10 @@ class CompImageHDU(BinTableHDU):
         # data) from the file, if there is any.
         compressed_data = super(BinTableHDU, self).data
         if isinstance(compressed_data, np.rec.recarray):
-            del self.data
+            # Make sure not to use 'del self.data' so we don't accidentally
+            # go through the self.data.fdel and close the mmap underlying
+            # the compressed_data array
+            del self.__dict__['data']
             return compressed_data
         else:
             # This will actually set self.compressed_data with the
@@ -1429,6 +1440,26 @@ class CompImageHDU(BinTableHDU):
             self._update_compressed_data()
 
         return self.compressed_data
+
+    @compressed_data.deleter
+    def compressed_data(self):
+        # Deleting the compressed_data attribute has to be handled
+        # with a little care to prevent a reference leak
+        # First delete the ._coldefs attributes under it to break a possible
+        # reference cycle
+        if 'compressed_data' in self.__dict__:
+            del self.__dict__['compressed_data']._coldefs
+
+            # Now go ahead and delete from self.__dict__; normally
+            # lazyproperty.__delete__ does this for us, but we can prempt it to
+            # do some additional cleanup
+            del self.__dict__['compressed_data']
+
+            # If this file was mmap'd, numpy.memmap will hold open a file
+            # handle until the underlying mmap object is garbage-collected;
+            # since this reference leak can sometimes hang around longer than
+            # welcome go ahead and force a garbage collection
+            gc.collect()
 
     @lazyproperty
     @deprecated('0.3', alternative='the ``compressed_data`` attribute',
@@ -1450,7 +1481,7 @@ class CompImageHDU(BinTableHDU):
         # The header attribute is the header for the image data.  It
         # is not actually stored in the object dictionary.  Instead,
         # the _image_header is stored.  If the _image_header attribute
-        # has already been defined we just return it.  If not, we nust
+        # has already been defined we just return it.  If not, we must
         # create it from the table header (the _header attribute).
         if hasattr(self, '_image_header'):
             return self._image_header
@@ -1593,7 +1624,7 @@ class CompImageHDU(BinTableHDU):
             for idx in range(self.header['NAXIS']):
                 _shape += (self.header['NAXIS' + str(idx + 1)],)
 
-            _format = _ImageBaseHDU.NumCode[self.header['BITPIX']]
+            _format = BITPIX2DTYPE[self.header['BITPIX']]
 
         return (self.name, class_name, len(self.header), _shape,
                 _format)
@@ -1604,7 +1635,7 @@ class CompImageHDU(BinTableHDU):
         """
 
         # Check to see that the image_header matches the image data
-        image_bitpix = _ImageBaseHDU.ImgCode[self.data.dtype.name]
+        image_bitpix = DTYPE2BITPIX[self.data.dtype.name]
 
         if image_bitpix != self._orig_bitpix or self.data.shape != self.shape:
             self._update_header_data(self.header)
@@ -1635,6 +1666,10 @@ class CompImageHDU(BinTableHDU):
                 del self._header['THEAP']
             self._theap = tbsize
 
+            # First delete the original compressed data, if it exists
+            del self.compressed_data
+
+
             # Compress the data.
             # The current implementation of compress_hdu assumes the empty
             # compressed data table has already been initialized in
@@ -1657,7 +1692,6 @@ class CompImageHDU(BinTableHDU):
         self.compressed_data._coldefs = self.columns
         self.compressed_data._heapoffset = self._theap
         self.compressed_data._heapsize = heapsize
-        self.compressed_data.formats = self.columns.formats
 
     @deprecated('0.3', alternative='(refactor your code)')
     def updateCompressedData(self):
@@ -1703,7 +1737,7 @@ class CompImageHDU(BinTableHDU):
 
         # Determine the destination (numpy) data type
         if type is None:
-            type = _ImageBaseHDU.NumCode[self._bitpix]
+            type = BITPIX2DTYPE[self._bitpix]
         _type = getattr(np, type)
 
         # Determine how to scale the data
@@ -1754,10 +1788,10 @@ class CompImageHDU(BinTableHDU):
             self.data = np.array(np.around(self.data), dtype=_type)  # 0.7.7.1
 
         # Update the BITPIX Card to match the data
-        self._bitpix = _ImageBaseHDU.ImgCode[self.data.dtype.name]
+        self._bitpix = DTYPE2BITPIX[self.data.dtype.name]
         self._bzero = self.header.get('BZERO', 0)
         self._bscale = self.header.get('BSCALE', 1)
-        # Update BITPIX for the image header specificially
+        # Update BITPIX for the image header specifically
         # TODO: Make this more clear by using self._image_header, but only once
         # this has been fixed so that the _image_header attribute is guaranteed
         # to be valid
@@ -1775,7 +1809,7 @@ class CompImageHDU(BinTableHDU):
 
     def _prewriteto(self, checksum=False, inplace=False):
         if self._scale_back:
-            self.scale(_ImageBaseHDU.NumCode[self._orig_bitpix])
+            self.scale(BITPIX2DTYPE[self._orig_bitpix])
 
         if self._has_data:
             self._update_compressed_data()
@@ -1803,7 +1837,7 @@ class CompImageHDU(BinTableHDU):
 
             # Now we need to perform an ugly hack to set the compressed data as
             # the .data attribute on the HDU so that the call to _writedata
-            # handles it propertly
+            # handles it properly
             self.__dict__['data'] = self.compressed_data
 
         return super(CompImageHDU, self)._prewriteto(checksum=checksum,
@@ -1833,6 +1867,17 @@ class CompImageHDU(BinTableHDU):
                 del self._imagedata
             else:
                 del self.data
+
+    def _close(self, closed=True):
+        super(CompImageHDU, self)._close(closed=closed)
+
+        # Also make sure to close access to the compressed data mmaps
+        if (closed and self._data_loaded and
+                _get_array_mmap(self.compressed_data) is not None):
+            del self.compressed_data
+            # Close off the deprected compData attribute as well if it has been
+            # used
+            del self.compData
 
     # TODO: This was copied right out of _ImageBaseHDU; get rid of it once we
     # find a way to rewrite this class as either a subclass or wrapper for an
@@ -1875,7 +1920,7 @@ class CompImageHDU(BinTableHDU):
             if dtype is None:
                 dtype = self._dtype_for_bitpix()
             if dtype is not None:
-                self.header['BITPIX'] = _ImageBaseHDU.ImgCode[dtype.name]
+                self.header['BITPIX'] = DTYPE2BITPIX[dtype.name]
 
             self._bzero = 0
             self._bscale = 1
@@ -1903,7 +1948,7 @@ class CompImageHDU(BinTableHDU):
             # indices of slices (starting from 0)
             first_tile = self.data[tuple(slice(d) for d in tile_dims)]
 
-            # The checksum agorithm used is literally just the sum of the bytes
+            # The checksum algorithm used is literally just the sum of the bytes
             # of the tile data (not its actual floating point values).  Integer
             # overflow is irrelevant.
             csum = first_tile.view(dtype='uint8').sum()

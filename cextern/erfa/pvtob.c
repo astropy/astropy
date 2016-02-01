@@ -61,7 +61,7 @@ void eraPvtob(double elong, double phi, double hm,
 **     eraPom00     polar motion matrix
 **     eraTrxp      product of transpose of r-matrix and p-vector
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -69,7 +69,6 @@ void eraPvtob(double elong, double phi, double hm,
    const double OM = 1.00273781191135448 * ERFA_D2PI / ERFA_DAYSEC;
 
    double xyzm[3], rpm[3][3], xyz[3], x, y, z, s, c;
-
 
 /* Geodetic to geocentric transformation (ERFA_WGS84). */
    (void) eraGd2gc(1, elong, phi, hm, xyzm);
@@ -101,7 +100,7 @@ void eraPvtob(double elong, double phi, double hm,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

@@ -96,6 +96,10 @@ atm = Constant('atmosphere', "Atmosphere", 101325, 'Pa', 0.0,
 mu0 = Constant('mu0', "Magnetic constant", 4.0e-7 * np.pi, 'N/A2', 0.0,
                'CODATA 2010', system='si')
 
+# Thomson scattering cross-section
+sigma_T = Constant('sigma_T', "Thomson scattering cross-section", 0.6652458734e-28, 'm2',
+                   0.0000000013e-28, 'CODATA 2010', system='si')
+
 # DISTANCE
 
 # Astronomical Unit

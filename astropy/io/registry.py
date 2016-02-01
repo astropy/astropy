@@ -5,10 +5,10 @@ from __future__ import (absolute_import, division, print_function,
 
 import re
 import sys
+from collections import OrderedDict
 
 import numpy as np
 
-from ..utils import OrderedDict
 from ..extern import six
 from ..extern.six.moves import zip
 
@@ -23,6 +23,14 @@ __doctest_skip__ = ['register_identifier']
 _readers = OrderedDict()
 _writers = OrderedDict()
 _identifiers = OrderedDict()
+
+PATH_TYPES = six.string_types
+try:
+    from pathlib import Path
+except:
+    pass
+else:
+    PATH_TYPES += (Path,)
 
 
 def get_formats(data_class=None):
@@ -82,6 +90,12 @@ def _update__doc__(data_class, readwrite):
 
     # Get the existing read or write method and its docstring
     class_readwrite_func = getattr(data_class, readwrite)
+
+    if not isinstance(class_readwrite_func.__doc__, six.string_types):
+        # No docstring--could just be test code, or possibly code compiled
+        # without docstrings
+        return
+
     lines = class_readwrite_func.__doc__.splitlines()
 
     # Find the location of the existing formats table if it exists
@@ -305,13 +319,17 @@ def read(cls, *args, **kwargs):
             fileobj = None
 
             if len(args):
-                if isinstance(args[0], six.string_types):
+                if isinstance(args[0], PATH_TYPES):
                     from ..utils.data import get_readable_fileobj
+                    # For Py3 the path might be a pathlib.Path object, so coerce
+                    # to a regular string.
+                    if six.PY3:
+                        args = (str(args[0]),) + args[1:]
                     path = args[0]
                     try:
                         ctx = get_readable_fileobj(args[0], encoding='binary')
                         fileobj = ctx.__enter__()
-                    except Exception as e:
+                    except Exception:
                         fileobj = None
                     else:
                         args = [fileobj] + list(args[1:])
@@ -360,7 +378,11 @@ def write(data, *args, **kwargs):
         path = None
         fileobj = None
         if len(args):
-            if isinstance(args[0], six.string_types):
+            if isinstance(args[0], PATH_TYPES):
+                # For Py3 the path might be a pathlib.Path object, so coerce
+                # to a regular string.
+                if six.PY3:
+                    args = (str(args[0]),) + args[1:]
                 path = args[0]
                 fileobj = None
             elif hasattr(args[0], 'read'):

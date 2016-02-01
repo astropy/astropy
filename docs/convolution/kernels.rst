@@ -171,7 +171,7 @@ Note that it has a slightly different color scale compared to the original image
         smoothed = convolve(data_2D, kernel)
         im = ax.imshow(smoothed, vmin=-0.01, vmax=0.08, origin='lower', interpolation='None')
         title = kernel.__class__.__name__
-        ax.set_title(title)
+        ax.set_title(title, fontsize=12)
         ax.set_yticklabels([])
         ax.set_xticklabels([])
 

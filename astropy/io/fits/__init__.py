@@ -28,7 +28,8 @@ class Conf(_config.ConfigNamespace):
     enable_record_valued_keyword_cards = _config.ConfigItem(
         True,
         'If True, enable support for record-valued keywords as described by '
-        'FITS WCS Paper IV. Otherwise they are treated as normal keywords.',
+        'FITS WCS distortion paper. Otherwise they are treated as normal '
+        'keywords.',
         aliases=['astropy.io.fits.enabled_record_valued_keyword_cards'])
     extension_name_case_sensitive = _config.ConfigItem(
         False,
@@ -45,18 +46,14 @@ class Conf(_config.ConfigNamespace):
         'FITS files. This generally provides better performance, especially '
         'for large files, but may affect performance in I/O-heavy '
         'applications.')
+    enable_uint = _config.ConfigItem(
+        True,
+        'If True, default to recognizing the convention for representing '
+        'unsigned integers in FITS--if an array has BITPIX > 0, BSCALE = 1, '
+        'and BZERO = 2**BITPIX, represent the data as unsigned integers '
+        'per this convention.')
+
 conf = Conf()
-
-
-ENABLE_RECORD_VALUED_KEYWORD_CARDS = _config.ConfigAlias(
-    '0.4', 'ENABLE_RECORD_VALUED_KEYWORD_CARDS',
-    'enable_record_valued_keyword_cards')
-EXTENSION_NAME_CASE_SENSITIVE = _config.ConfigAlias(
-    '0.4', 'EXTENSION_NAME_CASE_SENSITIVE', 'extension_name_case_sensitive')
-STRIP_HEADER_WHITESPACE = _config.ConfigAlias(
-    '0.4', 'STRIP_HEADER_WHITESPACE', 'strip_header_whitespace')
-USE_MEMMAP = _config.ConfigAlias(
-    '0.4', 'USE_MEMMAP', 'use_memmap')
 
 
 # Public API compatibility imports
@@ -84,6 +81,4 @@ from .verify import VerifyError
 __all__ = (['Conf', 'conf'] + card.__all__ + column.__all__ +
            convenience.__all__ + hdu.__all__ +
            ['FITS_record', 'FITS_rec', 'GroupData', 'open', 'Section',
-            'new_table', 'Header', 'VerifyError', 'conf',
-            'EXTENSION_NAME_CASE_SENSITIVE', 'USE_MEMMAP',
-            'ENABLE_RECORD_VALUED_KEYWORD_CARDS'])
+            'new_table', 'Header', 'VerifyError', 'conf'])

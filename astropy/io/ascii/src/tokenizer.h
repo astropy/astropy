@@ -11,6 +11,25 @@
 #include <float.h>
 #include <ctype.h>
 
+#ifdef _MSC_VER
+    #define inline __inline
+    #ifndef NAN
+        static const unsigned long __nan[2] = {0xffffffff, 0x7fffffff};
+        #define NAN (*(const double *) __nan)
+    #endif
+    #ifndef INFINITY
+        static const unsigned long __infinity[2] = {0x00000000, 0x7ff00000};
+        #define INFINITY (*(const double *) __infinity)
+    #endif
+#else
+    #ifndef INFINITY
+        #define INFINITY (1.0/0.0)
+    #endif
+    #ifndef NAN
+        #define NAN (INFINITY-INFINITY)
+    #endif
+#endif
+
 typedef enum
 {
     START_LINE = 0,
@@ -55,6 +74,9 @@ typedef struct
     int strip_whitespace_lines;  // whether to strip whitespace at the beginning and end of lines
     int strip_whitespace_fields; // whether to strip whitespace at the beginning and end of fields
     int use_fast_converter;      // whether to use the fast converter for floats
+    char *comment_lines;   // single null-delimited string containing comment lines
+    int comment_lines_len; // length of comment_lines in memory
+    int comment_pos;       // current index in comment_lines
 } tokenizer_t;
 
 /*
@@ -66,6 +88,7 @@ output_cols: ["A\x0010\x001", "B\x005.\x002", "C\x006\x003"]
 */
 
 #define INITIAL_COL_SIZE 500
+#define INITIAL_COMMENT_LEN 50
 
 tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int fill_extra_cols,
                               int strip_whitespace_lines, int strip_whitespace_fields,
@@ -73,6 +96,7 @@ tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int 
 void delete_tokenizer(tokenizer_t *tokenizer);
 void delete_data(tokenizer_t *tokenizer);
 void resize_col(tokenizer_t *self, int index);
+void resize_comments(tokenizer_t *self);
 int skip_lines(tokenizer_t *self, int offset, int header);
 int tokenize(tokenizer_t *self, int end, int header, int num_cols);
 long str_to_long(tokenizer_t *self, char *str);
@@ -83,5 +107,6 @@ void start_iteration(tokenizer_t *self, int col);
 char *next_field(tokenizer_t *self, int *size);
 long file_len(FILE *fhandle);
 char *get_line(char *ptr, int *len, int map_len);
+void reset_comments(tokenizer_t *self);
 
 #endif

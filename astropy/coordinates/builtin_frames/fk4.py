@@ -13,12 +13,15 @@ from ..baseframe import (BaseCoordinateFrame, frame_transform_graph,
 from ..transformations import FunctionTransform, DynamicMatrixTransform
 from .. import earth_orientation as earth
 
-from .consts import EQUINOX_B1950
+from .utils import EQUINOX_B1950
 
 
 class FK4(BaseCoordinateFrame):
     """
     A coordinate or frame in the FK4 system.
+
+    Note that this is a barycentric version of FK4 - that is, the origin for
+    this frame is the Solar System Barycenter, *not* the Earth geocenter.
 
     Parameters
     ----------
@@ -240,4 +243,3 @@ def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
         representation = CartesianRepresentation(x=x*c.unit, y=y*c.unit, z=z*c.unit)
 
     return fk4frame.realize_frame(representation)
-

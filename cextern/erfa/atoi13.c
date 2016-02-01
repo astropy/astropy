@@ -140,13 +140,12 @@ int eraAtoi13(const char *type, double ob1, double ob2,
 **     eraApio13    astrometry parameters, CIRS-observed, 2013
 **     eraAtoiq     quick observed to CIRS
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    int j;
    eraASTROM astrom;
-
 
 /* Star-independent astrometry parameters for CIRS->observed. */
    j = eraApio13(utc1, utc2, dut1, elong, phi, hm, xp, yp,
@@ -167,7 +166,7 @@ int eraAtoi13(const char *type, double ob1, double ob2,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

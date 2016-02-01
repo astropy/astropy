@@ -43,7 +43,7 @@ int eraCal2jd(int iy, int im, int id, double *djm0, double *djm)
 **     P. Kenneth Seidelmann (ed), University Science Books (1992),
 **     Section 12.92 (p604).
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -56,7 +56,6 @@ int eraCal2jd(int iy, int im, int id, double *djm0, double *djm)
 /* Month lengths in days */
    static const int mtab[]
                      = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-
 
 /* Preset status. */
    j = 0;
@@ -87,7 +86,7 @@ int eraCal2jd(int iy, int im, int id, double *djm0, double *djm)
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

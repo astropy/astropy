@@ -125,7 +125,7 @@ Data and Configuration
   :mod:`astropy.utils.data` should be used.
 
 * All persistent configuration should use the
-  `astropy.config.ConfigurationItem` mechanism.  Such configuration items
+  :ref:`astropy_config` mechanism.  Such configuration items
   should be placed at the top of the module or package that makes use of them,
   and supply a description sufficient for users to understand what the setting
   changes.
@@ -164,6 +164,11 @@ Coding Style/Conventions
 * The code will follow the standard `PEP8 Style Guide for Python Code
   <http://www.python.org/dev/peps/pep-0008/>`_. In particular, this includes
   using only 4 spaces for indentation, and never tabs.
+
+* *Follow the existing coding style* within a subpackage and avoid making
+  changes that are purely stylistic.  In particular, there is variation in the
+  maximum line length for different subpackages (typically either 80 or 100
+  characters).  Please try to maintain the style when adding or modifying code.
 
 * One exception is to be made from the PEP8 style: new style relative imports
   of the form ``from . import modname`` are allowed and required for Astropy,
@@ -494,13 +499,15 @@ literal and repeat all slashes, e.g. ``"\\usepackage{foo}"``.
 The following shows the problem on Python 2::
 
     >>> ur'\u'
-      File "<stdin>", line 1
+    Traceback (most recent call last):
+    ...
     SyntaxError: (unicode error) 'rawunicodeescape' codec can't decode bytes in
     position 0-1: truncated \uXXXX
     >>> ur'\\u'
     u'\\\\u'
     >>> u'\u'
-      File "<stdin>", line 1
+    Traceback (most recent call last):
+    ...
     SyntaxError: (unicode error) 'unicodeescape' codec can't decode bytes in
     position 0-1: truncated \uXXXX escape
     >>> u'\\u'

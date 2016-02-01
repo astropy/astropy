@@ -56,7 +56,7 @@ int eraGc2gde ( double a, double f, double xyz[3],
 **     coordinates accelerated by Halley's method", J.Geodesy (2006)
 **     79: 689-693
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -91,7 +91,7 @@ int eraGc2gde ( double a, double f, double xyz[3],
    p2 = x*x + y*y;
 
 /* Longitude. */
-   *elong = p2 != 0.0 ? atan2(y, x) : 0.0;
+   *elong = p2 > 0.0 ? atan2(y, x) : 0.0;
 
 /* Unsigned z-coordinate. */
    absz = fabs(z);
@@ -147,7 +147,7 @@ int eraGc2gde ( double a, double f, double xyz[3],
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

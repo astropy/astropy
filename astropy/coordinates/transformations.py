@@ -27,6 +27,7 @@ from collections import defaultdict
 import numpy as np
 
 from ..utils.compat import ignored
+from ..utils.compat.funcsigs import signature
 from ..extern import six
 
 
@@ -302,7 +303,7 @@ class TransformGraph(object):
         This function always returns a `CompositeTransform`, because
         `CompositeTransform` is slightly more adaptable in the way it can be
         called than other transform classes. Specifically, it takes care of
-        inetermediate steps of transformations in a way that is consistent with
+        intermediate steps of transformations in a way that is consistent with
         1-hop transformations.
 
         """
@@ -504,7 +505,7 @@ class TransformGraph(object):
             The coordinate frame class to transform into.
         priority : number
             The priority if this transform when finding the shortest
-            coordinate tranform path - large numbers are lower priorities.
+            coordinate transform path - large numbers are lower priorities.
 
         Returns
         -------
@@ -541,7 +542,7 @@ class TransformGraph(object):
 
         """
         def deco(func):
-            # this doesn't do anything directly with the trasnform because
+            # this doesn't do anything directly with the transform because
             # ``register_graph=self`` stores it in the transform graph
             # automatically
             transcls(func, fromsys, tosys, priority=priority,
@@ -568,7 +569,7 @@ class CoordinateTransform(object):
         The coordinate frame class to transform into.
     priority : number
         The priority if this transform when finding the shortest
-        coordinate tranform path - large numbers are lower priorities.
+        coordinate transform path - large numbers are lower priorities.
     register_graph : `TransformGraph` or `None`
         A graph to register this transformation with on creation, or
         `None` to leave it unregistered.
@@ -671,7 +672,7 @@ class FunctionTransform(CoordinateTransform):
         The coordinate frame class to transform into.
     priority : number
         The priority if this transform when finding the shortest
-        coordinate tranform path - large numbers are lower priorities.
+        coordinate transform path - large numbers are lower priorities.
     register_graph : `TransformGraph` or `None`
         A graph to register this transformation with on creation, or
         `None` to leave it unregistered.
@@ -686,17 +687,14 @@ class FunctionTransform(CoordinateTransform):
 
     """
     def __init__(self, func, fromsys, tosys, priority=1, register_graph=None):
-        from inspect import getargspec
-
         if not six.callable(func):
             raise TypeError('func must be callable')
 
         with ignored(TypeError):
-            # TypeError raised for things getargspec can't process.  We'll trust
-            # the transform designer knows what they're doing, though, because
-            # sometimes this is fine..
-            argspec = getargspec(func)
-            if (len(argspec[0]) - len(argspec[3]) != 2) and not argspec[1]:
+            sig = signature(func)
+            kinds = [x.kind for x in sig.parameters.values()]
+            if (len(x for x in kinds if x == sig.POSITIONAL_ONLY) != 2
+                and not sig.VAR_POSITIONAL in kinds):
                 raise ValueError('provided function does not accept two arguments')
 
         self.func = func
@@ -733,7 +731,7 @@ class StaticMatrixTransform(CoordinateTransform):
         The coordinate frame class to transform into.
     priority : number
         The priority if this transform when finding the shortest
-        coordinate tranform path - large numbers are lower priorities.
+        coordinate transform path - large numbers are lower priorities.
     register_graph : `TransformGraph` or `None`
         A graph to register this transformation with on creation, or
         `None` to leave it unregistered.
@@ -768,10 +766,10 @@ class StaticMatrixTransform(CoordinateTransform):
         z = v2[2].reshape(subshape)
 
         newrep = CartesianRepresentation(x, y, z)
-        if fromcoord.data.__class__ == UnitSphericalRepresentation:
+        if issubclass(fromcoord.data.__class__, UnitSphericalRepresentation):
             #need to special-case this because otherwise the new class will
             #think it has a valid distance
-            newrep = newrep.represent_as(UnitSphericalRepresentation)
+            newrep = newrep.represent_as(fromcoord.data.__class__)
 
         frameattrs = dict([(attrnm, getattr(fromcoord, attrnm))
                            for attrnm in self.overlapping_frame_attr_names])
@@ -799,7 +797,7 @@ class DynamicMatrixTransform(CoordinateTransform):
         The coordinate frame class to transform into.
     priority : number
         The priority if this transform when finding the shortest
-        coordinate tranform path - large numbers are lower priorities.
+        coordinate transform path - large numbers are lower priorities.
     register_graph : `TransformGraph` or `None`
         A graph to register this transformation with on creation, or
         `None` to leave it unregistered.
@@ -832,10 +830,10 @@ class DynamicMatrixTransform(CoordinateTransform):
         z = v2[2].reshape(subshape)
 
         newrep = CartesianRepresentation(x, y, z)
-        if fromcoord.data.__class__ == UnitSphericalRepresentation:
+        if issubclass(fromcoord.data.__class__, UnitSphericalRepresentation):
             #need to special-case this because otherwise the new class will
             #think it has a valid distance
-            newrep = newrep.represent_as(UnitSphericalRepresentation)
+            newrep = newrep.represent_as(fromcoord.data.__class__)
 
         return toframe.realize_frame(newrep)
 
@@ -860,7 +858,7 @@ class CompositeTransform(CoordinateTransform):
         The coordinate frame class to transform into.
     priority : number
         The priority if this transform when finding the shortest
-        coordinate tranform path - large numbers are lower priorities.
+        coordinate transform path - large numbers are lower priorities.
     register_graph : `TransformGraph` or `None`
         A graph to register this transformation with on creation, or
         `None` to leave it unregistered.
@@ -919,6 +917,6 @@ class CompositeTransform(CoordinateTransform):
             curr_toframe = t.tosys(**frattrs)
             curr_coord = t(curr_coord, curr_toframe)
 
-        # this is safe even in the case enere self.transforms is empty, because
+        # this is safe even in the case where self.transforms is empty, because
         # coordinate objects are immutible, so copying is not needed
         return curr_coord

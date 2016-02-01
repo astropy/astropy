@@ -3,10 +3,12 @@
 # TEST_UNICODE_LITERALS
 
 import re
+from io import BytesIO
+from collections import OrderedDict
 
 import numpy as np
 
-from ....utils import OrderedDict
+from ....extern.six.moves import cStringIO as StringIO
 from ....tests.helper import pytest
 from ... import ascii
 from ....table import Table
@@ -15,7 +17,14 @@ from ....units import Unit
 from .common import (raises, assert_equal, assert_almost_equal,
                      assert_true, setup_function, teardown_function)
 from .. import core
+from ..ui import _probably_html, get_read_trace
 
+try:
+    import bz2  # pylint: disable=W0611
+except ImportError:
+    HAS_BZ2 = False
+else:
+    HAS_BZ2 = True
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
@@ -196,10 +205,18 @@ def test_daophot_header_keywords():
 
 def test_daophot_multiple_aperture():
     table = ascii.read('t/daophot3.dat', Reader=ascii.Daophot)
-    assert 'MAG5' in table.colnames  # MAG5 is one of the newly created column name
+    assert 'MAG5' in table.colnames  # MAG5 is one of the newly created column names
     assert table['MAG5'][4] == 22.13  # A sample entry in daophot3.dat file
     assert table['MERR2'][0] == 1.171
     assert np.all(table['RAPERT5'] == 23.3)  # assert all the 5th apertures are same 23.3
+
+
+def test_daophot_multiple_aperture2():
+    table = ascii.read('t/daophot4.dat', Reader=ascii.Daophot)
+    assert 'MAG15' in table.colnames  # MAG15 is one of the newly created column name
+    assert table['MAG15'][1] == -7.573  # A sample entry in daophot4.dat file
+    assert table['MERR2'][0] == 0.049
+    assert np.all(table['RAPERT5'] == 5.)  # assert all the 5th apertures are same 5.0
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
@@ -362,6 +379,7 @@ def test_comment_lines():
     table = ascii.get_reader(Reader=ascii.Rdb)
     data = table.read('t/apostrophe.rdb')
     assert_equal(table.comment_lines, ['# first comment', '  # second comment'])
+    assert_equal(data.meta['comments'], ['first comment', 'second comment'])
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
@@ -476,7 +494,7 @@ def test_read_rdb_wrong_type(fast_reader):
     table = """col1\tcol2
 N\tN
 1\tHello"""
-    with pytest.raises(ascii.InconsistentTableError):
+    with pytest.raises(ValueError):
         ascii.read(table, Reader=ascii.Rdb, fast_reader=fast_reader)
 
 
@@ -602,8 +620,8 @@ def get_testfiles(name=None):
         {'cols': ('NUMBER',
                   'FLUX_ISO',
                   'FLUXERR_ISO',
-                  'VALUES',
-                  'VALUES_1',
+                  'VALU-ES',
+                  'VALU-ES_1',
                   'FLAG'),
          'name': 't/sextractor.dat',
          'nrows': 3,
@@ -768,7 +786,7 @@ def get_testfiles(name=None):
     ]
 
     try:
-        import bs4
+        import bs4  # pylint: disable=W0611
         testfiles.append({'cols': ('Column 1', 'Column 2', 'Column 3'),
                           'name': 't/html.html',
                           'nrows': 3,
@@ -856,16 +874,35 @@ def test_commented_csv():
     assert len(t) == 2
     assert t['#a'][1] == '#3'
 
+def test_meta_comments():
+    """
+    Make sure that line comments are included in the ``meta`` attribute
+    of the output Table.
+    """
+    t = ascii.read(['#comment1', '#   comment2 \t', 'a,b,c', '1,2,3'])
+    assert t.colnames == ['a', 'b', 'c']
+    assert t.meta['comments'] == ['comment1', 'comment2']
+
 def test_guess_fail():
     """
     Check the error message when guess fails
     """
     with pytest.raises(ascii.InconsistentTableError) as err:
-        ascii.read('asfdasdf\n1 2 3', format='html')
-
+        ascii.read('asfdasdf\n1 2 3', format='basic')
     assert "** To figure out why the table did not read, use guess=False and" in str(err.value)
 
+    # Test the case with guessing enabled but for a format that has no free params
+    with pytest.raises(ValueError) as err:
+        ascii.read('asfdasdf\n1 2 3', format='ipac')
+    assert 'At least one header line beginning and ending with delimiter required' in str(err.value)
 
+    # Test the case with guessing enabled but with all params specified
+    with pytest.raises(ValueError) as err:
+        ascii.read('asfdasdf\n1 2 3', format='basic', quotechar='"', delimiter=' ', fast_reader=False)
+    assert 'Number of header columns (1) inconsistent with data columns (3)' in str(err.value)
+
+
+@pytest.mark.xfail('not HAS_BZ2')
 def test_guessing_file_object():
     """
     Test guessing a file object.  Fixes #3013 and similar issue noted in #3019.
@@ -887,3 +924,167 @@ def test_pformat_roundtrip():
     for c in dat.colnames:
         assert np.all(dat[c] == out[c])
 
+
+def test_ipac_abbrev():
+    lines = ['| c1 | c2 | c3   |   c4 | c5| c6 | c7  | c8 | c9|c10|c11|c12|',
+             '| r  | rE | rea  | real | D | do | dou | f  | i | l | da| c |',
+             '  1    2    3       4     5   6    7     8    9   10  11  12 ']
+    dat = ascii.read(lines, format='ipac')
+    for name in dat.columns[0:8]:
+        assert dat[name].dtype.kind == 'f'
+    for name in dat.columns[8:10]:
+        assert dat[name].dtype.kind == 'i'
+    for name in dat.columns[10:12]:
+        assert dat[name].dtype.kind in ('U', 'S')
+
+
+def test_almost_but_not_quite_daophot():
+    '''Regression test for #3319.
+    This tables looks so close to a daophot table, that the daophot reader gets
+    quite far before it fails with an AttributeError.
+
+    Note that this table will actually be read as Commented Header table with
+    the columns ['some', 'header', 'info'].
+    '''
+    lines = ["# some header info",
+             "#F header info beginning with 'F'",
+             "1 2 3",
+             "4 5 6",
+             "7 8 9"]
+    dat = ascii.read(lines)
+    assert len(dat) == 3
+
+
+@pytest.mark.parametrize('fast', [True, False])
+def test_commented_header_comments(fast):
+    """
+    Test that comments in commented_header are as expected and that the
+    table round-trips.
+    """
+    lines = ['# a b',
+             '# comment 1',
+             '# comment 2',
+             '1 2',
+             '3 4']
+    dat = ascii.read(lines, format='commented_header', fast_reader=fast)
+    assert dat.meta['comments'] == ['comment 1', 'comment 2']
+
+    out = StringIO()
+    ascii.write(dat, out, format='commented_header', fast_writer=fast)
+    assert out.getvalue().splitlines() == lines
+
+    lines = ['# a b',
+             '1 2',
+             '3 4']
+    dat = ascii.read(lines, format='commented_header', fast_reader=fast)
+    assert 'comments' not in dat.meta
+
+
+def test_probably_html():
+    """
+    Test the routine for guessing if a table input to ascii.read is probably HTML
+    """
+    for table in ('t/html.html',
+                  'http://blah.com/table.html',
+                  'https://blah.com/table.html',
+                  'file://blah/table.htm',
+                  'ftp://blah.com/table.html',
+                  'file://blah.com/table.htm',
+                  ' <! doctype html > hello world',
+                  'junk < table baz> <tr foo > <td bar> </td> </tr> </table> junk',
+                  ['junk < table baz>', ' <tr foo >', ' <td bar> ', '</td> </tr>',  '</table> junk'],
+                  (' <! doctype html > ', ' hello world'),
+    ):
+        assert _probably_html(table) is True
+
+    for table in ('t/html.htms',
+                  'Xhttp://blah.com/table.html',
+                  ' https://blah.com/table.htm',
+                  'fole://blah/table.htm',
+                  ' < doctype html > hello world',
+                  'junk < tble baz> <tr foo > <td bar> </td> </tr> </table> junk',
+                  ['junk < table baz>', ' <t foo >', ' <td bar> ', '</td> </tr>',  '</table> junk'],
+                  (' <! doctype htm > ', ' hello world'),
+                  [[1, 2, 3]],
+    ):
+        assert _probably_html(table) is False
+
+
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_data_header_start(fast_reader):
+    tests = [(['# comment',
+               '',
+               ' ',
+               'skip this line',  # line 0
+               'a b',  # line 1
+               '1 2'],  # line 2
+              [{'header_start': 1},
+               {'header_start': 1, 'data_start': 2}
+           ]
+           ),
+
+             (['# comment',
+               '',
+               ' \t',
+               'skip this line',  # line 0
+               'a b',  # line 1
+               '',
+               ' \t',
+               'skip this line',  # line 2
+               '1 2'],  # line 3
+              [{'header_start': 1, 'data_start': 3}]),
+
+             (['# comment',
+               '',
+               ' ',
+               'a b',  # line 0
+               '',
+               ' ',
+               'skip this line',  # line 1
+               '1 2'],  # line 2
+              [{'header_start': 0, 'data_start': 2},
+               {'data_start': 2}])]
+
+    for lines, kwargs_list in tests:
+        for kwargs in kwargs_list:
+
+            t = ascii.read(lines, format='basic', fast_reader=fast_reader,
+                           guess=True, **kwargs)
+            assert t.colnames == ['a', 'b']
+            assert len(t) == 1
+            assert np.all(t['a'] == [1])
+            # Sanity check that the expected Reader is being used
+            assert get_read_trace()[-1]['kwargs']['Reader'] is (
+                ascii.Basic if (fast_reader is False) else ascii.FastBasic)
+
+
+def test_table_with_no_newline():
+    """
+    Test that an input file which is completely empty fails in the expected way.
+    Test that an input file with one line but no newline succeeds.
+    """
+    # With guessing
+    table = BytesIO()
+    with pytest.raises(ascii.InconsistentTableError):
+        ascii.read(table)
+
+    # Without guessing
+    table = BytesIO()
+    with pytest.raises(ValueError) as err:
+        ascii.read(table, guess=False, fast_reader=False, format='basic')
+    assert 'No header line found' in str(err.value)
+
+    table = BytesIO()
+    with pytest.raises(ValueError) as err:
+        ascii.read(table, guess=False, fast_reader=True, format='fast_basic')
+    assert 'Inconsistent data column lengths' in str(err.value)
+
+    # Put a single line of column names but with no newline
+    for kwargs in [dict(),
+                   dict(guess=False, fast_reader=False, format='basic'),
+                   dict(guess=False, fast_reader=True, format='fast_basic')]:
+        table = BytesIO()
+        table.write(b'a b')
+        t = ascii.read(table, **kwargs)
+        assert t.colnames == ['a', 'b']
+        assert len(t) == 0

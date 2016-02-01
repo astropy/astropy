@@ -10,19 +10,17 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 # Standard library
 import inspect
-import warnings
 from copy import deepcopy
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 
 # Dependencies
+import numpy as np
 
 # Project
 from ..utils.compat.misc import override__dir__
 from ..extern import six
-from ..utils.compat.odict import OrderedDict
-from ..utils.exceptions import AstropyDeprecationWarning
 from .. import units as u
-from ..utils import OrderedDict
+from ..utils import OrderedDescriptor, OrderedDescriptorContainer
 from .transformations import TransformGraph
 from .representation import (BaseRepresentation, CartesianRepresentation,
                              SphericalRepresentation,
@@ -31,7 +29,8 @@ from .representation import (BaseRepresentation, CartesianRepresentation,
 
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame',
-           'FrameAttribute', 'TimeFrameAttribute', 'RepresentationMapping']
+           'FrameAttribute', 'TimeFrameAttribute', 'QuantityFrameAttribute',
+           'EarthLocationAttribute', 'RepresentationMapping']
 
 
 # the graph used for all transformations between frames
@@ -56,7 +55,7 @@ def _get_repr_cls(value):
     return value
 
 
-class FrameMeta(type):
+class FrameMeta(OrderedDescriptorContainer):
     def __new__(mcls, name, bases, members):
         if 'default_representation' in members:
             default_repr = members.pop('default_representation')
@@ -121,7 +120,7 @@ class FrameMeta(type):
         members[attr] = property(getter)
 
 
-class FrameAttribute(object):
+class FrameAttribute(OrderedDescriptor):
     """A non-mutable data descriptor to hold a frame attribute.
 
     This class must be used to define frame attributes (e.g. ``equinox`` or
@@ -154,27 +153,16 @@ class FrameAttribute(object):
     secondary_attribute : str
         Name of a secondary instance attribute which supplies the value if
         ``default is None`` and no value was supplied during initialization.
-
-    Returns
-    -------
-    frame_attr : descriptor
-        A new data descriptor to hold a frame attribute
     """
 
-    _nextid = 1
-    """
-    Used to ascribe some ordering to FrameAttribute instances so that the
-    order they were assigned in a class body can be determined.
-    """
+    _class_attribute_ = 'frame_attributes'
+    _name_attribute_ = 'name'
+    name = '<unbound>'
 
     def __init__(self, default=None, secondary_attribute=''):
         self.default = default
         self.secondary_attribute = secondary_attribute
-
-        # Use FrameAttribute._nextid explicitly so that subclasses of
-        # FrameAttribute use the same counter
-        self._order = FrameAttribute._nextid
-        FrameAttribute._nextid += 1
+        super(FrameAttribute, self).__init__()
 
     def convert_input(self, value):
         """
@@ -210,25 +198,6 @@ class FrameAttribute(object):
         return value, False
 
     def __get__(self, instance, frame_cls=None):
-        if not hasattr(self, 'name'):
-            # Find attribute name of self by finding this object in the frame
-            # class which is requesting this attribute or any of its
-            # superclasses.
-            for mro_cls in frame_cls.__mro__:
-                for name, val in mro_cls.__dict__.items():
-                    if val is self:
-                        self.name = name
-                        break
-                if hasattr(self, 'name'):  # Can't nicely break out of two loops
-                    break
-            else:
-                # Cannot think of a way to actually raise this exception.  This
-                # instance containing this code must be in the class dict in
-                # order to get excecuted by attribute access.  But leave this
-                # here just in case...
-                raise AttributeError(
-                        'Unexpected inability to locate descriptor')
-
         out = None
 
         if instance is not None:
@@ -262,11 +231,6 @@ class TimeFrameAttribute(FrameAttribute):
     secondary_attribute : str
         Name of a secondary instance attribute which supplies the value if
         ``default is None`` and no value was supplied during initialization.
-
-    Returns
-    -------
-    frame_attr : descriptor
-        A new data descriptor to hold a frame attribute
     """
 
     def convert_input(self, value):
@@ -308,13 +272,123 @@ class TimeFrameAttribute(FrameAttribute):
                                                                value, err))
             converted = True
 
-        if not out.isscalar:
-            raise ValueError(
-                'Time input {0}={1!r} must be a single (scalar) '
-                'value'.format(self.name, value))
-
         return out, converted
 
+
+class QuantityFrameAttribute(FrameAttribute):
+    """
+    A frame attribute that is a quantity with specified units and shape
+    (optionally).
+
+    Parameters
+    ----------
+    default : object
+        Default value for the attribute if not provided
+    secondary_attribute : str
+        Name of a secondary instance attribute which supplies the value if
+        ``default is None`` and no value was supplied during initialization.
+    unit : unit object or None
+        Name of a unit that the input will be converted into. If None, no
+        unit-checking or conversion is performed
+    shape : tuple or None
+        If given, specifies the shape the attribute must be
+    """
+    def __init__(self, default=None, secondary_attribute='', unit=None, shape=None):
+        super(QuantityFrameAttribute, self).__init__(default, secondary_attribute)
+        self.unit = unit
+        self.shape = shape
+
+    def convert_input(self, value):
+        """
+        Checks that the input is a Quantity with the necessary units (or the
+        special value ``0``).
+
+        Parameters
+        ----------
+        value : object
+            Input value to be converted.
+
+        Returns
+        -------
+        out, converted : correctly-typed object, boolean
+            Tuple consisting of the correctly-typed object and a boolean which
+            indicates if conversion was actually performed.
+
+        Raises
+        ------
+        ValueError
+            If the input is not valid for this attribute.
+        """
+        if np.all(value == 0) and self.unit is not None and self.unit is not None:
+            return u.Quantity(np.zeros(self.shape), self.unit), True
+        else:
+            converted = True
+            if not (hasattr(value, 'unit') ):
+                raise TypeError('Tried to set a QuantityFrameAttribute with '
+                                'something that does not have a unit.')
+            oldvalue = value
+            value = u.Quantity(oldvalue, copy=False).to(self.unit)
+            if self.shape is not None and value.shape != self.shape:
+                raise ValueError('The provided value has shape "{0}", but '
+                                 'should have shape "{1}"'.format(value.shape,
+                                                                  self.shape))
+            if (oldvalue.unit == value.unit and hasattr(oldvalue, 'value') and
+                np.all(oldvalue.value == value.value)):
+                converted = False
+            return value, converted
+
+
+class EarthLocationAttribute(FrameAttribute):
+    """
+    A frame attribute that can act as a `~astropy.coordinates.EarthLocation`.
+    It can be created as anything that can be transformed to the
+    `~astropy.coordinates.ITRS` frame, but always presents as an `EarthLocation`
+    when accessed after creation.
+
+    Parameters
+    ----------
+    default : object
+        Default value for the attribute if not provided
+    secondary_attribute : str
+        Name of a secondary instance attribute which supplies the value if
+        ``default is None`` and no value was supplied during initialization.
+    """
+
+    def convert_input(self, value):
+        """
+        Checks that the input is a Quantity with the necessary units (or the
+        special value ``0``).
+
+        Parameters
+        ----------
+        value : object
+            Input value to be converted.
+
+        Returns
+        -------
+        out, converted : correctly-typed object, boolean
+            Tuple consisting of the correctly-typed object and a boolean which
+            indicates if conversion was actually performed.
+
+        Raises
+        ------
+        ValueError
+            If the input is not valid for this attribute.
+        """
+        if value is None:
+            return None, False
+        elif isinstance(value, EarthLocation):
+            return value, False
+        else:
+            #we have to do the import here because of some tricky circular deps
+            from .builtin_frames import ITRS
+
+            if not hasattr(value, 'transform_to'):
+                raise ValueError('"{0}" was passed into an '
+                                 'EarthLocationAttribute, but it does not have '
+                                 '"transform_to" method'.format(value))
+            itrsobj = value.transform_to(ITRS)
+            return itrsobj.earth_location, True
 
 _RepresentationMappingBase = \
     namedtuple('RepresentationMapping',
@@ -368,67 +442,10 @@ class BaseCoordinateFrame(object):
     # specifies special names/units for representation attributes
     frame_specific_representation_info = {}
 
-    # This __new__ provides for backward-compatibility with pre-0.4 API.
-    # TODO: remove in 1.0
-    def __new__(cls, *args, **kwargs):
+    _inherit_descriptors_ = (FrameAttribute,)
 
-        # Only do backward-compatibility if frame is previously defined one
-        frame_name = cls.__name__.lower()
-        if frame_name not in ['altaz', 'fk4', 'fk4noeterms', 'fk5',
-                              'galactic', 'icrs']:
-            return super(BaseCoordinateFrame, cls).__new__(cls)
-
-        use_skycoord = False
-
-        if (len(args) > 1 or (len(args) == 1 and
-                not isinstance(args[0], BaseRepresentation))):
-            for arg in args:
-                if (not isinstance(arg, u.Quantity)
-                    and not isinstance(arg, BaseRepresentation)):
-                    msg = ('Initializing frame classes like "{0}" using string '
-                           'or other non-Quantity arguments is deprecated, and '
-                           'will be removed in the next version of Astropy.  '
-                           'Instead, you probably want to use the SkyCoord '
-                           'class with the "system={1}" keyword, or if you '
-                           'really want to use the low-level frame classes, '
-                           'create it with an Angle or Quantity.')
-
-                    warnings.warn(msg.format(cls.__name__,
-                                             cls.__name__.lower()),
-                                  AstropyDeprecationWarning)
-                    use_skycoord = True
-                    break
-
-        if 'unit' in kwargs and not use_skycoord:
-            warnings.warn(
-                "Initializing frames using the ``unit`` argument is "
-                "now deprecated. Use SkyCoord or pass Quantity "
-                "instances to frames instead.", AstropyDeprecationWarning)
-            use_skycoord = True
-
-        if not use_skycoord:
-            representation = kwargs.get('representation',
-                                        cls._default_representation)
-            representation = _get_repr_cls(representation)
-
-            repr_info = cls._get_representation_info()
-
-            for key in repr_info[representation]['names']:
-                if key in kwargs:
-                    if not isinstance(kwargs[key], u.Quantity):
-                        warnings.warn(
-                            "Initializing frames using non-Quantity arguments "
-                            "is now deprecated. Use SkyCoord or pass Quantity "
-                            "instances instead.", AstropyDeprecationWarning)
-                        use_skycoord = True
-                        break
-
-        if use_skycoord:
-            kwargs['frame'] = frame_name
-            from .sky_coordinate import SkyCoord
-            return SkyCoord(*args, **kwargs)
-        else:
-            return super(BaseCoordinateFrame, cls).__new__(cls)
+    frame_attributes = OrderedDict()
+    # Default empty frame_attributes dict
 
     def __init__(self, *args, **kwargs):
         self._attr_names_with_defaults = []
@@ -480,9 +497,9 @@ class BaseCoordinateFrame(object):
             if repr_kwargs:
                 if repr_kwargs.get('distance', True) is None:
                     del repr_kwargs['distance']
-                if (self.representation == SphericalRepresentation and
+                if (issubclass(self.representation, SphericalRepresentation) and
                         'distance' not in repr_kwargs):
-                    representation_data = UnitSphericalRepresentation(**repr_kwargs)
+                    representation_data = self.representation._unit_representation(**repr_kwargs)
                 else:
                     representation_data = self.representation(**repr_kwargs)
 
@@ -541,20 +558,8 @@ class BaseCoordinateFrame(object):
 
     @classmethod
     def get_frame_attr_names(cls):
-        seen = set()
-        attributes = []
-        for mro_cls in cls.__mro__:
-            for name, val in mro_cls.__dict__.items():
-                if isinstance(val, FrameAttribute) and name not in seen:
-                    seen.add(name)
-                    # Add the sort order, name, and actual value of the frame
-                    # attribute in question
-                    attributes.append((val._order, name,
-                                       getattr(mro_cls, name)))
-
-        # Sort by the frame attribute order
-        attributes.sort(key=lambda a: a[0])
-        return OrderedDict((a[1], a[2]) for a in attributes)
+        return OrderedDict((name, getattr(cls, name))
+                           for name in cls.frame_attributes)
 
     @property
     def representation(self):
@@ -643,7 +648,6 @@ class BaseCoordinateFrame(object):
                 out[repr_name] = repr_unit
         return out
 
-
     def realize_frame(self, representation):
         """
         Generates a new frame *with new data* from another frame (which may or
@@ -701,11 +705,13 @@ class BaseCoordinateFrame(object):
         >>> from astropy.coordinates import SkyCoord, CartesianRepresentation
         >>> coord = SkyCoord(0*u.deg, 0*u.deg)
         >>> coord.represent_as(CartesianRepresentation)
-        <CartesianRepresentation x=1.0, y=0.0, z=0.0>
+        <CartesianRepresentation (x, y, z) [dimensionless]
+                (1.0, 0.0, 0.0)>
 
         >>> coord.representation = CartesianRepresentation
         >>> coord
-        <SkyCoord (ICRS): x=1.0, y=0.0, z=0.0>
+        <SkyCoord (ICRS): (x, y, z) [dimensionless]
+            (1.0, 0.0, 0.0)>
         """
         new_representation = _get_repr_cls(new_representation)
 
@@ -836,53 +842,98 @@ class BaseCoordinateFrame(object):
         """
         return attrnm in self._attr_names_with_defaults
 
-    def __repr__(self):
-        frameattrs = ', '.join([attrnm + '=' + str(getattr(self, attrnm))
-                                for attrnm in self.get_frame_attr_names()])
+    def is_equivalent_frame(self, other):
+        """
+        Checks if this object is the same frame as the ``other`` object.
 
-        if self.has_data:
-            if self.representation:
-                if (self.representation == SphericalRepresentation and
-                        isinstance(self.data, UnitSphericalRepresentation)):
-                    data = self.represent_as(UnitSphericalRepresentation,
-                                             in_frame_units=True)
-                else:
-                    data = self.represent_as(self.representation,
-                                             in_frame_units=True)
+        To be the same frame, two objects must be the same frame class and have
+        the same frame attributes.  Note that it does *not* matter what, if any,
+        data either object has.
 
-                data_repr = repr(data)
-                for nmpref, nmrepr in self.representation_component_names.items():
-                    data_repr = data_repr.replace(nmrepr, nmpref)
+        Parameters
+        ----------
+        other : BaseCoordinateFrame
+            the other frame to check
 
-            else:
-                data = self.data
-                data_repr = repr(self.data)
+        Returns
+        -------
+        isequiv : bool
+            True if the frames are the same, False if not.
 
-            if data_repr.startswith('<' + data.__class__.__name__):
-                # standard form from BaseRepresentation
-                if frameattrs:
-                    frameattrs = ' (' + frameattrs + ')'
-
-                #remove both the leading "<" and the space after the name
-                data_repr = data_repr[(len(data.__class__.__name__) + 2):]
-
-                return '<{0} Coordinate{1}: {2}'.format(self.__class__.__name__,
-                                                        frameattrs, data_repr)
-            else:
-                # should only happen if a representation has a non-standard
-                # __repr__ method, and we just punt to that
-                if frameattrs:
-                    frameattrs = ' (' + frameattrs + '), '
-                s = '<{0} Coordinate{1}Data:\n{2}>'
-                return s.format(self.__class__.__name__, frameattrs, data_repr)
+        Raises
+        ------
+        TypeError
+            If ``other`` isn't a `BaseCoordinateFrame` or subclass.
+        """
+        if self.__class__ == other.__class__:
+            for frame_attr_name in self.get_frame_attr_names():
+                if getattr(self, frame_attr_name) != getattr(other, frame_attr_name):
+                    return False
+            return True
+        elif not isinstance(other, BaseCoordinateFrame):
+            raise TypeError("Tried to do is_equivalent_frame on something that "
+                            "isn't a frame")
         else:
-            if frameattrs:
-                frameattrs = ' (' + frameattrs + ')'
-            return '<{0} Frame{1}>'.format(self.__class__.__name__, frameattrs)
+            return False
+
+    def __repr__(self):
+        frameattrs = self._frame_attrs_repr()
+        data_repr = self._data_repr()
+
+        if frameattrs:
+            frameattrs = ' ({0})'.format(frameattrs)
+
+        if data_repr:
+            return '<{0} Coordinate{1}: {2}>'.format(self.__class__.__name__,
+                                                     frameattrs, data_repr)
+        else:
+            return '<{0} Frame{1}>'.format(self.__class__.__name__,
+                                            frameattrs)
+
+    def _data_repr(self):
+        """Returns a string representation of the coordinate data."""
+
+        if not self.has_data:
+            return ''
+
+        if self.representation:
+            if (issubclass(self.representation, SphericalRepresentation) and
+                    isinstance(self.data, UnitSphericalRepresentation)):
+                data = self.represent_as(self.data.__class__,
+                                         in_frame_units=True)
+            else:
+                data = self.represent_as(self.representation,
+                                         in_frame_units=True)
+
+            data_repr = repr(data)
+            for nmpref, nmrepr in self.representation_component_names.items():
+                data_repr = data_repr.replace(nmrepr, nmpref)
+
+        else:
+            data = self.data
+            data_repr = repr(self.data)
+
+        if data_repr.startswith('<' + data.__class__.__name__):
+            # remove both the leading "<" and the space after the name, as well
+            # as the trailing ">"
+            data_repr = data_repr[(len(data.__class__.__name__) + 2):-1]
+        else:
+            data_repr = 'Data:\n' + data_repr
+
+        return data_repr
+
+    def _frame_attrs_repr(self):
+        """
+        Returns a string representation of the frame's attributes, if any.
+        """
+        return ', '.join([attrnm + '=' + str(getattr(self, attrnm))
+                          for attrnm in self.get_frame_attr_names()])
 
     def __getitem__(self, view):
         if self.has_data:
-            return self.realize_frame(self.data[view])
+            out = self.realize_frame(self.data[view])
+            out.representation = self.representation
+            return out
         else:
             raise ValueError('Cannot index a frame with no data')
 
@@ -922,10 +973,10 @@ class BaseCoordinateFrame(object):
         return val
 
     def __setattr__(self, attr, value):
-        repr_attr_names = []
+        repr_attr_names = set()
         if hasattr(self, 'representation_info'):
             for representation_attr in self.representation_info.values():
-                repr_attr_names.extend(representation_attr['names'])
+                repr_attr_names.update(representation_attr['names'])
         if attr in repr_attr_names:
             raise AttributeError(
                 'Cannot set any frame attribute {0}'.format(attr))
@@ -958,7 +1009,7 @@ class BaseCoordinateFrame(object):
         from .angles import Angle
 
         self_unit_sph = self.represent_as(UnitSphericalRepresentation)
-        other_transformed = other.transform_to(self.__class__)
+        other_transformed = other.transform_to(self)
         other_unit_sph = other_transformed.represent_as(UnitSphericalRepresentation)
 
         # Get the separation as a Quantity, convert to Angle in degrees
@@ -989,14 +1040,14 @@ class BaseCoordinateFrame(object):
 
         from .distances import Distance
 
-        if self.data.__class__ == UnitSphericalRepresentation:
+        if issubclass(self.data.__class__, UnitSphericalRepresentation):
             raise ValueError('This object does not have a distance; cannot '
                              'compute 3d separation.')
 
         # do this first just in case the conversion somehow creates a distance
-        other_in_self_system = other.transform_to(self.__class__)
+        other_in_self_system = other.transform_to(self)
 
-        if other_in_self_system.__class__ == UnitSphericalRepresentation:
+        if issubclass(other_in_self_system.__class__, UnitSphericalRepresentation):
             raise ValueError('The other object does not have a distance; '
                              'cannot compute 3d separation.')
 
@@ -1041,17 +1092,16 @@ class GenericFrame(BaseCoordinateFrame):
         A dictionary of attributes to be used as the frame attributes for this
         frame.
     """
+
     name = None  # it's not a "real" frame so it doesn't have a name
 
     def __init__(self, frame_attrs):
-        super(GenericFrame, self).__setattr__('_frame_attr_names', frame_attrs)
+        self.frame_attributes = OrderedDict()
+        for name, default in frame_attrs.items():
+            self.frame_attributes[name] = FrameAttribute(default)
+            setattr(self, '_' + name, default)
+
         super(GenericFrame, self).__init__(None)
-
-        for attrnm, attrval in frame_attrs.items():
-            setattr(self, '_' + attrnm, attrval)
-
-    def get_frame_attr_names(self):
-        return self._frame_attr_names
 
     def __getattr__(self, name):
         if '_' + name in self.__dict__:
@@ -1060,9 +1110,11 @@ class GenericFrame(BaseCoordinateFrame):
             raise AttributeError('no {0}'.format(name))
 
     def __setattr__(self, name, value):
-        if name in self._frame_attr_names:
+        if name in self.get_frame_attr_names():
             raise AttributeError("can't set frame attribute '{0}'".format(name))
         else:
             super(GenericFrame, self).__setattr__(name, value)
 
-
+# doing this import at the bottom prevents a circular import issue that is
+# otherwise present due to EarthLocation needing to import ITRS
+from .earth import EarthLocation

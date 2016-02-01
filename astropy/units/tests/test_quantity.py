@@ -9,20 +9,32 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import copy
 import decimal
-from distutils import version
+from fractions import Fraction
 
 import numpy as np
 from numpy.testing import (assert_allclose, assert_array_equal,
                            assert_array_almost_equal)
-NUMPY_VERSION = version.LooseVersion(np.__version__)
+
 
 from ...tests.helper import raises, pytest
-from ...utils import isiterable
+from ...utils import isiterable, minversion
+from ...utils.compat import NUMPY_LT_1_7
 from ... import units as u
 from ...units.quantity import _UNIT_NOT_INITIALISED
 from ...extern.six.moves import xrange
 from ...extern.six.moves import cPickle as pickle
 from ...extern import six
+
+try:
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    from distutils.version import LooseVersion
+    MATPLOTLIB_LT_14 = LooseVersion(matplotlib.__version__) < LooseVersion("1.4")
+    HAS_MATPLOTLIB = True
+except ImportError:
+    HAS_MATPLOTLIB = False
+
 
 """ The Quantity class will represent a number + unit + uncertainty """
 
@@ -466,8 +478,12 @@ class TestQuantityOperations(object):
                 long(q1)
             assert exc.value.args[0] == converter_err_msg
 
+        # We used to test `q1 * ['a', 'b', 'c'] here, but that that worked
+        # at all was a really odd confluence of bugs.  Since it doesn't work
+        # in numpy >=1.10 any more, just go directly for `__index__` (which
+        # makes the test more similar to the `int`, `long`, etc., tests).
         with pytest.raises(TypeError) as exc:
-            q1 * ['a', 'b', 'c']
+            q1.__index__()
         assert exc.value.args[0] == index_err_msg
 
         # dimensionless but scaled is OK, however
@@ -480,7 +496,7 @@ class TestQuantityOperations(object):
             assert long(q2) == long(q2.to(u.dimensionless_unscaled).value)
 
         with pytest.raises(TypeError) as exc:
-            q2 * ['a', 'b', 'c']
+            q2.__index__()
         assert exc.value.args[0] == index_err_msg
 
         # dimensionless unscaled is OK, though for index needs to be int
@@ -492,7 +508,7 @@ class TestQuantityOperations(object):
             assert long(q3) == 1
 
         with pytest.raises(TypeError) as exc:
-            q1 * ['a', 'b', 'c']
+            q1.__index__()
         assert exc.value.args[0] == index_err_msg
 
         # integer dimensionless unscaled is good for all
@@ -503,7 +519,7 @@ class TestQuantityOperations(object):
         if six.PY2:
             assert long(q4) == 2
 
-        assert q4 * ['a', 'b', 'c'] == ['a', 'b', 'c', 'a', 'b', 'c']
+        assert q4.__index__() == 2
 
         # but arrays are not OK
         q5 = u.Quantity([1, 2], u.m)
@@ -521,7 +537,7 @@ class TestQuantityOperations(object):
             assert exc.value.args[0] == converter_err_msg
 
         with pytest.raises(TypeError) as exc:
-            q5 * ['a', 'b', 'c']
+            q5.__index__()
         assert exc.value.args[0] == index_err_msg
 
     def test_array_converters(self):
@@ -709,7 +725,7 @@ class TestQuantityDisplay(object):
         assert (q2scalar._repr_latex_() ==
                 '$1.5 \\times 10^{14} \\; \\mathrm{\\frac{m}{s}}$')
 
-        if NUMPY_VERSION < version.LooseVersion('1.7.0'):
+        if NUMPY_LT_1_7:
             with pytest.raises(NotImplementedError):
                 self.arrq._repr_latex_()
             return  # all arrays should fail
@@ -824,7 +840,7 @@ def test_arrays():
     assert qkpc0.value == a[0].item()
     assert qkpc0.unit == qkpc.unit
     assert isinstance(qkpc0, u.Quantity)
-    assert not qkpc0.isscalar
+    assert qkpc0.isscalar
     qkpcx = qkpc['x']
     assert np.all(qkpcx.value == a['x'])
     assert qkpcx.unit == qkpc.unit
@@ -1085,6 +1101,14 @@ def test_quantity_tuple_power():
     (5.0 * u.m) ** (1, 2)
 
 
+def test_quantity_fraction_power():
+    q = (25.0 * u.m**2) ** Fraction(1, 2)
+    assert q.value == 5.
+    assert q.unit == u.m
+    # Regression check to ensure we didn't create an object type by raising
+    # the value of the quantity to a Fraction. [#3922]
+    assert q.dtype.kind == 'f'
+
 def test_inherit_docstrings():
     assert u.Quantity.argmax.__doc__ == np.ndarray.argmax.__doc__
 
@@ -1132,7 +1156,7 @@ def test_insert():
     assert q2.unit is u.m
     assert q2.dtype.kind == 'f'
 
-    if NUMPY_VERSION >= version.LooseVersion('1.8.0'):
+    if minversion(np, '1.8.0'):
         q2 = q.insert(1, [1, 2] * u.km)
         assert np.all(q2.value == [1, 1000, 2000, 2])
         assert q2.unit is u.m
@@ -1155,3 +1179,46 @@ def test_insert():
     q2 = q.insert(1, 10 * u.m, axis=1)
     assert np.all(q2.value == [[  1,  10, 2],
                                [  3,  10, 4]])
+
+
+def test_repr_array_of_quantity():
+    """
+    Test print/repr of object arrays of Quantity objects with different
+    units.
+
+    Regression test for the issue first reported in
+    https://github.com/astropy/astropy/issues/3777
+    """
+
+    a = np.array([1 * u.m, 2 * u.s], dtype=object)
+    if NUMPY_LT_1_7:
+        # Numpy 1.6.x has some different defaults for how to display object
+        # arrays (it uses the str() of the objects instead of the repr()
+        assert repr(a) == 'array([1.0 m, 2.0 s], dtype=object)'
+        assert str(a) == '[1.0 m 2.0 s]'
+    else:
+        assert repr(a) == 'array([<Quantity 1.0 m>, <Quantity 2.0 s>], dtype=object)'
+        assert str(a) == '[<Quantity 1.0 m> <Quantity 2.0 s>]'
+
+
+@pytest.mark.skipif('not HAS_MATPLOTLIB')
+@pytest.mark.xfail('MATPLOTLIB_LT_14')
+class TestQuantityMatplotlib(object):
+    """Test if passing matplotlib quantities works.
+
+    TODO: create PNG output and check against reference image
+          once `astropy.wcsaxes` is merged, which provides
+          the machinery for this.
+
+    See https://github.com/astropy/astropy/issues/1881
+    See https://github.com/astropy/astropy/pull/2139
+    """
+
+    def test_plot(self):
+        data = u.Quantity([4, 5, 6], 's')
+        plt.plot(data)
+
+    def test_scatter(self):
+        x = u.Quantity([4, 5, 6], 'second')
+        y = [1, 3, 4] * u.m
+        plt.scatter(x, y)

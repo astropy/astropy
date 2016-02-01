@@ -6,6 +6,7 @@ from ..extern import six
 import functools
 import types
 import warnings
+import numpy as np
 
 from ..units.core import Unit, UnitsError
 from ..units.quantity import Quantity
@@ -91,9 +92,11 @@ class Constant(Quantity):
         instances = Constant._registry.setdefault(name_lower, {})
         if system in instances:
             warnings.warn('Constant {0!r} is already has a definition in the '
-                          '{1!r} system'.format(name, system), AstropyUserWarning)
-
-        inst = super(Constant, cls).__new__(cls, value)
+                          '{1!r} system'.format(name, system),
+                          AstropyUserWarning)
+        # By-pass Quantity initialization, since units may not yet be
+        # initialized here, and we store the unit in string form.
+        inst = np.array(value).view(cls)
 
         for c in six.itervalues(instances):
             if system is not None and not hasattr(c.__class__, system):
@@ -103,22 +106,19 @@ class Constant(Quantity):
 
         instances[system] = inst
 
+        inst._abbrev = abbrev
+        inst._name = name
+        inst._value = value
+        inst._unit_string = unit
+        inst._uncertainty = uncertainty
+        inst._reference = reference
+        inst._system = system
+
+        inst._checked_units = False
         return inst
 
-    def __init__(self, abbrev, name, value, unit, uncertainty, reference,
-                 system=None):
-        self._abbrev = abbrev
-        self._name = name
-        self._value = value
-        self._unit = unit
-        self._uncertainty = uncertainty
-        self._reference = reference
-        self._system = system
-
-        self._checked_units = False
-
     def __repr__(self):
-        return ('<Constant name={0!r} value={1} error={2} units={3!r} '
+        return ('<Constant name={0!r} value={1} uncertainty={2} unit={3!r} '
                 'reference={4!r}>'.format(self.name, self.value,
                                           self.uncertainty, str(self.unit),
                                           self.reference))
@@ -126,8 +126,8 @@ class Constant(Quantity):
     def __str__(self):
         return ('  Name   = {0}\n'
                 '  Value  = {1}\n'
-                '  Error  = {2}\n'
-                '  Units  = {3}\n'
+                '  Uncertainty  = {2}\n'
+                '  Unit  = {3}\n'
                 '  Reference = {4}'.format(self.name, self.value,
                                            self.uncertainty, self.unit,
                                            self.reference))
@@ -159,10 +159,10 @@ class Constant(Quantity):
         return self._name
 
     @lazyproperty
-    def unit(self):
+    def _unit(self):
         """The unit(s) in which this constant is defined."""
 
-        return Unit(self._unit)
+        return Unit(self._unit_string)
 
     @property
     def uncertainty(self):
@@ -202,6 +202,13 @@ class Constant(Quantity):
 
         instances = Constant._registry[self.name.lower()]
         return instances.get('cgs') or super(Constant, self).cgs
+
+    def __array_finalize__(self, obj):
+        for attr in ('_abbrev', '_name', '_value', '_unit_string',
+                      '_uncertainty', '_reference', '_system'):
+            setattr(self, attr, getattr(obj, attr, None))
+
+        self._checked_units = getattr(obj, '_checked_units', False)
 
 
 class EMConstant(Constant):

@@ -59,8 +59,9 @@ the conventions of `~astropy.units.Quantity` by using the
   >>> tu['a'].unit = u.m
   >>> tu['a'].quantity[:] = [1, 2] * u.km
   >>> tu['a']
-  <Column name='a' unit=u'm' format=None description=None>
-  array([ 1000.,  2000.])
+  <Column name='a' dtype='float64' unit='m' length=2>
+  1000.0
+  2000.0
 
 **Add a column or columns**
 
@@ -92,8 +93,12 @@ Finally, columns can also be added from
   >>> from astropy import units as u
   >>> t['d'] = np.arange(1., 6.) * u.m
   >>> t['d']
-  <Column name='d' unit='m' format=None description=None>
-  array([ 1., 2., 3., 4., 5.])
+  <Column name='d' dtype='float64' unit='m' length=5>
+  1.0
+  2.0
+  3.0
+  4.0
+  5.0
 
 **Remove columns**
 ::
@@ -103,6 +108,18 @@ Finally, columns can also be added from
   >>> del t['g']
   >>> del t['h', 'i']
   >>> t.keep_columns(['a', 'b'])
+
+**Replace a column**
+
+For a table with an existing column ``a``, an expression like ``t['a'] = [1, 2,
+3]`` or ``t['a'] = 1`` replaces the data *values* without changing the data
+type or anything else about the column.  In order to entirely replace the
+column with a new column (and potentially change the data type), use the
+:meth:`~astropy.table.Table.replace_column` method.  For instance, to change
+the data type of the ``a`` column from ``int`` to ``float``:
+
+  >>> a_float = t['a'].astype(float)
+  >>> t.replace_column('a', a_float)
 
 **Rename columns**
 ::
@@ -174,7 +191,7 @@ using column selection with ``t['a', 'c']`` in combination with row index select
 
   >>> t = Table([[1, 2], [3, 4], [5, 6]], names=('a', 'b', 'c'))
   >>> t['a', 'c'][1] = (100, 100)
-  >>> print t
+  >>> print(t)
    a   b   c
   --- --- ---
     1   3   5

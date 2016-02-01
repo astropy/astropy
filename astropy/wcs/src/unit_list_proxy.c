@@ -147,20 +147,20 @@ _get_unit(
 
   PyObject *args;
   PyObject *kw;
-  PyObject *fits;
   PyObject *result;
+
+  kw = Py_BuildValue("{s:s,s:s}", "format", "fits", "parse_strict", "warn");
+  if (kw == NULL) {
+      return NULL;
+  }
 
   args = PyTuple_New(1);
   PyTuple_SetItem(args, 0, unit);
   Py_INCREF(unit);
-  fits = PyUnicode_FromStringAndSize("fits", 4);
-  kw = PyDict_New();
-  PyDict_SetItemString(kw, "format", fits);
 
   result = PyObject_Call(unit_class, args, kw);
 
   Py_DECREF(args);
-  Py_DECREF(fits);
   Py_DECREF(kw);
   return result;
 }
@@ -196,7 +196,7 @@ PyUnitListProxy_setitem(
   PyObject* unicode_value;
   PyObject* bytes_value;
 
-  if (index > self->size) {
+  if (index >= self->size) {
     PyErr_SetString(PyExc_IndexError, "index out of range");
     return -1;
   }

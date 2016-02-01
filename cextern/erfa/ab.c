@@ -48,13 +48,12 @@ void eraAb(double pnat[3], double v[3], double s, double bm1,
 **  Called:
 **     eraPdp       scalar product of two p-vectors
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    int i;
    double pdv, w1, w2, r2, w, p[3], r;
-
 
    pdv = eraPdp(pnat, v);
    w1 = 1.0 + pdv/(1.0 + bm1);
@@ -76,7 +75,7 @@ void eraAb(double pnat[3], double v[3], double s, double bm1,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

@@ -4,16 +4,14 @@
 
 import sys
 
-from distutils import version
 import numpy as np
 
 from ...tests.helper import pytest, catch_warnings
 from ... import table
 from ...table import Row
+from ...utils.compat import NUMPY_LT_1_8
 from ...utils.exceptions import AstropyDeprecationWarning
 from .conftest import MaskedTable
-
-numpy_lt_1p8 = version.LooseVersion(np.__version__) < version.LooseVersion('1.8')
 
 
 def test_masked_row_with_object_col():
@@ -22,7 +20,7 @@ def test_masked_row_with_object_col():
     a column with object type.
     """
     t = table.Table([[1]], dtype=['O'], masked=True)
-    if numpy_lt_1p8:
+    if NUMPY_LT_1_8:
         with pytest.raises(ValueError):
             t['col0'].mask = False
             t[0].as_void()
@@ -147,7 +145,27 @@ class TestRow():
         self._setup(table_types)
         table = self.t
         row = table[0]
-        assert format(row, "").startswith("<{0} 0 of table".format(row.__class__.__name__))
+        assert repr(row).splitlines() == ['<{0} {1}{2}>'
+                                          .format(row.__class__.__name__,
+                                                  'index=0',
+                                                  ' masked=True' if table.masked else ''),
+                                          '  a     b  ',
+                                          'int64 int64',
+                                          '----- -----',
+                                          '    1     4']
+        assert str(row).splitlines() == [' a   b ',
+                                         '--- ---',
+                                         '  1   4']
+
+        assert row._repr_html_().splitlines() == ['&lt;{0} {1}{2}&gt;'
+                                                  .format(row.__class__.__name__,
+                                                          'index=0',
+                                                          ' masked=True' if table.masked else ''),
+                                                  '<table id="table{0}">'.format(id(table)),
+                                                  '<thead><tr><th>a</th><th>b</th></tr></thead>',
+                                                  '<thead><tr><th>int64</th><th>int64</th></tr></thead>',
+                                                  '<tr><td>1</td><td>4</td></tr>',
+                                                  '</table>']
 
     def test_data_and_as_void(self, table_types):
         """Test the deprecated data property and as_void() method"""
@@ -192,7 +210,7 @@ class TestRow():
         t = table_types.Table([[{'a': 1}, {'b': 2}]], names=('a',))
         assert t[0][0] == {'a': 1}
         assert t[0]['a'] == {'a': 1}
-        if numpy_lt_1p8 and t.masked:
+        if NUMPY_LT_1_8 and t.masked:
             # With numpy < 1.8 there is a bug setting mvoid with
             # an object.
             with pytest.raises(ValueError):
@@ -200,3 +218,10 @@ class TestRow():
         else:
             assert t[0].as_void()[0] == {'a': 1}
             assert t[0].as_void()['a'] == {'a': 1}
+
+    def test_bounds_checking(self, table_types):
+        """Row gives index error upon creation for out-of-bounds index"""
+        self._setup(table_types)
+        for ibad in (-5, -4, 3, 4):
+            with pytest.raises(IndexError):
+                self.t[ibad]

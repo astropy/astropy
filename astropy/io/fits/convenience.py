@@ -51,7 +51,7 @@ explanation of all the different formats.
     multiple argument formats that were used in past versions of PyFITS.
     Unfortunately, it is not possible to support all formats without
     introducing some ambiguity.  A future Astropy release may standardize
-    around a single format and offically deprecate the other formats.
+    around a single format and officially deprecate the other formats.
 """
 
 
@@ -65,8 +65,7 @@ from .hdu.hdulist import fitsopen
 from .hdu.image import PrimaryHDU, ImageHDU
 from .hdu.table import BinTableHDU
 from .header import Header
-from .util import (fileobj_closed, fileobj_name, fileobj_mode,
-                   fileobj_closed, _is_int)
+from .util import fileobj_closed, fileobj_name, fileobj_mode, _is_int
 from ...extern.six import string_types
 from ...utils import deprecated
 
@@ -511,7 +510,7 @@ def update(filename, data, *args, **kwargs):
         `astropy.io.fits.open`.
     """
 
-    # The arguments to this function are a bit tricker to deal with than others
+    # The arguments to this function are a bit trickier to deal with than others
     # in this module, since the documentation has promised that the header
     # argument can be an optional positional argument.
     if args and isinstance(args[0], Header):
@@ -631,7 +630,9 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
 
     if closed:
         f.close()
-tabledump.__doc__ += BinTableHDU._tdump_file_format.replace('\n', '\n    ')
+
+if isinstance(tabledump.__doc__, string_types):
+    tabledump.__doc__ += BinTableHDU._tdump_file_format.replace('\n', '\n    ')
 
 
 @deprecated('0.1', alternative=':func:`tabledump`')
@@ -673,7 +674,9 @@ def tableload(datafile, cdfile, hfile=None):
     """
 
     return BinTableHDU.load(datafile, cdfile, hfile, replace=True)
-tableload.__doc__ += BinTableHDU._tdump_file_format.replace('\n', '\n    ')
+
+if isinstance(tableload.__doc__, string_types):
+    tableload.__doc__ += BinTableHDU._tdump_file_format.replace('\n', '\n    ')
 
 
 @deprecated('0.1', alternative=':func:`tableload`')

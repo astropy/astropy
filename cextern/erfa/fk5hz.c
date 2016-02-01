@@ -69,13 +69,12 @@ void eraFk5hz(double r5, double d5, double date1, double date2,
 **
 **     F.Mignard & M.Froeschle, 2000, Astron.Astrophys. 354, 732-739.
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double t, p5e[3], r5h[3][3], s5h[3], vst[3], rst[3][3], p5[3],
           ph[3], w;
-
 
 /* Interval from given date to fundamental epoch J2000.0 (JY). */
    t = - ((date1 - ERFA_DJ00) + date2) / ERFA_DJY;
@@ -108,7 +107,7 @@ void eraFk5hz(double r5, double d5, double date1, double date2,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

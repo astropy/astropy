@@ -74,14 +74,13 @@ void eraHfk5z(double rh, double dh, double date1, double date2,
 **
 **     F.Mignard & M.Froeschle, 2000, Astron.Astrophys. 354, 732-739.
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double t, ph[3], r5h[3][3], s5h[3], sh[3], vst[3],
    rst[3][3], r5ht[3][3], pv5e[2][3], vv[3],
    w, r, v;
-
 
 /* Time interval from fundamental epoch J2000.0 to given date (JY). */
    t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJY;
@@ -123,7 +122,7 @@ void eraHfk5z(double rh, double dh, double date1, double date2,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

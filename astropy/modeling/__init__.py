@@ -11,3 +11,4 @@ from . import fitting
 from . import models
 from .core import *
 from .parameters import *
+from ._compound_deprecated import *

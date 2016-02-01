@@ -42,12 +42,17 @@ class CdsHeader(core.BaseHeader):
 
 
     def get_cols(self, lines):
-        """Initialize the header Column objects from the table ``lines`` for a CDS
+        """
+        Initialize the header Column objects from the table ``lines`` for a CDS
         header.
 
-        :param lines: list of table lines
-        :returns: list of table Columns
+        Parameters
+        ----------
+        lines : list
+            List of table lines
+
         """
+
         # Read header block for the table ``self.data.table_name`` from the read
         # me file ``self.readme``.
         if self.readme and self.data.table_name:
@@ -98,8 +103,8 @@ class CdsHeader(core.BaseHeader):
                                     (?P<end>   \d+)        \s+
                                     (?P<format> [\w.]+)     \s+
                                     (?P<units> \S+)        \s+
-                                    (?P<name>  \S+)        \s+
-                                    (?P<descr> \S.+)""",
+                                    (?P<name>  \S+)
+                                    (\s+ (?P<descr> \S.*))?""",
                                 re.VERBOSE)
 
         cols = []
@@ -115,13 +120,14 @@ class CdsHeader(core.BaseHeader):
                 col.unit = match.group('units')
                 if col.unit == '---':
                     col.unit = None  # "---" is the marker for no unit in CDS table
-                col.description = match.group('descr').strip()
+                col.description = (match.group('descr') or '').strip()
                 col.raw_type = match.group('format')
                 col.type = self.get_col_type(col)
 
                 match = re.match(
-                    r'\? (?P<equal> =)? (?P<nullval> \S*)', col.description, re.VERBOSE)
+                    r'\? (?P<equal> =)? (?P<nullval> \S*) (\s+ (?P<descriptiontext> \S.*))?', col.description, re.VERBOSE)
                 if match:
+                    col.description=(match.group('descriptiontext') or '').strip()
                     if issubclass(col.type, core.FloatType):
                         fillval = 'nan'
                     else:

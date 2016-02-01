@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from ....tests.helper import pytest
 from ... import ascii
 from .common import (assert_equal, assert_almost_equal, has_isnan,
                      setup_function, teardown_function)
@@ -19,6 +18,21 @@ def read_table2(readme, data):
 
 def read_table3(readme, data):
     return ascii.read(data, readme=readme)
+
+
+def test_description():
+    readme = 't/cds/description/ReadMe'
+    data = 't/cds/description/table.dat'
+    for read_table in (read_table1, read_table2, read_table3):
+        table = read_table(readme, data)
+        assert_equal(len(table), 2)
+        assert_equal(table['Cluster'].description, 'Cluster name')
+        assert_equal(table['Star'].description, '')
+        assert_equal(table['Wave'].description, 'wave? Wavelength in Angstroms')
+        assert_equal(table['El'].description, 'a')
+        assert_equal(table['ion'].description, '- Ionization stage (1 for neutral element)')
+        assert_equal(table['EW'].description, 'Equivalent width (in mA)')
+        assert_equal(table['Q'].description, 'DAOSPEC quality parameter Q(large values are bad)')
 
 
 def test_multi_header():
@@ -137,3 +151,4 @@ if __name__ == "__main__":  # run from main directory; not from test/
     test_header_from_readme()
     test_multi_header()
     test_glob_header()
+    test_description()

@@ -88,7 +88,7 @@ void eraAtoiq(const char *type,
 **     eraC2s       p-vector to spherical
 **     eraAnp       normalize angle into range 0 to 2pi
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -97,7 +97,6 @@ void eraAtoiq(const char *type,
           xmhdo, ymhdo, zmhdo, az, sz, zdo, refa, refb, tz, dref,
           zdt, xaet, yaet, zaet, xmhda, ymhda, zmhda,
           f, xhd, yhd, zhd, xpl, ypl, w, hma;
-
 
 /* Coordinate type. */
    c = (int) type[0];
@@ -199,7 +198,7 @@ void eraAtoiq(const char *type,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

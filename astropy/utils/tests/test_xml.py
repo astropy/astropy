@@ -67,10 +67,10 @@ def test_escape_xml():
     assert type(s) == six.text_type
     assert s == 'This &amp; That'
 
-    s = writer.xml_escape('This & That')
-    assert type(s) == six.text_type
-    assert s == 'This &amp; That'
-
     s = writer.xml_escape(1)
-    assert type(s) == six.text_type
+    assert type(s) == str
     assert s == '1'
+
+    s = writer.xml_escape(b'This & That')
+    assert type(s) == bytes
+    assert s == b'This &amp; That'

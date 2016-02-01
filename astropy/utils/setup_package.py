@@ -1,4 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import absolute_import
+
 from distutils.core import Extension
 from os.path import dirname, join, relpath
 
@@ -19,15 +21,17 @@ def get_package_data():
             'data/test_package/*.py',
             'data/test_package/data/*.txt',
             'data/*.dat',
-            'data/*.dat.gz',
-            'data/*.dat.bz2',
             'data/*.txt',
+            'data/*.gz',
+            'data/*.bz2',
+            'data/*.xz',
             'data/.hidden_file.txt',
             'data/*.cfg'],
         'astropy.utils.iers': [
             'data/ReadMe.eopc04_IAU2000',
             'data/ReadMe.finals2000A',
-            'data/eopc04_IAU2000.62-now']
+            'data/eopc04_IAU2000.62-now',
+            'tests/iers_a_excerpt']
     }
 
 

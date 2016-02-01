@@ -173,14 +173,13 @@ int eraApco13(double utc1, double utc2, double dut1,
 **     eraApco      astrometry parameters, ICRS-observed
 **     eraEors      equation of the origins, given NPB matrix and s
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    int j;
    double tai1, tai2, tt1, tt2, ut11, ut12, ehpv[2][3], ebpv[2][3],
           r[3][3], x, y, s, theta, sp, refa, refb;
-
 
 /* UTC to other time scales. */
    j = eraUtctai(utc1, utc2, &tai1, &tai2);
@@ -226,7 +225,7 @@ int eraApco13(double utc1, double utc2, double dut1,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

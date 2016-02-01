@@ -169,7 +169,7 @@ following formats:
   - ``"console"``: Writes a multi-line representation of the unit
     useful for display in a text console::
 
-      >>> print fluxunit.to_string('console')
+      >>> print(fluxunit.to_string('console'))
        erg
       ------
       s cm^2
@@ -177,7 +177,7 @@ following formats:
   - ``"unicode"``: Same as ``"console"``, except uses Unicode
     characters::
 
-      >>> print u.Ry.decompose().to_string('unicode')  # doctest: +SKIP
+      >>> print(u.Ry.decompose().to_string('unicode'))  # doctest: +SKIP
                       m² kg
       2.1798721×10-¹⁸ ─────
                        s²
@@ -198,8 +198,7 @@ Normally, passing an unrecognized unit string raises an exception::
     ...
   ValueError: 'Angstroem' did not parse as fits unit: At col 0, Unit
   'Angstroem' not supported by the FITS standard. Did you mean
-  Angstrom (deprecated), angstrom (deprecated) or nm (with data
-  multiplied by 0.1)?
+  10**-1 nm, Angstrom (deprecated) or angstrom (deprecated)?
 
 However, the `~astropy.units.Unit` constructor has the keyword
 argument ``parse_strict`` that can take one of three values to control

@@ -162,13 +162,12 @@ int eraApio13(double utc1, double utc2, double dut1,
 **     eraRefco     refraction constants for given ambient conditions
 **     eraApio      astrometry parameters, CIRS-observed
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    int j;
    double tai1, tai2, tt1, tt2, ut11, ut12, sp, theta, refa, refb;
-
 
 /* UTC to other time scales. */
    j = eraUtctai(utc1, utc2, &tai1, &tai2);
@@ -198,7 +197,7 @@ int eraApio13(double utc1, double utc2, double dut1,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

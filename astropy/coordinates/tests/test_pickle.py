@@ -6,7 +6,7 @@ import numpy as np
 
 #Can't test distances without scipy due to cosmology deps
 try:
-    import scipy
+    import scipy  # pylint: disable=W0611
     HAS_SCIPY = True
 except:
     HAS_SCIPY = False
@@ -61,7 +61,7 @@ _kwargs = [{'unit':'radian'},
            ]
 
 
-@pytest.mark.parametrize("name,args,kwargs,xfail",
+@pytest.mark.parametrize(("name","args","kwargs","xfail"),
                          zip(_names, _args, _kwargs, _xfail))
 def test_simple_object(pickle_protocol, name, args, kwargs, xfail):
     # Tests easily instantiated objects

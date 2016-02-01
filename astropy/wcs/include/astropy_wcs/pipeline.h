@@ -52,7 +52,7 @@ coordinates, in the following order:
 
     - SIP distortion correction (optionally)
 
-    - Paper IV distortion correction (optionally)
+    - FITS WCS distortion paper correction (optionally)
 
     - wcslib WCS transformation
 
@@ -82,7 +82,7 @@ coordinates to focal plane coordinates.
 
     - SIP distortion correction (optionally)
 
-    - Paper IV distortion correction (optionally)
+    - FITS WCS distortion paper correction (optionally)
 
 @param ncoord:
 

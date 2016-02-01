@@ -35,7 +35,7 @@ Here is a summary of reading and updating image data values::
 
     >>> f = fits.open('image.fits')  # open a FITS file
     >>> scidata = f[1].data  # assume the first extension is an image
-    >>> print scidata[1,4]     # get the pixel value at x=5, y=2
+    >>> print(scidata[1, 4])   # get the pixel value at x=5, y=2
     >>> scidata[30:40, 10:20]  # get values of the subsection
     ...                        # from x=11 to 20, y=31 to 40 (inclusive)
     >>> scidata[1,4] = 999  # update a pixel value
@@ -93,16 +93,18 @@ before and after the data is touched::
 
     >>> f = fits.open('scaled_uint16.fits')
     >>> hdu = f[1]
-    >>> print hdu.header['bitpix'], hdu.header['bzero']
-    16 32768
-    >>> print hdu.data  # once data is touched, it is scaled
+    >>> hdu.header['bitpix']
+    16
+    >>> hdu.header['bzero']
+    32768
+    >>> print(hdu.data)  # once data is touched, it is scaled
     [ 11. 12. 13. 14. 15.]
     >>> hdu.data.dtype.name
     'float32'
-    >>> print hdu.header['bitpix']  # BITPIX is also updated
+    >>> hdu.header['bitpix']  # BITPIX is also updated
     -32
     >>> # BZERO and BSCALE are removed after the scaling
-    >>> print hdu.header['bzero']
+    >>> hdu.header['bzero']
     KeyError: "Keyword 'bzero' not found."
 
 .. warning::
@@ -153,10 +155,10 @@ an example of what happens to the :attr:`~ImageHDU.data` attribute after the
 :meth:`~ImageHDU.scale` call::
 
     >>> hdu = fits.PrimaryHDU(numpy.array([0., 1, 2, 3]))
-    >>> print hdu.data
+    >>> print(hdu.data)
     [ 0. 1. 2. 3.]
     >>> hdu.scale('int16', bzero=32768)
-    >>> print hdu.data # now the data has storage values
+    >>> print(hdu.data)  # now the data has storage values
     [-32768 -32767 -32766 -32765]
     >>> hdu.writeto('new.fits')
 

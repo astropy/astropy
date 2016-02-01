@@ -13,7 +13,8 @@ from __future__ import (absolute_import, division, print_function,
 
 
 from .codegen import *
-from .compat.odict import OrderedDict
 from .decorators import *
 from .introspection import *
 from .misc import *
+
+from .compat.odict import OrderedDict

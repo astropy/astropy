@@ -16,15 +16,19 @@ from . import core
 
 class SExtractorHeader(core.BaseHeader):
     """Read the header from a file produced by SExtractor."""
-    comment = r'^\s*#\s*\S\D.*'  # Find lines that dont have "# digit"
+    comment = r'^\s*#\s*\S\D.*'  # Find lines that don't have "# digit"
 
     def get_cols(self, lines):
-        """Initialize the header Column objects from the table ``lines`` for a SExtractor
+        """
+        Initialize the header Column objects from the table ``lines`` for a SExtractor
         header.  The SExtractor header is specialized so that we just copy the entire BaseHeader
         get_cols routine and modify as needed.
 
-        :param lines: list of table lines
-        :returns: list of table Columns
+        Parameters
+        ----------
+        lines : list
+            List of table lines
+
         """
 
         # This assumes that the columns are listed in order, one per line with a
@@ -34,7 +38,7 @@ class SExtractorHeader(core.BaseHeader):
         # E.g. '# 1 ID identification number' (without units) or '# 2 MAGERR magnitude of error [mag]'
         re_name_def = re.compile(r"""^ \s* \# \s*            # possible whitespace around #
                                  (?P<colnumber> [0-9]+)\s+   # number of the column in table
-                                 (?P<colname> \w+)           # name of the column
+                                 (?P<colname> [-\w]+)        # name of the column
                                  (?:\s+(?P<coldescr> \w [^\[]*\w))? # column description, match non-[
                                  (?:\s+\[(?P<colunit>.+)\])?.*   # match units in brackets
                                  """, re.VERBOSE)
@@ -79,9 +83,9 @@ class SExtractorHeader(core.BaseHeader):
 
 
 class SExtractorData(core.BaseData):
-        start_line = 0
-        delimiter = ' '
-        comment = r'\s*#'
+    start_line = 0
+    delimiter = ' '
+    comment = r'\s*#'
 
 
 class SExtractor(core.BaseReader):

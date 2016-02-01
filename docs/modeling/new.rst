@@ -1,3 +1,5 @@
+.. _modeling-new-classes:
+
 Defining New Model Classes
 ==========================
 
@@ -46,7 +48,7 @@ of two Gaussians:
 
     # Plot the data and the best fit
     plt.plot(x, y, 'o', color='k')
-    plt.plot(x, m(x), color='r', lw=2)
+    plt.plot(x, m(x))
 
 
 This decorator also supports setting a model's
@@ -76,7 +78,11 @@ the model's class definition using the `~astropy.modeling.Parameter`
 descriptor.  All arguments to the Parameter constructor are optional, and may
 include a default value for that parameter, a text description of the parameter
 (useful for `help` and documentation generation), as well default constraints
-and custom getters/setters for the parameter value.
+and custom getters/setters for the parameter value.  It is also possible to
+define a "validator" method for each parameter, enabling custom code to check
+whether that parameter's value is valid according to the model definition (for
+example if it must be non-negative).  See the example in
+`Parameter.validator <astropy.modeling.Parameter.validator>` for more details.
 
 ::
 
@@ -229,6 +235,13 @@ Full example
 A full example of a LineModel
 -----------------------------
 
+This example demonstrates one other optional feature for model classes, which
+is an *inverse*.  An `~astropy.modeling.Model.inverse` implementation should be
+a `property` that returns a new model instance (not necessarily of the same
+class as the model being inverted) that computes the inverse of that model, so
+that for some model instance with an inverse, ``model.inverse(model(*input)) ==
+input``.
+
 .. code-block:: python
 
     from astropy.modeling import FittableModel, Parameter
@@ -248,6 +261,17 @@ A full example of a LineModel
             d_slope = x
             d_intercept = np.ones_like(x)
             return [d_slope, d_intercept]
+
+        @property
+        def inverse(self):
+            new_slope = self.slope ** -1
+            new_intercept = -self.intercept / self.slope
+            return LineModel(slope=new_slope, intercept=new_intercept)
+
+.. note::
+
+    The above example is essentially equivalent to the built-in
+    `~astropy.modeling.functional_models.Linear1D` model.
 
 
 Defining New Fitter Classes

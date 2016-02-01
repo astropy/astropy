@@ -6,6 +6,7 @@ import numpy as np
 from ...tests.helper import pytest
 from .. import Time, TimeDelta, OperandTypeError
 from ... import units as u
+from ...table import Column
 
 allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
                                  atol=2. ** -52 * 24 * 3600)  # 20 ps atol
@@ -53,6 +54,20 @@ class TestTimeQuantity():
         with pytest.raises(u.UnitsError):
             Time(2450000.*u.dimensionless_unscaled, format='jd', scale='utc')
 
+    def test_column_with_and_without_units(self):
+        """Ensure a Column without a unit is treated as an array [#3648]"""
+        a = np.arange(50000., 50010.)
+        ta = Time(a, format='mjd')
+        c1 = Column(np.arange(50000., 50010.), name='mjd')
+        tc1 = Time(c1, format='mjd')
+        assert np.all(ta == tc1)
+        c2 = Column(np.arange(50000., 50010.), name='mjd', unit='day')
+        tc2 = Time(c2, format='mjd')
+        assert np.all(ta == tc2)
+        c3 = Column(np.arange(50000., 50010.), name='mjd', unit='m')
+        with pytest.raises(u.UnitsError):
+            Time(c3, format='mjd')
+
     def test_no_quantity_input_allowed(self):
         """Time formats that are not allowed to take Quantity input."""
         qy = 1990.*u.yr
@@ -71,6 +86,11 @@ class TestTimeQuantity():
         q2 = 1.*u.day
         t2 = t0 - q2
         assert allclose_sec(t2.value, t0.value-q2.to(u.second).value)
+        # check broadcasting
+        q3 = np.arange(15.).reshape(3, 5) * u.hour
+        t3 = t0 - q3
+        assert t3.shape == q3.shape
+        assert allclose_sec(t3.value, t0.value-q3.to(u.second).value)
 
     def test_invalid_quantity_operations(self):
         """Check that comparisons of Time with quantities does not work
@@ -125,6 +145,11 @@ class TestTimeDeltaQuantity():
         # now comparisons
         assert t0 > q1
         assert t0 < 1.*u.yr
+        # and broadcasting
+        q3 = np.arange(12.).reshape(4, 3) * u.hour
+        t3 = t0 + q3
+        assert t3.shape == q3.shape
+        assert allclose_sec(t3.value, t0.value + q3.to(u.second).value)
 
     def test_valid_quantity_operations2(self):
         """Check that TimeDelta is treated as a quantity where possible."""
@@ -143,8 +168,41 @@ class TestTimeDeltaQuantity():
         v = s/t0
         assert isinstance(v, u.Quantity)
         assert v.decompose().unit == u.m / u.second
+        # broadcasting
+        t1 = TimeDelta(np.arange(100000., 100012.).reshape(6, 2), format='sec')
+        f = np.array([1., 2.]) * u.cycle * u.Hz
+        phase = f * t1
+        assert isinstance(phase, u.Quantity)
+        assert phase.shape == t1.shape
+        assert phase.unit.is_equivalent(u.cycle)
 
     def test_invalid_quantity_operations(self):
         """Check comparisons of TimeDelta with non-time quantities fails."""
         with pytest.raises(OperandTypeError):
             TimeDelta(100000., format='sec') > 10.*u.m
+
+    def test_invalid_quantity_broadcast(self):
+        """Check broadcasting rules in interactions with Quantity."""
+        t0 = TimeDelta(np.arange(12.).reshape(4, 3), format='sec')
+        with pytest.raises(ValueError):
+            t0 + np.arange(4.) * u.s
+
+
+class TestDeltaAttributes():
+    def test_delta_ut1_utc(self):
+        t = Time('2010-01-01 00:00:00', format='iso', scale='utc', precision=6)
+        t.delta_ut1_utc = 0.3 * u.s
+        assert t.ut1.iso == '2010-01-01 00:00:00.300000'
+        t.delta_ut1_utc = 0.4 / 60. * u.minute
+        assert t.ut1.iso == '2010-01-01 00:00:00.400000'
+        with pytest.raises(u.UnitsError):
+            t.delta_ut1_utc = 0.4 * u.m
+
+    def test_delta_tdb_tt(self):
+        t = Time('2010-01-01 00:00:00', format='iso', scale='tt', precision=6)
+        t.delta_tdb_tt = 20. * u.second
+        assert t.tdb.iso == '2010-01-01 00:00:20.000000'
+        t.delta_tdb_tt = 30. / 60. * u.minute
+        assert t.tdb.iso == '2010-01-01 00:00:30.000000'
+        with pytest.raises(u.UnitsError):
+            t.delta_tdb_tt = 0.4 * u.m

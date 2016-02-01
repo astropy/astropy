@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <wcserr.h>
+
 #define SIP_ERRMSG(status) WCSERR_SET(status)
 
 void

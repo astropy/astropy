@@ -10,6 +10,7 @@ Regression tests for the units package
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+from fractions import Fraction
 
 import numpy as np
 from numpy.testing.utils import assert_allclose
@@ -17,7 +18,6 @@ from numpy.testing.utils import assert_allclose
 from ...extern import six
 from ...extern.six.moves import cPickle as pickle
 from ...tests.helper import pytest, raises, catch_warnings
-from ...utils.compat.fractions import Fraction
 
 from ... import units as u
 from ... import constants as c
@@ -33,7 +33,7 @@ def test_getting_started():
         speed_unit = u.cm / u.s
         x = speed_unit.to(imperial.mile / u.hour, 1)
         assert_allclose(x, 0.02236936292054402)
-        speed_converter = speed_unit.get_converter("mile hour^-1")
+        speed_converter = speed_unit._get_converter("mile hour^-1")
         x = speed_converter([1., 1000., 5000.])
         assert_allclose(x, [2.23693629e-02, 2.23693629e+01, 1.11846815e+02])
 
@@ -74,7 +74,7 @@ def test_invalid_compare():
 
 
 def test_convert():
-    assert u.h.get_converter(u.s)(1) == 3600
+    assert u.h._get_converter(u.s)(1) == 3600
 
 
 def test_convert_fail():
@@ -85,7 +85,7 @@ def test_convert_fail():
 
 
 def test_composite():
-    assert (u.cm / u.s * u.h).get_converter(u.m)(1) == 36
+    assert (u.cm / u.s * u.h)._get_converter(u.m)(1) == 36
     assert u.cm * u.cm == u.cm ** 2
 
     assert u.cm * u.cm * u.cm == u.cm ** 3
@@ -111,7 +111,7 @@ def test_units_conversion():
 
 def test_units_manipulation():
     # Just do some manipulation and check it's happy
-    (u.kpc * u.yr) ** (1, 3) / u.Myr
+    (u.kpc * u.yr) ** Fraction(1, 3) / u.Myr
     (u.AA * u.erg) ** 9
 
 
@@ -177,7 +177,7 @@ def test_unknown_unit3():
     assert not unit.is_equivalent(unit3)
 
     with pytest.raises(ValueError):
-        unit.get_converter(unit3)
+        unit._get_converter(unit3)
 
     x = unit.to_string('latex')
     y = unit2.to_string('cgs')
@@ -585,6 +585,13 @@ def test_fits_hst_unit():
     assert x == u.erg * u.s ** -1 * u.cm ** -2 * u.angstrom ** -1
 
 
+def test_barn_prefixes():
+    """Regression test for https://github.com/astropy/astropy/issues/3753"""
+
+    assert u.fbarn is u.femtobarn
+    assert u.pbarn is u.picobarn
+
+
 def test_fractional_powers():
     """See #2069"""
     m = 1e9 * u.Msun
@@ -653,3 +660,67 @@ def test_validate_power_detect_fraction():
     assert type(frac) == Fraction
     assert frac.numerator == 7
     assert frac.denominator == 6
+
+
+def test_complex_fractional_rounding_errors():
+    # See #3788
+
+    kappa = 0.34 * u.cm**2 / u.g
+    r_0 = 886221439924.7849 * u.cm
+    q = 1.75
+    rho_0 = 5e-10 * u.solMass / u.solRad**3
+    y = 0.5
+    beta = 0.19047619047619049
+    a = 0.47619047619047628
+    m_h = 1e6*u.solMass
+
+    t1 = 2 * c.c / (kappa * np.sqrt(np.pi))
+    t2 = (r_0**-q) / (rho_0 * y * beta * (a * c.G * m_h)**0.5)
+
+    result = ((t1 * t2)**-0.8)
+
+    assert result.unit.physical_type == 'length'
+    result.to(u.solRad)
+
+
+def test_fractional_rounding_errors_simple():
+    x = (u.m ** 1.5) ** Fraction(4, 5)
+    assert isinstance(x.powers[0], Fraction)
+    assert x.powers[0].numerator == 6
+    assert x.powers[0].denominator == 5
+
+
+def test_enable_unit_groupings():
+    from ...units import cds
+
+    with cds.enable():
+        assert cds.geoMass in u.kg.find_equivalent_units()
+
+    from ...units import imperial
+    with imperial.enable():
+        assert imperial.inch in u.m.find_equivalent_units()
+
+
+def test_unit_summary_prefixes():
+    """
+    Test for a few units that the unit summary table correctly reports
+    whether or not that unit supports prefixes.
+
+    Regression test for https://github.com/astropy/astropy/issues/3835
+    """
+
+    from .. import astrophys
+
+    for summary in utils._iter_unit_summary(astrophys.__dict__):
+        unit, _, _, _, prefixes = summary
+
+        if unit.name == 'lyr':
+            assert prefixes
+        elif unit.name == 'pc':
+            assert prefixes
+        elif unit.name == 'barn':
+            assert prefixes
+        elif unit.name == 'cycle':
+            assert not prefixes
+        elif unit.name == 'vox':
+            assert prefixes

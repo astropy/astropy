@@ -8,11 +8,12 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ...extern.six.moves import zip
 
+import numpy as np
+
 import copy
 import keyword
 
-from . import generic
-from . import utils
+from . import core, generic, utils
 
 
 class Fits(generic.Generic):
@@ -22,15 +23,8 @@ class Fits(generic.Generic):
     This supports the format defined in the Units section of the `FITS
     Standard <http://fits.gsfc.nasa.gov/fits_standard.html>`_.
     """
+
     name = 'fits'
-
-    def __init__(self):
-        # Build this on the class, so it only gets generated once.
-        if '_parser' not in Fits.__dict__:
-            Fits._parser, Fits._lexer = self._make_parser()
-
-        if not '_units' in Fits.__dict__:
-            Fits._units, Fits._deprecated_units = self._generate_unit_names()
 
     @staticmethod
     def _generate_unit_names():
@@ -77,7 +71,7 @@ class Fits(generic.Generic):
         for unit in deprecated_units:
             deprecated_names.add(unit)
 
-        return names, deprecated_names
+        return names, deprecated_names, []
 
     @classmethod
     def _validate_unit(cls, unit, detailed_exception=True):
@@ -109,21 +103,28 @@ class Fits(generic.Generic):
 
     @classmethod
     def to_string(cls, unit):
-        from .. import core
-
         # Remove units that aren't known to the format
         unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 
+        parts = []
+
         if isinstance(unit, core.CompositeUnit):
-            if unit.scale != 1:
+            base = np.log10(unit.scale)
+
+            if base % 1.0 != 0.0:
                 raise core.UnitScaleError(
-                    "The FITS unit format is not able to represent scale. "
-                    "Multiply your data by {0:e}.".format(unit.scale))
+                    "The FITS unit format is not able to represent scales "
+                    "that are not powers of 10.  Multiply your data by "
+                    "{0:e}.".format(unit.scale))
+            elif unit.scale != 1.0:
+                parts.append('10**{0}'.format(int(base)))
 
             pairs = list(zip(unit.bases, unit.powers))
-            pairs.sort(key=lambda x: x[1], reverse=True)
+            if len(pairs):
+                pairs.sort(key=lambda x: x[1], reverse=True)
+                parts.append(cls._format_unit_list(pairs))
 
-            s = cls._format_unit_list(pairs)
+            s = ' '.join(parts)
         elif isinstance(unit, core.NamedUnit):
             s = cls._get_unit_name(unit)
 
@@ -131,8 +132,6 @@ class Fits(generic.Generic):
 
     @classmethod
     def _to_decomposed_alternative(cls, unit):
-        from .. import core
-
         try:
             s = cls.to_string(unit)
         except core.UnitScaleError:
@@ -142,3 +141,11 @@ class Fits(generic.Generic):
             return '{0} (with data multiplied by {1})'.format(
                 cls.to_string(unit), scale)
         return s
+
+    @classmethod
+    def parse(cls, s, debug=False):
+        result = super(Fits, cls).parse(s, debug)
+        if hasattr(result, 'function_unit'):
+            raise ValueError("Function units are not yet supported for "
+                             "FITS units.")
+        return result

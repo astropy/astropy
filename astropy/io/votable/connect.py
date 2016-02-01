@@ -139,6 +139,13 @@ def write_table_votable(input, output, table_id=None, overwrite=False,
         ``tabledata``.  See :ref:`votable-serialization`.
     """
 
+    # Tables with mixin columns are not supported
+    if input.has_mixin_columns:
+        mixin_names = [name for name, col in input.columns.items()
+                       if not isinstance(col, input.ColumnClass)]
+        raise ValueError('cannot write table with mixin column(s) {0} to VOTable'
+                         .format(mixin_names))
+
     # Check if output file already exists
     if isinstance(output, six.string_types) and os.path.exists(output):
         if overwrite:

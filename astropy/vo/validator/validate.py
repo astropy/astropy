@@ -1,23 +1,24 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Validate VO Services."""
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 from ...extern import six
 
 # STDLIB
 import multiprocessing
 import os
 import warnings
+from collections import OrderedDict
 
 # LOCAL
-from .exceptions import ValidationMultiprocessingError, InvalidValidationAttribute
+from .exceptions import (ValidationMultiprocessingError,
+                         InvalidValidationAttribute)
 from ..client import vos_catalog
 from ..client.exceptions import VOSError
-from ...config.configuration import ConfigAlias
 from ...io import votable
 from ...io.votable.exceptions import E19
 from ...io.votable.validator import html, result
 from ...logger import log
-from ...utils import OrderedDict  # For 2.6 compatibility
 from ...utils import data
 from ...utils.exceptions import AstropyUserWarning
 from ...utils.timer import timefunc
@@ -29,20 +30,6 @@ from .tstquery import parse_cs
 
 
 __all__ = ['check_conesearch_sites']
-
-CS_MSTR_LIST = ConfigAlias(
-    '0.4', 'CS_MSTR_LIST', 'conesearch_master_list',
-    'astropy.vo.validator.validate', 'astropy.vo.validator')
-
-CS_URLS = ConfigAlias(
-    '0.4', 'CS_URLS', 'conesearch_urls',
-    'astropy.vo.validator.validate', 'astropy.vo.validator')
-
-NONCRIT_WARNINGS = ConfigAlias(
-    '0.4', 'NONCRIT_WARNINGS', 'noncritical_warnings',
-    'astropy.vo.validator.validate', 'astropy.vo.validator')
-
-_OUT_ROOT = None  # Set by check_conesearch_sites()
 
 
 @timefunc(1)
@@ -96,7 +83,6 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
 
     """
     from . import conf
-    global _OUT_ROOT
 
     if url_list == 'default':
         url_list = conf.conesearch_urls
@@ -109,10 +95,10 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
         os.mkdir(destdir)
 
     # Output dir created by votable.validator
-    _OUT_ROOT = os.path.join(destdir, 'results')
+    out_dir = os.path.join(destdir, 'results')
 
-    if not os.path.exists(_OUT_ROOT):
-        os.mkdir(_OUT_ROOT)
+    if not os.path.exists(out_dir):
+        os.mkdir(out_dir)
 
     # Output files
     db_file = OrderedDict()
@@ -138,12 +124,15 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
     with warnings.catch_warnings():
         warnings.simplefilter('ignore')
         js_mstr = vos_catalog.VOSDatabase.from_registry(
-            CS_MSTR_LIST(), encoding='binary', show_progress=verbose)
+            conf.conesearch_master_list, encoding='binary',
+            show_progress=verbose)
 
     # Validate only a subset of the services.
     if url_list is not None:
         # Make sure URL is unique and fixed.
-        url_list = set(six.moves.map(unescape_all, [cur_url.encode('utf-8') if isinstance(cur_url, str) else cur_url for cur_url in url_list]))
+        url_list = set(six.moves.map(unescape_all,
+            [cur_url.encode('utf-8') if isinstance(cur_url, str) else cur_url
+             for cur_url in url_list]))
         uniq_rows = len(url_list)
         url_list_processed = []  # To track if given URL is valid in registry
         if verbose:
@@ -188,20 +177,20 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
             warnings.warn(warn_str, AstropyUserWarning)
 
     all_urls = list(key_lookup_by_url)
+    timeout = data.conf.remote_timeout
+    map_args = [(out_dir, url, timeout) for url in all_urls]
 
     # Validate URLs
     if parallel:
-        mp_list = []
         pool = multiprocessing.Pool()
-        mp_proc = pool.map_async(_do_validation, all_urls,
-                                 callback=mp_list.append)
-        mp_proc.wait()
-        if len(mp_list) < 1:  # pragma: no cover
+        try:
+            mp_list = pool.map(_do_validation, map_args)
+        except Exception as exc:  # pragma: no cover
             raise ValidationMultiprocessingError(
-                'Multiprocessing pool callback returned empty list.')
-        mp_list = mp_list[0]
+                'An exception occurred during parallel processing '
+                'of validation results: {0}'.format(exc))
     else:
-        mp_list = [_do_validation(cur_url) for cur_url in all_urls]
+        mp_list = map(_do_validation, map_args)
 
     # Categorize validation results
     for r in mp_list:
@@ -212,16 +201,15 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
         js_tree[db_key].add_catalog(cat_key, cur_cat)
 
     # Write to HTML
-    html_subsets = result.get_result_subsets(mp_list, _OUT_ROOT)
-    html.write_index(html_subsets, all_urls, _OUT_ROOT)
+    html_subsets = result.get_result_subsets(mp_list, out_dir)
+    html.write_index(html_subsets, all_urls, out_dir)
     if parallel:
-        html_subindex_args = [(html_subset, uniq_rows)
+        html_subindex_args = [(out_dir, html_subset, uniq_rows)
                               for html_subset in html_subsets]
-        mp_proc = pool.map_async(_html_subindex, html_subindex_args)
-        mp_proc.wait()
+        pool.map(_html_subindex, html_subindex_args)
     else:
         for html_subset in html_subsets:
-            _html_subindex((html_subset, uniq_rows))
+            _html_subindex((out_dir, html_subset, uniq_rows))
 
     # Write to JSON
     n = {}
@@ -242,11 +230,14 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
             'No good sites available for Cone Search.', AstropyUserWarning)
 
 
-def _do_validation(url):
+def _do_validation(args):
     """Validation for multiprocessing support."""
+
+    root, url, timeout = args
+
     votable.table.reset_vo_warnings()
 
-    r = result.Result(url, root=_OUT_ROOT, timeout=data.conf.remote_timeout)
+    r = result.Result(url, root=root, timeout=timeout)
     r.validate_vo()
 
     _categorize_result(r)
@@ -332,8 +323,8 @@ def _categorize_result(r):
 
 def _html_subindex(args):
     """HTML writer for multiprocessing support."""
-    subset, total = args
-    html.write_index_table(_OUT_ROOT, *subset, total=total)
+    out_dir, subset, total = args
+    html.write_index_table(out_dir, *subset, total=total)
 
 
 def _copy_r_to_cat(r, cat):

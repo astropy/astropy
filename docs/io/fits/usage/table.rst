@@ -14,6 +14,11 @@ and manipulation. ASCII tables store the data in a "human readable" form and
 therefore take up more storage space as well as more processing time since the
 ASCII text needs to be parsed into numerical values.
 
+.. note::
+
+    If you want to read or write a single table in FITS format then the
+    simplest method is often via the high-level :ref:`table_io`.  In particular
+    see the :ref:`Unified I/O FITS <table_io_fits>` section.
 
 Table Data as a Record Array
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -71,13 +76,12 @@ table.  To recap, the simple example in the Quick Tutorial::
 
     >>> f = fits.open('bright_stars.fits')  # open a FITS file
     >>> tbdata = f[1].data  # assume the first extension is a table
-    >>> print tbdata[:2]  # show the first two rows
+    >>> print(tbdata[:2])  # show the first two rows
     [(1, 'Sirius', -1.4500000476837158, 'A1V'),
     (2, 'Canopus', -0.73000001907348633, 'F0Ib')]
-
-    >>> print tbdata['mag']  # show the values in field "mag"
+    >>> print(tbdata['mag'])  # show the values in field "mag"
     [-1.45000005 -0.73000002 -0.1 ]
-    >>> print tbdata.field(1)  # columns can be referenced by index too
+    >>> print(tbdata.field(1))  # columns can be referenced by index too
     ['Sirius' 'Canopus' 'Rigil Kent']
 
 Note that in Astropy, when using the ``field()`` method, it is 0-indexed while
@@ -198,6 +202,7 @@ physical and storage column values.
 Creating a FITS Table
 ^^^^^^^^^^^^^^^^^^^^^
 
+.. _column_creation:
 
 Column Creation
 """""""""""""""

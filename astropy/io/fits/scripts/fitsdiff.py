@@ -271,7 +271,7 @@ def main():
     identical = []
     try:
         for a, b in files:
-            # TODO: pass in any additonal arguments here too
+            # TODO: pass in any additional arguments here too
             diff = fits.diff.FITSDiff(
                 a, b,
                 ignore_keywords=opts.ignore_keywords,

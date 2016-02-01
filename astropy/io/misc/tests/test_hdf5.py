@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 
+
 import numpy as np
 
 from ....tests.helper import pytest, catch_warnings
@@ -14,6 +15,12 @@ except ImportError:
 else:
     HAS_H5PY = True
 
+try:
+    import yaml
+except ImportError:
+    HAS_YAML = False
+else:
+    HAS_YAML = True
 
 ALL_DTYPES = [np.uint8, np.uint16, np.uint32, np.uint64, np.int8,
               np.int16, np.int32, np.int64, np.float32, np.float64,
@@ -370,6 +377,46 @@ def test_preserve_meta(tmpdir):
 
 
 @pytest.mark.skipif('not HAS_H5PY')
+def test_preserve_serialized(tmpdir):
+    test_file = str(tmpdir.join('test.hdf5'))
+
+    t1 = Table()
+    t1['a'] = Column(data=[1, 2, 3], unit="s")
+    t1['a'].meta['a0'] = "A0"
+    t1['a'].meta['a1'] = {"a1": [0, 1]}
+    t1['a'].format = '7.3f'
+    t1['a'].description = 'A column'
+    t1.meta['b'] = 1
+    t1.meta['c'] = {"c0": [0, 1]}
+
+    t1.write(test_file, path='the_table', serialize_meta=True, overwrite=True)
+
+    t2 = Table.read(test_file, path='the_table')
+
+    assert t1['a'].unit == t2['a'].unit
+    assert t1['a'].format == t2['a'].format
+    assert t1['a'].description == t2['a'].description
+    assert t1['a'].meta == t2['a'].meta
+    assert t1.meta == t2.meta
+
+
+@pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
+def test_metadata_too_large(tmpdir):
+    test_file = str(tmpdir.join('test.hdf5'))
+
+    t1 = Table()
+    t1['a'] = Column(data=[1, 2, 3])
+    t1.meta["meta"] = "0" * (2**16 + 1)
+
+    with catch_warnings() as w:
+        t1.write(test_file, path='the_table', serialize_meta=True, overwrite=True)
+    assert len(w) == 1
+    assert str(w[0].message).startswith(
+        "Attributes could not be written to the output HDF5 "
+        "file: Unable to create attribute (Object header message is too large)")
+
+
+@pytest.mark.skipif('not HAS_H5PY')
 def test_skip_meta(tmpdir):
 
     test_file = str(tmpdir.join('test.hdf5'))
@@ -413,3 +460,5 @@ def test_read_h5py_objects(tmpdir):
 
     t4 = Table.read(f['the_table'])
     assert np.all(t4['a'] == [1, 2, 3])
+
+    f.close()         # don't raise an error in 'test --open-files'

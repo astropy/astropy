@@ -4,12 +4,13 @@ Under the hood, there are 3 separate classes that perform different
 parts of the transformation:
 
    - `~astropy.wcs.Wcsprm`: Is a direct wrapper of the core WCS
-     functionality in `wcslib`_.
+     functionality in `wcslib`_.  (This includes TPV and TPD
+     polynomial distortion, but not SIP distortion).
 
    - `~astropy.wcs.Sip`: Handles polynomial distortion as defined in the
      `SIP`_ convention.
 
-   - `~astropy.wcs.DistortionLookupTable`: Handles `Paper IV`_ distortion
+   - `~astropy.wcs.DistortionLookupTable`: Handles `distortion paper`_
      lookup tables.
 
 Additionally, the class `WCS` aggregates all of these transformations
@@ -21,10 +22,11 @@ together in a pipeline:
    - `SIP`_ distortion correction (by an underlying `~astropy.wcs.Sip`
      object)
 
-   - `Paper IV`_ table-lookup distortion correction (by a pair of
+   - `distortion paper`_ table-lookup correction (by a pair of
      `~astropy.wcs.DistortionLookupTable` objects).
 
    - `wcslib`_ WCS transformation (by a `~astropy.wcs.Wcsprm` object)
+
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
@@ -32,8 +34,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import copy
 import io
 import os
+import re
 import textwrap
 import warnings
+import platform
 
 # THIRD-PARTY
 import numpy as np
@@ -50,7 +54,14 @@ except ImportError:
     else:
         _wcs = None
 
-from ..utils import deprecated, deprecated_attribute
+if _wcs is not None:
+    _parsed_version = _wcs.__version__.split('.')
+    if int(_parsed_version[0]) == 5 and int(_parsed_version[1]) < 8:
+        raise ImportError(
+            "astropy.wcs is built with wcslib {0}, but only versions 5.8 and "
+            "later on the 5.x series are known to work.  The version of wcslib "
+            "that ships with astropy may be used.")
+
 from ..utils.compat import possible_filename
 from ..utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
 
@@ -70,7 +81,7 @@ __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
            'NoWcsKeywordsFoundError', 'InvalidTabularParametersError']
 
 
-if six.PY3:
+if six.PY3 or platform.system() == 'Windows':
     __doctest_skip__ = ['WCS.all_world2pix']
 
 
@@ -119,6 +130,11 @@ else:
 # Additional relax bit flags
 WCSHDO_SIP = 0x10000
 
+# Regular expression defining SIP keyword It matches keyword that starts with A
+# or B, optionally followed by P, followed by an underscore then a number in
+# range of 0-19, followed by an underscore and another number in range of 0-19.
+# Keyword optionally ends with a capital letter.
+SIP_KW = re.compile('''^[AB]P?_1?[0-9]_1?[0-9][A-Z]?$''')
 
 def _parse_keysel(keysel):
     keysel_flags = 0
@@ -193,10 +209,9 @@ class FITSFixedWarning(AstropyWarning):
 
 
 class WCS(WCSBase):
-    """
-    WCS objects perform standard WCS transformations, and correct for
-    `SIP`_ and `Paper IV`_ table-lookup distortions, based on the WCS
-    keywords and supplementary data read from a FITS file.
+    """WCS objects perform standard WCS transformations, and correct for
+    `SIP`_ and `distortion paper`_ table-lookup transformations, based
+    on the WCS keywords and supplementary data read from a FITS file.
 
     Parameters
     ----------
@@ -205,8 +220,8 @@ class WCS(WCSBase):
         initialized to default values.
 
     fobj : An astropy.io.fits file (hdulist) object, optional
-        It is needed when header keywords point to a `Paper IV`_
-        Lookup table distortion stored in a different extension.
+        It is needed when header keywords point to a `distortion
+        paper`_ lookup table stored in a different extension.
 
     key : str, optional
         The name of a particular WCS transform to use.  This may be
@@ -295,14 +310,15 @@ class WCS(WCSBase):
     Notes
     -----
 
-    1. astropy.wcs supports arbitrary *n* dimensions for the core WCS (the
-       transformations handled by WCSLIB).  However, the Paper IV lookup
-       table and SIP distortions must be two dimensional.  Therefore, if you
-       try to create a WCS object where the core WCS has a different number
-       of dimensions than 2 and that object also contains a Paper IV lookup
-       table or SIP distortion, a `~.exceptions.ValueError` exception will
-       be raised.  To avoid this, consider using the *naxis* kwarg to select
-       two dimensions from the core WCS.
+    1. astropy.wcs supports arbitrary *n* dimensions for the core WCS
+       (the transformations handled by WCSLIB).  However, the
+       `distortion paper`_ lookup table and `SIP`_ distortions must be
+       two dimensional.  Therefore, if you try to create a WCS object
+       where the core WCS has a different number of dimensions than 2
+       and that object also contains a `distortion paper`_ lookup
+       table or `SIP`_ distortion, a `~.exceptions.ValueError`
+       exception will be raised.  To avoid this, consider using the
+       *naxis* kwarg to select two dimensions from the core WCS.
 
     2. The number of coordinate axes in the transformation is not
        determined directly from the ``NAXIS`` keyword but instead from
@@ -332,6 +348,7 @@ class WCS(WCSBase):
        construction, so any invalid keywords or transformations will
        be raised by the constructor, not when subsequently calling a
        transformation method.
+
     """
 
     def __init__(self, header=None, fobj=None, key=' ', minerr=0.0,
@@ -367,24 +384,67 @@ class WCS(WCSBase):
                     fobj = fits.open(header)
                     close_fds.append(fobj)
                     header = fobj[0].header
-                    header_string = header.tostring()
+                    header_string = header.tostring().rstrip()
                 else:
                     header_string = header
             elif isinstance(header, fits.Header):
-                header_string = header.tostring()
+                header_string = header.tostring().rstrip()
             else:
                 try:
                     # Accept any dict-like object
                     new_header = fits.Header()
                     for dict_key in header.keys():
                         new_header[dict_key] = header[dict_key]
-                    header_string = new_header.tostring()
+                    header_string = new_header.tostring().rstrip()
                 except TypeError:
                     raise TypeError(
                         "header must be a string, an astropy.io.fits.Header "
                         "object, or a dict-like object")
 
-            header_string = header_string.strip()
+            # Importantly, header is a *copy* of the passed-in header
+            # because we will be modifying it
+            if isinstance(header_string, six.text_type):
+                header_bytes = header_string.encode('ascii')
+                header_string = header_string
+            else:
+                header_bytes = header_string
+                header_string = header_string.decode('ascii')
+
+            try:
+                tmp_header = fits.Header.fromstring(header_string)
+                self._remove_sip_kw(tmp_header)
+                tmp_header_bytes = tmp_header.tostring().rstrip()
+                if isinstance(tmp_header_bytes, six.text_type):
+                    tmp_header_bytes = tmp_header_bytes.encode('ascii')
+                tmp_wcsprm = _wcs.Wcsprm(header=tmp_header_bytes, key=key,
+                                         relax=relax, keysel=keysel_flags,
+                                         colsel=colsel, warnings=False)
+            except _wcs.NoWcsKeywordsFoundError:
+                est_naxis = 0
+            else:
+                if naxis is not None:
+                    try:
+                        tmp_wcsprm.sub(naxis)
+                    except ValueError:
+                        pass
+                    est_naxis = tmp_wcsprm.naxis
+                else:
+                    est_naxis = 2
+
+            header = fits.Header.fromstring(header_string)
+
+            if est_naxis == 0:
+                est_naxis = 2
+            self.naxis = est_naxis
+
+            det2im = self._read_det2im_kw(header, fobj, err=minerr)
+            cpdis = self._read_distortion_kw(
+                header, fobj, dist='CPDIS', err=minerr)
+            sip = self._read_sip_kw(header)
+            self._remove_sip_kw(header)
+
+            header_string = header.tostring()
+            header_string = header_string.replace('END' + ' ' * 77, '')
 
             if isinstance(header_string, six.text_type):
                 header_bytes = header_string.encode('ascii')
@@ -412,21 +472,15 @@ class WCS(WCSBase):
                 wcsprm = wcsprm.sub(naxis)
             self.naxis = wcsprm.naxis
 
-            header = fits.Header.fromstring(header_string)
-
-            det2im = self._read_det2im_kw(header, fobj, err=minerr)
-            cpdis = self._read_distortion_kw(
-                header, fobj, dist='CPDIS', err=minerr)
-            sip = self._read_sip_kw(header)
             if (wcsprm.naxis != 2 and
                 (det2im[0] or det2im[1] or cpdis[0] or cpdis[1] or sip)):
                 raise ValueError(
                     """
-Paper IV lookup tables and SIP distortions only work in 2 dimensions.
-However, WCSLIB has detected {0} dimensions in the core WCS keywords.
-To use core WCS in conjunction with Paper IV lookup tables or SIP
-distortion, you must select or reduce these to 2 dimensions using the
-naxis kwarg.
+FITS WCS distortion paper lookup tables and SIP distortions only work
+in 2 dimensions.  However, WCSLIB has detected {0} dimensions in the
+core WCS keywords.  To use core WCS in conjunction with FITS WCS
+distortion paper lookup tables or SIP distortion, you must select or
+reduce these to 2 dimensions using the naxis kwarg.
 """.format(wcsprm.naxis))
 
             header_naxis = header.get('NAXIS', None)
@@ -517,7 +571,7 @@ naxis kwarg.
             return
 
         # Nothing to be done if axes don't use SIP distortion parameters
-        if not all(ctype.endswith('-SIP') for ctype in self.wcs.ctype):
+        if self.sip is None:
             return
 
         # Nothing to be done if any radial terms are present...
@@ -599,6 +653,9 @@ naxis kwarg.
         Parameters
         ----------
         header : `~astropy.io.fits.Header` object, optional
+            Used to get ``NAXIS1`` and ``NAXIS2``
+            header and axes are mutually exclusive, alternative ways
+            to provide the same information.
 
         undistort : bool, optional
             If `True`, take SIP and distortion lookup table into
@@ -635,7 +692,8 @@ naxis kwarg.
                 naxis2 = header.get('NAXIS2', None)
 
         if naxis1 is None or naxis2 is None:
-            return None
+            raise ValueError(
+                    "Image size could not be determined.")
 
         if center == True:
             corners = np.array([[1, 1],
@@ -655,8 +713,8 @@ naxis kwarg.
 
     def _read_det2im_kw(self, header, fobj, err=0.0):
         """
-        Create a `Paper IV`_ type lookup table for detector to image
-        plane correction.
+        Create a `distortion paper`_ type lookup table for detector to
+        image plane correction.
         """
         if fobj is None:
             return (None, None)
@@ -684,14 +742,22 @@ naxis kwarg.
             if distortion in header:
                 dis = header[distortion].lower()
                 if dis == 'lookup':
+                    del header[distortion]
                     assert isinstance(fobj, fits.HDUList), ('An astropy.io.fits.HDUList'
                                 'is required for Lookup table distortion.')
                     dp = (d_kw + str(i)).strip()
-                    d_extver = header.get(dp + '.EXTVER', 1)
-                    if i == header[dp + '.AXIS.{0:d}'.format(i)]:
+                    dp_extver_key = dp + str('.EXTVER')
+                    if dp_extver_key in header:
+                        d_extver = header[dp_extver_key]
+                        del header[dp_extver_key]
+                    else:
+                        d_extver = 1
+                    dp_axis_key = dp + str('.AXIS.{0:d}').format(i)
+                    if i == header[dp_axis_key]:
                         d_data = fobj[str('D2IMARR'), d_extver].data
                     else:
                         d_data = (fobj[str('D2IMARR'), d_extver].data).transpose()
+                    del header[dp_axis_key]
                     d_header = fobj[str('D2IMARR'), d_extver].header
                     d_crpix = (d_header.get(str('CRPIX1'), 0.0), d_header.get(str('CRPIX2'), 0.0))
                     d_crval = (d_header.get(str('CRVAL1'), 0.0), d_header.get(str('CRVAL2'), 0.0))
@@ -701,6 +767,9 @@ naxis kwarg.
                     tables[i] = d_lookup
                 else:
                     warnings.warn('Polynomial distortion is not implemented.\n', AstropyUserWarning)
+                for key in list(header):
+                    if key.startswith(dp + str('.')):
+                        del header[key]
             else:
                 tables[i] = None
         if not tables:
@@ -745,7 +814,7 @@ naxis kwarg.
 
     def _write_det2im(self, hdulist):
         """
-        Writes a Paper IV type lookup table to the given
+        Writes a `distortion paper`_ type lookup table to the given
         `astropy.io.fits.HDUList`.
         """
 
@@ -792,12 +861,12 @@ naxis kwarg.
 
     def _read_distortion_kw(self, header, fobj, dist='CPDIS', err=0.0):
         """
-        Reads `Paper IV`_ table-lookup distortion keywords and data,
-        and returns a 2-tuple of `~astropy.wcs.DistortionLookupTable`
+        Reads `distortion paper`_ table-lookup keywords and data, and
+        returns a 2-tuple of `~astropy.wcs.DistortionLookupTable`
         objects.
 
-        If no `Paper IV`_ distortion keywords are found, ``(None,
-        None)`` is returned.
+        If no `distortion paper`_ keywords are found, ``(None, None)``
+        is returned.
         """
         if isinstance(header, (six.text_type, six.binary_type)):
             return (None, None)
@@ -811,24 +880,36 @@ naxis kwarg.
 
         tables = {}
         for i in range(1, self.naxis + 1):
-            d_error = header.get(err_kw + str(i), 0.0)
+            d_error_key = err_kw + str(i)
+            if d_error_key in header:
+                d_error = header[d_error_key]
+                del header[d_error_key]
+            else:
+                d_error = 0.0
             if d_error < err:
                 tables[i] = None
                 continue
             distortion = dist + str(i)
             if distortion in header:
                 dis = header[distortion].lower()
+                del header[distortion]
                 if dis == 'lookup':
                     assert isinstance(fobj, fits.HDUList), \
                         'An astropy.io.fits.HDUList is required for ' + \
                         'Lookup table distortion.'
                     dp = (d_kw + str(i)).strip()
-                    d_extver = header.get(dp + str('.EXTVER'), 1)
-                    if i == header[dp + str('.AXIS.') + str(i)]:
+                    dp_extver_key = dp + str('.EXTVER')
+                    if dp_extver_key in header:
+                        d_extver = header[dp_extver_key]
+                        del header[dp_extver_key]
+                    else:
+                        d_extver = 1
+                    dp_axis_key = dp + str('.AXIS.{0:d}'.format(i))
+                    if i == header[dp_axis_key]:
                         d_data = fobj[str('WCSDVARR'), d_extver].data
                     else:
                         d_data = (fobj[str('WCSDVARR'), d_extver].data).transpose()
-
+                    del header[dp_axis_key]
                     d_header = fobj[str('WCSDVARR'), d_extver].header
                     d_crpix = (d_header.get(str('CRPIX1'), 0.0),
                                d_header.get(str('CRPIX2'), 0.0))
@@ -838,6 +919,10 @@ naxis kwarg.
                                d_header.get(str('CDELT2'), 1.0))
                     d_lookup = DistortionLookupTable(d_data, d_crpix, d_crval, d_cdelt)
                     tables[i] = d_lookup
+
+                    for key in list(header):
+                        if key.startswith(dp + str('.')):
+                            del header[key]
                 else:
                     warnings.warn('Polynomial distortion is not implemented.\n', AstropyUserWarning)
             else:
@@ -850,7 +935,7 @@ naxis kwarg.
 
     def _write_distortion_kw(self, hdulist, dist='CPDIS'):
         """
-        Write out Paper IV distortion keywords to the given
+        Write out `distortion paper`_ keywords to the given
         `fits.HDUList`.
         """
         if self.cpdis1 is None and self.cpdis2 is None:
@@ -895,6 +980,16 @@ naxis kwarg.
         write_dist(1, self.cpdis1)
         write_dist(2, self.cpdis2)
 
+    def _remove_sip_kw(self, header):
+        """
+        Remove SIP information from a header.
+        """
+        # Never pass SIP coefficients to wcslib
+        # CTYPE must be passed with -SIP to wcslib
+        for key in (m.group() for m in map(SIP_KW.match, list(header))
+                    if m is not None):
+            del header[key]
+
     def _read_sip_kw(self, header):
         """
         Reads `SIP`_ header keywords and returns a `~astropy.wcs.Sip`
@@ -916,17 +1011,26 @@ naxis kwarg.
             a = np.zeros((m + 1, m + 1), np.double)
             for i in range(m + 1):
                 for j in range(m - i + 1):
-                    a[i, j] = header.get((str("A_{0}_{1}").format(i, j)), 0.0)
+                    key = str("A_{0}_{1}").format(i, j)
+                    if key in header:
+                        a[i, j] = header[key]
+                        del header[key]
 
             m = int(header[str("B_ORDER")])
             if m > 1:
                 b = np.zeros((m + 1, m + 1), np.double)
                 for i in range(m + 1):
                     for j in range(m - i + 1):
-                        b[i, j] = header.get((str("B_{0}_{1}").format(i, j)), 0.0)
+                        key = str("B_{0}_{1}").format(i, j)
+                        if key in header:
+                            b[i, j] = header[key]
+                            del header[key]
             else:
                 a = None
                 b = None
+
+            del header[str('A_ORDER')]
+            del header[str('B_ORDER')]
         elif str("B_ORDER") in header and header[str('B_ORDER')] > 1:
             raise ValueError(
                 "B_ORDER provided without corresponding A_ORDER " +
@@ -945,17 +1049,26 @@ naxis kwarg.
             ap = np.zeros((m + 1, m + 1), np.double)
             for i in range(m + 1):
                 for j in range(m - i + 1):
-                    ap[i, j] = header.get("AP_{0}_{1}".format(i, j), 0.0)
+                    key = str("AP_{0}_{1}").format(i, j)
+                    if key in header:
+                        ap[i, j] = header[key]
+                        del header[key]
 
             m = int(header[str("BP_ORDER")])
             if m > 1:
                 bp = np.zeros((m + 1, m + 1), np.double)
                 for i in range(m + 1):
                     for j in range(m - i + 1):
-                        bp[i, j] = header.get("BP_{0}_{1}".format(i, j), 0.0)
+                        key = str("BP_{0}_{1}").format(i, j)
+                        if key in header:
+                            bp[i, j] = header[key]
+                            del header[key]
             else:
                 ap = None
                 bp = None
+
+            del header[str('AP_ORDER')]
+            del header[str('BP_ORDER')]
         elif str("BP_ORDER") in header and header[str('BP_ORDER')] > 1:
             raise ValueError(
                 "BP_ORDER provided without corresponding AP_ORDER "
@@ -1143,15 +1256,18 @@ naxis kwarg.
     all_pix2world.__doc__ = """
         Transforms pixel coordinates to world coordinates.
 
-        Performs all of the following in order:
+        Performs all of the following in series:
 
-            - Detector to image plane correction (optionally)
+            - Detector to image plane correction (if present in the
+              FITS file)
 
-            - `SIP`_ distortion correction (optionally)
+            - `SIP`_ distortion correction (if present in the FITS
+              file)
 
-            - `Paper IV`_ table-lookup distortion correction (optionally)
+            - `distortion paper`_ table-lookup correction (if present
+              in the FITS file)
 
-            - `wcslib`_ WCS transformation
+            - `wcslib`_ "core" WCS transformation
 
         Parameters
         ----------
@@ -1215,7 +1331,7 @@ naxis kwarg.
         Transforms pixel coordinates to world coordinates by doing
         only the basic `wcslib`_ transformation.
 
-        No `SIP`_ or `Paper IV`_ table lookup distortion correction is
+        No `SIP`_ or `distortion paper`_ table lookup correction is
         applied.  To perform distortion correction, see
         `~astropy.wcs.WCS.all_pix2world`,
         `~astropy.wcs.WCS.sip_pix2foc`, `~astropy.wcs.WCS.p4_pix2foc`,
@@ -1534,7 +1650,7 @@ naxis kwarg.
 
                 # Check for divergence (we do this in two stages
                 # to optimize performance for the most common
-                # scenario when succesive approximations converge):
+                # scenario when successive approximations converge):
                 if detect_divergence:
                     divergent = (dn >= dnprev)
                     if np.any(divergent):
@@ -2027,8 +2143,8 @@ naxis kwarg.
             'input', *args, **kwargs)
     wcs_world2pix.__doc__ = """
         Transforms world coordinates to pixel coordinates, using only
-        the basic `wcslib`_ WCS transformation.  No `SIP`_ or `Paper
-        IV`_ table lookup distortion is applied.
+        the basic `wcslib`_ WCS transformation.  No `SIP`_ or
+        `distortion paper`_ table lookup transformation is applied.
 
         Parameters
         ----------
@@ -2086,8 +2202,8 @@ naxis kwarg.
         return self._array_converter(self._pix2foc, None, *args)
     pix2foc.__doc__ = """
         Convert pixel coordinates to focal plane coordinates using the
-        `SIP`_ polynomial distortion convention and `Paper IV`_
-        table-lookup distortion correction.
+        `SIP`_ polynomial distortion convention and `distortion
+        paper`_ table-lookup correction.
 
         The output is in absolute pixel coordinates, not relative to
         ``CRPIX``.
@@ -2116,7 +2232,7 @@ naxis kwarg.
         return self._array_converter(self._p4_pix2foc, None, *args)
     p4_pix2foc.__doc__ = """
         Convert pixel coordinates to focal plane coordinates using
-        `Paper IV`_ table-lookup distortion correction.
+        `distortion paper`_ table-lookup correction.
 
         The output is in absolute pixel coordinates, not relative to
         ``CRPIX``.
@@ -2145,7 +2261,7 @@ naxis kwarg.
         return self._array_converter(self._det2im, None, *args)
     det2im.__doc__ = """
         Convert detector coordinates to image plane coordinates using
-        `Paper IV`_ table-lookup distortion correction.
+        `distortion paper`_ table-lookup correction.
 
         The output is in absolute pixel coordinates, not relative to
         ``CRPIX``.
@@ -2185,10 +2301,10 @@ naxis kwarg.
 
         The output is in pixel coordinates, relative to ``CRPIX``.
 
-        `Paper IV`_ table lookup distortion correction is not applied,
-        even if that information existed in the FITS file that
-        initialized this :class:`~astropy.wcs.WCS` object.  To correct
-        for that, use `~astropy.wcs.WCS.pix2foc` or
+        FITS WCS `distortion paper`_ table lookup correction is not
+        applied, even if that information existed in the FITS file
+        that initialized this :class:`~astropy.wcs.WCS` object.  To
+        correct for that, use `~astropy.wcs.WCS.pix2foc` or
         `~astropy.wcs.WCS.p4_pix2foc`.
 
         Parameters
@@ -2224,9 +2340,9 @@ naxis kwarg.
         Convert focal plane coordinates to pixel coordinates using the
         `SIP`_ polynomial distortion convention.
 
-        `Paper IV`_ table lookup distortion correction is not applied,
-        even if that information existed in the FITS file that
-        initialized this `~astropy.wcs.WCS` object.
+        FITS WCS `distortion paper`_ table lookup distortion
+        correction is not applied, even if that information existed in
+        the FITS file that initialized this `~astropy.wcs.WCS` object.
 
         Parameters
         ----------
@@ -2291,19 +2407,18 @@ naxis kwarg.
 
         return hdulist
 
-    def to_header(self, relax=False, key=None):
-        """
-        Generate an `astropy.io.fits.Header` object with the basic WCS and SIP
-        information stored in this object.  This should be logically
-        identical to the input FITS file, but it will be normalized in
-        a number of ways.
+    def to_header(self, relax=None, key=None):
+        """Generate an `astropy.io.fits.Header` object with the basic WCS
+        and SIP information stored in this object.  This should be
+        logically identical to the input FITS file, but it will be
+        normalized in a number of ways.
 
         .. warning::
 
-          This function does not write out Paper IV distortion
-          information, since that requires multiple FITS header data
-          units.  To get a full representation of everything in this
-          object, use `to_fits`.
+          This function does not write out FITS WCS `distortion
+          paper`_ information, since that requires multiple FITS
+          header data units.  To get a full representation of
+          everything in this object, use `to_fits`.
 
         Parameters
         ----------
@@ -2318,6 +2433,12 @@ naxis kwarg.
 
             - `int`: a bit field selecting specific extensions to
               write.  See :ref:`relaxwrite` for details.
+
+            If the ``relax`` keyword argument is not given and any
+            keywords were omitted from the output, an
+            `~astropy.utils.exceptions.AstropyWarning` is displayed.
+            To override this, explicitly pass a value to ``relax``.
+
         key : str
             The name of a particular WCS transform to use.  This may be
             either ``' '`` or ``'A'``-``'Z'`` and corresponds to the ``"a"``
@@ -2359,10 +2480,11 @@ naxis kwarg.
 
           8. Keyword order may be changed.
 
-
         """
-        if key is not None:
-            self.wcs.alt = key
+        display_warning = False
+        if relax is None:
+            display_warning = True
+            relax = False
 
         if relax not in (True, False):
             do_sip = relax & WCSHDO_SIP
@@ -2371,18 +2493,43 @@ naxis kwarg.
             do_sip = relax
 
         if self.wcs is not None:
-            header_string = self.wcs.to_header(relax)
+            if key is not None:
+                orig_key = self.wcs.alt
+                self.wcs.alt = key
+            try:
+                header_string = self.wcs.to_header(relax)
+            finally:
+                if key is not None:
+                    self.wcs.alt = orig_key
             header = fits.Header.fromstring(header_string)
+            keys_to_remove = ["", " ", "COMMENT"]
+            for kw in keys_to_remove:
+                if kw in header:
+                    del header[kw]
         else:
             header = fits.Header()
 
         if do_sip and self.sip is not None:
-            for key, val in self._write_sip_kw().items():
-                header[key] = val
+            for kw, val in self._write_sip_kw().items():
+                header[kw] = val
+
+        if display_warning:
+            full_header = self.to_header(relax=True, key=key)
+            missing_keys = []
+            for kw, val in full_header.items():
+                if kw not in header:
+                    missing_keys.append(kw)
+
+            if len(missing_keys):
+                warnings.warn(
+                    "Some non-standard WCS keywords were excluded: {0} "
+                    "Use the ``relax`` kwarg to control this.".format(
+                        ', '.join(missing_keys)),
+                    AstropyWarning)
 
         return header
 
-    def to_header_string(self, relax=False):
+    def to_header_string(self, relax=None):
         """
         Identical to `to_header`, but returns a string containing the
         header cards.
@@ -2437,18 +2584,21 @@ naxis kwarg.
         self.wcs.cd = new_cd
 
     def printwcs(self):
-        print("WCS Keywords\n")
-        print("Number of WCS axes: {0!r}".format(self.naxis))
-        sfmt = ': ' +  "".join(["{"+"{0}".format(i)+"!r}  " for i in range(self.naxis)])
+        print(repr(self))
 
-        s = 'CTYPE ' + sfmt
-        print(s.format(*self.wcs.ctype))
+    def __repr__(self):
+        '''
+        Return a short description. Simply porting the behavior from
+        the `printwcs()` method.
+        '''
+        description = ["WCS Keywords\n",
+                       "Number of WCS axes: {0!r}".format(self.naxis)]
+        sfmt = ' : ' +  "".join(["{"+"{0}".format(i)+"!r}  " for i in range(self.naxis)])
 
-        s = 'CRVAL ' + sfmt
-        print(s.format(*self.wcs.crval))
-
-        s = 'CRPIX ' + sfmt
-        print(s.format(*self.wcs.crpix))
+        keywords = ['CTYPE', 'CRVAL', 'CRPIX']
+        values = [self.wcs.ctype, self.wcs.crval, self.wcs.crpix]
+        for keyword, value in zip(keywords, values):
+            description.append(keyword+sfmt.format(*value))
 
         if hasattr(self.wcs, 'pc'):
             for i in range(self.naxis):
@@ -2456,18 +2606,20 @@ naxis kwarg.
                 for j in range(self.naxis):
                     s += ''.join(['PC', str(i+1), '_', str(j+1), ' '])
                 s += sfmt
-                print(s.format(*self.wcs.pc[i]))
-            s = 'CDELT ' + sfmt
-            print(s.format(*self.wcs.cdelt))
+                description.append(s.format(*self.wcs.pc[i]))
+            s = 'CDELT' + sfmt
+            description.append(s.format(*self.wcs.cdelt))
         elif hasattr(self.wcs, 'cd'):
             for i in range(self.naxis):
                 s = ''
                 for j in range(self.naxis):
                     s += "".join(['CD', str(i+1), '_', str(j+1), ' '])
                 s += sfmt
-                print(s.format(*self.wcs.cd[i]))
+                description.append(s.format(*self.wcs.cd[i]))
 
-        print('NAXIS    : {0!r} {1!r}'.format(self._naxis1, self._naxis2))
+        description.append('NAXIS    : {0!r} {1!r}'.format(self._naxis1,
+                           self._naxis2))
+        return '\n'.join(description)
 
     def get_axis_types(self):
         """
@@ -2610,10 +2762,10 @@ naxis kwarg.
 
         Parameters
         ----------
-        wcs: `~astropy.wcs.WCS`
+        wcs : `~astropy.wcs.WCS`
             The WCS to have its axes swapped
-        ax0: int
-        ax1: int
+        ax0 : int
+        ax1 : int
             The indices of the WCS to be swapped, counting from 0 (i.e., python
             convention, not FITS convention)
 
@@ -2752,7 +2904,7 @@ naxis kwarg.
             pc = np.matrix(self.wcs.get_pc())
         except InconsistentAxisTypesError:
             try:
-                # for non-celestial axes, get_cdelt doesnt work
+                # for non-celestial axes, get_cdelt doesn't work
                 cdelt = np.matrix(self.wcs.cd) * np.matrix(np.diag(self.wcs.cdelt))
             except AttributeError:
                 cdelt = np.matrix(np.diag(self.wcs.cdelt))
@@ -2765,6 +2917,39 @@ naxis kwarg.
         pccd = np.array(cdelt * pc)
 
         return pccd
+
+    def _as_mpl_axes(self):
+        """
+        Compatibility hook for Matplotlib and WCSAxes.
+
+        This functionality requires the WCSAxes package to work. The reason
+        we include this here is that it allows users to use WCSAxes without
+        having to explicitly import WCSAxes, which means that if in future we
+        merge WCSAxes into the Astropy core package, the API will remain the
+        same. With this method, one can do:
+
+            from astropy.wcs import WCS
+            import matplotlib.pyplot as plt
+
+            wcs = WCS('filename.fits')
+
+            fig = plt.figure()
+            ax = fig.add_axes([0.15, 0.1, 0.8, 0.8], projection=wcs)
+            ...
+
+        and this will generate a plot with the correct WCS coordinates on the
+        axes. See http://wcsaxes.readthedocs.org for more information.
+        """
+
+        try:
+            from wcsaxes import WCSAxes
+        except ImportError:
+            raise ImportError("Using WCS instances as Matplotlib projections "
+                              "requires the WCSAxes package to be installed. "
+                              "See http://wcsaxes.readthedocs.org for more "
+                              "details.")
+        else:
+            return WCSAxes, {'wcs': self}
 
 
 def __WCS_unpickle__(cls, dct, fits_data):
@@ -2956,7 +3141,8 @@ def validate(source):
 
         with warnings.catch_warnings(record=True) as warning_lines:
             wcses = find_all_wcs(
-                hdu.header, relax=True, fix=False, _do_set=False)
+                hdu.header, relax=_wcs.WCSHDR_reject,
+                fix=False, _do_set=False)
 
         for wcs in wcses:
             wcs_results = _WcsValidateWcsResult(wcs.wcs.alt)
@@ -2975,7 +3161,8 @@ def validate(source):
                 try:
                     WCS(hdu.header,
                         key=wcs.wcs.alt or ' ',
-                        relax=True, fix=True, _do_set=False)
+                        relax=_wcs.WCSHDR_reject,
+                        fix=True, _do_set=False)
                 except WcsError as e:
                     wcs_results.append(str(e))
 

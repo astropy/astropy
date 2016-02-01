@@ -6,38 +6,37 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-"""Test initalization of angles not already covered by the API tests"""
+"""Test initialization of angles not already covered by the API tests"""
 
-import functools
-from distutils import version
+import pickle
 import numpy as np
 
 from ..earth import EarthLocation, ELLIPSOIDS
 from ..angles import Longitude, Latitude
-from ...tests.helper import pytest
+from ...tests.helper import pytest, quantity_allclose
 from ... import units as u
 
-NUMPY_VERSION = version.LooseVersion(np.__version__)
+def allclose_m14(a, b, rtol=1.e-14, atol=None):
+    if atol is None:
+        atol = 1.e-14 * getattr(a, 'unit', 1)
+    return quantity_allclose(a, b, rtol, atol)
 
-allclose_m14 = functools.partial(np.allclose, rtol=1.e-14, atol=1.e-14)
-allclose_m8 = functools.partial(np.allclose, rtol=1.e-8, atol=1.e-8)
+def allclose_m8(a, b, rtol=1.e-8, atol=None):
+    if atol is None:
+        atol = 1.e-8 * getattr(a, 'unit', 1)
+    return quantity_allclose(a, b, rtol, atol)
 
-if NUMPY_VERSION >= version.LooseVersion('1.7.0'):
-    isclose_m14 = functools.partial(np.isclose, rtol=1.e-14, atol=1.e-14)
-    isclose_m8 = functools.partial(np.isclose, rtol=1.e-8, atol=1.e-8)
-else:
-    def isclose_m14(val, ref):
-        return np.array([allclose_m14(v, r, rtol=1.e-14, atol=1.e-14)
-                         for (v, r) in zip(val, ref)])
 
-    def isclose_m8(val, ref):
-        return np.array([allclose_m8(v, r, rtol=1.e-8, atol=1.e-8)
-                         for (v, r) in zip(val, ref)])
+def isclose_m14(val, ref):
+    return np.array([allclose_m14(v, r) for (v, r) in zip(val, ref)])
+
+def isclose_m8(val, ref):
+    return np.array([allclose_m8(v, r) for (v, r) in zip(val, ref)])
 
 
 def vvd(val, valok, dval, func, test, status):
     """Mimic routine of erfa/src/t_erfa_c.c (to help copy & paste)"""
-    assert np.allclose(val, valok, atol=dval)
+    assert quantity_allclose(val, valok * val.unit, atol=dval * val.unit)
 
 
 def test_gc2gd():
@@ -48,19 +47,19 @@ def test_gc2gd():
 
     location = EarthLocation.from_geocentric(x, y, z, u.m)
     e, p, h = location.to_geodetic('WGS84')
-    e, p, h = e.to(u.radian).value, p.to(u.radian).value, h.to(u.m).value
+    e, p, h = e.to(u.radian), p.to(u.radian), h.to(u.m)
     vvd(e, 0.98279372324732907, 1e-14, "eraGc2gd", "e2", status)
     vvd(p, 0.97160184820607853, 1e-14, "eraGc2gd", "p2", status)
     vvd(h, 331.41731754844348, 1e-8, "eraGc2gd", "h2", status)
 
     e, p, h = location.to_geodetic('GRS80')
-    e, p, h = e.to(u.radian).value, p.to(u.radian).value, h.to(u.m).value
+    e, p, h = e.to(u.radian), p.to(u.radian), h.to(u.m)
     vvd(e, 0.98279372324732907, 1e-14, "eraGc2gd", "e2", status)
     vvd(p, 0.97160184820607853, 1e-14, "eraGc2gd", "p2", status)
     vvd(h, 331.41731754844348, 1e-8, "eraGc2gd", "h2", status)
 
     e, p, h = location.to_geodetic('WGS72')
-    e, p, h = e.to(u.radian).value, p.to(u.radian).value, h.to(u.m).value
+    e, p, h = e.to(u.radian), p.to(u.radian), h.to(u.m)
     vvd(e, 0.98279372324732907, 1e-14, "eraGc2gd", "e3", status)
     vvd(p, 0.97160181811015119, 1e-14, "eraGc2gd", "p3", status)
     vvd(h, 333.27707261303181, 1e-8, "eraGc2gd", "h3", status)
@@ -75,19 +74,19 @@ def test_gd2gc():
     status = 0  # help for copy & paste of vvd
 
     location = EarthLocation.from_geodetic(e, p, h, ellipsoid='WGS84')
-    xyz = location.to_geocentric()
+    xyz = tuple(v.to(u.m) for v in location.to_geocentric())
     vvd(xyz[0], -5599000.5577049947, 1e-7, "eraGd2gc", "0/1", status)
     vvd(xyz[1], 233011.67223479203, 1e-7, "eraGd2gc", "1/1", status)
     vvd(xyz[2], -3040909.4706983363, 1e-7, "eraGd2gc", "2/1", status)
 
     location = EarthLocation.from_geodetic(e, p, h, ellipsoid='GRS80')
-    xyz = location.to_geocentric()
+    xyz = tuple(v.to(u.m) for v in location.to_geocentric())
     vvd(xyz[0], -5599000.5577260984, 1e-7, "eraGd2gc", "0/2", status)
     vvd(xyz[1], 233011.6722356703, 1e-7, "eraGd2gc", "1/2", status)
     vvd(xyz[2], -3040909.4706095476, 1e-7, "eraGd2gc", "2/2", status)
 
     location = EarthLocation.from_geodetic(e, p, h, ellipsoid='WGS72')
-    xyz = location.to_geocentric()
+    xyz = tuple(v.to(u.m) for v in location.to_geocentric())
     vvd(xyz[0], -5598998.7626301490, 1e-7, "eraGd2gc", "0/3", status)
     vvd(xyz[1], 233011.5975297822, 1e-7, "eraGd2gc", "1/3", status)
     vvd(xyz[2], -3040908.6861467111, 1e-7, "eraGd2gc", "2/3", status)
@@ -201,7 +200,7 @@ class TestInput():
         assert loc_slice1.unit is locwgs72.unit
         assert loc_slice1.ellipsoid == locwgs72.ellipsoid == 'WGS72'
         assert not loc_slice1.shape
-        with pytest.raises(IndexError):
+        with pytest.raises(TypeError):
             loc_slice1[0]
         with pytest.raises(IndexError):
             len(loc_slice1)
@@ -231,7 +230,7 @@ class TestInput():
         with pytest.raises(ValueError):
             self.location.to_geodetic('foo')
 
-    @pytest.mark.parametrize('ellipsoid', ELLIPSOIDS.keys())
+    @pytest.mark.parametrize('ellipsoid', ELLIPSOIDS)
     def test_ellipsoid(self, ellipsoid):
         """Test that different ellipsoids are understood, and differ"""
         # check that heights differ for different ellipsoids
@@ -250,3 +249,11 @@ class TestInput():
             assert allclose_m14(location.z.value, self.z.value)
         else:
             assert not np.all(isclose_m14(location.z.value, self.z.value))
+
+
+def test_pickling():
+    """Regression test against #4304."""
+    el = EarthLocation(0.*u.m, 6000*u.km, 6000*u.km)
+    s = pickle.dumps(el)
+    el2 = pickle.loads(s)
+    assert el == el2

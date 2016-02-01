@@ -31,13 +31,13 @@ Transforms pixel coordinates to world coordinates.
 
 Does the following:
 
-    - Detector to image plane correction (optionally)
+    - Detector to image plane correction (if present)
 
-    - SIP distortion correction (optionally)
+    - SIP distortion correction (if present)
 
-    - Paper IV distortion correction (optionally)
+    - FITS WCS distortion correction (if present)
 
-    - wcslib WCS transformation
+    - wcslib "core" WCS transformation
 
 The first three (the distortion corrections) are done in parallel.
 
@@ -200,7 +200,7 @@ cd = """
 matrix.
 
 For historical compatibility, three alternate specifications of the
-linear transforations are available in wcslib.  The canonical
+linear transformations are available in wcslib.  The canonical
 ``PCi_ja`` with ``CDELTia``, ``CDi_ja``, and the deprecated
 ``CROTAia`` keywords.  Although the latter may not formally co-exist
 with ``PCi_ja``, the approach here is simply to ignore them if given
@@ -376,7 +376,7 @@ crota = """
 axis.
 
 For historical compatibility, three alternate specifications of the
-linear transforations are available in wcslib.  The canonical
+linear transformations are available in wcslib.  The canonical
 ``PCi_ja`` with ``CDELTia``, ``CDi_ja``, and the deprecated
 ``CROTAia`` keywords.  Although the latter may not formally co-exist
 with ``PCi_ja``, the approach here is simply to ignore them if given
@@ -585,7 +585,7 @@ The dimensions of the tabular array
 DistortionLookupTable = """
 DistortionLookupTable(*table*, *crpix*, *crval*, *cdelt*)
 
-Represents a single lookup table for a `Paper IV`_ distortion
+Represents a single lookup table for a `distortion paper`_
 transformation.
 
 Parameters
@@ -1311,14 +1311,14 @@ InvalidTransformError
 See also
 --------
 astropy.wcs.Wcsprm.lat, astropy.wcs.Wcsprm.lng
-    Definition of the latitude andlongitude axes
+    Definition of the latitude and longitude axes
 """.format(__.ORIGIN())
 
 p4_pix2foc = """
 p4_pix2foc(*pixcrd, origin*) -> double array[ncoord][nelem]
 
-Convert pixel coordinates to focal plane coordinates using `Paper IV`_
-lookup-table distortion correction.
+Convert pixel coordinates to focal plane coordinates using `distortion
+paper`_ lookup-table correction.
 
 Parameters
 ----------
@@ -1351,7 +1351,7 @@ The order is::
    [PC2_1, PC2_2]]
 
 For historical compatibility, three alternate specifications of the
-linear transforations are available in wcslib.  The canonical
+linear transformations are available in wcslib.  The canonical
 ``PCi_ja`` with ``CDELTia``, ``CDi_ja``, and the deprecated
 ``CROTAia`` keywords.  Although the latter may not formally co-exist
 with ``PCi_ja``, the approach here is simply to ignore them if given
@@ -1385,7 +1385,7 @@ astropy.wcs.Wcsprm.theta0
 pix2foc = """
 pix2foc(*pixcrd, origin*) -> double array[ncoord][nelem]
 
-Perform both `SIP`_ polynomial and `Paper IV`_ lookup-table distortion
+Perform both `SIP`_ polynomial and `distortion paper`_ lookup-table
 correction in parallel.
 
 Parameters
@@ -2095,6 +2095,12 @@ See also
 astropy.wcs.Wcsprm.specsys, astropy.wcs.Wcsprm.ssysobs
 """
 
+velref = """
+``int`` AIPS velocity code.
+
+From ``VELREF`` keyword.
+"""
+
 wcs = """
 A `~astropy.wcs.Wcsprm` object to perform the basic `wcslib`_ WCS
 transformation.
@@ -2104,9 +2110,9 @@ Wcs = """
 Wcs(*sip, cpdis, wcsprm, det2im*)
 
 Wcs objects amalgamate basic WCS (as provided by `wcslib`_), with
-`SIP`_ and `Paper IV`_ distortion operations.
+`SIP`_ and `distortion paper`_ operations.
 
-To perform all distortion corrections and WCS tranformation, use
+To perform all distortion corrections and WCS transformation, use
 ``all_pix2world``.
 
 Parameters
@@ -2125,8 +2131,7 @@ det2im : A pair of `~astropy.wcs.DistortionLookupTable` objects, or
 Wcsprm = """
 Wcsprm(header=None, key=' ', relax=False, naxis=2, keysel=0, colsel=None)
 
-`~astropy.wcs.Wcsprm` is a direct wrapper around `wcslib`_.  It
-provides access to the core WCS transformations that it supports.
+`~astropy.wcs.Wcsprm` performs the core WCS transformations.
 
 .. note::
     The members of this object correspond roughly to the key/value

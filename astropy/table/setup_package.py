@@ -1,4 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import absolute_import
+
 import os
 from distutils.extension import Extension
 
@@ -6,21 +8,18 @@ ROOT = os.path.relpath(os.path.dirname(__file__))
 
 
 def get_extensions():
-    sources = [os.path.join(ROOT, "_np_utils.pyx")]
+    sources = ["_np_utils.pyx", "_column_mixins.pyx"]
     include_dirs = ['numpy']
-    libraries = []
 
-    table_ext = Extension(
-        name="astropy.table._np_utils",
-        sources=sources,
-        include_dirs=include_dirs,
-        libraries=libraries,)
+    exts = [
+        Extension(name='astropy.table.' + os.path.splitext(source)[0],
+                  sources=[os.path.join(ROOT, source)],
+                  include_dirs=include_dirs)
+        for source in sources
+    ]
 
-    return [table_ext]
+    return exts
 
-def get_package_data():
-    paths = [os.path.join('data', '*.css')]
-    return {'astropy.table': paths}
 
 def requires_2to3():
     return False

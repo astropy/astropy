@@ -7,7 +7,7 @@ top-level `astropy.units` namespace.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ..utils.compat.fractions import Fraction
+from fractions import Fraction
 
 from . import si
 from .core import UnitBase, def_unit
@@ -114,7 +114,7 @@ def_unit(['G', 'Gauss', 'gauss'], 1e-4 * si.T, namespace=_ns, prefixes=True,
 ###########################################################################
 # BASES
 
-bases = set([cm, g, s, C, rad, cd, K, mol])
+bases = set([cm, g, s, rad, cd, K, mol])
 
 
 ###########################################################################
@@ -132,4 +132,5 @@ del Fraction
 # This generates a docstring for this module that describes all of the
 # standard units defined here.
 from .utils import generate_unit_summary as _generate_unit_summary
-__doc__ += _generate_unit_summary(globals())
+if __doc__ is not None:
+    __doc__ += _generate_unit_summary(globals())

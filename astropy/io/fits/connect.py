@@ -5,16 +5,15 @@ from __future__ import print_function
 import os
 import re
 import warnings
+from collections import OrderedDict
 
 import numpy as np
 
 from .. import registry as io_registry
-from ... import log
 from ... import units as u
 from ...extern import six
 from ...extern.six import string_types
 from ...table import Table
-from ...utils import OrderedDict
 from ...utils.exceptions import AstropyUserWarning
 from astropy.units.format.fits import UnitScaleError
 
@@ -209,6 +208,13 @@ def write_table_fits(input, output, overwrite=False):
     overwrite : bool
         Whether to overwrite any existing file without warning.
     """
+
+    # Tables with mixin columns are not supported
+    if input.has_mixin_columns:
+        mixin_names = [name for name, col in input.columns.items()
+                       if not isinstance(col, input.ColumnClass)]
+        raise ValueError('cannot write table with mixin column(s) {0} to FITS'
+                         .format(mixin_names))
 
     # Check if output file already exists
     if isinstance(output, string_types) and os.path.exists(output):

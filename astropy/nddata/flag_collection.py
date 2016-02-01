@@ -1,10 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+from collections import OrderedDict
 
 import numpy as np
 
-from ..utils.compat.odict import OrderedDict
 from ..utils.misc import isiterable
 
 __all__ = ['FlagCollection']
@@ -28,9 +30,11 @@ class FlagCollection(OrderedDict):
         if 'shape' in kwargs:
             self.shape = kwargs.pop('shape')
             if not isiterable(self.shape):
-                raise ValueError("FlagCollection shape should be an iterable object")
+                raise ValueError("FlagCollection shape should be "
+                                 "an iterable object")
         else:
-            raise Exception("FlagCollection should be initialized with the shape of the data")
+            raise Exception("FlagCollection should be initialized with "
+                            "the shape of the data")
 
         OrderedDict.__init__(self, *args, **kwargs)
 
@@ -40,6 +44,7 @@ class FlagCollection(OrderedDict):
             if value.shape == self.shape:
                 OrderedDict.__setitem__(self, item, value, **kwargs)
             else:
-                raise ValueError("flags array shape {0} does not match data shape {1}".format(value.shape, self.shape))
+                raise ValueError("flags array shape {0} does not match data "
+                                 "shape {1}".format(value.shape, self.shape))
         else:
             raise TypeError("flags should be given as a Numpy array")

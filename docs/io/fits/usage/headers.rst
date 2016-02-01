@@ -52,7 +52,7 @@ quick summary::
 
     >>> hdulist = fits.open('input.fits')  # open a FITS file
     >>> prihdr = hdulist[0].header  # the primary HDU header
-    >>> print prihdr[3]             # get the 4th keyword's value
+    >>> print(prihdr[3])            # get the 4th keyword's value
     10
     >>> prihdr[3] = 20  # change its value
     >>> prihdr['DARKCORR']  # get the value of the keyword 'darkcorr'
@@ -232,7 +232,7 @@ A new Card object is created with the :class:`Card` constructor:
     >>> c4 = fits.Card('ABC', 2+3j, 'complex value')
     >>> c5 = fits.Card('OBSERVER', 'Hubble', 'string value')
 
-    >>> print c1; print c2; print c3; print c4; print c5  # show the cards
+    >>> print(c1); print(c2); print(c3); print(c4); print(c5)  # show the cards
     TEMP = 80.0 / temperature, floating value
     DETECTOR= 1 /
     MIR_REVR= T / mirror reversed? Boolean value
@@ -258,7 +258,7 @@ Astropy will be discussed in a later chapter.
 
     >>> c1 = fits.Card.fromstring('ABC = 3.456D023')
     >>> c2 = fits.Card.fromstring("P.I. ='Hubble'")
-    >>> print c1; print c2
+    >>> print(c1); print(c2)
     ABC = 3.456D023
     P.I. ='Hubble'
     >>> c2.verify()
@@ -336,10 +336,10 @@ Examples follow::
     >>> c = fits.Card('abcdefghi', 10)
     Keyword name 'abcdefghi' is greater than 8 characters; a HIERARCH card will
     be created.
-    >>> print c
+    >>> print(c)
     HIERARCH abcdefghi = 10
     >>> c = fits.Card('hierarch abcdefghi', 10)
-    >>> print c
+    >>> print(c)
     HIERARCH abcdefghi = 10
     >>> h = fits.PrimaryHDU()
     >>> h.header['hierarch abcdefghi'] =  99
@@ -350,11 +350,7 @@ Examples follow::
     10
     >>> h.header['ABCDEFGHI']
     Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-      File "astropy/io/fits/header.py", line 121, in __getitem__
-        return self._cards[self._cardindex(key)].value
-      File "astropy/io/fits/header.py", line 1106, in _cardindex
-        raise KeyError("Keyword %r not found." % keyword)
+    ...
     KeyError: "Keyword 'ABCDEFGI.' not found."
     >>> h.header
     SIMPLE = T / conforms to FITS standard

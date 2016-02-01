@@ -12,8 +12,23 @@
 
 #include <Python.h>
 
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 #include <numpy/npy_math.h>
+
+/* A few Numpy constants that don't have consistent (undeprecated) spellings
+   between Numpy 1.6 and the current version */
+#ifndef NPY_ARRAY_C_CONTIGUOUS
+#define NPY_ARRAY_C_CONTIGUOUS NPY_C_CONTIGUOUS
+#endif
+
+#ifndef NPY_ARRAY_WRITEABLE
+#define NPY_ARRAY_WRITEABLE NPY_WRITEABLE
+#endif
+
+#ifndef PyArray_SetBaseObject
+#define PyArray_SetBaseObject(arr, baseobj) ((arr)->base = (PyObject *)baseobj)
+#endif
 
 #if PY_MAJOR_VERSION >= 3
 #define PY3K 1
@@ -163,10 +178,10 @@ void
 wcs_to_python_exc(const struct wcsprm *wcs);
 
 void
-wcserr_fix_to_python_exc(const struct wcserr *err);
+wcshdr_err_to_python_exc(int status);
 
 void
-wcserr_units_to_python_exc(const struct wcserr *err);
+wcserr_fix_to_python_exc(const struct wcserr *err);
 
 /***************************************************************************
   Property helpers
@@ -257,7 +272,7 @@ get_double_array(
     const npy_intp* dims,
     /*@shared@*/ PyObject* owner) {
 
-  return PyArrayProxy_New(owner, ndims, dims, PyArray_DOUBLE, value);
+  return PyArrayProxy_New(owner, ndims, dims, NPY_DOUBLE, value);
 }
 
 /*@null@*/ static INLINE PyObject*
@@ -268,7 +283,7 @@ get_double_array_readonly(
     const npy_intp* dims,
     /*@shared@*/ PyObject* owner) {
 
-  return PyArrayReadOnlyProxy_New(owner, ndims, dims, PyArray_DOUBLE, value);
+  return PyArrayReadOnlyProxy_New(owner, ndims, dims, NPY_DOUBLE, value);
 }
 
 int
@@ -287,7 +302,7 @@ get_int_array(
     const npy_intp* dims,
     /*@shared@*/ PyObject* owner) {
 
-  return PyArrayProxy_New(owner, ndims, dims, PyArray_INT, value);
+  return PyArrayProxy_New(owner, ndims, dims, NPY_INT, value);
 }
 
 int

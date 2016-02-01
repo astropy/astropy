@@ -12,12 +12,20 @@ from contextlib import contextmanager
 
 from . import config as _config
 from . import conf as _conf
-from .extern.six import PY3
+from .extern.six import PY3, text_type
 from .utils import find_current_module
 from .utils.console import color_print
 from .utils.exceptions import AstropyWarning, AstropyUserWarning
 
 __all__ = ['Conf', 'conf', 'log', 'AstropyLogger', 'LoggingError']
+
+# import the logging levels from logging so that one can do:
+# log.setLevel(log.DEBUG), for example
+logging_levels = ['NOTSET', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
+                  'FATAL', ]
+for level in logging_levels:
+    globals()[level] = getattr(logging, level)
+__all__ += logging_levels
 
 
 # Initialize by calling _init_log()
@@ -75,18 +83,6 @@ class Conf(_config.ConfigNamespace):
         "%(origin)r, %(levelname)r, %(message)r",
         "Format for log file entries.")
 conf = Conf()
-
-
-LOG_LEVEL = _config.ConfigAlias('0.4', 'LOG_LEVEL', 'log_level')
-USE_COLOR = _config.ConfigAlias(
-    '0.4', 'USE_COLOR', 'use_color', 'astropy.logger', 'astropy')
-LOG_WARNINGS = _config.ConfigAlias('0.4', 'LOG_WARNINGS', 'log_warnings')
-LOG_EXCEPTIONS = _config.ConfigAlias('0.4', 'LOG_EXCEPTIONS', 'log_exceptions')
-LOG_TO_FILE = _config.ConfigAlias('0.4', 'LOG_TO_FILE', 'log_to_file')
-LOG_FILE_PATH = _config.ConfigAlias('0.4', 'LOG_FILE_PATH', 'log_file_path')
-LOG_FILE_LEVEL = _config.ConfigAlias('0.4', 'LOG_FILE_LEVEL', 'log_file_level')
-LOG_FILE_FORMAT = _config.ConfigAlias(
-    '0.4', 'LOG_FILE_FORMAT', 'log_file_format')
 
 
 def _init_log():
@@ -200,7 +196,7 @@ class AstropyLogger(Logger):
         mod_name = None
         if PY3:
             mod_path, ext = os.path.splitext(mod_path)
-            for name, mod in sys.modules.items():
+            for name, mod in list(sys.modules.items()):
                 try:
                     # Believe it or not this can fail in some cases:
                     # https://github.com/astropy/astropy/issues/2671
@@ -211,7 +207,7 @@ class AstropyLogger(Logger):
                     mod_name = mod.__name__
                     break
         else:  # pragma: py2
-            for name, mod in sys.modules.items():
+            for name, mod in list(sys.modules.items()):
                 try:
                     if getattr(mod, '__file__', '') == mod_path:
                         mod_name = mod.__name__
@@ -276,7 +272,7 @@ class AstropyLogger(Logger):
         if len(value.args) > 0:
             message = '{0}: {1}'.format(etype.__name__, str(value))
         else:
-            message = unicode(etype.__name__)
+            message = text_type(etype.__name__)
 
         if mod is not None:
             self.error(message, extra={'origin': mod.__name__})
@@ -422,7 +418,7 @@ class AstropyLogger(Logger):
                 # your code here
         '''
 
-        fh = FileHandler(filename)
+        fh = logging.FileHandler(filename)
         if filter_level is not None:
             fh.setLevel(filter_level)
         if filter_origin is not None:
@@ -477,12 +473,6 @@ class AstropyLogger(Logger):
         yield lh.log_list
         self.removeHandler(lh)
 
-    def setLevel(self, level):
-        """
-        Set the logging level of this logger.
-        """
-        self.level = _checkLevel(level)
-
     def _set_defaults(self):
         '''
         Reset logger to its initial state
@@ -524,11 +514,11 @@ class AstropyLogger(Logger):
                 else:
                     log_file_path = os.path.expanduser(log_file_path)
 
-                fh = FileHandler(log_file_path)
+                fh = logging.FileHandler(log_file_path)
             except (IOError, OSError) as e:
                 warnings.warn(
                     'log file {0!r} could not be opened for writing: '
-                    '{1}'.format(log_file_path, unicode(e)), RuntimeWarning)
+                    '{1}'.format(log_file_path, text_type(e)), RuntimeWarning)
             else:
                 formatter = logging.Formatter(conf.log_file_format)
                 fh.setFormatter(formatter)
@@ -540,31 +530,6 @@ class AstropyLogger(Logger):
 
         if conf.log_exceptions:
             self.enable_exception_logging()
-
-
-# The following function is copied from the source code of Python 2.7 and 3.2.
-# This function is not included in Python 2.6 and 3.1, so we have to include it
-# here to provide uniform behavior across versions.
-def _checkLevel(level):
-    '''
-    '''
-    if isinstance(level, int):
-        rv = level
-    elif str(level) == level:
-        if sys.version_info[:2] >= (3, 4):
-            names = logging._nameToLevel
-        else:
-            names = logging._levelNames
-        if level not in names:
-            raise ValueError("Unknown level: %r" % level)
-        rv = names[level]
-    else:
-        raise TypeError("Level not an integer or a valid string: %r" % level)
-    return rv
-
-
-# We now have to be sure that we overload the setLevel in FileHandler, again
-# for compatibility with Python 2.6 and 3.1.
 
 
 class StreamHandler(logging.StreamHandler):
@@ -597,14 +562,6 @@ class StreamHandler(logging.StreamHandler):
         print(": " + record.message, file=stream)
 
 
-class FileHandler(logging.FileHandler):
-    def setLevel(self, level):
-        """
-        Set the logging level of this handler.
-        """
-        self.level = _checkLevel(level)
-
-
 class FilterOrigin(object):
     '''A filter for the record origin'''
     def __init__(self, origin):
@@ -623,9 +580,3 @@ class ListHandler(logging.Handler):
 
     def emit(self, record):
         self.log_list.append(record)
-
-    def setLevel(self, level):
-        """
-        Set the logging level of this handler.
-        """
-        self.level = _checkLevel(level)
