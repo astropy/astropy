@@ -405,8 +405,8 @@ This dichotomy is needed to support flexible list input while retaining the
 natural interpretation of 2-d `numpy` arrays where the first index corresponds
 to data "rows" and the second index corresponds to data "columns".
 
-Table columns
-"""""""""""""
+From existing table
+""""""""""""""""""""
 A new table can be created by selecting a subset of columns in an existing
 table::
 
@@ -432,6 +432,25 @@ columns by their numerical index or name and supports slicing syntax::
      a       c
   float64 float64
   ------- -------
+
+To create a copy of an existing table that is empty (has no rows)::
+
+ >>> t = Table([[1.0, 2.3], [2.1, 3]], names=['x', 'y'])
+ >>> t
+ <Table length=2>
+    x       y
+ float64 float64
+ ------- -------
+     1.0     2.1
+     2.3     3.0
+
+ >>> tcopy = t[:0].copy()
+ >>> tcopy
+ <Table length=0>
+    x       y
+ float64 float64
+ ------- -------
+
 
 Initialization Details
 ^^^^^^^^^^^^^^^^^^^^^^
