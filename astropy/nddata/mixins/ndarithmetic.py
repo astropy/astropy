@@ -48,7 +48,7 @@ _arit_doc = """
         result will have a copied version of the first operand that has a
         (not empty) meta. If it is a callable then the specified callable must
         create the results ``meta`` and if necessary provide a copy.
-        Default is ``False``.
+        Default is ``None``.
 
     compare_wcs : callable, ``'first_found'`` or ``None``, optional
         If ``None`` the result will have no wcs and no comparison between
@@ -57,7 +57,7 @@ _arit_doc = """
         wcs. If it is a callable then the specified callable must
         compare the ``wcs``. The resulting ``wcs`` will be like if ``False``
         was given otherwise it raises a ``ValueError`` if the comparison was
-        not successful. Default is ``False``.
+        not successful. Default is ``'first_found'``.
 
     uncertainty_correlation : number or `~numpy.ndarray`, optional
         The correlation between the two operands is used for correct error
@@ -200,7 +200,7 @@ class NDArithmeticMixin(object):
 
     def _arithmetic(self, operation, operand,
                     propagate_uncertainties=True, handle_mask=np.logical_or,
-                    handle_meta='first_found', uncertainty_correlation=0,
+                    handle_meta=None, uncertainty_correlation=0,
                     compare_wcs='first_found', **kwds):
         """
         Base method which calculates the result of the arithmetic operation.
