@@ -214,9 +214,13 @@ class NDUncertainty(object):
     @property
     def array(self):
         """
-        any type: the uncertainty's value.
+        `numpy.ndarray`: the uncertainty's value.
         """
         return self._array
+
+    @array.setter
+    def array(self, value):
+        self._array = np.array(value, subok=False, copy=False)
 
     @property
     def unit(self):
