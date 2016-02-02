@@ -18,6 +18,13 @@ from ...utils.xml import writer
 
 from copy import deepcopy
 
+try:
+  import lxml
+except ImportError:
+  lxml_installed = False
+else:
+  lxml_installed = True
+
 class SoupString(str):
     """
     Allows for strings to hold BeautifulSoup data.
@@ -83,7 +90,10 @@ class HTMLInputter(core.BaseInputter):
                                         'installed to read HTML tables')
 
         if 'parser' not in self.html:
-            soup = BeautifulSoup('\n'.join(lines))
+            if lxml_installed:
+              soup = BeautifulSoup('\n'.join(lines),"lxml")
+            else:
+              soup = BeautifulSoup('\n'.join(lines),"html.parser")
         else: # use a custom backend parser
             soup = BeautifulSoup('\n'.join(lines), self.html['parser'])
         tables = soup.find_all('table')
