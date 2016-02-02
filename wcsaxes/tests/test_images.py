@@ -12,10 +12,11 @@ from astropy import units as u
 from astropy.io import fits
 from astropy.tests.helper import pytest
 from astropy.tests.helper import remote_data
+from astropy.wcs import WCS
 
 from ..rc_utils import rc_context
 
-from .. import datasets, WCS, WCSAxes
+from .. import datasets, WCSAxes
 
 
 class BaseImageTests(object):
