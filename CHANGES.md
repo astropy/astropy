@@ -9,6 +9,9 @@
 - Fix bug that caused coordinate transformations to not work properly if they
   used sub-classes of Spherical representation classes. [#177]
 
+- Updated documentation to show that the Astropy WCS class can now be used
+  directly. [#186]
+
 0.6 (2015-07-20)
 ----------------
 
