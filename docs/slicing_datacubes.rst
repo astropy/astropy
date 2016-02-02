@@ -88,6 +88,17 @@ If we don't want to reverse the dimensions plotted, we can simply do:
 
 .. plot::
    :context: reset
+   :align: center
+   :nofigs:
+
+    from astropy.wcs import WCS
+    from wcsaxes import datasets
+    hdu = datasets.fetch_l1448_co_hdu()
+    wcs = WCS(hdu.header)
+    image_data = hdu.data
+
+.. plot::
+   :context:
    :include-source:
    :align: center
 

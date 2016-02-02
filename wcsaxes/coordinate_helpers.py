@@ -738,6 +738,6 @@ class CoordinateHelper(object):
             field[1:, 1:][reset] = np.nan
 
         if len(tick_world_coordinates_values) > 0:
-            self._grid = self.parent_axes.contour(X, Y, field.transpose(), levels=tick_world_coordinates_values)
+            self._grid = self.parent_axes.contour(X, Y, field.transpose(), levels=np.sort(tick_world_coordinates_values))
         else:
             self._grid = None
