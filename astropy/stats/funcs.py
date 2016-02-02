@@ -1045,3 +1045,87 @@ def mad_std(data):
 
     # NOTE: 1. / scipy.stats.norm.ppf(0.75) = 1.482602218505602
     return median_absolute_deviation(data) * 1.482602218505602
+
+
+from scipy.optimize import brentq
+from scipy.integrate import quad
+from scipy.special import factorial
+
+def eqn8(N, B):
+    n = np.arange(N + 1)
+    return 1./ (exp(-B) * np.sum(power(B, n) / factorial(n)))
+
+def eqn7(S, N, B):
+    return eqn8(N, B) * (exp(-S-B) * (S + B)**N / factorial(N))
+
+def eqn9_left(S_min, S_max, N, B):
+    return quad(eqn7, S_min, S_max, args=(N, B), limit=500)
+
+def bayes_upper_limit(N, B, CL):
+    '''Upper limit on a poisson count rate
+
+    The implementation is based on Kraft, Burrows and Nousek in ApJ 374, 344 (1991).
+    The XMM-Newton upper limit server used the same formalism.
+
+    Parameters
+    ----------
+    N : int
+        Total observed count number
+    B : float
+        Background count rate (assumed to be known with negligible error from a large background area).
+    CL : float
+       Confidence level (number between 0 and 1)
+
+    Returns
+    -------
+    S : source count limit
+    '''
+    def func(s):
+        out = eqn9_left(0, s, N, B)
+        return out[0] - CL
+    return breatq(func, 0, (N + B) * 2.) # We expect s < N. Just put a slightly higher number here to be safe.
+
+My scipy version of this was WAY faster but failed for larger numbers.
+# Being lazy, I just try this now.
+
+from mpmath import mpf, factorial, findroot, fsum, power, exp, quad
+
+def eqn8(N, B):
+    sumterms = [power(B, n) / factorial(n) for n in range(N + 1)]
+    return 1./ (exp(-B) * fsum(sumterms))
+
+def eqn7(S, N, B):
+    return eqn8(N, B) * (exp(-S-B) * (S + B)**N / factorial(N))
+
+def eqn9_left(S_min, S_max, N, B):
+    def eqn7NB(S):
+        return eqn7(S, N, B)
+    return quad(eqn7NB, [S_min, S_max], method='gauss-legendre')
+
+def bayes_upper_limit(N, B, CL):
+    '''Upper limit on a poisson count rate
+
+    The implementation is based on Kraft, Burrows and Nousek in ApJ 374, 344 (1991).
+    The XMM-Newton upper limit server used the same formalism.
+
+    Parameters
+    ----------
+    N : int
+        Total observed count number
+    B : float
+        Background count rate (assumed to be known with negligible error from a large background area).
+    CL : float
+       Confidence level (number between 0 and 1)
+
+    Returns
+    -------
+    S : source count limit
+    '''
+    def func(s):
+        out = eqn9_left(0, s, N, B)
+        return out - CL
+    return findroot(func, N - B, tol=1e-4) # We expect s < N. Just put a slightly higher number here to be safe.
+
+# test
+bayes_upper_limit(mpf(160), mpf(154.062), mpf(.95))/18619.  # XMM website says 0.002 for this case, so I guess I'm good.--
+# add to __all__, __doctest_requires__ etc.
