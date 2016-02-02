@@ -83,6 +83,9 @@ New Features
 
 - ``astropy.wcs``
 
+  - Added a new function ``linear_offset_celestial_coords`` that can be used to
+    return a locally linear WCS centered on specific celestial coordinates.
+
 API changes
 ^^^^^^^^^^^
 
