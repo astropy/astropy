@@ -9,7 +9,8 @@ For the example in the following page we start from the example introduced in
    :context: reset
    :nofigs:
 
-    from wcsaxes import datasets, WCS
+    from astropy.wcs import WCS
+    from wcsaxes import datasets
 
     hdu = datasets.fetch_msx_hdu()
     wcs = WCS(hdu.header)
