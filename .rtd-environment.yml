@@ -1,0 +1,11 @@
+name: astropy
+
+channels:
+  - astropy
+
+dependencies:
+  - astropy-helpers
+  - numpy
+  - cython
+  - matplotlib
+  - wcsaxes
