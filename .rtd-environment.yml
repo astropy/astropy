@@ -9,3 +9,4 @@ dependencies:
   - cython
   - matplotlib
   - wcsaxes
+  - scipy
