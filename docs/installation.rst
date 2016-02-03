@@ -10,7 +10,7 @@ packages to be installed:
 
 * `Numpy <http://www.numpy.org>`_
 
-* `Matplotlib <http://www.matplotlib.org>`_
+* `Matplotlib <http://www.matplotlib.org>`_ 1.1 or later
 
 * `Astropy <http://www.astropy.org>`__ 1.0 or later
 

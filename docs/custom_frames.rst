@@ -12,7 +12,8 @@ following example shows how to use the built-in
    :include-source:
    :align: center
 
-    from wcsaxes import datasets, WCS
+    from astropy.wcs import WCS
+    from wcsaxes import datasets
     from wcsaxes.frame import EllipticalFrame
 
     hdu = datasets.fetch_msx_hdu()
@@ -73,7 +74,8 @@ which we can then use:
     :include-source:
     :align: center
 
-     from wcsaxes import datasets, WCS
+     from astropy.wcs import WCS
+     from wcsaxes import datasets
 
      hdu = datasets.fetch_msx_hdu()
      wcs = WCS(hdu.header)
