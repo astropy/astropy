@@ -10,7 +10,7 @@ simplest way is to make use of the :class:`wcsaxes.WCS` class (instead of
 :class:`astropy.wcs.WCS`) and pass this to the
 :meth:`~matplotlib.figure.Figure.add_subplot` method::
 
-    from wcsaxes import WCS
+    from astropy.wcs import WCS
     import matplotlib.pyplot as plt
     
     wcs = WCS(...)
@@ -35,10 +35,10 @@ or::
 
     plt.axes([0.1, 0.1, 0.8, 0.8], projection=wcs)
 
-In the above examples, and in the rest of the documentation, we use the
-:class:`wcsaxes.WCS` class, which is almost identical to
-:class:`astropy.wcs.WCS` but includes a couple of additional methods that are
-needed to allow us to use the matplotlib ``projection=`` option.
+Note that in the above example, there is no explicit call to the ``wcsaxes``
+package. This is because the :class:`astropy.wcs.WCS` class knows about
+``wcsaxes``, and is able to automatically instantiate a
+:class:`wcsaxes.WCSAxes` object.
 
 Note that any additional arguments passed to
 :meth:`~matplotlib.figure.Figure.add_subplot`,

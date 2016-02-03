@@ -22,7 +22,8 @@ information. The original FITS file can be downloaded from `here
    :align: center
    :nofigs:
 
-    from wcsaxes import datasets, WCS
+    from astropy.wcs import WCS
+    from wcsaxes import datasets
     hdu = datasets.fetch_l1448_co_hdu()
     wcs = WCS(hdu.header)
     image_data = hdu.data
