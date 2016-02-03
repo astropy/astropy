@@ -101,8 +101,8 @@ class Latex(base.Base):
         -------
         latex_string : str
             The value in exponential notation in a format suitable for LaTeX.
-        """
-        if np.isfinite(val):
+        """#np.any() and np.all() which to use depends on the val array
+        if np.any(np.isfinite(val)):   #np.isfinite returns a booleans of array type so np.any(np.ndarray) returns true if any vaues in np.ndarray is true
             m, ex = utils.split_mantissa_exponent(val)
 
             parts = []
