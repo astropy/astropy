@@ -1074,22 +1074,28 @@ class Model(object):
 
     def render(self, out=None, coords=None):
         """
-        Evaluates a model on an input array. Evaluation is limited to
-        a bounding box if the `Model.bounding_box` attribute is set.
+        Evaluates a model on an input array.  I.e., "discretizes" the model.
+        The key difference relative to evaluating the model directly is that
+        this method is limited to a bounding box if the `Model.bounding_box`
+        attribute is set.
 
         Parameters
         ----------
         out : `numpy.ndarray`, optional
-            The array on which the model is to be evaluated.
+            An array that the evaluated model will be added to.  If this is not
+            given (or given as ``None``), a new array will be created.
         coords : array-like, optional
-            Coordinate arrays mapping to ``arr``, such that
-            ``arr[coords] == arr``.
+            An array to be used to translate from the model's input coordinates
+            to the ``out`` array. It should have the property that
+            ``self(coords)`` yields the same shape as ``out``.  If ``out`` is
+            not specified, ``coords`` will be used to determine the shape of the
+            returned array.
 
         Returns
         -------
         out : `numpy.ndarray`
-            The model evaluated on the input array if given, or else a new array from
-            ``coords``.
+            The model added to ``out`` if  ``out`` is not ``None``, or else a
+            new array from evaluating the model over ``coords``.
             If ``out`` and ``coords`` are both `None`, the returned array is
             limited to the `Model.bounding_box` limits. If
             `Model.bounding_box` is `None`, ``arr`` or ``coords`` must be passed.
@@ -1134,7 +1140,6 @@ class Model(object):
                     'of dimensions.')
 
         if bbox is not None:
-
             # assures position is at center pixel, important when using add_array
             pd = np.array([(np.mean(bb), np.ceil((bb[1] - bb[0]) / 2))
                            for bb in bbox]).astype(int).T
