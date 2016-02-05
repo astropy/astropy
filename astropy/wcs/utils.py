@@ -526,6 +526,12 @@ def linear_offset_celestial_coords(wcs, center):
         centered.
     """
 
+    if center.shape == (1,):
+        center = center[0]
+
+    if len(center.shape) != 0:
+        raise ValueError("Center position should be given as a scalar SkyCoord")
+
     # Convert center to pixel coordinates
     xp, yp = skycoord_to_pixel(center, wcs, origin=0)
 

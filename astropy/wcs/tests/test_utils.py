@@ -432,3 +432,32 @@ def test_linear_offset_celestial_coords():
 
     assert_allclose(xp, 1, atol=1e-5)
     assert_allclose(yp, -1, atol=1e-5)
+
+
+def test_linear_offset_celestial_coords_ndim():
+
+    header = get_pkg_data_contents('maps/1904-66_TAN.hdr', encoding='binary')
+
+    wcs = WCS(header)
+
+    # Check that scalar coordinates work
+
+    ref = SkyCoord(1 * u.deg, -2 * u.deg, frame='icrs')
+    wcs_linear = linear_offset_celestial_coords(wcs, ref)
+
+    # Check that 1-d 1-element coordinates work
+
+    ref = SkyCoord([1] * u.deg, [-2] * u.deg, frame='icrs')
+    wcs_linear = linear_offset_celestial_coords(wcs, ref)
+
+    # Check that other cases raise an error
+
+    with pytest.raises(ValueError) as exc:
+        ref = SkyCoord([1, 1] * u.deg, [-2, 3] * u.deg, frame='icrs')
+        wcs_linear = linear_offset_celestial_coords(wcs, ref)
+    assert exc.value.args[0] == "Center position should be given as a scalar SkyCoord"
+
+    with pytest.raises(ValueError) as exc:
+        ref = SkyCoord([[1, 2],[3, 4]] * u.deg, [[-2, 3],[-3, 9]] * u.deg, frame='icrs')
+        wcs_linear = linear_offset_celestial_coords(wcs, ref)
+    assert exc.value.args[0] == "Center position should be given as a scalar SkyCoord"
