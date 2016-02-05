@@ -102,7 +102,10 @@ class Latex(base.Base):
         latex_string : str
             The value in exponential notation in a format suitable for LaTeX.
         """
-        if np.any(np.isfinite(val)):   #np.isfinite returns a booleans of array type so np.any(np.ndarray) returns true if any vaues in np.ndarray is true
+        """ np.isfinite returns a booleans of array type so np.any(np.ndarray)
+            returns true if any vaues in np.ndarray is true.
+        """
+        if np.any(np.isfinite(val)):
             m, ex = utils.split_mantissa_exponent(val)
 
             parts = []
@@ -116,13 +119,15 @@ class Latex(base.Base):
             if np.isnan(val):
                 return r'{\rm NaN}'
             elif val > 0:
-                #positive infinity
+                # positive infinity
                 return r'\infty'
             else:
-                #negative infinity
+                # negative infinity
                 return r'-\infty'
 
+
 class LatexInline(Latex):
+
     """
     Output LaTeX to display the unit based on IAU style guidelines with negative
     powers.
