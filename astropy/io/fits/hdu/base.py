@@ -230,7 +230,7 @@ class _BaseHDU(object):
             ('XTENSION' in self._header and
              (self._header['XTENSION'] == 'IMAGE' or
               (self._header['XTENSION'] == 'BINTABLE' and
-               'ZIMAGE' in self._header and self._header['ZIMAGE'] == True))))
+               'ZIMAGE' in self._header and self._header['ZIMAGE']))))
 
     @property
     def _data_loaded(self):
@@ -888,7 +888,7 @@ class _NonstandardHDU(_BaseHDU, _Verify):
         # The check that 'GROUPS' is missing is a bit redundant, since the
         # match_header for GroupsHDU will always be called before this one.
         if card.keyword == 'SIMPLE':
-            if 'GROUPS' not in header and card.value == False:
+            if 'GROUPS' not in header and card.value is False:
                 return True
             else:
                 raise InvalidHDUException

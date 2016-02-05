@@ -175,7 +175,7 @@ class VOSDatabase(VOSBase):
 
     """
     def __init__(self, tree):
-        if not 'catalogs' in tree:
+        if 'catalogs' not in tree:
             raise VOSError("Invalid VO service catalog database")
 
         super(VOSDatabase, self).__init__(tree)

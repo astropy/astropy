@@ -1101,7 +1101,7 @@ class Column(NotifierMixin):
             elif 'L' in format:
                 # boolean needs to be scaled back to storage values ('T', 'F')
                 if array.dtype == np.dtype('bool'):
-                    return np.where(array == False, ord('F'), ord('T'))
+                    return np.where(array is False, ord('F'), ord('T'))
                 else:
                     return np.where(array == 0, ord('F'), ord('T'))
             elif 'X' in format:

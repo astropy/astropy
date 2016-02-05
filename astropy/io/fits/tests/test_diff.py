@@ -519,7 +519,7 @@ class TestDiff(FitsTestCase):
         assert hdudiff.diff_extvers == ()
         assert hdudiff.diff_extension_types == ()
         assert hdudiff.diff_headers.identical
-        assert not hdudiff.diff_data is None
+        assert hdudiff.diff_data is not None
 
         datadiff = hdudiff.diff_data
         assert isinstance(datadiff, ImageDataDiff)

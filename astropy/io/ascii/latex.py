@@ -127,7 +127,7 @@ class LatexHeader(core.BaseHeader):
         return units
 
     def write(self, lines):
-        if not 'col_align' in self.latex:
+        if 'col_align' not in self.latex:
             self.latex['col_align'] = len(self.cols) * 'c'
         if 'tablealign' in self.latex:
             align = '[' + self.latex['tablealign'] + ']'
@@ -352,7 +352,7 @@ class AASTexHeader(LatexHeader):
         return find_latex_line(lines, r'\tablehead')
 
     def write(self, lines):
-        if not 'col_align' in self.latex:
+        if 'col_align' not in self.latex:
             self.latex['col_align'] = len(self.cols) * 'c'
         if 'tablealign' in self.latex:
             align = '[' + self.latex['tablealign'] + ']'

@@ -72,11 +72,11 @@ def test_pickle_table(protocol):
         assert np.all(tp['d'] == t['d'])
         assert np.all(tp['e'].ra == t['e'].ra)
         assert np.all(tp['e'].dec == t['e'].dec)
-        assert type(tp['c']) == type(t['c'])
-        assert type(tp['d']) == type(t['d'])
-        assert type(tp['e']) == type(t['e'])
+        assert isinstance(tp['c'], type(t['c']))
+        assert isinstance(tp['d'], type(t['d']))
+        assert isinstance(tp['e'], type(t['e']))
         assert tp.meta == t.meta
-        assert type(tp) == type(t)
+        assert isinstance(tp, type(t))
 
         assert isinstance(tp['c'], Quantity if (table_class is QTable) else Column)
 

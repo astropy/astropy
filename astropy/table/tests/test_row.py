@@ -128,13 +128,13 @@ class TestRow():
         np_data = np.array(d)
         if table_types.Table is not MaskedTable:
             assert np.all(np_data == d.as_void())
-        assert not np_data is d.as_void()
+        assert np_data is not d.as_void()
         assert d.colnames == list(np_data.dtype.names)
 
         np_data = np.array(d, copy=False)
         if table_types.Table is not MaskedTable:
             assert np.all(np_data == d.as_void())
-        assert not np_data is d.as_void()
+        assert np_data is not d.as_void()
         assert d.colnames == list(np_data.dtype.names)
 
         with pytest.raises(ValueError):

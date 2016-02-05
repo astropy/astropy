@@ -676,7 +676,7 @@ class CompImageHDU(BinTableHDU):
         if xtension not in ('BINTABLE', 'A3DTABLE'):
             return False
 
-        if 'ZIMAGE' not in header or header['ZIMAGE'] != True:
+        if 'ZIMAGE' not in header or header['ZIMAGE'] is not True:
             return False
 
         if COMPRESSION_SUPPORTED and COMPRESSION_ENABLED:
@@ -781,7 +781,7 @@ class CompImageHDU(BinTableHDU):
             huge_hdu = False
 
         # Update the extension name in the table header
-        if not name and not 'EXTNAME' in self._header:
+        if not name and 'EXTNAME' not in self._header:
             name = 'COMPRESSED_IMAGE'
 
         if name:
@@ -1083,7 +1083,7 @@ class CompImageHDU(BinTableHDU):
             if tile_size and len(tile_size) >= idx + 1:
                 ts = tile_size[idx]
             else:
-                if not ztile in self._header:
+                if ztile not in self._header:
                     # Default tile size
                     if not idx:
                         ts = self._image_header['NAXIS1']

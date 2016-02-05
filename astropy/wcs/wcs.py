@@ -698,7 +698,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             raise ValueError(
                     "Image size could not be determined.")
 
-        if center == True:
+        if center:
             corners = np.array([[1, 1],
                                 [1, naxis2],
                                 [naxis1, naxis2],

@@ -75,7 +75,7 @@ def comparerecords(a, b):
             fielda = decode_ascii(fielda)
         if fieldb.dtype.char == 'S':
             fieldb = decode_ascii(fieldb)
-        if (type(fielda) != type(fieldb) and not
+        if (not isinstance(fielda, type(fieldb)) and not
             (issubclass(type(fielda), type(fieldb)) or
              issubclass(type(fieldb), type(fielda)))):
             print("type(fielda): ", type(fielda), " fielda: ", fielda)
@@ -976,7 +976,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu.columns.columns[2].array[0] == ''
         assert (tbhdu.columns.columns[3].array[0] ==
                 np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
-        assert tbhdu.columns.columns[4].array[0] == True
+        assert tbhdu.columns.columns[4].array[0]
 
         assert tbhdu.data[3][1] == 33
         assert tbhdu.data._coldefs._arrays[1][3] == 33
@@ -987,7 +987,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu.columns.columns[2].array[3] == 'A Note'
         assert (tbhdu.columns.columns[3].array[3] ==
                 np.array([1., 2., 3., 4., 5.], dtype=np.float32)).all()
-        assert tbhdu.columns.columns[4].array[3] == True
+        assert tbhdu.columns.columns[4].array[3]
 
     def test_assign_multiple_rows_to_table(self):
         counts = np.array([312, 334, 308, 317])
@@ -1038,7 +1038,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu2.columns.columns[2].array[0] == ''
         assert (tbhdu2.columns.columns[3].array[0] ==
                 np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
-        assert tbhdu2.columns.columns[4].array[0] == True
+        assert tbhdu2.columns.columns[4].array[0]
 
         assert tbhdu2.data[4][1] == 112
         assert tbhdu2.data._coldefs._arrays[1][4] == 112
@@ -1049,14 +1049,14 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu2.columns.columns[2].array[4] == ''
         assert (tbhdu2.columns.columns[3].array[4] ==
                 np.array([1., 2., 3., 4., 5.], dtype=np.float32)).all()
-        assert tbhdu2.columns.columns[4].array[4] == False
+        assert tbhdu2.columns.columns[4].array[4] is False
 
         assert tbhdu2.columns.columns[1].array[8] == 0
         assert tbhdu2.columns.columns[0].array[8] == ''
         assert tbhdu2.columns.columns[2].array[8] == ''
         assert (tbhdu2.columns.columns[3].array[8] ==
                 np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
-        assert tbhdu2.columns.columns[4].array[8] == False
+        assert tbhdu2.columns.columns[4].array[8] is False
 
     def test_verify_data_references(self):
         counts = np.array([312, 334, 308, 317])
@@ -2214,7 +2214,7 @@ class TestTableFunctions(FitsTestCase):
                 assert np.all(tbdata['c3'] == tbdata2['c3'])
                 # c4 is a boolean column in the original table; we want ASCII
                 # columns to convert these to columns of 'T'/'F' strings
-                assert np.all(np.where(tbdata['c4'] == True, 'T', 'F') ==
+                assert np.all(np.where(tbdata['c4'], 'T', 'F') ==
                               tbdata2['c4'])
 
     def test_pickle(self):
