@@ -278,13 +278,13 @@ class DaophotInputter(core.ContinuationLinesInputter):
     def process_lines(self, lines):
 
         markers, block, header = self.search_multiline(lines)
-        self.data.is_multiline = not markers is None
+        self.data.is_multiline = markers is not None
         self.data.markers = markers
         self.data.first_block = block
         # set the header lines returned by the search as a attribute of the header
         self.data.header.lines = header
 
-        if not markers is None:
+        if markers is not None:
             lines = lines[markers[0]:]
 
         continuation_char = self.continuation_char

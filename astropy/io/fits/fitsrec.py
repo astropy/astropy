@@ -419,7 +419,7 @@ class FITS_rec(np.recarray):
                 data._cache_field(name, converted)
                 # TODO: Maybe this step isn't necessary at all if _scale_back
                 # will handle it?
-                inarr = np.where(inarr == False, ord('F'), ord('T'))
+                inarr = np.where(inarr is False, ord('F'), ord('T'))
             elif (columns[idx]._physical_values and
                     columns[idx]._pseudo_unsigned_ints):
                 # Temporary hack...

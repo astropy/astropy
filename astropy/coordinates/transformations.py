@@ -694,7 +694,7 @@ class FunctionTransform(CoordinateTransform):
             sig = signature(func)
             kinds = [x.kind for x in sig.parameters.values()]
             if (len(x for x in kinds if x == sig.POSITIONAL_ONLY) != 2
-                and not sig.VAR_POSITIONAL in kinds):
+                and sig.VAR_POSITIONAL not in kinds):
                 raise ValueError('provided function does not accept two arguments')
 
         self.func = func

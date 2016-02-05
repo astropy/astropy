@@ -655,7 +655,7 @@ def test_fractional_powers():
     assert x.powers[0].denominator == 7
 
     x = u.cm ** Fraction(1, 2) * u.cm ** Fraction(2, 3)
-    assert type(x.powers[0]) == Fraction
+    assert isinstance(x.powers[0], Fraction)
     assert x.powers[0] == Fraction(7, 6)
 
 
@@ -683,13 +683,13 @@ def test_compare_with_none():
     # Ensure that equality comparisons with `None` work, and don't
     # raise exceptions.  We are deliberately not using `is None` here
     # because that doesn't trigger the bug.  See #3108.
-    assert not (u.m == None)
-    assert u.m != None
+    assert not (u.m is None)
+    assert u.m is not None
 
 
 def test_validate_power_detect_fraction():
     frac = utils.validate_power(1.1666666666666665)
-    assert type(frac) == Fraction
+    assert isinstance(frac, Fraction)
     assert frac.numerator == 7
     assert frac.denominator == 6
 

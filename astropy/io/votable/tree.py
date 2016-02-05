@@ -1112,7 +1112,7 @@ class Values(Element, _IDProperty):
         column.meta['values'] = meta
 
     def from_table_column(self, column):
-        if not 'values' in column.meta:
+        if 'values' not in column.meta:
             return
 
         meta = column.meta['values']
@@ -2828,7 +2828,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     for i, converter in fields_basic:
                         try:
                             chunk = converter(array_row[i], array_mask[i])
-                            assert type(chunk) == type(b'')
+                            assert isinstance(chunk, type(b''))
                         except Exception as e:
                             vo_reraise(e,
                                        additional="(in row %d, col '%s')" %
@@ -3429,7 +3429,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             in each `Table` object as it was created or read in.  See
             :ref:`votable-serialization`.
         """
-        if write_null_values != False:
+        if write_null_values:
             warnings.warn(
                 "write_null_values has been deprecated and has no effect",
                 AstropyDeprecationWarning)

@@ -261,7 +261,7 @@ def test_set_tied_2():
 
     gauss = models.Gaussian1D(amplitude=20, mean=2, stddev=1,
                               tied={'amplitude': tie_amplitude})
-    assert gauss.amplitude.tied != False
+    assert gauss.amplitude.tied
 
 
 def test_unset_fixed():
