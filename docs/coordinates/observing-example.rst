@@ -122,8 +122,8 @@ azimuth::
     utcoffset = -4*u.hour  # Eastern Daylight Time
     midnight = Time('2012-7-13 00:00:00') - utcoffset
 
-    delta_midnight = np.linspace(-12, 12, 1000)*u.hour
-    times = midnight + delta_midnight
+    delta_midnight = np.linspace(-12, 12, 1000)
+    times = midnight + (delta_midnight)*u.hour
     altazframe = AltAz(obstime=times, location=bear_mountain)
     sunaltazs = get_sun(times).transform_to(altazframe)
     m33altazs = m33.transform_to(altazframe)
