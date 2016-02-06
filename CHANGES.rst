@@ -811,6 +811,9 @@ API changes
     for parsing a file with blank lines in the header containing whitespace will
     need to be updated. [#2654]
 
+  - Check that columns in ``formats`` specifier exist in the output table
+    when writing. [#4508]
+
 - ``astropy.io.fits``
 
   - The ``uint`` argument to ``fits.open`` is now True by default; that is,
