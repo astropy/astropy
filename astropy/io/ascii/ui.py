@@ -15,6 +15,7 @@ import os
 import sys
 import copy
 import time
+import warnings
 
 from . import core
 from . import basic
@@ -32,6 +33,7 @@ from . import fixedwidth
 from ...table import Table
 from ...utils.data import get_readable_fileobj
 from ...extern import six
+from ...utils.exceptions import AstropyWarning
 
 _read_trace = []
 
@@ -665,6 +667,16 @@ def write(table, output=None,  format=None, Writer=None, fast_writer=True, **kwa
         output = sys.stdout
 
     table = Table(table, names=kwargs.get('names'))
+
+    table0 = table[:0].copy()
+    core._apply_include_exclude_names(table0, kwargs.get('names'),
+                    kwargs.get('include_names'), kwargs.get('exclude_names'))
+    diff_format_with_names = set(kwargs.get('formats', [])) - set(table0.colnames)
+
+    if diff_format_with_names:
+        warnings.warn(
+            'The keys {} specified in the formats argument does not match a column name.'
+            .format(diff_format_with_names), AstropyWarning)
 
     if table.has_mixin_columns:
         fast_writer = False
