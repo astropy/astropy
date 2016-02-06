@@ -545,7 +545,7 @@ class Model(object):
         last (most rapidly changing) axis should be associated with the model
         sets.
 
-    fixed : dict, optional
+    fixed : dict, tuple, optional
         Dictionary ``{parameter_name: bool}`` setting the fixed constraint
         for one or more parameters.  `True` means the parameter is held fixed
         during fitting and is prevented from updates once an instance of the
@@ -554,7 +554,7 @@ class Model(object):
         Alternatively the `~astropy.modeling.Parameter.fixed` property of a
         parameter may be used to lock or unlock individual parameters.
 
-    tied : dict, optional
+    tied : dict, tuple, optional
         Dictionary ``{parameter_name: callable}`` of parameters which are
         linked to some other parameter. The dictionary values are callables
         providing the linking relationship.
@@ -563,7 +563,7 @@ class Model(object):
         parameter may be used to set the ``tied`` constraint on individual
         parameters.
 
-    bounds : dict, optional
+    bounds : dict, tuple, optional
         Dictionary ``{parameter_name: value}`` of lower and upper bounds of
         parameters. Keys are parameter names. Values are a list of length 2
         giving the desired range for the parameter.
@@ -1342,7 +1342,10 @@ class Model(object):
         # Pop any constraints off the keyword arguments
         for constraint in self.parameter_constraints:
             values = kwargs.pop(constraint, {})
-            self._constraints[constraint] = values.copy()
+            if isinstance(values, tuple):
+                self._constraints[constraint] = self._create_constraint_dict(values)
+            else:
+                self._constraints[constraint] = values.copy()
 
             # Update with default parameter constraints
             for param_name in self.param_names:
@@ -1738,6 +1741,16 @@ class Model(object):
             parts.append(indent(str(param_table), width=4))
 
         return '\n'.join(parts)
+
+    def _create_constraint_dict(self, values):
+        """
+        Create dictionary of values of constraint if values passed are
+        of type tuple.
+        """
+        values_dict = {}
+        for param_name, value in zip(self.param_names, values):
+            values_dict[param_name] = value
+        return values_dict
 
 class FittableModel(Model):
     """
