@@ -33,6 +33,9 @@ def test_erfa_wrapper():
     assert ihmsf.shape == (4,)
     assert ihmsf.dtype == np.dtype('i4')
 
+
+def test_angle_ops():
+
     sign, idmsf = erfa.a2af(6, -np.pi)
     assert sign == b'-'
     assert (idmsf == [180,0,0,0]).all()
@@ -40,6 +43,25 @@ def test_erfa_wrapper():
     sign, ihmsf = erfa.a2tf(6, np.pi)
     assert sign == b'+'
     assert (ihmsf == [12,0,0,0]).all()
+
+    rad = erfa.af2a('-', 180, 0, 0.0)
+    np.testing.assert_allclose(rad, -np.pi)
+
+    rad = erfa.tf2a('+, 12, 0, 0.0)
+    np.testing.assert_allclose(rad, -np.pi)
+
+    rad = erfa.anp(3.*np.pi)
+    np.testing.assert_allclose(rad, np.pi)
+
+    rad = erfa.anpm(3.*np.pi)
+    np.testing.assert_allclose(rad, -np.pi)
+
+    sign, ihmsf = erfa.d2tf(1, -1.5)
+    assert sign == b'-'
+    assert (ihmsf == [36,0,0,0]).all()
+
+    days = erfa.tf2d('+', 3, 0, 0.0)
+    np.testing.assert_allclose(days, 0.125)
 
 
 def test_errwarn_reporting(recwarn):
