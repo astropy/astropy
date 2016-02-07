@@ -383,7 +383,10 @@ def isinstancemethod(cls, obj):
     return _isinstancemethod(cls, obj)
 
 
-if six.PY3:
+if six.PY2:
+    def _isinstancemethod(cls, obj):
+        return isinstance(obj, types.MethodType) and obj.im_class is cls
+else:
     def _isinstancemethod(cls, obj):
         if not isinstance(obj, types.FunctionType):
             return False
@@ -400,6 +403,3 @@ if six.PY3:
         # This shouldn't happen, though this is the most sensible response if
         # it does.
         raise AttributeError(name)
-else:
-    def _isinstancemethod(cls, obj):
-        return isinstance(obj, types.MethodType) and obj.im_class is cls

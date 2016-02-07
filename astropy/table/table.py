@@ -2334,32 +2334,32 @@ class Table(object):
         return self.copy(False)
 
     def __lt__(self, other):
-        if six.PY3:
-            return super(Table, self).__lt__(other)
-        elif six.PY2:
+        if six.PY2:
             raise TypeError("unorderable types: Table() < {0}".
                             format(str(type(other))))
+        else:
+            return super(Table, self).__lt__(other)
 
     def __gt__(self, other):
-        if six.PY3:
-            return super(Table, self).__gt__(other)
-        elif six.PY2:
+        if six.PY2:
             raise TypeError("unorderable types: Table() > {0}".
                             format(str(type(other))))
+        else:
+            return super(Table, self).__gt__(other)
 
     def __le__(self, other):
-        if six.PY3:
-            return super(Table, self).__le__(other)
-        elif six.PY2:
+        if six.PY2:
             raise TypeError("unorderable types: Table() <= {0}".
                             format(str(type(other))))
+        else:
+            return super(Table, self).__le__(other)
 
     def __ge__(self, other):
-        if six.PY3:
-            return super(Table, self).__ge__(other)
-        else:
+        if six.PY2:
             raise TypeError("unorderable types: Table() >= {0}".
                             format(str(type(other))))
+        else:
+            return super(Table, self).__ge__(other)
 
     def __eq__(self, other):
 

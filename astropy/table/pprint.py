@@ -18,15 +18,15 @@ from ..utils.compat import NUMPY_LT_1_6_1
 from ..utils.console import Getch, color_print, terminal_size, conf
 from ..utils.data_info import dtype_info_name
 
-if six.PY3:
+if six.PY2:
+    _format_funcs = {None: lambda format_, val: text_type(val)}
+else:
     def default_format_func(format_, val):
         if isinstance(val, bytes):
             return val.decode('utf-8')
         else:
             return str(val)
     _format_funcs = {None: default_format_func}
-elif six.PY2:
-    _format_funcs = {None: lambda format_, val: text_type(val)}
 
 
 ### The first three functions are helpers for _auto_format_func

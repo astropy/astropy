@@ -545,7 +545,7 @@ def pytest_report_header(config):
 
     if six.PY2:
         args = [x.decode('utf-8') for x in config.args]
-    elif six.PY3:
+    else:
         args = config.args
 
     # TESTED_VERSIONS can contain the affiliated package version, too
@@ -627,10 +627,10 @@ def pytest_pycollect_makemodule(path, parent):
     # from __future__ import unicode_literals
 
     # On Python 3, just do the regular thing that py.test does
-    if six.PY3:
-        return pytest.Module(path, parent)
-    elif six.PY2:
+    if six.PY2:
         return Pair(path, parent)
+    else:
+        return pytest.Module(path, parent)
 
 
 class Pair(pytest.File):

@@ -43,15 +43,15 @@ _empty_bytes = b''
 _zero_byte = b'\0'
 
 
-if six.PY3:
-    struct_unpack = _struct_unpack
-    struct_pack = _struct_pack
-else:
+if six.PY2:
     def struct_unpack(format, s):
         return _struct_unpack(format.encode('ascii'), s)
 
     def struct_pack(format, *args):
         return _struct_pack(format.encode('ascii'), *args)
+else:
+    struct_unpack = _struct_unpack
+    struct_pack = _struct_pack
 
 
 if sys.byteorder == 'little':

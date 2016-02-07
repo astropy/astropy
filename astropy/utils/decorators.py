@@ -598,16 +598,16 @@ class sharedmethod(classmethod):
 
     del __getobjwrapper
 
-    if six.PY3:
+    if six.PY2:
         # The 'instancemethod' type of Python 2 and the method type of
         # Python 3 have slightly different constructors
         @staticmethod
         def _make_method(func, instance):
-            return types.MethodType(func, instance)
+            return types.MethodType(func, instance, type(instance))
     else:
         @staticmethod
         def _make_method(func, instance):
-            return types.MethodType(func, instance, type(instance))
+            return types.MethodType(func, instance)
 
 
 def wraps(wrapped, assigned=functools.WRAPPER_ASSIGNMENTS,
@@ -645,7 +645,28 @@ if isinstance(wraps.__doc__, six.string_types):
     wraps.__doc__ += functools.wraps.__doc__
 
 
-if six.PY3:
+if six.PY2:
+    def _get_function_args_internal(func):
+        """
+        Utility function for `wraps`.
+
+        Reads the argspec for the given function and converts it to arguments
+        for `make_function_with_signature`.  This requires different
+        implementations on Python 2 versus Python 3.
+        """
+
+        argspec = inspect.getargspec(func)
+
+        if argspec.defaults:
+            args = argspec.args[:-len(argspec.defaults)]
+            kwargs = zip(argspec.args[len(args):], argspec.defaults)
+        else:
+            args = argspec.args
+            kwargs = {}
+
+        return {'args': args, 'kwargs': kwargs, 'varargs': argspec.varargs,
+                'varkwargs': argspec.keywords}
+else:
     def _get_function_args_internal(func):
         """
         Utility function for `wraps`.
@@ -670,27 +691,6 @@ if six.PY3:
 
         return {'args': args, 'kwargs': kwargs, 'varargs': argspec.varargs,
                 'varkwargs': argspec.varkw}
-else:
-    def _get_function_args_internal(func):
-        """
-        Utility function for `wraps`.
-
-        Reads the argspec for the given function and converts it to arguments
-        for `make_function_with_signature`.  This requires different
-        implementations on Python 2 versus Python 3.
-        """
-
-        argspec = inspect.getargspec(func)
-
-        if argspec.defaults:
-            args = argspec.args[:-len(argspec.defaults)]
-            kwargs = zip(argspec.args[len(args):], argspec.defaults)
-        else:
-            args = argspec.args
-            kwargs = {}
-
-        return {'args': args, 'kwargs': kwargs, 'varargs': argspec.varargs,
-                'varkwargs': argspec.keywords}
 
 
 def _get_function_args(func, exclude_args=()):
