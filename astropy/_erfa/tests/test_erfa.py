@@ -90,7 +90,7 @@ def test_spherical_cartesian():
     np.testing.assert_allclose(c, [0.0, np.sqrt(2.0)/2.0, np.sqrt(2.0)/2.0], atol=1e-14)
 
     pv = erfa.s2pv(np.pi/2.0, np.pi/4.0, 2.0, np.sqrt(2.0)/2.0, 0.0, 0.0)
-    np.testing.assert_allclose(pv, [[0.0,np.sqrt(2.0),np.sqrt(2.0)],[1.0,0.0,0.0]], atol=1e-14)
+    np.testing.assert_allclose(pv, [[0.0,np.sqrt(2.0),np.sqrt(2.0)],[-1.0,0.0,0.0]], atol=1e-14)
 
 
 def test_errwarn_reporting(recwarn):
