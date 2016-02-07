@@ -47,7 +47,7 @@ def test_angle_ops():
     rad = erfa.af2a('-', 180, 0, 0.0)
     np.testing.assert_allclose(rad, -np.pi)
 
-    rad = erfa.tf2a('+, 12, 0, 0.0)
+    rad = erfa.tf2a('+', 12, 0, 0.0)
     np.testing.assert_allclose(rad, -np.pi)
 
     rad = erfa.anp(3.*np.pi)
