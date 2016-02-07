@@ -34,11 +34,11 @@ def test_erfa_wrapper():
     assert ihmsf.dtype == np.dtype('i4')
 
     sign, idmsf = erfa.a2af(6, -np.pi)
-    assert sign == '-'
+    assert sign == b'-'
     assert (idmsf == [180,0,0,0]).all()
 
     sign, ihmsf = erfa.a2tf(6, np.pi)
-    assert sign == '+'
+    assert sign == b'+'
     assert (ihmsf == [12,0,0,0]).all()
 
 

@@ -22,7 +22,7 @@ ctype_to_dtype = {'double'     : "numpy.double",
                   'int'        : "numpy.intc",
                   'eraASTROM'  : "dt_eraASTROM",
                   'eraLDBODY'  : "dt_eraLDBODY",
-                  'char'       : "numpy.dtype('U1')",
+                  'char'       : "numpy.dtype('S1')",
                   'const char' : "numpy.dtype('S16')",
                   }
 
