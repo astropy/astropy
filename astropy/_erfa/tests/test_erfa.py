@@ -64,6 +64,35 @@ def test_angle_ops():
     np.testing.assert_allclose(days, 0.125)
 
 
+def test_spherical_cartesian():
+
+    theta, phi = erfa.c2s([0.0,np.sqrt(2.0),np.sqrt(2.0)])
+    np.testing.assert_allclose(theta, np.pi/2.0)
+    np.testing.assert_allclose(phi, np.pi/4.0)
+
+    theta, phi, r = erfa.p2s([0.0,np.sqrt(2.0),np.sqrt(2.0)])
+    np.testing.assert_allclose(theta, np.pi/2.0)
+    np.testing.assert_allclose(phi, np.pi/4.0)
+    np.testing.assert_allclose(r, 2.0)
+
+    theta, phi, r, td, pd, rd = erfa.pv2s([[0.0,np.sqrt(2.0),np.sqrt(2.0)],[1.0,0.0,0.0]])
+    np.testing.assert_allclose(theta, np.pi/2.0)
+    np.testing.assert_allclose(phi, np.pi/4.0)
+    np.testing.assert_allclose(r, 2.0)
+    np.testing.assert_allclose(td, np.sqrt(2.0)/2.0)
+    np.testing.assert_allclose(pd, 0.0)
+    np.testing.assert_allclose(rd, 0.0)
+
+    c = erfa.s2c(np.pi/2.0, np.pi/4.0)
+    np.testing.assert_allclose(c, [0.0, np.sqrt(2.0)/2.0, np.sqrt(2.0)/2.0], atol=1e-14)
+
+    c = erfa.s2p(np.pi/2.0, np.pi/4.0, 1.0)
+    np.testing.assert_allclose(c, [0.0, np.sqrt(2.0)/2.0, np.sqrt(2.0)/2.0], atol=1e-14)
+
+    pv = erfa.s2pv(np.pi/2.0, np.pi/4.0, 2.0, np.sqrt(2.0)/2.0, 0.0, 0.0)
+    np.testing.assert_allclose(pv, [[0.0,np.sqrt(2.0),np.sqrt(2.0)],[1.0,0.0,0.0]], atol=1e-14)
+
+
 def test_errwarn_reporting(recwarn):
     """
     Test that the ERFA error reporting mechanism works as it should
