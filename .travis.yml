@@ -14,7 +14,7 @@ env:
 matrix:
     include:
         - os: osx
-          env: PYTHON_VERSION=2.7 SETUP_CMD='test' ARCH='i386'
+          env: USE_CONDA=False PYTHON_VERSION=2.7 SETUP_CMD='test' ARCH='i386'
 
 install:
     - git clone git://github.com/astrofrog/ci-helpers.git
