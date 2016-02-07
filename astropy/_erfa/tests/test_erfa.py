@@ -79,7 +79,7 @@ def test_spherical_cartesian():
     np.testing.assert_allclose(theta, np.pi/2.0)
     np.testing.assert_allclose(phi, np.pi/4.0)
     np.testing.assert_allclose(r, 2.0)
-    np.testing.assert_allclose(td, np.sqrt(2.0)/2.0)
+    np.testing.assert_allclose(td, -np.sqrt(2.0)/2.0)
     np.testing.assert_allclose(pd, 0.0)
     np.testing.assert_allclose(rd, 0.0)
 
