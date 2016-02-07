@@ -1,0 +1,221 @@
+\usepackage{ifthen}
+\usepackage[landscape]{geometry}
+
+% To make this come out properly in landscape mode, do one of the following
+% 1.
+%  pdflatex latexsheet.tex
+%
+% 2.
+%  latex latexsheet.tex
+%  dvips -P pdf  -t landscape latexsheet.dvi
+%  ps2pdf latexsheet.ps
+
+
+% If you're reading this, be prepared for confusion.  Making this was
+% a learning experience for me, and it shows.  Much of the placement
+% was hacked in; if you make it better, let me know...
+
+
+% 2008-04
+% Changed page margin code to use the geometry package. Also added code for
+% conditional page margins, depending on paper size. Thanks to Uwe Ziegenhagen
+% for the suggestions.
+
+% 2006-08
+% Made changes based on suggestions from Gene Cooperman. <gene at ccs.neu.edu>
+
+
+% To Do:
+% \listoffigures \listoftables
+% \setcounter{secnumdepth}{0}
+
+
+% This sets page margins to .5 inch if using letter paper, and to 1cm
+% if using A4 paper. (This probably isn't strictly necessary.)
+% If using another size paper, use default 1cm margins.
+\ifthenelse{\lengthtest { \paperwidth = 11in}}
+	{ \geometry{top=.5in,left=.5in,right=.5in,bottom=.5in} }
+	{\ifthenelse{ \lengthtest{ \paperwidth = 297mm}}
+		{\geometry{top=1cm,left=1cm,right=1cm,bottom=1cm} }
+		{\geometry{top=1cm,left=1cm,right=1cm,bottom=1cm} }
+	}
+
+% Turn off header and footer
+\pagestyle{empty}
+
+
+% Redefine section commands to use less space
+\makeatletter
+\renewcommand{\section}{\@startsection{section}{1}{0mm}%
+                                {-1ex plus -.5ex minus -.2ex}%
+                                {0.5ex plus .2ex}%x
+                                {\normalfont\large\bfseries}}
+\renewcommand{\subsection}{\@startsection{subsection}{2}{0mm}%
+                                {-1explus -.5ex minus -.2ex}%
+                                {0.5ex plus .2ex}%
+                                {\normalfont\normalsize\bfseries}}
+\renewcommand{\subsubsection}{\@startsection{subsubsection}{3}{0mm}%
+                                {-1ex plus -.5ex minus -.2ex}%
+                                {1ex plus .2ex}%
+                                {\normalfont\small\bfseries}}
+\makeatother
+
+% Define BibTeX command
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+% Don't print section numbers
+\setcounter{secnumdepth}{0}
+
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt plus 0.5ex}
+
+
+% -----------------------------------------------------------------------
+   \newcommand{\tab}{\hspace*{2em}}
+
+\begin{document}
+
+\raggedright
+\footnotesize
+\begin{multicols}{3}
+
+
+% multicol parameters
+% These lengths are set only within the two main columns
+%\setlength{\columnseprule}{0.25pt}
+\setlength{\premulticols}{1pt}
+\setlength{\postmulticols}{1pt}
+\setlength{\multicolsep}{1pt}
+\setlength{\columnsep}{2pt}
+
+\begin{center}
+     \Large{\textbf{Cosmology CheatSheet \\ astropy.org}} \\
+\end{center}
+\section{Partition}
+\verb!Path: from astropy.cosmology!\\
+\subsection{Methods}
+\verb!z_at_value(func,fval,zmin,zmax,ztol,maxfun)! \\
+This finds the redshift at which one of the cosmology functions or method is equal to a known value.
+
+\section{FLRW}
+Path \verb!astropy.cosmology.core.Cosmology!\\
+
+\subsection{Methods}
+\verb!H(z)! \\
+Returns the Hubble parameter (km/s/Mpc) at redshift z
+
+\verb!Ob(z)!\\
+Returns the density of baryonic matter relative to the critical density at each redshift.
+
+\verb!Ode(z)!
+Returns the density of non-relativistic matter relative to the critical density at each redshift.
+
+\verb!Odm(z)!\\
+Returns The density of non-relativistic dark matter relative to the critical density at each redshift.
+
+\verb!Ogamma(Z)!\\
+Returns the number of all possible permutations.
+
+\verb!Ok(z)!\\
+Returns the equivalent density parameter for curvature at each redshift.
+
+\verb!Om(z)!\\
+Returns the density of non-relativistic matter relative to the critical density at each redshift.
+
+\verb!Onu(Z)!\\
+Returns the energy density of neutrinos relative to the critical density at each redshift.
+
+\verb!Tcmb(Z)! \\
+Return the CMB temperature at redshift z
+
+\verb!Tnu(Z)!\\
+The temperature of the cosmic neutrino background in K.
+
+\verb!abs_distance_integrand(Z)!\\
+The integrand for the absorption distance
+
+\verb!absorption_distance(Z)!\\
+Returns the Absorption distance (dimensionless) at each input redshift.
+
+\verb!age(Z)!\\
+The age of the universe in Gyr at each input redshift.
+
+\verb!angular_diameter_distance(z)!\\
+Returns Angular diameter distance in Mpc at each input redshift.
+
+\verb!angular_diameter_distance_z1z2(z1,z2)!\\
+Returns The angular diameter distance between each input redshift pair.
+
+\verb!arcsec_per_kpc_comoving(z)!\\
+The angular separation in arcsec corresponding to a comoving kpc at each input redshift.
+
+\verb!clone(**kwargs)!\\
+Returns a copy of this object, potentially with some changes.
+
+\verb!comoving_distance(Z)!\\
+Returns comoving distance in Mpc to each input redshift
+.
+\verb!comoving_transverse_distance(z)!\\
+Returns comoving transverse distance in Mpc at each input redshift.
+
+\verb!comoving_volume(z)!\\
+Returns Comoving volume in cubic Mpc at redshift 
+
+\verb!critical_density(z)!\\
+Critical density in grams per cubic cm at redshift z.
+
+\verb!de_density_scale(z)!\\
+Evaluates the redshift dependence of the dark energy density.
+
+\verb!differential_comoving_volume(z)!\\
+Differential comoving volume per redshift per steradian at each input redshift.
+
+\verb!distmod(z)!\\
+Distance modulus at each input redshift, in magnitudes.
+
+ \verb!efunc(z)!\\
+ Function used to calculate H(z), the Hubble parameter.
+
+\verb!inv_efunc(z)!\\
+The redshift scaling of the inverse Hubble constant.
+
+\verb!kpc_comoving_per_arcmin(z)!\\
+The distance in comoving kpc corresponding to an arcmin at each input redshift.
+
+\verb!kpc_proper_per_arcmin(z)!\\
+The distance in proper kpc corresponding to an arcmin at each input redshift.
+
+\verb!lookback_distance(z)!\\
+Lookback distance in Mpc
+
+\verb!lookback_time(z)!\\
+Lookback time in Gyr to each input redshift.
+
+\verb!lookback_time_integrand(z)!\\
+The integrand for the lookback time
+
+\verb!lookback_time_integrand(z)!\\
+The integrand for the lookback time
+
+\verb!luminosity_distance(z)!\\
+Luminosity distance in Mpc at each input redshift.
+
+\verb!nu_relative_density(z)!\\
+The neutrino density scaling factor relative to the density in photons at each redshift
+
+\verb!scale_factor(z)!\\
+Scale factor at each input redshift.
+
+\verb!w(z)!\\
+The dark energy equation of state
+
+
+\rule{0.3\linewidth}{0.25pt}
+\scriptsize\\
+http://www.astropy.org
+
+
+\end{multicols}
+\end{document}
