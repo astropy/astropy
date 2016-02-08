@@ -464,7 +464,7 @@ def vtest(data, deg=False, w=None, mu=0.0, axis=None):
                          % (w.shape, data.shape,))
 
     n = np.size(data, axis=axis)
-    
+
     if deg:
         data = Quantity(data, u.deg)
         mu = Quantity(mu, u.deg)
