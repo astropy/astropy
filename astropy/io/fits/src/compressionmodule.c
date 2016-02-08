@@ -724,6 +724,12 @@ void init_output_buffer(PyObject* hdu, void** buf, size_t* bufsize) {
         goto fail;
     }
 
+    if(strstr(header,"ZNAXIS") != NULL) {
+      PyErr_SetString(PyExc_TypeError,
+                        "ZNAXIS keyword not present in header.");
+      goto fail;
+    }
+
     if (0 != get_header_int(header, "ZNAXIS", &znaxis, 0)) {
         goto fail;
     }
@@ -764,6 +770,13 @@ void init_output_buffer(PyObject* hdu, void** buf, size_t* bufsize) {
     }
 
     *buf = calloc(*bufsize, sizeof(char));
+    if (*buf == NULL) {
+      // Checking if calloc failed.
+      PyErr_SetString(PyExc_TypeError,
+                        "Failed to allocate memory for output data buffer.");
+      goto fail;
+    }
+
 fail:
     Py_XDECREF(header);
     return;
