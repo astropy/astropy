@@ -24,15 +24,14 @@ class TestUintFunctions(FitsTestCase):
     @pytest.mark.parametrize(('utype','compressed'),
         [('u2', False), ('u4', False), ('u8', False), ('u2', True),
          ('u4',True)]) #,('u8',True)])
-    @pytest.mark.skipif("os.environ.get('APPVEYOR')",  reason="fails on AppVeyor")
     def test_uint(self, utype, compressed):
         bits = 8*int(utype[1])
         if platform.architecture()[0] == '64bit' or bits != 64:
             if compressed:
-                hdu = fits.CompImageHDU(np.array([-3, -2, -1, 0, 1, 2, 3]))
+                hdu = fits.CompImageHDU(np.array([-3, -2, -1, 0, 1, 2, 3], dtype=np.int64))
                 hdu_number = 1
             else:
-                hdu = fits.PrimaryHDU(np.array([-3, -2, -1, 0, 1, 2, 3]))
+                hdu = fits.PrimaryHDU(np.array([-3, -2, -1, 0, 1, 2, 3], dtype=np.int64))
                 hdu_number = 0
 
             hdu.scale('int{0:d}'.format(bits), '', bzero=2 ** (bits-1))
