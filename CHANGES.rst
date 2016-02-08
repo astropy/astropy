@@ -1110,6 +1110,9 @@ Bug Fixes
 
 - ``astropy.io.ascii``
 
+  - Fixed addition of new line characters after last row of data in
+    ascii.latex.AASTex. [#3888]
+
 - ``astropy.io.fits``
 
   - Fixed possible segfault during error handling in FITS tile
