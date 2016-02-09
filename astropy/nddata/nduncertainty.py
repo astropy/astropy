@@ -179,9 +179,6 @@ class NDUncertainty(object):
                 unit = array.unit
             array = array.value
 
-        elif isinstance(array, (list, np.ndarray)):
-            array = np.array(array, subok=False, copy=False)
-
         if unit is None:
             self._unit = None
         else:
@@ -191,7 +188,7 @@ class NDUncertainty(object):
             array = deepcopy(array)
             unit = deepcopy(unit)
 
-        self._array = array
+        self.array = array
         self.parent_nddata = None  # no associated NDData - until it is set!
 
     @abstractproperty
@@ -214,9 +211,15 @@ class NDUncertainty(object):
     @property
     def array(self):
         """
-        any type: the uncertainty's value.
+        `numpy.ndarray`: the uncertainty's value.
         """
         return self._array
+
+    @array.setter
+    def array(self, value):
+        if isinstance(value, (list, np.ndarray)):
+            value = np.array(value, subok=False, copy=False)
+        self._array = value
 
     @property
     def unit(self):
