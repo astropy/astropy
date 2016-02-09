@@ -188,7 +188,7 @@ class NDUncertainty(object):
             array = deepcopy(array)
             unit = deepcopy(unit)
 
-        self._array = array
+        self.array = array
         self.parent_nddata = None  # no associated NDData - until it is set!
 
     @abstractproperty
