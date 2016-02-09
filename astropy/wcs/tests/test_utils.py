@@ -1,16 +1,21 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ...utils.data import get_pkg_data_contents, get_pkg_data_filename
-from ...wcs import WCS
-from .. import utils
-from ..utils import proj_plane_pixel_scales, is_proj_plane_distorted, non_celestial_pixel_scales
-from ...tests.helper import pytest
-from ... import units as u
-
 import numpy as np
 from numpy.testing import assert_almost_equal
 from numpy.testing import assert_allclose
+
+from ...utils.data import get_pkg_data_contents, get_pkg_data_filename
+from ...tests.helper import pytest
+from ... import units as u
+from ...coordinates import SkyCoord
+
+from ..wcs import WCS
+from ..utils import (proj_plane_pixel_scales, is_proj_plane_distorted,
+                     non_celestial_pixel_scales, skycoord_to_pixel,
+                     pixel_to_skycoord, wcs_to_celestial_frame,
+                     add_stokes_axis_to_wcs, linear_offset_celestial_coords)
+
 
 def test_wcs_dropping():
     wcs = WCS(naxis=4)
@@ -67,7 +72,7 @@ def test_add_stokes(ndim):
     wcs = WCS(naxis=ndim)
 
     for ii in range(ndim+1):
-        outwcs = utils.add_stokes_axis_to_wcs(wcs,ii)
+        outwcs = add_stokes_axis_to_wcs(wcs,ii)
         assert outwcs.wcs.naxis == ndim+1
         assert outwcs.wcs.ctype[ii] == 'STOKES'
         assert outwcs.wcs.cname[ii] == 'STOKES'
@@ -164,30 +169,30 @@ def test_wcs_to_celestial_frame():
 
     mywcs = WCS(naxis=2)
     with pytest.raises(ValueError) as exc:
-        assert utils.wcs_to_celestial_frame(mywcs) is None
+        assert wcs_to_celestial_frame(mywcs) is None
     assert exc.value.args[0] == "Could not determine celestial frame corresponding to the specified WCS object"
 
     mywcs.wcs.ctype = ['XOFFSET', 'YOFFSET']
     with pytest.raises(ValueError):
-        assert utils.wcs_to_celestial_frame(mywcs) is None
+        assert wcs_to_celestial_frame(mywcs) is None
 
     mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
-    frame = utils.wcs_to_celestial_frame(mywcs)
+    frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, ICRS)
 
     mywcs.wcs.equinox = 1987.
-    frame = utils.wcs_to_celestial_frame(mywcs)
+    frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, FK5)
     assert frame.equinox == Time(1987., format='jyear')
 
     mywcs.wcs.equinox = 1982
-    frame = utils.wcs_to_celestial_frame(mywcs)
+    frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, FK4)
     assert frame.equinox == Time(1982., format='byear')
 
     mywcs.wcs.equinox = np.nan
     mywcs.wcs.ctype = ['GLON-SIN', 'GLAT-SIN']
-    frame = utils.wcs_to_celestial_frame(mywcs)
+    frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, Galactic)
 
     mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
@@ -195,7 +200,7 @@ def test_wcs_to_celestial_frame():
 
     for equinox in [np.nan, 1987, 1982]:
         mywcs.wcs.equinox = equinox
-        frame = utils.wcs_to_celestial_frame(mywcs)
+        frame = wcs_to_celestial_frame(mywcs)
         assert isinstance(frame, ICRS)
 
     # Flipped order
@@ -215,7 +220,7 @@ def test_wcs_to_celestial_frame_extend():
     mywcs = WCS(naxis=2)
     mywcs.wcs.ctype = ['XOFFSET', 'YOFFSET']
     with pytest.raises(ValueError):
-        utils.wcs_to_celestial_frame(mywcs)
+        wcs_to_celestial_frame(mywcs)
 
     class OffsetFrame(object):
         pass
@@ -227,12 +232,12 @@ def test_wcs_to_celestial_frame_extend():
     from ..utils import custom_frame_mappings
 
     with custom_frame_mappings(identify_offset):
-        frame = utils.wcs_to_celestial_frame(mywcs)
+        frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, OffsetFrame)
 
     # Check that things are back to normal after the context manager
     with pytest.raises(ValueError):
-        utils.wcs_to_celestial_frame(mywcs)
+        wcs_to_celestial_frame(mywcs)
 
 def test_pixscale_nodrop():
     mywcs = WCS(naxis=2)
@@ -389,10 +394,6 @@ def test_is_proj_plane_distorted():
 @pytest.mark.parametrize('mode', ['all', 'wcs'])
 def test_skycoord_to_pixel_distortions(mode):
 
-    from ... import units as u
-    from ...coordinates import SkyCoord
-    from ..utils import skycoord_to_pixel, pixel_to_skycoord
-
     header = get_pkg_data_filename('data/sip.fits')
     wcs = WCS(header)
 
@@ -405,3 +406,58 @@ def test_skycoord_to_pixel_distortions(mode):
 
     assert_allclose(new.ra.degree, ref.ra.degree)
     assert_allclose(new.dec.degree, ref.dec.degree)
+
+
+def test_linear_offset_celestial_coords():
+
+    header = get_pkg_data_contents('maps/1904-66_TAN.hdr', encoding='binary')
+
+    wcs = WCS(header)
+
+    xw, yw = wcs.wcs_pix2world(100, 50, 0)
+
+    assert_allclose(xw, 277.9534442702878)
+    assert_allclose(yw, -66.55852093476933)
+
+    ref = SkyCoord(277.9534442702878 * u.deg, -66.55852093476933 * u.deg, frame='icrs')
+
+    wcs_linear = linear_offset_celestial_coords(wcs, ref)
+
+    xp, yp = wcs_linear.wcs_pix2world(100, 50, 0)
+
+    assert_allclose(xp, 0, atol=1e-5)
+    assert_allclose(yp, 0, atol=1e-5)
+
+    xp, yp = wcs_linear.wcs_pix2world(115, 35, 0)
+
+    assert_allclose(xp, 1, atol=1e-5)
+    assert_allclose(yp, -1, atol=1e-5)
+
+
+def test_linear_offset_celestial_coords_ndim():
+
+    header = get_pkg_data_contents('maps/1904-66_TAN.hdr', encoding='binary')
+
+    wcs = WCS(header)
+
+    # Check that scalar coordinates work
+
+    ref = SkyCoord(1 * u.deg, -2 * u.deg, frame='icrs')
+    wcs_linear = linear_offset_celestial_coords(wcs, ref)
+
+    # Check that 1-d 1-element coordinates work
+
+    ref = SkyCoord([1] * u.deg, [-2] * u.deg, frame='icrs')
+    wcs_linear = linear_offset_celestial_coords(wcs, ref)
+
+    # Check that other cases raise an error
+
+    with pytest.raises(ValueError) as exc:
+        ref = SkyCoord([1, 1] * u.deg, [-2, 3] * u.deg, frame='icrs')
+        wcs_linear = linear_offset_celestial_coords(wcs, ref)
+    assert exc.value.args[0] == "Center position should be given as a scalar SkyCoord"
+
+    with pytest.raises(ValueError) as exc:
+        ref = SkyCoord([[1, 2],[3, 4]] * u.deg, [[-2, 3],[-3, 9]] * u.deg, frame='icrs')
+        wcs_linear = linear_offset_celestial_coords(wcs, ref)
+    assert exc.value.args[0] == "Center position should be given as a scalar SkyCoord"

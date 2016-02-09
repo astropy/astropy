@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import numpy as np
 from .. import units as u
+from .wcs import WCS
 
 __doctest_skip__ = ['wcs_to_celestial_frame']
 
@@ -11,7 +12,7 @@ __all__ = ['add_stokes_axis_to_wcs',
            'wcs_to_celestial_frame', 'proj_plane_pixel_scales',
            'proj_plane_pixel_area', 'is_proj_plane_distorted',
            'non_celestial_pixel_scales', 'skycoord_to_pixel',
-           'pixel_to_skycoord']
+           'pixel_to_skycoord', 'linear_offset_celestial_coords']
 
 
 def add_stokes_axis_to_wcs(wcs, add_before_ind):
@@ -503,3 +504,43 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode='all', cls=None):
     coords = cls(frame.realize_frame(data))
 
     return coords
+
+
+def linear_offset_celestial_coords(wcs, center):
+    """
+    Returns a locally linear offset coordinate system.
+
+    Given a 2-d celestial WCS object and a central coordinate, return a WCS
+    that describes an 'offset' coordinate system, assuming that the
+    coordinates are locally linear (that is, the grid lines of this offset
+    coordinate system are always aligned with the pixel coordinates, and
+    distortions from spherical projections and distortion terms are not taken
+    into account)
+
+    Parameters
+    ----------
+    wcs : `~astropy.wcs.WCS`
+        The original WCS, which should be a 2-d celestial WCS
+    center : `~astropy.coordinates.SkyCoord`
+        The coordinates on which the offset coordinate system should be
+        centered.
+    """
+
+    if center.shape == (1,):
+        center = center[0]
+
+    if len(center.shape) != 0:
+        raise ValueError("Center position should be given as a scalar SkyCoord")
+
+    # Convert center to pixel coordinates
+    xp, yp = skycoord_to_pixel(center, wcs, origin=0)
+
+    # Set up new WCS
+    new_wcs = WCS(naxis=2)
+    new_wcs.wcs.crpix = xp + 1, yp + 1
+    new_wcs.wcs.crval = 0., 0.
+    new_wcs.wcs.cdelt = proj_plane_pixel_scales(wcs)
+    new_wcs.wcs.ctype = 'XOFFSET', 'YOFFSET'
+    new_wcs.wcs.cunit = 'deg', 'deg'
+
+    return new_wcs
