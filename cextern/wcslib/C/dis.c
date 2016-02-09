@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.10 - an implementation of the FITS WCS standard.
+  WCSLIB 5.11 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.c,v 5.10 2015/10/09 08:19:15 mcalabre Exp $
+  $Id: dis.c,v 5.11 2015/10/18 09:13:05 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -2717,7 +2717,7 @@ int watset(int j, struct disprm *dis)
                                 {40, 50, -1, -1, -1, -1, -1, -1, -1, -1},
                                 {49, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 
-  char   *fp, id[16];
+  char   *fp, id[20];
   int    deg, degree, doaux, idis, idp, im, in, *iparm, kind, m, n, ncoeff,
          ndparm, niparm;
   double coeff, coeffm[10], coeffn[10], *dparm, dx, dy, x0, xmax, xmin,
