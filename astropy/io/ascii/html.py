@@ -19,11 +19,11 @@ from ...utils.xml import writer
 from copy import deepcopy
 
 try:
-  import lxml
+    import lxml
 except ImportError:
-  lxml_installed = False
+    lxml_installed = False
 else:
-  lxml_installed = True
+    lxml_installed = True
 
 class SoupString(str):
     """
@@ -91,9 +91,9 @@ class HTMLInputter(core.BaseInputter):
 
         if 'parser' not in self.html:
             if lxml_installed:
-              soup = BeautifulSoup('\n'.join(lines),"lxml")
+                soup = BeautifulSoup('\n'.join(lines),"lxml")
             else:
-              soup = BeautifulSoup('\n'.join(lines),"html.parser")
+                soup = BeautifulSoup('\n'.join(lines),"html.parser")
         else: # use a custom backend parser
             soup = BeautifulSoup('\n'.join(lines), self.html['parser'])
         tables = soup.find_all('table')
