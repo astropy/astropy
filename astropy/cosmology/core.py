@@ -1305,6 +1305,8 @@ class FLRW(Cosmology):
 
         Raises
         ------
+        ValueError
+          If z2 is less than z1
         CosmologyError
           If omega_k is < 0.
 
