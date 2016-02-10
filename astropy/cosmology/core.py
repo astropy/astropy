@@ -1306,7 +1306,8 @@ class FLRW(Cosmology):
         Raises
         ------
         ValueError
-          If z2 is less than z1
+          If z2 is less than z1 or if z1 and z2 are arrays of different
+          size
         CosmologyError
           If omega_k is < 0.
 
@@ -1328,7 +1329,7 @@ class FLRW(Cosmology):
         z1 = np.atleast_1d(z1)
         z2 = np.atleast_1d(z2)
 
-        if z1.size != z2.size:
+        if z1.size != z2.size and z1.size != 1 and z2.size !=1:
             raise ValueError('z1 and z2 must be the same size.')
 
         if (z1 > z2).any():
