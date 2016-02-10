@@ -103,7 +103,6 @@ class Latex(base.Base):
             The value in exponential notation in a format suitable for LaTeX.
         """
         if np.isfinite(val):
-        if np.any(np.isfinite(val)):   #np.isfinite returns a booleans of array type so np.any(np.ndarray) returns true if any vaues in np.ndarray is true
             m, ex = utils.split_mantissa_exponent(val)
 
             parts = []
