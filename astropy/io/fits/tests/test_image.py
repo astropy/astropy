@@ -992,6 +992,18 @@ class TestImageFunctions(FitsTestCase):
         hdul = fits.HDUList.fromstring(file_data)
         assert np.allclose(hdul[0].data, a)
 
+    def test_scale_bzero_with_int_data(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/4600
+        """
+
+        a = np.arange(100, 200, dtype=np.int16)
+        hdu = fits.PrimaryHDU(data=a.copy())
+        bzero = 99.9
+        hdu.scale('int16', bzero=bzero)
+        a -= int(round(bzero))
+        assert np.allclose(hdu.data, a)
+
 
 class TestCompressedImage(FitsTestCase):
     def test_empty(self):
