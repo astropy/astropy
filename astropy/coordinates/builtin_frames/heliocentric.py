@@ -12,7 +12,7 @@ class Heliocentric(BaseCoordinateFrame):
     """
     A coordinate or frame in a Heliocentric system.
 
-    This coordinate system is distinct form ICRS mainly in that it is relative
+    This coordinate system is distinct from ICRS mainly in that it is relative
     to the Sun's center-of-mass rather than the solar system Barycenter.
     In principle, therefore, this frame should include the effects of
     abberation (unlike ICRS), but this is not done, since they are very small,
