@@ -98,8 +98,9 @@ class FunctionUnitBase(object):
             self._physical_unit = dimensionless_unscaled
         else:
             self._physical_unit = Unit(physical_unit)
-            if(not isinstance(self._physical_unit, UnitBase) or
-               self._physical_unit.is_equivalent(self._default_function_unit)):
+            if (not isinstance(self._physical_unit, UnitBase) or
+                self._physical_unit.is_equivalent(
+                    self._default_function_unit)):
                 raise ValueError("Unit {0} is not a physical unit."
                                  .format(self._physical_unit))
 
