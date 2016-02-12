@@ -43,6 +43,7 @@ def get_package_data():
                                    't/daophot4.dat',
                                    't/sextractor.dat',
                                    't/sextractor2.dat',
+                                   't/sextractor3.dat',
                                    't/daophot.dat.gz',
                                    't/fill_values.txt',
                                    't/html.html',

@@ -1,0 +1,10 @@
+#   1 X_IMAGE                Object position along x                                    [pixel]
+#   2 Y_IMAGE                                                 [pixel]
+#   3 ALPHA_J2000            Right ascension of barycenter (J2000)                      [deg]
+#   4 DELTA_J2000            Declination of barycenter (J2000)                          [deg]
+#   5 MAG_AUTO               Kron-like elliptical aperture magnitude                    [mag]
+#   6 MAGERR_AUTO            RMS error for AUTO magnitude                               [mag]
+#   7 MAG_APER               Fixed aperture magnitude vector                            [mag]
+#  14 MAGERR_APER            RMS error vector for fixed aperture mag.                   [mag]
+  1367.000    184.404 265.1445228 +68.7507679  22.9929   0.2218  24.1804  23.4541  22.9567  22.5162  22.1912  21.5363  21.0361   0.3262   0.2675   0.2203   0.1856   0.1683   0.1621   0.1673
+  1380.235    189.444 265.1384412 +68.7516124  20.9258   0.0569  22.2374  21.5987  21.2943  21.1244  20.9838  20.6672  20.0695   0.0645   0.0497   0.0495   0.0520   0.0533   0.0602   0.0515
