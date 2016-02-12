@@ -42,8 +42,10 @@ class SExtractorHeader(core.BaseHeader):
                                  (?:\s+(?P<coldescr> \w [^\[]*\w))? # column description, match non-[
                                  (?:\s+\[(?P<colunit>.+)\])?.*   # match units in brackets
                                  """, re.VERBOSE)
+        dataline = None
         for line in lines:
             if not line.startswith('#'):
+                dataline = line
                 break                   # End of header lines
             else:
                 match = re_name_def.search(line)
@@ -64,6 +66,14 @@ class SExtractorHeader(core.BaseHeader):
                     column_unit = columns[previous_column][2]
                     columns[c] = (column_name, column_descr, column_unit)
             previous_column = n
+        if dataline is not None:  # handle the case where the last column is array-like
+            ndatacol = len(dataline.split())
+            if n < ndatacol:
+                for c in range(n + 1, ndatacol + 1):
+                    column_name = columns[n][0] + "_%d" % (c - n)
+                    column_descr = columns[n][1]
+                    column_unit = columns[n][2]
+                    columns[c] = (column_name, column_descr, column_unit)
 
         # Add the columns in order to self.names
         colnumbers = sorted(columns)
@@ -119,6 +129,17 @@ class SExtractor(core.BaseReader):
     header_class = SExtractorHeader
     data_class = SExtractorData
     inputter_class = core.ContinuationLinesInputter
+
+    def read(self, table):
+        """
+        Read input data (file-like object, filename, list of strings, or
+        single string) into a Table and return the result.
+        """
+        out = super(SExtractor, self).read(table)
+        # remove the comments
+        if 'comments' in out.meta:
+            del out.meta['comments']
+        return out
 
     def write(self, table):
         raise NotImplementedError
