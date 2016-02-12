@@ -1608,3 +1608,22 @@ class TestReplaceColumn(SetupData):
         with pytest.raises(ValueError) as err:
             t.replace_column('a', [1, 2, 3])
         assert err.value.args[0] == 'cannot replace a table index column'
+
+def test_replace_column_qtable():
+    """Replace existing Quantity column with a new column in a QTable"""
+    a = [1, 2, 3] * u.m
+    b = [4, 5, 6]
+    t = table.QTable([a, b], names=['a', 'b'])
+
+    ta = t['a']
+    tb = t['b']
+    ta.info.meta = {'aa': [0, 1, 2, 3, 4]}
+    ta.info.format = '%f'
+
+    t.replace_column('a', a.to('cm'))
+    assert np.all(t['a'] == ta)
+    assert t['a'] is not ta  # New a column
+    assert t['b'] is tb  # Original b column unchanged
+    assert t.colnames == ['a', 'b']
+    assert t['a'].info.meta is None
+    assert t['a'].info.format is None
