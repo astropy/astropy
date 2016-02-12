@@ -344,6 +344,9 @@ Bug Fixes
 
 - ``astropy.table``
 
+  - Fixed bug when replacing a table column with a mixin column like
+    Quantity or Time. [#4601]
+
 - ``astropy.time``
 
 - ``astropy.units``
