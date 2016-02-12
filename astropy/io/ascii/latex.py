@@ -111,7 +111,7 @@ class LatexHeader(core.BaseHeader):
 
     def start_line(self, lines):
         line = find_latex_line(lines, self.header_start)
-        if line:
+        if line is not None:
             return line + 1
         else:
             return None

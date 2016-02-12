@@ -51,6 +51,7 @@ def get_package_data():
                                    't/latex1.tex',
                                    't/latex1.tex.gz',
                                    't/latex2.tex',
+                                   't/latex3.tex',
                                    't/nls1_stackinfo.dbout',
                                    't/no_data_cds.dat',
                                    't/no_data_daophot.dat',
