@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 5.10 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2015, Mark Calabretta
+  WCSLIB 5.14 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2016, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcshdr.h,v 5.10 2015/10/09 08:19:15 mcalabre Exp $
+  $Id: wcshdr.h,v 5.14 2016/02/07 10:49:31 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.10 - C routines that implement the FITS World Coordinate System
+* WCSLIB 5.14 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -957,13 +957,61 @@
 * struct.
 *
 * Given:
-*   relax     int       Degree of permissiveness:
-*                          0: Recognize only FITS keywords defined by the
-*                             published WCS standard.
-*                         -1: Admit all informal extensions of the WCS
-*                             standard.
+*   ctrl      int       Vector of flag bits that controls the degree of
+*                       permissiveness in departing from the published WCS
+*                       standard, and also controls the formatting of
+*                       floating-point keyvalues.  Set it to zero to get the
+*                       default behaviour.
+*
+*                       Flag bits for the degree of permissiveness:
+*                         WCSHDO_none: Recognize only FITS keywords defined by
+*                            the published WCS standard.
+*                         WCSHDO_all: Admit all recognized informal extensions
+*                            of the WCS standard.
 *                       Fine-grained control of the degree of permissiveness
 *                       is also possible as explained in the notes below.
+*
+*                       As for controlling floating-point formatting, by
+*                       default wcshdo() uses "%20.12G" for non-parameterized
+*                       keywords such as LONPOLEa, and attempts to make the
+*                       header more human-readable by using the same "%f"
+*                       format for all values of each of the following
+*                       parameterized keywords: CRPIXja, PCi_ja, and CDELTia
+*                       (n.b. excluding CRVALia).  Each has the same field
+*                       width and precision so that the decimal points line
+*                       up.  The precision, allowing for up to 15 significant
+*                       digits, is chosen so that there are no excess trailing
+*                       zeroes.  A similar formatting scheme applies by
+*                       default for distortion function parameters.
+*
+*                       However, where the values of, for example, CDELTia
+*                       differ by many orders of magnitude, the default
+*                       formatting scheme may cause unacceptable loss of
+*                       precision for the lower-valued keyvalues.  Thus the
+*                       default behaviour may be overridden:
+*                         WCSHDO_P12: Use "%20.12G" format for all floating-
+*                            point keyvalues (12 significant digits).
+*                         WCSHDO_P13: Use "%21.13G" format for all floating-
+*                            point keyvalues (13 significant digits).
+*                         WCSHDO_P14: Use "%22.14G" format for all floating-
+*                            point keyvalues (14 significant digits).
+*                         WCSHDO_P15: Use "%23.15G" format for all floating-
+*                            point keyvalues (15 significant digits).
+*                         WCSHDO_P16: Use "%24.16G" format for all floating-
+*                            point keyvalues (16 significant digits).
+*                         WCSHDO_P17: Use "%25.17G" format for all floating-
+*                            point keyvalues (17 significant digits).
+*                       If more than one of the above flags are set, the
+*                       highest number of significant digits prevails.  In
+*                       addition, there is an anciliary flag:
+*                         WCSHDO_EFMT: Use "%E" format instead of the default
+*                            "%G" format above.
+*                       Note that excess trailing zeroes are stripped off the
+*                       fractional part with "%G" (which never occurs with
+*                       "%E").  Note also that the higher-precision options
+*                       eat into the keycomment area.  In this regard,
+*                       WCSHDO_P14 causes minimal disruption with "%G" format,
+*                       while WCSHDO_P13 is appropriate with "%E".
 *
 * Given and returned:
 *   wcs       struct wcsprm*
@@ -1131,15 +1179,22 @@ extern "C" {
 #define WCSHDR_BIMGARR  0x00200000
 #define WCSHDR_PIXLIST  0x00400000
 
-#define WCSHDO_none     0x00
-#define WCSHDO_all      0xFF
-#define WCSHDO_safe     0x0F
-#define WCSHDO_DOBSn    0x01
-#define WCSHDO_TPCn_ka  0x02
-#define WCSHDO_PVn_ma   0x04
-#define WCSHDO_CRPXna   0x08
-#define WCSHDO_CNAMna   0x10
-#define WCSHDO_WCSNna   0x20
+#define WCSHDO_none     0x00000
+#define WCSHDO_all      0x000FF
+#define WCSHDO_safe     0x0000F
+#define WCSHDO_DOBSn    0x00001
+#define WCSHDO_TPCn_ka  0x00002
+#define WCSHDO_PVn_ma   0x00004
+#define WCSHDO_CRPXna   0x00008
+#define WCSHDO_CNAMna   0x00010
+#define WCSHDO_WCSNna   0x00020
+#define WCSHDO_P12      0x01000
+#define WCSHDO_P13      0x02000
+#define WCSHDO_P14      0x04000
+#define WCSHDO_P15      0x08000
+#define WCSHDO_P16      0x10000
+#define WCSHDO_P17      0x20000
+#define WCSHDO_EFMT     0x40000
 
 
 extern const char *wcshdr_errmsg[];

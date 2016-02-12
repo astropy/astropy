@@ -1,3 +1,228 @@
+1.2 (unreleased)
+----------------
+
+New Features
+^^^^^^^^^^^^
+
+- ``astropy.analytic_functions``
+
+- ``astropy.config``
+
+- ``astropy.conftest.py``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.votable``
+
+- ``astropy.logger.py``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+  - Added ``jackknife`` resampling method. [#3708]
+
+  - Updated ``bootstrap`` to allow bootstrapping statistics with multiple
+    outputs. [#3601]
+
+- ``astropy.table``
+
+  - ``Table.show_in_notebook`` and ``Table.show_in_browser(jsviewer=True)`` now
+    yield tables with an "idx" column, allowing easy identification of the index
+    of a row even when the table is re-sorted in the browser. [#4404]
+
+- ``astropy.tests``
+
+- ``astropy.time``
+
+  - Added caching of scale and format transformations for improved performance.
+    [#4422]
+
+- ``astropy.units``
+
+  - The option to use tuples to indicate fractional powers of units,
+    deprecated in 0.3.1, has been removed. [#4449]
+
+- ``astropy.utils``
+
+  - Implemented a generic and extensible way of merging metadata. [#4459]
+  - Added ``format_doc`` decorator which allows to replace and/or format the
+    current docstring of an object. [#4242]
+
+- ``astropy.visualization``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+  - wcslib was updated to v5.14 [#4579]
+
+API changes
+^^^^^^^^^^^
+
+- ``astropy.analytic_functions``
+
+- ``astropy.config``
+
+  - The deprecated ``ConfigurationItem`` and ``ConfigAlias`` classes and the
+    ``save_config``, ``get_config_items``, and ``generate_all_config_items``
+    functions have now been removed. [#2767, #4446]
+
+- ``astropy.conftest.py``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+  - Removed compatibility layer for pre-v0.4 API. [#4447]
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.votable``
+
+- ``astropy.logger.py``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+  - ``NDData``: added an optional parameter ``copy``
+    which is False by default. If it is True all other parameters are copied
+    before saving them as attributes. If False the parameters are only copied
+    if there is no way of saving them as reference. [#4270]
+
+  - ``NDData``: ``Masked_Quantity`` objects are allowed as ``data``
+    parameter. [#4270]
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.tests``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+  - Remove deprecated ``register`` argument for Unit classes. [#4448]
+
+- ``astropy.utils``
+
+  - The astropy.utils.compat.argparse module has now been deprecated. Use the
+    Python 'argparse' module directly instead. [#4462]
+
+  - The astropy.utils.compat.odict module has now been deprecated. Use the
+    Python 'collections' module directly instead. [#4466]
+
+  - The astropy.utils.compat.gzip module has now been deprecated. Use the
+    Python 'gzip' module directly instead. [#4464]
+
+  - The deprecated ``ScienceStateAlias`` class has been removed. [#2767, #4446]
+
+- ``astropy.visualization``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+Bug fixes
+^^^^^^^^^
+
+- ``astropy.analytic_functions``
+
+- ``astropy.config``
+
+- ``astropy.conftest.py``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.votable``
+
+- ``astropy.logger.py``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+  - ``NDDataBase`` does not implement a setter or getter for ``uncertainty``,
+    which is now an abstractproperty. [#4270]
+
+  - ``NDData`` wraps the ``uncertainty`` inside an ``UnknownUncertainty``
+    if no ``uncertainty_type`` attribute is present in the uncertainty instead
+    of raising an Exception. [#4270]
+
+  - ``NDData`` The ``uncertainty_type`` of the ``uncertainty`` is no longer
+    required to be a string, but it is still recommended. [#4270]
+
+  - ``NDData`` now sets the ``parent_nddata`` of the ``uncertainty`` if the
+    uncertainty is ``NDUncertainty``-like. [#4152, #4270]
+
+ - ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.tests``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+  - The astropy.utils.compat.fractions module has now been deprecated. Use the
+    Python 'fractions' module directly instead. [#4463]
+  - Added ``format_doc`` decorator which allows to replace and/or format the
+    current docstring of an object. [#4242]
+
+- ``astropy.visualization``
+
+- ``astropy.vo``
+
+  - Relaxed expected accuracy of Cone Search prediction test to reduce spurious
+    failures. [#4382]
+
+- ``astropy.wcs``
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Python 2.6 is no longer supported. [#4486]
+
+
 1.1.2 (unreleased)
 ------------------
 
