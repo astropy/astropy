@@ -83,6 +83,8 @@ New Features
 
 - ``astropy.wcs``
 
+  - wcslib was updated to v5.14 [#4579]
+
 API changes
 ^^^^^^^^^^^
 

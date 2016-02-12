@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 5.10 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2015, Mark Calabretta
+  WCSLIB 5.14 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2016, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsulex.l,v 5.10 2015/10/09 08:19:15 mcalabre Exp $
+  $Id: wcsulex.l,v 5.14 2016/02/07 10:49:31 mcalabre Exp $
 *=============================================================================
 *
 * wcsulex.l is a Flex description file containing the definition of a
@@ -130,6 +130,11 @@ jmp_buf wcsulex_abort_jmp_env;
 	expon  = 1.0;
 	factor = 1.0;
 	*scale = 1.0;
+	
+	/* Avert a flex-induced memory leak. */
+	if (YY_CURRENT_BUFFER->yy_input_file == stdin) {
+	  yy_delete_buffer(YY_CURRENT_BUFFER);
+	}
 	
 	yy_scan_string(unitstr);
 	
