@@ -1113,6 +1113,9 @@ Bug Fixes
   - Fixed addition of new line characters after last row of data in
     ascii.latex.AASTex. [#3888]
 
+  - Fixed reading of Latex tables where the ``\tabular`` tag is in the first
+    line. [#4595]
+
 - ``astropy.io.fits``
 
   - Fixed possible segfault during error handling in FITS tile
