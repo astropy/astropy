@@ -36,11 +36,12 @@ class SExtractorHeader(core.BaseHeader):
         # However, some may be missing and must be inferred from skipped column numbers
         columns = {}
         # E.g. '# 1 ID identification number' (without units) or '# 2 MAGERR magnitude of error [mag]'
-        re_name_def = re.compile(r"""^ \s* \# \s*            # possible whitespace around #
+        re_name_def = re.compile(r"""^\s* \# \s*             # possible whitespace around #
                                  (?P<colnumber> [0-9]+)\s+   # number of the column in table
                                  (?P<colname> [-\w]+)        # name of the column
-                                 (?:\s+(?P<coldescr> \w [^\[]*\w))? # column description, match non-[
-                                 (?:\s+\[(?P<colunit>.+)\])?.*   # match units in brackets
+                                 (?:\s+(?P<coldescr> \w .+)  # column description, match any character until...
+                                 (?:(?<!(\]))$|(?=(?:(?<=\S)\s+\[.+\]))))?  # ...until [non-space][space][unit] or [not-right-bracket][end]
+                                 (?:\s*\[(?P<colunit>.+)\])?.* # match units in brackets
                                  """, re.VERBOSE)
         dataline = None
         for line in lines:
@@ -66,13 +67,14 @@ class SExtractorHeader(core.BaseHeader):
                     column_unit = columns[previous_column][2]
                     columns[c] = (column_name, column_descr, column_unit)
             previous_column = n
-        if dataline is not None:  # handle the case where the last column is array-like
+        if dataline is not None and len(colnumbers) > 0:  # handle the case where the last column is array-like
             ndatacol = len(dataline.split())
-            if n < ndatacol:
-                for c in range(n + 1, ndatacol + 1):
-                    column_name = columns[n][0] + "_%d" % (c - n)
-                    column_descr = columns[n][1]
-                    column_unit = columns[n][2]
+            lastc = colnumbers[-1]
+            if lastc < ndatacol:
+                for c in range(lastc + 1, ndatacol + 1):
+                    column_name = columns[lastc][0] + "_%d" % (c - n)
+                    column_descr = columns[lastc][1]
+                    column_unit = columns[lastc][2]
                     columns[c] = (column_name, column_descr, column_unit)
 
         # Add the columns in order to self.names
