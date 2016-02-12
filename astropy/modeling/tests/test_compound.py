@@ -4,6 +4,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 import inspect
+from copy import deepcopy
 
 import numpy as np
 
@@ -751,6 +752,11 @@ def test_inherit_constraints(model):
 
     Regression test for https://github.com/astropy/astropy/issues/3481
     """
+
+    # We have to copy the model before modifying it, otherwise the test fails
+    # if it is run twice in a row, because the state of the model instance
+    # would be preserved from one run to the next.
+    model = deepcopy(model)
 
     # Lots of assertions in this test as there are multiple interfaces to
     # parameter constraints
