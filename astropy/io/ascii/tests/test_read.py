@@ -26,6 +26,12 @@ except ImportError:
 else:
     HAS_BZ2 = True
 
+try:
+    import pathlib
+except ImportError:
+    HAS_PATHLIB = False
+else:
+    HAS_PATHLIB = True
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_convert_overflow(fast_reader):
@@ -1092,3 +1098,12 @@ def test_table_with_no_newline():
         t = ascii.read(table, **kwargs)
         assert t.colnames == ['a', 'b']
         assert len(t) == 0
+
+@pytest.mark.skipif('not HAS_PATHLIB')
+def test_path_object():
+    fpath = pathlib.Path('t/simple.txt')
+    data = ascii.read(fpath)
+
+    assert len(data) == 2
+    assert sorted(list(data.columns)) == ['test 1a', 'test2', 'test3', 'test4']
+    assert data['test2'][1] == 'hat2'

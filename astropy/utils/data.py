@@ -106,7 +106,7 @@ def _is_inside(path, parent_path):
 def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
                          show_progress=True, remote_timeout=None):
     """
-    Given a filename or a readable file-like object, return a context
+    Given a filename, pathlib.Path object or a readable file-like object, return a context
     manager that yields a readable file-like object.
 
     This supports passing filenames, URLs, and readable file-like objects,
@@ -167,6 +167,14 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     # passed in.  In that case it is not the responsibility of this
     # function to close it: doing so could result in a "double close"
     # and an "invalid file descriptor" exception.
+    PATH_TYPES = six.string_types
+    try:
+        from pathlib import Path
+    except:
+        pass
+    else:
+        PATH_TYPES += (Path,)
+
     close_fds = []
     delete_fds = []
 
@@ -175,7 +183,11 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         remote_timeout = conf.remote_timeout
 
     # Get a file object to the content
-    if isinstance(name_or_obj, six.string_types):
+    if isinstance(name_or_obj, PATH_TYPES):
+        # name_or_obj could be a Path object in Python 3
+        if six.PY3:
+            name_or_obj = str(name_or_obj)
+
         is_url = _is_url(name_or_obj)
         if is_url:
             name_or_obj = download_file(
