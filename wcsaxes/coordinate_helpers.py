@@ -292,6 +292,18 @@ class CoordinateHelper(object):
         """
         self.ticks.set_visible_axes(position)
 
+    def set_ticks_visible(self, visible):
+        """
+        Set whether ticks are visible or not.
+
+        Parameters
+        ----------
+        visible : bool
+            The visibility of ticks. Setting as ``False`` will hide ticks
+            along this coordinate.
+        """
+        self.ticks.set_visible(visible)
+
     def set_ticklabel(self, **kwargs):
         """
         Set the visual properties for the tick labels.
@@ -318,6 +330,18 @@ class CoordinateHelper(object):
             tick labels to be shown on the left and bottom axis.
         """
         self.ticklabels.set_visible_axes(position)
+
+    def set_ticklabel_visible(self, visible):
+        """
+        Set whether the tick labels are visible or not.
+
+        Parameters
+        ----------
+        visible : bool
+            The visibility of ticks. Setting as ``False`` will hide this
+            coordinate's tick labels.
+        """
+        self.ticklabels.set_visible(visible)
 
     def set_axislabel(self, text, minpad=1, **kwargs):
         """

@@ -224,7 +224,7 @@ Tick, tick label, and axis label position
 
 By default, the tick and axis labels for the first coordinate are shown on the
 x-axis, and the tick and axis labels for the second coordinate are shown on
-the y-axis. In addition, the ticks for both coordintes are shown on all axes.
+the y-axis. In addition, the ticks for both coordinates are shown on all axes.
 This can be customized using the
 :meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks_position` and
 :meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_ticklabel_position` methods, which each
@@ -244,7 +244,7 @@ right, or top axes respectively):
     lat.set_ticklabel_position('lr')
     lat.set_axislabel_position('lr')
 
-we can set the defaults back using:
+We can set the defaults back using:
 
 .. plot::
    :context:
@@ -257,6 +257,43 @@ we can set the defaults back using:
     lat.set_ticks_position('all')
     lat.set_ticklabel_position('l')
     lat.set_axislabel_position('l')
+
+
+Hiding ticks and tick labels
+============================
+
+Sometimes it's desirable to hide ticks and tick labels. A common scenario
+is where WCSAxes is being used in a grid of subplots and the tick labels
+are redundant across rows or columns. Tick labels and ticks can be hidden with
+the :meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_ticklabel_visible`
+and :meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks_visible`
+methods, respectively:
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+    lon.set_ticks_visible(False)
+    lon.set_ticklabel_visible(False)
+    lat.set_ticks_visible(False)
+    lat.set_ticklabel_visible(False)
+    lon.set_axislabel('')
+    lat.set_axislabel('')
+
+And we can restore the ticks and tick labels again using:
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+    lon.set_ticks_visible(True)
+    lon.set_ticklabel_visible(True)
+    lat.set_ticks_visible(True)
+    lat.set_ticklabel_visible(True)
+    lon.set_axislabel('Galactic Longitude')
+    lat.set_axislabel('Galactic Latitude')
 
 
 Coordinate grid
