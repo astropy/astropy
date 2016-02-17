@@ -1,5 +1,5 @@
 #   1 X_IMAGE                Object position along x                                    [pixel]
-#   2 Y_IMAGE                Object position along y                                    [pixel]
+#   2 Y_IMAGE                                                 [pixel]
 #   3 ALPHA_J2000            Right ascension of barycenter (J2000)                      [deg]
 #   4 DELTA_J2000            Declination of barycenter (J2000)                          [deg]
 #   5 MAG_AUTO               Kron-like elliptical aperture magnitude                    [mag]

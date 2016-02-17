@@ -36,6 +36,7 @@ class SExtractorHeader(core.BaseHeader):
         # However, some may be missing and must be inferred from skipped column numbers
         columns = {}
         # E.g. '# 1 ID identification number' (without units) or '# 2 MAGERR magnitude of error [mag]'
+        # Updated along with issue #4603, for more robust parsing of unit
         re_name_def = re.compile(r"""^\s* \# \s*             # possible whitespace around #
                                  (?P<colnumber> [0-9]+)\s+   # number of the column in table
                                  (?P<colname> [-\w]+)        # name of the column
@@ -46,7 +47,7 @@ class SExtractorHeader(core.BaseHeader):
         dataline = None
         for line in lines:
             if not line.startswith('#'):
-                dataline = line
+                dataline = line  # save for later to inter the actual number of columns
                 break                   # End of header lines
             else:
                 match = re_name_def.search(line)

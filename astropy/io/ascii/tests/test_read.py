@@ -866,9 +866,17 @@ def test_sextractor_last_column_array():
                       Unit('mag'), Unit('mag'),
                       Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'),
                       Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag')]
+    expected_descrs = ['Object position along x', None,
+                       'Right ascension of barycenter (J2000)',
+                       'Declination of barycenter (J2000)',
+                       'Kron-like elliptical aperture magnitude',
+                       'RMS error for AUTO magnitude',] + [
+                       'Fixed aperture magnitude vector'] * 7 + [
+                       'RMS error vector for fixed aperture mag.'] * 7
     for i, colname in enumerate(table.colnames):
         assert table[colname].name == expected_columns[i]
         assert table[colname].unit == expected_units[i]
+        assert table[colname].description == expected_descrs[i]
 
 def test_list_with_newlines():
     """
