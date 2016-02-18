@@ -91,6 +91,21 @@ def test_parameter_unit_conversion_equivalencies():
     model.c = 3 * u.eV
 
 
+def test_parameter_unit_equivalency():
+    """
+    Test that we can set equivalencies on an existing model
+    """
+    g = Gaussian1D(1 * u.Jy, 3 * u.m, 0.1 * u.nm)
+
+    with pytest.raises(UnitsError) as exc:
+        g.mean = 3 * u.Hz
+    assert exc.value.args[0] == "The 'mean' parameter should be given as a Quantity with units equivalent to m"
+
+    g.mean.equivalencies = u.spectral()
+
+    g.mean = 3 * u.Hz
+
+
 def test_parameter_change_unit():
     """
     Test that changing the unit on a parameter works as expected.
@@ -158,6 +173,28 @@ def test_parameter_change_value():
                                  "unitless values, not Quantity objects. To set a "
                                  "parameter to a quantity simply set the parameter "
                                  "directly without using .value")
+
+
+def test_parameter_quantity_property():
+    """
+    Test that the quantity property of Parameters behaves as expected
+    """
+
+    g = Gaussian1D(1 * u.Jy, 1 * u.m, 0.1 * u.m)
+
+    assert_quantity_allclose(g.amplitude.quantity, 1 * u.Jy)
+
+    # Setting a parameter to a quantity changes the value and the default unit
+    g.amplitude.quantity = 5 * u.mJy
+    assert g.amplitude.value == 5
+    assert g.amplitude.unit is u.mJy
+
+    # But we shouldn't be able to set .quantity to a Quantity with
+    # non-equivalent units
+    with pytest.raises(UnitsError) as exc:
+        g.amplitude.quantity = 3 * u.m
+    assert exc.value.args[0] == ("Cannot set parameter units to m since it is not "
+                                 "equivalent with the original units of mJy")
 
 
 def test_quantity_parameter_descriptors():

@@ -1618,7 +1618,7 @@ class Model(object):
                 if value is None:
                     continue
                 else:
-                   params[param_name] = np.asanyarray(value, dtype=np.float)
+                    params[param_name] = np.asanyarray(value, dtype=np.float)
 
         if kwargs:
             # If any keyword arguments were left over at this point they are
@@ -1703,6 +1703,8 @@ class Model(object):
                 else:
                     unit = None
 
+            equivalencies = param_descr.equivalencies
+
             param_size = np.size(value)
             param_shape = np.shape(value)
 
@@ -1731,6 +1733,7 @@ class Model(object):
                 self._using_quantities = True
 
             param_metrics[name]['orig_unit'] = unit
+            param_metrics[name]['equivalencies'] = equivalencies
 
             total_size += param_size
 
