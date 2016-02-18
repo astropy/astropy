@@ -877,6 +877,23 @@ def test_no_truncate_crval():
     w.wcs.crval=[50,50,2.12345678e11]
     w.wcs.cdelt=[1e-3,1e-3,1e8]
     w.wcs.ctype=['RA---TAN','DEC--TAN','FREQ']
+    w.wcs.set()
+    for ii in range(3):
+        assert w.to_header()['CRVAL{0}'.format(ii+1)] == w.wcs.crval[ii]
+        assert w.to_header()['CDELT{0}'.format(ii+1)] == w.wcs.cdelt[ii]
+
+def test_no_truncate_crval_try2():
+    """
+    Regression test for https://github.com/astropy/astropy/issues/4612
+    """
+    w=wcs.WCS(naxis=3)
+    w.wcs.crval=[50,50,2.12345678e11]
+    w.wcs.cdelt=[1e-5,1e-5,1e5]
+    w.wcs.ctype=['RA---SIN','DEC--SIN','FREQ']
+    w.wcs.cunit=['deg', 'deg', 'Hz']
+    w.wcs.crpix=[1,1,1]
+    w.wcs.restfrq = 2.34e11
+    w.wcs.set()
     for ii in range(3):
         assert w.to_header()['CRVAL{0}'.format(ii+1)] == w.wcs.crval[ii]
         assert w.to_header()['CDELT{0}'.format(ii+1)] == w.wcs.cdelt[ii]
