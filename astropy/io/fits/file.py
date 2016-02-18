@@ -19,7 +19,7 @@ from numpy import memmap as Memmap
 from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
                    fileobj_closed, fileobj_mode, _array_from_file,
                    _array_to_file, _write_string)
-from ...extern.six import b, string_types
+from ...extern.six import b, string_types, PY3
 from ...utils.data import download_file, _is_url
 from ...utils.decorators import classproperty
 from ...utils.exceptions import AstropyUserWarning
@@ -74,6 +74,13 @@ GZIP_MAGIC = b('\x1f\x8b\x08')
 PKZIP_MAGIC = b('\x50\x4b\x03\x04')
 BZIP2_MAGIC = b('\x42\x5a')
 
+try:
+    from pathlib import Path
+except:
+    HAS_PATHLIB = False
+else:
+    HAS_PATHLIB = True
+
 class _File(object):
     """
     Represents a FITS file on disk (or in some other file-like object).
@@ -97,6 +104,9 @@ class _File(object):
             return
         else:
             self.simulateonly = False
+            # If fileobj is of type pathlib.Path
+            if PY3 and HAS_PATHLIB and isinstance(fileobj, Path):
+                fileobj = str(fileobj)
 
         # Holds mmap instance for files that use mmap
         self._mmap = None
