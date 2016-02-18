@@ -29,6 +29,13 @@ from ..xmlutil import validate_schema
 from ....utils.data import get_pkg_data_filename, get_pkg_data_filenames
 from ....tests.helper import pytest, raises, catch_warnings
 
+try:
+    import pathlib
+except ImportError:
+    HAS_PATHLIB = False
+else:
+    HAS_PATHLIB = True
+
 # Determine the kind of float formatting in this build of Python
 if hasattr(sys, 'float_repr_style'):
     legacy_float_repr = (sys.float_repr_style == 'legacy')
@@ -799,6 +806,45 @@ def test_validate():
     # Uncomment to generate new groundtruth
     # with io.open('validation.txt', 'wt', encoding='utf-8') as fd:
     #     fd.write(u''.join(output))
+
+    with io.open(
+        get_pkg_data_filename('data/validation.txt'),
+        'rt', encoding='utf-8') as fd:
+        truth = fd.readlines()
+
+    truth = truth[1:]
+    output = output[1:-1]
+
+    for line in difflib.unified_diff(truth, output):
+        if six.PY3:
+            sys.stdout.write(
+                line.replace('\\n', '\n'))
+        else:
+            sys.stdout.write(
+                line.encode('unicode_escape').
+                replace('\\n', '\n'))
+
+    assert truth == output
+
+
+@pytest.mark.skipif('not HAS_PATHLIB')
+def test_validate_path_object():
+    """
+    Validating when source is passed as path object. (#4412)
+    Creating different method from ``test_validate`` so that it could be
+    skipped if ``pathlib`` isnt available without affecting ``test_validate``
+    """
+    output = io.StringIO()
+    fpath = pathlib.Path(get_pkg_data_filename('data/regression.xml'))
+
+    with catch_warnings():
+        result = validate(fpath,
+                          output, xmllint=False)
+
+    assert result == False
+
+    output.seek(0)
+    output = output.readlines()
 
     with io.open(
         get_pkg_data_filename('data/validation.txt'),
