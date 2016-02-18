@@ -868,3 +868,15 @@ def test_sip_broken():
     hdr = get_pkg_data_contents("data/sip-broken.hdr")
 
     w = wcs.WCS(hdr)
+
+def test_no_truncate_crval():
+    """
+    Regression test for https://github.com/astropy/astropy/issues/4612
+    """
+    w=wcs.WCS(naxis=3)
+    w.wcs.crval=[50,50,2.12345678e11]
+    w.wcs.cdelt=[1e-3,1e-3,1e8]
+    w.wcs.ctype=['RA---TAN','DEC--TAN','FREQ']
+    for ii in range(3):
+        assert w.to_header()['CRVAL{0}'.format(ii+1)] == w.wcs.crval[ii]
+        assert w.to_header()['CDELT{0}'.format(ii+1)] == w.wcs.cdelt[ii]
