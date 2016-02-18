@@ -9,7 +9,7 @@ import numpy as np
 from numpy.testing import assert_allclose
 
 
-from ..core import Fittable1DModel, ModelDefinitionError, InputParameterError
+from ..core import Model, Fittable1DModel, ModelDefinitionError, InputParameterError
 from ..parameters import Parameter, ParameterDefinitionError
 from ..models import Gaussian1D
 from ... import units as u
@@ -61,6 +61,35 @@ def test_parameter_unit_conversion():
     g.amplitude = 3000 * u.mJy
     assert g.amplitude.value == 3
     assert g.amplitude.unit is u.Jy
+
+
+def test_parameter_unit_conversion_equivalencies():
+    """
+    Check that units are converted on-the-fly if compatible, including
+    equivalencies.
+    """
+
+    class TestModel(Model):
+        a = Parameter(default=1.0, unit=u.m)
+        b = Parameter(default=1.0, unit=u.m, equivalencies=u.spectral())
+        c = Parameter(default=1.0, unit=u.K, equivalencies=u.temperature_energy())
+        @staticmethod
+        def evaluate(x, a):
+            return x
+
+    model = TestModel()
+
+    with pytest.raises(UnitsError) as exc:
+        model.a = 3 * u.Hz
+    assert exc.value.args[0] == "The 'a' parameter should be given as a Quantity with units equivalent to m"
+
+    model.b = 3 * u.Hz
+
+    with pytest.raises(UnitsError) as exc:
+        model.c = 3 * u.Hz
+    assert exc.value.args[0] == "The 'c' parameter should be given as a Quantity with units equivalent to K"
+
+    model.c = 3 * u.eV
 
 
 def test_quantity_parameter_descriptors():

@@ -171,6 +171,12 @@ class Parameter(OrderedDescriptor):
         parameter description
     default : float or array
         default value to use for this parameter
+    unit : `~astropy.units.Unit`
+        if specified, the parameter will be in these units, and when the
+        parameter is updated in future, it should be set to a
+        :`~astropy.units.Quantity` that has equivalent units.
+    equivalencies : list of equivalent pairs
+        equivalencies to apply when updating the parameter value
     getter : callable
         a function that wraps the raw (internal) value of the parameter
         when returning the value through the parameter proxy (eg. a
@@ -210,8 +216,8 @@ class Parameter(OrderedDescriptor):
     _name_attribute_ = '_name'
 
     def __init__(self, name='', description='', default=None, unit=None,
-                 getter=None, setter=None, fixed=False, tied=False, min=None,
-                 max=None, bounds=None, model=None):
+                 equivalencies=None, getter=None, setter=None, fixed=False,
+                 tied=False, min=None, max=None, bounds=None, model=None):
         super(Parameter, self).__init__()
 
         self._name = name
@@ -229,6 +235,7 @@ class Parameter(OrderedDescriptor):
 
         self._default = default
         self._unit = unit
+        self._equivalencies = equivalencies
 
         # NOTE: These are *default* constraints--on model instances constraints
         # are taken from the model if set, otherwise the defaults set here are
@@ -276,6 +283,7 @@ class Parameter(OrderedDescriptor):
         return parameter
 
     def __set__(self, obj, value):
+
         value = _tofloat(value)
 
         # Call the validator before the setter
@@ -780,14 +788,14 @@ class Parameter(OrderedDescriptor):
                     raise UnitsError("The '{0}' parameter should be given as a "
                                      "unitless value".format(self._name))
             else:
-                if not isinstance(value, Quantity) or not value.unit.is_equivalent(param_unit):
+                if not isinstance(value, Quantity) or not value.unit.is_equivalent(param_unit, equivalencies=self._equivalencies):
                     raise UnitsError("The '{0}' parameter should be given as a "
                                      "Quantity with units equivalent to "
                                      "{1}".format(self._name, param_unit))
                 else:
                     # We need to convert the value here since the units are dropped
                     # below when setting the parameter value with np.array.
-                    value = value.to(param_unit)
+                    value = value.to(param_unit, equivalencies=self._equivalencies)
 
             param_slice = param_metrics['slice']
             param_shape = param_metrics['shape']
