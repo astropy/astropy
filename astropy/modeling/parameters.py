@@ -440,10 +440,10 @@ class Parameter(OrderedDescriptor):
         # placeholder.
         # Setting the unit on a bound parameter should only change the units
         # returned to the user when they access this parameter
-        # Try converting to the existing unit; if this fails the appropriate
-        # UnitError will be raised
-        # TODO: Do we want a more specific exception message for trying to
-        # convert a *parameter* to incompatible units?
+
+        # We now check that the new units are equivalent to the existing ones
+        # (including any equivalencies)
+
         orig_unit = self._model._param_metrics[self.name]['orig_unit']
 
         if orig_unit is None:
@@ -451,7 +451,10 @@ class Parameter(OrderedDescriptor):
                 'Cannot attach units to parameters that were not initially '
                 'specified with units')
 
-        orig_unit.to(unit)
+        if not orig_unit.is_equivalent(unit, equivalencies=self._equivalencies):
+            raise UnitsError("Cannot set parameter units to {0} since it is "
+                             "not equivalent with the original units of "
+                             "{1}".format(unit, orig_unit))
 
         self._model._param_metrics[self.name]['orig_unit'] = unit
 
