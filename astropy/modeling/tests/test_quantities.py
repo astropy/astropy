@@ -91,6 +91,33 @@ def test_parameter_unit_conversion_equivalencies():
     model.c = 3 * u.eV
 
 
+def test_init_equivalencies():
+    """
+    Check that equivalencies are taken into account when initializing a model
+    with quantities, if using a model where the parameters have specific
+    equivalencies defined.
+    """
+
+    class TestModel(Model):
+        a = Parameter(default=1.0, unit=u.m)
+        b = Parameter(default=1.0, unit=u.m, equivalencies=u.spectral())
+        @staticmethod
+        def evaluate(x, a):
+            return x
+
+    with pytest.raises(InputParameterError) as exc:
+        model = TestModel(a=2 * u.Hz)
+    assert exc.value.args[0] == ('TestModel.__init__() requires parameter \'a\' to '
+                                 'be in units equivalent to Unit("m") (got Unit("Hz"))')
+
+    model = TestModel(b=2 * u.Hz)
+
+    with pytest.raises(InputParameterError) as exc:
+        model = TestModel(b=2 * u.s)
+    assert exc.value.args[0] == ('TestModel.__init__() requires parameter \'b\' to '
+                                 'be in units equivalent to Unit("m") (got Unit("s"))')
+
+
 def test_parameter_unit_equivalency():
     """
     Test that we can set equivalencies on an existing model
