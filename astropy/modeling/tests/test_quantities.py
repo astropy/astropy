@@ -32,6 +32,37 @@ def test_quantities_as_parameters():
     assert g.stddev.unit is u.m
 
 
+def test_parameter_unit_immutable():
+    """
+    Check that units can't be changed once set
+    """
+
+    g = Gaussian1D(1 * u.J, 3, 0.1)
+
+    with pytest.raises(UnitsError) as exc:
+        g.amplitude = 2
+    assert exc.value.args[0] == "The 'amplitude' parameter should be given as a Quantity with units equivalent to J"
+
+    with pytest.raises(UnitsError) as exc:
+        g.amplitude = 2 * u.Jy
+    assert exc.value.args[0] == "The 'amplitude' parameter should be given as a Quantity with units equivalent to J"
+
+    with pytest.raises(UnitsError) as exc:
+        g.mean = 2 * u.Jy
+    assert exc.value.args[0] == "The 'mean' parameter should be given as a unitless value"
+
+
+def test_parameter_unit_conversion():
+    """
+    Check that units are converted on-the-fly if compatible
+    """
+
+    g = Gaussian1D(1 * u.Jy, 3, 0.1)
+    g.amplitude = 3000 * u.mJy
+    assert g.amplitude.value == 3
+    assert g.amplitude.unit is u.Jy
+
+
 def test_quantity_parameter_descriptors():
     """
     Test Model classes that specify units in their Parameter descriptors,

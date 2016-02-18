@@ -17,7 +17,7 @@ import operator
 
 import numpy as np
 
-from ..units import Quantity
+from ..units import Quantity, UnitsError
 from ..utils import isiterable, OrderedDescriptor
 from ..utils.compat import ignored
 from ..extern import six
@@ -772,6 +772,23 @@ class Parameter(OrderedDescriptor):
         def _update_parameter_value(model, name, value):
             # TODO: Maybe handle exception on invalid input shape
             param_metrics = model._param_metrics[self._name]
+
+            # Check that units are compatible with default or units already set
+            param_unit = param_metrics['orig_unit']
+            if param_unit is None:
+                if isinstance(value, Quantity):
+                    raise UnitsError("The '{0}' parameter should be given as a "
+                                     "unitless value".format(self._name))
+            else:
+                if not isinstance(value, Quantity) or not value.unit.is_equivalent(param_unit):
+                    raise UnitsError("The '{0}' parameter should be given as a "
+                                     "Quantity with units equivalent to "
+                                     "{1}".format(self._name, param_unit))
+                else:
+                    # We need to convert the value here since the units are dropped
+                    # below when setting the parameter value with np.array.
+                    value = value.to(param_unit)
+
             param_slice = param_metrics['slice']
             param_shape = param_metrics['shape']
             param_size = np.prod(param_shape)
