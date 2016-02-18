@@ -14,7 +14,7 @@ from ..parameters import Parameter, ParameterDefinitionError
 from ..models import Gaussian1D
 from ... import units as u
 from ...units import UnitsError, Quantity
-from ...tests.helper import pytest
+from ...tests.helper import pytest, assert_quantity_allclose
 
 
 def test_quantities_as_parameters():
@@ -50,7 +50,6 @@ def test_parameter_unit_immutable():
     with pytest.raises(UnitsError) as exc:
         g.mean = 2 * u.Jy
     assert exc.value.args[0] == "The 'mean' parameter should be given as a unitless value"
-
 
 def test_parameter_unit_conversion():
     """
@@ -134,6 +133,31 @@ def test_parameter_change_unit():
         model.a.unit = u.Jy
     assert exc.value.args[0] == ("Cannot set parameter units to Jy since it is "
                                  "not equivalent with the original units of Hz")
+
+
+def test_parameter_change_value():
+    """
+    Test that changing the value on a parameter works as expected.
+    """
+
+    g = Gaussian1D(1 * u.Jy, 1 * u.m, 0.1 * u.m)
+
+    # To set a parameter to a quantity, we simply do
+    g.amplitude = 2 * u.Jy
+
+    # If we try setting the value, we need to pass a non-quantity value:
+    g.amplitude.value = 4
+    assert_quantity_allclose(g.amplitude, 4 * u.Jy)
+    assert g.amplitude.value == 4
+    assert g.amplitude.unit is u.Jy
+
+    # If we try setting it to a Quantity, we raise an error
+    with pytest.raises(TypeError) as exc:
+        g.amplitude.value = 3 * u.Jy
+    assert exc.value.args[0] == ("The .value property on parameters should be set to "
+                                 "unitless values, not Quantity objects. To set a "
+                                 "parameter to a quantity simply set the parameter "
+                                 "directly without using .value")
 
 
 def test_quantity_parameter_descriptors():
