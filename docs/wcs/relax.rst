@@ -418,3 +418,15 @@ The flag bits are:
   potentially unsafe and is not recommended at this time.
 
 - ``WCSHDO_SIP``: Write out Simple Imaging Polynomial (SIP) keywords.
+
+- ``WCSHDO_P12``, ``WCSHDO_P13``, ``WCSHDO_P14``, ``WCSHDO_P15``, ``WCSHDO_P16``, ``WCSHDO_P17``, ``WCSHDO_EFMT``
+
+  These constants control the precision of the WCS keywords returned by `to_header`.
+
+  - ``WCSHDO_P12`` : Use "%20.12G" format for all floating-point keyvalues (12 significant digits)
+  - ``WCSHDO_P13`` : Use "%21.13G" format for all floating-point keyvalues (13 significant digits)
+  - ``WCSHDO_P14`` : Use "%22.14G" format for all floating-point keyvalues (14 significant digits)
+  - ``WCSHDO_P15`` : Use "%23.15G" format for all floating-point keyvalues (15 significant digits)
+  - ``WCSHDO_P16`` : Use "%24.16G" format for all floating-point keyvalues (16 significant digits)
+  - ``WCSHDO_P17`` : Use "%25.17G" format for all floating-point keyvalues (17 significant digits)
+  - ``WCSHDO_EFMT`` : Use "%E" format instead of the default "%G" format above
