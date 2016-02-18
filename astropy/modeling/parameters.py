@@ -280,11 +280,28 @@ class Parameter(OrderedDescriptor):
         parameter = self.__class__.__new__(self.__class__)
         parameter.__dict__.update(self.__dict__)
         parameter._bind(obj)
+
         return parameter
 
     def __set__(self, obj, value):
 
         value = _tofloat(value)
+
+        # Check that units are compatible with default or units already set
+        param_unit = obj._param_metrics[self.name]['orig_unit']
+        if param_unit is None:
+            if isinstance(value, Quantity):
+                raise UnitsError("The '{0}' parameter should be given as a "
+                                 "unitless value".format(self._name))
+        else:
+            if not isinstance(value, Quantity) or not value.unit.is_equivalent(param_unit, equivalencies=self._equivalencies):
+                raise UnitsError("The '{0}' parameter should be given as a "
+                                 "Quantity with units equivalent to "
+                                 "{1}".format(self._name, param_unit))
+            else:
+                # We need to convert the value here since the units are dropped
+                # below when setting the parameter value with np.array.
+                value = value.to(param_unit, equivalencies=self._equivalencies)
 
         # Call the validator before the setter
         if self._validator is not None:
@@ -411,6 +428,12 @@ class Parameter(OrderedDescriptor):
 
         if self._setter is not None:
             val = self._setter(value)
+
+        if isinstance(value, Quantity):
+            raise TypeError("The .value property on parameters should be set to "
+                            "unitless values, not Quantity objects. To set a "
+                            "parameter to a quantity simply set the parameter "
+                            "directly without using .value")
 
         self._set_model_value(self._model, value)
 
@@ -783,23 +806,6 @@ class Parameter(OrderedDescriptor):
         def _update_parameter_value(model, name, value):
             # TODO: Maybe handle exception on invalid input shape
             param_metrics = model._param_metrics[self._name]
-
-            # Check that units are compatible with default or units already set
-            param_unit = param_metrics['orig_unit']
-            if param_unit is None:
-                if isinstance(value, Quantity):
-                    raise UnitsError("The '{0}' parameter should be given as a "
-                                     "unitless value".format(self._name))
-            else:
-                if not isinstance(value, Quantity) or not value.unit.is_equivalent(param_unit, equivalencies=self._equivalencies):
-                    raise UnitsError("The '{0}' parameter should be given as a "
-                                     "Quantity with units equivalent to "
-                                     "{1}".format(self._name, param_unit))
-                else:
-                    # We need to convert the value here since the units are dropped
-                    # below when setting the parameter value with np.array.
-                    value = value.to(param_unit, equivalencies=self._equivalencies)
-
             param_slice = param_metrics['slice']
             param_shape = param_metrics['shape']
             param_size = np.prod(param_shape)
