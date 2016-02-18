@@ -92,6 +92,50 @@ def test_parameter_unit_conversion_equivalencies():
     model.c = 3 * u.eV
 
 
+def test_parameter_change_unit():
+    """
+    Test that changing the unit on a parameter works as expected.
+    """
+
+    g = Gaussian1D(1, 1 * u.m, 0.1 * u.m)
+
+    # Setting a unit on a unitless parameter should not work
+    with pytest.raises(ValueError) as exc:
+        g.amplitude.unit = u.Jy
+    assert exc.value.args[0] == "Cannot attach units to parameters that were not initially specified with units"
+
+    # Changing to an equivalent unit should work
+    g.mean.unit = u.cm
+
+    # But changing to another unit should not
+    with pytest.raises(UnitsError) as exc:
+        g.mean.unit = u.Hz
+    assert exc.value.args[0] == ("Cannot set parameter units to Hz since it is "
+                                 "not equivalent with the original units of cm")
+
+    # Now we test a more complex example with equivalencies
+    class TestModel(Model):
+        a = Parameter(default=1.0, unit=u.m, equivalencies=u.spectral())
+        @staticmethod
+        def evaluate(x, a):
+            return x
+
+    model = TestModel()
+
+    # This should work as before
+    model.a.unit = u.cm
+
+    # This should now work because of the equivalency
+    model.a.unit = u.Hz
+
+    # But this should still not work
+    # But changing to another unit should not
+    with pytest.raises(UnitsError) as exc:
+        model.a.unit = u.Jy
+    assert exc.value.args[0] == ("Cannot set parameter units to Jy since it is "
+                                 "not equivalent with the original units of Hz")
+
+
 def test_quantity_parameter_descriptors():
     """
     Test Model classes that specify units in their Parameter descriptors,
