@@ -880,7 +880,7 @@ def test_no_truncate_crval():
     w.wcs.set()
     for ii in range(3):
         assert w.to_header()['CRVAL{0}'.format(ii+1)] == w.wcs.crval[ii]
-        assert w.to_header()['CDELT{0}'.format(ii+1)] == w.wcs.cdelt[ii]
+        assert w.to_header(relax=wcs.WCSHDO_P17)['CDELT{0}'.format(ii+1)] == w.wcs.cdelt[ii]
 
 def test_no_truncate_crval_try2():
     """
@@ -896,4 +896,4 @@ def test_no_truncate_crval_try2():
     w.wcs.set()
     for ii in range(3):
         assert w.to_header()['CRVAL{0}'.format(ii+1)] == w.wcs.crval[ii]
-        assert w.to_header()['CDELT{0}'.format(ii+1)] == w.wcs.cdelt[ii]
+        assert w.to_header(relax=wcs.WCSHDO_P17)['CDELT{0}'.format(ii+1)] == w.wcs.cdelt[ii]
