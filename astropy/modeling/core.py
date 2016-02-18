@@ -1721,7 +1721,8 @@ class Model(object):
                             self.__class__.__name__, param_descr.unit, name))
             else:
                 if (param_descr.unit is not None and
-                        not unit.is_equivalent(param_descr.unit)):
+                        not unit.is_equivalent(param_descr.unit,
+                                               equivalencies=param_descr.equivalencies)):
                     raise InputParameterError(
                         "{0}.__init__() requires parameter {1!r} to be in "
                         "units equivalent to {2!r} (got {3!r})".format(
