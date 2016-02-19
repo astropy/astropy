@@ -421,6 +421,9 @@ def test_input_units_instance_specific():
 
 @pytest.mark.xfail
 def test_input_units_equivalencies():
+    """
+    Test that input_equivalencies is recognized
+    """
 
     class TestModel(Fittable1DModel):
         input_units = u.m
@@ -441,9 +444,20 @@ def test_input_units_equivalencies():
     with u.set_enabled_equivalencies(u.spectral()):
         assert_quantity_allclose(result, 800 * u.GHz)
 
+    # And check that changing the equivalencies on-the-fly works
+    m.input_equivalencies = None
+    with pytest.raises(UnitsError) as exc:
+        m(400 * u.GHz)
+    assert exc.value.args[0] == ("Units of input 'x', GHz (frequency), could "
+                                 "not be converted to required input units of "
+                                 "m (length)")
+
 
 @pytest.mark.xfail
 def test_output_units_equivalencies():
+    """
+    Test that output_equivalencies is recognized
+    """
 
     class TestModel(Fittable1DModel):
         output_units = u.m
@@ -466,3 +480,11 @@ def test_output_units_equivalencies():
     # And we now check the actual accuracy of the result to be sure
     with u.set_enabled_equivalencies(u.spectral()):
         assert_quantity_allclose(result, 800 * u.GHz)
+
+    # And check that changing the equivalencies on-the-fly works
+    m.output_equivalencies = None
+    with pytest.raises(UnitsError) as exc:
+        m(400 * u.GHz)
+    assert exc.value.args[0] == ("Units of output 'y', GHz (frequency), could "
+                                 "not be converted to required output units of "
+                                 "m (length)")
