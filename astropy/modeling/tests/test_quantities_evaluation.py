@@ -62,7 +62,7 @@ def test_evaluate_with_quantities():
 
 
 @pytest.mark.xfail
-def test_evaluate_with_quantities_with_equivalencies():
+def test_evaluate_with_quantities_and_equivalencies():
     """
     We now make sure that equivalencies are correctly taken into account
     """
@@ -83,10 +83,17 @@ def test_evaluate_with_quantities_with_equivalencies():
     assert_quantity_allclose(g(30 * u.PHz), g(9.993081933333332 * u.nm))
 
 
-def test_evaluate_output_units():
+# We now have a series of tests to test the functionality of setting the
+# output_units attribute on models to what we want the acceptable outputs to be.
+# This can be set to the name of another parameter, or 'x' for the input values,
+# and can also be set to a lambda function or a fixed unit. All output is
+# converted to these units on-the-fly, and an error is raised if this is not
+# possible. We test all the different cases below.
+
+
+def test_evaluate_output_units_link_parameter():
     """
-    Test multiple allowed settings for the output_units attribute
-    on a single-output model.
+    Test setting output_units to match one of the parameters
     """
 
     class TestModelA(Fittable1DModel):
@@ -101,9 +108,41 @@ def test_evaluate_output_units():
             return (x / x) * a
 
     m = TestModelA(a=1 * u.m)
-    assert m(0).unit is m.a.unit
-    assert m(1 * u.m).unit is m.a.unit
-    assert m(27 * u.s).unit is m.a.unit
+
+    # The output units always match the input units
+    assert m(0).unit is u.m
+    assert m(1 * u.m).unit is u.m
+    assert m(27 * u.s).unit is u.m
+
+
+@pytest.mark.xfail
+def test_evaluate_output_units_link_parameter_inconsistent():
+    """
+    Test setting output_units to match one of the parameters, in the case
+    where the evaluate method returns inconsistent units.
+    """
+
+    class TestModelA(Fittable1DModel):
+        a = Parameter()
+        output_units = 'a'
+
+        @staticmethod
+        def evaluate(x, a):
+            return x * a
+
+    m = TestModelA(a=1 * u.m)
+
+    assert m(5).unit is u.m
+    with pytest.raises(UnitsError) as exc:
+        m(3 * u.m)
+    assert exc.value.args[0] == ("Units of output 'y', m2 (area), could not be "
+                                 "converted to required output units of m (length)")
+
+
+def test_evaluate_output_units_link_input():
+    """
+    Test setting output_units to match the input.
+    """
 
     class TestModelB(Fittable1DModel):
         a = Parameter()
@@ -117,6 +156,35 @@ def test_evaluate_output_units():
     m = TestModelB(a=1 / u.s)
     assert m(0).unit == u.dimensionless_unscaled
     assert m(1 * u.m).unit is u.m
+
+
+@pytest.mark.xfail
+def test_evaluate_output_units_link_input_inconsistent():
+    """
+    Test setting output_units to match the input, in the case where the evaluate
+    method returns inconsistent units.
+    """
+
+    class TestModelB(Fittable1DModel):
+        a = Parameter()
+        output_units = 'x'
+
+        @staticmethod
+        def evaluate(x, a):
+            # In this cfase only the input units should matter
+            return a * x
+
+    m = TestModelB(a=1 / u.s)
+    with pytest.raises(UnitsError) as exc:
+        m(3 * u.m)
+    assert exc.value.args[0] == ("Units of output 'y', m / s (speed), could not be "
+                                 "converted to required output units of m (length)")
+
+
+def test_evaluate_output_units_functional():
+    """
+    Test setting output_units to a custom function.
+    """
 
     class TestModelC(Fittable1DModel):
         a = Parameter()
@@ -135,6 +203,37 @@ def test_evaluate_output_units():
     assert m(2 * u.dimensionless_unscaled).unit == (1 / u.s)
     assert m(2 * u.m).unit == (u.m / u.s)
 
+
+@pytest.mark.xfail
+def test_evaluate_output_units_functional_inconsistent():
+    """
+    Test setting output_units to a custom function that returns units
+    inconsistent with the output of the evaluate method.
+    """
+
+    class TestModelC(Fittable1DModel):
+        a = Parameter()
+        output_units = lambda a, x: a.unit * x.unit
+
+        @staticmethod
+        def evaluate(x, a):
+            # In this case the output's units are some compound
+            # involving both the input and parameter's units
+            return a * x * u.s
+
+    m = TestModelC(a=1 / u.s)
+    with pytest.raises(UnitsError) as exc:
+        m(3 * u.m)
+    assert exc.value.args[0] == ("Units of output 'y', m (length), could not be "
+                                 "converted to required output units of m / s "
+                                 "(speed)")
+
+
+def test_evaluate_output_units_fixed_unit():
+    """
+    Test setting output_units to a fixed unit
+    """
+
     class TestModelD(Fittable1DModel):
         output_units = u.m
 
@@ -148,3 +247,169 @@ def test_evaluate_output_units():
     assert m(0).unit is u.m
     assert m(1 * u.m) == 2 * u.m
     assert m(1 * u.km) == 2000 * u.m
+
+
+def test_evaluate_output_units_fixed_unit_inconsistent():
+    """
+    Test setting output_units to a fixed unit that is inconsistent with
+    evaluate method output.
+    """
+
+    class TestModelD(Fittable1DModel):
+        output_units = u.m
+
+        @staticmethod
+        def evaluate(x):
+            # This is a no-op model that just always forces the output to be in
+            # meters (if the input is a length)
+            return 2 * x
+
+    m = TestModelD()
+    assert m(0).unit is u.m
+    assert m(1 * u.m) == 2 * u.m
+    assert m(1 * u.km) == 2000 * u.m
+
+
+def test_evaluate_output_units_instance_specific():
+    """
+    Test changing output_units on-the-fly for a specific instance
+    """
+
+    class TestModelD(Fittable1DModel):
+
+        output_units = u.m
+
+        @staticmethod
+        def evaluate(x):
+            # This is a no-op model that just always forces the output to be in
+            # meters (if the input is a length)
+            return 2 * x
+
+    m1 = TestModelD()
+    m2 = TestModelD()
+    m2.output_units = u.s
+
+    assert m1(1 * u.m) == 2 * u.m
+    with pytest.raises(UnitsError) as exc:
+        m2(1 * u.m)
+    assert exc.value.args[0] == ("Units of input 'y', m (length), could not be "
+                                 "converted to required input units of s (time)")
+    assert m2(1 * u.s) == 2 * u.s
+
+
+# We now have a series of similar tests for the input_units attribute
+
+
+def test_evaluate_input_units_link_parameter():
+    """
+    Test setting input_units to match one of the parameters
+    """
+
+    class TestModelA(Fittable1DModel):
+        a = Parameter()
+        input_units = 'a'
+        @staticmethod
+        def evaluate(x, a):
+            return a * x
+
+    m = TestModelA(a=1 * u.m)
+
+    with pytest.raises(UnitsError) as exc:
+        m(1)
+    assert exc.value.args[0] == ("Units of input 'x', (dimensionless), could "
+                                 "not be converted to required input units of m "
+                                 "(length)")
+
+    with pytest.raises(UnitsError) as exc:
+        m(1 * u.s)
+    assert exc.value.args[0] == ("Units of input 'x', s (time), could "
+                                 "not be converted to required input units of m "
+                                 "(length)")
+
+    assert m(2 * u.m) == 2 * u.m ** 2
+
+def test_evaluate_input_units_link_input():
+    """
+    Test setting input_units to match the input essentially places no
+    constraints since that would be true by definition.
+    """
+
+    class TestModelB(Fittable1DModel):
+        a = Parameter()
+        input_units = 'x'
+        @staticmethod
+        def evaluate(x, a):
+            return a * x
+
+    m = TestModelB(a=1 / u.s)
+    assert m(1) == 1 / u.s
+    assert m(3 * u.m) == 3 * u.m / u.s
+    assert m(4 * u.s) == 4
+
+
+def test_evaluate_input_units_functional():
+    """
+    Test setting input_units to a custom function.
+    """
+
+    class TestModelC(Fittable1DModel):
+        a = Parameter()
+        input_units = lambda a: a.unit * u.m
+        @staticmethod
+        def evaluate(x, a):
+            return a * x * u.s ** 2
+
+    m = TestModelC(a=1 / u.s)
+    assert m(3 * u.m / u.s) == 3 * u.m
+
+    with pytest.raises(UnitsError) as exc:
+        m(1 * u.m)
+    assert exc.value.args[0] == ("Units of input 'x', m (length), could "
+                                 "not be converted to required input units of "
+                                 "m / s (speed)")
+
+
+def test_evaluate_input_units_fixed_unit():
+    """
+    Test setting input_units to a fixed unit
+    """
+
+    class TestModelD(Fittable1DModel):
+        input_units = u.m
+        @staticmethod
+        def evaluate(x):
+            return 2 * x
+
+    m = TestModelD()
+
+    with pytest.raises(UnitsError) as exc:
+        m(1 * u.s)
+    assert exc.value.args[0] == ("Units of input 'x', s (time), could "
+                                 "not be converted to required input units of "
+                                 "m (length)")
+
+    assert m(2 * u.m) == 4 * u.m
+    assert_quantity_allclose(m(300 * u.cm), 6 * u.m)
+
+
+def test_evaluate_input_units_instance_specific():
+    """
+    Test changing input_units on-the-fly for a specific instance
+    """
+
+    class TestModelD(Fittable1DModel):
+        input_units = u.m
+        @staticmethod
+        def evaluate(x):
+            return 2 * x
+
+    m1 = TestModelD()
+    m2 = TestModelD()
+    m2.input_units = u.s
+
+    assert m1(1 * u.m) == 2 * u.m
+    with pytest.raises(UnitsError) as exc:
+        m2(1 * u.m)
+    assert exc.value.args[0] == ("Units of input 'x', m (length), could not be "
+                                 "converted to required input units of s (time)")
+    assert m2(1 * u.s) == 2 * u.s
