@@ -18,10 +18,15 @@ from ...units import UnitsError
 from ...tests.helper import pytest, assert_quantity_allclose
 
 
+# We start off by taking some simple cases where the units are defined by
+# whatever the model is initialized with, and we check that the model evaluation
+# returns quantities.
+
+
 @pytest.mark.xfail
 def test_evaluate_with_quantities():
     """
-    Test evaluation of a single model with Quantity parameters that does
+    Test evaluation of a single model with Quantity parameters that do
     not explicitly require units.
     """
 
@@ -98,18 +103,19 @@ def test_output_units_link_parameter():
 
     class TestModelA(Fittable1DModel):
         a = Parameter()
+
+        # For the sake of this test, the dimensions of x
+        # shouldn't matter, and the return value should be
+        # in the dimensions of the 'a' param
         output_units = 'a'
 
         @staticmethod
         def evaluate(x, a):
-            # For the sake of this test, the dimensions of x
-            # shouldn't matter, and the return value should be
-            # in the dimensions of the 'a' param
             return (x / x) * a
 
     m = TestModelA(a=1 * u.m)
 
-    # The output units always match the input units
+    # The output units always matches the parameter unit
     assert m(0).unit is u.m
     assert m(1 * u.m).unit is u.m
     assert m(27 * u.s).unit is u.m
@@ -124,6 +130,10 @@ def test_output_units_link_parameter_inconsistent():
 
     class TestModelA(Fittable1DModel):
         a = Parameter()
+
+        # For the sake of this test, the dimensions of x
+        # shouldn't matter, and the return value should be
+        # in the dimensions of the 'a' param
         output_units = 'a'
 
         @staticmethod
@@ -141,16 +151,17 @@ def test_output_units_link_parameter_inconsistent():
 
 def test_output_units_link_input():
     """
-    Test setting output_units to match the input.
+    Test setting output_units to match the input units.
     """
 
     class TestModelB(Fittable1DModel):
         a = Parameter()
+
+        # In this case only the input units should matter
         output_units = 'x'
 
         @staticmethod
         def evaluate(x, a):
-            # In this cfase only the input units should matter
             return (a / a) * x
 
     m = TestModelB(a=1 / u.s)
@@ -161,17 +172,18 @@ def test_output_units_link_input():
 @pytest.mark.xfail
 def test_output_units_link_input_inconsistent():
     """
-    Test setting output_units to match the input, in the case where the evaluate
-    method returns inconsistent units.
+    Test setting output_units to match the input units, in the case where the
+    evaluate method returns inconsistent units.
     """
 
     class TestModelB(Fittable1DModel):
         a = Parameter()
+
+        # In this case only the input units should matter
         output_units = 'x'
 
         @staticmethod
         def evaluate(x, a):
-            # In this cfase only the input units should matter
             return a * x
 
     m = TestModelB(a=1 / u.s)
@@ -183,17 +195,18 @@ def test_output_units_link_input_inconsistent():
 
 def test_output_units_functional():
     """
-    Test setting output_units to a custom function.
+    Test setting output_units to a custom function that returns a unit.
     """
 
     class TestModelC(Fittable1DModel):
         a = Parameter()
+
+        # In this case the output's units are some compound
+        # involving both the input and parameter's units
         output_units = lambda a, x: a.unit * x.unit
 
         @staticmethod
         def evaluate(x, a):
-            # In this case the output's units are some compound
-            # involving both the input and parameter's units
             return a * x
 
     m = TestModelC(a=1 / u.s)
@@ -213,12 +226,13 @@ def test_output_units_functional_inconsistent():
 
     class TestModelC(Fittable1DModel):
         a = Parameter()
+
+        # In this case the output's units are some compound
+        # involving both the input and parameter's units
         output_units = lambda a, x: a.unit * x.unit
 
         @staticmethod
         def evaluate(x, a):
-            # In this case the output's units are some compound
-            # involving both the input and parameter's units
             return a * x * u.s
 
     m = TestModelC(a=1 / u.s)
@@ -231,16 +245,17 @@ def test_output_units_functional_inconsistent():
 
 def test_output_units_fixed_unit():
     """
-    Test setting output_units to a fixed unit
+    Test setting output_units to a fixed unit.
     """
 
     class TestModelD(Fittable1DModel):
+
+        # This is a no-op model that just always forces the output to be in
+        # meters (if the input is a length)
         output_units = u.m
 
         @staticmethod
         def evaluate(x):
-            # This is a no-op model that just always forces the output to be in
-            # meters (if the input is a length)
             return 2 * x
 
     m = TestModelD()
@@ -256,12 +271,13 @@ def test_output_units_fixed_unit_inconsistent():
     """
 
     class TestModelD(Fittable1DModel):
+
+        # This is a no-op model that just always forces the output to be in
+        # meters (if the input is a length)
         output_units = u.m
 
         @staticmethod
         def evaluate(x):
-            # This is a no-op model that just always forces the output to be in
-            # meters (if the input is a length)
             return 2 * x
 
     m = TestModelD()
@@ -277,12 +293,12 @@ def test_output_units_instance_specific():
 
     class TestModelD(Fittable1DModel):
 
+        # This is a no-op model that just always forces the output to be in
+        # meters (if the input is a length)
         output_units = u.m
 
         @staticmethod
         def evaluate(x):
-            # This is a no-op model that just always forces the output to be in
-            # meters (if the input is a length)
             return 2 * x
 
     m1 = TestModelD()
@@ -297,7 +313,10 @@ def test_output_units_instance_specific():
     assert m2(1 * u.s) == 2 * u.s
 
 
-# We now have a series of similar tests for the input_units attribute
+# We now have a series of similar tests for the input_units attribute, which
+# serves a similar purpose to output_units. Essentially, input_units can be set
+# to a parameter name, a custom function, or a set of units, and can be used to
+# constrain what is acceptable as an input unit.
 
 
 def test_input_units_link_parameter():
@@ -417,7 +436,9 @@ def test_input_units_instance_specific():
 
 # We now test that we are able to set equivalencies for input/output units. We
 # don't need to repeat all the above tests, we simply choose the case where the
-# input/output units are fixed.
+# input/output units are fixed. Equivalencies are set by the
+# ``input_equivalencies`` and ``output_equivalencies`` attributes for models.
+
 
 @pytest.mark.xfail
 def test_input_units_equivalencies():
@@ -488,3 +509,30 @@ def test_output_units_equivalencies():
     assert exc.value.args[0] == ("Units of output 'y', GHz (frequency), could "
                                  "not be converted to required output units of "
                                  "m (length)")
+
+
+@pytest.mark.xfail
+def test_output_units_equivalencies_with_parameters():
+    """
+    Test using equivalencies that require parameters that are input values.
+    """
+
+    # We choose a tricky example, brightness_temperature, which has two
+    # parameters: the beam size, and the dispersion coordination, which is the x
+    # coordinate in the model.
+
+    # TODO: the API below is just an example of one way to deal with it. We
+    # basically set the equivalency to a tuple of the form:
+    #
+    # g.output_equivalencies = equivalency, [args, [kwargs]]
+    #
+    # where args and kwargs are both optional (as indicated by the []). In
+    # addition to values, strings indicating parameters or the input value
+    # (e.g. 'x') can be used.
+
+    g = Gaussian1D(1 * u.Jy, 10 * u.nm, 2 * u.nm)
+    g.output_equivalencies = u.brightness_temperature, (3e-5 * u.sr, 'x')
+    g.output_units = u.K
+
+    assert g(3 * u.nm).unit is u.K
+    # TODO: add numerical test of result

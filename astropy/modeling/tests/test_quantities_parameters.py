@@ -69,7 +69,9 @@ def test_parameter_set_incompatible_units():
 
     g = Gaussian1D(1 * u.Jy, 3, 0.1)
 
-    # The amplitude should be equivalent to flux density units
+    # The amplitude should be equivalent to flux density units, but in the
+    # examples below, this is not the case.
+
     with pytest.raises(UnitsError) as exc:
         g.amplitude = 2
     assert exc.value.args[0] == ("The 'amplitude' parameter should be given as "
@@ -147,11 +149,18 @@ def test_parameter_set_equivalency():
 
     with pytest.raises(UnitsError) as exc:
         g.mean = 3 * u.Hz
-    assert exc.value.args[0] == "The 'mean' parameter should be given as a Quantity with units equivalent to m"
+    assert exc.value.args[0] == ("The 'mean' parameter should be given as a "
+                                 "Quantity with units equivalent to m")
 
     g.mean.equivalencies = u.spectral()
 
     g.mean = 3 * u.Hz
+
+    # Note that we can't use this for equivalencies that rely on the values at
+    # which the model is evaluated (such as brightness_temperature which
+    # depends on spectral coordinate) because we won't know what values to use
+    # until evaluation. See the test_output_units_equivalencies_with_parameters
+    # test for how we can deal with this during evaluation.
 
 
 def test_parameter_change_unit():
@@ -209,7 +218,8 @@ def test_parameter_set_value():
     # To set a parameter to a quantity, we simply do
     g.amplitude = 2 * u.Jy
 
-    # If we try setting the value, we need to pass a non-quantity value:
+    # If we try setting the value, we need to pass a non-quantity value
+    # TODO: determine whether this is the desired behavior?
     g.amplitude.value = 4
     assert_quantity_allclose(g.amplitude, 4 * u.Jy)
     assert g.amplitude.value == 4
@@ -228,6 +238,10 @@ def test_parameter_quantity_property():
     """
     Test that the quantity property of Parameters behaves as expected
     """
+
+    # Since parameters have a .value and .unit parameter that return just the
+    # value and unit respectively, we also have a .quantity parameter that
+    # returns a Quantity instance.
 
     g = Gaussian1D(1 * u.Jy, 1 * u.m, 0.1 * u.m)
 
@@ -267,7 +281,7 @@ def test_parameter_defaults(unit, default):
         a = Parameter(default=default, unit=unit)
 
     # TODO: decide whether the default property should return a value or
-    #       a quantity?
+    # a quantity?
 
     # The default unit and value should be set on the class
     assert TestModel.a.unit == u.m
@@ -290,8 +304,8 @@ def test_parameter_defaults(unit, default):
     assert m.a.unit == u.pc
     assert m.a.value == 2.0
     # The default is still in the original units
-    # TODO: but how do we know what those units are? should default return a
-    #       quantity?
+    # TODO: but how do we know what those units are if we don't return a
+    # quantity?
     assert m.a.default == 1.0
 
     # Instantiating with incompatible units raises an error
