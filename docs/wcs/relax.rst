@@ -421,7 +421,7 @@ The flag bits are:
 
 - ``WCSHDO_P12``, ``WCSHDO_P13``, ``WCSHDO_P14``, ``WCSHDO_P15``, ``WCSHDO_P16``, ``WCSHDO_P17``, ``WCSHDO_EFMT``
 
-  These constants control the precision of the WCS keywords returned by `to_header`.
+  These constants control the precision of the WCS keywords returned by `~astropy.wcs.WCS.to_header`.
 
   - ``WCSHDO_P12`` : Use "%20.12G" format for all floating-point keyvalues (12 significant digits)
   - ``WCSHDO_P13`` : Use "%21.13G" format for all floating-point keyvalues (13 significant digits)
