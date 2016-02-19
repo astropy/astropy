@@ -16,13 +16,23 @@ from ... import units as u
 from ...units import UnitsError, Quantity
 from ...tests.helper import pytest, assert_quantity_allclose
 
+class BaseTestModel(Fittable1DModel):
+    @staticmethod
+    def evaluate(x, a):
+        return x
 
-def test_quantities_as_parameters():
+# Parameters
+# ----------
+#
+# The first set of tests below relate to using quantities/units on parameters of
+# models. The purpose of each test is described in the docstring and in comments
+# in the tests.
+
+def test_parameter_quantity():
     """
     Basic tests for initializing general models (that do not require units)
     with parameters that have units attached.
     """
-
     g = Gaussian1D(1 * u.J, 1 * u.m, 0.1 * u.m)
     assert g.amplitude.value == 1.0
     assert g.amplitude.unit is u.J
@@ -32,49 +42,66 @@ def test_quantities_as_parameters():
     assert g.stddev.unit is u.m
 
 
-def test_parameter_unit_immutable():
+@pytest.mark.xfail
+def test_parameter_set_compatible_units():
     """
-    Check that units can't be changed once set
+    Make sure that parameters can be set to values with compatible units
     """
+    g = Gaussian1D(1 * u.J, 1 * u.m, 0.1 * u.m)
+    g.amplitude = 4 * u.kJ
+    assert_quantity_allclose(g.amplitude, 4 * u.kJ)
+    g.mean = 3 * u.km
+    assert_quantity_allclose(g.mean, 3 * u.km)
+    g.stdev = 2 * u.mm
+    assert_quantity_allclose(g.stddev, 2 * u.mm)
 
-    g = Gaussian1D(1 * u.J, 3, 0.1)
-
-    with pytest.raises(UnitsError) as exc:
-        g.amplitude = 2
-    assert exc.value.args[0] == "The 'amplitude' parameter should be given as a Quantity with units equivalent to J"
-
-    with pytest.raises(UnitsError) as exc:
-        g.amplitude = 2 * u.Jy
-    assert exc.value.args[0] == "The 'amplitude' parameter should be given as a Quantity with units equivalent to J"
-
-    with pytest.raises(UnitsError) as exc:
-        g.mean = 2 * u.Jy
-    assert exc.value.args[0] == "The 'mean' parameter should be given as a unitless value"
 
 def test_parameter_unit_conversion():
     """
-    Check that units are converted on-the-fly if compatible
+    Check that units are converted on-the-fly if compatible. Note that this is
+    a slightly different test to above, because this is checking that the
+    quantity is converted, whether the above test makes no such assumption.
     """
-
     g = Gaussian1D(1 * u.Jy, 3, 0.1)
     g.amplitude = 3000 * u.mJy
     assert g.amplitude.value == 3
     assert g.amplitude.unit is u.Jy
 
 
-def test_parameter_unit_conversion_equivalencies():
+def test_parameter_set_incompatible_units():
     """
-    Check that units are converted on-the-fly if compatible, including
-    equivalencies.
+    Check that parameters can only be set to quantities with equivalent units.
     """
 
-    class TestModel(Model):
+    g = Gaussian1D(1 * u.Jy, 3, 0.1)
+
+    # The amplitude should be equivalent to flux density units
+    with pytest.raises(UnitsError) as exc:
+        g.amplitude = 2
+    assert exc.value.args[0] == ("The 'amplitude' parameter should be given as "
+                                 "a Quantity with units equivalent to Jy")
+
+    with pytest.raises(UnitsError) as exc:
+        g.amplitude = 2 * u.s
+    assert exc.value.args[0] == ("The 'amplitude' parameter should be given as "
+                                 "a Quantity with units equivalent to Jy")
+
+    with pytest.raises(UnitsError) as exc:
+        g.mean = 2 * u.Jy
+    assert exc.value.args[0] == ("The 'mean' parameter should be given as a "
+                                 "unitless value")
+
+
+def test_parameter_set_incompatible_units_with_equivalencies():
+    """
+    Check that parameters can only be set to quantities with equivalent units,
+    taking into account equivalencies defined in the parameter initializers.
+    """
+
+    class TestModel(BaseTestModel):
         a = Parameter(default=1.0, unit=u.m)
         b = Parameter(default=1.0, unit=u.m, equivalencies=u.spectral())
         c = Parameter(default=1.0, unit=u.K, equivalencies=u.temperature_energy())
-        @staticmethod
-        def evaluate(x, a):
-            return x
 
     model = TestModel()
 
@@ -91,7 +118,7 @@ def test_parameter_unit_conversion_equivalencies():
     model.c = 3 * u.eV
 
 
-def test_init_equivalencies():
+def test_parameter_equivalencies_used_in_init():
     """
     Check that equivalencies are taken into account when initializing a model
     with quantities, if using a model where the parameters have specific
@@ -118,9 +145,9 @@ def test_init_equivalencies():
                                  'be in units equivalent to Unit("m") (got Unit("s"))')
 
 
-def test_parameter_unit_equivalency():
+def test_parameter_set_equivalency():
     """
-    Test that we can set equivalencies on an existing model
+    Test that we can set equivalencies on an existing model.
     """
     g = Gaussian1D(1 * u.Jy, 3 * u.m, 0.1 * u.nm)
 
@@ -135,7 +162,8 @@ def test_parameter_unit_equivalency():
 
 def test_parameter_change_unit():
     """
-    Test that changing the unit on a parameter works as expected.
+    Test that changing the unit on a parameter works as expected (units can
+    only be changed to a compatible unit).
     """
 
     g = Gaussian1D(1, 1 * u.m, 0.1 * u.m)
@@ -143,7 +171,8 @@ def test_parameter_change_unit():
     # Setting a unit on a unitless parameter should not work
     with pytest.raises(ValueError) as exc:
         g.amplitude.unit = u.Jy
-    assert exc.value.args[0] == "Cannot attach units to parameters that were not initially specified with units"
+    assert exc.value.args[0] == ("Cannot attach units to parameters that were "
+                                 "not initially specified with units")
 
     # Changing to an equivalent unit should work
     g.mean.unit = u.cm
@@ -170,14 +199,13 @@ def test_parameter_change_unit():
     model.a.unit = u.Hz
 
     # But this should still not work
-    # But changing to another unit should not
     with pytest.raises(UnitsError) as exc:
         model.a.unit = u.Jy
     assert exc.value.args[0] == ("Cannot set parameter units to Jy since it is "
                                  "not equivalent with the original units of Hz")
 
 
-def test_parameter_change_value():
+def test_parameter_set_value():
     """
     Test that changing the value on a parameter works as expected.
     """
@@ -224,62 +252,63 @@ def test_parameter_quantity_property():
                                  "equivalent with the original units of mJy")
 
 
-def test_quantity_parameter_descriptors():
-    """
-    Test Model classes that specify units in their Parameter descriptors,
-    either via a Quantity default, or explicit use of the unit argument.
-    """
+def test_parameter_default_units_match():
 
-    def tests(TestModel):
-        assert TestModel.a.unit == u.m
-        assert TestModel.a.default == 1.0
-
-        m = TestModel()
-        assert m.a.unit == u.m
-        assert m.a.default == m.a.value == 1.0
-
-        m = TestModel(2.0 * u.m)
-        assert m.a.unit == u.m
-        assert m.a.value == 2.0
-        assert m.a.default == 1.0
-
-        # Instantiate with a different, but compatible unit
-        m = TestModel(2.0 * u.pc)
-        assert m.a.unit == u.pc
-        assert m.a.value == 2.0
-        # The default is still in the original units
-        assert m.a.default == 1.0
-
-        # Instantiating with incompatible units is in error
-        with pytest.raises(InputParameterError):
-            TestModel(1.0 * u.Jy)
-
-    class TestA(Fittable1DModel):
-        a = Parameter(default=1.0, unit=u.m)
-        @staticmethod
-        def evaluate(x, a):
-            return x
-
-    tests(TestA)
-
-    class TestB(Fittable1DModel):
-        a = Parameter(default=1.0 * u.m)
-        @staticmethod
-        def evaluate(x, a):
-            return x
-
-    tests(TestB)
-
-    # Conflicting default and units arguments
-    with pytest.raises(ParameterDefinitionError):
+    # If the unit and default quantity units are different, raise an error
+    with pytest.raises(ParameterDefinitionError) as exc:
         class TestC(Fittable1DModel):
             a = Parameter(default=1.0 * u.m, unit=u.Jy)
-            @staticmethod
-            def evaluate(x, a):
-                return x
+    assert exc.value.args[0] == ("parameter default 1.0 m does not have units "
+                                 "equivalent to the required unit Jy")
 
 
-def test_quantity_parameter_arithmetic():
+
+@pytest.mark.parametrize(('unit', 'default'), ((u.m, 1.0), (None, 1 * u.m)))
+def test_parameter_defaults(unit, default):
+    """
+    Test that default quantities are correctly taken into account
+    """
+
+    class TestModel(BaseTestModel):
+        a = Parameter(default=default, unit=unit)
+
+    # TODO: decide whether the default property should return a value or
+    #       a quantity?
+
+    # The default unit and value should be set on the class
+    assert TestModel.a.unit == u.m
+    assert TestModel.a.default == 1.0
+
+    # Check that the default unit and value are also set on a class instance
+    m = TestModel()
+    assert m.a.unit == u.m
+    assert m.a.default == m.a.value == 1.0
+
+    # If the parameter is set to a different value, the default is still the
+    # internal default
+    m = TestModel(2.0 * u.m)
+    assert m.a.unit == u.m
+    assert m.a.value == 2.0
+    assert m.a.default == 1.0
+
+    # Instantiate with a different, but compatible unit
+    m = TestModel(2.0 * u.pc)
+    assert m.a.unit == u.pc
+    assert m.a.value == 2.0
+    # The default is still in the original units
+    # TODO: but how do we know what those units are? should default return a
+    #       quantity?
+    assert m.a.default == 1.0
+
+    # Instantiating with incompatible units raises an error
+    with pytest.raises(InputParameterError) as exc:
+        TestModel(1.0 * u.Jy)
+    assert exc.value.args[0] == ('TestModel.__init__() requires parameter \'a\' '
+                                 'to be in units equivalent to Unit("m") '
+                                 '(got Unit("Jy"))')
+
+
+def test_parameter_quantity_arithmetic():
     """
     Test that arithmetic operations with properties that have units return the
     appropriate Quantities.
@@ -287,27 +316,46 @@ def test_quantity_parameter_arithmetic():
 
     g = Gaussian1D(1 * u.J, 1 * u.m, 0.1 * u.m)
 
+    # Addition should work if units are compatible
     assert g.mean + (1 * u.m) == 2 * u.m
-    with pytest.raises(UnitsError):
-        g.mean + 1
     assert (1 * u.m) + g.mean == 2 * u.m
-    with pytest.raises(UnitsError):
-        1 + g.mean
+
+
+    # Multiplication by a scalar should also preserve the quantity-ness
     assert g.mean * 2 == (2 * u.m)
     assert 2 * g.mean == (2 * u.m)
+
+    # Multiplication by a quantity should result in units being multiplied
     assert g.mean * (2 * u.m) == (2 * (u.m ** 2))
     assert (2 * u.m) * g.mean == (2 * (u.m ** 2))
 
+    # Negation should work properly too
     assert -g.mean == (-1 * u.m)
     assert abs(-g.mean) == g.mean
 
+    # However, addition of a quantity + scalar should not work
+    with pytest.raises(UnitsError) as exc:
+        g.mean + 1
+    assert exc.value.args[0] == ("Can only apply 'add' function to "
+                                 "dimensionless quantities when other argument "
+                                 "is not a quantity (unless the latter is all "
+                                 "zero/infinity/nan)")
+    with pytest.raises(UnitsError) as exc:
+        1 + g.mean
+    assert exc.value.args[0] == ("Can only apply 'add' function to "
+                                 "dimensionless quantities when other argument "
+                                 "is not a quantity (unless the latter is all "
+                                 "zero/infinity/nan)")
 
-def test_quantity_parameter_comparison():
+
+def test_parameter_quantity_comparison():
     """
     Basic test of comparison operations on properties with units.
     """
 
     g = Gaussian1D(1 * u.J, 1 * u.m, 0.1 * u.m)
+
+    # Essentially here we are checking that parameters behave like Quantity
 
     assert g.mean == 1 * u.m
     assert 1 * u.m == g.mean
@@ -316,10 +364,20 @@ def test_quantity_parameter_comparison():
 
     assert g.mean < 2 * u.m
     assert 2 * u.m > g.mean
-    with pytest.raises(UnitsError):
+
+    with pytest.raises(UnitsError) as exc:
         g.mean < 2
-    with pytest.raises(UnitsError):
+    assert exc.value.args[0] == ("Can only apply 'less' function to "
+                                 "dimensionless quantities when other argument "
+                                 "is not a quantity (unless the latter is all "
+                                 "zero/infinity/nan)")
+
+    with pytest.raises(UnitsError) as exc:
         2 > g.mean
+    assert exc.value.args[0] == ("Can only apply 'less' function to "
+                                 "dimensionless quantities when other argument "
+                                 "is not a quantity (unless the latter is all "
+                                 "zero/infinity/nan)")
 
     g = Gaussian1D([1, 2] * u.J, [1, 2] * u.m, [0.1, 0.2] * u.m)
 
@@ -327,37 +385,97 @@ def test_quantity_parameter_comparison():
     assert np.all([1, 2] * u.m == g.mean)
     assert g.mean != [1, 2]
     assert np.all([1, 2] != g.mean)
-    with pytest.raises(UnitsError):
+
+    with pytest.raises(UnitsError) as exc:
         g.mean < [3, 4]
-    with pytest.raises(UnitsError):
+    assert exc.value.args[0] == ("Can only apply 'less' function to "
+                                 "dimensionless quantities when other argument "
+                                 "is not a quantity (unless the latter is all "
+                                 "zero/infinity/nan)")
+
+    with pytest.raises(UnitsError) as exc:
         [3, 4] > g.mean
+    assert exc.value.args[0] == ("Can only apply 'less' function to "
+                                 "dimensionless quantities when other argument "
+                                 "is not a quantity (unless the latter is all "
+                                 "zero/infinity/nan)")
 
 
-def test_basic_evaluate_with_quantities():
+# Model evaluation
+# ----------------
+#
+# Now that we've checked that parameters deal properly with quantities, we can
+# move on to check that evaluating models with parameters that are quantities
+# works as expected.
+
+@pytest.mark.xfail
+def test_evaluate_with_quantities():
     """
-    Test evaluation of a single model with Quantity parameters, that does
+    Test evaluation of a single model with Quantity parameters that does
     not explicitly require units.
     """
+
+    # We create two models here - one with quantities, and one without. The one
+    # without is used to create the reference values for comparison.
 
     g = Gaussian1D(1, 1, 0.1)
     gq = Gaussian1D(1 * u.J, 1 * u.m, 0.1 * u.m)
 
-    assert isinstance(gq(0), Quantity)
-    assert gq(0).unit is u.J
-    assert g(0) == gq(0).value
+    # We first check that calling the Gaussian with quantities returns the
+    # expected result
+    result = gq(1 * u.m)
+    assert_quantity_allclose(gq(1 * u.m), g(1) * u.J)
 
-    # zero is allowed without explicit units, but other unitless quantities
-    # should be an exception
-    with pytest.raises(UnitsError):
+    # Units have to be specified for the Gaussian with quantities - if not, an
+    # error is raised
+    with pytest.raises(UnitsError) as exc:
         gq(1)
+    assert exc.value.args[0] == ("Units of input 'x', (dimensionless), could not be "
+                                 "converted to required input units of m (length)")
 
-    assert gq(1 * u.m).value == g(1)
+    # However, zero is a special case
+    result = gq(0)
+    assert_quantity_allclose(gq(0), g(0) * u.J)
 
-    # Should get the same numeric result as if we multiplied by 1000
+    # We can also evaluate models with equivalent units
     assert_allclose(gq(0.0005 * u.km).value, g(0.5))
 
+    # But not with incompatible units
+    with pytest.raises(UnitsError) as exc:
+        gq(3 * u.s)
+    assert exc.value.args[0] == ("Units of input 'x', s (time), could not be "
+                                 "converted to required input units of m (length)")
 
-def test_output_units():
+    # We also can't evaluate the model without quantities with a quantity
+    with pytest.raises(UnitsError) as exc:
+        g(3 * u.m)
+    assert exc.value.args[0] == ("Input in m (length), could not be converted "
+                                 "to required to dimensionless input")
+
+
+@pytest.mark.xfail
+def test_evaluate_with_quantities_with_equivalencies():
+    """
+    We now make sure that equivalencies are correctly taken into account
+    """
+
+    g = Gaussian1D(1 * u.Jy, 10 * u.nm, 2 * u.nm)
+
+    # We haven't set the equivalencies yet, so this won't work
+    with pytest.raises(UnitsError) as exc:
+        g(30 * u.PHz)
+    assert exc.value.args[0] == ("Units of input 'x', PHz (frequency), could "
+                                 "not be converted to required input units of "
+                                 "nm (length)")
+
+    g.mean.equivalencies = u.spectral()
+    g.stddev.equivalencies = u.spectral()
+
+    # But it should now work
+    assert_quantity_allclose(g(30 * u.PHz), g(9.993081933333332 * u.nm))
+
+
+def test_evaluate_output_units():
     """
     Test multiple allowed settings for the output_units attribute
     on a single-output model.
