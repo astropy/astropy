@@ -376,7 +376,7 @@ def test_preserve_meta(tmpdir):
         assert np.all(t1.meta[key] == t2.meta[key])
 
 
-@pytest.mark.skipif('not HAS_H5PY')
+@pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
 def test_preserve_serialized(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
 
