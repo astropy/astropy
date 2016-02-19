@@ -8,7 +8,8 @@ import copy
 from ....extern.six.moves import cStringIO as StringIO
 from ... import ascii
 from .... import table
-from ....tests.helper import pytest
+from ....tests.helper import pytest, catch_warnings
+from ....utils.exceptions import AstropyWarning
 from .... import units
 
 from .common import setup_function, teardown_function
@@ -534,3 +535,46 @@ def test_byte_string_output(fast_writer):
     out = StringIO()
     ascii.write(t, out, fast_writer=fast_writer)
     assert out.getvalue().splitlines() == ['col0', 'Hello', 'World']
+
+
+@pytest.mark.parametrize('names, include_names, exclude_names, formats, issues_warning', [
+    (['x', 'y'], ['x', 'y'], ['x'], {'x':'%d', 'y':'%f'}, True),
+    (['x', 'y'], ['x', 'y'], ['y'], {'x':'%d'}, False),
+    (['x', 'y'], ['x', 'y'], [], {'p':'%d', 'q':'%f'}, True),
+    (['x', 'y'], ['x', 'y'], [], {'z':'%f'}, True),
+    (['x', 'y'], ['x', 'y'], [], {'x':'%d'}, False),
+    (['x', 'y'], ['x', 'y'], [], {'p':'%d', 'y':'%f'}, True),
+    (['x', 'y'], ['x', 'y'], [], {}, False)
+])
+def test_names_with_formats(names, include_names, exclude_names, formats, issues_warning):
+    """Test the fix for #4508 where i set the test cases in base of issues_warning
+    if issues_warning value is true means warning accure otherwise issues_warning
+    value false.Check that columns of include_names are same with colomns of
+    exclude_names and Check that columns  in formats specifier exist in the
+    issues_warning table when writing.
+    """
+    t = table.Table([[1,2,3],[4.1,5.2,6.3]])
+    with catch_warnings(AstropyWarning) as ASwarn:
+        out = StringIO()
+        ascii.write(t, out, names=names, include_names=include_names,
+        exclude_names=exclude_names, formats=formats)
+    assert (issues_warning == (len(ASwarn) == 1))
+
+
+@pytest.mark.parametrize('formats, issues_warning', [
+    ({'p':'%d', 'y':'%f'}, True),
+    ({'x':'%d', 'y':'%f'}, True),
+    ({'z':'%f'}, True),
+    ({}, False)
+])
+def test_columns_names_with_formats(formats, issues_warning):
+    """Test the fix for #4508 where i set the test cases in base of issues_warning
+    if issues_warning value is true means warning accure otherwise issues_warning
+    value false and Check that columns in formats specifier exist in the
+    issues_warning table when writing.
+    """
+    t = table.Table([[1,2,3],[4.1,5.2,6.3]])
+    with catch_warnings(AstropyWarning) as ASwarn:
+        out = StringIO()
+        ascii.write(t, out,formats=formats)
+    assert (issues_warning == (len(ASwarn) == 1))
