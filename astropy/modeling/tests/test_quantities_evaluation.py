@@ -91,7 +91,7 @@ def test_evaluate_with_quantities_and_equivalencies():
 # possible. We test all the different cases below.
 
 
-def test_evaluate_output_units_link_parameter():
+def test_output_units_link_parameter():
     """
     Test setting output_units to match one of the parameters
     """
@@ -116,7 +116,7 @@ def test_evaluate_output_units_link_parameter():
 
 
 @pytest.mark.xfail
-def test_evaluate_output_units_link_parameter_inconsistent():
+def test_output_units_link_parameter_inconsistent():
     """
     Test setting output_units to match one of the parameters, in the case
     where the evaluate method returns inconsistent units.
@@ -139,7 +139,7 @@ def test_evaluate_output_units_link_parameter_inconsistent():
                                  "converted to required output units of m (length)")
 
 
-def test_evaluate_output_units_link_input():
+def test_output_units_link_input():
     """
     Test setting output_units to match the input.
     """
@@ -159,7 +159,7 @@ def test_evaluate_output_units_link_input():
 
 
 @pytest.mark.xfail
-def test_evaluate_output_units_link_input_inconsistent():
+def test_output_units_link_input_inconsistent():
     """
     Test setting output_units to match the input, in the case where the evaluate
     method returns inconsistent units.
@@ -181,7 +181,7 @@ def test_evaluate_output_units_link_input_inconsistent():
                                  "converted to required output units of m (length)")
 
 
-def test_evaluate_output_units_functional():
+def test_output_units_functional():
     """
     Test setting output_units to a custom function.
     """
@@ -205,7 +205,7 @@ def test_evaluate_output_units_functional():
 
 
 @pytest.mark.xfail
-def test_evaluate_output_units_functional_inconsistent():
+def test_output_units_functional_inconsistent():
     """
     Test setting output_units to a custom function that returns units
     inconsistent with the output of the evaluate method.
@@ -229,7 +229,7 @@ def test_evaluate_output_units_functional_inconsistent():
                                  "(speed)")
 
 
-def test_evaluate_output_units_fixed_unit():
+def test_output_units_fixed_unit():
     """
     Test setting output_units to a fixed unit
     """
@@ -249,7 +249,7 @@ def test_evaluate_output_units_fixed_unit():
     assert m(1 * u.km) == 2000 * u.m
 
 
-def test_evaluate_output_units_fixed_unit_inconsistent():
+def test_output_units_fixed_unit_inconsistent():
     """
     Test setting output_units to a fixed unit that is inconsistent with
     evaluate method output.
@@ -270,7 +270,7 @@ def test_evaluate_output_units_fixed_unit_inconsistent():
     assert m(1 * u.km) == 2000 * u.m
 
 
-def test_evaluate_output_units_instance_specific():
+def test_output_units_instance_specific():
     """
     Test changing output_units on-the-fly for a specific instance
     """
@@ -300,7 +300,7 @@ def test_evaluate_output_units_instance_specific():
 # We now have a series of similar tests for the input_units attribute
 
 
-def test_evaluate_input_units_link_parameter():
+def test_input_units_link_parameter():
     """
     Test setting input_units to match one of the parameters
     """
@@ -328,7 +328,7 @@ def test_evaluate_input_units_link_parameter():
 
     assert m(2 * u.m) == 2 * u.m ** 2
 
-def test_evaluate_input_units_link_input():
+def test_input_units_link_input():
     """
     Test setting input_units to match the input essentially places no
     constraints since that would be true by definition.
@@ -347,7 +347,7 @@ def test_evaluate_input_units_link_input():
     assert m(4 * u.s) == 4
 
 
-def test_evaluate_input_units_functional():
+def test_input_units_functional():
     """
     Test setting input_units to a custom function.
     """
@@ -369,7 +369,7 @@ def test_evaluate_input_units_functional():
                                  "m / s (speed)")
 
 
-def test_evaluate_input_units_fixed_unit():
+def test_input_units_fixed_unit():
     """
     Test setting input_units to a fixed unit
     """
@@ -392,7 +392,7 @@ def test_evaluate_input_units_fixed_unit():
     assert_quantity_allclose(m(300 * u.cm), 6 * u.m)
 
 
-def test_evaluate_input_units_instance_specific():
+def test_input_units_instance_specific():
     """
     Test changing input_units on-the-fly for a specific instance
     """
@@ -413,3 +413,56 @@ def test_evaluate_input_units_instance_specific():
     assert exc.value.args[0] == ("Units of input 'x', m (length), could not be "
                                  "converted to required input units of s (time)")
     assert m2(1 * u.s) == 2 * u.s
+
+
+# We now test that we are able to set equivalencies for input/output units. We
+# don't need to repeat all the above tests, we simply choose the case where the
+# input/output units are fixed.
+
+@pytest.mark.xfail
+def test_input_units_equivalencies():
+
+    class TestModel(Fittable1DModel):
+        input_units = u.m
+        input_equivalencies = u.spectral()
+        @staticmethod
+        def evaluate(x):
+            return 2 * x
+
+    m = TestModel()
+    assert_quantity_allclose(m(3 * u.nm), 6 * u.nm)
+
+    # We now check it works with frequency. Note that we should make sure
+    # we evaluate the model outside the context manager to make sure that we
+    # are picking up the equivalency from input_equivalencies. The context
+    # manager is only there because assert_quantity_allclose doesn't support
+    # equivalencies.
+    result = m(400 * u.GHz)
+    with u.set_enabled_equivalencies(u.spectral()):
+        assert_quantity_allclose(result, 800 * u.GHz)
+
+
+@pytest.mark.xfail
+def test_output_units_equivalencies():
+
+    class TestModel(Fittable1DModel):
+        output_units = u.m
+        output_equivalencies = u.spectral()
+        @staticmethod
+        def evaluate(x):
+            return 2 * x
+
+    m = TestModel()
+    assert_quantity_allclose(m(3 * u.nm), 6 * u.nm)
+
+    # We now check it works with frequency. As before, we need to evaluate the
+    # model outside the context manager.
+    result = m(400 * u.GHz)
+
+    # The output units should actually be meters since that is what was
+    # requested - we're just checking that no error was raised above.
+    assert result.unit is u.m
+
+    # And we now check the actual accuracy of the result to be sure
+    with u.set_enabled_equivalencies(u.spectral()):
+        assert_quantity_allclose(result, 800 * u.GHz)
