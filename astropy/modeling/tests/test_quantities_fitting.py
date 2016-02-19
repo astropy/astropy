@@ -7,7 +7,14 @@ Tests that relate to fitting models with quantity parameters
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+import numpy as np
+
+from ..models import Gaussian1D
+from ... import units as u
+from ...units import UnitsError
+from ...tests.helper import pytest, assert_quantity_allclose
 from ...utils import NumpyRNGContext
+from .. import fitting
 
 
 # Fitting should be as intuitive as possible to the user. Essentially, models
@@ -29,7 +36,7 @@ def test_fitting_simple():
     y = y * u.Jy
 
     # Fit the data using a Gaussian with units
-    g_init = models.Gaussian1D(amplitude=1. * u.mJy, mean=3 * u.cm, stddev=2 * u.mm)
+    g_init = Gaussian1D(amplitude=1. * u.mJy, mean=3 * u.cm, stddev=2 * u.mm)
     fit_g = fitting.LevMarLSQFitter()
     g = fit_g(g_init, x, y)
 
@@ -45,16 +52,16 @@ def test_fitting_missing_data_units():
     """
     Raise an error if the model has units but the data doesn't
     """
-    g_init = models.Gaussian1D(amplitude=1. * u.mJy, mean=3 * u.cm, stddev=2 * u.mm)
+    g_init = Gaussian1D(amplitude=1. * u.mJy, mean=3 * u.cm, stddev=2 * u.mm)
     fit_g = fitting.LevMarLSQFitter()
 
     with pytest.raises(UnitsError) as exc:
-        g = fit_g(g_init, [1, 2, 3], [4, 5, 6])
+        fit_g(g_init, [1, 2, 3], [4, 5, 6])
     assert exc.value.args[0] == ("Units of input 'x', (dimensionless), does not "
                                  "match required units for model input, cm (length)")
 
     with pytest.raises(UnitsError) as exc:
-        g = fit_g(g_init, [1, 2, 3] * u.m, [4, 5, 6])
+        fit_g(g_init, [1, 2, 3] * u.m, [4, 5, 6])
     assert exc.value.args[0] == ("Units of input 'y', (dimensionless), does not "
                                  "match required units for model output, Jy")
 
@@ -67,20 +74,20 @@ def test_fitting_missing_model_units():
 
     # TODO: determine whether this breaks backward-compatibility.
 
-    g_init = models.Gaussian1D(amplitude=1., mean=3, stddev=2)
+    g_init = Gaussian1D(amplitude=1., mean=3, stddev=2)
     fit_g = fitting.LevMarLSQFitter()
 
     with pytest.raises(UnitsError) as exc:
-        g = fit_g(g_init, [1, 2, 3] * u.m, [4, 5, 6] * u.Jy)
+        fit_g(g_init, [1, 2, 3] * u.m, [4, 5, 6] * u.Jy)
     assert exc.value.args[0] == ("Units of input 'x', m (length), does not "
                                  "match required units for model input, "
                                  "(dimensionless)")
 
-    g_init = models.Gaussian1D(amplitude=1., mean=3 * u.m, stddev=2 * u.m)
+    g_init = Gaussian1D(amplitude=1., mean=3 * u.m, stddev=2 * u.m)
     fit_g = fitting.LevMarLSQFitter()
 
     with pytest.raises(UnitsError) as exc:
-        g = fit_g(g_init, [1, 2, 3] * u.m, [4, 5, 6] * u.Jy)
+        fit_g(g_init, [1, 2, 3] * u.m, [4, 5, 6] * u.Jy)
     assert exc.value.args[0] == ("Units of input 'y', Jy, does not "
                                  "match required units for model output, "
                                  "(dimensionless)")
@@ -92,11 +99,11 @@ def test_fitting_incompatible_units():
     Raise an error if the data and model have incompatible units
     """
 
-    g_init = models.Gaussian1D(amplitude=1. * u.Jy, mean=3 * u.m, stddev=2 * u.cm)
+    g_init = Gaussian1D(amplitude=1. * u.Jy, mean=3 * u.m, stddev=2 * u.cm)
     fit_g = fitting.LevMarLSQFitter()
 
     with pytest.raises(UnitsError) as exc:
-        g = fit_g(g_init, [1, 2, 3] * u.Hz, [4, 5, 6] * u.Jy)
+        fit_g(g_init, [1, 2, 3] * u.Hz, [4, 5, 6] * u.Jy)
     assert exc.value.args[0] == ("Units of input 'x', Hz (frequency), does not "
                                  "match required units for model input, "
                                  "m (length)")
@@ -110,7 +117,7 @@ def test_fitting_with_equivalencies():
 
     # A simple test with the spectral equivalency
 
-    g_init = models.Gaussian1D(amplitude=1. * u.Jy, mean=3 * u.m, stddev=2 * u.cm)
+    g_init = Gaussian1D(amplitude=1. * u.Jy, mean=3 * u.m, stddev=2 * u.cm)
     g_init.input_equivalencies = u.spectral()
 
     fit_g = fitting.LevMarLSQFitter()
