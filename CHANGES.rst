@@ -403,6 +403,8 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - Fixed sphinx issues on plotting quantites. [#4527]
+
 - ``astropy.utils``
 
 - ``astropy.visualization``
