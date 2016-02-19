@@ -52,6 +52,7 @@ def test_fitting_missing_data_units():
     assert exc.value.args[0] == ("Units of input 'y', (dimensionless), does not "
                                  "match required units for model output, Jy")
 
+
 @pytest.mark.xfail
 def test_fitting_missing_model_units():
     """
@@ -77,6 +78,7 @@ def test_fitting_missing_model_units():
     assert exc.value.args[0] == ("Units of input 'y', Jy, does not "
                                  "match required units for model output, "
                                  "(dimensionless)")
+
 
 @pytest.mark.xfail
 def test_fitting_incompatible_units():
