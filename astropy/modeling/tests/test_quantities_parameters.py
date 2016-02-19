@@ -393,3 +393,70 @@ def test_parameter_quantity_comparison():
                                  "dimensionless quantities when other argument "
                                  "is not a quantity (unless the latter is all "
                                  "zero/infinity/nan)")
+
+
+def test_parameter_unit_linking_gaussian():
+    """
+    For some models, units of parameters should be related/consistent. We check
+    the case of the Gaussian here, where the mean and stddev should have the
+    same units.
+    """
+
+    with pytest.raises(UnitsError) as exc:
+        g = Gaussian1D(1 * u.J, 1. * u.m, 0.1 * u.s)
+    assert exc.value.args[0] == ("Parameters 'mean' and 'stddev' should "
+                                 "have matching units")
+
+
+@pytest.mark.xfail
+def test_parameter_unit_linking_custom():
+
+    # TODO: this is just an idea for an API, and open to feedback on the best
+    # way to do this. The current approach is to provide a list of tuples,
+    # where each tuple is a group of units that should have linked units. I
+    # found it easier conceptually to keep this outside the parameter
+    # definition, otherwise we have to navigate all parameters and construct a
+    # tree.
+
+    with pytest.raises(ModelDefinitionError) as exc:
+
+        class TestModel(BaseTestModel):
+
+            linked_units = [('a', 'b')]
+
+            a = Parameter(unit=u.m)
+            b = Parameter(unit=u.s)
+
+    assert exc.value.args[0] == ("Parameters 'a' and 'b' should "
+                                 "have matching units")
+
+    # We now check what happens if units are set at initialization time
+
+    class TestModel(BaseTestModel):
+
+        linked_units = [('a', 'b')]
+
+        a = Parameter()
+        b = Parameter()
+        c = Parameter()
+
+    TestModel(1 * u.m, 2 * u.cm, 3 * u.kg)
+
+    with pytest.raises(UnitsError) as exc:
+        TestModel(1 * u.m, 2 * u.s, 3 * u.kg)
+    assert exc.value.args[0] == ("Parameters 'a' and 'b' should "
+                                 "have matching units")
+
+    # It's also important that parameters don't appear more than once in the
+    # list of linked units (otherwise one could combine the groups anyway).
+    with pytest.raises(ModelDefinitionError) as exc:
+
+        class TestModel(BaseTestModel):
+
+            linked_units = [('a', 'b'), ('a', 'c')]
+
+            a = Parameter(unit=u.m)
+            b = Parameter(unit=u.km)
+            c = Parameter(unit=u.mm)
+
+    assert exc.value.args[0] == ("Parameter 'a' appears multiple times in 'linked_units'")
