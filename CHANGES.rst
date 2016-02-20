@@ -385,6 +385,8 @@ Bug Fixes
 
   - Fixed possible exception in handling of SIP headers that was introduced in
     v1.1.1. [#4492]
+  - Fixed an issue with precision output by setting the default precision
+    to 14 significant figures. [#4616]
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
