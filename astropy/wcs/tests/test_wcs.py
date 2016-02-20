@@ -897,3 +897,18 @@ def test_no_truncate_crval_try2():
     for ii in range(3):
         assert w.to_header()['CRVAL{0}'.format(ii+1)] == w.wcs.crval[ii]
         assert w.to_header()['CDELT{0}'.format(ii+1)] == w.wcs.cdelt[ii]
+
+
+def test_no_truncate_using_compare():
+    """
+    Regression test for https://github.com/astropy/astropy/issues/4612
+
+    This one uses WCS.wcs.compare and some slightly different values
+    """
+    w=wcs.WCS(naxis=3)
+    w.wcs.crval=[2.409303333333E+02,50,2.12345678e11]
+    w.wcs.cdelt=[1e-3,1e-3,1e8]
+    w.wcs.ctype=['RA---TAN','DEC--TAN','FREQ']
+    w.wcs.set()
+    w2 = wcs.WCS(w.to_header())
+    w.wcs.compare(w2.wcs)

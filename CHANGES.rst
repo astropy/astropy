@@ -421,8 +421,15 @@ Bug Fixes
 
   - Fixed possible exception in handling of SIP headers that was introduced in
     v1.1.1. [#4492]
-  - Fixed an issue with precision output by setting the default precision
-    to 14 significant figures. [#4616]
+
+  - Fixed a bug that caused WCS objects with a high dynamic range of values for
+    certain parameters to lose precision when converted to a header. This
+    occurred for example in cases of spectral cubes, where a spectral axis in
+    Hz might have a CRVAL3 value greater than 1e10 but the spatial coordinates
+    would have CRVAL1/2 values 8 to 10 orders of magnitude smaller. This bug
+    was present in Astropy 1.1 and 1.1.1 but not 1.0.x. This has now been fixed
+    by ensuring that all WCS keywords are output with 14 significant figures by
+    default. [#4616]
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
