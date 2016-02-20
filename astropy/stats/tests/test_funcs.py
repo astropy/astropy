@@ -16,9 +16,21 @@ except ImportError:
 else:
     HAS_SCIPY = True
 
+try:
+    import mpmath  # pylint: disable=W0611
+except ImportError:
+    HAS_MPMATH = False
+else:
+    HAS_MPMATH = True
+
 from ...tests.helper import pytest
 
 from .. import funcs
+
+# These are not part of __all__ because they are just the lower level versions
+# of poisson_upper_limit
+#from ..funcs import scipy_poisson_upper_limit, mpmath_poisson_upper_limit
+
 from ...utils.misc import NumpyRNGContext
 
 
@@ -438,3 +450,26 @@ def test_poisson_conf_gehrels86(n):
         funcs.poisson_conf_interval(
             n, interval='frequentist-confidence')[1],
         rtol = 0.02)
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_scipy_poisson_limit():
+    '''Test that the lower-level routine gives the snae number.
+
+    Test numbers are from table 3 in
+    Kraft, Burrows and Nousek in
+    `ApJ 374, 344 (1991) <http://adsabs.harvard.edu/abs/1991ApJ...374..344K>`_
+    '''
+    assert_allclose(funcs.scipy_poisson_upper_limit(5., 2.5, .99), 10.67, rtol=1e-3)
+    assert_allclose(funcs.poisson_upper_limit(5., 2.5, .99), 10.67, rtol=1e-3)
+    assert_allclose(funcs.poisson_upper_limit(6., 2., .9), 8.99, rtol=1e-3)
+
+
+@pytest.mark.skipif('not HAS_MPMATH')
+def test_mpmath_poisson_limit():
+    assert_allclose(float(funcs.mpmath_poisson_upper_limit(20., 10., .95)),
+                    19.06639679900499)
+
+@pytest.mark.skipif('HAS_SCIPY or HAS_MPMATH')
+def test_poisson_limit_nodependencies():
+    with pytest.raises(ImportError) as e:
+        a = funcs.poisson_upper_limit(20., 10., .95)

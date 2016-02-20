@@ -20,7 +20,8 @@ __all__ = ['binom_conf_interval', 'binned_binom_proportion',
            'poisson_conf_interval',
            'median_absolute_deviation', 'biweight_location',
            'biweight_midvariance', 'signal_to_noise_oir_ccd', 'bootstrap',
-           'mad_std', 'gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm']
+           'mad_std', 'gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm',
+           'poisson_upper_limit']
 
 __doctest_skip__ = ['binned_binom_proportion']
 __doctest_requires__ = {'binom_conf_interval': ['scipy.special'],
@@ -1047,65 +1048,114 @@ def mad_std(data):
     return median_absolute_deviation(data) * 1.482602218505602
 
 
-from scipy.optimize import brentq
-from scipy.integrate import quad
-from scipy.special import factorial
-
-def eqn8(N, B):
-    n = np.arange(N + 1)
-    return 1./ (exp(-B) * np.sum(power(B, n) / factorial(n)))
-
-def eqn7(S, N, B):
-    return eqn8(N, B) * (exp(-S-B) * (S + B)**N / factorial(N))
-
-def eqn9_left(S_min, S_max, N, B):
-    return quad(eqn7, S_min, S_max, args=(N, B), limit=500)
-
-def bayes_upper_limit(N, B, CL):
+def scipy_poisson_upper_limit(N, B, CL):
     '''Upper limit on a poisson count rate
 
-    The implementation is based on Kraft, Burrows and Nousek in ApJ 374, 344 (1991).
-    The XMM-Newton upper limit server used the same formalism.
+    The implementation is based on Kraft, Burrows and Nousek
+    `ApJ 374, 344 (1991) <http://adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
+    The XMM-Newton upper limit server uses the same formalism.
 
     Parameters
     ----------
     N : int
         Total observed count number
     B : float
-        Background count rate (assumed to be known with negligible error from a large background area).
+        Background count rate (assumed to be known with negligible error
+        from a large background area).
     CL : float
        Confidence level (number between 0 and 1)
 
     Returns
     -------
     S : source count limit
+
+    Notes
+    -----
+    Requires `scipy`. This implementation will cause Overflow Errors for
+    about N > 100 (the exact limit depends on details of how scipy was compiled).
+    See `~astropy.stats.mpmath_poisson_upper_limit` for an implementation that is
+    slower, but can deal with arbitrarily high numbers since it is based on the
+    `mpmath <http://mpmath.org/>`_ library.
     '''
+    from scipy.optimize import root
+    from scipy.integrate import quad
+    from scipy.special import factorial
+
+
+    def eqn8(N, B):
+        n = np.arange(N + 1)
+        return 1./ (np.exp(-B) * np.sum(np.power(B, n) / factorial(n)))
+
+    def eqn7(S, N, B):
+        return eqn8(N, B) * (np.exp(-S -B) * (S + B)**N / factorial(N))
+
+    def eqn9_left(S_min, S_max, N, B):
+        return quad(eqn7, S_min, S_max, args=(N, B), limit=500)
+
     def func(s):
         out = eqn9_left(0, s, N, B)
         return out[0] - CL
-    return breatq(func, 0, (N + B) * 2.) # We expect s < N. Just put a slightly higher number here to be safe.
 
-My scipy version of this was WAY faster but failed for larger numbers.
-# Being lazy, I just try this now.
+    return root(func, N-B, tol=1e-4).x[0]
 
-from mpmath import mpf, factorial, findroot, fsum, power, exp, quad
 
-def eqn8(N, B):
-    sumterms = [power(B, n) / factorial(n) for n in range(N + 1)]
-    return 1./ (exp(-B) * fsum(sumterms))
-
-def eqn7(S, N, B):
-    return eqn8(N, B) * (exp(-S-B) * (S + B)**N / factorial(N))
-
-def eqn9_left(S_min, S_max, N, B):
-    def eqn7NB(S):
-        return eqn7(S, N, B)
-    return quad(eqn7NB, [S_min, S_max], method='gauss-legendre')
-
-def bayes_upper_limit(N, B, CL):
+def mpmath_poisson_upper_limit(N, B, CL):
     '''Upper limit on a poisson count rate
 
-    The implementation is based on Kraft, Burrows and Nousek in ApJ 374, 344 (1991).
+    The implementation is based on Kraft, Burrows and Nousek in
+    `ApJ 374, 344 (1991) <http://adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
+    The XMM-Newton upper limit server used the same formalism.
+
+    Parameters
+    ----------
+    N : int
+        Total observed count number
+    B : float
+        Background count rate (assumed to be known with negligible error
+        from a large background area).
+    CL : float
+       Confidence level (number between 0 and 1)
+
+    Returns
+    -------
+    S : source count limit
+
+    Notes
+    -----
+    Requires the `mpmath <http://mpmath.org/>`_ library.
+    See `~astropy.stats.scipy_poisson_upper_limit` for an implementation that is
+    based on scipy and evaluates faster, but runs only to about N = 100.
+    '''
+    from mpmath import mpf, factorial, findroot, fsum, power, exp, quad
+
+    N = mpf(N)
+    B = mpf(B)
+    CL = mpf(CL)
+
+    def eqn8(N, B):
+        sumterms = [power(B, n) / factorial(n) for n in range(N + 1)]
+        return 1./ (exp(-B) * fsum(sumterms))
+
+    def eqn7(S, N, B):
+        return eqn8(N, B) * (exp(-S-B) * (S + B)**N / factorial(N))
+
+    def eqn9_left(S_min, S_max, N, B):
+        def eqn7NB(S):
+            return eqn7(S, N, B)
+        return quad(eqn7NB, [S_min, S_max])
+
+    def func(s):
+        out = eqn9_left(0, s, N, B)
+        return out - CL
+
+    return findroot(func, N - B, tol=1e-4)
+
+
+def poisson_upper_limit(N, B, CL):
+    '''Upper limit on a poisson count rate
+
+    The implementation is based on Kraft, Burrows and Nousek in
+    `ApJ 374, 344 (1991) <http://adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
     The XMM-Newton upper limit server used the same formalism.
 
     Parameters
@@ -1120,12 +1170,32 @@ def bayes_upper_limit(N, B, CL):
     Returns
     -------
     S : source count limit
-    '''
-    def func(s):
-        out = eqn9_left(0, s, N, B)
-        return out - CL
-    return findroot(func, N - B, tol=1e-4) # We expect s < N. Just put a slightly higher number here to be safe.
 
-# test
-bayes_upper_limit(mpf(160), mpf(154.062), mpf(.95))/18619.  # XMM website says 0.002 for this case, so I guess I'm good.--
-# add to __all__, __doctest_requires__ etc.
+    Notes
+    -----
+    This functions has an optional dependency: Either `scipy` or
+    `mpmath <http://mpmath.org/>`_  need to be available. (Scipy only works for
+    N < 100).
+    '''
+    try:
+        import scipy
+        HAS_SCIPY = True
+    except ImportError:
+        HAS_SCIPY = False
+
+    try:
+        import mpmath
+        HAS_MPMATH = True
+    except ImportError:
+        HAS_MPMATH = False
+
+    if HAS_SCIPY and N <= 100:
+        try:
+            return scipy_poisson_upper_limit(N, B, CL)
+        except OverflowError:
+            if not HAS_MPMATH:
+                raise ValueError('Need mpmath package for input numbers this large.')
+    if HAS_MPMATH:
+        return mpmath_poisson_upper_limit(N, B, CL)
+
+    raise ImportError('Either scipy or mpmath are required.')
