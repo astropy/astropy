@@ -102,7 +102,7 @@ def bitarray_to_bool(data, length):
     """
     results = []
     for byte in data:
-        if not six.PY3:
+        if six.PY2:
             byte = ord(byte)
         for bit_no in range(7, -1, -1):
             bit = byte & (1 << bit_no)
@@ -1133,7 +1133,7 @@ class BooleanArray(NumericArray):
         result = []
         result_mask = []
         for char in data:
-            if not six.PY3:
+            if six.PY2:
                 char = ord(char)
             value, mask = binparse(char)
             result.append(value)

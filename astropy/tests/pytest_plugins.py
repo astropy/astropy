@@ -616,7 +616,7 @@ def pytest_report_header(config):
     if opts:
         s += "Using Astropy options: {0}.\n".format(" ".join(opts))
 
-    if not six.PY3:
+    if six.PY2:
         s = s.encode(stdoutencoding, 'replace')
 
     return s

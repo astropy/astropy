@@ -2064,12 +2064,13 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
     def __bytes__(self):
         return bytes(self.to_table())
-    if six.PY2:
-        __str__ = __bytes__
 
     def __unicode__(self):
         return six.text_type(self.to_table())
-    if six.PY3:
+
+    if six.PY2:
+        __str__ = __bytes__
+    else:
         __str__ = __unicode__
 
     @property
