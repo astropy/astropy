@@ -455,13 +455,13 @@ def test_poisson_conf_gehrels86(n):
 def test_scipy_poisson_limit():
     '''Test that the lower-level routine gives the snae number.
 
-    Test numbers are from table 3 in
+    Test numbers are from table1 1, 3 in
     Kraft, Burrows and Nousek in
     `ApJ 374, 344 (1991) <http://adsabs.harvard.edu/abs/1991ApJ...374..344K>`_
     '''
-    assert_allclose(funcs.scipy_poisson_upper_limit(5., 2.5, .99), 10.67, rtol=1e-3)
-    assert_allclose(funcs.poisson_upper_limit(5., 2.5, .99), 10.67, rtol=1e-3)
-    assert_allclose(funcs.poisson_upper_limit(6., 2., .9), 8.99, rtol=1e-3)
+    assert_allclose(funcs.scipy_poisson_upper_limit(5., 2.5, .99), (0, 10.67), rtol=1e-3)
+    assert_allclose(funcs.poisson_upper_limit(5., 2.5, .99), (0, 10.67), rtol=1e-3)
+    assert_allclose(funcs.poisson_upper_limit(6., 2., .9),(0.81, 8.99), rtol=5e-3)
 
 
 @pytest.mark.skipif('not HAS_MPMATH')

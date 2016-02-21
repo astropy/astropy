@@ -1077,7 +1077,7 @@ def scipy_poisson_upper_limit(N, B, CL):
     slower, but can deal with arbitrarily high numbers since it is based on the
     `mpmath <http://mpmath.org/>`_ library.
     '''
-    from scipy.optimize import root
+    from scipy.optimize import brentq
     from scipy.integrate import quad
     from scipy.special import factorial
 
@@ -1092,11 +1092,21 @@ def scipy_poisson_upper_limit(N, B, CL):
     def eqn9_left(S_min, S_max, N, B):
         return quad(eqn7, S_min, S_max, args=(N, B), limit=500)
 
+    def find_s_min(S_max, N, B):
+        y_S_max = eqn7(S_max, N, B)
+        if eqn7(0, N, B) >= y_S_max:
+            return 0.
+        else:
+            return brentq(lambda x: eqn7(x, N, B) - y_S_max, 0, N - B)
+
     def func(s):
-        out = eqn9_left(0, s, N, B)
+        s_min = find_s_min(s, N, B)
+        out = eqn9_left(s_min, s, N, B)
         return out[0] - CL
 
-    return root(func, N-B, tol=1e-4).x[0]
+    S_max = brentq(func, N - B, 100)
+    S_min = find_s_min(S_max, N, B)
+    return S_min, S_max
 
 
 def mpmath_poisson_upper_limit(N, B, CL):
