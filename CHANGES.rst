@@ -83,6 +83,8 @@ New Features
 
 - ``astropy.wcs``
 
+  - wcslib was updated to v5.14 [#4579]
+
 API changes
 ^^^^^^^^^^^
 
@@ -394,9 +396,14 @@ Bug Fixes
 
 - ``astropy.table``
 
+  - Fixed bug when replacing a table column with a mixin column like
+    Quantity or Time. [#4601]
+
 - ``astropy.time``
 
 - ``astropy.units``
+
+  - Fixed sphinx issues on plotting quantites. [#4527]
 
 - ``astropy.utils``
 
@@ -414,6 +421,8 @@ Bug Fixes
 
   - Fixed possible exception in handling of SIP headers that was introduced in
     v1.1.1. [#4492]
+  - Fixed an issue with precision output by setting the default precision
+    to 14 significant figures. [#4616]
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -811,6 +820,9 @@ API changes
     for parsing a file with blank lines in the header containing whitespace will
     need to be updated. [#2654]
 
+  - Check that columns in ``formats`` specifier exist in the output table
+    when writing. [#4508]
+
 - ``astropy.io.fits``
 
   - The ``uint`` argument to ``fits.open`` is now True by default; that is,
@@ -1120,6 +1132,12 @@ Bug Fixes
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
+
+  - Fixed addition of new line characters after last row of data in
+    ascii.latex.AASTex. [#3888]
+
+  - Fixed reading of Latex tables where the ``\tabular`` tag is in the first
+    line. [#4595]
 
 - ``astropy.io.fits``
 

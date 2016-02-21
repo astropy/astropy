@@ -110,7 +110,7 @@ class LatexHeader(core.BaseHeader):
 
     def start_line(self, lines):
         line = find_latex_line(lines, self.header_start)
-        if line:
+        if line is not None:
             return line + 1
         else:
             return None
@@ -384,7 +384,12 @@ class AASTexData(LatexData):
 
     def write(self, lines):
         lines.append(self.data_start)
+        lines_length_initial = len(lines)
         core.BaseData.write(self, lines)
+        # To remove extra space(s) and // appended which creates an extra new line
+        # in the end.
+        if len(lines) > lines_length_initial:
+            lines[-1] = re.sub(r'\s* \\ \\ \s* $', '', lines[-1], flags=re.VERBOSE)
         lines.append(self.data_end)
         add_dictval_to_list(self.latex, 'tablefoot', lines)
         lines.append(r'\end{' + self.latex['tabletype'] + r'}')

@@ -2,6 +2,7 @@ I would like to acknowledge the following people who have contributed
 to WCSLIB and/or PGSBOX in some way since 1995 - via bug reports,
 patches, suggestions for improvements, positive feedback, etc.
 
+James Allen (U. Sydney)
 James M. Anderson (MPIfR)
 Robbie Auld (Cardiff U.)
 Klaus Banse (ESO)
@@ -9,9 +10,11 @@ David Barnes (ATNF/CSIRO)
 David Berry (STARLINK & JAC)
 Emmanuel Bertin (IAP)
 David Binderman
+Erik M. Bray (STScI)
 Jeremy Brewer (U. Pittsburgh)
 Wim Brouw (ATNF/CSIRO)
 Peter Bunclark (IoA, U. Cambridge)
+Mihai Cara (STScI)
 Pan Chai (GSFC/NASA)
 Charles Copley
 Neil Crighton
@@ -34,6 +37,7 @@ Bryan Irby (GSFC/NASA)
 Justin Jonas (Rhodes U.)
 Yves Jung (ESO)
 David Kaplan (KITP/UCSB)
+Vishal Kasliwal (U. Pennsylvania, LSST)
 Daniel S. Katz (JPL/NASA)
 Neil Killeen (ATNF/CSIRO)
 David King (NRAO)
@@ -87,4 +91,4 @@ Daren Scot Wilson (NRAO)
 Tony Wong (ATNF/CSIRO)
 
 
-$Id: THANKS,v 5.10 2015/10/09 08:19:17 mcalabre Exp $
+$Id: THANKS,v 5.14 2016/02/07 10:49:33 mcalabre Exp $

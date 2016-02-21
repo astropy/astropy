@@ -1547,7 +1547,7 @@ class Table(object):
         if name not in self.colnames:
             raise ValueError('column name {0} is not in the table'.format(name))
 
-        if self[name].indices:
+        if self[name].info.indices:
             raise ValueError('cannot replace a table index column')
 
         t = self.__class__([col], names=[name])

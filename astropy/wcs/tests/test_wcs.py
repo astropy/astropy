@@ -424,8 +424,12 @@ def test_validate():
     with catch_warnings():
         results = wcs.validate(get_pkg_data_filename("data/validate.fits"))
         results_txt = repr(results)
-        if wcs._wcs.__version__[0] == '5':
-            filename = 'data/validate.5.0.txt'
+        version = wcs._wcs.__version__
+        if version[0] == '5':
+            if version >= '5.13':
+                filename = 'data/validate.5.13.txt'
+            else:
+                filename = 'data/validate.5.0.txt'
         else:
             filename = 'data/validate.txt'
         with open(get_pkg_data_filename(filename), "r") as fd:
@@ -864,3 +868,32 @@ def test_sip_broken():
     hdr = get_pkg_data_contents("data/sip-broken.hdr")
 
     w = wcs.WCS(hdr)
+
+def test_no_truncate_crval():
+    """
+    Regression test for https://github.com/astropy/astropy/issues/4612
+    """
+    w=wcs.WCS(naxis=3)
+    w.wcs.crval=[50,50,2.12345678e11]
+    w.wcs.cdelt=[1e-3,1e-3,1e8]
+    w.wcs.ctype=['RA---TAN','DEC--TAN','FREQ']
+    w.wcs.set()
+    for ii in range(3):
+        assert w.to_header()['CRVAL{0}'.format(ii+1)] == w.wcs.crval[ii]
+        assert w.to_header()['CDELT{0}'.format(ii+1)] == w.wcs.cdelt[ii]
+
+def test_no_truncate_crval_try2():
+    """
+    Regression test for https://github.com/astropy/astropy/issues/4612
+    """
+    w=wcs.WCS(naxis=3)
+    w.wcs.crval=[50,50,2.12345678e11]
+    w.wcs.cdelt=[1e-5,1e-5,1e5]
+    w.wcs.ctype=['RA---SIN','DEC--SIN','FREQ']
+    w.wcs.cunit=['deg', 'deg', 'Hz']
+    w.wcs.crpix=[1,1,1]
+    w.wcs.restfrq = 2.34e11
+    w.wcs.set()
+    for ii in range(3):
+        assert w.to_header()['CRVAL{0}'.format(ii+1)] == w.wcs.crval[ii]
+        assert w.to_header()['CDELT{0}'.format(ii+1)] == w.wcs.cdelt[ii]

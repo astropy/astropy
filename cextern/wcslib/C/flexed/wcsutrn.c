@@ -3984,8 +3984,8 @@ char *wcsutrntext;
 #line 1 "wcsutrn.l"
 /*============================================================================
 
-  WCSLIB 5.10 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2015, Mark Calabretta
+  WCSLIB 5.14 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2016, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -4006,7 +4006,7 @@ char *wcsutrntext;
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutrn.c,v 5.10 2015/10/09 08:19:15 mcalabre Exp $
+  $Id: wcsutrn.c,v 5.14 2016/02/07 10:49:31 mcalabre Exp $
 *=============================================================================
 *
 * wcsutrn.l is a Flex description file containing the definition of a lexical
@@ -4251,7 +4251,6 @@ YY_DECL
 	int bracket = 0;
 	int unsafe  = 0;
 	int status  = -1;
-	YY_BUFFER_STATE inbuff;
 	int wcsutrnlex_destroy(void);
 	
 	if (err) *err = 0x0;
@@ -4259,7 +4258,8 @@ YY_DECL
 	*orig = '\0';
 	*subs = '\0';
 	
-	inbuff = wcsutrn_scan_string(unitstr);
+	wcsutrn_delete_buffer(YY_CURRENT_BUFFER);
+	wcsutrn_scan_string(unitstr);
 	*unitstr = '\0';
 	
 	/* Return here via longjmp() invoked by yy_fatal_error(). */

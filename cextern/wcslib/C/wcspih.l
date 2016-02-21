@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 5.10 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2015, Mark Calabretta
+  WCSLIB 5.14 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2016, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.l,v 5.10 2015/10/09 08:19:15 mcalabre Exp $
+  $Id: wcspih.l,v 5.14 2016/02/07 10:49:31 mcalabre Exp $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -1018,12 +1018,12 @@ jmp_buf wcspih_abort_jmp_env;
 	}
 
 ^PLATEID" " {
-	  /* DSS: plate identification. */
+	  /* DSS: plate identification (insufficient to trigger DSS). */
 	  valtype = STRING;
 	  distype = SEQUENT;
 	  vptr    = dsstmp+13;
 	  dssflag = 2;
-	  distran = DSS;
+	  distran = 0;
 	
 	  keyname = "PLATEID";
 	  BEGIN(VALUE);
@@ -1782,12 +1782,12 @@ jmp_buf wcspih_abort_jmp_env;
 	    if (gotone) {
 	      nvalid++;
 	      if (ctrl == 4) {
-	        if (distran == 0) {
-	          wcsfprintf(stderr, "%.80s\n  Accepted (%d) as a "
-	            "valid WCS keyrecord.\n", keyrec, nvalid);
-	        } else {
+	        if (distran || dssflag) {
 	          wcsfprintf(stderr, "%.80s\n  Accepted (%d) as a "
 	            "recognised WCS convention.\n", keyrec, nvalid);
+	        } else {
+	          wcsfprintf(stderr, "%.80s\n  Accepted (%d) as a "
+	            "valid WCS keyrecord.\n", keyrec, nvalid);
 	        }
 	      }
 	
@@ -2214,7 +2214,7 @@ int wcspih_final(
   struct wcsprm **wcs)
 
 {
-  char   field[8], *wp, wpoly[12], wtype[8];
+  char   field[16], *wp, wpoly[12], wtype[8];
   int    i, ialt, idp, ipv, m, npv, n, nterms, omax, omin, status, wctrl[4];
   double A1, A2, A3, B1, B2, B3, CNPIX1, CNPIX2, *crval, Rx, Ry, S, wval,
          X0, Y0, Xc, Yc;
