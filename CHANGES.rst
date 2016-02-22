@@ -1172,6 +1172,8 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - Fixed latex representation of function units. [#4563]
+
 - ``astropy.utils``
 
   - The ``zest.releaser`` hooks included in Astropy are now injected locally to

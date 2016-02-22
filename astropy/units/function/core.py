@@ -98,8 +98,9 @@ class FunctionUnitBase(object):
             self._physical_unit = dimensionless_unscaled
         else:
             self._physical_unit = Unit(physical_unit)
-            if(not isinstance(self._physical_unit, UnitBase) or
-               self._physical_unit.is_equivalent(self._default_function_unit)):
+            if (not isinstance(self._physical_unit, UnitBase) or
+                self._physical_unit.is_equivalent(
+                    self._default_function_unit)):
                 raise ValueError("Unit {0} is not a physical unit."
                                  .format(self._physical_unit))
 
@@ -372,8 +373,13 @@ class FunctionUnitBase(object):
                              "supported.".format(format))
         self_str = self.function_unit.to_string(format)
         pu_str = self.physical_unit.to_string(format)
-        parens = '\left({0}\right)' if format == 'latex' else '({0})'
-        self_str += parens.format(pu_str if pu_str != '' else '1')
+        if pu_str == '':
+            pu_str = '1'
+        if format == 'latex':
+            self_str += r'$\mathrm{{\left( {0} \right)}}$'.format(
+                pu_str[1:-1])   # need to strip leading and trailing "$"
+        else:
+            self_str += '({0})'.format(pu_str)
         return self_str
 
     def __str__(self):
