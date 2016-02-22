@@ -400,6 +400,8 @@ Bug Fixes
 
 - ``astropy.utils``
 
+  - Fixed latex representation of function units. [#4563]
+
 - ``astropy.visualization``
 
   - Fixed ``fits2bitmap`` script to allow ext flag to contain extension
@@ -1156,6 +1158,8 @@ Bug Fixes
 - ``astropy.time``
 
 - ``astropy.units``
+
+  - Fixed latex representation of function units. [#4563]
 
 - ``astropy.utils``
 
