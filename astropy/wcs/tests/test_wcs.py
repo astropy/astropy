@@ -175,7 +175,7 @@ def test_pix2world():
         assert len(caught_warnings) == 1
 
     n = 3
-    pixels = (np.arange(n)*np.ones((2, n))).T
+    pixels = (np.arange(n) * np.ones((2, n))).T
     result = ww.wcs_pix2world(pixels, 0, ra_dec_order=True)
 
     # Catch #2791
@@ -186,13 +186,13 @@ def test_pix2world():
     answer = np.array([[0.00024976, 0.00023018],
                        [0.00023043, -0.00024997]])
 
-    assert np.all(np.abs(ww.wcs.pc-answer) < close_enough)
+    assert np.all(np.abs(ww.wcs.pc - answer) < close_enough)
 
-    answer = np.array([[ 202.39265216,   47.17756518],
-                       [ 202.39335826,   47.17754619],
-                       [ 202.39406436,   47.1775272 ]])
+    answer = np.array([[202.39265216, 47.17756518],
+                       [202.39335826, 47.17754619],
+                       [202.39406436, 47.1775272]])
 
-    assert  np.all(np.abs(result-answer) < close_enough)
+    assert np.all(np.abs(result - answer) < close_enough)
 
 
 def test_load_fits_path():
@@ -259,37 +259,37 @@ def test_3d_shapes():
 def test_preserve_shape():
     w = wcs.WCS(naxis=2)
 
-    x = np.random.random((2,3,4))
-    y = np.random.random((2,3,4))
+    x = np.random.random((2, 3, 4))
+    y = np.random.random((2, 3, 4))
 
     xw, yw = w.wcs_pix2world(x, y, 1)
 
-    assert xw.shape == (2,3,4)
-    assert yw.shape == (2,3,4)
+    assert xw.shape == (2, 3, 4)
+    assert yw.shape == (2, 3, 4)
 
     xp, yp = w.wcs_world2pix(x, y, 1)
 
-    assert xp.shape == (2,3,4)
-    assert yp.shape == (2,3,4)
+    assert xp.shape == (2, 3, 4)
+    assert yp.shape == (2, 3, 4)
 
 
 def test_broadcasting():
     w = wcs.WCS(naxis=2)
 
-    x = np.random.random((2,3,4))
+    x = np.random.random((2, 3, 4))
     y = 1
 
     xp, yp = w.wcs_world2pix(x, y, 1)
 
-    assert xp.shape == (2,3,4)
-    assert yp.shape == (2,3,4)
+    assert xp.shape == (2, 3, 4)
+    assert yp.shape == (2, 3, 4)
 
 
 def test_shape_mismatch():
     w = wcs.WCS(naxis=2)
 
-    x = np.random.random((2,3,4))
-    y = np.random.random((3,2,4))
+    x = np.random.random((2, 3, 4))
+    y = np.random.random((3, 2, 4))
 
     with pytest.raises(ValueError) as exc:
         xw, yw = w.wcs_pix2world(x, y, 1)
@@ -455,7 +455,7 @@ def test_all_world2pix(fname=None, ext=0,
     # Open test FITS file:
     if fname is None:
         fname = get_pkg_data_filename('data/j94f05bgq_flt.fits')
-        ext = ('SCI',1)
+        ext = ('SCI', 1)
     if not os.path.isfile(fname):
         raise IOError("Input file '{:s}' to 'test_all_world2pix' not found."
                       .format(fname))
@@ -470,8 +470,8 @@ def test_all_world2pix(fname=None, ext=0,
     # Assume that CRPIX is at the center of the image and that the image has
     # a power-of-2 number of pixels along each axis. Only use the central
     # 1/64 for this testing purpose:
-    naxesi_l = list((7./16*crpix).astype(np.int))
-    naxesi_u = list((9./16*crpix).astype(np.int))
+    naxesi_l = list((7. / 16 * crpix).astype(np.int))
+    naxesi_u = list((9. / 16 * crpix).astype(np.int))
 
     # Generate integer indices of pixels (image grid):
     img_pix = np.dstack([i.flatten() for i in
@@ -482,8 +482,8 @@ def test_all_world2pix(fname=None, ext=0,
         rnd_pix = np.random.rand(random_npts, ncoord)
 
     # Scale random data to cover the central part of the image
-    mwidth = 2 * (crpix * 1./8)
-    rnd_pix = crpix - 0.5*mwidth + (mwidth-1) * rnd_pix
+    mwidth = 2 * (crpix * 1. / 8)
+    rnd_pix = crpix - 0.5 * mwidth + (mwidth - 1) * rnd_pix
 
     # Reference pixel coordinates in image coordinate system (CS):
     test_pix = np.append(img_pix, rnd_pix, axis=0)
@@ -550,7 +550,7 @@ def test_all_world2pix(fname=None, ext=0,
           "Run time: {2}\n"
           .format(meanerr, maxerr, runtime_end - runtime_begin))
 
-    assert(maxerr < 2.0*tolerance)
+    assert(maxerr < 2.0 * tolerance)
 
 
 def test_scamp_sip_distortion_parameters():
@@ -644,10 +644,10 @@ def test_calc_footprint_1():
     w = wcs.WCS(fits)
 
     axes = (1000, 1051)
-    ref = np.array([[ 202.39314493,   47.17753352],
-                    [ 202.71885939,   46.94630488],
-                    [ 202.94631893,   47.15855022],
-                    [ 202.72053428,   47.37893142]])
+    ref = np.array([[202.39314493, 47.17753352],
+                    [202.71885939, 46.94630488],
+                    [202.94631893, 47.15855022],
+                    [202.72053428, 47.37893142]])
     footprint = w.calc_footprint(axes=axes)
     assert_allclose(footprint, ref)
 
@@ -658,10 +658,10 @@ def test_calc_footprint_2():
     w = wcs.WCS(fits)
 
     axes = (1000, 1051)
-    ref = np.array([[ 202.39265216,   47.17756518],
-                    [ 202.7469062 ,   46.91483312],
-                    [ 203.11487481,   47.14359319],
-                    [ 202.76092671,   47.40745948]])
+    ref = np.array([[202.39265216, 47.17756518],
+                    [202.7469062, 46.91483312],
+                    [203.11487481, 47.14359319],
+                    [202.76092671, 47.40745948]])
     footprint = w.calc_footprint(axes=axes, undistort=False)
     assert_allclose(footprint, ref)
 
@@ -869,34 +869,36 @@ def test_sip_broken():
 
     w = wcs.WCS(hdr)
 
+
 def test_no_truncate_crval():
     """
     Regression test for https://github.com/astropy/astropy/issues/4612
     """
-    w=wcs.WCS(naxis=3)
-    w.wcs.crval=[50,50,2.12345678e11]
-    w.wcs.cdelt=[1e-3,1e-3,1e8]
-    w.wcs.ctype=['RA---TAN','DEC--TAN','FREQ']
+    w = wcs.WCS(naxis=3)
+    w.wcs.crval = [50, 50, 2.12345678e11]
+    w.wcs.cdelt = [1e-3, 1e-3, 1e8]
+    w.wcs.ctype = ['RA---TAN', 'DEC--TAN', 'FREQ']
     w.wcs.set()
     for ii in range(3):
-        assert w.to_header()['CRVAL{0}'.format(ii+1)] == w.wcs.crval[ii]
-        assert w.to_header()['CDELT{0}'.format(ii+1)] == w.wcs.cdelt[ii]
+        assert w.to_header()['CRVAL{0}'.format(ii + 1)] == w.wcs.crval[ii]
+        assert w.to_header()['CDELT{0}'.format(ii + 1)] == w.wcs.cdelt[ii]
+
 
 def test_no_truncate_crval_try2():
     """
     Regression test for https://github.com/astropy/astropy/issues/4612
     """
-    w=wcs.WCS(naxis=3)
-    w.wcs.crval=[50,50,2.12345678e11]
-    w.wcs.cdelt=[1e-5,1e-5,1e5]
-    w.wcs.ctype=['RA---SIN','DEC--SIN','FREQ']
-    w.wcs.cunit=['deg', 'deg', 'Hz']
-    w.wcs.crpix=[1,1,1]
+    w = wcs.WCS(naxis=3)
+    w.wcs.crval = [50, 50, 2.12345678e11]
+    w.wcs.cdelt = [1e-5, 1e-5, 1e5]
+    w.wcs.ctype = ['RA---SIN', 'DEC--SIN', 'FREQ']
+    w.wcs.cunit = ['deg', 'deg', 'Hz']
+    w.wcs.crpix = [1, 1, 1]
     w.wcs.restfrq = 2.34e11
     w.wcs.set()
     for ii in range(3):
-        assert w.to_header()['CRVAL{0}'.format(ii+1)] == w.wcs.crval[ii]
-        assert w.to_header()['CDELT{0}'.format(ii+1)] == w.wcs.cdelt[ii]
+        assert w.to_header()['CRVAL{0}'.format(ii + 1)] == w.wcs.crval[ii]
+        assert w.to_header()['CDELT{0}'.format(ii + 1)] == w.wcs.cdelt[ii]
 
 
 def test_no_truncate_using_compare():
@@ -905,10 +907,10 @@ def test_no_truncate_using_compare():
 
     This one uses WCS.wcs.compare and some slightly different values
     """
-    w=wcs.WCS(naxis=3)
-    w.wcs.crval=[2.409303333333E+02,50,2.12345678e11]
-    w.wcs.cdelt=[1e-3,1e-3,1e8]
-    w.wcs.ctype=['RA---TAN','DEC--TAN','FREQ']
+    w = wcs.WCS(naxis=3)
+    w.wcs.crval = [2.409303333333E+02, 50, 2.12345678e11]
+    w.wcs.cdelt = [1e-3, 1e-3, 1e8]
+    w.wcs.ctype = ['RA---TAN', 'DEC--TAN', 'FREQ']
     w.wcs.set()
     w2 = wcs.WCS(w.to_header())
     w.wcs.compare(w2.wcs)
