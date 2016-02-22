@@ -459,17 +459,39 @@ def test_scipy_poisson_limit():
     Kraft, Burrows and Nousek in
     `ApJ 374, 344 (1991) <http://adsabs.harvard.edu/abs/1991ApJ...374..344K>`_
     '''
-    assert_allclose(funcs.scipy_poisson_upper_limit(5., 2.5, .99), (0, 10.67), rtol=1e-3)
-    assert_allclose(funcs.poisson_upper_limit(5., 2.5, .99), (0, 10.67), rtol=1e-3)
-    assert_allclose(funcs.poisson_upper_limit(6., 2., .9),(0.81, 8.99), rtol=5e-3)
+    assert_allclose(funcs._scipy_kraft_burrows_nousek(5., 2.5, .99), (0, 10.67), rtol=1e-3)
+    conf = funcs.poisson_conf_interval([5., 6.], 'kraft-burrows-nousek',
+                                       background=[2.5, 2.],
+                                       conflevel=[.99, .9])
+    assert_allclose(conf[0, :], (0, 10.67), rtol=1e-3)
+    assert_allclose(conf[1, :], (0.81, 8.99), rtol=5e-3)
 
 
 @pytest.mark.skipif('not HAS_MPMATH')
 def test_mpmath_poisson_limit():
-    assert_allclose(float(funcs.mpmath_poisson_upper_limit(20., 10., .95)),
-                    19.06639679900499)
+    assert_allclose(funcs._mpmath_kraft_burrows_nousek(6., 2., .9), (0.81, 8.99), rtol=5e-3)
+    assert_allclose(funcs._mpmath_kraft_burrows_nousek(5., 2.5, .99), (0, 10.67), rtol=1e-3)
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_poisson_conf_value_errors():
+    with pytest.raises(ValueError) as e:
+        funcs.poisson_conf_interval([5, 6], 'root-n', sigma=2)
+    assert 'Only sigma=1 supported' in str(e.value)
+
+    with pytest.raises(ValueError) as e:
+        funcs.poisson_conf_interval([5, 6], 'pearson', background=[2.5, 2.])
+    assert 'background not supported' in str(e.value)
+
+    with pytest.raises(ValueError) as e:
+        funcs.poisson_conf_interval([5, 6], 'sherpagehrels', conflevel=[2.5, 2.])
+    assert 'conflevel not supported' in str(e.value)
+
+    with pytest.raises(ValueError) as e:
+        funcs.poisson_conf_interval(1, 'foo')
+    assert 'Invalid method' in str(e.value)
+
 
 @pytest.mark.skipif('HAS_SCIPY or HAS_MPMATH')
 def test_poisson_limit_nodependencies():
     with pytest.raises(ImportError) as e:
-        a = funcs.poisson_upper_limit(20., 10., .95)
+        a = funcs.poisson_conf_interval(20., 10., .95)
