@@ -30,6 +30,27 @@ def test_nddata_simple():
     assert nd.dtype == np.dtype(float)
 
 
+def test_nddata_parameters():
+    # Test for issue 4620
+    nd = NDDataArray(data=np.zeros((10, 10)))
+    assert nd.shape == (10, 10)
+    assert nd.size == 100
+    assert nd.dtype == np.dtype(float)
+    # Change order; `data` has to be given explicitly here
+    nd = NDDataArray(meta={}, data=np.zeros((10, 10)))
+    assert nd.shape == (10, 10)
+    assert nd.size == 100
+    assert nd.dtype == np.dtype(float)
+    # Pass uncertainty as second implicit argument
+    data = np.zeros((10, 10))
+    uncertainty = StdDevUncertainty(0.1 + np.zeros_like(data))
+    nd = NDDataArray(data, uncertainty)
+    assert nd.shape == (10, 10)
+    assert nd.size == 100
+    assert nd.dtype == np.dtype(float)
+    assert nd.uncertainty == uncertainty
+
+
 def test_nddata_conversion():
     nd = NDDataArray(np.array([[1, 2, 3], [4, 5, 6]]))
     assert nd.size == 6
