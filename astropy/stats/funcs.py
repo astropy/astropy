@@ -695,7 +695,8 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0, conflevel
         conflevel = np.asanyarray(conflevel)
         if np.any(conflevel <=0) or np.any(conflevel >= 1):
             raise ValueError('Conflevel must be a number between 0 and 1.')
-        if background < 0:
+        background = np.asanyarray(background)
+        if np.any(background < 0):
             raise ValueError('Background must be >= 1.')
         conf_interval = np.vectorize(_kraft_burrows_nousek, cache=True)(n, background, conflevel)
         conf_interval = np.vstack(conf_interval)
