@@ -92,6 +92,12 @@ class TestLogUnitStrings(object):
         assert repr(lu3) == 'MagUnit("Jy", unit="2 mag")'
         assert lu3.to_string() == '2 mag(Jy)'
 
+        lu4 = u.mag(u.ct)
+        assert lu4.to_string('generic') == 'mag(ct)'
+        assert lu4.to_string('latex') == ('$\\mathrm{mag}$$\\mathrm{\\left( '
+                                          '\\mathrm{ct} \\right)}$')
+
+
 class TestLogUnitConversion(object):
     @pytest.mark.parametrize('lu_unit, physical_unit',
                              itertools.product(lu_units, pu_sample))
