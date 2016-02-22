@@ -855,8 +855,8 @@ def test_unique():
 
     with pytest.raises(ValueError) as e:
         t1_mu = table.unique(t1_m)
-    assert e.value.args[0] == ("Cannot unique masked value key columns, remove "
-                               "column 'a' from keys and rerun unique.")
+    assert e.value.args[0] == ("cannot use masked value key columns, remove "
+                               "column 'a' from keys and rerun")
 
     t1_mu = table.unique(t1_m, silent=True)
     assert t1_mu.pformat() == [' a   b   c   d ',
@@ -867,3 +867,82 @@ def test_unique():
 
     with pytest.raises(ValueError) as e:
         t1_mu = table.unique(t1_m, silent=True, keys='a')
+
+
+def test_remove_duplicate_rows():
+    t = table.Table.read([' a b  c  d',
+                          ' 2 b 7.0 0',
+                          ' 1 c 3.0 5',
+                          ' 2 b 6.0 2',
+                          ' 2 a 4.0 3',
+                          ' 1 a 1.0 7',
+                          ' 2 b 5.0 1',
+                          ' 0 a 0.0 4',
+                          ' 1 a 2.0 6',
+                          ' 1 c 3.0 5',
+                          ], format='ascii')
+
+    tu = table.Table(np.sort(t[:-1]))
+
+    t_all = table.remove_duplicate_rows(t)
+    assert sort_eq(t_all.pformat(), tu.pformat())
+
+    key1 = 'a'
+    t1a = table.remove_duplicate_rows(t, key1)
+    assert sort_eq(t1a.pformat(), [' a   b   c   d ',
+                                   '--- --- --- ---',
+                                   '  0   a 0.0   4',
+                                   '  1   c 3.0   5',
+                                   '  2   b 7.0   0'])
+    t1b = table.remove_duplicate_rows(t, key1, keep='last')
+    assert sort_eq(t1b.pformat(), [' a   b   c   d ',
+                                   '--- --- --- ---',
+                                   '  0   a 0.0   4',
+                                   '  1   c 3.0   5',
+                                   '  2   b 5.0   1'])
+    t1c = table.remove_duplicate_rows(t, key1, keep=False)
+    assert sort_eq(t1c.pformat(), [' a   b   c   d ',
+                                   '--- --- --- ---',
+                                   '  0   a 0.0   4'])
+
+    key2 = ['a', 'b']
+    t2a = table.remove_duplicate_rows(t, key2)
+    assert sort_eq(t2a.pformat(), [' a   b   c   d ',
+                                   '--- --- --- ---',
+                                   '  0   a 0.0   4',
+                                   '  1   a 1.0   7',
+                                   '  1   c 3.0   5',
+                                   '  2   a 4.0   3',
+                                   '  2   b 7.0   0'])
+
+    t2b = table.remove_duplicate_rows(t, key2, keep='last')
+    assert sort_eq(t2b.pformat(), [' a   b   c   d ',
+                                   '--- --- --- ---',
+                                   '  0   a 0.0   4',
+                                   '  1   a 2.0   6',
+                                   '  1   c 3.0   5',
+                                   '  2   a 4.0   3',
+                                   '  2   b 5.0   1'])
+    t2c = table.remove_duplicate_rows(t, key2, keep=False)
+    assert sort_eq(t2c.pformat(), [' a   b   c   d ',
+                                   '--- --- --- ---',
+                                   '  0   a 0.0   4',
+                                   '  2   a 4.0   3'])
+
+    t1_m = table.Table(t1a, masked=True)
+    t1_m['a'].mask[1] = True
+
+    with pytest.raises(ValueError) as exc:
+        t1_mu = table.remove_duplicate_rows(t1_m)
+    assert exc.value.args[0] == ("cannot use masked value key columns, "
+                                 "remove column 'a' from keys and rerun")
+
+    t1_mu = table.remove_duplicate_rows(t1_m, silent=True)
+    assert t1_mu.pformat() == [' a   b   c   d ',
+                               '--- --- --- ---',
+                               '  0   a 0.0   4',
+                               '  2   b 7.0   0',
+                               ' --   c 3.0   5']
+
+    with pytest.raises(ValueError) as e:
+        t1_mu = table.remove_duplicate_rows(t1_m, silent=True, keys='a')

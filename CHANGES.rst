@@ -58,6 +58,9 @@ New Features
     yield tables with an "idx" column, allowing easy identification of the index
     of a row even when the table is re-sorted in the browser. [#4404]
 
+  - New function ``operations.remove_duplicate_rows``, which can delete *all*
+	duplicate rows (in contrast to ``operations.unique``). [#4617]
+
 - ``astropy.tests``
 
 - ``astropy.time``

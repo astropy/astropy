@@ -25,7 +25,7 @@ from ..utils import metadata
 from . import _np_utils
 from .np_utils import fix_column_name, TableMergeError
 
-__all__ = ['join', 'hstack', 'vstack', 'unique']
+__all__ = ['join', 'hstack', 'vstack', 'unique', 'remove_duplicate_rows']
 
 
 def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
@@ -357,27 +357,69 @@ def unique(input_table, keys=None, silent=False):
 
     """
 
+    return remove_duplicate_rows(input_table, keys=keys, silent=silent)
+
+
+def remove_duplicate_rows(input_table, keys=None, keep='first', silent=False):
+    """Remove duplicate rows from a table
+
+    Parameters
+    ----------
+    input_table : `~astropy.table.Table` object or a value that
+        will initialize an `~astropy.table.Table` object
+
+    keys : str or list of str
+        Name(s) of column(s) used to unique rows.
+        Default is to use all columns.
+
+    keep : one of 'first', 'last' or 'none'
+        Whether to keep the first or last row for each set of
+        duplicates. If 'none', all rows in the duplicate set are
+        removed.
+
+    silent : boolean, default `False`
+        If `True` masked value column(s) are silently removed from
+        ``keys``. If `False` an exception is raised when ``keys`` contains
+        masked value column(s).
+
+    Returns
+    -------
+        A copy of the table with duplicate rows removed
+
+    """
+
+    if keep not in ('first', 'last', 'none', False, None):
+        raise ValueError("'keep' should be one of 'first', 'last', 'none'")
+
     if keys is None:
         keys = input_table.colnames
 
     if input_table.masked:
         if isinstance(keys, six.string_types):
-            keys = [keys, ]
-        for i, key in enumerate(keys):
+            keys = [keys]
+        nkeys = 0
+        for i, key in enumerate(keys[:]):
             if np.any(input_table[key].mask):
                 if not silent:
-                    raise ValueError("Cannot unique masked value key columns, "
-                                     "remove column '{0}' from keys and rerun "
-                                     "unique.".format(key))
+                    raise ValueError(
+                        "cannot use masked value key columns, "
+                        "remove column '{0}' from keys and rerun".format(key))
                 del keys[i]
         if len(keys) == 0:
-            raise ValueError("No column remained in ``keys``, unique cannot "
-                             "work with masked value key columns.")
+            raise ValueError("no column remained in ``keys``: "
+                             "cannot work with masked value key columns")
 
     grouped_table = input_table.group_by(keys)
-    unique_table = grouped_table[grouped_table.groups.indices[:-1]]
+    indices = grouped_table.groups.indices
+    if keep == 'first':
+        grouped_table[indices[:-1]]
+        indices = indices[:-1]
+    elif keep == 'last':
+        indices = indices[1:]-1
+    else:
+        indices = indices[:-1][np.diff(indices) == 1]
 
-    return unique_table
+    return grouped_table[indices]
 
 
 def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name}',
