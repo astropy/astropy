@@ -463,8 +463,8 @@ def test_scipy_poisson_limit():
     conf = funcs.poisson_conf_interval([5., 6.], 'kraft-burrows-nousek',
                                        background=[2.5, 2.],
                                        conflevel=[.99, .9])
-    assert_allclose(conf[0, :], (0, 10.67), rtol=1e-3)
-    assert_allclose(conf[1, :], (0.81, 8.99), rtol=5e-3)
+    assert_allclose(conf[:, 0], (0, 10.67), rtol=1e-3)
+    assert_allclose(conf[:, 1], (0.81, 8.99), rtol=5e-3)
 
 
 @pytest.mark.skipif('not HAS_MPMATH')

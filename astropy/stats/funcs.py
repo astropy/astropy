@@ -549,13 +549,14 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0, conflevel
     [Maxwell 2011][maxw11] for further details.
 
     **6. 'kraft-burrows-nousek'** This is a Bayesian appraoch which allows
-    for the presence of a known background in the source signal.
+    for the presence of a known background :math:`B` in the source signal
+    :math:`N`.
     For a given confidence level :math:`CL` the confidence interval
-    :math:`[S_\rm{min}, S_\max{max}]` is given by:
+    :math:`[S_\mathrm{min}, S_\mathrm{max}]` is given by:
 
     .. math::
 
-       CL = \int^{S_\rm{max}}_{S_\rm{min}} f_{N,B}(S)dS
+       CL = \int^{S_\mathrm{max}}_{S_\mathrm{min}} f_{N,B}(S)dS
 
     where the function :math:`f_{N,B}` is:
 
@@ -567,8 +568,8 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0, conflevel
 
     .. math::
 
-       C = \left[ \int_0^\inf \frac{e^{-(S+B)}(S+B)^N}{N!} ds \right]^{-1}
-         = \left( \sum^N_{n=0} \frac{e^{-B}B^n}{n!}  \right)^{-1}
+       C = \left[ \int_0^\infty \frac{e^{-(S+B)}(S+B)^N}{N!} dS \right] ^{-1}
+       = \left( \sum^N_{n=0} \frac{e^{-B}B^n}{n!}  \right)^{-1}
 
     See [KraftBurrowsNousek][kbn1991] for further details.
 
@@ -635,7 +636,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0, conflevel
 
     >>> poisson_conf_interval(10, background=1.5, conflevel=0.95,
     ...                       interval='kraft-burrows-nousek').T
-    array([  3.48,  16.11])   # doctest: +FLOAT_CMP
+    array([  3.47894005], 16.113329533])   # doctest: +FLOAT_CMP
 
     [pois_eb]: http://www-cdf.fnal.gov/physics/statistics/notes/pois_eb.txt
 
@@ -697,7 +698,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0, conflevel
         if background < 0:
             raise ValueError('Background must be >= 1.')
         conf_interval = np.vectorize(_kraft_burrows_nousek, cache=True)(n, background, conflevel)
-        conf_interval = np.vstack(conf_interval).T
+        conf_interval = np.vstack(conf_interval)
     else:
         raise ValueError("Invalid method for Poisson confidence intervals: %s" % interval)
     return conf_interval
