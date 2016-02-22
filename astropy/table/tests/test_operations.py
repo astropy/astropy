@@ -831,32 +831,75 @@ def test_unique():
 
     t_all = table.unique(t)
     assert sort_eq(t_all.pformat(), tu.pformat())
+    t_s = t.copy()
+    del t_s['b', 'c', 'd']
+    t_all = table.unique(t_s)
+    assert sort_eq(t_all.pformat(), [' a ',
+                                     '---',
+                                     '  0',
+                                     '  1',
+                                     '  2'])
 
     key1 = 'a'
-    t1 = table.unique(t, key1)
-    assert sort_eq(t1.pformat(), [' a   b   c   d ',
-                                  '--- --- --- ---',
-                                  '  0   a 0.0   4',
-                                  '  1   c 3.0   5',
-                                  '  2   b 7.0   0'])
+    t1a = table.unique(t, key1)
+    assert sort_eq(t1a.pformat(), [' a   b   c   d ',
+                                   '--- --- --- ---',
+                                   '  0   a 0.0   4',
+                                   '  1   c 3.0   5',
+                                   '  2   b 7.0   0'])
+    t1b = table.unique(t, key1, keep='last')
+    assert sort_eq(t1b.pformat(), [' a   b   c   d ',
+                                   '--- --- --- ---',
+                                   '  0   a 0.0   4',
+                                   '  1   c 3.0   5',
+                                   '  2   b 5.0   1'])
+    t1c = table.unique(t, key1, keep='none')
+    assert sort_eq(t1c.pformat(), [' a   b   c   d ',
+                                   '--- --- --- ---',
+                                   '  0   a 0.0   4'])
 
     key2 = ['a', 'b']
-    t2 = table.unique(t, key2)
-    assert sort_eq(t2.pformat(), [' a   b   c   d ',
-                                  '--- --- --- ---',
-                                  '  0   a 0.0   4',
-                                  '  1   a 1.0   7',
-                                  '  1   c 3.0   5',
-                                  '  2   a 4.0   3',
-                                  '  2   b 7.0   0'])
+    t2a = table.unique(t, key2)
+    assert sort_eq(t2a.pformat(), [' a   b   c   d ',
+                                   '--- --- --- ---',
+                                   '  0   a 0.0   4',
+                                   '  1   a 1.0   7',
+                                   '  1   c 3.0   5',
+                                   '  2   a 4.0   3',
+                                   '  2   b 7.0   0'])
 
-    t1_m = table.Table(t1, masked=True)
+    t2b = table.unique(t, key2, keep='last')
+    assert sort_eq(t2b.pformat(), [' a   b   c   d ',
+                                   '--- --- --- ---',
+                                   '  0   a 0.0   4',
+                                   '  1   a 2.0   6',
+                                   '  1   c 3.0   5',
+                                   '  2   a 4.0   3',
+                                   '  2   b 5.0   1'])
+    t2c = table.unique(t, key2, keep='none')
+    assert sort_eq(t2c.pformat(), [' a   b   c   d ',
+                                   '--- --- --- ---',
+                                   '  0   a 0.0   4',
+                                   '  2   a 4.0   3'])
+
+    key2 = ['a', 'a']
+    with pytest.raises(ValueError) as exc:
+        t2a = table.unique(t, key2)
+    assert exc.value.args[0] == "duplicate key names"
+
+    with pytest.raises(ValueError) as exc:
+        table.unique(t, key2, keep=True)
+    assert exc.value.args[0] == (
+        "'keep' should be one of 'first', 'last', 'none'")
+
+    t1_m = table.Table(t1a, masked=True)
     t1_m['a'].mask[1] = True
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError) as exc:
         t1_mu = table.unique(t1_m)
-    assert e.value.args[0] == ("Cannot unique masked value key columns, remove "
-                               "column 'a' from keys and rerun unique.")
+    assert exc.value.args[0] == (
+        "cannot use columns with masked values as keys; "
+        "remove column 'a' from keys and rerun unique()")
 
     t1_mu = table.unique(t1_m, silent=True)
     assert t1_mu.pformat() == [' a   b   c   d ',
@@ -867,3 +910,16 @@ def test_unique():
 
     with pytest.raises(ValueError) as e:
         t1_mu = table.unique(t1_m, silent=True, keys='a')
+
+    t1_m = table.Table(t, masked=True)
+    t1_m['a'].mask[1] = True
+    t1_m['d'].mask[3] = True
+
+    # Test that multiple masked key columns get removed in the correct
+    # order
+    t1_mu = table.unique(t1_m, keys=['d', 'a', 'b'], silent=True)
+    assert t1_mu.pformat() == [' a   b   c   d ',
+                               '--- --- --- ---',
+                               '  2   a 4.0  --',
+                               '  2   b 7.0   0',
+                               ' --   c 3.0   5']

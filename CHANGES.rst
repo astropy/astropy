@@ -153,6 +153,10 @@ API changes
 
 - ``astropy.table``
 
+  - ``operations.unique`` now has a ``keep`` parameter, which allows
+    one to select whether to keep the first or last row in a set of
+    duplicate rows, or to remove all rows that are duplicates. [#4632]
+
 - ``astropy.tests``
 
 - ``astropy.time``
