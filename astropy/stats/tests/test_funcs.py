@@ -491,6 +491,26 @@ def test_poisson_conf_value_errors():
     assert 'Invalid method' in str(e.value)
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_poisson_conf_kbn_value_errors():
+    with pytest.raises(ValueError) as e:
+        funcs.poisson_conf_interval(5., 'kraft-burrows-nousek',
+                                    background=2.5,
+                                    conflevel=99)
+    assert 'must be number between 0 and 1' in str(e.value)
+
+    with pytest.raises(ValueError) as e:
+        funcs.poisson_conf_interval(5., 'kraft-burrows-nousek',
+                                    background=2.5)
+    assert 'Set conflevel for method' in str(e.value)
+
+    with pytest.raises(ValueError) as e:
+        funcs.poisson_conf_interval(5., 'kraft-burrows-nousek',
+                                    background=-2.5,
+                                    conflevel=99)
+    assert 'Background must be' in str(e.value)
+
+
 @pytest.mark.skipif('HAS_SCIPY or HAS_MPMATH')
 def test_poisson_limit_nodependencies():
     with pytest.raises(ImportError) as e:
