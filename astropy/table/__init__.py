@@ -21,7 +21,8 @@ conf = Conf()
 from .column import Column, MaskedColumn
 from .groups import TableGroups, ColumnGroups
 from .table import Table, QTable, TableColumns, Row, TableFormatter, NdarrayMixin
-from .operations import join, hstack, vstack, unique, TableMergeError
+from .operations import (join, hstack, vstack, unique, remove_duplicate_rows,
+                         TableMergeError)
 from .jsviewer import JSViewer
 from .bst import BST, FastBST, FastRBT
 from .sorted_array import SortedArray
