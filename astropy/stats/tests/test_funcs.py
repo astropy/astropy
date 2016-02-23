@@ -494,4 +494,5 @@ def test_poisson_conf_value_errors():
 @pytest.mark.skipif('HAS_SCIPY or HAS_MPMATH')
 def test_poisson_limit_nodependencies():
     with pytest.raises(ImportError) as e:
-        a = funcs.poisson_conf_interval(20., 10., .95)
+        a = funcs.poisson_conf_interval(20.,  interval='kraft-burrows-nousek',
+                                        background=10., conflevel=.95)

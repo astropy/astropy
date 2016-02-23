@@ -469,9 +469,9 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0, conflevel
         Number of sigma for confidence interval; only supported for
         the 'frequentist-confidence' mode.
     background : float
-        Number of counts exspected from the background; only supported for
+        Number of counts expected from the background; only supported for
         the 'kraft-burrows-nousek' mode. This number is assumed to be determined
-        from a large region so that the uncertaintiy on its value is negligible.
+        from a large region so that the uncertainty on its value is negligible.
     conflevel : float
         Confidence level between 0 and 1; only supported for the
         'kraft-burrows-nousek' mode.
@@ -548,7 +548,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0, conflevel
     distribution (at the point given by the parameter 'sigma'). See
     [Maxwell 2011][maxw11] for further details.
 
-    **6. 'kraft-burrows-nousek'** This is a Bayesian appraoch which allows
+    **6. 'kraft-burrows-nousek'** This is a Bayesian approach which allows
     for the presence of a known background :math:`B` in the source signal
     :math:`N`.
     For a given confidence level :math:`CL` the confidence interval
@@ -572,6 +572,10 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0, conflevel
        = \left( \sum^N_{n=0} \frac{e^{-B}B^n}{n!}  \right)^{-1}
 
     See [KraftBurrowsNousek][kbn1991] for further details.
+
+    These formulas implement a positive, uniform prior.
+    [KraftBurrowsNousek][kbn1991] discuss this choice in more detail and show
+    that the problem is relatively insensitive to the choice of prior.
 
     This functions has an optional dependency: Either scipy or
     `mpmath <http://mpmath.org/>`_  need to be available. (Scipy only works for
@@ -636,7 +640,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0, conflevel
 
     >>> poisson_conf_interval(10, background=1.5, conflevel=0.95,
     ...                       interval='kraft-burrows-nousek').T
-    array([  3.47894005], 16.113329533])   # doctest: +FLOAT_CMP
+    array([  3.47894005, 16.113329533])   # doctest: +FLOAT_CMP
 
     [pois_eb]: http://www-cdf.fnal.gov/physics/statistics/notes/pois_eb.txt
 
@@ -697,7 +701,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0, conflevel
             raise ValueError('Conflevel must be a number between 0 and 1.')
         background = np.asanyarray(background)
         if np.any(background < 0):
-            raise ValueError('Background must be >= 1.')
+            raise ValueError('Background must be >= 0.')
         conf_interval = np.vectorize(_kraft_burrows_nousek, cache=True)(n, background, conflevel)
         conf_interval = np.vstack(conf_interval)
     else:
