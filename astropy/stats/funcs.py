@@ -13,6 +13,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 
+from ..utils.compat import NUMPY_LT_1_7
 from ..extern.six.moves import xrange
 
 
@@ -702,7 +703,10 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0, conflevel
         background = np.asanyarray(background)
         if np.any(background < 0):
             raise ValueError('Background must be >= 0.')
-        conf_interval = np.vectorize(_kraft_burrows_nousek, cache=True)(n, background, conflevel)
+        if NUMPY_LT_1_7:
+            conf_interval = np.vectorize(_kraft_burrows_nousek)(n, background, conflevel)
+        else:
+            conf_interval = np.vectorize(_kraft_burrows_nousek, cache=True)(n, background, conflevel)
         conf_interval = np.vstack(conf_interval)
     else:
         raise ValueError("Invalid method for Poisson confidence intervals: %s" % interval)
