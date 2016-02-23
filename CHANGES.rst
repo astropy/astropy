@@ -308,6 +308,10 @@ New Features
 
 - ``astropy.wcs``
 
+  - The ``astropy.wcs`` module now exposes ``WCSHDO_P*`` constants that can be
+    used to allow more control over output precision when using the ``relax``
+    keyword argument. [#4616]
+
 API Changes
 ^^^^^^^^^^^
 
