@@ -1404,7 +1404,10 @@ class CompImageHDU(BinTableHDU):
             if self._bscale != 1:
                 np.multiply(data, self._bscale, data)
             if self._bzero != 0:
-                data += self._bzero
+                if issubclass(data.dtype.type, np.floating):
+                    data += self._bzero
+                else:
+                    data += int(round(self._bzero))
 
             if zblank is not None:
                 data = np.where(blanks, np.nan, data)
@@ -1768,7 +1771,10 @@ class CompImageHDU(BinTableHDU):
 
         # Do the scaling
         if _zero != 0:
-            self.data += -_zero
+            if issubclass(self.data.dtype.type, np.floating):
+                self.data += -_zero
+            else:
+                self.data += int(round(-_zero))
             self.header['BZERO'] = _zero
         else:
             # Delete from both headers

@@ -992,6 +992,15 @@ class TestImageFunctions(FitsTestCase):
         hdul = fits.HDUList.fromstring(file_data)
         assert np.allclose(hdul[0].data, a)
 
+    def test_set_data(self):
+        """
+        Test data assignment - issue #5087
+        """
+
+        im = fits.ImageHDU()
+        ar = np.arange(12)
+        im.data = ar
+
     def test_scale_bzero_with_int_data(self):
         """
         Regression test for https://github.com/astropy/astropy/issues/4600
@@ -1566,11 +1575,17 @@ class TestCompressedImage(FitsTestCase):
             # technically it isn't invalid either :/
             assert hdul[1]._header.count('ZTENSION') == 2
 
+    def test_scale_bzero_with_compressed_int_data(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/4600
 
-def test_set_data():
-    """
-    Test data assignment - issue #5087
-    """
-    im = fits.ImageHDU()
-    ar = np.arange(12)
-    im.data = ar
+        Identical to test_scale_bzero_with_int_data() but uses a compressed
+        image.
+        """
+
+        a = np.arange(100, 200, dtype=np.int16)
+        hdu = fits.CompImageHDU(data=a.copy())
+        bzero = 99.9
+        hdu.scale('int16', bzero=bzero)
+        a -= int(round(bzero))
+        assert np.allclose(hdu.data, a)
