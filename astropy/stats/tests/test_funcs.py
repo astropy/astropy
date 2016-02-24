@@ -497,7 +497,7 @@ def test_poisson_conf_kbn_value_errors():
         funcs.poisson_conf_interval(5., 'kraft-burrows-nousek',
                                     background=2.5,
                                     conflevel=99)
-    assert 'must be number between 0 and 1' in str(e.value)
+    assert 'number between 0 and 1' in str(e.value)
 
     with pytest.raises(ValueError) as e:
         funcs.poisson_conf_interval(5., 'kraft-burrows-nousek',
@@ -507,7 +507,7 @@ def test_poisson_conf_kbn_value_errors():
     with pytest.raises(ValueError) as e:
         funcs.poisson_conf_interval(5., 'kraft-burrows-nousek',
                                     background=-2.5,
-                                    conflevel=99)
+                                    conflevel=.99)
     assert 'Background must be' in str(e.value)
 
 
