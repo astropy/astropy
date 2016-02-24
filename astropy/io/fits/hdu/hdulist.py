@@ -521,12 +521,7 @@ class HDUList(list, _Verify):
         nfound = 0
         found = None
         for idx, hdu in enumerate(self):
-            name = hdu.name
-            if isinstance(name, string_types):
-                name = name.strip().upper()
-            # 'PRIMARY' should always work as a reference to the first HDU
-            if ((name == _key or (_key == 'PRIMARY' and idx == 0)) and
-                (_ver is None or _ver == hdu.ver)):
+            if self._ext_equal((_key, _ver), hdu, idx):
                 found = idx
                 nfound += 1
 
@@ -787,6 +782,22 @@ class HDUList(list, _Verify):
         return None
 
     @classmethod
+    def _ext_equal(self, ext, hdu, idx):
+        if _is_int(ext):
+            return ext == idx
+        # it has to be a tuple now
+        extname, extver = ext
+        if extname is None:
+            return False
+        extname = extname.upper()
+        hduname = hdu.name
+        if isinstance(hduname, string_types):
+            hduname = hduname.strip().upper()
+        # 'PRIMARY' should always work as a reference to the first HDU
+        return ((hduname == extname or (extname == 'PRIMARY' and idx == 0)) and
+                (extver is None or extver == hdu.ver))
+
+    @classmethod
     def _readfrom(cls, fileobj=None, data=None, mode=None,
                   memmap=None, save_backup=False, cache=True, **kwargs):
         """
@@ -820,6 +831,9 @@ class HDUList(list, _Verify):
 
         saved_compression_enabled = compressed.COMPRESSION_ENABLED
 
+        # (extname, extver) tuple
+        ext = kwargs.pop("ext", None)
+        idx = 0
         try:
             if ('disable_image_compression' in kwargs and
                 kwargs['disable_image_compression']):
@@ -863,6 +877,10 @@ class HDUList(list, _Verify):
                         (len(hdulist), indent(str(exc))), VerifyWarning)
                     del exc
                     break
+
+                if ext is not None and HDUList._ext_equal(ext, hdu, idx):
+                    break
+                idx += 1
 
             # If we're trying to read only and no header units were found,
             # raise and exception

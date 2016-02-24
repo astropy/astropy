@@ -188,6 +188,7 @@ def getdata(filename, *args, **kwargs):
     data = hdu.data
     if data is None and extidx == 0:
         try:
+            hdulist, extidx = _getext(filename, mode, ext=1, *args, **kwargs)
             hdu = hdulist[1]
             data = hdu.data
         except IndexError:
@@ -753,7 +754,7 @@ def _getext(filename, mode, *args, **kwargs):
     elif extver and extname is None:
         raise TypeError('extver alone cannot specify an extension.')
 
-    hdulist = fitsopen(filename, mode=mode, **kwargs)
+    hdulist = fitsopen(filename, mode=mode, ext=ext, **kwargs)
 
     return hdulist, ext
 
