@@ -28,6 +28,12 @@ from .. import config as _config
 from ..utils.exceptions import AstropyWarning
 from ..utils.introspection import find_current_module, resolve_name
 
+try:
+    import pathlib
+except ImportError:
+    HAS_PATHLIB = False
+else:
+    HAS_PATHLIB = True
 
 __all__ = [
     'Conf', 'conf', 'get_readable_fileobj', 'get_file_contents',
@@ -168,12 +174,8 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     # function to close it: doing so could result in a "double close"
     # and an "invalid file descriptor" exception.
     PATH_TYPES = six.string_types
-    try:
-        from pathlib import Path
-    except:
-        pass
-    else:
-        PATH_TYPES += (Path,)
+    if HAS_PATHLIB:
+        PATH_TYPES += (pathlib.Path,)
 
     close_fds = []
     delete_fds = []
@@ -184,8 +186,8 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
 
     # Get a file object to the content
     if isinstance(name_or_obj, PATH_TYPES):
-        # name_or_obj could be a Path object in Python 3
-        if six.PY3:
+        # name_or_obj could be a Path object if pathlib is available
+        if HAS_PATHLIB:
             name_or_obj = str(name_or_obj)
 
         is_url = _is_url(name_or_obj)

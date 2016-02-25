@@ -19,7 +19,7 @@ from numpy import memmap as Memmap
 from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
                    fileobj_closed, fileobj_mode, _array_from_file,
                    _array_to_file, _write_string)
-from ...extern.six import b, string_types, PY3
+from ...extern.six import b, string_types
 from ...utils.data import download_file, _is_url
 from ...utils.decorators import classproperty
 from ...utils.exceptions import AstropyUserWarning
@@ -75,7 +75,7 @@ PKZIP_MAGIC = b('\x50\x4b\x03\x04')
 BZIP2_MAGIC = b('\x42\x5a')
 
 try:
-    from pathlib import Path
+    import pathlib
 except:
     HAS_PATHLIB = False
 else:
@@ -105,7 +105,7 @@ class _File(object):
         else:
             self.simulateonly = False
             # If fileobj is of type pathlib.Path
-            if PY3 and HAS_PATHLIB and isinstance(fileobj, Path):
+            if HAS_PATHLIB and isinstance(fileobj, pathlib.Path):
                 fileobj = str(fileobj)
 
         # Holds mmap instance for files that use mmap

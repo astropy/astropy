@@ -789,13 +789,20 @@ def test_build_from_scratch(tmpdir):
                                            (str('matrix'), str('?'), (2, 2))]))
 
 
-def test_validate():
+def test_validate(test_path_object=False):
+    """
+    test_path_object is needed for test below ``test_validate_path_object``
+    so that file could be passed as pathlib.Path object.
+    """
     output = io.StringIO()
+    fpath = get_pkg_data_filename('data/regression.xml')
+    if test_path_object:
+        fpath = pathlib.Path(fpath)
 
     # We can't test xmllint, because we can't rely on it being on the
     # user's machine.
     with catch_warnings():
-        result = validate(get_pkg_data_filename('data/regression.xml'),
+        result = validate(fpath,
                           output, xmllint=False)
 
     assert result == False
@@ -831,39 +838,8 @@ def test_validate():
 def test_validate_path_object():
     """
     Validating when source is passed as path object. (#4412)
-    Creating different method from ``test_validate`` so that it could be
-    skipped if ``pathlib`` isnt available without affecting ``test_validate``
     """
-    output = io.StringIO()
-    fpath = pathlib.Path(get_pkg_data_filename('data/regression.xml'))
-
-    with catch_warnings():
-        result = validate(fpath,
-                          output, xmllint=False)
-
-    assert result == False
-
-    output.seek(0)
-    output = output.readlines()
-
-    with io.open(
-        get_pkg_data_filename('data/validation.txt'),
-        'rt', encoding='utf-8') as fd:
-        truth = fd.readlines()
-
-    truth = truth[1:]
-    output = output[1:-1]
-
-    for line in difflib.unified_diff(truth, output):
-        if six.PY3:
-            sys.stdout.write(
-                line.replace('\\n', '\n'))
-        else:
-            sys.stdout.write(
-                line.encode('unicode_escape').
-                replace('\\n', '\n'))
-
-    assert truth == output
+    test_validate(test_path_object=True)
 
 
 def test_gzip_filehandles(tmpdir):
