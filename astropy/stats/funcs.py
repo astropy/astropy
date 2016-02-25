@@ -1218,7 +1218,7 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
     CL = mpf(CL)
 
     def eqn8(N, B):
-        sumterms = [power(B, n) / factorial(n) for n in range(N + 1)]
+        sumterms = [power(B, n) / factorial(n) for n in range(int(N) + 1)]
         return 1./ (exp(-B) * fsum(sumterms))
 
     def eqn7(S, N, B):
