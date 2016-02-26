@@ -338,6 +338,17 @@ class TestColumn():
         with pytest.raises(ValueError):
             c1 = c.insert(1, [100, 200], mask=[True, False, True])
 
+    def test_mask_on_non_masked_table(self):
+        """
+        When table is not masked and trying to set mask on column then
+        it's Raise AttributeError.
+        """
+
+        t = table.Table([[1, 2], [3, 4]], names=('a', 'b'), dtype=('i4', 'f8'))
+
+        with pytest.raises(AttributeError):
+            t['a'].mask = [True, False]
+
 
 class TestAttrEqual():
     """Bunch of tests originally from ATpy that test the attrs_equal method."""

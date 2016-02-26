@@ -706,6 +706,11 @@ class Column(BaseColumn):
                                           copy=copy, copy_indices=copy_indices)
         return self
 
+    def __setattr__(self, item, value):
+        if not isinstance(self, MaskedColumn) and item == "mask":
+            raise AttributeError("cannot set mask value to a column in non-masked Table")
+        return super(Column, self).__setattr__(item, value)
+
     def _base_repr_(self, html=False):
         # If scalar then just convert to correct numpy type and use numpy repr
         if self.ndim == 0:
