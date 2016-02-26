@@ -129,6 +129,11 @@ class _ImageBaseHDU(_ValidHDU):
         self._orig_bzero = self._bzero
         self._orig_bscale = self._bscale
 
+        # If BZERO is consistent with being an integer, explicitly set it to
+        # integer type so that in-place operations on integer data arrays work
+        if self._bzero == int(self._bzero):
+            self._bzero = int(self._bzero)
+
         # Set the name attribute if it was provided (if this is an ImageHDU
         # this will result in setting the EXTNAME keyword of the header as
         # well)
@@ -483,6 +488,9 @@ class _ImageBaseHDU(_ValidHDU):
             type = BITPIX2DTYPE[self._bitpix]
         _type = getattr(np, type)
 
+        if bzero == int(bzero):
+            bzero = int(bzero)
+
         # Determine how to scale the data
         # bscale and bzero takes priority
         if (bscale != 1 or bzero != 0):
@@ -555,6 +563,12 @@ class _ImageBaseHDU(_ValidHDU):
         self._orig_bzero = self._bzero
         self._orig_bscale = self._bscale
         self._orig_blank = self._blank
+
+        # If BZERO is consistent with being an integer, explicitly set it to
+        # integer type so that in-place operations on integer data arrays work
+        if self._bzero == int(self._bzero):
+            self._bzero = int(self._bzero)
+
 
     def _verify(self, option='warn'):
         # update_header can fix some things that would otherwise cause
