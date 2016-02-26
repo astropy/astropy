@@ -19,6 +19,7 @@ from .test_table import comparerecords
 
 from . import FitsTestCase
 
+NUMPY_LT_1P10 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 10]
 
 class TestImageFunctions(FitsTestCase):
     def test_constructor_name_arg(self):
@@ -1010,7 +1011,8 @@ class TestImageFunctions(FitsTestCase):
 
         hdu0 = fits.PrimaryHDU(data=a.copy())
         # Ensure this behaviour is preserved
-        pytest.raises(TypeError, hdu0.scale, 'int16', bzero=99.9)
+        if not NUMPY_LT_1P10:
+            pytest.raises(TypeError, hdu0.scale, 'int16', bzero=99.9)
 
         hdu1 = fits.PrimaryHDU(data=a.copy())
         hdu2 = fits.PrimaryHDU(data=a.copy())
@@ -1595,7 +1597,8 @@ class TestCompressedImage(FitsTestCase):
 
         hdu0 = fits.CompImageHDU(data=a.copy())
         # Ensure this behaviour is preserved
-        pytest.raises(TypeError, hdu0.scale, 'int16', bzero=99.9)
+        if not NUMPY_LT_1P10:
+            pytest.raises(TypeError, hdu0.scale, 'int16', bzero=99.9)
 
         hdu1 = fits.CompImageHDU(data=a.copy())
         hdu2 = fits.CompImageHDU(data=a.copy())
