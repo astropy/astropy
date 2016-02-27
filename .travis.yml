@@ -88,6 +88,10 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=dev SETUP_CMD='test'
 
+        # Try pre-release version of Numpy without optional dependencies
+        - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=prerelease SETUP_CMD='test'
+
         # Do a PEP8 test
         - os: linux
           env: PYTHON_VERSION=2.7 MAIN_CMD='pep8 astropy --count' SETUP_CMD=''
