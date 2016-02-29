@@ -20,11 +20,17 @@ New Features
 
 - ``astropy.io.ascii``
 
+  - File name could be passed as ``Path`` object. [#4606]
+
 - ``astropy.io.fits``
+
+  - File name could be passed as ``Path`` object. [#4606]
 
 - ``astropy.io.misc``
 
 - ``astropy.io.votable``
+
+  - File name could be passed as ``Path`` object. [#4606]
 
 - ``astropy.logger.py``
 
@@ -71,6 +77,8 @@ New Features
     deprecated in 0.3.1, has been removed. [#4449]
 
 - ``astropy.utils``
+
+  - ``Path`` object could be passed to ``get_readable_fileobj``. [#4606]
 
   - Implemented a generic and extensible way of merging metadata. [#4459]
 
