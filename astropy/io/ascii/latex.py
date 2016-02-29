@@ -383,7 +383,9 @@ class AASTexData(LatexData):
         # To remove extra space(s) and // appended which creates an extra new line
         # in the end.
         if len(lines) > lines_length_initial:
-            lines[-1] = re.sub(r'\s* \\ \\ \s* $', '', lines[-1], flags=re.VERBOSE)
+            # we compile separately because py2.6 doesn't have a flags keyword in re.sub
+            re_final_line = re.compile(r'\s* \\ \\ \s* $', flags=re.VERBOSE)
+            lines[-1] = re.sub(re_final_line, '', lines[-1])
         lines.append(self.data_end)
         add_dictval_to_list(self.latex, 'tablefoot', lines)
         lines.append(r'\end{' + self.latex['tabletype'] + r'}')
