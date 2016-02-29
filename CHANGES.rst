@@ -417,7 +417,7 @@ Bug Fixes
 
   - Fixed latex representation of function units. [#4563]
 
-  - The `zest.releaser` hooks included in Astropy are now  entirely local to
+  - The ``zest.releaser`` hooks included in Astropy are now  entirely local to
     Astropy, rather than one of them being global. [#4650]
 
 - ``astropy.visualization``
@@ -1199,7 +1199,7 @@ Bug Fixes
 
 - ``astropy.utils``
 
-  - The `zest.releaser` hooks included in Astropy are now  entirely local to
+  - The ``zest.releaser`` hooks included in Astropy are now  entirely local to
     Astropy, rather than one of them being global. [#4650]
 
 - ``astropy.vo``
