@@ -74,7 +74,6 @@ else:
 from ..extern import six
 from ..extern.six.moves import range
 from .. import conf
-from .. import units as u
 
 from .misc import isiterable
 
@@ -439,6 +438,7 @@ def human_file_size(size):
         A human-friendly representation of the size of the file
     """
     if hasattr(size, 'unit'):
+        from .. import units as u
         size = size.to(u.byte).value
 
     suffixes = ' kMGTPEZY'
