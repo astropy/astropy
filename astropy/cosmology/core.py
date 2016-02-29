@@ -1322,6 +1322,8 @@ class FLRW(Cosmology):
         if Ok0 < 0:
             raise CosmologyError('Ok0 must be >= 0 to use this method.')
 
+        z1 = np.asanyarray(z1)
+        z2 = np.asanyarray(z2)
         try:
             any_z1_gt_z2 = np.any(z1 > z2)
         except ValueError:
