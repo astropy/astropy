@@ -257,6 +257,9 @@ def postreleaser_middle(data):
     prereleaser_middle for more details.
     """
 
+    if data['name'] != 'astropy':
+        return
+
     _update_setup_py_version(data['dev_version'])
 
 
