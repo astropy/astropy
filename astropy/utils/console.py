@@ -438,6 +438,8 @@ def human_file_size(size):
         A human-friendly representation of the size of the file
     """
     if hasattr(size, 'unit'):
+        # Import units only if necessary because the import takes a
+        # significant time [#4649]
         from .. import units as u
         size = size.to(u.byte).value
 
