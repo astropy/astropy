@@ -14,7 +14,6 @@ from . import config as _config
 from . import conf as _conf
 from .extern.six import PY3, text_type
 from .utils import find_current_module
-from .utils.console import color_print
 from .utils.exceptions import AstropyWarning, AstropyUserWarning
 
 __all__ = ['Conf', 'conf', 'log', 'AstropyLogger', 'LoggingError']
@@ -550,14 +549,16 @@ class StreamHandler(logging.StreamHandler):
 
         if record.levelno < logging.DEBUG or not _conf.use_color:
             print(record.levelname, end='', file=stream)
-        elif(record.levelno < logging.INFO):
-            color_print(record.levelname, 'magenta', end='', file=stream)
-        elif(record.levelno < logging.WARN):
-            color_print(record.levelname, 'green', end='', file=stream)
-        elif(record.levelno < logging.ERROR):
-            color_print(record.levelname, 'brown', end='', file=stream)
         else:
-            color_print(record.levelname, 'red', end='', file=stream)
+            from .utils.console import color_print
+            if record.levelno < logging.INFO:
+                color_print(record.levelname, 'magenta', end='', file=stream)
+            elif record.levelno < logging.WARN:
+                color_print(record.levelname, 'green', end='', file=stream)
+            elif record.levelno < logging.ERROR:
+                color_print(record.levelname, 'brown', end='', file=stream)
+            else:
+                color_print(record.levelname, 'red', end='', file=stream)
         record.message = "{0} [{1:s}]".format(record.msg, record.origin)
         print(": " + record.message, file=stream)
 
