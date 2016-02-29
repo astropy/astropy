@@ -2274,6 +2274,17 @@ class Table(object):
             index.reverse()
 
     @classmethod
+    def read_excel(cls, *args, **kwargs):
+        """
+        Read a excel sheet and return as a Table. 
+        """
+        import pandas 
+        if len(args):
+            data = pandas.read_excel(args[0])
+            tab = Table.from_pandas(data)
+        return tab
+    
+    @classmethod
     def read(cls, *args, **kwargs):
         """
         Read and parse a data table and return as a Table.
