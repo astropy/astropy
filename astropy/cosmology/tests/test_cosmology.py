@@ -1113,6 +1113,16 @@ def test_angular_diameter_distance_z1z2():
     assert allclose(tcos.angular_diameter_distance_z1z2(z1, z2),
                     results)
 
+    z1 = 0.1
+    z2 = 0.1, 0.2, 0.5, 1.1, 2
+    results = (0.,
+               332.09893173,
+               986.35635069,
+               1508.37010062,
+               1621.07937976) * u.Mpc
+    assert allclose(tcos.angular_diameter_distance_z1z2(0.1, z2),
+                    results)
+
     # Non-flat (positive Ocurv) test
     tcos = core.LambdaCDM(H0=70.4, Om0=0.2, Ode0=0.5, Tcmb0=0.0)
     assert allclose(tcos.angular_diameter_distance_z1z2(1, 2),
