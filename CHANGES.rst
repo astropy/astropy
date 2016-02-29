@@ -260,6 +260,7 @@ Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Python 2.6 is no longer supported. [#4486]
+- Reduce Astropy's import time (``import astropy``) by almost a factor 2. [#4649]
 
 
 1.1.2 (unreleased)
