@@ -141,4 +141,4 @@ azimuth::
     plt.ylabel('Altitude [deg]')
 
 Now you're fully-equipped with the tools you need to plan your next
-observing run... Or have have a proper vacation.  You decide!
+observing run... Or have a proper vacation.  You decide!
