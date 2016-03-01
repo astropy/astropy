@@ -219,6 +219,8 @@ Bug fixes
 - ``astropy.logger.py``
 
 - ``astropy.modeling``
+  - Fix a bug to allow instantiation of a modeling class having a parameter
+    with a custom setter that takes two parameters ``(value, model)`` [#4586]
 
 - ``astropy.nddata``
 
