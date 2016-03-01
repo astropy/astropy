@@ -1305,6 +1305,9 @@ class FLRW(Cosmology):
 
         Raises
         ------
+        ValueError
+          If z2 is less than z1 or if z1 and z2 are arrays of different
+          size
         CosmologyError
           If omega_k is < 0.
 
@@ -1319,18 +1322,14 @@ class FLRW(Cosmology):
         if Ok0 < 0:
             raise CosmologyError('Ok0 must be >= 0 to use this method.')
 
-        outscalar = False
-        if not isiterable(z1) and not isiterable(z2):
-            outscalar = True
-
-        z1 = np.atleast_1d(z1)
-        z2 = np.atleast_1d(z2)
-
-        if z1.size != z2.size:
-            raise ValueError('z1 and z2 must be the same size.')
-
-        if (z1 > z2).any():
-            raise ValueError('z2 must greater than z1')
+        z1 = np.asanyarray(z1)
+        z2 = np.asanyarray(z2)
+        try:
+            any_z1_gt_z2 = np.any(z1 > z2)
+        except ValueError:
+            raise ValueError('z1 and z2 must have compatible shape')
+        if any_z1_gt_z2:
+            raise ValueError('z2 must be greater than z1')
 
         dm1 = self.comoving_transverse_distance(z1).value
         dm2 = self.comoving_transverse_distance(z2).value
@@ -1343,9 +1342,6 @@ class FLRW(Cosmology):
             out = ((dm2 * np.sqrt(1. + Ok0 * dm1 ** 2 / dh_2) -
                     dm1 * np.sqrt(1. + Ok0 * dm2 ** 2 / dh_2)) /
                    (1. + z2))
-
-        if outscalar:
-            return u.Quantity(out[0], u.Mpc)
 
         return u.Quantity(out, u.Mpc)
 
