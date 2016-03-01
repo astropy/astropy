@@ -94,8 +94,8 @@ azimuth::
 
     >>> plt.plot(delta_midnight, sunaltazs.alt, color='y', label='Sun')  # doctest: +SKIP
     >>> plt.scatter(delta_midnight, m33altazs.alt, c=m33altazs.az, label='M33', lw=0, s=8)  # doctest: +REMOTE_DATA +SKIP
-    >>> plt.fill_between(delta_midnight, 0, 90, sunaltazs.alt < -0*u.deg, color='0.5', zorder=0)  # doctest: +SKIP
-    >>> plt.fill_between(delta_midnight, 0, 90, sunaltazs.alt < -18*u.deg, color='k', zorder=0)  # doctest: +SKIP
+    >>> plt.fill_between(delta_midnight.to('hr').value, 0, 90, sunaltazs.alt < -0*u.deg, color='0.5', zorder=0)  # doctest: +SKIP
+    >>> plt.fill_between(delta_midnight.to('hr').value, 0, 90, sunaltazs.alt < -18*u.deg, color='k', zorder=0)  # doctest: +SKIP
     >>> plt.colorbar().set_label('Azimuth [deg]')  # doctest: +SKIP
     >>> plt.legend(loc='upper left')
     >>> plt.xlim(-12, 12)  # doctest: +SKIP
