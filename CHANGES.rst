@@ -104,6 +104,9 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Made TFORMx keyword check more flexible in test of compressed images to
+    enable copatibility of the test with cfitsio 3.380. [#4646]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``

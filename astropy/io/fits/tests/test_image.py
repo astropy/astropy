@@ -4,6 +4,7 @@ from __future__ import division, with_statement
 
 import math
 import os
+import re
 import time
 import warnings
 
@@ -1265,8 +1266,8 @@ class TestCompressedImage(FitsTestCase):
 
         with fits.open(self.temp('test.fits'),
                        disable_image_compression=True) as h:
-            assert h[1].header['TFORM1'] == '1PB(30)'
-            assert h[1].header['TFORM2'] == '1PB(359)'
+            assert re.match(r'^1PB\(\d+\)$', h[1].header['TFORM1'])
+            assert re.match(r'^1PB\(\d+\)$', h[1].header['TFORM2'])
 
     def test_compression_update_header(self):
         """Regression test for
