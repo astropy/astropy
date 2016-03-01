@@ -470,6 +470,17 @@ def test_write_comments(fast_writer):
     assert out.getvalue().splitlines() == expected
 
 @pytest.mark.parametrize("fast_writer", [True, False])
+@pytest.mark.parametrize("fmt", ['%0.1f', '.1f', '0.1f', '{:0.1f}'])
+def test_write_format(fast_writer, fmt):
+    """Check different formats for a column."""
+    data = ascii.read('#c1\n  # c2\t\na,b,c\n#  c3\n1.11,2.22,3.33')
+    out = StringIO()
+    expected = ['# c1', '# c2', '# c3', 'a b c', '1.1 2.22 3.33']
+    data['a'].format = fmt
+    ascii.write(data, out, format='basic', fast_writer=fast_writer)
+    assert out.getvalue().splitlines() == expected
+
+@pytest.mark.parametrize("fast_writer", [True, False])
 def test_strip_names(fast_writer):
     """Names should be stripped of whitespace by default."""
     data = table.Table([[1], [2], [3]], names=(' A', 'B ', ' C '))
