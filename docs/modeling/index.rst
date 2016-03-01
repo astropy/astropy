@@ -104,6 +104,7 @@ and `~astropy.modeling.functional_models.Trapezoid1D` models and the
    :include-source:
 
     import numpy as np
+    import matplotlib.pyplot as plt
     from astropy.modeling import models, fitting
 
     # Generate fake data
@@ -148,6 +149,7 @@ background in an image.
 
     import warnings
     import numpy as np
+    import matplotlib.pyplot as plt
     from astropy.modeling import models, fitting
 
     # Generate fake data
@@ -288,6 +290,7 @@ These new compound models can also be fitted to data, like most other models:
     :include-source:
 
     import numpy as np
+    import matplotlib.pyplot as plt
     from astropy.modeling import models, fitting
 
     # Generate fake data
