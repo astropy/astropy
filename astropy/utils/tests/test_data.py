@@ -42,6 +42,13 @@ except ImportError:
 else:
     HAS_XZ = True
 
+try:
+    import pathlib
+except ImportError:
+    HAS_PATHLIB = False
+else:
+    HAS_PATHLIB = True
+
 @remote_data
 def test_download_nocache():
     from ..data import download_file
@@ -396,3 +403,9 @@ def test_get_readable_fileobj_cleans_up_temporary_files(tmpdir, monkeypatch):
     # Assert that the temporary file was empty after get_readable_fileobj()
     # context manager finished running
     assert len(tempdir_listing) == 0
+
+@pytest.mark.skipif('not HAS_PATHLIB')
+def test_path_objects_get_readable_fileobj():
+    fpath = pathlib.Path(get_pkg_data_filename(os.path.join('data', 'local.dat')))
+    with get_readable_fileobj(fpath) as f:
+        assert f.read().rstrip() == 'This file is used in the test_local_data_* testing functions\nCONTENT'

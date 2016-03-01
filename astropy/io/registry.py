@@ -26,11 +26,12 @@ _identifiers = OrderedDict()
 
 PATH_TYPES = six.string_types
 try:
-    from pathlib import Path
+    import pathlib
 except:
-    pass
+    HAS_PATHLIB = False
 else:
-    PATH_TYPES += (Path,)
+    HAS_PATHLIB = True
+    PATH_TYPES += (pathlib.Path,)
 
 
 def get_formats(data_class=None):
@@ -321,9 +322,9 @@ def read(cls, *args, **kwargs):
             if len(args):
                 if isinstance(args[0], PATH_TYPES):
                     from ..utils.data import get_readable_fileobj
-                    # For Py3 the path might be a pathlib.Path object, so coerce
-                    # to a regular string.
-                    if six.PY3:
+                    # path might be a pathlib.Path object if HAS_PATHLIB,
+                    # so coerce to a regular string.
+                    if HAS_PATHLIB and isinstance(args[0], pathlib.Path):
                         args = (str(args[0]),) + args[1:]
                     path = args[0]
                     try:
@@ -379,9 +380,9 @@ def write(data, *args, **kwargs):
         fileobj = None
         if len(args):
             if isinstance(args[0], PATH_TYPES):
-                # For Py3 the path might be a pathlib.Path object, so coerce
-                # to a regular string.
-                if six.PY3:
+                # path might be a pathlib.Path object if HAS_PATHLIB,
+                # so coerce to a regular string.
+                if HAS_PATHLIB and isinstance(args[0], pathlib.Path):
                     args = (str(args[0]),) + args[1:]
                 path = args[0]
                 fileobj = None
