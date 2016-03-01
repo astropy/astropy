@@ -68,6 +68,8 @@ New Features
     yield tables with an "idx" column, allowing easy identification of the index
     of a row even when the table is re-sorted in the browser. [#4404]
 
+  - Added ``AttributeError`` when trying to set mask on non-masked table. [#3505]
+
 - ``astropy.tests``
 
 - ``astropy.time``
