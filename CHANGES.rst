@@ -1071,6 +1071,7 @@ Bug Fixes
 
   - Fixed reading of Latex tables where the ``\tabular`` tag is in the first
     line. [#4595]
+  - Fix use of plain format strings with the fast writer. [#4517]
 
 - ``astropy.io.fits``
 
