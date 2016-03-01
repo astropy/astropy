@@ -43,11 +43,11 @@ measure of telescope observing conditions::
 .. doctest-requires:: matplotlib
 
     >>> import matplotlib.pyplot as plt
-    >>> plt.plot(delta_midnight, m33altazs.secz)  # doctest: +REMOTE_DATA +SKIP
-    >>> plt.xlim(-2, 7)  # doctest: +SKIP
-    >>> plt.ylim(1, 4)  # doctest: +SKIP
-    >>> plt.xlabel('Hours from EDT Midnight')  # doctest: +SKIP
-    >>> plt.ylabel('Airmass [Sec(z)]')  # doctest: +SKIP
+    >>> plt.plot(delta_midnight, m33altazs.secz)  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    >>> plt.xlim(-2, 7)  # doctest: +IGNORE_OUTPUT
+    >>> plt.ylim(1, 4)  # doctest: +IGNORE_OUTPUT
+    >>> plt.xlabel('Hours from EDT Midnight')  # doctest: +IGNORE_OUTPUT
+    >>> plt.ylabel('Airmass [Sec(z)]')  # doctest: +IGNORE_OUTPUT
 
 
 .. plot::
@@ -92,17 +92,17 @@ azimuth::
 
 .. doctest-requires:: matplotlib
 
-    >>> plt.plot(delta_midnight, sunaltazs.alt, color='y', label='Sun')  # doctest: +SKIP
-    >>> plt.scatter(delta_midnight, m33altazs.alt, c=m33altazs.az, label='M33', lw=0, s=8)  # doctest: +REMOTE_DATA +SKIP
-    >>> plt.fill_between(delta_midnight.to('hr').value, 0, 90, sunaltazs.alt < -0*u.deg, color='0.5', zorder=0)  # doctest: +SKIP
-    >>> plt.fill_between(delta_midnight.to('hr').value, 0, 90, sunaltazs.alt < -18*u.deg, color='k', zorder=0)  # doctest: +SKIP
-    >>> plt.colorbar().set_label('Azimuth [deg]')  # doctest: +SKIP
-    >>> plt.legend(loc='upper left')
-    >>> plt.xlim(-12, 12)  # doctest: +SKIP
-    >>> plt.xticks(np.arange(13)*2 -12)  # doctest: +SKIP
-    >>> plt.ylim(0, 90)  # doctest: +SKIP
-    >>> plt.xlabel('Hours from EDT Midnight')  # doctest: +SKIP
-    >>> plt.ylabel('Altitude [deg]')  # doctest: +SKIP
+    >>> plt.plot(delta_midnight, sunaltazs.alt, color='y', label='Sun')  # doctest: +IGNORE_OUTPUT
+    >>> plt.scatter(delta_midnight, m33altazs.alt, c=m33altazs.az, label='M33', lw=0, s=8)  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    >>> plt.fill_between(delta_midnight.to('hr').value, 0, 90, sunaltazs.alt < -0*u.deg, color='0.5', zorder=0)  # doctest: +IGNORE_OUTPUT
+    >>> plt.fill_between(delta_midnight.to('hr').value, 0, 90, sunaltazs.alt < -18*u.deg, color='k', zorder=0)  # doctest: +IGNORE_OUTPUT
+    >>> plt.colorbar().set_label('Azimuth [deg]')  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    >>> plt.legend(loc='upper left')  # doctest: +IGNORE_OUTPUT
+    >>> plt.xlim(-12, 12)  # doctest: +IGNORE_OUTPUT
+    >>> plt.xticks(np.arange(13)*2 -12)  # doctest: +IGNORE_OUTPUT
+    >>> plt.ylim(0, 90)  # doctest: +IGNORE_OUTPUT
+    >>> plt.xlabel('Hours from EDT Midnight')  # doctest: +IGNORE_OUTPUT
+    >>> plt.ylabel('Altitude [deg]')  # doctest: +IGNORE_OUTPUT
 
 
 .. plot::
