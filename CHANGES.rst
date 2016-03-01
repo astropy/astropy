@@ -635,7 +635,7 @@ New Features
     ``Magnitude``, ``Decibel``, and ``Dex``. [#1894]
 
   - Quantities now work with the unit support in matplotlib.  See
-    :ref:`plotting-quantities`. [#3981]
+    `plotting-quantities <http://docs.astropy.org/en/v1.1/units/quantity.html#plotting-quantities>`_. [#3981]
 
 - ``astropy.utils``
 
@@ -991,7 +991,7 @@ New Features
 
 - ``astropy.nddata``
 
- - ``NDArithmeticMixin`` check for matching WCS now works with 
+ - ``NDArithmeticMixin`` check for matching WCS now works with
     ``astropy.wcs.WCS`` objects [#4499]
 
 - ``astropy.stats``
