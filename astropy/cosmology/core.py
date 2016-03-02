@@ -1308,19 +1308,7 @@ class FLRW(Cosmology):
         ValueError
           If z2 is less than z1 or if z1 and z2 are arrays of different
           size
-        CosmologyError
-          If omega_k is < 0.
-
-        Notes
-        -----
-        This method only works for flat or open curvature
-        (omega_k >= 0).
         """
-
-        # does not work for negative curvature
-        Ok0 = self._Ok0
-        if Ok0 < 0:
-            raise CosmologyError('Ok0 must be >= 0 to use this method.')
 
         z1 = np.asanyarray(z1)
         z2 = np.asanyarray(z2)
@@ -1335,6 +1323,7 @@ class FLRW(Cosmology):
         dm2 = self.comoving_transverse_distance(z2).value
         dh_2 = self._hubble_distance.value ** 2
 
+        Ok0 = self._Ok0
         if Ok0 == 0:
             # Common case worth checking
             out = (dm2 - dm1) / (1. + z2)
