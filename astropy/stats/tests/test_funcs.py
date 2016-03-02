@@ -20,6 +20,7 @@ from ...tests.helper import pytest
 
 from .. import funcs
 from ...utils.misc import NumpyRNGContext
+from ... import units as u
 
 
 def test_median_absolute_deviation():
@@ -70,6 +71,10 @@ def test_median_absolute_deviation_masked():
     # but one can still compare it without np.all!
     array = np.ma.array([1, 4, 3], mask=[0, 1, 0])
     assert funcs.median_absolute_deviation(array) == 1
+    # Just cross check if that's identical to the function on the unmasked
+    # values only
+    assert funcs.median_absolute_deviation(array) == (
+            funcs.median_absolute_deviation(array[~array.mask]))
 
     # Multidimensional masked array
     array = np.ma.array([[1, 4], [2, 2]], mask=[[1, 0], [0, 0]])
@@ -81,6 +86,17 @@ def test_median_absolute_deviation_masked():
     # And check if they are also broadcasted correctly
     np.testing.assert_array_equal(funcs.median_absolute_deviation(array, axis=0).data, [0, 1])
     np.testing.assert_array_equal(funcs.median_absolute_deviation(array, axis=1).data, [0, 0])
+
+
+def test_median_absolute_deviation_quantity():
+    # Just a small test that this function accepts Quantities and returns a
+    # quantity
+    a = np.array([1, 16, 5]) * u.m
+    mad = funcs.median_absolute_deviation(a)
+    # Check for the correct unit and that the result is identical to the result
+    # without units.
+    assert mad.unit == a.unit
+    assert mad.value == funcs.median_absolute_deviation(a.value)
 
 
 def test_biweight_location():

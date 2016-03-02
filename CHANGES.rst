@@ -416,8 +416,6 @@ Bug Fixes
 
 - ``astropy.stats``
 
-  - Fixed wrong results when using median_absolute_deviation with masked arrays
-
 - ``astropy.table``
 
   - Fixed bug when replacing a table column with a mixin column like
@@ -1202,6 +1200,13 @@ Bug Fixes
 - ``astropy.nddata``
 
 - ``astropy.stats``
+
+  - the input for median_absolute_deviation will not be cast to plain numpy
+    arrays when given subclasses of numpy arrays
+    (like Quantity, numpy.ma.MaskedArray, etc.)
+
+  - Fixed incorrect results when using median_absolute_deviation with masked
+    arrays.
 
 - ``astropy.table``
 
