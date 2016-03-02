@@ -18,6 +18,10 @@ New Features
 
 - ``astropy.cosmology``
 
+  - ``angular_diameter_distance_z1z2`` now supports the computation of
+    the angular diameter distance between a scalar and an array like
+    argument. [#4593]
+
 - ``astropy.io.ascii``
 
 - ``astropy.io.fits``
@@ -1099,6 +1103,13 @@ Bug Fixes
 - ``astropy.nddata``
 
 - ``astropy.stats``
+
+  - the input for median_absolute_deviation will not be cast to plain numpy
+    arrays when given subclasses of numpy arrays
+    (like Quantity, numpy.ma.MaskedArray, etc.) [#4658]
+
+  - Fixed incorrect results when using median_absolute_deviation with masked
+    arrays. [#4658]
 
 - ``astropy.table``
 
