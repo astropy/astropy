@@ -32,36 +32,104 @@ example), you should reset the matplotlib settings to the library defaults
     >>> mpl.rcParams.update(astropy_mpl_style)
 """
 
+from cycler import cycler
+import matplotlib
 
-astropy_mpl_style_1 = {
+if matplotlib.__version__ >= 1.5:
 
-    # Lines
-    'lines.linewidth': 1.7,
-    'lines.antialiased': True,
+    astropy_mpl_style_1 = {
 
-    # Patches
-    'patch.linewidth': 1.0,
-    'patch.facecolor': '#348ABD',
-    'patch.edgecolor': '#CCCCCC',
-    'patch.antialiased': True,
+        # Lines
+        'lines.linewidth': 1.7,
+        'lines.antialiased': True,
 
-    # images
-    'image.cmap': 'gist_heat',
-    'image.origin': 'upper',
+        # Patches
+        'patch.linewidth': 1.0,
+        'patch.facecolor': '#348ABD',
+        'patch.edgecolor': '#CCCCCC',
+        'patch.antialiased': True,
 
-    # Font
-    'font.size': 12.0,
+        # images
+        'image.cmap': 'gist_heat',
+        'image.origin': 'upper',
 
-    # Axes
-    'axes.facecolor': '#FFFFFF',
-    'axes.edgecolor': '#AAAAAA',
-    'axes.linewidth': 1.0,
-    'axes.grid': True,
-    'axes.titlesize': 'x-large',
-    'axes.labelsize': 'large',
-    'axes.labelcolor': 'k',
-    'axes.axisbelow': True,
-    'axes.color_cycle': ['#348ABD',   # blue
+        # Font
+        'font.size': 12.0,
+
+        # Axes
+        'axes.facecolor': '#FFFFFF',
+        'axes.edgecolor': '#AAAAAA',
+        'axes.linewidth': 1.0,
+        'axes.grid': True,
+        'axes.titlesize': 'x-large',
+        'axes.labelsize': 'large',
+        'axes.labelcolor': 'k',
+        'axes.axisbelow': True,
+        'axes.prop_cycle': cycler('color',['#348ABD',   # blue
+                             '#7A68A6',   # purple
+                             '#A60628',   # red
+                             '#467821',   # green
+                             '#CF4457',   # pink
+                             '#188487',   # turquoise
+                             '#E24A33'],),  # orange
+
+        # Ticks
+        'xtick.major.size': 0,
+        'xtick.minor.size': 0,
+        'xtick.major.pad': 6,
+        'xtick.minor.pad': 6,
+        'xtick.color': '#565656',
+        'xtick.direction': 'in',
+        'ytick.major.size': 0,
+        'ytick.minor.size': 0,
+        'ytick.major.pad': 6,
+        'ytick.minor.pad': 6,
+        'ytick.color': '#565656',
+        'ytick.direction': 'in',
+
+        # Legend
+        'legend.fancybox': True,
+        'legend.loc': 'best',
+
+        # Figure
+        'figure.figsize': [8, 6],
+        'figure.facecolor': '1.0',
+        'figure.edgecolor': '0.50',
+        'figure.subplot.hspace': 0.5,
+
+        # Other
+        'savefig.dpi': 72,
+    }
+else:
+    astropy_mpl_style_1 = {
+
+        # Lines
+        'lines.linewidth': 1.7,
+        'lines.antialiased': True,
+
+        # Patches
+        'patch.linewidth': 1.0,
+        'patch.facecolor': '#348ABD',
+        'patch.edgecolor': '#CCCCCC',
+        'patch.antialiased': True,
+
+        # images
+        'image.cmap': 'gist_heat',
+        'image.origin': 'upper',
+
+        # Font
+        'font.size': 12.0,
+
+        # Axes
+        'axes.facecolor': '#FFFFFF',
+        'axes.edgecolor': '#AAAAAA',
+        'axes.linewidth': 1.0,
+        'axes.grid': True,
+        'axes.titlesize': 'x-large',
+        'axes.labelsize': 'large',
+        'axes.labelcolor': 'k',
+        'axes.axisbelow': True,
+        'axes.color_cycle': ['#348ABD',   # blue
                          '#7A68A6',   # purple
                          '#A60628',   # red
                          '#467821',   # green
@@ -69,33 +137,34 @@ astropy_mpl_style_1 = {
                          '#188487',   # turquoise
                          '#E24A33'],  # orange
 
-    # Ticks
-    'xtick.major.size': 0,
-    'xtick.minor.size': 0,
-    'xtick.major.pad': 6,
-    'xtick.minor.pad': 6,
-    'xtick.color': '#565656',
-    'xtick.direction': 'in',
-    'ytick.major.size': 0,
-    'ytick.minor.size': 0,
-    'ytick.major.pad': 6,
-    'ytick.minor.pad': 6,
-    'ytick.color': '#565656',
-    'ytick.direction': 'in',
+        # Ticks
+        'xtick.major.size': 0,
+        'xtick.minor.size': 0,
+        'xtick.major.pad': 6,
+        'xtick.minor.pad': 6,
+        'xtick.color': '#565656',
+        'xtick.direction': 'in',
+        'ytick.major.size': 0,
+        'ytick.minor.size': 0,
+        'ytick.major.pad': 6,
+        'ytick.minor.pad': 6,
+        'ytick.color': '#565656',
+        'ytick.direction': 'in',
 
-    # Legend
-    'legend.fancybox': True,
-    'legend.loc': 'best',
+        # Legend
+        'legend.fancybox': True,
+        'legend.loc': 'best',
 
-    # Figure
-    'figure.figsize': [8, 6],
-    'figure.facecolor': '1.0',
-    'figure.edgecolor': '0.50',
-    'figure.subplot.hspace': 0.5,
+        # Figure
+        'figure.figsize': [8, 6],
+        'figure.facecolor': '1.0',
+        'figure.edgecolor': '0.50',
+        'figure.subplot.hspace': 0.5,
 
-    # Other
-    'savefig.dpi': 72,
-}
+        # Other
+        'savefig.dpi': 72,
+    }
+
 '''
 Version 1 astropy plotting style for matplotlib.
 
@@ -114,14 +183,24 @@ astropy_mpl_docs_style = astropy_mpl_style_1.copy()
 The style used in the astropy documentation.
 '''
 
-astropy_mpl_docs_style['axes.color_cycle'] = [
-    '#E24A33',   # orange
-    '#348ABD',   # blue
-    '#467821',   # green
-    '#A60628',   # red
-    '#7A68A6',   # purple
-    '#CF4457',   # pink
-    '#188487'    # turquoise
-]
+if matplotlib.__version__ >= 1.5:
+    astropy_mpl_docs_style['axes.prop_cycle'] = cycler('color', [
+        '#348ABD',   # blue
+        '#7A68A6',   # purple
+        '#A60628',   # red
+        '#467821',   # green
+        '#CF4457',   # pink
+        '#188487',   # turquoise
+        '#E24A33'],),  # orange
+else:
+        astropy_mpl_docs_style['axes.color_cycle'] = [
+        '#E24A33',   # orange
+        '#348ABD',   # blue
+        '#467821',   # green
+        '#A60628',   # red
+        '#7A68A6',   # purple
+        '#CF4457',   # pink
+        '#188487'    # turquoise
+    ]
 
 astropy_mpl_docs_style['axes.grid'] = False
