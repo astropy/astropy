@@ -130,8 +130,8 @@ azimuth::
 
     plt.plot(delta_midnight, sunaltazs.alt, color='y', label='Sun')
     plt.scatter(delta_midnight, m33altazs.alt, c=m33altazs.az, label='M33', lw=0, s=8)
-    plt.fill_between(delta_midnight, 0, 90, sunaltazs.alt < -0*u.deg, color='0.5', zorder=0)
-    plt.fill_between(delta_midnight, 0, 90, sunaltazs.alt < -18*u.deg, color='k', zorder=0)
+    plt.fill_between(delta_midnight.to(u.hr).value, 0, 90, sunaltazs.alt < -0*u.deg, color='0.5', zorder=0)
+    plt.fill_between(delta_midnight.to(u.hr).value, 0, 90, sunaltazs.alt < -18*u.deg, color='k', zorder=0)
     plt.colorbar().set_label('Azimuth [deg]')
     plt.legend(loc='upper left')
     plt.xlim(-12, 12)
