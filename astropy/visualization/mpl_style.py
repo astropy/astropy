@@ -35,7 +35,7 @@ example), you should reset the matplotlib settings to the library defaults
 from cycler import cycler
 import matplotlib
 
-if matplotlib.__version__ >= 1.5:
+if matplotlib.__version__ >= '1.5':
 
     astropy_mpl_style_1 = {
 
@@ -183,7 +183,7 @@ astropy_mpl_docs_style = astropy_mpl_style_1.copy()
 The style used in the astropy documentation.
 '''
 
-if matplotlib.__version__ >= 1.5:
+if matplotlib.__version__ >= '1.5':
     astropy_mpl_docs_style['axes.prop_cycle'] = cycler('color', [
         '#348ABD',   # blue
         '#7A68A6',   # purple
