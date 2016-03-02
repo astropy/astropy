@@ -20,7 +20,8 @@ New Features
 
   - ``angular_diameter_distance_z1z2`` now supports the computation of
     the angular diameter distance between a scalar and an array like
-    argument. [#4593]
+    argument [#4593] as well as cosmologies with negative curvature
+    [#4661].
   
 - ``astropy.io.ascii``
 
