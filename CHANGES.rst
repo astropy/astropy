@@ -439,6 +439,9 @@ Bug Fixes
   - Fixed ``fits2bitmap`` default output filename generation for
     compressed FITS files. [#4468]
 
+  - Fixed ``quantity_support`` to ensure its conversion returns ndarray
+    instances (needed for numpy >=1.10). [#4654]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
