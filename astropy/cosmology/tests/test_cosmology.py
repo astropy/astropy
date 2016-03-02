@@ -1090,10 +1090,6 @@ def test_critical_density():
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_angular_diameter_distance_z1z2():
 
-    with pytest.raises(core.CosmologyError):  # test neg Ok fail
-        tcos = core.LambdaCDM(H0=70.4, Om0=0.272, Ode0=0.8, Tcmb0=0.0)
-        tcos.angular_diameter_distance_z1z2(1, 2)
-
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
     with pytest.raises(ValueError):  # test diff size z1, z2 fail
         tcos.angular_diameter_distance_z1z2([1, 2], [3, 4, 5])
