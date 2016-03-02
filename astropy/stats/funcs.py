@@ -685,16 +685,12 @@ def median_absolute_deviation(a, axis=None):
     # See https://github.com/numpy/numpy/issues/7330 why using np.ma.median
     # for normal arrays should not be done (summary: np.ma.median always
     # returns an masked array even if the result should be scalar).
-    try:
-        if np.any(a.mask):
-            func = np.ma.median
-        else:
-            # Array has a mask but no value is masked so we can savely use
-            # np.median on it.
-            func = np.median
-    except AttributeError:
+    if isinstance(a, np.ma.MaskedArray):
+        func = np.ma.median
+    else:
         func = np.median
-        a = np.array(a, copy=False)
+
+    a = np.asanyarray(a)
 
     a_median = func(a, axis=axis)
 
