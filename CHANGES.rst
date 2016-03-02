@@ -230,9 +230,6 @@ Bug fixes
 
 - ``astropy.modeling``
 
-  - Fix a bug to allow instantiation of a modeling class having a parameter
-    with a custom setter that takes two parameters ``(value, model)`` [#4586]
-
 - ``astropy.nddata``
 
   - ``NDDataBase`` does not implement a setter or getter for ``uncertainty``,
@@ -1199,6 +1196,9 @@ Bug Fixes
 
   - Fixed display of compound model expressions and components when printing
     compound model instances. [#4414]
+
+  - Fix a bug to allow instantiation of a modeling class having a parameter
+    with a custom setter that takes two parameters ``(value, model)`` [#4586]
 
 - ``astropy.nddata``
 
