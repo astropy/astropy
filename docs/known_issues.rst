@@ -99,6 +99,14 @@ An easy solution is::
     array([False], dtype=bool)
 
 
+Quantities in np.linspace failure on numpy 1.10
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`~numpy.linspace` does not work correctly with quantities when using numpy
+1.10.0 to 1.10.5 due to a bug in numpy. The solution is to upgrade to numpy
+1.10.6 or later, in which the bug was fixed.
+
+
 Table sorting can silently fail on MacOS X or Windows with Python 3 and Numpy < 1.6.2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
