@@ -1203,10 +1203,10 @@ Bug Fixes
 
   - the input for median_absolute_deviation will not be cast to plain numpy
     arrays when given subclasses of numpy arrays
-    (like Quantity, numpy.ma.MaskedArray, etc.)
+    (like Quantity, numpy.ma.MaskedArray, etc.) [#4658]
 
   - Fixed incorrect results when using median_absolute_deviation with masked
-    arrays.
+    arrays. [#4658]
 
 - ``astropy.table``
 

@@ -62,6 +62,8 @@ def test_median_absolute_deviation():
 
 
 def test_median_absolute_deviation_masked():
+    # Based on the changes introduces in #4658
+
     # normal masked arrays without masked values are handled like normal
     # numpy arrays
     array = np.ma.array([1, 2, 3])
@@ -89,6 +91,8 @@ def test_median_absolute_deviation_masked():
 
 
 def test_median_absolute_deviation_quantity():
+    # Based on the changes introduces in #4658
+
     # Just a small test that this function accepts Quantities and returns a
     # quantity
     a = np.array([1, 16, 5]) * u.m
