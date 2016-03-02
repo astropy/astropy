@@ -60,6 +60,29 @@ def test_median_absolute_deviation():
                               [ 43.,  48.,  53.,  58.]])
 
 
+def test_median_absolute_deviation_masked():
+    # normal masked arrays without masked values are handled like normal
+    # numpy arrays
+    array = np.ma.array([1, 2, 3])
+    assert funcs.median_absolute_deviation(array) == 1
+
+    # masked numpy arrays return something different (rank 0 masked array)
+    # but one can still compare it without np.all!
+    array = np.ma.array([1, 4, 3], mask=[0, 1, 0])
+    assert funcs.median_absolute_deviation(array) == 1
+
+    # Multidimensional masked array
+    array = np.ma.array([[1, 4], [2, 2]], mask=[[1, 0], [0, 0]])
+    funcs.median_absolute_deviation(array)
+    assert funcs.median_absolute_deviation(array) == 0
+    # Just to compare it with the data without mask:
+    assert funcs.median_absolute_deviation(array.data) == 0.5
+
+    # And check if they are also broadcasted correctly
+    np.testing.assert_array_equal(funcs.median_absolute_deviation(array, axis=0).data, [0, 1])
+    np.testing.assert_array_equal(funcs.median_absolute_deviation(array, axis=1).data, [0, 0])
+
+
 def test_biweight_location():
     #need to seed the numpy RNG to make sure we don't get some amazingly flukey
     #random number that breaks one of the tests

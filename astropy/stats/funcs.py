@@ -681,15 +681,29 @@ def median_absolute_deviation(a, axis=None):
 
     """
 
-    a = np.array(a, copy=False)
-    a_median = np.median(a, axis=axis)
+    # Check if the array has a mask and if so use np.ma.median
+    # See https://github.com/numpy/numpy/issues/7330 why using np.ma.median
+    # for normal arrays should not be done (summary: np.ma.median always
+    # returns an masked array even if the result should be scalar).
+    try:
+        if np.any(a.mask):
+            func = np.ma.median
+        else:
+            # Array has a mask but no value is masked so we can savely use
+            # np.median on it.
+            func = np.median
+    except AttributeError:
+        func = np.median
+        a = np.array(a, copy=False)
+
+    a_median = func(a, axis=axis)
 
     # re-broadcast the output median array to subtract it
     if axis is not None:
         a_median = np.expand_dims(a_median, axis=axis)
 
     # calculated the median average deviation
-    return np.median(np.abs(a - a_median), axis=axis)
+    return func(np.abs(a - a_median), axis=axis)
 
 
 def biweight_location(a, c=6.0, M=None):
