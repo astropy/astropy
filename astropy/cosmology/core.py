@@ -1323,6 +1323,7 @@ class FLRW(Cosmology):
         dm2 = self.comoving_transverse_distance(z2).value
         dh_2 = self._hubble_distance.value ** 2
 
+        Ok0 = self._Ok0
         if Ok0 == 0:
             # Common case worth checking
             out = (dm2 - dm1) / (1. + z2)
