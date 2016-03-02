@@ -19,6 +19,36 @@ from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
 
 
+def setter1(val):
+    return val
+
+
+def setter2(val, model):
+    model.do_something(val)
+    return val * model.p
+
+
+class SetterModel(FittableModel):
+
+    inputs = ('x', 'y')
+    outputs = ('z',)
+
+    xc = Parameter(default=1, setter=setter1)
+    yc = Parameter(default=1, setter=setter2)
+
+    def __init__(self, xc, yc, p):
+        super(SetterModel, self).__init__()
+        self.p = p # p is a value intended to be used by the setter
+        self.xc = xc
+        self.yc = yc
+
+    def evaluate(self, x, y, xc, yc):
+        return ((x - xc)**2 + (y - yc)**2)
+
+    def do_something(self, v):
+        pass
+
+
 class TParModel(Model):
     """
     A toy model to test parameters machinery
@@ -582,3 +612,14 @@ def test_non_broadcasting_parameters():
     for args in itertools.permutations((a, b, c)):
         with pytest.raises(InputParameterError):
             TestModel(*args)
+
+
+def test_setter():
+    pars = np.random.rand(20).reshape((10,2))
+
+    model = SetterModel(-1, 3, np.pi)
+
+    for x, y in pars:
+        model.x = x
+        model.y = y
+        utils.assert_almost_equal(model(x, y), (x + 1)**2 + (y - np.pi * 3)**2)
