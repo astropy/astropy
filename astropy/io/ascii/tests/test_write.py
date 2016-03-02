@@ -470,7 +470,7 @@ def test_write_comments(fast_writer):
     assert out.getvalue().splitlines() == expected
 
 @pytest.mark.parametrize("fast_writer", [True, False])
-@pytest.mark.parametrize("fmt", ['%0.1f', '.1f', '0.1f', '{:0.1f}'])
+@pytest.mark.parametrize("fmt", ['%0.1f', '.1f', '0.1f', '{0:0.1f}'])
 def test_write_format(fast_writer, fmt):
     """Check different formats for a column."""
     data = ascii.read('#c1\n  # c2\t\na,b,c\n#  c3\n1.11,2.22,3.33')
