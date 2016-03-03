@@ -16,6 +16,7 @@ import re
 
 FIX = doctest.register_optionflag('FIX')
 FLOAT_CMP = doctest.register_optionflag('FLOAT_CMP')
+IGNORE_OUTPUT = doctest.register_optionflag('IGNORE_OUTPUT')
 
 
 class AstropyOutputChecker(doctest.OutputChecker):
@@ -147,6 +148,9 @@ class AstropyOutputChecker(doctest.OutputChecker):
         return False
 
     def check_output(self, want, got, flags):
+        if flags & IGNORE_OUTPUT:
+            return True
+            
         if flags & FIX:
             want, got = self.do_fixes(want, got)
 
