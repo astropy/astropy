@@ -34,7 +34,7 @@ example), you should reset the matplotlib settings to the library defaults
 try:
     import matplotlib
     HAS_MATPLOTLIB = True
-except ImportError, e:
+except:
     HAS_MATPLOTLIB = False
 
 
