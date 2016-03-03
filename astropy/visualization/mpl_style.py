@@ -31,10 +31,14 @@ example), you should reset the matplotlib settings to the library defaults
     >>> mpl.rcdefaults()
     >>> mpl.rcParams.update(astropy_mpl_style)
 """
+try:
+    import matplotlib
+    HAS_MATPLOTLIB = True
+except ImportError, e:
+    HAS_MATPLOTLIB = False
 
-import matplotlib
 
-if matplotlib.__version__ >= '1.5':
+if HAS_MATPLOTLIB and matplotlib.__version__ >= '1.5':
     from cycler import cycler
 
     astropy_mpl_style_1 = {
@@ -183,7 +187,7 @@ astropy_mpl_docs_style = astropy_mpl_style_1.copy()
 The style used in the astropy documentation.
 '''
 
-if matplotlib.__version__ >= '1.5':
+if HAS_MATPLOTLIB and matplotlib.__version__ >= '1.5':
     astropy_mpl_docs_style['axes.prop_cycle'] = cycler('color', [
         '#348ABD',   # blue
         '#7A68A6',   # purple
