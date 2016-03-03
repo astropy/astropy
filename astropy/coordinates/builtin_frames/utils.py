@@ -49,7 +49,7 @@ def cartrepr_from_matmul(pmat, coo, transpose=False):
     if pmat.shape[-2:] != (3, 3):
         raise ValueError("tried to do matrix multiplication with an array that "
                          "doesn't end in 3x3")
-    if coo.isscalar and pmat.shape[0] == 1:
+    if coo.isscalar and pmat.shape == (3,3):
         # a simpler path for scalar coordinates
         if transpose:
             pmat = pmat.T
