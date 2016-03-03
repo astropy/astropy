@@ -32,10 +32,10 @@ example), you should reset the matplotlib settings to the library defaults
     >>> mpl.rcParams.update(astropy_mpl_style)
 """
 
-from cycler import cycler
 import matplotlib
 
 if matplotlib.__version__ >= '1.5':
+    from cycler import cycler
 
     astropy_mpl_style_1 = {
 
@@ -71,7 +71,7 @@ if matplotlib.__version__ >= '1.5':
                              '#467821',   # green
                              '#CF4457',   # pink
                              '#188487',   # turquoise
-                             '#E24A33'],),  # orange
+                             '#E24A33']),  # orange
 
         # Ticks
         'xtick.major.size': 0,
@@ -191,7 +191,7 @@ if matplotlib.__version__ >= '1.5':
         '#467821',   # green
         '#CF4457',   # pink
         '#188487',   # turquoise
-        '#E24A33'],),  # orange
+        '#E24A33'])  # orange
 else:
         astropy_mpl_docs_style['axes.color_cycle'] = [
         '#E24A33',   # orange
