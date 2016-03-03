@@ -588,7 +588,7 @@ class Time(object):
             location = self.location
 
         from ..coordinates import (UnitSphericalRepresentation, CartesianRepresentation,
-                                   Heliocentric, ICRS, GCRS, EarthLocation, SkyCoord)
+                                   HCRS, ICRS, GCRS, EarthLocation, SkyCoord)
 
         if not isinstance(location, EarthLocation):
             raise ValueError("location must be an EarthLocation object")
@@ -603,7 +603,7 @@ class Time(object):
         itrs = location.get_itrs(obstime=self)
         if kind.lower() == 'heliocentric':
             # convert to heliocentric coordinates, aligned with ICRS
-            cpos = itrs.transform_to(Heliocentric(obstime=self)).cartesian.xyz
+            cpos = itrs.transform_to(HCRS(obstime=self)).cartesian.xyz
         else:
             # first we need to convert to GCRS coordinates with the correct
             # obstime, since ICRS coordinates have no frame time

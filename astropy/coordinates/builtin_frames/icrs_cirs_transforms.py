@@ -19,7 +19,7 @@ from ... import _erfa as erfa
 from .icrs import ICRS
 from .gcrs import GCRS
 from .cirs import CIRS
-from .heliocentric import Heliocentric
+from .hcrs import HCRS
 from .utils import get_jd12
 
 # First the ICRS/CIRS related transforms
@@ -205,7 +205,7 @@ def gcrs_to_gcrs(from_coo, to_frame):
         return from_coo.transform_to(ICRS).transform_to(to_frame)
 
 
-@frame_transform_graph.transform(FunctionTransform, GCRS, Heliocentric)
+@frame_transform_graph.transform(FunctionTransform, GCRS, HCRS)
 def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
 
     if np.any(gcrs_coo.obstime != hcrs_frame.obstime):
@@ -258,7 +258,7 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
     return hcrs_frame.realize_frame(newrep)
 
 
-@frame_transform_graph.transform(FunctionTransform, Heliocentric, Heliocentric)
+@frame_transform_graph.transform(FunctionTransform, HCRS, HCRS)
 def hcrs_to_hcrs(from_coo, to_frame):
     if np.all(from_coo.obstime == to_frame.obstime):
         return to_frame.realize_frame(from_coo.data)

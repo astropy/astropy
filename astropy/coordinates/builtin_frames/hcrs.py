@@ -8,10 +8,13 @@ from ..baseframe import (BaseCoordinateFrame, RepresentationMapping,
                          TimeFrameAttribute)
 from .utils import DEFAULT_OBSTIME
 
-class Heliocentric(BaseCoordinateFrame):
+class HCRS(BaseCoordinateFrame):
     """
-    A coordinate or frame in a Heliocentric system.
+    A coordinate or frame in a Heliocentric system, with axes aligned to ICRS.
 
+    The ICRS has an origin at the Barycenter and axes which are fixed with 
+    respect to space.
+    
     This coordinate system is distinct from ICRS mainly in that it is relative
     to the Sun's center-of-mass rather than the solar system Barycenter.
     In principle, therefore, this frame should include the effects of
