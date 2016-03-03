@@ -37,8 +37,8 @@ class SetterModel(FittableModel):
     yc = Parameter(default=1, setter=setter2)
 
     def __init__(self, xc, yc, p):
-        super(SetterModel, self).__init__()
         self.p = p # p is a value intended to be used by the setter
+        super(SetterModel, self).__init__()
         self.xc = xc
         self.yc = yc
 
