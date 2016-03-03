@@ -11,7 +11,7 @@ from ..distances import Distance
 from ..builtin_frames import (ICRS, FK5, FK4, FK4NoETerms, Galactic,
                               Supergalactic, Galactocentric, HCRS)
 from .. import SkyCoord
-from ...tests.helper import (pytest, quantity_allclose as allclose,
+from ...tests.helper import (pytest, quantity_allclose as allclose, remote_data,
                              assert_quantity_allclose as assert_allclose)
 from .. import EarthLocation
 from ...time import Time
@@ -202,7 +202,7 @@ class TestHelioBarioCentric():
         self.wht_itrs = wht.get_itrs(obstime=self.obstime)
 
     def test_heliocentric(self):
-        helio = self.wht_itrs.transform_to(Heliocentric(obstime=self.obstime))
+        helio = self.wht_itrs.transform_to(HCRS(obstime=self.obstime))
         # Check it doesn't change from previous times.
         previous = [-1.02597256e+11, 9.71725820e+10, 4.21268419e+10] * u.m
         assert_allclose(helio.cartesian.xyz, previous)
