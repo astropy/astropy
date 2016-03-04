@@ -19,10 +19,6 @@ def prereleaser_middle(data):
     zest.releaser already does this normally but it's a little inflexible about
     the format.
     """
-
-    if data['name'] != 'astropy':
-        return
-
     _update_setup_py_version(data['new_version'])
 
 
@@ -34,10 +30,6 @@ def releaser_middle(data):
     distributions.  This is supposedly a workaround for a bug in Python 2.4,
     but we don't care about Python 2.4.
     """
-
-    if data['name'] != 'astropy':
-        return
-
     from zest.releaser.git import Git
     from zest.releaser.release import Releaser
 
@@ -243,10 +235,6 @@ def postreleaser_before(data):
     default: By default zest.releaser uses <version>.dev0.  We want just
     <version>.dev without the mysterious 0.
     """
-
-    if data['name'] != 'astropy':
-        return
-
     data['dev_version_template'] = '%(new_version)s.dev'
     data['nothing_changed_yet'] = _NEW_CHANGELOG_TEMPLATE
 
@@ -256,10 +244,6 @@ def postreleaser_middle(data):
     postreleaser.middle hook to update the setup.py with the new version. See
     prereleaser_middle for more details.
     """
-
-    if data['name'] != 'astropy':
-        return
-
     _update_setup_py_version(data['dev_version'])
 
 
