@@ -39,11 +39,11 @@ def _components(data, w=None, p=1, phi=0.0, axis=None):
 def _angle(data, w=None, p=1, phi=0.0, axis=None):
     # Utility function for computing the generalized sample mean angle
     C, S = _components(data, w, p, phi, axis)
-    
+
     # theta will be an angle in the interval [-np.pi, np.pi)
     # [-180, 180)*u.deg in case data is a Quantity
     theta = np.arctan2(S, C)
-    
+
     if isinstance(data, Quantity):
         if data.unit == u'deg':
             theta = np.rad2deg(theta)
@@ -139,7 +139,7 @@ def circvar(data, w=None, axis=None):
     .. [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in
        Circular Statistics (2001)'". 2015.
        <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
-    
+
     Note
     ----
     The definition used here differs from the one in scipy.stats.circvar.
