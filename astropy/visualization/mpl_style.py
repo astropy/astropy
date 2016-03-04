@@ -37,6 +37,12 @@ try:
 except:
     HAS_MATPLOTLIB = False
 
+try:
+    from cycler import cycler
+    HAS_CYCLER = True
+except:
+    HAS_CYCLER = False
+
 
 astropy_mpl_style_1 = {
 
@@ -95,8 +101,7 @@ astropy_mpl_style_1 = {
     'savefig.dpi': 72,
 }
 
-if HAS_MATPLOTLIB and matplotlib.__version__ >= '1.5':
-    from cycler import cycler
+if HAS_MATPLOTLIB and HAS_CYCLER and matplotlib.__version__ >= '1.5':
     astropy_mpl_style_1['axes.prop_cycle'] = cycler('color',['#348ABD',   # blue
                              '#7A68A6',   # purple
                              '#A60628',   # red
@@ -132,7 +137,7 @@ astropy_mpl_docs_style = astropy_mpl_style_1.copy()
 The style used in the astropy documentation.
 '''
 
-if HAS_MATPLOTLIB and matplotlib.__version__ >= '1.5':
+if HAS_MATPLOTLIB and HAS_CYCLER and matplotlib.__version__ >= '1.5':
     astropy_mpl_docs_style['axes.prop_cycle'] = cycler('color', [
         '#348ABD',   # blue
         '#7A68A6',   # purple
