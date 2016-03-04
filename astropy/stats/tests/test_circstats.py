@@ -37,6 +37,7 @@ def test_circmean():
     assert_equal(answer, np.around(circmean(data), 2))
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_circmean_against_scipy():
     # testing against scipy.stats.circmean function
     data = np.random.uniform(-np.pi, np.pi, size=(100, 5))
