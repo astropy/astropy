@@ -50,16 +50,8 @@ package_info = get_package_info()
 # Add the project-global data
 package_info['package_data'].setdefault('astropy', []).append('data/*')
 
-# Currently the only entry points installed by Astropy are hooks to
-# zest.releaser for doing Astropy's releases
+# Add any necessary entry points
 entry_points = {}
-for hook in [('prereleaser', 'middle'), ('releaser', 'middle'),
-             ('postreleaser', 'before'), ('postreleaser', 'middle')]:
-    hook_ep = 'zest.releaser.' + '.'.join(hook)
-    hook_name = 'astropy.release.' + '.'.join(hook)
-    hook_func = 'astropy.utils.release:' + '_'.join(hook)
-    entry_points[hook_ep] = ['%s = %s' % (hook_name, hook_func)]
-
 # Command-line scripts
 entry_points['console_scripts'] = [
     'fits2bitmap = astropy.visualization.scripts.fits2bitmap:main',

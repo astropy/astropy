@@ -379,6 +379,11 @@ Bug Fixes
 
 - ``astropy.utils``
 
+  - Fixed latex representation of function units. [#4563]
+
+  - The ``zest.releaser`` hooks included in Astropy are now injected locally to
+    Astropy, rather than being global. [#4650]
+
 - ``astropy.visualization``
 
   - Fixed ``fits2bitmap`` script to allow ext flag to contain extension
@@ -1168,6 +1173,9 @@ Bug Fixes
 - ``astropy.units``
 
 - ``astropy.utils``
+
+  - The ``zest.releaser`` hooks included in Astropy are now injected locally to
+    Astropy, rather than being global. [#4650]
 
 - ``astropy.vo``
 
