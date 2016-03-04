@@ -150,7 +150,7 @@ class AstropyOutputChecker(doctest.OutputChecker):
     def check_output(self, want, got, flags):
         if flags & IGNORE_OUTPUT:
             return True
-            
+
         if flags & FIX:
             want, got = self.do_fixes(want, got)
 
