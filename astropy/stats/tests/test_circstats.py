@@ -23,10 +23,10 @@ from ..circstats import rayleightest, vtest, vonmisesmle
 def test__length():
     # testing against R CircStats package
     # Ref. [1] pages 6 and 125
-    w = np.array([12, 1, 6, 1, 2, 1, 1])
+    weights = np.array([12, 1, 6, 1, 2, 1, 1])
     answer = 0.766282
     data = np.array([0, 3.6, 36, 72, 108, 169.2, 324])*u.deg
-    assert_allclose(answer, _length(data, w=w), atol=1e-4)
+    assert_allclose(answer, _length(data, weights=weights), atol=1e-4)
 
 
 def test_circmean():
@@ -65,7 +65,7 @@ def test_circmoment():
     result = (np.around(circmoment(data, p=2)[0], 4),
               np.around(circmoment(data, p=3)[0], 4),
               np.around(circmoment(data, p=4)[0], 4))
- 
+
     assert_equal(answer[0], result[0])
     assert_equal(answer[1], result[1])
     assert_equal(answer[2], result[2])

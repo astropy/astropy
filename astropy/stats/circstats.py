@@ -15,63 +15,64 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 from astropy.units import Quantity
 from astropy import units as u
+from astropy.utils.compat.numpy import broadcast_to
 
 __all__ = ['circmean', 'circvar', 'circmoment', 'circcorrcoef', 'rayleightest',
            'vtest', 'vonmisesmle']
 __doctest_requires__ = {'vtest': ['scipy.stats']}
 
 
-def _components(data, w=None, p=1, phi=0.0, axis=None):
+def _components(data, p=1, phi=0.0, axis=None, weights=None):
     # Utility function for computing the generalized rectangular components
     # of the circular data.
-    if w is None:
-        w = np.ones(data.shape)
-    elif (w.shape != data.shape):
-        raise ValueError('shape of w %s is not equals shape of data %s.'
-                         % (w.shape, data.shape,))
+    if weights is None:
+        weights = np.ones((1,))
+    try:
+        weights = broadcast_to(weights, data.shape)
+    except ValueError:
+        raise ValueError('Weights and data have inconsistent shape.')
 
-    C = np.sum(w * np.cos(p * (data - phi)), axis)/np.sum(w, axis)
-    S = np.sum(w * np.sin(p * (data - phi)), axis)/np.sum(w, axis)
+    C = np.sum(weights * np.cos(p * (data - phi)), axis)/np.sum(weights, axis)
+    S = np.sum(weights * np.sin(p * (data - phi)), axis)/np.sum(weights, axis)
 
     return C, S
 
 
-def _angle(data, w=None, p=1, phi=0.0, axis=None):
+def _angle(data, p=1, phi=0.0, axis=None, weights=None):
     # Utility function for computing the generalized sample mean angle
-    C, S = _components(data, w, p, phi, axis)
+    C, S = _components(data, p, phi, axis, weights)
 
     # theta will be an angle in the interval [-np.pi, np.pi)
     # [-180, 180)*u.deg in case data is a Quantity
     theta = np.arctan2(S, C)
 
     if isinstance(data, Quantity):
-        if data.unit == u'deg':
-            theta = np.rad2deg(theta)
+        theta = theta.to(data.unit)
 
     return theta
 
 
-def _length(data, w=None, p=1, phi=0.0, axis=None):
+def _length(data, p=1, phi=0.0, axis=None, weights=None):
     # Utility function for computing the generalized sample length
-    C, S = _components(data, w, p, phi, axis)
+    C, S = _components(data, p, phi, axis, weights)
     return np.hypot(S, C)
 
 
-def circmean(data, w=None, axis=None):
+def circmean(data, axis=None, weights=None):
     """ Computes the circular mean angle of an array of circular data.
 
     Parameters
     ----------
     data : numpy.ndarray
         Array of circular (directional) data.
-    w : numpy.ndarray, optional
+    axis : int, optional
+        Axis along which circular means are computed. The default is to compute
+        the mean of the flattened array.
+    weights : numpy.ndarray, optional
         In case of grouped data, the i-th element of ``w`` represents a
         weighting factor for each group such that sum(w,axis) equals the number
         of observations. See [1], remark 1.4, page 22, for detailed
         explanation.
-    axis : int, optional
-        Axis along which circular means are computed. The default is to compute
-        the mean of the flattened array.
 
     Returns
     -------
@@ -95,10 +96,10 @@ def circmean(data, w=None, axis=None):
        Circular Statistics (2001)'". 2015.
        <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
     """
-    return _angle(data, w, 1, 0.0, axis)
+    return _angle(data, 1, 0.0, axis, weights)
 
 
-def circvar(data, w=None, axis=None):
+def circvar(data, axis=None, weights=None):
     """ Computes the circular variance of an array of circular data.
 
     There are some concepts for defining measures of dispersion for circular
@@ -109,14 +110,14 @@ def circvar(data, w=None, axis=None):
     ----------
     data : numpy.ndarray
         Array of circular (directional) data.
-    w : numpy.ndarray, optional
+    axis : int, optional
+        Axis along which circular variances are computed. The default is to
+        compute the variance of the flattened array.
+    weights : numpy.ndarray, optional
         In case of grouped data, the i-th element of ``w`` represents a
         weighting factor for each group such that sum(w,axis) equals the number
         of observations. See [1], remark 1.4, page 22, for detailed
         explanation.
-    axis : int, optional
-        Axis along which circular variances are computed. The default is to
-        compute the variance of the flattened array.
 
     Returns
     -------
@@ -147,10 +148,10 @@ def circvar(data, w=None, axis=None):
     angles which approaches the linear variance.
     """
 
-    return 1.0 - _length(data, w, 1, 0.0, axis)
+    return 1.0 - _length(data, 1, 0.0, axis, weights)
 
 
-def circmoment(data, w=None, p=1.0, centered=False, axis=None):
+def circmoment(data, p=1.0, centered=False, axis=None, weights=None):
     """ Computes the ``p``-th trigonometric circular moment for an array
     of circular data.
 
@@ -158,11 +159,6 @@ def circmoment(data, w=None, p=1.0, centered=False, axis=None):
     ----------
     data : numpy.ndarray
         Array of circular (directional) data.
-    w : numpy.ndarray, optional
-        In case of grouped data, the i-th element of ``w`` represents a
-        weighting factor for each group such that sum(w,axis) equals the number
-        of observations. See [1], remark 1.4, page 22, for detailed
-        explanation.
     p : float, optional
         Order of the circular moment.
     centered : Boolean, optinal
@@ -171,6 +167,11 @@ def circmoment(data, w=None, p=1.0, centered=False, axis=None):
     axis : int, optional
         Axis along which circular moments are computed. The default is to
         compute the circular moment of the flattened array.
+    weights : numpy.ndarray, optional
+        In case of grouped data, the i-th element of ``w`` represents a
+        weighting factor for each group such that sum(w,axis) equals the number
+        of observations. See [1], remark 1.4, page 22, for detailed
+        explanation.
 
     Returns
     -------
@@ -195,15 +196,17 @@ def circmoment(data, w=None, p=1.0, centered=False, axis=None):
        Circular Statistics (2001)'". 2015.
        <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
     """
-    phi = 0.0
     if centered:
-        phi = circmean(data, w, axis)
+        phi = circmean(data, axis, weights)
+    else:
+        phi = 0.0
 
-    return _angle(data, w, p, phi, axis), _length(data, w, p, phi, axis)
+    return _angle(data, p, phi, axis, weights), _length(data, p, phi, axis,
+                                                        weights)
 
 
-def circcorrcoef(alpha, beta, w_alpha=None, w_beta=None, ax_alpha=None,
-                 ax_beta=None):
+def circcorrcoef(alpha, beta, axis=None, weights_alpha=None,
+                 weights_beta=None):
     """ Computes the circular correlation coefficient between two array of
     circular data.
 
@@ -213,19 +216,17 @@ def circcorrcoef(alpha, beta, w_alpha=None, w_beta=None, ax_alpha=None,
         Array of circular (directional) data.
     beta : numpy.ndarray
         Array of circular (directional) data.
-    w_alpha : numpy.ndarray, optional
-        In case of grouped data, the i-th element of ``w_alpha`` represents a
-        weighting factor for each group such that sum(w,axis) equals the number
-        of observations. See [1], remark 1.4, page 22, for detailed
-        explanation.
-    w_beta : numpy.ndarray, optional
-        See description of ``w_alpha``.
-    ax_alpha : int, optional
+    axis : int, optional
         Axis along which circular correlation coefficients are computed.
         The default is the compute the circular correlation coefficient of the
         flattened array.
-    ax_ beta : int, optional
-        See description of ``ax_alpha``.
+    weights_alpha : numpy.ndarray, optional
+        In case of grouped data, the i-th element of ``weights_alpha``
+        represents a weighting factor for each group such that sum(w,axis)
+        equals the number of observations. See [1], remark 1.4, page 22, for
+        detailed explanation.
+    weights_beta : numpy.ndarray, optional
+        See description of ``weights_alpha``.
 
     Returns
     -------
@@ -253,11 +254,11 @@ def circcorrcoef(alpha, beta, w_alpha=None, w_beta=None, ax_alpha=None,
        Circular Statistics (2001)'". 2015.
        <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
     """
-    if(np.size(alpha, axis=ax_alpha) != np.size(beta, axis=ax_beta)):
+    if(np.size(alpha, axis) != np.size(beta, axis)):
         raise ValueError("alpha and beta must be arrays of the same size")
 
-    mu_a = circmean(alpha, w_alpha, ax_alpha)
-    mu_b = circmean(beta, w_beta, ax_beta)
+    mu_a = circmean(alpha, axis, weights_alpha)
+    mu_b = circmean(beta, axis, weights_beta)
 
     sin_a = np.sin(alpha - mu_a)
     sin_b = np.sin(beta - mu_b)
@@ -266,7 +267,7 @@ def circcorrcoef(alpha, beta, w_alpha=None, w_beta=None, ax_alpha=None,
     return rho
 
 
-def rayleightest(data, w=None, axis=None):
+def rayleightest(data, axis=None, weights=None):
     """ Performs the Rayleigh test of uniformity.
 
     This test is  used to indentify a non-uniform distribution, i.e. it is
@@ -282,13 +283,13 @@ def rayleightest(data, w=None, axis=None):
     ----------
     data : numpy.ndarray
         Array of circular (directional) data.
-    w : numpy.ndarray, optional
-        In case of grouped data, the i-th element of ``w`` represents a
-        weighting factor for each group such that sum(w,axis) equals the number
-        of observations. See [1], remark 1.4, page 22, for detailed
-        explanation.
     axis : int, optional
         Axis along which the Rayleigh test will be performed.
+    weights : numpy.ndarray, optional
+        In case of grouped data, the i-th element of ``weights`` represents a
+        weighting factor for each group such that ``np.sum(weights, axis)``
+        equals the number of observations.
+        See [1], remark 1.4, page 22, for detailed explanation.
 
     Returns
     -------
@@ -318,7 +319,7 @@ def rayleightest(data, w=None, axis=None):
        <http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.211.4762>
     """
     n = np.size(data, axis=axis)
-    Rbar = _length(data, w, 1, 0.0, axis)
+    Rbar = _length(data, 1, 0.0, axis, weights)
     z = n*Rbar*Rbar
 
     # see [3] and [4] for the formulae below
@@ -332,7 +333,7 @@ def rayleightest(data, w=None, axis=None):
     return p_value
 
 
-def vtest(data, w=None, mu=0.0, axis=None):
+def vtest(data, mu=0.0, axis=None, weights=None):
     """ Performs the Rayleigh test of uniformity where the alternative
     hypothesis H1 is assumed to have a known mean angle ``mu``.
 
@@ -340,15 +341,15 @@ def vtest(data, w=None, mu=0.0, axis=None):
     ----------
     data : numpy.ndarray
         Array of circular (directional) data.
-    w : numpy.ndarray, optional
-        In case of grouped data, the i-th element of ``w`` represents a
-        weighting factor for each group such that sum(w,axis) equals the number
-        of observations. See [1], remark 1.4, page 22, for detailed
-        explanation.
     mu : float, optional
         Mean angle. Assumed to be known.
     axis : int, optional
         Axis along which the V test will be performed.
+    weights : numpy.ndarray, optional
+        In case of grouped data, the i-th element of ``w`` represents a
+        weighting factor for each group such that sum(w,axis) equals the number
+        of observations. See [1], remark 1.4, page 22, for detailed
+        explanation.
 
     Returns
     -------
@@ -376,20 +377,18 @@ def vtest(data, w=None, mu=0.0, axis=None):
     """
     from scipy.stats import norm
 
-    if w is None:
-        w = np.ones(data.shape)
-    elif (w.shape != data.shape):
-        raise ValueError('shape of w %s is not equals shape of data %s.'
-                         % (w.shape, data.shape,))
+    if weights is None:
+        weights = np.ones((1,))
+    try:
+        weights = broadcast_to(weights, data.shape)
+    except ValueError:
+        raise ValueError('Weights and data have inconsistent shape.')
 
     n = np.size(data, axis=axis)
-
-    R0bar = np.sum(w*np.cos(data-mu), axis)/np.sum(w, axis)
-    z = np.sqrt(2.0*n)*R0bar
-
+    R0bar = np.sum(weights * np.cos(data - mu), axis)/np.sum(weights, axis)
+    z = np.sqrt(2.0 * n) * R0bar
     pz = norm.cdf(z)
     fz = norm.pdf(z)
-
     # see reference [3]
     p_value = 1 - pz + fz*((3*z - z**3)/(16.0*n) +
                            (15*z + 305*z**3 - 125*z**5 + 9*z**7)/(4608.0*n*n))
