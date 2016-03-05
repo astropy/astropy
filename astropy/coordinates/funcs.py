@@ -121,6 +121,22 @@ def spherical_to_cartesian(r, lat, lon):
 
     return cart.x, cart.y, cart.z
 
+def get_moon(time):
+    # Getting started to implement get_moon
+    # current idea is to get coordinates from skyfield
+
+    # NOTE:For now Assuming time is a utc tuple
+    try:
+        from skyfield.api import load,JulianDate
+        planets = load('de421.bsp') # This step will take time
+        earth   = planets['earth']
+        moon    = planets['moon']
+        jd      = JulianDate(utc=time)
+        pos     = earth.at(jd).observe(moon)
+        ra,dec,dis = pos.radec()
+        return SkyCoord(ra = ra.radians*u.degree, dec = dec.radians*u.degree,frame = "gcrs")
+    except:
+        print "Skyfield package is required"
 
 def get_sun(time):
     """
