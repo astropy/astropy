@@ -40,5 +40,6 @@ Reference/API
 .. automodapi:: astropy.visualization.mpl_style
 
 .. automodapi:: astropy.visualization
+   :skip: cycler
 
 .. automodapi:: astropy.visualization.mpl_normalize
