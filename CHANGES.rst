@@ -82,6 +82,8 @@ New Features
   - The option to use tuples to indicate fractional powers of units,
     deprecated in 0.3.1, has been removed. [#4449]
 
+  - Added slug to imperial units. [#4670]
+
 - ``astropy.utils``
 
   - ``Path`` object could be passed to ``get_readable_fileobj``. [#4606]
