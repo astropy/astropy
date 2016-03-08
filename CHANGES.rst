@@ -424,6 +424,9 @@ Bug Fixes
   - Fixed bug when replacing a table column with a mixin column like
     Quantity or Time. [#4601]
 
+  - Disable initial ordering in jsviewer (``show_in_browser``,
+    ``show_in_notebook``) to respect the order from the Table. [#4628]
+
 - ``astropy.time``
 
 - ``astropy.units``
