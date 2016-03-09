@@ -26,6 +26,9 @@ New Features
 
   - File name could be passed as ``Path`` object. [#4606]
 
+  - Check that columns in ``formats`` specifier exist in the output table
+    when writing. [#4508]
+
 - ``astropy.io.fits``
 
   - File name could be passed as ``Path`` object. [#4606]
@@ -280,6 +283,7 @@ Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Python 2.6 is no longer supported. [#4486]
+
 - Reduce Astropy's import time (``import astropy``) by almost a factor 2. [#4649]
 
 
@@ -600,8 +604,8 @@ New Features
   - A new method was added to ``astropy.io.votable.VOTable``,
     ``get_info_by_id`` to conveniently find an ``INFO`` element by its
     ``ID`` attribute. [#3633]
-  - Instances in the votable tree now have better ``__repr__``
-    methods. [#3639]
+
+  - Instances in the votable tree now have better ``__repr__`` methods. [#3639]
 
 - ``astropy.logger.py``
 
@@ -863,9 +867,6 @@ API changes
     for parsing a file with blank lines in the header containing whitespace will
     need to be updated. [#2654]
 
-  - Check that columns in ``formats`` specifier exist in the output table
-    when writing. [#4508]
-
 - ``astropy.io.fits``
 
   - The ``uint`` argument to ``fits.open`` is now True by default; that is,
@@ -931,6 +932,9 @@ API changes
 
   - ``Table.simple_table()`` now creates tables with int64 and float64 types
     instead of int32 and float64. [#4114]
+
+  - An empty table can now be initialized without a ``names`` argument as long
+    as a valid ``dtype`` argument (with names embedded) is supplied. [#3977]
 
 - ``astropy.time``
 
@@ -1069,6 +1073,11 @@ Other Changes and Additions
   transformations, but may affect code that is especially sensitive to
   machine precision effects that change when the order in which
   transformations occur is changed. [#4255]
+
+- Astropy v1.1.0 will be the last release series to officially support
+  Python 2.6.  A deprecation warning will now be issued when using Astropy
+  in Python 2.6 (this warning can be disabled through the usual Python warning
+  filtering mechanisms). [#3779]
 
 
 1.0.9 (unreleased)
@@ -1312,6 +1321,11 @@ Bug Fixes
   - Fixed crash that could occur in ``ProgressBar`` when ``astropy`` is
     imported in an IPython startup script. [#4274]
 
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Updated bundled astropy-helpers to v1.0.6. [#4372]
+
 
 1.0.6 (2015-10-22)
 ------------------
@@ -1468,6 +1482,8 @@ Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Astropy now supports Python 3.5. [#4027]
+
+- Updated bundled version of astropy-helpers to 1.0.5. [#4215]
 
 - Updated tests to support py.test 2.7, and upgraded the bundled copy of
   py.test to v2.7.3. [#4027]
@@ -1764,6 +1780,7 @@ Bug Fixes
   - Fixes an issue with the ``FITS_rec`` interface to FITS table data, where a
     ``FITS_rec`` created by copying an existing FITS table but adding new rows
     could not be sliced or masked correctly.  [#3641]
+
   - Fixed handling of BINTABLE with TDIMn of size 1. [#3580]
 
 - ``astropy.io.votable``
@@ -2080,11 +2097,12 @@ New Features
 
   - Add ``unique`` convenience method to table. [#3185]
 
+  - Added column alignment formatting for better pprint viewing
+    experience. [#3644]
+
 - ``astropy.tests``
 
   - Added a new Quantity-aware ``assert_quantity_allclose``. [#3273]
-  - Added column alignment formatting for better pprint viewing
-    experience. [#3037]
 
 - ``astropy.time``
 
@@ -2305,9 +2323,6 @@ API Changes
   - The representation of Table and Column objects has been changed to
     be formatted similar to the print output. [#3239]
 
-  - An empty table can now be initialized without a ``names`` argument as long
-    as a valid ``dtype`` argument (with names embedded) is supplied. [#3977]
-
 - ``astropy.time``
 
   - The ``Time.val`` and ``Time.vals`` properties (deprecated in v0.3) and the
@@ -2483,11 +2498,6 @@ Bug Fixes
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-- Astropy v1.1.0 will be the last release series to officially support
-  Python 2.6.  A deprecation warning will now be issued when using Astropy
-  in Python 2.6 (this warning can be disabled through the usual Python warning
-  filtering mechanisms). [#3779]
 
 - The bundled copy of astropy-helpers has been updated to v1.0. [#3515]
 
