@@ -163,6 +163,12 @@ procedure is that ensures a consistent release process each time.
      the new version (it should trigger automatically once you've done the
      previous step.)
 
+     When releasing a patch release, also set the previous version in the
+     release history to "protected".  For example when releasing v1.1.2, set
+     v1.1.1 to "protected".  This prevents the previous releases from
+     cluttering the list of versions that users see in the version dropdown
+     (the previous versions are still accessible by their URL though).
+
  23. If this was a major/minor release (not a bug fix release) create a bug fix
      branch for this line of release.  That is, if the version just released
      was "v<major>.<minor>.0", create bug fix branch with the name
