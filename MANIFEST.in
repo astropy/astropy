@@ -45,6 +45,8 @@ include astropy_helpers/ah_bootstrap.py
 
 recursive-include astropy_helpers/astropy_helpers *.py *.pyx *.c *.h
 recursive-include astropy_helpers/astropy_helpers.egg-info *
+# include the sphinx stuff with "*" because there are css/html/rst/etc.
+recursive-include astropy_helpers/astropy_helpers/sphinx *
 
 prune astropy_helpers/build
 prune astropy_helpers/astropy_helpers/tests
