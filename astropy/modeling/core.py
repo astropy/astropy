@@ -1074,7 +1074,8 @@ class Model(object):
 
     def render(self, out=None, coords=None):
         """
-        Evaluates a model on an input array.  I.e., "discretizes" the model.
+        Evaluate a model at fixed positions, respecting the ``bounding_box``.
+
         The key difference relative to evaluating the model directly is that
         this method is limited to a bounding box if the `Model.bounding_box`
         attribute is set.
@@ -1089,7 +1090,8 @@ class Model(object):
             to the ``out`` array. It should have the property that
             ``self(coords)`` yields the same shape as ``out``.  If ``out`` is
             not specified, ``coords`` will be used to determine the shape of the
-            returned array.
+            returned array. If this is not provided (or None), the model will be
+            evaluated on a grid determined by `Model.bounding_box`.
 
         Returns
         -------
@@ -1099,6 +1101,12 @@ class Model(object):
             If ``out`` and ``coords`` are both `None`, the returned array is
             limited to the `Model.bounding_box` limits. If
             `Model.bounding_box` is `None`, ``arr`` or ``coords`` must be passed.
+
+        Raises
+        ------
+        ValueError
+            If ``coords`` are not given and the the `Model.bounding_box` of this
+            model is not set.
 
         Examples
         --------
