@@ -33,9 +33,7 @@ prune build
 
 # the next few stanzas are for astropy_helpers.  It's derived from the 
 # astropy_helpers/MANIFEST.in, but requires additional includes for the actual
-# package directory.  This is necessary because distutils automatically
-# includes a package's source files without them being in MANIFEST.in, but the
-# helpers are *not* included in this repo's setup function.
+# package directory and egg-info.
 
 include astropy_helpers/README.rst
 include astropy_helpers/CHANGES.rst
@@ -46,6 +44,7 @@ include astropy_helpers/ez_setup.py
 include astropy_helpers/ah_bootstrap.py
 
 recursive-include astropy_helpers/astropy_helpers *.py *.pyx *.c *.h
+recursive-include astropy_helpers/astropy_helpers.egg-info *
 
 prune astropy_helpers/build
 prune astropy_helpers/astropy_helpers/tests
