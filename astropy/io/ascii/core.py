@@ -36,6 +36,104 @@ FORMAT_CLASSES = {}
 # Similar dictionary for fast readers
 FAST_CLASSES = {}
 
+
+class CsvWriter(object):
+    """
+    Internal class to replace the csv writer ``writerow`` and ``writerows``
+    functions so that in the case of ``delimiter=' '`` and
+    ``quoting=csv.QUOTE_MINIMAL``, the output field value is quoted for empty
+    fields (when value == '').
+
+    This changes the API slightly in that the writerow() and writerows()
+    methods return the output written string instead of the length of
+    that string.
+
+    Examples
+    --------
+
+    >>> from astropy.io.ascii.core import CsvWriter
+    >>> writer = CsvWriter(delimiter=' ')
+    >>> print(writer.writerow(['hello', '', 'world']))
+    hello "" world
+    """
+    # Random 16-character string that gets injected instead of any
+    # empty fields and is then replaced post-write with doubled-quotechar.
+    # Created with:
+    # ''.join(random.choice(string.printable[:90]) for _ in range(16))
+    replace_sentinel = '2b=48Av%0-V3p>bX'
+
+    def __init__(self, csvfile=None, **kwargs):
+        self.csvfile = csvfile
+
+        # Temporary StringIO for catching the real csv.writer() object output
+        self.temp_out = StringIO()
+        self.writer = csv.writer(self.temp_out, **kwargs)
+
+        dialect = self.writer.dialect
+        self.quotechar2 = dialect.quotechar * 2
+        self.quote_empty = (dialect.quoting == csv.QUOTE_MINIMAL) and (dialect.delimiter == ' ')
+
+    def writerow(self, values):
+        """
+        Similar to csv.writer.writerow but with the custom quoting behavior.
+        Returns the written string instead of the length of that string.
+        """
+        has_empty = False
+
+        # If QUOTE_MINIMAL and space-delimited then replace empty fields with
+        # the sentinel value.
+        if self.quote_empty:
+            for i, value in enumerate(values):
+                if value == '':
+                    has_empty = True
+                    values[i] = self.replace_sentinel
+
+        return self._writerow(self.writer.writerow, values, has_empty)
+
+    def writerows(self, values_list):
+        """
+        Similar to csv.writer.writerows but with the custom quoting behavior.
+        Returns the written string instead of the length of that string.
+        """
+        has_empty = False
+
+        # If QUOTE_MINIMAL and space-delimited then replace empty fields with
+        # the sentinel value.
+        if self.quote_empty:
+            for values in values_list:
+                for i, value in enumerate(values):
+                    if value == '':
+                        has_empty = True
+                        values[i] = self.replace_sentinel
+
+        return self._writerow(self.writer.writerows, values_list, has_empty)
+
+    def _writerow(self, writerow_func, values, has_empty):
+        """
+        Call ``writerow_func`` (either writerow or writerows) with ``values``.
+        If it has empty fields that have been replaced then change those
+        sentinel strings back to quoted empty strings, e.g. ``""``.
+        """
+        # Clear the temporary StringIO buffer that self.writer writes into and
+        # then call the real csv.writer().writerow or writerows with values.
+        self.temp_out.seek(0)
+        self.temp_out.truncate()
+        writerow_func(values)
+
+        row_string = self.temp_out.getvalue()
+
+        if self.quote_empty and has_empty:
+            row_string = re.sub(self.replace_sentinel, self.quotechar2, row_string)
+
+        # self.csvfile is defined then write the output.  In practice the pure
+        # Python writer calls with csvfile=None, while the fast writer calls with
+        # a file-like object.
+        if self.csvfile:
+            self.csvfile.write(row_string)
+
+        return row_string
+
+
 class MaskedConstant(numpy.ma.core.MaskedConstant):
     """A trivial extension of numpy.ma.masked
 
@@ -344,21 +442,17 @@ class DefaultSplitter(BaseSplitter):
         delimiter = ' ' if self.delimiter is None else str(self.delimiter)
 
         if self.csv_writer is None:
-            self.csv_writer = csv.writer(self.csv_writer_out,
-                                         delimiter=delimiter,
-                                         doublequote=self.doublequote,
-                                         escapechar=escapechar,
-                                         quotechar=quotechar,
-                                         quoting=self.quoting,
-                                         lineterminator='',
-                                         )
-        self.csv_writer_out.seek(0)
-        self.csv_writer_out.truncate()
+            self.csv_writer = CsvWriter(delimiter=delimiter,
+                                        doublequote=self.doublequote,
+                                        escapechar=escapechar,
+                                        quotechar=quotechar,
+                                        quoting=self.quoting,
+                                        lineterminator='')
         if self.process_val:
             vals = [self.process_val(x) for x in vals]
-        self.csv_writer.writerow(vals)
+        out = self.csv_writer.writerow(vals)
 
-        return self.csv_writer_out.getvalue()
+        return out
 
 
 def _replace_tab_with_space(line, escapechar, quotechar):
