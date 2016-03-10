@@ -287,8 +287,8 @@ Other Changes and Additions
 - Reduce Astropy's import time (``import astropy``) by almost a factor 2. [#4649]
 
 
-1.1.2 (unreleased)
-------------------
+1.1.3 (unreleased)
+-------------------
 
 New Features
 ^^^^^^^^^^^^
@@ -332,10 +332,6 @@ New Features
 - ``astropy.vo``
 
 - ``astropy.wcs``
-
-  - The ``astropy.wcs`` module now exposes ``WCSHDO_P*`` constants that can be
-    used to allow more control over output precision when using the ``relax``
-    keyword argument. [#4616]
 
 API Changes
 ^^^^^^^^^^^
@@ -393,6 +389,55 @@ Bug Fixes
 
 - ``astropy.io.ascii``
 
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Nothing changed yet.
+
+
+1.1.2 (2016-03-10)
+------------------
+
+New Features
+^^^^^^^^^^^^
+
+- ``astropy.wcs``
+
+  - The ``astropy.wcs`` module now exposes ``WCSHDO_P*`` constants that can be
+    used to allow more control over output precision when using the ``relax``
+    keyword argument. [#4616]
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.io.ascii``
+
   - Fixed handling of CDS data file when no description is given and also
     included stripping out of markup for missing value from description. [#4437]
 
@@ -411,20 +456,10 @@ Bug Fixes
     range of cases, especially after writing FITS tables to a file, but in
     other cases as well. [#4539]
 
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
 - ``astropy.modeling``
 
   - Fix a bug to allow instantiation of a modeling class having a parameter
     with a custom setter that takes two parameters ``(value, model)`` [#4656]
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
 
 - ``astropy.table``
 
@@ -433,8 +468,6 @@ Bug Fixes
 
   - Disable initial ordering in jsviewer (``show_in_browser``,
     ``show_in_notebook``) to respect the order from the Table. [#4628]
-
-- ``astropy.time``
 
 - ``astropy.units``
 
@@ -457,8 +490,6 @@ Bug Fixes
 
   - Fixed ``quantity_support`` to ensure its conversion returns ndarray
     instances (needed for numpy >=1.10). [#4654]
-
-- ``astropy.vo``
 
 - ``astropy.wcs``
 
@@ -1083,8 +1114,8 @@ Other Changes and Additions
   filtering mechanisms). [#3779]
 
 
-1.0.9 (unreleased)
-------------------
+1.0.10 (unreleased)
+-------------------
 
 New Features
 ^^^^^^^^^^^^
@@ -1112,9 +1143,6 @@ New Features
 - ``astropy.modeling``
 
 - ``astropy.nddata``
-
- - ``NDArithmeticMixin`` check for matching WCS now works with
-    ``astropy.wcs.WCS`` objects [#4499]
 
 - ``astropy.stats``
 
@@ -1182,11 +1210,61 @@ Bug Fixes
 
 - ``astropy.convolution``
 
-  - Correct a bug in which ``psf_pad`` and ``fft_pad`` would be ignored [#4366]
-
 - ``astropy.coordinates``
 
 - ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Nothing changed yet.
+
+
+1.0.9 (2016-03-10)
+------------------
+
+New Features
+^^^^^^^^^^^^
+
+- ``astropy.nddata``
+
+ - ``NDArithmeticMixin`` check for matching WCS now works with
+    ``astropy.wcs.WCS`` objects [#4499]
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.convolution``
+
+  - Correct a bug in which ``psf_pad`` and ``fft_pad`` would be ignored [#4366]
 
 - ``astropy.io.ascii``
 
@@ -1215,18 +1293,10 @@ Bug Fixes
     range of cases, especially after writing FITS tables to a file, but in
     other cases as well. [#4539]
 
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
 - ``astropy.modeling``
 
   - Fixed display of compound model expressions and components when printing
     compound model instances. [#4414]
-
-- ``astropy.nddata``
 
 - ``astropy.stats``
 
@@ -1237,18 +1307,10 @@ Bug Fixes
   - Fixed incorrect results when using median_absolute_deviation with masked
     arrays. [#4658]
 
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
 - ``astropy.utils``
 
   - The ``zest.releaser`` hooks included in Astropy are now injected locally to
     Astropy, rather than being global. [#4650]
-
-- ``astropy.vo``
 
 - ``astropy.visualization``
 
@@ -1257,13 +1319,6 @@ Bug Fixes
 
   - Fixed ``fits2bitmap`` default output filename generation for
     compressed FITS files. [#4468]
-
-- ``astropy.wcs``
-
-Other Changes and Additions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-- Nothing changed yet.
 
 
 1.0.8 (2016-01-08)
