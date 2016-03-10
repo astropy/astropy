@@ -1633,7 +1633,7 @@ def test_read_excel():
     a = [1, 2, 3]
     b = [1.0, 5.0, 9.0]
     c = ['a', 'b', 'c']
-    t = Table([a, b, c], names=('a', 'b', 'c'))
+    t = table.Table([a, b, c], names=('a', 'b', 'c'))
     d = pd.DataFrame.from_items([('a', [1, 2, 3]), ('b', [1.0, 5.0, 9.0]), ('c', ['a', 'b', 'c'])])
-    t1 = Table.from_pandas(d)
+    t1 = table.Table.from_pandas(d)
     _assert_copies(t, t1)
