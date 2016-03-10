@@ -96,6 +96,12 @@ disable the fast engine::
 
    >>> data = ascii.read(lines, format='csv', fast_reader=False)
 
+.. Note::
+
+   Reading a table which contains non-ASCII (unicode) characters is only
+   supported in Python 3 or greater.  If you have Python 2.x and need
+   this functionality, consider using a newer version of Python.
+
 Writing Tables
 --------------
 
