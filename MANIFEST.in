@@ -45,7 +45,7 @@ recursive-include astropy_helpers/licenses *
 include astropy_helpers/ez_setup.py
 include astropy_helpers/ah_bootstrap.py
 
-recursive-include astropy_helpers/astropy_helpers *.pyx *.pyx *.c *.h
+recursive-include astropy_helpers/astropy_helpers *.py *.pyx *.c *.h
 
 prune astropy_helpers/build
 prune astropy_helpers/astropy_helpers/tests
