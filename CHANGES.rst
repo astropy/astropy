@@ -1,3 +1,294 @@
+1.2 (unreleased)
+----------------
+
+New Features
+^^^^^^^^^^^^
+
+- ``astropy.analytic_functions``
+
+- ``astropy.config``
+
+- ``astropy.conftest.py``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+  - ``angular_diameter_distance_z1z2`` now supports the computation of
+    the angular diameter distance between a scalar and an array like
+    argument. [#4593]
+
+- ``astropy.io.ascii``
+
+  - File name could be passed as ``Path`` object. [#4606]
+
+  - Check that columns in ``formats`` specifier exist in the output table
+    when writing. [#4508]
+
+- ``astropy.io.fits``
+
+  - File name could be passed as ``Path`` object. [#4606]
+
+- ``astropy.io.misc``
+
+- ``astropy.io.votable``
+
+  - File name could be passed as ``Path`` object. [#4606]
+
+- ``astropy.logger.py``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+  - Added ``UnknownUncertainty`` as ``NDUncertainty`` subclass which cannot
+    be used for error propagation. [#4272]
+
+  - ``StdDevUncertainty`` implements error propagation using it's ``unit`` and
+    a given ``correlation`` between the datasets. [#4272]
+
+  - ``NDArithmeticMixin`` allows for arithmetic operations with anything that
+    can be wrapped by the class. [#4272]
+
+  - ``NDArithmeticMixin`` provides methods for arithmetic operations where the
+    first operand is not an ``NDArithmeticMixin`` subclass via classmethods
+    called ``ic_add``, ``ic_subtract``, etc. [#4272]
+
+- ``astropy.stats``
+
+  - Added ``jackknife`` resampling method. [#3708]
+
+  - Updated ``bootstrap`` to allow bootstrapping statistics with multiple
+    outputs. [#3601]
+
+- ``astropy.table``
+
+  - ``Table.show_in_notebook`` and ``Table.show_in_browser(jsviewer=True)`` now
+    yield tables with an "idx" column, allowing easy identification of the index
+    of a row even when the table is re-sorted in the browser. [#4404]
+
+  - Added ``AttributeError`` when trying to set mask on non-masked table. [#3505]
+
+- ``astropy.tests``
+
+- ``astropy.time``
+
+  - Added caching of scale and format transformations for improved performance.
+    [#4422]
+
+- ``astropy.units``
+
+  - The option to use tuples to indicate fractional powers of units,
+    deprecated in 0.3.1, has been removed. [#4449]
+
+  - Added slug to imperial units. [#4670]
+
+- ``astropy.utils``
+
+  - ``Path`` object could be passed to ``get_readable_fileobj``. [#4606]
+
+  - Implemented a generic and extensible way of merging metadata. [#4459]
+
+  - Added ``format_doc`` decorator which allows to replace and/or format the
+    current docstring of an object. [#4242]
+
+- ``astropy.visualization``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+  - wcslib was updated to v5.14 [#4579]
+
+API changes
+^^^^^^^^^^^
+
+- ``astropy.analytic_functions``
+
+- ``astropy.config``
+
+  - The deprecated ``ConfigurationItem`` and ``ConfigAlias`` classes and the
+    ``save_config``, ``get_config_items``, and ``generate_all_config_items``
+    functions have now been removed. [#2767, #4446]
+
+- ``astropy.conftest.py``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+  - Removed compatibility layer for pre-v0.4 API. [#4447]
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.votable``
+
+- ``astropy.logger.py``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+  - ``NDData``: added an optional parameter ``copy``
+    which is False by default. If it is True all other parameters are copied
+    before saving them as attributes. If False the parameters are only copied
+    if there is no way of saving them as reference. [#4270]
+
+  - ``NDData``: ``Masked_Quantity`` objects are allowed as ``data``
+    parameter. [#4270]
+
+  - ``NDUncertainty``: Added ``array``, ``unit`` and ``copy`` as optional
+    parameters. [#4272]
+
+  - ``NDUncertainty``: Public methods ``propagate_add``, etc. are replaced by
+    a general ``propagate`` method. [#4272]
+
+  - ``StdDevUncertainty``: added an optional parameter ``copy`` which is False
+    by default. [#4272]
+
+  - ``NDArithmeticMixin``: Added ``handle_mask``, ``handle_meta`` and
+    ``compare_wcs`` and ``uncertainty_correlation`` as optional parameters.
+    [#4272]
+
+  - ``NDArithmeticMixin``: The optional ``propagate_uncertainties`` parameter
+    can also be ``None``. [#4272]
+
+  - ``NDArithmeticMixin``: Does not compare the wcs for equality except if
+    ``compare_wcs`` is given as function that compares it. [#4272]
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+  - ``operations.unique`` now has a ``keep`` parameter, which allows
+    one to select whether to keep the first or last row in a set of
+    duplicate rows, or to remove all rows that are duplicates. [#4632]
+
+- ``astropy.tests``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+  - Remove deprecated ``register`` argument for Unit classes. [#4448]
+
+- ``astropy.utils``
+
+  - The astropy.utils.compat.argparse module has now been deprecated. Use the
+    Python 'argparse' module directly instead. [#4462]
+
+  - The astropy.utils.compat.odict module has now been deprecated. Use the
+    Python 'collections' module directly instead. [#4466]
+
+  - The astropy.utils.compat.gzip module has now been deprecated. Use the
+    Python 'gzip' module directly instead. [#4464]
+
+  - The deprecated ``ScienceStateAlias`` class has been removed. [#2767, #4446]
+
+  - The astropy.utils.compat.subprocess module has now been deprecated. Use the
+    Python 'subprocess' module instead. [#4483]
+
+- ``astropy.visualization``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+Bug fixes
+^^^^^^^^^
+
+- ``astropy.analytic_functions``
+
+- ``astropy.config``
+
+- ``astropy.conftest.py``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+  - Correct a bug in which ``psf_pad`` and ``fft_pad`` would be ignored [#4366]
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.votable``
+
+- ``astropy.logger.py``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+  - ``NDDataBase`` does not implement a setter or getter for ``uncertainty``,
+    which is now an abstractproperty. [#4270]
+
+  - ``NDData`` wraps the ``uncertainty`` inside an ``UnknownUncertainty``
+    if no ``uncertainty_type`` attribute is present in the uncertainty instead
+    of raising an Exception. [#4270]
+
+  - ``NDData`` The ``uncertainty_type`` of the ``uncertainty`` is no longer
+    required to be a string, but it is still recommended. [#4270]
+
+  - ``NDData`` now sets the ``parent_nddata`` of the ``uncertainty`` if the
+    uncertainty is ``NDUncertainty``-like. [#4152, #4270]
+
+  - ``NDArithmeticMixin`` does provide correct resulting uncertainties for
+    ``divide`` and ``multiply`` if only one uncertainty was set. [#4152, #4272]
+
+ - ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.tests``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+  - The astropy.utils.compat.fractions module has now been deprecated. Use the
+    Python 'fractions' module directly instead. [#4463]
+  - Added ``format_doc`` decorator which allows to replace and/or format the
+    current docstring of an object. [#4242]
+
+- ``astropy.visualization``
+
+- ``astropy.vo``
+
+  - Relaxed expected accuracy of Cone Search prediction test to reduce spurious
+    failures. [#4382]
+
+- ``astropy.wcs``
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Python 2.6 is no longer supported. [#4486]
+
+- Reduce Astropy's import time (``import astropy``) by almost a factor 2. [#4649]
+
+
 1.1.2 (unreleased)
 ------------------
 
