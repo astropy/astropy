@@ -11,6 +11,8 @@ from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
 from ..utils.exceptions import AstropyUserWarning
 from ..utils.console import human_file_size
 
+from astropy import units as u
+
 
 # Disabling all doctests in this module until a better way of handling warnings
 # in doctests can be determined
@@ -51,7 +53,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
                 Set values outside the array to the nearest ``array``
                 value.
     fill_value : float, optional
-        The value to use outside the array when using boundary='fill'
+        The value to use outside the array when using ``boundary='fill'``
     normalize_kernel : bool, optional
         Whether to normalize the kernel prior to convolving
 
@@ -222,7 +224,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 
 
 def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
-                 return_fft=False, fft_pad=True, psf_pad=False,
+                 return_fft=False, fft_pad=None, psf_pad=None,
                  interpolate_nan=False, quiet=False, ignore_edge_zeros=False,
                  min_wt=0.0, normalize_kernel=False, allow_huge=False,
                  fftn=np.fft.fftn, ifftn=np.fft.ifftn,
@@ -285,10 +287,13 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     Other Parameters
     ----------------
     fft_pad : bool, optional
-        Default on.  Zero-pad image to the nearest 2^n
+        Default on.  Zero-pad image to the nearest 2^n.  With
+        ``boundary='wrap'``, this will be disabled.
     psf_pad : bool, optional
-        Default off.  Zero-pad image to be at least the sum of the image sizes
-        (in order to avoid edge-wrapping when smoothing)
+        Zero-pad image to be at least the sum of the image sizes to avoid
+        edge-wrapping when smoothing.  This is enabled by default with
+        ``boundary='fill'``, but it can be overridden with a boolean option.
+        ``boundary='wrap'`` and ``psf_pad=True`` are not compatible.
     crop : bool, optional
         Default on.  Return an image of the size of the largest input image.
         If the images are asymmetric in opposite directions, will return the
@@ -329,6 +334,12 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         If ``return_fft`` is set, returns fft(**array**) * fft(``kernel``).
         If crop is not set, returns the image, but with the fft-padded size
         instead of the input size
+
+    Notes
+    -----
+        With psf_pad=True and a large PSF, the resulting data can become very
+        large and consume a lot of memory.  See Issue
+        https://github.com/astropy/astropy/pull/4366 for further detail.
 
     Examples
     --------
@@ -390,11 +401,11 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     kernshape = kernel.shape
 
     array_size_B = (np.product(arrayshape, dtype=np.int64) *
-                    np.dtype(complex_dtype).itemsize)
-    if array_size_B > 1024**3 and not allow_huge:
+                    np.dtype(complex_dtype).itemsize)*u.byte
+    if array_size_B > 1*u.GB and not allow_huge:
         raise ValueError("Size Error: Arrays will be %s.  Use "
                          "allow_huge=True to override this exception."
-                         % human_file_size(array_size_B))
+                         % human_file_size(array_size_B.to(u.byte).value))
 
     # mask catching - masks must be turned into NaNs for use later
     if np.ma.is_masked(array):
@@ -407,12 +418,12 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         kernel[mask] = np.nan
 
     # NaN and inf catching
-    nanmaskarray = np.isnan(array) + np.isinf(array)
+    nanmaskarray = np.isnan(array) | np.isinf(array)
     array[nanmaskarray] = 0
-    nanmaskkernel = np.isnan(kernel) + np.isinf(kernel)
+    nanmaskkernel = np.isnan(kernel) | np.isinf(kernel)
     kernel[nanmaskkernel] = 0
-    if ((nanmaskarray.sum() > 0 or nanmaskkernel.sum() > 0) and
-            not interpolate_nan and not quiet):
+    if (not interpolate_nan and not quiet and (np.any(nanmaskarray) or
+                                               np.any(nanmaskkernel))):
         warnings.warn("NOT ignoring NaN values even though they are present "
                       " (they are treated as 0)", AstropyUserWarning)
 
@@ -443,12 +454,27 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
                       "equivalent to the convolve boundary='fill'.  There is "
                       "no FFT equivalent to convolve's "
                       "zero-if-kernel-leaves-boundary", AstropyUserWarning)
-        psf_pad = True
+        if psf_pad is None:
+            psf_pad = True
+        if fft_pad is None:
+            fft_pad = True
     elif boundary == 'fill':
         # create a boundary region at least as large as the kernel
-        psf_pad = True
+        if psf_pad is False:
+            warnings.warn("psf_pad was set to {0}, which overrides the "
+                          "boundary='fill' setting.".format(psf_pad),
+                          AstropyUserWarning)
+        else:
+            psf_pad = True
+        if fft_pad is None:
+            # default is 'True' according to the docstring
+            fft_pad = True
     elif boundary == 'wrap':
+        if psf_pad:
+            raise ValueError("With boundary='wrap', psf_pad cannot be enabled.")
         psf_pad = False
+        if fft_pad:
+            raise ValueError("With boundary='wrap', fft_pad cannot be enabled.")
         fft_pad = False
         fill_value = 0  # force zero; it should not be used
     elif boundary == 'extend':
@@ -474,6 +500,14 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         else:
             newshape = np.array([np.max([imsh, kernsh])
                                  for imsh, kernsh in zip(arrayshape, kernshape)])
+
+    # perform a second check after padding
+    array_size_C = (np.product(newshape, dtype=np.int64) *
+                    np.dtype(complex_dtype).itemsize)*u.byte
+    if array_size_C > 1*u.GB and not allow_huge:
+        raise ValueError("Size Error: Arrays will be %s.  Use "
+                         "allow_huge=True to override this exception."
+                         % human_file_size(array_size_C.to(u.byte).value))
 
     # For future reference, this can be used to predict "almost exactly"
     # how much *additional* memory will be used.
