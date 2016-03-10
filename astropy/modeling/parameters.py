@@ -672,7 +672,7 @@ class Parameter(OrderedDescriptor):
                 if model is not None:
                     # Don't make a partial function unless we're tied to a
                     # specific model instance
-                    model_arg = inputs.args[1].name
+                    model_arg = inputs[1].name
                     wrapper = functools.partial(wrapper, **{model_arg: model})
             else:
                 raise TypeError("Parameter getter/setter must be a function "
