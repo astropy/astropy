@@ -98,9 +98,9 @@ disable the fast engine::
 
 .. Note::
 
-   Reading a table which contains non-ASCII (unicode) characters is not
-   supported in Python 2.  If you need this functionality then consider
-   using a newer version of Python.
+   Reading a table which contains non-ASCII (unicode) characters is only
+   supported in Python 3 or greater.  If you have Python 2.x and need
+   this functionality, consider using a newer version of Python.
 
 Writing Tables
 --------------
