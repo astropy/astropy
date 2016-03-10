@@ -1,4 +1,4 @@
-1.1.2 (unreleased)
+1.1.2 (2016-03-10)
 ------------------
 
 New Features
@@ -691,7 +691,7 @@ Other Changes and Additions
   filtering mechanisms). [#3779]
 
 
-1.0.9 (unreleased)
+1.0.9 (2016-03-10)
 ------------------
 
 New Features
