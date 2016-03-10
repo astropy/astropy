@@ -219,8 +219,6 @@ Bug fixes
 
 - ``astropy.convolution``
 
-  - Correct a bug in which ``psf_pad`` and ``fft_pad`` would be ignored [#4366]
-
 - ``astropy.coordinates``
 
 - ``astropy.cosmology``
@@ -420,6 +418,9 @@ Bug Fixes
 - ``astropy.io.votable``
 
 - ``astropy.modeling``
+
+  - Fix a bug to allow instantiation of a modeling class having a parameter
+    with a custom setter that takes two parameters ``(value, model)`` [#4656]
 
 - ``astropy.nddata``
 
@@ -1181,6 +1182,8 @@ Bug Fixes
 
 - ``astropy.convolution``
 
+  - Correct a bug in which ``psf_pad`` and ``fft_pad`` would be ignored [#4366]
+
 - ``astropy.coordinates``
 
 - ``astropy.cosmology``
@@ -1192,7 +1195,9 @@ Bug Fixes
 
   - Fixed reading of Latex tables where the ``\tabular`` tag is in the first
     line. [#4595]
+
   - Fix use of plain format strings with the fast writer. [#4517]
+
   - Fix bug writing space-delimited file when table has empty fields. [#4417]
 
 - ``astropy.io.fits``
@@ -1220,9 +1225,6 @@ Bug Fixes
 
   - Fixed display of compound model expressions and components when printing
     compound model instances. [#4414]
-
-  - Fix a bug to allow instantiation of a modeling class having a parameter
-    with a custom setter that takes two parameters ``(value, model)`` [#4586]
 
 - ``astropy.nddata``
 
