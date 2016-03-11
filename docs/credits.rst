@@ -142,7 +142,7 @@ Core Package Contributors
 * Ray Plante
 * Orion Poplawski
 * Adrian Price-Whelan
-* J. Xavier Prochaska
+* Jason Xavier Prochaska
 * David Pérez-Suárez
 * QuanTakeuchi
 * Tanuj Rastogi
@@ -153,6 +153,7 @@ Core Package Contributors
 * Joseph Ryan
 * Eloy Salinas
 * Gerrit Schellenberger
+* Michael Seifert
 * David Shiga
 * Albert Y. Shih
 * David Shupe
