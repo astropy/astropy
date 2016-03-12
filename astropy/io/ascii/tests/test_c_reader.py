@@ -246,10 +246,10 @@ A B C D E
 4 2 -12 .4 six
 """
     table = read_basic(text, parallel=parallel)
-    assert_equal(table['A'].dtype.kind, 'f')
+    assert table['A'].dtype.type is np.float64
     assert table['B'].dtype.kind in ('S', 'U')
-    assert_equal(table['C'].dtype.kind, 'i')
-    assert_equal(table['D'].dtype.kind, 'f')
+    assert table['C'].dtype.type is np.int64
+    assert table['D'].dtype.type is np.float64
     assert table['E'].dtype.kind in ('S', 'U')
 
 
