@@ -63,7 +63,7 @@ def circmean(data, axis=None, weights=None):
 
     Parameters
     ----------
-    data : numpy.ndarray
+    data : numpy.ndarray or Quantity
         Array of circular (directional) data.
     axis : int, optional
         Axis along which circular means are computed. The default is to compute
@@ -76,7 +76,7 @@ def circmean(data, axis=None, weights=None):
 
     Returns
     -------
-    circmean : Quantity
+    circmean : numpy.ndarray or Quantity
         Circular mean.
 
     Examples
@@ -108,7 +108,7 @@ def circvar(data, axis=None, weights=None):
 
     Parameters
     ----------
-    data : numpy.ndarray
+    data : numpy.ndarray or dimensionless Quantity
         Array of circular (directional) data.
     axis : int, optional
         Axis along which circular variances are computed. The default is to
@@ -121,7 +121,7 @@ def circvar(data, axis=None, weights=None):
 
     Returns
     -------
-    circvar : Quantity
+    circvar : numpy.ndarray or dimensionless Quantity
         Circular variance.
 
     Examples
@@ -157,7 +157,7 @@ def circmoment(data, p=1.0, centered=False, axis=None, weights=None):
 
     Parameters
     ----------
-    data : numpy.ndarray
+    data : numpy.ndarray or Quantity
         Array of circular (directional) data.
     p : float, optional
         Order of the circular moment.
@@ -175,7 +175,7 @@ def circmoment(data, p=1.0, centered=False, axis=None, weights=None):
 
     Returns
     -------
-    circmoment: Quantity
+    circmoment: numpy.ndarray or Quantity
         The first and second elements correspond to the direction and length of
         the ``p``-th circular moment, respectively.
 
@@ -212,9 +212,9 @@ def circcorrcoef(alpha, beta, axis=None, weights_alpha=None,
 
     Parameters
     ----------
-    alpha : numpy.ndarray
+    alpha : numpy.ndarray or Quantity
         Array of circular (directional) data.
-    beta : numpy.ndarray
+    beta : numpy.ndarray or Quantity
         Array of circular (directional) data.
     axis : int, optional
         Axis along which circular correlation coefficients are computed.
@@ -230,7 +230,7 @@ def circcorrcoef(alpha, beta, axis=None, weights_alpha=None,
 
     Returns
     -------
-    rho : Quantity
+    rho : numpy.ndarray or dimensionless Quantity
         Circular correlation coefficient.
 
     Examples
@@ -281,7 +281,7 @@ def rayleightest(data, axis=None, weights=None):
 
     Parameters
     ----------
-    data : numpy.ndarray
+    data : numpy.ndarray or Quantity
         Array of circular (directional) data.
     axis : int, optional
         Axis along which the Rayleigh test will be performed.
@@ -293,7 +293,7 @@ def rayleightest(data, axis=None, weights=None):
 
     Returns
     -------
-    p-value : float
+    p-value : float or dimensionless Quantity
         p-value.
 
     Examples
@@ -339,7 +339,7 @@ def vtest(data, mu=0.0, axis=None, weights=None):
 
     Parameters
     ----------
-    data : numpy.ndarray
+    data : numpy.ndarray or Quantity
         Array of circular (directional) data.
     mu : float, optional
         Mean angle. Assumed to be known.
@@ -353,7 +353,7 @@ def vtest(data, mu=0.0, axis=None, weights=None):
 
     Returns
     -------
-    p-value : float
+    p-value : float or dimensionless Quantity
         p-value.
 
     Examples
@@ -412,16 +412,16 @@ def vonmisesmle(data, axis=None):
 
     Parameters
     ----------
-    data : numpy.ndarray
+    data : numpy.ndarray or Quantity
         Array of circular (directional) data.
     axis : int, optional
         Axis along which the mle will be computed.
 
     Returns
     -------
-    mu : float
+    mu : float or Quantity
         the mean (aka location parameter).
-    kappa : float
+    kappa : float or dimensionless Quantity
         the concentration parameter.
 
     Examples
