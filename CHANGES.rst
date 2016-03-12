@@ -60,6 +60,8 @@ New Features
 
 - ``astropy.stats``
 
+  - Added Bayesian upper limits for Poisson count rates. [#4622]
+  
   - Added ``jackknife`` resampling method. [#3708]
 
   - Updated ``bootstrap`` to allow bootstrapping statistics with multiple

@@ -13,6 +13,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 
+from ..utils.compat import NUMPY_LT_1_7
 from ..extern.six.moves import xrange
 
 
@@ -24,7 +25,9 @@ __all__ = ['binom_conf_interval', 'binned_binom_proportion',
 
 __doctest_skip__ = ['binned_binom_proportion']
 __doctest_requires__ = {'binom_conf_interval': ['scipy.special'],
-                        'poisson_conf_interval': ['scipy.special']}
+                        'poisson_conf_interval': ['scipy.special',
+                                                  'scipy.optimize',
+                                                  'scipy.integrate']}
 
 
 gaussian_sigma_to_fwhm = 2.0 * np.sqrt(2.0 * np.log(2.0))
@@ -444,19 +447,35 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
     return bin_ctr, bin_halfwidth, p, perr
 
 
-def poisson_conf_interval(n, interval='root-n', sigma=1):
+def _check_poisson_conf_inputs(sigma, background, conflevel, name):
+    if sigma!=1:
+        raise ValueError("Only sigma=1 supported for interval {0}".format(name))
+    if background!=0:
+        raise ValueError("background not supported for interval {0}".format(name))
+    if conflevel is not None:
+        raise ValueError("conflevel not supported for interval {0}".format(name))
+
+
+def poisson_conf_interval(n, interval='root-n', sigma=1, background=0, conflevel=None):
     r"""Poisson parameter confidence interval given observed counts
 
     Parameters
     ----------
     n : int or numpy.ndarray
         Number of counts (0 <= ``n``).
-    interval : {'root-n','root-n-0','pearson','sherpagehrels','frequentist-confidence'}, optional
+    interval : {'root-n','root-n-0','pearson','sherpagehrels','frequentist-confidence', 'kraft-burrows-nousek'}, optional
         Formula used for confidence interval. See notes for details.
         Default is ``'root-n'``.
     sigma : float
         Number of sigma for confidence interval; only supported for
         the 'frequentist-confidence' mode.
+    background : float
+        Number of counts expected from the background; only supported for
+        the 'kraft-burrows-nousek' mode. This number is assumed to be determined
+        from a large region so that the uncertainty on its value is negligible.
+    conflevel : float
+        Confidence level between 0 and 1; only supported for the
+        'kraft-burrows-nousek' mode.
 
 
     Returns
@@ -530,6 +549,40 @@ def poisson_conf_interval(n, interval='root-n', sigma=1):
     distribution (at the point given by the parameter 'sigma'). See
     [Maxwell 2011][maxw11] for further details.
 
+    **6. 'kraft-burrows-nousek'** This is a Bayesian approach which allows
+    for the presence of a known background :math:`B` in the source signal
+    :math:`N`.
+    For a given confidence level :math:`CL` the confidence interval
+    :math:`[S_\mathrm{min}, S_\mathrm{max}]` is given by:
+
+    .. math::
+
+       CL = \int^{S_\mathrm{max}}_{S_\mathrm{min}} f_{N,B}(S)dS
+
+    where the function :math:`f_{N,B}` is:
+
+    .. math::
+
+       f_{N,B}(S) = C \frac{e^{-(S+B)}(S+B)^N}{N!}
+
+    and the normalization constant :math:`C`:
+
+    .. math::
+
+       C = \left[ \int_0^\infty \frac{e^{-(S+B)}(S+B)^N}{N!} dS \right] ^{-1}
+       = \left( \sum^N_{n=0} \frac{e^{-B}B^n}{n!}  \right)^{-1}
+
+    See [KraftBurrowsNousek][kbn1991] for further details.
+
+    These formulas implement a positive, uniform prior.
+    [KraftBurrowsNousek][kbn1991] discuss this choice in more detail and show
+    that the problem is relatively insensitive to the choice of prior.
+
+    This functions has an optional dependency: Either scipy or
+    `mpmath <http://mpmath.org/>`_  need to be available. (Scipy only works for
+    N < 100).
+
+
     Examples
     --------
 
@@ -586,6 +639,10 @@ def poisson_conf_interval(n, interval='root-n', sigma=1):
     ...                       interval='frequentist-confidence').T
     array([  4.41852954,  10.77028072])
 
+    >>> poisson_conf_interval(10, background=1.5, conflevel=0.95,
+    ...                       interval='kraft-burrows-nousek').T
+    array([  3.47894005, 16.113329533])   # doctest: +FLOAT_CMP
+
     [pois_eb]: http://www-cdf.fnal.gov/physics/statistics/notes/pois_eb.txt
 
     [ErrorBars]: http://www.pp.rhul.ac.uk/~cowan/atlas/ErrorBars.pdf
@@ -598,19 +655,19 @@ def poisson_conf_interval(n, interval='root-n', sigma=1):
 
     [sherpa_gehrels]: http://cxc.harvard.edu/sherpa4.4/statistics/#chigehrels
 
+    [kbn1991]: http://adsabs.harvard.edu/abs/1991ApJ...374..344K
+
     """
 
     if not np.isscalar(n):
         n = np.asanyarray(n)
 
     if interval == 'root-n':
-        if sigma!=1:
-            raise ValueError("Only sigma=1 supported for interval %s" % interval)
+        _check_poisson_conf_inputs(sigma, background, conflevel, interval)
         conf_interval = np.array([n-np.sqrt(n),
                                   n+np.sqrt(n)])
     elif interval == 'root-n-0':
-        if sigma!=1:
-            raise ValueError("Only sigma=1 supported for interval %s" % interval)
+        _check_poisson_conf_inputs(sigma, background, conflevel, interval)
         conf_interval = np.array([n-np.sqrt(n),
                                   n+np.sqrt(n)])
         if np.isscalar(n):
@@ -619,16 +676,15 @@ def poisson_conf_interval(n, interval='root-n', sigma=1):
         else:
             conf_interval[1,n==0] = 1
     elif interval == 'pearson':
-        if sigma!=1:
-            raise ValueError("Only sigma=1 supported for interval %s" % interval)
+        _check_poisson_conf_inputs(sigma, background, conflevel, interval)
         conf_interval = np.array([n+0.5-np.sqrt(n+0.25),
                                   n+0.5+np.sqrt(n+0.25)])
     elif interval == 'sherpagehrels':
-        if sigma!=1:
-            raise ValueError("Only sigma=1 supported for interval %s" % interval)
+        _check_poisson_conf_inputs(sigma, background, conflevel, interval)
         conf_interval = np.array([n-1-np.sqrt(n+0.75),
                                   n+1+np.sqrt(n+0.75)])
     elif interval == 'frequentist-confidence':
+        _check_poisson_conf_inputs(1., background, conflevel, interval)
         import scipy.stats
         alpha = scipy.stats.norm.sf(sigma)
         conf_interval = np.array([0.5*scipy.stats.chi2(2*n).ppf(alpha),
@@ -638,6 +694,20 @@ def poisson_conf_interval(n, interval='root-n', sigma=1):
                 conf_interval[0] = 0
         else:
             conf_interval[0,n==0] = 0
+    elif interval == 'kraft-burrows-nousek':
+        if conflevel is None:
+            raise ValueError('Set conflevel for method {0}. (sigma is ignored.)'.format(interval))
+        conflevel = np.asanyarray(conflevel)
+        if np.any(conflevel <=0) or np.any(conflevel >= 1):
+            raise ValueError('Conflevel must be a number between 0 and 1.')
+        background = np.asanyarray(background)
+        if np.any(background < 0):
+            raise ValueError('Background must be >= 0.')
+        if NUMPY_LT_1_7:
+            conf_interval = np.vectorize(_kraft_burrows_nousek)(n, background, conflevel)
+        else:
+            conf_interval = np.vectorize(_kraft_burrows_nousek, cache=True)(n, background, conflevel)
+        conf_interval = np.vstack(conf_interval)
     else:
         raise ValueError("Invalid method for Poisson confidence intervals: %s" % interval)
     return conf_interval
@@ -1055,3 +1125,190 @@ def mad_std(data):
 
     # NOTE: 1. / scipy.stats.norm.ppf(0.75) = 1.482602218505602
     return median_absolute_deviation(data) * 1.482602218505602
+
+
+def _scipy_kraft_burrows_nousek(N, B, CL):
+    '''Upper limit on a poisson count rate
+
+    The implementation is based on Kraft, Burrows and Nousek
+    `ApJ 374, 344 (1991) <http://adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
+    The XMM-Newton upper limit server uses the same formalism.
+
+    Parameters
+    ----------
+    N : int
+        Total observed count number
+    B : float
+        Background count rate (assumed to be known with negligible error
+        from a large background area).
+    CL : float
+       Confidence level (number between 0 and 1)
+
+    Returns
+    -------
+    S : source count limit
+
+    Notes
+    -----
+    Requires `scipy`. This implementation will cause Overflow Errors for
+    about N > 100 (the exact limit depends on details of how scipy was compiled).
+    See `~astropy.stats.mpmath_poisson_upper_limit` for an implementation that is
+    slower, but can deal with arbitrarily high numbers since it is based on the
+    `mpmath <http://mpmath.org/>`_ library.
+    '''
+    from scipy.optimize import brentq
+    from scipy.integrate import quad
+    from scipy.special import factorial
+
+
+    def eqn8(N, B):
+        n = np.arange(N + 1)
+        return 1./ (np.exp(-B) * np.sum(np.power(B, n) / factorial(n)))
+
+    def eqn7(S, N, B):
+        return eqn8(N, B) * (np.exp(-S -B) * (S + B)**N / factorial(N))
+
+    def eqn9_left(S_min, S_max, N, B):
+        return quad(eqn7, S_min, S_max, args=(N, B), limit=500)
+
+    def find_s_min(S_max, N, B):
+        '''Kraft, Burrows and Nousek suggest to integrate from N-B in both
+        directions at once, so that S_min and S_max move similarly (see the article
+        for details). Here, this is implemented differently:
+        Treat S_max as the optimization parameters in func and then calculate the
+        matching s_min that has has eqn7(S_max) = eqn7(S_min) here.
+        '''
+        y_S_max = eqn7(S_max, N, B)
+        if eqn7(0, N, B) >= y_S_max:
+            return 0.
+        else:
+            return brentq(lambda x: eqn7(x, N, B) - y_S_max, 0, N - B)
+
+    def func(s):
+        s_min = find_s_min(s, N, B)
+        out = eqn9_left(s_min, s, N, B)
+        return out[0] - CL
+
+    S_max = brentq(func, N - B, 100)
+    S_min = find_s_min(S_max, N, B)
+    return S_min, S_max
+
+
+def _mpmath_kraft_burrows_nousek(N, B, CL):
+    '''Upper limit on a poisson count rate
+
+    The implementation is based on Kraft, Burrows and Nousek in
+    `ApJ 374, 344 (1991) <http://adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
+    The XMM-Newton upper limit server used the same formalism.
+
+    Parameters
+    ----------
+    N : int
+        Total observed count number
+    B : float
+        Background count rate (assumed to be known with negligible error
+        from a large background area).
+    CL : float
+       Confidence level (number between 0 and 1)
+
+    Returns
+    -------
+    S : source count limit
+
+    Notes
+    -----
+    Requires the `mpmath <http://mpmath.org/>`_ library.
+    See `~astropy.stats.scipy_poisson_upper_limit` for an implementation that is
+    based on scipy and evaluates faster, but runs only to about N = 100.
+    '''
+    from mpmath import mpf, factorial, findroot, fsum, power, exp, quad
+
+    N = mpf(N)
+    B = mpf(B)
+    CL = mpf(CL)
+
+    def eqn8(N, B):
+        sumterms = [power(B, n) / factorial(n) for n in range(int(N) + 1)]
+        return 1./ (exp(-B) * fsum(sumterms))
+
+    def eqn7(S, N, B):
+        return eqn8(N, B) * (exp(-S-B) * (S + B)**N / factorial(N))
+
+    def eqn9_left(S_min, S_max, N, B):
+        def eqn7NB(S):
+            return eqn7(S, N, B)
+        return quad(eqn7NB, [S_min, S_max])
+
+    def find_s_min(S_max, N, B):
+        '''Kraft, Burrows and Nousek suggest to integrate from N-B in both
+        directions at once, so that S_min and S_max move similarly (see the article
+        for details). Here, this is implemented differently:
+        Treat S_max as the optimization parameters in func and then calculate the
+        matching s_min that has has eqn7(S_max) = eqn7(S_min) here.
+        '''
+        y_S_max = eqn7(S_max, N, B)
+        if eqn7(0, N, B) >= y_S_max:
+            return 0.
+        else:
+            def eqn7ysmax(x):
+                return eqn7(x, N, B) - y_S_max
+            return findroot(eqn7ysmax , (N - B) / 2.)
+
+    def func(s):
+        s_min = find_s_min(s, N, B)
+        out = eqn9_left(s_min, s, N, B)
+        return out - CL
+
+    S_max = findroot(func, N - B, tol=1e-4)
+    S_min = find_s_min(S_max, N, B)
+    return float(S_min), float(S_max)
+
+
+def _kraft_burrows_nousek(N, B, CL):
+    '''Upper limit on a poisson count rate
+
+    The implementation is based on Kraft, Burrows and Nousek in
+    `ApJ 374, 344 (1991) <http://adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
+    The XMM-Newton upper limit server used the same formalism.
+
+    Parameters
+    ----------
+    N : int
+        Total observed count number
+    B : float
+        Background count rate (assumed to be known with negligible error from a large background area).
+    CL : float
+       Confidence level (number between 0 and 1)
+
+    Returns
+    -------
+    S : source count limit
+
+    Notes
+    -----
+    This functions has an optional dependency: Either `scipy` or
+    `mpmath <http://mpmath.org/>`_  need to be available. (Scipy only works for
+    N < 100).
+    '''
+    try:
+        import scipy
+        HAS_SCIPY = True
+    except ImportError:
+        HAS_SCIPY = False
+
+    try:
+        import mpmath
+        HAS_MPMATH = True
+    except ImportError:
+        HAS_MPMATH = False
+
+    if HAS_SCIPY and N <= 100:
+        try:
+            return _scipy_kraft_burrows_nousek(N, B, CL)
+        except OverflowError:
+            if not HAS_MPMATH:
+                raise ValueError('Need mpmath package for input numbers this large.')
+    if HAS_MPMATH:
+        return _mpmath_kraft_burrows_nousek(N, B, CL)
+
+    raise ImportError('Either scipy or mpmath are required.')
