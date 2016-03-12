@@ -64,15 +64,16 @@ def circmean(data, axis=None, weights=None):
     Parameters
     ----------
     data : numpy.ndarray or Quantity
-        Array of circular (directional) data.
+        Array of circular (directional) data, which is assumed to be in
+        radians whenever ``data`` is ``numpy.ndarray``.
     axis : int, optional
         Axis along which circular means are computed. The default is to compute
         the mean of the flattened array.
     weights : numpy.ndarray, optional
-        In case of grouped data, the i-th element of ``w`` represents a
-        weighting factor for each group such that sum(w,axis) equals the number
-        of observations. See [1], remark 1.4, page 22, for detailed
-        explanation.
+        In case of grouped data, the i-th element of ``weights`` represents a
+        weighting factor for each group such that ``sum(weights, axis)``
+        equals the number of observations. See [1], remark 1.4, page 22, for
+        detailed explanation.
 
     Returns
     -------
@@ -109,15 +110,16 @@ def circvar(data, axis=None, weights=None):
     Parameters
     ----------
     data : numpy.ndarray or dimensionless Quantity
-        Array of circular (directional) data.
+        Array of circular (directional) data, which is assumed to be in
+        radians whenever ``data`` is ``numpy.ndarray``.
     axis : int, optional
         Axis along which circular variances are computed. The default is to
         compute the variance of the flattened array.
     weights : numpy.ndarray, optional
-        In case of grouped data, the i-th element of ``w`` represents a
-        weighting factor for each group such that sum(w,axis) equals the number
-        of observations. See [1], remark 1.4, page 22, for detailed
-        explanation.
+        In case of grouped data, the i-th element of ``weights`` represents a
+        weighting factor for each group such that ``sum(weights, axis)``
+        equals the number of observations. See [1], remark 1.4, page 22, for
+        detailed explanation.
 
     Returns
     -------
@@ -158,7 +160,8 @@ def circmoment(data, p=1.0, centered=False, axis=None, weights=None):
     Parameters
     ----------
     data : numpy.ndarray or Quantity
-        Array of circular (directional) data.
+        Array of circular (directional) data, which is assumed to be in
+        radians whenever ``data`` is ``numpy.ndarray``.
     p : float, optional
         Order of the circular moment.
     centered : Boolean, optinal
@@ -168,10 +171,10 @@ def circmoment(data, p=1.0, centered=False, axis=None, weights=None):
         Axis along which circular moments are computed. The default is to
         compute the circular moment of the flattened array.
     weights : numpy.ndarray, optional
-        In case of grouped data, the i-th element of ``w`` represents a
-        weighting factor for each group such that sum(w,axis) equals the number
-        of observations. See [1], remark 1.4, page 22, for detailed
-        explanation.
+        In case of grouped data, the i-th element of ``weights`` represents a
+        weighting factor for each group such that ``sum(weights, axis)``
+        equals the number of observations. See [1], remark 1.4, page 22, for
+        detailed explanation.
 
     Returns
     -------
@@ -213,18 +216,20 @@ def circcorrcoef(alpha, beta, axis=None, weights_alpha=None,
     Parameters
     ----------
     alpha : numpy.ndarray or Quantity
-        Array of circular (directional) data.
+        Array of circular (directional) data, which is assumed to be in
+        radians whenever ``data`` is ``numpy.ndarray``.
     beta : numpy.ndarray or Quantity
-        Array of circular (directional) data.
+        Array of circular (directional) data, which is assumed to be in
+        radians whenever ``data`` is ``numpy.ndarray``.
     axis : int, optional
         Axis along which circular correlation coefficients are computed.
         The default is the compute the circular correlation coefficient of the
         flattened array.
     weights_alpha : numpy.ndarray, optional
         In case of grouped data, the i-th element of ``weights_alpha``
-        represents a weighting factor for each group such that sum(w,axis)
-        equals the number of observations. See [1], remark 1.4, page 22, for
-        detailed explanation.
+        represents a weighting factor for each group such that
+        ``sum(weights_alpha, axis)`` equals the number of observations.
+        See [1], remark 1.4, page 22, for detailed explanation.
     weights_beta : numpy.ndarray, optional
         See description of ``weights_alpha``.
 
@@ -282,7 +287,8 @@ def rayleightest(data, axis=None, weights=None):
     Parameters
     ----------
     data : numpy.ndarray or Quantity
-        Array of circular (directional) data.
+        Array of circular (directional) data, which is assumed to be in
+        radians whenever ``data`` is ``numpy.ndarray``.
     axis : int, optional
         Axis along which the Rayleigh test will be performed.
     weights : numpy.ndarray, optional
@@ -340,16 +346,17 @@ def vtest(data, mu=0.0, axis=None, weights=None):
     Parameters
     ----------
     data : numpy.ndarray or Quantity
-        Array of circular (directional) data.
-    mu : float, optional
+        Array of circular (directional) data, which is assumed to be in
+        radians whenever ``data`` is ``numpy.ndarray``.
+    mu : float or Quantity, optional
         Mean angle. Assumed to be known.
     axis : int, optional
         Axis along which the V test will be performed.
     weights : numpy.ndarray, optional
-        In case of grouped data, the i-th element of ``w`` represents a
-        weighting factor for each group such that sum(w,axis) equals the number
-        of observations. See [1], remark 1.4, page 22, for detailed
-        explanation.
+        In case of grouped data, the i-th element of ``weights`` represents a
+        weighting factor for each group such that ``sum(weights, axis)``
+        equals the number of observations. See [1], remark 1.4, page 22, for
+        detailed explanation.
 
     Returns
     -------
@@ -413,7 +420,8 @@ def vonmisesmle(data, axis=None):
     Parameters
     ----------
     data : numpy.ndarray or Quantity
-        Array of circular (directional) data.
+        Array of circular (directional) data, which is assumed to be in
+        radians whenever ``data`` is ``numpy.ndarray``.
     axis : int, optional
         Axis along which the mle will be computed.
 
