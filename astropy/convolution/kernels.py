@@ -150,7 +150,7 @@ class Gaussian2DKernel(Kernel2D):
         if height is None:
             height = width
 	self._model = models.Gaussian2D(1. / (2 * np.pi * width * height), 0,
-                                        0, x_stddev=width, y_stddev=height, 
+                                        0, x_stddev=width, y_stddev=height,
                                         theta=theta)
         self._default_size = _round_up_to_odd_integer(support_scaling * np.max([width, height]))
         super(Gaussian2DKernel, self).__init__(**kwargs)
