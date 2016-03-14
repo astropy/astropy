@@ -154,13 +154,15 @@ class Gaussian2DKernel(Kernel2D):
     def __init__(self, x_stddev, y_stddev=None, theta=0.0, **kwargs):
         if 'stddev' in kwargs:
             warnings.warn('The parameter stddev is deprecated since v1.2 '
-                          'Use x_stddev and y_stddev instead.', AstropyDeprecationWarning)
+                          'Use x_stddev and y_stddev instead.',
+                          AstropyDeprecationWarning)
         if y_stddev is None:
             y_stddev = x_stddev
-        self._model = models.Gaussian2D(1. / (2 * np.pi * x_stddev * y_stddev), 0,
-                                        0, x_stddev=x_stddev, y_stddev=y_stddev,
-                                        theta=theta)
-        self._default_size = _round_up_to_odd_integer(8 * np.max([x_stddev, y_stddev]))
+        self._model = models.Gaussian2D(1. / (2 * np.pi * x_stddev * y_stddev),
+                                        0, 0, x_stddev=x_stddev,
+                                        y_stddev=y_stddev, theta=theta)
+        self._default_size = _round_up_to_odd_integer(
+                                        8 * np.max([x_stddev, y_stddev]))
         super(Gaussian2DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(1. - self._array.sum())
 
