@@ -102,7 +102,6 @@ def test_median_absolute_deviation_masked():
     np.testing.assert_array_equal(funcs.median_absolute_deviation(array, axis=1).data, [0, 0])
 
 
-
 def test_median_absolute_deviation_quantity():
     # Based on the changes introduces in #4658
 
