@@ -6,6 +6,7 @@ import numpy as np
 
 from .core import Kernel1D, Kernel2D, Kernel
 from .utils import KernelSizeError
+from ..utils.exceptions import AstropyDeprecationWarning
 from ..modeling import models
 from ..modeling.core import Fittable1DModel, Fittable2DModel
 
@@ -97,8 +98,12 @@ class Gaussian2DKernel(Kernel2D):
 
     Parameters
     ----------
-    stddev : number
-        Standard deviation of the Gaussian kernel.
+    x_stddev : float
+        Standard deviation of the Gaussian in x.
+    y_stddev : float
+        Standard deviation of the Gaussian in y.
+    theta : float
+        Rotation angle in radians. Note: increases clockwise.
     x_size : odd int, optional
         Size in x direction of the kernel array. Default = 8 * stddev.
     y_size : odd int, optional
@@ -146,13 +151,16 @@ class Gaussian2DKernel(Kernel2D):
     _separable = True
     _is_bool = False
 
-    def __init__(self, width, height=None, theta=0.0, support_scaling=8, **kwargs):
-        if height is None:
-            height = width
-        self._model = models.Gaussian2D(1. / (2 * np.pi * width * height), 0,
-                                        0, x_stddev=width, y_stddev=height,
+    def __init__(self, x_stddev, y_stddev=None, theta=0.0, **kwargs):
+        if 'stddev' in kwargs:
+            warnings.warn('The parameter stddev is deprecated since v1.2 '
+                          'Use x_stddev and y_stddev instead.', AstropyDeprecationWarning)
+        if y_stddev is None:
+            y_stddev = x_stddev
+        self._model = models.Gaussian2D(1. / (2 * np.pi * x_stddev * y_stddev), 0,
+                                        0, x_stddev=x_stddev, y_stddev=y_stddev,
                                         theta=theta)
-        self._default_size = _round_up_to_odd_integer(support_scaling * np.max([width, height]))
+        self._default_size = _round_up_to_odd_integer(8 * np.max([x_stddev, y_stddev]))
         super(Gaussian2DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(1. - self._array.sum())
 
