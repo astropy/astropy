@@ -63,7 +63,7 @@ New Features
   - Added ``axis`` keyword for ``mad_std`` function. [#4688]
 
   - Added Bayesian upper limits for Poisson count rates. [#4622]
-  
+
   - Added ``circstats``; a module for computing circular statistics. [#3705]
 
   - Added ``jackknife`` resampling method. [#3708]
@@ -206,9 +206,15 @@ API changes
   - The astropy.utils.compat.subprocess module has now been deprecated. Use the
     Python 'subprocess' module instead. [#4483]
 
+  - The astropy.utils.xml.unescaper module now also unescapes ``'%2F'`` to
+    ``'/'`` and ``'&&'`` to ``'&'`` in a given URL. [#4699]
+
 - ``astropy.visualization``
 
 - ``astropy.vo``
+
+  - The astropy.vo.validator.conf.conesearch_urls listing is updated to reflect
+    external changes to some VizieR Cone Search services. [#4699]
 
 - ``astropy.wcs``
 
@@ -236,6 +242,9 @@ Bug fixes
 - ``astropy.io.misc``
 
 - ``astropy.io.votable``
+
+  - The astropy.io.votable.validator.html module is updated to handle division
+    by zero when generating validation report. [#4699]
 
 - ``astropy.logger.py``
 
