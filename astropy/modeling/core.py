@@ -1132,6 +1132,7 @@ class Model(object):
                 bbox = [bbox]
 
         if coords is not None:
+            coords = np.asanyarray(coords, dtype=float)
             # Check dimensions match out and model
             assert len(coords) == ndim
             if out is not None:
@@ -1140,6 +1141,7 @@ class Model(object):
                 out = np.zeros(coords[0].shape)
 
         if out is not None:
+            out = np.asanyarray(out, dtype=float)
             try:
                 assert out.ndim == ndim
             except AssertionError:
