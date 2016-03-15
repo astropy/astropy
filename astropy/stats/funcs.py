@@ -1087,7 +1087,7 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
 
     return boot
 
-def mad_std(data):
+def mad_std(data, axis=None):
     """
     Calculate a robust standard deviation using the `median absolute
     deviation (MAD)
@@ -1106,6 +1106,9 @@ def mad_std(data):
     ----------
     data : array-like
         Data array or object that can be converted to an array.
+    axis : int, optional
+        Axis along which the medians are computed. The default (axis=None)
+        is to compute the median along a flattened version of the array.
 
     Returns
     -------
@@ -1124,7 +1127,7 @@ def mad_std(data):
     """
 
     # NOTE: 1. / scipy.stats.norm.ppf(0.75) = 1.482602218505602
-    return median_absolute_deviation(data) * 1.482602218505602
+    return median_absolute_deviation(data, axis=axis) * 1.482602218505602
 
 
 def _scipy_kraft_burrows_nousek(N, B, CL):
