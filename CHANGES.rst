@@ -292,6 +292,9 @@ Bug fixes
   - Relaxed expected accuracy of Cone Search prediction test to reduce spurious
     failures. [#4382]
 
+  - Cache option now properly caches both downloaded JSON database and XML VO
+    tables. [#4699]
+
 - ``astropy.wcs``
 
 Other Changes and Additions

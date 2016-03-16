@@ -675,12 +675,14 @@ http://gsss.stsci.edu/webservices/vo/ConeSearch.aspx?CAT=GSC23& has 74272 result
 
 To repeat the above asynchronously:
 
+>>> data.conf.remote_timeout = 30  # "with" does not work with async
 >>> async_search_all = conesearch.AsyncSearchAll(c, sr, catalog_db=gsc_cats)
 >>> async_search_all.running()
 True
 >>> async_search_all.done()
 False
 >>> all_gsc_results = async_search_all.get()
+>>> data.conf.reload('remote_timeout')  # Reset config
 
 If one is unable to obtain any results using the default
 Cone Search database, ``'conesearch_good'``, that only contains

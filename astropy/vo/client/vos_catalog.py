@@ -679,7 +679,7 @@ def _get_catalogs(service_type, catalog_db, **kwargs):
     return catalogs
 
 
-def _vo_service_request(url, pedantic, kwargs, verbose=False):
+def _vo_service_request(url, pedantic, kwargs, cache=True, verbose=False):
     """This is called by :func:`call_vo_service`.
 
     Raises
@@ -697,7 +697,7 @@ def _vo_service_request(url, pedantic, kwargs, verbose=False):
             urllib.parse.quote(key), urllib.parse.quote_plus(str(value))))
 
     parsed_url = url + '&'.join(query)
-    with get_readable_fileobj(parsed_url, encoding='binary',
+    with get_readable_fileobj(parsed_url, encoding='binary', cache=cache,
                               show_progress=verbose) as req:
         tab = table.parse(req, filename=parsed_url, pedantic=pedantic)
 
@@ -863,7 +863,8 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
             color_print('Trying {0}'.format(url), 'green')
 
         try:
-            return _vo_service_request(url, pedantic, kwargs, verbose=verbose)
+            return _vo_service_request(url, pedantic, kwargs, cache=cache,
+                                       verbose=verbose)
         except Exception as e:
             vo_warn(W25, (url, str(e)))
             if hasattr(e, 'reason') and isinstance(e.reason, socket.timeout):
