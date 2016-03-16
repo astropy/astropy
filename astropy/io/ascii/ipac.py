@@ -15,7 +15,6 @@ from collections import defaultdict, OrderedDict
 from textwrap import wrap
 from warnings import warn
 
-from ... import log
 from ...extern import six
 from ...extern.six.moves import zip
 
@@ -489,14 +488,14 @@ class Ipac(basic.Basic):
                     lines.append('\\{0}={1!r}'.format(keyword.strip(), val))
                     # meta is not standardized: Catch some common Errors.
                 except TypeError:
-                    log.warn("Table metadata keyword {0} has been skipped.  "
-                             "IPAC metadata must be in the form {{'keywords':"
-                             "{{'keyword': {{'value': value}} }}".format(keyword))
+                    warn("Table metadata keyword {0} has been skipped.  "
+                         "IPAC metadata must be in the form {{'keywords':"
+                         "{{'keyword': {{'value': value}} }}".format(keyword))
         ignored_keys = [key for key in table.meta if key not in ('keywords','comments')]
-        if any(ignored_keys)
-            log.warn("Table metadata keyword(s) {0} were not written.  "
-                     "IPAC metadata must be in the form {{'keywords':"
-                     "{{'keyword': {{'value': value}} }}".format(ignored_keys))
+        if any(ignored_keys):
+            warn("Table metadata keyword(s) {0} were not written.  "
+                 "IPAC metadata must be in the form {{'keywords':"
+                 "{{'keyword': {{'value': value}} }}".format(ignored_keys))
 
         # Usually, this is done in data.write, but since the header is written
         # first, we need that here.
