@@ -9,7 +9,7 @@ import abc
 import numpy as np
 from astropy.utils.exceptions import AstropyUserWarning
 
-__all__ = ["Optimization", "SLSQP", "Simplex"]
+__all__ = ["Optimization", "SLSQP", "Simplex", "Minimize"]
 
 # Maximum number of iterations
 DEFAULT_MAXITER = 100
@@ -240,3 +240,89 @@ class Simplex(Optimization):
                           "Maximum number of iterations reached.",
                           AstropyUserWarning)
         return fitparams, self.fit_info
+
+
+class Minimize(Optimization):
+    """
+    interface for Scipy.Optimize.minimize
+
+    Init Parameters
+    ----------
+    method : str or callable(custom)
+        select minimization method
+
+    supported_constraints : list
+        lists the constraint types supported by the Optimization method default is fixed and tied parameters, these can be set for custom methods
+        for predifined methords this will be changed atomatically
+
+    """
+
+    jac_required = False
+
+    def __init__(self, method, supported_constraints=None):
+        from scipy.optimize import minimize
+        super(Minimize, self).__init__(minimize)
+
+        if callable(method):
+            if supported_constraints is None:
+                warnings.warn("You must set the supported_constraints, by default they are the fitter will only support fixed and tied parameters."
+                              "If you wish this optimizer to support more then you change this", AstropyUserWarning)
+                self.supported_constraints = ['fixed', 'tied']
+            else:
+                self.supported_constraints = supported_constraints
+        else:
+            if method in ['nelder-mead', 'powell', 'cg', 'bfgs', 'newton-cg', 'dogleg', 'trust-ncg']:
+                supported_constraints = ['fixed', 'tied']
+            elif method in ['l-bfgs-b', 'tnc']:
+                supported_constraints = ['fixed', 'tied', 'bounds']
+            elif method == 'cobyla':
+                supported_constraints = ['fixed', 'tied', 'eqcons', 'ineqcons']
+
+        self._method = method
+        self.fit_info = {
+            'final_func_val': None,
+            'numiter': None,
+            'exit_mode': None,
+            'num_function_calls': None
+        }
+
+    def __call__(self, objfunc, initval, fargs, **kwargs):
+        """
+        Run the solver.
+
+        Parameters
+        ----------
+        objfunc : callable
+            objection function
+        initval : iterable
+            initial guess for the parameter values
+        fargs : tuple
+            other arguments to be passed to the statistic function
+        kwargs : dict
+            other keyword arguments to be passed to the solver
+
+        """
+        if 'maxiter' not in kwargs:
+            kwargs['options'] = {'maxiter': self._maxiter}
+        else:
+            kwargs['options'] = {'maxiter': kwargs['maxiter']}
+            kwargs.pop('maxiter')
+
+        if 'acc' in kwargs:
+            self._acc = kwargs['acc']
+            kwargs.pop('acc')
+        if 'xtol' in kwargs:
+            self._acc = kwargs['xtol']
+            kwargs.pop('xtol')
+
+        res = self.opt_method(objfunc, initval, method=self._method, args=fargs, tol=self._acc, **kwargs)
+        if res['status'] == 1:
+            warnings.warn("The fit may be unsuccessful; "
+                          "Maximum number of function evaluations reached.",
+                          AstropyUserWarning)
+        if res['status'] == 2:
+            warnings.warn("The fit may be unsuccessful; "
+                          "Maximum number of iterations reached.",
+                          AstropyUserWarning)
+        return res['x'], {info_name: res[res_name] for info_name, res_name in zip(['final_func_val', 'numiter', 'num_function_calls', 'exit_mode'],
+                                                                                  ['fun', 'nit', 'nfev', 'status']) if res_name in res}

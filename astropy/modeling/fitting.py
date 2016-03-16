@@ -34,7 +34,7 @@ import numpy as np
 from .utils import poly_map_domain, _combine_equivalency_dict
 from astropy.units import Quantity
 from astropy.utils.exceptions import AstropyUserWarning
-from .optimizers import (SLSQP, Simplex)
+from .optimizers import (SLSQP, Simplex, Minimize)
 from .statistic import (leastsquare)
 
 # Check pkg_resources exists
@@ -44,16 +44,15 @@ try:
 except ImportError:
     HAS_PKG = False
 
-
 __all__ = ['LinearLSQFitter', 'LevMarLSQFitter', 'FittingWithOutlierRemoval',
-           'SLSQPLSQFitter', 'SimplexLSQFitter', 'JointFitter', 'Fitter']
-
+           'SLSQPLSQFitter', 'SimplexLSQFitter', 'JointFitter', 'Fitter',
+           'MinimizeFitter']
 
 # Statistic functions implemented in `astropy.modeling.statistic.py
 STATISTICS = [leastsquare]
 
 # Optimizers implemented in `astropy.modeling.optimizers.py
-OPTIMIZERS = [Simplex, SLSQP]
+OPTIMIZERS = [Simplex, SLSQP, Minimize]
 
 from .optimizers import (DEFAULT_MAXITER, DEFAULT_EPS, DEFAULT_ACC)
 
@@ -192,14 +191,14 @@ class Fitter(metaclass=_FitterMeta):
         Statistic function
     """
 
-    def __init__(self, optimizer, statistic):
+    def __init__(self, optimizer, statistic, *optargs, **kwoptargs):
         if optimizer is None:
             raise ValueError("Expected an optimizer.")
         if statistic is None:
             raise ValueError("Expected a statistic function.")
         if inspect.isclass(optimizer):
             # a callable class
-            self._opt_method = optimizer()
+            self._opt_method = optimizer(*optargs, **kwoptargs)
         elif inspect.isfunction(optimizer):
             self._opt_method = optimizer
         else:
@@ -897,7 +896,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
 
         # now try to compute the true covariance matrix
         if (len(y) > len(init_values)) and cov_x is not None:
-            sum_sqrs = np.sum(self.objective_function(fitparams, *farg)**2)
+            sum_sqrs = np.sum(self.objective_function(fitparams, *farg) ** 2)
             dof = len(y) - len(init_values)
             self.fit_info['param_cov'] = cov_x * sum_sqrs / dof
         else:
@@ -1288,6 +1287,62 @@ def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
     return farg
 
 
+class MinimizeFitter(Fitter):
+    """
+    A fitter for the minimize optimizer
+
+    Parameters
+    ----------
+    method : str or callable(custom)
+        select minimization method
+
+    supported_constraints : list
+        lists the constraint types supported by the Optimization method default is fixed and tied parameters, these can be set for custom methods
+        for predifined methords this will be changed atomatically
+
+    """
+
+    def __init__(self, method, supported_constraints=None):
+        super(MinimizeFitter, self).__init__(optimizer=Minimize, statistic=leastsquare, method=method, supported_constraints=supported_constraints)
+
+    def __call__(self, model, x, y, z=None, weights=None, **kwargs):
+        """
+        Fit data to this model.
+
+        Parameters
+        ----------
+        model : `~astropy.modeling.FittableModel`
+            model to fit to x, y, z
+        x : array
+            input coordinates
+        y : array
+            input coordinates
+        z : array (optional)
+            input coordinates
+        weights : array (optional)
+            weights
+        kwargs : dict
+            optional keyword arguments to be passed to the optimizer or the statistic
+
+
+        Returns
+        -------
+        model_copy : `~astropy.modeling.FittableModel`
+            a copy of the input model with parameters set by the fitter
+    """
+    # TODO all the things checking for jac's and hess and hessp and things like that!
+
+        model_copy = _validate_model(model, self._opt_method.supported_constraints)
+        farg = _convert_input(x, y, z)
+        farg = (model_copy, weights, ) + farg
+
+        p0, _ = _model_to_fit_params(model_copy)
+
+        fitparams, self.fit_info = self._opt_method(self.objective_function, p0, farg, **kwargs)
+        _fitter_to_model_params(model_copy, fitparams)
+        return model_copy
+
+
 # TODO: These utility functions are really particular to handling
 # bounds/tied/fixed constraints for scipy.optimize optimizers that do not
 # support them inherently; this needs to be reworked to be clear about this
@@ -1384,16 +1439,16 @@ def _validate_constraints(supported_constraints, model):
     if (any(model.fixed.values()) and
             'fixed' not in supported_constraints):
         raise UnsupportedConstraintError(
-                message.format('fixed parameter'))
+            message.format('fixed parameter'))
 
     if any(model.tied.values()) and 'tied' not in supported_constraints:
         raise UnsupportedConstraintError(
-                message.format('tied parameter'))
+            message.format('tied parameter'))
 
     if (any(tuple(b) != (None, None) for b in model.bounds.values()) and
             'bounds' not in supported_constraints):
         raise UnsupportedConstraintError(
-                message.format('bound parameter'))
+            message.format('bound parameter'))
 
     if model.eqcons and 'eqcons' not in supported_constraints:
         raise UnsupportedConstraintError(message.format('equality'))
