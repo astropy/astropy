@@ -515,10 +515,9 @@ class TestNonLinearFitters:
         """
         Runs MinimizeFitter with most methords.
         """
-        res = []
         for meth in ['Nelder-Mead', 'Powell', 'CG', 'BFGS', 'L-BFGS-B', 'TNC', 'SLSQP']:
             mm = MinimizeFitter(meth)
-            res.append(mm(self.gauss, self.xdata, self.ydata))
+            res=mm(self.gauss, self.xdata, self.ydata)
             assert_allclose(res.parameters, self.initial_values, rtol=1e-3)
 
 
