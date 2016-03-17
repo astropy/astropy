@@ -277,7 +277,10 @@ def add_subset(w, basename, name, subresults, inside=['p'], total=None):
         subresults = list(subresults)
         if total is None:
             total = len(subresults)
-        percentage = (float(len(subresults)) / total)
+        if total == 0:  # pragma: no cover
+            percentage = 0.0
+        else:
+            percentage = (float(len(subresults)) / total)
         with w.tag('td'):
             for element in inside:
                 w.start(element)

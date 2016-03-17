@@ -169,15 +169,15 @@ we are not trying to validate the registry itself but the services it contains:
 >>> with data.conf.set_temp('remote_timeout', 30):
 ...     validate.check_conesearch_sites()
 Downloading http://vao.stsci.edu/directory/NVORegInt.asmx/...
-|===========================================|  25M/ 25M (100.00%)        00s
-INFO: Only 30/11938 site(s) are validated [astropy.vo.validator.validate]
+|===========================================|  62M/ 62M (100.00%)        00s
+INFO: Only 30/16134 site(s) are validated [astropy.vo.validator.validate]
 # ...
-INFO: good: 14 catalog(s) [astropy.vo.validator.validate]
-INFO: warn: 12 catalog(s) [astropy.vo.validator.validate]
-INFO: excp: 0 catalog(s) [astropy.vo.validator.validate]
-INFO: nerr: 4 catalog(s) [astropy.vo.validator.validate]
+INFO: good: 16 catalog(s) [astropy.vo.validator.validate]
+INFO: warn: 13 catalog(s) [astropy.vo.validator.validate]
+INFO: excp: 1 catalog(s) [astropy.vo.validator.validate]
+INFO: nerr: 0 catalog(s) [astropy.vo.validator.validate]
 INFO: total: 30 out of 30 catalog(s) [astropy.vo.validator.validate]
-INFO: check_conesearch_sites took 451.05685997 s on AVERAGE...
+INFO: check_conesearch_sites took 93.9895470142 s on AVERAGE...
 
 Validate only Cone Search access URLs hosted by ``'stsci.edu'`` without verbose
 outputs (except warnings that are controlled by :py:mod:`warnings`) or
@@ -194,14 +194,15 @@ current directory. For this example, we use ``registry_db`` from
 >>> with data.conf.set_temp('remote_timeout', 30):
 ...     validate.check_conesearch_sites(
 ...         destdir='./subset', verbose=False, parallel=False, url_list=urls)
-INFO: check_conesearch_sites took 84.7241549492 s on AVERAGE...
+INFO: check_conesearch_sites took 67.8837449551 s on AVERAGE...
 
 Add ``'W24'`` from `astropy.io.votable.exceptions` to the list of
 non-critical warnings to be ignored and re-run default validation.
 This is *not* recommended unless you know exactly what you are doing:
 
->>> from astropy.vo.validator.validate import conf
->>> with conf.set_temp('noncritical_warnings', conf.noncritical_warnings + ['W24']):
+>>> from astropy.vo.validator import conf as validator_conf
+>>> new_warns = validator_conf.noncritical_warnings + ['W24']
+>>> with validator_conf.set_temp('noncritical_warnings', new_warns):
 ...     with data.conf.set_temp('remote_timeout', 30):
 ...         validate.check_conesearch_sites()
 
@@ -272,30 +273,36 @@ Load Cone Search validation results from
 
 >>> r = inspect.ConeSearchResults()
 Downloading http://.../conesearch_good.json
-|===========================================|  48k/ 48k (100.00%)        00s
+|===========================================|  59k/ 59k (100.00%)        00s
 Downloading http://.../conesearch_warn.json
-|===========================================|  85k/ 85k (100.00%)        00s
+|===========================================| 277k/277k (100.00%)        00s
 Downloading http://.../conesearch_exception.json
-|===========================================| 3.0k/3.0k (100.00%)        00s
+|===========================================| 4.7k/4.7k (100.00%)        00s
 Downloading http://.../conesearch_error.json
-|===========================================| 4.0k/4.0k (100.00%)        00s
+|===========================================|  45 / 45  (100.00%)        00s
 
-Print tally. In this example, there are 13 Cone Search services that
-passed validation with non-critical warnings, 14 with critical warnings,
-1 with exceptions, and 2 with network error:
+Print tally. In this example, there are 16 Cone Search services that
+passed validation with non-critical warnings, 13 with critical warnings,
+1 with exceptions, and 0 with network error:
 
 >>> r.tally()
-good: 13 catalog(s)
-warn: 14 catalog(s)
+good: 16 catalog(s)
+warn: 13 catalog(s)
 exception: 1 catalog(s)
-error: 2 catalog(s)
+error: 0 catalog(s)
 total: 30 catalog(s)
 
 Print a list of good Cone Search catalogs, each with title, access URL,
 warning codes collected, and individual warnings:
 
 >>> r.list_cats('good')
-Guide Star Catalog 2.3 1
+2MASS All-Sky Point Source Catalog 1
+http://irsa.ipac.caltech.edu/cgi-bin/Oasis/CatSearch/nph-catsearch?CAT=fp_psc&
+W27,W06,W22
+.../vo.xml:5:0: W22: The DEFINITIONS element is deprecated in VOTable 1.1...
+.../vo.xml:6:0: W27: COOSYS deprecated in VOTable 1.2
+# ...
+Guide Star Catalog v2 1
 http://gsss.stsci.edu/webservices/vo/ConeSearch.aspx?CAT=GSC23&
 W48,W50
 .../vo.xml:136:0: W50: Invalid unit string 'pixel'
@@ -319,7 +326,8 @@ directory. This is useful to see why the services failed validations:
 List the titles of all good Cone Search catalogs:
 
 >>> r.catkeys['good']
-[u'Guide Star Catalog 2.3 1',
+[u'2MASS All-Sky Point Source Catalog 1',
+ u'Guide Star Catalog v2 1',
  u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 1',
  u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 2',
  u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 3', ...,
@@ -331,7 +339,7 @@ Print the details of catalog titled ``'USNO-A2 Catalogue 1'``:
 {
     "capabilityClass": "ConeSearch",
     "capabilityStandardID": "ivo://ivoa.net/std/ConeSearch",
-    "capabilityValidationLevel": "",
+    "capabilityValidationLevel": "2",
     "contentLevel": "#University#Research#Amateur#",
     # ...
     "version": "",
@@ -349,14 +357,12 @@ validation of STScI Cone Search services done in
 >>> with conf.set_temp('vos_baseurl', './subset/'):
 >>>     r = inspect.ConeSearchResults()
 >>> r.tally()
-good: 19 catalog(s)
-warn: 7 catalog(s)
-exception: 2 catalog(s)
+good: 10 catalog(s)
+warn: 5 catalog(s)
+exception: 15 catalog(s)
 error: 0 catalog(s)
-total: 28 catalog(s)
+total: 30 catalog(s)
 >>> r.catkeys['good']
-[u'Advanced Camera for Surveys 1',
- u'Berkeley Extreme and Far-UV Spectrometer 1',
- u'Copernicus Satellite 1',
- u'Extreme Ultraviolet Explorer 1', ...,
+[u'Berkeley Extreme and Far-UV Spectrometer 1',
+ u'Copernicus Satellite 1', ...,
  u'Wisconsin Ultraviolet Photo-Polarimeter Experiment 1']
