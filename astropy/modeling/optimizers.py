@@ -260,11 +260,11 @@ class Minimize(Optimization):
 
     jac_required = False
 
-    def __init__(self, method, supported_constraints=None):
+    def __init__(self, method='slsqp', supported_constraints=None):
         from scipy.optimize import minimize
         super(Minimize, self).__init__(minimize)
         method = method.lower()
-        if callable(method):
+	if callable(method):
             if supported_constraints is None:
                 warnings.warn("No supported_constraints set, by default the optimizer will only support fixed and tied parameters."
                               "If you wish this optimizer to support more then you change this", AstropyUserWarning)
