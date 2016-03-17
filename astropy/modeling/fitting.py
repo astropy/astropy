@@ -43,7 +43,6 @@ try:
 except ImportError:
     HAS_PKG = False
 
-
 __all__ = ['LinearLSQFitter', 'LevMarLSQFitter', 'FittingWithOutlierRemoval',
            'SLSQPLSQFitter', 'SimplexLSQFitter', 'JointFitter', 'Fitter',
            'MinimizeFitter']
@@ -54,8 +53,7 @@ STATISTICS = [leastsquare]
 # Optimizers implemented in `astropy.modeling.optimizers.py
 OPTIMIZERS = [Simplex, SLSQP, Minimize]
 
-# from .optimizers import (DEFAULT_MAXITER, DEFAULT_EPS, DEFAULT_ACC)
-from optimizers import (DEFAULT_MAXITER, DEFAULT_EPS, DEFAULT_ACC)
+from .optimizers import (DEFAULT_MAXITER, DEFAULT_EPS, DEFAULT_ACC)
 
 
 class ModelsError(Exception):
