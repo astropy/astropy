@@ -48,14 +48,14 @@ def test_check_anyuri():
 
 def test_unescape_all():
     # str
-    url_in = 'http://casu.ast.cam.ac.uk/ag/iphas-dsa/SubmitCone?' \
+    url_in = 'http://casu.ast.cam.ac.uk/ag/iphas-dsa%2FSubmitCone?' \
              'DSACAT=IDR&amp;amp;DSATAB=Emitters&amp;amp;'
     url_out = 'http://casu.ast.cam.ac.uk/ag/iphas-dsa/SubmitCone?' \
               'DSACAT=IDR&DSATAB=Emitters&'
     assert unescaper.unescape_all(url_in) == url_out
 
     # bytes
-    url_in = b'http://casu.ast.cam.ac.uk/ag/iphas-dsa/SubmitCone?' \
+    url_in = b'http://casu.ast.cam.ac.uk/ag/iphas-dsa%2FSubmitCone?' \
              b'DSACAT=IDR&amp;amp;DSATAB=Emitters&amp;amp;'
     url_out = b'http://casu.ast.cam.ac.uk/ag/iphas-dsa/SubmitCone?' \
               b'DSACAT=IDR&DSATAB=Emitters&'
