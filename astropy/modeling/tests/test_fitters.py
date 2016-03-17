@@ -37,7 +37,7 @@ except ImportError:
     HAS_PKG = False
 
 
-fitters = [SimplexLSQFitter, SLSQPLSQFitter]
+fitters = [SimplexLSQFitter, SLSQPLSQFitter, MinimizeFitter]
 
 _RANDOM_SEED = 0x1337
 
