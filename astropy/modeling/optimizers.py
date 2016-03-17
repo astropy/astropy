@@ -9,7 +9,7 @@ import abc
 import numpy as np
 from astropy.utils.exceptions import AstropyUserWarning
 
-__all__ = ["Optimization", "SLSQP", "Simplex", "Minimize"]
+__all__ = ("Optimization", "SLSQP", "Simplex", "Minimize")
 
 # Maximum number of iterations
 DEFAULT_MAXITER = 100
@@ -103,6 +103,7 @@ class SLSQP(Optimization):
     ----------
     .. [1] http://www.netlib.org/toms/733
     """
+
     supported_constraints = ['bounds', 'eqcons', 'ineqcons', 'fixed', 'tied']
 
     def __init__(self):
@@ -244,16 +245,16 @@ class Simplex(Optimization):
 
 class Minimize(Optimization):
     """
-    interface for Scipy.Optimize.minimize
+    Interface for Scipy.Optimize.minimize.
 
-    Init Parameters
+    Parameters
     ----------
     method : str or callable(custom)
         select minimization method
 
     supported_constraints : list
-        lists the constraint types supported by the Optimization method default is fixed and tied parameters, these can be set for custom methods
-        for predifined methords this will be changed atomatically
+        lists the constraint types supported by the Optimization method default is fixed and tied parameters,
+        these can be set for custom methods for predifined methords this will be changed atomatically
 
     """
 
@@ -262,21 +263,27 @@ class Minimize(Optimization):
     def __init__(self, method, supported_constraints=None):
         from scipy.optimize import minimize
         super(Minimize, self).__init__(minimize)
-
+        method = method.lower()
         if callable(method):
             if supported_constraints is None:
-                warnings.warn("You must set the supported_constraints, by default they are the fitter will only support fixed and tied parameters."
+                warnings.warn("No supported_constraints set, by default the optimizer will only support fixed and tied parameters."
                               "If you wish this optimizer to support more then you change this", AstropyUserWarning)
+
                 self.supported_constraints = ['fixed', 'tied']
             else:
                 self.supported_constraints = supported_constraints
         else:
             if method in ['nelder-mead', 'powell', 'cg', 'bfgs', 'newton-cg', 'dogleg', 'trust-ncg']:
-                supported_constraints = ['fixed', 'tied']
+                self.supported_constraints = ['fixed', 'tied']
             elif method in ['l-bfgs-b', 'tnc']:
-                supported_constraints = ['fixed', 'tied', 'bounds']
+                self.supported_constraints = ['fixed', 'tied', 'bounds']
             elif method == 'cobyla':
-                supported_constraints = ['fixed', 'tied', 'eqcons', 'ineqcons']
+                self.supported_constraints = ['fixed', 'tied', 'eqcons', 'ineqcons']
+            elif method in ['slsqp']:
+                self.supported_constraints = ['fixed', 'tied', 'eqcons', 'ineqcons', 'bounds']
+
+            if ['newton-cg', 'trust-ncg']:
+                self.jac_required = True
 
         self._method = method
         self.fit_info = {
@@ -315,7 +322,28 @@ class Minimize(Optimization):
             self._acc = kwargs['xtol']
             kwargs.pop('xtol')
 
+        model = fargs[0]
+        pars = [getattr(model, name) for name in model.param_names]
+
+        if 'bounds' in self.supported_constraints:
+            bounds = [par.bounds for par in pars if (par.fixed is not True and par.tied is False)]
+            bounds = np.asarray(bounds)
+            for i in bounds:
+                if i[0] is None:
+                    i[0] = DEFAULT_BOUNDS[0]
+                if i[1] is None:
+                    i[1] = DEFAULT_BOUNDS[1]
+                # older versions of scipy require this array to be float
+                kwargs['bounds'] = np.asarray(bounds, dtype=np.float)
+
+        if 'eqcons' in self.supported_constraints:
+            kwargs['eqcons'] = np.array(model.eqcons)
+
+        if 'ineqcons' in self.supported_constraints:
+            kwargs['ineqcons'] = np.array(model.ineqcons)
+
         res = self.opt_method(objfunc, initval, method=self._method, args=fargs, tol=self._acc, **kwargs)
+
         if res['status'] == 1:
             warnings.warn("The fit may be unsuccessful; "
                           "Maximum number of function evaluations reached.",

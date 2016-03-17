@@ -494,12 +494,12 @@ class TestNonLinearFitters:
             x = np.linspace(0, 1, 100)
             # y scatter is amplitude ~1 to make sure covarience is
             # non-negligible
-            y = x*a + b + np.random.randn(len(x))
+            y = x * a + b + np.random.randn(len(x))
 
         # first compute the ordinary least squares covariance matrix
         X = np.matrix(np.vstack([x, np.ones(len(x))]).T)
         beta = np.linalg.inv(X.T * X) * X.T * np.matrix(y).T
-        s2 = np.sum((y - (X * beta).A.ravel())**2) / (len(y) - len(beta))
+        s2 = np.sum((y - (X * beta).A.ravel()) ** 2) / (len(y) - len(beta))
         olscov = np.linalg.inv(X.T * X) * s2
 
         # now do the non-linear least squares fit
@@ -510,6 +510,18 @@ class TestNonLinearFitters:
 
         assert_allclose(fmod.parameters, beta.A.ravel())
         assert_allclose(olscov, fitter.fit_info['param_cov'])
+
+    def test_minimize(self):
+        """
+        Runs MinimizeFitter with most methords.
+        """
+        res = []
+        for meth in ['Nelder-Mead', 'Powell', 'CG', 'BFGS', 'L-BFGS-B', 'TNC', 'SLSQP']:
+            mm = MinimizeFitter(meth)
+            res.append(mm(self.gauss, self.xdata, self.ydata))
+            assert_allclose(res.parameters, self.initial_values, rtol=1e-3)
+
+
 
 
 @pytest.mark.skipif('not HAS_PKG')

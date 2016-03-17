@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 """
 This module implements classes (called Fitters) which combine optimization
 algorithms (typically from `scipy.optimize`) with statistic functions to perform
@@ -44,6 +43,7 @@ try:
 except ImportError:
     HAS_PKG = False
 
+
 __all__ = ['LinearLSQFitter', 'LevMarLSQFitter', 'FittingWithOutlierRemoval',
            'SLSQPLSQFitter', 'SimplexLSQFitter', 'JointFitter', 'Fitter',
            'MinimizeFitter']
@@ -54,7 +54,8 @@ STATISTICS = [leastsquare]
 # Optimizers implemented in `astropy.modeling.optimizers.py
 OPTIMIZERS = [Simplex, SLSQP, Minimize]
 
-from .optimizers import (DEFAULT_MAXITER, DEFAULT_EPS, DEFAULT_ACC)
+# from .optimizers import (DEFAULT_MAXITER, DEFAULT_EPS, DEFAULT_ACC)
+from optimizers import (DEFAULT_MAXITER, DEFAULT_EPS, DEFAULT_ACC)
 
 
 class ModelsError(Exception):
@@ -964,7 +965,6 @@ class SLSQPLSQFitter(Fitter):
     """
     SLSQP optimization algorithm and least squares statistic.
 
-
     Raises
     ------
     ModelLinearityError
@@ -1289,7 +1289,8 @@ def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
 
 class MinimizeFitter(Fitter):
     """
-    A fitter for the minimize optimizer
+
+    A fitter for the minimize optimizer.
 
     Parameters
     ----------
@@ -1297,9 +1298,9 @@ class MinimizeFitter(Fitter):
         select minimization method
 
     supported_constraints : list
-        lists the constraint types supported by the Optimization method default is fixed and tied parameters, these can be set for custom methods
-        for predifined methords this will be changed atomatically
-
+        lists the constraint types supported by the Optimization method default is fixed
+        and tied parameters, these can be set for custom methods for predifined methods
+        this will be changed atomatically
     """
 
     def __init__(self, method, supported_constraints=None):
@@ -1324,15 +1325,13 @@ class MinimizeFitter(Fitter):
         kwargs : dict
             optional keyword arguments to be passed to the optimizer or the statistic
 
-
         Returns
         -------
         model_copy : `~astropy.modeling.FittableModel`
             a copy of the input model with parameters set by the fitter
-    """
-    # TODO all the things checking for jac's and hess and hessp and things like that!
-
+        """
         model_copy = _validate_model(model, self._opt_method.supported_constraints)
+
         farg = _convert_input(x, y, z)
         farg = (model_copy, weights, ) + farg
 
