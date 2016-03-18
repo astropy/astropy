@@ -172,7 +172,7 @@ def test_supergalactic():
     assert supergalactic.separation(icrs) < 0.005 * u.degree
     
 
-class TestHelioBarioCentric():
+class TestHelioBaryCentric():
     """
     Check GCRS<->Heliocentric and Barycentric coordinate conversions.
 
