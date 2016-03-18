@@ -264,7 +264,7 @@ class Minimize(Optimization):
         from scipy.optimize import minimize
         super(Minimize, self).__init__(minimize)
         method = method.lower()
-    if callable(method):
+        if callable(method):
             if supported_constraints is None:
                 warnings.warn("No supported_constraints set, by default the optimizer will only support fixed and tied parameters."
                               "If you wish this optimizer to support more then you change this", AstropyUserWarning)
