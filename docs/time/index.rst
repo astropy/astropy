@@ -874,16 +874,16 @@ arrive early or late. The solution is to calculate the time the photon would
 have arrived at a standard location; either the Solar system barycentre or the
 heliocentre.
 
-Suppose you observed IP Peg on La Palma and have a list of times in MJD form, in
+Suppose you observed IP Peg from Greenwich and have a list of times in MJD form, in
 the UTC timescale. You then create appropriate |Time| and |SkyCoord| objects and
 calculate light travel times to the barycentre as follows::
 
     >>> from astropy import time, coordinates as coord, units as u
     >>> ip_peg = coord.SkyCoord("23:23:08.55", "+18:24:59.3",
     ...                         unit=(u.hourangle, u.deg), frame='icrs')
-    >>> wht = coord.EarthLocation.of_site('lapalma')  
+    >>> greenwich = coord.EarthLocation.of_site('greenwich')  
     >>> times = time.Time([56325.95833333, 56325.978254], format='mjd',
-    ...                   scale='utc', location=wht)  
+    ...                   scale='utc', location=greenwich)  
     >>> ltt_bary = times.light_travel_time(ip_peg)  
           
 If you desire the light travel time to the heliocentre instead then use::
