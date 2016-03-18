@@ -248,9 +248,13 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
                                               copy=False)
 
         newxyz = intermedrep.to_cartesian().xyz
+        # roll astrom['eh'] to the last axis and scale
+        eh = np.rollaxis(astrom['eh'], 0, astrom['eh'].ndim) * astrom['em'] * u.au
+        # roll astrom['eh'] back to the first axis
+        eh = np.rollaxis(eh, -1, 0)
+        
         # roll xyz to last axis and add the heliocentre position
-        newxyz = (np.rollaxis(newxyz, 0, newxyz.ndim) +
-                  astrom['eh'] * astrom['em'] * u.au)
+        newxyz = np.rollaxis(newxyz, 0, newxyz.ndim) + eh
         # roll xyz back to the first axis
         newxyz = np.rollaxis(newxyz, -1, 0)
         newrep = CartesianRepresentation(newxyz).represent_as(SphericalRepresentation)
