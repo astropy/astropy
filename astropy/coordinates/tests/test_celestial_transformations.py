@@ -11,7 +11,7 @@ from ..distances import Distance
 from ..builtin_frames import (ICRS, FK5, FK4, FK4NoETerms, Galactic,
                               Supergalactic, Galactocentric, HCRS)
 from .. import SkyCoord
-from ...tests.helper import (pytest, quantity_allclose as allclose, remote_data,
+from ...tests.helper import (pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
 from .. import EarthLocation
 from ...time import Time
@@ -171,24 +171,7 @@ def test_supergalactic():
     icrs = SkyCoord('17h51m36s -25d18m52s')
     assert supergalactic.separation(icrs) < 0.005 * u.degree
 
- 
-@remote_data    
-def test_heliocentric():
-    """
-    Check GCRS<->Heliocentric coordinate conversion for WHT observing site
-    """
-    wht = EarthLocation.of_site('lapalma')
-    t = Time("2013-02-02T23:00")
-    itrs = wht.get_itrs(obstime=t)
-    helio = itrs.transform_to(HCRS(obstime=t))
-    assert allclose(helio.cartesian.xyz,\
-        u.Quantity([ -1.02597256e+11,  9.71725820e+10,  4.21268419e+10],unit=u.m))
-        
-    # now we test against SLALIB answer, should agree to within 14km
-    helio_slalib = u.Quantity([-0.685820296, 0.6495585893, 0.2816005464],unit=u.au)
-    difference = np.linalg.norm((helio.cartesian.xyz-helio_slalib).to(u.km))
-    assert difference < 14.0
-    
+     
 
 class TestHelioBarioCentric():
     """
