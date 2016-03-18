@@ -278,7 +278,7 @@ class Minimize(Optimization):
             elif method in ['l-bfgs-b', 'tnc']:
                 self.supported_constraints = ['fixed', 'tied', 'bounds']
             elif method == 'cobyla':
-                self.supported_constraints = ['fixed', 'tied', 'eqcons', 'ineqcons']
+                self.supported_constraints = ['fixed', 'tied', 'ineqcons']
             elif method in ['slsqp']:
                 self.supported_constraints = ['fixed', 'tied', 'eqcons', 'ineqcons', 'bounds']
 
@@ -336,11 +336,17 @@ class Minimize(Optimization):
                 # older versions of scipy require this array to be float
                 kwargs['bounds'] = np.asarray(bounds, dtype=np.float)
 
-        if 'eqcons' in self.supported_constraints:
-            kwargs['eqcons'] = np.array(model.eqcons)
+        if 'eqcons' in self.supported_constraints and np.array(model.eqcons)>0:
+            if not 'constraints' in kwargs:
+                kwargs['constraints']=[]
+            for eq in model.eqcons:
+                kwargs['constraints'].append({"type":"eq","fun":eq })
 
-        if 'ineqcons' in self.supported_constraints:
-            kwargs['ineqcons'] = np.array(model.ineqcons)
+        if 'ineqcons' in self.supported_constraints and np.array(model.ineqcons)>0:
+            if not 'constraints' in kwargs:
+                kwargs['constraints']=[]
+            for ineq in model.ineqcons:
+                kwargs['constraints'].append({"type":"ineq","fun":ineq })
 
         res = self.opt_method(objfunc, initval, method=self._method, args=fargs, tol=self._acc, **kwargs)
 
