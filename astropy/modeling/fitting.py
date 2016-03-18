@@ -1301,7 +1301,7 @@ class MinimizeFitter(Fitter):
         this will be changed atomatically
     """
 
-    def __init__(self, method, supported_constraints=None):
+    def __init__(self, method='slsqp', supported_constraints=None):
         super(MinimizeFitter, self).__init__(optimizer=Minimize, statistic=leastsquare, method=method, supported_constraints=supported_constraints)
 
     def __call__(self, model, x, y, z=None, weights=None, **kwargs):
