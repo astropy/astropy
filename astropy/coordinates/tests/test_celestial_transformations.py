@@ -9,7 +9,7 @@ import numpy as np
 from ... import units as u
 from ..distances import Distance
 from ..builtin_frames import (ICRS, FK5, FK4, FK4NoETerms, Galactic,
-                              Supergalactic, Galactocentric, HCRS)
+                              Supergalactic, Galactocentric, HCRS, GCRS)
 from .. import SkyCoord
 from ...tests.helper import (pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
@@ -170,8 +170,7 @@ def test_supergalactic():
     supergalactic = Supergalactic(sgl=-174.44*u.degree, sgb=+46.17*u.degree)
     icrs = SkyCoord('17h51m36s -25d18m52s')
     assert supergalactic.separation(icrs) < 0.005 * u.degree
-
-     
+    
 
 class TestHelioBarioCentric():
     """
