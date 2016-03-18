@@ -37,5 +37,10 @@ class TestHelioBaryCentric():
         bval1 = self.obstime.light_travel_time(self.star, 'barycentric')
         bval2 = self.obstime2.light_travel_time(self.star, 'barycentric')
         bval_arr = self.obstimeArr.light_travel_time(self.star, 'barycentric')
+        hval1 = self.obstime.light_travel_time(self.star, 'heliocentric')
+        hval2 = self.obstime2.light_travel_time(self.star, 'heliocentric')
+        hval_arr = self.obstimeArr.light_travel_time(self.star, 'heliocentric')
+        assert hval_arr[0]-hval1 < 1. * u.us
+        assert hval_arr[1]-hval2 < 1. * u.us
         assert bval_arr[0]-bval1 < 1. * u.us
         assert bval_arr[1]-bval2 < 1. * u.us
