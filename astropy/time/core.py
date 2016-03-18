@@ -590,17 +590,16 @@ class Time(object):
         from ..coordinates import (UnitSphericalRepresentation, CartesianRepresentation,
                                    HCRS, ICRS, GCRS, EarthLocation, SkyCoord)
 
-        if not isinstance(location, EarthLocation):
-            raise ValueError("location must be an EarthLocation object")
-        if not isinstance(skycoord, SkyCoord):
-            raise ValueError("skycoord must be an SkyCoord object")
-
         # ensure sky location is ICRS compatible
         if not skycoord.is_transformable_to(ICRS()):
             raise ValueError("Given skycoord is not transformable to the ICRS")
 
         # get location of observatory in ITRS coordinates at this Time
-        itrs = location.get_itrs(obstime=self)
+        try:
+            itrs = location.get_itrs(obstime=self)
+        except:
+            raise ValueError("Supplied location does not have a valid `get_itrs` method")
+              
         if kind.lower() == 'heliocentric':
             # convert to heliocentric coordinates, aligned with ICRS
             cpos = itrs.transform_to(HCRS(obstime=self)).cartesian.xyz
