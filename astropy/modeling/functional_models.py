@@ -450,33 +450,45 @@ class Gaussian2D(Fittable2DModel):
                 dg_dtheta]
 
 
-class Shift(Model):
+class Shift(Fittable1DModel):
     """
-    Shift a coordinate.
-
+    Shift a model by an offset.
+    
     Parameters
     ----------
     offset : float
-        Offset to add to a coordinate.
+        Amount by which to shift a value.
+
+    Notes
+    -----
+    Model formula:
+        .. math:: f(x) = x + A
     """
 
-    inputs = ('x',)
-    outputs = ('x',)
-
-    offset = Parameter(default=0)
-
-    @property
-    def inverse(self):
-        inv = self.copy()
-        inv.offset *= -1
-        return inv
+    offset = Parameter(default=1)
+    linear = True
 
     @staticmethod
     def evaluate(x, offset):
+        """Scaling function"""
+        
         return x + offset
+    
+    @property
+    def inverse(self):
+        inv = self.copy()
+        inv.offset *= -1.
+        return inv
+
+    @staticmethod
+    def fit_deriv(x, offset):
+        """Scale model derivative with respect to parameters"""
+        
+        d_offset = np.ones_like(x)
+        return [d_offset]
 
 
-class Scale(Model):
+class Scale(Fittable1DModel):
     """
     Multiply a model by a factor.
 
@@ -484,10 +496,12 @@ class Scale(Model):
     ----------
     factor : float
         Factor by which to scale a coordinate.
+        
+    Notes
+    -----
+    Model formula:
+        .. math:: f(x) = A*x
     """
-
-    inputs = ('x',)
-    outputs = ('x',)
 
     factor = Parameter(default=1)
     linear = True
@@ -500,7 +514,15 @@ class Scale(Model):
 
     @staticmethod
     def evaluate(x, factor):
+        """Scaling function"""
+        
         return factor * x
+    
+    @staticmethod
+    def fit_deriv(x, factor):
+      """Scale model derivative with respect to parameters"""
+      
+      return [x]
 
 
 class Redshift(Fittable1DModel):
