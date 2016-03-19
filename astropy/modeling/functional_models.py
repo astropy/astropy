@@ -24,6 +24,13 @@ __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'TrapezoidDisk2D', 'Ring2D', 'custom_model_1d', 'Voigt1D']
 
 
+def quantity_with_unit(parameter, unit):
+    if parameter.unit is None:
+        return parameter.value * unit
+    else:
+        return parameter.quantity.to(unit)
+
+
 class Gaussian1D(Fittable1DModel):
     """
     One dimensional Gaussian model.
@@ -110,8 +117,20 @@ class Gaussian1D(Fittable1DModel):
     mean = Parameter(default=0)
     stddev = Parameter(default=1)
 
-    input_units = 'mean'  # Input must have same units as mean
-    output_units = 'amplitude'  # Output must have same units as amplitude
+    # input_units = 'mean'  # Input must have same units as mean
+    # output_units = 'amplitude'  # Output must have same units as amplitude
+
+    def with_units_from_data(self, x, y):
+        """
+        Return an instance of the model which has units for which the parameter
+        values are compatible with the data units.
+        """
+
+        amplitude = quantity_with_unit(self.amplitude, y.unit)
+        mean = quantity_with_unit(self.mean, y.unit)
+        stddev = quantity_with_unit(self.stddev, y.unit)
+
+        return Gaussian1D(amplitude=amplitude, mean=mean, stddev=stddev)
 
     def bounding_box(self, factor=5.5):
         """

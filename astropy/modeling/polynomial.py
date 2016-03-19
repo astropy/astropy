@@ -98,6 +98,25 @@ class PolynomialModel(PolynomialBase):
             n_models=n_models, model_set_axis=model_set_axis, name=name,
             meta=meta, **params)
 
+    def with_units_from_data(self, x, y):
+        """
+        Return an instance of the model which has units for which the parameter
+        values are compatible with the data units.
+        """
+
+        params = {}
+        params['degree'] = self._degree
+
+        if self.n_inputs == 1:
+            for n in range(self._order):
+                name = 'c{0}'.format(n)
+                params[name] = quantity_with_unit(getattr(self, name),
+                                                  y.unit / x.unit ** (n))
+        else:
+            raise NotImplementedError()
+
+        return self.__class__(**params)
+
     def __repr__(self):
         return self._format_repr([self.degree])
 
@@ -490,6 +509,13 @@ class Legendre1D(PolynomialModel):
         return c0 + c1 * x
 
 
+def quantity_with_unit(parameter, unit):
+    if parameter.unit is None:
+        return parameter.value * unit
+    else:
+        return parameter.quantity.to(unit)
+
+
 class Polynomial1D(PolynomialModel):
     """
     1D Polynomial model.
@@ -556,7 +582,7 @@ class Polynomial1D(PolynomialModel):
 
     @staticmethod
     def horner(x, coeffs):
-        c0 = coeffs[-1] + x * 0
+        c0 = coeffs[-1]
         for i in range(2, len(coeffs) + 1):
             c0 = coeffs[-i] + c0 * x
         return c0
