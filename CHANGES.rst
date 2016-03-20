@@ -1250,6 +1250,9 @@ Bug Fixes
 
 - ``astropy.table``
 
+  - Fixed bug where Tables created from existing Table objects were not
+    inheriting the ``primary_key`` attribute. [#4672]
+    
 - ``astropy.time``
 
 - ``astropy.units``
