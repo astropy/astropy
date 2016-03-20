@@ -43,6 +43,8 @@ New Features
 
 - ``astropy.modeling``
 
+  - Inputs and Parameters to Render function converted to float [#4681]
+
 - ``astropy.nddata``
 
   - Added ``UnknownUncertainty`` as ``NDUncertainty`` subclass which cannot
