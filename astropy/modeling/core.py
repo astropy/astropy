@@ -1113,7 +1113,7 @@ class Model(object):
         :ref:`bounding-boxes`
         """
 
-	try:
+ 	 try:
             bbox = self.bounding_box
         except NotImplementedError:
             bbox = None
@@ -1132,7 +1132,7 @@ class Model(object):
                 bbox = [bbox]
 
         if coords is not None:
-	    coords = np.asanyarray(coords,  dtype=np.float)
+	     coords = np.asanyarray(coords,  dtype=np.float)
             # Check dimensions match out and model
             assert len(coords) == ndim
             if out is not None:
@@ -1141,7 +1141,7 @@ class Model(object):
                 out = np.zeros(coords[0].shape)
 
         if out is not None:
-	    out = np.asanyarray(out,  dtype=np.float)
+	     out = np.asanyarray(out,  dtype=np.float)
             try:
                 assert out.ndim == ndim
             except AssertionError:
