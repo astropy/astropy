@@ -86,11 +86,15 @@ def unit_support(func):
 
     print("ICI")
     
-    def wrapper(self, model, x, y, *args, **kwargs):
+    def wrapper(self, model, x, y, z=None, *args, **kwargs):
         print("HERE")
         if isinstance(x, u.Quantity) or isinstance(y, u.Quantity):
-            model_new = func(self, model, x.value, y.value, *args, **kwargs)
-            return model_new.with_units_from_data(x, y)
+            if z is None:
+                model_new = func(self, model, x.value, y.value, *args, **kwargs)
+                return model_new.with_units_from_data(x, y)
+            else:
+                model_new = func(self, model, x.value, y.value, z=z.value, *args, **kwargs)
+                return model_new.with_units_from_data(x, y, z)
         else:
             func(self, model, x.value, y, *args, **kwargs)
         

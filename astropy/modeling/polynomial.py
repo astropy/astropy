@@ -98,7 +98,7 @@ class PolynomialModel(PolynomialBase):
             n_models=n_models, model_set_axis=model_set_axis, name=name,
             meta=meta, **params)
 
-    def with_units_from_data(self, x, y):
+    def with_units_from_data(self, x, y, z=None):
         """
         Return an instance of the model which has units for which the parameter
         values are compatible with the data units.
@@ -111,9 +111,14 @@ class PolynomialModel(PolynomialBase):
             for n in range(self._order):
                 name = 'c{0}'.format(n)
                 params[name] = quantity_with_unit(getattr(self, name),
-                                                  y.unit / x.unit ** (n))
+                                                  y.unit / x.unit ** n)
         else:
-            raise NotImplementedError()
+            for i in range(self._degree + 1):
+                for j in range(self._degree + 1):
+                    if i + j < self._degree + 1:
+                        name = 'c{0}_{1}'.format(i, j)
+                        params[name] = quantity_with_unit(getattr(self, name),
+                                                          z.unit / x.unit ** i / y.unit ** j)
 
         return self.__class__(**params)
 
@@ -160,13 +165,9 @@ class PolynomialModel(PolynomialBase):
             for n in range(self._order):
                 names.append('c{0}'.format(n))
         else:
-            for i in range(self.degree + 1):
-                names.append('c{0}_{1}'.format(i, 0))
-            for i in range(1, self.degree + 1):
-                names.append('c{0}_{1}'.format(0, i))
-            for i in range(1, self.degree):
-                for j in range(1, self.degree):
-                    if i + j < self.degree + 1:
+            for i in range(self._degree + 1):
+                for j in range(self._degree + 1):
+                    if i + j < self._degree + 1:
                         names.append('c{0}_{1}'.format(i, j))
         return tuple(names)
 
