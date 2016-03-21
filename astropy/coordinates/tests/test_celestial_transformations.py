@@ -9,10 +9,11 @@ import numpy as np
 from ... import units as u
 from ..distances import Distance
 from ..builtin_frames import (ICRS, FK5, FK4, FK4NoETerms, Galactic,
-                              Supergalactic, Galactocentric)
+                              Supergalactic, Galactocentric, HCRS, GCRS)
 from .. import SkyCoord
 from ...tests.helper import (pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
+from .. import EarthLocation
 from ...time import Time
 
 # used below in the next parametrized test
@@ -23,11 +24,12 @@ convert_precision = 1 * u.arcsec
 roundtrip_precision = 1e-4 * u.degree
 dist_precision = 1e-9 * u.kpc
 
-m31_params =[]
+m31_params = []
 for i in range(len(m31_sys)):
     for j in range(len(m31_sys)):
         if i < j:
             m31_params.append((m31_sys[i], m31_sys[j], m31_coo[i], m31_coo[j]))
+
 
 @pytest.mark.parametrize(('fromsys', 'tosys', 'fromcoo', 'tocoo'), m31_params)
 def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
@@ -49,7 +51,7 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
     assert m31_dist.unit == u.kpc
     assert (coo2.distance - m31_dist) < dist_precision
 
-    #check round-tripping
+    # check round-tripping
     coo1_2 = coo2.transform_to(fromsys)
     assert (coo1_2.spherical.lon - fromcoo[0]*u.deg) < roundtrip_precision
     assert (coo1_2.spherical.lat - fromcoo[1]*u.deg) < roundtrip_precision
@@ -96,8 +98,8 @@ def test_fk5_galactic():
 
 def test_galactocentric():
     # when z_sun=0, transformation should be very similar to Galactic
-    icrs_coord = ICRS(ra=np.linspace(0,360,10)*u.deg,
-                      dec=np.linspace(-90,90,10)*u.deg,
+    icrs_coord = ICRS(ra=np.linspace(0, 360, 10)*u.deg,
+                      dec=np.linspace(-90, 90, 10)*u.deg,
                       distance=1.*u.kpc)
 
     g_xyz = icrs_coord.transform_to(Galactic).cartesian.xyz
@@ -108,10 +110,10 @@ def test_galactocentric():
     assert allclose(diff[1:], 0*u.kpc, atol=1E-5*u.kpc)
 
     # generate some test coordinates
-    g = Galactic(l=[0,0,45,315]*u.deg, b=[-45,45,0,0]*u.deg,
+    g = Galactic(l=[0, 0, 45, 315]*u.deg, b=[-45, 45, 0, 0]*u.deg,
                  distance=[np.sqrt(2)]*4*u.kpc)
     xyz = g.transform_to(Galactocentric(galcen_distance=1.*u.kpc, z_sun=0.*u.pc)).cartesian.xyz
-    true_xyz = np.array([[0,0,-1.],[0,0,1],[0,1,0],[0,-1,0]]).T*u.kpc
+    true_xyz = np.array([[0, 0, -1.], [0, 0, 1], [0, 1, 0], [0, -1, 0]]).T*u.kpc
     assert allclose(xyz.to(u.kpc), true_xyz.to(u.kpc), atol=1E-5*u.kpc)
 
     # check that ND arrays work
@@ -122,12 +124,13 @@ def test_galactocentric():
     z = np.zeros_like(x)
 
     g1 = Galactocentric(x=x, y=y, z=z)
-    g2 = Galactocentric(x=x.reshape(100,1,1), y=y.reshape(100,1,1), z=z.reshape(100,1,1))
+    g2 = Galactocentric(x=x.reshape(100, 1, 1), y=y.reshape(100, 1, 1),
+                        z=z.reshape(100, 1, 1))
 
     g1t = g1.transform_to(Galactic)
     g2t = g2.transform_to(Galactic)
 
-    assert_allclose(g1t.cartesian.xyz, g2t.cartesian.xyz[:,:,0,0])
+    assert_allclose(g1t.cartesian.xyz, g2t.cartesian.xyz[:, :, 0, 0])
 
     # from Galactic to Galactocentric
     l = np.linspace(15, 30., 100) * u.deg
@@ -135,12 +138,14 @@ def test_galactocentric():
     d = np.ones_like(l.value) * u.kpc
 
     g1 = Galactic(l=l, b=b, distance=d)
-    g2 = Galactic(l=l.reshape(100,1,1), b=b.reshape(100,1,1), distance=d.reshape(100,1,1))
+    g2 = Galactic(l=l.reshape(100, 1, 1), b=b.reshape(100, 1, 1),
+                  distance=d.reshape(100, 1, 1))
 
     g1t = g1.transform_to(Galactocentric)
     g2t = g2.transform_to(Galactocentric)
 
-    np.testing.assert_almost_equal(g1t.cartesian.xyz.value, g2t.cartesian.xyz.value[:,:,0,0])
+    np.testing.assert_almost_equal(g1t.cartesian.xyz.value,
+                                   g2t.cartesian.xyz.value[:, :, 0, 0])
 
 
 def test_supergalactic():
@@ -169,3 +174,37 @@ def test_supergalactic():
     supergalactic = Supergalactic(sgl=-174.44*u.degree, sgb=+46.17*u.degree)
     icrs = SkyCoord('17h51m36s -25d18m52s')
     assert supergalactic.separation(icrs) < 0.005 * u.degree
+
+
+class TestHelioBaryCentric():
+    """
+    Check GCRS<->Heliocentric and Barycentric coordinate conversions.
+
+    Uses the WHT observing site (information grabbed from data/sites.json).
+    """
+    def setup(self):
+        wht = EarthLocation(342.12*u.deg, 28.758333333333333*u.deg, 2327*u.m)
+        self.obstime = Time("2013-02-02T23:00")
+        self.wht_itrs = wht.get_itrs(obstime=self.obstime)
+
+    def test_heliocentric(self):
+        helio = self.wht_itrs.transform_to(HCRS(obstime=self.obstime))
+        # Check it doesn't change from previous times.
+        previous = [-1.02597256e+11, 9.71725820e+10, 4.21268419e+10] * u.m
+        assert_allclose(helio.cartesian.xyz, previous)
+
+        # And that it agrees with SLALIB to within 14km
+        helio_slalib = [-0.685820296, 0.6495585893, 0.2816005464] * u.au
+        assert np.sqrt(((helio.cartesian.xyz -
+                         helio_slalib)**2).sum()) < 14. * u.km
+
+    def test_barycentric(self):
+        gcrs = self.wht_itrs.transform_to(GCRS(obstime=self.obstime))
+        bary = gcrs.transform_to(ICRS())
+        previous = [-1.02758958e+11, 9.68331109e+10, 4.19720938e+10] * u.m
+        assert_allclose(bary.cartesian.xyz, previous)
+
+        # And that it agrees with SLALIB answer to within 14km
+        bary_slalib = [-0.6869012079, 0.6472893646, 0.2805661191] * u.au
+        assert np.sqrt(((bary.cartesian.xyz -
+                         bary_slalib)**2).sum()) < 14. * u.km
