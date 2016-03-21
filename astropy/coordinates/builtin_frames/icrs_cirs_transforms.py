@@ -22,14 +22,14 @@ from .cirs import CIRS
 from .hcrs import HCRS
 from .utils import get_jd12
 
-# First the ICRS/CIRS related transforms
 
+# First the ICRS/CIRS related transforms
 @frame_transform_graph.transform(FunctionTransform, ICRS, CIRS)
 def icrs_to_cirs(icrs_coo, cirs_frame):
-    #first set up the astrometry context for ICRS<->CIRS
+    # first set up the astrometry context for ICRS<->CIRS
     astrom, eo = erfa.apci13(*get_jd12(cirs_frame.obstime, 'tdb'))
 
-    if icrs_coo.data.get_name() == 'unitspherical'  or icrs_coo.data.to_cartesian().x.unit == u.one:
+    if icrs_coo.data.get_name() == 'unitspherical' or icrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just do the infinite-distance/no parallax calculation
         usrepr = icrs_coo.represent_as(UnitSphericalRepresentation)
         i_ra = usrepr.lon.to(u.radian).value
@@ -47,7 +47,7 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
         newxyz = icrs_coo.cartesian.xyz
         newxyz = np.rollaxis(newxyz, 0, newxyz.ndim) - astrom['eb'] * u.au
         # roll xyz back to the first axis
-        newxyz  = np.rollaxis(newxyz, -1, 0)
+        newxyz = np.rollaxis(newxyz, -1, 0)
         newcart = CartesianRepresentation(newxyz)
 
         srepr = newcart.represent_as(SphericalRepresentation)
@@ -61,6 +61,7 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
 
     return cirs_frame.realize_frame(newrep)
 
+
 @frame_transform_graph.transform(FunctionTransform, CIRS, ICRS)
 def cirs_to_icrs(cirs_coo, icrs_frame):
     srepr = cirs_coo.represent_as(UnitSphericalRepresentation)
@@ -69,10 +70,10 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
 
     # set up the astrometry context for ICRS<->cirs and then convert to
     # astrometric coordinate direction
-    astrom, eo = erfa.apci13(*get_jd12(cirs_coo.obstime,'tdb'))
+    astrom, eo = erfa.apci13(*get_jd12(cirs_coo.obstime, 'tdb'))
     i_ra, i_dec = erfa.aticq(cirs_ra, cirs_dec, astrom)
 
-    if cirs_coo.data.get_name() == 'unitspherical'  or cirs_coo.data.to_cartesian().x.unit == u.one:
+    if cirs_coo.data.get_name() == 'unitspherical' or cirs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just use the coordinate direction to yield the
         # infinite-distance/no parallax answer
         newrep = UnitSphericalRepresentation(lat=u.Quantity(i_dec, u.radian, copy=False),
@@ -98,6 +99,7 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
 
     return icrs_frame.realize_frame(newrep)
 
+
 @frame_transform_graph.transform(FunctionTransform, CIRS, CIRS)
 def cirs_to_cirs(from_coo, to_frame):
     if np.all(from_coo.obstime == to_frame.obstime):
@@ -116,14 +118,14 @@ def cirs_to_cirs(from_coo, to_frame):
 
 @frame_transform_graph.transform(FunctionTransform, ICRS, GCRS)
 def icrs_to_gcrs(icrs_coo, gcrs_frame):
-    #first set up the astrometry context for ICRS<->GCRS
+    # first set up the astrometry context for ICRS<->GCRS
     pv = np.array([gcrs_frame.obsgeoloc.value,
                    gcrs_frame.obsgeovel.value])
 
     jd1, jd2 = get_jd12(gcrs_frame.obstime, 'tdb')
     astrom = erfa.apcs13(jd1, jd2, pv)
 
-    if icrs_coo.data.get_name() == 'unitspherical'  or icrs_coo.data.to_cartesian().x.unit == u.one:
+    if icrs_coo.data.get_name() == 'unitspherical' or icrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just do the infinite-distance/no parallax calculation
         usrepr = icrs_coo.represent_as(UnitSphericalRepresentation)
         i_ra = usrepr.lon.to(u.radian).value
@@ -140,7 +142,7 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
         # inside solar system objects
         newxyz = icrs_coo.cartesian.xyz
         newxyz = np.rollaxis(newxyz, 0, newxyz.ndim) - astrom['eb'] * u.au
-        newxyz  = np.rollaxis(newxyz, -1, 0)
+        newxyz = np.rollaxis(newxyz, -1, 0)
         newcart = CartesianRepresentation(newxyz)
 
         srepr = newcart.represent_as(SphericalRepresentation)
@@ -170,7 +172,7 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
 
     i_ra, i_dec = erfa.aticq(gcrs_ra, gcrs_dec, astrom)
 
-    if gcrs_coo.data.get_name() == 'unitspherical'  or gcrs_coo.data.to_cartesian().x.unit == u.one:
+    if gcrs_coo.data.get_name() == 'unitspherical' or gcrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just use the coordinate direction to yield the
         # infinite-distance/no parallax answer
         newrep = UnitSphericalRepresentation(lat=u.Quantity(i_dec, u.radian, copy=False),
@@ -232,7 +234,7 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
     # convert to Quantity objects
     i_ra = u.Quantity(i_ra, u.radian, copy=False)
     i_dec = u.Quantity(i_dec, u.radian, copy=False)
-    if gcrs_coo.data.get_name() == 'unitspherical'  or gcrs_coo.data.to_cartesian().x.unit == u.one:
+    if gcrs_coo.data.get_name() == 'unitspherical' or gcrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just use the coordinate direction to yield the
         # infinite-distance/no parallax answer
         newrep = UnitSphericalRepresentation(lat=i_dec, lon=i_ra, copy=False)
@@ -252,7 +254,7 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
         eh = np.rollaxis(astrom['eh'], 0, astrom['eh'].ndim) * astrom['em'] * u.au
         # roll astrom['eh'] back to the first axis
         eh = np.rollaxis(eh, -1, 0)
-        
+
         # roll xyz to last axis and add the heliocentre position
         newxyz = np.rollaxis(newxyz, 0, newxyz.ndim) + eh
         # roll xyz back to the first axis
