@@ -8,13 +8,14 @@ from ..baseframe import (BaseCoordinateFrame, RepresentationMapping,
                          TimeFrameAttribute)
 from .utils import DEFAULT_OBSTIME
 
+
 class HCRS(BaseCoordinateFrame):
     """
     A coordinate or frame in a Heliocentric system, with axes aligned to ICRS.
 
-    The ICRS has an origin at the Barycenter and axes which are fixed with 
+    The ICRS has an origin at the Barycenter and axes which are fixed with
     respect to space.
-    
+
     This coordinate system is distinct from ICRS mainly in that it is relative
     to the Sun's center-of-mass rather than the solar system Barycenter.
     In principle, therefore, this frame should include the effects of
@@ -37,7 +38,7 @@ class HCRS(BaseCoordinateFrame):
         A representation or `None` to have no data (or use the other keywords)
     ra : `Angle`, optional, must be keyword
         Right ascension for this object (``dec`` must also be given and
-       ``representation`` must be `None`).
+        ``representation`` must be `None`).
     dec : `Angle`, optional, must be keyword
         Declination for this object (``ra`` must also be given and
         ``representation`` must be `None`).

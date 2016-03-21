@@ -15,7 +15,7 @@ class TestHelioBaryCentric():
     """
     def setup(self):
         wht = EarthLocation(342.12*u.deg, 28.758333333333333*u.deg, 2327*u.m)
-        self.obstime  = Time("2013-02-02T23:00", location=wht)
+        self.obstime = Time("2013-02-02T23:00", location=wht)
         self.obstime2 = Time("2013-08-02T23:00", location=wht)
         self.obstimeArr = Time(["2013-02-02T23:00", "2013-08-02T23:00"], location=wht)
         self.star = SkyCoord("08:08:08 +32:00:00", unit=(u.hour, u.degree),
@@ -32,7 +32,7 @@ class TestHelioBaryCentric():
         assert isinstance(bval, TimeDelta)
         assert bval.scale == 'tdb'
         assert abs(bval - 460.58538779827836 * u.s) < 1. * u.us
-        
+
     def test_arrays(self):
         bval1 = self.obstime.light_travel_time(self.star, 'barycentric')
         bval2 = self.obstime2.light_travel_time(self.star, 'barycentric')

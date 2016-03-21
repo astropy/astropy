@@ -111,6 +111,7 @@ class TimeInfo(MixinInfo):
     # When Time has mean, std, min, max methods:
     # funcs = [lambda x: getattr(x, stat)() for stat_name in MixinInfo._stats])
 
+
 class Time(object):
     """
     Represent and manipulate times and dates for astronomy.
@@ -212,8 +213,8 @@ class Time(object):
             self._init_from_vals(val, val2, format, scale, copy,
                                  precision, in_subfmt, out_subfmt)
 
-        if self.location and (self.location.size > 1
-                              and self.location.shape != self.shape):
+        if self.location and (self.location.size > 1 and
+                              self.location.shape != self.shape):
             try:
                 # check the location can be broadcast to self's shape.
                 self.location = broadcast_to(self.location, self.shape,
@@ -599,7 +600,7 @@ class Time(object):
             itrs = location.get_itrs(obstime=self)
         except:
             raise ValueError("Supplied location does not have a valid `get_itrs` method")
-              
+
         if kind.lower() == 'heliocentric':
             # convert to heliocentric coordinates, aligned with ICRS
             cpos = itrs.transform_to(HCRS(obstime=self)).cartesian.xyz
@@ -611,15 +612,15 @@ class Time(object):
             cpos = gcrs_coo.transform_to(ICRS()).cartesian.xyz
 
         # get unit ICRS vector to star
-        spos  = (skycoord.icrs.represent_as(UnitSphericalRepresentation).
-                 represent_as(CartesianRepresentation).xyz)
+        spos = (skycoord.icrs.represent_as(UnitSphericalRepresentation).
+                represent_as(CartesianRepresentation).xyz)
 
         # Move X,Y,Z to last dimension, to enable possible broadcasting below.
         cpos = np.rollaxis(cpos, 0, cpos.ndim)
         spos = np.rollaxis(spos, 0, spos.ndim)
 
         # calculate light travel time correction
-        tcor_val  = (spos * cpos).sum(axis=-1) / const.c
+        tcor_val = (spos * cpos).sum(axis=-1) / const.c
         return TimeDelta(tcor_val, scale='tdb')
 
     def sidereal_time(self, kind, longitude=None, model=None):
@@ -760,10 +761,9 @@ class Time(object):
         # To avoid recalculating integer day + fraction, no longer just
         # instantiate a new class instance, but rather do the steps by hand.
         # This also avoids quite a bit of unnecessary work in __init__
-        ###  tm = self.__class__(self._time.jd1, self._time.jd2,
-        ###                      format='jd', scale=self.scale, copy=copy)
+        #  tm = self.__class__(self._time.jd1, self._time.jd2,
+        #                      format='jd', scale=self.scale, copy=copy)
         return self._replicate(format=format, method='copy' if copy else None)
-
 
     def _replicate(self, method=None, *args, **kwargs):
         """Replicate a time object, possibly applying a method to the arrays.
@@ -1522,7 +1522,6 @@ class Time(object):
         return tm._shaped_like_input(tm._time.to_value(timezone))
 
     to_datetime.__doc__ = TimeDatetime.to_value.__doc__
-
 
 
 class TimeDelta(Time):
