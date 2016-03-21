@@ -47,7 +47,7 @@ class SExtractorHeader(core.BaseHeader):
         dataline = None
         for line in lines:
             if not line.startswith('#'):
-                dataline = line  # save for later to inter the actual number of columns
+                dataline = line  # save for later to infer the actual number of columns
                 break                   # End of header lines
             else:
                 match = re_name_def.search(line)
@@ -59,27 +59,29 @@ class SExtractorHeader(core.BaseHeader):
                     columns[colnumber] = (colname, coldescr, colunit)
         # Handle skipped column numbers
         colnumbers = sorted(columns)
-        previous_column = 0
-        for n in colnumbers:
-            if n != previous_column + 1:
-                for c in range(previous_column+1, n):
-                    column_name = columns[previous_column][0]+"_%d" % (c-previous_column)
-                    column_descr = columns[previous_column][1]
-                    column_unit = columns[previous_column][2]
-                    columns[c] = (column_name, column_descr, column_unit)
-            previous_column = n
-        if dataline is not None and len(colnumbers) > 0:  # handle the case where the last column is array-like
-            ndatacol = len(dataline.split())
-            lastc = colnumbers[-1]
-            if lastc < ndatacol:
-                for c in range(lastc + 1, ndatacol + 1):
-                    column_name = columns[lastc][0] + "_%d" % (c - n)
-                    column_descr = columns[lastc][1]
-                    column_unit = columns[lastc][2]
-                    columns[c] = (column_name, column_descr, column_unit)
-
+        # Handle the case where the last column is array-like by append a pseudo column
+        # If there are more data columns than the largest column number
+        # then add a pseudo-column that will be dropped later.  This allows
+        # the array column logic below to work in all cases.
+        if dataline is not None:
+            n_data_cols = len(dataline.split())
+        else:
+            n_data_cols = colnumbers[-1]  # handles no data, where we have to rely on the last column number
+        # sextractor column number start at 1.
+        columns[n_data_cols + 1] = (None, None, None)
+        colnumbers.append(n_data_cols + 1)
+        if len(columns) > 1:  # only fill in skipped columns when there is genuine column initially
+            previous_column = 0
+            for n in colnumbers:
+                if n != previous_column + 1:
+                    for c in range(previous_column+1, n):
+                        column_name = columns[previous_column][0]+"_%d" % (c-previous_column)
+                        column_descr = columns[previous_column][1]
+                        column_unit = columns[previous_column][2]
+                        columns[c] = (column_name, column_descr, column_unit)
+                previous_column = n
         # Add the columns in order to self.names
-        colnumbers = sorted(columns)
+        colnumbers = sorted(columns)[:-1]  # drop the pseudo column
         self.names = []
         for n in colnumbers:
             self.names.append(columns[n][0])
