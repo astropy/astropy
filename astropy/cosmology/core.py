@@ -2861,12 +2861,12 @@ def _float_or_none(x, digits=3):
     return fmtstr.format(x)
 
 
-def vectorize_if_needed(func, x):
+def vectorize_if_needed(func, *x):
     """ Helper function to vectorize functions on array inputs"""
-    if isiterable(x):
-        return np.vectorize(func)(x)
+    if any(map(isiterable, x)):
+        return np.vectorize(func)(*x)
     else:
-        return func(x)
+        return func(*x)
 
 
 # Pre-defined cosmologies. This loops over the parameter sets in the
