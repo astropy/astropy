@@ -160,7 +160,7 @@ Prerequisites
 You will need a compiler suite and the development headers for Python and
 Numpy in order to build Astropy. 
 
-You will also need `Cython <http://cython.org/>`_ (v0.15 or later) and
+You will also need `Cython <http://cython.org/>`_ (v0.19 or later) and
 `jinja2 <http://jinja.pocoo.org/docs/dev/>`_ (v2.7 or later) installed
 to build from source, unless you are installing a numbered release. (The
 releases packages have the necessary C files packaged with them, and hence do
