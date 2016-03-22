@@ -1089,16 +1089,9 @@ def test_critical_density():
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_angular_diameter_distance_z1z2():
-
-    with pytest.raises(core.CosmologyError):  # test neg Ok fail
-        tcos = core.LambdaCDM(H0=70.4, Om0=0.272, Ode0=0.8, Tcmb0=0.0)
-        tcos.angular_diameter_distance_z1z2(1, 2)
-
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
     with pytest.raises(ValueError):  # test diff size z1, z2 fail
         tcos.angular_diameter_distance_z1z2([1, 2], [3, 4, 5])
-    with pytest.raises(ValueError):  # test z1 > z2 fail
-        tcos.angular_diameter_distance_z1z2(4, 3)
     # Tests that should actually work
     assert allclose(tcos.angular_diameter_distance_z1z2(1, 2),
                     646.22968662822018 * u.Mpc)
@@ -1444,10 +1437,13 @@ def test_z_at_value_roundtrip():
 
     # Skip Ok, w, de_density_scale because in the Planck13 cosmolgy
     # they are redshift independent and hence uninvertable,
-    # angular_diameter_distance_z1z2 takes multiple arguments, so requires
-    #  special handling
+    # *_distance_z1z2 methods take multiple arguments, so require
+    # special handling
     # clone isn't a redshift-dependent method
-    skip = ('Ok', 'angular_diameter_distance_z1z2', 'clone',
+    skip = ('Ok', 'comoving_distance_z1z2',
+            'comoving_transverse_distance_z1z2',
+            'angular_diameter_distance_z1z2',
+            'clone',
             'de_density_scale', 'w')
 
     import inspect
