@@ -1241,8 +1241,36 @@ class FLRW(Cosmology):
         texts.
         """
 
+        return self.comoving_transverse_distance_z1z2(0, z)
+
+    def comoving_transverse_distance_z1z2(self, z1, z2):
+        """Comoving transverse distance in Mpc between to redshifts.
+
+        This value is the transverse comoving distance at redshift
+        ``z2`` as seen from redshift ``z1`` corresponding to an
+        angular separation of 1 radian. This is the same as the
+        comoving distance if omega_k is zero (as in the current
+        concordance lambda CDM model).
+
+        Parameters
+        ----------
+        z1, z2 : array-like, shape (N,)
+          Input redshifts.  Must be 1D or scalar.
+
+        Returns
+        -------
+        d : `~astropy.units.Quantity`
+          Comoving transverse distance in Mpc between input redshift.
+
+        Notes
+        -----
+        This quantity also called the 'proper motion distance' in some
+        texts.
+
+        """
+
         Ok0 = self._Ok0
-        dc = self.comoving_distance(z)
+        dc = self.comoving_distance_z1z2(z1, z2)
         if Ok0 == 0:
             return dc
         sqrtOk0 = sqrt(abs(Ok0))
