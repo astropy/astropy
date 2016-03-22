@@ -41,6 +41,7 @@ require.config({{paths: {{
 require(["datatables"], function(){{
     console.log("$('#{tid}').dataTable()");
     $('#{tid}').dataTable({{
+        "order": [],
         "iDisplayLength": {display_length},
         "aLengthMenu": {display_length_menu},
         "pagingType": "full_numbers"
@@ -52,9 +53,10 @@ require(["datatables"], function(){{
 HTML_JS_SCRIPT = """
 $(document).ready(function() {{
     $('#{tid}').dataTable({{
-     "iDisplayLength": {display_length},
-     "aLengthMenu": {display_length_menu},
-     "pagingType": "full_numbers"
+        "order": [],
+        "iDisplayLength": {display_length},
+        "aLengthMenu": {display_length_menu},
+        "pagingType": "full_numbers"
     }});
 }} );
 """

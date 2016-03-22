@@ -196,7 +196,8 @@ def validate(source, output=None, xmllint=False, filename=None):
     Parameters
     ----------
     source : str or readable file-like object
-        Path to a VOTABLE_ xml file.
+        Path to a VOTABLE_ xml file or pathlib.path
+        object having Path to a VOTABLE_ xml file.
 
     output : writable file-like object, optional
         Where to output the report.  Defaults to ``sys.stdout``.

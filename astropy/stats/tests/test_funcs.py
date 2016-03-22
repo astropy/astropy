@@ -16,10 +16,23 @@ except ImportError:
 else:
     HAS_SCIPY = True
 
+try:
+    import mpmath  # pylint: disable=W0611
+except ImportError:
+    HAS_MPMATH = False
+else:
+    HAS_MPMATH = True
+
 from ...tests.helper import pytest
 
 from .. import funcs
+
+# These are not part of __all__ because they are just the lower level versions
+# of poisson_upper_limit
+#from ..funcs import scipy_poisson_upper_limit, mpmath_poisson_upper_limit
+
 from ...utils.misc import NumpyRNGContext
+from ... import units as u
 
 
 def test_median_absolute_deviation():
@@ -58,6 +71,48 @@ def test_median_absolute_deviation():
         assert_allclose(mad, [[  3.,   8.,  13.,  18.],
                               [ 23.,  28.,  33.,  38.],
                               [ 43.,  48.,  53.,  58.]])
+
+
+def test_median_absolute_deviation_masked():
+    # Based on the changes introduces in #4658
+
+    # normal masked arrays without masked values are handled like normal
+    # numpy arrays
+    array = np.ma.array([1, 2, 3])
+    assert funcs.median_absolute_deviation(array) == 1
+
+    # masked numpy arrays return something different (rank 0 masked array)
+    # but one can still compare it without np.all!
+    array = np.ma.array([1, 4, 3], mask=[0, 1, 0])
+    assert funcs.median_absolute_deviation(array) == 1
+    # Just cross check if that's identical to the function on the unmasked
+    # values only
+    assert funcs.median_absolute_deviation(array) == (
+            funcs.median_absolute_deviation(array[~array.mask]))
+
+    # Multidimensional masked array
+    array = np.ma.array([[1, 4], [2, 2]], mask=[[1, 0], [0, 0]])
+    funcs.median_absolute_deviation(array)
+    assert funcs.median_absolute_deviation(array) == 0
+    # Just to compare it with the data without mask:
+    assert funcs.median_absolute_deviation(array.data) == 0.5
+
+    # And check if they are also broadcasted correctly
+    np.testing.assert_array_equal(funcs.median_absolute_deviation(array, axis=0).data, [0, 1])
+    np.testing.assert_array_equal(funcs.median_absolute_deviation(array, axis=1).data, [0, 0])
+
+
+def test_median_absolute_deviation_quantity():
+    # Based on the changes introduces in #4658
+
+    # Just a small test that this function accepts Quantities and returns a
+    # quantity
+    a = np.array([1, 16, 5]) * u.m
+    mad = funcs.median_absolute_deviation(a)
+    # Check for the correct unit and that the result is identical to the result
+    # without units.
+    assert mad.unit == a.unit
+    assert mad.value == funcs.median_absolute_deviation(a.value)
 
 
 def test_biweight_location():
@@ -291,6 +346,14 @@ def test_mad_std():
         data = normal(5, 2, size=(100, 100))
         assert_allclose(funcs.mad_std(data), 2.0, rtol=0.05)
 
+def test_mad_std_with_axis():
+    data = np.array([[1, 2, 3, 4],
+                     [4, 3, 2, 1]])
+    #results follow data symmetry
+    result_axis0 = np.array([2.22390333,  0.74130111,  0.74130111,  2.22390333])
+    result_axis1 = np.array([1.48260222,  1.48260222])
+    assert_allclose(funcs.mad_std(data, axis=0), result_axis0)
+    assert_allclose(funcs.mad_std(data, axis=1), result_axis1)
 
 def test_gaussian_fwhm_to_sigma():
     fwhm = (2.0 * np.sqrt(2.0 * np.log(2.0)))
@@ -438,3 +501,69 @@ def test_poisson_conf_gehrels86(n):
         funcs.poisson_conf_interval(
             n, interval='frequentist-confidence')[1],
         rtol = 0.02)
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_scipy_poisson_limit():
+    '''Test that the lower-level routine gives the snae number.
+
+    Test numbers are from table1 1, 3 in
+    Kraft, Burrows and Nousek in
+    `ApJ 374, 344 (1991) <http://adsabs.harvard.edu/abs/1991ApJ...374..344K>`_
+    '''
+    assert_allclose(funcs._scipy_kraft_burrows_nousek(5., 2.5, .99), (0, 10.67), rtol=1e-3)
+    conf = funcs.poisson_conf_interval([5., 6.], 'kraft-burrows-nousek',
+                                       background=[2.5, 2.],
+                                       conflevel=[.99, .9])
+    assert_allclose(conf[:, 0], (0, 10.67), rtol=1e-3)
+    assert_allclose(conf[:, 1], (0.81, 8.99), rtol=5e-3)
+
+
+@pytest.mark.skipif('not HAS_MPMATH')
+def test_mpmath_poisson_limit():
+    assert_allclose(funcs._mpmath_kraft_burrows_nousek(6., 2., .9), (0.81, 8.99), rtol=5e-3)
+    assert_allclose(funcs._mpmath_kraft_burrows_nousek(5., 2.5, .99), (0, 10.67), rtol=1e-3)
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_poisson_conf_value_errors():
+    with pytest.raises(ValueError) as e:
+        funcs.poisson_conf_interval([5, 6], 'root-n', sigma=2)
+    assert 'Only sigma=1 supported' in str(e.value)
+
+    with pytest.raises(ValueError) as e:
+        funcs.poisson_conf_interval([5, 6], 'pearson', background=[2.5, 2.])
+    assert 'background not supported' in str(e.value)
+
+    with pytest.raises(ValueError) as e:
+        funcs.poisson_conf_interval([5, 6], 'sherpagehrels', conflevel=[2.5, 2.])
+    assert 'conflevel not supported' in str(e.value)
+
+    with pytest.raises(ValueError) as e:
+        funcs.poisson_conf_interval(1, 'foo')
+    assert 'Invalid method' in str(e.value)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_poisson_conf_kbn_value_errors():
+    with pytest.raises(ValueError) as e:
+        funcs.poisson_conf_interval(5., 'kraft-burrows-nousek',
+                                    background=2.5,
+                                    conflevel=99)
+    assert 'number between 0 and 1' in str(e.value)
+
+    with pytest.raises(ValueError) as e:
+        funcs.poisson_conf_interval(5., 'kraft-burrows-nousek',
+                                    background=2.5)
+    assert 'Set conflevel for method' in str(e.value)
+
+    with pytest.raises(ValueError) as e:
+        funcs.poisson_conf_interval(5., 'kraft-burrows-nousek',
+                                    background=-2.5,
+                                    conflevel=.99)
+    assert 'Background must be' in str(e.value)
+
+
+@pytest.mark.skipif('HAS_SCIPY or HAS_MPMATH')
+def test_poisson_limit_nodependencies():
+    with pytest.raises(ImportError) as e:
+        a = funcs.poisson_conf_interval(20.,  interval='kraft-burrows-nousek',
+                                        background=10., conflevel=.95)

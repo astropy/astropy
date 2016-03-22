@@ -378,7 +378,7 @@ PyWcsprm_init(
 
     if (status != 0) {
       free(colsel_ints);
-      wcshdr_err_to_python_exc(wcs->err);
+      wcshdr_err_to_python_exc(status);
       return -1;
     }
 
@@ -414,7 +414,7 @@ PyWcsprm_init(
     free(colsel_ints);
 
     if (status != 0) {
-      wcshdr_err_to_python_exc(wcs->err);
+      wcshdr_err_to_python_exc(status);
       return -1;
     }
 
@@ -613,7 +613,7 @@ PyWcsprm_find_all_wcs(
   Py_END_ALLOW_THREADS
 
   if (status != 0) {
-    wcshdr_err_to_python_exc(wcs->err);
+    wcshdr_err_to_python_exc(status);
     return NULL;
   }
 
@@ -648,7 +648,7 @@ PyWcsprm_find_all_wcs(
   Py_END_ALLOW_THREADS
 
   if (status != 0) {
-    wcshdr_err_to_python_exc(wcs->err);
+    wcshdr_err_to_python_exc(status);
     return NULL;
   }
 
@@ -3488,6 +3488,13 @@ _setup_wcsprm_type(
     CONSTANT(WCSHDO_CRPXna)    ||
     CONSTANT(WCSHDO_CNAMna)    ||
     CONSTANT(WCSHDO_WCSNna)    ||
+    CONSTANT(WCSHDO_P12)       ||
+    CONSTANT(WCSHDO_P13)       ||
+    CONSTANT(WCSHDO_P14)       ||
+    CONSTANT(WCSHDO_P15)       ||
+    CONSTANT(WCSHDO_P16)       ||
+    CONSTANT(WCSHDO_P17)       ||
+    CONSTANT(WCSHDO_EFMT)      ||
     CONSTANT(WCSCOMPARE_ANCILLARY) ||
     CONSTANT(WCSCOMPARE_TILING) ||
     CONSTANT(WCSCOMPARE_CRPIX));

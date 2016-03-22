@@ -158,7 +158,10 @@ def pytest_configure(config):
         # handling __doctest_skip__) doesn't happen.
         def collect(self):
             if self.fspath.basename == "conftest.py":
-                module = self.config._conftest.importconftest(self.fspath)
+                try:
+                    module = self.config._conftest.importconftest(self.fspath)
+                except AttributeError:  # pytest >= 2.8.0
+                    module = self.config.pluginmanager._importconftest(self.fspath)
             else:
                 try:
                     module = self.fspath.pyimport()
@@ -188,8 +191,14 @@ def pytest_configure(config):
         def runtest(self):
             # satisfy `FixtureRequest` constructor...
             self.funcargs = {}
-            self._fixtureinfo = doctest_plugin.FuncFixtureInfo((), [], {})
-            fixture_request = doctest_plugin.FixtureRequest(self)
+            try:
+                self._fixtureinfo = doctest_plugin.FuncFixtureInfo((), [], {})
+                fixture_request = doctest_plugin.FixtureRequest(self)
+            except AttributeError:  # pytest >= 2.8.0
+                python_plugin = config.pluginmanager.getplugin('python')
+                self._fixtureinfo = python_plugin.FuncFixtureInfo((), [], {})
+                fixture_request = python_plugin.FixtureRequest(self)
+
             failed, tot = doctest.testfile(
                 str(self.fspath), module_relative=False,
                 optionflags=opts, parser=DocTestParserPlus(),
@@ -541,7 +550,10 @@ TESTED_VERSIONS = OrderedDict([('Astropy', __version__)])
 
 def pytest_report_header(config):
 
-    stdoutencoding = getattr(sys.stdout, 'encoding') or 'ascii'
+    try:
+        stdoutencoding = sys.stdout.encoding or 'ascii'
+    except AttributeError:
+        stdoutencoding = 'ascii'
 
     if six.PY2:
         args = [x.decode('utf-8') for x in config.args]

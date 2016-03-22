@@ -34,9 +34,10 @@ table.dataTable {width: auto !important; margin: 0 !important;}
   <script>
 $(document).ready(function() {
     $('#%(table_id)s').dataTable({
-     "iDisplayLength": %(length)s,
-     "aLengthMenu": [[%(display_length)s, -1], [%(display_length)s, 'All']],
-     "pagingType": "full_numbers"
+        "order": [],
+        "iDisplayLength": %(length)s,
+        "aLengthMenu": [[%(display_length)s, -1], [%(display_length)s, 'All']],
+        "pagingType": "full_numbers"
     });
 } );  </script>
   <table class="%(table_class)s" id="%(table_id)s">

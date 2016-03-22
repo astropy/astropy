@@ -13,6 +13,14 @@ import numpy as np
 from ....utils.data import get_pkg_data_filename, get_pkg_data_fileobj
 from ..table import parse, writeto
 from .. import tree
+from ....tests.helper import pytest
+
+try:
+    import pathlib
+except ImportError:
+    HAS_PATHLIB = False
+else:
+    HAS_PATHLIB = True
 
 
 def test_table(tmpdir):
@@ -117,6 +125,17 @@ def test_table_read_with_unnamed_tables():
         t = Table.read(fd, format='votable')
 
     assert len(t) == 1
+
+@pytest.mark.skipif('not HAS_PATHLIB')
+def test_votable_path_object():
+    """
+    Testing when votable is passed as pathlib.Path object #4412.
+    """
+    fpath = pathlib.Path(get_pkg_data_filename('data/names.xml'))
+    table = parse(fpath).get_first_table().to_table()
+
+    assert len(table) == 1
+    assert int(table[0][3]) == 266
 
 
 def test_from_table_without_mask():

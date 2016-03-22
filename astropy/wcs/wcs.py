@@ -128,7 +128,7 @@ else:
 
 
 # Additional relax bit flags
-WCSHDO_SIP = 0x10000
+WCSHDO_SIP = 0x30000
 
 # Regular expression defining SIP keyword It matches keyword that starts with A
 # or B, optionally followed by P, followed by an underscore then a number in
@@ -2481,6 +2481,7 @@ reduce these to 2 dimensions using the naxis kwarg.
           8. Keyword order may be changed.
 
         """
+        precision = WCSHDO_P14
         display_warning = False
         if relax is None:
             display_warning = True
@@ -2491,6 +2492,8 @@ reduce these to 2 dimensions using the naxis kwarg.
             relax &= ~WCSHDO_SIP
         else:
             do_sip = relax
+
+        relax = precision | relax
 
         if self.wcs is not None:
             if key is not None:

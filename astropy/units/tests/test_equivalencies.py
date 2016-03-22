@@ -390,7 +390,8 @@ def test_equivalent_units():
         units_set = set(units)
         match = set(
             [u.M_e, u.M_p, u.g, u.kg, u.solMass, u.t, u.u, u.M_earth,
-             u.M_jup, imperial.oz, imperial.lb, imperial.st, imperial.ton])
+             u.M_jup, imperial.oz, imperial.lb, imperial.st, imperial.ton,
+             imperial.slug])
         assert units_set == match
 
     r = repr(units)

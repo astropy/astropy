@@ -20,10 +20,10 @@ addons:
 env:
     global:
         # Set defaults to avoid repeating in most cases
-        - NUMPY_VERSION=1.9
+        - NUMPY_VERSION=stable
         - MAIN_CMD='python setup.py'
         - CONDA_DEPENDENCIES='Cython jinja2'
-        - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautiful-soup ipython'
+        - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautiful-soup ipython mpmath'
         - PIP_DEPENDENCIES=''
 
     matrix:
@@ -78,6 +78,8 @@ matrix:
 
         # Try older numpy versions without optional dependencies
         - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.9 SETUP_CMD='test'
+        - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.8 SETUP_CMD='test'
         - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.7 SETUP_CMD='test'
@@ -87,6 +89,10 @@ matrix:
         # Try developer version of Numpy without optional dependencies
         - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=dev SETUP_CMD='test'
+
+        # Try pre-release version of Numpy without optional dependencies
+        - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=prerelease SETUP_CMD='test'
 
         # Do a PEP8 test
         - os: linux

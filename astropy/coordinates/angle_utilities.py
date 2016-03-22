@@ -655,7 +655,7 @@ def angular_separation(lon1, lat1, lon2, lat2):
     num2 = clat1 * slat2 - slat1 * clat2 * cdlon
     denominator = slat1 * slat2 + clat1 * clat2 * cdlon
 
-    return np.arctan2(np.sqrt(num1 ** 2 + num2 ** 2), denominator)
+    return np.arctan2(np.hypot(num1, num2), denominator)
 
 
 def position_angle(lon1, lat1, lon2, lat2):
