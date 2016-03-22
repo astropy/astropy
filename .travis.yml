@@ -69,12 +69,12 @@ matrix:
           env: PYTHON_VERSION=2.7 SETUP_CMD='test --coverage'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='cpp-coveralls objgraph'
-               LC_CTYPE=C.ascii LC_ALL=C.ascii
+               LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
         - os: linux
           env: PYTHON_VERSION=3.4 SETUP_CMD='test'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               LC_CTYPE=C.ascii LC_ALL=C.ascii
+               LC_CTYPE=C.ascii LC_ALL=C
 
         # Try older numpy versions without optional dependencies
         - os: linux
