@@ -245,16 +245,18 @@ class Simplex(Optimization):
 
 class Minimize(Optimization):
     """
-    Interface for Scipy.Optimize.minimize.
+    Interface for `scipy.optimize.minimize`.
+
 
     Parameters
     ----------
     method : str or callable(custom)
-        select minimization method
+        Selects minimization method.
 
     supported_constraints : list
-        lists the constraint types supported by the Optimization method default is fixed and tied parameters,
-        these can be set for custom methods for predifined methords this will be changed atomatically
+        The constraint types supported by the Optimization method. By default fixed and tied parameters are supported but
+        these can be set for custom methods. For defined methods this will be changed automatically.
+
 
     """
 
