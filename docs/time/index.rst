@@ -176,40 +176,6 @@ yday         :class:`~astropy.time.TimeYearDayTime`             2000:001:00:00:0
 .. [#] `Rots et al. 2015, A&A 574:A36 <http://adsabs.harvard.edu/abs/2015A%26A...574A..36R>`_
 
 
-Time Format Customization
-"""""""""""""""""""""""""
-
-Customizing the style of the yday format::
-
-class TimeYearDayTimeCustom(TimeISO):
-  """
-  Year, day-of-year and time as "<YYYY>-<DOY>T<HH>:<MM>:<SS.sss...>".
-  The day-of-year (DOY) goes from 001 to 365 (366 in leap years).
-  For example, 2000-001T00:00:00.000 is midnight on January 1, 2000.
-  The allowed subformats are:
-  - 'date_hms': date + hours, mins, secs (and optional fractional secs)
-  - 'date_hm': date + hours, mins
-  - 'date': date
-  """
-
-  name = 'yday_custom'
-  subfmts = (('date_hms',
-              '%Y-%jT%H:%M:%S',
-              '{year:d}-{yday:03d}T{hour:02d}:{min:02d}:{sec:02d}'),
-             ('date_hm',
-              '%Y-%jT%H:%M',
-              '{year:d}-{yday:03d}T{hour:02d}:{min:02d}'),
-             ('date',
-              '%Y-%j',
-              '{year:d}-{yday:03d}'))
-
-Here 'yday_custom' is a time format allowing to represent current time in 3 subformats as mentioned above in subfmts. Using time format customization::
-  >>> t = Time.now()
-  >>> t.yday_custom
-  '2016-053T12:01:41.663'
-  >>> t2 = Time('2016-001T00:00:00')
-  >>> t2.iso
-  '2016-01-01 00:00:00.000'
 
 
 	  
@@ -288,6 +254,30 @@ Format      Scale  Reference date
 Unlike the other formats which default to UTC, if no ``scale`` is provided when
 initializing a |Time| object then the above intrinsic scale is used.
 This is done for computational efficiency.
+
+
+Time Format Customization
+"""""""""""""""""""""""""
+Year, day-of-year and time as "<YYYY>-<DOY>T<HH>:<MM>:<SS.sss...>".
+The day-of-year (DOY) goes from 001 to 365 (366 in leap years).
+For example, 2000-001T00:00:00.000 is midnight on January 1, 2000.
+Here 'yday_custom' is a time format allowing to represent current time in 3 subformats as shown below. 
+
+'date_hms': date + hours, mins, secs (and optional fractional secs)
+
+'date_hm': date + hours, mins
+
+'date': date
+
+Using time format customization::
+	
+	>>> t = Time.now()
+	>>> t.yday_custom
+	'2016-053T12:01:41.663'
+	>>> t2 = Time('2016-001T00:00:00')
+	>>> t2.iso
+	'2016-01-01 00:00:00.000'
+
 
 .. _time-scale:
 
