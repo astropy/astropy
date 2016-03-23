@@ -166,7 +166,7 @@ def test_Voigt1D():
 
 @pytest.mark.skipif("not HAS_SCIPY")
 def test_compound_models_with_class_variables():
-    models_2d = [models.AiryDisk2D]
+    models_2d = [models.AiryDisk2D, models.Sersic2D]
     models_1d = [models.Sersic1D]
 
     for model_2d in models_2d:
