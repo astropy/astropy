@@ -135,7 +135,7 @@ class TestLogUnitConversion(object):
     def test_container_unit_conversion(self, lu_unit):
         """Check that conversion to logarithmic units (u.mag, u.dB, u.dex)
         is only possible when the physical unit is dimensionless."""
-        values = np.linspace(0.,10.,6.)
+        values = np.linspace(0., 10., 6)
         lu1 = lu_unit(u.dimensionless_unscaled)
         assert lu1.is_equivalent(lu1.function_unit)
         assert_allclose(lu1.to(lu1.function_unit, values), values)
@@ -151,7 +151,7 @@ class TestLogUnitConversion(object):
     def test_subclass_conversion(self, flu_unit, tlu_unit, physical_unit):
         """Check various LogUnit subclasses are equivalent and convertible
         to each other if they correspond to equivalent physical units."""
-        values = np.linspace(0.,10.,6.)
+        values = np.linspace(0., 10., 6)
         flu = flu_unit(physical_unit)
 
         tlu = tlu_unit(physical_unit)
