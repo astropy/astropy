@@ -464,6 +464,7 @@ class Shift(Model):
     outputs = ('x',)
 
     offset = Parameter(default=0)
+    fittable = True
 
     @property
     def inverse(self):
@@ -491,6 +492,7 @@ class Scale(Model):
 
     factor = Parameter(default=1)
     linear = True
+    fittable = True
 
     @property
     def inverse(self):
