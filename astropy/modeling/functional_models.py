@@ -4,17 +4,13 @@
 
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
-
-
 import numpy as np
-
 from .core import (Fittable1DModel, Fittable2DModel, Model,
                    ModelDefinitionError, custom_model)
 from .parameters import Parameter, InputParameterError
 from .utils import ellipse_extent
 from ..utils import deprecated
 from ..extern import six
-
 from .utils import get_inputs_and_params
 
 
@@ -1795,26 +1791,17 @@ class Sersic2D(Fittable2DModel):
     y_0 = Parameter(default=0)
     ellip = Parameter(default=0)
     theta = Parameter(default=0)
-    _gammaincinv = None
 
-    def __init__(self, amplitude=amplitude.default, r_eff=r_eff.default,
-                 n=n.default, x_0=x_0.default, y_0=y_0.default, ellip=ellip.default,
-                 theta=theta.default, **kwargs):
-        try:
-            from scipy.special import gammaincinv
-            self.__class__._gammaincinv = gammaincinv
-        except ValueError:
-            raise ImportError("Sersic2D model requires scipy > 0.11.")
-
-        super(Sersic2D, self).__init__(
-            amplitude=amplitude, r_eff=r_eff, n=n, x_0=x_0, y_0=y_0,
-            ellip=ellip, theta=theta, **kwargs)
-
-    @classmethod
-    def evaluate(cls, x, y, amplitude, r_eff, n, x_0, y_0, ellip, theta):
+    @staticmethod
+    def evaluate(x, y, amplitude, r_eff, n, x_0, y_0, ellip, theta):
         """Two dimensional Sersic profile function."""
 
-        bn = cls._gammaincinv(2. * n, 0.5)
+        try:
+            from scipy.special import gammaincinv
+        except ValueError:
+            raise ImportError('Sersic2D model requires scipy > 0.11.')
+
+        bn = gammaincinv(2. * n, 0.5)
         a, b = r_eff, (1 - ellip) * r_eff
         cos_theta, sin_theta = np.cos(theta), np.sin(theta)
         x_maj = (x - x_0) * cos_theta + (y - y_0) * sin_theta
