@@ -43,6 +43,8 @@ New Features
 
 - ``astropy.modeling``
 
+  - Added the fittable=True attribute to the Scale and Shift models.
+
 - ``astropy.nddata``
 
   - Added ``UnknownUncertainty`` as ``NDUncertainty`` subclass which cannot
