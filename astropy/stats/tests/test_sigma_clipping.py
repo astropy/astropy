@@ -95,16 +95,23 @@ def test_sigma_clipped_stats():
     data = [0, 1]
     mask = np.array([True, False])
     result = sigma_clipped_stats(data, mask=mask)
-    assert result[0] == 1.
-    assert result[1] == 1.
-    assert result[2] == 0.
+    # Check that the result of np.ma.median was converted to a scalar
+    assert isinstance(result[1], float)
+    assert result == (1., 1., 0.)
 
     # test list data with mask_value
     result2 = sigma_clipped_stats(data, mask_value=0.)
-    assert result2[0] == 1.
-    assert result2[1] == 1.
-    assert result2[2] == 0.
+    assert isinstance(result[1], float)
+    assert result2 == (1., 1., 0.)
 
+    _data = np.arange(10)
+    data = np.ma.MaskedArray([_data, _data, 10 * _data])
+    mean = sigma_clip(data, axis=0, sigma=1).mean(axis=0)
+    assert_equal(mean, _data)
+    mean, median, stddev = sigma_clipped_stats(data, axis=0, sigma=1)
+    assert_equal(mean, _data)
+    assert_equal(median, _data)
+    assert_equal(stddev, np.zeros_like(_data))
 
 def test_invalid_sigma_clip():
     """Test sigma_clip of data containing invalid values."""
