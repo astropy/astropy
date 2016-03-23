@@ -1584,32 +1584,27 @@ class AiryDisk2D(Fittable2DModel):
     x_0 = Parameter(default=0)
     y_0 = Parameter(default=0)
     radius = Parameter(default=1)
-    _j1 = None
-
-    def __init__(self, amplitude=amplitude.default, x_0=x_0.default,
-                 y_0=y_0.default, radius=radius.default, **kwargs):
-        if self._j1 is None:
-            try:
-                from scipy.special import j1, jn_zeros
-                self.__class__._j1 = j1
-                self.__class__._rz = jn_zeros(1, 1)[0] / np.pi
-            # add a ValueError here for python3 + scipy < 0.12
-            except ValueError:
-                raise ImportError("AiryDisk2D model requires scipy > 0.11.")
-
-        super(AiryDisk2D, self).__init__(
-            amplitude=amplitude, x_0=x_0, y_0=y_0, radius=radius, **kwargs)
+    _rz = None
 
     @classmethod
     def evaluate(cls, x, y, amplitude, x_0, y_0, radius):
         """Two dimensional Airy model function"""
+
+        try:
+            from scipy.special import j1
+        except ValueError:
+            raise ImportError('AiryDisk2D model requires scipy > 0.11.')
+
+        if cls._rz is None:
+            from scipy.special import jn_zeros
+            cls._rz = jn_zeros(1, 1)[0] / np.pi
 
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2) / (radius / cls._rz)
         # Since r can be zero, we have to take care to treat that case
         # separately so as not to raise a numpy warning
         z = np.ones(r.shape)
         rt = np.pi * r[r > 0]
-        z[r > 0] = (2.0 * cls._j1(rt) / rt) ** 2
+        z[r > 0] = (2.0 * j1(rt) / rt) ** 2
         z *= amplitude
         return z
 
