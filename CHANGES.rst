@@ -43,7 +43,7 @@ New Features
 
 - ``astropy.modeling``
 
-  - Added the fittable=True attribute to the Scale and Shift models.
+  - Added the fittable=True attribute to the Scale and Shift models with tests.
 
 - ``astropy.nddata``
 
