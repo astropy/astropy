@@ -610,23 +610,18 @@ class Sersic1D(Fittable1DModel):
     amplitude = Parameter(default=1)
     r_eff = Parameter(default=1)
     n = Parameter(default=4)
-    _gammaincinv = None
 
-    def __init__(self, amplitude=amplitude.default, r_eff=r_eff.default,
-                 n=n.default, **kwargs):
+    @staticmethod
+    def evaluate(r, amplitude, r_eff, n):
+        """One dimensional Sersic profile function."""
+
         try:
             from scipy.special import gammaincinv
-            self.__class__._gammaincinv = gammaincinv
         except ValueError:
-            raise ImportError("Sersic1D model requires scipy > 0.11.")
+            raise ImportError('Sersic1D model requires scipy > 0.11.')
 
-        super(Sersic1D, self).__init__(
-            amplitude=amplitude, r_eff=r_eff, n=n, **kwargs)
-
-    @classmethod
-    def evaluate(cls, r, amplitude, r_eff, n):
-        """One dimensional Sersic profile function."""
-        return amplitude * np.exp(-cls._gammaincinv(2 * n, 0.5) * ((r / r_eff) ** (1 / n) - 1))
+        return (amplitude * np.exp(
+            -gammaincinv(2 * n, 0.5) * ((r / r_eff) ** (1 / n) - 1)))
 
 
 class Sine1D(Fittable1DModel):
