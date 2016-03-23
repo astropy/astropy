@@ -16,7 +16,7 @@ from collections import defaultdict
 
 import numpy as np
 
-from .. import units as u
+from .. import units as u, constants as const
 from .. import _erfa as erfa
 from ..units import UnitConversionError
 from ..utils.decorators import lazyproperty
@@ -110,6 +110,7 @@ class TimeInfo(MixinInfo):
                           funcs=[getattr(np, stat) for stat in MixinInfo._stats]))
     # When Time has mean, std, min, max methods:
     # funcs = [lambda x: getattr(x, stat)() for stat_name in MixinInfo._stats])
+
 
 class Time(object):
     """
@@ -212,8 +213,8 @@ class Time(object):
             self._init_from_vals(val, val2, format, scale, copy,
                                  precision, in_subfmt, out_subfmt)
 
-        if self.location and (self.location.size > 1
-                              and self.location.shape != self.shape):
+        if self.location and (self.location.size > 1 and
+                              self.location.shape != self.shape):
             try:
                 # check the location can be broadcast to self's shape.
                 self.location = broadcast_to(self.location, self.shape,
@@ -546,6 +547,82 @@ class Time(object):
         # the ``value`` attribute is cached.
         return getattr(self, self.format)
 
+    def light_travel_time(self, skycoord, kind='barycentric', location=None):
+        """Light travel time correction to the barycentre or heliocentre.
+
+        The frame transformations used to calculate the location of the solar
+        system barycentre and the heliocentre rely on the erfa routine epv00,
+        which is consistent with the JPL DE405 ephemeris to an accuracy of
+        11.2 km, corresponding to a light travel time of 4 microseconds.
+
+        The routine assumes the source(s) are at large distance, i.e., neglects
+        finite-distance effects.
+
+        Parameters
+        ----------
+        skycoord: `~astropy.coordinates.SkyCoord`
+            The sky location to calculate the correction for.
+        kind: str, optional
+            ``'barycentric'`` (default) or ``'heliocentric'``
+        location: `~astropy.coordinates.EarthLocation`, optional
+            The location of the observatory to calculate the correction for.
+            If no location is given, the ``location`` attribute of the Time
+            object is used
+
+        Returns
+        -------
+        time_offset: `~astropy.time.TimeDelta`
+            The time offset between the barycentre or Heliocentre and Earth,
+            in TDB seconds.  Should be added to the original time to get the
+            time in the Solar system barycentre or the Heliocentre.
+        """
+
+        if kind.lower() not in ('barycentric', 'heliocentric'):
+            raise ValueError("'kind' parameter must be one of 'heliocentric' "
+                             "or 'barycentric'")
+
+        if location is None:
+            if self.location is None:
+                raise ValueError('An EarthLocation needs to be set or passed '
+                                 'in to calculate bary- or heliocentric '
+                                 'corrections')
+            location = self.location
+
+        from ..coordinates import (UnitSphericalRepresentation, CartesianRepresentation,
+                                   HCRS, ICRS, GCRS, EarthLocation, SkyCoord)
+
+        # ensure sky location is ICRS compatible
+        if not skycoord.is_transformable_to(ICRS()):
+            raise ValueError("Given skycoord is not transformable to the ICRS")
+
+        # get location of observatory in ITRS coordinates at this Time
+        try:
+            itrs = location.get_itrs(obstime=self)
+        except:
+            raise ValueError("Supplied location does not have a valid `get_itrs` method")
+
+        if kind.lower() == 'heliocentric':
+            # convert to heliocentric coordinates, aligned with ICRS
+            cpos = itrs.transform_to(HCRS(obstime=self)).cartesian.xyz
+        else:
+            # first we need to convert to GCRS coordinates with the correct
+            # obstime, since ICRS coordinates have no frame time
+            gcrs_coo = itrs.transform_to(GCRS(obstime=self))
+            # convert to barycentric (BCRS) coordinates, aligned with ICRS
+            cpos = gcrs_coo.transform_to(ICRS()).cartesian.xyz
+
+        # get unit ICRS vector to star
+        spos = (skycoord.icrs.represent_as(UnitSphericalRepresentation).
+                represent_as(CartesianRepresentation).xyz)
+
+        # Move X,Y,Z to last dimension, to enable possible broadcasting below.
+        cpos = np.rollaxis(cpos, 0, cpos.ndim)
+        spos = np.rollaxis(spos, 0, spos.ndim)
+
+        # calculate light travel time correction
+        tcor_val = (spos * cpos).sum(axis=-1) / const.c
+        return TimeDelta(tcor_val, scale='tdb')
+
     def sidereal_time(self, kind, longitude=None, model=None):
         """Calculate sidereal time.
 
@@ -684,10 +761,9 @@ class Time(object):
         # To avoid recalculating integer day + fraction, no longer just
         # instantiate a new class instance, but rather do the steps by hand.
         # This also avoids quite a bit of unnecessary work in __init__
-        ###  tm = self.__class__(self._time.jd1, self._time.jd2,
-        ###                      format='jd', scale=self.scale, copy=copy)
+        #  tm = self.__class__(self._time.jd1, self._time.jd2,
+        #                      format='jd', scale=self.scale, copy=copy)
         return self._replicate(format=format, method='copy' if copy else None)
-
 
     def _replicate(self, method=None, *args, **kwargs):
         """Replicate a time object, possibly applying a method to the arrays.
@@ -1446,7 +1522,6 @@ class Time(object):
         return tm._shaped_like_input(tm._time.to_value(timezone))
 
     to_datetime.__doc__ = TimeDatetime.to_value.__doc__
-
 
 
 class TimeDelta(Time):
