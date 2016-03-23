@@ -1600,19 +1600,6 @@ class AiryDisk2D(Fittable2DModel):
         super(AiryDisk2D, self).__init__(
             amplitude=amplitude, x_0=x_0, y_0=y_0, radius=radius, **kwargs)
 
-    # TODO: Why does this particular model have its own special __deepcopy__
-    # and __copy__?  If it has anything to do with the use of the j_1 function
-    # that should be reworked.
-    def __deepcopy__(self, memo):
-        new_model = self.__class__(self.amplitude.value, self.x_0.value,
-                                   self.y_0.value, self.radius.value)
-        return new_model
-
-    def __copy__(self):
-        new_model = self.__class__(self.amplitude.value, self.x_0.value,
-                                   self.y_0.value, self.radius.value)
-        return new_model
-
     @classmethod
     def evaluate(cls, x, y, amplitude, x_0, y_0, radius):
         """Two dimensional Airy model function"""
