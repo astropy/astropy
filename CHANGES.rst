@@ -250,6 +250,9 @@ Bug fixes
 
 - ``astropy.modeling``
 
+  - Refactored ``AiryDisk2D``, ``Sersic1D``, and ``Sersic2D`` models
+    to be able to combine them as classes as well as instances. [#4720]
+
 - ``astropy.nddata``
 
   - ``NDDataBase`` does not implement a setter or getter for ``uncertainty``,
@@ -416,6 +419,9 @@ Bug Fixes
 - ``astropy.io.votable``
 
 - ``astropy.modeling``
+
+  - Refactored ``AiryDisk2D``, ``Sersic1D``, and ``Sersic2D`` models
+    to be able to combine them as classes as well as instances. [#4720]
 
 - ``astropy.nddata``
 
