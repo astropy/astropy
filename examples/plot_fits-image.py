@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-========================
-FITS Table example
-========================
+==================
+FITS image example
+==================
 
 Demonstrates `astropy.utils.data` to download the file, `astropy.io.fits` to open
-and view the file, `matplotlib` for making plots.
+the file, `matplotlib` for displaying the image in a plot.
 
 """
 
