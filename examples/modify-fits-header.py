@@ -18,12 +18,13 @@ would be written as pyfits.getdata().
 """
 
 # Code source: Adrian Price-Whelan
+# Description: Adrian Price-Whelan, Kelle Cruz
 # License: BSD
 
 from astropy.io import fits
 
 ##############################################################################
-# The following line is needed to download the example FITS files used here.
+# Download the FITS files used in this example.
 
 from astropy.utils.data import download_file
 fits_file = download_file('http://data.astropy.org/tutorials/FITS-Header/input_file.fits',
@@ -54,31 +55,26 @@ print(type(data))
 print(header['NAXIS'])
 
 ##############################################################################
-# Now let's change the header to give it the correct object:
+# Change the header OBJECT keyword to contain the correct object name:
 
 header['OBJECT'] = 'M31'
 
 ##############################################################################
-# Finally, write out the FITS file. Again, the convenience function
-# for this is the most useful command to remember:
+# Finally, write out the FITS file. Again, the convenience function `~astropy.io.fits.writeto()`
+# is the most useful command to remember:
 
 fits.writeto('output_file.fits', data, header, clobber=True)
 
 ##############################################################################
-# Two common more complicated cases are worth mentioning (but if your needs
-# are much more complex, you should consult the full documentation in `astropy.io.fits`).
+# A FITS file might have multiple HDU's (extensions). Without specifying a 
+# number, `~astropy.io.fits.getdata()` will get the
+# 0th extension (equivalent to saying ``ext=0``).
 #
-# The first complication is that a FITS 
-# might have multiple HDU's (extensions), in which case the
-# extension can be specified like this:
+# Get the data and header associated with the index=1 extension: 
 
 data,header = fits.getdata(fits_file, ext=1, header=True)
 
 ##############################################################################
-# This will get the data and header associated with the index=1 extension
-# in the FITS file. Without specifying a number, `~astropy.io.fits.getdata()` will get the
-# 0th extension (equivalent to saying ``ext=0``).
-#
 # Use the clobber keyword argument to overwrite an existing FITS file.
 # By default, `~astropy.io.fits.writeto()` will not allow this. 
 
