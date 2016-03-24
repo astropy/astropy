@@ -4,17 +4,19 @@
 Fits Table example
 ========================
 
-Demonstrates astropy.utils.data to download the file, astropy.io.fits to open
-and view the file, matplotlib for making
+Demonstrates `astropy.utils.data` to download the file, `astropy.io.fits` to open
+and view the file, `matplotlib` for making plots.
 
 """
 
-# Code source:  Lia R. Corrales
+# Code source: Lia R. Corrales
+# License: BSD
 
 import numpy as np
 
 ##############################################################################
 # Set up matplotlib and use a nicer set of plot parameters
+
 import matplotlib.pyplot as plt
 from astropy.visualization import astropy_mpl_style
 plt.style.use(astropy_mpl_style)
@@ -64,6 +66,7 @@ print(image_data.shape)
 ##############################################################################
 # Viewing the image data and getting basic statistics
 
+plt.figure()
 plt.imshow(image_data, cmap='gray')
 plt.colorbar()
 
@@ -74,3 +77,9 @@ print('Min:', np.min(image_data))
 print('Max:', np.max(image_data))
 print('Mean:', np.mean(image_data))
 print('Stdev:', np.std(image_data))
+
+############################################################################
+# Finally, I'll call ``show`` at the end just so someone running the Python
+# code directly will see the plots; this is not necessary for creating the docs
+
+plt.show()
