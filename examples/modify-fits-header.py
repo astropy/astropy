@@ -4,17 +4,9 @@
 Edit a FITS header
 ==================
 
-This example describes how to read in, edit a FITS header, and then write it back out to disk.
-For this example we're going to change the OBJECT keyword.
+This example describes how to edit a value in a FITS header. For this example,
+we'll change the OBJECT keyword.
 
-This example uses `~astropy.io.fits`, which was formerly released separately as pyfits. If you
-have used  pyfits to manipulate FITS files then you may already be familiar with the features
-and syntax of the package. We start by importing the subpackage into our local namespace, and
-allows us to access the functions and classes as ``fits.name_of_function()``. For example, to access
-the `~astropy.io.fits.getdata()` function, we don't have to do `~astropy.io.fits.getdata()` and can instead simple use
-`~astropy.io.fits.getdata()`. You may run across old documentation or tutorials that use the name pyfits.
-Such examples will begin with import pyfits and then the command `~astropy.io.fits.getdata() (for example)
-would be written as pyfits.getdata().
 """
 
 # Code source: Adrian Price-Whelan
@@ -31,51 +23,55 @@ fits_file = download_file('http://data.astropy.org/tutorials/FITS-Header/input_f
                           cache=True)
 
 ##############################################################################
-# `astropy.io.fits` provides a lot of flexibility for reading FITS files and
-# headers, but most of the time the convenience functions are the easiest way
-# to access the data. `~astropy.io.fits.getdata()` reads just the data from a FITS file,
-# but with the ``header=True`` keyword argument will also read the header.
+# Let's look at the headers of the two extensions in this example file before
+# we make any modifications:
 
-data, header = fits.getdata(fits_file, header=True)
-
-##############################################################################
-# There is also a dedicated function for reading just the header:
-
-hdu_number = 0
-hdr = fits.getheader(fits_file, hdu_number)
-print(hdr['OBJECT'])
+print("Before modifications:")
+print()
+print("Extension 0:")
+print(repr(fits.getheader(fits_file, 0)))
+print()
+print("Extension 1:")
+print(repr(fits.getheader(fits_file, 1)))
 
 ##############################################################################
-# but `~astropy.io.fits.getdata()` can get both the data and the header, so it is a
-# useful command to remember. Since the primary HDU of a FITS file must
-# contain image data, the data is now stored in a numpy array. The header is
-# stored in an object that acts like a standard Python dictionary.
-
-print(type(data))
-print(header['NAXIS'])
-
-##############################################################################
-# Change the header OBJECT keyword to contain the correct object name:
-
-header['OBJECT'] = 'M31'
-
-##############################################################################
-# Finally, write out the FITS file. Again, the convenience function `~astropy.io.fits.writeto()`
-# is the most useful command to remember:
-
-fits.writeto('output_file.fits', data, header, clobber=True)
-
-##############################################################################
-# A FITS file might have multiple HDU's (extensions). Without specifying a 
-# number, `~astropy.io.fits.getdata()` will get the
-# 0th extension (equivalent to saying ``ext=0``).
+# `astropy.io.fits` provides an object-oriented interface for reading and
+# interacting with FITS files, but for small operations (like this example) it
+# is often easier to use the [convenience functions](http://docs.astropy.org/en/latest/io/fits/index.html#convenience-functions).
 #
-# Get the data and header associated with the index=1 extension: 
+# To edit a single header value in the header for extension 0, use the
+# `~astropy.io.fits.setval()` function. Here, we'll set the OBJECT keyword
+# to 'M31':
 
-data,header = fits.getdata(fits_file, ext=1, header=True)
+fits.setval(fits_file, 'OBJECT', value='M31')
 
 ##############################################################################
-# Use the clobber keyword argument to overwrite an existing FITS file.
-# By default, `~astropy.io.fits.writeto()` will not allow this. 
+# With no extra arguments, this will modify the header for extension 0, but
+# this can be changed using the ``ext`` keyword argument. For example, we can
+# specify extension 1 instead:
 
-fits.writeto('output_file.fits', data, header, clobber=True)
+fits.setval(fits_file, 'OBJECT', value='M31', ext=1)
+
+##############################################################################
+# This can also be used to create a new keyword-value pair ("card" in FITS
+# lingo):
+
+fits.setval(fits_file, 'ANEWKEY', value='some value')
+
+##############################################################################
+# Again, this is useful for one-off modifications, but is inefficient
+# if you need to modify, for example, multiple headers in the same file
+# because `~astropy.io.fits.setval()` loads the whole file each time it
+# is called. To make several modifications, it's better to load the file once:
+
+with fits.open(fits_file, 'update') as f:
+    for hdu in f:
+        hdu.header['OBJECT'] = 'CAT'
+
+print("After modifications:")
+print()
+print("Extension 0:")
+print(repr(fits.getheader(fits_file, 0)))
+print()
+print("Extension 1:")
+print(repr(fits.getheader(fits_file, 1)))
