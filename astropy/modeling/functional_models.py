@@ -606,18 +606,21 @@ class Sersic1D(Fittable1DModel):
     amplitude = Parameter(default=1)
     r_eff = Parameter(default=1)
     n = Parameter(default=4)
+    _gammaincinv = None
 
-    @staticmethod
-    def evaluate(r, amplitude, r_eff, n):
+    @classmethod
+    def evaluate(cls, r, amplitude, r_eff, n):
         """One dimensional Sersic profile function."""
 
-        try:
-            from scipy.special import gammaincinv
-        except ValueError:
-            raise ImportError('Sersic1D model requires scipy > 0.11.')
+        if cls._gammaincinv is None:
+            try:
+                from scipy.special import gammaincinv
+                cls._gammaincinv = gammaincinv
+            except ValueError:
+                raise ImportError('Sersic1D model requires scipy > 0.11.')
 
         return (amplitude * np.exp(
-            -gammaincinv(2 * n, 0.5) * ((r / r_eff) ** (1 / n) - 1)))
+            -cls._gammaincinv(2 * n, 0.5) * ((r / r_eff) ** (1 / n) - 1)))
 
 
 class Sine1D(Fittable1DModel):
@@ -1576,26 +1579,26 @@ class AiryDisk2D(Fittable2DModel):
     y_0 = Parameter(default=0)
     radius = Parameter(default=1)
     _rz = None
+    _j1 = None
 
     @classmethod
     def evaluate(cls, x, y, amplitude, x_0, y_0, radius):
         """Two dimensional Airy model function"""
 
-        try:
-            from scipy.special import j1
-        except ValueError:
-            raise ImportError('AiryDisk2D model requires scipy > 0.11.')
-
         if cls._rz is None:
-            from scipy.special import jn_zeros
-            cls._rz = jn_zeros(1, 1)[0] / np.pi
+            try:
+                from scipy.special import j1, jn_zeros
+                cls._rz = jn_zeros(1, 1)[0] / np.pi
+                cls._j1 = j1
+            except ValueError:
+                raise ImportError('AiryDisk2D model requires scipy > 0.11.')
 
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2) / (radius / cls._rz)
         # Since r can be zero, we have to take care to treat that case
         # separately so as not to raise a numpy warning
         z = np.ones(r.shape)
         rt = np.pi * r[r > 0]
-        z[r > 0] = (2.0 * j1(rt) / rt) ** 2
+        z[r > 0] = (2.0 * cls._j1(rt) / rt) ** 2
         z *= amplitude
         return z
 
@@ -1791,17 +1794,20 @@ class Sersic2D(Fittable2DModel):
     y_0 = Parameter(default=0)
     ellip = Parameter(default=0)
     theta = Parameter(default=0)
+    _gammaincinv = None
 
-    @staticmethod
-    def evaluate(x, y, amplitude, r_eff, n, x_0, y_0, ellip, theta):
+    @classmethod
+    def evaluate(cls, x, y, amplitude, r_eff, n, x_0, y_0, ellip, theta):
         """Two dimensional Sersic profile function."""
 
-        try:
-            from scipy.special import gammaincinv
-        except ValueError:
-            raise ImportError('Sersic2D model requires scipy > 0.11.')
+        if cls._gammaincinv is None:
+            try:
+                from scipy.special import gammaincinv
+                cls._gammaincinv = gammaincinv
+            except ValueError:
+                raise ImportError('Sersic2D model requires scipy > 0.11.')
 
-        bn = gammaincinv(2. * n, 0.5)
+        bn = cls._gammaincinv(2. * n, 0.5)
         a, b = r_eff, (1 - ellip) * r_eff
         cos_theta, sin_theta = np.cos(theta), np.sin(theta)
         x_maj = (x - x_0) * cos_theta + (y - y_0) * sin_theta
