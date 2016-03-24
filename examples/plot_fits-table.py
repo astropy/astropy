@@ -77,9 +77,3 @@ print('Min:', np.min(image_data))
 print('Max:', np.max(image_data))
 print('Mean:', np.mean(image_data))
 print('Stdev:', np.std(image_data))
-
-############################################################################
-# Finally, I'll call ``show`` at the end just so someone running the Python
-# code directly will see the plots; this is not necessary for creating the docs
-
-plt.show()
