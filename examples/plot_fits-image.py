@@ -5,7 +5,7 @@ FITS image example
 ==================
 
 Demonstrates `astropy.utils.data` to download the file, `astropy.io.fits` to open
-the file, `matplotlib` for displaying the image in a plot.
+the file, `matplotlib.pyplot` for displaying the image.
 
 """
 
