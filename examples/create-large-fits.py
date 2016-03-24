@@ -1,0 +1,89 @@
+# -*- coding: utf-8 -*-
+"""
+========================
+Create a very large FITS file from scratch?
+========================
+* By:  *
+
+* License: BSD *
+
+-------------------
+
+This example demonstrates how to create a large file (larger than will fit in memory) from scratch.
+
+The example uses <packages> to <do something> and <other package> to <do other thing>. Include links to referenced packages like this: `astropy.io.fits`
+to show the astropy.io.fits or like this `~astropy.io.fits`to show just 'fits'
+
+"""
+##############################################################################
+#  Normally to create a single image FITS file one would do something like:
+
+import numpy
+from astropy.io import fits
+data = numpy.zeros((40000, 40000), dtype=numpy.float64)
+hdu = fits.PrimaryHDU(data=data)
+hdu.writeto('large.fits')
+
+##############################################################################
+# However, a 40000 x 40000 array of doubles is nearly twelve gigabytes! Most
+# systems won’t be able to create that in memory just to write out to disk. In
+# order to create such a large file efficiently requires a little extra work,
+# and a few assumptions.
+#
+# First, it is helpful to anticipate about how large (as in, how many keywords)
+# the header will have in it. FITS headers must be written in 2880 byte
+# blocks–large enough for 36 keywords per block (including the END keyword in
+# the final block). Typical headers have somewhere between 1 and 4 blocks,
+# though sometimes more.
+#
+# Since the first thing we write to a FITS file is the header, we want to write
+# enough header blocks so that there is plenty of padding in which to add new
+# keywords without having to resize the whole file. Say you want the header to
+# use 4 blocks by default. Then, excluding the END card which Astropy will add
+# automatically, create the header and pad it out to 36 * 4 cards.
+#
+# Create a stub array to initialize the HDU; its
+# exact size is irrelevant, as long as it has the desired number of
+# dimensions
+data = numpy.zeros((100, 100), dtype=numpy.float64)
+hdu = fits.PrimaryHDU(data=data)
+header = hdu.header
+while len(header) < (36 * 4 - 1):
+    header.append()  # Adds a blank card to the end
+
+##############################################################################
+# Now adjust the NAXISn keywords to the desired size of the array, and write
+# only the header out to a file. Using the ``hdu.writeto()`` method will cause
+# astropy to “helpfully” reset the NAXISn keywords to match the size of the
+# dummy array. That is because it works hard to ensure that only valid FITS
+# files are written. Instead, we can write just the header to a file using the
+# `Header.tofile` method:
+
+header['NAXIS1'] = 40000
+header['NAXIS2'] = 40000
+header.tofile('large.fits')
+
+##############################################################################
+# Finally, grow out the end of the file to match the length of the
+# data (plus the length of the header). This can be done very efficiently on
+# most systems by seeking past the end of the file and writing a single byte,
+# like so:
+
+with open('large.fits', 'rb+') as fobj:
+    # Seek past the length of the header, plus the length of the
+    # Data we want to write.
+    # The -1 is to account for the final byte taht we are about to
+    # write:
+    fobj.seek(len(header.tostring()) + (40000 * 40000 * 8) - 1)
+    fobj.write('\0')
+
+##############################################################################
+# On modern operating systems this will cause the file (past the header) to be
+# filled with zeros out to the ~12GB needed to hold a 40000 x 40000 image. On
+# filesystems that support sparse file creation (most Linux filesystems, but not
+# the HFS+ filesystem used by most Macs) this is a very fast, efficient
+# operation. On other systems your mileage may vary.
+
+# This isn’t the only way to build up a large file, but probably one of the
+# safest. This method can also be used to create large multi-extension FITS
+# files, with a little care.
