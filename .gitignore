@@ -22,7 +22,7 @@ astropy/_erfa/core.pyx
 _build
 _generated
 docs/api
-
+docs/auto_examples
 
 # Packages/installer info
 *.egg
