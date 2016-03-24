@@ -22,7 +22,7 @@ from astropy.visualization import astropy_mpl_style
 plt.style.use(astropy_mpl_style)
 
 ##############################################################################
-# The following line is needed to download the example FITS files used here.
+# Download the example FITS files used by this example:
 
 from astropy.utils.data import download_file
 from astropy.io import fits
@@ -31,7 +31,7 @@ image_file = download_file('http://data.astropy.org/tutorials/FITS-images/HorseH
                            cache=True)
 
 ##############################################################################
-# Open the FITS file and find out what it contains.
+# Open the FITS file and find out what it contains:
 
 hdu_list = fits.open(image_file)
 hdu_list.info()
@@ -44,7 +44,7 @@ image_data = hdu_list[0].data
 
 ##############################################################################
 # The data is now stored as a 2-D numpy array.
-# Look at the shape of the array to see the dimensions of the image
+# Look at the shape of the array to see the dimensions of the image:
 
 print(type(image_data))
 print(image_data.shape)
@@ -56,7 +56,7 @@ print(image_data.shape)
 hdu_list.close()
 
 ##############################################################################
-# To simply load the image and not examine the header, use fits.getdata to
+# To simply load the image and not examine the header, use `~astropy.io.fits.getdata` to
 # bypass the previous steps.
 
 image_data = fits.getdata(image_file)
@@ -64,14 +64,14 @@ print(type(image_data))
 print(image_data.shape)
 
 ##############################################################################
-# Viewing the image data and getting basic statistics
+# View the image data:
 
 plt.figure()
 plt.imshow(image_data, cmap='gray')
 plt.colorbar()
 
 ##############################################################################
-# Get some basic statistics about the image
+# Get some basic statistics about the image:
 
 print('Min:', np.min(image_data))
 print('Max:', np.max(image_data))
