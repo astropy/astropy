@@ -37,7 +37,7 @@ print(repr(fits.getheader(fits_file, 1)))
 ##############################################################################
 # `astropy.io.fits` provides an object-oriented interface for reading and
 # interacting with FITS files, but for small operations (like this example) it
-# is often easier to use the [convenience functions](http://docs.astropy.org/en/latest/io/fits/index.html#convenience-functions).
+# is often easier to use the `convenience functions <http://docs.astropy.org/en/latest/io/fits/index.html#convenience-functions>`_.
 #
 # To edit a single header value in the header for extension 0, use the
 # `~astropy.io.fits.setval()` function. Here, we'll set the OBJECT keyword
