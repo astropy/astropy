@@ -221,4 +221,9 @@ sphinx_gallery_conf = {
     'filename_pattern': '/(?!skip_)', # execute all examples those that start with "skip_"
     'examples_dirs': '../examples', # path to the examples scripts
     'gallery_dirs': 'auto_examples', # path to save gallery generated examples
+    'reference_url': {
+        'astropy': None,
+        'matplotlib': 'http://matplotlib.org/',
+        'numpy': 'http://docs.scipy.org/doc/numpy/',
+    }
 }
