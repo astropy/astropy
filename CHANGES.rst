@@ -528,6 +528,8 @@ Other Changes and Additions
 
 - Updated bundled astropy-helpers to v1.1.2. [#4678]
 
+- Updated bundled copy of WCSLIB to 5.14.
+
 
 1.1.1 (2016-01-08)
 ------------------
