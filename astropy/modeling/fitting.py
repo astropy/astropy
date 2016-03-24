@@ -145,8 +145,22 @@ class Fitter(object):
         This method performs the actual fitting and modifies the parameter list
         of a model.
 
-        Fitter subclasses should implement this method.
+        Parameters
+        ----------
+        model : `~astropy.modeling.FittableModel`
+            model to fit to x, y, z
+        x : array
+            input coordinates
+        y : array
+            input coordinates
+        z : array (optional)
+            input coordinates
+        weights : array (optional)
+            weights
+        kwargs : dict
+            additional keywords to be passed to the optimizer
         """
+
         model_copy = _validate_model(model,
                                      self._opt_method.supported_constraints)
         farg = _convert_input(x, y, z)
@@ -580,6 +594,7 @@ class SLSQPLSQFitter(Fitter):
         model_copy : `~astropy.modeling.FittableModel`
             a copy of the input model with parameters set by the fitter
         """
+
         return super(SLSQPLSQFitter, self).__call__(model, x, y, z,
                                                     weights=None, **kwargs)
 
@@ -620,8 +635,8 @@ class SimplexCashFitter(Fitter):
     supported_constraints = Simplex.supported_constraints
 
     def __init__(self):
-        super(SimplexCashFitter, self).__init__(optimizer=SLSQP,
-                                               statistic=cash)
+        super(SimplexCashFitter, self).__init__(optimizer=Simplex,
+                                                statistic=cash)
         self.fit_info = {}
 
 
