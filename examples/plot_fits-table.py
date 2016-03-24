@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 ========================
-Fits Table example
+FITS Table example
 ========================
 
 Demonstrates `astropy.utils.data` to download the file, `astropy.io.fits` to open
