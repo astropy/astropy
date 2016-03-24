@@ -4,27 +4,34 @@
 Edit a FITS header
 ==================
 
-This example describes how to edit a value in a FITS header. For this example,
-we'll change the OBJECT keyword.
+* By: Adrian Price-Whelan *
+
+* License: BSD *
+-------------------
+
+This example describes how to edit a value in a FITS header
+using `astropy.io.fits`.
 
 """
 
-# Code source: Adrian Price-Whelan
-# Description: Adrian Price-Whelan, Kelle Cruz
-# License: BSD
+
 
 from astropy.io import fits
 
 ##############################################################################
-# Download the FITS files used in this example.
+# Download a FITS file:
 
 from astropy.utils.data import download_file
 fits_file = download_file('http://data.astropy.org/tutorials/FITS-Header/input_file.fits',
                           cache=True)
 
 ##############################################################################
-# Let's look at the headers of the two extensions in this example file before
-# we make any modifications:
+# Look at contents of the FITS file
+
+fits.info(fits_file)
+
+##############################################################################
+# Look at the headers of the two extensions:
 
 print("Before modifications:")
 print()
@@ -40,7 +47,7 @@ print(repr(fits.getheader(fits_file, 1)))
 # is often easier to use the `convenience functions <http://docs.astropy.org/en/latest/io/fits/index.html#convenience-functions>`_.
 #
 # To edit a single header value in the header for extension 0, use the
-# `~astropy.io.fits.setval()` function. Here, we'll set the OBJECT keyword
+# `~astropy.io.fits.setval()` function. For example, set the OBJECT keyword
 # to 'M31':
 
 fits.setval(fits_file, 'OBJECT', value='M31')
@@ -59,8 +66,8 @@ fits.setval(fits_file, 'OBJECT', value='M31', ext=1)
 fits.setval(fits_file, 'ANEWKEY', value='some value')
 
 ##############################################################################
-# Again, this is useful for one-off modifications, but is inefficient
-# if you need to modify, for example, multiple headers in the same file
+# Again, this is useful for one-off modifications, but can be inefficient
+# for operations like editing multiple headers in the same file
 # because `~astropy.io.fits.setval()` loads the whole file each time it
 # is called. To make several modifications, it's better to load the file once:
 
