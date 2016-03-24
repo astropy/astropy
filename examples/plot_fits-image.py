@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-==================
-FITS image example
-==================
+=======================================
+Read and plot an image from a FITS file
+=======================================
+
+*By: Lia R. Corrales, Adrian Price-Whelan, Kelle Cruz*
+
+*License: BSD*
 
 Demonstrates `astropy.utils.data` to download the file, `astropy.io.fits` to open
 the file, `matplotlib.pyplot` for displaying the image.
 
 """
-
-# Code source: Lia R. Corrales
-# License: BSD
-
-import numpy as np
 
 ##############################################################################
 # Set up matplotlib and use a nicer set of plot parameters
@@ -31,49 +30,25 @@ image_file = download_file('http://data.astropy.org/tutorials/FITS-images/HorseH
                            cache=True)
 
 ##############################################################################
-# Open the FITS file and find out what it contains:
+# First, use `astropy.io.fits.info()` to display the structure of the file:
 
-hdu_list = fits.open(image_file)
-hdu_list.info()
-
-##############################################################################
-# Generally the image information is located in the PRIMARY block.
-# The blocks are numbered and can be accessed by indexing hdu_list.
-
-image_data = hdu_list[0].data
+fits.info(image_file)
 
 ##############################################################################
-# The data is now stored as a 2-D numpy array.
-# Look at the shape of the array to see the dimensions of the image:
+# Generally the image information is located in the Primary HDU, also known
+# as extension 0. Here, we use `astropy.io.fits.getdata()` to read the image
+# data from this first extension using the keyword argument ``ext=0``:
 
-print(type(image_data))
+image_data = fits.getdata(image_file, ext=0)
+
+##############################################################################
+# The data is now stored as a 2D numpy array:
+
 print(image_data.shape)
 
 ##############################################################################
-# At this point, the FITS file can be closed since everything needed is now
-# stored in variables.
-
-hdu_list.close()
-
-##############################################################################
-# To simply load the image and not examine the header, use `~astropy.io.fits.getdata` to
-# bypass the previous steps.
-
-image_data = fits.getdata(image_file)
-print(type(image_data))
-print(image_data.shape)
-
-##############################################################################
-# View the image data:
+# Display the image data:
 
 plt.figure()
 plt.imshow(image_data, cmap='gray')
 plt.colorbar()
-
-##############################################################################
-# Get some basic statistics about the image:
-
-print('Min:', np.min(image_data))
-print('Max:', np.max(image_data))
-print('Mean:', np.mean(image_data))
-print('Stdev:', np.std(image_data))
