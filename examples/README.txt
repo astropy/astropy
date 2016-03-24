@@ -1,4 +1,7 @@
-.. _general_examples:
+.. _example-gallery:
+
+Example gallery
+===============
 
 General examples
 ----------------
