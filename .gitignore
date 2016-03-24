@@ -23,6 +23,7 @@ _build
 _generated
 docs/api
 docs/auto_examples
+docs/modules/generated/
 
 # Packages/installer info
 *.egg
