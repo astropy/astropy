@@ -3,16 +3,14 @@
 ========================
 Create a very large FITS file from scratch?
 ========================
-* By:  *
+* By: Erik Bray *
 
 * License: BSD *
 
 -------------------
 
-This example demonstrates how to create a large file (larger than will fit in memory) from scratch.
-
-The example uses <packages> to <do something> and <other package> to <do other thing>. Include links to referenced packages like this: `astropy.io.fits`
-to show the astropy.io.fits or like this `~astropy.io.fits`to show just 'fits'
+This example demonstrates how to create a large file (larger than will fit in
+memory) from scratch using `astropy.io.fits`.
 
 """
 ##############################################################################
@@ -22,6 +20,17 @@ import numpy
 from astropy.io import fits
 data = numpy.zeros((40000, 40000), dtype=numpy.float64)
 hdu = fits.PrimaryHDU(data=data)
+
+
+##############################################################################
+# Make sure the path to the file we want to write exists
+import os
+if not os.path.exists('tmp'):
+    os.mkdir('tmp')
+
+##############################################################################
+# Write out the new file to disk
+
 hdu.writeto('large.fits')
 
 ##############################################################################
@@ -45,6 +54,7 @@ hdu.writeto('large.fits')
 # Create a stub array to initialize the HDU; its
 # exact size is irrelevant, as long as it has the desired number of
 # dimensions
+
 data = numpy.zeros((100, 100), dtype=numpy.float64)
 hdu = fits.PrimaryHDU(data=data)
 header = hdu.header
