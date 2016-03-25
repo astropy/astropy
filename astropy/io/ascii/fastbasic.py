@@ -88,6 +88,7 @@ class FastBasic(metaclass=core.MetaBaseReader):
             raise core.ParameterError("The C reader does not use a Splitter class")
 
         self.strict_names = self.kwargs.pop('strict_names', False)
+        self.return_header_chars = self.kwargs['fast_reader'].pop('return_header_chars', False)
 
         self.engine = cparser.CParser(table, self.strip_whitespace_lines,
                                       self.strip_whitespace_fields,
@@ -109,10 +110,14 @@ class FastBasic(metaclass=core.MetaBaseReader):
 
         with set_locale('C'):
             data, comments = self.engine.read(try_int, try_float, try_string)
+        return self.make_table(data, comments)
 
+    def make_table(self, data, comments):
         meta = OrderedDict()
         if comments:
             meta['comments'] = comments
+        if self.return_header_chars:
+            meta['__ascii_fast_reader_header_chars__'] = self.engine.header_chars
         return Table(data, names=list(self.engine.get_names()), meta=meta)
 
     def check_header(self):
@@ -230,21 +235,14 @@ class FastCommentedHeader(FastBasic):
         if 'data_start' not in kwargs:
             self.data_start = 0
 
-    def read(self, table):
-        """
-        Read input data (file-like object, filename, list of strings, or
-        single string) into a Table and return the result.
-        """
-        out = super().read(table)
+    def make_table(self, data, comments):
+        meta = OrderedDict()
+        if comments:
+            meta['comments'] = comments[1:]
+            if not meta['comments']:
+                del meta['comments']
 
-        # Strip off first comment since this is the header line for
-        # commented_header format.
-        if 'comments' in out.meta:
-            out.meta['comments'] = out.meta['comments'][1:]
-            if not out.meta['comments']:
-                del out.meta['comments']
-
-        return out
+        return Table(data, names=list(self.engine.get_names()), meta=meta)
 
     def _read_header(self):
         tmp = self.engine.source
