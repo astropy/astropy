@@ -218,8 +218,8 @@ if six.PY2:
 extensions += ["sphinx_gallery.gen_gallery"]
 
 sphinx_gallery_conf = {
-    'filename_pattern': '/(?!skip_)', # execute all examples except those that start with "skip_"
-    'examples_dirs': '../examples', # path to the examples scripts
+    'filename_pattern': os.sep+'(?!skip_)', # execute all examples except those that start with "skip_"
+    'examples_dirs': '..{}examples'.format(os.sep), # path to the examples scripts
     'gallery_dirs': 'auto_examples', # path to save gallery generated examples
     'reference_url': {
         'astropy': None,
