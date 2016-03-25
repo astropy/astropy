@@ -3,14 +3,16 @@
 ==================
 Edit a FITS header
 ==================
-
-* By: Adrian Price-Whelan *
-
-* License: BSD *
--------------------
-
 This example describes how to edit a value in a FITS header
 using `astropy.io.fits`.
+
+-------------------
+
+*By: Adrian Price-Whelan *
+
+*License: BSD *
+
+-------------------
 
 """
 

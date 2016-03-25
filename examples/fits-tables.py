@@ -3,12 +3,6 @@
 ========================
 Accessing data stored as a table in a multi-extension FITS (MEF) file
 ========================
-*By: Lia Corrales, Adrian Price-Whelan, and Kelle Cruz*
-
-*License: BSD*
-
--------------------
-
 FITS files can often contain large amount of multi-dimensional data and
 tables. This example opens a FITS file with information
 from Chandra's HETG-S instrument.
@@ -16,6 +10,15 @@ from Chandra's HETG-S instrument.
 The example uses `astropy.utils.data` to download multi-extension FITS (MEF)
 file, `astropy.io.fits` to investigate the header, and
 `astropy.table.Table` to explore the data.
+
+-------------------
+
+*By: Lia Corrales, Adrian Price-Whelan, and Kelle Cruz*
+
+*License: BSD*
+
+-------------------
+
 """
 
 ##############################################################################
