@@ -337,6 +337,7 @@ def read(table, guess=None, **kwargs):
             try:
                 dat = fast_reader.read(table)
                 _read_trace.append({'kwargs': fast_kwargs,
+                                    'Reader': fast_reader.__class__,
                                     'status': 'Success with fast reader (no guessing)'})
             except (core.ParameterError, cparser.CParserError) as e:
                 # special testing value to avoid falling back on the slow reader
@@ -345,11 +346,13 @@ def read(table, guess=None, **kwargs):
                 # If the fast reader doesn't work, try the slow version
                 dat = reader.read(table)
                 _read_trace.append({'kwargs': new_kwargs,
+                                    'Reader': reader.__class__,
                                     'status': 'Success with slow reader after failing'
                                              ' with fast (no guessing)'})
         else:
             dat = reader.read(table)
             _read_trace.append({'kwargs': new_kwargs,
+                                'Reader': reader.__class__,
                                 'status': 'Success with specified Reader class '
                                           '(no guessing)'})
 
@@ -469,7 +472,9 @@ def _guess(table, read_kwargs, format, fast_reader):
             reader = get_reader(**guess_kwargs)
             reader.guessing = True
             dat = reader.read(table)
-            _read_trace.append({'kwargs': guess_kwargs, 'status': 'Success (guessing)',
+            _read_trace.append({'kwargs': guess_kwargs,
+                                'Reader': reader.__class__,
+                                'status': 'Success (guessing)',
                                 'dt': '{0:.3f} ms'.format((time.time() - t0) * 1000)})
             return dat
 
@@ -485,6 +490,7 @@ def _guess(table, read_kwargs, format, fast_reader):
             reader = get_reader(**read_kwargs)
             dat = reader.read(table)
             _read_trace.append({'kwargs': read_kwargs,
+                                'Reader': reader.__class__,
                                 'status': 'Success with original kwargs without strict_names '
                                           '(guessing)'})
             return dat
