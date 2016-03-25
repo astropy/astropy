@@ -26,22 +26,19 @@ def test_quantity_init():
     u.Distribution(pq)
 
 
-def test_numpy_init_nounit():
+def test_init_scalar():
     parr = np.random.poisson([1, 5, 30, 400], (1000, 4))
-    with pytest.raises(u.UnitsError) as exc:
-        u.Distribution(parr)
-    # FIXME: update error message as needed
-    assert exc.value.args[0] == "No unit specified when creating distribution"
+    with pytest.raises(TypeError) as exc:
+        u.Distribution(parr.ravel()[0])
+    assert exc.value.args[0] == "Attempted to initialize a Distribution with a scalar"
 
 
 class TestDistributionStatistics():
-
     def setup_class(self):
-
         with NumpyRNGContext(12345):
             self.data = np.random.normal([1, 2, 3, 4], [3, 2, 4, 5], (10000, 4))
 
-        self.distr = u.Distribution(self.data  * u.kpc)
+        self.distr = u.Distribution(self.data * u.kpc)
 
     def test_shape(self):
         # u.Distribution shape
@@ -57,31 +54,31 @@ class TestDistributionStatistics():
 
     def test_n_distr(self):
         # Shape of the PDF (note, this is actually the number of values regardless of samples, needs a better name?)
-        assert self.distr.n_distr == (4,)
+        assert self.distr.distr_shape == (4,)
 
     def test_pdf_mean(self):
         # Mean of each PDF
         expected = np.mean(self.data, axis=0) * u.kpc
         assert_quantity_allclose(self.distr.pdf_mean, expected)
-        assert_quantity_allclose(self.distr.pdf_mean, [1, 2, 3, 4] * u.kpc, rtol=0.01)
+        assert_quantity_allclose(self.distr.pdf_mean, [1, 2, 3, 4] * u.kpc, rtol=0.05)
 
     def test_pdf_std(self):
         # Standard deviation of each PDF
         expected = np.std(self.data, axis=0) * u.kpc
         assert_quantity_allclose(self.distr.pdf_std, expected)
-        assert_quantity_allclose(self.distr.pdf_std, [3, 2, 4, 5] * u.kpc, rtol=0.01)
+        assert_quantity_allclose(self.distr.pdf_std, [3, 2, 4, 5] * u.kpc, rtol=0.05)
 
     def test_pdf_var(self):
         # Variance of each PDF
-        expected = np.var(self.data, axis=0) * u.kpc
+        expected = np.var(self.data, axis=0) * u.kpc**2
         assert_quantity_allclose(self.distr.pdf_var, expected)
-        assert_quantity_allclose(self.distr.pdf_var, [9, 4, 16, 25] * u.kpc, rtol=0.01)
+        assert_quantity_allclose(self.distr.pdf_var, [9, 4, 16, 25] * u.kpc**2, rtol=0.1)
 
     def test_pdf_median(self):
         # Median of each PDF
         expected = np.median(self.data, axis=0) * u.kpc
         assert_quantity_allclose(self.distr.pdf_median, expected)
-        assert_quantity_allclose(self.distr.pdf_median, [1, 2, 3, 4] * u.kpc, rtol=0.01)
+        assert_quantity_allclose(self.distr.pdf_median, [1, 2, 3, 4] * u.kpc, rtol=0.1)
 
     def test_pdf_mad(self):
         # Median absolute deviation of each PDF
@@ -89,7 +86,7 @@ class TestDistributionStatistics():
         expected = np.median(np.abs(self.data - median), axis=0) * u.kpc
         assert_quantity_allclose(self.distr.pdf_mad, expected)
         assert_quantity_allclose(self.distr.pdf_smad, self.distr.pdf_mad * SMAD_FACTOR)
-        assert_quantity_allclose(self.distr.pdf_smad, [1, 2, 3, 4] * u.kpc, rtol=0.01)
+        assert_quantity_allclose(self.distr.pdf_smad, [1, 2, 3, 4] * u.kpc, rtol=0.05)
 
     def test_percentile(self):
         # TODO: numpy defines percentiles from 0 to 100, we should do the same
@@ -114,6 +111,9 @@ class TestDistributionStatistics():
         assert_quantity_allclose(combined_distr.pdf_median, expected)
         expected = np.var(self.data + another_data, axis=0)
         assert_quantity_allclose(combined_distr.pdf_var, expected)
+
+    def test_thingie():
+        assert isinstance(self.distr.pdf_mean, u.Quantity)
 
 def test_helper_normal(self):
     centerq = [1, 5, 30, 400] * u.kpc

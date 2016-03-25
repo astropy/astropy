@@ -31,6 +31,8 @@ from .function.core import *
 from .function.logarithmic import *
 from .function import magnitude_zero_points
 
+from .distribution import *
+
 del bases
 
 # Enable the set of default units.  This notably does *not* include
