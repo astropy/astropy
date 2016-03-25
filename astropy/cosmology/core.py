@@ -1209,7 +1209,7 @@ class FLRW(Cosmology):
         Returns
         -------
         d : `~astropy.units.Quantity`
-          Comoving distance in Mpc between each input redshifts.
+          Comoving distance in Mpc between each input redshift.
         """
 
         from scipy.integrate import quad
@@ -1244,7 +1244,7 @@ class FLRW(Cosmology):
         return self.comoving_transverse_distance_z1z2(0, z)
 
     def comoving_transverse_distance_z1z2(self, z1, z2):
-        """Comoving transverse distance in Mpc between to redshifts.
+        """Comoving transverse distance in Mpc between two redshifts.
 
         This value is the transverse comoving distance at redshift
         ``z2`` as seen from redshift ``z1`` corresponding to an
@@ -1264,8 +1264,8 @@ class FLRW(Cosmology):
 
         Notes
         -----
-        This quantity also called the 'proper motion distance' in some
-        texts.
+        This quantity is also called the 'proper motion distance' in
+        some texts.
 
         """
 
