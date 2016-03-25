@@ -3,7 +3,9 @@
 ========================
 Create a multi-extension FITS (MEF) file from scratch
 ========================
-This example demonstrates how to create a multi-extension FITS (MEF) file from scratch using `astropy.io.fits`.
+
+This example demonstrates how to create a multi-extension FITS (MEF)
+file from scratch using `astropy.io.fits`.
 
 -------------------
 
@@ -48,4 +50,4 @@ new_hdul.writeto('tmp/test.fits')
 hdu1 = fits.PrimaryHDU()
 hdu2 = fits.ImageHDU()
 new_hdul = fits.HDUList([hdu1, hdu2])
-new_hdul.writeto('test.fits')
+new_hdul.writeto('tmp/test.fits')
