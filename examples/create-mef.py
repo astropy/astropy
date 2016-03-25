@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 """
 ========================
-Title of Example
+Create a multi-extension FITS (MEF) file from scratch
 ========================
+This example demonstrates how to create a multi-extension FITS (MEF) file from scratch using `astropy.io.fits`.
+
+-------------------
 
 * By: Erik Bray *
 
 * License: BSD *
 
 -------------------
-
-This example demonstrates how to create a multi-extension FITS (MEF) file from scratch using `astropy.io.fits`.
 
 """
 
@@ -32,7 +33,7 @@ if not os.path.exists('tmp'):
     os.mkdir('tmp')
 
 ##############################################################################
-# Write out the new file to disk
+# Write out the new file to disk:
 
 new_hdul.writeto('tmp/test.fits')
 
@@ -42,7 +43,7 @@ new_hdul.writeto('tmp/test.fits')
 # file).
 #
 # Create a multi-extension FITS file with two empty IMAGE extensions (a
-# default PRIMARY HDU is prepended automatically if one is not specified).
+# default PRIMARY HDU is prepended automatically if one is not specified):
 
 hdu1 = fits.PrimaryHDU()
 hdu2 = fits.ImageHDU()

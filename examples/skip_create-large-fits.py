@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 """
 ========================
-Create a very large FITS file from scratch?
+Create a very large FITS file from scratch
 ========================
+This example demonstrates how to create a large file (larger than will fit in
+memory) from scratch using `astropy.io.fits`.
+-------------------
+
 * By: Erik Bray *
 
 * License: BSD *
 
 -------------------
-
-This example demonstrates how to create a large file (larger than will fit in
-memory) from scratch using `astropy.io.fits`.
-
 """
 ##############################################################################
 #  Normally to create a single image FITS file one would do something like:
