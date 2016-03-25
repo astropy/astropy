@@ -3,15 +3,18 @@
 ========================
 Create a very large FITS file from scratch
 ========================
+
 This example demonstrates how to create a large file (larger than will fit in
 memory) from scratch using `astropy.io.fits`.
--------------------
-
-* By: Erik Bray *
-
-* License: BSD *
 
 -------------------
+
+*By: Erik Bray *
+
+*License: BSD *
+
+-------------------
+
 """
 ##############################################################################
 #  Normally to create a single image FITS file one would do something like:
@@ -71,7 +74,7 @@ while len(header) < (36 * 4 - 1):
 
 header['NAXIS1'] = 40000
 header['NAXIS2'] = 40000
-header.tofile('large.fits')
+header.tofile('tmp/large.fits')
 
 ##############################################################################
 # Finally, grow out the end of the file to match the length of the
@@ -79,7 +82,7 @@ header.tofile('large.fits')
 # most systems by seeking past the end of the file and writing a single byte,
 # like so:
 
-with open('large.fits', 'rb+') as fobj:
+with open('tmp/large.fits', 'rb+') as fobj:
     # Seek past the length of the header, plus the length of the
     # Data we want to write.
     # The -1 is to account for the final byte taht we are about to

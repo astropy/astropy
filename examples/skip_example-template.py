@@ -3,14 +3,17 @@
 ========================
 Title of Example
 ========================
+
 This example <verb> <active tense> <does something>.
 
 The example uses <packages> to <do something> and <other package> to <do other thing>. Include links to referenced packages like this: `astropy.io.fits`
 to show the astropy.io.fits or like this `~astropy.io.fits`to show just 'fits'
--------------------
-* By: <names> *
 
-* License: BSD *
+-------------------
+
+*By: <names> *
+
+*License: BSD *
 
 -------------------
 
