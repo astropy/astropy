@@ -31,7 +31,7 @@ if not os.path.exists('tmp'):
 ##############################################################################
 # Write out the new file to disk
 
-hdu.writeto('large.fits')
+hdu.writeto('tmp/large.fits')
 
 ##############################################################################
 # However, a 40000 x 40000 array of doubles is nearly twelve gigabytes! Most
