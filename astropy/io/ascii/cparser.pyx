@@ -141,7 +141,7 @@ cdef class FileString:
         return len(self.mmap)
 
     def __getitem__(self, i):
-        return self.mmap[i]
+        return self.mmap[i] if six.PY2 else chr(self.mmap[i])
 
     def splitlines(self):
         """
@@ -186,6 +186,7 @@ cdef class CParser:
         int width
         object source
         object header_start
+        object header_chars
 
     def __cinit__(self, source, strip_line_whitespace, strip_line_fields,
                   delimiter=',',
@@ -375,6 +376,8 @@ cdef class CParser:
         if skip_lines(self.tokenizer, self.data_start, 0) != 0:
             self.raise_error("an error occurred while advancing to the first "
                              "line of data")
+
+        self.header_chars = self.source[:self.tokenizer.source_pos]
 
         cdef int data_end = -1 # keep reading data until the end
         if self.data_end is not None and self.data_end >= 0:
@@ -837,6 +840,7 @@ def _copy_cparser(bytes src_ptr, bytes source_bytes, use_cols, fill_names, fill_
         parser.tokenizer.source = source_bytes
     return parser
 
+
 def _read_chunk(CParser self, start, end, try_int,
                 try_float, try_string, queue, reconvert_queue, i):
     cdef tokenizer_t *chunk_tokenizer = self.tokenizer
@@ -858,21 +862,35 @@ def _read_chunk(CParser self, start, end, try_int,
                                       try_int, try_float, try_string, -1)
         except Exception as e:
             delete_tokenizer(chunk_tokenizer)
-            queue.put((None, e, i))
-            return
+            out = (None, e, i)
+            if queue is None:
+                return out
+            else:
+                queue.put(out)
+                return
 
     try:
-        queue.put(((line_comments, data), err, i))
+        out = ((line_comments, data), err, i)
+        if queue is None:
+            return out
+        else:
+            queue.put(out)
     except Queue.Full as e:
         # hopefully this shouldn't happen
         delete_tokenizer(chunk_tokenizer)
-        queue.pop()
-        queue.put((None, e, i))
-    reconvert_cols = reconvert_queue.get()
-    for col in reconvert_cols:
-        queue.put((self._convert_str(chunk_tokenizer, col, -1), i, col))
-    delete_tokenizer(chunk_tokenizer)
-    reconvert_queue.put(reconvert_cols) # return to the queue for other processes
+        out = (None, e, i)
+        if queue is None:
+            return out
+        else:
+            queue.pop()
+            queue.put(out)
+
+    if reconvert_queue is not None and queue is not None:
+        reconvert_cols = reconvert_queue.get()
+        for col in reconvert_cols:
+            queue.put((self._convert_str(chunk_tokenizer, col, -1), i, col))
+        delete_tokenizer(chunk_tokenizer)
+        reconvert_queue.put(reconvert_cols) # return to the queue for other processes
 
 cdef class FastWriter:
     """

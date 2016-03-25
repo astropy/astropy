@@ -29,7 +29,7 @@ from . import fastbasic
 from . import cparser
 from . import fixedwidth
 
-from ...table import Table
+from ...table import Table, vstack
 from ...utils.data import get_readable_fileobj
 from ...utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
@@ -242,6 +242,14 @@ def read(table, guess=None, **kwargs):
             One-character string defining the exponent or ``'Fortran'`` to auto-detect
             Fortran-style scientific notation like ``'3.14159D+00'`` (``'E'``, ``'D'``, ``'Q'``),
             all case-insensitive; default ``'E'``, all other imply ``use_fast_converter``
+        chunk_size : int
+            If supplied with a value > 0 then read the table in chunks of
+            approximately ``chunk_size`` bytes. Default is reading table in one pass.
+        chunk_generator : bool
+            If True and ``chunk_size > 0`` then return a generator that returns a
+            table for each chunk.  The default is to return a single stacked table
+            for all the chunks.
+
     Reader : `~astropy.io.ascii.BaseReader`
         Reader class (DEPRECATED)
     encoding: str
@@ -249,19 +257,27 @@ def read(table, guess=None, **kwargs):
 
     Returns
     -------
-    dat : `~astropy.table.Table`
+    dat : `~astropy.table.Table` OR <generator>
         Output table
+
     """
     del _read_trace[:]
+
+    # Check if the user requests chunk'ed reading with the fast reader
+    fast_reader_param = kwargs.get('fast_reader', True)
+    if fast_reader_param is not False:
+        fast_reader_dict = fast_reader_param if isinstance(fast_reader_param, dict) else {}
+        if fast_reader_dict.get('chunk_size'):
+            return _read_in_chunks(table, fast_reader_dict, **kwargs)
 
     if 'fill_values' not in kwargs:
         kwargs['fill_values'] = [('', '0')]
 
     # If an Outputter is supplied in kwargs that will take precedence.
     new_kwargs = {}
-    fast_reader_param = kwargs.get('fast_reader', True)
     if 'Outputter' in kwargs:  # user specified Outputter, not supported for fast reading
         fast_reader_param = False
+
     format = kwargs.get('format')
     new_kwargs.update(kwargs)
 
@@ -326,6 +342,9 @@ def read(table, guess=None, **kwargs):
 
     if not guess:
         reader = get_reader(**new_kwargs)
+        if format is None:
+            format = reader._format_name
+
         # Try the fast reader version of `format` first if applicable.  Note that
         # if user specified a fast format (e.g. format='fast_basic') this test
         # will fail and the else-clause below will be used.
@@ -341,7 +360,7 @@ def read(table, guess=None, **kwargs):
                                     'status': 'Success with fast reader (no guessing)'})
             except (core.ParameterError, cparser.CParserError) as e:
                 # special testing value to avoid falling back on the slow reader
-                if fast_reader_param == 'force':
+                if fast_reader == 'force' or isinstance(fast_reader, dict):
                     raise e
                 # If the fast reader doesn't work, try the slow version
                 dat = reader.read(table)
@@ -375,7 +394,6 @@ def _guess(table, read_kwargs, format, fast_reader):
         Keyword arguments from user to be supplied to reader
     format : str
         Table format
-    fast_reader : bool
     fast_reader : bool or dict
         Whether to use the C engine, can also be a dict with options which
         defaults to `False`; parameters for options dict:
@@ -421,8 +439,9 @@ def _guess(table, read_kwargs, format, fast_reader):
         if fast_reader is False and guess_kwargs['Reader'] in core.FAST_CLASSES.values():
             continue
 
-        # If user required a fast reader with 'force' then skip all non-fast readers
-        if fast_reader == 'force' and guess_kwargs['Reader'] not in core.FAST_CLASSES.values():
+        # If user required a fast reader then skip all non-fast readers
+        if ((fast_reader == 'force' or isinstance(fast_reader, dict)) and
+                guess_kwargs['Reader'] not in core.FAST_CLASSES.values()):
             continue
 
         guess_kwargs_ok = True  # guess_kwargs are consistent with user_kwargs?
@@ -597,6 +616,84 @@ def _get_guess_kwargs_list(read_kwargs):
                     Reader=Reader, delimiter=delimiter, quotechar=quotechar))
 
     return guess_kwargs_list
+
+
+def _read_in_chunks(table, fast_reader_dict, **kwargs):
+    """
+    For fast_reader read the ``table`` in chunks and vstack to create
+    a single table, OR return a generator of chunk tables.
+    """
+    chunk_size = fast_reader_dict.pop('chunk_size')
+    chunk_generator = fast_reader_dict.pop('chunk_generator', False)
+    fast_reader_dict['parallel'] = False  # No parallel with chunks
+    kwargs['fast_reader'] = fast_reader_dict
+
+    if chunk_generator:
+        return _read_in_chunks_generator(table, chunk_size, **kwargs)
+
+    # TO DO: stack more efficiently (both in speed and memory)
+    # by extending columns individually in a single output table.
+    tbls = list(_read_in_chunks_generator(table, chunk_size, **kwargs))
+
+    # No meta after first table
+    if len(tbls) > 1:
+        for tbl in tbls[1:]:
+            tbl.meta.clear()
+
+    return vstack(tbls)
+
+
+def _read_in_chunks_generator(table, chunk_size, **kwargs):
+    """
+    For fast_reader read the ``table`` in chunks and return a generator
+    of tables for each chunk.
+    """
+    kwargs['fast_reader']['return_header_chars'] = True
+
+    # TO DO: handle other valid inputs for table.  Currently only filename
+    # or filehandle works.
+    header = ''
+
+    with get_readable_fileobj(table, encoding=kwargs.get('encoding')) as fh:
+        fh_index = 0
+
+        while True:
+            fh.seek(fh_index)
+            chunk = fh.read(chunk_size)
+            # Got fewer chars than requested, must be end of fie
+            final_chunk = len(chunk) < chunk_size
+
+            # If this is the last chunk and there is only whitespace then break
+            if final_chunk and not re.search(r'\S', chunk):
+                break
+
+            # Step backwards from last character in chunk and find first newline
+            for idx in range(len(chunk) - 1, -1, -1):
+                if chunk[idx] == '\n':
+                    break
+            else:
+                raise ValueError('no newline found in chunk')
+
+            # Stick on the header to the chunk part up to (and including) the
+            # last newline.
+            chunk = header + chunk[:idx + 1]
+
+            # Now read the chunk as a complete table
+            tbl = read(chunk, guess=False, **kwargs)
+
+            # For the first chunk pop the meta key which contains the header
+            # characters (everything up to the start of data) then fix kwargs
+            # so it doesn't return that in meta any more.
+            if fh_index == 0:
+                header = tbl.meta.pop('__ascii_fast_reader_header_chars__')
+
+            yield tbl
+
+            # Advance the file handle index
+            fh_index += idx + 1
+
+            if final_chunk:
+                break
 
 
 extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',

@@ -1361,7 +1361,8 @@ extra_reader_pars = ('Reader', 'Inputter', 'Outputter',
                      'data_start', 'data_end', 'converters', 'encoding',
                      'data_Splitter', 'header_Splitter',
                      'names', 'include_names', 'exclude_names', 'strict_names',
-                     'fill_values', 'fill_include_names', 'fill_exclude_names')
+                     'fill_values', 'fill_include_names', 'fill_exclude_names',
+                     'chunk_size')
 
 
 def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
