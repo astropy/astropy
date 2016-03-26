@@ -19,6 +19,7 @@ memory) from scratch using `astropy.io.fits`.
 ##############################################################################
 #  Normally to create a single image FITS file one would do something like:
 
+import os
 import numpy
 from astropy.io import fits
 data = numpy.zeros((40000, 40000), dtype=numpy.float64)
@@ -27,7 +28,7 @@ hdu = fits.PrimaryHDU(data=data)
 ##############################################################################
 # Then use the `fits.HDU.writeto()` method to write out the new file to disk
 
-hdu.writeto('tmp/large.fits')
+hdu.writeto('large.fits')
 
 ##############################################################################
 # However, a 40000 x 40000 array of doubles is nearly twelve gigabytes! Most
@@ -67,7 +68,7 @@ while len(header) < (36 * 4 - 1):
 
 header['NAXIS1'] = 40000
 header['NAXIS2'] = 40000
-header.tofile('tmp/large.fits')
+header.tofile('large.fits')
 
 ##############################################################################
 # Finally, grow out the end of the file to match the length of the
@@ -75,7 +76,7 @@ header.tofile('tmp/large.fits')
 # most systems by seeking past the end of the file and writing a single byte,
 # like so:
 
-with open('tmp/large.fits', 'rb+') as fobj:
+with open('large.fits', 'rb+') as fobj:
     # Seek past the length of the header, plus the length of the
     # Data we want to write.
     # The -1 is to account for the final byte taht we are about to
@@ -89,7 +90,12 @@ with open('tmp/large.fits', 'rb+') as fobj:
 # filesystems that support sparse file creation (most Linux filesystems, but not
 # the HFS+ filesystem used by most Macs) this is a very fast, efficient
 # operation. On other systems your mileage may vary.
-
+#
 # This isn’t the only way to build up a large file, but probably one of the
 # safest. This method can also be used to create large multi-extension FITS
 # files, with a little care.
+
+##############################################################################
+# Finally, we'll remove the file we created:
+
+os.remove('large.fits')
