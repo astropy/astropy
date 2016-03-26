@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 """
-========================
+==========================================
 Create a very large FITS file from scratch
-========================
+==========================================
 
 This example demonstrates how to create a large file (larger than will fit in
 memory) from scratch using `astropy.io.fits`.
 
 -------------------
 
-*By: Erik Bray *
+*By: Erik Bray*
 
-*License: BSD *
+*License: BSD*
 
 -------------------
-
 """
+
 ##############################################################################
 #  Normally to create a single image FITS file one would do something like:
 
@@ -24,15 +24,8 @@ from astropy.io import fits
 data = numpy.zeros((40000, 40000), dtype=numpy.float64)
 hdu = fits.PrimaryHDU(data=data)
 
-
 ##############################################################################
-# Make sure the path to the file we want to write exists
-import os
-if not os.path.exists('tmp'):
-    os.mkdir('tmp')
-
-##############################################################################
-# Write out the new file to disk
+# Then use the `fits.HDU.writeto()` method to write out the new file to disk
 
 hdu.writeto('tmp/large.fits')
 

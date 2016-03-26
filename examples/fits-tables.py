@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-========================
+=====================================================================
 Accessing data stored as a table in a multi-extension FITS (MEF) file
-========================
+=====================================================================
+
 FITS files can often contain large amount of multi-dimensional data and
 tables. This example opens a FITS file with information
 from Chandra's HETG-S instrument.
@@ -33,7 +34,8 @@ from astropy.io import fits
 ##############################################################################
 # Download a FITS file
 
-event_filename = download_file( 'http://data.astropy.org/tutorials/FITS-tables/chandra_events.fits', cache=True )
+event_filename = download_file('http://data.astropy.org/tutorials/FITS-tables/chandra_events.fits',
+                               cache=True)
 
 ##############################################################################
 # Display information about the contents of the FITS file.
@@ -54,8 +56,8 @@ events = Table.read(event_filename, hdu=1)
 print(events.columns)
 
 ##############################################################################
-# If a column contains unit
-# information, it will have an associated `astropy.units` object.
+# If a column contains unit information, it will have an associated
+# `astropy.units` object.
 
 print(events['energy'].unit)
 

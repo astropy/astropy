@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-========================
+===========================
 Plot the AltAz of an object
-========================
+===========================
 
 This example demonstrates coordinate transformations and the creation of
 visibility curves to assist with observing run planning.
@@ -32,10 +32,7 @@ package.
 # someone told you M33 is a great target to observe there. You happen to know
 # you’re free at 11:00 pm local time, and you want to know if it will be up.
 # Astropy can answer that.
-
-
-
-##############################################################################
+#
 # Make print work the same in all versions of Python, set up numpy,
 # matplotlib, and use a nicer set of plot parameters:
 
@@ -92,11 +89,11 @@ print("M33's Altitude = {0.alt:.2}".format(m33altaz))
 midnight = Time('2012-7-13 00:00:00') - utcoffset
 delta_midnight = np.linspace(-2, 10, 100)*u.hour
 frame_July13night = AltAz(obstime=midnight+delta_midnight,
-                                   location=bear_mountain)
+                          location=bear_mountain)
 m33altazs_July13night = m33.transform_to(frame_July13night)
 
 ##############################################################################
-# convert alt, az to airmass with `secz` attribute:
+# convert alt, az to airmass with `~astropy.coordinates.AltAz.secz` attribute:
 
 m33airmasss_July13night = m33altazs_July13night.secz
 
@@ -126,7 +123,8 @@ sunaltazs_July12_to_13 = get_sun(times_July12_to_13).transform_to(frame_July12_t
 m33altazs_July12_to_13 = m33.transform_to(frame_July12_to_13)
 
 ##############################################################################
-# Make a beatiful figure illustrating nighttime and the altitudes of M33 and the Sun over that time:
+# Make a beatiful figure illustrating nighttime and the altitudes of M33 and
+# the Sun over that time:
 
 plt.plot(delta_midnight, sunaltazs_July12_to_13.alt, color='r', label='Sun')
 plt.scatter(delta_midnight, m33altazs_July12_to_13.alt,

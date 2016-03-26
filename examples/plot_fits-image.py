@@ -3,6 +3,7 @@
 =======================================
 Read and plot an image from a FITS file
 =======================================
+
 This example opens an image stored in a FITS file and displays it to the screen.
 
 This example uses `astropy.utils.data` to download the file, `astropy.io.fits` to open
