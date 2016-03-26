@@ -17,6 +17,8 @@ file from scratch using `astropy.io.fits`.
 
 """
 
+import os
+
 ##############################################################################
 # HDUList objects are used to hold all the HDUs in a FITS file. This
 # ``HDUList`` class is a subclass of Python’s builtin `list`. and can be
@@ -29,25 +31,24 @@ new_hdul.append(fits.ImageHDU())
 new_hdul.append(fits.ImageHDU())
 
 ##############################################################################
-# Make sure the path to the file we want to write exists
-import os
-if not os.path.exists('tmp'):
-    os.mkdir('tmp')
+# Write out the new file to disk:
 
-##############################################################################
-# Write out the new file to disk (we use ``clobber=True`` to overwrite the
-# file if it already exists):
-
-new_hdul.writeto('tmp/test.fits', clobber=True)
+new_hdul.writeto('test.fits')
 
 ##############################################################################
 # Alternatively, the HDU instances can be created first (or read from an
 # existing FITS file).
 #
 # Create a multi-extension FITS file with two empty IMAGE extensions (a
-# default PRIMARY HDU is prepended automatically if one is not specified):
+# default PRIMARY HDU is prepended automatically if one is not specified;
+# we use ``clobber=True`` to overwrite the file if it already exists):
 
 hdu1 = fits.PrimaryHDU()
 hdu2 = fits.ImageHDU()
 new_hdul = fits.HDUList([hdu1, hdu2])
-new_hdul.writeto('tmp/test.fits', clobber=True)
+new_hdul.writeto('test.fits', clobber=True)
+
+##############################################################################
+# Finally, we'll remove the file we created:
+
+os.remove('test.fits')
