@@ -153,16 +153,6 @@ def test_Shift_inverse():
     assert_allclose(m.inverse(m(6.789)), 6.789)
 
 
-def test_Scale_fittable():
-    m = models.Scale(1.2)
-    assert(m.fittable==True)
-
-
-def test_Shift_fittable():
-    m = models.Shift(1.2)
-    assert(m.fittable==True)
-
-
 @pytest.mark.skipif("not HAS_SCIPY")
 def test_Voigt1D():
     voi = models.Voigt1D(amplitude_L=-0.5, x_0=1.0, fwhm_L=5.0, fwhm_G=5.0)
