@@ -26,7 +26,8 @@ data = numpy.zeros((40000, 40000), dtype=numpy.float64)
 hdu = fits.PrimaryHDU(data=data)
 
 ##############################################################################
-# Then use the `fits.HDU.writeto()` method to write out the new file to disk
+# Then use the `astropy.io.fits.writeto()` method to write out the new
+# file to disk
 
 hdu.writeto('large.fits')
 
@@ -64,7 +65,7 @@ while len(header) < (36 * 4 - 1):
 # astropy to “helpfully” reset the NAXISn keywords to match the size of the
 # dummy array. That is because it works hard to ensure that only valid FITS
 # files are written. Instead, we can write just the header to a file using the
-# `Header.tofile` method:
+# `astropy.io.fits.Header.tofile` method:
 
 header['NAXIS1'] = 40000
 header['NAXIS2'] = 40000

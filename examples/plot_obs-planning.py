@@ -68,8 +68,8 @@ utcoffset = -4*u.hour  # Eastern Daylight Time
 time = Time('2012-7-12 23:00:00') - utcoffset
 
 ##############################################################################
-# `astropy.coordinates.EarthLocation.get_site_name` and
-# `~astropy.coordinates.EarthLocation.get_site_name` can be used to get
+# `astropy.coordinates.EarthLocation.get_site_names` and
+# `~astropy.coordinates.EarthLocation.get_site_names` can be used to get
 # locations of major observatories.
 #
 # Use `astropy.coordinates` to find the Alt, Az coordinates of M33 at as
