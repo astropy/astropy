@@ -4,17 +4,13 @@
 
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
-
-
 import numpy as np
-
 from .core import (Fittable1DModel, Fittable2DModel, Model,
                    ModelDefinitionError, custom_model)
 from .parameters import Parameter, InputParameterError
 from .utils import ellipse_extent
 from ..utils import deprecated
 from ..extern import six
-
 from .utils import get_inputs_and_params
 
 
@@ -614,21 +610,19 @@ class Sersic1D(Fittable1DModel):
     n = Parameter(default=4)
     _gammaincinv = None
 
-    def __init__(self, amplitude=amplitude.default, r_eff=r_eff.default,
-                 n=n.default, **kwargs):
-        try:
-            from scipy.special import gammaincinv
-            self.__class__._gammaincinv = gammaincinv
-        except ValueError:
-            raise ImportError("Sersic1D model requires scipy > 0.11.")
-
-        super(Sersic1D, self).__init__(
-            amplitude=amplitude, r_eff=r_eff, n=n, **kwargs)
-
     @classmethod
     def evaluate(cls, r, amplitude, r_eff, n):
         """One dimensional Sersic profile function."""
-        return amplitude * np.exp(-cls._gammaincinv(2 * n, 0.5) * ((r / r_eff) ** (1 / n) - 1))
+
+        if cls._gammaincinv is None:
+            try:
+                from scipy.special import gammaincinv
+                cls._gammaincinv = gammaincinv
+            except ValueError:
+                raise ImportError('Sersic1D model requires scipy > 0.11.')
+
+        return (amplitude * np.exp(
+            -cls._gammaincinv(2 * n, 0.5) * ((r / r_eff) ** (1 / n) - 1)))
 
 
 class Sine1D(Fittable1DModel):
@@ -1586,38 +1580,20 @@ class AiryDisk2D(Fittable2DModel):
     x_0 = Parameter(default=0)
     y_0 = Parameter(default=0)
     radius = Parameter(default=1)
+    _rz = None
     _j1 = None
-
-    def __init__(self, amplitude=amplitude.default, x_0=x_0.default,
-                 y_0=y_0.default, radius=radius.default, **kwargs):
-        if self._j1 is None:
-            try:
-                from scipy.special import j1, jn_zeros
-                self.__class__._j1 = j1
-                self.__class__._rz = jn_zeros(1, 1)[0] / np.pi
-            # add a ValueError here for python3 + scipy < 0.12
-            except ValueError:
-                raise ImportError("AiryDisk2D model requires scipy > 0.11.")
-
-        super(AiryDisk2D, self).__init__(
-            amplitude=amplitude, x_0=x_0, y_0=y_0, radius=radius, **kwargs)
-
-    # TODO: Why does this particular model have its own special __deepcopy__
-    # and __copy__?  If it has anything to do with the use of the j_1 function
-    # that should be reworked.
-    def __deepcopy__(self, memo):
-        new_model = self.__class__(self.amplitude.value, self.x_0.value,
-                                   self.y_0.value, self.radius.value)
-        return new_model
-
-    def __copy__(self):
-        new_model = self.__class__(self.amplitude.value, self.x_0.value,
-                                   self.y_0.value, self.radius.value)
-        return new_model
 
     @classmethod
     def evaluate(cls, x, y, amplitude, x_0, y_0, radius):
         """Two dimensional Airy model function"""
+
+        if cls._rz is None:
+            try:
+                from scipy.special import j1, jn_zeros
+                cls._rz = jn_zeros(1, 1)[0] / np.pi
+                cls._j1 = j1
+            except ValueError:
+                raise ImportError('AiryDisk2D model requires scipy > 0.11.')
 
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2) / (radius / cls._rz)
         # Since r can be zero, we have to take care to treat that case
@@ -1822,22 +1798,16 @@ class Sersic2D(Fittable2DModel):
     theta = Parameter(default=0)
     _gammaincinv = None
 
-    def __init__(self, amplitude=amplitude.default, r_eff=r_eff.default,
-                 n=n.default, x_0=x_0.default, y_0=y_0.default, ellip=ellip.default,
-                 theta=theta.default, **kwargs):
-        try:
-            from scipy.special import gammaincinv
-            self.__class__._gammaincinv = gammaincinv
-        except ValueError:
-            raise ImportError("Sersic2D model requires scipy > 0.11.")
-
-        super(Sersic2D, self).__init__(
-            amplitude=amplitude, r_eff=r_eff, n=n, x_0=x_0, y_0=y_0,
-            ellip=ellip, theta=theta, **kwargs)
-
     @classmethod
     def evaluate(cls, x, y, amplitude, r_eff, n, x_0, y_0, ellip, theta):
         """Two dimensional Sersic profile function."""
+
+        if cls._gammaincinv is None:
+            try:
+                from scipy.special import gammaincinv
+                cls._gammaincinv = gammaincinv
+            except ValueError:
+                raise ImportError('Sersic2D model requires scipy > 0.11.')
 
         bn = cls._gammaincinv(2. * n, 0.5)
         a, b = r_eff, (1 - ellip) * r_eff
