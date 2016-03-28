@@ -191,7 +191,7 @@ def get_moon(time):
     Notes
     -----
     The algorithm for determining the moon/earth distance is based on finding 
-    the heliocentric position of the earth and earth-moon barycentre using the
+    the heliocentric position of the earth and earth-moon barycenter using the
     simplified version of VSOP2000 and the algorithm due to J. L. Simon et al.,
     respectively, which are both part of ERFA.
     """
@@ -205,10 +205,10 @@ def get_moon(time):
 
     emb_p = emb_pv[..., 0, :]
     emb_v = emb_pv[..., 1, :]
-    moon_p = float((const.M_moon+const.M_earth)/const.M_moon)*emb_p - \
-             float(const.M_earth/const.M_moon*earth_p)
-    moon_v = float((const.M_moon+const.M_earth)/const.M_moon)*emb_v - \
-             float(const.M_earth/const.M_moon*earth_v)
+    moon_p = ((const.M_moon+const.M_earth)/const.M_moon)*emb_p - \
+             (const.M_earth/const.M_moon*earth_p)
+    moon_v = ((const.M_moon+const.M_earth)/const.M_moon)*emb_v - \
+             (const.M_earth/const.M_moon*earth_v)
     dmoon = np.sqrt(np.sum((moon_p-earth_p)**2, axis=-1))
     invlorentz = (1-np.sum((moon_v-earth_v)**2, axis=-1))**-0.5
     properdir = erfa.ab((earth_p-moon_p)/dmoon.reshape(-1, 1),
