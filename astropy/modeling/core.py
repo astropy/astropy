@@ -24,6 +24,7 @@ import operator
 import sys
 import types
 import warnings
+import numbers
 
 from collections import defaultdict, OrderedDict
 from itertools import chain, islice
@@ -1872,7 +1873,7 @@ class _CompoundModelMeta(_ModelMeta):
     def __getitem__(cls, index):
         index = cls._normalize_index(index)
 
-        if isinstance(index, int):
+        if isinstance(index, numbers.Integral):
             return cls._get_submodels()[index]
         else:
             return cls._get_slice(index.start, index.stop)
@@ -2373,7 +2374,7 @@ class _CompoundModelMeta(_ModelMeta):
                 raise ValueError("Empty slice of a compound model.")
 
             return slice(start, stop)
-        elif isinstance(index, int):
+        elif isinstance(index, numbers.Integral):
             if index >= len(cls.submodel_names):
                 raise IndexError(
                         "Model index {0} out of range.".format(index))
