@@ -10,7 +10,7 @@ from ..builtin_frames import GCRS
 from ..earth import EarthLocation
 from ..sky_coordinate import SkyCoord
 from ..solar_system import get_planet, get_moon
-from ...tests.helper import pytest, assert_quantity_allclose
+from ...tests.helper import pytest, assert_quantity_allclose, remote_data
 
 try:
     import jplephem  # pylint: disable=W0611
@@ -23,6 +23,8 @@ separation_tolerance_planets = 1*u.arcmin
 separation_tolerance_moon = 1*u.degree
 distance_tolerance = 0.02
 
+
+@remote_data
 @pytest.mark.skipif(str('not HAS_JPLEPHEM'))
 def test_positions_distances_kpno_1980():
     """
@@ -30,13 +32,15 @@ def test_positions_distances_kpno_1980():
     2016-03-28, with refraction turned on.
     """
     t = Time('1980-03-25 00:00')
-    location = EarthLocation.of_site('Kitt Peak')
-    frame = GCRS(obstime=t, obsgeoloc=u.Quantity(location.geocentric,
+    kitt_peak = EarthLocation.from_geodetic(lon=-111.6*u.deg,
+                                            lat=31.963333333333342*u.deg,
+                                            height=2120*u.m)
+    frame = GCRS(obstime=t, obsgeoloc=u.Quantity(kitt_peak.geocentric,
                                                  copy=False))
 
-    moon_astropy_1980 = get_moon(t, location)
-    mercury_astropy_1980 = get_planet(t, 1, location)
-    jupiter_astropy_1980 = get_planet(t, 5, location)
+    moon_astropy_1980 = get_moon(t, kitt_peak)
+    mercury_astropy_1980 = get_planet(t, 1, kitt_peak)
+    jupiter_astropy_1980 = get_planet(t, 5, kitt_peak)
 
     # Results returned by JPL Horizons web interface
     mercury_horizons_1980 = SkyCoord(ra='22h42m51.03s', dec='-08d23m16.3s',
@@ -66,6 +70,8 @@ def test_positions_distances_kpno_1980():
     assert_quantity_allclose(distances_astropy, distances_horizons,
                              rtol=distance_tolerance)
 
+
+@remote_data
 @pytest.mark.skipif(str('not HAS_JPLEPHEM'))
 def test_positions_distances_ctio_2016():
     """
@@ -73,13 +79,16 @@ def test_positions_distances_ctio_2016():
     2016-03-28, with refraction turned on.
     """
     t = Time('2016-09-25 00:00')
-    location = EarthLocation.of_site('CTIO')
-    frame = GCRS(obstime=t, obsgeoloc=u.Quantity(location.geocentric,
+    ctio = EarthLocation.from_geodetic(lon=-70.815*u.deg,
+                                       lat=-30.165277777777778*u.deg,
+                                       height=2215*u.m)
+
+    frame = GCRS(obstime=t, obsgeoloc=u.Quantity(ctio.geocentric,
                                                  copy=False))
 
-    moon_astropy_2016 = get_moon(t, location)
-    mercury_astropy_2016 = get_planet(t, 1, location)
-    jupiter_astropy_2016 = get_planet(t, 5, location)
+    moon_astropy_2016 = get_moon(t, ctio)
+    mercury_astropy_2016 = get_planet(t, 1, ctio)
+    jupiter_astropy_2016 = get_planet(t, 5, ctio)
 
     # Results returned by JPL Horizons web interface
     mercury_horizons_2016 = SkyCoord(ra='11h06m01.23s', dec='+06d04m49.4s',
