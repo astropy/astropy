@@ -16,6 +16,9 @@ New Features
 
 - ``astropy.coordinates``
 
+  - Solar system and lunar ephemerides accessible via ``get_planet``
+    and ``get_moon`` functions. [#3219]
+
 - ``astropy.cosmology``
 
   - ``angular_diameter_distance_z1z2`` now supports the computation of
