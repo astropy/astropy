@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This module contains convenience functions for solar system ephemerides.
+This module contains convenience functions for retrieving solar system
+ephemerides from jplephem.
 """
 
 from __future__ import (absolute_import, division, print_function,
@@ -106,7 +107,6 @@ def _get_absolute_planet_position(time, planet_index):
     earth_to_planet_vector = u.Quantity(cartesian_position_planet -
                                         cartesian_position_earth,
                                         unit=u.km)
-    #earth_to_planet_vector = u.Quantity(kernel[0, planet_index].compute(time.jd) -
 
     return earth_to_planet_vector, earth_distance
 
@@ -130,10 +130,6 @@ def _get_apparent_planet_position(time, planet_index):
     -------
     cartesian_position : `~astropy.coordinates.CartesianRepresentation`
         Position of the planet defined as a vector from the Earth.
-
-    Notes
-    -----
-
     """
     # Get distance of planet at `time`
     earth_to_planet_vector, earth_distance = _get_absolute_planet_position(time, planet_index)
@@ -153,8 +149,8 @@ def _get_apparent_planet_position(time, planet_index):
 
 def get_planet(time, planet_index, location=None):
     """
-    Create a `~astropy.coordinates.SkyCoord` for planet ``planet_index``, where
-    Mercury is 1, Venus is 2, etc.
+    Get a `~astropy.coordinates.SkyCoord` for a planet as observed from a
+    location on Earth.
 
     Parameters
     ----------
@@ -162,10 +158,12 @@ def get_planet(time, planet_index, location=None):
         Time of observation
 
     planet_index : int
-        Index of the planet (1-9 for Mercury through Pluto), excluding 3 (Earth)
+        Index of the planet (1-9 for Mercury through Pluto), excluding the
+        special value 3, which corresponds to the Earth's Moon.
 
     location : `~astropy.coordinates.EarthLocation`
-        Location of observer on the Earth.
+        Location of observer on the Earth. If none is supplied, set to
+        Greenwich.
 
     Returns
     -------
@@ -175,9 +173,6 @@ def get_planet(time, planet_index, location=None):
     if location is None:
         location = EarthLocation.of_site('greenwich')
 
-    #if int(planet_index) == 3:
-    #    raise ValueError("Earth not supported by get_planet.")
-
     cartrep = _get_apparent_planet_position(time, planet_index)
 
     return SkyCoord(GCRS(cartrep, obstime=time,
@@ -186,7 +181,8 @@ def get_planet(time, planet_index, location=None):
 
 def get_moon(time, location=None):
     """
-    Create a `~astropy.coordinates.SkyCoord` for moon.
+    Get a `~astropy.coordinates.SkyCoord` for the Earth's moon as observed
+    from a location on Earth.
 
     Parameters
     ----------
@@ -194,7 +190,8 @@ def get_moon(time, location=None):
         Time of observation
 
     location : `~astropy.coordinates.EarthLocation`
-        Location of observer on the Earth.
+        Location of observer on the Earth. If none is supplied, set to
+        Greenwich.
 
     planet_index : int
         Index of the planet (1-9 for Mercury through Pluto)
