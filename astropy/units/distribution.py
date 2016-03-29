@@ -23,6 +23,11 @@ class Distribution(Quantity):
 
     __array_priority__ = Quantity.__array_priority__ + 1
 
+    # this is what the summary statistics get downgraded to. Someone subclassing
+    # Distribution might want to use this to get to something other than
+    # Quantity.
+    _stat_view = Quantity
+
     def __new__(cls, distr, unit=None, *args, **kwargs):
         self = super(Distribution, cls).__new__(cls, distr, unit, *args, **kwargs)
 
@@ -51,38 +56,39 @@ class Distribution(Quantity):
         """
         The mean of this distribution.
         """
-        return self.mean(axis=0)
+        return self.mean(axis=0).view(self._stat_view)
 
     @property
     def pdf_std(self):
         """
         The standard deviation of this distribution.
         """
-        return self.std(axis=0)
+        return self.std(axis=0).view(self._stat_view)
 
     @property
     def pdf_var(self):
         """
         The variance of this distribution.
         """
-        return self.var(axis=0)
+        return self.var(axis=0).view(self._stat_view)
 
     @property
     def pdf_median(self):
         """
         The median of this distribution.
         """
-        return np.median(self, axis=0)
+        return np.median(self, axis=0).view(self._stat_view)
 
     @property
     def pdf_mad(self):
         """
         The median absolute deviation of this distribution.
         """
-        return np.abs(self - self.pdef_median)
+        return np.median(np.abs(self - self.pdf_median), axis=0).view(self._stat_view)
 
-    # TODO: decide how to best compute this exactly - it's 1/(phi^-1(0.75)), where phi is the inverse CDF of the normal
-    _smad_scale_factor = 1.4826
+    # we set this by hand because the symbolic expression (below) requires scipy
+    # _smad_scale_factor = 1 / scipy.stats.norm.ppf(0.75)
+    _smad_scale_factor = 1.48260221850560203193936104071326553821563720703125
 
     @property
     def pdf_smad(self):
@@ -92,18 +98,23 @@ class Distribution(Quantity):
         """
         return self.pdf_mad * self._smad_scale_factor
 
-    def percentiles(self, fracs):
+    def percentiles(self, perc, **kwargs):
         """
         Compute percentiles of this Distribution.
 
         Parameters
         ----------
-        fracs : the desired  precentiles of the distribution as fractions
-        (i.e., on [0,1]).
+        perc : float or array of floats
+            The desired  precentiles of the distribution (i.e., on [0,100]).
+        kwargs
+            Additional keywords are passed into `numpy.percentile`.
 
         Returns
         -------
         percs : Quantitiy of shape ``distr_shape``
             The ``fracs`` percentiles of this distribution.
         """
-        raise NotImplementedError
+        perc = np.percentile(self, perc, axis=0)
+        # numpy.percentile strips units for unclear reasons, so we have to make
+        # a new object with units
+        return self._stat_view(perc, unit=self.unit, copy=False)
