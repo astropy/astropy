@@ -19,12 +19,12 @@ class Distribution(Quantity):
     """
     A unitful value with associated uncertainty distribution.
 
-    Attributes
-    ----------
-    stat_view : class object, must be `numpy.ndarray` subclass
-        The type of array to convert summary staistics to.  This is a class
-        attribute, and can be overriden by subclasses to force conversion to
-        something other than a `~astropy.units.Quantity` (the default).
+    Notes
+    -----
+    This class has an attribute ``stat_view`` which can be set to a an
+    `numpy.ndarray` subclass to determine what the summary statistics are
+    converted to.  By default this is `~astropy.units.Quantity`, but it is
+    available so that subclasses can change it.
     """
 
     __array_priority__ = Quantity.__array_priority__ + 1
