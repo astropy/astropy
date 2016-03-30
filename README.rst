@@ -2,6 +2,9 @@
 Astropy
 =======
 
+.. image:: https://img.shields.io/gitter/room/astropy/astropy.svg
+    :target: https://gitter.im/astropy/astropy
+
 .. image:: https://img.shields.io/pypi/v/astropy.svg
     :target: https://pypi.python.org/pypi/astropy
 
@@ -38,7 +41,7 @@ Project Status
 .. image:: https://ci.appveyor.com/api/projects/status/ym7lxajcs5qwm31e/branch/master?svg=true
     :target: https://ci.appveyor.com/project/Astropy/astropy/branch/master
 
-For an overview of the testing and build status of all packages associated 
+For an overview of the testing and build status of all packages associated
 with the Astropy Project, see http://dashboard.astropy.org.
 
 License
