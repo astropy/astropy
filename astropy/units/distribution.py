@@ -7,11 +7,10 @@ Distribution class and associated machinery.
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-from ..extern import six
 
 import numpy as np
 
-from . import Quantity, UnitsError
+from . import Quantity
 
 __all__ = ['Distribution']
 
@@ -19,6 +18,13 @@ __all__ = ['Distribution']
 class Distribution(Quantity):
     """
     A unitful value with associated uncertainty distribution.
+
+    Attributes
+    ----------
+    stat_view : class object, must be `numpy.ndarray` subclass
+        The type of array to convert summary staistics to.  This is a class
+        attribute, and can be overriden by subclasses to force conversion to
+        something other than a `~astropy.units.Quantity` (the default).
     """
 
     __array_priority__ = Quantity.__array_priority__ + 1
@@ -26,7 +32,7 @@ class Distribution(Quantity):
     # this is what the summary statistics get downgraded to. Someone subclassing
     # Distribution might want to use this to get to something other than
     # Quantity.
-    _stat_view = Quantity
+    stat_view = Quantity
 
     def __new__(cls, distr, unit=None, *args, **kwargs):
         self = super(Distribution, cls).__new__(cls, distr, unit, *args, **kwargs)
@@ -56,35 +62,35 @@ class Distribution(Quantity):
         """
         The mean of this distribution.
         """
-        return self.mean(axis=0).view(self._stat_view)
+        return self.mean(axis=0).view(self.stat_view)
 
     @property
     def pdf_std(self):
         """
         The standard deviation of this distribution.
         """
-        return self.std(axis=0).view(self._stat_view)
+        return self.std(axis=0).view(self.stat_view)
 
     @property
     def pdf_var(self):
         """
         The variance of this distribution.
         """
-        return self.var(axis=0).view(self._stat_view)
+        return self.var(axis=0).view(self.stat_view)
 
     @property
     def pdf_median(self):
         """
         The median of this distribution.
         """
-        return np.median(self, axis=0).view(self._stat_view)
+        return np.median(self, axis=0).view(self.stat_view)
 
     @property
     def pdf_mad(self):
         """
         The median absolute deviation of this distribution.
         """
-        return np.median(np.abs(self - self.pdf_median), axis=0).view(self._stat_view)
+        return np.median(np.abs(self - self.pdf_median), axis=0).view(self.stat_view)
 
     # we set this by hand because the symbolic expression (below) requires scipy
     # _smad_scale_factor = 1 / scipy.stats.norm.ppf(0.75)
@@ -117,4 +123,4 @@ class Distribution(Quantity):
         perc = np.percentile(self, perc, axis=0)
         # numpy.percentile strips units for unclear reasons, so we have to make
         # a new object with units
-        return self._stat_view(perc, unit=self.unit, copy=False)
+        return self.stat_view(perc, unit=self.unit, copy=False)
