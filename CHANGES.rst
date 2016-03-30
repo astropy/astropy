@@ -18,12 +18,6 @@ New Features
 
 - ``astropy.cosmology``
 
-  - ``comoving_distance_z1z2`` new method to compute the comoving
-    distance between two redshifts.
-
-  - ``comoving_transverse_distance_z1z2`` new method to conpute the
-    comoving transverse distance between two redshifts.
-
   - ``angular_diameter_distance_z1z2`` now supports the computation of
     the angular diameter distance between a scalar and an array like
     argument. [#4593] The method now supports models with negative

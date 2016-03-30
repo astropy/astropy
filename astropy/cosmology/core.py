@@ -1191,9 +1191,9 @@ class FLRW(Cosmology):
           Comoving distance in Mpc to each input redshift.
         """
 
-        return self.comoving_distance_z1z2(0, z)
+        return self._comoving_distance_z1z2(0, z)
 
-    def comoving_distance_z1z2(self, z1, z2):
+    def _comoving_distance_z1z2(self, z1, z2):
         """ Comoving line-of-sight distance in Mpc between objects at
         redshifts z1 and z2.
 
@@ -1241,9 +1241,9 @@ class FLRW(Cosmology):
         texts.
         """
 
-        return self.comoving_transverse_distance_z1z2(0, z)
+        return self._comoving_transverse_distance_z1z2(0, z)
 
-    def comoving_transverse_distance_z1z2(self, z1, z2):
+    def _comoving_transverse_distance_z1z2(self, z1, z2):
         """Comoving transverse distance in Mpc between two redshifts.
 
         This value is the transverse comoving distance at redshift
@@ -1270,7 +1270,7 @@ class FLRW(Cosmology):
         """
 
         Ok0 = self._Ok0
-        dc = self.comoving_distance_z1z2(z1, z2)
+        dc = self._comoving_distance_z1z2(z1, z2)
         if Ok0 == 0:
             return dc
         sqrtOk0 = sqrt(abs(Ok0))
@@ -1356,7 +1356,7 @@ class FLRW(Cosmology):
 
         z1 = np.asanyarray(z1)
         z2 = np.asanyarray(z2)
-        return self.comoving_transverse_distance_z1z2(z1, z2) / (1. + z2)
+        return self._comoving_transverse_distance_z1z2(z1, z2) / (1. + z2)
 
     def absorption_distance(self, z):
         """ Absorption distance at redshift ``z``.

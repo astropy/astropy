@@ -104,9 +104,9 @@ def test_units():
 
     cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0)
     assert cosmo.comoving_distance(1.0).unit == u.Mpc
-    assert cosmo.comoving_distance_z1z2(1.0, 2.0).unit == u.Mpc
+    assert cosmo._comoving_distance_z1z2(1.0, 2.0).unit == u.Mpc
     assert cosmo.comoving_transverse_distance(1.0).unit == u.Mpc
-    assert cosmo.comoving_transverse_distance_z1z2(1.0, 2.0).unit == u.Mpc
+    assert cosmo._comoving_transverse_distance_z1z2(1.0, 2.0).unit == u.Mpc
     assert cosmo.angular_diameter_distance(1.0).unit == u.Mpc
     assert cosmo.angular_diameter_distance_z1z2(1.0, 2.0).unit == u.Mpc
     assert cosmo.luminosity_distance(1.0).unit == u.Mpc
@@ -1093,10 +1093,10 @@ def test_critical_density():
 def test_comoving_distance_z1z2():
     tcos = core.LambdaCDM(100, 0.3, 0.8, Tcmb0=0.0)
     with pytest.raises(ValueError): # test diff size z1, z2 fail
-        tcos.comoving_distance_z1z2((1, 2), (3, 4, 5))
+        tcos._comoving_distance_z1z2((1, 2), (3, 4, 5))
     # Comoving distances are invertible
-    assert allclose(tcos.comoving_distance_z1z2(1, 2),
-                    -tcos.comoving_distance_z1z2(2, 1))
+    assert allclose(tcos._comoving_distance_z1z2(1, 2),
+                    -tcos._comoving_distance_z1z2(2, 1))
 
     z1 = 0, 0, 2, 0.5, 1
     z2 = 2, 1, 1, 2.5, 1.1
@@ -1106,7 +1106,7 @@ def test_comoving_distance_z1z2():
                2893.11776663,
                174.1524683) * u.Mpc
 
-    assert allclose(tcos.comoving_distance_z1z2(z1, z2),
+    assert allclose(tcos._comoving_distance_z1z2(z1, z2),
                     results)
 
 
@@ -1114,11 +1114,11 @@ def test_comoving_distance_z1z2():
 def test_comoving_transverse_distance_z1z2():
     tcos = core.FlatLambdaCDM(100, 0.3, Tcmb0=0.0)
     with pytest.raises(ValueError): # test diff size z1, z2 fail
-        tcos.comoving_transverse_distance_z1z2((1, 2), (3, 4, 5))
+        tcos._comoving_transverse_distance_z1z2((1, 2), (3, 4, 5))
     # Tests that should actually work, target values computed with
     # http://www.astro.multivax.de:8000/phillip/angsiz_prog/README.HTML
     # Kayser, Helbig, and Schramm (Astron.Astrophys. 318 (1997) 680-686)
-    assert allclose(tcos.comoving_transverse_distance_z1z2(1, 2),
+    assert allclose(tcos._comoving_transverse_distance_z1z2(1, 2),
                     1313.2232194828466 * u.Mpc)
 
     # In a flat universe comoving distance and comoving transverse
@@ -1126,8 +1126,8 @@ def test_comoving_transverse_distance_z1z2():
     z1 = 0, 0, 2, 0.5, 1
     z2 = 2, 1, 1, 2.5, 1.1
 
-    assert allclose(tcos.comoving_distance_z1z2(z1, z2),
-                    tcos.comoving_transverse_distance_z1z2(z1, z2))
+    assert allclose(tcos._comoving_distance_z1z2(z1, z2),
+                    tcos._comoving_transverse_distance_z1z2(z1, z2))
 
     # Test non-flat cases to avoid simply testing
     # comoving_distance_z1z2. Test array, array case.
@@ -1138,7 +1138,7 @@ def test_comoving_transverse_distance_z1z2():
                2595.567367601969,
                151.36592003406884) * u.Mpc
 
-    assert allclose(tcos.comoving_transverse_distance_z1z2(z1, z2),
+    assert allclose(tcos._comoving_transverse_distance_z1z2(z1, z2),
                     results)
 
     # Test positive curvature with scalar, array combination.
@@ -1152,7 +1152,7 @@ def test_comoving_transverse_distance_z1z2():
                1618.6104987686672,
                2287.5626543279927) * u.Mpc
 
-    assert allclose(tcos.comoving_transverse_distance_z1z2(z1, z2),
+    assert allclose(tcos._comoving_transverse_distance_z1z2(z1, z2),
                     results)
 
 
@@ -1524,8 +1524,7 @@ def test_z_at_value_roundtrip():
     # *_distance_z1z2 methods take multiple arguments, so require
     # special handling
     # clone isn't a redshift-dependent method
-    skip = ('Ok', 'comoving_distance_z1z2',
-            'comoving_transverse_distance_z1z2',
+    skip = ('Ok',
             'angular_diameter_distance_z1z2',
             'clone',
             'de_density_scale', 'w')
@@ -1547,9 +1546,9 @@ def test_z_at_value_roundtrip():
 
     # Test distance functions between two redshifts
     z2 = 2.0
-    func_z1z2 = [lambda z1: core.Planck13.comoving_distance_z1z2(z1, z2),
+    func_z1z2 = [lambda z1: core.Planck13._comoving_distance_z1z2(z1, z2),
                  lambda z1: \
-                 core.Planck13.comoving_transverse_distance_z1z2(z1, z2),
+                 core.Planck13._comoving_transverse_distance_z1z2(z1, z2),
                  lambda z1: \
                  core.Planck13.angular_diameter_distance_z1z2(z1, z2)]
     for func in func_z1z2:
