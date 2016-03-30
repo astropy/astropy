@@ -153,6 +153,10 @@ class AstropyTest(Command, object):
         if self.docs_path is None:
             if os.path.exists('docs'):
                 self.docs_path = os.path.abspath('docs')
+            # Some affiliated packages use this.
+            # See astropy/package-template#157
+            elif os.path.exists('doc'):
+                self.docs_path = os.path.abspath('doc')
 
         # Build a testing install of the package
         self._build_temp_install()
@@ -209,10 +213,14 @@ class AstropyTest(Command, object):
         self.testing_path = os.path.join(self.tmp_dir, os.path.basename(new_path))
         shutil.copytree(new_path, self.testing_path)
 
-        new_docs_path = os.path.join(self.tmp_dir,
-                                     os.path.basename(self.docs_path))
-        shutil.copytree(self.docs_path, new_docs_path)
-        self.docs_path = new_docs_path
+        # Ideally, docs_path is set properly in run(), but if it is still
+        # not set here, do not pretend it is, otherwise bad things happen.
+        # See astropy/package-template#157
+        if self.docs_path is not None:
+            new_docs_path = os.path.join(self.tmp_dir,
+                                         os.path.basename(self.docs_path))
+            shutil.copytree(self.docs_path, new_docs_path)
+            self.docs_path = new_docs_path
 
         shutil.copy('setup.cfg', self.tmp_dir)
 
