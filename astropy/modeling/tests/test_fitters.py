@@ -252,6 +252,21 @@ class TestNonLinearFitters(object):
         emodel = efitter(g1e, self.xdata, self.ydata, estimate_jacobian=True)
         assert_allclose(model.parameters, emodel.parameters, rtol=10 ** (-3))
 
+    def test_estimated_vs_analytic_deriv_with_weights(self):
+        """
+        Runs `LevMarLSQFitter` with estimated and analytic derivatives of a
+        `Gaussian1D`.
+        """
+
+        weights = 1.0 / (self.ydata / 10.)
+
+        fitter = LevMarLSQFitter()
+        model = fitter(self.gauss, self.xdata, self.ydata, weights=weights)
+        g1e = models.Gaussian1D(100, 5.0, stddev=1)
+        efitter = LevMarLSQFitter()
+        emodel = efitter(g1e, self.xdata, self.ydata, weights=weights, estimate_jacobian=True)
+        assert_allclose(model.parameters, emodel.parameters, rtol=10 ** (-3))
+
     def test_with_optimize(self):
         """
         Tests results from `LevMarLSQFitter` against `scipy.optimize.leastsq`.
