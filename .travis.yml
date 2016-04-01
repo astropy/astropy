@@ -25,7 +25,7 @@ env:
         - MAIN_CMD='python setup.py'
         - CONDA_DEPENDENCIES='Cython jinja2'
         - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautiful-soup ipython mpmath'
-        - PIP_DEPENDENCIES='jplephem'
+        - PIP_DEPENDENCIES=''
 
     matrix:
         - PYTHON_VERSION=2.7 SETUP_CMD='egg_info'
@@ -44,13 +44,14 @@ matrix:
         - os: osx
           env: PYTHON_VERSION=2.7 SETUP_CMD='test'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+               PIP_DEPENDENCIES='jplephem'
 
         # Check for sphinx doc build warnings - we do this first because it
         # runs for a long time. WCSAxes is a dependency for the docs.
         - os: linux
           env: PYTHON_VERSION=2.7 SETUP_CMD='build_sphinx -w'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES='wcsaxes --no-deps'
+               PIP_DEPENDENCIES='wcsaxes --no-deps jplephem'
 
         # Try all python versions with the latest numpy, but without the
         # optional dependencies
@@ -69,12 +70,13 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=2.7 SETUP_CMD='test --coverage'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES='cpp-coveralls objgraph'
+               PIP_DEPENDENCIES='cpp-coveralls objgraph jplephem'
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
         - os: linux
           env: PYTHON_VERSION=3.4 SETUP_CMD='test'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+               PIP_DEPENDENCIES='jplephem'
                LC_CTYPE=C.ascii LC_ALL=C
 
         # Try older numpy versions without optional dependencies
