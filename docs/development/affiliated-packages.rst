@@ -409,6 +409,30 @@ files manually`_ section since this explains what many of the files do.
 
    All other settings can stay on their default value.
 
+   If you need to mock any Python packages or C libraries that can not be
+   installed and built by ReadTheDocs, you should include the following mocking
+   patch before the ``Project information`` section of the ``docs/conf.py`` file::
+
+      class Mock(object):
+          def __init__(self, *args, **kwargs):
+              pass
+
+          def __call__(self, *args, **kwargs):
+              return Mock()
+
+          @classmethod
+          def __getattr__(cls, name):
+              if name in ('__file__', '__path__'):
+                  return '/dev/null'
+              elif name[0] == name[0].upper():
+                  return type(name, (), {})
+              else:
+                  return Mock()
+
+      MOCK_MODULES = ['<name of package to mock>', '<name of package to mock>']
+      for mod_name in MOCK_MODULES:
+          sys.modules[mod_name] = Mock()
+
 #. You're now ready to start doing actual work on your affiliated package.  You
    will probably want to read over the developer guidelines of the Astropy
    documentation, and if you are hosting your code in GitHub, you might also
