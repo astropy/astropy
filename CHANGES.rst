@@ -255,6 +255,9 @@ Bug fixes
   - Refactored ``AiryDisk2D``, ``Sersic1D``, and ``Sersic2D`` models
     to be able to combine them as classes as well as instances. [#4720]
 
+  - Modified the "LevMarLSQFitter" class to use the weights in the
+    calculation of the Jacobian. [#4751]
+
 - ``astropy.nddata``
 
   - ``NDDataBase`` does not implement a setter or getter for ``uncertainty``,
