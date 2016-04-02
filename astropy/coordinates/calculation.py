@@ -11,9 +11,9 @@ import re
 import textwrap
 
 # Third-party
-from astropy import time as atime
-from astropy.utils.console import color_print, _color_text
-from six.moves.urllib.request import urlopen
+from .. import time as atime
+from ..utils.console import color_print, _color_text
+from ..extern.six.moves.urllib.request import urlopen
 
 __all__ = ['horoscope']
 
@@ -78,8 +78,6 @@ def horoscope(birthday):
 
     with urlopen(url.format(sign=zodiac_sign.capitalize())) as f:
         doc = parse(f)
-
-    print(url.format(sign=zodiac_sign.capitalize()))
 
     try:
         item = doc.getElementsByTagName('item')[0]
