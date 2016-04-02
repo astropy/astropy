@@ -14,6 +14,7 @@ import textwrap
 from .. import time as atime
 from ..utils.console import color_print, _color_text
 from ..extern.six.moves.urllib.request import urlopen
+from . import get_sun
 
 __all__ = ['horoscope']
 
@@ -47,7 +48,10 @@ def get_sign(dt):
 
     return zodiac_sign
 
-def horoscope(birthday):
+_VALID_SIGNS = ["capricorn", "aquarius", "pisces", "aries", "taurus", "gemini",
+                "cancer", "leo", "virgo", "libra", "scorpio", "sagittarius"]
+
+def horoscope(birthday, corrected=True):
     """
     Enter your birthday as an `astropy.time.Time` object and
     receive a mystical horoscope about things to come.
@@ -56,6 +60,10 @@ def horoscope(birthday):
     ---------
     birthday : `astropy.time.Time`
         Your birthday as a `datetime.datetime` or `astropy.time.Time` object.
+    corrected : bool
+        Whether to account for the precession of the Earth instead of using the
+        ancient Greek dates for the signs.  After all, you do want your *real*
+        horoscope, not a cheap inaccurate approximation, right?
 
     Returns
     -------
@@ -73,11 +81,22 @@ def horoscope(birthday):
 
     birthday = atime.Time(birthday)
     today = datetime.now()
-    zodiac_sign = get_sign(birthday.to_datetime())
+    if corrected:
+        zodiac_sign = get_sun(birthday).get_constellation().lower()
+        if zodiac_sign not in _VALID_SIGNS:
+            raise ValueError('On your birthday the sun was in {}, which is not '
+                             'a sign of the zodiac.  You must not exist.  Or '
+                             'maybe you can settle for '
+                             'corrected=False.'.format(zodiac_sign.title()))
+    else:
+        zodiac_sign = get_sign(birthday.to_datetime())
     url = "http://www.findyourfate.com/rss/dailyhoroscope-feed.asp?sign={sign}"
 
-    with urlopen(url.format(sign=zodiac_sign.capitalize())) as f:
+    f = urlopen(url.format(sign=zodiac_sign.capitalize()))
+    try:  # urlopen in py2 is not a decorator
         doc = parse(f)
+    finally:
+        f.close()
 
     try:
         item = doc.getElementsByTagName('item')[0]
