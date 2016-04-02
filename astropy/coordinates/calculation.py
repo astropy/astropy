@@ -16,7 +16,7 @@ from ..utils.console import color_print, _color_text
 from ..extern.six.moves.urllib.request import urlopen
 from . import get_sun
 
-__all__ = ['horoscope']
+__all__ = []
 
 def get_sign(dt):
     """
@@ -69,6 +69,9 @@ def horoscope(birthday, corrected=True):
     -------
     Infinite wisdom, condensed into astrologically precise prose.
 
+    Notes
+    -----
+    This function was implemented on April 1.  Take note of that date.
     """
 
     special_words = {
@@ -121,3 +124,9 @@ def horoscope(birthday, corrected=True):
                     continue
                 split_block[i] = _color_text(match.groups()[0], special_words[re_word])
         print(" ".join(split_block))
+
+def inject_horoscope():
+    import astropy
+    astropy._yourfuture = horoscope
+
+inject_horoscope()
