@@ -8,6 +8,9 @@ Astropy
 .. image:: https://img.shields.io/pypi/dm/astropy.svg
     :target: https://pypi.python.org/pypi/astropy
 
+.. image:: https://badges.gitter.im/Join%20Chat.svg
+    :target: https://gitter.im/astropy/astropy 
+
 Astropy (http://astropy.org/) is a package intended to contain much of
 the core functionality and some common tools needed for performing
 astronomy and astrophysics with Python.
