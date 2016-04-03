@@ -399,9 +399,9 @@ files manually`_ section since this explains what many of the files do.
    replace ``packagename`` with the name of your package.
 
 #. If you want the documentation for your project to be hosted by
-   `ReadTheDocs <https://readthedocs.org>`_, then you need to setup an
+   `Read The Docs <https://readthedocs.org>`_, then you need to setup an
    account there. The following entries in "Advanced Settings" for your
-   package on `ReadTheDocs <https://readthedocs.org>`_ should work:
+   package on `Read The Docs <https://readthedocs.org>`_ should work:
 
    - activate ``Install your project inside a virtualenv using setup.py install``
    - Requirements file: ``docs/rtd-pip-requirements``
@@ -410,7 +410,7 @@ files manually`_ section since this explains what many of the files do.
    All other settings can stay on their default value.
 
    If you need to mock any Python packages or C libraries that can not be
-   installed and built by ReadTheDocs, you should include the following mocking
+   installed and built by Read The Docs, you should include the following mocking
    patch before the ``Project information`` section of the ``docs/conf.py`` file::
 
       class Mock(object):
@@ -566,7 +566,7 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
         git checkout master
         git push --tags origin master
 
-   Once you have done this, if you use readthedocs, trigger a ``latest`` build
+   Once you have done this, if you use Read The Docs, trigger a ``latest`` build
    then go to the project settings, and under **Versions** you should see the
    tag you just pushed. Select the tag to activate it, and save.
 
