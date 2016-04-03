@@ -357,6 +357,10 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
         return 0
 
     @property
+    def is_image(self):
+        return False
+
+    @property
     def size(self):
         """
         Returns the size (in bytes) of the HDU's data part.

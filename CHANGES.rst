@@ -414,6 +414,8 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - ``GroupsHDU.is_image`` property is now set to ``False``. [#4742]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
