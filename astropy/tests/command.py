@@ -151,12 +151,16 @@ class AstropyTest(Command, object):
 
         # Ensure there is a doc path
         if self.docs_path is None:
-            if os.path.exists('docs'):
-                self.docs_path = os.path.abspath('docs')
+            cfg_docs_dir = self.distribution.get_option_dict('build_sphinx').get('source_dir', None)
+
             # Some affiliated packages use this.
             # See astropy/package-template#157
-            elif os.path.exists('doc'):
-                self.docs_path = os.path.abspath('doc')
+            if cfg_docs_dir is not None and os.path.exists(cfg_docs_dir[1]):
+                self.docs_path = os.path.abspath(cfg_docs_dir[1])
+
+            # fall back on a default path of "docs"
+            elif os.path.exists('docs'):
+                self.docs_path = os.path.abspath('docs')
 
         # Build a testing install of the package
         self._build_temp_install()
