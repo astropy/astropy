@@ -87,7 +87,12 @@ Starting a new package
     #       are using for your package.
     cp ../template/setup.cfg .
 
-    # edit the VERSION variable, the rest can be kept as-is
+    # edit the VERSION variable and if applicable, the package_data values,
+    # the rest can be kept as-is
+    # Note: If your package data directory has a sub-directory, you HAVE TO
+    #       break 'data/*' to 'data/*.*' and 'data/subdir/*' (two different
+    #       appends). If you do not have any package data, you can just comment
+    #       out the line that appends 'data/*'.
     cp ../template/setup.py .
 
    .. important:: Before proceeding, make sure you have edited ``setup.cfg`` and
