@@ -29,6 +29,8 @@ New Features
   - Check that columns in ``formats`` specifier exist in the output table
     when writing. [#4508]
 
+  - Allow trailing whitespace in the IPAC header lines. [#4758]
+
 - ``astropy.io.fits``
 
   - File name could be passed as ``Path`` object. [#4606]
