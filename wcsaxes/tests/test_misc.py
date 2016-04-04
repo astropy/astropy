@@ -60,7 +60,7 @@ def test_no_numpy_warnings():
     ax.imshow(np.zeros((100,200)))
     ax.coords.grid(color='white')
 
-    with catch_warnings() as ws:
+    with catch_warnings(RuntimeWarning) as ws:
         plt.savefig('test.png')
 
     # For debugging
