@@ -159,7 +159,7 @@ class AstropyTest(Command, object):
                 self.docs_path = os.path.abspath(cfg_docs_dir[1])
 
             # fall back on a default path of "docs"
-            elif os.path.exists('docs'):
+            elif os.path.exists('docs'):  # pragma: no cover
                 self.docs_path = os.path.abspath('docs')
 
         # Build a testing install of the package
