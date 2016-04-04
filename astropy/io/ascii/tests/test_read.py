@@ -1107,3 +1107,22 @@ def test_path_object():
     assert len(data) == 2
     assert sorted(list(data.columns)) == ['test 1a', 'test2', 'test3', 'test4']
     assert data['test2'][1] == 'hat2'
+
+
+def test_column_conversion_error():
+    """
+    Test that context information (upstream exception message) from column
+    conversion error is provided.
+    """
+    ipac = """\
+| col0   |
+| double |
+ 1  2
+"""
+    with pytest.raises(ValueError) as err:
+        ascii.read(ipac, guess=False, format='ipac')
+    assert 'invalid literal for float()' in str(err.value)
+
+    with pytest.raises(ValueError) as err:
+        ascii.read(['a b', '1 2'], guess=False, format='basic', converters={'a': []})
+    assert 'no converters' in str(err.value)
