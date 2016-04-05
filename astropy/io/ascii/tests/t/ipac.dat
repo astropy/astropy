@@ -4,7 +4,7 @@
 \key_continue = 'IPAC keywords '
 \key_continue = 'can continue across lines'
 \ This is an example of a valid comment
-|     ra   |    dec   |   sai   |-----v2---|    sptype        |
+|     ra   |    dec   |   sai   |-----v2---|    sptype        | 
 |    real  |   real   |   int   |    real  |     char         |
 |    unit  |   unit   |   unit  |    unit  |     ergs         |
 |    null  |   null   |   -999  |    null  |     -999         |
