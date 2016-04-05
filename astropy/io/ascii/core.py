@@ -942,14 +942,16 @@ class BaseOutputter(object):
                         raise TypeError('converter type does not match column type')
                     col.data = converter_func(col.str_vals)
                     col.type = converter_type
-                except (TypeError, ValueError) as last_err:
+                except (TypeError, ValueError) as err:
                     col.converters.pop(0)
-                except OverflowError as last_err:
+                    last_err = err
+                except OverflowError as err:
                     # Overflow during conversion (most likely an int that doesn't fit in native C long).
                     # Put string at the top of the converters list for the next while iteration.
                     warnings.warn("OverflowError converting to {0} for column {1}, using string instead."
                                   .format(converter_type.__name__, col.name), AstropyWarning)
                     col.converters.insert(0, convert_numpy(numpy.str))
+                    last_err = err
                 except IndexError:
                     raise ValueError('Column {} failed to convert: {}'.format(col.name, last_err))
 

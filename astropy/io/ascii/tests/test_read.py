@@ -1121,7 +1121,7 @@ def test_column_conversion_error():
 """
     with pytest.raises(ValueError) as err:
         ascii.read(ipac, guess=False, format='ipac')
-    assert 'invalid literal for float()' in str(err.value)
+    assert 'Column col0 failed to convert:' in str(err.value)
 
     with pytest.raises(ValueError) as err:
         ascii.read(['a b', '1 2'], guess=False, format='basic', converters={'a': []})
