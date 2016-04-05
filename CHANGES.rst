@@ -45,6 +45,9 @@ New Features
 
   - Added the fittable=True attribute to the Scale and Shift models with tests. [#4718]
 
+  - Allow passing of tuples for setting constraints on model parameters.
+    [#4574]
+
 - ``astropy.nddata``
 
   - Added ``UnknownUncertainty`` as ``NDUncertainty`` subclass which cannot
