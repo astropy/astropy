@@ -309,6 +309,8 @@ Other Changes and Additions
 
 - Reduce Astropy's import time (``import astropy``) by almost a factor 2. [#4649]
 
+- Cython prerequisite for building changed to v0.19 in install.rst [#4705]
+
 
 1.1.3 (unreleased)
 -------------------
