@@ -300,6 +300,10 @@ Bug fixes
   - Cache option now properly caches both downloaded JSON database and XML VO
     tables. [#4699]
 
+  - VOSDatabase decodes byte-string to UTF-8 instead of ASCII to avoid
+    UnicodeDecodeError for some rare cases. Fixed a Cone Search test that is
+    failing as a side-effect of #4699. [#4757]
+
 - ``astropy.wcs``
 
 Other Changes and Additions

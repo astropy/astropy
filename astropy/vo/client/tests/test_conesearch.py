@@ -100,7 +100,7 @@ class TestConeSearch(object):
             with data.conf.set_temp('remote_timeout', 0.001):
                 tab = conesearch.conesearch(
                     SCS_CENTER, SCS_RADIUS, pedantic=self.pedantic,
-                    verbose=self.verbose, catalog_db=self.url)
+                    verbose=self.verbose, catalog_db=self.url, cache=False)
         except VOSError as e:
             assert 'timed out' in str(e), 'test_timeout failed'
         else:
