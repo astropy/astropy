@@ -3,22 +3,38 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import atexit
 import multiprocessing
 import os
+import pkgutil
 import shlex
+import shutil
+import subprocess
 import sys
 import tempfile
 import warnings
+import zipfile
+import zipimport
 
 from ..config.paths import set_temp_config, set_temp_cache
 from ..extern import six
 from ..utils import wraps, find_current_module
-from ..utils.exceptions import AstropyWarning
+from ..utils.exceptions import AstropyUserWarning
 
 
 class TestRunner(object):
-    def __init__(self, base_path):
+    def __init__(self, base_path, coverage_enabled=False):
+        # base_path should be the root package's directory
+        # testing_path is assumed to be the root directory that the package
+        # itself is in (such as the source checkout)
         self.base_path = os.path.abspath(base_path)
+        self.testing_path = os.path.dirname(self.base_path)
+        self.package_name = os.path.basename(self.base_path)
+
+        # Normally we disable the coverage option by default because it isn't
+        # going to work in most contexts.  It only works reliable when used
+        # from `./setup.py test`, so the test command explicitly enables it.
+        self._coverage_enabled = coverage_enabled
 
     def run_tests(self, package=None, test_path=None, args=None, plugins=None,
                   verbose=False, pastebin=None, remote_data=False, pep8=False,
@@ -97,14 +113,16 @@ class TestRunner(object):
         # Don't import pytest until it's actually needed to run the tests
         from .helper import pytest
 
-        if coverage:
-            warnings.warn(
-                "The coverage option is ignored on run_tests, since it "
-                "can not be made to work in that context.  Use "
-                "'python setup.py test --coverage' instead.",
-                AstropyWarning)
-
         all_args = []
+
+        if coverage and not self._coverage_enabled:
+            warnings.warn(
+                "The coverage option is ignored by {0}.test, since it "
+                "cannot be guaranteed to work properly in that context. "
+                "Use 'python setup.py test --coverage' from a source "
+                "checkout instead.".format(self.package_name),
+                AstropyUserWarning)
+            coverage = False
 
         if package is None:
             package_path = self.base_path
@@ -253,6 +271,30 @@ class TestRunner(object):
             with set_temp_cache(astropy_cache, delete=True):
                 return pytest.main(args=all_args, plugins=plugins)
 
+    @wraps(run_tests)
+    def run_tests_in_subprocess(self, **kwargs):
+        """
+        Launches a new Python interpreter in a subprocess and uses that
+        subprocess to import the package and run ``package.test()``.  This is
+        generally required for py.test to run the tests outside of the
+        package's normal import path, for example from a temp directory.
+
+        Arguments are the same as `TestRunner.run_tests`.
+        """
+
+        # Construct this modules testing command
+        cmd = self._generate_testing_command(**kwargs)
+
+        # Run the tests in a subprocess--this is necessary since
+        # new extension modules may have appeared, and this is the
+        # easiest way to set up a new environment
+        # (Note: Previously this used the -B option to disable generation
+        # of .pyc files to work around an issue on Python 3.0 - 3.2 with
+        # atomicity of .pyc creation; however we no longer support those
+        # Python versions so the workaround has been dropped)
+        return subprocess.call([sys.executable, '-c', cmd],
+                               cwd=self.testing_path, close_fds=False)
+
     @classmethod
     def make_test_runner_in(cls, path):
         """
@@ -265,11 +307,31 @@ class TestRunner(object):
         function (or the equivalent for affiliated packages).
         """
 
-        runner = cls(path)
+        # Check to see if the package was imported from a zip file; if so we
+        # need to extract it to a temporary directory in order for py.test to
+        # find and run the tests
+        importer = pkgutil.get_importer(path)
+        if isinstance(importer, zipimport.zipimporter):
+            pkg_name = os.path.basename(path)
+            prefix = '{0}-test-'.format(pkg_name)
+            test_tempdir = tempfile.mkdtemp(prefix=prefix)
+            # If the tests result in a segfault or something like that,
+            # this will leave junk in the temp dir, but not much we can do
+            # about that
+            atexit.register(lambda p: os.path.exists(p) and shutil.rmtree(p),
+                            test_tempdir)
+            with zipfile.ZipFile(importer.archive) as archive:
+                archive.extractall(test_tempdir)
 
-        @wraps(runner.run_tests, ('__doc__',), exclude_args=('self',))
+            runner = cls(os.path.join(test_tempdir, pkg_name))
+            test_meth = runner.run_tests_in_subprocess
+        else:
+            runner = cls(path)
+            test_meth = runner.run_tests
+
+        @wraps(test_meth, ('__doc__',), exclude_args=('self',))
         def test(*args, **kwargs):
-            return runner.run_tests(*args, **kwargs)
+            return test_meth(*args, **kwargs)
 
         module = find_current_module(2)
         if module is not None:
@@ -285,3 +347,81 @@ class TestRunner(object):
             del test.__wrapped__
 
         return test
+
+    def _generate_testing_command(self, **kwargs):
+        """
+        Build a Python script to run the tests.
+        """
+
+        cmd_pre = ''  # Commands to run before the test function
+        cmd_post = ''  # Commands to run after the test function
+
+        if self._coverage_enabled and kwargs.pop('coverage', False):
+            pre, post = self._generate_coverage_commands(**kwargs)
+            cmd_pre += pre
+            cmd_post += post
+
+        if six.PY3:
+            set_flag = "import builtins; builtins._ASTROPY_TEST_ = True"
+        else:
+            set_flag = "import __builtin__; __builtin__._ASTROPY_TEST_ = True"
+
+        test_kwargs = ','.join('{0}={1!r}'.format(key, value)
+                               for key, value in six.iteritems(kwargs))
+
+        cmd = ('{cmd_pre}{0}; import {1}, sys; result = ('
+               '{1}.test({2})); {cmd_post}sys.exit(result)')
+
+        return cmd.format(set_flag, self.package_name, test_kwargs,
+                          cmd_pre=cmd_pre, cmd_post=cmd_post)
+
+    def _generate_coverage_commands(self, **kwargs):
+        """
+        This method creates the post and pre commands if coverage is to be
+        generated
+        """
+        if kwargs.get('parallel'):
+            raise ValueError(
+                "--coverage can not be used with --parallel")
+
+        try:
+            import coverage  # pylint: disable=W0611
+        except ImportError:
+            raise ImportError(
+                "--coverage requires that the coverage package is "
+                "installed.")
+
+        # Don't use get_pkg_data_filename here, because it
+        # requires importing astropy.config and thus screwing
+        # up coverage results for those packages.
+        coveragerc = os.path.join(
+            self.base_path, 'tests', 'coveragerc')
+
+        # We create a coveragerc that is specific to the version
+        # of Python we're running, so that we can mark branches
+        # as being specifically for Python 2 or Python 3
+        with open(coveragerc, 'r') as fd:
+            coveragerc_content = fd.read()
+        if six.PY3:
+            ignore_python_version = '2'
+        else:
+            ignore_python_version = '3'
+        coveragerc_content = coveragerc_content.replace(
+            "{ignore_python_version}", ignore_python_version).replace(
+                "{packagename}", self.package_name)
+        tmp_coveragerc = os.path.join(self.base_path, 'coveragerc')
+        with open(tmp_coveragerc, 'wb') as tmp:
+            tmp.write(coveragerc_content.encode('utf-8'))
+
+        cmd_pre = (
+            'import coverage; '
+            'cov = coverage.coverage(data_file={0!r}, config_file={1!r}); '
+            'cov.start(); '.format(
+                os.path.abspath(".coverage"), tmp_coveragerc))
+        cmd_post = (
+            'cov.stop(); '
+            'from astropy.tests.helper import _save_coverage; '
+            '_save_coverage(cov, result, {0!r}, {1!r}); '.format(
+                os.path.abspath('.'), self.testing_path))
+
+        return cmd_pre, cmd_post

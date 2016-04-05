@@ -1,12 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from os.path import abspath, dirname, join
+import os
 
 from .table import Table
 
 from ..io import registry as io_registry
 from .. import config as _config
-from .. import extern
+from ..utils.data import get_pkg_data_filename
+from ..extern.six.moves import urllib
 
 
 class Conf(_config.ConfigNamespace):
@@ -30,8 +31,11 @@ class Conf(_config.ConfigNamespace):
 conf = Conf()
 
 
-EXTERN_JS_DIR = abspath(join(dirname(extern.__file__), 'js'))
-EXTERN_CSS_DIR = abspath(join(dirname(extern.__file__), 'css'))
+# Override these globals to provide alternate paths to external JS and CSS
+# resources, other than the ones bundled in the Astropy package
+EXTERN_JS_DIR = None
+EXTERN_CSS_DIR = None
+
 
 IPYNB_JS_SCRIPT = """
 <script>
@@ -108,22 +112,23 @@ class JSViewer(object):
     @property
     def jquery_urls(self):
         if self._use_local_files:
-            return ['file://' + join(EXTERN_JS_DIR, 'jquery-1.11.3.min.js'),
-                    'file://' + join(EXTERN_JS_DIR, 'jquery.dataTables.min.js')]
+            return [_get_resource(filename, 'js') for filename in
+                    ['jquery-1.11.3.min.js', 'jquery.dataTables.min.js']]
         else:
             return [conf.jquery_url, conf.datatables_url]
 
     @property
     def css_urls(self):
         if self._use_local_files:
-            return ['file://' + join(EXTERN_CSS_DIR,
-                                     'jquery.dataTables.css')]
+            return [_get_resource('jquery.dataTables.css', 'css')]
         else:
             return conf.css_urls
 
     def _jstable_file(self):
+        # Returns the dataTables.min.js path without the .js, for use by
+        # requires.js
         if self._use_local_files:
-            return 'file://' + join(EXTERN_JS_DIR, 'jquery.dataTables.min')
+            return _get_resource('jquery.dataTables.min.js', 'js')[:-3]
         else:
             return conf.datatables_url[:-3]
 
@@ -167,3 +172,30 @@ def write_table_jsviewer(table, filename, table_id=None, max_lines=5000,
     table.write(filename, format='html', htmldict=htmldict)
 
 io_registry.register_writer('jsviewer', Table, write_table_jsviewer)
+
+
+def _get_resource(filename, filetype):
+    """
+    Returns a file:/// url to a JavaScript or CSS resource used by the
+    JSViewer.
+
+    By default this uses the astropy data utilities to retrieve the resource
+    from within the astropy.extern package.  However if the
+    ``EXTERN_{filetype}_DIR`` global is defined, it uses that path for the
+    resource instead.
+    """
+
+    global_var_name = 'EXTERN_{0}_DIR'.format(filetype)
+    global_var_value = globals().get(global_var_name)
+
+    if global_var_value:
+        path = os.path.join(global_var_value, filename)
+    else:
+        path = get_pkg_data_filename(os.path.join(filetype, filename),
+                                     package='astropy.extern')
+
+    return _pathname2fileurl(path)
+
+
+def _pathname2fileurl(path):
+    return urllib.parse.urljoin('file:', urllib.request.pathname2url(path))

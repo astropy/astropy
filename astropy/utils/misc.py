@@ -22,6 +22,7 @@ import unicodedata
 
 from collections import defaultdict, OrderedDict
 
+
 from ..extern import six
 from ..extern.six.moves import urllib
 

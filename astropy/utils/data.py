@@ -15,13 +15,16 @@ import contextlib
 import fnmatch
 import hashlib
 import os
+import pkgutil
 import io
 import shutil
 import socket
 import sys
 import time
+import zipfile
+import zipimport
 
-from tempfile import NamedTemporaryFile, gettempdir
+from tempfile import NamedTemporaryFile, gettempdir, mkdtemp
 from warnings import warn
 
 from .. import config as _config
@@ -104,8 +107,8 @@ def _is_inside(path, parent_path):
     # abspath because some systems like debian have the absolute path (with no
     # symlinks followed) match, but the real directories in different
     # locations, so need to try both cases.
-    return os.path.abspath(path).startswith(os.path.abspath(parent_path)) \
-        or os.path.realpath(path).startswith(os.path.realpath(parent_path))
+    return (os.path.abspath(path).startswith(os.path.abspath(parent_path)) or
+            os.path.realpath(path).startswith(os.path.realpath(parent_path)))
 
 
 @contextlib.contextmanager
@@ -840,6 +843,8 @@ def compute_hash(localfn):
     return h.hexdigest()
 
 
+_zipfile_temp_dir = None
+_file_path_cache = {}
 def _find_pkg_data_path(data_name, package=None):
     """
     Look for data in the source-included data directories and return the
@@ -847,36 +852,91 @@ def _find_pkg_data_path(data_name, package=None):
     """
 
     if package is None:
-        module = find_current_module(1, True)
+        subpkg = find_current_module(1, True)
 
-        if module is None:
+        if subpkg is None:
             # not called from inside an astropy package.  So just pass name
             # through
             return data_name
 
-        if not hasattr(module, '__package__') or not module.__package__:
+        if not hasattr(subpkg, '__package__') or not subpkg.__package__:
             # The __package__ attribute may be missing or set to None; see
             # PEP-366, also astropy issue #1256
-            if '.' in module.__name__:
-                package = module.__name__.rpartition('.')[0]
+            if '.' in subpkg.__name__:
+                package = subpkg.__name__.rpartition('.')[0]
             else:
-                package = module.__name__
+                package = subpkg.__name__
         else:
-            package = module.__package__
+            package = subpkg.__package__
     else:
-        module = resolve_name(package)
+        subpkg = resolve_name(package)
 
-    rootpkgname = package.partition('.')[0]
+    key = (subpkg.__name__, data_name)
 
-    rootpkg = resolve_name(rootpkgname)
+    if key in _file_path_cache:
+        path = _file_path_cache[key]
+        # This affords us a little protection in case somebody sweeps the temp
+        # directory out from under our feet
+        if os.path.exists(path):
+            return _file_path_cache[key]
 
-    module_path = os.path.dirname(module.__file__)
-    path = os.path.join(module_path, data_name)
+    rootpkg_name = package.partition('.')[0]
+    rootpkg = resolve_name(rootpkg_name)
+    rootpkg_dir = os.path.dirname(rootpkg.__file__)
+    subpkg_dir = os.path.dirname(subpkg.__file__)
 
-    root_dir = os.path.dirname(rootpkg.__file__)
-    assert _is_inside(path, root_dir), \
+    if not os.path.isdir(subpkg_dir):
+        # Not a path on the local filesystem; check to see if we imported from
+        # a zip file, and if so extract to the appropriate location
+        loader = pkgutil.get_loader(subpkg)
+        if not isinstance(loader, zipimport.zipimporter):
+            raise RuntimeError(
+                "astropy currently only supports package data files in "
+                "packages imported either from the local filesystem or from "
+                "a zip file.")
+
+        # Set up a temporary directory in which to store extracted data files
+        global _zipfile_temp_dir
+        if _zipfile_temp_dir is None or not os.path.isdir(_zipfile_temp_dir):
+            prefix = '{0}-data-'.format(rootpkg_name)
+            _zipfile_temp_dir = mkdtemp(prefix=prefix)
+            _tempfilestodel.append(_zipfile_temp_dir)
+
+        pkg_path = os.path.join(*package.split('.'))
+        subpkg_dir = os.path.join(_zipfile_temp_dir, pkg_path)
+        rootpkg_dir = os.path.join(_zipfile_temp_dir, rootpkg_name)
+
+        archive = zipfile.ZipFile(loader.archive)
+        try:
+            # Before extracting anything ensure we have enough space in /tmp
+            path = os.path.join(pkg_path, data_name)
+            # Ensure that the path is constructed with forward slashes as
+            # required by the zip format
+            if os.sep != '/':
+                path = '/'.join(path.split(os.sep))
+            info = archive.getinfo(path)
+            tempdir = gettempdir()
+            try:
+                check_free_space_in_dir(tempdir, info.file_size)
+            except IOError:
+                raise IOError(
+                    'Not enough space in {0} to extract the requested '
+                    'resource file {1} from the {2} source archive '
+                    '(at least {3} free space is required).'.format(
+                        tempdir, path, rootpkg_name,
+                        human_file_size(info.file_size)))
+
+            archive.extract(path, _zipfile_temp_dir)
+        finally:
+            archive.close()
+
+    path = os.path.join(subpkg_dir, data_name)
+
+    assert _is_inside(path, rootpkg_dir), \
            ("attempted to get a local data file outside "
-            "of the " + rootpkgname + " tree")
+            "of the " + rootpkg_name + " tree")
+
+    _file_path_cache[key] = path
 
     return path
 
@@ -1211,6 +1271,8 @@ def _deltemps():
             fn = _tempfilestodel.pop()
             if os.path.isfile(fn):
                 os.remove(fn)
+            elif os.path.isdir(fn):
+                shutil.rmtree(fn)
 
 
 def clear_download_cache(hashorurl=None):

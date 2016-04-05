@@ -3,13 +3,13 @@
 Validates a large collection of web-accessible VOTable files,
 and generates a report as a directory tree of HTML files.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
-from ....extern import six
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
-# STDLIB
+import gzip
 import os
 
-# LOCAL
+from ....extern import six
 from ....utils.data import get_pkg_data_filename
 from . import html
 from . import result
@@ -19,21 +19,16 @@ __all__ = ['make_validation_report']
 
 
 
-def get_srcdir():
-    return os.path.dirname(__file__)
-
-
 def get_urls(destdir, s):
-    import gzip
-
     types = ['good', 'broken', 'incorrect']
 
     seen = set()
     urls = []
-    for type in types:
-        filename = get_pkg_data_filename(
-            'urls/cone.{0}.dat.gz'.format(type))
-        with gzip.open(filename, 'rb') as fd:
+    for t in types:
+        filename = 'cone.{0}.dat.gz'.format(t)
+        path = get_pkg_data_filename(os.path.join('urls', filename))
+
+        with gzip.open(path, 'rb') as fd:
             for url in fd.readlines():
                 six.next(s)
                 url = url.strip()

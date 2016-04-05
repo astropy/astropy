@@ -6,13 +6,12 @@ Implements the wrapper for the Astropy test runner in the form of the
 
 import os
 import shutil
-import subprocess
-import sys
 import tempfile
 
 from setuptools import Command
 
-from ..extern import six
+from .runner import TestRunner
+from ..utils.compat.funcsigs import signature
 
 
 def _fix_user_options(options):
@@ -81,6 +80,12 @@ class AstropyTest(Command, object):
 
     user_options = _fix_user_options(user_options)
 
+    # Maps arguments to TestRunner.run_tests to the attributes of this class
+    # that hold the value to pass for that argument
+    # (Currently only one option that has a different name, due to clash with
+    # a standard distutils command option.)
+    runner_option_map = {'verbose': 'verbose_results'}
+
     package_name = ''
 
     def initialize_options(self):
@@ -99,50 +104,24 @@ class AstropyTest(Command, object):
         self.docs_path = None
         self.skip_docs = False
         self.repeat = None
+
+        # temp_root is the root directory for all temp files/directories (i.e.
+        # /tmp), though this may be changed with the temp-root option (e.g. if
+        # the user's /tmp is too small or slow the user can specify a different
+        # location for temp files created during testing).
+        # temp_dir on the other hand is a temp directory created under
+        # temp_root for making a test build
+        # Finally, testing_path is the path we will actually change directories
+        # into to run the tests--typically this is a path under temp_dir; this
+        # is not user-specified and is set by _build_temp_install
         self.temp_root = None
+        self.temp_dir = None
+        self.testing_path = None
 
     def finalize_options(self):
         # Normally we would validate the options here, but that's handled in
         # run_tests
         pass
-
-    def generate_testing_command(self):
-        """
-        Build a Python script to run the tests.
-        """
-
-        cmd_pre = ''  # Commands to run before the test function
-        cmd_post = ''  # Commands to run after the test function
-
-        if self.coverage:
-            pre, post = self._generate_coverage_commands()
-            cmd_pre += pre
-            cmd_post += post
-
-        if six.PY3:
-            set_flag = "import builtins; builtins._ASTROPY_TEST_ = True"
-        else:
-            set_flag = "import __builtin__; __builtin__._ASTROPY_TEST_ = True"
-
-        cmd = ('{cmd_pre}{0}; import {1.package_name}, sys; result = ('
-               '{1.package_name}.test('
-               'package={1.package!r}, '
-               'test_path={1.test_path!r}, '
-               'args={1.args!r}, '
-               'plugins={1.plugins!r}, '
-               'verbose={1.verbose_results!r}, '
-               'pastebin={1.pastebin!r}, '
-               'remote_data={1.remote_data!r}, '
-               'pep8={1.pep8!r}, '
-               'pdb={1.pdb!r}, '
-               'open_files={1.open_files!r}, '
-               'parallel={1.parallel!r}, '
-               'docs_path={1.docs_path!r}, '
-               'skip_docs={1.skip_docs!r}, '
-               'repeat={1.repeat!r})); '
-               '{cmd_post}'
-               'sys.exit(result)')
-        return cmd.format(set_flag, self, cmd_pre=cmd_pre, cmd_post=cmd_post)
 
     def run(self):
         """
@@ -157,34 +136,20 @@ class AstropyTest(Command, object):
         # Build a testing install of the package
         self._build_temp_install()
 
+        runner = TestRunner(os.path.join(self.testing_path,
+                                         self.package_name),
+                            coverage_enabled=True)
+        runner_sig = signature(runner.run_tests_in_subprocess)
+        kwargs = dict((arg,
+                       getattr(self, self.runner_option_map.get(arg, arg)))
+                      for arg in runner_sig.parameters)
+
         # Run everything in a try: finally: so that the tmp dir gets deleted.
         try:
-            # Construct this modules testing command
-            cmd = self.generate_testing_command()
-
-            # Run the tests in a subprocess--this is necessary since
-            # new extension modules may have appeared, and this is the
-            # easiest way to set up a new environment
-
-            # On Python 3.x prior to 3.3, the creation of .pyc files
-            # is not atomic.  py.test jumps through some hoops to make
-            # this work by parsing import statements and carefully
-            # importing files atomically.  However, it can't detect
-            # when __import__ is used, so its carefulness still fails.
-            # The solution here (admittedly a bit of a hack), is to
-            # turn off the generation of .pyc files altogether by
-            # passing the `-B` switch to `python`.  This does mean
-            # that each core will have to compile .py file to bytecode
-            # itself, rather than getting lucky and borrowing the work
-            # already done by another core.  Compilation is an
-            # insignificant fraction of total testing time, though, so
-            # it's probably not worth worrying about.
-            retcode = subprocess.call([sys.executable, '-B', '-c', cmd],
-                                      cwd=self.testing_path, close_fds=False)
-
+            retcode = runner.run_tests_in_subprocess(**kwargs)
         finally:
             # Remove temporary directory
-            shutil.rmtree(self.tmp_dir)
+            shutil.rmtree(self.temp_dir)
 
         raise SystemExit(retcode)
 
@@ -194,6 +159,7 @@ class AstropyTest(Command, object):
         the purposes of testing this avoids creating pyc and __pycache__
         directories inside the build directory
         """
+
         self.reinitialize_command('build', inplace=True)
         self.run_command('build')
         build_cmd = self.get_finalized_command('build')
@@ -203,66 +169,16 @@ class AstropyTest(Command, object):
         # cases on OSX /var is actually a symlink to /private/var; ensure we
         # dereference that link, because py.test is very sensitive to relative
         # paths...
-        tmp_dir = tempfile.mkdtemp(prefix=self.package_name + '-test-',
-                                   dir=self.temp_root)
-        self.tmp_dir = os.path.realpath(tmp_dir)
-        self.testing_path = os.path.join(self.tmp_dir, os.path.basename(new_path))
+        temp_dir = tempfile.mkdtemp(prefix=self.package_name + '-test-',
+                                    dir=self.temp_root)
+        self.temp_dir = os.path.realpath(temp_dir)
+        self.testing_path = os.path.join(self.temp_dir,
+                                         os.path.basename(new_path))
         shutil.copytree(new_path, self.testing_path)
 
-        new_docs_path = os.path.join(self.tmp_dir,
+        new_docs_path = os.path.join(self.temp_dir,
                                      os.path.basename(self.docs_path))
         shutil.copytree(self.docs_path, new_docs_path)
         self.docs_path = new_docs_path
 
-        shutil.copy('setup.cfg', self.tmp_dir)
-
-    def _generate_coverage_commands(self):
-        """
-        This method creates the post and pre commands if coverage is to be
-        generated
-        """
-        if self.parallel != 0:
-            raise ValueError(
-                "--coverage can not be used with --parallel")
-
-        try:
-            import coverage  # pylint: disable=W0611
-        except ImportError:
-            raise ImportError(
-                "--coverage requires that the coverage package is "
-                "installed.")
-
-        # Don't use get_pkg_data_filename here, because it
-        # requires importing astropy.config and thus screwing
-        # up coverage results for those packages.
-        coveragerc = os.path.join(
-            self.testing_path, self.package_name, 'tests', 'coveragerc')
-
-        # We create a coveragerc that is specific to the version
-        # of Python we're running, so that we can mark branches
-        # as being specifically for Python 2 or Python 3
-        with open(coveragerc, 'r') as fd:
-            coveragerc_content = fd.read()
-        if six.PY3:
-            ignore_python_version = '2'
-        else:
-            ignore_python_version = '3'
-        coveragerc_content = coveragerc_content.replace(
-            "{ignore_python_version}", ignore_python_version).replace(
-                "{packagename}", self.package_name)
-        tmp_coveragerc = os.path.join(self.tmp_dir, 'coveragerc')
-        with open(tmp_coveragerc, 'wb') as tmp:
-            tmp.write(coveragerc_content.encode('utf-8'))
-
-        cmd_pre = (
-            'import coverage; '
-            'cov = coverage.coverage(data_file="{0}", config_file="{1}"); '
-            'cov.start();'.format(
-                os.path.abspath(".coverage"), tmp_coveragerc))
-        cmd_post = (
-            'cov.stop(); '
-            'from astropy.tests.helper import _save_coverage; '
-            '_save_coverage(cov, result, "{0}", "{1}");'.format(
-                os.path.abspath('.'), self.testing_path))
-
-        return cmd_pre, cmd_post
+        shutil.copy('setup.cfg', self.temp_dir)

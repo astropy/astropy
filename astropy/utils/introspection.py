@@ -8,6 +8,8 @@ from __future__ import (absolute_import, division, print_function,
 
 
 import inspect
+import os
+import sys
 import types
 
 from ..extern import six
@@ -173,7 +175,7 @@ def find_current_module(depth=1, finddiff=False):
     ----------
     depth : int
         Specifies how far back to go in the call stack (0-indexed, so that
-        passing in 0 gives back `astropy.utils.misc`).
+        passing in 0 gives back `astropy.utils.introspection`).
     finddiff : bool or list
         If False, the returned ``mod`` will just be ``depth`` frames up from
         the current frame. Otherwise, the function will start at a frame
@@ -245,7 +247,7 @@ def find_current_module(depth=1, finddiff=False):
             return None
 
     if finddiff:
-        currmod = inspect.getmodule(frm)
+        currmod = _get_module_from_frame(frm)
         if finddiff is True:
             diffmods = [currmod]
         else:
@@ -262,12 +264,75 @@ def find_current_module(depth=1, finddiff=False):
 
         while frm:
             frmb = frm.f_back
-            modb = inspect.getmodule(frmb)
+            modb = _get_module_from_frame(frmb)
             if modb not in diffmods:
                 return modb
             frm = frmb
     else:
-        return inspect.getmodule(frm)
+        return _get_module_from_frame(frm)
+
+
+def _get_module_from_frame(frm):
+    """Uses inspect.getmodule() to get the module that the current frame's
+    code is running in.
+
+    However, this does not work reliably for code imported from a zip file,
+    so this provides a fallback mechanism for that case which is less
+    reliable in general, but more reliable than inspect.getmodule() for this
+    particular case.
+    """
+
+    mod = inspect.getmodule(frm)
+    if mod is not None:
+        return mod
+
+    # As a special case return None when the code filename begins with
+    # <doctest--this means we're running the code as a doctest and it should
+    # appear the same as code running in the main module
+    # inspect.getmodule() fails in that case, but the below code is too clever
+    # and actually manages to find the real module that contains the doctest
+    if frm.f_code.co_filename.startswith('<doctest '):
+        return None
+
+    # Check to see if we're importing from a zip file
+    if frm and '__file__' in frm.f_globals and '__name__' in frm.f_globals:
+        # First ensure that __file__ is available in globals; this is cheap to
+        # check to bail out immediately if this fails
+        filename = frm.f_globals['__file__']
+
+        # Using __file__ from the frame's globals and getting it into the form
+        # of an absolute path name (absolute for the zip file that is) works
+        # pretty well for looking up the module using the same means as
+        # inspect.getmodule; depending on the Python version and/or importer we
+        # may need to try different filename extensions though, as there are
+        # inconsistencies as to when the original source filename is used,
+        # versus when a bytecode filename is used :(
+        absfilename = os.path.abspath(filename)
+        absfilename = os.path.normcase(os.path.realpath(absfilename))
+        module_filename = None
+        if absfilename in inspect.modulesbyfile:
+            module_filename = absfilename
+        else:
+            base_filename, orig_ext = os.path.splitext(absfilename)
+            orig_ext = orig_ext.lower()  # Just in case
+            for ext in ['.py', '.pyc', '.pyo']:
+                if ext == orig_ext:
+                    continue
+
+                possible_filename = base_filename + ext
+
+                if possible_filename in inspect.modulesbyfile:
+                    module_filename = possible_filename
+                    break
+
+        if module_filename is not None:
+            return sys.modules.get(inspect.modulesbyfile[module_filename])
+
+    # Otherwise there are still some even trickier things that might be
+    # possible to track down the module, but we'll leave those out unless we
+    # find a case where it's really necessary.  So return None if the module is
+    # not found.
+    return None
 
 
 def find_mod_objs(modname, onlylocals=False):
