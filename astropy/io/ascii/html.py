@@ -241,8 +241,7 @@ class HTMLData(core.BaseData):
         return last_index + 1
 
 class HTML(core.BaseReader):
-    """
-    Read and write HTML tables.
+    """Read and write HTML tables.
 
     In order to customize input and output, a dict of parameters may
     be passed to this class holding specific customizations.
@@ -265,6 +264,20 @@ class HTML(core.BaseReader):
             use the syntax 1.36583e-13 .. 1.36583e-13 for output. If not
             present, this parameter will be true by default.
 
+        * raw_html_cols : column name or list of names with raw HTML content
+            This allows one to include raw HTML content in the column output,
+            for instance to include link references in a table.  This option
+            requires that the bleach package be installed.  Only whitelisted
+            tags are allowed through for security reasons (see the
+            raw_html_clean_kwargs arg).
+
+        * raw_html_clean_kwargs : dict of keyword args controlling HTML cleaning
+            Raw HTML will be cleaned to prevent unsafe HTML from ending up in
+            the table output.  This is done by calling ``bleach.clean(data,
+            **raw_html_clean_kwargs)``.  For details on the available options
+            (e.g. tag whitelist) see:
+            http://bleach.readthedocs.org/en/latest/clean.html
+
         * parser : Specific HTML parsing library to use
             If specified, this specifies which HTML parsing library
             BeautifulSoup should use as a backend. The options to choose
@@ -281,6 +294,7 @@ class HTML(core.BaseReader):
         * js : js script to include in the body when writing table.
 
         * table_class : css class for the table
+
     """
 
     _format_name = 'html'
@@ -319,6 +333,15 @@ class HTML(core.BaseReader):
 
         cols = list(six.itervalues(table.columns))
         lines = []
+
+        # Set HTML escaping to False for any column in the raw_html_cols input
+        raw_html_cols = self.html.get('raw_html_cols', [])
+        if isinstance(raw_html_cols, six.string_types):
+            raw_html_cols = [raw_html_cols]  # Allow for a single string as input
+        cols_escaped = [col.info.name not in raw_html_cols for col in cols]
+
+        # Kwargs that get passed on to bleach.clean() if that is available.
+        raw_html_clean_kwargs = self.html.get('raw_html_clean_kwargs', {})
 
         # Use XMLWriter to output HTML to lines
         w = writer.XMLWriter(ListWriter(lines))
@@ -367,22 +390,28 @@ class HTML(core.BaseReader):
                                 w.data(col.info.name.strip())
                                 w.end(indent=False)
                         col_str_iters = []
-                        for col in cols:
+                        new_cols_escaped = []
+                        for col, col_escaped in izip(cols, cols_escaped):
                             if len(col.shape) > 1 and self.html['multicol']:
                                 span = col.shape[1]
                                 for i in range(span):
                                     # Split up multicolumns into separate columns
                                     new_col = Column([el[i] for el in col])
                                     col_str_iters.append(new_col.info.iter_str_vals())
+                                    new_cols_escaped.append(col_escaped)
                             else:
                                 col_str_iters.append(col.info.iter_str_vals())
+                                new_cols_escaped.append(col_escaped)
 
                     for row in izip(*col_str_iters):
                         with w.tag('tr'):
-                            for el in row:
-                                w.start('td')
-                                w.data(el.strip())
-                                w.end(indent=False)
+                            for el, col_escaped in izip(row, new_cols_escaped):
+                                # Potentially disable HTML escaping for column
+                                method = ('escape_xml' if col_escaped else 'bleach_clean')
+                                with w.xml_cleaning_method(method, **raw_html_clean_kwargs):
+                                    w.start('td')
+                                    w.data(el.strip())
+                                    w.end(indent=False)
 
         # Fixes XMLWriter's insertion of unwanted line breaks
         return [''.join(lines)]

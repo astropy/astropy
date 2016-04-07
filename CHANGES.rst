@@ -139,6 +139,8 @@ API changes
 
 - ``astropy.io.ascii``
 
+  - Add a way to control HTML escaping when writing a table as an HTML file. [#4423]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``

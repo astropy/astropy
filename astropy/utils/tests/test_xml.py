@@ -7,6 +7,7 @@ from ...extern import six
 import io
 
 from ..xml import check, unescaper, writer
+from ...tests.helper import pytest
 
 
 def test_writer():
@@ -74,3 +75,37 @@ def test_escape_xml():
     s = writer.xml_escape(b'This & That')
     assert type(s) == bytes
     assert s == b'This &amp; That'
+
+
+@pytest.mark.skipif('writer.HAS_BLEACH')
+def test_escape_xml_without_bleach():
+    fh = io.StringIO()
+    w = writer.XMLWriter(fh)
+
+    with pytest.raises(ValueError) as err:
+        with w.xml_cleaning_method('bleach_clean'):
+            pass
+    assert 'bleach package is required when HTML escaping is disabled' in str(err)
+
+
+@pytest.mark.skipif('not writer.HAS_BLEACH')
+def test_escape_xml_with_bleach():
+    fh = io.StringIO()
+    w = writer.XMLWriter(fh)
+
+    # Turn off XML escaping, but still sanitize unsafe tags like <script>
+    with w.xml_cleaning_method('bleach_clean'):
+        w.start('td')
+        w.data('<script>x</script> <em>OK</em>')
+        w.end(indent=False)
+    assert fh.getvalue() == '<td>&lt;script&gt;x&lt;/script&gt; <em>OK</em></td>\n'
+
+    fh = io.StringIO()
+    w = writer.XMLWriter(fh)
+
+    # Default is True (all XML tags escaped)
+    with w.xml_cleaning_method():
+        w.start('td')
+        w.data('<script>x</script> <em>OK</em>')
+        w.end(indent=False)
+    assert fh.getvalue() == '<td>&lt;script&gt;x&lt;/script&gt; &lt;em&gt;OK&lt;/em&gt;</td>\n'
