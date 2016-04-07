@@ -265,15 +265,17 @@ class HTML(core.BaseReader):
             present, this parameter will be true by default.
 
         * raw_html_cols : column name or list of names with raw HTML content
-            This allows one to include raw HTML strings in the column output,
-            for instance to include link references in a table.  Normally
-            the HTML characters are escaped
+            This allows one to include raw HTML content in the column output,
+            for instance to include link references in a table.  This option
+            requires that the bleach package be installed.  Only whitelisted
+            tags are allowed through for security reasons (see the
+            raw_html_clean_kwargs arg).
 
         * raw_html_clean_kwargs : dict of keyword args controlling HTML cleaning
-            If the ``bleach`` package is installed then any raw HTML will be
-            cleaned to prevent unsafe HTML from ending up in the table output.
-            This is done by calling ``bleach.clean(data, **raw_html_clean_kwargs)``.
-            For details on the available options (e.g. tag whitelist) see:
+            Raw HTML will be cleaned to prevent unsafe HTML from ending up in
+            the table output.  This is done by calling ``bleach.clean(data,
+            **raw_html_clean_kwargs)``.  For details on the available options
+            (e.g. tag whitelist) see:
             http://bleach.readthedocs.org/en/latest/clean.html
 
         * parser : Specific HTML parsing library to use
@@ -405,7 +407,8 @@ class HTML(core.BaseReader):
                         with w.tag('tr'):
                             for el, col_escaped in izip(row, new_cols_escaped):
                                 # Potentially disable HTML escaping for column
-                                with w.xml_escaping(col_escaped, raw_html_clean_kwargs):
+                                method = ('escape_xml' if col_escaped else 'bleach_clean')
+                                with w.xml_cleaning_method(method, **raw_html_clean_kwargs):
                                     w.start('td')
                                     w.data(el.strip())
                                     w.end(indent=False)

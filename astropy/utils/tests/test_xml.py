@@ -83,7 +83,7 @@ def test_escape_xml_without_bleach():
     w = writer.XMLWriter(fh)
 
     with pytest.raises(ValueError) as err:
-        with w.xml_escaping(False):
+        with w.xml_cleaning_method('bleach_clean'):
             pass
     assert 'bleach package is required when HTML escaping is disabled' in str(err)
 
@@ -94,7 +94,7 @@ def test_escape_xml_with_bleach():
     w = writer.XMLWriter(fh)
 
     # Turn off XML escaping, but still sanitize unsafe tags like <script>
-    with w.xml_escaping(False):
+    with w.xml_cleaning_method('bleach_clean'):
         w.start('td')
         w.data('<script>x</script> <em>OK</em>')
         w.end(indent=False)
@@ -104,7 +104,7 @@ def test_escape_xml_with_bleach():
     w = writer.XMLWriter(fh)
 
     # Default is True (all XML tags escaped)
-    with w.xml_escaping():
+    with w.xml_cleaning_method():
         w.start('td')
         w.data('<script>x</script> <em>OK</em>')
         w.end(indent=False)

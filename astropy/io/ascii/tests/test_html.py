@@ -14,6 +14,7 @@ from ....table import Table
 
 import numpy as np
 
+from .common import setup_function, teardown_function
 from ....tests.helper import pytest
 from ....extern.six.moves import cStringIO
 from ....utils.xml.writer import HAS_BLEACH
