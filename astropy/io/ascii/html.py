@@ -9,6 +9,9 @@ must be installed to read HTML tables.
 """
 
 from __future__ import absolute_import, division, print_function
+
+import warnings
+
 from ...extern import six
 from ...extern.six.moves import zip as izip
 
@@ -83,7 +86,10 @@ class HTMLInputter(core.BaseInputter):
                                         'installed to read HTML tables')
 
         if 'parser' not in self.html:
-            soup = BeautifulSoup('\n'.join(lines))
+            with warnings.catch_warnings():
+                # Ignore bs4 parser warning #4550.
+                warnings.filterwarnings('ignore', '.*no parser was explicitly specified.*')
+                soup = BeautifulSoup('\n'.join(lines))
         else: # use a custom backend parser
             soup = BeautifulSoup('\n'.join(lines), self.html['parser'])
         tables = soup.find_all('table')
