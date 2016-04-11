@@ -104,9 +104,11 @@ def test_units():
 
     cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0)
     assert cosmo.comoving_distance(1.0).unit == u.Mpc
+    assert cosmo._comoving_distance_z1z2(1.0, 2.0).unit == u.Mpc
+    assert cosmo.comoving_transverse_distance(1.0).unit == u.Mpc
+    assert cosmo._comoving_transverse_distance_z1z2(1.0, 2.0).unit == u.Mpc
     assert cosmo.angular_diameter_distance(1.0).unit == u.Mpc
     assert cosmo.angular_diameter_distance_z1z2(1.0, 2.0).unit == u.Mpc
-    assert cosmo.comoving_distance(1.0).unit == u.Mpc
     assert cosmo.luminosity_distance(1.0).unit == u.Mpc
     assert cosmo.lookback_time(1.0).unit == u.Gyr
     assert cosmo.lookback_distance(1.0).unit == u.Mpc
@@ -1088,25 +1090,86 @@ def test_critical_density():
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
+def test_comoving_distance_z1z2():
+    tcos = core.LambdaCDM(100, 0.3, 0.8, Tcmb0=0.0)
+    with pytest.raises(ValueError): # test diff size z1, z2 fail
+        tcos._comoving_distance_z1z2((1, 2), (3, 4, 5))
+    # Comoving distances are invertible
+    assert allclose(tcos._comoving_distance_z1z2(1, 2),
+                    -tcos._comoving_distance_z1z2(2, 1))
+
+    z1 = 0, 0, 2, 0.5, 1
+    z2 = 2, 1, 1, 2.5, 1.1
+    results = (3767.90579253,
+               2386.25591391,
+               -1381.64987862,
+               2893.11776663,
+               174.1524683) * u.Mpc
+
+    assert allclose(tcos._comoving_distance_z1z2(z1, z2),
+                    results)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_comoving_transverse_distance_z1z2():
+    tcos = core.FlatLambdaCDM(100, 0.3, Tcmb0=0.0)
+    with pytest.raises(ValueError): # test diff size z1, z2 fail
+        tcos._comoving_transverse_distance_z1z2((1, 2), (3, 4, 5))
+    # Tests that should actually work, target values computed with
+    # http://www.astro.multivax.de:8000/phillip/angsiz_prog/README.HTML
+    # Kayser, Helbig, and Schramm (Astron.Astrophys. 318 (1997) 680-686)
+    assert allclose(tcos._comoving_transverse_distance_z1z2(1, 2),
+                    1313.2232194828466 * u.Mpc)
+
+    # In a flat universe comoving distance and comoving transverse
+    # distance are identical
+    z1 = 0, 0, 2, 0.5, 1
+    z2 = 2, 1, 1, 2.5, 1.1
+
+    assert allclose(tcos._comoving_distance_z1z2(z1, z2),
+                    tcos._comoving_transverse_distance_z1z2(z1, z2))
+
+    # Test non-flat cases to avoid simply testing
+    # comoving_distance_z1z2. Test array, array case.
+    tcos = core.LambdaCDM(100, 0.3, 0.5, Tcmb0=0.0)
+    results = (3535.931375645655,
+               2226.430046551708,
+               -1208.6817970036532,
+               2595.567367601969,
+               151.36592003406884) * u.Mpc
+
+    assert allclose(tcos._comoving_transverse_distance_z1z2(z1, z2),
+                    results)
+
+    # Test positive curvature with scalar, array combination.
+    tcos = core.LambdaCDM(100, 1.0, 0.2, Tcmb0=0.0)
+    z1 = 0.1
+    z2 = 0, 0.1, 0.2, 0.5, 1.1, 2
+    results = (-281.31602666724865,
+               0.,
+               248.58093707820436,
+               843.9331377460543,
+               1618.6104987686672,
+               2287.5626543279927) * u.Mpc
+
+    assert allclose(tcos._comoving_transverse_distance_z1z2(z1, z2),
+                    results)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_angular_diameter_distance_z1z2():
-
-    with pytest.raises(core.CosmologyError):  # test neg Ok fail
-        tcos = core.LambdaCDM(H0=70.4, Om0=0.272, Ode0=0.8, Tcmb0=0.0)
-        tcos.angular_diameter_distance_z1z2(1, 2)
-
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
     with pytest.raises(ValueError):  # test diff size z1, z2 fail
         tcos.angular_diameter_distance_z1z2([1, 2], [3, 4, 5])
-    with pytest.raises(ValueError):  # test z1 > z2 fail
-        tcos.angular_diameter_distance_z1z2(4, 3)
     # Tests that should actually work
     assert allclose(tcos.angular_diameter_distance_z1z2(1, 2),
                     646.22968662822018 * u.Mpc)
-    z1 = 0, 0, 1, 0.5, 1
-    z2 = 2, 1, 2, 2.5, 1.1
+
+    z1 = 0, 0, 2, 0.5, 1
+    z2 = 2, 1, 1, 2.5, 1.1
     results = (1760.0628637762106,
                1670.7497657219858,
-               646.22968662822018,
+               -969.34452994,
                1159.0970895962193,
                115.72768186186921) * u.Mpc
 
@@ -1123,10 +1186,14 @@ def test_angular_diameter_distance_z1z2():
     assert allclose(tcos.angular_diameter_distance_z1z2(0.1, z2),
                     results)
 
-    # Non-flat (positive Ocurv) test
+    # Non-flat (positive Ok0) test
     tcos = core.LambdaCDM(H0=70.4, Om0=0.2, Ode0=0.5, Tcmb0=0.0)
     assert allclose(tcos.angular_diameter_distance_z1z2(1, 2),
                     620.1175337852428 * u.Mpc)
+    # Non-flat (negative Ok0) test
+    tcos = core.LambdaCDM(H0=100, Om0=2, Ode0=1, Tcmb0=0.0)
+    assert allclose(tcos.angular_diameter_distance_z1z2(1, 2),
+                    228.42914659246014 * u.Mpc)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -1454,10 +1521,12 @@ def test_z_at_value_roundtrip():
 
     # Skip Ok, w, de_density_scale because in the Planck13 cosmolgy
     # they are redshift independent and hence uninvertable,
-    # angular_diameter_distance_z1z2 takes multiple arguments, so requires
-    #  special handling
+    # *_distance_z1z2 methods take multiple arguments, so require
+    # special handling
     # clone isn't a redshift-dependent method
-    skip = ('Ok', 'angular_diameter_distance_z1z2', 'clone',
+    skip = ('Ok',
+            'angular_diameter_distance_z1z2',
+            'clone',
             'de_density_scale', 'w')
 
     import inspect
@@ -1475,9 +1544,14 @@ def test_z_at_value_roundtrip():
         assert allclose(z, funcs.z_at_value(func, fval, zmax=1.5),
                         rtol=2e-8)
 
-    # Test angular_diameter_distance_z1z2
+    # Test distance functions between two redshifts
     z2 = 2.0
-    func = lambda z1: core.Planck13.angular_diameter_distance_z1z2(z1, z2)
-    fval = func(z)
-    assert allclose(z, funcs.z_at_value(func, fval, zmax=1.5),
-                    rtol=2e-8)
+    func_z1z2 = [lambda z1: core.Planck13._comoving_distance_z1z2(z1, z2),
+                 lambda z1: \
+                 core.Planck13._comoving_transverse_distance_z1z2(z1, z2),
+                 lambda z1: \
+                 core.Planck13.angular_diameter_distance_z1z2(z1, z2)]
+    for func in func_z1z2:
+        fval = func(z)
+        assert allclose(z, funcs.z_at_value(func, fval, zmax=1.5),
+                        rtol=2e-8)
