@@ -357,7 +357,7 @@ class Quantity(np.ndarray):
         # amount that depends on one of the input values, so we need to treat
         # this as a special case.
         # TODO: find a better way to deal with this case
-        if function is np.power and result_unit is not dimensionless_unscaled:
+        if function is np.power and result_unit != dimensionless_unscaled:
 
             if units[1] is None:
                 p = args[1]
