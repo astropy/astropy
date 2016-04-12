@@ -278,7 +278,7 @@ Bug fixes
   - ``NDArithmeticMixin`` does provide correct resulting uncertainties for
     ``divide`` and ``multiply`` if only one uncertainty was set. [#4152, #4272]
 
- - ``astropy.stats``
+- ``astropy.stats``
 
 - ``astropy.table``
 
@@ -441,6 +441,8 @@ Bug Fixes
 - ``astropy.nddata``
 
 - ``astropy.stats``
+
+  - Fix ``sigma_clipped_stats`` to use the ``axis`` argument. [#4726]
 
 - ``astropy.table``
 
