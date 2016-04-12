@@ -439,7 +439,7 @@ class _ImageBaseHDU(_ValidHDU):
         # Do the scaling
         if _zero != 0:
             # 0.9.6.3 to avoid out of range error for BZERO = +32768
-            self.data += -_zero
+            self.data += self.data.dtype.type(-_zero)
             self._header['BZERO'] = _zero
         else:
             try:
