@@ -11,9 +11,11 @@ import abc
 import numpy as np
 
 from .transform import BaseTransform
+from .zscale import zscale
 
 __all__ = ['BaseInterval', 'ManualInterval', 'MinMaxInterval',
-           'PercentileInterval', 'AsymmetricPercentileInterval']
+           'PercentileInterval', 'AsymmetricPercentileInterval',
+           'ZScaleInterval']
 
 
 class BaseInterval(BaseTransform):
@@ -137,3 +139,28 @@ class PercentileInterval(AsymmetricPercentileInterval):
         lower_percentile = (100 - percentile) * 0.5
         upper_percentile = 100 - lower_percentile
         super(PercentileInterval, self).__init__(lower_percentile, upper_percentile, n_samples=n_samples)
+
+
+class ZScaleInterval(BaseInterval):
+    """
+    Interval based on IRAF's zscale.
+
+    http://iraf.net/forum/viewtopic.php?showtopic=134139
+
+    Parameters
+    ----------
+    nsamples : int
+        Number of points in array to sample for determining scaling factors.
+        (Default: 1000)
+    contrast : float
+        Scaling factor for determining min and max. Larger values increase the
+        difference between min and max values used for display. (Default: 0.25)
+
+    """
+
+    def __init__(self, nsamples=1000, contrast=0.25):
+        self.nsamples = nsamples
+        self.contrast = contrast
+
+    def get_limits(self, values):
+        return zscale(values, nsamples=self.nsamples, contrast=self.contrast)
