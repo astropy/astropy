@@ -1,8 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Map 3 images produce a properly-scaled RGB image following Lupton et al. (2004).
+Combine 3 images to produce a properly-scaled RGB image following Lupton et al. (2004).
 
 For details, see : http://adsabs.harvard.edu/abs/2004PASP..116..133L
+
+The three images must be aligned and have the same pixel scale and size.
+
+Example usage:
+    imageR = np.random.random((100,100))
+    imageG = np.random.random((100,100))
+    imageB = np.random.random((100,100))
+    image = lupton_rgb.makeRGB(imageR, imageG, imageB, fileName='randoms.png')
+    lupton_rgb.displayRGB(image)
 """
 
 import numpy as np
@@ -17,10 +26,18 @@ except ImportError:
 
 
 def compute_intensity(imageR, imageG=None, imageB=None):
-    """!Return a naive total intensity from the red, blue, and green intensities
-    \param imageR intensity of image that'll be mapped to red; or intensity if imageG and imageB are None
-    \param imageG intensity of image that'll be mapped to green; or None
-    \param imageB intensity of image that'll be mapped to blue; or None
+    """!Return a naive total intensity from the red, blue, and green intensities.
+
+    Parameters
+    ----------
+
+    imageR : `~numpy.ndarray`
+        Intensity of image that'll be mapped to red; or total intensity if
+        imageG and imageB are None
+    imageG : `~numpy.ndarray`
+        Intensity of image that'll be mapped to green; or None
+    imageB : `~numpy.ndarray`
+        Intensity of image that'll be mapped to blue; or None
 
     Inputs may be MaskedImages, Images, or numpy arrays and the return is of the same type
     """
@@ -108,11 +125,9 @@ class Mapping(object):
         if imageB is None:
             imageB = imageR
 
-        imageRGB = [imageR, imageG, imageB]
-
         if xSize is not None or ySize is not None:
             assert rescaleFactor is None, "You may not specify a size and rescaleFactor"
-            h, w = imageRGB[0].shape
+            h, w = imageR.shape
             if ySize is None:
                 ySize = int(xSize*h/float(w) + 0.5)
             elif xSize is None:
@@ -129,10 +144,11 @@ class Mapping(object):
             if not HAVE_SCIPY_MISC:
                 raise RuntimeError("Unable to rescale as scipy.misc is unavailable.")
 
-            for i, im in enumerate(imageRGB):
-                imageRGB[i] = scipy.misc.imresize(im, size, interp='bilinear', mode='F')
+            imageR = scipy.misc.imresize(imageR, size, interp='bilinear', mode='F')
+            imageG = scipy.misc.imresize(imageG, size, interp='bilinear', mode='F')
+            imageB = scipy.misc.imresize(imageB, size, interp='bilinear', mode='F')
 
-        return np.dstack(self._convertImagesToUint8(*imageRGB)).astype(np.uint8)
+        return np.dstack(self._convertImagesToUint8(imageR, imageG, imageB)).astype(np.uint8)
 
     def intensity(self, imageR, imageG, imageB):
         """!Return the total intensity from the red, blue, and green intensities
@@ -296,14 +312,14 @@ class AsinhZScaleMapping(AsinhMapping):
         """
 
         if image2 is None or image3 is None:
-            assert image2 is None and image3 is None, "Please specify either a single image or three images"
+            assert image2 is None and image3 is None, "Please specify either a single image or three images."
             image = [image1]
         else:
             image = [image1, image2, image3]
 
         if pedestal is not None:
             try:
-                assert len(pedestal) in (1, 3,), "Please provide 1 or 3 pedestals"
+                assert len(pedestal) in (1, 3,), "Please provide 1 or 3 pedestals."
             except TypeError:
                 pedestal = 3*[pedestal]
 
@@ -324,7 +340,7 @@ class AsinhZScaleMapping(AsinhMapping):
             minimum[i] += level
 
         AsinhMapping.__init__(self, minimum, dataRange, Q)
-        self._image = image             # support self.makeRgbImage()
+        self._image = image
 
 
 def makeRGB(imageR, imageG=None, imageB=None, minimum=0, dataRange=5, Q=8, fileName=None,
@@ -357,13 +373,15 @@ def makeRGB(imageR, imageG=None, imageB=None, minimum=0, dataRange=5, Q=8, fileN
     return rgb
 
 
-def displayRGB(rgb, show=True):
+def displayRGB(rgb, show=True, title=None):
     """!Display an rgb image using matplotlib
     \param rgb  The RGB image in question
     \param show If true, call plt.show()
     """
     import matplotlib.pyplot as plt
     plt.imshow(rgb, interpolation='nearest', origin="lower")
+    if title:
+        plt.title(title)
     if show:
         plt.show()
     return plt
