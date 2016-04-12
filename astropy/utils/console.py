@@ -658,9 +658,9 @@ class ProgressBar(six.Iterator):
             self._widget.value = 0
 
         # Calculate percent completion, and update progress bar
-        percent = (value/self._total)
-        self._widget.value = percent * 100
-        self._widget.description =' ({:>6.2%})'.format(percent)
+        frac = (value/self._total)
+        self._widget.value = frac * 100
+        self._widget.description =' ({:>6.2%})'.format(frac)
 
 
     def _silent_update(self, value=None):
