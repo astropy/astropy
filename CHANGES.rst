@@ -70,6 +70,8 @@ New Features
 
   - Added ``AttributeError`` when trying to set mask on non-masked table. [#3505]
 
+  - Allow to use a tuple of keys in ``Table.sort``.  [#4671]
+
 - ``astropy.tests``
 
 - ``astropy.time``
