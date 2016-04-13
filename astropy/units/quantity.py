@@ -24,7 +24,6 @@ from ..utils.compat import NUMPY_LT_1_7, NUMPY_LT_1_8, NUMPY_LT_1_9
 from ..utils.compat.misc import override__dir__
 from ..utils.misc import isiterable, InheritDocstrings
 from ..utils.data_info import ParentDtypeInfo
-from .utils import validate_power
 from .. import config as _config
 
 
@@ -364,10 +363,20 @@ class Quantity(np.ndarray):
             else:
                 p = args[1].to(dimensionless_unscaled).value
 
-            result_unit = result_unit ** validate_power(p)
+            try:
+                result_unit = result_unit ** p
+            except ValueError as exc:
+                # Changing the unit does not work for, e.g., array-shaped
+                # power, but this is OK if we're (scaled) dimensionless.
+                try:
+                    converters[0] = units[0]._get_converter(
+                        dimensionless_unscaled)
+                except:
+                    raise exc
+                else:
+                    result_unit = dimensionless_unscaled
 
         # We now prepare the output object
-
         if self is obj:
 
             # this happens if the output object is self, which happens
@@ -495,9 +504,14 @@ class Quantity(np.ndarray):
                 # For output arrays that require scaling, we can reuse the
                 # output array to perform the scaling in place, as long as the
                 # array is not integral. Here, we set the obj_array to `None`
-                # when it can not be used to store the scaled result.
-                if not (result_unit is None or
-                        np.can_cast(np.result_type(*inputs), obj_array.dtype)):
+                # when it cannot be used to store the scaled result.
+                # Use a try/except instead of an if-statement here, since
+                # np.result_type can fail, which would break the wrapping.
+                try:
+                    assert (result_unit is None or
+                            np.can_cast(np.result_type(*inputs),
+                                        obj_array.dtype))
+                except:
                     obj_array = None
 
                 # Re-compute the output using the ufunc
