@@ -306,9 +306,11 @@ class TestQuantityMathFuncs(object):
         assert res.unit == u.dimensionless_unscaled
         # The same holds for unit fractions that are scaled dimensionless.
         q2 = [2., 4.] * u.m / u.cm
-        res2 = np.power(q2, powers)
-        assert np.all(res2.value == q2.to(1).value ** powers)
-        assert res2.unit == u.dimensionless_unscaled
+        # Test also against different types of exponent
+        for cls in (list, tuple, np.array, np.ma.array, u.Quantity):
+            res2 = np.power(q2, cls(powers))
+            assert np.all(res2.value == q2.to(1).value ** powers)
+            assert res2.unit == u.dimensionless_unscaled
         # Though for single powers, we keep the composite unit.
         res3 = q2 ** 2
         assert np.all(res3.value == q2.value ** 2)

@@ -18,7 +18,7 @@ import numpy as np
 # AstroPy
 from ..extern import six
 from .core import (Unit, dimensionless_unscaled, UnitBase, UnitsError,
-                   get_current_unit_registry)
+                   get_current_unit_registry, UnitConversionError)
 from .format.latex import Latex
 from ..utils.compat import NUMPY_LT_1_7, NUMPY_LT_1_8, NUMPY_LT_1_9
 from ..utils.compat.misc import override__dir__
@@ -371,7 +371,7 @@ class Quantity(np.ndarray):
                 try:
                     converters[0] = units[0]._get_converter(
                         dimensionless_unscaled)
-                except:
+                except UnitConversionError:
                     raise exc
                 else:
                     result_unit = dimensionless_unscaled
@@ -505,14 +505,19 @@ class Quantity(np.ndarray):
                 # output array to perform the scaling in place, as long as the
                 # array is not integral. Here, we set the obj_array to `None`
                 # when it cannot be used to store the scaled result.
-                # Use a try/except instead of an if-statement here, since
-                # np.result_type can fail, which would break the wrapping.
+                # Use a try/except, since np.result_type can fail, which would
+                # break the wrapping #4770.
                 try:
-                    assert (result_unit is None or
-                            np.can_cast(np.result_type(*inputs),
-                                        obj_array.dtype))
-                except:
+                    tmp_dtype = np.result_type(*inputs)
+                # Catch the appropriate exceptions: TypeError or ValueError in
+                # case the result_type raised an Exception, i.e. inputs is list
+                except (TypeError, ValueError):
                     obj_array = None
+                else:
+                    # Explicitly check if it can store the result.
+                    if not (result_unit is None or
+                            np.can_cast(tmp_dtype, obj_array.dtype)):
+                        obj_array = None
 
                 # Re-compute the output using the ufunc
                 if function.nin == 1:
