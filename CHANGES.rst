@@ -55,6 +55,8 @@ New Features
 
   - Header allows a dictionary-like cards argument during creation. [#4663]
 
+  - New function ``convenience.table_to_hdu``. [#4778]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
