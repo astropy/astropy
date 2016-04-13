@@ -16,6 +16,10 @@ Example usage:
 
 import numpy as np
 
+__all__ = ['displayRGB', 'makeRGB', 'writeRGB', 'zscale',
+           'Mapping', 'LinearMapping', 'ZScaleMapping', 'AsinhMapping',
+           'AsinhZScaleMapping']
+
 try:
     import scipy.misc
     HAVE_SCIPY_MISC = True
@@ -341,6 +345,7 @@ class AsinhZScaleMapping(AsinhMapping):
     x = asinh(Q (I - z1)/(z2 - z1))/Q
 
     See AsinhMapping
+
     """
 
     def __init__(self, image1, image2=None, image3=None, Q=8, pedestal=None):
