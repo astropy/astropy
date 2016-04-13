@@ -10,15 +10,12 @@ https://trac.stsci.edu/ssb/stsci_python/browser/stsci_python/trunk/numdisplay/LI
 
 from __future__ import absolute_import, division
 
-import math
 import numpy as np
 
 __all__ = ['zscale']
 
 MAX_REJECT = 0.5
 MIN_NPIXELS = 5
-GOOD_PIXEL = 0
-BAD_PIXEL = 1
 KREJ = 2.5
 MAX_ITERATIONS = 5
 
@@ -77,10 +74,10 @@ def zsc_fit_line(samples, npix, krej, ngrow, maxiter):
     minpix = max(MIN_NPIXELS, int(npix * MAX_REJECT))
     last_ngoodpix = npix + 1
 
-    kernel = np.ones(ngrow, dtype="int32")
+    kernel = np.ones(ngrow, dtype=bool)
 
-    # This is the mask used in k-sigma clipping.  0 is good, 1 is bad
-    badpix = np.zeros(npix, dtype="int32")
+    # This is the mask used in k-sigma clipping
+    badpix = np.zeros(npix, dtype=bool)
 
     for niter in range(maxiter):
 
@@ -88,12 +85,12 @@ def zsc_fit_line(samples, npix, krej, ngrow, maxiter):
             break
 
         # Accumulate sums to calculate straight line fit
-        goodpixels = np.where(badpix == GOOD_PIXEL)
+        goodpixels = ~badpix
         sumx = xnorm[goodpixels].sum()
         sumxx = (xnorm[goodpixels] * xnorm[goodpixels]).sum()
         sumxy = (xnorm[goodpixels] * samples[goodpixels]).sum()
         sumy = samples[goodpixels].sum()
-        sum = len(goodpixels[0])
+        sum = goodpixels.sum()
 
         delta = sum * sumxx - sumx * sumx
         # Slope and intercept
@@ -105,21 +102,17 @@ def zsc_fit_line(samples, npix, krej, ngrow, maxiter):
         flat = samples - fitted
 
         # Compute the k-sigma rejection threshold
-        sigma = flat[goodpixels].std()
-        threshold = sigma * krej
+        threshold = krej * flat[goodpixels].std()
 
         # Detect and reject pixels further than k*sigma from the fitted line
-        below = np.where(flat < - threshold)
-        above = np.where(flat > threshold)
-
-        badpix[below] = BAD_PIXEL
-        badpix[above] = BAD_PIXEL
+        badpix[flat < - threshold] = True
+        badpix[flat > threshold] = True
 
         # Convolve with a kernel of length ngrow
         badpix = np.convolve(badpix, kernel, mode='same')
 
         last_ngoodpix = ngoodpix
-        ngoodpix = len(np.where(badpix == GOOD_PIXEL)[0])
+        ngoodpix = np.sum(~badpix)
 
     # Transform the line coefficients back to the X range [0:npix-1]
     zstart = intercept - slope
