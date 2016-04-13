@@ -21,7 +21,7 @@ KREJ = 2.5
 MAX_ITERATIONS = 5
 
 
-def zscale(image, nsamples=1000, contrast=0.25, bpmask=None, zmask=None):
+def zscale(image, nsamples=1000, contrast=0.25):
     """Implement IRAF zscale algorithm
 
     Parameters
@@ -36,19 +36,13 @@ def zscale(image, nsamples=1000, contrast=0.25, bpmask=None, zmask=None):
         Scaling factor for determining min and max. Larger values increase the
         difference between min and max values used for display.
 
-    bpmask : None
-        Not used at this time
-
-    zmask : None
-        Not used at this time
-
     Returns
     -------
     (z1, z2)
     """
 
     # Sample the image
-    samples = zsc_sample(image, nsamples, bpmask, zmask)
+    samples = zsc_sample(image, nsamples)
     npix = len(samples)
     samples.sort()
     zmin = samples[0]
@@ -78,11 +72,9 @@ def zscale(image, nsamples=1000, contrast=0.25, bpmask=None, zmask=None):
     return z1, z2
 
 
-def zsc_sample(image, maxpix, bpmask=None, zmask=None):
-
+def zsc_sample(image, maxpix):
     # Figure out which pixels to use for the zscale algorithm
     # Returns the 1-d array samples
-    # Don't worry about the bad pixel mask or zmask for the moment
     # Sample in a square grid, and return the first maxpix in the sample
     nc = image.shape[0]
     nl = image.shape[1]
@@ -93,8 +85,6 @@ def zsc_sample(image, maxpix, bpmask=None, zmask=None):
 
 
 def zsc_fit_line(samples, npix, krej, ngrow, maxiter):
-
-    #
     # First re-map indices from -1.0 to 1.0
     xscale = 2.0 / (npix - 1)
     xnorm = numpy.arange(npix)
