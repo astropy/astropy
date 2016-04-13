@@ -149,12 +149,12 @@ class ZScaleInterval(BaseInterval):
 
     Parameters
     ----------
-    nsamples : int
+    nsamples : int, optional
         Number of points in array to sample for determining scaling factors.
-        (Default: 1000)
-    contrast : float
+        Default to 1000.
+    contrast : float, optional
         Scaling factor for determining min and max. Larger values increase the
-        difference between min and max values used for display. (Default: 0.25)
+        difference between min and max values used for display. Default to 0.25
 
     """
 

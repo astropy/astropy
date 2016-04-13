@@ -1,8 +1,9 @@
 # Licensed under a 3-clause BSD style license - see NUMDISPLAY_LICENSE.rst
 
 """
-Zscale implementation from the STScI numdisplay package, BSD licensed.
+Zscale implementation based on the one from the STScI Numdisplay package.
 
+Original implementation from Numdisplay is BSD licensed:
 https://trac.stsci.edu/ssb/stsci_python/browser/stsci_python/trunk/numdisplay/lib/stsci/numdisplay/zscale.py?rev=19347
 https://trac.stsci.edu/ssb/stsci_python/browser/stsci_python/trunk/numdisplay/LICENSE.txt?rev=19347
 
@@ -21,26 +22,28 @@ MAX_ITERATIONS = 5
 
 
 def zscale(image, nsamples=1000, contrast=0.25):
-    """Implement IRAF zscale algorithm
+    """Implement IRAF zscale algorithm.
 
     Parameters
     ----------
-    image : arr
-        2-d numpy array
-
-    nsamples : int (Default: 1000)
-        Number of points in array to sample for determining scaling factors
-
-    contrast : float (Default: 0.25)
+    image : array_like
+        Input array.
+    nsamples : int, optional
+        Number of points in array to sample for determining scaling factors.
+        Default to 1000.
+    contrast : float, optional
         Scaling factor for determining min and max. Larger values increase the
-        difference between min and max values used for display.
+        difference between min and max values used for display. Default to 0.25
 
     Returns
     -------
-    (z1, z2)
+    zmin, zmax: float
+        Computed min and max values.
+
     """
 
     # Sample the image
+    image = np.asarray(image)
     stride = int(image.size / nsamples)
     samples = image.flatten()[::stride][:nsamples]
     samples.sort()
