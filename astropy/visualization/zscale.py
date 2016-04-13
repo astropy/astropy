@@ -8,10 +8,12 @@ https://trac.stsci.edu/ssb/stsci_python/browser/stsci_python/trunk/numdisplay/LI
 
 """
 
-from __future__ import division  # confidence high
+from __future__ import absolute_import, division
 
 import math
-import numpy
+import numpy as np
+
+__all__ = ['zscale']
 
 MAX_REJECT = 0.5
 MIN_NPIXELS = 5
@@ -87,7 +89,7 @@ def zsc_sample(image, maxpix):
 def zsc_fit_line(samples, npix, krej, ngrow, maxiter):
     # First re-map indices from -1.0 to 1.0
     xscale = 2.0 / (npix - 1)
-    xnorm = numpy.arange(npix)
+    xnorm = np.arange(npix)
     xnorm = xnorm * xscale - 1.0
 
     ngoodpix = npix
@@ -95,7 +97,7 @@ def zsc_fit_line(samples, npix, krej, ngrow, maxiter):
     last_ngoodpix = npix + 1
 
     # This is the mask used in k-sigma clipping.  0 is good, 1 is bad
-    badpix = numpy.zeros(npix, dtype="int32")
+    badpix = np.zeros(npix, dtype="int32")
 
     #
     #  Iterate
@@ -106,7 +108,7 @@ def zsc_fit_line(samples, npix, krej, ngrow, maxiter):
             break
 
         # Accumulate sums to calculate straight line fit
-        goodpixels = numpy.where(badpix == GOOD_PIXEL)
+        goodpixels = np.where(badpix == GOOD_PIXEL)
         sumx = xnorm[goodpixels].sum()
         sumxx = (xnorm[goodpixels] * xnorm[goodpixels]).sum()
         sumxy = (xnorm[goodpixels] * samples[goodpixels]).sum()
@@ -130,17 +132,17 @@ def zsc_fit_line(samples, npix, krej, ngrow, maxiter):
         # Detect and reject pixels further than k*sigma from the fitted line
         lcut = -threshold
         hcut = threshold
-        below = numpy.where(flat < lcut)
-        above = numpy.where(flat > hcut)
+        below = np.where(flat < lcut)
+        above = np.where(flat > hcut)
 
         badpix[below] = BAD_PIXEL
         badpix[above] = BAD_PIXEL
 
         # Convolve with a kernel of length ngrow
-        kernel = numpy.ones(ngrow, dtype="int32")
-        badpix = numpy.convolve(badpix, kernel, mode='same')
+        kernel = np.ones(ngrow, dtype="int32")
+        badpix = np.convolve(badpix, kernel, mode='same')
 
-        ngoodpix = len(numpy.where(badpix == GOOD_PIXEL)[0])
+        ngoodpix = len(np.where(badpix == GOOD_PIXEL)[0])
 
         niter += 1
 
@@ -157,7 +159,7 @@ def zsc_compute_sigma(flat, badpix, npix):
     # Ignore rejected pixels
 
     # Accumulate sum and sum of squares
-    goodpixels = numpy.where(badpix == GOOD_PIXEL)
+    goodpixels = np.where(badpix == GOOD_PIXEL)
     sumz = flat[goodpixels].sum()
     sumsq = (flat[goodpixels] * flat[goodpixels]).sum()
     ngoodpix = len(goodpixels[0])
