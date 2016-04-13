@@ -31,14 +31,17 @@ def compute_intensity(imageR, imageG=None, imageB=None):
 
     Parameters
     ----------
-
     imageR : `~numpy.ndarray`
         Intensity of image to be mapped to red; or total intensity if imageG and
         imageB are None.
-    imageG : `~numpy.ndarray`
-        Intensity of image to be mapped to green; or None.
-    imageB : `~numpy.ndarray`
-        Intensity of image to be mapped to blue; or None.
+    imageG : `~numpy.ndarray`, optional
+        Intensity of image to be mapped to green.
+    imageB : `~numpy.ndarray`, optional
+        Intensity of image to be mapped to blue.
+
+    Notes
+    -----
+    Inputs may be MaskedImages, Images, or numpy arrays and the return is of the same type.
     """
     if imageG is None or imageB is None:
         assert imageG is None and imageB is None, \
@@ -62,9 +65,9 @@ def zscale(image, nSamples=1000, contrast=0.25):
     ----------
     image : `~numpy.ndarray`
         The image to compute the scaling on.
-    nSamples :  int
-        How many samples to take when building the histogram.
-    contrast : float
+    nSamples :  int, optional
+        How many samples to take when building the histogram. Default is 1000.
+    contrast : float, optional
         ???
     """
 
@@ -86,18 +89,17 @@ def zscale(image, nSamples=1000, contrast=0.25):
 
 
 class Mapping(object):
-    """Baseclass to map red, blue, green intensities into uint8 values"""
+    """Baseclass to map red, blue, green intensities into uint8 values."""
 
     def __init__(self, minimum=None, image=None):
         """
-        Create a mapping
+        Create a mapping.
 
         Parameters
         ----------
-
         minimum : float or sequence(3)
             Intensity that should be mapped to black (a scalar or array for R, G, B).
-        image : `~numpy.ndarray`
+        image : `~numpy.ndarray`, optional
             The image to be used to calculate the mapping.
             If provided, it is also used as the default for makeRgbImage().
         """
@@ -105,7 +107,7 @@ class Mapping(object):
 
         try:
             len(minimum)
-        except:
+        except TypeError:
             minimum = 3*[minimum]
         assert len(minimum) == 3, "Please provide 1 or 3 values for minimum"
 
@@ -119,19 +121,19 @@ class Mapping(object):
 
         Parameters
         ----------
-
-        imageR : `~numpy.ndarray`
-            Image to map to red (if None, use the image passed to the constructor).
-        imageG : `~numpy.ndarray`
+        imageR : `~numpy.ndarray`, optional
+            Image to map to red (if None, use the image passed to the
+            constructor).
+        imageG : `~numpy.ndarray`, optional
             Image to map to green (if None, use imageR).
-        imageB : `~numpy.ndarray`
+        imageB : `~numpy.ndarray`, optional
             Image to map to blue (if None, use imageR).
-        xSize : int
+        xSize : int, optional
             Desired width of RGB image (or None).  If ySize is None, preserve
             aspect ratio.
-        ySize : int
+        ySize : int, optional
             Desired height of RGB image (or None).
-        rescaleFactor : float
+        rescaleFactor : float, optional
             Make size of output image rescaleFactor*size of the input image.
             Cannot be specified if xSize or ySize are given.
         """
@@ -230,7 +232,6 @@ class LinearMapping(Mapping):
 
         Parameters
         ----------
-
         minimum : float
             Intensity that should be mapped to black (a scalar or array for R, G, B).
         maximum : float
@@ -274,7 +275,6 @@ class ZScaleMapping(LinearMapping):
 
         Parameters
         ----------
-
         nSamples : int
             The number of samples to use to estimate the zscale parameters.
         contrast : float
@@ -350,20 +350,23 @@ class AsinhZScaleMapping(AsinhMapping):
 
         Parameters
         ----------
-
-        image1 : `~numpy.ndarray`
-            The image to analyse,
-         # or a list of 3 images to be converted to an intensity image.
-        image2 : `~numpy.ndarray`
+        image1 : `~numpy.ndarray` or a list of arrays
+            The image to analyse, or a list of 3 images to be converted to
+            an intensity image.
+        image2 : `~numpy.ndarray`, optional
             the second image to analyse (must be specified with image3).
-        image3 : `~numpy.ndarray`
+        image3 : `~numpy.ndarray`, optional
             the third image to analyse (must be specified with image2).
-        Q : float
-            The asinh softening parameter.
-        pedestal : float or sequence(3)
+        Q : float, optional
+            The asinh softening parameter. Default is 8.
+        pedestal : float or sequence(3), optional
             The value, or array of 3 values, to subtract from the images; or None.
-            pedestal, if not None, is removed from the images when calculating
-            the zscale stretch, and added back into Mapping.minimum.
+
+        Notes
+        -----
+        N.b. pedestal, if not None, is removed from the images when
+        calculating the zscale stretch, and added back into
+        Mapping.minimum[]
         """
 
         if image2 is None or image3 is None:
@@ -461,11 +464,10 @@ def displayRGB(rgb, show=True, title=None):
 
     Parameters
     ----------
-
     rgb : `~numpy.ndarray`
         The RGB image to display
     show : bool
-        If true, call plt.show()
+        If true, call `~matplotlib.pyplot.show()`
     title : str
         Title to use for the displayed image.
     """
@@ -482,21 +484,22 @@ def writeRGB(fileName, rgbImage):
     """
     Write an RGB image to disk.
 
-    Most versions of matplotlib support png and pdf (although the eps/pdf/svg
-    writers may be buggy, possibly due an interaction with useTeX=True in the
-    matplotlib settings).
-
-    If your matplotlib bundles pil/pillow you should also be able to write jpeg
-    and tiff files.
-
     Parameters
     ----------
-
     fileName : str
         The output file.  The extension defines the format, and must be
-        supported by matplotlib.imsave().
+        supported by `~matplotlib.imsave()`.
     rgbImage : `~numpy.ndarray`
         The RGB image to save.
+
+    Notes
+    -----
+    Most versions of matplotlib support png and pdf (although the
+    eps/pdf/svg writers may be buggy, possibly due an interaction with
+    useTeX=True in the matplotlib settings).
+
+    If your matplotlib bundles pil/pillow you should also be able to write
+    jpeg and tiff files.
     """
     import matplotlib.image
     matplotlib.image.imsave(fileName, rgbImage)
