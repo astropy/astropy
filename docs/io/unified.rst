@@ -221,9 +221,12 @@ If the file already exists and you want to overwrite it, then set the
 
     >>> t.write('existing_table.fits', overwrite=True)
 
-At this time there is no support for appending an HDU to an existing file or
-writing multi-HDU files using the Table interface.  Instead one can use the
-lower-level :ref:`astropy.io.fits <astropy-io-fits>` interface.
+At this time there is no support for appending an HDU to an existing
+file or writing multi-HDU files using the Table interface. Instead one
+can use the convenience function
+:func:`~astropy.io.fits.table_to_hdu` to create a single
+binary table HDU and insert or append that to an existing
+:class:`~astropy.io.fits.HDUList`.
 
 Keywords
 """""""""
