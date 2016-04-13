@@ -51,9 +51,7 @@ def zscale(image, nsamples=1000, contrast=0.25):
 
     # Fit a line to the sorted array of samples
     minpix = max(MIN_NPIXELS, int(npix * MAX_REJECT))
-    ngrow = max(1, int(npix * 0.01))
-    ngoodpix, zstart, zslope = zsc_fit_line(samples, npix, KREJ, ngrow,
-                                            MAX_ITERATIONS)
+    ngoodpix, zslope = zsc_fit_line(samples, KREJ, MAX_ITERATIONS)
 
     if ngoodpix >= minpix:
         if contrast > 0:
@@ -65,48 +63,35 @@ def zscale(image, nsamples=1000, contrast=0.25):
     return zmin, zmax
 
 
-def zsc_fit_line(samples, npix, krej, ngrow, maxiter):
-    # First re-map indices from -1.0 to 1.0
-    xscale = 2.0 / (npix - 1)
-    xnorm = np.linspace(-1, 1, npix)
+def zsc_fit_line(samples, krej, maxiter):
+    npix = len(samples)
+    x = np.arange(npix)
 
     ngoodpix = npix
     minpix = max(MIN_NPIXELS, int(npix * MAX_REJECT))
     last_ngoodpix = npix + 1
 
+    ngrow = max(1, int(npix * 0.01))
     kernel = np.ones(ngrow, dtype=bool)
 
     # This is the mask used in k-sigma clipping
     badpix = np.zeros(npix, dtype=bool)
 
     for niter in range(maxiter):
-
         if (ngoodpix >= last_ngoodpix) or (ngoodpix < minpix):
             break
 
-        # Accumulate sums to calculate straight line fit
-        goodpixels = ~badpix
-        sumx = xnorm[goodpixels].sum()
-        sumxx = (xnorm[goodpixels] * xnorm[goodpixels]).sum()
-        sumxy = (xnorm[goodpixels] * samples[goodpixels]).sum()
-        sumy = samples[goodpixels].sum()
-        sum = goodpixels.sum()
-
-        delta = sum * sumxx - sumx * sumx
-        # Slope and intercept
-        intercept = (sumxx * sumy - sumx * sumxy) / delta
-        slope = (sum * sumxy - sumx * sumy) / delta
+        fit = np.polyfit(x, samples, deg=1, w=(~badpix).astype(int))
+        fitted = np.poly1d(fit)(x)
 
         # Subtract fitted line from the data array
-        fitted = xnorm * slope + intercept
         flat = samples - fitted
 
         # Compute the k-sigma rejection threshold
-        threshold = krej * flat[goodpixels].std()
+        threshold = krej * flat[~badpix].std()
 
         # Detect and reject pixels further than k*sigma from the fitted line
-        badpix[flat < - threshold] = True
-        badpix[flat > threshold] = True
+        badpix[(flat < - threshold) | (flat > threshold)] = True
 
         # Convolve with a kernel of length ngrow
         badpix = np.convolve(badpix, kernel, mode='same')
@@ -114,8 +99,5 @@ def zsc_fit_line(samples, npix, krej, ngrow, maxiter):
         last_ngoodpix = ngoodpix
         ngoodpix = np.sum(~badpix)
 
-    # Transform the line coefficients back to the X range [0:npix-1]
-    zstart = intercept - slope
-    zslope = slope * xscale
-
-    return ngoodpix, zstart, zslope
+    slope, intercept = fit
+    return ngoodpix, slope
