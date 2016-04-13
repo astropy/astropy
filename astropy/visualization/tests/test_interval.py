@@ -58,11 +58,14 @@ class TestInterval2D(TestInterval):
 
     data = np.linspace(-20., 60., 100).reshape(100, 1)
 
-    def test_zscale(self):
-        interval = ZScaleInterval()
-        vmin, vmax = interval.get_limits(self.data)
-        np.testing.assert_allclose(vmin, -20.)
-        np.testing.assert_allclose(vmax, +60.)
+
+def test_zscale():
+    np.random.seed(42)
+    data = np.random.randn(100, 100) * 5 + 10
+    interval = ZScaleInterval()
+    vmin, vmax = interval.get_limits(data)
+    np.testing.assert_allclose(vmin, -9.6, atol=0.1)
+    np.testing.assert_allclose(vmax, 25.4, atol=0.1)
 
 
 def test_integers():
