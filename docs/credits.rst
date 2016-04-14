@@ -153,6 +153,7 @@ Core Package Contributors
 * Joseph Ryan
 * Eloy Salinas
 * Gerrit Schellenberger
+* Michael Seifert
 * David Shiga
 * Albert Y. Shih
 * David Shupe
