@@ -456,6 +456,8 @@ Bug Fixes
 
 - ``astropy.vo``
 
+  - KeyError when converting Table v1.2 numeric arrays fixed. [#4782]
+
 - ``astropy.wcs``
 
 Other Changes and Additions
