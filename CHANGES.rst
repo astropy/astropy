@@ -1281,6 +1281,9 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - Exponentation using a ``Quantity`` with a unit equivalent to dimensionless
+    as base and an ``array``-like exponent yields the correct result. [#4770]
+
 - ``astropy.utils``
 
 - ``astropy.vo``
