@@ -142,7 +142,7 @@ Core Package Contributors
 * Ray Plante
 * Orion Poplawski
 * Adrian Price-Whelan
-* J. Xavier Prochaska
+* J\. Xavier Prochaska
 * David Pérez-Suárez
 * QuanTakeuchi
 * Tanuj Rastogi
