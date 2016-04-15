@@ -436,10 +436,15 @@ class _ImageBaseHDU(_ValidHDU):
                         nbytes = 8 * _type().itemsize
                         _scale = (max - min) / (2.0 ** nbytes - 2)
 
+        #convert the data
+        if self.data.dtype.type != _type:
+            self.data = np.array(np.around(self.data), dtype=_type)
+
         # Do the scaling
         if _zero != 0:
             # 0.9.6.3 to avoid out of range error for BZERO = +32768
-            self.data += -_zero
+            # not sure if this deal with unsigned destination data types correctly
+            self.data += self.data.dtype.type(-_zero)
             self._header['BZERO'] = _zero
         else:
             try:
@@ -456,15 +461,12 @@ class _ImageBaseHDU(_ValidHDU):
             except KeyError:
                 pass
 
-        # Set blanks
         if blank is not None and issubclass(_type, np.integer):
             # TODO: Perhaps check that the requested BLANK value fits in the
             # integer type being scaled to?
             self.data[np.isnan(self.data)] = blank
             self._header['BLANK'] = blank
 
-        if self.data.dtype.type != _type:
-            self.data = np.array(np.around(self.data), dtype=_type)
 
         # Update the BITPIX Card to match the data
         self._bitpix = DTYPE2BITPIX[self.data.dtype.name]
