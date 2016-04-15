@@ -5,7 +5,7 @@ import numpy as np
 
 from ... import units as u
 from ...tests.helper import pytest
-from ...utils.compat import (NUMPY_LT_1_7, NUMPY_LT_1_8,
+from ...utils.compat import (NUMPY_LT_1_8,
                              NUMPY_LT_1_9_1, NUMPY_LT_1_10)
 
 
@@ -147,12 +147,6 @@ class TestQuantityStatsFuncs(object):
     # of the standard deviation; https://github.com/numpy/numpy/issues/5240
     @pytest.mark.xfail(NUMPY_LT_1_9_1, reason="Numpy 1.9.1 or later is required")
     def test_std_inplace(self):
-
-        # For Numpy < 1.7, the test segfaults.  Hence, the xfail decorator does
-        # not suffice: py.test will run the test anyway to see if it works.
-        if NUMPY_LT_1_7:
-            pytest.xfail()
-
         q1 = np.array([1., 2.]) * u.m
         qi = 1.5 * u.s
         np.std(q1, out=qi)
@@ -163,12 +157,6 @@ class TestQuantityStatsFuncs(object):
         assert np.var(q1) == 0.25 * u.m ** 2
 
     def test_var_inplace(self):
-
-        # For Numpy < 1.7, the test segfaults.  Hence, we cannot use the xfail
-        # decorator since py.test will run the test anyway to see if it works.
-        if NUMPY_LT_1_7:
-            pytest.xfail()
-
         q1 = np.array([1., 2.]) * u.m
         qi = 1.5 * u.s
         np.var(q1, out=qi)

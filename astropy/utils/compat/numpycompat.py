@@ -9,14 +9,12 @@ from ...extern import six
 from ...utils import minversion
 
 
-__all__ = ['NUMPY_LT_1_6_1', 'NUMPY_LT_1_7', 'NUMPY_LT_1_8', 'NUMPY_LT_1_9',
-           'NUMPY_LT_1_9_1', 'NUMPY_LT_1_10', 'NUMPY_LT_1_11']
+__all__ = ['NUMPY_LT_1_8', 'NUMPY_LT_1_9', 'NUMPY_LT_1_9_1', 'NUMPY_LT_1_10',
+           'NUMPY_LT_1_11']
 
 # TODO: It might also be nice to have aliases to these named for specific
 # features/bugs we're checking for (ex:
 # astropy.table.table._BROKEN_UNICODE_TABLE_SORT)
-NUMPY_LT_1_6_1 = not minversion('numpy', '1.6.1')
-NUMPY_LT_1_7 = not minversion('numpy', '1.7.0')
 NUMPY_LT_1_8 = not minversion('numpy', '1.8.0')
 NUMPY_LT_1_9 = not minversion('numpy', '1.9.0')
 NUMPY_LT_1_9_1 = not minversion('numpy', '1.9.1')
@@ -47,37 +45,5 @@ def _monkeypatch_unicode_mask_fill_values():
         ma_core._check_fill_value = _check_fill_value
 
 
-def _register_patched_dtype_reduce():
-    """
-    Numpy < 1.7 has a bug when copying/pickling dtype objects with a
-    zero-width void type--i.e. ``np.dtype('V0')``.  Specifically, although
-    creating a void type is perfectly valid, it crashes when instantiating
-    a dtype using a format string of 'V0', which is what is normally returned
-    by dtype.__reduce__() for these dtypes.
-
-    See https://github.com/astropy/astropy/pull/3283#issuecomment-81667461
-    """
-
-    if NUMPY_LT_1_7:
-        import numpy as np
-        import copy_reg
-
-        # Originally this created an alternate constructor that fixed this
-        # issue, and returned that constructor from the new reduce_dtype;
-        # however that broke pickling since functions can't be pickled, so now
-        # we fix the issue directly within the custom __reduce__
-
-        def reduce_dtype(obj):
-            info = obj.__reduce__()
-            args = info[1]
-            if args[0] == 'V0':
-                args = ('V',) + args[1:]
-                info = (info[0], args) + info[2:]
-            return info
-
-        copy_reg.pickle(np.dtype, reduce_dtype)
-
-
 if not _ASTROPY_SETUP_:
     _monkeypatch_unicode_mask_fill_values()
-    _register_patched_dtype_reduce()

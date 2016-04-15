@@ -18,7 +18,7 @@ from numpy import ma
 from .. import log
 from ..io import registry as io_registry
 from ..units import Quantity
-from ..utils import isiterable, deprecated, minversion
+from ..utils import isiterable, deprecated
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
 from ..utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo
@@ -30,11 +30,6 @@ from .row import Row
 from .np_utils import fix_column_name, recarray_fromrecords
 from .info import TableInfo
 from .index import Index, _IndexModeContext, get_index
-
-# Prior to Numpy 1.6.2, there was a bug (in Numpy) that caused
-# sorting of structured arrays containing Unicode columns to
-# silently fail.
-_BROKEN_UNICODE_TABLE_SORT = not minversion(np, '1.6.2')
 
 
 __doctest_skip__ = ['Table.read', 'Table.write',
@@ -2176,11 +2171,7 @@ class Table(object):
         else:
             data = self.as_array()
 
-        if _BROKEN_UNICODE_TABLE_SORT and keys is not None and any(
-                data.dtype[i].kind == 'U' for i in xrange(len(data.dtype))):
-            return np.lexsort([data[key] for key in keys[::-1]])
-        else:
-            return data.argsort(**kwargs)
+        return data.argsort(**kwargs)
 
     def sort(self, keys=None):
         '''

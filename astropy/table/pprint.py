@@ -14,7 +14,6 @@ import numpy as np
 
 from .. import log
 # Note, in numpy <= 1.6, some classes do not properly represent themselves.
-from ..utils.compat import NUMPY_LT_1_6_1
 from ..utils.console import Getch, color_print, terminal_size, conf
 from ..utils.data_info import dtype_info_name
 
@@ -31,19 +30,6 @@ elif six.PY2:
 
 ### The first three functions are helpers for _auto_format_func
 
-
-def _use_val_tolist(format_func):
-    """Wrap format function to work with values converted to python equivalents.
-
-    In numpy <= 1.6, classes such as np.float32 do not properly represent
-    themselves as floats, and hence cannot easily be formatted; see
-    https://github.com/astropy/astropy/issues/148#issuecomment-3930809
-    Hence, we force the value to a python type using tolist()
-    (except for np.ma.masked, since np.ma.masked.tolist() is None).
-    """
-    return lambda format_, val: format_func(format_,
-                                            val if val is np.ma.masked
-                                            else val.tolist())
 
 def _use_str_for_masked_values(format_func):
     """Wrap format function to trap masked values.
@@ -78,8 +64,6 @@ def _auto_format_func(format_, val):
 
     if six.callable(format_):
         format_func = lambda format_, val: format_(val)
-        if NUMPY_LT_1_6_1:
-            format_func = _use_val_tolist(format_func)
         try:
             out = format_func(format_, val)
             if not isinstance(out, six.string_types):
@@ -109,9 +93,6 @@ def _auto_format_func(format_, val):
             return str(val)
 
         for format_func in _possible_string_format_functions(format_):
-            if NUMPY_LT_1_6_1:
-                format_func = _use_val_tolist(format_func)
-
             try:
                 # Does this string format method work?
                 out = format_func(format_, val)
