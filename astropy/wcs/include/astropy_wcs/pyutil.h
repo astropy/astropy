@@ -16,20 +16,6 @@
 #include <numpy/arrayobject.h>
 #include <numpy/npy_math.h>
 
-/* A few Numpy constants that don't have consistent (undeprecated) spellings
-   between Numpy 1.6 and the current version */
-#ifndef NPY_ARRAY_C_CONTIGUOUS
-#define NPY_ARRAY_C_CONTIGUOUS NPY_C_CONTIGUOUS
-#endif
-
-#ifndef NPY_ARRAY_WRITEABLE
-#define NPY_ARRAY_WRITEABLE NPY_WRITEABLE
-#endif
-
-#ifndef PyArray_SetBaseObject
-#define PyArray_SetBaseObject(arr, baseobj) ((arr)->base = (PyObject *)baseobj)
-#endif
-
 #if PY_MAJOR_VERSION >= 3
 #define PY3K 1
 #else
