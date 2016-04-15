@@ -78,13 +78,11 @@ matrix:
 
         # Try older numpy versions without optional dependencies
         - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.10 SETUP_CMD='test'
+        - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.9 SETUP_CMD='test'
         - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.8 SETUP_CMD='test'
-        - os: linux
-          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.7 SETUP_CMD='test'
-        - os: linux
-          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.6 SETUP_CMD='test'
 
         # Try developer version of Numpy without optional dependencies
         - os: linux
