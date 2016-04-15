@@ -959,6 +959,9 @@ class TestSort():
         t.sort(['b', 'a'])
         assert np.all(t['a'] == np.array([2, 1, 3, 1, 3, 2]))
         assert np.all(t['b'] == np.array([3, 4, 4, 5, 5, 6]))
+        t.sort(('a', 'b'))
+        assert np.all(t['a'] == np.array([1, 1, 2, 2, 3, 3]))
+        assert np.all(t['b'] == np.array([4, 5, 3, 6, 4, 5]))
 
     def test_multiple_with_bytes(self, table_types):
         t = table_types.Table()

@@ -84,6 +84,8 @@ New Features
 
   - Added ``AttributeError`` when trying to set mask on non-masked table. [#3505]
 
+  - Allow to use a tuple of keys in ``Table.sort``.  [#4671]
+
 - ``astropy.tests``
 
 - ``astropy.time``
@@ -278,7 +280,7 @@ Bug fixes
   - ``NDArithmeticMixin`` does provide correct resulting uncertainties for
     ``divide`` and ``multiply`` if only one uncertainty was set. [#4152, #4272]
 
- - ``astropy.stats``
+- ``astropy.stats``
 
 - ``astropy.table``
 
@@ -441,6 +443,8 @@ Bug Fixes
 - ``astropy.nddata``
 
 - ``astropy.stats``
+
+  - Fix ``sigma_clipped_stats`` to use the ``axis`` argument. [#4726]
 
 - ``astropy.table``
 
@@ -1277,6 +1281,9 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - Exponentation using a ``Quantity`` with a unit equivalent to dimensionless
+    as base and an ``array``-like exponent yields the correct result. [#4770]
+
 - ``astropy.utils``
 
 - ``astropy.vo``
@@ -1297,7 +1304,7 @@ New Features
 
 - ``astropy.nddata``
 
- - ``NDArithmeticMixin`` check for matching WCS now works with
+  - ``NDArithmeticMixin`` check for matching WCS now works with
     ``astropy.wcs.WCS`` objects [#4499]
 
 Bug Fixes

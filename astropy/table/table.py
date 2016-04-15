@@ -2220,7 +2220,8 @@ class Table(object):
             if not self.indices:
                 raise ValueError("Table sort requires input keys or a table index")
             keys = [x.info.name for x in self.indices[0].columns]
-        if type(keys) is not list:
+
+        if isinstance(keys, six.string_types):
             keys = [keys]
 
         indexes = self.argsort(keys)
