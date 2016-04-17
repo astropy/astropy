@@ -66,6 +66,7 @@ New Features
 - ``astropy.stats``
 
   - Added ``axis`` keyword for ``mad_std`` function. [#4688]
+  - Added Bayesian and Akaike Information Criteria. [#4716]
 
   - Added Bayesian upper limits for Poisson count rates. [#4622]
 
