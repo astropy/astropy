@@ -80,6 +80,25 @@ class Gaussian1D(Fittable1DModel):
     >>> g1.stddev.fixed
     True
 
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        from astropy.modeling.models import Gaussian1D
+
+        plt.figure()
+        s1 = Gaussian1D()
+        r = np.arange(-5, 5, .01)
+
+        for factor in range(1, 4):
+            s1.amplitude = factor
+            plt.plot(r, s1(r), color=str(0.25 * factor), lw=2)
+
+        plt.axis([-5, 5, -1, 4])
+        plt.show()
+
     See Also
     --------
     Gaussian2D, Box1D, Moffat1D, Lorentz1D
@@ -159,6 +178,25 @@ class GaussianAbsorption1D(Fittable1DModel):
     Model formula:
 
         .. math:: f(x) = 1 - A e^{- \\frac{\\left(x - x_{0}\\right)^{2}}{2 \\sigma^{2}}}
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+        from astropy.modeling.models import GaussianAbsorption1D
+
+        plt.figure()
+        s1 = GaussianAbsorption1D()
+        r = np.arange(-5, 5, .01)
+        for factor in range(1, 4):
+            s1.amplitude = factor
+            plt.plot(r, s1(r), color=str(0.25 * factor), lw=2)
+
+        plt.axis([-5, 5, -3, 2])
+        plt.show()
 
     See Also
     --------
@@ -646,6 +684,27 @@ class Sine1D(Fittable1DModel):
     Model formula:
 
         .. math:: f(x) = A \\sin(2 \\pi f x + 2 \\pi p)
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        from astropy.modeling.models import Sine1D
+
+        plt.figure()
+        s1 = Sine1D(amplitude=1, frequency=.25)
+        r=np.arange(0, 10, .01)
+
+        for amplitude in range(1,4):
+             s1.amplitude = amplitude
+             plt.plot(r, s1(r), color=str(0.25 * amplitude), lw=2)
+
+        plt.axis([0, 10, -5, 5])
+        plt.show()
     """
 
     amplitude = Parameter(default=1)
@@ -742,6 +801,27 @@ class Lorentz1D(Fittable1DModel):
     .. math::
 
         f(x) = \\frac{A \\gamma^{2}}{\\gamma^{2} + \\left(x - x_{0}\\right)^{2}}
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        from astropy.modeling.models import Lorentz1D
+
+        plt.figure()
+        s1 = Lorentz1D()
+        r = np.arange(-5, 5, .01)
+
+        for factor in range(1, 4):
+            s1.amplitude = factor
+            plt.plot(r, s1(r), color=str(0.25 * factor), lw=2)
+
+        plt.axis([-5, 5, -1, 4])
+        plt.show()
     """
 
     amplitude = Parameter(default=1)
@@ -876,6 +956,27 @@ class Const1D(Fittable1DModel):
     Model formula:
 
         .. math:: f(x) = A
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        from astropy.modeling.models import Const1D
+
+        plt.figure()
+        s1 = Const1D()
+        r = np.arange(-5, 5, .01)
+
+        for factor in range(1, 4):
+            s1.amplitude = factor
+            plt.plot(r, s1(r), color=str(0.25 * factor), lw=2)
+
+        plt.axis([-5, 5, -1, 4])
+        plt.show()
     """
 
     amplitude = Parameter(default=1)
@@ -1232,6 +1333,28 @@ class Box1D(Fittable1DModel):
                        0 & : \\textnormal{else}
                      \\end{array}
                    \\right.
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        from astropy.modeling.models import Box1D
+
+        plt.figure()
+        s1 = Box1D()
+        r = np.arange(-5, 5, .01)
+
+        for factor in range(1, 4):
+            s1.amplitude = factor
+            s1.width = factor
+            plt.plot(r, s1(r), color=str(0.25 * factor), lw=2)
+
+        plt.axis([-5, 5, -1, 4])
+        plt.show()
     """
 
     amplitude = Parameter(default=1)
@@ -1354,6 +1477,28 @@ class Trapezoid1D(Fittable1DModel):
     See Also
     --------
     Box1D, Gaussian1D, Moffat1D
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        from astropy.modeling.models import Trapezoid1D
+
+        plt.figure()
+        s1 = Trapezoid1D()
+        r = np.arange(-5, 5, .01)
+
+        for factor in range(1, 4):
+            s1.amplitude = factor
+            s1.width = factor
+            plt.plot(r, s1(r), color=str(0.25 * factor), lw=2)
+
+        plt.axis([-5, 5, -1, 4])
+        plt.show()
     """
 
     amplitude = Parameter(default=1)
@@ -1473,6 +1618,27 @@ class MexicanHat1D(Fittable1DModel):
         f(x) = {A \\left(1 - \\frac{\\left(x - x_{0}\\right)^{2}}{\\sigma^{2}}\\right)
         e^{- \\frac{\\left(x - x_{0}\\right)^{2}}{2 \\sigma^{2}}}}
 
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        from astropy.modeling.models import MexicanHat1D
+
+        plt.figure()
+        s1 = MexicanHat1D()
+        r = np.arange(-5, 5, .01)
+
+        for factor in range(1, 4):
+            s1.amplitude = factor
+            s1.width = factor
+            plt.plot(r, s1(r), color=str(0.25 * factor), lw=2)
+
+        plt.axis([-5, 5, -2, 4])
+        plt.show()
     """
 
     amplitude = Parameter(default=1)
@@ -1629,6 +1795,28 @@ class Moffat1D(Fittable1DModel):
     .. math::
 
         f(x) = A \\left(1 + \\frac{\\left(x - x_{0}\\right)^{2}}{\\gamma^{2}}\\right)^{- \\alpha}
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        from astropy.modeling.models import Moffat1D
+
+        plt.figure()
+        s1 = Moffat1D()
+        r = np.arange(-5, 5, .01)
+
+        for factor in range(1, 4):
+            s1.amplitude = factor
+            s1.width = factor
+            plt.plot(r, s1(r), color=str(0.25 * factor), lw=2)
+
+        plt.axis([-5, 5, -1, 4])
+        plt.show()
     """
 
     amplitude = Parameter(default=1)
