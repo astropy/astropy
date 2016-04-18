@@ -4,7 +4,7 @@
 General
 ^^^^^^^
 
-Astropy now requires a Numpy 1.8.0 or later.
+Astropy now requires a Numpy 1.7.0 or later.
 
 New Features
 ^^^^^^^^^^^^
