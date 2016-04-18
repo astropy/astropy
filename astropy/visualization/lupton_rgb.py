@@ -26,20 +26,19 @@ except ImportError:
 
 
 def compute_intensity(imageR, imageG=None, imageB=None):
-    """!Return a naive total intensity from the red, blue, and green intensities.
+    """
+    Return a naive total intensity from the red, blue, and green intensities.
 
     Parameters
     ----------
 
     imageR : `~numpy.ndarray`
-        Intensity of image that'll be mapped to red; or total intensity if
-        imageG and imageB are None
+        Intensity of image to be mapped to red; or total intensity if imageG and
+        imageB are None.
     imageG : `~numpy.ndarray`
-        Intensity of image that'll be mapped to green; or None
+        Intensity of image to be mapped to green; or None.
     imageB : `~numpy.ndarray`
-        Intensity of image that'll be mapped to blue; or None
-
-    Inputs may be MaskedImages, Images, or numpy arrays and the return is of the same type
+        Intensity of image to be mapped to blue; or None.
     """
     if imageG is None or imageB is None:
         assert imageG is None and imageB is None, \
@@ -54,6 +53,8 @@ def compute_intensity(imageR, imageG=None, imageB=None):
 
 def zscale(image, nSamples=1000, contrast=0.25):
     """
+    TBD: replace with newly added astropy.zscale function.
+
     This emulates ds9's zscale feature. Returns the suggested minimum and
     maximum values to display.
 
@@ -88,11 +89,17 @@ class Mapping(object):
     """!Baseclass to map red, blue, green intensities into uint8 values"""
 
     def __init__(self, minimum=None, image=None):
-        """!Create a mapping
-        \param minimum  Intensity that should be mapped to black (a scalar or array for R, G, B)
-        \param image The image to be used to calculate the mapping.
+        """
+        Create a mapping
 
-        If provided, also the default for makeRgbImage()
+        Parameters
+        ----------
+
+        minimum : float or sequence(3)
+            Intensity that should be mapped to black (a scalar or array for R, G, B).
+        image : `~numpy.ndarray`
+            The image to be used to calculate the mapping.
+            If provided, it is also used as the default for makeRgbImage().
         """
         self._uint8Max = float(np.iinfo(np.uint8).max)
 
@@ -107,17 +114,30 @@ class Mapping(object):
 
     def makeRgbImage(self, imageR=None, imageG=None, imageB=None,
                      xSize=None, ySize=None, rescaleFactor=None):
-        """!Convert 3 arrays, imageR, imageG, and imageB into a numpy RGB image
-        \param imageR Image to map to red (if None, use the image passed to the constructor)
-        \param imageG Image to map to green (if None, use imageR)
-        \param imageB Image to map to blue (if None, use imageR)
-        \param xSize  Desired width of RGB image (or None).  If ySize is None, preserve aspect ratio.
-        \param ySize  Desired height of RGB image (or None)
-        \param rescaleFactor Make size of output image rescaleFactor*size of the input image (or None)
+        """
+        Convert 3 arrays, imageR, imageG, and imageB into a numpy RGB image.
+
+        Parameters
+        ----------
+
+        imageR : `~numpy.ndarray`
+            Image to map to red (if None, use the image passed to the constructor).
+        imageG : `~numpy.ndarray`
+            Image to map to green (if None, use imageR).
+        imageB : `~numpy.ndarray`
+            Image to map to blue (if None, use imageR).
+        xSize : int
+            Desired width of RGB image (or None).  If ySize is None, preserve
+            aspect ratio.
+        ySize : int
+            Desired height of RGB image (or None).
+        rescaleFactor : float
+            Make size of output image rescaleFactor*size of the input image.
+            Cannot be specified if xSize or ySize are given.
         """
         if imageR is None:
             if self._image is None:
-                raise RuntimeError("You must provide an image (or pass one to the constructor)")
+                raise RuntimeError("You must provide an image or pass one to the constructor")
             imageR = self._image
 
         if imageG is None:
@@ -151,14 +171,20 @@ class Mapping(object):
         return np.dstack(self._convertImagesToUint8(imageR, imageG, imageB)).astype(np.uint8)
 
     def intensity(self, imageR, imageG, imageB):
-        """!Return the total intensity from the red, blue, and green intensities
-
-        This is a naive computation, and may be overridden by subclasses
+        """
+        Return the total intensity from the red, blue, and green intensities.
+        This is a naive computation, and may be overridden by subclasses.
         """
         return compute_intensity(imageR, imageG, imageB)
 
     def mapIntensityToUint8(self, I):
-        """Map an intensity into the range of a uint8, [0, 255] (but not converted to uint8)"""
+        """
+        Return an array which, when multiplied by an image, returns that image
+        mapped to the range of a uint8, [0, 255] (but not converted to uint8).
+
+        The intensity is assumed to have had minimum subtracted (as that can be
+        done per-band).
+        """
         with np.errstate(invalid='ignore', divide='ignore'):  # n.b. np.where can't and doesn't short-circuit
             return np.where(I <= 0, 0, np.where(I < self._uint8Max, I, self._uint8Max))
 
@@ -195,13 +221,20 @@ class Mapping(object):
 
 
 class LinearMapping(Mapping):
-    """!A linear map map of red, blue, green intensities into uint8 values"""
+    """A linear map map of red, blue, green intensities into uint8 values"""
 
     def __init__(self, minimum=None, maximum=None, image=None):
-        """!A linear stretch from [minimum, maximum]; if one or both are omitted use image minimum/maximum to set them
+        """
+        A linear stretch from [minimum, maximum].
+        If one or both are omitted use image min and/or max to set them.
 
-        \param minimum  Intensity that should be mapped to black (a scalar or array for R, G, B)
-        \param maximum  Intensity that should be mapped to white (a scalar)
+        Parameters
+        ----------
+
+        minimum : float
+            Intensity that should be mapped to black (a scalar or array for R, G, B).
+        maximum : float
+            Intensity that should be mapped to white (a scalar).
         """
 
         if minimum is None or maximum is None:
@@ -212,7 +245,7 @@ class LinearMapping(Mapping):
             if maximum is None:
                 maximum = image.max()
 
-        Mapping.__init__(self, minimum, image)
+        Mapping.__init__(self, minimum=minimum, image=image)
         self.maximum = maximum
 
         if maximum is None:
@@ -222,27 +255,30 @@ class LinearMapping(Mapping):
             self._range = float(maximum - minimum)
 
     def mapIntensityToUint8(self, I):
-        """Return an array which, when multiplied by an image, returns that image mapped to the range of a
-        uint8, [0, 255] (but not converted to uint8)
-
-        The intensity is assumed to have had minimum subtracted (as that can be done per-band)
-        """
         with np.errstate(invalid='ignore', divide='ignore'):  # n.b. np.where can't and doesn't short-circuit
             return np.where(I <= 0, 0,
                             np.where(I >= self._range, self._uint8Max/I, self._uint8Max/self._range))
 
 
 class ZScaleMapping(LinearMapping):
-    """!A mapping for a linear stretch chosen by the zscale algorithm
+    """
+    A mapping for a linear stretch chosen by the zscale algorithm.
     (preserving colours independent of brightness)
 
     x = (I - minimum)/range
     """
 
     def __init__(self, image, nSamples=1000, contrast=0.25):
-        """!A linear stretch from [z1, z2] chosen by the zscale algorithm
-        \param nSamples The number of samples to use to estimate the zscale parameters
-        \param contrast The number of samples to use to estimate the zscale parameters
+        """
+        A linear stretch from [z1, z2] chosen by the zscale algorithm.
+
+        Parameters
+        ----------
+
+        nSamples : int
+            The number of samples to use to estimate the zscale parameters.
+        contrast : float
+            The number of samples to use to estimate the zscale parameters.
         """
 
         z1, z2 = zscale(image, nSamples, contrast)
@@ -250,7 +286,8 @@ class ZScaleMapping(LinearMapping):
 
 
 class AsinhMapping(Mapping):
-    """!A mapping for an asinh stretch (preserving colours independent of brightness)
+    """
+    A mapping for an asinh stretch (preserving colours independent of brightness)
 
     x = asinh(Q (I - minimum)/range)/Q
 
@@ -260,6 +297,20 @@ class AsinhMapping(Mapping):
     """
 
     def __init__(self, minimum, dataRange, Q=8):
+        """
+        asinh stretch from minimum to minimum + dataRange, scaled by Q, via:
+            x = asinh(Q (I - minimum)/dataRange)/Q
+
+        Parameters
+        ----------
+
+        minimum : float
+            Intensity that should be mapped to black (a scalar or array for R, G, B).
+        dataRange : float
+            minimum+dataRange defines the white level of the image.
+        Q : float
+            The asinh softening parameter.
+        """
         Mapping.__init__(self, minimum)
 
         epsilon = 1.0/2**23            # 32bit floating point machine epsilon; sys.float_info.epsilon is 64bit
@@ -279,17 +330,13 @@ class AsinhMapping(Mapping):
         self._soften = Q/float(dataRange)
 
     def mapIntensityToUint8(self, I):
-        """Return an array which, when multiplied by an image, returns that image mapped to the range of a
-        uint8, [0, 255] (but not converted to uint8)
-
-        The intensity is assumed to have had minimum subtracted (as that can be done per-band)
-        """
         with np.errstate(invalid='ignore', divide='ignore'):  # n.b. np.where can't and doesn't short-circuit
             return np.where(I <= 0, 0, np.arcsinh(I*self._soften)*self._slope/I)
 
 
 class AsinhZScaleMapping(AsinhMapping):
-    """!A mapping for an asinh stretch, estimating the linear stretch by zscale
+    """
+    A mapping for an asinh stretch, estimating the linear stretch by zscale.
 
     x = asinh(Q (I - z1)/(z2 - z1))/Q
 
@@ -298,17 +345,25 @@ class AsinhZScaleMapping(AsinhMapping):
 
     def __init__(self, image1, image2=None, image3=None, Q=8, pedestal=None):
         """!
-        Create an asinh mapping from an image, setting the linear part of the stretch using zscale.
+        Create an asinh mapping from an image, setting the linear part of the
+        stretch using zscale.
 
-        \param image1 The image to analyse,
-         # or a list of 3 images to be converted to an intensity image
-        \param image2 the second image to analyse (must be specified with image3)
-        \param image3 the third image to analyse (must be specified with image2)
-        \param Q The asinh softening parameter
-        \param pedestal The value, or array of 3 values, to subtract from the images; or None
+        Parameters
+        ----------
 
-        N.b. pedestal, if not None, is removed from the images when calculating the zscale
-        stretch, and added back into Mapping.minimum[]
+        image1 : `~numpy.ndarray`
+            The image to analyse,
+         # or a list of 3 images to be converted to an intensity image.
+        image2 : `~numpy.ndarray`
+            the second image to analyse (must be specified with image3).
+        image3 : `~numpy.ndarray`
+            the third image to analyse (must be specified with image2).
+        Q : float
+            The asinh softening parameter.
+        pedestal : float or sequence(3)
+            The value, or array of 3 values, to subtract from the images; or None.
+            pedestal, if not None, is removed from the images when calculating
+            the zscale stretch, and added back into Mapping.minimum.
         """
 
         if image2 is None or image3 is None:
@@ -343,13 +398,40 @@ class AsinhZScaleMapping(AsinhMapping):
         self._image = image
 
 
-def makeRGB(imageR, imageG=None, imageB=None, minimum=0, dataRange=5, Q=8, fileName=None,
+def makeRGB(imageR, imageG=None, imageB=None, minimum=0, dataRange=5, Q=8,
             saturatedBorderWidth=0, saturatedPixelValue=None,
-            xSize=None, ySize=None, rescaleFactor=None):
-    """Make a set of three images into an RGB image using an asinh stretch and optionally write it to disk
+            xSize=None, ySize=None, rescaleFactor=None,
+            fileName=None):
+    """
+    Make an RGB color image from 3 images using an asinh stretch.
 
-    If saturatedBorderWidth is non-zero, replace saturated pixels with saturatedPixelValue.  Note
-    that replacing saturated pixels requires that the input images be MaskedImages.
+    Parameters
+    ----------
+
+    imageR : `~numpy.ndarray`
+        Image to map to red (if None, use the image passed to the constructor).
+    imageG : `~numpy.ndarray`
+        Image to map to green (if None, use imageR).
+    imageB : `~numpy.ndarray`
+        Image to map to blue (if None, use imageR).
+    minimum : float
+        Intensity that should be mapped to black (a scalar or array for R, G, B).
+    dataRange : float
+        minimum+dataRange defines the white level of the image.
+    Q : float
+        The asinh softening parameter.
+    saturatedBorderWidth : int
+        If saturatedBorderWidth is non-zero, replace saturated pixels with saturatedPixelValue.
+        Note that replacing saturated pixels requires that the input images be MaskedImages.
+    saturatedPixelValue : float
+        Value to replace saturated pixels with.
+    xSize : int
+        Desired width of RGB image (or None).  If ySize is None, preserve aspect ratio.
+    ySize : int
+        Desired height of RGB image (or None).
+    rescaleFactor : float
+        Make size of output image rescaleFactor*size of the input image.
+        Cannot be specified if xSize or ySize are given.
     """
     if imageG is None:
         imageG = imageR
@@ -374,9 +456,18 @@ def makeRGB(imageR, imageG=None, imageB=None, minimum=0, dataRange=5, Q=8, fileN
 
 
 def displayRGB(rgb, show=True, title=None):
-    """!Display an rgb image using matplotlib
-    \param rgb  The RGB image in question
-    \param show If true, call plt.show()
+    """
+    Display an rgb image using matplotlib.
+
+    Parameters
+    ----------
+
+    rgb : `~numpy.ndarray`
+        The RGB image to display
+    show : bool
+        If true, call plt.show()
+    title : str
+        Title to use for the displayed image.
     """
     import matplotlib.pyplot as plt
     plt.imshow(rgb, interpolation='nearest', origin="lower")
@@ -388,14 +479,24 @@ def displayRGB(rgb, show=True, title=None):
 
 
 def writeRGB(fileName, rgbImage):
-    """!Write an RGB image to disk
-    \param fileName The output file.  The suffix defines the format, and must be supported by matplotlib
-    \param rgbImage The image, as made by e.g. makeRGB
+    """
+    Write an RGB image to disk.
 
-    Most versions of matplotlib support png and pdf (although the eps/pdf/svg writers may be buggy,
-    possibly due an interaction with useTeX=True in the matplotlib settings).
+    Most versions of matplotlib support png and pdf (although the eps/pdf/svg
+    writers may be buggy, possibly due an interaction with useTeX=True in the
+    matplotlib settings).
 
-    If your matplotlib bundles pil/pillow you should also be able to write jpeg and tiff files.
+    If your matplotlib bundles pil/pillow you should also be able to write jpeg
+    and tiff files.
+
+    Parameters
+    ----------
+
+    fileName : str
+        The output file.  The extension defines the format, and must be
+        supported by matplotlib.imsave().
+    rgbImage : `~numpy.ndarray`
+        The RGB image to save.
     """
     import matplotlib.image
     matplotlib.image.imsave(fileName, rgbImage)
