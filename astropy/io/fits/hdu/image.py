@@ -440,7 +440,7 @@ class _ImageBaseHDU(_ValidHDU):
         if _zero != 0:
             # 0.9.6.3 to avoid out of range error for BZERO = +32768
             #have to explcitly cast _zero to prevent numpy from complaining, consider explicit type assertions for signed vs unsigned
-            self.data+=-_zero.astype(self.data.dtype)
+            np.add(self.data, -_zero, out=self.data), casting='unsafe')
             self._header['BZERO'] = _zero
         else:
             try:
