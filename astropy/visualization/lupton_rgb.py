@@ -86,7 +86,7 @@ def zscale(image, nSamples=1000, contrast=0.25):
 
 
 class Mapping(object):
-    """!Baseclass to map red, blue, green intensities into uint8 values"""
+    """Baseclass to map red, blue, green intensities into uint8 values"""
 
     def __init__(self, minimum=None, image=None):
         """
@@ -344,7 +344,7 @@ class AsinhZScaleMapping(AsinhMapping):
     """
 
     def __init__(self, image1, image2=None, image3=None, Q=8, pedestal=None):
-        """!
+        """
         Create an asinh mapping from an image, setting the linear part of the
         stretch using zscale.
 
