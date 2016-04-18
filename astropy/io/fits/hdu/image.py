@@ -439,8 +439,8 @@ class _ImageBaseHDU(_ValidHDU):
         # Do the scaling
         if _zero != 0:
             # 0.9.6.3 to avoid out of range error for BZERO = +32768
-#            self.data = self.data - _zero
-            self.data+=-_zero
+            #have to explcitly cast _zero to prevent numpy from complaining, consider explicit type assertions for signed vs unsigned
+            self.data+=-zero.astype(self.data.dtype)
             self._header['BZERO'] = _zero
         else:
             try:
