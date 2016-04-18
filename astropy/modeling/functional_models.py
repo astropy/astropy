@@ -14,14 +14,12 @@ from ..extern import six
 from .utils import get_inputs_and_params
 
 
-__all__ = sorted([
-    'AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D',
-    'Box2D', 'Const1D', 'Const2D', 'Ellipse2D', 'Disk2D',
-    'Gaussian1D', 'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D',
-    'Lorentz1D', 'MexicanHat1D', 'MexicanHat2D', 'Redshift', 'Scale',
-    'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D', 'TrapezoidDisk2D',
-    'Ring2D', 'custom_model_1d', 'Voigt1D'
-])
+__all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
+           'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D',
+           'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D', 'Lorentz1D',
+           'MexicanHat1D', 'MexicanHat2D', 'Redshift', 'Scale', 'Sersic1D',
+           'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D', 'TrapezoidDisk2D',
+           'Ring2D', 'custom_model_1d', 'Voigt1D']
 
 
 class Gaussian1D(Fittable1DModel):
