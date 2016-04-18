@@ -48,6 +48,8 @@ New Features
 
   - Added the fittable=True attribute to the Scale and Shift models with tests. [#4718]
 
+  - Added example plots to docstrings for some build-in models. [#4008]
+
 - ``astropy.nddata``
 
   - Added ``UnknownUncertainty`` as ``NDUncertainty`` subclass which cannot
