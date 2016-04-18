@@ -262,6 +262,12 @@ class NDUncertainty(object):
     def parent_nddata(self, value):
         self._parent_nddata = value
 
+    def __repr__(self):
+        prefix = self.__class__.__name__ + '('
+        body = np.array2string(self.array, separator=', ', prefix=prefix)
+        unit = ', unit: {0}'.format(self.unit) if self.unit else ''
+        return ''.join([prefix, body, unit, ')'])
+
     def __getitem__(self, item):
         """
         Simple slicing is allowed and returns a reference *not* a copy. This
