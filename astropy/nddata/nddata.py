@@ -15,8 +15,6 @@ from ..utils.metadata import MetaData
 
 __all__ = ['NDData']
 
-__doctest_skip__ = ['NDData']
-
 
 class NDData(NDDataBase):
     """
@@ -99,7 +97,7 @@ class NDData(NDDataBase):
         >>> import astropy.units as u
         >>> q = np.array([1,2,3,4]) * u.m
         >>> nd2 = NDData(q, unit=u.cm)
-        INFO: Overwriting Quantity's current unit with specified unit \
+        INFO: overwriting Quantity's current unit with specified unit. \
 [astropy.nddata.nddata]
         >>> nd2.data
         array([ 1.,  2.,  3.,  4.])
