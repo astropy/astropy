@@ -15,10 +15,6 @@ environment:
 
     matrix:
 
-        - PYTHON_VERSION: "2.7"
-          NUMPY_VERSION: "stable"
-        - PYTHON_VERSION: "3.4"
-          NUMPY_VERSION: "stable"
         - PYTHON_VERSION: "3.5"
           NUMPY_VERSION: "stable"
 
