@@ -110,7 +110,7 @@ def test_nddataarray_from_nddataarray():
     assert ndd2.data is ndd1.data
     assert ndd2.uncertainty is ndd1.uncertainty
     assert ndd2.flags is ndd1.flags
-    assert ndd2.meta is ndd1.meta
+    assert ndd2.meta == ndd1.meta
 
 
 # Test for issue #4137:
@@ -121,4 +121,4 @@ def test_nddataarray_from_nddata():
 
     assert ndd2.data is ndd1.data
     assert ndd2.uncertainty is ndd1.uncertainty
-    assert ndd2.meta is ndd1.meta
+    assert ndd2.meta == ndd1.meta

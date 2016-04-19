@@ -4,9 +4,6 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import collections
-from collections import OrderedDict
-
 import numpy as np
 from copy import deepcopy
 
@@ -14,6 +11,7 @@ from .nddata_base import NDDataBase
 from .nduncertainty import NDUncertainty, UnknownUncertainty
 from .. import log
 from ..units import Unit, Quantity
+from ..utils.metadata import MetaData
 
 __all__ = ['NDData']
 
@@ -115,6 +113,8 @@ class NDData(NDDataBase):
     NDDataArray
     """
 
+    meta = MetaData()
+
     def __init__(self, data, uncertainty=None, mask=None, wcs=None,
                  meta=None, unit=None, copy=False):
 
@@ -206,12 +206,6 @@ class NDData(NDDataBase):
         if data.dtype == 'O':
             raise TypeError("Could not convert data to numpy array.")
 
-        # Check if meta is a dict and create an empty one if no meta was given
-        if meta is None:
-            meta = OrderedDict()
-        elif not isinstance(meta, collections.Mapping):
-            raise TypeError("Meta attribute must be dict-like")
-
         if unit is not None:
             unit = Unit(unit)
 
@@ -231,7 +225,7 @@ class NDData(NDDataBase):
         self._data = data
         self._mask = mask
         self._wcs = wcs
-        self._meta = meta
+        self.meta = meta
         self._unit = unit
         # Call the setter for uncertainty to further check the uncertainty
         self.uncertainty = uncertainty
@@ -278,13 +272,6 @@ class NDData(NDDataBase):
         any type : A world coordinate system (WCS) for the dataset, if any.
         """
         return self._wcs
-
-    @property
-    def meta(self):
-        """
-        `dict`-like : Meta information about the dataset, if any.
-        """
-        return self._meta
 
     @property
     def uncertainty(self):
