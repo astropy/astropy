@@ -172,6 +172,8 @@ class NDData(NDDataBase):
             data = data.data
 
         else:
+            # data could be a masked array so we would need to seperate mask
+            # and data:
             try:
                 # This will raise an AttributeError if data has no mask
                 if data.mask is not None and mask is not None:
