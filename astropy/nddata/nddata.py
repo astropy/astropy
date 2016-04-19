@@ -172,18 +172,28 @@ class NDData(NDDataBase):
             data = data.data
 
         else:
-            if hasattr(data, 'mask') and hasattr(data, 'data'):
-                # Seperating data and mask
-                if mask is not None:
+            try:
+                # This will raise an AttributeError if data has no mask
+                if data.mask is not None and mask is not None:
+                    # No need to save the mask of data because we have an
+                    # explicitly given mask.
                     log.info("Overwriting Masked Objects's current "
                              "mask with specified mask")
                 else:
+                    # No explicitly given mask: Just use the mask of data.
                     mask = data.mask
-
-                # Just save the data for further processing, we could be given
-                # a masked Quantity or something else entirely. Better to check
-                # it first.
-                data = data.data
+            except AttributeError:
+                # data had no mask so we just proceed.
+                pass
+            else:
+                # In case we had a mask assume it's a numpy MaskedArray and
+                # only keep the data
+                try:
+                    data = data.data
+                except AttributeError:
+                    # It had no data attribute. Just keep it as is and see if
+                    # it goes downhill lateron.
+                    pass
 
             if isinstance(data, Quantity):
                 if unit is not None and unit != data.unit:
@@ -194,8 +204,11 @@ class NDData(NDDataBase):
                 data = data.value
 
         # Quick check on the parameters if they match the requirements.
-        if (not hasattr(data, 'shape') or not hasattr(data, '__getitem__') or
-                not hasattr(data, '__array__')):
+        try:
+            data.shape
+            data.__getitem__
+            data.__array__
+        except AttributeError:
             # Data doesn't look like a numpy array, try converting it to
             # one.
             data = np.array(data, subok=True, copy=False)
@@ -305,7 +318,9 @@ class NDData(NDDataBase):
             # it has an attribute 'uncertainty_type'.
             # If it does not match this requirement convert it to an unknown
             # uncertainty.
-            if not hasattr(value, 'uncertainty_type'):
+            try:
+                value.uncertainty_type
+            except AttributeError:
                 log.info('Uncertainty should have attribute uncertainty_type.')
                 value = UnknownUncertainty(value, copy=False)
 
