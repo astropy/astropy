@@ -112,6 +112,9 @@ New Features
   - Added ``format_doc`` decorator which allows to replace and/or format the
     current docstring of an object. [#4242]
 
+  - Added a new context manager ``set_locale`` to temporarily set the
+    current locale. [#4363]
+
 - ``astropy.visualization``
 
 - ``astropy.vo``
@@ -251,6 +254,9 @@ Bug fixes
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
+
+  - Fix a problem where the fast reader (with use_fast_converter=False) can
+    fail on non-US locales. [#4363]
 
 - ``astropy.io.fits``
 
