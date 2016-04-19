@@ -22,7 +22,7 @@ _arit_doc = """
 
     For the inverse operation or operations between different subclasses take a
     look at
-    :meth:`~astropy.nddata.NDArithmeticMixin.ic_{name}` .
+    :meth:`~astropy.nddata.NDArithmeticMixin.ic_{name}`.
 
     Parameters
     ----------
@@ -59,7 +59,7 @@ _arit_doc = """
         was given otherwise it raises a ``ValueError`` if the comparison was
         not successful. Default is ``'first_found'``.
 
-    uncertainty_correlation : number or `~numpy.ndarray`, optional
+    uncertainty_correlation : number or `numpy.ndarray`, optional
         The correlation between the two operands is used for correct error
         propagation for correlated data as given in:
         https://en.wikipedia.org/wiki/Propagation_of_uncertainty#Example_formulas
@@ -72,7 +72,7 @@ _arit_doc = """
     Returns
     -------
     result : `~astropy.nddata.NDData`-like
-        The resulting dataset
+        The resulting dataset.
 
     Notes
     -----
@@ -85,23 +85,23 @@ _arit_doc = """
     """
 
 _arit_cls_doc = """
-    Like :meth:`NDArithmeticMixin.{0}` you can {0} two operands.
+    Like :meth:`~NDArithmeticMixin.{0}` you can {0} two operands.
 
     This method is avaiable as classmethod in order to allow arithmetic
-    operations between arbitary objects as long as they are convertable to
+    operations between arbitary objects as long as they are convertible to
     the class that called the method. Therefore the name prefix ``ic_`` which
     stands for ``interclass`` operations.
 
     Parameters
     ----------
-    operand1 : `NDData`-like or convertable to `NDData`
+    operand1 : `NDData`-like or convertible to `NDData`
         the first operand in the operation.
 
-    operand2 : `NDData`-like or convertable to `NDData`
+    operand2 : `NDData`-like or convertible to `NDData`
         the second operand in the operation.
 
     kwargs :
-        see :meth:`NDArithmeticMixin.{0}`
+        see :meth:`NDArithmeticMixin.{0}`.
 
     Returns
     -------
@@ -113,10 +113,10 @@ _arit_cls_doc = """
 
 class NDArithmeticMixin(object):
     """
-    Mixin class to add arithmetic to an NDData object.
+    Mixin class to add arithmetic to an `NDData` object.
 
     When subclassing, be sure to list the superclasses in the correct order
-    so that the subclass sees NDData as the main superclass. See
+    so that the subclass sees `NDData` as the main superclass. See
     `~astropy.nddata.NDDataArray` for an example.
 
     Notes
@@ -217,22 +217,22 @@ class NDArithmeticMixin(object):
             `numpy.true_divide`.
 
         operand : `NDData` instance or something that can be converted to one.
-            see :meth:`NDArithmeticMixin.add`
+            see :meth:`NDArithmeticMixin.add`.
 
         propagate_uncertainties : `bool` or ``None``, optional
-            see :meth:`NDArithmeticMixin.add`
+            see :meth:`NDArithmeticMixin.add`.
 
         handle_mask : callable, ``'first_found'`` or ``None``, optional
-            see :meth:`NDArithmeticMixin.add`
+            see :meth:`NDArithmeticMixin.add`.
 
         handle_meta : callable, ``'first_found'`` or ``None``, optional
-            see :meth:`NDArithmeticMixin.add`
+            see :meth:`NDArithmeticMixin.add`.
 
         compare_wcs : callable, ``'first_found'`` or ``None``, optional
-            see :meth:`NDArithmeticMixin.add`
+            see :meth:`NDArithmeticMixin.add`.
 
-        uncertainty_correlation : ``Number`` or `~numpy.ndarray`, optional
-            see :meth:`NDArithmeticMixin.add`
+        uncertainty_correlation : ``Number`` or `numpy.ndarray`, optional
+            see :meth:`NDArithmeticMixin.add`.
 
         kwargs :
             Any other parameter that should be passed to the
@@ -241,7 +241,7 @@ class NDArithmeticMixin(object):
 
         Returns
         -------
-        result : `~numpy.ndarray` or `~astropy.units.Quantity`
+        result : `numpy.ndarray` or `~astropy.units.Quantity`
             The resulting data as array (in case both operands were without
             unit) or as quantity if at least one had a unit.
 
@@ -329,7 +329,7 @@ class NDArithmeticMixin(object):
 
     def _arithmetic_data(self, operation, operand, **kwds):
         """
-        Calculate the resulting data
+        Calculate the resulting data.
 
         Parameters
         ----------
@@ -345,7 +345,7 @@ class NDArithmeticMixin(object):
 
         Returns
         -------
-        result_data : `~numpy.ndarray` or `~astropy.units.Quantity`
+        result_data : `numpy.ndarray` or `~astropy.units.Quantity`
             If both operands had no unit the resulting data is a simple numpy
             array, but if any of the operands had a unit the return is a
             Quantity.
@@ -380,10 +380,10 @@ class NDArithmeticMixin(object):
             The second operand wrapped in an instance of the same class as
             self.
 
-        result : `~astropy.units.Quantity` or `~numpy.ndarray`
+        result : `~astropy.units.Quantity` or `numpy.ndarray`
             The result of :meth:`NDArithmeticMixin._arithmetic_data`.
 
-        correlation : number or `~numpy.ndarray`
+        correlation : number or `numpy.ndarray`
             see :meth:`NDArithmeticMixin.add` parameter description.
 
         kwds :
@@ -456,7 +456,7 @@ class NDArithmeticMixin(object):
             self.
 
         handle_mask : callable
-            see :meth:`NDArithmeticMixin.add`
+            see :meth:`NDArithmeticMixin.add`.
 
         kwds :
             Additional parameters given to ``handle_mask``.
@@ -543,7 +543,7 @@ class NDArithmeticMixin(object):
             self.
 
         handle_meta : callable
-            see :meth:`NDArithmeticMixin.add`
+            see :meth:`NDArithmeticMixin.add`.
 
         kwds :
             Additional parameters given to ``handle_meta``.

@@ -20,7 +20,7 @@ __doctest_skip__ = ['NDData']
 
 class NDData(NDDataBase):
     """
-    A container for `~numpy.ndarray`-based datasets, using the
+    A container for `numpy.ndarray`-based datasets, using the
     `~astropy.nddata.NDDataBase` interface.
 
     The key distinction from raw `numpy.ndarray` is the presence of
@@ -31,36 +31,38 @@ class NDData(NDDataBase):
 
     Parameters
     -----------
-    data : `~numpy.ndarray`-like or `NDData`-like
+    data : `numpy.ndarray`-like or `NDData`-like
         The dataset.
 
     uncertainty : any type, optional
         Uncertainty in the dataset.
-        Should have an attribute
-        ``uncertainty_type`` that defines what kind of uncertainty is stored,
-        for example ``"std"`` for standard deviation or
-        ``"var"`` for variance. If the uncertainty has no such attribute the
-        uncertainty is stored inside an `UnknownUncertainty` .
-        A metaclass defining such an interface is
-        `~astropy.nddata.NDUncertainty` but isn't mandatory.
+        Should have an attribute ``uncertainty_type`` that defines what kind of
+        uncertainty is stored, for example ``"std"`` for standard deviation or
+        ``"var"`` for variance.
+        A metaclass defining such an interface is `NDUncertainty` but isn't
+        mandatory.
+        If the uncertainty has no such attribute the uncertainty is stored
+        inside an `UnknownUncertainty`.
         Defaults to ``None``.
 
     mask : any type, optional
         Mask for the dataset.
-        Masks should follow the ``numpy`` convention that valid data points are
-        marked by ``False`` and invalid ones with ``True``.
+        Masks should follow the ``numpy`` convention that **valid** data points
+        are marked by ``False`` and **invalid** ones with ``True``.
         Defaults to ``None``.
 
     wcs : any type, optional
-        A world coordinate system (WCS) for the dataset.
+        World coordinate system (WCS) for the dataset.
         Default is ``None``.
 
     meta : `dict`-like object, optional
         Meta information about the dataset. If no meta is provided an empty
         `collections.OrderedDict` is created.
+        Default is ``None``.
 
-    unit : `~astropy.units.Unit`-like or str, optional
-        Unit for the dataset.
+    unit : `~astropy.units.Unit`-like, optional
+        Unit for the dataset. Strings that can be converted to a
+        `~astropy.units.Unit` are allowed.
         Default is ``None``.
 
     copy : `bool`, optional
@@ -72,13 +74,13 @@ class NDData(NDDataBase):
 
     Raises
     ------
-    TypeError:
+    TypeError
         In case any parameter does not fulfill the classes restrictions.
 
     Notes
     -----
     Each attribute can be accessed through the homonymous instance attribute,
-    such as data in a `NDData` object can be accessed through the ``data``
+    such as ``data`` in a `NDData` object can be accessed through the `data`
     attribute.
 
     For example::
@@ -96,17 +98,16 @@ class NDData(NDDataBase):
         >>> import numpy as np
         >>> import astropy.units as u
         >>> q = np.array([1,2,3,4]) * u.m
-        >>> nd2 = NDData(q, unit=u.cm)  # doctest: +SKIP
-        INFO: Overwriting Quantity's current unit with specified
-        unit [astropy.nddata.nddata]
-        >>> nd2.data  # doctest: +SKIP
+        >>> nd2 = NDData(q, unit=u.cm)
+        INFO: Overwriting Quantity's current unit with specified unit \
+[astropy.nddata.nddata]
+        >>> nd2.data
         array([ 1.,  2.,  3.,  4.])
-        >>> nd2.unit  # doctest: +SKIP
+        >>> nd2.unit
         Unit("cm")
 
     See also
     --------
-
     NDIOMixin
     NDSlicingMixin
     NDArithmeticMixin
@@ -140,32 +141,32 @@ class NDData(NDDataBase):
             # other parameters.
             if (unit is not None and data.unit is not None and
                     unit != data.unit):
-                log.info("Overwriting NDData's current "
-                         "unit with specified unit")
+                log.info("overwriting NDData's current "
+                         "unit with specified unit.")
             elif data.unit is not None:
                 unit = data.unit
 
             if uncertainty is not None and data.uncertainty is not None:
-                log.info("Overwriting NDData's current "
-                         "uncertainty with specified uncertainty")
+                log.info("overwriting NDData's current "
+                         "uncertainty with specified uncertainty.")
             elif data.uncertainty is not None:
                 uncertainty = data.uncertainty
 
             if mask is not None and data.mask is not None:
-                log.info("Overwriting NDData's current "
-                         "mask with specified mask")
+                log.info("overwriting NDData's current "
+                         "mask with specified mask.")
             elif data.mask is not None:
                 mask = data.mask
 
             if wcs is not None and data.wcs is not None:
-                log.info("Overwriting NDData's current "
-                         "wcs with specified wcs")
+                log.info("overwriting NDData's current "
+                         "wcs with specified wcs.")
             elif data.wcs is not None:
                 wcs = data.wcs
 
             if meta is not None and data.meta is not None:
-                log.info("Overwriting NDData's current "
-                         "meta with specified meta")
+                log.info("overwriting NDData's current "
+                         "meta with specified meta.")
             elif data.meta is not None:
                 meta = data.meta
 
@@ -175,8 +176,8 @@ class NDData(NDDataBase):
             if hasattr(data, 'mask') and hasattr(data, 'data'):
                 # Seperating data and mask
                 if mask is not None:
-                    log.info("Overwriting Masked Objects's current "
-                             "mask with specified mask")
+                    log.info("overwriting Masked Objects's current "
+                             "mask with specified mask.")
                 else:
                     mask = data.mask
 
@@ -187,8 +188,8 @@ class NDData(NDDataBase):
 
             if isinstance(data, Quantity):
                 if unit is not None and unit != data.unit:
-                    log.info("Overwriting Quantity's current "
-                             "unit with specified unit")
+                    log.info("overwriting Quantity's current "
+                             "unit with specified unit.")
                 else:
                     unit = data.unit
                 data = data.value
@@ -204,7 +205,7 @@ class NDData(NDDataBase):
         # rather than an object (since numpy will convert a
         # non-numerical/non-string inputs to an array of objects).
         if data.dtype == 'O':
-            raise TypeError("Could not convert data to numpy array.")
+            raise TypeError("could not convert data to numpy array.")
 
         if unit is not None:
             unit = Unit(unit)
@@ -241,7 +242,7 @@ class NDData(NDDataBase):
     @property
     def data(self):
         """
-        `~numpy.ndarray`-like : The stored dataset.
+        `numpy.ndarray`-like : stored dataset.
         """
         return self._data
 
@@ -250,8 +251,8 @@ class NDData(NDDataBase):
         """
         any type : Mask for the dataset, if any.
 
-        Masks should follow the ``numpy`` convention that valid data points are
-        marked by ``False`` and invalid ones with ``True``.
+        Masks should follow the ``numpy`` convention that **valid** data points
+        are marked by ``False`` and **invalid** ones with ``True``.
         """
         return self._mask
 
@@ -269,7 +270,7 @@ class NDData(NDDataBase):
     @property
     def wcs(self):
         """
-        any type : A world coordinate system (WCS) for the dataset, if any.
+        any type : World coordinate system (WCS) for the dataset, if any.
         """
         return self._wcs
 
@@ -293,7 +294,7 @@ class NDData(NDDataBase):
             # If it does not match this requirement convert it to an unknown
             # uncertainty.
             if not hasattr(value, 'uncertainty_type'):
-                log.info('Uncertainty should have attribute uncertainty_type.')
+                log.info('uncertainty should have attribute uncertainty_type.')
                 value = UnknownUncertainty(value, copy=False)
 
             # If it is a subclass of NDUncertainty we must set the

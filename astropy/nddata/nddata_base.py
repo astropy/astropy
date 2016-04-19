@@ -19,7 +19,7 @@ class NDDataBase(object):
 
     All properties and methods have to be overridden in subclasses. See
     `~astropy.nddata.NDData` for a subclass that defines this interface on
-    `~numpy.ndarray`-like based ``data``.
+    `numpy.ndarray`-like based ``data``.
     """
 
     @abstractmethod
@@ -53,7 +53,7 @@ class NDDataBase(object):
     @abstractproperty
     def wcs(self):
         """
-        A world coordinate system (WCS) for the dataset.
+        World coordinate system (WCS) for the dataset.
         """
         return None
 
@@ -72,7 +72,7 @@ class NDDataBase(object):
         Uncertainty in the dataset.
 
         Should have an attribute ``uncertainty_type`` that defines what kind of
-        uncertainty is stored, such as ``'std'`` for standard deviation or
-        ``'var'`` for variance.
+        uncertainty is stored, such as ``"std"`` for standard deviation or
+        ``"var"`` for variance.
         """
         return None
