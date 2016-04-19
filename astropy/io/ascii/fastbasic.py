@@ -8,6 +8,7 @@ from ...extern import six
 from ...table import Table
 from . import cparser
 from ...extern.six.moves import zip as izip
+from ...utils import set_locale
 
 @six.add_metaclass(core.MetaBaseReader)
 class FastBasic(object):
@@ -106,7 +107,9 @@ class FastBasic(object):
             try_float = {}
             try_string = {}
 
-        data, comments = self.engine.read(try_int, try_float, try_string)
+        with set_locale('C'):
+            data, comments = self.engine.read(try_int, try_float, try_string)
+
         meta = OrderedDict()
         if comments:
             meta['comments'] = comments
