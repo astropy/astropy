@@ -631,7 +631,9 @@ def test_arithmetics_stddevuncertainty_with_units(uncert1, uncert2):
     assert_array_equal(nd3.uncertainty.array, nd3.uncertainty.array)
 
 
-def test_arithmetics_handle_switches():
+# Test abbreviation and long name for taking the first found meta, mask, wcs
+@pytest.mark.parametrize(('use_abbreviation'), ['ff', 'first_found'])
+def test_arithmetics_handle_switches(use_abbreviation):
     meta1 = {'a': 1}
     meta2 = {'b': 2}
     mask1 = True
@@ -659,8 +661,8 @@ def test_arithmetics_handle_switches():
 
     # Only second has attributes and False is chosen
     nd_ = nd3.add(nd2, propagate_uncertainties=False,
-                  handle_meta='first_found', handle_mask='first_found',
-                  compare_wcs='first_found')
+                  handle_meta=use_abbreviation, handle_mask=use_abbreviation,
+                  compare_wcs=use_abbreviation)
     assert nd_.wcs == wcs2
     assert nd_.meta == meta2
     assert nd_.mask == mask2
@@ -668,8 +670,8 @@ def test_arithmetics_handle_switches():
 
     # Only first has attributes and False is chosen
     nd_ = nd1.add(nd3, propagate_uncertainties=False,
-                  handle_meta='first_found', handle_mask='first_found',
-                  compare_wcs='first_found')
+                  handle_meta=use_abbreviation, handle_mask=use_abbreviation,
+                  compare_wcs=use_abbreviation)
     assert nd_.wcs == wcs1
     assert nd_.meta == meta1
     assert nd_.mask == mask1
