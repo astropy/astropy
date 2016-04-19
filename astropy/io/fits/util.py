@@ -574,10 +574,18 @@ if sys.platform.startswith('win32'):
         if msvcrt_dll is None:
             # If for some reason the C runtime can't be located then we're dead
             # in the water.  Just return a dummy function
-            return _dummy_is_append_mode
-
-        msvcrt = cdll.LoadLibrary(msvcrt_dll)
-
+            try:
+                # Python3.5 uses msvc14 and it is "recommended" to use
+                # cdll.msvcrt directly. Not sure if that may cause problems.
+                # https://bugs.python.org/issue26727
+                msvcrt = cdll.msvcrt
+            except:
+                # TODO: This except probably should need some Exceptions to
+                # catch ... but since we return a Warning the user is likely
+                # to know that there is something wrong altogether.
+                return _dummy_is_append_mode
+        else:
+            msvcrt = cdll.LoadLibrary(msvcrt_dll)
 
         # Constants
         IOINFO_L2E = 5
@@ -585,7 +593,6 @@ if sys.platform.startswith('win32'):
         IOINFO_ARRAYS = 64
         FAPPEND = 0x20
         _NO_CONSOLE_FILENO = -2
-
 
         # Types
         intptr_t = POINTER(c_int)
@@ -619,7 +626,7 @@ if sys.platform.startswith('win32'):
         def _is_append_mode(fd):
             global _sizeof_ioinfo
             if fd != _NO_CONSOLE_FILENO:
-                idx1 = fd >> IOINFO_L2E # The index into the __pioinfo array
+                idx1 = fd >> IOINFO_L2E  # The index into the __pioinfo array
                 # The n-th ioinfo pointer in __pioinfo[idx1]
                 idx2 = fd & ((1 << IOINFO_L2E) - 1)
                 if 0 <= idx1 < IOINFO_ARRAYS and __pioinfo[idx1] is not None:
