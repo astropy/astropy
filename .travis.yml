@@ -33,6 +33,75 @@ env:
         - PYTHON_VERSION=3.4 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.5 SETUP_CMD='egg_info'
 
+matrix:
+
+    # Don't wait for allowed failures
+    fast_finish: true
+
+    include:
+
+        # Try MacOS X
+        - os: osx
+          env: PYTHON_VERSION=2.7 SETUP_CMD='test'
+               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+
+        # Check for sphinx doc build warnings - we do this first because it
+        # runs for a long time. WCSAxes is a dependency for the docs.
+        - os: linux
+          env: PYTHON_VERSION=2.7 SETUP_CMD='build_sphinx -w'
+               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+               PIP_DEPENDENCIES='wcsaxes --no-deps'
+
+        # Try all python versions with the latest numpy, but without the
+        # optional dependencies
+        - os: linux
+          env: PYTHON_VERSION=2.7 SETUP_CMD='test --open-files'
+        - os: linux
+          env: PYTHON_VERSION=3.3 SETUP_CMD='test --open-files'
+        - os: linux
+          env: PYTHON_VERSION=3.4 SETUP_CMD='test --open-files'
+        - os: linux
+          env: PYTHON_VERSION=3.5 SETUP_CMD='test --open-files'
+
+        # Now try with all optional dependencies on 2.7 and an appropriate 3.x
+        # build (with latest numpy). We also note the code coverage on Python
+        # 2.7.
+        - os: linux
+          env: PYTHON_VERSION=2.7 SETUP_CMD='test --coverage'
+               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+               PIP_DEPENDENCIES='cpp-coveralls objgraph'
+               LC_CTYPE=C.ascii LC_ALL=C
+               CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
+        - os: linux
+          env: PYTHON_VERSION=3.4 SETUP_CMD='test'
+               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+               LC_CTYPE=C.ascii LC_ALL=C
+
+        # Try older numpy versions without optional dependencies
+        - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.9 SETUP_CMD='test'
+        - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.8 SETUP_CMD='test'
+        - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.7 SETUP_CMD='test'
+        - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.6 SETUP_CMD='test'
+
+        # Try developer version of Numpy without optional dependencies
+        - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=dev SETUP_CMD='test'
+
+        # Try pre-release version of Numpy without optional dependencies
+        - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=prerelease SETUP_CMD='test'
+
+        # Do a PEP8 test
+        - os: linux
+          env: PYTHON_VERSION=2.7 MAIN_CMD='pep8 astropy --count' SETUP_CMD=''
+
+    allow_failures:
+      - env: PYTHON_VERSION=2.7 NUMPY_VERSION=dev SETUP_CMD='test'
+
 install:
     - git clone git://github.com/astropy/ci-helpers.git
     - source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh
