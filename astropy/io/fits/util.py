@@ -537,7 +537,7 @@ def _fileobj_normalize_mode(f):
             "This should not have happened. If you see this Warning please "
             "report to https://github.com/astropy/astropy/issues and state "
             "which kind of object you wanted to open and in which mode. We "
-            "apologize for the inconvenience.")
+            "apologize for the inconvenience.", AstropyUserWarning)
 
         # In that case we need tp replace the 'r' or 'w' by 'a'. We are
         # appending after all.
