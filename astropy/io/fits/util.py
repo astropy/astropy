@@ -478,11 +478,11 @@ def fileobj_mode(f):
     elif hasattr(f, 'fp') and hasattr(f.fp, 'mode'):
         fileobj = f.fp
 
-    # FILEIO -like, keep as is normal open(...)
+    # FILEIO -like (normal open(...)), keep as is.
     elif hasattr(f, 'mode'):
         fileobj = f
 
-    # Doesn't look like a file-like object, for example simple strings.
+    # Doesn't look like a file-like object, for example strings, urls or paths.
     else:
         return None
 
@@ -539,9 +539,9 @@ def _fileobj_normalize_mode(f):
             "which kind of object you wanted to open and in which mode. We "
             "apologize for the inconvenience.", AstropyUserWarning)
 
-        # In that case we need tp replace the 'r' or 'w' by 'a'. We are
+        # In that case we need to replace the 'r' or 'w' with 'a'. We are
         # appending after all.
-        if _fileobj_is_append_mode(f) and 'a' not in mode:
+        if the_investigative_result_if_in_appendmode and 'a' not in mode:
             mode = mode.replace('r', 'a').replace('w', 'a')
 
     return mode
