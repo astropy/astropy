@@ -46,6 +46,20 @@ class TestSingleTable(object):
         t2 = Table.read(filename)
         assert equal_data(t1, t2)
 
+    def test_append_mode_is_determined_correctly(self, tmpdir):
+        # TODO: Move this test in test_util as soon as I figure out how to
+        # setup a class with tmpdir...
+
+        # This test should not fail but the other way around would be even
+        # worse: Opened a file NOT in append mode but function thinks it IS.
+
+        # Just check that opening a file in ab mode is not considered
+        # in append mode. The reason for this really low level function is
+        # that (maybe) a file loses it's "a" in the mode, so this function
+        # as worst case option should not fail!
+        with open(str(tmpdir.join('test_simple.fits')), 'ab') as fileobj:
+            assert fits.util._is_append_mode_platform(fileobj.fileno())
+
     @pytest.mark.skipif('not HAS_PATHLIB')
     def test_simple_pathlib(self, tmpdir):
         filename = pathlib.Path(str(tmpdir.join('test_simple.fit')))
