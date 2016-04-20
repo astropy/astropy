@@ -58,7 +58,7 @@ class TestSingleTable(object):
         # that (maybe) a file loses it's "a" in the mode, so this function
         # as worst case option should not fail!
         with open(str(tmpdir.join('test_simple.fits')), 'ab') as fileobj:
-            assert fits.util._is_append_mode_platform(fileobj.fileno())
+            assert fits.util._is_append_mode_platform(fileobj)
 
     @pytest.mark.skipif('not HAS_PATHLIB')
     def test_simple_pathlib(self, tmpdir):

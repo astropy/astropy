@@ -464,15 +464,25 @@ def fileobj_mode(f):
 
     # Go from most to least specific--for example gzip objects have a 'mode'
     # attribute, but it's not analogous to the file.mode attribute
+
+    # gzip.GzipFile -like
     if hasattr(f, 'fileobj') and hasattr(f.fileobj, 'mode'):
         fileobj = f.fileobj
+
+    # astropy.io.fits._File -like, doesn't need additional checks because it's
+    # already validated
     elif hasattr(f, 'fileobj_mode'):
-        # Specifically for astropy.io.fits.file._File objects
         return f.fileobj_mode
+
+    # PIL-Image -like investigate the fp (filebuffer)
     elif hasattr(f, 'fp') and hasattr(f.fp, 'mode'):
         fileobj = f.fp
+
+    # FILEIO -like, keep as is normal open(...)
     elif hasattr(f, 'mode'):
         fileobj = f
+
+    # Doesn't look like a file-like object, for example simple strings.
     else:
         return None
 
@@ -483,12 +493,14 @@ def _fileobj_normalize_mode(f):
     """Takes care of some corner cases in Python where the mode string
     is either oddly formatted or does not truly represent the file mode.
     """
-
-    # I've noticed that sometimes Python can produce modes like 'r+b' which I
-    # would consider kind of a bug--mode strings should be normalized.  Let's
-    # normalize it for them:
     mode = f.mode
 
+    # FIXME: Since we only passed the "fileobj" attribute it's _highly_
+    # unlikely (impossible?) that this if will evaluate True .... might as well
+    # delete it __OR__ send the file as is from "fileobj_mode" here.
+    # Since gzip has a shortcut it wouldn't matter much lateron. For all the
+    # other cases it must be the file-buffer because we want to check the
+    # "fileno()" return later.
     if isinstance(f, gzip.GzipFile):
         # GzipFiles can be either readonly or writeonly
         if mode == gzip.READ:
@@ -499,12 +511,38 @@ def _fileobj_normalize_mode(f):
             # This shouldn't happen?
             return None
 
+    # I've noticed that sometimes Python can produce modes like 'r+b' which I
+    # would consider kind of a bug--mode strings should be normalized. Let's
+    # normalize it for them:
     if '+' in mode:
         mode = mode.replace('+', '')
         mode += '+'
 
-    if _fileobj_is_append_mode(f) and 'a' not in mode:
-        mode = mode.replace('r', 'a').replace('w', 'a')
+    # There was (or still is) some format that loses or hides if it was
+    # opened in append mode... check it:
+
+    # TODO: This is probably superfluous the old corner cases where FILEIO
+    # objects didn't keep track of their append-flag are over (?)
+    # At least the bugfix was ported to python 2.7 and 3.3+:
+    # http://bugs.python.org/issue18876
+    the_investigative_result_if_in_appendmode = _fileobj_is_append_mode(f)
+
+    # Compare if the investigative result returns the same as 'a' in mode.
+    if the_investigative_result_if_in_appendmode != ('a' in mode):
+        # If the results differ we got some format that passed unnoticed but
+        # does not keep it's append-mode. Issue a warning to see if it's
+        # so that people can report it here. If no reports come in one could
+        # omit these tests in favor of a simple "'a' in mode".
+        warnings.warn(
+            "This should not have happened. If you see this Warning please "
+            "report to https://github.com/astropy/astropy/issues and state "
+            "which kind of object you wanted to open and in which mode. We "
+            "apologize for the inconvenience.")
+
+        # In that case we need tp replace the 'r' or 'w' by 'a'. We are
+        # appending after all.
+        if _fileobj_is_append_mode(f) and 'a' not in mode:
+            mode = mode.replace('r', 'a').replace('w', 'a')
 
     return mode
 
@@ -529,7 +567,7 @@ def _fileobj_is_append_mode(f):
     # Call platform-specific _is_append_mode
     # If this file is already closed this can result in an error
     try:
-        return _is_append_mode_platform(f.fileno())
+        return _is_append_mode_platform(f)
     except (ValueError, IOError):
         return False
 
@@ -579,22 +617,26 @@ if sys.platform.startswith('win32'):
                 'mode instead.')
             return False
 
+        def _dummy_dummy_python35(fd):
+            # Let's cheat
+            return 'a' in fd.mode
+
         msvcrt_dll = find_msvcrt()
         if msvcrt_dll is None:
             # If for some reason the C runtime can't be located then we're dead
-            # in the water.  Just return a dummy function
-            try:
-                # Python3.5 uses msvc14 and it is "recommended" to use
-                # cdll.msvcrt directly. Not sure if that may cause problems.
-                # https://bugs.python.org/issue26727
-                msvcrt = cdll.msvcrt
-            except Exception:
-                # TODO: This except probably should need some Exceptions to
-                # catch ... but since we return a Warning the user is likely
-                # to know that there is something wrong altogether.
-                return _dummy_is_append_mode
-        else:
-            msvcrt = cdll.LoadLibrary(msvcrt_dll)
+            # in the water. Just return a dummy function.
+
+            # For python 3.5 and later this is actually not possible anymore
+            # and probably unreliable since they might change their internal
+            # variables, so let's just return a dummy function that returns
+            # if there is an "a" in the mode.
+            if sys.version_info.major == 3 and sys.version_info.minor >= 5:
+                return _dummy_dummy_python35
+
+            # No excuse for earlier versions, they get the warning.
+            return _dummy_is_append_mode
+
+        msvcrt = cdll.LoadLibrary(msvcrt_dll)
 
         # Constants
         IOINFO_L2E = 5
@@ -633,6 +675,7 @@ if sys.platform.startswith('win32'):
             return _dummy_is_append_mode
 
         def _is_append_mode(fd):
+            fd = fd.fileno()
             global _sizeof_ioinfo
             if fd != _NO_CONSOLE_FILENO:
                 idx1 = fd >> IOINFO_L2E  # The index into the __pioinfo array
@@ -654,7 +697,7 @@ else:
     import fcntl
 
     def _is_append_mode_platform(fd):
-        return bool(fcntl.fcntl(fd, fcntl.F_GETFL) & os.O_APPEND)
+        return bool(fcntl.fcntl(fd.fileno(), fcntl.F_GETFL) & os.O_APPEND)
 
 
 def fileobj_is_binary(f):
