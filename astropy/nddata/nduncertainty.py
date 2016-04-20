@@ -488,6 +488,23 @@ class StdDevUncertainty(NDUncertainty):
     Parameters
     ----------
     see `NDUncertainty`
+
+    Examples
+    --------
+    `StdDevUncertainty` should always be associated with an `NDData`-like
+    instance, either by creating it during initialization::
+
+        >>> from astropy.nddata import NDData, StdDevUncertainty
+        >>> ndd = NDData([1,2,3],
+        ...              uncertainty=StdDevUncertainty([0.1, 0.1, 0.1]))
+        >>> ndd.uncertainty
+        StdDevUncertainty([ 0.1,  0.1,  0.1])
+
+    or by setting it manually on the `NDData` instance::
+
+        >>> ndd.uncertainty = StdDevUncertainty([0.2], unit='m', copy=True)
+        >>> ndd.uncertainty
+        StdDevUncertainty([ 0.2], unit: m)
     """
 
     @property
