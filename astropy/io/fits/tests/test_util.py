@@ -5,6 +5,7 @@ from __future__ import with_statement
 import os
 import signal
 import gzip
+from sys import version_info
 
 import numpy as np
 
@@ -71,40 +72,62 @@ class TestUtilMode(FitsTestCase):
         result.save(self.temp('test_simple.jpg'))
 
         with Image.open(self.temp('test_simple.jpg')) as fileobj:
-            assert fits.util.fileobj_mode(fileobj) == 'rb'
+            assert util.fileobj_mode(fileobj) == 'rb'
 
     def test_mode_gzip(self):
         # Open a gzip in every possible (gzip is binary or test only) way
         # and check if the mode was correctly identified.
-        for num, mode, res in [(0, 'a', 'ab'), (0, 'ab', 'ab'),
-                               (0, 'w', 'wb'), (0, 'wb', 'wb'),
-                               (1, 'x', 'xb'), (2, 'xb', 'xb'),
-                               (1, 'r', 'rb'), (2, 'rb', 'rb')]:
+        if (version_info.major < 3 or
+                (version_info.major >= 3 and version_info.minor < 4)):
+            num_mode_resmode = [(0, 'a', 'ab'), (0, 'ab', 'ab'),
+                                (0, 'w', 'wb'), (0, 'wb', 'wb'),
+                                (1, 'r', 'rb'), (2, 'rb', 'rb')]
+        else:
+            num_mode_resmode = [(0, 'a', 'ab'), (0, 'ab', 'ab'),
+                                (0, 'w', 'wb'), (0, 'wb', 'wb'),
+                                (1, 'x', 'xb')
+                                (1, 'r', 'rb'), (2, 'rb', 'rb')]
+
+        for num, mode, res in num_mode_resmode:
             filename = self.temp('test{0}.gz'.format(num))
             with gzip.GzipFile(filename, mode) as fileobj:
-                assert fits.util.fileobj_mode(fileobj) == res
+                assert util.fileobj_mode(fileobj) == res
 
     def test_mode_normal_buffering(self):
         # Open a gzip in every possible (gzip is binary or test only) way
         # and check if the mode was correctly identified.
-        for num, mode, res in [(0, 'ab', 'ab'),
-                               (0, 'wb', 'wb'),
-                               (1, 'xb', 'xb'),
-                               (1, 'rb', 'rb')]:
+        if (version_info.major < 3 or
+                (version_info.major >= 3 and version_info.minor < 3)):
+            num_mode_resmode = [(0, 'ab', 'ab'),
+                                (1, 'wb', 'wb'),
+                                (1, 'rb', 'rb')]
+        else:
+            num_mode_resmode = [(0, 'ab', 'ab'),
+                                (0, 'wb', 'wb'),
+                                (1, 'xb', 'xb'),
+                                (1, 'rb', 'rb')]
+        for num, mode, res in num_mode_resmode:
             filename = self.temp('test1{0}.dat'.format(num))
             with open(filename, mode, buffering=0) as fileobj:
-                assert fits.util.fileobj_mode(fileobj) == res
+                assert util.fileobj_mode(fileobj) == res
 
     def test_mode_normal_no_buffering(self):
         # Open a gzip in every possible (gzip is binary or test only) way
         # and check if the mode was correctly identified.
-        for num, mode, res in [(0, 'a', 'a'), (0, 'ab', 'ab'),
-                               (0, 'w', 'w'), (0, 'wb', 'wb'),
-                               (1, 'x', 'x'), (2, 'xb', 'xb'),
-                               (1, 'r', 'r'), (2, 'rb', 'rb')]:
+        if (version_info.major < 3 or
+                (version_info.major >= 3 and version_info.minor < 3)):
+            num_mode_resmode = [(0, 'a', 'a'), (0, 'ab', 'ab'),
+                                (1, 'w', 'w'), (2, 'wb', 'wb'),
+                                (1, 'r', 'r'), (2, 'rb', 'rb')]
+        else:
+            num_mode_resmode = [(0, 'a', 'a'), (0, 'ab', 'ab'),
+                                (0, 'w', 'w'), (0, 'wb', 'wb'),
+                                (1, 'x', 'x')
+                                (1, 'r', 'r'), (2, 'rb', 'rb')]
+        for num, mode, res in num_mode_resmode:
             filename = self.temp('test2{0}.dat'.format(num))
             with open(filename, mode) as fileobj:
-                assert fits.util.fileobj_mode(fileobj) == res
+                assert util.fileobj_mode(fileobj) == res
 
     def test_mode_normalization(self):
         # Open a gzip in every possible (gzip is binary or test only) way
@@ -116,4 +139,4 @@ class TestUtilMode(FitsTestCase):
                                (0, 'ab+', 'ab+')]:
             filename = self.temp('test3{0}.dat'.format(num))
             with open(filename, mode) as fileobj:
-                assert fits.util.fileobj_mode(fileobj) == res
+                assert util.fileobj_mode(fileobj) == res
