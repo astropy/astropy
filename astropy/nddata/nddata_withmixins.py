@@ -37,12 +37,13 @@ class NDDataAllMixins(NDArithmeticMixin, NDIOMixin, NDSlicingMixin, NDData):
 
     Examples
     --------
-    Simple arithmetics::
+    The mixins allow operation that are not possible with `NDData` or
+    `NDDataBase`, i.e. simple arithmetics::
 
         >>> from astropy.nddata import NDDataAllMixins, StdDevUncertainty
         >>> import numpy as np
 
-        >>> data = np.ones((3,3))
+        >>> data = np.ones((3,3), dtype=np.float)
         >>> ndd1 = NDDataAllMixins(data, uncertainty=StdDevUncertainty(data))
         >>> ndd2 = NDDataAllMixins(data, uncertainty=StdDevUncertainty(data))
 
@@ -56,12 +57,18 @@ class NDDataAllMixins(NDArithmeticMixin, NDIOMixin, NDSlicingMixin, NDData):
                [ 1.41421356,  1.41421356,  1.41421356],
                [ 1.41421356,  1.41421356,  1.41421356]])
 
-    Slicing (Indexing)::
+    see `NDArithmeticMixin` for a complete list of all supported arithmetic
+    operations.
+
+    But also slicing (indexing) is possible::
 
         >>> ndd4 = ndd3[1,:]
         >>> ndd4.data
         array([ 2.,  2.,  2.])
         >>> ndd4.uncertainty.array
         array([ 1.41421356,  1.41421356,  1.41421356])
+
+    See `NDSlicingMixin` for a description how slicing works (which attributes)
+    are sliced.
     """
     pass
