@@ -95,7 +95,8 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
             when read.
 
         - **ignore_blank** : bool
-           If `True`, the BLANK keyword is ignored if present.
+
+            If `True`, the BLANK keyword is ignored if present.
 
         - **scale_back** : bool
 
