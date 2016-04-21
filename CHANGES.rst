@@ -76,6 +76,10 @@ New Features
     first operand is not an ``NDArithmeticMixin`` subclass via classmethods
     called ``ic_add``, ``ic_subtract``, etc. [#4272]
 
+  - Added ``NDDataAllMixins`` that implements ``NDData`` together with all
+    currently avaiable mixins. This class does not implement additional
+    attributes, methods or a numpy.ndarray-like interface like ``NDDataArray``.
+
 - ``astropy.stats``
 
   - Added ``axis`` keyword for ``mad_std`` function. [#4688]
