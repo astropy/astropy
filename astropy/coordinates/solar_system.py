@@ -13,7 +13,8 @@ from ..utils.data import download_file
 from .. import units as u
 from ..constants import c as speed_of_light
 from .representation import CartesianRepresentation
-from .builtin_frames import GCRS
+from .builtin_frames import GCRS, ICRS
+from .builtin_frames.utils import get_jd12
 from .earth import EarthLocation
 
 
@@ -54,9 +55,9 @@ def _get_kernel(*args, **kwargs):
     return KERNEL
 
 
-def _get_absolute_planet_position(time, planet_index):
+def _get_barycentric_planet_position(time, planet_index):
     """
-    Calculate the position of planet ``planet_index`` in cartesian coordinates.
+    Calculate the barycentric position of planet ``planet_index`` in cartesian coordinates.
 
     Uses ``jplephem`` with the DE430 kernel.
 
@@ -66,15 +67,12 @@ def _get_absolute_planet_position(time, planet_index):
         Time of observation
 
     planet_index : int
-        Index of the planet (1-9 for Mercury through Pluto)
+        Index of the planet (1-9 for Mercury through Pluto. 10 for Moon)
 
     Returns
     -------
-    cartesian_position : `~astropy.units.Quantity`
-        GRCS position of the planet in cartesian coordinates
-
-    earth_distance : `~astropy.units.Quantity`
-        Distance between Earth and planet.
+    cartesian_position : `~astropy.coordinates.CartesianRepresentation`
+        Barycentric (ICRS) position of the planet in cartesian coordinates
 
     Notes
     -----
@@ -82,35 +80,67 @@ def _get_absolute_planet_position(time, planet_index):
     """
     kernel = _get_kernel()
 
+    jd1, jd2 = get_jd12(time,'tdb')
+    
     # Mercury and Venus have separate barycenter and planet vectors
     if planet_index < 3:
         barycenter_to_planet_ind = 100*planet_index + 99
-        cartesian_position_planet = (kernel[0, planet_index].compute(time.jd) +
+        cartesian_position_planet = (kernel[0, planet_index].compute(jd1, jd2) +
                                      kernel[planet_index,
-                                            barycenter_to_planet_ind].compute(time.jd))
-    # planet_index is 3 gets the moon
+                                            barycenter_to_planet_ind].compute(jd1, jd2))
+    # planet_index 3 gets the Earth itself, not the barycenter of the Earth-Moon system
     elif planet_index == 3:
-        barycenter_to_planet_ind = 301
-        cartesian_position_planet = (kernel[0, planet_index].compute(time.jd) +
+        barycenter_to_planet_ind = 399
+        cartesian_position_planet = (kernel[0, planet_index].compute(jd1, jd2) +
                                      kernel[planet_index,
-                                            barycenter_to_planet_ind].compute(time.jd))
+                                            barycenter_to_planet_ind].compute(jd1, jd2))
+    # planet_index 10 gets the moon
+    elif planet_index == 10:
+        barycenter_to_planet_ind = 301
+        cartesian_position_planet = (kernel[0, 3].compute(jd1, jd2) +
+                                     kernel[3,
+                                            barycenter_to_planet_ind].compute(jd1, jd2))
     else:
-        cartesian_position_planet = kernel[0, planet_index].compute(time.jd)
+        cartesian_position_planet = kernel[0, planet_index].compute(jd1, jd2)
 
-    cartesian_position_earth = (kernel[0, 3].compute(time.jd) +
-                                kernel[3, 399].compute(time.jd))
+    barycen_to_planet_vector = u.Quantity(cartesian_position_planet, unit=u.km)    
+    return CartesianRepresentation(barycen_to_planet_vector)
 
-    # Quadrature sum of the difference of the position vectors
-    earth_distance = np.sqrt(np.sum((np.array(cartesian_position_planet) -
-                                     np.array(cartesian_position_earth))**2))*u.km
+def _get_earth_planet_vector(time, planet_index):
+    """
+    Calculate the vector between the Geocenter and planet ``planet_index``. 
 
-    earth_to_planet_vector = u.Quantity(cartesian_position_planet -
-                                        cartesian_position_earth,
-                                        unit=u.km)
+    This routine calculates the vector between the Earth's Geocenter and the planet
+    specified by ``planet_index``. 
 
-    return earth_to_planet_vector, earth_distance
+    Uses ``jplephem`` with the DE430 kernel.
 
+    Parameters
+    ----------
+    time : `~astropy.time.Time`
+        Time of observation
 
+    planet_index : int
+        Index of the planet (1-9 for Mercury through Pluto. 10 for Moon)
+
+    Returns
+    -------
+    earth_planet_vector : `~astropy.coordinates.CartesianRepresentation`
+        Barycentric (ICRS) vector from Geocenter to the planet in cartesian coordinates
+        
+    earth_distance : `~astropy.units.Quantity`
+        Distance between Earth and planet.
+
+    Notes
+    -----
+
+    """    
+    earth_loc = _get_barycentric_planet_position(time, 3)    
+    planet_loc = _get_barycentric_planet_position(time, planet_index)
+    earth_planet_vector = planet_loc.xyz - earth_loc.xyz
+    earth_distance = np.sqrt(earth_planet_vector.dot(earth_planet_vector))
+    return earth_planet_vector, earth_distance
+    
 def _get_apparent_planet_position(time, planet_index):
     """
     Calculate the apparent position of planet ``planet_index`` in cartesian
@@ -124,15 +154,15 @@ def _get_apparent_planet_position(time, planet_index):
         Time of observation
 
     planet_index : int
-        Index of the planet (1-9 for Mercury through Pluto)
+        Index of the planet (1-9 for Mercury through Pluto, 10 for Moon)
 
     Returns
     -------
     cartesian_position : `~astropy.coordinates.CartesianRepresentation`
-        Position of the planet defined as a vector from the Earth.
+        Barycentric (ICRS) apparent position of the planet in cartesian coordinates
     """
     # Get distance of planet at `time`
-    earth_to_planet_vector, earth_distance = _get_absolute_planet_position(time, planet_index)
+    earth_to_planet_vector, earth_distance = _get_earth_planet_vector(time, planet_index)
 
     # The apparent position depends on the time that the light was emitted from
     # the distant planet, so subtract off the light travel time
@@ -140,12 +170,14 @@ def _get_apparent_planet_position(time, planet_index):
     emitted_time = time - light_travel_time
 
     # Calculate position given approximate light travel time.
-    # TODO: this should be solved iteratively to converge on precise positions
-    earth_to_planet_vector, earth_distance = _get_absolute_planet_position(emitted_time, planet_index)
-    x, y, z = earth_to_planet_vector
+    delta_light_travel_time = 20*u.s
+    while (np.fabs(delta_light_travel_time)) > 1.0e-8*u.s:
+        earth_to_planet_vector, earth_distance = _get_earth_planet_vector(emitted_time, planet_index)
+        delta_light_travel_time = light_travel_time - earth_distance/speed_of_light
+        light_travel_time = earth_distance/speed_of_light
+        emitted_time = time - light_travel_time
 
-    return CartesianRepresentation(x=x, y=y, z=z)
-
+    return _get_barycentric_planet_position(emitted_time, planet_index)
 
 def get_planet(time, planet_index, location=None):
     """
@@ -158,25 +190,27 @@ def get_planet(time, planet_index, location=None):
         Time of observation
 
     planet_index : int
-        Index of the planet (1-9 for Mercury through Pluto), excluding the
-        special value 3, which corresponds to the Earth's Moon.
+        Index of the planet (1-9 for Mercury through Pluto). The special value 10
+        corresponds to the Earth's Moon.
 
     location : `~astropy.coordinates.EarthLocation`
         Location of observer on the Earth. If none is supplied, set to
-        Greenwich.
+        a Geocentric observer
 
     Returns
     -------
     skycoord : `~astropy.coordinates.SkyCoord`
         Coordinate for the planet
     """
-    if location is None:
-        location = EarthLocation.of_site('greenwich')
-
     cartrep = _get_apparent_planet_position(time, planet_index)
-
-    return SkyCoord(GCRS(cartrep, obstime=time,
-                         obsgeoloc=u.Quantity(location.geocentric, copy=False)))
+    icrs = ICRS(cartrep)
+    if location is not None:
+        gcrs = icrs.transform_to(GCRS(obstime=time, 
+                                 obsgeoloc=u.Quantity(location.geocentric, 
+                                 copy=False)))
+    else:
+        gcrs = icrs.transform_to(GCRS(obstime=time))
+    return SkyCoord(gcrs)
 
 
 def get_moon(time, location=None):
@@ -191,7 +225,7 @@ def get_moon(time, location=None):
 
     location : `~astropy.coordinates.EarthLocation`
         Location of observer on the Earth. If none is supplied, set to
-        Greenwich.
+        a Geocentric observer.
 
     planet_index : int
         Index of the planet (1-9 for Mercury through Pluto)
@@ -201,4 +235,4 @@ def get_moon(time, location=None):
     skycoord : `~astropy.coordinates.SkyCoord`
         Coordinate for the planet
     """
-    return get_planet(time, planet_index=3, location=location)
+    return get_planet(time, planet_index=10, location=location)
