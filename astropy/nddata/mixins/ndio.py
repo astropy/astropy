@@ -45,7 +45,7 @@ class NDIOMixin(object):
 
 
 def read_from_fits(filename):
-    # Variables
+    # Variables (can be changed if another behaviour is desired)
     ext_data = 0
     ext_meta = 0
     ext_mask = 'mask'
@@ -53,8 +53,15 @@ def read_from_fits(filename):
     kw_unit = 'bunit'
     kw_mask_type = 'boolmask'
     kw_uncert_type = 'stddev'
+    # TODO: memmap has some problems regarding the tests. If memmap is used
+    # the tests checking for open-files are triggering Errors. This may be
+    # because there is a quasi-cyclic reference structure between NDData and
+    # uncertainty (if given) because the uncertainty saves a reference to
+    # the nddata in it's parent_nddata property. But that's mostly guessing at
+    # least for now memmap is False by default.
+    memmap = False
 
-    with fits.open(filename) as hdus:
+    with fits.open(filename, mode='readonly', memmap=memmap) as hdus:
         # Read the data from the primary hdu
         data = hdus[ext_data].data
         # Meta is also taken from the primary
@@ -100,7 +107,7 @@ def read_from_fits(filename):
 
 
 def write_to_fits(ndd, filename):
-    # Variables
+    # Variables (can be changed if another behaviour is desired)
     # ext_data = 0  # data can only be written into primary
     # ext_meta = 0  # header too
     ext_mask = 'mask'
@@ -169,9 +176,9 @@ def write_to_fits(ndd, filename):
     # numpy array or something that could be saved in an ImageHDU. But I'll
     # assume for now that letting the exception rise is better for now.
 
-    # Converting to HDUList and writing.
-    hdulist = fits.HDUList(hdus)
-    hdulist.writeto(filename)
+    # Converting to HDUList and writing it to a file.
+    with fits.HDUList(hdus) as hdulist:
+        hdulist.writeto(filename)
 
     # do I have to do something with hdulist here to avoid open file handles?
 

@@ -102,13 +102,6 @@ class TestIOFunctions(object):
 
         self.compare_nddata(ndd1, ndd2)
 
-        # Somehow we need to reset the uncertainties, probably because
-        # these reference the parent_nddata (cyclic reference) which normally
-        # shouldn't be a problem but maybe is too slow for pytest...
-        # TODO: There must be a better way!!!
-        ndd1.uncertainty = None
-        ndd2.uncertainty = None
-
     def test_nddata_write_read_uncertainty_unknown_explicit(self, tmpdir):
         ndd1 = NDData(np.ones((3, 3)),
                       uncertainty=UnknownUncertainty(np.random.random((3, 3))))
@@ -118,9 +111,6 @@ class TestIOFunctions(object):
         ndd2 = read_from_fits(filename)
 
         self.compare_nddata(ndd1, ndd2)
-
-        ndd1.uncertainty = None
-        ndd2.uncertainty = None
 
     def test_nddata_write_read_uncertainty_stddev_explicit(self, tmpdir):
         ndd1 = NDData(np.ones((3, 3)),
@@ -132,9 +122,6 @@ class TestIOFunctions(object):
 
         self.compare_nddata(ndd1, ndd2)
 
-        ndd1.uncertainty = None
-        ndd2.uncertainty = None
-
     def test_nddata_write_read_uncertainty_with_unit(self, tmpdir):
         ndd1 = NDData(np.ones((3, 3)),
                       uncertainty=UnknownUncertainty(np.random.random((3, 3)), 'm'))
@@ -145,9 +132,6 @@ class TestIOFunctions(object):
 
         self.compare_nddata(ndd1, ndd2)
 
-        ndd1.uncertainty = None
-        ndd2.uncertainty = None
-
     def test_nddata_write_read_uncertainty_with_same_unit(self, tmpdir):
         ndd1 = NDData(np.ones((3, 3)), unit='m',
                       uncertainty=UnknownUncertainty(np.random.random((3, 3)), 'm'))
@@ -157,9 +141,6 @@ class TestIOFunctions(object):
         ndd2 = read_from_fits(filename)
 
         self.compare_nddata(ndd1, ndd2)
-
-        ndd1.uncertainty = None
-        ndd2.uncertainty = None
 
     def test_nddata_write_read_unit(self, tmpdir):
         ndd1 = NDData(np.ones((3, 3)), unit='m')
@@ -287,7 +268,3 @@ class TestIOFunctions(object):
         # Extra tests:
         assert isinstance(ndd2, NDDataIO)
         assert isinstance(ndd3, NDDataIO)
-
-        ndd1.uncertainty = None
-        ndd2.uncertainty = None
-        ndd3.uncertainty = None
