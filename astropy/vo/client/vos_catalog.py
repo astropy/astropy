@@ -577,7 +577,7 @@ class VOSDatabase(VOSBase):
                     title_counter[cur_title] += 1  # Starts with 1
 
                     if isinstance(cur_title, bytes):  # pragma: py3
-                        cur_key = title_fmt.format(cur_title.decode('ascii'),
+                        cur_key = title_fmt.format(cur_title.decode('utf-8'),
                                                    title_counter[cur_title])
                     else:  # pragma: py2
                         cur_key = title_fmt.format(cur_title,

@@ -11,6 +11,11 @@ from ...extern import six
 import contextlib
 import textwrap
 
+try:
+    import bleach
+    HAS_BLEACH = True
+except ImportError:
+    HAS_BLEACH = False
 
 try:
     from . import _iterparser
@@ -146,6 +151,57 @@ class XMLWriter:
         self._open = 1
 
         return len(self._tags)
+
+    @contextlib.contextmanager
+    def xml_cleaning_method(self, method='escape_xml', **clean_kwargs):
+        """Context manager to control how XML data tags are cleaned (escaped) to
+        remove potentially unsafe characters or constructs.
+
+        The default (``method='escape_xml'``) applies brute-force escaping of
+        certain key XML characters like ``<``, ``>``, and ``&`` to ensure that
+        the output is not valid XML.
+
+        In order to explicitly allow certain XML tags (e.g. link reference or
+        emphasis tags), use ``method='bleach_clean'``.  This sanitizes the data
+        string using the ``clean`` function of the
+        `http://bleach.readthedocs.org/en/latest/clean.html <bleach>`_ package.
+        Any additional keyword arguments will be passed directly to the
+        ``clean`` function.
+
+        Example::
+
+          w = writer.XMLWriter(ListWriter(lines))
+          with w.xml_cleaning_method('bleach_clean'):
+              w.start('td')
+              w.data('<a href="http://google.com">google.com</a>')
+              w.end()
+
+        Parameters
+        ----------
+        method : str
+            Cleaning method.  Allowed values are "escape_xml" and
+            "bleach_clean".
+
+        **clean_kwargs : keyword args
+            Additional keyword args that are passed to the
+            bleach.clean() function.
+        """
+        current_xml_escape_cdata = self.xml_escape_cdata
+
+        if method == 'bleach_clean':
+            if HAS_BLEACH:
+                if clean_kwargs is None:
+                    clean_kwargs = {}
+                self.xml_escape_cdata = lambda x: bleach.clean(x, **clean_kwargs)
+            else:
+                raise ValueError('bleach package is required when HTML escaping is disabled.\n'
+                                 'Use "pip install bleach".')
+        elif method != 'escape_xml':
+            raise ValueError('allowed values of method are "escape_xml" and "bleach_clean"')
+
+        yield
+
+        self.xml_escape_cdata = current_xml_escape_cdata
 
     @contextlib.contextmanager
     def tag(self, tag, attrib={}, **extra):

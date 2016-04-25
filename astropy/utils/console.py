@@ -628,7 +628,7 @@ class ProgressBar(six.Iterator):
         write(' {0:>4s}/{1:>4s}'.format(
             human_file_size(value),
             self._human_total))
-        write(' ({0:>6s}%)'.format('{0:.2f}'.format(frac * 100.0)))
+        write(' ({:>6.2%})'.format(frac))
         write(prefix)
         if t is not None:
             write(human_time(t))
@@ -658,9 +658,9 @@ class ProgressBar(six.Iterator):
             self._widget.value = 0
 
         # Calculate percent completion, and update progress bar
-        percent = (value/self._total) * 100
-        self._widget.value = percent
-        self._widget.description =' ({0:>6s}%)'.format('{0:.2f}'.format(percent))
+        frac = (value/self._total)
+        self._widget.value = frac * 100
+        self._widget.description =' ({:>6.2%})'.format(frac)
 
 
     def _silent_update(self, value=None):

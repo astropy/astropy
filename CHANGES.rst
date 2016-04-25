@@ -20,7 +20,8 @@ New Features
 
   - ``angular_diameter_distance_z1z2`` now supports the computation of
     the angular diameter distance between a scalar and an array like
-    argument. [#4593]
+    argument. [#4593] The method now supports models with negative
+    Omega_k0 (positive curvature universes) [#4661] and allows z2 < z1.
 
 - ``astropy.io.ascii``
 
@@ -28,6 +29,11 @@ New Features
 
   - Check that columns in ``formats`` specifier exist in the output table
     when writing. [#4508]
+
+  - Allow trailing whitespace in the IPAC header lines. [#4758]
+
+  - Updated to filter out the default parser warning of BeautifulSoup. 
+    [#4551]
 
 - ``astropy.io.fits``
 
@@ -42,6 +48,10 @@ New Features
 - ``astropy.logger.py``
 
 - ``astropy.modeling``
+
+  - Added the fittable=True attribute to the Scale and Shift models with tests. [#4718]
+
+  - Added example plots to docstrings for some build-in models. [#4008]
 
 - ``astropy.nddata``
 
@@ -61,6 +71,7 @@ New Features
 - ``astropy.stats``
 
   - Added ``axis`` keyword for ``mad_std`` function. [#4688]
+  - Added Bayesian and Akaike Information Criteria. [#4716]
 
   - Added Bayesian upper limits for Poisson count rates. [#4622]
 
@@ -78,6 +89,8 @@ New Features
     of a row even when the table is re-sorted in the browser. [#4404]
 
   - Added ``AttributeError`` when trying to set mask on non-masked table. [#3505]
+
+  - Allow to use a tuple of keys in ``Table.sort``.  [#4671]
 
 - ``astropy.tests``
 
@@ -101,6 +114,9 @@ New Features
 
   - Added ``format_doc`` decorator which allows to replace and/or format the
     current docstring of an object. [#4242]
+
+  - Added a new context manager ``set_locale`` to temporarily set the
+    current locale. [#4363]
 
 - ``astropy.visualization``
 
@@ -134,6 +150,8 @@ API changes
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
+
+  - Add a way to control HTML escaping when writing a table as an HTML file. [#4423]
 
 - ``astropy.io.fits``
 
@@ -233,9 +251,15 @@ Bug fixes
 
 - ``astropy.coordinates``
 
+  - Ensure that ``angle_utilities.position_angle`` accepts floats, as stated
+    in the docstring. [#3800]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
+
+  - Fix a problem where the fast reader (with use_fast_converter=False) can
+    fail on non-US locales. [#4363]
 
 - ``astropy.io.fits``
 
@@ -249,6 +273,9 @@ Bug fixes
 - ``astropy.logger.py``
 
 - ``astropy.modeling``
+
+  - Refactored ``AiryDisk2D``, ``Sersic1D``, and ``Sersic2D`` models
+    to be able to combine them as classes as well as instances. [#4720]
 
 - ``astropy.nddata``
 
@@ -268,7 +295,7 @@ Bug fixes
   - ``NDArithmeticMixin`` does provide correct resulting uncertainties for
     ``divide`` and ``multiply`` if only one uncertainty was set. [#4152, #4272]
 
- - ``astropy.stats``
+- ``astropy.stats``
 
 - ``astropy.table``
 
@@ -295,6 +322,10 @@ Bug fixes
   - Cache option now properly caches both downloaded JSON database and XML VO
     tables. [#4699]
 
+  - VOSDatabase decodes byte-string to UTF-8 instead of ASCII to avoid
+    UnicodeDecodeError for some rare cases. Fixed a Cone Search test that is
+    failing as a side-effect of #4699. [#4757]
+
 - ``astropy.wcs``
 
 Other Changes and Additions
@@ -303,6 +334,8 @@ Other Changes and Additions
 - Python 2.6 is no longer supported. [#4486]
 
 - Reduce Astropy's import time (``import astropy``) by almost a factor 2. [#4649]
+
+- Cython prerequisite for building changed to v0.19 in install.rst [#4705]
 
 
 1.1.3 (unreleased)
@@ -409,6 +442,8 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - ``GroupsHDU.is_image`` property is now set to ``False``. [#4742]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -417,9 +452,14 @@ Bug Fixes
 
 - ``astropy.modeling``
 
+  - Refactored ``AiryDisk2D``, ``Sersic1D``, and ``Sersic2D`` models
+    to be able to combine them as classes as well as instances. [#4720]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
+
+  - Fix ``sigma_clipped_stats`` to use the ``axis`` argument. [#4726]
 
 - ``astropy.table``
 
@@ -527,6 +567,8 @@ Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Updated bundled astropy-helpers to v1.1.2. [#4678]
+
+- Updated bundled copy of WCSLIB to 5.14.
 
 
 1.1.1 (2016-01-08)
@@ -1254,6 +1296,9 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - Exponentation using a ``Quantity`` with a unit equivalent to dimensionless
+    as base and an ``array``-like exponent yields the correct result. [#4770]
+
 - ``astropy.utils``
 
 - ``astropy.vo``
@@ -1274,7 +1319,7 @@ New Features
 
 - ``astropy.nddata``
 
- - ``NDArithmeticMixin`` check for matching WCS now works with
+  - ``NDArithmeticMixin`` check for matching WCS now works with
     ``astropy.wcs.WCS`` objects [#4499]
 
 Bug Fixes

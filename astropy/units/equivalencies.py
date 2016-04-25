@@ -450,11 +450,11 @@ def brightness_temperature(beam_area, disp):
         >>> bmaj = 15*u.arcsec
         >>> bmin = 15*u.arcsec
         >>> fwhm_to_sigma = 1./(8*np.log(2))**0.5
-        >>> beam_area = 2.*np.pi*(bmaj*bmin/fwhm_to_sigma**2)
+        >>> beam_area = 2.*np.pi*(bmaj*bmin*fwhm_to_sigma**2)
         >>> freq = 5*u.GHz
         >>> equiv = u.brightness_temperature(beam_area, freq)
         >>> u.Jy.to(u.K, equivalencies=equiv)  # doctest: +FLOAT_CMP
-        7.065788175060084
+        217.2658703625732
     """
     beam = beam_area.to(si.sr).value
     nu = disp.to(si.GHz, spectral())

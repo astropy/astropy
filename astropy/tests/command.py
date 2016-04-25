@@ -151,7 +151,15 @@ class AstropyTest(Command, object):
 
         # Ensure there is a doc path
         if self.docs_path is None:
-            if os.path.exists('docs'):
+            cfg_docs_dir = self.distribution.get_option_dict('build_sphinx').get('source_dir', None)
+
+            # Some affiliated packages use this.
+            # See astropy/package-template#157
+            if cfg_docs_dir is not None and os.path.exists(cfg_docs_dir[1]):
+                self.docs_path = os.path.abspath(cfg_docs_dir[1])
+
+            # fall back on a default path of "docs"
+            elif os.path.exists('docs'):  # pragma: no cover
                 self.docs_path = os.path.abspath('docs')
 
         # Build a testing install of the package
@@ -209,10 +217,14 @@ class AstropyTest(Command, object):
         self.testing_path = os.path.join(self.tmp_dir, os.path.basename(new_path))
         shutil.copytree(new_path, self.testing_path)
 
-        new_docs_path = os.path.join(self.tmp_dir,
-                                     os.path.basename(self.docs_path))
-        shutil.copytree(self.docs_path, new_docs_path)
-        self.docs_path = new_docs_path
+        # Ideally, docs_path is set properly in run(), but if it is still
+        # not set here, do not pretend it is, otherwise bad things happen.
+        # See astropy/package-template#157
+        if self.docs_path is not None:
+            new_docs_path = os.path.join(self.tmp_dir,
+                                         os.path.basename(self.docs_path))
+            shutil.copytree(self.docs_path, new_docs_path)
+            self.docs_path = new_docs_path
 
         shutil.copy('setup.cfg', self.tmp_dir)
 

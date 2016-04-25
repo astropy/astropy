@@ -296,6 +296,27 @@ class TestQuantityMathFuncs(object):
     def test_power_array_array2(self):
         np.power([2., 4.] * u.m, [2., 4.])
 
+    def test_power_array_array3(self):
+        # Identical unit fractions are converted automatically to dimensionless
+        # and should be allowed as base for np.power: #4764
+        q = [2., 4.] * u.m / u.m
+        powers = [2., 4.]
+        res = np.power(q, powers)
+        assert np.all(res.value == q.value ** powers)
+        assert res.unit == u.dimensionless_unscaled
+        # The same holds for unit fractions that are scaled dimensionless.
+        q2 = [2., 4.] * u.m / u.cm
+        # Test also against different types of exponent
+        for cls in (list, tuple, np.array, np.ma.array, u.Quantity):
+            res2 = np.power(q2, cls(powers))
+            assert np.all(res2.value == q2.to(1).value ** powers)
+            assert res2.unit == u.dimensionless_unscaled
+        # Though for single powers, we keep the composite unit.
+        res3 = q2 ** 2
+        assert np.all(res3.value == q2.value ** 2)
+        assert res3.unit == q2.unit ** 2
+        assert np.all(res3 == q2 ** [2, 2])
+
     def test_power_invalid(self):
         with pytest.raises(TypeError) as exc:
             np.power(3., 4. * u.m)

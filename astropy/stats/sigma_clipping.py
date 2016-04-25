@@ -300,8 +300,19 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
         data = np.ma.MaskedArray(data, mask)
     if mask_value is not None:
         data = np.ma.masked_values(data, mask_value)
+
     data_clip = sigma_clip(data, sigma=sigma, sigma_lower=sigma_lower,
                            sigma_upper=sigma_upper, iters=iters,
                            cenfunc=cenfunc, stdfunc=stdfunc, axis=axis)
-    goodvals = np.ma.compressed(data_clip)
-    return np.mean(goodvals), np.median(goodvals), np.std(goodvals)
+
+    mean = np.ma.mean(data_clip, axis=axis)
+    median = np.ma.median(data_clip, axis=axis)
+    std = np.ma.std(data_clip, axis=axis)
+
+    if axis is None and np.ma.isMaskedArray(median):
+        # With Numpy 1.10 np.ma.median always return a MaskedArray, even with
+        # one element. So for compatibility with previous versions, we take the
+        # scalar value
+        median = median[0]
+
+    return mean, median, std

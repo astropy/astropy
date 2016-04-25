@@ -17,3 +17,4 @@ from .jackknife import *
 from .circstats import *
 from .bayesian_blocks import *
 from .histogram import *
+from .info_theory import *

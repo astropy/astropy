@@ -4,28 +4,22 @@
 
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
-
-
 import numpy as np
-
 from .core import (Fittable1DModel, Fittable2DModel, Model,
                    ModelDefinitionError, custom_model)
 from .parameters import Parameter, InputParameterError
 from .utils import ellipse_extent
 from ..utils import deprecated
 from ..extern import six
-
 from .utils import get_inputs_and_params
 
 
-__all__ = sorted([
-    'AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D',
-    'Box2D', 'Const1D', 'Const2D', 'Ellipse2D', 'Disk2D',
-    'Gaussian1D', 'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D',
-    'Lorentz1D', 'MexicanHat1D', 'MexicanHat2D', 'Redshift', 'Scale',
-    'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D', 'TrapezoidDisk2D',
-    'Ring2D', 'custom_model_1d', 'Voigt1D'
-])
+__all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
+           'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D',
+           'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D', 'Lorentz1D',
+           'MexicanHat1D', 'MexicanHat2D', 'Redshift', 'Scale', 'Sersic1D',
+           'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D', 'TrapezoidDisk2D',
+           'Ring2D', 'custom_model_1d', 'Voigt1D']
 
 
 class Gaussian1D(Fittable1DModel):
@@ -85,6 +79,25 @@ class Gaussian1D(Fittable1DModel):
     >>> g1.stddev.fixed = True
     >>> g1.stddev.fixed
     True
+
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        from astropy.modeling.models import Gaussian1D
+
+        plt.figure()
+        s1 = Gaussian1D()
+        r = np.arange(-5, 5, .01)
+
+        for factor in range(1, 4):
+            s1.amplitude = factor
+            plt.plot(r, s1(r), color=str(0.25 * factor), lw=2)
+
+        plt.axis([-5, 5, -1, 4])
+        plt.show()
 
     See Also
     --------
@@ -165,6 +178,25 @@ class GaussianAbsorption1D(Fittable1DModel):
     Model formula:
 
         .. math:: f(x) = 1 - A e^{- \\frac{\\left(x - x_{0}\\right)^{2}}{2 \\sigma^{2}}}
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+        from astropy.modeling.models import GaussianAbsorption1D
+
+        plt.figure()
+        s1 = GaussianAbsorption1D()
+        r = np.arange(-5, 5, .01)
+        for factor in range(1, 4):
+            s1.amplitude = factor
+            plt.plot(r, s1(r), color=str(0.25 * factor), lw=2)
+
+        plt.axis([-5, 5, -3, 2])
+        plt.show()
 
     See Also
     --------
@@ -464,6 +496,7 @@ class Shift(Model):
     outputs = ('x',)
 
     offset = Parameter(default=0)
+    fittable = True
 
     @property
     def inverse(self):
@@ -491,6 +524,7 @@ class Scale(Model):
 
     factor = Parameter(default=1)
     linear = True
+    fittable = True
 
     @property
     def inverse(self):
@@ -612,21 +646,19 @@ class Sersic1D(Fittable1DModel):
     n = Parameter(default=4)
     _gammaincinv = None
 
-    def __init__(self, amplitude=amplitude.default, r_eff=r_eff.default,
-                 n=n.default, **kwargs):
-        try:
-            from scipy.special import gammaincinv
-            self.__class__._gammaincinv = gammaincinv
-        except ValueError:
-            raise ImportError("Sersic1D model requires scipy > 0.11.")
-
-        super(Sersic1D, self).__init__(
-            amplitude=amplitude, r_eff=r_eff, n=n, **kwargs)
-
     @classmethod
     def evaluate(cls, r, amplitude, r_eff, n):
         """One dimensional Sersic profile function."""
-        return amplitude * np.exp(-cls._gammaincinv(2 * n, 0.5) * ((r / r_eff) ** (1 / n) - 1))
+
+        if cls._gammaincinv is None:
+            try:
+                from scipy.special import gammaincinv
+                cls._gammaincinv = gammaincinv
+            except ValueError:
+                raise ImportError('Sersic1D model requires scipy > 0.11.')
+
+        return (amplitude * np.exp(
+            -cls._gammaincinv(2 * n, 0.5) * ((r / r_eff) ** (1 / n) - 1)))
 
 
 class Sine1D(Fittable1DModel):
@@ -652,6 +684,27 @@ class Sine1D(Fittable1DModel):
     Model formula:
 
         .. math:: f(x) = A \\sin(2 \\pi f x + 2 \\pi p)
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        from astropy.modeling.models import Sine1D
+
+        plt.figure()
+        s1 = Sine1D(amplitude=1, frequency=.25)
+        r=np.arange(0, 10, .01)
+
+        for amplitude in range(1,4):
+             s1.amplitude = amplitude
+             plt.plot(r, s1(r), color=str(0.25 * amplitude), lw=2)
+
+        plt.axis([0, 10, -5, 5])
+        plt.show()
     """
 
     amplitude = Parameter(default=1)
@@ -748,6 +801,27 @@ class Lorentz1D(Fittable1DModel):
     .. math::
 
         f(x) = \\frac{A \\gamma^{2}}{\\gamma^{2} + \\left(x - x_{0}\\right)^{2}}
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        from astropy.modeling.models import Lorentz1D
+
+        plt.figure()
+        s1 = Lorentz1D()
+        r = np.arange(-5, 5, .01)
+
+        for factor in range(1, 4):
+            s1.amplitude = factor
+            plt.plot(r, s1(r), color=str(0.25 * factor), lw=2)
+
+        plt.axis([-5, 5, -1, 4])
+        plt.show()
     """
 
     amplitude = Parameter(default=1)
@@ -882,6 +956,27 @@ class Const1D(Fittable1DModel):
     Model formula:
 
         .. math:: f(x) = A
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        from astropy.modeling.models import Const1D
+
+        plt.figure()
+        s1 = Const1D()
+        r = np.arange(-5, 5, .01)
+
+        for factor in range(1, 4):
+            s1.amplitude = factor
+            plt.plot(r, s1(r), color=str(0.25 * factor), lw=2)
+
+        plt.axis([-5, 5, -1, 4])
+        plt.show()
     """
 
     amplitude = Parameter(default=1)
@@ -1238,6 +1333,28 @@ class Box1D(Fittable1DModel):
                        0 & : \\textnormal{else}
                      \\end{array}
                    \\right.
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        from astropy.modeling.models import Box1D
+
+        plt.figure()
+        s1 = Box1D()
+        r = np.arange(-5, 5, .01)
+
+        for factor in range(1, 4):
+            s1.amplitude = factor
+            s1.width = factor
+            plt.plot(r, s1(r), color=str(0.25 * factor), lw=2)
+
+        plt.axis([-5, 5, -1, 4])
+        plt.show()
     """
 
     amplitude = Parameter(default=1)
@@ -1360,6 +1477,28 @@ class Trapezoid1D(Fittable1DModel):
     See Also
     --------
     Box1D, Gaussian1D, Moffat1D
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        from astropy.modeling.models import Trapezoid1D
+
+        plt.figure()
+        s1 = Trapezoid1D()
+        r = np.arange(-5, 5, .01)
+
+        for factor in range(1, 4):
+            s1.amplitude = factor
+            s1.width = factor
+            plt.plot(r, s1(r), color=str(0.25 * factor), lw=2)
+
+        plt.axis([-5, 5, -1, 4])
+        plt.show()
     """
 
     amplitude = Parameter(default=1)
@@ -1479,6 +1618,27 @@ class MexicanHat1D(Fittable1DModel):
         f(x) = {A \\left(1 - \\frac{\\left(x - x_{0}\\right)^{2}}{\\sigma^{2}}\\right)
         e^{- \\frac{\\left(x - x_{0}\\right)^{2}}{2 \\sigma^{2}}}}
 
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        from astropy.modeling.models import MexicanHat1D
+
+        plt.figure()
+        s1 = MexicanHat1D()
+        r = np.arange(-5, 5, .01)
+
+        for factor in range(1, 4):
+            s1.amplitude = factor
+            s1.width = factor
+            plt.plot(r, s1(r), color=str(0.25 * factor), lw=2)
+
+        plt.axis([-5, 5, -2, 4])
+        plt.show()
     """
 
     amplitude = Parameter(default=1)
@@ -1584,38 +1744,20 @@ class AiryDisk2D(Fittable2DModel):
     x_0 = Parameter(default=0)
     y_0 = Parameter(default=0)
     radius = Parameter(default=1)
+    _rz = None
     _j1 = None
-
-    def __init__(self, amplitude=amplitude.default, x_0=x_0.default,
-                 y_0=y_0.default, radius=radius.default, **kwargs):
-        if self._j1 is None:
-            try:
-                from scipy.special import j1, jn_zeros
-                self.__class__._j1 = j1
-                self.__class__._rz = jn_zeros(1, 1)[0] / np.pi
-            # add a ValueError here for python3 + scipy < 0.12
-            except ValueError:
-                raise ImportError("AiryDisk2D model requires scipy > 0.11.")
-
-        super(AiryDisk2D, self).__init__(
-            amplitude=amplitude, x_0=x_0, y_0=y_0, radius=radius, **kwargs)
-
-    # TODO: Why does this particular model have its own special __deepcopy__
-    # and __copy__?  If it has anything to do with the use of the j_1 function
-    # that should be reworked.
-    def __deepcopy__(self, memo):
-        new_model = self.__class__(self.amplitude.value, self.x_0.value,
-                                   self.y_0.value, self.radius.value)
-        return new_model
-
-    def __copy__(self):
-        new_model = self.__class__(self.amplitude.value, self.x_0.value,
-                                   self.y_0.value, self.radius.value)
-        return new_model
 
     @classmethod
     def evaluate(cls, x, y, amplitude, x_0, y_0, radius):
         """Two dimensional Airy model function"""
+
+        if cls._rz is None:
+            try:
+                from scipy.special import j1, jn_zeros
+                cls._rz = jn_zeros(1, 1)[0] / np.pi
+                cls._j1 = j1
+            except ValueError:
+                raise ImportError('AiryDisk2D model requires scipy > 0.11.')
 
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2) / (radius / cls._rz)
         # Since r can be zero, we have to take care to treat that case
@@ -1653,6 +1795,28 @@ class Moffat1D(Fittable1DModel):
     .. math::
 
         f(x) = A \\left(1 + \\frac{\\left(x - x_{0}\\right)^{2}}{\\gamma^{2}}\\right)^{- \\alpha}
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        from astropy.modeling.models import Moffat1D
+
+        plt.figure()
+        s1 = Moffat1D()
+        r = np.arange(-5, 5, .01)
+
+        for factor in range(1, 4):
+            s1.amplitude = factor
+            s1.width = factor
+            plt.plot(r, s1(r), color=str(0.25 * factor), lw=2)
+
+        plt.axis([-5, 5, -1, 4])
+        plt.show()
     """
 
     amplitude = Parameter(default=1)
@@ -1820,22 +1984,16 @@ class Sersic2D(Fittable2DModel):
     theta = Parameter(default=0)
     _gammaincinv = None
 
-    def __init__(self, amplitude=amplitude.default, r_eff=r_eff.default,
-                 n=n.default, x_0=x_0.default, y_0=y_0.default, ellip=ellip.default,
-                 theta=theta.default, **kwargs):
-        try:
-            from scipy.special import gammaincinv
-            self.__class__._gammaincinv = gammaincinv
-        except ValueError:
-            raise ImportError("Sersic2D model requires scipy > 0.11.")
-
-        super(Sersic2D, self).__init__(
-            amplitude=amplitude, r_eff=r_eff, n=n, x_0=x_0, y_0=y_0,
-            ellip=ellip, theta=theta, **kwargs)
-
     @classmethod
     def evaluate(cls, x, y, amplitude, r_eff, n, x_0, y_0, ellip, theta):
         """Two dimensional Sersic profile function."""
+
+        if cls._gammaincinv is None:
+            try:
+                from scipy.special import gammaincinv
+                cls._gammaincinv = gammaincinv
+            except ValueError:
+                raise ImportError('Sersic2D model requires scipy > 0.11.')
 
         bn = cls._gammaincinv(2. * n, 0.5)
         a, b = r_eff, (1 - ellip) * r_eff

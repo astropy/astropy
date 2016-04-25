@@ -9,12 +9,12 @@ from .utils import KernelSizeError
 from ..modeling import models
 from ..modeling.core import Fittable1DModel, Fittable2DModel
 
-__all__ = sorted(['Gaussian1DKernel', 'Gaussian2DKernel', 'CustomKernel',
-                  'Box1DKernel', 'Box2DKernel', 'Tophat2DKernel',
-                  'Trapezoid1DKernel', 'MexicanHat1DKernel',
-                  'MexicanHat2DKernel', 'AiryDisk2DKernel',
-                  'Moffat2DKernel', 'Model1DKernel', 'Model2DKernel',
-                  'TrapezoidDisk2DKernel', 'Ring2DKernel'])
+
+__all__ = ['Gaussian1DKernel', 'Gaussian2DKernel', 'CustomKernel',
+           'Box1DKernel', 'Box2DKernel', 'Tophat2DKernel',
+           'Trapezoid1DKernel', 'MexicanHat1DKernel', 'MexicanHat2DKernel',
+           'AiryDisk2DKernel', 'Moffat2DKernel', 'Model1DKernel',
+           'Model2DKernel', 'TrapezoidDisk2DKernel', 'Ring2DKernel']
 
 
 def _round_up_to_odd_integer(value):

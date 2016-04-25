@@ -13,8 +13,8 @@ from .core import Fittable1DModel
 from .parameters import Parameter
 
 
-__all__ = sorted(['PowerLaw1D', 'BrokenPowerLaw1D',
-                  'ExponentialCutoffPowerLaw1D', 'LogParabola1D'])
+__all__ = ['PowerLaw1D', 'BrokenPowerLaw1D', 'ExponentialCutoffPowerLaw1D',
+           'LogParabola1D']
 
 
 class PowerLaw1D(Fittable1DModel):

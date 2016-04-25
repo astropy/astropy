@@ -3,6 +3,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 from ..extern import six
+from ..extern.six.moves import map
 
 import sys
 from math import sqrt, pi, exp, log, floor
@@ -1187,14 +1188,35 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        d : ndarray, or float if input scalar
+        d : `~astropy.units.Quantity`
           Comoving distance in Mpc to each input redshift.
         """
 
+        return self._comoving_distance_z1z2(0, z)
+
+    def _comoving_distance_z1z2(self, z1, z2):
+        """ Comoving line-of-sight distance in Mpc between objects at
+        redshifts z1 and z2.
+
+        The comoving distance along the line-of-sight between two
+        objects remains constant with time for objects in the Hubble
+        flow.
+
+        Parameters
+        ----------
+        z1, z2 : array-like, shape (N,)
+          Input redshifts.  Must be 1D or scalar.
+
+        Returns
+        -------
+        d : `~astropy.units.Quantity`
+          Comoving distance in Mpc between each input redshift.
+        """
+
         from scipy.integrate import quad
-        f = lambda red: quad(self._inv_efunc_scalar, 0, red,
+        f = lambda z1, z2: quad(self._inv_efunc_scalar, z1, z2,
                              args=self._inv_efunc_scalar_args)[0]
-        return self._hubble_distance * vectorize_if_needed(f, z)
+        return self._hubble_distance * vectorize_if_needed(f, z1, z2)
 
     def comoving_transverse_distance(self, z):
         """ Comoving transverse distance in Mpc at a given redshift.
@@ -1220,8 +1242,36 @@ class FLRW(Cosmology):
         texts.
         """
 
+        return self._comoving_transverse_distance_z1z2(0, z)
+
+    def _comoving_transverse_distance_z1z2(self, z1, z2):
+        """Comoving transverse distance in Mpc between two redshifts.
+
+        This value is the transverse comoving distance at redshift
+        ``z2`` as seen from redshift ``z1`` corresponding to an
+        angular separation of 1 radian. This is the same as the
+        comoving distance if omega_k is zero (as in the current
+        concordance lambda CDM model).
+
+        Parameters
+        ----------
+        z1, z2 : array-like, shape (N,)
+          Input redshifts.  Must be 1D or scalar.
+
+        Returns
+        -------
+        d : `~astropy.units.Quantity`
+          Comoving transverse distance in Mpc between input redshift.
+
+        Notes
+        -----
+        This quantity is also called the 'proper motion distance' in
+        some texts.
+
+        """
+
         Ok0 = self._Ok0
-        dc = self.comoving_distance(z)
+        dc = self._comoving_distance_z1z2(z1, z2)
         if Ok0 == 0:
             return dc
         sqrtOk0 = sqrt(abs(Ok0))
@@ -1303,47 +1353,11 @@ class FLRW(Cosmology):
           The angular diameter distance between each input redshift
           pair.
 
-        Raises
-        ------
-        ValueError
-          If z2 is less than z1 or if z1 and z2 are arrays of different
-          size
-        CosmologyError
-          If omega_k is < 0.
-
-        Notes
-        -----
-        This method only works for flat or open curvature
-        (omega_k >= 0).
         """
-
-        # does not work for negative curvature
-        Ok0 = self._Ok0
-        if Ok0 < 0:
-            raise CosmologyError('Ok0 must be >= 0 to use this method.')
 
         z1 = np.asanyarray(z1)
         z2 = np.asanyarray(z2)
-        try:
-            any_z1_gt_z2 = np.any(z1 > z2)
-        except ValueError:
-            raise ValueError('z1 and z2 must have compatible shape')
-        if any_z1_gt_z2:
-            raise ValueError('z2 must be greater than z1')
-
-        dm1 = self.comoving_transverse_distance(z1).value
-        dm2 = self.comoving_transverse_distance(z2).value
-        dh_2 = self._hubble_distance.value ** 2
-
-        if Ok0 == 0:
-            # Common case worth checking
-            out = (dm2 - dm1) / (1. + z2)
-        else:
-            out = ((dm2 * np.sqrt(1. + Ok0 * dm1 ** 2 / dh_2) -
-                    dm1 * np.sqrt(1. + Ok0 * dm2 ** 2 / dh_2)) /
-                   (1. + z2))
-
-        return u.Quantity(out, u.Mpc)
+        return self._comoving_transverse_distance_z1z2(z1, z2) / (1. + z2)
 
     def absorption_distance(self, z):
         """ Absorption distance at redshift ``z``.
@@ -2857,12 +2871,12 @@ def _float_or_none(x, digits=3):
     return fmtstr.format(x)
 
 
-def vectorize_if_needed(func, x):
+def vectorize_if_needed(func, *x):
     """ Helper function to vectorize functions on array inputs"""
-    if isiterable(x):
-        return np.vectorize(func)(x)
+    if any(map(isiterable, x)):
+        return np.vectorize(func)(*x)
     else:
-        return func(x)
+        return func(*x)
 
 
 # Pre-defined cosmologies. This loops over the parameter sets in the

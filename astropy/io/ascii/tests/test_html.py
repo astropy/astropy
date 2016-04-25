@@ -14,12 +14,14 @@ from ....table import Table
 
 import numpy as np
 
-from ....tests.helper import pytest
 from .common import setup_function, teardown_function
+from ....tests.helper import pytest
+from ....extern.six.moves import cStringIO
+from ....utils.xml.writer import HAS_BLEACH
 
 # Check to see if the BeautifulSoup dependency is present.
-
 try:
+
     from bs4 import BeautifulSoup, FeatureNotFound
     HAS_BEAUTIFUL_SOUP = True
 except ImportError:
@@ -409,7 +411,66 @@ def test_multicolumn_write():
  </body>
 </html>
     """
-    assert html.HTML().write(table)[0].strip() == expected.strip()
+    out = html.HTML().write(table)[0].strip()
+    assert out == expected.strip()
+
+@pytest.mark.skipif('not HAS_BLEACH')
+def test_multicolumn_write_escape():
+    """
+    Test to make sure that the HTML writer writes multimensional
+    columns (those with iterable elements) using the colspan
+    attribute of <th>.
+    """
+
+    col1 = [1, 2, 3]
+    col2 = [(1.0, 1.0), (2.0, 2.0), (3.0, 3.0)]
+    col3 = [('<a></a>', '<a></a>', 'a'), ('<b></b>', 'b', 'b'), ('c', 'c', 'c')]
+    table = Table([col1, col2, col3], names=('C1', 'C2', 'C3'))
+    expected = """\
+<html>
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="text/html;charset=UTF-8" http-equiv="Content-type"/>
+ </head>
+ <body>
+  <table>
+   <thead>
+    <tr>
+     <th>C1</th>
+     <th colspan="2">C2</th>
+     <th colspan="3">C3</th>
+    </tr>
+   </thead>
+   <tr>
+    <td>1</td>
+    <td>1.0</td>
+    <td>1.0</td>
+    <td><a></a></td>
+    <td><a></a></td>
+    <td>a</td>
+   </tr>
+   <tr>
+    <td>2</td>
+    <td>2.0</td>
+    <td>2.0</td>
+    <td><b></b></td>
+    <td>b</td>
+    <td>b</td>
+   </tr>
+   <tr>
+    <td>3</td>
+    <td>3.0</td>
+    <td>3.0</td>
+    <td>c</td>
+    <td>c</td>
+    <td>c</td>
+   </tr>
+  </table>
+ </body>
+</html>
+    """
+    out = html.HTML(htmldict={'raw_html_cols': 'C3'}).write(table)[0].strip()
+    assert out == expected.strip()
 
 def test_write_no_multicols():
     """
@@ -476,3 +537,69 @@ def test_multicolumn_read():
                                (['1a', '1'], 3.5)],
                               dtype=[('A', str_type, (2,)), ('B', '<f8')]))
     assert np.all(table == expected)
+
+@pytest.mark.skipif('not HAS_BLEACH')
+def test_raw_html_write():
+    """
+    Test that columns can contain raw HTML which is not escaped.
+    """
+    t = Table([['<em>x</em>'], ['<em>y</em>']], names=['a', 'b'])
+
+    # One column contains raw HTML (string input)
+    out = cStringIO()
+    t.write(out, format='ascii.html', htmldict={'raw_html_cols': 'a'})
+    expected = """\
+   <tr>
+    <td><em>x</em></td>
+    <td>&lt;em&gt;y&lt;/em&gt;</td>
+   </tr>"""
+    assert expected in out.getvalue()
+
+    # One column contains raw HTML (list input)
+    out = cStringIO()
+    t.write(out, format='ascii.html', htmldict={'raw_html_cols': ['a']})
+    assert expected in out.getvalue()
+
+    # Two columns contains raw HTML (list input)
+    out = cStringIO()
+    t.write(out, format='ascii.html', htmldict={'raw_html_cols': ['a', 'b']})
+    expected = """\
+   <tr>
+    <td><em>x</em></td>
+    <td><em>y</em></td>
+   </tr>"""
+    assert expected in out.getvalue()
+
+
+@pytest.mark.skipif('not HAS_BLEACH')
+def test_raw_html_write_clean():
+    """
+    Test that columns can contain raw HTML which is not escaped.
+    """
+    import bleach
+
+    t = Table([['<script>x</script>'], ['<p>y</p>'], ['<em>y</em>']], names=['a', 'b', 'c'])
+
+    # Confirm that <script> and <p> get escaped but not <em>
+    out = cStringIO()
+    t.write(out, format='ascii.html', htmldict={'raw_html_cols': t.colnames})
+    expected = """\
+   <tr>
+    <td>&lt;script&gt;x&lt;/script&gt;</td>
+    <td>&lt;p&gt;y&lt;/p&gt;</td>
+    <td><em>y</em></td>
+   </tr>"""
+    assert expected in out.getvalue()
+
+    # Confirm that we can whitelist <p>
+    out = cStringIO()
+    t.write(out, format='ascii.html',
+            htmldict={'raw_html_cols': t.colnames,
+                      'raw_html_clean_kwargs': {'tags': bleach.ALLOWED_TAGS + ['p']}})
+    expected = """\
+   <tr>
+    <td>&lt;script&gt;x&lt;/script&gt;</td>
+    <td><p>y</p></td>
+    <td><em>y</em></td>
+   </tr>"""
+    assert expected in out.getvalue()

@@ -929,23 +929,31 @@ class BaseOutputter(object):
 
             col.converters = self._validate_and_copy(col, converters)
 
+            # Catch the last error in order to provide additional information
+            # in case all attempts at column conversion fail.  The initial
+            # value of of last_error will apply if no converters are defined
+            # and the first col.converters[0] access raises IndexError.
+            last_err = 'no converters defined'
+
             while not hasattr(col, 'data'):
                 try:
                     converter_func, converter_type = col.converters[0]
                     if not issubclass(converter_type, col.type):
-                        raise TypeError()
+                        raise TypeError('converter type does not match column type')
                     col.data = converter_func(col.str_vals)
                     col.type = converter_type
-                except (TypeError, ValueError):
+                except (TypeError, ValueError) as err:
                     col.converters.pop(0)
-                except OverflowError:
+                    last_err = err
+                except OverflowError as err:
                     # Overflow during conversion (most likely an int that doesn't fit in native C long).
                     # Put string at the top of the converters list for the next while iteration.
                     warnings.warn("OverflowError converting to {0} for column {1}, using string instead."
                                   .format(converter_type.__name__, col.name), AstropyWarning)
                     col.converters.insert(0, convert_numpy(numpy.str))
+                    last_err = err
                 except IndexError:
-                    raise ValueError('Column %s failed to convert' % col.name)
+                    raise ValueError('Column {} failed to convert: {}'.format(col.name, last_err))
 
 
 class TableOutputter(BaseOutputter):

@@ -684,4 +684,4 @@ def position_angle(lon1, lat1, lon2, lat2):
     x = np.sin(lat2) * np.cos(lat1) - colat * np.sin(lat1) * np.cos(deltalon)
     y = np.sin(deltalon) * colat
 
-    return Angle(np.arctan2(y, x)).wrap_at(360*u.deg)
+    return Angle(np.arctan2(y, x), u.radian).wrap_at(360*u.deg)
