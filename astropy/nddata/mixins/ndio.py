@@ -53,7 +53,7 @@ def read_from_fits(filename):
     kw_unit = 'bunit'
     kw_mask_type = 'boolmask'
     kw_uncert_type = 'stddev'
-    # TODO: memmap has some problems regarding the tests. If memmap is used
+    # TODO: memmap had caused some problems in the tests. If memmap is used
     # the tests checking for open-files are triggering Errors. This may be
     # because there is a quasi-cyclic reference structure between NDData and
     # uncertainty (if given) because the uncertainty saves a reference to
@@ -174,7 +174,7 @@ def write_to_fits(ndd, filename):
 
     # TODO: Maybe add another except in case the uncertainty array wasn't a
     # numpy array or something that could be saved in an ImageHDU. But I'll
-    # assume for now that letting the exception rise is better for now.
+    # assume for now that letting the exception rise is better.
 
     # Converting to HDUList and writing it to a file.
     with fits.HDUList(hdus) as hdulist:
