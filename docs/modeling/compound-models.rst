@@ -411,7 +411,7 @@ example, to create the following compound model:
     x = np.linspace(0, 1.2, 100)
     g0 = RedshiftedGaussian(z_0=0)
 
-    plt.figure(figsize=(8, 3))
+    plt.figure(figsize=(8, 5))
     plt.plot(x, g0(x), 'g--', label='$z=0$')
 
     for z in (0.2, 0.4, 0.6):
