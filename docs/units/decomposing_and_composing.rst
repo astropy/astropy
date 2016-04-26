@@ -1,6 +1,8 @@
 Decomposing and composing units
 ===============================
 
+.. _decomposing:
+
 Reducing a unit to its irreducible parts
 ----------------------------------------
 
@@ -26,6 +28,11 @@ to decompose the Rydberg unit in terms of CGS units::
 
   >>> u.Ry.decompose(bases=u.cgs.bases)
   Unit("2.17987e-11 cm2 g / s2")
+
+Finally, if you just want to know how a unit was defined::
+
+  >>> u.Ry.represents
+  Unit("13.6057 eV")
 
 Automatically composing a unit into more complex units
 ------------------------------------------------------
