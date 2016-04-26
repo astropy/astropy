@@ -141,7 +141,7 @@ class TestTableFunctions(FitsTestCase):
 
         # first, create individual column definitions
 
-        c1 = fits.Column(name='abc', format='3A', array=a1)
+        c1 = fits.Column(name=u'abc', format='3A', array=a1)
         c2 = fits.Column(name='def', format='E', array=r1)
         a3 = np.array([3, 4, 5], dtype='i2')
         c3 = fits.Column(name='xyz', format='I', array=a3)

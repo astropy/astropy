@@ -19,7 +19,7 @@ from .util import (pairwise, _is_int, _convert_array, encode_ascii, cmp,
                    NotifierMixin)
 from .verify import VerifyError, VerifyWarning
 
-from ...extern.six import string_types, iteritems
+from ...extern.six import string_types, iteritems, PY2
 from ...utils import lazyproperty, isiterable, indent
 from ...utils.compat import ignored
 
@@ -1423,7 +1423,10 @@ class ColDefs(NotifierMixin):
                 else:
                     dt = np.dtype((dt.base, dim))
 
-            fields.append((name, dt))
+            if PY2:  # pragma: py2
+                fields.append((name.encode('utf-8'), dt))
+            else:  # pragma: py3
+                fields.append((name, dt))
 
         return nh.realign_dtype(np.dtype(fields), offsets)
 
