@@ -32,7 +32,7 @@ New Features
 
   - Allow trailing whitespace in the IPAC header lines. [#4758]
 
-  - Updated to filter out the default parser warning of BeautifulSoup. 
+  - Updated to filter out the default parser warning of BeautifulSoup.
     [#4551]
 
 - ``astropy.io.fits``
@@ -443,6 +443,9 @@ Bug Fixes
 - ``astropy.io.fits``
 
   - ``GroupsHDU.is_image`` property is now set to ``False``. [#4742]
+
+  - ``ColDefs.dtype`` no longer throws TypeError when column name is in
+    unicode. [#4805]
 
 - ``astropy.io.misc``
 
