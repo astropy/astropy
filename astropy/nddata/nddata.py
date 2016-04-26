@@ -106,7 +106,7 @@ class NDData(NDDataBase):
 
     See also
     --------
-    NDDataAllMixins
+    NDDataRef
     NDDataArray
     """
 

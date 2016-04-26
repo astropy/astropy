@@ -76,7 +76,7 @@ New Features
     first operand is not an ``NDArithmeticMixin`` subclass via classmethods
     called ``ic_add``, ``ic_subtract``, etc. [#4272]
 
-  - Added ``NDDataAllMixins`` that implements ``NDData`` together with all
+  - Added ``NDDataRef`` that implements ``NDData`` together with all
     currently avaiable mixins. This class does not implement additional
     attributes, methods or a numpy.ndarray-like interface like ``NDDataArray``.
 

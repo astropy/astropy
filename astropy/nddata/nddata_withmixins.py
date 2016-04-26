@@ -13,10 +13,10 @@ from .mixins.ndslicing import NDSlicingMixin
 from .mixins.ndarithmetic import NDArithmeticMixin
 from .mixins.ndio import NDIOMixin
 
-__all__ = ['NDDataAllMixins']
+__all__ = ['NDDataRef']
 
 
-class NDDataAllMixins(NDArithmeticMixin, NDIOMixin, NDSlicingMixin, NDData):
+class NDDataRef(NDArithmeticMixin, NDIOMixin, NDSlicingMixin, NDData):
     """Implements `NDData` with all Mixins.
 
     This class implements a `NDData`-like container that supports reading and
@@ -40,12 +40,12 @@ class NDDataAllMixins(NDArithmeticMixin, NDIOMixin, NDSlicingMixin, NDData):
     The mixins allow operation that are not possible with `NDData` or
     `NDDataBase`, i.e. simple arithmetics::
 
-        >>> from astropy.nddata import NDDataAllMixins, StdDevUncertainty
+        >>> from astropy.nddata import NDDataRef, StdDevUncertainty
         >>> import numpy as np
 
         >>> data = np.ones((3,3), dtype=np.float)
-        >>> ndd1 = NDDataAllMixins(data, uncertainty=StdDevUncertainty(data))
-        >>> ndd2 = NDDataAllMixins(data, uncertainty=StdDevUncertainty(data))
+        >>> ndd1 = NDDataRef(data, uncertainty=StdDevUncertainty(data))
+        >>> ndd2 = NDDataRef(data, uncertainty=StdDevUncertainty(data))
 
         >>> ndd3 = ndd1.add(ndd2)
         >>> ndd3.data

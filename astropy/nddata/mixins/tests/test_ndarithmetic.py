@@ -10,14 +10,15 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from ...nduncertainty import (StdDevUncertainty, UnknownUncertainty,
                               IncompatibleUncertaintiesException)
-from ... import NDDataAllMixins
+from ... import NDDataRef
+
 from ....units import UnitsError, Quantity
 from ....tests.helper import pytest
 from .... import units as u
 
 
 # Alias NDDataAllMixins in case this will be renamed ... :-)
-NDDataArithmetic = NDDataAllMixins
+NDDataArithmetic = NDDataRef
 
 
 class StdDevUncertaintyUncorrelated(StdDevUncertainty):

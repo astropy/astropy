@@ -1,11 +1,11 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ... import NDData, NDIOMixin, NDDataAllMixins
+from ... import NDData, NDIOMixin, NDDataRef
 
 
 # Alias NDDataAllMixins in case this will be renamed ... :-)
-NDDataIO = NDDataAllMixins
+NDDataIO = NDDataRef
 
 
 def test_simple_write_read(tmpdir):
