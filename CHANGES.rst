@@ -102,6 +102,9 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Fix convenience functions (``getdata``, ``getheader``, ``append``,
+    ``update``) to close files. [#4786]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
