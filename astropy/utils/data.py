@@ -1320,18 +1320,15 @@ def _get_download_cache_locs():
 
 def _open_shelve(shelffn, withclosing=False):
     """
-    opens a shelf in a way that is py3.x and py2.x compatible.  If
-    `withclosing` is  True, it will be opened with closing, allowing use like:
+    Opens a shelf file.  If `withclosing` is  True, it will be opened with closing,
+    allowing use like:
 
         with _open_shelve('somefile',True) as s:
             ...
     """
     import shelve
 
-    if six.PY2:
-        shelf = shelve.open(shelffn, protocol=2)
-    elif six.PY3:
-        shelf = shelve.open(shelffn + '.db', protocol=2)
+    shelf = shelve.open(shelffn, protocol=2)
 
     if withclosing:
         return contextlib.closing(shelf)
