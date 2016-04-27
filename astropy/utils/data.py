@@ -1241,10 +1241,11 @@ def clear_download_cache(hashorurl=None):
     _acquire_download_cache_lock()
     try:
         if hashorurl is None:
+            # dldir includes both the download files and the urlmapfn.  This structure
+            # is required since we cannot know a priori the actual file name corresponding
+            # to the shelve map named urlmapfn.
             if os.path.exists(dldir):
                 shutil.rmtree(dldir)
-            if os.path.exists(urlmapfn):
-                os.unlink(urlmapfn)
         else:
             with _open_shelve(urlmapfn, True) as url2hash:
                 filepath = os.path.join(dldir, hashorurl)
@@ -1266,13 +1267,15 @@ def clear_download_cache(hashorurl=None):
                 elif hash_key in url2hash:
                     filepath = url2hash[hash_key]
                     del url2hash[hash_key]
-                    os.unlink(filepath)
+                    if os.path.exists(filepath):
+                        # Make sure the filepath still actually exists (perhaps user removed it)
+                        os.unlink(filepath)
                 else:
                     msg = 'Could not find file or url {0}'
                     raise OSError(msg.format(hashorurl))
     finally:
         # the lock will be gone if rmtree was used above, but release otherwise
-        if os.path.exists(os.path.join(_get_download_cache_locs()[0], 'lock')):
+        if os.path.exists(os.path.join(dldir, 'lock')):
             _release_download_cache_lock()
 
 
@@ -1289,12 +1292,18 @@ def _get_download_cache_locs():
     """
     from ..config.paths import get_cache_dir
 
-    datadir = os.path.join(get_cache_dir(), 'download')
-    shelveloc = os.path.join(get_cache_dir(), 'download_urlmap')
+    # datadir includes both the download files and the shelveloc.  This structure
+    # is required since we cannot know a priori the actual file name corresponding
+    # to the shelve map named shelveloc.  (The backend can vary and is allowed to
+    # do whatever it wants with the filename.  Filename munging can and does happen
+    # in practice).
+    py_version = 'py' + str(sys.version_info.major)
+    datadir = os.path.join(get_cache_dir(), 'download', py_version)
+    shelveloc = os.path.join(datadir, 'urlmap')
 
     if not os.path.exists(datadir):
         try:
-            os.mkdir(datadir)
+            os.makedirs(datadir)
         except OSError as e:
             if not os.path.exists(datadir):
                 raise
