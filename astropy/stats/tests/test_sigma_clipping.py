@@ -100,9 +100,15 @@ def test_sigma_clipped_stats():
     assert result == (1., 1., 0.)
 
     # test list data with mask_value
-    result2 = sigma_clipped_stats(data, mask_value=0.)
+    result = sigma_clipped_stats(data, mask_value=0.)
     assert isinstance(result[1], float)
-    assert result2 == (1., 1., 0.)
+    assert result == (1., 1., 0.)
+
+    # test without mask
+    data = [0, 2]
+    result = sigma_clipped_stats(data)
+    assert isinstance(result[1], float)
+    assert result == (1., 1., 1.)
 
     _data = np.arange(10)
     data = np.ma.MaskedArray([_data, _data, 10 * _data])

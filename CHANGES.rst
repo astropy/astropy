@@ -32,7 +32,7 @@ New Features
 
   - Allow trailing whitespace in the IPAC header lines. [#4758]
 
-  - Updated to filter out the default parser warning of BeautifulSoup. 
+  - Updated to filter out the default parser warning of BeautifulSoup.
     [#4551]
 
 - ``astropy.io.fits``
@@ -462,7 +462,7 @@ Bug Fixes
 
 - ``astropy.stats``
 
-  - Fix ``sigma_clipped_stats`` to use the ``axis`` argument. [#4726]
+  - Fix ``sigma_clipped_stats`` to use the ``axis`` argument. [#4726, #4808]
 
 - ``astropy.table``
 

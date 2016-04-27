@@ -313,6 +313,6 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
         # With Numpy 1.10 np.ma.median always return a MaskedArray, even with
         # one element. So for compatibility with previous versions, we take the
         # scalar value
-        median = median[0]
+        median = median.item()
 
     return mean, median, std
