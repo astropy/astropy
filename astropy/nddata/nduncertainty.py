@@ -149,7 +149,7 @@ class NDUncertainty(object):
 
     6. If a ``unit`` is implicit (``data`` had a unit) or explicitly passed
        to the ``__init__`` one should be sure that this unit is identical or
-       convertable to the unit of the parent. Otherwise uncertainty propagation
+       convertible to the unit of the parent. Otherwise uncertainty propagation
        should fail.
     """
 
@@ -226,7 +226,7 @@ class NDUncertainty(object):
         """
         `~astropy.units.Unit` : The unit of the uncertainty.
 
-        Even though it is not enforced the unit should be convertable to the
+        Even though it is not enforced the unit should be convertible to the
         `parent_nddata` unit. Otherwise uncertainty propagation might give
         wrong results.
 
@@ -475,7 +475,7 @@ class StdDevUncertainty(NDUncertainty):
     This class implements uncertainty propagation for ``addition``,
     ``subtraction``, ``multiplication`` and ``division`` but only with other
     instances of `StdDevUncertainty`. The class can fully handle if the
-    uncertainty has a unit that differs from (but is convertable to) the
+    uncertainty has a unit that differs from (but is convertible to) the
     parents `NDData` unit but converts the unit of the propagated uncertainty
     to the unit of the resulting data. Also support for correlation is possible
     but that requires that the correlation is an input. It cannot handle

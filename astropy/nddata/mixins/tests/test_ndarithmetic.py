@@ -141,7 +141,7 @@ def test_arithmetics_data_unit_identical(data1, data2):
 
 
 # Test with Data and unit and covers:
-# not identical not convertable units
+# not identical not convertible units
 # one with unit (which is not dimensionless) and one without
 @pytest.mark.parametrize(('data1', 'data2'), [
     (np.array(5) * u.s, np.array(10) * u.m),
