@@ -7,18 +7,6 @@ from astropy import units
 from .. import LombScargle
 from ..implementations import lombscargle_slow, lombscargle
 
-METHOD_NAMES = ['auto', 'fast', 'slow', 'scipy', 'chi2', 'fastchi2']
-
-# Numpy 1.8 or newer required for fast algorithms
-if not hasattr(np.ufunc, 'at'):
-    METHOD_NAMES = [method for method in METHOD_NAMES if 'fast' not in method]
-
-# Scipy required for method = 'scipy'
-try:
-    import scipy
-except ImportError:
-    METHOD_NAMES = [method for method in METHOD_NAMES if method != 'scipy']
-
 
 @pytest.fixture
 def data(N=100, period=1, theta=[10, 2, 3], dy=1, rseed=0):
@@ -33,7 +21,7 @@ def data(N=100, period=1, theta=[10, 2, 3], dy=1, rseed=0):
     return t, y, dy
 
 
-@pytest.mark.parametrize('method', METHOD_NAMES)
+@pytest.mark.parametrize('method', LombScargle.available_methods)
 @pytest.mark.parametrize('shape', [(), (1,), (2,), (3,), (2, 3)])
 def test_output_shapes(method, shape, data):
     t, y, dy = data
@@ -44,7 +32,7 @@ def test_output_shapes(method, shape, data):
     assert_equal(PLS.shape, shape)
 
 
-@pytest.mark.parametrize('method', METHOD_NAMES)
+@pytest.mark.parametrize('method', LombScargle.available_methods)
 @pytest.mark.parametrize('t_unit', [units.second, units.day])
 @pytest.mark.parametrize('frequency_unit', [units.Hz, 1. / units.second])
 @pytest.mark.parametrize('y_unit', [units.mag, units.jansky])
@@ -66,7 +54,7 @@ def test_units_match(method, t_unit, frequency_unit, y_unit, data):
     assert_equal(PLS.unit, units.dimensionless_unscaled)
 
 
-@pytest.mark.parametrize('method', METHOD_NAMES)
+@pytest.mark.parametrize('method', LombScargle.available_methods)
 def test_units_mismatch(method, data):
     t, y, dy = data
     dy = dy.mean()  # scipy only supports constant errors
@@ -88,7 +76,7 @@ def test_units_mismatch(method, data):
     assert str(err.value).startswith('Units of y not equivalent')
 
 
-@pytest.mark.parametrize('method', METHOD_NAMES)
+@pytest.mark.parametrize('method', LombScargle.available_methods)
 @pytest.mark.parametrize('center_data', [True, False])
 @pytest.mark.parametrize('freq', [0.8 + 0.01 * np.arange(40)])
 def test_common_interface(method, center_data, freq, data):
@@ -111,7 +99,7 @@ def test_common_interface(method, center_data, freq, data):
     assert_allclose(PLS, expected_PLS, atol=atol)
 
 
-@pytest.mark.parametrize('method', METHOD_NAMES)
+@pytest.mark.parametrize('method', LombScargle.available_methods)
 @pytest.mark.parametrize('center_data', [True, False])
 @pytest.mark.parametrize('fit_bias', [True, False])
 @pytest.mark.parametrize('freq', [0.8 + 0.01 * np.arange(40)])
@@ -131,7 +119,7 @@ def test_object_interface_power(data, method, center_data, fit_bias, freq):
     assert_allclose(PLS, expected_PLS)
 
 
-@pytest.mark.parametrize('method', METHOD_NAMES)
+@pytest.mark.parametrize('method', LombScargle.available_methods)
 @pytest.mark.parametrize('center_data', [True, False])
 @pytest.mark.parametrize('fit_bias', [True, False])
 def test_object_interface_autopower(data, method, center_data, fit_bias):

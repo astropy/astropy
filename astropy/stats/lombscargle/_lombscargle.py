@@ -1,7 +1,7 @@
 """Main Lomb-Scargle Implementation"""
 import numpy as np
 
-from .implementations import lombscargle
+from .implementations import lombscargle, available_methods
 from .implementations.mle import periodic_fit
 
 
@@ -61,6 +61,8 @@ class LombScargle(object):
     because it is related to the :math:`\\chi^2` of the best-fit periodic
     model at each frequency.
     """
+    available_methods = available_methods()
+
     def __init__(self, t, y, dy=None, fit_bias=True, center_data=True):
         # TODO: validate units here
         self.t = t

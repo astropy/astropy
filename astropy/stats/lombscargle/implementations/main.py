@@ -4,7 +4,7 @@ Main Lomb-Scargle Implementation
 The ``lombscargle`` function here is essentially a sophisticated switch
 statement for the various implementations available in this submodule
 """
-__all__ = ['lombscargle']
+__all__ = ['lombscargle', 'available_methods']
 
 import warnings
 
@@ -24,6 +24,21 @@ METHODS = {'slow': lombscargle_slow,
            'chi2': lombscargle_chi2,
            'scipy': lombscargle_scipy,
            'fastchi2': lombscargle_fastchi2}
+
+
+def available_methods():
+    methods = ['auto', 'slow', 'chi2']
+
+    # Numpy 1.8 or newer required for fast algorithms
+    if hasattr(np.ufunc, 'at'):
+        methods.extend(['fast', 'fastchi2'])
+
+    try:
+        import scipy
+        methods.append('scipy')
+    except ImportError:
+        pass
+    return methods
 
 
 def validate_inputs(t, y, dy=None, frequency=None, strip_units=True):
@@ -160,13 +175,15 @@ def _is_regular(frequency, assume_regular_frequency=False):
 
 def validate_method(method, dy, fit_bias, nterms,
                     frequency, assume_regular_frequency):
-    fast_method_ok = hasattr(np.ufunc, 'at')
-    if not fast_method_ok:
-        warnings.warn("Fast Lomb-Scargle methods require numpy version 1.8 "
-                      "or newer. Using slower methods instead.")
+    methods = available_methods()
+    fast_method_ok = ('fast' in methods)
+    scipy_ok = ('scipy' in methods)
 
     # automatically choose the appropiate method
     if method == 'auto':
+        if not fast_method_ok:
+            warnings.warn("Fast Lomb-Scargle methods require numpy version "
+                          "1.8 or newer. Using slower methods instead.")
         if nterms != 1:
             if (fast_method_ok and len(frequency) > 100
                     and _is_regular(frequency, assume_regular_frequency)):
@@ -176,7 +193,7 @@ def validate_method(method, dy, fit_bias, nterms,
         elif (fast_method_ok and len(frequency) > 100
               and _is_regular(frequency, assume_regular_frequency)):
             method = 'fast'
-        elif dy is None and not fit_bias:
+        elif scipy_ok and dy is None and not fit_bias:
             method = 'scipy'
         else:
             method = 'slow'

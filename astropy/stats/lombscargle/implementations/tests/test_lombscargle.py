@@ -4,20 +4,9 @@ from numpy.testing import assert_allclose, assert_equal
 from functools import partial
 
 from .. import lombscargle
+from ... import LombScargle
 
-ALL_METHODS = ['auto', 'slow', 'fast', 'scipy', 'chi2', 'fastchi2']
-
-# Numpy 1.8 or newer required for fast algorithms
-if not hasattr(np.ufunc, 'at'):
-    ALL_METHODS = [method for method in ALL_METHODS if 'fast' not in method]
-
-# Scipy required for method = 'scipy'
-try:
-    import scipy
-except ImportError:
-    ALL_METHODS = [method for method in ALL_METHODS if method != 'scipy']
-
-
+ALL_METHODS = LombScargle.available_methods
 BIAS_METHODS = [method for method in ALL_METHODS if method != 'scipy']
 FAST_METHODS = [method for method in ALL_METHODS if 'fast' in method]
 NTERMS_METHODS = ['auto'] + [method for method in ALL_METHODS
