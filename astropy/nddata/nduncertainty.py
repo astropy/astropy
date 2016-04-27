@@ -160,12 +160,11 @@ class NDUncertainty(object):
             if array.uncertainty_type != self.uncertainty_type:
                 raise IncompatibleUncertaintiesException
             # Check if two units are given and take the explicit one then.
-            if (unit is not None and array.unit is not None and
-                    unit != array.unit):
+            if (unit is not None and unit != array._unit):
                 # TODO : Clarify it (see NDData.init for same problem)?
                 log.info("Overwriting Uncertainty's current "
                          "unit with specified unit")
-            elif array.unit is not None:
+            elif array._unit is not None:
                 unit = array.unit
             array = array.array
 
@@ -254,7 +253,7 @@ class NDUncertainty(object):
             if self._parent_nddata is None:
                 raise MissingDataAssociationException(message)
             else:
-                return self._parent_nddata
+                return self._parent_nddata()
         except AttributeError:
             raise MissingDataAssociationException(message)
 

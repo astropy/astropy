@@ -6,6 +6,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 from copy import deepcopy
+import weakref
 
 from .nddata_base import NDDataBase
 from .nduncertainty import NDUncertainty, UnknownUncertainty
@@ -299,5 +300,7 @@ class NDData(NDDataBase):
             # If it is a subclass of NDUncertainty we must set the
             # parent_nddata attribute. (#4152)
             if isinstance(value, NDUncertainty):
-                value.parent_nddata = self
+                if value._parent_nddata is not None:
+                    value = value.__class__(value)
+                value.parent_nddata = weakref.ref(self)
         self._uncertainty = value

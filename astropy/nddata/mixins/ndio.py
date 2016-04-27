@@ -59,9 +59,10 @@ def read_from_fits(filename):
     # uncertainty (if given) because the uncertainty saves a reference to
     # the nddata in it's parent_nddata property. But that's mostly guessing at
     # least for now memmap is False by default.
-    memmap = False
+    #memmap = False
 
-    with fits.open(filename, mode='readonly', memmap=memmap) as hdus:
+    #with fits.open(filename, mode='readonly', memmap=memmap) as hdus:
+    with fits.open(filename, mode='readonly') as hdus:
         # Read the data from the primary hdu
         data = hdus[ext_data].data
         # Meta is also taken from the primary
