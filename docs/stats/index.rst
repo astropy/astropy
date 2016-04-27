@@ -13,8 +13,16 @@ in astronomy and astropy.
 Getting Started
 ===============
 
-The current tools are fairly self-contained, and include relevant examples in
+Most tools are fairly self-contained, and include relevant examples in
 their docstrings.
+
+Documentation
+=============
+
+.. toctree::
+   :maxdepth: 2
+
+   lombscargle.rst
 
 
 See Also
