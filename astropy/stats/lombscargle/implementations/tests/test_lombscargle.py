@@ -5,11 +5,23 @@ from functools import partial
 
 from .. import lombscargle
 
-
 ALL_METHODS = ['auto', 'slow', 'fast', 'scipy', 'chi2', 'fastchi2']
-BIAS_METHODS = ['auto', 'slow', 'fast', 'chi2', 'fastchi2']
-NTERMS_METHODS = ['auto', 'chi2', 'fastchi2']
-FAST_METHODS = ['fast', 'fastchi2']
+
+# Numpy 1.8 or newer required for fast algorithms
+if not hasattr(np.ufunc, 'at'):
+    ALL_METHODS = [method for method in ALL_METHODS if 'fast' not in method]
+
+# Scipy required for method = 'scipy'
+try:
+    import scipy
+except ImportError:
+    ALL_METHODS = [method for method in ALL_METHODS if method != 'scipy']
+
+
+BIAS_METHODS = [method for method in ALL_METHODS if method != 'scipy']
+FAST_METHODS = [method for method in ALL_METHODS if 'fast' in method]
+NTERMS_METHODS = ['auto'] + [method for method in ALL_METHODS
+                             if 'chi2' in method]
 
 
 @pytest.fixture

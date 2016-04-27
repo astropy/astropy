@@ -1,28 +1,6 @@
 from __future__ import print_function, division
 import numpy as np
-
-
-try:
-    from scipy import special as scipy_special
-except ImportError:
-    scipy_special = None
-
-
-# Precomputed factorials
-FACTORIALS = [1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800,
-              39916800, 479001600, 6227020800, 87178291200, 1307674368000]
-
-
-def factorial(N):
-    """Compute the factorial of N.
-    If N <= 16, use a fast lookup table; otherwise use scipy.special.factorial
-    """
-    if N < len(FACTORIALS):
-        return FACTORIALS[N]
-    elif scipy_special is None:
-        raise ValueError("need scipy for computing larger factorials")
-    else:
-        return int(scipy_special.factorial(N))
+from math import factorial
 
 
 def bitceil(N):

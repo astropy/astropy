@@ -9,6 +9,16 @@ from ..implementations import lombscargle_slow, lombscargle
 
 METHOD_NAMES = ['auto', 'fast', 'slow', 'scipy', 'chi2', 'fastchi2']
 
+# Numpy 1.8 or newer required for fast algorithms
+if not hasattr(np.ufunc, 'at'):
+    METHOD_NAMES = [method for method in METHOD_NAMES if 'fast' not in method]
+
+# Scipy required for method = 'scipy'
+try:
+    import scipy
+except ImportError:
+    METHOD_NAMES = [method for method in METHOD_NAMES if method != 'scipy']
+
 
 @pytest.fixture
 def data(N=100, period=1, theta=[10, 2, 3], dy=1, rseed=0):
