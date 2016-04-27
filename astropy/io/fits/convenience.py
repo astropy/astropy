@@ -102,7 +102,7 @@ def getheader(filename, *args, **kwargs):
     hdulist, extidx = _getext(filename, mode, *args, **kwargs)
     hdu = hdulist[extidx]
     header = hdu.header
-    hdulist.close(closed=closed)
+    hdulist.close(closed=not closed)
     return header
 
 
@@ -196,7 +196,7 @@ def getdata(filename, *args, **kwargs):
         raise IndexError('No data in this HDU.')
     if header:
         hdr = hdu.header
-    hdulist.close(closed=closed)
+    hdulist.close(closed=not closed)
 
     # Change case of names if requested
     trans = None
@@ -466,7 +466,7 @@ def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
             # Set a flag in the HDU so that only this HDU gets a checksum when
             # writing the file.
             hdu._output_checksum = checksum
-            f.close(closed=closed)
+            f.close(closed=not closed)
         else:
             f = _File(filename, mode='append')
             hdu._output_checksum = checksum
@@ -529,7 +529,7 @@ def update(filename, data, *args, **kwargs):
     hdulist, _ext = _getext(filename, 'update', *args, **kwargs)
     hdulist[_ext] = new_hdu
 
-    hdulist.close(closed=closed)
+    hdulist.close(closed=not closed)
 
 
 def info(filename, output=None, **kwargs):

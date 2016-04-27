@@ -444,6 +444,9 @@ Bug Fixes
 
   - ``GroupsHDU.is_image`` property is now set to ``False``. [#4742]
 
+  - Fix convenience functions (``getdata``, ``getheader``, ``append``,
+    ``update``) to close files. [#4786]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -1277,6 +1280,9 @@ Bug Fixes
 - ``astropy.io.ascii``
 
 - ``astropy.io.fits``
+
+  - Fix convenience functions (``getdata``, ``getheader``, ``append``,
+    ``update``) to close files. [#4786]
 
 - ``astropy.io.misc``
 
