@@ -4,6 +4,7 @@
 
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
+import warnings
 import numpy as np
 from .core import (Fittable1DModel, Fittable2DModel, Model,
                    ModelDefinitionError, custom_model)
@@ -12,13 +13,14 @@ from .utils import ellipse_extent
 from ..utils import deprecated
 from ..extern import six
 from .utils import get_inputs_and_params
+from ..utils.exceptions import AstropyDeprecationWarning
 
 
 __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D',
            'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D', 'Lorentz1D',
-           'MexicanHat1D', 'MexicanHat2D', 'RedshiftScaleFactor', 'Scale',
-           'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D',
+           'MexicanHat1D', 'MexicanHat2D', 'RedshiftScaleFactor', 'Redshift',
+           'Scale', 'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D',
            'TrapezoidDisk2D', 'Ring2D', 'custom_model_1d', 'Voigt1D']
 
 
@@ -575,6 +577,14 @@ class RedshiftScaleFactor(Fittable1DModel):
         inv = self.copy()
         inv.z = 1.0 / (1.0 + self.z) - 1.0
         return inv
+
+
+class Redshift(RedshiftScaleFactor):
+    def __init__(self, *args):
+        warnings.warn('The "Redshift" class is now deprecated -- use the '
+                      '"RedshiftScaleFactor" class instead.',
+                      AstropyDeprecationWarning)
+        super(Redshift, self).__init__(*args)
 
 
 class Sersic1D(Fittable1DModel):
