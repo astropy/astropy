@@ -1,9 +1,7 @@
 from __future__ import division
-import warnings
 
 import numpy as np
-from numpy.testing import (assert_allclose, assert_equal,
-                           assert_warns, assert_no_warnings)
+from numpy.testing import assert_allclose, assert_equal
 import pytest
 
 from ..utils import (factorial, extirpolate, bitceil, trig_sum)

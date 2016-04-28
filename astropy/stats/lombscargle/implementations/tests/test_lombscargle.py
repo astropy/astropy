@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
-from numpy.testing import assert_allclose, assert_equal
-from functools import partial
+from numpy.testing import assert_allclose
 
 from .. import lombscargle
 from ... import LombScargle
@@ -136,7 +135,5 @@ def test_fast_methods(method, center_data, fit_bias, with_errors,
     output_fast = lombscargle(t, y, dy, frequency=freq,
                               method_kwds=dict(use_fft=True),
                               **kwds)
-
-    Pmax = output_slow.max()
 
     assert_allclose(output_slow, output_fast, atol=0.008)
