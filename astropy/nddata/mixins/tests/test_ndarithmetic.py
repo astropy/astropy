@@ -9,12 +9,11 @@ import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from ... import NDData, NDArithmeticMixin
-from ...nduncertainty import StdDevUncertainty
+from ...nduncertainty import (StdDevUncertainty, UnknownUncertainty,
+                              IncompatibleUncertaintiesException)
 from ....units import UnitsError, Quantity
 from ....tests.helper import pytest
 from .... import units as u
-
-# TODO: Tests with UnknownUncertainty
 
 
 # Just add the Mixin to NDData
@@ -775,3 +774,21 @@ def test_arithmetics_mask_func():
 
     with pytest.raises(KeyError):
         nd1.add(nd2, handle_mask=mask_sad_func, fun=1)
+
+
+def test_arithmetics_unknown_uncertainties():
+    # Not giving any uncertainty class means it is saved as UnknownUncertainty
+    ndd1 = NDDataArithmetic(np.ones((3, 3)),
+                            uncertainty=UnknownUncertainty(np.ones((3, 3))))
+    ndd2 = NDDataArithmetic(np.ones((3, 3)),
+                            uncertainty=UnknownUncertainty(np.ones((3, 3))*2))
+    # There is no way to propagate uncertainties:
+    with pytest.raises(IncompatibleUncertaintiesException):
+        ndd1.add(ndd2)
+    # But it should be possible without propagation
+    ndd3 = ndd1.add(ndd2, propagate_uncertainties=False)
+    np.testing.assert_array_equal(ndd1.uncertainty.array,
+                                  ndd3.uncertainty.array)
+
+    ndd4 = ndd1.add(ndd2, propagate_uncertainties=None)
+    assert ndd4.uncertainty is None

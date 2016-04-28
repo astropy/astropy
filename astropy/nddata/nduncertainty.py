@@ -428,7 +428,7 @@ class UnknownUncertainty(NDUncertainty):
         """
         return 'unknown'
 
-    def _convert_uncertainty(other_uncert):
+    def _convert_uncertainty(self, other_uncert):
         """
         Checks that the uncertainties are compatible for propagation.
 
