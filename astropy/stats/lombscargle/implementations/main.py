@@ -17,17 +17,19 @@ from .fast_impl import lombscargle_fast
 from .scipy_impl import lombscargle_scipy
 from .chi2_impl import lombscargle_chi2
 from .fastchi2_impl import lombscargle_fastchi2
+from .cython_impl import lombscargle_cython
 
 
 METHODS = {'slow': lombscargle_slow,
            'fast': lombscargle_fast,
            'chi2': lombscargle_chi2,
            'scipy': lombscargle_scipy,
-           'fastchi2': lombscargle_fastchi2}
+           'fastchi2': lombscargle_fastchi2,
+           'cython': lombscargle_cython}
 
 
 def available_methods():
-    methods = ['auto', 'slow', 'chi2']
+    methods = ['auto', 'slow', 'chi2', 'cython']
 
     # Numpy 1.8 or newer required for fast algorithms
     if hasattr(np.ufunc, 'at'):
@@ -177,26 +179,27 @@ def validate_method(method, dy, fit_bias, nterms,
                     frequency, assume_regular_frequency):
     methods = available_methods()
     fast_method_ok = ('fast' in methods)
-    scipy_ok = ('scipy' in methods)
+    prefer_fast = (fast_method_ok and len(frequency) > 200
+                   and _is_regular(frequency, assume_regular_frequency))
+    prefer_scipy = 'scipy' in methods and dy is None and not fit_bias
 
     # automatically choose the appropiate method
     if method == 'auto':
         if not fast_method_ok:
             warnings.warn("Fast Lomb-Scargle methods require numpy version "
                           "1.8 or newer. Using slower methods instead.")
+
         if nterms != 1:
-            if (fast_method_ok and len(frequency) > 100
-                    and _is_regular(frequency, assume_regular_frequency)):
+            if prefer_fast:
                 method = 'fastchi2'
             else:
                 method = 'chi2'
-        elif (fast_method_ok and len(frequency) > 100
-              and _is_regular(frequency, assume_regular_frequency)):
+        elif prefer_fast:
             method = 'fast'
-        elif scipy_ok and dy is None and not fit_bias:
+        elif prefer_scipy:
             method = 'scipy'
         else:
-            method = 'slow'
+            method = 'cython'
 
     if method not in METHODS:
         raise ValueError("invalid method: {0}".format(method))
@@ -234,7 +237,7 @@ def lombscargle(t, y, dy=None,
         - 'auto': choose the best method based on the input
         - 'fast': use the O[N log N] fast method. Note that this requires
           evenly-spaced frequencies: by default this will be checked unless
-          `assume_regular_frequency` is set to True.
+          ``assume_regular_frequency`` is set to True.
         - `slow`: use the O[N^2] pure-python implementation
         - `chi2`: use the O[N^2] chi2/linear-fitting implementation
         - `fastchi2`: use the O[N log N] chi2 implementation. Note that this

@@ -82,12 +82,7 @@ def test_units_mismatch(method, data):
 def test_common_interface(method, center_data, freq, data):
     t, y, dy = data
 
-    if freq is None:
-        freq_expected = LombScargle(t, y, dy).autofrequency(t)
-    else:
-        freq_expected = freq
-
-    expected_PLS = lombscargle_slow(t, y, dy=None, frequency=freq_expected,
+    expected_PLS = lombscargle_slow(t, y, dy=None, frequency=freq,
                                     fit_bias=False, center_data=center_data)
     PLS = lombscargle(t, y, frequency=freq, method=method,
                       fit_bias=False, center_data=center_data)

@@ -305,6 +305,12 @@ and to allow a floating mean (sometimes called the *generalized periodogram*;
 see e.g. [7]_). The method is not particularly fast, scaling approximately
 as :math:`O[NM]` for :math:`N` data points and :math:`M` frequencies.
 
+``method='cython'``
+-------------------
+The ``cython`` method is a cython implementation of the same algorithm used for
+``method='slow'``. It is slightly faster than the pure-python implementation,
+but much more memory-efficient as the size of the inputs grow.
+
 ``method='scipy'``
 ------------------
 The ``scipy`` method wraps the C implementation of the original Lomb-Scargle
