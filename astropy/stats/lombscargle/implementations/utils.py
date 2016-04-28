@@ -1,6 +1,24 @@
 from __future__ import print_function, division
-import numpy as np
+import warnings
 from math import factorial
+import numpy as np
+
+
+def add_at(arr, ind, vals):
+    """Utility that computes np.add.at()
+
+    The fast version is available only in Numpy 1.8+; for older versions of
+    numpy this defaults to a slower computation.
+    """
+    if hasattr(np.ufunc, 'at'):
+        return np.add.at(arr, ind, vals)
+    else:
+        warnings.warn("Using slow replacement for numpy.add.at(). "
+                      "For ~100x faster results update to numpy 1.8+")
+        arr = np.asarray(arr)
+        ind, vals = np.broadcast_arrays(ind, vals)
+        unq = np.unique(ind)
+        arr[unq] += [vals[ind == i].sum() for i in unq]
 
 
 def bitceil(N):
@@ -54,10 +72,6 @@ def extirpolate(x, y, N=None, M=4):
     This code is based on the C implementation of spread() presented in
     Numerical Recipes in C, Second Edition (Press et al. 1989; p.583).
     """
-    if not hasattr(np.ufunc, 'at'):
-        raise NotImplementedError("extirpolate functionality requires numpy "
-                                  "version 1.8 or newer")
-
     x, y = map(np.ravel, np.broadcast_arrays(x, y))
 
     if N is None:
@@ -69,7 +83,7 @@ def extirpolate(x, y, N=None, M=4):
 
     # first take care of the easy cases where x is an integer
     integers = (x % 1 == 0)
-    np.add.at(result, x[integers].astype(int), y[integers])
+    add_at(result, x[integers].astype(int), y[integers])
     x, y = x[~integers], y[~integers]
 
     # For each remaining x, find the index describing the extirpolation range.
@@ -83,7 +97,7 @@ def extirpolate(x, y, N=None, M=4):
         if j > 0:
             denominator *= j / (j - M)
         ind = ilo + (M - 1 - j)
-        np.add.at(result, ind, numerator / (denominator * (x - ind)))
+        add_at(result, ind, numerator / (denominator * (x - ind)))
     return result
 
 
