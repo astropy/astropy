@@ -1,4 +1,4 @@
-.. _lombscargle:
+.. _stats-lombscargle:
 
 *************************
 Lomb-Scargle Periodograms
@@ -7,7 +7,7 @@ Lomb-Scargle Periodograms
 The Lomb-Scargle Periodogram (after Lomb [1]_, and Scargle [2]_)
 is a commonly-used statistical tool designed to detect periodic signals
 in unevenly-spaced observations.
-The ``lombscargle`` package contains a unified interface to several
+The :class:`~astropy.stats.LombScargle` class is a unified interface to several
 implementations of the Lomb-Scargle periodogram, including a fast *O[NlogN]*
 implementation following the algorithm presented by Press & Rybicki [3]_.
 
@@ -18,9 +18,8 @@ The code here is adapted from the `gatspy`_ package, described in [4]_ and [5]_.
 
 Basic Usage
 ===========
-The main interface to the Lomb-Scargle periodogram is via the
-:class:`~astropy.stats.LombScargle` class.
-For example, consider the following data:
+The Lomb-Scargle periodogram is designed to detect periodic signals in
+unevenly-spaced observations. For example, consider the following data:
 
 >>> import numpy as np
 >>> rand = np.random.RandomState(42)
@@ -30,7 +29,8 @@ For example, consider the following data:
 These are 100 noisy measurements taken at irregular times, with a frequency
 of 1 cycle per unit time.
 The Lomb-Scargle periodogram, evaluated at frequencies chosen
-automatically based on the input data, can be computed as follows:
+automatically based on the input data, can be computed as follows
+using the :class:`~astropy.stats.LombScargle` class:
 
 >>> from astropy.stats import LombScargle
 >>> frequency, power = LombScargle(t, y).autopower()
@@ -56,13 +56,14 @@ Plotting the result with matplotlib gives:
     fig = plt.figure(figsize=(6, 4.5))
     plt.plot(frequency, power)
 
-The periodogram shows a clear spike at a frequency of 1, as we would expect
-from the data we constructed.
+The periodogram shows a clear spike at a frequency of 1 cycle per unit time,
+as we would expect from the data we constructed.
 
 Measurement Uncertainties
 -------------------------
 
-The periodogram implementation can also handle data with measurement uncertainties.
+The :class:`~astropy.stats.LombScargle` interface can also handle data with
+measurement uncertainties.
 For example, if all uncertainties are the same, you can pass a scalar:
 
 >>> dy = 0.1
@@ -80,7 +81,8 @@ deviation (not the variance).
 
 Data and Periodogram Units
 --------------------------
-The code supports :class:`~astropy.units.Quantity` objects with units attached,
+The :class:`~astropy.stats.LombScargle` interface properly handles
+:class:`~astropy.units.Quantity` objects with units attached,
 and will validate the inputs to make sure units are appropriate. For example:
 
 >>> import astropy.units as u
@@ -93,7 +95,7 @@ Unit("1 / d")
 >>> power.unit
 Unit(dimensionless)
 
-Note that in the standard normalization, regardless of the units of the input,
+In the standard normalization, regardless of the units of the input,
 the Lomb-Scargle power *P* is a dimensionless quantity satisfying *0 ≤ P ≤ 1*.
 
 
@@ -122,8 +124,8 @@ If we increase the ``nyquist_factor``, we can probe higher frequencies:
 >>> len(frequency), frequency.min(), frequency.max()
 (2500, 0.0010189890448009111, 5.0939262349597545)
 
-Alternatively, we can use the ``power()`` method to evaluate the periodogram
-at a user-specified set of frequencies:
+Alternatively, we can use the :func:`~astropy.stats.LombScargle.power`
+method to evaluate the periodogram at a user-specified set of frequencies:
 
 >>> frequency = np.linspace(0.5, 1.5, 1000)
 >>> power = LombScargle(t, y, dy).power(frequency)
@@ -135,9 +137,9 @@ used instead.
 Frequency Grid Spacing
 ^^^^^^^^^^^^^^^^^^^^^^
 
-One common issue with user-specified frequencies is choosing too coarse a
-grid, such that significant peaks lie between grid points and are missed
-entirely.
+One common issue with user-specified frequencies is inadvertently choosing
+too coarse a grid, such that significant peaks lie between grid points and
+are missed entirely.
 
 For example, imagine you chose to evaluate your periodogram at 100 points:
 
@@ -169,7 +171,7 @@ For example, imagine you chose to evaluate your periodogram at 100 points:
 From this plot alone, one might conclude that no clear periodic signal exists
 in the data.
 But this conclusion is in error: there is in fact a strong periodic signal,
-but the periodogram peak falls in the gap between your grid points!
+but the periodogram peak falls in the gap between the chosen grid points!
 
 A safer approach is to use the frequency heuristic to decide on the appropriate
 grid spacing to use, optionally passing a minimum and maximum frequency to
@@ -215,10 +217,10 @@ significant periodogram peak; this can be increased by changing the
 >>> len(frequency)
 1767
 
-Note that the width of the peak scales inversely with the baseline of the
-observations (i.e. the difference between the maximum and minimum time), and
-the required number of grid points will scale linearly with the size of the
-baseline.
+Keep in mind that the width of the peak scales inversely with the baseline of
+the observations (i.e. the difference between the maximum and minimum time),
+and the required number of grid points will scale linearly with the size of
+the baseline.
 
 The Lomb-Scargle Model
 ----------------------
@@ -266,13 +268,14 @@ We can then phase the data and plot the Lomb-Scargle model fit:
 
 Periodogram Algorithms
 ======================
-This package contains several implementations of the Lomb-Scargle Periodogram,
+The :class:`~astropy.stats.LombScargle` class makes available
+several complementary implementations of the Lomb-Scargle Periodogram,
 which can be selected using the ``method`` keyword of the Lomb-Scargle power.
-By design all methods will return the same results, though each has its
-advandages and disadganvages.
+By design all methods will return the same results (some approximate),
+and each has its advandages and disadganvages.
 
-For example, to compute a periodogram using the fast chi-square method, you
-can do the following:
+For example, to compute a periodogram using the fast chi-square method
+of Palmer (2009) [6]_, you can do the following:
 
 First we generate some data:
 
@@ -287,7 +290,7 @@ Next we compute the periodogram using ``method='fastchi2'``:
     >>> frequency, power = LombScargle(t, y).autopower(method='fastchi2')
 
 
-There are six methods available, listed as follows:
+There are currently six methods available in the package:
 
 ``method='auto'``
 -----------------
@@ -449,8 +452,8 @@ Still, the periodogram has many spurious peaks, which are due to several factors
 2. The signal is not a perfect sinusoid, so additional peaks can indicate
    higher-frequency components in the signal.
 3. The observations take place only at night, meaning that the survey window
-   has power at a period of 1 per day. Thus we expect aliases to appear
-   at :math:`f_{\rm alias} = f_{\rm true} + n f_{\rm window}` for integer
+   has non-negligible power at a period of 1 per day. Thus we expect aliases to
+   appear at :math:`f_{\rm alias} = f_{\rm true} + n f_{\rm window}` for integer
    values of :math:`n`. With a true period of 0.41 days and a 1-day signal
    in the observing window, the :math:`n=+1` and :math:`n=-1`
    aliases to lie at periods of 0.29 and 0.69 days, respectively:
