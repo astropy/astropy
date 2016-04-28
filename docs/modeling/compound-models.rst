@@ -431,7 +431,7 @@ model *instances*:
     :include-source:
 
     import numpy as np
-    from astropy.modeling.models import Redshift, Gaussian1D, Scale
+    from astropy.modeling.models import RedshiftScaleFactor, Gaussian1D, Scale
 
     x = np.linspace(1000, 5000, 1000)
     g0 = Gaussian1D(1, 2000, 200)  # No redshift is same as redshift with z=0
@@ -440,7 +440,7 @@ model *instances*:
     plt.plot(x, g0(x), 'g--', label='$z=0$')
 
     for z in (0.2, 0.4, 0.6):
-        rs = Redshift(z).inverse  # Redshift in wavelength space
+        rs = RedshiftScaleFactor(z).inverse  # Redshift in wavelength space
         sc = Scale(1. / (1 + z))  # Rescale the flux to conserve energy
         g = rs | g0 | sc
         plt.plot(x, g(x), color=plt.cm.OrRd(z),
