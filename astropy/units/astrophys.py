@@ -34,6 +34,15 @@ def_unit(['pc', 'parsec'], _si.pc, namespace=_ns, prefixes=True,
 def_unit(['solRad', 'R_sun', 'Rsun'], _si.R_sun, namespace=_ns,
          doc="Solar radius", prefixes=True,
          format={'latex': r'R_{\odot}', 'unicode': 'R⊙'})
+def_unit(['jupiterRad', 'R_jup', 'Rjup','R_jupiter', 'Rjupiter'],
+         _si.R_jup, namespace=_ns, prefixes=True, doc="Jupiter radius",
+         # LaTeX jupiter symbol requires wasysym
+         format={'latex': r'R_{\rm J}', 'unicode': 'R♃'})
+def_unit(['earthRad', 'R_earth', 'Rearth'], _si.R_earth, namespace=_ns,
+         prefixes=True, doc="Earth radius",
+         # LaTeX earth symbol requires wasysym
+         format={'latex': r'R_{\oplus}', 'unicode': 'R⊕'})
+
 def_unit(['lyr', 'lightyear'], (_si.c * si.yr).to(si.m),
          namespace=_ns, prefixes=True, doc="Light year")
 
