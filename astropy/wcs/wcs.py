@@ -43,6 +43,7 @@ import platform
 import numpy as np
 
 # LOCAL
+from .. import log
 from ..extern import six
 from ..io import fits
 from . import _docutil as __
@@ -1033,6 +1034,21 @@ reduce these to 2 dimensions using the naxis kwarg.
 
             del header[str('A_ORDER')]
             del header[str('B_ORDER')]
+            ctype=[header['CTYPE{0}'.format(nax)] for nax in range(1, self.naxis + 1)]
+            if any([ctyp[-4 :] != '-SIP' for ctyp in ctype]):
+                message = """
+                Inconsistent SIP distortion information is present in header:
+                SIP coefficients were detected, but CTYPE is missing "-SIP" suffix,
+                therefore the coordinates calculated here might be incorrect.
+
+                If image is already distortion-corrected (eg, drizzled) then
+                distortion components should not apply. For such distortion-corrected
+                images, please use ``wcs_pix2world`` or ``wcs_world2pix`` instead.
+
+                If image is not yet distortion-corrected (eg, not yet drizzled), then
+                please inspect the header and make appropriate changes before rerunning.
+                """
+                log.info(message)
         elif str("B_ORDER") in header and header[str('B_ORDER')] > 1:
             raise ValueError(
                 "B_ORDER provided without corresponding A_ORDER " +
@@ -2501,11 +2517,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             if key is not None:
                 orig_key = self.wcs.alt
                 self.wcs.alt = key
-            try:
-                header_string = self.wcs.to_header(relax)
-            finally:
-                if key is not None:
-                    self.wcs.alt = orig_key
+            header_string = self.wcs.to_header(relax)
             header = fits.Header.fromstring(header_string)
             keys_to_remove = ["", " ", "COMMENT"]
             for kw in keys_to_remove:
@@ -2515,8 +2527,26 @@ reduce these to 2 dimensions using the naxis kwarg.
             header = fits.Header()
 
         if do_sip and self.sip is not None:
+            if self.wcs is not None and any([ctyp[-4 :] != '-SIP' for ctyp in self.wcs.ctype]):
+                message = """
+                Inconsistent SIP distortion information:
+
+                SIP coefficients were detected, but CTYPE is missing "-SIP" suffix,
+                therefore the header will be incorrect.
+
+                If distortion should be included in the header please add "-SIP" to CTYPE.
+
+                If distortion should not be included please remove the SIP coefficients.
+
+                """
+                log.info(message)
+
             for kw, val in self._write_sip_kw().items():
                 header[kw] = val
+
+        if not do_sip and self.wcs is not None and any(self.wcs.ctype):
+            # this is called when relax is True
+            header = self._fix_ctype(header)
 
         if display_warning:
             full_header = self.to_header(relax=True, key=key)
@@ -2531,7 +2561,27 @@ reduce these to 2 dimensions using the naxis kwarg.
                     "Use the ``relax`` kwarg to control this.".format(
                         ', '.join(missing_keys)),
                     AstropyWarning)
+            # called when relax is None
+            # This is different than the case of ``relax=False`` and ``to_header()`` is called twice.
+            if any(self.wcs.ctype):
+                header = self._fix_ctype(header)
+        # finally reset the key, must be called after ``_fix_ctype``
+        if key is not None:
+            self.wcs.alt = orig_key
+        return header
 
+    def _fix_ctype(self, header):
+        """
+        Remove "-SIP" from CTYPE when writing out a header with relax=False.
+        This needs to be done outside ``to_header`` because ``to_header`` runs
+        twice when ``relax=False`` and the second time ``relax`` is set to ``True``
+        to display the missing keywords.
+        """
+        for i in range(1, self.naxis+1):
+            # strip() must be called here to cover the case of alt key= " "
+            kw = 'CTYPE{0}{1}'.format(i, self.wcs.alt).strip()
+            val = header[kw].strip("-SIP")
+            header[kw] = header['CTYPE{0}{1}'.format(i, self.wcs.alt)].strip("-SIP")
         return header
 
     def to_header_string(self, relax=None):

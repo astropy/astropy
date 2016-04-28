@@ -264,6 +264,8 @@ API changes
 
   - WCS objects can now be initialized with an ImageHDU or
     PrimaryHDU object. [#4493]
+  - astropy.wcs now issues an INFO message when the header has SIP coefficients but 
+    "-SIP" is missing from CTYPE. [#4814]
 
 Bug fixes
 ^^^^^^^^^
@@ -357,6 +359,9 @@ Bug fixes
     failing as a side-effect of #4699. [#4757]
 
 - ``astropy.wcs``
+
+  - astropy.wcs.to_header removes "-SIP" from CTYPE when SIP coefficients 
+    are not written out, i.e. ``relax`` is either ``False`` or ``None``. [#4814]
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
