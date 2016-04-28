@@ -178,6 +178,7 @@ class NDUncertainty(object):
                 unit = array.unit
             array = array.value
 
+        # There is no unit setter so we must set the private unit itself.
         if unit is None:
             self._unit = None
         else:
@@ -185,7 +186,6 @@ class NDUncertainty(object):
 
         if copy:
             array = deepcopy(array)
-            unit = deepcopy(unit)
 
         self.array = array
         self.parent_nddata = None  # no associated NDData - until it is set!
@@ -242,7 +242,7 @@ class NDUncertainty(object):
     @property
     def parent_nddata(self):
         """
-        `NDData` reference: The `NDData` whose uncertainty this is.
+        `weakref.ref` : reference to `NDData` instance with this uncertainty.
 
         In case the reference is not set uncertainty propagation will not be
         possible since almost all kinds of propagation need the uncertain
@@ -253,6 +253,8 @@ class NDUncertainty(object):
             if self._parent_nddata is None:
                 raise MissingDataAssociationException(message)
             else:
+                # The NDData is saved as weak reference so we must call it
+                # to get the object the reference points to.
                 return self._parent_nddata()
         except AttributeError:
             raise MissingDataAssociationException(message)

@@ -1,16 +1,10 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import shutil
-import tempfile
-import os
-import time
+from ....nddata import NDData, StdDevUncertainty, UnknownUncertainty, NDIOMixin
+from ..connect import write_data_fits, read_data_fits
 
 import numpy as np
-
-from ... import NDData, StdDevUncertainty, UnknownUncertainty
-from ...mixins.ndio import NDIOMixin, read_from_fits, write_to_fits
-from .... import units as u
 
 
 # Define minimal class that uses the I/O mixin
@@ -27,18 +21,18 @@ class TestIOFunctions(object):
         return str(tmpdir.join(self.filename.format(self.counter)))
 
     def compare_nddata(self, ndd1, ndd2, compare_meta=True):
-        # Compare the data is equal:
+        # Compare if the data is equal:
         np.testing.assert_array_equal(ndd1.data, ndd2.data)
         assert ndd1.data.dtype.kind == ndd1.data.dtype.kind
 
-        # Compare mask is equal
+        # Compare if mask is equal
         if ndd1.mask is not None:
             np.testing.assert_array_equal(ndd1.mask, ndd2.mask)
             assert ndd1.mask.dtype.kind == ndd1.mask.dtype.kind
         else:
             assert ndd1.mask == ndd2.mask
 
-        # Compare uncertainty is equal
+        # Compare if uncertainty is equal
         if ndd1.uncertainty is not None:
             assert ndd1.uncertainty.__class__ == ndd2.uncertainty.__class__
             np.testing.assert_array_equal(ndd1.uncertainty.array,
@@ -48,18 +42,18 @@ class TestIOFunctions(object):
         else:
             assert ndd1.uncertainty == ndd2.uncertainty
 
-        # Units equal
+        # Units equal?
         assert ndd1.unit == ndd2.unit
 
-        # WCS equal
+        # WCS equal?
         if ndd1.wcs is not None:
             assert ndd1.wcs.wcs.compare(ndd2.wcs.wcs)
         else:
             pass
 
-        # Compare WCS only if comparison makes sense and only for those
+        # Compare meta only if comparison makes sense and only for those
         # keywords that were present in the original (because WCS operations
-        # alter/insert meta attributes).
+        # may alter/insert meta attributes).
         if compare_meta:
             assert all(ndd1.meta[key] == ndd2.meta[key] for key in ndd1.meta)
 
@@ -67,8 +61,8 @@ class TestIOFunctions(object):
         ndd1 = NDData(np.ones((3, 3)))
 
         filename = str(self.temp(tmpdir))
-        write_to_fits(ndd1, filename)
-        ndd2 = read_from_fits(filename)
+        write_data_fits(ndd1, filename)
+        ndd2 = read_data_fits(filename)
 
         self.compare_nddata(ndd1, ndd2)
 
@@ -77,8 +71,8 @@ class TestIOFunctions(object):
                       mask=np.array([[1, 0, 1], [0, 1, 0], [1, 0, 1]], dtype=bool))
 
         filename = str(self.temp(tmpdir))
-        write_to_fits(ndd1, filename)
-        ndd2 = read_from_fits(filename)
+        write_data_fits(ndd1, filename)
+        ndd2 = read_data_fits(filename)
 
         self.compare_nddata(ndd1, ndd2)
 
@@ -87,8 +81,8 @@ class TestIOFunctions(object):
                       mask=np.array([[1, 0, 1], [0, 1, 0], [1, 0, 1]]))
 
         filename = str(self.temp(tmpdir))
-        write_to_fits(ndd1, filename)
-        ndd2 = read_from_fits(filename)
+        write_data_fits(ndd1, filename)
+        ndd2 = read_data_fits(filename)
 
         self.compare_nddata(ndd1, ndd2)
 
@@ -97,8 +91,8 @@ class TestIOFunctions(object):
                       uncertainty=np.random.random((3, 3)))
 
         filename = str(self.temp(tmpdir))
-        write_to_fits(ndd1, filename)
-        ndd2 = read_from_fits(filename)
+        write_data_fits(ndd1, filename)
+        ndd2 = read_data_fits(filename)
 
         self.compare_nddata(ndd1, ndd2)
 
@@ -107,8 +101,8 @@ class TestIOFunctions(object):
                       uncertainty=UnknownUncertainty(np.random.random((3, 3))))
 
         filename = str(self.temp(tmpdir))
-        write_to_fits(ndd1, filename)
-        ndd2 = read_from_fits(filename)
+        write_data_fits(ndd1, filename)
+        ndd2 = read_data_fits(filename)
 
         self.compare_nddata(ndd1, ndd2)
 
@@ -117,8 +111,8 @@ class TestIOFunctions(object):
                       uncertainty=StdDevUncertainty(np.random.random((3, 3))))
 
         filename = str(self.temp(tmpdir))
-        write_to_fits(ndd1, filename)
-        ndd2 = read_from_fits(filename)
+        write_data_fits(ndd1, filename)
+        ndd2 = read_data_fits(filename)
 
         self.compare_nddata(ndd1, ndd2)
 
@@ -127,8 +121,8 @@ class TestIOFunctions(object):
                       uncertainty=UnknownUncertainty(np.random.random((3, 3)), 'm'))
 
         filename = str(self.temp(tmpdir))
-        write_to_fits(ndd1, filename)
-        ndd2 = read_from_fits(filename)
+        write_data_fits(ndd1, filename)
+        ndd2 = read_data_fits(filename)
 
         self.compare_nddata(ndd1, ndd2)
 
@@ -137,8 +131,8 @@ class TestIOFunctions(object):
                       uncertainty=UnknownUncertainty(np.random.random((3, 3)), 'm'))
 
         filename = str(self.temp(tmpdir))
-        write_to_fits(ndd1, filename)
-        ndd2 = read_from_fits(filename)
+        write_data_fits(ndd1, filename)
+        ndd2 = read_data_fits(filename)
 
         self.compare_nddata(ndd1, ndd2)
 
@@ -146,8 +140,8 @@ class TestIOFunctions(object):
         ndd1 = NDData(np.ones((3, 3)), unit='m')
 
         filename = str(self.temp(tmpdir))
-        write_to_fits(ndd1, filename)
-        ndd2 = read_from_fits(filename)
+        write_data_fits(ndd1, filename)
+        ndd2 = read_data_fits(filename)
 
         self.compare_nddata(ndd1, ndd2)
 
@@ -155,8 +149,8 @@ class TestIOFunctions(object):
         ndd1 = NDData(np.ones((3, 3)), unit='')
 
         filename = str(self.temp(tmpdir))
-        write_to_fits(ndd1, filename)
-        ndd2 = read_from_fits(filename)
+        write_data_fits(ndd1, filename)
+        ndd2 = read_data_fits(filename)
 
         self.compare_nddata(ndd1, ndd2)
 
@@ -164,8 +158,8 @@ class TestIOFunctions(object):
         ndd1 = NDData(np.ones((3, 3)), unit='m^2 / s / kg')
 
         filename = str(self.temp(tmpdir))
-        write_to_fits(ndd1, filename)
-        ndd2 = read_from_fits(filename)
+        write_data_fits(ndd1, filename)
+        ndd2 = read_data_fits(filename)
 
         self.compare_nddata(ndd1, ndd2)
 
@@ -174,8 +168,8 @@ class TestIOFunctions(object):
         ndd1 = NDData(np.ones((3, 3)), meta=meta)
 
         filename = str(self.temp(tmpdir))
-        write_to_fits(ndd1, filename)
-        ndd2 = read_from_fits(filename)
+        write_data_fits(ndd1, filename)
+        ndd2 = read_data_fits(filename)
 
         self.compare_nddata(ndd1, ndd2)
 
@@ -184,13 +178,13 @@ class TestIOFunctions(object):
 
         # Write and read to generate basic wcs
         filename = str(self.temp(tmpdir))
-        write_to_fits(ndd1, filename)
-        ndd2 = read_from_fits(filename)
+        write_data_fits(ndd1, filename)
+        ndd2 = read_data_fits(filename)
 
         # Need another round trip to compare "new" wcs
         anotherfile = str(self.temp(tmpdir))
-        write_to_fits(ndd2, anotherfile)
-        ndd3 = read_from_fits(anotherfile)
+        write_data_fits(ndd2, anotherfile)
+        ndd3 = read_data_fits(anotherfile)
 
         self.compare_nddata(ndd1, ndd2)
         self.compare_nddata(ndd2, ndd3)
@@ -199,8 +193,8 @@ class TestIOFunctions(object):
         ndd1 = NDData(np.ones((10, 10)))
 
         filename = str(self.temp(tmpdir))
-        write_to_fits(ndd1, filename)
-        ndd2 = read_from_fits(filename)
+        write_data_fits(ndd1, filename)
+        ndd2 = read_data_fits(filename)
 
         # Need another round trip to compare "new" wcs.
         # Slice data and wcs to have something real to compare but keep header
@@ -209,8 +203,8 @@ class TestIOFunctions(object):
                          wcs=ndd2.wcs[2:5, 4:8], meta=ndd2.meta)
 
         anotherfile = str(self.temp(tmpdir))
-        write_to_fits(ndd2tmp, anotherfile)
-        ndd3 = read_from_fits(anotherfile)
+        write_data_fits(ndd2tmp, anotherfile)
+        ndd3 = read_data_fits(anotherfile)
 
         self.compare_nddata(ndd1, ndd2)
         self.compare_nddata(ndd2tmp, ndd3, False)
@@ -226,15 +220,15 @@ class TestIOFunctions(object):
         ndd1 = NDData(np.ones((10, 10)), meta=meta)
 
         filename = str(self.temp(tmpdir))
-        write_to_fits(ndd1, filename)
-        ndd2 = read_from_fits(filename)
+        write_data_fits(ndd1, filename)
+        ndd2 = read_data_fits(filename)
 
         ndd2tmp = NDData(ndd2.data[2:5, 4:8],
                          wcs=ndd2.wcs[2:5, 4:8], meta=ndd2.meta)
 
         anotherfile = str(self.temp(tmpdir))
-        write_to_fits(ndd2tmp, anotherfile)
-        ndd3 = read_from_fits(anotherfile)
+        write_data_fits(ndd2tmp, anotherfile)
+        ndd3 = read_data_fits(anotherfile)
 
         self.compare_nddata(ndd1, ndd2)
         self.compare_nddata(ndd2tmp, ndd3, False)
@@ -255,7 +249,7 @@ class TestIOFunctions(object):
         ndd1 = NDData(data, uncertainty=uncertainty, unit=unit, meta=meta, mask=mask)
 
         filename = str(self.temp(tmpdir))
-        write_to_fits(ndd1, filename)
+        write_data_fits(ndd1, filename)
         ndd2 = NDDataIO.read(filename, format='simple_fits')
 
         anotherfile = str(self.temp(tmpdir))

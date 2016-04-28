@@ -300,7 +300,13 @@ class NDData(NDDataBase):
             # If it is a subclass of NDUncertainty we must set the
             # parent_nddata attribute. (#4152)
             if isinstance(value, NDUncertainty):
+                # In case the uncertainty already has a parent create a new
+                # instance because we need to assume that we don't want to
+                # steal the uncertainty from another NDData object
                 if value._parent_nddata is not None:
                     value = value.__class__(value)
+                # Save a weak reference on the uncertainty that points to this
+                # instance of NDData. Direct references should NOT be used:
+                # https://github.com/astropy/astropy/pull/4799#discussion_r61236832
                 value.parent_nddata = weakref.ref(self)
         self._uncertainty = value
