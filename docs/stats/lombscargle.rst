@@ -11,8 +11,7 @@ The ``lombscargle`` package contains a unified interface to several
 implementations of the Lomb-Scargle periodogram, including a fast *O[NlogN]*
 implementation following the algorithm presented by Press & Rybicki [3]_.
 
-The code here is adapted from the `gatspy`_ package,
-described in [4]_ and [5]_.
+The code here is adapted from the `gatspy`_ package, described in [4]_ and [5]_.
 
 .. _gatspy: http://astroml.org/gatspy
 
@@ -21,25 +20,25 @@ Basic Usage
 ===========
 The main interface to the Lomb-Scargle periodogram is via the
 :class:`~astropy.stats.LombScargle` class.
-For example, consider the following data::
+For example, consider the following data:
 
-    >>> import numpy as np
-    >>> rand = np.random.RandomState(42)
-    >>> t = 100 * rand.rand(100)
-    >>> y = np.sin(2 * np.pi * t) + 0.1 * rand.randn(100)
+>>> import numpy as np
+>>> rand = np.random.RandomState(42)
+>>> t = 100 * rand.rand(100)
+>>> y = np.sin(2 * np.pi * t) + 0.1 * rand.randn(100)
 
 These are 100 noisy measurements taken at irregular times, with a frequency
 of 1 cycle per unit time.
 The Lomb-Scargle periodogram, evaluated at frequencies chosen
-automatically based on the input data, can be computed as follows::
+automatically based on the input data, can be computed as follows:
 
-   >>> from astropy.stats import LombScargle
-   >>> frequency, power = LombScargle(t, y).autopower()
+>>> from astropy.stats import LombScargle
+>>> frequency, power = LombScargle(t, y).autopower()
 
-Plotting the result with matplotlib gives::
+Plotting the result with matplotlib gives:
 
-   >>> import matplotlib.pyplot as plt
-   >>> plt.plot(frequency, power)   # doctest: +SKIP
+>>> import matplotlib.pyplot as plt  # doctest: +SKIP
+>>> plt.plot(frequency, power)       # doctest: +SKIP
 
 .. plot::
 
@@ -100,7 +99,8 @@ the Lomb-Scargle power *P* is a dimensionless quantity satisfying *0 ≤ P ≤ 1
 
 Specifying the Frequency
 ------------------------
-With the ``autopower()`` method used above, a heuristic is applied to select
+With the :func:`~astropy.stats.LombScargle.autopower` method used above,
+a heuristic is applied to select
 a suitable frequency grid. By default, the heuristic assumes that the width of
 peaks is inversely proportional to the observation baseline, and that the
 maximum frequency is a factor of 5 larger than the so-called "average Nyquist
@@ -109,7 +109,7 @@ frequency", computed based on the average observation spacing.
 This heuristic is not universally useful, as the frequencies probed by
 irregularly-sampled data can be much higher than the average Nyquist frequency.
 For this reason, the heuristic can be tuned through keywords passed to the
-`autopower` method. For example:
+:func:`~astropy.stats.LombScargle.autopower` method. For example:
 
 >>> frequency, power = LombScargle(t, y, dy).autopower(nyquist_factor=2)
 >>> len(frequency), frequency.min(), frequency.max()
@@ -173,7 +173,7 @@ but the periodogram peak falls in the gap between your grid points!
 
 A safer approach is to use the frequency heuristic to decide on the appropriate
 grid spacing to use, optionally passing a minimum and maximum frequency to
-the ``autopower`` method:
+the :func:`~astropy.stats.LombScargle.autopower` method:
 
 >>> frequency, power = LombScargle(t, y, dy).autopower(minimum_frequency=0.1,
 ...                                                    maximum_frequency=1.9)
@@ -227,8 +227,7 @@ model to the data at each frequency, with a larger power reflecting a better
 fit. With this in mind, it is often helpful to plot the best-fit sinusoid
 over the phased data.
 
-This best-fit sinusoid can be computed using the ``model`` method of the
-:class:`~astropy.stats.LombScargle` object:
+This best-fit sinusoid can be computed using the :func:`~astropy.stats.LombScargle.model` method of the :class:`~astropy.stats.LombScargle` object:
 
 >>> best_frequency = frequency[np.argmax(power)]
 >>> t_fit = np.linspace(0, 1)
@@ -268,7 +267,7 @@ We can then phase the data and plot the Lomb-Scargle model fit:
 Periodogram Algorithms
 ======================
 This package contains several implementations of the Lomb-Scargle Periodogram,
-which can be selected using the `method` keyword of the Lomb-Scargle power.
+which can be selected using the ``method`` keyword of the Lomb-Scargle power.
 By design all methods will return the same results, though each has its
 advandages and disadganvages.
 

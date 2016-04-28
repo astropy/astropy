@@ -22,7 +22,7 @@ class LombScargle(object):
         case of incomplete phase coverage.
     center_data : bool (optional, default=True)
         if True, pre-center the data by subtracting the weighted mean
-        of the input data. This is especially important if `fit_bias = False`
+        of the input data. This is especially important if fit_bias = False
 
     Examples
     --------
@@ -84,8 +84,8 @@ class LombScargle(object):
         Even with a large baseline, be aware that the maximum frequency
         returned is based on the concept of "average Nyquist frequency", which
         may not be useful for irregularly-sampled data. The maximum frequency
-        can be adjusted via the `nyquist_factor` argument, or through the
-        `maximum_frequency` argument.
+        can be adjusted via the nyquist_factor argument, or through the
+        maximum_frequency argument.
 
         Parameters
         ----------
@@ -93,7 +93,7 @@ class LombScargle(object):
             The approximate number of desired samples across the typical peak
         nyquist_factor : float (optional, default=5)
             The multiple of the average nyquist frequency used to choose the
-            maximum frequency if ``maximum_frequency`` is not provided.
+            maximum frequency if maximum_frequency is not provided.
         minimum_frequency : float (optional)
             If specified, then use this minimum frequency rather than one
             chosen based on the size of the baseline.
@@ -136,13 +136,13 @@ class LombScargle(object):
             - 'auto': choose the best method based on the input
             - 'fast': use the O[N log N] fast method. Note that this requires
               evenly-spaced frequencies: by default this will be checked unless
-              `assume_regular_frequency` is set to True.
-            - `slow`: use the O[N^2] pure-python implementation
-            - `chi2`: use the O[N^2] chi2/linear-fitting implementation
-            - `fastchi2`: use the O[N log N] chi2 implementation. Note that
+              ``assume_regular_frequency`` is set to True.
+            - 'slow': use the O[N^2] pure-python implementation
+            - 'chi2': use the O[N^2] chi2/linear-fitting implementation
+            - 'fastchi2': use the O[N log N] chi2 implementation. Note that
               this requires evenly-spaced frequencies: by default this will be
-              checked unless `assume_regular_frequency` is set to True.
-            - `scipy`: use ``scipy.signal.lombscargle``, which is an O[N^2]
+              checked unless ``assume_regular_frequency`` is set to True.
+            - 'scipy': use :func:`scipy.signal.lombscargle`, which is an O[N^2]
               implementation written in C. Note that this does not support
               heteroskedastic errors.
 
@@ -186,13 +186,13 @@ class LombScargle(object):
             - 'auto': choose the best method based on the input
             - 'fast': use the O[N log N] fast method. Note that this requires
               evenly-spaced frequencies: by default this will be checked unless
-              `assume_regular_frequency` is set to True.
-            - `slow`: use the O[N^2] pure-python implementation
-            - `chi2`: use the O[N^2] chi2/linear-fitting implementation
-            - `fastchi2`: use the O[N log N] chi2 implementation. Note that
+              ``assume_regular_frequency`` is set to True.
+            - 'slow': use the O[N^2] pure-python implementation
+            - 'chi2': use the O[N^2] chi2/linear-fitting implementation
+            - 'fastchi2': use the O[N log N] chi2 implementation. Note that
               this requires evenly-spaced frequencies: by default this will be
-              checked unless `assume_regular_frequency` is set to True.
-            - `scipy`: use ``scipy.signal.lombscargle``, which is an O[N^2]
+              checked unless ``assume_regular_frequency`` is set to True.
+            - 'scipy': use :func:`scipy.signal.lombscargle`, which is an O[N^2]
               implementation written in C. Note that this does not support
               heteroskedastic errors.
 
@@ -209,7 +209,7 @@ class LombScargle(object):
             the case of incomplete phase coverage.
         center_data : bool (optional, default=True)
             if True, pre-center the data by subtracting the weighted mean of
-            the input data. This is especially important if `fit_bias = False`
+            the input data. This is especially important if fit_bias = False
         method_kwds : dict (optional)
             additional keywords to pass to the lomb-scargle method
 
