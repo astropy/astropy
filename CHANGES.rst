@@ -163,6 +163,8 @@ API changes
 
 - ``astropy.modeling``
 
+  - Renamed ``Redshift`` model to ``RedshiftScaleFactor``. [#3672]
+
 - ``astropy.nddata``
 
   - ``NDData``: added an optional parameter ``copy``
