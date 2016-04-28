@@ -249,25 +249,25 @@ files manually`_ section since this explains what many of the files do.
 
       git clone git://github.com/astropy/package-template.git <packagename>
 
-  This will download the latest version of the template from `github`_ and
-  place it in a directory named ``<packagename>``.
+   This will download the latest version of the template from `github`_ and
+   place it in a directory named ``<packagename>``.
 
 #. Go into the directory you just created, and open the ``setup.cfg``
    file with your favorite text editor.  Edit the settings in the
    ``metadata`` section.  These values will be used to automatically
    replace special placeholders in the affiliated package template.
 
-   1. Change the ``package_name`` variable to whatever you decide your
+   #. Change the ``package_name`` variable to whatever you decide your
       package should be named. By tradition/very strong suggestion,
       python package names should be all lower-case.
-   2. Change the ``description`` variable to a short (one or few
+   #. Change the ``description`` variable to a short (one or few
       sentence) description of your package.
-   3. Add your name and email address by changing the ``author`` and
+   #. Add your name and email address by changing the ``author`` and
       ``author_email`` variables.
-   4. If your affiliated package has a website, change ``url`` to point
+   #. If your affiliated package has a website, change ``url`` to point
       to that site.  Otherwise, you can leave it pointing to `Astropy`_
       or just delete it.
-   5. Exit out of your text editor
+   #. Exit out of your text editor.
 
 #. Update the main package docstring in ``<packagename>/__init__.py``.
 
@@ -430,7 +430,8 @@ files manually`_ section since this explains what many of the files do.
 Updating to the latest template files
 -------------------------------------
 
-.. TODO
+See instructions in Item 14 above.
+
 
 Releasing an affiliated package
 ===============================
