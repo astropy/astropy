@@ -580,6 +580,7 @@ class RedshiftScaleFactor(Fittable1DModel):
 
 
 class Redshift(RedshiftScaleFactor):
+    """This is **deprecated**, use :class:`RedshiftScaleFactor`."""
     def __init__(self, *args):
         warnings.warn('The "Redshift" class is now deprecated -- use the '
                       '"RedshiftScaleFactor" class instead.',
