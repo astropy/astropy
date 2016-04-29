@@ -46,9 +46,6 @@ class PowerLaw1D(Fittable1DModel):
     x_0 = Parameter(default=1)
     alpha = Parameter(default=1)
 
-    input_units = 'x_0'
-    output_units = 'amplitude'
-
     @staticmethod
     def evaluate(x, amplitude, x_0, alpha):
         """One dimensional power law model function"""
@@ -107,9 +104,6 @@ class BrokenPowerLaw1D(Fittable1DModel):
     x_break = Parameter(default=1)
     alpha_1 = Parameter(default=1)
     alpha_2 = Parameter(default=1)
-
-    input_units = 'x_break'
-    output_units = 'amplitude'
 
     @staticmethod
     def evaluate(x, amplitude, x_break, alpha_1, alpha_2):
@@ -387,9 +381,6 @@ class ExponentialCutoffPowerLaw1D(Fittable1DModel):
     alpha = Parameter(default=1)
     x_cutoff = Parameter(default=1)
 
-    input_units = 'x_0'
-    output_units = 'amplitude'
-
     @staticmethod
     def evaluate(x, amplitude, x_0, alpha, x_cutoff):
         """One dimensional exponential cutoff power law model function"""
@@ -443,9 +434,6 @@ class LogParabola1D(Fittable1DModel):
     x_0 = Parameter(default=1)
     alpha = Parameter(default=1)
     beta = Parameter(default=0)
-
-    input_units = 'x_0'
-    output_units = 'amplitude'
 
     @staticmethod
     def evaluate(x, amplitude, x_0, alpha, beta):
