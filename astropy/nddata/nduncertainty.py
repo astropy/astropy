@@ -242,7 +242,7 @@ class NDUncertainty(object):
     @property
     def parent_nddata(self):
         """
-        `weakref.ref` : reference to `NDData` instance with this uncertainty.
+        `NDData` : reference to `NDData` instance with this uncertainty.
 
         In case the reference is not set uncertainty propagation will not be
         possible since almost all kinds of propagation need the uncertain

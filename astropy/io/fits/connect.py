@@ -325,7 +325,7 @@ def read_data_fits(filename, ext_data=0, ext_meta=0, ext_mask='mask',
         ``'uncert'`` (uncertainty).
 
     kw_unit : str, optional
-        The meta keyword which translates to the unit for the data.
+        The header keyword which translates to the unit for the data.
         Default is ``'bunit'``.
 
     copy : bool, optional
@@ -370,7 +370,8 @@ def read_data_fits(filename, ext_data=0, ext_meta=0, ext_mask='mask',
             # Get the unit for the uncertainty if present
             unit_ = hdr[kw_unit].lower() if kw_unit in hdr else None
 
-            # Don't copy it here, if required copy it when creating NDData.
+            # Don't copy it here, if a copy is required do it when creating
+            # NDData.
             uncertainty = cls(uncertainty, unit=unit_, copy=False)
 
         # Load unit and wcs from header
@@ -391,21 +392,25 @@ def write_data_fits(ndd, filename, ext_mask='mask', ext_uncert='uncert',
     Parameters
     ----------
     ndd : `astropy.nddata.NDData`-like
-        The data which is to be saved.
+        The data which is to be saved. Must not be given when this function
+        is called through the ``NDData.write``-method!
 
     filename : str
         The filename for the newly written file.
 
     ext_mask, ext_uncert : str or int, optional
-        Extensions from which to read ``data``, ``meta``, ``mask`` and
-        ``uncertainty``.
-        Default is ``0`` (data), ``0`` (meta), ``'mask'`` (mask) and
-        ``'uncert'`` (uncertainty).
+        Extensions to which ``mask`` and ``uncertainty`` are written.
+        Default is ``'mask'`` (mask) and ``'uncert'`` (uncertainty).
 
     kwargs_for_write :
         Additional keyword arguments that are passed to
         :func:`~astropy.io.fits.HDUList.writeto` (not all of them might be
         possible).
+
+    Notes
+    -----
+    The ``data`` and ``meta`` are always written to the PrimaryHDU (extension
+    number ``0``).
     """
     # Comment card strings to allow roundtripping (must be identical to read!)
     kw_hdr_masktype = 'boolmask'
@@ -433,9 +438,8 @@ def write_data_fits(ndd, filename, ext_mask='mask', ext_uncert='uncert',
 
     # And append mask to the HDUList (if present)
     try:
-        # I haven't figured out how to write boolean arrays to FITS so
-        # I convert it to uint8 and set a keyword so that the opener knows
-        # that it was a boolean mask and can convert it to one again.
+        # Convert mask to uint8 and set a keyword so that the opener knows
+        # that it was a boolean mask and can convert it back again.
         if ndd.mask.dtype == 'bool':
             hdr = Header()
             hdr.add_comment(kw_hdr_masktype)
@@ -458,6 +462,7 @@ def write_data_fits(ndd, filename, ext_mask='mask', ext_uncert='uncert',
             hdr.add_comment(kw_hdr_uncerttype[ndd.uncertainty.__class__])
 
         # Save the unit of the uncertainty if it differs from the nddata
+        # TODO: This comparison only works correctly for StdDevUncertainty...
         if ndd.uncertainty.unit != ndd.unit:
             hdr[kw_unit] = ndd.uncertainty.unit.to_string()
 
@@ -465,7 +470,8 @@ def write_data_fits(ndd, filename, ext_mask='mask', ext_uncert='uncert',
                              name=ext_uncert))
     except AttributeError:
         # Either no uncertainty or no uncertainty array, unit or
-        # uncertainty_type
+        # uncertainty_type. Should not be possible because everything that
+        # doesn't look like an NDUUncertainty is converted to one.
         pass
 
     # Convert to HDUList and write it to the file.
@@ -473,6 +479,6 @@ def write_data_fits(ndd, filename, ext_mask='mask', ext_uncert='uncert',
         hdulist.writeto(filename, **kwargs_for_write)
 
 
-# Register reader and writer WITHOUT identifier (for now)
+# TODO: Register reader and writer WITHOUT identifier (for now...)
 io_registry.register_reader('simple_fits', NDIOMixin, read_data_fits)
 io_registry.register_writer('simple_fits', NDIOMixin, write_data_fits)

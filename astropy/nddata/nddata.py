@@ -304,7 +304,7 @@ class NDData(NDDataBase):
                 # instance because we need to assume that we don't want to
                 # steal the uncertainty from another NDData object
                 if value._parent_nddata is not None:
-                    value = value.__class__(value)
+                    value = value.__class__(value, copy=False)
                 # Save a weak reference on the uncertainty that points to this
                 # instance of NDData. Direct references should NOT be used:
                 # https://github.com/astropy/astropy/pull/4799#discussion_r61236832
