@@ -409,6 +409,7 @@ def test_parameter_quantity_comparison():
                                  "zero/infinity/nan)")
 
 
+@pytest.mark.xfail
 def test_parameter_unit_linking_gaussian():
     """
     For some models, units of parameters should be related/consistent. We check
