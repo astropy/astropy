@@ -357,6 +357,7 @@ method          Computational                 Observational  Bias Term        Mu
                 Scaling                       Uncertainties  (Floating Mean)  Terms
 ==============  ============================  =============  ===============  ========
 ``"slow"``      :math:`O[NM]`                 Yes            Yes              No
+``"cython"``    :math:`O[NM]`                 Yes            Yes              No
 ``"scipy"``     :math:`O[NM]`                 No             No               No
 ``"fast"``      :math:`O[N\log M]`            Yes            Yes              No
 ``"chi2"``      :math:`O[n_fNM]`              Yes            Yes              Yes
@@ -371,7 +372,7 @@ Example
 =======
 
 An example of computing the periodogram for a more realistic dataset is
-shown in the following figure. The simulated data here consist of
+shown in the following figure. The data shown here consist of
 50 nightly observations of a simulated RR Lyrae-like variable star,
 with lightcurve shape that is more complicated than a simple sine wave:
 
@@ -458,12 +459,13 @@ Still, the periodogram has many spurious peaks, which are due to several factors
 2. The signal is not a perfect sinusoid, so additional peaks can indicate
    higher-frequency components in the signal.
 3. The observations take place only at night, meaning that the survey window
-   has non-negligible power at a period of 1 per day. Thus we expect aliases to
+   has non-negligible power at a frequency of 1 cycle per day.
+   Thus we expect aliases to
    appear at :math:`f_{\rm alias} = f_{\rm true} + n f_{\rm window}` for integer
    values of :math:`n`. With a true period of 0.41 days and a 1-day signal
    in the observing window, the :math:`n=+1` and :math:`n=-1`
    aliases to lie at periods of 0.29 and 0.69 days, respectively:
-   these aliases are seen clearly in the above plot.
+   these aliases are prominent in the above plot.
 
 The interaction of these effects means that in practice there is
 no absolute guarantee that the highest peak corresponds to the best frequency,
