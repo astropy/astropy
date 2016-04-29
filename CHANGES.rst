@@ -32,7 +32,7 @@ New Features
 
   - Allow trailing whitespace in the IPAC header lines. [#4758]
 
-  - Updated to filter out the default parser warning of BeautifulSoup. 
+  - Updated to filter out the default parser warning of BeautifulSoup.
     [#4551]
 
 - ``astropy.io.fits``
@@ -67,6 +67,9 @@ New Features
   - ``NDArithmeticMixin`` provides methods for arithmetic operations where the
     first operand is not an ``NDArithmeticMixin`` subclass via classmethods
     called ``ic_add``, ``ic_subtract``, etc. [#4272]
+
+  - ``NDIOMixin`` and subclasses now support reading/writing fits files using
+    the ``read`` or ``write`` method with ``format='simple_fits'``.
 
 - ``astropy.stats``
 
