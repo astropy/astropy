@@ -159,8 +159,7 @@ def test_parameter_set_equivalency():
     # Note that we can't use this for equivalencies that rely on the values at
     # which the model is evaluated (such as brightness_temperature which
     # depends on spectral coordinate) because we won't know what values to use
-    # until evaluation. See the test_output_units_equivalencies_with_parameters
-    # test for how we can deal with this during evaluation.
+    # until evaluation.
 
 
 def test_parameter_change_unit():
