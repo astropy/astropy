@@ -13,6 +13,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 import functools
 import numbers
 import types
+import operator
 
 import numpy as np
 
@@ -53,6 +54,52 @@ def _tofloat(value):
             "Don't know how to convert parameter of {0} to "
             "float".format(type(value)))
     return value
+
+
+# Helpers for implementing operator overloading on Parameter
+
+def _binary_arithmetic_operation(op, right=False):
+    @functools.wraps(op)
+    def wrapper(self, val):
+
+        if self._model is None:
+            return NotImplemented
+
+        if right:
+            return op(val, self.value)
+        else:
+            return op(self.value, val)
+
+    return wrapper
+
+
+def _binary_comparison_operation(op):
+    @functools.wraps(op)
+    def wrapper(self, val):
+
+        if self._model is None:
+            if op is operator.lt:
+                # Because OrderedDescriptor uses __lt__ to work, we need to
+                # call the super method, but only when not bound to an instance
+                # anyways
+                return super(self.__class__, self).__lt__(val)
+            else:
+                return NotImplemented
+
+        return np.all(op(self.value, val))
+
+    return wrapper
+
+
+def _unary_arithmetic_operation(op):
+    @functools.wraps(op)
+    def wrapper(self):
+        if self._model is None:
+            return NotImplemented
+
+        return op(self.value)
+
+    return wrapper
 
 
 class Parameter(OrderedDescriptor):
@@ -692,114 +739,23 @@ class Parameter(OrderedDescriptor):
 
     __bool__ = __nonzero__
 
-    def __add__(self, val):
-        if self._model is None:
-            # If we don't do this, __add__ will raise an AttributeError instead
-            # (from self.value) which is strange and unexpected
-            return NotImplemented
-        return self.value + val
-
-    def __radd__(self, val):
-        if self._model is None:
-            return NotImplemented
-        return val + self.value
-
-    def __sub__(self, val):
-        if self._model is None:
-            return NotImplemented
-        return self.value - val
-
-    def __rsub__(self, val):
-        if self._model is None:
-            return NotImplemented
-        return val - self.value
-
-    def __mul__(self, val):
-        if self._model is None:
-            return NotImplemented
-        return self.value * val
-
-    def __rmul__(self, val):
-        if self._model is None:
-            return NotImplemented
-        return val * self.value
-
-    def __pow__(self, val):
-        if self._model is None:
-            return NotImplemented
-        return self.value ** val
-
-    def __rpow__(self, val):
-        if self._model is None:
-            return NotImplemented
-        return val ** self.value
-
-    def __div__(self, val):
-        if self._model is None:
-            return NotImplemented
-        return self.value / val
-
-    def __rdiv__(self, val):
-        if self._model is None:
-            return NotImplemented
-        return val / self.value
-
-    def __truediv__(self, val):
-        if self._model is None:
-            return NotImplemented
-        return self.value / val
-
-    def __rtruediv__(self, val):
-        if self._model is None:
-            return NotImplemented
-        return val / self.value
-
-    def __eq__(self, val):
-        if self._model is None:
-            return NotImplemented
-
-        return self.__array__() == val
-
-    def __ne__(self, val):
-        if self._model is None:
-            return NotImplemented
-
-        return self.__array__() != val
-
-    def __lt__(self, val):
-        # Because OrderedDescriptor uses __lt__ to work, we need to call the
-        # super method, but only when not bound to an instance anyways
-        if self._model is None:
-            return super(Parameter, self).__lt__(val)
-
-        return self.__array__() < val
-
-    def __gt__(self, val):
-        if self._model is None:
-            return NotImplemented
-
-        return self.__array__() > val
-
-    def __le__(self, val):
-        if self._model is None:
-            return NotImplemented
-
-        return self.__array__() <= val
-
-    def __ge__(self, val):
-        if self._model is None:
-            return NotImplemented
-
-        return self.__array__() >= val
-
-    def __neg__(self):
-        if self._model is None:
-            return NotImplemented
-
-        return -self.value
-
-    def __abs__(self):
-        if self._model is None:
-            return NotImplemented
-
-        return np.abs(self.value)
+    __add__ = _binary_arithmetic_operation(operator.add)
+    __radd__ = _binary_arithmetic_operation(operator.add, True)
+    __sub__ = _binary_arithmetic_operation(operator.sub)
+    __rsub__ = _binary_arithmetic_operation(operator.sub, True)
+    __mul__ = _binary_arithmetic_operation(operator.mul)
+    __rmul__ = _binary_arithmetic_operation(operator.mul, True)
+    __pow__ = _binary_arithmetic_operation(operator.pow)
+    __rpow__ = _binary_arithmetic_operation(operator.pow, True)
+    __div__ = _binary_arithmetic_operation(operator.truediv)
+    __rdiv__ = _binary_arithmetic_operation(operator.truediv, True)
+    __truediv__ = _binary_arithmetic_operation(operator.truediv)
+    __rtruediv__ = _binary_arithmetic_operation(operator.truediv, True)
+    __eq__ = _binary_comparison_operation(operator.eq)
+    __ne__ = _binary_comparison_operation(operator.ne)
+    __lt__ = _binary_comparison_operation(operator.lt)
+    __gt__ = _binary_comparison_operation(operator.gt)
+    __le__ = _binary_comparison_operation(operator.le)
+    __ge__ = _binary_comparison_operation(operator.ge)
+    __neg__ = _unary_arithmetic_operation(operator.neg)
+    __abs__ = _unary_arithmetic_operation(operator.abs)
