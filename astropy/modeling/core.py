@@ -257,55 +257,6 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
 
         return new_cls
 
-    @classmethod
-    def _handle_parameters(mcls, name, members):
-        # Handle parameters
-        param_names = members.get('param_names', ())
-        parameters = {}
-        for key, value in members.items():
-            if not isinstance(value, Parameter):
-                continue
-            if not value.name:
-                # Name not explicitly given in the constructor; add the name
-                # automatically via the attribute name
-                value._name = key
-                value._attr = '_' + key
-            if value.name != key:
-                raise ModelDefinitionError(
-                    "Parameters must be defined with the same name as the "
-                    "class attribute they are assigned to.  Parameters may "
-                    "take their name from the class attribute automatically "
-                    "if the name argument is not given when initializing "
-                    "them.")
-            parameters[value.name] = value
-
-        # If no parameters were defined get out early--this is especially
-        # important for PolynomialModels which take a different approach to
-        # parameters, since they can have a variable number of them
-        if parameters:
-            mcls._check_parameters(name, members, param_names, parameters)
-
-        return parameters
-
-    @staticmethod
-    def _check_parameters(name, members, param_names, parameters):
-        # If param_names was declared explicitly we use only the parameters
-        # listed manually in param_names, but still check that all listed
-        # parameters were declared
-        if param_names and isiterable(param_names):
-            for param_name in param_names:
-                if param_name not in parameters:
-                    raise ModelDefinitionError(
-                        "Parameter {0!r} listed in {1}.param_names was not "
-                        "declared in the class body.".format(param_name, name))
-        else:
-            param_names = tuple(param.name for param in
-                                sorted(parameters.values(),
-                                       key=lambda p: p._order))
-            members['param_names'] = param_names
-            members['_param_orders'] = \
-                    dict((name, idx) for idx, name in enumerate(param_names))
-
     def _check_unit_specs(cls, members):
         """
         Validates the input_units and output_units attributes.
