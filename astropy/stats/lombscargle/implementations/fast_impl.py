@@ -89,18 +89,13 @@ def lombscargle_fast(t, y, dy, f0, df, Nf,
 
     if fit_bias:
         S, C = trig_sum(t, w, **kwargs)
-        with warnings.catch_warnings():
-            # Filter "invalid value in divide" warnings for zero-frequency
-            if f0 == 0:
-                warnings.simplefilter("ignore")
-            tan_2omega_tau = (S2 - 2 * S * C) / (C2 - (C * C - S * S))
-            # fix NaN at zero frequency
-            if np.isnan(tan_2omega_tau[0]):
-                tan_2omega_tau[0] = 0
+        tan_2omega_tau = (S2 - 2 * S * C) / (C2 - (C * C - S * S))
     else:
         tan_2omega_tau = S2 / C2
 
-    # slower/less stable way: we'll use trig identities instead
+    # This is what we're computing below; the straightforward way is slower
+    # and less stable, so we use trig identities instead
+    #
     # omega_tau = 0.5 * np.arctan(tan_2omega_tau)
     # S2w, C2w = np.sin(2 * omega_tau), np.cos(2 * omega_tau)
     # Sw, Cw = np.sin(omega_tau), np.cos(omega_tau)
@@ -123,16 +118,7 @@ def lombscargle_fast(t, y, dy, f0, df, Nf,
         CC -= (C * Cw + S * Sw) ** 2
         SS -= (S * Cw - C * Sw) ** 2
 
-    with warnings.catch_warnings():
-        # Filter "invalid value in divide" warnings for zero-frequency
-        if fit_bias and f0 == 0:
-            warnings.simplefilter("ignore")
-
-        power = (YC * YC / CC + YS * YS / SS)
-
-        # fix NaN and INF at zero frequency
-        if np.isnan(power[0]) or np.isinf(power[0]):
-            power[0] = 0
+    power = (YC * YC / CC + YS * YS / SS)
 
     if normalization == 'normalized':
         power /= YY

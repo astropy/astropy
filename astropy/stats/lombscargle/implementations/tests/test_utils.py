@@ -4,23 +4,18 @@ import numpy as np
 from numpy.testing import assert_allclose, assert_equal
 import pytest
 
-from ..utils import (factorial, extirpolate, bitceil, trig_sum)
+from ..utils import extirpolate, bitceil, trig_sum
 
 
 requires_numpy1_8 = pytest.mark.skipif(not hasattr(np.ufunc, 'at'),
                                        reason="requires numpy 1.8 or newer")
 
-try:
-    from scipy.special import factorial as scipy_factorial
-except ImportError:
-    scipy_factorial = None
 
-
-def test_factorial():
-    if scipy_factorial is None:
-        return
-    for i in range(20):
-        assert_equal(factorial(i), scipy_factorial(i))
+@pytest.mark.parametrize('N', 2 ** np.arange(1, 12))
+@pytest.mark.parametrize('offset', [-1, 0, 1])
+def test_bitceil(N, offset):
+    assert_equal(bitceil(N + offset),
+                 int(2 ** np.ceil(np.log2(N + offset))))
 
 
 @pytest.fixture
@@ -61,16 +56,6 @@ def test_extirpolate_with_integers(N, M, extirpolate_int_data):
     y_hat = extirpolate(x, y, N, M)
     x_hat = np.arange(len(y_hat))
     assert_allclose(np.dot(f(x), y), np.dot(f(x_hat), y_hat))
-
-
-def slow_bitceil(N):
-    return int(2 ** np.ceil(np.log2(N)))
-
-
-@pytest.mark.parametrize('N', 2 ** np.arange(1, 12))
-@pytest.mark.parametrize('offset', [-1, 0, 1])
-def test_bitceil(N, offset):
-    assert_equal(slow_bitceil(N + offset), bitceil(N + offset))
 
 
 @pytest.fixture

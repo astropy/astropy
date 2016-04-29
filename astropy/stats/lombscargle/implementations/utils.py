@@ -27,12 +27,14 @@ def bitceil(N):
     Note: this works for numbers up to 2 ** 64.
     Roughly equivalent to int(2 ** np.ceil(np.log2(N)))
     """
-    # Note: for Python 2.7 and 3.x, this is faster:
-    # return 1 << int(N - 1).bit_length()
-    N = int(N) - 1
-    for i in [1, 2, 4, 8, 16, 32]:
-        N |= N >> i
-    return N + 1
+    if hasattr(int, 'bit_length'):
+        # Python 2.7 and 3.x
+        return 1 << int(N - 1).bit_length()
+    else:
+        N = int(N) - 1
+        for i in [1, 2, 4, 8, 16, 32]:
+            N |= N >> i
+        return N + 1
 
 
 def extirpolate(x, y, N=None, M=4):
@@ -162,11 +164,10 @@ def trig_sum(t, h, df, N, f0=0, freq_factor=1,
         tnorm = ((t - t0) * Nfft * df) % Nfft
         grid = extirpolate(tnorm, h, Nfft, Mfft)
 
-        fftgrid = np.fft.ifft(grid)
+        fftgrid = np.fft.ifft(grid)[:N]
         if t0 != 0:
-            f = f0 + df * np.arange(Nfft)
+            f = f0 + df * np.arange(N)
             fftgrid *= np.exp(2j * np.pi * t0 * f)
-        fftgrid = fftgrid[:N]
 
         C = Nfft * fftgrid.real
         S = Nfft * fftgrid.imag
