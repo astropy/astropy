@@ -11,9 +11,10 @@ The :class:`~astropy.stats.LombScargle` class is a unified interface to several
 implementations of the Lomb-Scargle periodogram, including a fast *O[NlogN]*
 implementation following the algorithm presented by Press & Rybicki [3]_.
 
-The code here is adapted from the `gatspy`_ package, described in [4]_ and [5]_.
+The code here is adapted from the `astroml`_ package ([4]_, [5]_) and the `gatspy`_ package ([6]_, [7]_).
 
 .. _gatspy: http://astroml.org/gatspy
+.. _astroml: http://astroml.org/
 
 
 Basic Usage
@@ -275,20 +276,9 @@ By design all methods will return the same results (some approximate),
 and each has its advandages and disadganvages.
 
 For example, to compute a periodogram using the fast chi-square method
-of Palmer (2009) [6]_, you can do the following:
+of Palmer (2009) [8]_, you can specify ``method='fastchi2'``:
 
-First we generate some data:
-
-    >>> import numpy as np
-    >>> rand = np.random.RandomState(42)
-    >>> t = 100 * rand.rand(100)
-    >>> y = np.sin(2 * np.pi * t) + 0.1 * rand.randn(100)
-
-Next we compute the periodogram using ``method='fastchi2'``:
-
-    >>> from astropy.stats import LombScargle
     >>> frequency, power = LombScargle(t, y).autopower(method='fastchi2')
-
 
 There are currently six methods available in the package:
 
@@ -302,14 +292,16 @@ from the following methods using heuristics driven by the input data.
 The ``slow`` method is a pure-Python implementation of the original Lomb-Scargle
 periodogram ([1]_, [2]_), enhanced to account for observational noise,
 and to allow a floating mean (sometimes called the *generalized periodogram*;
-see e.g. [7]_). The method is not particularly fast, scaling approximately
+see e.g. [9]_). The method is not particularly fast, scaling approximately
 as :math:`O[NM]` for :math:`N` data points and :math:`M` frequencies.
 
 ``method='cython'``
 -------------------
 The ``cython`` method is a cython implementation of the same algorithm used for
 ``method='slow'``. It is slightly faster than the pure-python implementation,
-but much more memory-efficient as the size of the inputs grow.
+but much more memory-efficient as the size of the inputs grow. The computational
+scaling is approximately :math:`O[NM]` for :math:`N` data points and
+:math:`M` frequencies.
 
 ``method='scipy'``
 ------------------
@@ -331,7 +323,7 @@ data points and :math:`M` frequencies.
 ``method='chi2'``
 -----------------
 The ``chi2`` method is a pure-Python implementation based on matrix algebra
-(see, e.g. [5]_). It utilizes the fact that the Lomb-Scargle periodogram at
+(see, e.g. [7]_). It utilizes the fact that the Lomb-Scargle periodogram at
 each frequency is equivalent to the least-squares fit of a sinusoid to the
 data. The advantage of the ``chi2`` method is that it allows extensions of
 the periodogram to multiple Fourier terms, specified by the ``nterms``
@@ -341,7 +333,7 @@ parameter. For the standard problem, it is slightly slower than
 
 ``method='fastchi2'``
 ---------------------
-The fast chi-squared method of Palmer [6]_ is equivalent to the ``chi2`` method,
+The fast chi-squared method of Palmer (2009) [8]_ is equivalent to the ``chi2`` method,
 but the matrices are constructed using the FFT-based approach of the ``fast``
 method. The result is a relatively efficient periodogram (though not nearly
 as efficient as the ``fast`` method) which can be extended to multiple terms.
@@ -481,12 +473,17 @@ Literature References
        ApJ 1:263 pp. 835-853 (1982)
 .. [3] Press W.H. and Rybicki, G.B, *Fast algorithm for spectral analysis
        of unevenly sampled data*. ApJ 1:338, p. 277 (1989)
-.. [4] VanderPlas, J. *Gatspy: General Tools for Astronomical Time Series
+.. [4] Vanderplas, J., Connolly, A. Ivezic, Z. & Gray, A. *Introduction to
+       astroML: Machine learning for astrophysics*. Proceedings of the
+       Conference on Intelligent Data Understanding (2012)
+.. [5]  Vanderplas, J., Connolly, A. Ivezic, Z. & Gray, A. *Statistics,
+	Data Mining and Machine Learning in Astronomy*. Princeton Press (2014)}
+.. [6] VanderPlas, J. *Gatspy: General Tools for Astronomical Time Series
        in Python* (2015) http://dx.doi.org/10.5281/zenodo.14833
-.. [5] VanderPlas, J. & Ivezic, Z. *Periodograms for Multiband Astronomical
+.. [7] VanderPlas, J. & Ivezic, Z. *Periodograms for Multiband Astronomical
        Time Series*. ApJ 812.1:18 (2015)
-.. [6] Palmer, D. *A Fast Chi-squared Technique for Period Search of
+.. [8] Palmer, D. *A Fast Chi-squared Technique for Period Search of
        Irregularly Sampled Data*. ApJ 695.1:496 (2009)
-.. [7] Zechmeister, M. and Kurster, M. *The generalised Lomb-Scargle
+.. [9] Zechmeister, M. and Kurster, M. *The generalised Lomb-Scargle
        periodogram. A new formalism for the floating-mean and Keplerian
        periodograms*, A&A 496, 577-584 (2009)
