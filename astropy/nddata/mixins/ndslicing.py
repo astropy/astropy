@@ -4,64 +4,9 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import numpy as np
-
-from ..nduncertainty import NDUncertainty
 from ... import log
-from ...wcs import WCS
-from ...extern import six
 
 __all__ = ['NDSlicingMixin']
-__doctest_skip__ = ['NDSlicingMixin']
-
-try:
-    from .utils import format_doc
-except ImportError:
-    # TODO: Delete this and rebase if #4242 is merged.
-    def format_doc(docstring, *args, **kwargs):
-        def set_docstring(func):
-            if not isinstance(docstring, six.string_types):
-                doc = docstring.__doc__
-            elif docstring != 'self':
-                doc = docstring
-            else:
-                doc = func.__doc__
-                func.__doc__ = None
-            if not doc:
-                raise ValueError
-            kwargs['original_doc'] = func.__doc__ or ''
-            func.__doc__ = doc.format(*args, **kwargs)
-            return func
-        return set_docstring
-
-# TODO: Maybe not nice to pollute globals but I felt the same way about
-# polluting the class namespace and this way potential subclasses may or refuse
-# to pull this docstring into their class as well.
-
-# Docstring templates for _slice_* methods.
-_slice_docstring = """
-    Controls how the ``{0}`` is sliced.
-
-    Parameters
-    ----------
-    item: Slice
-        The slice passed to :meth:`NDSlicingMixin.__getitem__`.
-
-    Returns
-    -------
-    sliced_{0}: same type as ``self._{0}``
-        The sliced {0}. If this function doesn't know how to slice
-        the {0} the original {0} is returned and a warning is issued.
-
-    Notes
-    -----
-    This function can slice the {0} if it is ``None`` or
-    `~numpy.ndarray`-like if it's shape matches the data's shape or
-    {allowed}.
-    """
-_slice_uncert_allowed = ("`~astropy.nddata.NDUncertainty`-like with it's "
-                         "``array`` having the same shape as the data.")
-_slice_wcs_allowed = "`~astropy.wcs.WCS` object"
 
 
 class NDSlicingMixin(object):
@@ -70,13 +15,7 @@ class NDSlicingMixin(object):
     interface.
 
     The most common cases of the properties of `~astropy.nddata.NDData` are
-    covered, i.e. if uncertainty, mask and wcs are ``None`` or
-    `~numpy.ndarray` (see Notes for complete list of restrictions) but since
-    NDData deliberatly enforces nothing on most of it's properties there might
-    be a need to extend this. The `NDSlicingMixin` was designed to allow
-    subclasses to extend just the portion they need changing without having
-    to rewrite the whole Mixin (see Notes for detailed suggestions on how
-    to do that).
+    covered, i.e. if uncertainty, mask and wcs are ``None`` or unsliceable.
 
     TODO: Move Notes to nddata/subclassing.rst except maybe point 2. (mwcraig)
 
@@ -86,23 +25,8 @@ class NDSlicingMixin(object):
        so that the subclass sees NDData as the main superclass. See
        `~astropy.nddata.NDDataArray` for an example.
 
-    2. Since `~astropy.nddata.NDData` is not very restrictive about what the
-       additional attributes can be there are a lot of tests while slicing.
-       If a subclass defines more restrictive setter methods for the properties
-       they might want to consider altering `NDSlicingMixin` methods for
-       slicing (starting with _slice_* e.g.
-       `NDSlicingMixin._slice_uncertainty`). Currently implemented is the
-       for slicing the:
-
-       - data (which is enforced to be something `~numpy.ndarray`-like)
-       - mask (if it is a numpy array)
-       - wcs (if it is a numpy array or `~astropy.wcs.WCS` object)
-       - uncertainty (if it is a numpy array or a subclass of `NDUncertainty`)
-
-       But only if the shapes match the shape of the data (except for the wcs
-       if it is a ``WCS`` object). If these attributes do not match those
-       criterias the original property is used but an ``INFO`` message is
-       displayed. The ``meta`` and ``unit`` are simply taken from the original.
+    2. The ``meta`` and ``unit`` are simply taken from the original, no attempt
+       is made to slice them.
 
     3. Some advice about extending this Mixin in subclasses:
 
@@ -118,9 +42,6 @@ class NDSlicingMixin(object):
          to add a new line ``kwargs['flags'] = ...`` to :meth:`_slice`.
          *BUT* the ``__init__`` has to accept a flags parameter otherwise
          this will fail.
-       - if you have restrictions that are a subset of the above mentioned
-         conditions on the properties do not override or extend the
-         ``_slice_*`` methods. The speed gain is negligible.
        - if you have a property that does not match the criterias above you may
          need to extend or override some method here. For example you want a
          custom made ``uncertainty`` class that does not subclass from
@@ -128,8 +49,8 @@ class NDSlicingMixin(object):
          this would be to extend ``_slice_uncertainty(self, item)`` which
          takes the ``slice`` as ``item`` parameter and returns what the
          sliced uncertainty should be. The current uncertainty is avaiable
-         using ``self._uncertainty``. Be carful since this can be also ``None``
-         if there is no uncertainty set.
+         using ``self._uncertainty``. Be careful since this can be also
+         ``None`` if there is no uncertainty set.
 
     Examples
     --------
@@ -154,33 +75,16 @@ class NDSlicingMixin(object):
         >>> nd3.data[0] = 100
         >>> nd2
         NDDataSliceable([  1, 100,   3,   4,   5])
-        >>> # If the mask is not a numpy array a warning is issued
-        >>> nd4 = NDDataSliceable(nd, mask=[False, True])
-        >>> nd5 = nd4[0:2] # doctest: +SKIP
-        INFO: Mask is considered not sliceable. [astropy.nddata.mixins.ndslicing]
-        INFO: Therefore the mask will not be sliced. [astropy.nddata.mixins.ndslicing]
-        >>> # but the data is sliced
-        >>> nd5 # doctest: +SKIP
-        NDDataSliceable([  1, 100])
-        >>> # and the mask is just the mask without slicing
-        >>> nd5.mask # doctest: +SKIP
-        [False, True]
 
     """
     def __getitem__(self, item):
         # Abort slicing if the data is a single scalar.
         if self.data.shape == ():
-            raise TypeError('Scalars cannot be sliced.')
+            raise TypeError('scalars cannot be sliced.')
 
-        # Slice the data here but everything else is sliced in self._slice.
-        # TODO: Evaluate if any affiliated package that wants to use slicing
-        # may have an interest in overwriting the way the data is sliced. But
-        # I could not think of any possibilities except when slicing is based
-        # on wcs (and for that there is the Cutout-Class in nddata.utils)
-        new_data = self.data[item]
+        # Let the other methods handle slicing.
         kwargs = self._slice(item)
-        # TODO: Insert copy=False in return after Recombination of new NDData
-        return self.__class__(new_data, **kwargs)
+        return self.__class__(**kwargs)
 
     def _slice(self, item):
         """
@@ -188,22 +92,23 @@ class NDSlicingMixin(object):
 
         It passes uncertainty, mask and wcs to their appropriate ``_slice_*``
         method, while ``meta`` and ``unit`` are simply taken from the original.
-        The data is assumed to be sliceable and is sliced already before.
+        The data is assumed to be sliceable and is sliced directly.
 
         When possible the return is *not* a copy of the data but a reference.
 
         Parameters
         ----------
-        item: Slice
-            The slice passed to :meth:`NDSlicingMixin.__getitem__`.
+        item: slice
+            The slice passed to ``__getitem__``.
 
         Returns
         -------
         kwargs: `dict`
-            Containing all the attributes except data after slicing - ready to
+            Containing all the attributes after slicing - ready to
             feed them into the ``self.__class__.__init__()`` in __getitem__.
         """
         kwargs = {}
+        kwargs['data'] = self.data[item]
         # Try to slice some attributes
         kwargs['uncertainty'] = self._slice_uncertainty(item)
         kwargs['mask'] = self._slice_mask(item)
@@ -213,78 +118,31 @@ class NDSlicingMixin(object):
         kwargs['meta'] = self.meta
         return kwargs
 
-    @format_doc(_slice_docstring, "uncertainty", allowed=_slice_uncert_allowed)
     def _slice_uncertainty(self, item):
-        # TODO: Remove shape checks? (mwcraig)
-        # But since the slice is defined by the datas shape and I did not
-        # implement any setter/init shape checks and wouldn't like them
-        # I haven't changed that (yet). I don't like shape checks because
-        # they prohibit using broadcastable or scalar masks/uncertainties.
         if self.uncertainty is None:
             return None
-
-        elif isinstance(self.uncertainty, np.ndarray):
-            if self.uncertainty.shape == self.data.shape:
-                return self.uncertainty[item]
-            else:
-                log.info("Uncertainty has not the same shape as data.")
-
-        elif isinstance(self.uncertainty, NDUncertainty):
-            if self.uncertainty.array.shape == self.data.shape:
-                return self.uncertainty[item]
-            else:
-                log.info("Uncertainty has not the same shape as data.")
-
-        else:
-            log.info("Uncertainty is considered not sliceable.")
-        log.info("Therefore the uncertainty will not be sliced.")
+        try:
+            return self.uncertainty[item]
+        except TypeError:
+            # Catching TypeError in case the object has no __getitem__ method.
+            # But let IndexError raise.
+            log.info("uncertainty cannot be sliced.")
         return self.uncertainty
 
-    @format_doc(_slice_docstring, "mask", allowed="")
     def _slice_mask(self, item):
         if self.mask is None:
             return None
-
-        elif isinstance(self.mask, np.ndarray):
-            if self.mask.shape == self.data.shape:
-                return self.mask[item]
-            else:
-                log.info("Mask has not the same shape as data.")
-
-        else:
-            log.info("Mask is considered not sliceable.")
-        log.info("Therefore the mask will not be sliced.")
+        try:
+            return self.mask[item]
+        except TypeError:
+            log.info("mask cannot be sliced.")
         return self.mask
 
-    @format_doc(_slice_docstring, 'wcs', allowed=_slice_wcs_allowed)
     def _slice_wcs(self, item):
         if self.wcs is None:
             return None
-
-        elif isinstance(self.wcs, np.ndarray):
-            if self.wcs.shape == self.data.shape:
-                return self.wcs[item]
-            else:
-                log.info("wcs has not the same shape as data.")
-
-        elif isinstance(self.wcs, WCS):
-            # There might be a problem if we don't slice all dimensions with
-            # WCS ... e.g. 2D image but slice is only 1D (like ndd[2]).
-            # TODO: Does it need a shape check as well?
+        try:
             return self.wcs[item]
-
-        else:
-            log.info("wcs is considered not sliceable.")
-        log.info("Therefore the wcs will not be sliced.")
+        except TypeError:
+            log.info("wcs cannot be sliced.")
         return self.wcs
-
-    # TODO: Only temporary since uncertainty setter was changed during refactor
-    @property
-    def uncertainty(self):
-        return self._uncertainty
-
-    @uncertainty.setter
-    def uncertainty(self, value):
-        if isinstance(value, NDUncertainty):
-            value.parent_nddata = self
-        self._uncertainty = value
