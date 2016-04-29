@@ -71,6 +71,7 @@ New Features
 - ``astropy.stats``
 
   - Added ``axis`` keyword for ``mad_std`` function. [#4688]
+
   - Added Bayesian and Akaike Information Criteria. [#4716]
 
   - Added Bayesian upper limits for Poisson count rates. [#4622]
@@ -105,6 +106,9 @@ New Features
     deprecated in 0.3.1, has been removed. [#4449]
 
   - Added slug to imperial units. [#4670]
+
+  - Added Earth radius (``R_earth``) and Jupiter radius (``R_jup``) to units.
+    [#4818]
 
 - ``astropy.utils``
 
@@ -311,6 +315,7 @@ Bug fixes
 
   - The astropy.utils.compat.fractions module has now been deprecated. Use the
     Python 'fractions' module directly instead. [#4463]
+
   - Added ``format_doc`` decorator which allows to replace and/or format the
     current docstring of an object. [#4242]
 
