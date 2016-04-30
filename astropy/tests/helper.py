@@ -124,7 +124,7 @@ def _save_coverage(cov, result, rootdir, testing_path):
 
     # The coverage report includes the full path to the temporary
     # directory, so we replace all the paths with the true source
-    # path. Note that this will not work properly for packages that still 
+    # path. Note that this will not work properly for packages that still
     # rely on 2to3.
     try:
         # Coverage 4.0: _harvest_data has been renamed to get_data, the
