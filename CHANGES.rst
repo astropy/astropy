@@ -1300,6 +1300,10 @@ Bug Fixes
 
 - ``astropy.table``
 
+- ``astropy.tests``
+
+  - Fix coverage reporting in Python 3.
+
 - ``astropy.time``
 
 - ``astropy.units``
