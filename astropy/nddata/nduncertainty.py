@@ -160,12 +160,11 @@ class NDUncertainty(object):
             if array.uncertainty_type != self.uncertainty_type:
                 raise IncompatibleUncertaintiesException
             # Check if two units are given and take the explicit one then.
-            if (unit is not None and array.unit is not None and
-                    unit != array.unit):
+            if (unit is not None and unit != array._unit):
                 # TODO : Clarify it (see NDData.init for same problem)?
                 log.info("Overwriting Uncertainty's current "
                          "unit with specified unit")
-            elif array.unit is not None:
+            elif array._unit is not None:
                 unit = array.unit
             array = array.array
 
@@ -181,7 +180,6 @@ class NDUncertainty(object):
 
         if copy:
             array = deepcopy(array)
-            unit = deepcopy(unit)
 
         self.array = array
         self.unit = unit
@@ -254,7 +252,7 @@ class NDUncertainty(object):
     @property
     def parent_nddata(self):
         """
-        `NDData` reference: The `NDData` whose uncertainty this is.
+        `NDData` : reference to `NDData` instance with this uncertainty.
 
         In case the reference is not set uncertainty propagation will not be
         possible since almost all kinds of propagation need the uncertain
@@ -265,7 +263,9 @@ class NDUncertainty(object):
             if self._parent_nddata is None:
                 raise MissingDataAssociationException(message)
             else:
-                return self._parent_nddata
+                # The NDData is saved as weak reference so we must call it
+                # to get the object the reference points to.
+                return self._parent_nddata()
         except AttributeError:
             raise MissingDataAssociationException(message)
 

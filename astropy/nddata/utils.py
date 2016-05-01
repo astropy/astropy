@@ -8,7 +8,6 @@ import numpy as np
 from copy import deepcopy
 from .decorators import support_nddata
 from astropy.utils import lazyproperty
-from astropy.coordinates import SkyCoord
 from astropy.wcs.utils import skycoord_to_pixel, proj_plane_pixel_scales
 from astropy import units as u
 
@@ -611,6 +610,8 @@ class Cutout2D(object):
          [ nan   0.   1.]
          [ nan   4.   5.]]
         """
+        # FIXME: Lazy import because otherwise it creates cyclic imports.
+        from astropy.coordinates import SkyCoord
 
         if isinstance(position, SkyCoord):
             if wcs is None:

@@ -68,6 +68,9 @@ New Features
     first operand is not an ``NDArithmeticMixin`` subclass via classmethods
     called ``ic_add``, ``ic_subtract``, etc. [#4272]
 
+  - ``NDIOMixin`` and subclasses now support reading/writing fits files using
+    the ``read`` or ``write`` method with ``format='simple_fits'``.
+
 - ``astropy.stats``
 
   - Added ``axis`` keyword for ``mad_std`` function. [#4688]
