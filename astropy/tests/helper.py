@@ -137,7 +137,7 @@ def _save_coverage(cov, result, rootdir, testing_path):
     else:
         lines = cov.data._lines
 
-    for key in lines.keys():
+    for key in list(lines.keys()):
         new_path = os.path.relpath(
             os.path.realpath(key),
             os.path.realpath(testing_path))
