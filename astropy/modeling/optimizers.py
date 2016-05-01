@@ -216,6 +216,7 @@ class Simplex(Optimization):
         """
         if 'maxiter' not in kwargs:
             kwargs['maxiter'] = self._maxiter
+
         if 'acc' in kwargs:
             self._acc = kwargs['acc']
             kwargs.pop('acc')
@@ -226,6 +227,7 @@ class Simplex(Optimization):
         fitparams, final_func_val, numiter, funcalls, exit_mode = self.opt_method(
             objfunc, initval, args=fargs, xtol=self._acc,
             full_output=True, **kwargs)
+
         self.fit_info['final_func_val'] = final_func_val
         self.fit_info['numiter'] = numiter
         self.fit_info['exit_mode'] = exit_mode

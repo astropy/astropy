@@ -37,7 +37,7 @@ from .utils import poly_map_domain
 from ..utils.exceptions import AstropyUserWarning
 from ..extern import six
 from .optimizers import (SLSQP, Simplex)
-from .statistic import (leastsquare)
+from .statistic import (leastsquare, cash)
 
 
 __all__ = ['LinearLSQFitter', 'LevMarLSQFitter', 'SLSQPLSQFitter',
@@ -140,17 +140,38 @@ class Fitter(object):
         res = self._stat_method(meas, model, *args[1:-1])
         return res
 
-    @abc.abstractmethod
-    def __call__(self):
+    def __call__(self, model, x, y, z=None, weights=None, **kwargs):
         """
         This method performs the actual fitting and modifies the parameter list
         of a model.
 
-        Fitter subclasses should implement this method.
+        Parameters
+        ----------
+        model : `~astropy.modeling.FittableModel`
+            model to fit to x, y, z
+        x : array
+            input coordinates
+        y : array
+            input coordinates
+        z : array (optional)
+            input coordinates
+        weights : array (optional)
+            weights
+        kwargs : dict
+            additional keywords to be passed to the optimizer
         """
 
-        raise NotImplementedError("Subclasses should implement this method.")
+        model_copy = _validate_model(model,
+                                     self._opt_method.supported_constraints)
+        farg = _convert_input(x, y, z)
+        farg = (model_copy, weights, ) + farg
 
+        p0, _ = _model_to_fit_params(model_copy)
+
+        fitparams, self.fit_info = self._opt_method(
+            self.objective_function, p0, farg, **kwargs)
+        _fitter_to_model_params(model_copy, fitparams)
+        return model_copy
 
 # TODO: I have ongoing branch elsewhere that's refactoring this module so that
 # all the fitter classes in here are Fitter subclasses.  In the meantime we
@@ -491,7 +512,6 @@ class LevMarLSQFitter(object):
         constraints, instead of using p directly, we set the parameter list in
         this function.
         """
-
         if any(model.fixed.values()) or any(model.tied.values()):
 
             if z is None:
@@ -575,15 +595,9 @@ class SLSQPLSQFitter(Fitter):
             a copy of the input model with parameters set by the fitter
         """
 
-        model_copy = _validate_model(model, self._opt_method.supported_constraints)
-        farg = _convert_input(x, y, z)
-        farg = (model_copy, weights, ) + farg
-        p0, _ = _model_to_fit_params(model_copy)
-        fitparams, self.fit_info = self._opt_method(
-            self.objective_function, p0, farg, **kwargs)
-        _fitter_to_model_params(model_copy, fitparams)
+        return super(SLSQPLSQFitter, self).__call__(model, x, y, z,
+                                                    weights=None, **kwargs)
 
-        return model_copy
 
 
 class SimplexLSQFitter(Fitter):
@@ -605,49 +619,25 @@ class SimplexLSQFitter(Fitter):
                                                statistic=leastsquare)
         self.fit_info = {}
 
-    def __call__(self, model, x, y, z=None, weights=None, **kwargs):
-        """
-        Fit data to this model.
 
-        Parameters
-        ----------
-        model : `~astropy.modeling.FittableModel`
-            model to fit to x, y, z
-        x : array
-            input coordinates
-        y : array
-            input coordinates
-        z : array (optional)
-            input coordinates
-        weights : array (optional)
-            weights
-        kwargs : dict
-            optional keyword arguments to be passed to the optimizer or the statistic
+class SimplexCashFitter(Fitter):
+    """
 
-        maxiter : int
-            maximum number of iterations
-        epsilon : float
-            the step size for finite-difference derivative estimates
-        acc : float
-            Relative error in approximate solution
+    Simplex algorithm and least squares statistic.
 
-        Returns
-        -------
-        model_copy : `~astropy.modeling.FittableModel`
-            a copy of the input model with parameters set by the fitter
-        """
+    Raises
+    ------
+    ModelLinearityError
+        A linear model is passed to a nonlinear fitter
 
-        model_copy = _validate_model(model,
-                                     self._opt_method.supported_constraints)
-        farg = _convert_input(x, y, z)
-        farg = (model_copy, weights, ) + farg
+    """
 
-        p0, _ = _model_to_fit_params(model_copy)
+    supported_constraints = Simplex.supported_constraints
 
-        fitparams, self.fit_info = self._opt_method(
-            self.objective_function, p0, farg, **kwargs)
-        _fitter_to_model_params(model_copy, fitparams)
-        return model_copy
+    def __init__(self):
+        super(SimplexCashFitter, self).__init__(optimizer=Simplex,
+                                                statistic=cash)
+        self.fit_info = {}
 
 
 @six.add_metaclass(_FitterMeta)

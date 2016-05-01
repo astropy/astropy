@@ -8,7 +8,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 import numpy as np
 
-__all__ = ['leastsquare']
+__all__ = ['leastsquare', 'cash']
 
 
 def leastsquare(measured_vals, updated_model, weights, x, y=None):
@@ -42,3 +42,27 @@ def leastsquare(measured_vals, updated_model, weights, x, y=None):
         return np.sum((model_vals - measured_vals) ** 2)
     else:
         return np.sum((weights * (model_vals - measured_vals)) ** 2)
+
+
+def cash(D, model, *args):
+    """Cash Poisson likelihood statistic.
+
+    Parameters
+    ----------
+    D : array-like
+        "data", i.e. observed counts per bin
+    model : `~astropy.modeling.Model`
+        "model" to be aevaluated
+
+    Returns
+    -------
+    cash : float
+        Summed array of Cash statistic value per bin
+    """
+    D = np.asanyarray(D, dtype=np.float64)
+    weights = args[0]
+    M = model(*args[1:])
+    stat = 2 * (M - D * np.log(M))
+    stat = np.where(M > 0, stat, 0)
+    return stat.sum()
+
