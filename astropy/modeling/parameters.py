@@ -86,7 +86,7 @@ def _binary_comparison_operation(op):
             else:
                 return NotImplemented
 
-        return np.all(op(self.value, val))
+        return op(self.value, val)
 
     return wrapper
 
