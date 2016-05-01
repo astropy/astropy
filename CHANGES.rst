@@ -190,6 +190,7 @@ API changes
 
   - ``NDUncertainty``: added setter for unit. This will simply replace the unit
     without affecting (scaling or converting) the uncertainty values.
+  - ``NDUncertainty``: Does implements a meaningful ``repr``. [#4787]
 
   - ``StdDevUncertainty``: added an optional parameter ``copy`` which is False
     by default. [#4272]

@@ -279,6 +279,12 @@ class NDUncertainty(object):
     def parent_nddata(self, value):
         self._parent_nddata = value
 
+    def __repr__(self):
+        prefix = self.__class__.__name__ + '('
+        body = np.array2string(self.array, separator=', ', prefix=prefix)
+        unit = ', unit: {0}'.format(self.unit) if self.unit else ''
+        return ''.join([prefix, body, unit, ')'])
+
     def __getitem__(self, item):
         """
         Simple slicing is allowed and returns a reference *not* a copy. This
@@ -499,6 +505,23 @@ class StdDevUncertainty(NDUncertainty):
     Parameters
     ----------
     see `NDUncertainty`
+
+    Examples
+    --------
+    `StdDevUncertainty` should always be associated with an `NDData`-like
+    instance, either by creating it during initialization::
+
+        >>> from astropy.nddata import NDData, StdDevUncertainty
+        >>> ndd = NDData([1,2,3],
+        ...              uncertainty=StdDevUncertainty([0.1, 0.1, 0.1]))
+        >>> ndd.uncertainty
+        StdDevUncertainty([ 0.1,  0.1,  0.1])
+
+    or by setting it manually on the `NDData` instance::
+
+        >>> ndd.uncertainty = StdDevUncertainty([0.2], unit='m', copy=True)
+        >>> ndd.uncertainty
+        StdDevUncertainty([ 0.2], unit: m)
     """
 
     @property
