@@ -70,6 +70,9 @@ New Features
 
   - ``NDIOMixin`` and subclasses now support reading/writing fits files using
     the ``read`` or ``write`` method with ``format='simple_fits'``.
+  - Added ``NDDataRef`` that implements ``NDData`` together with all
+    currently avaiable mixins. This class does not implement additional
+    attributes, methods or a numpy.ndarray-like interface like ``NDDataArray``.
 
 - ``astropy.stats``
 

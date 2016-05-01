@@ -107,10 +107,7 @@ class NDData(NDDataBase):
 
     See also
     --------
-
-    NDIOMixin
-    NDSlicingMixin
-    NDArithmeticMixin
+    NDDataRef
     NDDataArray
     """
 

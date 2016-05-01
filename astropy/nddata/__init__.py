@@ -10,6 +10,7 @@ be easily provided by a single array.
 
 from .nddata import *
 from .nddata_base import *
+from .nddata_withmixins import *
 from .nduncertainty import *
 from .flag_collection import *
 
