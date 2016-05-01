@@ -58,14 +58,14 @@ def _tofloat(value):
 
 # Helpers for implementing operator overloading on Parameter
 
-def _binary_arithmetic_operation(op, right=False):
+def _binary_arithmetic_operation(op, reflected=False):
     @functools.wraps(op)
     def wrapper(self, val):
 
         if self._model is None:
             return NotImplemented
 
-        if right:
+        if reflected:
             return op(val, self.value)
         else:
             return op(self.value, val)
@@ -740,17 +740,17 @@ class Parameter(OrderedDescriptor):
     __bool__ = __nonzero__
 
     __add__ = _binary_arithmetic_operation(operator.add)
-    __radd__ = _binary_arithmetic_operation(operator.add, True)
+    __radd__ = _binary_arithmetic_operation(operator.add, reflected=True)
     __sub__ = _binary_arithmetic_operation(operator.sub)
-    __rsub__ = _binary_arithmetic_operation(operator.sub, True)
+    __rsub__ = _binary_arithmetic_operation(operator.sub, reflected=True)
     __mul__ = _binary_arithmetic_operation(operator.mul)
-    __rmul__ = _binary_arithmetic_operation(operator.mul, True)
+    __rmul__ = _binary_arithmetic_operation(operator.mul, reflected=True)
     __pow__ = _binary_arithmetic_operation(operator.pow)
-    __rpow__ = _binary_arithmetic_operation(operator.pow, True)
+    __rpow__ = _binary_arithmetic_operation(operator.pow, reflected=True)
     __div__ = _binary_arithmetic_operation(operator.truediv)
-    __rdiv__ = _binary_arithmetic_operation(operator.truediv, True)
+    __rdiv__ = _binary_arithmetic_operation(operator.truediv, reflected=True)
     __truediv__ = _binary_arithmetic_operation(operator.truediv)
-    __rtruediv__ = _binary_arithmetic_operation(operator.truediv, True)
+    __rtruediv__ = _binary_arithmetic_operation(operator.truediv, reflected=True)
     __eq__ = _binary_comparison_operation(operator.eq)
     __ne__ = _binary_comparison_operation(operator.ne)
     __lt__ = _binary_comparison_operation(operator.lt)
