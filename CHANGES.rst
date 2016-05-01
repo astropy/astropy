@@ -35,6 +35,9 @@ New Features
   - Updated to filter out the default parser warning of BeautifulSoup.
     [#4551]
 
+  - Added support for reading and writing reStructuredText simple tables
+    [#4812]
+
 - ``astropy.io.fits``
 
   - File name could be passed as ``Path`` object. [#4606]
