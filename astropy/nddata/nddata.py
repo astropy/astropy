@@ -70,6 +70,8 @@ class NDData(NDDataBase):
         save each input as reference.
         Default is ``False``.
 
+        .. versionadded:: 1.2
+
     Raises
     ------
     TypeError
