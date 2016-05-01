@@ -113,8 +113,6 @@ class NDData(NDDataBase):
     NDDataArray
     """
 
-    meta = MetaData()
-
     def __init__(self, data, uncertainty=None, mask=None, wcs=None,
                  meta=None, unit=None, copy=False):
 
@@ -206,27 +204,24 @@ class NDData(NDDataBase):
         if data.dtype == 'O':
             raise TypeError("Could not convert data to numpy array.")
 
-        if unit is not None:
-            unit = Unit(unit)
-
         if copy:
             # Data might have been copied before but no way of validating
             # without another variable.
             data = deepcopy(data)
             mask = deepcopy(mask)
             wcs = deepcopy(wcs)
-            meta = deepcopy(meta)
+            # no need to copy meta because the meta descriptor will always copy
+            # and units don't need to be copied anyway.
+            # meta = deepcopy(meta)
+            # unit = deepcopy(unit)
             uncertainty = deepcopy(uncertainty)
-            # Actually - copying the unit is unnecessary but better safe
-            # than sorry :-)
-            unit = deepcopy(unit)
 
         # Store the attributes
         self._data = data
-        self._mask = mask
-        self._wcs = wcs
+        self.mask = mask
+        self.wcs = wcs
         self.meta = meta
-        self._unit = unit
+        self.unit = unit
         # Call the setter for uncertainty to further check the uncertainty
         self.uncertainty = uncertainty
 
@@ -244,6 +239,10 @@ class NDData(NDDataBase):
         `~numpy.ndarray`-like : The stored dataset.
         """
         return self._data
+
+    # Instead of a custom property use the MetaData descriptor. It will check
+    # if the meta is dict-like.
+    meta = MetaData()
 
     @property
     def mask(self):
@@ -263,8 +262,23 @@ class NDData(NDDataBase):
     def unit(self):
         """
         `~astropy.units.Unit` : Unit for the dataset, if any.
+
+        .. warning::
+
+          Setting or overwriting the unit manually will not check if the new
+          unit is compatible or convertible to the old unit. Neither will this
+          scale or otherwise affect the saved data or uncertainty. Appropriate
+          conversion of these values must be done manually.
         """
         return self._unit
+
+    @unit.setter
+    def unit(self, value):
+        # Simply replace the unit without converting data or uncertainty:
+        if value is None:
+            self._unit = None
+        else:
+            self._unit = Unit(value)
 
     @property
     def wcs(self):
@@ -272,6 +286,10 @@ class NDData(NDDataBase):
         any type : A world coordinate system (WCS) for the dataset, if any.
         """
         return self._wcs
+
+    @wcs.setter
+    def wcs(self, value):
+        self._wcs = value
 
     @property
     def uncertainty(self):
