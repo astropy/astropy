@@ -90,6 +90,9 @@ def test_download_cache():
     fnout = download_file(TESTURL, cache=True)
     assert os.path.isfile(fnout)
 
+    # Clearing download cache succeeds even if the URL does not exist.
+    clear_download_cache('http://this_was_never_downloaded_before.com')
+
     # Make sure lockdir was released
     lockdir = os.path.join(download_dir, 'lock')
     assert not os.path.isdir(lockdir), 'Cache dir lock was not released!'
