@@ -188,7 +188,7 @@ For example with quantities::
     >>> import astropy.units as u
     >>> quantity = np.array([1, 2, 3, 4]) * u.m
     >>> ndd = NDData(quantity, unit="cm")  # Explicit unit is cm and implicit is m, keep explicit.
-    INFO: Overwriting Quantity's current unit with specified unit [astropy.nddata.nddata]
+    INFO: overwriting Quantity's current unit with specified unit. [astropy.nddata.nddata]
     >>> ndd.unit
     Unit("cm")
 

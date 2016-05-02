@@ -176,6 +176,15 @@ API changes
   - ``NDData`` implements setter for meta, unit and wcs. Using the setter for
     unit will issue a warning that the other attributes (especially the data)
     are not scaled.
+  - ``NDDataBase`` does not implement a setter or getter for ``uncertainty``,
+    which is now an abstractproperty. [#4270]
+
+  - ``NDData`` The ``uncertainty_type`` of the ``uncertainty`` is no longer
+    required to be a string, but it is still recommended. [#4270]
+
+  - ``NDData`` wraps the ``uncertainty`` inside an ``UnknownUncertainty``
+    if no ``uncertainty_type`` attribute is present in the uncertainty instead
+    of raising an Exception. [#4270]
 
   - ``NDData``: added an optional parameter ``copy``
     which is False by default. If it is True all other parameters are copied
@@ -294,16 +303,6 @@ Bug fixes
     to be able to combine them as classes as well as instances. [#4720]
 
 - ``astropy.nddata``
-
-  - ``NDDataBase`` does not implement a setter or getter for ``uncertainty``,
-    which is now an abstractproperty. [#4270]
-
-  - ``NDData`` wraps the ``uncertainty`` inside an ``UnknownUncertainty``
-    if no ``uncertainty_type`` attribute is present in the uncertainty instead
-    of raising an Exception. [#4270]
-
-  - ``NDData`` The ``uncertainty_type`` of the ``uncertainty`` is no longer
-    required to be a string, but it is still recommended. [#4270]
 
   - ``NDData`` now sets the ``parent_nddata`` of the ``uncertainty`` if the
     uncertainty is ``NDUncertainty``-like. [#4152, #4270]
