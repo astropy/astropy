@@ -299,7 +299,7 @@ If you are doing this because you have found a bug and are checking that it
 still exists in the development version, try running your code.
 
 Or, just for fun, try out one of the
-`new features <http://astropy.readthedocs.org/en/latest/changelog.html>`_ in
+`new features <http://docs.astropy.org/en/latest/changelog.html>`_ in
 the development version.
 
 Either way, once you are done, make sure you do the next step.

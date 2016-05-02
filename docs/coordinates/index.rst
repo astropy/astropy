@@ -216,8 +216,8 @@ To see the list of site names available, use
     you should find the appropriate reference and input the coordinates
     manually, or use more specialized functionality like that in the
     `astroquery <http://www.astropy.org/astroquery/>`_ or
-    `astroplan <http://astroplan.readthedocs.org/>`_ affiliated packages.
-    
+    `astroplan <http://astroplan.readthedocs.io/>`_ affiliated packages.
+
     Also note that these two methods retrieve data from the internet to
     determine the celestial or Earth coordinates. The online data may be
     updated, so if you need to guarantee that your scripts are reproducible

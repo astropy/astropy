@@ -3381,7 +3381,7 @@ API Changes
     configuration items have moved, and some have been changed to science state
     values.  The old locations should continue to work until astropy 0.5, but
     deprecation warnings will be displayed.  See the `Configuration transition
-    <http://astropy.readthedocs.org/en/v0.4/config/config_0_4_transition.html>`_
+    <http://docs.astropy.org/en/v0.4/config/config_0_4_transition.html>`_
     docs for a detailed description of the changes and how to update existing
     code. [#2094]
 
@@ -4004,7 +4004,7 @@ Bug Fixes
 - ``astropy.io.fits``
 
   - Ported all bug fixes from PyFITS 3.2.1.  See the PyFITS changelog at
-    http://pyfits.readthedocs.org/en/v3.2.1/ [#2056]
+    http://pyfits.readthedocs.io/en/v3.2.1/ [#2056]
 
 - ``astropy.io.misc``
 

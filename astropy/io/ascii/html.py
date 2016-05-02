@@ -282,7 +282,7 @@ class HTML(core.BaseReader):
             the table output.  This is done by calling ``bleach.clean(data,
             **raw_html_clean_kwargs)``.  For details on the available options
             (e.g. tag whitelist) see:
-            http://bleach.readthedocs.org/en/latest/clean.html
+            http://bleach.readthedocs.io/en/latest/clean.html
 
         * parser : Specific HTML parsing library to use
             If specified, this specifies which HTML parsing library
