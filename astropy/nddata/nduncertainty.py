@@ -11,45 +11,10 @@ from copy import deepcopy
 from .. import log
 from ..units import Unit, Quantity
 from ..extern import six
-from ..utils import format_doc
 
 __all__ = ['MissingDataAssociationException',
            'IncompatibleUncertaintiesException', 'NDUncertainty',
            'StdDevUncertainty', 'UnknownUncertainty']
-
-
-# Make a placeholder for the different uncertainty propagation methods.
-_propagate_doc = """
-Propagate uncertainties for {operation}.
-
-Parameters
-----------
-other_uncert : `{instance}`
-    The data for the uncertainty of b in a {operator} b.
-result_data : `numpy.ndarray` instance or `~astropy.units.Quantity`
-    The data array that is the result of the {operation}.
-correlation: number or `numpy.ndarray`
-    Array or scalar representing the correlation. Must be 0 if the subclass
-    does not support correlated uncertainties.
-
-Returns
--------
-result_uncertainty : {instance} instance
-    The resulting uncertainty.
-
-Raises
-------
-ValueError
-    Raised if the uncertainty arrays or resulting data cannot be used together
-    for the arithmetic operation (not broadcastable) or conflicting units.
-
-Notes
------
-Handling units (especially if the differ from the parents unit) is done in here
-but be aware that since there are no checks for the unit, incorrect
-assigned units may break the uncertainty propagation even if the resulting data
-(with units) can be computed.
-"""
 
 
 class IncompatibleUncertaintiesException(Exception):
@@ -204,7 +169,10 @@ class NDUncertainty(object):
     @property
     def supports_correlated(self):
         """
-        `bool` : Supports uncertainty propagation with correlated uncertainties?
+        `bool` : Supports uncertainty propagation with correlated \
+                 uncertainties?
+
+        .. versionadded:: 1.2
         """
         return False
 
@@ -273,12 +241,14 @@ class NDUncertainty(object):
         """
         Calculate the resulting uncertainty given an operation on the data.
 
+        .. versionadded:: 1.2
+
         Parameters
         ----------
         operation : callable
             The operation that is performed on the `NDData`. Supported are
             `numpy.add`, `numpy.subtract`, `numpy.multiply` and
-            `numpy.true_divide`.
+            `numpy.true_divide` (or `numpy.divide`).
 
         other_nddata : `NDData`
             The second NDData in the arithmetic operation.
@@ -375,26 +345,18 @@ class NDUncertainty(object):
             raise IncompatibleUncertaintiesException
 
     @abstractmethod
-    @format_doc(_propagate_doc, operation='addition', operator='+',
-                instance='NDUncertainty')
     def _propagate_add(self, other_uncert, result_data, correlation):
         return None
 
     @abstractmethod
-    @format_doc(_propagate_doc, operation='subtraction', operator='-',
-                instance='NDUncertainty')
     def _propagate_subtract(self, other_uncert, result_data, correlation):
         return None
 
     @abstractmethod
-    @format_doc(_propagate_doc, operation='multiplication', operator='*',
-                instance='NDUncertainty')
     def _propagate_multiply(self, other_uncert, result_data, correlation):
         return None
 
     @abstractmethod
-    @format_doc(_propagate_doc, operation='divison', operator='/',
-                instance='NDUncertainty')
     def _propagate_divide(self, other_uncert, result_data, correlation):
         return None
 
@@ -416,7 +378,7 @@ class UnknownUncertainty(NDUncertainty):
     @property
     def supports_correlated(self):
         """
-        `False`
+        ``False``
             Uncertainty propagation is **not** possible for this class.
         """
         return False
@@ -490,7 +452,7 @@ class StdDevUncertainty(NDUncertainty):
     @property
     def supports_correlated(self):
         """
-        `True`
+        ``True``
             `StdDevUncertainty` allows to propagate correlated
             uncertainties.
 
@@ -507,15 +469,12 @@ class StdDevUncertainty(NDUncertainty):
         """
         return 'std'
 
-    @format_doc(NDUncertainty._convert_uncertainty)
     def _convert_uncertainty(self, other_uncert):
         if isinstance(other_uncert, StdDevUncertainty):
             return other_uncert
         else:
             raise IncompatibleUncertaintiesException
 
-    @format_doc(_propagate_doc, operation='addition', operator='+',
-                instance='StdDevUncertainty')
     def _propagate_add(self, other_uncert, result_data, correlation):
 
         if self.array is None:
@@ -580,8 +539,6 @@ class StdDevUncertainty(NDUncertainty):
             else:
                 return result
 
-    @format_doc(_propagate_doc, operation='subtraction', operator='-',
-                instance='StdDevUncertainty')
     def _propagate_subtract(self, other_uncert, result_data, correlation):
         # Since the formulas are equivalent to addition you should look at the
         # explanations provided in _propagate_add
@@ -621,8 +578,6 @@ class StdDevUncertainty(NDUncertainty):
             else:
                 return result
 
-    @format_doc(_propagate_doc, operation='multiplication', operator='*',
-                instance='StdDevUncertainty')
     def _propagate_multiply(self, other_uncert, result_data, correlation):
 
         # For multiplication we don't need the result as quantity
@@ -685,8 +640,6 @@ class StdDevUncertainty(NDUncertainty):
             else:
                 return np.sqrt(left**2 + right**2)
 
-    @format_doc(_propagate_doc, operation='divison', operator='/',
-                instance='StdDevUncertainty')
     def _propagate_divide(self, other_uncert, result_data, correlation):
 
         # For division we don't need the result as quantity
