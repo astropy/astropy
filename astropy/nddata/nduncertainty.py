@@ -131,7 +131,7 @@ class NDUncertainty(object):
                 # TODO : Clarify it (see NDData.init for same problem)?
                 log.info("overwriting Uncertainty's current "
                          "unit with specified unit.")
-            elif array.unit is not None:
+            elif array._unit is not None:
                 unit = array.unit
             array = array.array
 
