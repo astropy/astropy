@@ -479,6 +479,8 @@ Bug Fixes
 
 - ``astropy.utils``
 
+  - Fixed crash on import on Python 3 with Numpy < 1.7. [#4510]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
@@ -1317,6 +1319,8 @@ Bug Fixes
     as base and an ``array``-like exponent yields the correct result. [#4770]
 
 - ``astropy.utils``
+
+  - Fixed crash on import on Python 3 with Numpy < 1.7. [#4510]
 
 - ``astropy.vo``
 
