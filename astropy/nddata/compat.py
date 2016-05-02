@@ -5,6 +5,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import numpy as np
+import weakref
 
 from ..units import UnitsError, UnitConversionError, Unit
 from .. import log
@@ -131,7 +132,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
                                      "to {0} without "
                                      "a unit".format(class_name))
                 self._uncertainty = value
-                self._uncertainty.parent_nddata = self
+                self._uncertainty.parent_nddata = weakref.ref(self)
             else:
                 raise TypeError("Uncertainty must be an instance of "
                                 "a NDUncertainty object")
