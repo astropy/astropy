@@ -6,6 +6,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 from abc import ABCMeta, abstractproperty, abstractmethod
 from copy import deepcopy
+import weakref
 
 # from ..utils.compat import ignored
 from .. import log
@@ -248,6 +249,7 @@ class NDUncertainty(object):
         possible since almost all kinds of propagation need the uncertain
         data besides the uncertainty.
         """
+        from .nddata import NDData
         message = "Uncertainty is not associated with an NDData object"
         try:
             if self._parent_nddata is None:
@@ -255,12 +257,21 @@ class NDUncertainty(object):
             else:
                 # The NDData is saved as weak reference so we must call it
                 # to get the object the reference points to.
-                return self._parent_nddata()
+                if isinstance(self._parent_nddata, weakref.ref):
+                    return self._parent_nddata()
+                elif isinstance(self._parent_nddata, NDData):
+                    log.info("parent_nddata should be a weakref to an NDData "
+                             "object.")
+                    return self._parent_nddata
+                return self._parent_nddata
         except AttributeError:
             raise MissingDataAssociationException(message)
 
     @parent_nddata.setter
     def parent_nddata(self, value):
+        from .nddata import NDData
+        if isinstance(value, NDData):
+            log.info("parent_nddata should be a weakref to an NDData object.")
         self._parent_nddata = value
 
     def __getitem__(self, item):
