@@ -248,20 +248,22 @@ def test_roundtrip_cds():
             yield _test_roundtrip_cds, val
 
 
-def test_roundtrip_ogip():
-    def _test_roundtrip_ogip(unit):
-        a = core.Unit(unit.to_string('ogip'), format='ogip')
-        assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-2)
-        try:
-            b = core.Unit(unit.decompose().to_string('ogip'), format='ogip')
-        except ValueError:  # skip mag: decomposes into dex, unknown to OGIP
-            return
-        assert_allclose(b.decompose().scale, unit.decompose().scale, rtol=1e-2)
+_glob_ogip_vals = []
+for key in sorted(u_format.OGIP._units):
+    val = u_format.OGIP._units[key]
+    if isinstance(val, core.UnitBase) and not isinstance(val, core.PrefixUnit):
+        _glob_ogip_vals.append(val)
 
-    x = u_format.OGIP
-    for key, val in x._units.items():
-        if isinstance(val, core.UnitBase) and not isinstance(val, core.PrefixUnit):
-            yield _test_roundtrip_ogip, val
+@pytest.mark.parametrize('unit', _glob_ogip_vals)
+def test_roundtrip_ogip(unit):
+    unit_decomp = unit.decompose()
+    a = core.Unit(unit.to_string('ogip'), format='ogip')
+    assert_allclose(a.decompose().scale, unit_decomp.scale, rtol=1e-2)
+    try:
+        b = core.Unit(unit_decomp.to_string('ogip'), format='ogip')
+    except ValueError:  # skip mag: decomposes into dex, unknown to OGIP
+        return
+    assert_allclose(b.decompose().scale, unit_decomp.scale, rtol=1e-2)
 
 
 def test_fits_units_available():
