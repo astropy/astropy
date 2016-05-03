@@ -365,6 +365,8 @@ files manually`_ section since this explains what many of the files do.
 
       git remote add template git@github.com:astropy/package-template.git
 
+   .. _template-changes-with-gitfu:
+
    Then, each time you want to pull in changes to the package template::
 
       git fetch template
@@ -430,7 +432,7 @@ files manually`_ section since this explains what many of the files do.
 Updating to the latest template files
 -------------------------------------
 
-See instructions in Item 14 above.
+See instructions in :ref:`Item 14 above <template-changes-with-gitfu>`.
 
 
 Releasing an affiliated package
