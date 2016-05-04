@@ -80,13 +80,13 @@ class TestUtilMode(FitsTestCase):
         if (version_info.major < 3 or
                 (version_info.major >= 3 and version_info.minor < 4)):
             num_mode_resmode = [(0, 'a', 'ab'), (0, 'ab', 'ab'),
-                                (0, 'w', 'wb'), (0, 'wb', 'wb'),
-                                (1, 'r', 'rb'), (2, 'rb', 'rb')]
+                                (1, 'w', 'wb'), (1, 'wb', 'wb'),
+                                (1, 'r', 'rb'), (1, 'rb', 'rb')]
         else:
             num_mode_resmode = [(0, 'a', 'ab'), (0, 'ab', 'ab'),
                                 (0, 'w', 'wb'), (0, 'wb', 'wb'),
-                                (1, 'x', 'xb')
-                                (1, 'r', 'rb'), (2, 'rb', 'rb')]
+                                (1, 'x', 'xb'),
+                                (1, 'r', 'rb'), (1, 'rb', 'rb')]
 
         for num, mode, res in num_mode_resmode:
             filename = self.temp('test{0}.gz'.format(num))
@@ -122,8 +122,8 @@ class TestUtilMode(FitsTestCase):
         else:
             num_mode_resmode = [(0, 'a', 'a'), (0, 'ab', 'ab'),
                                 (0, 'w', 'w'), (0, 'wb', 'wb'),
-                                (1, 'x', 'x')
-                                (1, 'r', 'r'), (2, 'rb', 'rb')]
+                                (1, 'x', 'x'),
+                                (1, 'r', 'r'), (1, 'rb', 'rb')]
         for num, mode, res in num_mode_resmode:
             filename = self.temp('test2{0}.dat'.format(num))
             with open(filename, mode) as fileobj:
