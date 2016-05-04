@@ -141,7 +141,7 @@ class FixedWidthHeader(basic.BasicHeader):
                 if not set(line).issubset(charset):
                     raise InconsistentTableError('Characters in position line must be part of {0}'.format(charset))
                 vals, self.col_starts, col_ends = self.get_fixedwidth_params(line)
-                self.col_ends = [x - 1 for x in col_ends]
+                self.col_ends = [x - 1 if x is not None else None for x in col_ends]
 
             # Get the header column names and column positions
             line = self.get_line(lines, start_line)
@@ -187,7 +187,7 @@ class FixedWidthHeader(basic.BasicHeader):
         # been given, so figure out whichever wasn't given.
         if self.col_starts is not None and self.col_ends is not None:
             starts = list(self.col_starts)  # could be any iterable, e.g. np.array
-            ends = [x + 1 for x in self.col_ends]  # user supplies inclusive endpoint
+            ends = [x + 1 if x is not None else None for x in self.col_ends]  # user supplies inclusive endpoint
             if len(starts) != len(ends):
                 raise ValueError('Fixed width col_starts and col_ends must have the same length')
             vals = [line[start:end].strip() for start, end in zip(starts, ends)]
