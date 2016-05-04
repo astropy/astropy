@@ -154,6 +154,23 @@ class TestIOFunctions(object):
 
         self.compare_nddata(ndd1, ndd2)
 
+    def test_nddata_write_read_unit_uppercase(self, tmpdir):
+        ndd1 = NDData(np.ones((3, 3)))
+        ndd1.meta['BUNIT'] = 'ADU'
+        # ADU cannot be parsed but it can be parsed if it tries lowercase. We
+        # need to change 'kw_unit' during writing though otherwise it will be
+        # deleted.
+
+        filename = str(self.temp(tmpdir))
+        write_data_fits(ndd1, filename, kw_unit='blub')
+        ndd2 = read_data_fits(filename)
+
+        # Identical to ndd1 except that we set the unit and check if it was
+        # correctly parsed.
+        ndd3 = NDData(ndd1, unit='adu')
+
+        self.compare_nddata(ndd3, ndd2)
+
     def test_nddata_write_read_unit_dimensionless(self, tmpdir):
         ndd1 = NDData(np.ones((3, 3)), unit='')
 

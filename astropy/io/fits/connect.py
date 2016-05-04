@@ -326,8 +326,9 @@ def read_data_fits(filename, ext_data=0, ext_meta=0, ext_mask='mask',
         Default is ``0`` (data), ``0`` (meta), ``'mask'`` (mask) and
         ``'uncert'`` (uncertainty).
 
-    kw_unit : str, optional
-        The header keyword which translates to the unit for the data.
+    kw_unit : str or None, optional
+        The header keyword which translates to the unit for the data. Set it
+        to ``None`` if parsing the unit results in a ValueError during reading.
         Default is ``'bunit'``.
 
     copy : bool, optional
@@ -384,7 +385,15 @@ def read_data_fits(filename, ext_data=0, ext_meta=0, ext_mask='mask',
             uncertainty = cls(uncertainty, unit=unit_, copy=False)
 
         # Load unit and wcs from header
-        unit = meta[kw_unit].lower() if kw_unit in meta else None
+        unit = None
+        if kw_unit is not None and kw_unit in meta:
+            try:
+                unit = u.Unit(meta[kw_unit])
+            except ValueError:
+                # ValueError is raised if the unit isn't convertible to an
+                # astropy unit. Maybe they tried all-uppercase: maybe lowercase
+                # will work
+                unit = u.Unit(meta[kw_unit].lower())
         wcs = WCS(meta)
 
     # Just create an NDData instance: This will be upcast to the appropriate
