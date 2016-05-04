@@ -23,7 +23,6 @@ env:
         # to repeat them for all configurations.
         - NUMPY_VERSION=stable
         - ASTROPY_VERSION=stable
-        - MATPLOTLIB_VERSION=1.5
         - CONDA_DEPENDENCIES='pyqt nose matplotlib pillow'
         - PIP_DEPENDENCIES='pytest-mpl'
         - SETUP_XVFB=True
@@ -66,10 +65,6 @@ matrix:
           env: NUMPY_VERSION=1.7 SETUP_CMD='test --remote-data'
         - python: 2.7
           env: NUMPY_VERSION=1.6 SETUP_CMD='test --remote-data'
-
-        # Try older matplotlib versions
-        - python: 3.5
-          env: MATPLOTLIB_VERSION=1.5 SETUP_CMD='test --remote-data'
 
 before_install:
 
