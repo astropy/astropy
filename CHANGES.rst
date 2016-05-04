@@ -114,6 +114,7 @@ New Features
 
   - Added Earth radius (``R_earth``) and Jupiter radius (``R_jup``) to units.
     [#4818]
+
   - Added a ``represents`` property to allow access to the definition of a
     named unit (e.g., ``u.kpc.represents`` yields ``1000 pc``). [#4806]
 
