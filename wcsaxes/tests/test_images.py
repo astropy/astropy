@@ -235,14 +235,14 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_axislabel('X-axis', size=20)
         ax.coords[1].set_axislabel('Y-axis', color='green', size=25,
                                    weight='regular', style='normal',
-                                   family='monospace')
+                                   family='cmtt10')
         ax.coords[0].set_axislabel_position('t')
         ax.coords[1].set_axislabel_position('r')
         ax.coords[0].set_ticklabel(color='purple', size=15, alpha=1,
                                    weight='light', style='normal',
-                                   family='sans-serif')
+                                   family='cmss10')
         ax.coords[1].set_ticklabel(color='black', size=18, alpha=0.9,
-                                   weight='bold', family='serif')
+                                   weight='bold', family='cmr10')
         ax.coords[0].set_ticklabel_position('all')
         ax.coords[1].set_ticklabel_position('r')
 

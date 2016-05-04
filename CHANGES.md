@@ -14,6 +14,8 @@
 
 - Make sure wrap_angle_at doesn’t emit any warnings on ARM processors. [#196]
 
+- Fix image test that was sensitive to fonts on Debian. [#197]
+
 0.6 (2015-07-20)
 ----------------
 
