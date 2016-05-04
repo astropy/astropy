@@ -1,6 +1,11 @@
 1.2 (unreleased)
 ----------------
 
+General
+^^^^^^^
+
+Astropy now requires Numpy 1.7.0 or later.
+
 New Features
 ^^^^^^^^^^^^
 

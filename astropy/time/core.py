@@ -20,7 +20,6 @@ from .. import units as u, constants as const
 from .. import _erfa as erfa
 from ..units import UnitConversionError
 from ..utils.decorators import lazyproperty
-from ..utils.compat.numpycompat import NUMPY_LT_1_7
 from ..utils.compat.misc import override__dir__
 from ..utils.data_info import MixinInfo, data_info_factory
 from ..utils.compat.numpy import broadcast_to
@@ -1010,12 +1009,7 @@ class Time(object):
         """
         # first get the minimum at normal precision.
         jd = self.jd1 + self.jd2
-        if NUMPY_LT_1_7:
-            approx = jd.min(axis)
-            if axis is not None:
-                approx = np.expand_dims(approx, axis)
-        else:
-            approx = jd.min(axis, keepdims=True)
+        approx = jd.min(axis, keepdims=True)
 
         # Approx is very close to the true minimum, and by subtracting it at
         # full precision, all numbers near 0 can be represented correctly,
@@ -1037,12 +1031,7 @@ class Time(object):
         """
         # For procedure, see comment on argmin.
         jd = self.jd1 + self.jd2
-        if NUMPY_LT_1_7:
-            approx = jd.max(axis)
-            if axis is not None:
-                approx = np.expand_dims(approx, axis)
-        else:
-            approx = jd.max(axis, keepdims=True)
+        approx = jd.max(axis, keepdims=True)
 
         dt = (self.jd1 - approx) + self.jd2
         return dt.argmax(axis, out)

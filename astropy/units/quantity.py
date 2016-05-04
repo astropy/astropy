@@ -20,7 +20,7 @@ from ..extern import six
 from .core import (Unit, dimensionless_unscaled, UnitBase, UnitsError,
                    get_current_unit_registry, UnitConversionError)
 from .format.latex import Latex
-from ..utils.compat import NUMPY_LT_1_7, NUMPY_LT_1_8, NUMPY_LT_1_9
+from ..utils.compat import NUMPY_LT_1_8, NUMPY_LT_1_9
 from ..utils.compat.misc import override__dir__
 from ..utils.misc import isiterable, InheritDocstrings
 from ..utils.data_info import ParentDtypeInfo
@@ -1027,31 +1027,24 @@ class Quantity(np.ndarray):
         lstr
             A LaTeX string with the contents of this Quantity
         """
-        if NUMPY_LT_1_7:
-            if self.isscalar:
-                latex_value = Latex.format_exponential_notation(self.value)
-            else:
-                raise NotImplementedError('Cannot represent Quantity arrays '
-                                          'in LaTex format for numpy < v1.7.')
-        else:
-            # need to do try/finally because "threshold" cannot be overridden
-            # with array2string
-            pops = np.get_printoptions()
-            try:
-                formatter = {'all' : Latex.format_exponential_notation,
-                             'str_kind': lambda x: x}
-                if conf.latex_array_threshold > -1:
-                    np.set_printoptions(threshold=conf.latex_array_threshold,
-                                        formatter=formatter)
+        # need to do try/finally because "threshold" cannot be overridden
+        # with array2string
+        pops = np.get_printoptions()
+        try:
+            formatter = {'all': Latex.format_exponential_notation,
+                         'str_kind': lambda x: x}
+            if conf.latex_array_threshold > -1:
+                np.set_printoptions(threshold=conf.latex_array_threshold,
+                                    formatter=formatter)
 
-                # the view is needed for the scalar case - value might be float
-                latex_value = np.array2string(self.view(np.ndarray),
-                                              style=Latex.format_exponential_notation,
-                                              max_line_width=np.inf,
-                                              separator=',~')
-                latex_value = latex_value.replace('...', r'\dots')
-            finally:
-                np.set_printoptions(**pops)
+            # the view is needed for the scalar case - value might be float
+            latex_value = np.array2string(self.view(np.ndarray),
+                                          style=Latex.format_exponential_notation,
+                                          max_line_width=np.inf,
+                                          separator=',~')
+            latex_value = latex_value.replace('...', r'\dots')
+        finally:
+            np.set_printoptions(**pops)
 
         # Format unit
         # [1:-1] strips the '$' on either side needed for math mode
@@ -1334,49 +1327,26 @@ class Quantity(np.ndarray):
     def round(self, decimals=0, out=None):
         return self._wrap_function(np.round, decimals, out=out)
 
-    if NUMPY_LT_1_7:
-        # 'keepdims' was not yet available.
-        def max(self, axis=None, out=None):
-            return self._wrap_function(np.max, axis, out=out)
+    def max(self, axis=None, out=None, keepdims=False):
+        return self._wrap_function(np.max, axis, out=out, keepdims=keepdims)
 
-        def min(self, axis=None, out=None):
-            return self._wrap_function(np.min, axis, out=out)
+    def min(self, axis=None, out=None, keepdims=False):
+        return self._wrap_function(np.min, axis, out=out, keepdims=keepdims)
 
-        def sum(self, axis=None, dtype=None, out=None):
-            return self._wrap_function(np.sum, axis, dtype, out=out)
+    def sum(self, axis=None, dtype=None, out=None, keepdims=False):
+        return self._wrap_function(np.sum, axis, dtype, out=out,
+                                   keepdims=keepdims)
 
-        def prod(self, axis=None, dtype=None, out=None):
-            if not self.unit.is_unity():
-                raise ValueError("cannot use prod on scaled or "
-                                 "non-dimensionless Quantity arrays")
-            return self._wrap_function(np.prod, axis, dtype, out=out)
+    def prod(self, axis=None, dtype=None, out=None, keepdims=False):
+        if not self.unit.is_unity():
+            raise ValueError("cannot use prod on scaled or "
+                             "non-dimensionless Quantity arrays")
+        return self._wrap_function(np.prod, axis, dtype, out=out,
+                                   keepdims=keepdims)
 
-        # 'out' was not yet available.
-        def dot(self, b):
-            result_unit = self.unit * getattr(b, 'unit', dimensionless_unscaled)
-            return self._wrap_function(np.dot, b, unit=result_unit)
-
-    else:
-        def max(self, axis=None, out=None, keepdims=False):
-            return self._wrap_function(np.max, axis, out=out, keepdims=keepdims)
-
-        def min(self, axis=None, out=None, keepdims=False):
-            return self._wrap_function(np.min, axis, out=out, keepdims=keepdims)
-
-        def sum(self, axis=None, dtype=None, out=None, keepdims=False):
-            return self._wrap_function(np.sum, axis, dtype, out=out,
-                                       keepdims=keepdims)
-
-        def prod(self, axis=None, dtype=None, out=None, keepdims=False):
-            if not self.unit.is_unity():
-                raise ValueError("cannot use prod on scaled or "
-                                 "non-dimensionless Quantity arrays")
-            return self._wrap_function(np.prod, axis, dtype, out=out,
-                                       keepdims=keepdims)
-
-        def dot(self, b, out=None):
-            result_unit = self.unit * getattr(b, 'unit', dimensionless_unscaled)
-            return self._wrap_function(np.dot, b, out=out, unit=result_unit)
+    def dot(self, b, out=None):
+        result_unit = self.unit * getattr(b, 'unit', dimensionless_unscaled)
+        return self._wrap_function(np.dot, b, out=out, unit=result_unit)
 
     def cumsum(self, axis=None, dtype=None, out=None):
         return self._wrap_function(np.cumsum, axis, dtype, out=out)
@@ -1386,7 +1356,6 @@ class Quantity(np.ndarray):
             raise ValueError("cannot use cumprod on scaled or "
                              "non-dimensionless Quantity arrays")
         return self._wrap_function(np.cumprod, axis, dtype, out=out)
-
 
     # Calculation: override methods that do not make sense.
 
