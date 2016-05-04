@@ -372,6 +372,39 @@ into.  For example to add the missing registry entries to your Python 2.7::
 
 __ https://gist.github.com/embray/6042780#file-win_register_python-py
 
+Installing Astropy into CASA
+----------------------------
+
+If you want to be able to use Astropy inside `CASA
+<https://casa.nrao.edu/>`_, the easiest way is to do so from inside CASA.
+
+First, we need to make sure `pip <https://pypi.python.org/pypi/pip>`__ is
+installed. Start up CASA as normal, and type::
+
+    CASA <2>: from setuptools.command import easy_install
+
+    CASA <3>: easy_install.main(['--user', 'pip'])
+
+Now, quit CASA and re-open it, then type the following to install Astropy::
+
+    CASA <2>: import pip
+
+    CASA <3>: pip.main(['install', 'astropy', '--user'])
+
+Then close CASA again and open it, and you should be able to import Astropy::
+
+    CASA <2>: import astropy
+
+Any astropy affiliated package can be installed the same way (e.g. the
+`spectral-cube <http://spectral-cube.readthedocs.io/en/latest/>`_ or other
+packages that may be useful for radioastronomy).
+
+.. note:: The above instructions have been tested and are known to work on 
+          MacOS X with CASA 4.3.1 and Linux with CASA 4.3.1, 4.4.0, 4.5.3, and
+          pre-releases of CASA 4.7. However, due to missing header files in
+          CASA, they are known to **not** work on Linux with CASA 4.2.1 and
+          CASA 4.6.0.
+
 .. _builddocs:
 
 Building documentation
