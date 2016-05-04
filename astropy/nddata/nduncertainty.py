@@ -265,8 +265,7 @@ class NDUncertainty(object):
     def __repr__(self):
         prefix = self.__class__.__name__ + '('
         body = np.array2string(self.array, separator=', ', prefix=prefix)
-        unit = ', unit: {0}'.format(self.unit) if self.unit else ''
-        return ''.join([prefix, body, unit, ')'])
+        return ''.join([prefix, body, ')'])
 
     def __getitem__(self, item):
         """
@@ -504,7 +503,10 @@ class StdDevUncertainty(NDUncertainty):
 
         >>> ndd.uncertainty = StdDevUncertainty([0.2], unit='m', copy=True)
         >>> ndd.uncertainty
-        StdDevUncertainty([ 0.2], unit: m)
+        StdDevUncertainty([ 0.2])
+
+    .. note::
+        The unit will not be displayed.
     """
 
     @property
