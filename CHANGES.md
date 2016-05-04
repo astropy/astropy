@@ -12,6 +12,8 @@
 - Updated documentation to show that the Astropy WCS class can now be used
   directly. [#186]
 
+- Make sure wrap_angle_at doesn’t emit any warnings on ARM processors. [#196]
+
 0.6 (2015-07-20)
 ----------------
 
