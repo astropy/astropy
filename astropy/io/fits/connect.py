@@ -11,6 +11,7 @@ import numpy as np
 
 from .. import registry as io_registry
 from ... import units as u
+from ... import log
 from ...extern import six
 from ...extern.six import string_types
 from ...table import Table
@@ -309,9 +310,10 @@ io_registry.register_identifier('fits', Table, is_fits)
 
 def read_data_fits(filename, ext_data=0, ext_meta=0, ext_mask='mask',
                    ext_uncert='uncert', kw_unit='bunit', copy=False,
-                   **kwargs_for_open):
+                   dtype=None, **kwargs_for_open):
     """
-    Read data from a FITS file and save it as `~astropy.nddata.NDData`.
+    Read data from a FITS file and wrap the contents in a \
+    `~astropy.nddata.NDData`.
 
     Parameters
     ----------
@@ -332,6 +334,11 @@ def read_data_fits(filename, ext_data=0, ext_meta=0, ext_mask='mask',
         Copy the data while creating the `~astropy.nddata.NDData` instance?
         Default is ``False``.
 
+    dtype : `numpy.dtype`-like or None, optional
+        If not ``None`` the data array is converted to this dtype before
+        returning. See `numpy.ndarray.astype` for more details.
+        Default is ``None``.
+
     kwargs_for_open :
         Additional keyword arguments that are passed to
         :func:`~astropy.io.fits.open` (not all of them might be possible).
@@ -346,6 +353,8 @@ def read_data_fits(filename, ext_data=0, ext_meta=0, ext_mask='mask',
     with fits_open(filename, mode='readonly', **kwargs_for_open) as hdus:
         # Read the data and meta from the specified extensions
         data = hdus[ext_data].data
+        if dtype is not None:
+            data = data.astype(dtype)
         meta = hdus[ext_meta].header
 
         # Read the mask and uncertainty from the specified extensions but
@@ -431,7 +440,12 @@ def write_data_fits(ndd, filename, ext_mask='mask', ext_uncert='uncert',
         del header[kw_unit]
 
     if ndd.wcs is not None:
-        header.update(ndd.wcs.to_header())
+        try:
+            header.update(ndd.wcs.to_header())
+        except AttributeError:
+            # wcs has no to_header method
+            # FIXME: Implement this if other wcs objects should be allowed.
+            log.info("the wcs cannot be converted to header information.")
 
     # Create a HDUList containing data
     hdus = [PrimaryHDU(ndd.data, header=header)]
