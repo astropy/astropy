@@ -25,7 +25,10 @@ __all__ = ['CoordinateHelper']
 
 
 def wrap_angle_at(values, coord_wrap):
-    return np.mod(values - coord_wrap, 360.) - (360. - coord_wrap)
+    # On ARM processors, np.mod emits warnings if there are NaN values in the
+    # array, although this doesn't seem to happen on other processors.
+    with np.errstate(invalid='ignore'):
+        return np.mod(values - coord_wrap, 360.) - (360. - coord_wrap)
 
 
 class CoordinateHelper(object):
