@@ -66,6 +66,15 @@ class TestIOFunctions(object):
 
         self.compare_nddata(ndd1, ndd2)
 
+    def test_nddata_write_read_data_only_with_dtype(self, tmpdir):
+        ndd1 = NDData(np.ones((3, 3)))
+
+        filename = str(self.temp(tmpdir))
+        write_data_fits(ndd1, filename)
+        ndd2 = read_data_fits(filename, dtype=np.int32)
+
+        assert ndd2.data.dtype == np.int32
+
     def test_nddata_write_read_mask_boolean(self, tmpdir):
         ndd1 = NDData(np.ones((3, 3)),
                       mask=np.array([[1, 0, 1], [0, 1, 0], [1, 0, 1]], dtype=bool))
@@ -145,6 +154,23 @@ class TestIOFunctions(object):
 
         self.compare_nddata(ndd1, ndd2)
 
+    def test_nddata_write_read_unit_uppercase(self, tmpdir):
+        ndd1 = NDData(np.ones((3, 3)))
+        ndd1.meta['BUNIT'] = 'ADU'
+        # ADU cannot be parsed but it can be parsed if it tries lowercase. We
+        # need to change 'kw_unit' during writing though otherwise it will be
+        # deleted.
+
+        filename = str(self.temp(tmpdir))
+        write_data_fits(ndd1, filename, kw_unit='blub')
+        ndd2 = read_data_fits(filename)
+
+        # Identical to ndd1 except that we set the unit and check if it was
+        # correctly parsed.
+        ndd3 = NDData(ndd1, unit='adu')
+
+        self.compare_nddata(ndd3, ndd2)
+
     def test_nddata_write_read_unit_dimensionless(self, tmpdir):
         ndd1 = NDData(np.ones((3, 3)), unit='')
 
@@ -188,6 +214,14 @@ class TestIOFunctions(object):
 
         self.compare_nddata(ndd1, ndd2)
         self.compare_nddata(ndd2, ndd3)
+
+    def test_nddata_write_read_wcs_no_toheader(self, tmpdir):
+        ndd1 = NDData(np.ones((3, 3)), wcs=5)  # int has no "to_header"-method
+
+        # Write and read to generate basic wcs
+        filename = str(self.temp(tmpdir))
+        # Writing would fail if the missing method wasn't catched.
+        write_data_fits(ndd1, filename)
 
     def test_nddata_write_read_wcs_slicing(self, tmpdir):
         ndd1 = NDData(np.ones((10, 10)))
@@ -262,3 +296,5 @@ class TestIOFunctions(object):
         # Extra tests:
         assert isinstance(ndd2, NDDataIO)
         assert isinstance(ndd3, NDDataIO)
+
+    # TODO: Add one test for NDDataRef and NDDataArray!
