@@ -24,7 +24,7 @@ def lombscargle_chi2(t, y, dy, frequency, normalization='normalized',
         TODO: figure out what options to use
     fit_bias : bool (optional, default=True)
         if True, include a constant offet as part of the model at each
-        frequency. This can lead to more accurate results, especially in then
+        frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage.
     center_data : bool (optional, default=True)
         if True, pre-center the data by subtracting the weighted mean

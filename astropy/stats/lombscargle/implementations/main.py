@@ -256,7 +256,7 @@ def lombscargle(t, y, dy=None,
         'unnormalized'.
     fit_bias : bool (optional, default=True)
         if True, include a constant offet as part of the model at each
-        frequency. This can lead to more accurate results, especially in then
+        frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage.
     center_data : bool (optional, default=True)
         if True, pre-center the data by subtracting the weighted mean
