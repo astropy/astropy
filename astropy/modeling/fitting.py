@@ -38,12 +38,10 @@ from ..utils.exceptions import AstropyUserWarning
 from ..extern import six
 from .optimizers import (SLSQP, Simplex)
 from .statistic import (leastsquare)
-
+from .. import units as u
 
 __all__ = ['LinearLSQFitter', 'LevMarLSQFitter', 'SLSQPLSQFitter',
            'SimplexLSQFitter', 'JointFitter', 'Fitter']
-
-
 
 # Statistic functions implemented in `astropy.modeling.statistic.py
 STATISTICS = [leastsquare]
@@ -83,6 +81,24 @@ class _FitterMeta(abc.ABCMeta):
 
         return cls
 
+
+def unit_support(func):
+
+    print("ICI")
+    
+    def wrapper(self, model, x, y, z=None, *args, **kwargs):
+        print("HERE")
+        if isinstance(x, u.Quantity) or isinstance(y, u.Quantity):
+            if z is None:
+                model_new = func(self, model, x.value, y.value, *args, **kwargs)
+                return model_new.with_units_from_data(x, y)
+            else:
+                model_new = func(self, model, x.value, y.value, z=z.value, *args, **kwargs)
+                return model_new.with_units_from_data(x, y, z)
+        else:
+            func(self, model, x.value, y, *args, **kwargs)
+        
+    return wrapper
 
 @six.add_metaclass(_FitterMeta)
 class Fitter(object):
@@ -212,6 +228,7 @@ class LinearLSQFitter(object):
             ynew = poly_map_domain(y, model.y_domain, model.y_window)
             return xnew, ynew
 
+    @unit_support
     def __call__(self, model, x, y, z=None, weights=None, rcond=None):
         """
         Fit data to this model.
@@ -238,6 +255,8 @@ class LinearLSQFitter(object):
         model_copy : `~astropy.modeling.FittableModel`
             a copy of the input model with parameters set by the fitter
         """
+
+        print("FINALLY IN FITTER")
 
         if not model.fittable:
             raise ValueError("Model must be a subclass of FittableModel")
@@ -407,6 +426,7 @@ class LevMarLSQFitter(object):
         else:
             return np.ravel(weights * (model(*args[2 : -1]) - meas))
 
+    @unit_support
     def __call__(self, model, x, y, z=None, weights=None,
                  maxiter=DEFAULT_MAXITER, acc=DEFAULT_ACC,
                  epsilon=DEFAULT_EPS, estimate_jacobian=False):
@@ -539,6 +559,7 @@ class SLSQPLSQFitter(Fitter):
         super(SLSQPLSQFitter, self).__init__(optimizer=SLSQP, statistic=leastsquare)
         self.fit_info = {}
 
+    @unit_support
     def __call__(self, model, x, y, z=None, weights=None, **kwargs):
         """
         Fit data to this model.
