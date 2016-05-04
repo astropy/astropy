@@ -221,7 +221,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.mpl_image_compare(filename='ticks_labels.png', savefig_kwargs={'bbox_inches': 'tight'}, tolerance=1.5)
+    @pytest.mark.mpl_image_compare(filename='ticks_labels.png', tolerance=1.5)
     def test_ticks_labels(self):
         fig = plt.figure(figsize=(6, 6))
         ax = WCSAxes(fig, [0.1, 0.1, 0.7, 0.7], wcs=None)
