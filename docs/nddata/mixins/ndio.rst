@@ -106,18 +106,21 @@ unit, if required, later::
     >>> ndd.unit = 'adu' # doctest: +SKIP
 
 In case you want to change the datatype of your data (maybe because the data
-was saved in unsigned integer but you want floats) you can create a new
-instance afterwards::
+was saved in unsigned integer but you want floats) you can specify a ``dtype``
+parameter::
 
-    >>> ndd = NDDataRef.read('filename.fits', format='simple_fits') # doctest: +SKIP
-    >>> ndd = NDDataRef(ndd.data.astype(float), mask=ndd.mask, unit=ndd.unit
-    ...                 uncertainty=ndd.uncertainty, wcs=ndd.wcs,
-    ...                 meta=ndd.meta) # doctest: +SKIP
+    >>> ndd = NDDataRef.read('filename.fits', format='simple_fits', dtype=float) # doctest: +SKIP
 
-.. note::
-    TODO:
-    Add a parameter for the reader to change the dtype of the ``data``. This
-    last case seems rather akward.
+this ``dtype`` will affect **only** the data. Other attributes like mask and
+uncertainty will be unaffected. You can always manually alter their dtype using
+the appropriate attribute setter::
+
+    >>> ndd = NDDataRef([1,2,0], uncertainty=[1,2,3]) # doctest: +SKIP
+    INFO: uncertainty should have attribute uncertainty_type. [astropy.nddata.nddata]
+
+    >>> # Change the data type of the uncertainty to float:
+    >>> ndd.uncertainty = ndd.uncertainty.array.astype(float) # doctest: +SKIP
+    INFO: uncertainty should have attribute uncertainty_type. [astropy.nddata.nddata]
 
 Additional parameters
 ^^^^^^^^^^^^^^^^^^^^^
@@ -140,8 +143,14 @@ Additional parameters
 ^^^^^^^^^^^^^^^^^^^^^
 
 Writing also supports giving parameters to
-:meth:`astropy.io.fits.HDUList.writeto`. Especially ``clobber`` or
-``overwrite`` might be helpful if replacing an existing file is desired.
+:meth:`astropy.io.fits.HDUList.writeto`. Especially ``clobber`` might be
+helpful if replacing an existing file is desired::
+
+    >>> ndd = NDDataRef([1,2,3,4]) # doctest: +SKIP
+    >>> ndd.write('test.fits', format='simple_fits')  # doctest: +SKIP
+    >>> ndd.data[1] = 100  # doctest: +SKIP
+    >>> # Suppose you want to overwrite this file again use clobber=True
+    >>> ndd.write('test.fits', format='simple_fits', clobber=True)  # doctest: +SKIP
 
 Why simple?
 -----------

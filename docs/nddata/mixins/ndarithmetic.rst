@@ -103,10 +103,41 @@ attributes.
 data, unit
 ^^^^^^^^^^
 
-.. note::
-    For ``data`` and ``unit`` there are no parameters. Every arithmetic
-    operation let's the `astropy.units.Quantity`-framework evaluate the result
-    or fail and abort the operation. For example if incompatible units are used.
+For ``data`` and ``unit`` there are no parameters. Every arithmetic
+operation let's the `astropy.units.Quantity`-framework evaluate the result
+or fail and abort the operation. For example if incompatible units are used.
+
+Adding two NDData objects with the same unit::
+
+    >>> ndd1 = NDDataRef([1,2,3,4,5], unit='m')
+    >>> ndd2 = NDDataRef([100,150,200,50,500], unit='m')
+
+    >>> ndd = ndd1.add(ndd2)
+    >>> ndd.data
+    array([ 101.,  152.,  203.,   54.,  505.])
+    >>> ndd.unit
+    Unit("m")
+
+works. Also if the units are compatible::
+
+    >>> ndd1.unit = 'pc'
+    >>> ndd2.unit = 'lyr'
+
+    >>> ndd = ndd1.subtract(ndd2)
+    >>> ndd.data
+    array([ -29.66013938,  -43.99020907,  -58.32027876,  -11.33006969,
+           -148.30069689])
+    >>> ndd.unit
+    Unit("pc")
+
+this will keep by default the unit of the first operand. However units will
+not be decomposed during division::
+
+    >>> ndd = ndd2.divide(ndd1)
+    >>> ndd.data
+    array([ 100.        ,   75.        ,   66.66666667,   12.5       ,  100.        ])
+    >>> ndd.unit
+    Unit("lyr / pc")
 
 mask
 ^^^^
@@ -324,6 +355,9 @@ of uncertainties on or off.
       >>> ndd3.uncertainty
       StdDevUncertainty([ 14.14213562])
 
+uncertainty with correlation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
   in case ``propagate_uncertainties`` is ``True`` you can give also an argument
   for ``uncertainty_correlation``. `~astropy.nddata.StdDevUncertainty` cannot
   keep track of it's correlations by itself but it can evaluate the correct
@@ -353,6 +387,19 @@ of uncertainties on or off.
       StdDevUncertainty([0])
 
   .. warning::
-      The ``uncertainty_correlation`` parameter needs you to keep track of
-      the correlation manually and might only be feasable in rare situations
-      when the correlation is known. Like in the above example.
+      The user needs to calculate the appropriate value or array manually and
+      pass it to ``uncertainty_correlation``.
+
+uncertainty with unit
+^^^^^^^^^^^^^^^^^^^^^
+
+`~astropy.nddata.StdDevUncertainty` implements correct error propagation even
+if the unit of the data differs from the unit of the uncertainty::
+
+      >>> ndd1 = NDDataRef([10], unit='m', uncertainty=StdDevUncertainty([10], unit='cm'))
+      >>> ndd2 = NDDataRef([20], unit='m', uncertainty=StdDevUncertainty([10]))
+      >>> ndd = ndd1.subtract(ndd2, propagate_uncertainties=True)
+      >>> ndd.uncertainty
+      StdDevUncertainty([ 10.00049999])
+
+but it needs to be convertible to the unit for the data.

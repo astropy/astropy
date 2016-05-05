@@ -14,6 +14,8 @@ The ``nddata`` package provides a uniform interface to N-dimensional datasets
 + `~astropy.nddata.NDDataRef`: like `~astropy.nddata.NDData` but with
   additional functionality like an reading/writing, simple arithmetic
   operations and slicing.
++ `~astropy.nddata.StdDevUncertainty` a class that can store and propagate
+  uncertainties for a NDData object.
 + General utility functions (:ref:`nddata_utils`) for operations on these
   classes, including a decorator to facilitate writing functions for such
   classes.
@@ -69,7 +71,7 @@ the representation does not show additional attributes but these can be
 accessed like ``data`` above::
 
     >>> ndd.uncertainty
-    StdDevUncertainty([ 1.        ,  1.41421356,  1.73205081,  2.        ], unit: erg / s)
+    StdDevUncertainty([ 1.        ,  1.41421356,  1.73205081,  2.        ])
     >>> ndd.mask
     array([False, False,  True,  True], dtype=bool)
 
@@ -124,6 +126,29 @@ and reading this file::
     >>> ndd_fits = NDDataRef.read('testfile.fits', format='simple_fits')
     >>> ndd_fits
     NDDataRef([ 5.,  5.,  5.,  5.])
+
+
+StdDevUncertainty
+-----------------
+
+`~astropy.nddata.StdDevUncertainty` implements uncertainty based on standard
+deviation and can propagate these using the arithmetic methods of
+`~astropy.nddata.NDDataRef`::
+
+    >>> from astropy.nddata import NDDataRef, StdDevUncertainty
+    >>> import numpy as np
+
+    >>> uncertainty = StdDevUncertainty(np.arange(5))
+    >>> ndd = NDDataRef([5,5,5,5,5], uncertainty=uncertainty)
+
+    >>> doubled_ndd = ndd.multiply(2)  # multiply by 2
+    >>> doubled_ndd.uncertainty
+    StdDevUncertainty([0, 2, 4, 6, 8])
+
+    >>> ndd2 = ndd.add(doubled_ndd)    # add the doubled to the original
+    >>> ndd2.uncertainty
+    StdDevUncertainty([ 0.        ,  2.23606798,  4.47213595,  6.70820393,
+                        8.94427191])
 
 
 Using ``nddata``
