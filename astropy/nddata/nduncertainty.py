@@ -264,7 +264,11 @@ class NDUncertainty(object):
 
     def __repr__(self):
         prefix = self.__class__.__name__ + '('
-        body = np.array2string(self.array, separator=', ', prefix=prefix)
+        try:
+            body = np.array2string(self.array, separator=', ', prefix=prefix)
+        except AttributeError:
+            # In case it wasn't possible to use array2string
+            body = str(self.array)
         return ''.join([prefix, body, ')'])
 
     def __getitem__(self, item):
