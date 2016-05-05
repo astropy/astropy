@@ -288,8 +288,30 @@ This also requires overriding the ``_arithmetic`` method. Suppose we have a
 Another arithmetic operation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. warning::
-    Add example!)
+Adding another possible operations is quite easy provided the ``data`` and
+``unit`` allow it within the framework of `~astropy.units.Quantity`.
+
+For example adding a power function::
+
+
+    >>> from astropy.nddata import NDDataRef
+    >>> import numpy as np
+
+    >>> class NDDataPower(NDDataRef):
+    ...     def pow(self, operand, **kwargs):
+    ...         # the uncertainty doesn't allow propagation so set it to None
+    ...         kwargs['propagate_uncertainties'] = None
+    ...         # Call the _arithmetics function with the numpy.power ufunc
+    ...         result, kwargs = self._arithmetic(np.power, operand, **kwargs)
+    ...         # One needs to wrap this as another instance here
+    ...         return self.__class__(result, **kwargs)
+
+    >>> ndd = NDDataPower([1,2,3])
+    >>> ndd.pow(3)
+    NDDataPower([ 1,  8, 27])
+
+To allow propagation also with ``uncertainty`` see subclassing
+`~astropy.nddata.NDUncertainty`.
 
 
 `~astropy.nddata.NDDataBase`
@@ -308,7 +330,7 @@ be more straightforward to subclass `~astropy.nddata.NDData` instead of
 Implementing the NDDataBase interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For example to create a readonly container.
+For example to create a readonly container::
 
     >>> from astropy.nddata import NDDataBase
 
@@ -349,76 +371,123 @@ For example to create a readonly container.
     >>> NDDataReadOnlyNoRestrictions(1,2,3,4,5,6) is not None
     True
 
-..note::
+.. note::
   Actually defining an ``__init__`` is not necessary and the properties could
   return arbitary values but the properties **must** be defined.
 
 Subclassing `~astropy.nddata.NDUncertainty`
 -------------------------------------------
+.. warning::
+    The internal interface of NDUncertainty and subclasses is experimental and
+    might change in future versions.
+
+Subclasses deriving from `~astropy.nddata.NDUncertainty` need to implement:
+
+- property ``uncertainty_type``, should return a string describing the
+  uncertainty for example ``"ivar"`` for inverse variance.
+- methods for propagation: `_propagate_*` where ``*`` is the name of the UFUNC
+  that is used on the ``NDData`` parent.
+
+Creating an uncertainty without propagation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`~astropy.nddata.UnknownUncertainty` is a minimal working implementation
+without error propagation. So let's create an uncertainty just storing
+systematic uncertainties::
+
+    >>> from astropy.nddata import NDUncertainty
+
+    >>> class SystematicUncertainty(NDUncertainty):
+    ...     @property
+    ...     def uncertainty_type(self):
+    ...         return 'systematic'
+    ...
+    ...     def _propagate_add(self, other_uncert, *args, **kwargs):
+    ...         return None
+    ...
+    ...     def _propagate_subtract(self, other_uncert, *args, **kwargs):
+    ...         return None
+    ...
+    ...     def _propagate_multiply(self, other_uncert, *args, **kwargs):
+    ...         return None
+    ...
+    ...     def _propagate_divide(self, other_uncert, *args, **kwargs):
+    ...         return None
+
+    >>> SystematicUncertainty([10])
+    SystematicUncertainty([10])
+
+Subclassing `~astropy.nddata.StdDevUncertainty`
+-----------------------------------------------
+
+Creating an variance uncertainty
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`~astropy.nddata.StdDevUncertainty` already implements propagation based
+on gaussian standard deviation so this could be the starting point of an
+uncertainty using these propagations:
+
+    >>> from astropy.nddata import StdDevUncertainty
+    >>> import numpy as np
+    >>> import weakref
+
+    >>> class VarianceUncertainty(StdDevUncertainty):
+    ...     @property
+    ...     def uncertainty_type(self):
+    ...         return 'variance'
+    ...
+    ...     def _propagate_add(self, other_uncert, *args, **kwargs):
+    ...         # Neglect the unit assume that both are Variance uncertainties
+    ...         this = StdDevUncertainty(np.sqrt(self.array))
+    ...         other = StdDevUncertainty(np.sqrt(other_uncert.array))
+    ...
+    ...         # We need to set the parent_nddata attribute otherwise it will
+    ...         # fail for multiplication and division where the data
+    ...         # not only the uncertainty matters.
+    ...         this.parent_nddata = weakref.ref(self.parent_nddata)
+    ...         other.parent_nddata = weakref.ref(other_uncert.parent_nddata)
+    ...
+    ...         # Call propagation:
+    ...         result = this._propagate_add(other, *args, **kwargs)
+    ...
+    ...         # Return the square of it
+    ...         return np.square(result)
+
+    >>> from astropy.nddata import NDDataRef
+
+    >>> ndd1 = NDDataRef([1,2,3], unit='m', uncertainty=VarianceUncertainty([1,4,9]))
+    >>> ndd2 = NDDataRef([1,2,3], unit='m', uncertainty=VarianceUncertainty([1,4,9]))
+    >>> ndd = ndd1.add(ndd2)
+    >>> ndd.uncertainty
+    VarianceUncertainty([  2.,   8.,  18.])
+
+this approach certainly works if both are variance uncertainties, but if you
+want to allow that the second operand also can be a standard deviation one can
+override the ``_convert_uncertainty`` method as well::
+
+    >>> class VarianceUncertainty2(VarianceUncertainty):
+    ...     def _convert_uncertainty(self, other_uncert):
+    ...         if isinstance(other_uncert, VarianceUncertainty):
+    ...             return other_uncert
+    ...         elif isinstance(other_uncert, StdDevUncertainty):
+    ...             converted = VarianceUncertainty(np.square(other_uncert.array))
+    ...             converted.parent_nddata = weakref.ref(other_uncert.parent_nddata)
+    ...             return converted
+    ...         raise ValueError('not compatible uncertainties.')
+
+    >>> ndd1 = NDDataRef([1,2,3], uncertainty=VarianceUncertainty2([1,4,9]))
+    >>> ndd2 = NDDataRef([1,2,3], uncertainty=StdDevUncertainty([1,2,3]))
+    >>> ndd = ndd1.add(ndd2)
+    >>> ndd.uncertainty
+    VarianceUncertainty2([  2.,   8.,  18.])
 
 .. warning::
-    This section is old and probably outdated. Will be provided soon... maybe :-)
+    This will only allow the **second** operand to have a
+    `~astropy.nddata.StdDevUncertainty` uncertainty. It will fail if the first
+    operand is standard deviation and the second operand a variance.
 
-This is done by using classes to represent the uncertainties of a given type.
-For example, to set standard deviation uncertainties on the pixel values, you
-can do::
-
-    >>> import numpy as np
-    >>> from astropy.nddata import NDData, StdDevUncertainty
-    >>> array = np.zeros((12, 12, 12))  # a 3-dimensional array with all zeros
-    >>> ndd = NDData(array)
-    >>> uncertainty = StdDevUncertainty(np.ones((12, 12, 12)) * 0.1)
-    >>> ndd_uncertainty = NDData(ndd, uncertainty=uncertainty)
-
-New error classes should sub-class from `~astropy.nddata.NDUncertainty`, and
-should provide methods with the following API::
-
-   class MyUncertainty(NDUncertainty):
-
-       def propagate_add(self, other_nddata, result_data):
-           ...
-           result_uncertainty = MyUncertainty(...)
-           return result_uncertainty
-
-       def propagate_subtract(self, other_nddata, result_data):
-           ...
-           result_uncertainty = MyUncertainty(...)
-           return result_uncertainty
-
-       def propagate_multiply(self, other_nddata, result_data):
-           ...
-           result_uncertainty = MyUncertainty(...)
-           return result_uncertainty
-
-       def propagate_divide(self, other_nddata, result_data):
-           ...
-           result_uncertainty = MyUncertainty(...)
-           return result_uncertainty
-
-All error sub-classes inherit an attribute ``self.parent_nddata`` that is
-automatically set to the parent `~astropy.nddata.NDData` object that they
-are attached to. The arguments passed to the error propagation methods are
-``other_nddata``, which is the `~astropy.nddata.NDData` object that is being
-combined with ``self.parent_nddata``, and ``result_data``, which is a Numpy
-array that contains the data array after the arithmetic operation. All these
-methods should return an error instance ``result_uncertainty``, and should not
-modify ``parent_nddata`` directly. For subtraction and division, the order of
-the operations is ``parent_nddata - other_nddata`` and ``parent_nddata /
-other_nddata``.
-
-To make it easier and clearer to code up the error propagation, you can use
-variables with more explicit names, e.g::
-
-   class MyUncertainty(NDUncertainty):
-
-       def propogate_add(self, other_nddata, result_data):
-
-           left_uncertainty = self.parent.uncertainty.array
-           right_uncertainty = other_nddata.uncertainty.array
-
-           ...
-
-Note that the above example assumes that the errors are stored in an ``array``
-attribute, but this does not have to be the case.
-
-For an example of a complete implementation, see `~astropy.nddata.StdDevUncertainty`.
+.. note::
+    Creating a variance uncertainty like this might require more work to
+    include proper treatement of the unit of the uncertainty! And of course
+    implementing also the ``_propagate_*`` for subtraction, division and
+    multiplication.
