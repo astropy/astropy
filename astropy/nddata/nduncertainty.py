@@ -509,6 +509,12 @@ class StdDevUncertainty(NDUncertainty):
         >>> ndd.uncertainty
         StdDevUncertainty([ 0.2])
 
+    the uncertainty ``array`` can also be set directly::
+
+        >>> ndd.uncertainty.array = 2
+        >>> ndd.uncertainty
+        StdDevUncertainty(2)
+
     .. note::
         The unit will not be displayed.
     """

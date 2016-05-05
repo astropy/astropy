@@ -171,7 +171,7 @@ API changes
   - ``NDUncertainty``: Public methods ``propagate_add``, etc. are replaced by
     a general ``propagate`` method. [#4272]
 
-  - ``NDUncertainty``: implements a meaningful ``repr``. [#4787]
+  - ``NDUncertainty`` and subclasses: implement a representation (``__repr__``). [#4787]
 
   - ``StdDevUncertainty``: added an optional parameter ``copy`` which is False
     by default. [#4272]
