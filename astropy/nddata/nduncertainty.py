@@ -253,9 +253,11 @@ class NDUncertainty(object):
 
     @parent_nddata.setter
     def parent_nddata(self, value):
-        from .nddata import NDData
-        if isinstance(value, NDData):
-            log.info("parent_nddata should be a weakref to an NDData object.")
+        if value is not None and not isinstance(value, weakref.ref):
+            # Save a weak reference on the uncertainty that points to this
+            # instance of NDData. Direct references should NOT be used:
+            # https://github.com/astropy/astropy/pull/4799#discussion_r61236832
+            value = weakref.ref(value)
         self._parent_nddata = value
 
     def __repr__(self):
