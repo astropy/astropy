@@ -249,7 +249,7 @@ resulting meta will be. The options are the same as for the ``mask``:
 
       >>> ndd1 = NDDataRef(1, meta={'time': 'today'})
       >>> ndd2 = NDDataRef(1, meta={'object': 'moon'})
-      >>> ndd1.subtract(ndd2, handle_meta=combine_meta).meta
+      >>> ndd1.subtract(ndd2, handle_meta=combine_meta).meta # doctest: +SKIP
       {'object': 'moon', 'time': 'today'}
 
   Here again additional arguments for the function can be passed in using
