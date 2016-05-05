@@ -358,8 +358,14 @@ masked Quantity
 
 Converting the ``data``, ``mask``  and ``unit`` to a masked Quantity::
 
-    >>> ma_quantity = np.ma.array(u.Quantity(ndd.data, unit=ndd.unit), mask=ndd.mask)
-    >>> ma_quantity
+    >>> ma_quantity = np.ma.array(u.Quantity(ndd.data, unit=ndd.unit), mask=ndd.mask)  # doctest: +SKIP
+    >>> ma_quantity  # doctest: +SKIP
     masked_Quantity(data = [-- 2.0 3.0 --] m,
                     mask = [ True False False  True],
               fill_value = 1e+20)
+
+.. warning::
+    This requires NumPy version 1.9 or newer.
+
+.. todo::
+    Remove doctest skip as soon as NumPy 1.9 isn't supported anymore.
