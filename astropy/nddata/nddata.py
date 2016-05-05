@@ -305,8 +305,8 @@ class NDData(NDDataBase):
                 # steal the uncertainty from another NDData object
                 if value._parent_nddata is not None:
                     value = value.__class__(value, copy=False)
-                # Save a weak reference on the uncertainty that points to this
-                # instance of NDData. Direct references should NOT be used:
-                # https://github.com/astropy/astropy/pull/4799#discussion_r61236832
-                value.parent_nddata = weakref.ref(self)
+                # Then link it to this NDData instance (internally this needs
+                # to be saved as weakref but that's done by NDUncertainty
+                # setter).
+                value.parent_nddata = self
         self._uncertainty = value
