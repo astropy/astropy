@@ -101,6 +101,22 @@ def test_repr():
     assert repr(u.cm) == 'Unit("cm")'
 
 
+def test_represents():
+    assert u.m.represents is u.m
+    assert u.km.represents.scale == 1000.
+    assert u.km.represents.bases == [u.m]
+    assert u.Ry.scale == 1.0 and u.Ry.bases == [u.Ry]
+    assert_allclose(u.Ry.represents.scale, 13.605692518464949)
+    assert u.Ry.represents.bases == [u.eV]
+    bla = u.def_unit('bla', namespace=locals())
+    assert bla.represents is bla
+    blabla = u.def_unit('blabla', 10 * u.hr, namespace=locals())
+    assert blabla.represents.scale == 10.
+    assert blabla.represents.bases == [u.hr]
+    assert blabla.decompose().scale == 10 * 3600
+    assert blabla.decompose().bases == [u.s]
+
+
 def test_units_conversion():
     assert_allclose(u.kpc.to(u.Mpc), 0.001)
     assert_allclose(u.Mpc.to(u.kpc), 1000)

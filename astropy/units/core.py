@@ -1629,6 +1629,14 @@ class IrreducibleUnit(NamedUnit):
                 (self.__class__, list(self.names), self.name in registry),
                 self.__dict__)
 
+    @property
+    def represents(self):
+        """The unit that this named unit represents.
+
+        For an irreducible unit, that is always itself.
+        """
+        return self
+
     def decompose(self, bases=set()):
         if len(bases) and not self in bases:
             for base in bases:
@@ -1900,6 +1908,11 @@ class Unit(NamedUnit):
 
         NamedUnit.__init__(self, st, namespace=namespace, doc=doc,
                            format=format)
+
+    @property
+    def represents(self):
+        """The unit that this named unit represents."""
+        return self._represents
 
     def decompose(self, bases=set()):
         return self._represents.decompose(bases=bases)
