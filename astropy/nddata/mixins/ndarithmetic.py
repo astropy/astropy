@@ -174,7 +174,7 @@ class NDArithmeticMixin(object):
             `numpy.add`, `numpy.subtract`, `numpy.multiply` and
             `numpy.true_divide`.
 
-        operand : `NDData` instance or something that can be converted to one.
+        operand : same type (class) as self
             see :meth:`NDArithmeticMixin.add`
 
         propagate_uncertainties : `bool` or ``None``, optional
@@ -210,12 +210,6 @@ class NDArithmeticMixin(object):
             :meth:`NDArithmeticMixin.add`.
 
         """
-        # Convert the operand to the same class this allows for arithmetic
-        # operations with numbers, lists, numpy arrays, numpy masked arrays
-        # astropy quantities, masked quantities and of other subclasses of
-        # NDData
-        operand = self.__class__(operand)
-
         # Find the appropriate keywords for the appropriate method (not sure
         # if data and uncertainty are ever used ...)
         kwds2 = {'mask': {}, 'meta': {}, 'wcs': {},
@@ -517,54 +511,38 @@ class NDArithmeticMixin(object):
     @sharedmethod
     @format_doc(_arit_doc, name='addition', op='+')
     def add(self, operand, operand2=None, **kwargs):
-
-        # Resolve if it is called on the instance or a class and process the
-        # cases in which one or two operands are given.
-        operand, operand2, kwargs, cls = self._resolve(operand, operand2, **kwargs)
-
-        result, kwargs = operand._arithmetic(np.add, operand2, **kwargs)
-
-        return cls(result, **kwargs)
+        return self._prepare_then_do_arithmetic(np.add, operand, operand2,
+                                                **kwargs)
 
     @sharedmethod
     @format_doc(_arit_doc, name='subtraction', op='-')
     def subtract(self, operand, operand2=None, **kwargs):
-
-        operand, operand2, kwargs, cls = self._resolve(operand, operand2, **kwargs)
-
-        result, kwargs = operand._arithmetic(np.subtract, operand2, **kwargs)
-
-        return cls(result, **kwargs)
+        return self._prepare_then_do_arithmetic(np.subtract, operand, operand2,
+                                                **kwargs)
 
     @sharedmethod
     @format_doc(_arit_doc, name="multiplication", op="*")
     def multiply(self, operand, operand2=None, **kwargs):
-
-        operand, operand2, kwargs, cls = self._resolve(operand, operand2, **kwargs)
-
-        result, kwargs = operand._arithmetic(np.multiply, operand2, **kwargs)
-
-        return cls(result, **kwargs)
+        return self._prepare_then_do_arithmetic(np.multiply, operand, operand2,
+                                                **kwargs)
 
     @sharedmethod
     @format_doc(_arit_doc, name="division", op="/")
     def divide(self, operand, operand2=None, **kwargs):
-
-        operand, operand2, kwargs, cls = self._resolve(operand, operand2, **kwargs)
-
-        result, kwargs = operand._arithmetic(np.true_divide, operand2, **kwargs)
-
-        return cls(result, **kwargs)
+        return self._prepare_then_do_arithmetic(np.true_divide, operand,
+                                                operand2, **kwargs)
 
     @sharedmethod
-    def _resolve(self_or_cls, operand, operand2, **kwargs):
+    def _prepare_then_do_arithmetic(self_or_cls, operation, operand, operand2,
+                                    **kwargs):
         # DO NOT OVERRIDE THIS METHOD IN SUBCLASSES.
 
         # TODO: Remove this in astropy 1.3 or 1.4:
 
         # Before 1.2 propagate_uncertainties could be given as positional
         # keyword, this is now deprecated:
-        if isinstance(operand2, bool) and 'propagate_uncertainties' not in kwargs:
+        if (isinstance(operand2, bool) and
+                'propagate_uncertainties' not in kwargs):
             # No explicit propagate_uncertainties was given but the second
             # operand was given as boolean. I'll assume that most don't want
             # to do arithmetics with a boolean operand, print a deprecation
@@ -593,6 +571,8 @@ class NDArithmeticMixin(object):
                 operand = self_or_cls
             else:
                 # Convert the first operand to the class of this method.
+                # This is important so that always the right _arithmetics is
+                # called later that method.
                 operand = cls(operand)
 
         else:
@@ -604,7 +584,19 @@ class NDArithmeticMixin(object):
                 raise TypeError("operand2 must be given when the method isn't "
                                 "called on an instance.")
 
-            # Convert the first operand to the class of this method.
+            # Convert to this class. See above comment why.
             operand = cls(operand)
 
-        return operand, operand2, kwargs, cls
+        # At this point operand, operand2, kwargs and cls are determined.
+
+        # Let's try to convert operand2 to the class of operand to allows for
+        # arithmetic operations with numbers, lists, numpy arrays, numpy masked
+        # arrays, astropy quantities, masked quantities and of other subclasses
+        # of NDData.
+        operand2 = cls(operand2)
+
+        # Now call the _arithmetics method to do the arithmetics.
+        result, init_kwds = operand._arithmetic(operation, operand2, **kwargs)
+
+        # Return a new class based on the result
+        return cls(result, **init_kwds)
