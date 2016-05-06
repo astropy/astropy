@@ -6,7 +6,6 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 from copy import deepcopy
-import weakref
 
 from .nddata_base import NDDataBase
 from .nduncertainty import NDUncertainty, UnknownUncertainty
