@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from astropy.wcs import WCS
-from astropy.tests.helper import pytest
+from astropy.tests.helper import pytest, remote_data
 
 from .. import WCSAxes
 from .. import datasets
@@ -35,6 +35,7 @@ class HexagonalFrame(BaseFrame):
 
 class TestFrame(BaseImageTests):
 
+    @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='custom_frame.png', tolerance=1.5)
     def test_custom_frame(self):
 
@@ -74,6 +75,7 @@ class TestFrame(BaseImageTests):
 
         return fig
 
+    @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='update_clip_path_rectangular.png', tolerance=1.5)
     def test_update_clip_path_rectangular(self, tmpdir):
 
@@ -95,6 +97,7 @@ class TestFrame(BaseImageTests):
 
         return fig
 
+    @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='update_clip_path_nonrectangular.png', tolerance=1.5)
     def test_update_clip_path_nonrectangular(self, tmpdir):
 
@@ -117,6 +120,7 @@ class TestFrame(BaseImageTests):
 
         return fig
 
+    @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='update_clip_path_change_wcs.png', tolerance=1.5)
     def test_update_clip_path_change_wcs(self, tmpdir):
 
