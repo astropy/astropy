@@ -150,6 +150,15 @@ deviation and can propagate these using the arithmetic methods of
     StdDevUncertainty([ 0.        ,  2.23606798,  4.47213595,  6.70820393,
                         8.94427191])
 
+    >>> # or taking into account that both of these uncertainties are correlated
+    >>> ndd3 = ndd.add(doubled_ndd, uncertainty_correlation=1)
+    >>> ndd3.uncertainty
+    StdDevUncertainty([  0.,   3.,   6.,   9.,  12.])
+
+.. note::
+    The "amount" of correlation must be given, so ``1`` means correlated, ``-1``
+    anti-correlated and ``0`` (default) uncorrelated. See also
+    :ref:`nddata_arithmetic` for more information about correlation handling.
 
 Using ``nddata``
 ================

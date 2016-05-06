@@ -358,37 +358,55 @@ of uncertainties on or off.
 uncertainty with correlation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  in case ``propagate_uncertainties`` is ``True`` you can give also an argument
-  for ``uncertainty_correlation``. `~astropy.nddata.StdDevUncertainty` cannot
-  keep track of it's correlations by itself but it can evaluate the correct
-  resulting uncertainty if the correct ``correlation`` is given.
+in case ``propagate_uncertainties`` is ``True`` you can give also an argument
+for ``uncertainty_correlation``. `~astropy.nddata.StdDevUncertainty` cannot
+keep track of it's correlations by itself but it can evaluate the correct
+resulting uncertainty if the correct ``correlation`` is given.
 
-  For example without correlation subtracting a `~astropy.nddata.NDDataRef`
-  instance from itself results in a non-zero uncertainty::
+For example without correlation subtracting a `~astropy.nddata.NDDataRef`
+instance from itself results in a non-zero uncertainty::
 
-      >>> ndd1 = NDDataRef(1, uncertainty=StdDevUncertainty([10]))
-      >>> ndd = ndd1.subtract(ndd1, propagate_uncertainties=True)
-      >>> ndd.uncertainty
-      StdDevUncertainty([ 14.14213562])
+    >>> ndd1 = NDDataRef(1, uncertainty=StdDevUncertainty([10]))
+    >>> ndd = ndd1.subtract(ndd1, propagate_uncertainties=True)
+    >>> ndd.uncertainty
+    StdDevUncertainty([ 14.14213562])
 
-  but given a correlation of ``1`` because they clearly correlate gives the
-  correct uncertainty of ``0``::
+but given a correlation of ``1`` because they clearly correlate gives the
+correct uncertainty of ``0``::
 
-      >>> ndd1 = NDDataRef(1, uncertainty=StdDevUncertainty([10]))
-      >>> ndd = ndd1.subtract(ndd1, propagate_uncertainties=True,
-      ...                     uncertainty_correlation=1)
-      >>> ndd.uncertainty
-      StdDevUncertainty([ 0.])
+    >>> ndd1 = NDDataRef(1, uncertainty=StdDevUncertainty([10]))
+    >>> ndd = ndd1.subtract(ndd1, propagate_uncertainties=True,
+    ...                     uncertainty_correlation=1)
+    >>> ndd.uncertainty
+    StdDevUncertainty([ 0.])
 
-  which would be consistent with the equivalent operation ``ndd1 * 0``::
+which would be consistent with the equivalent operation ``ndd1 * 0``::
 
-      >>> ndd = ndd1.multiply(0, propagate_uncertainties=True)
-      >>> ndd.uncertainty
-      StdDevUncertainty([0])
+    >>> ndd = ndd1.multiply(0, propagate_uncertainties=True)
+    >>> ndd.uncertainty
+    StdDevUncertainty([0])
 
-  .. warning::
-      The user needs to calculate the appropriate value or array manually and
-      pass it to ``uncertainty_correlation``.
+The default (``0``) represents uncorrelated while ``1`` means correlated and
+``-1`` anti-correlated. If given a `numpy.ndarray` it should represent the
+element-wise correlation coefficient.
+
+.. warning::
+    The user needs to calculate or know the appropriate value or array manually
+    and pass it to ``uncertainty_correlation``. The implementation follows
+    general first order error propagation formulas, see for example:
+    `Wikipedia <https://en.wikipedia.org/wiki/Propagation_of_uncertainty#Example_formulas>`_.
+
+You can also give element-wise correlations::
+
+    >>> ndd1 = NDDataRef([1,1,1,1], uncertainty=StdDevUncertainty([1,1,1,1]))
+    >>> ndd2 = NDDataRef([2,2,2,2], uncertainty=StdDevUncertainty([2,2,2,2]))
+    >>> ndd3 = ndd1.add(ndd2,uncertainty_correlation=np.array([1,0.5,0,-1]))
+    >>> ndd3.uncertainty
+    StdDevUncertainty([ 3.        ,  2.64575131,  2.23606798,  1.        ])
+
+The correlation ``np.array([1, 0.5, 0, -1])`` would indicate that the first
+element is fully correlated, the second element partially correlates while
+element 3 is uncorrelated and 4 even anti-correlated.
 
 uncertainty with unit
 ^^^^^^^^^^^^^^^^^^^^^
@@ -396,10 +414,10 @@ uncertainty with unit
 `~astropy.nddata.StdDevUncertainty` implements correct error propagation even
 if the unit of the data differs from the unit of the uncertainty::
 
-      >>> ndd1 = NDDataRef([10], unit='m', uncertainty=StdDevUncertainty([10], unit='cm'))
-      >>> ndd2 = NDDataRef([20], unit='m', uncertainty=StdDevUncertainty([10]))
-      >>> ndd = ndd1.subtract(ndd2, propagate_uncertainties=True)
-      >>> ndd.uncertainty
-      StdDevUncertainty([ 10.00049999])
+    >>> ndd1 = NDDataRef([10], unit='m', uncertainty=StdDevUncertainty([10], unit='cm'))
+    >>> ndd2 = NDDataRef([20], unit='m', uncertainty=StdDevUncertainty([10]))
+    >>> ndd = ndd1.subtract(ndd2, propagate_uncertainties=True)
+    >>> ndd.uncertainty
+    StdDevUncertainty([ 10.00049999])
 
 but it needs to be convertible to the unit for the data.
