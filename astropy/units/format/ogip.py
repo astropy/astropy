@@ -227,13 +227,13 @@ class OGIP(generic.Generic):
                             | UNIT OPEN_PAREN complete_expression CLOSE_PAREN power numeric_power
                             | OPEN_PAREN complete_expression CLOSE_PAREN power numeric_power
             '''
-            
-            # If we run p[1] in cls._functions, it will try and parse each 
-            # item in the list into a unit, which is slow. Since we know that 
-            # all the items in the list are strings, we can simply convert 
+
+            # If we run p[1] in cls._functions, it will try and parse each
+            # item in the list into a unit, which is slow. Since we know that
+            # all the items in the list are strings, we can simply convert
             # p[1] to a string instead.
             p1_str = str(p[1])
-            
+
             if p1_str in cls._functions and p1_str != 'sqrt':
                 raise ValueError(
                     "The function '{0}' is valid in OGIP, but not understood "
