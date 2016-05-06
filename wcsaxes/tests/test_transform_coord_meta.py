@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import astropy
 from astropy import units as u
 from astropy.wcs import WCS
-from astropy.tests.helper import pytest
+from astropy.tests.helper import pytest, remote_data
 
 from .. import WCSAxes
 from .test_images import BaseImageTests
@@ -60,6 +60,7 @@ class LonLatToDistance(CurvedTransform):
 
 class TestTransformCoordMeta(BaseImageTests):
 
+    @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='coords_overlay.png', tolerance=1.5)
     def test_coords_overlay(self):
 
@@ -108,6 +109,7 @@ class TestTransformCoordMeta(BaseImageTests):
         return fig
 
     @requires_astropy_10
+    @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='coords_overlay_auto_coord_meta.png', tolerance=1.5)
     def test_coords_overlay_auto_coord_meta(self):
 
@@ -130,6 +132,7 @@ class TestTransformCoordMeta(BaseImageTests):
 
         return fig
 
+    @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='direct_init.png', tolerance=1.5)
     def test_direct_init(self):
 
