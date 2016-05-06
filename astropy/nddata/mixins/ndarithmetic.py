@@ -27,56 +27,66 @@ _arit_doc = """Performs {name} by evaluating ``self`` {op} ``operand``.
     operand : `NDData`-like instance or convertible to one.
         The second operand in the operation.
 
-    propagate_uncertainties : ``bool`` or ``None``, optional
-        If ``None`` the result will have no uncertainty. If ``False`` the
-        result will have a copied version of the first operand that has an
-        uncertainty. If ``True`` the result will have a correctly propagated
-        uncertainty from the uncertainties of the operands but this assumes
-        that the uncertainties are `NDUncertainty`-like. Default is ``True``.
+    kwargs : any
+        Possible keyword arguments are:
 
-        .. versionchanged:: 1.2
-          Besides boolean values also ``None`` is accepted.
+        - **propagate_uncertainties** : ``bool`` or ``None``, optional
 
-    handle_mask : callable, ``'first_found'`` or ``None``, optional
-        If ``None`` the result will have no mask. If ``'first_found'`` the
-        result will have a copied version of the first operand that has a
-        mask). If it is a callable then the specified callable must
-        create the results ``mask`` and if necessary provide a copy.
-        Default is `numpy.logical_or`.
+            If ``None`` the result will have no uncertainty. If ``False`` the
+            result will have a copied version of the first operand that has an
+            uncertainty. If ``True`` the result will have a correctly
+            propagated uncertainty from the uncertainties of the operands but
+            this assumes that the uncertainties are `NDUncertainty`-like.
+            Default is ``True``.
 
-        .. versionadded:: 1.2
+            .. versionchanged:: 1.2
+              Besides boolean values also ``None`` is accepted. Using it as
+              positional keyword is deprecated.
 
-    handle_meta : callable, ``'first_found'`` or ``None``, optional
-        If ``None`` the result will have no meta. If ``'first_found'`` the
-        result will have a copied version of the first operand that has a
-        (not empty) meta. If it is a callable then the specified callable must
-        create the results ``meta`` and if necessary provide a copy.
-        Default is ``None``.
+        - **handle_mask** : callable, ``'first_found'`` or ``None``, optional
 
-        .. versionadded:: 1.2
+            If ``None`` the result will have no mask. If ``'first_found'`` the
+            result will have a copied version of the first operand that has a
+            mask). If it is a callable then the specified callable must
+            create the results ``mask`` and if necessary provide a copy.
+            Default is `numpy.logical_or`.
 
-    compare_wcs : callable, ``'first_found'`` or ``None``, optional
-        If ``None`` the result will have no wcs and no comparison between
-        the wcs of the operands is made. If ``'first_found'`` the
-        result will have a copied version of the first operand that has a
-        wcs. If it is a callable then the specified callable must
-        compare the ``wcs``. The resulting ``wcs`` will be like if ``False``
-        was given otherwise it raises a ``ValueError`` if the comparison was
-        not successful. Default is ``'first_found'``.
+            .. versionadded:: 1.2
 
-        .. versionadded:: 1.2
+        - **handle_meta** : callable, ``'first_found'`` or ``None``, optional
 
-    uncertainty_correlation : number or `numpy.ndarray`, optional
-        The correlation between the two operands is used for correct error
-        propagation for correlated data as given in:
-        https://en.wikipedia.org/wiki/Propagation_of_uncertainty#Example_formulas
-        Default is 0.
+            If ``None`` the result will have no meta. If ``'first_found'`` the
+            result will have a copied version of the first operand that has a
+            (not empty) meta. If it is a callable then the specified callable
+            must create the results ``meta`` and if necessary provide a copy.
+            Default is ``None``.
 
-        .. versionadded:: 1.2
+            .. versionadded:: 1.2
 
+        - **compare_wcs** : callable, ``'first_found'`` or ``None``, optional
 
-    kwargs :
-        Any other parameter that should be passed to the callables used.
+            If ``None`` the result will have no wcs and no comparison between
+            the wcs of the operands is made. If ``'first_found'`` the
+            result will have a copied version of the first operand that has a
+            wcs. If it is a callable then the specified callable must
+            compare the ``wcs``. The resulting ``wcs`` will be like if
+            ``False`` was given otherwise it raises a ``ValueError`` if the
+            comparison was not successful. Default is ``'first_found'``.
+
+            .. versionadded:: 1.2
+
+        - **uncertainty_correlation** : number or `numpy.ndarray`, optional
+
+            The correlation between the two operands is used for correct error
+            propagation for correlated data as given in:
+            https://en.wikipedia.org/wiki/Propagation_of_uncertainty#Example_formulas
+            Default is 0.
+
+            .. versionadded:: 1.2
+
+        - others : any type
+
+            Any other parameter that should be passed to the callables used.
 
     Returns
     -------
