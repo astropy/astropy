@@ -23,8 +23,9 @@ env:
         # to repeat them for all configurations.
         - NUMPY_VERSION=stable
         - ASTROPY_VERSION=stable
-        - CONDA_DEPENDENCIES='pyqt nose matplotlib=1.4.3 pillow'
+        - CONDA_DEPENDENCIES='pyqt nose matplotlib pillow'
         - PIP_DEPENDENCIES='pytest-mpl'
+        - SETUP_XVFB=True
     matrix:
         - SETUP_CMD='egg_info'
         - SETUP_CMD='test --remote-data'
@@ -66,10 +67,6 @@ matrix:
           env: NUMPY_VERSION=1.6 SETUP_CMD='test --remote-data'
 
 before_install:
-
-    # Make sure that interactive matplotlib backends work
-    - export DISPLAY=:99.0
-    - sh -e /etc/init.d/xvfb start
 
     # Make sure matplotlib uses PyQT not PySide
     - export QT_API=pyqt
