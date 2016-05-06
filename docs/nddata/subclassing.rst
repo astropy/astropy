@@ -296,15 +296,17 @@ For example adding a power function::
 
     >>> from astropy.nddata import NDDataRef
     >>> import numpy as np
+    >>> from astropy.utils import sharedmethod
 
     >>> class NDDataPower(NDDataRef):
-    ...     def pow(self, operand, **kwargs):
+    ...     @sharedmethod
+    ...     def pow(self, operand, operand2=None, **kwargs):
     ...         # the uncertainty doesn't allow propagation so set it to None
     ...         kwargs['propagate_uncertainties'] = None
-    ...         # Call the _arithmetics function with the numpy.power ufunc
-    ...         result, kwargs = self._arithmetic(np.power, operand, **kwargs)
-    ...         # One needs to wrap this as another instance here
-    ...         return self.__class__(result, **kwargs)
+    ...         # Call the _prepare_then_do_arithmetic function with the
+    ...         # numpy.power ufunc
+    ...         return self._prepare_then_do_arithmetic(np.power, operand,
+    ...                                                 operand2, **kwargs)
 
     >>> ndd = NDDataPower([1,2,3])
     >>> ndd.pow(3)
