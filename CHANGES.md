@@ -16,6 +16,9 @@
 
 - Fix image test that was sensitive to fonts on Debian. [#197]
 
+- Fix testing for Matplotlib 1.5.x and switch to using remote baseline
+  images. [#195]
+
 0.6 (2015-07-20)
 ----------------
 
