@@ -1,17 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
-import shutil
-import tempfile
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.testing.compare import compare_images
 from matplotlib.patches import Circle
 
 from astropy import units as u
 from astropy.io import fits
-from astropy.tests.helper import pytest
-from astropy.tests.helper import remote_data
+from astropy.tests.helper import pytest, remote_data
 from astropy.wcs import WCS
 
 from ..rc_utils import rc_context
@@ -46,6 +42,7 @@ class BaseImageTests(object):
 
 class TestBasic(BaseImageTests):
 
+    @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='image_plot.png', tolerance=1.5)
     def test_image_plot(self):
         # Test for plotting image and also setting values of ticks
@@ -56,6 +53,7 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_ticks([-0.30, 0., 0.20] * u.degree, size=5, width=1)
         return fig
 
+    @remote_data
     @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='contour_overlay.png', tolerance=1.5)
     def test_contour_overlay(self):
@@ -80,6 +78,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
+    @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='overlay_features_image.png', tolerance=1.5)
     def test_overlay_features_image(self):
 
@@ -113,6 +112,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
+    @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='curvlinear_grid_patches_image.png', tolerance=1.5)
     def test_curvilinear_grid_patches_image(self):
 
@@ -144,6 +144,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
+    @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='cube_slice_image.png', tolerance=1.5)
     def test_cube_slice_image(self):
 
@@ -169,6 +170,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
+    @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='cube_slice_image_lonlat.png', tolerance=1.5)
     def test_cube_slice_image_lonlat(self):
 
@@ -188,6 +190,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
+    @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='changed_axis_units.png', tolerance=1.5)
     def test_changed_axis_units(self):
         # Test to see if changing the units of axis works
@@ -205,6 +208,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
+    @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='minor_ticks_image.png', tolerance=1.5)
     def test_minor_ticks(self):
         # Test for drawing minor ticks
@@ -223,6 +227,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
+    @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='ticks_labels.png', tolerance=1.5)
     def test_ticks_labels(self):
         fig = plt.figure(figsize=(6, 6))
@@ -250,6 +255,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
+    @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='rcparams.png', tolerance=1.5)
     def test_rcparams(self):
         # Test default style (matplotlib.rcParams) for ticks and gridlines
@@ -271,6 +277,7 @@ class TestBasic(BaseImageTests):
             ax.coords[1].set_ticks(exclude_overlapping=True)
             return fig
 
+    @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='tick_angles.png', tolerance=1.5)
     def test_tick_angles(self):
         # Test that tick marks point in the correct direction, even when the
@@ -291,6 +298,7 @@ class TestBasic(BaseImageTests):
         ax.coords['dec'].set_ticks(color='red', size=20)
         return fig
 
+    @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='tick_angles_non_square_axes.png', tolerance=1.5)
     def test_tick_angles_non_square_axes(self):
         # Test that tick marks point in the correct direction, even when the
@@ -312,6 +320,7 @@ class TestBasic(BaseImageTests):
         ax.coords['dec'].set_ticks(color='red', size=20)
         return fig
 
+    @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='set_coord_type.png', tolerance=1.5)
     def test_set_coord_type(self):
         # Test for setting coord_type
@@ -329,6 +338,7 @@ class TestBasic(BaseImageTests):
         ax.coords[1].set_ticks(exclude_overlapping=True)
         return fig
 
+    @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='test_ticks_regression_1.png', tolerance=1.5)
     def test_ticks_regression(self):
         # Regression test for a bug that caused ticks aligned exactly with a
@@ -351,6 +361,7 @@ class TestBasic(BaseImageTests):
         ax.coords[1].set_ticklabel_position('all')
         return fig
 
+    @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='test_axislabels_regression.png', savefig_kwargs={'bbox_inches': 'tight'}, tolerance=1.5)
     def test_axislabels_regression(self):
         # Regression test for a bug that meant that if tick labels were made
@@ -365,6 +376,7 @@ class TestBasic(BaseImageTests):
         ax.coords[1].ticklabels.set_visible(False)
         return fig
 
+    @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, savefig_kwargs={'bbox_inches': 'tight'},
                                    tolerance=1.5)
     def test_noncelestial_angular(self, tmpdir):
