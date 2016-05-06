@@ -308,62 +308,78 @@ def test_empty_compose():
         composed = u.m.compose(units=[])
 
 
-def test_compose_roundtrip():
-    def _test_compose_roundtrip(unit):
-        composed_list = unit.decompose().compose()
-        found = False
-        for composed in composed_list:
-            if len(composed.bases):
-                if composed.bases[0] is unit:
-                    found = True
-                    break
-            elif len(unit.bases) == 0:
+def _unit_as_str(unit):
+    # This function serves two purposes - it is used to sort the units to
+    # test alphabetically, and it is also use to allow pytest to show the unit
+    # in the [] when running the parametrized tests.
+    return str(unit)
+
+
+# We use a set to make sure we don't have any duplicates.
+COMPOSE_ROUNDTRIP = set()
+for val in u.__dict__.values():
+    if (isinstance(val, u.UnitBase) and
+            not isinstance(val, u.PrefixUnit)):
+        COMPOSE_ROUNDTRIP.add(val)
+
+
+@pytest.mark.parametrize('unit', sorted(COMPOSE_ROUNDTRIP, key=_unit_as_str), ids=_unit_as_str)
+def test_compose_roundtrip(unit):
+    composed_list = unit.decompose().compose()
+    found = False
+    for composed in composed_list:
+        if len(composed.bases):
+            if composed.bases[0] is unit:
                 found = True
                 break
-        assert found
-
-    from ... import units as u
-
-    for val in u.__dict__.values():
-        if (isinstance(val, u.UnitBase) and
-                not isinstance(val, u.PrefixUnit)):
-            yield _test_compose_roundtrip, val
+        elif len(unit.bases) == 0:
+            found = True
+            break
+    assert found
 
 
-def test_compose_cgs_to_si():
-    def _test_compose_cgs_to_si(unit):
+# We use a set to make sure we don't have any duplicates.
+COMPOSE_CGS_TO_SI = set()
+for val in u.cgs.__dict__.values():
+    # Can't decompose Celsius
+    if (isinstance(val, u.UnitBase) and
+            not isinstance(val, u.PrefixUnit) and
+            val != u.cgs.deg_C):
+        COMPOSE_CGS_TO_SI.add(val)
+
+@pytest.mark.parametrize('unit', sorted(COMPOSE_CGS_TO_SI, key=_unit_as_str),
+                         ids=_unit_as_str)
+def test_compose_cgs_to_si(unit):
+    for iter in range(10):
         si = unit.to_system(u.si)
         assert [x.is_equivalent(unit) for x in si]
         assert si[0] == unit.si
 
+
+# We use a set to make sure we don't have any duplicates.
+COMPOSE_SI_TO_CGS = set()
+for val in u.si.__dict__.values():
     # Can't decompose Celsius
-    for val in u.cgs.__dict__.values():
-        if (isinstance(val, u.UnitBase) and
-                not isinstance(val, u.PrefixUnit) and
-                val != u.cgs.deg_C):
-            yield _test_compose_cgs_to_si, val
+    if (isinstance(val, u.UnitBase) and
+            not isinstance(val, u.PrefixUnit) and
+            val != u.si.deg_C):
+        COMPOSE_SI_TO_CGS.add(val)
 
+@pytest.mark.parametrize('unit', sorted(COMPOSE_SI_TO_CGS, key=_unit_as_str), ids=_unit_as_str)
+def test_compose_si_to_cgs(unit):
 
-def test_compose_si_to_cgs():
-    def _test_compose_si_to_cgs(unit):
-        # Can't convert things with Ampere to CGS without more context
-        try:
-            cgs = unit.to_system(u.cgs)
-        except u.UnitsError:
-            if u.A in unit.decompose().bases:
-                pass
-            else:
-                raise
+    # Can't convert things with Ampere to CGS without more context
+    try:
+        cgs = unit.to_system(u.cgs)
+    except u.UnitsError:
+        if u.A in unit.decompose().bases:
+            pass
         else:
-            assert [x.is_equivalent(unit) for x in cgs]
-            assert cgs[0] == unit.cgs
+            raise
+    else:
+        assert [x.is_equivalent(unit) for x in cgs]
+        assert cgs[0] == unit.cgs
 
-    # Can't decompose Celsius
-    for val in u.si.__dict__.values():
-        if (isinstance(val, u.UnitBase) and
-                not isinstance(val, u.PrefixUnit) and
-                val != u.si.deg_C):
-            yield _test_compose_si_to_cgs, val
 
 
 def test_to_cgs():
