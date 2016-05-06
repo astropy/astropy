@@ -227,21 +227,28 @@ class OGIP(generic.Generic):
                             | UNIT OPEN_PAREN complete_expression CLOSE_PAREN power numeric_power
                             | OPEN_PAREN complete_expression CLOSE_PAREN power numeric_power
             '''
-            if p[1] in cls._functions and p[1] != 'sqrt':
+            
+            # If we run p[1] in cls._functions, it will try and parse each 
+            # item in the list into a unit, which is slow. Since we know that 
+            # all the items in the list are strings, we can simply convert 
+            # p[1] to a string instead.
+            p1_str = str(p[1])
+            
+            if p1_str in cls._functions and p1_str != 'sqrt':
                 raise ValueError(
                     "The function '{0}' is valid in OGIP, but not understood "
                     "by astropy.units.".format(
                         p[1]))
 
             if len(p) == 7:
-                if p[1] == 'sqrt':
+                if p1_str == 'sqrt':
                     p[0] = p[1] * p[3] ** (0.5 * p[6])
                 else:
                     p[0] = p[1] * p[3] ** p[6]
             elif len(p) == 6:
                 p[0] = p[2] ** p[5]
             elif len(p) == 5:
-                if p[1] == 'sqrt':
+                if p1_str == 'sqrt':
                     p[0] = p[3] ** 0.5
                 else:
                     p[0] = p[1] * p[3]
