@@ -26,7 +26,6 @@ from ...coordinates import Latitude, EarthLocation
 from ...time import Time
 from ...utils import minversion
 from ...utils.exceptions import AstropyDeprecationWarning
-from ...utils.compat import NUMPY_LT_1_7  # pylint: disable=W0611
 
 
 RA = 1.0 * u.deg
@@ -499,7 +498,6 @@ def test_repr():
     assert repr(sc_default) == ('<SkyCoord (ICRS): (ra, dec) in deg\n'
                                 '    (0.0, 1.0)>')
 
-@pytest.mark.skipif('NUMPY_LT_1_7')
 def test_repr_altaz():
     sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame='icrs', distance=1 * u.kpc)
     loc = EarthLocation(-2309223 * u.m, -3695529 * u.m, -4641767 * u.m)

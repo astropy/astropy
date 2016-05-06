@@ -1,6 +1,11 @@
 1.2 (unreleased)
 ----------------
 
+General
+^^^^^^^
+
+Astropy now requires Numpy 1.7.0 or later.
+
 New Features
 ^^^^^^^^^^^^
 
@@ -34,6 +39,9 @@ New Features
 
   - Updated to filter out the default parser warning of BeautifulSoup.
     [#4551]
+
+  - Added support for reading and writing reStructuredText simple tables
+    [#4812]
 
 - ``astropy.io.fits``
 
@@ -77,6 +85,7 @@ New Features
 - ``astropy.stats``
 
   - Added ``axis`` keyword for ``mad_std`` function. [#4688]
+
   - Added Bayesian and Akaike Information Criteria. [#4716]
 
   - Added Bayesian upper limits for Poisson count rates. [#4622]
@@ -111,6 +120,12 @@ New Features
     deprecated in 0.3.1, has been removed. [#4449]
 
   - Added slug to imperial units. [#4670]
+
+  - Added Earth radius (``R_earth``) and Jupiter radius (``R_jup``) to units.
+    [#4818]
+
+  - Added a ``represents`` property to allow access to the definition of a
+    named unit (e.g., ``u.kpc.represents`` yields ``1000 pc``). [#4806]
 
 - ``astropy.utils``
 
@@ -326,6 +341,7 @@ Bug fixes
 
   - The astropy.utils.compat.fractions module has now been deprecated. Use the
     Python 'fractions' module directly instead. [#4463]
+
   - Added ``format_doc`` decorator which allows to replace and/or format the
     current docstring of an object. [#4242]
 
@@ -1314,6 +1330,10 @@ Bug Fixes
 - ``astropy.stats``
 
 - ``astropy.table``
+
+- ``astropy.tests``
+
+  - Fix coverage reporting in Python 3.
 
 - ``astropy.time``
 

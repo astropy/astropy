@@ -7,10 +7,12 @@ from __future__ import (absolute_import, division, print_function,
 from copy import deepcopy
 
 import numpy as np
+import warnings
 
 from ..nduncertainty import NDUncertainty
 from ...units import dimensionless_unscaled
-from ...utils import format_doc
+from ...utils import format_doc, sharedmethod
+from ...utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['NDArithmeticMixin']
 
@@ -19,16 +21,18 @@ __all__ = ['NDArithmeticMixin']
 # Docstring templates for add, subtract, multiply, divide methods.
 _arit_doc = """Performs {name} by evaluating ``self`` {op} ``operand``.
 
-    For the inverse operation or operations between different subclasses take a
-    look at :meth:`~astropy.nddata.NDArithmeticMixin.ic_{name}`.
-
     Parameters
     ----------
-    operand : `NDData`-like instance or convertible to one.
-        The second operand in the operation.
+    operand, operand2 : `NDData`-like instance or convertible to one.
+        If ``operand2`` is ``None`` or not given it will perform the operation
+        ``self`` {op} ``operand``.
+        If ``operand2`` is given it will perform ``operand`` {op} ``operand2``.
+        If the method was called on a class rather than on the instance
+        ``operand2`` must be given.
 
-    kwargs : any
+    kwargs :
         Possible keyword arguments are:
+
 
         - **propagate_uncertainties** : ``bool`` or ``None``, optional
 
@@ -105,36 +109,69 @@ _arit_doc = """Performs {name} by evaluating ``self`` {op} ``operand``.
     ``"first_found"`` can also be abbreviated with ``"ff"``.
     """
 
-_arit_cls_doc = """Like :meth:`~NDArithmeticMixin.{0}` you can {0} two operands.
-
-    This method is avaiable as classmethod in order to allow arithmetic
-    operations between arbitary objects as long as they are convertible to
-    the class that called the method. Therefore the name prefix ``ic_`` which
-    stands for ``interclass`` operations.
-
-    .. versionadded:: 1.2
-
-    Parameters
-    ----------
-    operand1 : `NDData`-like or convertible to `NDData`
-        the first operand in the operation.
-
-    operand2 : `NDData`-like or convertible to `NDData`
-        the second operand in the operation.
-
-    kwargs :
-        see :meth:`NDArithmeticMixin.{0}`.
-
-    Returns
-    -------
-    result : `NDData`-like
-        The result of the operation. The class of the result is the class from
-        where the method was invoked.
-    """
-
 
 class NDArithmeticMixin(object):
     """Mixin class to add arithmetic to an `NDData` object.
+
+    When subclassing, be sure to list the superclasses in the correct order
+    so that the subclass sees NDData as the main superclass. See
+    `~astropy.nddata.NDDataArray` for an example.
+
+    Notes
+    -----
+    This class only aims at covering the most common cases so there are certain
+    restrictions on the saved attributes::
+
+        - ``uncertainty`` : has to be something that has a `NDUncertainty`-like
+          interface for uncertainty propagation
+        - ``mask`` : has to be something that can be used by a bitwise ``or``
+          operation.
+        - ``wcs`` : has to implement a way of comparing with ``=`` to allow
+          the operation.
+
+    But there is a workaround that allows to disable handling a specific
+    attribute and to simply set the results attribute to ``None`` or to
+    copy the existing attribute (and neglecting the other).
+    For example for uncertainties not representing an `NDUncertainty`-like
+    interface you can alter the ``propagate_uncertainties`` parameter in
+    :meth:`NDArithmeticMixin.add`. ``None`` means that the result will have no
+    uncertainty, ``False`` means it takes the uncertainty of the first operand
+    (if this does not exist from the second operand) as the result's
+    uncertainty. This behaviour is also explained in the docstring for the
+    different arithmetic operations.
+
+    Notes
+    -----
+    1. It is not tried to decompose the units, mainly due to the internal
+       mechanics of `~astropy.units.Quantity`, so the resulting data might have
+       units like ``km/m`` if you divided for example 100km by 5m. So this
+       Mixin has adopted this behaviour.
+
+    Examples
+    --------
+    Using this Mixin with `~astropy.nddata.NDData`:
+
+        >>> from astropy.nddata import NDData, NDArithmeticMixin
+        >>> class NDDataWithMath(NDArithmeticMixin, NDData):
+        ...     pass
+
+    Using it with one operand on an instance::
+
+        >>> ndd = NDDataWithMath(100)
+        >>> ndd.add(20)
+        NDDataWithMath(120)
+
+    Using it with two operand on an instance::
+
+        >>> ndd = NDDataWithMath(100)
+        >>> ndd.divide(1, 5)
+        NDDataWithMath(0.2)
+
+    Using it with two operand on the class::
+
+        >>> NDDataWithMath.subtract(5, 4)
+        NDDataWithMath(1)
+
     """
 
     def _arithmetic(self, operation, operand,
@@ -490,59 +527,97 @@ class NDArithmeticMixin(object):
         # Just return what handle_meta does with both of the metas.
         return handle_meta(self.meta, operand.meta, **kwds)
 
+    @sharedmethod
     @format_doc(_arit_doc, name='addition', op='+')
-    def add(self, operand, **kwargs):
-        result, kwargs = self._arithmetic(np.add, operand, **kwargs)
-        return self.__class__(result, **kwargs)
+    def add(self, operand, operand2=None, **kwargs):
 
-    @format_doc(_arit_doc, name="subtraction", op="-")
-    def subtract(self, operand, **kwargs):
-        result, kwargs = self._arithmetic(np.subtract, operand, **kwargs)
-        return self.__class__(result, **kwargs)
+        # Resolve if it is called on the instance or a class and process the
+        # cases in which one or two operands are given.
+        operand, operand2, kwargs, cls = self._resolve(operand, operand2, **kwargs)
 
+        result, kwargs = operand._arithmetic(np.add, operand2, **kwargs)
+
+        return cls(result, **kwargs)
+
+    @sharedmethod
+    @format_doc(_arit_doc, name='subtraction', op='-')
+    def subtract(self, operand, operand2=None, **kwargs):
+
+        operand, operand2, kwargs, cls = self._resolve(operand, operand2, **kwargs)
+
+        result, kwargs = operand._arithmetic(np.subtract, operand2, **kwargs)
+
+        return cls(result, **kwargs)
+
+    @sharedmethod
     @format_doc(_arit_doc, name="multiplication", op="*")
-    def multiply(self, operand, **kwargs):
-        result, kwargs = self._arithmetic(np.multiply, operand, **kwargs)
-        return self.__class__(result, **kwargs)
+    def multiply(self, operand, operand2=None, **kwargs):
 
+        operand, operand2, kwargs, cls = self._resolve(operand, operand2, **kwargs)
+
+        result, kwargs = operand._arithmetic(np.multiply, operand2, **kwargs)
+
+        return cls(result, **kwargs)
+
+    @sharedmethod
     @format_doc(_arit_doc, name="division", op="/")
-    def divide(self, operand, **kwargs):
-        result, kwargs = self._arithmetic(np.true_divide, operand, **kwargs)
-        return self.__class__(result, **kwargs)
+    def divide(self, operand, operand2=None, **kwargs):
 
-    # TODO: Sharedmethod instead of classmethod? (embray)
-    # http://docs.astropy.org/en/v1.0.5/api/astropy.utils.decorators.sharedmethod.html#astropy.utils.decorators.sharedmethod
-    # But that only allows for one documentation and we need the first operand.
-    # Also it doesn't allow sphinx to build two documentations one for the
-    # classmethod and one of the instance method and since creating one
-    # doc that applies to both is not-trivial I set this option back for now.
-    # So I decided to temporarly alter the name that there are not too obvious
-    # name clashes by adding a 'ic_' prefix that stands for 'interclass'
-    # arithmetic operations
+        operand, operand2, kwargs, cls = self._resolve(operand, operand2, **kwargs)
 
-    @classmethod
-    @format_doc(_arit_cls_doc, 'add')
-    def ic_addition(cls, operand1, operand2, **kwargs):
-        # Convert the first operand to the implicit passed class (cls)
-        # this allows for reverse operations.
-        operand1 = cls(operand1)
-        # Call the instance function for addition to proceed
-        return operand1.add(operand2, **kwargs)
+        result, kwargs = operand._arithmetic(np.true_divide, operand2, **kwargs)
 
-    @classmethod
-    @format_doc(_arit_cls_doc, 'subtract')
-    def ic_subtraction(cls, operand1, operand2, **kwargs):
-        operand1 = cls(operand1)
-        return operand1.subtract(operand2, **kwargs)
+        return cls(result, **kwargs)
 
-    @classmethod
-    @format_doc(_arit_cls_doc, 'multiply')
-    def ic_multiplication(cls, operand1, operand2, **kwargs):
-        operand1 = cls(operand1)
-        return operand1.multiply(operand2, **kwargs)
+    @sharedmethod
+    def _resolve(self_or_cls, operand, operand2, **kwargs):
+        # DO NOT OVERRIDE THIS METHOD IN SUBCLASSES.
 
-    @classmethod
-    @format_doc(_arit_cls_doc, 'divide')
-    def ic_division(cls, operand1, operand2, **kwargs):
-        operand1 = cls(operand1)
-        return operand1.divide(operand2, **kwargs)
+        # TODO: Remove this in astropy 1.3 or 1.4:
+
+        # Before 1.2 propagate_uncertainties could be given as positional
+        # keyword, this is now deprecated:
+        if isinstance(operand2, bool) and 'propagate_uncertainties' not in kwargs:
+            # No explicit propagate_uncertainties was given but the second
+            # operand was given as boolean. I'll assume that most don't want
+            # to do arithmetics with a boolean operand, print a deprecation
+            # warning. If someone really wanted to do arithmetics with a
+            # boolean he should have set propagate_uncertainties. :-/
+            warnings.warn('propagate_uncertainties should be given as keyword '
+                          'parameter, i.e. "propagate_uncertainties={0}".'
+                          ''.format(operand2), AstropyDeprecationWarning)
+            # Set the kwarg and reset operand2.
+            kwargs['propagate_uncertainties'] = operand2
+            operand2 = None
+
+        # TODO: The following parts must remain here if the above part is
+        # removed.
+
+        if isinstance(self_or_cls, NDArithmeticMixin):
+            # True means it was called on the instance, so self_or_cls is
+            # a reference to self
+            cls = self_or_cls.__class__
+
+            if operand2 is None:
+                # Only one operand was given. Set operand2 to operand and
+                # operand to self so that we call the appropriate method of the
+                # operand.
+                operand2 = operand
+                operand = self_or_cls
+            else:
+                # Convert the first operand to the class of this method.
+                operand = cls(operand)
+
+        else:
+            # It was used as classmethod so self_or_cls represents the cls
+            cls = self_or_cls
+
+            # It was called on the class so we expect two operands!
+            if operand2 is None:
+                raise TypeError("operand2 must be given when the method isn't "
+                                "called on an instance.")
+
+            # Convert the first operand to the class of this method.
+            operand = cls(operand)
+
+        return operand, operand2, kwargs, cls

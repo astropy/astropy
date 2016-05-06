@@ -13,14 +13,6 @@ Introduction
 - multiplication: :meth:`~astropy.nddata.NDArithmeticMixin.multiply`
 - division: :meth:`~astropy.nddata.NDArithmeticMixin.divide`
 
-and classmethods for inverse operations or converting the result of arbitary
-operands as `~astropy.nddata.NDDataRef` instance:
-
-- :meth:`~astropy.nddata.NDArithmeticMixin.ic_addition`
-- :meth:`~astropy.nddata.NDArithmeticMixin.ic_subtraction`
-- :meth:`~astropy.nddata.NDArithmeticMixin.ic_multiplication`
-- :meth:`~astropy.nddata.NDArithmeticMixin.ic_division`
-
 Usage basic arithmetic methods
 ------------------------------
 
@@ -59,13 +51,13 @@ Usage arithmetic classmethods
 
 Here both operands don't need to be `~astropy.nddata.NDDataRef`-like::
 
-    >>> NDDataRef.ic_addition(1, 3)
+    >>> NDDataRef.add(1, 3)
     NDDataRef(4)
 
 or to wrap the result of an arithmetic operation between two Quantities::
 
     >>> import astropy.units as u
-    >>> ndd = NDDataRef.ic_multiplication([1,2] * u.m, [10, 20] * u.cm)
+    >>> ndd = NDDataRef.multiply([1,2] * u.m, [10, 20] * u.cm)
     >>> ndd
     NDDataRef([ 10.,  40.])
     >>> ndd.unit
@@ -73,18 +65,14 @@ or to wrap the result of an arithmetic operation between two Quantities::
 
 or taking the inverse of a `~astropy.nddata.NDDataRef` object::
 
-    >>> NDDataRef.ic_division(1, ndd1)
+    >>> NDDataRef.divide(1, ndd1)
     NDDataRef([ 1.        ,  0.5       ,  0.33333333,  0.25      ])
 
 
 Possible operands
 ^^^^^^^^^^^^^^^^^
 
-For the normal arithmetic methods
-(i.e. :meth:`~astropy.nddata.NDArithmeticMixin.add`) the second operator can
-have any of these types. For the classmethods
-(i.e. :meth:`~astropy.nddata.NDArithmeticMixin.ic_addition`) both operators can
-be of any of these types:
+The possible types of input for operands are:
 
 + scalars of any type
 + lists containing numbers (or nested lists)

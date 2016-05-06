@@ -17,7 +17,6 @@ from ..extern import six
 from . import angle_utilities as util
 from .. import units as u
 from ..utils import isiterable
-from ..utils.compat import NUMPY_LT_1_7
 
 
 __all__ = ['Angle', 'Latitude', 'Longitude']
@@ -370,18 +369,8 @@ class Angle(u.Quantity):
                 s = '${0}$'.format(s)
             return s
 
-        if NUMPY_LT_1_7 and not np.isscalar(values):  # pragma: no cover
-            format_ufunc = np.vectorize(do_format, otypes=[np.object])
-            # In Numpy 1.6, unicode output is broken.  vectorize always seems to
-            # yield U2 even if you tell it something else.  So we convert in
-            # a second step with 60 chars, on the theory that you'll never want
-            # better than what double-precision decimals give, which end up
-            # around that many characters.
-            result = format_ufunc(values).astype('U60')
-        else:
-            #for newer Numpy versions, this just works as you would expect
-            format_ufunc = np.vectorize(do_format, otypes=['U'])
-            result = format_ufunc(values)
+        format_ufunc = np.vectorize(do_format, otypes=['U'])
+        result = format_ufunc(values)
 
         if result.ndim == 0:
             result = result[()]
@@ -485,13 +474,8 @@ class Angle(u.Quantity):
         else:
             # Need to do a magic incantation to convert to str.  Regular str
             # or array2string causes all backslashes to get doubled.
-            if NUMPY_LT_1_7:
-                # Except that numpy 1.6 doesn't do formatter... so instead we
-                # just replace all double-backslashes with one.
-                return str(self.to_string(format='latex')).replace('\\\\', '\\')
-            else:
-                return np.array2string(self.to_string(format='latex'),
-                                       formatter={'str_kind': lambda x: x})
+            return np.array2string(self.to_string(format='latex'),
+                                   formatter={'str_kind': lambda x: x})
 
 
 class Latitude(Angle):

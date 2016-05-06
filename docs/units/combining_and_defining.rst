@@ -40,7 +40,10 @@ using the `~astropy.units.def_unit` function.  For example::
   >>> bakers_fortnight = u.def_unit('bakers_fortnight', 13 * u.day)
 
 The addition of a string gives the new unit a name that will show up
-when the unit is printed.
+when the unit is printed::
+
+  >>> 10. * bakers_fortnight
+  <Quantity 10.0 bakers_fortnight>
 
 Creating a new fundamental unit is simple::
 
@@ -50,8 +53,16 @@ Creating a new fundamental unit is simple::
   >>> guffaw = u.def_unit('guffaw', 3 * laugh)
   >>> rofl = u.def_unit('rofl', 4 * guffaw)
   >>> death_by_laughing = u.def_unit('death_by_laughing', 10 * rofl)
-  >>> rofl.to(titter, 1)
-  240.0
+  >>> (1. * rofl).to(titter)
+  <Quantity 240.0 titter>
+
+One can see the definition of a unit and its :ref:`decomposition <decomposing>`
+via::
+
+  >>> rofl.represents
+  Unit("4 guffaw")
+  >>> rofl.decompose()
+  Unit("240 titter")
 
 By default, custom units are not searched by methods such as
 `~astropy.units.core.UnitBase.find_equivalent_units`.  However, they
