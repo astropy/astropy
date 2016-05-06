@@ -19,14 +19,14 @@ __all__ = ['NDArithmeticMixin']
 # Global so it doesn't pollute the class dict unnecessarily:
 
 # Docstring templates for add, subtract, multiply, divide methods.
-_arit_doc = """Performs {name} by evaluating ``self`` {op} ``operand``.
+_arit_doc = """Performs {name} based on `~astropy.nddata.NDData`.
 
     Parameters
     ----------
     operand, operand2 : `NDData`-like instance or convertible to one.
-        If ``operand2`` is ``None`` or not given it will perform the operation
+        If operand2 is None or not given it will perform the operation
         ``self`` {op} ``operand``.
-        If ``operand2`` is given it will perform ``operand`` {op} ``operand2``.
+        If operand2 is given it will perform ``operand`` {op} ``operand2``.
         If the method was called on a class rather than on the instance
         ``operand2`` must be given.
 
