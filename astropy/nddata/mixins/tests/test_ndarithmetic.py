@@ -776,6 +776,44 @@ def test_arithmetics_mask_func():
         nd1.add(nd2, handle_mask=mask_sad_func, fun=1)
 
 
+@pytest.mark.parametrize('meth', ['add', 'subtract', 'divide', 'multiply'])
+def test_two_argument_useage(meth):
+    ndd1 = NDDataArithmetic(np.ones((3, 3)))
+    ndd2 = NDDataArithmetic(np.ones((3, 3)))
+
+    # Call add on the class (not the instance) and compare it with already
+    # tested useage:
+    ndd3 = getattr(NDDataArithmetic, meth)(ndd1, ndd2)
+    ndd4 = getattr(ndd1, meth)(ndd2)
+    np.testing.assert_array_equal(ndd3.data, ndd4.data)
+
+    # And the same done on an unrelated instance...
+    ndd3 = getattr(NDDataArithmetic(-100), meth)(ndd1, ndd2)
+    ndd4 = getattr(ndd1, meth)(ndd2)
+    np.testing.assert_array_equal(ndd3.data, ndd4.data)
+
+
+@pytest.mark.parametrize('meth', ['add', 'subtract', 'divide', 'multiply'])
+def test_two_argument_useage_non_nddata_first_arg(meth):
+    data1 = 50
+    data2 = 100
+
+    # Call add on the class (not the instance)
+    ndd3 = getattr(NDDataArithmetic, meth)(data1, data2)
+
+    # Compare it with the instance-useage and two identical NDData-like
+    # classes:
+    ndd1 = NDDataArithmetic(data1)
+    ndd2 = NDDataArithmetic(data2)
+    ndd4 = getattr(ndd1, meth)(ndd2)
+    np.testing.assert_array_equal(ndd3.data, ndd4.data)
+
+    # and check it's also working when called on an instance
+    ndd3 = getattr(NDDataArithmetic(-100), meth)(data1, data2)
+    ndd4 = getattr(ndd1, meth)(ndd2)
+    np.testing.assert_array_equal(ndd3.data, ndd4.data)
+
+
 def test_arithmetics_unknown_uncertainties():
     # Not giving any uncertainty class means it is saved as UnknownUncertainty
     ndd1 = NDDataArithmetic(np.ones((3, 3)),
