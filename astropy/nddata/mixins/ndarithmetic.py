@@ -25,10 +25,10 @@ _arit_doc = """Performs {name} based on `~astropy.nddata.NDData`.
     ----------
     operand, operand2 : `NDData`-like instance or convertible to one.
         If operand2 is None or not given it will perform the operation
-        ``self`` {op} ``operand``.
-        If operand2 is given it will perform ``operand`` {op} ``operand2``.
-        If the method was called on a class rather than on the instance
-        ``operand2`` must be given.
+        ``self {op} operand``.
+        If operand2 is given it will perform ``operand {op} operand2``.
+        If the method was called on the class and not on the instance
+        ``operand2`` **must** be given.
 
     kwargs :
         Possible keyword arguments are:
@@ -84,7 +84,7 @@ _arit_doc = """Performs {name} based on `~astropy.nddata.NDData`.
             The correlation between the two operands is used for correct error
             propagation for correlated data as given in:
             https://en.wikipedia.org/wiki/Propagation_of_uncertainty#Example_formulas
-            Default is 0.
+            Default is ``0``.
 
             .. versionadded:: 1.2
 
