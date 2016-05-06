@@ -24,7 +24,7 @@ class NDData(NDDataBase):
 
     The key distinction from raw `numpy.ndarray` is the presence of
     additional metadata such as uncertainty, mask, unit, a coordinate system
-    and/or a `dict` containg further meta information. This class *only*
+    and/or a dictionary containg further meta information. This class *only*
     provides a container for *storing* such datasets. For further functionality
     take a look at the ``See also`` section.
 
@@ -37,17 +37,15 @@ class NDData(NDDataBase):
         Uncertainty in the dataset.
         Should have an attribute ``uncertainty_type`` that defines what kind of
         uncertainty is stored, for example ``"std"`` for standard deviation or
-        ``"var"`` for variance.
-        A metaclass defining such an interface is `NDUncertainty` but isn't
-        mandatory.
-        If the uncertainty has no such attribute the uncertainty is stored
-        inside an `UnknownUncertainty`.
+        ``"var"`` for variance. A metaclass defining such an interface is
+        `NDUncertainty` - but isn't mandatory. If the uncertainty has no such
+        attribute the uncertainty is stored as `UnknownUncertainty`.
         Defaults to ``None``.
 
     mask : any type, optional
-        Mask for the dataset.
-        Masks should follow the ``numpy`` convention that **valid** data points
-        are marked by ``False`` and **invalid** ones with ``True``.
+        Mask for the dataset. Masks should follow the ``numpy`` convention that
+        **valid** data points are marked by ``False`` and **invalid** ones with
+        ``True``.
         Defaults to ``None``.
 
     wcs : any type, optional
@@ -55,8 +53,8 @@ class NDData(NDDataBase):
         Default is ``None``.
 
     meta : `dict`-like object, optional
-        Meta information about the dataset. If no meta is provided an empty
-        `collections.OrderedDict` is created.
+        Additional meta informations about the dataset. If no meta is provided
+        an empty `collections.OrderedDict` is created.
         Default is ``None``.
 
     unit : `~astropy.units.Unit`-like, optional
@@ -65,10 +63,10 @@ class NDData(NDDataBase):
         Default is ``None``.
 
     copy : `bool`, optional
-        Save the attributes as copy or as reference. ``True`` copies every
-        attribute before saving it while ``False`` tries to save every
-        parameter as reference. Note however that it is not always possible to
-        save each input as reference.
+        Save the attributes as copy? ``True`` copies every attribute before
+        saving it while ``False`` tries to save every parameter as reference.
+        Note however that it is not always possible to save the input as
+        reference.
         Default is ``False``.
 
         .. versionadded:: 1.2
@@ -76,25 +74,28 @@ class NDData(NDDataBase):
     Raises
     ------
     TypeError
-        In case any parameter does not fulfill the classes restrictions.
+        In case ``data`` or ``meta`` don't meet the restrictions.
+
+    Attributes
+    ----------
+    meta : `dict`-like
+        Additional meta informations about the dataset.
 
     Notes
     -----
-    Each attribute can be accessed through the homonymous instance attribute,
-    such as ``data`` in a `NDData` object can be accessed through the `data`
-    attribute.
-
-    For example::
+    Each attribute can be accessed through the homonymous instance attribute:
+    ``data`` in a `NDData` object can be accessed through the `data`
+    attribute::
 
         >>> from astropy.nddata import NDData
         >>> nd = NDData([1,2,3])
         >>> nd.data
         array([1, 2, 3])
 
-    Given an implicit parameter and an explicit one during initialization, for
-    example the ``data`` is a `~astropy.units.Quantity` and the unit parameter
-    is not None. Then the implicit parameter is replaced (without conversion)
-    by the explicit one and a warning is issued::
+    Given a conflicting implicit and an explicit parameter during
+    initialization, for example the ``data`` is a `~astropy.units.Quantity` and
+    the unit parameter is not None. Then the implicit parameter is replaced
+    (without conversion) by the explicit one and a warning is issued::
 
         >>> import numpy as np
         >>> import astropy.units as u
@@ -235,19 +236,23 @@ class NDData(NDDataBase):
 
     @property
     def data(self):
-        """
-        `numpy.ndarray`-like : stored dataset.
+        """`numpy.ndarray`-like : The stored dataset.
+
+        The data cannot be set directly but it probably can be modified
+        in-place.
         """
         return self._data
 
     # Instead of a custom property use the MetaData descriptor. It will check
     # if the meta is dict-like.
+    # TODO: reading the documentation from a descriptor using Sphinx isn't
+    # trivial so this attribute is documented in the class docstring but
+    # it would be better to define it here.
     meta = MetaData()
 
     @property
     def mask(self):
-        """
-        any type : Mask for the dataset, if any.
+        """any type : Mask for the dataset, if any.
 
         Masks should follow the ``numpy`` convention that **valid** data points
         are marked by ``False`` and **invalid** ones with ``True``.
@@ -260,8 +265,7 @@ class NDData(NDDataBase):
 
     @property
     def unit(self):
-        """
-        `~astropy.units.Unit` : Unit for the dataset, if any.
+        """`~astropy.units.Unit` : Unit for the dataset, if any.
 
         .. warning::
 
@@ -282,8 +286,7 @@ class NDData(NDDataBase):
 
     @property
     def wcs(self):
-        """
-        any type : World coordinate system (WCS) for the dataset, if any.
+        """any type : World coordinate system (WCS) for the dataset, if any.
         """
         return self._wcs
 
@@ -293,13 +296,13 @@ class NDData(NDDataBase):
 
     @property
     def uncertainty(self):
-        """
-        any type : Uncertainty in the dataset, if any.
+        """any type : Uncertainty in the dataset, if any.
 
         Should have an attribute ``uncertainty_type`` that defines what kind of
-        uncertainty is stored, such as ``'std'`` for standard deviation or
-        ``'var'`` for variance. A metaclass defining such an interface is
-        `~astropy.nddata.NDUncertainty` but isn't mandatory.
+        uncertainty is stored, for example ``"std"`` for standard deviation or
+        ``"var"`` for variance. A metaclass defining such an interface is
+        `NDUncertainty` - but isn't mandatory. If the uncertainty has no such
+        attribute the uncertainty is stored as `UnknownUncertainty`.
         """
         return self._uncertainty
 

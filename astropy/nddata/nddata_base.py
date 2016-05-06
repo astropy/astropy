@@ -13,54 +13,47 @@ __all__ = ['NDDataBase']
 
 @six.add_metaclass(ABCMeta)
 class NDDataBase(object):
-    """
-    Base metaclass that defines the interface for N-dimensional datasets with
+    """Base metaclass that defines the interface for N-dimensional datasets with
     associated meta informations used in ``astropy``.
 
-    All properties and methods have to be overridden in subclasses. See
-    `~astropy.nddata.NDData` for a subclass that defines this interface on
-    `numpy.ndarray`-like based ``data``.
+    All properties and ``__init__`` have to be overridden in subclasses. See
+    `NDData` for a subclass that defines this interface on `numpy.ndarray`-like
+    ``data``.
     """
-
     @abstractmethod
     def __init__(self):
         pass
 
     @abstractproperty
     def data(self):
-        """
-        The stored dataset.
+        """The stored dataset.
         """
         pass
 
     @abstractproperty
     def mask(self):
-        """
-        Mask for the dataset.
+        """Mask for the dataset.
 
-        Masks should follow the ``numpy`` convention that valid data points are
-        marked by ``False`` and invalid ones with ``True``.
+        Masks should follow the ``numpy`` convention that **valid** data points
+        are marked by ``False`` and **invalid** ones with ``True``.
         """
         return None
 
     @abstractproperty
     def unit(self):
-        """
-        Unit for the dataset.
+        """Unit for the dataset.
         """
         return None
 
     @abstractproperty
     def wcs(self):
-        """
-        World coordinate system (WCS) for the dataset.
+        """World coordinate system (WCS) for the dataset.
         """
         return None
 
     @abstractproperty
     def meta(self):
-        """
-        Meta information about the dataset.
+        """Additional meta informations about the dataset.
 
         Should be `dict`-like.
         """
@@ -68,8 +61,7 @@ class NDDataBase(object):
 
     @abstractproperty
     def uncertainty(self):
-        """
-        Uncertainty in the dataset.
+        """Uncertainty in the dataset.
 
         Should have an attribute ``uncertainty_type`` that defines what kind of
         uncertainty is stored, such as ``"std"`` for standard deviation or

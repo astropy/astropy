@@ -10,17 +10,13 @@ __all__ = ['NDIOMixin']
 
 
 class NDIOMixin(object):
-    """
-    Mixin class to connect `NDData` to the astropy input/output registry:
+    """Mixin class to connect `NDData` to the astropy input/output registry:
     `astropy.io.registry`.
-
-    This mixin adds two methods to its subclasses, `read` and `write`.
     """
 
     @classmethod
     def read(cls, *args, **kwargs):
-        """
-        Read and parse gridded N-dimensional data and return as an
+        """Read and parse gridded N-dimensional data and return as an
         `NDData`-derived object.
 
         This function provides the `NDDataBase` interface to the astropy
@@ -30,8 +26,7 @@ class NDIOMixin(object):
         return io_registry.read(cls, *args, **kwargs)
 
     def write(self, *args, **kwargs):
-        """
-        Write a gridded N-dimensional data object out in specified format.
+        """Write a gridded N-dimensional data object out in specified format.
 
         This function provides the `NDDataBase` interface to the astropy
         unified I/O layer. This allows easily writing a file in the supported

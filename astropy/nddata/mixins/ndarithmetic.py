@@ -17,19 +17,17 @@ __all__ = ['NDArithmeticMixin']
 # Global so it doesn't pollute the class dict unnecessarily:
 
 # Docstring templates for add, subtract, multiply, divide methods.
-_arit_doc = """
-    Performs {name} by evaluating ``self`` {op} ``operand``.
+_arit_doc = """Performs {name} by evaluating ``self`` {op} ``operand``.
 
     For the inverse operation or operations between different subclasses take a
-    look at
-    :meth:`~astropy.nddata.NDArithmeticMixin.ic_{name}`.
+    look at :meth:`~astropy.nddata.NDArithmeticMixin.ic_{name}`.
 
     Parameters
     ----------
     operand : `NDData`-like instance or convertible to one.
         The second operand in the operation.
 
-    propagate_uncertainties : `bool` or ``None``, optional
+    propagate_uncertainties : ``bool`` or ``None``, optional
         If ``None`` the result will have no uncertainty. If ``False`` the
         result will have a copied version of the first operand that has an
         uncertainty. If ``True`` the result will have a correctly propagated
@@ -90,15 +88,14 @@ _arit_doc = """
     If a ``callable`` is used for ``mask``, ``wcs`` or ``meta`` the
     callable must accept the corresponding attributes as first two
     parameters. If the callable also needs additional parameters these can be
-    defined as ``kwargs`` and must start with ``"wcs_"`` (for wcs callable) or
-    ``"meta_"`` (for meta callable). This startstring is removed before the
-    callable is called.
+    given as keyword arguments and must start with ``"wcs_"`` (for wcs
+    callable) or ``"meta_"`` (for meta callable). This startstring is removed
+    before the callable is called.
 
     ``"first_found"`` can also be abbreviated with ``"ff"``.
     """
 
-_arit_cls_doc = """
-    Like :meth:`~NDArithmeticMixin.{0}` you can {0} two operands.
+_arit_cls_doc = """Like :meth:`~NDArithmeticMixin.{0}` you can {0} two operands.
 
     This method is avaiable as classmethod in order to allow arithmetic
     operations between arbitary objects as long as they are convertible to
@@ -127,90 +124,7 @@ _arit_cls_doc = """
 
 
 class NDArithmeticMixin(object):
-    """
-    Mixin class to add arithmetic to an `NDData` object.
-
-    When subclassing, be sure to list the superclasses in the correct order
-    so that the subclass sees `NDData` as the main superclass. See
-    `~astropy.nddata.NDDataArray` for an example.
-
-    Notes
-    -----
-    This class only aims at covering the most common cases so there are certain
-    restrictions on the saved attributes::
-
-        - ``uncertainty`` : has to be something that has a `NDUncertainty`-like
-          interface for uncertainty propagation
-        - ``mask`` : has to be something that can be used by a bitwise ``or``
-          operation.
-        - ``wcs`` : has to implement a way of comparing with ``=`` to allow
-          the operation.
-
-    But there is a workaround that allows to disable handling a specific
-    attribute and to simply set the results attribute to ``None`` or to
-    copy the existing attribute (and neglecting the other).
-    For example for uncertainties not representing an `NDUncertainty`-like
-    interface you can alter the ``propagate_uncertainties`` parameter in
-    :meth:`NDArithmeticMixin.add`. ``None`` means that the result will have no
-    uncertainty, ``False`` means it takes the uncertainty of the first operand
-    (if this does not exist from the second operand) as the result's
-    uncertainty. This behaviour is also explained in the docstring for the
-    different arithmetic operations.
-
-    Notes
-    -----
-    1. It is not tried to decompose the units, mainly due to the internal
-       mechanics of `~astropy.units.Quantity`, so the resulting data might have
-       units like ``km/m`` if you divided for example 100km by 5m. So this
-       Mixin has adopted this behaviour.
-
-    Examples
-    --------
-
-    TODO: Just here because the examples fit more into the main documentation
-    than in here.
-
-    For example::
-
-        >>> from astropy.nddata import *
-        >>> class NDDataWithMath(NDArithmeticMixin, NDData): pass
-        >>> nd = NDDataWithMath([1,2,3], unit='meter')
-        >>> nd_inv = nd.ic_division(1, nd)
-        >>> nd_inv.__class__.__name__
-        'NDDataWithMath'
-        >>> nd_inv.data
-        array([ 1.        ,  0.5       ,  0.33333333])
-        >>> nd_inv.unit
-        Unit("1 / m")
-
-    This method also allows that the result of unrelated objects is tried
-    with what this class implements as arithmetics and give a result that
-    is the same class as the class that called the method.
-
-        >>> nd2 = nd.ic_multiplication([1,2],3)
-        >>> nd2.__class__.__name__
-        'NDDataWithMath'
-        >>> nd2.data
-        array([3, 6])
-
-    Since this is a classmethod we don't need an instance to use them:
-
-        >>> nd3 = NDDataWithMath.ic_subtraction(5, NDData([1,2,3]))
-        >>> nd3.__class__.__name__
-        'NDDataWithMath'
-        >>> nd3.data
-        array([4, 3, 2])
-
-    And it allows to handle arithmetics with different subclasses.
-
-        >>> class NDDataWithMathAndSlicing(NDSlicingMixin,NDArithmeticMixin, NDData): pass
-        >>> nd = NDDataWithMath([5,5,5])
-        >>> nd2 = NDDataWithMathAndSlicing([3,2,5])
-        >>> nd3 = nd2.ic_addition(nd, nd2)
-        >>> nd3.__class__.__name__
-        'NDDataWithMathAndSlicing'
-        >>> nd3.data
-        array([ 8,  7, 10])
+    """Mixin class to add arithmetic to an `NDData` object.
     """
 
     def _arithmetic(self, operation, operand,
@@ -343,8 +257,7 @@ class NDArithmeticMixin(object):
         return result, kwargs
 
     def _arithmetic_data(self, operation, operand, **kwds):
-        """
-        Calculate the resulting data.
+        """Calculate the resulting data.
 
         Parameters
         ----------
@@ -383,8 +296,7 @@ class NDArithmeticMixin(object):
 
     def _arithmetic_uncertainty(self, operation, operand, result, correlation,
                                 **kwds):
-        """
-        Calculate the resulting uncertainty.
+        """Calculate the resulting uncertainty.
 
         Parameters
         ----------
@@ -454,8 +366,7 @@ class NDArithmeticMixin(object):
                                               correlation)
 
     def _arithmetic_mask(self, operation, operand, handle_mask, **kwds):
-        """
-        Calculate the resulting mask
+        """Calculate the resulting mask.
 
         This is implemented as the piecewise ``or`` operation if both have a
         mask.
@@ -497,8 +408,7 @@ class NDArithmeticMixin(object):
             return handle_mask(self.mask, operand.mask, **kwds)
 
     def _arithmetic_wcs(self, operation, operand, compare_wcs, **kwds):
-        """
-        Calculate the resulting wcs.
+        """Calculate the resulting wcs.
 
         There is actually no calculation involved but it is a good place to
         compare wcs information of both operands. This is currently not working
@@ -544,8 +454,7 @@ class NDArithmeticMixin(object):
         return self.wcs
 
     def _arithmetic_meta(self, operation, operand, handle_meta, **kwds):
-        """
-        Calculate the resulting meta.
+        """Calculate the resulting meta.
 
         Parameters
         ----------
