@@ -16,7 +16,6 @@ except ImportError:
     HAS_PIL = False
 
 from ....tests.helper import pytest, catch_warnings
-from ... import fits
 from .. import util
 from ..util import ignore_sigint
 
@@ -49,17 +48,6 @@ class TestUtilMode(FitsTestCase):
     TODO: These are regression tests for
     https://github.com/astropy/astropy/pull/4793
     """
-
-    def test_append_mode_is_determined_correctly(self):
-        # This test should not fail but the other way around would be even
-        # worse: Opened a file NOT in append mode but function thinks it IS.
-
-        # Just check that opening a file in ab mode is not considered
-        # in append mode. The reason for this really low level function is
-        # that (maybe) a file loses it's "a" in the mode, so this function
-        # as fallback option should not fail!
-        with open(str(self.temp('test_simple.fits')), 'ab') as fileobj:
-            assert fits.util._is_append_mode_platform(fileobj)
 
     def test_mode_strings(self):
         # A string signals that the file should be opened so the function
