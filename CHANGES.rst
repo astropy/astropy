@@ -191,6 +191,7 @@ API changes
   - ``NDData`` implements setter for meta, unit and wcs. Using the setter for
     unit will issue a warning that the other attributes (especially the data)
     are not scaled.
+
   - ``NDDataBase`` does not implement a setter or getter for ``uncertainty``,
     which is now an abstractproperty. [#4270]
 
@@ -217,8 +218,7 @@ API changes
 
   - ``NDUncertainty``: added setter for unit. This will simply replace the unit
     without affecting (scaling or converting) the uncertainty values.
-  - ``NDUncertainty``: Does implements a meaningful ``repr``. [#4787]
-  - ``NDUncertainty``: implements a meaningful ``repr``. [#4787]
+
   - ``NDUncertainty`` and subclasses: implement a representation (``__repr__``). [#4787]
 
   - ``StdDevUncertainty``: added an optional parameter ``copy`` which is False
