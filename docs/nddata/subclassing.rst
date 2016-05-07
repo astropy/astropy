@@ -293,28 +293,46 @@ Adding another possible operations is quite easy provided the ``data`` and
 
 For example adding a power function::
 
-
     >>> from astropy.nddata import NDDataRef
     >>> import numpy as np
     >>> from astropy.utils import sharedmethod
 
     >>> class NDDataPower(NDDataRef):
-    ...     @sharedmethod
+    ...     @sharedmethod # sharedmethod to allow it also as classmethod
     ...     def pow(self, operand, operand2=None, **kwargs):
     ...         # the uncertainty doesn't allow propagation so set it to None
     ...         kwargs['propagate_uncertainties'] = None
     ...         # Call the _prepare_then_do_arithmetic function with the
-    ...         # numpy.power ufunc
+    ...         # numpy.power ufunc.
     ...         return self._prepare_then_do_arithmetic(np.power, operand,
     ...                                                 operand2, **kwargs)
 
+This can be used like the other arithmetic methods like
+:meth:`~astropy.nddata.NDArithmeticMixin.add`. So it works when calling it
+on the class or the instance::
+
     >>> ndd = NDDataPower([1,2,3])
+
+    >>> # using it on the instance with one operand
     >>> ndd.pow(3)
     NDDataPower([ 1,  8, 27])
+
+    >>> # using it on the instance with two operands
+    >>> ndd.pow([1,2,3], [3,4,5])
+    NDDataPower([  1,  16, 243])
+
+    >>> # or using it as classmethod
+    >>> NDDataPower.pow(6, [1,2,3])
+    NDDataPower([  6,  36, 216])
 
 To allow propagation also with ``uncertainty`` see subclassing
 `~astropy.nddata.NDUncertainty`.
 
+The ``_prepare_then_do_arithmetic`` implements the relevant checks if it was
+called on the class or the instance and if one or two operands were given and
+converts the operands, if necessary, to the appropriate classes. Overriding
+this ``_prepare_then_do_arithmetic`` in subclasses should be avoided if
+possible.
 
 `~astropy.nddata.NDDataBase`
 ----------------------------
