@@ -72,9 +72,10 @@ New Features
   - ``NDArithmeticMixin`` allows for arithmetic operations with anything that
     can be wrapped by the class. [#4272]
 
-  - ``NDArithmeticMixin`` provides methods for arithmetic operations where the
-    first operand is not an ``NDArithmeticMixin`` subclass via classmethods
-    called ``ic_add``, ``ic_subtract``, etc. [#4272]
+  - ``NDArithmeticMixin`` the methods add, subtract, multiply and divide now
+    support giving two operands and these methods are now classmethods. This
+    change allows evaluating the result when the first operand is not an
+    NDDataArithmeticMixin subclass. [#4272 + 4851]
 
 - ``astropy.stats``
 
