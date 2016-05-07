@@ -234,6 +234,45 @@ To trigger this method the ``handle_meta`` argument must not be ``None``,
     arguments: ``operation, operand, result, correlation, **kwargs``
 
 
+Changing default argument for arithmetic operations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If the goal is to change the default value of an existing parameter for
+arithmetic methods. Maybe because explicitly specifying the parameter each
+time you're calling an arithmetic operation is too much effort you can easily
+change the default value of existing parameters by changing it in the method
+signature of ``_arithmetic``::
+
+    >>> from astropy.nddata import NDDataRef
+    >>> import numpy as np
+
+    >>> class NDDDiffAritDefaults(NDDataRef):
+    ...     def _arithmetic(self, *args, **kwargs):
+    ...         # Changing the default of handle_mask to None
+    ...         if 'handle_mask' not in kwargs:
+    ...             kwargs['handle_mask'] = None
+    ...         # Call the original with the updated kwargs
+    ...         return super(NDDDiffAritDefaults, self)._arithmetic(*args, **kwargs)
+
+    >>> ndd1 = NDDDiffAritDefaults(1, mask=False)
+    >>> ndd2 = NDDDiffAritDefaults(1, mask=True)
+    >>> ndd1.add(ndd2).mask is None  # it will be None
+    True
+
+    >>> # But giving other values is still possible:
+    >>> ndd1.add(ndd2, handle_mask=np.logical_or).mask
+    True
+
+    >>> ndd1.add(ndd2, handle_mask="ff").mask
+    False
+
+The parameter controlling how properties are handled are all keyword-only
+so using the ``*args, **kwargs`` approach allows only to alter one default
+without needing to care about the positional order of arguments. But using
+``def _arithmetic(self, *args, handle_mask=None, **kwargs)`` doesn't work
+for python 2.
+
+
 Arithmetic with an additional property
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

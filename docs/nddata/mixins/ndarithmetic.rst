@@ -329,8 +329,7 @@ of uncertainties on or off.
 
       >>> ndd1 = NDDataRef(1, uncertainty=StdDevUncertainty([0]))
       >>> ndd2 = NDDataRef(1, uncertainty=StdDevUncertainty([1]))
-      >>> ndd3 = ndd1.add(ndd2, propagate_uncertainties=False)
-      >>> ndd3.uncertainty
+      >>> ndd1.add(ndd2, propagate_uncertainties=False).uncertainty
       StdDevUncertainty([0])
 
 - If ``True`` both uncertainties must be ``NDUncertainty`` subclasses that
@@ -339,8 +338,7 @@ of uncertainties on or off.
 
       >>> ndd1 = NDDataRef(1, uncertainty=StdDevUncertainty([10]))
       >>> ndd2 = NDDataRef(1, uncertainty=StdDevUncertainty([10]))
-      >>> ndd3 = ndd1.add(ndd2, propagate_uncertainties=True)
-      >>> ndd3.uncertainty
+      >>> ndd1.add(ndd2, propagate_uncertainties=True).uncertainty
       StdDevUncertainty([ 14.14213562])
 
 uncertainty with correlation
@@ -355,23 +353,20 @@ For example without correlation subtracting a `~astropy.nddata.NDDataRef`
 instance from itself results in a non-zero uncertainty::
 
     >>> ndd1 = NDDataRef(1, uncertainty=StdDevUncertainty([10]))
-    >>> ndd = ndd1.subtract(ndd1, propagate_uncertainties=True)
-    >>> ndd.uncertainty
+    >>> ndd1.subtract(ndd1, propagate_uncertainties=True).uncertainty
     StdDevUncertainty([ 14.14213562])
 
 but given a correlation of ``1`` because they clearly correlate gives the
 correct uncertainty of ``0``::
 
     >>> ndd1 = NDDataRef(1, uncertainty=StdDevUncertainty([10]))
-    >>> ndd = ndd1.subtract(ndd1, propagate_uncertainties=True,
-    ...                     uncertainty_correlation=1)
-    >>> ndd.uncertainty
+    >>> ndd1.subtract(ndd1, propagate_uncertainties=True,
+    ...               uncertainty_correlation=1).uncertainty
     StdDevUncertainty([ 0.])
 
 which would be consistent with the equivalent operation ``ndd1 * 0``::
 
-    >>> ndd = ndd1.multiply(0, propagate_uncertainties=True)
-    >>> ndd.uncertainty
+    >>> ndd1.multiply(0, propagate_uncertainties=True).uncertainty
     StdDevUncertainty([0])
 
 The default (``0``) represents uncorrelated while ``1`` means correlated and
@@ -388,8 +383,7 @@ You can also give element-wise correlations::
 
     >>> ndd1 = NDDataRef([1,1,1,1], uncertainty=StdDevUncertainty([1,1,1,1]))
     >>> ndd2 = NDDataRef([2,2,2,2], uncertainty=StdDevUncertainty([2,2,2,2]))
-    >>> ndd3 = ndd1.add(ndd2,uncertainty_correlation=np.array([1,0.5,0,-1]))
-    >>> ndd3.uncertainty
+    >>> ndd1.add(ndd2,uncertainty_correlation=np.array([1,0.5,0,-1])).uncertainty
     StdDevUncertainty([ 3.        ,  2.64575131,  2.23606798,  1.        ])
 
 The correlation ``np.array([1, 0.5, 0, -1])`` would indicate that the first
@@ -404,8 +398,7 @@ if the unit of the data differs from the unit of the uncertainty::
 
     >>> ndd1 = NDDataRef([10], unit='m', uncertainty=StdDevUncertainty([10], unit='cm'))
     >>> ndd2 = NDDataRef([20], unit='m', uncertainty=StdDevUncertainty([10]))
-    >>> ndd = ndd1.subtract(ndd2, propagate_uncertainties=True)
-    >>> ndd.uncertainty
+    >>> ndd1.subtract(ndd2, propagate_uncertainties=True).uncertainty
     StdDevUncertainty([ 10.00049999])
 
 but it needs to be convertible to the unit for the data.
