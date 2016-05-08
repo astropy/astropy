@@ -521,16 +521,6 @@ def _fileobj_normalize_mode(f):
     return mode
 
 
-def _fileobj_is_append_mode(f):
-    """Normally the way to tell if a file is in append mode is if it has
-    'a' in the mode string.  However on Python 3 (or in particular with
-    the io module) this can't be relied on.  See
-    http://bugs.python.org/issue18876.
-    """
-
-    return 'a' in f.mode
-
-
 def fileobj_is_binary(f):
     """
     Returns True if the give file or file-like object has a file open in binary
