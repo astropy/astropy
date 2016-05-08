@@ -143,8 +143,8 @@ def circvar(data, axis=None, weights=None):
        Circular Statistics (2001)'". 2015.
        <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
 
-    Note
-    ----
+    Notes
+    -----
     The definition used here differs from the one in scipy.stats.circvar.
     Precisely, Scipy circvar uses an approximation based on the limit of small
     angles which approaches the linear variance.
