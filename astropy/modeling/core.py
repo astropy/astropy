@@ -34,9 +34,7 @@ from ..utils import indent, isinstancemethod, metadata
 from ..extern import six
 from ..extern.six.moves import copyreg, zip
 from ..table import Table
-from ..units import (Quantity, UnitBase, UnitConversionError,
-                     dimensionless_unscaled)
-from ..units.quantity import _can_have_arbitrary_unit
+from ..units import Quantity
 from ..utils import (deprecated, sharedmethod, find_current_module,
                      InheritDocstrings, OrderedDescriptorContainer,
                      check_broadcast, IncompatibleShapeError)
