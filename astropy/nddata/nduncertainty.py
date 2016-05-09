@@ -179,16 +179,12 @@ class NDUncertainty(object):
                 unit = array.unit
             array = array.value
 
-        if unit is None:
-            self._unit = None
-        else:
-            self._unit = Unit(unit)
-
         if copy:
             array = deepcopy(array)
             unit = deepcopy(unit)
 
         self.array = array
+        self.unit = unit
         self.parent_nddata = None  # no associated NDData - until it is set!
 
     @abstractproperty
@@ -231,6 +227,13 @@ class NDUncertainty(object):
         wrong results.
 
         If the unit is not set the unit of the parent will be returned.
+
+        .. warning::
+
+          Setting or overwriting the unit manually will not check if the new
+          unit is compatible or convertible to the old unit. Neither will this
+          scale or otherwise affect the saved uncertainty. Appropriate
+          conversion of these values must be done manually.
         """
         if self._unit is None:
             if (self._parent_nddata is None or
@@ -239,6 +242,14 @@ class NDUncertainty(object):
             else:
                 return self.parent_nddata.unit
         return self._unit
+
+    @unit.setter
+    def unit(self, value):
+        # Simply replace the unit without scaling
+        if value is None:
+            self._unit = None
+        else:
+            self._unit = Unit(value)
 
     @property
     def parent_nddata(self):

@@ -182,6 +182,10 @@ API changes
 
 - ``astropy.nddata``
 
+  - ``NDData`` implements setter for meta, unit and wcs. Using the setter for
+    unit will issue a warning that the other attributes (especially the data)
+    are not scaled.
+
   - ``NDData``: added an optional parameter ``copy``
     which is False by default. If it is True all other parameters are copied
     before saving them as attributes. If False the parameters are only copied
@@ -195,6 +199,9 @@ API changes
 
   - ``NDUncertainty``: Public methods ``propagate_add``, etc. are replaced by
     a general ``propagate`` method. [#4272]
+
+  - ``NDUncertainty``: added setter for unit. This will simply replace the unit
+    without affecting (scaling or converting) the uncertainty values.
 
   - ``StdDevUncertainty``: added an optional parameter ``copy`` which is False
     by default. [#4272]
