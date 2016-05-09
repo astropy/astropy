@@ -72,9 +72,7 @@ few terms where there have been points of confusion:
   operators.
 
 - In some places the term *composite model* is used interchangeably with
-  *compound model*.  This can be seen in the cases of the now deprecated
-  `~astropy.modeling.SerialCompositeModel` and
-  `~astropy.modeling.SummedCompositeModel`.  However, this document uses the
+  *compound model*. However, this document uses the
   term *composite model* to refer *only* to the case of a compound model
   created from the functional composition of two or more models using the pipe
   operator ``|`` as explained below.  This distinction is used consistently

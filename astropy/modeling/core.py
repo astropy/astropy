@@ -34,7 +34,7 @@ from ..utils import indent, isinstancemethod, metadata
 from ..extern import six
 from ..extern.six.moves import copyreg
 from ..table import Table
-from ..utils import (deprecated, sharedmethod, find_current_module,
+from ..utils import (sharedmethod, find_current_module,
                      InheritDocstrings, OrderedDescriptorContainer)
 from ..utils.codegen import make_function_with_signature
 from ..utils.compat import ignored
@@ -129,7 +129,6 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
 
         cls._create_inverse_property(members)
         cls._create_bounding_box_property(members)
-        cls._handle_backwards_compat(name, members)
         cls._handle_special_methods(members)
 
         if not inspect.isabstract(cls) and not name.startswith('_'):
@@ -356,26 +355,6 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
 
         return type(str('_{0}BoundingBox'.format(cls.name)), (_BoundingBox,),
                     {'__call__': __call__})
-
-    def _handle_backwards_compat(cls, name, members):
-        # Backwards compatibility check for 'eval' -> 'evaluate'
-        # TODO: Remove sometime after Astropy 1.0 release.
-        if 'eval' in members and 'evaluate' not in members:
-            warnings.warn(
-                "Use of an 'eval' method when defining subclasses of "
-                "FittableModel is deprecated; please rename this method to "
-                "'evaluate'.  Otherwise its semantics remain the same.",
-                AstropyDeprecationWarning)
-            cls.evaluate = members['eval']
-        elif ('evaluate' in members and callable(members['evaluate']) and
-                not getattr(members['evaluate'], '__isabstractmethod__',
-                            False)):
-            # Don't bother making a deprecated eval() except for concrete
-            # implementations of evaluate, so that we don't end up with an eval
-            # abstractmethod as well
-            alt = '.'.join((name, 'evaluate'))
-            deprecate = deprecated('1.0', alternative=alt, name='eval')
-            cls.eval = deprecate(members['evaluate'])
 
     def _handle_special_methods(cls, members):
         # Handle init creation from inputs
@@ -731,11 +710,6 @@ class Model(object):
         return self._name
 
     @property
-    @deprecated('0.4', alternative='len(model)')
-    def param_dim(self):
-        return self._n_models
-
-    @property
     def n_inputs(self):
         """
         The number of inputs to this model.
@@ -930,13 +904,6 @@ class Model(object):
         """
 
         return self._user_inverse is not None
-
-    @property
-    def _custom_inverse(self):
-        # Deprecated alias for _user_inverse--included solely for temporary
-        # backwards compatibility for pyasdf--remove after Astropy v1.1
-        # release.
-        return self._user_inverse
 
     @property
     def bounding_box(self):
@@ -1225,38 +1192,6 @@ class Model(object):
         else:
             return _prepare_outputs_model_set(self, outputs, format_info)
 
-    @deprecated('1.0',
-                alternative='Use Model operators (TODO: link to compound '
-                            'model docs')
-    def add_model(self, model, mode):
-        """
-        Create a CompositeModel by chaining the current model with the new one
-        using the specified mode.
-
-        Parameters
-        ----------
-        model : an instance of a subclass of Model
-        mode :  string
-               'parallel', 'serial', 'p' or 's'
-               a flag indicating whether to combine the models
-               in series or in parallel
-
-        Returns
-        -------
-        model : CompositeModel
-            an instance of CompositeModel
-        """
-
-        from ._compound_deprecated import (SummedCompositeModel,
-                                           SerialCompositeModel)
-
-        if mode in ['parallel', 'p']:
-            return SummedCompositeModel([self, model])
-        elif mode in ['serial', 's']:
-            return SerialCompositeModel([self, model])
-        else:
-            raise InputParameterError("Unrecognized mode {0}".format(mode))
-
     def copy(self):
         """
         Return a copy of this model.
@@ -1370,21 +1305,7 @@ class Model(object):
             # an alternate initialization
             return
 
-        n_models = None
-        # Pop off param_dim and handle backwards compatibility
-        if 'param_dim' in kwargs:
-            n_models = kwargs.pop('param_dim')
-            warnings.warn(
-                'The param_dim argument to {0}.__init__ is deprecated; '
-                'use n_models instead.  See also the model_set_axis argument '
-                'and related discussion in the docstring for Model.'.format(
-                    self.__class__.__name__), AstropyDeprecationWarning)
-            if 'n_models' in kwargs:
-                raise TypeError(
-                    "param_dim and n_models cannot both be specified; use "
-                    "n_models, as param_dim is deprecated")
-        else:
-            n_models = kwargs.pop('n_models', None)
+        n_models = kwargs.pop('n_models', None)
 
         if not (n_models is None or
                     (isinstance(n_models, int) and n_models >=1)):
@@ -2098,16 +2019,6 @@ class _CompoundModelMeta(_ModelMeta):
         return new_cls
 
     @classmethod
-    def _handle_backwards_compat(mcls, name, members):
-        # Override _handle_backwards_compat from _ModelMeta to be a no-op; it
-        # is not needed since compound models did not exist before version 1.0
-        # anyways.
-
-        # TODO: Remove this at the same time as removing
-        # _ModelMeta._handle_backwards_compat
-        return
-
-    @classmethod
     def _check_inputs_and_outputs(mcls, operator, left, right):
         # TODO: These aren't the full rules for handling inputs and outputs, but
         # this will handle most basic cases correctly
@@ -2226,34 +2137,23 @@ class _CompoundModelMeta(_ModelMeta):
             submodel = cls[submodel_idx]
 
             orig_param = getattr(submodel, submodel_param, None)
-            if not isinstance(orig_param, Parameter):
-                # This is just a pathological case that is only really needed
-                # to support the deprecated _CompositeModel--composite models
-                # claim to have some parameters, but don't actually implement
-                # the parameter descriptors, so we just make one up basically,
-                # with a default value of zero.  This value will just be thrown
-                # away, basically.
-                # TODO: Remove this special case once the legacy interfaces
-                # have been removed (basically this entire if statement--keep
-                # only the parts in the else: clause.
-                new_param = Parameter(name=param_name, default=0)
+
+            if isinstance(submodel, Model):
+                # Take the parameter's default from the model's value for that
+                # parameter
+                default = orig_param.value
             else:
-                if isinstance(submodel, Model):
-                    # Take the parameter's default from the model's value for that
-                    # parameter
-                    default = orig_param.value
-                else:
-                    default = orig_param.default
+                default = orig_param.default
 
-                # Copy constraints
-                constraints = dict((key, getattr(orig_param, key))
-                                   for key in Model.parameter_constraints)
+            # Copy constraints
+            constraints = dict((key, getattr(orig_param, key))
+                               for key in Model.parameter_constraints)
 
-                # Note: Parameter.copy() returns a new unbound Parameter, never
-                # a bound Parameter even if submodel is a Model instance (as
-                # opposed to a Model subclass)
-                new_param = orig_param.copy(name=param_name, default=default,
-                                            **constraints)
+            # Note: Parameter.copy() returns a new unbound Parameter, never
+            # a bound Parameter even if submodel is a Model instance (as
+            # opposed to a Model subclass)
+            new_param = orig_param.copy(name=param_name, default=default,
+                                        **constraints)
 
             setattr(cls, param_name, new_param)
 
