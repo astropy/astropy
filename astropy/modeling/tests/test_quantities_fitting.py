@@ -42,6 +42,22 @@ def test_fitting_simple():
     x, y = _fake_gaussian_data()
 
     # Fit the data using a Gaussian with units
+    g_init = Gaussian1D()
+    fit_g = fitting.LevMarLSQFitter()
+    g = fit_g(g_init, x, y)
+
+    # TODO: update actual numerical results once implemented, but these should
+    # be close to the values below.
+    assert_quantity_allclose(g.amplitude, 3 * u.Jy, rtol=0.05)
+    assert_quantity_allclose(g.mean, 1.3 * u.m, rtol=0.05)
+    assert_quantity_allclose(g.stddev, 0.8 * u.m, rtol=0.05)
+
+
+def test_fitting_with_initial_values():
+
+    x, y = _fake_gaussian_data()
+
+    # Fit the data using a Gaussian with units
     g_init = Gaussian1D(amplitude=1. * u.mJy, mean=3 * u.cm, stddev=2 * u.mm)
     fit_g = fitting.LevMarLSQFitter()
     g = fit_g(g_init, x, y)
