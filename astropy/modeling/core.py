@@ -1272,10 +1272,9 @@ class Model(object):
         return out
 
     @property
-    def _supports_unit_evaluation(self):
-        # If the model has an 'input_units' property, this indicates that it
-        # can be evaluated using quantities as input
-        return hasattr(self, 'input_units')
+    def input_units(self):
+        # None means any unit is accepted
+        return None
 
     @property
     def _supports_unit_fitting(self):
@@ -1314,7 +1313,7 @@ class Model(object):
 
         # Check that the units are correct, if applicable
 
-        if self._supports_unit_evaluation and self.input_units is not None:
+        if self.input_units is not None:
             if isinstance(self.input_units, UnitBase):
                 input_units = (self.input_units,) * len(inputs)
             for i in range(len(inputs)):
