@@ -36,7 +36,6 @@ def test_parameter_quantity():
     assert g.stddev.unit is u.m
 
 
-@pytest.mark.xfail
 def test_parameter_set_compatible_units():
     """
     Make sure that parameters can be set to values with compatible units
@@ -46,7 +45,7 @@ def test_parameter_set_compatible_units():
     assert_quantity_allclose(g.amplitude, 4 * u.kJ)
     g.mean = 3 * u.km
     assert_quantity_allclose(g.mean, 3 * u.km)
-    g.stdev = 2 * u.mm
+    g.stddev = 2 * u.mm
     assert_quantity_allclose(g.stddev, 2 * u.mm)
 
 
