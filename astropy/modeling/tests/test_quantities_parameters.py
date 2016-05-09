@@ -388,9 +388,9 @@ def test_parameter_quantity_comparison():
 
     g = Gaussian1D([1, 2] * u.J, [1, 2] * u.m, [0.1, 0.2] * u.m)
 
-    assert g.mean == [1, 2] * u.m
+    assert np.all(g.mean == [1, 2] * u.m)
     assert np.all([1, 2] * u.m == g.mean)
-    assert g.mean != [1, 2]
+    assert np.all(g.mean != [1, 2])
     assert np.all([1, 2] != g.mean)
 
     with pytest.raises(UnitsError) as exc:
