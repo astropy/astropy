@@ -660,11 +660,6 @@ class Model(object):
     # model hasn't completed initialization yet
     _n_models = 1
 
-    # Flag indicating whether units should be considered when evaluating this
-    # model.  This is enabled only if any of the model's parameters or inputs
-    # have units, or if the outputs are forced to have a unit
-    _using_quantities = False
-
     def __init__(self, *args, **kwargs):
         super(Model, self).__init__()
         meta = kwargs.pop('meta', None)
@@ -1114,13 +1109,48 @@ class Model(object):
 
     # *** Public methods ***
 
-    @property
-    def input_units(self):
+    def without_units_for_data(self, x, y, z=None):
         """
-        The units that the input should be in, or `None` if no specific units
-        are required.
+        Return an instance of the model for which the parameters have been
+        converted to the right units for the data, then the units have been
+        stripped away.
         """
-        return None
+
+        model = self.copy()
+
+        xunit = x.unit if isinstance(x, Quantity) else dimensionless_unscaled
+        yunit = y.unit if isinstance(y, Quantity) else dimensionless_unscaled
+        zunit = z.unit if z is not None and isinstance(z, Quantity) else dimensionless_unscaled
+
+        parameter_units = self._parameter_units_for_data_units(xunit, yunit, zunit)
+
+        for name, unit in parameter_units.items():
+            parameter = getattr(model, name)
+            if parameter.unit is not None:
+                parameter.value *= parameter.unit.to(unit)
+                parameter._set_unit(None, force=True)
+
+        return model
+
+    def with_units_from_data(self, x, y, z=None):
+        """
+        Return an instance of the model which has units for which the parameter
+        values are compatible with the data units specified.
+        """
+
+        model = self.copy()
+
+        xunit = x.unit if isinstance(x, Quantity) else dimensionless_unscaled
+        yunit = y.unit if isinstance(y, Quantity) else dimensionless_unscaled
+        zunit = z.unit if z is not None and isinstance(z, Quantity) else dimensionless_unscaled
+
+        parameter_units = self._parameter_units_for_data_units(xunit, yunit, zunit)
+
+        for name, unit in parameter_units.items():
+            parameter = getattr(model, name)
+            parameter._set_unit(unit, force=True)
+
+        return model
 
     @abc.abstractmethod
     def evaluate(self, *args, **kwargs):
@@ -1241,6 +1271,19 @@ class Model(object):
 
         return out
 
+    @property
+    def _supports_unit_evaluation(self):
+        # If the model has an 'input_units' property, this indicates that it
+        # can be evaluated using quantities as input
+        return hasattr(self, 'input_units')
+
+    @property
+    def _supports_unit_fitting(self):
+        # If the model has a '_parameter_units_for_data_units' method, this
+        # indicates that we have enough information to strip the units away
+        # and add them back after fitting, when fitting quantities
+        return hasattr(self, '_parameter_units_for_data_units')
+
     def prepare_inputs(self, *inputs, **kwargs):
         """
         This method is used in `~astropy.modeling.Model.__call__` to ensure
@@ -1271,7 +1314,7 @@ class Model(object):
 
         # Check that the units are correct, if applicable
 
-        if self.input_units is not None:
+        if self._supports_unit_evaluation and self.input_units is not None:
             if isinstance(self.input_units, UnitBase):
                 input_units = (self.input_units,) * len(inputs)
             for i in range(len(inputs)):

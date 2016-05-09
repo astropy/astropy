@@ -34,6 +34,7 @@ from functools import reduce
 import numpy as np
 
 from .utils import poly_map_domain
+from ..units import Quantity
 from ..utils.exceptions import AstropyUserWarning
 from ..extern import six
 from ..extern.six.moves import range
@@ -90,6 +91,58 @@ class _FitterMeta(abc.ABCMeta):
             mcls.registry.add(cls)
 
         return cls
+
+
+def fitter_unit_support(func):
+
+    def wrapper(self, model, x, y, z=None, **kwargs):
+
+        if model._supports_unit_fitting:
+
+            add_back_units = False
+
+            if isinstance(x, Quantity):
+                add_back_units = True
+                xdata = x.value
+            else:
+                xdata = np.asarray(x)
+
+            if isinstance(y, Quantity):
+                add_back_units = True
+                ydata = y.value
+            else:
+                ydata = np.asarray(y)
+
+            if z is not None:
+                if isinstance(y, Quantity):
+                    add_back_units = True
+                    zdata = z.value
+                else:
+                    zdata = np.asarray(z)
+
+            if z is None:
+                model = model.without_units_for_data(x, y)
+                model_new = func(self, model, xdata, ydata, **kwargs)
+                if add_back_units:
+                    model_new = model_new.with_units_from_data(x, y)
+            else:
+                model = model.without_units_for_data(x, y, z=z)
+                model_new = func(self, model, xdata, ydata, zdata, **kwargs)
+                if add_back_units:
+                    model_new = model_new.with_units_from_data(x, y, z=z)
+
+            return model_new
+            
+        else:
+            
+            if isinstance(x, Quantity) or isinstance(y, Quantity) or isinstance(z, Quantity):
+                raise NotImplementedError("This model does not support being fit to data with units")
+            
+            return func(self, model, x, y, z=z, **kwargs)
+            
+            
+
+    return wrapper
 
 
 @six.add_metaclass(_FitterMeta)
@@ -220,6 +273,7 @@ class LinearLSQFitter(object):
             ynew = poly_map_domain(y, model.y_domain, model.y_window)
             return xnew, ynew
 
+    @fitter_unit_support
     def __call__(self, model, x, y, z=None, weights=None, rcond=None):
         """
         Fit data to this model.
@@ -504,6 +558,7 @@ class LevMarLSQFitter(object):
         else:
             return np.ravel(weights * (model(*args[2 : -1]) - meas))
 
+    @fitter_unit_support
     def __call__(self, model, x, y, z=None, weights=None,
                  maxiter=DEFAULT_MAXITER, acc=DEFAULT_ACC,
                  epsilon=DEFAULT_EPS, estimate_jacobian=False):
@@ -642,6 +697,7 @@ class SLSQPLSQFitter(Fitter):
         super(SLSQPLSQFitter, self).__init__(optimizer=SLSQP, statistic=leastsquare)
         self.fit_info = {}
 
+    @fitter_unit_support
     def __call__(self, model, x, y, z=None, weights=None, **kwargs):
         """
         Fit data to this model.
@@ -708,6 +764,7 @@ class SimplexLSQFitter(Fitter):
                                                statistic=leastsquare)
         self.fit_info = {}
 
+    @fitter_unit_support
     def __call__(self, model, x, y, z=None, weights=None, **kwargs):
         """
         Fit data to this model.

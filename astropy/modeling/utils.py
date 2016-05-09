@@ -601,3 +601,16 @@ def get_inputs_and_params(func):
             params.append(param)
 
     return inputs, params
+
+
+def _parameter_with_unit(parameter, unit):
+    if parameter.unit is None:
+        return parameter.value * unit
+    else:
+        return parameter.quantity.to(unit)
+
+def _parameter_without_unit(value, old_unit, new_unit):
+    if old_unit is None:
+        return value
+    else:
+        return value * old_unit.to(new_unit)
