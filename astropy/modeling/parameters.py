@@ -457,6 +457,10 @@ class Parameter(OrderedDescriptor):
 
     @unit.setter
     def unit(self, unit):
+        self._set_unit(unit)
+
+    def _set_unit(self, unit, force=False):
+
         if self._model is None:
             raise AttributeError('Cannot set unit on a parameter definition')
 
@@ -470,12 +474,12 @@ class Parameter(OrderedDescriptor):
 
         orig_unit = self._model._param_metrics[self.name]['orig_unit']
 
-        if orig_unit is None:
+        if not force and orig_unit is None:
             raise ValueError(
                 'Cannot attach units to parameters that were not initially '
                 'specified with units')
 
-        if not orig_unit.is_equivalent(unit, equivalencies=self._equivalencies):
+        if not force and not orig_unit.is_equivalent(unit, equivalencies=self._equivalencies):
             raise UnitsError("Cannot set parameter units to {0} since it is "
                              "not equivalent with the original units of "
                              "{1}".format(unit, orig_unit))
