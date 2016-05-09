@@ -132,15 +132,13 @@ def fitter_unit_support(func):
                     model_new = model_new.with_units_from_data(x, y, z=z)
 
             return model_new
-            
+
         else:
-            
+
             if isinstance(x, Quantity) or isinstance(y, Quantity) or isinstance(z, Quantity):
                 raise NotImplementedError("This model does not support being fit to data with units")
-            
+
             return func(self, model, x, y, z=z, **kwargs)
-            
-            
 
     return wrapper
 
