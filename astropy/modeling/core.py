@@ -34,7 +34,7 @@ from ..utils import indent, isinstancemethod, metadata
 from ..extern import six
 from ..extern.six.moves import copyreg, zip
 from ..table import Table
-from ..units import Quantity
+from ..units import Quantity, UnitBase, UnitsError, dimensionless_unscaled
 from ..utils import (deprecated, sharedmethod, find_current_module,
                      InheritDocstrings, OrderedDescriptorContainer,
                      check_broadcast, IncompatibleShapeError)
@@ -379,12 +379,14 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
             # other classes that manually override __call__
             def __call__(self, *inputs, **kwargs):
                 """Evaluate this model on the supplied inputs."""
-
                 return super(cls, self).__call__(*inputs, **kwargs)
 
             args = ('self',) + inputs
             new_call = make_function_with_signature(
-                __call__, args, [('model_set_axis', None), ('with_bounding_box', False), ('fill_value', np.nan)])
+                    __call__, args, [('model_set_axis', None),
+                                     ('with_bounding_box', False),
+                                     ('fill_value', np.nan),
+                                     ('equivalencies', None)])
             update_wrapper(new_call, cls)
             cls.__call__ = new_call
 
@@ -693,6 +695,7 @@ class Model(object):
         """
 
         inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
+
         parameters = self._param_sets(raw=True, units=True)
         with_bbox = kwargs.pop('with_bounding_box', False)
         fill_value = kwargs.pop('fill_value', np.nan)
@@ -1111,6 +1114,14 @@ class Model(object):
 
     # *** Public methods ***
 
+    @property
+    def input_units(self):
+        """
+        The units that the input should be in, or `None` if no specific units
+        are required.
+        """
+        return None
+
     @abc.abstractmethod
     def evaluate(self, *args, **kwargs):
         """Evaluate the model on some input variables."""
@@ -1235,8 +1246,12 @@ class Model(object):
         This method is used in `~astropy.modeling.Model.__call__` to ensure
         that all the inputs to the model can be broadcast into compatible
         shapes (if one or both of them are input as arrays), particularly if
-        there are more than one parameter sets.
+        there are more than one parameter sets. This also makes sure that (if
+        applicable) the units of the input will be compatible with the evaluate
+        method.
         """
+
+        equivalencies = kwargs.pop('equivalencies', None)
 
         model_set_axis = kwargs.pop('model_set_axis', None)
 
@@ -1253,6 +1268,38 @@ class Model(object):
 
         _validate_input_shapes(inputs, self.inputs, n_models,
                                model_set_axis, self.standard_broadcasting)
+
+        # Check that the units are correct, if applicable
+
+        if self.input_units is not None:
+            if isinstance(self.input_units, UnitBase):
+                input_units = (self.input_units,) * len(inputs)
+            for i in range(len(inputs)):
+                if isinstance(inputs[i], Quantity):
+                    if inputs[i].unit.is_equivalent(input_units[i], equivalencies=equivalencies):
+                        if equivalencies is not None:
+                            inputs[i] = inputs[i].to(input_units[i], equivalencies=equivalencies)
+                    else:
+                        if input_units[i] is dimensionless_unscaled:
+                            raise UnitsError("Units of input '{0}', {1} ({2}), could not be "
+                                             "converted to required dimensionless "
+                                             "input".format(self.inputs[i],
+                                                                inputs[i].unit,
+                                                                inputs[i].unit.physical_type))
+                        else:
+                            raise UnitsError("Units of input '{0}', {1} ({2}), could not be "
+                                             "converted to required input units of "
+                                             "{3} ({4})".format(self.inputs[i],
+                                                                inputs[i].unit,
+                                                                inputs[i].unit.physical_type,
+                                                                input_units[i],
+                                                                input_units[i].physical_type))
+                else:
+                    if input_units[i] is not dimensionless_unscaled:
+                        if np.any(inputs[i] != 0):
+                            raise UnitsError("Units of input '{0}', (dimensionless), could not be "
+                                             "converted to required input units of "
+                                             "{1} ({2})".format(self.inputs[i], input_units[i], input_units[i].physical_type))
 
         # The input formatting required for single models versus a multiple
         # model set are different enough that they've been split into separate
