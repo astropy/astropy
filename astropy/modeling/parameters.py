@@ -85,7 +85,7 @@ def _binary_arithmetic_operation(op, reflected=False):
         else:
             self_value = self.value
 
-        if right:
+        if reflected:
             return op(val, self_value)
         else:
             return op(self_value, val)
