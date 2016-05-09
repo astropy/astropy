@@ -23,7 +23,6 @@ from ...tests.helper import pytest, assert_quantity_allclose
 # returns quantities.
 
 
-@pytest.mark.xfail
 def test_evaluate_with_quantities():
     """
     Test evaluation of a single model with Quantity parameters that do
@@ -62,11 +61,10 @@ def test_evaluate_with_quantities():
     # We also can't evaluate the model without quantities with a quantity
     with pytest.raises(UnitsError) as exc:
         g(3 * u.m)
-    assert exc.value.args[0] == ("Input in m (length), could not be converted "
-                                 "to required to dimensionless input")
+    assert exc.value.args[0] == ("Units of input 'x', m (length), could not be "
+                                 "converted to required dimensionless input")
 
 
-@pytest.mark.xfail
 def test_evaluate_with_quantities_and_equivalencies():
     """
     We now make sure that equivalencies are correctly taken into account
@@ -74,17 +72,15 @@ def test_evaluate_with_quantities_and_equivalencies():
 
     g = Gaussian1D(1 * u.Jy, 10 * u.nm, 2 * u.nm)
 
-    # We haven't set the equivalencies yet, so this won't work
+    # We aren't setting the equivalencies, so this won't work
     with pytest.raises(UnitsError) as exc:
         g(30 * u.PHz)
     assert exc.value.args[0] == ("Units of input 'x', PHz (frequency), could "
                                  "not be converted to required input units of "
                                  "nm (length)")
 
-    g.mean.equivalencies = u.spectral()
-    g.stddev.equivalencies = u.spectral()
-
-    # But it should now work
-    assert_quantity_allclose(g(30 * u.PHz), g(9.993081933333332 * u.nm))
+    # But it should now work if we pass equivalencies when evaluating
+    assert_quantity_allclose(g(30 * u.PHz, equivalencies=u.spectral()),
+                             g(9.993081933333332 * u.nm))
 
 
