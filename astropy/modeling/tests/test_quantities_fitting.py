@@ -16,6 +16,12 @@ from ...tests.helper import pytest, assert_quantity_allclose
 from ...utils import NumpyRNGContext
 from .. import fitting
 
+try:
+    from scipy import optimize
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
+
 
 # Fitting should be as intuitive as possible to the user. Essentially, models
 # and fitting should work without units, but if one has units, the other should
@@ -37,6 +43,7 @@ def _fake_gaussian_data():
     return x, y
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_fitting_simple():
 
     x, y = _fake_gaussian_data()
@@ -53,6 +60,7 @@ def test_fitting_simple():
     assert_quantity_allclose(g.stddev, 0.8 * u.m, rtol=0.05)
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_fitting_with_initial_values():
 
     x, y = _fake_gaussian_data()
@@ -69,6 +77,7 @@ def test_fitting_with_initial_values():
     assert_quantity_allclose(g.stddev, 0.8 * u.m, rtol=0.05)
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_fitting_missing_data_units():
     """
     Raise an error if the model has units but the data doesn't
@@ -87,6 +96,7 @@ def test_fitting_missing_data_units():
                                  "(dimensionless) are not convertible")
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_fitting_missing_model_units():
     """
     Proceed if the data has units but the model doesn't
@@ -111,6 +121,7 @@ def test_fitting_missing_model_units():
     assert_quantity_allclose(g.stddev, 0.8 * u.m, rtol=0.05)
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_fitting_incompatible_units():
     """
     Raise an error if the data and model have incompatible units
