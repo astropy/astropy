@@ -50,10 +50,16 @@ NUMPY2FITS['b1'] = 'L'
 NUMPY2FITS['u2'] = 'I'
 NUMPY2FITS['u4'] = 'J'
 NUMPY2FITS['u8'] = 'K'
+# Add half precision floating point numbers which will be up-converted to
+# single precision.
+NUMPY2FITS['f2'] = 'E'
 
 # This is the order in which values are converted to FITS types
 # Note that only double precision floating point/complex are supported
 FORMATORDER = ['L', 'B', 'I', 'J', 'K', 'D', 'M', 'A']
+
+# Convert single precision floating point/complex to double precision.
+FITSUPCONVERTERS = {'E' : 'D', 'C' : 'M'}
 
 # mapping from ASCII table TFORM data type to numpy data type
 # A: Character
@@ -2075,10 +2081,6 @@ def _scalar_to_format(value):
     FORMATORDER.
     """
 
-    # TODO: Numpy 1.6 and up has a min_scalar_type() function that can handle
-    # this; in the meantime we have to use our own implementation (which for
-    # now is pretty naive)
-
     # First, if value is a string, try to convert to the appropriate scalar
     # value
     for type_ in (int, float, complex):
@@ -2088,22 +2090,14 @@ def _scalar_to_format(value):
         except ValueError:
             continue
 
-    if isinstance(value, int) and value in (0, 1):
-        # Could be a boolean
-        return 'L'
-    elif isinstance(value, int):
-        for char in ('B', 'I', 'J', 'K'):
-            type_ = np.dtype(FITS2NUMPY[char]).type
-            if type_(value) == value:
-                return char
-    elif isinstance(value, float):
-        # For now just assume double precision
-        return 'D'
-    elif isinstance(value, complex):
-        return 'M'
-    else:
-        return 'A' + str(len(value))
+    numpy_dtype_str = np.min_scalar_type(value).str
+    numpy_dtype_str = numpy_dtype_str[1:]  # Strip endianness
 
+    try:
+        fits_format = NUMPY2FITS[numpy_dtype_str]
+        return FITSUPCONVERTERS.get(fits_format, fits_format)
+    except KeyError:
+        return "A" + str(len(value))
 
 def _cmp_recformats(f1, f2):
     """
