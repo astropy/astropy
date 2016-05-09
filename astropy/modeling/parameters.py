@@ -26,7 +26,7 @@ from .utils import array_repr_oneline
 
 from .utils import get_inputs_and_params
 
-__all__ = ['Parameter', 'InputParameterError']
+__all__ = ['Parameter', 'InputParameterError', 'ParameterError']
 
 
 class ParameterError(Exception):
