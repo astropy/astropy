@@ -300,6 +300,30 @@ class CartesianRepresentation(BaseRepresentation):
         ----------
         matrix : `~numpy.ndarray`
             A 3x3 transformation matrix, such as a rotation matrix.
+
+        Examples
+        --------
+
+        We can start off by creating a cartesian representation object:
+
+            >>> from astropy import units as u
+            >>> from astropy.coordinates import CartesianRepresentation
+            >>> rep = CartesianRepresentation([1, 2] * u.pc,
+            ...                               [2, 3] * u.pc,
+            ...                               [3, 4] * u.pc)
+
+        We now create a rotation matrix around the z axis:
+
+            >>> from astropy.coordinates.angles import rotation_matrix
+            >>> rotation = rotation_matrix(30 * u.deg, axis='z')
+
+        Finally, we can apply this transformation:
+
+            >>> rep_new = rep.transform(rotation)
+            >>> rep_new.xyz  # doctest: +FLOAT_CMP
+            <Quantity [[ 1.8660254 , 3.23205081],
+                       [ 1.23205081, 1.59807621],
+                       [ 3.        , 4.        ]] pc>
         """
 
         # TODO: since this is likely to be a widely used function in coordinate
