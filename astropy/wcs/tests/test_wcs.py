@@ -914,3 +914,18 @@ def test_no_truncate_using_compare():
     w.wcs.set()
     w2 = wcs.WCS(w.to_header())
     w.wcs.compare(w2.wcs)
+
+
+def test_passing_ImageHDU():
+    """
+    Passing ImageHDU or PrimaryHDU and comparing it with
+    wcs initialized from header. For #4493.
+    """
+    path = get_pkg_data_filename('data/validate.fits')
+    hdulist = fits.open(path)
+    wcs_hdu = wcs.WCS(hdulist[0])
+    wcs_header = wcs.WCS(hdulist[0].header)
+    assert wcs_hdu.wcs.compare(wcs_header.wcs)
+    wcs_hdu = wcs.WCS(hdulist[1])
+    wcs_header = wcs.WCS(hdulist[1].header)
+    assert wcs_hdu.wcs.compare(wcs_header.wcs)
