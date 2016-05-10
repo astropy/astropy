@@ -339,14 +339,10 @@ class CartesianRepresentation(BaseRepresentation):
         # Do the transformation
         vec_new = np.dot(np.asarray(matrix), vec)
 
-        # Reshape to preserve the original shape
-        subshape = xyz.shape[1:]
-        x = vec_new[0].reshape(subshape)
-        y = vec_new[1].reshape(subshape)
-        z = vec_new[2].reshape(subshape)
+        # Restore the original shape
+        vec_new = vec_new.reshape(xyz.shape)
 
-        # Make a new representation and return
-        return CartesianRepresentation(x, y, z)
+        return self.__class__(*vec_new)
 
 
 class UnitSphericalRepresentation(BaseRepresentation):
