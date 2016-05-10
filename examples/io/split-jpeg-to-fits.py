@@ -34,7 +34,7 @@ plt.style.use(astropy_mpl_style)
 ##############################################################################
 # Load and display the original 3-color jpeg image:
 
-image = Image.open('../../docs/io/fits/images/hs-2009-14-a-web.jpg')
+image = Image.open('Hs-2009-14-a-web.jpg')
 xsize, ysize = image.size
 print("Image size: {} x {}".format(xsize, ysize))
 plt.imshow(image)
@@ -73,3 +73,10 @@ blue = fits.PrimaryHDU(data=b_data)
 blue.header['LATOBS'] = "32:11:56"
 blue.header['LONGOBS'] = "110:56"
 blue.writeto('blue.fits')
+
+##############################################################################
+# Delete the files created
+import os
+os.remove('red.fits')
+os.remove('green.fits')
+os.remove('blue.fits')

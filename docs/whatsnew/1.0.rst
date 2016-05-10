@@ -66,7 +66,7 @@ observations.  For example::
     60d32m28.4576s 133d45m36.4967s
 
 For a more detailed outline of this new functionality, see the
-:ref:`sphx_glr_auto_examples_coordinate_plot_obs-planning.py` and the
+:ref:`sphx_glr_auto_examples_coordinates_plot_obs-planning.py` and the
 `~astropy.coordinates.AltAz` documentation.
 
 To enable this functionality, `~astropy.coordinates` now also contains
