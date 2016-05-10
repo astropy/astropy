@@ -108,7 +108,7 @@ class Sagittarius(coord.BaseCoordinateFrame):
 # this by defining functions that return transformation matrices, or by simply
 # defining a function that accepts a coordinate and returns a new coordinate in
 # the new system. We'll start by constructing the rotation matrix, using the
-# helper function `~astropy.coordinates.angles.rotation_matrix`:
+# helper function :func:`~astropy.coordinates.angles.rotation_matrix`:
 
 SGR_PHI = np.radians(180+3.75) # Euler angles (from Law & Majewski 2010)
 SGR_THETA = np.radians(90-13.46)
