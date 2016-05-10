@@ -6,10 +6,32 @@ import numpy as np
 from matplotlib.patches import Polygon
 
 from astropy import units as u
-from astropy.coordinates.representation import UnitSphericalRepresentation
+from astropy.coordinates.representation import UnitSphericalRepresentation, CartesianRepresentation
 from astropy.coordinates.angles import rotation_matrix
 
 __all__ = ['SphericalCircle']
+
+
+def _transform_cartesian(representation, matrix):
+
+    # Get xyz once since it's an expensive operation
+    xyz = representation.xyz
+
+    # Since the underlying data can be n-dimensional, reshape to a
+    # 2-dimensional (3, N) array.
+    vec = xyz.reshape((3, xyz.size // 3))
+
+    # Do the transformation
+    vec_new = np.dot(np.asarray(matrix), vec)
+
+    # Reshape to preserve the original shape
+    subshape = xyz.shape[1:]
+    x = vec_new[0].reshape(subshape)
+    y = vec_new[1].reshape(subshape)
+    z = vec_new[2].reshape(subshape)
+
+    # Make a new representation and return
+    return CartesianRepresentation(x, y, z)
 
 
 def _rotate_polygon(lon, lat, lon0, lat0):
@@ -31,7 +53,12 @@ def _rotate_polygon(lon, lat, lon0, lat0):
 
     # Apply 3D rotation
     polygon = polygon.to_cartesian()
-    polygon = polygon.transform(transform_matrix)
+
+    try:
+        polygon = polygon.transform(transform_matrix)
+    except:  # TODO: remove once Astropy 1.1 is no longer supported
+        polygon = _transform_cartesian(polygon, transform_matrix)
+
     polygon = UnitSphericalRepresentation.from_cartesian(polygon)
 
     return polygon.lon, polygon.lat
