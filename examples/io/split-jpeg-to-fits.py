@@ -7,7 +7,7 @@ Convert a 3-color image (JPG) to separate FITS images
 This example opens an RGB JPEG image and writes out each channel as a separate
 FITS (image) file.
 
-This example uses `pillow` to read the image, `matplotlib.pyplot` to dispay the image,
+This example uses ``pillow`` to read the image, `matplotlib.pyplot` to dispay the image,
 and `astropy.io.fits` to save FITS files.
 
 -------------------
