@@ -1,4 +1,6 @@
-# Licensed under a 3-clause BSD style license - see NUMDISPLAY_LICENSE.rst
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+# Adapted from code from the Numdisplay package (see NUMDISPLAY_LICENSE.rst)
 
 """
 Zscale implementation based on the one from the STScI Numdisplay package.
