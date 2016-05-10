@@ -430,6 +430,8 @@ packages:
 
     - `WCSAxes <http://wcsaxes.readthedocs.io/en/latest/>`_
 
+    - `Pillow <http://python-pillow.org/>`_
+
 .. note::
 
     Sphinx also requires a reasonably modern LaTeX installation to render
