@@ -86,7 +86,8 @@ class Header(object):
         Parameters
         ----------
         cards : A list of `Card` objects, optional
-            The cards to initialize the header with.
+            The cards to initialize the header with. Also allowed are other
+            `Header` (or `dict`-like) objects.
 
         txtfile : file path, file object or file-like object, optional
             Input ASCII header parameters file **(Deprecated)**
@@ -107,6 +108,8 @@ class Header(object):
 
         if isinstance(cards, Header):
             cards = cards.cards
+        elif isinstance(cards, dict):
+            cards = six.iteritems(cards)
 
         for card in cards:
             self.append(card, end=True)
