@@ -406,15 +406,39 @@ files manually`_ section since this explains what many of the files do.
    replace ``packagename`` with the name of your package.
 
 #. If you want the documentation for your project to be hosted by
-   `ReadTheDocs <https://readthedocs.org>`_, then you need to setup an
+   `Read the Docs <https://readthedocs.org>`_, then you need to setup an
    account there. The following entries in "Advanced Settings" for your
-   package on `ReadTheDocs <https://readthedocs.org>`_ should work:
+   package on `Read the Docs <https://readthedocs.org>`_ should work:
 
    - activate ``Install your project inside a virtualenv using setup.py install``
    - Requirements file: ``docs/rtd-pip-requirements``
    - activate ``Give the virtual environment access to the global site-packages dir.``
 
    All other settings can stay on their default value.
+
+   If you need to mock any Python packages or C libraries that can not be
+   installed and built by Read the Docs, you should include the following mocking
+   patch before the ``Project information`` section of the ``docs/conf.py`` file::
+
+      class Mock(object):
+          def __init__(self, *args, **kwargs):
+              pass
+
+          def __call__(self, *args, **kwargs):
+              return Mock()
+
+          @classmethod
+          def __getattr__(cls, name):
+              if name in ('__file__', '__path__'):
+                  return '/dev/null'
+              elif name[0] == name[0].upper():
+                  return type(name, (), {})
+              else:
+                  return Mock()
+
+      MOCK_MODULES = ['<name of package to mock>', '<name of package to mock>']
+      for mod_name in MOCK_MODULES:
+          sys.modules[mod_name] = Mock()
 
 #. You're now ready to start doing actual work on your affiliated package.  You
    will probably want to read over the developer guidelines of the Astropy
@@ -550,7 +574,7 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
         git checkout master
         git push --tags origin master
 
-   Once you have done this, if you use readthedocs, trigger a ``latest`` build
+   Once you have done this, if you use Read the Docs, trigger a ``latest`` build
    then go to the project settings, and under **Versions** you should see the
    tag you just pushed. Select the tag to activate it, and save.
 
