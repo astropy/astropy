@@ -367,6 +367,23 @@ class IERS_A(IERS):
         table = iers_a[~iers_a['UT1_UTC_A'].mask &
                        ~iers_a['PolPMFlag_A'].mask]
 
+        # IERS-A has IERS-B values included, but for reasons unknown these do not
+        # match the latest IERS-B values.  See comments in #4436 for details.  So
+        # here we use the bundled astropy IERS-B table to overwrite the values
+        # in the downloaded IERS-A table.
+        iers_b = IERS_B.open()
+        # IERS-B starts before IERS-A (the finals2000A.all version) so fix that.
+        i0 = np.searchsorted(iers_b['MJD'].value, table['MJD'][0])
+        iers_b = iers_b[i0:]
+        n_iers_b = len(iers_b)
+        # Sanity check that we are overwriting the correct values
+        if not np.allclose(table['MJD'][:n_iers_b], iers_b['MJD'].value):
+            raise ValueError('unexpected mismatch when copying IERS-B values into IERS-A table')
+        # Finally do the overwrite
+        table['UT1_UTC_B'][:n_iers_b] = iers_b['UT1_UTC'].value
+        table['PM_X_B'][:n_iers_b] = iers_b['PM_x'].value
+        table['PM_Y_B'][:n_iers_b] = iers_b['PM_y'].value
+
         # Run np.where on the data from the table columns, since in numpy 1.9
         # it otherwise returns an only partially initialized column.
         table['UT1_UTC'] = np.where(table['UT1_UTC_B'].mask,
