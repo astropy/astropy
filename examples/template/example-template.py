@@ -6,8 +6,9 @@ Title of Example
 
 This example <verb> <active tense> <does something>.
 
-The example uses <packages> to <do something> and <other package> to <do other thing>. Include links to referenced packages like this: `astropy.io.fits`
-to show the astropy.io.fits or like this `~astropy.io.fits`to show just 'fits'
+The example uses <packages> to <do something> and <other package> to <do other
+thing>. Include links to referenced packages like this: `astropy.io.fits` to
+show the astropy.io.fits or like this `~astropy.io.fits`to show just 'fits'
 
 -------------------
 
@@ -28,7 +29,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from astropy.visualization import astropy_mpl_style
 plt.style.use(astropy_mpl_style)
-#uncomment if including figures
+# uncomment if including figures:
 # import matplotlib.pyplot as plt
 # from astropy.visualization import astropy_mpl_style
 # plt.style.use(astropy_mpl_style)
