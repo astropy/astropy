@@ -656,6 +656,19 @@ class TestCartesianRepresentation(object):
             s_slc = s[0]
 
 
+    def test_transform(self):
+
+        s1 = CartesianRepresentation(x=[1,2] * u.kpc, y=[3,4] * u.kpc, z=[5,6] * u.kpc)
+
+        matrix = np.array([[1,2,3], [4,5,6], [7,8,9]])
+
+        s2 = s1.transform(matrix)
+
+        assert_allclose(s2.x.value, [1 * 1 + 2 * 3 + 3 * 5, 1 * 2 + 2 * 4 + 3 * 6])
+        assert_allclose(s2.y.value, [4 * 1 + 5 * 3 + 6 * 5, 4 * 2 + 5 * 4 + 6 * 6])
+        assert_allclose(s2.z.value, [7 * 1 + 8 * 3 + 9 * 5, 7 * 2 + 8 * 4 + 9 * 6])
+
+
 class TestCylindricalRepresentation(object):
 
     def test_empty_init(self):
