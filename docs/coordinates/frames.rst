@@ -271,8 +271,12 @@ For examples of defining frame classes, the first place to look is
 probably the source code for the frames that are included in astropy
 (available at ``astropy.coordinates.builtin_frames``).  These are not
 "magic" in any way, and use all the same API and features available to
-user-created frames.  A more annotated example is also available in the
-:ref:`sgr-example` documentation section.
+user-created frames.
+
+.. topic:: Examples:
+
+    See also :ref:`sphx_glr_auto_examples_coordinates_plot_sgr-coordinate-frame.py`
+    for a more annotated example of defining a new coordinate frame.
 
 
 Defining Transformations
