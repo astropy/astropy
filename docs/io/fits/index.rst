@@ -268,6 +268,9 @@ would with a dict::
     >>> prihdr.keys()
     ['SIMPLE', 'BITPIX', 'NAXIS', ...]
 
+.. topic:: Examples:
+
+    See also :ref:`sphx_glr_auto_examples_io_modify-fits-header.py`.
 
 Working with Image Data
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -611,6 +614,9 @@ So far, we have covered the most basic features of `astropy.io.fits`. In the
 following chapters we'll show more advanced examples and explain options in
 each class and method.
 
+.. topic:: Examples:
+
+    See also :ref:`sphx_glr_auto_examples_io_create-mef.py`.
 
 Convenience Functions
 ---------------------
