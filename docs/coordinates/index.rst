@@ -126,7 +126,7 @@ This form of `~astropy.coordinates.SkyCoord.transform_to` also makes it
 straightforward to convert from celestial coordinates to
 `~astropy.coordinates.AltAz` coordinates, allowing the use of |skycoord|
 as a tool for planning observations.  For a more complete example of
-this, see :doc:`observing-example`.
+this, see :ref:`sphx_glr_auto_examples_plot_obs-planning.py`.
 
 Representation
 --------------

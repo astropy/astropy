@@ -5,11 +5,12 @@ Create a new coordinate class (for the Sagittarius stream)
 ==========================================================
 
 This document describes in detail how to subclass and define a custom spherical
-coordinate frame, as discussed in :doc:`frames` and the docstring for
-`~astropy.coordinates.BaseCoordinateFrame`. In this example, we will define a
-coordinate system defined by the plane of orbit of the Sagittarius Dwarf Galaxy
-(hereafter Sgr; as defined in Majewski et al. 2003).  The Sgr coordinate system
-is often referred to in terms of two angular coordinates, :math:`\Lambda,B`.
+coordinate frame, as discussed in :ref:`astropy-coordinates-design` and the
+docstring for `~astropy.coordinates.BaseCoordinateFrame`. In this example, we
+will define a coordinate system defined by the plane of orbit of the Sagittarius
+Dwarf Galaxy (hereafter Sgr; as defined in Majewski et al. 2003).  The Sgr
+coordinate system is often referred to in terms of two angular coordinates,
+:math:`\Lambda,B`.
 
 To do this, wee need to define a subclass of
 `~astropy.coordinates.BaseCoordinateFrame` that knows the names and units of the
