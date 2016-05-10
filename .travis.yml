@@ -51,7 +51,7 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=2.7 SETUP_CMD='build_sphinx -w'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES='sphinx-gallery>=0.1.2 wcsaxes --no-deps jplephem'
+               PIP_DEPENDENCIES='sphinx-gallery>=0.1.2 pillow wcsaxes --no-deps jplephem'
 
         # Try all python versions with the latest numpy, but without the
         # optional dependencies
