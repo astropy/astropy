@@ -3,4 +3,4 @@
 astropy.io
 ----------
 
-General examples about the `astropy.io` subpackages.
+General examples about the ``astropy.io`` subpackages.
