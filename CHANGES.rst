@@ -21,6 +21,9 @@ New Features
 
 - ``astropy.coordinates``
 
+  - ``CartesianRepresentation`` now includes a transform() method that can take
+    a 3x3 matrix to transform coordinates.
+
 - ``astropy.cosmology``
 
   - ``angular_diameter_distance_z1z2`` now supports the computation of

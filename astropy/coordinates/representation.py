@@ -290,6 +290,40 @@ class CartesianRepresentation(BaseRepresentation):
     def to_cartesian(self):
         return self
 
+    def transform(self, matrix):
+        """
+        Transform the cartesian coordinates using a 3x3 matrix.
+
+        This returns a new representation and does not modify the original one.
+
+        Parameters
+        ----------
+        matrix : `~numpy.ndarray`
+            A 3x3 transformation matrix, such as a rotation matrix.
+        """
+
+        # TODO: since this is likely to be a widely used function in coordinate
+        # transforms, it should be optimized (for example in Cython).
+
+        # Get xyz once since it's an expensive operation
+        xyz = self.xyz
+
+        # Since the underlying data can be n-dimensional, reshape to a
+        # 2-dimensional (3, N) array.
+        vec = xyz.reshape((3, xyz.size // 3))
+
+        # Do the transformation
+        vec_new = np.dot(np.asarray(matrix), vec)
+
+        # Reshape to preserve the original shape
+        subshape = xyz.shape[1:]
+        x = vec_new[0].reshape(subshape)
+        y = vec_new[1].reshape(subshape)
+        z = vec_new[2].reshape(subshape)
+
+        # Make a new representation and return
+        return CartesianRepresentation(x, y, z)
+
 
 class UnitSphericalRepresentation(BaseRepresentation):
     """

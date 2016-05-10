@@ -818,18 +818,15 @@ class DynamicMatrixTransform(CoordinateTransform):
             priority=priority, register_graph=register_graph)
 
     def __call__(self, fromcoord, toframe):
+
         from .representation import CartesianRepresentation, \
                                     UnitSphericalRepresentation
 
-        xyz = fromcoord.represent_as(CartesianRepresentation).xyz
-        v = xyz.reshape((3, xyz.size // 3))
-        v2 = np.dot(np.asarray(self.matrix_func(fromcoord, toframe)), v)
-        subshape = xyz.shape[1:]
-        x = v2[0].reshape(subshape)
-        y = v2[1].reshape(subshape)
-        z = v2[2].reshape(subshape)
+        transform_matrix = self.matrix_func(fromcoord, toframe)
 
-        newrep = CartesianRepresentation(x, y, z)
+        rep = fromcoord.represent_as(CartesianRepresentation)
+        newrep = rep.transform(transform_matrix)
+
         if issubclass(fromcoord.data.__class__, UnitSphericalRepresentation):
             #need to special-case this because otherwise the new class will
             #think it has a valid distance
