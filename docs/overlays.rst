@@ -34,10 +34,10 @@ Apart from the handling of the ticks, tick labels, and grid lines, the
 :meth:`~matplotlib.axes.Axes.contour`,
 :meth:`~matplotlib.axes.Axes.plot`,
 :meth:`~matplotlib.axes.Axes.scatter`, and so on will work and plot the
-data in pixel coordinates by default.
+data in **pixel coordinates** by default.
 
-For example, in the following example, the scatter markers and the rectangle
-will be plotted in pixel coordinates:
+In the following example, the scatter markers and the rectangle will be plotted
+in pixel coordinates:
 
 .. plot::
    :context:
@@ -62,8 +62,8 @@ World coordinates
 =================
 
 All such Matplotlib commands allow a ``transform=`` argument to be passed,
-which will transform the values and objects passed to Matplotlib before they
-are plotted. For instance::
+which will transform the input from world to pixel coordinates before it is
+passed to Matplotlib and plotted. For instance::
 
     ax.scatter(..., transform=...)
     
@@ -72,9 +72,12 @@ transform them using the transformation passed to ``transform=``, in order to
 end up with the final pixel coordinates.
 
 The `~wcsaxes.WCSAxes` class includes a :meth:`~wcsaxes.WCSAxes.get_transform`
-method can be used to get the appropriate transformation object to convert from various world coordinate systems to the final pixel coordinate system required by Matplotlib. The :meth:`~wcsaxes.WCSAxes.get_transform` method can take a number of different inputs, which are desribed in this and subsequent sections. The two simplest inputs to this method are ``'world'`` and ``'pixel'``. To plot in the default world coordinates system, you can use::
-
-    ax.get_transform("world")
+method that can be used to get the appropriate transformation object to convert
+from various world coordinate systems to the final pixel coordinate system
+required by Matplotlib. The :meth:`~wcsaxes.WCSAxes.get_transform` method can
+take a number of different inputs, which are desribed in this and subsequent
+sections. The two simplest inputs to this method are ``'world'`` and
+``'pixel'``.
 
 For example, if your WCS defines an image where the coordinate system consists of an angle in degrees and a wavelength in nanometers, you can do::
 
@@ -170,18 +173,7 @@ in FK5 equatorial coordinates:
                   transform=ax.get_transform('fk5'))
     ax.add_patch(r)
 
-In this case, the rectangle will be plotted at FK5 J2000 coordinates (266deg, -28.9deg). However, it is **very important** to note that while the height will indeed be 0.15 degrees, the width will not strictly represent 0.3 degrees on the sky, but an interval of 0.3 degrees in longitude (which, dependending on the latitude, will represent a different angle on the sky). In other words, if the width and height are set to the same value, the resulting polygon will not be a square:
-
-.. plot::
-   :context:
-   :include-source:
-   :align: center
-
-    r = Rectangle((266.4, -28.9), 0.3, 0.3, edgecolor='cyan', facecolor='none',
-                  transform=ax.get_transform('fk5'))
-    ax.add_patch(r)
-
-The same applies to the `~matplotlib.patches.Circle` patch, which will not actually produce a circle for the same reason:
+In this case, the rectangle will be plotted at FK5 J2000 coordinates (266deg, -28.9deg). However, it is **very important** to note that while the height will indeed be 0.15 degrees, the width will not strictly represent 0.3 degrees on the sky, but an interval of 0.3 degrees in longitude (which, dependending on the latitude, will represent a different angle on the sky). In other words, if the width and height are set to the same value, the resulting polygon will not be a square, and the same applies to the `~matplotlib.patches.Circle` patch, which will not actually produce a circle:
 
 .. plot::
    :context:
@@ -189,9 +181,16 @@ The same applies to the `~matplotlib.patches.Circle` patch, which will not actua
    :align: center
 
     from matplotlib.patches import Circle
-    r = Circle((266.4, -29.1), 0.15, edgecolor='yellow', facecolor='none',
+
+    r = Rectangle((266.4, -28.9), 0.3, 0.3, edgecolor='cyan', facecolor='none',
                   transform=ax.get_transform('fk5'))
     ax.add_patch(r)
+
+    c = Circle((266.4, -29.1), 0.15, edgecolor='yellow', facecolor='none',
+                  transform=ax.get_transform('fk5'))
+    ax.add_patch(c)
+
+
 
 .. important:: If what you are interested is simply plotting circles around 
                sources to highlight them, then we recommend using

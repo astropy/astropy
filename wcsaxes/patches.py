@@ -86,7 +86,9 @@ class SphericalCircle(Polygon):
         The number of points that make up the circle - increase this to get a
         smoother circle.
     vertex_unit : `~astropy.units.Unit`
-        The units in which the resulting polygon should be defined.
+        The units in which the resulting polygon should be defined - this
+        should match the unit that the transformation (e.g. the WCS
+        transformation) expects as input.
 
     Notes
     -----
