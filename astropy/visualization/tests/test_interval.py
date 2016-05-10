@@ -67,6 +67,12 @@ def test_zscale():
     np.testing.assert_allclose(vmin, -9.6, atol=0.1)
     np.testing.assert_allclose(vmax, 25.4, atol=0.1)
 
+    data = list(range(1000)) + [np.nan]
+    interval = ZScaleInterval()
+    vmin, vmax = interval.get_limits(data)
+    np.testing.assert_allclose(vmin, 0, atol=0.1)
+    np.testing.assert_allclose(vmax, 999, atol=0.1)
+
 
 def test_integers():
 
