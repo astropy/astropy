@@ -225,5 +225,5 @@ def test_for_stolen_uncertainty():
     # Sharing uncertainties should not overwrite the parent_nddata attribute
     ndd1 = NDData(1, uncertainty=1)
     ndd2 = NDData(2, uncertainty=ndd1.uncertainty)
-    # parent_nddata.data should be the original data.
+    # uncertainty.parent_nddata.data should be the original data!
     assert ndd1.uncertainty.parent_nddata.data == ndd1.data

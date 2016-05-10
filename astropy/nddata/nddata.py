@@ -299,5 +299,13 @@ class NDData(NDDataBase):
             # If it is a subclass of NDUncertainty we must set the
             # parent_nddata attribute. (#4152)
             if isinstance(value, NDUncertainty):
+                # In case the uncertainty already has a parent create a new
+                # instance because we need to assume that we don't want to
+                # steal the uncertainty from another NDData object
+                if value._parent_nddata is not None:
+                    value = value.__class__(value, copy=False)
+                # Then link it to this NDData instance (internally this needs
+                # to be saved as weakref but that's done by NDUncertainty
+                # setter).
                 value.parent_nddata = self
         self._uncertainty = value
