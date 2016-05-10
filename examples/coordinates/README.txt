@@ -3,4 +3,4 @@
 astropy.coordinates
 -------------------
 
-General examples about the `astropy.coordinates` subpackage.
+General examples of the `astropy.coordinates` subpackage.
