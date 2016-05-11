@@ -41,6 +41,10 @@ New Features
 
 - ``astropy.io.misc``
 
+- ``astropy.io.registry``
+
+  - Added custom ``IORegistryError`` [#4883]
+
 - ``astropy.io.votable``
 
   - File name could be passed as ``Path`` object. [#4606]
