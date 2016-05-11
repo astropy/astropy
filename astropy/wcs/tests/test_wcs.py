@@ -949,6 +949,18 @@ def inconsistent_sip():
     newhdr = w.to_header(key=" ")
     # Test writing a primary WCS to header
     assert(all([ctyp[-4 :] != '-SIP' for ctyp in self.wcs.ctype]))
-    # Test that "-SIP" is kept into CTYPE if relax=True
+    # Test that "-SIP" is kept into CTYPE if relax=True and
+    # "-SIP" was in the original header
     newhdr = w.to_header(relax=True)
     assert(all([ctyp[-4 :] == '-SIP' for ctyp in self.wcs.ctype]))
+    # Test that SIP coefficients are aslo written out.
+    wtest = WCS(newhdr)
+    assert wtest.sip is not None
+    ########## broken header ###########
+    # Test that "-SIP" is added to CTYPE if relax=True and
+    # "-SIP" was not in the original header
+    hdr['CTYPE1'] = 'RA---TAN'
+    w = WCS(hdr)
+    newhdr = w.to_header(relax=True)
+    assert(all([ctyp[-4 :] == '-SIP' for ctyp in self.wcs.ctype]))
+
