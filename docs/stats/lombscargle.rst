@@ -19,6 +19,12 @@ The code here is adapted from the `astroml`_ package ([4]_, [5]_) and the `gatsp
 
 Basic Usage
 ===========
+
+.. Note::
+   All frequencies in :class:`~astropy.stats.LombScargle` are **not** angular
+   frequencies, but rather frequencies of oscillation; i.e. number of
+   cycles per unit time.
+
 The Lomb-Scargle periodogram is designed to detect periodic signals in
 unevenly-spaced observations. For example, consider the following data:
 
