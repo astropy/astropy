@@ -758,13 +758,14 @@ class Column(BaseColumn):
 
         lines, outs = self._formatter._pformat_col(self)
         return '\n'.join(lines)
-    if six.PY3:
-        __str__ = __unicode__
 
     def __bytes__(self):
         return six.text_type(self).encode('utf-8')
+
     if six.PY2:
         __str__ = __bytes__
+    else:
+        __str__ = __unicode__
 
     # Set items using a view of the underlying data, as it gives an
     # order-of-magnitude speed-up. [#2994]

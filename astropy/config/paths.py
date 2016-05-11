@@ -34,7 +34,7 @@ def _find_home():
     # in py2.x but not in py3.x
     if six.PY2:
         decodepath = lambda pth: pth.decode(sys.getfilesystemencoding())
-    elif six.PY3:
+    else:
         decodepath = lambda pth: pth
 
     # First find the home directory - this is inspired by the scheme ipython

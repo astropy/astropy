@@ -2064,12 +2064,13 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
     def __bytes__(self):
         return bytes(self.to_table())
-    if six.PY2:
-        __str__ = __bytes__
 
     def __unicode__(self):
         return six.text_type(self.to_table())
-    if six.PY3:
+
+    if six.PY2:
+        __str__ = __bytes__
+    else:
         __str__ = __unicode__
 
     @property
@@ -2223,17 +2224,17 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
             dtype = []
             for x in fields:
-                if six.PY3:
-                    if x._unique_name == x.ID:
-                        id = x.ID
-                    else:
-                        id = (x._unique_name, x.ID)
-                else:
+                if six.PY2:
                     if x._unique_name == x.ID:
                         id = x.ID.encode('utf-8')
                     else:
                         id = (x._unique_name.encode('utf-8'),
                               x.ID.encode('utf-8'))
+                else:
+                    if x._unique_name == x.ID:
+                        id = x.ID
+                    else:
+                        id = (x._unique_name, x.ID)
                 dtype.append((id, x.converter.format))
 
             array = np.recarray((nrows,), dtype=np.dtype(dtype))
