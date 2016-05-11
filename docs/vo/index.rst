@@ -22,10 +22,10 @@ Current services include:
 
 Other third-party Python packages and tools related to ``astropy.vo``:
 
-* `PyVO <http://pyvo.readthedocs.org/en/latest/>`__
+* `PyVO <http://pyvo.readthedocs.io/en/latest/>`__
   provides further functionality to discover
   and query VO services. Its user guide contains a
-  `good introduction <https://pyvo.readthedocs.org/en/latest/pyvo/vo.html>`__
+  `good introduction <https://pyvo.readthedocs.io/en/latest/pyvo/vo.html>`__
   to how the VO works.
 
 * `Astroquery <http://www.astropy.org/astroquery/>`__

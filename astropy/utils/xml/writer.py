@@ -164,7 +164,7 @@ class XMLWriter:
         In order to explicitly allow certain XML tags (e.g. link reference or
         emphasis tags), use ``method='bleach_clean'``.  This sanitizes the data
         string using the ``clean`` function of the
-        `http://bleach.readthedocs.org/en/latest/clean.html <bleach>`_ package.
+        `http://bleach.readthedocs.io/en/latest/clean.html <bleach>`_ package.
         Any additional keyword arguments will be passed directly to the
         ``clean`` function.
 

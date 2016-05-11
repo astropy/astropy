@@ -40,9 +40,12 @@ References
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import warnings
+
 import numpy as np
 
 from ..utils.compat.funcsigs import signature
+from ..utils.exceptions import AstropyUserWarning
 
 # TODO: implement other fitness functions from appendix B of Scargle 2012
 
@@ -417,12 +420,11 @@ class Events(FitnessFunc):
     """
     def __init__(self, p0=0.05, gamma=None, ncp_prior=None):
         if p0 is not None and gamma is None and ncp_prior is None:
-            import warnings
             warnings.warn('p0 does not seem to accurately represent the false '
                           'positive rate for event data. It is highly '
                           'recommended that you run random trials on signal-'
                           'free noise to calibrate ncp_prior to achieve a '
-                          'desired false positive rate.')
+                          'desired false positive rate.', AstropyUserWarning)
         super(Events, self).__init__(p0, gamma, ncp_prior)
 
     def fitness(self, N_k, T_k):
@@ -474,9 +476,8 @@ class RegularEvents(FitnessFunc):
 
         eps = 1E-8
         if np.any(N_over_M > 1 + eps):
-            import warnings
             warnings.warn('regular events: N/M > 1.  '
-                          'Is the time step correct?')
+                          'Is the time step correct?', AstropyUserWarning)
 
         one_m_NM = 1 - N_over_M
         N_over_M[N_over_M <= 0] = 1

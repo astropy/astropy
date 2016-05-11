@@ -2943,7 +2943,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             ...
 
         and this will generate a plot with the correct WCS coordinates on the
-        axes. See http://wcsaxes.readthedocs.org for more information.
+        axes. See http://wcsaxes.readthedocs.io for more information.
         """
 
         try:
@@ -2951,7 +2951,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         except ImportError:
             raise ImportError("Using WCS instances as Matplotlib projections "
                               "requires the WCSAxes package to be installed. "
-                              "See http://wcsaxes.readthedocs.org for more "
+                              "See http://wcsaxes.readthedocs.io for more "
                               "details.")
         else:
             return WCSAxes, {'wcs': self}

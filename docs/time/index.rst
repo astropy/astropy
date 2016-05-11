@@ -175,7 +175,7 @@ yday         :class:`~astropy.time.TimeYearDayTime`             2000:001:00:00:0
    initialization.  Furthermore, any specific realization information,
    such as ``UT(NIST)`` is stored only as long as the time scale is not changed.
 .. [#] `Rots et al. 2015, A&A 574:A36 <http://adsabs.harvard.edu/abs/2015A%26A...574A..36R>`_
-	  
+
 Changing format
 """""""""""""""
 
@@ -310,7 +310,7 @@ appropriate::
   >>> t[2]
   <Time object: scale='utc' format='mjd' value=300.0>
   >>> t = Time(np.arange(50000., 50003.)[:, np.newaxis],
-  ...          np.arange(0., 1., 0.5), format='mjd') 
+  ...          np.arange(0., 1., 0.5), format='mjd')
   >>> t
   <Time object: scale='utc' format='mjd' value=[[ 50000.   50000.5]
    [ 50001.   50001.5]
@@ -868,7 +868,7 @@ Barycentric and Heliocentric Light Travel Time Corrections
 ------------------------------------------------------------
 
 The arrival times of photons at an observatory are not particularly useful for
-accurate timing work, such as eclipse/transit timing of binaries or exoplanets. 
+accurate timing work, such as eclipse/transit timing of binaries or exoplanets.
 This is because the changing location of the observatory causes photons to
 arrive early or late. The solution is to calculate the time the photon would
 have arrived at a standard location; either the Solar system barycentre or the
@@ -881,27 +881,26 @@ calculate light travel times to the barycentre as follows::
     >>> from astropy import time, coordinates as coord, units as u
     >>> ip_peg = coord.SkyCoord("23:23:08.55", "+18:24:59.3",
     ...                         unit=(u.hourangle, u.deg), frame='icrs')
-    >>> greenwich = coord.EarthLocation.of_site('greenwich')  
+    >>> greenwich = coord.EarthLocation.of_site('greenwich')
     >>> times = time.Time([56325.95833333, 56325.978254], format='mjd',
-    ...                   scale='utc', location=greenwich)  
-    >>> ltt_bary = times.light_travel_time(ip_peg)  
-          
+    ...                   scale='utc', location=greenwich)
+    >>> ltt_bary = times.light_travel_time(ip_peg)
+
 If you desire the light travel time to the heliocentre instead then use::
-          
-    >>> ltt_helio = times.light_travel_time(ip_peg, 'heliocentric') 
+
+    >>> ltt_helio = times.light_travel_time(ip_peg, 'heliocentric')
 
 The method returns an |TimeDelta| object, which can be added to
 your times to give the arrival time of the photons at the barycentre or
 heliocentre.  Here, one should be careful with the timescales used; for more
-detailed information about timescales, see
-http://astropy.readthedocs.org/en/stable/time/index.html#time-scale.
+detailed information about timescales, see :ref:`time-scale`.
 
 The heliocentre is not a fixed point, and therefore the gravity
 continually changes at the heliocentre. Thus, the use of a relativistic
 timescale like TDB is not particularly appropriate, and, historically,
 times corrected to the heliocentre are given in the UTC timescale::
 
-    >>> times_heliocentre = times.utc + ltt_helio  
+    >>> times_heliocentre = times.utc + ltt_helio
 
 Corrections to the barycentre are more precise than the heliocentre,
 because the barycenter is a fixed point where gravity is constant. For
@@ -911,7 +910,7 @@ whose tick rate is related to the rate that a clock would tick at the
 barycentre. For this reason, barycentric corrected times normally use
 the TDB timescale::
 
-    >>> time_barycentre = times.tdb + ltt_bary 
+    >>> time_barycentre = times.tdb + ltt_bary
 
 Interaction with Time-like Quantities
 -------------------------------------
