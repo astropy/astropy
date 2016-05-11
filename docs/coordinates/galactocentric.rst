@@ -62,7 +62,7 @@ of their :math:`y'` positions. We find:
 .. math::
 
    \begin{aligned}
-       \eta &= 148.5986320^\circ\\
+       \eta &= 58.5986320306^\circ\\
        \boldsymbol{R}_3 &=
        \begin{bmatrix}
          1 & 0 & 0\\
