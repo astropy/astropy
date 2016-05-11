@@ -14,7 +14,10 @@ from numpy.testing import assert_array_equal
 from .. import converters
 from .. import exceptions
 from .. import tree
+
+from ..table import parse_single_table
 from ....tests.helper import raises, catch_warnings
+from ....utils.data import get_pkg_data_filename
 
 
 @raises(exceptions.E13)
@@ -262,3 +265,10 @@ def test_vararray():
         table.array[i] = values
     buff = io.BytesIO()
     votable.to_xml(buff)
+
+def test_gemini_v1_2():
+    '''
+    see Pull Request 4782 or Issue 4781 for details
+    '''
+    table = parse_single_table(get_pkg_data_filename('data/gemini.xml'))
+    assert table is not None

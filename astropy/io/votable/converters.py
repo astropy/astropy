@@ -581,7 +581,7 @@ class NumericArray(Array):
     def parse(self, value, config=None, pos=None):
         if config is None:
             config = {}
-        if config['version_1_3_or_later'] and value == '':
+        elif config['version_1_3_or_later'] and value == '':
             return np.zeros(self._arraysize, dtype=self._base.format), True
         parts = self._splitter(value, config, pos)
         if len(parts) != self._items:
