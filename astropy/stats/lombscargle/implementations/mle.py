@@ -1,4 +1,5 @@
-"""Tools for maximum likelihood estimation associated with Lomb-Scargle"""
+from __future__ import print_function, division
+
 import numpy as np
 
 from .utils import validate_inputs
@@ -30,8 +31,11 @@ def design_matrix(t, frequency, dy=None, bias=True, nterms=1):
     """
     t = np.asarray(t)
     frequency = np.asarray(frequency)
-    assert t.ndim == 1
-    assert frequency.ndim == 0
+
+    if t.ndim != 1:
+        raise ValueError("t should be one dimensional")
+    if frequency.ndim != 0:
+        raise ValueError("frequency must be a scalar")
 
     if nterms == 0 and not bias:
         raise ValueError("cannot have nterms=0 and no bias")
@@ -87,9 +91,13 @@ def periodic_fit(t, y, dy, frequency, t_fit,
         dy = np.ones_like(y)
 
     t_fit = np.asarray(t_fit)
-    assert t.ndim == 1
-    assert t_fit.ndim == 1
-    assert frequency.ndim == 0
+
+    if t.ndim != 1:
+        raise ValueError("t, y, dy should be one dimensional")
+    if t_fit.ndim != 1:
+        raise ValueError("t_fit should be one dimensional")
+    if frequency.ndim != 0:
+        raise ValueError("frequency should be a scalar")
 
     if center_data:
         w = dy ** -2.0

@@ -60,8 +60,11 @@ def lombscargle_cython(t, y, dy, frequency, normalization='normalized',
     dy = np.asarray(dy, dtype=DTYPE, order='C')
     frequency = np.asarray(frequency, dtype=DTYPE, order='C')
 
-    assert t.ndim == 1
-    assert frequency.ndim == 1
+    if t.ndim != 1:
+        raise ValueError("t, y, dy should be one dimensional")
+    if frequency.ndim != 1:
+        raise ValueError("frequency should be one-dimensional")
+
     PLS = np.zeros(frequency.shape, dtype=DTYPE, order='C')
 
     # pre-center the data: not technically required if fit_bias=True,

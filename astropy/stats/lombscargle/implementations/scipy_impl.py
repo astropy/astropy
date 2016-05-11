@@ -47,8 +47,11 @@ def lombscargle_scipy(t, y, frequency, normalization='normalized',
 
     t, y = np.broadcast_arrays(t, y)
     frequency = np.asarray(frequency)
-    assert t.ndim == 1
-    assert frequency.ndim == 1
+
+    if t.ndim != 1:
+        raise ValueError("t, y, dy should be one dimensional")
+    if frequency.ndim != 1:
+        raise ValueError("frequency should be one-dimensional")
 
     if center_data:
         y = y - y.mean()

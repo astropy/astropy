@@ -248,12 +248,14 @@ def trig_sum(t, h, df, N, f0=0, freq_factor=1,
     df *= freq_factor
     f0 *= freq_factor
 
-    assert df > 0
+    if df <= 0:
+        raise ValueError("df must be positive")
     t, h = map(np.ravel, np.broadcast_arrays(t, h))
 
     if use_fft:
         Mfft = int(Mfft)
-        assert(Mfft > 0)
+        if Mfft <= 0:
+            raise ValueError("Mfft must be positive")
 
         # required size of fft is the power of 2 above the oversampling rate
         Nfft = bitceil(N * oversampling)

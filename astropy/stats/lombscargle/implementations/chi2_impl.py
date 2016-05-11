@@ -48,8 +48,11 @@ def lombscargle_chi2(t, y, dy, frequency, normalization='normalized',
 
     t, y, dy = np.broadcast_arrays(t, y, dy)
     frequency = np.asarray(frequency)
-    assert t.ndim == 1
-    assert frequency.ndim == 1
+
+    if t.ndim != 1:
+        raise ValueError("t, y, dy should be one dimensional")
+    if frequency.ndim != 1:
+        raise ValueError("frequency should be one-dimensional")
 
     w = dy ** -2.0
     w /= w.sum()

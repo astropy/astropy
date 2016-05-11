@@ -62,12 +62,16 @@ def lombscargle_fast(t, y, dy, f0, df, Nf,
 
     # Validate and setup input data
     t, y, dy = np.broadcast_arrays(t, y, dy)
-    assert t.ndim == 1
+    if t.ndim != 1:
+        raise ValueError("t, y, dy should be one dimensional")
 
     # Validate and setup frequency grid
-    assert(f0 >= 0)
-    assert(df > 0)
-    assert(Nf > 0)
+    if f0 < 0:
+        raise ValueError("Frequencies must be positive")
+    if df <= 0:
+        raise ValueError("Frequency steps must be positive")
+    if Nf <= 0:
+        raise ValueError("Number of frequencies must be positive")
 
     w = dy ** -2.0
     w /= w.sum()

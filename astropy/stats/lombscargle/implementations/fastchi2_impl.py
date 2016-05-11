@@ -53,9 +53,18 @@ def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='normalized',
     if dy is None:
         dy = 1
 
+    # Validate and setup input data
     t, y, dy = np.broadcast_arrays(t, y, dy)
+    if t.ndim != 1:
+        raise ValueError("t, y, dy should be one dimensional")
 
-    assert t.ndim == 1
+    # Validate and setup frequency grid
+    if f0 < 0:
+        raise ValueError("Frequencies must be positive")
+    if df <= 0:
+        raise ValueError("Frequency steps must be positive")
+    if Nf <= 0:
+        raise ValueError("Number of frequencies must be positive")
 
     w = dy ** -2.0
     ws = np.sum(w)
