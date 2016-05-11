@@ -8,18 +8,17 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from ... import NDData, NDArithmeticMixin
 from ...nduncertainty import (StdDevUncertainty, UnknownUncertainty,
                               IncompatibleUncertaintiesException)
+from ... import NDDataRef
+
 from ....units import UnitsError, Quantity
 from ....tests.helper import pytest
 from .... import units as u
 
 
-# Just add the Mixin to NDData
-class NDDataArithmetic(NDArithmeticMixin, NDData):
-
-    pass
+# Alias NDDataAllMixins in case this will be renamed ... :-)
+NDDataArithmetic = NDDataRef
 
 
 class StdDevUncertaintyUncorrelated(StdDevUncertainty):
