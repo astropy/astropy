@@ -3,7 +3,7 @@ import os
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.patches import Circle
+from matplotlib.patches import Circle, Rectangle
 
 from astropy import units as u
 from astropy.io import fits
@@ -12,6 +12,7 @@ from astropy.wcs import WCS
 
 from ..rc_utils import rc_context
 
+from ..patches import SphericalCircle
 from .. import datasets, WCSAxes
 
 from . import baseline_dir
@@ -409,5 +410,49 @@ class TestBasic(BaseImageTests):
 
         # TODO: the formatted string should show units
         assert ax.format_coord(512, 512) == "513.0 513.0 (world)"
+
+        return fig
+
+    @remote_data
+    @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, savefig_kwargs={'bbox_inches': 'tight'},
+                                   tolerance=1.5)
+    def test_patches_distortion(self, tmpdir):
+
+        # Check how patches get distorted (and make sure that scatter markers
+        # and SphericalCircle don't)
+
+        wcs = WCS(self.msx_header)
+        fig = plt.figure(figsize=(3, 3))
+        ax = fig.add_axes([0.25, 0.25, 0.5, 0.5], projection=wcs, aspect='equal')
+
+        # Pixel coordinates
+        r = Rectangle((30., 50.), 60., 50., edgecolor='green', facecolor='none')
+        ax.add_patch(r)
+
+        # FK5 coordinates
+        r = Rectangle((266.4, -28.9), 0.3, 0.3, edgecolor='cyan', facecolor='none',
+                      transform=ax.get_transform('fk5'))
+        ax.add_patch(r)
+
+        # FK5 coordinates
+        c = Circle((266.4, -29.1), 0.15, edgecolor='magenta', facecolor='none',
+                      transform=ax.get_transform('fk5'))
+        ax.add_patch(c)
+
+        # Pixel coordinates
+        ax.scatter([40, 100, 130], [30, 130, 60], s=100, edgecolor='red', facecolor=(1, 0, 0, 0.5))
+
+        # World coordinates (should not be distorted)
+        ax.scatter(266.78238, -28.769255, transform=ax.get_transform('fk5'), s=300,
+                   edgecolor='red', facecolor='none')
+
+        # World coordinates (should not be distorted)
+        r = SphericalCircle((266.4 * u.deg, -29.1 * u.deg), 0.15 * u.degree,
+                             edgecolor='purple', facecolor='none',
+                             transform=ax.get_transform('fk5'))
+        ax.add_patch(r)
+        
+        ax.coords[0].set_ticklabel_visible(False)
+        ax.coords[1].set_ticklabel_visible(False)
 
         return fig
