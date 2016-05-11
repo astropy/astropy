@@ -20,8 +20,9 @@ __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D',
            'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D', 'Lorentz1D',
            'MexicanHat1D', 'MexicanHat2D', 'RedshiftScaleFactor', 'Redshift',
-           'Scale', 'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D',
-           'TrapezoidDisk2D', 'Ring2D', 'custom_model_1d', 'Voigt1D']
+           'Scale', 'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Tabular1D',
+           'Trapezoid1D', 'TrapezoidDisk2D', 'Ring2D', 'custom_model_1d',
+           'Voigt1D']
 
 
 class Gaussian1D(Fittable1DModel):
@@ -2014,6 +2015,57 @@ class Sersic2D(Fittable2DModel):
         z = np.sqrt((x_maj / a) ** 2 + (x_min / b) ** 2)
 
         return amplitude * np.exp(-bn * (z ** (1 / n) - 1))
+
+
+# TODO: Add support for n_models > 1 and different kinds of interpolation.
+class Tabular1D(Fittable1DModel):
+    """One dimensional model from tabular data.
+
+    .. note::
+
+        This model requires `SciPy <http://www.scipy.org>`_ 0.17
+        or later to be installed. It uses :func:`~scipy.interpolate.interp1d`
+        to interpolate the tabular data during evaluation.
+
+    Parameters
+    ----------
+    x : array_like
+        X values.
+
+    y : array_like
+        Y values.
+
+    """
+    standard_broadcasting = False  # This will be needed for n_models > 1
+    x = Parameter(default=[0, 0])
+    y = Parameter(default=[0, 0])
+
+    def __init__(self, x, y, **kwargs):
+        try:
+            import scipy
+            from scipy.interpolate import interp1d
+        except ImportError:  # pragma: no cover
+            raise ImportError('Tabular1D model requires scipy > 0.17')
+
+        # Check SciPy version
+        if scipy.__version__ < '0.17':  # pragma: no cover
+            raise ImportError('Tabular1D model requires scipy > 0.17')
+
+        # An attempt to implement this support proved very complicated
+        # with how interp1d() and modeling core work, so hold off for now.
+        n_models = kwargs.get('n_models', 1)
+        if n_models != 1:
+            raise NotImplementedError('n_models > 1 currently not supported')
+
+        # This stores the interpolation function.
+        # For now, it is linear and anything out of bounds is set to zero.
+        self._f = interp1d(x, y, bounds_error=False, fill_value=0)
+
+        super(Tabular1D, self).__init__(x=x, y=y, **kwargs)
+
+    def evaluate(self, x, *args):
+        """One dimensional Tabular model function."""
+        return self._f(x)
 
 
 @deprecated('1.0', alternative='astropy.modeling.models.custom_model',

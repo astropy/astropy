@@ -1,10 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+# THIRD-PARTY
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
+
+# LOCAL
 from .. import models
 from ...coordinates import Angle
 from .. import fitting
@@ -182,3 +184,33 @@ def test_compound_models_with_class_variables():
         x = np.arange(10)
         f = CompoundModel1D()(x)
         assert f.shape == (10,)
+
+
+@pytest.mark.skipif("not HAS_SCIPY")
+class TestTabular1D(object):
+    """Test Tabular1D model."""
+    def setup_class(self):
+        self.x = np.linspace(1000, 8000, 8)
+        self.y = np.array([2.0, 2.1, 2.3, 2.6, 3.0, 5.0, 2.0, 1.0])
+
+    def test_evaluate(self):
+        """Evaluation for n_model == 1."""
+        m = models.Tabular1D(self.x, self.y)
+
+        # Sample at existing x
+        assert_allclose(m(4000), 2.6)
+
+        # Sampling with interpolation
+        assert_allclose(m([1500, 4100, 7900]), [2.05, 2.64, 1.1])
+
+        # Descending order
+        assert_allclose(m([7900, 4100, 1500]), [1.1, 2.64, 2.05])
+
+        # New model with descending order
+        m2 = models.Tabular1D(self.x[::-1], self.y[::-1])
+        assert_allclose(m2([1500, 4100, 7900]), [2.05, 2.64, 1.1])
+
+    def test_multi_n_models(self):
+        """Evaluation for n_model > 1."""
+        with pytest.raises(NotImplementedError):
+            m = models.Tabular1D(self.x, [self.y, self.y * 2], n_models=2)
