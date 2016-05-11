@@ -56,25 +56,27 @@ def validate_inputs(t, y, dy=None, frequency=None, t_fit=None,
         t = units.Quantity(t)
         y = units.Quantity(y)
 
-        if t_fit is not None:
-            t_fit = units.Quantity(t_fit)
-            if not t_fit.unit.is_equivalent(t.unit):
-                raise ValueError("Units of t_fit are not equivalent to "
-                                 "units of t.")
-            t_fit = units.Quantity(t_fit, unit=t.unit)
-
         if frequency is not None:
             frequency = units.Quantity(frequency)
-            if not t.unit.is_equivalent(1. / frequency.unit):
+            try:
+                frequency = units.Quantity(frequency, unit=1. / t.unit)
+            except units.UnitConversionError:
                 raise ValueError("Units of frequency not equivalent to "
                                  "units of 1/t")
-            t = units.Quantity(t, unit=1. / frequency.unit)
 
         if dy is not None:
             dy = units.Quantity(dy)
-            if not y.unit.is_equivalent(dy.unit):
-                raise ValueError("Units of y not equivalent to units of dy")
-            dy = units.Quantity(dy, unit=y.unit)
+            try:
+                dy = units.Quantity(dy, unit=y.unit)
+            except units.UnitConversionError:
+                raise ValueError("Units of dy not equivalent to units of y")
+
+        if t_fit is not None:
+            t_fit = units.Quantity(t_fit)
+            try:
+                t_fit = units.Quantity(t_fit, unit=t.unit)
+            except units.UnitConversionError:
+                raise ValueError("Units of t_fit not equivalent to units of t")
     else:
         power_unit = 1
 

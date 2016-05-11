@@ -72,7 +72,7 @@ def test_units_mismatch(method, data):
     with pytest.raises(ValueError) as err:
         lombscargle(t, y, dy, frequency / t.unit,
                     method=method, fit_bias=False)
-    assert str(err.value).startswith('Units of y not equivalent')
+    assert str(err.value).startswith('Units of dy not equivalent')
 
 
 @pytest.mark.parametrize('method', LombScargle.available_methods)
@@ -197,9 +197,9 @@ def test_model_units_mismatch(data):
     # this should fail because t and t_fit units do not match
     with pytest.raises(ValueError) as err:
         LombScargle(t, y).model([1, 2], frequency)
-    assert str(err.value).startswith('Units of t_fit are not equivalent')
+    assert str(err.value).startswith('Units of t_fit not equivalent')
 
     # this should fail because dy and y units do not match
     with pytest.raises(ValueError) as err:
         LombScargle(t, y, dy).model(t_fit, frequency)
-    assert str(err.value).startswith('Units of y not equivalent')
+    assert str(err.value).startswith('Units of dy not equivalent')

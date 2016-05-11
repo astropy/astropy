@@ -78,12 +78,13 @@ def periodic_fit(t, y, dy, frequency, t_fit,
     """
     if t_fit is None:
         raise ValueError('t_fit must not be None')
-    if dy is None:
-        dy = 1
 
     t, y, dy, frequency, t_fit, unit_dict = validate_inputs(t, y, dy,
                                                             frequency,
                                                             t_fit=t_fit)
+
+    if dy is None:
+        dy = np.ones_like(y)
 
     t_fit = np.asarray(t_fit)
     assert t.ndim == 1
