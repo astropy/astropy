@@ -80,12 +80,7 @@ def validate_inputs(t, y, dy=None, frequency=None, t_fit=None,
     else:
         power_unit = 1
 
-    def get_unit(val):
-        if isinstance(val, units.Quantity):
-            return val.unit
-        else:
-            return 1
-
+    get_unit = lambda val: getattr(val, 'unit', 1)
     unit_dict = {'t': get_unit(t),
                  'y': get_unit(y),
                  'dy': get_unit(y),
