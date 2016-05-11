@@ -893,8 +893,7 @@ If you desire the light travel time to the heliocentre instead then use::
 The method returns an |TimeDelta| object, which can be added to
 your times to give the arrival time of the photons at the barycentre or
 heliocentre.  Here, one should be careful with the timescales used; for more
-detailed information about timescales, see
-http://docs.astropy.org/en/stable/time/index.html#time-scale.
+detailed information about timescales, see :ref:`time-scale`.
 
 The heliocentre is not a fixed point, and therefore the gravity
 continually changes at the heliocentre. Thus, the use of a relativistic
