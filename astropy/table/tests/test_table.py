@@ -6,6 +6,7 @@
 import copy
 import gc
 import sys
+from collections import OrderedDict
 
 import numpy as np
 from numpy.testing import assert_allclose
@@ -1611,6 +1612,47 @@ class TestReplaceColumn(SetupData):
         with pytest.raises(ValueError) as err:
             t.replace_column('a', [1, 2, 3])
         assert err.value.args[0] == 'cannot replace a table index column'
+
+
+class Test__Astropy_Table__():
+
+    def test_simple(self):
+        meta = OrderedDict([('a', 1), ('b', 2)])
+        class SimpleTable(object):
+            def __init__(self):
+                self.columns = [[1, 2, 3],
+                                [4, 5, 6],
+                                [7, 8, 9] * u.m]
+                self.names = ['a', 'b', 'c']
+
+            def __astropy_table__(self, copy):
+                a, b, c = self.columns
+                c.info.name = 'c'
+                data = [table.Column(a, name='a'),
+                        table.MaskedColumn(b, name='b'),
+                        c]
+                return data, meta, copy
+
+        st = SimpleTable()
+        for table_cls in (table.Table, table.QTable):
+            col_c_name = 'c' if table_cls is table.QTable else 'col2'
+            col_c_class = u.Quantity if table_cls is table.QTable else table.MaskedColumn
+            for cpy in (False, True):
+                t = table_cls(st, copy=cpy)
+                assert t.colnames == ['a', 'b', col_c_name]
+                assert t.meta == meta
+                assert np.all(t['a'] == st.columns[0])
+                assert np.all(t['b'] == st.columns[1])
+                vals = t[col_c_name].value if table_cls is table.QTable else t[col_c_name]
+                assert np.all(st.columns[2].value == vals)
+                assert isinstance(t['a'], table.MaskedColumn)
+                assert isinstance(t['b'], table.MaskedColumn)
+                assert isinstance(t[col_c_name], col_c_class)
+                assert t[col_c_name].unit is u.m
+                assert type(t) is table_cls
+                t['a'][0] = 10
+                assert st.columns[0][0] == 1 if cpy else 10
+
 
 def test_replace_column_qtable():
     """Replace existing Quantity column with a new column in a QTable"""
