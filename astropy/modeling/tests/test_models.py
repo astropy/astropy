@@ -19,8 +19,7 @@ import numpy as np
 from numpy.testing import utils
 
 from .example_models import models_1D, models_2D
-from .. import (fitting, models, LabeledInput, SerialCompositeModel,
-                SummedCompositeModel)
+from .. import fitting, models
 from ..core import FittableModel
 from ..polynomial import PolynomialBase
 from ...tests.helper import pytest
@@ -31,120 +30,6 @@ try:
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
-
-
-class TestSerialComposite(object):
-    """
-    Test composite models evaluation in series
-    """
-    def setup_class(self):
-        self.y, self.x = np.mgrid[:5, :5]
-        self.p1 = models.Polynomial1D(3)
-        self.p11 = models.Polynomial1D(3)
-        self.p2 = models.Polynomial2D(3)
-
-    def test_single_array_input(self):
-        model = SerialCompositeModel([self.p1, self.p11])
-        result = model(self.x)
-        xx = self.p11(self.p1(self.x))
-        utils.assert_almost_equal(xx, result)
-
-    def test_labeledinput_1(self):
-        labeled_input = LabeledInput([self.x, self.y], ['x', 'y'])
-        model = SerialCompositeModel([self.p2, self.p1],
-                                     [['x', 'y'], ['z']],
-                                     [['z'], ['z']])
-        result = model(labeled_input)
-        z = self.p2(self.x, self.y)
-        z1 = self.p1(z)
-        utils.assert_almost_equal(z1, result.z)
-
-    def test_labeledinput_2(self):
-        labeled_input = LabeledInput([self.x, self.y], ['x', 'y'])
-        rot = models.Rotation2D(angle=23.4)
-        offx = models.Shift(-2)
-        offy = models.Shift(1.2)
-        model = SerialCompositeModel([rot, offx, offy],
-                                     [['x', 'y'], ['x'], ['y']],
-                                     [['x', 'y'], ['x'], ['y']])
-        result = model(labeled_input)
-        x, y = rot(self.x, self.y)
-        x = offx(x)
-        y = offy(y)
-        utils.assert_almost_equal(x, result.x)
-        utils.assert_almost_equal(y, result.y)
-
-    def test_labeledinput_3(self):
-        labeled_input = LabeledInput([2, 4.5], ['x', 'y'])
-        rot = models.Rotation2D(angle=23.4)
-        offx = models.Shift(-2)
-        offy = models.Shift(1.2)
-        model = SerialCompositeModel([rot, offx, offy],
-                                     [['x', 'y'], ['x'], ['y']],
-                                     [['x', 'y'], ['x'], ['y']])
-        result = model(labeled_input)
-        x, y = rot(2, 4.5)
-        x = offx(x)
-        y = offy(y)
-        utils.assert_almost_equal(x, result.x)
-        utils.assert_almost_equal(y, result.y)
-
-    def test_multiple_input(self):
-        rot = models.Rotation2D(angle=-60)
-        model = SerialCompositeModel([rot, rot])
-        xx, yy = model(self.x, self.y)
-        x1, y1 = model.inverse(xx, yy)
-        utils.assert_almost_equal(x1, self.x)
-        utils.assert_almost_equal(y1, self.y)
-
-
-class TestSummedComposite(object):
-    """Test legacy composite models evaluation."""
-
-    def setup_class(self):
-        self.x = np.linspace(1, 10, 100)
-        self.y = np.linspace(1, 10, 100)
-        self.p1 = models.Polynomial1D(3)
-        self.p11 = models.Polynomial1D(3)
-        self.p2 = models.Polynomial2D(3)
-        self.p1.parameters = [1.4, 2.2, 3.1, 4]
-        self.p2.c0_0 = 100
-
-    def test_single_array_input(self):
-        model = SummedCompositeModel([self.p1, self.p11])
-        result = model(self.x)
-        delta11 = self.p11(self.x)
-        delta1 = self.p1(self.x)
-        xx = delta1 + delta11
-        utils.assert_almost_equal(xx, result)
-
-    def test_labeledinput(self):
-        labeled_input = LabeledInput([self.x, self.y], ['x', 'y'])
-        model = SummedCompositeModel([self.p1, self.p11], inmap=['x'],
-                                     outmap=['x'])
-        result = model(labeled_input)
-        delta11 = self.p11(self.x)
-        delta1 = self.p1(self.x)
-        xx = delta1 + delta11
-        utils.assert_almost_equal(xx, result.x)
-
-    def test_inputs_outputs_mismatch(self):
-        p2 = models.Polynomial2D(1)
-        ch2 = models.Chebyshev2D(1, 1)
-        with pytest.raises(ValueError):
-            SummedCompositeModel([p2, ch2])
-
-
-def test_pickle():
-    p1 = models.Polynomial1D(3)
-    p11 = models.Polynomial1D(4)
-    g1 = models.Gaussian1D(10.3, 5.4, 1.2)
-    serial_composite_model = SerialCompositeModel([p1, g1])
-    parallel_composite_model = SummedCompositeModel([serial_composite_model,
-                                                     p11])
-    s = pickle.dumps(parallel_composite_model)
-    s1 = pickle.loads(s)
-    assert s1(3) == parallel_composite_model(3)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -165,7 +50,7 @@ def test_custom_model(amplitude=4, frequency=1):
         df = 2 * np.pi * x * amplitude * np.cos(2 * np.pi * frequency * x)
         return np.vstack((da, df))
 
-    SineModel = models.custom_model_1d(sine_model, func_fit_deriv=sine_deriv)
+    SineModel = models.custom_model(sine_model, fit_deriv=sine_deriv)
 
     x = np.linspace(0, 4, 50)
     sin_model = SineModel()
@@ -182,7 +67,7 @@ def test_custom_model(amplitude=4, frequency=1):
 
 
 def test_custom_model_init():
-    @models.custom_model_1d
+    @models.custom_model
     def SineModel(x, amplitude=4, frequency=1):
         """Model function"""
 
@@ -194,7 +79,7 @@ def test_custom_model_init():
 
 
 def test_custom_model_defaults():
-    @models.custom_model_1d
+    @models.custom_model
     def SineModel(x, amplitude=4, frequency=1):
         """Model function"""
 

@@ -376,6 +376,8 @@ Other Changes and Additions
 
 - Cython prerequisite for building changed to v0.19 in install.rst [#4705]
 
+- All astropy.modeling functionality that was deprecated in Astropy 1.0 has
+  been removed. [#4857]
 
 1.1.3 (unreleased)
 -------------------

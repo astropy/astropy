@@ -21,7 +21,7 @@ __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D', 'Lorentz1D',
            'MexicanHat1D', 'MexicanHat2D', 'RedshiftScaleFactor', 'Redshift',
            'Scale', 'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D',
-           'TrapezoidDisk2D', 'Ring2D', 'custom_model_1d', 'Voigt1D']
+           'TrapezoidDisk2D', 'Ring2D', 'Voigt1D']
 
 
 class Gaussian1D(Fittable1DModel):
@@ -2014,15 +2014,3 @@ class Sersic2D(Fittable2DModel):
         z = np.sqrt((x_maj / a) ** 2 + (x_min / b) ** 2)
 
         return amplitude * np.exp(-bn * (z ** (1 / n) - 1))
-
-
-@deprecated('1.0', alternative='astropy.modeling.models.custom_model',
-            pending=True)
-def custom_model_1d(func, func_fit_deriv=None):
-    inputs, params = get_inputs_and_params(func)
-
-    if len(inputs) != 1:
-        raise ModelDefinitionError(
-            "All parameters must be keyword arguments")
-
-    return custom_model(func, fit_deriv=func_fit_deriv)
