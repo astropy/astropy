@@ -50,6 +50,8 @@ New Features
 
   - File name could be passed as ``Path`` object. [#4606]
 
+  - Header allows a dictionary-like cards argument during creation. [#4663]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.votable``
