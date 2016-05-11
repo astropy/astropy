@@ -88,6 +88,8 @@ _arit_doc = """
     defined as ``kwargs`` and must start with ``"wcs_"`` (for wcs callable) or
     ``"meta_"`` (for meta callable). This startstring is removed before the
     callable is called.
+
+    ``"first_found"`` can also be abbreviated with ``"ff"``.
     """
 
 
@@ -227,7 +229,7 @@ class NDArithmeticMixin(object):
         # First check that the WCS allows the arithmetic operation
         if compare_wcs is None:
             kwargs['wcs'] = None
-        elif compare_wcs == 'first_found':
+        elif compare_wcs in ['ff', 'first_found']:
             if self.wcs is None:
                 kwargs['wcs'] = deepcopy(operand.wcs)
             else:
@@ -255,7 +257,7 @@ class NDArithmeticMixin(object):
 
         if handle_mask is None:
             kwargs['mask'] = None
-        elif handle_mask == 'first_found':
+        elif handle_mask in ['ff', 'first_found']:
             if self.mask is None:
                 kwargs['mask'] = deepcopy(operand.mask)
             else:
@@ -267,7 +269,7 @@ class NDArithmeticMixin(object):
 
         if handle_meta is None:
             kwargs['meta'] = None
-        elif handle_meta == 'first_found':
+        elif handle_meta in ['ff', 'first_found']:
             if not self.meta:
                 kwargs['meta'] = deepcopy(operand.meta)
             else:
