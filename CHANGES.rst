@@ -314,6 +314,9 @@ Bug fixes
   - ``NDArithmeticMixin`` does provide correct resulting uncertainties for
     ``divide`` and ``multiply`` if only one uncertainty was set. [#4152, #4272]
 
+  - Fixed memory leak that happened when uncertainty of NDDataArray was
+    set. [#4825, #4862]
+
 - ``astropy.stats``
 
 - ``astropy.table``
