@@ -1,7 +1,7 @@
-import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
+from .....tests.helper import pytest
 from .. import lombscargle
 from ... import LombScargle
 

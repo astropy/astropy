@@ -2,7 +2,7 @@ from __future__ import division
 
 import numpy as np
 from numpy.testing import assert_allclose, assert_equal
-import pytest
+from .....tests.helper import pytest
 
 from ..utils import extirpolate, bitceil, trig_sum
 

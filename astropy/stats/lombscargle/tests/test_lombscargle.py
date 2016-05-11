@@ -1,9 +1,8 @@
-import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_equal
 
-from astropy import units
-
+from .... import units
+from ....tests.helper import pytest
 from .. import LombScargle
 from ..implementations import lombscargle_slow, lombscargle
 

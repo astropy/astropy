@@ -1,10 +1,11 @@
 from __future__ import print_function, division
+
 import warnings
 from math import factorial
 import numpy as np
 
-from astropy import units
-from astropy.utils.compat.numpy import broadcast_arrays
+from .... import units
+from ....utils.compat.numpy import broadcast_arrays
 
 
 def validate_inputs(t, y, dy=None, frequency=None, t_fit=None,
