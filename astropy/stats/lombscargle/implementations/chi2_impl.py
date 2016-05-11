@@ -14,7 +14,7 @@ def lombscargle_chi2(t, y, dy, frequency, normalization='normalized',
 
     Parameters
     ----------
-    t, y, dy : array_like
+    t, y, dy : array_like (NOT astropy.Quantities)
         times, values, and errors of the data points. These should be
         broadcastable to the same shape.
     frequency : array_like

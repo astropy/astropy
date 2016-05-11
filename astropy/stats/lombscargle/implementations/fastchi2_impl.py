@@ -17,14 +17,13 @@ def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='normalized',
 
     Parameters
     ----------
-    t, y, dy : array_like
+    t, y, dy : array_like  (NOT astropy.Quantities)
         times, values, and errors of the data points. These should be
         broadcastable to the same shape.
     f0, df, Nf : (float, float, int)
         parameters describing the frequency grid, f = f0 + df * arange(Nf).
     normalization : string (optional, default='normalized')
         Normalization to use for the periodogram
-        TODO: figure out what options to use
     fit_bias : bool (optional, default=True)
         if True, include a constant offet as part of the model at each
         frequency. This can lead to more accurate results, especially in the
