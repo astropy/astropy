@@ -81,6 +81,9 @@ New Features
     currently avaiable mixins. This class does not implement additional
     attributes, methods or a numpy.ndarray-like interface like ``NDDataArray``.
 
+  - ``NDIOMixin`` and subclasses now support reading/writing fits files using
+    the ``read`` or ``write`` method with ``format='simple_fits'``. [#4799]
+
 - ``astropy.stats``
 
   - Added ``axis`` keyword for ``mad_std`` function. [#4688]
