@@ -34,7 +34,7 @@ else:
     PATH_TYPES += (pathlib.Path,)
 
 
-class IORegistryError(ValueError):
+class IORegistryError(Exception):
     """Custom error for registry clashes
     """
     pass
