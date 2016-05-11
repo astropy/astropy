@@ -11,6 +11,7 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 from ...nduncertainty import (StdDevUncertainty, UnknownUncertainty,
                               IncompatibleUncertaintiesException)
 from ... import NDDataRef
+from ...nddata import NDData
 
 from ....units import UnitsError, Quantity
 from ....tests.helper import pytest
