@@ -145,11 +145,11 @@ class NDArithmeticMixin(object):
 
     Using it with two operand on an instance::
 
-        >>> ndd = NDDataWithMath(100)
-        >>> ndd.divide(1, 5)
+        >>> ndd = NDDataWithMath(5)
+        >>> ndd.divide(1, ndd)
         NDDataWithMath(0.2)
 
-    Using it with two operand on the class::
+    Using it as classmethod requires two operands::
 
         >>> NDDataWithMath.subtract(5, 4)
         NDDataWithMath(1)
@@ -535,6 +535,37 @@ class NDArithmeticMixin(object):
     @sharedmethod
     def _prepare_then_do_arithmetic(self_or_cls, operation, operand, operand2,
                                     **kwargs):
+        """Intermediate method called by public arithmetics (i.e. ``add``)
+        before the processing method (``_arithmetic``) is invoked.
+
+        .. warning::
+            Do not override this method in subclasses.
+
+        This method checks if it was called as instance or as class method and
+        then wraps the operands and the result from ``_arithmetics`` in the
+        appropriate subclass.
+
+        Parameters
+        ----------
+        self_or_cls : instance or class
+            ``sharedmethod`` behaves like a normal method if called on the
+            instance (then this parameter is ``self``) but like a classmethod
+            when called on the class (then this parameter is ``cls``).
+
+        operations : callable
+            The operation (normally a numpy-ufunc) that represents the
+            appropriate action.
+
+        operand, operand2, kwargs :
+            See for example ``add``.
+
+        Result
+        ------
+        result : `~astropy.nddata.NDData`-like
+            Depending how this method was called either ``self_or_cls``
+            (called on class) or ``self_or_cls.__class__`` (called on instance)
+            is the NDData-subclass that is used as wrapper for the result.
+        """
         # DO NOT OVERRIDE THIS METHOD IN SUBCLASSES.
 
         # TODO: Remove this in astropy 1.3 or 1.4:
@@ -571,7 +602,7 @@ class NDArithmeticMixin(object):
                 operand = self_or_cls
             else:
                 # Convert the first operand to the class of this method.
-                # This is important so that always the right _arithmetics is
+                # This is important so that always the correct _arithmetics is
                 # called later that method.
                 operand = cls(operand)
 
