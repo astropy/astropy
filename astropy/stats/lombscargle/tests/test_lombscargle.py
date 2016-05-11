@@ -57,13 +57,12 @@ def test_units_match(method, t_unit, frequency_unit, y_unit, data):
 @pytest.mark.parametrize('method', LombScargle.available_methods)
 def test_units_mismatch(method, data):
     t, y, dy = data
-    dy = dy.mean()  # scipy only supports constant errors
 
     t = t * units.second
     y = y * units.mag
     frequency = np.linspace(0.5, 1.5, 10)
 
-    # this should fail because frequency and 1/t unitsdo not match
+    # this should fail because frequency and 1/t units do not match
     with pytest.raises(ValueError) as err:
         lombscargle(t, y, frequency=frequency,
                     method=method, fit_bias=False)
@@ -159,3 +158,48 @@ def test_object_interface_bad_input(data):
     with pytest.raises(ValueError) as err:
         ls.power(frequency=None)
     assert str(err.value).startswith('Must supply a valid frequency')
+
+
+@pytest.mark.parametrize('t_unit', [units.second, units.day])
+@pytest.mark.parametrize('frequency_unit', [units.Hz, 1. / units.second])
+@pytest.mark.parametrize('y_unit', [units.mag, units.jansky])
+def test_model_units_match(data, t_unit, frequency_unit, y_unit):
+    t, y, dy = data
+    t_fit = t[:5]
+    frequency = 1.0
+
+    t = t * t_unit
+    t_fit = t_fit * t_unit
+    y = y * y_unit
+    dy = dy * y_unit
+    frequency = frequency * frequency_unit
+
+    ls = LombScargle(t, y, dy)
+    y_fit = ls.model(t_fit, frequency)
+    assert_equal(y_fit.unit, y_unit)
+
+
+def test_model_units_mismatch(data):
+    t, y, dy = data
+    frequency = 1.0
+    t_fit = t[:5]
+
+    t = t * units.second
+    t_fit = t_fit * units.second
+    y = y * units.mag
+    frequency = 1.0 / t.unit
+
+    # this should fail because frequency and 1/t units do not match
+    with pytest.raises(ValueError) as err:
+        LombScargle(t, y).model(t_fit, frequency=1.0)
+    assert str(err.value).startswith('Units of frequency not equivalent')
+
+    # this should fail because t and t_fit units do not match
+    with pytest.raises(ValueError) as err:
+        LombScargle(t, y).model([1, 2], frequency)
+    assert str(err.value).startswith('Units of t_fit are not equivalent')
+
+    # this should fail because dy and y units do not match
+    with pytest.raises(ValueError) as err:
+        LombScargle(t, y, dy).model(t_fit, frequency)
+    assert str(err.value).startswith('Units of y not equivalent')

@@ -9,8 +9,6 @@ __all__ = ['lombscargle', 'available_methods']
 import warnings
 
 import numpy as np
-from astropy import units
-from astropy.utils.compat.numpy import broadcast_arrays
 
 from .slow_impl import lombscargle_slow
 from .fast_impl import lombscargle_fast
@@ -18,6 +16,8 @@ from .scipy_impl import lombscargle_scipy
 from .chi2_impl import lombscargle_chi2
 from .fastchi2_impl import lombscargle_fastchi2
 from .cython_impl import lombscargle_cython
+
+from .utils import validate_inputs
 
 
 METHODS = {'slow': lombscargle_slow,
@@ -43,93 +43,7 @@ def available_methods():
     return methods
 
 
-def validate_inputs(t, y, dy=None, frequency=None, strip_units=True):
-    """Validation of input shapes & units
 
-    This utility function serves a few purposes:
-
-    - it validates that the shapes of t, y, and dy match, and broadcasts
-      them to a common 1D shape
-    - if any of t, y, day, or frequency are astropy Quantities (i.e. have
-      units attached), it validates that the units are compatible, and does
-      any necessary unit conversions
-    - if ``strip_units == True``, it strips units from all the arrays
-      before returning them.
-    - all relevant units are returned in ``unit_dict``
-
-    Parameters
-    ----------
-    t, y : array_like or Quantity
-    dy, frequency : array_like or Quantity (optional)
-    strip_units : bool (optional, default=True)
-        if True, the returned quantities will have units stripped.
-
-    Returns
-    -------
-    t, y, dy, frequency : ndarray, Quantity, or None
-        reshaped and/or unit-stripped arrays
-    unit_dict : dict
-        dictionary of relevant units
-    """
-    if dy is None:
-        t, y = broadcast_arrays(t, y, subok=True)
-    else:
-        t, y, dy = broadcast_arrays(t, y, dy, subok=True)
-
-    if t.ndim != 1:
-        raise ValueError("Input times & data must be one-dimensional")
-
-    has_units = any(isinstance(arr, units.Quantity)
-                    for arr in (t, y, dy, frequency))
-
-    if has_units:
-        power_unit = units.dimensionless_unscaled
-
-        t = units.Quantity(t)
-        y = units.Quantity(y)
-
-        if frequency is not None:
-            frequency = units.Quantity(frequency)
-            if not t.unit.is_equivalent(1. / frequency.unit):
-                raise ValueError("Units of frequency not equivalent to "
-                                 "units of 1/t")
-            t = units.Quantity(t, unit=1. / frequency.unit)
-
-        if dy is not None:
-            dy = units.Quantity(dy)
-            if not y.unit.is_equivalent(dy.unit):
-                raise ValueError("Units of y not equivalent to units of dy")
-            dy = units.Quantity(dy, unit=y.unit)
-    else:
-        power_unit = 1
-
-        t = np.asarray(t)
-        y = np.asarray(y)
-        if dy is not None:
-            dy = np.asarray(dy)
-
-    def get_unit(val):
-        if isinstance(val, units.Quantity):
-            return val.unit
-        else:
-            return 1
-
-    unit_dict = {'t': get_unit(t),
-                 'y': get_unit(y),
-                 'dy': get_unit(y),
-                 'frequency': 1. / get_unit(t),
-                 'power': power_unit}
-
-    def unit_strip(arr):
-        if arr is None:
-            return arr
-        else:
-            return np.asarray(arr)
-
-    if strip_units:
-        t, y, dy, frequency = map(unit_strip, (t, y, dy, frequency))
-
-    return t, y, dy, frequency, unit_dict
 
 
 def _get_frequency_grid(frequency, assume_regular_frequency=False):

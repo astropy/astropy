@@ -238,7 +238,7 @@ class LombScargle(object):
 
         Parameters
         ----------
-        t : array_like, length n_samples
+        t : array_like or Quantity, length n_samples
             times at which to compute the model
         frequency : float
             the frequency for the model
@@ -248,7 +248,6 @@ class LombScargle(object):
         y : np.ndarray, length n_samples
             The model fit corresponding to the input times
         """
-        # TODO: handle units correctly
         return periodic_fit(self.t, self.y, self.dy,
                             frequency=frequency, t_fit=t,
                             center_data=self.center_data,

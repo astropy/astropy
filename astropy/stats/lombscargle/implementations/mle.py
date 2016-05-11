@@ -1,6 +1,8 @@
 """Tools for maximum likelihood estimation associated with Lomb-Scargle"""
 import numpy as np
 
+from .utils import validate_inputs
+
 
 def design_matrix(t, frequency, dy=None, bias=True, nterms=1):
     """Compute the Lomb-Scargle design matrix at the given frequency
@@ -27,8 +29,9 @@ def design_matrix(t, frequency, dy=None, bias=True, nterms=1):
         The design matrix, where n_parameters = bool(bias) + 2 * nterms
     """
     t = np.asarray(t)
+    frequency = np.asarray(frequency)
     assert t.ndim == 1
-    assert np.isscalar(frequency)
+    assert frequency.ndim == 0
 
     if nterms == 0 and not bias:
         raise ValueError("cannot have nterms=0 and no bias")
@@ -73,14 +76,19 @@ def periodic_fit(t, y, dy, frequency, t_fit,
     y_fit : ndarray
         The model fit evaluated at each value of t_fit
     """
+    if t_fit is None:
+        raise ValueError('t_fit must not be None')
     if dy is None:
         dy = 1
 
-    t, y, dy = np.broadcast_arrays(t, y, dy)
+    t, y, dy, frequency, t_fit, unit_dict = validate_inputs(t, y, dy,
+                                                            frequency,
+                                                            t_fit=t_fit)
+
     t_fit = np.asarray(t_fit)
     assert t.ndim == 1
     assert t_fit.ndim == 1
-    assert np.isscalar(frequency)
+    assert frequency.ndim == 0
 
     if center_data:
         w = dy ** -2.0
@@ -95,4 +103,4 @@ def periodic_fit(t, y, dy, frequency, t_fit,
 
     X_fit = design_matrix(t_fit, frequency, bias=fit_bias, nterms=nterms)
 
-    return y_mean + np.dot(X_fit, theta_MLE)
+    return (y_mean + np.dot(X_fit, theta_MLE)) * unit_dict['y']
