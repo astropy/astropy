@@ -11,9 +11,11 @@ import abc
 import numpy as np
 
 from .transform import BaseTransform
+from .zscale import zscale
 
 __all__ = ['BaseInterval', 'ManualInterval', 'MinMaxInterval',
-           'PercentileInterval', 'AsymmetricPercentileInterval']
+           'PercentileInterval', 'AsymmetricPercentileInterval',
+           'ZScaleInterval']
 
 
 class BaseInterval(BaseTransform):
@@ -137,3 +139,48 @@ class PercentileInterval(AsymmetricPercentileInterval):
         lower_percentile = (100 - percentile) * 0.5
         upper_percentile = 100 - lower_percentile
         super(PercentileInterval, self).__init__(lower_percentile, upper_percentile, n_samples=n_samples)
+
+
+class ZScaleInterval(BaseInterval):
+    """
+    Interval based on IRAF's zscale.
+
+    http://iraf.net/forum/viewtopic.php?showtopic=134139
+
+    Parameters
+    ----------
+    image : array_like
+        Input array.
+    nsamples : int, optional
+        Number of points in array to sample for determining scaling factors.
+        Default to 1000.
+    contrast : float, optional
+        Scaling factor (between 0 and 1) for determining min and max. Larger
+        values increase the difference between min and max values used for
+        display. Default to 0.25.
+    max_reject : float, optional
+        If more than ``max_reject * npixels`` pixels are rejected, then the
+        returned values are the min and max of the data. Default to 0.5.
+    min_npixels : int, optional
+        If less than ``min_npixels`` pixels are rejected, then the
+        returned values are the min and max of the data. Default to 5.
+    krej : float, optional
+        Number of sigma used for the rejection. Default to 2.5.
+    max_iterations : int, optional
+        Maximum number of iterations for the rejection. Default to 5.
+
+    """
+
+    def __init__(self, nsamples=1000, contrast=0.25, max_reject=0.5,
+                 min_npixels=5, krej=2.5, max_iterations=5):
+        self.nsamples = nsamples
+        self.contrast = contrast
+        self.max_reject = max_reject
+        self.min_npixels = min_npixels
+        self.krej = krej
+        self.max_iterations = max_iterations
+
+    def get_limits(self, values):
+        return zscale(values, nsamples=self.nsamples, contrast=self.contrast,
+                      max_reject=self.max_reject, min_npixels=self.min_npixels,
+                      krej=self.krej, max_iterations=self.max_iterations)

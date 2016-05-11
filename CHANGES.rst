@@ -135,6 +135,8 @@ New Features
 
 - ``astropy.visualization``
 
+  - Add zscale interval based on Numdisplay's implementation. [#4776]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
