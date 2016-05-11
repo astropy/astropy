@@ -11,6 +11,7 @@ from numpy.testing import assert_array_equal
 from ..nduncertainty import (StdDevUncertainty, NDUncertainty,
                              IncompatibleUncertaintiesException,
                              UnknownUncertainty)
+from ..nddata import NDData
 from ...tests.helper import pytest
 from ... import units as u
 
@@ -180,3 +181,49 @@ def test_uncertainty_correlated():
     assert not fake_uncert.supports_correlated
     std_uncert = StdDevUncertainty([10, 2])
     assert std_uncert.supports_correlated
+
+
+def test_for_leak_with_uncertainty():
+    # Regression test for memory leak because of cyclic references between
+    # NDData and uncertainty
+    from collections import defaultdict
+    from gc import get_objects
+
+    def test_leak(func, specific_objects=None):
+        """Function based on gc.get_objects to determine if any object or
+        a specific object leaks.
+
+        It requires a function to be given and if any objects survive the
+        function scope it's considered a leak (so don't return anything).
+        """
+        before = defaultdict(int)
+        for i in get_objects():
+            before[type(i)] += 1
+
+        func()
+
+        after = defaultdict(int)
+        for i in get_objects():
+            after[type(i)] += 1
+
+        if specific_objects is None:
+            assert all(after[k] - before[k] == 0 for k in after)
+        else:
+            assert after[specific_objects] - before[specific_objects] == 0
+
+    def non_leaker():
+        NDData(np.ones(100))
+
+    def leaker():
+        NDData(np.ones(100), uncertainty=StdDevUncertainty(np.ones(100)))
+
+    test_leak(non_leaker, NDData)
+    test_leak(leaker, NDData)
+
+
+def test_for_stolen_uncertainty():
+    # Sharing uncertainties should not overwrite the parent_nddata attribute
+    ndd1 = NDData(1, uncertainty=1)
+    ndd2 = NDData(2, uncertainty=ndd1.uncertainty)
+    # uncertainty.parent_nddata.data should be the original data!
+    assert ndd1.uncertainty.parent_nddata.data == ndd1.data

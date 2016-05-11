@@ -239,7 +239,7 @@ def test_nddata_init_data_nddata():
     nd2 = NDData(nd1)
     assert nd2.data is nd1.data
     assert nd2.wcs == nd1.wcs
-    assert nd2.uncertainty == nd1.uncertainty
+    assert nd2.uncertainty.array == nd1.uncertainty.array
     assert nd2.mask == nd1.mask
     assert nd2.unit == nd1.unit
     assert nd2.meta == nd1.meta
@@ -249,7 +249,7 @@ def test_nddata_init_data_nddata():
                  meta={'observer': 'ME'}, wcs=4)
     assert nd3.data is nd1.data
     assert nd3.wcs != nd1.wcs
-    assert nd3.uncertainty != nd1.uncertainty
+    assert nd3.uncertainty.array != nd1.uncertainty.array
     assert nd3.mask != nd1.mask
     assert nd3.unit != nd1.unit
     assert nd3.meta != nd1.meta
