@@ -64,7 +64,6 @@ class LombScargle(object):
     available_methods = available_methods()
 
     def __init__(self, t, y, dy=None, fit_bias=True, center_data=True):
-        # TODO: validate units here
         self.t = t
         self.y = y
         self.dy = dy

@@ -26,7 +26,6 @@ def lombscargle_scipy(t, y, frequency, normalization='normalized',
         frequencies (not angular frequencies) at which to calculate periodogram
     normalization : string (optional, default='normalized')
         Normalization to use for the periodogram
-        TODO: figure out what options to use
     center_data : bool (optional, default=True)
         if True, pre-center the data by subtracting the weighted mean
         of the input data.

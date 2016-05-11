@@ -132,7 +132,6 @@ def test_object_interface_autopower(data, method, center_data, fit_bias):
                                fit_bias=fit_bias,
                                center_data=center_data)
 
-    # TODO: test frequency output?
     assert_allclose(PLS, expected_PLS)
 
 

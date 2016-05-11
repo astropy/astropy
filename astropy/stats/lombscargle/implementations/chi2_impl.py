@@ -21,7 +21,6 @@ def lombscargle_chi2(t, y, dy, frequency, normalization='normalized',
         frequencies (not angular frequencies) at which to calculate periodogram
     normalization : string (optional, default='normalized')
         Normalization to use for the periodogram
-        TODO: figure out what options to use
     fit_bias : bool (optional, default=True)
         if True, include a constant offet as part of the model at each
         frequency. This can lead to more accurate results, especially in the
