@@ -668,6 +668,10 @@ class TestCartesianRepresentation(object):
         assert_allclose(s2.y.value, [4 * 1 + 5 * 3 + 6 * 5, 4 * 2 + 5 * 4 + 6 * 6])
         assert_allclose(s2.z.value, [7 * 1 + 8 * 3 + 9 * 5, 7 * 2 + 8 * 4 + 9 * 6])
 
+        assert s2.x.unit is u.kpc
+        assert s2.y.unit is u.kpc
+        assert s2.z.unit is u.kpc
+
 
 class TestCylindricalRepresentation(object):
 
