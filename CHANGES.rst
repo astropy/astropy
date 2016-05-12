@@ -138,7 +138,7 @@ Other Changes and Additions
 General
 ^^^^^^^
 
-Astropy now requires Numpy 1.7.0 or later.
+Astropy now requires Numpy 1.7.0 or later. [#4784]
 
 New Features
 ^^^^^^^^^^^^
@@ -234,6 +234,7 @@ New Features
   - ``NDDataRef`` new subclass that implements ``NDData`` together with all
     currently avaiable mixins. This class does not implement additional
     attributes, methods or a numpy.ndarray-like interface like ``NDDataArray``.
+    attributes, methods or a numpy.ndarray-like interface like ``NDDataArray``. 
     [#4797]
 
 - ``astropy.stats``
@@ -259,7 +260,7 @@ New Features
     yield tables with an "idx" column, allowing easy identification of the index
     of a row even when the table is re-sorted in the browser. [#4404]
 
-  - Added ``AttributeError`` when trying to set mask on non-masked table. [#3505]
+  - Added ``AttributeError`` when trying to set mask on non-masked table. [#4637]
 
   - Allow to use a tuple of keys in ``Table.sort``.  [#4671]
 
@@ -1656,7 +1657,7 @@ Bug Fixes
 
 - ``astropy.tests``
 
-  - Fix coverage reporting in Python 3.
+  - Fix coverage reporting in Python 3. [#4822]
 
 - ``astropy.time``
 
@@ -1702,7 +1703,7 @@ Bug Fixes
 - ``astropy.io.ascii``
 
   - Fixed addition of new line characters after last row of data in
-    ascii.latex.AASTex. [#3888]
+    ascii.latex.AASTex. [#4561]
 
   - Fixed reading of Latex tables where the ``\tabular`` tag is in the first
     line. [#4595]
