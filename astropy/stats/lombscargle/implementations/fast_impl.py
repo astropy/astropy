@@ -5,7 +5,7 @@ from .utils import trig_sum
 
 
 def lombscargle_fast(t, y, dy, f0, df, Nf,
-                     center_data=True, fit_bias=True,
+                     center_data=True, fit_mean=True,
                      normalization='standard',
                      use_fft=True, trig_sum_kwds=None):
     """Fast Lomb-Scargle Periodogram
@@ -22,7 +22,7 @@ def lombscargle_fast(t, y, dy, f0, df, Nf,
         parameters describing the frequency grid, f = f0 + df * arange(Nf).
     center_data : bool (default=True)
         Specify whether to subtract the mean of the data before the fit
-    fit_bias : bool (default=True)
+    fit_mean : bool (default=True)
         If True, then compute the floating-mean periodogram; i.e. let the mean
         vary with the fit.
     normalization : string (optional, default='standard')
@@ -77,7 +77,7 @@ def lombscargle_fast(t, y, dy, f0, df, Nf,
 
     # Center the data. Even if we're fitting the offset,
     # this step makes the expressions below more succinct
-    if center_data or fit_bias:
+    if center_data or fit_mean:
         y = y - np.dot(w, y)
 
     # set up arguments to trig_sum
@@ -89,7 +89,7 @@ def lombscargle_fast(t, y, dy, f0, df, Nf,
     Sh, Ch = trig_sum(t, w * y, **kwargs)
     S2, C2 = trig_sum(t, w, freq_factor=2, **kwargs)
 
-    if fit_bias:
+    if fit_mean:
         S, C = trig_sum(t, w, **kwargs)
         tan_2omega_tau = (S2 - 2 * S * C) / (C2 - (C * C - S * S))
     else:
@@ -116,7 +116,7 @@ def lombscargle_fast(t, y, dy, f0, df, Nf,
     CC = 0.5 * (1 + C2 * C2w + S2 * S2w)
     SS = 0.5 * (1 - C2 * C2w - S2 * S2w)
 
-    if fit_bias:
+    if fit_mean:
         CC -= (C * Cw + S * Sw) ** 2
         SS -= (S * Cw - C * Sw) ** 2
 

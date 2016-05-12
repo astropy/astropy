@@ -36,18 +36,18 @@ def test_multiterm_design_matrix(t, nterms):
 
 @pytest.mark.parametrize('nterms', range(1, 4))
 @pytest.mark.parametrize('freq', [1, 2])
-@pytest.mark.parametrize('fit_bias', [True, False])
-def test_exact_mle_fit(nterms, freq, fit_bias):
+@pytest.mark.parametrize('fit_mean', [True, False])
+def test_exact_mle_fit(nterms, freq, fit_mean):
     rand = np.random.RandomState(42)
     t = 10 * rand.rand(30)
     theta = -1 + rand.rand(2 * nterms + 1)
     y = np.zeros(t.shape)
-    if fit_bias:
+    if fit_mean:
         y = theta[0] * np.ones(t.shape)
     for i in range(1, nterms + 1):
         y += theta[2 * i - 1] * np.sin(2 * np.pi * i * freq * t)
         y += theta[2 * i] * np.cos(2 * np.pi * i * freq * t)
 
     y_fit = periodic_fit(t, y, dy=1, frequency=freq, t_fit=t, nterms=nterms,
-                         center_data=False, fit_bias=fit_bias)
+                         center_data=False, fit_mean=fit_mean)
     assert_allclose(y, y_fit)

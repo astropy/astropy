@@ -55,7 +55,7 @@ def design_matrix(t, frequency, dy=None, bias=True, nterms=1):
 
 
 def periodic_fit(t, y, dy, frequency, t_fit,
-                 center_data=True, fit_bias=True, nterms=1):
+                 center_data=True, fit_mean=True, nterms=1):
     """Compute the Lomb-Scargle model fit at a given frequency
 
     Parameters
@@ -68,7 +68,7 @@ def periodic_fit(t, y, dy, frequency, t_fit,
         The times at which the fit should be computed
     center_data : bool (default=True)
         If True, center the input data before applying the fit
-    fit_bias : bool (default=True)
+    fit_mean : bool (default=True)
         If True, include the bias as part of the model
     nterms : int (default=1)
         The number of Fourier terms to include in the fit
@@ -100,10 +100,10 @@ def periodic_fit(t, y, dy, frequency, t_fit,
     else:
         y_mean = 0
 
-    X = design_matrix(t, frequency, dy=dy, bias=fit_bias, nterms=nterms)
+    X = design_matrix(t, frequency, dy=dy, bias=fit_mean, nterms=nterms)
     theta_MLE = np.linalg.solve(np.dot(X.T, X),
                                 np.dot(X.T, y / dy))
 
-    X_fit = design_matrix(t_fit, frequency, bias=fit_bias, nterms=nterms)
+    X_fit = design_matrix(t_fit, frequency, bias=fit_mean, nterms=nterms)
 
     return y_mean + np.dot(X_fit, theta_MLE)

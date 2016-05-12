@@ -16,7 +16,7 @@ ctypedef np.int32_t ITYPE_t
 
 
 def lombscargle_cython(t, y, dy, frequency, normalization='standard',
-                       fit_bias=True, center_data=True):
+                       fit_mean=True, center_data=True):
     """Lomb-Scargle Periodogram
 
     This is a pure-python implemnetation of the original Lomb-Scargle formalism
@@ -32,13 +32,13 @@ def lombscargle_cython(t, y, dy, frequency, normalization='standard',
     normalization : string (optional, default='standard')
         Normalization to use for the periodogram.
         Options are 'standard', 'model', 'log', or 'psd'.
-    fit_bias : bool (optional, default=True)
+    fit_mean : bool (optional, default=True)
         if True, include a constant offet as part of the model at each
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage.
     center_data : bool (optional, default=True)
         if True, pre-center the data by subtracting the weighted mean
-        of the input data. This is especially important if ``fit_bias = False``
+        of the input data. This is especially important if ``fit_mean = False``
 
     Returns
     -------
@@ -68,14 +68,14 @@ def lombscargle_cython(t, y, dy, frequency, normalization='standard',
 
     PLS = np.zeros(frequency.shape, dtype=DTYPE, order='C')
 
-    # pre-center the data: not technically required if fit_bias=True,
+    # pre-center the data: not technically required if fit_mean=True,
     # but it simplifies the math.
-    if fit_bias or center_data:
+    if fit_mean or center_data:
         # compute MLE for mean in the presence of noise.
         w = dy ** -2
         y = y - np.dot(w, y) / np.sum(w)
 
-    if fit_bias:
+    if fit_mean:
         _generalized_lomb_scargle(t, y, dy, 2 * np.pi * frequency, PLS)
     else:
         _standard_lomb_scargle(t, y, dy, 2 * np.pi * frequency, PLS)

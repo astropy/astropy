@@ -6,7 +6,7 @@ from .mle import design_matrix
 
 
 def lombscargle_chi2(t, y, dy, frequency, normalization='standard',
-                     fit_bias=True, center_data=True, nterms=1):
+                     fit_mean=True, center_data=True, nterms=1):
     """Lomb-Scargle Periodogram
 
     This implements a chi-squared-based periodogram, which is relatively slow
@@ -22,13 +22,13 @@ def lombscargle_chi2(t, y, dy, frequency, normalization='standard',
     normalization : string (optional, default='standard')
         Normalization to use for the periodogram.
         Options are 'standard', 'model', 'log', or 'psd'.
-    fit_bias : bool (optional, default=True)
+    fit_mean : bool (optional, default=True)
         if True, include a constant offet as part of the model at each
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage.
     center_data : bool (optional, default=True)
         if True, pre-center the data by subtracting the weighted mean
-        of the input data. This is especially important if ``fit_bias = False``
+        of the input data. This is especially important if ``fit_mean = False``
     nterms : int (optional, default=1)
         Number of Fourier terms in the fit
 
@@ -58,8 +58,8 @@ def lombscargle_chi2(t, y, dy, frequency, normalization='standard',
     w = dy ** -2.0
     w /= w.sum()
 
-    # if fit_bias is true, centering the data now simplifies the math below.
-    if center_data or fit_bias:
+    # if fit_mean is true, centering the data now simplifies the math below.
+    if center_data or fit_mean:
         yw = (y - np.dot(w, y)) / dy
     else:
         yw = y / dy
@@ -67,7 +67,7 @@ def lombscargle_chi2(t, y, dy, frequency, normalization='standard',
 
     # compute the unnormalized model chi2 at each frequency
     def compute_power(f):
-        X = design_matrix(t, f, dy=dy, bias=fit_bias, nterms=nterms)
+        X = design_matrix(t, f, dy=dy, bias=fit_mean, nterms=nterms)
         XTX = np.dot(X.T, X)
         XTy = np.dot(X.T, yw)
         return np.dot(XTy.T, np.linalg.solve(XTX, XTy))

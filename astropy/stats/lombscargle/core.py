@@ -40,13 +40,13 @@ class LombScargle(object):
         sequence of observations associated with times t
     dy : float, array_like or Quantity (optional)
         error or sequence of observational errors associated with times t
-    fit_bias : bool (optional, default=True)
+    fit_mean : bool (optional, default=True)
         if True, include a constant offet as part of the model at each
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage.
     center_data : bool (optional, default=True)
         if True, pre-center the data by subtracting the weighted mean
-        of the input data. This is especially important if fit_bias = False
+        of the input data. This is especially important if fit_mean = False
     nterms : int (optional, default=1)
         number of terms to use in the Fourier fit
 
@@ -98,9 +98,9 @@ class LombScargle(object):
     available_methods = available_methods()
 
     def __init__(self, t, y, dy=None,
-                 fit_bias=True, center_data=True, nterms=1):
+                 fit_mean=True, center_data=True, nterms=1):
         self.t, self.y, self.dy = self._validate_inputs(t, y, dy)
-        self.fit_bias = fit_bias
+        self.fit_mean = fit_mean
         self.center_data = center_data
         self.nterms = nterms
 
@@ -291,13 +291,13 @@ class LombScargle(object):
         normalization : string (optional, default='standard')
             Normalization to use for the periodogram.
             Options are 'standard', 'model', 'log', or 'psd'.
-        fit_bias : bool (optional, default=True)
+        fit_mean : bool (optional, default=True)
             if True, include a constant offet as part of the model at each
             frequency. This can lead to more accurate results, especially in
             the case of incomplete phase coverage.
         center_data : bool (optional, default=True)
             if True, pre-center the data by subtracting the weighted mean of
-            the input data. This is especially important if fit_bias = False
+            the input data. This is especially important if fit_mean = False
         method_kwds : dict (optional)
             additional keywords to pass to the lomb-scargle method
 
@@ -310,7 +310,7 @@ class LombScargle(object):
         power = lombscargle(*strip_units(self.t, self.y, self.dy),
                             frequency=strip_units(frequency),
                             center_data=self.center_data,
-                            fit_bias=self.fit_bias,
+                            fit_mean=self.fit_mean,
                             nterms=self.nterms,
                             normalization=normalization,
                             method=method, method_kwds=method_kwds,
@@ -338,6 +338,6 @@ class LombScargle(object):
                              frequency=strip_units(frequency),
                              t_fit=strip_units(t),
                              center_data=self.center_data,
-                             fit_bias=self.fit_bias,
+                             fit_mean=self.fit_mean,
                              nterms=self.nterms)
         return y_fit * get_unit(self.y)

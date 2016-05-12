@@ -6,7 +6,7 @@ from .utils import trig_sum
 
 
 def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='standard',
-                         fit_bias=True, center_data=True, nterms=1,
+                         fit_mean=True, center_data=True, nterms=1,
                          use_fft=True, trig_sum_kwds=None):
     """Lomb-Scargle Periodogram
 
@@ -25,13 +25,13 @@ def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='standard',
     normalization : string (optional, default='standard')
         Normalization to use for the periodogram.
         Options are 'standard', 'model', 'log', or 'psd'.
-    fit_bias : bool (optional, default=True)
+    fit_mean : bool (optional, default=True)
         if True, include a constant offet as part of the model at each
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage.
     center_data : bool (optional, default=True)
         if True, pre-center the data by subtracting the weighted mean
-        of the input data. This is especially important if ``fit_bias = False``
+        of the input data. This is especially important if ``fit_mean = False``
     nterms : int (optional, default=1)
         Number of Fourier terms in the fit
 
@@ -48,7 +48,7 @@ def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='standard',
     .. [3] Scargle, J.D. ApJ 263:835-853 (1982)
     .. [4] Palmer, J. ApJ 695:496-502 (2009)
     """
-    if nterms == 0 and not fit_bias:
+    if nterms == 0 and not fit_mean:
         raise ValueError("Cannot have nterms = 0 without fitting bias")
 
     if dy is None:
@@ -70,8 +70,8 @@ def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='standard',
     w = dy ** -2.0
     ws = np.sum(w)
 
-    # if fit_bias is true, centering the data now simplifies the math below.
-    if center_data or fit_bias:
+    # if fit_mean is true, centering the data now simplifies the math below.
+    if center_data or fit_mean:
         y = y - np.dot(w, y) / ws
 
     yw = y / dy
@@ -100,7 +100,7 @@ def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='standard',
 
     # Now create an indexing scheme so we can quickly
     # build-up matrices at each frequency
-    order = [('C', 0)] if fit_bias else []
+    order = [('C', 0)] if fit_mean else []
     order.extend(sum([[('S', i), ('C', i)]
                       for i in range(1, nterms + 1)], []))
 

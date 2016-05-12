@@ -28,13 +28,13 @@ def data(N=100, period=1, theta=[10, 2, 3], dy=1, rseed=0):
 
 @pytest.mark.parametrize('method', ALL_METHODS_NO_AUTO)
 @pytest.mark.parametrize('center_data', [True, False])
-@pytest.mark.parametrize('fit_bias', [True, False])
+@pytest.mark.parametrize('fit_mean', [True, False])
 @pytest.mark.parametrize('with_errors', [True, False])
 @pytest.mark.parametrize('with_units', [True, False])
 @pytest.mark.parametrize('normalization', NORMALIZATIONS)
-def test_all_methods(data, method, center_data, fit_bias,
+def test_all_methods(data, method, center_data, fit_mean,
                      with_errors, with_units, normalization):
-    if method == 'scipy' and (fit_bias or with_errors):
+    if method == 'scipy' and (fit_mean or with_errors):
         return
 
     t, y, dy = data
@@ -48,7 +48,7 @@ def test_all_methods(data, method, center_data, fit_bias,
         dy = None
 
     kwds = dict(normalization=normalization)
-    ls = LombScargle(t, y, dy, center_data=center_data, fit_bias=fit_bias)
+    ls = LombScargle(t, y, dy, center_data=center_data, fit_mean=fit_mean)
     P_expected = ls.power(frequency, **kwds)
 
     # don't use the fft approximation here; we'll test this elsewhere
@@ -69,11 +69,11 @@ def test_all_methods(data, method, center_data, fit_bias,
 
 @pytest.mark.parametrize('method', NTERMS_METHODS)
 @pytest.mark.parametrize('center_data', [True, False])
-@pytest.mark.parametrize('fit_bias', [True, False])
+@pytest.mark.parametrize('fit_mean', [True, False])
 @pytest.mark.parametrize('with_errors', [True, False])
 @pytest.mark.parametrize('nterms', [0, 2, 4])
 @pytest.mark.parametrize('normalization', NORMALIZATIONS)
-def test_nterms_methods(method, center_data, fit_bias, with_errors,
+def test_nterms_methods(method, center_data, fit_mean, with_errors,
                         nterms, normalization, data):
     t, y, dy = data
     frequency = 0.8 + 0.01 * np.arange(40)
@@ -81,11 +81,11 @@ def test_nterms_methods(method, center_data, fit_bias, with_errors,
         dy = None
 
     ls = LombScargle(t, y, dy, center_data=center_data,
-                     fit_bias=fit_bias, nterms=nterms)
+                     fit_mean=fit_mean, nterms=nterms)
 
     kwds = dict(normalization=normalization)
 
-    if nterms == 0 and not fit_bias:
+    if nterms == 0 and not fit_mean:
         with pytest.raises(ValueError) as err:
             ls.power(frequency, method=method, **kwds)
         assert 'nterms' in str(err.value) and 'bias' in str(err.value)
@@ -102,10 +102,10 @@ def test_nterms_methods(method, center_data, fit_bias, with_errors,
 
 @pytest.mark.parametrize('method', FAST_METHODS)
 @pytest.mark.parametrize('center_data', [True, False])
-@pytest.mark.parametrize('fit_bias', [True, False])
+@pytest.mark.parametrize('fit_mean', [True, False])
 @pytest.mark.parametrize('with_errors', [True, False])
 @pytest.mark.parametrize('nterms', [0, 1, 2])
-def test_fast_approximations(method, center_data, fit_bias,
+def test_fast_approximations(method, center_data, fit_mean,
                              with_errors, nterms, data):
     t, y, dy = data
     frequency = 0.8 + 0.01 * np.arange(40)
@@ -113,7 +113,7 @@ def test_fast_approximations(method, center_data, fit_bias,
         dy = None
 
     ls = LombScargle(t, y, dy, center_data=center_data,
-                     fit_bias=fit_bias, nterms=nterms)
+                     fit_mean=fit_mean, nterms=nterms)
 
     # use only standard normalization because we compare via absolute tolerance
     kwds = dict(method=method, normalization='standard')
@@ -123,7 +123,7 @@ def test_fast_approximations(method, center_data, fit_bias,
             ls.power(frequency, **kwds)
         assert 'nterms' in str(err.value)
 
-    elif nterms == 0 and not fit_bias:
+    elif nterms == 0 and not fit_mean:
         with pytest.raises(ValueError) as err:
             ls.power(frequency, **kwds)
         assert 'nterms' in str(err.value) and 'bias' in str(err.value)
@@ -142,7 +142,7 @@ def test_output_shapes(method, shape, data):
     t, y, dy = data
     freq = np.asarray(np.zeros(shape))
     freq.flat = np.arange(1, freq.size + 1)
-    PLS = LombScargle(t, y, fit_bias=False).power(freq, method=method)
+    PLS = LombScargle(t, y, fit_mean=False).power(freq, method=method)
     assert PLS.shape == shape
 
 
@@ -156,22 +156,22 @@ def test_errors_on_unit_mismatch(method, data):
 
     # this should fail because frequency and 1/t units do not match
     with pytest.raises(ValueError) as err:
-        LombScargle(t, y, fit_bias=False).power(frequency, method=method)
+        LombScargle(t, y, fit_mean=False).power(frequency, method=method)
     assert str(err.value).startswith('Units of frequency not equivalent')
 
     # this should fail because dy and y units do not match
     with pytest.raises(ValueError) as err:
-        LombScargle(t, y, dy, fit_bias=False).power(frequency / t.unit)
+        LombScargle(t, y, dy, fit_mean=False).power(frequency / t.unit)
     assert str(err.value).startswith('Units of dy not equivalent')
 
 
 # we don't test all normalizations here because they are tested above
 # only test method='auto' because unit handling does not depend on method
-@pytest.mark.parametrize('fit_bias', [True, False])
+@pytest.mark.parametrize('fit_mean', [True, False])
 @pytest.mark.parametrize('center_data', [True, False])
 @pytest.mark.parametrize('normalization', ['standard', 'psd'])
 @pytest.mark.parametrize('with_error', [True, False])
-def test_unit_conversions(data, fit_bias, center_data,
+def test_unit_conversions(data, fit_mean, center_data,
                           normalization, with_error):
     t, y, dy = data
 
@@ -207,16 +207,16 @@ def test_unit_conversions(data, fit_bias, center_data,
     assert_quantity_allclose(P3, P4)
 
 
-@pytest.mark.parametrize('fit_bias', [True, False])
+@pytest.mark.parametrize('fit_mean', [True, False])
 @pytest.mark.parametrize('with_units', [True, False])
 @pytest.mark.parametrize('freq', [1.0, 2.0])
-def test_model(fit_bias, with_units, freq):
+def test_model(fit_mean, with_units, freq):
     rand = np.random.RandomState(0)
     t = 10 * rand.rand(40)
     params = 10 * rand.rand(3)
 
     y = np.zeros_like(t)
-    if fit_bias:
+    if fit_mean:
         y += params[0]
     y += params[1] * np.sin(2 * np.pi * freq * (t - params[2]))
 
@@ -225,7 +225,7 @@ def test_model(fit_bias, with_units, freq):
         y = y * units.mag
         freq = freq / units.day
 
-    ls = LombScargle(t, y, center_data=False, fit_bias=fit_bias)
+    ls = LombScargle(t, y, center_data=False, fit_mean=fit_mean)
     y_fit = ls.model(t, freq)
     assert_quantity_allclose(y_fit, y)
 

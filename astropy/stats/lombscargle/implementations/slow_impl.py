@@ -4,7 +4,7 @@ import numpy as np
 
 
 def lombscargle_slow(t, y, dy, frequency, normalization='standard',
-                     fit_bias=True, center_data=True):
+                     fit_mean=True, center_data=True):
     """Lomb-Scargle Periodogram
 
     This is a pure-python implemnetation of the original Lomb-Scargle formalism
@@ -20,13 +20,13 @@ def lombscargle_slow(t, y, dy, frequency, normalization='standard',
     normalization : string (optional, default='standard')
         Normalization to use for the periodogram.
         Options are 'standard', 'model', 'log', or 'psd'.
-    fit_bias : bool (optional, default=True)
+    fit_mean : bool (optional, default=True)
         if True, include a constant offet as part of the model at each
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage.
     center_data : bool (optional, default=True)
         if True, pre-center the data by subtracting the weighted mean
-        of the input data. This is especially important if ``fit_bias = False``
+        of the input data. This is especially important if ``fit_mean = False``
 
     Returns
     -------
@@ -54,8 +54,8 @@ def lombscargle_slow(t, y, dy, frequency, normalization='standard',
     w = dy ** -2.0
     w /= w.sum()
 
-    # if fit_bias is true, centering the data now simplifies the math below.
-    if fit_bias or center_data:
+    # if fit_mean is true, centering the data now simplifies the math below.
+    if fit_mean or center_data:
         y = y - np.dot(w, y)
 
     omega = 2 * np.pi * frequency
@@ -73,7 +73,7 @@ def lombscargle_slow(t, y, dy, frequency, normalization='standard',
     # C2 = np.dot(w.T, np.cos(2 * omega * t)
     C2 = 2 * np.dot(w.T, 0.5 - sin_omega_t ** 2)
 
-    if fit_bias:
+    if fit_mean:
         S = np.dot(w.T, sin_omega_t)
         C = np.dot(w.T, cos_omega_t)
 
@@ -96,7 +96,7 @@ def lombscargle_slow(t, y, dy, frequency, normalization='standard',
     CCtau = np.dot(w.T, cos_omega_t_tau * cos_omega_t_tau)
     SStau = np.dot(w.T, sin_omega_t_tau * sin_omega_t_tau)
 
-    if fit_bias:
+    if fit_mean:
         Ctau = np.dot(w.T, cos_omega_t_tau)
         Stau = np.dot(w.T, sin_omega_t_tau)
 

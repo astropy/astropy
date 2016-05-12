@@ -83,7 +83,7 @@ def _get_frequency_grid(frequency, assume_regular_frequency=False):
     return frequency[0], frequency[1] - frequency[0], len(frequency)
 
 
-def validate_method(method, dy, fit_bias, nterms,
+def validate_method(method, dy, fit_mean, nterms,
                     frequency, assume_regular_frequency):
     """
     Validate the method argument, and if method='auto'
@@ -93,7 +93,7 @@ def validate_method(method, dy, fit_bias, nterms,
     fast_method_ok = ('fast' in methods)
     prefer_fast = (fast_method_ok and len(frequency) > 200
                    and (assume_regular_frequency or _is_regular(frequency)))
-    prefer_scipy = 'scipy' in methods and dy is None and not fit_bias
+    prefer_scipy = 'scipy' in methods and dy is None and not fit_mean
 
     # automatically choose the appropiate method
     if method == 'auto':
@@ -124,7 +124,7 @@ def lombscargle(t, y, dy=None,
                 method='auto',
                 assume_regular_frequency=False,
                 normalization='standard',
-                fit_bias=True, center_data=True,
+                fit_mean=True, center_data=True,
                 method_kwds=None, nterms=1):
     """
     Compute the Lomb-scargle Periodogram with a given method.
@@ -166,13 +166,13 @@ def lombscargle(t, y, dy=None,
     normalization : string (optional, default='standard')
         Normalization to use for the periodogram.
         Options are 'standard' or 'psd'.
-    fit_bias : bool (optional, default=True)
+    fit_mean : bool (optional, default=True)
         if True, include a constant offet as part of the model at each
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage.
     center_data : bool (optional, default=True)
         if True, pre-center the data by subtracting the weighted mean
-        of the input data. This is especially important if `fit_bias = False`
+        of the input data. This is especially important if `fit_mean = False`
     method_kwds : dict (optional)
         additional keywords to pass to the lomb-scargle method
     nterms : int (default=1)
@@ -192,19 +192,19 @@ def lombscargle(t, y, dy=None,
     args = (t, y, dy)
     kwds = dict(frequency=frequency,
                 center_data=center_data,
-                fit_bias=fit_bias,
+                fit_mean=fit_mean,
                 normalization=normalization,
                 nterms=nterms,
                 **(method_kwds or {}))
 
-    method = validate_method(method, dy=dy, fit_bias=fit_bias, nterms=nterms,
+    method = validate_method(method, dy=dy, fit_mean=fit_mean, nterms=nterms,
                              frequency=frequency,
                              assume_regular_frequency=assume_regular_frequency)
 
-    # scipy doesn't support dy or fit_bias=True
+    # scipy doesn't support dy or fit_mean=True
     if method == 'scipy':
-        if kwds.pop('fit_bias'):
-            raise ValueError("scipy method does not support fit_bias=True")
+        if kwds.pop('fit_mean'):
+            raise ValueError("scipy method does not support fit_mean=True")
         if dy is not None:
             dy = np.ravel(np.asarray(dy))
             if not np.allclose(dy[0], dy):
