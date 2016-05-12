@@ -156,7 +156,7 @@ def _get_earth_body_vector(time, body_key):
     earth_loc = _get_barycentric_body_position(time, 'earth')
     body_loc = _get_barycentric_body_position(time, body_key)
     earth_body_vector = body_loc.xyz - earth_loc.xyz
-    earth_distance = np.sqrt(earth_body_vector.dot(earth_body_vector))
+    earth_distance = np.sqrt(np.sum(earth_body_vector**2,axis=0))
     return earth_body_vector, earth_distance
 
 def _get_apparent_body_position(time, body_key):
