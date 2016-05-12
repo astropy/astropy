@@ -1,7 +1,5 @@
 from __future__ import print_function, division
 
-import warnings
-
 import numpy as np
 from .utils import trig_sum
 

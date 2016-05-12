@@ -47,6 +47,8 @@ class LombScargle(object):
     center_data : bool (optional, default=True)
         if True, pre-center the data by subtracting the weighted mean
         of the input data. This is especially important if fit_bias = False
+    nterms : int (optional, default=1)
+        number of terms to use in the Fourier fit
 
     Examples
     --------
@@ -95,10 +97,12 @@ class LombScargle(object):
     """
     available_methods = available_methods()
 
-    def __init__(self, t, y, dy=None, fit_bias=True, center_data=True):
+    def __init__(self, t, y, dy=None,
+                 fit_bias=True, center_data=True, nterms=1):
         self.t, self.y, self.dy = self._validate_inputs(t, y, dy)
         self.fit_bias = fit_bias
         self.center_data = center_data
+        self.nterms = nterms
 
     def _validate_inputs(self, t, y, dy):
         # Validate shapes of inputs
@@ -191,9 +195,8 @@ class LombScargle(object):
         frequency : ndarray or Quantity
             The heuristically-determined optimal frequency bin
         """
-        t = np.asanyarray(self.t)
-        baseline = t.max() - t.min()
-        n_samples = t.size
+        baseline = self.t.max() - self.t.min()
+        n_samples = self.t.size
 
         df = 1. / baseline / samples_per_peak
 
@@ -308,6 +311,7 @@ class LombScargle(object):
                             frequency=strip_units(frequency),
                             center_data=self.center_data,
                             fit_bias=self.fit_bias,
+                            nterms=self.nterms,
                             normalization=normalization,
                             method=method, method_kwds=method_kwds,
                             assume_regular_frequency=assume_regular_frequency)
@@ -334,5 +338,6 @@ class LombScargle(object):
                              frequency=strip_units(frequency),
                              t_fit=strip_units(t),
                              center_data=self.center_data,
-                             fit_bias=self.fit_bias)
+                             fit_bias=self.fit_bias,
+                             nterms=self.nterms)
         return y_fit * get_unit(self.y)

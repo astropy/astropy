@@ -9,6 +9,7 @@ from __future__ import print_function, division
 __all__ = ['lombscargle', 'available_methods']
 
 import warnings
+import imp
 
 import numpy as np
 
@@ -35,12 +36,25 @@ def available_methods():
     if hasattr(np.ufunc, 'at'):
         methods.extend(['fast', 'fastchi2'])
 
+    # Scipy required for scipy algorithm (obviously)
     try:
-        import scipy
+        imp.find_module('scipy')
         methods.append('scipy')
     except ImportError:
         pass
     return methods
+
+
+def _is_regular(frequency):
+    frequency = np.asarray(frequency)
+
+    if frequency.ndim != 1:
+        return False
+    elif len(frequency) == 1:
+        return True
+    else:
+        diff = np.diff(frequency)
+        return np.allclose(diff[0], diff)
 
 
 def _get_frequency_grid(frequency, assume_regular_frequency=False):
@@ -63,35 +77,22 @@ def _get_frequency_grid(frequency, assume_regular_frequency=False):
         raise ValueError("frequency grid must be 1 dimensional")
     elif len(frequency) == 1:
         return frequency[0], frequency[0], 1
-    elif not assume_regular_frequency:
-        diff = frequency[1:] - frequency[:-1]
-        if not np.allclose(diff[0], diff):
-            raise ValueError("frequency must be a regular grid")
+    elif not (assume_regular_frequency or _is_regular(frequency)):
+        raise ValueError("frequency must be a regular grid")
 
     return frequency[0], frequency[1] - frequency[0], len(frequency)
 
 
-def _is_regular(frequency, assume_regular_frequency=False):
-    if assume_regular_frequency:
-        return True
-
-    frequency = np.asarray(frequency)
-
-    if frequency.ndim != 1:
-        return False
-    elif len(frequency) == 1:
-        return True
-    else:
-        diff = frequency[1:] - frequency[:-1]
-        return np.allclose(diff[0], diff)
-
-
 def validate_method(method, dy, fit_bias, nterms,
                     frequency, assume_regular_frequency):
+    """
+    Validate the method argument, and if method='auto'
+    choose the appropriate method
+    """
     methods = available_methods()
     fast_method_ok = ('fast' in methods)
     prefer_fast = (fast_method_ok and len(frequency) > 200
-                   and _is_regular(frequency, assume_regular_frequency))
+                   and (assume_regular_frequency or _is_regular(frequency)))
     prefer_scipy = 'scipy' in methods and dy is None and not fit_bias
 
     # automatically choose the appropiate method

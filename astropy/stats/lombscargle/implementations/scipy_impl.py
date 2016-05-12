@@ -2,12 +2,6 @@ from __future__ import print_function, division
 
 import numpy as np
 
-try:
-    from scipy import signal
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
-
 
 def lombscargle_scipy(t, y, frequency, normalization='standard',
                       center_data=True):
@@ -43,8 +37,10 @@ def lombscargle_scipy(t, y, frequency, normalization='standard',
     .. [2] W. Press et al, Numerical Recipies in C (2002)
     .. [3] Scargle, J.D. 1982, ApJ 263:835-853
     """
-    if not HAS_SCIPY:
-        raise ValueError("scipy must be installed to use lombscargle_scipy")
+    try:
+        from scipy import signal
+    except ImportError:
+        raise ImportError("scipy must be installed to use lombscargle_scipy")
 
     t, y = np.broadcast_arrays(t, y)
     frequency = np.asarray(frequency)

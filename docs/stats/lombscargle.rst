@@ -603,8 +603,8 @@ Literature References
        in Python* (2015) http://dx.doi.org/10.5281/zenodo.14833
 .. [7] VanderPlas, J. & Ivezic, Z. *Periodograms for Multiband Astronomical
        Time Series*. ApJ 812.1:18 (2015)
-.. [8] Baluev, R.V. *Assessing Statistical Significance of Periodogram Peaks"
-        MNRAS 385, 1279 (2008)
+.. [8] Baluev, R.V. *Assessing Statistical Significance of Periodogram Peaks*
+       MNRAS 385, 1279 (2008)
 .. [9] Palmer, D. *A Fast Chi-squared Technique for Period Search of
        Irregularly Sampled Data*. ApJ 695.1:496 (2009)
 .. [10] Zechmeister, M. and Kurster, M. *The generalised Lomb-Scargle
