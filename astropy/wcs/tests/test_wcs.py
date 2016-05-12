@@ -929,3 +929,40 @@ def test_passing_ImageHDU():
     wcs_hdu = wcs.WCS(hdulist[1])
     wcs_header = wcs.WCS(hdulist[1].header)
     assert wcs_hdu.wcs.compare(wcs_header.wcs)
+
+
+def inconsistent_sip():
+    """
+    Test for #4814
+    """
+    hdr = get_pkg_data_contents("data/sip-broken.hdr")
+    w = wcs.WCS(hdr)
+    newhdr = w.to_header(relax=None)
+    # CTYPE should not include "-SIP" if relax is None
+    assert(all([ctyp[-4 :] != '-SIP' for ctyp in self.wcs.ctype]))
+    newhdr = w.to_header(relax=False)
+    assert('A_0_2' not in newhdr)
+    # CTYPE should not include "-SIP" if relax is False
+    assert(all([ctyp[-4 :] != '-SIP' for ctyp in self.wcs.ctype]))
+    newhdr = w.to_header(key="C")
+    assert('A_0_2' not in newhdr)
+    # Test writing header with a different key
+    assert(all([ctyp[-4 :] != '-SIP' for ctyp in self.wcs.ctype]))
+    newhdr = w.to_header(key=" ")
+    # Test writing a primary WCS to header
+    assert(all([ctyp[-4 :] != '-SIP' for ctyp in self.wcs.ctype]))
+    # Test that "-SIP" is kept into CTYPE if relax=True and
+    # "-SIP" was in the original header
+    newhdr = w.to_header(relax=True)
+    assert(all([ctyp[-4 :] == '-SIP' for ctyp in self.wcs.ctype]))
+    assert('A_0_2' in newhdr)
+    # Test that SIP coefficients are aslo written out.
+    wtest = WCS(newhdr)
+    assert wtest.sip is not None
+    ########## broken header ###########
+    # Test that "-SIP" is added to CTYPE if relax=True and
+    # "-SIP" was not in the original header
+    hdr['CTYPE1'] = 'RA---TAN'
+    w = WCS(hdr)
+    newhdr = w.to_header(relax=True)
+    assert(all([ctyp[-4 :] == '-SIP' for ctyp in self.wcs.ctype]))
