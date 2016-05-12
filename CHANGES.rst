@@ -384,6 +384,9 @@ Other Changes and Additions
 - All astropy.modeling functionality that was deprecated in Astropy 1.0 has
   been removed. [#4857]
 
+- Added instructions for installing Astropy into CASA. [#4840]
+
+
 1.1.3 (unreleased)
 -------------------
 
