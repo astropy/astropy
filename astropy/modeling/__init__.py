@@ -6,6 +6,7 @@ performing model evaluation and fitting. It supports 1D and 2D models
 and fitting with parameter constraints. It has some predefined models
 and fitting routines.
 """
+from __future__ import absolute_import
 
 from . import fitting
 from . import models

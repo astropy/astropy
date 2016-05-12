@@ -7,6 +7,7 @@ This module provides utility functions for the models package
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+import warnings
 from collections import deque, MutableMapping
 
 import numpy as np
@@ -16,10 +17,11 @@ from ..extern.six.moves import xrange, zip_longest
 
 from ..utils import isiterable
 from ..utils.compat.funcsigs import signature
+from ..utils.exceptions import AstropyUserWarning
 
 
 __all__ = ['ExpressionTree', 'AliasDict', 'check_broadcast',
-           'poly_map_domain', 'comb', 'ellipse_extent']
+           'poly_map_domain', 'comb', 'ellipse_extent', 'merge_sampleset']
 
 
 class ExpressionTree(object):
@@ -655,3 +657,73 @@ def get_inputs_and_params(func):
             params.append(param)
 
     return inputs, params
+
+
+def merge_sampleset(sampleset_1, sampleset_2, threshold=1e-12):
+    """Return the union of the two model samplesets using
+    :func:`numpy.union1d`.
+
+    .. note:: Merging is only for 1D sampleset for now.
+
+    The merged sampleset may sometimes contain numbers which are nearly
+    equal but differ at levels as small as the given threshold.
+    Having values this close together might cause problems down the line.
+    If such small differences are present, the lower of the too-close
+    pair is removed.
+
+    If only one of the inputs is a real sampleset, this returns the real
+    one. That is, it favors the model with actual sampleset than the
+    model without. This behavior might not be applicable to all the
+    use cases (e.g., ``PowerLaw1D + Box1D``) but necessary to preserve
+    samplesets in complicated model arithmetic.
+
+    Parameters
+    ----------
+    sampleset_1, sampleset_2 : array_like or `None`
+        Model sampleset values, if applicable.
+        If both are arrays, they must be in the same unit already;
+        i.e., no unit conversion is done here.
+
+    threshold : float or `None`
+        Merged sampleset values are considered "too close together"
+        when the difference is smaller than this number.
+        The default is 1e-12. Set to `None` to disable threshold checking.
+
+    Returns
+    -------
+    sampleset : array_like or `None`
+        Merged sampleset or `None` if undefined.
+
+    """
+    # Both models have no sampleset.
+    if sampleset_1 is None and sampleset_2 is None:
+        sampleset = None
+
+    # Only first model has sampleset.
+    elif sampleset_1 is not None and sampleset_2 is None:
+        sampleset = sampleset_1
+
+    # Only second model has sampleset.
+    elif sampleset_1 is None and sampleset_2 is not None:
+        sampleset = sampleset_2
+
+    elif (np.ndim(sampleset_1) != 1 or
+          np.ndim(sampleset_2) != 1):  # pragma: no cover
+        warnings.warn('Merging is only for 1D samplesets for now',
+                      AstropyUserWarning)
+        sampleset = None
+
+    # Both models have sampleset, needs merging.
+    else:
+        sampleset = np.union1d(sampleset_1, sampleset_2)
+
+        # Remove "too close together" points.
+        if threshold is not None:
+            delta = sampleset[1:] - sampleset[:-1]
+            good = np.where(delta > threshold)
+
+            # Remove "too close together" duplicates
+            if len(good[0]) < delta.size:
+                sampleset = np.append(sampleset[good], sampleset[-1])
+
+    return sampleset
