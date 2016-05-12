@@ -2,9 +2,9 @@ import numpy as np
 from numpy.testing import assert_allclose
 
 from .... import units
-from ....tests.helper import pytest
+from ....tests.helper import pytest, assert_quantity_allclose
 from .. import LombScargle
-from ..implementations import lombscargle_slow, lombscargle
+from ..implementations import lombscargle_slow
 
 
 @pytest.fixture
@@ -19,6 +19,30 @@ def data(N=100, period=1, theta=[10, 2, 3], dy=1, rseed=0):
 
     return t, y, dy
 
+
+
+
+@pytest.mark.parametrize('method', LombScargle.available_methods)
+@pytest.mark.parametrize('center_data', [True, False])
+@pytest.mark.parametrize('fit_bias', [True, False])
+def test_all_methods(method, center_data, fit_bias, data):
+    t, y, dy = data
+    freq = 0.8 + 0.01 * np.arange(40)
+    if method == 'scipy' and fit_bias:
+        return
+    if method == 'scipy':
+        dy = None
+
+    expected_PLS = lombscargle_slow(t, y, dy, frequency=freq,
+                                    fit_bias=False, center_data=center_data)
+    PLS = LombScargle(t, y, dy, fit_bias=False,
+                      center_data=center_data).power(freq, method=method)
+
+    if method in ['fastchi2', 'fast', 'auto']:
+        atol = 0.005
+    else:
+        atol = 0
+    assert_allclose(PLS, expected_PLS, atol=atol)
 
 @pytest.mark.parametrize('method', LombScargle.available_methods)
 @pytest.mark.parametrize('shape', [(), (1,), (2,), (3,), (2, 3)])
@@ -95,27 +119,41 @@ def test_units_mismatch(method, data):
     assert str(err.value).startswith('Units of dy not equivalent')
 
 
-@pytest.mark.parametrize('method', LombScargle.available_methods)
-@pytest.mark.parametrize('center_data', [True, False])
 @pytest.mark.parametrize('fit_bias', [True, False])
-@pytest.mark.parametrize('freq', [0.8 + 0.01 * np.arange(40)])
-def test_all_methods(method, center_data, fit_bias, freq, data):
+@pytest.mark.parametrize('center_data', [True, False])
+@pytest.mark.parametrize('normalization', ['standard', 'psd'])
+@pytest.mark.parametrize('with_error', [True, False])
+def test_unit_conversions(data, center_data, normalization, with_error):
     t, y, dy = data
-    if method == 'scipy' and fit_bias:
-        return
-    if method == 'scipy':
+
+    t_day = t * units.day
+    t_hour = units.Quantity(t_day, 'hour')
+    assert_quantity_allclose(t_day, t_hour)
+
+    y_meter = y * units.meter
+    y_millimeter = units.Quantity(y_meter, 'millimeter')
+    assert_quantity_allclose(y_meter, y_millimeter)
+
+    if with_error:
+        dy = dy * units.meter
+    else:
         dy = None
 
-    expected_PLS = lombscargle_slow(t, y, dy, frequency=freq,
-                                    fit_bias=False, center_data=center_data)
-    PLS = LombScargle(t, y, dy, fit_bias=False,
-                      center_data=center_data).power(freq, method=method)
+    freq_day, P1 = LombScargle(t_day, y_meter, dy).autopower()
+    freq_hour, P2 = LombScargle(t_hour, y_millimeter, dy).autopower()
 
-    if method in ['fastchi2', 'fast', 'auto']:
-        atol = 0.005
-    else:
-        atol = 0
-    assert_allclose(PLS, expected_PLS, atol=atol)
+    # Sanity check on outputs
+    assert freq_day.unit == 1. / units.day
+    assert freq_hour.unit == 1. / units.hour
+
+    # Check that results match
+    assert_quantity_allclose(freq_day, freq_hour)
+    assert_quantity_allclose(P1, P2)
+
+    # Check that switching frequency units doesn't change things
+    P3 = LombScargle(t_day, y_meter, dy).power(freq_hour)
+    P4 = LombScargle(t_hour, y_meter, dy).power(freq_day)
+    assert_quantity_allclose(P3, P4)
 
 
 @pytest.mark.parametrize('method', LombScargle.available_methods)
