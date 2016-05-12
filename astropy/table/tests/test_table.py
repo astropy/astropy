@@ -19,7 +19,7 @@ from ... import table
 from ... import units as u
 from .conftest import MaskedTable
 
-from itertools import izip
+from ...extern.six.moves import zip as izip
 
 try:
     with ignore_warnings(DeprecationWarning):
