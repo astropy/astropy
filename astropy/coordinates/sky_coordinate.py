@@ -159,6 +159,8 @@ class SkyCoord(object):
         Specifies the representation, e.g. 'spherical', 'cartesian', or
         'cylindrical'.  This affects the positional args and other keyword args
         which must correspond to the given representation.
+    copy: bool
+        If `True` (default), guarantees that a copy of any input is made.
     **keyword_args
         Other keyword arguments as applicable for user-defined coordinate frames.
         Common options include:
@@ -188,6 +190,7 @@ class SkyCoord(object):
         # kwargs dict for initializing attributes for this object and for
         # creating the internal self._sky_coord_frame object
         args = list(args)  # Make it mutable
+        copy = kwargs.pop('copy', True)
         kwargs = self._parse_inputs(args, kwargs)
 
         # Set internal versions of object state attributes
@@ -204,7 +207,7 @@ class SkyCoord(object):
                 coord_kwargs[attr] = value
 
         # Finally make the internal coordinate object.
-        self._sky_coord_frame = frame.__class__(**coord_kwargs)
+        self._sky_coord_frame = frame.__class__(copy=copy, **coord_kwargs)
 
         if not self._sky_coord_frame.has_data:
             raise ValueError('Cannot create a SkyCoord without data')
@@ -1480,7 +1483,8 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
     try:
         for frame_attr_name, repr_attr_class, value, unit in zip(
                 frame_attr_names, repr_attr_classes, values, units):
-            valid_kwargs[frame_attr_name] = repr_attr_class(value, unit=unit)
+            valid_kwargs[frame_attr_name] = repr_attr_class(value, unit=unit,
+                                                            copy=False)
     except Exception as err:
         raise ValueError('Cannot parse first argument data "{0}" for attribute '
                          '{1}'.format(value, frame_attr_name), err)
