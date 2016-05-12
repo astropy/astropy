@@ -22,22 +22,23 @@ __all__ = ["get_body", "get_moon"]
 
 KERNEL = None
 
-""" 
+"""
 each value in the BODIES dictionary a list of kernel pairs needed
 to find the barycentric position of that object from the JPL kernel.
 """
-BODIES = {'sun': [(0,10)],
-          'mercury': [(0, 1), (1, 199)], 
-          'venus': [(0,2), (2, 299)], 
-          'earth-moon-barycenter': [(0,3)],
+BODIES = {'sun': [(0, 10)],
+          'mercury': [(0, 1), (1, 199)],
+          'venus': [(0, 2), (2, 299)],
+          'earth-moon-barycenter': [(0, 3)],
           'earth':  [(0, 3), (3, 399)],
           'moon': [(0, 3), (3, 301)],
           'mars': [(0, 4)],
-          'jupiter': [(0,5)],
-          'saturn': [(0,6)],
-          'uranus': [(0,7)],
-          'neptune': [(0,8)],
-          'pluto': [(0,9)]}          
+          'jupiter': [(0, 5)],
+          'saturn': [(0, 6)],
+          'uranus': [(0, 7)],
+          'neptune': [(0, 8)],
+          'pluto': [(0, 9)]}
+
 
 def _download_spk_file(show_progress=True):
     """
@@ -106,19 +107,19 @@ def _get_barycentric_body_position(time, body_key):
             raise ValueError("Unknown body index '" + body_key + """', valid entries are
                               contained within solar_system.BODIES""")
     else:
-        raise ValueError("'body_key' must be a string or integer") 
-        
+        raise ValueError("'body_key' must be a string or integer")
+
     kernel = _get_kernel()
-    
+
     # are all the kernel pairs in this kernel?
     valid_chain = np.all([c in kernel.pairs.keys() for c in chain])
     if not valid_chain:
         raise ValueError("Postion of this body cannot be calculated using jpl kernel")
-        
+
     jd1, jd2 = get_jd12(time, 'tdb')
 
     cartesian_position_body = np.sum([kernel[pair].compute(jd1, jd2) for pair in chain],
-                                       axis=0)
+                                     axis=0)
 
     barycen_to_body_vector = u.Quantity(cartesian_position_body, unit=u.km)
     return CartesianRepresentation(barycen_to_body_vector)
@@ -157,8 +158,9 @@ def _get_earth_body_vector(time, body_key):
     earth_loc = _get_barycentric_body_position(time, 'earth')
     body_loc = _get_barycentric_body_position(time, body_key)
     earth_body_vector = body_loc.xyz - earth_loc.xyz
-    earth_distance = np.sqrt(np.sum(earth_body_vector**2,axis=0))
+    earth_distance = np.sqrt(np.sum(earth_body_vector**2, axis=0))
     return earth_body_vector, earth_distance
+
 
 def _get_apparent_body_position(time, body_key):
     """
@@ -255,11 +257,12 @@ def get_moon(time, location=None):
     """
     return get_body(time, body_key='moon', location=location)
 
+
 def _apparent_position_in_true_coordinates(skycoord):
     """
     Convert Skycoord in GCRS frame into one in which RA and Dec
     are defined w.r.t to the true equinox and poles of the Earth
     """
-    jd1, jd2 = get_jd12(skycoord.obstime,'tt')
+    jd1, jd2 = get_jd12(skycoord.obstime, 'tt')
     _, _, _, _, _, _, _, rbpn = _erfa.pn00a(jd1, jd2)
     return SkyCoord(skycoord.frame.realize_frame(cartrepr_from_matmul(rbpn, skycoord)))
