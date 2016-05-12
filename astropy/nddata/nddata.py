@@ -86,8 +86,6 @@ class NDData(NDDataBase):
     ``data`` in a `NDData` object can be accessed through the `data`
     attribute::
 
-    For example::
-
         >>> from astropy.nddata import NDData
         >>> nd = NDData([1,2,3])
         >>> nd.data
