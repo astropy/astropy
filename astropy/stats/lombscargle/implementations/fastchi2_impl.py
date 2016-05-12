@@ -24,7 +24,7 @@ def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='standard',
         parameters describing the frequency grid, f = f0 + df * arange(Nf).
     normalization : string (optional, default='standard')
         Normalization to use for the periodogram.
-        Options are 'standard' or 'psd'.
+        Options are 'standard', 'model', 'log', or 'psd'.
     fit_bias : bool (optional, default=True)
         if True, include a constant offet as part of the model at each
         frequency. This can lead to more accurate results, especially in the
@@ -126,6 +126,10 @@ def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='standard',
         p *= 0.5 * t.size / ws
     elif normalization == 'standard':
         p /= chi2_ref
+    elif normalization == 'log':
+        p = -np.log(1 - p / chi2_ref)
+    elif normalization == 'model':
+        p /= chi2_ref - p
     else:
         raise ValueError("normalization='{0}' "
                          "not recognized".format(normalization))

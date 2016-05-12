@@ -28,7 +28,7 @@ def data(N=100, period=1, theta=[10, 2, 3], dy=1, rseed=0):
 @pytest.mark.parametrize('center_data', [True, False])
 @pytest.mark.parametrize('fit_bias', [True, False])
 @pytest.mark.parametrize('with_errors', [True, False])
-@pytest.mark.parametrize('normalization', ['standard', 'psd'])
+@pytest.mark.parametrize('normalization', ['standard', 'psd', 'log', 'model'])
 def test_lombscargle_common(method, center_data, fit_bias,
                             with_errors, normalization, data):
     if fit_bias and method not in BIAS_METHODS:
@@ -68,7 +68,7 @@ def test_lombscargle_common(method, center_data, fit_bias,
 @pytest.mark.parametrize('fit_bias', [True, False])
 @pytest.mark.parametrize('with_errors', [True, False])
 @pytest.mark.parametrize('nterms', range(5))
-@pytest.mark.parametrize('normalization', ['standard', 'psd'])
+@pytest.mark.parametrize('normalization', ['standard', 'psd', 'log', 'model'])
 def test_lombscargle_nterms(method, center_data, fit_bias, with_errors, nterms,
                             normalization, data):
     t, y, dy = data
@@ -89,7 +89,7 @@ def test_lombscargle_nterms(method, center_data, fit_bias, with_errors, nterms,
     else:
         expected_output = lombscargle(t, y, dy, frequency=freq, **kwds)
 
-        # don't test fast fft methods here
+        # don't use fast fft approximations here
         if 'fast' in method:
             kwds['method_kwds'] = dict(use_fft=False)
         output = lombscargle(t, y, dy, frequency=freq, method=method, **kwds)

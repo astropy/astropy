@@ -29,7 +29,7 @@ def lombscargle_fast(t, y, dy, f0, df, Nf,
         vary with the fit.
     normalization : string (optional, default='standard')
         Normalization to use for the periodogram.
-        Options are 'standard' or 'psd'.
+        Options are 'standard', 'model', 'log', or 'psd'.
     use_fft : bool (default=True)
         If True, then use the Press & Rybicki O[NlogN] algorithm to compute
         the result. Otherwise, use a slower O[N^2] algorithm
@@ -126,6 +126,10 @@ def lombscargle_fast(t, y, dy, f0, df, Nf,
 
     if normalization == 'standard':
         power /= YY
+    elif normalization == 'model':
+        power /= YY - power
+    elif normalization == 'log':
+        power = -np.log(1 - power / YY)
     elif normalization == 'psd':
         power *= 0.5 * t.size
     else:

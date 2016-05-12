@@ -54,6 +54,8 @@ def test_output_shapes(method, shape, data):
     assert PLS.shape == shape
 
 
+# we don't test all normalizations here because they are tested
+# in implementations/test_methods.py
 @pytest.mark.parametrize('method', LombScargle.available_methods)
 @pytest.mark.parametrize('t_unit', [units.second, units.day])
 @pytest.mark.parametrize('frequency_unit', [units.Hz, 1. / units.second])
@@ -119,11 +121,14 @@ def test_units_mismatch(method, data):
     assert str(err.value).startswith('Units of dy not equivalent')
 
 
+# we don't test all normalizations here because they are tested
+# in implementations/test_methods.py
 @pytest.mark.parametrize('fit_bias', [True, False])
 @pytest.mark.parametrize('center_data', [True, False])
 @pytest.mark.parametrize('normalization', ['standard', 'psd'])
 @pytest.mark.parametrize('with_error', [True, False])
-def test_unit_conversions(data, center_data, normalization, with_error):
+def test_unit_conversions(data, fit_bias, center_data,
+                          normalization, with_error):
     t, y, dy = data
 
     t_day = t * units.day

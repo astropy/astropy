@@ -28,6 +28,10 @@ def strip_units(*arrs):
 class LombScargle(object):
     """Compute the Lomb-Scargle Periodogram
 
+    This implementations here are based on code presented in [1]_ and [2]_;
+    if you use this functionality in an academic application, citation of
+    those works would be appreciated.
+
     Parameters
     ----------
     t : array_like or Quantity
@@ -80,6 +84,14 @@ class LombScargle(object):
     Note here that the Lomb-Scargle power is always a unitless quantity,
     because it is related to the :math:`\\chi^2` of the best-fit periodic
     model at each frequency.
+
+    References
+    ----------
+    .. [1] Vanderplas, J., Connolly, A. Ivezic, Z. & Gray, A. *Introduction to
+        astroML: Machine learning for astrophysics*. Proceedings of the
+        Conference on Intelligent Data Understanding (2012)
+    .. [2] VanderPlas, J. & Ivezic, Z. *Periodograms for Multiband Astronomical
+        Time Series*. ApJ 812.1:18 (2015)
     """
     available_methods = available_methods()
 
@@ -225,7 +237,7 @@ class LombScargle(object):
             additional keywords to pass to the lomb-scargle method
         normalization : string (optional, default='standard')
             Normalization to use for the periodogram.
-            Options are 'standard' or 'psd'.
+            Options are 'standard', 'model', or 'psd'.
         **kwargs :
             additional keyword arguments will be passed to autofrequency()
 
@@ -275,7 +287,7 @@ class LombScargle(object):
             or 'fast'.
         normalization : string (optional, default='standard')
             Normalization to use for the periodogram.
-            Options are 'standard' or 'psd'.
+            Options are 'standard', 'model', 'log', or 'psd'.
         fit_bias : bool (optional, default=True)
             if True, include a constant offet as part of the model at each
             frequency. This can lead to more accurate results, especially in

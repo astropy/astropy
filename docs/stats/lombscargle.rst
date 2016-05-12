@@ -86,8 +86,8 @@ an array:
 Gaussian uncertainties are assumed, and ``dy`` here specifies the standard
 deviation (not the variance).
 
-Units and Normalization
------------------------
+Periodograms and Units
+----------------------
 The :class:`~astropy.stats.LombScargle` interface properly handles
 :class:`~astropy.units.Quantity` objects with units attached,
 and will validate the inputs to make sure units are appropriate. For example:
@@ -276,28 +276,78 @@ We can then phase the data and plot the Lomb-Scargle model fit:
 
 .. _lomb-scargle-normalization:
 
-Periodogram Normalization
-=========================
-
+Periodogram Normalizations
+==========================
 There are several normalizations of the Lomb-Scargle periodogram found in the
-literature. The standard normalized periodogram has Lomb-Scargle power *P*
-which is a dimensionless quantity that lies in the range *0 ≤ P ≤ 1*.
-This normalization is used by default, and corresponds to the argument
-``normalization='standard'.
+literature. :class:`~astropy.stats.LombScargle` makes four options available,
+via the ``normalization`` argument: ``normalization='standard'``
+(the default), ``normalization='model'``, ``normalization='log'``,
+and ``normalization='psd'``.
+These normalizations are easiest to discuss in terms of least-squares fits around
+a constant reference model :math:`M_{ref}` and a periodic model :math:`M(f)` at
+each frequency, with best-fit sum-of-residuals that we'll denote by
+:math:`\chi^2_{ref}` and :math:`\chi^2(f)` respectively.
 
-Alternatively, you can choose ``normalization='psd'``, which will output the
-periodogram with units ``y.unit ** 2``, similar to the Fourier power spectral
-density (PSD):
+Standard Normalization
+----------------------
+The default, the standard normalized periodogram, is normalized by the residuals
+of the data around the constant reference model:
+
+.. math::
+
+   P_{standard}(f) = \frac{\chi^2_{ref} - \chi^2(f)}{\chi^2_{ref}}
+
+This form of the normalization (``normalization='standard'``) is the default
+choice used in :class:`~astropy.stats.LombScargle`.
+The resulting power *P* is a dimensionless quantity that lies in the
+range *0 ≤ P ≤ 1*.
+
+Model Normalization
+-------------------
+Alternatively, the periodogram is sometimes normalized instead by the residuals
+around the periodic model:
+
+.. math::
+
+   P_{model}(f) = \frac{\chi^2_{ref} - \chi^2(f)}{\chi^2(f)}
+
+This form of the normalization can be specified with ``normalization='model'``.
+As above, the resulting power is a dimensionless
+quantity that lies in the range *0 ≤ P ≤ 1*.
+
+Logarithmic Normalization
+-------------------------
+Another form of normalization is to scale the periodogram logarithmically:
+
+.. math::
+
+   P_{log}(f) = \log \frac{\chi^2_{ref}}{\chi^2(f)}
+
+This normalization can be specified with ``normalization='log'``, and the
+resulting power is a dimensionless quantity in the range *0 ≤ P ≤ ∞*.
+
+PSD Normalization (Unnormalized)
+--------------------------------
+Finally, it is sometimes useful to compute an unnormalized periodogram
+(``normalization='psd'``):
+
+.. math::
+
+   P_{psd}(f) = \frac{N}{2}\left(\chi^2_{ref} - \chi^2(f)\right)
+
+where *N* is the number of data points, which in the no-uncertainty case
+will have units ``y.unit ** 2``. This normalization is constructed to be
+comparable to the standard Fourier power spectral density (PSD):
 
 >>> ls = LombScargle(t_days, y_mags)
 >>> frequency, power = ls.autopower(normalization='psd')
 >>> power.unit
 Unit("mag2")
 
-Note, however, that the ``psd`` result only has these units *if uncertainties
-are not specified*. In the presence of uncertainties, even the PSD-normalized
-periodogram is dimensionless; this is due to the scaling of data by uncertainty
-within the Lomb-Scargle computation:
+Note, however, that the ``normalization='psd'`` result only has these units
+*if uncertainties are not specified*. In the presence of uncertainties,
+even the unnormalized PSD periodogram will be dimensionless; this is due to
+the scaling of data by uncertainty within the Lomb-Scargle computation:
 
 >>> # with uncertainties, PSD power is unitless
 >>> ls = LombScargle(t_days, y_mags, dy_mags)
@@ -305,9 +355,9 @@ within the Lomb-Scargle computation:
 >>> power.unit
 Unit(dimensionless)
 
-The equivalence of the periodogram and the Fourier PSD in the unnormalized,
-no-uncertainty case can be confirmed by comparing results directly for
-uniformly-sampled inputs.
+The equivalence of the PSD-normalized periodogram and the Fourier PSD
+in the unnormalized, no-uncertainty case can be confirmed by comparing
+results directly for uniformly-sampled inputs.
 We will first define a convenience function to compute the basic
 Fourier periodogram for uniformly-sampled quantities:
 
@@ -320,7 +370,6 @@ Fourier periodogram for uniformly-sampled quantities:
 
 Next we compute the two versions of the PSD from uniformly-sampled data:
 
->>> from scipy.signal import periodogram
 >>> t_days = np.arange(100) * u.day
 >>> y_mags = rand.randn(100) * u.mag
 >>> frequency, PSD_fourier = fourier_periodogram(t_days, y_mags)
@@ -335,6 +384,9 @@ True
 This equivalence is one reason the Lomb-Scargle periodogram is considered
 to be an extension of the Fourier PSD.
 
+For more information on the statistical properties of these normalizations,
+see e.g. Baluev 2008 [8]_.
+
 
 Periodogram Algorithms
 ======================
@@ -345,7 +397,7 @@ By design all methods will return the same results (some approximate),
 and each has its advandages and disadganvages.
 
 For example, to compute a periodogram using the fast chi-square method
-of Palmer (2009) [8]_, you can specify ``method='fastchi2'``:
+of Palmer (2009) [9]_, you can specify ``method='fastchi2'``:
 
     >>> frequency, power = LombScargle(t, y).autopower(method='fastchi2')
 
@@ -361,7 +413,7 @@ from the following methods using heuristics driven by the input data.
 The ``slow`` method is a pure-Python implementation of the original Lomb-Scargle
 periodogram ([1]_, [2]_), enhanced to account for observational noise,
 and to allow a floating mean (sometimes called the *generalized periodogram*;
-see e.g. [9]_). The method is not particularly fast, scaling approximately
+see e.g. [10]_). The method is not particularly fast, scaling approximately
 as :math:`O[NM]` for :math:`N` data points and :math:`M` frequencies.
 
 ``method='cython'``
@@ -402,12 +454,12 @@ parameter. For the standard problem, it is slightly slower than
 
 ``method='fastchi2'``
 ---------------------
-The fast chi-squared method of Palmer (2009) [8]_ is equivalent to the ``chi2`` method,
-but the matrices are constructed using the FFT-based approach of the ``fast``
-method. The result is a relatively efficient periodogram (though not nearly
-as efficient as the ``fast`` method) which can be extended to multiple terms.
-The scaling is approximately :math:`O[n_f(M + N\log M)]` for :math:`N`
-data points, :math:`M` frequencies, and :math:`n_f` Fourier terms.
+The fast chi-squared method of Palmer (2009) [9]_ is equivalent to the ``chi2`` method,
+but the matrices are constructed using an FFT-based approach similar to that
+of the ``fast`` method. The result is a relatively efficient periodogram
+(though not nearly as efficient as the ``fast`` method) which can be extended
+to multiple terms. The scaling is approximately :math:`O[n_f(M + N\log M)]`
+for :math:`N` data points, :math:`M` frequencies, and :math:`n_f` Fourier terms.
 
 Summary
 -------
@@ -433,7 +485,7 @@ Example
 =======
 
 An example of computing the periodogram for a more realistic dataset is
-shown in the following figure. The data shown here consist of
+shown in the following figure. The data here consist of
 50 nightly observations of a simulated RR Lyrae-like variable star,
 with lightcurve shape that is more complicated than a simple sine wave:
 
@@ -551,8 +603,10 @@ Literature References
        in Python* (2015) http://dx.doi.org/10.5281/zenodo.14833
 .. [7] VanderPlas, J. & Ivezic, Z. *Periodograms for Multiband Astronomical
        Time Series*. ApJ 812.1:18 (2015)
-.. [8] Palmer, D. *A Fast Chi-squared Technique for Period Search of
+.. [8] Baluev, R.V. *Assessing Statistical Significance of Periodogram Peaks"
+        MNRAS 385, 1279 (2008)
+.. [9] Palmer, D. *A Fast Chi-squared Technique for Period Search of
        Irregularly Sampled Data*. ApJ 695.1:496 (2009)
-.. [9] Zechmeister, M. and Kurster, M. *The generalised Lomb-Scargle
+.. [10] Zechmeister, M. and Kurster, M. *The generalised Lomb-Scargle
        periodogram. A new formalism for the floating-mean and Keplerian
        periodograms*, A&A 496, 577-584 (2009)

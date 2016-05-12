@@ -21,7 +21,7 @@ def lombscargle_chi2(t, y, dy, frequency, normalization='standard',
         frequencies (not angular frequencies) at which to calculate periodogram
     normalization : string (optional, default='standard')
         Normalization to use for the periodogram.
-        Options are 'standard' or 'psd'.
+        Options are 'standard', 'model', 'log', or 'psd'.
     fit_bias : bool (optional, default=True)
         if True, include a constant offet as part of the model at each
         frequency. This can lead to more accurate results, especially in the
@@ -76,6 +76,10 @@ def lombscargle_chi2(t, y, dy, frequency, normalization='standard',
 
     if normalization == 'psd':
         p *= 0.5 * t.size / (dy ** -2).sum()
+    elif normalization == 'model':
+        p /= (chi2_ref - p)
+    elif normalization == 'log':
+        p = -np.log(1 - p / chi2_ref)
     elif normalization == 'standard':
         p /= chi2_ref
     else:

@@ -26,7 +26,7 @@ def lombscargle_scipy(t, y, frequency, normalization='standard',
         frequencies (not angular frequencies) at which to calculate periodogram
     normalization : string (optional, default='standard')
         Normalization to use for the periodogram.
-        Options are 'standard' or 'psd'.
+        Options are 'standard', 'model', 'log', or 'psd'.
     center_data : bool (optional, default=True)
         if True, pre-center the data by subtracting the weighted mean
         of the input data.
@@ -64,6 +64,10 @@ def lombscargle_scipy(t, y, frequency, normalization='standard',
         pass
     elif normalization == 'standard':
         p *= 2 / (t.size * np.mean(y ** 2))
+    elif normalization == 'log':
+        p = -np.log(1 - 2 * p / (t.size * np.mean(y ** 2)))
+    elif normalization == 'model':
+        p /= 0.5 * t.size * np.mean(y ** 2) - p
     else:
         raise ValueError("normalization='{0}' "
                          "not recognized".format(normalization))

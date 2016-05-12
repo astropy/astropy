@@ -31,7 +31,7 @@ def lombscargle_cython(t, y, dy, frequency, normalization='standard',
         frequencies (not angular frequencies) at which to calculate periodogram
     normalization : string (optional, default='standard')
         Normalization to use for the periodogram.
-        Options are 'standard' or 'psd'.
+        Options are 'standard', 'model', 'log', or 'psd'.
     fit_bias : bool (optional, default=True)
         if True, include a constant offet as part of the model at each
         frequency. This can lead to more accurate results, especially in the
@@ -82,6 +82,10 @@ def lombscargle_cython(t, y, dy, frequency, normalization='standard',
 
     if normalization == 'standard':
         pass
+    elif normalization == 'model':
+        return PLS / (1 - PLS)
+    elif normalization == 'log':
+        return -np.log(1 - PLS)
     elif normalization == 'psd':
         w = dy ** -2
         w /= w.sum()

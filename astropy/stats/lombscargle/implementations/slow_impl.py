@@ -19,7 +19,7 @@ def lombscargle_slow(t, y, dy, frequency, normalization='standard',
         frequencies (not angular frequencies) at which to calculate periodogram
     normalization : string (optional, default='standard')
         Normalization to use for the periodogram.
-        Options are 'standard' or 'psd'.
+        Options are 'standard', 'model', 'log', or 'psd'.
     fit_bias : bool (optional, default=True)
         if True, include a constant offet as part of the model at each
         frequency. This can lead to more accurate results, especially in the
@@ -106,9 +106,14 @@ def lombscargle_slow(t, y, dy, frequency, normalization='standard',
         SStau -= Stau * Stau
 
     p = (YCtau * YCtau / CCtau + YStau * YStau / SStau)
+    YY = np.dot(w.T, y * y)
 
     if normalization == 'standard':
-        p /= np.dot(w.T, y * y)
+        p /= YY
+    elif normalization == 'model':
+        p /= YY - p
+    elif normalization == 'log':
+        p = -np.log(1 - p / YY)
     elif normalization == 'psd':
         p *= 0.5 * t.size
     else:
