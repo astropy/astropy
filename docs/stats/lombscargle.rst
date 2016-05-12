@@ -274,6 +274,33 @@ We can then phase the data and plot the Lomb-Scargle model fit:
            ylabel='magnitude',
            title='phased data at frequency={0:.2f}'.format(best_frequency))
 
+Additional Arguments
+--------------------
+On initialization, :class:`~astropy.stats.LombScargle` takes a few additional
+arguments which control the model for the data:
+
+- ``center_data`` (``True`` by default) controls whether the ``y`` values are
+  pre-centered before the algorithm fits the data.
+  The only time it is really warranted to change the default
+  is if you are computing the periodogram of a sequence
+  of constant values to, e.g. estimate the window power spectrum for a series of
+  observations.
+- ``fit_mean`` (``True`` by default) controls whether the model fits for the
+  mean of the data, rather than assuming the mean is zero. When ``fit_mean=True``,
+  the periodogram is more robust than the original Lomb-Scargle formalism,
+  particularly in the case of smaller sample sizes and/or
+  data with nontrivial selection bias. In the literature, this model has
+  variously been called the *date-compensated discrete Fourier transform*,
+  the *floating-mean periodogram*, the  *generalized Lomb-Scargle method*,
+  and likely other names as well.
+- ``nterms`` (``1`` by default) controls how many Fourier terms are used in the
+  model. As seen above, the standard Lomb-Scargle periodogram is equivalent to
+  a single-term sinusoidal fit to the data at each frequency; the obvious
+  generalization is to expand this to a truncated Fourier series with multiple
+  frequencies. While this can be very useful in some cases, in others the
+  additional model complexity can lead to spurious periodogram peaks that
+  outweigh the benefit of the more flexible model.
+
 .. _lomb-scargle-normalization:
 
 Periodogram Normalizations
