@@ -195,6 +195,9 @@ API changes
 
   - Renamed ``Redshift`` model to ``RedshiftScaleFactor``. [#3672]
 
+  - Inputs (``coords`` and ``out``) to ``render`` function in ``Model`` are
+    converted to float. [#4697]
+
 - ``astropy.nddata``
 
   - ``NDData``: added an optional parameter ``copy``
