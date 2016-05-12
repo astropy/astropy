@@ -15,71 +15,76 @@ from ..utils.metadata import MetaData
 
 __all__ = ['NDData']
 
-__doctest_skip__ = ['NDData']
-
 
 class NDData(NDDataBase):
     """
-    A container for `~numpy.ndarray`-based datasets, using the
+    A container for `numpy.ndarray`-based datasets, using the
     `~astropy.nddata.NDDataBase` interface.
 
     The key distinction from raw `numpy.ndarray` is the presence of
     additional metadata such as uncertainty, mask, unit, a coordinate system
-    and/or a `dict` containg further meta information. This class *only*
+    and/or a dictionary containg further meta information. This class *only*
     provides a container for *storing* such datasets. For further functionality
     take a look at the ``See also`` section.
 
     Parameters
     -----------
-    data : `~numpy.ndarray`-like or `NDData`-like
+    data : `numpy.ndarray`-like or `NDData`-like
         The dataset.
 
     uncertainty : any type, optional
         Uncertainty in the dataset.
-        Should have an attribute
-        ``uncertainty_type`` that defines what kind of uncertainty is stored,
-        for example ``"std"`` for standard deviation or
-        ``"var"`` for variance. If the uncertainty has no such attribute the
-        uncertainty is stored inside an `UnknownUncertainty` .
-        A metaclass defining such an interface is
-        `~astropy.nddata.NDUncertainty` but isn't mandatory.
+        Should have an attribute ``uncertainty_type`` that defines what kind of
+        uncertainty is stored, for example ``"std"`` for standard deviation or
+        ``"var"`` for variance. A metaclass defining such an interface is
+        `NDUncertainty` - but isn't mandatory. If the uncertainty has no such
+        attribute the uncertainty is stored as `UnknownUncertainty`.
         Defaults to ``None``.
 
     mask : any type, optional
-        Mask for the dataset.
-        Masks should follow the ``numpy`` convention that valid data points are
-        marked by ``False`` and invalid ones with ``True``.
+        Mask for the dataset. Masks should follow the ``numpy`` convention that
+        **valid** data points are marked by ``False`` and **invalid** ones with
+        ``True``.
         Defaults to ``None``.
 
     wcs : any type, optional
-        A world coordinate system (WCS) for the dataset.
+        World coordinate system (WCS) for the dataset.
         Default is ``None``.
 
     meta : `dict`-like object, optional
-        Meta information about the dataset. If no meta is provided an empty
-        `collections.OrderedDict` is created.
+        Additional meta informations about the dataset. If no meta is provided
+        an empty `collections.OrderedDict` is created.
+        Default is ``None``.
 
     unit : `~astropy.units.Unit`-like or str, optional
-        Unit for the dataset.
+        Unit for the dataset. Strings that can be converted to a
+        `~astropy.units.Unit` are allowed.
         Default is ``None``.
 
     copy : `bool`, optional
-        Save the attributes as copy or as reference. ``True`` copies every
-        attribute before saving it while ``False`` tries to save every
-        parameter as reference. Note however that it is not always possible to
-        save each input as reference.
+        Save the attributes as copy? ``True`` copies every attribute before
+        saving it while ``False`` tries to save every parameter as reference.
+        Note however that it is not always possible to save the input as
+        reference.
         Default is ``False``.
+
+        .. versionadded:: 1.2
 
     Raises
     ------
-    TypeError:
-        In case any parameter does not fulfill the classes restrictions.
+    TypeError
+        In case ``data`` or ``meta`` don't meet the restrictions.
+
+    Attributes
+    ----------
+    meta : `dict`-like
+        Additional meta informations about the dataset.
 
     Notes
     -----
-    Each attribute can be accessed through the homonymous instance attribute,
-    such as data in a `NDData` object can be accessed through the ``data``
-    attribute.
+    Each attribute can be accessed through the homonymous instance attribute:
+    ``data`` in a `NDData` object can be accessed through the `data`
+    attribute::
 
     For example::
 
@@ -88,20 +93,19 @@ class NDData(NDDataBase):
         >>> nd.data
         array([1, 2, 3])
 
-    Given an implicit parameter and an explicit one during initialization, for
-    example the ``data`` is a `~astropy.units.Quantity` and the unit parameter
-    is not None. Then the implicit parameter is replaced (without conversion)
-    by the explicit one and a warning is issued::
+    Given a conflicting implicit and an explicit parameter during
+    initialization, for example the ``data`` is a `~astropy.units.Quantity` and
+    the unit parameter is not None. Then the implicit parameter is replaced
+    (without conversion) by the explicit one and a warning is issued::
 
         >>> import numpy as np
         >>> import astropy.units as u
         >>> q = np.array([1,2,3,4]) * u.m
-        >>> nd2 = NDData(q, unit=u.cm)  # doctest: +SKIP
-        INFO: Overwriting Quantity's current unit with specified
-        unit [astropy.nddata.nddata]
-        >>> nd2.data  # doctest: +SKIP
+        >>> nd2 = NDData(q, unit=u.cm)
+        INFO: overwriting Quantity's current unit with specified unit. [astropy.nddata.nddata]
+        >>> nd2.data
         array([ 1.,  2.,  3.,  4.])
-        >>> nd2.unit  # doctest: +SKIP
+        >>> nd2.unit
         Unit("cm")
 
     See also
@@ -110,6 +114,14 @@ class NDData(NDDataBase):
     NDDataArray
     """
 
+    # Instead of a custom property use the MetaData descriptor also used for
+    # Tables. It will check if the meta is dict-like.
+    # TODO: reading the documentation from a descriptor using Sphinx isn't
+    # trivial so this attribute is documented in the class docstring but
+    # it would be better to define it here.
+    # TODO: Meta is copied when set, make sure this doesn't provide problems
+    # for affiliated packages. If it does alter the meta descriptor to take
+    # an optional parameter if it should be copied during setting.
     meta = MetaData()
 
     def __init__(self, data, uncertainty=None, mask=None, wcs=None,
@@ -137,32 +149,32 @@ class NDData(NDDataBase):
             # other parameters.
             if (unit is not None and data.unit is not None and
                     unit != data.unit):
-                log.info("Overwriting NDData's current "
-                         "unit with specified unit")
+                log.info("overwriting NDData's current "
+                         "unit with specified unit.")
             elif data.unit is not None:
                 unit = data.unit
 
             if uncertainty is not None and data.uncertainty is not None:
-                log.info("Overwriting NDData's current "
-                         "uncertainty with specified uncertainty")
+                log.info("overwriting NDData's current "
+                         "uncertainty with specified uncertainty.")
             elif data.uncertainty is not None:
                 uncertainty = data.uncertainty
 
             if mask is not None and data.mask is not None:
-                log.info("Overwriting NDData's current "
-                         "mask with specified mask")
+                log.info("overwriting NDData's current "
+                         "mask with specified mask.")
             elif data.mask is not None:
                 mask = data.mask
 
             if wcs is not None and data.wcs is not None:
-                log.info("Overwriting NDData's current "
-                         "wcs with specified wcs")
+                log.info("overwriting NDData's current "
+                         "wcs with specified wcs.")
             elif data.wcs is not None:
                 wcs = data.wcs
 
             if meta is not None and data.meta is not None:
-                log.info("Overwriting NDData's current "
-                         "meta with specified meta")
+                log.info("overwriting NDData's current "
+                         "meta with specified meta.")
             elif data.meta is not None:
                 meta = data.meta
 
@@ -172,8 +184,8 @@ class NDData(NDDataBase):
             if hasattr(data, 'mask') and hasattr(data, 'data'):
                 # Seperating data and mask
                 if mask is not None:
-                    log.info("Overwriting Masked Objects's current "
-                             "mask with specified mask")
+                    log.info("overwriting Masked Objects's current "
+                             "mask with specified mask.")
                 else:
                     mask = data.mask
 
@@ -184,8 +196,8 @@ class NDData(NDDataBase):
 
             if isinstance(data, Quantity):
                 if unit is not None and unit != data.unit:
-                    log.info("Overwriting Quantity's current "
-                             "unit with specified unit")
+                    log.info("overwriting Quantity's current "
+                             "unit with specified unit.")
                 else:
                     unit = data.unit
                 data = data.value
@@ -201,7 +213,7 @@ class NDData(NDDataBase):
         # rather than an object (since numpy will convert a
         # non-numerical/non-string inputs to an array of objects).
         if data.dtype == 'O':
-            raise TypeError("Could not convert data to numpy array.")
+            raise TypeError("could not convert data to numpy array.")
 
         if unit is not None:
             unit = Unit(unit)
@@ -222,7 +234,7 @@ class NDData(NDDataBase):
         self._data = data
         self.mask = mask
         self._wcs = wcs
-        self.meta = meta
+        self.meta = meta  # TODO: Make this call the setter sometime
         self._unit = unit
         # Call the setter for uncertainty to further check the uncertainty
         self.uncertainty = uncertainty
@@ -290,7 +302,7 @@ class NDData(NDDataBase):
             # If it does not match this requirement convert it to an unknown
             # uncertainty.
             if not hasattr(value, 'uncertainty_type'):
-                log.info('Uncertainty should have attribute uncertainty_type.')
+                log.info('uncertainty should have attribute uncertainty_type.')
                 value = UnknownUncertainty(value, copy=False)
 
             # If it is a subclass of NDUncertainty we must set the

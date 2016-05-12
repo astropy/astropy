@@ -13,146 +13,54 @@ from ..utils import deprecated
 from .. import log
 from ..units import Unit, Quantity
 from ..extern import six
-from ..utils import format_doc
 
 __all__ = ['MissingDataAssociationException',
            'IncompatibleUncertaintiesException', 'NDUncertainty',
            'StdDevUncertainty', 'UnknownUncertainty']
 
 
-# Make a placeholder for the different uncertainty propagation methods.
-_propagate_doc = """
-Propagate uncertainties for {operation}.
-
-Parameters
-----------
-other_uncert : `{instance}`
-    The data for the uncertainty of b in a {operator} b
-result_data : `~numpy.ndarray` instance or `~astropy.units.Quantity`
-    The data array that is the result of the {operation}.
-correlation: number or `~numpy.ndarray`
-    Array or scalar representing the correlation. Must be 0 if the subclass
-    does not support correlated uncertainties.
-
-Returns
--------
-result_uncertainty : {instance} instance
-    The resulting uncertainty
-
-Raises
-------
-ValueError
-    Raised if the uncertainty arrays or resulting data cannot be used together
-    for the arithmetic operation (not broadcastable) or conflicting units.
-
-Notes
------
-Handling units (especially if the differ from the parents unit) is done in here
-but be aware that since there are no checks for the unit, incorrect
-assigned units may break the uncertainty propagation even if the resulting data
-(with units) can be computed.
-"""
-
-
 class IncompatibleUncertaintiesException(Exception):
-    """
-    This exception should be used to indicate cases in which uncertainties
+    """This exception should be used to indicate cases in which uncertainties
     with two different classes can not be propagated.
     """
 
 
 class MissingDataAssociationException(Exception):
-    """
-    This exception should be used to indicate that an uncertainty instance has
-    not been associated with a parent `~astropy.nddata.NDData` object.
+    """This exception should be used to indicate that an uncertainty instance
+    has not been associated with a parent `~astropy.nddata.NDData` object.
     """
 
 
 @six.add_metaclass(ABCMeta)
 class NDUncertainty(object):
-    """
-    This is the base class for uncertainty classes used with NDData.
+    """This is the metaclass for uncertainty classes used with `NDData`.
 
     Parameters
     ----------
-    array: any type, optional
+    array : any type, optional
         The array or value (the parameter name is due to historical reasons) of
-        the uncertainty.
-        `~numpy.ndarray`, `~astropy.units.Quantity` or `NDUncertainty`
-        subclasses are recommended.
-        If the `array` is `list`-like or `~numpy.ndarray`-like it will be cast
-        to a base `~numpy.ndarray`.
+        the uncertainty. `numpy.ndarray`, `~astropy.units.Quantity` or
+        `NDUncertainty` subclasses are recommended.
+        If the `array` is `list`-like or `numpy.ndarray`-like it will be cast
+        to a plain `numpy.ndarray`.
         Default is ``None``.
 
-    unit: `~astropy.units.Unit` or str, optional
-        The unit of the uncertainty ``array``. If input is a string this will
-        be converted to an `~astropy.units.Unit`.
+    unit : `~astropy.units.Unit` or str, optional
+        Unit for the uncertainty ``array``. Strings that can be converted to a
+        `~astropy.units.Unit` are allowed.
         Default is ``None``.
 
     copy : `bool`, optional
-        Save the array as copy or as reference. ``True`` copies the
-        uncertainty array before saving it while ``False`` tries to save it
-        as reference. Note however that it is not always possible to
-        save is as reference.
+        Save the ``array`` as copy? ``True`` copies it before saving, while
+        ``False`` tries to save every parameter as reference. Note however that
+        it is not always possible to save the input as reference.
         Default is ``True``.
 
     Raises
     ------
     IncompatibleUncertaintiesException
         If given another `NDUncertainty`-like class as ``array`` if their
-        ``uncertainty_type`` is not the same.
-
-    Notes
-    -----
-    1. NDUncertainty is an abstract class and should *never* be instantiated
-       directly.
-
-    2. NDUncertainty takes a ``unit`` parameter and if the `array` is something
-       with a unit (like a `~astropy.units.Quantity` or another
-       `NDUncertainty`) the `unit` parameter is considered the true unit of
-       the `NDUncertainty` instance and a warning is issued that the unit is
-       overwritten. *No* conversion is done while overwriting the unit so the
-       uncertainty ``array`` is not altered.
-
-    3. NDUncertainty provides a :meth:``__getitem__`` method so slicing is in
-       theory supported but that relies on the `array` being something that
-       actually can be sliced.
-
-    4. Subclasses need to define:
-
-       - property ``uncertainty_type`` which should be a small string defining
-         the kind of uncertainty. Recommened is ``std`` for standard deviation
-         ``var`` for variance (following the ``numpy`` conventions).
-       - :meth:`_propagate_add` and similar ones which takes the
-         uncertainty of the other element and the resulting data (or quantity)
-         and calculates the array (or quantity) which represents the resulting
-         uncertainty.
-       - Most of the time a subclasses will need to extend or override the
-         :meth:`NDUncertainty._convert_uncertainty`. This method is responsible
-         for checking that the other uncertainty has a class that can be used
-         for uncertainty propagation. (`NDUncertainty` only checks that it is
-         another instance or subclass of `NDUncertainty`). For subclasses that
-         cannot propagate with arbitary other uncertainties they should check
-         that the other uncertainty has the same class as they are *or* convert
-         it to such a class. (Handling units should be part of the
-         ``_propagate_*`` methods and *NOT* done in there).
-       - The :meth:`NDUncertainty.propagate` method should
-         only be overriden if one wants to allow other operations than
-         ``addition``, ``subtraction``, ``multiplication`` or ``division``.
-         This function is the common entry point of any arithmetic computation
-         that tries to propagate uncertainties and is responsible for calling
-         the appropriate ``_propagate_*`` method and then returns another
-         instance of the same class with the results uncertainty.
-
-    5. `NDUncertainty` and it's subclasses can only be used for uncertainty
-       propagation if their ``parent_nddata`` attribute is a reference to the
-       `NDData` object. This is needed since many kinds of propagation need the
-       actual data besides the uncertainty.
-
-    6. If a ``unit`` is implicit (``data`` had a unit) or explicitly passed
-       to the ``__init__`` one should be sure that this unit is identical or
-       convertable to the unit of the parent. Otherwise uncertainty propagation
-       should fail.
+        ``uncertainty_type`` is different.
     """
 
     def __init__(self, array=None, unit=None, copy=True):
@@ -164,8 +72,8 @@ class NDUncertainty(object):
             # Check if two units are given and take the explicit one then.
             if (unit is not None and unit != array._unit):
                 # TODO : Clarify it (see NDData.init for same problem)?
-                log.info("Overwriting Uncertainty's current "
-                         "unit with specified unit")
+                log.info("overwriting Uncertainty's current "
+                         "unit with specified unit.")
             elif array._unit is not None:
                 unit = array.unit
             array = array.array
@@ -174,8 +82,8 @@ class NDUncertainty(object):
             # Check if two units are given and take the explicit one then.
             if (unit is not None and array.unit is not None and
                     unit != array.unit):
-                log.info("Overwriting Quantity's current "
-                         "unit with specified unit")
+                log.info("overwriting Quantity's current "
+                         "unit with specified unit.")
             elif array.unit is not None:
                 unit = array.unit
             array = array.value
@@ -194,18 +102,18 @@ class NDUncertainty(object):
 
     @abstractproperty
     def uncertainty_type(self):
-        """
-        `str`: Short description which kind of uncertainty is saved.
+        """`str` : Short description of the type of uncertainty.
 
-        Defined as abstract property so subclasses *have* to override this
-        and return a string.
+        Defined as abstract property so subclasses *have* to override this.
         """
         return None
 
     @property
     def supports_correlated(self):
-        """
-        `bool`: Supports uncertainty propagation with correlated uncertainties?
+        """`bool` : Supports uncertainty propagation with correlated \
+                 uncertainties?
+
+        .. versionadded:: 1.2
         """
         return False
 
@@ -216,8 +124,7 @@ class NDUncertainty(object):
 
     @property
     def array(self):
-        """
-        `numpy.ndarray`: the uncertainty's value.
+        """`numpy.ndarray` : the uncertainty's value.
         """
         return self._array
 
@@ -229,8 +136,7 @@ class NDUncertainty(object):
 
     @property
     def unit(self):
-        """
-        `~astropy.units.Unit`: The unit of the uncertainty.
+        """`~astropy.units.Unit` : The unit of the uncertainty, if any.
 
         Even though it is not enforced the unit should be convertable to the
         ``parent_nddata`` unit. Otherwise uncertainty propagation might give
@@ -248,14 +154,13 @@ class NDUncertainty(object):
 
     @property
     def parent_nddata(self):
-        """
-        `NDData` : reference to `NDData` instance with this uncertainty.
+        """`NDData` : reference to `NDData` instance with this uncertainty.
 
         In case the reference is not set uncertainty propagation will not be
-        possible since almost all kinds of propagation need the uncertain
-        data besides the uncertainty.
+        possible since propagation might need the uncertain data besides the
+        uncertainty.
         """
-        message = "Uncertainty is not associated with an NDData object"
+        message = "uncertainty is not associated with an NDData object"
         try:
             if self._parent_nddata is None:
                 raise MissingDataAssociationException(message)
@@ -290,56 +195,53 @@ class NDUncertainty(object):
         return ''.join([prefix, body, ')'])
 
     def __getitem__(self, item):
-        """
-        Simple slicing is allowed and returns a reference *not* a copy. This
-        assimilates numpy slicing.
+        """Normal slicing on the array, keep the unit and return a reference.
         """
         return self.__class__(self.array[item], unit=self.unit, copy=False)
 
     def propagate(self, operation, other_nddata, result_data, correlation):
-        """
-        Calculate the resulting uncertainty given an operation on the data.
+        """Calculate the resulting uncertainty given an operation on the data.
+
+        .. versionadded:: 1.2
 
         Parameters
         ----------
-        operation: callable
+        operation : callable
             The operation that is performed on the `NDData`. Supported are
             `numpy.add`, `numpy.subtract`, `numpy.multiply` and
-            `numpy.true_divide`.
+            `numpy.true_divide` (or `numpy.divide`).
 
-        other_nddata: `NDData` instance
-            The second NDData in the arithmetic operation.
+        other_nddata : `NDData` instance
+            The second operand in the arithmetic operation.
 
-        result_data: `~numpy.ndarray` or `~astropy.units.Quantity`
-            The result of the arithmetic operations. This saves some duplicate
-            calculations.
+        result_data : `~astropy.units.Quantity` or `numpy.ndarray`
+            The result of the arithmetic operations on the data.
 
-        correlation: number or `~numpy.ndarray`
+        correlation : `numpy.ndarray` or number
             The correlation (rho) is defined between the uncertainties in
             sigma_AB = sigma_A * sigma_B * rho. A value of ``0`` means
             uncorrelated operands.
 
         Returns
         -------
-        resulting_uncertainty: `NDUncertainty` instance
+        resulting_uncertainty : `NDUncertainty` instance
             Another instance of the same `NDUncertainty` subclass containing
             the uncertainty of the result.
 
         Raises
         ------
-        ValueError:
+        ValueError
             If the ``operation`` is not supported or if correlation is not zero
             but the subclass does not support correlated uncertainties.
 
         Notes
         -----
-        This method at first tries to convert the ``uncertainty`` of the
-        other operand to a `NDUncertainty` subclass that is useable for
-        uncertainty propagation (this check and optional conversion is done
-        in :meth:`NDUncertainty._convert_uncertainty`) and then the
-        appropriate ``_propagate_*`` method for calculating the resulting
-        uncertainty is invoked. Afterwards this function wraps it into
-        another instance of `NDUncertainty` and returns it.
+        First this method checks if a correlation is given and the subclass
+        implements propagation with correlated uncertainties.
+        Then the second uncertainty is converted (or an Exception is raised)
+        to the same class in order to do the propagation.
+        Then the appropriate propagation method is invoked and the result is
+        returned.
         """
         # Check if the subclass supports correlation
         if not self.supports_correlated:
@@ -364,13 +266,12 @@ class NDUncertainty(object):
             result = self._propagate_divide(other_uncert, result_data,
                                             correlation)
         else:
-            raise ValueError('Unsupported operation')
+            raise ValueError('unsupported operation')
 
         return self.__class__(result, copy=False)
 
     def _convert_uncertainty(self, other_uncert):
-        """
-        Checks if the uncertainties are compatible for propagation.
+        """Checks if the uncertainties are compatible for propagation.
 
         Checks if the other uncertainty is `NDUncertainty`-like and if so
         verify that the uncertainty_type is equal. If the latter is not the
@@ -378,12 +279,12 @@ class NDUncertainty(object):
 
         Parameters
         ----------
-        other_uncert: `NDUncertainty` subclass
-            The other uncertainty
+        other_uncert : `NDUncertainty` subclass
+            The other uncertainty.
 
         Returns
         -------
-        other_uncert: `NDUncertainty` subclass
+        other_uncert : `NDUncertainty` subclass
             but converted to a compatible `NDUncertainty` subclass if
             possible and necessary.
 
@@ -402,113 +303,85 @@ class NDUncertainty(object):
             raise IncompatibleUncertaintiesException
 
     @abstractmethod
-    @format_doc(_propagate_doc, operation='addition', operator='+',
-                instance='NDUncertainty')
     def _propagate_add(self, other_uncert, result_data, correlation):
         return None
 
     @abstractmethod
-    @format_doc(_propagate_doc, operation='subtraction', operator='-',
-                instance='NDUncertainty')
     def _propagate_subtract(self, other_uncert, result_data, correlation):
         return None
 
     @abstractmethod
-    @format_doc(_propagate_doc, operation='multiplication', operator='*',
-                instance='NDUncertainty')
     def _propagate_multiply(self, other_uncert, result_data, correlation):
         return None
 
     @abstractmethod
-    @format_doc(_propagate_doc, operation='divison', operator='/',
-                instance='NDUncertainty')
     def _propagate_divide(self, other_uncert, result_data, correlation):
         return None
 
 
 class UnknownUncertainty(NDUncertainty):
-    """
-    This implements any kind of unknown uncertainty type.
+    """This class implements any unknown uncertainty type.
 
     The main purpose of having an unknown uncertainty class is to prevent
-    uncertainty propagation since this is not clearly defined without
-    giving a type.
+    uncertainty propagation.
 
     Parameters
     ----------
-    see `NDUncertainty`
+    args, kwargs :
+        see `NDUncertainty`
     """
 
     @property
     def supports_correlated(self):
-        """
-        `False`: No uncertainty propagation is not possible for this class.
+        """`False` : Uncertainty propagation is *not* possible for this class.
         """
         return False
 
     @property
     def uncertainty_type(self):
-        """
-        `str`: ``'unknown'``
-            `UnknownUncertainty` implements any kind of unknown uncertainty
-            type.
+        """``"unknown"`` : `UnknownUncertainty` implements any unknown \
+                           uncertainty type.
         """
         return 'unknown'
 
     def _convert_uncertainty(self, other_uncert):
-        """
-        Checks that the uncertainties are compatible for propagation.
-
-        Since we don't know which kind of uncertainty is saved this method
-        always raises an Exception.
-
-        Parameters
-        ----------
-        other_uncert: `NDUncertainty` subclass
-            The other uncertainty
-
-        Raises
-        ------
-        IncompatibleUncertaintiesException:
-            Always since we cannot propagate without knowing which kind of
-            uncertainty is saved.
+        """Raise an Exception because unknown uncertainty types cannot
+        implement propagation.
         """
         msg = "Uncertainties of unknown type cannot be propagated."
         raise IncompatibleUncertaintiesException(msg)
 
     def _propagate_add(self, other_uncert, result_data, correlation):
-        """Not possible for unknown uncertainty types."""
+        """Not possible for unknown uncertainty types.
+        """
         return None
 
     def _propagate_subtract(self, other_uncert, result_data, correlation):
-        """Not possible for unknown uncertainty types."""
         return None
 
     def _propagate_multiply(self, other_uncert, result_data, correlation):
-        """Not possible for unknown uncertainty types."""
         return None
 
     def _propagate_divide(self, other_uncert, result_data, correlation):
-        """Not possible for unknown uncertainty types."""
         return None
 
 
 class StdDevUncertainty(NDUncertainty):
-    """
-    A class for standard deviation uncertainty.
+    """Standard deviation uncertainty assuming first order gaussian error
+    propagation.
 
     This class implements uncertainty propagation for ``addition``,
-    ``subtraction``, ``multiplication`` and ``division`` but only with other
-    instances of `StdDevUncertainty`. The class can fully handle if the
-    uncertainty has a unit that differs from (but is convertable to) the
-    parents `NDData` unit but converts the unit of the propagated uncertainty
-    to the unit of the resulting data. Also support for correlation is possible
-    but that requires that the correlation is an input. It cannot handle
-    correlation determination itself.
+    ``subtraction``, ``multiplication`` and ``division`` with other instances
+    of `StdDevUncertainty`. The class can handle if the uncertainty has a
+    unit that differs from (but is convertible to) the parents `NDData` unit.
+    But the unit of the resulting uncertainty will have the same unit as the
+    resulting data. Also support for correlation is possible but requires the
+    correlation as input. It cannot handle correlation determination itself.
 
     Parameters
     ----------
-    see `NDUncertainty`
+    args, kwargs :
+        see `NDUncertainty`
 
     Examples
     --------
@@ -539,24 +412,20 @@ class StdDevUncertainty(NDUncertainty):
 
     @property
     def supports_correlated(self):
-        """
-        `True`: `StdDevUncertainty` allows to propagate correlated
-        uncertainties.
+        """`True` : `StdDevUncertainty` allows to propagate correlated \
+                    uncertainties.
 
-        But only if the ``correlation`` is given, this class does not implement
-        computing it by itself.
+        ``correlation`` must be given, this class does not implement computing
+        it by itself.
         """
         return True
 
     @property
     def uncertainty_type(self):
-        """
-        `str`: ``'std'``
-            `StdDevUncertainty` implements standard deviation.
+        """``"std"`` : `StdDevUncertainty` implements standard deviation.
         """
         return 'std'
 
-    @format_doc(NDUncertainty._convert_uncertainty)
     def _convert_uncertainty(self, other_uncert):
         if isinstance(other_uncert, StdDevUncertainty):
             return other_uncert
@@ -583,8 +452,6 @@ class StdDevUncertainty(NDUncertainty):
     def propagate_divide(self, other_nddata, result_data):
         return self.propagate(np.divide, other_nddata, result_data, 0)
 
-    @format_doc(_propagate_doc, operation='addition', operator='+',
-                instance='StdDevUncertainty')
     def _propagate_add(self, other_uncert, result_data, correlation):
 
         if self.array is None:
@@ -649,8 +516,6 @@ class StdDevUncertainty(NDUncertainty):
             else:
                 return result
 
-    @format_doc(_propagate_doc, operation='subtraction', operator='-',
-                instance='StdDevUncertainty')
     def _propagate_subtract(self, other_uncert, result_data, correlation):
         # Since the formulas are equivalent to addition you should look at the
         # explanations provided in _propagate_add
@@ -690,8 +555,6 @@ class StdDevUncertainty(NDUncertainty):
             else:
                 return result
 
-    @format_doc(_propagate_doc, operation='multiplication', operator='*',
-                instance='StdDevUncertainty')
     def _propagate_multiply(self, other_uncert, result_data, correlation):
 
         # For multiplication we don't need the result as quantity
@@ -754,8 +617,6 @@ class StdDevUncertainty(NDUncertainty):
             else:
                 return np.sqrt(left**2 + right**2)
 
-    @format_doc(_propagate_doc, operation='divison', operator='/',
-                instance='StdDevUncertainty')
     def _propagate_divide(self, other_uncert, result_data, correlation):
 
         # For division we don't need the result as quantity

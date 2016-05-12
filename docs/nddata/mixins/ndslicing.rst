@@ -1,3 +1,5 @@
+.. _nddata_slicing:
+
 Slicing mixin
 =============
 
