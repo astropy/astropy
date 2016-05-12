@@ -15,7 +15,7 @@ ITYPE = np.int32
 ctypedef np.int32_t ITYPE_t
 
 
-def lombscargle_cython(t, y, dy, frequency, normalization='normalized',
+def lombscargle_cython(t, y, dy, frequency, normalization='standard',
                        fit_bias=True, center_data=True):
     """Lomb-Scargle Periodogram
 
@@ -29,9 +29,9 @@ def lombscargle_cython(t, y, dy, frequency, normalization='normalized',
         broadcastable to the same shape.
     frequency : array_like
         frequencies (not angular frequencies) at which to calculate periodogram
-    normalization : string (optional, default='normalized')
+    normalization : string (optional, default='standard')
         Normalization to use for the periodogram.
-        Options are 'normalized' or 'psd'.
+        Options are 'standard' or 'psd'.
     fit_bias : bool (optional, default=True)
         if True, include a constant offet as part of the model at each
         frequency. This can lead to more accurate results, especially in the
@@ -80,7 +80,7 @@ def lombscargle_cython(t, y, dy, frequency, normalization='normalized',
     else:
         _standard_lomb_scargle(t, y, dy, 2 * np.pi * frequency, PLS)
 
-    if normalization == 'normalized':
+    if normalization == 'standard':
         pass
     elif normalization == 'psd':
         w = dy ** -2

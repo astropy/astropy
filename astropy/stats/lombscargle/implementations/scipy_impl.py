@@ -9,7 +9,7 @@ except ImportError:
     HAS_SCIPY = False
 
 
-def lombscargle_scipy(t, y, frequency, normalization='normalized',
+def lombscargle_scipy(t, y, frequency, normalization='standard',
                       center_data=True):
     """Lomb-Scargle Periodogram
 
@@ -24,9 +24,9 @@ def lombscargle_scipy(t, y, frequency, normalization='normalized',
         broadcastable to the same shape.
     frequency : array_like
         frequencies (not angular frequencies) at which to calculate periodogram
-    normalization : string (optional, default='normalized')
+    normalization : string (optional, default='standard')
         Normalization to use for the periodogram.
-        Options are 'normalized' or 'psd'.
+        Options are 'standard' or 'psd'.
     center_data : bool (optional, default=True)
         if True, pre-center the data by subtracting the weighted mean
         of the input data.
@@ -62,7 +62,7 @@ def lombscargle_scipy(t, y, frequency, normalization='normalized',
 
     if normalization == 'psd':
         pass
-    elif normalization == 'normalized':
+    elif normalization == 'standard':
         p *= 2 / (t.size * np.mean(y ** 2))
     else:
         raise ValueError("normalization='{0}' "

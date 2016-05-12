@@ -122,7 +122,7 @@ def lombscargle(t, y, dy=None,
                 frequency=None,
                 method='auto',
                 assume_regular_frequency=False,
-                normalization='normalized',
+                normalization='standard',
                 fit_bias=True, center_data=True,
                 method_kwds=None, nterms=1):
     """
@@ -162,9 +162,9 @@ def lombscargle(t, y, dy=None,
         if True, assume that the input frequency is of the form
         freq = f0 + df * np.arange(N). Only referenced if method is 'auto'
         or 'fast'.
-    normalization : string (optional, default='normalized')
+    normalization : string (optional, default='standard')
         Normalization to use for the periodogram.
-        Options are 'normalized' or 'psd'.
+        Options are 'standard' or 'psd'.
     fit_bias : bool (optional, default=True)
         if True, include a constant offet as part of the model at each
         frequency. This can lead to more accurate results, especially in the

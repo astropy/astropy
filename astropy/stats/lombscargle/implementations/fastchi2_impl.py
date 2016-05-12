@@ -5,7 +5,7 @@ import numpy as np
 from .utils import trig_sum
 
 
-def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='normalized',
+def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='standard',
                          fit_bias=True, center_data=True, nterms=1,
                          use_fft=True, trig_sum_kwds=None):
     """Lomb-Scargle Periodogram
@@ -22,9 +22,9 @@ def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='normalized',
         broadcastable to the same shape.
     f0, df, Nf : (float, float, int)
         parameters describing the frequency grid, f = f0 + df * arange(Nf).
-    normalization : string (optional, default='normalized')
+    normalization : string (optional, default='standard')
         Normalization to use for the periodogram.
-        Options are 'normalized' or 'psd'.
+        Options are 'standard' or 'psd'.
     fit_bias : bool (optional, default=True)
         if True, include a constant offet as part of the model at each
         frequency. This can lead to more accurate results, especially in the
@@ -124,7 +124,7 @@ def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='normalized',
 
     if normalization == 'psd':
         p *= 0.5 * t.size / ws
-    elif normalization == 'normalized':
+    elif normalization == 'standard':
         p /= chi2_ref
     else:
         raise ValueError("normalization='{0}' "

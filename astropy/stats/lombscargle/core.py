@@ -198,7 +198,7 @@ class LombScargle(object):
         return f0 + df * np.arange(Nf)
 
     def autopower(self, method='auto', method_kwds=None,
-                  normalization='normalized', **kwargs):
+                  normalization='standard', **kwargs):
         """Compute Lomb-Scargle power at automatically-determined frequencies
 
         Parameters
@@ -223,9 +223,9 @@ class LombScargle(object):
 
         method_kwds : dict (optional)
             additional keywords to pass to the lomb-scargle method
-        normalization : string (optional, default='normalized')
+        normalization : string (optional, default='standard')
             Normalization to use for the periodogram.
-            Options are 'normalized' or 'psd'.
+            Options are 'standard' or 'psd'.
         **kwargs :
             additional keyword arguments will be passed to autofrequency()
 
@@ -241,7 +241,7 @@ class LombScargle(object):
                            assume_regular_frequency=True)
         return frequency, power
 
-    def power(self, frequency, normalization='normalized', method='auto',
+    def power(self, frequency, normalization='standard', method='auto',
               assume_regular_frequency=False, method_kwds=None):
         """Compute the Lomb-Scargle power at the given frequencies
 
@@ -273,9 +273,9 @@ class LombScargle(object):
             if True, assume that the input frequency is of the form
             freq = f0 + df * np.arange(N). Only referenced if method is 'auto'
             or 'fast'.
-        normalization : string (optional, default='normalized')
+        normalization : string (optional, default='standard')
             Normalization to use for the periodogram.
-            Options are 'normalized' or 'psd'.
+            Options are 'standard' or 'psd'.
         fit_bias : bool (optional, default=True)
             if True, include a constant offet as part of the model at each
             frequency. This can lead to more accurate results, especially in

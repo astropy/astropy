@@ -34,7 +34,7 @@ def test_output_shapes(method, shape, data):
 @pytest.mark.parametrize('t_unit', [units.second, units.day])
 @pytest.mark.parametrize('frequency_unit', [units.Hz, 1. / units.second])
 @pytest.mark.parametrize('y_unit', [units.mag, units.jansky])
-@pytest.mark.parametrize('normalization', ['normalized', 'psd'])
+@pytest.mark.parametrize('normalization', ['standard', 'psd'])
 def test_power_units_match(method, t_unit, frequency_unit,
                            y_unit, normalization, data):
     t, y, dy = data

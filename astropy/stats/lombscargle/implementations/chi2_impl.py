@@ -5,7 +5,7 @@ import numpy as np
 from .mle import design_matrix
 
 
-def lombscargle_chi2(t, y, dy, frequency, normalization='normalized',
+def lombscargle_chi2(t, y, dy, frequency, normalization='standard',
                      fit_bias=True, center_data=True, nterms=1):
     """Lomb-Scargle Periodogram
 
@@ -19,9 +19,9 @@ def lombscargle_chi2(t, y, dy, frequency, normalization='normalized',
         broadcastable to the same shape.
     frequency : array_like
         frequencies (not angular frequencies) at which to calculate periodogram
-    normalization : string (optional, default='normalized')
+    normalization : string (optional, default='standard')
         Normalization to use for the periodogram.
-        Options are 'normalized' or 'psd'.
+        Options are 'standard' or 'psd'.
     fit_bias : bool (optional, default=True)
         if True, include a constant offet as part of the model at each
         frequency. This can lead to more accurate results, especially in the
@@ -76,7 +76,7 @@ def lombscargle_chi2(t, y, dy, frequency, normalization='normalized',
 
     if normalization == 'psd':
         p *= 0.5 * t.size / (dy ** -2).sum()
-    elif normalization == 'normalized':
+    elif normalization == 'standard':
         p /= chi2_ref
     else:
         raise ValueError("normalization='{0}' "

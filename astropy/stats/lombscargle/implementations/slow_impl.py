@@ -3,7 +3,7 @@ from __future__ import print_function, division
 import numpy as np
 
 
-def lombscargle_slow(t, y, dy, frequency, normalization='normalized',
+def lombscargle_slow(t, y, dy, frequency, normalization='standard',
                      fit_bias=True, center_data=True):
     """Lomb-Scargle Periodogram
 
@@ -17,9 +17,9 @@ def lombscargle_slow(t, y, dy, frequency, normalization='normalized',
         broadcastable to the same shape.
     frequency : array_like
         frequencies (not angular frequencies) at which to calculate periodogram
-    normalization : string (optional, default='normalized')
+    normalization : string (optional, default='standard')
         Normalization to use for the periodogram.
-        Options are 'normalized' or 'psd'.
+        Options are 'standard' or 'psd'.
     fit_bias : bool (optional, default=True)
         if True, include a constant offet as part of the model at each
         frequency. This can lead to more accurate results, especially in the
@@ -107,7 +107,7 @@ def lombscargle_slow(t, y, dy, frequency, normalization='normalized',
 
     p = (YCtau * YCtau / CCtau + YStau * YStau / SStau)
 
-    if normalization == 'normalized':
+    if normalization == 'standard':
         p /= np.dot(w.T, y * y)
     elif normalization == 'psd':
         p *= 0.5 * t.size
