@@ -16,8 +16,8 @@ Getting Started
 Most tools are fairly self-contained, and include relevant examples in
 their docstrings.
 
-Documentation
-=============
+Using ``astropy.stats``
+=======================
 
 .. toctree::
    :maxdepth: 2
