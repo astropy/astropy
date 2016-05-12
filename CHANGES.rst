@@ -22,7 +22,7 @@ New Features
 - ``astropy.coordinates``
 
   - ``CartesianRepresentation`` now includes a transform() method that can take
-    a 3x3 matrix to transform coordinates.
+    a 3x3 matrix to transform coordinates. [#4860]
 
 - ``astropy.cosmology``
 
