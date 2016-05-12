@@ -56,10 +56,10 @@ def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
     :param data_Splitter: Splitter class to split data columns
     :param header_Splitter: Splitter class to split header columns
     :param names: list of names corresponding to each data column
-    :param include_names: list of names to include in output (default=None selects all names)
+    :param include_names: list of names to include in output (default= ``None`` selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
     :param fill_values: specification of fill values for bad or missing table values
-    :param fill_include_names: list of names to include in fill_values (default=None selects all names)
+    :param fill_include_names: list of names to include in fill_values (default= ``None`` selects all names)
     :param fill_exclude_names: list of names to exlude from fill_values (applied after ``fill_include_names``)
     """
     # This function is a light wrapper around core._get_reader to provide a public interface
@@ -89,10 +89,10 @@ def read(table, guess=None, **kwargs):
     class.
 
     :param table: input table (file name, file-like object, list of strings, or single newline-separated string)
-    :param guess: try to guess the table format (default=True)
+    :param guess: try to guess the table format (default= ``True``)
     :param format: input table format
     :param Inputter: Inputter class
-    :param Outputter: Outputter class (default=TableOutputter)
+    :param Outputter: Outputter class (default= :class:`TableOutputter`)
     :param delimiter: column delimiter string
     :param comment: regular expression defining a comment line in table
     :param quotechar: one-character string to quote fields containing special characters
@@ -103,12 +103,12 @@ def read(table, guess=None, **kwargs):
     :param data_Splitter: Splitter class to split data columns
     :param header_Splitter: Splitter class to split header columns
     :param names: list of names corresponding to each data column
-    :param include_names: list of names to include in output (default=None selects all names)
+    :param include_names: list of names to include in output (default=``None`` selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
-    :param fill_values: specification of fill values for bad or missing table values (default=('', '0'))
+    :param fill_values: specification of fill values for bad or missing table values (default= ``('', '0')``)
     :param fill_include_names: list of names to include in fill_values (default=None selects all names)
     :param fill_exclude_names: list of names to exlude from fill_values (applied after ``fill_include_names``)
-    :param Reader: Reader class (DEPRECATED) (default=``ascii.Basic``)
+    :param Reader: Reader class (DEPRECATED) (default= :class:`Basic`)
     """
 
     if 'fill_values' not in kwargs:
@@ -268,17 +268,17 @@ def write(table, output=None,  format=None, Writer=None, **kwargs):
     for various parameters is determined by the Writer class.
 
     :param table: input table (Reader object, NumPy struct array, list of lists, etc)
-    :param output: output [filename, file-like object] (default = sys.stdout)
-    :param format: output format (default=``basic``)
+    :param output: output [filename, file-like object] (default = ``sys.stdout``)
+    :param format: output format (default= ``basic``)
     :param delimiter: column delimiter string
     :param write_comment: string defining a comment line in table
     :param quotechar: one-character string to quote fields containing special characters
     :param formats: dict of format specifiers or formatting functions
-    :param strip_whitespace: strip surrounding whitespace from column values (default=True)
+    :param strip_whitespace: strip surrounding whitespace from column values (default= ``True``)
     :param names: list of names corresponding to each data column
-    :param include_names: list of names to include in output (default=None selects all names)
+    :param include_names: list of names to include in output (default= ``None`` selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
-    :param Writer: Writer class (DEPRECATED) (default=``ascii.Basic``)
+    :param Writer: Writer class (DEPRECATED) (default= :class:`Basic`)
     """
     if output is None:
         output = sys.stdout
