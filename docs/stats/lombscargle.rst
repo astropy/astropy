@@ -86,8 +86,8 @@ an array:
 Gaussian uncertainties are assumed, and ``dy`` here specifies the standard
 deviation (not the variance).
 
-Data and Periodogram Units
---------------------------
+Units and Normalization
+-----------------------
 The :class:`~astropy.stats.LombScargle` interface properly handles
 :class:`~astropy.units.Quantity` objects with units attached,
 and will validate the inputs to make sure units are appropriate. For example:
@@ -102,23 +102,60 @@ Unit("1 / d")
 >>> power.unit
 Unit(dimensionless)
 
-In the standard normalization, regardless of the units of the input,
-the Lomb-Scargle power *P* is a dimensionless quantity satisfying *0 ≤ P ≤ 1*.
-For the unnormalized periodogram, (i.e. ``normalization='unnormalized'``),
-the Lomb-Scargle power is unitless in the presence of uncertainties,
-and has units of ``y.unit ** 2`` otherwise:
+We see that the output is dimensionless, which is always the case for the
+normalized periodogram (``normalization='normalized'``, which is the default).
+Regardless of the input units in this case, the Lomb-Scargle power *P* is a
+dimensionless quantity satisfying *0 ≤ P ≤ 1*.
 
->>> # with uncertainties: power is unitless
+Alternatively, you can choose ``normalization='psd'``, which will output the
+periodogram with units ``y.unit ** 2``, similar to the Fourier power spectral
+density (PSD):
+
+>>> ls = LombScargle(t_days, y_mags)
+>>> frequency, power = ls.autopower(normalization='psd')
+>>> power.unit
+Unit("mag2")
+
+Note, however, that the ``psd`` result only has these units *if uncertainties
+are not specified*. In the presence of uncertainties, even the unnormalized
+periodogram is dimensionless; this is due to the scaling of data by uncertainty
+within the Lomb-Scargle computation:
+
+>>> # with uncertainties, PSD power is unitless
 >>> ls = LombScargle(t_days, y_mags, dy_mags)
->>> frequency, power = ls.autopower(normalization='unnormalized')
+>>> frequency, power = ls.autopower(normalization='psd')
 >>> power.unit
 Unit(dimensionless)
 
->>> # without uncertainties: power has units
->>> ls = LombScargle(t_days, y_mags)
->>> frequency, power = ls.autopower(normalization='unnormalized')
->>> power.unit
-Unit("mag2")
+The equivalence of the periodogram and the Fourier PSD in the unnormalized,
+no-uncertainty case can be confirmed by comparing results directly for
+uniformly-sampled inputs.
+We will first define a convenience function to compute the basic
+Fourier periodogram for uniformly-sampled data:
+
+>>> def fourier_periodogram(t, y):
+...     N = len(t)
+...     frequency = np.fft.fftfreq(N, t[1] - t[0])
+...     y_fft = np.fft.fft(y.value) * y.unit
+...     positive = (frequency > 0)
+...     return frequency[positive], (1. / N) * abs(y_fft[positive]) ** 2
+
+Next we compute the two versions of the PSD from uniformly-sampled data:
+
+>>> from scipy.signal import periodogram
+>>> t_days = np.arange(100) * u.day
+>>> y_mags = rand.randn(100) * u.mag
+>>> frequency, PSD_fourier = fourier_periodogram(t_days, y_mags)
+>>> PSD_LS = LombScargle(t_days, y_mags).power(frequency, normalization='psd')
+
+Examining the results, we see that the results match:
+
+>>> from astropy.tests.helper import quantity_allclose
+>>> quantity_allclose(PSD_fourier, PSD_LS)
+True
+
+This equivalence is one reason the Lomb-Scargle periodogram is considered
+to be an extension of the Fourier PSD.
 
 
 Specifying the Frequency

@@ -73,7 +73,7 @@ def lombscargle_chi2(t, y, dy, frequency, normalization='normalized',
 
     p = np.array([compute_power(f) for f in frequency])
 
-    if normalization == 'unnormalized':
+    if normalization == 'psd':
         p *= 0.5 * t.size / (dy ** -2).sum()
     elif normalization == 'normalized':
         p /= chi2_ref

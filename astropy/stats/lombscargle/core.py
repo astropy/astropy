@@ -137,7 +137,7 @@ class LombScargle(object):
 
     def _power_unit(self, norm):
         if has_units(self.y):
-            if self.dy is None and norm == 'unnormalized':
+            if self.dy is None and norm == 'psd':
                 return self.y.unit ** 2
             else:
                 return units.dimensionless_unscaled
@@ -225,7 +225,7 @@ class LombScargle(object):
             additional keywords to pass to the lomb-scargle method
         normalization : string (optional, default='normalized')
             Normalization to use for the periodogram.
-            Options are 'normalized' or 'unnormalized'.
+            Options are 'normalized' or 'psd'.
         **kwargs :
             additional keyword arguments will be passed to autofrequency()
 
@@ -274,8 +274,8 @@ class LombScargle(object):
             freq = f0 + df * np.arange(N). Only referenced if method is 'auto'
             or 'fast'.
         normalization : string (optional, default='normalized')
-            Normalization to use for the periodogram. Options are 'normalized'
-            or 'unnormalized'.
+            Normalization to use for the periodogram.
+            Options are 'normalized' or 'psd'.
         fit_bias : bool (optional, default=True)
             if True, include a constant offet as part of the model at each
             frequency. This can lead to more accurate results, especially in

@@ -25,7 +25,8 @@ def lombscargle_scipy(t, y, frequency, normalization='normalized',
     frequency : array_like
         frequencies (not angular frequencies) at which to calculate periodogram
     normalization : string (optional, default='normalized')
-        Normalization to use for the periodogram
+        Normalization to use for the periodogram.
+        Options are 'normalized' or 'psd'.
     center_data : bool (optional, default=True)
         if True, pre-center the data by subtracting the weighted mean
         of the input data.
@@ -59,7 +60,7 @@ def lombscargle_scipy(t, y, frequency, normalization='normalized',
     # Note: scipy input accepts angular frequencies
     p = signal.lombscargle(t, y, 2 * np.pi * frequency)
 
-    if normalization == 'unnormalized':
+    if normalization == 'psd':
         pass
     elif normalization == 'normalized':
         p *= 2 / (t.size * np.mean(y ** 2))

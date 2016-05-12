@@ -81,7 +81,7 @@ def lombscargle_cython(t, y, dy, frequency, normalization='normalized',
 
     if normalization == 'normalized':
         pass
-    elif normalization == 'unnormalized':
+    elif normalization == 'psd':
         w = dy ** -2
         w /= w.sum()
         PLS *= 0.5 * t.size * np.dot(w, y * y)

@@ -34,7 +34,7 @@ def test_output_shapes(method, shape, data):
 @pytest.mark.parametrize('t_unit', [units.second, units.day])
 @pytest.mark.parametrize('frequency_unit', [units.Hz, 1. / units.second])
 @pytest.mark.parametrize('y_unit', [units.mag, units.jansky])
-@pytest.mark.parametrize('normalization', ['normalized', 'unnormalized'])
+@pytest.mark.parametrize('normalization', ['normalized', 'psd'])
 def test_power_units_match(method, t_unit, frequency_unit,
                            y_unit, normalization, data):
     t, y, dy = data
@@ -50,7 +50,7 @@ def test_power_units_match(method, t_unit, frequency_unit,
     # power without uncertainties
     ls = LombScargle(t, y, fit_bias=False)
     PLS = ls.power(frequency, method=method, normalization=normalization)
-    if normalization == 'unnormalized':
+    if normalization == 'psd':
         assert PLS.unit == y_unit ** 2
     else:
         assert PLS.unit == units.dimensionless_unscaled
@@ -64,7 +64,7 @@ def test_power_units_match(method, t_unit, frequency_unit,
     ls = LombScargle(t, y, fit_bias=False)
     frequency, PLS = ls.autopower(method=method, normalization=normalization)
     assert frequency.unit == 1. / t.unit
-    if normalization == 'unnormalized':
+    if normalization == 'psd':
         assert PLS.unit == y_unit ** 2
     else:
         assert PLS.unit == units.dimensionless_unscaled

@@ -28,7 +28,8 @@ def lombscargle_fast(t, y, dy, f0, df, Nf,
         If True, then compute the floating-mean periodogram; i.e. let the mean
         vary with the fit.
     normalization : string (optional, default='normalized')
-        Normalization to use for the periodogram
+        Normalization to use for the periodogram.
+        Options are 'normalized' or 'psd'.
     use_fft : bool (default=True)
         If True, then use the Press & Rybicki O[NlogN] algorithm to compute
         the result. Otherwise, use a slower O[N^2] algorithm
@@ -125,7 +126,7 @@ def lombscargle_fast(t, y, dy, f0, df, Nf,
 
     if normalization == 'normalized':
         power /= YY
-    elif normalization == 'unnormalized':
+    elif normalization == 'psd':
         power *= 0.5 * t.size
     else:
         raise ValueError("normalization='{0}' "
