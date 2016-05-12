@@ -6,7 +6,7 @@ cimport cython
 cdef extern from "math.h":
     double sin(double)
     double cos(double)
-    double atan(double)
+    double atan2(double, double)
 
 DTYPE = np.float64
 ctypedef np.float64_t DTYPE_t
@@ -104,7 +104,7 @@ cdef _standard_lomb_scargle(DTYPE_t[::1] t, DTYPE_t[::1] y, DTYPE_t[::1] dy,
     cdef ITYPE_t N_freq = omega.shape[0]
     cdef ITYPE_t N_obs = t.shape[0]
 
-    cdef DTYPE_t w, omega_t, sin_omega_t, cos_omega_t, tan_2omega_tau
+    cdef DTYPE_t w, omega_t, sin_omega_t, cos_omega_t
     cdef DTYPE_t S2, C2, tau, Y, wsum, YY, YCtau, YStau, CCtau, SStau
 
     for i in range(N_freq):
@@ -122,7 +122,7 @@ cdef _standard_lomb_scargle(DTYPE_t[::1] t, DTYPE_t[::1] y, DTYPE_t[::1] dy,
             S2 += 2 * w * sin_omega_t * cos_omega_t
             C2 += w * (1 - 2 * sin_omega_t * sin_omega_t)
 
-        tau = 0.5 * atan(S2 / C2) / omega[i]
+        tau = 0.5 * atan2(S2, C2) / omega[i]
 
         wsum = 0
         Y = 0
@@ -167,7 +167,7 @@ cdef _generalized_lomb_scargle(DTYPE_t[::1] t, DTYPE_t[::1] y, DTYPE_t[::1] dy,
     cdef ITYPE_t N_freq = omega.shape[0]
     cdef ITYPE_t N_obs = t.shape[0]
 
-    cdef DTYPE_t w, omega_t, sin_omega_t, cos_omega_t, tan_2omega_tau
+    cdef DTYPE_t w, omega_t, sin_omega_t, cos_omega_t
     cdef DTYPE_t S, C, S2, C2, tau, Y, wsum, YY
     cdef DTYPE_t Stau, Ctau, YCtau, YStau, CCtau, SStau
 
@@ -201,10 +201,7 @@ cdef _generalized_lomb_scargle(DTYPE_t[::1] t, DTYPE_t[::1] y, DTYPE_t[::1] dy,
         S2 -= (2 * S * C)
         C2 -= (C * C - S * S)
 
-        tan_2omega_tau = S2 / C2
-        tau = atan(tan_2omega_tau)
-        tau *= 0.5
-        tau /= omega[i]
+        tau = 0.5 * atan2(S2, C2) / omega[i]
 
         Y = 0
         YY = 0

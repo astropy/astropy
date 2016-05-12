@@ -81,8 +81,7 @@ def lombscargle_slow(t, y, dy, frequency, normalization='standard',
         C2 -= (C * C - S * S)
 
     # compute components needed for the fit
-    tan_2omega_tau = S2 / C2
-    omega_t_tau = omega * t - 0.5 * np.arctan(tan_2omega_tau)
+    omega_t_tau = omega * t - 0.5 * np.arctan2(S2, C2)
 
     sin_omega_t_tau = np.sin(omega_t_tau)
     cos_omega_t_tau = np.cos(omega_t_tau)
