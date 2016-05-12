@@ -1307,6 +1307,10 @@ Bug Fixes
 
 - ``astropy.utils``
 
+  - Fix two problems related to the download cache: clear_download_cache() does
+    not work in Python 2.7 and downloading in Python 2.7 and then Python 3
+    can result in an exception. [#4810]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
