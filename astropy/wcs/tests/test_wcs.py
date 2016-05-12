@@ -966,4 +966,3 @@ def inconsistent_sip():
     w = WCS(hdr)
     newhdr = w.to_header(relax=True)
     assert(all([ctyp[-4 :] == '-SIP' for ctyp in self.wcs.ctype]))
-
