@@ -15,7 +15,8 @@ from .. import units as u
 from ..constants import c as speed_of_light
 from .representation import CartesianRepresentation
 from .builtin_frames import GCRS, ICRS
-from .builtin_frames.utils import get_jd12
+from .builtin_frames.utils import get_jd12, cartrepr_from_matmul
+from .. import _erfa
 
 __all__ = ["get_body", "get_moon"]
 
@@ -253,3 +254,12 @@ def get_moon(time, location=None):
         Coordinate for the Moon
     """
     return get_body(time, body_key='moon', location=location)
+
+def _apparent_position_in_true_coordinates(skycoord):
+    """
+    Convert Skycoord in GCRS frame into one in which RA and Dec
+    are defined w.r.t to the true equinox and poles of the Earth
+    """
+    jd1, jd2 = get_jd12(skycoord.obstime,'tt')
+    _, _, _, _, _, _, _, rbpn = _erfa.pn00a(jd1, jd2)
+    return SkyCoord(skycoord.frame.realize_frame(cartrepr_from_matmul(rbpn, skycoord)))
