@@ -409,7 +409,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         y = u.one * np.cos(self.lat) * np.sin(self.lon)
         z = u.one * np.sin(self.lat)
 
-        return CartesianRepresentation(x=x, y=y, z=z)
+        return CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
     @classmethod
     def from_cartesian(cls, cart):
@@ -423,16 +423,19 @@ class UnitSphericalRepresentation(BaseRepresentation):
         lon = np.arctan2(cart.y, cart.x)
         lat = np.arctan2(cart.z, s)
 
-        return cls(lon=lon, lat=lat)
+        return cls(lon=lon, lat=lat, copy=False)
 
     def represent_as(self, other_class):
         # Take a short cut if the other class is a spherical representation
         if issubclass(other_class, PhysicsSphericalRepresentation):
-            return other_class(phi=self.lon, theta=90 * u.deg - self.lat, r=1.0)
+            return other_class(phi=self.lon, theta=90 * u.deg - self.lat, r=1.0,
+                               copy=False)
         elif issubclass(other_class, SphericalRepresentation):
-            return other_class(lon=self.lon, lat=self.lat, distance=1.0)
+            return other_class(lon=self.lon, lat=self.lat, distance=1.0,
+                               copy=False)
         else:
-            return super(UnitSphericalRepresentation, self).represent_as(other_class)
+            return super(UnitSphericalRepresentation,
+                         self).represent_as(other_class)
 
 
 class SphericalRepresentation(BaseRepresentation):
@@ -515,11 +518,12 @@ class SphericalRepresentation(BaseRepresentation):
         # Take a short cut if the other class is a spherical representation
         if issubclass(other_class, PhysicsSphericalRepresentation):
             return other_class(phi=self.lon, theta=90 * u.deg - self.lat,
-                               r=self.distance)
+                               r=self.distance, copy=False)
         elif issubclass(other_class, UnitSphericalRepresentation):
-            return other_class(lon=self.lon, lat=self.lat)
+            return other_class(lon=self.lon, lat=self.lat, copy=False)
         else:
-            return super(SphericalRepresentation, self).represent_as(other_class)
+            return super(SphericalRepresentation,
+                         self).represent_as(other_class)
 
     def to_cartesian(self):
         """
@@ -537,7 +541,7 @@ class SphericalRepresentation(BaseRepresentation):
         y = d * np.cos(self.lat) * np.sin(self.lon)
         z = d * np.sin(self.lat)
 
-        return CartesianRepresentation(x=x, y=y, z=z)
+        return CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
     @classmethod
     def from_cartesian(cls, cart):
@@ -552,7 +556,7 @@ class SphericalRepresentation(BaseRepresentation):
         lon = np.arctan2(cart.y, cart.x)
         lat = np.arctan2(cart.z, s)
 
-        return cls(lon=lon, lat=lat, distance=r)
+        return cls(lon=lon, lat=lat, distance=r, copy=False)
 
 
 class PhysicsSphericalRepresentation(BaseRepresentation):
@@ -666,7 +670,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         y = d * np.sin(self.theta) * np.sin(self.phi)
         z = d * np.cos(self.theta)
 
-        return CartesianRepresentation(x=x, y=y, z=z)
+        return CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
     @classmethod
     def from_cartesian(cls, cart):
@@ -681,7 +685,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         phi = np.arctan2(cart.y, cart.x)
         theta = np.arctan2(s, cart.z)
 
-        return cls(phi=phi, theta=theta, r=r)
+        return cls(phi=phi, theta=theta, r=r, copy=False)
 
 
 class CylindricalRepresentation(BaseRepresentation):
@@ -763,7 +767,7 @@ class CylindricalRepresentation(BaseRepresentation):
         phi = np.arctan2(cart.y, cart.x)
         z = cart.z
 
-        return cls(rho=rho, phi=phi, z=z)
+        return cls(rho=rho, phi=phi, z=z, copy=False)
 
     def to_cartesian(self):
         """
@@ -774,4 +778,4 @@ class CylindricalRepresentation(BaseRepresentation):
         y = self.rho * np.sin(self.phi)
         z = self.z
 
-        return CartesianRepresentation(x=x, y=y, z=z)
+        return CartesianRepresentation(x=x, y=y, z=z, copy=False)
