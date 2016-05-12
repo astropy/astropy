@@ -57,7 +57,7 @@ class CoordinateLocationAttribute(FrameAttribute):
 def astrometric(frame):
     """Define an Astrometric frame relative to some origin frame."""
     
-    class Astrometric(BaseCoordinateFrame):
+    class Astrometric(frame):
         """
         A frame which is relative to some position on the sky. Useful for calculating offsets and dithers
         in the frame of the sky.
@@ -70,17 +70,11 @@ def astrometric(frame):
         Y : `Angle`, optional, must be keyword
         origin : `SkyCoord`, optional
             the coordinates which specifiy the origin of this frame.
-
+        
         """
-        default_representation = UnitSphericalRepresentation
-
-        frame_specific_representation_info = {
-            'unitspherical': [RepresentationMapping('lat', 'dec'),
-                              RepresentationMapping('lon', 'ra')]
-        }
-    
+        
         origin = CoordinateLocationAttribute(default=None, frame=frame)
-    
+        
         def at_origin(self, origin):
             """This method returns a new frame, identical to this frame, except at a differnt origin.
             This can be used to apply e.g. a sequence of telescope offsets to different targets (different origins).
