@@ -111,16 +111,13 @@ def astrometric(frame):
     @frame_transform_graph.transform(FunctionTransform, frame, Astrometric)
     def icrs_to_astrometric(icrs_coord, astrometric_frame):
         """Convert an ICRS coordinate to an Astrometric frame."""
-        from astropy.coordinates.representation import UnitSphericalRepresentation
         
         # Define rotation matricies along the position angle vector, and
         # relative to the origin.
-        origin = astrometric_frame.origin.represent_as(UnitSphericalRepresentation)
-        
+        origin = astrometric_frame.origin.spherical
         mat2 = rotation_matrix(-origin.lat, 'y')
         mat3 = rotation_matrix(origin.lon, 'z')
-        print(mat3)
-        R = mat2 #* mat3
+        R = mat2 * mat3
     
         xyz = icrs_coord.cartesian.xyz
         orig_shape = xyz.shape
@@ -131,11 +128,12 @@ def astrometric(frame):
     @frame_transform_graph.transform(FunctionTransform, Astrometric, frame)
     def astrometric_to_icrs(astrometric_coord, icrs_frame):
         """Convert an Astrometric frame coordinate to an ICRS"""
-    
+        
         # Define rotation matricies along the position angle vector, and
         # relative to the origin.
-        mat2 = rotation_matrix(-astrometric_coord.origin.lat, 'y')
-        mat3 = rotation_matrix(astrometric_coord.origin.lon, 'z')
+        origin = astrometric_frame.origin.spherical
+        mat2 = rotation_matrix(-origin.lat, 'y')
+        mat3 = rotation_matrix(origin.lon, 'z')
         R = mat2 * mat3
     
         Rinv = np.linalg.inv(R)
