@@ -6,7 +6,7 @@ import astropy.units as u
 
 from .icrs import ICRS
 from ..sky_coordinate import SkyCoord
-from ..transformations import FunctionTransform
+from ..transformations import DynamicMatrixTransform, FunctionTransform
 from ..baseframe import (BaseCoordinateFrame, UnitSphericalRepresentation, CartesianRepresentation,
     FrameAttribute, QuantityFrameAttribute, RepresentationMapping, frame_transform_graph)
 from ..angles import rotation_matrix
@@ -108,8 +108,8 @@ def astrometric(frame):
         return to_astrometric_frame.realize_frame(from_astrometric_coord.cartesian)
     
     
-    @frame_transform_graph.transform(FunctionTransform, frame, Astrometric)
-    def icrs_to_astrometric(icrs_coord, astrometric_frame):
+    @frame_transform_graph.transform(DynamicMatrixTransform, frame, Astrometric)
+    def icrs_to_astrometric(reference_frame, astrometric_frame):
         """Convert an ICRS coordinate to an Astrometric frame."""
         
         # Define rotation matricies along the position angle vector, and
@@ -118,15 +118,11 @@ def astrometric(frame):
         mat2 = rotation_matrix(-origin.lat, 'y')
         mat3 = rotation_matrix(origin.lon, 'z')
         R = mat2 * mat3
+        return R
+        
     
-        xyz = icrs_coord.cartesian.xyz
-        orig_shape = xyz.shape
-        xyz = R.dot(xyz.reshape(xyz.shape[0], np.prod(xyz.shape[1:]))).reshape(orig_shape)
-        representation = CartesianRepresentation(xyz)
-        return astrometric_frame.realize_frame(representation)
-    
-    @frame_transform_graph.transform(FunctionTransform, Astrometric, frame)
-    def astrometric_to_icrs(astrometric_coord, icrs_frame):
+    @frame_transform_graph.transform(DynamicMatrixTransform, Astrometric, frame)
+    def astrometric_to_icrs(astrometric_coord, reference_frame):
         """Convert an Astrometric frame coordinate to an ICRS"""
         
         # Define rotation matricies along the position angle vector, and
@@ -135,14 +131,8 @@ def astrometric(frame):
         mat2 = rotation_matrix(-origin.lat, 'y')
         mat3 = rotation_matrix(origin.lon, 'z')
         R = mat2 * mat3
-    
         Rinv = np.linalg.inv(R)
-        xyz = astrometric_coord.cartesian.xyz
-        orig_shape = xyz.shape
-        xyz = Rinv.dot(xyz.reshape(xyz.shape[0], np.prod(xyz.shape[1:]))).reshape(orig_shape)
-    
-        representation = CartesianRepresentation(xyz)
-        return icrs_frame.realize_frame(representation)
+        return Rinv
     
     return Astrometric
     
