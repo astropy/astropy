@@ -2,8 +2,6 @@ from __future__ import print_function, division
 
 import numpy as np
 
-from .utils import validate_inputs
-
 
 def design_matrix(t, frequency, dy=None, bias=True, nterms=1):
     """Compute the Lomb-Scargle design matrix at the given frequency
@@ -80,15 +78,11 @@ def periodic_fit(t, y, dy, frequency, t_fit,
     y_fit : ndarray
         The model fit evaluated at each value of t_fit
     """
-    if t_fit is None:
-        raise ValueError('t_fit must not be None')
-
-    t, y, dy, frequency, t_fit, unit_dict = validate_inputs(t, y, dy,
-                                                            frequency,
-                                                            t_fit=t_fit)
-
+    t, y, frequency = map(np.asarray, (t, y, frequency))
     if dy is None:
         dy = np.ones_like(y)
+    else:
+        dy = np.asarray(dy)
 
     t_fit = np.asarray(t_fit)
 
@@ -112,4 +106,4 @@ def periodic_fit(t, y, dy, frequency, t_fit,
 
     X_fit = design_matrix(t_fit, frequency, bias=fit_bias, nterms=nterms)
 
-    return (y_mean + np.dot(X_fit, theta_MLE)) * unit_dict['y']
+    return y_mean + np.dot(X_fit, theta_MLE)

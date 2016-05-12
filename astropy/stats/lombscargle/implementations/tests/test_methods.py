@@ -2,10 +2,9 @@ import numpy as np
 from numpy.testing import assert_allclose
 
 from .....tests.helper import pytest
-from .. import lombscargle
-from ... import LombScargle
+from .. import lombscargle, available_methods
 
-ALL_METHODS = LombScargle.available_methods
+ALL_METHODS = available_methods()
 BIAS_METHODS = [method for method in ALL_METHODS if method != 'scipy']
 FAST_METHODS = [method for method in ALL_METHODS if 'fast' in method]
 NTERMS_METHODS = ['auto'] + [method for method in ALL_METHODS

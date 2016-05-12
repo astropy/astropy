@@ -19,8 +19,6 @@ from .chi2_impl import lombscargle_chi2
 from .fastchi2_impl import lombscargle_fastchi2
 from .cython_impl import lombscargle_cython
 
-from .utils import validate_inputs
-
 
 METHODS = {'slow': lombscargle_slow,
            'fast': lombscargle_fast,
@@ -43,9 +41,6 @@ def available_methods():
     except ImportError:
         pass
     return methods
-
-
-
 
 
 def _get_frequency_grid(frequency, assume_regular_frequency=False):
@@ -188,13 +183,7 @@ def lombscargle(t, y, dy=None,
     PLS : array_like
         Lomb-Scargle power associated with each frequency omega
     """
-    if frequency is None:
-        raise ValueError("Must supply a valid frequency. If you would like "
-                         "an automatic frequency grid, use the "
-                         "LombScargle.autopower() method.")
-
-    t, y, dy, frequency, unit_dict = validate_inputs(t, y, dy, frequency)
-
+    # frequencies should be one-dimensional arrays
     output_shape = frequency.shape
     frequency = frequency.ravel()
 
@@ -235,4 +224,4 @@ def lombscargle(t, y, dy=None,
                              "or 'fastchi2' methods")
 
     PLS = METHODS[method](*args, **kwds)
-    return PLS.reshape(output_shape) * unit_dict['power']
+    return PLS.reshape(output_shape)

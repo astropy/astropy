@@ -104,6 +104,21 @@ Unit(dimensionless)
 
 In the standard normalization, regardless of the units of the input,
 the Lomb-Scargle power *P* is a dimensionless quantity satisfying *0 ≤ P ≤ 1*.
+For the unnormalized periodogram, (i.e. ``normalization='unnormalized'``),
+the Lomb-Scargle power is unitless in the presence of uncertainties,
+and has units of ``y.unit ** 2`` otherwise:
+
+>>> # with uncertainties: power is unitless
+>>> ls = LombScargle(t_days, y_mags, dy_mags)
+>>> frequency, power = ls.autopower(normalization='unnormalized')
+>>> power.unit
+Unit(dimensionless)
+
+>>> # without uncertainties: power has units
+>>> ls = LombScargle(t_days, y_mags)
+>>> frequency, power = ls.autopower(normalization='unnormalized')
+>>> power.unit
+Unit("mag2")
 
 
 Specifying the Frequency

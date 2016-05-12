@@ -1,5 +1,5 @@
 import numpy as np
-from numpy.testing import assert_allclose, assert_equal
+from numpy.testing import assert_allclose
 
 from .... import units
 from ....tests.helper import pytest
@@ -26,31 +26,54 @@ def test_output_shapes(method, shape, data):
     t, y, dy = data
     freq = np.asarray(np.random.rand(*shape))
     freq.flat = np.arange(1, freq.size + 1)
-    PLS = lombscargle(t, y, frequency=freq,
-                      fit_bias=False, method=method)
-    assert_equal(PLS.shape, shape)
+    PLS = LombScargle(t, y, fit_bias=False).power(freq, method=method)
+    assert PLS.shape == shape
 
 
 @pytest.mark.parametrize('method', LombScargle.available_methods)
 @pytest.mark.parametrize('t_unit', [units.second, units.day])
 @pytest.mark.parametrize('frequency_unit', [units.Hz, 1. / units.second])
 @pytest.mark.parametrize('y_unit', [units.mag, units.jansky])
-def test_units_match(method, t_unit, frequency_unit, y_unit, data):
+@pytest.mark.parametrize('normalization', ['normalized', 'unnormalized'])
+def test_power_units_match(method, t_unit, frequency_unit,
+                           y_unit, normalization, data):
     t, y, dy = data
-    dy = dy.mean()  # scipy only supports constant errors
+
+    if method == 'scipy':
+        dy = dy.mean()  # scipy only supports constant errors
 
     t = t * t_unit
     y = y * y_unit
     dy = dy * y_unit
     frequency = np.linspace(0.5, 1.5, 10) * frequency_unit
-    PLS = lombscargle(t, y, frequency=frequency,
-                      fit_bias=False, method=method)
-    assert_equal(PLS.unit, units.dimensionless_unscaled)
 
-    PLS = lombscargle(t, y, dy,
-                      frequency=frequency,
-                      fit_bias=False, method=method)
-    assert_equal(PLS.unit, units.dimensionless_unscaled)
+    # power without uncertainties
+    ls = LombScargle(t, y, fit_bias=False)
+    PLS = ls.power(frequency, method=method, normalization=normalization)
+    if normalization == 'unnormalized':
+        assert PLS.unit == y_unit ** 2
+    else:
+        assert PLS.unit == units.dimensionless_unscaled
+
+    # power with uncertainties
+    ls = LombScargle(t, y, dy, fit_bias=False)
+    PLS = ls.power(frequency, method=method, normalization=normalization)
+    assert PLS.unit == units.dimensionless_unscaled
+
+    # autopower without uncertainties
+    ls = LombScargle(t, y, fit_bias=False)
+    frequency, PLS = ls.autopower(method=method, normalization=normalization)
+    assert frequency.unit == 1. / t.unit
+    if normalization == 'unnormalized':
+        assert PLS.unit == y_unit ** 2
+    else:
+        assert PLS.unit == units.dimensionless_unscaled
+
+    # autopower with uncertainties
+    ls = LombScargle(t, y, dy, fit_bias=False)
+    frequency, PLS = ls.autopower(method=method, normalization=normalization)
+    assert frequency.unit == 1. / t.unit
+    assert PLS.unit == units.dimensionless_unscaled
 
 
 @pytest.mark.parametrize('method', LombScargle.available_methods)
@@ -63,27 +86,30 @@ def test_units_mismatch(method, data):
 
     # this should fail because frequency and 1/t units do not match
     with pytest.raises(ValueError) as err:
-        lombscargle(t, y, frequency=frequency,
-                    method=method, fit_bias=False)
+        LombScargle(t, y, fit_bias=False).power(frequency, method=method)
     assert str(err.value).startswith('Units of frequency not equivalent')
 
     # this should fail because dy and y units do not match
     with pytest.raises(ValueError) as err:
-        lombscargle(t, y, dy, frequency / t.unit,
-                    method=method, fit_bias=False)
+        LombScargle(t, y, dy, fit_bias=False).power(frequency / t.unit)
     assert str(err.value).startswith('Units of dy not equivalent')
 
 
 @pytest.mark.parametrize('method', LombScargle.available_methods)
 @pytest.mark.parametrize('center_data', [True, False])
+@pytest.mark.parametrize('fit_bias', [True, False])
 @pytest.mark.parametrize('freq', [0.8 + 0.01 * np.arange(40)])
-def test_common_interface(method, center_data, freq, data):
+def test_all_methods(method, center_data, fit_bias, freq, data):
     t, y, dy = data
+    if method == 'scipy' and fit_bias:
+        return
+    if method == 'scipy':
+        dy = None
 
-    expected_PLS = lombscargle_slow(t, y, dy=None, frequency=freq,
+    expected_PLS = lombscargle_slow(t, y, dy, frequency=freq,
                                     fit_bias=False, center_data=center_data)
-    PLS = lombscargle(t, y, frequency=freq, method=method,
-                      fit_bias=False, center_data=center_data)
+    PLS = LombScargle(t, y, dy, fit_bias=False,
+                      center_data=center_data).power(freq, method=method)
 
     if method in ['fastchi2', 'fast', 'auto']:
         atol = 0.005
@@ -95,27 +121,7 @@ def test_common_interface(method, center_data, freq, data):
 @pytest.mark.parametrize('method', LombScargle.available_methods)
 @pytest.mark.parametrize('center_data', [True, False])
 @pytest.mark.parametrize('fit_bias', [True, False])
-@pytest.mark.parametrize('freq', [0.8 + 0.01 * np.arange(40)])
-def test_object_interface_power(data, method, center_data, fit_bias, freq):
-    t, y, dy = data
-    if method == 'scipy' and fit_bias:
-        return
-    if method == 'scipy':
-        dy = None
-    expected_PLS = lombscargle(t, y, dy,
-                               frequency=freq,
-                               method=method,
-                               fit_bias=fit_bias,
-                               center_data=center_data)
-    ls = LombScargle(t, y, dy, fit_bias=fit_bias, center_data=center_data)
-    PLS = ls.power(freq, method=method)
-    assert_allclose(PLS, expected_PLS)
-
-
-@pytest.mark.parametrize('method', LombScargle.available_methods)
-@pytest.mark.parametrize('center_data', [True, False])
-@pytest.mark.parametrize('fit_bias', [True, False])
-def test_object_interface_autopower(data, method, center_data, fit_bias):
+def test_autopower(data, method, center_data, fit_bias):
     t, y, dy = data
     if method == 'scipy' and fit_bias:
         return
@@ -123,19 +129,14 @@ def test_object_interface_autopower(data, method, center_data, fit_bias):
         dy = None
 
     ls = LombScargle(t, y, dy, fit_bias=fit_bias, center_data=center_data)
-    freq, PLS = ls.autopower(method=method)
-
-    expected_PLS = lombscargle(t, y, dy, freq,
-                               method=method,
-                               fit_bias=fit_bias,
-                               center_data=center_data)
-
+    frequency, PLS = ls.autopower(method=method)
+    expected_PLS = ls.power(frequency, method=method)
     assert_allclose(PLS, expected_PLS)
 
 
 @pytest.mark.parametrize('fit_bias', [True, False])
 @pytest.mark.parametrize('freq', [1.0, 2.0])
-def test_object_interface_model(fit_bias, freq):
+def test_model(fit_bias, freq):
     rand = np.random.RandomState(0)
     t = 10 * rand.rand(40)
     params = 10 * rand.rand(3)
@@ -148,15 +149,6 @@ def test_object_interface_model(fit_bias, freq):
     ls = LombScargle(t, y, center_data=False, fit_bias=fit_bias)
     y_fit = ls.model(t, freq)
     assert_allclose(y_fit, y)
-
-
-def test_object_interface_bad_input(data):
-    t, y, dy = data
-    ls = LombScargle(t, y, dy)
-    # this should fail because frequency and 1/t unitsdo not match
-    with pytest.raises(ValueError) as err:
-        ls.power(frequency=None)
-    assert str(err.value).startswith('Must supply a valid frequency')
 
 
 @pytest.mark.parametrize('t_unit', [units.second, units.day])
@@ -175,7 +167,7 @@ def test_model_units_match(data, t_unit, frequency_unit, y_unit):
 
     ls = LombScargle(t, y, dy)
     y_fit = ls.model(t_fit, frequency)
-    assert_equal(y_fit.unit, y_unit)
+    assert y_fit.unit == y_unit
 
 
 def test_model_units_mismatch(data):
@@ -196,7 +188,7 @@ def test_model_units_mismatch(data):
     # this should fail because t and t_fit units do not match
     with pytest.raises(ValueError) as err:
         LombScargle(t, y).model([1, 2], frequency)
-    assert str(err.value).startswith('Units of t_fit not equivalent')
+    assert str(err.value).startswith('Units of t not equivalent')
 
     # this should fail because dy and y units do not match
     with pytest.raises(ValueError) as err:

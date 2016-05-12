@@ -1,8 +1,28 @@
 """Main Lomb-Scargle Implementation"""
+from __future__ import print_function, division
+
 import numpy as np
 
 from .implementations import lombscargle, available_methods
 from .implementations.mle import periodic_fit
+from ... import units
+from ...utils.compat.numpy import broadcast_arrays
+
+
+def has_units(obj):
+    return hasattr(obj, 'unit')
+
+
+def get_unit(obj):
+    return getattr(obj, 'unit', 1)
+
+
+def strip_units(*arrs):
+    strip = lambda a: None if a is None else np.asarray(a)
+    if len(arrs) == 1:
+        return strip(arrs[0])
+    else:
+        return map(strip, arrs)
 
 
 class LombScargle(object):
@@ -64,11 +84,65 @@ class LombScargle(object):
     available_methods = available_methods()
 
     def __init__(self, t, y, dy=None, fit_bias=True, center_data=True):
-        self.t = t
-        self.y = y
-        self.dy = dy
+        self.t, self.y, self.dy = self._validate_inputs(t, y, dy)
         self.fit_bias = fit_bias
         self.center_data = center_data
+
+    def _validate_inputs(self, t, y, dy):
+        # Validate shapes of inputs
+        if dy is None:
+            t, y = broadcast_arrays(t, y, subok=True)
+        else:
+            t, y, dy = broadcast_arrays(t, y, dy, subok=True)
+        if t.ndim != 1:
+            raise ValueError("Inputs (t, y, dy) must be 1-dimensional")
+
+        # validate units of inputs if any is a Quantity
+        if any(has_units(arr) for arr in (t, y, dy)):
+            t, y = map(units.Quantity, (t, y))
+            if dy is not None:
+                dy = units.Quantity(dy)
+                try:
+                    dy = units.Quantity(dy, unit=y.unit)
+                except units.UnitConversionError:
+                    raise ValueError("Units of dy not equivalent "
+                                     "to units of y")
+        return t, y, dy
+
+    def _validate_frequency(self, frequency):
+        frequency = np.asanyarray(frequency)
+
+        if has_units(self.t):
+            frequency = units.Quantity(frequency)
+            try:
+                frequency = units.Quantity(frequency, unit=1./self.t.unit)
+            except units.UnitConversionError:
+                raise ValueError("Units of frequency not equivalent to "
+                                 "units of 1/t")
+        else:
+            assert not has_units(frequency)
+        return frequency
+
+    def _validate_t(self, t):
+        t = np.asanyarray(t)
+
+        if has_units(self.t):
+            t = units.Quantity(t)
+            try:
+                t = units.Quantity(t, unit=self.t.unit)
+            except units.UnitConversionError:
+                raise ValueError("Units of t not equivalent to "
+                                 "units of input self.t")
+        return t
+
+    def _power_unit(self, norm):
+        if has_units(self.y):
+            if self.dy is None and norm == 'unnormalized':
+                return self.y.unit ** 2
+            else:
+                return units.dimensionless_unscaled
+        else:
+            return 1
 
     def autofrequency(self, samples_per_peak=5, nyquist_factor=5,
                       minimum_frequency=None, maximum_frequency=None):
@@ -161,14 +235,10 @@ class LombScargle(object):
             The frequency and Lomb-Scargle power
         """
         frequency = self.autofrequency(**kwargs)
-
-        power = lombscargle(self.t, self.y, self.dy,
-                            frequency=frequency,
-                            center_data=self.center_data,
-                            fit_bias=self.fit_bias,
-                            normalization=normalization,
-                            method=method, method_kwds=method_kwds,
-                            assume_regular_frequency=True)
+        power = self.power(frequency,
+                           normalization=normalization,
+                           method=method, method_kwds=method_kwds,
+                           assume_regular_frequency=True)
         return frequency, power
 
     def power(self, frequency, normalization='normalized', method='auto',
@@ -221,17 +291,15 @@ class LombScargle(object):
         power : ndarray
             The Lomb-Scargle power at the specified frequency
         """
-        if frequency is None:
-            raise ValueError("Must supply a valid frequency. If you would "
-                             "like an automatic frequency grid, use the "
-                             "autopower() method.")
-        return lombscargle(self.t, self.y, self.dy,
-                           frequency=frequency,
-                           center_data=self.center_data,
-                           fit_bias=self.fit_bias,
-                           normalization=normalization,
-                           method=method, method_kwds=method_kwds,
-                           assume_regular_frequency=assume_regular_frequency)
+        frequency = self._validate_frequency(frequency)
+        power = lombscargle(*strip_units(self.t, self.y, self.dy),
+                            frequency=strip_units(frequency),
+                            center_data=self.center_data,
+                            fit_bias=self.fit_bias,
+                            normalization=normalization,
+                            method=method, method_kwds=method_kwds,
+                            assume_regular_frequency=assume_regular_frequency)
+        return power * self._power_unit(normalization)
 
     def model(self, t, frequency):
         """Compute the Lomb-Scargle model at the given frequency
@@ -248,7 +316,11 @@ class LombScargle(object):
         y : np.ndarray, length n_samples
             The model fit corresponding to the input times
         """
-        return periodic_fit(self.t, self.y, self.dy,
-                            frequency=frequency, t_fit=t,
-                            center_data=self.center_data,
-                            fit_bias=self.fit_bias)
+        frequency = self._validate_frequency(frequency)
+        t = self._validate_t(t)
+        y_fit = periodic_fit(*strip_units(self.t, self.y, self.dy),
+                             frequency=strip_units(frequency),
+                             t_fit=strip_units(t),
+                             center_data=self.center_data,
+                             fit_bias=self.fit_bias)
+        return y_fit * get_unit(self.y)
