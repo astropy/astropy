@@ -6,35 +6,39 @@ from __future__ import (absolute_import, unicode_literals, division,
 from math import cos, sin
 import numpy as np
 from numpy.testing import utils
-from .. import models
 
+from .. import models
+from ...wcs import wcs
+from ...io import fits
+from ...utils.data import get_pkg_data_contents
 from ...tests.helper import pytest
 
 
-def test_RotateNative2Celestial():
-    lon, lat, lon_pole = 42, 43, 44
-    model = models.RotateNative2Celestial(lon, lat, lon_pole)
-    model.lon = model.lon + 1
-    model.lon_pole = model.lon_pole + 1
-    model.lat = model.lat + 1
-    assert model.lon == lon + 1
-    assert model.lat == lat + 1
-    assert model.lon_pole == lon_pole + 1
+@pytest.mark.parametrize(('inp'), (0, 0), (4000, -20.56), (-2001.5, 45.9))
+def test_against_wcslib(inp):
+    hdr = get_pkg_data_contents("data/sip.hdr")
+    w = wcs.WCS(hdr)
+    crval = w.wcs.crval
+    w.wcs.crpix = [0, 0]
+    w.wcs.pc = [[1, 0], [0, 1]]
+
+    lonpole = 180
+    tan = models.Pix2Sky_TAN()
+    n2c = models.RotateNative2Celestial(crval[0], crval[1], lonpole)
+    c2n = models.RotateNative2Celestial(crval[0], crval[1], lonpole)
+    utils.assert_allclose(n2c.inverse(*n2c(*inp), inp, rtol=1e-14))
+    utils.assert_allclose(c2n(*n2c(*inp)), inp, rtol=1e-14)
+    utils.assert_allclose(n2c(*inp), w.wcs_pix2world(inp[0], inp[1], 1), rtol=1e-14)
+    utils.assert_allclose(c2n(*crval), w.wcs_world2pix(crval[0], crval[1], 1), rtol=1e-14)
 
 
-def test_native_celestial_native():
+@pytest.mark.parametrize(('inp'), (0, 0), (4000, -20.56), (-2001.5, 45.9))
+def test_roundtrip_sky_rotaion():
     lon, lat, lon_pole = 42, 43, 44
     n2c = models.RotateNative2Celestial(lon, lat, lon_pole)
     c2n = models.RotateCelestial2Native(lon, lat, lon_pole)
-
-    nnphi, ntheta = 33, 44
-    calpha, cdelta = n2c(nnphi, ntheta)
-    nnphi2, ntheta2 = c2n(calpha, cdelta)
-    utils.assert_allclose(nnphi2, nnphi)
-    utils.assert_allclose(ntheta2, ntheta)
-
-    assert n2c.inverse(nnphi, ntheta) == c2n(nnphi, ntheta)
-    assert c2n.inverse(nnphi, ntheta) == n2c(nnphi, ntheta)
+    utils.assert_allclose(n2c.inverse(*n2c(*inp)), inp, rtol=1e-14)
+    utils.assert_allclose(c2n.inverse(*c2n(*inp)), inp, rtol=1e-14)
 
 
 def test_native_celestial_lat90():
