@@ -7,27 +7,23 @@ N-dimensional datasets (`astropy.nddata`)
 Introduction
 ============
 
-The `~astropy.nddata` package provides a uniform interface to N-dimensional
-datasets in astropy through:
+The ``nddata`` package provides a uniform interface to N-dimensional datasets
+(for tabulated data please have a look at `astropy.table`) in astropy through:
 
-+ The `~astropy.nddata.NDDataBase` metaclass to define an astropy-wide
-  interface to N-dimensional data sets while allowing flexibility in
-  how those datasets are represented internally.
-+ The `~astropy.nddata.NDData` class, which provides a basic container for
-  gridded N-dimensional datasets.
-+ Several mixin classes for adding functionality to `~astropy.nddata.NDData`
-  containers.
-+ A decorator, `~astropy.nddata.support_nddata`, for facilitating use of
-  `~astropy.nddata` objects  in functions in astropy and affiliated packages.
-+ General utility functions (:ref:`nddata_utils`) for array operations.
++ `~astropy.nddata.NDData`: a basic container for `numpy.ndarray`-like data.
++ `~astropy.nddata.NDDataRef`: like `~astropy.nddata.NDData` but with
+  additional functionality like an reading/writing, simple arithmetic
+  operations and slicing.
++ `~astropy.nddata.StdDevUncertainty` a class that can store and propagate
+  uncertainties for a NDData object.
++ General utility functions (:ref:`nddata_utils`) for operations on these
+  classes, including a decorator to facilitate writing functions for such
+  classes.
++ A framework including different mixins and metaclasses to facilitate
+  customizing subclasses.
 
 Getting started
 ===============
-
-Of the classes provided by `~astropy.nddata`, the place to start for most
-users will be `~astropy.nddata.NDData`, which by default uses a numpy array to
-store the data. Designers of new classes should also look at
-`~astropy.nddata.NDDataBase` before deciding what to subclass from.
 
 NDData
 ------
@@ -36,97 +32,117 @@ The primary purpose of `~astropy.nddata.NDData` is to act as a *container* for
 data, metadata, and other related information like a mask.
 
 An `~astropy.nddata.NDData` object can be instantiated by passing it an
-n-dimensional Numpy array::
+n-dimensional `numpy` array::
 
     >>> import numpy as np
     >>> from astropy.nddata import NDData
     >>> array = np.zeros((12, 12, 12))  # a 3-dimensional array with all zeros
-    >>> ndd = NDData(array)
+    >>> ndd1 = NDData(array)
 
-or something that can be converted to an array::
+or something that can be converted to an `numpy.ndarray`::
 
     >>> ndd2 = NDData([1, 2, 3, 4])
+    >>> ndd2
+    NDData([1, 2, 3, 4])
 
-It is also possible to initialize `~astropy.nddata.NDData` with more exotic
-objects; see :ref:`nddata_details` for more information.
+and can be accessed again via the ``data`` attribute::
 
-The underlying Numpy array can be accessed via the ``data`` attribute::
+    >>> ndd2.data
+    array([1, 2, 3, 4])
 
-    >>> ndd.data
-    array([[[ 0., 0., 0., ...
-    ...
+and it supports additional properties like a ``unit`` or ``mask`` for the data,
+a ``wcs`` (world coordinate system) and ``uncertainty`` of the data and
+additional ``meta`` attributes:
 
-Values can be masked using the ``mask`` attribute::
+    >>> data = np.array([1,2,3,4])
+    >>> mask = data > 2
+    >>> unit = 'erg / s'
+    >>> from astropy.nddata import StdDevUncertainty
+    >>> uncertainty = StdDevUncertainty(np.sqrt(data)) # representing standard deviation
+    >>> meta = {'object': 'fictional data.'}
+    >>> from astropy.coordinates import SkyCoord
+    >>> wcs = SkyCoord('00h42m44.3s', '+41d16m09s')
+    >>> ndd = NDData(data, mask=mask, unit=unit, uncertainty=uncertainty,
+    ...              meta=meta, wcs=wcs)
+    >>> ndd
+    NDData([1, 2, 3, 4])
 
-     >>> ndd_masked = NDData(ndd, mask = ndd.data > 0.9)
+the representation does not show additional attributes but these can be
+accessed like ``data`` above::
 
-A mask value of `True` indicates a value that should be ignored, while a mask
-value of `False` indicates a valid value.
-
-
-Similar attributes are available to store:
-
-+ generic meta-data, in ``meta``,
-+ a unit for the data values, in ``unit`` and
-+ an uncertainty for the data values, in ``uncertainty``. Note that the
-  ``uncertainty`` must have a attribute called ``uncertainty_type`` otherwise
-  it will be converted to an `~astropy.nddata.UnknownUncertainty`.
-
-Note that a `~astropy.nddata.NDData` object is not sliceable::
-
-    >>> ndd2[1:3]        # doctest: +SKIP
-    Traceback (most recent call last):
-        ...
-    TypeError: 'NDData' object has no attribute '__getitem__'
+    >>> ndd.uncertainty
+    StdDevUncertainty([ 1.        ,  1.41421356,  1.73205081,  2.        ])
+    >>> ndd.mask
+    array([False, False,  True,  True], dtype=bool)
 
 
+NDDataRef
+---------
 
-Mixins for additional functionality
------------------------------------
+Building upon this pure container `~astropy.nddata.NDDataRef` implements:
 
-Several classes are provided to add functionality to the basic ``NDData``
-container. They include:
++ a ``read`` and ``write`` method to access astropys unified file io interface.
++ simple arithmetics like addition, subtraction, division and multiplication.
++ slicing.
 
-+ `~astropy.nddata.NDSlicingMixin` to handle slicing of N-dimensional data.
-+ `~astropy.nddata.NDArithmeticMixin` to allow arithmetic operations on
-  `~astropy.nddata.NDData` objects that include support propagation of
-  uncertainties (in limited cases).
-+ `~astropy.nddata.NDIOMixin` to use existing astropy functionality for input
-  (with the method ``read``) and output (with the method ``write``).
+Instances are created in the same way::
 
-To use these mixins, create a new class that includes the appropriate mixins
-as subclasses. For example, to make a class that includes slicing, but not
-arithmetic or I/O::
+    >>> from astropy.nddata import NDDataRef
+    >>> ndd = NDDataRef(ndd)
+    >>> ndd
+    NDDataRef([1, 2, 3, 4])
 
-    >>> from astropy.nddata import NDData, NDSlicingMixin
-    >>> class NDDataSliceable(NDSlicingMixin, NDData): pass
+But also support arithmetics (:ref:`nddata_arithmetic`) like addition::
 
-Note that the body of the class need not contain any code; all of the
-functionality is provided by the ``NDData`` container and the mixins. The
-order of the classes is important because python works from right to left in
-determining the order in which methods are resolved.
+    >>> import astropy.units as u
+    >>> ndd2 = ndd.add([4, 3, 2, 1] * u.erg / u.s)
+    >>> ndd2
+    NDDataRef([ 5.,  5.,  5.,  5.])
 
-``NDDataSliceable`` is initialized the same way that `~astropy.nddata.NDData` is::
+because these operations have a wide range of options these are not avaible
+using pythons arithmetic operators like ``+``.
 
-    >>> ndd_sliceable = NDDataSliceable([1, 2, 3, 4])
+Slicing or indexing (:ref:`nddata_slicing`) is possible (issueing warnings if
+some attribute cannot be sliced)::
 
-but can be sliced::
+    >>> ndd2 = NDDataRef(ndd2.data)  # because a scalar coordinate is not sliceable.
+    >>> ndd2[2:]  # discard the first two elements
+    NDDataRef([ 5.,  5.])
+    >>> ndd2[1]   # get the second element
+    NDDataRef(5.0)
 
-    >>> ndd_sliceable[1:3]
-    NDDataSliceable([2, 3])
 
-The class `~astropy.nddata.NDDataArray` is an example of a class which
-utilizes mixins *and* adds functionality.
+StdDevUncertainty
+-----------------
 
-NDDataBase for making new subclasses
-------------------------------------
+`~astropy.nddata.StdDevUncertainty` implements uncertainty based on standard
+deviation and can propagate these using the arithmetic methods of
+`~astropy.nddata.NDDataRef`::
 
-`~astropy.nddata.NDDataBase` is a metaclass provided to support the creation
-of objects that support the NDData interface but need the freedom to define
-their own ways of storing data, unit, metadata and/or other properties. It
-should be used instead of `~astropy.nddata.NDData` as the starting point for
-any class for which the `~astropy.nddata.NDData` class is too restrictive.
+    >>> from astropy.nddata import NDDataRef, StdDevUncertainty
+    >>> import numpy as np
 
+    >>> uncertainty = StdDevUncertainty(np.arange(5))
+    >>> ndd = NDDataRef([5,5,5,5,5], uncertainty=uncertainty)
+
+    >>> doubled_ndd = ndd.multiply(2)  # multiply by 2
+    >>> doubled_ndd.uncertainty
+    StdDevUncertainty([0, 2, 4, 6, 8])
+
+    >>> ndd2 = ndd.add(doubled_ndd)    # add the doubled to the original
+    >>> ndd2.uncertainty
+    StdDevUncertainty([ 0.        ,  2.23606798,  4.47213595,  6.70820393,
+                        8.94427191])
+
+    >>> # or taking into account that both of these uncertainties are correlated
+    >>> ndd3 = ndd.add(doubled_ndd, uncertainty_correlation=1)
+    >>> ndd3.uncertainty
+    StdDevUncertainty([  0.,   3.,   6.,   9.,  12.])
+
+.. note::
+    The "amount" of correlation must be given, so ``1`` means correlated, ``-1``
+    anti-correlated and ``0`` (default) uncorrelated. See also
+    :ref:`nddata_arithmetic` for more information about correlation handling.
 
 Using ``nddata``
 ================
