@@ -17,12 +17,55 @@ from ..representation import (SphericalRepresentation, CartesianRepresentation,
 from ... import _erfa as erfa
 
 from .icrs import ICRS
+from .itrs import ITRS
 from .gcrs import GCRS
 from .cirs import CIRS
 from .hcrs import HCRS
 from .utils import get_jd12
 
-
+# helper function to find GCRS position and velocity of observatory
+def get_gcrs_posvel(time, frame):
+    """
+    Given frame with ```obsgeoloc``` and ```obsgeovel```, find GCRS position and velocity.
+    
+    ```obsgeoloc``` and ```obsgeovel``` are specified in the ITRS coordinate frame.
+    This function converts the position and velocity into the GCRS coordinate frame.
+    
+    Parameters
+    ----------
+    time : `~astropy.time.Time`
+        The time at which to calculate GCRS position and velocity.
+    frame : `~astropy.coordinates.BaseCoordinateFrame   
+        The frame to use. Must have ```obsgeoloc``` and ```obsgeovel``` attributes.
+    
+    Returns
+    --------
+    pos : `~astropy.units.Quantity`
+        GCRS position
+    vel : `~astropy.units.Quantity`
+        GCRS velocity        
+    """
+    try:
+        obsgeoloc = ITRS(frame.obsgeoloc, obstime=time)        
+        obsgeovel = ITRS(frame.obsgeovel, obstime=time)
+    except AttributeError:
+        raise ValueError("frame must have obsgeoloc and obsgeovel attributes set")
+    
+    # transform to GCRS. Just a rotation matrix so velocity should be fine?
+    geocentric_frame = GCRS(obstime=time)
+    pos_arr = obsgeoloc.transform_to(geocentric_frame).cartesian.xyz.to(u.m).value
+    vel_arr = obsgeovel.transform_to(geocentric_frame).cartesian.xyz.to(u.m/u.s).value
+    
+    # now add rotational velocity of GCRS frame w.r.t to ITRS
+    # rotation of earth
+    V = u.Quantity([0,0,7.292115855306589e-5])*u.rad/u.s
+    vel_arr += np.cross(V, pos_arr)
+    
+    # convert to Quantity objects
+    pos_arr = u.Quantity(pos_arr*u.m)
+    vel_arr = u.Quantity(vel_arr*u.m/u.s)
+    return pos_arr, vel_arr
+    
 # First the ICRS/CIRS related transforms
 @frame_transform_graph.transform(FunctionTransform, ICRS, CIRS)
 def icrs_to_cirs(icrs_coo, cirs_frame):
@@ -112,26 +155,14 @@ def cirs_to_cirs(from_coo, to_frame):
         # is sort of glossed over in the current scheme because we are dropping
         # distances anyway.
         return from_coo.transform_to(ICRS).transform_to(to_frame)
-
-
+    
 # Now the GCRS-related transforms to/from ICRS
 
 @frame_transform_graph.transform(FunctionTransform, ICRS, GCRS)
 def icrs_to_gcrs(icrs_coo, gcrs_frame):
     # first set up the astrometry context for ICRS<->GCRS
-    # pv array should be w.r.t to GCRS/ICRS coordinate direction, but are stored
-    # as ITRS coordinates
-    obsgeoloc = ITRS(gcrs_frame.obsgeoloc, obstime=gcrs_frame.obstime)
-    obsgeovel = ITRS(gcrs_frame.obsgeovel, obstime=gcrs_frame.obstime)
-    
-    # get values in m and m/s
-    geocentric_frame = GCRS(obstime=gcrs_frame.obstime)
-    pos_arr = obsgeoloc.transform_to(geocentric_frame).cartesian.xyz.to(u.m).value
-    vel_arr = obsgeovel.transform_to(geocentric_frame).cartesian.xyz.to(u.m/u.s).value
-    SR = 7.292115855306589e-5 
-    V = u.Quantity([0, 0, SR])
-    vel_arr += np.cross(V, pos_arr)
-    pv = np.array([pos_arr, vel_arr])
+    pos_arr, vel_arr = get_gcrs_posvel(gcrs_frame.obstime, gcrs_frame)
+    pv = np.array([pos_arr.value, vel_arr.value])
 
     jd1, jd2 = get_jd12(gcrs_frame.obstime, 'tdb')
     astrom = erfa.apcs13(jd1, jd2, pv)
@@ -176,8 +207,8 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
 
     # set up the astrometry context for ICRS<->GCRS and then convert to BCRS
     # coordinate direction
-    pv = np.array([gcrs_coo.obsgeoloc.value,
-                   gcrs_coo.obsgeovel.value])
+    pos_arr, vel_arr = get_gcrs_posvel(gcrs_coo.obstime, gcrs_coo)
+    pv = np.array([pos_arr.value, vel_arr.value])    
     jd1, jd2 = get_jd12(gcrs_coo.obstime, 'tdb')
     astrom = erfa.apcs13(jd1, jd2, pv)
 
@@ -234,8 +265,8 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
 
     # set up the astrometry context for ICRS<->GCRS and then convert to ICRS
     # coordinate direction
-    pv = np.array([gcrs_coo.obsgeoloc.value,
-                   gcrs_coo.obsgeovel.value])
+    pos_arr, vel_arr = get_gcrs_posvel(gcrs_coo.obstime, gcrs_coo)
+    pv = np.array([pos_arr.value, vel_arr.value])
 
     jd1, jd2 = get_jd12(hcrs_frame.obstime, 'tdb')
     astrom = erfa.apcs13(jd1, jd2, pv)
