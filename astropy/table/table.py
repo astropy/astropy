@@ -30,6 +30,7 @@ from .row import Row
 from .np_utils import fix_column_name, recarray_fromrecords
 from .info import TableInfo
 from .index import Index, _IndexModeContext, get_index
+from . import conf
 
 
 __doctest_skip__ = ['Table.read', 'Table.write',
@@ -778,7 +779,8 @@ class Table(object):
         return out
 
     def _repr_html_(self):
-        return self._base_repr_(html=True, max_width=-1)
+        return self._base_repr_(html=True, max_width=-1,
+                                tableclass=conf.default_notebook_table_class)
 
     def __repr__(self):
         return self._base_repr_(html=False, max_width=None)
@@ -876,8 +878,7 @@ class Table(object):
             return self
 
     def show_in_notebook(self, tableid=None, css=None, display_length=50,
-                         table_class='table table-striped table-bordered '
-                         'table-condensed', show_row_index='idx'):
+                         table_class='astropy-default', show_row_index='idx'):
         """Render the table in HTML and show it in the IPython notebook.
 
         Parameters
@@ -889,9 +890,12 @@ class Table(object):
             multiple times.
         table_class : str or `None`
             A string with a list of HTML classes used to style the table.
-            Default is "table table-striped table-bordered table-condensed",
-            using Bootstrap which is available in the notebook. See `this page
-            <http://getbootstrap.com/css/#tables>`_ for the list of classes.
+            The special default string ('from-apy-default') means that the string
+            will be retreived from the configuration item
+            ``astropy.table.default_notebook_table_class``. Note that these
+            table classes may make use of bootrap, as this is looded with the
+            notebook.  See `this page <http://getbootstrap.com/css/#tables>`_
+            for the list of classes.
         css : string
             A valid CSS string declaring the formatting for the table. Default
             to ``astropy.table.jsviewer.DEFAULT_CSS_NB``.
@@ -926,6 +930,8 @@ class Table(object):
             display_table = self._make_index_row_display_table(show_row_index)
         else:
             display_table = self
+        if table_class == 'astropy-default':
+            table_class = conf.default_notebook_table_class
         html = display_table._base_repr_(html=True, max_width=-1, tableid=tableid,
                                          max_lines=-1, show_dtype=False,
                                          tableclass=table_class)
