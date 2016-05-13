@@ -39,9 +39,10 @@ class TestMultiD():
                          '<tr><td>1 .. 2</td><td>3 .. 4</td><td>5 .. 6</td></tr>',
                          '<tr><td>10 .. 20</td><td>30 .. 40</td><td>50 .. 60</td></tr>',
                          '</table>']
+        nbclass = table.conf.default_notebook_table_class
         assert t._repr_html_().splitlines() == [
             '&lt;{0} masked={1} length=2&gt;'.format(table_type.__name__, t.masked),
-            '<table id="table{tid}">'.format(tid=id(t)),
+            '<table id="table{id}" class="{nbclass}">'.format(id=id(t), nbclass=nbclass),
             '<thead><tr><th>col0 [2]</th><th>col1 [2]</th><th>col2 [2]</th></tr></thead>',
             '<thead><tr><th>int64</th><th>int64</th><th>int64</th></tr></thead>',
             '<tr><td>1 .. 2</td><td>3 .. 4</td><td>5 .. 6</td></tr>',
@@ -77,9 +78,10 @@ class TestMultiD():
                          '<tr><td>1</td><td>3</td><td>5</td></tr>',
                          '<tr><td>10</td><td>30</td><td>50</td></tr>',
                          '</table>']
+        nbclass = table.conf.default_notebook_table_class
         assert t._repr_html_().splitlines() == [
             '&lt;{0} masked={1} length=2&gt;'.format(table_type.__name__, t.masked),
-            '<table id="table{id}">'.format(id=id(t)),
+            '<table id="table{id}" class="{nbclass}">'.format(id=id(t), nbclass=nbclass),
             '<thead><tr><th>col0 [1,1]</th><th>col1 [1,1]</th><th>col2 [1,1]</th></tr></thead>',
             '<thead><tr><th>int64</th><th>int64</th><th>int64</th></tr></thead>',
             '<tr><td>1</td><td>3</td><td>5</td></tr>', u'<tr><td>10</td><td>30</td><td>50</td></tr>',
@@ -96,9 +98,10 @@ class TestMultiD():
 
 def test_html_escaping():
     t = table.Table([(str('<script>alert("gotcha");</script>'), 2, 3)])
+    nbclass = table.conf.default_notebook_table_class
     assert t._repr_html_().splitlines() == [
         '&lt;Table length=3&gt;',
-        '<table id="table{id}">'.format(id=id(t)),
+        '<table id="table{id}" class="{nbclass}">'.format(id=id(t), nbclass=nbclass),
         '<thead><tr><th>col0</th></tr></thead>',
         '<thead><tr><th>str33</th></tr></thead>',
         '<tr><td>&lt;script&gt;alert(&quot;gotcha&quot;);&lt;/script&gt;</td></tr>',
