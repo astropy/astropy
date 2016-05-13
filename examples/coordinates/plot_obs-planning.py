@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-===========================
-Plot the AltAz of an object
-===========================
+===================================================================
+Determining and plotting the altitude/azimuth of a celestial object
+===================================================================
 
 This example demonstrates coordinate transformations and the creation of
 visibility curves to assist with observing run planning.
