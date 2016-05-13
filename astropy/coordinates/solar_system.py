@@ -187,7 +187,7 @@ def _get_apparent_body_position(time, body):
     delta_light_travel_time = 20*u.s
     emitted_time = time
     light_travel_time = 0*u.s
-    while np.all(np.fabs(delta_light_travel_time) > 1.0e-8*u.s):
+    while np.any(np.fabs(delta_light_travel_time) > 1.0e-8*u.s):
         earth_to_body_vector, earth_distance = _get_earth_body_vector(emitted_time,
                                                                       body, time)
         delta_light_travel_time = light_travel_time - earth_distance/speed_of_light
