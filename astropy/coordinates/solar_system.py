@@ -46,18 +46,20 @@ BODIES = OrderedDict(
 SOLAR_SYSTEM_BODIES = list(BODIES.keys())
 
 
-def _download_spk_file(show_progress=True):
+def _download_spk_file(url=('http://naif.jpl.nasa.gov/pub/naif/'
+                            'generic_kernels/spk/planets/de430.bsp'),
+                       show_progress=True):
     """
-    Get the Satellite Planet Kernel (SPK) file `de430.bsp` from NASA JPL.
+    Get the Satellite Planet Kernel (SPK) file from NASA JPL.
 
     Download the file from the JPL webpage once and subsequently access a
-    cached copy. This file is ~120 MB, and covers years ~1550-2650 CE [1]_.
+    cached copy. The default is the file de430.bsp.
+
+    This file is ~120 MB, and covers years ~1550-2650 CE [1]_.
 
     .. [1] http://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/aareadme_de430-de431.txt
     """
-    de430_url = ('http://naif.jpl.nasa.gov/pub/naif/'
-                 'generic_kernels/spk/planets/de430.bsp')
-    return download_file(de430_url, cache=True, show_progress=show_progress)
+    return download_file(url, cache=True, show_progress=show_progress)
 
 
 def _get_kernel(*args, **kwargs):
