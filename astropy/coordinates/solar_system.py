@@ -7,6 +7,7 @@ ephemerides from jplephem.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+from collections import OrderedDict
 import numpy as np
 from .sky_coordinate import SkyCoord
 from ..utils.data import download_file
@@ -28,18 +29,21 @@ to find the barycentric position of that object from the JPL kernel.
 SOLAR_SYSTEM_BODIES = ['sun', 'mercury', 'venus', 'earth-moon-barycenter',
                        'earth', 'moon', 'mars', 'jupiter', 'saturn', 'uranus',
                        'neptune', 'pluto']
-BODIES = {'sun': [(0, 10)],
-          'mercury': [(0, 1), (1, 199)],
-          'venus': [(0, 2), (2, 299)],
-          'earth-moon-barycenter': [(0, 3)],
-          'earth':  [(0, 3), (3, 399)],
-          'moon': [(0, 3), (3, 301)],
-          'mars': [(0, 4)],
-          'jupiter': [(0, 5)],
-          'saturn': [(0, 6)],
-          'uranus': [(0, 7)],
-          'neptune': [(0, 8)],
-          'pluto': [(0, 9)]}
+BODIES = OrderedDict(
+                    (('sun', [(0, 10)]),
+                     ('mercury', [(0, 1), (1, 199)]),
+                     ('venus', [(0, 2), (2, 299)]),
+                     ('earth-moon-barycenter', [(0, 3)]),
+                     ('earth',  [(0, 3), (3, 399)]),
+                     ('moon', [(0, 3), (3, 301)]),
+                     ('mars', [(0, 4)]),
+                     ('jupiter', [(0, 5)]),
+                     ('saturn', [(0, 6)]),
+                     ('uranus', [(0, 7)]),
+                     ('neptune', [(0, 8)]),
+                     ('pluto', [(0, 9)]))
+                     )
+SOLAR_SYSTEM_BODIES = list(BODIES.keys())
 
 
 def _download_spk_file(show_progress=True):
