@@ -243,12 +243,12 @@ def get_body(time, body_key, location=None):
         9: Pluto Barycenter
         10: Sun
 
-        Requesting a planet position by index will return the coordinate of the
-        barycenter for that planetary system, not the coordinate of the planet
+        Requesting a body's position by index will return the coordinate of the
+        barycenter for that body's system, not the coordinate of the body
         itself.
 
         If you specify the body by name, e.g ``get_body(time, 'venus'), the coordinate
-        of the planet itself will be returned.
+        of the body itself will be returned.
 
     location : `~astropy.coordinates.EarthLocation`
         Location of observer on the Earth. If none is supplied, set to
