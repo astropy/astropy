@@ -26,7 +26,7 @@ New Features
 
   - ``CartesianRepresentation`` now includes a transform() method that can take
     a 3x3 matrix to transform coordinates. [#4860]
-  - Solar system and lunar ephemerides accessible via ``get_planet``
+  - Solar system and lunar ephemerides accessible via ``get_body``
     and ``get_moon`` functions. [#3219]
 
 - ``astropy.cosmology``
