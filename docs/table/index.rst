@@ -103,7 +103,9 @@ a way to natively use `~astropy.units.Quantity` objects in tables)::
   >>> t['b'].to('min')  # doctest: +FLOAT_CMP
   <Quantity [ 0.03333333, 0.08333333, 0.13666667] min>
 
-From within the IPython notebook, the table is displayed as a formatted HTML table:
+From within the IPython notebook, the table is displayed as a formatted HTML
+table (details of how it appears can be changed by altering the
+``astropy.table.default_notebook_table_class`` configuration item):
 
 .. image:: table_repr_html.png
 
