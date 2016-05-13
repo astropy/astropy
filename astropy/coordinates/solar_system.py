@@ -125,7 +125,7 @@ def _get_barycentric_body_position(time, body_key):
     return CartesianRepresentation(barycen_to_body_vector)
 
 
-def _get_earth_body_vector(time, body_key):
+def _get_earth_body_vector(time, body_key, earth_time=None):
     """
     Calculate the vector between the Geocenter and body with ``body_key``.
 
@@ -137,11 +137,16 @@ def _get_earth_body_vector(time, body_key):
     Parameters
     ----------
     time : `~astropy.time.Time`
-        Time of observation
+        Time of observation.
 
     body_key : int, str
         The solar system body to calculate. Can be a string, e.g. 'moon',
         or a valid integer index.
+
+    earth_time : `~astropy.time.Time`
+        Time used for position of Earth. When correcting for light travel time,
+        one wants to use different times for the body in question and Earth.
+        If this is set to ```None```, the same time is used for both.
 
     Returns
     -------
@@ -155,9 +160,12 @@ def _get_earth_body_vector(time, body_key):
     -----
 
     """
-    earth_loc = _get_barycentric_body_position(time, 'earth')
+    earth_time = earth_time if earth_time is not None else time
+    earth_loc = _get_barycentric_body_position(earth_time, 'earth')
     body_loc = _get_barycentric_body_position(time, body_key)
+
     earth_body_vector = body_loc.xyz - earth_loc.xyz
+
     earth_distance = np.sqrt(np.sum(earth_body_vector**2, axis=0))
     return earth_body_vector, earth_distance
 
