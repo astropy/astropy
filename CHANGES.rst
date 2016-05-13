@@ -19,7 +19,7 @@ New Features
 
   - Add ``L_bol0``, the luminosity corresponding to absolute bolometric
     magnitude zero. [#4262]
-  
+
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
@@ -245,6 +245,10 @@ API changes
   - ``operations.unique`` now has a ``keep`` parameter, which allows
     one to select whether to keep the first or last row in a set of
     duplicate rows, or to remove all rows that are duplicates. [#4632]
+
+  - ``QTable`` now behaves more consistently by making columns act as a
+    ``Quantity`` even if they are assigned a unit after the table is
+    created. [#4497]
 
 - ``astropy.tests``
 

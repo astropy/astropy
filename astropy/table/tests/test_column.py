@@ -522,3 +522,23 @@ def test_scalar_column():
     c = table.Column(1.5)
     assert repr(c) == '1.5'
     assert str(c) == '1.5'
+
+
+def test_qtable_column_conversion():
+    """
+    Ensures that a QTable that gets assigned a unit switches to be Quantity-y
+    """
+    qtab = table.QTable([[1, 2], [3, 4.2]], names=['i', 'f'])
+
+    assert isinstance(qtab['i'], table.column.Column)
+    assert isinstance(qtab['f'], table.column.Column)
+
+    qtab['i'].unit = 'km/s'
+    assert isinstance(qtab['i'], u.Quantity)
+    assert isinstance(qtab['f'], table.column.Column)
+
+    # should follow from the above, but good to make sure as a #4497 regression test
+    assert isinstance(qtab['i'][0], u.Quantity)
+    assert isinstance(qtab[0]['i'], u.Quantity)
+    assert not isinstance(qtab['f'][0], u.Quantity)
+    assert not isinstance(qtab[0]['f'], u.Quantity)
