@@ -108,6 +108,8 @@ New Features
   - Updated ``bootstrap`` to allow bootstrapping statistics with multiple
     outputs. [#3601]
 
+  - Added ``LombScargle`` class to compute Lomb-Scargle periodograms [#4811]
+
 - ``astropy.table``
 
   - ``Table.show_in_notebook`` and ``Table.show_in_browser(jsviewer=True)`` now

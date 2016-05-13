@@ -18,3 +18,4 @@ from .circstats import *
 from .bayesian_blocks import *
 from .histogram import *
 from .info_theory import *
+from .lombscargle import *
