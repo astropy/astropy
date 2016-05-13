@@ -215,7 +215,7 @@ API changes
     ``NDDataBase`` directly. [#4270]
 
   - ``NDDataBase``: ``uncertainty``-getter returns ``None`` instead of the
-    private uncertainty and is now a abstract. This getter is moved to
+    private uncertainty and is now abstract. This getter is moved to
     ``NDData`` so it only affects direct subclasses of ``NDDataBase``. [#4270]
 
   - ``NDData`` accepts a Quantity-like data and an explictly given unit.
