@@ -7,9 +7,12 @@ Implements rotations, including spherical rotations as defined in WCS Paper II
 `RotateNative2Celestial` and `RotateCelestial2Native` follow the convention in
 WCS Paper II to rotate to/from a native sphere and the celestial sphere.
 
-The user interface sets and displays angles in degrees but the values are
-stored internally in radians.  This is managed through the parameter
-setters/getters.
+The implementation uses `EulerAngleRotation`. The model parameters are
+three angles: the longitude (``lon``) and latitude (``lat``) of the fiducial point
+in the celestial system (``CRVAL`` keywords in FITS), and the longitude of the celestial
+pole in the native system (``lon_pole``). The Euler angles are ``lon+90``, ``90 - lat``
+and ``-(lon_pole - 90)``.
+
 
 References
 ----------
@@ -140,30 +143,6 @@ class _SkyRotation(EulerAngleRotation):
     def __init__(self, phi, theta, psi, **kwargs):
         super(_SkyRotation, self).__init__(phi, theta, psi, 'zxz', **kwargs)
 
-    @property
-    def lon(self):
-        return self.phi
-
-    @lon.setter
-    def lon(self, val):
-        self.phi = val
-
-    @property
-    def lat(self):
-        return self.theta
-
-    @lat.setter
-    def lat(self, val):
-        self.theta = val
-
-    @property
-    def lon_pole(self):
-        return self.psi
-
-    @lon_pole.setter
-    def lon_pole(self, val):
-        self.psi = val
-
     def evaluate(self, phi, theta, lon, lat, lon_pole):
         alpha, delta = super(_SkyRotation, self).evaluate(phi, theta, lon, lat, lon_pole)
         mask = alpha < 0
@@ -193,13 +172,42 @@ class RotateNative2Celestial(_SkyRotation):
     outputs = ('alpha', 'delta')
 
     def __init__(self, lon, lat, lon_pole, **kwargs):
+        # Convert to Euler angles
         phi = lon_pole - 90
         theta = - (90 - lat)
         psi = -(90 + lon)
         super(RotateNative2Celestial, self).__init__(phi, theta, psi, **kwargs)
 
     @property
+    def lon(self):
+        #return self.phi
+        return - (self.psi + 90)
+
+    @lon.setter
+    def lon(self, val):
+        #self.phi = val
+        self.psi = - (val + 90)
+
+    @property
+    def lat(self):
+        #return self.theta
+        return self.theta + 90
+
+    @lat.setter
+    def lat(self, val):
+        self.theta = val - 90
+
+    @property
+    def lon_pole(self):
+        return self.phi + 90
+
+    @lon_pole.setter
+    def lon_pole(self, val):
+        self.phi = val - 90
+
+    @property
     def inverse(self):
+        # convert to angles on the celestial sphere
         lon = -(self.psi + 90)
         lat = self.theta + 90
         lon_pole = self.phi + 90
@@ -227,13 +235,39 @@ class RotateCelestial2Native(_SkyRotation):
 
 
     def __init__(self, lon, lat, lon_pole, **kwargs):
+        # Convert to Euler angles
         phi = (90 + lon)
         theta =  (90 - lat)
         psi = -(lon_pole - 90)
         super(RotateCelestial2Native, self).__init__(phi, theta, psi, **kwargs)
 
     @property
+    def lon(self):
+        return self.phi - 90
+
+    @lon.setter
+    def lon(self, val):
+        self.phi = val + 90
+
+    @property
+    def lat(self):
+        return 90 - self.theta
+
+    @lat.setter
+    def lat(self, val):
+        self.theta = 90 - val
+
+    @property
+    def lon_pole(self):
+        return 90 - self.psi
+
+    @lon_pole.setter
+    def lon_pole(self, val):
+        self.psi = 90 - val
+
+    @property
     def inverse(self):
+        # convert to angles on the celestial sphere
         lon = -(self.psi + 90)
         lat = self.theta + 90
         lon_pole = self.phi + 90

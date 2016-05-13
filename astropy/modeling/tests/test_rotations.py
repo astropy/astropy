@@ -10,35 +10,64 @@ from numpy.testing import utils
 from .. import models
 from ...wcs import wcs
 from ...io import fits
-from ...utils.data import get_pkg_data_contents
+from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
 
 
-@pytest.mark.parametrize(('inp'), (0, 0), (4000, -20.56), (-2001.5, 45.9))
+#class TestAgainstFits(object):
+    #def setup_class(self):
+        #hdr = fits.Header.fromfile(get_pkg_data_filename("data/sip.hdr"))
+        #self.w = wcs.WCS(hdr)
+
+        #self.w.wcs.crpix = [0, 0]
+        #self.w.wcs.pc = [[1, 0], [0, 1]]
+
+
+@pytest.mark.parametrize(('inp'), [(0, 0), (4000, -20.56), (-2001.5, 45.9), (0, 90), (0, -90)])
 def test_against_wcslib(inp):
-    hdr = get_pkg_data_contents("data/sip.hdr")
-    w = wcs.WCS(hdr)
-    crval = w.wcs.crval
-    w.wcs.crpix = [0, 0]
-    w.wcs.pc = [[1, 0], [0, 1]]
+    w = wcs.WCS()
+    crval = [ 202.4823228 , 47.17511893]
+    w.wcs.crval = crval
+    w.wcs.ctype=['RA---TAN', 'DEC--TAN']
 
     lonpole = 180
     tan = models.Pix2Sky_TAN()
     n2c = models.RotateNative2Celestial(crval[0], crval[1], lonpole)
-    c2n = models.RotateNative2Celestial(crval[0], crval[1], lonpole)
-    utils.assert_allclose(n2c.inverse(*n2c(*inp), inp, rtol=1e-14))
-    utils.assert_allclose(c2n(*n2c(*inp)), inp, rtol=1e-14)
-    utils.assert_allclose(n2c(*inp), w.wcs_pix2world(inp[0], inp[1], 1), rtol=1e-14)
-    utils.assert_allclose(c2n(*crval), w.wcs_world2pix(crval[0], crval[1], 1), rtol=1e-14)
+    c2n = models.RotateCelestial2Native(crval[0], crval[1], lonpole)
+    m = tan | n2c
+    minv = c2n | tan.inverse
+
+    radec = w.wcs_pix2world(inp[0], inp[1], 1)
+    xy = w.wcs_world2pix(radec[0], radec[1], 1)
+
+    utils.assert_allclose(m(*inp), radec, atol=1e-13)
+    utils.assert_allclose(minv(*radec), xy, atol=1e-13)
 
 
-@pytest.mark.parametrize(('inp'), (0, 0), (4000, -20.56), (-2001.5, 45.9))
-def test_roundtrip_sky_rotaion():
+@pytest.mark.parametrize(('inp'), [(0, 0), (40, -20.56), (21.5, 45.9)])
+def test_roundtrip_sky_rotaion(inp):
     lon, lat, lon_pole = 42, 43, 44
     n2c = models.RotateNative2Celestial(lon, lat, lon_pole)
     c2n = models.RotateCelestial2Native(lon, lat, lon_pole)
-    utils.assert_allclose(n2c.inverse(*n2c(*inp)), inp, rtol=1e-14)
-    utils.assert_allclose(c2n.inverse(*c2n(*inp)), inp, rtol=1e-14)
+    utils.assert_allclose(n2c.inverse(*n2c(*inp)), inp, atol=1e-13)
+    utils.assert_allclose(c2n.inverse(*c2n(*inp)), inp, atol=1e-13)
+
+
+def test_skyrot_parameters():
+    # Because parameters are converted to Euler angles
+    # test the sky rotation angles are correctly set.
+    n2c = models.RotateNative2Celestial(2, 4, 6)
+    c2n = models.RotateCelestial2Native(1, 3, 5)
+    assert n2c.lon == 2
+    assert n2c.lat == 4
+    assert n2c.lon_pole == 6
+    assert c2n.lon == 1
+    assert c2n.lat == 3
+    assert c2n.lon_pole == 5
+    n2c.lon +=1
+    assert n2c.lon == 3
+    c2n.lat -=1
+    assert c2n.lat == 2
 
 
 def test_native_celestial_lat90():
@@ -76,36 +105,6 @@ def test_euler_angle_rotations():
     # rotate x into minus y
     model = models.EulerAngleRotation(0, 90, 0, 'yzy')
     utils.assert_allclose(model(*x), negy, atol=10**-12)
-
-
-def test_euler_against_sky():
-    """
-    Test sky transformations against euler angle rotations
-    """
-    # Write the Euler angles in terms of FITS WCS angles on the sky
-
-    # This corresponds to FITS WCS CRVAL1 = 5.63 deg
-    phi = 5.63 + 90
-    # This corresponds to FITS WCS CRVAL2 = -72.63 deg
-    theta = 90 - -72.63
-    # This corresponds to FITS WCS LONPOLE = 180 deg
-    psi = 180 - 90
-
-    # Create rotations between celestial and Native systems
-    c2n = models.RotateCelestial2Native(5.63, -72.63, 180)
-    n2c = models.RotateNative2Celestial(5.63, -72.63, 180)
-
-    # And the corresponding rotation in terms of Euler angles
-    # This corresponds to c2n since it's rotating coordinate systems,
-    # not vectors
-    model= models.EulerAngleRotation(phi, theta, -psi, 'zxz')
-
-    utils.assert_allclose(model(1, 23.1), c2n(1, 23.1))
-    ra, dec = model.inverse(1, 23.1)
-    if ra < 0:
-        ra += 360
-    utils.assert_allclose((ra, dec), n2c(1, 23.1))
-
 
 
 euler_axes_order = ['zxz', 'zyz', 'yzy', 'yxy', 'xyx', 'xzx']
