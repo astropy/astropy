@@ -16,7 +16,7 @@ class Conf(_config.ConfigNamespace):
         'determined. Uses new-style (format method) string formatting.',
         aliases=['astropy.table.column.auto_colname'])
     default_notebook_table_class = _config.ConfigItem(
-        'table table-striped table-bordered table-condensed',
+        'table-striped table-bordered table-condensed',
         'The table class to be used in Jupyter notebooks when displaying '
         'tables (and not overridden). See <http://getbootstrap.com/css/#tables '
         'for a list of useful bootstrap classes.')
