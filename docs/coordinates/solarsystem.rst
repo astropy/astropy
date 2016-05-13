@@ -23,7 +23,7 @@ The methods are used as follows::
     >>> from astropy.coordinates import get_moon, get_body
     >>> from astropy.coordinates import get_barycentric_body_position, EarthLocation
     >>> t = Time.now()
-    >>> loc = EarthLocation.of_site('Apache Point')
+    >>> loc = EarthLocation.of_site('greenwich')
     >>> get_moon(t, loc)
     <SkyCoord (GCRS: obstime=2016-03-29 06:35:36.927857, obsgeoloc=[-1463969.30185172 -5166673.34223433  3434985.71204565] m, obsgeovel=[ 0.  0.  0.] m / s): (ra, dec, distance) in (deg, deg, km)
     (250.94788165, -17.04585998, 400244.30166804)>
