@@ -8,7 +8,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import numpy as np
-import six
+from ..extern import six
 from .sky_coordinate import SkyCoord
 from ..utils.data import download_file
 from .. import units as u
@@ -56,7 +56,7 @@ def _download_spk_file(show_progress=True):
 
 def _get_kernel(*args, **kwargs):
     """
-    Try importing jplephem, download/retrieve from cahce the Satellite Planet
+    Try importing jplephem, download/retrieve from cache the Satellite Planet
     Kernel.
     """
     global KERNEL
@@ -65,7 +65,7 @@ def _get_kernel(*args, **kwargs):
         from jplephem.spk import SPK
     except ImportError:
         raise ImportError("Solar system ephemeris calculations depend on"
-                          "jplephem")
+                          "the jplephem package")
 
     if KERNEL is None:
         KERNEL = SPK.open(_download_spk_file())
@@ -86,6 +86,8 @@ def get_barycentric_body_position(time, body_key):
     body_key : int, str
         The solar system body to calculate. Can be a string, e.g. 'moon',
         or a valid integer index.
+
+        See help for ``get_body`` for a listing of valid integer indices.
 
     Returns
     -------
@@ -143,6 +145,8 @@ def _get_earth_body_vector(time, body_key, earth_time=None):
         The solar system body to calculate. Can be a string, e.g. 'moon',
         or a valid integer index.
 
+        See help for ``get_body`` for a listing of valid integer indices.
+
     earth_time : `~astropy.time.Time`
         Time used for position of Earth. When correcting for light travel time,
         one wants to use different times for the body in question and Earth.
@@ -186,6 +190,8 @@ def _get_apparent_body_position(time, body_key):
         The solar system body to calculate. Can be a string, e.g. 'moon',
         or a valid integer index.
 
+        See help for ``get_body`` for a listing of valid integer indices.
+
     Returns
     -------
     cartesian_position : `~astropy.coordinates.CartesianRepresentation`
@@ -223,6 +229,26 @@ def get_body(time, body_key, location=None):
     body_key : int, str
         The solar system body to calculate. Can be a string, e.g. 'moon',
         or a valid integer index.
+
+        Valid integer indices are as listed below:
+
+        1: Mercury Barycenter
+        2: Venus Barycenter
+        3: Earth-Moon Barycenter
+        4: Mars Barycenter
+        5: Jupiter Barycenter
+        6: Saturn Barycenter
+        7: Uranus Barycenter
+        8: Neptune Barycenter
+        9: Pluto Barycenter
+        10: Sun
+
+        Requesting a planet position by index will return the coordinate of the
+        barycenter for that planetary system, not the coordinate of the planet
+        itself.
+
+        If you specify the body by name, e.g ``get_body(time, 'venus'), the coordinate
+        of the planet itself will be returned.
 
     location : `~astropy.coordinates.EarthLocation`
         Location of observer on the Earth. If none is supplied, set to
