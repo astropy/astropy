@@ -18,7 +18,7 @@ from .builtin_frames import GCRS, ICRS
 from .builtin_frames.utils import get_jd12, cartrepr_from_matmul
 from .. import _erfa
 
-__all__ = ["get_body", "get_moon", "get_barycentric_body_position", "SOLAR_SYSTEM_BODIES"]
+__all__ = ["get_body", "get_moon", "get_body_barycentric", "SOLAR_SYSTEM_BODIES"]
 
 KERNEL = None
 
@@ -77,7 +77,7 @@ def _get_kernel(*args, **kwargs):
     return KERNEL
 
 
-def get_barycentric_body_position(time, body):
+def get_body_barycentric(time, body):
     """
     Calculate the barycentric position of thesolar system body ``body``
     in cartesian coordinates.
@@ -155,8 +155,8 @@ def _get_earth_body_vector(time, body, earth_time=None):
 
     """
     earth_time = earth_time if earth_time is not None else time
-    earth_loc = get_barycentric_body_position(earth_time, 'earth')
-    body_loc = get_barycentric_body_position(time, body)
+    earth_loc = get_body_barycentric(earth_time, 'earth')
+    body_loc = get_body_barycentric(time, body)
 
     earth_body_vector = body_loc.xyz - earth_loc.xyz
 
@@ -198,7 +198,7 @@ def _get_apparent_body_position(time, body):
         light_travel_time = earth_distance/speed_of_light
         emitted_time = time - light_travel_time
 
-    return get_barycentric_body_position(emitted_time, body)
+    return get_body_barycentric(emitted_time, body)
 
 
 def get_body(time, body, location=None):
