@@ -26,7 +26,7 @@ else:
 
 separation_tolerance_planets = 5*u.arcsec
 separation_tolerance_moon = 5*u.arcsec
-distance_tolerance = 20
+distance_tolerance = 20  # km
 
 skyfield_angular_separation_tolerance = 1*u.arcsec
 skyfield_separation_tolerance = 10*u.km
