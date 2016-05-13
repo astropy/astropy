@@ -27,10 +27,10 @@ The methods are used as follows::
     >>> t = Time("2014-09-22 23:22")
     >>> loc = EarthLocation.of_site('greenwich')
     >>> get_moon(t, loc) # doctest: +REMOTE_DATA
-    <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=[  3.98060890e+06  -1.02475229e+02   4.96686127e+06] m, obsgeovel=[ 0.  0.  0.] m / s): (ra, dec, distance) in (deg, deg, km)
+    <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=[ 3949481.69039034  -550931.90976401  4961151.73716876] m, obsgeovel=[  40.17459314  288.00078055   -0.        ] m / s): (ra, dec, distance) in (deg, deg, km)
     (165.51839027, 2.32901144, 407226.55887392)>
     >>> get_body(t, 'jupiter', loc) # doctest: +REMOTE_DATA
-    <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=[  3.98060890e+06  -1.02475229e+02   4.96686127e+06] m, obsgeovel=[ 0.  0.  0.] m / s): (ra, dec, distance) in (deg, deg, km)
+    <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=[ 3949481.69039034  -550931.90976401  4961151.73716876] m, obsgeovel=[  40.17459314  288.00078055   -0.        ] m / s): (ra, dec, distance) in (deg, deg, km)
     (136.90234741, 17.03160607, 889196019.26282585)>
     >>> get_body_barycentric(t, 'moon') # doctest: +REMOTE_DATA
     <CartesianRepresentation (x, y, z) in km
@@ -40,6 +40,6 @@ The bodies for which positions can be calculated can be listed::
 
     >>> from astropy.coordinates import SOLAR_SYSTEM_BODIES
     >>> SOLAR_SYSTEM_BODIES
-    ['sun', 'mercury', 'venus', 'earth-moon-barycenter', 'earth', 'moon', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto']
+    ('sun', 'mercury', 'venus', 'earth-moon-barycenter', 'earth', 'moon', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto')
 
 
