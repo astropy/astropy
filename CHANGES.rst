@@ -343,6 +343,9 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Ensure that ``search_around_sky`` and ``search_around_3d`` return
+    integer type index arrays for empty (non) matches. [#4877]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
