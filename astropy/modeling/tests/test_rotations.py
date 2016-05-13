@@ -40,8 +40,8 @@ def test_against_wcslib(inp):
     radec = w.wcs_pix2world(inp[0], inp[1], 1)
     xy = w.wcs_world2pix(radec[0], radec[1], 1)
 
-    utils.assert_allclose(m(*inp), radec, atol=1e-13)
-    utils.assert_allclose(minv(*radec), xy, atol=1e-13)
+    utils.assert_allclose(m(*inp), radec, atol=1e-12)
+    utils.assert_allclose(minv(*radec), xy, atol=1e-12)
 
 
 @pytest.mark.parametrize(('inp'), [(0, 0), (40, -20.56), (21.5, 45.9)])
