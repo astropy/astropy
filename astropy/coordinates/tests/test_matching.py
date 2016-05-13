@@ -148,6 +148,15 @@ def test_search_around():
     assert list(zip(idx1_sm, idx2_sm)) == [(0, 1), (0, 2)]
     assert_allclose(d2d_sm, [2, 1]*u.deg)
 
+    # Test for the non-matches, #4877
+    coo1 = ICRS([4.1, 2.1]*u.degree, [0, 0]*u.degree, distance=[1, 5] * u.kpc)
+    idx1, idx2, d2d, d3d = search_around_sky(coo1, coo2, 1*u.arcsec)
+    assert idx1.size == idx2.size == d2d.size == d3d.size == 0
+    assert idx1.dtype == idx2.dtype == np.int
+    idx1, idx2, d2d, d3d = search_around_3d(coo1, coo2, 1*u.m)
+    assert idx1.size == idx2.size == d2d.size == d3d.size == 0
+    assert idx1.dtype == idx2.dtype == np.int
+
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 @pytest.mark.skipif(str('OLDER_SCIPY'))

@@ -245,8 +245,8 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='_kdtree_3d'):
         for match in matches:
             idxs1.append(i)
             idxs2.append(match)
-    idxs1 = np.array(idxs1)
-    idxs2 = np.array(idxs2)
+    idxs1 = np.array(idxs1, dtype=np.int)
+    idxs2 = np.array(idxs2, dtype=np.int)
 
     if idxs1.size == 0:
         d2ds = u.Quantity([], u.deg)
@@ -354,8 +354,8 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
         for match in matches:
             idxs1.append(i)
             idxs2.append(match)
-    idxs1 = np.array(idxs1)
-    idxs2 = np.array(idxs2)
+    idxs1 = np.array(idxs1, dtype=np.int)
+    idxs2 = np.array(idxs2, dtype=np.int)
 
     if idxs1.size == 0:
         d2ds = u.Quantity([], u.deg)
