@@ -140,7 +140,7 @@ def test_non_geocentric_gcrs():
                                             3434985.71204565])*u.m)
     icrs_coo = ICRS(ra=184.285*u.deg, dec=-1.8802*u.deg, distance=148101810.2*u.km)
     gcrs_coo = icrs_coo.transform_to(gcrs_frame)
-    
+
     expected = u.Quantity([-149099.43171337, 338254.76492942, 121819.91578453])*u.km
     assert_allclose(gcrs_coo.cartesian.xyz, expected)
 
