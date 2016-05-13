@@ -966,7 +966,42 @@ corresponding name is automatically registered in the set of available time
 formats.
 
 The key elements of a new format class are illustrated by examining the
-code for the ``jd`` format (which is one of the simplest)::
+example codes for the ``yday_custom`` and ``jd`` formats below.
+``yday_custom`` is a slightly modified version of ``TimeYearDayTime``::
+
+  >>> from astropy.time import TimeISO
+  >>> class TimeYearDayTimeCustom(TimeISO):
+  ...    """
+  ...    Year, day-of-year and time as "<YYYY>-<DOY>T<HH>:<MM>:<SS.sss...>".
+  ...    The day-of-year (DOY) goes from 001 to 365 (366 in leap years).
+  ...    For example, 2000-001T00:00:00.000 is midnight on January 1, 2000.
+  ...    The allowed subformats are:
+  ...    - 'date_hms': date + hours, mins, secs (and optional fractional secs)
+  ...    - 'date_hm': date + hours, mins
+  ...    - 'date': date
+  ...    """
+  ...    name = 'yday_custom'  # Unique format name
+  ...    subfmts = (('date_hms',
+  ...                '%Y-%jT%H:%M:%S',
+  ...                '{year:d}-{yday:03d}T{hour:02d}:{min:02d}:{sec:02d}'),
+  ...               ('date_hm',
+  ...                '%Y-%jT%H:%M',
+  ...                '{year:d}-{yday:03d}T{hour:02d}:{min:02d}'),
+  ...               ('date',
+  ...                '%Y-%j',
+  ...                '{year:d}-{yday:03d}'))
+
+
+  >>> t = Time.now()
+  >>> t.yday_custom
+  '2016-053T12:01:41.663'
+  >>> t2 = Time('2016-001T00:00:00')
+  >>> t2.iso
+  '2016-01-01 00:00:00.000'
+
+
+Another type of customization that handles the JD values is shown in the ``jd``
+format::
 
   class TimeJD(TimeFormat):
       """

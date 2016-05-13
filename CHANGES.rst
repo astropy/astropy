@@ -1751,6 +1751,8 @@ Bug Fixes
     raises a ``TypeError`` on them (while still allowing ``Time`` arrays to be
     iterated). [#4048]
 
+  - Added a new example of a custom time format class ``ydate_custom``. [#4703]
+
 - ``astropy.units``
 
   - Added frequency-equivalency check when declaring doppler equivalencies
