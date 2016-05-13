@@ -8,7 +8,7 @@ from .. import units as u
 from ..extern import six
 from ..utils.exceptions import AstropyUserWarning
 from . import Longitude, Latitude
-from .builtin_frames import ITRS
+from .builtin_frames import ITRS, GCRS
 from .errors import UnknownSiteException
 
 try:
@@ -23,6 +23,13 @@ __all__ = ['EarthLocation']
 # Available ellipsoids (defined in erfam.h, with numbers exposed in erfa).
 ELLIPSOIDS = ('WGS84', 'GRS80', 'WGS72')
 
+"""
+Rotational velocity of Earth. In UT1 seconds, this would be 2 pi / (24 * 3600),
+but we need the value in SI seconds.
+See Explanatory Supplement to the Astronomical Almanac, ed. P. Kenneth Seidelmann (1992),
+University Science Books.
+"""
+V_EARTH = u.Quantity([0, 0, 7.292115855306589e-5])*u.rad/u.s
 
 def _check_ellipsoid(ellipsoid=None, default='WGS84'):
     if ellipsoid is None:
@@ -395,6 +402,33 @@ class EarthLocation(u.Quantity):
                                      for the location of this object at the
                                      default ``obstime``.""")
 
+    def get_gcrs_posvel(self, obstime):
+        """
+        Calculate the GCRS position and velocity of this object at the
+        requested ``obstime``.
+        
+        Parameters
+        ----------
+        obstime : `~astropy.time.Time`
+            The ``obstime`` to calculte the GCRS position/velocity at.
+            
+        Returns
+        --------
+        obsgeoloc : `~astropy.units.Quantity`
+            The GCRS position of the object
+        obsgeovel : `~astropy.units.Quantity`
+            The GCRS velocity of the object
+        """
+        itrs = self.get_itrs(obstime)
+        geocentric_frame = GCRS(obstime=obstime)
+        # GCRS position
+        obsgeoloc = itrs.transform_to(geocentric_frame).cartesian.xyz.to(u.m)
+        
+        vel_arr = np.cross(V_EARTH, np.rollaxis(obsgeoloc, 0, obsgeoloc.ndim))
+        vel_arr = np.rollaxis(vel_arr, -1, 0)
+        obsgeovel = u.Quantity(vel_arr)*u.m/u.s
+        return obsgeoloc, obsgeovel
+        
     @property
     def x(self):
         """The X component of the geocentric coordinates."""
