@@ -84,15 +84,6 @@ def test_inputless_model():
     assert np.all(m() == [[1, 2, 3], [4, 5, 6]])
 
 
-def test_Model_add_model():
-    m = models.Gaussian1D(1,2,3)
-    m.add_model(m, 'p')
-    m.add_model(m, 's')
-    with pytest.raises(InputParameterError):
-        m.add_model(m, 'q')
-        m.add_model(m, 42)
-
-
 def test_ParametericModel():
     with pytest.raises(TypeError):
         models.Gaussian1D(1, 2, 3, wrong=4)
