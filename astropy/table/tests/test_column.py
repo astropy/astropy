@@ -536,3 +536,9 @@ def test_qtable_column_conversion():
     qtab['i'].unit = 'km/s'
     assert isinstance(qtab['i'], u.Quantity)
     assert isinstance(qtab['f'], table.column.Column)
+
+    # should follow from the above, but good to make sure as a #4497 regression test
+    assert isinstance(qtab['i'][0], u.Quantity)
+    assert isinstance(qtab[0]['i'], u.Quantity)
+    assert not isinstance(qtab['f'][0], u.Quantity)
+    assert not isinstance(qtab[0]['f'], u.Quantity)
