@@ -26,24 +26,21 @@ KERNEL = None
 each value in the BODIES dictionary a list of kernel pairs needed
 to find the barycentric position of that object from the JPL kernel.
 """
-SOLAR_SYSTEM_BODIES = ['sun', 'mercury', 'venus', 'earth-moon-barycenter',
-                       'earth', 'moon', 'mars', 'jupiter', 'saturn', 'uranus',
-                       'neptune', 'pluto']
-BODIES = OrderedDict(
-                    (('sun', [(0, 10)]),
-                     ('mercury', [(0, 1), (1, 199)]),
-                     ('venus', [(0, 2), (2, 299)]),
-                     ('earth-moon-barycenter', [(0, 3)]),
-                     ('earth',  [(0, 3), (3, 399)]),
-                     ('moon', [(0, 3), (3, 301)]),
-                     ('mars', [(0, 4)]),
-                     ('jupiter', [(0, 5)]),
-                     ('saturn', [(0, 6)]),
-                     ('uranus', [(0, 7)]),
-                     ('neptune', [(0, 8)]),
-                     ('pluto', [(0, 9)]))
-                     )
-SOLAR_SYSTEM_BODIES = list(BODIES.keys())
+BODY_NAME_TO_KERNEL_SPEC = OrderedDict(
+                                      (('sun', [(0, 10)]),
+                                       ('mercury', [(0, 1), (1, 199)]),
+                                       ('venus', [(0, 2), (2, 299)]),
+                                       ('earth-moon-barycenter', [(0, 3)]),
+                                       ('earth',  [(0, 3), (3, 399)]),
+                                       ('moon', [(0, 3), (3, 301)]),
+                                       ('mars', [(0, 4)]),
+                                       ('jupiter', [(0, 5)]),
+                                       ('saturn', [(0, 6)]),
+                                       ('uranus', [(0, 7)]),
+                                       ('neptune', [(0, 8)]),
+                                       ('pluto', [(0, 9)]))
+                                      )
+SOLAR_SYSTEM_BODIES = tuple(BODY_NAME_TO_KERNEL_SPEC.keys())
 
 
 def _download_spk_file(url=('http://naif.jpl.nasa.gov/pub/naif/'
@@ -107,7 +104,7 @@ def get_barycentric_body_position(time, body):
 
     """
     # lookup chain
-    chain = BODIES[body.lower()]
+    chain = BODY_NAME_TO_KERNEL_SPEC[body.lower()]
 
     kernel = _get_kernel()
 
