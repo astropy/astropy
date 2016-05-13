@@ -1638,14 +1638,14 @@ class Test__Astropy_Table__():
             self.names = ['a', 'b', 'c']
             self.meta = OrderedDict([('a', 1), ('b', 2)])
 
-        def __astropy_table__(self, table_class, copy):
+        def __astropy_table__(self, cls, copy, **kwargs):
             a, b, c = self.columns
             c.info.name = 'c'
             cols = [table.Column(a, name='a'),
                     table.MaskedColumn(b, name='b'),
                     c]
             names = [col.info.name for col in cols]
-            return table_class(cols, names=names, copy=copy, meta=self.meta)
+            return cls(cols, names=names, copy=copy, meta=self.meta)
 
     def test_simple_1(self):
         """Make a SimpleTable and convert to Table, QTable with copy=False, True"""
