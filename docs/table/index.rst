@@ -109,6 +109,11 @@ table (details of how it appears can be changed by altering the
 
 .. image:: table_repr_html.png
 
+Or you can get a fancier notebook interface with in-browser search and sort
+using `~astropy.table.Table.show_in_notebook`:
+
+.. image:: table_show_in_nb.png
+
 If you print the table (either from the notebook or in a text console session)
 then a formatted version appears::
 
