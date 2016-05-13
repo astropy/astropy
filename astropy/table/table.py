@@ -736,11 +736,20 @@ class Table(object):
         """
         Iterate over the columns of this table.
 
-        Example
-        -----------
-        t = Table([[1], [2]])
-        for col in t.itercols():
-            print(col)
+        Examples
+        --------
+
+        To iterate over the columns of a table::
+
+            >>> t = Table([[1], [2]])
+            >>> for col in t.itercols():
+            ...     print(col)
+            col0
+            ----
+               1
+            col1
+            ----
+               2
 
         Using ``itercols()`` is similar to  ``for col in t.columns.values()``
         but is syntactically preferred.
