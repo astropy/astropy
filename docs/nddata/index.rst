@@ -50,8 +50,8 @@ and can be accessed again via the ``data`` attribute::
     >>> ndd2.data
     array([1, 2, 3, 4])
 
-and it supports additional properties like a ``unit`` or ``mask`` for the data,
-a ``wcs`` (world coordinate system) and ``uncertainty`` of the data and
+It also supports additional properties like a ``unit`` or ``mask`` for the
+data, a ``wcs`` (world coordinate system) and ``uncertainty`` of the data and
 additional ``meta`` attributes:
 
     >>> data = np.array([1,2,3,4])
@@ -92,17 +92,17 @@ Instances are created in the same way::
     >>> ndd
     NDDataRef([1, 2, 3, 4])
 
-But also support arithmetics (:ref:`nddata_arithmetic`) like addition::
+But also support arithmetic (:ref:`nddata_arithmetic`) like addition::
 
     >>> import astropy.units as u
     >>> ndd2 = ndd.add([4, 3, 2, 1] * u.erg / u.s)
     >>> ndd2
     NDDataRef([ 5.,  5.,  5.,  5.])
 
-because these operations have a wide range of options these are not avaible
-using pythons arithmetic operators like ``+``.
+Because these operations have a wide range of options these are not available
+using arithmetic operators like ``+``.
 
-Slicing or indexing (:ref:`nddata_slicing`) is possible (issueing warnings if
+Slicing or indexing (:ref:`nddata_slicing`) is possible (issuing warnings if
 some attribute cannot be sliced)::
 
     >>> ndd2 = NDDataRef(ndd2.data)  # because a scalar coordinate is not sliceable.

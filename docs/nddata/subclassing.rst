@@ -94,7 +94,6 @@ Having a setter for the data
     ...
     ...     @NDData.data.setter
     ...     def data(self, value):
-    ...         # Convert mask to numpy array
     ...         self._data = np.asarray(value)
 
     >>> ndd = NDDataWithDataSetter([1,2,3])
@@ -115,13 +114,62 @@ inherits from the Mixins:
 
 which allow additional operations.
 
+Add another arithmetic operation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Adding another possible operations is quite easy provided the ``data`` and
+``unit`` allow it within the framework of `~astropy.units.Quantity`.
+
+For example adding a power function::
+
+    >>> from astropy.nddata import NDDataRef
+    >>> import numpy as np
+    >>> from astropy.utils import sharedmethod
+
+    >>> class NDDataPower(NDDataRef):
+    ...     @sharedmethod # sharedmethod to allow it also as classmethod
+    ...     def pow(self, operand, operand2=None, **kwargs):
+    ...         # the uncertainty doesn't allow propagation so set it to None
+    ...         kwargs['propagate_uncertainties'] = None
+    ...         # Call the _prepare_then_do_arithmetic function with the
+    ...         # numpy.power ufunc.
+    ...         return self._prepare_then_do_arithmetic(np.power, operand,
+    ...                                                 operand2, **kwargs)
+
+This can be used like the other arithmetic methods like
+:meth:`~astropy.nddata.NDArithmeticMixin.add`. So it works when calling it
+on the class or the instance::
+
+    >>> ndd = NDDataPower([1,2,3])
+
+    >>> # using it on the instance with one operand
+    >>> ndd.pow(3)
+    NDDataPower([ 1,  8, 27])
+
+    >>> # using it on the instance with two operands
+    >>> ndd.pow([1,2,3], [3,4,5])
+    NDDataPower([  1,  16, 243])
+
+    >>> # or using it as classmethod
+    >>> NDDataPower.pow(6, [1,2,3])
+    NDDataPower([  6,  36, 216])
+
+To allow propagation also with ``uncertainty`` see subclassing
+`~astropy.nddata.NDUncertainty`.
+
+The ``_prepare_then_do_arithmetic`` implements the relevant checks if it was
+called on the class or the instance, and, if one or two operands were given,
+and converts the operands, if necessary, to the appropriate classes. Overriding
+``_prepare_then_do_arithmetic`` in subclasses should be avoided if
+possible.
+
 
 Arithmetic on an existing property
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Customizing how an existing property is handled during arithmetics is possible
+Customizing how an existing property is handled during arithmetic is possible
 with some arguments to the function calls like
-:meth:`~astropy.nddata.NDArithmeticMixin.add` but if it's possible to hardcode
+:meth:`~astropy.nddata.NDArithmeticMixin.add` but it's possible to hardcode
 behaviour too. The actual operation on the attribute (except for ``unit``) is
 done in a method ``_arithmetic_*`` where ``*`` is the name of the property.
 
@@ -146,8 +194,8 @@ For example to customize how the ``meta`` will be affected during arithmetics::
     ...             result_meta['exposure'] = operation(result_meta['exposure'], operand.data)
     ...         return result_meta # return it
 
-To trigger this method the ``handle_meta`` argument must not be ``None``,
-``"ff"`` or ``"first_found"``::
+To trigger this method the ``handle_meta`` argument to arithmetic methods can
+be anything except ``None`` or ``"first_found"``::
 
     >>> ndd = NDDataWithMetaArithmetics([1,2,3], meta={'exposure': 10})
     >>> ndd2 = ndd.add(10, handle_meta='')
@@ -174,8 +222,8 @@ Changing default argument for arithmetic operations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If the goal is to change the default value of an existing parameter for
-arithmetic methods. Maybe because explicitly specifying the parameter each
-time you're calling an arithmetic operation is too much effort you can easily
+arithmetic methods, maybe because explicitly specifying the parameter each
+time you're calling an arithmetic operation is too much effort, you can easily
 change the default value of existing parameters by changing it in the method
 signature of ``_arithmetic``::
 
@@ -203,7 +251,7 @@ signature of ``_arithmetic``::
     False
 
 The parameter controlling how properties are handled are all keyword-only
-so using the ``*args, **kwargs`` approach allows only to alter one default
+so using the ``*args, **kwargs`` approach allows one to only alter one default
 without needing to care about the positional order of arguments. But using
 ``def _arithmetic(self, *args, handle_mask=None, **kwargs)`` doesn't work
 for python 2.
@@ -259,55 +307,6 @@ This also requires overriding the ``_arithmetic`` method. Suppose we have a
     >>> ndd3 = ndd1.add(ndd2)
     >>> ndd3.flags
     array([ True, False,  True], dtype=bool)
-
-Another arithmetic operation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Adding another possible operations is quite easy provided the ``data`` and
-``unit`` allow it within the framework of `~astropy.units.Quantity`.
-
-For example adding a power function::
-
-    >>> from astropy.nddata import NDDataRef
-    >>> import numpy as np
-    >>> from astropy.utils import sharedmethod
-
-    >>> class NDDataPower(NDDataRef):
-    ...     @sharedmethod # sharedmethod to allow it also as classmethod
-    ...     def pow(self, operand, operand2=None, **kwargs):
-    ...         # the uncertainty doesn't allow propagation so set it to None
-    ...         kwargs['propagate_uncertainties'] = None
-    ...         # Call the _prepare_then_do_arithmetic function with the
-    ...         # numpy.power ufunc.
-    ...         return self._prepare_then_do_arithmetic(np.power, operand,
-    ...                                                 operand2, **kwargs)
-
-This can be used like the other arithmetic methods like
-:meth:`~astropy.nddata.NDArithmeticMixin.add`. So it works when calling it
-on the class or the instance::
-
-    >>> ndd = NDDataPower([1,2,3])
-
-    >>> # using it on the instance with one operand
-    >>> ndd.pow(3)
-    NDDataPower([ 1,  8, 27])
-
-    >>> # using it on the instance with two operands
-    >>> ndd.pow([1,2,3], [3,4,5])
-    NDDataPower([  1,  16, 243])
-
-    >>> # or using it as classmethod
-    >>> NDDataPower.pow(6, [1,2,3])
-    NDDataPower([  6,  36, 216])
-
-To allow propagation also with ``uncertainty`` see subclassing
-`~astropy.nddata.NDUncertainty`.
-
-The ``_prepare_then_do_arithmetic`` implements the relevant checks if it was
-called on the class or the instance and if one or two operands were given and
-converts the operands, if necessary, to the appropriate classes. Overriding
-this ``_prepare_then_do_arithmetic`` in subclasses should be avoided if
-possible.
 
 `~astropy.nddata.NDDataBase`
 ----------------------------

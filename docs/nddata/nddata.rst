@@ -66,7 +66,7 @@ numerical values::
     >>> ndd.data  # data will be a numpy-array:
     array([1, 2, 3, 4])
 
-even nested `list` or `tuple` are possible. But if these contain non-numerical
+Nested `list` or `tuple` are possible, but if these contain non-numerical
 values the conversion might fail.
 
 Besides input that is convertible to such an array you can use the ``data``
@@ -137,12 +137,12 @@ Mask
 
 The ``mask`` is being used to indicate if data points are valid or invalid.
 `~astropy.nddata.NDData` doesn't restrict this mask in any way but it is
-recommended to adapt the `numpy.ma.MaskedArray` convention that the mask:
+expected to follow the `numpy.ma.MaskedArray` convention that the mask:
 
 + returns ``True`` for data points that are considered **invalid**.
 + returns ``False`` for those points that are **valid**.
 
-one possibility is to create a mask by using numpys comparison operators::
+One possibility is to create a mask by using numpys comparison operators::
 
     >>> array = np.array([0, 1, 4, 0, 2])
 
@@ -188,15 +188,15 @@ The ``unit`` represents the unit of the data values. It is required to be
 Uncertainties
 -------------
 
-the ``uncertainty`` represents an arbitary representation of the error of the
+The ``uncertainty`` represents an arbitary representation of the error of the
 data values. To indicate which kind of uncertainty representation is used the
-``uncertainty`` should have itself an ``uncertainty_type`` property. If no such
+``uncertainty`` should have an ``uncertainty_type`` property. If no such
 property is found it will be wrapped inside a
 `~astropy.nddata.UnknownUncertainty`.
 
 The ``uncertainty_type`` should follow the `~astropy.nddata.StdDevUncertainty`
 convention that it returns a short string like ``"std"`` for an uncertainty
-given in standard deviation. But that's not an enforced requirement.
+given in standard deviation.
 
 Like the other properties the ``uncertainty`` can be set during
 initialization::
@@ -279,8 +279,8 @@ Initialization with copy
 ------------------------
 
 The default way to create an `~astropy.nddata.NDData` instance is to try saving
-the parameters as reference to the original rather than as copy. Sometimes this
-is not possible because the internal mechanics don't allow for this. For
+the parameters as references to the original rather than as copy. Sometimes
+this is not possible because the internal mechanics don't allow for this. For
 example if the ``data`` is a `list` then during initialization this is copied
 while converting to a `~numpy.ndarray`. But it is also possible to enforce
 copies during initialization by setting the ``copy`` parameter to ``True``::
@@ -347,16 +347,14 @@ Converting the ``data``  and ``unit`` to a Quantity::
 masked Quantity
 ^^^^^^^^^^^^^^^
 
-Converting the ``data``, ``mask``  and ``unit`` to a masked Quantity::
+Converting the ``data``, ``mask``  and ``unit`` to a masked Quantity requires
+NumPy version 1.9 or newer::
 
     >>> ma_quantity = np.ma.array(u.Quantity(ndd.data, unit=ndd.unit), mask=ndd.mask)  # doctest: +SKIP
     >>> ma_quantity  # doctest: +SKIP
     masked_Quantity(data = [-- 2.0 3.0 --] m,
                     mask = [ True False False  True],
               fill_value = 1e+20)
-
-.. warning::
-    This requires NumPy version 1.9 or newer.
 
 .. todo::
     Remove doctest skip as soon as NumPy 1.9 isn't supported anymore.

@@ -1,7 +1,7 @@
 .. _nddata_arithmetic:
 
-NDData Arithmetics
-==================
+NDData Arithmetic
+=================
 
 Introduction
 ------------
@@ -13,7 +13,7 @@ Introduction
 - multiplication: :meth:`~astropy.nddata.NDArithmeticMixin.multiply`
 - division: :meth:`~astropy.nddata.NDArithmeticMixin.divide`
 
-Usage basic arithmetic methods
+Using basic arithmetic methods
 ------------------------------
 
 Using the standard arithmetic methods requires that the first operand
@@ -46,7 +46,7 @@ a `numpy.ndarray`::
 here broadcasting takes care of the different dimensions. Also several other
 classes are possible.
 
-Usage arithmetic classmethods
+Using arithmetic classmethods
 -----------------------------
 
 Here both operands don't need to be `~astropy.nddata.NDDataRef`-like::
@@ -92,10 +92,10 @@ data, unit
 ^^^^^^^^^^
 
 For ``data`` and ``unit`` there are no parameters. Every arithmetic
-operation let's the `astropy.units.Quantity`-framework evaluate the result
-or fail and abort the operation. For example if incompatible units are used.
+operation lets the `astropy.units.Quantity`-framework evaluate the result
+or fail and abort the operation.
 
-Adding two NDData objects with the same unit::
+Adding two NDData objects with the same unit works::
 
     >>> ndd1 = NDDataRef([1,2,3,4,5], unit='m')
     >>> ndd2 = NDDataRef([100,150,200,50,500], unit='m')
@@ -106,7 +106,7 @@ Adding two NDData objects with the same unit::
     >>> ndd.unit
     Unit("m")
 
-works. Also if the units are compatible::
+Adding two NDData objects with compatible units also works::
 
     >>> ndd1 = NDDataRef(ndd1, unit='pc')
     INFO: overwriting NDData's current unit with specified unit. [astropy.nddata.nddata]
@@ -154,21 +154,21 @@ resulting mask will be. There are several options.
       False
 
 - a function (or an arbitary callable) that takes at least two arguments.
-  for example `numpy.logical_or` is the default::
+  For example `numpy.logical_or` is the default::
 
       >>> ndd1 = NDDataRef(1, mask=np.array([True, False, True, False]))
       >>> ndd2 = NDDataRef(1, mask=np.array([True, False, False, True]))
       >>> ndd1.add(ndd2).mask
       array([ True, False,  True,  True], dtype=bool)
 
-  which will default to ``"first_found"`` in case only one ``mask`` is not None::
+  This defaults to ``"first_found"`` in case only one ``mask`` is not None::
 
       >>> ndd1 = NDDataRef(1)
       >>> ndd2 = NDDataRef(1, mask=np.array([True, False, False, True]))
       >>> ndd1.add(ndd2).mask
       array([ True, False, False,  True], dtype=bool)
 
-  but also custom functions are possible::
+  Custom functions are also possible::
 
       >>> def take_alternating_values(mask1, mask2, start=0):
       ...     result = np.zeros(mask1.shape, dtype=np.bool)
@@ -176,14 +176,14 @@ resulting mask will be. There are several options.
       ...     result[start+1::2] = mask2[start+1::2]
       ...     return result
 
-  this function is obviously non-sense but let's see how it performs::
+  This function is obviously non-sense but let's see how it performs::
 
       >>> ndd1 = NDDataRef(1, mask=np.array([True, False, True, False]))
       >>> ndd2 = NDDataRef(1, mask=np.array([True, False, False, True]))
       >>> ndd1.add(ndd2, handle_mask=take_alternating_values).mask
       array([ True, False,  True,  True], dtype=bool)
 
-  and additional parameters can be given by prefixing them with ``mask_``
+  Additional parameters can be given by prefixing them with ``mask_``
   (which will be stripped before passing it to the function)::
 
       >>> ndd1.add(ndd2, handle_mask=take_alternating_values, mask_start=1).mask
@@ -289,7 +289,7 @@ or if the operation should be forbidden. The possible values are identical to
       >>> ndd1.subtract(ndd2, compare_wcs=compare_wcs_scalar).wcs
       1
 
-  additional arguments can be passed in prefixing them with ``wcs_`` (this
+  Additional arguments can be passed in prefixing them with ``wcs_`` (this
   prefix will be stripped away before passing it to the function)::
 
       >>> ndd1 = NDDataRef(1, wcs=1)
@@ -309,7 +309,7 @@ or if the operation should be forbidden. The possible values are identical to
 uncertainty
 ^^^^^^^^^^^
 
-the ``propagate_uncertainties`` argument can be used to turn the propagation
+The ``propagate_uncertainties`` argument can be used to turn the propagation
 of uncertainties on or off.
 
 - If ``None`` the result will have no uncertainty::
@@ -320,19 +320,11 @@ of uncertainties on or off.
       >>> ndd1.add(ndd2, propagate_uncertainties=None).uncertainty is None
       True
 
-- If ``False`` this is equivalent to ``"first_found"`` for ``meta``, ... and
-  the result will have the first found uncertainty.
+- If ``False`` the result will have the first found uncertainty.
 
   .. note::
       Setting ``propagate_uncertainties=False`` is not generally not
       recommended.
-
-  but it's possible nevertheless::
-
-      >>> ndd1 = NDDataRef(1, uncertainty=StdDevUncertainty([0]))
-      >>> ndd2 = NDDataRef(1, uncertainty=StdDevUncertainty([1]))
-      >>> ndd1.add(ndd2, propagate_uncertainties=False).uncertainty
-      StdDevUncertainty([0])
 
 - If ``True`` both uncertainties must be ``NDUncertainty`` subclasses that
   implement propagation. This is possible for
@@ -346,10 +338,14 @@ of uncertainties on or off.
 uncertainty with correlation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-in case ``propagate_uncertainties`` is ``True`` you can give also an argument
+If ``propagate_uncertainties`` is ``True`` you can give also an argument
 for ``uncertainty_correlation``. `~astropy.nddata.StdDevUncertainty` cannot
 keep track of it's correlations by itself but it can evaluate the correct
 resulting uncertainty if the correct ``correlation`` is given.
+
+The default (``0``) represents uncorrelated while ``1`` means correlated and
+``-1`` anti-correlated. If given a `numpy.ndarray` it should represent the
+element-wise correlation coefficient.
 
 For example without correlation subtracting a `~astropy.nddata.NDDataRef`
 instance from itself results in a non-zero uncertainty::
@@ -358,7 +354,7 @@ instance from itself results in a non-zero uncertainty::
     >>> ndd1.subtract(ndd1, propagate_uncertainties=True).uncertainty
     StdDevUncertainty([ 14.14213562])
 
-but given a correlation of ``1`` because they clearly correlate gives the
+Given a correlation of ``1`` because they clearly correlate gives the
 correct uncertainty of ``0``::
 
     >>> ndd1 = NDDataRef(1, uncertainty=StdDevUncertainty([10]))
@@ -370,10 +366,6 @@ which would be consistent with the equivalent operation ``ndd1 * 0``::
 
     >>> ndd1.multiply(0, propagate_uncertainties=True).uncertainty
     StdDevUncertainty([0])
-
-The default (``0``) represents uncorrelated while ``1`` means correlated and
-``-1`` anti-correlated. If given a `numpy.ndarray` it should represent the
-element-wise correlation coefficient.
 
 .. warning::
     The user needs to calculate or know the appropriate value or array manually
@@ -390,7 +382,7 @@ You can also give element-wise correlations::
 
 The correlation ``np.array([1, 0.5, 0, -1])`` would indicate that the first
 element is fully correlated, the second element partially correlates while
-element 3 is uncorrelated and 4 even anti-correlated.
+element 3 is uncorrelated and 4 is anti-correlated.
 
 uncertainty with unit
 ^^^^^^^^^^^^^^^^^^^^^

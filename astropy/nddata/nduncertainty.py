@@ -51,9 +51,10 @@ class NDUncertainty(object):
         Default is ``None``.
 
     copy : `bool`, optional
-        Save the ``array`` as copy? ``True`` copies it before saving, while
-        ``False`` tries to save every parameter as reference. Note however that
-        it is not always possible to save the input as reference.
+        Indicates whether to save the `array` as a copy. ``True`` copies it
+        before saving, while ``False`` tries to save every parameter as
+        reference. Note however that it is not always possible to save the
+        input as reference.
         Default is ``True``.
 
     Raises
@@ -374,7 +375,7 @@ class StdDevUncertainty(NDUncertainty):
     ``subtraction``, ``multiplication`` and ``division`` with other instances
     of `StdDevUncertainty`. The class can handle if the uncertainty has a
     unit that differs from (but is convertible to) the parents `NDData` unit.
-    But the unit of the resulting uncertainty will have the same unit as the
+    The unit of the resulting uncertainty will have the same unit as the
     resulting data. Also support for correlation is possible but requires the
     correlation as input. It cannot handle correlation determination itself.
 
