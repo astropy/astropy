@@ -8,7 +8,6 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import numpy as np
-from ..extern import six
 from .sky_coordinate import SkyCoord
 from ..utils.data import download_file
 from .. import units as u
@@ -27,7 +26,7 @@ each value in the BODIES dictionary a list of kernel pairs needed
 to find the barycentric position of that object from the JPL kernel.
 """
 SOLAR_SYSTEM_BODIES = ['sun', 'mercury', 'venus', 'earth-moon-barycenter',
-                       'earth', 'moon', 'mars', 'jupiter', 'saturn', 'uranus', 
+                       'earth', 'moon', 'mars', 'jupiter', 'saturn', 'uranus',
                        'neptune', 'pluto']
 BODIES = {'sun': [(0, 10)],
           'mercury': [(0, 1), (1, 199)],
@@ -87,9 +86,9 @@ def get_barycentric_body_position(time, body):
         Time of observation
 
     body : str
-        The solar system body to calculate. 
-        
-        The allowed values for ``body`` can be found in 
+        The solar system body to calculate.
+
+        The allowed values for ``body`` can be found in
         `~astropy.coordinates.SOLAR_SYSTEM_BODIES`.
 
     Returns
@@ -101,15 +100,10 @@ def get_barycentric_body_position(time, body):
     -----
 
     """
-    #lookup chain
+    # lookup chain
     chain = BODIES[body.lower()]
 
     kernel = _get_kernel()
-
-    # are all the kernel pairs in this kernel?
-    valid_chain = np.all([c in kernel.pairs.keys() for c in chain])
-    if not valid_chain:
-        raise ValueError("Postion of this body cannot be calculated using jpl kernel")
 
     jd1, jd2 = get_jd12(time, 'tdb')
 
@@ -134,9 +128,9 @@ def _get_earth_body_vector(time, body, earth_time=None):
         Time of observation.
 
     body : str
-        The solar system body to calculate. 
-        
-        The allowed values for ``body`` can be found in 
+        The solar system body to calculate.
+
+        The allowed values for ``body`` can be found in
         `~astropy.coordinates.SOLAR_SYSTEM_BODIES`.
 
     earth_time : `~astropy.time.Time`
@@ -179,9 +173,9 @@ def _get_apparent_body_position(time, body):
         Time of observation
 
     body : str
-        The solar system body to calculate. 
-        
-        The allowed values for ``body`` can be found in 
+        The solar system body to calculate.
+
+        The allowed values for ``body`` can be found in
         `~astropy.coordinates.SOLAR_SYSTEM_BODIES`.
 
     Returns
@@ -214,9 +208,9 @@ def get_body(time, body, location=None):
         Time of observation
 
     body : str
-        The solar system body to calculate. 
-        
-        The allowed values for ``body`` can be found in 
+        The solar system body to calculate.
+
+        The allowed values for ``body`` can be found in
         `~astropy.coordinates.SOLAR_SYSTEM_BODIES`.
 
     location : `~astropy.coordinates.EarthLocation`
