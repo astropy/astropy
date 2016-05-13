@@ -965,9 +965,42 @@ When such a subclass is defined in your code then the format class and
 corresponding name is automatically registered in the set of available time
 formats.
 
-The key elements of a new format class are illustrated by examining the
-example codes for the ``yday_custom`` and ``jd`` formats below.
-``yday_custom`` is a slightly modified version of ``TimeYearDayTime``::
+The key elements of a new format class are illustrated by examining the code for the jd
+format (which is one of the simplest)::
+
+  class TimeJD(TimeFormat):
+      """
+      Julian Date time format.
+      """
+      name = 'jd'  # Unique format name
+
+      def set_jds(self, val1, val2):
+          """
+          Set the internal jd1 and jd2 values from the input val1, val2.
+          The input values are expected to conform to this format, as
+          validated by self._check_val_type(val1, val2) during __init__.
+          """
+          self._check_scale(self._scale)  # Validate scale.
+          self.jd1, self.jd2 = day_frac(val1, val2)
+
+      @property
+      def value(self):
+          """
+          Return format ``value`` property from internal jd1, jd2
+          """
+          return self.jd1 + self.jd2
+
+As mentioned above, the ``_check_val_type(self, val1, val2)``
+method may need to be overridden to validate the inputs as conforming to the
+format specification.  By default this checks for valid float, float array, or
+|Quantity| inputs.  In contrast the ``iso`` format class ensures the inputs
+meet the ISO format spec for strings.
+
+One special case that is relatively common and easier to implement is a format
+that makes a small change to the date format. For instance one could insert ``T``
+in the ``yday`` format with the following ``TimeYearDayTimeCustom`` class. Notice how
+the ``subfmts`` definition is modified slightly from the standard
+`~astropy.time.TimeISO` class from which it inherits::
 
   >>> from astropy.time import TimeISO
   >>> class TimeYearDayTimeCustom(TimeISO):
@@ -999,39 +1032,7 @@ example codes for the ``yday_custom`` and ``jd`` formats below.
   >>> t2.iso
   '2016-01-01 00:00:00.000'
 
-
-Another type of customization that handles the JD values is shown in the ``jd``
-format::
-
-  class TimeJD(TimeFormat):
-      """
-      Julian Date time format.
-      """
-      name = 'jd'  # Unique format name
-
-      def set_jds(self, val1, val2):
-          """
-          Set the internal jd1 and jd2 values from the input val1, val2.
-          The input values are expected to conform to this format, as
-          validated by self._check_val_type(val1, val2) during __init__.
-          """
-          self._check_scale(self._scale)  # Validate scale.
-          self.jd1, self.jd2 = day_frac(val1, val2)
-
-      @property
-      def value(self):
-          """
-          Return format ``value`` property from internal jd1, jd2
-          """
-          return self.jd1 + self.jd2
-
-As mentioned above, the ``_check_val_type(self, val1, val2)``
-method may need to be overridden to validate the inputs as conforming to the
-format specification.  By default this checks for valid float, float array, or
-|Quantity| inputs.  In contrast the ``iso`` format class ensures the inputs
-meet the ISO format spec for strings.
-
-One special case that is relatively common and easier to implement is a
+Another special case that is relatively common is a
 format that represents the time since a particular epoch.  The classic example
 is Unix time which is the number of seconds since 1970-01-01 00:00:00 UTC,
 not counting leap seconds.  What if we wanted that value but **do** want
