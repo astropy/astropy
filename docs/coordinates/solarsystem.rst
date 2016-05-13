@@ -6,9 +6,11 @@ Solar System Ephemerides
 ----------------------------
 
 `astropy.coordinates` can calculate the |SkyCoord| of some of the major
-solar system objects, using the JPL DE430 ephemeris file. This ephemeris
-file provides predictions valid for years between 1550 and 2650. The file is
-115 MB and will be downloaded the first time, but cached after that.
+solar system objects. This functionality requires the 
+`jplephem <https://pypi.python.org/pypi/jplephem>` package
+to be installed. Coordinates are calculated using the JPL DE430 ephemeris file. 
+The ephemeris file provides predictions valid for years between 1550 and 2650. 
+The file is 115 MB and will be downloaded the first time, but cached after that.
 
 Three functions are provided; :meth:`~astropy.coordinates.solar_system.get_body`, 
 :meth:`~astropy.coordinates.solar_system.get_moon` and 
