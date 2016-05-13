@@ -188,10 +188,6 @@ def test_positions_distances_kittpeak_2016():
                                      distance=d_jupiter_2016,
                                      frame=frame)
 
-    print(mercury_astropy_2016.separation(mercury_horizons_2016))
-    print(jupiter_astropy_2016.separation(jupiter_horizons_2016))
-    print(moon_astropy_2016.separation(moon_horizons_2016))
-
     # Assert sky coordinates are close
     assert (mercury_astropy_2016.separation(mercury_horizons_2016) <
             separation_tolerance_planets)
