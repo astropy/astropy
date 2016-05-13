@@ -25,7 +25,8 @@ from .utils import get_jd12
 
 
 """
-rotational velocity of Earth in radians per (UT1) second
+Rotational velocity of Earth. In UT1 seconds, this would be 2 pi / (24 * 3600),
+but we need the value in SI seconds.
 See Explanatory Supplement to the Astronomical Almanac, ed. P. Kenneth Seidelmann (1992),
 University Science Books.
 """
