@@ -274,6 +274,15 @@ class Table(object):
 
         default_names = None
 
+        if hasattr(data, '__astropy_table__'):
+            # Data object implements the __astropy_table__ interface method.
+            # Calling that method returns an appropriate instance of
+            # self.__class__ and respects the `copy` arg.  The returned
+            # Table object should NOT then be copied (though the meta
+            # will be deep-copied anyway).
+            data = data.__astropy_table__(self.__class__, copy)
+            copy = False
+
         if (isinstance(data, np.ndarray) and
                 data.shape == (0,) and
                 not data.dtype.names):
