@@ -7,16 +7,16 @@ Solar System Ephemerides
 
 `astropy.coordinates` can calculate the |SkyCoord| of some of the major
 solar system objects. This functionality requires the 
-`jplephem <https://pypi.python.org/pypi/jplephem>` package
+`jplephem <https://pypi.python.org/pypi/jplephem>`_ package
 to be installed. Coordinates are calculated using the JPL DE430 ephemeris file. 
 The ephemeris file provides predictions valid for years between 1550 and 2650. 
 The file is 115 MB and will be downloaded the first time, but cached after that.
 
-Three functions are provided; :meth:`~astropy.coordinates.solar_system.get_body`, 
-:meth:`~astropy.coordinates.solar_system.get_moon` and 
-:meth:`~astropy.coordinates.solar_system.get_barycentric_body_position`. The first
+Three functions are provided; :meth:`~astropy.coordinates.get_body`, 
+:meth:`~astropy.coordinates.get_moon` and 
+:meth:`~astropy.coordinates.get_barycentric_body_position`. The first
 two functions return |SkyCoord| objects in the `~astropy.coordinates.GCRS` frame,
-whilst the latter returns a |CartesianRepresentation| of the barycentric position
+whilst the latter returns a `~astropy.coordinates.CartesianRepresentation` of the barycentric position
 of a body (i.e in the `~astropy.coordinates.ICRS` frame).
 
 The methods are used as follows::
