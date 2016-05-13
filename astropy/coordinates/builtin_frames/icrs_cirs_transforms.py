@@ -24,6 +24,14 @@ from .hcrs import HCRS
 from .utils import get_jd12
 
 
+"""
+rotational velocity of Earth in radians per (UT1) second
+See Explanatory Supplement to the Astronomical Almanac, ed. P. Kenneth Seidelmann (1992),
+University Science Books.
+"""
+V_EARTH = u.Quantity([0, 0, 7.292115855306589e-5])*u.rad/u.s
+
+
 # helper function to find GCRS position and velocity of observatory
 def get_gcrs_posvel(time, frame):
     """
@@ -56,9 +64,7 @@ def get_gcrs_posvel(time, frame):
     vel_arr = obsgeovel.transform_to(geocentric_frame).cartesian.xyz.to(u.m/u.s).value
 
     # now add rotational velocity of GCRS frame w.r.t to ITRS
-    # rotation of earth
-    V = u.Quantity([0, 0, 7.292115855306589e-5])*u.rad/u.s
-    extra_rotation = np.cross(V, np.rollaxis(pos_arr, 0, pos_arr.ndim))
+    extra_rotation = np.cross(V_EARTH, np.rollaxis(pos_arr, 0, pos_arr.ndim))
     vel_arr += np.rollaxis(extra_rotation, -1, 0)
 
     pv = np.array([pos_arr, vel_arr])
