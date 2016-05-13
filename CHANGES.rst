@@ -126,6 +126,8 @@ New Features
     ``Table._repr_html_``) now use consistent table styles which can be set
     using the ``astropy.table.default_notebook_table_class`` configuration
     item. [#4886]
+  - Added interface to create ``Table`` directly from any "compatible" table
+    that has an ``__astropy_table__`` method.  [#4885]
 
 - ``astropy.tests``
 
