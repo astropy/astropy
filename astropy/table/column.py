@@ -711,12 +711,14 @@ class Column(BaseColumn):
             raise AttributeError("cannot set mask value to a column in non-masked Table")
         super(Column, self).__setattr__(item, value)
 
-        if (item == 'unit' and
-                issubclass(self.dtype.type, np.number) and
-                getattr(self, 'parent_table', None) is not None):
-            converted = self.parent_table._convert_col_for_table(self)
-            if converted is not self:
-                self.parent_table.replace_column(self.name, converted)
+        if item == 'unit' and issubclass(self.dtype.type, np.number):
+            try:
+                converted = self.parent_table._convert_col_for_table(self)
+            except AttributeError:  # Either no parent table or parent table is None
+                pass
+            else:
+                if converted is not self:
+                    self.parent_table.replace_column(self.name, converted)
 
     def _base_repr_(self, html=False):
         # If scalar then just convert to correct numpy type and use numpy repr
