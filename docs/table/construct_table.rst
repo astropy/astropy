@@ -987,7 +987,16 @@ list.
 
 As a simple example, imagine a dict-based table class.  (Note that |Table|
 already can be initialized from a dict-like object, so this is a bit contrived
-but does illustrate the principles involved.)
+but does illustrate the principles involved.)  Please note the method
+signature::
+
+  def __astropy_table__(self, cls, copy, **kwargs):
+
+Your class implementation of this should include the ``**kwargs`` keyword
+args catch.  This is not currently used, but in the future additional
+keywords could be added to the ``table = data.__astropy_table__(cls, copy)``
+call, so including ``**kwargs`` will prevent breakage.
+
 ::
 
   class DictTable(dict):
@@ -997,7 +1006,7 @@ but does illustrate the principles involved.)
       this a table.
       """
 
-      def __astropy_table__(self, cls, copy):
+      def __astropy_table__(self, cls, copy, **kwargs):
           """
           Return an astropy Table of type ``cls``.
 
@@ -1007,6 +1016,8 @@ but does illustrate the principles involved.)
                Astropy ``Table`` class or subclass
           copy : bool
                Copy input data (True) or return a reference (False)
+          **kwargs : dict
+               Additional keyword args, not currently used.
           """
           cols = list(self.values())
           names = list(self.keys())
