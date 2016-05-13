@@ -527,6 +527,10 @@ for the ``data`` argument.
     correspond to the order of output columns.  If any row's keys do no match
     the rest of the rows, a ValueError will be thrown.
 
+**compatible table**
+    If another table-like object has a `__astropy_table__` method then
+    that object can be used to directly create a ``Table` object.  See
+    the `Compatible tables`_ section for details.
 
 **None**
     Initialize a zero-length table.  If ``names`` and optionally ``dtype``
@@ -960,3 +964,60 @@ a `~astropy.table.Column` object with a ``unit`` attribute::
 
 To learn more about using standard `~astropy.table.Column` objects with defined
 units, see the :ref:`columns_with_units` section.
+
+
+Compatible tables
+^^^^^^^^^^^^^^^^^
+
+In order to improve interoperability between different table classes, an
+astropy |Table| object can be created directly from any other table
+object ``data`` that provides an ``__astropy_table__`` method.  In this case the
+``__astropy_table__`` method will be called as follows::
+
+  table = data.__astropy_table__(cls, copy)
+
+where ``cls`` is the |Table| class or subclass that is being instantiated,
+and ``copy`` indicates whether a copy of the values in ``data`` should be
+provided.  If ``copy`` is ``False`` then the ``__astropy_table__`` method
+must ensure that the column data can actually be passed by reference
+into an astropy |Table|.  If not then an exception must be raised.  This
+is the case if the source ``data`` are not in an object that can be passed
+by reference into a numpy ``np.ndarray`` subclass, for instance a pure Python
+list.
+
+As a simple example, imagine a dict-based table class.  (Note that |Table|
+already can be initialized from a dict-like object, so this is a bit contrived
+but does illustrate the principles involved.)
+::
+
+  class DictTable(dict):
+      """
+      Trivial "table" class that just uses a dict to hold columns.
+      This does not actually implement anything useful that makes
+      this a table.
+      """
+
+      def __astropy_table__(self, cls, copy):
+          """
+          Return an astropy Table of type ``cls``.
+
+          Parameters
+          ----------
+          cls : type
+               Astropy ``Table`` class or subclass
+          copy : bool
+               Copy input data (True) or return a reference (False)
+          """
+          cols = list(self.values())
+          names = list(self.keys())
+
+          # If returning a reference to existing data (copy=False), make sure
+          # that each column is a numpy ndarray.  If a column is a Python list or
+          # tuple then it must be copied for representation in an astropy Table.
+          if not copy:
+              for name, col in zip(names, cols):
+                  if not isinstance(col, np.ndarray):
+                      raise ValueError('cannot have copy=False because column {} is '
+                                       'not an ndarray'.format(name))
+
+          return cls(cols, names=names, copy=copy)
