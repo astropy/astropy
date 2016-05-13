@@ -144,9 +144,10 @@ errors should follow these rules:
   in favor of more specific exceptions (``IOError``, ``ValueError``,
   etc.).
 
-* For warnings, one should always use ``warnings.warn(message, warning_class)``. These get redirected to ``log.warn`` by default, but one
-  can still use the standard warning-catching mechanism and custom warning
-  classes. The warning class should be either
+* For warnings, one should always use ``warnings.warn(message,
+  warning_class)``. These get redirected to ``log.warning()`` by default,
+  but one can still use the standard warning-catching mechanism and custom
+  warning classes. The warning class should be either
   :class:`~astropy.utils.exceptions.AstropyUserWarning` or inherit from it.
 
 * For informational and debugging messages, one should always use
