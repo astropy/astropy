@@ -732,6 +732,22 @@ class Table(object):
 
         table.columns = columns
 
+    def itercols(self):
+        """
+        Iterate over the columns of this table.
+
+        Example
+        -----------
+        t = Table([[1], [2]])
+        for col in t.itercols():
+            print(col)
+
+        Using ``itercols()`` is similar to  ``for col in t.columns.values()``
+        but is syntactically preferred.
+        """
+        for colname in self.columns:
+            yield self[colname]
+
     def _base_repr_(self, html=False, descr_vals=None, max_width=None,
                     tableid=None, show_dtype=True, max_lines=None,
                     tableclass=None):
