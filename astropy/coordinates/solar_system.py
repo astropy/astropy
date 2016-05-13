@@ -79,7 +79,8 @@ def _get_kernel(*args, **kwargs):
 
 def get_barycentric_body_position(time, body):
     """
-    Calculate the barycentric position of solar system body ``body`` in cartesian coordinates.
+    Calculate the barycentric position of thesolar system body ``body``
+    in cartesian coordinates.
 
     Uses ``jplephem`` with the DE430 kernel.
 
