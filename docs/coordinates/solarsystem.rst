@@ -33,5 +33,11 @@ The methods are used as follows::
     >>> get_barycentric_body_position(t, 'moon') # doctest: +REMOTE_DATA
     <CartesianRepresentation (x, y, z) in km
        (-90980973.95347136, -110026376.34185831, -47742071.3962695)>
+       
+The bodies for which positions can be calculated can be listed::
+
+    >>> from astropy.coordinates import SOLAR_SYSTEM_BODIES
+    >>> SOLAR_SYSTEM_BODIES
+    ['sun', 'mercury', 'venus', 'earth-moon-barycenter', 'earth', 'moon', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto']
 
 
