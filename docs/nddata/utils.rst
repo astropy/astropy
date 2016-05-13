@@ -245,7 +245,8 @@ your FITS header)::
     >>> wcs.wcs.cd = [[scale*np.cos(rho), -scale*np.sin(rho)],
     ...               [scale*np.sin(rho), scale*np.cos(rho)]]
     >>> wcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
-    >>> wcs.wcs.crval = [position.ra.value, position.dec.value]
+    >>> wcs.wcs.crval = [position.ra.to(u.deg).value,
+    ...                  position.dec.to(u.deg).value]
     >>> wcs.wcs.crpix = [50, 100]
 
 Now let's create the cutout array using the
