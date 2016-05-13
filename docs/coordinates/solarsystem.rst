@@ -24,17 +24,17 @@ The methods are used as follows::
     >>> from astropy.time import Time
     >>> from astropy.coordinates import get_moon, get_body
     >>> from astropy.coordinates import get_barycentric_body_position, EarthLocation
-    >>> t = Time.now()
+    >>> t = Time("2014-09-22 23:22")
     >>> loc = EarthLocation.of_site('greenwich')
     >>> get_moon(t, loc) # doctest: +REMOTE_DATA
-    <SkyCoord (GCRS: obstime=2016-03-29 06:35:36.927857, obsgeoloc=[-1463969.30185172 -5166673.34223433  3434985.71204565] m, obsgeovel=[ 0.  0.  0.] m / s): (ra, dec, distance) in (deg, deg, km)
-    (250.94788165, -17.04585998, 400244.30166804)>
+    <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=[  3.98060890e+06  -1.02475229e+02   4.96686127e+06] m, obsgeovel=[ 0.  0.  0.] m / s): (ra, dec, distance) in (deg, deg, km)
+    (165.51839027, 2.32901144, 407226.55887392)>
     >>> get_body(t, 'jupiter', loc) # doctest: +REMOTE_DATA
-    <SkyCoord (GCRS: obstime=2016-03-29 06:36:28.310851, obsgeoloc=[-1463969.30185172 -5166673.34223433  3434985.71204565] m, obsgeovel=[ 0.  0.  0.] m / s): (ra, dec, distance) in (deg, deg, km)
-    (167.22360841, 7.07220939, 673151288.66240811)>
+    <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=[  3.98060890e+06  -1.02475229e+02   4.96686127e+06] m, obsgeovel=[ 0.  0.  0.] m / s): (ra, dec, distance) in (deg, deg, km)
+    (136.90234741, 17.03160607, 889196019.26282585)>
     >>> get_barycentric_body_position(t, 'moon') # doctest: +REMOTE_DATA
     <CartesianRepresentation (x, y, z) in km
-       (-90980973.95347136, -110026376.34185831, -47742071.3962695)>
+    (150107535.26352832, -866789.03506676, -418963.52113854)>
        
 The bodies for which positions can be calculated can be listed::
 
