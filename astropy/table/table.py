@@ -893,7 +893,7 @@ class Table(object):
             The special default string ('from-apy-default') means that the string
             will be retreived from the configuration item
             ``astropy.table.default_notebook_table_class``. Note that these
-            table classes may make use of bootrap, as this is looded with the
+            table classes may make use of bootstrap, as this is loaded with the
             notebook.  See `this page <http://getbootstrap.com/css/#tables>`_
             for the list of classes.
         css : string
