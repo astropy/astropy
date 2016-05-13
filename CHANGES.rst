@@ -503,6 +503,11 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Transformations between ``GCRS`` frames and other frames now properly handles
+    frames with non-zero ```obsgeoloc```. Previously this was in slight error for
+    nearby objects, leading to position errors of a few arcseconds for solar system
+    planets, to a degree for the Moon. 
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
