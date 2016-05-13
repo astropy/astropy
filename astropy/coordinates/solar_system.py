@@ -231,9 +231,10 @@ def get_body(time, body, location=None):
     cartrep = _get_apparent_body_position(time, body)
     icrs = ICRS(cartrep)
     if location is not None:
+        obsgeoloc, obsgeovel = location.get_gcrs_posvel(time)
         gcrs = icrs.transform_to(GCRS(obstime=time,
-                                      obsgeoloc=u.Quantity(location.geocentric,
-                                                           copy=False)))
+                                      obsgeoloc=obsgeoloc,
+                                      obsgeovel=obsgeovel))
     else:
         gcrs = icrs.transform_to(GCRS(obstime=time))
     return SkyCoord(gcrs)

@@ -26,7 +26,7 @@ else:
 
 separation_tolerance_planets = 5*u.arcsec
 separation_tolerance_moon = 5*u.arcsec
-distance_tolerance = 20  # km
+distance_tolerance = 20*u.km  # km
 
 skyfield_angular_separation_tolerance = 1*u.arcsec
 skyfield_separation_tolerance = 10*u.km
@@ -60,7 +60,8 @@ def test_positions_skyfield():
     skyfield_moon = earth.at(skyfield_t).observe(moon).apparent()
 
     if location is not None:
-        frame = GCRS(obstime=t, obsgeoloc=u.Quantity(location.geocentric, copy=False))
+        obsgeoloc, obsgeovel = location.get_gcrs_posvel(t)
+        frame = GCRS(obstime=t, obsgeoloc=obsgeoloc, obsgeovel=obsgeovel)
     else:
         frame = GCRS(obstime=t)
 
@@ -147,7 +148,7 @@ def test_positions_distances_geocentric_1980():
     distances_horizons = [d_mercury_1980, d_moon_1980, d_jupiter_1980]
 
     assert_quantity_allclose(distances_astropy, distances_horizons,
-                             rtol=distance_tolerance)
+                             atol=distance_tolerance)
 
 
 @remote_data
@@ -161,8 +162,8 @@ def test_positions_distances_kittpeak_2016():
     kitt_peak = EarthLocation.from_geodetic(lon=-111.6*u.deg,
                                             lat=31.963333333333342*u.deg,
                                             height=2120*u.m)
-    frame = GCRS(obstime=t, obsgeoloc=u.Quantity(kitt_peak.geocentric,
-                                                 copy=False))
+    obsgeoloc, obsgeovel = kitt_peak.get_gcrs_posvel(t)
+    frame = GCRS(obstime=t, obsgeoloc=obsgeoloc, obsgeovel=obsgeovel)
 
     moon_astropy_2016 = get_moon(t, kitt_peak)
     mercury_astropy_2016 = get_body(t, 'mercury', kitt_peak)
@@ -176,7 +177,7 @@ def test_positions_distances_kittpeak_2016():
     # Results returned by JPL Horizons web interface
     d_mercury_2016 = c*(7.063423*u.min)
     d_moon_2016 = c*(0.021353*u.min)
-    d_jupiter_2016 = c*(53.675250*u.min)
+    d_jupiter_2016 = c*(53.675045*u.min)
     mercury_horizons_2016 = SkyCoord(ra='11h06m51.50s', dec='+05d59m21.1s',
                                      distance=d_mercury_2016,
                                      frame=frame)
@@ -206,4 +207,4 @@ def test_positions_distances_kittpeak_2016():
     distances_horizons = [d_mercury_2016, d_moon_2016, d_jupiter_2016]
 
     assert_quantity_allclose(distances_astropy, distances_horizons,
-                             rtol=distance_tolerance)
+                             atol=distance_tolerance)
