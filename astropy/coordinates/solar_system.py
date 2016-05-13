@@ -18,7 +18,7 @@ from .builtin_frames import GCRS, ICRS
 from .builtin_frames.utils import get_jd12, cartrepr_from_matmul
 from .. import _erfa
 
-__all__ = ["get_body", "get_moon"]
+__all__ = ["get_body", "get_moon", "get_barycentric_body_position"]
 
 KERNEL = None
 
@@ -72,7 +72,7 @@ def _get_kernel(*args, **kwargs):
     return KERNEL
 
 
-def _get_barycentric_body_position(time, body_key):
+def get_barycentric_body_position(time, body_key):
     """
     Calculate the barycentric position of solar system body ``body_key`` in cartesian coordinates.
 
@@ -161,8 +161,8 @@ def _get_earth_body_vector(time, body_key, earth_time=None):
 
     """
     earth_time = earth_time if earth_time is not None else time
-    earth_loc = _get_barycentric_body_position(earth_time, 'earth')
-    body_loc = _get_barycentric_body_position(time, body_key)
+    earth_loc = get_barycentric_body_position(earth_time, 'earth')
+    body_loc = get_barycentric_body_position(time, body_key)
 
     earth_body_vector = body_loc.xyz - earth_loc.xyz
 
@@ -207,7 +207,7 @@ def _get_apparent_body_position(time, body_key):
         light_travel_time = earth_distance/speed_of_light
         emitted_time = time - light_travel_time
 
-    return _get_barycentric_body_position(emitted_time, body_key)
+    return get_barycentric_body_position(emitted_time, body_key)
 
 
 def get_body(time, body_key, location=None):
@@ -220,9 +220,9 @@ def get_body(time, body_key, location=None):
     time : `~astropy.time.Time`
         Time of observation
 
-    body_key : int
-        Index of the body (1-9 for Mercury through Pluto). The special value 10
-        corresponds to the Earth's Moon.
+    body_key : int, str
+        The solar system body to calculate. Can be a string, e.g. 'moon',
+        or a valid integer index.
 
     location : `~astropy.coordinates.EarthLocation`
         Location of observer on the Earth. If none is supplied, set to
