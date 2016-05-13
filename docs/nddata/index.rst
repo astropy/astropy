@@ -67,13 +67,8 @@ additional ``meta`` attributes:
     >>> ndd
     NDData([1, 2, 3, 4])
 
-the representation does not show additional attributes but these can be
-accessed like ``data`` above::
-
-    >>> ndd.uncertainty
-    StdDevUncertainty([ 1.        ,  1.41421356,  1.73205081,  2.        ])
-    >>> ndd.mask
-    array([False, False,  True,  True], dtype=bool)
+The representation only displays the ``data``; the other attributes need to be
+accessed directly, for example ``ndd.mask`` to access the mask.
 
 
 NDDataRef

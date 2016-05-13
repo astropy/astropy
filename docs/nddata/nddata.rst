@@ -167,8 +167,9 @@ or by replacing the mask::
     >>> ndd.mask
     array([False, False,  True, False,  True], dtype=bool)
 
-but that it is a `numpy.ndarray` is not a requirement but probably the most
-intuitive option.
+There is no requirement that the mask actually be a numpy array; for example, a
+function which evaluates a mask value as needed is acceptable as long as it
+follows the convention that ``True`` indicates a value that should be ignored.
 
 Unit
 ----
