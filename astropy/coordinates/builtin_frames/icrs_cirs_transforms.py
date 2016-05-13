@@ -119,8 +119,19 @@ def cirs_to_cirs(from_coo, to_frame):
 @frame_transform_graph.transform(FunctionTransform, ICRS, GCRS)
 def icrs_to_gcrs(icrs_coo, gcrs_frame):
     # first set up the astrometry context for ICRS<->GCRS
-    pv = np.array([gcrs_frame.obsgeoloc.value,
-                   gcrs_frame.obsgeovel.value])
+    # pv array should be w.r.t to GCRS/ICRS coordinate direction, but are stored
+    # as ITRS coordinates
+    obsgeoloc = ITRS(gcrs_frame.obsgeoloc, obstime=gcrs_frame.obstime)
+    obsgeovel = ITRS(gcrs_frame.obsgeovel, obstime=gcrs_frame.obstime)
+    
+    # get values in m and m/s
+    geocentric_frame = GCRS(obstime=gcrs_frame.obstime)
+    pos_arr = obsgeoloc.transform_to(geocentric_frame).cartesian.xyz.to(u.m).value
+    vel_arr = obsgeovel.transform_to(geocentric_frame).cartesian.xyz.to(u.m/u.s).value
+    SR = 7.292115855306589e-5 
+    V = u.Quantity([0, 0, SR])
+    vel_arr += np.cross(V, pos_arr)
+    pv = np.array([pos_arr, vel_arr])
 
     jd1, jd2 = get_jd12(gcrs_frame.obstime, 'tdb')
     astrom = erfa.apcs13(jd1, jd2, pv)
