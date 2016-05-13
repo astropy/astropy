@@ -492,12 +492,15 @@ class LevMarLSQFitter(object):
         this function.
         """
 
+        if weights is None:
+            weights = 1.0
+
         if any(model.fixed.values()) or any(model.tied.values()):
 
             if z is None:
-                full_deriv = np.array(model.fit_deriv(x, *model.parameters))
+                full_deriv = np.ravel(weights) * np.array(model.fit_deriv(x, *model.parameters))
             else:
-                full_deriv = np.array(model.fit_deriv(x, y, *model.parameters))
+                full_deriv = (np.ravel(weights) * np.array(model.fit_deriv(x, y, *model.parameters)).T).T
 
             pars = [getattr(model, name) for name in model.param_names]
             fixed = [par.fixed for par in pars]
@@ -516,9 +519,9 @@ class LevMarLSQFitter(object):
             return [np.ravel(_) for _ in residues]
         else:
             if z is None:
-                return model.fit_deriv(x, *params)
+                return [np.ravel(_) for _ in np.ravel(weights) * np.array(model.fit_deriv(x, *params))]
             else:
-                return [np.ravel(_) for _ in model.fit_deriv(x, y, *params)]
+                return [np.ravel(_) for _ in (np.ravel(weights) * np.array(model.fit_deriv(x, y, *params)).T).T]
 
 
 class SLSQPLSQFitter(Fitter):
