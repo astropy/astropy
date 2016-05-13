@@ -93,7 +93,7 @@ def get_body_barycentric(time, body):
         The solar system body to calculate.
 
         The allowed values for ``body`` can be found in
-        `~astropy.coordinates.SOLAR_SYSTEM_BODIES`.
+        ``astropy.coordinates.SOLAR_SYSTEM_BODIES``.
 
     Returns
     -------
@@ -135,7 +135,7 @@ def _get_earth_body_vector(time, body, earth_time=None):
         The solar system body to calculate.
 
         The allowed values for ``body`` can be found in
-        `~astropy.coordinates.SOLAR_SYSTEM_BODIES`.
+        ``astropy.coordinates.SOLAR_SYSTEM_BODIES``.
 
     earth_time : `~astropy.time.Time`
         Time used for position of Earth. When correcting for light travel time,
@@ -180,7 +180,7 @@ def _get_apparent_body_position(time, body):
         The solar system body to calculate.
 
         The allowed values for ``body`` can be found in
-        `~astropy.coordinates.SOLAR_SYSTEM_BODIES`.
+        ``astropy.coordinates.SOLAR_SYSTEM_BODIES``.
 
     Returns
     -------
@@ -215,7 +215,7 @@ def get_body(time, body, location=None):
         The solar system body to calculate.
 
         The allowed values for ``body`` can be found in
-        `~astropy.coordinates.SOLAR_SYSTEM_BODIES`.
+        ``astropy.coordinates.SOLAR_SYSTEM_BODIES``.
 
     location : `~astropy.coordinates.EarthLocation`
         Location of observer on the Earth. If none is supplied, set to
