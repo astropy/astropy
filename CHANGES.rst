@@ -118,6 +118,8 @@ New Features
 
   - Allow to use a tuple of keys in ``Table.sort``.  [#4671]
 
+  - Added ``itercols``; a way to iterate through columns of a table. [#3805]
+
 - ``astropy.tests``
 
 - ``astropy.time``
