@@ -100,10 +100,11 @@ using arithmetic operators like ``+``.
 Slicing or indexing (:ref:`nddata_slicing`) is possible (issuing warnings if
 some attribute cannot be sliced)::
 
-    >>> ndd2 = NDDataRef(ndd2.data)  # because a scalar coordinate is not sliceable.
     >>> ndd2[2:]  # discard the first two elements
+    INFO: wcs cannot be sliced. [astropy.nddata.mixins.ndslicing]
     NDDataRef([ 5.,  5.])
     >>> ndd2[1]   # get the second element
+    INFO: wcs cannot be sliced. [astropy.nddata.mixins.ndslicing]
     NDDataRef(5.0)
 
 
