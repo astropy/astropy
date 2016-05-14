@@ -439,12 +439,12 @@ class CoordinateAttribute(FrameAttribute):
             return value, False
         else:
             if not hasattr(value, 'transform_to'):
-                raise ValueError('"{0}" was passed into an '
-                                 'CoordinateLocationAttribute, but it does not have '
+                raise ValueError('"{0}" was passed into a '
+                                 'CoordinateAttribute, but it does not have '
                                  '"transform_to" method'.format(value))
             transformedobj = value.transform_to(self._frame)
             if hasattr(transformedobj, 'frame'):
-                transformedobj = transformedobj.frame, True
+                transformedobj = transformedobj.frame
             return transformedobj, True
 
 

@@ -17,7 +17,7 @@ from ..utils.data_info import MixinInfo
 
 from .distances import Distance
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
-from .builtin_frames import ICRS
+from .builtin_frames import ICRS, make_astrometric_cls
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation)
 
@@ -977,21 +977,17 @@ class SkyCoord(object):
 
     def astrometric_frame(self):
         """
-        Returns the astrometric coordinate system of this `SkyCoord`
-
-        Parameters
-        ----------
-        None
+        Returns the astrometric frame with this `SkyCoord` at the origin.
 
         Returns
         -------
-        Astrometric Frame: AstrometricFrame
-            Coordinates of the sky rotated such that the new origin is (olat, olon)
+        astrframe: AstrometricFrame<subtype set by this object>
+            An astrometric frame of the same type as this `SkyCoord` (e.g., if
+            this object has an ICRS coordinate, the resulting frame is
+            AstrometricICRS)
         """
-        olat = self.represent_as(SphericalRepresentation).lat
-        olon = self.represent_as(SphericalRepresentation).lon
-        dist = self.represent_as(SphericalRepresentation).dist
-        return coord.Astrometric(origin_ra=olon, origin_dec=olat, originorigin_distance=dist)
+        acls = make_astrometric_cls(self.frame.__class__)
+        return acls(origin=self)
 
     def get_constellation(self, short_name=False, constellation_list='iau'):
         """
