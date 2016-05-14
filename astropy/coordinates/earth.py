@@ -427,7 +427,7 @@ class EarthLocation(u.Quantity):
 
         vel_arr = np.cross(V_EARTH, np.rollaxis(obsgeoloc, 0, obsgeoloc.ndim))
         vel_arr = np.rollaxis(vel_arr, -1, 0)
-        obsgeovel = u.Quantity(vel_arr)*u.m/u.s
+        obsgeovel = u.Quantity(vel_arr, u.m/u.s, copy=False)
         return obsgeoloc, obsgeovel
 
     @property
