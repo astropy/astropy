@@ -64,7 +64,7 @@ class NDUncertainty(object):
         ``uncertainty_type`` is different.
     """
 
-    def __init__(self, array=None, unit=None, copy=True):
+    def __init__(self, array=None, copy=True, unit=None):
         if isinstance(array, NDUncertainty):
             # Given an NDUncertainty class or subclass check that the type
             # is the same.
