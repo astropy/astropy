@@ -1,4 +1,4 @@
-numpy
+-r pip-requirements
 matplotlib
 wcsaxes
 scipy
