@@ -43,20 +43,34 @@ BODY_NAME_TO_KERNEL_SPEC = OrderedDict(
 SOLAR_SYSTEM_BODIES = tuple(BODY_NAME_TO_KERNEL_SPEC.keys())
 
 
-def _download_spk_file(url=('http://naif.jpl.nasa.gov/pub/naif/'
-                            'generic_kernels/spk/planets/de430.bsp'),
-                       show_progress=True):
+def set_kernel_url(url='http://naif.jpl.nasa.gov/pub/naif/generic_kernels'
+                       '/spk/planets/de430.bsp'):
     """
-    Get the Satellite Planet Kernel (SPK) file from NASA JPL.
+    Choose the URL to use for downloading a download the Satellite Planet
+    Kernel (SPK) file with ephemerides.  The download will *not* occur when
+    this function is called, but rather whenever the first time is that the
+    kernel actually needs to be used.
 
-    Download the file from the JPL webpage once and subsequently access a
-    cached copy. The default is the file de430.bsp.
+    Parameters
+    ----------
+    url : str
+        A url to an SPK file to use.
 
-    This file is ~120 MB, and covers years ~1550-2650 CE [1]_.
+    Notes
+    -----
+    The default Satellite Planet Kernel (SPK) file from NASA JPL (DE430) is
+    ~120MB, and covers years ~1550-2650 CE [1]_.
 
     .. [1] http://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/aareadme_de430-de431.txt
+
     """
-    return download_file(url, cache=True, show_progress=show_progress)
+    global KERNEL, KERNEL_URL
+
+    KERNEL_URL = url
+    KERNEL = None
+
+# set the default kernel off the bat
+set_kernel_url()
 
 
 def _get_kernel(*args, **kwargs):
@@ -64,7 +78,7 @@ def _get_kernel(*args, **kwargs):
     Try importing jplephem, download/retrieve from cache the Satellite Planet
     Kernel.
     """
-    global KERNEL
+    global KERNEL, KERNEL_URL
 
     try:
         from jplephem.spk import SPK
@@ -74,7 +88,7 @@ def _get_kernel(*args, **kwargs):
                           "(https://pypi.python.org/pypi/jplephem)")
 
     if KERNEL is None:
-        KERNEL = SPK.open(_download_spk_file())
+        KERNEL = SPK.open(download_file(KERNEL_URL, cache=True))
     return KERNEL
 
 
