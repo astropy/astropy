@@ -1,0 +1,15 @@
+-r pip-requirements
+-r doc-pip-requirements
+Cython
+jinja2
+pyyaml
+scipy
+pandas
+h5py
+bs4
+bleach
+jplephem
+
+# below here are used only for tests
+skyfield
+mpmath 
