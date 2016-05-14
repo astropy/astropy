@@ -27,6 +27,11 @@ New Features
   - ``CartesianRepresentation`` now includes a transform() method that can take
     a 3x3 matrix to transform coordinates. [#4860]
 
+  - Added astrometric frames (i.e., a frame centered on a particular 
+    point/object specified in another frame). [#4909]
+
+  - Added ``SkyCoord.spherical_offsets_to`` method. [#4338]
+
 - ``astropy.cosmology``
 
   - ``angular_diameter_distance_z1z2`` now supports the computation of
@@ -427,8 +432,6 @@ New Features
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
-
-  - Added the ``SkyCoord.spherical_offsets_to`` method. [#4338]
 
 - ``astropy.cosmology``
 
