@@ -129,10 +129,19 @@ class EulerAngleRotation(Model):
                               axes_order=self.axes_order[::-1])
 
     def evaluate(self, alpha, delta, phi, theta, psi):
+        shape = None
+        if isinstance(alpha, np.ndarray) and alpha.ndim == 2:
+            alpha = alpha.flatten()
+            delta = delta.flatten()
+            shape = alpha.shape
         inp = self.spherical2cartesian(alpha, delta)
         matrix = self._create_matrix(phi, theta, psi, self.axes_order)
         result = np.dot(matrix, inp)
-        return self.cartesian2spherical(*result)
+        a, b = self.cartesian2spherical(*result)
+        if shape is not None:
+            a.shape = shape
+            b.shape = shape
+        return a, b
 
 
 class _SkyRotation(EulerAngleRotation):
@@ -180,18 +189,15 @@ class RotateNative2Celestial(_SkyRotation):
 
     @property
     def lon(self):
-        #return self.phi
         return - (self.psi + 90)
 
     @lon.setter
     def lon(self, val):
-        #self.phi = val
         self.psi = - (val + 90)
 
     @property
     def lat(self):
-        #return self.theta
-        return self.theta + 90
+         return self.theta + 90
 
     @lat.setter
     def lat(self, val):
@@ -216,7 +222,7 @@ class RotateNative2Celestial(_SkyRotation):
 
 class RotateCelestial2Native(_SkyRotation):
     """
-    Transform from Native to Celestial Spherical Coordinates.
+    Transform from Celestial to Native Spherical Coordinates.
 
     Parameters
     ----------
