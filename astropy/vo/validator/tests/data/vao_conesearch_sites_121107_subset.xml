@@ -52,7 +52,7 @@ This particular record describes access specifically to the "out" table within t
             <TD>ParamHTTP</TD>
             <TD/>
             <TD>std?</TD>
-            <TD>http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/252/out&amp;amp;</TD>
+            <TD>http://vizier.u-strasbg.fr/viz-bin/votable/-A?-out.all&amp;&amp;-source=I%2F252%2Fout&amp;&amp;</TD>
             <TD>180</TD>
             <TD>9999</TD>
             <TD>ivo://CDS</TD>

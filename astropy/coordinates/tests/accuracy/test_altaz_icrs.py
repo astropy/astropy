@@ -36,7 +36,10 @@ def test_against_hor2eq():
 
     altaz_frame = AltAz(obstime=obstime, location=location,
                         temperature=0 * u.deg_C, pressure=0.781 * u.bar)
+    altaz_frame_noatm = AltAz(obstime=obstime, location=location,
+                              temperature=0 * u.deg_C, pressure=0.0 * u.bar)
     altaz = SkyCoord('264d55m06s 37d54m41s', frame=altaz_frame)
+    altaz_noatm = SkyCoord('264d55m06s 37d54m41s', frame=altaz_frame_noatm)
 
     radec_frame = 'icrs'
 
@@ -44,18 +47,22 @@ def test_against_hor2eq():
     # because the observation date is in the future
     with catch_warnings() as _:
         radec_actual = altaz.transform_to(radec_frame)
+        radec_actual_noatm = altaz_noatm.transform_to(radec_frame)
 
     radec_expected = SkyCoord('00h13m14.1s  +15d11m0.3s', frame=radec_frame)
     distance = radec_actual.separation(radec_expected).to('arcsec')
-    # print(radec_expected)
-    # print(radec_actual)
-    # print(distance)
 
-    # TODO: why is there a difference of 2.6 arcsec currently?
-    # radec_expected = ra=3.30875 deg, dec=15.183416666666666 deg
-    # radec_actual = ra=3.3094193224314625 deg, dec=15.183757021354532 deg
-    # distance = 2.6285 arcsec
+    # this comes from running the example hor2eq but with the pressure set to 0
+    radec_expected_noatm = SkyCoord('00h13m17.8s  +15d11m30s', frame=radec_frame)
+    distance_noatm = radec_actual_noatm.separation(radec_expected_noatm).to('arcsec')
+
+    # the baseline difference is ~2.6285 arcsec as of when this was lest updated.
+    # the difference is mainly due to the somewhat different atmospheric model
+    # that hor2eq assumes.  This is confirmed by the second test which has the
+    # atmosphere "off" - the residual difference is small enough to be embedded
+    # in the assumptions about "J2000" or rounding errors.
     assert distance < 5 * u.arcsec
+    assert distance_noatm < 0.4 * u.arcsec
 
 
 def test_against_pyephem():

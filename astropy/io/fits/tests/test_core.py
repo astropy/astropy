@@ -20,10 +20,18 @@ except ImportError:
 from ....io import fits
 from ....tests.helper import pytest, raises, catch_warnings, ignore_warnings
 from ....utils.exceptions import AstropyDeprecationWarning
+from ....utils.data import get_pkg_data_filename
 from . import FitsTestCase
 from ..convenience import _getext
 from ..diff import FITSDiff
 from ..file import _File, GZIP_MAGIC
+
+try:
+    import pathlib
+except ImportError:
+    HAS_PATHLIB = False
+else:
+    HAS_PATHLIB = True
 
 
 class TestCore(FitsTestCase):
@@ -64,6 +72,22 @@ class TestCore(FitsTestCase):
 
         with fits.open(self.temp('test.fits')) as p:
             assert p[1].data[1]['foo'] == 60000.0
+
+    @pytest.mark.skipif('not HAS_PATHLIB')
+    def test_fits_file_path_object(self):
+        """
+        Testing when fits file is passed as pathlib.Path object #4412.
+        """
+        fpath = pathlib.Path(get_pkg_data_filename('data/tdim.fits'))
+        hdulist = fits.open(fpath)
+
+        assert hdulist[0].filebytes() == 2880
+        assert hdulist[1].filebytes() == 5760
+
+        hdulist2 = fits.open(self.data('tdim.fits'))
+
+        assert FITSDiff(hdulist2, hdulist).identical is True
+
 
     def test_add_del_columns(self):
         p = fits.ColDefs([])

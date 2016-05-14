@@ -338,6 +338,17 @@ class TestColumn():
         with pytest.raises(ValueError):
             c1 = c.insert(1, [100, 200], mask=[True, False, True])
 
+    def test_mask_on_non_masked_table(self):
+        """
+        When table is not masked and trying to set mask on column then
+        it's Raise AttributeError.
+        """
+
+        t = table.Table([[1, 2], [3, 4]], names=('a', 'b'), dtype=('i4', 'f8'))
+
+        with pytest.raises(AttributeError):
+            t['a'].mask = [True, False]
+
 
 class TestAttrEqual():
     """Bunch of tests originally from ATpy that test the attrs_equal method."""
@@ -511,3 +522,23 @@ def test_scalar_column():
     c = table.Column(1.5)
     assert repr(c) == '1.5'
     assert str(c) == '1.5'
+
+
+def test_qtable_column_conversion():
+    """
+    Ensures that a QTable that gets assigned a unit switches to be Quantity-y
+    """
+    qtab = table.QTable([[1, 2], [3, 4.2]], names=['i', 'f'])
+
+    assert isinstance(qtab['i'], table.column.Column)
+    assert isinstance(qtab['f'], table.column.Column)
+
+    qtab['i'].unit = 'km/s'
+    assert isinstance(qtab['i'], u.Quantity)
+    assert isinstance(qtab['f'], table.column.Column)
+
+    # should follow from the above, but good to make sure as a #4497 regression test
+    assert isinstance(qtab['i'][0], u.Quantity)
+    assert isinstance(qtab[0]['i'], u.Quantity)
+    assert not isinstance(qtab['f'][0], u.Quantity)
+    assert not isinstance(qtab[0]['f'], u.Quantity)

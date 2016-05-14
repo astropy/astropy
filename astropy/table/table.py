@@ -18,7 +18,7 @@ from numpy import ma
 from .. import log
 from ..io import registry as io_registry
 from ..units import Quantity
-from ..utils import isiterable, deprecated, minversion
+from ..utils import isiterable, deprecated
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
 from ..utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo
@@ -30,11 +30,7 @@ from .row import Row
 from .np_utils import fix_column_name, recarray_fromrecords
 from .info import TableInfo
 from .index import Index, _IndexModeContext, get_index
-
-# Prior to Numpy 1.6.2, there was a bug (in Numpy) that caused
-# sorting of structured arrays containing Unicode columns to
-# silently fail.
-_BROKEN_UNICODE_TABLE_SORT = not minversion(np, '1.6.2')
+from . import conf
 
 
 __doctest_skip__ = ['Table.read', 'Table.write',
@@ -737,6 +733,31 @@ class Table(object):
 
         table.columns = columns
 
+    def itercols(self):
+        """
+        Iterate over the columns of this table.
+
+        Examples
+        --------
+
+        To iterate over the columns of a table::
+
+            >>> t = Table([[1], [2]])
+            >>> for col in t.itercols():
+            ...     print(col)
+            col0
+            ----
+               1
+            col1
+            ----
+               2
+
+        Using ``itercols()`` is similar to  ``for col in t.columns.values()``
+        but is syntactically preferred.
+        """
+        for colname in self.columns:
+            yield self[colname]
+
     def _base_repr_(self, html=False, descr_vals=None, max_width=None,
                     tableid=None, show_dtype=True, max_lines=None,
                     tableclass=None):
@@ -767,7 +788,8 @@ class Table(object):
         return out
 
     def _repr_html_(self):
-        return self._base_repr_(html=True, max_width=-1)
+        return self._base_repr_(html=True, max_width=-1,
+                                tableclass=conf.default_notebook_table_class)
 
     def __repr__(self):
         return self._base_repr_(html=False, max_width=None)
@@ -865,8 +887,7 @@ class Table(object):
             return self
 
     def show_in_notebook(self, tableid=None, css=None, display_length=50,
-                         table_class='table table-striped table-bordered '
-                         'table-condensed', show_row_index='idx'):
+                         table_class='astropy-default', show_row_index='idx'):
         """Render the table in HTML and show it in the IPython notebook.
 
         Parameters
@@ -878,9 +899,12 @@ class Table(object):
             multiple times.
         table_class : str or `None`
             A string with a list of HTML classes used to style the table.
-            Default is "table table-striped table-bordered table-condensed",
-            using Bootstrap which is available in the notebook. See `this page
-            <http://getbootstrap.com/css/#tables>`_ for the list of classes.
+            The special default string ('from-apy-default') means that the string
+            will be retreived from the configuration item
+            ``astropy.table.default_notebook_table_class``. Note that these
+            table classes may make use of bootstrap, as this is loaded with the
+            notebook.  See `this page <http://getbootstrap.com/css/#tables>`_
+            for the list of classes.
         css : string
             A valid CSS string declaring the formatting for the table. Default
             to ``astropy.table.jsviewer.DEFAULT_CSS_NB``.
@@ -915,6 +939,8 @@ class Table(object):
             display_table = self._make_index_row_display_table(show_row_index)
         else:
             display_table = self
+        if table_class == 'astropy-default':
+            table_class = conf.default_notebook_table_class
         html = display_table._base_repr_(html=True, max_width=-1, tableid=tableid,
                                          max_lines=-1, show_dtype=False,
                                          tableclass=table_class)
@@ -1547,7 +1573,7 @@ class Table(object):
         if name not in self.colnames:
             raise ValueError('column name {0} is not in the table'.format(name))
 
-        if self[name].indices:
+        if self[name].info.indices:
             raise ValueError('cannot replace a table index column')
 
         t = self.__class__([col], names=[name])
@@ -2176,11 +2202,7 @@ class Table(object):
         else:
             data = self.as_array()
 
-        if _BROKEN_UNICODE_TABLE_SORT and keys is not None and any(
-                data.dtype[i].kind == 'U' for i in xrange(len(data.dtype))):
-            return np.lexsort([data[key] for key in keys[::-1]])
-        else:
-            return data.argsort(**kwargs)
+        return data.argsort(**kwargs)
 
     def sort(self, keys=None):
         '''
@@ -2220,7 +2242,8 @@ class Table(object):
             if not self.indices:
                 raise ValueError("Table sort requires input keys or a table index")
             keys = [x.info.name for x in self.indices[0].columns]
-        if type(keys) is not list:
+
+        if isinstance(keys, six.string_types):
             keys = [keys]
 
         indexes = self.argsort(keys)

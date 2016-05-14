@@ -19,6 +19,8 @@ from ... import table
 from ... import units as u
 from .conftest import MaskedTable
 
+from ...extern.six.moves import zip as izip
+
 try:
     with ignore_warnings(DeprecationWarning):
         # Ignore DeprecationWarning on pandas import in Python 3.5--see
@@ -332,6 +334,13 @@ class TestColumnAccess():
         assert np.all(t['a'] == np.array([1, 2, 3]))
         with pytest.raises(KeyError):
             t['b']  # column does not exist
+
+    def test_itercols(self, table_types):
+        names = ['a', 'b', 'c']
+        t = table_types.Table([[1], [2], [3]], names=names)
+        for name, col in izip(names, t.itercols()):
+            assert name == col.name
+            assert isinstance(col, table_types.Column)
 
 
 @pytest.mark.usefixtures('table_types')
@@ -959,6 +968,9 @@ class TestSort():
         t.sort(['b', 'a'])
         assert np.all(t['a'] == np.array([2, 1, 3, 1, 3, 2]))
         assert np.all(t['b'] == np.array([3, 4, 4, 5, 5, 6]))
+        t.sort(('a', 'b'))
+        assert np.all(t['a'] == np.array([1, 1, 2, 2, 3, 3]))
+        assert np.all(t['b'] == np.array([4, 5, 3, 6, 4, 5]))
 
     def test_multiple_with_bytes(self, table_types):
         t = table_types.Table()
@@ -1608,3 +1620,22 @@ class TestReplaceColumn(SetupData):
         with pytest.raises(ValueError) as err:
             t.replace_column('a', [1, 2, 3])
         assert err.value.args[0] == 'cannot replace a table index column'
+
+def test_replace_column_qtable():
+    """Replace existing Quantity column with a new column in a QTable"""
+    a = [1, 2, 3] * u.m
+    b = [4, 5, 6]
+    t = table.QTable([a, b], names=['a', 'b'])
+
+    ta = t['a']
+    tb = t['b']
+    ta.info.meta = {'aa': [0, 1, 2, 3, 4]}
+    ta.info.format = '%f'
+
+    t.replace_column('a', a.to('cm'))
+    assert np.all(t['a'] == ta)
+    assert t['a'] is not ta  # New a column
+    assert t['b'] is tb  # Original b column unchanged
+    assert t.colnames == ['a', 'b']
+    assert t['a'].info.meta is None
+    assert t['a'].info.format is None

@@ -87,7 +87,12 @@ Starting a new package
     #       are using for your package.
     cp ../template/setup.cfg .
 
-    # edit the VERSION variable, the rest can be kept as-is
+    # edit the VERSION variable and if applicable, the package_data values,
+    # the rest can be kept as-is
+    # Note: If your package data directory has a sub-directory, you HAVE TO
+    #       break 'data/*' to 'data/*.*' and 'data/subdir/*' (two different
+    #       appends). If you do not have any package data, you can just comment
+    #       out the line that appends 'data/*'.
     cp ../template/setup.py .
 
    .. important:: Before proceeding, make sure you have edited ``setup.cfg`` and
@@ -244,25 +249,25 @@ files manually`_ section since this explains what many of the files do.
 
       git clone git://github.com/astropy/package-template.git <packagename>
 
-  This will download the latest version of the template from `github`_ and
-  place it in a directory named ``<packagename>``.
+   This will download the latest version of the template from `github`_ and
+   place it in a directory named ``<packagename>``.
 
 #. Go into the directory you just created, and open the ``setup.cfg``
    file with your favorite text editor.  Edit the settings in the
    ``metadata`` section.  These values will be used to automatically
    replace special placeholders in the affiliated package template.
 
-   1. Change the ``package_name`` variable to whatever you decide your
+   #. Change the ``package_name`` variable to whatever you decide your
       package should be named. By tradition/very strong suggestion,
       python package names should be all lower-case.
-   2. Change the ``description`` variable to a short (one or few
+   #. Change the ``description`` variable to a short (one or few
       sentence) description of your package.
-   3. Add your name and email address by changing the ``author`` and
+   #. Add your name and email address by changing the ``author`` and
       ``author_email`` variables.
-   4. If your affiliated package has a website, change ``url`` to point
+   #. If your affiliated package has a website, change ``url`` to point
       to that site.  Otherwise, you can leave it pointing to `Astropy`_
       or just delete it.
-   5. Exit out of your text editor
+   #. Exit out of your text editor.
 
 #. Update the main package docstring in ``<packagename>/__init__.py``.
 
@@ -360,6 +365,8 @@ files manually`_ section since this explains what many of the files do.
 
       git remote add template git@github.com:astropy/package-template.git
 
+   .. _template-changes-with-gitfu:
+
    Then, each time you want to pull in changes to the package template::
 
       git fetch template
@@ -399,15 +406,39 @@ files manually`_ section since this explains what many of the files do.
    replace ``packagename`` with the name of your package.
 
 #. If you want the documentation for your project to be hosted by
-   `ReadTheDocs <https://readthedocs.org>`_, then you need to setup an
+   `Read the Docs <https://readthedocs.org>`_, then you need to setup an
    account there. The following entries in "Advanced Settings" for your
-   package on `ReadTheDocs <https://readthedocs.org>`_ should work:
+   package on `Read the Docs <https://readthedocs.org>`_ should work:
 
    - activate ``Install your project inside a virtualenv using setup.py install``
    - Requirements file: ``docs/rtd-pip-requirements``
    - activate ``Give the virtual environment access to the global site-packages dir.``
 
    All other settings can stay on their default value.
+
+   If you need to mock any Python packages or C libraries that can not be
+   installed and built by Read the Docs, you should include the following mocking
+   patch before the ``Project information`` section of the ``docs/conf.py`` file::
+
+      class Mock(object):
+          def __init__(self, *args, **kwargs):
+              pass
+
+          def __call__(self, *args, **kwargs):
+              return Mock()
+
+          @classmethod
+          def __getattr__(cls, name):
+              if name in ('__file__', '__path__'):
+                  return '/dev/null'
+              elif name[0] == name[0].upper():
+                  return type(name, (), {})
+              else:
+                  return Mock()
+
+      MOCK_MODULES = ['<name of package to mock>', '<name of package to mock>']
+      for mod_name in MOCK_MODULES:
+          sys.modules[mod_name] = Mock()
 
 #. You're now ready to start doing actual work on your affiliated package.  You
    will probably want to read over the developer guidelines of the Astropy
@@ -425,7 +456,8 @@ files manually`_ section since this explains what many of the files do.
 Updating to the latest template files
 -------------------------------------
 
-.. TODO
+See instructions in :ref:`Item 14 above <template-changes-with-gitfu>`.
+
 
 Releasing an affiliated package
 ===============================
@@ -542,7 +574,7 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
         git checkout master
         git push --tags origin master
 
-   Once you have done this, if you use readthedocs, trigger a ``latest`` build
+   Once you have done this, if you use Read the Docs, trigger a ``latest`` build
    then go to the project settings, and under **Versions** you should see the
    tag you just pushed. Select the tag to activate it, and save.
 

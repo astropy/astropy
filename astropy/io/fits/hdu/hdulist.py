@@ -28,7 +28,7 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
 
     Parameters
     ----------
-    name : file path, file object or file-like object
+    name : file path, file object, file-like object or pathlib.Path object
         File to be opened.
 
     mode : str, optional
@@ -95,7 +95,8 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
             when read.
 
         - **ignore_blank** : bool
-           If `True`, the BLANK keyword is ignored if present.
+
+            If `True`, the BLANK keyword is ignored if present.
 
         - **scale_back** : bool
 

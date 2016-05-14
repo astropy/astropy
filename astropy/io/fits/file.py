@@ -74,6 +74,13 @@ GZIP_MAGIC = b('\x1f\x8b\x08')
 PKZIP_MAGIC = b('\x50\x4b\x03\x04')
 BZIP2_MAGIC = b('\x42\x5a')
 
+try:
+    import pathlib
+except:
+    HAS_PATHLIB = False
+else:
+    HAS_PATHLIB = True
+
 class _File(object):
     """
     Represents a FITS file on disk (or in some other file-like object).
@@ -97,6 +104,9 @@ class _File(object):
             return
         else:
             self.simulateonly = False
+            # If fileobj is of type pathlib.Path
+            if HAS_PATHLIB and isinstance(fileobj, pathlib.Path):
+                fileobj = str(fileobj)
 
         # Holds mmap instance for files that use mmap
         self._mmap = None

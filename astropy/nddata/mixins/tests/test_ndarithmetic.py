@@ -8,19 +8,18 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from ... import NDData, NDArithmeticMixin
-from ...nduncertainty import StdDevUncertainty
+from ...nduncertainty import (StdDevUncertainty, UnknownUncertainty,
+                              IncompatibleUncertaintiesException)
+from ... import NDDataRef
+from ...nddata import NDData
+
 from ....units import UnitsError, Quantity
 from ....tests.helper import pytest
 from .... import units as u
 
-# TODO: Tests with UnknownUncertainty
 
-
-# Just add the Mixin to NDData
-class NDDataArithmetic(NDArithmeticMixin, NDData):
-
-    pass
+# Alias NDDataAllMixins in case this will be renamed ... :-)
+NDDataArithmetic = NDDataRef
 
 
 class StdDevUncertaintyUncorrelated(StdDevUncertainty):
@@ -631,7 +630,9 @@ def test_arithmetics_stddevuncertainty_with_units(uncert1, uncert2):
     assert_array_equal(nd3.uncertainty.array, nd3.uncertainty.array)
 
 
-def test_arithmetics_handle_switches():
+# Test abbreviation and long name for taking the first found meta, mask, wcs
+@pytest.mark.parametrize(('use_abbreviation'), ['ff', 'first_found'])
+def test_arithmetics_handle_switches(use_abbreviation):
     meta1 = {'a': 1}
     meta2 = {'b': 2}
     mask1 = True
@@ -659,8 +660,8 @@ def test_arithmetics_handle_switches():
 
     # Only second has attributes and False is chosen
     nd_ = nd3.add(nd2, propagate_uncertainties=False,
-                  handle_meta='first_found', handle_mask='first_found',
-                  compare_wcs='first_found')
+                  handle_meta=use_abbreviation, handle_mask=use_abbreviation,
+                  compare_wcs=use_abbreviation)
     assert nd_.wcs == wcs2
     assert nd_.meta == meta2
     assert nd_.mask == mask2
@@ -668,8 +669,8 @@ def test_arithmetics_handle_switches():
 
     # Only first has attributes and False is chosen
     nd_ = nd1.add(nd3, propagate_uncertainties=False,
-                  handle_meta='first_found', handle_mask='first_found',
-                  compare_wcs='first_found')
+                  handle_meta=use_abbreviation, handle_mask=use_abbreviation,
+                  compare_wcs=use_abbreviation)
     assert nd_.wcs == wcs1
     assert nd_.meta == meta1
     assert nd_.mask == mask1
@@ -775,3 +776,195 @@ def test_arithmetics_mask_func():
 
     with pytest.raises(KeyError):
         nd1.add(nd2, handle_mask=mask_sad_func, fun=1)
+
+
+@pytest.mark.parametrize('meth', ['add', 'subtract', 'divide', 'multiply'])
+def test_two_argument_useage(meth):
+    ndd1 = NDDataArithmetic(np.ones((3, 3)))
+    ndd2 = NDDataArithmetic(np.ones((3, 3)))
+
+    # Call add on the class (not the instance) and compare it with already
+    # tested useage:
+    ndd3 = getattr(NDDataArithmetic, meth)(ndd1, ndd2)
+    ndd4 = getattr(ndd1, meth)(ndd2)
+    np.testing.assert_array_equal(ndd3.data, ndd4.data)
+
+    # And the same done on an unrelated instance...
+    ndd3 = getattr(NDDataArithmetic(-100), meth)(ndd1, ndd2)
+    ndd4 = getattr(ndd1, meth)(ndd2)
+    np.testing.assert_array_equal(ndd3.data, ndd4.data)
+
+
+@pytest.mark.parametrize('meth', ['add', 'subtract', 'divide', 'multiply'])
+def test_two_argument_useage_non_nddata_first_arg(meth):
+    data1 = 50
+    data2 = 100
+
+    # Call add on the class (not the instance)
+    ndd3 = getattr(NDDataArithmetic, meth)(data1, data2)
+
+    # Compare it with the instance-useage and two identical NDData-like
+    # classes:
+    ndd1 = NDDataArithmetic(data1)
+    ndd2 = NDDataArithmetic(data2)
+    ndd4 = getattr(ndd1, meth)(ndd2)
+    np.testing.assert_array_equal(ndd3.data, ndd4.data)
+
+    # and check it's also working when called on an instance
+    ndd3 = getattr(NDDataArithmetic(-100), meth)(data1, data2)
+    ndd4 = getattr(ndd1, meth)(ndd2)
+    np.testing.assert_array_equal(ndd3.data, ndd4.data)
+
+
+def test_arithmetics_unknown_uncertainties():
+    # Not giving any uncertainty class means it is saved as UnknownUncertainty
+    ndd1 = NDDataArithmetic(np.ones((3, 3)),
+                            uncertainty=UnknownUncertainty(np.ones((3, 3))))
+    ndd2 = NDDataArithmetic(np.ones((3, 3)),
+                            uncertainty=UnknownUncertainty(np.ones((3, 3))*2))
+    # There is no way to propagate uncertainties:
+    with pytest.raises(IncompatibleUncertaintiesException):
+        ndd1.add(ndd2)
+    # But it should be possible without propagation
+    ndd3 = ndd1.add(ndd2, propagate_uncertainties=False)
+    np.testing.assert_array_equal(ndd1.uncertainty.array,
+                                  ndd3.uncertainty.array)
+
+    ndd4 = ndd1.add(ndd2, propagate_uncertainties=None)
+    assert ndd4.uncertainty is None
+
+
+# TODO: Remove this as soon as the old uncertainty methods are removed.
+def test_deprecated_functions_still_working():
+    from astropy.wcs import WCS
+    from astropy.units import dimensionless_unscaled
+    from copy import deepcopy
+    from astropy import log
+    from astropy.nddata import conf
+
+    class OldNDArithmetic(NDData):
+
+        def _arithmetic(self, operand, propagate_uncertainties, name, operation):
+
+            if isinstance(self.wcs, WCS):
+                if not self.wcs.wcs.compare(operand.wcs.wcs):
+                    raise ValueError("WCS properties do not match")
+            else:
+                if self.wcs != operand.wcs:
+                    raise ValueError("WCS properties do not match")
+
+            self_unit = self.unit or dimensionless_unscaled
+            operand_unit = operand.unit or dimensionless_unscaled
+
+            try:
+                result_unit = operation(1 * self_unit, 1 * operand_unit).unit
+            except UnitsError:
+                raise ValueError("operand units do not match")
+            if self.data.shape != operand.data.shape:
+                raise ValueError("operand shapes do not match")
+            data = operation(self.data * self_unit, operand.data * operand_unit)
+
+            result_unit = data.unit
+            if self.unit is None and operand.unit is None:
+                if result_unit is dimensionless_unscaled:
+                    result_unit = None
+                else:
+                    raise ValueError("arithmetic result was not unitless even "
+                                     "though operands were unitless")
+            data = data.value
+            new_wcs = deepcopy(self.wcs)
+            result = self.__class__(data, uncertainty=None,mask=None, wcs=new_wcs,
+                                    meta=None, unit=result_unit)
+            if operand.uncertainty:
+                operand_uncert_value = operand.uncertainty.array
+            if (operation in [np.add, np.subtract] and
+                    self.unit != operand.unit):
+                operand_data = operand.unit.to(self.unit, operand.data)
+                if operand.uncertainty:
+                    operand_uncert_value = operand.unit.to(self.unit, operand_uncert_value)
+            else:
+                operand_data = operand.data
+            if operand.uncertainty:
+                operand_uncertainty = operand.uncertainty.__class__(operand_uncert_value, copy=True)
+            else:
+                operand_uncertainty = None
+            if propagate_uncertainties is None:
+                result.uncertainty = None
+            elif self.uncertainty is None and operand.uncertainty is None:
+                result.uncertainty = None
+            elif self.uncertainty is None:
+                result.uncertainty = operand_uncertainty
+            elif operand.uncertainty is None:
+                result.uncertainty = self.uncertainty.__class__(self.uncertainty, copy=True)
+            else:
+                if (conf.warn_unsupported_correlated and
+                    (not self.uncertainty.support_correlated or
+                     not operand.uncertainty.support_correlated)):
+                    log.info("The uncertainty classes used do not support the "
+                             "propagation of correlated errors, so uncertainties"
+                             " will be propagated assuming they are uncorrelated")
+                operand_scaled = operand.__class__(operand_data,
+                                                   uncertainty=operand_uncertainty,
+                                                   unit=operand.unit, wcs=operand.wcs,
+                                                   mask=operand.mask, meta=operand.meta)
+                try:
+                    method = getattr(self.uncertainty, propagate_uncertainties)
+                    result.uncertainty = method(operand_scaled, result.data)
+                except IncompatibleUncertaintiesException:
+                    raise IncompatibleUncertaintiesException(
+                        "Cannot propagate uncertainties of type {0:s} with "
+                        "uncertainties of type {1:s} for {2:s}".format(
+                            self.uncertainty.__class__.__name__,
+                            operand.uncertainty.__class__.__name__, name))
+            if self.mask is None and operand.mask is None:
+                result.mask = None
+            elif self.mask is None:
+                result.mask = operand.mask.copy()
+            elif operand.mask is None:
+                result.mask = self.mask.copy()
+            else:
+                result.mask = self.mask | operand.mask
+            return result
+
+        def add(self, operand, propagate_uncertainties=True):
+            if propagate_uncertainties:
+                propagate_uncertainties = "propagate_add"
+            else:
+                propagate_uncertainties = None
+            return self._arithmetic(operand, propagate_uncertainties, "addition", np.add)
+
+        def subtract(self, operand, propagate_uncertainties=True):
+            if propagate_uncertainties:
+                propagate_uncertainties = "propagate_subtract"
+            else:
+                propagate_uncertainties = None
+            return self._arithmetic(operand, propagate_uncertainties, "subtraction", np.subtract)
+
+        def multiply(self, operand, propagate_uncertainties=True):
+            if propagate_uncertainties:
+                propagate_uncertainties = "propagate_multiply"
+            else:
+                propagate_uncertainties = None
+            return self._arithmetic(operand, propagate_uncertainties, "multiplication", np.multiply)
+
+        def divide(self, operand, propagate_uncertainties=True):
+            if propagate_uncertainties:
+                propagate_uncertainties = "propagate_divide"
+            else:
+                propagate_uncertainties = None
+            return self._arithmetic(operand, propagate_uncertainties, "division", np.divide)
+
+    ndd1_new = NDDataArithmetic(np.ones((3, 3)),
+                      uncertainty=StdDevUncertainty(np.ones((3, 3))))
+    ndd2_new = NDDataArithmetic(np.ones((3, 3)),
+                      uncertainty=StdDevUncertainty(np.ones((3, 3))))
+    ndd1_old = OldNDArithmetic(np.ones((3, 3)),
+                               uncertainty=StdDevUncertainty(np.ones((3, 3))))
+    ndd2_old = OldNDArithmetic(np.ones((3, 3)),
+                               uncertainty=StdDevUncertainty(np.ones((3, 3))))
+
+    for method in ['add', 'subtract', 'multiply', 'divide']:
+        ndd3_old = getattr(ndd1_old, method)(ndd2_old)
+        ndd3_new = getattr(ndd1_new, method)(ndd2_new)
+        np.testing.assert_array_almost_equal(ndd3_old.uncertainty.array,
+                                             ndd3_new.uncertainty.array)

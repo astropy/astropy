@@ -10,23 +10,18 @@ environment:
         PYTHON_ARCH: "64" # needs to be set for CMD_IN_ENV to succeed. If a mix
                           # of 32 bit and 64 bit builds are needed, move this
                           # to the matrix section.
-        CONDA_DEPENDENCIES: "Cython scipy h5py beautifulsoup4 jinja2 pyyaml scikit-image pytz"
+        CONDA_DEPENDENCIES: "Cython scipy h5py beautifulsoup4 jinja2 pyyaml matplotlib scikit-image pytz"
         PIP_DEPENDENCIES: "objgraph"
-    
+
     matrix:
-    
+
         - PYTHON_VERSION: "2.7"
-          NUMPY_VERSION: "stable"
-        - PYTHON_VERSION: "3.4"
           NUMPY_VERSION: "stable"
         - PYTHON_VERSION: "3.5"
           NUMPY_VERSION: "stable"
 
 matrix:
     fast_finish: true
-    allow_failures:
-        - PYTHON_VERSION: "3.5"
-          NUMPY_VERSION: "stable"
 
 platform:
     -x64

@@ -42,6 +42,13 @@ except ImportError:
 else:
     HAS_XZ = True
 
+try:
+    import pathlib
+except ImportError:
+    HAS_PATHLIB = False
+else:
+    HAS_PATHLIB = True
+
 @remote_data
 def test_download_nocache():
     from ..data import download_file
@@ -63,12 +70,31 @@ def test_download_cache():
 
     from ..data import download_file, clear_download_cache
 
+    download_dir = _get_download_cache_locs()[0]
+
+    # Download the test URL and make sure it exists, then clear just that
+    # URL and make sure it got deleted.
     fnout = download_file(TESTURL, cache=True)
+    assert os.path.isdir(download_dir)
     assert os.path.isfile(fnout)
     clear_download_cache(TESTURL)
-    assert not os.path.isfile(fnout)
+    assert not os.path.exists(fnout)
 
-    lockdir = os.path.join(_get_download_cache_locs()[0], 'lock')
+    # Test issues raised in #4427 with clear_download_cache() without a URL,
+    # followed by subsequent download.
+    fnout = download_file(TESTURL, cache=True)
+    assert os.path.isfile(fnout)
+    clear_download_cache()
+    assert not os.path.exists(fnout)
+    assert not os.path.exists(download_dir)
+    fnout = download_file(TESTURL, cache=True)
+    assert os.path.isfile(fnout)
+
+    # Clearing download cache succeeds even if the URL does not exist.
+    clear_download_cache('http://this_was_never_downloaded_before.com')
+
+    # Make sure lockdir was released
+    lockdir = os.path.join(download_dir, 'lock')
     assert not os.path.isdir(lockdir), 'Cache dir lock was not released!'
 
 
@@ -396,3 +422,9 @@ def test_get_readable_fileobj_cleans_up_temporary_files(tmpdir, monkeypatch):
     # Assert that the temporary file was empty after get_readable_fileobj()
     # context manager finished running
     assert len(tempdir_listing) == 0
+
+@pytest.mark.skipif('not HAS_PATHLIB')
+def test_path_objects_get_readable_fileobj():
+    fpath = pathlib.Path(get_pkg_data_filename(os.path.join('data', 'local.dat')))
+    with get_readable_fileobj(fpath) as f:
+        assert f.read().rstrip() == 'This file is used in the test_local_data_* testing functions\nCONTENT'

@@ -5,6 +5,7 @@
 import re
 from io import BytesIO
 from collections import OrderedDict
+import locale
 
 import numpy as np
 
@@ -25,6 +26,20 @@ except ImportError:
     HAS_BZ2 = False
 else:
     HAS_BZ2 = True
+
+try:
+    import pathlib
+except ImportError:
+    HAS_PATHLIB = False
+else:
+    HAS_PATHLIB = True
+
+try:
+    locale.setlocale(locale.LC_ALL, 'de_DE')
+except:
+    HAS_DE_LOCALE = False
+else:
+    HAS_DE_LOCALE = True
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
@@ -779,6 +794,10 @@ def get_testfiles(name=None):
          'name': 't/latex2.tex',
          'nrows': 3,
          'opts': {'Reader': ascii.AASTex}},
+        {'cols': ('cola', 'colb', 'colc'),
+         'name': 't/latex3.tex',
+         'nrows': 2,
+         'opts': {'Reader': ascii.Latex}},
         {'cols': ('Col1', 'Col2', 'Col3', 'Col4'),
          'name': 't/fixed_width_2_line.txt',
          'nrows': 2,
@@ -1113,3 +1132,48 @@ def test_table_with_no_newline():
         t = ascii.read(table, **kwargs)
         assert t.colnames == ['a', 'b']
         assert len(t) == 0
+
+@pytest.mark.skipif('not HAS_PATHLIB')
+def test_path_object():
+    fpath = pathlib.Path('t/simple.txt')
+    data = ascii.read(fpath)
+
+    assert len(data) == 2
+    assert sorted(list(data.columns)) == ['test 1a', 'test2', 'test3', 'test4']
+    assert data['test2'][1] == 'hat2'
+
+
+def test_column_conversion_error():
+    """
+    Test that context information (upstream exception message) from column
+    conversion error is provided.
+    """
+    ipac = """\
+| col0   |
+| double |
+ 1  2
+"""
+    with pytest.raises(ValueError) as err:
+        ascii.read(ipac, guess=False, format='ipac')
+    assert 'Column col0 failed to convert:' in str(err.value)
+
+    with pytest.raises(ValueError) as err:
+        ascii.read(['a b', '1 2'], guess=False, format='basic', converters={'a': []})
+    assert 'no converters' in str(err.value)
+
+@pytest.mark.skipif('not HAS_DE_LOCALE')
+def test_non_C_locale_with_fast_reader():
+    """Test code that forces "C" locale while calling fast reader (#4364)"""
+    current = locale.setlocale(locale.LC_ALL)
+
+    try:
+        locale.setlocale(locale.LC_ALL, str('de_DE'))
+
+        for fast_reader in (True, False, {'use_fast_converter': False}, {'use_fast_converter': True}):
+            t = ascii.read(['a b', '1.5 2'], format='basic', guess=False,
+                           fast_reader=fast_reader)
+            assert t['a'].dtype.kind == 'f1'
+    except:
+        raise
+    finally:
+        locale.setlocale(locale.LC_ALL, current)

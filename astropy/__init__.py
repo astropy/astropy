@@ -76,7 +76,7 @@ except ImportError:
     __githash__ = ''
 
 
-__minimum_numpy_version__ = '1.6.0'
+__minimum_numpy_version__ = '1.7.0'
 
 
 # The location of the online documentation for astropy
@@ -177,10 +177,10 @@ def _initialize_astropy():
         from .utils import _compiler
     except ImportError:
         if _is_astropy_source():
-            log.warn('You appear to be trying to import astropy from '
-                     'within a source checkout without building the '
-                     'extension modules first.  Attempting to (re)build '
-                     'extension modules:')
+            log.warning('You appear to be trying to import astropy from '
+                        'within a source checkout without building the '
+                        'extension modules first.  Attempting to (re)build '
+                        'extension modules:')
 
             try:
                 _rebuild_extensions()

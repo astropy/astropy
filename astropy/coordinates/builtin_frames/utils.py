@@ -29,7 +29,7 @@ DEFAULT_OBSTIME = Time('J2000', scale='utc')
 
 PIOVER2 = np.pi / 2.
 
-#comes from the mean of the 1962-2014 IERS B data
+# comes from the mean of the 1962-2014 IERS B data
 _DEFAULT_PM = (0.035, 0.29)*u.arcsec
 
 _IERS_HINT = """
@@ -49,7 +49,7 @@ def cartrepr_from_matmul(pmat, coo, transpose=False):
     if pmat.shape[-2:] != (3, 3):
         raise ValueError("tried to do matrix multiplication with an array that "
                          "doesn't end in 3x3")
-    if coo.isscalar:
+    if coo.isscalar and pmat.shape == (3, 3):
         # a simpler path for scalar coordinates
         if transpose:
             pmat = pmat.T
@@ -71,15 +71,15 @@ def get_polar_motion(time):
     """
     gets the two polar motion components in radians for use with apio13
     """
-    #get the polar motion from the IERS table
+    # get the polar motion from the IERS table
     xp, yp, status = iers.IERS.open().pm_xy(time, return_status=True)
 
     wmsg = None
     if np.any(status == iers.TIME_BEFORE_IERS_RANGE):
         wmsg = ('Tried to get polar motions for times before IERS data is '
                 'valid. Defaulting to polar motion from the 50-yr mean for those.')
-        xp.ravel()[status.ravel()==iers.TIME_BEFORE_IERS_RANGE] = _DEFAULT_PM[0]
-        yp.ravel()[status.ravel()==iers.TIME_BEFORE_IERS_RANGE] = _DEFAULT_PM[1]
+        xp.ravel()[status.ravel() == iers.TIME_BEFORE_IERS_RANGE] = _DEFAULT_PM[0]
+        yp.ravel()[status.ravel() == iers.TIME_BEFORE_IERS_RANGE] = _DEFAULT_PM[1]
 
         warnings.warn(wmsg, AstropyWarning)
 
@@ -87,8 +87,8 @@ def get_polar_motion(time):
         wmsg = ('Tried to get polar motions for times after IERS data is '
                 'valid. Defaulting to polar motion from the 50-yr mean for those.' + _IERS_HINT)
 
-        xp.ravel()[status.ravel()==iers.TIME_BEYOND_IERS_RANGE] = _DEFAULT_PM[0]
-        yp.ravel()[status.ravel()==iers.TIME_BEYOND_IERS_RANGE] = _DEFAULT_PM[1]
+        xp.ravel()[status.ravel() == iers.TIME_BEYOND_IERS_RANGE] = _DEFAULT_PM[0]
+        yp.ravel()[status.ravel() == iers.TIME_BEYOND_IERS_RANGE] = _DEFAULT_PM[1]
 
         warnings.warn(wmsg, AstropyWarning)
 
@@ -106,6 +106,7 @@ def _warn_iers(ierserr):
     msg = '{0} Assuming UT1-UTC=0 for coordinate transformations.{1}'
     warnings.warn(msg.format(ierserr.args[0], _IERS_HINT), AstropyWarning)
 
+
 def get_dut1utc(time):
     """
     This function is used to get UT1-UTC in coordinates because normally it
@@ -117,6 +118,7 @@ def get_dut1utc(time):
     except iers.IERSRangeError as e:
         _warn_iers(e)
         return np.zeros(time.shape)
+
 
 def get_jd12(time, scale):
     """

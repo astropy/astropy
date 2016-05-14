@@ -104,6 +104,18 @@ class TestICheb2D(object):
         assert_allclose(model.parameters, [0, 1, 2, 3, 4, 5, 6, 7, 8],
                         atol=10**-9)
 
+    @pytest.mark.skipif('not HAS_SCIPY')
+    def test_chebyshev2D_nonlinear_fitting_with_weights(self):
+        cheb2d = models.Chebyshev2D(2, 2)
+        cheb2d.parameters = np.arange(9)
+        z = cheb2d(self.x, self.y)
+        cheb2d.parameters = [0.1, .6, 1.8, 2.9, 3.7, 4.9, 6.7, 7.5, 8.9]
+        nlfitter = LevMarLSQFitter()
+        weights = np.ones_like(self.y)
+        model = nlfitter(cheb2d, self.x, self.y, z, weights=weights)
+        assert_allclose(model.parameters, [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                        atol=10**-9)
+
 
 @pytest.mark.skipif('not HAS_SCIPY')
 class TestJointFitter(object):
@@ -250,6 +262,21 @@ class TestNonLinearFitters(object):
         g1e = models.Gaussian1D(100, 5.0, stddev=1)
         efitter = LevMarLSQFitter()
         emodel = efitter(g1e, self.xdata, self.ydata, estimate_jacobian=True)
+        assert_allclose(model.parameters, emodel.parameters, rtol=10 ** (-3))
+
+    def test_estimated_vs_analytic_deriv_with_weights(self):
+        """
+        Runs `LevMarLSQFitter` with estimated and analytic derivatives of a
+        `Gaussian1D`.
+        """
+
+        weights = 1.0 / (self.ydata / 10.)
+
+        fitter = LevMarLSQFitter()
+        model = fitter(self.gauss, self.xdata, self.ydata, weights=weights)
+        g1e = models.Gaussian1D(100, 5.0, stddev=1)
+        efitter = LevMarLSQFitter()
+        emodel = efitter(g1e, self.xdata, self.ydata, weights=weights, estimate_jacobian=True)
         assert_allclose(model.parameters, emodel.parameters, rtol=10 ** (-3))
 
     def test_with_optimize(self):

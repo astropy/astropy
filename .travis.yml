@@ -17,13 +17,14 @@ addons:
             - graphviz
             - texlive-latex-extra
             - dvipng
+            - language-pack-de
 env:
     global:
         # Set defaults to avoid repeating in most cases
-        - NUMPY_VERSION=1.9
+        - NUMPY_VERSION=stable
         - MAIN_CMD='python setup.py'
         - CONDA_DEPENDENCIES='Cython jinja2'
-        - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautiful-soup ipython'
+        - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautiful-soup ipython mpmath'
         - PIP_DEPENDENCIES=''
 
     matrix:
@@ -69,24 +70,30 @@ matrix:
           env: PYTHON_VERSION=2.7 SETUP_CMD='test --coverage'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='cpp-coveralls objgraph'
-               LC_CTYPE=C.ascii LC_ALL=C.ascii
+               LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
         - os: linux
           env: PYTHON_VERSION=3.4 SETUP_CMD='test'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               LC_CTYPE=C.ascii LC_ALL=C.ascii
+               LC_CTYPE=C.ascii LC_ALL=C
 
         # Try older numpy versions without optional dependencies
+        - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.10 SETUP_CMD='test'
+        - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.9 SETUP_CMD='test'
         - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.8 SETUP_CMD='test'
         - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.7 SETUP_CMD='test'
-        - os: linux
-          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.6 SETUP_CMD='test'
 
         # Try developer version of Numpy without optional dependencies
         - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=dev SETUP_CMD='test'
+
+        # Try pre-release version of Numpy without optional dependencies
+        - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=prerelease SETUP_CMD='test'
 
         # Do a PEP8 test
         - os: linux
@@ -104,6 +111,6 @@ script:
 
 after_success:
     - if [[ $SETUP_CMD == 'test --coverage' ]]; then
-        cpp-coveralls -E ".*convolution.*" -E ".*_erfa.*" -E ".*\.l" -E ".*\.y" -E ".*flexed.*" -E ".*cextern.*" -E ".*_np_utils.*" -E ".*cparser.*" --dump c-coveralls.json;
+        cpp-coveralls -E ".*convolution.*" -E ".*_erfa.*" -E ".*\.l" -E ".*\.y" -E ".*flexed.*" -E ".*cextern.*" -E ".*_np_utils.*" -E ".*cparser.*" -E ".*cython_impl.*" --dump c-coveralls.json;
         coveralls --merge=c-coveralls.json --rcfile='astropy/tests/coveragerc';
       fi

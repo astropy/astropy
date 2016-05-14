@@ -43,6 +43,7 @@ import platform
 import numpy as np
 
 # LOCAL
+from .. import log
 from ..extern import six
 from ..io import fits
 from . import _docutil as __
@@ -128,7 +129,7 @@ else:
 
 
 # Additional relax bit flags
-WCSHDO_SIP = 0x10000
+WCSHDO_SIP = 0x30000
 
 # Regular expression defining SIP keyword It matches keyword that starts with A
 # or B, optionally followed by P, followed by an underscore then a number in
@@ -215,7 +216,7 @@ class WCS(WCSBase):
 
     Parameters
     ----------
-    header : astropy.io.fits header object, string, dict-like, or None, optional
+    header : astropy.io.fits header object, Primary HDU, Image HDU, string, dict-like, or None, optional
         If *header* is not provided or None, the object will be
         initialized to default values.
 
@@ -384,22 +385,24 @@ class WCS(WCSBase):
                     fobj = fits.open(header)
                     close_fds.append(fobj)
                     header = fobj[0].header
-                    header_string = header.tostring().rstrip()
-                else:
-                    header_string = header
-            elif isinstance(header, fits.Header):
-                header_string = header.tostring().rstrip()
-            else:
+            elif isinstance(header, fits.hdu.image._ImageBaseHDU):
+                header = header.header
+            elif not isinstance(header, fits.Header):
                 try:
                     # Accept any dict-like object
-                    new_header = fits.Header()
-                    for dict_key in header.keys():
-                        new_header[dict_key] = header[dict_key]
-                    header_string = new_header.tostring().rstrip()
+                    orig_header = header
+                    header = fits.Header()
+                    for dict_key in orig_header.keys():
+                        header[dict_key] = orig_header[dict_key]
                 except TypeError:
                     raise TypeError(
                         "header must be a string, an astropy.io.fits.Header "
                         "object, or a dict-like object")
+
+            if isinstance(header, fits.Header):
+                header_string = header.tostring().rstrip()
+            else:
+                header_string = header
 
             # Importantly, header is a *copy* of the passed-in header
             # because we will be modifying it
@@ -1031,6 +1034,21 @@ reduce these to 2 dimensions using the naxis kwarg.
 
             del header[str('A_ORDER')]
             del header[str('B_ORDER')]
+            ctype=[header['CTYPE{0}'.format(nax)] for nax in range(1, self.naxis + 1)]
+            if any([ctyp[-4 :] != '-SIP' for ctyp in ctype]):
+                message = """
+                Inconsistent SIP distortion information is present in header:
+                SIP coefficients were detected, but CTYPE is missing "-SIP" suffix,
+                therefore the coordinates calculated here might be incorrect.
+
+                If image is already distortion-corrected (eg, drizzled) then
+                distortion components should not apply. For such distortion-corrected
+                images, please use ``wcs_pix2world`` or ``wcs_world2pix`` instead.
+
+                If image is not yet distortion-corrected (eg, not yet drizzled), then
+                please inspect the header and make appropriate changes before rerunning.
+                """
+                log.info(message)
         elif str("B_ORDER") in header and header[str('B_ORDER')] > 1:
             raise ValueError(
                 "B_ORDER provided without corresponding A_ORDER " +
@@ -2481,6 +2499,8 @@ reduce these to 2 dimensions using the naxis kwarg.
           8. Keyword order may be changed.
 
         """
+        # default precision for numerical WCS keywords
+        precision = WCSHDO_P14
         display_warning = False
         if relax is None:
             display_warning = True
@@ -2492,15 +2512,13 @@ reduce these to 2 dimensions using the naxis kwarg.
         else:
             do_sip = relax
 
+        relax = precision | relax
+
         if self.wcs is not None:
             if key is not None:
                 orig_key = self.wcs.alt
                 self.wcs.alt = key
-            try:
-                header_string = self.wcs.to_header(relax)
-            finally:
-                if key is not None:
-                    self.wcs.alt = orig_key
+            header_string = self.wcs.to_header(relax)
             header = fits.Header.fromstring(header_string)
             keys_to_remove = ["", " ", "COMMENT"]
             for kw in keys_to_remove:
@@ -2510,8 +2528,17 @@ reduce these to 2 dimensions using the naxis kwarg.
             header = fits.Header()
 
         if do_sip and self.sip is not None:
+            if self.wcs is not None and any([ctyp[-4 :] != '-SIP' for ctyp in self.wcs.ctype]):
+                self._fix_ctype(header, add_sip=True)
+
             for kw, val in self._write_sip_kw().items():
                 header[kw] = val
+
+
+        if not do_sip and self.wcs is not None and any(self.wcs.ctype):
+            # This is called when relax is not False or WCSHDO_SIP
+            # The default case of ``relax=None`` is handled further in the code.
+            header = self._fix_ctype(header, add_sip=False)
 
         if display_warning:
             full_header = self.to_header(relax=True, key=key)
@@ -2526,7 +2553,74 @@ reduce these to 2 dimensions using the naxis kwarg.
                     "Use the ``relax`` kwarg to control this.".format(
                         ', '.join(missing_keys)),
                     AstropyWarning)
+            # called when ``relax=None``
+            # This is different from the case of ``relax=False``.
+            if any(self.wcs.ctype):
+                header = self._fix_ctype(header, add_sip=False, log_message=False)
+        # Finally reset the key. This must be called after ``_fix_ctype``.
+        if key is not None:
+            self.wcs.alt = orig_key
+        return header
 
+    def _fix_ctype(self, header, add_sip=True, log_message=True):
+        """
+        Parameters
+        ----------
+        header : `~astropy.io.fits.Header`
+            FITS header.
+        add_sip : bool
+            Flag indicating whether "-SIP" should be added or removed from CTYPE keywords.
+
+            Remove "-SIP" from CTYPE when writing out a header with relax=False.
+            This needs to be done outside ``to_header`` because ``to_header`` runs
+            twice when ``relax=False`` and the second time ``relax`` is set to ``True``
+            to display the missing keywords.
+
+            If the user requested SIP distortion to be written out add "-SIP" to
+            CTYPE if it is missing.
+        """
+
+        _strip_sip_from_ctype = """
+        Warning: to_header() was invoked without ``relax=True``: stripping all SIP
+        coefficients from output header, and stripping "-SIP" from output CTYPE
+        if it was originally present.
+
+        Therefore astrometry obtained for output image may be different from
+        original image because SIP is no longer present.
+
+        Please inspect the headers of input and output images to verify, and
+        modify the headers if necessary.
+        """
+
+        _add_sip_to_ctype = """
+        Inconsistent SIP distortion information is present in the current WCS:
+        SIP coefficients were detected, but CTYPE is missing "-SIP" suffix,
+        therefore the current WCS is internally inconsistent.
+
+        Because relax has been set to True, the resulting output WCS will have
+        "-SIP" appended to CTYPE in order to make the header internally consistent.
+
+        However, this may produce incorrect astrometry in the output WCS, if
+        in fact the current WCS is already distortion-corrected.
+
+        Therefore, if current WCS is already distortion-corrected (eg, drizzled)
+        then SIP distortion components should not apply. In that case, for a WCS
+        that is already distortion-corrected, please do not set relax=True.
+
+        """
+        if log_message:
+            if add_sip:
+                log.info(_add_sip_to_ctype)
+            else:
+                log.info(_strip_sip_from_ctype)
+        for i in range(1, self.naxis+1):
+            # strip() must be called here to cover the case of alt key= " "
+            kw = 'CTYPE{0}{1}'.format(i, self.wcs.alt).strip()
+            if add_sip:
+                val = header[kw].strip("-SIP") + "-SIP"
+            else:
+                val = header[kw].strip("-SIP")
+            header[kw] = val
         return header
 
     def to_header_string(self, relax=None):
@@ -2938,7 +3032,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             ...
 
         and this will generate a plot with the correct WCS coordinates on the
-        axes. See http://wcsaxes.readthedocs.org for more information.
+        axes. See http://wcsaxes.readthedocs.io for more information.
         """
 
         try:
@@ -2946,7 +3040,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         except ImportError:
             raise ImportError("Using WCS instances as Matplotlib projections "
                               "requires the WCSAxes package to be installed. "
-                              "See http://wcsaxes.readthedocs.org for more "
+                              "See http://wcsaxes.readthedocs.io for more "
                               "details.")
         else:
             return WCSAxes, {'wcs': self}

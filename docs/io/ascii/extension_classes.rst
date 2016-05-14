@@ -24,6 +24,7 @@ well-defined but idiosyncratic formats.
 * :class:`~astropy.io.ascii.Latex`: LaTeX table with datavalue in the ``tabular`` environment
 * :class:`~astropy.io.ascii.NoHeader`: basic table with no header where columns are auto-named
 * :class:`~astropy.io.ascii.Rdb`: tab-separated values with an extra line after the column definition line
+* :class:`~astropy.io.ascii.RST`: `reStructuredText simple format table <http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#simple-tables>`_
 * :class:`~astropy.io.ascii.SExtractor`: `SExtractor format table <http://www.astromatic.net/software/sextractor>`_
 * :class:`~astropy.io.ascii.Tab`: tab-separated values
 * :class:`~astropy.io.ascii.Csv`: comma-separated values

@@ -55,11 +55,12 @@ normalize values to the range::
     array([ 0. ,  0.4,  0.6,  0.8,  1. ])
 
 Other interval classes include :class:`~astropy.visualization.ManualInterval`,
-:class:`~astropy.visualization.PercentileInterval`, and
-:class:`~astropy.visualization.AsymmetricPercentileInterval`. For these three,
-values in the array can fall outside of the limits given by the interval. A
-``clip`` argument is provided to control the behavior of the normalization when
-values fall outside the limits::
+:class:`~astropy.visualization.PercentileInterval`,
+:class:`~astropy.visualization.AsymmetricPercentileInterval`, and
+:class:`~astropy.visualization.ZScaleInterval`. For these, values in the array
+can fall outside of the limits given by the interval.  A ``clip`` argument is
+provided to control the behavior of the normalization when values fall outside
+the limits::
 
 
     >>> from astropy.visualization import PercentileInterval

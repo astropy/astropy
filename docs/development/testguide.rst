@@ -151,7 +151,7 @@ Enable PEP8 compliance testing with ``pep8=True`` in the call to
 Tox
 ---
 
-`Tox <http://tox.readthedocs.org>`_ is a sort of meta-test runner for Python.
+`Tox <http://tox.readthedocs.io>`_ is a sort of meta-test runner for Python.
 It installs a project into one or more virtualenvs (usually one for each Python
 version supported), build and installs the project into each virtualenv, and
 runs the projects tests (or any other build processes one might want to test).

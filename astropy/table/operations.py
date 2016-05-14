@@ -331,7 +331,7 @@ def hstack(tables, join_type='outer',
     return out
 
 
-def unique(input_table, keys=None, silent=False):
+def unique(input_table, keys=None, silent=False, keep='first'):
     """
     Returns the unique rows of a table.
 
@@ -339,45 +339,127 @@ def unique(input_table, keys=None, silent=False):
     ----------
 
     input_table : `~astropy.table.Table` object or a value that
-    will initialize a `~astropy.table.Table` object
-        Input table.
+        will initialize a `~astropy.table.Table` object
     keys : str or list of str
-        Name(s) of column(s) used to unique rows.
+        Name(s) of column(s) used to create unique rows.
         Default is to use all columns.
+    keep : one of 'first', 'last' or 'none'
+        Whether to keep the first or last row for each set of
+        duplicates. If 'none', all rows that are duplicate are
+        removed, leaving only rows that are already unique in
+        the input.
+        Default is 'first'.
     silent : boolean
-        If `True` masked value column(s) are silently removed from
-        ``keys``. If `False` an exception is raised when ``keys`` contains
-        masked value column(s).
+        If `True`, masked value column(s) are silently removed from
+        ``keys``. If `False`, an exception is raised when ``keys``
+        contains masked value column(s).
         Default is `False`.
 
     Returns
     -------
     unique_table : `~astropy.table.Table` object
-        Table containing only the unique rays of ``input_table``.
+        New table containing only the unique rows of ``input_table``.
+
+    Examples
+    --------
+    >>> from astropy.table import Table
+    >>> import numpy as np
+    >>> table = Table(data=[[1,2,3,2,3,3],
+    ... [2,3,4,5,4,6],
+    ... [3,4,5,6,7,8]],
+    ... names=['col1', 'col2', 'col3'],
+    ... dtype=[np.int32, np.int32, np.int32])
+    >>> table
+    <Table length=6>
+     col1  col2  col3
+    int32 int32 int32
+    ----- ----- -----
+        1     2     3
+        2     3     4
+        3     4     5
+        2     5     6
+        3     4     7
+        3     6     8
+    >>> unique(table, keys='col1')
+    <Table length=3>
+     col1  col2  col3
+    int32 int32 int32
+    ----- ----- -----
+        1     2     3
+        2     3     4
+        3     4     5
+    >>> unique(table, keys=['col1'], keep='last')
+    <Table length=3>
+     col1  col2  col3
+    int32 int32 int32
+    ----- ----- -----
+        1     2     3
+        2     5     6
+        3     6     8
+    >>> unique(table, keys=['col1', 'col2'])
+    <Table length=5>
+     col1  col2  col3
+    int32 int32 int32
+    ----- ----- -----
+        1     2     3
+        2     3     4
+        2     5     6
+        3     4     5
+        3     6     8
+    >>> unique(table, keys=['col1', 'col2'], keep='none')
+    <Table length=4>
+     col1  col2  col3
+    int32 int32 int32
+    ----- ----- -----
+        1     2     3
+        2     3     4
+        2     5     6
+        3     6     8
+    >>> unique(table, keys=['col1'], keep='none')
+    <Table length=1>
+     col1  col2  col3
+    int32 int32 int32
+    ----- ----- -----
+        1     2     3
 
     """
 
+    if keep not in ('first', 'last', 'none'):
+        raise ValueError("'keep' should be one of 'first', 'last', 'none'")
+
+    if isinstance(keys, six.string_types):
+        keys = [keys]
     if keys is None:
         keys = input_table.colnames
+    else:
+        if len(set(keys)) != len(keys):
+            raise ValueError("duplicate key names")
 
     if input_table.masked:
-        if isinstance(keys, six.string_types):
-            keys = [keys, ]
-        for i, key in enumerate(keys):
+        nkeys = 0
+        for key in keys[:]:
             if np.any(input_table[key].mask):
                 if not silent:
-                    raise ValueError("Cannot unique masked value key columns, "
-                                     "remove column '{0}' from keys and rerun "
-                                     "unique.".format(key))
-                del keys[i]
+                    raise ValueError(
+                        "cannot use columns with masked values as keys; "
+                        "remove column '{0}' from keys and rerun "
+                        "unique()".format(key))
+                del keys[keys.index(key)]
         if len(keys) == 0:
-            raise ValueError("No column remained in ``keys``, unique cannot "
-                             "work with masked value key columns.")
+            raise ValueError("no column remained in ``keys``; "
+                             "unique() cannot work with masked value "
+                             "key columns")
 
     grouped_table = input_table.group_by(keys)
-    unique_table = grouped_table[grouped_table.groups.indices[:-1]]
+    indices = grouped_table.groups.indices
+    if keep == 'first':
+        indices = indices[:-1]
+    elif keep == 'last':
+        indices = indices[1:] - 1
+    else:
+        indices = indices[:-1][np.diff(indices) == 1]
 
-    return unique_table
+    return grouped_table[indices]
 
 
 def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name}',

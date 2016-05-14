@@ -32,18 +32,6 @@ Currently `astropy.table` is used when reading an ASCII table using
 `astropy.io.ascii`.  Future releases of AstroPy are expected to use
 the |Table| class for other subpackages such as `astropy.io.votable` and `astropy.io.fits` .
 
-.. Note::
-
-   Starting with version 1.0 of astropy the internal implementation of the
-   |Table| class changed so that it no longer uses numpy structured arrays as
-   the core table data container.  Instead the table is stored as a collection
-   of individual column objects.  *For most users there is NO CHANGE to the
-   interface and behavior of |Table| objects.*
-
-   The page on :ref:`table_implementation_change` provides details about the
-   change.  This includes discussion of the table architecture, key differences,
-   and benefits of the change.
-
 Getting Started
 ===============
 
@@ -115,9 +103,16 @@ a way to natively use `~astropy.units.Quantity` objects in tables)::
   >>> t['b'].to('min')  # doctest: +FLOAT_CMP
   <Quantity [ 0.03333333, 0.08333333, 0.13666667] min>
 
-From within the IPython notebook, the table is displayed as a formatted HTML table:
+From within the IPython notebook, the table is displayed as a formatted HTML
+table (details of how it appears can be changed by altering the
+``astropy.table.default_notebook_table_class`` configuration item):
 
 .. image:: table_repr_html.png
+
+Or you can get a fancier notebook interface with in-browser search and sort
+using `~astropy.table.Table.show_in_notebook`:
+
+.. image:: table_show_in_nb.png
 
 If you print the table (either from the notebook or in a text console session)
 then a formatted version appears::

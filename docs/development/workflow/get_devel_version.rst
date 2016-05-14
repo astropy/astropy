@@ -298,8 +298,7 @@ If you are going through this to ramp up to making more contributions to
 If you are doing this because you have found a bug and are checking that it
 still exists in the development version, try running your code.
 
-Or, just for fun, try out one of the
-`new features <http://astropy.readthedocs.org/en/latest/changelog.html>`_ in
+Or, just for fun, try out one of the :ref:`new features <changelog>` in
 the development version.
 
 Either way, once you are done, make sure you do the next step.

@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 5.10 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2015, Mark Calabretta
+  WCSLIB 5.14 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2016, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsfix.c,v 5.10 2015/10/09 08:19:15 mcalabre Exp $
+  $Id: wcsfix.c,v 5.14 2016/02/07 10:49:31 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -441,25 +441,31 @@ int unitfix(int ctrl, struct wcsprm *wcs)
 
 {
   int  i, k, result, status = FIXERR_NO_CHANGE;
-  char orig_unit[80], msg[WCSERR_MSG_LENGTH];
+  char orig_unit[80], msg[WCSERR_MSG_LENGTH], msgtmp[WCSERR_MSG_LENGTH];
   const char *function = "unitfix";
   struct wcserr **err;
 
   if (wcs == 0x0) return FIXERR_NULL_POINTER;
   err = &(wcs->err);
 
-  strcpy(msg, "Changed units: ");
+  strncpy(msg, "Changed units: ", WCSERR_MSG_LENGTH);
+
   for (i = 0; i < wcs->naxis; i++) {
     strncpy(orig_unit, wcs->cunit[i], 80);
     result = wcsutrne(ctrl, wcs->cunit[i], &(wcs->err));
     if (result == 0 || result == 12) {
       k = strlen(msg);
-      sprintf(msg+k, "'%s' -> '%s', ", orig_unit, wcs->cunit[i]);
-      status = FIXERR_UNITS_ALIAS;
+      if (k < WCSERR_MSG_LENGTH-1) {
+        wcsutil_null_fill(80, orig_unit);
+        sprintf(msgtmp, "'%s' -> '%s', ", orig_unit, wcs->cunit[i]);
+        strncpy(msg+k, msgtmp, WCSERR_MSG_LENGTH-1-k);
+        status = FIXERR_UNITS_ALIAS;
+      }
     }
   }
 
   if (status == FIXERR_UNITS_ALIAS) {
+    /* Chop off the trailing ", ". */
     k = strlen(msg) - 2;
     msg[k] = '\0';
     wcserr_set(WCSERR_SET(FIXERR_UNITS_ALIAS), msg);

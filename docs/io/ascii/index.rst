@@ -96,6 +96,12 @@ disable the fast engine::
 
    >>> data = ascii.read(lines, format='csv', fast_reader=False)
 
+.. Note::
+
+   Reading a table which contains non-ASCII (unicode) characters is only
+   supported in Python 3 or greater.  If you have Python 2.x and need
+   this functionality, consider using a newer version of Python.
+
 Writing Tables
 --------------
 
@@ -199,6 +205,7 @@ the fast Cython/C engine for reading and writing.
 ``latex``                   Yes      :class:`~astropy.io.ascii.Latex`: LaTeX table
 ``no_header``               Yes  Yes :class:`~astropy.io.ascii.NoHeader`: Basic table with no headers
 ``rdb``                     Yes  Yes :class:`~astropy.io.ascii.Rdb`: Tab-separated with a type definition header line
+``rst``                     Yes      :class:`~astropy.io.ascii.RST`: reStructuredText simple format table
 ``sextractor``                       :class:`~astropy.io.ascii.SExtractor`: SExtractor format table
 ``tab``                     Yes  Yes :class:`~astropy.io.ascii.Tab`: Basic table with tab-separated values
 ========================= ===== ==== ============================================================================================

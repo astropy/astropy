@@ -1,6 +1,11 @@
 1.2 (unreleased)
 ----------------
 
+General
+^^^^^^^
+
+Astropy now requires Numpy 1.7.0 or later.
+
 New Features
 ^^^^^^^^^^^^
 
@@ -12,51 +17,110 @@ New Features
 
 - ``astropy.constants``
 
+  - Add ``L_bol0``, the luminosity corresponding to absolute bolometric
+    magnitude zero. [#4262]
+
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
 
+  - ``CartesianRepresentation`` now includes a transform() method that can take
+    a 3x3 matrix to transform coordinates. [#4860]
+
 - ``astropy.cosmology``
+
+  - ``angular_diameter_distance_z1z2`` now supports the computation of
+    the angular diameter distance between a scalar and an array like
+    argument. [#4593] The method now supports models with negative
+    Omega_k0 (positive curvature universes) [#4661] and allows z2 < z1.
 
 - ``astropy.io.ascii``
 
+  - File name could be passed as ``Path`` object. [#4606]
+
+  - Check that columns in ``formats`` specifier exist in the output table
+    when writing. [#4508]
+
+  - Allow trailing whitespace in the IPAC header lines. [#4758]
+
+  - Updated to filter out the default parser warning of BeautifulSoup.
+    [#4551]
+
+  - Added support for reading and writing reStructuredText simple tables
+    [#4812]
+
 - ``astropy.io.fits``
+
+  - File name could be passed as ``Path`` object. [#4606]
+
+  - Header allows a dictionary-like cards argument during creation. [#4663]
 
 - ``astropy.io.misc``
 
+- ``astropy.io.registry``
+
+  - Added custom ``IORegistryError`` [#4883]
+
 - ``astropy.io.votable``
+
+  - File name could be passed as ``Path`` object. [#4606]
 
 - ``astropy.logger.py``
 
 - ``astropy.modeling``
 
+  - Added the fittable=True attribute to the Scale and Shift models with tests. [#4718]
+
+  - Added example plots to docstrings for some build-in models. [#4008]
+
 - ``astropy.nddata``
 
-  - Added ``UnknownUncertainty`` as ``NDUncertainty`` subclass which cannot
-    be used for error propagation. [#4272]
+  - ``UnknownUncertainty`` new subclass of ``NDUncertainty`` that can be used to
+    save uncertainties that cannot be used for error propagation. [#4272]
 
-  - ``StdDevUncertainty`` implements error propagation using it's ``unit`` and
-    a given ``correlation`` between the datasets. [#4272]
+  - ``NDArithmeticMixin``: ``add``, ``subtract``, ``multiply`` and ``divide``
+    can be used as classmethods but require that two operands are given. These
+    operands don't need to be NDData instances but they must be convertible to
+    NDData. This conversion is done internally. Using it on the instance does
+    not require (but also allows) two operands. [#4272, #4851]
 
-  - ``NDArithmeticMixin`` allows for arithmetic operations with anything that
-    can be wrapped by the class. [#4272]
-
-  - ``NDArithmeticMixin`` provides methods for arithmetic operations where the
-    first operand is not an ``NDArithmeticMixin`` subclass via classmethods
-    called ``ic_add``, ``ic_subtract``, etc. [#4272]
+  - ``NDDataRef`` new subclass that implements ``NDData`` together with all
+    currently avaiable mixins. This class does not implement additional
+    attributes, methods or a numpy.ndarray-like interface like ``NDDataArray``.
+    [#4797]
 
 - ``astropy.stats``
+
+  - Added ``axis`` keyword for ``mad_std`` function. [#4688]
+
+  - Added Bayesian and Akaike Information Criteria. [#4716]
+
+  - Added Bayesian upper limits for Poisson count rates. [#4622]
+
+  - Added ``circstats``; a module for computing circular statistics. [#3705]
 
   - Added ``jackknife`` resampling method. [#3708]
 
   - Updated ``bootstrap`` to allow bootstrapping statistics with multiple
     outputs. [#3601]
 
+  - Added ``LombScargle`` class to compute Lomb-Scargle periodograms [#4811]
+
 - ``astropy.table``
 
   - ``Table.show_in_notebook`` and ``Table.show_in_browser(jsviewer=True)`` now
     yield tables with an "idx" column, allowing easy identification of the index
     of a row even when the table is re-sorted in the browser. [#4404]
+
+  - Added ``AttributeError`` when trying to set mask on non-masked table. [#3505]
+
+  - Allow to use a tuple of keys in ``Table.sort``.  [#4671]
+
+  - Added ``itercols``; a way to iterate through columns of a table. [#3805]
+  - ``Table.show_in_notebook`` and the default notebook display (i.e.,
+    ``Table._repr_html_``) now use consistent table styles which can be set
+    using the ``astropy.table.default_notebook_table_class`` configuration
+    item. [#4886]
 
 - ``astropy.tests``
 
@@ -70,18 +134,38 @@ New Features
   - The option to use tuples to indicate fractional powers of units,
     deprecated in 0.3.1, has been removed. [#4449]
 
+  - Added slug to imperial units. [#4670]
+
+  - Added Earth radius (``R_earth``) and Jupiter radius (``R_jup``) to units.
+    [#4818]
+
+  - Added a ``represents`` property to allow access to the definition of a
+    named unit (e.g., ``u.kpc.represents`` yields ``1000 pc``). [#4806]
+
+  - Add bolometric absolute and apparent magnitudes, ``M_bol`` and ``m_bol``.
+    [#4262]
+
 - ``astropy.utils``
+
+  - ``Path`` object could be passed to ``get_readable_fileobj``. [#4606]
 
   - Implemented a generic and extensible way of merging metadata. [#4459]
 
   - Added ``format_doc`` decorator which allows to replace and/or format the
     current docstring of an object. [#4242]
 
+  - Added a new context manager ``set_locale`` to temporarily set the
+    current locale. [#4363]
+
 - ``astropy.visualization``
+
+  - Add zscale interval based on Numdisplay's implementation. [#4776]
 
 - ``astropy.vo``
 
 - ``astropy.wcs``
+
+  - wcslib was updated to v5.14 [#4579]
 
 API changes
 ^^^^^^^^^^^
@@ -108,6 +192,8 @@ API changes
 
 - ``astropy.io.ascii``
 
+  - Add a way to control HTML escaping when writing a table as an HTML file. [#4423]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``
@@ -118,38 +204,142 @@ API changes
 
 - ``astropy.modeling``
 
+  - Renamed ``Redshift`` model to ``RedshiftScaleFactor``. [#3672]
+
+  - Inputs (``coords`` and ``out``) to ``render`` function in ``Model`` are
+    converted to float. [#4697]
+
 - ``astropy.nddata``
 
-  - ``NDData``: added an optional parameter ``copy``
-    which is False by default. If it is True all other parameters are copied
-    before saving them as attributes. If False the parameters are only copied
-    if there is no way of saving them as reference. [#4270]
+  - ``NDDataBase`` does not set the private uncertainty property anymore. This
+    only affects you if you subclass ``NDDataBase`` directly. [#4270]
 
-  - ``NDData``: ``Masked_Quantity`` objects are allowed as ``data``
-    parameter. [#4270]
+  - ``NDDataBase``: the ``uncertainty``-setter is removed. A similar one is
+    added in ``NDData`` so this also only affects you if you subclassed
+    ``NDDataBase`` directly. [#4270]
 
-  - ``NDUncertainty``: Added ``array``, ``unit`` and ``copy`` as optional
-    parameters. [#4272]
+  - ``NDDataBase``: ``uncertainty``-getter returns ``None`` instead of the
+    private uncertainty and is now abstract. This getter is moved to
+    ``NDData`` so it only affects direct subclasses of ``NDDataBase``. [#4270]
 
-  - ``NDUncertainty``: Public methods ``propagate_add``, etc. are replaced by
-    a general ``propagate`` method. [#4272]
+  - ``NDData`` accepts a Quantity-like data and an explictly given unit.
+    Before a ValueError was raised in this case. The final instance will use the
+    explicitly given unit-attribute but doesn't check if the units are
+    convertible and the data will not be scaled. [#4270]
 
-  - ``StdDevUncertainty``: added an optional parameter ``copy`` which is False
-    by default. [#4272]
+  - ``NDData`` : the given mask, explicit or implicit if the data was masked,
+    will be saved by the setter. It will not be saved directly as the private
+    attribute. [#4879]
 
-  - ``NDArithmeticMixin``: Added ``handle_mask``, ``handle_meta`` and
-    ``compare_wcs`` and ``uncertainty_correlation`` as optional parameters.
-    [#4272]
+  - ``NDData`` accepts an additional argument ``copy`` which will copy every
+    parameter before it is saved as attribute of the instance. [#4270]
 
-  - ``NDArithmeticMixin``: The optional ``propagate_uncertainties`` parameter
-    can also be ``None``. [#4272]
+  - ``NDData``: added an ``uncertainty.getter`` that returns the private
+    attibute. It is equivalent to the old ``NDDataBase.uncertainty``-getter.
+    [#4270]
 
-  - ``NDArithmeticMixin``: Does not compare the wcs for equality except if
-    ``compare_wcs`` is given as function that compares it. [#4272]
+  - ``NDData``: added an ``uncertainty.setter``. It is slightly modified with
+    respect to the old ``NDDataBase.uncertainty``-setter. The changes include:
+
+    - if the uncertainty has no uncertainty_type an info message is printed
+      instead of a TypeError and the uncertainty is saved as
+      ``UnknownUncertainty`` except the uncertainty is None. [#4270]
+
+    - the requirement that the uncertainty_type of the uncertainty needs to be a
+      string was removed. [#4270]
+
+    - if the uncertainty is a subclass of NDUncertainty the parent_nddata
+      attribute will be set so the uncertainty knows to which data it belongs.
+      This is also a Bugfix. [#4152, #4270]
+
+  - ``NDData``: added a ``meta``-getter, which will set and return an empty
+    OrderedDict if no meta was previously set. [#4509, #4469]
+
+  - ``NDData``: added an ``meta``-setter. It requires that the meta is
+    dictionary-like (it also accepts Headers or ordered dictionaries and others)
+    or None. It will copy the given value before saving it. [#4509, #4469]
+
+  - ``NDArithmeticMixin``: The operand in arithmetic methods (``add``, ...)
+    doesn't need to be a subclass of ``NDData``. It is sufficient if it can be
+    converted to one. This conversion is done internally. [#4272]
+
+  - ``NDArithmeticMixin``: The arithmetic methods allow several new arguments to
+    control how or if different attributes of the class will be processed during
+    the operation. [#4272]
+
+  - ``NDArithmeticMixin``: Giving the parameter ``propagate_uncertainties`` as
+    positional keyword is deprecated and will be removed in the future. You now
+    need to specify it as keyword-parameter. Besides ``True`` and ``False`` also
+    ``None`` is now a valid value for this parameter. [#4272, #4851]
+
+  - ``NDArithmeticMixin``: The wcs attribute of the operands is not compared and
+    thus raises no ValueError if they differ, except if a ``compare_wcs``
+    parameter is specified. [#4272]
+
+  - ``NDArithmeticMixin``: The arithmetic operation was split from a general
+    ``_arithmetic`` method to different specialized private methods to allow
+    subclasses more control on how the attributes are processed without
+    overriding ``_arithmetic``. The ``_arithmetic`` method is now used to call
+    these other methods. [#4272]
+
+  - ``NDUncertainty``: ``support_correlated`` attribute is deprecated in favor of
+    ``supports_correlated`` which is a property. Also affects
+    ``StdDevUncertainty``. [#4272]
+
+  - ``NDUncertainty``: added the ``__init__`` that was previously implemented in
+    ``StdDevUncertainty`` and takes an additional ``unit`` parameter. [#4272]
+
+  - ``NDUncertainty``: added a ``unit`` property without setter that returns the
+    set unit or if not set the unit of the parent. [#4272]
+
+  - ``NDUncertainty``: included a ``parent_nddata`` property similar to the one
+    previously implemented in StdDevUncertainty. [#4272]
+
+  - ``NDUncertainty``: added an ``array`` property with setter. The setter will
+    convert the value to a plain numpy array if it is a list or a subclass of a
+    numpy array. [#4272]
+
+  - ``NDUncertainty``: ``propagate_multiply`` and similar were removed. Before
+    they were abstract properties and replaced by methods with the same name but
+    with a leading underscore. The entry point for propagation is a method
+    called ``propagate``. [#4272]
+
+  - ``NDUncertainty`` and subclasses: implement a representation (``__repr__``).
+    [#4787]
+
+  - ``StdDevUncertainty``: error propagation allows an explicitly given
+    correlation factor, which may be a scalar or an array which will be taken
+    into account during propagation.
+    This correlation must be determined manually and is not done by the
+    uncertainty! [#4272]
+
+  - ``StdDevUncertainty``: the ``array`` is converted to a plain numpy array
+    only if it's a list or a subclass of numpy.ndarray. Previously it was always
+    cast to a numpy array but also allowed subclasses. [#4272]
+
+  - ``StdDevUncertainty``: setting the ``parent_nddata`` does not compare if the
+    shape of it's array is identical to the parents data shape. [#4272]
+
+  - ``StdDevUncertainty``: the ``array.setter`` doesn't compare if the array has
+    the same shape as the parents data. [#4272]
+
+  - ``StdDevUncertainty``: deprecated ``support_correlated`` in favor of
+    ``supports_correlated``. [#4272, #4828]
+
+  - ``StdDevUncertainty``: deprecated ``propagate_add`` and similar methods in
+    favor of ``propagate``. [#4272, #4828]
 
 - ``astropy.stats``
 
 - ``astropy.table``
+
+  - ``operations.unique`` now has a ``keep`` parameter, which allows
+    one to select whether to keep the first or last row in a set of
+    duplicate rows, or to remove all rows that are duplicates. [#4632]
+
+  - ``QTable`` now behaves more consistently by making columns act as a
+    ``Quantity`` even if they are assigned a unit after the table is
+    created. [#4497]
 
 - ``astropy.tests``
 
@@ -175,11 +365,24 @@ API changes
   - The astropy.utils.compat.subprocess module has now been deprecated. Use the
     Python 'subprocess' module instead. [#4483]
 
+  - The astropy.utils.xml.unescaper module now also unescapes ``'%2F'`` to
+    ``'/'`` and ``'&&'`` to ``'&'`` in a given URL. [#4699]
+
 - ``astropy.visualization``
 
 - ``astropy.vo``
 
+  - The astropy.vo.validator.conf.conesearch_urls listing is updated to reflect
+    external changes to some VizieR Cone Search services. [#4699]
+
 - ``astropy.wcs``
+
+  - WCS objects can now be initialized with an ImageHDU or
+    PrimaryHDU object. [#4493]
+
+  - astropy.wcs now issues an INFO message when the header has SIP coefficients but
+    "-SIP" is missing from CTYPE. [#4814]
+
 
 Bug fixes
 ^^^^^^^^^
@@ -196,9 +399,15 @@ Bug fixes
 
 - ``astropy.coordinates``
 
+  - Ensure that ``angle_utilities.position_angle`` accepts floats, as stated
+    in the docstring. [#3800]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
+
+  - Fix a problem where the fast reader (with use_fast_converter=False) can
+    fail on non-US locales. [#4363]
 
 - ``astropy.io.fits``
 
@@ -206,29 +415,37 @@ Bug fixes
 
 - ``astropy.io.votable``
 
+  - The astropy.io.votable.validator.html module is updated to handle division
+    by zero when generating validation report. [#4699]
+
 - ``astropy.logger.py``
 
 - ``astropy.modeling``
 
+  - Refactored ``AiryDisk2D``, ``Sersic1D``, and ``Sersic2D`` models
+    to be able to combine them as classes as well as instances. [#4720]
+
+  - Modified the "LevMarLSQFitter" class to use the weights in the
+    calculation of the Jacobian. [#4751]
+
 - ``astropy.nddata``
 
-  - ``NDDataBase`` does not implement a setter or getter for ``uncertainty``,
-    which is now an abstractproperty. [#4270]
+  - ``NDData`` giving masked_Quantities as data-argument will use the
+    implicitly passed mask, unit and value. [#4270]
 
-  - ``NDData`` wraps the ``uncertainty`` inside an ``UnknownUncertainty``
-    if no ``uncertainty_type`` attribute is present in the uncertainty instead
-    of raising an Exception. [#4270]
+  - ``NDData`` using a subclass implementing ``NDData`` with
+    ``NDArithmeticMixin`` now allows error propagation. [#4270]
 
-  - ``NDData`` The ``uncertainty_type`` of the ``uncertainty`` is no longer
-    required to be a string, but it is still recommended. [#4270]
+  - Fixed memory leak that happened when uncertainty of ``NDDataArray`` was
+    set. [#4825, #4862]
 
-  - ``NDData`` now sets the ``parent_nddata`` of the ``uncertainty`` if the
-    uncertainty is ``NDUncertainty``-like. [#4152, #4270]
+  - ``StdDevUncertainty``: During error propagation the unit of the uncertainty
+    is taken into account. [#4272]
 
-  - ``NDArithmeticMixin`` does provide correct resulting uncertainties for
-    ``divide`` and ``multiply`` if only one uncertainty was set. [#4152, #4272]
+  - ``NDArithmeticMixin``: ``divide`` and ``multiply`` yield correct
+    uncertainties if only one uncertainty is set. [#4152, #4272]
 
- - ``astropy.stats``
+- ``astropy.stats``
 
 - ``astropy.table``
 
@@ -242,6 +459,7 @@ Bug fixes
 
   - The astropy.utils.compat.fractions module has now been deprecated. Use the
     Python 'fractions' module directly instead. [#4463]
+
   - Added ``format_doc`` decorator which allows to replace and/or format the
     current docstring of an object. [#4242]
 
@@ -252,16 +470,37 @@ Bug fixes
   - Relaxed expected accuracy of Cone Search prediction test to reduce spurious
     failures. [#4382]
 
+  - Cache option now properly caches both downloaded JSON database and XML VO
+    tables. [#4699]
+
+  - VOSDatabase decodes byte-string to UTF-8 instead of ASCII to avoid
+    UnicodeDecodeError for some rare cases. Fixed a Cone Search test that is
+    failing as a side-effect of #4699. [#4757]
+
 - ``astropy.wcs``
+
+  - astropy.wcs.to_header removes "-SIP" from CTYPE when SIP coefficients
+    are not written out, i.e. ``relax`` is either ``False`` or ``None``.
+    astropy.wcs.to_header appends "-SIP" to CTYPE when SIP coefficients
+    are written out, i.e. ``relax=True``. [#4814]
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Python 2.6 is no longer supported. [#4486]
 
+- Reduce Astropy's import time (``import astropy``) by almost a factor 2. [#4649]
 
-1.1.2 (unreleased)
-------------------
+- Cython prerequisite for building changed to v0.19 in install.rst [#4705]
+
+- All astropy.modeling functionality that was deprecated in Astropy 1.0 has
+  been removed. [#4857]
+
+- Added instructions for installing Astropy into CASA. [#4840]
+
+
+1.1.3 (unreleased)
+-------------------
 
 New Features
 ^^^^^^^^^^^^
@@ -362,6 +601,67 @@ Bug Fixes
 
 - ``astropy.io.ascii``
 
+- ``astropy.io.fits``
+
+  - ``GroupsHDU.is_image`` property is now set to ``False``. [#4742]
+
+  - Fix convenience functions (``getdata``, ``getheader``, ``append``,
+    ``update``) to close files. [#4786]
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+  - Refactored ``AiryDisk2D``, ``Sersic1D``, and ``Sersic2D`` models
+    to be able to combine them as classes as well as instances. [#4720]
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+  - Fix ``sigma_clipped_stats`` to use the ``axis`` argument. [#4726, #4808]
+
+- ``astropy.table``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.vo``
+
+  - KeyError when converting Table v1.2 numeric arrays fixed. [#4782]
+
+- ``astropy.wcs``
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Nothing changed yet.
+
+
+1.1.2 (2016-03-10)
+------------------
+
+New Features
+^^^^^^^^^^^^
+
+- ``astropy.wcs``
+
+  - The ``astropy.wcs`` module now exposes ``WCSHDO_P*`` constants that can be
+    used to allow more control over output precision when using the ``relax``
+    keyword argument. [#4616]
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.io.ascii``
+
   - Fixed handling of CDS data file when no description is given and also
     included stripping out of markup for missing value from description. [#4437]
 
@@ -380,25 +680,29 @@ Bug Fixes
     range of cases, especially after writing FITS tables to a file, but in
     other cases as well. [#4539]
 
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
 - ``astropy.modeling``
 
-- ``astropy.nddata``
-
-- ``astropy.stats``
+  - Fix a bug to allow instantiation of a modeling class having a parameter
+    with a custom setter that takes two parameters ``(value, model)`` [#4656]
 
 - ``astropy.table``
 
-- ``astropy.time``
+  - Fixed bug when replacing a table column with a mixin column like
+    Quantity or Time. [#4601]
+
+  - Disable initial ordering in jsviewer (``show_in_browser``,
+    ``show_in_notebook``) to respect the order from the Table. [#4628]
 
 - ``astropy.units``
 
+  - Fixed sphinx issues on plotting quantites. [#4527]
+
 - ``astropy.utils``
+
+  - Fixed latex representation of function units. [#4563]
+
+  - The ``zest.releaser`` hooks included in Astropy are now injected locally to
+    Astropy, rather than being global. [#4650]
 
 - ``astropy.visualization``
 
@@ -408,17 +712,29 @@ Bug Fixes
   - Fixed ``fits2bitmap`` default output filename generation for
     compressed FITS files. [#4468]
 
-- ``astropy.vo``
+  - Fixed ``quantity_support`` to ensure its conversion returns ndarray
+    instances (needed for numpy >=1.10). [#4654]
 
 - ``astropy.wcs``
 
   - Fixed possible exception in handling of SIP headers that was introduced in
     v1.1.1. [#4492]
 
+  - Fixed a bug that caused WCS objects with a high dynamic range of values for
+    certain parameters to lose precision when converted to a header. This
+    occurred for example in cases of spectral cubes, where a spectral axis in
+    Hz might have a CRVAL3 value greater than 1e10 but the spatial coordinates
+    would have CRVAL1/2 values 8 to 10 orders of magnitude smaller. This bug
+    was present in Astropy 1.1 and 1.1.1 but not 1.0.x. This has now been fixed
+    by ensuring that all WCS keywords are output with 14 significant figures by
+    default. [#4616]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Nothing changed yet.
+- Updated bundled astropy-helpers to v1.1.2. [#4678]
+
+- Updated bundled copy of WCSLIB to 5.14.
 
 
 1.1.1 (2016-01-08)
@@ -548,8 +864,8 @@ New Features
   - A new method was added to ``astropy.io.votable.VOTable``,
     ``get_info_by_id`` to conveniently find an ``INFO`` element by its
     ``ID`` attribute. [#3633]
-  - Instances in the votable tree now have better ``__repr__``
-    methods. [#3639]
+
+  - Instances in the votable tree now have better ``__repr__`` methods. [#3639]
 
 - ``astropy.logger.py``
 
@@ -877,6 +1193,9 @@ API changes
   - ``Table.simple_table()`` now creates tables with int64 and float64 types
     instead of int32 and float64. [#4114]
 
+  - An empty table can now be initialized without a ``names`` argument as long
+    as a valid ``dtype`` argument (with names embedded) is supplied. [#3977]
+
 - ``astropy.time``
 
   - The ``astropy_time`` attribute and time format has been removed from the
@@ -1015,9 +1334,14 @@ Other Changes and Additions
   machine precision effects that change when the order in which
   transformations occur is changed. [#4255]
 
+- Astropy v1.1.0 will be the last release series to officially support
+  Python 2.6.  A deprecation warning will now be issued when using Astropy
+  in Python 2.6 (this warning can be disabled through the usual Python warning
+  filtering mechanisms). [#3779]
 
-1.0.9 (unreleased)
-------------------
+
+1.0.10 (unreleased)
+-------------------
 
 New Features
 ^^^^^^^^^^^^
@@ -1045,9 +1369,6 @@ New Features
 - ``astropy.modeling``
 
 - ``astropy.nddata``
-
- - ``NDArithmeticMixin`` check for matching WCS now works with
-    ``astropy.wcs.WCS`` objects [#4499]
 
 - ``astropy.stats``
 
@@ -1121,8 +1442,81 @@ Bug Fixes
 
 - ``astropy.io.ascii``
 
+- ``astropy.io.fits``
+
+  - Fix convenience functions (``getdata``, ``getheader``, ``append``,
+    ``update``) to close files. [#4786]
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.tests``
+
+  - Fix coverage reporting in Python 3.
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+  - Exponentation using a ``Quantity`` with a unit equivalent to dimensionless
+    as base and an ``array``-like exponent yields the correct result. [#4770]
+
+- ``astropy.utils``
+
+  - Fix two problems related to the download cache: clear_download_cache() does
+    not work in Python 2.7 and downloading in Python 2.7 and then Python 3
+    can result in an exception. [#4810]
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Nothing changed yet.
+
+
+1.0.9 (2016-03-10)
+------------------
+
+New Features
+^^^^^^^^^^^^
+
+- ``astropy.nddata``
+
+  - ``NDArithmeticMixin`` check for matching WCS now works with
+    ``astropy.wcs.WCS`` objects [#4499]
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.convolution``
+
+  - Correct a bug in which ``psf_pad`` and ``fft_pad`` would be ignored [#4366]
+
+- ``astropy.io.ascii``
+
   - Fixed addition of new line characters after last row of data in
     ascii.latex.AASTex. [#3888]
+
+  - Fixed reading of Latex tables where the ``\tabular`` tag is in the first
+    line. [#4595]
+
+  - Fix use of plain format strings with the fast writer. [#4517]
+
+  - Fix bug writing space-delimited file when table has empty fields. [#4417]
 
 - ``astropy.io.fits``
 
@@ -1139,30 +1533,24 @@ Bug Fixes
     range of cases, especially after writing FITS tables to a file, but in
     other cases as well. [#4539]
 
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
 - ``astropy.modeling``
 
   - Fixed display of compound model expressions and components when printing
     compound model instances. [#4414]
 
-- ``astropy.nddata``
-
 - ``astropy.stats``
 
-- ``astropy.table``
+  - the input for median_absolute_deviation will not be cast to plain numpy
+    arrays when given subclasses of numpy arrays
+    (like Quantity, numpy.ma.MaskedArray, etc.) [#4658]
 
-- ``astropy.time``
-
-- ``astropy.units``
+  - Fixed incorrect results when using median_absolute_deviation with masked
+    arrays. [#4658]
 
 - ``astropy.utils``
 
-- ``astropy.vo``
+  - The ``zest.releaser`` hooks included in Astropy are now injected locally to
+    Astropy, rather than being global. [#4650]
 
 - ``astropy.visualization``
 
@@ -1171,13 +1559,6 @@ Bug Fixes
 
   - Fixed ``fits2bitmap`` default output filename generation for
     compressed FITS files. [#4468]
-
-- ``astropy.wcs``
-
-Other Changes and Additions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-- Nothing changed yet.
 
 
 1.0.8 (2016-01-08)
@@ -1242,6 +1623,11 @@ Bug Fixes
 
   - Fixed crash that could occur in ``ProgressBar`` when ``astropy`` is
     imported in an IPython startup script. [#4274]
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Updated bundled astropy-helpers to v1.0.6. [#4372]
 
 
 1.0.6 (2015-10-22)
@@ -1399,6 +1785,8 @@ Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Astropy now supports Python 3.5. [#4027]
+
+- Updated bundled version of astropy-helpers to 1.0.5. [#4215]
 
 - Updated tests to support py.test 2.7, and upgraded the bundled copy of
   py.test to v2.7.3. [#4027]
@@ -1695,6 +2083,7 @@ Bug Fixes
   - Fixes an issue with the ``FITS_rec`` interface to FITS table data, where a
     ``FITS_rec`` created by copying an existing FITS table but adding new rows
     could not be sliced or masked correctly.  [#3641]
+
   - Fixed handling of BINTABLE with TDIMn of size 1. [#3580]
 
 - ``astropy.io.votable``
@@ -2011,11 +2400,12 @@ New Features
 
   - Add ``unique`` convenience method to table. [#3185]
 
+  - Added column alignment formatting for better pprint viewing
+    experience. [#3644]
+
 - ``astropy.tests``
 
   - Added a new Quantity-aware ``assert_quantity_allclose``. [#3273]
-  - Added column alignment formatting for better pprint viewing
-    experience. [#3037]
 
 - ``astropy.time``
 
@@ -2236,9 +2626,6 @@ API Changes
   - The representation of Table and Column objects has been changed to
     be formatted similar to the print output. [#3239]
 
-  - An empty table can now be initialized without a ``names`` argument as long
-    as a valid ``dtype`` argument (with names embedded) is supplied. [#3977]
-
 - ``astropy.time``
 
   - The ``Time.val`` and ``Time.vals`` properties (deprecated in v0.3) and the
@@ -2414,11 +2801,6 @@ Bug Fixes
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-- Astropy v1.1.0 will be the last release series to officially support
-  Python 2.6.  A deprecation warning will now be issued when using Astropy
-  in Python 2.6 (this warning can be disabled through the usual Python warning
-  filtering mechanisms). [#3779]
 
 - The bundled copy of astropy-helpers has been updated to v1.0. [#3515]
 
@@ -3136,7 +3518,7 @@ API Changes
     configuration items have moved, and some have been changed to science state
     values.  The old locations should continue to work until astropy 0.5, but
     deprecation warnings will be displayed.  See the `Configuration transition
-    <http://astropy.readthedocs.org/en/v0.4/config/config_0_4_transition.html>`_
+    <http://docs.astropy.org/en/v0.4/config/config_0_4_transition.html>`_
     docs for a detailed description of the changes and how to update existing
     code. [#2094]
 
@@ -3759,7 +4141,7 @@ Bug Fixes
 - ``astropy.io.fits``
 
   - Ported all bug fixes from PyFITS 3.2.1.  See the PyFITS changelog at
-    http://pyfits.readthedocs.org/en/v3.2.1/ [#2056]
+    http://pyfits.readthedocs.io/en/v3.2.1/ [#2056]
 
 - ``astropy.io.misc``
 

@@ -85,9 +85,10 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
 
     def process_lines(self, lines):
         """Generator to yield IPAC header lines, i.e. those starting and ending with
-        delimiter character."""
+        delimiter character (with trailing whitespace stripped)"""
         delim = self.splitter.delimiter
         for line in lines:
+            line = line.rstrip()
             if line.startswith(delim) and line.endswith(delim):
                 yield line.strip(delim)
 

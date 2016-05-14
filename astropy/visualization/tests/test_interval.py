@@ -6,7 +6,7 @@ from ...tests.helper import pytest
 from ...utils import NumpyRNGContext
 
 from ..interval import (ManualInterval, MinMaxInterval, PercentileInterval,
-                        AsymmetricPercentileInterval)
+                        AsymmetricPercentileInterval, ZScaleInterval)
 
 
 class TestInterval(object):
@@ -57,6 +57,21 @@ class TestInterval2D(TestInterval):
     # Make sure intervals work with 2d arrays
 
     data = np.linspace(-20., 60., 100).reshape(100, 1)
+
+
+def test_zscale():
+    np.random.seed(42)
+    data = np.random.randn(100, 100) * 5 + 10
+    interval = ZScaleInterval()
+    vmin, vmax = interval.get_limits(data)
+    np.testing.assert_allclose(vmin, -9.6, atol=0.1)
+    np.testing.assert_allclose(vmax, 25.4, atol=0.1)
+
+    data = list(range(1000)) + [np.nan]
+    interval = ZScaleInterval()
+    vmin, vmax = interval.get_limits(data)
+    np.testing.assert_allclose(vmin, 0, atol=0.1)
+    np.testing.assert_allclose(vmax, 999, atol=0.1)
 
 
 def test_integers():

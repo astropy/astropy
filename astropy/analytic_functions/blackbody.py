@@ -27,7 +27,9 @@ FLAM = u.erg / (u.cm**2 * u.s * u.AA)
 # NaN instead of INF like it should (it should only return NaN on a
 # NaN input
 # See https://github.com/astropy/astropy/issues/4171
-_has_buggy_expm1 = np.isnan(np.expm1(1000))
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore', RuntimeWarning)
+    _has_buggy_expm1 = np.isnan(np.expm1(1000))
 
 
 def blackbody_nu(in_x, temperature):

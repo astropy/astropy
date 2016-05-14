@@ -33,7 +33,7 @@ Astropy also depends on other packages for optional features:
 
 - `matplotlib <http://matplotlib.org/>`_: To provide plotting functionality that `astropy.visualization` enhances.
 
-- `WCSAxes <http://wcsaxes.readthedocs.org/en/latest/>`_: To use `astropy.wcs` to define projections in Matplotlib. 
+- `WCSAxes <http://wcsaxes.readthedocs.io/en/latest/>`_: To use `astropy.wcs` to define projections in Matplotlib.
 
 - `pytz <http://pythonhosted.org/pytz/>`_: To specify and convert between timezones.
 
@@ -158,9 +158,9 @@ Prerequisites
 -------------
 
 You will need a compiler suite and the development headers for Python and
-Numpy in order to build Astropy. 
+Numpy in order to build Astropy.
 
-You will also need `Cython <http://cython.org/>`_ (v0.15 or later) and
+You will also need `Cython <http://cython.org/>`_ (v0.19 or later) and
 `jinja2 <http://jinja.pocoo.org/docs/dev/>`_ (v2.7 or later) installed
 to build from source, unless you are installing a numbered release. (The
 releases packages have the necessary C files packaged with them, and hence do
@@ -169,16 +169,16 @@ not require Cython.)
 Prerequisites for Linux
 -----------------------
 
-On Linux, using the package manager for your distribution will usually be 
+On Linux, using the package manager for your distribution will usually be
 the easiest route. In order to build from source, you'll need the python development package
 for your distro.
 
 For Debian/Ubuntu::
-    
+
     sudo apt-get install python-dev
 
 For Fedora/RHEL::
-    
+
     sudo yum install python-devel
 
 Prerequisites for Mac OS X
@@ -187,7 +187,7 @@ Prerequisites for Mac OS X
 On MacOS X you will need the XCode command line tools which can be installed using
 
 For installing XCode command line tools::
-    
+
     xcode-select --install
 
 and follow the onscreen instructions to install the command line tools required.
@@ -306,6 +306,21 @@ the system `libexpat <http://www.libexpat.org/>`_, add the following to the
     use_system_expat=1
 
 
+The C libraries currently bundled with Astropy include:
+
+- `wcslib <http://www.atnf.csiro.au/people/mcalabre/WCS/>`_ see
+  ``cextern/wcslib/README`` for the bundled version.
+
+- `cfitsio <http://heasarc.gsfc.nasa.gov/fitsio/fitsio.html>`_ see
+  ``cextern/cfitsio/changes.txt`` for the bundled version.
+
+- `erfa <https://github.com/liberfa>`_ see ``cextern/erfa/README.rst`` for the
+  bundled version.
+
+- `expat <http://expat.sourceforge.net/>`_ see ``cextern/expat/README`` for the
+  bundled version.
+
+
 The required version of setuptools is not available
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -357,6 +372,39 @@ into.  For example to add the missing registry entries to your Python 2.7::
 
 __ https://gist.github.com/embray/6042780#file-win_register_python-py
 
+Installing Astropy into CASA
+----------------------------
+
+If you want to be able to use Astropy inside `CASA
+<https://casa.nrao.edu/>`_, the easiest way is to do so from inside CASA.
+
+First, we need to make sure `pip <https://pypi.python.org/pypi/pip>`__ is
+installed. Start up CASA as normal, and type::
+
+    CASA <2>: from setuptools.command import easy_install
+
+    CASA <3>: easy_install.main(['--user', 'pip'])
+
+Now, quit CASA and re-open it, then type the following to install Astropy::
+
+    CASA <2>: import pip
+
+    CASA <3>: pip.main(['install', 'astropy', '--user'])
+
+Then close CASA again and open it, and you should be able to import Astropy::
+
+    CASA <2>: import astropy
+
+Any astropy affiliated package can be installed the same way (e.g. the
+`spectral-cube <http://spectral-cube.readthedocs.io/en/latest/>`_ or other
+packages that may be useful for radioastronomy).
+
+.. note:: The above instructions have been tested and are known to work on 
+          MacOS X with CASA 4.3.1 and Linux with CASA 4.3.1, 4.4.0, 4.5.3, and
+          pre-releases of CASA 4.7. However, due to missing header files in
+          CASA, they are known to **not** work on Linux with CASA 4.2.1 and
+          CASA 4.6.0.
+
 .. _builddocs:
 
 Building documentation
@@ -380,7 +428,7 @@ packages:
       and most affiliated packages include this as a submodule in the source
       repository, so it does not need to be installed separately.)
 
-    - `WCSAxes <http://wcsaxes.readthedocs.org/en/latest/>`_
+    - `WCSAxes <http://wcsaxes.readthedocs.io/en/latest/>`_
 
 .. note::
 

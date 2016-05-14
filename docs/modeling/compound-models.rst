@@ -72,9 +72,7 @@ few terms where there have been points of confusion:
   operators.
 
 - In some places the term *composite model* is used interchangeably with
-  *compound model*.  This can be seen in the cases of the now deprecated
-  `~astropy.modeling.SerialCompositeModel` and
-  `~astropy.modeling.SummedCompositeModel`.  However, this document uses the
+  *compound model*. However, this document uses the
   term *composite model* to refer *only* to the case of a compound model
   created from the functional composition of two or more models using the pipe
   operator ``|`` as explained below.  This distinction is used consistently
@@ -403,15 +401,15 @@ example, to create the following compound model:
     :include-source:
 
     import numpy as np
-    from astropy.modeling.models import Redshift, Gaussian1D
+    from astropy.modeling.models import RedshiftScaleFactor, Gaussian1D
 
-    class RedshiftedGaussian(Redshift | Gaussian1D(1, 0.75, 0.1)):
+    class RedshiftedGaussian(RedshiftScaleFactor | Gaussian1D(1, 0.75, 0.1)):
         """Evaluates a Gaussian with optional redshift applied to the input."""
 
     x = np.linspace(0, 1.2, 100)
     g0 = RedshiftedGaussian(z_0=0)
 
-    plt.figure(figsize=(8, 3))
+    plt.figure(figsize=(8, 5))
     plt.plot(x, g0(x), 'g--', label='$z=0$')
 
     for z in (0.2, 0.4, 0.6):
@@ -420,6 +418,33 @@ example, to create the following compound model:
                  label='$z={0}$'.format(z))
 
     plt.xlabel('Energy')
+    plt.ylabel('Flux')
+    plt.legend()
+
+If you wish to perform redshifting in the wavelength space instead of energy,
+and would also like to conserve flux, here is another way to do it using
+model *instances*:
+
+.. plot::
+    :include-source:
+
+    import numpy as np
+    from astropy.modeling.models import RedshiftScaleFactor, Gaussian1D, Scale
+
+    x = np.linspace(1000, 5000, 1000)
+    g0 = Gaussian1D(1, 2000, 200)  # No redshift is same as redshift with z=0
+
+    plt.figure(figsize=(8, 5))
+    plt.plot(x, g0(x), 'g--', label='$z=0$')
+
+    for z in (0.2, 0.4, 0.6):
+        rs = RedshiftScaleFactor(z).inverse  # Redshift in wavelength space
+        sc = Scale(1. / (1 + z))  # Rescale the flux to conserve energy
+        g = rs | g0 | sc
+        plt.plot(x, g(x), color=plt.cm.OrRd(z),
+                 label='$z={0}$'.format(z))
+
+    plt.xlabel('Wavelength')
     plt.ylabel('Flux')
     plt.legend()
 
@@ -761,8 +786,8 @@ belongs to.  For example::
 For consistency's sake, this scheme is followed even if not all of the
 components have overlapping parameter names::
 
-    >>> from astropy.modeling.models import Redshift
-    >>> (Redshift | (Gaussian1D + Gaussian1D)).param_names
+    >>> from astropy.modeling.models import RedshiftScaleFactor
+    >>> (RedshiftScaleFactor | (Gaussian1D + Gaussian1D)).param_names
     ('z_0', 'amplitude_1', 'mean_1', 'stddev_1', 'amplitude_2', 'mean_2',
     'stddev_2')
 

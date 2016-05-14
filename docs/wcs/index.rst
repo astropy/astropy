@@ -229,10 +229,10 @@ area can be extracted with the utility function
 Matplotlib plots with correct WCS projection
 ============================================
 
-The `WCSAxes <http://wcsaxes.readthedocs.org>`_ affiliated package adds the
+The `WCSAxes <http://wcsaxes.readthedocs.io>`_ affiliated package adds the
 ability to use the :class:`~astropy.wcs.WCS` to define projections in
 Matplotlib. More information on installing and using WCSAxes can be found `here
-<http://wcsaxes.readthedocs.org>`__.
+<http://wcsaxes.readthedocs.io>`__.
 
 .. plot::
     :include-source:
@@ -243,7 +243,7 @@ Matplotlib. More information on installing and using WCSAxes can be found `here
     from astropy.utils.data import download_file
 
     fits_file = 'http://data.astropy.org/tutorials/FITS-images/HorseHead.fits'
-    image_file = download_file(fits_file, cache=True )
+    image_file = download_file(fits_file, cache=True)
     hdu = fits.open(image_file)[0]
     wcs = WCS(hdu.header)
 

@@ -19,7 +19,10 @@ import signal
 import sys
 import traceback
 import unicodedata
+import locale
+import threading
 
+from contextlib import contextmanager
 from collections import defaultdict, OrderedDict
 
 from ..extern import six
@@ -29,7 +32,7 @@ from ..extern.six.moves import urllib
 __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
            'find_api_page', 'is_path_hidden', 'walk_skip_hidden',
            'JsonCustomEncoder', 'indent', 'InheritDocstrings',
-           'OrderedDescriptor', 'OrderedDescriptorContainer']
+           'OrderedDescriptor', 'OrderedDescriptorContainer', 'set_locale']
 
 
 def isiterable(obj):
@@ -811,3 +814,39 @@ class OrderedDescriptorContainer(type):
 
         super(OrderedDescriptorContainer, cls).__init__(cls_name, bases,
                                                         members)
+
+
+LOCALE_LOCK = threading.Lock()
+
+@contextmanager
+def set_locale(name):
+    """
+    Context manager to temporarily set the locale to ``name``.
+
+    An example is setting locale to "C" so that the C strtod()
+    function will use "." as the decimal point to enable consistent
+    numerical string parsing.
+
+    Note that one cannot nest multiple set_locale() context manager
+    statements as this causes a threading lock.
+
+    This code taken from http://stackoverflow.com/questions/18593661/.
+
+    Parameters
+    ==========
+    name : str
+        Locale name, e.g. "C" or "fr_FR".
+    """
+    name = str(name)
+
+    with LOCALE_LOCK:
+        saved = locale.setlocale(locale.LC_ALL)
+        if saved == name:
+            # Don't do anything if locale is already the requested locale
+            yield
+        else:
+            try:
+                locale.setlocale(locale.LC_ALL, name)
+                yield
+            finally:
+                locale.setlocale(locale.LC_ALL, saved)

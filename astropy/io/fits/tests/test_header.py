@@ -5,6 +5,7 @@
 from __future__ import division, with_statement
 
 import warnings
+import collections
 
 from io import StringIO, BytesIO
 
@@ -22,6 +23,23 @@ from . import FitsTestCase
 from ..card import _pad
 from ..header import _pad_length
 from ..util import encode_ascii
+
+
+def test_init_with_dict():
+    dict1 = {'a': 11, 'b': 12, 'c': 13, 'd': 14, 'e': 15}
+    h1 = fits.Header(dict1)
+    for i in dict1:
+        assert dict1[i] == h1[i]
+
+
+def test_init_with_ordereddict():
+    # Create a list of tuples. Each tuple consisting of a letter and the number
+    list1 = [(i, j) for i, j in zip('abcdefghijklmnopqrstuvwxyz', range(26))]
+    # Create an ordered dictionary and a header from this dictionary
+    dict1 = collections.OrderedDict(list1)
+    h1 = fits.Header(dict1)
+    # Check that the order is preserved of the initial list
+    assert all(h1[val] == list1[i][1] for i, val in enumerate(h1))
 
 
 class TestOldApiHeaderFunctions(FitsTestCase):

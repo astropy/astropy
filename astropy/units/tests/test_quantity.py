@@ -18,7 +18,6 @@ from numpy.testing import (assert_allclose, assert_array_equal,
 
 from ...tests.helper import raises, pytest
 from ...utils import isiterable, minversion
-from ...utils.compat import NUMPY_LT_1_7
 from ... import units as u
 from ...units.quantity import _UNIT_NOT_INITIALISED
 from ...extern.six.moves import xrange
@@ -724,12 +723,6 @@ class TestQuantityDisplay(object):
         assert self.scalarfloatq._repr_latex_() == '$1.3 \\; \\mathrm{m}$'
         assert (q2scalar._repr_latex_() ==
                 '$1.5 \\times 10^{14} \\; \\mathrm{\\frac{m}{s}}$')
-
-        if NUMPY_LT_1_7:
-            with pytest.raises(NotImplementedError):
-                self.arrq._repr_latex_()
-            return  # all arrays should fail
-
         assert self.arrq._repr_latex_() == '$[1,~2.3,~8.9] \; \mathrm{m}$'
 
         qmed = np.arange(100)*u.m
@@ -1191,14 +1184,8 @@ def test_repr_array_of_quantity():
     """
 
     a = np.array([1 * u.m, 2 * u.s], dtype=object)
-    if NUMPY_LT_1_7:
-        # Numpy 1.6.x has some different defaults for how to display object
-        # arrays (it uses the str() of the objects instead of the repr()
-        assert repr(a) == 'array([1.0 m, 2.0 s], dtype=object)'
-        assert str(a) == '[1.0 m 2.0 s]'
-    else:
-        assert repr(a) == 'array([<Quantity 1.0 m>, <Quantity 2.0 s>], dtype=object)'
-        assert str(a) == '[<Quantity 1.0 m> <Quantity 2.0 s>]'
+    assert repr(a) == 'array([<Quantity 1.0 m>, <Quantity 2.0 s>], dtype=object)'
+    assert str(a) == '[<Quantity 1.0 m> <Quantity 2.0 s>]'
 
 
 @pytest.mark.skipif('not HAS_MATPLOTLIB')

@@ -311,6 +311,8 @@ def set_enabled_units(units):
       AU           | 1.49598e+11 m   | au, astronomical_unit ,
       Angstrom     | 1e-10 m         | AA, angstrom          ,
       cm           | 0.01 m          | centimeter            ,
+      earthRad     | 6.37814e+06 m   | R_earth, Rearth       ,
+      jupiterRad   | 7.1492e+07 m    | R_jup, Rjup, R_jupiter, Rjupiter ,
       lyr          | 9.46073e+15 m   | lightyear             ,
       m            | irreducible     | meter                 ,
       micron       | 1e-06 m         |                       ,
@@ -358,9 +360,11 @@ def add_enabled_units(units):
       AU           | 1.49598e+11 m   | au, astronomical_unit ,
       Angstrom     | 1e-10 m         | AA, angstrom          ,
       cm           | 0.01 m          | centimeter            ,
+      earthRad     | 6.37814e+06 m   | R_earth, Rearth       ,
       ft           | 0.3048 m        | foot                  ,
       fur          | 201.168 m       | furlong               ,
       inch         | 0.0254 m        |                       ,
+      jupiterRad   | 7.1492e+07 m    | R_jup, Rjup, R_jupiter, Rjupiter ,
       lyr          | 9.46073e+15 m   | lightyear             ,
       m            | irreducible     | meter                 ,
       mi           | 1609.34 m       | mile                  ,
@@ -1625,6 +1629,14 @@ class IrreducibleUnit(NamedUnit):
                 (self.__class__, list(self.names), self.name in registry),
                 self.__dict__)
 
+    @property
+    def represents(self):
+        """The unit that this named unit represents.
+
+        For an irreducible unit, that is always itself.
+        """
+        return self
+
     def decompose(self, bases=set()):
         if len(bases) and not self in bases:
             for base in bases:
@@ -1896,6 +1908,11 @@ class Unit(NamedUnit):
 
         NamedUnit.__init__(self, st, namespace=namespace, doc=doc,
                            format=format)
+
+    @property
+    def represents(self):
+        """The unit that this named unit represents."""
+        return self._represents
 
     def decompose(self, bases=set()):
         return self._represents.decompose(bases=bases)

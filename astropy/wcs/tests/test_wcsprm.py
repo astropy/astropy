@@ -901,14 +901,13 @@ def test_compare():
     assert w.compare(w2, tolerance=1e-6)
 
 
-@pytest.mark.xfail()
 def test_radesys_defaults():
     w = _wcs.Wcsprm()
     w.ctype = ['RA---TAN', 'DEC--TAN']
     w.set()
     assert w.radesys == "ICRS"
 
-@pytest.mark.xfail()
+
 def test_radesys_defaults_full():
 
     # As described in Section 3.1 of the FITS standard "Equatorial and ecliptic
