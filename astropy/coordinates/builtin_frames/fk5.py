@@ -34,6 +34,9 @@ class FK5(BaseCoordinateFrame):
         (``representation`` must be None).
     equinox : `~astropy.time.Time`, optional, must be keyword
         The equinox of this frame.
+    copy : bool, optional
+        If `True` (default), make copies of the input coordinate arrays.
+        Can only be passed in as a keyword argument.
     """
     frame_specific_representation_info = {
         'spherical': [RepresentationMapping('lon', 'ra'),

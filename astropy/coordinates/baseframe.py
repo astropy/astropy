@@ -436,6 +436,17 @@ class BaseCoordinateFrame(object):
         `~astropy.coordinates.RepresentationMapping` objects that tell what
         names and default units should be used on this frame for the components
         of that representation.
+
+    Parameters
+    ----------
+    representation : `BaseRepresentation` or None
+        A representation object or `None` to have no data (or use the other
+        arguments)
+    *args, **kwargs
+        Coordinates, with names that depend on the subclass.
+    copy : bool, optional
+        If `True` (default), make copies of the input coordinate arrays.
+        Can only be passed in as a keyword argument.
     """
 
     default_representation = None
