@@ -21,6 +21,7 @@ from .representation import *
 from .sky_coordinate import *
 from .funcs import *
 from .calculation import *
+from .solar_system import *
 
 __doc__ += builtin_frames._transform_graph_docs + """
 
