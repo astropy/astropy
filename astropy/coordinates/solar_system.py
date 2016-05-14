@@ -69,8 +69,9 @@ def _get_kernel(*args, **kwargs):
     try:
         from jplephem.spk import SPK
     except ImportError:
-        raise ImportError("Solar system ephemeris calculations depend on"
-                          "the jplephem package")
+        raise ImportError("Solar system ephemeris calculations require the "
+                          "jplephem package "
+                          "(https://pypi.python.org/pypi/jplephem)")
 
     if KERNEL is None:
         KERNEL = SPK.open(_download_spk_file())
