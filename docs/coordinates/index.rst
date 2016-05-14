@@ -275,6 +275,7 @@ listed below.
    skycoord
    transforming
    observing-example
+   solarsystem
    formatting
    matchsep
    representations
