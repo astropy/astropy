@@ -53,3 +53,13 @@ For a list of the bodies for which positions can be calculated, do::
     method, but instead uses a polynomial model for the location of the sun
     (as this requires no special download). So it is not safe to assume that
     ``get_body(time, 'sun')`` and ``get_sun(time)`` will give the same result.
+
+You can also change the SPK kernel (the file used to actually locate the 
+planets), although this interface should be considered preliminary (and hence 
+is not yet considered part of the public API)::
+
+    >>> from astropy import coordinates
+    >>> coordinates.solar_system.set_kernel_url('http://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de432s.bsp')
+    >>> coordinates.get_body(t,'pluto')
+    <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=[ 0.  0.  0.] m, obsgeovel=[ 0.  0.  0.] m / s): (ra, dec, distance) in (deg, deg, km)
+    (281.52508175, -20.60080214, 4865115955.7188015)>
