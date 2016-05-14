@@ -274,6 +274,14 @@ class Table(object):
 
         default_names = None
 
+        if hasattr(data, '__astropy_table__'):
+            # This method indicates that the ``data`` object can provide the
+            # objects needed to initialize an astropy Table.  The returned
+            # ``data`` object must be a list of Column-compatible or
+            # mixin-column objects.
+            data, meta, copy = data.__astropy_table__(copy)
+            self.meta.update(meta)
+
         if (isinstance(data, np.ndarray) and
                 data.shape == (0,) and
                 not data.dtype.names):
