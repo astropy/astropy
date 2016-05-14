@@ -88,29 +88,36 @@ given a particular "origin" frame. The
 `~astropy.coordinates.make_astrometric_cls` function instead must be used to
 generate the class that creates such a frame::
 
-    >>> from astropy.coordinates import ICRS, make_astrometric_cls
+    >>> from astropy.coordinates import make_astrometric_cls, ICRS
     >>> AstrometricICRS = make_astrometric_cls(ICRS)
-    >>> center = ICRS(1*u.deg, 2*u.deg)
-    >>> center.transform_to(AstrometricICRS(origin=center))  # doctest: +FLOAT_CMP
+    >>> center = ICRS(10*u.deg, 45*u.deg)
+    >>> center.transform_to(AstrometricICRS(origin=center))  # doctest: +SKIP
+    <SkyCoord (AstrometricICRS: origin=<ICRS Coordinate: (ra, dec) in deg
+        (10.0, 45.0)>): (dra, ddec) in deg
+        (0.0, 0.0)>
+    >>> target = ICRS(11*u.deg, 46*u.deg)
+    >>> target.transform_to(AstrometricICRS(origin=center))  # doctest: +FLOAT_CMP
     <AstrometricICRS Coordinate (origin=<ICRS Coordinate: (ra, dec) in deg
-    (1.0, 2.0)>): (dra, ddec) in deg
-    (0.0, 0.0)>
+        (10.0, 45.0)>): (dra, ddec) in deg
+        (0.69474685, 1.00428706)>
+
 
 Alternatively, the convenience method 
 `~astropy.coordinates.SkyCoord.astrometric_frame` let you create an astrometric
 frame from an already-existing |SkyCoord|::
 
-    >>> center = SkyCoord(1*u.deg, 2*u.deg)
+    >>> center = SkyCoord(10*u.deg, 45*u.deg)
     >>> aframe = center.astrometric_frame()
-    >>> center.transform_to(aframe)  # doctest: +FLOAT_CMP
-    <SkyCoord (AstrometricICRS: origin=<ICRS Coordinate: (ra, dec) in deg
-        (1.0, 2.0)>): (dra, ddec) in deg
-        (0.0, 0.0)>
-    >>> other = SkyCoord(2*u.deg, 3*u.deg, frame='fk5')
+    >>> target.transform_to(aframe)  # doctest: +FLOAT_CMP
+    <AstrometricICRS Coordinate (origin=<ICRS Coordinate: (ra, dec) in deg
+        (10.0, 45.0)>): (dra, ddec) in deg
+        (0.69474685, 1.00428706)>
+    >>> other = SkyCoord(9*u.deg, 44*u.deg, frame='fk5')
     >>> other.transform_to(aframe)  # doctest: +FLOAT_CMP
     <SkyCoord (AstrometricICRS: origin=<ICRS Coordinate: (ra, dec) in deg
-    (1.0, 2.0)>): (dra, ddec) in deg
-    (0.99877498, 1.00030184)>
+        (10.0, 45.0)>): (dra, ddec) in deg
+        (359.28056055, -0.99556216)>
+
 
 
 
