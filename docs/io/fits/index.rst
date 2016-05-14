@@ -95,13 +95,13 @@ because by that point you're likely to run out of physical memory anyways), but
 64-bit systems are much less limited in this respect.
 
 .. warning::
-	When opening a file with ``memmap=True``, because of how mmap works this means that 
+	When opening a file with ``memmap=True``, because of how mmap works this means that
 	when the HDU data is accessed (i.e. ``hdul[0].data``) another handle to the FITS file
 	is opened by mmap. This means that even after calling ``hdul.close()`` the mmap still
 	holds an open handle to the data so that it can still be accessed by unwary programs
 	that were built with the assumption that the .data attribute has all the data in-memory.
 
-	In order to force the mmap to close either wait for the containing ``HDUList`` object to go 
+	In order to force the mmap to close either wait for the containing ``HDUList`` object to go
 	out of scope, or manually call ``del hdul[0].data`` (this works so long as there are no other
 	references held to the data array).
 
@@ -133,16 +133,16 @@ Working with compressed files
 
 The :func:`open` function will seamlessly open FITS files that have been
 compressed with gzip, bzip2 or pkzip. Note that in this context we're talking
-about a fits file that has been compressed with one of these utilities - e.g. a 
+about a fits file that has been compressed with one of these utilities - e.g. a
 .fits.gz file. Files that use compressed HDUs within the FITS file are discussed
 in :ref:`Compressed Image Data <astropy-io-fits-compressedImageData>`.
 
-There are some limitations with working with compressed files. For example with Zip 
+There are some limitations with working with compressed files. For example with Zip
 files that contain multiple compressed files, only the first file will be accessible.
 Also bzip does not support the append or update access modes.
 
 When writing a file (e.g. with the :func:`writeto` function), compression will be
-determined based on the filename extension given, or the compression used in a 
+determined based on the filename extension given, or the compression used in a
 pre-existing file that is being written to.
 
 Working with FITS Headers
@@ -268,6 +268,9 @@ would with a dict::
     >>> prihdr.keys()
     ['SIMPLE', 'BITPIX', 'NAXIS', ...]
 
+.. topic:: Examples:
+
+    See also :ref:`sphx_glr_auto_examples_io_modify-fits-header.py`.
 
 Working with Image Data
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -343,6 +346,9 @@ a new file, you can use the :meth:`HDUList.writeto` method (see below).
 
 .. _Numpy documentation: http://docs.scipy.org/doc/numpy/reference/arrays.indexing.html
 
+.. topic:: Examples:
+
+    See also :ref:`sphx_glr_auto_examples_io_plot_fits-image.py`.
 
 Working With Table Data
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -455,6 +461,9 @@ take the mean of a column::
 
 and so on.
 
+.. topic:: Examples:
+
+    See also :ref:`sphx_glr_auto_examples_io_fits-tables.py`.
 
 Save File Changes
 ^^^^^^^^^^^^^^^^^
@@ -605,6 +614,9 @@ So far, we have covered the most basic features of `astropy.io.fits`. In the
 following chapters we'll show more advanced examples and explain options in
 each class and method.
 
+.. topic:: Examples:
+
+    See also :ref:`sphx_glr_auto_examples_io_create-mef.py`.
 
 Convenience Functions
 ---------------------
@@ -740,7 +752,6 @@ Using `astropy.io.fits`
    usage/unfamiliar
    usage/scripts
    usage/misc
-   usage/examples
 
 Other Information
 =================

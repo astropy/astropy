@@ -280,77 +280,7 @@ sections <data-sections>` for more details on using this interface.
 How can I create a very large FITS file from scratch?
 """""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This is a very common issue, but unfortunately Astropy does not come with any
-built-in facilities for creating large files (larger than will fit in memory)
-from scratch (though it may in the future).
-
-Normally to create a single image FITS file one would do something like::
-
-    >>> import numpy
-    >>> from astropy.io import fits
-    >> data = numpy.zeros((40000, 40000), dtype=numpy.float64)
-    >> hdu = fits.PrimaryHDU(data=data)
-    >> hdu.writeto('large.fits')
-
-However, a 40000 x 40000 array of doubles is nearly twelve gigabytes!  Most
-systems won't be able to create that in memory just to write out to disk.  In
-order to create such a large file efficiently requires a little extra work,
-and a few assumptions.
-
-First, it is helpful to anticipate about how large (as in, how many keywords)
-the header will have in it.  FITS headers must be written in 2880 byte
-blocks--large enough for 36 keywords per block (including the END keyword in
-the final block).  Typical headers have somewhere between 1 and 4 blocks,
-though sometimes more.
-
-Since the first thing we write to a FITS file is the header, we want to write
-enough header blocks so that there is plenty of padding in which to add new
-keywords without having to resize the whole file.  Say you want the header to
-use 4 blocks by default.  Then, excluding the END card which Astropy will add
-automatically, create the header and pad it out to 36 * 4 cards like so::
-
-    >>> data = numpy.zeros((100, 100), dtype=numpy.float64)
-    # This is a stub array that we'll be using the initialize the HDU; its
-    # exact size is irrelevant, as long as it has the desired number of
-    # dimensions
-    >>> hdu = fits.PrimaryHDU(data=data)
-    >>> header = hdu.header
-    >>> while len(header) < (36 * 4 - 1):
-    ...     header.append()  # Adds a blank card to the end
-
-Now adjust the NAXISn keywords to the desired size of the array, and write
-*only* the header out to a file.  Using the ``hdu.writeto()`` method will
-cause Astropy to "helpfully" reset the NAXISn keywords to match the size of the
-dummy array.  That is because it works hard to ensure that only valid FITS
-files are written.  Instead, we can write *just* the header to a file using
-the `Header.tofile <astropy.io.fits.Header.tofile>` method::
-
-    >>> header['NAXIS1'] = 40000
-    >>> header['NAXIS2'] = 40000
-    >>> header.tofile('large.fits')
-
-Finally, we need to grow out the end of the file to match the length of the
-data (plus the length of the header).  This can be done very efficiently on
-most systems by seeking past the end of the file and writing a single byte,
-like so::
-
-    >>> with open('large.fits', 'rb+') as fobj:
-    ...     # Seek past the length of the header, plus the length of the
-    ...     # Data we want to write.
-    ...     # The -1 is to account for the final byte taht we are about to
-    ...     # write:
-    ...     fobj.seek(len(header.tostring()) + (40000 * 40000 * 8) - 1)
-    ...     fobj.write('\0')
-
-On modern operating systems this will cause the file (past the header) to be
-filled with zeros out to the ~12GB needed to hold a 40000 x 40000 image.  On
-filesystems that support sparse file creation (most Linux filesystems, but not
-the HFS+ filesystem used by most Macs) this is a very fast, efficient
-operation.  On other systems your mileage may vary.
-
-This isn't the only way to build up a large file, but probably one of the
-safest.  This method can also be used to create large multi-extension FITS
-files, with a little care.
+See :ref:`sphx_glr_auto_examples_io_skip_create-large-fits.py`.
 
 For creating very large tables, this method may also be used.  Though it can be
 difficult to determine ahead of time how many rows a table will need.  In
@@ -374,28 +304,7 @@ this FAQ might provide an example of how to do this.
 How do I create a multi-extension FITS file from scratch?
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-When you open a FITS file with `astropy.io.fits.open`, an
-`~astropy.io.fits.HDUList` object is returned, which holds all the HDUs in the
-file.  This ``HDUList`` class is a subclass of Python's builtin `list`, and can
-be created from scratch and used as such::
-
-    >>> from astropy.io import fits
-    >>> new_hdul = fits.HDUList()
-    >>> new_hdul.append(fits.ImageHDU())
-    >>> new_hdul.append(fits.ImageHDU())
-    >>> new_hdul.writeto('test.fits')
-
-Or the HDU instances can be created first (or read from an existing FITS file)
-and the HDUList instantiated like so::
-
-    >>> hdu1 = fits.PrimaryHDU()
-    >>> hdu2 = fits.ImageHDU()
-    >>> new_hdul = fits.HDUList([hdu1, hdu2])
-    >>> new_hdul.writeto('test.fits')
-
-That will create a new multi-extension FITS file with two empty IMAGE
-extensions (a default PRIMARY HDU is prepended automatically if one was not
-provided manually).
+See :ref:`sphx_glr_auto_examples_io_create-mef.py`.
 
 
 .. _fits-scaled-data-faq:
