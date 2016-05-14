@@ -982,7 +982,7 @@ class SkyCoord(object):
         Parameters
         ----------
         None
-        
+
         Returns
         -------
         Astrometric Frame: AstrometricFrame
@@ -991,7 +991,7 @@ class SkyCoord(object):
         olat = self.represent_as(SphericalRepresentation).lat
         olon = self.represent_as(SphericalRepresentation).lon
         dist = self.represent_as(SphericalRepresentation).dist
-        return coord.Astrometric(origin_ra=olon, origin_dec=olat, originorigin_distance=dist)  
+        return coord.Astrometric(origin_ra=olon, origin_dec=olat, originorigin_distance=dist)
 
     def get_constellation(self, short_name=False, constellation_list='iau'):
         """
