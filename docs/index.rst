@@ -58,6 +58,7 @@ User Documentation
    overview
    install
    getting_started
+   Example gallery <auto_examples/index>
 
 **Core data structures and transformations**
 

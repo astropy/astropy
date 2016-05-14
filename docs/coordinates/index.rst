@@ -126,7 +126,7 @@ This form of `~astropy.coordinates.SkyCoord.transform_to` also makes it
 straightforward to convert from celestial coordinates to
 `~astropy.coordinates.AltAz` coordinates, allowing the use of |skycoord|
 as a tool for planning observations.  For a more complete example of
-this, see :doc:`observing-example`.
+this, see :ref:`sphx_glr_auto_examples_coordinates_plot_obs-planning.py`.
 
 Representation
 --------------
@@ -261,6 +261,11 @@ transformations to be defined or extended separately, while still
 preserving the high-level capabilities and simplicity of the |skycoord|
 class.
 
+.. topic:: Examples:
+
+    See :ref:`sphx_glr_auto_examples_coordinates_plot_obs-planning.py` for an
+    example of using the `~astropy.coordinates` functionality to prepare for an
+    observing run.
 
 Using `astropy.coordinates`
 ===========================
@@ -274,13 +279,11 @@ listed below.
    angles
    skycoord
    transforming
-   observing-example
    solarsystem
    formatting
    matchsep
    representations
    frames
-   sgr-example
    galactocentric
    remote_methods
    definitions

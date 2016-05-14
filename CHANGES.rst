@@ -504,6 +504,9 @@ Other Changes and Additions
 
 - Added instructions for installing Astropy into CASA. [#4840]
 
+- Added an example gallery to the docs demonstrating short 
+  snippets/examples. [#4734]
+
 
 1.1.3 (unreleased)
 -------------------
