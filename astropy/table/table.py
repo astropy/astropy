@@ -13,6 +13,7 @@ from collections import OrderedDict
 from copy import deepcopy
 
 import numpy as np
+import pandas as pd
 from numpy import ma
 
 from .. import log
@@ -2296,6 +2297,25 @@ class Table(object):
         for index in self.indices:
             index.reverse()
 
+    @classmethod
+    def read_excel(cls, *args, **kwargs):
+        """
+        Read a excel sheet and return as a Table. 
+        """
+        if len(args):
+            data = pd.read_excel(args[0])
+            tab = Table.from_pandas(data)
+        return tab
+    
+    def write_excel(self, output, sheet_name):
+        """
+        Method to write a table object to Excel.
+        """
+        data = self.to_pandas()
+        wr = pd.ExcelWriter(output)
+        data.to_excel(wr, sheet_name, index=False)
+        wr.save()
+  
     @classmethod
     def read(cls, *args, **kwargs):
         """

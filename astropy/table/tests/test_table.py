@@ -8,6 +8,7 @@ import gc
 import sys
 
 import numpy as np
+import pandas as pd
 from numpy.testing import assert_allclose
 
 from ...extern import six
@@ -1639,3 +1640,12 @@ def test_replace_column_qtable():
     assert t.colnames == ['a', 'b']
     assert t['a'].info.meta is None
     assert t['a'].info.format is None
+
+def test_read_excel():
+    a = [1, 2, 3]
+    b = [1.0, 5.0, 9.0]
+    c = ['a', 'b', 'c']
+    t = table.Table([a, b, c], names=('a', 'b', 'c'))
+    d = pd.DataFrame.from_items([('a', [1, 2, 3]), ('b', [1.0, 5.0, 9.0]), ('c', ['a', 'b', 'c'])])
+    t1 = table.Table.from_pandas(d)
+    _assert_copies(t, t1)
