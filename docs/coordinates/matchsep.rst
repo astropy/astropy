@@ -60,7 +60,7 @@ defined::
     >>> sep  # doctest: +FLOAT_CMP
     <Distance 28.743988157814094 kpc>
 
-There is also a :meth:`astropy.coordinates.SkyCoord.spherical_offsets_to` method
+There is also a :meth:`~astropy.coordinates.SkyCoord.spherical_offsets_to` method
 for computing angular offsets (e.g., small shifts like you might give a
 telescope operator to move from a bright star to a fainter target.)::
 
@@ -91,10 +91,10 @@ generate the class that creates such a frame::
     >>> from astropy.coordinates import ICRS, make_astrometric_cls
     >>> AstrometricICRS = make_astrometric_cls(ICRS)
     >>> center = ICRS(1*u.deg, 2*u.deg)
-    >>> center.transform_to(AstrometricICRS(origin=center))
+    >>> center.transform_to(AstrometricICRS(origin=center))  # doctest: +FLOAT_CMP
     <AstrometricICRS Coordinate (origin=<ICRS Coordinate: (ra, dec) in deg
     (1.0, 2.0)>): (dra, ddec) in deg
-    (0.0, -0.0)>
+    (0.0, 0.0)>
 
 Alternatively, the convenience method 
 `~astropy.coordinates.SkyCoord.astrometric_frame` let you create an astrometric
@@ -102,12 +102,12 @@ frame from an already-existing |SkyCoord|::
 
     >>> center = SkyCoord(1*u.deg, 2*u.deg)
     >>> aframe = center.astrometric_frame()
-    >>> center.transform_to(aframe)
+    >>> center.transform_to(aframe)  # doctest: +FLOAT_CMP
     <SkyCoord (AstrometricICRS: origin=<ICRS Coordinate: (ra, dec) in deg
         (1.0, 2.0)>): (dra, ddec) in deg
-        (0.0, -0.0)>
+        (0.0, 0.0)>
     >>> other = SkyCoord(2*u.deg, 3*u.deg, frame='fk5')
-    >>> other.transform_to(aframe)
+    >>> other.transform_to(aframe)  # doctest: +FLOAT_CMP
     <SkyCoord (AstrometricICRS: origin=<ICRS Coordinate: (ra, dec) in deg
     (1.0, 2.0)>): (dra, ddec) in deg
     (0.99877498, 1.00030184)>
