@@ -60,6 +60,9 @@ class AltAz(BaseCoordinateFrame):
         ``representation`` must be None).
     distance : :class:`~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
+    copy : bool, optional
+        If `True` (default), make copies of the input coordinate arrays.
+        Can only be passed in as a keyword argument.
 
     Notes
     -----

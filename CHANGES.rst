@@ -192,6 +192,9 @@ API changes
 
   - Removed compatibility layer for pre-v0.4 API. [#4447]
 
+  - Added ``copy`` keyword-only argument to allow initialisation without
+    copying the (possibly large) input coordinate arrays. [#4883]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``

@@ -41,6 +41,9 @@ class FK4(BaseCoordinateFrame):
     obstime : astropy.time.Time, optional, must be keyword
         The time this frame was observed.  If None, will be the same as
         ``equinox``.
+    copy : bool, optional
+        If `True` (default), make copies of the input coordinate arrays.
+        Can only be passed in as a keyword argument.
     """
     frame_specific_representation_info = {
         'spherical': [RepresentationMapping('lon', 'ra'),
@@ -84,6 +87,9 @@ class FK4NoETerms(BaseCoordinateFrame):
     obstime : astropy.time.Time, optional, must be keyword
         The time this frame was observed.  If None, will be the same as
         ``equinox``.
+    copy : bool, optional
+        If `True` (default), make copies of the input coordinate arrays.
+        Can only be passed in as a keyword argument.
     """
     frame_specific_representation_info = {
         'spherical': [RepresentationMapping('lon', 'ra'),

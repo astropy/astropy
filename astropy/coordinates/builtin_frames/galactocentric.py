@@ -74,6 +74,9 @@ class Galactocentric(BaseCoordinateFrame):
         the final x-z plane will align with the Galactic coordinates x-z
         plane. Unless you really know what this means, you probably should
         not change this!
+    copy : bool, optional
+        If `True` (default), make copies of the input coordinate arrays.
+        Can only be passed in as a keyword argument.
 
     Examples
     --------
