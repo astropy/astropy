@@ -41,6 +41,7 @@ _arit_doc = """
         .. versionchanged:: 1.2
             This parameter must be given as keyword-parameter. Using it as
             positional parameter is deprecated.
+            ``None`` was added as valid parameter value.
 
     handle_mask : callable, ``'first_found'`` or ``None``, optional
         If ``None`` the result will have no mask. If ``'first_found'`` the
@@ -49,12 +50,16 @@ _arit_doc = """
         create the results ``mask`` and if necessary provide a copy.
         Default is `numpy.logical_or`.
 
+        .. versionadded:: 1.2
+
     handle_meta : callable, ``'first_found'`` or ``None``, optional
         If ``None`` the result will have no meta. If ``'first_found'`` the
         result will have a copied version of the first operand that has a
         (not empty) meta. If it is a callable then the specified callable must
         create the results ``meta`` and if necessary provide a copy.
         Default is ``None``.
+
+        .. versionadded:: 1.2
 
     compare_wcs : callable, ``'first_found'`` or ``None``, optional
         If ``None`` the result will have no wcs and no comparison between
@@ -65,11 +70,15 @@ _arit_doc = """
         was given otherwise it raises a ``ValueError`` if the comparison was
         not successful. Default is ``'first_found'``.
 
+        .. versionadded:: 1.2
+
     uncertainty_correlation : number or `~numpy.ndarray`, optional
         The correlation between the two operands is used for correct error
         propagation for correlated data as given in:
         https://en.wikipedia.org/wiki/Propagation_of_uncertainty#Example_formulas
         Default is 0.
+
+        .. versionadded:: 1.2
 
 
     kwargs :

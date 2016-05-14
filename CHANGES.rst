@@ -282,6 +282,9 @@ API changes
     overriding ``_arithmetic``. The ``_arithmetic`` method is now used to call
     these other methods. [#4272]
 
+  - ``NDSlicingMixin``: If the attempt at slicing the mask, wcs or uncertainty
+    fails with a ``TypeError`` a Warning is issued instead of the TypeError. [#4271]
+
   - ``NDUncertainty``: ``support_correlated`` attribute is deprecated in favor of
     ``supports_correlated`` which is a property. Also affects
     ``StdDevUncertainty``. [#4272]
