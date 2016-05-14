@@ -2,60 +2,21 @@
 
 import numpy as np
 
-import astropy.units as u
-
 from .icrs import ICRS
-from ..sky_coordinate import SkyCoord
+from .altaz import AltAz
 from ..transformations import DynamicMatrixTransform, FunctionTransform
-from ..baseframe import FrameAttribute, frame_transform_graph
+from ..baseframe import CoordinateAttribute, frame_transform_graph
 from ..angles import rotation_matrix
 
 
-class CoordinateLocationAttribute(FrameAttribute):
-    """A frame attribute which is a coordinates object."""
-
-    def __init__(self, frame, default=None):
-        self._frame = frame
-        super(CoordinateLocationAttribute, self).__init__(default)
-
-    def convert_input(self, value):
-        """
-        Checks that the input is a SkyCoord with the necessary units (or the
-        special value ``None``).
-
-        Parameters
-        ----------
-        value : object
-            Input value to be converted.
-
-        Returns
-        -------
-        out, converted : correctly-typed object, boolean
-            Tuple consisting of the correctly-typed object and a boolean which
-            indicates if conversion was actually performed.
-
-        Raises
-        ------
-        ValueError
-            If the input is not valid for this attribute.
-        """
-        if value is None:
-            return None, False
-        elif isinstance(value, self._frame):
-            return value, False
-        else:
-            if not hasattr(value, 'transform_to'):
-                raise ValueError('"{0}" was passed into an '
-                                 'CoordinateLocationAttribute, but it does not have '
-                                 '"transform_to" method'.format(value))
-            transformedobj = value.transform_to(self._frame)
-            if isinstance(transformedobj, SkyCoord):
-                return transformedobj.frame, True
-            return transformedobj, True
+_astrometric_cache = {}
 
 
-def astrometric(frame):
-    """Define an Astrometric frame relative to some origin frame."""
+def make_astrometric_cls(frame):
+    """Create an Astrometric frame relative to some origin frame."""
+
+    if frame in _astrometric_cache:
+        return _astrometric_cache[frame]
 
     class Astrometric(frame):
         """
@@ -73,7 +34,7 @@ def astrometric(frame):
 
         """
 
-        origin = CoordinateLocationAttribute(default=None, frame=frame)
+        origin = CoordinateAttribute(default=None, frame=frame)
 
         def at_origin(self, origin):
             """This method returns a new frame, identical to this frame, except at a differnt origin.
@@ -132,6 +93,8 @@ def astrometric(frame):
         Rinv = np.linalg.inv(R)
         return Rinv
 
+    _astrometric_cache[frame] = Astrometric
     return Astrometric
 
-AstrometricICRS = astrometric(ICRS)
+AstrometricICRS = make_astrometric_cls(ICRS)
+AstrometricAltAz = make_astrometric_cls(AltAz)
