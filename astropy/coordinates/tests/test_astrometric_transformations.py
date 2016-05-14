@@ -33,20 +33,22 @@ def test_astrometric(inradec, expecteddradec, tolsep, originradec=(45, 45)*u.deg
 
 
 def test_astrometric_functional_ra():
-    #Setup
-    input_ra = np.linspace(0,360,10)
-    input_dec = np.linspace(-90,90,10)
+    # we do the 12)[1:-1] business because sometimes machine precision issues
+    # lead to results that are either ~0 or ~360, which mucks up the final
+    # comparison and leads to spurious failures.  So this just avoids that by
+    # staying away from the edges
+    input_ra = np.linspace(0, 360, 12)[1:-1]
+    input_dec = np.linspace(-90, 90, 12)[1:-1]
     input_ra_rad = np.deg2rad(input_ra)
     input_dec_rad = np.deg2rad(input_dec)
     icrs_coord = ICRS(ra = input_ra*u.deg,
                       dec = input_dec*u.deg,
                       distance=1.*u.kpc)
-    #RA rotations
 
     for ra in np.linspace(0,360,24):
         # expected rotation
-        expected = ICRS(ra=np.linspace(0-ra,360-ra,10)*u.deg,
-                        dec=np.linspace(-90,90,10)*u.deg,
+        expected = ICRS(ra=np.linspace(0-ra, 360-ra, 12)[1:-1]*u.deg,
+                        dec=np.linspace(-90, 90, 12)[1:-1]*u.deg,
                         distance=1.*u.kpc)
         expected_xyz = expected.cartesian.xyz
 
@@ -60,17 +62,19 @@ def test_astrometric_functional_ra():
         roundtrip_xyz = roundtrip.cartesian.xyz
 
         # Verify
-        assert_allclose(actual_xyz.to(u.kpc), expected_xyz.to(u.kpc), atol=1E-5*u.kpc)
-        #assert_allclose(actual_xyz.to(u.kpc), roundtrip_xyz.to(u.kpc), atol=1E-5*u.kpc)
-        assert_allclose(icrs_coord.ra.to(u.deg), roundtrip.ra.to(u.deg), atol = 1E-5*u.deg)
-        assert_allclose(icrs_coord.dec.to(u.deg), roundtrip.dec.to(u.deg), atol = 1E-5*u.deg)
-        assert_allclose(icrs_coord.distance.to(u.kpc), roundtrip.distance.to(u.kpc), atol = 1E-5*u.kpc)
+        assert_allclose(actual_xyz, expected_xyz, atol=1E-5*u.kpc)
+        assert_allclose(icrs_coord.ra, roundtrip.ra, atol = 1E-5*u.deg)
+        assert_allclose(icrs_coord.dec, roundtrip.dec, atol = 1E-5*u.deg)
+        assert_allclose(icrs_coord.distance, roundtrip.distance, atol = 1E-5*u.kpc)
 
 
 def test_astrometric_functional_dec():
-    #Setup
-    input_ra = np.linspace(0,360,10)
-    input_dec = np.linspace(-90,90,10)
+    # we do the 12)[1:-1] business because sometimes machine precision issues
+    # lead to results that are either ~0 or ~360, which mucks up the final
+    # comparison and leads to spurious failures.  So this just avoids that by
+    # staying away from the edges
+    input_ra = np.linspace(0, 360, 12)[1:-1]
+    input_dec = np.linspace(-90, 90, 12)[1:-1]
     input_ra_rad = np.deg2rad(input_ra)
     input_dec_rad = np.deg2rad(input_dec)
     icrs_coord = ICRS(ra = input_ra*u.deg,
@@ -79,7 +83,7 @@ def test_astrometric_functional_dec():
     #Dec rotations
     #Done in xyz space because dec must be [-90,90]
 
-    for dec in np.linspace(-90,90,13):
+    for dec in np.linspace(-90, 90, 13):
         # expected rotation
         dec_rad = -np.deg2rad(dec)
         expected_x = (-np.sin(input_dec_rad) * np.sin(dec_rad) +
@@ -102,24 +106,27 @@ def test_astrometric_functional_dec():
         roundtrip_xyz = roundtrip.cartesian.xyz
 
         # Verify
-        assert_allclose(actual_xyz.to(u.kpc), expected_xyz.to(u.kpc), atol=1E-5*u.kpc)
-        assert_allclose(icrs_coord.ra.to(u.deg), roundtrip.ra.to(u.deg), atol = 1E-5*u.deg)
-        assert_allclose(icrs_coord.dec.to(u.deg), roundtrip.dec.to(u.deg), atol = 1E-5*u.deg)
-        assert_allclose(icrs_coord.distance.to(u.kpc), roundtrip.distance.to(u.kpc), atol = 1E-5*u.kpc)
+        assert_allclose(actual_xyz, expected_xyz, atol=1E-5*u.kpc)
+        assert_allclose(icrs_coord.ra, roundtrip.ra, atol = 1E-5*u.deg)
+        assert_allclose(icrs_coord.dec, roundtrip.dec, atol = 1E-5*u.deg)
+        assert_allclose(icrs_coord.distance, roundtrip.distance, atol = 1E-5*u.kpc)
 
 
 def test_astrometric_functional_ra_dec():
-    #Setup
-    input_ra = np.linspace(0,360,12)[1:-1]
-    input_dec = np.linspace(-90,90,12)[1:-1]
+    # we do the 12)[1:-1] business because sometimes machine precision issues
+    # lead to results that are either ~0 or ~360, which mucks up the final
+    # comparison and leads to spurious failures.  So this just avoids that by
+    # staying away from the edges
+    input_ra = np.linspace(0, 360, 12)[1:-1]
+    input_dec = np.linspace(-90, 90, 12)[1:-1]
     input_ra_rad = np.deg2rad(input_ra)
     input_dec_rad = np.deg2rad(input_dec)
     icrs_coord = ICRS(ra = input_ra*u.deg,
                       dec = input_dec*u.deg,
                       distance=1.*u.kpc)
-    #Both rotations
-    for ra in np.linspace(0,360, 10):
-        for dec in np.linspace(-90,90, 5):
+
+    for ra in np.linspace(0, 360, 10):
+        for dec in np.linspace(-90, 90, 5):
             # expected rotation
             dec_rad = -np.deg2rad(dec)
             ra_rad = np.deg2rad(ra)
@@ -146,10 +153,10 @@ def test_astrometric_functional_ra_dec():
             roundtrip_xyz = roundtrip.cartesian.xyz
 
             # Verify
-            assert_allclose(actual_xyz.to(u.kpc), expected_xyz.to(u.kpc), atol=1E-5*u.kpc)
-            assert_allclose(icrs_coord.ra.to(u.deg), roundtrip.ra.to(u.deg), atol = 1E-4*u.deg)
-            assert_allclose(icrs_coord.dec.to(u.deg), roundtrip.dec.to(u.deg), atol = 1E-5*u.deg)
-            assert_allclose(icrs_coord.distance.to(u.kpc), roundtrip.distance.to(u.kpc), atol = 1E-5*u.kpc)
+            assert_allclose(actual_xyz, expected_xyz, atol=1E-5*u.kpc)
+            assert_allclose(icrs_coord.ra, roundtrip.ra, atol = 1E-4*u.deg)
+            assert_allclose(icrs_coord.dec, roundtrip.dec, atol = 1E-5*u.deg)
+            assert_allclose(icrs_coord.distance, roundtrip.distance, atol = 1E-5*u.kpc)
 
 def test_skycoord_astrometric_frame():
     m31 = SkyCoord(10.6847083, 41.26875, frame='icrs', unit=u.deg)
