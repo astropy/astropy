@@ -872,6 +872,31 @@ def test_sextractor_units():
         assert table[colname].unit == expected_units[i]
         assert table[colname].description == expected_descrs[i]
 
+def test_sextractor_last_column_array():
+    """
+    Make sure that the SExtractor reader handles the last column correctly when it is array-like.
+    """
+    table = ascii.read('t/sextractor3.dat', Reader=ascii.SExtractor, guess=False)
+    expected_columns = ['X_IMAGE', 'Y_IMAGE', 'ALPHA_J2000', 'DELTA_J2000',
+                        'MAG_AUTO', 'MAGERR_AUTO',
+                        'MAG_APER', 'MAG_APER_1', 'MAG_APER_2', 'MAG_APER_3', 'MAG_APER_4', 'MAG_APER_5', 'MAG_APER_6',
+                        'MAGERR_APER', 'MAGERR_APER_1', 'MAGERR_APER_2', 'MAGERR_APER_3', 'MAGERR_APER_4', 'MAGERR_APER_5', 'MAGERR_APER_6']
+    expected_units = [Unit('pix'), Unit('pix'), Unit('deg'), Unit('deg'),
+                      Unit('mag'), Unit('mag'),
+                      Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'),
+                      Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag'), Unit('mag')]
+    expected_descrs = ['Object position along x', None,
+                       'Right ascension of barycenter (J2000)',
+                       'Declination of barycenter (J2000)',
+                       'Kron-like elliptical aperture magnitude',
+                       'RMS error for AUTO magnitude',] + [
+                       'Fixed aperture magnitude vector'] * 7 + [
+                       'RMS error vector for fixed aperture mag.'] * 7
+    for i, colname in enumerate(table.colnames):
+        assert table[colname].name == expected_columns[i]
+        assert table[colname].unit == expected_units[i]
+        assert table[colname].description == expected_descrs[i]
+
 def test_list_with_newlines():
     """
     Check that lists of strings where some strings consist of just a newline
