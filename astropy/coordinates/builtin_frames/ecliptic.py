@@ -48,6 +48,9 @@ class GeocentricTrueEcliptic(BaseCoordinateFrame):
     distance : `~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object from the geocenter.
         (``representation`` must be None).
+    copy : bool, optional
+        If `True` (default), make copies of the input coordinate arrays.
+        Can only be passed in as a keyword argument.
     """
     default_representation = SphericalRepresentation
 
@@ -87,6 +90,9 @@ class BarycentricTrueEcliptic(BaseCoordinateFrame):
     r : `~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object from the sun's center.
         (``representation`` must be None).
+    copy : bool, optional
+        If `True` (default), make copies of the input coordinate arrays.
+        Can only be passed in as a keyword argument.
     """
     default_representation = SphericalRepresentation
 
@@ -126,6 +132,9 @@ class HeliocentricTrueEcliptic(BaseCoordinateFrame):
     r : `~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object from the sun's center.
         (``representation`` must be None).
+    copy : bool, optional
+        If `True` (default), make copies of the input coordinate arrays.
+        Can only be passed in as a keyword argument.
     """
     default_representation = SphericalRepresentation
 

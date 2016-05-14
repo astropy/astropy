@@ -912,6 +912,22 @@ def test_unit_spherical_roundtrip():
     assert_allclose_quantity(s1.lat, s4.lat)
 
 
+def test_no_unnecessary_copies():
+
+    s1 = UnitSphericalRepresentation(lon=[10., 30.] * u.deg,
+                                     lat=[5., 6.] * u.arcmin)
+    s2 = s1.represent_as(UnitSphericalRepresentation)
+    assert s2 is s1
+    assert np.may_share_memory(s1.lon, s2.lon)
+    assert np.may_share_memory(s1.lat, s2.lat)
+    s3 = s1.represent_as(SphericalRepresentation)
+    assert np.may_share_memory(s1.lon, s3.lon)
+    assert np.may_share_memory(s1.lat, s3.lat)
+    s4 = s1.represent_as(CartesianRepresentation)
+    s5 = s4.represent_as(CylindricalRepresentation)
+    assert np.may_share_memory(s5.z, s4.z)
+
+
 def test_representation_repr():
     r1 = SphericalRepresentation(lon=1 * u.deg, lat=2.5 * u.deg, distance=1 * u.kpc)
     assert repr(r1) == ('<SphericalRepresentation (lon, lat, distance) in (deg, deg, kpc)\n'

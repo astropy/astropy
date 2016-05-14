@@ -53,6 +53,9 @@ class GCRS(BaseCoordinateFrame):
     distance : `~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
         (``representation`` must be None).
+    copy : bool, optional
+        If `True` (default), make copies of the input coordinate arrays.
+        Can only be passed in as a keyword argument.
     """
 
     frame_specific_representation_info = {
@@ -109,6 +112,9 @@ class PrecessedGeocentric(BaseCoordinateFrame):
     distance : `~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
         (``representation`` must be None).
+    copy : bool, optional
+        If `True` (default), make copies of the input coordinate arrays.
+        Can only be passed in as a keyword argument.
     """
 
     frame_specific_representation_info = {
