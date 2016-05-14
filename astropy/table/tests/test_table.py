@@ -1625,10 +1625,9 @@ class TestReplaceColumn(SetupData):
 
 class Test__Astropy_Table__():
     """
-    Test initializing a Table subclass from a "foreign table" that
+    Test initializing a Table subclass from a table-like object that
     implements the __astropy_table__ interface method.
     """
-
 
     class SimpleTable(object):
         def __init__(self):
@@ -1645,7 +1644,7 @@ class Test__Astropy_Table__():
                     table.MaskedColumn(b, name='b'),
                     c]
             names = [col.info.name for col in cols]
-            return cls(cols, names=names, copy=copy, meta=self.meta)
+            return cls(cols, names=names, copy=copy, meta=kwargs or self.meta)
 
     def test_simple_1(self):
         """Make a SimpleTable and convert to Table, QTable with copy=False, True"""
@@ -1653,9 +1652,10 @@ class Test__Astropy_Table__():
             col_c_class = u.Quantity if table_cls is table.QTable else table.MaskedColumn
             for cpy in (False, True):
                 st = self.SimpleTable()
-                t = table_cls(st, copy=cpy)
+                # Test putting in a non-native kwarg `extra_meta` to Table initializer
+                t = table_cls(st, copy=cpy, extra_meta='extra!')
                 assert t.colnames == ['a', 'b', 'c']
-                assert t.meta == st.meta
+                assert t.meta == {'extra_meta': 'extra!'}
                 assert np.all(t['a'] == st.columns[0])
                 assert np.all(t['b'] == st.columns[1])
                 vals = t['c'].value if table_cls is table.QTable else t['c']
@@ -1685,6 +1685,12 @@ class Test__Astropy_Table__():
         # behavior when initializing from an existing astropy Table.
         assert t.meta == st.meta
 
+    def test_kwargs_exception(self):
+        """If extra kwargs provided but without initializing with a table-like
+        object, exception is raised"""
+        with pytest.raises(TypeError) as err:
+            table.Table([[1]], extra_meta='extra!')
+        assert '__init__() got unexpected keyword argument' in str(err)
 
 
 def test_replace_column_qtable():
