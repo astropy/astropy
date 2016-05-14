@@ -20,15 +20,13 @@ def make_astrometric_cls(frame):
 
     class Astrometric(frame):
         """
-        A frame which is relative to some position on the sky. Useful for calculating offsets and dithers
-        in the frame of the sky.
+        A frame which is relative to some position on the sky. Useful for
+        calculating offsets and dithers in the frame of the sky.
 
         Parameters
         ----------
         representation : `BaseRepresentation` or None
             A representation object or None to have no data (or use the other keywords)
-        X : `Angle`, optional, must be keyword
-        Y : `Angle`, optional, must be keyword
         origin : `SkyCoord`, optional
             the coordinates which specifiy the origin of this frame.
 
@@ -37,8 +35,9 @@ def make_astrometric_cls(frame):
         origin = CoordinateAttribute(default=None, frame=frame)
 
         def at_origin(self, origin):
-            """This method returns a new frame, identical to this frame, except at a differnt origin.
-            This can be used to apply e.g. a sequence of telescope offsets to different targets (different origins).
+            """ This method returns a new frame, identical to this frame,
+            except at a differnt origin. This can be used to apply e.g. a
+            sequence of telescope offsets to different targets (different origins).
 
             Parameters
             ----------
