@@ -5,8 +5,9 @@ import numpy as np
 from .icrs import ICRS
 from .altaz import AltAz
 from ..transformations import DynamicMatrixTransform, FunctionTransform
-from ..baseframe import CoordinateAttribute, frame_transform_graph
+from ..baseframe import CoordinateAttribute, frame_transform_graph, RepresentationMapping
 from ..angles import rotation_matrix
+from ...extern import six
 
 
 _astrometric_cache = {}
@@ -18,10 +19,20 @@ def make_astrometric_cls(framecls):
     origin frame. If such a class has already been created for this frame, the
     same class will be returned.
 
+    The resulting frame class will be subtly different from the base class in
+    that its spherical component names will be d<lat> and d<lon>.  E.g., for
+    ICRS the astrometric frame had components ``dra`` and ``ddec`` instead of
+    ``ra`` and ``dec``.
+
     Parameters
     ----------
     framecls : coordinate frame class (i.e., subclass of `~astropy.coordinates.BaseCoordinateFrame`)
         The class to create the Astrometric frame of.
+
+    Returns
+    -------
+    astrometricframecls : class
+        The class for the new astrometric frame.
 
     Notes
     -----
@@ -35,7 +46,50 @@ def make_astrometric_cls(framecls):
     if framecls in _astrometric_cache:
         return _astrometric_cache[framecls]
 
-    class Astrometric(framecls):
+    # the class of a class object is the metaclass
+    framemeta = framecls.__class__
+
+    class AstrometricMeta(framemeta):
+        """
+        This metaclass renames the class to be "Astrometric<framecls>" and also
+        adjusts the frame specific representation info to have the "d" in front
+        of spherical names
+        """
+        def __new__(cls, name, bases, members):
+            newname = name + framecls.__name__
+            res = super(AstrometricMeta, cls).__new__(cls, newname, bases, members)
+
+            # now go through all the component names and make any spherical
+            # lat/lon names be "d<lon>"/"d<lat>"
+
+            lists_done = []
+            for nm, component_list in res._frame_specific_representation_info.items():
+                if nm in ('spherical', 'unitspherical'):
+                    gotlatlon = []
+                    for i, comp in enumerate(component_list):
+                        if component_list in lists_done:
+                            # we need this because sometimes the component_
+                            # list's are the exact *same* object for both
+                            # spherical and unitspherical.  So looping then adds
+                            # the 'd' *twice*.  This hack bypasses that.
+                            continue
+
+                        if comp.reprname in ('lon', 'lat'):
+                            dct = comp._asdict()
+                            dct['framename'] = 'd' + dct['framename']
+                            component_list[i] = type(comp)(**dct)
+                            gotlatlon.append(comp.reprname)
+                    if 'lon' not in gotlatlon:
+                        rmlon = RepresentationMapping('lon', 'dlon', 'recommended')
+                        component_list.insert(0, rmlon)
+                    if 'lat' not in gotlatlon:
+                        rmlat = RepresentationMapping('lat', 'dlat', 'recommended')
+                        component_list.insert(0, rmlat)
+                    lists_done.append(component_list)
+
+            return res
+
+    class Astrometric(six.with_metaclass(AstrometricMeta, framecls)):
         """
         A frame which is relative to some position on the sky. Useful for
         calculating offsets and dithers in the frame of the sky.
