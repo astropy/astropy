@@ -27,6 +27,8 @@ def test_astrometric(inradec, expecteddradec, tolsep, originradec=(45, 45)*u.deg
 
     skycoord = SkyCoord(*inradec, frame=ICRS)
     skycoord_inaf = skycoord.transform_to(astrometric_frame)
+    assert hasattr(skycoord_inaf, 'dra')
+    assert hasattr(skycoord_inaf, 'ddec')
     expected = SkyCoord(*expecteddradec, frame=astrometric_frame)
 
     assert skycoord_inaf.separation(expected) < tolsep
@@ -150,3 +152,18 @@ def test_astrometric_functional_ra_dec():
             assert_allclose(icrs_coord.ra.to(u.deg), roundtrip.ra.to(u.deg), atol = 1E-4*u.deg)
             assert_allclose(icrs_coord.dec.to(u.deg), roundtrip.dec.to(u.deg), atol = 1E-5*u.deg)
             assert_allclose(icrs_coord.distance.to(u.kpc), roundtrip.distance.to(u.kpc), atol = 1E-5*u.kpc)
+
+def test_skycoord_astrometric_frame():
+    m31 = SkyCoord(10.6847083, 41.26875, frame='icrs', unit=u.deg)
+    m33 = SkyCoord(23.4621, 30.6599417, frame='icrs', unit=u.deg)
+
+    m31_astro = m31.astrometric_frame()
+    m31_in_m31 = m31.transform_to(m31_astro)
+    m33_in_m31 = m33.transform_to(m31_astro)
+
+    assert_allclose([m31_in_m31.dra, m31_in_m31.ddec], [0, 0]*u.deg, atol=1e-10*u.deg)
+    assert_allclose([m33_in_m31.dra, m33_in_m31.ddec], [11.13135175, -9.79084759]*u.deg)
+
+    assert_allclose(m33.separation(m31),
+                    np.hypot(m33_in_m31.dra, m33_in_m31.ddec),
+                    atol=.1*u.deg)
