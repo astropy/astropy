@@ -6,11 +6,16 @@ Solar System Ephemerides
 ------------------------
 
 `astropy.coordinates` can calculate the |SkyCoord| of some of the major
-solar system objects. This functionality requires the 
-`jplephem <https://pypi.python.org/pypi/jplephem>`_ package
-to be installed. Coordinates are calculated using the JPL DE430 ephemeris file. 
-The ephemeris file provides predictions valid for years between 1550 and 2650. 
-The file is 115 MB and will be downloaded the first time, but cached after that.
+solar system objects. Coordinates are calculated using the JPL DE430 
+ephemerides. These ephemerides provide predictions valid roughly for years 
+between 1550 and 2650. The file is 115 MB and will need to be downloaded 
+the first time you use this functionality, but will be cached after that.
+
+.. note::
+    This functionality requires that the 
+    `jplephem <https://pypi.python.org/pypi/jplephem>`_ package
+    is installed. This is most easily acheived via ``pip install jplephem``,
+    although whatever package management system you use might have it as well.
 
 Three functions are provided; :meth:`~astropy.coordinates.get_body`, 
 :meth:`~astropy.coordinates.get_moon` and 
@@ -19,7 +24,7 @@ two functions return |SkyCoord| objects in the `~astropy.coordinates.GCRS` frame
 whilst the latter returns a `~astropy.coordinates.CartesianRepresentation` of the barycentric position
 of a body (i.e in the `~astropy.coordinates.ICRS` frame).
 
-The methods are used as follows::
+Here are some examples of these functions in use::
 
     >>> from astropy.time import Time
     >>> from astropy.coordinates import get_moon, get_body
@@ -36,10 +41,15 @@ The methods are used as follows::
     <CartesianRepresentation (x, y, z) in km
     (150107535.26352832, -866789.03506676, -418963.52113854)>
        
-The bodies for which positions can be calculated can be listed::
+For a list of the bodies for which positions can be calculated, do::
 
     >>> from astropy.coordinates import SOLAR_SYSTEM_BODIES
     >>> SOLAR_SYSTEM_BODIES
     ('sun', 'mercury', 'venus', 'earth-moon-barycenter', 'earth', 'moon', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto')
 
-
+.. note ::
+    While the sun is included in the these ephemerides, it is important to
+    recognize that `~astropy.coordinates.get_sun` does *not* use this
+    method, but instead uses a polynomial model for the location of the sun
+    (as this requires no special download). So it is not safe to assume that
+    ``get_body(time, 'sun')`` and ``get_sun(time)`` will give the same result.
