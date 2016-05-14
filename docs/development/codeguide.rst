@@ -84,6 +84,9 @@ Interface and Dependencies
       class Whatever(Superclass):
           ...
 
+  In the astropy core package, such optional dependencies should be recorded in
+  the ``dev-pip-requirements`` file in the root of the repository.
+
 * General utilities necessary for but not specific to the package or
   sub-package should be placed in the ``packagename.utils`` module. These
   utilities will be moved to the :mod:`astropy.utils` module when the
