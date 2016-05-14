@@ -979,7 +979,7 @@ object that provides an ``__astropy_table__`` method.  In this case the
 
 Internally the following call will be made to ask the ``data`` object
 to return a representation of itself as an astropy |Table|, respecting
-the ``copy`` preference of the original call to ``Table()``::
+the ``copy`` preference of the original call to ``QTable()``::
 
   data.__astropy_table__(cls, copy, **kwargs)
 
@@ -993,7 +993,7 @@ which are not valid |Table| init keyword arguments.  In the example above,
 If ``copy`` is ``True`` then the ``__astropy_table__`` method must ensure that
 a copy of the original data is returned.  If ``copy`` is ``False`` then a
 reference to the table data should returned if possible.  If it is not possible
-(e.g. the original data are in a Python list or must be other transformed in
+(e.g. the original data are in a Python list or must be otherwise transformed in
 memory) then ``__astropy_table__`` method is free to either return a copy or
 else raise an exception.  This choice depends on the preference of the
 implementation.  The implementation might choose to allow an additional keyword
