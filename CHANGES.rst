@@ -75,23 +75,19 @@ New Features
 
 - ``astropy.nddata``
 
-  - Added ``UnknownUncertainty`` as ``NDUncertainty`` subclass which cannot
-    be used for error propagation. [#4272]
+  - ``UnknownUncertainty`` new subclass of ``NDUncertainty`` that can be used to
+    save uncertainties that cannot be used for error propagation. [#4272]
 
-  - ``StdDevUncertainty`` implements error propagation using it's ``unit`` and
-    a given ``correlation`` between the datasets. [#4272]
+  - ``NDArithmeticMixin``: ``add``, ``subtract``, ``multiply`` and ``divide``
+    can be used as classmethods but require that two operands are given. These
+    operands don't need to be NDData instances but they must be convertible to
+    NDData. This conversion is done internally. Using it on the instance does
+    not require (but also allows) two operands. [#4272, #4851]
 
-  - ``NDArithmeticMixin`` allows for arithmetic operations with anything that
-    can be wrapped by the class. [#4272]
-
-  - ``NDArithmeticMixin`` the methods add, subtract, multiply and divide now
-    support giving two operands and these methods are now classmethods. This
-    change allows evaluating the result when the first operand is not an
-    NDDataArithmeticMixin subclass. [#4272 + 4851]
-
-  - Added ``NDDataRef`` that implements ``NDData`` together with all
+  - ``NDDataRef`` new subclass that implements ``NDData`` together with all
     currently avaiable mixins. This class does not implement additional
     attributes, methods or a numpy.ndarray-like interface like ``NDDataArray``.
+    [#4797]
 
 - ``astropy.stats``
 
@@ -215,34 +211,123 @@ API changes
 
 - ``astropy.nddata``
 
-  - ``NDData``: added an optional parameter ``copy``
-    which is False by default. If it is True all other parameters are copied
-    before saving them as attributes. If False the parameters are only copied
-    if there is no way of saving them as reference. [#4270]
+  - ``NDDataBase`` does not set the private uncertainty property anymore. This
+    only affects you if you subclass ``NDDataBase`` directly. [#4270]
 
-  - ``NDData``: ``Masked_Quantity`` objects are allowed as ``data``
-    parameter. [#4270]
+  - ``NDDataBase``: the ``uncertainty``-setter is removed. A similar one is
+    added in ``NDData`` so this also only affects you if you subclassed
+    ``NDDataBase`` directly. [#4270]
 
-  - ``NDUncertainty``: Added ``array``, ``unit`` and ``copy`` as optional
-    parameters. [#4272]
+  - ``NDDataBase``: ``uncertainty``-getter returns ``None`` instead of the
+    private uncertainty and is now abstract. This getter is moved to
+    ``NDData`` so it only affects direct subclasses of ``NDDataBase``. [#4270]
 
-  - ``NDUncertainty``: Public methods ``propagate_add``, etc. are replaced by
-    a general ``propagate`` method. [#4272]
+  - ``NDData`` accepts a Quantity-like data and an explictly given unit.
+    Before a ValueError was raised in this case. The final instance will use the
+    explicitly given unit-attribute but doesn't check if the units are
+    convertible and the data will not be scaled. [#4270]
 
-  - ``NDUncertainty`` and subclasses: implement a representation (``__repr__``). [#4787]
+  - ``NDData`` : the given mask, explicit or implicit if the data was masked,
+    will be saved by the setter. It will not be saved directly as the private
+    attribute. [#4879]
 
-  - ``StdDevUncertainty``: added an optional parameter ``copy`` which is False
-    by default. [#4272]
+  - ``NDData`` accepts an additional argument ``copy`` which will copy every
+    parameter before it is saved as attribute of the instance. [#4270]
 
-  - ``NDArithmeticMixin``: Added ``handle_mask``, ``handle_meta`` and
-    ``compare_wcs`` and ``uncertainty_correlation`` as optional parameters.
-    [#4272]
+  - ``NDData``: added an ``uncertainty.getter`` that returns the private
+    attibute. It is equivalent to the old ``NDDataBase.uncertainty``-getter.
+    [#4270]
 
-  - ``NDArithmeticMixin``: The optional ``propagate_uncertainties`` parameter
-    can also be ``None``. [#4272]
+  - ``NDData``: added an ``uncertainty.setter``. It is slightly modified with
+    respect to the old ``NDDataBase.uncertainty``-setter. The changes include:
 
-  - ``NDArithmeticMixin``: Does not compare the wcs for equality except if
-    ``compare_wcs`` is given as function that compares it. [#4272]
+    - if the uncertainty has no uncertainty_type an info message is printed
+      instead of a TypeError and the uncertainty is saved as
+      ``UnknownUncertainty`` except the uncertainty is None. [#4270]
+
+    - the requirement that the uncertainty_type of the uncertainty needs to be a
+      string was removed. [#4270]
+
+    - if the uncertainty is a subclass of NDUncertainty the parent_nddata
+      attribute will be set so the uncertainty knows to which data it belongs.
+      This is also a Bugfix. [#4152, #4270]
+
+  - ``NDData``: added a ``meta``-getter, which will set and return an empty
+    OrderedDict if no meta was previously set. [#4509, #4469]
+
+  - ``NDData``: added an ``meta``-setter. It requires that the meta is
+    dictionary-like (it also accepts Headers or ordered dictionaries and others)
+    or None. It will copy the given value before saving it. [#4509, #4469]
+
+  - ``NDArithmeticMixin``: The operand in arithmetic methods (``add``, ...)
+    doesn't need to be a subclass of ``NDData``. It is sufficient if it can be
+    converted to one. This conversion is done internally. [#4272]
+
+  - ``NDArithmeticMixin``: The arithmetic methods allow several new arguments to
+    control how or if different attributes of the class will be processed during
+    the operation. [#4272]
+
+  - ``NDArithmeticMixin``: Giving the parameter ``propagate_uncertainties`` as
+    positional keyword is deprecated and will be removed in the future. You now
+    need to specify it as keyword-parameter. Besides ``True`` and ``False`` also
+    ``None`` is now a valid value for this parameter. [#4272, #4851]
+
+  - ``NDArithmeticMixin``: The wcs attribute of the operands is not compared and
+    thus raises no ValueError if they differ, except if a ``compare_wcs``
+    parameter is specified. [#4272]
+
+  - ``NDArithmeticMixin``: The arithmetic operation was split from a general
+    ``_arithmetic`` method to different specialized private methods to allow
+    subclasses more control on how the attributes are processed without
+    overriding ``_arithmetic``. The ``_arithmetic`` method is now used to call
+    these other methods. [#4272]
+
+  - ``NDUncertainty``: ``support_correlated`` attribute is deprecated in favor of
+    ``supports_correlated`` which is a property. Also affects
+    ``StdDevUncertainty``. [#4272]
+
+  - ``NDUncertainty``: added the ``__init__`` that was previously implemented in
+    ``StdDevUncertainty`` and takes an additional ``unit`` parameter. [#4272]
+
+  - ``NDUncertainty``: added a ``unit`` property without setter that returns the
+    set unit or if not set the unit of the parent. [#4272]
+
+  - ``NDUncertainty``: included a ``parent_nddata`` property similar to the one
+    previously implemented in StdDevUncertainty. [#4272]
+
+  - ``NDUncertainty``: added an ``array`` property with setter. The setter will
+    convert the value to a plain numpy array if it is a list or a subclass of a
+    numpy array. [#4272]
+
+  - ``NDUncertainty``: ``propagate_multiply`` and similar were removed. Before
+    they were abstract properties and replaced by methods with the same name but
+    with a leading underscore. The entry point for propagation is a method
+    called ``propagate``. [#4272]
+
+  - ``NDUncertainty`` and subclasses: implement a representation (``__repr__``).
+    [#4787]
+
+  - ``StdDevUncertainty``: error propagation allows an explicitly given
+    correlation factor, which may be a scalar or an array which will be taken
+    into account during propagation.
+    This correlation must be determined manually and is not done by the
+    uncertainty! [#4272]
+
+  - ``StdDevUncertainty``: the ``array`` is converted to a plain numpy array
+    only if it's a list or a subclass of numpy.ndarray. Previously it was always
+    cast to a numpy array but also allowed subclasses. [#4272]
+
+  - ``StdDevUncertainty``: setting the ``parent_nddata`` does not compare if the
+    shape of it's array is identical to the parents data shape. [#4272]
+
+  - ``StdDevUncertainty``: the ``array.setter`` doesn't compare if the array has
+    the same shape as the parents data. [#4272]
+
+  - ``StdDevUncertainty``: deprecated ``support_correlated`` in favor of
+    ``supports_correlated``. [#4272, #4828]
+
+  - ``StdDevUncertainty``: deprecated ``propagate_add`` and similar methods in
+    favor of ``propagate``. [#4272, #4828]
 
 - ``astropy.stats``
 
@@ -345,24 +430,20 @@ Bug fixes
 
 - ``astropy.nddata``
 
-  - ``NDDataBase`` does not implement a setter or getter for ``uncertainty``,
-    which is now an abstractproperty. [#4270]
+  - ``NDData`` giving masked_Quantities as data-argument will use the
+    implicitly passed mask, unit and value. [#4270]
 
-  - ``NDData`` wraps the ``uncertainty`` inside an ``UnknownUncertainty``
-    if no ``uncertainty_type`` attribute is present in the uncertainty instead
-    of raising an Exception. [#4270]
+  - ``NDData`` using a subclass implementing ``NDData`` with
+    ``NDArithmeticMixin`` now allows error propagation. [#4270]
 
-  - ``NDData`` The ``uncertainty_type`` of the ``uncertainty`` is no longer
-    required to be a string, but it is still recommended. [#4270]
-
-  - ``NDData`` now sets the ``parent_nddata`` of the ``uncertainty`` if the
-    uncertainty is ``NDUncertainty``-like. [#4152, #4270]
-
-  - ``NDArithmeticMixin`` does provide correct resulting uncertainties for
-    ``divide`` and ``multiply`` if only one uncertainty was set. [#4152, #4272]
-
-  - Fixed memory leak that happened when uncertainty of NDDataArray was
+  - Fixed memory leak that happened when uncertainty of ``NDDataArray`` was
     set. [#4825, #4862]
+
+  - ``StdDevUncertainty``: During error propagation the unit of the uncertainty
+    is taken into account. [#4272]
+
+  - ``NDArithmeticMixin``: ``divide`` and ``multiply`` yield correct
+    uncertainties if only one uncertainty is set. [#4152, #4272]
 
 - ``astropy.stats``
 

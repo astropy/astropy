@@ -1,20 +1,319 @@
+.. _nddata_subclassing:
+
 Subclassing
 ===========
 
-There are a couple of choices to be made in subclassing from the nddata
-package. For the greatest flexibility, subclass from
-`~astropy.nddata.NDDataBase`, which places no restrictions on any of
-its attributes. In many cases, subclassing `~astropy.nddata.NDData` will work
-instead; it is more straightforward but places some minimal restrictions on
-how the data can be represented.
+`~astropy.nddata.NDData`
+------------------------
+
+This class serves as the base for subclasses that use a `numpy.ndarray` (or
+something that presents a numpy-like interface) as the ``data`` attribute.
+
+.. note::
+  Each attribute is saved as attribute with one leading underscore. For example
+  the ``data`` is saved as ``_data`` and the ``mask`` as ``_mask``, and so on.
+
+Adding another property
+^^^^^^^^^^^^^^^^^^^^^^^
+
+    >>> from astropy.nddata import NDData
+
+    >>> class NDDataWithFlags(NDData):
+    ...     def __init__(self, *args, **kwargs):
+    ...         # Remove flags attribute if given and pass it to the setter.
+    ...         self.flags = kwargs.pop('flags') if 'flags' in kwargs else None
+    ...         super(NDDataWithFlags, self).__init__(*args, **kwargs)
+    ...
+    ...     @property
+    ...     def flags(self):
+    ...         return self._flags
+    ...
+    ...     @flags.setter
+    ...     def flags(self, value):
+    ...         self._flags = value
+
+    >>> ndd = NDDataWithFlags([1,2,3])
+    >>> ndd.flags is None
+    True
+
+    >>> ndd = NDDataWithFlags([1,2,3], flags=[0, 0.2, 0.3])
+    >>> ndd.flags
+    [0, 0.2, 0.3]
+
+.. note::
+  To simplify subclassing each setter (except for ``data``) is called during
+  ``__init__`` so putting restrictions on any attribute can be done inside
+  the setter and will also apply duing instance creation.
+
+Customize the setter for a property
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    >>> import numpy as np
+
+    >>> class NDDataMaskBoolNumpy(NDData):
+    ...
+    ...     @NDData.mask.setter
+    ...     def mask(self, value):
+    ...         # Convert mask to boolean numpy array.
+    ...         self._mask = np.array(value, dtype=np.bool_)
+
+    >>> ndd = NDDataMaskBoolNumpy([1,2,3])
+    >>> ndd.mask = True
+    >>> ndd.mask
+    array(True, dtype=bool)
+
+Extend the setter for a property
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``unit``, ``meta`` and ``uncertainty`` implement some additional logic in their
+setter so subclasses might define a call to the superclass and let the
+super property set the attribute afterwards::
+
+    >>> import numpy as np
+
+    >>> class NDDataUncertaintyShapeChecker(NDData):
+    ...
+    ...     @NDData.uncertainty.setter
+    ...     def uncertainty(self, value):
+    ...         value = np.asarray(value)
+    ...         if value.shape != self.data.shape:
+    ...             raise ValueError('uncertainty must have the same shape as the data.')
+    ...         # Call the setter of the super class in case it might contain some
+    ...         # important logic (only True for meta, unit and uncertainty)
+    ...         super(NDDataUncertaintyShapeChecker, self.__class__).uncertainty.fset(self, value)
+
+    >>> ndd = NDDataUncertaintyShapeChecker([1,2,3], uncertainty=[2,3,4])
+    INFO: uncertainty should have attribute uncertainty_type. [astropy.nddata.nddata]
+    >>> ndd.uncertainty
+    UnknownUncertainty([2, 3, 4])
+
+Having a setter for the data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    >>> class NDDataWithDataSetter(NDData):
+    ...
+    ...     @NDData.data.setter
+    ...     def data(self, value):
+    ...         self._data = np.asarray(value)
+
+    >>> ndd = NDDataWithDataSetter([1,2,3])
+    >>> ndd.data = [3,2,1]
+    >>> ndd.data
+    array([3, 2, 1])
+
+`~astropy.nddata.NDDataRef`
+---------------------------
+
+`~astropy.nddata.NDDataRef` itself inherits from `~astropy.nddata.NDData` so
+any of the possibilities there also apply to NDDataRef. But NDDataRef also
+inherits from the Mixins:
+
+- `~astropy.nddata.NDSlicingMixin`
+- `~astropy.nddata.NDArithmeticMixin`
+- `~astropy.nddata.NDIOMixin`
+
+which allow additional operations.
+
+Add another arithmetic operation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Adding another possible operations is quite easy provided the ``data`` and
+``unit`` allow it within the framework of `~astropy.units.Quantity`.
+
+For example adding a power function::
+
+    >>> from astropy.nddata import NDDataRef
+    >>> import numpy as np
+    >>> from astropy.utils import sharedmethod
+
+    >>> class NDDataPower(NDDataRef):
+    ...     @sharedmethod # sharedmethod to allow it also as classmethod
+    ...     def pow(self, operand, operand2=None, **kwargs):
+    ...         # the uncertainty doesn't allow propagation so set it to None
+    ...         kwargs['propagate_uncertainties'] = None
+    ...         # Call the _prepare_then_do_arithmetic function with the
+    ...         # numpy.power ufunc.
+    ...         return self._prepare_then_do_arithmetic(np.power, operand,
+    ...                                                 operand2, **kwargs)
+
+This can be used like the other arithmetic methods like
+:meth:`~astropy.nddata.NDArithmeticMixin.add`. So it works when calling it
+on the class or the instance::
+
+    >>> ndd = NDDataPower([1,2,3])
+
+    >>> # using it on the instance with one operand
+    >>> ndd.pow(3)
+    NDDataPower([ 1,  8, 27])
+
+    >>> # using it on the instance with two operands
+    >>> ndd.pow([1,2,3], [3,4,5])
+    NDDataPower([  1,  16, 243])
+
+    >>> # or using it as classmethod
+    >>> NDDataPower.pow(6, [1,2,3])
+    NDDataPower([  6,  36, 216])
+
+To allow propagation also with ``uncertainty`` see subclassing
+`~astropy.nddata.NDUncertainty`.
+
+The ``_prepare_then_do_arithmetic`` implements the relevant checks if it was
+called on the class or the instance, and, if one or two operands were given,
+and converts the operands, if necessary, to the appropriate classes. Overriding
+``_prepare_then_do_arithmetic`` in subclasses should be avoided if
+possible.
+
+
+Arithmetic on an existing property
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Customizing how an existing property is handled during arithmetic is possible
+with some arguments to the function calls like
+:meth:`~astropy.nddata.NDArithmeticMixin.add` but it's possible to hardcode
+behaviour too. The actual operation on the attribute (except for ``unit``) is
+done in a method ``_arithmetic_*`` where ``*`` is the name of the property.
+
+For example to customize how the ``meta`` will be affected during arithmetics::
+
+    >>> from astropy.nddata import NDDataRef
+
+    >>> from copy import deepcopy
+    >>> class NDDataWithMetaArithmetics(NDDataRef):
+    ...
+    ...     def _arithmetic_meta(self, operation, operand, handle_mask, **kwds):
+    ...         # the function must take the arguments:
+    ...         # operation (numpy-ufunc like np.add, np.subtract, ...)
+    ...         # operand (the other NDData-like object, already wrapped as NDData)
+    ...         # handle_mask (see description for "add")
+    ...
+    ...         # The meta is dict like but we want the keywords exposure to change
+    ...         # Anticipate that one or both might have no meta and take the first one that has
+    ...         result_meta = deepcopy(self.meta) if self.meta else deepcopy(operand.meta)
+    ...         # Do the operation on the keyword if the keyword exists
+    ...         if result_meta and 'exposure' in result_meta:
+    ...             result_meta['exposure'] = operation(result_meta['exposure'], operand.data)
+    ...         return result_meta # return it
+
+To trigger this method the ``handle_meta`` argument to arithmetic methods can
+be anything except ``None`` or ``"first_found"``::
+
+    >>> ndd = NDDataWithMetaArithmetics([1,2,3], meta={'exposure': 10})
+    >>> ndd2 = ndd.add(10, handle_meta='')
+    >>> ndd2.meta
+    {'exposure': 20}
+
+    >>> ndd3 = ndd.multiply(0.5, handle_meta='')
+    >>> ndd3.meta
+    {'exposure': 5.0}
+
+.. warning::
+  To use these internal `_arithmetic_*` methods there are some restrictions on
+  the attributes when calling the operation:
+
+  - ``mask``: ``handle_mask`` must not be ``None``, ``"ff"`` or ``"first_found"``.
+  - ``wcs``: ``compare_wcs`` argument with the same restrictions as mask.
+  - ``meta``: ``handle_meta`` argument with the same restrictions as mask.
+  - ``uncertainty``: ``propagate_uncertainties`` must be ``None`` or evaluate
+    to ``False``. ``arithmetic_uncertainty`` must also accepts different
+    arguments: ``operation, operand, result, correlation, **kwargs``
+
+
+Changing default argument for arithmetic operations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If the goal is to change the default value of an existing parameter for
+arithmetic methods, maybe because explicitly specifying the parameter each
+time you're calling an arithmetic operation is too much effort, you can easily
+change the default value of existing parameters by changing it in the method
+signature of ``_arithmetic``::
+
+    >>> from astropy.nddata import NDDataRef
+    >>> import numpy as np
+
+    >>> class NDDDiffAritDefaults(NDDataRef):
+    ...     def _arithmetic(self, *args, **kwargs):
+    ...         # Changing the default of handle_mask to None
+    ...         if 'handle_mask' not in kwargs:
+    ...             kwargs['handle_mask'] = None
+    ...         # Call the original with the updated kwargs
+    ...         return super(NDDDiffAritDefaults, self)._arithmetic(*args, **kwargs)
+
+    >>> ndd1 = NDDDiffAritDefaults(1, mask=False)
+    >>> ndd2 = NDDDiffAritDefaults(1, mask=True)
+    >>> ndd1.add(ndd2).mask is None  # it will be None
+    True
+
+    >>> # But giving other values is still possible:
+    >>> ndd1.add(ndd2, handle_mask=np.logical_or).mask
+    True
+
+    >>> ndd1.add(ndd2, handle_mask="ff").mask
+    False
+
+The parameter controlling how properties are handled are all keyword-only
+so using the ``*args, **kwargs`` approach allows one to only alter one default
+without needing to care about the positional order of arguments. But using
+``def _arithmetic(self, *args, handle_mask=None, **kwargs)`` doesn't work
+for python 2.
+
+
+Arithmetic with an additional property
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This also requires overriding the ``_arithmetic`` method. Suppose we have a
+``flags`` attribute again::
+
+    >>> from copy import deepcopy
+    >>> import numpy as np
+
+    >>> class NDDataWithFlags(NDDataRef):
+    ...     def __init__(self, *args, **kwargs):
+    ...         # Remove flags attribute if given and pass it to the setter.
+    ...         self.flags = kwargs.pop('flags') if 'flags' in kwargs else None
+    ...         super(NDDataWithFlags, self).__init__(*args, **kwargs)
+    ...
+    ...     @property
+    ...     def flags(self):
+    ...         return self._flags
+    ...
+    ...     @flags.setter
+    ...     def flags(self, value):
+    ...         self._flags = value
+    ...
+    ...     def _arithmetic(self, operation, operand, *args, **kwargs):
+    ...         # take all args and kwargs to allow arithmetic on the other properties
+    ...         # to work like before.
+    ...
+    ...         # do the arithmetics on the flags (pop the relevant kwargs, if any!!!)
+    ...         if self.flags is not None and operand.flags is not None:
+    ...             result_flags = np.logical_or(self.flags, operand.flags)
+    ...             # np.logical_or is just a suggestion you can do what you want
+    ...         else:
+    ...             if self.flags is not None:
+    ...                 result_flags = deepcopy(self.flags)
+    ...             else:
+    ...                 result_flags = deepcopy(operand.flags)
+    ...
+    ...         # Let the superclass do all the other attributes note that
+    ...         # this returns the result and a dictionary containing other attributes
+    ...         result, kwargs = super(NDDataWithFlags, self)._arithmetic(operation, operand, *args, **kwargs)
+    ...         # The arguments for creating a new instance are saved in kwargs
+    ...         # so we need to add another keyword "flags" and add the processed flags
+    ...         kwargs['flags'] = result_flags
+    ...         return result, kwargs # these must be returned
+
+    >>> ndd1 = NDDataWithFlags([1,2,3], flags=np.array([1,0,1], dtype=bool))
+    >>> ndd2 = NDDataWithFlags([1,2,3], flags=np.array([0,0,1], dtype=bool))
+    >>> ndd3 = ndd1.add(ndd2)
+    >>> ndd3.flags
+    array([ True, False,  True], dtype=bool)
 
 `~astropy.nddata.NDDataBase`
 ----------------------------
 
 The class `~astropy.nddata.NDDataBase` is a metaclass -- when subclassing it,
-all properties of `~astropy.nddata.NDDataBase` *must*
-be overriden in the subclass. For an example of how to do this, see the source
-code for `astropy.nddata.NDData`.
+all properties of `~astropy.nddata.NDDataBase` *must* be overriden in the
+subclass.
 
 Subclassing from `~astropy.nddata.NDDataBase` gives you complete flexibility
 in how you implement data storage and the other properties. If your data is
@@ -22,79 +321,167 @@ stored in a numpy array (or something that behaves like a numpy array), it may
 be more straightforward to subclass `~astropy.nddata.NDData` instead of
 `~astropy.nddata.NDDataBase`.
 
-`~astropy.nddata.NDData`
-------------------------
+Implementing the NDDataBase interface
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This class serves as the base for subclasses that use a numpy array (or
-something that presents a numpy-like interface) as the ``data`` attribute.
+For example to create a readonly container::
 
-For an example of a class that includes mixins and subclasses
-`~astropy.nddata.NDData` to add additional functionality, see
-`~astropy.nddata.NDDataArray`.
+    >>> from astropy.nddata import NDDataBase
+
+    >>> class NDDataReadOnlyNoRestrictions(NDDataBase):
+    ...     def __init__(self, data, unit, mask, uncertainty, meta, wcs):
+    ...         self._data = data
+    ...         self._unit = unit
+    ...         self._mask = mask
+    ...         self._uncertainty = uncertainty
+    ...         self._meta = meta
+    ...         self._wcs = wcs
+    ...
+    ...     @property
+    ...     def data(self):
+    ...         return self._data
+    ...
+    ...     @property
+    ...     def unit(self):
+    ...         return self._unit
+    ...
+    ...     @property
+    ...     def mask(self):
+    ...         return self._mask
+    ...
+    ...     @property
+    ...     def uncertainty(self):
+    ...         return self._uncertainty
+    ...
+    ...     @property
+    ...     def meta(self):
+    ...         return self._meta
+    ...
+    ...     @property
+    ...     def wcs(self):
+    ...         return self._wcs
+
+    >>> # A meaningless test to show that creating this class is possible:
+    >>> NDDataReadOnlyNoRestrictions(1,2,3,4,5,6) is not None
+    True
+
+.. note::
+  Actually defining an ``__init__`` is not necessary and the properties could
+  return arbitary values but the properties **must** be defined.
 
 Subclassing `~astropy.nddata.NDUncertainty`
 -------------------------------------------
+.. warning::
+    The internal interface of NDUncertainty and subclasses is experimental and
+    might change in future versions.
 
-This is done by using classes to represent the uncertainties of a given type.
-For example, to set standard deviation uncertainties on the pixel values, you
-can do::
+Subclasses deriving from `~astropy.nddata.NDUncertainty` need to implement:
 
+- property ``uncertainty_type``, should return a string describing the
+  uncertainty for example ``"ivar"`` for inverse variance.
+- methods for propagation: `_propagate_*` where ``*`` is the name of the UFUNC
+  that is used on the ``NDData`` parent.
+
+Creating an uncertainty without propagation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`~astropy.nddata.UnknownUncertainty` is a minimal working implementation
+without error propagation. So let's create an uncertainty just storing
+systematic uncertainties::
+
+    >>> from astropy.nddata import NDUncertainty
+
+    >>> class SystematicUncertainty(NDUncertainty):
+    ...     @property
+    ...     def uncertainty_type(self):
+    ...         return 'systematic'
+    ...
+    ...     def _propagate_add(self, other_uncert, *args, **kwargs):
+    ...         return None
+    ...
+    ...     def _propagate_subtract(self, other_uncert, *args, **kwargs):
+    ...         return None
+    ...
+    ...     def _propagate_multiply(self, other_uncert, *args, **kwargs):
+    ...         return None
+    ...
+    ...     def _propagate_divide(self, other_uncert, *args, **kwargs):
+    ...         return None
+
+    >>> SystematicUncertainty([10])
+    SystematicUncertainty([10])
+
+Subclassing `~astropy.nddata.StdDevUncertainty`
+-----------------------------------------------
+
+Creating an variance uncertainty
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`~astropy.nddata.StdDevUncertainty` already implements propagation based
+on gaussian standard deviation so this could be the starting point of an
+uncertainty using these propagations:
+
+    >>> from astropy.nddata import StdDevUncertainty
     >>> import numpy as np
-    >>> from astropy.nddata import NDData, StdDevUncertainty
-    >>> array = np.zeros((12, 12, 12))  # a 3-dimensional array with all zeros
-    >>> ndd = NDData(array)
-    >>> uncertainty = StdDevUncertainty(np.ones((12, 12, 12)) * 0.1)
-    >>> ndd_uncertainty = NDData(ndd, uncertainty=uncertainty)
+    >>> import weakref
 
-New error classes should sub-class from `~astropy.nddata.NDUncertainty`, and
-should provide methods with the following API::
+    >>> class VarianceUncertainty(StdDevUncertainty):
+    ...     @property
+    ...     def uncertainty_type(self):
+    ...         return 'variance'
+    ...
+    ...     def _propagate_add(self, other_uncert, *args, **kwargs):
+    ...         # Neglect the unit assume that both are Variance uncertainties
+    ...         this = StdDevUncertainty(np.sqrt(self.array))
+    ...         other = StdDevUncertainty(np.sqrt(other_uncert.array))
+    ...
+    ...         # We need to set the parent_nddata attribute otherwise it will
+    ...         # fail for multiplication and division where the data
+    ...         # not only the uncertainty matters.
+    ...         this.parent_nddata = weakref.ref(self.parent_nddata)
+    ...         other.parent_nddata = weakref.ref(other_uncert.parent_nddata)
+    ...
+    ...         # Call propagation:
+    ...         result = this._propagate_add(other, *args, **kwargs)
+    ...
+    ...         # Return the square of it
+    ...         return np.square(result)
 
-   class MyUncertainty(NDUncertainty):
+    >>> from astropy.nddata import NDDataRef
 
-       def propagate_add(self, other_nddata, result_data):
-           ...
-           result_uncertainty = MyUncertainty(...)
-           return result_uncertainty
+    >>> ndd1 = NDDataRef([1,2,3], unit='m', uncertainty=VarianceUncertainty([1,4,9]))
+    >>> ndd2 = NDDataRef([1,2,3], unit='m', uncertainty=VarianceUncertainty([1,4,9]))
+    >>> ndd = ndd1.add(ndd2)
+    >>> ndd.uncertainty
+    VarianceUncertainty([  2.,   8.,  18.])
 
-       def propagate_subtract(self, other_nddata, result_data):
-           ...
-           result_uncertainty = MyUncertainty(...)
-           return result_uncertainty
+this approach certainly works if both are variance uncertainties, but if you
+want to allow that the second operand also can be a standard deviation one can
+override the ``_convert_uncertainty`` method as well::
 
-       def propagate_multiply(self, other_nddata, result_data):
-           ...
-           result_uncertainty = MyUncertainty(...)
-           return result_uncertainty
+    >>> class VarianceUncertainty2(VarianceUncertainty):
+    ...     def _convert_uncertainty(self, other_uncert):
+    ...         if isinstance(other_uncert, VarianceUncertainty):
+    ...             return other_uncert
+    ...         elif isinstance(other_uncert, StdDevUncertainty):
+    ...             converted = VarianceUncertainty(np.square(other_uncert.array))
+    ...             converted.parent_nddata = weakref.ref(other_uncert.parent_nddata)
+    ...             return converted
+    ...         raise ValueError('not compatible uncertainties.')
 
-       def propagate_divide(self, other_nddata, result_data):
-           ...
-           result_uncertainty = MyUncertainty(...)
-           return result_uncertainty
+    >>> ndd1 = NDDataRef([1,2,3], uncertainty=VarianceUncertainty2([1,4,9]))
+    >>> ndd2 = NDDataRef([1,2,3], uncertainty=StdDevUncertainty([1,2,3]))
+    >>> ndd = ndd1.add(ndd2)
+    >>> ndd.uncertainty
+    VarianceUncertainty2([  2.,   8.,  18.])
 
-All error sub-classes inherit an attribute ``self.parent_nddata`` that is
-automatically set to the parent `~astropy.nddata.NDData` object that they
-are attached to. The arguments passed to the error propagation methods are
-``other_nddata``, which is the `~astropy.nddata.NDData` object that is being
-combined with ``self.parent_nddata``, and ``result_data``, which is a Numpy
-array that contains the data array after the arithmetic operation. All these
-methods should return an error instance ``result_uncertainty``, and should not
-modify ``parent_nddata`` directly. For subtraction and division, the order of
-the operations is ``parent_nddata - other_nddata`` and ``parent_nddata /
-other_nddata``.
+.. warning::
+    This will only allow the **second** operand to have a
+    `~astropy.nddata.StdDevUncertainty` uncertainty. It will fail if the first
+    operand is standard deviation and the second operand a variance.
 
-To make it easier and clearer to code up the error propagation, you can use
-variables with more explicit names, e.g::
-
-   class MyUncertainty(NDUncertainty):
-
-       def propogate_add(self, other_nddata, result_data):
-
-           left_uncertainty = self.parent.uncertainty.array
-           right_uncertainty = other_nddata.uncertainty.array
-
-           ...
-
-Note that the above example assumes that the errors are stored in an ``array``
-attribute, but this does not have to be the case.
-
-For an example of a complete implementation, see `~astropy.nddata.StdDevUncertainty`.
+.. note::
+    Creating a variance uncertainty like this might require more work to
+    include proper treatement of the unit of the uncertainty! And of course
+    implementing also the ``_propagate_*`` for subtraction, division and
+    multiplication.
