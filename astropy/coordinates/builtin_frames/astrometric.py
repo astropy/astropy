@@ -34,28 +34,6 @@ def make_astrometric_cls(frame):
 
         origin = CoordinateAttribute(default=None, frame=frame)
 
-        def at_origin(self, origin):
-            """ This method returns a new frame, identical to this frame,
-            except at a differnt origin. This can be used to apply e.g. a
-            sequence of telescope offsets to different targets (different origins).
-
-            Parameters
-            ----------
-            origin : `SkyCoord`, optional
-                the coordinates which specifiy the origin of this frame.
-
-            Returns
-            -------
-            frame : `Astrometric`
-                A new `Astrometric` which is centered at `origin`.
-
-            """
-            attrs = {}
-            for name, value in self.get_frame_attr_names().items():
-                attrs[name] = getattr(self, name, value)
-            attrs['origin'] = origin
-            return self.__class__(**attrs)
-
     @frame_transform_graph.transform(FunctionTransform, Astrometric, Astrometric)
     def astrometric_to_astrometric(from_astrometric_coord, to_astrometric_frame):
         """Transform between two astrometric frames."""
