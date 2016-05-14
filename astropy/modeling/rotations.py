@@ -197,7 +197,7 @@ class RotateNative2Celestial(_SkyRotation):
 
     @property
     def lat(self):
-         return self.theta + 90
+        return self.theta + 90
 
     @lat.setter
     def lat(self, val):
