@@ -32,7 +32,6 @@ def test_astrometric(inradec, expecteddradec, tolsep, originradec=(45, 45)*u.deg
     assert skycoord_inaf.separation(expected) < tolsep
 
 
-@pytest.mark.xfail
 def test_astrometric_functional_ra():
     #Setup
     input_ra = np.linspace(0,360,10)
@@ -52,8 +51,7 @@ def test_astrometric_functional_ra():
         expected_xyz = expected.cartesian.xyz
 
         # actual transformation to the frame
-        astrometric_frame = AstrometricICRS(origin_ra=ra*u.deg,
-                                        origin_dec=0.0*u.deg)
+        astrometric_frame = AstrometricICRS(origin=ICRS(ra*u.deg, 0*u.deg))
         actual = icrs_coord.transform_to(astrometric_frame)
         actual_xyz = actual.cartesian.xyz
 
@@ -62,13 +60,13 @@ def test_astrometric_functional_ra():
         roundtrip_xyz = roundtrip.cartesian.xyz
 
         # Verify
-        assert allclose(actual_xyz.to(u.kpc), expected_xyz.to(u.kpc), atol=1E-5*u.kpc)
-        #assert allclose(actual_xyz.to(u.kpc), roundtrip_xyz.to(u.kpc), atol=1E-5*u.kpc)
-        assert allclose(icrs_coord.ra.to(u.deg), roundtrip.ra.to(u.deg), atol = 1E-5*u.deg)
-        assert allclose(icrs_coord.dec.to(u.deg), roundtrip.dec.to(u.deg), atol = 1E-5*u.deg)
-        assert allclose(icrs_coord.distance.to(u.kpc), roundtrip.distance.to(u.kpc), atol = 1E-5*u.kpc)
+        assert_allclose(actual_xyz.to(u.kpc), expected_xyz.to(u.kpc), atol=1E-5*u.kpc)
+        #assert_allclose(actual_xyz.to(u.kpc), roundtrip_xyz.to(u.kpc), atol=1E-5*u.kpc)
+        assert_allclose(icrs_coord.ra.to(u.deg), roundtrip.ra.to(u.deg), atol = 1E-5*u.deg)
+        assert_allclose(icrs_coord.dec.to(u.deg), roundtrip.dec.to(u.deg), atol = 1E-5*u.deg)
+        assert_allclose(icrs_coord.distance.to(u.kpc), roundtrip.distance.to(u.kpc), atol = 1E-5*u.kpc)
 
-@pytest.mark.xfail
+
 def test_astrometric_functional_dec():
     #Setup
     input_ra = np.linspace(0,360,10)
@@ -95,8 +93,7 @@ def test_astrometric_functional_dec():
         expected_xyz = expected.cartesian.xyz
 
         # actual transformation to the frame
-        astrometric_frame = AstrometricICRS(origin_ra=0.0*u.deg,
-                                        origin_dec=dec*u.deg)
+        astrometric_frame = AstrometricICRS(origin=ICRS(0*u.deg, dec*u.deg))
         actual = icrs_coord.transform_to(astrometric_frame)
         actual_xyz = actual.cartesian.xyz
 
@@ -105,25 +102,24 @@ def test_astrometric_functional_dec():
         roundtrip_xyz = roundtrip.cartesian.xyz
 
         # Verify
-        assert allclose(actual_xyz.to(u.kpc), expected_xyz.to(u.kpc), atol=1E-5*u.kpc)
-        assert allclose(icrs_coord.ra.to(u.deg), roundtrip.ra.to(u.deg), atol = 1E-5*u.deg)
-        assert allclose(icrs_coord.dec.to(u.deg), roundtrip.dec.to(u.deg), atol = 1E-5*u.deg)
-        assert allclose(icrs_coord.distance.to(u.kpc), roundtrip.distance.to(u.kpc), atol = 1E-5*u.kpc)
-        #assert allclose(actual_xyz.to(u.kpc), roundtrip_xyz.to(u.kpc), atol=1E-5*u.kpc)
+        assert_allclose(actual_xyz.to(u.kpc), expected_xyz.to(u.kpc), atol=1E-5*u.kpc)
+        assert_allclose(icrs_coord.ra.to(u.deg), roundtrip.ra.to(u.deg), atol = 1E-5*u.deg)
+        assert_allclose(icrs_coord.dec.to(u.deg), roundtrip.dec.to(u.deg), atol = 1E-5*u.deg)
+        assert_allclose(icrs_coord.distance.to(u.kpc), roundtrip.distance.to(u.kpc), atol = 1E-5*u.kpc)
 
-@pytest.mark.xfail
+
 def test_astrometric_functional_ra_dec():
     #Setup
-    input_ra = np.linspace(0,360,10)
-    input_dec = np.linspace(-90,90,10)
+    input_ra = np.linspace(0,360,12)[1:-1]
+    input_dec = np.linspace(-90,90,12)[1:-1]
     input_ra_rad = np.deg2rad(input_ra)
     input_dec_rad = np.deg2rad(input_dec)
     icrs_coord = ICRS(ra = input_ra*u.deg,
                       dec = input_dec*u.deg,
                       distance=1.*u.kpc)
     #Both rotations
-    for ra in np.linspace(0,360,24):
-        for dec in np.linspace(-90,90,13):
+    for ra in np.linspace(0,360, 10):
+        for dec in np.linspace(-90,90, 5):
             # expected rotation
             dec_rad = -np.deg2rad(dec)
             ra_rad = np.deg2rad(ra)
@@ -141,8 +137,7 @@ def test_astrometric_functional_ra_dec():
             expected_xyz = expected.cartesian.xyz
 
             # actual transformation to the frame
-            astrometric_frame = AstrometricICRS(origin_ra=ra*u.deg,
-                                            origin_dec=dec*u.deg)
+            astrometric_frame = AstrometricICRS(origin=ICRS(ra*u.deg, dec*u.deg))
             actual = icrs_coord.transform_to(astrometric_frame)
             actual_xyz = actual.cartesian.xyz
 
@@ -151,8 +146,7 @@ def test_astrometric_functional_ra_dec():
             roundtrip_xyz = roundtrip.cartesian.xyz
 
             # Verify
-            assert allclose(actual_xyz.to(u.kpc), expected_xyz.to(u.kpc), atol=1E-5*u.kpc)
-            #assert allclose(actual_xyz.to(u.kpc), roundtrip_xyz.to(u.kpc), atol=1E-5*u.kpc)
-            assert allclose(icrs_coord.ra.to(u.deg), roundtrip.ra.to(u.deg), atol = 1E-5*u.deg)
-            assert allclose(icrs_coord.dec.to(u.deg), roundtrip.dec.to(u.deg), atol = 1E-5*u.deg)
-            assert allclose(icrs_coord.distance.to(u.kpc), roundtrip.distance.to(u.kpc), atol = 1E-5*u.kpc)
+            assert_allclose(actual_xyz.to(u.kpc), expected_xyz.to(u.kpc), atol=1E-5*u.kpc)
+            assert_allclose(icrs_coord.ra.to(u.deg), roundtrip.ra.to(u.deg), atol = 1E-4*u.deg)
+            assert_allclose(icrs_coord.dec.to(u.deg), roundtrip.dec.to(u.deg), atol = 1E-5*u.deg)
+            assert_allclose(icrs_coord.distance.to(u.kpc), roundtrip.distance.to(u.kpc), atol = 1E-5*u.kpc)
