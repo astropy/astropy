@@ -157,7 +157,7 @@ def test_init_fake_with_somethingElse(UncertClass):
 
 
 def test_init_fake_with_StdDevUncertainty():
-    # Different instances of uncertainties are not directly convertable so this
+    # Different instances of uncertainties are not directly convertible so this
     # should fail
     uncert = np.arange(5).reshape(5, 1)
     std_uncert = StdDevUncertainty(uncert)
