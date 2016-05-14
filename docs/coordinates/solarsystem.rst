@@ -3,7 +3,7 @@
 .. _astropy-coordinates-solarsystem:
 
 Solar System Ephemerides
-----------------------------
+------------------------
 
 `astropy.coordinates` can calculate the |SkyCoord| of some of the major
 solar system objects. This functionality requires the 
