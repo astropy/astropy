@@ -69,9 +69,9 @@ telescope operator to move from a bright star to a fainter target.)::
     >>> faint_galaxy = SkyCoord('8h50m47.92s', '+11d39m32.74s', frame='icrs')
     >>> dra, ddec = bright_star.spherical_offsets_to(faint_galaxy)
     >>> dra.to(u.arcsec)  # doctest: +FLOAT_CMP
-    <Angle -173.79057510102513 arcsec>
+    <Angle -173.78873354064126 arcsec>
     >>> ddec.to(u.arcsec)  # doctest: +FLOAT_CMP
-    <Angle 10.589999999999833 arcsec>
+    <Angle 10.605103417374696 arcsec>
 
 .. _astropy-coordinates-matching:
 

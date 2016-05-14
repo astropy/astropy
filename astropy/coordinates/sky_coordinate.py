@@ -16,6 +16,7 @@ from ..utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from ..utils.data_info import MixinInfo
 
 from .distances import Distance
+from .angles import Angle
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
 from .builtin_frames import ICRS, make_astrometric_cls
 from .representation import (BaseRepresentation, SphericalRepresentation,
@@ -716,19 +717,9 @@ class SkyCoord(object):
 
         Notes
         -----
-        By design, this method follows the traditional definition of offsets
-        defined as:
-
-        .. math::
-
-            \Delta {\rm Dec} = \delta_2 - \delta_1
-
-            \Delta {\rm RA } = (\alpha_2 - \alpha_1) \cos{(\delta_1)}
-
-        where :math:`\alpha` is the longitude coordinate for this frame and
-        :math:`\delta` is the latitude coordinate.  This is fast, but *only*
-        correct in the small-angle case.  For larger offsets, use the
-        :meth:`separation` method or a more appropriate coordinate frame.
+        This uses the astrometric frame machinery, and hence will produce a new
+        astrometric frame if one does not already exist for this object's frame
+        class.
 
         See Also
         --------
@@ -738,18 +729,12 @@ class SkyCoord(object):
         if not self.is_equivalent_frame(tocoord):
             raise ValueError('Tried to use spherical_offsets_to with two non-matching frames!')
 
-        self_sph = self.spherical
-        to_sph = tocoord.spherical
+        aframe = self.astrometric_frame()
+        acoord = tocoord.transform_to(aframe)
 
-        lat_offset = to_sph.lat - self_sph.lat
-        lon_offset = (to_sph.lon - self_sph.lon)*np.cos(self_sph.lat)
-
-        if np.any(np.hypot(lat_offset, lon_offset) < 1*u.deg):
-            warnings.warn('Spherical_offsets_to was used for an offset > 1 '
-                          'degree.  Small-angle approximation may be incorrect '
-                          'in this case!', AstropyWarning)
-
-        return lon_offset, lat_offset
+        dlon = acoord.spherical.lon.wrap_at(180*u.deg)
+        dlat = acoord.spherical.lat.view(Angle)
+        return dlon, dlat
 
     def match_to_catalog_sky(self, catalogcoord, nthneighbor=1):
         """
