@@ -1200,8 +1200,6 @@ def test_spherical_offsets():
         # different frames should fail
         i00.spherical_offsets_to(fk5)
 
-
-    #large offset (>1 deg) should give a warning
     i1deg = ICRS(1*u.deg, 1*u.deg)
     dra, ddec = i00.spherical_offsets_to(i1deg)
     assert_allclose(dra, 1*u.deg)
