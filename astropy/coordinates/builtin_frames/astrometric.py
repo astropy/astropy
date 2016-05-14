@@ -125,7 +125,7 @@ def astrometric(frame):
 
         # Define rotation matricies along the position angle vector, and
         # relative to the origin.
-        origin = astrometric_frame.origin.spherical
+        origin = astrometric_coord.origin.spherical
         mat2 = rotation_matrix(-origin.lat, 'y')
         mat3 = rotation_matrix(origin.lon, 'z')
         R = mat2 * mat3
