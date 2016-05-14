@@ -899,6 +899,16 @@ def test_deepcopy():
     assert c5.representation == c4.representation
 
 
+def test_no_copy():
+    c1 = SkyCoord(np.arange(10.) * u.hourangle, np.arange(20., 30.) * u.deg)
+    c2 = SkyCoord(c1, copy=False)
+    # Note: c1.ra and c2.ra will *not* share memory, as these are recalculated
+    # to be in "preferred" units.  See discussion in #4883.
+    assert np.may_share_memory(c1.data.lon, c2.data.lon)
+    c3 = SkyCoord(c1, copy=True)
+    assert not np.may_share_memory(c1.data.lon, c3.data.lon)
+
+
 def test_immutable():
     c1 = SkyCoord(1 * u.deg, 2 * u.deg)
     with pytest.raises(AttributeError):

@@ -436,6 +436,17 @@ class BaseCoordinateFrame(object):
         `~astropy.coordinates.RepresentationMapping` objects that tell what
         names and default units should be used on this frame for the components
         of that representation.
+
+    Parameters
+    ----------
+    representation : `BaseRepresentation` or None
+        A representation object or `None` to have no data (or use the other
+        arguments)
+    *args, **kwargs
+        Coordinates, with names that depend on the subclass.
+    copy : bool, optional
+        If `True` (default), make copies of the input coordinate arrays.
+        Can only be passed in as a keyword argument.
     """
 
     default_representation = None
@@ -448,6 +459,7 @@ class BaseCoordinateFrame(object):
     # Default empty frame_attributes dict
 
     def __init__(self, *args, **kwargs):
+        copy = kwargs.pop('copy', True)
         self._attr_names_with_defaults = []
 
         if 'representation' in kwargs:
@@ -470,8 +482,6 @@ class BaseCoordinateFrame(object):
 
             # Validate input by getting the attribute here.
             getattr(self, fnm)
-
-        pref_rep = self.representation
 
         args = list(args)  # need to be able to pop them
         if (len(args) > 0) and (isinstance(args[0], BaseRepresentation) or
@@ -499,9 +509,10 @@ class BaseCoordinateFrame(object):
                     del repr_kwargs['distance']
                 if (issubclass(self.representation, SphericalRepresentation) and
                         'distance' not in repr_kwargs):
-                    representation_data = self.representation._unit_representation(**repr_kwargs)
+                    representation = self.representation._unit_representation
                 else:
-                    representation_data = self.representation(**repr_kwargs)
+                    representation = self.representation
+                representation_data = representation(copy=copy, **repr_kwargs)
 
         if len(args) > 0:
             raise TypeError(
@@ -729,7 +740,7 @@ class BaseCoordinateFrame(object):
                 for comp, new_attr_unit in zip(data.components, new_attrs['units']):
                     if new_attr_unit:
                         datakwargs[comp] = datakwargs[comp].to(new_attr_unit)
-                data = data.__class__(**datakwargs)
+                data = data.__class__(copy=False, **datakwargs)
 
             self._rep_cache[new_representation.__name__, in_frame_units] = data
 
