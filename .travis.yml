@@ -47,7 +47,8 @@ matrix:
                PIP_DEPENDENCIES='jplephem'
 
         # Check for sphinx doc build warnings - we do this first because it
-        # runs for a long time. WCSAxes is a dependency for the docs.
+        # runs for a long time. The sphinx build also has some additional
+        # dependencies.
         - os: linux
           env: PYTHON_VERSION=2.7 SETUP_CMD='build_sphinx -w'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
