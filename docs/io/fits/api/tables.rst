@@ -61,3 +61,7 @@ Table Functions
 :func:`tableload`
 """""""""""""""""
 .. autofunction:: tableload
+
+:func:`table_to_hdu`
+""""""""""""""""""""
+.. autofunction:: table_to_hdu
