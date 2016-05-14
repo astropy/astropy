@@ -207,6 +207,9 @@ API changes
   - Inputs (``coords`` and ``out``) to ``render`` function in ``Model`` are
     converted to float. [#4697]
 
+  - ``RotateNative2Celestial`` and ``RotateCelestial2Native`` are now
+    implemented as subclasses of ``EulerAngleRotation``. [#4881]
+
 - ``astropy.nddata``
 
   - ``NDData``: added an optional parameter ``copy``

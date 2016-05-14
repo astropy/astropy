@@ -14,16 +14,7 @@ from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
 
 
-#class TestAgainstFits(object):
-    #def setup_class(self):
-        #hdr = fits.Header.fromfile(get_pkg_data_filename("data/sip.hdr"))
-        #self.w = wcs.WCS(hdr)
-
-        #self.w.wcs.crpix = [0, 0]
-        #self.w.wcs.pc = [[1, 0], [0, 1]]
-
-
-@pytest.mark.parametrize(('inp'), [(0, 0), (4000, -20.56), (-2001.5, 45.9), (0, 90), (0, -90)])
+@pytest.mark.parametrize(('inp'), [(0, 0), (4000, -20.56), (-2001.5, 45.9), (0, 90), (0, -90), (np.mgrid[:4, :6])])
 def test_against_wcslib(inp):
     w = wcs.WCS()
     crval = [ 202.4823228 , 47.17511893]
