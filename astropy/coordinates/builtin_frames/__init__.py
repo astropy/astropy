@@ -36,7 +36,7 @@ from .cirs import CIRS
 from .itrs import ITRS
 from .hcrs import HCRS
 from .ecliptic import GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic
-from .astrometric import AstrometricICRS
+from .astrometric import AstrometricICRS, AstrometricAltAz, make_astrometric_cls
 # need to import transformations so that they get registered in the graph
 from . import icrs_fk5_transforms
 from . import fk4_fk5_transforms
@@ -51,7 +51,8 @@ from . import ecliptic_transforms
 __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
            'Supergalactic', 'AltAz', 'GCRS', 'CIRS', 'ITRS', 'HCRS',
            'PrecessedGeocentric', 'GeocentricTrueEcliptic',
-           'BarycentricTrueEcliptic', 'HeliocentricTrueEcliptic']
+           'BarycentricTrueEcliptic', 'HeliocentricTrueEcliptic',
+           'AstrometricICRS', 'AstrometricAltAz', 'make_astrometric_cls']
 
 
 def _make_transform_graph_docs():

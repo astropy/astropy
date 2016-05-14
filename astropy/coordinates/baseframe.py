@@ -30,7 +30,8 @@ from .representation import (BaseRepresentation, CartesianRepresentation,
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame',
            'FrameAttribute', 'TimeFrameAttribute', 'QuantityFrameAttribute',
-           'EarthLocationAttribute', 'RepresentationMapping']
+           'EarthLocationAttribute', 'RepresentationMapping',
+           'CoordinateAttribute']
 
 
 # the graph used for all transformations between frames
@@ -389,6 +390,63 @@ class EarthLocationAttribute(FrameAttribute):
                                  '"transform_to" method'.format(value))
             itrsobj = value.transform_to(ITRS)
             return itrsobj.earth_location, True
+
+
+class CoordinateAttribute(FrameAttribute):
+    """
+    A frame attribute which is a coordinate object. It can be given as a
+    low-level frame class *or* a `~astropy.coordinates.SkyCoord`, but will
+    always be converted to the low-level frame class when accessed.
+
+    Parameters
+    ----------
+    frame : a coordinate frame class
+        The type of frame this attribute can be
+    default : object
+        Default value for the attribute if not provided
+    secondary_attribute : str
+        Name of a secondary instance attribute which supplies the value if
+        ``default is None`` and no value was supplied during initialization.
+    """
+    def __init__(self, frame, default=None, secondary_attribute=''):
+        self._frame = frame
+        super(CoordinateAttribute, self).__init__(default, secondary_attribute)
+
+    def convert_input(self, value):
+        """
+        Checks that the input is a SkyCoord with the necessary units (or the
+        special value ``None``).
+
+        Parameters
+        ----------
+        value : object
+            Input value to be converted.
+
+        Returns
+        -------
+        out, converted : correctly-typed object, boolean
+            Tuple consisting of the correctly-typed object and a boolean which
+            indicates if conversion was actually performed.
+
+        Raises
+        ------
+        ValueError
+            If the input is not valid for this attribute.
+        """
+        if value is None:
+            return None, False
+        elif isinstance(value, self._frame):
+            return value, False
+        else:
+            if not hasattr(value, 'transform_to'):
+                raise ValueError('"{0}" was passed into an '
+                                 'CoordinateLocationAttribute, but it does not have '
+                                 '"transform_to" method'.format(value))
+            transformedobj = value.transform_to(self._frame)
+            if hasattr(transformedobj, 'frame'):
+                transformedobj = transformedobj.frame, True
+            return transformedobj, True
+
 
 _RepresentationMappingBase = \
     namedtuple('RepresentationMapping',
