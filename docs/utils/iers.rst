@@ -72,7 +72,7 @@ of the automatic IERS downloading:
     Enable auto-downloading of the latest IERS data.  If set to ``False`` then
     the local IERS-B file will be used by default (even if the full IERS file
     with predictions was already downloaded and cached).  This replicates the
-    behavior prior to astropy 1.2.  (default=``True``)
+    behavior prior to astropy 1.2.  (default= ``True``)
 
   auto_max_age:
     Maximum age of predictive data before auto-downloading (days).  See
@@ -106,6 +106,35 @@ The IERS Service provides the default online table
 (`<http://maia.usno.navy.mil/ser7/finals2000A.all>`_) and updates the content
 once each 7 days.  The default value of ``auto_max_age`` is 30 days to avoid
 unnecessary network access, but one can reduce this to as low as 10 days.
+
+Working offline
+---------------
+
+If you are working without an internet connection and doing transfomations
+that require IERS data, there are a couple of options.
+
+**Disable auto downloading**
+
+Here you can do::
+
+  >>> from astropy.utils import iers
+  >>> iers.conf.auto_download = False  # doctest: +SKIP
+
+In this case any transforms will use the bundled IERS-B data which covers
+the time range from 1962 to just before the astropy release date.  Any
+transforms outside of this range will not be allowed.
+
+**Set the auto-download max age parameter**
+
+*Only do this if you understand what you are doing, THIS CAN GIVE INACCURATE
+ANSWERS!* Assuming you have previously been connected to the internet and have
+downloaded and cached the IERS auto values previously, then do the following::
+
+  >>> iers.conf.auto_max_age = None  # doctest: +SKIP
+
+This disables the check of whether the IERS values are sufficently recent, and
+all the transformations (even those outside the time range of available IERS
+data) will succeed with at most warnings.
 
 Direct table access
 -------------------
