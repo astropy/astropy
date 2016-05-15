@@ -112,26 +112,27 @@ class TestPositionsGeocentric(object):
         d_mercury_1980 = c*(6.323037*u.min)
         d_moon_1980 = c*(0.021921*u.min)
         d_jupiter_1980 = c*(37.694557*u.min)
+        d_sun_1980 = c*(8.294858*u.min)
         self.horizons = {
             'mercury': SkyCoord(ra='22h41m47.78s', dec='-08d29m32.0s',
                                 distance=d_mercury_1980, frame=self.frame),
             'moon': SkyCoord(ra='07h32m02.62s', dec='+18d34m05.0s',
                              distance=d_moon_1980, frame=self.frame),
             'jupiter':  SkyCoord(ra='10h17m12.82s', dec='+12d02m57.0s',
-                                 distance=d_jupiter_1980, frame=self.frame)}
+                                 distance=d_jupiter_1980, frame=self.frame),
+            'sun': SkyCoord(ra='00h16m31.00s', dec='+01d47m16.9s',
+                            distance=d_sun_1980, frame=self.frame)}
 
     @pytest.mark.parametrize(('body', 'sep_tol', 'dist_tol'),
-                             (('mercury', 7.*u.arcsec, 500*u.km),
-                              ('jupiter', 78.*u.arcsec, 82000*u.km)))
+                             (('mercury', 7.*u.arcsec, 1000*u.km),
+                              ('jupiter', 78.*u.arcsec, 76000*u.km),
+                              ('sun', 5.*u.arcsec, 11.*u.km)))
     def test_erfa_planet(self, body, sep_tol, dist_tol):
         """Test predictions using plan94.
 
         Accuracies are maximum deviations listed in erfa/plan94.c
         """
-        # Add uncertainty in position of Earth
-        dist_tol = dist_tol + 1300 * u.km
-
-        astropy_1980 = get_body(body, self.t)
+        astropy_1980 = get_body(body, self.t, ephemeris='erfa')
         horizons_1980 = self.horizons[body]
 
         # convert to true equator and equinox
@@ -146,9 +147,9 @@ class TestPositionsGeocentric(object):
 
     @remote_data
     @pytest.mark.skipif('not HAS_JPLEPHEM')
-    @pytest.mark.parametrize('body', ('mercury', 'jupiter'))
+    @pytest.mark.parametrize('body', ('mercury', 'jupiter', 'sun'))
     def test_de430_planet(self, body):
-        astropy_1980 = get_body(body, self.t, ephemeris='de430')
+        astropy_1980 = get_body(body, self.t, ephemeris='de432s')
         horizons_1980 = self.horizons[body]
 
         # convert to true equator and equinox
@@ -165,7 +166,7 @@ class TestPositionsGeocentric(object):
     @remote_data
     @pytest.mark.skipif('not HAS_JPLEPHEM')
     def test_de430_moon(self):
-        astropy_1980 = get_moon(self.t, ephemeris='de430')
+        astropy_1980 = get_moon(self.t, ephemeris='de432s')
         horizons_1980 = self.horizons['moon']
 
         # convert to true equator and equinox
@@ -211,14 +212,14 @@ class TestPositionKittPeak(object):
                              (('mercury', 7.*u.arcsec, 500*u.km),
                               ('jupiter', 78.*u.arcsec, 82000*u.km)))
     def test_erfa_planet(self, body, sep_tol, dist_tol):
-        """Test predictions using plan94.
+        """Test predictions using erfa/plan94.
 
         Accuracies are maximum deviations listed in erfa/plan94.c
         """
         # Add uncertainty in position of Earth
         dist_tol = dist_tol + 1300 * u.km
 
-        astropy_1980 = get_body(body, self.t)
+        astropy_1980 = get_body(body, self.t, ephemeris='erfa')
         horizons_1980 = self.horizons[body]
 
         # convert to true equator and equinox
@@ -235,7 +236,7 @@ class TestPositionKittPeak(object):
     @pytest.mark.skipif('not HAS_JPLEPHEM')
     @pytest.mark.parametrize('body', ('mercury', 'jupiter'))
     def test_de430_planet(self, body):
-        astropy_1980 = get_body(body, self.t, ephemeris='de430')
+        astropy_1980 = get_body(body, self.t, ephemeris='de432s')
         horizons_1980 = self.horizons[body]
 
         # convert to true equator and equinox
@@ -252,7 +253,7 @@ class TestPositionKittPeak(object):
     @remote_data
     @pytest.mark.skipif('not HAS_JPLEPHEM')
     def test_de430_moon(self):
-        astropy_1980 = get_moon(self.t, ephemeris='de430')
+        astropy_1980 = get_moon(self.t, ephemeris='de432s')
         horizons_1980 = self.horizons['moon']
 
         # convert to true equator and equinox
