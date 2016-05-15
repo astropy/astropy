@@ -2585,12 +2585,6 @@ class QTable(Table):
         Additional keyword args when converting table-like object
 
     """
-    def __init__(self, data=None, masked=None, names=None, dtype=None,
-                 meta=None, copy=True, rows=None, copy_indices=True,
-                 **kwargs):
-        super(QTable, self).__init__(data, masked, names, dtype, meta,
-                                     copy, rows, copy_indices, **kwargs)
-
     def _add_as_mixin_column(self, col):
         """
         Determine if ``col`` should be added to the table directly as
