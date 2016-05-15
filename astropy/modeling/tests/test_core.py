@@ -45,12 +45,8 @@ def test_Model_instance_repr_and_str():
 
 
 def test_Model_array_parameter():
-    m = NonFittableModel([[42, 43], [1,2]])
-    m = NonFittableModel([42, 43, 44, 45])
-
-    phi, theta, psi = 42, 43, 44
-    model = models.RotateNative2Celestial(phi, theta, psi)
-    assert_allclose(model.param_sets, [[42], [43], [44]])
+    model = models.Gaussian1D(4, 2, 1)
+    assert_allclose(model.param_sets, [[4], [2], [1]])
 
 
 def test_inputless_model():
