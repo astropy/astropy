@@ -211,14 +211,30 @@ def test_for_leak_with_uncertainty():
         else:
             assert after[specific_objects] - before[specific_objects] == 0
 
-    def non_leaker():
+    def non_leaker_nddata():
+        # Without uncertainty there is no reason to assume that there is a
+        # memory leak but test it nevertheless.
         NDData(np.ones(100))
 
-    def leaker():
+    def leaker_nddata():
+        # With uncertainty there was a memory leak!
         NDData(np.ones(100), uncertainty=StdDevUncertainty(np.ones(100)))
 
-    test_leak(non_leaker, NDData)
-    test_leak(leaker, NDData)
+    test_leak(non_leaker_nddata, NDData)
+    test_leak(leaker_nddata, NDData)
+
+    # Same for NDDataArray:
+
+    from ..compat import NDDataArray
+
+    def non_leaker_nddataarray():
+        NDDataArray(np.ones(100))
+
+    def leaker_nddataarray():
+        NDDataArray(np.ones(100), uncertainty=StdDevUncertainty(np.ones(100)))
+
+    test_leak(non_leaker_nddataarray, NDDataArray)
+    test_leak(leaker_nddataarray, NDDataArray)
 
 
 def test_for_stolen_uncertainty():
