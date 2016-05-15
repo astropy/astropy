@@ -376,13 +376,15 @@ class IERS_A(IERS):
         i0 = np.searchsorted(iers_b['MJD'].value, table['MJD'][0])
         iers_b = iers_b[i0:]
         n_iers_b = len(iers_b)
-        # Sanity check that we are overwriting the correct values
-        if not np.allclose(table['MJD'][:n_iers_b], iers_b['MJD'].value):
-            raise ValueError('unexpected mismatch when copying IERS-B values into IERS-A table')
-        # Finally do the overwrite
-        table['UT1_UTC_B'][:n_iers_b] = iers_b['UT1_UTC'].value
-        table['PM_X_B'][:n_iers_b] = iers_b['PM_x'].value
-        table['PM_Y_B'][:n_iers_b] = iers_b['PM_y'].value
+        # If there is overlap then replace IERS-A values from available IERS-B
+        if n_iers_b > 0:
+            # Sanity check that we are overwriting the correct values
+            if not np.allclose(table['MJD'][:n_iers_b], iers_b['MJD'].value):
+                raise ValueError('unexpected mismatch when copying IERS-B values into IERS-A table')
+            # Finally do the overwrite
+            table['UT1_UTC_B'][:n_iers_b] = iers_b['UT1_UTC'].value
+            table['PM_X_B'][:n_iers_b] = iers_b['PM_x'].value
+            table['PM_Y_B'][:n_iers_b] = iers_b['PM_y'].value
 
         # Run np.where on the data from the table columns, since in numpy 1.9
         # it otherwise returns an only partially initialized column.
