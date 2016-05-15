@@ -632,7 +632,11 @@ class IERS_Auto(IERS_A):
                 # Issue a warning here, perhaps user is offline.  An exception
                 # will be raised downstream when actually trying to interpolate
                 # predictive values.
-                warn(AstropyWarning('failed to download {}: {}'
+                warn(AstropyWarning('failed to download {}: {}.\nA coordinate or time-related '
+                                    'calculation might be compromised or fail because the dates are '
+                                    'not covered by the available IERS file.  See the '
+                                    '"IERS data access" section of the astropy documentation '
+                                    'for additional information on working offline.'
                                     .format(conf.iers_auto_url, str(err))))
                 return
 

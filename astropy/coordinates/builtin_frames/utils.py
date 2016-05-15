@@ -68,7 +68,8 @@ def get_polar_motion(time):
     wmsg = None
     if np.any(status == iers.TIME_BEFORE_IERS_RANGE):
         wmsg = ('Tried to get polar motions for times before IERS data is '
-                'valid. Defaulting to polar motion from the 50-yr mean for those.')
+                'valid. Defaulting to polar motion from the 50-yr mean for those. '
+                'This may affect precision at the 10s of arcsec level')
         xp.ravel()[status.ravel() == iers.TIME_BEFORE_IERS_RANGE] = _DEFAULT_PM[0]
         yp.ravel()[status.ravel() == iers.TIME_BEFORE_IERS_RANGE] = _DEFAULT_PM[1]
 
@@ -76,7 +77,8 @@ def get_polar_motion(time):
 
     if np.any(status == iers.TIME_BEYOND_IERS_RANGE):
         wmsg = ('Tried to get polar motions for times after IERS data is '
-                'valid. Defaulting to polar motion from the 50-yr mean for those.')
+                'valid. Defaulting to polar motion from the 50-yr mean for those. '
+                'This may affect precision at the 10s of arcsec level')
 
         xp.ravel()[status.ravel() == iers.TIME_BEYOND_IERS_RANGE] = _DEFAULT_PM[0]
         yp.ravel()[status.ravel() == iers.TIME_BEYOND_IERS_RANGE] = _DEFAULT_PM[1]
