@@ -186,6 +186,13 @@ class TestIERS_Auto():
         assert len(warns) == 1
         assert 'IERS_Auto predictive values are older' in str(warns[0].message)
 
+        # Now set auto_max_age = None which says that we don't care how old the
+        # available IERS-A file is.  There should be no warnings or exceptions.
+        with iers.conf.set_temp('auto_max_age', None):
+            with catch_warnings(iers.IERSStaleWarning) as warns:
+                dat.ut1_utc(Time(60000, format='mjd').jd)
+            assert not warns
+
         # Now point to a later file with same values but MJD increased by
         # 60 days and see that things work.  dat._time_now is still the same value
         # as before, i.e. right around the start of predictive values for the new file.
@@ -199,5 +206,3 @@ class TestIERS_Auto():
         # Now the time range should be different.
         assert dat['MJD'][0] == 57359.0 * u.d
         assert dat['MJD'][-1] == (57539.0 + 60) * u.d
-
-        # TO DO: test with iers.conf.max_auto_age = None
