@@ -528,8 +528,8 @@ for the ``data`` argument.
     the rest of the rows, a ValueError will be thrown.
 
 **table-like object**
-    If another table-like object has a `__astropy_table__` method then
-    that object can be used to directly create a ``Table` object.  See
+    If another table-like object has a ``__astropy_table__`` method then
+    that object can be used to directly create a ``Table`` object.  See
     the `Table-like objects`_ section for details.
 
 **None**
