@@ -435,7 +435,7 @@ def table_to_hdu(table):
     if table.has_mixin_columns:
         mixin_names = [name for name, col in table.columns.items()
                        if not isinstance(col, table.ColumnClass)]
-        raise ValueError('cannot create table with mixin column(s) {0} to FITS'
+        raise ValueError('cannot write table with mixin column(s) {0}'
                          .format(mixin_names))
 
     # Create a new HDU object
