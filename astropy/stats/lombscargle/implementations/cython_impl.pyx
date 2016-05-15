@@ -11,8 +11,8 @@ cdef extern from "math.h":
 DTYPE = np.float64
 ctypedef np.float64_t DTYPE_t
 
-ITYPE = np.int32
-ctypedef np.int32_t ITYPE_t
+ITYPE = np.intp
+ctypedef np.intp_t ITYPE_t
 
 
 def lombscargle_cython(t, y, dy, frequency, normalization='standard',
