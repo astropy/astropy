@@ -308,6 +308,74 @@ This also requires overriding the ``_arithmetic`` method. Suppose we have a
     >>> ndd3.flags
     array([ True, False,  True], dtype=bool)
 
+
+Slicing an existing property
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Suppose you have a class expecting a 2 dimensional ``data`` but the mask is
+only 1D. This would lead to problems if one were to slice in two dimensions.
+
+    >>> from astropy.nddata import NDDataRef
+    >>> import numpy as np
+
+    >>> class NDDataMask1D(NDDataRef):
+    ...     def _slice_mask(self, item):
+    ...         # Multidimensional slices are represented by tuples:
+    ...         if isinstance(item, tuple):
+    ...             # only use the first dimension of the slice
+    ...             return self.mask[item[0]]
+    ...         # Let the superclass deal with the other cases
+    ...         return super(NDDataMask1D, self)._slice_mask(item)
+
+    >>> ndd = NDDataMask1D(np.ones((3,3)), mask=np.ones(3, dtype=bool))
+    >>> nddsliced = ndd[1:3,1:3]
+    >>> nddsliced.mask
+    array([ True,  True], dtype=bool)
+
+.. note::
+  The methods doing the slicing of the attributes are prefixed by a
+  ``_slice_*`` where ``*`` can be ``mask``, ``uncertainty`` or ``wcs``. So
+  simply overriding them is the easiest way to customize how the are sliced.
+
+.. note::
+  If slicing should affect the ``unit`` or ``meta`` see the next example.
+
+
+Slicing an additional property
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Building on the added property ``flags`` we want them to be sliceable:
+
+    >>> class NDDataWithFlags(NDDataRef):
+    ...     def __init__(self, *args, **kwargs):
+    ...         # Remove flags attribute if given and pass it to the setter.
+    ...         self.flags = kwargs.pop('flags') if 'flags' in kwargs else None
+    ...         super(NDDataWithFlags, self).__init__(*args, **kwargs)
+    ...
+    ...     @property
+    ...     def flags(self):
+    ...         return self._flags
+    ...
+    ...     @flags.setter
+    ...     def flags(self, value):
+    ...         self._flags = value
+    ...
+    ...     def _slice(self, item):
+    ...         # slice all normal attributes
+    ...         kwargs = super(NDDataWithFlags, self)._slice(item)
+    ...         # The arguments for creating a new instance are saved in kwargs
+    ...         # so we need to add another keyword "flags" and add the sliced flags
+    ...         kwargs['flags'] = self.flags[item]
+    ...         return kwargs # these must be returned
+
+    >>> ndd = NDDataWithFlags([1,2,3], flags=[0, 0.2, 0.3])
+    >>> ndd2 = ndd[1:3]
+    >>> ndd2.flags
+    [0.2, 0.3]
+
+If you wanted to keep just the original ``flags`` instead of the sliced ones
+you could use ``kwargs['flags'] = self.flags`` and omit the ``[item]``.
+
 `~astropy.nddata.NDDataBase`
 ----------------------------
 
