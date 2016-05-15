@@ -206,6 +206,8 @@ def test_positions_distances_kittpeak_2016():
     assert_quantity_allclose(distances_astropy, distances_horizons,
                              atol=distance_tolerance)
 
+@remote_data
+@pytest.mark.skipif(str('not HAS_JPLEPHEM'))
 def test_kernel_change():
     t = Time('2016-01-1 00:00')
     de430_pluto = get_body(t, 'pluto')
