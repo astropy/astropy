@@ -435,7 +435,7 @@ def table_to_hdu(table):
     if table.has_mixin_columns:
         mixin_names = [name for name, col in table.columns.items()
                        if not isinstance(col, table.ColumnClass)]
-        raise ValueError('cannot write table with mixin column(s) {0} to FITS'
+        raise ValueError('cannot create table with mixin column(s) {0} to FITS'
                          .format(mixin_names))
 
     # Create a new HDU object
@@ -497,16 +497,16 @@ def table_to_hdu(table):
                     table_hdu.header.append((key, item))
                 except ValueError:
                     warnings.warn(
-                        "Attribute `{0}` of type {1} cannot be written to "
-                        "FITS files - skipping".format(key, type(value)),
+                        "Attribute `{0}` of type {1} cannot be added to "
+                        "FITS Header - skipping".format(key, type(value)),
                         AstropyUserWarning)
         else:
             try:
                 table_hdu.header[key] = value
             except ValueError:
                 warnings.warn(
-                    "Attribute `{0}` of type {1} cannot be written to FITS "
-                    "files - skipping".format(key, type(value)),
+                    "Attribute `{0}` of type {1} cannot be added to FITS "
+                    "Header - skipping".format(key, type(value)),
                     AstropyUserWarning)
     return table_hdu
 
