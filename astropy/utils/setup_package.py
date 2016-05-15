@@ -30,9 +30,9 @@ def get_package_data():
         'astropy.utils.iers': [
             'data/ReadMe.eopc04_IAU2000',
             'data/ReadMe.finals2000A',
-            'data/finals2000A-2016-04-30-test',
-            'data/finals2000A-2016-02-30-test',
             'data/eopc04_IAU2000.62-now',
+            'tests/finals2000A-2016-04-30-test',
+            'tests/finals2000A-2016-02-30-test',
             'tests/iers_a_excerpt']
     }
 

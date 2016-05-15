@@ -149,8 +149,8 @@ class TestIERS_Auto():
 
     @remote_data
     def test_simple(self):
-        iers_a_file_1 = get_pkg_data_filename('../data/finals2000A-2016-02-30-test')
-        iers_a_file_2 = get_pkg_data_filename('../data/finals2000A-2016-04-30-test')
+        iers_a_file_1 = os.path.join(os.path.dirname(__file__), 'finals2000A-2016-02-30-test')
+        iers_a_file_2 = os.path.join(os.path.dirname(__file__), 'finals2000A-2016-04-30-test')
         iers_a_url_1 = 'file://' + os.path.abspath(iers_a_file_1)
         iers_a_url_2 = 'file://' + os.path.abspath(iers_a_file_2)
 
