@@ -7,7 +7,8 @@ from ...constants import c
 from ..builtin_frames import GCRS
 from ..earth import EarthLocation
 from ..sky_coordinate import SkyCoord
-from ..solar_system import get_body, get_moon, _apparent_position_in_true_coordinates
+from ..solar_system import (get_body, get_moon, kernel_url,
+                            _apparent_position_in_true_coordinates)
 from ...tests.helper import pytest, assert_quantity_allclose, remote_data
 
 try:
@@ -204,3 +205,16 @@ def test_positions_distances_kittpeak_2016():
 
     assert_quantity_allclose(distances_astropy, distances_horizons,
                              atol=distance_tolerance)
+
+@remote_data
+@pytest.mark.skipif(str('not HAS_JPLEPHEM'))
+def test_kernel_change():
+    t = Time('2016-01-1 00:00')
+    de430_pluto = get_body(t, 'pluto')
+
+    #dr432 is convenient because it's relatively small - ~10MB
+    with kernel_url.set('http://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk'
+                        '/planets/de432s.bsp'):
+        de432_pluto = get_body(t, 'pluto')
+
+

@@ -11,14 +11,17 @@ from collections import OrderedDict
 import numpy as np
 from .sky_coordinate import SkyCoord
 from ..utils.data import download_file
+from ..utils.state import ScienceState
 from .. import units as u
 from ..constants import c as speed_of_light
 from .representation import CartesianRepresentation
 from .builtin_frames import GCRS, ICRS
 from .builtin_frames.utils import get_jd12, cartrepr_from_matmul
 from .. import _erfa
+from ..extern import six
 
-__all__ = ["get_body", "get_moon", "get_body_barycentric", "SOLAR_SYSTEM_BODIES"]
+__all__ = ["get_body", "get_moon", "get_body_barycentric",
+           "SOLAR_SYSTEM_BODIES", "kernel_url"]
 
 KERNEL = None
 
@@ -42,21 +45,39 @@ BODY_NAME_TO_KERNEL_SPEC = OrderedDict(
                                       )
 SOLAR_SYSTEM_BODIES = tuple(BODY_NAME_TO_KERNEL_SPEC.keys())
 
+_JPL_EPHEM_NOTE = """
+    This calculation uses JPL Ephemeris SPK filesto calculate the body's
+    location, defaulting to DE430.  It will be downloaded the first time this
+    function is used and cached from then on.  To change this, set
+    ``kernel_url`` as described in the coordinate documentation.
+"""[1:-1]
 
-def _download_spk_file(url=('http://naif.jpl.nasa.gov/pub/naif/'
-                            'generic_kernels/spk/planets/de430.bsp'),
-                       show_progress=True):
+class kernel_url(ScienceState):
     """
-    Get the Satellite Planet Kernel (SPK) file from NASA JPL.
+    The URL to use for downloading a download the Satellite Planet
+    Kernel (SPK) file with ephemerides.  The download will *not* occur when
+    this state is set, but rather whenever the first time is that the
+    kernel actually needs to be used.
 
-    Download the file from the JPL webpage once and subsequently access a
-    cached copy. The default is the file de430.bsp.
-
-    This file is ~120 MB, and covers years ~1550-2650 CE [1]_.
+    Notes
+    -----
+    The default Satellite Planet Kernel (SPK) file from NASA JPL (DE430) is
+    ~120MB, and covers years ~1550-2650 CE [1]_.
 
     .. [1] http://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/aareadme_de430-de431.txt
     """
-    return download_file(url, cache=True, show_progress=show_progress)
+    _value = ('http://naif.jpl.nasa.gov/pub/naif/generic_kernels'
+               '/spk/planets/de430.bsp')
+
+    @classmethod
+    def validate(cls, value):
+        try:
+            six.moves.urllib.parse.urlparse(value)
+        except:
+            raise ValueError('{} could not be parsed as a URL'.format(value))
+        global KERNEL
+        KERNEL = None
+        return value
 
 
 def _get_kernel(*args, **kwargs):
@@ -74,7 +95,7 @@ def _get_kernel(*args, **kwargs):
                           "(https://pypi.python.org/pypi/jplephem)")
 
     if KERNEL is None:
-        KERNEL = SPK.open(_download_spk_file())
+        KERNEL = SPK.open(download_file(kernel_url.get(), cache=True))
     return KERNEL
 
 
@@ -103,16 +124,14 @@ def get_body_barycentric(time, body):
 
     Notes
     -----
-
-    """
-    # lookup chain
-    chain = BODY_NAME_TO_KERNEL_SPEC[body.lower()]
+    """ +_JPL_EPHEM_NOTE
 
     kernel = _get_kernel()
+    kernelspec_chain = BODY_NAME_TO_KERNEL_SPEC[body.lower()]
 
     jd1, jd2 = get_jd12(time, 'tdb')
 
-    cartesian_position_body = sum([kernel[pair].compute(jd1, jd2) for pair in chain])
+    cartesian_position_body = sum([kernel[pair].compute(jd1, jd2) for pair in kernelspec_chain])
 
     barycen_to_body_vector = u.Quantity(cartesian_position_body, unit=u.km)
     return CartesianRepresentation(barycen_to_body_vector)
@@ -150,10 +169,6 @@ def _get_earth_body_vector(time, body, earth_time=None):
 
     earth_distance : `~astropy.units.Quantity`
         Distance between Earth and body.
-
-    Notes
-    -----
-
     """
     earth_time = earth_time if earth_time is not None else time
     earth_loc = get_body_barycentric(earth_time, 'earth')
@@ -226,7 +241,10 @@ def get_body(time, body, location=None):
     -------
     skycoord : `~astropy.coordinates.SkyCoord`
         Coordinate for the body
-    """
+
+    Notes
+    -----
+    """ +_JPL_EPHEM_NOTE
     cartrep = _get_apparent_body_position(time, body)
     icrs = ICRS(cartrep)
     if location is not None:
@@ -257,7 +275,12 @@ def get_moon(time, location=None):
     -------
     skycoord : `~astropy.coordinates.SkyCoord`
         Coordinate for the Moon
-    """
+
+
+
+    Notes
+    -----
+    """ +_JPL_EPHEM_NOTE
     return get_body(time, body='moon', location=location)
 
 
