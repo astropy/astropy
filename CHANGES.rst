@@ -618,6 +618,8 @@ Bug Fixes
 
 - ``astropy.io.ascii``
 
+  - Fix problems the header parsing in the sextractor reader. [#4603]
+
 - ``astropy.io.fits``
 
   - ``GroupsHDU.is_image`` property is now set to ``False``. [#4742]
