@@ -362,10 +362,14 @@ class MetaData(object):
         Documentation for the attribute of the class.
         Default is ``""``.
 
+        .. versionadded:: 1.2
+
     copy : `bool`, optional
         If ``True`` the the value is deepcopied before setting, otherwise it
         is saved as reference.
         Default is ``True``.
+
+        .. versionadded:: 1.2
     """
     def __init__(self, doc="", copy=True):
         self.__doc__ = doc
