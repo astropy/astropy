@@ -33,10 +33,10 @@ Here are some examples of these functions in use::
     >>> loc = EarthLocation.of_site('greenwich')
     >>> get_moon(t, loc) # doctest: +REMOTE_DATA
     <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=[ 3949481.69039034  -550931.90976401  4961151.73716876] m, obsgeovel=[  40.17459314  288.00078055   -0.        ] m / s): (ra, dec, distance) in (deg, deg, km)
-    (165.51839027, 2.32901144, 407226.55887392)>
+        (165.51840736, 2.32900633, 407226.68749637)>
     >>> get_body(t, 'jupiter', loc) # doctest: +REMOTE_DATA
     <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=[ 3949481.69039034  -550931.90976401  4961151.73716876] m, obsgeovel=[  40.17459314  288.00078055   -0.        ] m / s): (ra, dec, distance) in (deg, deg, km)
-    (136.90234741, 17.03160607, 889196019.26282585)>
+        (136.90234741, 17.03160607, 889196019.26282585)>
     >>> get_body_barycentric(t, 'moon') # doctest: +REMOTE_DATA
     <CartesianRepresentation (x, y, z) in km
     (150107535.26352832, -866789.03506676, -418963.52113854)>
@@ -59,7 +59,7 @@ planets), although this interface should be considered preliminary (and hence
 is not yet considered part of the public API)::
 
     >>> from astropy import coordinates
-    >>> coordinates.solar_system.set_kernel_url('http://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de432s.bsp')
-    >>> coordinates.get_body(t,'pluto')
+    >>> with coordinates.solar_system.kernel_url.set('http://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de432s.bsp'):
+    ...     coordinates.get_body(t,'pluto') # doctest: +REMOTE_DATA
     <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=[ 0.  0.  0.] m, obsgeovel=[ 0.  0.  0.] m / s): (ra, dec, distance) in (deg, deg, km)
-    (281.52508175, -20.60080214, 4865115955.7188015)>
+        (281.52508175, -20.60080214, 4865115955.7188015)>
