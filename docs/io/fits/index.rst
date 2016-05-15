@@ -270,7 +270,7 @@ would with a dict::
 
 .. topic:: Examples:
 
-    See also :ref:`sphx_glr_auto_examples_io_modify-fits-header.py`.
+    See also :ref:`sphx_glr_generated_examples_io_modify-fits-header.py`.
 
 Working with Image Data
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -348,7 +348,7 @@ a new file, you can use the :meth:`HDUList.writeto` method (see below).
 
 .. topic:: Examples:
 
-    See also :ref:`sphx_glr_auto_examples_io_plot_fits-image.py`.
+    See also :ref:`sphx_glr_generated_examples_io_plot_fits-image.py`.
 
 Working With Table Data
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -463,7 +463,7 @@ and so on.
 
 .. topic:: Examples:
 
-    See also :ref:`sphx_glr_auto_examples_io_fits-tables.py`.
+    See also :ref:`sphx_glr_generated_examples_io_fits-tables.py`.
 
 Save File Changes
 ^^^^^^^^^^^^^^^^^
@@ -616,7 +616,7 @@ each class and method.
 
 .. topic:: Examples:
 
-    See also :ref:`sphx_glr_auto_examples_io_create-mef.py`.
+    See also :ref:`sphx_glr_generated_examples_io_create-mef.py`.
 
 Convenience Functions
 ---------------------
