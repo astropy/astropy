@@ -150,7 +150,7 @@ class Table(object):
 
     Parameters
     ----------
-    data : numpy ndarray, dict, list, or Table, optional
+    data : numpy ndarray, dict, list, Table, or table-like object, optional
         Data to initialize table.
     masked : bool, optional
         Specify whether the table is masked.
@@ -166,6 +166,8 @@ class Table(object):
         Row-oriented data for table instead of ``data`` argument
     copy_indices : bool, optional
         Copy any indices in the input data (default=True)
+    **kwargs : dict, optional
+        Additional keyword args when converting table-like object
     """
 
     meta = MetaData()
@@ -238,7 +240,8 @@ class Table(object):
         return data
 
     def __init__(self, data=None, masked=None, names=None, dtype=None,
-                 meta=None, copy=True, rows=None, copy_indices=True):
+                 meta=None, copy=True, rows=None, copy_indices=True,
+                 **kwargs):
 
         # Set up a placeholder empty table
         self._set_masked(masked)
@@ -273,6 +276,18 @@ class Table(object):
         # function, number of columns, and potentially the default col names
 
         default_names = None
+
+        if hasattr(data, '__astropy_table__'):
+            # Data object implements the __astropy_table__ interface method.
+            # Calling that method returns an appropriate instance of
+            # self.__class__ and respects the `copy` arg.  The returned
+            # Table object should NOT then be copied (though the meta
+            # will be deep-copied anyway).
+            data = data.__astropy_table__(self.__class__, copy, **kwargs)
+            copy = False
+        elif kwargs:
+            raise TypeError('__init__() got unexpected keyword argument {!r}'
+                            .format(list(kwargs.keys())[0]))
 
         if (isinstance(data, np.ndarray) and
                 data.shape == (0,) and
@@ -2550,7 +2565,7 @@ class QTable(Table):
 
     Parameters
     ----------
-    data : numpy ndarray, dict, list, or Table, optional
+    data : numpy ndarray, dict, list, Table, or table-like object, optional
         Data to initialize table.
     masked : bool, optional
         Specify whether the table is masked.
@@ -2564,13 +2579,12 @@ class QTable(Table):
         Copy the input data (default=True).
     rows : numpy ndarray, list of lists, optional
         Row-oriented data for table instead of ``data`` argument
+    copy_indices : bool, optional
+        Copy any indices in the input data (default=True)
+    **kwargs : dict, optional
+        Additional keyword args when converting table-like object
 
     """
-    def __init__(self, data=None, masked=None, names=None, dtype=None,
-                 meta=None, copy=True, rows=None, copy_indices=True):
-        super(QTable, self).__init__(data, masked, names, dtype, meta,
-                                     copy, rows, copy_indices)
-
     def _add_as_mixin_column(self, col):
         """
         Determine if ``col`` should be added to the table directly as

@@ -527,6 +527,10 @@ for the ``data`` argument.
     correspond to the order of output columns.  If any row's keys do no match
     the rest of the rows, a ValueError will be thrown.
 
+**table-like object**
+    If another table-like object has a ``__astropy_table__`` method then
+    that object can be used to directly create a ``Table`` object.  See
+    the `Table-like objects`_ section for details.
 
 **None**
     Initialize a zero-length table.  If ``names`` and optionally ``dtype``
@@ -960,3 +964,96 @@ a `~astropy.table.Column` object with a ``unit`` attribute::
 
 To learn more about using standard `~astropy.table.Column` objects with defined
 units, see the :ref:`columns_with_units` section.
+
+
+Table-like objects
+^^^^^^^^^^^^^^^^^^
+
+In order to improve interoperability between different table classes, an
+astropy |Table| object can be created directly from any other table-like
+object that provides an ``__astropy_table__`` method.  In this case the
+``__astropy_table__`` method will be called as follows::
+
+  >>> data = SomeOtherTableClass({'a': [1, 2], 'b': [3, 4]})  # doctest: +SKIP
+  >>> t = QTable(data, copy=False, strict_copy=True)  # doctest: +SKIP
+
+Internally the following call will be made to ask the ``data`` object
+to return a representation of itself as an astropy |Table|, respecting
+the ``copy`` preference of the original call to ``QTable()``::
+
+  data.__astropy_table__(cls, copy, **kwargs)
+
+Here ``cls`` is the |Table| class or subclass that is being instantiated
+(|QTable| in this example), ``copy`` indicates whether a copy of the values in
+``data`` should be provided, and ``**kwargs`` are any extra keyword arguments
+which are not valid |Table| init keyword arguments.  In the example above,
+``strict_copy=True`` would end up in ``**kwargs`` and get passed to
+``__astropy_table__()``.
+
+If ``copy`` is ``True`` then the ``__astropy_table__`` method must ensure that
+a copy of the original data is returned.  If ``copy`` is ``False`` then a
+reference to the table data should returned if possible.  If it is not possible
+(e.g. the original data are in a Python list or must be otherwise transformed in
+memory) then ``__astropy_table__`` method is free to either return a copy or
+else raise an exception.  This choice depends on the preference of the
+implementation.  The implementation might choose to allow an additional keyword
+argument (e.g. ``strict_copy`` which gets passed via ``**kwargs``) to control the
+behavior in this case.
+
+As a simple example, imagine a dict-based table class.  (Note that |Table|
+already can be initialized from a dict-like object, so this is a bit contrived
+but does illustrate the principles involved.)  Please pay attention to the
+method signature::
+
+  def __astropy_table__(self, cls, copy, **kwargs):
+
+Your class implementation of this must use the ``**kwargs`` technique for
+catching keyword arguments at the end.  This is to ensure future compatibility
+in case additional keywords are added to the internal ``table =
+data.__astropy_table__(cls, copy)`` call.  Including ``**kwargs`` will prevent
+breakage in this case.  ::
+
+  class DictTable(dict):
+      """
+      Trivial "table" class that just uses a dict to hold columns.
+      This does not actually implement anything useful that makes
+      this a table.
+
+      The non-standard ``strict_copy=False`` keyword arg here will be passed
+      via the **kwargs of Table __init__().
+      """
+
+      def __astropy_table__(self, cls, copy, strict_copy=False, **kwargs):
+          """
+          Return an astropy Table of type ``cls``.
+
+          Parameters
+          ----------
+          cls : type
+               Astropy ``Table`` class or subclass
+          copy : bool
+               Copy input data (True) or return a reference (False)
+          strict_copy : bool, optional
+               Raise an exception if copy is False but reference is not
+               possible
+          **kwargs : dict, optional
+               Additional keyword args (ignored currently)
+          """
+          if kwargs:
+              warnings.warn('unexpected keyword args {}'.format(kwargs))
+
+          cols = list(self.values())
+          names = list(self.keys())
+
+          # If returning a reference to existing data (copy=False) and
+          # strict_copy=True, make sure that each column is a numpy ndarray.
+          # If a column is a Python list or tuple then it must be copied for
+          # representation in an astropy Table.
+
+          if not copy and strict_copy:
+              for name, col in zip(names, cols):
+                  if not isinstance(col, np.ndarray):
+                      raise ValueError('cannot have copy=False because column {} is '
+                                       'not an ndarray'.format(name))
+
+          return cls(cols, names=names, copy=copy)

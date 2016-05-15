@@ -6,6 +6,7 @@
 import copy
 import gc
 import sys
+from collections import OrderedDict
 
 import numpy as np
 from numpy.testing import assert_allclose
@@ -1620,6 +1621,77 @@ class TestReplaceColumn(SetupData):
         with pytest.raises(ValueError) as err:
             t.replace_column('a', [1, 2, 3])
         assert err.value.args[0] == 'cannot replace a table index column'
+
+
+class Test__Astropy_Table__():
+    """
+    Test initializing a Table subclass from a table-like object that
+    implements the __astropy_table__ interface method.
+    """
+
+    class SimpleTable(object):
+        def __init__(self):
+            self.columns = [[1, 2, 3],
+                            [4, 5, 6],
+                            [7, 8, 9] * u.m]
+            self.names = ['a', 'b', 'c']
+            self.meta = OrderedDict([('a', 1), ('b', 2)])
+
+        def __astropy_table__(self, cls, copy, **kwargs):
+            a, b, c = self.columns
+            c.info.name = 'c'
+            cols = [table.Column(a, name='a'),
+                    table.MaskedColumn(b, name='b'),
+                    c]
+            names = [col.info.name for col in cols]
+            return cls(cols, names=names, copy=copy, meta=kwargs or self.meta)
+
+    def test_simple_1(self):
+        """Make a SimpleTable and convert to Table, QTable with copy=False, True"""
+        for table_cls in (table.Table, table.QTable):
+            col_c_class = u.Quantity if table_cls is table.QTable else table.MaskedColumn
+            for cpy in (False, True):
+                st = self.SimpleTable()
+                # Test putting in a non-native kwarg `extra_meta` to Table initializer
+                t = table_cls(st, copy=cpy, extra_meta='extra!')
+                assert t.colnames == ['a', 'b', 'c']
+                assert t.meta == {'extra_meta': 'extra!'}
+                assert np.all(t['a'] == st.columns[0])
+                assert np.all(t['b'] == st.columns[1])
+                vals = t['c'].value if table_cls is table.QTable else t['c']
+                assert np.all(st.columns[2].value == vals)
+
+                assert isinstance(t['a'], table.MaskedColumn)
+                assert isinstance(t['b'], table.MaskedColumn)
+                assert isinstance(t['c'], col_c_class)
+                assert t['c'].unit is u.m
+                assert type(t) is table_cls
+
+                # Copy being respected?
+                t['a'][0] = 10
+                assert st.columns[0][0] == 1 if cpy else 10
+
+    def test_simple_2(self):
+        """Test converting a SimpleTable and changing column names and types"""
+        st = self.SimpleTable()
+        dtypes = [np.int32, np.float32, np.float16]
+        names = ['a', 'b', 'c']
+        t = table.Table(st, dtype=dtypes, names=names, meta=OrderedDict([('c', 3)]))
+        assert t.colnames == names
+        assert all(col.dtype.type is dtype
+                   for col, dtype in zip(t.columns.values(), dtypes))
+
+        # The supplied meta is ignored.  This is consistent with current
+        # behavior when initializing from an existing astropy Table.
+        assert t.meta == st.meta
+
+    def test_kwargs_exception(self):
+        """If extra kwargs provided but without initializing with a table-like
+        object, exception is raised"""
+        with pytest.raises(TypeError) as err:
+            table.Table([[1]], extra_meta='extra!')
+        assert '__init__() got unexpected keyword argument' in str(err)
+
 
 def test_replace_column_qtable():
     """Replace existing Quantity column with a new column in a QTable"""

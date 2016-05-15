@@ -122,10 +122,14 @@ New Features
   - Allow to use a tuple of keys in ``Table.sort``.  [#4671]
 
   - Added ``itercols``; a way to iterate through columns of a table. [#3805]
+
   - ``Table.show_in_notebook`` and the default notebook display (i.e.,
     ``Table._repr_html_``) now use consistent table styles which can be set
     using the ``astropy.table.default_notebook_table_class`` configuration
     item. [#4886]
+
+  - Added interface to create ``Table`` directly from any table-like object
+    that has an ``__astropy_table__`` method.  [#4885]
 
 - ``astropy.tests``
 
