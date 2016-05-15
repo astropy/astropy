@@ -79,7 +79,7 @@ class NDData(NDDataBase):
     Attributes
     ----------
     meta : `dict`-like
-        Additional meta informations about the dataset.
+        Additional meta information about the dataset.
 
     Notes
     -----
