@@ -15,6 +15,8 @@ from ..utils.metadata import MetaData
 
 __all__ = ['NDData']
 
+_meta_doc = """`dict`-like : Additional meta information about the dataset."""
+
 
 class NDData(NDDataBase):
     """
@@ -76,11 +78,6 @@ class NDData(NDDataBase):
     TypeError
         In case ``data`` or ``meta`` don't meet the restrictions.
 
-    Attributes
-    ----------
-    meta : `dict`-like
-        Additional meta information about the dataset.
-
     Notes
     -----
     Each attribute can be accessed through the homonymous instance attribute:
@@ -114,14 +111,8 @@ class NDData(NDDataBase):
     """
 
     # Instead of a custom property use the MetaData descriptor also used for
-    # Tables. It will check if the meta is dict-like.
-    # TODO: reading the documentation from a descriptor using Sphinx isn't
-    # trivial so this attribute is documented in the class docstring but
-    # it would be better to define it here.
-    # TODO: Meta is copied when set, make sure this doesn't provide problems
-    # for affiliated packages. If it does alter the meta descriptor to take
-    # an optional parameter if it should be copied during setting.
-    meta = MetaData()
+    # Tables. It will check if the meta is dict-like or raise an exception.
+    meta = MetaData(doc=_meta_doc, copy=False)
 
     def __init__(self, data, uncertainty=None, mask=None, wcs=None,
                  meta=None, unit=None, copy=False):
