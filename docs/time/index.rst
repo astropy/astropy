@@ -965,8 +965,8 @@ When such a subclass is defined in your code then the format class and
 corresponding name is automatically registered in the set of available time
 formats.
 
-The key elements of a new format class are illustrated by examining the code for the jd
-format (which is one of the simplest)::
+The key elements of a new format class are illustrated by examining the
+code for the ``jd`` format (which is one of the simplest)::
 
   class TimeJD(TimeFormat):
       """
@@ -1025,9 +1025,9 @@ the ``subfmts`` definition is modified slightly from the standard
   ...                '{year:d}-{yday:03d}'))
 
 
-  >>> t = Time.now()
+  >>> t = Time('2000-01-01')
   >>> t.yday_custom
-  '2016-053T12:01:41.663'
+  '2000-001T00:00:00.000'
   >>> t2 = Time('2016-001T00:00:00')
   >>> t2.iso
   '2016-01-01 00:00:00.000'
