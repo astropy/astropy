@@ -2,10 +2,12 @@
 
 import numpy as np
 
+from ... import units as u
 from .icrs import ICRS
 from .altaz import AltAz
 from ..transformations import DynamicMatrixTransform, FunctionTransform
-from ..baseframe import CoordinateAttribute, frame_transform_graph, RepresentationMapping
+from ..baseframe import (CoordinateAttribute, QuantityFrameAttribute,
+                         frame_transform_graph, RepresentationMapping)
 from ..angles import rotation_matrix
 from ...extern import six
 
@@ -100,10 +102,15 @@ def make_astrometric_cls(framecls):
             A representation object or None to have no data (or use the other keywords)
         origin : `SkyCoord` or low-level coordinate object.
             the coordinate which specifiy the origin of this frame.
+        rotation : Quantity with angle units
+            The final rotation of the frame about the ``origin``. The sign of
+            the rotation is the left-hand rule.  That is, an object at a
+            particular position angle in the un-rotated system will be sent to
+            the positive latitude (z) direction in the final frame.
 
         """
-
         origin = CoordinateAttribute(default=None, frame=framecls)
+        rotation = QuantityFrameAttribute(default=0, unit=u.deg)
 
     @frame_transform_graph.transform(FunctionTransform, Astrometric, Astrometric)
     def astrometric_to_astrometric(from_astrometric_coord, to_astrometric_frame):
@@ -123,9 +130,10 @@ def make_astrometric_cls(framecls):
         # Define rotation matricies along the position angle vector, and
         # relative to the origin.
         origin = astrometric_frame.origin.spherical
+        mat1 = rotation_matrix(-astrometric_frame.rotation, 'x')
         mat2 = rotation_matrix(-origin.lat, 'y')
         mat3 = rotation_matrix(origin.lon, 'z')
-        R = mat2 * mat3
+        R = mat1 * mat2 * mat3
         return R
 
     @frame_transform_graph.transform(DynamicMatrixTransform, Astrometric, framecls)

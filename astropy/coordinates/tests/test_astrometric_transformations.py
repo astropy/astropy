@@ -7,7 +7,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 
 from ... import units as u
-from ..builtin_frames import (ICRS, AstrometricICRS)
+from ..builtin_frames import ICRS, AstrometricICRS
 from .. import SkyCoord
 from ...tests.helper import (pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
@@ -18,7 +18,7 @@ from ...tests.helper import (pytest, quantity_allclose as allclose,
     ((45, 0)*u.deg, (0, -45)*u.deg, .001*u.arcsec),
     ((45, 90)*u.deg, (0, 45)*u.deg, .001*u.arcsec),
     ((46, 45)*u.deg, (1*np.cos(45*u.deg), 0)*u.deg, 16*u.arcsec),
-])
+    ])
 def test_astrometric(inradec, expecteddradec, tolsep, originradec=(45, 45)*u.deg):
     origin = ICRS(*originradec)
     astrometric_frame = AstrometricICRS(origin=origin)
@@ -172,3 +172,19 @@ def test_skycoord_astrometric_frame():
     assert_allclose(m33.separation(m31),
                     np.hypot(m33_in_m31.dra, m33_in_m31.ddec),
                     atol=.1*u.deg)
+@pytest.mark.parametrize("rotation, expecteddradec", [
+    (0*u.deg, [0, 1]*u.deg),
+    (180*u.deg, [0, -1]*u.deg),
+    (90*u.deg, [-1, 0]*u.deg),
+    (-90*u.deg, [1, 0]*u.deg)
+    ])
+def test_rotation(rotation, expecteddradec):
+    origin = ICRS(45*u.deg, 45*u.deg)
+    target = ICRS(45*u.deg, 46*u.deg)
+
+    aframe = AstrometricICRS(origin=origin, rotation=rotation)
+    trans = target.transform_to(aframe)
+
+    assert_allclose([trans.dra.wrap_at(180*u.deg), trans.ddec],
+                    expecteddradec, atol=1e-10*u.deg)
+
