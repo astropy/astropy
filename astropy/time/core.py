@@ -1228,22 +1228,6 @@ class Time(object):
             >>> delta, status = t.get_delta_ut1_utc(return_status=True)
             >>> status == TIME_BEFORE_IERS_RANGE
             array([ True, False], dtype=bool)
-
-        To use an updated IERS A bulletin to calculate UT1-UTC
-        (see also ``astropy.utils.iers``)::
-
-            >>> from astropy.utils.iers import IERS_A, IERS_A_URL
-            >>> from astropy.utils.data import download_file
-            >>> t = Time(['1974-01-01', '2000-01-01'], scale='utc')
-            >>> iers_a_file = download_file(IERS_A_URL,
-            ...                             cache=True)        # doctest: +REMOTE_DATA
-            Downloading ... [Done]
-            >>> iers_a = IERS_A.open(iers_a_file)              # doctest: +REMOTE_DATA
-            >>> t.delta_ut1_utc = t.get_delta_ut1_utc(iers_a)  # doctest: +REMOTE_DATA
-
-        The delta_ut1_utc property will be used to calculate t.ut1;
-        raises IndexError if any of the times is out of range.
-
         """
         if iers_table is None:
             from ..utils.iers import IERS
@@ -1262,8 +1246,8 @@ class Time(object):
         # Sec. 4.3.1: the arg DUT is the quantity delta_UT1 = UT1 - UTC in
         # seconds. It is obtained from tables published by the IERS.
         if not hasattr(self, '_delta_ut1_utc'):
-            from ..utils.iers import IERS
-            iers_table = IERS.open()
+            from ..utils.iers import IERS_Auto
+            iers_table = IERS_Auto.open()
             # jd1, jd2 are normally set (see above), except if delta_ut1_utc
             # is access directly; ensure we behave as expected for that case
             if jd1 is None:

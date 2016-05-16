@@ -128,6 +128,12 @@ straightforward to convert from celestial coordinates to
 as a tool for planning observations.  For a more complete example of
 this, see :ref:`sphx_glr_auto_examples_coordinates_plot_obs-planning.py`.
 
+Some coordinate frames such as `~astropy.coordinates.AltAz` require Earth
+rotation information (UT1-UTC offset and/or polar motion) when transforming
+to/from other frames.  These Earth rotation values are automatically downloaded
+from the International Earth Rotation and Reference Systems (IERS) service when
+required.  See :ref:`utils-iers` for details of this process.
+
 Representation
 --------------
 

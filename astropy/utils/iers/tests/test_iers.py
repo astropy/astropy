@@ -4,13 +4,15 @@ from __future__ import (absolute_import, division, print_function,
 
 import os
 import numpy as np
+import contextlib
 
-from ....tests.helper import pytest, assert_quantity_allclose
+from ....tests.helper import pytest, assert_quantity_allclose, catch_warnings, remote_data
 from .. import iers
 from .... import units as u
 from ....table import QTable
 from ....time import Time
 from ....extern.six.moves import urllib
+from ....utils.data import get_pkg_data_filename
 
 
 FILE_NOT_FOUND_ERROR = getattr(__builtins__, 'FileNotFoundError', IOError)
@@ -60,6 +62,9 @@ class TestBasic():
                                             0.4131816, 0.41328895] *u.s,
                                  atol=1.*u.ns)
 
+        # Table behaves properly as a table (e.g. can be sliced)
+        assert len(iers_tab[:2]) == 2
+
     def test_open_filename(self):
         iers.IERS.close()
         iers.IERS.open(iers.IERS_B_FILE)
@@ -79,6 +84,7 @@ class TestBasic():
 class TestIERS_AExcerpt():
     def test_simple(self):
         iers_tab = iers.IERS_A.open(IERS_A_EXCERPT)
+
         assert iers_tab['UT1_UTC'].unit is u.second
         assert 'P' in iers_tab['UT1Flag']
         assert 'I' in iers_tab['UT1Flag']
@@ -86,6 +92,7 @@ class TestIERS_AExcerpt():
         assert np.all((iers_tab['UT1Flag'] == 'I') |
                       (iers_tab['UT1Flag'] == 'P') |
                       (iers_tab['UT1Flag'] == 'B'))
+
         assert iers_tab['PM_x'].unit is u.arcsecond
         assert iers_tab['PM_y'].unit is u.arcsecond
         assert 'P' in iers_tab['PolPMFlag']
@@ -94,6 +101,7 @@ class TestIERS_AExcerpt():
         assert np.all((iers_tab['PolPMFlag'] == 'P') |
                       (iers_tab['PolPMFlag'] == 'I') |
                       (iers_tab['PolPMFlag'] == 'B'))
+
         t = Time([57053., 57054., 57055.], format='mjd')
         ut1_utc, status = iers_tab.ut1_utc(t, return_status=True)
         assert status[0] == iers.FROM_IERS_B
@@ -101,6 +109,7 @@ class TestIERS_AExcerpt():
         assert_quantity_allclose(ut1_utc,
                                  [-0.4916557, -0.4925323, -0.4934373] * u.s,
                                  atol=1.*u.ns)
+
         pm_x, pm_y, status = iers_tab.pm_xy(t, return_status=True)
         assert status[0] == iers.FROM_IERS_B
         assert np.all(status[1:] == iers.FROM_IERS_A)
@@ -111,9 +120,13 @@ class TestIERS_AExcerpt():
                                  [0.310824, 0.313150, 0.315517] * u.arcsec,
                                  atol=1.*u.narcsec)
 
+        # Table behaves properly as a table (e.g. can be sliced)
+        assert len(iers_tab[:2]) == 2
+
 
 @pytest.mark.skipif(str('not HAS_IERS_A'))
 class TestIERS_A():
+
     def test_simple(self):
         iers_tab = iers.IERS_A.open()
         jd1 = np.array([2456108.5, 2456108.5, 2456108.5, 2456109.5, 2456109.5])
@@ -131,3 +144,65 @@ class TestIERS_A():
         ut1_utc3, status3 = iers_tab.ut1_utc(tnow, return_status=True)
         assert status3 == iers.FROM_IERS_A_PREDICTION
         assert ut1_utc3 != 0.
+
+class TestIERS_Auto():
+
+    @remote_data
+    def test_simple(self):
+        iers_a_file_1 = os.path.join(os.path.dirname(__file__), 'finals2000A-2016-02-30-test')
+        iers_a_file_2 = os.path.join(os.path.dirname(__file__), 'finals2000A-2016-04-30-test')
+        iers_a_url_1 = 'file://' + os.path.abspath(iers_a_file_1)
+        iers_a_url_2 = 'file://' + os.path.abspath(iers_a_file_2)
+
+        iers.conf.iers_auto_url = iers_a_url_1
+
+        dat = iers.IERS_Auto.open()
+        assert dat['MJD'][0] == 57359.0 * u.d
+        assert dat['MJD'][-1] == 57539.0 * u.d
+
+        # Pretend we are accessing at a time 7 days after start of predictive data
+        predictive_mjd = dat.meta['predictive_mjd']
+        dat._time_now = Time(predictive_mjd, format='mjd') + 7 * u.d
+
+        # Look at times before and after the test file begins.
+        assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.0262719)
+        assert np.allclose(dat.ut1_utc(Time(60000, format='mjd').jd).value, -0.2246227)
+
+        # Now pretend we are accessing at time 60 days after start of predictive data.
+        # There will be a warning when downloading the file doesn't give new data
+        # and an exception when extrapolating into the future with insufficient data.
+        dat._time_now = Time(predictive_mjd, format='mjd') + 60 * u.d
+        assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.0262719)
+        with catch_warnings(iers.IERSStaleWarning) as warns:
+            with pytest.raises(ValueError) as err:
+                dat.ut1_utc(Time(60000, format='mjd').jd)
+        assert 'interpolating from IERS_Auto using predictive values' in str(err)
+        assert len(warns) == 1
+        assert 'IERS_Auto predictive values are older' in str(warns[0].message)
+
+        # Warning only if we are getting return status
+        with catch_warnings(iers.IERSStaleWarning) as warns:
+            dat.ut1_utc(Time(60000, format='mjd').jd, return_status=True)
+        assert len(warns) == 1
+        assert 'IERS_Auto predictive values are older' in str(warns[0].message)
+
+        # Now set auto_max_age = None which says that we don't care how old the
+        # available IERS-A file is.  There should be no warnings or exceptions.
+        with iers.conf.set_temp('auto_max_age', None):
+            with catch_warnings(iers.IERSStaleWarning) as warns:
+                dat.ut1_utc(Time(60000, format='mjd').jd)
+            assert not warns
+
+        # Now point to a later file with same values but MJD increased by
+        # 60 days and see that things work.  dat._time_now is still the same value
+        # as before, i.e. right around the start of predictive values for the new file.
+        # (In other words this is like downloading the latest file online right now).
+        iers.conf.iers_auto_url = iers_a_url_2
+
+        # Look at times before and after the test file begins.  This forces a new download.
+        assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.0262719)
+        assert np.allclose(dat.ut1_utc(Time(60000, format='mjd').jd).value, -0.3)
+
+        # Now the time range should be different.
+        assert dat['MJD'][0] == 57359.0 * u.d
+        assert dat['MJD'][-1] == (57539.0 + 60) * u.d

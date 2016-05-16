@@ -14,6 +14,7 @@ import numpy as np
 from ... import units as u
 from .. import AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS
 from ...time import Time
+from ...utils import iers
 
 from ...tests.helper import pytest, assert_quantity_allclose
 from .test_matching import HAS_SCIPY, OLDER_SCIPY
@@ -174,10 +175,11 @@ def test_regression_futuretimes_4302(recwarn):
     c = CIRS(1*u.deg, 2*u.deg, obstime=future_time)
     c.transform_to(ITRS(obstime=future_time))
 
-    saw_iers_warnings = False
-    for w in recwarn.list:
-        if issubclass(w.category, AstropyWarning):
-            if '(some) times are outside of range covered by IERS table' in str(w.message):
-                saw_iers_warnings = True
-                break
-    assert saw_iers_warnings, 'Never saw IERS warning'
+    if not isinstance(iers.IERS_Auto.iers_table, iers.IERS_Auto):
+        saw_iers_warnings = False
+        for w in recwarn.list:
+            if issubclass(w.category, AstropyWarning):
+                if '(some) times are outside of range covered by IERS table' in str(w.message):
+                    saw_iers_warnings = True
+                    break
+        assert saw_iers_warnings, 'Never saw IERS warning'

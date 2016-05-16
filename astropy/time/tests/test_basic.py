@@ -11,6 +11,7 @@ from copy import deepcopy
 import numpy as np
 
 from ...tests.helper import pytest, catch_warnings
+from ...tests.disable_internet import INTERNET_OFF
 from ...extern import six
 from ...utils import isiterable
 from .. import Time, ScaleValueError, TIME_SCALES, TimeString, TimezoneInfo
@@ -895,8 +896,16 @@ def test_TimeFormat_scale():
     assert t.unix == t.utc.unix
 
 def test_scale_conversion():
-    with pytest.raises(ScaleValueError):
-        t = Time(Time.now().cxcsec, format='cxcsec', scale='ut1')
+    if INTERNET_OFF:
+        # With internet off (which is the default for testing) then this will
+        # fall back to the bundled IERS-B table and raise an exception.  But when
+        # testing with --remote-data the IERS_Auto class will get the latest IERS-A
+        # and this works.
+        with pytest.raises(ScaleValueError):
+            Time(Time.now().cxcsec, format='cxcsec', scale='ut1')
+    else:
+        Time(Time.now().cxcsec, format='cxcsec', scale='ut1')
+
 
 
 def test_byteorder():

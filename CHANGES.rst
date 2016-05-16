@@ -34,6 +34,9 @@ New Features
     point/object specified in another frame). [#4909]
 
   - Added ``SkyCoord.spherical_offsets_to`` method. [#4338]
+  - Recent Earth rotation (IERS) data are now auto-downloaded so that AltAz
+    transformations for future dates now use the most accurate available
+    rotation values. [#4436]
 
 - ``astropy.cosmology``
 
@@ -143,6 +146,9 @@ New Features
   - Added caching of scale and format transformations for improved performance.
     [#4422]
 
+  - Recent Earth rotation (IERS) data are now auto-downloaded so that UT1
+    transformations for future times now work out of the box. [#4436]
+
 - ``astropy.units``
 
   - The option to use tuples to indicate fractional powers of units,
@@ -170,6 +176,9 @@ New Features
 
   - Added a new context manager ``set_locale`` to temporarily set the
     current locale. [#4363]
+
+  - Added new IERS_Auto class to auto-download recent IERS (Earth rotation)
+    data when required by coordinate or time transformations. [#4436]
 
 - ``astropy.visualization``
 
@@ -393,6 +402,10 @@ API changes
 
   - The astropy.utils.metadata.MetaData descriptor has now two optional
     parameters: doc and copy. [#4921]
+  - The default IERS (Earth rotation) data now is now auto-downloaded via a
+    new class IERS_Auto.  When extrapolating UT1-UTC or polar motion values
+    outside the available time range, the values are now clipped at the last
+    available value instead of being linearly extrapolated. [#4436]
 
 - ``astropy.visualization``
 
