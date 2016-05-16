@@ -60,6 +60,67 @@ defined::
     >>> sep  # doctest: +FLOAT_CMP
     <Distance 28.743988157814094 kpc>
 
+There is also a :meth:`~astropy.coordinates.SkyCoord.spherical_offsets_to` method
+for computing angular offsets (e.g., small shifts like you might give a
+telescope operator to move from a bright star to a fainter target.)::
+
+    >>> from astropy.coordinates import SkyCoord
+    >>> bright_star = SkyCoord('8h50m59.75s', '+11d39m22.15s', frame='icrs')
+    >>> faint_galaxy = SkyCoord('8h50m47.92s', '+11d39m32.74s', frame='icrs')
+    >>> dra, ddec = bright_star.spherical_offsets_to(faint_galaxy)
+    >>> dra.to(u.arcsec)  # doctest: +FLOAT_CMP
+    <Angle -173.78873354064126 arcsec>
+    >>> ddec.to(u.arcsec)  # doctest: +FLOAT_CMP
+    <Angle 10.605103417374696 arcsec>
+
+.. _astropy-astrometric-frames:
+
+"Astrometric" Frames
+====================
+
+To extend the concept of spherical offsets, `~astropy.coordinates` has
+machinery to create distinct frames that are centered on a specific point.
+These are known as "astrometric frames" (as they are a convenient way to create
+a locally "flat" frame on relatively small fields suitable for astrometry). One
+complication of astrometric frames is that they cannot be created in the same
+manner as other frames, because astrometric frames are generated on-the-fly
+given a particular "origin" frame. The 
+`~astropy.coordinates.make_astrometric_cls` function instead must be used to
+generate the class that creates such a frame::
+
+    >>> from astropy.coordinates import make_astrometric_cls, ICRS
+    >>> AstrometricICRS = make_astrometric_cls(ICRS)
+    >>> center = ICRS(10*u.deg, 45*u.deg)
+    >>> center.transform_to(AstrometricICRS(origin=center))  # doctest: +SKIP
+    <AstrometricICRS Coordinate (origin=<ICRS Coordinate: (ra, dec) in deg
+        (10.0, 45.0)>, rotation=0.0 deg): (dra, ddec) in deg
+        (0.0, 0.0)>
+    >>> target = ICRS(11*u.deg, 46*u.deg)
+    >>> target.transform_to(AstrometricICRS(origin=center))  # doctest: +FLOAT_CMP
+    <AstrometricICRS Coordinate (origin=<ICRS Coordinate: (ra, dec) in deg
+        (10.0, 45.0)>, rotation=0.0 deg): (dra, ddec) in deg
+        (0.69474685, 1.00428706)>
+
+
+
+Alternatively, the convenience method 
+`~astropy.coordinates.SkyCoord.astrometric_frame` let you create an astrometric
+frame from an already-existing |SkyCoord|::
+
+    >>> center = SkyCoord(10*u.deg, 45*u.deg)
+    >>> aframe = center.astrometric_frame()
+    >>> target.transform_to(aframe)  # doctest: +FLOAT_CMP
+    <AstrometricICRS Coordinate (origin=<ICRS Coordinate: (ra, dec) in deg
+        (10.0, 45.0)>, rotation=0.0 deg): (dra, ddec) in deg
+        (0.69474685, 1.00428706)>
+    >>> other = SkyCoord(9*u.deg, 44*u.deg, frame='fk5')
+    >>> other.transform_to(aframe)  # doctest: +FLOAT_CMP
+    <SkyCoord (AstrometricICRS: origin=<ICRS Coordinate: (ra, dec) in deg
+        (10.0, 45.0)>, rotation=0.0 deg): (dra, ddec) in deg
+        (359.28056055, -0.99556216)>
+
+
+
 .. _astropy-coordinates-matching:
 
 Matching Catalogs
@@ -93,8 +154,7 @@ the catalog::
     >>> matches = catalog[idx]  # doctest: +SKIP
     >>> (matches.separation_3d(c) == d3d).all()  # doctest: +SKIP
     True
-    >>> dra = (matches.ra - c.ra).arcmin  # doctest: +SKIP
-    >>> ddec = (matches.dec - c.dec).arcmin  # doctest: +SKIP
+    >>> dra, ddec = c.spherical_offsets_to(matches)  # doctest: +SKIP
 
 This functionality can also be accessed from the
 :func:`~astropy.coordinates.match_coordinates_sky` and
