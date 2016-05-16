@@ -21,8 +21,39 @@ from ... import Angle, SkyCoord
 def test_against_hor2eq():
     """Check that Astropy gives consistent results with an IDL hor2eq example.
 
-    See EXAMPLE input and output here:
-    http://idlastro.gsfc.nasa.gov/ftp/pro/astro/hor2eq.pro
+    See : http://idlastro.gsfc.nasa.gov/ftp/pro/astro/hor2eq.pro
+
+    Test is against these run outputs, run at 2000-01-01T12:00:00:
+
+      # NORMAL ATMOSPHERE CASE
+      IDL> hor2eq, ten(37,54,41), ten(264,55,06), 2451545.0d, ra, dec, /verb, obs='kpno', pres=781.0, temp=273.0
+      Latitude = +31 57 48.0   Longitude = *** 36 00.0
+      Julian Date =  2451545.000000
+      Az, El =  17 39 40.4  +37 54 41   (Observer Coords)
+      Az, El =  17 39 40.4  +37 53 40   (Apparent Coords)
+      LMST = +11 15 26.5
+      LAST = +11 15 25.7
+      Hour Angle = +03 38 30.1  (hh:mm:ss)
+      Ra, Dec:  07 36 55.6  +15 25 02   (Apparent Coords)
+      Ra, Dec:  07 36 55.2  +15 25 08   (J2000.0000)
+      Ra, Dec:  07 36 55.2  +15 25 08   (J2000)
+      IDL> print, ra, dec
+             114.23004       15.418818
+
+      # NO PRESSURE CASE
+      IDL> hor2eq, ten(37,54,41), ten(264,55,06), 2451545.0d, ra, dec, /verb, obs='kpno', pres=0.0, temp=273.0
+      Latitude = +31 57 48.0   Longitude = *** 36 00.0
+      Julian Date =  2451545.000000
+      Az, El =  17 39 40.4  +37 54 41   (Observer Coords)
+      Az, El =  17 39 40.4  +37 54 41   (Apparent Coords)
+      LMST = +11 15 26.5
+      LAST = +11 15 25.7
+      Hour Angle = +03 38 26.4  (hh:mm:ss)
+      Ra, Dec:  07 36 59.3  +15 25 31   (Apparent Coords)
+      Ra, Dec:  07 36 58.9  +15 25 37   (J2000.0000)
+      Ra, Dec:  07 36 58.9  +15 25 37   (J2000)
+      IDL> print, ra, dec
+             114.24554       15.427022
     """
     # Observatory position for `kpno` from here:
     # http://idlastro.gsfc.nasa.gov/ftp/pro/astro/observatory.pro
@@ -30,9 +61,7 @@ def test_against_hor2eq():
                              lat=Angle('31d57.8m'),
                              height=2120. * u.m)
 
-    # obstime = Time('2041-12-26 05:00:00')
-    obstime = Time(2466879.7083333, format='jd')
-    # obstime += TimeDelta(-2, format='sec')
+    obstime = Time(2451545.0, format='jd', scale='ut1')
 
     altaz_frame = AltAz(obstime=obstime, location=location,
                         temperature=0 * u.deg_C, pressure=0.781 * u.bar)
@@ -43,25 +72,22 @@ def test_against_hor2eq():
 
     radec_frame = 'icrs'
 
-    # The following transformation throws a warning about precision problems
-    # because the observation date is in the future
-    with catch_warnings() as _:
-        radec_actual = altaz.transform_to(radec_frame)
-        radec_actual_noatm = altaz_noatm.transform_to(radec_frame)
+    radec_actual = altaz.transform_to(radec_frame)
+    radec_actual_noatm = altaz_noatm.transform_to(radec_frame)
 
-    radec_expected = SkyCoord('00h13m14.1s  +15d11m0.3s', frame=radec_frame)
+    radec_expected = SkyCoord('07h36m55.2s +15d25m08s', frame=radec_frame)
     distance = radec_actual.separation(radec_expected).to('arcsec')
 
     # this comes from running the example hor2eq but with the pressure set to 0
-    radec_expected_noatm = SkyCoord('00h13m17.8s  +15d11m30s', frame=radec_frame)
+    radec_expected_noatm = SkyCoord('07h36m58.9s +15d25m37s', frame=radec_frame)
     distance_noatm = radec_actual_noatm.separation(radec_expected_noatm).to('arcsec')
 
-    # the baseline difference is ~2.6285 arcsec as of when this was lest updated.
-    # the difference is mainly due to the somewhat different atmospheric model
-    # that hor2eq assumes.  This is confirmed by the second test which has the
+    # The baseline difference is ~2.3 arcsec with one atm of pressure. The
+    # difference is mainly due to the somewhat different atmospheric model that
+    # hor2eq assumes.  This is confirmed by the second test which has the
     # atmosphere "off" - the residual difference is small enough to be embedded
     # in the assumptions about "J2000" or rounding errors.
-    assert distance < 10 * u.arcsec
+    assert distance < 5 * u.arcsec
     assert distance_noatm < 0.4 * u.arcsec
 
 
