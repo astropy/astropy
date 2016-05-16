@@ -4,6 +4,7 @@ import functools
 import numpy as np
 
 from ...tests.helper import pytest
+from ...tests.disable_internet import INTERNET_OFF
 from .. import Time
 from ...utils.iers import iers  # used in testing
 
@@ -38,7 +39,15 @@ class TestTimeUT1():
         assert allclose_jd(t.jd, t_back.jd)
 
         tnow = Time.now()
-        with pytest.raises(IndexError):
+
+        # With internet off (which is the default for testing) then this will
+        # fall back to the bundled IERS-B table and raise an exception.  But when
+        # testing with --remote-data the IERS_Auto class will get the latest IERS-A
+        # and this works.
+        if INTERNET_OFF:
+            with pytest.raises(IndexError):
+                tnow.ut1
+        else:
             tnow.ut1
 
     def test_ut1_to_utc(self):
@@ -73,6 +82,17 @@ class TestTimeUT1_IERSA():
     def test_ut1_iers_A(self):
         tnow = Time.now()
         iers_a = iers.IERS_A.open()
+        tnow.delta_ut1_utc, status = iers_a.ut1_utc(tnow, return_status=True)
+        assert status == iers.FROM_IERS_A_PREDICTION
+        tnow_ut1_jd = tnow.ut1.jd
+        assert tnow_ut1_jd != tnow.jd
+
+
+@pytest.mark.skipif('INTERNET_OFF')
+class TestTimeUT1_IERS_Auto():
+    def test_ut1_iers_auto(self):
+        tnow = Time.now()
+        iers_a = iers.IERS_Auto.open()
         tnow.delta_ut1_utc, status = iers_a.ut1_utc(tnow, return_status=True)
         assert status == iers.FROM_IERS_A_PREDICTION
         tnow_ut1_jd = tnow.ut1.jd

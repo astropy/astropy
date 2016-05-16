@@ -32,15 +32,6 @@ PIOVER2 = np.pi / 2.
 # comes from the mean of the 1962-2014 IERS B data
 _DEFAULT_PM = (0.035, 0.29)*u.arcsec
 
-_IERS_HINT = """
-If you need enough precision such that this matters (~<10 arcsec), you can
-use the latest IERS predictions by running:
-
-    >>> from astropy.utils import iers
-    >>> iers.IERS.iers_table = iers.IERS_A.open(iers.IERS_A_URL)
-
-"""
-
 
 def cartrepr_from_matmul(pmat, coo, transpose=False):
     """
@@ -71,13 +62,14 @@ def get_polar_motion(time):
     """
     gets the two polar motion components in radians for use with apio13
     """
-    # get the polar motion from the IERS table
-    xp, yp, status = iers.IERS.open().pm_xy(time, return_status=True)
+    # Get the polar motion from the IERS table
+    xp, yp, status = iers.IERS_Auto.open().pm_xy(time, return_status=True)
 
     wmsg = None
     if np.any(status == iers.TIME_BEFORE_IERS_RANGE):
         wmsg = ('Tried to get polar motions for times before IERS data is '
-                'valid. Defaulting to polar motion from the 50-yr mean for those.')
+                'valid. Defaulting to polar motion from the 50-yr mean for those. '
+                'This may affect precision at the 10s of arcsec level')
         xp.ravel()[status.ravel() == iers.TIME_BEFORE_IERS_RANGE] = _DEFAULT_PM[0]
         yp.ravel()[status.ravel() == iers.TIME_BEFORE_IERS_RANGE] = _DEFAULT_PM[1]
 
@@ -85,7 +77,8 @@ def get_polar_motion(time):
 
     if np.any(status == iers.TIME_BEYOND_IERS_RANGE):
         wmsg = ('Tried to get polar motions for times after IERS data is '
-                'valid. Defaulting to polar motion from the 50-yr mean for those.' + _IERS_HINT)
+                'valid. Defaulting to polar motion from the 50-yr mean for those. '
+                'This may affect precision at the 10s of arcsec level')
 
         xp.ravel()[status.ravel() == iers.TIME_BEYOND_IERS_RANGE] = _DEFAULT_PM[0]
         yp.ravel()[status.ravel() == iers.TIME_BEYOND_IERS_RANGE] = _DEFAULT_PM[1]
@@ -103,8 +96,8 @@ def _warn_iers(ierserr):
     ----------
     ierserr : An `~astropy.utils.iers.IERSRangeError`
     """
-    msg = '{0} Assuming UT1-UTC=0 for coordinate transformations.{1}'
-    warnings.warn(msg.format(ierserr.args[0], _IERS_HINT), AstropyWarning)
+    msg = '{0} Assuming UT1-UTC=0 for coordinate transformations.'
+    warnings.warn(msg.format(ierserr.args[0]), AstropyWarning)
 
 
 def get_dut1utc(time):

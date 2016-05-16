@@ -692,21 +692,35 @@ UT1 - UTC and TDB - TT, respectively.  As an example::
   >>> t.ut1.iso    # ISO representation of time in UT1 scale
   '2010-01-01 00:00:00.334'
 
-For the UT1 to UTC offset, one has to interpolate in observed values provided
-by the `International Earth Rotation and Reference Systems Service
-<http://www.iers.org>`_.  By default, Astropy is shipped with the final
+For the UT1 to UTC offset, one has to interpolate the observed values provided
+by the `International Earth Rotation and Reference Systems (IERS) Service
+<http://www.iers.org>`_.  Astropy will automatically download and use values
+from the IERS which cover times spanning from 1973-Jan-01 through one year into
+the future.  In addition the astropy package is bundled with a data table of
 values provided in Bulletin B, which cover the period from 1962 to shortly
-before an astropy release, and these will be used to compute the offset if the
-:attr:`~astropy.time.Time.delta_ut1_utc` attribute is not set explicitly.  For
-more recent times, one can download an updated version of `IERS B
-<http://hpiers.obspm.fr/iers/eop/eopc04/eopc04_IAU2000.62-now>`_ or `IERS A
-<http://maia.usno.navy.mil/ser7/finals2000A.all>`_ (which also has
-predictions), and set :attr:`~astropy.time.Time.delta_ut1_utc` as described in
-`~astropy.time.Time.get_delta_ut1_utc`::
+before an astropy release.
 
-  >>> from astropy.utils.iers import IERS_A, IERS_A_URL
-  >>> iers_a = IERS_A.open(IERS_A_URL)                     # doctest: +SKIP
-  >>> t.delta_ut1_utc = t.get_delta_ut1_utc(iers_a)        # doctest: +SKIP
+When the :attr:`~astropy.time.Time.delta_ut1_utc` attribute is not set
+explicitly then IERS values will be used (initiating a download of a few Mb
+file the first time).  For details about how IERS values are used in astropy
+time and coordinates, and to understand how to control automatic downloads see
+:ref:`utils-iers`.  The example below illustrates converting to the ``UT1``
+scale along with the auto-download feature::
+
+  >>> t = Time('2016:001')
+  >>> t.ut1  # doctest: +SKIP
+  Downloading http://maia.usno.navy.mil/ser7/finals2000A.all
+  |==================================================================| 3.0M/3.0M (100.00%)         6s
+  <Time object: scale='ut1' format='yday' value=2016:001:00:00:00.082>
+
+.. note:: The :class:`~astropy.utils.iers.IERS_Auto` class contains machinery
+    to ensure that the IERS table is kept up to date by auto-downloading the
+    latest version as needed.  This means that the IERS table is assured of
+    having the state-of-the-art definitive and predictive values for Earth
+    rotation.  As a user it is **your responsibility** to understand the
+    accuracy of IERS predictions if your science depends on that.  If you
+    request ``UT1-UTC`` for times beyond the range of IERS table data then the
+    nearest available values will be provided.
 
 In the case of the TDB to TT offset, most users need only provide the ``lon``
 and ``lat`` values when creating the |Time| object.  If the

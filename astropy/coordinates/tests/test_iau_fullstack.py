@@ -108,7 +108,7 @@ def test_iau_fullstack(fullstack_icrs,  fullstack_fiducial_altaz,
     assert np.all(addecs < tol), 'largest Dec change is {0} mas, > {1}'.format(np.max(addecs.arcsec*1000), tol)
 
     # check that we're consistent with the ERFA alt/az result
-    xp, yp = u.Quantity(iers.IERS.open().pm_xy(fullstack_times)).to(u.radian).value
+    xp, yp = u.Quantity(iers.IERS_Auto.open().pm_xy(fullstack_times)).to(u.radian).value
     lon = fullstack_locations.geodetic[0].to(u.radian).value
     lat = fullstack_locations.geodetic[1].to(u.radian).value
     height = fullstack_locations.geodetic[2].to(u.m).value
@@ -157,9 +157,15 @@ def test_future_altaz(recwarn):
 
     SkyCoord(1*u.deg, 2*u.deg).transform_to(AltAz(location=location, obstime=t))
 
-    # check that these messages appear among any other warnings
-    messages_to_find = ["Tried to get polar motions for times after IERS data is valid.",
-                        "(some) times are outside of range covered by IERS table."]
+    # check that these message(s) appear among any other warnings.  If tests are run with
+    # --remote-data then the IERS table will be an instance of IERS_Auto which is
+    # assured of being "fresh".  In this case getting times outside the range of the
+    # table does not raise an exception.  Only if using IERS_B (which happens without
+    # --remote-data, i.e. for all CI testing) do we expect another warning.
+    messages_to_find = ["Tried to get polar motions for times after IERS data is valid."]
+    if isinstance(iers.IERS_Auto.iers_table, iers.IERS_B):
+        messages_to_find.append("(some) times are outside of range covered by IERS table.")
+
     messages_found = [False for _ in messages_to_find]
     for w in recwarn.list:
         if issubclass(w.category, AstropyWarning):
