@@ -9,6 +9,7 @@ from ..transformations import DynamicMatrixTransform, FunctionTransform
 from ..baseframe import (CoordinateAttribute, QuantityFrameAttribute,
                          frame_transform_graph, RepresentationMapping)
 from ..angles import rotation_matrix
+from ...utils.compat import namedtuple_asdict
 from ...extern import six
 
 
@@ -77,7 +78,7 @@ def make_astrometric_cls(framecls):
                             continue
 
                         if comp.reprname in ('lon', 'lat'):
-                            dct = comp._asdict()
+                            dct = namedtuple_asdict(comp)
                             dct['framename'] = 'd' + dct['framename']
                             component_list[i] = type(comp)(**dct)
                             gotlatlon.append(comp.reprname)

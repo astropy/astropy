@@ -21,7 +21,7 @@ import sys
 
 
 __all__ = ['invalidate_caches', 'override__dir__', 'ignored',
-           'possible_filename']
+           'possible_filename', 'namedtuple_asdict']
 
 
 def possible_filename(filename):
@@ -118,3 +118,32 @@ except ImportError:
             yield
         except exceptions:
             pass
+
+
+# For unclear reasons, the `_asdict` method of namedtuple produces an empty
+# dictionary if the namedtuple is a subclass of another namedtuple... But *onlt*
+# in py 3.3.  >3.4 or 2.7 seem to work just fine.  So we provide this for
+# compatibility as long as 3.3 is supported.
+if sys.version_info[:2] == (3, 3):
+    def namedtuple_asdict(namedtuple):
+        """
+        The same as ``namedtuple._adict()``, but fixed to work even when
+        namedtuple is a subclass of another namedtuple
+
+        Parameters
+        ----------
+        namedtuple : collections.namedtuple
+            The named tuple to get the dict of
+        """
+        return {fi:getattr(namedtuple, fi) for fi in namedtuple._fields}
+else:
+    def namedtuple_asdict(namedtuple):
+        """
+        The same as ``namedtuple._adict()``.
+
+        Parameters
+        ----------
+        namedtuple : collections.namedtuple
+            The named tuple to get the dict of
+        """
+        return namedtuple._asdict()
