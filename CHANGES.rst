@@ -272,7 +272,7 @@ API changes
 
   - ``NDData``: added an ``meta``-setter. It requires that the meta is
     dictionary-like (it also accepts Headers or ordered dictionaries and others)
-    or None. It will copy the given value before saving it. [#4509, #4469]
+    or None. [#4509, #4469, #4921]
 
   - ``NDArithmeticMixin``: The operand in arithmetic methods (``add``, ...)
     doesn't need to be a subclass of ``NDData``. It is sufficient if it can be
@@ -386,6 +386,9 @@ API changes
   - The astropy.utils.xml.unescaper module now also unescapes ``'%2F'`` to
     ``'/'`` and ``'&&'`` to ``'&'`` in a given URL. [#4699]
 
+  - The astropy.utils.metadata.MetaData descriptor has now two optional
+    parameters: doc and copy. [#4921]
+
 - ``astropy.visualization``
 
 - ``astropy.vo``
@@ -480,6 +483,9 @@ Bug fixes
 
   - Added ``format_doc`` decorator which allows to replace and/or format the
     current docstring of an object. [#4242]
+
+  - Attributes using the astropy.utils.metadata.MetaData descriptor are now
+    included in the sphinx documentation. [#4921]
 
 - ``astropy.visualization``
 
