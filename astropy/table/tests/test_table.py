@@ -1711,3 +1711,28 @@ def test_replace_column_qtable():
     assert t.colnames == ['a', 'b']
     assert t['a'].info.meta is None
     assert t['a'].info.format is None
+
+def test_primary_key_is_inherited():
+    """Test whether a new Table inherits the primary_key attribute from
+    its parent Table. Issue #4672"""
+
+    t = table.Table([(2, 3, 2, 1), (8, 7, 6, 5)], names=('a', 'b'))
+    t.add_index('a')
+    original_key = t.primary_key
+
+    # can't test if tuples are equal, so just check content
+    assert original_key[0] is 'a'
+
+    t2 = t[:]
+    t3 = t.copy()
+    t4 = table.Table(t)
+
+    # test whether the reference is the same in the following
+    assert original_key == t2.primary_key
+    assert original_key == t3.primary_key
+    assert original_key == t4.primary_key
+
+    # just test one element, assume rest are equal if assert passes
+    assert t.loc[1] == t2.loc[1]
+    assert t.loc[1] == t3.loc[1]
+    assert t.loc[1] == t4.loc[1]

@@ -675,6 +675,7 @@ class Table(object):
         table = data  # data is really a Table, rename for clarity
         self.meta.clear()
         self.meta.update(deepcopy(table.meta))
+        self.primary_key = table.primary_key
         cols = list(table.columns.values())
 
         self._init_from_list(cols, names, dtype, n_cols, copy)
@@ -714,6 +715,7 @@ class Table(object):
         table = self.__class__(masked=self.masked)
         table.meta.clear()
         table.meta.update(deepcopy(self.meta))
+        table.primary_key = self.primary_key
         cols = self.columns.values()
 
         newcols = []
