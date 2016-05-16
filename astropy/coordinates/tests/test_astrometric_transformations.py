@@ -187,4 +187,3 @@ def test_rotation(rotation, expecteddradec):
 
     assert_allclose([trans.dra.wrap_at(180*u.deg), trans.ddec],
                     expecteddradec, atol=1e-10*u.deg)
-
