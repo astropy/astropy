@@ -12,12 +12,13 @@ from ..extern.six.moves import zip
 from ..units import Unit, IrreducibleUnit
 from .. import units as u
 from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord
-from ..utils.exceptions import AstropyDeprecationWarning
+from ..utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from ..utils.data_info import MixinInfo
 
 from .distances import Distance
+from .angles import Angle
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
-from .builtin_frames import ICRS
+from .builtin_frames import ICRS, make_astrometric_cls
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation)
 
@@ -692,6 +693,53 @@ class SkyCoord(object):
         distval = (dx.value ** 2 + dy.value ** 2 + dz.value ** 2) ** 0.5
         return Distance(distval, dx.unit)
 
+    def spherical_offsets_to(self, tocoord):
+        r"""
+        Computes angular offsets to go *from* this coordinate *to* another.
+
+        Parameters
+        ----------
+        tocoord : `~astropy.coordinates.BaseCoordinateFrame`
+            The coordinate to offset to.
+
+        Returns
+        -------
+        lon_offset : `~astropy.coordinates.Angle`
+            The angular offset in the longitude direction (i.e., RA for
+            equatorial coordinates).
+        lat_offset : `~astropy.coordinates.Angle`
+            The angular offset in the latitude direction (i.e., Dec for
+            equatorial coordinates).
+
+        Raises
+        ------
+        ValueError
+            If the ``tocoord`` is not in the same frame as this one. This is
+            different from the behavior of the `separation`/`separation_3d`
+            methods because the offset components depend critically on the
+            specific choice of frame.
+
+        Notes
+        -----
+        This uses the astrometric frame machinery, and hence will produce a new
+        astrometric frame if one does not already exist for this object's frame
+        class.
+
+        See Also
+        --------
+        separation : for the *total* angular offset (not broken out into components)
+
+        """
+        if not self.is_equivalent_frame(tocoord):
+            raise ValueError('Tried to use spherical_offsets_to with two non-matching frames!')
+
+        aframe = self.astrometric_frame()
+        acoord = tocoord.transform_to(aframe)
+
+        dlon = acoord.spherical.lon.wrap_at(180*u.deg)
+        dlat = acoord.spherical.lat.view(Angle)
+        return dlon, dlat
+
     def match_to_catalog_sky(self, catalogcoord, nthneighbor=1):
         """
         Finds the nearest on-sky matches of this coordinate in a set of
@@ -978,6 +1026,20 @@ class SkyCoord(object):
         olon = other_in_self_frame.represent_as(UnitSphericalRepresentation).lon
 
         return angle_utilities.position_angle(slon, slat, olon, olat)
+
+    def astrometric_frame(self):
+        """
+        Returns the astrometric frame with this `SkyCoord` at the origin.
+
+        Returns
+        -------
+        astrframe: AstrometricFrame<subtype set by this object>
+            An astrometric frame of the same type as this `SkyCoord` (e.g., if
+            this object has an ICRS coordinate, the resulting frame is
+            AstrometricICRS)
+        """
+        acls = make_astrometric_cls(self.frame.__class__)
+        return acls(origin=self)
 
     def get_constellation(self, short_name=False, constellation_list='iau'):
         """
