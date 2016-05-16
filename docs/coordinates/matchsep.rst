@@ -92,14 +92,15 @@ generate the class that creates such a frame::
     >>> AstrometricICRS = make_astrometric_cls(ICRS)
     >>> center = ICRS(10*u.deg, 45*u.deg)
     >>> center.transform_to(AstrometricICRS(origin=center))  # doctest: +SKIP
-    <SkyCoord (AstrometricICRS: origin=<ICRS Coordinate: (ra, dec) in deg
-        (10.0, 45.0)>): (dra, ddec) in deg
+    <AstrometricICRS Coordinate (origin=<ICRS Coordinate: (ra, dec) in deg
+        (10.0, 45.0)>, rotation=0.0 deg): (dra, ddec) in deg
         (0.0, 0.0)>
     >>> target = ICRS(11*u.deg, 46*u.deg)
     >>> target.transform_to(AstrometricICRS(origin=center))  # doctest: +FLOAT_CMP
     <AstrometricICRS Coordinate (origin=<ICRS Coordinate: (ra, dec) in deg
-        (10.0, 45.0)>): (dra, ddec) in deg
+        (10.0, 45.0)>, rotation=0.0 deg): (dra, ddec) in deg
         (0.69474685, 1.00428706)>
+
 
 
 Alternatively, the convenience method 
@@ -110,14 +111,13 @@ frame from an already-existing |SkyCoord|::
     >>> aframe = center.astrometric_frame()
     >>> target.transform_to(aframe)  # doctest: +FLOAT_CMP
     <AstrometricICRS Coordinate (origin=<ICRS Coordinate: (ra, dec) in deg
-        (10.0, 45.0)>): (dra, ddec) in deg
+        (10.0, 45.0)>, rotation=0.0 deg): (dra, ddec) in deg
         (0.69474685, 1.00428706)>
     >>> other = SkyCoord(9*u.deg, 44*u.deg, frame='fk5')
     >>> other.transform_to(aframe)  # doctest: +FLOAT_CMP
     <SkyCoord (AstrometricICRS: origin=<ICRS Coordinate: (ra, dec) in deg
-        (10.0, 45.0)>): (dra, ddec) in deg
+        (10.0, 45.0)>, rotation=0.0 deg): (dra, ddec) in deg
         (359.28056055, -0.99556216)>
-
 
 
 
