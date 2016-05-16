@@ -1009,7 +1009,43 @@ format specification.  By default this checks for valid float, float array, or
 |Quantity| inputs.  In contrast the ``iso`` format class ensures the inputs
 meet the ISO format spec for strings.
 
-One special case that is relatively common and easier to implement is a
+One special case that is relatively common and easier to implement is a format
+that makes a small change to the date format. For instance one could insert ``T``
+in the ``yday`` format with the following ``TimeYearDayTimeCustom`` class. Notice how
+the ``subfmts`` definition is modified slightly from the standard
+`~astropy.time.TimeISO` class from which it inherits::
+
+  >>> from astropy.time import TimeISO
+  >>> class TimeYearDayTimeCustom(TimeISO):
+  ...    """
+  ...    Year, day-of-year and time as "<YYYY>-<DOY>T<HH>:<MM>:<SS.sss...>".
+  ...    The day-of-year (DOY) goes from 001 to 365 (366 in leap years).
+  ...    For example, 2000-001T00:00:00.000 is midnight on January 1, 2000.
+  ...    The allowed subformats are:
+  ...    - 'date_hms': date + hours, mins, secs (and optional fractional secs)
+  ...    - 'date_hm': date + hours, mins
+  ...    - 'date': date
+  ...    """
+  ...    name = 'yday_custom'  # Unique format name
+  ...    subfmts = (('date_hms',
+  ...                '%Y-%jT%H:%M:%S',
+  ...                '{year:d}-{yday:03d}T{hour:02d}:{min:02d}:{sec:02d}'),
+  ...               ('date_hm',
+  ...                '%Y-%jT%H:%M',
+  ...                '{year:d}-{yday:03d}T{hour:02d}:{min:02d}'),
+  ...               ('date',
+  ...                '%Y-%j',
+  ...                '{year:d}-{yday:03d}'))
+
+
+  >>> t = Time('2000-01-01')
+  >>> t.yday_custom
+  '2000-001T00:00:00.000'
+  >>> t2 = Time('2016-001T00:00:00')
+  >>> t2.iso
+  '2016-01-01 00:00:00.000'
+
+Another special case that is relatively common is a
 format that represents the time since a particular epoch.  The classic example
 is Unix time which is the number of seconds since 1970-01-01 00:00:00 UTC,
 not counting leap seconds.  What if we wanted that value but **do** want
