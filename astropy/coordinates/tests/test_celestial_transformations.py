@@ -13,7 +13,7 @@ from ..builtin_frames import (ICRS, FK5, FK4, FK4NoETerms, Galactic,
 from .. import SkyCoord
 from ...tests.helper import (pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
-from .. import EarthLocation
+from .. import EarthLocation, CartesianRepresentation
 from ...time import Time
 
 # used below in the next parametrized test
@@ -174,6 +174,64 @@ def test_supergalactic():
     supergalactic = Supergalactic(sgl=-174.44*u.degree, sgb=+46.17*u.degree)
     icrs = SkyCoord('17h51m36s -25d18m52s')
     assert supergalactic.separation(icrs) < 0.005 * u.degree
+
+
+class TestHCRS():
+    """
+    Check HCRS<->ICRS coordinate conversions.
+
+    Uses ICRS Solar positions from get_body_barycentric.
+    """
+    def setup(self):
+        self.t1 = Time("2013-02-02T23:00")
+        self.t2 = Time("2013-08-02T23:00")
+        self.tarr = Time(["2013-02-02T23:00", "2013-08-02T23:00"])
+
+        self.sun_icrs_scalar = ICRS(ra=244.52984668*u.deg,
+                                    dec=-22.36943723*u.deg,
+                                    distance=406615.66347377*u.km)
+        # array of positions corresponds to times in `tarr`
+        self.sun_icrs_arr = ICRS(ra=[244.52989062, 271.40976248]*u.deg,
+                                 dec=[-22.36943605, -25.07431079]*u.deg,
+                                 distance=[406615.66347377, 375484.13558956]*u.km)
+
+        # corresponding HCRS positions
+        self.sun_hcrs_t1 = HCRS(CartesianRepresentation([0.0, 0.0, 0.0] * u.km),
+                                obstime=self.t1)
+        self.sun_hcrs_tarr1 = HCRS(CartesianRepresentation([0.0, 0.0, 0.0] * u.km),
+                                   obstime=self.tarr)
+        twod_rep = CartesianRepresentation([[0.0, 0.0], [0.0, 0.0], [0.0, 0.0]] * u.km)
+        self.sun_hcrs_tarr1 = HCRS(CartesianRepresentation([0.0, 0.0, 0.0] * u.km),
+                                   obstime=self.tarr)
+        self.sun_hcrs_tarr2 = HCRS(twod_rep,
+                                   obstime=self.tarr)
+        self.tolerance = 5*u.km
+
+    def test_from_hcrs(self):
+        # test scalar transform
+        transformed = self.sun_hcrs_t1.transform_to(ICRS())
+        separation = transformed.separation_3d(self.sun_icrs_scalar)
+        assert_allclose(separation, 0*u.km, atol=self.tolerance)
+
+        # test scalar position and non-scalar time
+        transformed = self.sun_hcrs_tarr1.transform_to(ICRS())
+        separation = transformed.separation_3d(self.sun_icrs_arr)
+        assert_allclose(separation, 0*u.km, atol=self.tolerance)
+
+        # test non-scalar positions and times
+        transformed = self.sun_hcrs_tarr2.transform_to(ICRS())
+        separation = transformed.separation_3d(self.sun_icrs_arr)
+        assert_allclose(separation, 0*u.km, atol=self.tolerance)
+
+    def test_from_icrs(self):
+        # scalar positions
+        transformed = self.sun_icrs_scalar.transform_to(HCRS(obstime=self.t1))
+        separation = transformed.separation_3d(self.sun_hcrs_t1)
+        assert_allclose(separation, 0*u.km, atol=self.tolerance)
+        # nonscalar positions
+        transformed = self.sun_icrs_arr.transform_to(HCRS(obstime=self.tarr))
+        separation = transformed.separation_3d(self.sun_hcrs_tarr1)
+        assert_allclose(separation, 0*u.km, atol=self.tolerance)
 
 
 class TestHelioBaryCentric():
