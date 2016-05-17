@@ -81,23 +81,17 @@ telescope operator to move from a bright star to a fainter target.)::
 To extend the concept of spherical offsets, `~astropy.coordinates` has
 machinery to create distinct frames that are centered on a specific point.
 These are known as "astrometric frames" (as they are a convenient way to create
-a locally "flat" frame on relatively small fields suitable for astrometry). One
-complication of astrometric frames is that they cannot be created in the same
-manner as other frames, because astrometric frames are generated on-the-fly
-given a particular "origin" frame. The 
-`~astropy.coordinates.make_astrometric_cls` function instead must be used to
-generate the class that creates such a frame::
+a locally "flat" frame on relatively small fields suitable for astrometry)::
 
-    >>> from astropy.coordinates import make_astrometric_cls, ICRS
-    >>> AstrometricICRS = make_astrometric_cls(ICRS)
+    >>> from astropy.coordinates import AstrometricFrame, ICRS
     >>> center = ICRS(10*u.deg, 45*u.deg)
-    >>> center.transform_to(AstrometricICRS(origin=center))  # doctest: +SKIP
-    <AstrometricICRS Coordinate (origin=<ICRS Coordinate: (ra, dec) in deg
+    >>> center.transform_to(AstrometricFrame(origin=center))  # doctest: +SKIP
+    <AstrometricFrame Coordinate (origin=<ICRS Coordinate: (ra, dec) in deg
         (10.0, 45.0)>, rotation=0.0 deg): (dra, ddec) in deg
         (0.0, 0.0)>
     >>> target = ICRS(11*u.deg, 46*u.deg)
-    >>> target.transform_to(AstrometricICRS(origin=center))  # doctest: +FLOAT_CMP
-    <AstrometricICRS Coordinate (origin=<ICRS Coordinate: (ra, dec) in deg
+    >>> target.transform_to(AstrometricFrame(origin=center))  # doctest: +FLOAT_CMP
+    <AstrometricFrame Coordinate (origin=<ICRS Coordinate: (ra, dec) in deg
         (10.0, 45.0)>, rotation=0.0 deg): (dra, ddec) in deg
         (0.69474685, 1.00428706)>
 
@@ -110,12 +104,12 @@ frame from an already-existing |SkyCoord|::
     >>> center = SkyCoord(10*u.deg, 45*u.deg)
     >>> aframe = center.astrometric_frame()
     >>> target.transform_to(aframe)  # doctest: +FLOAT_CMP
-    <AstrometricICRS Coordinate (origin=<ICRS Coordinate: (ra, dec) in deg
+    <AstrometricFrame Coordinate (origin=<ICRS Coordinate: (ra, dec) in deg
         (10.0, 45.0)>, rotation=0.0 deg): (dra, ddec) in deg
         (0.69474685, 1.00428706)>
     >>> other = SkyCoord(9*u.deg, 44*u.deg, frame='fk5')
     >>> other.transform_to(aframe)  # doctest: +FLOAT_CMP
-    <SkyCoord (AstrometricICRS: origin=<ICRS Coordinate: (ra, dec) in deg
+    <SkyCoord (AstrometricFrame: origin=<ICRS Coordinate: (ra, dec) in deg
         (10.0, 45.0)>, rotation=0.0 deg): (dra, ddec) in deg
         (359.28056055, -0.99556216)>
 
