@@ -7,7 +7,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 
 from ... import units as u
-from ..builtin_frames import ICRS, AstrometricICRS
+from ..builtin_frames import ICRS, AstrometricFrame
 from .. import SkyCoord
 from ...tests.helper import (pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
@@ -21,7 +21,7 @@ from ...tests.helper import (pytest, quantity_allclose as allclose,
     ])
 def test_astrometric(inradec, expecteddradec, tolsep, originradec=(45, 45)*u.deg):
     origin = ICRS(*originradec)
-    astrometric_frame = AstrometricICRS(origin=origin)
+    astrometric_frame = AstrometricFrame(origin=origin)
 
     skycoord = SkyCoord(*inradec, frame=ICRS)
     skycoord_inaf = skycoord.transform_to(astrometric_frame)
@@ -53,7 +53,7 @@ def test_astrometric_functional_ra():
         expected_xyz = expected.cartesian.xyz
 
         # actual transformation to the frame
-        astrometric_frame = AstrometricICRS(origin=ICRS(ra*u.deg, 0*u.deg))
+        astrometric_frame = AstrometricFrame(origin=ICRS(ra*u.deg, 0*u.deg))
         actual = icrs_coord.transform_to(astrometric_frame)
         actual_xyz = actual.cartesian.xyz
 
@@ -97,7 +97,7 @@ def test_astrometric_functional_dec():
         expected_xyz = expected.cartesian.xyz
 
         # actual transformation to the frame
-        astrometric_frame = AstrometricICRS(origin=ICRS(0*u.deg, dec*u.deg))
+        astrometric_frame = AstrometricFrame(origin=ICRS(0*u.deg, dec*u.deg))
         actual = icrs_coord.transform_to(astrometric_frame)
         actual_xyz = actual.cartesian.xyz
 
@@ -144,7 +144,7 @@ def test_astrometric_functional_ra_dec():
             expected_xyz = expected.cartesian.xyz
 
             # actual transformation to the frame
-            astrometric_frame = AstrometricICRS(origin=ICRS(ra*u.deg, dec*u.deg))
+            astrometric_frame = AstrometricFrame(origin=ICRS(ra*u.deg, dec*u.deg))
             actual = icrs_coord.transform_to(astrometric_frame)
             actual_xyz = actual.cartesian.xyz
 
@@ -182,7 +182,7 @@ def test_rotation(rotation, expecteddradec):
     origin = ICRS(45*u.deg, 45*u.deg)
     target = ICRS(45*u.deg, 46*u.deg)
 
-    aframe = AstrometricICRS(origin=origin, rotation=rotation)
+    aframe = AstrometricFrame(origin=origin, rotation=rotation)
     trans = target.transform_to(aframe)
 
     assert_allclose([trans.dra.wrap_at(180*u.deg), trans.ddec],
