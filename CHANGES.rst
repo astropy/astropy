@@ -234,7 +234,7 @@ New Features
   - ``NDDataRef`` new subclass that implements ``NDData`` together with all
     currently avaiable mixins. This class does not implement additional
     attributes, methods or a numpy.ndarray-like interface like ``NDDataArray``.
-    attributes, methods or a numpy.ndarray-like interface like ``NDDataArray``. 
+    attributes, methods or a numpy.ndarray-like interface like ``NDDataArray``.
     [#4797]
 
 - ``astropy.stats``
@@ -585,11 +585,13 @@ Bug fixes
 
   - Fix astropy.io.ascii.read handling of units for IPAC formatted files.
     Columns with no unit are treated as unitless not dimensionless. [#4867]
+  - Fix problems the header parsing in the sextractor reader. [#4603, #4910]
 
 - ``astropy.io.fits``
 
   - Removed raising of AssertionError that could occur after closing or
     deleting compressed image data. [#4690]
+  - ``GroupsHDU.is_image`` property is now set to ``False``. [#4742]
 
 - ``astropy.io.misc``
 
@@ -597,6 +599,8 @@ Bug fixes
 
   - The astropy.io.votable.validator.html module is updated to handle division
     by zero when generating validation report. [#4699]
+
+  - KeyError when converting Table v1.2 numeric arrays fixed. [#4782]
 
 - ``astropy.logger.py``
 
@@ -627,10 +631,14 @@ Bug fixes
 
 - ``astropy.stats``
 
+  - Fix ``sigma_clipped_stats`` to use the ``axis`` argument. [#4726, #4808]
+
 - ``astropy.table``
 
   - Fixed a bug where ``pprint()`` sometimes raises ``UnicodeDecodeError``
     in Python 2. [#4946]
+  - Fixed bug where Tables created from existing Table objects were not
+    inheriting the ``primary_key`` attribute. [#4672, #4930]
 
 - ``astropy.tests``
 
@@ -686,154 +694,6 @@ Other Changes and Additions
 
 - Added an example gallery to the docs demonstrating short
   snippets/examples. [#4734]
-
-
-1.1.3 (unreleased)
--------------------
-
-New Features
-^^^^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.sphinx``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
-API Changes
-^^^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
-Bug Fixes
-^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-  - Fix problems the header parsing in the sextractor reader. [#4603]
-
-- ``astropy.io.fits``
-
-  - ``GroupsHDU.is_image`` property is now set to ``False``. [#4742]
-
-  - Fix convenience functions (``getdata``, ``getheader``, ``append``,
-    ``update``) to close files. [#4786]
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-  - Refactored ``AiryDisk2D``, ``Sersic1D``, and ``Sersic2D`` models
-    to be able to combine them as classes as well as instances. [#4720]
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-  - Fix ``sigma_clipped_stats`` to use the ``axis`` argument. [#4726, #4808]
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-  - KeyError when converting Table v1.2 numeric arrays fixed. [#4782]
-
-- ``astropy.wcs``
-
-Other Changes and Additions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-- Nothing changed yet.
 
 
 1.1.2 (2016-03-10)
