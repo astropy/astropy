@@ -37,6 +37,13 @@ def test_GaussianAbsorption1D():
     assert g_ab.bounding_box == g_em.bounding_box
 
 
+def test_Gaussian1D_fwhm():
+    """Test 1D Gaussian models defined using FWHM instead of STDDEV."""
+    g_em = models.Gaussian1D(amplitude=0.8, mean=3000, fwhm=100)
+    g_ab = models.GaussianAbsorption1D(amplitude=0.8, mean=3000, fwhm=100)
+    assert_allclose([g_em.stddev, g_ab.stddev], 42.466090014400955)
+
+
 def test_Gaussian2D():
     """
     Test rotated elliptical Gaussian2D model.
