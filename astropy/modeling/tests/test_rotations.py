@@ -44,23 +44,6 @@ def test_roundtrip_sky_rotaion(inp):
     utils.assert_allclose(c2n.inverse(*c2n(*inp)), inp, atol=1e-13)
 
 
-def test_skyrot_parameters():
-    # Because parameters are converted to Euler angles
-    # test the sky rotation angles are correctly set.
-    n2c = models.RotateNative2Celestial(2, 4, 6)
-    c2n = models.RotateCelestial2Native(1, 3, 5)
-    assert n2c.lon == 2
-    assert n2c.lat == 4
-    assert n2c.lon_pole == 6
-    assert c2n.lon == 1
-    assert c2n.lat == 3
-    assert c2n.lon_pole == 5
-    n2c.lon +=1
-    assert n2c.lon == 3
-    c2n.lat -=1
-    assert c2n.lat == 2
-
-
 def test_native_celestial_lat90():
     n2c = models.RotateNative2Celestial(1, 90, 0)
     alpha, delta = n2c(1, 1)
