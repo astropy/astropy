@@ -248,7 +248,7 @@ class TestHelioBaryCentric():
         self.wht_itrs = wht.get_itrs(obstime=self.obstime)
 
     def test_heliocentric(self):
-        gcrs = self.wht_itrs.transform_to(coord.GCRS(obstime=obstime))
+        gcrs = self.wht_itrs.transform_to(GCRS(obstime=self.obstime))
         helio = gcrs.transform_to(HCRS(obstime=self.obstime))
         # Check it doesn't change from previous times.
         previous = [-1.02597256e+11, 9.71725820e+10, 4.21268419e+10] * u.m
