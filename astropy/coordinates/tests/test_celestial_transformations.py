@@ -182,7 +182,7 @@ class TestHCRS():
 
     Uses ICRS Solar positions predicted by get_body_barycentric; with `t1` and
     `tarr` as defined below, the ICRS Solar positions were predicted using, e.g.
-    coord.ICRS(coord.get_body_barycentric(tarr, 'sun')).  
+    coord.ICRS(coord.get_body_barycentric(tarr, 'sun')).
     """
     def setup(self):
         self.t1 = Time("2013-02-02T23:00")
