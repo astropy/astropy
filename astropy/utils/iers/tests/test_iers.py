@@ -83,6 +83,8 @@ class TestBasic():
 
 class TestIERS_AExcerpt():
     def test_simple(self):
+        # Test the IERS A reader. It is also a regression tests that ensures
+        # values do not get overridden by IERS B; see #4933.
         iers_tab = iers.IERS_A.open(IERS_A_EXCERPT)
 
         assert iers_tab['UT1_UTC'].unit is u.second
@@ -106,6 +108,8 @@ class TestIERS_AExcerpt():
         ut1_utc, status = iers_tab.ut1_utc(t, return_status=True)
         assert status[0] == iers.FROM_IERS_B
         assert np.all(status[1:] == iers.FROM_IERS_A)
+        # These values are *exactly* as given in the table, so they should
+        # match to double precision accuracy.
         assert_quantity_allclose(ut1_utc,
                                  [-0.4916557, -0.4925323, -0.4934373] * u.s,
                                  atol=1.*u.ns)

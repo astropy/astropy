@@ -356,8 +356,8 @@ class IERS_A(IERS):
 
     iers_table = None
 
-    @staticmethod
-    def _combine_a_b_columns(iers_a):
+    @classmethod
+    def _combine_a_b_columns(cls, iers_a):
         """
         Return a new table with appropriate combination of IERS_A and B columns.
         """
@@ -367,24 +367,9 @@ class IERS_A(IERS):
         table = iers_a[~iers_a['UT1_UTC_A'].mask &
                        ~iers_a['PolPMFlag_A'].mask]
 
-        # IERS-A has IERS-B values included, but for reasons unknown these do not
-        # match the latest IERS-B values.  See comments in #4436 for details.  So
-        # here we use the bundled astropy IERS-B table to overwrite the values
-        # in the downloaded IERS-A table.
-        iers_b = IERS_B.open()
-        # IERS-B starts before IERS-A (the finals2000A.all version) so fix that.
-        i0 = np.searchsorted(iers_b['MJD'].value, table['MJD'][0])
-        iers_b = iers_b[i0:]
-        n_iers_b = len(iers_b)
-        # If there is overlap then replace IERS-A values from available IERS-B
-        if n_iers_b > 0:
-            # Sanity check that we are overwriting the correct values
-            if not np.allclose(table['MJD'][:n_iers_b], iers_b['MJD'].value):
-                raise ValueError('unexpected mismatch when copying IERS-B values into IERS-A table')
-            # Finally do the overwrite
-            table['UT1_UTC_B'][:n_iers_b] = iers_b['UT1_UTC'].value
-            table['PM_X_B'][:n_iers_b] = iers_b['PM_x'].value
-            table['PM_Y_B'][:n_iers_b] = iers_b['PM_y'].value
+        # This does nothing for IERS_A, but allows IERS_Auto to ensure the
+        # IERS B values in the table are consistent with the true ones.
+        table = cls._substitute_iers_b(table)
 
         # Run np.where on the data from the table columns, since in numpy 1.9
         # it otherwise returns an only partially initialized column.
@@ -418,6 +403,11 @@ class IERS_A(IERS):
         table.meta['predictive_index'] = np.min(np.flatnonzero(is_predictive))
         table.meta['predictive_mjd'] = table['MJD'][table.meta['predictive_index']]
 
+        return table
+
+    @classmethod
+    def _substitute_iers_b(cls, table):
+        # See documentation in IERS_Auto.
         return table
 
     @classmethod
@@ -664,6 +654,35 @@ class IERS_Auto(IERS_A):
                 warn(IERSStaleWarning(
                     'IERS_Auto predictive values are older than {} days but downloading '
                     'the latest table did not find newer values'.format(conf.auto_max_age)))
+
+    @classmethod
+    def _substitute_iers_b(cls, table):
+        """Substitute IERS B values with those from a real IERS B table.
+
+        IERS-A has IERS-B values included, but for reasons unknown these
+        do not match the latest IERS-B values (see comments in #4436).
+        Here, we use the bundled astropy IERS-B table to overwrite the values
+        in the downloaded IERS-A table.
+        """
+        iers_b = IERS_B.open()
+        # Substitute IERS-B values for existing B values in IERS-A table
+        mjd_b = table['MJD'][~table['UT1_UTC_B'].mask]
+        i0 = np.searchsorted(iers_b['MJD'].value, mjd_b[0], side='left')
+        i1 = np.searchsorted(iers_b['MJD'].value, mjd_b[-1], side='right')
+        iers_b = iers_b[i0:i1]
+        n_iers_b = len(iers_b)
+        # If there is overlap then replace IERS-A values from available IERS-B
+        if n_iers_b > 0:
+            # Sanity check that we are overwriting the correct values
+            if not np.allclose(table['MJD'][:n_iers_b], iers_b['MJD'].value):
+                raise ValueError('unexpected mismatch when copying '
+                                 'IERS-B values into IERS-A table.')
+            # Finally do the overwrite
+            table['UT1_UTC_B'][:n_iers_b] = iers_b['UT1_UTC'].value
+            table['PM_X_B'][:n_iers_b] = iers_b['PM_x'].value
+            table['PM_Y_B'][:n_iers_b] = iers_b['PM_y'].value
+
+        return table
 
 
 # by default for IERS class, read IERS-B table
