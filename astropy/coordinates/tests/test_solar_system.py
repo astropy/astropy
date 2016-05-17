@@ -128,7 +128,7 @@ class TestPositionsGeocentric(object):
 
         Accuracies are maximum deviations listed in erfa/plan94.c
         """
-        astropy = get_body(body, self.t, ephemeris='erfa')
+        astropy = get_body(body, self.t, ephemeris='approximate')
         horizons = self.horizons[body]
 
         # convert to true equator and equinox
@@ -212,7 +212,7 @@ class TestPositionKittPeak(object):
         # Add uncertainty in position of Earth
         dist_tol = dist_tol + 1300 * u.km
 
-        astropy = get_body(body, self.t, ephemeris='erfa')
+        astropy = get_body(body, self.t, ephemeris='approximate')
         horizons = self.horizons[body]
 
         # convert to true equator and equinox

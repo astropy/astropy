@@ -56,13 +56,15 @@ PLAN94_BODY_NAME_TO_PLANET_INDEX = OrderedDict(
      ('neptune', 8)))
 
 _EPHEMERIS_NOTE = """
-You must either give an explicit ephemeris or set a default. For example::
-    >>> from astropy import coordinates as coord
-    >>> coord.solar_system_ephemeris.set('erfa')
+You can either give an explicit ephemeris or use a default, which is normally
+an approximate ephemeris that does not require ephemeris files.  To change
+the default to be a JPL ephemeris::
 
-Here, 'erfa' selects approximate ephemerides.  For more precise ones, one would
-use a JPL ephemeris (e.g., 'jpl'). For those, the corresponding ephemerides
-file will be downloaded and cached.
+    >>> from astropy import coordinates as coord
+    >>> coord.solar_system_ephemeris.set('jpl')
+
+This requires the jplephem package (https://pypi.python.org/pypi/jplephem).
+If needed, the ephemeris file will be downloaded (and cached).
 
 One can check which bodies are covered by a given ephemeris using::
     >>> coord.solar_system_ephemeris.bodies
@@ -74,19 +76,16 @@ One can check which bodies are covered by a given ephemeris using::
 class solar_system_ephemeris(ScienceState):
     """Default ephemerides for calculating positions of Solar-System bodies.
 
-    This can be a URL to a JPL ephemerides, or one of the following strings::
+    This can be a URL to a JPL ephemerides, or one of the following::
 
-    'plan94' : Use approximations to the orbital elements from ``plan94`` from
-               the Standards Of Fundamental Astronomy library (using ``erfa``).
-               This includes the earth-moon barycentre and the 7 other planets.
-    'erfa'  : As 'plan94', but include ``epv00`` for the Earth and the Sun.
-    'sofa'  : Alias to the above.
-    'de*'   : Use ephemerides provided by JPL, based on their dynamical models.
-              Currently supported are 'de430' and 'de432s'.
-    'jpl'   : Alias for the default JPL ephemeris (currently, 'de430').
+    - 'approximate': polynomial approximations to the orbital elements.
+    - 'de430' or 'de432s': short-cuts for recent JPL dynamical models.
+    - 'jpl': Alias for the default JPL ephemeris (currently, 'de430').
+    - `None`: Ensure an Exception is raised without an explicit ephemeris.
 
-    The default is `None`, in which case any attempt to calculate solar system
-    body positions will raise an Exception.
+    The default is 'approximate', which uses the ``epv00`` and ``plan94``
+    routines from the Standards Of Fundamental Astronomy library (as
+    implemented in ``erfa``).
 
     Notes
     -----
@@ -99,7 +98,7 @@ class solar_system_ephemeris(ScienceState):
     .. [2] http://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/aareadme_de432s.txt
     .. [3] http://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/a_old_versions/
     """
-    _value = None
+    _value = 'approximate'
     _kernel = None
 
     @classmethod
@@ -127,9 +126,7 @@ class solar_system_ephemeris(ScienceState):
     def bodies(cls):
         if cls._value is None:
             return None
-        if cls._value.lower() == 'plan94':
-            return tuple(PLAN94_BODY_NAME_TO_PLANET_INDEX.keys())
-        elif cls._value.lower() in ('erfa', 'sofa'):
+        if cls._value.lower() == 'approximate':
             return (('earth', 'sun') +
                     tuple(PLAN94_BODY_NAME_TO_PLANET_INDEX.keys()))
         else:
@@ -142,7 +139,7 @@ def _get_kernel(value):
     Try importing jplephem, download/retrieve from cache the Satellite Planet
     Kernel corresponding to the given ephemeris.
     """
-    if value is None or value.lower() in ('plan94', 'erfa', 'sofa'):
+    if value is None or value.lower() == 'approximate':
         return None
 
     if value.lower() == 'jpl':
@@ -202,22 +199,20 @@ def get_body_barycentric(body, time, ephemeris=None):
     body = body.lower()
     if kernel is None:
         earth_pv_helio, earth_pv_bary = erfa.epv00(jd1, jd2)
-        if body == 'earth' and ephemeris != 'plan94':
+        if body == 'earth':
             cartesian_position_body = earth_pv_bary[..., 0, :]
 
         else:
             sun_bary = earth_pv_bary[..., 0, :] - earth_pv_helio[..., 0, :]
-            if body == 'sun' and ephemeris != 'plan94':
+            if body == 'sun':
                 cartesian_position_body = sun_bary
             else:
                 try:
                     body_index = PLAN94_BODY_NAME_TO_PLANET_INDEX[body]
                 except KeyError:
-                    msg = ("{0}'s position cannot be calculated with "
-                           "the '{1}' ephemeris.".format(body, ephemeris))
-                    if ephemeris == 'plan94' and body in ('earth', 'sun'):
-                        msg += "  To get an approximate position, use 'erfa'."
-                    raise KeyError(msg)
+                    raise KeyError("{0}'s position cannot be calculated with "
+                                   "the '{1}' ephemeris."
+                                   .format(body, ephemeris))
                 body_pv_helio = erfa.plan94(jd1, jd2, body_index)
                 cartesian_position_body = body_pv_helio[..., 0, :] + sun_bary
 
@@ -230,7 +225,7 @@ def get_body_barycentric(body, time, ephemeris=None):
             kernel_spec = BODY_NAME_TO_KERNEL_SPEC[body.lower()]
         except KeyError:
             raise KeyError("{0}'s position cannot be calculated with "
-                           "the {1} ephemeris.")
+                           "the {1} ephemeris.".format(body, ephemeris))
 
         cartesian_position_body = sum([kernel[pair].compute(jd1, jd2)
                                        for pair in kernel_spec])
@@ -292,8 +287,9 @@ def get_body(body, time, location=None, ephemeris=None):
         Location of observer on the Earth.  If not given, will be taken from
         ``time`` (if not present, a geocentric observer will be assumed).
     ephemeris : str, optional
-        Ephemeris to use.  By default, use the one set with
-        :func:`~astropy.coordinates.solar_system_ephemeris.set`
+        Ephemeris to use.  If not given, use the one set with
+        :func:`~astropy.coordinates.solar_system_ephemeris.set` (which is
+        set to 'approximate' by default).
 
     Returns
     -------
@@ -331,8 +327,9 @@ def get_moon(time, location=None, ephemeris=None):
         Location of observer on the Earth. If none is supplied, taken from
         ``time`` (if not present, a geocentric observer will be assumed).
     ephemeris : str, optional
-        Ephemeris to use.  By default, use the one set with
-        :func:`~astropy.coordinates.solar_system_ephemeris.set`
+        Ephemeris to use.  If not given, use the one set with
+        :func:`~astropy.coordinates.solar_system_ephemeris.set` (which is
+        set to 'approximate' by default).
 
     Returns
     -------
