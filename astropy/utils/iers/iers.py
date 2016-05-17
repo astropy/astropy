@@ -372,9 +372,11 @@ class IERS_A(IERS):
         # here we use the bundled astropy IERS-B table to overwrite the values
         # in the downloaded IERS-A table.
         iers_b = IERS_B.open()
-        # IERS-B starts before IERS-A (the finals2000A.all version) so fix that.
-        i0 = np.searchsorted(iers_b['MJD'].value, table['MJD'][0])
-        iers_b = iers_b[i0:]
+        # Substitute IERS-B values for existing B values in IERS-A table
+        mjd_b = table['MJD'][~table['UT1_UTC_B'].mask]
+        i0 = np.searchsorted(iers_b['MJD'].value, mjd_b[0], side='left')
+        i1 = np.searchsorted(iers_b['MJD'].value, mjd_b[-1], side='right')
+        iers_b = iers_b[i0:i1]
         n_iers_b = len(iers_b)
         # If there is overlap then replace IERS-A values from available IERS-B
         if n_iers_b > 0:

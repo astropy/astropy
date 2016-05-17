@@ -107,18 +107,18 @@ class TestIERS_AExcerpt():
         assert status[0] == iers.FROM_IERS_B
         assert np.all(status[1:] == iers.FROM_IERS_A)
         assert_quantity_allclose(ut1_utc,
-                                 [-0.4916557, -0.4925323, -0.4934373] * u.s,
-                                 atol=1.*u.ns)
+                                 [-0.491659, -0.492541, -0.4934373] * u.s,
+                                 atol=1e-6 * u.s)
 
         pm_x, pm_y, status = iers_tab.pm_xy(t, return_status=True)
         assert status[0] == iers.FROM_IERS_B
         assert np.all(status[1:] == iers.FROM_IERS_A)
         assert_quantity_allclose(pm_x,
-                                 [0.003734, 0.004581, 0.004623] * u.arcsec,
-                                 atol=1.*u.narcsec)
+                                 [0.003731, 0.004577, 0.004623] * u.arcsec,
+                                 atol=1e-6 * u.arcsec)
         assert_quantity_allclose(pm_y,
-                                 [0.310824, 0.313150, 0.315517] * u.arcsec,
-                                 atol=1.*u.narcsec)
+                                 [0.310813, 0.313153, 0.315517] * u.arcsec,
+                                 atol=1e-6 * u.arcsec)
 
         # Table behaves properly as a table (e.g. can be sliced)
         assert len(iers_tab[:2]) == 2
