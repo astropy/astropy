@@ -109,19 +109,15 @@ class TestPositionsGeocentric(object):
         self.t = Time('1980-03-25 00:00')
         self.frame = GCRS(obstime=self.t)
         # Results returned by JPL Horizons web interface
-        d_mercury_1980 = c*(6.323037*u.min)
-        d_moon_1980 = c*(0.021921*u.min)
-        d_jupiter_1980 = c*(37.694557*u.min)
-        d_sun_1980 = c*(8.294858*u.min)
         self.horizons = {
             'mercury': SkyCoord(ra='22h41m47.78s', dec='-08d29m32.0s',
-                                distance=d_mercury_1980, frame=self.frame),
+                                distance=c*6.323037*u.min, frame=self.frame),
             'moon': SkyCoord(ra='07h32m02.62s', dec='+18d34m05.0s',
-                             distance=d_moon_1980, frame=self.frame),
+                             distance=c*0.021921*u.min, frame=self.frame),
             'jupiter':  SkyCoord(ra='10h17m12.82s', dec='+12d02m57.0s',
-                                 distance=d_jupiter_1980, frame=self.frame),
+                                 distance=c*37.694557*u.min, frame=self.frame),
             'sun': SkyCoord(ra='00h16m31.00s', dec='+01d47m16.9s',
-                            distance=d_sun_1980, frame=self.frame)}
+                            distance=c*8.294858*u.min, frame=self.frame)}
 
     @pytest.mark.parametrize(('body', 'sep_tol', 'dist_tol'),
                              (('mercury', 7.*u.arcsec, 1000*u.km),
@@ -132,52 +128,52 @@ class TestPositionsGeocentric(object):
 
         Accuracies are maximum deviations listed in erfa/plan94.c
         """
-        astropy_1980 = get_body(body, self.t, ephemeris='erfa')
-        horizons_1980 = self.horizons[body]
+        astropy = get_body(body, self.t, ephemeris='erfa')
+        horizons = self.horizons[body]
 
         # convert to true equator and equinox
-        astropy_1980 = _apparent_position_in_true_coordinates(astropy_1980)
+        astropy = _apparent_position_in_true_coordinates(astropy)
 
         # Assert sky coordinates are close.
-        assert astropy_1980.separation(horizons_1980) < sep_tol
+        assert astropy.separation(horizons) < sep_tol
 
         # Assert distances are close.
-        assert_quantity_allclose(astropy_1980.distance, horizons_1980.distance,
+        assert_quantity_allclose(astropy.distance, horizons.distance,
                                  atol=dist_tol)
 
     @remote_data
     @pytest.mark.skipif('not HAS_JPLEPHEM')
     @pytest.mark.parametrize('body', ('mercury', 'jupiter', 'sun'))
     def test_de430_planet(self, body):
-        astropy_1980 = get_body(body, self.t, ephemeris='de432s')
-        horizons_1980 = self.horizons[body]
+        astropy = get_body(body, self.t, ephemeris='de432s')
+        horizons = self.horizons[body]
 
         # convert to true equator and equinox
-        astropy_1980 = _apparent_position_in_true_coordinates(astropy_1980)
+        astropy = _apparent_position_in_true_coordinates(astropy)
 
         # Assert sky coordinates are close.
-        assert (astropy_1980.separation(horizons_1980) <
+        assert (astropy.separation(horizons) <
                 de430_separation_tolerance_planets)
 
         # Assert distances are close.
-        assert_quantity_allclose(astropy_1980.distance, horizons_1980.distance,
+        assert_quantity_allclose(astropy.distance, horizons.distance,
                                  atol=de430_distance_tolerance)
 
     @remote_data
     @pytest.mark.skipif('not HAS_JPLEPHEM')
     def test_de430_moon(self):
-        astropy_1980 = get_moon(self.t, ephemeris='de432s')
-        horizons_1980 = self.horizons['moon']
+        astropy = get_moon(self.t, ephemeris='de432s')
+        horizons = self.horizons['moon']
 
         # convert to true equator and equinox
-        astropy_1980 = _apparent_position_in_true_coordinates(astropy_1980)
+        astropy = _apparent_position_in_true_coordinates(astropy)
 
         # Assert sky coordinates are close.
-        assert (astropy_1980.separation(horizons_1980) <
+        assert (astropy.separation(horizons) <
                 de430_separation_tolerance_moon)
 
         # Assert distances are close.
-        assert_quantity_allclose(astropy_1980.distance, horizons_1980.distance,
+        assert_quantity_allclose(astropy.distance, horizons.distance,
                                  atol=de430_distance_tolerance)
 
 
@@ -192,21 +188,18 @@ class TestPositionKittPeak(object):
         kitt_peak = EarthLocation.from_geodetic(lon=-111.6*u.deg,
                                                 lat=31.963333333333342*u.deg,
                                                 height=2120*u.m)
-        self.t = Time('2016-09-25 00:00', location=kitt_peak)
+        self.t = Time('2014-09-25T00:00', location=kitt_peak)
         obsgeoloc, obsgeovel = kitt_peak.get_gcrs_posvel(self.t)
         self.frame = GCRS(obstime=self.t,
                           obsgeoloc=obsgeoloc, obsgeovel=obsgeovel)
         # Results returned by JPL Horizons web interface
-        d_mercury_2016 = c*(7.063423*u.min)
-        d_moon_2016 = c*(0.021353*u.min)
-        d_jupiter_2016 = c*(53.675045*u.min)
         self.horizons = {
-            'mercury': SkyCoord(ra='11h06m51.50s', dec='+05d59m21.1s',
-                                distance=d_mercury_2016, frame=self.frame),
-            'moon': SkyCoord(ra='07h31m39.92s', dec='+16d54m56.8s',
-                             distance=d_moon_2016, frame=self.frame),
-            'jupiter' : SkyCoord(ra='12h13m59.47s', dec='-00d19m30.5s',
-                                 distance=d_jupiter_2016, frame=self.frame)}
+            'mercury': SkyCoord(ra='13h38m58.50s', dec='-13d34m42.6s',
+                                distance=c*7.699020*u.min, frame=self.frame),
+            'moon': SkyCoord(ra='12h33m12.85s', dec='-05d17m54.4s',
+                             distance=c*0.022054*u.min, frame=self.frame),
+            'jupiter' : SkyCoord(ra='09h09m55.55s', dec='+16d51m57.8s',
+                                 distance=c*49.244937*u.min, frame=self.frame)}
 
     @pytest.mark.parametrize(('body', 'sep_tol', 'dist_tol'),
                              (('mercury', 7.*u.arcsec, 500*u.km),
@@ -219,50 +212,50 @@ class TestPositionKittPeak(object):
         # Add uncertainty in position of Earth
         dist_tol = dist_tol + 1300 * u.km
 
-        astropy_1980 = get_body(body, self.t, ephemeris='erfa')
-        horizons_1980 = self.horizons[body]
+        astropy = get_body(body, self.t, ephemeris='erfa')
+        horizons = self.horizons[body]
 
         # convert to true equator and equinox
-        astropy_1980 = _apparent_position_in_true_coordinates(astropy_1980)
+        astropy = _apparent_position_in_true_coordinates(astropy)
 
         # Assert sky coordinates are close.
-        assert astropy_1980.separation(horizons_1980) < sep_tol
+        assert astropy.separation(horizons) < sep_tol
 
         # Assert distances are close.
-        assert_quantity_allclose(astropy_1980.distance, horizons_1980.distance,
+        assert_quantity_allclose(astropy.distance, horizons.distance,
                                  atol=dist_tol)
 
     @remote_data
     @pytest.mark.skipif('not HAS_JPLEPHEM')
     @pytest.mark.parametrize('body', ('mercury', 'jupiter'))
     def test_de430_planet(self, body):
-        astropy_1980 = get_body(body, self.t, ephemeris='de432s')
-        horizons_1980 = self.horizons[body]
+        astropy = get_body(body, self.t, ephemeris='de432s')
+        horizons = self.horizons[body]
 
         # convert to true equator and equinox
-        astropy_1980 = _apparent_position_in_true_coordinates(astropy_1980)
+        astropy = _apparent_position_in_true_coordinates(astropy)
 
         # Assert sky coordinates are close.
-        assert (astropy_1980.separation(horizons_1980) <
+        assert (astropy.separation(horizons) <
                 de430_separation_tolerance_planets)
 
         # Assert distances are close.
-        assert_quantity_allclose(astropy_1980.distance, horizons_1980.distance,
+        assert_quantity_allclose(astropy.distance, horizons.distance,
                                  atol=de430_distance_tolerance)
 
     @remote_data
     @pytest.mark.skipif('not HAS_JPLEPHEM')
     def test_de430_moon(self):
-        astropy_1980 = get_moon(self.t, ephemeris='de432s')
-        horizons_1980 = self.horizons['moon']
+        astropy = get_moon(self.t, ephemeris='de432s')
+        horizons = self.horizons['moon']
 
         # convert to true equator and equinox
-        astropy_1980 = _apparent_position_in_true_coordinates(astropy_1980)
+        astropy = _apparent_position_in_true_coordinates(astropy)
 
         # Assert sky coordinates are close.
-        assert (astropy_1980.separation(horizons_1980) <
+        assert (astropy.separation(horizons) <
                 de430_separation_tolerance_moon)
 
         # Assert distances are close.
-        assert_quantity_allclose(astropy_1980.distance, horizons_1980.distance,
+        assert_quantity_allclose(astropy.distance, horizons.distance,
                                  atol=de430_distance_tolerance)
