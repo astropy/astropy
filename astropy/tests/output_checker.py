@@ -54,13 +54,13 @@ class AstropyOutputChecker(doctest.OutputChecker):
 
         exp = r'(?:e[+-]?\d+)'
 
-        got_floats = r'(\d+\.\d*%s?|\.\d+%s?|\d+%s)' % (exp, exp, exp)
+        got_floats = r'([+-]?\d+\.\d*%s?|[+-]?\.\d+%s?|[+-]?\d+%s)' % (exp, exp, exp)
 
         # floats in the 'want' string may contain ellipses
         want_floats = got_floats + r'(\.{3})?'
 
-        front_sep = r'\s|[+*,(<=-]'
-        back_sep = front_sep + r'|[)>j]'
+        front_sep = r'\s|[*+-,<=(\[]'
+        back_sep = front_sep + r'|[>j)\]]'
 
         fbeg = r'^%s(?=%s|$)' % (got_floats, back_sep)
         fmidend = r'(?<=%s)%s(?=%s|$)' % (front_sep, got_floats, back_sep)
@@ -107,7 +107,6 @@ class AstropyOutputChecker(doctest.OutputChecker):
         numbers_want = [match.group(1) for match in matches]  # list of strs
         if len(numbers_got) != len(numbers_want):
             return False
-
         if len(numbers_got) > 0:
             nw_ = []
             for ng, nw in zip(numbers_got, numbers_want):
