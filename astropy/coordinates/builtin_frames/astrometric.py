@@ -56,10 +56,12 @@ def make_astrometric_cls(framecls):
         """
         def __new__(cls, name, bases, members):
             newname = AstrometricFrame.__name__
+            members['origin'] = CoordinateAttribute(frame=framecls, default=None)
+            members['rotation'] = QuantityFrameAttribute(default=0, unit=u.deg)
             res = super(AstrometricMeta, cls).__new__(cls, newname, bases, members)
             # now go through all the component names and make any spherical
             # lat/lon names be "d<lon>"/"d<lat>"
-
+            
             lists_done = []
             for nm, component_list in res._frame_specific_representation_info.items():
                 if nm in ('spherical', 'unitspherical'):
@@ -108,9 +110,6 @@ def make_astrometric_cls(framecls):
             the positive latitude (z) direction in the final frame.
 
         """
-        
-        rotation = QuantityFrameAttribute(default=0, unit=u.deg)
-        origin = CoordinateAttribute(default=None, frame=framecls)
         
 
     @frame_transform_graph.transform(FunctionTransform, _Astrometric, _Astrometric)
@@ -178,11 +177,10 @@ class AstrometricFrame(BaseCoordinateFrame):
             try:
                 origin_frame = kwargs['origin']
             except KeyError:
-                raise TypeError("Can't initialize an AstrometricFrame without an Origin")
+                raise TypeError("Can't initialize an AstrometricFrame without origin= keyword.")
             if hasattr(origin_frame, 'frame'):
                 origin_frame = origin_frame.frame
             newcls = make_astrometric_cls(origin_frame.__class__)
-            print(newcls)
             return newcls.__new__(newcls, *args, **kwargs)
             
         # http://stackoverflow.com/questions/19277399/why-does-object-new-work-differently-in-these-three-cases
