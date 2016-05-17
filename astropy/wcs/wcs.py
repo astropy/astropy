@@ -2535,7 +2535,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 header[kw] = val
 
 
-        if not do_sip and self.wcs is not None and any(self.wcs.ctype):
+        if not do_sip and self.wcs is not None and any(self.wcs.ctype) and self.sip is not None:
             # This is called when relax is not False or WCSHDO_SIP
             # The default case of ``relax=None`` is handled further in the code.
             header = self._fix_ctype(header, add_sip=False)
@@ -2555,7 +2555,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                     AstropyWarning)
             # called when ``relax=None``
             # This is different from the case of ``relax=False``.
-            if any(self.wcs.ctype):
+            if any(self.wcs.ctype) and self.sip is not None:
                 header = self._fix_ctype(header, add_sip=False, log_message=False)
         # Finally reset the key. This must be called after ``_fix_ctype``.
         if key is not None:
@@ -2616,11 +2616,14 @@ reduce these to 2 dimensions using the naxis kwarg.
         for i in range(1, self.naxis+1):
             # strip() must be called here to cover the case of alt key= " "
             kw = 'CTYPE{0}{1}'.format(i, self.wcs.alt).strip()
-            if add_sip:
-                val = header[kw].strip("-SIP") + "-SIP"
+            if kw in header:
+                if add_sip:
+                    val = header[kw].strip("-SIP") + "-SIP"
+                else:
+                    val = header[kw].strip("-SIP")
+                    header[kw] = val
             else:
-                val = header[kw].strip("-SIP")
-            header[kw] = val
+                continue
         return header
 
     def to_header_string(self, relax=None):
