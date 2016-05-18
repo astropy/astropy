@@ -633,7 +633,7 @@ class FITS_rec(np.recarray):
     def __del__(self):
         try:
             del self._coldefs
-        except AttributeError as err:
+        except AttributeError as err:  # pragma: no cover
             pass
 
         if self.dtype.fields is not None:
