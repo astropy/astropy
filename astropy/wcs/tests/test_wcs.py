@@ -966,3 +966,9 @@ def inconsistent_sip():
     w = WCS(hdr)
     newhdr = w.to_header(relax=True)
     assert(all([ctyp[-4 :] == '-SIP' for ctyp in self.wcs.ctype]))
+    del hdr['CTYPE2']
+    newhdr = w.to_header(relax=True)
+    assert(all([ctyp[-4 :] == '-SIP' for ctyp in self.wcs.ctype]))
+    w = wcs.WCS()
+    newhdr = w.to_header()
+    assert('CTYPE1' not in newhdr)
