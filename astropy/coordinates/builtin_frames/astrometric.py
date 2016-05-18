@@ -133,11 +133,11 @@ def make_astrometric_cls(framecls):
 
 class AstrometricFrame(BaseCoordinateFrame):
     """
-    A frame which is relative to some position on the sky. 
+    A frame which is relative to some position on the sky.
 
     Useful for calculating offsets and dithers in the frame of the sky relative
     to an arbitrary position. The resulting `AstrometricFrame` instance will be
-    specific to the base coordinate frame of the `origin`. 
+    specific to the base coordinate frame of the `origin`.
     See :ref:`astropy-astrometric-frames`
 
     Parameters
