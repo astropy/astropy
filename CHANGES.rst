@@ -449,7 +449,7 @@ Bug fixes
     fail on non-US locales. [#4363]
 
   - Fix astropy.io.ascii.read handling of units for IPAC formatted files.
-    Columns with no unit are treated as unitless not dimensionless.
+    Columns with no unit are treated as unitless not dimensionless. [#4867]
 
 - ``astropy.io.fits``
 
