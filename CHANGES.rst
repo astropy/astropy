@@ -503,6 +503,8 @@ API changes
   - ``StdDevUncertainty``: deprecated ``propagate_add`` and similar methods in
     favor of ``propagate``. [#4272, #4828]
 
+  - Allow ``data`` to be a named argument in ``NDDataArray``. [#4626]
+
 - ``astropy.stats``
 
 - ``astropy.table``
