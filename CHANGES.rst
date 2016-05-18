@@ -450,6 +450,9 @@ Bug fixes
 
 - ``astropy.io.fits``
 
+  - Removed raising of AssertionError that could occur after closing or
+    deleting compressed image data. [#4690]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.votable``
@@ -654,9 +657,6 @@ Bug Fixes
 
   - Fix convenience functions (``getdata``, ``getheader``, ``append``,
     ``update``) to close files. [#4786]
-
-  - Removed raising of AssertionError that could occur after closing or
-    deleting compressed image data. [#4690]
 
 - ``astropy.io.misc``
 
