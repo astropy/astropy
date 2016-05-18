@@ -13,7 +13,6 @@ import re
 import numpy as np
 
 from .. import log
-# Note, in numpy <= 1.6, some classes do not properly represent themselves.
 from ..utils.console import Getch, color_print, terminal_size, conf
 from ..utils.data_info import dtype_info_name
 
