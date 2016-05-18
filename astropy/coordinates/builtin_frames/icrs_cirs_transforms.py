@@ -264,6 +264,28 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
     return hcrs_frame.realize_frame(newrep)
 
 
+@frame_transform_graph.transform(FunctionTransform, HCRS, ICRS)
+def hcrs_to_icrs(hcrs_coo, icrs_frame):
+    jd1, jd2 = get_jd12(hcrs_coo.obstime, 'tdb')
+    earth_pv_helio, earth_pv_bary = erfa.epv00(jd1, jd2)
+    bary_sun_pos = earth_pv_bary[..., 0, :] - earth_pv_helio[..., 0, :]
+    sun_vector = u.Quantity(bary_sun_pos, u.au)
+    new_vector = np.rollaxis(hcrs_coo.cartesian.xyz, -1, 0) + sun_vector
+    newrep = CartesianRepresentation(np.rollaxis(new_vector, 0, new_vector.ndim))
+    return icrs_frame.realize_frame(newrep)
+
+
+@frame_transform_graph.transform(FunctionTransform, ICRS, HCRS)
+def icrs_to_hcrs(icrs_coo, hcrs_frame):
+    jd1, jd2 = get_jd12(hcrs_frame.obstime, 'tdb')
+    earth_pv_helio, earth_pv_bary = erfa.epv00(jd1, jd2)
+    bary_sun_pos = earth_pv_bary[..., 0, :] - earth_pv_helio[..., 0, :]
+    sun_vector = u.Quantity(bary_sun_pos, u.au)
+    new_vector = np.rollaxis(icrs_coo.cartesian.xyz, -1, 0) - sun_vector
+    newrep = CartesianRepresentation(np.rollaxis(new_vector, 0, new_vector.ndim))
+    return hcrs_frame.realize_frame(newrep)
+
+
 @frame_transform_graph.transform(FunctionTransform, HCRS, HCRS)
 def hcrs_to_hcrs(from_coo, to_frame):
     if np.all(from_coo.obstime == to_frame.obstime):
