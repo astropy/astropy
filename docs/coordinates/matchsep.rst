@@ -79,9 +79,11 @@ telescope operator to move from a bright star to a fainter target.)::
 ====================
 
 To extend the concept of spherical offsets, `~astropy.coordinates` has
-machinery to create distinct frames that are centered on a specific point.
+a frame class :class:`~astropy.coordinates.builtin_frames.astrometric.AstrometricFrame` 
+which creates distinct frames that are centered on a specific point.
 These are known as "astrometric frames" (as they are a convenient way to create
-a locally "flat" frame on relatively small fields suitable for astrometry)::
+a centered on an arbitrary position, suitable for computing positional offsets for
+astrometry)::
 
     >>> from astropy.coordinates import AstrometricFrame, ICRS
     >>> center = ICRS(10*u.deg, 45*u.deg)
@@ -98,7 +100,7 @@ a locally "flat" frame on relatively small fields suitable for astrometry)::
 
 
 Alternatively, the convenience method 
-`~astropy.coordinates.SkyCoord.astrometric_frame` let you create an astrometric
+:meth:`~astropy.coordinates.SkyCoord.astrometric_frame` lets you create an astrometric
 frame from an already-existing |SkyCoord|::
 
     >>> center = SkyCoord(10*u.deg, 45*u.deg)
