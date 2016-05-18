@@ -4,7 +4,7 @@ import numpy as np
 
 from ... import units as u
 from ..transformations import DynamicMatrixTransform, FunctionTransform
-from ..baseframe import (CoordinateAttribute, QuantityFrameAttribute,
+from ..baseframe import (FrameAttribute, CoordinateAttribute, QuantityFrameAttribute,
                          frame_transform_graph, RepresentationMapping, BaseCoordinateFrame)
 from ..angles import rotation_matrix
 from ...utils.compat import namedtuple_asdict
@@ -55,10 +55,15 @@ def make_astrometric_cls(framecls):
         of spherical names
         """
         def __new__(cls, name, bases, members):
-            newname = AstrometricFrame.__name__
+            # Only 'origin' is needed here, to set the origin frame properly.
             members['origin'] = CoordinateAttribute(frame=framecls, default=None)
-            members['rotation'] = QuantityFrameAttribute(default=0, unit=u.deg)
-            res = super(AstrometricMeta, cls).__new__(cls, newname, bases, members)
+
+            # This has to be done because FrameMeta will set these attributes
+            # to the defaults from BaseCoordinateFrame when it creates the base
+            # AstrometricFrame class initially.
+            members['_frame_specific_representation_info'] = framecls._frame_specific_representation_info
+            members['_default_representation'] = framecls._default_representation
+            res = super(AstrometricMeta, cls).__new__(cls, name, bases, members)
             # now go through all the component names and make any spherical
             # lat/lon names be "d<lon>"/"d<lat>"
 
@@ -91,10 +96,8 @@ def make_astrometric_cls(framecls):
 
     # We need this to handle the intermediate metaclass correctly, otherwise we could
     # just subclass astrometric.
-    class _Astrometric(six.with_metaclass(AstrometricMeta, framecls, AstrometricFrame)):
-        pass
-
-    _Astrometric.__doc__ = AstrometricFrame.__doc__
+    _Astrometric = AstrometricMeta('AstrometricFrame', (AstrometricFrame, framecls),
+        {'__doc__':AstrometricFrame.__doc__})
 
     @frame_transform_graph.transform(FunctionTransform, _Astrometric, _Astrometric)
     def astrometric_to_astrometric(from_astrometric_coord, to_astrometric_frame):
