@@ -166,6 +166,8 @@ New Features
 
   - Added astrometric frames (i.e., a frame centered on a particular
     point/object specified in another frame). [#4909]
+  - Added astrometric frames (i.e., a frame centered on a particular 
+    point/object specified in another frame). [#4909, #4941]
 
   - Added ``SkyCoord.spherical_offsets_to`` method. [#4338]
   - Recent Earth rotation (IERS) data are now auto-downloaded so that AltAz
