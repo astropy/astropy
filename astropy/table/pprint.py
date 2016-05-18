@@ -17,15 +17,23 @@ from .. import log
 from ..utils.console import Getch, color_print, terminal_size, conf
 from ..utils.data_info import dtype_info_name
 
-if six.PY3:
+__all__ = []
+
+if six.PY2:  # pragma: py2
+    def default_format_func(format_, val):
+        if isinstance(val, bytes):
+            return val.decode('utf-8')
+        else:
+            return text_type(val)
+else:  # pragma: py3
     def default_format_func(format_, val):
         if isinstance(val, bytes):
             return val.decode('utf-8')
         else:
             return str(val)
-    _format_funcs = {None: default_format_func}
-elif six.PY2:
-    _format_funcs = {None: lambda format_, val: text_type(val)}
+
+
+_format_funcs = {None: default_format_func}
 
 
 ### The first three functions are helpers for _auto_format_func

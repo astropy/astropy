@@ -1,3 +1,4 @@
+# This Python file uses the following encoding: utf-8
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # TEST_UNICODE_LITERALS
@@ -8,7 +9,7 @@ from ...tests.helper import pytest
 from ... import table
 from ...table import Table
 from ...table.table_helpers import simple_table
-from ...extern.six import PY3
+from ...extern.six import PY2
 from ...utils import console
 
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float64).reshape(100, 20)
@@ -528,13 +529,20 @@ def test_pprint_npfloat32():
 
 def test_pprint_py3_bytes():
     """
-    Test for #1346.  Make sure a bytestring (dtype=S<N>) in Python 3 is printed
-    correctly (without the "b" prefix like b'string').
+    Test for #1346 and #4944. Make sure a bytestring (dtype=S<N>) in Python 3
+    is printed correctly (without the "b" prefix like b'string').
+    Also make sure special characters are printed in Python 2.
     """
-    val = bytes('val', encoding='utf-8') if PY3 else 'val'
-    dat = np.array([(val,)], dtype=[(str('col'), 'S3')])
+    val = 'val' if PY2 else bytes('val', encoding='utf-8')
+    blah = u'bläh'.encode('utf-8') if PY2 else bytes('bläh', encoding='utf-8')
+    dat = np.array([val, blah], dtype=[(str('col'), 'S10')])
     t = table.Table(dat)
-    assert t['col'].pformat() == ['col', '---', 'val']
+    s = t['col'].pformat()
+    try:
+        assert s == ['col ', '----', ' val', u'bl\xe4h']
+    except UnicodeDecodeError:  # pragma: py2
+        # With unicode_literals in Python 2, 'val' becomes crazy or something
+        pytest.xfail('Problem with decoding in one of the fixtures')
 
 
 def test_pprint_nameless_col():
