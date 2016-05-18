@@ -125,7 +125,7 @@ def make_astrometric_cls(framecls):
         """Convert an Astrometric frame coordinate to the reference frame"""
 
         # use the forward transform, but just invert it
-        R = icrs_to_astrometric(reference_frame, astrometric_coord)
+        R = reference_to_astrometric(reference_frame, astrometric_coord)
         return R.T  # this is the inverse because R is a rotation matrix
 
     _astrometric_cache[framecls] = _Astrometric
