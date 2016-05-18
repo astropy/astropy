@@ -20,7 +20,7 @@ from ... import table
 from ... import units as u
 from .conftest import MaskedTable
 
-from ...extern.six.moves import zip as izip
+from ...extern.six.moves import zip as izip, cStringIO as StringIO
 
 try:
     with ignore_warnings(DeprecationWarning):
@@ -1736,3 +1736,15 @@ def test_primary_key_is_inherited():
     assert t.loc[1] == t2.loc[1]
     assert t.loc[1] == t3.loc[1]
     assert t.loc[1] == t4.loc[1]
+
+
+def test_qtable_read_for_ipac_table_with_char_columns():
+    '''Test that a char column of a QTable is assigned no unit and not
+    a dimensionless unit, otherwise conversion of reader output to
+    QTable fails.'''
+    t1 = table.QTable([["A"]], names="B")
+    out = StringIO()
+    t1.write(out, format="ascii.ipac")
+    out.seek(0)
+    t2 = table.QTable.read(out, format="ascii.ipac", guess=False)
+    assert t2["B"].unit == None
