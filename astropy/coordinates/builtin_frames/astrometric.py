@@ -89,28 +89,12 @@ def make_astrometric_cls(framecls):
 
             return res
 
-
     # We need this to handle the intermediate metaclass correctly, otherwise we could
     # just subclass astrometric.
     class _Astrometric(six.with_metaclass(AstrometricMeta, framecls, AstrometricFrame)):
-        """
-        A frame which is relative to some position on the sky. Useful for
-        calculating offsets and dithers in the frame of the sky.
+        pass
 
-        Parameters
-        ----------
-        representation : `BaseRepresentation` or None
-            A representation object or None to have no data (or use the other keywords)
-        origin : `SkyCoord` or low-level coordinate object.
-            the coordinate which specifiy the origin of this frame.
-        rotation : Quantity with angle units
-            The final rotation of the frame about the ``origin``. The sign of
-            the rotation is the left-hand rule.  That is, an object at a
-            particular position angle in the un-rotated system will be sent to
-            the positive latitude (z) direction in the final frame.
-
-        """
-
+    _Astrometric.__doc__ = AstrometricFrame.__doc__
 
     @frame_transform_graph.transform(FunctionTransform, _Astrometric, _Astrometric)
     def astrometric_to_astrometric(from_astrometric_coord, to_astrometric_frame):
@@ -124,7 +108,7 @@ def make_astrometric_cls(framecls):
         return to_astrometric_frame.realize_frame(from_astrometric_coord.cartesian)
 
     @frame_transform_graph.transform(DynamicMatrixTransform, framecls, _Astrometric)
-    def icrs_to_astrometric(reference_frame, astrometric_frame):
+    def reference_to_astrometric(reference_frame, astrometric_frame):
         """Convert a reference coordinate to an Astrometric frame."""
 
         # Define rotation matricies along the position angle vector, and
@@ -137,7 +121,7 @@ def make_astrometric_cls(framecls):
         return R
 
     @frame_transform_graph.transform(DynamicMatrixTransform, _Astrometric, framecls)
-    def astrometric_to_icrs(astrometric_coord, reference_frame):
+    def astrometric_to_reference(astrometric_coord, reference_frame):
         """Convert an Astrometric frame coordinate to the reference frame"""
 
         # use the forward transform, but just invert it
@@ -149,15 +133,19 @@ def make_astrometric_cls(framecls):
 
 class AstrometricFrame(BaseCoordinateFrame):
     """
-    A frame which is relative to some position on the sky. Useful for
-    calculating offsets and dithers in the frame of the sky.
+    A frame which is relative to some position on the sky. 
+
+    Useful for calculating offsets and dithers in the frame of the sky relative
+    to an arbitrary position. The resulting `AstrometricFrame` instance will be
+    specific to the base coordinate frame of the `origin`. 
+    See :ref:`astropy-astrometric-frames`
 
     Parameters
     ----------
     representation : `BaseRepresentation` or None
         A representation object or None to have no data (or use the other keywords)
     origin : `SkyCoord` or low-level coordinate object.
-        the coordinate which specifiy the origin of this frame.
+        the coordinate which specifies the origin of this frame.
     rotation : Quantity with angle units
         The final rotation of the frame about the ``origin``. The sign of
         the rotation is the left-hand rule.  That is, an object at a
