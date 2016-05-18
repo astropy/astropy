@@ -26,11 +26,11 @@ New Features
 
   - ``CartesianRepresentation`` now includes a transform() method that can take
     a 3x3 matrix to transform coordinates. [#4860]
-    
-  - Solar system and lunar ephemerides accessible via ``get_body``, 
+
+  - Solar system and lunar ephemerides accessible via ``get_body``,
     ``get_body_barycentric`` and ``get_moon`` functions. [#4890]
 
-  - Added astrometric frames (i.e., a frame centered on a particular 
+  - Added astrometric frames (i.e., a frame centered on a particular
     point/object specified in another frame). [#4909]
 
   - Added ``SkyCoord.spherical_offsets_to`` method. [#4338]
@@ -540,7 +540,7 @@ Other Changes and Additions
 
 - Added instructions for installing Astropy into CASA. [#4840]
 
-- Added an example gallery to the docs demonstrating short 
+- Added an example gallery to the docs demonstrating short
   snippets/examples. [#4734]
 
 
@@ -654,6 +654,9 @@ Bug Fixes
 
   - Fix convenience functions (``getdata``, ``getheader``, ``append``,
     ``update``) to close files. [#4786]
+
+  - Removed raising of AssertionError that could occur after closing or
+    deleting compressed image data. [#4690]
 
 - ``astropy.io.misc``
 
@@ -1425,7 +1428,7 @@ New Features
 
   - Fixed bug where Tables created from existing Table objects were not
     inheriting the ``primary_key`` attribute. [#4672]
-    
+
 - ``astropy.time``
 
 - ``astropy.units``
