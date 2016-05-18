@@ -41,13 +41,13 @@ def make_astrometric_cls(framecls):
     just that class, as well as ensuring that only one example of such a class
     actually gets created in any given python session.
     """
-    
+
     if framecls in _astrometric_cache:
         return _astrometric_cache[framecls]
-        
+
     # the class of a class object is the metaclass
     framemeta = framecls.__class__
-    
+
     class AstrometricMeta(framemeta):
         """
         This metaclass renames the class to be "Astrometric<framecls>" and also
@@ -61,7 +61,7 @@ def make_astrometric_cls(framecls):
             res = super(AstrometricMeta, cls).__new__(cls, newname, bases, members)
             # now go through all the component names and make any spherical
             # lat/lon names be "d<lon>"/"d<lat>"
-            
+
             lists_done = []
             for nm, component_list in res._frame_specific_representation_info.items():
                 if nm in ('spherical', 'unitspherical'):
@@ -88,8 +88,8 @@ def make_astrometric_cls(framecls):
                     lists_done.append(component_list)
 
             return res
-        
-    
+
+
     # We need this to handle the intermediate metaclass correctly, otherwise we could
     # just subclass astrometric.
     class _Astrometric(six.with_metaclass(AstrometricMeta, framecls, AstrometricFrame)):
@@ -110,7 +110,7 @@ def make_astrometric_cls(framecls):
             the positive latitude (z) direction in the final frame.
 
         """
-        
+
 
     @frame_transform_graph.transform(FunctionTransform, _Astrometric, _Astrometric)
     def astrometric_to_astrometric(from_astrometric_coord, to_astrometric_frame):
@@ -165,10 +165,10 @@ class AstrometricFrame(BaseCoordinateFrame):
         the positive latitude (z) direction in the final frame.
 
     """
-    
+
     rotation = QuantityFrameAttribute(default=0, unit=u.deg)
     origin = CoordinateAttribute(default=None, frame=None)
-    
+
     def __new__(cls, *args, **kwargs):
         # We don't want to call this method if we've already set up
         # an astrometric frame for this class.
@@ -182,7 +182,7 @@ class AstrometricFrame(BaseCoordinateFrame):
                 origin_frame = origin_frame.frame
             newcls = make_astrometric_cls(origin_frame.__class__)
             return newcls.__new__(newcls, *args, **kwargs)
-            
+
         # http://stackoverflow.com/questions/19277399/why-does-object-new-work-differently-in-these-three-cases
         # See above for why this is necessary. Basically, because some child
         # may override __new__, we must override it here to never pass
@@ -190,4 +190,3 @@ class AstrometricFrame(BaseCoordinateFrame):
         if super(AstrometricFrame, cls).__new__ is object.__new__:
             return super(AstrometricFrame, cls).__new__(cls)
         return super(AstrometricFrame, cls).__new__(cls, *args, **kwargs)
-    
