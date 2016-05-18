@@ -378,7 +378,7 @@ API changes
     converted to float. [#4697]
 
   - ``RotateNative2Celestial`` and ``RotateCelestial2Native`` are now
-    implemented as subclasses of ``EulerAngleRotation``. [#4881]
+    implemented as subclasses of ``EulerAngleRotation``. [#4881, #4940]
 
 - ``astropy.nddata``
 
