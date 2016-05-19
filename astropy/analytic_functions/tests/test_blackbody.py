@@ -68,7 +68,7 @@ def test_blackbody_overflow():
 def test_blackbody_synphot():
     """Test that it is consistent with IRAF SYNPHOT BBFUNC."""
     # Solid angle of solar radius at 1 kpc
-    fac = np.pi * (const.R_sun / const.kpc) ** 2 * u.sr
+    fac = np.pi * (const.R_Sun / const.kpc) ** 2 * u.sr
 
     with np.errstate(all='ignore'):
         flux = blackbody_nu([100, 1, 1000, 1e4, 1e5] * u.AA, 5000) * fac
