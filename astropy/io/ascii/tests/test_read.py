@@ -36,7 +36,7 @@ else:
 
 current = locale.setlocale(locale.LC_ALL)
 try:
-    locale.setlocale(locale.LC_ALL, str('de_DE'))
+    locale.setlocale(locale.LC_ALL, str('de_DE.utf8'))
 except:
     HAS_DE_LOCALE = False
 else:
@@ -1170,13 +1170,11 @@ def test_non_C_locale_with_fast_reader():
     current = locale.setlocale(locale.LC_ALL)
 
     try:
-        locale.setlocale(locale.LC_ALL, str('de_DE'))
+        locale.setlocale(locale.LC_ALL, str('de_DE.utf8'))
 
         for fast_reader in (True, False, {'use_fast_converter': False}, {'use_fast_converter': True}):
             t = ascii.read(['a b', '1.5 2'], format='basic', guess=False,
                            fast_reader=fast_reader)
             assert t['a'].dtype.kind == 'f1'
-    except:
-        raise
     finally:
         locale.setlocale(locale.LC_ALL, current)
