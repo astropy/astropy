@@ -1185,6 +1185,5 @@ def test_no_units_for_char_columns():
     t1 = Table([["A"]], names="B")
     out = StringIO()
     ascii.write(t1, out, format="ipac")
-    out.seek(0)
-    t2 = ascii.read(out, format="ipac", guess=False)
+    t2 = ascii.read(out.getvalue(), format="ipac", guess=False)
     assert t2["B"].unit == None
