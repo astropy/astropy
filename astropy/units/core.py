@@ -308,17 +308,18 @@ def set_enabled_units(units):
     >>> u.m.find_equivalent_units()
       Primary name | Unit definition | Aliases
     [
-      AU           | 1.49598e+11 m   | au, astronomical_unit ,
-      Angstrom     | 1e-10 m         | AA, angstrom          ,
-      cm           | 0.01 m          | centimeter            ,
-      earthRad     | 6.37814e+06 m   | R_earth, Rearth       ,
-      jupiterRad   | 7.1492e+07 m    | R_jup, Rjup, R_jupiter, Rjupiter ,
-      lyr          | 9.46073e+15 m   | lightyear             ,
-      m            | irreducible     | meter                 ,
-      micron       | 1e-06 m         |                       ,
-      pc           | 3.08568e+16 m   | parsec                ,
-      solRad       | 6.95508e+08 m   | R_sun, Rsun           ,
+      AU           | 1.49598e+11 m   | au, astronomical_unit                   ,
+      Angstrom     | 1e-10 m         | AA, angstrom                            ,
+      cm           | 0.01 m          | centimeter                              ,
+      earthRad     | 6.3781e+06 m    | R_earth, Rearth, R_Earth                ,
+      jupiterRad   | 7.1492e+07 m    | R_jup, Rjup, R_jupiter, Rjupiter, R_Jup ,
+      lyr          | 9.46073e+15 m   | lightyear                               ,
+      m            | irreducible     | meter                                   ,
+      micron       | 1e-06 m         |                                         ,
+      pc           | 3.08568e+16 m   | parsec                                  ,
+      solRad       | 6.957e+08 m     | R_sun, Rsun, R_Sun                      ,
     ]
+
     """
     # get a context with a new registry, using equivalencies of the current one
     context = _UnitContext(
