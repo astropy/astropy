@@ -280,7 +280,7 @@ sections <data-sections>` for more details on using this interface.
 How can I create a very large FITS file from scratch?
 """""""""""""""""""""""""""""""""""""""""""""""""""""
 
-See :ref:`sphx_glr_auto_examples_io_skip_create-large-fits.py`.
+See :ref:`sphx_glr_generated_examples_io_skip_create-large-fits.py`.
 
 For creating very large tables, this method may also be used.  Though it can be
 difficult to determine ahead of time how many rows a table will need.  In
@@ -304,7 +304,7 @@ this FAQ might provide an example of how to do this.
 How do I create a multi-extension FITS file from scratch?
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-See :ref:`sphx_glr_auto_examples_io_create-mef.py`.
+See :ref:`sphx_glr_generated_examples_io_create-mef.py`.
 
 
 .. _fits-scaled-data-faq:
