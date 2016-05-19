@@ -8,6 +8,7 @@ from collections import OrderedDict
 import locale
 
 import numpy as np
+import platform
 
 from ....extern.six.moves import cStringIO as StringIO
 from ....tests.helper import pytest
@@ -36,7 +37,10 @@ else:
 
 current = locale.setlocale(locale.LC_ALL)
 try:
-    locale.setlocale(locale.LC_ALL, str('de_DE.utf8'))
+    if platform.system() == 'Darwin':
+        locale.setlocale(locale.LC_ALL, str('de_DE'))
+    else:
+        locale.setlocale(locale.LC_ALL, str('de_DE.utf8'))
 except:
     HAS_DE_LOCALE = False
 else:
