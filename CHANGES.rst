@@ -215,6 +215,8 @@ API changes
     copying the (possibly large) input coordinate arrays. [#4883]
 
 - ``astropy.cosmology``
+  
+  - Improve documentation of z validity range of cosmology objects [#4882]
 
 - ``astropy.io.ascii``
 
