@@ -20,6 +20,14 @@ New Features
   - Add ``L_bol0``, the luminosity corresponding to absolute bolometric
     magnitude zero. [#4262]
 
+  - Updated fundamental constants to CODATA 2014 values.
+
+  - Added/updated solar and planetary constants to 2015 IAU Resolution B3 
+    nominal values. 
+
+  - Added Solar mean density (``rho_Sun``), Earth mean density (``rho_Earth``)
+    and Jupiter mean density (``rho_Jup``).
+
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
@@ -140,6 +148,9 @@ New Features
     that has an ``__astropy_table__`` method.  [#4885]
 
 - ``astropy.tests``
+  - Changed test values to be consistent with CODATA 2014 values and new
+    constant names (test_ecliptic.py, test_cosmology.py, test_blackbody.py,
+    test_equivalencies.py)
 
 - ``astropy.time``
 
@@ -158,6 +169,9 @@ New Features
 
   - Added Earth radius (``R_earth``) and Jupiter radius (``R_jup``) to units.
     [#4818]
+
+  - Added Solar mean density (``rho_Sun``), Earth mean density (``rho_Earth``)
+    and Jupiter mean density (``rho_Jup``) to units.
 
   - Added a ``represents`` property to allow access to the definition of a
     named unit (e.g., ``u.kpc.represents`` yields ``1000 pc``). [#4806]
@@ -204,6 +218,8 @@ API changes
 - ``astropy.conftest.py``
 
 - ``astropy.constants``
+  - Changed constant names for solar/planetary conversion factors 
+    (R_sun -> R_Sun, R_earth -> Re_Earth, etc.)
 
 - ``astropy.convolution``
 
@@ -380,6 +396,11 @@ API changes
 - ``astropy.units``
 
   - Remove deprecated ``register`` argument for Unit classes. [#4448]
+
+  - Changed calls to _si.R_earth and _si.R_jup to u.R_jup in cds.py
+
+  - Updated docstring in core.py to show correct/updated output from
+    u.m.find_equivalent_units
 
 - ``astropy.utils``
 
