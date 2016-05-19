@@ -35,7 +35,7 @@ else:
     HAS_PATHLIB = True
 
 try:
-    locale.setlocale(locale.LC_ALL, 'de_DE')
+    locale.setlocale(locale.LC_ALL, str('de_DE'))
 except:
     HAS_DE_LOCALE = False
 else:
