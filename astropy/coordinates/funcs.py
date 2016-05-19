@@ -159,9 +159,9 @@ def get_sun(time):
     # convert barycentric velocity to units of c, but keep as array for passing in to erfa
     earth_v /= c.to(u.au/u.d).value
 
-    dsun = np.sqrt(np.sum(earth_p**2, axis=-1))
+    dsun = np.sqrt(np.sum(earth_p**2, axis=-1, keepdims=True))
     invlorentz = (1-np.sum(earth_v**2, axis=-1))**-0.5
-    properdir = erfa.ab(earth_p/dsun.reshape(-1, 1), -earth_v, dsun, invlorentz)
+    properdir = erfa.ab(earth_p/dsun, -earth_v, dsun, invlorentz)
 
     x = -dsun*properdir[..., 0] * u.AU
     y = -dsun*properdir[..., 1] * u.AU
