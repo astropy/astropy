@@ -18,6 +18,9 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Removed raising of AssertionError that could occur after closing or
+    deleting compressed image data. [#4690, #4948]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
