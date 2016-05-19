@@ -34,12 +34,15 @@ except ImportError:
 else:
     HAS_PATHLIB = True
 
+current = locale.setlocale(locale.LC_ALL)
 try:
     locale.setlocale(locale.LC_ALL, str('de_DE'))
 except:
     HAS_DE_LOCALE = False
 else:
     HAS_DE_LOCALE = True
+finally:
+    locale.setlocale(locale.LC_ALL, current)
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
