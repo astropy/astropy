@@ -88,13 +88,13 @@ astrometry)::
     >>> from astropy.coordinates import AstrometricFrame, ICRS
     >>> center = ICRS(10*u.deg, 45*u.deg)
     >>> center.transform_to(AstrometricFrame(origin=center))  # doctest: +SKIP
-    <AstrometricFrame Coordinate (origin=<ICRS Coordinate: (ra, dec) in deg
-        (10.0, 45.0)>, rotation=0.0 deg): (dra, ddec) in deg
+    <AstrometricFrame Coordinate (rotation=0.0 deg, origin=<ICRS Coordinate: (ra, dec) in deg
+        (10.0, 45.0)>): (dra, ddec) in deg
         (0.0, 0.0)>
     >>> target = ICRS(11*u.deg, 46*u.deg)
     >>> target.transform_to(AstrometricFrame(origin=center))  # doctest: +FLOAT_CMP
-    <AstrometricFrame Coordinate (origin=<ICRS Coordinate: (ra, dec) in deg
-        (10.0, 45.0)>, rotation=0.0 deg): (dra, ddec) in deg
+    <AstrometricFrame Coordinate (rotation=0.0 deg, origin=<ICRS Coordinate: (ra, dec) in deg
+        (10.0, 45.0)>): (dra, ddec) in deg
         (0.69474685, 1.00428706)>
 
 
@@ -106,13 +106,13 @@ frame from an already-existing |SkyCoord|::
     >>> center = SkyCoord(10*u.deg, 45*u.deg)
     >>> aframe = center.astrometric_frame()
     >>> target.transform_to(aframe)  # doctest: +FLOAT_CMP
-    <AstrometricFrame Coordinate (origin=<ICRS Coordinate: (ra, dec) in deg
-        (10.0, 45.0)>, rotation=0.0 deg): (dra, ddec) in deg
+    <AstrometricFrame Coordinate (rotation=0.0 deg, origin=<ICRS Coordinate: (ra, dec) in deg
+        (10.0, 45.0)>): (dra, ddec) in deg
         (0.69474685, 1.00428706)>
     >>> other = SkyCoord(9*u.deg, 44*u.deg, frame='fk5')
     >>> other.transform_to(aframe)  # doctest: +FLOAT_CMP
-    <SkyCoord (AstrometricFrame: origin=<ICRS Coordinate: (ra, dec) in deg
-        (10.0, 45.0)>, rotation=0.0 deg): (dra, ddec) in deg
+    <SkyCoord (AstrometricFrame: rotation=0.0 deg, origin=<ICRS Coordinate: (ra, dec) in deg
+        (10.0, 45.0)>): (dra, ddec) in deg
         (359.28056055, -0.99556216)>
 
 
