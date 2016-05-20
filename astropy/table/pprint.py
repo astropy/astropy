@@ -18,18 +18,12 @@ from ..utils.data_info import dtype_info_name
 
 __all__ = []
 
-if six.PY2:  # pragma: py2
-    def default_format_func(format_, val):
-        if isinstance(val, bytes):
-            return val.decode('utf-8')
-        else:
-            return text_type(val)
-else:  # pragma: py3
-    def default_format_func(format_, val):
-        if isinstance(val, bytes):
-            return val.decode('utf-8')
-        else:
-            return str(val)
+
+def default_format_func(format_, val):
+    if isinstance(val, bytes):
+        return val.decode('utf-8')
+    else:
+        return text_type(val)
 
 
 _format_funcs = {None: default_format_func}
