@@ -2919,6 +2919,9 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         wcs_new = self.deepcopy()
         for i, iview in enumerate(view):
+            if iview.step < 0:
+                raise NotImplementedError("Reversing an axis is not "
+                                          "implemented.")
             if iview.step is not None and iview.start is None:
                 # Slice from "None" is equivalent to slice from 0 (but one
                 # might want to downsample, so allow slices with
