@@ -15,6 +15,7 @@ from .. import _erfa as erfa
 from . import GCRS, SkyCoord, GeocentricTrueEcliptic, ICRS
 from .builtin_frames.utils import get_jd12, cartrepr_from_matmul
 
+__all__ = ["calc_moon"]
 
 # Meeus 1998: table 47.A
 #   D   M   M'  F   l    r
@@ -163,7 +164,7 @@ _coA2 = (53.09, 479264.290)
 _coA3 = (313.45 , 481266.484)
 _coE = (1.0, -0.002516, -0.0000074)
 
-def calcMoon(t, location=None):
+def calc_moon(t, location=None):
     """
     Lunar position model ELP2000-82 of (Chapront-Touze' and Chapront, 1983, 124, 50)
 
