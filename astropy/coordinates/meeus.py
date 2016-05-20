@@ -12,8 +12,8 @@ from numpy.polynomial.polynomial import polyval
 
 from .. import units as u, coordinates as coord
 from .. import _erfa as erfa
-from . import GCRS, SkyCoord, GeocentricTrueEcliptic, ICRS
-from .builtin_frames.utils import get_jd12, cartrepr_from_matmul
+from . import GCRS, SkyCoord, GeocentricTrueEcliptic
+from .builtin_frames.utils import get_jd12
 
 __all__ = ["calc_moon"]
 
@@ -115,7 +115,7 @@ _MOON_B = (
      (0, 0,  3,  1,  1107),
      (4, 0,  0,  -1, 1021),
      (4, 0,  -1, 1,  833),
-#second column
+     # second column
      (0, 0,  1,  -3, 777),
      (4, 0,  -2, 1,  671),
      (2, 0,  0,  -3, 607),
@@ -149,7 +149,7 @@ _MOON_B = (
 )
 
 """Coefficients of polynomials for various terms"""
-_coLc = (2.18316448e+02,  4.81267881e+05, -1.57860000e-03, 
+_coLc = (2.18316448e+02,  4.81267881e+05, -1.57860000e-03,
          1.85583502e-06, -1.53388349e-08)
 _coD = (2.97850192e+02,  4.45267111e+05, -1.88190000e-03,
         1.83194472e-06, -8.84447000e-09)
@@ -161,20 +161,21 @@ _coF = (9.32720950e+01,  4.83202018e+05, -3.65390000e-03,
         -2.83607487e-07,  1.15833246e-09)
 _coA1 = (119.75, 131.849)
 _coA2 = (53.09, 479264.290)
-_coA3 = (313.45 , 481266.484)
+_coA3 = (313.45, 481266.484)
 _coE = (1.0, -0.002516, -0.0000074)
+
 
 def calc_moon(t, location=None):
     """
     Lunar position model ELP2000-82 of (Chapront-Touze' and Chapront, 1983, 124, 50)
 
     This is the simplified version of Jean Meeus, Astronomical Algorithms,
-    second edition, 1998, Willmann-Bell. Meeus claims approximate accuracy of 10" 
+    second edition, 1998, Willmann-Bell. Meeus claims approximate accuracy of 10"
     in longitude and 4" in latitude, with no specified time range.
-    
+
     Tests against JPL ephemerides show accuracy of 10 arcseconds and 50 km over the
     date range CE 1950-2050.
-    
+
     Parameters
     -----------
     time : `~astropy.time.Time`
@@ -182,20 +183,20 @@ def calc_moon(t, location=None):
     location : `~astropy.coordinates.EarthLocation`, optional
         Location of observer on the Earth.  If not given, will be taken from
         ``time`` (if not present, a geocentric observer will be assumed).
-    
+
     Returns
     --------
     skycoord : `~astropy.coordinates.SkyCoord`
-        GCRS Coordinate for the body    
-    """    
+        GCRS Coordinate for the body
+    """
     if location is None:
         location = t.location
-            
+
     # number of centuries since J2000.0.
     # This should strictly speaking be in Ephemeris Time, but TDB or TT
     # will introduce error smaller than intrinsic accuracy of algorithm.
     T = (t.tdb.jyear-2000.0)/100.
-    
+
     # constants that are needed for all calculations
     Lc = u.deg*polyval(T, _coLc)
     D = u.deg*polyval(T, _coD)
@@ -228,7 +229,7 @@ def calc_moon(t, location=None):
             corr = E
         if MNum == 2 or MNum == -2:
             corr = E*E
- 
+
         suml += _MOON_L_R[i][4]*corr*np.sin(D*DNum+M*MNum+Mc*McNum+F*FNum)
         sumr += _MOON_L_R[i][5]*corr*np.cos(D*DNum+M*MNum+Mc*McNum+F*FNum)
 
@@ -245,36 +246,34 @@ def calc_moon(t, location=None):
             corr = E
         if MNum == 2 or MNum == -2:
             corr = E*E
- 
+
         sumb += _MOON_B[i][4]*corr*np.sin(D*DNum+M*MNum+Mc*McNum+F*FNum)
 
-    suml += (3958*np.sin(A1)+1962*np.sin(Lc-F)+318*np.sin(A2))
-    sumb += (-2235*np.sin(Lc)+382*np.sin(A3)+175*np.sin(A1-F)+
-             175*np.sin(A1+F)+127*np.sin(Lc-Mc)-115*np.sin(Lc+Mc))
+    suml += (3958*np.sin(A1) + 1962*np.sin(Lc-F) + 318*np.sin(A2))
+    sumb += (-2235*np.sin(Lc) + 382*np.sin(A3) + 175*np.sin(A1-F) +
+             175*np.sin(A1+F) + 127*np.sin(Lc-Mc) - 115*np.sin(Lc+Mc))
 
     # ensure units
     suml = suml*u.deg
     sumb = sumb*u.deg
-    
+
     # nutation of longitude
     jd1, jd2 = get_jd12(t, 'tt')
     nut, _ = erfa.nut06a(jd1, jd2)
     nut = nut*u.rad
-    
+
     # calculate ecliptic coordinates
     lon = Lc + suml/1000000 + nut
     lat = sumb/1000000
     dist = (385000.56+sumr/1000)*u.km
-    
+
     # Meeus algorithm gives GeocentricTrueEcliptic coordinates
     ecliptic_coo = GeocentricTrueEcliptic(lon, lat, distance=dist,
                                           equinox=t)
     if location is None:
         return SkyCoord(ecliptic_coo.transform_to(GCRS(obstime=t)))
-        
-    loc, vel = location.get_gcrs_posvel(t)
-    return SkyCoord(ecliptic_coo.transform_to(GCRS(obstime=t, 
-                                           obsgeoloc=loc,
-                                           obsgeovel=vel)))
 
-    
+    loc, vel = location.get_gcrs_posvel(t)
+    return SkyCoord(ecliptic_coo.transform_to(GCRS(obstime=t,
+                                                   obsgeoloc=loc,
+                                                   obsgeovel=vel)))
