@@ -272,12 +272,7 @@ def calcMoon(t, location=None):
         return SkyCoord(ecliptic_coo.transform_to(GCRS(obstime=t)))
         
     loc, vel = location.get_gcrs_posvel(t)
-    """
-    I suspect a bug in the coordinate transformations between GeocentricTrueEcliptic 
-    and GCRS.  This version, with an intermediate transformation to ICRS, works.
-    """
-    icrs = ecliptic_coo.transform_to(ICRS())
-    return SkyCoord(icrs.transform_to(GCRS(obstime=t, 
+    return SkyCoord(ecliptic_coo.transform_to(GCRS(obstime=t, 
                                            obsgeoloc=loc,
                                            obsgeovel=vel)))
 
