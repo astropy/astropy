@@ -275,3 +275,4 @@ class TestPositionKittPeak(object):
         assert_quantity_allclose(coord_by_name.ra, coord_by_kspec.ra)
         assert_quantity_allclose(coord_by_name.dec, coord_by_kspec.dec)
         assert_quantity_allclose(coord_by_name.distance, coord_by_kspec.distance)
+
