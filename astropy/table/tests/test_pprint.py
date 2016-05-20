@@ -533,20 +533,11 @@ def test_pprint_py3_bytes():
     is printed correctly (without the "b" prefix like b'string').
     Also make sure special characters are printed in Python 2.
     """
-    val = 'val' if PY2 else bytes('val', encoding='utf-8')
+    val = str('val') if PY2 else bytes('val', encoding='utf-8')
     blah = u'bläh'.encode('utf-8') if PY2 else bytes('bläh', encoding='utf-8')
     dat = np.array([val, blah], dtype=[(str('col'), 'S10')])
     t = table.Table(dat)
-    s = t['col'].pformat()
-    try:
-        if s[2] == ' val':
-            assert s == ['col ', '----', ' val', u'bl\xe4h']
-        else:  # pragma: py2
-            # Either this or UnicodeDecodeError, depending on test env
-            pytest.xfail('Problem with decoding in one of the fixtures')
-    except UnicodeDecodeError:  # pragma: py2
-        # With unicode_literals in Python 2, 'val' becomes crazy or something
-        pytest.xfail('Problem with decoding in one of the fixtures')
+    assert t['col'].pformat() == ['col ', '----', ' val', u'bl\xe4h']
 
 
 def test_pprint_nameless_col():
