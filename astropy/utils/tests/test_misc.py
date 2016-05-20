@@ -14,14 +14,6 @@ from ...tests.helper import remote_data
 from ...extern import six
 from ...tests.helper import pytest
 
-try:
-    locale.setlocale(locale.LC_ALL, 'en_US')
-    locale.setlocale(locale.LC_ALL, 'de_DE')
-except:
-    HAS_LOCALES = False
-else:
-    HAS_LOCALES = True
-
 
 def test_isiterable():
     assert misc.isiterable(2) is False
@@ -81,8 +73,17 @@ def test_inherit_docstrings():
         assert Subclass.__call__.__doc__ == "FOO"
 
 
-@pytest.mark.skipif('not HAS_LOCALES')
 def test_set_locale():
+    # First, test if the required locales are available
+    current = locale.setlocale(locale.LC_ALL)
+    try:
+        locale.setlocale(locale.LC_ALL, str('en_US'))
+        locale.setlocale(locale.LC_ALL, str('de_DE'))
+    except locale.Error as e:
+        pytest.skip('Locale error: {}'.format(e))
+    finally:
+        locale.setlocale(locale.LC_ALL, current)
+
     date = datetime(2000, 10, 1, 0, 0, 0)
     day_mon = date.strftime('%a, %b')
 
@@ -95,6 +96,5 @@ def test_set_locale():
     # Back to original
     assert date.strftime('%a, %b') == day_mon
 
-    current = locale.setlocale(locale.LC_ALL)
     with misc.set_locale(current):
         assert date.strftime('%a, %b') == day_mon
