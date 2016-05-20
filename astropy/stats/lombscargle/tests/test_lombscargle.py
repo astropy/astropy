@@ -71,7 +71,9 @@ def test_all_methods(data, method, center_data, fit_mean,
 @pytest.mark.parametrize('center_data', [True, False])
 @pytest.mark.parametrize('fit_mean', [True, False])
 @pytest.mark.parametrize('with_errors', [True, False])
-def test_integer_inputs(data, method, center_data, fit_mean, with_errors):
+@pytest.mark.parametrize('normalization', NORMALIZATIONS)
+def test_integer_inputs(data, method, center_data, fit_mean, with_errors,
+                        normalization):
     if method == 'scipy' and (fit_mean or with_errors):
         return
 
@@ -84,7 +86,7 @@ def test_integer_inputs(data, method, center_data, fit_mean, with_errors):
     y_int = y.astype(int)
 
     dy = np.floor(100 * dy)
-    dy_int = dy.astype(int)
+    dy_int = dy.astype('int32')
 
     frequency = 1E-2 * (0.8 + 0.01 * np.arange(40))
 
@@ -94,9 +96,13 @@ def test_integer_inputs(data, method, center_data, fit_mean, with_errors):
 
     kwds = dict(center_data=center_data,
                 fit_mean=fit_mean)
-    P_float = LombScargle(t, y, dy, **kwds).power(frequency, method=method)
+    P_float = LombScargle(t, y, dy, **kwds).power(frequency,
+                                                  method=method,
+                                                  normalization=normalization)
     P_int = LombScargle(t_int, y_int, dy_int,
-                        **kwds).power(frequency, method=method)
+                        **kwds).power(frequency,
+                                      method=method,
+                                      normalization=normalization)
     assert_allclose(P_float, P_int)
 
 
