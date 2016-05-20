@@ -35,6 +35,7 @@ ERFA includes smaller changes that may or may not eventually make it into SOFA,
 addressing localized bugs or similar smaller issues:
 
 * Typos have been corrected in the documentation of atco13 and atio13 (see https://github.com/liberfa/erfa/issues/29).
+* The deflection limit in ldsun has been relaxed to avoid numerical instability (see https://github.com/astropy/astropy/pull/4952).
 
 Note: Issues identified in ERFA should always be reported upstream to SOFA
 at sofa@ukho.gov.uk.
