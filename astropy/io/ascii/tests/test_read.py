@@ -1168,7 +1168,7 @@ def test_non_C_locale_with_fast_reader():
         for fast_reader in (True, False, {'use_fast_converter': False}, {'use_fast_converter': True}):
             t = ascii.read(['a b', '1.5 2'], format='basic', guess=False,
                            fast_reader=fast_reader)
-            assert t['a'].dtype.kind == 'f1'
+            assert t['a'].dtype.kind == 'f'
     except locale.Error as e:
         pytest.skip('Locale error: {}'.format(e))
     finally:
