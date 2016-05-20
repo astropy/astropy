@@ -10,6 +10,7 @@ from ..sky_coordinate import SkyCoord
 from ..solar_system import (get_body, get_moon, BODY_NAME_TO_KERNEL_SPEC,
                             _apparent_position_in_true_coordinates)
 from ...tests.helper import pytest, assert_quantity_allclose, remote_data
+from ..meeus import calc_moon
 
 try:
     import jplephem  # pylint: disable=W0611
