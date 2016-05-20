@@ -30,32 +30,23 @@ def _ecliptic_rotation_matrix(equinox):
 
 
 @frame_transform_graph.transform(FunctionTransform, GCRS, GeocentricTrueEcliptic)
-def gcrs_to_geoecliptic(from_coo, to_frame):
-    if np.any(from_coo.obstime != to_frame.equinox):
-        # if they GCRS obstime and ecliptic equinox are not the same, we first
-        # have to move to a GCRS where they are.
-        frameattrs = from_coo.get_frame_attr_names()
-        frameattrs['obstime'] = to_frame.equinox
-        from_coo = from_coo.transform_to(GCRS(**frameattrs))
+def gcrs_to_geoecliptic(gcrs_coo, to_frame):
+    # first get us to a 0 pos/vel GCRS at the target equinox
+    gcrs_coo2 = gcrs_coo.transform_to(GCRS(obstime=to_frame.equinox))
 
     rmat = _ecliptic_rotation_matrix(to_frame.equinox)
-    newrepr = cartrepr_from_matmul(rmat, from_coo)
+    newrepr = cartrepr_from_matmul(rmat, gcrs_coo2)
     return to_frame.realize_frame(newrepr)
 
 
 @frame_transform_graph.transform(FunctionTransform, GeocentricTrueEcliptic, GCRS)
-def geoecliptic_to_gcrs(from_coo, to_frame):
+def geoecliptic_to_gcrs(from_coo, gcrs_frame):
     rmat = _ecliptic_rotation_matrix(from_coo.equinox)
     newrepr = cartrepr_from_matmul(rmat, from_coo, transpose=True)
+    gcrs = GCRS(newrepr, obstime=from_coo.obstime)
 
-    if np.all(from_coo.equinox == to_frame.obstime):
-        return to_frame.realize_frame(newrepr)
-    else:
-        # if the GCRS obstime and ecliptic equinox don't match, need to move
-        # to one where they do
-        frameattrs = to_frame.get_frame_attr_names()
-        frameattrs['obstime'] = from_coo.equinox
-        return GCRS(newrepr, **frameattrs).transform_to(to_frame)
+    #now do any needed offsets (no-op if same obstime and 0 pos/vel)
+    return gcrs.transform_to(gcrs_frame)
 
 
 @frame_transform_graph.transform(DynamicMatrixTransform, ICRS, BarycentricTrueEcliptic)
