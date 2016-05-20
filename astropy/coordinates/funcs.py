@@ -160,7 +160,7 @@ def get_sun(time):
     earth_v /= c.to(u.au/u.d).value
 
     dsun = np.sqrt(np.sum(earth_p**2, axis=-1, keepdims=True))
-    invlorentz = (1-np.sum(earth_v**2, axis=-1))**-0.5
+    invlorentz = (1-np.sum(earth_v**2, axis=-1))**0.5
     properdir = erfa.ab(earth_p/dsun, -earth_v, dsun, invlorentz)
 
     x = -dsun*properdir[..., 0] * u.AU
