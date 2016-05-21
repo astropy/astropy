@@ -126,6 +126,9 @@ Bug Fixes
 
 - ``astropy.wcs``
 
+  - Made ``wcs.bounds_check`` call ``wcsprm_python2c``, which means it
+    works even if ``wcs.set`` has not been called yet. [#4957].
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
