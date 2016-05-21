@@ -972,3 +972,15 @@ def inconsistent_sip():
     w = wcs.WCS()
     newhdr = w.to_header()
     assert('CTYPE1' not in newhdr)
+
+def test_lonpole_90_latpole():
+    """Tests the ability to set latpole when lonpole is 90"""
+    w = wcs.WCS(naxis=2)
+    w.wcs.ctype = ["RA---CAR","DEC--CAR"]
+    w.wcs.cdelt = [1,1]
+    w.wcs.crval = [0,0]
+    w.wcs.crpix = [1,1]
+    w.wcs.lonpole = 90
+    w.wcs.latpole =  0
+    w.wcs.set()
+    assert_allclose(w.wcs.latpole,0)
