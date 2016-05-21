@@ -129,6 +129,8 @@ Bug Fixes
   - Worked around WCSlib bug which makes it impossible to set LATPOLE when
     LONPOLE=90 when WCSTRIG_MACRO is enabled. Fixed by disabling WCSTRIG_MACRO.
     According to comments in WCSlib, this could have a 20% performance impact.
+  - Made ``wcs.bounds_check`` call ``wcsprm_python2c``, which means it
+    works even if ``wcs.set`` has not been called yet. [#4957].
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
