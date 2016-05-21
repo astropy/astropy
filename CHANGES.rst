@@ -26,6 +26,9 @@ New Features
 
 - ``astropy.modeling``
 
+  - Add a class to combine astropy fitters and functions to remove outliers
+    e. g., sigma clip. [#4760]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
