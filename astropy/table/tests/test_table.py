@@ -263,7 +263,7 @@ class TestNewFromColumns():
         t = table_types.Table(cols)
         assert np.all(t['a'].data == np.array([1, 2, 3]))
         assert np.all(t['b'].data == np.array([4, 5, 6], dtype=np.float32))
-        assert isinstance(t['b'][1], np.float32)
+        assert type(t['b'][1]) is np.float32
 
     def test_from_np_array(self, table_types):
         cols = [table_types.Column(name='a', data=np.array([1, 2, 3], dtype=np.int64),
@@ -272,8 +272,8 @@ class TestNewFromColumns():
         t = table_types.Table(cols)
         assert np.all(t['a'] == np.array([1, 2, 3], dtype=np.float64))
         assert np.all(t['b'] == np.array([4, 5, 6], dtype=np.float32))
-        assert isinstance(t['a'][1], np.float64)
-        assert isinstance(t['b'][1], np.float32)
+        assert type(t['a'][1]) is np.float64
+        assert type(t['b'][1]) is np.float32
 
     def test_size_mismatch(self, table_types):
         cols = [table_types.Column(name='a', data=[1, 2, 3]),

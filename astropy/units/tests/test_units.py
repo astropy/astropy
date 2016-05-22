@@ -683,8 +683,8 @@ def test_compare_with_none():
     # Ensure that equality comparisons with `None` work, and don't
     # raise exceptions.  We are deliberately not using `is None` here
     # because that doesn't trigger the bug.  See #3108.
-    assert not (u.m is None)
-    assert u.m is not None
+    assert not (u.m == None)  # nopep8
+    assert u.m != None  # nopep8
 
 
 def test_validate_power_detect_fraction():

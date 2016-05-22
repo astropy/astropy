@@ -201,7 +201,7 @@ class TestKernels(object):
         """
         gauss = Gaussian1DKernel(3)
         gauss_new = number * gauss
-        assert isinstance(gauss_new, Gaussian1DKernel)
+        assert type(gauss_new) is Gaussian1DKernel
 
     @pytest.mark.parametrize(('number'), NUMS)
     def test_rmultiply_scalar_type(self, number):
@@ -210,7 +210,7 @@ class TestKernels(object):
         """
         gauss = Gaussian1DKernel(3)
         gauss_new = gauss * number
-        assert isinstance(gauss_new, Gaussian1DKernel)
+        assert type(gauss_new) is Gaussian1DKernel
 
     def test_multiply_kernel1d(self):
         """Test that multiplying two 1D kernels raises an exception."""
@@ -292,7 +292,7 @@ class TestKernels(object):
         Check if CustomKernel works with lists.
         """
         custom = CustomKernel([1, 1, 1, 1, 1])
-        assert custom.is_bool
+        assert custom.is_bool is True
 
     def test_custom_2D_kernel_list(self):
         """
@@ -301,7 +301,7 @@ class TestKernels(object):
         custom = CustomKernel([[1, 1, 1],
                                [1, 1, 1],
                                [1, 1, 1]])
-        assert custom.is_bool
+        assert custom.is_bool is True
 
     def test_custom_1D_kernel_zerosum(self):
         """
