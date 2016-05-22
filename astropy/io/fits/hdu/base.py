@@ -230,7 +230,7 @@ class _BaseHDU(object):
             ('XTENSION' in self._header and
              (self._header['XTENSION'] == 'IMAGE' or
               (self._header['XTENSION'] == 'BINTABLE' and
-               'ZIMAGE' in self._header and self._header['ZIMAGE']))))
+               'ZIMAGE' in self._header and self._header['ZIMAGE'] is True))))
 
     @property
     def _data_loaded(self):

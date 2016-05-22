@@ -76,8 +76,7 @@ def comparerecords(a, b):
         if fieldb.dtype.char == 'S':
             fieldb = decode_ascii(fieldb)
         if (not isinstance(fielda, type(fieldb)) and not
-            (issubclass(type(fielda), type(fieldb)) or
-             issubclass(type(fieldb), type(fielda)))):
+            isinstance(fieldb, type(fielda))):
             print("type(fielda): ", type(fielda), " fielda: ", fielda)
             print("type(fieldb): ", type(fieldb), " fieldb: ", fieldb)
             print('field {0} type differs'.format(i))
@@ -976,7 +975,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu.columns.columns[2].array[0] == ''
         assert (tbhdu.columns.columns[3].array[0] ==
                 np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
-        assert tbhdu.columns.columns[4].array[0]
+        assert tbhdu.columns.columns[4].array[0] is True
 
         assert tbhdu.data[3][1] == 33
         assert tbhdu.data._coldefs._arrays[1][3] == 33
@@ -1049,13 +1048,13 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu2.columns.columns[2].array[4] == ''
         assert (tbhdu2.columns.columns[3].array[4] ==
                 np.array([1., 2., 3., 4., 5.], dtype=np.float32)).all()
-        assert bool(tbhdu2.columns.columns[4].array[4]) is False
+        assert not tbhdu2.columns.columns[4].array[4]
         assert tbhdu2.columns.columns[1].array[8] == 0
         assert tbhdu2.columns.columns[0].array[8] == ''
         assert tbhdu2.columns.columns[2].array[8] == ''
         assert (tbhdu2.columns.columns[3].array[8] ==
                 np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
-        assert bool(tbhdu2.columns.columns[4].array[8]) is False
+        assert not tbhdu2.columns.columns[4].array[8]
 
     def test_verify_data_references(self):
         counts = np.array([312, 334, 308, 317])

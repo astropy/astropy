@@ -279,7 +279,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
     def match_header(cls, header):
         keyword = header.cards[0].keyword
         return (keyword == 'SIMPLE' and 'GROUPS' in header and
-                header['GROUPS'])
+                header['GROUPS'] is True)
 
     @lazyproperty
     def data(self):
@@ -507,7 +507,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
 
         self.req_cards('GCOUNT', pos, _is_int, 1, option, errs)
         self.req_cards('PCOUNT', pos, _is_int, 0, option, errs)
-        self.req_cards('GROUPS', pos, lambda v: (v), True, option,
+        self.req_cards('GROUPS', pos, lambda v: (v is True), True, option,
                        errs)
         return errs
 
