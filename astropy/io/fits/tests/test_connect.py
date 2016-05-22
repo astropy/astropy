@@ -277,7 +277,7 @@ def test_bool_column(tmpdir):
     """
 
     arr = np.ones(5, dtype=bool)
-    arr[::2] is False
+    arr[::2] == np.False_
 
     t = Table([arr])
     t.write(str(tmpdir.join('test.fits')), overwrite=True)

@@ -676,7 +676,7 @@ class CompImageHDU(BinTableHDU):
         if xtension not in ('BINTABLE', 'A3DTABLE'):
             return False
 
-        if 'ZIMAGE' not in header or header['ZIMAGE'] is not True:
+        if 'ZIMAGE' not in header or not header['ZIMAGE']:
             return False
 
         if COMPRESSION_SUPPORTED and COMPRESSION_ENABLED:
