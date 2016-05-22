@@ -2828,7 +2828,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     for i, converter in fields_basic:
                         try:
                             chunk = converter(array_row[i], array_mask[i])
-                            assert isinstance(chunk, type(b''))
+                            assert type(chunk) == six.binary_type
                         except Exception as e:
                             vo_reraise(e,
                                        additional="(in row %d, col '%s')" %

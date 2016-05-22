@@ -1,4 +1,4 @@
-# Licensedf under a 3-clause BSD style license - see LICENSE.rst
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Tests models.parameters
 """
@@ -87,7 +87,7 @@ def test_parameter_properties():
 
     assert p.fixed is False
     p.fixed = True
-    assert p.fixed
+    assert p.fixed is True
 
     assert p.tied is False
     p.tied = lambda _: 0

@@ -1,4 +1,3 @@
-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import operator
 
@@ -30,8 +29,10 @@ class TestTimeComparisons():
                 op(t1, None)
             assert str(err).endswith("Unsupported operand type(s) for {0}: 'Time' and 'NoneType'"
                                      .format(op_str))
-        assert (t1 is None) is False
-        assert (t1 is not None) is True
+        # Keep == and != as they are specifically meant to test Time.__eq__
+        # and Time.__ne__
+        assert (t1 == None) is False  # pylint: disable=C0121
+        assert (t1 != None) is True  # pylint: disable=C0121
 
     def test_time(self):
         t1_lt_t2 = self.t1 < self.t2
