@@ -172,8 +172,10 @@ def get_body_barycentric(body, time, ephemeris=None):
 
     Parameters
     ----------
-    body : str
-        The solar system body for which to calculate positions.
+    body : str or other
+        The solar system body for which to calculate positions.  Can also be a
+        kernel specifier (list of 2-tuples) if the ``ephemeris`` is a JPL
+        kernel.
     time : `~astropy.time.Time`
         Time of observation.
     ephemeris : str, optional
@@ -198,8 +200,8 @@ def get_body_barycentric(body, time, ephemeris=None):
         kernel = _get_kernel(ephemeris)
 
     jd1, jd2 = get_jd12(time, 'tdb')
-    body = body.lower()
     if kernel is None:
+        body = body.lower()
         earth_pv_helio, earth_pv_bary = erfa.epv00(jd1, jd2)
         if body == 'earth':
             cartesian_position_body = earth_pv_bary[..., 0, :]
@@ -222,12 +224,15 @@ def get_body_barycentric(body, time, ephemeris=None):
             np.rollaxis(cartesian_position_body, -1, 0), u.au)
 
     else:
-        # Lookup chain for JPL ephemeris.
-        try:
-            kernel_spec = BODY_NAME_TO_KERNEL_SPEC[body.lower()]
-        except KeyError:
-            raise KeyError("{0}'s position cannot be calculated with "
-                           "the {1} ephemeris.".format(body, ephemeris))
+        if isinstance(body, six.string_types):
+            # Look up kernel chain for JPL ephemeris, based on name
+            try:
+                kernel_spec = BODY_NAME_TO_KERNEL_SPEC[body.lower()]
+            except KeyError:
+                raise KeyError("{0}'s position cannot be calculated with "
+                               "the {1} ephemeris.".format(body, ephemeris))
+        # otherwise, assume the user knows what their doing and intentionally
+        # passed in a kernel chain
 
         cartesian_position_body = sum([kernel[pair].compute(jd1, jd2)
                                        for pair in kernel_spec])
@@ -246,8 +251,10 @@ def _get_apparent_body_position(body, time, ephemeris):
 
     Parameters
     ----------
-    body : str
-        The solar system body for which to calculate positions.
+    body : str or other
+        The solar system body for which to calculate positions.  Can also be a
+        kernel specifier (list of 2-tuples) if the ``ephemeris`` is a JPL
+        kernel.
     time : `~astropy.time.Time`
         Time of observation.
     ephemeris : str, optional
@@ -285,8 +292,10 @@ def get_body(body, time, location=None, ephemeris=None):
 
     Parameters
     ----------
-    body : str
-        The solar system body for which to calculate positions.
+    body : str or other
+        The solar system body for which to calculate positions.  Can also be a
+        kernel specifier (list of 2-tuples) if the ``ephemeris`` is a JPL
+        kernel.
     time : `~astropy.time.Time`
         Time of observation.
     location : `~astropy.coordinates.EarthLocation`, optional
