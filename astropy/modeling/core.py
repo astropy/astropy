@@ -1310,7 +1310,7 @@ class Model(object):
         n_models = kwargs.pop('n_models', None)
 
         if not (n_models is None or
-                    (isinstance(n_models, int) and n_models >=1)):
+                    (isinstance(n_models, (int, np.integer)) and n_models >=1)):
             raise ValueError(
                 "n_models must be either None (in which case it is "
                 "determined from the model_set_axis of the parameter initial "
@@ -1795,7 +1795,7 @@ class _CompoundModelMeta(_ModelMeta):
     def __getitem__(cls, index):
         index = cls._normalize_index(index)
 
-        if isinstance(index, int):
+        if isinstance(index, (int, np.integer)):
             return cls._get_submodels()[index]
         else:
             return cls._get_slice(index.start, index.stop)
@@ -2265,9 +2265,9 @@ class _CompoundModelMeta(_ModelMeta):
             start = index.start if index.start is not None else 0
             stop = (index.stop
                     if index.stop is not None else len(cls.submodel_names))
-            if isinstance(start, int):
+            if isinstance(start, (int, np.integer)):
                 start = check_for_negative_index(start)
-            if isinstance(stop, int):
+            if isinstance(stop, (int, np.integer)):
                 stop = check_for_negative_index(stop)
             if isinstance(start, six.string_types):
                 start = get_index_from_name(start)
@@ -2281,7 +2281,7 @@ class _CompoundModelMeta(_ModelMeta):
                 raise ValueError("Empty slice of a compound model.")
 
             return slice(start, stop)
-        elif isinstance(index, int):
+        elif isinstance(index, (int, np.integer)):
             if index >= len(cls.submodel_names):
                 raise IndexError(
                         "Model index {0} out of range.".format(index))
