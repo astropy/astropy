@@ -64,15 +64,14 @@ an approximate ephemeris that does not require ephemeris files.  To change
 the default to be a JPL ephemeris::
 
     >>> from astropy import coordinates as coord
-    >>> coord.solar_system_ephemeris.set('jpl')
+    >>> coord.solar_system_ephemeris.set('jpl')  # doctest: +SKIP
 
 This requires the jplephem package (https://pypi.python.org/pypi/jplephem).
 If needed, the ephemeris file will be downloaded (and cached).
 
 One can check which bodies are covered by a given ephemeris using::
     >>> coord.solar_system_ephemeris.bodies
-    ('earth', 'sun', 'mercury', 'venus', 'earth-moon-barycentre', 'mars',
-     'jupiter', 'saturn', 'uranus', 'neptune')
+    ('earth', 'sun', 'mercury', 'venus', 'earth-moon-barycenter', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune')
 """[1:-1]
 
 
