@@ -43,7 +43,11 @@ def lombscargle_scipy(t, y, frequency, normalization='standard',
         raise ImportError("scipy must be installed to use lombscargle_scipy")
 
     t, y = np.broadcast_arrays(t, y)
-    frequency = np.asarray(frequency)
+
+    # Scipy requires floating-point input
+    t = np.asarray(t, dtype=float)
+    y = np.asarray(y, dtype=float)
+    frequency = np.asarray(frequency, dtype=float)
 
     if t.ndim != 1:
         raise ValueError("t, y, dy should be one dimensional")
