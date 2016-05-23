@@ -8,7 +8,10 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 from collections import OrderedDict
+import textwrap
+
 import numpy as np
+
 from .sky_coordinate import SkyCoord
 from ..utils.data import download_file
 from ..utils.decorators import classproperty
@@ -185,7 +188,7 @@ def get_body_barycentric(body, time, ephemeris=None):
 
     Notes
     -----
-    """ + _EPHEMERIS_NOTE
+    """
 
     if ephemeris is None:
         ephemeris = solar_system_ephemeris.get()
@@ -234,6 +237,8 @@ def get_body_barycentric(body, time, ephemeris=None):
 
     return CartesianRepresentation(barycen_to_body_vector)
 
+get_body_barycentric.__doc__ += textwrap.indent(_EPHEMERIS_NOTE, ' '*4)[4:]
+
 
 def _get_apparent_body_position(body, time, ephemeris):
     """Calculate the apparent position of body ``body`` relative to Earth.
@@ -254,7 +259,7 @@ def _get_apparent_body_position(body, time, ephemeris):
     -------
     cartesian_position : `~astropy.coordinates.CartesianRepresentation`
         Barycentric (ICRS) apparent position of the body in cartesian coordinates
-    """ + _EPHEMERIS_NOTE
+    """
     # Calculate position given approximate light travel time.
     delta_light_travel_time = 20. * u.s
     emitted_time = time
@@ -270,6 +275,8 @@ def _get_apparent_body_position(body, time, ephemeris):
         emitted_time = time - light_travel_time
 
     return get_body_barycentric(body, emitted_time, ephemeris)
+
+_get_apparent_body_position.__doc__ += textwrap.indent(_EPHEMERIS_NOTE, ' '*4)[4:]
 
 
 def get_body(body, time, location=None, ephemeris=None):
@@ -298,7 +305,7 @@ def get_body(body, time, location=None, ephemeris=None):
 
     Notes
     -----
-    """ + _EPHEMERIS_NOTE
+    """
     if location is None:
         location = time.location
 
@@ -312,6 +319,8 @@ def get_body(body, time, location=None, ephemeris=None):
     else:
         gcrs = icrs.transform_to(GCRS(obstime=time))
     return SkyCoord(gcrs)
+
+get_body.__doc__ += textwrap.indent(_EPHEMERIS_NOTE, ' '*4)[4:]
 
 
 def get_moon(time, location=None, ephemeris=None):
@@ -338,9 +347,11 @@ def get_moon(time, location=None, ephemeris=None):
 
     Notes
     -----
-    """ +_EPHEMERIS_NOTE
+    """
 
     return get_body('moon', time, location=location, ephemeris=ephemeris)
+
+get_moon.__doc__ += textwrap.indent(_EPHEMERIS_NOTE, ' '*4)[4:]
 
 
 def _apparent_position_in_true_coordinates(skycoord):
