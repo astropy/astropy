@@ -182,7 +182,7 @@ class BaseGroups(object):
     def __getitem__(self, item):
         parent = self.parent
 
-        if isinstance(item, int):
+        if isinstance(item, (int, np.integer)):
             i0, i1 = self.indices[item], self.indices[item + 1]
             out = parent[i0:i1]
             out.groups._keys = parent.groups.keys[item]
