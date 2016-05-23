@@ -625,6 +625,9 @@ Bug fixes
 
 - ``astropy.table``
 
+  - Fixed a bug where ``pprint()`` sometimes raises ``UnicodeDecodeError``
+    in Python 2. [#4946]
+
 - ``astropy.tests``
 
 - ``astropy.time``
