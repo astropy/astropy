@@ -13,19 +13,20 @@ import re
 import numpy as np
 
 from .. import log
-# Note, in numpy <= 1.6, some classes do not properly represent themselves.
 from ..utils.console import Getch, color_print, terminal_size, conf
 from ..utils.data_info import dtype_info_name
 
-if six.PY3:
-    def default_format_func(format_, val):
-        if isinstance(val, bytes):
-            return val.decode('utf-8')
-        else:
-            return str(val)
-    _format_funcs = {None: default_format_func}
-elif six.PY2:
-    _format_funcs = {None: lambda format_, val: text_type(val)}
+__all__ = []
+
+
+def default_format_func(format_, val):
+    if isinstance(val, bytes):
+        return val.decode('utf-8')
+    else:
+        return text_type(val)
+
+
+_format_funcs = {None: default_format_func}
 
 
 ### The first three functions are helpers for _auto_format_func
