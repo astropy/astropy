@@ -231,8 +231,10 @@ def get_body_barycentric(body, time, ephemeris=None):
             except KeyError:
                 raise KeyError("{0}'s position cannot be calculated with "
                                "the {1} ephemeris.".format(body, ephemeris))
-        # otherwise, assume the user knows what their doing and intentionally
-        # passed in a kernel chain
+        else:
+            # otherwise, assume the user knows what their doing and intentionally
+            # passed in a kernel chain
+            kernel_spec = body
 
         cartesian_position_body = sum([kernel[pair].compute(jd1, jd2)
                                        for pair in kernel_spec])
