@@ -1,7 +1,7 @@
 0.8 (unreleased)
 ----------------
 
-- No changes yet.
+- Added property getters for color and linewidth in BaseFrame. [#203]
 
 0.7 (2016-05-06)
 ----------------
