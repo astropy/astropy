@@ -23,7 +23,7 @@ void eraLdsun(double p[3], double e[3], double em, double p1[3])
 **     the same.
 **
 **  2) The deflection is restrained when the angle between the star and
-**     the center of the Sun is less than about 90 arcsec, falling to
+**     the center of the Sun is less than about 9 arcsec, falling to
 **     zero for zero separation. (The chosen threshold is within the
 **     solar limb for all solar-system applications.)
 **
@@ -36,7 +36,7 @@ void eraLdsun(double p[3], double e[3], double em, double p1[3])
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
-   eraLd(1.0, p, p, e, em, 5e-8, p1);
+   eraLd(1.0, p, p, e, em, 1e-9, p1);
 
 /* Finished. */
 
