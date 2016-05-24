@@ -78,11 +78,13 @@ One can check which bodies are covered by a given ephemeris using::
 class solar_system_ephemeris(ScienceState):
     """Default ephemerides for calculating positions of Solar-System bodies.
 
-    This can be a URL to a JPL ephemerides, or one of the following::
+    This can be one of the following::
 
     - 'approximate': polynomial approximations to the orbital elements.
     - 'de430' or 'de432s': short-cuts for recent JPL dynamical models.
     - 'jpl': Alias for the default JPL ephemeris (currently, 'de430').
+    - A URL (as a string): The url to a SPK ephemeris in SPICE binary (.bst)
+      format.
     - `None`: Ensure an Exception is raised without an explicit ephemeris.
 
     The default is 'approximate', which uses the ``epv00`` and ``plan94``
