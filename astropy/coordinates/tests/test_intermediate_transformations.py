@@ -22,6 +22,7 @@ from ..._erfa import epv00
 from .utils import randomly_sample_sphere
 from ..builtin_frames.utils import get_jd12
 
+
 def test_icrs_cirs():
     """
     Check a few cases of ICRS<->CIRS for consistency.
@@ -127,6 +128,21 @@ def test_icrs_gcrs_dist_diff(gframe):
     assert not allclose(gcrswd.distance, icrs_coords[1].distance, rtol=1e-8,
                         atol=1e-10*u.pc)
 
+
+def test_non_geocentric_gcrs():
+    """
+    Test transformation to non-geocentric GCRS frames for nearby objects.
+    """
+    t = Time('1980-03-25 00:00')
+    gcrs_frame = GCRS(obstime=t,
+                      obsgeoloc=u.Quantity([-1463969.30185172,
+                                            -5166673.34223433,
+                                            3434985.71204565])*u.m)
+    icrs_coo = ICRS(ra=184.285*u.deg, dec=-1.8802*u.deg, distance=148101810.2*u.km)
+    gcrs_coo = icrs_coo.transform_to(gcrs_frame)
+
+    expected = u.Quantity([-149099.43171337, 338254.76492942, 121819.91578453])*u.km
+    assert_allclose(gcrs_coo.cartesian.xyz, expected)
 
 def test_cirs_to_altaz():
     """
