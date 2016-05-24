@@ -8,7 +8,6 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 from collections import OrderedDict
-import textwrap
 
 import numpy as np
 
@@ -16,6 +15,7 @@ from .sky_coordinate import SkyCoord
 from ..utils.data import download_file
 from ..utils.decorators import classproperty
 from ..utils.state import ScienceState
+from ..utils import indent
 from .. import units as u
 from .. import _erfa as erfa
 from ..constants import c as speed_of_light
@@ -243,7 +243,7 @@ def get_body_barycentric(body, time, ephemeris=None):
 
     return CartesianRepresentation(barycen_to_body_vector)
 
-get_body_barycentric.__doc__ += textwrap.indent(_EPHEMERIS_NOTE, ' '*4)[4:]
+get_body_barycentric.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
 
 
 def _get_apparent_body_position(body, time, ephemeris):
@@ -284,7 +284,7 @@ def _get_apparent_body_position(body, time, ephemeris):
 
     return get_body_barycentric(body, emitted_time, ephemeris)
 
-_get_apparent_body_position.__doc__ += textwrap.indent(_EPHEMERIS_NOTE, ' '*4)[4:]
+_get_apparent_body_position.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
 
 
 def get_body(body, time, location=None, ephemeris=None):
@@ -330,7 +330,7 @@ def get_body(body, time, location=None, ephemeris=None):
         gcrs = icrs.transform_to(GCRS(obstime=time))
     return SkyCoord(gcrs)
 
-get_body.__doc__ += textwrap.indent(_EPHEMERIS_NOTE, ' '*4)[4:]
+get_body.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
 
 
 def get_moon(time, location=None, ephemeris=None):
@@ -361,7 +361,7 @@ def get_moon(time, location=None, ephemeris=None):
 
     return get_body('moon', time, location=location, ephemeris=ephemeris)
 
-get_moon.__doc__ += textwrap.indent(_EPHEMERIS_NOTE, ' '*4)[4:]
+get_moon.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
 
 
 def _apparent_position_in_true_coordinates(skycoord):
