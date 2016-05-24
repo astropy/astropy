@@ -1,4 +1,4 @@
-0.8 (unreleased)
+0.8 (2016-05-24)
 ----------------
 
 - Added property getters for color and linewidth in BaseFrame. [#203]
