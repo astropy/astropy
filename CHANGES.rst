@@ -164,8 +164,6 @@ New Features
   - Solar system and lunar ephemerides accessible via ``get_body``,
     ``get_body_barycentric`` and ``get_moon`` functions. [#4890]
 
-  - Added astrometric frames (i.e., a frame centered on a particular
-    point/object specified in another frame). [#4909]
   - Added astrometric frames (i.e., a frame centered on a particular 
     point/object specified in another frame). [#4909, #4941]
 
