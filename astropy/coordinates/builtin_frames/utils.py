@@ -12,6 +12,7 @@ import warnings
 import numpy as np
 
 from ... import units as u
+from ... import _erfa as erfa
 from ...time import Time
 from ...utils import iers
 from ...utils.exceptions import AstropyWarning
@@ -139,3 +140,149 @@ def get_jd12(time, scale):
             newtime = time
 
     return newtime.jd1, newtime.jd2
+
+
+def rxp(rmat, p, transpose=True):
+    """
+    Multiply a p-vector by (the transpose of) an r matrix.
+
+    Parameters
+    ----------
+    rmat : `~numpy.ndarray`
+        rotation matrix
+    p : `~numpy.ndarray`
+        position vector
+
+    Returns
+    --------
+    rp : `~numpy.ndarray`
+    """
+    if rmat.shape[-2:] != (3, 3):
+        raise ValueError("tried to do matrix multiplication with an array that "
+                         "doesn't end in 3x3")
+
+    if p.ndim == 1 and rmat.shape == (3, 3):
+        # a simpler path for scalar coordinates
+        if transpose:
+            rmat = rmat.T
+        result = np.sum(rmat * p, axis=-1).T
+    else:
+        # these expression are the same as iterating over the first dimension of
+        # pmat and xyz and doing matrix multiplication on each in turn.
+        rmat = rmat.reshape(rmat.size//9, 3, 3)
+        if transpose:
+            rmat = rmat.transpose(0, 2, 1)
+        result = np.sum(rmat * p.reshape(p.size//3, 1, 3), axis=-1)
+    return result
+
+
+def norm(p):
+    """
+    Normalise a p-vector.
+    """
+    return p/np.sqrt(np.sum(p*p, axis=-1, keepdims=True))
+
+
+def aticq(ri, di, astrom):
+    """
+    A slightly modified version of the ERFA function ``eraAticq``.
+
+    ``eraAticq`` performs the transformations between two coordinate systems,
+    with the details of the transformation being encoded into the ``astrom`` array.
+
+    The companion function ``eraAtciqz`` is meant to be its inverse. However, this
+    is not true for directions close to the Solar centre, since the light deflection
+    calculations are numerically unstable and therefore not reversible.
+
+    This version sidesteps that problem by artificially reducing the light deflection
+    for directions which are within 90 arcseconds of the Sun's position. This is the
+    same approach used by the ERFA functions above, except that they use a threshold of
+    9 arcseconds.
+
+    Parameters
+    ----------
+    ri : float or `~numpy.ndarray`
+        right ascension, radians
+    di : float or `~numpy.ndarray`
+        declination, radians
+    astrom : eraASTROM array
+        ERFA astrometry context, as produced by, e.g. ``eraApci13`` or ``eraApcs13``
+
+    Returns
+    --------
+    rc : float or `~numpy.ndarray`
+    dc : float or `~numpy.ndarray`
+    """
+    # RA, Dec to cartesian unit vectors
+    pos = erfa.s2c(ri, di)
+
+    # Bias-precession-nutation, giving GCRS proper direction.
+    ppr = rxp(astrom['bpn'], pos, transpose=True)
+
+    # Aberration, giving GCRS natural direction
+    d = np.zeros_like(ppr)
+    for j in range(2):
+        before = norm(ppr-d)
+        after = erfa.ab(before, astrom['v'], astrom['em'], astrom['bm1'])
+        d = after - before
+    pnat = norm(ppr-d)
+
+    # Light deflection by the Sun, giving BCRS coordinate direction
+    d = np.zeros_like(pnat)
+    for j in range(5):
+        before = norm(pnat-d)
+        after = erfa.ld(1.0, before, before, astrom['eh'], astrom['em'], 5e-8)
+        d = after - before
+    pco = norm(pnat-d)
+
+    # ICRS astrometric RA, Dec
+    rc, dc = erfa.c2s(pco)
+    return erfa.anp(rc), dc
+
+
+def atciqz(rc, dc, astrom):
+    """
+    A slightly modified version of the ERFA function ``eraAtciqz``.
+
+    ``eraAtciqz`` performs the transformations between two coordinate systems,
+    with the details of the transformation being encoded into the ``astrom`` array.
+
+    The companion function ``eraAticq`` is meant to be its inverse. However, this
+    is not true for directions close to the Solar centre, since the light deflection
+    calculations are numerically unstable and therefore not reversible.
+
+    This version sidesteps that problem by artificially reducing the light deflection
+    for directions which are within 90 arcseconds of the Sun's position. This is the
+    same approach used by the ERFA functions above, except that they use a threshold of
+    9 arcseconds.
+
+    Parameters
+    ----------
+    rc : float or `~numpy.ndarray`
+        right ascension, radians
+    dc : float or `~numpy.ndarray`
+        declination, radians
+    astrom : eraASTROM array
+        ERFA astrometry context, as produced by, e.g. ``eraApci13`` or ``eraApcs13``
+
+    Returns
+    --------
+    ri : float or `~numpy.ndarray`
+    di : float or `~numpy.ndarray`
+    """
+    # BCRS coordinate direction (unit vector).
+    pco = erfa.s2c(rc, dc)
+
+    # Light deflection by the Sun, giving BCRS natural direction.
+    pnat = erfa.ld(1.0, pco, pco, astrom['eh'], astrom['em'], 5e-8)
+
+    # Aberration, giving GCRS proper direction.
+    ppr = erfa.ab(pnat, astrom['v'], astrom['em'], astrom['bm1'])
+
+    # Bias-precession-nutation, giving CIRS proper direction.
+    # Has no effect if matrix is identity matrix, in which case gives GCRS ppr.
+    pi = rxp(astrom['bpn'], ppr, transpose=False)
+
+    # CIRS (GCRS) RA, Dec
+    ri, di = erfa.c2s(pi)
+    return erfa.anp(ri), di
