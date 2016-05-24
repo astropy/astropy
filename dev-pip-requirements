@@ -6,7 +6,7 @@ pyyaml
 scipy
 pandas
 h5py
-bs4
+beautifulsoup4
 bleach
 jplephem
 
