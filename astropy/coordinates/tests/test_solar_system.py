@@ -7,7 +7,8 @@ from ...constants import c
 from ..builtin_frames import GCRS
 from ..earth import EarthLocation
 from ..sky_coordinate import SkyCoord
-from ..solar_system import get_body, get_moon, _apparent_position_in_true_coordinates
+from ..solar_system import (get_body, get_moon, BODY_NAME_TO_KERNEL_SPEC,
+                            _apparent_position_in_true_coordinates)
 from ...tests.helper import pytest, assert_quantity_allclose, remote_data
 
 try:
@@ -259,3 +260,18 @@ class TestPositionKittPeak(object):
         # Assert distances are close.
         assert_quantity_allclose(astropy.distance, horizons.distance,
                                  atol=de430_distance_tolerance)
+
+    @remote_data
+    @pytest.mark.skipif('not HAS_JPLEPHEM')
+    @pytest.mark.parametrize('bodyname', ('mercury', 'jupiter'))
+    def test_custom_kernel_spec_body(self, bodyname):
+        """
+        Checks that giving a kernel specifier instead of a body name works
+        """
+        coord_by_name = get_body(bodyname, self.t, ephemeris='de432s')
+        kspec = BODY_NAME_TO_KERNEL_SPEC[bodyname]
+        coord_by_kspec = get_body(kspec, self.t, ephemeris='de432s')
+
+        assert_quantity_allclose(coord_by_name.ra, coord_by_kspec.ra)
+        assert_quantity_allclose(coord_by_name.dec, coord_by_kspec.dec)
+        assert_quantity_allclose(coord_by_name.distance, coord_by_kspec.distance)
