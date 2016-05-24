@@ -3,6 +3,9 @@
 
 - Added property getters for color and linewidth in BaseFrame. [#203]
 
+- Fix a bug that caused WCSAxes to crash when trying to transform arrays with
+  zero coordinates. [#202]
+
 0.7 (2016-05-06)
 ----------------
 
