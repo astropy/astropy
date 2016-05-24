@@ -21,9 +21,10 @@ from .sky_coordinate import SkyCoord
 from .builtin_frames import GCRS, PrecessedGeocentric
 from .representation import SphericalRepresentation, CartesianRepresentation
 from .builtin_frames.utils import get_jd12
+from .. import constants as const
 
 __all__ = ['cartesian_to_spherical', 'spherical_to_cartesian', 'get_sun',
-           'concatenate', 'get_constellation']
+           'get_moon', 'concatenate', 'get_constellation']
 
 
 def cartesian_to_spherical(x, y, z):
@@ -169,6 +170,61 @@ def get_sun(time):
         cartrep = CartesianRepresentation(x=x, y=y, z=z)
     return SkyCoord(cartrep, frame=GCRS(obstime=time))
 
+
+def get_moon(time):
+    """
+    Determines the location of the moon at a given time (or times, if the input
+    is an array `~astropy.time.Time` object), in geocentric coordinates.
+
+    Parameters
+    ----------
+    time : `~astropy.time.Time`
+        The time(s) at which to compute the location of the moon.
+
+    Returns
+    -------
+    newsc : `~astropy.coordinates.SkyCoord`
+        The location of the moon as a `~astropy.coordinates.SkyCoord` in the
+        `~astropy.coordinates.GCRS` frame.
+
+
+    Notes
+    -----
+    The algorithm for determining the moon/earth distance is based on finding 
+    the heliocentric position of the earth and earth-moon barycenter using the
+    simplified version of VSOP2000 and the algorithm due to J. L. Simon et al.,
+    respectively, which are both part of ERFA.
+    """
+    earth_pv_helio, earth_pv_bary = erfa.epv00(*get_jd12(time, 'tdb'))
+    emb_pv = erfa.plan94(*get_jd12(time, 'tdb'), np=3)
+
+    # We have to manually do aberration because we're outputting directly into
+    # GCRS
+    earth_p = earth_pv_helio[..., 0, :]
+    earth_v = earth_pv_helio[..., 1, :]
+
+    emb_p = emb_pv[..., 0, :]
+    emb_v = emb_pv[..., 1, :]
+    moon_p = ((const.M_moon+const.M_earth)/const.M_moon)*emb_p - \
+             (const.M_earth/const.M_moon*earth_p)
+    moon_v = ((const.M_moon+const.M_earth)/const.M_moon)*emb_v - \
+             (const.M_earth/const.M_moon*earth_v)
+    dmoon = np.sqrt(np.sum((moon_p-earth_p)**2, axis=-1))
+    invlorentz = (1-np.sum((moon_v-earth_v)**2, axis=-1))**-0.5
+    properdir = erfa.ab((earth_p-moon_p)/dmoon.reshape(-1, 1),
+                        earth_v-moon_v,
+                        dmoon,
+                        invlorentz)
+
+    x = -dmoon*properdir[..., 0] * u.AU
+    y = -dmoon*properdir[..., 1] * u.AU
+    z = -dmoon*properdir[..., 2] * u.AU
+
+    if time.isscalar:
+        cartrep = CartesianRepresentation(x=x[0], y=y[0], z=z[0])
+    else:
+        cartrep = CartesianRepresentation(x=x, y=y, z=z)
+    return SkyCoord(cartrep, frame=GCRS(obstime=time))
 
 
 def concatenate(coords):

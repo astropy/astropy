@@ -160,3 +160,7 @@ M_earth = Constant('M_earth', "Earth mass", 5.9742e24, 'kg', 0.00005e24,
 R_earth = Constant('R_earth', "Earth equatorial radius", 6.378136e6, 'm',
                    0.0000005e6, "Allen's Astrophysical Quantities 4th Ed.",
                    system='si')
+
+# Moon mass
+M_moon = Constant('M_moon', "Moon mass", 7.353e22, 'kg', 0.0005e22,
+                 "Allen's Astrophysical Quantities 4th Ed.", system='si')
