@@ -95,7 +95,10 @@ class WCSWorld2PixelTransform(CurvedTransform):
         if world.shape[1] != self.wcs.wcs.naxis:
             raise ValueError("Second dimension of input values should match number of WCS coordinates")
 
-        pixel = self.wcs.wcs_world2pix(world, 1) - 1
+        if world.shape[0] == 0:
+            pixel = np.zeros((0, 2))
+        else:
+            pixel = self.wcs.wcs_world2pix(world, 1) - 1
 
         if self.slice is None:
             return pixel
@@ -162,7 +165,10 @@ class WCSPixel2WorldTransform(CurvedTransform):
 
         pixel_full += 1
 
-        world = self.wcs.wcs_pix2world(pixel_full, 1)
+        if pixel_full.shape[0] == 0:
+            world = np.zeros((0, 2))
+        else:
+            world = self.wcs.wcs_pix2world(pixel_full, 1)
 
         # At the moment, one has to manually check that the transformation
         # round-trips, otherwise it should be considered invalid.
