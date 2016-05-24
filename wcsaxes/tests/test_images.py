@@ -111,6 +111,9 @@ class TestBasic(BaseImageTests):
         ax.coords.frame.set_color('red')
         ax.coords.frame.set_linewidth(2)
 
+        assert ax.coords.frame.get_color() == 'red'
+        assert ax.coords.frame.get_linewidth() == 2
+
         return fig
 
     @remote_data
@@ -451,7 +454,7 @@ class TestBasic(BaseImageTests):
                              edgecolor='purple', facecolor='none',
                              transform=ax.get_transform('fk5'))
         ax.add_patch(r)
-        
+
         ax.coords[0].set_ticklabel_visible(False)
         ax.coords[1].set_ticklabel_visible(False)
 
