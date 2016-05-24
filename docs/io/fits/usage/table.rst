@@ -74,6 +74,7 @@ Reading a FITS Table
 Like images, the ``.data`` attribute of a table HDU contains the data of the
 table.  To recap, the simple example in the Quick Tutorial::
 
+    >>> from astropy.io import fits
     >>> f = fits.open('bright_stars.fits')  # open a FITS file
     >>> tbdata = f[1].data  # assume the first extension is a table
     >>> print(tbdata[:2])  # show the first two rows
@@ -256,10 +257,10 @@ header keywords and descriptions:
     array                                 the data of the column
 
 
-Here are a few Columns using various combination of these arguments:
+Here are a few Columns using various combination of these arguments::
 
     >>> import numpy as np
-    >>> from fits import Column
+    >>> from astropy.io.fits import Column
     >>> counts = np.array([312, 334, 308, 317])
     >>> names = np.array(['NGC1', 'NGC2', 'NGC3', 'NGC4'])
     >>> c1 = Column(name='target', format='10A', array=names)
