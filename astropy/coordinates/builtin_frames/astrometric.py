@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
-
 from ... import units as u
 from ..transformations import DynamicMatrixTransform, FunctionTransform
-from ..baseframe import (FrameAttribute, CoordinateAttribute, QuantityFrameAttribute,
-                         frame_transform_graph, RepresentationMapping, BaseCoordinateFrame)
+from ..baseframe import (CoordinateAttribute, QuantityFrameAttribute,
+                         frame_transform_graph, RepresentationMapping,
+                         BaseCoordinateFrame)
 from ..angles import rotation_matrix
 from ...utils.compat import namedtuple_asdict
-from ...extern import six
 
 _astrometric_cache = {}
 
@@ -18,10 +16,8 @@ def make_astrometric_cls(framecls):
     origin frame. If such a class has already been created for this frame, the
     same class will be returned.
 
-    The resulting frame class will be subtly different from the base class in
-    that its spherical component names will be d<lat> and d<lon>.  E.g., for
-    ICRS the astrometric frame had components ``dra`` and ``ddec`` instead of
-    ``ra`` and ``dec``.
+    The new class will always have component names for spherical coordinates of
+    ``lon``/``lat``.
 
     Parameters
     ----------
@@ -63,7 +59,11 @@ def make_astrometric_cls(framecls):
             # AstrometricFrame class initially.
             members['_frame_specific_representation_info'] = framecls._frame_specific_representation_info
             members['_default_representation'] = framecls._default_representation
-            res = super(AstrometricMeta, cls).__new__(cls, name, bases, members)
+
+            newname = name[:-5] if name.endswith('Frame') else name
+            newname += framecls.__name__
+
+            res = super(AstrometricMeta, cls).__new__(cls, newname, bases, members)
             # now go through all the component names and make any spherical
             # lat/lon names be "d<lon>"/"d<lat>"
 
@@ -81,14 +81,17 @@ def make_astrometric_cls(framecls):
 
                         if comp.reprname in ('lon', 'lat'):
                             dct = namedtuple_asdict(comp)
-                            dct['framename'] = 'd' + dct['framename']
+                            # this forces the component names to be 'lat' and
+                            # 'lon' regardless of what the actual base frame
+                            # might use
+                            dct['framename'] = comp.reprname
                             component_list[i] = type(comp)(**dct)
                             gotlatlon.append(comp.reprname)
                     if 'lon' not in gotlatlon:
-                        rmlon = RepresentationMapping('lon', 'dlon', 'recommended')
+                        rmlon = RepresentationMapping('lon', 'lon', 'recommended')
                         component_list.insert(0, rmlon)
                     if 'lat' not in gotlatlon:
-                        rmlat = RepresentationMapping('lat', 'dlat', 'recommended')
+                        rmlat = RepresentationMapping('lat', 'lat', 'recommended')
                         component_list.insert(0, rmlat)
                     lists_done.append(component_list)
 
@@ -97,7 +100,7 @@ def make_astrometric_cls(framecls):
     # We need this to handle the intermediate metaclass correctly, otherwise we could
     # just subclass astrometric.
     _Astrometric = AstrometricMeta('AstrometricFrame', (AstrometricFrame, framecls),
-        {'__doc__':AstrometricFrame.__doc__})
+                                   {'__doc__': AstrometricFrame.__doc__})
 
     @frame_transform_graph.transform(FunctionTransform, _Astrometric, _Astrometric)
     def astrometric_to_astrometric(from_astrometric_coord, to_astrometric_frame):
@@ -134,14 +137,23 @@ def make_astrometric_cls(framecls):
     _astrometric_cache[framecls] = _Astrometric
     return _Astrometric
 
+
 class AstrometricFrame(BaseCoordinateFrame):
     """
-    A frame which is relative to some position on the sky.
+    A frame which is relative to some specific position and oriented to match
+    its frame.
 
-    Useful for calculating offsets and dithers in the frame of the sky relative
-    to an arbitrary position. The resulting `AstrometricFrame` instance will be
-    specific to the base coordinate frame of the `origin`.
-    See :ref:`astropy-astrometric-frames`
+    AstrometricFrames always have component names for spherical coordinates
+    of ``lon``/``lat``, *not* the component names for the frame of ``origin``.
+
+    This is useful for calculating offsets and dithers in the frame of the sky
+    relative to an arbitrary position. Coordinates in this frame are both centered on the position specified by the
+    ``origin`` coordinate, *and* they are oriented in the same manner as the
+    ``origin`` frame.  E.g., if ``origin`` is `~astropy.coordinates.ICRS`, this
+    object's ``lat`` will be pointed in the direction of Dec, while ``lon``
+    will point in the direction of RA.
+
+    For more on astrometric frames, see :ref:`astropy-astrometric-frames`.
 
     Parameters
     ----------
@@ -155,6 +167,13 @@ class AstrometricFrame(BaseCoordinateFrame):
         particular position angle in the un-rotated system will be sent to
         the positive latitude (z) direction in the final frame.
 
+
+    Notes
+    -----
+    ``AstrometricFrame`` is a factory class.  That is, the objects that it
+    yields are *not* actually objects of class ``AstrometricFrame``.  Instead,
+    distinct classes are created on-the-fly for whatever the frame class is
+    of ``origin``.
     """
 
     rotation = QuantityFrameAttribute(default=0, unit=u.deg)
@@ -181,3 +200,9 @@ class AstrometricFrame(BaseCoordinateFrame):
         if super(AstrometricFrame, cls).__new__ is object.__new__:
             return super(AstrometricFrame, cls).__new__(cls)
         return super(AstrometricFrame, cls).__new__(cls, *args, **kwargs)
+
+    def __init__(self, *args, **kwargs):
+        super(AstrometricFrame, self).__init__(*args, **kwargs)
+        if self.origin is not None and not self.origin.has_data:
+            raise ValueError('The origin supplied to AstrometricFrame has no '
+                             'data.')
