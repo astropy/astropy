@@ -186,7 +186,7 @@ def get_body_barycentric(body, time, ephemeris=None):
         Time of observation.
     ephemeris : str, optional
         Ephemeris to use.  By default, use the one set with
-        :func:`~astropy.coordinates.solar_system_ephemeris.set`
+        ``astropy.coordinates.solar_system_ephemeris.set``
 
     Returns
     -------
@@ -267,7 +267,7 @@ def _get_apparent_body_position(body, time, ephemeris):
         Time of observation.
     ephemeris : str, optional
         Ephemeris to use.  By default, use the one set with
-        :func:`~astropy.coordinates.solar_system_ephemeris.set`
+        ``~astropy.coordinates.solar_system_ephemeris.set``
 
     Returns
     -------
@@ -311,7 +311,7 @@ def get_body(body, time, location=None, ephemeris=None):
         ``time`` (if not present, a geocentric observer will be assumed).
     ephemeris : str, optional
         Ephemeris to use.  If not given, use the one set with
-        :func:`~astropy.coordinates.solar_system_ephemeris.set` (which is
+        ``astropy.coordinates.solar_system_ephemeris.set`` (which is
         set to 'approximate' by default).
 
     Returns
@@ -353,7 +353,7 @@ def get_moon(time, location=None, ephemeris=None):
         ``time`` (if not present, a geocentric observer will be assumed).
     ephemeris : str, optional
         Ephemeris to use.  If not given, use the one set with
-        :func:`~astropy.coordinates.solar_system_ephemeris.set` (which is
+        ``astropy.coordinates.solar_system_ephemeris.set`` (which is
         set to 'approximate' by default).
 
     Returns
