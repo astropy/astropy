@@ -197,3 +197,8 @@ def test_astrometric_names():
     origin2 = Galactic(45*u.deg, 45*u.deg)
     aframe2 = AstrometricFrame(origin=origin2)
     assert type(aframe2).__name__ == 'AstrometricGalactic'
+
+def test_astrometric_origindata():
+    origin = ICRS()
+    with pytest.raises(ValueError):
+        AstrometricFrame(origin=origin)
