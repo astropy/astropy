@@ -1177,3 +1177,13 @@ def test_non_C_locale_with_fast_reader():
         raise
     finally:
         locale.setlocale(locale.LC_ALL, current)
+
+
+def test_no_units_for_char_columns():
+    '''Test that a char column of a Table is assigned no unit and not
+    a dimensionless unit.'''
+    t1 = Table([["A"]], names="B")
+    out = StringIO()
+    ascii.write(t1, out, format="ipac")
+    t2 = ascii.read(out.getvalue(), format="ipac", guess=False)
+    assert t2["B"].unit == None
