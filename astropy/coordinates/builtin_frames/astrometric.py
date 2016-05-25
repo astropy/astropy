@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
-
 from ... import units as u
 from ..transformations import DynamicMatrixTransform, FunctionTransform
-from ..baseframe import (FrameAttribute, CoordinateAttribute, QuantityFrameAttribute,
-                         frame_transform_graph, RepresentationMapping, BaseCoordinateFrame)
+from ..baseframe import (CoordinateAttribute, QuantityFrameAttribute,
+                         frame_transform_graph, RepresentationMapping,
+                         BaseCoordinateFrame)
 from ..angles import rotation_matrix
 from ...utils.compat import namedtuple_asdict
-from ...extern import six
 
 _astrometric_cache = {}
 
@@ -97,7 +95,7 @@ def make_astrometric_cls(framecls):
     # We need this to handle the intermediate metaclass correctly, otherwise we could
     # just subclass astrometric.
     _Astrometric = AstrometricMeta('AstrometricFrame', (AstrometricFrame, framecls),
-        {'__doc__':AstrometricFrame.__doc__})
+                                   {'__doc__': AstrometricFrame.__doc__})
 
     @frame_transform_graph.transform(FunctionTransform, _Astrometric, _Astrometric)
     def astrometric_to_astrometric(from_astrometric_coord, to_astrometric_frame):
@@ -133,6 +131,7 @@ def make_astrometric_cls(framecls):
 
     _astrometric_cache[framecls] = _Astrometric
     return _Astrometric
+
 
 class AstrometricFrame(BaseCoordinateFrame):
     """
