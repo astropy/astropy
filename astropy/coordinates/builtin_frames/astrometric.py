@@ -61,7 +61,11 @@ def make_astrometric_cls(framecls):
             # AstrometricFrame class initially.
             members['_frame_specific_representation_info'] = framecls._frame_specific_representation_info
             members['_default_representation'] = framecls._default_representation
-            res = super(AstrometricMeta, cls).__new__(cls, name, bases, members)
+
+            newname = name[:-5] if name.endswith('Frame') else name
+            newname += framecls.__name__
+
+            res = super(AstrometricMeta, cls).__new__(cls, newname, bases, members)
             # now go through all the component names and make any spherical
             # lat/lon names be "d<lon>"/"d<lat>"
 

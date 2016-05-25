@@ -7,7 +7,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 
 from ... import units as u
-from ..builtin_frames import ICRS, AstrometricFrame
+from ..builtin_frames import ICRS, Galactic, AstrometricFrame
 from .. import SkyCoord
 from ...tests.helper import (pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
@@ -187,3 +187,13 @@ def test_rotation(rotation, expectedlatlon):
 
     assert_allclose([trans.lon.wrap_at(180*u.deg), trans.lat],
                     expectedlatlon, atol=1e-10*u.deg)
+
+
+def test_astrometric_names():
+    origin1 = ICRS(45*u.deg, 45*u.deg)
+    aframe1 = AstrometricFrame(origin=origin1)
+    assert type(aframe1).__name__ == 'AstrometricICRS'
+
+    origin2 = Galactic(45*u.deg, 45*u.deg)
+    aframe2 = AstrometricFrame(origin=origin2)
+    assert type(aframe2).__name__ == 'AstrometricGalactic'
