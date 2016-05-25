@@ -80,7 +80,7 @@ Fitting examples
            c*np.random.normal(3.0, 5.0, x.shape))
      g_init = models.Gaussian1D(amplitude=1., mean=0, stddev=1.)
 
-     # initiliaze fitters
+     # initialize fitters
      fit = fitting.LevMarLSQFitter()
      or_fit = fitting.FittingWithOutlierRemoval(fit, sigma_clip,
                                                 niter=3, sigma=3.0)
