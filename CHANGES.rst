@@ -582,6 +582,9 @@ Bug fixes
   - Fix a problem where the fast reader (with use_fast_converter=False) can
     fail on non-US locales. [#4363]
 
+  - Fix astropy.io.ascii.read handling of units for IPAC formatted files.
+    Columns with no unit are treated as unitless not dimensionless. [#4867]
+
 - ``astropy.io.fits``
 
   - Removed raising of AssertionError that could occur after closing or

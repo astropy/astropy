@@ -193,7 +193,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 col.raw_type = header_vals[1][i].strip(' -')
                 col.type = self.get_col_type(col)
             if len(header_vals) > 2:
-                col.unit = header_vals[2][i].strip()  # Can't strip dashes here
+                col.unit = header_vals[2][i].strip() or None  # Can't strip dashes here
             if len(header_vals) > 3:
                 # The IPAC null value corresponds to the io.ascii bad_value.
                 # In this case there isn't a fill_value defined, so just put
