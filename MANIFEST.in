@@ -1,7 +1,7 @@
 include .astropy-root
 include README.rst
 include CHANGES.rst
-include *pip-requirements
+include pip-requirements*
 
 include ez_setup.py
 include ah_bootstrap.py
@@ -32,7 +32,7 @@ prune docs/_build
 prune build
 
 
-# the next few stanzas are for astropy_helpers.  It's derived from the 
+# the next few stanzas are for astropy_helpers.  It's derived from the
 # astropy_helpers/MANIFEST.in, but requires additional includes for the actual
 # package directory and egg-info.
 
