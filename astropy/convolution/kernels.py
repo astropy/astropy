@@ -1011,6 +1011,6 @@ class CustomKernel(Kernel):
         # Check if array is bool
         ones = self._array == 1.
         zeros = self._array == 0
-        self._is_bool = np.all(np.logical_or(ones, zeros))
+        self._is_bool = bool(np.all(np.logical_or(ones, zeros)))
 
         self._truncation = 0.0
