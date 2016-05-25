@@ -61,16 +61,17 @@ PLAN94_BODY_NAME_TO_PLANET_INDEX = OrderedDict(
 _EPHEMERIS_NOTE = """
 You can either give an explicit ephemeris or use a default, which is normally
 an approximate ephemeris that does not require ephemeris files.  To change
-the default to be a JPL ephemeris::
+the default to be the JPL ephemeris::
 
-    >>> from astropy import coordinates as coord
-    >>> coord.solar_system_ephemeris.set('jpl')  # doctest: +SKIP
+    >>> from astropy.coordinates import solar_system_ephemeris
+    >>> solar_system_ephemeris.set('jpl')  # doctest: +SKIP
 
-This requires the jplephem package (https://pypi.python.org/pypi/jplephem).
+Use of any JPL ephemeris requires the jplephem package
+(https://pypi.python.org/pypi/jplephem).
 If needed, the ephemeris file will be downloaded (and cached).
 
 One can check which bodies are covered by a given ephemeris using::
-    >>> coord.solar_system_ephemeris.bodies
+    >>> solar_system_ephemeris.bodies
     ('earth', 'sun', 'mercury', 'venus', 'earth-moon-barycenter', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune')
 """[1:-1]
 
@@ -83,16 +84,16 @@ class solar_system_ephemeris(ScienceState):
     - 'approximate': polynomial approximations to the orbital elements.
     - 'de430' or 'de432s': short-cuts for recent JPL dynamical models.
     - 'jpl': Alias for the default JPL ephemeris (currently, 'de430').
-    - A URL (as a string): The url to a SPK ephemeris in SPICE binary (.bst)
-      format.
+    - URL: (str) The url to a SPK ephemeris in SPICE binary (.bst) format.
     - `None`: Ensure an Exception is raised without an explicit ephemeris.
 
     The default is 'approximate', which uses the ``epv00`` and ``plan94``
-    routines from the Standards Of Fundamental Astronomy library (as
-    implemented in ``erfa``).
+    routines from the ``erfa`` implementation of the Standards Of Fundamental
+    Astronomy library.
 
     Notes
     -----
+    Any file required will be downloaded (and cached) when the state is set.
     The default Satellite Planet Kernel (SPK) file from NASA JPL (de430) is
     ~120MB, and covers years ~1550-2650 CE [1]_.  The smaller de432s file is
     ~10MB, and covers years 1950-2050 [2]_.  Older versions of the JPL
@@ -107,7 +108,7 @@ class solar_system_ephemeris(ScienceState):
 
     @classmethod
     def validate(cls, value):
-        # Set up Kernel; if the file is not in cache, this will dowload it.
+        # Set up Kernel; if the file is not in cache, this will download it.
         cls.get_kernel(value)
         return value
 
@@ -116,6 +117,9 @@ class solar_system_ephemeris(ScienceState):
         # ScienceState only ensures the `_value` attribute is up to date,
         # so we need to be sure any kernel returned is consistent.
         if cls._kernel is None or cls._kernel.origin != value:
+            if cls._kernel is not None:
+                cls._kernel.daf.file.close()
+                cls._kernel = None
             kernel = _get_kernel(value)
             if kernel is not None:
                 kernel.origin = value
