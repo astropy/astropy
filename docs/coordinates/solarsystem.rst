@@ -7,15 +7,15 @@ Solar System Ephemerides
 
 `astropy.coordinates` can calculate the |SkyCoord| of some of the major solar
 system objects. By default, it uses approximate orbital elements from `ERFA
-<https://github.com/liberfa/erfa>`_ routines, but one can also use more precise
+<https://github.com/liberfa/erfa>`_ routines, but it can also use more precise
 ones using the JPL ephemerides (which are derived from dynamical models).  The
 default JPL ephemerides (DE430) provide predictions valid roughly for years
 between 1550 and 2650. The file is 115 MB and will need to be downloaded the
 first time you use this functionality, but will be cached after that.
 
 .. note::
-   To use JPL ephemerides requires that the `jplephem
-   <https://pypi.python.org/pypi/jplephem>`_ package is installed. This is
+   Using JPL ephemerides requires that the `jplephem
+   <https://pypi.python.org/pypi/jplephem>`_ package be installed. This is
    most easily achieved via ``pip install jplephem``, although whatever
    package management system you use might have it as well.
 
@@ -26,14 +26,28 @@ return |SkyCoord| objects in the `~astropy.coordinates.GCRS` frame, whilst the
 latter returns a `~astropy.coordinates.CartesianRepresentation` of the
 barycentric position of a body (i.e in the `~astropy.coordinates.ICRS` frame).
 
-Here are some examples of these functions in use with the ``de432s``
-ephemeris (which is a smaller, ~10 MB, file valid between 1950 and 2050)::
+Here is an example of using these functions with approximate ephemerides, i.e.,
+without the need to download a large ephemerides file::
 
   >>> from astropy.time import Time
   >>> from astropy.coordinates import solar_system_ephemeris, EarthLocation  
   >>> from astropy.coordinates import get_body_barycentric, get_body, get_moon
   >>> t = Time("2014-09-22 23:22")
   >>> loc = EarthLocation.of_site('greenwich')
+  >>> with solar_system_ephemeris.set('approximate'):
+  ...     jup = get_body('jupiter', t, loc)
+  >>> jup  # doctest: +FLOAT_CMP
+  <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=[ 3949481.6898847   -550931.9118969   4961151.73733443] m, obsgeovel=[  40.1745933   288.00078051   -0.        ] m / s): (ra, dec, distance) in (deg, deg, AU)
+      (136.91116201, 17.02935408, 5.94386022)>
+
+Above, we used ``solar_system_ephemeris`` as a context, which sets the default
+ephemeris while in the ``with`` clause, and resets it at the end.
+
+To get more precise positions, one could use the ``de430`` ephemeris mentioned
+above, but between 1950 and 2050 one could also opt for the ``de432s``
+ephemeris, which is stored in a smaller, ~10 MB, file (which will be
+downloaded and cached when the ephemeris is set).::
+
   >>> solar_system_ephemeris.set('de432s') # doctest: +REMOTE_DATA, +IGNORE_OUTPUT
   <ScienceState solar_system_ephemeris: 'de432s'>
   >>> get_body('jupiter', t, loc) # doctest: +REMOTE_DATA, +FLOAT_CMP
@@ -46,14 +60,6 @@ ephemeris (which is a smaller, ~10 MB, file valid between 1950 and 2050)::
   <CartesianRepresentation (x, y, z) in km
       (150107535.1073409, -866789.11996916, -418963.55218495)>
 
-For lower precision estimates that do not require downloading an ephemeris::
-
-  >>> solar_system_ephemeris.set('approximate')
-  <ScienceState solar_system_ephemeris: 'approximate'>
-  >>> get_body('jupiter', t, loc)  # doctest: +FLOAT_CMP
-  <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=[ 3949481.6898847   -550931.9118969   4961151.73733443] m, obsgeovel=[  40.1745933   288.00078051   -0.        ] m / s): (ra, dec, distance) in (deg, deg, AU)
-      (136.91116201, 17.02935408, 5.94386022)>
-
 For one-off calculations with a given ephemeris, one can also pass it directly
 to the various functions::
 
@@ -64,19 +70,6 @@ to the various functions::
 
 For a list of the bodies for which positions can be calculated, do::
 
-  >>> solar_system_ephemeris.bodies
-  ('earth',
-   'sun',
-   'mercury',
-   'venus',
-   'earth-moon-barycenter',
-   'mars',
-   'jupiter',
-   'saturn',
-   'uranus',
-   'neptune')
-  >>> solar_system_ephemeris.set('de432s') # doctest: +REMOTE_DATA
-  <ScienceState solar_system_ephemeris: 'de432s'>
   >>> solar_system_ephemeris.bodies # doctest: +REMOTE_DATA
   ('sun',
    'mercury',
@@ -90,11 +83,23 @@ For a list of the bodies for which positions can be calculated, do::
    'uranus',
    'neptune',
    'pluto')
+  >>> solar_system_ephemeris.set('approximate')
+  <ScienceState solar_system_ephemeris: 'approximate'>
+  >>> solar_system_ephemeris.bodies
+  ('earth',
+   'sun',
+   'mercury',
+   'venus',
+   'earth-moon-barycenter',
+   'mars',
+   'jupiter',
+   'saturn',
+   'uranus',
+   'neptune')
 
 .. note ::
     While the sun is included in the these ephemerides, it is important to
-    recognize that `~astropy.coordinates.get_sun` does *not* use this
-    method, but instead uses a polynomial model for the location of the sun
-    (as this requires no special download). So it is not safe to assume that
-    ``get_body(time, 'sun')`` and ``get_sun(time)`` will give the same result.
-
+    recognize that `~astropy.coordinates.get_sun` always uses the approximate,
+    polynomial model (as this requires no special download). So it is not safe
+    to assume that ``get_body(time, 'sun')`` and ``get_sun(time)`` will give
+    the same result.
