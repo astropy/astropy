@@ -200,3 +200,9 @@ class AstrometricFrame(BaseCoordinateFrame):
         if super(AstrometricFrame, cls).__new__ is object.__new__:
             return super(AstrometricFrame, cls).__new__(cls)
         return super(AstrometricFrame, cls).__new__(cls, *args, **kwargs)
+
+    def __init__(self, *args, **kwargs):
+        super(AstrometricFrame, self).__init__(*args, **kwargs)
+        if self.origin is not None and not self.origin.has_data:
+            raise ValueError('The origin supplied to AstrometricFrame has no '
+                             'data.')
