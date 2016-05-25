@@ -632,14 +632,17 @@ class FITS_rec(np.recarray):
 
     def __del__(self):
         try:
-            del self._coldefs
-        except AttributeError as err:  # pragma: no cover
-            pass
+            try:
+                del self._coldefs
+            except AttributeError as err:  # pragma: no cover
+                pass
 
-        if self.dtype.fields is not None:
-            for col in self._col_weakrefs:
-                if col.array is not None:
-                    col.array = col.array.copy()
+            if self.dtype.fields is not None:
+                for col in self._col_weakrefs:
+                    if col.array is not None:
+                        col.array = col.array.copy()
+        except TypeError:
+            pass
 
     @property
     def names(self):
