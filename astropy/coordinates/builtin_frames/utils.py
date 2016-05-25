@@ -142,45 +142,11 @@ def get_jd12(time, scale):
     return newtime.jd1, newtime.jd2
 
 
-def rxp(rmat, p, transpose=True):
-    """
-    Multiply a p-vector by (the transpose of) an r matrix.
-
-    Parameters
-    ----------
-    rmat : `~numpy.ndarray`
-        rotation matrix
-    p : `~numpy.ndarray`
-        position vector
-
-    Returns
-    --------
-    rp : `~numpy.ndarray`
-    """
-    if rmat.shape[-2:] != (3, 3):
-        raise ValueError("tried to do matrix multiplication with an array that "
-                         "doesn't end in 3x3")
-
-    if p.ndim == 1 and rmat.shape == (3, 3):
-        # a simpler path for scalar coordinates
-        if transpose:
-            rmat = rmat.T
-        result = np.sum(rmat * p, axis=-1).T
-    else:
-        # these expression are the same as iterating over the first dimension of
-        # pmat and xyz and doing matrix multiplication on each in turn.
-        rmat = rmat.reshape(rmat.size//9, 3, 3)
-        if transpose:
-            rmat = rmat.transpose(0, 2, 1)
-        result = np.sum(rmat * p.reshape(p.size//3, 1, 3), axis=-1)
-    return result
-
-
 def norm(p):
     """
     Normalise a p-vector.
     """
-    return p/np.sqrt(np.sum(p*p, axis=-1, keepdims=True))
+    return p/np.sqrt(np.einsum('...i,...i', p, p))[..., np.newaxis]
 
 
 def aticq(ri, di, astrom):
@@ -217,7 +183,7 @@ def aticq(ri, di, astrom):
     pos = erfa.s2c(ri, di)
 
     # Bias-precession-nutation, giving GCRS proper direction.
-    ppr = rxp(astrom['bpn'], pos, transpose=True)
+    ppr = erfa.trxp(astrom['bpn'], pos)
 
     # Aberration, giving GCRS natural direction
     d = np.zeros_like(ppr)
@@ -281,7 +247,7 @@ def atciqz(rc, dc, astrom):
 
     # Bias-precession-nutation, giving CIRS proper direction.
     # Has no effect if matrix is identity matrix, in which case gives GCRS ppr.
-    pi = rxp(astrom['bpn'], ppr, transpose=False)
+    pi = erfa.rxp(astrom['bpn'], ppr)
 
     # CIRS (GCRS) RA, Dec
     ri, di = erfa.c2s(pi)
