@@ -16,10 +16,8 @@ def make_astrometric_cls(framecls):
     origin frame. If such a class has already been created for this frame, the
     same class will be returned.
 
-    The resulting frame class will be subtley different from the base class in
-    that its spherical component names will be d<lat> and d<lon>.  E.g., for
-    ICRS the astrometric frame had components ``dra`` and ``ddec`` instead of
-    ``ra`` and ``dec``.
+    The new class will always have component names for spherical coordinates of
+    ``lon``/``lat``.
 
     Parameters
     ----------
@@ -142,12 +140,20 @@ def make_astrometric_cls(framecls):
 
 class AstrometricFrame(BaseCoordinateFrame):
     """
-    A frame which is relative to some position on the sky.
+    A frame which is relative to some specific position and oriented to match
+    its frame.
 
-    Useful for calculating offsets and dithers in the frame of the sky relative
-    to an arbitrary position. The resulting `AstrometricFrame` instance will be
-    specific to the base coordinate frame of the `origin`.
-    See :ref:`astropy-astrometric-frames`
+    AstrometricFrames always have component names for spherical coordinates
+    of ``lon``/``lat``, *not* the component names for the frame of ``origin``.
+
+    This is useful for calculating offsets and dithers in the frame of the sky
+    relative to an arbitrary position. Coordinates in this frame are both centered on the position specified by the
+    ``origin`` coordinate, *and* they are oriented in the same manner as the
+    ``origin`` frame.  E.g., if ``origin`` is `~astropy.coordinates.ICRS`, this
+    object's ``lat`` will be pointed in the direction of Dec, while ``lon``
+    will point in the direction of RA.
+
+    For more on astrometric frames, see :ref:`astropy-astrometric-frames`.
 
     Parameters
     ----------
@@ -161,6 +167,13 @@ class AstrometricFrame(BaseCoordinateFrame):
         particular position angle in the un-rotated system will be sent to
         the positive latitude (z) direction in the final frame.
 
+
+    Notes
+    -----
+    ``AstrometricFrame`` is a factory class.  That is, the objects that it
+    yields are *not* actually objects of class ``AstrometricFrame``.  Instead,
+    distinct classes are created on-the-fly for whatever the frame class is
+    of ``origin``.
     """
 
     rotation = QuantityFrameAttribute(default=0, unit=u.deg)

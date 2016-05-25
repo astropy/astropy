@@ -114,6 +114,15 @@ frame from an already-existing |SkyCoord|::
         (10.0, 45.0)>): (lon, lat) in deg
         (359.28056055, -0.99556216)>
 
+.. note ::
+    While astrometric frames *appear* to be all the same class, this not the
+    case: the frame for each different type of frame for ``origin`` is act
+    actually a distinct class.  E.g., ``AstrometricFrame(origin=ICRS(...))``
+    yields an object of class ``AstrometricICRS``, *not* ``AstrometricFrame``.
+    While this is not important for most uses of this class, it is important for
+    things like type-checking, because something like
+    ``AstrometricFrame(origin=ICRS(...)).__class__ is AstrometricFrame`` will
+    *not* be ``True``, as it would be for most classes.
 
 .. _astropy-coordinates-matching:
 
