@@ -165,6 +165,12 @@ def terminal_size(file=None):
         if width > 10:
             width -= 1
         return (lines, width)
+    except KeyboardInterrupt:
+        # anonymous exception catching will catch - and therefore prevent -
+        # keyboard interrupts, which means users can't manually break out of
+        # loops.  Catching and raising KeyboardInterrupts allows all other
+        # exceptions to pass into the next clause below
+        raise
     except:
         try:
             # see if POSIX standard variables will work
