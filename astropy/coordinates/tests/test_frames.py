@@ -531,8 +531,10 @@ def test_nodata_error():
     from ..builtin_frames import ICRS
 
     i = ICRS()
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as excinfo:
         i.data
+
+    assert 'does not have associated data' in str(excinfo.value)
 
 def test_len0_data():
     from ..builtin_frames import ICRS
@@ -673,3 +675,13 @@ def test_getitem_representation():
     c = ICRS([1, 1] * u.deg, [2, 2] * u.deg)
     c.representation = 'cartesian'
     assert c[0].representation is representation.CartesianRepresentation
+
+
+def test_component_error_useful():
+    from ..builtin_frames import ICRS
+
+    i = ICRS()
+    with pytest.raises(ValueError) as excinfo:
+        i.ra
+
+    assert 'does not have associated data' in str(excinfo.value)
