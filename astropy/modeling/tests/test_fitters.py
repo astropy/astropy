@@ -22,6 +22,7 @@ from ...utils import NumpyRNGContext
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
 from .utils import ignore_non_integer_warning
+from ...stats import sigma_clip
 
 try:
     from scipy import optimize
@@ -405,6 +406,7 @@ class TestNonLinearFitters(object):
         assert_allclose(fmod.parameters, beta.A.ravel())
         assert_allclose(olscov, fitter.fit_info['param_cov'])
 
+
 @pytest.mark.skipif('not HAS_SCIPY')
 class Test1DFittingWithOutlierRemoval(object):
     def setup_class(self):
@@ -417,9 +419,7 @@ class Test1DFittingWithOutlierRemoval(object):
         self.y = func(self.model_params, self.x)
 
     def test_with_fitters_and_sigma_clip(self):
-        from astropy.stats import sigma_clip
         import scipy.stats as stats
-        from astropy.modeling import fitting
 
         np.random.seed(0)
         c = stats.bernoulli.rvs(0.25, size=self.x.shape)
@@ -428,19 +428,18 @@ class Test1DFittingWithOutlierRemoval(object):
 
         g_init = models.Gaussian1D(amplitude=1., mean=0, stddev=1.)
         # test with Levenberg-Marquardt Least Squares fitter
-        fit = fitting.FittingWithOutlierRemoval(LevMarLSQFitter(), sigma_clip,
-                                                niter=3, sigma=3.0)
+        fit = FittingWithOutlierRemoval(LevMarLSQFitter(), sigma_clip,
+                                        niter=3, sigma=3.0)
         _, fitted_model = fit(g_init, self.x, self.y)
         assert_allclose(fitted_model.parameters, self.model_params, rtol=1e-1)
         # test with Sequential Least Squares Programming fitter
-        fit = fitting.FittingWithOutlierRemoval(SLSQPLSQFitter(), sigma_clip,
-                                                niter=3, sigma=3.0)
+        fit = FittingWithOutlierRemoval(SLSQPLSQFitter(), sigma_clip,
+                                        niter=3, sigma=3.0)
         _, fitted_model = fit(g_init, self.x, self.y)
         assert_allclose(fitted_model.parameters, self.model_params, rtol=1e-1)
         # test with Simplex LSQ fitter
-        fit = fitting.FittingWithOutlierRemoval(SimplexLSQFitter(),
-                                                sigma_clip, niter=3,
-                                                sigma=3.0)
+        fit = FittingWithOutlierRemoval(SimplexLSQFitter(), sigma_clip,
+                                        niter=3, sigma=3.0)
         _, fitted_model = fit(g_init, self.x, self.y)
         assert_allclose(fitted_model.parameters, self.model_params, atol=1e-1)
 
@@ -480,7 +479,6 @@ class Test2DFittingWithOutlierRemoval(object):
         return amplitude, x_mean, y_mean
 
     def test_with_fitters_and_sigma_clip(self):
-        from astropy.stats import sigma_clip
         import scipy.stats as stats
 
         np.random.seed(0)
