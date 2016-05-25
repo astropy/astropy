@@ -79,7 +79,7 @@ telescope operator to move from a bright star to a fainter target.)::
 ====================
 
 To extend the concept of spherical offsets, `~astropy.coordinates` has
-a frame class :class:`~astropy.coordinates.builtin_frames.astrometric.AstrometricFrame` 
+a frame class :class:`~astropy.coordinates.builtin_frames.astrometric.AstrometricFrame`
 which creates distinct frames that are centered on a specific point.
 These are known as "astrometric frames" (as they are a convenient way to create
 a centered on an arbitrary position, suitable for computing positional offsets for
@@ -89,17 +89,16 @@ astrometry)::
     >>> center = ICRS(10*u.deg, 45*u.deg)
     >>> center.transform_to(AstrometricFrame(origin=center))  # doctest: +SKIP
     <AstrometricFrame Coordinate (rotation=0.0 deg, origin=<ICRS Coordinate: (ra, dec) in deg
-        (10.0, 45.0)>): (dra, ddec) in deg
+        (10.0, 45.0)>): (lon, lat) in deg
         (0.0, 0.0)>
     >>> target = ICRS(11*u.deg, 46*u.deg)
     >>> target.transform_to(AstrometricFrame(origin=center))  # doctest: +FLOAT_CMP
     <AstrometricFrame Coordinate (rotation=0.0 deg, origin=<ICRS Coordinate: (ra, dec) in deg
-        (10.0, 45.0)>): (dra, ddec) in deg
+        (10.0, 45.0)>): (lon, lat) in deg
         (0.69474685, 1.00428706)>
 
 
-
-Alternatively, the convenience method 
+Alternatively, the convenience method
 :meth:`~astropy.coordinates.SkyCoord.astrometric_frame` lets you create an astrometric
 frame from an already-existing |SkyCoord|::
 
@@ -107,12 +106,12 @@ frame from an already-existing |SkyCoord|::
     >>> aframe = center.astrometric_frame()
     >>> target.transform_to(aframe)  # doctest: +FLOAT_CMP
     <AstrometricFrame Coordinate (rotation=0.0 deg, origin=<ICRS Coordinate: (ra, dec) in deg
-        (10.0, 45.0)>): (dra, ddec) in deg
+        (10.0, 45.0)>): (lon, lat) in deg
         (0.69474685, 1.00428706)>
     >>> other = SkyCoord(9*u.deg, 44*u.deg, frame='fk5')
     >>> other.transform_to(aframe)  # doctest: +FLOAT_CMP
     <SkyCoord (AstrometricFrame: rotation=0.0 deg, origin=<ICRS Coordinate: (ra, dec) in deg
-        (10.0, 45.0)>): (dra, ddec) in deg
+        (10.0, 45.0)>): (lon, lat) in deg
         (359.28056055, -0.99556216)>
 
 

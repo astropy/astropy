@@ -13,21 +13,21 @@ from ...tests.helper import (pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
 
 
-@pytest.mark.parametrize("inradec,expecteddradec, tolsep", [
+@pytest.mark.parametrize("inradec,expectedlatlon, tolsep", [
     ((45, 45)*u.deg, (0, 0)*u.deg, .001*u.arcsec),
     ((45, 0)*u.deg, (0, -45)*u.deg, .001*u.arcsec),
     ((45, 90)*u.deg, (0, 45)*u.deg, .001*u.arcsec),
     ((46, 45)*u.deg, (1*np.cos(45*u.deg), 0)*u.deg, 16*u.arcsec),
     ])
-def test_astrometric(inradec, expecteddradec, tolsep, originradec=(45, 45)*u.deg):
+def test_astrometric(inradec, expectedlatlon, tolsep, originradec=(45, 45)*u.deg):
     origin = ICRS(*originradec)
     astrometric_frame = AstrometricFrame(origin=origin)
 
     skycoord = SkyCoord(*inradec, frame=ICRS)
     skycoord_inaf = skycoord.transform_to(astrometric_frame)
-    assert hasattr(skycoord_inaf, 'dra')
-    assert hasattr(skycoord_inaf, 'ddec')
-    expected = SkyCoord(*expecteddradec, frame=astrometric_frame)
+    assert hasattr(skycoord_inaf, 'lon')
+    assert hasattr(skycoord_inaf, 'lat')
+    expected = SkyCoord(*expectedlatlon, frame=astrometric_frame)
 
     assert skycoord_inaf.separation(expected) < tolsep
 
@@ -166,24 +166,24 @@ def test_skycoord_astrometric_frame():
     m31_in_m31 = m31.transform_to(m31_astro)
     m33_in_m31 = m33.transform_to(m31_astro)
 
-    assert_allclose([m31_in_m31.dra, m31_in_m31.ddec], [0, 0]*u.deg, atol=1e-10*u.deg)
-    assert_allclose([m33_in_m31.dra, m33_in_m31.ddec], [11.13135175, -9.79084759]*u.deg)
+    assert_allclose([m31_in_m31.lon, m31_in_m31.lat], [0, 0]*u.deg, atol=1e-10*u.deg)
+    assert_allclose([m33_in_m31.lon, m33_in_m31.lat], [11.13135175, -9.79084759]*u.deg)
 
     assert_allclose(m33.separation(m31),
-                    np.hypot(m33_in_m31.dra, m33_in_m31.ddec),
+                    np.hypot(m33_in_m31.lon, m33_in_m31.lat),
                     atol=.1*u.deg)
-@pytest.mark.parametrize("rotation, expecteddradec", [
+@pytest.mark.parametrize("rotation, expectedlatlon", [
     (0*u.deg, [0, 1]*u.deg),
     (180*u.deg, [0, -1]*u.deg),
     (90*u.deg, [-1, 0]*u.deg),
     (-90*u.deg, [1, 0]*u.deg)
     ])
-def test_rotation(rotation, expecteddradec):
+def test_rotation(rotation, expectedlatlon):
     origin = ICRS(45*u.deg, 45*u.deg)
     target = ICRS(45*u.deg, 46*u.deg)
 
     aframe = AstrometricFrame(origin=origin, rotation=rotation)
     trans = target.transform_to(aframe)
 
-    assert_allclose([trans.dra.wrap_at(180*u.deg), trans.ddec],
-                    expecteddradec, atol=1e-10*u.deg)
+    assert_allclose([trans.lon.wrap_at(180*u.deg), trans.lat],
+                    expectedlatlon, atol=1e-10*u.deg)

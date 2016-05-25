@@ -16,7 +16,7 @@ def make_astrometric_cls(framecls):
     origin frame. If such a class has already been created for this frame, the
     same class will be returned.
 
-    The resulting frame class will be subtly different from the base class in
+    The resulting frame class will be subtley different from the base class in
     that its spherical component names will be d<lat> and d<lon>.  E.g., for
     ICRS the astrometric frame had components ``dra`` and ``ddec`` instead of
     ``ra`` and ``dec``.
@@ -79,14 +79,17 @@ def make_astrometric_cls(framecls):
 
                         if comp.reprname in ('lon', 'lat'):
                             dct = namedtuple_asdict(comp)
-                            dct['framename'] = 'd' + dct['framename']
+                            # this forces the component names to be 'lat' and
+                            # 'lon' regardless of what the actual base frame
+                            # might use
+                            dct['framename'] = comp.reprname
                             component_list[i] = type(comp)(**dct)
                             gotlatlon.append(comp.reprname)
                     if 'lon' not in gotlatlon:
-                        rmlon = RepresentationMapping('lon', 'dlon', 'recommended')
+                        rmlon = RepresentationMapping('lon', 'lon', 'recommended')
                         component_list.insert(0, rmlon)
                     if 'lat' not in gotlatlon:
-                        rmlat = RepresentationMapping('lat', 'dlat', 'recommended')
+                        rmlat = RepresentationMapping('lat', 'lat', 'recommended')
                         component_list.insert(0, rmlat)
                     lists_done.append(component_list)
 
