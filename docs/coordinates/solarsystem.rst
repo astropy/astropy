@@ -6,12 +6,13 @@ Solar System Ephemerides
 ------------------------
 
 `astropy.coordinates` can calculate the |SkyCoord| of some of the major solar
-system objects. By default, it uses approximate orbital elements from `ERFA
-<https://github.com/liberfa/erfa>`_ routines, but it can also use more precise
-ones using the JPL ephemerides (which are derived from dynamical models).  The
-default JPL ephemerides (DE430) provide predictions valid roughly for years
-between 1550 and 2650. The file is 115 MB and will need to be downloaded the
-first time you use this functionality, but will be cached after that.
+system objects. By default, it uses approximate orbital elements calculated
+using built-in `ERFA <https://github.com/liberfa/erfa>`_ routines, but it can
+also use more precise ones using the JPL ephemerides (which are derived from
+dynamical models).  The default JPL ephemerides (DE430) provide predictions
+valid roughly for years between 1550 and 2650. The file is 115 MB and will need
+to be downloaded the first time you use this functionality, but will be cached
+after that.
 
 .. note::
    Using JPL ephemerides requires that the `jplephem
@@ -26,7 +27,7 @@ return |SkyCoord| objects in the `~astropy.coordinates.GCRS` frame, whilst the
 latter returns a `~astropy.coordinates.CartesianRepresentation` of the
 barycentric position of a body (i.e in the `~astropy.coordinates.ICRS` frame).
 
-Here is an example of using these functions with approximate ephemerides, i.e.,
+Here is an example of using these functions with built-in ephemerides, i.e.,
 without the need to download a large ephemerides file::
 
   >>> from astropy.time import Time
@@ -34,7 +35,7 @@ without the need to download a large ephemerides file::
   >>> from astropy.coordinates import get_body_barycentric, get_body, get_moon
   >>> t = Time("2014-09-22 23:22")
   >>> loc = EarthLocation.of_site('greenwich')
-  >>> with solar_system_ephemeris.set('approximate'):
+  >>> with solar_system_ephemeris.set('builtin'):
   ...     jup = get_body('jupiter', t, loc)
   >>> jup  # doctest: +FLOAT_CMP
   <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=[ 3949481.6898847   -550931.9118969   4961151.73733443] m, obsgeovel=[  40.1745933   288.00078051   -0.        ] m / s): (ra, dec, distance) in (deg, deg, AU)
@@ -83,8 +84,8 @@ For a list of the bodies for which positions can be calculated, do::
    'uranus',
    'neptune',
    'pluto')
-  >>> solar_system_ephemeris.set('approximate')
-  <ScienceState solar_system_ephemeris: 'approximate'>
+  >>> solar_system_ephemeris.set('builtin')
+  <ScienceState solar_system_ephemeris: 'builtin'>
   >>> solar_system_ephemeris.bodies
   ('earth',
    'sun',
@@ -99,7 +100,7 @@ For a list of the bodies for which positions can be calculated, do::
 
 .. note ::
     While the sun is included in the these ephemerides, it is important to
-    recognize that `~astropy.coordinates.get_sun` always uses the approximate,
+    recognize that `~astropy.coordinates.get_sun` always uses the built-in,
     polynomial model (as this requires no special download). So it is not safe
     to assume that ``get_body(time, 'sun')`` and ``get_sun(time)`` will give
     the same result.
