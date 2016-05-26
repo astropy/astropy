@@ -82,16 +82,14 @@ ASCII_DEFAULT_WIDTHS= {'A': (1, 0), 'I': (10, 0), 'J': (15, 0),
                        'E': (15, 7), 'F': (16, 7), 'D': (25, 17)}
 
 
-
-
-# lists of column/field definition common names and keyword names, make
+# tuple of column/field definition common names and keyword names, make
 # sure to preserve the one-to-one correspondence when updating the list(s).
 # Use lists, instead of dictionaries so the names can be displayed in a
 # preferred order.
-KEYWORD_NAMES = ['TTYPE', 'TFORM', 'TUNIT', 'TNULL', 'TSCAL', 'TZERO',
-                 'TDISP', 'TBCOL', 'TDIM']
-KEYWORD_ATTRIBUTES = ['name', 'format', 'unit', 'null', 'bscale', 'bzero',
-                      'disp', 'start', 'dim']
+KEYWORD_NAMES = ('TTYPE', 'TFORM', 'TUNIT', 'TNULL', 'TSCAL', 'TZERO',
+                 'TDISP', 'TBCOL', 'TDIM')
+KEYWORD_ATTRIBUTES = ('name', 'format', 'unit', 'null', 'bscale', 'bzero',
+                      'disp', 'start', 'dim')
 """This is a list of the attributes that can be set on `Column` objects."""
 
 
@@ -1390,16 +1388,12 @@ class ColDefs(NotifierMixin):
 
         Implements for example self.units, self.formats, etc.
         """
-
         cname = name[:-1]
         if cname in KEYWORD_ATTRIBUTES and name[-1] == 's':
             attr = []
-            for col in self:
+            for col in self.columns:
                 val = getattr(col, cname)
-                if val is not None:
-                    attr.append(val)
-                else:
-                    attr.append('')
+                attr.append(val if val is not None else '')
             return attr
         raise AttributeError(name)
 

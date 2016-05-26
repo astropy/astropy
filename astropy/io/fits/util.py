@@ -38,10 +38,10 @@ from ...utils import wraps
 from ...utils.compat import suppress
 from ...utils.exceptions import AstropyUserWarning
 
-if six.PY3:
-    cmp = lambda a, b: (a > b) - (a < b)
-elif six.PY2:
+if six.PY2:
     cmp = cmp
+else:
+    cmp = lambda a, b: (a > b) - (a < b)
 
 all_integer_types = integer_types + (np.integer,)
 
