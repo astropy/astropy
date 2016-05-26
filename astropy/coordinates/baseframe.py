@@ -1036,15 +1036,16 @@ class BaseCoordinateFrame(object):
                 attr not in self.representation_component_names):
             raise AttributeError("'{0}' object has no attribute '{1}'"
                                  .format(self.__class__.__name__, attr))
+        elif self._data is None:
+            # The second clause of the ``or`` above means that
+            # ``attr in self.representation_component_names``, otherwise we
+            # would repeat that check here, because we only want to hit this
+            # clause when the user tried to access one of the representation's
+            # components
 
-        if self._data is None:
-            if attr in self.representation_component_names.keys():
-                # this raises the "no data" error by design - doing it this way
-                # means we don't have to replicate the error message here
-                self.data
-            else:
-                raise AttributeError("'{0}' object has no attribute '{1}'"
-                                     .format(self.__class__.__name__, attr))
+            self.data  # this raises the "no data" error by design - doing it
+            # this way means we don't have to replicate the error message here
+
         else:
             rep = self.represent_as(self.representation, in_frame_units=True)
             val = getattr(rep, self.representation_component_names[attr])
