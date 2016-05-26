@@ -106,12 +106,11 @@ def make_astrometric_cls(framecls):
     def astrometric_to_astrometric(from_astrometric_coord, to_astrometric_frame):
         """Transform between two astrometric frames."""
 
-        # If both frames have on-sky positions, then the transform should happen relative to both origins.
-        if (from_astrometric_coord.origin is not None) and (to_astrometric_frame.origin is not None):
-            return from_astrometric_coord.transform_to(framecls).transform_to(to_astrometric_frame)
-
-        # Otherwise, the transform occurs just by setting the new origin.
-        return to_astrometric_frame.realize_frame(from_astrometric_coord.cartesian)
+        # This transform goes through the parent frames on each side.
+        # from_frame -> from_frame.origin -> to_frame.origin -> to_frame
+        intermediate_from = from_astrometric_coord.transform_to(from_astrometric_coord.origin)
+        intermediate_to = intermediate_from.transform_to(to_astrometric_frame.origin)
+        return intermediate_to.transform_to(to_astrometric_frame)
 
     @frame_transform_graph.transform(DynamicMatrixTransform, framecls, _Astrometric)
     def reference_to_astrometric(reference_frame, astrometric_frame):
