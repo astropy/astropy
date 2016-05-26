@@ -56,6 +56,10 @@ class ScienceState(object):
             def __exit__(self, type, value, tb):
                 self._parent._value = self._value
 
+            def __repr__(self):
+                return ('<ScienceState {0}: {1!r}>'
+                        .format(self._parent.__name__, self._parent._value))
+
         ctx = _Context(cls, cls._value)
         value = cls.validate(value)
         cls._value = value
