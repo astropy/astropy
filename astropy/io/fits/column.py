@@ -429,21 +429,21 @@ class ColumnAttribute(object):
         # determined from the KEYWORD_NAMES/ATTRIBUTES lists.  This could be
         # make more flexible in the future, for example, to support custom
         # column attributes.
-        self._attr = KEYWORD_TO_ATTRIBUTE[self._keyword]
+        self._attr = '_' + KEYWORD_TO_ATTRIBUTE[self._keyword]
 
     def __get__(self, obj, objtype=None):
         if obj is None:
             return self
         else:
-            return getattr(obj, '_' + self._attr)
+            return getattr(obj, self._attr)
 
     def __set__(self, obj, value):
         if self._validator is not None:
             self._validator(obj, value)
 
-        old_value = getattr(obj, '_' + self._attr, None)
-        setattr(obj, '_' + self._attr, value)
-        obj._notify('column_attribute_changed', obj, self._attr, old_value,
+        old_value = getattr(obj, self._attr, None)
+        setattr(obj, self._attr, value)
+        obj._notify('column_attribute_changed', obj, self._attr[1:], old_value,
                     value)
 
     def __call__(self, func):
