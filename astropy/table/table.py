@@ -9,7 +9,6 @@ from .index import TableIndices, TableLoc, TableILoc
 import re
 import sys
 from collections import OrderedDict
-import numbers
 
 from copy import deepcopy
 
