@@ -60,7 +60,7 @@ PLAN94_BODY_NAME_TO_PLANET_INDEX = OrderedDict(
 
 _EPHEMERIS_NOTE = """
 You can either give an explicit ephemeris or use a default, which is normally
-an approximate ephemeris that does not require ephemeris files.  To change
+a built-in ephemeris that does not require ephemeris files.  To change
 the default to be the JPL ephemeris::
 
     >>> from astropy.coordinates import solar_system_ephemeris
@@ -81,13 +81,13 @@ class solar_system_ephemeris(ScienceState):
 
     This can be one of the following::
 
-    - 'approximate': polynomial approximations to the orbital elements.
+    - 'builtin': polynomial approximations to the orbital elements.
     - 'de430' or 'de432s': short-cuts for recent JPL dynamical models.
     - 'jpl': Alias for the default JPL ephemeris (currently, 'de430').
     - URL: (str) The url to a SPK ephemeris in SPICE binary (.bst) format.
     - `None`: Ensure an Exception is raised without an explicit ephemeris.
 
-    The default is 'approximate', which uses the ``epv00`` and ``plan94``
+    The default is 'builtin', which uses the ``epv00`` and ``plan94``
     routines from the ``erfa`` implementation of the Standards Of Fundamental
     Astronomy library.
 
@@ -103,7 +103,7 @@ class solar_system_ephemeris(ScienceState):
     .. [2] http://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/aareadme_de432s.txt
     .. [3] http://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/a_old_versions/
     """
-    _value = 'approximate'
+    _value = 'builtin'
     _kernel = None
 
     @classmethod
@@ -134,7 +134,7 @@ class solar_system_ephemeris(ScienceState):
     def bodies(cls):
         if cls._value is None:
             return None
-        if cls._value.lower() == 'approximate':
+        if cls._value.lower() == 'builtin':
             return (('earth', 'sun') +
                     tuple(PLAN94_BODY_NAME_TO_PLANET_INDEX.keys()))
         else:
@@ -147,7 +147,7 @@ def _get_kernel(value):
     Try importing jplephem, download/retrieve from cache the Satellite Planet
     Kernel corresponding to the given ephemeris.
     """
-    if value is None or value.lower() == 'approximate':
+    if value is None or value.lower() == 'builtin':
         return None
 
     if value.lower() == 'jpl':
@@ -312,7 +312,7 @@ def get_body(body, time, location=None, ephemeris=None):
     ephemeris : str, optional
         Ephemeris to use.  If not given, use the one set with
         ``astropy.coordinates.solar_system_ephemeris.set`` (which is
-        set to 'approximate' by default).
+        set to 'builtin' by default).
 
     Returns
     -------
@@ -354,7 +354,7 @@ def get_moon(time, location=None, ephemeris=None):
     ephemeris : str, optional
         Ephemeris to use.  If not given, use the one set with
         ``astropy.coordinates.solar_system_ephemeris.set`` (which is
-        set to 'approximate' by default).
+        set to 'builtin' by default).
 
     Returns
     -------
