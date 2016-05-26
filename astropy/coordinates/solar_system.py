@@ -8,11 +8,16 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 from collections import OrderedDict
+
 import numpy as np
+
 from .sky_coordinate import SkyCoord
 from ..utils.data import download_file
+from ..utils.decorators import classproperty
 from ..utils.state import ScienceState
+from ..utils import indent
 from .. import units as u
+from .. import _erfa as erfa
 from ..constants import c as speed_of_light
 from .representation import CartesianRepresentation
 from .builtin_frames import GCRS, ICRS
@@ -21,14 +26,12 @@ from .. import _erfa
 from ..extern import six
 
 __all__ = ["get_body", "get_moon", "get_body_barycentric",
-           "SOLAR_SYSTEM_BODIES", "kernel_url"]
+           "solar_system_ephemeris"]
 
-KERNEL = None
 
-"""
-each value in the BODIES dictionary a list of kernel pairs needed
-to find the barycentric position of that object from the JPL kernel.
-"""
+DEFAULT_JPL_EPHEMERIS = 'de430'
+
+"""List of kernel pairs needed to calculate positions of a given object."""
 BODY_NAME_TO_KERNEL_SPEC = OrderedDict(
                                       (('sun', [(0, 10)]),
                                        ('mercury', [(0, 1), (1, 199)]),
@@ -43,79 +46,147 @@ BODY_NAME_TO_KERNEL_SPEC = OrderedDict(
                                        ('neptune', [(0, 8)]),
                                        ('pluto', [(0, 9)]))
                                       )
-SOLAR_SYSTEM_BODIES = tuple(BODY_NAME_TO_KERNEL_SPEC.keys())
 
-_JPL_EPHEM_NOTE = """
-    This calculation uses JPL Ephemeris SPK filesto calculate the body's
-    location, defaulting to DE430.  It will be downloaded the first time this
-    function is used and cached from then on.  To change this, set
-    ``kernel_url`` as described in the coordinate documentation.
+"""Indices to the plan94 routine for the given object."""
+PLAN94_BODY_NAME_TO_PLANET_INDEX = OrderedDict(
+    (('mercury', 1),
+     ('venus', 2),
+     ('earth-moon-barycenter', 3),
+     ('mars', 4),
+     ('jupiter', 5),
+     ('saturn', 6),
+     ('uranus', 7),
+     ('neptune', 8)))
+
+_EPHEMERIS_NOTE = """
+You can either give an explicit ephemeris or use a default, which is normally
+a built-in ephemeris that does not require ephemeris files.  To change
+the default to be the JPL ephemeris::
+
+    >>> from astropy.coordinates import solar_system_ephemeris
+    >>> solar_system_ephemeris.set('jpl')  # doctest: +SKIP
+
+Use of any JPL ephemeris requires the jplephem package
+(https://pypi.python.org/pypi/jplephem).
+If needed, the ephemeris file will be downloaded (and cached).
+
+One can check which bodies are covered by a given ephemeris using::
+    >>> solar_system_ephemeris.bodies
+    ('earth', 'sun', 'mercury', 'venus', 'earth-moon-barycenter', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune')
 """[1:-1]
 
-class kernel_url(ScienceState):
-    """
-    The URL to use for downloading a download the Satellite Planet
-    Kernel (SPK) file with ephemerides.  The download will *not* occur when
-    this state is set, but rather whenever the first time is that the
-    kernel actually needs to be used.
+
+class solar_system_ephemeris(ScienceState):
+    """Default ephemerides for calculating positions of Solar-System bodies.
+
+    This can be one of the following::
+
+    - 'builtin': polynomial approximations to the orbital elements.
+    - 'de430' or 'de432s': short-cuts for recent JPL dynamical models.
+    - 'jpl': Alias for the default JPL ephemeris (currently, 'de430').
+    - URL: (str) The url to a SPK ephemeris in SPICE binary (.bst) format.
+    - `None`: Ensure an Exception is raised without an explicit ephemeris.
+
+    The default is 'builtin', which uses the ``epv00`` and ``plan94``
+    routines from the ``erfa`` implementation of the Standards Of Fundamental
+    Astronomy library.
 
     Notes
     -----
-    The default Satellite Planet Kernel (SPK) file from NASA JPL (DE430) is
-    ~120MB, and covers years ~1550-2650 CE [1]_.
+    Any file required will be downloaded (and cached) when the state is set.
+    The default Satellite Planet Kernel (SPK) file from NASA JPL (de430) is
+    ~120MB, and covers years ~1550-2650 CE [1]_.  The smaller de432s file is
+    ~10MB, and covers years 1950-2050 [2]_.  Older versions of the JPL
+    ephemerides (such as the widely used de200) can be used via their URL [3]_.
 
     .. [1] http://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/aareadme_de430-de431.txt
+    .. [2] http://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/aareadme_de432s.txt
+    .. [3] http://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/a_old_versions/
     """
-    _value = ('http://naif.jpl.nasa.gov/pub/naif/generic_kernels'
-               '/spk/planets/de430.bsp')
+    _value = 'builtin'
+    _kernel = None
 
     @classmethod
     def validate(cls, value):
+        # Set up Kernel; if the file is not in cache, this will download it.
+        cls.get_kernel(value)
+        return value
+
+    @classmethod
+    def get_kernel(cls, value):
+        # ScienceState only ensures the `_value` attribute is up to date,
+        # so we need to be sure any kernel returned is consistent.
+        if cls._kernel is None or cls._kernel.origin != value:
+            if cls._kernel is not None:
+                cls._kernel.daf.file.close()
+                cls._kernel = None
+            kernel = _get_kernel(value)
+            if kernel is not None:
+                kernel.origin = value
+            cls._kernel = kernel
+        return cls._kernel
+
+    @classproperty
+    def kernel(cls):
+        return cls.get_kernel(cls._value)
+
+    @classproperty
+    def bodies(cls):
+        if cls._value is None:
+            return None
+        if cls._value.lower() == 'builtin':
+            return (('earth', 'sun') +
+                    tuple(PLAN94_BODY_NAME_TO_PLANET_INDEX.keys()))
+        else:
+            return tuple(BODY_NAME_TO_KERNEL_SPEC.keys())
+
+
+
+def _get_kernel(value):
+    """
+    Try importing jplephem, download/retrieve from cache the Satellite Planet
+    Kernel corresponding to the given ephemeris.
+    """
+    if value is None or value.lower() == 'builtin':
+        return None
+
+    if value.lower() == 'jpl':
+        value = DEFAULT_JPL_EPHEMERIS
+
+    if value.lower() in ('de430', 'de432s'):
+        value = ('http://naif.jpl.nasa.gov/pub/naif/generic_kernels'
+                 '/spk/planets/{:s}.bsp'.format(value.lower()))
+    else:
         try:
             six.moves.urllib.parse.urlparse(value)
         except:
-            raise ValueError('{} could not be parsed as a URL'.format(value))
-        global KERNEL
-        KERNEL = None
-        return value
-
-
-def _get_kernel(*args, **kwargs):
-    """
-    Try importing jplephem, download/retrieve from cache the Satellite Planet
-    Kernel.
-    """
-    global KERNEL
+            raise ValueError('{} was not one of the standard strings and '
+                             'could not be parsed as a URL'.format(value))
 
     try:
         from jplephem.spk import SPK
     except ImportError:
-        raise ImportError("Solar system ephemeris calculations require the "
-                          "jplephem package "
+        raise ImportError("Solar system JPL ephemeris calculations require "
+                          "the jplephem package "
                           "(https://pypi.python.org/pypi/jplephem)")
 
-    if KERNEL is None:
-        KERNEL = SPK.open(download_file(kernel_url.get(), cache=True))
-    return KERNEL
+    return SPK.open(download_file(value, cache=True))
 
 
-def get_body_barycentric(time, body):
-    """
-    Calculate the barycentric position of the solar system body ``body``
-    in cartesian coordinates.
-
-    Uses ``jplephem`` with the DE430 kernel.
+def get_body_barycentric(body, time, ephemeris=None):
+    """Calculate the barycentric position of a solar system body.
 
     Parameters
     ----------
+    body : str or other
+        The solar system body for which to calculate positions.  Can also be a
+        kernel specifier (list of 2-tuples) if the ``ephemeris`` is a JPL
+        kernel.
     time : `~astropy.time.Time`
-        Time of observation
-
-    body : str
-        The solar system body to calculate.
-
-        The allowed values for ``body`` can be found in
-        ``astropy.coordinates.SOLAR_SYSTEM_BODIES``.
+        Time of observation.
+    ephemeris : str, optional
+        Ephemeris to use.  By default, use the one set with
+        ``astropy.coordinates.solar_system_ephemeris.set``
 
     Returns
     -------
@@ -124,79 +195,79 @@ def get_body_barycentric(time, body):
 
     Notes
     -----
-    """ +_JPL_EPHEM_NOTE
+    """
 
-    kernel = _get_kernel()
-    kernelspec_chain = BODY_NAME_TO_KERNEL_SPEC[body.lower()]
+    if ephemeris is None:
+        ephemeris = solar_system_ephemeris.get()
+        if ephemeris is None:
+            raise ValueError(_EPHEMERIS_NOTE)
+        kernel = solar_system_ephemeris.kernel
+    else:
+        kernel = _get_kernel(ephemeris)
 
     jd1, jd2 = get_jd12(time, 'tdb')
+    if kernel is None:
+        body = body.lower()
+        earth_pv_helio, earth_pv_bary = erfa.epv00(jd1, jd2)
+        if body == 'earth':
+            cartesian_position_body = earth_pv_bary[..., 0, :]
 
-    cartesian_position_body = sum([kernel[pair].compute(jd1, jd2) for pair in kernelspec_chain])
+        else:
+            sun_bary = earth_pv_bary[..., 0, :] - earth_pv_helio[..., 0, :]
+            if body == 'sun':
+                cartesian_position_body = sun_bary
+            else:
+                try:
+                    body_index = PLAN94_BODY_NAME_TO_PLANET_INDEX[body]
+                except KeyError:
+                    raise KeyError("{0}'s position cannot be calculated with "
+                                   "the '{1}' ephemeris."
+                                   .format(body, ephemeris))
+                body_pv_helio = erfa.plan94(jd1, jd2, body_index)
+                cartesian_position_body = body_pv_helio[..., 0, :] + sun_bary
 
-    barycen_to_body_vector = u.Quantity(cartesian_position_body, unit=u.km)
+        barycen_to_body_vector = u.Quantity(
+            np.rollaxis(cartesian_position_body, -1, 0), u.au)
+
+    else:
+        if isinstance(body, six.string_types):
+            # Look up kernel chain for JPL ephemeris, based on name
+            try:
+                kernel_spec = BODY_NAME_TO_KERNEL_SPEC[body.lower()]
+            except KeyError:
+                raise KeyError("{0}'s position cannot be calculated with "
+                               "the {1} ephemeris.".format(body, ephemeris))
+        else:
+            # otherwise, assume the user knows what their doing and intentionally
+            # passed in a kernel chain
+            kernel_spec = body
+
+        cartesian_position_body = sum([kernel[pair].compute(jd1, jd2)
+                                       for pair in kernel_spec])
+
+        barycen_to_body_vector = u.Quantity(cartesian_position_body, unit=u.km)
+
     return CartesianRepresentation(barycen_to_body_vector)
 
+get_body_barycentric.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
 
-def _get_earth_body_vector(time, body, earth_time=None):
-    """
-    Calculate the vector between the Geocenter and body with ``body``.
 
-    This routine calculates the vector between the Earth's Geocenter and the body
-    specified by ``body``.
+def _get_apparent_body_position(body, time, ephemeris):
+    """Calculate the apparent position of body ``body`` relative to Earth.
 
-    Uses ``jplephem`` with the DE430 kernel.
+    This corrects for the light-travel time to the object.
 
     Parameters
     ----------
+    body : str or other
+        The solar system body for which to calculate positions.  Can also be a
+        kernel specifier (list of 2-tuples) if the ``ephemeris`` is a JPL
+        kernel.
     time : `~astropy.time.Time`
         Time of observation.
-
-    body : str
-        The solar system body to calculate.
-
-        The allowed values for ``body`` can be found in
-        ``astropy.coordinates.SOLAR_SYSTEM_BODIES``.
-
-    earth_time : `~astropy.time.Time`
-        Time used for position of Earth. When correcting for light travel time,
-        one wants to use different times for the body in question and Earth.
-        If this is set to ```None```, the same time is used for both.
-
-    Returns
-    -------
-    earth_body_vector : `~astropy.coordinates.CartesianRepresentation`
-        Barycentric (ICRS) vector from Geocenter to the body in cartesian coordinates
-
-    earth_distance : `~astropy.units.Quantity`
-        Distance between Earth and body.
-    """
-    earth_time = earth_time if earth_time is not None else time
-    earth_loc = get_body_barycentric(earth_time, 'earth')
-    body_loc = get_body_barycentric(time, body)
-
-    earth_body_vector = body_loc.xyz - earth_loc.xyz
-
-    earth_distance = np.sqrt(np.sum(earth_body_vector**2, axis=0))
-    return earth_body_vector, earth_distance
-
-
-def _get_apparent_body_position(time, body):
-    """
-    Calculate the apparent position of body ``body`` in cartesian
-    coordinates, given the approximate light travel time to the object.
-
-    Uses ``jplephem`` with the DE430 kernel.
-
-    Parameters
-    ----------
-    time : `~astropy.time.Time`
-        Time of observation
-
-    body : str
-        The solar system body to calculate.
-
-        The allowed values for ``body`` can be found in
-        ``astropy.coordinates.SOLAR_SYSTEM_BODIES``.
+    ephemeris : str, optional
+        Ephemeris to use.  By default, use the one set with
+        ``~astropy.coordinates.solar_system_ephemeris.set``
 
     Returns
     -------
@@ -204,48 +275,57 @@ def _get_apparent_body_position(time, body):
         Barycentric (ICRS) apparent position of the body in cartesian coordinates
     """
     # Calculate position given approximate light travel time.
-    delta_light_travel_time = 20*u.s
+    delta_light_travel_time = 20. * u.s
     emitted_time = time
-    light_travel_time = 0*u.s
+    light_travel_time = 0. * u.s
+    earth_loc = get_body_barycentric('earth', time, ephemeris)
     while np.any(np.fabs(delta_light_travel_time) > 1.0e-8*u.s):
-        earth_to_body_vector, earth_distance = _get_earth_body_vector(emitted_time,
-                                                                      body, time)
-        delta_light_travel_time = light_travel_time - earth_distance/speed_of_light
+        body_loc = get_body_barycentric(body, emitted_time, ephemeris)
+        earth_body_vector = body_loc.xyz - earth_loc.xyz
+        earth_distance = np.sqrt(np.sum(earth_body_vector**2, axis=0))
+        delta_light_travel_time = (light_travel_time -
+                                   earth_distance/speed_of_light)
         light_travel_time = earth_distance/speed_of_light
         emitted_time = time - light_travel_time
 
-    return get_body_barycentric(emitted_time, body)
+    return get_body_barycentric(body, emitted_time, ephemeris)
+
+_get_apparent_body_position.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
 
 
-def get_body(time, body, location=None):
+def get_body(body, time, location=None, ephemeris=None):
     """
-    Get a `~astropy.coordinates.SkyCoord` for a body as observed from a
-    location on Earth.
+    Get a `~astropy.coordinates.SkyCoord` for a solar system body as observed
+    from a location on Earth.
 
     Parameters
     ----------
+    body : str or other
+        The solar system body for which to calculate positions.  Can also be a
+        kernel specifier (list of 2-tuples) if the ``ephemeris`` is a JPL
+        kernel.
     time : `~astropy.time.Time`
-        Time of observation
-
-    body : str
-        The solar system body to calculate.
-
-        The allowed values for ``body`` can be found in
-        ``astropy.coordinates.SOLAR_SYSTEM_BODIES``.
-
-    location : `~astropy.coordinates.EarthLocation`
-        Location of observer on the Earth. If none is supplied, set to
-        a Geocentric observer
+        Time of observation.
+    location : `~astropy.coordinates.EarthLocation`, optional
+        Location of observer on the Earth.  If not given, will be taken from
+        ``time`` (if not present, a geocentric observer will be assumed).
+    ephemeris : str, optional
+        Ephemeris to use.  If not given, use the one set with
+        ``astropy.coordinates.solar_system_ephemeris.set`` (which is
+        set to 'builtin' by default).
 
     Returns
     -------
     skycoord : `~astropy.coordinates.SkyCoord`
-        Coordinate for the body
+        GCRS Coordinate for the body
 
     Notes
     -----
-    """ +_JPL_EPHEM_NOTE
-    cartrep = _get_apparent_body_position(time, body)
+    """
+    if location is None:
+        location = time.location
+
+    cartrep = _get_apparent_body_position(body, time, ephemeris)
     icrs = ICRS(cartrep)
     if location is not None:
         obsgeoloc, obsgeovel = location.get_gcrs_posvel(time)
@@ -256,8 +336,10 @@ def get_body(time, body, location=None):
         gcrs = icrs.transform_to(GCRS(obstime=time))
     return SkyCoord(gcrs)
 
+get_body.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
 
-def get_moon(time, location=None):
+
+def get_moon(time, location=None, ephemeris=None):
     """
     Get a `~astropy.coordinates.SkyCoord` for the Earth's Moon as observed
     from a location on Earth.
@@ -266,22 +348,26 @@ def get_moon(time, location=None):
     ----------
     time : `~astropy.time.Time`
         Time of observation
-
     location : `~astropy.coordinates.EarthLocation`
-        Location of observer on the Earth. If none is supplied, set to
-        a Geocentric observer.
+        Location of observer on the Earth. If none is supplied, taken from
+        ``time`` (if not present, a geocentric observer will be assumed).
+    ephemeris : str, optional
+        Ephemeris to use.  If not given, use the one set with
+        ``astropy.coordinates.solar_system_ephemeris.set`` (which is
+        set to 'builtin' by default).
 
     Returns
     -------
     skycoord : `~astropy.coordinates.SkyCoord`
         Coordinate for the Moon
 
-
-
     Notes
     -----
-    """ +_JPL_EPHEM_NOTE
-    return get_body(time, body='moon', location=location)
+    """
+
+    return get_body('moon', time, location=location, ephemeris=ephemeris)
+
+get_moon.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
 
 
 def _apparent_position_in_true_coordinates(skycoord):
