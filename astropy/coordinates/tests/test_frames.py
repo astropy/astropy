@@ -678,10 +678,21 @@ def test_getitem_representation():
 
 
 def test_component_error_useful():
+    """
+    Check that a data-less frame gives useful error messages about not having
+    data when the attributes asked for are possible coordinate components
+    """
     from ..builtin_frames import ICRS
 
     i = ICRS()
+
     with pytest.raises(ValueError) as excinfo:
         i.ra
-
     assert 'does not have associated data' in str(excinfo.value)
+
+    with pytest.raises(AttributeError) as excinfo1:
+        i.foobar
+    with pytest.raises(AttributeError) as excinfo2:
+        i.lon  # lon is *not* the component name despite being the underlying representation's name
+    assert "object has no attribute 'foobar'" in str(excinfo1.value)
+    assert "object has no attribute 'lon'" in str(excinfo2.value)
