@@ -43,6 +43,8 @@ if six.PY3:
 elif six.PY2:
     cmp = cmp
 
+all_integer_types = integer_types + (np.integer,)
+
 
 class NotifierMixin(object):
     """
@@ -917,7 +919,7 @@ def _is_pseudo_unsigned(dtype):
 
 
 def _is_int(val):
-    return isinstance(val, integer_types + (np.integer,))
+    return isinstance(val, all_integer_types)
 
 
 def _str_to_num(val):
