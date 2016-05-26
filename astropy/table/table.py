@@ -96,7 +96,7 @@ class TableColumns(OrderedDict):
         """
         if isinstance(item, six.string_types):
             return OrderedDict.__getitem__(self, item)
-        elif isinstance(item, int):
+        elif isinstance(item, (int, np.integer)):
             return self.values()[item]
         elif isinstance(item, tuple):
             return self.__class__([self[x] for x in item])
