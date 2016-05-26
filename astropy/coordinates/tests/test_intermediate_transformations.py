@@ -336,10 +336,7 @@ def test_gcrs_altaz_bothroutes(testframe):
     moonaa_viaicrs = moon.transform_to(ICRS).transform_to(testframe)
     moonaa_viaitrs = moon.transform_to(ITRS(obstime=testframe.obstime)).transform_to(testframe)
 
-    # not that the rtol is lowered here because the light deflection routines in
-    # ERFA are numerically not as reversable as they ought to be - see astropy
-    # issue #4952
-    assert_allclose(sunaa_viaicrs.cartesian.xyz, sunaa_viaitrs.cartesian.xyz, rtol=5e-3)
+    assert_allclose(sunaa_viaicrs.cartesian.xyz, sunaa_viaitrs.cartesian.xyz)
     assert_allclose(moonaa_viaicrs.cartesian.xyz, moonaa_viaitrs.cartesian.xyz)
 
 @pytest.mark.parametrize('testframe', totest_frames)

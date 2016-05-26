@@ -12,6 +12,7 @@ import warnings
 import numpy as np
 
 from ... import units as u
+from ... import _erfa as erfa
 from ...time import Time
 from ...utils import iers
 from ...utils.exceptions import AstropyWarning
@@ -139,3 +140,115 @@ def get_jd12(time, scale):
             newtime = time
 
     return newtime.jd1, newtime.jd2
+
+
+def norm(p):
+    """
+    Normalise a p-vector.
+    """
+    return p/np.sqrt(np.einsum('...i,...i', p, p))[..., np.newaxis]
+
+
+def aticq(ri, di, astrom):
+    """
+    A slightly modified version of the ERFA function ``eraAticq``.
+
+    ``eraAticq`` performs the transformations between two coordinate systems,
+    with the details of the transformation being encoded into the ``astrom`` array.
+
+    The companion function ``eraAtciqz`` is meant to be its inverse. However, this
+    is not true for directions close to the Solar centre, since the light deflection
+    calculations are numerically unstable and therefore not reversible.
+
+    This version sidesteps that problem by artificially reducing the light deflection
+    for directions which are within 90 arcseconds of the Sun's position. This is the
+    same approach used by the ERFA functions above, except that they use a threshold of
+    9 arcseconds.
+
+    Parameters
+    ----------
+    ri : float or `~numpy.ndarray`
+        right ascension, radians
+    di : float or `~numpy.ndarray`
+        declination, radians
+    astrom : eraASTROM array
+        ERFA astrometry context, as produced by, e.g. ``eraApci13`` or ``eraApcs13``
+
+    Returns
+    --------
+    rc : float or `~numpy.ndarray`
+    dc : float or `~numpy.ndarray`
+    """
+    # RA, Dec to cartesian unit vectors
+    pos = erfa.s2c(ri, di)
+
+    # Bias-precession-nutation, giving GCRS proper direction.
+    ppr = erfa.trxp(astrom['bpn'], pos)
+
+    # Aberration, giving GCRS natural direction
+    d = np.zeros_like(ppr)
+    for j in range(2):
+        before = norm(ppr-d)
+        after = erfa.ab(before, astrom['v'], astrom['em'], astrom['bm1'])
+        d = after - before
+    pnat = norm(ppr-d)
+
+    # Light deflection by the Sun, giving BCRS coordinate direction
+    d = np.zeros_like(pnat)
+    for j in range(5):
+        before = norm(pnat-d)
+        after = erfa.ld(1.0, before, before, astrom['eh'], astrom['em'], 5e-8)
+        d = after - before
+    pco = norm(pnat-d)
+
+    # ICRS astrometric RA, Dec
+    rc, dc = erfa.c2s(pco)
+    return erfa.anp(rc), dc
+
+
+def atciqz(rc, dc, astrom):
+    """
+    A slightly modified version of the ERFA function ``eraAtciqz``.
+
+    ``eraAtciqz`` performs the transformations between two coordinate systems,
+    with the details of the transformation being encoded into the ``astrom`` array.
+
+    The companion function ``eraAticq`` is meant to be its inverse. However, this
+    is not true for directions close to the Solar centre, since the light deflection
+    calculations are numerically unstable and therefore not reversible.
+
+    This version sidesteps that problem by artificially reducing the light deflection
+    for directions which are within 90 arcseconds of the Sun's position. This is the
+    same approach used by the ERFA functions above, except that they use a threshold of
+    9 arcseconds.
+
+    Parameters
+    ----------
+    rc : float or `~numpy.ndarray`
+        right ascension, radians
+    dc : float or `~numpy.ndarray`
+        declination, radians
+    astrom : eraASTROM array
+        ERFA astrometry context, as produced by, e.g. ``eraApci13`` or ``eraApcs13``
+
+    Returns
+    --------
+    ri : float or `~numpy.ndarray`
+    di : float or `~numpy.ndarray`
+    """
+    # BCRS coordinate direction (unit vector).
+    pco = erfa.s2c(rc, dc)
+
+    # Light deflection by the Sun, giving BCRS natural direction.
+    pnat = erfa.ld(1.0, pco, pco, astrom['eh'], astrom['em'], 5e-8)
+
+    # Aberration, giving GCRS proper direction.
+    ppr = erfa.ab(pnat, astrom['v'], astrom['em'], astrom['bm1'])
+
+    # Bias-precession-nutation, giving CIRS proper direction.
+    # Has no effect if matrix is identity matrix, in which case gives GCRS ppr.
+    pi = erfa.rxp(astrom['bpn'], ppr)
+
+    # CIRS (GCRS) RA, Dec
+    ri, di = erfa.c2s(pi)
+    return erfa.anp(ri), di
