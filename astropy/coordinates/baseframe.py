@@ -1037,9 +1037,18 @@ class BaseCoordinateFrame(object):
             raise AttributeError("'{0}' object has no attribute '{1}'"
                                  .format(self.__class__.__name__, attr))
 
-        rep = self.represent_as(self.representation, in_frame_units=True)
-        val = getattr(rep, self.representation_component_names[attr])
-        return val
+        if self._data is None:
+            if attr in self.representation_component_names.keys():
+                # this raises the "no data" error by design - doing it this way
+                # means we don't have to replicate the error message here
+                self.data
+            else:
+                raise AttributeError("'{0}' object has no attribute '{1}'"
+                                     .format(self.__class__.__name__, attr))
+        else:
+            rep = self.represent_as(self.representation, in_frame_units=True)
+            val = getattr(rep, self.representation_component_names[attr])
+            return val
 
     def __setattr__(self, attr, value):
         repr_attr_names = set()
