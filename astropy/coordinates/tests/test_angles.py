@@ -54,6 +54,9 @@ def test_create_angles():
         Angle(54.12412)
         #raises an exception because this is ambiguous
 
+    with pytest.raises(u.UnitsError):
+        Angle(54.12412, unit=u.m)
+
     with pytest.raises(ValueError):
         a13 = Angle(12.34, unit="not a unit")
 
