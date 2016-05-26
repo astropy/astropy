@@ -14,6 +14,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 
 from .. import units as u
+from ..constants import c
 from .. import _erfa as erfa
 from ..io import ascii
 from ..utils import isiterable, data
@@ -153,11 +154,14 @@ def get_sun(time):
     # We have to manually do aberration because we're outputting directly into
     # GCRS
     earth_p = earth_pv_helio[..., 0, :]
-    earth_v = earth_pv_helio[..., 1, :]
+    earth_v = earth_pv_bary[..., 1, :]
 
-    dsun = np.sqrt(np.sum(earth_p**2, axis=-1))
-    invlorentz = (1-np.sum(earth_v**2, axis=-1))**-0.5
-    properdir = erfa.ab(earth_p/dsun.reshape(-1, 1), earth_v, dsun, invlorentz)
+    # convert barycentric velocity to units of c, but keep as array for passing in to erfa
+    earth_v /= c.to(u.au/u.d).value
+
+    dsun = np.sqrt(np.sum(earth_p**2, axis=-1, keepdims=True))
+    invlorentz = (1-np.sum(earth_v**2, axis=-1))**0.5
+    properdir = erfa.ab(earth_p/dsun, -earth_v, dsun, invlorentz)
 
     x = -dsun*properdir[..., 0] * u.AU
     y = -dsun*properdir[..., 1] * u.AU
@@ -168,7 +172,6 @@ def get_sun(time):
     else:
         cartrep = CartesianRepresentation(x=x, y=y, z=z)
     return SkyCoord(cartrep, frame=GCRS(obstime=time))
-
 
 
 def concatenate(coords):
