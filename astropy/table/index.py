@@ -194,7 +194,7 @@ class Index(object):
         ----------
         row_specifier : int, list, ndarray, or slice
         '''
-        if isinstance(row_specifier, int):
+        if isinstance(row_specifier, (int, np.integer)):
             # single row
             return (row_specifier,)
         elif isinstance(row_specifier, (list, np.ndarray)):
