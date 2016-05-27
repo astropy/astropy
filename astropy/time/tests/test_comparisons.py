@@ -31,8 +31,8 @@ class TestTimeComparisons():
                                      .format(op_str))
         # Keep == and != as they are specifically meant to test Time.__eq__
         # and Time.__ne__
-        assert (t1 == None) is False  # pylint: disable=C0121
-        assert (t1 != None) is True  # pylint: disable=C0121
+        assert (t1 == None) is False  # nopep8
+        assert (t1 != None) is True  # nopep8
 
     def test_time(self):
         t1_lt_t2 = self.t1 < self.t2

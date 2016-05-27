@@ -1186,4 +1186,4 @@ def test_no_units_for_char_columns():
     out = StringIO()
     ascii.write(t1, out, format="ipac")
     t2 = ascii.read(out.getvalue(), format="ipac", guess=False)
-    assert t2["B"].unit == None
+    assert t2["B"].unit is None

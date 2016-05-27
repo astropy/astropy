@@ -1746,4 +1746,4 @@ def test_qtable_read_for_ipac_table_with_char_columns():
     out = StringIO()
     t1.write(out, format="ascii.ipac")
     t2 = table.QTable.read(out.getvalue(), format="ascii.ipac", guess=False)
-    assert t2["B"].unit == None
+    assert t2["B"].unit is None
