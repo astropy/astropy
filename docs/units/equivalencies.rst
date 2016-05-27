@@ -171,7 +171,7 @@ only dependent on the aperture size.  See `Tools of Radio Astronomy
 <http://books.google.com/books?id=9KHw6R8rQEMC&pg=PA179&source=gbs_toc_r&cad=4#v=onepage&q&f=false>`__
 for details.
 
-.. note:: The brightness temperature mentioned here is the Rayleigh-Jeans 
+.. note:: The brightness temperature mentioned here is the Rayleigh-Jeans
           equivalent temperature, which results in a linear relation between
           flux and temperature. This is the convention that is most often used
           in relation to observations, but if you are interested in computing
@@ -222,6 +222,31 @@ observations at high-energy, be it for solar or X-ray astronomy. Example::
     >>> t_k = 1e6 * u.K
     >>> t_k.to(u.eV, equivalencies=u.temperature_energy())  # doctest: +FLOAT_CMP
     <Quantity 86.17332384960955 eV>
+
+
+Pixel and plate scale Equivalencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+These equivalencies are for converting between angular scales and either linear
+scales in the focal plane or distances in units of the number of pixels.  For
+example, suppose you are working with cutouts from the Sloan Digital Sky Survey,
+which defaults to a pixel scale of 0.4 arcseconds per pixel, and want to know
+the true size of something that you measure to be 240 pixels across in the
+cutout image::
+
+    >>> import astropy.units as u
+    >>> sdss_pixelscale = u.pixel_scale(0.4*u.arcsec/u.pixel)
+    >>> (240*u.pixel).to(u.arcmin, sdss_pixelscale)  # doctest: +FLOAT_CMP
+    <Quantity 1.6 arcmin>
+
+Or maybe you are designing an instrument for a telescope that someone told you
+has a (inverse) plate  scale of 7.8 meters per radian (for your desired focus),
+and you want to know how big your pixels need to be to cover half an arcsecond::
+
+    >>> import astropy.units as u
+    >>> tel_platescale = u.plate_scale(7.8*u.m/u.radian)
+    >>> (0.5*u.arcsec).to(u.micron, tel_platescale)  # doctest: +FLOAT_CMP
+    <Quantity 18.9077335632719 micron>
 
 Writing new equivalencies
 -------------------------
