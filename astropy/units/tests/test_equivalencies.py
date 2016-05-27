@@ -567,6 +567,7 @@ def test_compose_equivalencies():
     else:
         assert False, "Didn't find speed in compose results"
 
+
 def test_pixel_scale():
     pix = 75*u.pix
     asec = 30*u.arcsec
@@ -582,3 +583,20 @@ def test_pixel_scale():
 
     assert_quantity_allclose(asec.to(u.pix, u.pixel_scale(pixscale)), pix)
     assert_quantity_allclose(asec.to(u.pix, u.pixel_scale(pixscale2)), pix)
+
+
+def test_plate_scale():
+    mm = 1.5*u.mm
+    asec = 30*u.arcsec
+
+    platescale = 20*u.arcsec/u.mm
+    platescale2 = 0.05*u.mm/u.arcsec
+
+    assert_quantity_allclose(mm.to(u.arcsec, u.plate_scale(platescale)), asec)
+    assert_quantity_allclose(mm.to(u.arcmin, u.plate_scale(platescale)), asec)
+
+    assert_quantity_allclose(mm.to(u.arcsec, u.plate_scale(platescale2)), asec)
+    assert_quantity_allclose(mm.to(u.arcmin, u.plate_scale(platescale2)), asec)
+
+    assert_quantity_allclose(asec.to(u.mm, u.plate_scale(platescale)), mm)
+    assert_quantity_allclose(asec.to(u.mm, u.plate_scale(platescale2)), mm)
