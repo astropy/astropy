@@ -85,7 +85,7 @@ Interface and Dependencies
           ...
 
   In the astropy core package, such optional dependencies should be recorded in
-  the ``dev-pip-requirements`` file in the root of the repository.
+  the ``pip-requirements-dev`` file in the root of the repository.
 
 * General utilities necessary for but not specific to the package or
   sub-package should be placed in the ``packagename.utils`` module. These
