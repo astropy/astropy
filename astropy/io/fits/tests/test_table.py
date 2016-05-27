@@ -975,7 +975,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu.columns.columns[2].array[0] == ''
         assert (tbhdu.columns.columns[3].array[0] ==
                 np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
-        assert tbhdu.columns.columns[4].array[0] is True
+        assert tbhdu.columns.columns[4].array[0] == True  # nopep8
 
         assert tbhdu.data[3][1] == 33
         assert tbhdu.data._coldefs._arrays[1][3] == 33
