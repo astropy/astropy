@@ -14,7 +14,7 @@ from numpy.testing.utils import assert_allclose
 # LOCAL
 from ... import units as u
 from ... import constants
-from ...tests.helper import pytest
+from ...tests.helper import pytest, assert_quantity_allclose
 
 
 def test_dimensionless_angles():
@@ -566,3 +566,19 @@ def test_compose_equivalencies():
             break
     else:
         assert False, "Didn't find speed in compose results"
+
+def test_pixel_scale():
+    pix = 75*u.pix
+    asec = 30*u.arcsec
+
+    pixscale = 0.4*u.arcsec/u.pix
+    pixscale2 = 2.5*u.pix/u.arcsec
+
+    assert_quantity_allclose(pix.to(u.arcsec, u.pixel_scale(pixscale)), asec)
+    assert_quantity_allclose(pix.to(u.arcmin, u.pixel_scale(pixscale)), asec)
+
+    assert_quantity_allclose(pix.to(u.arcsec, u.pixel_scale(pixscale2)), asec)
+    assert_quantity_allclose(pix.to(u.arcmin, u.pixel_scale(pixscale2)), asec)
+
+    assert_quantity_allclose(asec.to(u.pix, u.pixel_scale(pixscale)), pix)
+    assert_quantity_allclose(asec.to(u.pix, u.pixel_scale(pixscale2)), pix)
