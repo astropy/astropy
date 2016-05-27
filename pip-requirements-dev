@@ -1,5 +1,5 @@
 -r pip-requirements
--r doc-pip-requirements
+-r pip-requirements-doc
 Cython
 jinja2
 pyyaml
@@ -12,4 +12,4 @@ jplephem
 
 # below here are used only for tests
 skyfield
-mpmath 
+mpmath
