@@ -204,11 +204,13 @@ class TestPositionKittPeak(object):
 
     @pytest.mark.parametrize(('body', 'sep_tol', 'dist_tol'),
                              (('mercury', 7.*u.arcsec, 500*u.km),
+                              ('moon', 20.*u.arcsec, 80*u.km),
                               ('jupiter', 78.*u.arcsec, 82000*u.km)))
     def test_erfa_planet(self, body, sep_tol, dist_tol):
         """Test predictions using erfa/plan94.
 
-        Accuracies are maximum deviations listed in erfa/plan94.c
+        Accuracies are maximum deviations listed in erfa/plan94.c, for Jupiter and
+        Mercury, and that quoted in Meeus "Astronomical Algorithms" (1998) for the Moon.
         """
         # Add uncertainty in position of Earth
         dist_tol = dist_tol + 1300 * u.km
