@@ -20,7 +20,7 @@ __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'doppler_optical', 'doppler_relativistic', 'mass_energy',
            'brightness_temperature', 'dimensionless_angles',
            'logarithmic', 'temperature', 'temperature_energy',
-           'pixel_scale']
+           'pixel_scale', 'plate_scale']
 
 
 def dimensionless_angles():
@@ -500,7 +500,8 @@ def assert_is_spectral_unit(value):
 
 def pixel_scale(pixscale):
     """
-    Convert between pixel distances (in units of ``pix``) and angular units.
+    Convert between pixel distances (in units of ``pix``) and angular units,
+    given a particular ``pixscale``.
 
     Parameters
     ----------
@@ -516,3 +517,24 @@ def pixel_scale(pixscale):
                          "pixel/angle")
 
     return [(astrophys.pix, si.radian, lambda px: px*pixscale_val, lambda rad: rad/pixscale_val)]
+
+
+def plate_scale(platescale):
+    """
+    Convert between lengths (to be interpreted as lengths in the focal plane)
+    and angular units with a specified ``platescale``.
+
+    Parameters
+    ----------
+    platescale : `~astropy.units.Quantity`
+        The pixel scale either in units of distance/pixel or distance/angle.
+    """
+    if platescale.unit.is_equivalent(si.arcsec/si.m):
+        platescale_val = platescale.to(si.radian/si.m).value
+    elif platescale.unit.is_equivalent(si.m/si.arcsec):
+        platescale_val = (1/platescale).to(si.radian/si.m).value
+    else:
+        raise UnitsError("The pixel scale must be in angle/distance or "
+                         "distance/angle")
+
+    return [(si.m, si.radian, lambda d: d*platescale_val, lambda rad: rad/platescale_val)]
