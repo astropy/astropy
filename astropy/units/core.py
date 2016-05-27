@@ -1638,7 +1638,7 @@ class IrreducibleUnit(NamedUnit):
         return self
 
     def decompose(self, bases=set()):
-        if len(bases) and not self in bases:
+        if len(bases) and self not in bases:
             for base in bases:
                 try:
                     scale = self._to(base)

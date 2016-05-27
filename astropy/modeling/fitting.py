@@ -900,7 +900,7 @@ def _fitter_to_model_params(model, fps):
     # better to change this at some point
     if has_tied:
         for idx, name in enumerate(model.param_names):
-            if model.tied[name] != False:
+            if model.tied[name]:
                 value = model.tied[name](model)
                 slice_ = param_metrics[name]['slice']
                 model.parameters[slice_] = value

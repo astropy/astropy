@@ -85,23 +85,23 @@ def test_parameter_properties():
     with pytest.raises(AttributeError):
         p.name = 'beta'
 
-    assert p.fixed == False
+    assert p.fixed is False
     p.fixed = True
-    assert p.fixed == True
+    assert p.fixed is True
 
-    assert p.tied == False
+    assert p.tied is False
     p.tied = lambda _: 0
 
     p.tied = False
-    assert p.tied == False
+    assert p.tied is False
 
-    assert p.min == None
+    assert p.min is None
     p.min = 42
     assert p.min == 42
     p.min = None
-    assert p.min == None
+    assert p.min is None
 
-    assert p.max == None
+    assert p.max is None
     # TODO: shouldn't setting a max < min give an error?
     p.max = 41
     assert p.max == 41

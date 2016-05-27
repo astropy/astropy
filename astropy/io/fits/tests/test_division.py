@@ -27,7 +27,7 @@ class TestDivisionFunctions(FitsTestCase):
 
     def test_valid_hdu_size(self):
         t1 = fits.open(self.data('tb.fits'))
-        assert type(t1[1].size) == type(1)
+        assert type(t1[1].size) is type(1)  # nopep8
 
     def test_hdu_get_size(self):
         with catch_warnings() as w:

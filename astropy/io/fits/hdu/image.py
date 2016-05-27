@@ -928,8 +928,8 @@ class PrimaryHDU(_ImageBaseHDU):
     def match_header(cls, header):
         card = header.cards[0]
         return (card.keyword == 'SIMPLE' and
-                ('GROUPS' not in header or header['GROUPS'] != True) and
-                card.value == True)
+                ('GROUPS' not in header or not header['GROUPS']) and
+                card.value)
 
     def update_header(self):
         super(PrimaryHDU, self).update_header()
