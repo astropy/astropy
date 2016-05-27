@@ -20,7 +20,7 @@ __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'doppler_optical', 'doppler_relativistic', 'mass_energy',
            'brightness_temperature', 'dimensionless_angles',
            'logarithmic', 'temperature', 'temperature_energy',
-           'pixel_scale', 'plate_scale']
+           'pixel_scale']
 
 
 def dimensionless_angles():
@@ -496,3 +496,23 @@ def assert_is_spectral_unit(value):
     except (AttributeError, UnitsError) as ex:
         raise UnitsError("The 'rest' value must be a spectral equivalent "
                          "(frequency, wavelength, or energy).")
+
+
+def pixel_scale(pixscale):
+    """
+    Convert between pixel distances (in units of ``pix``) and angular units.
+
+    Parameters
+    ----------
+    pixscale : `~astropy.units.Quantity`
+        The pixel scale either in units of angle/pixel or pixel/angle.
+    """
+    if pixscale.unit.is_equivalent(si.arcsec/astrophys.pix):
+        pixscale_val = pixscale.to(si.radian/astrophys.pix).value
+    elif pixscale.unit.is_equivalent(astrophys.pix/si.arcsec):
+        pixscale_val = (1/pixscale).to(si.radian/astrophys.pix).value
+    else:
+        raise UnitsError("The pixel scale must be in angle/pixel or "
+                         "pixel/angle")
+
+    return [(astrophys.pix, si.radian, lambda px: px*pixscale_val, lambda rad: rad/pixscale_val)]
