@@ -411,17 +411,18 @@ def test_icrs_altaz_moonish(testframe):
     #now check that the distance change is similar to earth radius
     assert 1000*u.km < np.abs(moonaa.distance - MOONDIST).to(u.au) < 7000*u.km
 
-@remote_data
+
+@pytest.remote_data
 def test_gcrs_self_transform_closeby():
     """
     Tests GCRS self transform for objects which are nearby and thus
     have reasonable parallax.
-    
+
     Create moon positions using JPL DE432s ephemeris (small download).
-    
+
     The two lunar positions (one geocentric, one at a defined location)
     are created via a transformation from ICRS to two different GCRS frames.
-    
+
     We test that the GCRS-GCRS self transform can correctly map one GCRS
     frame onto the other.
     """
@@ -432,9 +433,7 @@ def test_gcrs_self_transform_closeby():
     loc = EarthLocation(*(5327448.9957829,
                           -1718665.73869569, 3051566.90295403)*u.m)
     moon_lapalma = get_moon(t, ephemeris='de432s', location=loc)
-    
+
     transformed = moon_geocentric.transform_to(moon_lapalma.frame)
     delta = transformed.separation_3d(moon_lapalma)
     assert_allclose(delta, 0.0*u.m, atol=1*u.m)
-    
-        
