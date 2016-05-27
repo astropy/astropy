@@ -51,7 +51,7 @@ def test_cd():
     w = _wcs.Wcsprm()
     w.cd = [[1, 0], [0, 1]]
     assert w.cd.dtype == np.float
-    assert w.has_cd()
+    assert w.has_cd() is True
     assert_array_equal(w.cd, [[1, 0], [0, 1]])
     del w.cd
     assert w.has_cd() is False
@@ -68,7 +68,7 @@ def test_cd_missing():
 def test_cd_missing2():
     w = _wcs.Wcsprm()
     w.cd = [[1, 0], [0, 1]]
-    assert w.has_cd()
+    assert w.has_cd() is True
     del w.cd
     assert w.has_cd() is False
     w.cd
@@ -179,7 +179,7 @@ def test_crota():
     w = _wcs.Wcsprm()
     w.crota = [1, 0]
     assert w.crota.dtype == np.float
-    assert w.has_crota()
+    assert w.has_crota() is True
     assert_array_equal(w.crota, [1, 0])
     del w.crota
     assert w.has_crota() is False
@@ -196,7 +196,7 @@ def test_crota_missing():
 def test_crota_missing2():
     w = _wcs.Wcsprm()
     w.crota = [1, 0]
-    assert w.has_crota()
+    assert w.has_crota() is True
     del w.crota
     assert w.has_crota() is False
     w.crota
