@@ -7,27 +7,29 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 
 from ... import units as u
-from ..builtin_frames import ICRS, AstrometricICRS
-from .. import SkyCoord
+from ..distances import Distance
+from ..builtin_frames import ICRS, FK5, FK4, Galactic, AltAz, AstrometricFrame
+from .. import SkyCoord, EarthLocation
+from ...time import Time
 from ...tests.helper import (pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
 
 
-@pytest.mark.parametrize("inradec,expecteddradec, tolsep", [
+@pytest.mark.parametrize("inradec,expectedlatlon, tolsep", [
     ((45, 45)*u.deg, (0, 0)*u.deg, .001*u.arcsec),
     ((45, 0)*u.deg, (0, -45)*u.deg, .001*u.arcsec),
     ((45, 90)*u.deg, (0, 45)*u.deg, .001*u.arcsec),
     ((46, 45)*u.deg, (1*np.cos(45*u.deg), 0)*u.deg, 16*u.arcsec),
     ])
-def test_astrometric(inradec, expecteddradec, tolsep, originradec=(45, 45)*u.deg):
+def test_astrometric(inradec, expectedlatlon, tolsep, originradec=(45, 45)*u.deg):
     origin = ICRS(*originradec)
-    astrometric_frame = AstrometricICRS(origin=origin)
+    astrometric_frame = AstrometricFrame(origin=origin)
 
     skycoord = SkyCoord(*inradec, frame=ICRS)
     skycoord_inaf = skycoord.transform_to(astrometric_frame)
-    assert hasattr(skycoord_inaf, 'dra')
-    assert hasattr(skycoord_inaf, 'ddec')
-    expected = SkyCoord(*expecteddradec, frame=astrometric_frame)
+    assert hasattr(skycoord_inaf, 'lon')
+    assert hasattr(skycoord_inaf, 'lat')
+    expected = SkyCoord(*expectedlatlon, frame=astrometric_frame)
 
     assert skycoord_inaf.separation(expected) < tolsep
 
@@ -53,7 +55,7 @@ def test_astrometric_functional_ra():
         expected_xyz = expected.cartesian.xyz
 
         # actual transformation to the frame
-        astrometric_frame = AstrometricICRS(origin=ICRS(ra*u.deg, 0*u.deg))
+        astrometric_frame = AstrometricFrame(origin=ICRS(ra*u.deg, 0*u.deg))
         actual = icrs_coord.transform_to(astrometric_frame)
         actual_xyz = actual.cartesian.xyz
 
@@ -97,7 +99,7 @@ def test_astrometric_functional_dec():
         expected_xyz = expected.cartesian.xyz
 
         # actual transformation to the frame
-        astrometric_frame = AstrometricICRS(origin=ICRS(0*u.deg, dec*u.deg))
+        astrometric_frame = AstrometricFrame(origin=ICRS(0*u.deg, dec*u.deg))
         actual = icrs_coord.transform_to(astrometric_frame)
         actual_xyz = actual.cartesian.xyz
 
@@ -144,7 +146,7 @@ def test_astrometric_functional_ra_dec():
             expected_xyz = expected.cartesian.xyz
 
             # actual transformation to the frame
-            astrometric_frame = AstrometricICRS(origin=ICRS(ra*u.deg, dec*u.deg))
+            astrometric_frame = AstrometricFrame(origin=ICRS(ra*u.deg, dec*u.deg))
             actual = icrs_coord.transform_to(astrometric_frame)
             actual_xyz = actual.cartesian.xyz
 
@@ -166,24 +168,101 @@ def test_skycoord_astrometric_frame():
     m31_in_m31 = m31.transform_to(m31_astro)
     m33_in_m31 = m33.transform_to(m31_astro)
 
-    assert_allclose([m31_in_m31.dra, m31_in_m31.ddec], [0, 0]*u.deg, atol=1e-10*u.deg)
-    assert_allclose([m33_in_m31.dra, m33_in_m31.ddec], [11.13135175, -9.79084759]*u.deg)
+    assert_allclose([m31_in_m31.lon, m31_in_m31.lat], [0, 0]*u.deg, atol=1e-10*u.deg)
+    assert_allclose([m33_in_m31.lon, m33_in_m31.lat], [11.13135175, -9.79084759]*u.deg)
 
     assert_allclose(m33.separation(m31),
-                    np.hypot(m33_in_m31.dra, m33_in_m31.ddec),
+                    np.hypot(m33_in_m31.lon, m33_in_m31.lat),
                     atol=.1*u.deg)
-@pytest.mark.parametrize("rotation, expecteddradec", [
+
+# used below in the next parametrized test
+m31_sys = [ICRS, FK5, Galactic]
+m31_coo = [(10.6847929, 41.2690650), (10.6847929, 41.2690650), (121.1744050, -21.5729360)]
+m31_dist = Distance(770, u.kpc)
+convert_precision = 1 * u.arcsec
+roundtrip_precision = 1e-4 * u.degree
+dist_precision = 1e-9 * u.kpc
+
+m31_params = []
+for i in range(len(m31_sys)):
+    for j in range(len(m31_sys)):
+        if i < j:
+            m31_params.append((m31_sys[i], m31_sys[j], m31_coo[i], m31_coo[j]))
+
+
+@pytest.mark.parametrize(('fromsys', 'tosys', 'fromcoo', 'tocoo'), m31_params)
+def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
+    """
+    This tests a variety of coordinate conversions for the Chandra point-source
+    catalog location of M31 from NED, via Astrometric Frames
+    """
+    from_origin = fromsys(fromcoo[0]*u.deg, fromcoo[1]*u.deg,
+                          distance=m31_dist)
+    from_pos = AstrometricFrame(1*u.deg, 1*u.deg, origin=from_origin)
+    to_origin = tosys(tocoo[0]*u.deg, tocoo[1]*u.deg, distance=m31_dist)
+
+    to_astroframe = AstrometricFrame(origin=to_origin)
+    target_pos = from_pos.transform_to(to_astroframe)
+
+    assert_allclose(to_origin.separation(target_pos),
+                    np.hypot(from_pos.lon, from_pos.lat),
+                    atol=convert_precision)
+    roundtrip_pos = target_pos.transform_to(from_pos)
+    assert_allclose([roundtrip_pos.lon.wrap_at(180*u.deg), roundtrip_pos.lat],
+                    [1.0*u.deg, 1.0*u.deg], atol=convert_precision)
+
+def test_altaz_attribute_transforms():
+    """Test transforms between AltAz frames with different attributes."""
+    el1 = EarthLocation(0*u.deg, 0*u.deg, 0*u.m)
+    origin1 = AltAz(0 * u.deg, 0*u.deg, obstime=Time("2000-01-01T12:00:00"),
+                    location=el1)
+    frame1 = AstrometricFrame(origin=origin1)
+    coo1 = SkyCoord(1 * u.deg, 1 * u.deg, frame=frame1)
+
+    el2 = EarthLocation(0*u.deg, 0*u.deg, 0*u.m)
+    origin2 = AltAz(0 * u.deg, 0*u.deg, obstime=Time("2000-01-01T11:00:00"),
+                    location=el2)
+    frame2 = AstrometricFrame(origin=origin2)
+    coo2 = coo1.transform_to(frame2)
+    coo2_expected = [1.22522446, 0.70624298] * u.deg
+    assert_allclose([coo2.lon.wrap_at(180*u.deg), coo2.lat],
+                    coo2_expected, atol=convert_precision)
+
+    el3 = EarthLocation(0*u.deg, 90*u.deg, 0*u.m)
+    origin3 = AltAz(0 * u.deg, 90*u.deg, obstime=Time("2000-01-01T12:00:00"),
+                    location=el3)
+    frame3 = AstrometricFrame(origin=origin3)
+    coo3 = coo2.transform_to(frame3)
+    assert_allclose([coo3.lon.wrap_at(180*u.deg), coo3.lat],
+                    [1*u.deg, 1*u.deg], atol=convert_precision)
+
+@pytest.mark.parametrize("rotation, expectedlatlon", [
     (0*u.deg, [0, 1]*u.deg),
     (180*u.deg, [0, -1]*u.deg),
     (90*u.deg, [-1, 0]*u.deg),
     (-90*u.deg, [1, 0]*u.deg)
     ])
-def test_rotation(rotation, expecteddradec):
+def test_rotation(rotation, expectedlatlon):
     origin = ICRS(45*u.deg, 45*u.deg)
     target = ICRS(45*u.deg, 46*u.deg)
 
-    aframe = AstrometricICRS(origin=origin, rotation=rotation)
+    aframe = AstrometricFrame(origin=origin, rotation=rotation)
     trans = target.transform_to(aframe)
 
-    assert_allclose([trans.dra.wrap_at(180*u.deg), trans.ddec],
-                    expecteddradec, atol=1e-10*u.deg)
+    assert_allclose([trans.lon.wrap_at(180*u.deg), trans.lat],
+                    expectedlatlon, atol=1e-10*u.deg)
+
+
+def test_astrometric_names():
+    origin1 = ICRS(45*u.deg, 45*u.deg)
+    aframe1 = AstrometricFrame(origin=origin1)
+    assert type(aframe1).__name__ == 'AstrometricICRS'
+
+    origin2 = Galactic(45*u.deg, 45*u.deg)
+    aframe2 = AstrometricFrame(origin=origin2)
+    assert type(aframe2).__name__ == 'AstrometricGalactic'
+
+def test_astrometric_origindata():
+    origin = ICRS()
+    with pytest.raises(ValueError):
+        AstrometricFrame(origin=origin)
