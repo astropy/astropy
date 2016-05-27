@@ -371,7 +371,7 @@ class Table(object):
         init_func(data, names, dtype, n_cols, copy)
 
         # Whatever happens above, the masked property should be set to a boolean
-        if type(self.masked) != bool:
+        if type(self.masked) is not bool:
             raise TypeError("masked property has not been set to True or False")
 
     def __getstate__(self):
@@ -687,7 +687,7 @@ class Table(object):
         MaskedColumn if the table is masked.  Table subclasses like QTable
         override this method.
         """
-        if isinstance(col, Column) and not col.__class__ is self.ColumnClass:
+        if col.__class__ is not self.ColumnClass and isinstance(col, Column):
             col = self.ColumnClass(col)  # copy attributes and reference data
         return col
 

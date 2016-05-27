@@ -805,7 +805,7 @@ def test_validate(test_path_object=False):
         result = validate(fpath,
                           output, xmllint=False)
 
-    assert result == False
+    assert result is False
 
     output.seek(0)
     output = output.readlines()
@@ -990,7 +990,7 @@ def test_no_resource_check():
         result = validate(get_pkg_data_filename('data/no_resource.xml'),
                           output, xmllint=False)
 
-    assert result == False
+    assert result is False
 
     output.seek(0)
     output = output.readlines()

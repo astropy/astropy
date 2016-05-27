@@ -930,7 +930,7 @@ class SAMPHubServer(object):
             for mtype in mtypes:
 
                 if mtype in self._mtype2ids:
-                    if not private_key in self._mtype2ids[mtype]:
+                    if private_key not in self._mtype2ids[mtype]:
                         self._mtype2ids[mtype].append(private_key)
                 else:
                     self._mtype2ids[mtype] = [private_key]
@@ -1098,7 +1098,7 @@ class SAMPHubServer(object):
         self._update_last_activity_time(private_key)
 
         if private_key in self._private_keys:
-            if not "samp.mtype" in message:
+            if "samp.mtype" not in message:
                 raise SAMPProxyError(3, "samp.mtype keyword is missing")
             recipient_ids = self._notify_all_(private_key, message)
             return recipient_ids
@@ -1170,7 +1170,7 @@ class SAMPHubServer(object):
         self._update_last_activity_time(private_key)
 
         if private_key in self._private_keys:
-            if not "samp.mtype" in message:
+            if "samp.mtype" not in message:
                 raise SAMPProxyError(3, "samp.mtype keyword is missing in "
                                         "message tagged as %s" % msg_tag)
 

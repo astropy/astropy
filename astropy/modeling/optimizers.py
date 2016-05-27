@@ -145,8 +145,7 @@ class SLSQP(Optimization):
         # set the values of constraints to match the requirements of fmin_slsqp
         model = fargs[0]
         pars = [getattr(model, name) for name in model.param_names]
-        bounds = [par.bounds for par in pars if par.fixed != True and
-                  par.tied == False]
+        bounds = [par.bounds for par in pars if not (par.fixed or par.tied)]
         bounds = np.asarray(bounds)
         for i in bounds:
             if i[0] is None:

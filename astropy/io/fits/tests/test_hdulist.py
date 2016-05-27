@@ -431,7 +431,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdul.verify('silentfix')
 
         assert 'EXTEND' in hdul[0].header
-        assert hdul[0].header['EXTEND'] == True
+        assert hdul[0].header['EXTEND'] is True
 
     def test_new_hdulist_extend_keyword(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/114
@@ -446,7 +446,7 @@ class TestHDUListFunctions(FitsTestCase):
         image = fits.HDUList([hdu, sci])
         image.writeto(self.temp('temp.fits'))
         assert 'EXTEND' in hdu.header
-        assert hdu.header['EXTEND'] == True
+        assert hdu.header['EXTEND'] is True
 
     def test_replace_memmaped_array(self):
         # Copy the original before we modify it
