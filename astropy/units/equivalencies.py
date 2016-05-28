@@ -19,7 +19,8 @@ from .core import UnitsError
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'doppler_optical', 'doppler_relativistic', 'mass_energy',
            'brightness_temperature', 'dimensionless_angles',
-           'logarithmic', 'temperature', 'temperature_energy']
+           'logarithmic', 'temperature', 'temperature_energy',
+           'pixel_scale', 'plate_scale']
 
 
 def dimensionless_angles():
@@ -481,11 +482,13 @@ def temperature():
         (si.K, deg_F, lambda x: (x - 273.15) * 1.8 + 32.0,
          lambda x: ((x - 32.0) / 1.8) + 273.15)]
 
+
 def temperature_energy():
     """Convert between Kelvin and keV(eV) to an equivalent amount."""
     return [
         (si.K, si.eV, lambda x: x / (_si.e.value / _si.k_B),
          lambda x: x * (_si.e.value / _si.k_B))]
+
 
 def assert_is_spectral_unit(value):
     try:
@@ -493,3 +496,45 @@ def assert_is_spectral_unit(value):
     except (AttributeError, UnitsError) as ex:
         raise UnitsError("The 'rest' value must be a spectral equivalent "
                          "(frequency, wavelength, or energy).")
+
+
+def pixel_scale(pixscale):
+    """
+    Convert between pixel distances (in units of ``pix``) and angular units,
+    given a particular ``pixscale``.
+
+    Parameters
+    ----------
+    pixscale : `~astropy.units.Quantity`
+        The pixel scale either in units of angle/pixel or pixel/angle.
+    """
+    if pixscale.unit.is_equivalent(si.arcsec/astrophys.pix):
+        pixscale_val = pixscale.to(si.radian/astrophys.pix).value
+    elif pixscale.unit.is_equivalent(astrophys.pix/si.arcsec):
+        pixscale_val = (1/pixscale).to(si.radian/astrophys.pix).value
+    else:
+        raise UnitsError("The pixel scale must be in angle/pixel or "
+                         "pixel/angle")
+
+    return [(astrophys.pix, si.radian, lambda px: px*pixscale_val, lambda rad: rad/pixscale_val)]
+
+
+def plate_scale(platescale):
+    """
+    Convert between lengths (to be interpreted as lengths in the focal plane)
+    and angular units with a specified ``platescale``.
+
+    Parameters
+    ----------
+    platescale : `~astropy.units.Quantity`
+        The pixel scale either in units of distance/pixel or distance/angle.
+    """
+    if platescale.unit.is_equivalent(si.arcsec/si.m):
+        platescale_val = platescale.to(si.radian/si.m).value
+    elif platescale.unit.is_equivalent(si.m/si.arcsec):
+        platescale_val = (1/platescale).to(si.radian/si.m).value
+    else:
+        raise UnitsError("The pixel scale must be in angle/distance or "
+                         "distance/angle")
+
+    return [(si.m, si.radian, lambda d: d*platescale_val, lambda rad: rad/platescale_val)]
