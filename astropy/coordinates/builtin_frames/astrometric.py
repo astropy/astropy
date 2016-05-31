@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+# Note: `from __future__ import unicode_literals` is omitted here on purpose.
+# Adding it leads to str / unicode errors on Python 2
+from __future__ import (absolute_import, division, print_function)
 
 from ... import units as u
 from ..transformations import DynamicMatrixTransform, FunctionTransform
@@ -9,6 +13,7 @@ from ..angles import rotation_matrix
 from ...utils.compat import namedtuple_asdict
 
 _astrometric_cache = {}
+
 
 def make_astrometric_cls(framecls):
     """
@@ -47,9 +52,10 @@ def make_astrometric_cls(framecls):
     class AstrometricMeta(framemeta):
         """
         This metaclass renames the class to be "Astrometric<framecls>" and also
-        adjusts the frame specific representation info to have the "d" in front
-        of spherical names
+        adjusts the frame specific representation info so that spherical names
+        are always "lon" and "lat" (instead of e.g. "ra" and "dec").
         """
+
         def __new__(cls, name, bases, members):
             # Only 'origin' is needed here, to set the origin frame properly.
             members['origin'] = CoordinateAttribute(frame=framecls, default=None)
@@ -64,8 +70,9 @@ def make_astrometric_cls(framecls):
             newname += framecls.__name__
 
             res = super(AstrometricMeta, cls).__new__(cls, newname, bases, members)
-            # now go through all the component names and make any spherical
-            # lat/lon names be "d<lon>"/"d<lat>"
+
+            # now go through all the component names and make any spherical names be "lon" and "lat"
+            # instead of e.g. "ra" and "dec"
 
             lists_done = []
             for nm, component_list in res._frame_specific_representation_info.items():
@@ -75,8 +82,8 @@ def make_astrometric_cls(framecls):
                         if component_list in lists_done:
                             # we need this because sometimes the component_
                             # list's are the exact *same* object for both
-                            # spherical and unitspherical.  So looping then adds
-                            # the 'd' *twice*.  This hack bypasses that.
+                            # spherical and unitspherical.  So looping then makes
+                            # the change *twice*.  This hack bypasses that.
                             continue
 
                         if comp.reprname in ('lon', 'lat'):
@@ -116,7 +123,7 @@ def make_astrometric_cls(framecls):
     def reference_to_astrometric(reference_frame, astrometric_frame):
         """Convert a reference coordinate to an Astrometric frame."""
 
-        # Define rotation matricies along the position angle vector, and
+        # Define rotation matrices along the position angle vector, and
         # relative to the origin.
         origin = astrometric_frame.origin.spherical
         mat1 = rotation_matrix(-astrometric_frame.rotation, 'x')
@@ -160,7 +167,7 @@ class AstrometricFrame(BaseCoordinateFrame):
         A representation object or None to have no data (or use the other keywords)
     origin : `SkyCoord` or low-level coordinate object.
         the coordinate which specifies the origin of this frame.
-    rotation : Quantity with angle units
+    rotation : `~astropy.coordinates.Angle` or `~astropy.units.Quantity` with angle units
         The final rotation of the frame about the ``origin``. The sign of
         the rotation is the left-hand rule.  That is, an object at a
         particular position angle in the un-rotated system will be sent to
