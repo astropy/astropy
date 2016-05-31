@@ -41,10 +41,8 @@ def test_astrometric_functional_ra():
     # staying away from the edges
     input_ra = np.linspace(0, 360, 12)[1:-1]
     input_dec = np.linspace(-90, 90, 12)[1:-1]
-    input_ra_rad = np.deg2rad(input_ra)
-    input_dec_rad = np.deg2rad(input_dec)
-    icrs_coord = ICRS(ra = input_ra*u.deg,
-                      dec = input_dec*u.deg,
+    icrs_coord = ICRS(ra=input_ra*u.deg,
+                      dec=input_dec*u.deg,
                       distance=1.*u.kpc)
 
     for ra in np.linspace(0,360,24):
@@ -65,8 +63,8 @@ def test_astrometric_functional_ra():
 
         # Verify
         assert_allclose(actual_xyz, expected_xyz, atol=1E-5*u.kpc)
-        assert_allclose(icrs_coord.ra, roundtrip.ra, atol = 1E-5*u.deg)
-        assert_allclose(icrs_coord.dec, roundtrip.dec, atol = 1E-5*u.deg)
+        assert_allclose(icrs_coord.ra, roundtrip.ra, atol=1E-5*u.deg)
+        assert_allclose(icrs_coord.dec, roundtrip.dec, atol=1E-5*u.deg)
         assert_allclose(icrs_coord.distance, roundtrip.distance, atol = 1E-5*u.kpc)
 
 
@@ -79,8 +77,8 @@ def test_astrometric_functional_dec():
     input_dec = np.linspace(-90, 90, 12)[1:-1]
     input_ra_rad = np.deg2rad(input_ra)
     input_dec_rad = np.deg2rad(input_dec)
-    icrs_coord = ICRS(ra = input_ra*u.deg,
-                      dec = input_dec*u.deg,
+    icrs_coord = ICRS(ra=input_ra*u.deg,
+                      dec=input_dec*u.deg,
                       distance=1.*u.kpc)
     #Dec rotations
     #Done in xyz space because dec must be [-90,90]
@@ -105,13 +103,12 @@ def test_astrometric_functional_dec():
 
         # back to ICRS
         roundtrip = actual.transform_to(ICRS)
-        roundtrip_xyz = roundtrip.cartesian.xyz
 
         # Verify
         assert_allclose(actual_xyz, expected_xyz, atol=1E-5*u.kpc)
-        assert_allclose(icrs_coord.ra, roundtrip.ra, atol = 1E-5*u.deg)
-        assert_allclose(icrs_coord.dec, roundtrip.dec, atol = 1E-5*u.deg)
-        assert_allclose(icrs_coord.distance, roundtrip.distance, atol = 1E-5*u.kpc)
+        assert_allclose(icrs_coord.ra, roundtrip.ra, atol=1E-5*u.deg)
+        assert_allclose(icrs_coord.dec, roundtrip.dec, atol=1E-5*u.deg)
+        assert_allclose(icrs_coord.distance, roundtrip.distance, atol=1E-5*u.kpc)
 
 
 def test_astrometric_functional_ra_dec():
@@ -152,13 +149,12 @@ def test_astrometric_functional_ra_dec():
 
             # back to ICRS
             roundtrip = actual.transform_to(ICRS)
-            roundtrip_xyz = roundtrip.cartesian.xyz
 
             # Verify
             assert_allclose(actual_xyz, expected_xyz, atol=1E-5*u.kpc)
-            assert_allclose(icrs_coord.ra, roundtrip.ra, atol = 1E-4*u.deg)
-            assert_allclose(icrs_coord.dec, roundtrip.dec, atol = 1E-5*u.deg)
-            assert_allclose(icrs_coord.distance, roundtrip.distance, atol = 1E-5*u.kpc)
+            assert_allclose(icrs_coord.ra, roundtrip.ra, atol=1E-4*u.deg)
+            assert_allclose(icrs_coord.dec, roundtrip.dec, atol=1E-5*u.deg)
+            assert_allclose(icrs_coord.distance, roundtrip.distance, atol=1E-5*u.kpc)
 
 def test_skycoord_astrometric_frame():
     m31 = SkyCoord(10.6847083, 41.26875, frame='icrs', unit=u.deg)
@@ -174,6 +170,7 @@ def test_skycoord_astrometric_frame():
     assert_allclose(m33.separation(m31),
                     np.hypot(m33_in_m31.lon, m33_in_m31.lat),
                     atol=.1*u.deg)
+
 
 # used below in the next parametrized test
 m31_sys = [ICRS, FK5, Galactic]
@@ -210,6 +207,7 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
     roundtrip_pos = target_pos.transform_to(from_pos)
     assert_allclose([roundtrip_pos.lon.wrap_at(180*u.deg), roundtrip_pos.lat],
                     [1.0*u.deg, 1.0*u.deg], atol=convert_precision)
+
 
 def test_altaz_attribute_transforms():
     """Test transforms between AltAz frames with different attributes."""
@@ -253,6 +251,24 @@ def test_rotation(rotation, expectedlatlon):
                     expectedlatlon, atol=1e-10*u.deg)
 
 
+@pytest.mark.parametrize("rotation, expectedlatlon", [
+    (0*u.deg, [0, 1]*u.deg),
+    (180*u.deg, [0, -1]*u.deg),
+    (90*u.deg, [-1, 0]*u.deg),
+    (-90*u.deg, [1, 0]*u.deg)
+    ])
+def test_skycoord_astrometric_frame_rotation(rotation, expectedlatlon):
+    """Test if passing a rotation argument via SkyCoord works"""
+    origin = SkyCoord(45*u.deg, 45*u.deg)
+    target = SkyCoord(45*u.deg, 46*u.deg)
+
+    aframe = origin.astrometric_frame(rotation=rotation)
+    trans = target.transform_to(aframe)
+
+    assert_allclose([trans.lon.wrap_at(180*u.deg), trans.lat],
+                    expectedlatlon, atol=1e-10*u.deg)
+
+
 def test_astrometric_names():
     origin1 = ICRS(45*u.deg, 45*u.deg)
     aframe1 = AstrometricFrame(origin=origin1)
@@ -261,6 +277,7 @@ def test_astrometric_names():
     origin2 = Galactic(45*u.deg, 45*u.deg)
     aframe2 = AstrometricFrame(origin=origin2)
     assert type(aframe2).__name__ == 'AstrometricGalactic'
+
 
 def test_astrometric_origindata():
     origin = ICRS()
