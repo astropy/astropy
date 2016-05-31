@@ -146,6 +146,9 @@ New Features
 
 - ``astropy.tests``
 
+  - Enable test runner to obtain documentation source files from directory
+    other than "docs". [#4748]
+
 - ``astropy.time``
 
   - Added caching of scale and format transformations for improved performance.
@@ -241,7 +244,7 @@ API changes
     converted to float. [#4697]
 
   - ``RotateNative2Celestial`` and ``RotateCelestial2Native`` are now
-    implemented as subclasses of ``EulerAngleRotation``. [#4881]
+    implemented as subclasses of ``EulerAngleRotation``. [#4881, #4940]
 
 - ``astropy.nddata``
 
@@ -366,6 +369,8 @@ API changes
   - ``StdDevUncertainty``: deprecated ``propagate_add`` and similar methods in
     favor of ``propagate``. [#4272, #4828]
 
+  - Allow ``data`` to be a named argument in ``NDDataArray``. [#4626]
+
 - ``astropy.stats``
 
 - ``astropy.table``
@@ -455,14 +460,15 @@ Bug fixes
     fail on non-US locales. [#4363]
 
   - Fix astropy.io.ascii.read handling of units for IPAC formatted files.
-    Columns with no unit are treated as unitless not dimensionless. [#4867]
+    Columns with no unit are treated as unitless not dimensionless. [#4867,
+    #4947]
 
   - Fix problems the header parsing in the sextractor reader. [#4603, #4910]
 
 - ``astropy.io.fits``
 
   - Removed raising of AssertionError that could occur after closing or
-    deleting compressed image data. [#4690]
+    deleting compressed image data. [#4690, #4694, #4948]
 
   - ``GroupsHDU.is_image`` property is now set to ``False``. [#4742]
 
@@ -508,17 +514,20 @@ Bug fixes
 
 - ``astropy.table``
 
-  - Fixed a bug where ``pprint()`` sometimes raises ``UnicodeDecodeError``
-    in Python 2. [#4946]
-
   - Fixed bug where Tables created from existing Table objects were not
     inheriting the ``primary_key`` attribute. [#4672, #4930]
+
+  - Provide more detail in the error message when reading a table fails due to a
+    problem converting column string values. [#4759]
 
 - ``astropy.tests``
 
 - ``astropy.time``
 
 - ``astropy.units``
+
+  - Exponentation using a ``Quantity`` with a unit equivalent to dimensionless
+    as base and an ``array``-like exponent yields the correct result. [#4770]
 
 - ``astropy.utils``
 
@@ -906,6 +915,9 @@ New Features
     of a Table (similar to ``Table.show_in_browser(jsviewer=True)``) in an
     Python/Jupyter notebook. [#4197]
 
+  - Added column alignment formatting for better pprint viewing
+    experience. [#3644]
+
 - ``astropy.tests``
 
   - Added new test config options, ``config_dir`` and ``cache_dir``  (these
@@ -923,7 +935,7 @@ New Features
 
   - Add support for shape manipulation (reshape, ravel, etc.). [#3224]
 
-  - Add argmin, argmax, argsort, min, max, ptp, sort methods. [#3581]
+  - Add argmin, argmax, argsort, min, max, ptp, sort methods. [#3681]
 
   - Add ``Time.to_datetime`` method for converting ``Time`` objects to
     timezone-aware datetimes. [#4119, #4124]
@@ -940,6 +952,9 @@ New Features
 
   - Quantities now work with the unit support in matplotlib.  See
     :ref:`plotting-quantities`. [#3981]
+
+  - Clarified imperial mass measurements and added pound force (lbf),
+    kilopound (kip), and pound per square inch (psi). [#3409]
 
 - ``astropy.utils``
 
@@ -998,7 +1013,7 @@ New Features
 
 - ``astropy.wcs``
 
-  - The included version of wcslib has been upgraded to 5.10. [#4239]
+  - The included version of wcslib has been upgraded to 5.10. [#3992, #4239]
 
     The minimum required version of wcslib in the 4.x series remains 4.24.
 
@@ -1245,9 +1260,6 @@ Other Changes and Additions
 
 - WCSAxes is now required for doc builds. [#4074]
 
-- Updated ``astropy.tests`` test runner code to work with Coverage v4.0 when
-  generating test coverage reports. [#4176]
-
 - The migration guide from pre-v0.4 coordinates has been removed to avoid
   cluttering the ``astropy.coordinates`` documentation with increasingly
   irrelevant material.  To see the migration guide, we recommend you simply look
@@ -1394,6 +1406,9 @@ Bug Fixes
 
 - ``astropy.table``
 
+  - Fixed a bug where ``pprint()`` sometimes raises ``UnicodeDecodeError``
+    in Python 2. [#4946]
+
 - ``astropy.tests``
 
   - Fix coverage reporting in Python 3. [#4822]
@@ -1415,7 +1430,8 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Nothing changed yet.
+- Updated ``astropy.tests`` test runner code to work with Coverage v4.0 when
+  generating test coverage reports. [#4176]
 
 
 1.0.9 (2016-03-10)
@@ -1789,7 +1805,7 @@ Bug Fixes
     HDU (i.e. non-trivial BSCALE and/or BZERO) with
     ``do_not_scale_image_data=False``. [#3883]
 
-  - Fixed stray deprecation warning in ``BinTableHDU.copy()``. [#3789]
+  - Fixed stray deprecation warning in ``BinTableHDU.copy()``. [#3798]
 
   - Better handling of the ``BLANK`` keyword when auto-scaling scaled image
     data.  The ``BLANK`` keyword is now removed from the header after
@@ -2071,11 +2087,6 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- ``astropy.units``
-
-  - Clarified imperial mass measurements and added pound force (lbf),
-    kilopound (kip), and pound per square inch (psi). [#3409]
-
 - ``astropy.vo``
 
   - The number of retries for connections in ``astropy.vo.samp`` can now be
@@ -2329,9 +2340,6 @@ New Features
     ``astropy.units.Quantity`` objects. [#2950]
 
   - Add ``unique`` convenience method to table. [#3185]
-
-  - Added column alignment formatting for better pprint viewing
-    experience. [#3644]
 
 - ``astropy.tests``
 
@@ -2718,6 +2726,9 @@ Bug Fixes
 
   - ``treat_deprecations_as_exceptions`` has been fixed to recognize Astropy
     deprecation warnings. [#3015]
+
+  - Converted representation of progress bar units without suffix
+    from float to int in console.human_file_size. [#2201, #2202, #2721, #3299]
 
 - ``astropy.wcs``
 
@@ -3992,9 +4003,6 @@ Bug Fixes
 
   - Progressbar will be limited to 100% so that the bar does not exceed the
     terminal width.  The numerical display can still exceed 100%, however.
-
-  - Converted representation of progress bar units without suffix
-    from float to int in console.human_file_size. [#2201,#2202,#2721,#3299]
 
 - ``astropy.vo``
 
