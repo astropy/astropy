@@ -21,9 +21,8 @@ from .verify import VerifyError, VerifyWarning
 
 from ...extern.six import string_types, iteritems
 from ...utils import lazyproperty, isiterable, indent
-from ...utils.compat import ignored
+from ...utils.compat import suppress
 from ...utils.exceptions import AstropyDeprecationWarning
-
 
 __all__ = ['Column', 'ColDefs', 'Delayed']
 
@@ -813,7 +812,7 @@ class Column(NotifierMixin):
             return format, format.recformat
 
         if format in NUMPY2FITS:
-            with ignored(VerifyError):
+            with suppress(VerifyError):
                 # legit recarray format?
                 recformat = format
                 format = cls.from_recformat(format)
@@ -1048,7 +1047,7 @@ class Column(NotifierMixin):
             # "optional" codes), but it is also strictly a valid ASCII
             # table format, then assume an ASCII table column was being
             # requested (the more likely case, after all).
-            with ignored(VerifyError):
+            with suppress(VerifyError):
                 format = _AsciiColumnFormat(format, strict=True)
 
             # A safe guess which reflects the existing behavior of previous

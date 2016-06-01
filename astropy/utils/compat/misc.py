@@ -7,11 +7,10 @@ be accessed from there.
 
 Includes the following fixes:
 
-* The `contextlib.ignored` context manager, which is only available in Python
+* The `contextlib.suppress` context manager, which is only available in Python
   3.4 or greater.
 
 """
-
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ...extern import six
@@ -19,8 +18,9 @@ from ...extern import six
 import functools
 import sys
 
+from ..decorators import deprecated
 
-__all__ = ['invalidate_caches', 'override__dir__', 'ignored',
+__all__ = ['invalidate_caches', 'override__dir__', 'suppress',
            'possible_filename', 'namedtuple_asdict']
 
 
@@ -97,6 +97,7 @@ try:
     from contextlib import ignored
 except ImportError:
     from contextlib import contextmanager
+    @deprecated('1.3', alternative='suppress')
     @contextmanager
     def ignored(*exceptions):
         """A context manager for ignoring exceptions.  Equivalent to::
@@ -113,7 +114,32 @@ except ImportError:
             ...     os.remove('file-that-does-not-exist')
 
         """
+        try:
+            yield
+        except exceptions:
+            pass
 
+
+try:
+    from contextlib import suppress
+except ImportError:
+    from contextlib import contextmanager
+    @contextmanager
+    def suppress(*exceptions):
+        """A context manager for ignoring exceptions.  Equivalent to::
+
+            try:
+                <body>
+            except exceptions:
+                pass
+
+        Example::
+
+            >>> import os
+            >>> with suppress(OSError):
+            ...     os.remove('file-that-does-not-exist')
+
+        """
         try:
             yield
         except exceptions:

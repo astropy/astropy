@@ -18,7 +18,7 @@ from .util import decode_ascii, encode_ascii
 from ...extern.six import string_types
 from ...extern.six.moves import xrange
 from ...utils import lazyproperty
-from ...utils.compat import ignored
+from ...utils.compat import suppress
 from ...utils.exceptions import AstropyDeprecationWarning
 
 
@@ -217,7 +217,7 @@ class FITS_rec(np.recarray):
         for attrs in ['_converted', '_heapoffset', '_heapsize', '_nfields',
                       '_gap', '_uint', 'parnames', '_coldefs']:
 
-            with ignored(AttributeError):
+            with suppress(AttributeError):
                 # _coldefs can be Delayed, and file objects cannot be
                 # picked, it needs to be deepcopied first
                 if attrs == '_coldefs':
@@ -977,7 +977,7 @@ class FITS_rec(np.recarray):
         elif _bool and field.dtype != bool:
             field = np.equal(field, ord('T'))
         elif _str:
-            with ignored(UnicodeDecodeError):
+            with suppress(UnicodeDecodeError):
                 field = decode_ascii(field)
 
         if dim:

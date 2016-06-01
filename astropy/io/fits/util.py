@@ -34,7 +34,7 @@ from ...extern.six import (string_types, integer_types, text_type,
                            binary_type, next)
 from ...extern.six.moves import zip
 from ...utils import wraps
-from ...utils.compat import ignored
+from ...utils.compat import suppress
 from ...utils.exceptions import AstropyUserWarning
 
 if six.PY3:
@@ -112,7 +112,7 @@ class NotifierMixin(object):
         if self._listeners is None:
             return
 
-        with ignored(KeyError):
+        with suppress(KeyError):
             del self._listeners[id(listener)]
 
     def _notify(self, notification, *args, **kwargs):

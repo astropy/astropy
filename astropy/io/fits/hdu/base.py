@@ -19,7 +19,7 @@ from ..verify import _Verify, _ErrList
 
 from ....extern.six import string_types, add_metaclass
 from ....utils import lazyproperty, deprecated
-from ....utils.compat import ignored
+from ....utils.compat import suppress
 from ....utils.compat.funcsigs import signature, Parameter
 from ....utils.exceptions import AstropyUserWarning
 
@@ -642,13 +642,13 @@ class _BaseHDU(object):
         if (self._has_data and self._standard and
                 _is_pseudo_unsigned(self.data.dtype)):
             for keyword in ('BSCALE', 'BZERO'):
-                with ignored(KeyError):
+                with suppress(KeyError):
                     del self._header[keyword]
 
     def _writeheader(self, fileobj):
         offset = 0
         if not fileobj.simulateonly:
-            with ignored(AttributeError, IOError):
+            with suppress(AttributeError, IOError):
                 offset = fileobj.tell()
 
             self._header.tofile(fileobj)
