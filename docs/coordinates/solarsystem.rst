@@ -92,6 +92,7 @@ For a list of the bodies for which positions can be calculated, do::
    'mercury',
    'venus',
    'earth-moon-barycenter',
+   'moon',
    'mars',
    'jupiter',
    'saturn',
