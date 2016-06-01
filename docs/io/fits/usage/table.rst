@@ -1,4 +1,3 @@
-.. doctest-skip-all
 
 .. currentmodule:: astropy.io.fits
 
@@ -29,7 +28,9 @@ What is a Record Array?
 
 A record array is an array which contains records (i.e. rows) of heterogeneous
 data types. Record arrays are available through the records module in the numpy
-library. Here is a simple example of record array::
+library. Here is a simple example of record array:
+
+.. doctest-skip::
 
     >>> from numpy import rec
     >>> bright = rec.array([(1,'Sirius', -1.45, 'A1V'),
@@ -72,8 +73,11 @@ Reading a FITS Table
 """"""""""""""""""""
 
 Like images, the ``.data`` attribute of a table HDU contains the data of the
-table.  To recap, the simple example in the Quick Tutorial::
+table.  To recap, the simple example in the Quick Tutorial:
 
+.. doctest-skip::
+
+    >>> from astropy.io import fits
     >>> f = fits.open('bright_stars.fits')  # open a FITS file
     >>> tbdata = f[1].data  # assume the first extension is a table
     >>> print(tbdata[:2])  # show the first two rows
@@ -112,7 +116,9 @@ records from a table and make a new table out of it.
 
 In the next example, assuming the table's second field having the name
 'magnitude', an output table containing all the records of magnitude > 5 from
-the input table is generated::
+the input table is generated:
+
+.. doctest-skip::
 
     >>> from astropy.io import fits
     >>> t = fits.open('table.fits')
@@ -127,7 +133,9 @@ Merging Tables
 """"""""""""""
 
 Merging different tables is straightforward in Astropy. Simply merge the column
-definitions of the input tables::
+definitions of the input tables:
+
+.. doctest-skip::
 
     >>> t1 = fits.open('table1.fits')
     >>> t2 = fits.open('table2.fits')
@@ -144,7 +152,9 @@ originally shorter table(s) will be zero (or blank) filled.
 A simpler version of this example can be used to append a new column to a
 table.  Updating an existing table with a new column is generally more
 difficult than it's worth, but one can "append" a column to a table by creating
-a new table with columns from the existing table plus the new column(s)::
+a new table with columns from the existing table plus the new column(s):
+
+.. doctest-skip::
 
     >>> orig_table = fits.open('table.fits')[1].data
     >>> orig_cols = orig_table.columns
@@ -167,7 +177,9 @@ Appending one table after another is slightly trickier, since the two tables
 may have different field attributes. Here are two examples. The first is to
 append by field indices, the second one is to append by field names. In both
 cases, the output table will inherit column attributes (name, format, etc.) of
-the first table::
+the first table:
+
+.. doctest-skip::
 
     >>> t1 = fits.open('table1.fits')
     >>> t2 = fits.open('table2.fits')
@@ -256,17 +268,17 @@ header keywords and descriptions:
     array                                 the data of the column
 
 
-Here are a few Columns using various combination of these arguments:
+Here are a few Columns using various combination of these arguments::
 
     >>> import numpy as np
-    >>> from fits import Column
+    >>> from astropy.io import fits
     >>> counts = np.array([312, 334, 308, 317])
     >>> names = np.array(['NGC1', 'NGC2', 'NGC3', 'NGC4'])
-    >>> c1 = Column(name='target', format='10A', array=names)
-    >>> c2 = Column(name='counts', format='J', unit='DN', array=counts)
-    >>> c3 = Column(name='notes', format='A10')
-    >>> c4 = Column(name='spectrum', format='1000E')
-    >>> c5 = Column(name='flag', format='L', array=[True, False, True, True])
+    >>> c1 = fits.Column(name='target', format='10A', array=names)
+    >>> c2 = fits.Column(name='counts', format='J', unit='DN', array=counts)
+    >>> c3 = fits.Column(name='notes', format='A10')
+    >>> c4 = fits.Column(name='spectrum', format='1000E')
+    >>> c5 = fits.Column(name='flag', format='L', array=[True, False, True, True])
 
 In this example, formats are specified with the FITS letter codes. When there
 is a number (>1) preceding a (numeric type) letter code, it means each cell in
@@ -306,25 +318,25 @@ A look of the newly created HDU's header will show that relevant keywords are
 properly populated::
 
     >>> tbhdu.header
-    XTENSION = 'BINTABLE'                      / binary table extension
-    BITPIX   =                               8 / array data type
-    NAXIS    =                               2 / number of array dimensions
-    NAXIS1   =                            4025 / length of dimension 1
-    NAXIS2   =                               4 / length of dimension 2
-    PCOUNT   =                               0 / number of group parameters
-    GCOUNT   =                               1 / number of groups
-    TFIELDS  =                               5 / number of table fields
-    TTYPE1   = 'target '
-    TFORM1   = '10A '
-    TTYPE2   = 'counts '
-    TFORM2   = 'J '
-    TUNIT2   = 'DN '
-    TTYPE3   = 'notes '
-    TFORM3   = '10A '
-    TTYPE4   = 'spectrum'
-    TFORM4   = '1000E '
-    TTYPE5   = 'flag '
-    TFORM5   = 'L '
+    XTENSION= 'BINTABLE'           / binary table extension
+    BITPIX  =                    8 / array data type
+    NAXIS   =                    2 / number of array dimensions
+    NAXIS1  =                 4025 / length of dimension 1
+    NAXIS2  =                    4 / length of dimension 2
+    PCOUNT  =                    0 / number of group parameters
+    GCOUNT  =                    1 / number of groups
+    TFIELDS =                    5 / number of table fields
+    TTYPE1  = 'target  '
+    TFORM1  = '10A     '
+    TTYPE2  = 'counts  '
+    TFORM2  = 'J       '
+    TUNIT2  = 'DN      '
+    TTYPE3  = 'notes   '
+    TFORM3  = '10A     '
+    TTYPE4  = 'spectrum'
+    TFORM4  = '1000E   '
+    TTYPE5  = 'flag    '
+    TFORM5  = 'L       '
 
 .. warning::
 
@@ -339,7 +351,7 @@ existing record array, a kludge can be used to create a new table HDU without
 any copying.  First, create the Columns as before, but without using the
 ``array=`` argument::
 
-    >>> c1 = Column(name='target', format='10A')
+    >>> c1 = fits.Column(name='target', format='10A')
 
 Then call :meth:`BinTableHDU.from_columns`::
 
@@ -347,7 +359,9 @@ Then call :meth:`BinTableHDU.from_columns`::
 
 This will create a new table HDU as before, with the correct column
 definitions, but an empty data section.  Now simply assign your array directly
-to the HDU's data attribute::
+to the HDU's data attribute:
+
+.. doctest-skip::
 
     >>> tbhdu.data = mydata
 
