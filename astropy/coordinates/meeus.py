@@ -10,9 +10,9 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 from numpy.polynomial.polynomial import polyval
 
-from .. import units as u, coordinates as coord
+from .. import units as u
 from .. import _erfa as erfa
-from . import GCRS, SkyCoord, GeocentricTrueEcliptic
+from . import ICRS, SkyCoord, GeocentricTrueEcliptic
 from .builtin_frames.utils import get_jd12
 
 __all__ = ["calc_moon"]
@@ -165,7 +165,7 @@ _coA3 = (313.45, 481266.484)
 _coE = (1.0, -0.002516, -0.0000074)
 
 
-def calc_moon(t, location=None):
+def calc_moon(t):
     """
     Lunar position model ELP2000-82 of (Chapront-Touze' and Chapront, 1983, 124, 50)
 
@@ -180,18 +180,12 @@ def calc_moon(t, location=None):
     -----------
     time : `~astropy.time.Time`
         Time of observation.
-    location : `~astropy.coordinates.EarthLocation`, optional
-        Location of observer on the Earth.  If not given, will be taken from
-        ``time`` (if not present, a geocentric observer will be assumed).
 
     Returns
     --------
     skycoord : `~astropy.coordinates.SkyCoord`
-        GCRS Coordinate for the body
+        ICRS Coordinate for the body
     """
-    if location is None:
-        location = t.location
-
     # number of centuries since J2000.0.
     # This should strictly speaking be in Ephemeris Time, but TDB or TT
     # will introduce error smaller than intrinsic accuracy of algorithm.
@@ -210,7 +204,6 @@ def calc_moon(t, location=None):
     E = polyval(T, _coE)
 
     suml = sumr = 0.0
-    lrnum = len(_MOON_L_R)
     for moon_l_r in _MOON_L_R:
         DNum, MNum, McNum, FNum, LFac, RFac = moon_l_r
 
@@ -246,10 +239,5 @@ def calc_moon(t, location=None):
     # Meeus algorithm gives GeocentricTrueEcliptic coordinates
     ecliptic_coo = GeocentricTrueEcliptic(lon, lat, distance=dist,
                                           equinox=t)
-    if location is None:
-        return SkyCoord(ecliptic_coo.transform_to(GCRS(obstime=t)))
 
-    loc, vel = location.get_gcrs_posvel(t)
-    return SkyCoord(ecliptic_coo.transform_to(GCRS(obstime=t,
-                                                   obsgeoloc=loc,
-                                                   obsgeovel=vel)))
+    return SkyCoord(ecliptic_coo.transform_to(ICRS))
