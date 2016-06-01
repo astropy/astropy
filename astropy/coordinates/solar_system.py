@@ -20,7 +20,7 @@ from .. import units as u
 from .. import _erfa as erfa
 from ..constants import c as speed_of_light
 from .representation import CartesianRepresentation
-from .meeus import calc_moon
+from .orbital_elements import calc_moon
 from .builtin_frames import GCRS, ICRS
 from .builtin_frames.utils import get_jd12, cartrepr_from_matmul
 from .. import _erfa
