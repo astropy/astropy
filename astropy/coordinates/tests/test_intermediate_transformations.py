@@ -8,7 +8,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 
 from ... import units as u
-from ...tests.helper import (pytest,
+from ...tests.helper import (pytest, remote_data,
                              quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
 from ...time import Time
@@ -412,7 +412,7 @@ def test_icrs_altaz_moonish(testframe):
     assert 1000*u.km < np.abs(moonaa.distance - MOONDIST).to(u.au) < 7000*u.km
 
 
-@pytest.remote_data
+@remote_data
 def test_gcrs_self_transform_closeby():
     """
     Tests GCRS self transform for objects which are nearby and thus
