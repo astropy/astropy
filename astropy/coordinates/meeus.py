@@ -198,56 +198,32 @@ def calc_moon(t, location=None):
     T = (t.tdb.jyear-2000.0)/100.
 
     # constants that are needed for all calculations
-    Lc = u.deg*polyval(T, _coLc)
-    D = u.deg*polyval(T, _coD)
-    M = u.deg*polyval(T, _coM)
-    Mc = u.deg*polyval(T, _coMc)
-    F = u.deg*polyval(T, _coF)
+    Lc = u.Quantity(polyval(T, _coLc), u.deg)
+    D = u.Quantity(polyval(T, _coD), u.deg)
+    M = u.Quantity(polyval(T, _coM), u.deg)
+    Mc = u.Quantity(polyval(T, _coMc), u.deg)
+    F = u.Quantity(polyval(T, _coF), u.deg)
 
-    # convert to angle objects and wrap at 360 degrees
-    Lc = coord.Angle(Lc).wrap_at(360*u.deg)
-    D = coord.Angle(D).wrap_at(360*u.deg)
-    M = coord.Angle(M).wrap_at(360*u.deg)
-    Mc = coord.Angle(Mc).wrap_at(360*u.deg)
-    F = coord.Angle(F).wrap_at(360*u.deg)
-
-    A1 = coord.Angle(u.deg*polyval(T, _coA1)).wrap_at(360*u.deg)
-    A2 = coord.Angle(u.deg*polyval(T, _coA2)).wrap_at(360*u.deg)
-    A3 = coord.Angle(u.deg*polyval(T, _coA3)).wrap_at(360*u.deg)
+    A1 = u.Quantity(polyval(T, _coA1), u.deg)
+    A2 = u.Quantity(polyval(T, _coA2), u.deg)
+    A3 = u.Quantity(polyval(T, _coA3), u.deg)
     E = polyval(T, _coE)
 
     suml = sumr = 0.0
     lrnum = len(_MOON_L_R)
-    for i in range(lrnum):
-        DNum = _MOON_L_R[i][0]
-        MNum = _MOON_L_R[i][1]
-        McNum = _MOON_L_R[i][2]
-        FNum = _MOON_L_R[i][3]
+    for moon_l_r in _MOON_L_R:
+        DNum, MNum, McNum, FNum, LFac, RFac = moon_l_r
 
-        corr = 1
-        if MNum == 1 or MNum == -1:
-            corr = E
-        if MNum == 2 or MNum == -2:
-            corr = E*E
-
-        suml += _MOON_L_R[i][4]*corr*np.sin(D*DNum+M*MNum+Mc*McNum+F*FNum)
-        sumr += _MOON_L_R[i][5]*corr*np.cos(D*DNum+M*MNum+Mc*McNum+F*FNum)
+        corr = E ** abs(MNum)
+        suml += LFac*corr*np.sin(D*DNum+M*MNum+Mc*McNum+F*FNum)
+        sumr += RFac*corr*np.cos(D*DNum+M*MNum+Mc*McNum+F*FNum)
 
     sumb = 0.0
-    bnum = len(_MOON_B)
-    for i in range(bnum):
-        DNum = _MOON_B[i][0]
-        MNum = _MOON_B[i][1]
-        McNum = _MOON_B[i][2]
-        FNum = _MOON_B[i][3]
+    for moon_b in _MOON_B:
+        DNum, MNum, McNum, FNum, BFac = moon_b
 
-        corr = 1
-        if MNum == 1 or MNum == -1:
-            corr = E
-        if MNum == 2 or MNum == -2:
-            corr = E*E
-
-        sumb += _MOON_B[i][4]*corr*np.sin(D*DNum+M*MNum+Mc*McNum+F*FNum)
+        corr = E ** abs(MNum)
+        sumb += BFac*corr*np.sin(D*DNum+M*MNum+Mc*McNum+F*FNum)
 
     suml += (3958*np.sin(A1) + 1962*np.sin(Lc-F) + 318*np.sin(A2))
     sumb += (-2235*np.sin(Lc) + 382*np.sin(A3) + 175*np.sin(A1-F) +
