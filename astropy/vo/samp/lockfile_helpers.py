@@ -20,7 +20,7 @@ from ...extern import six
 
 from ... import log
 
-from ...utils.compat import ignored
+from ...utils.compat import suppress
 from ...utils.data import get_readable_fileobj
 
 from .constants import SSL_SUPPORT
@@ -263,7 +263,7 @@ def remove_garbage_lock_files():
     if not hub_is_running:
         # If lockfilename belongs to a dead hub, then it is deleted
         if os.path.isfile(lockfilename):
-            with ignored(OSError):
+            with suppress(OSError):
                 os.remove(lockfilename)
 
     # HUB MULTIPLE INSTANCE MODE
@@ -278,5 +278,5 @@ def remove_garbage_lock_files():
                 if not hub_is_running:
                     # If lockfilename belongs to a dead hub, then it is deleted
                     if os.path.isfile(lockfilename):
-                        with ignored(OSError):
+                        with suppress(OSError):
                             os.remove(lockfilename)
