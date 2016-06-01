@@ -148,7 +148,15 @@ _MOON_B = (
      (2, -2, 0,  1,  107)
 )
 
-"""Coefficients of polynomials for various terms"""
+"""
+Coefficients of polynomials for various terms:
+
+Lc : Mean longitude of Moon, w.r.t mean Equinox of date
+D : Mean elongation of the Moon
+M: Sun's mean anomaly
+Mc : Moon's mean anomaly
+F : Moon's argument of latitude (mean distance of Moon from its ascending node). 
+"""
 _coLc = (2.18316448e+02,  4.81267881e+05, -1.57860000e-03,
          1.85583502e-06, -1.53388349e-08)
 _coD = (2.97850192e+02,  4.45267111e+05, -1.88190000e-03,
