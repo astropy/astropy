@@ -143,7 +143,6 @@ class solar_system_ephemeris(ScienceState):
             return tuple(BODY_NAME_TO_KERNEL_SPEC.keys())
 
 
-
 def _get_kernel(value):
     """
     Try importing jplephem, download/retrieve from cache the Satellite Planet
@@ -174,7 +173,7 @@ def _get_kernel(value):
 
     return SPK.open(download_file(value, cache=True))
 
-    
+
 def get_body_barycentric(body, time, ephemeris=None):
     """Calculate the barycentric position of a solar system body.
 
@@ -283,7 +282,7 @@ def _get_apparent_body_position(body, time, ephemeris):
         ephemeris = solar_system_ephemeris.get()
     if ephemeris == 'builtin' and body.lower() == 'moon':
         return get_body_barycentric(body, time, ephemeris)
-        
+
     # Calculate position given approximate light travel time.
     delta_light_travel_time = 20. * u.s
     emitted_time = time
