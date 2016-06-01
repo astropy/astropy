@@ -3,6 +3,8 @@
 """
 Setuptools bootstrapping installer.
 
+Maintained at https://github.com/pypa/setuptools/tree/bootstrap.
+
 Run this script to install or upgrade setuptools.
 """
 
@@ -16,22 +18,26 @@ import subprocess
 import platform
 import textwrap
 import contextlib
-import warnings
+import json
+import codecs
 
 from distutils import log
 
 try:
     from urllib.request import urlopen
+    from urllib.parse import urljoin
 except ImportError:
     from urllib2 import urlopen
+    from urlparse import urljoin
 
 try:
     from site import USER_SITE
 except ImportError:
     USER_SITE = None
 
-DEFAULT_VERSION = "18.3.1"
-DEFAULT_URL = "https://pypi.python.org/packages/source/s/setuptools/"
+LATEST = object()
+DEFAULT_VERSION = LATEST
+DEFAULT_URL = "https://pypi.io/packages/source/s/setuptools/"
 DEFAULT_SAVE_DIR = os.curdir
 
 
@@ -125,7 +131,7 @@ def _do_download(version, download_base, to_dir, download_delay):
     # Remove previously-imported pkg_resources if present (see
     # https://bitbucket.org/pypa/setuptools/pull-request/7/ for details).
     if 'pkg_resources' in sys.modules:
-        del sys.modules['pkg_resources']
+        _unload_pkg_resources()
 
     import setuptools
     setuptools.bootstrap_install_from = egg
@@ -140,6 +146,7 @@ def use_setuptools(
     Return None. Raise SystemExit if the requested version
     or later cannot be installed.
     """
+    version = _resolve_version(version)
     to_dir = os.path.abspath(to_dir)
 
     # prior to importing, capture the module state for
@@ -189,6 +196,11 @@ def _conflict_bail(VC_err, version):
 
 
 def _unload_pkg_resources():
+    sys.meta_path = [
+        importer
+        for importer in sys.meta_path
+        if importer.__class__.__module__ != 'pkg_resources.extern'
+    ]
     del_modules = [
         name for name in sys.modules
         if name.startswith('pkg_resources')
@@ -222,8 +234,8 @@ def download_file_powershell(url, target):
     ps_cmd = (
         "[System.Net.WebRequest]::DefaultWebProxy.Credentials = "
         "[System.Net.CredentialCache]::DefaultCredentials; "
-        "(new-object System.Net.WebClient).DownloadFile(%(url)r, %(target)r)"
-        % vars()
+        '(new-object System.Net.WebClient).DownloadFile("%(url)s", "%(target)s")'
+        % locals()
     )
     cmd = [
         'powershell',
@@ -248,7 +260,7 @@ download_file_powershell.viable = has_powershell
 
 
 def download_file_curl(url, target):
-    cmd = ['curl', url, '--silent', '--output', target]
+    cmd = ['curl', url, '--location', '--silent', '--output', target]
     _clean_check(cmd, target)
 
 
@@ -321,6 +333,7 @@ def download_setuptools(
     ``downloader_factory`` should be a function taking no arguments and
     returning a function for downloading a URL to a target.
     """
+    version = _resolve_version(version)
     # making sure we use the absolute path
     to_dir = os.path.abspath(to_dir)
     zip_name = "setuptools-%s.zip" % version
@@ -331,6 +344,27 @@ def download_setuptools(
         downloader = downloader_factory()
         downloader(url, saveto)
     return os.path.realpath(saveto)
+
+
+def _resolve_version(version):
+    """
+    Resolve LATEST version
+    """
+    if version is not LATEST:
+        return version
+
+    meta_url = urljoin(DEFAULT_URL, '/pypi/setuptools/json')
+    resp = urlopen(meta_url)
+    with contextlib.closing(resp):
+        try:
+            charset = resp.info().get_content_charset()
+        except Exception:
+            # Python 2 compat; assume UTF-8
+            charset = 'UTF-8'
+        reader = codecs.getreader(charset)
+        doc = json.load(reader(resp))
+
+    return str(doc['info']['version'])
 
 
 def _build_install_args(options):
@@ -347,7 +381,7 @@ def _parse_args():
     parser = optparse.OptionParser()
     parser.add_option(
         '--user', dest='user_install', action='store_true', default=False,
-        help='install in user site package (requires Python 2.6 or later)')
+        help='install in user site package')
     parser.add_option(
         '--download-base', dest='download_base', metavar="URL",
         default=DEFAULT_URL,
@@ -362,9 +396,9 @@ def _parse_args():
         default=DEFAULT_VERSION,
     )
     parser.add_option(
-    	'--to-dir',
-    	help="Directory to save (and re-use) package",
-    	default=DEFAULT_SAVE_DIR,
+        '--to-dir',
+        help="Directory to save (and re-use) package",
+        default=DEFAULT_SAVE_DIR,
     )
     options, args = parser.parse_args()
     # positional arguments are ignored
@@ -372,13 +406,13 @@ def _parse_args():
 
 
 def _download_args(options):
-	"""Return args for download_setuptools function from cmdline args."""
-	return dict(
-		version=options.version,
-		download_base=options.download_base,
-		downloader_factory=options.downloader_factory,
-		to_dir=options.to_dir,
-	)
+    """Return args for download_setuptools function from cmdline args."""
+    return dict(
+        version=options.version,
+        download_base=options.download_base,
+        downloader_factory=options.downloader_factory,
+        to_dir=options.to_dir,
+    )
 
 
 def main():
