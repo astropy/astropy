@@ -691,6 +691,10 @@ class Parameter(OrderedDescriptor):
 
         model._parameters[param_slice] = np.array(value).ravel()
 
+        if hasattr(model, '_submodels') and isinstance(model, types.InstanceType):
+            p_map = model._param_map[self._name]
+            setattr(model._submodels[p_map[0]], p_map[1], np.array(value).ravel())
+
     @staticmethod
     def _create_value_wrapper(wrapper, model):
         """Wraps a getter/setter function to support optionally passing in
