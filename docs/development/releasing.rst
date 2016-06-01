@@ -566,35 +566,6 @@ that for you.  You can delete this tag by doing::
     $ git tag -d v0.1
 
 
-Creating a MacOS X Installer on a DMG
--------------------------------------
-
-The ``bdist_dmg`` command can be used to create a ``.dmg`` disk image for
-MacOS X with a ``.pkg`` installer. In order to do this, you will need to
-ensure that you have the following dependencies installed:
-
-* `Numpy <http://www.numpy.org>`_
-* `Sphinx <http://sphinx.pocoo.org>`_
-* `bdist_mpkg <http://pypi.python.org/pypi/bdist_mpkg/>`_
-
-To create a ``.dmg`` file, run::
-
-    python setup.py bdist_dmg
-
-Note that for the actual release version, you should do this with the Python
-distribution from `python.org <http://python.org>`_ (not e.g. MacPorts, EPD,
-etc.). The best way to ensure maximum compatibility is to make sure that
-Python and Numpy are installed into ``/Library/Frameworks/Python.framework``
-using the latest stable ``.dmg`` installers available for those packages. In
-addition, the ``.dmg`` should be build on a MacOS 10.6 system, to ensure
-compatibility with 10.6, 10.7, and 10.8.
-
-Before distributing, you should test out an installation of Python, Numpy, and
-Astropy from scratch using the ``.dmg`` installers, preferably on a clean
-virtual machine.
-
-
-
 .. _signed tags: http://git-scm.com/book/en/Git-Basics-Tagging#Signed-Tags
 .. _zest.releaser: http://pypi.python.org/pypi/zest.releaser
 .. _virtualenv: http://pypi.python.org/pypi/virtualenv
