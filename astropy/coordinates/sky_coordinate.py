@@ -1027,18 +1027,23 @@ class SkyCoord(object):
 
         return angle_utilities.position_angle(slon, slat, olon, olat)
 
-    def astrometric_frame(self):
+    def astrometric_frame(self, rotation=None):
         """
         Returns the astrometric frame with this `SkyCoord` at the origin.
 
         Returns
         -------
-        astrframe: AstrometricFrame
+        astrframe : `~astropy.coordinates.AstrometricFrame`
             An astrometric frame of the same type as this `SkyCoord` (e.g., if
             this object has an ICRS coordinate, the resulting frame is
             AstrometricFrame with an ICRS origin)
+        rotation : `~astropy.coordinates.Angle` or `~astropy.units.Quantity` with angle units
+            The final rotation of the frame about the ``origin``. The sign of
+            the rotation is the left-hand rule. That is, an object at a
+            particular position angle in the un-rotated system will be sent to
+            the positive latitude (z) direction in the final frame.
         """
-        return AstrometricFrame(origin=self)
+        return AstrometricFrame(origin=self, rotation=rotation)
 
     def get_constellation(self, short_name=False, constellation_list='iau'):
         """
