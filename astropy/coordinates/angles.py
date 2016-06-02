@@ -50,6 +50,7 @@ class Angle(u.Quantity):
       Angle('-1h2m3s')
       Angle('-1h2.5m')
       Angle('-1:2.5', unit=u.deg)
+      Angle((10, 11, 12), unit='hourangle')  # (h, m, s)
       Angle((-1, 2, 3), unit=u.deg)  # (d, m, s)
       Angle(10.2345 * u.deg)
       Angle(Angle(10.2345 * u.deg))
@@ -88,7 +89,7 @@ class Angle(u.Quantity):
 
         if not isinstance(angle, u.Quantity):
             if unit is not None:
-                unit = cls._convert_unit_to_angle_unit(unit)
+                unit = cls._convert_unit_to_angle_unit(u.Unit(unit))
 
             if isinstance(angle, tuple):
                 angle = cls._tuple_to_float(angle, unit)
