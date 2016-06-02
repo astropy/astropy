@@ -211,7 +211,6 @@ Note that you can't change the type of cosmology with this operation
   >>> WMAP9.Ode0, newcosmo.Ode0  # Indirectly changed since this is flat
   (0.713..., 0.685...)
 
-
 Finding the Redshift at a Given Value of a Cosmological Quantity
 ----------------------------------------------------------------
 
@@ -452,6 +451,16 @@ over which the code is regularly tested in the module
 ``astropy.cosmology.tests.test_cosmology``. If you find any bugs,
 please let us know by `opening an issue at the github repository
 <https://github.com/astropy/astropy/issues>`_!
+
+A more difficult question is the range of redshifts over which
+the code is expected to return valid results.  This is necessarily
+model-dependent, but in general you should not expect the numeric
+results to be well behaved for redshifts more than a few times
+larger than the epoch of matter-radiation equality (so, for typical
+models, not above z = 5-6,000, but for some models much lower redshifts
+may be ill-behaved).  In particular, one should pay attention to warnings
+from the scipy integration package about integrals failing to converge (which
+may only be issued once per session).
 
 The built in cosmologies use the parameters as listed in the
 respective papers.  These provide only a limited range of precision,
