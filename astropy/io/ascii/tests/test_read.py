@@ -8,6 +8,7 @@ from collections import OrderedDict
 import locale
 
 import numpy as np
+import platform
 
 from ....extern.six.moves import cStringIO as StringIO
 from ....tests.helper import pytest
@@ -33,13 +34,6 @@ except ImportError:
     HAS_PATHLIB = False
 else:
     HAS_PATHLIB = True
-
-try:
-    locale.setlocale(locale.LC_ALL, 'de_DE')
-except:
-    HAS_DE_LOCALE = False
-else:
-    HAS_DE_LOCALE = True
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
@@ -1161,20 +1155,22 @@ def test_column_conversion_error():
         ascii.read(['a b', '1 2'], guess=False, format='basic', converters={'a': []})
     assert 'no converters' in str(err.value)
 
-@pytest.mark.skipif('not HAS_DE_LOCALE')
 def test_non_C_locale_with_fast_reader():
     """Test code that forces "C" locale while calling fast reader (#4364)"""
     current = locale.setlocale(locale.LC_ALL)
 
     try:
-        locale.setlocale(locale.LC_ALL, str('de_DE'))
+        if platform.system() == 'Darwin':
+            locale.setlocale(locale.LC_ALL, str('de_DE'))
+        else:
+            locale.setlocale(locale.LC_ALL, str('de_DE.utf8'))
 
         for fast_reader in (True, False, {'use_fast_converter': False}, {'use_fast_converter': True}):
             t = ascii.read(['a b', '1.5 2'], format='basic', guess=False,
                            fast_reader=fast_reader)
-            assert t['a'].dtype.kind == 'f1'
-    except:
-        raise
+            assert t['a'].dtype.kind == 'f'
+    except locale.Error as e:
+        pytest.skip('Locale error: {}'.format(e))
     finally:
         locale.setlocale(locale.LC_ALL, current)
 

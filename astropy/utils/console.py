@@ -164,6 +164,8 @@ def terminal_size(file=None):
             lines -= 6
         if width > 10:
             width -= 1
+        if lines <= 0 or width <= 0:
+            raise Exception('unable to get terminal size')
         return (lines, width)
     except:
         try:
