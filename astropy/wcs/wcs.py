@@ -77,7 +77,7 @@ __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
            'WCSBase', 'validate', 'WcsError', 'SingularMatrixError',
            'InconsistentAxisTypesError', 'InvalidTransformError',
            'InvalidCoordinateError', 'NoSolutionError',
-           'InvalidSubimageSpecificationError',
+           'InvalidSubimageSpecificationError', 'NoConvergence',
            'NonseparableSubimageCoordinateSystemError',
            'NoWcsKeywordsFoundError', 'InvalidTabularParametersError']
 
@@ -167,28 +167,28 @@ class NoConvergence(Exception):
     Attributes
     ----------
 
-    best_solution : numpy.ndarray
+    best_solution : `numpy.ndarray`
         Best solution achieved by the numerical method.
 
-    accuracy : numpy.ndarray
-        Accuracy of the :py:attr:`best_solution`.
+    accuracy : `numpy.ndarray`
+        Accuracy of the ``best_solution``.
 
-    niter : int
+    niter : `int`
         Number of iterations performed by the numerical method
-        to compute :py:attr:`best_solution`.
+        to compute ``best_solution``.
 
-    divergent : None, numpy.ndarray
-        Indices of the points in :py:attr:`best_solution` array
+    divergent : None, `numpy.ndarray`
+        Indices of the points in ``best_solution`` array
         for which the solution appears to be divergent. If the
-        solution does not diverge, `divergent` will be set to `None`.
+        solution does not diverge, ``divergent`` will be set to `None`.
 
-    slow_conv : None, numpy.ndarray
-        Indices of the solutions in :py:attr:`best_solution` array
+    slow_conv : None, `numpy.ndarray`
+        Indices of the solutions in ``best_solution`` array
         for which the solution failed to converge within the
         specified maximum number of iterations. If there are no
         non-converging solutions (i.e., if the required accuracy
         has been achieved for all input data points)
-        then `slow_conv` will be set to `None`.
+        then ``slow_conv`` will be set to `None`.
 
     """
     def __init__(self, *args, **kwargs):
@@ -1857,7 +1857,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             Maximum number of iterations allowed to reach a solution.
 
         quiet : bool, optional (Default = False)
-            Do not throw :py:class:``NoConvergence`` exceptions when
+            Do not throw :py:class:`NoConvergence` exceptions when
             the method does not converge to a solution with the
             required accuracy within a specified number of maximum
             iterations set by ``maxiter`` parameter. Instead,
@@ -1929,7 +1929,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             is `False`, :py:meth:`all_world2pix`, at the end of the
             iterative process, will identify invalid results
             (``NaN`` or ``Inf``) as "diverging" solutions and will
-            raise :py:class:``NoConvergence`` unless the ``quiet``
+            raise :py:class:`NoConvergence` unless the ``quiet``
             parameter is set to `True`.
 
             When ``detect_divergence`` is `True`,
@@ -1968,7 +1968,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             .. note::
                Indices of the diverging inverse solutions will be
                reported in the ``divergent`` attribute of the
-               raised :py:class:``NoConvergence`` exception object.
+               raised :py:class:`NoConvergence` exception object.
 
         Returns
         -------
@@ -2010,9 +2010,9 @@ reduce these to 2 dimensions using the naxis kwarg.
             `True`. Indices of the points for which the requested
             accuracy was not achieved (if any) will be listed in the
             ``slow_conv`` attribute of the
-            raised :py:class:``NoConvergence`` exception object.
+            raised :py:class:`NoConvergence` exception object.
 
-            See :py:class:``NoConvergence`` documentation for
+            See :py:class:`NoConvergence` documentation for
             more details.
 
         MemoryError
