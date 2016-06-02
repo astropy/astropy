@@ -878,6 +878,8 @@ object (or is TAI in case of a UTC time)::
   >>> t2.tai + TimeDelta(365., format='jd', scale=None)
   <Time object: scale='tai' format='iso' value=2011-12-31 23:59:27.068>
 
+.. _time-light-travel-time:
+
 Barycentric and Heliocentric Light Travel Time Corrections
 ------------------------------------------------------------
 
