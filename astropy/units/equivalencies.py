@@ -12,6 +12,7 @@ from . import si
 from . import cgs
 from . import astrophys
 from .function import units as function_units
+from .function import logarithmic as log_units
 from . import dimensionless_unscaled
 from .core import UnitsError
 
@@ -122,6 +123,8 @@ def spectral_density(wav, factor=None):
     lafla = nufnu
     photlam = astrophys.photon / (si.cm ** 2 * si.s * si.AA)
     photnu = astrophys.photon / (si.cm ** 2 * si.s * si.Hz)
+    stmag = log_units.STmag
+    abmag = log_units.ABmag
 
     def converter(x):
         return x * (wav.to(si.AA, spectral()).value ** 2 / c_Aps)
@@ -169,6 +172,21 @@ def spectral_density(wav, factor=None):
     def iconverter_photnu_fla(x):
         return x * wav.to(si.AA, spectral()).value ** 3 / (hc * c_Aps)
 
+    def converter_photlam_stmag(x):
+        return (-2.5 * np.log10(hc * (x / wav.to(si.AA, spectral())).value)
+                - 21.1)
+
+    def iconverter_photlam_stmag(x):
+        return wav.to(si.AA, spectral()) * 10 ** (-0.4 * (x.value + 21.1)) / hc
+
+    def converter_photlam_abmag(x):
+        return (-2.5 * np.log10(h_cgs * (x * wav.to(si.AA, spectral())).value)
+                - 48.6)
+
+    def iconverter_photlam_abmag(x):
+        return (10 ** (-0.4 * (x.value + 48.6)) /
+                (h_cgs * wav.to(si.AA, spectral())))
+
     return [
         (fla, fnu, converter, iconverter),
         (fnu, nufnu, converter_fnu_nufnu, iconverter_fnu_nufnu),
@@ -177,7 +195,9 @@ def spectral_density(wav, factor=None):
         (photlam, fnu, converter_photlam_fnu, iconverter_photlam_fnu),
         (photlam, photnu, converter_photlam_photnu, iconverter_photlam_photnu),
         (photnu, fnu, converter_photnu_fnu, iconverter_photnu_fnu),
-        (photnu, fla, converter_photnu_fla, iconverter_photnu_fla)
+        (photnu, fla, converter_photnu_fla, iconverter_photnu_fla),
+        (photlam, stmag, converter_photlam_stmag, iconverter_photlam_stmag),
+        (photlam, abmag, converter_photlam_abmag, iconverter_photlam_abmag)
     ]
 
 
