@@ -684,6 +684,9 @@ Bug fixes
   - Exponentation using a ``Quantity`` with a unit equivalent to dimensionless
     as base and an ``array``-like exponent yields the correct result. [#4770]
 
+  - Ensured that with ``spectral_density`` equivalency one could also convert
+    between ``photlam`` and ``STmag``/``ABmag``. [#5017]
+
 - ``astropy.utils``
 
   - The astropy.utils.compat.fractions module has now been deprecated. Use the
