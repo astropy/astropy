@@ -30,7 +30,7 @@ New Features
   - Solar system and lunar ephemerides accessible via ``get_body``,
     ``get_body_barycentric`` and ``get_moon`` functions. [#4890]
 
-  - Added astrometric frames (i.e., a frame centered on a particular 
+  - Added astrometric frames (i.e., a frame centered on a particular
     point/object specified in another frame). [#4909, #4941]
 
   - Added ``SkyCoord.spherical_offsets_to`` method. [#4338]
@@ -1409,6 +1409,8 @@ Bug Fixes
   - Fixed a bug where ``pprint()`` sometimes raises ``UnicodeDecodeError``
     in Python 2. [#4946]
 
+  - Fix bug when doing outer join on multi-dimensional columns. [#4060]
+
 - ``astropy.tests``
 
   - Fix coverage reporting in Python 3. [#4822]
@@ -1686,8 +1688,6 @@ Bug Fixes
     ``data`` as it should [#4130, #4137].
 
 - ``astropy.table``
-
-  - Fix bug when doing outer join on multi-dimensional columns. [#4060]
 
   - Fix an issue with setting fill value when column dtype is changed. [#4088]
 
