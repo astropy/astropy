@@ -175,3 +175,13 @@ def test_multidim_input():
     with pytest.raises(ValueError) as err:
         t.write(out, format='ascii.ecsv')
     assert 'ECSV format does not support multidimensional column' in str(err.value)
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_round_trip_empty_table():
+    """Test fix in #5010 for issue #5009 (ECSV fails for empty type with bool type)"""
+    t = Table(dtype=[bool, 'i', 'f'], names=['a', 'b', 'c'])
+    out = StringIO()
+    t.write(out, format='ascii.ecsv')
+    t2 = Table.read(out.getvalue(), format='ascii.ecsv')
+    assert t.dtype == t2.dtype
+    assert len(t2) == 0
