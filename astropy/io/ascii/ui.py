@@ -33,7 +33,7 @@ from . import fixedwidth
 from ...table import Table
 from ...utils.data import get_readable_fileobj
 from ...extern import six
-from ...utils.exceptions import AstropyWarning
+from ...utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
 _read_trace = []
 
@@ -660,9 +660,29 @@ def write(table, output=None,  format=None, Writer=None, fast_writer=True, **kwa
         List of names to exclude from output (applied after ``include_names``)
     fast_writer : bool
         Whether to use the fast Cython writer (default= ``True``)
+    overwrite : bool
+        If ``overwrite=None`` (default) and the file exists, then a
+        warning will be issued. In a future release this will instead
+        generate an exception. If ``overwrite=False`` and the file
+        exists, then an exception is raised.
+        This parameter is ignored when the ``output`` arg is not a string
+        (e.g., a file object).
     Writer : ``Writer``
         Writer class (DEPRECATED) (default= :class:`Basic`)
+
     """
+    overwrite = kwargs.pop('overwrite', None)
+    if isinstance(output, six.string_types):
+        if os.path.lexists(output):
+            if overwrite is None:
+                warnings.warn(
+                    "{} already exists. "
+                    "Automatically overwriting ASCII files is deprecated. "
+                    "Use the argument 'overwrite=True' in the future.".format(
+                        output), AstropyDeprecationWarning)
+            elif not overwrite:
+                raise IOError("{} already exists".format(output))
+
     if output is None:
         output = sys.stdout
 
