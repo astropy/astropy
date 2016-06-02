@@ -193,7 +193,7 @@ def get_wcslib_cfg(cfg, wcslib_files, include_paths):
     cfg['include_dirs'].append('numpy')
     cfg['define_macros'].extend([
         ('ECHO', None),
-        ('WCSTRIG_MACRO', None),
+   #    ('WCSTRIG_MACRO', None),
         ('ASTROPY_WCS_BUILD', None),
         ('_GNU_SOURCE', None)])
 
@@ -260,6 +260,7 @@ def get_extensions():
         'flexed/wcspih.c',
         'flexed/wcsulex.c',
         'flexed/wcsutrn.c',
+        'wcstrig.c',
         'cel.c',
         'dis.c',
         'lin.c',
