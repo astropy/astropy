@@ -137,7 +137,8 @@ def get_extensions():
         'prj.c',
         'wcserr.c',
         'wcsprintf.c',
-        'wcsutil.c'
+        'wcsutil.c',
+        'wcstrig.c',
     ]
 
     wcslib_config_paths = [

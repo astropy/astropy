@@ -128,6 +128,10 @@ Bug Fixes
 
 - ``astropy.wcs``
 
+  - Worked around WCSlib bug which makes it impossible to set LATPOLE when
+    LONPOLE=90 when WCSTRIG_MACRO is enabled. Fixed by disabling WCSTRIG_MACRO.
+    According to comments in WCSlib, this could have a 20% performance impact.
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
