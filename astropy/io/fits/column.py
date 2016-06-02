@@ -21,6 +21,7 @@ from .verify import VerifyError, VerifyWarning
 from ...extern.six import string_types, iteritems
 from ...utils import lazyproperty, isiterable, indent, OrderedDict
 from ...utils.compat import ignored
+from ...utils.exceptions import AstropyDeprecationWarning
 
 
 __all__ = ['Column', 'ColDefs', 'Delayed']
