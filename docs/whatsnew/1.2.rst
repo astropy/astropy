@@ -80,6 +80,11 @@ For details see the `astropy.utils.iers` sub-package documentation.
 New example gallery
 -------------------
 
+The Astropy documentation now contains an example gallery that highlights key
+functionality of the package in short snippets of code with descriptive text.
+The examples are meant to demonstrate the functionality and interoperability of
+the subpackages in shorter-form worked examples. Longer form tutorials are still
+maintained at `<http://tutorials.astropy.org/>`_.
 
 
 Other significant changes
