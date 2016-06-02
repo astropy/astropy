@@ -1629,6 +1629,8 @@ Bug Fixes
 
 - ``astropy.io.ascii``
 
+  - Fix problem reading a zero-length ECSV table with a bool type column. [#5010]
+
 - ``astropy.io.fits``
 
   - Fix convenience functions (``getdata``, ``getheader``, ``append``,
