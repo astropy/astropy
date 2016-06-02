@@ -47,6 +47,8 @@ def test_create_angles():
     a10 = Angle(3.60827466667, unit=u.hour)
     a11 = Angle("3:36:29.7888000120", unit=u.hour)
     a12 = Angle((3, 36, 29.7888000120), unit=u.hour)  # *must* be a tuple
+    # Regression test for #5001
+    a13 = Angle((3, 36, 29.7888000120), unit='hour')
 
     Angle(0.944644098745, unit=u.radian)
 
@@ -58,11 +60,12 @@ def test_create_angles():
         Angle(54.12412, unit=u.m)
 
     with pytest.raises(ValueError):
-        a13 = Angle(12.34, unit="not a unit")
+        Angle(12.34, unit="not a unit")
 
     a14 = Angle("03h36m29.7888000120") # no trailing 's', but unambiguous
 
     a15 = Angle("5h4m3s") # single digits, no decimal
+    assert a15.unit == u.hourangle
 
     a16 = Angle("1 d")
     a17 = Angle("1 degree")
@@ -88,7 +91,7 @@ def test_create_angles():
     assert_allclose(a6.radian, a7.radian)
 
     assert_allclose(a10.degree, a11.degree)
-    assert a11 == a12 == a14
+    assert a11 == a12 == a13 == a14
     assert a21 == a22
     assert a23 == -a24
 
