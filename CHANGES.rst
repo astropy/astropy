@@ -1546,6 +1546,8 @@ Bug Fixes
   - Fixed a bug where ``pprint()`` sometimes raises ``UnicodeDecodeError``
     in Python 2. [#4946]
 
+  - Fix bug when doing outer join on multi-dimensional columns. [#4060]
+
 - ``astropy.tests``
 
   - Fix coverage reporting in Python 3. [#4822]
@@ -1823,8 +1825,6 @@ Bug Fixes
     ``data`` as it should [#4130, #4137].
 
 - ``astropy.table``
-
-  - Fix bug when doing outer join on multi-dimensional columns. [#4060]
 
   - Fix an issue with setting fill value when column dtype is changed. [#4088]
 
