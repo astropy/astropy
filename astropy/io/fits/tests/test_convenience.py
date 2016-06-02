@@ -4,8 +4,11 @@ from __future__ import division, with_statement
 
 import warnings
 
+import numpy as np
+
 from ....extern import six  # pylint: disable=W0611
 from ....io import fits
+from ....table import Table
 from ....tests.helper import pytest, catch_warnings
 
 from . import FitsTestCase
@@ -23,3 +26,11 @@ class TestConvenience(FitsTestCase):
         with catch_warnings() as w:
             header = fits.getheader(self.data('test0.fits'))
             assert len(w) == 0
+
+    def test_table_to_hdu(self, tmpdir):
+        table = Table([[1, 2, 3], ['a', 'b', 'c'], [2.3, 4.5, 6.7]],
+                      names=['a', 'b', 'c'], dtype=['i', 'U1', 'f'])
+        hdu = fits.table_to_hdu(table)
+        assert isinstance(hdu, fits.BinTableHDU)
+        filename = str(tmpdir.join('test_table_to_hdu.fits'))
+        hdu.writeto(filename, clobber=True)
