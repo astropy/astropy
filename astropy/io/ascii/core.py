@@ -871,6 +871,9 @@ def convert_numpy(numpy_type):
         Convert values "False" and "True" to bools.  Raise an exception
         for any other string values.
         """
+        if len(vals) == 0:
+            return numpy.array([], dtype=bool)
+
         # Try a smaller subset first for a long array
         if len(vals) > 10000:
             svals = numpy.asarray(vals[:1000])

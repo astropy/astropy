@@ -602,6 +602,8 @@ Bug fixes
 
   - Fix problems the header parsing in the sextractor reader. [#4603, #4910]
 
+  - Fix problem reading a zero-length ECSV table with a bool type column. [#5010]
+
 - ``astropy.io.fits``
 
   - Removed raising of AssertionError that could occur after closing or
