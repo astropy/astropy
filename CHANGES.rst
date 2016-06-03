@@ -452,6 +452,9 @@ Bug fixes
 
 - ``astropy.coordinates``
 
+  - Ameliorate a problem with ``get_sun`` not round-tripping due to
+    approximations in the light deflection calculation. [#4952]
+
   - Ensure that ``angle_utilities.position_angle`` accepts floats, as stated
     in the docstring. [#3800]
 
