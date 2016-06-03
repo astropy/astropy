@@ -126,9 +126,6 @@ Bug Fixes
 
 - ``astropy.wcs``
 
-  - Made ``wcs.bounds_check`` call ``wcsprm_python2c``, which means it
-    works even if ``wcs.set`` has not been called yet. [#4957].
-
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -665,6 +662,9 @@ Bug fixes
     are not written out, i.e. ``relax`` is either ``False`` or ``None``.
     astropy.wcs.to_header appends "-SIP" to CTYPE when SIP coefficients
     are written out, i.e. ``relax=True``. [#4814]
+
+  - Made ``wcs.bounds_check`` call ``wcsprm_python2c``, which means it
+    works even if ``wcs.set`` has not been called yet. [#4957].
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
