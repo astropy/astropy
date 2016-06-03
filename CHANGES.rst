@@ -575,6 +575,8 @@ Bug fixes
 
   - Made ``wcs.bounds_check`` call ``wcsprm_python2c``, which means it
     works even if ``wcs.set`` has not been called yet. [#4957].
+  - WCS objects can no longer be reverse-indexed, which was technically
+    permitted but incorrectly implemented previously [#4962]
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
