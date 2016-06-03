@@ -972,3 +972,15 @@ def inconsistent_sip():
     w = wcs.WCS()
     newhdr = w.to_header()
     assert('CTYPE1' not in newhdr)
+
+def test_bounds_check():
+    """Test for #4957"""
+    w = wcs.WCS(naxis=2)
+    w.wcs.ctype = ["RA---CAR","DEC--CAR"]
+    w.wcs.cdelt = [10,10]
+    w.wcs.crval = [-90,90]
+    w.wcs.crpix = [1,1]
+    w.wcs.bounds_check(False, False)
+    ra, dec = w.wcs_pix2world(300,0,0)
+    assert_allclose(ra, -180)
+    assert_allclose(dec, -30)
