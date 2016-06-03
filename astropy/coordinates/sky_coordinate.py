@@ -18,7 +18,7 @@ from ..utils.data_info import MixinInfo
 from .distances import Distance
 from .angles import Angle
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
-from .builtin_frames import ICRS, AstrometricFrame
+from .builtin_frames import ICRS, SkyOffsetFrame
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation)
 
@@ -731,8 +731,8 @@ class SkyCoord(object):
 
         Notes
         -----
-        This uses the astrometric frame machinery, and hence will produce a new
-        astrometric frame if one does not already exist for this object's frame
+        This uses the sky offset frame machinery, and hence will produce a new
+        sky offset frame if one does not already exist for this object's frame
         class.
 
         See Also
@@ -743,7 +743,7 @@ class SkyCoord(object):
         if not self.is_equivalent_frame(tocoord):
             raise ValueError('Tried to use spherical_offsets_to with two non-matching frames!')
 
-        aframe = self.astrometric_frame()
+        aframe = self.skyoffset_frame()
         acoord = tocoord.transform_to(aframe)
 
         dlon = acoord.spherical.lon.view(Angle)
@@ -1037,23 +1037,23 @@ class SkyCoord(object):
 
         return angle_utilities.position_angle(slon, slat, olon, olat)
 
-    def astrometric_frame(self, rotation=None):
+    def skyoffset_frame(self, rotation=None):
         """
-        Returns the astrometric frame with this `SkyCoord` at the origin.
+        Returns the sky offset frame with this `SkyCoord` at the origin.
 
         Returns
         -------
-        astrframe : `~astropy.coordinates.AstrometricFrame`
-            An astrometric frame of the same type as this `SkyCoord` (e.g., if
+        astrframe : `~astropy.coordinates.SkyOffsetFrame`
+            A sky offset frame of the same type as this `SkyCoord` (e.g., if
             this object has an ICRS coordinate, the resulting frame is
-            AstrometricFrame with an ICRS origin)
+            SkyOffsetICRS, with the origin set to this object)
         rotation : `~astropy.coordinates.Angle` or `~astropy.units.Quantity` with angle units
             The final rotation of the frame about the ``origin``. The sign of
             the rotation is the left-hand rule. That is, an object at a
             particular position angle in the un-rotated system will be sent to
             the positive latitude (z) direction in the final frame.
         """
-        return AstrometricFrame(origin=self, rotation=rotation)
+        return SkyOffsetFrame(origin=self, rotation=rotation)
 
     def get_constellation(self, short_name=False, constellation_list='iau'):
         """
