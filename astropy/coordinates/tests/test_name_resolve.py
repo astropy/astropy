@@ -154,10 +154,6 @@ def test_database_specify(name, db_dict):
 
     for db in db_dict.keys():
         with sesame_database.set(db):
-            try:
-                icrs = SkyCoord.from_name(name)
-            except NameResolveError:
-                ra, dec = db_dict[db]
-                icrs = SkyCoord(ra=float(ra)*u.degree, dec=float(dec)*u.degree)
+            icrs = SkyCoord.from_name(name)
 
         time.sleep(1)
