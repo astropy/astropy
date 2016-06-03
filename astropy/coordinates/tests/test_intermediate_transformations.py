@@ -13,7 +13,7 @@ from ...tests.helper import (pytest,
                              assert_quantity_allclose as assert_allclose)
 from ...time import Time
 from .. import (EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz,
-                PrecessedGeocentric, CartesianRepresentation,
+                PrecessedGeocentric, CartesianRepresentation, SkyCoord,
                 SphericalRepresentation)
 
 
@@ -434,19 +434,19 @@ def test_gcrs_self_transform_closeby():
     frame onto the other.
     """
     t = Time("2014-12-25T07:00")
-    moon_geocentric = GCRS(318.10579159*u.deg,
-                           -11.65281165*u.deg,
-                           365042.64880308*u.km, obstime=t)
+    moon_geocentric = SkyCoord(GCRS(318.10579159*u.deg,
+                                    -11.65281165*u.deg,
+                                    365042.64880308*u.km, obstime=t))
 
     # this is the location of the Moon as seen from La Palma
     obsgeoloc = [-5592982.59658935, -63054.1948592, 3059763.90102216]*u.m
     obsgeovel = [4.59798494, -407.84677071, 0.]*u.m/u.s
-    moon_lapalma = GCRS(318.7048445*u.deg,
-                        -11.98761996*u.deg,
-                        369722.8231031*u.km,
-                        obstime=t,
-                        obsgeoloc=obsgeoloc,
-                        obsgeovel=obsgeovel)
+    moon_lapalma = SkyCoord(GCRS(318.7048445*u.deg,
+                                 -11.98761996*u.deg,
+                                 369722.8231031*u.km,
+                                 obstime=t,
+                                 obsgeoloc=obsgeoloc,
+                                 obsgeovel=obsgeovel))
 
     transformed = moon_geocentric.transform_to(moon_lapalma.frame)
     delta = transformed.separation_3d(moon_lapalma)
