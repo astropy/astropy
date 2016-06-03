@@ -581,6 +581,9 @@ Bug fixes
 
   - Ensure that ``angle_utilities.position_angle`` accepts floats, as stated
     in the docstring. [#3800]
+    
+  - Ensured that transformations for ``GCRS`` frames are correct for 
+    non-geocentric observers. [#4986]
 
 - ``astropy.cosmology``
 
