@@ -81,6 +81,22 @@ def test_predefined_magnitudes():
                              c.L_bol0/(4.*np.pi*(10.*c.pc)**2))
 
 
+def test_predefined_reinitialisation():
+    assert u.mag('ST') == u.STmag
+    assert u.mag('AB') == u.ABmag
+    assert u.mag('Bol') == u.M_bol
+    assert u.mag('bol') == u.m_bol
+
+
+def test_predefined_string_roundtrip():
+    """Ensure roundtripping; see #5015"""
+    with u.magnitude_zero_points.enable():
+        assert u.Unit(u.STmag.to_string()) == u.STmag
+        assert u.Unit(u.ABmag.to_string()) == u.ABmag
+        assert u.Unit(u.M_bol.to_string()) == u.M_bol
+        assert u.Unit(u.m_bol.to_string()) == u.m_bol
+
+
 class TestLogUnitStrings(object):
 
     def test_str(self):

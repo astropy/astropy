@@ -121,9 +121,10 @@ Here, ``ST`` is a short-hand for the ST zero-point flux::
     >>> (-21.1 * u.STmag).to(u.erg/u.s/u.cm**2/u.AA)  # doctest: +FLOAT_CMP
     <Quantity 1. erg / (Angstrom cm2 s)>
 
-.. note:: only ST [H+95]_ and AB [OG83]_ magnitudes are implemented at
-	  present, as these are defined in terms of flux densities, i.e.,
-          do not depend on the filter the measurement was made with.
+.. note:: at present, only magnitudes defined in terms of luminosity or flux
+	  are implemented, since those that do not depend on the filter the
+          measurement was made with.  They include absolute and apparent
+          bolometric [M+15]_, ST [H+95]_ and AB [OG83]_ magnitudes.
 
 Now applying the calibration, we find (note the proper change in units)::
 
@@ -158,19 +159,17 @@ to be raised to some power), and |quantity| objects, unlike logarithmic
 quantities, allow units like ``mag / d``.
 
 Note that one can take the automatic unit conversion quite far (perhaps too
-far, but it is fun).  For instance, suppose we also knew the absolute
-magnitude, then we can define the appropriate corresponding luminosity and
-absolute magnitude and calculate the distance modulus::
+far, but it is fun).  For instance, suppose we also knew the bolometric
+correction and absolute bolometric magnitude, then we can calculate the
+distance modulus::
 
-    >>> ST0abs = u.Unit('STabs', u.STmag.physical_unit * 4.*np.pi*(10.*u.pc)**2)
-    >>> STabsmag = u.mag(ST0abs)
-    >>> M_V = 5.76 * STabsmag
-    >>> M_B = M_V + B_V0
-    >>> DM = V[0] - A_V - M_V
-    >>> M_V, M_B, DM  # doctest: +FLOAT_CMP
-    (<Magnitude 5.76 mag(STabs)>,
-     <Magnitude 5.56 mag(STabs)>,
-     <Magnitude 10.000000000000002 mag(ST / STabs)>)
+    >>> BC_V = -0.3 * (u.m_bol - u.STmag)
+    >>> M_bol = 5.46 * u.M_bol
+    >>> DM = V[0] - A_V + BC_V - M_bol
+    >>> BC_V, M_bol, DM  # doctest: +FLOAT_CMP
+    (<Magnitude -0.3 mag(bol / ST)>,
+     <Magnitude 5.46 mag(Bol)>,
+     <Magnitude 10.0 mag(bol / Bol)>)
 
 With a proper equivalency, we can also convert to distance without remembering
 the 5-5log rule::
@@ -179,7 +178,7 @@ the 5-5log rule::
     ...                            lambda x: 1./(4.*np.pi*x**2),
     ...                            lambda x: np.sqrt(1./(4.*np.pi*x)))]
     >>> DM.to(u.pc, equivalencies=radius_and_inverse_area)  # doctest: +FLOAT_CMP
-    <Quantity 1000.0000000000009 pc>
+    <Quantity 1000.0 pc>
 
 Numpy functions
 ---------------
@@ -218,7 +217,8 @@ supported as logarithmic units.  For instance::
     <Decibel 80.0 dB(mW)>
 
 
-
+.. [M+15] Mamajek et al., 2015, `arXiv:1510.06262
+	  <http://adsabs.harvard.edu/abs/2015arXiv151006262M>`_
 .. [H+95] E.g., Holtzman et al., 1995, `PASP 107, 1065
           <http://adsabs.harvard.edu/abs/1995PASP..107.1065H>`_
 .. [OG83] Oke, J.B., & Gunn, J. E., 1983, `ApJ 266, 713
