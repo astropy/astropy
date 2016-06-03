@@ -227,8 +227,8 @@ def calc_moon(t):
              175*np.sin(A1+F) + 127*np.sin(Lc-Mc) - 115*np.sin(Lc+Mc))
 
     # ensure units
-    suml = suml*u.deg
-    sumb = sumb*u.deg
+    suml = suml*u.microdegree
+    sumb = sumb*u.microdegree
 
     # nutation of longitude
     jd1, jd2 = get_jd12(t, 'tt')
@@ -236,8 +236,8 @@ def calc_moon(t):
     nut = nut*u.rad
 
     # calculate ecliptic coordinates
-    lon = Lc + suml/1000000 + nut
-    lat = sumb/1000000
+    lon = Lc + suml + nut
+    lat = sumb
     dist = (385000.56+sumr/1000)*u.km
 
     # Meeus algorithm gives GeocentricTrueEcliptic coordinates
