@@ -1518,7 +1518,7 @@ class Header(object):
 
         self._modified = True
 
-    def remove(self, keyword, ignore_missing=False, all=False):
+    def remove(self, keyword, ignore_missing=False, remove_all=False):
         """
         Removes the first instance of the given keyword from the header similar
         to `list.remove` if the Header object is treated as a list of keywords.
@@ -1526,13 +1526,13 @@ class Header(object):
         Parameters
         ----------
         keyword : str
-            The keyword of which to remove the first instance in the header
+            The keyword of which to remove the first instance in the header.
 
         ignore_missing : bool, optional
-            When True, ignores missing keywords.  Otherwise, if the keyword is not present
-            in the header a KeyError is raised.
+            When True, ignores missing keywords.  Otherwise, if the keyword
+            is not present in the header a KeyError is raised.
 
-        all : bool, optional
+        remove_all : bool, optional
             When True, all instances of keyword will be removed.
             Otherwise only the first instance of the given keyword is removed.
 
@@ -1540,7 +1540,7 @@ class Header(object):
         keyword = Card.normalize_keyword(keyword)
         if keyword in self._keyword_indices:
             del self[self._keyword_indices[keyword][0]]
-            if all:
+            if remove_all:
                 while keyword in self._keyword_indices:
                     del self[self._keyword_indices[keyword][0]]
         elif not ignore_missing:
