@@ -79,6 +79,17 @@ NDData improvements
 -------------------
 
 
+Arithmetic and uncertainty handling have been enhanced for astropy 1.2, and a
+new class, `astropy.nddata.NDDataRef`, has been added that should be the
+starting point for new users of `astropy.nddata`. One can now do arithmetic
+between an `astropy.nddata.NDDataRef` object and a scalar, an
+`astropy.units.Quantity` or another `astropy.nddata.NDDataRef` object (or any
+class that implements the nddata interface). Limited support for propagating
+correlated errors was added to `astropy.nddata.StdDevUncertainty`.
+
+Several internal changes were made to the classes in the nddata package to
+make writing custom classes that implement the nddata interface more
+straightforward.
 
 Automatic updates to IERS Earth rotation data
 ---------------------------------------------
