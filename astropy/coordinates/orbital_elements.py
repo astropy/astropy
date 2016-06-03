@@ -155,7 +155,7 @@ Lc : Mean longitude of Moon, w.r.t mean Equinox of date
 D : Mean elongation of the Moon
 M: Sun's mean anomaly
 Mc : Moon's mean anomaly
-F : Moon's argument of latitude (mean distance of Moon from its ascending node). 
+F : Moon's argument of latitude (mean distance of Moon from its ascending node).
 """
 _coLc = (2.18316448e+02,  4.81267881e+05, -1.57860000e-03,
          1.85583502e-06, -1.53388349e-08)
@@ -212,17 +212,13 @@ def calc_moon(t):
     E = polyval(T, _coE)
 
     suml = sumr = 0.0
-    for moon_l_r in _MOON_L_R:
-        DNum, MNum, McNum, FNum, LFac, RFac = moon_l_r
-
+    for DNum, MNum, McNum, FNum, LFac, RFac in _MOON_L_R:
         corr = E ** abs(MNum)
         suml += LFac*corr*np.sin(D*DNum+M*MNum+Mc*McNum+F*FNum)
         sumr += RFac*corr*np.cos(D*DNum+M*MNum+Mc*McNum+F*FNum)
 
     sumb = 0.0
-    for moon_b in _MOON_B:
-        DNum, MNum, McNum, FNum, BFac = moon_b
-
+    for DNum, MNum, McNum, FNum, BFac in _MOON_B:
         corr = E ** abs(MNum)
         sumb += BFac*corr*np.sin(D*DNum+M*MNum+Mc*McNum+F*FNum)
 
