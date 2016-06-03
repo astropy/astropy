@@ -209,6 +209,9 @@ New Features
   - New function ``convenience.table_to_hdu`` to allow creating a FITS
     HDU object directly from an astropy ``Table``. [#4778]
 
+  - A new optional arguments ``ignore_missing`` and ``remove_all`` are added
+    to ``astropy.io.fits.header.remove()``. [#5020]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -369,6 +372,9 @@ API changes
   - Add a way to control HTML escaping when writing a table as an HTML file. [#4423]
 
 - ``astropy.io.fits``
+
+  - Two optional boolean arguments ``ignore_missing`` and ``remove_all`` are
+    added to ``Header.remove``. [#5020]
 
 - ``astropy.io.misc``
 
