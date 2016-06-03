@@ -208,8 +208,7 @@ class TestPositionKittPeak(object):
     def test_erfa_planet(self, body, sep_tol, dist_tol):
         """Test predictions using erfa/plan94.
 
-        Accuracies are maximum deviations listed in erfa/plan94.c, for Jupiter and
-        Mercury, and that quoted in Meeus "Astronomical Algorithms" (1998) for the Moon.
+        Accuracies are maximum deviations listed in erfa/plan94.c.
         """
         # Add uncertainty in position of Earth
         dist_tol = dist_tol + 1300 * u.km
