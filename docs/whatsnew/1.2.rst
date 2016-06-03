@@ -47,11 +47,11 @@ Other new statistics features
 * The Jackknife resampling method is available in astropy.stats.jackknife.
   Jackknife resampling generates n deterministic samples of size n-1 from
   a measured sample of size n. Those samples can then be used for various
-  statistics estimation such as variance and bias. 
+  statistics estimation such as variance and bias.
 * Circular statistics (circular mean, variance, etc) are provided in
   astropy.stats.circstats. The API basically follows the same conventions of
   R CircStats package. In addition, the circular stats are compatible with
-  astropy.units.Quantity. 
+  astropy.units.Quantity.
 * Akaike and Bayesian information criterions are implemented in
   astropy.stats.info_theory. Basically, these information criterions are used
   to decided whether increasing the number of parameters in a model truly
