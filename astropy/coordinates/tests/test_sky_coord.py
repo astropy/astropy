@@ -20,7 +20,9 @@ from ...tests.helper import (pytest, catch_warnings, quantity_allclose,
 from ..representation import REPRESENTATION_CLASSES
 from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
                             SphericalRepresentation, CartesianRepresentation,
-                            UnitSphericalRepresentation, AltAz)
+                            UnitSphericalRepresentation, AltAz,
+                            BaseCoordinateFrame, FrameAttribute,
+                            frame_transform_graph)
 from ...coordinates import Latitude, Longitude, EarthLocation
 from ...time import Time
 from ...utils import minversion
@@ -1135,3 +1137,40 @@ def test_getitem_representation():
     sc = SkyCoord([1, 1] * u.deg, [2, 2] * u.deg)
     sc.representation = 'cartesian'
     assert sc[0].representation is CartesianRepresentation
+
+
+def test_frame_attr_changes():
+    """
+    This tests the case where a frame is added with a new frame attribute after
+    a SkyCoord has been created.  This is necessary because SkyCoords get the
+    attributes set at creation time, but the set of attributes can change as
+    frames are added or removed from the transform graph.  This makes sure that
+    everything continues to work consistently.
+    """
+    sc_before = SkyCoord(1*u.deg, 2*u.deg, frame='icrs')
+
+    assert 'fakeattr' not in dir(sc_before)
+
+    class FakeFrame(BaseCoordinateFrame):
+        fakeattr = FrameAttribute()
+
+    # doesn't matter what this does as long as it just puts the frame in the
+    # transform graph
+    transset = (ICRS, FakeFrame, lambda c,f:c)
+    frame_transform_graph.add_transform(*transset)
+    try:
+        assert 'fakeattr' in dir(sc_before)
+        assert sc_before.fakeattr is None
+
+        sc_after1 = SkyCoord(1*u.deg, 2*u.deg, frame='icrs')
+        assert 'fakeattr' in dir(sc_after1)
+        assert sc_after1.fakeattr is None
+
+        sc_after2 = SkyCoord(1*u.deg, 2*u.deg, frame='icrs', fakeattr=1)
+        assert sc_after2.fakeattr == 1
+    finally:
+        frame_transform_graph.remove_transform(*transset)
+
+    assert 'fakeattr' not in dir(sc_before)
+    assert 'fakeattr' not in dir(sc_after1)
+    assert 'fakeattr' not in dir(sc_after2)
