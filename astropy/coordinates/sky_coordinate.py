@@ -424,7 +424,17 @@ class SkyCoord(object):
                 if attr in self.frame.get_frame_attr_names():
                     return getattr(self.frame, attr)
                 else:
-                    return getattr(self, '_' + attr)
+                    try:
+                        return getattr(self, '_' + attr)
+                    except AttributeError:
+                        # this can happen because FRAME_ATTR_NAMES_SET is
+                        # dynamic.  So if a frame is added to the transform
+                        # graph after this SkyCoord was created, the "real"
+                        # underlying attribute - e.g. `_equinox` does not exist
+                        # on the SkyCoord.  So we add this case to just use
+                        # None, as it wouldn't have been possible for the user
+                        # to have set the value until the frame existed anyway
+                        return None
 
             # Some attributes might not fall in the above category but still
             # are available through self._sky_coord_frame.
