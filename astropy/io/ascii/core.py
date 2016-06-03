@@ -26,7 +26,7 @@ from ...extern.six.moves import cStringIO as StringIO
 from ...utils.exceptions import AstropyWarning
 
 from ...table import Table
-from ...utils.compat import ignored
+from ...utils.compat import suppress
 from ...utils.data import get_readable_fileobj
 from . import connect
 
@@ -746,7 +746,7 @@ class BaseData(object):
                     col.fill_values = {}
 
             # if input is only one <fill_spec>, then make it a list
-            with ignored(TypeError):
+            with suppress(TypeError):
                 self.fill_values[0] + ''
                 self.fill_values = [self.fill_values]
 
@@ -1019,7 +1019,7 @@ class MetaBaseReader(type):
 
 
 def _is_number(x):
-    with ignored(ValueError):
+    with suppress(ValueError):
         x = float(x)
         return True
     return False
@@ -1132,7 +1132,7 @@ class BaseReader(object):
         # If ``table`` is a file then store the name in the ``data``
         # attribute. The ``table`` is a "file" if it is a string
         # without the new line specific to the OS.
-        with ignored(TypeError):
+        with suppress(TypeError):
             # Strings only
             if os.linesep not in table + '':
                 self.data.table_name = os.path.basename(table)

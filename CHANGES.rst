@@ -83,6 +83,9 @@ API Changes
 
 - ``astropy.utils``
 
+  - Renamed ``ignored`` context manager in ``compat.misc`` to ``suppress``
+    to be consistent with https://bugs.python.org/issue19266 . [#5003]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
