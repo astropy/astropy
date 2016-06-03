@@ -1538,6 +1538,10 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - ``SkyCoord`` objects created before a new frame which has frame attributes
+    is created no longer raise ``AttributeError`` when the new attributes are
+    accessed [#5021]
+
   - Fix some errors in the implementation of aberration  for ``get_sun``. [#4979]
 
 - ``astropy.cosmology``
