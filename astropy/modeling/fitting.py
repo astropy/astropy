@@ -360,7 +360,7 @@ class FittingWithOutlierRemoval(object):
         Keyword arguments for outlier_func.
     """
 
-    def __init__(self, fitter, outlier_func, niter=3, **outlier_kwargs): 
+    def __init__(self, fitter, outlier_func, niter=3, **outlier_kwargs):
         self.fitter = fitter
         self.outlier_func = outlier_func
         self.niter = niter
