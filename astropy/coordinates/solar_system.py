@@ -276,10 +276,11 @@ def _get_apparent_body_position(body, time, ephemeris):
     cartesian_position : `~astropy.coordinates.CartesianRepresentation`
         Barycentric (ICRS) apparent position of the body in cartesian coordinates
     """
-    # builtin ephemeris and moon is a special case, with no need to account for
-    # light travel time.
     if ephemeris is None:
         ephemeris = solar_system_ephemeris.get()
+    # builtin ephemeris and moon is a special case, with no need to account for
+    # light travel time, since this is already included in the Meeus algorithm
+    # used.
     if ephemeris == 'builtin' and body.lower() == 'moon':
         return get_body_barycentric(body, time, ephemeris)
 
