@@ -589,6 +589,10 @@ Bug fixes
 
 - ``astropy.coordinates``
 
+  - ``SkyCoord`` objects created before a new frame which has frame attributes
+    is created no longer raise ``AttributeError``s when the new attributes are
+    accessed [#5021]
+
   - Ameliorate a problem with ``get_sun`` not round-tripping due to
     approximations in the light deflection calculation. [#4952]
 
