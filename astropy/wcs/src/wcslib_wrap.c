@@ -482,6 +482,7 @@ PyWcsprm_bounds_check(
       bounds |= 1;
   }
 
+  wcsprm_python2c(&self->x);
   wcsbchk(&self->x, bounds);
 
   Py_RETURN_NONE;
