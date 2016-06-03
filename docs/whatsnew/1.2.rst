@@ -54,7 +54,13 @@ Apparent/absolute bolometric magnitudes and other new units
 Zscale implementation
 ---------------------
 
-
+The `zscale <http://iraf.net/forum/viewtopic.php?showtopic=134139>`_ algorithm
+from IRAF is now included in Astropy's :doc:`visualization
+<../visualization/normalization>` sub-package, and available as
+a `~astropy.visualization.ZScaleInterval` interval class. The implementation is
+based on `Numdisplay’s <http://stsdas.stsci.edu/numdisplay/>`_ one, slightly
+modified to expose more arguments and work with data with any number of
+dimensions.
 
 NDData improvements
 -------------------
