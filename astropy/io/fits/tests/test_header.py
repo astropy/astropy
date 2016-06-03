@@ -1410,17 +1410,19 @@ class TestHeaderFunctions(FitsTestCase):
         assert list(header) == ['A']
         assert 'C' not in header
 
-        # When keyword is not present in the header and ignore_missing is False, KeyError should be raised
+        # When keyword is not present in the header and ignore_missing is
+        # False, KeyError should be raised
         with pytest.raises(KeyError):
             header.remove('F')
 
-        # When keyword is not present and ignore_missing is True, KeyError will be ignored
+        # When keyword is not present and ignore_missing is True, KeyError
+        # will be ignored
         header.remove('F', ignore_missing=True)
         assert len(header) == 1
 
         # Test for removing all instances of a keyword
         header = fits.Header([('A', 'B'), ('C', 'D'), ('A', 'F')])
-        header.remove('A', all=True)
+        header.remove('A', remove_all=True)
         assert 'A' not in header
         assert len(header) == 1
         assert list(header) == ['C']
