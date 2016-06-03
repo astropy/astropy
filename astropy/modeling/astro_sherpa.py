@@ -10,7 +10,7 @@ from sherpa.estmethods import EstMethod, Covariance
 from sherpa.data import Data1D, Data1DInt, Data2D, Data2DInt, DataSimulFit
 from sherpa.models import UserModel, Parameter, SimulFitModel
 from .fitting import Fitter
-# from astropy.modeling.fitting import Fitter
+#from astropy.modeling.fitting import Fitter
 
 __all__ = ('SherpaFitter',)
 
@@ -27,10 +27,30 @@ OPERATORS = OrderedDict([
 
 
 def _expression_to_list(expr):
+    """
+    This takes an expression i.e '[0]+[1]*([2]+[3])' and returns the list ['[0]+[1]*',['[2]+[3]']]
+
+    Parameters
+    ----------
+        expr: string 
+            this expression you wish to pars
+        returns: list
+            a list of parsed expression
+    """
     return nestedExpr().parseString("(" + expr + ")").asList()[0]
 
 
 def _parse_expression(exp_list, models):
+    """
+    This takes an expression list and a list of models it coverts the models
+    then constucts a compound model based on the expression list.
+
+    Parameters:
+        exp_list: list
+            a list expression like the output of _expression_to_list
+        models: list
+            a list of astropy models which are to be coverted
+    """
     to_return = []
     if isinstance(exp_list, list):
         for part in exp_list:
@@ -58,11 +78,20 @@ def _astropy_to_sherpa_model(model, deconstruct=False):
     This takes astropy models and converts them to sherpa models.
     If deconstruct is true then the submodels are converted then recombined.
 
-    Paramters:
-
+    Parameters
+    ----------
+        model : `~astropy.modeling.FittableModel`
+            the model you wish to convert
+        diconstruct: bool
+            if True each submodel is converted then re-assembled based on the
+            model._format_expression()
     """
 
     def _convert_to_sherpa_model(model):
+        '''
+        Converts the model using sherpa's usermodel suppling the parameter detail to sherpa
+        then using a decorator to allow the call method to act like the calc method
+        '''
         def _calc2call(func):
             '''This decorator makes call and calc work together.'''
             def _converter(inp, *x):
@@ -161,25 +190,25 @@ def _make_datasets(n_dim, x, y, z=None, xerr=None, yerr=None, zerr=None):
 
     _data = []
     '''
-    So the generall method is to dstack(and transpose each row) so 
+    So the generall method is to dstack(and transpose each row) so
         [x1,x2,x3],[y1,y2,y3],[z1,z2,z3],...
     becomes
         [x1,y1,,z1],[x2,y2,,z2],[x3,y3,,z3],...
-        the and put it into a data set! this assumes that all columns are set for all datasets! 
+        the and put it into a data set! this assumes that all columns are set for all datasets!
         athough a none can be put in place of missing columns
     '''
     if z is None:
         if xerr is None:
             if yerr is None:
                 dstack = np.dstack((x, y))
-                #if dstack.shape[0] == 1:
+                # if dstack.shape[0] == 1:
                 #    dstack = dstack[0]
                 for xx, yy in _iterTranspose(dstack):
                     assert xx.shape == yy.shape, "shape of x and y don't match"
                     _data.append(Data1D("wrapped_data", x=xx, y=yy))
             else:
                 dstack = np.dstack((x, y, yerr))
-                #if dstack.shape[0] == 1:
+                # if dstack.shape[0] == 1:
                 #    dstack = dstack[0]
 
                 for xx, yy, yyerr in _iterTranspose(dstack):
@@ -188,15 +217,15 @@ def _make_datasets(n_dim, x, y, z=None, xerr=None, yerr=None, zerr=None):
         else:
             if yerr is None:
                 dstack = np.dstack((x, y, xerr))
-                #if dstack.shape[0] == 1:
+                # if dstack.shape[0] == 1:
                 #    dstack = dstack[0]
                 for xx, yy, xxerr in _iterTranspose(dstack):
                     assert xx.shape == yy.shape == xxerr.shape, "shape of x, y and xerr don't match"
                     _data.append(Data1DInt("wrapped_data", xlo=xx - xxerr, xhi=xx + xxerr, y=yy))
             else:
                 dstack = np.dstack((x, y, xerr, yerr))
-                if dstack.shape[0] == 1:
-                    dstack = dstack[0]
+                # if dstack.shape[0] == 1:
+                #    dstack = dstack[0]
                 for xx, yy, xxerr, yyerr in _iterTranspose(dstack):
                     assert xx.shape == yy.shape == xxerr.shape == yyerr.shape, "shape of x, y, xerr and yerr don't match"
                     _data.append(Data1DInt("wrapped_data", xlo=xx - xxerr, xhi=xx + xxerr, y=yy, staterror=yyerr))
@@ -205,30 +234,30 @@ def _make_datasets(n_dim, x, y, z=None, xerr=None, yerr=None, zerr=None):
         if xerr is None and yerr is None:
             if zerr is None:
                 dstack = np.dstack((x, y, z))
-                if dstack.shape[0] == 1:
-                    dstack = dstack[0]
+                # if dstack.shape[0] == 1:
+                #    dstack = dstack[0]
                 for xx, yy, zz in _iterTranspose(dstack):
                     assert xx.shape == yy.shape == zz.shape, "shape of x, y, and z don't match"
                     _data.append(Data2D("wrapped_data", x0=xx, x1=yy, y=zz))
             else:
                 dstack = np.dstack((x, y, z, zerr))
-                if dstack.shape[0] == 1:
-                    dstack = dstack[0]
+                # if dstack.shape[0] == 1:
+                #   dstack = dstack[0]
                 for xx, yy, zz, zzerr in _iterTranspose(dstack):
                     assert xx.shape == yy.shape == zz.shape == zzerr.shape, "shape of x, y, z and zerr don't match"
                     _data.append(Data2D("wrapped_data", x0=xx, x1=yy, y=zz, staterror=zzerr))
         elif xerr is not None and yerr is not None:
             if zerr is None:
                 dstack = np.dstack((x, y, z, xerr, yerr))
-                if dstack.shape[0] == 1:
-                    dstack = dstack[0]
+                # if dstack.shape[0] == 1:
+                #    dstack = dstack[0]
                 for xx, yy, zz, xxerr, yyerr in _iterTranspose(dstack):
                     assert xx.shape == yy.shape == xxerr.shape == yyerr.shape, "shape of x, y, z, xerr and yerr don't match"
                     _data.append(Data2DInt("wrapped_data", x0lo=x - xerr, x0hi=x + xerr, x1lo=y - yerr, x1hi=y + yerr))
             else:
                 dstack = np.dstack((x, y, z, xerr, yerr, zerr))
-                if dstack.shape[0] == 1:
-                    dstack = dstack[0]
+                # if dstack.shape[0] == 1:
+                #    dstack = dstack[0]
                 for xx, yy, zz, xxerr, yyerr, zzerr in _iterTranspose(dstack):
                     assert xx.shape == yy.shape == zz.shape == zzerr.shape == xxerr.shape == yyerr.shape, "shape of x, y, z, xerr, yerr and zerr don't match"
                     _data.append(Data2DInt("wrapped_data", x0lo=x - xerr, x0hi=x + xerr, x1lo=y - yerr, x1hi=y + yerr, staterror=zerr))
@@ -259,9 +288,10 @@ class SherpaFitter(Fitter):
     """
 
     def __init__(self, optimizer=LevMar, statistic=LeastSq, estmethod=Covariance):
-
-        # check the types of optimizer, statistic and estmethod are sherpa based classes
-        # so we can use them
+        '''
+        check the types of optimizer, statistic and estmethod are sherpa based classes
+         so we can use them
+        '''
         if inspect.isclass(optimizer) and not issubclass(optimizer, OptMethod):
             raise TypeError("optimizer must be sherpa OptMethod class or isinstance")
         elif inspect.isfunction(optimizer) and not issubclass(optimizer.__class__, OptMethod):
@@ -353,6 +383,21 @@ class SherpaFitter(Fitter):
         return model_copy
 
     def est_errors(self, sigma=None, maxiters=None, methoddict=None, parlist=None):
+        '''
+        Use sherpa error estimators based on the last fit.
+
+        Parameters:
+            sigma: float
+                this will be set as the confidance interval for which the errors are found too.
+            maxiters: int
+                the maximum number of iterations the error estimator will run before giving up.
+            methoddict: dict
+                !not quite sure couldn't figure this one out yet!
+            parlist: list
+                a list of parameters to find the confidance interval of if none are provided all free
+                parameters will be estimated.
+
+        '''
         if self._fitter is None:
             ValueError("Must complete a valid fit before errors can be calculated")
 
