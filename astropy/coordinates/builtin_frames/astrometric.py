@@ -212,3 +212,5 @@ class AstrometricFrame(BaseCoordinateFrame):
         if self.origin is not None and not self.origin.has_data:
             raise ValueError('The origin supplied to AstrometricFrame has no '
                              'data.')
+        if self.has_data and hasattr(self.data, 'lon'):
+            self.data.lon.wrap_angle = 180*u.deg

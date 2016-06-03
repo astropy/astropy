@@ -112,7 +112,7 @@ frame from an already-existing |SkyCoord|::
     >>> other.transform_to(aframe)  # doctest: +FLOAT_CMP
     <SkyCoord (AstrometricICRS: rotation=0.0 deg, origin=<ICRS Coordinate: (ra, dec) in deg
         (10.0, 45.0)>): (lon, lat) in deg
-        (359.28056055, -0.99556216)>
+        (-0.71943945, -0.99556216)>
 
 .. note ::
     While astrometric frames *appear* to be all the same class, this not the

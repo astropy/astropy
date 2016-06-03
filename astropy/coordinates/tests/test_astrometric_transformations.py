@@ -283,3 +283,8 @@ def test_astrometric_origindata():
     origin = ICRS()
     with pytest.raises(ValueError):
         AstrometricFrame(origin=origin)
+
+def test_astrometric_lonwrap():
+    origin = ICRS(45*u.deg, 45*u.deg)
+    sc = SkyCoord(190*u.deg, -45*u.deg, frame=AstrometricFrame(origin=origin))
+    assert sc.lon.to(u.deg).value < 180

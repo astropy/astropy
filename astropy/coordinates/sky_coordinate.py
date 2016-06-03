@@ -746,7 +746,7 @@ class SkyCoord(object):
         aframe = self.astrometric_frame()
         acoord = tocoord.transform_to(aframe)
 
-        dlon = acoord.spherical.lon.wrap_at(180*u.deg)
+        dlon = acoord.spherical.lon.view(Angle)
         dlat = acoord.spherical.lat.view(Angle)
         return dlon, dlat
 
