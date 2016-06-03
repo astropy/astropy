@@ -18,7 +18,7 @@ import os
 from . import core
 from . import fixedwidth
 
-from ...utils.compat import ignored
+from ...utils.compat import suppress
 
 
 __doctest_skip__ = ['*']
@@ -299,7 +299,7 @@ class Cds(core.BaseReader):
         if self.data.start_line == 'guess':
             # Replicate the first part of BaseReader.read up to the point where
             # the table lines are initially read in.
-            with ignored(TypeError):
+            with suppress(TypeError):
                 # For strings only
                 if os.linesep not in table + '':
                     self.data.table_name = os.path.basename(table)
@@ -315,7 +315,7 @@ class Cds(core.BaseReader):
             # could be a file.
             for data_start in range(len(lines)):
                 self.data.start_line = data_start
-                with ignored(Exception):
+                with suppress(Exception):
                     table = super(Cds, self).read(lines)
                     return table
         else:

@@ -31,7 +31,7 @@ from ....extern import six
 from ....extern.six import string_types
 from ....extern.six.moves import xrange as range
 from ....utils import deprecated, lazyproperty
-from ....utils.compat import ignored
+from ....utils.compat import suppress
 from ....utils.exceptions import AstropyUserWarning
 
 
@@ -355,7 +355,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 self.columns = self.data._coldefs
                 self.update()
 
-                with ignored(TypeError, AttributeError):
+                with suppress(TypeError, AttributeError):
                     # Make the ndarrays in the Column objects of the ColDefs
                     # object of the HDU reference the same ndarray as the HDU's
                     # FITS_rec object.
@@ -444,7 +444,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             self.columns = self.data.columns
             self.update()
 
-            with ignored(TypeError, AttributeError):
+            with suppress(TypeError, AttributeError):
                 # Make the ndarrays in the Column objects of the ColDefs
                 # object of the HDU reference the same ndarray as the HDU's
                 # FITS_rec object.

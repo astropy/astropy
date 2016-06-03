@@ -26,7 +26,7 @@ from collections import defaultdict
 
 import numpy as np
 
-from ..utils.compat import ignored
+from ..utils.compat import suppress
 from ..utils.compat.funcsigs import signature
 from ..extern import six
 
@@ -690,7 +690,7 @@ class FunctionTransform(CoordinateTransform):
         if not six.callable(func):
             raise TypeError('func must be callable')
 
-        with ignored(TypeError):
+        with suppress(TypeError):
             sig = signature(func)
             kinds = [x.kind for x in sig.parameters.values()]
             if (len(x for x in kinds if x == sig.POSITIONAL_ONLY) != 2

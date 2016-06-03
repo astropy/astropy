@@ -37,7 +37,7 @@ from ..table import Table
 from ..utils import (sharedmethod, find_current_module,
                      InheritDocstrings, OrderedDescriptorContainer)
 from ..utils.codegen import make_function_with_signature
-from ..utils.compat import ignored
+from ..utils.compat import suppress
 from ..utils.compat.funcsigs import signature
 from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import (array_repr_oneline, check_broadcast, combine_labels,
@@ -1849,7 +1849,7 @@ class _CompoundModelMeta(_ModelMeta):
 
         if isinstance(rv, tuple):
             # Delete _evaluate from the members dict
-            with ignored(KeyError):
+            with suppress(KeyError):
                 del rv[1][2]['_evaluate']
 
         return rv
