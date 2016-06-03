@@ -183,3 +183,9 @@ def test_regression_futuretimes_4302(recwarn):
                     saw_iers_warnings = True
                     break
         assert saw_iers_warnings, 'Never saw IERS warning'
+
+def test_regression_4996():
+    deltat = np.linspace(-12, 12, 1000)*u.hour
+    times = Time('2012-7-13 00:00:00') + deltat
+    suncoo = get_sun(times)
+    assert suncoo.shape == (len(times),)
