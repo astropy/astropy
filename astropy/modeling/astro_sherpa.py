@@ -1,7 +1,7 @@
 import inspect
 import numpy as np
 import operator as op
-from collections import defaultdict, OrderedDict
+from collections import OrderedDict
 from pyparsing import nestedExpr
 from sherpa.stats import Stat, LeastSq
 from sherpa.fit import Fit
@@ -10,7 +10,8 @@ from sherpa.estmethods import EstMethod, Covariance
 from sherpa.data import Data1D, Data1DInt, Data2D, Data2DInt, DataSimulFit
 from sherpa.models import UserModel, Parameter, SimulFitModel
 from .fitting import Fitter
-#from astropy.modeling.fitting import Fitter
+from .core import FittableModel, _CompoundModel
+# from astropy.modeling.fitting import Fitter
 
 __all__ = ('SherpaFitter',)
 
@@ -32,7 +33,7 @@ def _expression_to_list(expr):
 
     Parameters
     ----------
-        expr: string 
+        expr: parseString
             this expression you wish to pars
         returns: list
             a list of parsed expression
@@ -95,27 +96,39 @@ def _astropy_to_sherpa_model(model, deconstruct=False):
         def _calc2call(func):
             '''This decorator makes call and calc work together.'''
             def _converter(inp, *x):
-                startp = func._parameters[:]
-                func._parameters = np.array(inp)
-                retvals = func.__call__(*x)
-                func._parameters = startp
+                if func.n_inputs == 1:
+                    # startp = func._parameters[:]
+                    # func._parameters = np.array(inp)
+                    # retvals = func.__call__(*x)
+                    retvals = func.evaluate(x, *inp)[0]
+                    # func._parameters = startp
+                else:
+                    retvals = func.evaluate(x[0], x[1], *inp)[0] # I need to test the 2d case!
                 return retvals
             return _converter
 
         pars = []
+        linkedpars = []
         for pname in model.param_names:
             param = model.__getattribute__(pname)
             vals = [param.name, param.value, param.min, param.max, param.min,
-                    param.max, None, param.fixed or param.tied, param.fixed or param.tied]
+                    param.max, None, param.fixed, False]
             attrnames = ["name", "val", "min", "max", "hard_min", "hard_max",
                          "units", "frozen", "alwaysfrozen"]
             if model.name is None:
                 model._name = ""
-            pars.append(Parameter(modelname="wrap_" + model.name, **
-                                  dict([(atr, val) for atr, val in zip(attrnames, vals) if val is not None])))
+
+            pars.append(Parameter(modelname="wrap_" + model.name, **dict([(atr, val) for atr, val in zip(attrnames, vals) if val is not None])))
+            if param.tied is not False:
+                linkedpars.append(pname)
 
         smodel = UserModel(model.name, pars)
         smodel.calc = _calc2call(model)
+
+        for pname in linkedpars:
+            param = model.__getattribute__(pname)
+            sparam = smodel.__getattribute__(pname)
+            sparam.link = param.tied(smodel)
 
         return smodel
 
@@ -126,8 +139,7 @@ def _astropy_to_sherpa_model(model, deconstruct=False):
         if isinstance(models, list) or isinstance(models, tuple):
             models = {str(num): mod for num, mod in enumerate(models)}
 
-        if isinstance(expression, list) or isinstance(expression, tuple):
-            expression_list = [_expression_to_list(expr) for expr in expression]
+            expression_list = _expression_to_list(expression)
             return [_parse_expression(elist, models)[0] for elist in expression_list]
         else:
             expression_list = _expression_to_list(expression)
@@ -273,7 +285,6 @@ def _make_datasets(n_dim, x, y, z=None, xerr=None, yerr=None, zerr=None):
 
 
 class SherpaFitter(Fitter):
-
     """
     Sherpa Fitter for astropy models. Yay :)
 
@@ -318,7 +329,7 @@ class SherpaFitter(Fitter):
         self._fitmodel = None  # a handle for sherpa fit model
         self._data = None  # a handle for sherpa dataset
 
-    def __call__(self, model, x, y, z=None, xerr=None, yerr=None, zerr=None, **kwargs):
+    def __call__(self, models, x, y, z=None, xerr=None, yerr=None, zerr=None, **kwargs):
         """
         Fit the astropy model with a the sherpa fit routines.
 
@@ -347,40 +358,59 @@ class SherpaFitter(Fitter):
             a copy of the input model with parameters set by the fitter
         """
 
-        self._data = _make_datasets(model.n_inputs, x, y, z, xerr, yerr, zerr)
+        def _make_simfit_model(models, tie_list, model_dict):
+            '''
+            makes a SimulFitModel for the models suplied it also links and parameters within tie_list
+            model_dict updated with astropy models and their converted conterparts this is used for
+            repopulating the model later
+            '''
+            for mod in models:
+                model_dict[mod] = _astropy_to_sherpa_model(mod)
+            if tie_list is not None:
+                for par1, par2 in tie_list:
+                    getattr(model_dict[par1._model], par1.name).link = getattr(model_dict[par2._model], par2.name)
+
+            return SimulFitModel("wrapped_fit_model", model_dict.values())
+
+        self._data = _make_datasets(models.n_inputs, x, y, z, xerr, yerr, zerr)
+
+        model_dict = OrderedDict()
+        tie_list = []
+
+        if isinstance(models, (FittableModel, _CompoundModel)):
+            models = [models]
 
         if isinstance(self._data, DataSimulFit):
             _ndata = len(self._data.datasets)
-            if len(model) == 1:
-                self._fitmodel = SimulFitModel("wrapped_fit_model", [_astropy_to_sherpa_model(model) for _ in xrange(_ndata)])
+            if len(models) == 1:
+                self._fitmodel = SimulFitModel("wrapped_fit_model", [_astropy_to_sherpa_model(models[0]) for _ in xrange(_ndata)])
                 # Copy the model so each data set has the same model!
+            elif len(models) == _ndata:
+                self._fitmodel = _make_simfit_model(models, tie_list, model_dict)
             else:
-                raise Exception("Don't know how to handle multiple modesl")
+                raise Exception("Don't know how to handle multiple models unless there is one foreach dataset")
         else:
-            self._fitmodel = _astropy_to_sherpa_model(model)
+            if len(models) > 1:
+                self._data = DataSimulFit("wrapped_data", [self._data for _ in xrange(len(models))])
+                self._fitmodel = _make_simfit_model(models, tie_list, model_dict)
+            else:
+                self._fitmodel = _astropy_to_sherpa_model(models[0])
 
         self._fitter = Fit(self._data, self._fitmodel, self._stat_method, self._opt_method, self._est_method, **kwargs)
         self.fit_info = self._fitter.fit()
 
-        newparam_vals = defaultdict(list)
-        for pname, pval in zip(self.fit_info.parnames, self.fit_info.parvals):
-            newparam_vals[pname].append(pval)
+        if isinstance(self._fitmodel, SimulFitModel):
+            return_models = []
+            for apymod, shmod in model_dict.items():
+                return_models.append(apymod.copy())
+                for pname, pval in map(lambda p: (p.name, p.val), shmod.pars):
+                    getattr(return_models[-1], pname.split(".")[-1]).value = pval
+        else:
+            return_models = models[0].copy()
+            for pname, pval in map(lambda p: (p.name, p.val), self._fitmodel.pars):
+                getattr(return_models, pname.split(".")[-1]).value = pval
 
-        _start = 0
-        _parameters = []
-
-        model_copy = model.copy()  # stops old model being updated ... pointers!
-        for pname in np.unique(self.fit_info.parnames):
-            pval = newparam_vals[pname]
-            model_copy._param_metrics[pname.split(".")[-1]]['shape'] = (len(pval),)
-            model_copy._param_metrics[pname.split(".")[-1]]['slice'] = slice(_start, _start + len(pval))
-            _start += len(pval)
-
-            _parameters.extend(pval)
-
-        model_copy._parameters = np.array(_parameters)
-        model_copy._n_models = len(pval)
-        return model_copy
+        return return_models
 
     def est_errors(self, sigma=None, maxiters=None, methoddict=None, parlist=None):
         '''
