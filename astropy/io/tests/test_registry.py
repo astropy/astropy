@@ -6,7 +6,6 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import os
-
 from copy import copy
 
 import numpy as np
@@ -195,26 +194,30 @@ def test_write_format_nowriter():
         "No writer defined for format 'test' and class 'TestData'")
 
 
-def test_read_identifier():
+def test_read_identifier(tmpdir):
 
     io_registry.register_identifier(
         'test1', TestData,
-        lambda o, path, fileobj, *x, **y: path.startswith('a'))
+        lambda o, path, fileobj, *x, **y: path.endswith('a'))
     io_registry.register_identifier(
         'test2', TestData,
-        lambda o, path, fileobj, *x, **y: path.startswith('b'))
+        lambda o, path, fileobj, *x, **y: path.endswith('b'))
 
     # Now check that we got past the identifier and are trying to get
     # the reader. The io_registry.get_reader will fail but the error message will
     # tell us if the identifier worked.
 
+    filename = tmpdir.join("testfile.a").strpath
+    open(filename, 'w').close()
     with pytest.raises(io_registry.IORegistryError) as exc:
-        TestData.read('abc')
+        TestData.read(filename)
     assert exc.value.args[0].startswith(
         "No reader defined for format 'test1' and class 'TestData'")
 
+    filename = tmpdir.join("testfile.b").strpath
+    open(filename, 'w').close()
     with pytest.raises(io_registry.IORegistryError) as exc:
-        TestData.read('bac')
+        TestData.read(filename)
     assert exc.value.args[0].startswith(
         "No reader defined for format 'test2' and class 'TestData'")
 
@@ -272,6 +275,13 @@ def test_read_invalid_return():
     with pytest.raises(TypeError) as exc:
         TestData.read(format='test')
     assert exc.value.args[0] == "reader should return a TestData instance"
+
+
+def test_non_existing_unknown_ext():
+    """Raise the correct error when attempting to read a non-existing
+    file with an unknown extension."""
+    with pytest.raises(IOError):
+        data = Table.read('non-existing-file-with-unknown.ext')
 
 
 def test_read_basic_table():

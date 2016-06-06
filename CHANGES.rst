@@ -120,6 +120,10 @@ Bug Fixes
 
 - ``astropy.io.registry``
 
+  - ``read`` now correctly raises an IOError if a file with an unknown
+    extension can't be found, instead of raising IORegistryError:
+    "Format could not be identified." [#4779]
+
 - ``astropy.io.votable``
 
 - ``astropy.modeling``
