@@ -171,6 +171,15 @@ packages that use the full bugfix/maintainence branch approach.)
    version" link and/or updating the list of older versions if this is an LTS
    bugfix or a new major version.
 
+#. In the astropy *master* branch (not just the changelog), be sure to update
+   the ``CHANGES.rst`` to reflect the date of the release you just performed and
+   to include the new section of the changelog.  Often the easiest way to do
+   this is to use ``git cherry-pick`` on the release commit from above, *but* if
+   that method is used, be sure to amend that commit and not change the version
+   in ``setup.py``. If you aren't sure how to do this, you might be better off
+   just copying-and-pasting the relevant parts of the maintainence branch's
+   ``CHANGES.rst`` into master.
+
    Modifications for a beta/release candidate release
    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
