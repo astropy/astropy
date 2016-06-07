@@ -12,232 +12,164 @@ more of the process, if not all.
 Release Procedure
 -----------------
 
-The automated portion of the Astropy release procedure uses `zest.releaser`_
-to create the tag and update the version.  zest.releaser is extendable through
-hook functions--Astropy already includes a couple hook functions to modify the
-default behavior, but future releases may be further automated through the
-implementation of additional hook functions.  In order to use the hooks,
-Astropy itself must be *installed* alongside zest.releaser.  It is recommended
-to create a `virtualenv`_ specifically for this purpose.
+This is the standard release procedure for releasing Astropy (or affiliated
+packages that use the full bugfix/maintainence branch approach.)
 
-This may seem like a lot of steps, but most of them won't be necessary to
-repeat for each release.  The advantage of using an automated or semi-automated
-procedure is that ensures a consistent release process each time.
+#. (Optional) You may want to set up a clean environment to build the release.
+   For more on setting up virtual environments, see :ref:`virtual_envs`, but
+   for the sake of example we will assume you're using `Anaconda`_. This is not
+   necessary if you know your normal python environment has what you need, but
+   you might want to do something like this for safety's sake::
 
- 1. Ensure you have a GPG key pair available for when git needs to sign the
-    tag you create for the release.  See :ref:`key-signing-info` for more on
-    this.
+      $ conda create -n astropy_release_build_v<verson> astropy
+      $ source activate astropy_release_build_v<verson>
+      $ conda uninstall astropy  # still keeps the dependencies
+      $ pip install -r pip-requirements-dev  # any that might be left over
 
- 2. Update the list of contributors in the ``creditsandlicense.rst`` file. The
-    easiest way to check this is do::
+#. Make sure that Travis and any other continuous integration is passing for
+   the branch you're going to release.  You may also want to locally run the
+   tests in ``remote-data`` mode, as those are not necessarily run
+   automatically::
 
-        $ git shortlog -s
+      $ python setup.py test --remote-data
 
-    And just add anyone from that list who isn't already credited.
+#. Ensure you have a GPG key pair available for when git needs to sign the
+   tag you create for the release.  See :ref:`key-signing-info` for more on
+   this.
 
- 3. Install virtualenv if you don't already have it.  See the linked virtualenv
-    documentation for details.  Also, make sure that you have `cython`_
-    installed, as you will need it to generate the .c files needed for the
-    release.
+#. Obtain a *clean* version of the Astropy repository.  That is, one
+   where you don't have any intermediate build files.  Either use a fresh
+   ``git clone`` or do ``git clean -dfx``.
 
- 4. Create and activate a virtualenv::
+#. Be sure you're on the branch appropriate for the version you're about to
+   release.  For example, if releasing version 0.2.2 make sure to::
 
-        $ virtualenv --system-site-packages astropy-release
-        $ source astropy-release/bin/activate
+      $ git checkout v0.2.x
 
- 5. Obtain a *clean* version of the Astropy repository.  That is, one
-    where you don't have any intermediate build files.  Either use a fresh
-    ``git clone`` or do ``git clean -dfx``.
+#. Edit the ``setup.py`` file by removing the ``".dev"`` at the end of the
+   ``VERSION`` string.
 
- 6. Be sure you're the "master" branch or, for a bug fix release, on the
-    appropriate bug fix branch.  For example, if releasing version 0.2.2 make
-    sure to::
+#. Edit the ``CHANGES.rst`` file by changing the date for the version you are
+   about to release from "unreleased" to today's date.
 
-        $ git checkout v0.2.x
+#. Add the changes to ``CHANGES.rst`` and ``setup.py``::
 
- 7. Now install Astropy into the virtualenv::
+      $ git add CHANGES.rst setup.py
 
-        $ python setup.py install
+  and commit with message::
 
-    This is necessary for two reasons.  First, the entry points for the
-    releaser scripts need to be available, and these are in the Astropy
-    package. Second, the build process will generate .c files from the
-    Cython .pyx files, and the .c files are necessary for the source
-    distribution.
+      $ git commit -m "Preparing release <version>"
 
- 8. Install zest.releaser into the virtualenv; use ``--upgrade --force`` to
-    ensure that the latest version is installed in the virtualenv (if you're
-    running a csh variant make sure to run ``rehash`` afterwards too)::
+#. Tag the commit with ``v<version>``, being certain to sign the tag with the
+   ``-s`` option::
 
-        $ pip install zest.releaser==3.49 --upgrade --force
+      $ git tag -s v<version>
 
-    .. note::
+#. Edit the ``VERSION`` in ``setup.py`` to be the next version number, but with
+   a ``.dev`` suffix at the end (E.g., ``0.2.3.dev``).
 
-        zest.releaser > 3.49 has a still open issue that prevents our release
-        code from correctly updating the ``VERSION`` variable in our ``setup.py``;
-        see `zestsoftware/zest.releaser#62 <https://github.com/zestsoftware/zest.releaser/pull/62>`_.
+#. Also update the ``CHANGES.rst`` file with a new section for the next version.
+   You will likely want to use the ``add_to_changelog.py`` script in the
+   `astropy-tools`_ repository for this
 
- 9. Ensure that all changes to the code have been committed, then start the
-    release by running::
+#. Add the changes to ``CHANGES.rst`` and ``setup.py``::
 
-        $ fullrelease
+      $ git add CHANGES.rst setup.py
 
- 10. You will be asked to enter the version to be released.  Press enter to
-     accept the default (which will normally be correct) or enter a specific
-     version string.  A diff will then be shown of CHANGES.rst and setup.py
-     showing that a release date has been added to the changelog, and that the
-     version has been updated in setup.py.  Enter 'Y' when asked to commit
-     these changes.
+   and commit with message::
 
- 11. You will then be shown the command that will be run to tag the release.
-     Enter 'Y' to confirm and run the command.
+      $ git commit -m "Back to development: <next_version>"
 
- 12. When asked "Check out the tag (for tweaks or pypi/distutils server
-     upload)" enter 'N': zest.releaser does not offer enough control yet over
-     how the register and upload are performed so we will do this manually
-     until the release scripts have been improved.
+#. Now go back and check out the tag of the released version with
+   ``git checkout v<version>``.  For example::
 
- 13. You will be asked to enter a new development version.  Normally the next
-     logical version will be selected--press enter to accept the default, or
-     enter a specific version string.  Do not add ".dev" to the version, as
-     this will be appended automatically (ignore the message that says ".dev0
-     will be appended"--it will actually be ".dev" without the 0).  For
-     example, if the just-released version was "0.1" the default next version
-     will be "0.2".  If we want the next version to be, say "0.1.1", or "1.0",
-     then that must be entered manually.
+      $ git checkout v0.2.2
 
- 14. You will be shown a diff of CHANGES.rst showing that a new section has
-     been added for the new development version, and showing that the version
-     has been updated in setup.py.  Enter 'Y' to commit these changes.
+   Don't forget to remove any non-commited files with::
 
- 15. When asked to push the changes to a remote repository, enter 'Y'.  This
-     should complete the portion of the process that's automated at this point.
+      $  git clean -dfx
 
- 16. Check out the tag of the released version.  For example::
+#. Create the source distribution by doing::
 
-         $ git checkout v0.1
-
- 17. Create the source distribution by doing::
-
-         $ git clean -dfx  # just in case
          $ python setup.py build sdist
-
-     Copy the produced ``.tar.gz`` somewhere and verify that you can unpack it,
-     build it, and get all the tests to pass.  It would be best to create a new
-     virtualenv in which to do this.
 
      .. note::
 
-         In the future, the ``build`` command should run automatically as a
+         In the future, the ``build`` command may run automatically as a
          prerequisite for ``sdist``.  But for now, make sure to run it
          whenever running ``sdist`` to ensure that all Cython sources and
          other generated files are built.
 
- 18. Register the release on PyPI with::
+#. Run the tests in an environment that mocks up a "typical user" scenario.
+   This is not strictly necessary because you ran the tests above, but
+   it can sometimes be useful to catch subtle bugs that might come from you
+   using a customized developer environment.  For more on setting up virtual
+   environments, see :ref:`virtual_envs`, but for the sake of example we will
+   assume you're using `Anaconda`_. Do::
 
-         $ python setup.py register
+      $ conda create -n astropy_release_test_v<verson> numpy
+      $ source activate astropy_release_test_v<verson>
+      $ cd dist
+      $ mkdir test
+      $ pip install astropy-<version>.tar.gz
+      $ python -c 'import astropy; astropy.test(remote_data=True)'
+      $ source deactivate
+      $ cd <back to the source directory>
 
- 19. Upload the source distribution to PyPI; this is preceded by re-running
-     the sdist command, which is necessary for the upload command to know
-     which distribution to upload::
+   Assuming everything went smoothly with the last step, we are ready to proceed
+   with the release.  If not, you'll have to back up to before starting this
+   procedure and start over when things are fixed.
 
-         $ python setup.py build sdist upload --sign
+#. Register the release on PyPI with::
 
- 20. Go to https://pypi.python.org/pypi?:action=pkg_edit&name=astropy
-     and ensure that only the most recent releases in each actively maintained
-     release line are *not* marked hidden.  For example, if v0.3.1 was
-     just released, v0.3 should be hidden.  This is so that users only find
-     the latest bugfix releases.
+      $ python setup.py register
 
-     Do not enabled "Auto-hide old releases" as that may hide bugfix releases
-     from older release lines that we may still want to make available.
+#. Upload the source distribution to PyPI; this is preceded by re-running
+   the sdist command, which is necessary for the upload command to know
+   which distribution to upload::
 
- 21. Update the "stable" branch to point to the new stable release For example::
+      $ python setup.py build sdist upload --sign
 
-         $ git checkout stable
-         $ git reset --hard v0.1
-         $ git push origin stable --force
+#. Go to https://pypi.python.org/pypi?:action=pkg_edit&name=astropy
+   and ensure that only the most recent releases in each actively maintained
+   release line are *not* marked hidden.  For example, if v0.2.2 was
+   just released, v0.2.1 should be hidden.  This is so that users only find
+   the latest bugfix releases.
 
- 22. Update Readthedocs so that it builds docs for the corresponding github tag.
-     Also verify that the ``stable`` Readthedocs version builds correctly for
-     the new version (it should trigger automatically once you've done the
-     previous step.)
+   Do not enabled "Auto-hide old releases" as that may hide bugfix releases
+   from older release lines that we may still want to make available.
 
-     When releasing a patch release, also set the previous version in the
-     release history to "protected".  For example when releasing v1.1.2, set
-     v1.1.1 to "protected".  This prevents the previous releases from
-     cluttering the list of versions that users see in the version dropdown
-     (the previous versions are still accessible by their URL though).
+#. Push up all these changes to the astropy repository::
 
- 23. If this was a major/minor release (not a bug fix release) create a bug fix
-     branch for this line of release.  That is, if the version just released
-     was "v<major>.<minor>.0", create bug fix branch with the name
-     "v<major>.<minor>.x".  Starting from the commit tagged as the release,
-     just checkout a new branch and push it to the remote server.  For example,
-     after releasing version 0.3, do::
+      $ git push --tags origin v<version>
 
-         $ git checkout -b v0.3.x
+   .. note::
 
-     Then edit ``setup.py`` so that the ``VERSION`` variable is
-     ``'0.3.1.dev'``, and commit that change. Then, do::
+      You may need to replace ``origin`` here with ``astropy`` or
+      whatever remote name you use for the main astropy repository.
 
-         $ git push upstream v0.3.x
+#. If this is a release of the current release (not an LTS), update the
+   "stable" branch to point to the new release::
 
-    .. note::
+      $ git checkout stable
+      $ git reset --hard v<version>
+      $ git push origin stable --force
 
-        You may need to replace ``upstream`` here with ``astropy`` or
-        whatever remote name you use for the main astropy repository.
+#. Update Readthedocs so that it builds docs for the corresponding github tag.
+   Also verify that the ``stable`` Readthedocs version builds correctly for
+   the new version (it should trigger automatically once you've done the
+   previous step.)
 
-     The purpose of this branch is for creating bug fix releases like "0.3.1"
-     and "0.3.2", while allowing development of new features to continue in
-     the master branch.  Only changesets that fix bugs without making
-     significant API changes should be merged to the bug fix branches.
+   When releasing a patch release, also set the previous version in the
+   release history to "protected".  For example when releasing v1.1.2, set
+   v1.1.1 to "protected".  This prevents the previous releases from
+   cluttering the list of versions that users see in the version dropdown
+   (the previous versions are still accessible by their URL though).
 
- 24. Update `astropy/astropy-website <https://github.com/astropy/astropy-website>`_
-     for the new version.  Two files need to be updated: ``index.rst`` has two tags
-     near the top specifying the current release, and the ``docs.rst`` file should
-     be updated by putting the previous release in as an older version, and updating
-     the "latest developer version" link to point to the new release.
-
- 25. Run the ``upload_script.py`` script in ``astropy-website`` to update the actual
-     web site.
-
-Modifications for a beta/release candidate release
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-For major releases with a lot of changes, we sometimes do beta and/or
-release candidates to have a chance to catch significant bugs before the true
-release.  If the release you are performing is this kind of pre-release, some
-of the above steps need to be modified.  The primary difference is that these
-releases go on the http://testpypi.python.org server instead of the regular
-PyPI.  The testpypi server provides a place to test the release and host it,
-but never appears anywhere on the regular server.  The price is that testpypi
-is not guaranteed to be up long-term, but for short-term pre-releases, this is
-no problem.
-
-The primary modifications to the release procedure are:
-
-* When prompted for a version number (step #13), you will need to manually
-  enter something like "1.0b1" or "1.0rc1".  You should follow this numbering
-  scheme (``x.yb#`` or ``x.y.zrc#``), as it will ensure the release is
-  ordered "before" the main release by various automated tools.
-* On steps #18 and #19, where you register and upload to PyPI, it is important
-  that you add the option ``-r https://testpypi.python.org/pypi``.  This
-  ensures the release information and files are sent to the test server instead
-  of the real PyPI server.  This will probably require you to set up a
-  ``~/.pypirc`` file appropriate for the testpypi server.  See
-  https://wiki.python.org/moin/TestPyPI for more on how to do this.
-* Do not do step #20 or later, as those are tasks for an actual release.
-
-.. note::
-    ``~/.pypirc`` files necessary for uploading to the testpypi server
-    require you to include your password to be able to manage to do
-    ``register`` properly.  This can be insecure, because it means you have
-    to put your PyPI password in a plain-text file.  So you'll want to set
-    the ``~/.pypirc`` file permissions to be quite restrictive, use a
-    temporary PyPI password just for doing releases, or some other measure
-    to ensure your password remains secure.
-
+#. Update the Astropy web site by editing the ``index.html`` page at
+   https://github.com/astropy/astropy.github.com by changing the "current
+   version" link and/or updating the list of older versions if this is an LTS
+   bugfix or a new major version.
 
 Maintaining Bug Fix Releases
 ----------------------------
@@ -567,6 +499,6 @@ that for you.  You can delete this tag by doing::
 
 
 .. _signed tags: http://git-scm.com/book/en/Git-Basics-Tagging#Signed-Tags
-.. _zest.releaser: http://pypi.python.org/pypi/zest.releaser
-.. _virtualenv: http://pypi.python.org/pypi/virtualenv
 .. _cython: http://www.cython.org/
+.. _astropy-tools: https://github.com/astropy/astropy-tools
+.. _Anaconda: http://conda.pydata.org/docs/
