@@ -593,7 +593,7 @@ class BaseCoordinateFrame(object):
     def data(self):
         """
         The coordinate data for this object.  If this frame has no data, an
-        `~.exceptions.ValueError` will be raised.  Use `has_data` to
+        `ValueError` will be raised.  Use `has_data` to
         check if data is present on this frame object.
         """
         if self._data is None:

@@ -169,7 +169,7 @@ to get the value of the keyword targname, which is a string 'NGC121'.
 Although keyword names are always in upper case inside the FITS file,
 specifying a keyword name with Astropy is case-insensitive, for the user's
 convenience. If the specified keyword name does not exist, it will raise a
-`~.exceptions.KeyError` exception.
+`KeyError` exception.
 
 We can also get the keyword value by indexing (a la Python lists)::
 

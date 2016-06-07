@@ -144,7 +144,7 @@ errors should follow these rules:
 * For errors/exceptions, one should always use ``raise`` with one of the
   built-in exception classes, or a custom exception class. The
   nondescript ``Exception`` class should be avoided as much as possible,
-  in favor of more specific exceptions (``IOError``, ``ValueError``,
+  in favor of more specific exceptions (`IOError`, `ValueError`,
   etc.).
 
 * For warnings, one should always use ``warnings.warn(message,
@@ -775,7 +775,7 @@ Catching of exceptions should always use this syntax::
 This avoids the old style syntax of ``except ImportError, e`` or
 ``except (ValueError,TypeError), e``, which is dangerous because it's easy to
 instead accidentally do something like ``except ValueError,TypeError``, which
-won't catch `~.exceptions.TypeError`.
+won't catch `TypeError`.
 
 
 Additional Resources

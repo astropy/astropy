@@ -119,7 +119,7 @@ def _get_stdout(stderr=False):
 
 def isatty(file):
     """
-    Returns `True` if `file` is a tty.
+    Returns `True` if ``file`` is a tty.
 
     Most built-in Python file-like objects have an `isatty` member,
     but some user-defined types may not, so this assumes those are not
@@ -495,7 +495,7 @@ class ProgressBar(six.Iterator):
 
         file : writable file-like object, optional
             The file to write the progress bar to.  Defaults to
-            `sys.stdout`.  If `file` is not a tty (as determined by
+            `sys.stdout`.  If ``file`` is not a tty (as determined by
             calling its `isatty` member, if any, or special case hacks
             to detect the IPython console), the progress bar will be
             completely silent.
@@ -696,7 +696,7 @@ class ProgressBar(six.Iterator):
 
         file : writeable file-like object, optional
             The file to write the progress bar to.  Defaults to
-            `sys.stdout`.  If `file` is not a tty (as determined by
+            `sys.stdout`.  If ``file`` is not a tty (as determined by
             calling its `isatty` member, if any), the scrollbar will
             be completely silent.
 
@@ -762,7 +762,7 @@ class Spinner(object):
 
         file : writeable file-like object, optional
             The file to write the spinner to.  Defaults to
-            `sys.stdout`.  If `file` is not a tty (as determined by
+            `sys.stdout`.  If ``file`` is not a tty (as determined by
             calling its `isatty` member, if any, or special case hacks
             to detect the IPython console), the spinner will be
             completely silent.
@@ -890,7 +890,7 @@ class ProgressBarOrSpinner(object):
 
         file : writable file-like object, optional
             The file to write the to.  Defaults to `sys.stdout`.  If
-            `file` is not a tty (as determined by calling its `isatty`
+            ``file`` is not a tty (as determined by calling its `isatty`
             member, if any), only ``msg`` will be displayed: the
             `ProgressBar` or `Spinner` will be silent.
         """

@@ -139,7 +139,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     encoding : str, optional
         When `None` (default), returns a file-like object with a
         ``read`` method that on Python 2.x returns `bytes` objects and
-        on Python 3.x returns `str` (`unicode`) objects, using
+        on Python 3.x returns `str` (``unicode``) objects, using
         `locale.getpreferredencoding` as an encoding.  This matches
         the default behavior of the built-in `open` when no ``mode``
         argument is provided.
@@ -148,7 +148,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         method returns `bytes` objects.
 
         When another string, it is the name of an encoding, and the
-        file-like object's ``read`` method will return `str` (`unicode`)
+        file-like object's ``read`` method will return `str` (``unicode``)
         objects, decoded from binary using the given encoding.
 
     cache : bool, optional
@@ -405,7 +405,7 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
     encoding : str, optional
         When `None` (default), returns a file-like object with a
         ``read`` method that on Python 2.x returns `bytes` objects and
-        on Python 3.x returns `str` (`unicode`) objects, using
+        on Python 3.x returns `str` (``unicode``) objects, using
         `locale.getpreferredencoding` as an encoding.  This matches
         the default behavior of the built-in `open` when no ``mode``
         argument is provided.
@@ -414,7 +414,7 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
         method returns `bytes` objects.
 
         When another string, it is the name of an encoding, and the
-        file-like object's ``read`` method will return `str` (`unicode`)
+        file-like object's ``read`` method will return `str` (``unicode``)
         objects, decoded from binary using the given encoding.
 
     cache : bool
@@ -637,7 +637,7 @@ def get_pkg_data_contents(data_name, package=None, encoding=None, cache=True):
     encoding : str, optional
         When `None` (default), returns a file-like object with a
         ``read`` method that on Python 2.x returns `bytes` objects and
-        on Python 3.x returns `str` (`unicode`) objects, using
+        on Python 3.x returns `str` (``unicode``) objects, using
         `locale.getpreferredencoding` as an encoding.  This matches
         the default behavior of the built-in `open` when no ``mode``
         argument is provided.
@@ -646,7 +646,7 @@ def get_pkg_data_contents(data_name, package=None, encoding=None, cache=True):
         method returns `bytes` objects.
 
         When another string, it is the name of an encoding, and the
-        file-like object's ``read`` method will return `str` (`unicode`)
+        file-like object's ``read`` method will return `str` (``unicode``)
         objects, decoded from binary using the given encoding.
 
     cache : bool
@@ -767,7 +767,7 @@ def get_pkg_data_fileobjs(datadir, package=None, pattern='*', encoding=None):
     encoding : str, optional
         When `None` (default), returns a file-like object with a
         ``read`` method that on Python 2.x returns `bytes` objects and
-        on Python 3.x returns `str` (`unicode`) objects, using
+        on Python 3.x returns `str` (``unicode``) objects, using
         `locale.getpreferredencoding` as an encoding.  This matches
         the default behavior of the built-in `open` when no ``mode``
         argument is provided.
@@ -776,7 +776,7 @@ def get_pkg_data_fileobjs(datadir, package=None, pattern='*', encoding=None):
         method returns `bytes` objects.
 
         When another string, it is the name of an encoding, and the
-        file-like object's ``read`` method will return `str` (`unicode`)
+        file-like object's ``read`` method will return `str` (``unicode``)
         objects, decoded from binary using the given encoding.
 
     Returns
