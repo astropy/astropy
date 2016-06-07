@@ -127,3 +127,19 @@ def test_regression_4082():
     #also check 3d for good measure, although it's not really affected by this bug directly
     cat3d = SkyCoord([10.076,10.00455]*u.deg, [18.54746, 18.54896]*u.deg, distance=[0.1,1.5]*u.kpc)
     search_around_3d(cat3d[0:1], cat3d, 1*u.kpc, storekdtree=False)
+
+
+def test_regression_4996():
+    # this part is the actual regression test
+    deltat = np.linspace(-12, 12, 1000)*u.hour
+    times = Time('2012-7-13 00:00:00') + deltat
+    suncoo = get_sun(times)
+    assert suncoo.shape == (len(times),)
+
+    # and this is an additional test to make sure more complex arrays work
+    times2 = Time('2012-7-13 00:00:00') + deltat.reshape(10, 20, 5)
+    suncoo2 = get_sun(times2)
+    assert suncoo2.shape == times2.shape
+
+    # this is intentially not allclose - they should be *exactly* the same
+    assert np.all(suncoo.ra.ravel() == suncoo2.ra.ravel())
