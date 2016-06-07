@@ -19,8 +19,6 @@ to represent 15 m/s:
     >>> 15 * u.m / u.s
     <Quantity 15.0 m / s>
 
-.. note:: |quantity| objects are converted to float by default.
-
 As another example:
 
     >>> 1.25 / u.s
@@ -58,6 +56,11 @@ Finally, the current unit and value can be accessed via the
     Unit("m / s")
     >>> q.value
     2.5
+
+.. note:: |quantity| objects are converted to float by default.  Furthermore,
+	  any data passed in are copied, which for large arrays may not be
+	  optimal.  One can instead obtain a `~numpy.ndarray.view` by
+	  passing ``copy=False`` to |quantity|.
 
 Converting to different units
 -----------------------------
