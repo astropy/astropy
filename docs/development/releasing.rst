@@ -26,6 +26,11 @@ packages that use the full bugfix/maintainence branch approach.)
       $ conda uninstall astropy  # still keeps the dependencies
       $ pip install -r pip-requirements-dev  # any that might be left over
 
+#. Before doing a release of Astropy, you may need to do a release of
+   `astropy-helpers`_.  This is not always necessary if there are no significant
+   changes in the helpers.  See the section :ref:`helpers-release-info` for
+   more on this.
+
 #. Make sure that Travis and any other continuous integration is passing for
    the branch you're going to release.  You may also want to locally run the
    tests in ``remote-data`` mode, as those are not necessarily run
@@ -454,6 +459,46 @@ be fixed soon to a new release milestone.  If the upcoming bug fix release is
 issues that you don't expect to be fixed in time for 'v0.2.2'.
 
 
+.. _helpers-release-info:
+
+Coordinating Astropy and astropy-helpers Releases
+-------------------------------------------------
+
+A bit more initial effort is required for an Astropy release that has a
+corresponding astropy-helpers release.  The main reason for this more complex
+procedure is to allow the Astropy core to be tested aginst the new helpers
+before anything is released.  Hence the following procedure should be added
+to the beginning of the above procedure when this is required.
+
+#. In `astropy-helpers`, create a new release branch "release-<version>".
+
+#. Create the release commit (updating the version info and changelog) in that
+   branch.
+
+#. Push the release branch to github.
+
+#. In astropy master (and/or the relevant maintainence branch), issue a PR
+   updating the helpers to the commit described in the last step (i.e., the
+   head of the astropy-helpers release branch).
+
+#. Wait for Travis to run to ensure that helpers build works with Astropy.
+   If it doesn't, back out the release and fix whatever the problem is before
+   trying again.
+
+#. Assuming it does succeed, finish the release of the helpers by doing this in
+   the helpers repo::
+
+      git checkout master
+      git merge --no-ff release-<version>
+      git tag -s "v<version>" -m "Tagging v<version>"
+
+   and then adding one more commit updating back to the next dev version.
+
+This way the commit of the helpers that is tagged as the release is the same
+commit that the astropy_helpers submodule will be on when the PR to astropy
+testing the release gets merged.
+
+
 .. _key-signing-info:
 
 Creating a GPG Signing Key and a Signed Tag
@@ -582,3 +627,4 @@ that for you.  You can delete this tag by doing::
 .. _cython: http://www.cython.org/
 .. _astropy-tools: https://github.com/astropy/astropy-tools
 .. _Anaconda: http://conda.pydata.org/docs/
+.. _astropy-helpers: https://github.com/astropy/astropy-helpers
