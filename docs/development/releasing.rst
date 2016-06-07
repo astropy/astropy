@@ -62,7 +62,7 @@ packages that use the full bugfix/maintainence branch approach.)
 
       $ git add CHANGES.rst setup.py
 
-  and commit with message::
+   and commit with message::
 
       $ git commit -m "Preparing release v<version>"
 
@@ -186,8 +186,8 @@ packages that use the full bugfix/maintainence branch approach.)
    just copying-and-pasting the relevant parts of the maintainence branch's
    ``CHANGES.rst`` into master.
 
-   Modifications for a beta/release candidate release
-   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Modifications for a beta/release candidate release
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
    For major releases with a lot of changes, we do beta and/or release candiates
    to have a chance to catch significant bugs before the true release.
@@ -201,7 +201,7 @@ packages that use the full bugfix/maintainence branch approach.)
      numbering scheme (``x.yb#`` or ``x.y.zrc#``), as it will ensure the release
      is ordered "before" the main release by various automated tools, and also
      tells PyPI that this is a "pre-release".
-   * Do not do step #20 or later, as those are tasks for an actual release.
+   * Do not do step #21 or later, as those are tasks for an actual release.
 
 
 Performing a Feature Freeze/Branching new Major Versions
