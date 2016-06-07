@@ -23,7 +23,7 @@ class QuantityInput(object):
         the argument is not equivalent to the unit specified to the decorator
         or in the annotation.
         If the argument has no unit attribute, i.e. it is not a Quantity object, a
-        `~exceptions.ValueError` will be raised.
+        `ValueError` will be raised.
 
         Where an equivalency is specified in the decorator, the function will be
         executed with that equivalency in force.

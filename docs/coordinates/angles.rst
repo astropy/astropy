@@ -164,5 +164,5 @@ of being bounded so that::
   -90.0 * u.deg <= angle(s) <= +90.0 * u.deg
 
 Any attempt to set a value outside that range will result in a
-`~.exceptions.ValueError`.
+`ValueError`.
 
