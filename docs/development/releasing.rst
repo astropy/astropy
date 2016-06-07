@@ -55,7 +55,8 @@ packages that use the full bugfix/maintainence branch approach.)
    ``VERSION`` string.
 
 #. Edit the ``CHANGES.rst`` file by changing the date for the version you are
-   about to release from "unreleased" to today's date.
+   about to release from "unreleased" to today's date.  Also be sure to remove
+   any sections of the changelog for that version that have no entries.
 
 #. Add the changes to ``CHANGES.rst`` and ``setup.py``::
 
@@ -63,7 +64,7 @@ packages that use the full bugfix/maintainence branch approach.)
 
   and commit with message::
 
-      $ git commit -m "Preparing release <version>"
+      $ git commit -m "Preparing release v<version>"
 
 #. Tag the commit with ``v<version>``, being certain to sign the tag with the
    ``-s`` option::
@@ -83,7 +84,7 @@ packages that use the full bugfix/maintainence branch approach.)
 
    and commit with message::
 
-      $ git commit -m "Back to development: <next_version>"
+      $ git commit -m "Back to development: v<next_version>"
 
 #. Now go back and check out the tag of the released version with
    ``git checkout v<version>``.  For example::
