@@ -70,7 +70,7 @@ packages that use the full bugfix/maintainence branch approach.)
 
 #. Also update the ``CHANGES.rst`` file with a new section for the next version.
    You will likely want to use the ``add_to_changelog.py`` script in the
-   `astropy-tools`_ repository for this
+   `astropy-tools`_ repository for this.
 
 #. Add the changes to ``CHANGES.rst`` and ``setup.py``::
 
@@ -170,6 +170,77 @@ packages that use the full bugfix/maintainence branch approach.)
    https://github.com/astropy/astropy.github.com by changing the "current
    version" link and/or updating the list of older versions if this is an LTS
    bugfix or a new major version.
+
+   Modifications for a beta/release candidate release
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+   For major releases with a lot of changes, we do beta and/or release candiates
+   to have a chance to catch significant bugs before the true release.
+   If the release you are performing is this kind of pre-release, some
+   of the above steps need to be modified.
+
+   The primary modifications to the release procedure are:
+
+   * When entering the new version number, instead of just removing the
+     ``.dev``, enter "0.2b1" or "0.2rc1".  It is critical that you follow this
+     numbering scheme (``x.yb#`` or ``x.y.zrc#``), as it will ensure the release
+     is ordered "before" the main release by various automated tools, and also
+     tells PyPI that this is a "pre-release".
+   * Do not do step #20 or later, as those are tasks for an actual release.
+
+
+Performing a Feature Freeze/Branching new Major Versions
+--------------------------------------------------------
+
+As outlined in
+`APE2 <https://github.com/astropy/astropy-APEs/blob/master/APE2.rst>`_, astropy
+releases occur at regular intervals, but feature freezes occur well before the
+actual release.  Feature freezes are also the time when the master branch's
+development separates from the new major version's maintainence branch.  This
+allows new development for the next major version to continue while the
+soon-to-be-released version can focus on bug fixes and documentation updates.
+
+The procedure for this is straightforward:
+
+#. Make sure you're on master, and updated to the latest version from github::
+
+      $ git checkout master
+      $ git fetch origin
+      $ git reset --hard origin/master
+
+#. Create a new branch from master at the point you want the feature freeze to
+   occur::
+
+      $ git branch v<version>.x
+
+#. Update the ``CHANGES.rst`` file with a new section at the very top for the
+   next major version.  You will likely want to use the ``add_to_changelog.py``
+   script in the `astropy-tools`_ repository for this.
+
+#. Update the ``VERSION`` in ``setup.py`` to reflect the new major version. For
+   example, if you are about to issue a feature freeze for version ``1.2``, you
+   will want to set the new version to ``'1.3.dev'``.
+
+#. Add the changes to ``CHANGES.rst`` and ``setup.py``::
+
+      $ git add CHANGES.rst setup.py
+
+   and commit with message::
+
+      $ git commit -m "Next major version: <next_version>"
+
+#. Push all of these changes up to github::
+
+      $ git push origin v<version>.x:v<version>.x
+      $ git push origin master:master
+
+   .. note::
+
+      You may need to replace ``origin`` here with ``astropy`` or
+      whatever remote name you use for the main astropy repository.
+
+#. On the github issue tracker, add a new milestone for the next major version.
+
 
 Maintaining Bug Fix Releases
 ----------------------------
