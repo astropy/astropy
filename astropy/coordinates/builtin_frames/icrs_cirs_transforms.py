@@ -200,7 +200,8 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
 
 @frame_transform_graph.transform(FunctionTransform, GCRS, GCRS)
 def gcrs_to_gcrs(from_coo, to_frame):
-    if np.all(from_coo.obstime == to_frame.obstime):
+    if (np.all(from_coo.obstime == to_frame.obstime)
+        and np.all(from_coo.obsgeoloc == to_frame.obsgeoloc)):
         return to_frame.realize_frame(from_coo.data)
     else:
         # like CIRS, we do this self-transform via ICRS
