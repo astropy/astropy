@@ -73,55 +73,55 @@ telescope operator to move from a bright star to a fainter target.)::
     >>> ddec.to(u.arcsec)  # doctest: +FLOAT_CMP
     <Angle 10.605103417374696 arcsec>
 
-.. _astropy-astrometric-frames:
+.. _astropy-skyoffset-frames:
 
-"Astrometric" Frames
-====================
+"Sky Offset" Frames
+===================
 
 To extend the concept of spherical offsets, `~astropy.coordinates` has
-a frame class :class:`~astropy.coordinates.builtin_frames.astrometric.AstrometricFrame`
+a frame class :class:`~astropy.coordinates.builtin_frames.skyoffset.SkyOffsetFrame`
 which creates distinct frames that are centered on a specific point.
-These are known as "astrometric frames", as they are a convenient way to create
-a frame centered on an arbitrary position, suitable for computing positional offsets for
-astrometry::
+These are known as "sky offset frames", as they are a convenient way to create
+a frame centered on an arbitrary position on the sky, suitable for computing
+positional offsets (e.g., for astrometry)::
 
-    >>> from astropy.coordinates import AstrometricFrame, ICRS
+    >>> from astropy.coordinates import SkyOffsetFrame, ICRS
     >>> center = ICRS(10*u.deg, 45*u.deg)
-    >>> center.transform_to(AstrometricFrame(origin=center))  # doctest: +SKIP
-    <AstrometricICRS Coordinate (rotation=0.0 deg, origin=<ICRS Coordinate: (ra, dec) in deg
+    >>> center.transform_to(SkyOffsetFrame(origin=center))  # doctest: +SKIP
+    <SkyOffsetICRS Coordinate (rotation=0.0 deg, origin=<ICRS Coordinate: (ra, dec) in deg
         (10.0, 45.0)>): (lon, lat) in deg
         (0.0, 0.0)>
     >>> target = ICRS(11*u.deg, 46*u.deg)
-    >>> target.transform_to(AstrometricFrame(origin=center))  # doctest: +FLOAT_CMP
-    <AstrometricICRS Coordinate (rotation=0.0 deg, origin=<ICRS Coordinate: (ra, dec) in deg
+    >>> target.transform_to(SkyOffsetFrame(origin=center))  # doctest: +FLOAT_CMP
+    <SkyOffsetICRS Coordinate (rotation=0.0 deg, origin=<ICRS Coordinate: (ra, dec) in deg
         (10.0, 45.0)>): (lon, lat) in deg
         (0.69474685, 1.00428706)>
 
 
 Alternatively, the convenience method
-:meth:`~astropy.coordinates.SkyCoord.astrometric_frame` lets you create an astrometric
+:meth:`~astropy.coordinates.SkyCoord.skyoffset_frame` lets you create an skyoffset
 frame from an already-existing |SkyCoord|::
 
     >>> center = SkyCoord(10*u.deg, 45*u.deg)
-    >>> aframe = center.astrometric_frame()
+    >>> aframe = center.skyoffset_frame()
     >>> target.transform_to(aframe)  # doctest: +FLOAT_CMP
-    <AstrometricICRS Coordinate (rotation=0.0 deg, origin=<ICRS Coordinate: (ra, dec) in deg
+    <SkyOffsetICRS Coordinate (rotation=0.0 deg, origin=<ICRS Coordinate: (ra, dec) in deg
         (10.0, 45.0)>): (lon, lat) in deg
         (0.69474685, 1.00428706)>
     >>> other = SkyCoord(9*u.deg, 44*u.deg, frame='fk5')
     >>> other.transform_to(aframe)  # doctest: +FLOAT_CMP
-    <SkyCoord (AstrometricICRS: rotation=0.0 deg, origin=<ICRS Coordinate: (ra, dec) in deg
+    <SkyCoord (SkyOffsetICRS: rotation=0.0 deg, origin=<ICRS Coordinate: (ra, dec) in deg
         (10.0, 45.0)>): (lon, lat) in deg
-        (359.28056055, -0.99556216)>
+        (-0.71943945, -0.99556216)>
 
 .. note ::
-    While astrometric frames *appear* to be all the same class, this not the
-    case: the astrometric frame for each different type of frame for ``origin`` is
-    actually a distinct class.  E.g., ``AstrometricFrame(origin=ICRS(...))``
-    yields an object of class ``AstrometricICRS``, *not* ``AstrometricFrame``.
+    While sky offset frames *appear* to be all the same class, this not the
+    case: the sky offset frame for each different type of frame for ``origin`` is
+    actually a distinct class.  E.g., ``SkyOffsetFrame(origin=ICRS(...))``
+    yields an object of class ``SkyOffsetICRS``, *not* ``SkyOffsetFrame``.
     While this is not important for most uses of this class, it is important for
     things like type-checking, because something like
-    ``AstrometricFrame(origin=ICRS(...)).__class__ is AstrometricFrame`` will
+    ``SkyOffsetFrame(origin=ICRS(...)).__class__ is SkyOffsetFrame`` will
     *not* be ``True``, as it would be for most classes.
 
 .. _astropy-coordinates-matching:
