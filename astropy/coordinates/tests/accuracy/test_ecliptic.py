@@ -11,7 +11,7 @@ from ....tests.helper import quantity_allclose
 from .... import units as u
 from ... import SkyCoord
 from ...builtin_frames import FK5, ICRS, GCRS, GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic
-from ....constants import R_sun, R_earth
+from ....constants import R_Sun, Re_Earth
 
 
 def test_against_pytpm_doc_example():
@@ -35,7 +35,7 @@ def test_ecliptic_heliobary():
     Check that the ecliptic transformations for heliocentric and barycentric
     at least more or less make sense
     """
-    icrs = ICRS(1*u.deg, 2*u.deg, distance=1.5*R_sun)
+    icrs = ICRS(1*u.deg, 2*u.deg, distance=1.5*R_Sun)
 
     bary = icrs.transform_to(BarycentricTrueEcliptic)
     helio = icrs.transform_to(HeliocentricTrueEcliptic)
@@ -56,7 +56,7 @@ def test_ecl_geo():
     true "accuracy" test we need a comparison dataset that is similar to the
     geocentric/GCRS comparison we want to do here.  Contributions welcome!
     """
-    gcrs = GCRS(10*u.deg, 20*u.deg, distance=1.5*R_earth)
+    gcrs = GCRS(10*u.deg, 20*u.deg, distance=1.5*Re_Earth)
     gecl = gcrs.transform_to(GeocentricTrueEcliptic)
 
     assert quantity_allclose(gecl.distance, gcrs.distance)

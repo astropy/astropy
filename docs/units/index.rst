@@ -179,6 +179,10 @@ See Also
 - `IAU Style Manual
   <http://www.iau.org/static/publications/stylemanual1989.pdf>`_.
 
+- `IAU 2015 Resolution B3 on Recommended Nominal Conversion Constants for
+  Selected Solar and Planetary Properties
+  <http://arxiv.org/abs/1510.07674>`_.
+
 - `A table of astronomical unit equivalencies
   <http://astro.wku.edu/strolger/UNITS.txt>`_
 

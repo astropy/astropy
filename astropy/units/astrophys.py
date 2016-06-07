@@ -31,17 +31,19 @@ def_unit((['AU', 'au'], ['astronomical_unit']), _si.au, namespace=_ns, prefixes=
 def_unit(['pc', 'parsec'], _si.pc, namespace=_ns, prefixes=True,
          doc="parsec: approximately 3.26 light-years.")
 
-def_unit(['solRad', 'R_sun', 'Rsun'], _si.R_sun, namespace=_ns,
+def_unit(['solRad', 'R_sun', 'Rsun', 'R_Sun'], _si.R_Sun, namespace=_ns,
          doc="Solar radius", prefixes=True,
          format={'latex': r'R_{\odot}', 'unicode': 'R⊙'})
-def_unit(['jupiterRad', 'R_jup', 'Rjup','R_jupiter', 'Rjupiter'],
-         _si.R_jup, namespace=_ns, prefixes=True, doc="Jupiter radius",
+
+def_unit(['jupiterRad', 'R_jup', 'Rjup','R_jupiter', 'Rjupiter', 'R_Jup'],
+         _si.Re_Jup, namespace=_ns, prefixes=True, doc="Jupiter equatorial radius",
          # LaTeX jupiter symbol requires wasysym
-         format={'latex': r'R_{\rm J}', 'unicode': 'R♃'})
-def_unit(['earthRad', 'R_earth', 'Rearth'], _si.R_earth, namespace=_ns,
-         prefixes=True, doc="Earth radius",
+         format={'latex': r'R_{eJ}}','unicode': 'R♃'})
+
+def_unit(['earthRad', 'R_earth', 'Rearth','R_Earth'], _si.Re_Earth, namespace=_ns,
+         prefixes=True, doc="Earth equatorial radius",
          # LaTeX earth symbol requires wasysym
-         format={'latex': r'R_{\oplus}', 'unicode': 'R⊕'})
+         format={'latex': r'R_{e\oplus}$}', 'unicode': 'R⊕'})
 
 def_unit(['lyr', 'lightyear'], (_si.c * si.yr).to(si.m),
          namespace=_ns, prefixes=True, doc="Light year")
@@ -64,14 +66,14 @@ def_unit(['cycle', 'cy'], 2.0 * _numpy.pi * si.rad,
 ###########################################################################
 # MASS
 
-def_unit(['solMass', 'M_sun', 'Msun'], _si.M_sun, namespace=_ns,
+def_unit(['solMass', 'M_sun', 'Msun','M_Sun'], _si.M_Sun, namespace=_ns,
          prefixes=True, doc="Solar mass",
          format={'latex': r'M_{\odot}', 'unicode': 'M⊙'})
-def_unit(['jupiterMass', 'M_jup', 'Mjup','M_jupiter', 'Mjupiter'],
-         _si.M_jup, namespace=_ns, prefixes=True, doc="Jupiter mass",
+def_unit(['jupiterMass', 'M_jup', 'Mjup','M_Jup','M_jupiter', 'Mjupiter'],
+         _si.M_Jup, namespace=_ns, prefixes=True, doc="Jupiter mass",
          # LaTeX jupiter symbol requires wasysym
          format={'latex': r'M_{\rm J}', 'unicode': 'M♃'})
-def_unit(['earthMass', 'M_earth', 'Mearth'], _si.M_earth, namespace=_ns,
+def_unit(['earthMass', 'M_earth', 'Mearth','M_Earth'], _si.M_Earth, namespace=_ns,
          prefixes=True, doc="Earth mass",
          # LaTeX earth symbol requires wasysym
          format={'latex': r'M_{\oplus}', 'unicode': 'M⊕'})
@@ -98,12 +100,26 @@ def_unit(['Ry', 'rydberg'],
          "constant",
          format={'latex': r'R_{\infty}', 'unicode': 'R∞'})
 
+###########################################################################
+# Density
+def_unit(['solDensity', 'rho_sun', 'rho_Sun'], _si.rho_Sun, namespace=_ns,
+         prefixes=True, doc="Solar mean density",
+         format={'latex': r'\rho_{\odot}', 'unicode': '⍴⊙'})
+
+
+def_unit(['earthDensity', 'rho_earth', 'rho_Earth'], _si.rho_Earth, namespace=_ns,
+         prefixes=True, doc="Earth mean density",
+         format={'latex': r'\rho_{\oplus}', 'unicode': '⍴⊕'})
+
+def_unit(['jupiterDensity', 'rho_Jup', 'rho_jup'], _si.rho_Jup, namespace=_ns,
+         prefixes=True, doc="Jupiter mean density",
+         format={'latex': r'\rho_{Jup}', 'unicode': '⍴♃'})
 
 ###########################################################################
 # ILLUMINATION
 
-def_unit(['solLum', 'L_sun', 'Lsun'], _si.L_sun, namespace=_ns,
-         prefixes=True, doc="Solar luminance",
+def_unit(['solLum', 'L_sun', 'Lsun','L_Sun'], _si.L_Sun, namespace=_ns,
+         prefixes=True, doc="Solar luminosity",
          format={'latex': r'L_{\odot}', 'unicode': 'L⊙'})
 
 
