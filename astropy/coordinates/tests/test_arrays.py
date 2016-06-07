@@ -12,14 +12,16 @@ import numpy as np
 from numpy import testing as npt
 
 from ... import units as u
+from ...time import Time
 
+from .. import (Angle, ICRS, FK4, FK5, Galactic, SkyCoord, get_sun,
+                CartesianRepresentation)
+from ..angle_utilities import dms_to_degrees, hms_to_hours
 
 def test_angle_arrays():
     """
     Test arrays values with Angle objects.
     """
-    from .. import Angle
-
     # Tests incomplete
     a1 = Angle([0, 45, 90, 180, 270, 360, 720.], unit=u.degree)
     npt.assert_almost_equal([0., 45., 90., 180., 270., 360., 720.], a1.value)
@@ -59,9 +61,6 @@ def test_angle_arrays():
 
 
 def test_dms():
-    from .. import Angle
-    from ..angle_utilities import dms_to_degrees
-
     a1 = Angle([0, 45.5, -45.5], unit=u.degree)
     d, m, s = a1.dms
     npt.assert_almost_equal(d, [0, 45, -45])
@@ -78,9 +77,6 @@ def test_dms():
 
 
 def test_hms():
-    from .. import Angle
-    from ..angle_utilities import hms_to_hours
-
     a1 = Angle([0, 11.5, -11.5], unit=u.hour)
     h, m, s = a1.hms
     npt.assert_almost_equal(h, [0, 11, -11])
@@ -100,8 +96,6 @@ def test_array_coordinates_creation():
     """
     Test creating coordinates from arrays.
     """
-    from .. import Angle, ICRS, SkyCoord, CartesianRepresentation
-
     c = ICRS(np.array([1, 2])*u.deg, np.array([3, 4])*u.deg)
     assert not c.ra.isscalar
 
@@ -128,8 +122,6 @@ def test_array_coordinates_distances():
     """
     Test creating coordinates from arrays and distances.
     """
-    from .. import ICRS
-
     #correct way
     ICRS(ra=np.array([1, 2])*u.deg, dec=np.array([3, 4])*u.deg, distance= [.1, .2] * u.kpc)
 
@@ -146,8 +138,6 @@ def test_array_coordinates_transformations(arrshape, distance):
     """
     Test transformation on coordinates with array content (first length-2 1D, then a 3D array)
     """
-    from .. import ICRS, FK4, FK5, Galactic
-
     #M31 coordinates from test_transformations
     raarr = np.ones(arrshape) * 10.6847929
     decarr = np.ones(arrshape) * 41.2690650
@@ -195,9 +185,6 @@ def test_array_precession():
     """
     Ensures that FK5 coordinates as arrays precess their equinoxes
     """
-    from ...time import Time
-    from .. import FK5
-
     j2000 = Time('J2000', scale='utc')
     j1975 = Time('J1975', scale='utc')
 
@@ -210,8 +197,6 @@ def test_array_precession():
     npt.assert_array_less(0.05, np.abs(fk5.dec.degree - fk5_2.dec.degree))
 
 def test_array_separation():
-    from .. import ICRS
-
     c1 = ICRS([0 , 0]*u.deg, [0, 0]*u.deg)
     c2 = ICRS([1, 2]*u.deg, [0, 0]*u.deg)
 
@@ -228,9 +213,6 @@ def test_array_separation():
     assert sepdiff != 0
 
 def test_array_indexing():
-    from .. import FK5
-    from ...time import Time
-
     ra = np.linspace(0, 360, 10)
     dec = np.linspace(-90, 90, 10)
     j1975 = Time(1975, format='jyear', scale='utc')
@@ -256,8 +238,6 @@ def test_array_indexing():
     assert c4.equinox == c1.equinox
 
 def test_array_len():
-    from .. import ICRS
-
     input_length = [1, 5]
     for length in input_length:
         ra = np.linspace(0, 360, length)
@@ -276,8 +256,6 @@ def test_array_len():
     assert c.shape == tuple()
 
 def test_array_eq():
-    from .. import ICRS
-
     c1 = ICRS([1, 2]*u.deg, [3, 4]*u.deg)
     c2 = ICRS([1, 2]*u.deg, [3, 5]*u.deg)
     c3 = ICRS([1, 3]*u.deg, [3, 4]*u.deg)
