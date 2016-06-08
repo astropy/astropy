@@ -20,6 +20,7 @@ from .. import units as u
 from .. import _erfa as erfa
 from ..constants import c as speed_of_light
 from .representation import CartesianRepresentation
+from .orbital_elements import calc_moon
 from .builtin_frames import GCRS, ICRS
 from .builtin_frames.utils import get_jd12, cartrepr_from_matmul
 from .. import _erfa
@@ -52,6 +53,7 @@ PLAN94_BODY_NAME_TO_PLANET_INDEX = OrderedDict(
     (('mercury', 1),
      ('venus', 2),
      ('earth-moon-barycenter', 3),
+     ('moon', 301),
      ('mars', 4),
      ('jupiter', 5),
      ('saturn', 6),
@@ -72,7 +74,7 @@ If needed, the ephemeris file will be downloaded (and cached).
 
 One can check which bodies are covered by a given ephemeris using::
     >>> solar_system_ephemeris.bodies
-    ('earth', 'sun', 'mercury', 'venus', 'earth-moon-barycenter', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune')
+    ('earth', 'sun', 'mercury', 'venus', 'earth-moon-barycenter', 'moon', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune')
 """[1:-1]
 
 
@@ -139,7 +141,6 @@ class solar_system_ephemeris(ScienceState):
                     tuple(PLAN94_BODY_NAME_TO_PLANET_INDEX.keys()))
         else:
             return tuple(BODY_NAME_TO_KERNEL_SPEC.keys())
-
 
 
 def _get_kernel(value):
@@ -211,7 +212,8 @@ def get_body_barycentric(body, time, ephemeris=None):
         earth_pv_helio, earth_pv_bary = erfa.epv00(jd1, jd2)
         if body == 'earth':
             cartesian_position_body = earth_pv_bary[..., 0, :]
-
+        elif body == 'moon':
+            cartesian_position_body = calc_moon(time).cartesian.xyz.to(u.au).value
         else:
             sun_bary = earth_pv_bary[..., 0, :] - earth_pv_helio[..., 0, :]
             if body == 'sun':
@@ -274,6 +276,14 @@ def _get_apparent_body_position(body, time, ephemeris):
     cartesian_position : `~astropy.coordinates.CartesianRepresentation`
         Barycentric (ICRS) apparent position of the body in cartesian coordinates
     """
+    if ephemeris is None:
+        ephemeris = solar_system_ephemeris.get()
+    # builtin ephemeris and moon is a special case, with no need to account for
+    # light travel time, since this is already included in the Meeus algorithm
+    # used.
+    if ephemeris == 'builtin' and body.lower() == 'moon':
+        return get_body_barycentric(body, time, ephemeris)
+
     # Calculate position given approximate light travel time.
     delta_light_travel_time = 20. * u.s
     emitted_time = time
