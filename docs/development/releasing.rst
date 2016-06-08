@@ -147,11 +147,11 @@ packages that use the full bugfix/maintenance branch approach.)
 
 #. Push up all these changes to the astropy repository::
 
-      $ git push --tags origin v<version>
+      $ git push --tags upstream v<version>
 
    .. note::
 
-      You may need to replace ``origin`` here with ``astropy`` or
+      You may need to replace ``upstream`` here with ``astropy`` or
       whatever remote name you use for the main astropy repository.
 
 #. If this is a release of the current release (not an LTS), update the
@@ -159,7 +159,7 @@ packages that use the full bugfix/maintenance branch approach.)
 
       $ git checkout stable
       $ git reset --hard v<version>
-      $ git push origin stable --force
+      $ git push upstream stable --force
 
 #. Update Readthedocs so that it builds docs for the corresponding github tag.
    Also verify that the ``stable`` Readthedocs version builds correctly for
@@ -220,8 +220,8 @@ The procedure for this is straightforward:
 #. Make sure you're on master, and updated to the latest version from github::
 
       $ git checkout master
-      $ git fetch origin
-      $ git reset --hard origin/master
+      $ git fetch upstream
+      $ git reset --hard upstream/master
 
 #. Create a new branch from master at the point you want the feature freeze to
    occur::
@@ -246,12 +246,12 @@ The procedure for this is straightforward:
 
 #. Push all of these changes up to github::
 
-      $ git push origin v<version>.x:v<version>.x
-      $ git push origin master:master
+      $ git push upstream v<version>.x:v<version>.x
+      $ git push upstream master:master
 
    .. note::
 
-      You may need to replace ``origin`` here with ``astropy`` or
+      You may need to replace ``upstream`` here with ``astropy`` or
       whatever remote name you use for the main astropy repository.
 
 #. On the github issue tracker, add a new milestone for the next major version.
