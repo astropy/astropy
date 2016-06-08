@@ -489,6 +489,13 @@ def test_no_as():
     assert hasattr(u, 'attosecond')
 
 
+def test_no_duplicates_in_names():
+    # Regression test for #5036
+    assert u.ct.names == ['ct', 'count']
+    assert u.ct.short_names == ['ct', 'count']
+    assert u.ct.long_names == ['count']
+    assert set(u.ph.names) == set(u.ph.short_names) | set(u.ph.long_names)
+
 def test_pickling():
     p = pickle.dumps(u.m)
     other = pickle.loads(p)

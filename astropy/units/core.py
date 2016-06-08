@@ -1480,7 +1480,7 @@ class NamedUnit(UnitBase):
         elif isinstance(st, tuple):
             if not len(st) == 2:
                 raise ValueError("st must be string, list or 2-tuple")
-            self._names = st[0] + st[1]
+            self._names = st[0] + [n for n in st[1] if n not in st[0]]
             if not len(self._names):
                 raise ValueError("must provide at least one name")
             self._short_names = st[0][:]
