@@ -466,7 +466,7 @@ Coordinating Astropy and astropy-helpers Releases
 -------------------------------------------------
 
 A bit more initial effort is required for an Astropy release that has a
-corresponding astropy-helpers release.  The main reason for this more complex
+corresponding astropy-helpers_ release.  The main reason for this more complex
 procedure is to allow the Astropy core to be tested against the new helpers
 before anything is released.  Hence the following procedure should be added
 to the beginning of the above procedure when this is required.
@@ -475,10 +475,11 @@ to the beginning of the above procedure when this is required.
 
     This procedure applies both for regular release *and* release candidates.
     The only change of the below for release candidates is that the branch in
-    astropy-helpers should be names "release-<version>rc#" instead of
+    astropy-helpers_ should be names "release-<version>rc#" instead of
     "release-<version>".
 
-#. In `astropy-helpers`, create a new release branch "release-<version>".
+#. In the astropy-helpers_ repository, create a new release branch
+   "release-<version>".
 
 #. Create the release commit (updating the version info and changelog) in that
    branch.
@@ -487,7 +488,7 @@ to the beginning of the above procedure when this is required.
 
 #. In astropy master (and/or the relevant maintenance branch), issue a PR
    updating the helpers to the commit described in the last step (i.e., the
-   head of the astropy-helpers release branch).
+   head of the astropy-helpers_ release branch).
 
 #. Wait for the continuous integration services (E.g., Travis) to run to ensure
    that helpers build works with Astropy.
@@ -495,7 +496,7 @@ to the beginning of the above procedure when this is required.
 #. If the PR's tests fail, delete the release branch you just created in
    astropy-helpers, fix whatever the problem is, and then re-run this procedure.
    Note that you can re-use the PR into the astropy core repository (created in
-   the step just before this one) by updating the PR's astropy-helpers to point
+   the step just before this one) by updating the PR's astropy-helpers_ to point
    to the release branch from *after* the fix - that way you don't need to make
    another PR for the fixed version.
 
