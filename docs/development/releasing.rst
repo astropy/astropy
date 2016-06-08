@@ -471,6 +471,13 @@ procedure is to allow the Astropy core to be tested aginst the new helpers
 before anything is released.  Hence the following procedure should be added
 to the beginning of the above procedure when this is required.
 
+.. note::
+
+    This procedure applies both for regular relesease *and* release candidates.
+    The only change of the below for release candidates is that the branch in
+    astropy-helpers should be names "release-<version>rc#" instead of
+    "release-<version>".
+
 #. In `astropy-helpers`, create a new release branch "release-<version>".
 
 #. Create the release commit (updating the version info and changelog) in that
