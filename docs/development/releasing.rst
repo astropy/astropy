@@ -31,8 +31,8 @@ packages that use the full bugfix/maintenance branch approach.)
    changes in the helpers.  See the section :ref:`helpers-release-info` for
    more on this.
 
-#. Make sure that Travis and any other continuous integration is passing for
-   the branch you're going to release.  You may also want to locally run the
+#. Make sure that the continuous integration services (E.g., Travis) are passing
+   for the branch you're going to release.  You may also want to locally run the
    tests in ``remote-data`` mode, as those are not necessarily run
    automatically::
 
@@ -482,12 +482,18 @@ to the beginning of the above procedure when this is required.
    updating the helpers to the commit described in the last step (i.e., the
    head of the astropy-helpers release branch).
 
-#. Wait for Travis to run to ensure that helpers build works with Astropy.
-   If it doesn't, back out the release and fix whatever the problem is before
-   trying again.
+#. Wait for the continuous integration services (E.g., Travis) to run to ensure
+   that helpers build works with Astropy.
 
-#. Assuming it does succeed, finish the release of the helpers by doing this in
-   the helpers repo::
+#. If the PR's tests fail, delete the release branch you just created in
+   astropy-helpers, fix whatever the problem is, and then re-run this procedure.
+   Note that you can re-use the PR into the astropy core repository (created in
+   the step just before this one) by updating the PR's astropy-helpers to point
+   to the release branch from *after* the fix - that way you don't need to make
+   another PR for the fixed version.
+
+#. Once they tests all succeed, finish the release of the helpers by doing this
+   in the helpers repo::
 
       git checkout master
       git merge --no-ff release-<version>
