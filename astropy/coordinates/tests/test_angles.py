@@ -119,6 +119,19 @@ def test_create_angles():
 
     assert a1 is not None
 
+
+def test_angle_from_view():
+    q = np.arange(3.) * u.deg
+    a = q.view(Angle)
+    assert type(a) is Angle
+    assert a.unit is q.unit
+    assert np.all(a == q)
+
+    q2 = np.arange(4) * u.m
+    with pytest.raises(u.UnitTypeError):
+        q2.view(Angle)
+
+
 def test_angle_ops():
     """
     Tests operations on Angle objects
@@ -161,6 +174,9 @@ def test_angle_ops():
 
     with pytest.raises(TypeError):
         a6 *= a5
+
+    with pytest.raises(TypeError):
+        a6 *= u.m
 
     with pytest.raises(TypeError):
         np.sin(a6, out=a6)

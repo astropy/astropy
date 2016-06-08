@@ -27,9 +27,9 @@ from . import format as unit_format
 # TODO: Support function units, e.g. log(x), ln(x)
 
 __all__ = [
-    'UnitsError', 'UnitsWarning', 'UnitConversionError', 'UnitBase',
-    'NamedUnit', 'IrreducibleUnit', 'Unit', 'def_unit', 'CompositeUnit',
-    'PrefixUnit', 'UnrecognizedUnit', 'get_current_unit_registry',
+    'UnitsError', 'UnitsWarning', 'UnitConversionError', 'UnitTypeError',
+    'UnitBase', 'NamedUnit', 'IrreducibleUnit', 'Unit', 'CompositeUnit',
+    'PrefixUnit', 'UnrecognizedUnit', 'def_unit', 'get_current_unit_registry',
     'set_enabled_units', 'add_enabled_units',
     'set_enabled_equivalencies', 'add_enabled_equivalencies',
     'dimensionless_unscaled', 'one']
@@ -459,6 +459,11 @@ class UnitConversionError(UnitsError, ValueError):
     """
     Used specifically for errors related to converting between units or
     interpreting units in terms of other units.
+    """
+
+class UnitTypeError(UnitsError, TypeError):
+    """
+    Used specifically for errors in setting to units not allowed by a class.
     """
 
 
