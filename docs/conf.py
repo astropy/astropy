@@ -231,6 +231,20 @@ try:
             'numpy': 'http://docs.scipy.org/doc/numpy/',
         }
     }
+
+    # TODO: remove the code below once a better solution is implemented in
+    # sphinx-gallery.
+    # We want to make sure that gallery examples fail the build if there are
+    # any errors, when building the docs with the option to fail if there are
+    # any warnings. However, at the moment, we can only either fail the build
+    # completely or not fail it at all, until this is fixed properly in
+    # sphinx-gallery: https://github.com/sphinx-gallery/sphinx-gallery/pull/97
+    # Therefore, for now we simply check if we are on Travis, and if so, we
+    # enabled the abort_on_example_error.
+    if os.environ.get('TRAVIS', 'false') == 'true':
+        def setup(app):
+            app.config.values['abort_on_example_error'] = (True, 'html', ())
+
 except ImportError:
     def setup(app):
         app.warn('The sphinx_gallery extension is not installed, so the '
