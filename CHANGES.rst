@@ -1585,6 +1585,9 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - Duplicates between long and short names are now removed in the ``names``
+    and ``aliases`` properties of units. [#5036]
+
 - ``astropy.utils``
 
   - Fix two problems related to the download cache: clear_download_cache() does
