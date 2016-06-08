@@ -54,7 +54,7 @@ def zscale(image, nsamples=1000, contrast=0.25, max_reject=0.5, min_npixels=5,
     # Sample the image
     image = np.asarray(image)
     image = image[np.isfinite(image)]
-    stride = int(image.size / nsamples)
+    stride = int(max(1.0, image.size / nsamples))
     samples = image[::stride][:nsamples]
     samples.sort()
 
