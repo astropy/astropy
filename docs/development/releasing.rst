@@ -32,9 +32,9 @@ packages that use the full bugfix/maintenance branch approach.)
    more on this.
 
 #. Make sure that the continuous integration services (E.g., Travis) are passing
-   for the branch you're going to release.  You may also want to locally run the
-   tests in ``remote-data`` mode, as those are not necessarily run
-   automatically::
+   for the `astropy core repository`_ branch you're going to release.  You may
+   also want to locally run the tests in ``remote-data`` mode, as those are not
+   necessarily run automatically::
 
       $ python setup.py test --remote-data
 
@@ -42,7 +42,7 @@ packages that use the full bugfix/maintenance branch approach.)
    tag you create for the release.  See :ref:`key-signing-info` for more on
    this.
 
-#. Obtain a *clean* version of the Astropy repository.  That is, one
+#. Obtain a *clean* version of the `astropy core repository`_.  That is, one
    where you don't have any intermediate build files.  Either use a fresh
    ``git clone`` or do ``git clean -dfx``.
 
@@ -495,7 +495,7 @@ to the beginning of the above procedure when this is required.
 
 #. If the PR's tests fail, delete the release branch you just created in
    astropy-helpers, fix whatever the problem is, and then re-run this procedure.
-   Note that you can re-use the PR into the astropy core repository (created in
+   Note that you can re-use the PR into the `astropy core repository`_ (created in
    the step just before this one) by updating the PR's astropy-helpers_ to point
    to the release branch from *after* the fix - that way you don't need to make
    another PR for the fixed version.
@@ -508,6 +508,8 @@ to the beginning of the above procedure when this is required.
       git tag -s "v<version>" -m "Tagging v<version>"
 
    and then adding one more commit updating back to the next dev version.
+
+#. Merge the PR from the `astropy core repository`_
 
 This way the commit of the helpers that is tagged as the release is the same
 commit that the astropy_helpers submodule will be on when the PR to astropy
@@ -638,6 +640,7 @@ that for you.  You can delete this tag by doing::
     $ git tag -d v0.1
 
 
+.. _astropy core repository: https://github.com/astropy/astropy
 .. _signed tags: http://git-scm.com/book/en/Git-Basics-Tagging#Signed-Tags
 .. _cython: http://www.cython.org/
 .. _astropy-tools: https://github.com/astropy/astropy-tools
