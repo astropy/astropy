@@ -76,7 +76,7 @@ packages that use the full bugfix/maintenance branch approach.)
 
 #. Also update the ``CHANGES.rst`` file with a new section for the next version.
    You will likely want to use the ``add_to_changelog.py`` script in the
-   `astropy-tools`_ repository for this.
+   `astropy-tools repository`_ for this.
 
 #. Add the changes to ``CHANGES.rst`` and ``setup.py``::
 
@@ -145,14 +145,14 @@ packages that use the full bugfix/maintenance branch approach.)
    Do not enabled "Auto-hide old releases" as that may hide bugfix releases
    from older release lines that we may still want to make available.
 
-#. Push up all these changes to the astropy repository::
+#. Push up all these changes to the `astropy core repository`_::
 
       $ git push --tags upstream v<version>
 
    .. note::
 
       You may need to replace ``upstream`` here with ``astropy`` or
-      whatever remote name you use for the main astropy repository.
+      whatever remote name you use for the `astropy core repository`_.
 
 #. If this is a release of the current release (not an LTS), update the
    "stable" branch to point to the new release::
@@ -252,7 +252,7 @@ The procedure for this is straightforward:
    .. note::
 
       You may need to replace ``upstream`` here with ``astropy`` or
-      whatever remote name you use for the main astropy repository.
+      whatever remote name you use for the `astropy core repository`_.
 
 #. On the github issue tracker, add a new milestone for the next major version.
 
@@ -305,8 +305,8 @@ Most fixes are backported using the ``git cherry-pick`` command, which applies
 the diff from a single commit like a patch.  For the sake of example, say the
 current bug fix branch is 'v0.2.x', and that a bug was fixed in master in a
 commit ``abcd1234``.  In order to backport the fix, simply checkout the v0.2.x
-branch (it's also good to make sure it's in sync with the main Astropy
-repository) and cherry-pick the appropriate commit::
+branch (it's also good to make sure it's in sync with the
+`astropy core repository`_) and cherry-pick the appropriate commit::
 
     $ git checkout v0.2.x
     $ git pull upstream v0.2.x
@@ -363,12 +363,12 @@ As mentioned earlier in this section, in some cases a fix only applies to a bug
 fix release, and is not applicable in the mainline development.  In this case
 there are two choices:
 
-1. An Astropy developer with commit access to the main Astropy repository may
+1. An Astropy developer with commit access to the `astropy core repository`_ may
    check out the bug fix branch and commit and push your fix directly.
 
 2. **Preferable**: You may also make a pull request through GitHub against the
    bug fix branch rather than against master.  Normally when making a pull
-   request from a branch on your fork to the main Astropy repository GitHub
+   request from a branch on your fork to the `astropy core repository`_, GitHub
    compares your branch to Astropy's master.  If you look on the left-hand
    side of the pull request page, under "base repo: astropy/astropy" there is
    a drop-down list labeled "base branch: master".  You can click on this
@@ -469,47 +469,67 @@ A bit more initial effort is required for an Astropy release that has a
 corresponding astropy-helpers_ release.  The main reason for this more complex
 procedure is to allow the Astropy core to be tested against the new helpers
 before anything is released.  Hence the following procedure should be added
-to the beginning of the above procedure when this is required.
+to the beginning of the above procedure when this is required. This procedure
+applies both for regular release *and* release candidates are the same
+(except that version numbers have ``rc#`` at the end).
 
-.. note::
+#. In the `astropy-helpers repository`_, create a new (temporary) branch
+   "tmp-release-v<version>"::
 
-    This procedure applies both for regular release *and* release candidates.
-    The only change of the below for release candidates is that the branch in
-    astropy-helpers_ should be names "release-<version>rc#" instead of
-    "release-<version>".
+      $ cd /wherever/you/put/astropy/astropy_helpers
+      $ git branch tmp-release-v<version> <maintenance branch name>
 
-#. In the astropy-helpers_ repository, create a new release branch
-   "release-<version>".
+#. In that branch, create a release commit by updating the version info and
+   changelog as described in the release instructions above.
 
-#. Create the release commit (updating the version info and changelog) in that
-   branch.
+#. Push the branch you just created to the `astropy-helpers repository`_ on
+   github::
 
-#. Push the release branch to github.
+      $ git push upstream tmp-release-v<version>
 
-#. In astropy master (and/or the relevant maintenance branch), issue a PR
-   updating the helpers to the commit described in the last step (i.e., the
-   head of the astropy-helpers_ release branch).
+#. In astropy master (or the relevant maintenance branch for the release you
+   are doing), issue a PR updating the helpers to the commit described in the
+   last step (i.e., the commit at the head of the "tmp-release-v<version>"
+   branch you just created).  The easiest way to do this is::
 
-#. Wait for the continuous integration services (E.g., Travis) to run to ensure
-   that helpers build works with Astropy.
+      $ cd /wherever/you/put/astropy
+      $ cd astropy_helpers
+      $ git fetch upstream  # you probably did this already in the previous step
+      $ git checkout upstream/tmp-release-v<version>
+      $ cd ..
+      $ git add astropy_helpers
+      $ git commit -m "updated helpers to v<version>"
 
-#. If the PR's tests fail, delete the release branch you just created in
-   astropy-helpers, fix whatever the problem is, and then re-run this procedure.
-   Note that you can re-use the PR into the `astropy core repository`_ (created in
-   the step just before this one) by updating the PR's astropy-helpers_ to point
-   to the release branch from *after* the fix - that way you don't need to make
-   another PR for the fixed version.
+#. Wait for the continuous integration services (E.g., Travis) to run on the PR
+   to ensure the release commit of the helpers works with the to-be-released
+   version of Astropy.
 
-#. Once they tests all succeed, finish the release of the helpers by doing this
+#. If the PR's tests fail, fix whatever the problem is, and then re-do this
+   procedure. You'll need to either delete the previous "tmp-release-v<version>"
+   branch on the github `astropy-helpers repository`_ or use ``git push -f``
+   when you push up the replacement temporary release branch. You can re-use the
+   PR into the `astropy core repository`_ (created in the step just before this
+   one) by updating the ``astropy_helpers`` submodule to point to the new
+   "tmp-release-v<version>" from  *after* the fix - that way you don't need to
+   make another PR for the fixed version.
+
+#. Once the tests all succeed, finish the release of the helpers by doing this
    in the helpers repo::
 
-      git checkout master
-      git merge --no-ff release-<version>
-      git tag -s "v<version>" -m "Tagging v<version>"
+      $ git checkout <maintenance branch name>
+      $ git merge --no-ff tmp-release-v<version>
+      $ git tag -s "v<version>" -m "Tagging v<version>"
+      $ git push upstream --tags <maintenance branch name>
 
-   and then adding one more commit updating back to the next dev version.
+#. Update the changelog in master of the `astropy-helpers repository`_ to
+   reflect the release you just did.
 
-#. Merge the PR from the `astropy core repository`_
+#. Delete the temporary branch from github:
+
+      $ git push upstream :tmp-release-v<version>
+
+#. Merge the PR for the `astropy core repository`_ that updates the helpers, and
+   continue with the release process for the core as described above.
 
 This way the commit of the helpers that is tagged as the release is the same
 commit that the astropy_helpers submodule will be on when the PR to astropy
@@ -643,6 +663,6 @@ that for you.  You can delete this tag by doing::
 .. _astropy core repository: https://github.com/astropy/astropy
 .. _signed tags: http://git-scm.com/book/en/Git-Basics-Tagging#Signed-Tags
 .. _cython: http://www.cython.org/
-.. _astropy-tools: https://github.com/astropy/astropy-tools
+.. _astropy-tools repository: https://github.com/astropy/astropy-tools
 .. _Anaconda: http://conda.pydata.org/docs/
-.. _astropy-helpers: https://github.com/astropy/astropy-helpers
+.. _astropy-helpers repository: https://github.com/astropy/astropy-helpers
