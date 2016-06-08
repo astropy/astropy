@@ -13,7 +13,7 @@ Release Procedure
 -----------------
 
 This is the standard release procedure for releasing Astropy (or affiliated
-packages that use the full bugfix/maintainence branch approach.)
+packages that use the full bugfix/maintenance branch approach.)
 
 #. (Optional) You may want to set up a clean environment to build the release.
    For more on setting up virtual environments, see :ref:`virtual_envs`, but
@@ -183,7 +183,7 @@ packages that use the full bugfix/maintainence branch approach.)
    this is to use ``git cherry-pick`` on the release commit from above, *but* if
    that method is used, be sure to amend that commit and not change the version
    in ``setup.py``. If you aren't sure how to do this, you might be better off
-   just copying-and-pasting the relevant parts of the maintainence branch's
+   just copying-and-pasting the relevant parts of the maintenance branch's
    ``CHANGES.rst`` into master.
 
 Modifications for a beta/release candidate release
@@ -211,7 +211,7 @@ As outlined in
 `APE2 <https://github.com/astropy/astropy-APEs/blob/master/APE2.rst>`_, astropy
 releases occur at regular intervals, but feature freezes occur well before the
 actual release.  Feature freezes are also the time when the master branch's
-development separates from the new major version's maintainence branch.  This
+development separates from the new major version's maintenance branch.  This
 allows new development for the next major version to continue while the
 soon-to-be-released version can focus on bug fixes and documentation updates.
 
@@ -478,7 +478,7 @@ to the beginning of the above procedure when this is required.
 
 #. Push the release branch to github.
 
-#. In astropy master (and/or the relevant maintainence branch), issue a PR
+#. In astropy master (and/or the relevant maintenance branch), issue a PR
    updating the helpers to the commit described in the last step (i.e., the
    head of the astropy-helpers release branch).
 
