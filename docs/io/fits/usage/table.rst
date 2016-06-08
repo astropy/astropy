@@ -83,7 +83,6 @@ table.  To recap, the simple example in the Quick Tutorial:
     >>> print tbdata[:2]  # show the first two rows
     [(1, 'Sirius', -1.4500000476837158, 'A1V'),
     (2, 'Canopus', -0.73000001907348633, 'F0Ib')]
-
     >>> print tbdata['mag']  # show the values in field "mag"
     [-1.45000005 -0.73000002 -0.1 ]
     >>> print tbdata.field(1)  # columns can be referenced by index too
