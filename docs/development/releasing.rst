@@ -189,10 +189,10 @@ packages that use the full bugfix/maintenance branch approach.)
 Modifications for a beta/release candidate release
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-   For major releases with a lot of changes, we do beta and/or release
-   candidates to have a chance to catch significant bugs before the true
-   release. If the release you are performing is this kind of pre-release, some
-   of the above steps need to be modified.
+   For major releases we do beta and/or release candidates to have a chance to
+   catch significant bugs before the true release. If the release you are
+   performing is this kind of pre-release, some of the above steps need to be
+   modified.
 
    The primary modifications to the release procedure are:
 
