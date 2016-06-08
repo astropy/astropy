@@ -189,9 +189,9 @@ packages that use the full bugfix/maintenance branch approach.)
 Modifications for a beta/release candidate release
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-   For major releases with a lot of changes, we do beta and/or release candiates
-   to have a chance to catch significant bugs before the true release.
-   If the release you are performing is this kind of pre-release, some
+   For major releases with a lot of changes, we do beta and/or release
+   candidates to have a chance to catch significant bugs before the true
+   release. If the release you are performing is this kind of pre-release, some
    of the above steps need to be modified.
 
    The primary modifications to the release procedure are:
@@ -467,13 +467,13 @@ Coordinating Astropy and astropy-helpers Releases
 
 A bit more initial effort is required for an Astropy release that has a
 corresponding astropy-helpers release.  The main reason for this more complex
-procedure is to allow the Astropy core to be tested aginst the new helpers
+procedure is to allow the Astropy core to be tested against the new helpers
 before anything is released.  Hence the following procedure should be added
 to the beginning of the above procedure when this is required.
 
 .. note::
 
-    This procedure applies both for regular relesease *and* release candidates.
+    This procedure applies both for regular release *and* release candidates.
     The only change of the below for release candidates is that the branch in
     astropy-helpers should be names "release-<version>rc#" instead of
     "release-<version>".
