@@ -21,7 +21,7 @@ from ...tests.helper import remote_data, pytest
 from ... import units as u
 
 _cached_ngc3642 = dict()
-_cached_ngc3642["simbad"] = """# ngc 3642    #Q22523669
+_cached_ngc3642["simbad"] = """# NGC 3642    #Q22523669
 #=S=Simbad (via url):    1
 %@ 503952
 %I.0 NGC 3642
@@ -36,7 +36,7 @@ _cached_ngc3642["simbad"] = """# ngc 3642    #Q22523669
 
 #====Done (2013-Feb-12,16:37:11z)===="""
 
-_cached_ngc3642["vizier"] = """# ngc 3642    #Q22523677
+_cached_ngc3642["vizier"] = """# NGC 3642    #Q22523677
 #=V=VizieR (local):    1
 %J 170.56 +59.08 = 11:22.2     +59:05
 %I.0 {NGC} 3642
@@ -117,7 +117,7 @@ def test_names():
         get_icrs_coordinates("m87h34hhh")
 
     try:
-        icrs = get_icrs_coordinates("ngc 3642")
+        icrs = get_icrs_coordinates("NGC 3642")
     except NameResolveError:
         ra, dec = _parse_response(_cached_ngc3642["all"])
         icrs = SkyCoord(ra=float(ra)*u.degree, dec=float(dec)*u.degree)
@@ -138,7 +138,7 @@ def test_names():
 
 
 @remote_data
-@pytest.mark.parametrize(("name", "db_dict"), [('ngc 3642', _cached_ngc3642),
+@pytest.mark.parametrize(("name", "db_dict"), [('NGC 3642', _cached_ngc3642),
                                                ('castor', _cached_castor)])
 def test_database_specify(name, db_dict):
     # First check that at least some sesame mirror is up
