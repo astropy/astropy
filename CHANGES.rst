@@ -616,9 +616,12 @@ Bug fixes
 
   - Ensure that ``angle_utilities.position_angle`` accepts floats, as stated
     in the docstring. [#3800]
-    
-  - Ensured that transformations for ``GCRS`` frames are correct for 
+
+  - Ensured that transformations for ``GCRS`` frames are correct for
     non-geocentric observers. [#4986]
+
+  - Fixed a problem with the ``EarthLocation._repr_latex_`` method that caused
+    errors when showing an ``EarthLocation`` in a Jupyter notebook. [#4542, #5049]
 
 - ``astropy.cosmology``
 
