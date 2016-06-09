@@ -118,7 +118,7 @@ Bug Fixes
 
   - Converting a header card to a string now calls ``self.verify('warn')``
     instead of ``self.verify('fix')`` so headers with invalid keywords will
-    not raise a ``VerifyError`` on printing. [#887]
+    not raise a ``VerifyError`` on printing. [#887,#5054]
 
 - ``astropy.io.misc``
 
