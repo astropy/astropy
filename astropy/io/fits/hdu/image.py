@@ -99,6 +99,11 @@ class _ImageBaseHDU(_ValidHDU):
         self._uint = uint
         self._scale_back = scale_back
 
+        # Keep track of whether BZERO/BSCALE were set from the header so that
+        # values for self._orig_bzero and self._orig_bscale can be set
+        # properly, if necessary, once the data has been set.
+        bzero_in_header = 'BZERO' in self._header
+        bscale_in_header = 'BSCALE' in self._header
         self._bzero = self._header.get('BZERO', 0)
         self._bscale = self._header.get('BSCALE', 1)
 
@@ -106,16 +111,23 @@ class _ImageBaseHDU(_ValidHDU):
         # the image data
         self._axes = [self._header.get('NAXIS' + str(axis + 1), 0)
                       for axis in range(self._header.get('NAXIS', 0))]
-        self._bitpix = self._header.get('BITPIX', 8)
+
+        # Not supplying a default for BITPIX makes sense because BITPIX
+        # is either in the header or should be determined from the dtype of
+        # the data (which occurs when the data is set).
+        self._bitpix = self._header.get('BITPIX')
         self._gcount = self._header.get('GCOUNT', 1)
         self._pcount = self._header.get('PCOUNT', 0)
         self._blank = None if ignore_blank else self._header.get('BLANK')
         self._verify_blank()
 
         self._orig_bitpix = self._bitpix
+        self._orig_blank = self._header.get('BLANK')
+
+        # These get set again below, but need to be set to sensible defaults
+        # here.
         self._orig_bzero = self._bzero
         self._orig_bscale = self._bscale
-        self._orig_blank = self._header.get('BLANK')
 
         # Set the name attribute if it was provided (if this is an ImageHDU
         # this will result in setting the EXTNAME keyword of the header as
@@ -135,8 +147,30 @@ class _ImageBaseHDU(_ValidHDU):
                 self._data_needs_rescale = True
             return
         else:
+            # Setting data will set set _bitpix, _bzero, and _bscale to the
+            # appropriate BITPIX for the data, and always sets _bzero=0 and
+            # _bscale=1.
             self.data = data
             self.update_header()
+
+            # Check again for BITPIX/BSCALE/BZERO in case they changed when the
+            # data was assigned. This can happen, for example, if the input
+            # data is an unsigned int numpy array.
+            self._bitpix = self._header.get('BITPIX')
+
+            # Do not provide default values for BZERO and BSCALE here because
+            # the keywords will have been deleted in the header if appropriate
+            # after scaling. We do not want to put them back in if they
+            # should not be there.
+            self._bzero = self._header.get('BZERO')
+            self._bscale = self._header.get('BSCALE')
+
+        # Handle case where there was no BZERO/BSCALE in the initial header
+        # but there should be a BSCALE/BZERO now that the data has been set.
+        if not bzero_in_header:
+            self._orig_bzero = self._bzero
+        if bscale_in_header:
+            self._orig_bscale = self._bscale
 
     @classmethod
     def match_header(cls, header):
@@ -217,8 +251,10 @@ class _ImageBaseHDU(_ValidHDU):
                 return
             else:
                 self._data_replaced = True
+            was_unsigned = _is_pseudo_unsigned(self.__dict__['data'].dtype)
         else:
             self._data_replaced = True
+            was_unsigned = False
 
         if data is not None and not isinstance(data, np.ndarray):
             # Try to coerce the data into a numpy array--this will work, on
@@ -233,10 +269,11 @@ class _ImageBaseHDU(_ValidHDU):
         self._modified = True
 
         if isinstance(data, np.ndarray):
+            # Set new values of bitpix, bzero, and bscale now, but wait to
+            # revise original values until header is updated.
             self._bitpix = DTYPE2BITPIX[data.dtype.name]
-            self._orig_bitpix = self._bitpix
-            self._bscale = self._orig_bscale = 1
-            self._bzero = self._orig_bzero = 0
+            self._bscale = 1
+            self._bzero = 0
             self._blank = None
             self._axes = list(data.shape)
             self._axes.reverse()
@@ -245,7 +282,26 @@ class _ImageBaseHDU(_ValidHDU):
         else:
             raise ValueError('not a valid data array')
 
+        # Update the header, including adding BZERO/BSCALE if new data is
+        # unsigned. Does not change the values of self._bitpix,
+        # self._orig_bitpix, etc.
         self.update_header()
+        if (data is not None and was_unsigned):
+            self._update_header_scale_info(data.dtype)
+
+        # Keep _orig_bitpix as it was until header update is done, then
+        # set it, to allow easier handling of the case of unsigned
+        # integer data being converted to something else. Setting these here
+        # is needed only for the case do_not_scale_image_data=True when
+        # setting the data to unsigned int.
+
+        # If necessary during initialization, i.e. if BSCALE and BZERO were
+        # not in the header but the data was unsigned, the attributes below
+        # will be update in __init__.
+        self._orig_bitpix = self._bitpix
+        self._orig_bscale = self._bscale
+        self._orig_bzero = self._bzero
+
 
         # returning the data signals to lazyproperty that we've already handled
         # setting self.__dict__['data']
@@ -313,11 +369,30 @@ class _ImageBaseHDU(_ValidHDU):
         if 'BLANK' in self._header:
             self._blank = self._header['BLANK']
 
+        # Add BSCALE/BZERO to header if data is unsigned int.
         self._update_uint_scale_keywords()
 
         self._modified = False
 
     def _update_header_scale_info(self, dtype=None):
+        """
+        Delete BSCALE/BZERO from header if necessary.
+        """
+
+        # Note that _dtype_for_bitpix determines the dtype based on the
+        # "original" values of bitpix, bscale, and bzero, stored in
+        # self._orig_bitpix, etc. It contains the logic for determining which
+        # special cases of BZERO/BSCALE, if any, are auto-detected as following
+        # the FITS unsigned int convention.
+
+        # Added original_was_unsigned with the intent of facilitating the
+        # special case of do_not_scale_image_data=True and uint=True
+        # eventually.
+        if self._dtype_for_bitpix() is not None:
+            original_was_unsigned = self._dtype_for_bitpix().kind == 'u'
+        else:
+            original_was_unsigned = False
+
         if (self._do_not_scale_image_data or
                 (self._orig_bzero == 0 and self._orig_bscale == 1)):
             return
