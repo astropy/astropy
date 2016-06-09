@@ -208,15 +208,9 @@ API changes
   - The astropy.utils.compat.subprocess module has now been deprecated. Use the
     Python 'subprocess' module instead. [#4483]
 
-  - The astropy.utils.xml.unescaper module now also unescapes ``'%2F'`` to
-    ``'/'`` and ``'&&'`` to ``'&'`` in a given URL. [#4699]
-
 - ``astropy.visualization``
 
 - ``astropy.vo``
-
-  - The astropy.vo.validator.conf.conesearch_urls listing is updated to reflect
-    external changes to some VizieR Cone Search services. [#4699]
 
 - ``astropy.wcs``
 
@@ -244,9 +238,6 @@ Bug fixes
 - ``astropy.io.misc``
 
 - ``astropy.io.votable``
-
-  - The astropy.io.votable.validator.html module is updated to handle division
-    by zero when generating validation report. [#4699]
 
 - ``astropy.logger.py``
 
@@ -296,13 +287,6 @@ Bug fixes
 
   - Relaxed expected accuracy of Cone Search prediction test to reduce spurious
     failures. [#4382]
-
-  - Cache option now properly caches both downloaded JSON database and XML VO
-    tables. [#4699]
-
-  - VOSDatabase decodes byte-string to UTF-8 instead of ASCII to avoid
-    UnicodeDecodeError for some rare cases. Fixed a Cone Search test that is
-    failing as a side-effect of #4699. [#4757]
 
 - ``astropy.wcs``
 
@@ -1274,6 +1258,9 @@ Bug Fixes
 
 - ``astropy.io.votable``
 
+  - The astropy.io.votable.validator.html module is updated to handle division
+    by zero when generating validation report. [#4699]
+
 - ``astropy.modeling``
 
 - ``astropy.nddata``
@@ -1300,11 +1287,24 @@ Bug Fixes
 
 - ``astropy.utils``
 
+  - The astropy.utils.xml.unescaper module now also unescapes ``'%2F'`` to
+    ``'/'`` and ``'&&'`` to ``'&'`` in a given URL. [#4699]
+
   - Fix two problems related to the download cache: clear_download_cache() does
     not work in Python 2.7 and downloading in Python 2.7 and then Python 3
     can result in an exception. [#4810]
 
 - ``astropy.vo``
+
+  - Cache option now properly caches both downloaded JSON database and XML VO
+    tables. [#4699]
+
+  - The astropy.vo.validator.conf.conesearch_urls listing is updated to reflect
+    external changes to some VizieR Cone Search services. [#4699]
+
+  - VOSDatabase decodes byte-string to UTF-8 instead of ASCII to avoid
+    UnicodeDecodeError for some rare cases. Fixed a Cone Search test that is
+    failing as a side-effect of #4699. [#4757]
 
 - ``astropy.wcs``
 
