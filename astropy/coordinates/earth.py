@@ -185,6 +185,23 @@ class EarthLocation(u.Quantity):
         self._ellipsoid = ellipsoid
         return self.to(height.unit)
 
+    def _repr_latex_(self):
+        """
+        Generate a latex representation of this EarthLocation and its unit.
+
+        Customized from the base class because the base class doesn't play well
+        with structured arrays (and isn't really meant to).
+        """
+
+        tojoin = []
+        for component in 'xyz':
+            # assume the $$s are around all of them, and strip it... if that
+            # changes it might be necessary to start checking for that
+            element_latex = getattr(self, component)._repr_latex_()[1:-1]
+            tojoin.append('{}={}'.format(component, element_latex))
+        return '$' + ', '.join(tojoin) + '$'
+
+
     @classmethod
     def of_site(cls, site_name):
         """
