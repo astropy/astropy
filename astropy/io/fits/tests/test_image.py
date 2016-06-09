@@ -676,8 +676,8 @@ class TestImageFunctions(FitsTestCase):
         assert uint_hdu.header['BITPIX'] < 0
 
         # BSCALE and BZERO should NOT be in header any more.
-        # assert 'BSCALE' not in uint_hdu.header
-        # assert 'BZERO' not in uint_hdu.header
+        assert 'BSCALE' not in uint_hdu.header
+        assert 'BZERO' not in uint_hdu.header
 
         # This is the main test...the data values should round trip
         # as zero.
