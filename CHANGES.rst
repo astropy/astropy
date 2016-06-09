@@ -1,101 +1,8 @@
 1.0.10 (unreleased)
 -------------------
 
-New Features
-^^^^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.sphinx``
-
-- ``astropy.table``
-
-  - Fixed bug where Tables created from existing Table objects were not
-    inheriting the ``primary_key`` attribute. [#4672]
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
-API Changes
-^^^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
 Bug Fixes
 ^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
 
 - ``astropy.coordinates``
 
@@ -104,8 +11,6 @@ Bug Fixes
     accessed [#5021]
 
   - Fix some errors in the implementation of aberration  for ``get_sun``. [#4979]
-
-- ``astropy.cosmology``
 
 - ``astropy.io.ascii``
 
@@ -116,20 +21,10 @@ Bug Fixes
   - Fix convenience functions (``getdata``, ``getheader``, ``append``,
     ``update``) to close files. [#4786]
 
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
 - ``astropy.io.votable``
 
   - The astropy.io.votable.validator.html module is updated to handle division
     by zero when generating validation report. [#4699]
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
 
 - ``astropy.table``
 
@@ -138,11 +33,12 @@ Bug Fixes
 
   - Fix bug when doing outer join on multi-dimensional columns. [#4060]
 
+  - Fixed bug where Tables created from existing Table objects were not
+    inheriting the ``primary_key`` attribute. [#4672]
+
 - ``astropy.tests``
 
   - Fix coverage reporting in Python 3. [#4822]
-
-- ``astropy.time``
 
 - ``astropy.units``
 
@@ -169,8 +65,6 @@ Bug Fixes
   - VOSDatabase decodes byte-string to UTF-8 instead of ASCII to avoid
     UnicodeDecodeError for some rare cases. Fixed a Cone Search test that is
     failing as a side-effect of #4699. [#4757]
-
-- ``astropy.wcs``
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
