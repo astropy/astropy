@@ -31,7 +31,7 @@ packages that use the full bugfix/maintenance branch approach.)
    changes in the helpers.  See the section :ref:`helpers-release-info` for
    more on this.
 
-#. Make sure that the continuous integration services (E.g., Travis) are passing
+#. Make sure that the continuous integration services (e.g., Travis) are passing
    for the `astropy core repository`_ branch you're going to release.  You may
    also want to locally run the tests in ``remote-data`` mode, as those are not
    necessarily run automatically::
@@ -500,7 +500,7 @@ applies both for regular release *and* release candidates are the same
       $ git add astropy_helpers
       $ git commit -m "updated helpers to v<version>"
 
-#. Wait for the continuous integration services (E.g., Travis) to run on the PR
+#. Wait for the continuous integration services (e.g., Travis) to run on the PR
    to ensure the release commit of the helpers works with the to-be-released
    version of Astropy.
 
