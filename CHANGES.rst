@@ -4,23 +4,15 @@
 General
 ^^^^^^^
 
-Astropy now requires Numpy 1.7.0 or later. [#4784]
+- Astropy now requires Numpy 1.7.0 or later. [#4784]
 
 New Features
 ^^^^^^^^^^^^
-
-- ``astropy.analytic_functions``
-
-- ``astropy.config``
-
-- ``astropy.conftest.py``
 
 - ``astropy.constants``
 
   - Add ``L_bol0``, the luminosity corresponding to absolute bolometric
     magnitude zero. [#4262]
-
-- ``astropy.convolution``
 
 - ``astropy.coordinates``
 
@@ -75,8 +67,6 @@ New Features
   - A new optional arguments ``ignore_missing`` and ``remove_all`` are added
     to ``astropy.io.fits.header.remove()``. [#5020]
 
-- ``astropy.io.misc``
-
 - ``astropy.io.registry``
 
   - Added custom ``IORegistryError`` [#4833]
@@ -84,8 +74,6 @@ New Features
 - ``astropy.io.votable``
 
   - File name could be passed as ``Path`` object. [#4606]
-
-- ``astropy.logger.py``
 
 - ``astropy.modeling``
 
@@ -198,26 +186,14 @@ New Features
 
   - Add zscale interval based on Numdisplay's implementation. [#4776]
 
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
 API changes
 ^^^^^^^^^^^
-
-- ``astropy.analytic_functions``
 
 - ``astropy.config``
 
   - The deprecated ``ConfigurationItem`` and ``ConfigAlias`` classes and the
     ``save_config``, ``get_config_items``, and ``generate_all_config_items``
     functions have now been removed. [#2767, #4446]
-
-- ``astropy.conftest.py``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
 
 - ``astropy.coordinates``
 
@@ -238,12 +214,6 @@ API changes
 
   - Two optional boolean arguments ``ignore_missing`` and ``remove_all`` are
     added to ``Header.remove``. [#5020]
-
-- ``astropy.io.misc``
-
-- ``astropy.io.votable``
-
-- ``astropy.logger.py``
 
 - ``astropy.modeling``
 
@@ -380,8 +350,6 @@ API changes
 
   - Allow ``data`` to be a named argument in ``NDDataArray``. [#4626]
 
-- ``astropy.stats``
-
 - ``astropy.table``
 
   - ``operations.unique`` now has a ``keep`` parameter, which allows
@@ -391,10 +359,6 @@ API changes
   - ``QTable`` now behaves more consistently by making columns act as a
     ``Quantity`` even if they are assigned a unit after the table is
     created. [#4497, #4884]
-
-- ``astropy.tests``
-
-- ``astropy.time``
 
 - ``astropy.units``
 
@@ -427,10 +391,6 @@ API changes
     outside the available time range, the values are now clipped at the last
     available value instead of being linearly extrapolated. [#4436]
 
-- ``astropy.visualization``
-
-- ``astropy.vo``
-
 - ``astropy.wcs``
 
   - WCS objects can now be initialized with an ImageHDU or
@@ -439,19 +399,8 @@ API changes
   - astropy.wcs now issues an INFO message when the header has SIP coefficients but
     "-SIP" is missing from CTYPE. [#4814]
 
-
 Bug fixes
 ^^^^^^^^^
-
-- ``astropy.analytic_functions``
-
-- ``astropy.config``
-
-- ``astropy.conftest.py``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
 
 - ``astropy.coordinates``
 
@@ -463,8 +412,6 @@ Bug fixes
     
   - Ensured that transformations for ``GCRS`` frames are correct for 
     non-geocentric observers. [#4986]
-
-- ``astropy.cosmology``
 
 - ``astropy.io.ascii``
 
@@ -484,16 +431,12 @@ Bug fixes
 
   - ``GroupsHDU.is_image`` property is now set to ``False``. [#4742]
 
-- ``astropy.io.misc``
-
 - ``astropy.io.votable``
 
   - The astropy.io.votable.validator.html module is updated to handle division
     by zero when generating validation report. [#4699]
 
   - KeyError when converting Table v1.2 numeric arrays fixed. [#4782]
-
-- ``astropy.logger.py``
 
 - ``astropy.modeling``
 
@@ -532,10 +475,6 @@ Bug fixes
   - Provide more detail in the error message when reading a table fails due to a
     problem converting column string values. [#4759]
 
-- ``astropy.tests``
-
-- ``astropy.time``
-
 - ``astropy.units``
 
   - Exponentation using a ``Quantity`` with a unit equivalent to dimensionless
@@ -551,8 +490,6 @@ Bug fixes
 
   - Attributes using the astropy.utils.metadata.MetaData descriptor are now
     included in the sphinx documentation. [#4921]
-
-- ``astropy.visualization``
 
 - ``astropy.vo``
 
