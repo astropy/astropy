@@ -762,7 +762,7 @@ class Card(_Verify):
         """
 
         if self._image and not self._verified:
-            self.verify('fix')
+            self.verify('warn')
         if self._image is None or self._modified:
             self._image = self._format_image()
         return self._image
