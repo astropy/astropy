@@ -41,6 +41,7 @@ def _expression_to_list(expr):
     return nestedExpr().parseString("(" + expr + ")").asList()[0]
 
 
+
 def _parse_expression(exp_list, models):
     """
     This takes an expression list and a list of models it coverts the models
@@ -103,7 +104,7 @@ def _astropy_to_sherpa_model(model, deconstruct=False):
                     retvals = func.evaluate(x, *inp)[0]
                     # func._parameters = startp
                 else:
-                    retvals = func.evaluate(x[0], x[1], *inp)[0] # I need to test the 2d case!
+                    retvals = func.evaluate(x[0], x[1], *inp) # I need to test the 2d case!
                 return retvals
             return _converter
 
@@ -265,14 +266,14 @@ def _make_datasets(n_dim, x, y, z=None, xerr=None, yerr=None, zerr=None):
                 #    dstack = dstack[0]
                 for xx, yy, zz, xxerr, yyerr in _iterTranspose(dstack):
                     assert xx.shape == yy.shape == xxerr.shape == yyerr.shape, "shape of x, y, z, xerr and yerr don't match"
-                    _data.append(Data2DInt("wrapped_data", x0lo=x - xerr, x0hi=x + xerr, x1lo=y - yerr, x1hi=y + yerr))
+                    _data.append(Data2DInt("wrapped_data", x0lo=xx - xxerr, x0hi=xx + xxerr, x1lo=yy - yyerr, x1hi=yy + yyerr, y=zz))
             else:
                 dstack = np.dstack((x, y, z, xerr, yerr, zerr))
                 # if dstack.shape[0] == 1:
                 #    dstack = dstack[0]
                 for xx, yy, zz, xxerr, yyerr, zzerr in _iterTranspose(dstack):
                     assert xx.shape == yy.shape == zz.shape == zzerr.shape == xxerr.shape == yyerr.shape, "shape of x, y, z, xerr, yerr and zerr don't match"
-                    _data.append(Data2DInt("wrapped_data", x0lo=x - xerr, x0hi=x + xerr, x1lo=y - yerr, x1hi=y + yerr, staterror=zerr))
+                    _data.append(Data2DInt("wrapped_data", x0lo=xx - xxerr, x0hi=xx + xxerr, x1lo=yy - yyerr, x1hi=yy + yyerr, y=zz, staterror=zzerr))
         else:
             raise Exception("Set xerr and yerr, or set neither!")
 
@@ -282,6 +283,20 @@ def _make_datasets(n_dim, x, y, z=None, xerr=None, yerr=None, zerr=None):
     else:
         _data = _data[0]
     return _data
+
+
+def _make_simfit_model(models, tie_list, model_dict):
+    '''
+    makes a SimulFitModel for the models suplied it also links and parameters within tie_list
+    model_dict updated with astropy models and their converted conterparts this is used for
+    repopulating the model later
+    '''
+    for mod in models:
+        model_dict[mod] = _astropy_to_sherpa_model(mod)
+    if tie_list is not None:
+        for par1, par2 in tie_list:
+            getattr(model_dict[par1._model], par1.name).link = getattr(model_dict[par2._model], par2.name)
+    return SimulFitModel("wrapped_fit_model", model_dict.values())
 
 
 class SherpaFitter(Fitter):
@@ -358,20 +373,6 @@ class SherpaFitter(Fitter):
             a copy of the input model with parameters set by the fitter
         """
 
-        def _make_simfit_model(models, tie_list, model_dict):
-            '''
-            makes a SimulFitModel for the models suplied it also links and parameters within tie_list
-            model_dict updated with astropy models and their converted conterparts this is used for
-            repopulating the model later
-            '''
-            for mod in models:
-                model_dict[mod] = _astropy_to_sherpa_model(mod)
-            if tie_list is not None:
-                for par1, par2 in tie_list:
-                    getattr(model_dict[par1._model], par1.name).link = getattr(model_dict[par2._model], par2.name)
-
-            return SimulFitModel("wrapped_fit_model", model_dict.values())
-
         self._data = _make_datasets(models.n_inputs, x, y, z, xerr, yerr, zerr)
 
         model_dict = OrderedDict()
@@ -409,13 +410,11 @@ class SherpaFitter(Fitter):
             return_models = models[0].copy()
             for pname, pval in map(lambda p: (p.name, p.val), self._fitmodel.pars):
                 getattr(return_models, pname.split(".")[-1]).value = pval
-
         return return_models
 
-    def est_errors(self, sigma=None, maxiters=None, methoddict=None, parlist=None):
+    def est_errors(self, sigma=None, maxiters=None, numcores=1, methoddict=None, parlist=None):
         '''
         Use sherpa error estimators based on the last fit.
-
         Parameters:
             sigma: float
                 this will be set as the confidance interval for which the errors are found too.
@@ -426,14 +425,14 @@ class SherpaFitter(Fitter):
             parlist: list
                 a list of parameters to find the confidance interval of if none are provided all free
                 parameters will be estimated.
-
         '''
         if self._fitter is None:
             ValueError("Must complete a valid fit before errors can be calculated")
-
         if sigma is not None:
             self._fitter.estmethod.config['sigma'] = sigma
         if maxiters is not None:
             self._fitter.estmethod.config['maxiters'] = maxiters
-        # print self._fitter.estmethod.config
+        if not numcores == self._fitter.estmethod.config['numcores']:
+            self._fitter.estmethod.config['numcores'] = numcores
+
         return self._fitter.est_errors(methoddict=methoddict, parlist=parlist)
