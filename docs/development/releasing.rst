@@ -69,7 +69,7 @@ packages that use the full bugfix/maintenance branch approach.)
 #. Tag the commit with ``v<version>``, being certain to sign the tag with the
    ``-s`` option::
 
-      $ git tag -s v<version>
+      $ git tag -s v<version> -m "Tagging v<version>"
 
 #. Edit the ``VERSION`` in ``setup.py`` to be the next version number, but with
    a ``.dev`` suffix at the end (E.g., ``1.2.3.dev``).
@@ -84,7 +84,7 @@ packages that use the full bugfix/maintenance branch approach.)
 
    and commit with message::
 
-      $ git commit -m "Back to development: v<next_version>"
+      $ git commit -m "Back to development: v<next_version>.dev"
 
 #. Now go back and check out the tag of the released version with
    ``git checkout v<version>``.  For example::
@@ -115,18 +115,24 @@ packages that use the full bugfix/maintenance branch approach.)
 
       $ conda create -n astropy_release_test_v<verson> numpy
       $ source activate astropy_release_test_v<verson>
-      $ cd dist
-      $ mkdir test
-      $ pip install astropy-<version>.tar.gz
+      $ pip install dist/astropy-<version>.tar.gz
       $ python -c 'import astropy; astropy.test(remote_data=True)'
       $ source deactivate
-      $ cd <back to the source directory>
 
-   Assuming everything went smoothly with the last step, we are ready to proceed
-   with the release.  If not, you'll have to back up to before starting this
-   procedure and start over when things are fixed.
+#. If the tests do *not* pass, you'll have to fix whatever the problem is. First
+   you'll need to back out the release procedure by dropping the last two
+   commits and removing the tag you created::
 
-#. Register the release on PyPI with::
+      $ git reset --hard HEAD^^
+      $ git tag -d v<version>
+
+#. Once the tests are all passing, it's time to actually proceed with the
+   release! For safety's sake, you may want to clean the repo yet again
+   to make sure you didn't leave anything from the previous step::
+
+      $ git clean -dfx
+
+   Then register the release on PyPI with::
 
       $ python setup.py register
 
@@ -177,14 +183,14 @@ packages that use the full bugfix/maintenance branch approach.)
    version" link and/or updating the list of older versions if this is an LTS
    bugfix or a new major version.
 
-#. In the astropy *master* branch (not just the changelog), be sure to update
-   the ``CHANGES.rst`` to reflect the date of the release you just performed and
-   to include the new section of the changelog.  Often the easiest way to do
-   this is to use ``git cherry-pick`` on the release commit from above, *but* if
-   that method is used, be sure to amend that commit and not change the version
-   in ``setup.py``. If you aren't sure how to do this, you might be better off
-   just copying-and-pasting the relevant parts of the maintenance branch's
-   ``CHANGES.rst`` into master.
+#. In the astropy *master* branch (not just the maintenance branch), be sure to
+   update the ``CHANGES.rst`` to reflect the date of the release you just
+   performed and to include the new section of the changelog.  Often the easiest
+   way to do this is to use ``git cherry-pick`` on the release commit from
+   above. *But* if that method is used, be sure to amend that commit and not
+   change the version in ``setup.py``. If you aren't sure how to do this, you
+   might be better off just copying-and-pasting the relevant parts of the
+   maintenance branch's ``CHANGES.rst`` into master.
 
 Modifications for a beta/release candidate release
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -519,9 +525,10 @@ applies both for regular release *and* release candidates are the same
       $ git checkout <maintenance branch name>
       $ git merge --no-ff tmp-release-v<version>
       $ git tag -s "v<version>" -m "Tagging v<version>"
+      $ python setup.py build sdist register upload
       $ git push upstream --tags <maintenance branch name>
 
-#. Update the changelog in master of the `astropy-helpers repository`_ to
+#. Update the changelog in *master* of the `astropy-helpers repository`_ to
    reflect the release you just did.
 
 #. Delete the temporary branch from github:
