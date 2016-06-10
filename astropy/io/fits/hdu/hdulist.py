@@ -562,6 +562,14 @@ class HDUList(list, _Verify):
            form ``(key, ver)`` where ``ver`` is an ``EXTVER`` value that must
            match the HDU being searched for.
 
+           If the key is ambiguous (e.g. there are multiple 'SCI' extensions)
+           the first match is returned.  For a more precise match use the
+           ``(name, ver)`` pair.
+
+           If even the ``(name, ver)`` pair is ambiguous (it shouldn't be
+           but it's not impossible) the numeric index must be used to index
+           the duplicate HDU.
+
         Returns
         -------
         index : int
@@ -584,7 +592,6 @@ class HDUList(list, _Verify):
 
         _key = (_key.strip()).upper()
 
-        nfound = 0
         found = None
         for idx, hdu in enumerate(self):
             name = hdu.name
@@ -594,13 +601,10 @@ class HDUList(list, _Verify):
             if ((name == _key or (_key == 'PRIMARY' and idx == 0)) and
                 (_ver is None or _ver == hdu.ver)):
                 found = idx
-                nfound += 1
+                break
 
-        if (nfound == 0):
+        if (found is None):
             raise KeyError('Extension {} not found.'.format(repr(key)))
-        elif (nfound > 1):
-            raise KeyError('There are {} extensions of {}.'
-                          .format(nfound, repr(key)))
         else:
             return found
 
