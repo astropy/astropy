@@ -428,6 +428,11 @@ Bug fixes
 
   - ``GroupsHDU.is_image`` property is now set to ``False``. [#4742]
 
+  - Ensure scaling keywords are removed from header when unsigned integer data
+    is converted to signed type. [#4974, #5053]
+
+- ``astropy.io.misc``
+
 - ``astropy.io.votable``
 
   - The astropy.io.votable.validator.html module is updated to handle division
