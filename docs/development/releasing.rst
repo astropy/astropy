@@ -51,19 +51,24 @@ packages that use the full bugfix/maintenance branch approach.)
 
       $ git checkout v1.2.x
 
-#. Edit the ``setup.py`` file by removing the ``".dev"`` at the end of the
-   ``VERSION`` string.
-
 #. Edit the ``CHANGES.rst`` file by changing the date for the version you are
    about to release from "unreleased" to today's date.  Also be sure to remove
-   any sections of the changelog for that version that have no entries.
+   any sections of the changelog for that version that have no entries.  Then
+   add and commit those changes with::
 
-#. Add the changes to ``CHANGES.rst`` and ``setup.py``::
+      <use your favorite editor on CHANGES.rst>
+      $ git add CHANGES.rst
+      $ git commit -m "Finalizing changelog for v<version>"
 
-      $ git add CHANGES.rst setup.py
 
-   and commit with message::
 
+
+#. Edit the ``setup.py`` file by removing the ``".dev"`` at the end of the
+   ``VERSION`` string, then add and commit that change as the final step prior
+   to release::
+
+      <use your favorite editor on setup.py>
+      $ git add setup.py
       $ git commit -m "Preparing release v<version>"
 
 #. Tag the commit with ``v<version>``, being certain to sign the tag with the
@@ -72,19 +77,19 @@ packages that use the full bugfix/maintenance branch approach.)
       $ git tag -s v<version> -m "Tagging v<version>"
 
 #. Edit the ``VERSION`` in ``setup.py`` to be the next version number, but with
-   a ``.dev`` suffix at the end (E.g., ``1.2.3.dev``).
+   a ``.dev`` suffix at the end (E.g., ``1.2.3.dev``).  Then add and commit::
+
+      <use your favorite editor on setup.py>
+      $ git add setup.py
+      $ git commit -m "Back to development: v<next_version>.dev"
 
 #. Also update the ``CHANGES.rst`` file with a new section for the next version.
    You will likely want to use the ``add_to_changelog.py`` script in the
-   `astropy-tools repository`_ for this.
+   `astropy-tools repository`_ for this.  Then add and commit::
 
-#. Add the changes to ``CHANGES.rst`` and ``setup.py``::
-
-      $ git add CHANGES.rst setup.py
-
-   and commit with message::
-
-      $ git commit -m "Back to development: v<next_version>.dev"
+      <use your favorite editor on CHANGES.rst>
+      $ git add CHANGES.rst
+      $ git commit -m "Add v<next_version> to the changelog"
 
 #. Now go back and check out the tag of the released version with
    ``git checkout v<version>``.  For example::
@@ -120,10 +125,10 @@ packages that use the full bugfix/maintenance branch approach.)
       $ source deactivate
 
 #. If the tests do *not* pass, you'll have to fix whatever the problem is. First
-   you'll need to back out the release procedure by dropping the last two
-   commits and removing the tag you created::
+   you'll need to back out the release procedure by dropping the commits you
+   made for release and removing the tag you created::
 
-      $ git reset --hard HEAD^^
+      $ git reset --hard HEAD^^^^ # you could also use the SHA hash of the commit before your first changelog edit
       $ git tag -d v<version>
 
 #. Once the tests are all passing, it's time to actually proceed with the
@@ -186,11 +191,10 @@ packages that use the full bugfix/maintenance branch approach.)
 #. In the astropy *master* branch (not just the maintenance branch), be sure to
    update the ``CHANGES.rst`` to reflect the date of the release you just
    performed and to include the new section of the changelog.  Often the easiest
-   way to do this is to use ``git cherry-pick`` on the release commit from
-   above. *But* if that method is used, be sure to amend that commit and not
-   change the version in ``setup.py``. If you aren't sure how to do this, you
-   might be better off just copying-and-pasting the relevant parts of the
-   maintenance branch's ``CHANGES.rst`` into master.
+   way to do this is to use ``git cherry-pick`` the changelog commit just before
+   the release commit from above. If you aren't sure how to do this, you might
+   be better off just copying-and-pasting the relevant parts of the maintenance
+   branch's ``CHANGES.rst`` into master.
 
 Modifications for a beta/release candidate release
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -234,21 +238,22 @@ The procedure for this is straightforward:
 
       $ git branch v<version>.x
 
-#. Update the ``CHANGES.rst`` file with a new section at the very top for the
-   next major version.  You will likely want to use the ``add_to_changelog.py``
-   script in the `astropy-tools`_ repository for this.
-
 #. Update the ``VERSION`` in ``setup.py`` to reflect the new major version. For
    example, if you are about to issue a feature freeze for version ``1.2``, you
-   will want to set the new version to ``'1.3.dev'``.
+   will want to set the new version to ``'1.3.dev'``. Then add and commit that::
 
-#. Add the changes to ``CHANGES.rst`` and ``setup.py``::
-
-      $ git add CHANGES.rst setup.py
-
-   and commit with message::
-
+      <use your favorite editor on setup.py>
+      $ git add setup.py
       $ git commit -m "Next major version: <next_version>"
+
+#. Update the ``CHANGES.rst`` file with a new section at the very top for the
+   next major version.  You will likely want to use the ``add_to_changelog.py``
+   script in the `astropy-tools`_ repository for this. The add and commit those
+   changes::
+
+      <use your favorite editor on CHANGES.rst>
+      $ git add CHANGES.rst
+      $ git commit -m "Add <next_version> to changelog"
 
 #. Push all of these changes up to github::
 
@@ -485,8 +490,8 @@ applies both for regular release *and* release candidates are the same
       $ cd /wherever/you/put/astropy/astropy_helpers
       $ git branch tmp-release-v<version> <maintenance branch name>
 
-#. In that branch, create a release commit by updating the version info and
-   changelog as described in the release instructions above.
+#. In that branch, create release commits by updating the changelog and then the
+   version info and as described in the release instructions above.
 
 #. Push the branch you just created to the `astropy-helpers repository`_ on
    github::
@@ -528,8 +533,9 @@ applies both for regular release *and* release candidates are the same
       $ python setup.py build sdist register upload
       $ git push upstream --tags <maintenance branch name>
 
-#. Update the changelog in *master* of the `astropy-helpers repository`_ to
-   reflect the release you just did.
+#. Update the changelog and version number in *master* of the
+   `astropy-helpers repository`_ to reflect the release you just did (detailed
+   instructions are above).
 
 #. Delete the temporary branch from github:
 
