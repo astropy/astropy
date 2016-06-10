@@ -2,11 +2,9 @@
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-
 import numpy as np
-
+from numpy.testing import assert_allclose
 from ...tests.helper import pytest
-from  numpy.testing import assert_allclose
 from .. import bayesian_blocks, RegularEvents
 
 
@@ -127,7 +125,7 @@ def test_fitness_function_results():
     # Event data with repeats
     t[80:] = t[:20]
     edges = bayesian_blocks(t, fitness='events', p0=0.01)
-    assert_allclose(edges, [-2.6197451, -0.47432431,-0.46202823, 1.85227818])
+    assert_allclose(edges, [-2.6197451, -0.47432431, -0.46202823, 1.85227818])
 
     # Regular event data
     dt = 0.01

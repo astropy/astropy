@@ -22,8 +22,8 @@ from ...utils.misc import NumpyRNGContext
 
 
 def test_sigma_clip():
-    #need to seed the numpy RNG to make sure we don't get some amazingly flukey
-    #random number that breaks one of the tests
+    # need to seed the numpy RNG to make sure we don't get some
+    # amazingly flukey random number that breaks one of the tests
 
     with NumpyRNGContext(12345):
         # Amazing, I've got the same combination on my luggage!
@@ -68,8 +68,8 @@ def test_sigma_clip():
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_compare_to_scipy_sigmaclip():
-    #need to seed the numpy RNG to make sure we don't get some amazingly flukey
-    #random number that breaks one of the tests
+    # need to seed the numpy RNG to make sure we don't get some
+    # amazingly flukey random number that breaks one of the tests
 
     with NumpyRNGContext(12345):
 
@@ -119,6 +119,7 @@ def test_sigma_clipped_stats():
     assert_equal(median, _data)
     assert_equal(stddev, np.zeros_like(_data))
 
+
 def test_invalid_sigma_clip():
     """Test sigma_clip of data containing invalid values."""
 
@@ -129,8 +130,9 @@ def test_invalid_sigma_clip():
 
     result = sigma_clip(data)
 
-    # Pre #4051 if data contains any NaN or infs sigma_clip returns the mask
-    # containing `False` only or TypeError if data also contains a masked value.
+    # Pre #4051 if data contains any NaN or infs sigma_clip returns the
+    # mask containing `False` only or TypeError if data also contains a
+    # masked value.
 
     assert result.mask[2, 2] == True
     assert result.mask[3, 4] == True

@@ -1,14 +1,8 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import numpy as np
-
-from numpy.testing import assert_equal
 from numpy.testing.utils import assert_allclose
 
-from astropy import units as u
-
-from ...tests.helper import pytest
 from ..info_theory import bayesian_info_criterion, bayesian_info_criterion_lsq
 from ..info_theory import akaike_info_criterion, akaike_info_criterion_lsq
 
