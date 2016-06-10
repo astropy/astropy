@@ -465,14 +465,14 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0, conflevel
     interval : {'root-n','root-n-0','pearson','sherpagehrels','frequentist-confidence', 'kraft-burrows-nousek'}, optional
         Formula used for confidence interval. See notes for details.
         Default is ``'root-n'``.
-    sigma : float
+    sigma : float, optional
         Number of sigma for confidence interval; only supported for
         the 'frequentist-confidence' mode.
-    background : float
+    background : float, optional
         Number of counts expected from the background; only supported for
         the 'kraft-burrows-nousek' mode. This number is assumed to be determined
         from a large region so that the uncertainty on its value is negligible.
-    conflevel : float
+    conflevel : float, optional
         Confidence level between 0 and 1; only supported for the
         'kraft-burrows-nousek' mode.
 
@@ -797,7 +797,7 @@ def biweight_location(a, c=6.0, M=None):
     ----------
     a : array-like
         Input array or object that can be converted to an array.
-    c : float
+    c : float, optional
         Tuning constant for the biweight estimator.  Default value is 6.0.
     M : float, optional
         Initial guess for the biweight location.
@@ -882,7 +882,7 @@ def biweight_midvariance(a, c=9.0, M=None):
     ----------
     a : array-like
         Input array or object that can be converted to an array.
-    c : float
+    c : float, optional
         Tuning constant for the biweight estimator.  Default value is 9.0.
     M : float, optional
         Initial guess for the biweight location.
@@ -957,7 +957,7 @@ def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix,
         DN or ADU, then multiply by the gain to get the value in electrons.
     npix : float
         Size of the aperture in pixels
-    gain : float
+    gain : float, optional
         Gain of the CCD. In units of electrons per DN.
 
     Returns
@@ -986,12 +986,12 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
         N-D array. The bootstrap resampling will be performed on the first
         index, so the first index should access the relevant information
         to be bootstrapped.
-    bootnum : int
+    bootnum : int, optional
         Number of bootstrap resamples
-    samples : int
+    samples : int, optional
         Number of samples in each resample. The default `None` sets samples to
         the number of datapoints
-    bootfunc : function
+    bootfunc : function, optional
         Function to reduce the resampled data. Each bootstrap resample will
         be put through this function and the results returned. If `None`, the
         bootstrapped data will be returned
