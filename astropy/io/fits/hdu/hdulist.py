@@ -237,7 +237,7 @@ class HDUList(list, _Verify):
         # a very large number of HDUs could blow the stack, so use a loop
         # instead
         return self._try_while_unread_hdus(super(HDUList, self).__getitem__,
-                                           self.index_of(key))
+                                           self._positive_index_of(key))
 
     def __contains__(self, item):
         """
@@ -256,7 +256,7 @@ class HDUList(list, _Verify):
         Set an HDU to the `HDUList`, indexed by number or name.
         """
 
-        _key = self.index_of(key)
+        _key = self._positive_index_of(key)
         if isinstance(hdu, (slice, list)):
             if _is_int(_key):
                 raise ValueError('An element in the HDUList must be an HDU.')
@@ -285,7 +285,7 @@ class HDUList(list, _Verify):
         if isinstance(key, slice):
             end_index = len(self)
         else:
-            key = self.index_of(key)
+            key = self._positive_index_of(key)
             end_index = len(self) - 1
 
         self._try_while_unread_hdus(super(HDUList, self).__delitem__, key)
@@ -603,6 +603,34 @@ class HDUList(list, _Verify):
                           .format(nfound, repr(key)))
         else:
             return found
+
+    def _positive_index_of(self, key):
+        """
+        Same as index_of, but ensures always returning a positive index
+        or zero.
+
+        (Really this should be called non_negative_index_of but it felt
+        too long.)
+
+        This means that if the key is a negative integer, we have to
+        convert it to the corresponding positive index.  This means
+        knowing the length of the HDUList, which in turn means loading
+        all HDUs.  Therefore using negative indices on HDULists is inherently
+        inefficient.
+        """
+
+        index = self.index_of(key)
+
+        if index >= 0:
+            return index
+
+        if abs(index) > len(self):
+            raise IndexError(
+                'Extension %s is out of bound or not found.' % index)
+
+        return len(self) + index
+
+
 
     def readall(self):
         """
