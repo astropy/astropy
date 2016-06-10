@@ -32,7 +32,7 @@ Solar system ephemerides
 Positions of the major solar-system bodies, including the moon, can now be
 calculated.  These integrate with the coordinates subpackage, allowing use of
 apparent (e.g. ``AltAz``) positions or barycentric values.  These can be
-calculated using either using built-in approximations or more precisely 
+calculated using either using built-in approximations or more precisely
 using JPL ephemeris models (the latter requiring the ``jplephem`` package).
 For more details, see :ref:`astropy-coordinates-solarsystem`.
 
@@ -41,7 +41,7 @@ Barycentric light-travel time corrections
 
 The :class:`~astropy.time.Time` class has gained a new method
 :meth:`~astropy.time.Time.light_travel_time` for calculating barycentric
-(or heliocentric) corrections. For more details, see 
+(or heliocentric) corrections. For more details, see
 :ref:`time-light-travel-time`.
 
 Astrometric coordinate frames
@@ -51,6 +51,9 @@ Astrometric coordinate frames
 
 Lomb-scargle periodograms
 -------------------------
+The new :class:`~astropy.stats.LombScargle` class implements a fast Lomb-Scargle
+periodogram, useful for detecting periodic signals in noisy, unevenly-spaced
+data. For more information see :ref:`stats-lombscargle`.
 
 
 
@@ -145,5 +148,3 @@ Full change log
 
 To see a detailed list of all changes in version v1.2, including changes in
 API, please see the :ref:`changelog`.
-
-
