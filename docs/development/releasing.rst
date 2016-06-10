@@ -47,9 +47,9 @@ packages that use the full bugfix/maintenance branch approach.)
    ``git clone`` or do ``git clean -dfx``.
 
 #. Be sure you're on the branch appropriate for the version you're about to
-   release.  For example, if releasing version 0.2.2 make sure to::
+   release.  For example, if releasing version 1.2.2 make sure to::
 
-      $ git checkout v0.2.x
+      $ git checkout v1.2.x
 
 #. Edit the ``setup.py`` file by removing the ``".dev"`` at the end of the
    ``VERSION`` string.
@@ -72,7 +72,7 @@ packages that use the full bugfix/maintenance branch approach.)
       $ git tag -s v<version>
 
 #. Edit the ``VERSION`` in ``setup.py`` to be the next version number, but with
-   a ``.dev`` suffix at the end (E.g., ``0.2.3.dev``).
+   a ``.dev`` suffix at the end (E.g., ``1.2.3.dev``).
 
 #. Also update the ``CHANGES.rst`` file with a new section for the next version.
    You will likely want to use the ``add_to_changelog.py`` script in the
@@ -89,7 +89,7 @@ packages that use the full bugfix/maintenance branch approach.)
 #. Now go back and check out the tag of the released version with
    ``git checkout v<version>``.  For example::
 
-      $ git checkout v0.2.2
+      $ git checkout v1.2.2
 
    Don't forget to remove any non-commited files with::
 
@@ -138,8 +138,8 @@ packages that use the full bugfix/maintenance branch approach.)
 
 #. Go to https://pypi.python.org/pypi?:action=pkg_edit&name=astropy
    and ensure that only the most recent releases in each actively maintained
-   release line are *not* marked hidden.  For example, if v0.2.2 was
-   just released, v0.2.1 should be hidden.  This is so that users only find
+   release line are *not* marked hidden.  For example, if v1.2.2 was
+   just released, v1.2.1 should be hidden.  This is so that users only find
    the latest bugfix releases.
 
    Do not enabled "Auto-hide old releases" as that may hide bugfix releases
@@ -197,7 +197,7 @@ Modifications for a beta/release candidate release
    The primary modifications to the release procedure are:
 
    * When entering the new version number, instead of just removing the
-     ``.dev``, enter "0.2b1" or "0.2rc1".  It is critical that you follow this
+     ``.dev``, enter "1.2b1" or "1.2rc1".  It is critical that you follow this
      numbering scheme (``x.yb#`` or ``x.y.zrc#``), as it will ensure the release
      is ordered "before" the main release by various automated tools, and also
      tells PyPI that this is a "pre-release".
@@ -291,7 +291,7 @@ Issues are assigned to an Astropy release by way of the Milestone feature in
 the GitHub issue tracker.  At any given time there are at least two versions
 under development: The next major/minor version, and the next bug fix release.
 For example, at the time of writing there are two release milestones open:
-v0.2.2 and v0.3.0.  In this case, v0.2.2 is the next bug fix release and all
+v1.2.2 and v0.3.0.  In this case, v1.2.2 is the next bug fix release and all
 issues that should include fixes in that release should be assigned that
 milestone.  Any issues that implement new features would go into the v0.3.0
 milestone--this is any work that goes in the master branch that should not
@@ -303,13 +303,13 @@ Backporting fixes from master
 
 Most fixes are backported using the ``git cherry-pick`` command, which applies
 the diff from a single commit like a patch.  For the sake of example, say the
-current bug fix branch is 'v0.2.x', and that a bug was fixed in master in a
-commit ``abcd1234``.  In order to backport the fix, simply checkout the v0.2.x
+current bug fix branch is 'v1.2.x', and that a bug was fixed in master in a
+commit ``abcd1234``.  In order to backport the fix, simply checkout the v1.2.x
 branch (it's also good to make sure it's in sync with the
 `astropy core repository`_) and cherry-pick the appropriate commit::
 
-    $ git checkout v0.2.x
-    $ git pull upstream v0.2.x
+    $ git checkout v1.2.x
+    $ git pull upstream v1.2.x
     $ git cherry-pick abcd1234
 
 Sometimes a cherry-pick does not apply cleanly, since the bug fix branch
@@ -328,8 +328,8 @@ combined.  What this means is that it is only necessary to cherry-pick the
 merge commit (this requires adding the ``-m 1`` option to the cherry-pick
 command).  For example, if ``5678abcd`` is a merge commit::
 
-    $ git checkout v0.2.x
-    $ git pull upstream v0.2.x
+    $ git checkout v1.2.x
+    $ git pull upstream v1.2.x
     $ git cherry-pick -m 1 5678abcd
 
 In fact, because Astropy emphasizes a pull request-based workflow, this is the
@@ -372,7 +372,7 @@ there are two choices:
    compares your branch to Astropy's master.  If you look on the left-hand
    side of the pull request page, under "base repo: astropy/astropy" there is
    a drop-down list labeled "base branch: master".  You can click on this
-   drop-down and instead select the bug fix branch ("v0.2.x" for example). Then
+   drop-down and instead select the bug fix branch ("v1.2.x" for example). Then
    GitHub will instead compare your fix against that branch, and merge into
    that branch when the PR is accepted.
 
@@ -398,12 +398,12 @@ right version number).
 To aid in this process there is a `suggest_backports.py script in the astropy-tools repository <https://github.com/astropy/astropy-tools/blob/master/suggest_backports.py>`_.
 The script is not perfect and still needs a little work, but it will get most of
 the work done.  For example, if
-the current bug fix branch is called 'v0.2.x' run it like so::
+the current bug fix branch is called 'v1.2.x' run it like so::
 
-    $ suggest_backports.py astropy astropy v0.2.x -f backport.sh
+    $ suggest_backports.py astropy astropy v1.2.x -f backport.sh
 
 This will search GitHub for all issues assigned to the next bug fix release
-milestone that's associated with the given bug fix branch ('v0.2.2' for
+milestone that's associated with the given bug fix branch ('v1.2.2' for
 example), find the commits that fix those issues, and will generate a shell
 script called ``backport.sh`` containing all the ``git cherry-pick`` commands
 to backport all those fixes.
@@ -414,8 +414,8 @@ local clone of the Astropy repository::
 
     $ ./backport.sh
 
-This will checkout the appropriate bug fix branch ('v0.2.x' in this example),
-do a ``git pull upstream v0.2.x`` to make sure it's up to date, and then start
+This will checkout the appropriate bug fix branch ('v1.2.x' in this example),
+do a ``git pull upstream v1.2.x`` to make sure it's up to date, and then start
 doing cherry-picks into the bug fix branch.
 
 .. note::
@@ -456,8 +456,8 @@ Finally, not all issues assigned to a release milestone need to be fixed before
 making that release.  Usually, in the interest of getting a release with
 existing fixes out within some schedule, it's best to triage issues that won't
 be fixed soon to a new release milestone.  If the upcoming bug fix release is
-'v0.2.2', then go ahead and create a 'v0.2.3' milestone and reassign to it any
-issues that you don't expect to be fixed in time for 'v0.2.2'.
+'v1.2.2', then go ahead and create a 'v1.2.3' milestone and reassign to it any
+issues that you don't expect to be fixed in time for 'v1.2.2'.
 
 
 .. _helpers-release-info:
