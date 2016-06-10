@@ -26,7 +26,7 @@ from ....extern.six.moves import range
 
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
-             cache=True, lazy_load_hdus=True, **kwargs):
+             cache=True, lazy_load_hdus=None, **kwargs):
     """Factory function to open a FITS file and return an `HDUList` object.
 
     Parameters
@@ -140,6 +140,11 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
         memmap = None if conf.use_memmap else False
     else:
         memmap = bool(memmap)
+
+    if lazy_load_hdus is None:
+        lazy_load_hdus = conf.lazy_load_hdus
+    else:
+        lazy_load_hdus = bool(lazy_load_hdus)
 
     if 'uint16' in kwargs and 'uint' not in kwargs:
         kwargs['uint'] = kwargs['uint16']
