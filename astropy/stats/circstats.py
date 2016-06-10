@@ -14,7 +14,6 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import numpy as np
 from astropy.units import Quantity
-from astropy import units as u
 from astropy.utils.compat.numpy import broadcast_to
 
 __all__ = ['circmean', 'circvar', 'circmoment', 'circcorrcoef', 'rayleightest',
