@@ -205,7 +205,13 @@ class HDUList(list, _Verify):
         # while it is being streamed to.  In the future that might be supported
         # but for now this is only used for the purpose of lazy-loading of
         # existing HDUs.
-        self._read_all = file is None
+        if file is None:
+            self._read_all = True
+        elif self._file is not None:
+            # Should never attempt to read HDUs in ostream mode
+            self._read_all = self._file.mode == 'ostream'
+        else:
+            self._read_all = False
 
         if hdus is None:
             hdus = []
