@@ -1226,6 +1226,16 @@ Other Changes and Additions
   in Python 2.6 (this warning can be disabled through the usual Python warning
   filtering mechanisms). [#3779]
 
+1.0.11 (unreleased)
+-------------------
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.io.fits``
+
+  - Fixed bug that caused an ignored exception to be displayed under certain
+    conditions when terminating a script after using fits.getdata(). [#4977]
 
 1.0.10 (2016-06-09)
 -------------------
