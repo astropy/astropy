@@ -114,7 +114,7 @@ def data_info_factory(names, funcs):
                     out = getattr(dat, func)()
                 else:
                     out = func(dat)
-            except:
+            except TypeError:
                 outs.append('--')
             else:
                 outs.append(str(out))
