@@ -258,6 +258,7 @@ def test_pickling():
     el2 = pickle.loads(s)
     assert el == el2
 
+
 def test_repr_latex():
     """
     Regression test for issue #4542 + checks for new machinery fixing it
@@ -266,8 +267,7 @@ def test_repr_latex():
     somelocation = EarthLocation(lon='149:3:57.9', lat='-31:16:37.3')
     assert somelocation._repr_latex_() == '$x=-4680035.7 \\; \\mathrm{m}, y=2804707.6 \\; \\mathrm{m}, z=-3292182.7 \\; \\mathrm{m}$'
 
-
-    somelocation2 = EarthLocation(lon=[1,2]*u.deg, lat=[4,5]*u.deg)
+    somelocation2 = EarthLocation(lon=[1, 2]*u.deg, lat=[4, 5]*u.deg)
     assert somelocation2._repr_latex_() == '$x=[6361734.7,~6350157.1] \\; \\mathrm{m}, y=[111044.49,~221752.37] \\; \\mathrm{m}, z=[441945.11,~552183.96] \\; \\mathrm{m}$'
 
     somelocation_many = EarthLocation(lon=np.linspace(0, 360, 1000)*u.deg,
