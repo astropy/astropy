@@ -270,6 +270,9 @@ def test_repr_latex():
     somelocation2 = EarthLocation(lon=[1,2]*u.deg, lat=[4,5]*u.deg)
     assert somelocation2._repr_latex_() == '$x=[6361734.7,~6350157.1] \\; \\mathrm{m}, y=[111044.49,~221752.37] \\; \\mathrm{m}, z=[441945.11,~552183.96] \\; \\mathrm{m}$'
 
-    somelocation_many = EarthLocation(lon=np.linspace(0,360,1000)*u.deg,
-                                      lat=np.linspace(0,90,1000)*u.deg)
-    assert somelocation_many._repr_latex_() == '$x=[6378137,~6378003,~6377601.1,~\\dots, 20123.415,~10062.317,~3.9186209 \\times 10^{-10}] \\; \\mathrm{m}, y=[0,~40114.818,~80227.754,~\\dots, -253.14478,~-63.287526,~0] \\; \\mathrm{m}, z=[0,~9961.6424,~19923.261,~\\dots, 6356720.7,~6356744.4,~6356752.3] \\; \\mathrm{m}$'
+    somelocation_many = EarthLocation(lon=np.linspace(0, 360, 1000)*u.deg,
+                                      lat=np.linspace(0, 90, 1000)*u.deg)
+    str_many = somelocation_many._repr_latex_()
+    assert str_many.startswith('$x=[')
+    assert str_many.endswith('\\mathrm{m}$')
+    assert str_many.count(',~\\dots,') == 3
