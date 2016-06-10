@@ -426,9 +426,6 @@ Bug fixes
 
 - ``astropy.io.fits``
 
-  - Removed raising of AssertionError that could occur after closing or
-    deleting compressed image data. [#4690, #4694, #4948]
-
   - ``GroupsHDU.is_image`` property is now set to ``False``. [#4742]
 
 - ``astropy.io.votable``
@@ -1233,6 +1230,9 @@ Bug Fixes
 ^^^^^^^^^
 
 - ``astropy.io.fits``
+
+  - Removed raising of AssertionError that could occur after closing or
+    deleting compressed image data. [#4690, #4694, #4948]
 
   - Fixed bug that caused an ignored exception to be displayed under certain
     conditions when terminating a script after using fits.getdata(). [#4977]
