@@ -447,15 +447,19 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
 
 
 def _check_poisson_conf_inputs(sigma, background, conflevel, name):
-    if sigma!=1:
-        raise ValueError("Only sigma=1 supported for interval {0}".format(name))
-    if background!=0:
-        raise ValueError("background not supported for interval {0}".format(name))
+    if sigma != 1:
+        raise ValueError("Only sigma=1 supported for interval {0}"
+                         .format(name))
+    if background != 0:
+        raise ValueError("background not supported for interval {0}"
+                         .format(name))
     if conflevel is not None:
-        raise ValueError("conflevel not supported for interval {0}".format(name))
+        raise ValueError("conflevel not supported for interval {0}"
+                         .format(name))
 
 
-def poisson_conf_interval(n, interval='root-n', sigma=1, background=0, conflevel=None):
+def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
+                          conflevel=None):
     r"""Poisson parameter confidence interval given observed counts
 
     Parameters
@@ -670,10 +674,10 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0, conflevel
         conf_interval = np.array([n-np.sqrt(n),
                                   n+np.sqrt(n)])
         if np.isscalar(n):
-            if n==0:
+            if n == 0:
                 conf_interval[1] = 1
         else:
-            conf_interval[1,n==0] = 1
+            conf_interval[1, n == 0] = 1
     elif interval == 'pearson':
         _check_poisson_conf_inputs(sigma, background, conflevel, interval)
         conf_interval = np.array([n+0.5-np.sqrt(n+0.25),
@@ -689,24 +693,28 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0, conflevel
         conf_interval = np.array([0.5*scipy.stats.chi2(2*n).ppf(alpha),
                                   0.5*scipy.stats.chi2(2*n+2).isf(alpha)])
         if np.isscalar(n):
-            if n==0:
+            if n == 0:
                 conf_interval[0] = 0
         else:
-            conf_interval[0,n==0] = 0
+            conf_interval[0, n == 0] = 0
     elif interval == 'kraft-burrows-nousek':
         if conflevel is None:
-            raise ValueError('Set conflevel for method {0}. (sigma is ignored.)'.format(interval))
+            raise ValueError('Set conflevel for method {0}. (sigma is '
+                             'ignored.)'.format(interval))
         conflevel = np.asanyarray(conflevel)
-        if np.any(conflevel <=0) or np.any(conflevel >= 1):
+        if np.any(conflevel <= 0) or np.any(conflevel >= 1):
             raise ValueError('Conflevel must be a number between 0 and 1.')
         background = np.asanyarray(background)
         if np.any(background < 0):
             raise ValueError('Background must be >= 0.')
-        conf_interval = np.vectorize(_kraft_burrows_nousek, cache=True)(n, background, conflevel)
+        conf_interval = np.vectorize(_kraft_burrows_nousek,
+                                     cache=True)(n, background, conflevel)
         conf_interval = np.vstack(conf_interval)
     else:
-        raise ValueError("Invalid method for Poisson confidence intervals: %s" % interval)
+        raise ValueError("Invalid method for Poisson confidence intervals: "
+                         "%s" % interval)
     return conf_interval
+
 
 def median_absolute_deviation(a, axis=None):
     """Compute the median absolute deviation.
@@ -864,8 +872,8 @@ def biweight_midvariance(a, c=9.0, M=None):
 
     where MAD is the median absolute deviation.
 
-    :math:`n'` is the number of data for which :math:`|u_i| < 1` holds, while the
-    summations are over all i up to n:
+    :math:`n'` is the number of data for which :math:`|u_i| < 1` holds,
+    while the summations are over all i up to n:
 
     .. math::
 
@@ -1083,6 +1091,7 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
 
     return boot
 
+
 def mad_std(data, axis=None):
     """
     Calculate a robust standard deviation using the `median absolute
@@ -1093,7 +1102,8 @@ def mad_std(data, axis=None):
 
     .. math::
 
-        \\sigma \\approx \\frac{\\textrm{MAD}}{\Phi^{-1}(3/4)} \\approx 1.4826 \ \\textrm{MAD}
+        \\sigma \\approx \\frac{\\textrm{MAD}}{\Phi^{-1}(3/4)}
+            \\approx 1.4826 \ \\textrm{MAD}
 
     where :math:`\Phi^{-1}(P)` is the normal inverse cumulative
     distribution function evaluated at probability :math:`P = 3/4`.
@@ -1150,32 +1160,34 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
     Notes
     -----
     Requires `scipy`. This implementation will cause Overflow Errors for
-    about N > 100 (the exact limit depends on details of how scipy was compiled).
-    See `~astropy.stats.mpmath_poisson_upper_limit` for an implementation that is
-    slower, but can deal with arbitrarily high numbers since it is based on the
-    `mpmath <http://mpmath.org/>`_ library.
+    about N > 100 (the exact limit depends on details of how scipy was
+    compiled).  See `~astropy.stats.mpmath_poisson_upper_limit` for an
+    implementation that is slower, but can deal with arbitrarily high
+    numbers since it is based on the `mpmath <http://mpmath.org/>`_
+    library.
     '''
     from scipy.optimize import brentq
     from scipy.integrate import quad
     from scipy.special import factorial
 
-
     def eqn8(N, B):
         n = np.arange(N + 1)
-        return 1./ (np.exp(-B) * np.sum(np.power(B, n) / factorial(n)))
+        return 1. / (np.exp(-B) * np.sum(np.power(B, n) / factorial(n)))
 
     def eqn7(S, N, B):
-        return eqn8(N, B) * (np.exp(-S -B) * (S + B)**N / factorial(N))
+        return eqn8(N, B) * (np.exp(-S - B) * (S + B)**N / factorial(N))
 
     def eqn9_left(S_min, S_max, N, B):
         return quad(eqn7, S_min, S_max, args=(N, B), limit=500)
 
     def find_s_min(S_max, N, B):
-        '''Kraft, Burrows and Nousek suggest to integrate from N-B in both
-        directions at once, so that S_min and S_max move similarly (see the article
-        for details). Here, this is implemented differently:
-        Treat S_max as the optimization parameters in func and then calculate the
-        matching s_min that has has eqn7(S_max) = eqn7(S_min) here.
+        '''
+        Kraft, Burrows and Nousek suggest to integrate from N-B in both
+        directions at once, so that S_min and S_max move similarly (see
+        the article for details). Here, this is implemented differently:
+        Treat S_max as the optimization parameters in func and then
+        calculate the matching s_min that has has eqn7(S_max) =
+        eqn7(S_min) here.
         '''
         y_S_max = eqn7(S_max, N, B)
         if eqn7(0, N, B) >= y_S_max:
@@ -1216,9 +1228,10 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
 
     Notes
     -----
-    Requires the `mpmath <http://mpmath.org/>`_ library.
-    See `~astropy.stats.scipy_poisson_upper_limit` for an implementation that is
-    based on scipy and evaluates faster, but runs only to about N = 100.
+    Requires the `mpmath <http://mpmath.org/>`_ library.  See
+    `~astropy.stats.scipy_poisson_upper_limit` for an implementation
+    that is based on scipy and evaluates faster, but runs only to about
+    N = 100.
     '''
     from mpmath import mpf, factorial, findroot, fsum, power, exp, quad
 
@@ -1228,7 +1241,7 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
 
     def eqn8(N, B):
         sumterms = [power(B, n) / factorial(n) for n in range(int(N) + 1)]
-        return 1./ (exp(-B) * fsum(sumterms))
+        return 1. / (exp(-B) * fsum(sumterms))
 
     def eqn7(S, N, B):
         return eqn8(N, B) * (exp(-S-B) * (S + B)**N / factorial(N))
@@ -1239,11 +1252,13 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
         return quad(eqn7NB, [S_min, S_max])
 
     def find_s_min(S_max, N, B):
-        '''Kraft, Burrows and Nousek suggest to integrate from N-B in both
-        directions at once, so that S_min and S_max move similarly (see the article
-        for details). Here, this is implemented differently:
-        Treat S_max as the optimization parameters in func and then calculate the
-        matching s_min that has has eqn7(S_max) = eqn7(S_min) here.
+        '''
+        Kraft, Burrows and Nousek suggest to integrate from N-B in both
+        directions at once, so that S_min and S_max move similarly (see
+        the article for details). Here, this is implemented differently:
+        Treat S_max as the optimization parameters in func and then
+        calculate the matching s_min that has has eqn7(S_max) =
+        eqn7(S_min) here.
         '''
         y_S_max = eqn7(S_max, N, B)
         if eqn7(0, N, B) >= y_S_max:
@@ -1251,7 +1266,7 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
         else:
             def eqn7ysmax(x):
                 return eqn7(x, N, B) - y_S_max
-            return findroot(eqn7ysmax , (N - B) / 2.)
+            return findroot(eqn7ysmax, (N - B) / 2.)
 
     def func(s):
         s_min = find_s_min(s, N, B)
@@ -1275,7 +1290,8 @@ def _kraft_burrows_nousek(N, B, CL):
     N : int
         Total observed count number
     B : float
-        Background count rate (assumed to be known with negligible error from a large background area).
+        Background count rate (assumed to be known with negligible error
+        from a large background area).
     CL : float
        Confidence level (number between 0 and 1)
 
@@ -1285,8 +1301,8 @@ def _kraft_burrows_nousek(N, B, CL):
 
     Notes
     -----
-    This functions has an optional dependency: Either `scipy` or
-    `mpmath <http://mpmath.org/>`_  need to be available. (Scipy only works for
+    This functions has an optional dependency: Either `scipy` or `mpmath
+    <http://mpmath.org/>`_  need to be available. (Scipy only works for
     N < 100).
     '''
     try:
@@ -1306,7 +1322,8 @@ def _kraft_burrows_nousek(N, B, CL):
             return _scipy_kraft_burrows_nousek(N, B, CL)
         except OverflowError:
             if not HAS_MPMATH:
-                raise ValueError('Need mpmath package for input numbers this large.')
+                raise ValueError('Need mpmath package for input numbers this '
+                                 'large.')
     if HAS_MPMATH:
         return _mpmath_kraft_burrows_nousek(N, B, CL)
 

@@ -118,7 +118,8 @@ def jackknife_stats(data, statistic, conf_lvl=0.95):
     and its 95% confidence interval:
 
     >>> test_statistic = np.mean
-    >>> estimate, bias, stderr, conf_interval = jackknife_stats(data, test_statistic, 0.95)
+    >>> estimate, bias, stderr, conf_interval = jackknife_stats(
+    ...     data, test_statistic, 0.95)
     >>> estimate
     4.5
     >>> bias
@@ -131,7 +132,8 @@ def jackknife_stats(data, statistic, conf_lvl=0.95):
     3. Example for two estimates
 
     >>> test_statistic = lambda x: (np.mean(x), np.var(x))
-    >>> estimate, bias, stderr, conf_interval = jackknife_stats(data, test_statistic, 0.95)
+    >>> estimate, bias, stderr, conf_interval = jackknife_stats(
+    ...     data, test_statistic, 0.95)
     >>> estimate
     array([ 4.5       ,  9.16666667])
     >>> bias
@@ -168,7 +170,8 @@ def jackknife_stats(data, statistic, conf_lvl=0.95):
     estimate = stat_data - bias
 
     # jackknife confidence interval
-    assert (conf_lvl > 0 and conf_lvl < 1), "confidence level must be in (0,1)."
+    assert (conf_lvl > 0 and conf_lvl < 1), ("confidence level must be in "
+                                             "(0, 1).")
     z_score = np.sqrt(2.0)*erfinv(conf_lvl)
     conf_interval = estimate + z_score*np.array((-std_err, std_err))
 

@@ -197,7 +197,6 @@ class FitnessFunc(object):
         self.gamma = gamma
         self.ncp_prior = ncp_prior
 
-
     def validate_input(self, t, x=None, sigma=None):
         """Validate inputs to the model.
 
@@ -340,9 +339,9 @@ class FitnessFunc(object):
         # Compute ncp_prior if not defined
         if self.ncp_prior is None:
             ncp_prior = self.compute_ncp_prior(N)
-        #-----------------------------------------------------------------
+        # ----------------------------------------------------------------
         # Start with first data cell; add one cell at each iteration
-        #-----------------------------------------------------------------
+        # ----------------------------------------------------------------
         for R in range(N):
             # Compute fit_vec : fitness of putative last block (end at R)
             kwds = {}
@@ -377,9 +376,9 @@ class FitnessFunc(object):
             last[R] = i_max
             best[R] = A_R[i_max]
 
-        #-----------------------------------------------------------------
+        # ----------------------------------------------------------------
         # Now find changepoints by iteratively peeling off the last block
-        #-----------------------------------------------------------------
+        # ----------------------------------------------------------------
         change_points = np.zeros(N, dtype=int)
         i_cp = N
         ind = N
