@@ -32,7 +32,7 @@ Solar system ephemerides
 Positions of the major solar-system bodies, including the moon, can now be
 calculated.  These integrate with the coordinates subpackage, allowing use of
 apparent (e.g. ``AltAz``) positions or barycentric values.  These can be
-calculated using either using built-in approximations or more precisely 
+calculated using either using built-in approximations or more precisely
 using JPL ephemeris models (the latter requiring the ``jplephem`` package).
 For more details, see :ref:`astropy-coordinates-solarsystem`.
 
@@ -41,7 +41,7 @@ Barycentric light-travel time corrections
 
 The :class:`~astropy.time.Time` class has gained a new method
 :meth:`~astropy.time.Time.light_travel_time` for calculating barycentric
-(or heliocentric) corrections. For more details, see 
+(or heliocentric) corrections. For more details, see
 :ref:`time-light-travel-time`.
 
 Astrometric coordinate frames
@@ -51,6 +51,103 @@ Astrometric coordinate frames
 
 Lomb-scargle periodograms
 -------------------------
+The new :class:`~astropy.stats.LombScargle` class implements a fast Lomb-Scargle
+periodogram, useful for detecting periodic signals in noisy, unevenly-spaced
+data. For example, here is an irregular sinusoidal signal:
+
+>>> import numpy as np
+>>> rand = np.random.RandomState(42)
+>>> t = 100 * rand.rand(100)
+>>> dy = 0.1
+>>> y = np.sin(2 * np.pi * t) + dy * rand.randn(100)
+
+Given this data, we can compute the Lomb-Scargle periodogram and find the
+frequency at which the power is maximized:
+
+>>> from astropy.stats import LombScargle
+>>> frequency, power = LombScargle(t, y, dy).autopower()
+>>> frequency[np.argmax(power)]
+0.99962825294969382
+
+The maximum is very near the input frequency of 1.0 cycles per unit time.
+
+As a more realistic example, here is a periodogram computed for six
+months of nightly observations of a simulated RR-Lyrae-type variable
+(this particular example is discussed more fully in
+:ref:`lomb-scargle-example`):
+
+.. plot::
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    plt.style.use('ggplot')
+
+    from astropy.stats import LombScargle
+
+
+    def simulated_data(N, rseed=2, period=0.41, phase=0.0):
+        """Simulate data based from a pre-computed empirical fit"""
+
+        # coefficients from a 5-term Fourier fit to SDSS object 1019544
+        coeffs = [-0.0191, 0.1375, -0.1968, 0.0959, 0.075,
+                  -0.0686, 0.0307, -0.0045, -0.0421, 0.0216, 0.0041]
+
+        rand = np.random.RandomState(rseed)
+        t = phase + np.arange(N, dtype=float)
+        t += 0.1 * rand.randn(N)
+        dmag = 0.01 + 0.03 * rand.rand(N)
+
+        omega = 2 * np.pi / period
+        n = np.arange(1 + len(coeffs) // 2)[:, None]
+
+        mag = (15 + dmag * rand.randn(N)
+               + np.dot(coeffs[::2], np.cos(n * omega * t)) +
+               + np.dot(coeffs[1::2], np.sin(n[1:] * omega * t)))
+
+        return t, mag, dmag
+
+
+    # generate data and compute the periodogram
+    t, mag, dmag = simulated_data(50)
+    freq, PLS = LombScargle(t, mag, dmag).autopower(minimum_frequency=1 / 1.2,
+                                                    maximum_frequency=1 / 0.2)
+    best_freq = freq[np.argmax(PLS)]
+    phase = (t * best_freq) % 1
+
+    # compute the best-fit model
+    phase_fit = np.linspace(0, 1)
+    mag_fit = LombScargle(t, mag, dmag).model(t=phase_fit / best_freq,
+                                              frequency=best_freq)
+
+    # set up the figure & axes for plotting
+    fig, ax = plt.subplots(1, 2, figsize=(12, 5))
+    fig.suptitle('Lomb-Scargle Periodogram (period=0.41 days)')
+    fig.subplots_adjust(bottom=0.12, left=0.07, right=0.95)
+    inset = fig.add_axes([0.78, 0.56, 0.15, 0.3])
+
+    # plot the raw data
+    ax[0].errorbar(t, mag, dmag, fmt='ok', elinewidth=1.5, capsize=0)
+    ax[0].invert_yaxis()
+    ax[0].set(xlim=(0, 50),
+              xlabel='Observation time (days)',
+              ylabel='Observed Magnitude')
+
+    # plot the periodogram
+    ax[1].plot(1. / freq, PLS)
+    ax[1].set(xlabel='period (days)',
+              ylabel='Lomb-Scargle Power',
+              xlim=(0.2, 1.2),
+              ylim=(0, 1));
+
+    # plot the phased data & model in the inset
+    inset.errorbar(phase, mag, dmag, fmt='.k', capsize=0)
+    inset.plot(phase_fit, mag_fit)
+    inset.invert_yaxis()
+    inset.set_xlabel('phase')
+    inset.set_ylabel('mag')
+
+For more information on astropy's Lomb-Scargle functionality,
+see :ref:`stats-lombscargle`.
 
 
 
@@ -145,5 +242,3 @@ Full change log
 
 To see a detailed list of all changes in version v1.2, including changes in
 API, please see the :ref:`changelog`.
-
-

@@ -508,8 +508,10 @@ In the Computational Scaling column, :math:`N` is the number of data points,
 :math:`M` is the number of frequencies, and :math:`n_f` is the number of
 Fourier terms for a multi-term fit.
 
-Example
-=======
+.. _lomb-scargle-example:
+
+RR-Lyrae Example
+================
 
 An example of computing the periodogram for a more realistic dataset is
 shown in the following figure. The data here consist of
