@@ -638,6 +638,15 @@ class Quantity(np.ndarray):
         sets the unit, but subclasses can override it to check that, e.g.,
         a unit is consistent.  It should return ``self`` after modification.
         """
+        if not isinstance(unit, UnitBase):
+            # Trying to go through a string ensures that, e.g., Magnitudes with
+            # dimensionless physical unit become Quantity with units of mag.
+            unit = Unit(str(unit), parse_strict='silent')
+            if not isinstance(unit, UnitBase):
+                raise UnitTypeError(
+                    "{0} instances require {1} units, not {2} instances."
+                    .format(type(self).__name__, UnitBase, type(unit)))
+
         self._unit = unit
         return self
 
