@@ -158,55 +158,57 @@ class TestIERS_Auto():
         iers_a_url_1 = 'file://' + os.path.abspath(iers_a_file_1)
         iers_a_url_2 = 'file://' + os.path.abspath(iers_a_file_2)
 
-        iers.conf.iers_auto_url = iers_a_url_1
+        with iers.conf.set_temp('iers_auto_url', iers_a_url_1):
 
-        dat = iers.IERS_Auto.open()
-        assert dat['MJD'][0] == 57359.0 * u.d
-        assert dat['MJD'][-1] == 57539.0 * u.d
+            dat = iers.IERS_Auto.open()
+            assert dat['MJD'][0] == 57359.0 * u.d
+            assert dat['MJD'][-1] == 57539.0 * u.d
 
-        # Pretend we are accessing at a time 7 days after start of predictive data
-        predictive_mjd = dat.meta['predictive_mjd']
-        dat._time_now = Time(predictive_mjd, format='mjd') + 7 * u.d
+            # Pretend we are accessing at a time 7 days after start of predictive data
+            predictive_mjd = dat.meta['predictive_mjd']
+            dat._time_now = Time(predictive_mjd, format='mjd') + 7 * u.d
 
-        # Look at times before and after the test file begins.
-        assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.0262719)
-        assert np.allclose(dat.ut1_utc(Time(60000, format='mjd').jd).value, -0.2246227)
+            # Look at times before and after the test file begins.  0.1292905 is
+            # the IERS-B value from MJD=57359.  The value in
+            # finals2000A-2016-02-30-test has been replaced at this point.
+            assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.1292905)
+            assert np.allclose(dat.ut1_utc(Time(60000, format='mjd').jd).value, -0.2246227)
 
-        # Now pretend we are accessing at time 60 days after start of predictive data.
-        # There will be a warning when downloading the file doesn't give new data
-        # and an exception when extrapolating into the future with insufficient data.
-        dat._time_now = Time(predictive_mjd, format='mjd') + 60 * u.d
-        assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.0262719)
-        with catch_warnings(iers.IERSStaleWarning) as warns:
-            with pytest.raises(ValueError) as err:
-                dat.ut1_utc(Time(60000, format='mjd').jd)
-        assert 'interpolating from IERS_Auto using predictive values' in str(err)
-        assert len(warns) == 1
-        assert 'IERS_Auto predictive values are older' in str(warns[0].message)
-
-        # Warning only if we are getting return status
-        with catch_warnings(iers.IERSStaleWarning) as warns:
-            dat.ut1_utc(Time(60000, format='mjd').jd, return_status=True)
-        assert len(warns) == 1
-        assert 'IERS_Auto predictive values are older' in str(warns[0].message)
-
-        # Now set auto_max_age = None which says that we don't care how old the
-        # available IERS-A file is.  There should be no warnings or exceptions.
-        with iers.conf.set_temp('auto_max_age', None):
+            # Now pretend we are accessing at time 60 days after start of predictive data.
+            # There will be a warning when downloading the file doesn't give new data
+            # and an exception when extrapolating into the future with insufficient data.
+            dat._time_now = Time(predictive_mjd, format='mjd') + 60 * u.d
+            assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.1292905)
             with catch_warnings(iers.IERSStaleWarning) as warns:
-                dat.ut1_utc(Time(60000, format='mjd').jd)
-            assert not warns
+                with pytest.raises(ValueError) as err:
+                    dat.ut1_utc(Time(60000, format='mjd').jd)
+            assert 'interpolating from IERS_Auto using predictive values' in str(err)
+            assert len(warns) == 1
+            assert 'IERS_Auto predictive values are older' in str(warns[0].message)
+
+            # Warning only if we are getting return status
+            with catch_warnings(iers.IERSStaleWarning) as warns:
+                dat.ut1_utc(Time(60000, format='mjd').jd, return_status=True)
+            assert len(warns) == 1
+            assert 'IERS_Auto predictive values are older' in str(warns[0].message)
+
+            # Now set auto_max_age = None which says that we don't care how old the
+            # available IERS-A file is.  There should be no warnings or exceptions.
+            with iers.conf.set_temp('auto_max_age', None):
+                with catch_warnings(iers.IERSStaleWarning) as warns:
+                    dat.ut1_utc(Time(60000, format='mjd').jd)
+                assert not warns
 
         # Now point to a later file with same values but MJD increased by
         # 60 days and see that things work.  dat._time_now is still the same value
         # as before, i.e. right around the start of predictive values for the new file.
         # (In other words this is like downloading the latest file online right now).
-        iers.conf.iers_auto_url = iers_a_url_2
+        with iers.conf.set_temp('iers_auto_url', iers_a_url_2):
 
-        # Look at times before and after the test file begins.  This forces a new download.
-        assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.0262719)
-        assert np.allclose(dat.ut1_utc(Time(60000, format='mjd').jd).value, -0.3)
+            # Look at times before and after the test file begins.  This forces a new download.
+            assert np.allclose(dat.ut1_utc(Time(50000, format='mjd').jd).value, 0.1292905)
+            assert np.allclose(dat.ut1_utc(Time(60000, format='mjd').jd).value, -0.3)
 
-        # Now the time range should be different.
-        assert dat['MJD'][0] == 57359.0 * u.d
-        assert dat['MJD'][-1] == (57539.0 + 60) * u.d
+            # Now the time range should be different.
+            assert dat['MJD'][0] == 57359.0 * u.d
+            assert dat['MJD'][-1] == (57539.0 + 60) * u.d
