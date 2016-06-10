@@ -40,6 +40,9 @@ New Features
 
   - Added ``pixel_scale`` and ``plate_scale`` equivalencies. [#4987]
 
+  - Expanded ``spectral_density`` equivalency to convert between ``photlam``
+    and ``STmag``/``ABmag``. [#5012]
+
 - ``astropy.utils``
 
 - ``astropy.vo``
