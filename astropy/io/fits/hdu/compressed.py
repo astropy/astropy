@@ -1404,7 +1404,7 @@ class CompImageHDU(BinTableHDU):
             if self._bscale != 1:
                 np.multiply(data, self._bscale, data)
             if self._bzero != 0:
-                data += self._bzero
+                data += new_dtype.type(self._bzero)
 
             if zblank is not None:
                 data = np.where(blanks, np.nan, data)
