@@ -350,8 +350,8 @@ class _KnuthF(object):
         bins = self.bins(M)
         nk, bins = np.histogram(self.data, bins)
 
-        return -(self.n * np.log(M)
-                 + self.gammaln(0.5 * M)
-                 - M * self.gammaln(0.5)
-                 - self.gammaln(self.n + 0.5 * M)
-                 + np.sum(self.gammaln(nk + 0.5)))
+        return -(self.n * np.log(M) +
+                 self.gammaln(0.5 * M) -
+                 M * self.gammaln(0.5) -
+                 self.gammaln(self.n + 0.5 * M) +
+                 np.sum(self.gammaln(nk + 0.5)))

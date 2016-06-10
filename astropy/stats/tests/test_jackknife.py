@@ -30,7 +30,6 @@ def test_jackknife_resampling():
 def test_jackknife_stats():
     # Test from the third example of Ref.[3]
     data = np.array((115, 170, 142, 138, 280, 470, 480, 141, 390))
-    resamples = jackknife_resampling(data)
     # true estimate, bias, and std_err
     answer = (258.4444, 0.0, 50.25936)
     assert_allclose(answer, jackknife_stats(data, np.mean)[0:3], atol=1e-4)
@@ -51,7 +50,8 @@ def test_jackknife_stats_conf_interval():
     answer = (113.7862, -4.376391, 22.26572)
 
     # calculate the mle of the variance (biased estimator!)
-    mle_var = lambda x: np.sum((x - np.mean(x))*(x - np.mean(x)))/len(x)
+    def mle_var(x): return np.sum((x - np.mean(x))*(x - np.mean(x)))/len(x)
+
     assert_allclose(answer, jackknife_stats(data, mle_var, 0.95)[0:3],
                     atol=1e-4)
 
