@@ -76,6 +76,10 @@ Other new statistics features
 Apparent/absolute bolometric magnitudes and other new units
 -----------------------------------------------------------
 
+The `astropy.units` package now supports bolometric magnitudes, based on the
+bolometric flux and luminosity scales adopted in IAU 2015 resolution B2.
+
+Furthermore, earth and jupiter radii have been made available as units.
 
 
 Zscale implementation
