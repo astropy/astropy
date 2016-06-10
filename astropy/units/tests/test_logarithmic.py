@@ -378,19 +378,35 @@ class TestLogQuantityCreation(object):
 
 
 class TestLogQuantityViews(object):
+    def setup(self):
+        self.lq = u.Magnitude(np.arange(10.) * u.Jy)
+        self.lq2 = u.Magnitude(np.arange(5.))
+
     def test_value_view(self):
-        lq = u.Magnitude(np.arange(10.) * u.Jy)
-        lq_value = lq.value
+        lq_value = self.lq.value
         assert type(lq_value) is np.ndarray
         lq_value[2] = -1.
-        assert np.all(lq.value == lq_value)
+        assert np.all(self.lq.value == lq_value)
 
-        lq_fv = lq._function_view
+    def test_function_view(self):
+        lq_fv = self.lq._function_view
         assert type(lq_fv) is u.Quantity
-        assert lq_fv.unit is lq.unit.function_unit
+        assert lq_fv.unit is self.lq.unit.function_unit
         lq_fv[3] = -2. * lq_fv.unit
-        assert np.all(lq.value == lq_fv.value)
-        assert np.all(lq.value == lq_value)
+        assert np.all(self.lq.value == lq_fv.value)
+
+    def test_quantity_view(self):
+        # Cannot view as Quantity, since the unit cannot be represented.
+        with pytest.raises(TypeError):
+            self.lq.view(u.Quantity)
+        # But a dimensionless one is fine.
+        q2 = self.lq2.view(u.Quantity)
+        assert q2.unit is u.mag
+        assert np.all(q2.value == self.lq2.value)
+        lq3 = q2.view(u.Magnitude)
+        assert type(lq3.unit) is u.MagUnit
+        assert lq3.unit.physical_unit == u.dimensionless_unscaled
+        assert np.all(lq3 == self.lq2)
 
 
 class TestLogQuantitySlicing(object):
