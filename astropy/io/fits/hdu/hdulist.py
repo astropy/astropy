@@ -26,7 +26,7 @@ from ....extern.six.moves import range
 
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
-             cache=True, **kwargs):
+             cache=True, lazy_load_hdus=True, **kwargs):
     """Factory function to open a FITS file and return an `HDUList` object.
 
     Parameters
@@ -55,6 +55,21 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
         If the file name is a URL, `~astropy.utils.data.download_file` is used
         to open the file.  This specifies whether or not to save the file
         locally in Astropy's download cache (default: `True`).
+
+    lazy_load_hdus : bool, option
+        By default `~astropy.io.fits.open` will not read all the HDUs and
+        headers in a FITS file immediately upon opening.  This is an
+        optimization especially useful for large files, as FITS has no way
+        of determining the number and offsets of all the HDUs in a file
+        without scanning through the file and reading all the headers.
+
+        To disable lazy loading and read all HDUs immediately (the old
+        behavior) use ``lazy_load_hdus=False``.  This can lead to fewer
+        surprises--for example with lazy loading enabled, ``len(hdul)``
+        can be slow, as it means the entire FITS file needs to be read in
+        order to determine the number of HDUs.  ``lazy_load_hdus=False``
+        ensures that all HDUs have already been loaded after the file has
+        been opened.
 
     kwargs : dict, optional
         additional optional keyword arguments, possible values are:
@@ -139,7 +154,8 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
     if not name:
         raise ValueError('Empty filename: {}'.format(repr(name)))
 
-    return HDUList.fromfile(name, mode, memmap, save_backup, cache, **kwargs)
+    return HDUList.fromfile(name, mode, memmap, save_backup, cache,
+                            lazy_load_hdus, **kwargs)
 
 
 class HDUList(list, _Verify):
@@ -315,7 +331,8 @@ class HDUList(list, _Verify):
 
     @classmethod
     def fromfile(cls, fileobj, mode=None, memmap=None,
-                 save_backup=False, cache=True, **kwargs):
+                 save_backup=False, cache=True, lazy_load_hdus=True,
+                 **kwargs):
         """
         Creates an `HDUList` instance from a file-like object.
 
@@ -325,7 +342,8 @@ class HDUList(list, _Verify):
         """
 
         return cls._readfrom(fileobj=fileobj, mode=mode, memmap=memmap,
-                             save_backup=save_backup, cache=cache, **kwargs)
+                             save_backup=save_backup, cache=cache,
+                             lazy_load_hdus=lazy_load_hdus, **kwargs)
 
     @classmethod
     def fromstring(cls, data, **kwargs):
@@ -892,7 +910,8 @@ class HDUList(list, _Verify):
 
     @classmethod
     def _readfrom(cls, fileobj=None, data=None, mode=None,
-                  memmap=None, save_backup=False, cache=True, **kwargs):
+                  memmap=None, save_backup=False, cache=True,
+                  lazy_load_hdus=True, **kwargs):
         """
         Provides the implementations from HDUList.fromfile and
         HDUList.fromstring, both of which wrap this method, as their
@@ -932,6 +951,11 @@ class HDUList(list, _Verify):
         # raise and exception
         if not read_one and mode in ('readonly', 'denywrite'):
             raise IOError('Empty or corrupt FITS file')
+
+        if not lazy_load_hdus:
+            # Go ahead and load all HDUs
+            while hdulist._read_next_hdu():
+                pass
 
         # initialize/reset attributes to be used in "update/append" mode
         hdulist._resize = False
