@@ -262,6 +262,7 @@ def test_repr_latex():
     """
     Regression test for issue #4542
     """
-
     somelocation = EarthLocation(lon='149:3:57.9', lat='-31:16:37.3')
     somelocation._repr_latex_()
+    somelocation2 = EarthLocation(lon=[1., 2.]*u.deg, lat=[-1., 9.]*u.deg)
+    somelocation2._repr_latex_()
