@@ -27,9 +27,10 @@ packages that use the full bugfix/maintenance branch approach.)
       $ pip install -r pip-requirements-dev  # any that might be left over
 
 #. Before doing a release of Astropy, you may need to do a release of
-   `astropy-helpers`_.  This is not always necessary if there are no significant
-   changes in the helpers.  See the section :ref:`helpers-release-info` for
-   more on this.
+   astropy-helpers.  This is not always necessary, as there are not always any
+   significant changes in the helpers.  See :ref:`helpers-release-info` for more
+   on this.
+
 
 #. Make sure that the continuous integration services (e.g., Travis) are passing
    for the `astropy core repository`_ branch you're going to release.  You may
@@ -248,7 +249,7 @@ The procedure for this is straightforward:
 
 #. Update the ``CHANGES.rst`` file with a new section at the very top for the
    next major version.  You will likely want to use the ``add_to_changelog.py``
-   script in the `astropy-tools`_ repository for this. The add and commit those
+   script in the `astropy-tools repository`_ for this. Then add and commit those
    changes::
 
       <use your favorite editor on CHANGES.rst>
@@ -477,7 +478,7 @@ Coordinating Astropy and astropy-helpers Releases
 -------------------------------------------------
 
 A bit more initial effort is required for an Astropy release that has a
-corresponding astropy-helpers_ release.  The main reason for this more complex
+corresponding astropy-helpers release.  The main reason for this more complex
 procedure is to allow the Astropy core to be tested against the new helpers
 before anything is released.  Hence the following procedure should be added
 to the beginning of the above procedure when this is required. This procedure
