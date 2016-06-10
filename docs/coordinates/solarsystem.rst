@@ -34,10 +34,10 @@ without the need to download a large ephemerides file::
   >>> from astropy.coordinates import solar_system_ephemeris, EarthLocation  
   >>> from astropy.coordinates import get_body_barycentric, get_body, get_moon
   >>> t = Time("2014-09-22 23:22")
-  >>> loc = EarthLocation.of_site('greenwich')
+  >>> loc = EarthLocation.of_site('greenwich') # doctest: +REMOTE_DATA
   >>> with solar_system_ephemeris.set('builtin'):
-  ...     jup = get_body('jupiter', t, loc)
-  >>> jup  # doctest: +FLOAT_CMP
+  ...     jup = get_body('jupiter', t, loc) # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+  >>> jup  # doctest: +FLOAT_CMP +REMOTE_DATA
   <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=[ 3949481.6898847   -550931.9118969   4961151.73733443] m, obsgeovel=[  40.1745933   288.00078051   -0.        ] m / s): (ra, dec, distance) in (deg, deg, AU)
       (136.91116201, 17.02935408, 5.94386022)>
 
@@ -48,6 +48,8 @@ To get more precise positions, one could use the ``de430`` ephemeris mentioned
 above, but between 1950 and 2050 one could also opt for the ``de432s``
 ephemeris, which is stored in a smaller, ~10 MB, file (which will be
 downloaded and cached when the ephemeris is set).::
+
+.. doctest-requires:: jplephem
 
   >>> solar_system_ephemeris.set('de432s') # doctest: +REMOTE_DATA, +IGNORE_OUTPUT
   <ScienceState solar_system_ephemeris: 'de432s'>
@@ -64,6 +66,8 @@ downloaded and cached when the ephemeris is set).::
 For one-off calculations with a given ephemeris, one can also pass it directly
 to the various functions::
 
+.. doctest-requires:: jplephem
+
   >>> get_body_barycentric('moon', t, ephemeris='de432s')
   ... # doctest: +REMOTE_DATA, +FLOAT_CMP
   <CartesianRepresentation (x, y, z) in km
@@ -74,6 +78,11 @@ to the various functions::
     (1.00340677, -0.00579439, -0.00280071)>
 
 For a list of the bodies for which positions can be calculated, do::
+
+.. note that we skip the next test if jplephem is not installed because if 
+.. jplephem was not installed, we didn't change the science state higher up
+
+.. doctest-requires:: jplephem
 
   >>> solar_system_ephemeris.bodies # doctest: +REMOTE_DATA
   ('sun',
