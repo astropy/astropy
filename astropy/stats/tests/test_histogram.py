@@ -28,7 +28,7 @@ def test_scott_bin_width(N=10000, rseed=0):
     assert_allclose(delta,  3.5 * np.std(X) / N ** (1 / 3))
 
     with pytest.raises(ValueError):
-        delta = scott_bin_width(rng.rand(2, 10))
+        scott_bin_width(rng.rand(2, 10))
 
 
 def test_freedman_bin_width(N=10000, rseed=0):
@@ -44,7 +44,7 @@ def test_freedman_bin_width(N=10000, rseed=0):
     assert_allclose(delta, 2 * (v75 - v25) / N ** (1 / 3))
 
     with pytest.raises(ValueError):
-        delta = freedman_bin_width(rng.rand(2, 10))
+        freedman_bin_width(rng.rand(2, 10))
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -59,7 +59,7 @@ def test_knuth_bin_width(N=10000, rseed=0):
     assert dx == dx2
 
     with pytest.raises(ValueError):
-        delta = knuth_bin_width(rng.rand(2, 10))
+        knuth_bin_width(rng.rand(2, 10))
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -110,7 +110,7 @@ def test_histogram_output():
     counts, bins = histogram(X, bins=10)
     assert_allclose(counts, [1, 5, 7, 13, 17, 18, 16, 11, 7, 5])
     assert_allclose(bins, [-2.55298982, -2.07071537, -1.58844093, -1.10616648,
-                           -0.62389204, -0.1416176 , 0.34065685, 0.82293129,
+                           -0.62389204, -0.1416176, 0.34065685, 0.82293129,
                            1.30520574, 1.78748018, 2.26975462])
 
     counts, bins = histogram(X, bins='scott')
