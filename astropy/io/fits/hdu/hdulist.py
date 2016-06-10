@@ -1310,7 +1310,7 @@ class HDUList(list, _Verify):
             ffo.truncate(0)
             ffo.seek(0)
 
-            for hdu in self:
+            for hdu in hdulist:
                 hdu._writeto(ffo, inplace=True, copy=True)
 
             # Close the temporary file and delete it.
