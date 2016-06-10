@@ -433,9 +433,15 @@ def fileobj_name(f):
 
 def fileobj_closed(f):
     """
-    Returns True if the given file-like object is closed or if f is not a
-    file-like object.
+    Returns True if the given file-like object is closed or if f is a string
+    (and assumed to be a pathname).
+
+    Returns False for all other types of objects, under the assumption that
+    they are file-like objects with no sense of a 'closed' state.
     """
+
+    if isinstance(f, string_types):
+        return True
 
     if hasattr(f, 'closed'):
         return f.closed
