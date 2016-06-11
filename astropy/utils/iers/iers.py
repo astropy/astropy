@@ -545,7 +545,12 @@ class IERS_Auto(IERS_A):
             cls.iers_table = IERS.open()
 
         if cls.iers_table is not None:
-            return cls.iers_table
+
+            # If the URL has changed, we need to redownload the file, so we
+            # should ignore the internally cached version.
+
+            if cls.iers_table.meta.get('data_url') == conf.iers_auto_url:
+                return cls.iers_table
 
         try:
             filename = download_file(conf.iers_auto_url, cache=True)
