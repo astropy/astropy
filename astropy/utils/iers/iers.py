@@ -519,10 +519,6 @@ class IERS_Auto(IERS_A):
     """
     iers_table = None
 
-    # Keep track of the URL used - if the URL changes, we need to re-download
-    # the file. This can occur for example in tests which change iers_auto_url.
-    _iers_url = None
-
     @classmethod
     def open(cls):
         """If the configuration setting ``astropy.utils.iers.conf.auto_download``
@@ -548,13 +544,16 @@ class IERS_Auto(IERS_A):
         if not conf.auto_download:
             cls.iers_table = IERS.open()
 
-        # If the URL has changed, we need to redownload the file
-        if cls.iers_table is not None and conf.iers_auto_url == cls._iers_url:
-            return cls.iers_table
+        if cls.iers_table is not None:
+
+            # If the URL has changed, we need to redownload the file, so we
+            # should ignore the internally cached version.
+
+            if cls.iers_table.meta.get('data_url') == conf.iers_auto_url:
+                return cls.iers_table
 
         try:
             filename = download_file(conf.iers_auto_url, cache=True)
-            cls._iers_url = conf.iers_auto_url
         except Exception as err:
             # Issue a warning here, perhaps user is offline.  An exception
             # will be raised downstream when actually trying to interpolate
