@@ -157,23 +157,15 @@ Other Changes and Additions
 General
 ^^^^^^^
 
-Astropy now requires Numpy 1.7.0 or later. [#4784]
+- Astropy now requires Numpy 1.7.0 or later. [#4784]
 
 New Features
 ^^^^^^^^^^^^
-
-- ``astropy.analytic_functions``
-
-- ``astropy.config``
-
-- ``astropy.conftest.py``
 
 - ``astropy.constants``
 
   - Add ``L_bol0``, the luminosity corresponding to absolute bolometric
     magnitude zero. [#4262]
-
-- ``astropy.convolution``
 
 - ``astropy.coordinates``
 
@@ -228,8 +220,6 @@ New Features
   - A new optional arguments ``ignore_missing`` and ``remove_all`` are added
     to ``astropy.io.fits.header.remove()``. [#5020]
 
-- ``astropy.io.misc``
-
 - ``astropy.io.registry``
 
   - Added custom ``IORegistryError`` [#4833]
@@ -237,8 +227,6 @@ New Features
 - ``astropy.io.votable``
 
   - File name could be passed as ``Path`` object. [#4606]
-
-- ``astropy.logger.py``
 
 - ``astropy.modeling``
 
@@ -351,26 +339,14 @@ New Features
 
   - Add zscale interval based on Numdisplay's implementation. [#4776]
 
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
 API changes
 ^^^^^^^^^^^
-
-- ``astropy.analytic_functions``
 
 - ``astropy.config``
 
   - The deprecated ``ConfigurationItem`` and ``ConfigAlias`` classes and the
     ``save_config``, ``get_config_items``, and ``generate_all_config_items``
     functions have now been removed. [#2767, #4446]
-
-- ``astropy.conftest.py``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
 
 - ``astropy.coordinates``
 
@@ -391,12 +367,6 @@ API changes
 
   - Two optional boolean arguments ``ignore_missing`` and ``remove_all`` are
     added to ``Header.remove``. [#5020]
-
-- ``astropy.io.misc``
-
-- ``astropy.io.votable``
-
-- ``astropy.logger.py``
 
 - ``astropy.modeling``
 
@@ -533,8 +503,6 @@ API changes
 
   - Allow ``data`` to be a named argument in ``NDDataArray``. [#4626]
 
-- ``astropy.stats``
-
 - ``astropy.table``
 
   - ``operations.unique`` now has a ``keep`` parameter, which allows
@@ -544,10 +512,6 @@ API changes
   - ``QTable`` now behaves more consistently by making columns act as a
     ``Quantity`` even if they are assigned a unit after the table is
     created. [#4497, #4884]
-
-- ``astropy.tests``
-
-- ``astropy.time``
 
 - ``astropy.units``
 
@@ -580,13 +544,6 @@ API changes
     outside the available time range, the values are now clipped at the last
     available value instead of being linearly extrapolated. [#4436]
 
-- ``astropy.visualization``
-
-- ``astropy.vo``
-
-  - The astropy.vo.validator.conf.conesearch_urls listing is updated to reflect
-    external changes to some VizieR Cone Search services. [#4699]
-
 - ``astropy.wcs``
 
   - WCS objects can now be initialized with an ImageHDU or
@@ -595,19 +552,8 @@ API changes
   - astropy.wcs now issues an INFO message when the header has SIP coefficients but
     "-SIP" is missing from CTYPE. [#4814]
 
-
 Bug fixes
 ^^^^^^^^^
-
-- ``astropy.analytic_functions``
-
-- ``astropy.config``
-
-- ``astropy.conftest.py``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
 
 - ``astropy.coordinates``
 
@@ -619,8 +565,6 @@ Bug fixes
     
   - Ensured that transformations for ``GCRS`` frames are correct for 
     non-geocentric observers. [#4986]
-
-- ``astropy.cosmology``
 
 - ``astropy.io.ascii``
 
@@ -635,9 +579,6 @@ Bug fixes
 
 - ``astropy.io.fits``
 
-  - Removed raising of AssertionError that could occur after closing or
-    deleting compressed image data. [#4690, #4694, #4948]
-
   - ``GroupsHDU.is_image`` property is now set to ``False``. [#4742]
 
   - Ensure scaling keywords are removed from header when unsigned integer data
@@ -651,8 +592,6 @@ Bug fixes
     by zero when generating validation report. [#4699]
 
   - KeyError when converting Table v1.2 numeric arrays fixed. [#4782]
-
-- ``astropy.logger.py``
 
 - ``astropy.modeling``
 
@@ -691,10 +630,6 @@ Bug fixes
   - Provide more detail in the error message when reading a table fails due to a
     problem converting column string values. [#4759]
 
-- ``astropy.tests``
-
-- ``astropy.time``
-
 - ``astropy.units``
 
   - Exponentation using a ``Quantity`` with a unit equivalent to dimensionless
@@ -711,19 +646,10 @@ Bug fixes
   - Attributes using the astropy.utils.metadata.MetaData descriptor are now
     included in the sphinx documentation. [#4921]
 
-- ``astropy.visualization``
-
 - ``astropy.vo``
 
   - Relaxed expected accuracy of Cone Search prediction test to reduce spurious
     failures. [#4382]
-
-  - Cache option now properly caches both downloaded JSON database and XML VO
-    tables. [#4699]
-
-  - VOSDatabase decodes byte-string to UTF-8 instead of ASCII to avoid
-    UnicodeDecodeError for some rare cases. Fixed a Cone Search test that is
-    failing as a side-effect of #4699. [#4757]
 
 - ``astropy.wcs``
 
@@ -1455,12 +1381,11 @@ Other Changes and Additions
   in Python 2.6 (this warning can be disabled through the usual Python warning
   filtering mechanisms). [#3779]
 
-
-1.0.10 (unreleased)
+1.0.11 (unreleased)
 -------------------
 
-New Features
-^^^^^^^^^^^^
+Bug Fixes
+^^^^^^^^^
 
 - ``astropy.config``
 
@@ -1475,6 +1400,12 @@ New Features
 - ``astropy.io.ascii``
 
 - ``astropy.io.fits``
+
+  - Removed raising of AssertionError that could occur after closing or
+    deleting compressed image data. [#4690, #4694, #4948]
+
+  - Fixed bug that caused an ignored exception to be displayed under certain
+    conditions when terminating a script after using fits.getdata(). [#4977]
 
 - ``astropy.io.misc``
 
@@ -1492,9 +1423,6 @@ New Features
 
 - ``astropy.table``
 
-  - Fixed bug where Tables created from existing Table objects were not
-    inheriting the ``primary_key`` attribute. [#4672]
-
 - ``astropy.time``
 
 - ``astropy.units``
@@ -1505,55 +1433,14 @@ New Features
 
 - ``astropy.wcs``
 
-API Changes
-^^^^^^^^^^^
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
+1.0.10 (2016-06-09)
+-------------------
 
 Bug Fixes
 ^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
 
 - ``astropy.coordinates``
 
@@ -1562,8 +1449,6 @@ Bug Fixes
     accessed [#5021]
 
   - Fix some errors in the implementation of aberration  for ``get_sun``. [#4979]
-
-- ``astropy.cosmology``
 
 - ``astropy.io.ascii``
 
@@ -1574,17 +1459,10 @@ Bug Fixes
   - Fix convenience functions (``getdata``, ``getheader``, ``append``,
     ``update``) to close files. [#4786]
 
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
 - ``astropy.io.votable``
 
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
+  - The astropy.io.votable.validator.html module is updated to handle division
+    by zero when generating validation report. [#4699]
 
 - ``astropy.table``
 
@@ -1593,11 +1471,12 @@ Bug Fixes
 
   - Fix bug when doing outer join on multi-dimensional columns. [#4060]
 
+  - Fixed bug where Tables created from existing Table objects were not
+    inheriting the ``primary_key`` attribute. [#4672]
+
 - ``astropy.tests``
 
   - Fix coverage reporting in Python 3. [#4822]
-
-- ``astropy.time``
 
 - ``astropy.units``
 
@@ -1606,13 +1485,24 @@ Bug Fixes
 
 - ``astropy.utils``
 
+  - The astropy.utils.xml.unescaper module now also unescapes ``'%2F'`` to
+    ``'/'`` and ``'&&'`` to ``'&'`` in a given URL. [#4699]
+
   - Fix two problems related to the download cache: clear_download_cache() does
     not work in Python 2.7 and downloading in Python 2.7 and then Python 3
     can result in an exception. [#4810]
 
 - ``astropy.vo``
 
-- ``astropy.wcs``
+  - Cache option now properly caches both downloaded JSON database and XML VO
+    tables. [#4699]
+
+  - The astropy.vo.validator.conf.conesearch_urls listing is updated to reflect
+    external changes to some VizieR Cone Search services. [#4699]
+
+  - VOSDatabase decodes byte-string to UTF-8 instead of ASCII to avoid
+    UnicodeDecodeError for some rare cases. Fixed a Cone Search test that is
+    failing as a side-effect of #4699. [#4757]
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
