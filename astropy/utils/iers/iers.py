@@ -544,8 +544,9 @@ class IERS_Auto(IERS_A):
         if not conf.auto_download:
             cls.iers_table = IERS.open()
 
-        if cls.iers_table is not None:
-            return cls.iers_table
+        # We re-download the IERS table even if iers_table is already defined,
+        # because the URL might have changed. The download_file caching
+        # mechanism will ensure we avoid any unecessary downloads.
 
         try:
             filename = download_file(conf.iers_auto_url, cache=True)
