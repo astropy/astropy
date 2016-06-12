@@ -105,9 +105,11 @@ def getheader(filename, *args, **kwargs):
 
     mode, closed = _get_file_mode(filename)
     hdulist, extidx = _getext(filename, mode, *args, **kwargs)
-    hdu = hdulist[extidx]
-    header = hdu.header
-    hdulist.close(closed=not closed)
+    try:
+        hdu = hdulist[extidx]
+        header = hdu.header
+    finally:
+        hdulist.close(closed=closed)
     return header
 
 
@@ -189,19 +191,21 @@ def getdata(filename, *args, **kwargs):
     view = kwargs.pop('view', None)
 
     hdulist, extidx = _getext(filename, mode, *args, **kwargs)
-    hdu = hdulist[extidx]
-    data = hdu.data
-    if data is None and extidx == 0:
-        try:
-            hdu = hdulist[1]
-            data = hdu.data
-        except IndexError:
+    try:
+        hdu = hdulist[extidx]
+        data = hdu.data
+        if data is None and extidx == 0:
+            try:
+                hdu = hdulist[1]
+                data = hdu.data
+            except IndexError:
+                raise IndexError('No data in this HDU.')
+        if data is None:
             raise IndexError('No data in this HDU.')
-    if data is None:
-        raise IndexError('No data in this HDU.')
-    if header:
-        hdr = hdu.header
-    hdulist.close(closed=not closed)
+        if header:
+            hdr = hdu.header
+    finally:
+        hdulist.close(closed=closed)
 
     # Change case of names if requested
     trans = None
@@ -330,11 +334,14 @@ def setval(filename, keyword, *args, **kwargs):
     after = kwargs.pop('after', None)
     savecomment = kwargs.pop('savecomment', False)
 
+    closed = fileobj_closed(filename)
     hdulist, extidx = _getext(filename, 'update', *args, **kwargs)
-    if keyword in hdulist[extidx].header and savecomment:
-        comment = None
-    hdulist[extidx].header.set(keyword, value, comment, before, after)
-    hdulist.close()
+    try:
+        if keyword in hdulist[extidx].header and savecomment:
+            comment = None
+        hdulist[extidx].header.set(keyword, value, comment, before, after)
+    finally:
+        hdulist.close(closed=closed)
 
 
 def delval(filename, keyword, *args, **kwargs):
@@ -367,9 +374,12 @@ def delval(filename, keyword, *args, **kwargs):
     if 'do_not_scale_image_data' not in kwargs:
         kwargs['do_not_scale_image_data'] = True
 
+    closed = fileobj_closed(filename)
     hdulist, extidx = _getext(filename, 'update', *args, **kwargs)
-    del hdulist[extidx].header[keyword]
-    hdulist.close()
+    try:
+        del hdulist[extidx].header[keyword]
+    finally:
+        hdulist.close(closed=closed)
 
 
 def writeto(filename, data, header=None, output_verify='exception',
@@ -563,17 +573,21 @@ def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
 
         if verify or not closed:
             f = fitsopen(filename, mode='append')
-            f.append(hdu)
+            try:
+                f.append(hdu)
 
-            # Set a flag in the HDU so that only this HDU gets a checksum when
-            # writing the file.
-            hdu._output_checksum = checksum
-            f.close(closed=not closed)
+                # Set a flag in the HDU so that only this HDU gets a checksum
+                # when writing the file.
+                hdu._output_checksum = checksum
+            finally:
+                f.close(closed=closed)
         else:
             f = _File(filename, mode='append')
-            hdu._output_checksum = checksum
-            hdu._writeto(f)
-            f.close()
+            try:
+                hdu._output_checksum = checksum
+                hdu._writeto(f)
+            finally:
+                f.close()
 
 
 def update(filename, data, *args, **kwargs):
@@ -629,9 +643,10 @@ def update(filename, data, *args, **kwargs):
     closed = fileobj_closed(filename)
 
     hdulist, _ext = _getext(filename, 'update', *args, **kwargs)
-    hdulist[_ext] = new_hdu
-
-    hdulist.close(closed=not closed)
+    try:
+        hdulist[_ext] = new_hdu
+    finally:
+        hdulist.close(closed=closed)
 
 
 def info(filename, output=None, **kwargs):
@@ -664,10 +679,11 @@ def info(filename, output=None, **kwargs):
         kwargs['ignore_missing_end'] = True
 
     f = fitsopen(filename, mode=mode, **kwargs)
-    ret = f.info(output=output)
-
-    if closed:
-        f.close()
+    try:
+        ret = f.info(output=output)
+    finally:
+        if closed:
+            f.close()
 
     return ret
 
@@ -720,18 +736,18 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
     f = fitsopen(filename, mode=mode)
 
     # Create the default data file name if one was not provided
+    try:
+        if not datafile:
+            # TODO: Really need to provide a better way to access the name of
+            # any files underlying an HDU
+            root, tail = os.path.splitext(f._HDUList__file.name)
+            datafile = root + '_' + repr(ext) + '.txt'
 
-    if not datafile:
-        # TODO: Really need to provide a better way to access the name of any
-        # files underlying an HDU
-        root, tail = os.path.splitext(f._HDUList__file.name)
-        datafile = root + '_' + repr(ext) + '.txt'
-
-    # Dump the data from the HDU to the files
-    f[ext].dump(datafile, cdfile, hfile, clobber)
-
-    if closed:
-        f.close()
+        # Dump the data from the HDU to the files
+        f[ext].dump(datafile, cdfile, hfile, clobber)
+    finally:
+        if closed:
+            f.close()
 
 if isinstance(tabledump.__doc__, string_types):
     tabledump.__doc__ += BinTableHDU._tdump_file_format.replace('\n', '\n    ')
