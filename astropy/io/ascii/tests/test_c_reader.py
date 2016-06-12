@@ -965,14 +965,24 @@ def test_fortran_reader(parallel):
                        fast_reader={'parallel': parallel, 'exponent_style': 'fortran'})
     assert_table_equal(table, expected)
 
-    # test for invalid exponent-like patterns (no triple-digits) to make sure
-    # they are parsed as strings
+
+@pytest.mark.parametrize("parallel", [
+    pytest.mark.xfail(os.name == 'nt', reason=
+                      "Multiprocessing is currently unsupported on Windows")(True),
+    False])
+def test_fortran_invalid_exp(parallel):
+    """
+    Test Fortran-style exponential notation in the fast_reader with invalid
+    exponent-like patterns (no triple-digits) to make sure they are returned
+    as strings instead, as with the standard C parser.
+    """
+    if TRAVIS:
+        pytest.xfail("Large exponents can sometimes fail on Travis CI")
+
     text = 'A B C D E\n1.0001+1 2.3+10 3+1001 2 8.e3\n.42d0 0.5 3 4.56-123.4 0.42-123'
     expected = Table([['1.0001+1', '.42d0'], ['2.3+10', '0.5'], ['3+1001', '3'],
                       ['2', '4.56-123.4'], [8000, 4.2e-122]],
                      names=('A', 'B', 'C', 'D', 'E'))
-    if parallel and TRAVIS:
-        pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
     table = ascii.read(text, format='basic', guess=False,
                        fast_reader={'parallel': parallel, 'exponent_style': 'fortran'})
     assert_table_equal(table, expected)
