@@ -18,6 +18,9 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Fixed ``io.fits`` convenience functions to not close open file
+    objects. [#5063]
+
   - Removed raising of AssertionError that could occur after closing or
     deleting compressed image data. [#4690, #4948]
 
