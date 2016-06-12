@@ -44,7 +44,7 @@ While these methods are convenient, there are several considerations to take int
 
   We can then view the actual cartesian coordinates for the observatory:
 
-    >>> loc  # doctest: +REMOTE_DATA
+    >>> loc  # doctest: +REMOTE_DATA +FLOAT_CMP
     <EarthLocation (-1994502.6043061386, -5037538.54232911, 3358104.9969029757) m>
 
   This can then easily be converted to code::
