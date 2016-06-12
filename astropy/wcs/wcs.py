@@ -2052,22 +2052,22 @@ reduce these to 2 dimensions using the naxis kwarg.
         >>> hdulist.close()
 
         >>> ra, dec = w.all_pix2world([1,2,3], [1,1,1], 1)
-        >>> print(ra)
+        >>> print(ra)  # doctest: +FLOAT_CMP
         [ 5.52645627  5.52649663  5.52653698]
-        >>> print(dec)
+        >>> print(dec)  # doctest: +FLOAT_CMP
         [-72.05171757 -72.05171276 -72.05170795]
         >>> radec = w.all_pix2world([[1,1], [2,1], [3,1]], 1)
-        >>> print(radec)
+        >>> print(radec)  # doctest: +FLOAT_CMP
         [[  5.52645627 -72.05171757]
          [  5.52649663 -72.05171276]
          [  5.52653698 -72.05170795]]
         >>> x, y = w.all_world2pix(ra, dec, 1)
-        >>> print(x)
+        >>> print(x)  # doctest: +FLOAT_CMP
         [ 1.00000238  2.00000237  3.00000236]
-        >>> print(y)
+        >>> print(y)  # doctest: +FLOAT_CMP
         [ 0.99999996  0.99999997  0.99999997]
         >>> xy = w.all_world2pix(radec, 1)
-        >>> print(xy)
+        >>> print(xy)  # doctest: +FLOAT_CMP
         [[ 1.00000238  0.99999996]
          [ 2.00000237  0.99999997]
          [ 3.00000236  0.99999997]]
@@ -2083,13 +2083,13 @@ reduce these to 2 dimensions using the naxis kwarg.
         >>> divradec = w.all_pix2world([[1.0, 1.0],
         ...                             [10000.0, 50000.0],
         ...                             [3.0, 1.0]], 1)
-        >>> print(divradec)
+        >>> print(divradec)  # doctest: +FLOAT_CMP
         [[  5.52645627 -72.05171757]
          [  7.15976932 -70.8140779 ]
          [  5.52653698 -72.05170795]]
 
         >>> # First, turn detect_divergence on:
-        >>> try:
+        >>> try:  # doctest: +FLOAT_CMP
         ...   xy = w.all_world2pix(divradec, 1, maxiter=20,
         ...                        tolerance=1.0e-4, adaptive=False,
         ...                        detect_divergence=True,
@@ -2119,7 +2119,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         diverging at least for one input point.
 
         >>> # This time turn detect_divergence off:
-        >>> try:
+        >>> try:  # doctest: +FLOAT_CMP
         ...   xy = w.all_world2pix(divradec, 1, maxiter=20,
         ...                        tolerance=1.0e-4, adaptive=False,
         ...                        detect_divergence=False,
