@@ -616,6 +616,11 @@ Bug fixes
   - Ensured that transformations for ``GCRS`` frames are correct for 
     non-geocentric observers. [#4986]
 
+  - Fixed a problem with the ``Quantity._repr_latex_`` method causing errors
+    when showing an ``EarthLocation`` in a Jupyter notebook. [#4542, #5068]
+
+- ``astropy.cosmology``
+
 - ``astropy.io.ascii``
 
   - Fix a problem where the fast reader (with use_fast_converter=False) can
