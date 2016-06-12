@@ -824,6 +824,9 @@ def _array_to_file_like(arr, fileobj):
     `numpy.ndarray.tofile`).
     """
 
+    if len(arr) == 0:
+        return
+
     if arr.flags.contiguous:
 
         # It suffices to just pass the underlying buffer directly to the
