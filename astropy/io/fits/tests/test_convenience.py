@@ -27,6 +27,22 @@ class TestConvenience(FitsTestCase):
             header = fits.getheader(self.data('test0.fits'))
             assert len(w) == 0
 
+    def test_fileobj_not_closed(self):
+        """
+        Tests that file-like objects are not closed after being passed
+        to convenenience functions.
+
+        Regression test for https://github.com/astropy/astropy/issues/5063
+        """
+
+        f = open(self.data('test0.fits'), 'rb')
+        data = fits.getdata(f)
+        assert not f.closed
+
+        f.seek(0)
+        header = fits.getheader(f)
+        assert not f.closed
+
     def test_table_to_hdu(self, tmpdir):
         table = Table([[1, 2, 3], ['a', 'b', 'c'], [2.3, 4.5, 6.7]],
                       names=['a', 'b', 'c'], dtype=['i', 'U1', 'f'])
