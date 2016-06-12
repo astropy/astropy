@@ -587,7 +587,7 @@ def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
                 hdu._output_checksum = checksum
                 hdu._writeto(f)
             finally:
-               f.close()
+                f.close()
 
 
 def update(filename, data, *args, **kwargs):
