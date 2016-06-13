@@ -9,6 +9,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 import numpy as np
 
 from ... import units as u
+from ...utils.compat import NUMPY_LT_1_10
 from ..baseframe import frame_transform_graph
 from ..transformations import FunctionTransform, DynamicMatrixTransform
 from ..angles import rotation_matrix
@@ -34,7 +35,10 @@ def _ecliptic_rotation_matrix(equinox):
     """
     try:
         rmat = np.array([rotation_matrix(this_obl, 'x') for this_obl in obl])
-        result = np.einsum('...ij,...jk->...ik', rmat, rnpb)
+        if NUMPY_LT_1_10:
+            result = np.einsum('...ij,...jk->...ik', rmat, rnpb)
+        else:
+            result = np.matmul(rmat, rnpb)
     except:
         # must be a scalar obliquity
         result = np.asarray(np.dot(rotation_matrix(obl, 'x'), rnpb))
