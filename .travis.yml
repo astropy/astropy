@@ -54,16 +54,19 @@ matrix:
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='sphinx-gallery>=0.1.2 pillow wcsaxes --no-deps jplephem'
 
-        # Try all python versions with the latest numpy, but without the
-        # optional dependencies
+        # Try all python versions and Numpy versions. Since we can assume that
+        # the Numpy developers have taken care of testing Numpy with different 
+        # versions of Python, we can vary Python and Numpy versions at the same 
+        # time. Since we test the latest Numpy as part of the builds with all
+        # optional dependencies below, we can focus on older builds here.
         - os: linux
-          env: PYTHON_VERSION=2.7 SETUP_CMD='test --open-files'
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.7 SETUP_CMD='test --open-files'
         - os: linux
-          env: PYTHON_VERSION=3.3 SETUP_CMD='test --open-files'
+          env: PYTHON_VERSION=3.3 NUMPY_VERSION=1.8 SETUP_CMD='test --open-files'
         - os: linux
-          env: PYTHON_VERSION=3.4 SETUP_CMD='test --open-files'
+          env: PYTHON_VERSION=3.4 NUMPY_VERSION=1.9 SETUP_CMD='test --open-files'
         - os: linux
-          env: PYTHON_VERSION=3.5 SETUP_CMD='test --open-files'
+          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.10 SETUP_CMD='test --open-files'
 
         # Now try with all optional dependencies on 2.7 and an appropriate 3.x
         # build (with latest numpy). We also note the code coverage on Python
@@ -75,20 +78,10 @@ matrix:
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
         - os: linux
-          env: PYTHON_VERSION=3.4 SETUP_CMD='test'
+          env: PYTHON_VERSION=3.5 SETUP_CMD='test'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='jplephem'
                LC_CTYPE=C.ascii LC_ALL=C
-
-        # Try older numpy versions without optional dependencies
-        - os: linux
-          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.10 SETUP_CMD='test'
-        - os: linux
-          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.9 SETUP_CMD='test'
-        - os: linux
-          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.8 SETUP_CMD='test'
-        - os: linux
-          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.7 SETUP_CMD='test'
 
         # Try developer version of Numpy without optional dependencies
         - os: linux
