@@ -157,6 +157,28 @@ def test_search_around():
     assert idx1.size == idx2.size == d2d.size == d3d.size == 0
     assert idx1.dtype == idx2.dtype == np.int
 
+    # Test when one or both of the coordinate arrays is empty, #4875
+    empty = ICRS(ra=[] * u.degree, dec=[] * u.degree, distance=[] * u.kpc)
+    idx1, idx2, d2d, d3d = search_around_sky(empty, coo2, 1*u.arcsec)
+    assert idx1.size == idx2.size == d2d.size == d3d.size == 0
+    assert idx1.dtype == idx2.dtype == np.int
+    idx1, idx2, d2d, d3d = search_around_sky(coo1, empty, 1*u.arcsec)
+    assert idx1.size == idx2.size == d2d.size == d3d.size == 0
+    assert idx1.dtype == idx2.dtype == np.int
+    empty = ICRS(ra=[] * u.degree, dec=[] * u.degree, distance=[] * u.kpc)
+    idx1, idx2, d2d, d3d = search_around_sky(empty, empty[:], 1*u.arcsec)
+    assert idx1.size == idx2.size == d2d.size == d3d.size == 0
+    assert idx1.dtype == idx2.dtype == np.int
+    idx1, idx2, d2d, d3d = search_around_3d(empty, coo2, 1*u.m)
+    assert idx1.size == idx2.size == d2d.size == d3d.size == 0
+    assert idx1.dtype == idx2.dtype == np.int
+    idx1, idx2, d2d, d3d = search_around_3d(coo1, empty, 1*u.m)
+    assert idx1.size == idx2.size == d2d.size == d3d.size == 0
+    assert idx1.dtype == idx2.dtype == np.int
+    idx1, idx2, d2d, d3d = search_around_3d(empty, empty[:], 1*u.m)
+    assert idx1.size == idx2.size == d2d.size == d3d.size == 0
+    assert idx1.dtype == idx2.dtype == np.int
+
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 @pytest.mark.skipif(str('OLDER_SCIPY'))
