@@ -214,6 +214,8 @@ def get_body_barycentric(body, time, ephemeris=None):
             cartesian_position_body = earth_pv_bary[..., 0, :]
         elif body == 'moon':
             cartesian_position_body = calc_moon(time).cartesian.xyz.to(u.au).value
+            cartesian_position_body = np.rollaxis(cartesian_position_body, 0,
+                                                  cartesian_position_body.ndim)
         else:
             sun_bary = earth_pv_bary[..., 0, :] - earth_pv_helio[..., 0, :]
             if body == 'sun':

@@ -26,8 +26,19 @@ def _ecliptic_rotation_matrix(equinox):
     jd1, jd2 = get_jd12(equinox, 'tt')
     rnpb = erfa.pnm06a(jd1, jd2)
     obl = erfa.obl06(jd1, jd2)*u.radian
-    return np.asarray(np.dot(rotation_matrix(obl, 'x'), rnpb))
-
+    """
+    The following code is the equivalent of looping over obl and rnpb,
+    creating a rotation matrix from obl and then taking
+    the dot product of the resulting matrices, finally combining
+    into a new array.
+    """
+    try:
+        rmat = np.array([rotation_matrix(this_obl, 'x') for this_obl in obl])
+        result = np.einsum('...ij,...jk->...ik', rmat, rnpb)
+    except:
+        # must be a scalar obliquity
+        result = np.asarray(np.dot(rotation_matrix(obl, 'x'), rnpb))
+    return result
 
 @frame_transform_graph.transform(FunctionTransform, GCRS, GeocentricTrueEcliptic)
 def gcrs_to_geoecliptic(gcrs_coo, to_frame):
@@ -45,7 +56,7 @@ def geoecliptic_to_gcrs(from_coo, gcrs_frame):
     newrepr = cartrepr_from_matmul(rmat, from_coo, transpose=True)
     gcrs = GCRS(newrepr, obstime=from_coo.equinox)
 
-    #now do any needed offsets (no-op if same obstime and 0 pos/vel)
+    # now do any needed offsets (no-op if same obstime and 0 pos/vel)
     return gcrs.transform_to(gcrs_frame)
 
 
