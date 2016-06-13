@@ -835,7 +835,7 @@ def test_rotation_matrix():
     assert_allclose(rotation_matrix(-30*u.deg, 'z'),
                     rotation_matrix(-30*u.deg, [0, 0, 1]))
 
-    assert_allclose(np.dot(rotation_matrix(180*u.deg, [1, 1, 0]).A, [1, 0, 0]),
+    assert_allclose(np.dot(rotation_matrix(180*u.deg, [1, 1, 0]), [1, 0, 0]),
                     [0, 1, 0], atol=1e-12)
 
     #make sure it also works for very small angles
