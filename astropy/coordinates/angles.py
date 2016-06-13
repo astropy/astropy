@@ -17,7 +17,7 @@ from ..extern import six
 from . import angle_utilities as util
 from .. import units as u
 from ..utils import isiterable
-
+from ..utils.compat import NUMPY_LT_1_10
 
 __all__ = ['Angle', 'Latitude', 'Longitude']
 
@@ -669,6 +669,29 @@ class Longitude(Angle):
 
 #<----------------------------------Rotations--------------------------------->
 
+if NUMPY_LT_1_10:
+    def matmul(a, b, out=None):
+        if out is None:
+            kwargs = {}
+        else:
+            kwargs = {'out', out}
+        return np.einsum('...ij,...jk->...ik', a, b, **kwargs)
+
+else:
+    from numpy import matmul
+
+
+class AstropyMatrix(np.ndarray):
+    def __mul__(self, other):
+        if isinstance(other, AstropyMatrix):
+            return matmul(self, other)
+        else:
+            return super(AstropyMatrix, self).__mul__(other)
+
+    @property
+    def T(self):
+        return self.swapaxes(-2, -1)
+
 
 def rotation_matrix(angle, axis='z', unit=None):
     """
@@ -728,7 +751,7 @@ def rotation_matrix(angle, axis='z', unit=None):
         R[..., a2, a1] = -s
         R[..., a2, a2] = c
 
-    return R
+    return R.view(AstropyMatrix)
 
 
 def angle_axis(matrix):
