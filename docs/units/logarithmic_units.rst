@@ -54,9 +54,7 @@ Converting to different units
 -----------------------------
 
 Like |quantity| objects, logarithmic quantities can be converted to different
-units using the :meth:`~astropy.units.function.FunctionQuantity.to` method.
-Here, if the requested unit is not a logarithmic unit, the object will be
-automatically converted to its physical unit::
+units, be it another logarithmic unit or a physical one::
 
     >>> logg = 5. * u.dex(u.cm / u.s**2)
     >>> logg.to(u.m / u.s**2)
