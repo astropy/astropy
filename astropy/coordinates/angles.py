@@ -656,19 +656,18 @@ class Longitude(Angle):
 
 def rotation_matrix(angle, axis='z', unit=None):
     """
-    Generate a 3x3 cartesian rotation matrix in for rotation about
-    a particular axis.
+    Generate rotation matrices for rotation by some angle(s).
 
     Parameters
     ----------
     angle : convertible to `Angle`
-        The amount of rotation this matrix should represent.
+        The amount of rotation the matrices should represent.
 
-    axis : str or 3-sequence
-        Either ``'x'``, ``'y'``, ``'z'``, or a (x,y,z) specifying an
-        axis to rotate about. If ``'x'``, ``'y'``, or ``'z'``, the
-        rotation sense is counterclockwise looking down the + axis
-        (e.g. positive rotations obey left-hand-rule).
+    axis : str, or array-like
+        Either ``'x'``, ``'y'``, ``'z'``, or a (x,y,z) specifying the axis to
+        rotate about. If ``'x'``, ``'y'``, or ``'z'``, the rotation sense is
+        counterclockwise looking down the + axis (e.g. positive rotations obey
+        left-hand-rule).  If given as an array, the last dimension should be 3.
 
     unit : UnitBase, optional
         If ``angle`` does not have associated units, they are in this
@@ -688,35 +687,37 @@ def rotation_matrix(angle, axis='z', unit=None):
     c = np.cos(angle)
 
     # use optimized implementations for x/y/z
-    if axis == 'z':
-        return np.matrix(((c, s, 0),
-                          (-s, c, 0),
-                          (0, 0, 1)))
-    elif axis == 'y':
-        return np.matrix(((c, 0, -s),
-                          (0, 1, 0),
-                          (s, 0, c)))
-    elif axis == 'x':
-        return np.matrix(((1, 0, 0),
-                          (0, c, s),
-                          (0, -s, c)))
-    else:
+    try:
+        i = 'xyz'.index(axis)
+    except TypeError:
         axis = np.asarray(axis)
-        axis = axis / np.sqrt((axis * axis).sum())
+        axis = axis / np.sqrt((axis * axis).sum(axis=-1, keepdims=True))
+        R = (axis[..., np.newaxis] * axis[..., np.newaxis, :] *
+             (1. - c)[..., np.newaxis, np.newaxis])
 
-        R = np.diag((c, c, c))
-        R += np.outer(axis, axis) * (1. - c)
-        axis *= s
-        R += np.array([[0., axis[2], -axis[1]],
-                       [-axis[2], 0., axis[0]],
-                       [axis[1], -axis[0], 0.]])
-        return R.view(np.matrix)
+        for i in range(0, 3):
+            R[..., i, i] += c
+            a1 = (i + 1) % 3
+            a2 = (i + 2) % 3
+            R[..., a1, a2] += axis[..., i] * s
+            R[..., a2, a1] -= axis[..., i] * s
+
+    else:
+        a1 = (i + 1) % 3
+        a2 = (i + 2) % 3
+        R = np.zeros(angle.shape + (3, 3))
+        R[..., i, i] = 1.
+        R[..., a1, a1] = c
+        R[..., a1, a2] = s
+        R[..., a2, a1] = -s
+        R[..., a2, a2] = c
+
+    return R
 
 
 def angle_axis(matrix):
     """
-    Computes the angle of rotation and the rotation axis for a given rotation
-    matrix.
+    Angle of rotation and rotation axis for a given rotation matrix.
 
     Parameters
     ----------
@@ -731,12 +732,15 @@ def angle_axis(matrix):
     axis : array (length 3)
         The (normalized) axis of rotation for this matrix.
     """
-    m = np.asmatrix(matrix)
-    if m.shape != (3, 3):
+    m = np.asanyarray(matrix)
+    if m.shape[-2:] != (3, 3):
         raise ValueError('matrix is not 3x3')
 
-    axis = np.array((m[2, 1] - m[1, 2], m[0, 2] - m[2, 0], m[1, 0] - m[0, 1]))
-    r = np.sqrt((axis * axis).sum())
-    angle = np.arctan2(r, np.trace(m) - 1)
-
+    axis = np.zeros(m.shape[:-1])
+    axis[..., 0] = m[..., 2, 1] - m[..., 1, 2]
+    axis[..., 1] = m[..., 0, 2] - m[..., 2, 0]
+    axis[..., 2] = m[..., 1, 0] - m[..., 0, 1]
+    r = np.sqrt((axis * axis).sum(-1, keepdims=True))
+    angle = np.arctan2(r[..., 0],
+                       m[..., 0, 0] + m[..., 1, 1] + m[..., 2, 2] - 1.)
     return Angle(angle, u.radian), -axis / r
