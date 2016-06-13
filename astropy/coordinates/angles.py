@@ -17,7 +17,7 @@ from ..extern import six
 from . import angle_utilities as util
 from .. import units as u
 from ..utils import isiterable
-
+from ..utils.compat import NUMPY_LT_1_10
 
 __all__ = ['Angle', 'Latitude', 'Longitude']
 
@@ -652,6 +652,17 @@ class Longitude(Angle):
         return obj
 
 #<----------------------------------Rotations--------------------------------->
+
+if NUMPY_LT_1_10:
+    def matmul(a, b, out=None):
+        if out is None:
+            kwargs = {}
+        else:
+            kwargs = {'out', out}
+        return np.einsum('...ij,...jk->...ik', a, b, **kwargs)
+
+else:
+    from numpy import matmul
 
 
 def rotation_matrix(angle, axis='z', unit=None):
