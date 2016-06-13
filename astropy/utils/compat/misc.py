@@ -147,10 +147,12 @@ except ImportError:
 
 
 # For unclear reasons, the `_asdict` method of namedtuple produces an empty
-# dictionary if the namedtuple is a subclass of another namedtuple... But *onlt*
-# in py 3.3.  >3.4 or 2.7 seem to work just fine.  So we provide this for
-# compatibility as long as 3.3 is supported.
-if sys.version_info[:2] == (3, 3):
+# dictionary if the namedtuple is a subclass of another namedtuple... But
+# *only* in py 3.3.  >3.4 or 2.7 seem to work just fine.  So we provide this
+# for compatibility as long as 3.3 is supported.
+# Furthermore, in python 3.4.x except for 3.4.4, `_asdict` produces only a
+# *partial* dictionary.  So we work around that case too.
+if sys.version_info[0] == 3 and sys.version_info[:3] < (3, 4, 4):
     def namedtuple_asdict(namedtuple):
         """
         The same as ``namedtuple._adict()``, but fixed to work even when
