@@ -1553,3 +1553,12 @@ class TestCompressedImage(FitsTestCase):
             # There's no good reason to have a duplicate keyword, but
             # technically it isn't invalid either :/
             assert hdul[1]._header.count('ZTENSION') == 2
+
+
+def test_set_data():
+    """
+    Test data assignment - issue #5087
+    """
+    im = fits.ImageHDU()
+    ar = np.arange(12)
+    im.data = ar
