@@ -344,6 +344,9 @@ New Features
   - Enable test runner to obtain documentation source files from directory
     other than "docs". [#4748]
 
+  - Install dependencies specified by the install_requires and tests_require
+    keywords via setuptools. [astropy-helpers #212]
+
 - ``astropy.time``
 
   - Added caching of scale and format transformations for improved performance.
