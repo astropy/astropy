@@ -246,7 +246,7 @@ class _ImageBaseHDU(_ValidHDU):
 
     @data.setter
     def data(self, data):
-        if 'data' in self.__dict__:
+        if 'data' in self.__dict__ and self.__dict__['data'] is not None:
             if self.__dict__['data'] is data:
                 return
             else:
