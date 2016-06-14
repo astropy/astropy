@@ -345,7 +345,7 @@ New Features
     other than "docs". [#4748]
 
   - Install dependencies specified by the install_requires and tests_require
-    keywords via setuptools. [astropy-helpers #212]
+    keywords via setuptools. [#5092, astropy-helpers #212]
 
 - ``astropy.time``
 
