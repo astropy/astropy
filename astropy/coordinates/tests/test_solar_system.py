@@ -291,3 +291,13 @@ def test_get_sun_consistency(time):
     builtin_get_sun = get_sun(time)
     sep = builtin_get_sun.separation(sun_jpl_gcrs)
     assert sep < 0.1*u.arcsec
+
+def test_get_moon_nonscalar_regression():
+    """
+    Test that the builtin ephemeris works with non-scalar times.
+
+    See Issue #5069.
+    """
+    times = Time(["2015-08-28 03:30", "2015-09-05 10:30"])
+    # the following line will raise an Exception if the bug recurs.
+    get_moon(times, ephemeris='builtin')
