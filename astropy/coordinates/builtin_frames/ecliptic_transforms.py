@@ -9,6 +9,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 import numpy as np
 
 from ... import units as u
+from ...utils.compat import NUMPY_LT_1_10
 from ..baseframe import frame_transform_graph
 from ..transformations import FunctionTransform, DynamicMatrixTransform
 from ..angles import rotation_matrix
@@ -26,7 +27,22 @@ def _ecliptic_rotation_matrix(equinox):
     jd1, jd2 = get_jd12(equinox, 'tt')
     rnpb = erfa.pnm06a(jd1, jd2)
     obl = erfa.obl06(jd1, jd2)*u.radian
-    return np.asarray(np.dot(rotation_matrix(obl, 'x'), rnpb))
+    """
+    The following code is the equivalent of looping over obl and rnpb,
+    creating a rotation matrix from obl and then taking
+    the dot product of the resulting matrices, finally combining
+    into a new array.
+    """
+    try:
+        rmat = np.array([rotation_matrix(this_obl, 'x') for this_obl in obl])
+        if NUMPY_LT_1_10:
+            result = np.einsum('...ij,...jk->...ik', rmat, rnpb)
+        else:
+            result = np.matmul(rmat, rnpb)
+    except:
+        # must be a scalar obliquity
+        result = np.asarray(np.dot(rotation_matrix(obl, 'x'), rnpb))
+    return result
 
 
 @frame_transform_graph.transform(FunctionTransform, GCRS, GeocentricTrueEcliptic)
@@ -45,7 +61,7 @@ def geoecliptic_to_gcrs(from_coo, gcrs_frame):
     newrepr = cartrepr_from_matmul(rmat, from_coo, transpose=True)
     gcrs = GCRS(newrepr, obstime=from_coo.equinox)
 
-    #now do any needed offsets (no-op if same obstime and 0 pos/vel)
+    # now do any needed offsets (no-op if same obstime and 0 pos/vel)
     return gcrs.transform_to(gcrs_frame)
 
 
@@ -64,6 +80,7 @@ _NEED_ORIGIN_HINT = ("The input {0} coordinates do not have length units. This "
                      "no distance.  Heliocentric<->ICRS transforms cannot "
                      "function in this case because there is an origin shift.")
 
+
 @frame_transform_graph.transform(FunctionTransform, ICRS, HeliocentricTrueEcliptic)
 def icrs_to_helioecliptic(from_coo, to_frame):
     if not u.m.is_equivalent(from_coo.cartesian.x.unit):
@@ -72,7 +89,7 @@ def icrs_to_helioecliptic(from_coo, to_frame):
     pvh, pvb = erfa.epv00(*get_jd12(to_frame.equinox, 'tdb'))
     delta_bary_to_helio = pvh[..., 0, :] - pvb[..., 0, :]
 
-    #first offset to heliocentric
+    # first offset to heliocentric
     heliocart = (from_coo.cartesian.xyz).T + delta_bary_to_helio * u.au
 
     # now compute the matrix to precess to the right orientation
