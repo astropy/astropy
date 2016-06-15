@@ -215,7 +215,7 @@ def_unit(['lx', 'lux'], lm * m ** -2, namespace=_ns, prefixes=True,
 
 def_unit(['Bq', 'becquerel'], Hz, namespace=_ns, prefixes=False,
          doc="becquerel: unit of radioactivity")
-def_unit(['Ci', 'curie'], Bq / 3.7e10, namespace=_ns, prefixes=False,
+def_unit(['Ci', 'curie'], Bq * 3.7e10, namespace=_ns, prefixes=False,
          doc="curie: unit of radioactivity")
 
 
