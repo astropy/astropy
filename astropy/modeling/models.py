@@ -14,6 +14,7 @@ from .rotations import *
 from .polynomial import *
 from .functional_models import *
 from .powerlaws import *
+from .tabular import *
 
 from ..extern.six import string_types
 
