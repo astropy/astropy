@@ -675,7 +675,12 @@ if NUMPY_LT_1_10:
             kwargs = {}
         else:
             kwargs = {'out', out}
-        return np.einsum('...ij,...jk->...ik', a, b, **kwargs)
+        result = np.einsum('...ij,...jk->...ik', a, b, **kwargs)
+        if out is None and (isinstance(a, AstropyMatrix) or
+                            isinstance(b, AstropyMatrix)):
+            return result.view(AstropyMatrix)
+        else:
+            return result
 
 else:
     from numpy import matmul
