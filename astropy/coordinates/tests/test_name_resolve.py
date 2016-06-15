@@ -124,7 +124,7 @@ def test_names():
 
     icrs_true = SkyCoord(ra="11h 22m 18.014s", dec="59d 04m 27.27s")
 
-    # use precsision of only 1 decimal here and below because the result can
+    # use precision of only 1 decimal here and below because the result can
     # change due to Sesame server-side changes.
     np.testing.assert_almost_equal(icrs.ra.degree, icrs_true.ra.degree, 1)
     np.testing.assert_almost_equal(icrs.dec.degree, icrs_true.dec.degree, 1)

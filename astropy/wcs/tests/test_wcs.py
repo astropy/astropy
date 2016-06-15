@@ -956,7 +956,7 @@ def inconsistent_sip():
     newhdr = w.to_header(relax=True)
     assert(all([ctyp[-4 :] == '-SIP' for ctyp in self.wcs.ctype]))
     assert('A_0_2' in newhdr)
-    # Test that SIP coefficients are aslo written out.
+    # Test that SIP coefficients are also written out.
     wtest = WCS(newhdr)
     assert wtest.sip is not None
     ########## broken header ###########

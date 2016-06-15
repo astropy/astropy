@@ -163,7 +163,7 @@ def circmoment(data, p=1.0, centered=False, axis=None, weights=None):
         radians whenever ``data`` is ``numpy.ndarray``.
     p : float, optional
         Order of the circular moment.
-    centered : Boolean, optinal
+    centered : Boolean, optional
         If ``True``, central circular moments are computed. Default value is
         ``False``.
     axis : int, optional
@@ -274,7 +274,7 @@ def circcorrcoef(alpha, beta, axis=None, weights_alpha=None,
 def rayleightest(data, axis=None, weights=None):
     """ Performs the Rayleigh test of uniformity.
 
-    This test is  used to indentify a non-uniform distribution, i.e. it is
+    This test is  used to identify a non-uniform distribution, i.e. it is
     designed for detecting an unimodal deviation from uniformity. More
     precisely, it assumes the following hypotheses:
     - H0 (null hypothesis): The population is distributed uniformly around the

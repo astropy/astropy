@@ -25,7 +25,7 @@ class NDData(NDDataBase):
 
     The key distinction from raw `numpy.ndarray` is the presence of
     additional metadata such as uncertainty, mask, unit, a coordinate system
-    and/or a dictionary containg further meta information. This class *only*
+    and/or a dictionary containing further meta information. This class *only*
     provides a container for *storing* such datasets. For further functionality
     take a look at the ``See also`` section.
 
@@ -172,7 +172,7 @@ class NDData(NDDataBase):
 
         else:
             if hasattr(data, 'mask') and hasattr(data, 'data'):
-                # Seperating data and mask
+                # Separating data and mask
                 if mask is not None:
                     log.info("overwriting Masked Objects's current "
                              "mask with specified mask.")

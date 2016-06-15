@@ -327,7 +327,7 @@ Bol0 = Unit('Bol', L_bol0, doc="Luminosity corresponding to "
             "absolute bolometric magnitude zero")
 
 bol0 = Unit('bol', L_bol0 / (4 * np.pi * (10.*astrophys.pc)**2),
-            doc="Irradiance corresponding to appparent bolometric magnitude "
+            doc="Irradiance corresponding to apparent bolometric magnitude "
             "zero")
 
 

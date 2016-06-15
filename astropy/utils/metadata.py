@@ -240,7 +240,7 @@ def enable_merge_strategies(*merge_strategies):
       ...         return [left, right]
 
     By defining this class the merge strategy is automatically registered to be
-    available for use in merging. However, by default new merge stratgies are
+    available for use in merging. However, by default new merge strategies are
     *not enabled*.  This prevents inadvertently changing the behavior of
     unrelated code that is performing metadata merge operations.
 

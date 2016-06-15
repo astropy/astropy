@@ -101,7 +101,7 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
     else:
         locitrs = altaz_coo.location.get_itrs(altaz_coo.obstime)
 
-        # To compute the distance in a way that is reversable with cirs_to_altaz
+        # To compute the distance in a way that is reversible with cirs_to_altaz
         # we use basic trigonometry.  The altaz_coo's distance ("d") is one leg
         # of a triangle, and the earth center -> EarthLocation distance ("r")
         # is a neighboring leg.  We can also easily get the angle between the

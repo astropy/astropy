@@ -797,7 +797,7 @@ class UnitBase(object):
             other = other.decompose()
             for a, b, forward, backward in equivalencies:
                 if b is None:
-                    # after canceling, is what's left convertable
+                    # after canceling, is what's left convertible
                     # to dimensionless (according to the equivalency)?
                     try:
                         (other/unit).decompose([a])
@@ -947,7 +947,7 @@ class UnitBase(object):
         other : unit object or string
             The unit to convert to.
 
-        value : scalar int or float, or sequence convertable to array, optional
+        value : scalar int or float, or sequence convertible to array, optional
             Value(s) in the current unit to be converted to the
             specified unit.  If not provided, defaults to 1.0
 

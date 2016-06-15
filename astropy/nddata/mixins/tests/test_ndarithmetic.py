@@ -140,7 +140,7 @@ def test_arithmetics_data_unit_identical(data1, data2):
 
 
 # Test with Data and unit and covers:
-# not identical not convertable units
+# not identical not convertible units
 # one with unit (which is not dimensionless) and one without
 @pytest.mark.parametrize(('data1', 'data2'), [
     (np.array(5) * u.s, np.array(10) * u.m),
@@ -179,7 +179,7 @@ def test_arithmetics_data_unit_not_identical(data1, data2):
         assert nd.wcs is None
 
 
-# Tests with wcs (not very senseable because there is no operation between them
+# Tests with wcs (not very sensible because there is no operation between them
 # covering:
 # both set and identical/not identical
 # one set
@@ -225,7 +225,7 @@ def test_arithmetics_data_wcs(wcs1, wcs2):
         assert nd.mask is None
 
 
-# Masks are completely seperated in the NDArithmetics from the data so we need
+# Masks are completely separated in the NDArithmetics from the data so we need
 # no correlated tests but covering:
 # masks 1D, 2D and mixed cases with broadcasting
 @pytest.mark.parametrize(('mask1', 'mask2'), [
@@ -350,7 +350,7 @@ def test_arithmetics_stddevuncertainty_basic():
 
 # Tests for correlation, covering
 # correlation between -1 and 1 with correlation term being positive / negative
-# also with one data being once positive and once completly negative
+# also with one data being once positive and once completely negative
 # The point of this test is to compare the used formula to the theoretical one.
 # TODO: Maybe covering units too but I think that should work because of
 # the next tests. Also this may be reduced somehow.
