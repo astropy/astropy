@@ -12,12 +12,38 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 
 from ... import units as u
-from .. import AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS
+from .. import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS,
+                GeocentricTrueEcliptic, Longitude, Latitude, GCRS)
 from ...time import Time
 from ...utils import iers
 
 from ...tests.helper import pytest, assert_quantity_allclose
 from .test_matching import HAS_SCIPY, OLDER_SCIPY
+
+
+def test_regression_5085():
+    """
+    PR #5085 was put in place to fix the following issue.
+
+    Issue: https://github.com/astropy/astropy/issues/5069
+    At root was the transformation of Ecliptic coordinates with
+    non-scalar times.
+    """
+    times = Time(["2015-08-28 03:30", "2015-09-05 10:30", "2015-09-15 18:35"])
+    latitudes = Latitude([3.9807075, -5.00733806, 1.69539491]*u.deg)
+    longitudes = Longitude([311.79678613,  72.86626741, 199.58698226]*u.deg)
+    distances = u.Quantity([0.00243266, 0.0025424, 0.00271296]*u.au)
+    coo = GeocentricTrueEcliptic(lat=latitudes,
+                                 lon=longitudes,
+                                 distance=distances, equinox=times)
+    # expected result
+    ras = Longitude([310.50095387, 314.67109863, 319.56507471]*u.deg)
+    decs = Latitude([-18.25190707, -17.1556641, -15.71616651]*u.deg)
+    distances = u.Quantity([1.78309902, 1.710874, 1.61326648]*u.au)
+    expected_result = GCRS(ra=ras, dec=decs,
+                           distance=distances, obstime="J2000").cartesian.xyz
+    actual_result = coo.transform_to(GCRS(obstime="J2000")).cartesian.xyz
+    assert_quantity_allclose(expected_result, actual_result)
 
 
 def test_regression_3920():
@@ -121,12 +147,12 @@ def test_regression_4082():
     Issue: https://github.com/astropy/astropy/issues/4082
     """
     from .. import search_around_sky, search_around_3d
-    cat = SkyCoord([10.076,10.00455], [18.54746, 18.54896], unit='deg')
+    cat = SkyCoord([10.076, 10.00455], [18.54746, 18.54896], unit='deg')
     search_around_sky(cat[0:1], cat, seplimit=u.arcsec * 60, storekdtree=False)
     # in the issue, this raises a TypeError
 
-    #also check 3d for good measure, although it's not really affected by this bug directly
-    cat3d = SkyCoord([10.076,10.00455]*u.deg, [18.54746, 18.54896]*u.deg, distance=[0.1,1.5]*u.kpc)
+    # also check 3d for good measure, although it's not really affected by this bug directly
+    cat3d = SkyCoord([10.076, 10.00455]*u.deg, [18.54746, 18.54896]*u.deg, distance=[0.1, 1.5]*u.kpc)
     search_around_3d(cat3d[0:1], cat3d, 1*u.kpc, storekdtree=False)
 
 
