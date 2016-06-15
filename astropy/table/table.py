@@ -917,7 +917,7 @@ class Table(object):
         table_class : str or `None`
             A string with a list of HTML classes used to style the table.
             The special default string ('from-apy-default') means that the string
-            will be retreived from the configuration item
+            will be retrieved from the configuration item
             ``astropy.table.default_notebook_table_class``. Note that these
             table classes may make use of bootstrap, as this is loaded with the
             notebook.  See `this page <http://getbootstrap.com/css/#tables>`_
@@ -928,7 +928,7 @@ class Table(object):
         display_length : int, optional
             Number or rows to show. Defaults to 50.
         show_row_index : str or False
-            If this does not evaulate to False, a column with the given name
+            If this does not evaluate to False, a column with the given name
             will be added to the version of the table that gets displayed.
             This new column shows the index of the row in the table itself,
             even when the displayed table is re-sorted by another column. Note
@@ -1003,7 +1003,7 @@ class Table(object):
             A valid CSS string declaring the formatting for the table. Defaults
             to ``astropy.table.jsviewer.DEFAULT_CSS``.
         show_row_index : bool
-            If this does not evaulate to False, a column with the given name
+            If this does not evaluate to False, a column with the given name
             will be added to the version of the table that gets displayed.
             This new column shows the index of the row in the table itself,
             even when the displayed table is re-sorted by another column. Note

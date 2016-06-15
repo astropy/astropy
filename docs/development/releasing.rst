@@ -21,8 +21,8 @@ packages that use the full bugfix/maintenance branch approach.)
    necessary if you know your normal python environment has what you need, but
    you might want to do something like this for safety's sake::
 
-      $ conda create -n astropy_release_build_v<verson> astropy
-      $ source activate astropy_release_build_v<verson>
+      $ conda create -n astropy_release_build_v<version> astropy
+      $ source activate astropy_release_build_v<version>
       $ conda uninstall astropy  # still keeps the dependencies
       $ pip install -r pip-requirements-dev  # any that might be left over
 
@@ -97,7 +97,7 @@ packages that use the full bugfix/maintenance branch approach.)
 
       $ git checkout v1.2.2
 
-   Don't forget to remove any non-commited files with::
+   Don't forget to remove any non-committed files with::
 
       $  git clean -dfx
 
@@ -119,8 +119,8 @@ packages that use the full bugfix/maintenance branch approach.)
    environments, see :ref:`virtual_envs`, but for the sake of example we will
    assume you're using `Anaconda`_. Do::
 
-      $ conda create -n astropy_release_test_v<verson> numpy
-      $ source activate astropy_release_test_v<verson>
+      $ conda create -n astropy_release_test_v<version> numpy
+      $ source activate astropy_release_test_v<version>
       $ pip install dist/astropy-<version>.tar.gz
       $ python -c 'import astropy; astropy.test(remote_data=True)'
       $ source deactivate

@@ -194,7 +194,7 @@ def test_nddata_init_data_quantity(data):
         quantity.value[1] = 100
         assert ndd.data[1] == quantity.value[1]
 
-        # or is copyied if we choose copy=True
+        # or is copied if we choose copy=True
         ndd = NDData(quantity, copy=True)
         quantity.value[1] = 5
         assert ndd.data[1] != quantity.value[1]
@@ -275,11 +275,11 @@ def test_nddata_init_data_nddata_subclass():
 
 
 def test_nddata_init_data_fail():
-    # First one is slicable but has no shape, so should fail.
+    # First one is sliceable but has no shape, so should fail.
     with pytest.raises(TypeError):
         NDData({'a': 'dict'})
 
-    # This has a shape but is not slicable
+    # This has a shape but is not sliceable
     class Shape(object):
         def __init__(self):
             self.shape = 5

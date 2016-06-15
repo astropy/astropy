@@ -88,7 +88,7 @@ def bayesian_blocks(t, x=None, sigma=None,
           :math:`-\ln({\tt gamma})`.
 
         In all three cases, if more than one of ``p0``, ``gamma``, and
-        ``ncp_prior`` is chosen, ``ncp_prior`` takes precendence over ``gamma``
+        ``ncp_prior`` is chosen, ``ncp_prior`` takes precedence over ``gamma``
         which takes precedence over ``p0``.
 
         Alternatively, the fitness parameter can be an instance of

@@ -421,7 +421,7 @@ The :class:`~astropy.stats.LombScargle` class makes available
 several complementary implementations of the Lomb-Scargle Periodogram,
 which can be selected using the ``method`` keyword of the Lomb-Scargle power.
 By design all methods will return the same results (some approximate),
-and each has its advandages and disadganvages.
+and each has its advantages and disadvantages.
 
 For example, to compute a periodogram using the fast chi-square method
 of Palmer (2009) [9]_, you can specify ``method='fastchi2'``:

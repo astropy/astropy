@@ -41,7 +41,7 @@ class LombScargle(object):
     dy : float, array_like or Quantity (optional)
         error or sequence of observational errors associated with times t
     fit_mean : bool (optional, default=True)
-        if True, include a constant offet as part of the model at each
+        if True, include a constant offset as part of the model at each
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage.
     center_data : bool (optional, default=True)
@@ -292,7 +292,7 @@ class LombScargle(object):
             Normalization to use for the periodogram.
             Options are 'standard', 'model', 'log', or 'psd'.
         fit_mean : bool (optional, default=True)
-            if True, include a constant offet as part of the model at each
+            if True, include a constant offset as part of the model at each
             frequency. This can lead to more accurate results, especially in
             the case of incomplete phase coverage.
         center_data : bool (optional, default=True)

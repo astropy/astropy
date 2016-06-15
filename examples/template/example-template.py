@@ -62,7 +62,7 @@ plt.xlabel('$x$')
 plt.ylabel('$y$')
 
 ###########################################################################
-# Again it is possble to continue the discussion with a new Python string. This
+# Again it is possible to continue the discussion with a new Python string. This
 # time to introduce the next code block generates 2 separate figures.
 
 plt.figure()

@@ -193,7 +193,7 @@ def validate_power(p, support_tuples=False):
             # operations are much faster.
             pass
         else:
-            # Convert floats indistinguisable from a rational to Fraction.
+            # Convert floats indistinguishable from a rational to Fraction.
             # Here, we do not need to test values that are divisors of a higher
             # number, such as 3, since it is already addressed by 6.
             for i in (10, 9, 7, 6):

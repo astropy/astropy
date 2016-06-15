@@ -12,7 +12,7 @@ The altitude-azimuth coordinates are then found using
 `astropy.coordinates.EarthLocation` and `astropy.time.Time` objects.
 
 This example is meant to demonstrate the capabilities of the
-`astropy.coordinates` package. For more convienent and/or complex observation
+`astropy.coordinates` package. For more convenient and/or complex observation
 planning, consider the `astroplan <https://astroplan.readthedocs.org/>`_
 package.
 
@@ -123,7 +123,7 @@ sunaltazs_July12_to_13 = get_sun(times_July12_to_13).transform_to(frame_July12_t
 m33altazs_July12_to_13 = m33.transform_to(frame_July12_to_13)
 
 ##############################################################################
-# Make a beatiful figure illustrating nighttime and the altitudes of M33 and
+# Make a beautiful figure illustrating nighttime and the altitudes of M33 and
 # the Sun over that time:
 
 plt.plot(delta_midnight, sunaltazs_July12_to_13.alt, color='r', label='Sun')

@@ -19,7 +19,7 @@ class HCRS(BaseCoordinateFrame):
     This coordinate system is distinct from ICRS mainly in that it is relative
     to the Sun's center-of-mass rather than the solar system Barycenter.
     In principle, therefore, this frame should include the effects of
-    abberation (unlike ICRS), but this is not done, since they are very small,
+    aberration (unlike ICRS), but this is not done, since they are very small,
     of the order of 8 milli-arcseconds.
 
     For more background on the ICRS and related coordinate transformations, see

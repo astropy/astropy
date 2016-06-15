@@ -21,7 +21,7 @@ def bayesian_info_criterion(log_likelihood, n_params, n_samples):
     parameters, the number of parameters, and the number of samples.
 
     The BIC is usually applied to decide whether increasing the number of free
-    parameters (hence, increasing the model complexity) yeilds significantly
+    parameters (hence, increasing the model complexity) yields significantly
     better fittings. The decision is in favor of the model with the lowest
     BIC.
 
@@ -126,7 +126,7 @@ def bayesian_info_criterion_lsq(ssr, n_params, n_samples):
         \mathrm{BIC} = n\\ln\\left(\\dfrac{\mathrm{SSR}}{n}\\right) + k\\ln(n)
 
     in which :math:`n` is the sample size, :math:`k` is the number of free
-    parameters and :math:`\mathrm{SSR}` stands for the sum of squared redisuals
+    parameters and :math:`\mathrm{SSR}` stands for the sum of squared residuals
     between model and data.
 
     This is applicable, for instance, when the parameters of a model are
@@ -152,7 +152,7 @@ def bayesian_info_criterion_lsq(ssr, n_params, n_samples):
     modeling webpage [3]_. There, two models (Box and Gaussian) were fitted to
     a source flux using the least squares statistic. However, the fittings
     themselves do not tell much about which model better represents this
-    hypotetical source. Therefore, we are going to apply to BIC in order to
+    hypothetical source. Therefore, we are going to apply to BIC in order to
     decide in favor of a model.
 
     >>> import numpy as np
@@ -325,7 +325,7 @@ def akaike_info_criterion_lsq(ssr, n_params, n_samples):
 
 
     in which :math:`n` is the sample size, :math:`k` is the number of free
-    parameters and :math:`\mathrm{SSR}` stands for the sum of squared redisuals
+    parameters and :math:`\mathrm{SSR}` stands for the sum of squared residuals
     between model and data.
 
     This is applicable, for instance, when the parameters of a model are

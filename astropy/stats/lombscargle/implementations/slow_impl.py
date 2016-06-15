@@ -7,7 +7,7 @@ def lombscargle_slow(t, y, dy, frequency, normalization='standard',
                      fit_mean=True, center_data=True):
     """Lomb-Scargle Periodogram
 
-    This is a pure-python implemnetation of the original Lomb-Scargle formalism
+    This is a pure-python implementation of the original Lomb-Scargle formalism
     (e.g. [1]_, [2]_), with the addition of the floating mean (e.g. [3]_)
 
     Parameters
@@ -21,7 +21,7 @@ def lombscargle_slow(t, y, dy, frequency, normalization='standard',
         Normalization to use for the periodogram.
         Options are 'standard', 'model', 'log', or 'psd'.
     fit_mean : bool (optional, default=True)
-        if True, include a constant offet as part of the model at each
+        if True, include a constant offset as part of the model at each
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage.
     center_data : bool (optional, default=True)

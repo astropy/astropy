@@ -12,7 +12,7 @@ the International Earth Rotation and Reference Systems (IERS) service, in
 particular allowing interpolation of published UT1-UTC values for given
 times.  These are used in `astropy.time` to provide UT1 values.  The polar
 motions are also used for determining Earth orientation for
-celestional-to-terrestrial coordinate transformations
+celestial-to-terrestrial coordinate transformations
 (in `astropy.coordinates`).
 
 Getting started
@@ -49,7 +49,7 @@ Note that you can forcibly clear the download cache as follows::
   >>> from astropy.utils.data import clear_download_cache
   >>> clear_download_cache()
 
-The default IERS data used automically is updated by the service every 7 days
+The default IERS data used automatically is updated by the service every 7 days
 and includes transforms dating back to 1973-01-01.
 
 .. note:: The :class:`~astropy.utils.iers.IERS_Auto` class contains machinery
@@ -110,7 +110,7 @@ unnecessary network access, but one can reduce this to as low as 10 days.
 Working offline
 ---------------
 
-If you are working without an internet connection and doing transfomations
+If you are working without an internet connection and doing transformations
 that require IERS data, there are a couple of options.
 
 **Disable auto downloading**
@@ -132,7 +132,7 @@ downloaded and cached the IERS auto values previously, then do the following::
 
   >>> iers.conf.auto_max_age = None  # doctest: +SKIP
 
-This disables the check of whether the IERS values are sufficently recent, and
+This disables the check of whether the IERS values are sufficiently recent, and
 all the transformations (even those outside the time range of available IERS
 data) will succeed with at most warnings.
 
@@ -171,7 +171,7 @@ following::
   >>> dat  # doctest: +SKIP
   <IERS_Auto length=16196>
    year month  day    MJD   PolPMFlag_A ... UT1Flag    PM_x     PM_y   PolPMFlag
-                       d                ...           arcsec   arcsec           
+                       d                ...           arcsec   arcsec
   int64 int64 int64 float64     str1    ... unicode1 float64  float64   unicode1
   ----- ----- ----- ------- ----------- ... -------- -------- -------- ---------
      73     1     2 41684.0           I ...        B    0.143    0.137         B
@@ -192,7 +192,7 @@ UT1Flag, PM_x, PM_y, PolPMFlag::
   >>> dat['MJD', 'UT1_UTC', 'UT1Flag', 'PM_x', 'PM_y', 'PolPMFlag']  # doctest: +SKIP
   <IERS_Auto length=16196>
     MJD    UT1_UTC   UT1Flag    PM_x     PM_y   PolPMFlag
-     d        s                arcsec   arcsec           
+     d        s                arcsec   arcsec
   float64  float64   unicode1 float64  float64   unicode1
   ------- ---------- -------- -------- -------- ---------
   41684.0     0.8075        B    0.143    0.137         B

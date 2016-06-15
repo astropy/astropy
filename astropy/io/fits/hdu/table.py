@@ -14,9 +14,9 @@ import numpy as np
 from numpy import char as chararray
 
 from .base import DELAYED, _ValidHDU, ExtensionHDU
-# This module may have many dependencies on pyfits.column, but pyfits.column
-# has fewer dependencies overall, so it's easier to keep table/column-related
-# utilities in pyfits.column
+# This module may have many dependencies on astropy.io.fits.column, but
+# astropy.io.fits.column has fewer dependencies overall, so it's easier to
+# keep table/column-related utilities in astropy.io.fits.column
 from .. import _numpy_hacks as nh
 from ..column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_TO_ATTRIBUTE,
                       ATTRIBUTE_TO_KEYWORD, TDEF_RE, Column, ColDefs,
@@ -904,7 +904,7 @@ class BinTableHDU(_TableBaseHDU):
 
         # Creating Record objects is expensive (as in
         # `for row in self.data:` so instead we just iterate over the row
-        # indicies and get one field at a time:
+        # indices and get one field at a time:
         for idx in range(len(self.data)):
             for field in fields:
                 item = field[idx]
