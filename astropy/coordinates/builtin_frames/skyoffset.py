@@ -9,7 +9,7 @@ from ..transformations import DynamicMatrixTransform, FunctionTransform
 from ..baseframe import (CoordinateAttribute, QuantityFrameAttribute,
                          frame_transform_graph, RepresentationMapping,
                          BaseCoordinateFrame)
-from ..angles import rotation_matrix
+from ..angles import rotation_matrix, matmul
 from ...utils.compat import namedtuple_asdict
 
 _skyoffset_cache = {}
@@ -129,7 +129,7 @@ def make_skyoffset_cls(framecls):
         mat1 = rotation_matrix(-skyoffset_frame.rotation, 'x')
         mat2 = rotation_matrix(-origin.lat, 'y')
         mat3 = rotation_matrix(origin.lon, 'z')
-        R = mat1 * mat2 * mat3
+        R = matmul(matmul(mat1, mat2), mat3)
         return R
 
     @frame_transform_graph.transform(DynamicMatrixTransform, _SkyOffsetFramecls, framecls)

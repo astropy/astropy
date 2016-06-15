@@ -161,7 +161,7 @@ def _precess_from_J2000_Capitaine(epoch):
         The epoch as a Julian year number (e.g. J2000 is 2000.0)
 
     """
-    from .angles import rotation_matrix
+    from .angles import rotation_matrix, matmul
 
     T = (epoch - 2000.0) / 100.0
     # from USNO circular
@@ -172,9 +172,9 @@ def _precess_from_J2000_Capitaine(epoch):
     z = np.polyval(pz, T) / 3600.0
     theta = np.polyval(ptheta, T) / 3600.0
 
-    return rotation_matrix(-z, 'z') *\
-           rotation_matrix(theta, 'y') *\
-           rotation_matrix(-zeta, 'z')
+    return matmul(matmul(rotation_matrix(-z, 'z'),
+                         rotation_matrix(theta, 'y')),
+                  rotation_matrix(-zeta, 'z'))
 
 
 def _precession_matrix_besselian(epoch1, epoch2):
@@ -184,7 +184,7 @@ def _precession_matrix_besselian(epoch1, epoch2):
 
     ``epoch1`` and ``epoch2`` are in Besselian year numbers.
     """
-    from .angles import rotation_matrix
+    from .angles import rotation_matrix, matmul
 
     # tropical years
     t1 = (epoch1 - 1850.0) / 1000.0
@@ -209,9 +209,9 @@ def _precession_matrix_besselian(epoch1, epoch2):
     ptheta = (theta3, theta2, theta1, 0)
     theta = np.polyval(ptheta, dt) / 3600
 
-    return rotation_matrix(-z, 'z') *\
-           rotation_matrix(theta, 'y') *\
-           rotation_matrix(-zeta, 'z')
+    return matmul(matmul(rotation_matrix(-z, 'z'),
+                         rotation_matrix(theta, 'y')),
+                  rotation_matrix(-zeta, 'z'))
 
 
 def _load_nutation_data(datastr, seriestype):
@@ -406,7 +406,7 @@ def nutation_matrix(epoch):
     Matrix converts from mean coordinate to true coordinate as
     r_true = M * r_mean
     """
-    from .angles import rotation_matrix
+    from .angles import rotation_matrix, matmul
 
     # TODO: implement higher precision 2006/2000A model if requested/needed
     epsa, dpsi, deps = nutation_components2000B(epoch.jd)  # all in radians
@@ -415,4 +415,4 @@ def nutation_matrix(epoch):
     rot2 = rotation_matrix(-dpsi, 'z', False)
     rot3 = rotation_matrix(epsa, 'x', False)
 
-    return rot1 * rot2 * rot3
+    return matmul(matmul(rot1, rot2), rot3)

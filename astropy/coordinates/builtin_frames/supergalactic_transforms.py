@@ -3,7 +3,7 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from ..angles import rotation_matrix
+from ..angles import rotation_matrix, matmul
 from ..baseframe import frame_transform_graph
 from ..transformations import StaticMatrixTransform
 
@@ -16,7 +16,7 @@ def gal_to_supergal():
     mat1 = rotation_matrix(90, 'z')
     mat2 = rotation_matrix(90 - Supergalactic._nsgp_gal.b.degree, 'y')
     mat3 = rotation_matrix(Supergalactic._nsgp_gal.l.degree, 'z')
-    return mat1 * mat2 * mat3
+    return matmul(matmul(mat1, mat2), mat3)
 
 
 @frame_transform_graph.transform(StaticMatrixTransform, Supergalactic, Galactic)
