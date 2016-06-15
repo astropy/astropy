@@ -7,9 +7,10 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import numpy as np
 
+from ..angles import matmul
 from ..baseframe import frame_transform_graph
 from ..transformations import DynamicMatrixTransform
-from ..angles import AstropyMatrix
+
 from .fk4 import FK4NoETerms
 from .fk5 import FK5
 from .utils import EQUINOX_B1950, EQUINOX_J2000
@@ -21,14 +22,12 @@ from .utils import EQUINOX_B1950, EQUINOX_J2000
 _B1950_TO_J2000_M = np.array(
     [[0.9999256794956877, -0.0111814832204662, -0.0048590038153592],
      [0.0111814832391717,  0.9999374848933135, -0.0000271625947142],
-     [0.0048590037723143, -0.0000271702937440,  0.9999881946023742]
-    ]).view(AstropyMatrix)
+     [0.0048590037723143, -0.0000271702937440,  0.9999881946023742]])
 
 _FK4_CORR = np.array(
     [[-0.0026455262, -1.1539918689, +2.1111346190],
      [+1.1540628161, -0.0129042997, +0.0236021478],
-     [-2.1112979048, -0.0056024448, +0.0102587734]
-    ]).view(AstropyMatrix) * 1.e-6
+     [-2.1112979048, -0.0056024448, +0.0102587734]]) * 1.e-6
 
 def _fk4_B_matrix(obstime):
     """
@@ -51,7 +50,7 @@ def fk4_no_e_to_fk5(fk4noecoord, fk5frame):
     pmat1 = fk4noecoord._precession_matrix(fk4noecoord.equinox, EQUINOX_B1950)
     pmat2 = fk5frame._precession_matrix(EQUINOX_J2000, fk5frame.equinox)
 
-    return pmat2 * B * pmat1
+    return matmul(matmul(pmat2, B), pmat1)
 
 
 # This transformation can't be static because the observation date is needed.
@@ -66,4 +65,4 @@ def fk5_to_fk4_no_e(fk5coord, fk4noeframe):
     pmat1 = fk5coord._precession_matrix(fk5coord.equinox, EQUINOX_J2000)
     pmat2 = fk4noeframe._precession_matrix(EQUINOX_B1950, fk4noeframe.equinox)
 
-    return pmat2 * B * pmat1
+    return matmul(matmul(pmat2, B), pmat1)

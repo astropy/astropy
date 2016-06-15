@@ -3,7 +3,7 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from ..angles import rotation_matrix
+from ..angles import rotation_matrix, matmul
 from ..baseframe import frame_transform_graph
 from ..transformations import DynamicMatrixTransform
 
@@ -23,7 +23,7 @@ def fk5_to_gal(fk5coord, galframe):
     mat2 = rotation_matrix(90 - Galactic._ngp_J2000.dec.degree, 'y')
     mat3 = rotation_matrix(Galactic._ngp_J2000.ra.degree, 'z')
 
-    return mat1 * mat2 * mat3 * pmat
+    return matmul(matmul(matmul(mat1, mat2), mat3), pmat)
 
 
 @frame_transform_graph.transform(DynamicMatrixTransform, Galactic, FK5)
@@ -38,7 +38,7 @@ def fk4_to_gal(fk4coords, galframe):
     mat3 = rotation_matrix(Galactic._ngp_B1950.ra.degree, 'z')
     matprec = fk4coords._precession_matrix(fk4coords.equinox, EQUINOX_B1950)
 
-    return mat1 * mat2 * mat3 * matprec
+    return matmul(matmul(matmul(mat1, mat2), mat3), matprec)
 
 
 @frame_transform_graph.transform(DynamicMatrixTransform, Galactic, FK4NoETerms)
