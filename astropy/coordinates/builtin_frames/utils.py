@@ -8,8 +8,10 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 import warnings
+from functools import reduce
 
 import numpy as np
+from ...utils.compat.numpy import matmul
 
 from ... import units as u
 from ... import _erfa as erfa
@@ -32,6 +34,20 @@ PIOVER2 = np.pi / 2.
 
 # comes from the mean of the 1962-2014 IERS B data
 _DEFAULT_PM = (0.035, 0.29)*u.arcsec
+
+
+def matrix_product(*args):
+    """Matrix multiply all arguments together.
+
+    Arguments should have dimension 2 or larger, with larger dimensional
+    objects being interpreted as stacks of matrices.
+    """
+    return reduce(matmul, args)
+
+
+def matrix_transpose(m):
+    """Transpose a matrix or stack of matrices by swapping the last two axes."""
+    return m.swapaxes(-2, -1)
 
 
 def cartrepr_from_matmul(pmat, coo, transpose=False):
