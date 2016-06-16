@@ -350,6 +350,29 @@ class AliasDict(MutableMapping):
         return repr(store_copy)
 
 
+class _Integral(object):
+    """Base class for models with custom integral templates.
+    This is similar concept as bounding box, except it does not return
+    a tuple.
+    """
+
+    _model = None
+
+    def __new__(cls, _model=None):
+        self = super(_Integral, cls).__new__(cls)
+        if _model is not None:
+            # Bind this _Integral (most likely a subclass) to a Model
+            # instance so that its __call__ can access the model
+            self._model = _model
+
+        return self
+
+    def __call__(self, *args, **kwargs):
+        raise NotImplementedError(
+            "This integral is fixed by the model and does not have "
+            "adjustable parameters.")
+
+
 class _BoundingBox(tuple):
     """
     Base class for models with custom bounding box templates (methods that

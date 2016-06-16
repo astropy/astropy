@@ -44,7 +44,7 @@ from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import (array_repr_oneline, combine_labels,
                     make_binary_operator_eval, ExpressionTree,
                     AliasDict, get_inputs_and_params,
-                    _BoundingBox)
+                    _BoundingBox, _Integral)
 from ..nddata.utils import add_array, extract_array
 
 from .parameters import Parameter, InputParameterError
@@ -129,6 +129,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
                 cls.param_names = tuple(cls._parameters_)
 
         cls._create_inverse_property(members)
+        cls._create_integral_property(members)
         cls._create_bounding_box_property(members)
         cls._handle_special_methods(members)
 
@@ -265,6 +266,76 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
         # attribute so that cls.inverse resolves to Model.inverse instead
         cls._inverse = inverse
         del cls.inverse
+
+    def _create_integral_property(cls, members):
+        """
+        Takes any integral defined on a concrete Model subclass (either
+        as a property or method) and wraps it in the generic
+        getter/setter interface for the integral attribute.
+        """
+
+        integral = members.get('integral')
+        if integral is None or cls.__bases__[0] is object:
+            # The latter clause is the prevent the below code from running on
+            # the Model base class, which implements the default getter and
+            # setter for .integral
+            return
+
+        if isinstance(integral, property):
+            # We allow the @property decorator to be omitted entirely from
+            # the class definition, though its use should be encouraged for
+            # clarity
+            integral = integral.fget
+
+        if not callable(integral):
+            raise ModelDefinitionError('Integral must be callable')
+
+        sig = signature(integral)
+        if len(sig.parameters) > 1:
+            integral = cls._create_integral_subclass(integral, sig)
+
+        if six.PY2 and isinstance(integral, types.MethodType):
+            integral = integral.__func__
+
+        # Store the integral getter internally, then delete the given .integral
+        # attribute so that cls.integral resolves to Model.integral instead
+        cls._integral = integral
+        del cls.integral
+
+    def _create_integral_subclass(cls, func, sig):
+        """
+        For Models that take optional arguments for defining their integral,
+        we create a subclass of _Integral with a ``__call__`` method
+        that supports those additional arguments.
+
+        Takes the function's Signature as an argument since that is already
+        computed in _create_integral_property, so no need to duplicate that
+        effort.
+        """
+
+        def __call__(self, **kwargs):
+            return func(self._model, **kwargs)
+
+        kwargs = []
+        for idx, param in enumerate(sig.parameters.values()):
+            if idx == 0:
+                # Presumed to be a 'self' argument
+                continue
+
+            if param.default is param.empty:
+                raise ModelDefinitionError(
+                    'The integral method for {0} is not correctly '
+                    'defined: If defined as a method all arguments to that '
+                    'method (besides self) must be keyword arguments with '
+                    'default values that can be used to compute a default '
+                    'integral.'.format(cls.name))
+
+            kwargs.append((param.name, param.default))
+
+        __call__ = make_function_with_signature(__call__, ('self',), kwargs)
+
+        return type(str('_{0}Integral'.format(cls.name)), (_Integral,),
+                    {'__call__': __call__})
 
     def _create_bounding_box_property(cls, members):
         """
@@ -645,6 +716,9 @@ class Model(object):
     _inverse = None
     _user_inverse = None
 
+    _integral = None
+    _user_integral = None
+
     _bounding_box = None
     _user_bounding_box = None
 
@@ -905,6 +979,86 @@ class Model(object):
         """
 
         return self._user_inverse is not None
+
+    @property
+    def integral(self):
+        """
+        Returns a new `~astropy.modeling.Model` instance which performs the
+        integration, if an analytic integral is defined for this model.
+
+        Even on models that don't have an integral defined, this property can
+        be set with a manually-defined integral, such a pre-computed or
+        experimentally determined integral, but not by requirement).
+
+        A custom integral can be deleted with ``del model.integral``.  In this
+        case the model's integral is reset to its default, if a default exists
+        (otherwise the default is to raise `NotImplementedError`).
+
+        Note to authors of `~astropy.modeling.Model` subclasses:  To define an
+        integral for a model simply override this property to return the
+        appropriate model representing the integral.  The machinery that will
+        make the integral manually-overridable is added automatically by the
+        base class.
+        """
+
+        if self._user_integral is not None:
+            if self._user_integral is NotImplemented:
+                raise NotImplementedError(
+                    "No integral is defined for this model (note: the "
+                    "integral was explicitly disabled for this model; "
+                    "use `del model.integral` to restore the default "
+                    "integral, if one is defined for this model).")
+            return self._user_integral
+        elif self._integral is None:
+            raise NotImplementedError(
+                    "No integral is defined for this model.")
+        elif isinstance(self._integral, _Integral):
+            # This typically implies a hard-coded integral.  This will
+            # probably be rare, but it is an option
+            return self._integral
+        elif isinstance(self._integral, types.MethodType):
+            return self._integral()
+        else:
+            # The only other allowed possibility is that it's a _Integral
+            # subclass, so we call it with its default arguments and return an
+            # instance of it (that can be called to recompute the integral
+            # with any optional parameters)
+            # (In other words, in this case self._integral is a *class*)
+            integral = self._integral(_model=self)()
+            return self._integral(_model=self)
+
+    @integral.setter
+    def integral(self, integral):
+        if integral is None:
+            cls = None
+            # We use this to explicitly set an unimplemented integral (as
+            # opposed to no user integral defined)
+            integral = NotImplemented
+        elif (isinstance(self._integral, type) and
+                issubclass(self._integral, _Integral)):
+            cls = self._integral
+        else:
+            cls = _Integral
+
+        self._user_integral = integral
+
+    @integral.deleter
+    def integral(self):
+        """
+        Resets the model's integral to its default (if one exists, otherwise
+        the model will have no integral).
+        """
+
+        del self._user_integral
+
+    @property
+    def has_user_integral(self):
+        """
+        A flag indicating whether or not a custom integral model has been
+        assigned to this model by a user, via assignment to ``model.integral``.
+        """
+
+        return self._user_integral is not None
 
     @property
     def bounding_box(self):
@@ -2002,9 +2156,10 @@ class _CompoundModelMeta(_ModelMeta):
         new_cls = mcls(name, (_CompoundModel,), members)
 
         if isinstance(left, Model) and isinstance(right, Model):
-            # Both models used in the operator were already instantiated models,
-            # not model *classes*.  As such it's not particularly useful to return
-            # the class itself, but to instead produce a new instance:
+            # Both models used in the operator were already instantiated
+            # models, not model *classes*.  As such it's not particularly
+            # useful to return the class itself, but to instead produce a new
+            # instance:
             instance = new_cls()
 
             # Workaround for https://github.com/astropy/astropy/issues/3542
