@@ -44,10 +44,17 @@ The :class:`~astropy.time.Time` class has gained a new method
 (or heliocentric) corrections. For more details, see
 :ref:`time-light-travel-time`.
 
-Astrometric coordinate frames
------------------------------
+Sky offset coordinate frames
+----------------------------
 
-
+:mod:`~astropy.coordinates` now includes support for coordinate frames that are
+rotated in the sky to be centered on a particular object.  This sort of frame is
+variously known as "FOV coordinates", "offset coordinates", or "astrometric". It
+makes it easier to compute offsets from a particular reference object, and
+define coordinate frames that for heirarchical systems like groups or clusters
+of galaxies.  It also enables the new
+:meth:`~astropy.coordinates.SkyCoord.spherical_offsets_to` method. For more
+details, see :ref:`astropy-skyoffset-frames`.
 
 Lomb-scargle periodograms
 -------------------------
