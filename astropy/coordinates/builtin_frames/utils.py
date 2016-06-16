@@ -57,22 +57,21 @@ def cartrepr_from_matmul(pmat, coo, transpose=False):
     if pmat.shape[-2:] != (3, 3):
         raise ValueError("tried to do matrix multiplication with an array that "
                          "doesn't end in 3x3")
-    if coo.isscalar and pmat.shape == (3, 3):
-        # a simpler path for scalar coordinates
-        if transpose:
-            pmat = pmat.T
-        newxyz = np.sum(pmat * coo.cartesian.xyz, axis=-1)
-    else:
-        xyz = coo.cartesian.xyz.T
-        # these expression are the same as iterating over the first dimension of
-        # pmat and xyz and doing matrix multiplication on each in turn.  resulting
-        # dimension is <coo shape> x 3
-        pmat = pmat.reshape(pmat.size//9, 3, 3)
-        if transpose:
-            pmat = pmat.transpose(0, 2, 1)
-        newxyz = np.sum(pmat * xyz.reshape(xyz.size//3, 1, 3), axis=-1).T
+    if transpose:
+        pmat = matrix_transpose(pmat)
 
-    return CartesianRepresentation(newxyz)
+    oldxyz = coo.cartesian.xyz
+    # Note that neither dot nor einsum handles Quantity properly, so we use
+    # the arrays and put the unit back in the end.
+    if coo.isscalar and not pmat.shape[:-2]:
+        # a fast path for scalar coordinates.
+        newxyz = pmat.dot(oldxyz.value)
+    else:
+        # this does matrix multiplication of all pmat items and all coordinates.
+        newxyz = np.einsum('...ij,j...->i...', pmat, oldxyz.value)
+
+    newxyz = u.Quantity(newxyz, oldxyz.unit, copy=False)
+    return CartesianRepresentation(newxyz, copy=False)
 
 
 def get_polar_motion(time):
