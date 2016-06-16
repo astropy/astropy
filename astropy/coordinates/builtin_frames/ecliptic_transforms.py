@@ -9,14 +9,15 @@ from __future__ import (absolute_import, unicode_literals, division,
 from ... import units as u
 from ..baseframe import frame_transform_graph
 from ..transformations import FunctionTransform, DynamicMatrixTransform
-from ..angles import rotation_matrix, matmul
+from ..angles import rotation_matrix
 from ..representation import CartesianRepresentation
 from ... import _erfa as erfa
 
 from .icrs import ICRS
 from .gcrs import GCRS
 from .ecliptic import GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic
-from .utils import cartrepr_from_matmul, get_jd12
+from .utils import (cartrepr_from_matmul, get_jd12,
+                    matrix_product, matrix_transpose)
 from ..errors import UnitsError
 
 
@@ -24,13 +25,7 @@ def _ecliptic_rotation_matrix(equinox):
     jd1, jd2 = get_jd12(equinox, 'tt')
     rnpb = erfa.pnm06a(jd1, jd2)
     obl = erfa.obl06(jd1, jd2)*u.radian
-    """
-    The following code is the equivalent of looping over obl and rnpb,
-    creating a rotation matrix from obl and then taking
-    the dot product of the resulting matrices, finally combining
-    into a new array.
-    """
-    return matmul(rotation_matrix(obl, 'x'), rnpb)
+    return matrix_product(rotation_matrix(obl, 'x'), rnpb)
 
 
 @frame_transform_graph.transform(FunctionTransform, GCRS, GeocentricTrueEcliptic)
@@ -60,7 +55,7 @@ def icrs_to_baryecliptic(from_coo, to_frame):
 
 @frame_transform_graph.transform(DynamicMatrixTransform, BarycentricTrueEcliptic, ICRS)
 def baryecliptic_to_icrs(from_coo, to_frame):
-    return icrs_to_baryecliptic(to_frame, from_coo).T
+    return matrix_transpose(icrs_to_baryecliptic(to_frame, from_coo))
 
 
 _NEED_ORIGIN_HINT = ("The input {0} coordinates do not have length units. This "

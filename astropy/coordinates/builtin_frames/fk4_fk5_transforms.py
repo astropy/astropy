@@ -7,14 +7,13 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import numpy as np
 
-from ..angles import matmul
 from ..baseframe import frame_transform_graph
 from ..transformations import DynamicMatrixTransform
 
 from .fk4 import FK4NoETerms
 from .fk5 import FK5
-from .utils import EQUINOX_B1950, EQUINOX_J2000
-
+from .utils import (EQUINOX_B1950, EQUINOX_J2000,
+                    matrix_product, matrix_transpose)
 
 
 # FK5 to/from FK4 ------------------->
@@ -36,6 +35,9 @@ def _fk4_B_matrix(obstime):
     """
     # Note this is *julian century*, not besselian
     T = (obstime.jyear - 1950.) / 100.
+    if getattr(T, 'shape', ()):
+        # Ensure we broadcast possibly arrays of times properly.
+        T.shape += (1, 1)
     return _B1950_TO_J2000_M + _FK4_CORR * T
 
 
@@ -50,7 +52,7 @@ def fk4_no_e_to_fk5(fk4noecoord, fk5frame):
     pmat1 = fk4noecoord._precession_matrix(fk4noecoord.equinox, EQUINOX_B1950)
     pmat2 = fk5frame._precession_matrix(EQUINOX_J2000, fk5frame.equinox)
 
-    return matmul(matmul(pmat2, B), pmat1)
+    return matrix_product(pmat2, B, pmat1)
 
 
 # This transformation can't be static because the observation date is needed.
@@ -58,11 +60,11 @@ def fk4_no_e_to_fk5(fk4noecoord, fk5frame):
 def fk5_to_fk4_no_e(fk5coord, fk4noeframe):
     # Get transposed version of the rotating correction terms... so with the
     # transpose this takes us from FK5/J200 to FK4/B1950
-    B = _fk4_B_matrix(fk4noeframe.obstime).T
+    B = matrix_transpose(_fk4_B_matrix(fk4noeframe.obstime))
 
     # construct both precession matricies - if the equinoxes are B1950 and
     # J2000, these are just identity matricies
     pmat1 = fk5coord._precession_matrix(fk5coord.equinox, EQUINOX_J2000)
     pmat2 = fk4noeframe._precession_matrix(EQUINOX_B1950, fk4noeframe.equinox)
 
-    return matmul(matmul(pmat2, B), pmat1)
+    return matrix_product(pmat2, B, pmat1)

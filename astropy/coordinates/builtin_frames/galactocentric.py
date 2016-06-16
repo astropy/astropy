@@ -6,7 +6,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 import numpy as np
 
 from ... import units as u
-from ..angles import Angle, rotation_matrix, matmul
+from ..angles import Angle, rotation_matrix
 from ..representation import CartesianRepresentation, UnitSphericalRepresentation
 from ..baseframe import (BaseCoordinateFrame, FrameAttribute,
                          frame_transform_graph)
@@ -14,6 +14,7 @@ from ..transformations import FunctionTransform
 from ..errors import ConvertError
 
 from .icrs import ICRS
+from .utils import matrix_product
 
 # Measured by minimizing the difference between a plane of coordinates along
 #   l=0, b=[-90,90] and the Galactocentric x-z plane
@@ -160,13 +161,11 @@ def icrs_to_galactocentric(icrs_coord, galactocentric_frame):
     # define rotation matrix to align x(ICRS) with the vector to the Galactic center
     mat1 = rotation_matrix(-galactocentric_frame.galcen_dec, 'y')
     mat2 = rotation_matrix(galactocentric_frame.galcen_ra, 'z')
-    R1 = matmul(mat1, mat2)
-
     # extra roll away from the Galactic x-z plane
-    R2 = rotation_matrix(galactocentric_frame.get_roll0() - galactocentric_frame.roll, 'x')
+    mat0 = rotation_matrix(galactocentric_frame.get_roll0() - galactocentric_frame.roll, 'x')
 
     # construct transformation matrix
-    R = matmul(R2, R1)
+    R = matrix_product(mat0, mat1, mat2)
 
     # some reshape hacks to handle ND arrays
     orig_shape = xyz.shape
@@ -206,13 +205,12 @@ def galactocentric_to_icrs(galactocentric_coord, icrs_frame):
     # define inverse rotation matrix that aligns x(ICRS) with the vector to the Galactic center
     mat1 = rotation_matrix(-galactocentric_coord.galcen_dec, 'y')
     mat2 = rotation_matrix(galactocentric_coord.galcen_ra, 'z')
-    R1 = matmul(mat1, mat2)
 
     # extra roll away from the Galactic x-z plane
-    R2 = rotation_matrix(galactocentric_coord.get_roll0() - galactocentric_coord.roll, 'x')
+    mat0 = rotation_matrix(galactocentric_coord.get_roll0() - galactocentric_coord.roll, 'x')
 
     # construct transformation matrix
-    R = matmul(R2, R1)
+    R = matrix_product(mat0, mat1, mat2)
 
     # rotate into ICRS frame
     xyz = np.linalg.inv(R).dot(xyz.reshape(xyz.shape[0], np.prod(xyz.shape[1:]))).reshape(orig_shape)
