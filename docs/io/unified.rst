@@ -65,31 +65,31 @@ Built-in table readers/writers
 
 The full list of built-in readers and writers is shown in the table below:
 
-=========================== ==== ===== ============= 
-           Format           Read Write Auto-identify 
-=========================== ==== ===== ============= 
-                      ascii  Yes   Yes            No
-               ascii.aastex  Yes   Yes            No
-                ascii.basic  Yes   Yes            No
-                  ascii.cds  Yes    No            No
-     ascii.commented_header  Yes   Yes            No
-              ascii.daophot  Yes    No            No
-              ascii.ecsv     Yes   Yes            No
-          ascii.fixed_width  Yes   Yes            No
-ascii.fixed_width_no_header  Yes   Yes            No
- ascii.fixed_width_two_line  Yes   Yes            No
-                 ascii.html  Yes   Yes           Yes
-                 ascii.ipac  Yes   Yes            No
-                ascii.latex  Yes   Yes           Yes
-            ascii.no_header  Yes   Yes            No
-                  ascii.rdb  Yes   Yes           Yes
-           ascii.sextractor  Yes    No            No
-                  ascii.tab  Yes   Yes            No
-                  ascii.csv  Yes   Yes           Yes
-                       fits  Yes   Yes           Yes
-                       hdf5  Yes   Yes           Yes
-                    votable  Yes   Yes           Yes
-=========================== ==== ===== ============= 
+===========================  ===== ============= 
+           Format            Write Auto-identify 
+===========================  ===== ============= 
+                      ascii    Yes            No
+               ascii.aastex    Yes            No
+                ascii.basic    Yes            No
+                  ascii.cds     No            No
+     ascii.commented_header    Yes            No
+              ascii.daophot     No            No
+              ascii.ecsv       Yes            No
+          ascii.fixed_width    Yes            No
+ascii.fixed_width_no_header    Yes            No
+ ascii.fixed_width_two_line    Yes            No
+                 ascii.html    Yes           Yes
+                 ascii.ipac    Yes            No
+                ascii.latex    Yes           Yes
+            ascii.no_header    Yes            No
+                  ascii.rdb    Yes           Yes
+           ascii.sextractor     No            No
+                  ascii.tab    Yes            No
+                  ascii.csv    Yes           Yes
+                       fits    Yes           Yes
+                       hdf5    Yes           Yes
+                    votable    Yes           Yes
+===========================  ===== ============= 
 
 .. _table_io_ascii:
 
