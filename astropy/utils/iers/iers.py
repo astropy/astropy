@@ -23,7 +23,8 @@ import numpy as np
 from ... import config as _config
 from ... import units as u
 from ...table import Table, QTable
-from ...utils.data import get_pkg_data_filename, download_file, clear_download_cache
+from ...utils.data import get_pkg_data_filename, clear_download_cache
+from ... import utils
 from ...utils.exceptions import AstropyWarning
 from ...tests import disable_internet
 
@@ -68,6 +69,18 @@ suppressed by setting the auto_max_age configuration variable to
   conf.auto_max_age = None
 """
 
+
+def download_file(*args, **kwargs):
+    """
+    Overload astropy.utils.data.download_file within iers module to use a
+    custom (longer) wait time.  This just passes through ``*args`` and
+    ``**kwargs`` after temporarily setting the download_file remote timeout to
+    the local ``iers.conf.remote_timeout`` value.
+    """
+    with utils.data.conf.set_temp('remote_timeout', conf.remote_timeout):
+        return utils.data.download_file(*args, **kwargs)
+
+
 class IERSStaleWarning(AstropyWarning):
     pass
 
@@ -86,6 +99,9 @@ class Conf(_config.ConfigNamespace):
     iers_auto_url = _config.ConfigItem(
         IERS_A_URL,
         'URL for auto-downloading IERS file data')
+    remote_timeout = _config.ConfigItem(
+        10.0,
+        'Remote timeout downloading IERS file data (seconds)')
 
 conf = Conf()
 

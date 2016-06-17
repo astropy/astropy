@@ -81,6 +81,9 @@ of the automatic IERS downloading:
   iers_auto_url:
     URL for auto-downloading IERS file data
 
+  remote_timeout:
+    Remote timeout downloading IERS file data (seconds)
+
 Auto refresh behavior
 ---------------------
 
