@@ -345,6 +345,8 @@ def test_spectraldensity4():
     flux_flam = [3.9135e-14, 4.0209e-14, 3.9169e-14]
     flux_fnu = [3.20735792e-25, 3.29903646e-25, 3.21727226e-25]
     flux_jy = [3.20735792e-2, 3.29903646e-2, 3.21727226e-2]
+    flux_stmag = [12.41858665, 12.38919182, 12.41764379]
+    flux_abmag = [12.63463143, 12.60403221, 12.63128047]
 
     # PHOTLAM <--> FLAM
     assert_allclose(photlam.to(
@@ -381,6 +383,18 @@ def test_spectraldensity4():
         flam, flux_photnu, u.spectral_density(wave)), flux_flam, rtol=1e-6)
     assert_allclose(flam.to(
         photnu, flux_flam, u.spectral_density(wave)), flux_photnu, rtol=1e-6)
+
+    # PHOTLAM <--> STMAG
+    assert_allclose(photlam.to(
+        u.STmag, flux_photlam, u.spectral_density(wave)), flux_stmag, rtol=1e-6)
+    assert_allclose(u.STmag.to(
+        photlam, flux_stmag, u.spectral_density(wave)), flux_photlam, rtol=1e-6)
+
+    # PHOTLAM <--> ABMAG
+    assert_allclose(photlam.to(
+        u.ABmag, flux_photlam, u.spectral_density(wave)), flux_abmag, rtol=1e-6)
+    assert_allclose(u.ABmag.to(
+        photlam, flux_abmag, u.spectral_density(wave)), flux_photlam, rtol=1e-6)
 
 
 def test_equivalent_units():

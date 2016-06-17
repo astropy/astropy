@@ -139,7 +139,7 @@ These three conventions are implemented in
 
     >>> restfreq = 115.27120 * u.GHz  # rest frequency of 12 CO 1-0 in GHz
     >>> freq_to_vel = u.doppler_radio(restfreq)
-    >>> (116e9 * u.Hz).to(u.km / u.s, equivalencies=freq_to_vel)
+    >>> (116e9 * u.Hz).to(u.km / u.s, equivalencies=freq_to_vel)  # doctest: +FLOAT_CMP
     <Quantity -1895.4321928669085 km / s>
 
 Spectral Flux Density Units
@@ -272,7 +272,7 @@ but this example is illustrative::
     ... lambda x: (1-x/si.c.to('km/s').value) * restfreq )]
     >>> u.Hz.to(u.km / u.s, 116e9, equivalencies=freq_to_vel)  # doctest: +FLOAT_CMP
     -1895.4321928669262
-    >>> (116e9 * u.Hz).to(u.km / u.s, equivalencies=freq_to_vel)
+    >>> (116e9 * u.Hz).to(u.km / u.s, equivalencies=freq_to_vel)  # doctest: +FLOAT_CMP
     <Quantity -1895.4321928669262 km / s>
 
 Note that once this is defined for GHz and km/s, it will work for all other
