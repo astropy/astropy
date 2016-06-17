@@ -136,12 +136,12 @@ class FunctionUnitBase(object):
 
     @property
     def equivalencies(self):
-        """List of equivalencies between physical and function units.
+        """List of equivalencies between function and physical units.
 
         Uses the `from_physical` and `to_physical` methods.
         """
-        return [(self.physical_unit, self,
-                 self.from_physical, self.to_physical)]
+        return [(self, self.physical_unit,
+                 self.to_physical, self.from_physical)]
 
     # vvvv properties/methods required to behave like a unit
     def decompose(self, bases=set()):

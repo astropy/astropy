@@ -821,9 +821,6 @@ class UnitBase(object):
                 return func(_condition_arg(v) / scale1) * scale2
             return convert
 
-        if hasattr(other, 'equivalencies'):
-            equivalencies += other.equivalencies
-
         for funit, tunit, a, b in equivalencies:
             if tunit is None:
                 try:
@@ -866,12 +863,32 @@ class UnitBase(object):
     def _get_converter(self, other, equivalencies=[]):
         other = Unit(other)
 
+        # First see if it is just a scaling.
         try:
             scale = self._to(other)
         except UnitsError:
+            pass
+        else:
+            return lambda val: scale * _condition_arg(val)
+
+        # if that doesn't work, maybe we can do it with equivalencies?
+        try:
             return self._apply_equivalencies(
                 self, other, self._normalize_equivalencies(equivalencies))
-        return lambda val: scale * _condition_arg(val)
+        except UnitsError as exc:
+            # Last hope: maybe other knows how to do it?
+            # We assume the equivalencies have the unit itself as first item.
+            # TODO: maybe better for other to have a `_back_converter` method?
+            if hasattr(other, 'equivalencies'):
+                for funit, tunit, a, b in other.equivalencies:
+                    if other is funit:
+                        try:
+                            return lambda v: b(self._get_converter(
+                                tunit, equivalencies=equivalencies)(v))
+                        except:
+                            pass
+
+            raise exc
 
     @deprecated('1.0')
     def get_converter(self, other, equivalencies=[]):
