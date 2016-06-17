@@ -1485,6 +1485,8 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - Fixed bug in Ci definition. [#5106]
+
 - ``astropy.utils``
 
 - ``astropy.vo``
