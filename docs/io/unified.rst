@@ -73,6 +73,7 @@ The full list of built-in readers and writers is shown in the table below:
                 ascii.basic    Yes            No
                   ascii.cds     No            No
      ascii.commented_header    Yes            No
+                  ascii.csv    Yes           Yes
               ascii.daophot     No            No
               ascii.ecsv       Yes            No
           ascii.fixed_width    Yes            No
@@ -85,7 +86,6 @@ ascii.fixed_width_no_header    Yes            No
                   ascii.rdb    Yes           Yes
            ascii.sextractor     No            No
                   ascii.tab    Yes            No
-                  ascii.csv    Yes           Yes
                        fits    Yes           Yes
                        hdf5    Yes           Yes
                     votable    Yes           Yes
