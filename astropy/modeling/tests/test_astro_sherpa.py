@@ -10,7 +10,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 import numpy as np
 
 from numpy.testing.utils import assert_allclose
-# from ...tests.helper import pytest
+from ...tests.helper import pytest
 
 try:
     from sherpa.data import DataSimulFit
@@ -19,7 +19,7 @@ except ImportError:
     HAS_SHERPA = False
 
 
-from ...astro_sherpa import SherpaFitter, make_datasets, _astropy_to_sherpa_model
+from astropy.modeling.astro_sherpa import SherpaFitter, make_datasets, _astropy_to_sherpa_model
 from sherpa.stats import Chi2
 from astropy.modeling.models import Gaussian1D, Gaussian2D
 
@@ -60,8 +60,8 @@ class TestSherpaFitter(object):
         self.model1d_2.amplitude = 10
         self.model1d_2.stddev = 0.3
 
-        self.xx2, xx1 = np.mgrid[1:10:.1, 1:10:.05]
-        self.self.shape = self.xx2.shape
+        self.xx2, self.xx1 = np.mgrid[1:10:.1, 1:10:.05]
+        self.shape = self.xx2.shape
         self.xx1 = self.xx1.flatten()
         self.xx2 = self.xx2.flatten()
 
@@ -79,6 +79,12 @@ class TestSherpaFitter(object):
         self.model2d.y_mean = 5
         self.model2d.x_stddev = 0.2
         self.model2d.y_stddev = 0.7
+
+        # to stop stddev going negitive and getting div by zero error
+        self.model1d.stddev.min = 1e-99
+        self.model1d_2.stddev.min = 1e-99
+        self.model2d.x_stddev.min = 1e-99
+        self.model2d.y_stddev.min = 1e-99
 
         self.fitter = SherpaFitter(statistic=Chi2())
 
@@ -135,7 +141,7 @@ class TestSherpaFitter(object):
         data_yerr = make_datasets(1, x=[self.x1, self.x2], y=[self.y1, self.y2], yerr=[self.dy1, self.dy2])
         assert len(data_yerr.datasets) == 2
         assert isinstance(data_yerr, DataSimulFit)
-        map(lambda x, y: assert_allclose(x, y), map(lambda x: x.get_x(), data_yerr.datasets), [self.x1, self.self.x2])
+        map(lambda x, y: assert_allclose(x, y), map(lambda x: x.get_x(), data_yerr.datasets), [self.x1, self.x2])
         map(lambda x, y: assert_allclose(x, y), map(lambda x: x.get_y(), data_yerr.datasets), [self.y1, self.y2])
         map(lambda x, y: assert_allclose(x, y), map(lambda x: x.get_yerr(), data_yerr.datasets), [self.dy1, self.dy2])
 
