@@ -65,10 +65,9 @@ Built-in table readers/writers
 
 The full list of built-in readers and writers is shown in the table below:
 
-=========================== ==== ===== ============= ==========
-           Format           Read Write Auto-identify Deprecated
-=========================== ==== ===== ============= ==========
-                     aastex  Yes   Yes            No        Yes
+=========================== ==== ===== ============= 
+           Format           Read Write Auto-identify 
+=========================== ==== ===== ============= 
                       ascii  Yes   Yes            No
                ascii.aastex  Yes   Yes            No
                 ascii.basic  Yes   Yes            No
@@ -87,19 +86,10 @@ ascii.fixed_width_no_header  Yes   Yes            No
            ascii.sextractor  Yes    No            No
                   ascii.tab  Yes   Yes            No
                   ascii.csv  Yes   Yes           Yes
-                        cds  Yes    No            No        Yes
-                    daophot  Yes    No            No        Yes
                        fits  Yes   Yes           Yes
                        hdf5  Yes   Yes           Yes
-                       html  Yes   Yes            No        Yes
-                       ipac  Yes   Yes            No        Yes
-                      latex  Yes   Yes            No        Yes
-                        rdb  Yes   Yes            No        Yes
                     votable  Yes   Yes           Yes
-=========================== ==== ===== ============= ==========
-
-Deprecated format names like ``aastex`` will be removed in a future version.
-Use the full name (e.g. ``ascii.aastex``) instead.
+=========================== ==== ===== ============= 
 
 .. _table_io_ascii:
 
