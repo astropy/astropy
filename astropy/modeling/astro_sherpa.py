@@ -11,7 +11,7 @@ from sherpa.data import Data1D, Data1DInt, Data2D, Data2DInt, DataSimulFit
 from sherpa.models import UserModel, Parameter, SimulFitModel
 from .fitting import Fitter
 from .core import FittableModel, _CompoundModel
-# from astropy.modeling.fitting import Fitter
+# from astropy.modeling
 
 __all__ = ('SherpaFitter',)
 
@@ -39,7 +39,6 @@ def _expression_to_list(expr):
             a list of parsed expression
     """
     return nestedExpr().parseString("(" + expr + ")").asList()[0]
-
 
 
 def _parse_expression(exp_list, models):
@@ -101,10 +100,10 @@ def _astropy_to_sherpa_model(model, deconstruct=False):
                     # startp = func._parameters[:]
                     # func._parameters = np.array(inp)
                     # retvals = func.__call__(*x)
-                    retvals = func.evaluate(x, *inp)[0]
+                    retvals = func.evaluate(x[0], *inp)
                     # func._parameters = startp
                 else:
-                    retvals = func.evaluate(x[0], x[1], *inp) # I need to test the 2d case!
+                    retvals = func.evaluate(x[0], x[1], *inp)  # I need to test the 2d case!
                 return retvals
             return _converter
 
@@ -149,7 +148,7 @@ def _astropy_to_sherpa_model(model, deconstruct=False):
         return _convert_to_sherpa_model(model)
 
 
-def _make_datasets(n_dim, x, y, z=None, xerr=None, yerr=None, zerr=None):
+def _make_dataset(n_dim, x, y, z=None, xerr=None, yerr=None, zerr=None, n=0):
     '''
     Parameters
         ----------
@@ -167,41 +166,34 @@ def _make_datasets(n_dim, x, y, z=None, xerr=None, yerr=None, zerr=None):
             an array of errors in y
         zerr : array (optional)
             an array of errors in z
+        n  : int
+            used in error reporting
 
     returns:
-        _data: a sherpa dataset (if mutiple data sets are given a DataSimulFit will be returned)
-
+        _data: a sherpa dataset
     '''
 
-    def _iterTranspose(array):  # this takes each element from the dstack and transposes back into columns
-        for x in array:
-            yield x.T
-
-    x = np.asarray(x)
-    y = np.asarray(y)
-
     if (z is None and n_dim > 1) or (z is not None and n_dim == 1):
-        raise Exception("Model and data dimentions don't match")
+        raise Exception("Model and data dimentions don't match in dataset %i" % n)
 
     if z is None:
-        assert x.shape == y.shape, "shape of x and y don't match"
+        assert x.shape == y.shape, "shape of x and y don't match in dataset %i" % n
     else:
         z = np.asarray(z)
-        assert x.shape == y.shape == z.shape, "shapes x,y and z don't match"
+        assert x.shape == y.shape == z.shape, "shapes x,y and z don't match in dataset %i" % n
 
     if yerr is not None:
         yerr = np.array(yerr)
-        assert y.shape == yerr.shape, "y's and yerr's shapes do not match"
+        assert y.shape == yerr.shape, "y's and yerr's shapes do not match in dataset %i" % n
 
     if xerr is not None:
         xerr = np.array(xerr)
-        assert x.shape == xerr.shape, "x's and xerr's shapes do not match"
+        assert x.shape == xerr.shape, "x's and xerr's shapes do not match in dataset %i" % n
 
     if z is not None and zerr is not None:
         zerr = np.array(zerr)
-        assert z.shape == zerr.shape, "z's and zerr's shapes do not match"
+        assert z.shape == zerr.shape, "z's and zerr's shapes do not match in dataset %i" % n
 
-    _data = []
     '''
     So the generall method is to dstack(and transpose each row) so
         [x1,x2,x3],[y1,y2,y3],[z1,z2,z3],...
@@ -213,76 +205,76 @@ def _make_datasets(n_dim, x, y, z=None, xerr=None, yerr=None, zerr=None):
     if z is None:
         if xerr is None:
             if yerr is None:
-                dstack = np.dstack((x, y))
-                # if dstack.shape[0] == 1:
-                #    dstack = dstack[0]
-                for xx, yy in _iterTranspose(dstack):
-                    assert xx.shape == yy.shape, "shape of x and y don't match"
-                    _data.append(Data1D("wrapped_data", x=xx, y=yy))
+                _data = Data1D("wrapped_data", x=x, y=y)
             else:
-                dstack = np.dstack((x, y, yerr))
-                # if dstack.shape[0] == 1:
-                #    dstack = dstack[0]
-
-                for xx, yy, yyerr in _iterTranspose(dstack):
-                    assert xx.shape == yy.shape == yyerr.shape, "shape of x,y and yerr don't match"
-                    _data.append(Data1D("wrapped_data", x=xx, y=yy, staterror=yyerr))
+                _data = Data1D("wrapped_data", x=x, y=y, staterror=yerr)
         else:
             if yerr is None:
-                dstack = np.dstack((x, y, xerr))
-                # if dstack.shape[0] == 1:
-                #    dstack = dstack[0]
-                for xx, yy, xxerr in _iterTranspose(dstack):
-                    assert xx.shape == yy.shape == xxerr.shape, "shape of x, y and xerr don't match"
-                    _data.append(Data1DInt("wrapped_data", xlo=xx - xxerr, xhi=xx + xxerr, y=yy))
+                _data = Data1DInt("wrapped_data", xlo=x - xerr, xhi=x + xerr, y=y)
             else:
-                dstack = np.dstack((x, y, xerr, yerr))
-                # if dstack.shape[0] == 1:
-                #    dstack = dstack[0]
-                for xx, yy, xxerr, yyerr in _iterTranspose(dstack):
-                    assert xx.shape == yy.shape == xxerr.shape == yyerr.shape, "shape of x, y, xerr and yerr don't match"
-                    _data.append(Data1DInt("wrapped_data", xlo=xx - xxerr, xhi=xx + xxerr, y=yy, staterror=yyerr))
-
+                _data = Data1DInt("wrapped_data", xlo=x - xerr, xhi=x + xerr, y=y, staterror=yerr)
     else:
         if xerr is None and yerr is None:
             if zerr is None:
-                dstack = np.dstack((x, y, z))
-                # if dstack.shape[0] == 1:
-                #    dstack = dstack[0]
-                for xx, yy, zz in _iterTranspose(dstack):
-                    assert xx.shape == yy.shape == zz.shape, "shape of x, y, and z don't match"
-                    _data.append(Data2D("wrapped_data", x0=xx, x1=yy, y=zz))
+                _data = Data2D("wrapped_data", x0=x, x1=y, y=z)
             else:
-                dstack = np.dstack((x, y, z, zerr))
-                # if dstack.shape[0] == 1:
-                #   dstack = dstack[0]
-                for xx, yy, zz, zzerr in _iterTranspose(dstack):
-                    assert xx.shape == yy.shape == zz.shape == zzerr.shape, "shape of x, y, z and zerr don't match"
-                    _data.append(Data2D("wrapped_data", x0=xx, x1=yy, y=zz, staterror=zzerr))
+                _data = Data2D("wrapped_data", x0=x, x1=y, y=z, staterror=zerr)
         elif xerr is not None and yerr is not None:
             if zerr is None:
-                dstack = np.dstack((x, y, z, xerr, yerr))
-                # if dstack.shape[0] == 1:
-                #    dstack = dstack[0]
-                for xx, yy, zz, xxerr, yyerr in _iterTranspose(dstack):
-                    assert xx.shape == yy.shape == xxerr.shape == yyerr.shape, "shape of x, y, z, xerr and yerr don't match"
-                    _data.append(Data2DInt("wrapped_data", x0lo=xx - xxerr, x0hi=xx + xxerr, x1lo=yy - yyerr, x1hi=yy + yyerr, y=zz))
+                _data = Data2DInt("wrapped_data", x0lo=x - xerr, x0hi=x + xerr, x1lo=y - yerr, x1hi=y + yerr, y=z)
             else:
-                dstack = np.dstack((x, y, z, xerr, yerr, zerr))
-                # if dstack.shape[0] == 1:
-                #    dstack = dstack[0]
-                for xx, yy, zz, xxerr, yyerr, zzerr in _iterTranspose(dstack):
-                    assert xx.shape == yy.shape == zz.shape == zzerr.shape == xxerr.shape == yyerr.shape, "shape of x, y, z, xerr, yerr and zerr don't match"
-                    _data.append(Data2DInt("wrapped_data", x0lo=xx - xxerr, x0hi=xx + xxerr, x1lo=yy - yyerr, x1hi=yy + yyerr, y=zz, staterror=zzerr))
+                _data = Data2DInt("wrapped_data", x0lo=x - xerr, x0hi=x + xerr, x1lo=y - yerr, x1hi=y + yerr, y=z, staterror=zerr)
         else:
             raise Exception("Set xerr and yerr, or set neither!")
 
-    _ndata = len(_data)
-    if _ndata > 1:
-        _data = DataSimulFit("wrapped_data", _data)
-    else:
-        _data = _data[0]
     return _data
+
+
+def make_datasets(n_dim, x, y, z=None, xerr=None, yerr=None, zerr=None):
+    '''
+    Parameters
+        ----------
+        n_dim: int
+            Used to veirfy required number of dimentions.
+        x : array (or list of arrays)
+            input coordinates
+        y : array (or list of arrays)
+            input coordinates
+        z : array (or list of arrays) (optional)
+            input coordinates
+        xerr : array (or list of arrays) (optional)
+            an array of errors in x
+        yerr : array (or list of arrays) (optional)
+            an array of errors in y
+        zerr : array (or list of arrays) (optional)
+            an array of errors in z
+
+    returns:
+        _data: a sherpa dataset
+    '''
+
+    x = np.array(x)
+    y = np.array(y)
+
+    if x.ndim == 2 or (x.dtype == np.object or y.dtype == np.object):
+        data = []
+        if z is None:
+            z = len(x) * [None]
+
+        if xerr is None:
+            xerr = len(x) * [None]
+
+        if yerr is None:
+            yerr = len(y) * [None]
+
+        if zerr is None:
+            zerr = len(z) * [None]
+
+        for nn, (xx, yy, zz, xxe, yye, zze) in enumerate(zip(x, y, z, xerr, yerr, zerr)):
+            data.append(_make_dataset(n_dim, x=xx, y=yy, z=zz, xerr=xxe, yerr=yye, zerr=zze, n=nn))
+        return DataSimulFit("wrapped_data", data)
+    else:
+        return _make_dataset(n_dim, x=x, y=y, z=z, xerr=xerr, yerr=yerr, zerr=zerr)
 
 
 def _make_simfit_model(models, tie_list, model_dict):
@@ -293,6 +285,7 @@ def _make_simfit_model(models, tie_list, model_dict):
     '''
     for mod in models:
         model_dict[mod] = _astropy_to_sherpa_model(mod)
+
     if tie_list is not None:
         for par1, par2 in tie_list:
             getattr(model_dict[par1._model], par1.name).link = getattr(model_dict[par2._model], par2.name)
@@ -300,6 +293,7 @@ def _make_simfit_model(models, tie_list, model_dict):
 
 
 class SherpaFitter(Fitter):
+
     """
     Sherpa Fitter for astropy models. Yay :)
 
@@ -369,11 +363,9 @@ class SherpaFitter(Fitter):
 
         Returns
         -------
-        model_copy : `~astropy.modeling.FittableModel`
+        model_copy : `~astropy.modeling.FittableModel` or a list of models.
             a copy of the input model with parameters set by the fitter
         """
-
-        self._data = _make_datasets(models.n_inputs, x, y, z, xerr, yerr, zerr)
 
         model_dict = OrderedDict()
         tie_list = []
@@ -381,10 +373,12 @@ class SherpaFitter(Fitter):
         if isinstance(models, (FittableModel, _CompoundModel)):
             models = [models]
 
+        self._data = make_datasets(models[0].n_inputs, x, y, z, xerr, yerr, zerr)
+
         if isinstance(self._data, DataSimulFit):
             _ndata = len(self._data.datasets)
             if len(models) == 1:
-                self._fitmodel = SimulFitModel("wrapped_fit_model", [_astropy_to_sherpa_model(models[0]) for _ in xrange(_ndata)])
+                self._fitmodel = _make_simfit_model([models[0].copy() for _ in xrange(_ndata)], tie_list, model_dict)
                 # Copy the model so each data set has the same model!
             elif len(models) == _ndata:
                 self._fitmodel = _make_simfit_model(models, tie_list, model_dict)
@@ -432,7 +426,8 @@ class SherpaFitter(Fitter):
             self._fitter.estmethod.config['sigma'] = sigma
         if maxiters is not None:
             self._fitter.estmethod.config['maxiters'] = maxiters
-        if not numcores == self._fitter.estmethod.config['numcores']:
-            self._fitter.estmethod.config['numcores'] = numcores
+        if 'numcores' in self._fitter.estmethod.config:
+            if not numcores == self._fitter.estmethod.config['numcores']:
+                self._fitter.estmethod.config['numcores'] = numcores
 
         return self._fitter.est_errors(methoddict=methoddict, parlist=parlist)
