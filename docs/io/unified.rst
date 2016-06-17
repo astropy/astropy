@@ -134,9 +134,9 @@ ascii.fixed_width_no_header    Yes          :class:`~astropy.io.ascii.FixedWidth
 .. note::
 
    When specifying a specific ASCII table format using the unified interface, the format name is
-   prefixed with ``ascii.`` in order to identify the format as ASCII-based.  Compare the
-   table above to the `astropy.io.ascii` list of :ref:`supported_formats`.  Therefore the following
-   are equivalent::
+   prefixed with ``ascii`` in order to identify the format as ASCII-based.  Compare the
+   table above to the `astropy.io.ascii` list of :ref:`supported formats <supported_formats>` where the prefix is not
+   needed. Therefore the following are equivalent::
 
      >>> dat = ascii.read('file.dat', format='daophot')
      >>> dat = Table.read('file.dat', format='ascii.daophot')
