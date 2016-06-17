@@ -292,7 +292,7 @@ there are three compatible units for ``Hz`` in the standard set::
     Primary name | Unit definition | Aliases
   [
     Bq           | 1 / s           | becquerel    ,
-    Ci           | 2.7027e-11 / s  | curie        ,
+    Ci           | 3.7e+10 / s    | curie        ,
     Hz           | 1 / s           | Hertz, hertz ,
   ]
 
@@ -305,7 +305,7 @@ all kinds of things that ``Hz`` can be converted to::
     AU           | 1.49598e+11 m          | au, astronomical_unit ,
     Angstrom     | 1e-10 m                | AA, angstrom          ,
     Bq           | 1 / s                  | becquerel             ,
-    Ci           | 2.7027e-11 / s         | curie                 ,
+    Ci           | 3.7e+10 / s            | curie                 ,
     Hz           | 1 / s                  | Hertz, hertz          ,
     J            | kg m2 / s2             | Joule, joule          ,
     Ry           | 2.17987e-18 kg m2 / s2 | rydberg               ,

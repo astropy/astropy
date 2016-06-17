@@ -1248,6 +1248,37 @@ Bug Fixes
   - Fixed bug that caused an ignored exception to be displayed under certain
     conditions when terminating a script after using fits.getdata(). [#4977]
 
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.sphinx``
+
+- ``astropy.table``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+  - Fixed bug in Ci definition. [#5106]
+
+- ``astropy.utils``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 1.0.10 (2016-06-09)
 -------------------
 
