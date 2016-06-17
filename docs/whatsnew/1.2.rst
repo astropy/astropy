@@ -35,8 +35,9 @@ coordinate frames, allowing easy conversion to apparent (e.g. ``AltAz``)
 positions or barycentric values.  The positions can be calculated using either
 using built-in approximations or more precise values that depend on downloading
 JPL-provided ephemeris models derived from n-body simulations (the latter
-requires the additional dependency of the ``jplephem`` package). For more
-details, see :ref:`astropy-coordinates-solarsystem`.
+requires the additional dependency of the
+`jplephem <https://pypi.python.org/pypi/jplephem>`_ package). For more details,
+see :ref:`astropy-coordinates-solarsystem`.
 
 Barycentric light-travel time corrections
 -----------------------------------------
