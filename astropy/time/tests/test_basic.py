@@ -232,7 +232,7 @@ class TestBasic():
 
     def test_transforms(self):
         """Transform from UTC to all supported time scales (TAI, TCB, TCG,
-        TDB, TT, UT1, UTC).  This requires auxilliary information (latitude and
+        TDB, TT, UT1, UTC).  This requires auxiliary information (latitude and
         longitude)."""
 
         lat = 19.48125

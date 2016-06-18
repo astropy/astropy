@@ -105,5 +105,5 @@ avoiding the majority of re-compiles from scratch.
 
 Because installation and configuration of ccache varies from platform to
 platform, please consult the ccache documentation and/or Google to set up
-ccache on your system--this is strongly encouraged for anyone doing signficant
+ccache on your system--this is strongly encouraged for anyone doing significant
 development of Astropy or scientific programming in general.

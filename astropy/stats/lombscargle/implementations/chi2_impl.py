@@ -23,7 +23,7 @@ def lombscargle_chi2(t, y, dy, frequency, normalization='standard',
         Normalization to use for the periodogram.
         Options are 'standard', 'model', 'log', or 'psd'.
     fit_mean : bool (optional, default=True)
-        if True, include a constant offet as part of the model at each
+        if True, include a constant offset as part of the model at each
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage.
     center_data : bool (optional, default=True)

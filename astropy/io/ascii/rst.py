@@ -42,7 +42,7 @@ class RST(FixedWidth):
           2    4.5  Worlds
         ==== ===== ======
 
-    Currently there is no support for reading tables which utilise continuation lines,
+    Currently there is no support for reading tables which utilize continuation lines,
     or for ones which define column spans through the use of an additional
     line of dashes in the header.
     """

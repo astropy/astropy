@@ -30,7 +30,7 @@ class TestConvenience(FitsTestCase):
     def test_fileobj_not_closed(self):
         """
         Tests that file-like objects are not closed after being passed
-        to convenenience functions.
+        to convenience functions.
 
         Regression test for https://github.com/astropy/astropy/issues/5063
         """

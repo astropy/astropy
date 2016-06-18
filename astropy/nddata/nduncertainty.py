@@ -139,7 +139,7 @@ class NDUncertainty(object):
     def unit(self):
         """`~astropy.units.Unit` : The unit of the uncertainty, if any.
 
-        Even though it is not enforced the unit should be convertable to the
+        Even though it is not enforced the unit should be convertible to the
         ``parent_nddata`` unit. Otherwise uncertainty propagation might give
         wrong results.
 
@@ -466,7 +466,7 @@ class StdDevUncertainty(NDUncertainty):
                             result_data.unit).value
             else:
                 # Copy the result because _propagate will not copy it but for
-                # arithmetic operations users will expect copys.
+                # arithmetic operations users will expect copies.
                 return deepcopy(other_uncert.array)
 
         elif other_uncert.array is None:
@@ -478,7 +478,7 @@ class StdDevUncertainty(NDUncertainty):
                 return (self.array * self.unit).to(result_data.unit).value
             else:
                 # Copy the result because _propagate will not copy it but for
-                # arithmetic operations users will expect copys.
+                # arithmetic operations users will expect copies.
                 return deepcopy(self.array)
 
         else:
@@ -565,9 +565,9 @@ class StdDevUncertainty(NDUncertainty):
         if self.array is None:
             # Formula: sigma = |A| * dB
 
-            # We want the result to have the same unit as the result so we
+            # We want the result to have the same unit as the parent, so we
             # only need to convert the unit of the other uncertainty if it is
-            # different from it's datas unit.
+            # different from its data's unit.
             if other_uncert.unit != other_uncert.parent_nddata.unit:
                 other = (other_uncert.array * other_uncert.unit).to(
                             other_uncert.parent_nddata.unit).value

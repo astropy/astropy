@@ -558,12 +558,7 @@ def test_byte_string_output(fast_writer):
     (['x', 'y'], ['x', 'y'], [], {}, False)
 ])
 def test_names_with_formats(names, include_names, exclude_names, formats, issues_warning):
-    """Test the fix for #4508 where i set the test cases in base of issues_warning
-    if issues_warning value is true means warning accure otherwise issues_warning
-    value false.Check that columns of include_names are same with colomns of
-    exclude_names and Check that columns  in formats specifier exist in the
-    issues_warning table when writing.
-    """
+    """Test for #4508."""
     t = table.Table([[1,2,3],[4.1,5.2,6.3]])
     with catch_warnings(AstropyWarning) as ASwarn:
         out = StringIO()
@@ -579,16 +574,13 @@ def test_names_with_formats(names, include_names, exclude_names, formats, issues
     ({}, False)
 ])
 def test_columns_names_with_formats(formats, issues_warning):
-    """Test the fix for #4508 where i set the test cases in base of issues_warning
-    if issues_warning value is true means warning accure otherwise issues_warning
-    value false and Check that columns in formats specifier exist in the
-    issues_warning table when writing.
-    """
+    """Test the fix for #4508."""
     t = table.Table([[1,2,3],[4.1,5.2,6.3]])
     with catch_warnings(AstropyWarning) as ASwarn:
         out = StringIO()
         ascii.write(t, out,formats=formats)
     assert (issues_warning == (len(ASwarn) == 1))
+
 
 @pytest.mark.parametrize("fast_writer", [True, False])
 def test_write_quoted_empty_field(fast_writer):

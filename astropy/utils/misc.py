@@ -249,7 +249,7 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
         ivers, proj, vers, compr  = headerlines
         if 'The remainder of this file is compressed using zlib' not in compr:
             raise ValueError('The file downloaded from {0} does not seem to be'
-                             'the usal Sphinx objects.inv format.  Maybe it '
+                             'the usual Sphinx objects.inv format.  Maybe it '
                              'has changed?'.format(baseurl + 'objects.inv'))
 
         compressed = oiread[(idx+1):]

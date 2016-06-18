@@ -1679,7 +1679,7 @@ class TestTableFunctions(FitsTestCase):
 
     def test_bin_table_init_from_string_array_column(self):
         """
-        Tests two ways of creatine a new `BinTableHDU` from a column of
+        Tests two ways of creating a new `BinTableHDU` from a column of
         string arrays.
 
         This tests for a couple different regressions, and ensures that
@@ -1757,7 +1757,7 @@ class TestTableFunctions(FitsTestCase):
         with open(self.temp('test.fits'), 'rb') as f:
             raw_bytes = f.read()
 
-        # Aritifically truncate TDIM in the header; this seems to be the
+        # Artificially truncate TDIM in the header; this seems to be the
         # easiest way to do this while getting around pyfits' insistence on the
         # data and header matching perfectly; again, we have no interest in
         # making it possible to write files in this format, only read them

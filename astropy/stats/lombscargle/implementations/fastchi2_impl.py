@@ -11,7 +11,7 @@ def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='standard',
     """Lomb-Scargle Periodogram
 
     This implements a fast chi-squared periodogram using the algorithm
-    outlined in [4]_. The result is identical to the stantard Lomb-Scargle
+    outlined in [4]_. The result is identical to the standard Lomb-Scargle
     periodogram. The advantage of this algorithm is the
     ability to compute multiterm periodograms relatively quickly.
 
@@ -26,7 +26,7 @@ def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='standard',
         Normalization to use for the periodogram.
         Options are 'standard', 'model', 'log', or 'psd'.
     fit_mean : bool (optional, default=True)
-        if True, include a constant offet as part of the model at each
+        if True, include a constant offset as part of the model at each
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage.
     center_data : bool (optional, default=True)
