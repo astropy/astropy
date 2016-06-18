@@ -127,7 +127,7 @@ def test_write_noformat():
 
 
 def test_read_noformat_arbitrary():
-    """Test that all identifier functions can accept arbitary input"""
+    """Test that all identifier functions can accept arbitrary input"""
     _identifiers.update(_IDENTIFIERS_ORIGINAL)
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData.read(object())
@@ -147,7 +147,7 @@ def test_read_noformat_arbitrary_file(tmpdir):
 
 
 def test_write_noformat_arbitrary():
-    """Test that all identifier functions can accept arbitary input"""
+    """Test that all identifier functions can accept arbitrary input"""
     _identifiers.update(_IDENTIFIERS_ORIGINAL)
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData().write(object())

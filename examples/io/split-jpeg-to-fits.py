@@ -8,7 +8,7 @@ This example opens an RGB JPEG image and writes out each channel as a separate
 FITS (image) file.
 
 This example uses `pillow <http://python-pillow.org>`_ to read the image,
-`matplotlib.pyplot` to dispay the image, and `astropy.io.fits` to save FITS files.
+`matplotlib.pyplot` to display the image, and `astropy.io.fits` to save FITS files.
 
 -------------------
 

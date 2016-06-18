@@ -359,7 +359,7 @@ def test_htmldata():
 
 def test_multicolumn_write():
     """
-    Test to make sure that the HTML writer writes multimensional
+    Test to make sure that the HTML writer writes multidimensional
     columns (those with iterable elements) using the colspan
     attribute of <th>.
     """
@@ -417,7 +417,7 @@ def test_multicolumn_write():
 @pytest.mark.skipif('not HAS_BLEACH')
 def test_multicolumn_write_escape():
     """
-    Test to make sure that the HTML writer writes multimensional
+    Test to make sure that the HTML writer writes multidimensional
     columns (those with iterable elements) using the colspan
     attribute of <th>.
     """
@@ -523,7 +523,7 @@ def test_write_no_multicols():
 @pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_multicolumn_read():
     """
-    Test to make sure that the HTML reader inputs multimensional
+    Test to make sure that the HTML reader inputs multidimensional
     columns (those with iterable elements) using the colspan
     attribute of <th>.
 

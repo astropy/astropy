@@ -223,5 +223,5 @@ def test_regression_4996():
     suncoo2 = get_sun(times2)
     assert suncoo2.shape == times2.shape
 
-    # this is intentially not allclose - they should be *exactly* the same
+    # this is intentionally not allclose - they should be *exactly* the same
     assert np.all(suncoo.ra.ravel() == suncoo2.ra.ravel())

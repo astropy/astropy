@@ -142,7 +142,7 @@ expected to follow the `numpy.ma.MaskedArray` convention that the mask:
 + returns ``True`` for data points that are considered **invalid**.
 + returns ``False`` for those points that are **valid**.
 
-One possibility is to create a mask by using numpys comparison operators::
+One possibility is to create a mask by using numpy's comparison operators::
 
     >>> array = np.array([0, 1, 4, 0, 2])
 
@@ -189,7 +189,7 @@ The ``unit`` represents the unit of the data values. It is required to be
 Uncertainties
 -------------
 
-The ``uncertainty`` represents an arbitary representation of the error of the
+The ``uncertainty`` represents an arbitrary representation of the error of the
 data values. To indicate which kind of uncertainty representation is used the
 ``uncertainty`` should have an ``uncertainty_type`` property. If no such
 property is found it will be wrapped inside a

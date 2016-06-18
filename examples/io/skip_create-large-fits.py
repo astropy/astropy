@@ -80,7 +80,7 @@ header.tofile('large.fits')
 with open('large.fits', 'rb+') as fobj:
     # Seek past the length of the header, plus the length of the
     # Data we want to write.
-    # The -1 is to account for the final byte taht we are about to
+    # The -1 is to account for the final byte that we are about to
     # write:
     fobj.seek(len(header.tostring()) + (40000 * 40000 * 8) - 1)
     fobj.write('\0')

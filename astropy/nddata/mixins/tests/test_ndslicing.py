@@ -21,7 +21,7 @@ class NDDataSliceable(NDSlicingMixin, NDData):
 
 
 # Just some uncertainty (following the StdDevUncertainty implementation of
-# storing the uncertainty in a propery 'array') with slicing.
+# storing the uncertainty in a property 'array') with slicing.
 class SomeUncertainty(NDUncertainty):
 
     @property
