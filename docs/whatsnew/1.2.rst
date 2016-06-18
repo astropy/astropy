@@ -14,9 +14,25 @@ the 1.1.x series of releases.
 
 In particular, this release includes:
 
-*
-*
-*
+* A new class to compute :ref:`Lomb-Scargle periodograms
+  <whatsnew-1.2-lombscargle>` efficiently using different methods.
+* A number of :ref:`new statistics functions <whatsnew-1.2-stats>`, including
+  for Jackknife resampling, circular statistics, and for the Akaike and
+  Bayesian information criterions.
+* Support for getting the :ref:`positions of solar system bodies
+  <whatsnew-1.2-solarsystem>` in the :mod:`astropy.coordinates` package.
+* The ability to compute Barycentric and Heliocentric :ref:`light-travel time
+  corrections <whatsnew-1.2-barycentric>`.
+* Support for :ref:`offset coordinate frames <whatsnew-1.2-skyoffset>`, which
+  can be used to define a coordinate system relative to a known position.
+* An implementation of the :ref:`zscale algorithm <whatsnew-1.2-zscale>` to
+  determine image limits automatically.
+* Support for :ref:`bolometric magnitudes <whatsnew-1.2-magnitudes>` in the
+  units package.
+* Improvements to the :ref:`NDData class and subclasses <whatsnew-1.2-nddata>`.
+* :ref:`Auto-downloading of IERS tables <whatsnew-1.2-iers>` as needed, which
+  gives information for example about leap seconds that is needed to convert
+  to/from the UT1 scale.
 
 In addition to these major changes, Astropy 1.2 includes a large number of
 smaller improvements and bug fixes, which are described in the
@@ -26,38 +42,7 @@ smaller improvements and bug fixes, which are described in the
 * ??? pull requests have been merged since v1.1
 * ??? distinct people have contributed code
 
-Solar system ephemerides
-------------------------
-
-:mod:`~astropy.coordinates` can now calculate the positions of the major
-solar system bodies (as well as the moon).  These integrate fully all the
-coordinate frames, allowing easy conversion to apparent (e.g. ``AltAz``)
-positions or barycentric values.  The positions can be calculated using either
-using built-in approximations or more precise values that depend on downloading
-JPL-provided ephemeris models derived from n-body simulations (the latter
-requires the additional dependency of the
-`jplephem <https://pypi.python.org/pypi/jplephem>`_ package). For more details,
-see :ref:`astropy-coordinates-solarsystem`.
-
-Barycentric light-travel time corrections
------------------------------------------
-
-The :class:`~astropy.time.Time` class has gained a new method
-:meth:`~astropy.time.Time.light_travel_time` for calculating barycentric
-(or heliocentric) corrections. For more details, see
-:ref:`time-light-travel-time`.
-
-Sky offset coordinate frames
-----------------------------
-
-:mod:`~astropy.coordinates` now includes support for coordinate frames that are
-rotated in the sky to be centered on a particular object.  This sort of frame is
-variously known as "FOV coordinates", "offset coordinates", or "astrometric". It
-makes it easier to compute offsets from a particular reference object, and
-define coordinate frames that for heirarchical systems like groups or clusters
-of galaxies.  It also enables the new
-:meth:`~astropy.coordinates.SkyCoord.spherical_offsets_to` method. For more
-details, see :ref:`astropy-skyoffset-frames`.
+.. _whatsnew-1.2-lombscargle:
 
 Lomb-scargle periodograms
 -------------------------
@@ -159,7 +144,7 @@ months of nightly observations of a simulated RR-Lyrae-type variable
 For more information on astropy's Lomb-Scargle functionality,
 see :ref:`stats-lombscargle`.
 
-
+.. _whatsnew-1.2-stats:
 
 Other new statistics features
 -----------------------------
@@ -179,15 +164,46 @@ Other new statistics features
   improvements in fitting are due to the increasing of the number of
   parameters.
 
+.. _whatsnew-1.2-solarsystem:
 
-Apparent/absolute bolometric magnitudes and other new units
------------------------------------------------------------
+Solar system ephemerides
+------------------------
 
-The `astropy.units` package now supports bolometric magnitudes, based on the
-bolometric flux and luminosity scales adopted in IAU 2015 resolution B2.
+It is now possible to calculate the positions of the major solar system bodies
+(as well as the moon) in the :mod:`astropy.coordinates` module. These integrate
+fully all the coordinate frames, allowing easy conversion to apparent (e.g.
+``AltAz``) positions or barycentric values. The positions can be calculated
+using either using built-in approximations or more precise values that depend
+on downloading JPL-provided ephemeris models derived from n-body simulations
+(the latter requires the additional dependency of the
+`jplephem <https://pypi.python.org/pypi/jplephem>`_ package). For more details,
+see :ref:`astropy-coordinates-solarsystem`.
 
-Furthermore, earth and jupiter radii have been made available as units.
+.. _whatsnew-1.2-barycentric:
 
+Barycentric light-travel time corrections
+-----------------------------------------
+
+The :class:`~astropy.time.Time` class has gained a new method
+:meth:`~astropy.time.Time.light_travel_time` for calculating barycentric
+(or heliocentric) corrections. For more details, see
+:ref:`time-light-travel-time`.
+
+.. _whatsnew-1.2-skyoffset:
+
+Sky offset coordinate frames
+----------------------------
+
+The :mod:`astropy.coordinates` sub-package now includes support for coordinate
+frames that are rotated in the sky to be centered on a particular object. This
+sort of frame is variously known as "FOV coordinates", "offset coordinates", or
+"astrometric". It makes it easier to compute offsets from a particular
+reference object, and define coordinate frames that for heirarchical systems
+like groups or clusters of galaxies. It also enables the new
+:meth:`~astropy.coordinates.SkyCoord.spherical_offsets_to` method. For more
+details, see :ref:`astropy-skyoffset-frames`.
+
+.. _whatsnew-1.2-zscale:
 
 Zscale implementation
 ---------------------
@@ -200,28 +216,54 @@ based on `Numdisplay’s <http://stsdas.stsci.edu/numdisplay/>`_ one, slightly
 modified to expose more arguments and work with data with any number of
 dimensions.
 
+.. _whatsnew-1.2-examples:
+
+New example gallery
+-------------------
+
+The Astropy documentation now contains an
+`example gallery <../generated/examples/index.html>`_ that highlights key
+functionality of the package in short snippets of code with descriptive text.
+The examples are meant to demonstrate the functionality and interoperability of
+the subpackages in shorter-form worked examples. Longer form tutorials are still
+maintained at `<http://tutorials.astropy.org/>`_.
+
+.. _whatsnew-1.2-magnitudes:
+
+Apparent/absolute bolometric magnitudes and other new units
+-----------------------------------------------------------
+
+The `astropy.units` package now supports bolometric magnitudes, based on the
+bolometric flux and luminosity scales adopted in IAU 2015 resolution B2.
+
+Furthermore, Earth and Jupiter radii have been made available as units.
+
+.. _whatsnew-1.2-nddata:
+
 NDData improvements
 -------------------
 
-
 Arithmetic and uncertainty handling have been enhanced for astropy 1.2, and a
-new class, `astropy.nddata.NDDataRef`, has been added that should be the
-starting point for new users of `astropy.nddata`. One can now do arithmetic
-between an `astropy.nddata.NDDataRef` object and a scalar, an
-`astropy.units.Quantity` or another `astropy.nddata.NDDataRef` object (or any
-class that implements the nddata interface). Limited support for propagating
-correlated errors was added to `astropy.nddata.StdDevUncertainty`.
+new class, :class:`~astropy.nddata.NDDataRef`, has been added that should be
+the starting point for new users of `astropy.nddata`. One can now do arithmetic
+between an :class:`~astropy.nddata.NDDataRef` object and a scalar, an
+:class:`~astropy.units.Quantity` or another :class:`~astropy.nddata.NDDataRef`
+object (or any class that implements the nddata interface). Limited support for
+propagating correlated errors was added to
+:class:`~astropy.nddata.StdDevUncertainty`.
 
 Several internal changes were made to the classes in the nddata package to
 make writing custom classes that implement the nddata interface more
 straightforward.
+
+.. _whatsnew-1.2-iers:
 
 Automatic updates to IERS Earth rotation data
 ---------------------------------------------
 
 The `astropy.utils.iers` sub-package provides access to the tables provided by
 the International Earth Rotation and Reference Systems (IERS) service.  These
-are used in `astropy.time` to transform to/from UT1 values and for determining
+are used in :mod:`astropy.time` to transform to/from UT1 values and for determining
 Earth orientation for celestial-to-terrestrial coordinate transformations (in
 `astropy.coordinates`).
 
@@ -231,16 +273,6 @@ service when required.  This happens when a time or coordinate transformation
 needs a value which is not already available via the download cache.
 
 For details see the `astropy.utils.iers` sub-package documentation.
-
-New example gallery
--------------------
-
-The Astropy documentation now contains an example gallery that highlights key
-functionality of the package in short snippets of code with descriptive text.
-The examples are meant to demonstrate the functionality and interoperability of
-the subpackages in shorter-form worked examples. Longer form tutorials are still
-maintained at `<http://tutorials.astropy.org/>`_.
-
 
 Other significant changes
 -------------------------
