@@ -47,7 +47,7 @@ ephemeris while in the ``with`` clause, and resets it at the end.
 To get more precise positions, one could use the ``de430`` ephemeris mentioned
 above, but between 1950 and 2050 one could also opt for the ``de432s``
 ephemeris, which is stored in a smaller, ~10 MB, file (which will be
-downloaded and cached when the ephemeris is set).::
+downloaded and cached when the ephemeris is set):
 
 .. doctest-requires:: jplephem
 
@@ -64,7 +64,7 @@ downloaded and cached when the ephemeris is set).::
       (150107535.1073409, -866789.11996916, -418963.55218495)>
 
 For one-off calculations with a given ephemeris, one can also pass it directly
-to the various functions::
+to the various functions:
 
 .. doctest-requires:: jplephem
 
@@ -77,7 +77,7 @@ to the various functions::
   <CartesianRepresentation (x, y, z) in AU
     (1.00340677, -0.00579439, -0.00280071)>
 
-For a list of the bodies for which positions can be calculated, do::
+For a list of the bodies for which positions can be calculated, do:
 
 .. note that we skip the next test if jplephem is not installed because if 
 .. jplephem was not installed, we didn't change the science state higher up
