@@ -1,5 +1,210 @@
 1.2rc1 (2016-06-11)
 -------------------
+1.3 (unreleased)
+----------------
+
+New Features
+^^^^^^^^^^^^
+
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.sphinx``
+
+- ``astropy.table``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+  - Added ``pixel_scale`` and ``plate_scale`` equivalencies. [#4987]
+
+- ``astropy.utils``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+API Changes
+^^^^^^^^^^^
+
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+  - ASCII writers now accept an 'overwrite' argument.
+	The default behavior is changed so that a warning will be
+	issued when overwriting an existing file unless ``overwrite=True``.
+	In a future version this will be changed from a warning to an
+	exception to prevent accidentally overwriting a file. [#5007]
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+  - Renamed ``ignored`` context manager in ``compat.misc`` to ``suppress``
+    to be consistent with https://bugs.python.org/issue19266 . [#5003]
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+  - Made TFORMx keyword check more flexible in test of compressed images to
+    enable compatibility of the test with cfitsio 3.380. [#4646]
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+  - ``read`` now correctly raises an IOError if a file with an unknown
+    extension can't be found, instead of raising IORegistryError:
+    "Format could not be identified." [#4779]
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Initialization of ``Angle`` has been sped up for ``Quantity`` and ``Angle``
+  input. [#4970]
+
+1.2.1 (unreleased)
+------------------
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.sphinx``
+
+- ``astropy.table``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.visualization``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+1.2 (unreleased)
+----------------
 
 General
 ^^^^^^^
@@ -52,7 +257,7 @@ New Features
   - Updated to filter out the default parser warning of BeautifulSoup.
     [#4551]
 
-  - Added support for reading and writing reStructuredText simple tables
+  - Added support for reading and writing reStructuredText simple tables.
     [#4812]
 
 - ``astropy.io.fits``
@@ -64,12 +269,12 @@ New Features
   - New function ``convenience.table_to_hdu`` to allow creating a FITS
     HDU object directly from an astropy ``Table``. [#4778]
 
-  - A new optional arguments ``ignore_missing`` and ``remove_all`` are added
+  - New optional arguments ``ignore_missing`` and ``remove_all`` are added
     to ``astropy.io.fits.header.remove()``. [#5020]
 
 - ``astropy.io.registry``
 
-  - Added custom ``IORegistryError`` [#4833]
+  - Added custom ``IORegistryError``. [#4833]
 
 - ``astropy.io.votable``
 
@@ -93,7 +298,7 @@ New Features
     not require (but also allows) two operands. [#4272, #4851]
 
   - ``NDDataRef`` new subclass that implements ``NDData`` together with all
-    currently avaiable mixins. This class does not implement additional
+    currently available mixins. This class does not implement additional
     attributes, methods or a numpy.ndarray-like interface like ``NDDataArray``.
     attributes, methods or a numpy.ndarray-like interface like ``NDDataArray``.
     [#4797]
@@ -199,7 +404,7 @@ API changes
 
   - Removed compatibility layer for pre-v0.4 API. [#4447]
 
-  - Added ``copy`` keyword-only argument to allow initialisation without
+  - Added ``copy`` keyword-only argument to allow initialization without
     copying the (possibly large) input coordinate arrays. [#4883]
 
 - ``astropy.cosmology``
@@ -238,7 +443,7 @@ API changes
     private uncertainty and is now abstract. This getter is moved to
     ``NDData`` so it only affects direct subclasses of ``NDDataBase``. [#4270]
 
-  - ``NDData`` accepts a Quantity-like data and an explictly given unit.
+  - ``NDData`` accepts a Quantity-like data and an explicitly given unit.
     Before a ValueError was raised in this case. The final instance will use the
     explicitly given unit-attribute but doesn't check if the units are
     convertible and the data will not be scaled. [#4270]
@@ -251,7 +456,7 @@ API changes
     parameter before it is saved as attribute of the instance. [#4270]
 
   - ``NDData``: added an ``uncertainty.getter`` that returns the private
-    attibute. It is equivalent to the old ``NDDataBase.uncertainty``-getter.
+    attribute. It is equivalent to the old ``NDDataBase.uncertainty``-getter.
     [#4270]
 
   - ``NDData``: added an ``uncertainty.setter``. It is slightly modified with
@@ -409,8 +614,8 @@ Bug fixes
 
   - Ensure that ``angle_utilities.position_angle`` accepts floats, as stated
     in the docstring. [#3800]
-    
-  - Ensured that transformations for ``GCRS`` frames are correct for 
+
+  - Ensured that transformations for ``GCRS`` frames are correct for
     non-geocentric observers. [#4986]
 
   - Fixed a problem with the ``Quantity._repr_latex_`` method causing errors
@@ -482,7 +687,7 @@ Bug fixes
 
 - ``astropy.units``
 
-  - Exponentation using a ``Quantity`` with a unit equivalent to dimensionless
+  - Exponentiation using a ``Quantity`` with a unit equivalent to dimensionless
     as base and an ``array``-like exponent yields the correct result. [#4770]
 
   - Ensured that with ``spectral_density`` equivalency one could also convert
@@ -587,7 +792,7 @@ Bug Fixes
 
 - ``astropy.units``
 
-  - Fixed sphinx issues on plotting quantites. [#4527]
+  - Fixed sphinx issues on plotting quantities. [#4527]
 
 - ``astropy.utils``
 
@@ -959,7 +1164,7 @@ New Features
 - ``astropy.visualization``
 
   - Added a function / context manager ``quantity_support`` for enabling
-    seamless ploting of ``Quantity`` instances in matplotlib. [#3981]
+    seamless plotting of ``Quantity`` instances in matplotlib. [#3981]
 
   - Added the ``hist`` function, which is similar to ``plt.hist`` but
     includes several additional options for automatic determination of optimal
@@ -1510,7 +1715,7 @@ Bug Fixes
 - ``astropy.coordinates``
 
   - Fixed errors in transformations for objects within a few AU of the
-    Earth.  Included substansive changes to transformation machinery
+    Earth.  Included substantive changes to transformation machinery
     that may change distances at levels ~machine precision for other
     objects. [#4254]
 

@@ -110,7 +110,7 @@ class QuantityInput(object):
 
                         if not equivalent:
                             raise UnitsError("Argument '{0}' to function '{1}'"
-                                             " must be in units convertable to"
+                                             " must be in units convertible to"
                                              " '{2}'.".format(param.name,
                                                      wrapped_function.__name__,
                                                      target_unit.to_string()))

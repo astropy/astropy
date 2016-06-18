@@ -1519,7 +1519,7 @@ def test_z_at_value_roundtrip():
     """
     z = 0.5
 
-    # Skip Ok, w, de_density_scale because in the Planck13 cosmolgy
+    # Skip Ok, w, de_density_scale because in the Planck13 cosmology
     # they are redshift independent and hence uninvertable,
     # *_distance_z1z2 methods take multiple arguments, so require
     # special handling

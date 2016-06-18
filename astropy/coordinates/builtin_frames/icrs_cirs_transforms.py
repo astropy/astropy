@@ -42,7 +42,7 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
     else:
         # When there is a distance,  we first offset for parallax to get the
         # astrometric coordinate direction and *then* run the ERFA transform for
-        # no parallax/PM. This ensures reversiblity and is more sensible for
+        # no parallax/PM. This ensures reversibility and is more sensible for
         # inside solar system objects
         newxyz = icrs_coo.cartesian.xyz
         newxyz = np.rollaxis(newxyz, 0, newxyz.ndim) - astrom['eb'] * u.au
@@ -138,7 +138,7 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
     else:
         # When there is a distance,  we first offset for parallax to get the
         # BCRS coordinate direction and *then* run the ERFA transform for no
-        # parallax/PM. This ensures reversiblity and is more sensible for
+        # parallax/PM. This ensures reversibility and is more sensible for
         # inside solar system objects
         newxyz = icrs_coo.cartesian.xyz
         newxyz = np.rollaxis(newxyz, 0, newxyz.ndim) - astrom['eb'] * u.au

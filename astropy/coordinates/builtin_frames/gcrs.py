@@ -16,7 +16,7 @@ class GCRS(BaseCoordinateFrame):
 
     GCRS is distinct form ICRS mainly in that it is relative to the Earth's
     center-of-mass rather than the solar system Barycenter.  That means this
-    frame includes the effects of abberation (unlike ICRS). For more background
+    frame includes the effects of aberration (unlike ICRS). For more background
     on the GCRS, see the references provided in the
     :ref:`astropy-coordinates-seealso` section of the documentation. (Of
     particular note is Section 1.2 of

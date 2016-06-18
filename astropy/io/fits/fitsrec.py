@@ -656,7 +656,7 @@ class FITS_rec(np.recarray):
 
     @property
     def formats(self):
-        """List of column FITS foramts."""
+        """List of column FITS formats."""
 
         if hasattr(self, '_coldefs') and self._coldefs is not None:
             return self._coldefs.formats

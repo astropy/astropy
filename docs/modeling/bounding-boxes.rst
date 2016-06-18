@@ -27,7 +27,7 @@ Using the Bounding Box
 For basic usage, see `Model.bounding_box
 <astropy.modeling.Model.bounding_box>`.  By default no
 `~astropy.modeling.Model.bounding_box` is set, except on model subclasses where
-a ``bounding_box`` property or method is explicity defined. The default is then
+a ``bounding_box`` property or method is explicitly defined. The default is then
 the minimum rectangular region symmetric about the position that fully contains
 the model. If the model does not have a finite extent, the containment criteria
 are noted in the documentation. For example, see ``Gaussian2D.bounding_box``.

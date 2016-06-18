@@ -425,7 +425,7 @@ def test_gcrs_self_transform_closeby():
     Tests GCRS self transform for objects which are nearby and thus
     have reasonable parallax.
 
-    Moon positions were originall created using JPL DE432s ephemeris.
+    Moon positions were originally created using JPL DE432s ephemeris.
 
     The two lunar positions (one geocentric, one at a defined location)
     are created via a transformation from ICRS to two different GCRS frames.

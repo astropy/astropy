@@ -5,7 +5,7 @@ the International Earth Rotation and Reference Systems Service, in
 particular allowing interpolation of published UT1-UTC values for given
 times.  These are used in `astropy.time` to provide UT1 values.  The polar
 motions are also used for determining earth orientation for
-celestional-to-terrestrial coordinate transformations
+celestial-to-terrestrial coordinate transformations
 (in `astropy.coordinates`).
 """
 from __future__ import (absolute_import, division, print_function,

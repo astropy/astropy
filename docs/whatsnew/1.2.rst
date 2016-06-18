@@ -211,8 +211,8 @@ Automatic updates to IERS Earth rotation data
 
 The `astropy.utils.iers` sub-package provides access to the tables provided by
 the International Earth Rotation and Reference Systems (IERS) service.  These
-are used in `astropy.time` to tranform to/from UT1 values and for determining
-Earth orientation for celestional-to-terrestrial coordinate transformations (in
+are used in `astropy.time` to transform to/from UT1 values and for determining
+Earth orientation for celestial-to-terrestrial coordinate transformations (in
 `astropy.coordinates`).
 
 Starting with astropy 1.2, the latest IERS values (which include approximately

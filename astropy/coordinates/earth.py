@@ -411,7 +411,7 @@ class EarthLocation(u.Quantity):
         Parameters
         ----------
         obstime : `~astropy.time.Time`
-            The ``obstime`` to calculte the GCRS position/velocity at.
+            The ``obstime`` to calculate the GCRS position/velocity at.
 
         Returns
         --------

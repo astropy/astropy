@@ -366,7 +366,7 @@ class TestDiff(FitsTestCase):
 
     def test_different_table_rows(self):
         """
-        Test tables taht are otherwise identical but one has more rows than the
+        Test tables that are otherwise identical but one has more rows than the
         other.
         """
 

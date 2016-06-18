@@ -519,7 +519,7 @@ def test_format_doc_selfInput_format():
         pass
     assert inspect.getdoc(testfunc1) == 'dum di dum da dum'
 
-    # Test that we cannot recursivly insert the original documentation
+    # Test that we cannot recursively insert the original documentation
 
     @format_doc(None, 'di')
     def testfunc2():
