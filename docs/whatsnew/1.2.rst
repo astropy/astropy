@@ -29,12 +29,15 @@ smaller improvements and bug fixes, which are described in the
 Solar system ephemerides
 ------------------------
 
-Positions of the major solar-system bodies, including the moon, can now be
-calculated.  These integrate with the coordinates subpackage, allowing use of
-apparent (e.g. ``AltAz``) positions or barycentric values.  These can be
-calculated using either using built-in approximations or more precisely
-using JPL ephemeris models (the latter requiring the ``jplephem`` package).
-For more details, see :ref:`astropy-coordinates-solarsystem`.
+:mod:`~astropy.coordinates` can now calculate the positions of the major
+solar system bodies (as well as the moon).  These integrate fully all the
+coordinate frames, allowing easy conversion to apparent (e.g. ``AltAz``)
+positions or barycentric values.  The positions can be calculated using either
+using built-in approximations or more precise values that depend on downloading
+JPL-provided ephemeris models derived from n-body simulations (the latter
+requires the additional dependency of the
+`jplephem <https://pypi.python.org/pypi/jplephem>`_ package). For more details,
+see :ref:`astropy-coordinates-solarsystem`.
 
 Barycentric light-travel time corrections
 -----------------------------------------
@@ -44,10 +47,17 @@ The :class:`~astropy.time.Time` class has gained a new method
 (or heliocentric) corrections. For more details, see
 :ref:`time-light-travel-time`.
 
-Astrometric coordinate frames
------------------------------
+Sky offset coordinate frames
+----------------------------
 
-
+:mod:`~astropy.coordinates` now includes support for coordinate frames that are
+rotated in the sky to be centered on a particular object.  This sort of frame is
+variously known as "FOV coordinates", "offset coordinates", or "astrometric". It
+makes it easier to compute offsets from a particular reference object, and
+define coordinate frames that for heirarchical systems like groups or clusters
+of galaxies.  It also enables the new
+:meth:`~astropy.coordinates.SkyCoord.spherical_offsets_to` method. For more
+details, see :ref:`astropy-skyoffset-frames`.
 
 Lomb-scargle periodograms
 -------------------------
