@@ -105,12 +105,12 @@ packages that use the full bugfix/maintenance branch approach.)
 
          $ python setup.py build sdist
 
-     .. note::
+   .. note::
 
-         In the future, the ``build`` command may run automatically as a
-         prerequisite for ``sdist``.  But for now, make sure to run it
-         whenever running ``sdist`` to ensure that all Cython sources and
-         other generated files are built.
+       In the future, the ``build`` command may run automatically as a
+       prerequisite for ``sdist``.  But for now, make sure to run it
+       whenever running ``sdist`` to ensure that all Cython sources and
+       other generated files are built.
 
 #. Run the tests in an environment that mocks up a "typical user" scenario.
    This is not strictly necessary because you ran the tests above, but
