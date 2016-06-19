@@ -38,9 +38,9 @@ In addition to these major changes, Astropy 1.2 includes a large number of
 smaller improvements and bug fixes, which are described in the
 :ref:`changelog`. By the numbers:
 
-* ??? issues have been closed since v1.1
-* ??? pull requests have been merged since v1.1
-* ??? distinct people have contributed code
+* 615 issues have been closed since v1.1
+* 313 pull requests have been merged since v1.1
+* 191 distinct people have contributed code
 
 .. _whatsnew-1.2-lombscargle:
 
