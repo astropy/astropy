@@ -18,9 +18,9 @@ In particular, this release includes:
   <whatsnew-1.2-lombscargle>` efficiently using different methods.
 * A number of :ref:`new statistics functions <whatsnew-1.2-stats>`, including
   for Jackknife resampling, circular statistics, and for the Akaike and
-  Bayesian information criterions.
+  Bayesian information criteria.
 * Support for getting the :ref:`positions of solar system bodies
-  <whatsnew-1.2-solarsystem>` in the :mod:`astropy.coordinates` package.
+  <whatsnew-1.2-solarsystem>` in the :ref:`coordinates <astropy-coordinates>` sub-package.
 * The ability to compute Barycentric and Heliocentric :ref:`light-travel time
   corrections <whatsnew-1.2-barycentric>`.
 * Support for :ref:`offset coordinate frames <whatsnew-1.2-skyoffset>`, which
@@ -149,20 +149,28 @@ see :ref:`stats-lombscargle`.
 Other new statistics features
 -----------------------------
 
-* The Jackknife resampling method is available in astropy.stats.jackknife.
-  Jackknife resampling generates n deterministic samples of size n-1 from
-  a measured sample of size n. Those samples can then be used for various
-  statistics estimation such as variance and bias.
-* Circular statistics (circular mean, variance, etc) are provided in
-  astropy.stats.circstats. The API basically follows the same conventions of
-  R CircStats package. In addition, the circular stats are compatible with
-  astropy.units.Quantity.
-* Akaike and Bayesian information criterions are implemented in
-  astropy.stats.info_theory. Basically, these information criterions are used
-  to decided whether increasing the number of parameters in a model truly
-  improves the fitting. Conversely, they are also used to verify whether
-  improvements in fitting are due to the increasing of the number of
-  parameters.
+The **Jackknife resampling method** is available via the
+:func:`~astropy.stats.jackknife_resampling` function. Jackknife resampling
+generates n deterministic samples of size n-1 from a measured sample of size n.
+Those samples can then be used for various statistics estimation such as
+variance and bias using the :func:`~astropy.stats.jackknife_stats` function.
+  
+**Circular statistics** (circular mean, variance, etc) are now provided by the
+:func:`~astropy.stats.circmean`, :func:`~astropy.stats.circvar`, ,
+:func:`~astropy.stats.circmoment`, and :func:`~astropy.stats.circcorrcoef`
+functions. in. The API basically follows the same conventions of R CircStats
+package. In addition, the circular stats are compatible with the
+:class:`~astropy.units.Quantity` class.
+
+The **Akaike and Bayesian information criteria** are now implemented in
+:func:`~astropy.stats.akaike_info_criterion`,
+:func:`~astropy.stats.akaike_info_criterion_lsq`,
+:func:`~astropy.stats.bayesian_info_criterion`, and
+:func:`~astropy.stats.bayesian_info_criterion_lsq`. Basically, these
+information criteria are used to decided whether increasing the number of
+parameters in a model truly improves the fitting. Conversely, they are also
+used to verify whether improvements in fitting are due to the increasing of the
+number of parameters.
 
 .. _whatsnew-1.2-solarsystem:
 
@@ -170,12 +178,12 @@ Solar system ephemerides
 ------------------------
 
 It is now possible to calculate the positions of the major solar system bodies
-(as well as the moon) in the :mod:`astropy.coordinates` module. These integrate
-fully all the coordinate frames, allowing easy conversion to apparent (e.g.
-``AltAz``) positions or barycentric values. The positions can be calculated
-using either using built-in approximations or more precise values that depend
-on downloading JPL-provided ephemeris models derived from n-body simulations
-(the latter requires the additional dependency of the
+(as well as the moon) in the :ref:`coordinates <astropy-coordinates>`
+sub-package. These integrate fully all the coordinate frames, allowing easy
+conversion to apparent (e.g. ``AltAz``) positions or barycentric values. The
+positions can be calculated using either using built-in approximations or more
+precise values that depend on downloading JPL-provided ephemeris models derived
+from n-body simulations (the latter requires the additional dependency of the
 `jplephem <https://pypi.python.org/pypi/jplephem>`_ package). For more details,
 see :ref:`astropy-coordinates-solarsystem`.
 
@@ -194,13 +202,13 @@ The :class:`~astropy.time.Time` class has gained a new method
 Sky offset coordinate frames
 ----------------------------
 
-The :mod:`astropy.coordinates` sub-package now includes support for coordinate
-frames that are rotated in the sky to be centered on a particular object. This
-sort of frame is variously known as "FOV coordinates", "offset coordinates", or
-"astrometric". It makes it easier to compute offsets from a particular
-reference object, and define coordinate frames that for heirarchical systems
-like groups or clusters of galaxies. It also enables the new
-:meth:`~astropy.coordinates.SkyCoord.spherical_offsets_to` method. For more
+The :ref:`coordinates <astropy-coordinates>` sub-package now includes support
+for coordinate frames that are rotated in the sky to be centered on a
+particular object. This sort of frame is variously known as "FOV coordinates",
+"offset coordinates", or "astrometric". It makes it easier to compute offsets
+from a particular reference object, and define coordinate frames that for
+heirarchical systems like groups or clusters of galaxies. It also enables the
+new :meth:`~astropy.coordinates.SkyCoord.spherical_offsets_to` method. For more
 details, see :ref:`astropy-skyoffset-frames`.
 
 .. _whatsnew-1.2-zscale:
@@ -209,8 +217,8 @@ Zscale implementation
 ---------------------
 
 The `zscale <http://iraf.net/forum/viewtopic.php?showtopic=134139>`_ algorithm
-from IRAF is now included in Astropy's :doc:`visualization
-<../visualization/normalization>` sub-package, and available as
+from IRAF is now included in Astropy's :ref:`visualization
+<astropy-visualization>` sub-package, and available as
 a `~astropy.visualization.ZScaleInterval` interval class. The implementation is
 based on `Numdisplay’s <http://stsdas.stsci.edu/numdisplay/>`_ one, slightly
 modified to expose more arguments and work with data with any number of
@@ -233,7 +241,7 @@ maintained at `<http://tutorials.astropy.org/>`_.
 Apparent/absolute bolometric magnitudes and other new units
 -----------------------------------------------------------
 
-The `astropy.units` package now supports bolometric magnitudes, based on the
+The :ref:`units <astropy-units>` sub-package now supports bolometric magnitudes, based on the
 bolometric flux and luminosity scales adopted in IAU 2015 resolution B2.
 
 Furthermore, Earth and Jupiter radii have been made available as units.
@@ -263,9 +271,10 @@ Automatic updates to IERS Earth rotation data
 
 The `astropy.utils.iers` sub-package provides access to the tables provided by
 the International Earth Rotation and Reference Systems (IERS) service.  These
-are used in :mod:`astropy.time` to transform to/from UT1 values and for determining
-Earth orientation for celestial-to-terrestrial coordinate transformations (in
-`astropy.coordinates`).
+are used in the :ref:`time <astropy-time>` sub-package to transform to/from UT1
+values and for determining Earth orientation for celestial-to-terrestrial
+coordinate transformations (in the :ref:`coordinates <astropy-coordinates>`
+sub-package).
 
 Starting with astropy 1.2, the latest IERS values (which include approximately
 one year of predictive values) are automatically downloaded from the IERS
