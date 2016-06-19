@@ -26,8 +26,10 @@ packages that use the full bugfix/maintenance branch approach.)
    addresses.  Look for any mis-named entries or duplicates, and add them to the
    ``.mailmap`` file (matched to the appropriate canonical name/email address.)
    Once you have finished this, you can could the number of lines in
-   ``git shortlog -s`` to get the final contributor count (and also the names
-   to add to the Astropy web site at the end of the release).
+   ``git shortlog -s`` to get the final contributor count.  Also be sure to
+   use the names in that list to update the ``docs/credits.rst`` file. (The
+   ``author_lists.py`` script in the `astropy-tools repository`_ helps with
+   this.)
 
 #. (Optional) You may want to set up a clean environment to build the release.
    For more on setting up virtual environments, see :ref:`virtual_envs`, but
@@ -201,7 +203,8 @@ packages that use the full bugfix/maintenance branch approach.)
 #. Update the Astropy web site by editing the ``index.html`` page at
    https://github.com/astropy/astropy.github.com by changing the "current
    version" link and/or updating the list of older versions if this is an LTS
-   bugfix or a new major version.
+   bugfix or a new major version.  You may also need to update the contributor
+   list on the web site if you updated the ``docs/credits.rst`` at the outset.
 
 #. In the astropy *master* branch (not just the maintenance branch), be sure to
    update the ``CHANGES.rst`` to reflect the date of the release you just
