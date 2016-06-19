@@ -31,8 +31,8 @@ In particular, this release includes:
   units package.
 * Improvements to the :ref:`NDData class and subclasses <whatsnew-1.2-nddata>`.
 * :ref:`Auto-downloading of IERS tables <whatsnew-1.2-iers>` as needed, which
-  gives information for example about leap seconds that is needed to convert
-  to/from the UT1 scale.
+  gives information about Earth orientation parameters necessary for high
+  precision coordinate calculations and conversions to/from the UT1 scale.
 
 In addition to these major changes, Astropy 1.2 includes a large number of
 smaller improvements and bug fixes, which are described in the
