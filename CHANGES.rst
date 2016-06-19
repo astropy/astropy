@@ -201,7 +201,7 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1.2 (unreleased)
+1.2 (2016-06-19)
 ----------------
 
 General
