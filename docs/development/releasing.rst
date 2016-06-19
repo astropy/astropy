@@ -15,6 +15,20 @@ Release Procedure
 This is the standard release procedure for releasing Astropy (or affiliated
 packages that use the full bugfix/maintenance branch approach.)
 
+#. (Only for major versions) Make sure to update the "What's new"
+   section with the stats on the number of issues, PRs, and contributors.  For
+   the first two, the `astropy-tools repository`_ script ``gh_issuereport.py``
+   can provide the numbers since the last major release.  For the final one, you
+   will likely need to update the Astropy ``.mailmap`` file, as there are often
+   contributors who are not careful about using the same e-mail address for
+   every commit.  The easiest way to do this is to run the command
+   ``git shortlog -n -s -e`` to see the list of all contributors and their email
+   addresses.  Look for any mis-named entries or duplicates, and add them to the
+   ``.mailmap`` file (matched to the appropriate canonical name/email address.)
+   Once you have finished this, you can could the number of lines in
+   ``git shortlog -s`` to get the final contributor count (and also the names
+   to add to the Astropy web site at the end of the release).
+
 #. (Optional) You may want to set up a clean environment to build the release.
    For more on setting up virtual environments, see :ref:`virtual_envs`, but
    for the sake of example we will assume you're using `Anaconda`_. This is not
