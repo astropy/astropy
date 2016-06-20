@@ -1779,7 +1779,7 @@ class CompImageHDU(BinTableHDU):
 
         # Do the scaling
         if _zero != 0:
-            self.data += -_zero
+            self.data -= _zero
             self.header['BZERO'] = _zero
         else:
             # Delete from both headers
