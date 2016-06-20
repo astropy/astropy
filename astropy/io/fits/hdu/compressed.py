@@ -663,6 +663,12 @@ class CompImageHDU(BinTableHDU):
         self._orig_bscale = self._bscale
         self._orig_bitpix = self._bitpix
 
+        # If BZERO is consistent with being an integer, explicitly set it to
+        # integer type so that in-place operations on integer data arrays work
+        if self._bzero == int(self._bzero):
+            self._bzero = int(self._bzero)
+
+
     @classmethod
     def match_header(cls, header):
         card = header.cards[0]
@@ -1740,6 +1746,11 @@ class CompImageHDU(BinTableHDU):
             type = BITPIX2DTYPE[self._bitpix]
         _type = getattr(np, type)
 
+        # If BZERO is consistent with being an integer, explicitly set it to
+        # integer type so that in-place operations on integer data arrays work
+        if bzero == int(bzero):
+            bzero = int(bzero)
+
         # Determine how to scale the data
         # bscale and bzero takes priority
         if (bscale != 1 or bzero != 0):
@@ -1768,7 +1779,7 @@ class CompImageHDU(BinTableHDU):
 
         # Do the scaling
         if _zero != 0:
-            self.data += -_zero
+            self.data -= _zero
             self.header['BZERO'] = _zero
         else:
             # Delete from both headers

@@ -170,6 +170,10 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Avoid new exceptions with numpy >= 1.10 when using scaled integer data:
+    where BZERO has float type but integer value or where data is unsigned int.
+    [#4600, #4588, #4602, #4639]
+  
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
