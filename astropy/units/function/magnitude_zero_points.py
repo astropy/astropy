@@ -16,6 +16,8 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as _numpy
 from ..core import UnitBase, def_unit
 
+# One cannot import L_bol0 directly, or the order of imports of units and
+# constants starts to matter on python2. [#5121]
 from ...constants import si as _si
 from .. import si, astrophys
 
@@ -24,7 +26,7 @@ _ns = globals()
 
 def_unit(['Bol', 'L_bol'], _si.L_bol0, namespace=_ns, prefixes=False,
          doc="Luminosity corresponding to absolute bolometric magnitude zero")
-def_unit(['bol', 'f_bol'], L_bol / (4 * _numpy.pi * (10.*astrophys.pc)**2),
+def_unit(['bol', 'f_bol'], _si.L_bol0 / (4 * _numpy.pi * (10.*astrophys.pc)**2),
          namespace=_ns, prefixes=False, doc="Irradiance corresponding to "
          "appparent bolometric magnitude zero")
 def_unit(['AB'], 10.**(-0.4*48.6) * 1.e-3 * si.W / si.m**2 / si.Hz,
