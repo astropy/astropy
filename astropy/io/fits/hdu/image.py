@@ -517,7 +517,7 @@ class _ImageBaseHDU(_ValidHDU):
             if issubclass(self.data.dtype.type, np.floating):
                 self.data += -_zero
             else:
-                self.data += int(round(-_zero))
+                self.data += self.data.dtype.type(round(-_zero))
             self._header['BZERO'] = _zero
         else:
             try:

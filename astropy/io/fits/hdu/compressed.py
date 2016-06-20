@@ -1407,7 +1407,7 @@ class CompImageHDU(BinTableHDU):
                 if issubclass(data.dtype.type, np.floating):
                     data += self._bzero
                 else:
-                    data += int(round(self._bzero))
+                    data += data.dtype.type(round(self._bzero))
 
             if zblank is not None:
                 data = np.where(blanks, np.nan, data)
@@ -1774,7 +1774,7 @@ class CompImageHDU(BinTableHDU):
             if issubclass(self.data.dtype.type, np.floating):
                 self.data += -_zero
             else:
-                self.data += int(round(-_zero))
+                self.data += self.data.dtype.type(round(-_zero))
             self.header['BZERO'] = _zero
         else:
             # Delete from both headers
