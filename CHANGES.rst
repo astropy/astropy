@@ -190,6 +190,9 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - Change how bolometric luminosity constant is imported to ensure it remains
+    possible to import ``constants`` and ``units`` in any order. [#5121]
+
 - ``astropy.utils``
 
 - ``astropy.visualization``

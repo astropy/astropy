@@ -6,7 +6,9 @@ import numpy as np
 
 from .. import (CompositeUnit, Unit, UnitsError, dimensionless_unscaled,
                 si, astrophys)
-from ...constants import L_bol0
+# Cannot import L_bol0 directly, or the order of imports of units and constants
+# starts to matter on python2. [#5121]
+from ...constants import si as _si
 from .core import FunctionUnitBase, FunctionQuantity
 from .units import dex, dB, mag
 
@@ -323,10 +325,10 @@ AB0 = Unit('AB', 10.**(-0.4*48.6) * 1.e-3 * si.W / si.m**2 / si.Hz,
 ST0 = Unit('ST', 10.**(-0.4*21.1) * 1.e-3 * si.W / si.m**2 / si.AA,
            doc="ST magnitude zero flux density.")
 
-Bol0 = Unit('Bol', L_bol0, doc="Luminosity corresponding to "
+Bol0 = Unit('Bol', _si.L_bol0, doc="Luminosity corresponding to "
             "absolute bolometric magnitude zero")
 
-bol0 = Unit('bol', L_bol0 / (4 * np.pi * (10.*astrophys.pc)**2),
+bol0 = Unit('bol', _si.L_bol0 / (4 * np.pi * (10.*astrophys.pc)**2),
             doc="Irradiance corresponding to apparent bolometric magnitude "
             "zero")
 
