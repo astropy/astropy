@@ -8,7 +8,7 @@ import itertools
 import re
 import warnings
 
-from .card import Card, CardList, _pad, KEYWORD_LENGTH
+from .card import Card, _pad, KEYWORD_LENGTH
 from .file import _File
 from .util import (encode_ascii, decode_ascii, fileobj_closed,
                    fileobj_is_binary)
@@ -16,7 +16,7 @@ from .util import (encode_ascii, decode_ascii, fileobj_closed,
 from ...extern import six
 from ...extern.six import string_types, itervalues, iteritems, next
 from ...extern.six.moves import zip, range, zip_longest
-from ...utils import deprecated, isiterable
+from ...utils import isiterable
 from ...utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
 
@@ -1987,134 +1987,6 @@ class Header(object):
         del iterkeys
         del itervalues
         del iteritems
-
-    # The following properties/methods are for legacy API backwards
-    # compatibility
-
-    @property
-    @deprecated('0.1', alternative='the `.cards` attribute')
-    def ascard(self):
-        """
-        Returns a ``CardList`` object wrapping this Header; provided for
-        backwards compatibility for the old API (where Headers had an
-        underlying ``CardList``).
-        """
-
-        return CardList(self)
-
-    @deprecated('0.1', alternative=':meth:`Header.rename_keyword`')
-    def rename_key(self, oldkey, newkey, force=False):
-        self.rename_keyword(oldkey, newkey, force)
-
-    @deprecated('0.1', alternative="``header['HISTORY']``")
-    def get_history(self):
-        """
-        Get all history cards as a list of string texts.
-        """
-
-        if 'HISTORY' in self:
-            return self['HISTORY']
-        else:
-            return []
-
-    @deprecated('0.1', alternative="``header['COMMENT']``")
-    def get_comment(self):
-        """
-        Get all comment cards as a list of string texts.
-        """
-
-        if 'COMMENT' in self:
-            return self['COMMENT']
-        else:
-            return []
-
-    @deprecated('0.1', alternative=':meth:`Header.totextfile`')
-    def toTxtFile(self, fileobj, clobber=False):
-        """
-        Output the header parameters to a file in ASCII format.
-
-        Parameters
-        ----------
-        fileobj : file path, file object or file-like object
-            Output header parameters file.
-
-        clobber : bool
-            When `True`, overwrite the output file if it exists.
-        """
-
-        self.tofile(fileobj, sep='\n', endcard=False, padding=False,
-                    clobber=clobber)
-
-    @deprecated('0.1',
-                message='This is equivalent to '
-                        '``self.extend(Header.fromtextfile(fileobj), '
-                        'update=True, update_first=True)``.  Note that there '
-                        'there is no direct equivalent to the '
-                        '``replace=True`` option since '
-                        ':meth:`Header.fromtextfile` returns a new '
-                        ':class:`Header` instance.')
-    def fromTxtFile(self, fileobj, replace=False):
-        """
-        Input the header parameters from an ASCII file.
-
-        The input header cards will be used to update the current
-        header.  Therefore, when an input card key matches a card key
-        that already exists in the header, that card will be updated
-        in place.  Any input cards that do not already exist in the
-        header will be added.  Cards will not be deleted from the
-        header.
-
-        Parameters
-        ----------
-        fileobj : file path, file object or file-like object
-            Input header parameters file.
-
-        replace : bool, optional
-            When `True`, indicates that the entire header should be
-            replaced with the contents of the ASCII file instead of
-            just updating the current header.
-        """
-
-        input_header = Header.fromfile(fileobj, sep='\n', endcard=False,
-                                       padding=False)
-
-        if replace:
-            self.clear()
-        prev_key = 0
-
-        for card in input_header.cards:
-            card.verify('silentfix')
-
-            if card.keyword == 'SIMPLE':
-                if self.get('XTENSION'):
-                    del self.ascard['XTENSION']
-
-                self.set(card.keyword, card.value, card.comment, before=0)
-                prev_key = 0
-            elif card.keyword == 'XTENSION':
-                if self.get('SIMPLE'):
-                    del self.ascard['SIMPLE']
-
-                self.set(card.keyword, card.value, card.comment, before=0)
-                prev_key = 0
-            elif card.keyword in Card._commentary_keywords:
-                if (not replace and
-                        not (card.keyword == '' and card.value == '')):
-                    # Don't add duplicate commentary cards (though completely
-                    # blank cards are allowed to be duplicated)
-                    for c in self.cards:
-                        if c.keyword == card.keyword and c.value == card.value:
-                            break
-                    else:
-                        self.set(card.keyword, card.value, after=prev_key)
-                        prev_key += 1
-                else:
-                    self.set(card.keyword, card.value, after=prev_key)
-                    prev_key += 1
-            else:
-                self.set(card.keyword, card.value, card.comment,
-                         after=prev_key)
-                prev_key += 1
 
 
 collections.MutableSequence.register(Header)
