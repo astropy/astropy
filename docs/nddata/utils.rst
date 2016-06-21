@@ -349,6 +349,10 @@ It is often necessary to extract a patch from a much larger ndarray and
 in some cases, a subsampled patch (for example when performing PSF
 photometry).
 
+.. note::
+
+    The `~scipy` package is required to extract a subsampled patch.
+
 First we create a test array::
 
     >>> # Initialize the package and create a test array

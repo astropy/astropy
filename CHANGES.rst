@@ -28,6 +28,9 @@ New Features
 
 - ``astropy.nddata``
 
+    - Added ``subsampling`` to extract_array to allow for the extraction of
+    a subsampled patch centered on a set of coordinates.
+
 - ``astropy.stats``
 
 - ``astropy.sphinx``
