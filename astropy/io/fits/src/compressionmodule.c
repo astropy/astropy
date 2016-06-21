@@ -891,7 +891,7 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
     void* outbuf;
     size_t outbufsize;
 
-    PyArrayObject* indata;
+    PyArrayObject* indata = NULL;
     PyArrayObject* tmp;
     npy_intp znaxis;
     int datatype;
