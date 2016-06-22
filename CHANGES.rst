@@ -170,6 +170,10 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Fixed a bug that caused TFIELDS to not be in the correct position in
+    compressed image HDU headers under certain circumstances, which created
+    invalid FITS files. [#5118, #5125]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
