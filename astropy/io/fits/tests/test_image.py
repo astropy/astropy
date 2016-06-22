@@ -1562,3 +1562,34 @@ def test_set_data():
     im = fits.ImageHDU()
     ar = np.arange(12)
     im.data = ar
+
+
+def test_comphdu_bscale(tmpdir):
+    """
+    Regression test for a bug that caused extensions that used BZERO and BSCALE
+    that got turned into CompImageHDU to end up with BZERO/BSCALE before the
+    TFIELDS.
+    """
+
+    filename1 = tmpdir.join('3hdus.fits').strpath
+    filename2 = tmpdir.join('3hdus_comp.fits').strpath
+
+    x = np.random.random((100, 100))*100
+
+    x0 = fits.PrimaryHDU()
+    x1 = fits.ImageHDU(np.array(x-50, dtype=int), uint=True)
+    x1.header['BZERO'] = 20331
+    x1.header['BSCALE'] = 2.3
+    hdus = fits.HDUList([x0, x1])
+    hdus.writeto(filename1)
+
+    # fitsverify (based on cfitsio) should fail on this file, only seeing the
+    # first HDU.
+    hdus = fits.open(filename1)
+    hdus[1] = fits.CompImageHDU(data=hdus[1].data.astype(np.uint32),
+                                header=hdus[1].header)
+    hdus.writeto(filename2)
+
+    # open again and verify
+    hdus = fits.open(filename2)
+    hdus[1].verify('exception')
