@@ -992,6 +992,42 @@ class TestImageFunctions(FitsTestCase):
         hdul = fits.HDUList.fromstring(file_data)
         assert np.allclose(hdul[0].data, a)
 
+    def test_set_data(self):
+        """
+        Test data assignment - issue #5087
+        """
+
+        im = fits.ImageHDU()
+        ar = np.arange(12)
+        im.data = ar
+
+    def test_scale_bzero_with_int_data(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/4600
+        """
+
+        a = np.arange(100, 200, dtype=np.int16)
+        hdu = fits.PrimaryHDU(data=a.copy())
+        bzero = 99.9
+        hdu.scale('int16', bzero=bzero)
+        a -= int(round(bzero))
+        assert np.allclose(hdu.data, a)
+
+    def test_scale_back_uint_assignment(self):
+        """
+        Ensure fix for #4600 does not break assignment to data
+
+        Suggested by:
+        https://github.com/astropy/astropy/pull/4602#issuecomment-208713748
+        """
+
+        a = np.arange(100, 200, dtype=np.uint16)
+        fits.PrimaryHDU(a).writeto(self.temp('test.fits'))
+        with fits.open(self.temp('test.fits'), mode="update",
+                       scale_back=True) as (hdu,):
+            hdu.data[:] = 0
+            assert np.allclose(hdu.data, 0)
+
 
 class TestCompressedImage(FitsTestCase):
     def test_empty(self):
@@ -1554,11 +1590,35 @@ class TestCompressedImage(FitsTestCase):
             # technically it isn't invalid either :/
             assert hdul[1]._header.count('ZTENSION') == 2
 
+    def test_scale_bzero_with_compressed_int_data(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/4600
 
-def test_set_data():
-    """
-    Test data assignment - issue #5087
-    """
-    im = fits.ImageHDU()
-    ar = np.arange(12)
-    im.data = ar
+        Identical to test_scale_bzero_with_int_data() but uses a compressed
+        image.
+        """
+
+        a = np.arange(100, 200, dtype=np.int16)
+        hdu = fits.CompImageHDU(data=a.copy())
+        bzero = 99.9
+        hdu.scale('int16', bzero=bzero)
+        a -= int(round(bzero))
+        assert np.allclose(hdu.data, a)
+
+    def test_scale_back_compressed_uint_assignment(self):
+        """
+        Ensure fix for #4600 does not break assignment to data
+
+        Identical to test_scale_back_uint_assignment() but uses a compressed
+        image.
+
+        Suggested by:
+        https://github.com/astropy/astropy/pull/4602#issuecomment-208713748
+        """
+
+        a = np.arange(100, 200, dtype=np.uint16)
+        fits.CompImageHDU(a).writeto(self.temp('test.fits'))
+        with fits.open(self.temp('test.fits'), mode="update",
+                       scale_back=True) as hdul:
+            hdul[1].data[:] = 0
+            assert np.allclose(hdul[1].data, 0)
