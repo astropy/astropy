@@ -150,47 +150,17 @@ Other Changes and Additions
 - Initialization of ``Angle`` has been sped up for ``Quantity`` and ``Angle``
   input. [#4970]
 
-1.2.1 (unreleased)
+1.2.1 (2016-06-22)
 ------------------
 
 Bug Fixes
 ^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
 
 - ``astropy.io.fits``
 
   - Fixed a bug that caused TFIELDS to not be in the correct position in
     compressed image HDU headers under certain circumstances, which created
     invalid FITS files. [#5118, #5125]
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.sphinx``
-
-- ``astropy.table``
-
-- ``astropy.time``
 
 - ``astropy.units``
 
@@ -202,17 +172,6 @@ Bug Fixes
     They are not enabled as regular units by default, but can be included
     using ``astropy.units.magnitude_zero_points.enable()``. This makes it
     possible to round-trip magnitudes as originally intended.  [#5030]
-
-- ``astropy.utils``
-
-- ``astropy.visualization``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
-Other Changes and Additions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 1.2 (2016-06-19)
 ----------------
