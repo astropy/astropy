@@ -40,11 +40,6 @@ New Features
 
   - Added ``pixel_scale`` and ``plate_scale`` equivalencies. [#4987]
 
-  - Magnitude zero points used to define ``STmag``, ``ABmag``, ``M_bol`` and
-    ``m_bol`` are now collected in ``astropy.units.magnitude_zero_points``.
-    They are not enabled as regular units by default, but can be included
-    using ``astropy.units.magnitude_zero_points.enable()``. [#5030]
-
 - ``astropy.utils``
 
 - ``astropy.vo``
@@ -194,6 +189,15 @@ Bug Fixes
 - ``astropy.time``
 
 - ``astropy.units``
+
+  - Fixed an  ``ImportError`` that occurred whenever ``astropy.constants`` was
+    imported before ``astropy.units``. [#5030, #5121]
+
+  - Magnitude zero points used to define ``STmag``, ``ABmag``, ``M_bol`` and
+    ``m_bol`` are now collected in ``astropy.units.magnitude_zero_points``.
+    They are not enabled as regular units by default, but can be included
+    using ``astropy.units.magnitude_zero_points.enable()``. This makes it
+    possible to round-trip magnitudes as originally intended.  [#5030]
 
 - ``astropy.utils``
 
