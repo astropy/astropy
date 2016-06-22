@@ -588,7 +588,11 @@ class _BaseHDU(object):
 
         if (self._has_data and self._standard and
                 _is_pseudo_unsigned(self.data.dtype)):
-            if 'GCOUNT' in self._header:
+            # CompImageHDUs need TFIELDS immediately after GCOUNT,
+            # so BSCALE has to go after TFIELDS if it exists.
+            if 'TFIELDS' in self._header:
+                self._header.set('BSCALE', 1, after='TFIELDS')
+            elif 'GCOUNT' in self._header:
                 self._header.set('BSCALE', 1, after='GCOUNT')
             else:
                 self._header.set('BSCALE', 1)

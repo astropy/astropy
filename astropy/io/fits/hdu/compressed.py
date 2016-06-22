@@ -947,7 +947,8 @@ class CompImageHDU(BinTableHDU):
         # dimensions in the image data array.
         self._header.set('NAXIS1', cols.dtype.itemsize,
                          'width of table in bytes')
-        self._header.set('TFIELDS', ncols, 'number of fields in each row')
+        self._header.set('TFIELDS', ncols, 'number of fields in each row',
+                         after='GCOUNT')
         self._header.set('ZIMAGE', True, 'extension contains compressed image',
                          after=after)
         self._header.set('ZBITPIX', zbitpix,
