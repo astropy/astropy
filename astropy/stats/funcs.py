@@ -717,9 +717,9 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
 
 
 def median_absolute_deviation(a, axis=None):
-    """Compute the median absolute deviation.
+    """
+    Calculate the median absolute deviation (MAD).
 
-    Returns the median absolute deviation (MAD) of the array elements.
     The MAD is defined as ``median(abs(a - median(a)))``.
 
     Parameters
@@ -727,32 +727,32 @@ def median_absolute_deviation(a, axis=None):
     a : array-like
         Input array or object that can be converted to an array.
     axis : int, optional
-        Axis along which the medians are computed. The default (axis=None)
-        is to compute the median along a flattened version of the array.
+        Axis along which the MADs are computed.  The default (`None`) is
+        to compute the MAD of the flattened array.
 
     Returns
     -------
-    median_absolute_deviation : ndarray
-        A new array holding the result. If the input contains
-        integers, or floats of smaller precision than 64, then the output
-        data-type is float64.  Otherwise, the output data-type is the same
-        as that of the input.
+    mad : float or `~numpy.ndarray`
+        The median absolute deviation of the input array.  If ``axis``
+        is `None` then a scalar will be returned, otherwise a
+        `~numpy.ndarray` will be returned.
 
     Examples
     --------
+    Generate random variates from a Gaussian distribution and return the
+    median absolute deviation for that distribution::
 
-    This will generate random variates from a Gaussian distribution and return
-    the median absolute deviation for that distribution::
-
+        >>> import numpy as np
         >>> from astropy.stats import median_absolute_deviation
+        >>> rand = np.random.RandomState(12345)
         >>> from numpy.random import randn
-        >>> randvar = randn(10000)
-        >>> mad = median_absolute_deviation(randvar)
+        >>> mad = median_absolute_deviation(rand.randn(1000))
+        >>> print(mad)    # doctest: +FLOAT_CMP
+        0.65244241428454486
 
     See Also
     --------
-    numpy.median
-
+    `mad_std`
     """
 
     # Check if the array has a mask and if so use np.ma.median
@@ -765,14 +765,12 @@ def median_absolute_deviation(a, axis=None):
         func = np.median
 
     a = np.asanyarray(a)
-
     a_median = func(a, axis=axis)
 
-    # re-broadcast the output median array to subtract it
+    # broadcast the median array before subtraction
     if axis is not None:
         a_median = np.expand_dims(a_median, axis=axis)
 
-    # calculated the median average deviation
     return func(np.abs(a - a_median), axis=axis)
 
 
