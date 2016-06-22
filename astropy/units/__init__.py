@@ -30,6 +30,7 @@ from .equivalencies import *
 
 from .function.core import *
 from .function.logarithmic import *
+from .function import magnitude_zero_points
 
 del bases
 
