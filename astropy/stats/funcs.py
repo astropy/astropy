@@ -17,10 +17,10 @@ from ..extern.six.moves import xrange
 
 
 __all__ = ['binom_conf_interval', 'binned_binom_proportion',
-           'poisson_conf_interval',
-           'median_absolute_deviation', 'biweight_location',
-           'biweight_midvariance', 'signal_to_noise_oir_ccd', 'bootstrap',
-           'mad_std', 'gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm']
+           'poisson_conf_interval', 'median_absolute_deviation',
+           'mad_std', 'biweight_location', 'biweight_midvariance',
+           'signal_to_noise_oir_ccd', 'bootstrap', 'gaussian_fwhm_to_sigma',
+           'gaussian_sigma_to_fwhm']
 
 __doctest_skip__ = ['binned_binom_proportion']
 __doctest_requires__ = {'binom_conf_interval': ['scipy.special'],
@@ -752,7 +752,7 @@ def median_absolute_deviation(a, axis=None):
 
     See Also
     --------
-    `mad_std`
+    mad_std
     """
 
     # Check if the array has a mask and if so use np.ma.median
@@ -772,6 +772,56 @@ def median_absolute_deviation(a, axis=None):
         a_median = np.expand_dims(a_median, axis=axis)
 
     return func(np.abs(a - a_median), axis=axis)
+
+
+def mad_std(data, axis=None):
+    """
+    Calculate a robust standard deviation using the `median absolute
+    deviation (MAD)
+    <http://en.wikipedia.org/wiki/Median_absolute_deviation>`_.
+
+    The standard deviation estimator is given by:
+
+    .. math::
+
+        \\sigma \\approx \\frac{\\textrm{MAD}}{\Phi^{-1}(3/4)}
+            \\approx 1.4826 \ \\textrm{MAD}
+
+    where :math:`\Phi^{-1}(P)` is the normal inverse cumulative
+    distribution function evaluated at probability :math:`P = 3/4`.
+
+    Parameters
+    ----------
+    data : array-like
+        Data array or object that can be converted to an array.
+    axis : int, optional
+        Axis along which the robust standard deviations are computed.
+        The default (`None`) is to compute the robust standard deviation
+        of the flattened array.
+
+    Returns
+    -------
+    mad_std : float or `~numpy.ndarray`
+        The robust standard deviation of the input data.  If ``axis`` is
+        `None` then a scalar will be returned, otherwise a
+        `~numpy.ndarray` will be returned.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from astropy.stats import mad_std
+    >>> rand = np.random.RandomState(12345)
+    >>> madstd = mad_std(rand.normal(5, 2, (100, 100)))
+    >>> print(madstd)    # doctest: +FLOAT_CMP
+    2.0232764659422626
+
+    See Also
+    --------
+    biweight_midvariance, median_absolute_deviation
+    """
+
+    # NOTE: 1. / scipy.stats.norm.ppf(0.75) = 1.482602218505602
+    return median_absolute_deviation(data, axis=axis) * 1.482602218505602
 
 
 def biweight_location(a, c=6.0, M=None, axis=None):
@@ -1122,50 +1172,6 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
             boot[i] = bootfunc(data[bootarr])
 
     return boot
-
-
-def mad_std(data, axis=None):
-    """
-    Calculate a robust standard deviation using the `median absolute
-    deviation (MAD)
-    <http://en.wikipedia.org/wiki/Median_absolute_deviation>`_.
-
-    The standard deviation estimator is given by:
-
-    .. math::
-
-        \\sigma \\approx \\frac{\\textrm{MAD}}{\Phi^{-1}(3/4)}
-            \\approx 1.4826 \ \\textrm{MAD}
-
-    where :math:`\Phi^{-1}(P)` is the normal inverse cumulative
-    distribution function evaluated at probability :math:`P = 3/4`.
-
-    Parameters
-    ----------
-    data : array-like
-        Data array or object that can be converted to an array.
-    axis : int, optional
-        Axis along which the medians are computed. The default (axis=None)
-        is to compute the median along a flattened version of the array.
-
-    Returns
-    -------
-    result : float
-        The robust standard deviation of the data.
-
-    Examples
-    --------
-    >>> from astropy.stats import mad_std
-    >>> from astropy.utils import NumpyRNGContext
-    >>> from numpy.random import normal
-    >>> with NumpyRNGContext(12345):
-    ...     data = normal(5, 2, size=(100, 100))
-    ...     mad_std(data)    # doctest: +FLOAT_CMP
-    2.02327646594
-    """
-
-    # NOTE: 1. / scipy.stats.norm.ppf(0.75) = 1.482602218505602
-    return median_absolute_deviation(data, axis=axis) * 1.482602218505602
 
 
 def _scipy_kraft_burrows_nousek(N, B, CL):
