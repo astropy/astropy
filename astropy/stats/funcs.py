@@ -864,7 +864,7 @@ def biweight_location(a, c=6.0, M=None, axis=None):
     return M.squeeze() + (d * u).sum(axis=axis) / u.sum(axis=axis)
 
 
-def biweight_midvariance(a, c=9.0, M=None):
+def biweight_midvariance(a, c=9.0, M=None, axis=None):
     """Compute the biweight midvariance for an array.
 
     Returns the biweight midvariance for the array elements.
@@ -930,24 +930,35 @@ def biweight_midvariance(a, c=9.0, M=None):
     median_absolute_deviation, biweight_location
     """
 
-    a = np.array(a, copy=False)
+    a = np.asanyarray(a)
 
     if M is None:
-        M = np.median(a)
+        M = np.median(a, axis=axis)
+    if axis is not None:
+        M = np.expand_dims(M, axis=axis)
 
-    # set up the difference
+    # set up the differences
     d = a - M
 
     # set up the weighting
-    u = d / c / median_absolute_deviation(a)
+    mad = median_absolute_deviation(a, axis=axis)
+    if axis is not None:
+        mad = np.expand_dims(mad, axis=axis)
+    u = d / (c * mad)
 
     # now remove the outlier points
     mask = np.abs(u) < 1
-
     u = u ** 2
-    n = mask.sum()
-    return n ** 0.5 * (d[mask] * d[mask] * (1 - u[mask]) ** 4).sum() ** 0.5\
-        / np.abs(((1 - u[mask]) * (1 - 5 * u[mask])).sum())
+    n = mask.sum(axis=axis)
+
+    f1 = d * d * (1. - u)**4
+    f1[~mask] = 0.
+    f1 = f1.sum(axis=axis) ** 0.5
+    f2 = np.abs((1. - u) * (1. - 5.*u))
+    f2[~mask] = 0.
+    f2 = f2.sum(axis=axis)
+
+    return (n ** 0.5) * f1 / f2
 
 
 def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix,
