@@ -709,8 +709,6 @@ class Model(object):
             if tied is not False:
                 parameters[index] = tied(self)
 
-        print(parameters,self.tied.values())
-
         outputs = self.evaluate(*chain(inputs, parameters))
 
         if self.n_outputs == 1:
