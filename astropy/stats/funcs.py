@@ -932,7 +932,7 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None):
         >>> from numpy.random import randn
         >>> bmv = biweight_midvariance(rand.randn(1000))
         >>> print(bmv)    # doctest: +FLOAT_CMP
-        0.986726249291
+        0.982631838332
 
     See Also
     --------
