@@ -776,7 +776,7 @@ def median_absolute_deviation(a, axis=None):
     return func(np.abs(a - a_median), axis=axis)
 
 
-def biweight_location(a, c=6.0, M=None):
+def biweight_location(a, c=6.0, M=None, axis=None):
     """Compute the biweight location for an array.
 
     Returns the biweight location for the array elements.
@@ -809,6 +809,9 @@ def biweight_location(a, c=6.0, M=None):
         Tuning constant for the biweight estimator.  Default value is 6.0.
     M : float, optional
         Initial guess for the biweight location.
+    axis : int, optional
+        The array axis along which the biweight location is calculated.
+        If `None`, then the entire array is used.
 
     Returns
     -------
@@ -832,22 +835,28 @@ def biweight_location(a, c=6.0, M=None):
 
     """
 
-    a = np.array(a, copy=False)
+    a = np.asanyarray(a)
 
     if M is None:
-        M = np.median(a)
+        M = np.median(a, axis=axis)
+    if axis is not None:
+        M = np.expand_dims(M, axis=axis)
 
-    # set up the difference
+    # set up the differences
     d = a - M
 
     # set up the weighting
-    u = d / c / median_absolute_deviation(a)
+    mad = median_absolute_deviation(a, axis=axis)
+    if axis is not None:
+        mad = np.expand_dims(mad, axis=axis)
+    u = d / (c * mad)
 
     # now remove the outlier points
-    mask = np.abs(u) < 1
-
+    mask = (np.abs(u) >= 1)
     u = (1 - u ** 2) ** 2
-    return M + (d[mask] * u[mask]).sum() / u[mask].sum()
+    u[mask] = 0
+
+    return M.squeeze() + (d * u).sum(axis=axis) / u.sum(axis=axis)
 
 
 def biweight_midvariance(a, c=9.0, M=None):
