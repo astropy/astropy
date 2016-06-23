@@ -704,9 +704,12 @@ class Model(object):
         inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
         parameters = self._param_sets(raw=True)
 
-        for index, tied in enumerate(self.tied.values()):
+
+        for index, tied in enumerate([self.tied[pname] for pname in self.param_names]):
             if tied is not False:
                 parameters[index] = tied(self)
+
+        print(parameters,self.tied.values())
 
         outputs = self.evaluate(*chain(inputs, parameters))
 
