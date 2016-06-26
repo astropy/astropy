@@ -1,4 +1,4 @@
-# Licensed under a 3-clause BSD style license - see PYFITS.rst
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import unicode_literals
 
 import warnings
@@ -109,7 +109,7 @@ class _Verify(object):
 
         if messages:
             messages.insert(0, 'Verification reported errors:')
-            messages.append('Note: PyFITS uses zero-based indexing.\n')
+            messages.append('Note: astropy.io.fits uses zero-based indexing.\n')
 
             if fix_opt == 'silentfix' and not unfixable:
                 return
