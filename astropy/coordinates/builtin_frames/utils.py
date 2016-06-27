@@ -39,8 +39,8 @@ _DEFAULT_PM = (0.035, 0.29)*u.arcsec
 def matrix_product(*args):
     """Matrix multiply all arguments together.
 
-    Arguments should have dimension 2 or larger, with larger dimensional
-    objects being interpreted as stacks of matrices.
+    Arguments should have dimension 2 or larger. Larger dimensional objects
+    are interpreted as stacks of matrices residing in the last two dimensions.
     """
     return reduce(matmul, args)
 
@@ -51,8 +51,27 @@ def matrix_transpose(m):
 
 
 def cartrepr_from_matmul(pmat, coo, transpose=False):
-    """
-    Note that pmat should be an ndarray, *not* a matrix.
+    """Transform a coordinate by matrix multiplication.
+
+    Parameters
+    ----------
+    pmat : `~numpy.ndarray`
+        If two-dimensional, a Matrix; if higher-dimensional, a stack of matrices
+        residing in the last two dimensions.  The higher dimensions will be
+        broadcast against ``coo``.
+    coo : coordinate or coordinate representation
+        Assumed to have a ``cartesian`` property that returns a
+        `~astropy.coordinates.CartesianRepresentation`.
+
+    Returns
+    -------
+    newcoo: `~astropy.coordinates.CartesianRepresentation`
+        The transformed representation of ``coo``.
+
+    Raises
+    ------
+    ValueError :
+        If the last two dimensions of ``pmat`` do not equal 3, 3.
     """
     if pmat.shape[-2:] != (3, 3):
         raise ValueError("tried to do matrix multiplication with an array that "
@@ -67,7 +86,8 @@ def cartrepr_from_matmul(pmat, coo, transpose=False):
         # a fast path for scalar coordinates.
         newxyz = pmat.dot(oldxyz.value)
     else:
-        # this does matrix multiplication of all pmat items and all coordinates.
+        # Matrix multiply all pmat items and coordinates, broadcasting the
+        # remaining dimensions.
         newxyz = np.einsum('...ij,j...->i...', pmat, oldxyz.value)
 
     newxyz = u.Quantity(newxyz, oldxyz.unit, copy=False)
