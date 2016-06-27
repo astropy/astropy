@@ -79,9 +79,9 @@ else:
                 return np.einsum('...ij,...jk->...ik', a, b, **kwargs)
 
             if b.ndim == 1:
-                return np.einsum('...ij,j->...i', a, b, **kwargs)
+                return np.einsum('...ij,...j->...i', a, b, **kwargs)
 
         elif a.ndim == 1 and b.ndim >= 2:
-            return np.einsum('i,...ik->...k', a, b, **kwargs)
+            return np.einsum('...i,...ik->...k', a, b, **kwargs)
 
         raise ValueError("Scalar operands are not allowed, use '*' instead.")
