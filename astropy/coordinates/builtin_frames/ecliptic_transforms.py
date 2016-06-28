@@ -6,13 +6,10 @@ Contains the transformation functions for getting to/from ecliptic systems.
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-import numpy as np
-
 from ... import units as u
-from ...utils.compat import NUMPY_LT_1_10
 from ..baseframe import frame_transform_graph
 from ..transformations import FunctionTransform, DynamicMatrixTransform
-from ..angles import rotation_matrix
+from ..angles import rotation_matrix, matmul
 from ..representation import CartesianRepresentation
 from ... import _erfa as erfa
 
@@ -33,16 +30,7 @@ def _ecliptic_rotation_matrix(equinox):
     the dot product of the resulting matrices, finally combining
     into a new array.
     """
-    try:
-        rmat = np.array([rotation_matrix(this_obl, 'x') for this_obl in obl])
-        if NUMPY_LT_1_10:
-            result = np.einsum('...ij,...jk->...ik', rmat, rnpb)
-        else:
-            result = np.matmul(rmat, rnpb)
-    except:
-        # must be a scalar obliquity
-        result = np.asarray(np.dot(rotation_matrix(obl, 'x'), rnpb))
-    return result
+    return matmul(rotation_matrix(obl, 'x'), rnpb)
 
 
 @frame_transform_graph.transform(FunctionTransform, GCRS, GeocentricTrueEcliptic)
