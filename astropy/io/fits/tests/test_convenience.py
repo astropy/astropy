@@ -49,4 +49,4 @@ class TestConvenience(FitsTestCase):
         hdu = fits.table_to_hdu(table)
         assert isinstance(hdu, fits.BinTableHDU)
         filename = str(tmpdir.join('test_table_to_hdu.fits'))
-        hdu.writeto(filename, clobber=True)
+        hdu.writeto(filename, overwrite=True)

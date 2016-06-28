@@ -73,6 +73,7 @@ from ...units.format.fits import UnitScaleError
 from ...extern import six
 from ...extern.six import string_types
 from ...utils.exceptions import AstropyUserWarning
+from ...utils.decorators import deprecated_renamed_argument
 
 
 __all__ = ['getheader', 'getdata', 'getval', 'setval', 'delval', 'writeto',
@@ -382,8 +383,9 @@ def delval(filename, keyword, *args, **kwargs):
         hdulist.close(closed=closed)
 
 
+@deprecated_renamed_argument('clobber', 'overwrite', '1.3')
 def writeto(filename, data, header=None, output_verify='exception',
-            clobber=False, checksum=False):
+            overwrite=False, checksum=False):
     """
     Create a new FITS file using the supplied data/header.
 
@@ -408,9 +410,8 @@ def writeto(filename, data, header=None, output_verify='exception',
         ``+warn``, or ``+exception" (e.g. ``"fix+warn"``).  See :ref:`verify`
         for more info.
 
-    clobber : bool, optional
-        If `True`, and if filename already exists, it will overwrite
-        the file.  Default is `False`.
+    overwrite : bool, optional
+        If ``True``, overwrite the output file if exists.
 
     checksum : bool, optional
         If `True`, adds both ``DATASUM`` and ``CHECKSUM`` cards to the
@@ -420,7 +421,7 @@ def writeto(filename, data, header=None, output_verify='exception',
     hdu = _makehdu(data, header)
     if hdu.is_image and not isinstance(hdu, PrimaryHDU):
         hdu = PrimaryHDU(data, header=header)
-    hdu.writeto(filename, clobber=clobber, output_verify=output_verify,
+    hdu.writeto(filename, overwrite=overwrite, output_verify=output_verify,
                 checksum=checksum)
 
 
@@ -688,8 +689,9 @@ def info(filename, output=None, **kwargs):
     return ret
 
 
+@deprecated_renamed_argument('clobber', 'overwrite', '1.3')
 def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
-              clobber=False):
+              overwrite=False):
     """
     Dump a table HDU to a file in ASCII format.  The table may be
     dumped in three separate files, one containing column definitions,
@@ -717,8 +719,8 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
         The number of the extension containing the table HDU to be
         dumped.
 
-    clobber : bool
-        Overwrite the output files if they exist.
+    overwrite : bool, optional
+        If ``True``, overwrite the output file if exists.
 
     Notes
     -----
@@ -744,7 +746,7 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
             datafile = root + '_' + repr(ext) + '.txt'
 
         # Dump the data from the HDU to the files
-        f[ext].dump(datafile, cdfile, hfile, clobber)
+        f[ext].dump(datafile, cdfile, hfile, overwrite)
     finally:
         if closed:
             f.close()

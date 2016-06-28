@@ -41,12 +41,12 @@ new_hdul.writeto('test.fits')
 #
 # Create a multi-extension FITS file with two empty IMAGE extensions (a
 # default PRIMARY HDU is prepended automatically if one is not specified;
-# we use ``clobber=True`` to overwrite the file if it already exists):
+# we use ``overwrite=True`` to overwrite the file if it already exists):
 
 hdu1 = fits.PrimaryHDU()
 hdu2 = fits.ImageHDU()
 new_hdul = fits.HDUList([hdu1, hdu2])
-new_hdul.writeto('test.fits', clobber=True)
+new_hdul.writeto('test.fits', overwrite=True)
 
 ##############################################################################
 # Finally, we'll remove the file we created:

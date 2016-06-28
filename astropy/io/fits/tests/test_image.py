@@ -801,7 +801,7 @@ class TestImageFunctions(FitsTestCase):
         hdul = fits.open(self.data('fixed-1890.fits'))
         orig_data = hdul[0].data
         with ignore_warnings():
-            hdul.writeto(self.temp('test_new.fits'), clobber=True)
+            hdul.writeto(self.temp('test_new.fits'), overwrite=True)
         hdul.close()
         hdul = fits.open(self.temp('test_new.fits'))
         assert (hdul[0].data == orig_data).all()
@@ -812,7 +812,7 @@ class TestImageFunctions(FitsTestCase):
         # https://aeon.stsci.edu/ssb/trac/pyfits/ticket/84
         hdul = fits.open(self.data('fixed-1890.fits'))
         with ignore_warnings():
-            hdul.writeto(self.temp('test_new.fits'), clobber=True)
+            hdul.writeto(self.temp('test_new.fits'), overwrite=True)
         hdul.close()
         hdul = fits.open(self.temp('test_new.fits'))
         assert (hdul[0].data == orig_data).all()
@@ -821,7 +821,7 @@ class TestImageFunctions(FitsTestCase):
         # Test opening/closing/reopening a scaled file in update mode
         hdul = fits.open(self.data('fixed-1890.fits'),
                          do_not_scale_image_data=True)
-        hdul.writeto(self.temp('test_new.fits'), clobber=True,
+        hdul.writeto(self.temp('test_new.fits'), overwrite=True,
                      output_verify='silentfix')
         hdul.close()
         hdul = fits.open(self.temp('test_new.fits'))
@@ -1028,7 +1028,7 @@ class TestCompressedImage(FitsTestCase):
                                  compressionType=compression_type,
                                  quantizeLevel=quantize_level)
         ofd.append(chdu)
-        ofd.writeto(self.temp('test_new.fits'), clobber=True)
+        ofd.writeto(self.temp('test_new.fits'), overwrite=True)
         ofd.close()
         with fits.open(self.temp('test_new.fits')) as fd:
             assert (fd[1].data == data).all()
@@ -1207,7 +1207,7 @@ class TestCompressedImage(FitsTestCase):
         hdul = fits.open(self.temp('fixed-1890-z.fits'))
         orig_data = hdul[1].data
         with ignore_warnings():
-            hdul.writeto(self.temp('test_new.fits'), clobber=True)
+            hdul.writeto(self.temp('test_new.fits'), overwrite=True)
         hdul.close()
         hdul = fits.open(self.temp('test_new.fits'))
         assert (hdul[1].data == orig_data).all()
@@ -1218,7 +1218,7 @@ class TestCompressedImage(FitsTestCase):
         # https://aeon.stsci.edu/ssb/trac/pyfits/ticket/84
         hdul = fits.open(self.temp('fixed-1890-z.fits'))
         with ignore_warnings():
-            hdul.writeto(self.temp('test_new.fits'), clobber=True)
+            hdul.writeto(self.temp('test_new.fits'), overwrite=True)
         hdul.close()
         hdul = fits.open(self.temp('test_new.fits'))
         assert (hdul[1].data == orig_data).all()
@@ -1227,7 +1227,7 @@ class TestCompressedImage(FitsTestCase):
         # Test opening/closing/reopening a scaled file in update mode
         hdul = fits.open(self.temp('fixed-1890-z.fits'),
                          do_not_scale_image_data=True)
-        hdul.writeto(self.temp('test_new.fits'), clobber=True,
+        hdul.writeto(self.temp('test_new.fits'), overwrite=True,
                      output_verify='silentfix')
         hdul.close()
         hdul = fits.open(self.temp('test_new.fits'))
@@ -1300,7 +1300,7 @@ class TestCompressedImage(FitsTestCase):
         chdu2 = fits.CompImageHDU(data=noise, compressionType='GZIP_1',
                                   quantizeLevel=0.0)  # No quantization
         with ignore_warnings():
-            chdu2.writeto(self.temp('test.fits'), clobber=True)
+            chdu2.writeto(self.temp('test.fits'), overwrite=True)
 
         with fits.open(self.temp('test.fits')) as h:
             assert (noise == h[1].data).all()

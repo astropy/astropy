@@ -44,7 +44,7 @@ class TestChecksumFunctions(FitsTestCase):
     def test_image_create(self):
         n = np.arange(100, dtype=np.int64)
         hdu = fits.PrimaryHDU(n)
-        hdu.writeto(self.temp('tmp.fits'), clobber=True, checksum=True)
+        hdu.writeto(self.temp('tmp.fits'), overwrite=True, checksum=True)
         with fits.open(self.temp('tmp.fits'), checksum=True) as hdul:
             assert (hdu.data == hdul[0].data).all()
             assert 'CHECKSUM' in hdul[0].header
@@ -58,7 +58,7 @@ class TestChecksumFunctions(FitsTestCase):
 
     def test_nonstandard_checksum(self):
         hdu = fits.PrimaryHDU(np.arange(10.0 ** 6, dtype=np.float64))
-        hdu.writeto(self.temp('tmp.fits'), clobber=True,
+        hdu.writeto(self.temp('tmp.fits'), overwrite=True,
                     checksum='nonstandard')
         del hdu
         with fits.open(self.temp('tmp.fits'), checksum='nonstandard') as hdul:
@@ -75,7 +75,7 @@ class TestChecksumFunctions(FitsTestCase):
         with fits.open(self.data('scale.fits')) as hdul:
             orig_data = hdul[0].data.copy()
             hdul[0].scale('int16', 'old')
-            hdul.writeto(self.temp('tmp.fits'), clobber=True, checksum=True)
+            hdul.writeto(self.temp('tmp.fits'), overwrite=True, checksum=True)
             with fits.open(self.temp('tmp.fits'), checksum=True) as hdul1:
                 assert (hdul1[0].data == orig_data).all()
                 assert 'CHECKSUM' in hdul1[0].header
@@ -99,7 +99,7 @@ class TestChecksumFunctions(FitsTestCase):
 
         # Reopen the new file and save it back again with a checksum
         with fits.open(self.temp('rescaled.fits')) as hdul:
-            hdul.writeto(self.temp('rescaled2.fits'), clobber=True,
+            hdul.writeto(self.temp('rescaled2.fits'), overwrite=True,
                          checksum=True)
 
         # Now do like in the first writeto but use checksum immediately
@@ -131,7 +131,7 @@ class TestChecksumFunctions(FitsTestCase):
             ('8aCN8X9N8aAN8W9N', '1756785133'), ('UhqdUZnbUfnbUZnb', '0'),
             ('4cQJ5aN94aNG4aN9', '0')]
         with fits.open(self.data('o4sp040b0_raw.fits'), uint=True) as hdul:
-            hdul.writeto(self.temp('tmp.fits'), clobber=True, checksum=True)
+            hdul.writeto(self.temp('tmp.fits'), overwrite=True, checksum=True)
             with fits.open(self.temp('tmp.fits'), uint=True,
                            checksum=True) as hdul1:
                 for idx, (hdu_a, hdu_b) in enumerate(zip(hdul, hdul1)):
@@ -153,7 +153,7 @@ class TestChecksumFunctions(FitsTestCase):
         x = fits.hdu.groups.GroupData(imdata, parnames=[str('abc'), str('xyz')],
                                       pardata=[pdata1, pdata2], bitpix=-32)
         hdu = fits.GroupsHDU(x)
-        hdu.writeto(self.temp('tmp.fits'), clobber=True, checksum=True)
+        hdu.writeto(self.temp('tmp.fits'), overwrite=True, checksum=True)
         with fits.open(self.temp('tmp.fits'), checksum=True) as hdul:
             assert comparerecords(hdul[0].data, hdu.data)
             assert 'CHECKSUM' in hdul[0].header
@@ -168,7 +168,7 @@ class TestChecksumFunctions(FitsTestCase):
         col2 = fits.Column(name='V_mag', format='E', array=a2)
         cols = fits.ColDefs([col1, col2])
         tbhdu = fits.BinTableHDU.from_columns(cols)
-        tbhdu.writeto(self.temp('tmp.fits'), clobber=True, checksum=True)
+        tbhdu.writeto(self.temp('tmp.fits'), overwrite=True, checksum=True)
         with fits.open(self.temp('tmp.fits'), checksum=True) as hdul:
             assert comparerecords(tbhdu.data, hdul[1].data)
             assert 'CHECKSUM' in hdul[0].header
@@ -186,7 +186,7 @@ class TestChecksumFunctions(FitsTestCase):
                          'O'))
         c2 = fits.Column(name='xyz', format='2I', array=[[11, 3], [12, 4]])
         tbhdu = fits.BinTableHDU.from_columns([c1, c2])
-        tbhdu.writeto(self.temp('tmp.fits'), clobber=True, checksum=True)
+        tbhdu.writeto(self.temp('tmp.fits'), overwrite=True, checksum=True)
         with fits.open(self.temp('tmp.fits'), checksum=True) as hdul:
             assert comparerecords(tbhdu.data, hdul[1].data)
             assert 'CHECKSUM' in hdul[0].header
@@ -209,7 +209,7 @@ class TestChecksumFunctions(FitsTestCase):
         c3 = fits.Column(name='t1', format='I', array=[91, 92, 93])
         x = fits.ColDefs([c1, c2, c3])
         hdu = fits.TableHDU.from_columns(x)
-        hdu.writeto(self.temp('tmp.fits'), clobber=True, checksum=True)
+        hdu.writeto(self.temp('tmp.fits'), overwrite=True, checksum=True)
         with fits.open(self.temp('tmp.fits'), checksum=True) as hdul:
             assert comparerecords(hdu.data, hdul[1].data)
             assert 'CHECKSUM' in hdul[0].header
@@ -227,7 +227,7 @@ class TestChecksumFunctions(FitsTestCase):
 
     def test_compressed_image_data(self):
         with fits.open(self.data('comp.fits')) as h1:
-            h1.writeto(self.temp('tmp.fits'), clobber=True, checksum=True)
+            h1.writeto(self.temp('tmp.fits'), overwrite=True, checksum=True)
             with fits.open(self.temp('tmp.fits'), checksum=True) as h2:
                 assert np.all(h1[1].data == h2[1].data)
                 assert 'CHECKSUM' in h2[0].header
@@ -312,7 +312,7 @@ class TestChecksumFunctions(FitsTestCase):
 
     def test_append(self):
         hdul = fits.open(self.data('tb.fits'))
-        hdul.writeto(self.temp('tmp.fits'), clobber=True)
+        hdul.writeto(self.temp('tmp.fits'), overwrite=True)
         n = np.arange(100)
         fits.append(self.temp('tmp.fits'), n, checksum=True)
         hdul.close()
@@ -322,7 +322,7 @@ class TestChecksumFunctions(FitsTestCase):
 
     def test_writeto_convenience(self):
         n = np.arange(100)
-        fits.writeto(self.temp('tmp.fits'), n, clobber=True, checksum=True)
+        fits.writeto(self.temp('tmp.fits'), n, overwrite=True, checksum=True)
         hdul = fits.open(self.temp('tmp.fits'), checksum=True)
         self._check_checksums(hdul[0])
         hdul.close()
@@ -360,7 +360,7 @@ class TestChecksumFunctions(FitsTestCase):
     def test_datasum_only(self):
         n = np.arange(100, dtype='int16')
         hdu = fits.ImageHDU(n)
-        hdu.writeto(self.temp('tmp.fits'), clobber=True, checksum='datasum')
+        hdu.writeto(self.temp('tmp.fits'), overwrite=True, checksum='datasum')
         with fits.open(self.temp('tmp.fits'), checksum=True) as hdul:
             if not (hasattr(hdul[0], '_datasum') and hdul[0]._datasum):
                 pytest.fail(msg='Missing DATASUM keyword')
