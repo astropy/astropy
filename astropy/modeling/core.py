@@ -704,11 +704,6 @@ class Model(object):
         inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
         parameters = self._param_sets(raw=True)
 
-
-        for index, tied in enumerate([self.tied[pname] for pname in self.param_names]):
-            if tied is not False:
-                parameters[index] = tied(self)
-
         outputs = self.evaluate(*chain(inputs, parameters))
 
         if self.n_outputs == 1:
@@ -1644,10 +1639,13 @@ class Model(object):
         param_metrics = self._param_metrics
         values = []
         for name in self.param_names:
-            if raw:
-                value = getattr(self, name)._raw_value
+            if self.tied[name] is not False:
+                value = self.tied[name](self)
             else:
-                value = getattr(self, name).value
+                if raw:
+                    value = getattr(self, name)._raw_value
+                else:
+                    value = getattr(self, name).value
 
             broadcast_shape = param_metrics[name].get('broadcast_shape')
             if broadcast_shape is not None:
