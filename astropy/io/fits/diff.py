@@ -31,6 +31,7 @@ from ...utils import indent
 from ...utils.compat.funcsigs import signature
 from .card import Card, BLANK_CARD
 from .header import Header
+from ...utils.decorators import deprecated_renamed_argument
 # HDUList is used in one of the doctests
 from .hdu.hdulist import fitsopen  # pylint: disable=W0611
 from .hdu.table import _TableLikeHDU
@@ -134,9 +135,9 @@ class _BaseDiff(object):
         return not any(getattr(self, attr) for attr in self.__dict__
                        if attr.startswith('diff_'))
 
-    def report(self, fileobj=None, indent=0, clobber=False):
-        """
-        Generates a text report on the differences (if any) between two
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+    def report(self, fileobj=None, indent=0, overwrite=False):
+        """Generates a text report on the differences (if any) between two
         objects, and either returns it as a string or writes it to a file-like
         object.
 
@@ -151,9 +152,8 @@ class _BaseDiff(object):
         indent : int
             The number of 4 space tabs to indent the report.
 
-        clobber : bool
-            Whether the report output should overwrite an existing file, when
-            fileobj is specified as a path.
+        overwrite : bool, optional
+            If ``True``, overwrite the output file if exists.
 
         Returns
         -------
@@ -164,9 +164,9 @@ class _BaseDiff(object):
         filepath = None
 
         if isinstance(fileobj, string_types):
-            if os.path.exists(fileobj) and not clobber:
+            if os.path.exists(fileobj) and not overwrite:
                 raise IOError("File {0} exists, aborting (pass in "
-                              "clobber=True to overwrite)".format(fileobj))
+                              "overwrite=True to overwrite)".format(fileobj))
             else:
                 filepath = fileobj
                 fileobj = open(filepath, 'w')

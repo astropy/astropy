@@ -70,7 +70,7 @@ class TestCore(FitsTestCase):
         l.append(p)
         l.append(t)
 
-        l.writeto(self.temp('test.fits'), clobber=True)
+        l.writeto(self.temp('test.fits'), overwrite=True)
 
         with fits.open(self.temp('test.fits')) as p:
             assert p[1].data[1]['foo'] == 60000.0
@@ -116,7 +116,7 @@ class TestCore(FitsTestCase):
         assert table.data.dtype.names == ('c2', 'c4', 'foo')
         assert table.columns.names == ['c2', 'c4', 'foo']
 
-        hdulist.writeto(self.temp('test.fits'), clobber=True)
+        hdulist.writeto(self.temp('test.fits'), overwrite=True)
         with ignore_warnings():
             # TODO: The warning raised by this test is actually indication of a
             # bug and should *not* be ignored. But as it is a known issue we
@@ -545,7 +545,7 @@ class TestConvenienceFunctions(FitsTestCase):
         data = np.zeros((100, 100))
         header = fits.Header()
         fits.writeto(self.temp('array.fits'), data, header=header,
-                     clobber=True)
+                     overwrite=True)
         hdul = fits.open(self.temp('array.fits'))
         assert len(hdul) == 1
         assert (data == hdul[0].data).all()
@@ -561,7 +561,7 @@ class TestConvenienceFunctions(FitsTestCase):
         header = fits.Header()
         header.set('CRPIX1', 1.)
         fits.writeto(self.temp('array.fits'), data, header=header,
-                     clobber=True, output_verify='silentfix')
+                     overwrite=True, output_verify='silentfix')
         hdul = fits.open(self.temp('array.fits'))
         assert len(hdul) == 1
         assert (data == hdul[0].data).all()

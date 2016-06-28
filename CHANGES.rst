@@ -183,6 +183,10 @@ API Changes
     - Removed ``startColumn`` and ``endColumn`` arguments to the ``FITS_record``
       constructor.
 
+  - FITS writers now accept an ``overwrite`` argument. If ``clobber``
+    is used, an ``AstropyDeprecationWarning`` is issued. If both are
+    used, a ``TypeError`` is raised. [#5171]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``

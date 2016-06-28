@@ -176,8 +176,8 @@ def update(filename):
     hdulist = fits.open(filename, do_not_scale_image_data=True)
     try:
         output_verify = 'silentfix' if OPTIONS.compliance else 'ignore'
-        hdulist.writeto(filename, checksum=OPTIONS.checksum_kind, clobber=True,
-                        output_verify=output_verify)
+        hdulist.writeto(filename, checksum=OPTIONS.checksum_kind,
+                        overwrite=True, output_verify=output_verify)
     except fits.VerifyError:
         pass  # unfixable errors already noted during verification phase
     finally:
