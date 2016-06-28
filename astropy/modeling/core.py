@@ -1639,13 +1639,10 @@ class Model(object):
         param_metrics = self._param_metrics
         values = []
         for name in self.param_names:
-            if self.tied[name] is not False:
-                value = self.tied[name](self)
+            if raw:
+                value = getattr(self, name)._raw_value
             else:
-                if raw:
-                    value = getattr(self, name)._raw_value
-                else:
-                    value = getattr(self, name).value
+                value = getattr(self, name).value
 
             broadcast_shape = param_metrics[name].get('broadcast_shape')
             if broadcast_shape is not None:
@@ -1741,6 +1738,12 @@ class Model(object):
             parts.append(indent(str(param_table), width=4))
 
         return '\n'.join(parts)
+
+    def _evaluate_tied_parameters(self):
+        for name in self.param_names:
+            if self.tied[name] is not False:
+                param_slice = self._param_metrics[name]['slice']
+                self._parameters[param_slice] = self.tied[name](self)
 
 class FittableModel(Model):
     """
