@@ -433,7 +433,7 @@ class ConvertedModel(SherpaWrapper):
         pars = []
         linkedpars = []
         for pname in model.param_names:
-            param = model.__getattribute__(pname)
+            param = getattr(model,pname)
             vals = [param.name, param.value, param.min, param.max, param.min,
                     param.max, None, param.fixed, False]
             attrnames = ["name", "val", "min", "max", "hard_min", "hard_max",
@@ -449,8 +449,8 @@ class ConvertedModel(SherpaWrapper):
         smodel.calc = _calc2call(model)
 
         for pname in linkedpars:
-            param = model.__getattribute__(pname)
-            sparam = smodel.__getattribute__(pname)
+            param = getattr(model,pname)
+            sparam = getattr(smodel,pname)
             sparam.link = param.tied(smodel)
 
         return smodel
