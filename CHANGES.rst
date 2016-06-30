@@ -1,3 +1,157 @@
+1.3 (unreleased)
+----------------
+
+New Features
+^^^^^^^^^^^^
+
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.sphinx``
+
+- ``astropy.table``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+  - Added ``pixel_scale`` and ``plate_scale`` equivalencies. [#4987]
+
+- ``astropy.utils``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+API Changes
+^^^^^^^^^^^
+
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+  - ASCII writers now accept an 'overwrite' argument.
+	The default behavior is changed so that a warning will be
+	issued when overwriting an existing file unless ``overwrite=True``.
+	In a future version this will be changed from a warning to an
+	exception to prevent accidentally overwriting a file. [#5007]
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+  - Renamed ``ignored`` context manager in ``compat.misc`` to ``suppress``
+    to be consistent with https://bugs.python.org/issue19266 . [#5003]
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+  - Made TFORMx keyword check more flexible in test of compressed images to
+    enable compatibility of the test with cfitsio 3.380. [#4646]
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+  - ``read`` now correctly raises an IOError if a file with an unknown
+    extension can't be found, instead of raising IORegistryError:
+    "Format could not be identified." [#4779]
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+  - Fixed broadcasting in ``sigma_clip`` when using negative ``axis``. [#4988]
+
+- ``astropy.table``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Initialization of ``Angle`` has been sped up for ``Quantity`` and ``Angle``
+  input. [#4970]
+
 1.2.2 (unreleased)
 ------------------
 

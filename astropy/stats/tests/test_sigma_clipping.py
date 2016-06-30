@@ -137,3 +137,10 @@ def test_invalid_sigma_clip():
     assert result.mask[2, 2] == True
     assert result.mask[3, 4] == True
     assert result.mask[1, 1] == True
+
+
+def test_sigmaclip_negative_axis():
+    """Test that dimensions are expanded correctly even if axis is negative."""
+    data = np.ones((3, 4))
+    # without correct expand_dims this would raise a ValueError
+    sigma_clip(data, axis=-1)

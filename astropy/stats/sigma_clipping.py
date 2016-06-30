@@ -173,7 +173,7 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
         min_value = max_value - std * sigma_lower
         max_value += std * sigma_upper
         if axis is not None:
-            if axis > 0:
+            if axis != 0:
                 min_value = np.expand_dims(min_value, axis=axis)
                 max_value = np.expand_dims(max_value, axis=axis)
         _filtered_data.mask |= _filtered_data > max_value
