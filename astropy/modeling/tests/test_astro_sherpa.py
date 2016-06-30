@@ -18,6 +18,7 @@ try:
 except ImportError:
     HAS_SHERPA = False
 
+import warnings
 
 from astropy.modeling.astro_sherpa import SherpaFitter, Dataset, ConvertedModel
 from sherpa.stats import Chi2
@@ -255,7 +256,10 @@ class TestSherpaFitter(object):
         amodel.stddev.value = 0.6
         amodel.stddev.min = 0.5
         amodel.mean.tied = tiefunc
-        fmod = self.fitter(amodel, self.x1, self.y1, yerr=self.dy1)
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore",category=DeprecationWarning) # Sherpa uses something which throws this warning 
+            fmod = self.fitter(amodel, self.x1, self.y1, yerr=self.dy1)
+
         assert fmod.amplitude.value == self.model1d.amplitude.value
         assert round(fmod.stddev.value, 1) == 0.7 or round(fmod.stddev.value, 1) == 0.5
         assert fmod.mean.value == fmod.stddev.value
