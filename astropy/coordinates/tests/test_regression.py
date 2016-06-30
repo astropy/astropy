@@ -19,7 +19,7 @@ from ..sites import get_builtin_sites
 from ...time import Time
 from ...utils import iers
 
-from ...tests.helper import pytest, assert_quantity_allclose, catch_warnings
+from ...tests.helper import pytest, assert_quantity_allclose, catch_warnings, quantity_allclose
 from .test_matching import HAS_SCIPY, OLDER_SCIPY
 
 
@@ -283,3 +283,52 @@ def test_regression_5209():
     moon = get_moon(time)
     new_coord = SkyCoord([moon])
     assert_quantity_allclose(new_coord[0].distance, moon.distance)
+
+
+def test_regression_5133():
+    N = 1000
+    np.random.seed(12345)
+    lon = np.random.uniform(-10, 10, N) * u.deg
+    lat = np.random.uniform(50, 52, N) * u.deg
+    alt = np.random.uniform(0, 10., N) * u.km
+
+    time = Time('2010-1-1')
+
+    objects = EarthLocation.from_geodetic(lon, lat, height=alt)
+    itrs_coo = objects.get_itrs(time)
+
+    homes = [EarthLocation.from_geodetic(lon=-1 * u.deg, lat=52 * u.deg, height=h)
+             for h in (0, 1000, 10000)*u.km]
+
+    altaz_frames = [AltAz(obstime=time, location=h) for h in homes]
+    altaz_coos = [itrs_coo.transform_to(f) for f in altaz_frames]
+
+    # they should all be different
+    for coo in altaz_coos[1:]:
+        assert not quantity_allclose(coo.az, coo.az[0])
+        assert not quantity_allclose(coo.alt, coo.alt[0])
+
+
+def test_itrs_vals_5133():
+    time = Time('2010-1-1')
+    el = EarthLocation.from_geodetic(lon=20*u.deg, lat=45*u.deg, height=0*u.km)
+
+    lons = [20, 30, 20]*u.deg
+    lats = [44, 45, 45]*u.deg
+    alts = [0, 0, 10]*u.km
+    coos = [EarthLocation.from_geodetic(lon, lat, height=alt).get_itrs(time)
+            for lon, lat, alt in zip(lons, lats, alts)]
+
+    aaf = AltAz(obstime=time, location=el)
+    aacs = [coo.transform_to(aaf) for coo in coos]
+
+    assert_quantity_allclose(aacs[0].az, 180*u.deg)
+    assert aacs[0].alt < 0*u.deg
+    assert aacs[0].distance > 50*u.km
+
+    assert_quantity_allclose(aacs[1].az, 90*u.deg)
+    assert aacs[1].alt < 0*u.deg
+    assert aacs[1].distance > 50*u.km
+
+    assert_quantity_allclose(aacs[2].alt, 90*u.deg)
+    assert_quantity_allclose(aacs[2].distance, 10*u.km)
