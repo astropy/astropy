@@ -132,6 +132,8 @@ Bug Fixes
 
 - ``astropy.stats``
 
+  - Fixed broadcasting in ``sigma_clip`` when using negative ``axis``. [#4988]
+
 - ``astropy.table``
 
 - ``astropy.time``
