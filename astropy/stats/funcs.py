@@ -776,30 +776,30 @@ def median_absolute_deviation(a, axis=None):
     return func(np.abs(a - a_median), axis=axis)
 
 
-def biweight_location(a, c=6.0, M=None):
-    """Compute the biweight location for an array.
+def biweight_location(a, c=6.0, M=None, axis=None):
+    """
+    Compute the biweight location.
 
-    Returns the biweight location for the array elements.
-    The biweight is a robust statistic for determining the central
-    location of a distribution.
-
-    The biweight location is given by the following equation
+    The biweight location is a robust statistic for determining the
+    central location of a distribution.  It is given by:
 
     .. math::
 
         C_{bl}= M+\\frac{\Sigma_{\|u_i\|<1} (x_i-M)(1-u_i^2)^2}
         {\Sigma_{\|u_i\|<1} (1-u_i^2)^2}
 
-    where M is the sample mean or if run iterative the initial guess,
-    and u_i is given by
+    where :math:`M` is the sample median (or the input initial guess)
+    and :math:`u_i` is given by:
 
     .. math::
 
-      u_{i} = \\frac{(x_i-M)}{cMAD}
+        u_{i} = \\frac{(x_i-M)}{c\ MAD}
 
-    where MAD is the median absolute deviation.
+    where :math:`c` is the tuning constant and :math:`MAD` is the median
+    absolute deviation.
 
-    For more details, see Beers, Flynn, and Gebhardt, 1990, AJ, 100, 32B
+    For more details, see `Beers, Flynn, and Gebhardt (1990); AJ 100, 32
+    <http://adsabs.harvard.edu/abs/1990AJ....100...32B>`_.
 
     Parameters
     ----------
@@ -807,57 +807,70 @@ def biweight_location(a, c=6.0, M=None):
         Input array or object that can be converted to an array.
     c : float, optional
         Tuning constant for the biweight estimator.  Default value is 6.0.
-    M : float, optional
-        Initial guess for the biweight location.
+    M : float or array-like, optional
+        Initial guess for the biweight location.  An array can be input
+        when using the ``axis`` keyword.
+    axis : int, optional
+        Axis along which the biweight locations are computed.  The
+        default (`None`) is to compute the biweight location of the
+        flattened array.
 
     Returns
     -------
-    biweight_location : float
-        Returns the biweight location for the array elements.
+    biweight_location : float or `~numpy.ndarray`
+        The biweight location of the input data.  If ``axis`` is `None`
+        then a scalar will be returned, otherwise a `~numpy.ndarray`
+        will be returned.
 
     Examples
     --------
+    Generate random variates from a Gaussian distribution and return the
+    biweight location of the distribution::
 
-    This will generate random variates from a Gaussian distribution and return
-    the biweight location of the distribution::
-
-    >>> from astropy.stats.funcs import biweight_location
-    >>> from numpy.random import randn
-    >>> randvar = randn(10000)
-    >>> cbl = biweight_location(randvar)
+        >>> import numpy as np
+        >>> from astropy.stats import biweight_location
+        >>> rand = np.random.RandomState(12345)
+        >>> from numpy.random import randn
+        >>> loc = biweight_location(rand.randn(1000))
+        >>> print(loc)    # doctest: +FLOAT_CMP
+        -0.0175741540445
 
     See Also
     --------
-    median_absolute_deviation, biweight_midvariance
-
+    biweight_midvariance, median_absolute_deviation, mad_std
     """
 
-    a = np.array(a, copy=False)
+    a = np.asanyarray(a)
 
     if M is None:
-        M = np.median(a)
+        M = np.median(a, axis=axis)
+    if axis is not None:
+        M = np.expand_dims(M, axis=axis)
 
-    # set up the difference
+    # set up the differences
     d = a - M
 
     # set up the weighting
-    u = d / c / median_absolute_deviation(a)
+    mad = median_absolute_deviation(a, axis=axis)
+    if axis is not None:
+        mad = np.expand_dims(mad, axis=axis)
+    u = d / (c * mad)
 
     # now remove the outlier points
-    mask = np.abs(u) < 1
-
+    mask = (np.abs(u) >= 1)
     u = (1 - u ** 2) ** 2
-    return M + (d[mask] * u[mask]).sum() / u[mask].sum()
+    u[mask] = 0
+
+    return M.squeeze() + (d * u).sum(axis=axis) / u.sum(axis=axis)
 
 
-def biweight_midvariance(a, c=9.0, M=None):
-    """Compute the biweight midvariance for an array.
+def biweight_midvariance(a, c=9.0, M=None, axis=None):
+    """
+    Compute the biweight midvariance.
 
-    Returns the biweight midvariance for the array elements.
-    The biweight midvariance is a robust statistic for determining
-    the midvariance (i.e. the standard deviation) of a distribution.
-
-    The biweight location is given by the following equation
+    The biweight midvariance is a robust statistic for determining the
+    midvariance (i.e. the standard deviation) of a distribution.  It is
+    given by:
 
     .. math::
 
@@ -868,12 +881,14 @@ def biweight_midvariance(a, c=9.0, M=None):
 
     .. math::
 
-      u_{i} = \\frac{(x_i-M)}{cMAD}
+        u_{i} = \\frac{(x_i-M)}{c MAD}
 
-    where MAD is the median absolute deviation.
+    where :math:`c` is the tuning constant and :math:`MAD` is the median
+    absolute deviation.  The midvariance tuning constant ``c`` is
+    typically 9.0.
 
-    :math:`n'` is the number of data for which :math:`|u_i| < 1` holds,
-    while the summations are over all i up to n:
+    :math:`n'` is the number of points for which :math:`|u_i| < 1`
+    holds, while the summations are over all :math:`i` up to :math:`n`:
 
     .. math::
 
@@ -882,9 +897,8 @@ def biweight_midvariance(a, c=9.0, M=None):
     This is slightly different than given in the reference below, but
     results in a value closer to the true midvariance.
 
-    The midvariance parameter c is typically 9.0.
-
-    For more details, see Beers, Flynn, and Gebhardt, 1990, AJ, 100, 32B
+    For more details, see `Beers, Flynn, and Gebhardt (1990); AJ 100, 32
+    <http://adsabs.harvard.edu/abs/1990AJ....100...32B>`_.
 
     Parameters
     ----------
@@ -892,48 +906,68 @@ def biweight_midvariance(a, c=9.0, M=None):
         Input array or object that can be converted to an array.
     c : float, optional
         Tuning constant for the biweight estimator.  Default value is 9.0.
-    M : float, optional
-        Initial guess for the biweight location.
+    M : float or array-like, optional
+        Initial guess for the biweight location.  An array can be input
+        when using the ``axis`` keyword.
+    axis : int, optional
+        Axis along which the biweight midvariances are computed.  The
+        default (`None`) is to compute the biweight midvariance of the
+        flattened array.
 
     Returns
     -------
-    biweight_midvariance : float
-        Returns the biweight midvariance for the array elements.
+    biweight_midvariance : float or `~numpy.ndarray`
+        The biweight midvariance of the input data.  If ``axis`` is
+        `None` then a scalar will be returned, otherwise a
+        `~numpy.ndarray` will be returned.
 
     Examples
     --------
+    Generate random variates from a Gaussian distribution and return the
+    biweight midvariance of the distribution::
 
-    This will generate random variates from a Gaussian distribution and return
-    the biweight midvariance of the distribution::
-
-    >>> from astropy.stats.funcs import biweight_midvariance
-    >>> from numpy.random import randn
-    >>> randvar = randn(10000)
-    >>> scl = biweight_midvariance(randvar)
+        >>> import numpy as np
+        >>> from astropy.stats import biweight_midvariance
+        >>> rand = np.random.RandomState(12345)
+        >>> from numpy.random import randn
+        >>> bmv = biweight_midvariance(rand.randn(1000))
+        >>> print(bmv)    # doctest: +FLOAT_CMP
+        0.982631838332
 
     See Also
     --------
-    median_absolute_deviation, biweight_location
+    biweight_location, mad_std, median_absolute_deviation
     """
 
-    a = np.array(a, copy=False)
+    a = np.asanyarray(a)
 
     if M is None:
-        M = np.median(a)
+        M = np.median(a, axis=axis)
+    if axis is not None:
+        M = np.expand_dims(M, axis=axis)
 
-    # set up the difference
+    # set up the differences
     d = a - M
 
     # set up the weighting
-    u = d / c / median_absolute_deviation(a)
+    mad = median_absolute_deviation(a, axis=axis)
+    if axis is not None:
+        mad = np.expand_dims(mad, axis=axis)
+    u = d / (c * mad)
 
     # now remove the outlier points
     mask = np.abs(u) < 1
-
     u = u ** 2
-    n = mask.sum()
-    return n ** 0.5 * (d[mask] * d[mask] * (1 - u[mask]) ** 4).sum() ** 0.5\
-        / np.abs(((1 - u[mask]) * (1 - 5 * u[mask])).sum())
+    n = mask.sum(axis=axis)
+
+    f1 = d * d * (1. - u)**4
+    f1[~mask] = 0.
+    f1 = f1.sum(axis=axis) ** 0.5
+    f2 = np.abs((1. - u) * (1. - 5.*u))
+    f2[~mask] = 0.
+    f2 = f2.sum(axis=axis)
+
+    return (n ** 0.5) * f1 / f2
 
 
 def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix,
