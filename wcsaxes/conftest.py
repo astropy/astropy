@@ -17,13 +17,8 @@ from astropy.tests.helper import pytest
 # when running the tests
 try:
     PYTEST_HEADER_MODULES['Astropy'] = 'astropy'
-except NameError:  # needed to support Astropy < 1.0
+except (NameError, KeyError):  # needed to support Astropy < 1.0
     pass
-
-# Uncomment the following lines to display the version number of the
-# package rather than the version number of Astropy in the top line when
-# running the tests.
-import os
 
 # This is to figure out the affiliated package version, rather than
 # using Astropy's
