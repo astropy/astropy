@@ -136,6 +136,46 @@ def test_biweight_location_small():
     assert abs(cbl-2.745) < 1e-3
 
 
+def test_biweight_location_axis():
+    """Test a 2D array with the axis keyword."""
+    with NumpyRNGContext(12345):
+        ny = 100
+        nx = 200
+        data = normal(5, 2, (ny, nx))
+
+        bw = funcs.biweight_location(data, axis=0)
+        bwi = []
+        for i in range(nx):
+            bwi.append(funcs.biweight_location(data[:, i]))
+        bwi = np.array(bwi)
+        assert_allclose(bw, bwi)
+
+        bw = funcs.biweight_location(data, axis=1)
+        bwi = []
+        for i in range(ny):
+            bwi.append(funcs.biweight_location(data[i, :]))
+        bwi = np.array(bwi)
+        assert_allclose(bw, bwi)
+
+
+def test_biweight_location_axis_3d():
+    """Test a 3D array with the axis keyword."""
+    with NumpyRNGContext(12345):
+        nz = 3
+        ny = 4
+        nx = 5
+        data = normal(5, 2, (nz, ny, nx))
+        bw = funcs.biweight_location(data, axis=0)
+        assert bw.shape == (ny, nx)
+
+        y = 0
+        bwi = []
+        for i in range(nx):
+            bwi.append(funcs.biweight_location(data[:, y, i]))
+        bwi = np.array(bwi)
+        assert_allclose(bw[y], bwi)
+
+
 def test_biweight_midvariance():
     # need to seed the numpy RNG to make sure we don't get some
     # amazingly flukey random number that breaks one of the tests
@@ -152,6 +192,46 @@ def test_biweight_midvariance():
 def test_biweight_midvariance_small():
     scl = funcs.biweight_midvariance([1, 3, 5, 500, 2])
     assert abs(scl-1.529) < 1e-3
+
+
+def test_biweight_midvariance_axis():
+    """Test a 2D array with the axis keyword."""
+    with NumpyRNGContext(12345):
+        ny = 100
+        nx = 200
+        data = normal(5, 2, (ny, nx))
+
+        bw = funcs.biweight_midvariance(data, axis=0)
+        bwi = []
+        for i in range(nx):
+            bwi.append(funcs.biweight_midvariance(data[:, i]))
+        bwi = np.array(bwi)
+        assert_allclose(bw, bwi)
+
+        bw = funcs.biweight_midvariance(data, axis=1)
+        bwi = []
+        for i in range(ny):
+            bwi.append(funcs.biweight_midvariance(data[i, :]))
+        bwi = np.array(bwi)
+        assert_allclose(bw, bwi)
+
+
+def test_biweight_midvariance_axis_3d():
+    """Test a 3D array with the axis keyword."""
+    with NumpyRNGContext(12345):
+        nz = 3
+        ny = 4
+        nx = 5
+        data = normal(5, 2, (nz, ny, nx))
+        bw = funcs.biweight_midvariance(data, axis=0)
+        assert bw.shape == (ny, nx)
+
+        y = 0
+        bwi = []
+        for i in range(nx):
+            bwi.append(funcs.biweight_midvariance(data[:, y, i]))
+        bwi = np.array(bwi)
+        assert_allclose(bw[y], bwi)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')

@@ -30,6 +30,9 @@ New Features
 
 - ``astropy.stats``
 
+  - Added ``axis`` keyword to ``biweight_location`` and
+    ``biweight_midvariance``. [#5127]
+
 - ``astropy.sphinx``
 
 - ``astropy.table``
@@ -62,10 +65,10 @@ API Changes
 - ``astropy.io.ascii``
 
   - ASCII writers now accept an 'overwrite' argument.
-	The default behavior is changed so that a warning will be
-	issued when overwriting an existing file unless ``overwrite=True``.
-	In a future version this will be changed from a warning to an
-	exception to prevent accidentally overwriting a file. [#5007]
+    The default behavior is changed so that a warning will be
+    issued when overwriting an existing file unless ``overwrite=True``.
+    In a future version this will be changed from a warning to an
+    exception to prevent accidentally overwriting a file. [#5007]
 
 - ``astropy.io.fits``
 
