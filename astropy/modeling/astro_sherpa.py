@@ -449,8 +449,8 @@ class ConvertedModel(SherpaWrapper):
         smodel.calc = _calc2call(model)
 
         for pname in linkedpars:
-            param = getattr(model,pname)
-            sparam = getattr(smodel,pname)
+            param = getattr(modelpname)
+            sparam = getattr(smodelpname)
             sparam.link = param.tied(smodel)
 
         return smodel
