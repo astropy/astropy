@@ -116,12 +116,19 @@ def spectral_density(wav, factor=None):
     h_cgs = _si.h.cgs.value  # erg * s
     hc = c_Aps * h_cgs
 
+    # flux density
     fla = cgs.erg / si.angstrom / si.cm ** 2 / si.s
     fnu = cgs.erg / si.Hz / si.cm ** 2 / si.s
     nufnu = cgs.erg / si.cm ** 2 / si.s
     lafla = nufnu
     photlam = astrophys.photon / (si.cm ** 2 * si.s * si.AA)
     photnu = astrophys.photon / (si.cm ** 2 * si.s * si.Hz)
+
+    # luminosity density
+    lnu = cgs.erg / si.s / si.Hz
+    lla = cgs.erg / si.s / si.angstrom
+    nulnu = cgs.erg / si.s
+    lalla = nulnu
 
     def converter(x):
         return x * (wav.to(si.AA, spectral()).value ** 2 / c_Aps)
@@ -177,7 +184,10 @@ def spectral_density(wav, factor=None):
         (photlam, fnu, converter_photlam_fnu, iconverter_photlam_fnu),
         (photlam, photnu, converter_photlam_photnu, iconverter_photlam_photnu),
         (photnu, fnu, converter_photnu_fnu, iconverter_photnu_fnu),
-        (photnu, fla, converter_photnu_fla, iconverter_photnu_fla)
+        (photnu, fla, converter_photnu_fla, iconverter_photnu_fla),
+        (lla, lnu, converter, iconverter), # luminosity
+        (lnu, nulnu, converter_fnu_nufnu, iconverter_fnu_nufnu),
+        (lla, lalla, converter_fla_lafla, iconverter_fla_lafla)
     ]
 
 

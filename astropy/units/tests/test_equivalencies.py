@@ -291,11 +291,22 @@ def test_spectral4(in_val, in_unit):
 
 
 def test_spectraldensity2():
+    # flux density
     flambda = u.erg / u.angstrom / u.cm ** 2 / u.s
     fnu = u.erg / u.Hz / u.cm ** 2 / u.s
 
     a = flambda.to(fnu, 1, u.spectral_density(u.Quantity(3500, u.AA)))
     assert_allclose(a, 4.086160166177361e-12)
+
+    # luminosity density
+    llambda = u.erg / u.angstrom / u.s
+    lnu = u.erg / u.Hz / u.s
+
+    a = llambda.to(lnu, 1, u.spectral_density(u.Quantity(3500, u.AA)))
+    assert_allclose(a, 4.086160166177361e-12)
+
+    a = lnu.to(llambda, 1, u.spectral_density(u.Quantity(3500, u.AA)))
+    assert_allclose(a, 2.44728537142857e11)
 
 
 def test_spectraldensity3():
