@@ -433,7 +433,7 @@ class ConvertedModel(SherpaWrapper):
         pars = []
         linkedpars = []
         for pname in model.param_names:
-            param = getattr(model,pname)
+            param = getattr(model, pname)
             vals = [param.name, param.value, param.min, param.max, param.min,
                     param.max, None, param.fixed, False]
             attrnames = ["name", "val", "min", "max", "hard_min", "hard_max",
@@ -449,8 +449,8 @@ class ConvertedModel(SherpaWrapper):
         smodel.calc = _calc2call(model)
 
         for pname in linkedpars:
-            param = getattr(model,pname)
-            sparam = getattr(smodel,pname)
+            param = getattr(model, pname)
+            sparam = getattr(smodel, pname)
             sparam.link = param.tied(smodel)
 
         return smodel
@@ -468,55 +468,3 @@ class ConvertedModel(SherpaWrapper):
             return return_models
         else:
             return return_models[0]
-
-
-class Data1DIntBkg(Data1DInt):
-
-    _response_ids=[]
-    _background_ids=[[0]]
-    
-    @property
-    def response_ids(self):
-        return self._response_ids
-
-    @property
-    def background_ids(self):
-        return self._background_ids
-
-
-    @property
-    def backscal(self):
-        return self._bkg_scale
-
-    def get_background(self,index):
-        return self._backgrounds[index]
-
-    def __init__(self,xlo, xhi, y, bkg, staterror=None, bkg_scale=1):
-        self._bkg = np.asanyarray(bkg)
-        self._bkg_scale=bkg_scale
-        self.exposure=1
-        
-        self.subtracted=False
-
-        self._backgrounds=[BkgDataset(bkg,bkg_scale)]
-        BaseData.__init__(self)
-
-
-        self.xlo=xlo
-        self.xhi=xhi
-        self.y=y
-        self.staterror=staterror
-
-
-class BkgDataset(object):
-    def __init__(self,bkg,bkg_scale):
-        self._bkg = bkg
-        self._bkg_scale=bkg_scale
-        self.exposure=1
-
-    def get_dep(self,flag):
-        return self._bkg
-
-    @property
-    def backscal(self):
-        return self._bkg_scale
