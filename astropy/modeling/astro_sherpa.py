@@ -1,7 +1,7 @@
 import numpy as np
 from collections import OrderedDict
 from sherpa.fit import Fit
-from sherpa.data import Data1D, Data1DInt, Data2D, Data2DInt, DataSimulFit
+from sherpa.data import Data1D, Data1DInt, Data2D, Data2DInt, DataSimulFit, BaseData
 from sherpa.models import UserModel, Parameter, SimulFitModel
 from .fitting import Fitter
 from ..utils.exceptions import AstropyUserWarning
@@ -14,6 +14,7 @@ __all__ = ('SherpaFitter',)
 
 
 class SherpaWrapper(object):
+
     def __init__(self, value=None):
         if value is not None:
             self.set(value)
@@ -26,6 +27,7 @@ class SherpaWrapper(object):
 
 
 class Stat(SherpaWrapper):
+
     """
     A wrapper for the fit statistics of sherpa
 
@@ -57,6 +59,7 @@ class OptMethod(SherpaWrapper):
 
 
 class EstMethod(SherpaWrapper):
+
     """
     A wrapper for the error estimation methods of sherpa
 
@@ -115,7 +118,7 @@ class SherpaFitter(Fitter):
         self._fitmodel = None  # a handle for sherpa fit model
         self._data = None  # a handle for sherpa dataset
 
-    def __call__(self, models, x, y, z=None, xerr=None, yerr=None, zerr=None, **kwargs):
+    def __call__(self, models, x, y, z=None, xerr=None, yerr=None, zerr=None, bkg=None, bkg_scale=1, **kwargs):
         """
         Fit the astropy model with a the sherpa fit routines.
 
@@ -146,9 +149,9 @@ class SherpaFitter(Fitter):
 
         tie_list = []
         try:
-            self._data = Dataset(models[0].n_inputs, x, y, z, xerr, yerr, zerr)
+           self._data = Dataset(models[0].n_inputs, x, y, z, xerr, yerr, zerr, bkg, bkg_scale)
         except TypeError:
-            self._data = Dataset(models.n_inputs, x, y, z, xerr, yerr, zerr)
+            self._data = Dataset(models.n_inputs, x, y, z, xerr, yerr, zerr, bkg, bkg_scale)
 
         if self._data.ndata > 1:
             if len(models) == 1:
@@ -198,7 +201,8 @@ class SherpaFitter(Fitter):
         return self._fitter.est_errors(methoddict=methoddict, parlist=parlist)
 
 
-class Dataset(object):
+class Dataset(SherpaWrapper):
+
     """
     Parameters
         ----------
@@ -221,11 +225,10 @@ class Dataset(object):
         _data: a sherpa dataset
     """
 
-    def __init__(self, n_dim, x, y, z=None, xerr=None, yerr=None, zerr=None, bkg=None):
+    def __init__(self, n_dim, x, y, z=None, xerr=None, yerr=None, zerr=None, bkg=None, bkg_scale=1):
 
         x = np.array(x)
         y = np.array(y)
-
         if x.ndim == 2 or (x.dtype == np.object or y.dtype == np.object):
             data = []
             if z is None:
@@ -243,16 +246,16 @@ class Dataset(object):
             if bkg is None:
                 bkg = len(x) * [None]
 
-            for nn, (xx, yy, zz, xxe, yye, zze, bkg) in enumerate(zip(x, y, z, xerr, yerr, zerr, bkg)):
-                data.append(self._make_dataset(n_dim, x=xx, y=yy, z=zz, xerr=xxe, yerr=yye, zerr=zze, bkg=bkg, n=nn))
+            for nn, (xx, yy, zz, xxe, yye, zze, bkg) in enumerate(zip(x, y, z, xerr, yerr, zerr, bkg, bkg_scale)):
+                data.append(self._make_dataset(n_dim, x=xx, y=yy, z=zz, xerr=xxe, yerr=yye, zerr=zze, bkg=bkg, bkg_scale=bkg_scale, n=nn))
             self.data = DataSimulFit("wrapped_data", data)
             self.ndata = nn + 1
         else:
-            self.data = self._make_dataset(n_dim, x=x, y=y, z=z, xerr=xerr, yerr=yerr, zerr=zerr, bkg=bkg)
+            self.data = self._make_dataset(n_dim, x=x, y=y, z=z, xerr=xerr, yerr=yerr, zerr=zerr, bkg=bkg, bkg_scale=bkg_scale)
             self.ndata = 1
 
     @staticmethod
-    def _make_dataset(n_dim, x, y, z=None, xerr=None, yerr=None, zerr=None, bkg=None, n=0):
+    def _make_dataset(n_dim, x, y, z=None, xerr=None, yerr=None, zerr=None, bkg=None, bkg_scale=1, n=0):
         """
         Parameters
             ----------
@@ -301,25 +304,49 @@ class Dataset(object):
         if z is None:
             if xerr is None:
                 if yerr is None:
-                    data = Data1D("wrapped_data", x=x, y=y)
+                    if bkg is None:
+                        data = Data1D("wrapped_data", x=x, y=y)
+                    else:
+                        data = Data1DBkg("wrapped_data", x=x, y=y, bkg=bkg, bkg_scale=bkg_scale)
                 else:
-                    data = Data1D("wrapped_data", x=x, y=y, staterror=yerr)
+                    if bkg is None:
+                        data = Data1D("wrapped_data", x=x, y=y, staterror=yerr)
+                    else:
+                        data = Data1DBkg("wrapped_data", x=x, y=y, staterror=yerr, bkg=bkg, bkg_scale=bkg_scale)
             else:
                 if yerr is None:
-                    data = Data1DInt("wrapped_data", xlo=x - xerr, xhi=x + xerr, y=y)
+                    if bkg is None:
+                        data = Data1DInt("wrapped_data", xlo=x - xerr, xhi=x + xerr, y=y)
+                    else:
+                        data = Data1DIntBkg("wrapped_data", xlo=x - xerr, xhi=x + xerr, y=y, bkg=bkg, bkg_scale=bkg_scale)
                 else:
-                    data = Data1DInt("wrapped_data", xlo=x - xerr, xhi=x + xerr, y=y, staterror=yerr)
+                    if bkg is None:
+                        data = Data1DInt("wrapped_data", xlo=x - xerr, xhi=x + xerr, y=y, staterror=yerr)
+                    else:
+                        data = Data1DIntBkg("wrapped_data", xlo=x - xerr, xhi=x + xerr, y=y, staterror=yerr, bkg=bkg, bkg_scale=bkg_scale)
         else:
             if xerr is None and yerr is None:
                 if zerr is None:
-                    data = Data2D("wrapped_data", x0=x, x1=y, y=z)
+                    if bkg is None:
+                        data = Data2D("wrapped_data", x0=x, x1=y, y=z)
+                    else:
+                        data = Data2DBkg("wrapped_data", x0=x, x1=y, y=z, bkg=bkg, bkg_scale=bkg_scale)
                 else:
-                    data = Data2D("wrapped_data", x0=x, x1=y, y=z, staterror=zerr)
+                    if bkg is None:
+                        data = Data2D("wrapped_data", x0=x, x1=y, y=z, staterror=zerr)
+                    else:
+                        data = Data2DBkg("wrapped_data", x0=x, x1=y, y=z, staterror=zerr, bkg=bkg, bkg_scale=bkg_scale)
             elif xerr is not None and yerr is not None:
                 if zerr is None:
-                    data = Data2DInt("wrapped_data", x0lo=x - xerr, x0hi=x + xerr, x1lo=y - yerr, x1hi=y + yerr, y=z)
+                    if bkg is None:
+                        data = Data2DInt("wrapped_data", x0lo=x - xerr, x0hi=x + xerr, x1lo=y - yerr, x1hi=y + yerr, y=z)
+                    else:
+                        data = Data2DIntBkg("wrapped_data", x0lo=x - xerr, x0hi=x + xerr, x1lo=y - yerr, x1hi=y + yerr, y=z, bkg=bkg, bkg_scale=bkg_scale)
                 else:
-                    data = Data2DInt("wrapped_data", x0lo=x - xerr, x0hi=x + xerr, x1lo=y - yerr, x1hi=y + yerr, y=z, staterror=zerr)
+                    if bkg is None:
+                        data = Data2DInt("wrapped_data", x0lo=x - xerr, x0hi=x + xerr, x1lo=y - yerr, x1hi=y + yerr, y=z, staterror=zerr)
+                    else:
+                        data = Data2DIntBkg("wrapped_data", x0lo=x - xerr, x0hi=x + xerr, x1lo=y - yerr, x1hi=y + yerr, y=z, staterror=zerr, bkg=bkg, bkg_scale=bkg_scale)
             else:
                 raise ValueError("Set xerr and yerr, or set neither!")
 
@@ -340,6 +367,7 @@ class Dataset(object):
 
 
 class ConvertedModel(object):
+
     """
     This  wraps the model convertion to sherpa models and from astropy models and back!
 
@@ -422,3 +450,161 @@ class ConvertedModel(object):
             return return_models
         else:
             return return_models[0]
+
+
+class Data1DIntBkg(Data1DInt):
+
+    _response_ids = [0]
+    _background_ids = [0]
+
+    @property
+    def response_ids(self):
+        return self._response_ids
+
+    @property
+    def background_ids(self):
+        return self._background_ids
+
+    @property
+    def backscal(self):
+        return self._bkg_scale
+
+    def get_background(self, index):
+        return self._backgrounds[index]
+
+    def __init__(self, name, xlo, xhi, y, bkg, staterror=None, bkg_scale=1):
+        self._bkg = np.asanyarray(bkg)
+        self._bkg_scale = bkg_scale
+        self.exposure = 1
+
+        self.subtracted = False
+
+        self._backgrounds = [BkgDataset(bkg, bkg_scale)]
+        BaseData.__init__(self)
+
+        self.xlo = xlo
+        self.xhi = xhi
+        self.y = y
+        self.staterror = staterror
+
+
+class Data1DBkg(Data1D):
+
+    _response_ids = [0]
+    _background_ids = [0]
+
+    @property
+    def response_ids(self):
+        return self._response_ids
+
+    @property
+    def background_ids(self):
+        return self._background_ids
+
+    @property
+    def backscal(self):
+        return self._bkg_scale
+
+    def get_background(self, index):
+        return self._backgrounds[index]
+
+    def __init__(self, name, x, y, bkg, staterror=None, bkg_scale=1):
+        self._bkg = np.asanyarray(bkg)
+        self._bkg_scale = bkg_scale
+        self.exposure = 1
+        self.subtracted = False
+
+        self._backgrounds = [BkgDataset(bkg, bkg_scale)]
+        BaseData.__init__(self)
+
+        self.x = x
+        self.y = y
+        self.staterror = staterror
+
+
+class Data2DIntBkg(Data2DInt):
+
+    _response_ids = [0]
+    _background_ids = [0]
+
+    @property
+    def response_ids(self):
+        return self._response_ids
+
+    @property
+    def background_ids(self):
+        return self._background_ids
+
+    @property
+    def backscal(self):
+        return self._bkg_scale
+
+    def get_background(self, index):
+        return self._backgrounds[index]
+
+    def __init__(self, name, xlo, xhi, ylo, yhi, z, bkg, staterror=None, bkg_scale=1):
+        self._bkg = np.asanyarray(bkg)
+        self._bkg_scale = bkg_scale
+        self.exposure = 1
+
+        self.subtracted = False
+
+        self._backgrounds = [BkgDataset(bkg, bkg_scale)]
+        BaseData.__init__(self)
+
+        self.xlo = xlo
+        self.xhi = xhi
+        self.ylo = ylo
+        self.yhi = yhi
+        self.z = z
+        self.staterror = staterror
+
+
+class Data2DBkg(Data2D):
+
+    _response_ids = [0]
+    _background_ids = [0]
+
+    @property
+    def response_ids(self):
+        return self._response_ids
+
+    @property
+    def background_ids(self):
+        return self._background_ids
+
+    @property
+    def backscal(self):
+        return self._bkg_scale
+
+    def get_background(self, index):
+        return self._backgrounds[index]
+
+    def __init__(self, name, x, y, z, bkg, staterror=None, bkg_scale=1):
+        self._bkg = np.asanyarray(bkg)
+        self._bkg_scale = bkg_scale
+        self.exposure = 1
+        self.subtracted = False
+
+        self._backgrounds = [BkgDataset(bkg, bkg_scale)]
+        BaseData.__init__(self)
+
+        self.x = x
+        self.y = y
+        self.z = z
+        self.staterror = staterror
+
+
+class BkgDataset(object):
+
+    def __init__(self, bkg, bkg_scale):
+        self._bkg = bkg
+        self._bkg_scale = bkg_scale
+        self.exposure = 1
+
+    def get_dep(self, flag):
+        return self._bkg
+
+    @property
+    def backscal(self):
+        return self._bkg_scale
