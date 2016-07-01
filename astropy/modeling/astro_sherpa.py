@@ -290,15 +290,15 @@ class Dataset(SherpaWrapper):
                 bkg = len(x) * [None]
 
             for nn, (xx, yy, zz, xxe, yye, zze, bkg) in enumerate(zip(x, y, z, xerr, yerr, zerr, bkg)):
-                data.append(self._make_dataset(n_dim, x=xx, y=yy, z=zz, xerr=xxe, yerr=yye, zerr=zze, n=nn))
+                data.append(self._make_dataset(n_dim, x=xx, y=yy, z=zz, xerr=xxe, yerr=yye, zerr=zze, bkg=bkg, n=nn))
             self.data = DataSimulFit("wrapped_data", data)
             self.ndata = nn + 1
         else:
-            self.data = self._make_dataset(n_dim, x=x, y=y, z=z, xerr=xerr, yerr=yerr, zerr=zerr)
+            self.data = self._make_dataset(n_dim, x=x, y=y, z=z, xerr=xerr, yerr=yerr, zerr=zerr, bkg=bkg)
             self.ndata = 1
 
     @staticmethod
-    def _make_dataset(n_dim, x, y, z=None, xerr=None, yerr=None, zerr=None, n=0):
+    def _make_dataset(n_dim, x, y, z=None, xerr=None, yerr=None, zerr=None, bkg=None, n=0):
         """
         Parameters
             ----------
@@ -309,7 +309,7 @@ class Dataset(SherpaWrapper):
             y : array
                 input coordinates
             z : array (optional)
-                input coordinates
+                input coordinatesbkg
             xerr : array (optional)
                 an array of errors in x
             yerr : array (optional)
@@ -468,3 +468,55 @@ class ConvertedModel(SherpaWrapper):
             return return_models
         else:
             return return_models[0]
+
+
+class Data1DIntBkg(Data1DInt):
+
+    _response_ids=[]
+    _background_ids=[[0]]
+    
+    @property
+    def response_ids(self):
+        return self._response_ids
+
+    @property
+    def background_ids(self):
+        return self._background_ids
+
+
+    @property
+    def backscal(self):
+        return self._bkg_scale
+
+    def get_background(self,index):
+        return self._backgrounds[index]
+
+    def __init__(self,xlo, xhi, y, bkg, staterror=None, bkg_scale=1):
+        self._bkg = np.asanyarray(bkg)
+        self._bkg_scale=bkg_scale
+        self.exposure=1
+        
+        self.subtracted=False
+
+        self._backgrounds=[BkgDataset(bkg,bkg_scale)]
+        BaseData.__init__(self)
+
+
+        self.xlo=xlo
+        self.xhi=xhi
+        self.y=y
+        self.staterror=staterror
+
+
+class BkgDataset(object):
+    def __init__(self,bkg,bkg_scale):
+        self._bkg = bkg
+        self._bkg_scale=bkg_scale
+        self.exposure=1
+
+    def get_dep(self,flag):
+        return self._bkg
+
+    @property
+    def backscal(self):
+        return self._bkg_scale
