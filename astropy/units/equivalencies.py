@@ -176,6 +176,12 @@ def spectral_density(wav, factor=None):
     def iconverter_photnu_fla(x):
         return x * wav.to(si.AA, spectral()).value ** 3 / (hc * c_Aps)
 
+    # for luminosity density
+    converter_lnu_nulnu = converter_fnu_nufnu
+    converter_lla_lalla = converter_fla_lafla
+    iconverter_lnu_nulnu = iconverter_fnu_nufnu
+    iconverter_lla_lalla = iconverter_fla_lafla
+
     return [
         (fla, fnu, converter, iconverter),
         (fnu, nufnu, converter_fnu_nufnu, iconverter_fnu_nufnu),
@@ -186,8 +192,8 @@ def spectral_density(wav, factor=None):
         (photnu, fnu, converter_photnu_fnu, iconverter_photnu_fnu),
         (photnu, fla, converter_photnu_fla, iconverter_photnu_fla),
         (lla, lnu, converter, iconverter), # luminosity
-        (lnu, nulnu, converter_fnu_nufnu, iconverter_fnu_nufnu),
-        (lla, lalla, converter_fla_lafla, iconverter_fla_lafla)
+        (lnu, nulnu, converter_lnu_nulnu, iconverter_lnu_nulnu),
+        (lla, lalla, converter_lla_lalla, iconverter_lla_lalla)
     ]
 
 
