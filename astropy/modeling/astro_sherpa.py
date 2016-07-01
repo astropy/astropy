@@ -6,6 +6,7 @@ from sherpa.models import UserModel, Parameter, SimulFitModel
 from .fitting import Fitter
 from ..utils.exceptions import AstropyUserWarning
 from sherpa.stats import Chi2, Chi2ConstVar, Chi2DataVar, Chi2Gehrels, Chi2ModVar, Chi2XspecVar, LeastSq
+from sherpa.stats import CStat, WStat, Cash
 from sherpa.optmethods import GridSearch, LevMar, MonCar, NelderMead
 from sherpa.estmethods import Confidence, Covariance, Projection
 # from astropy.modeling
@@ -36,9 +37,12 @@ class Stat(SherpaWrapper):
             the name of a sherpa statistics.
     """
 
-    _sherpa_values = {'chi2': Chi2, 'chi2constvar': Chi2ConstVar,
-                      'chi2datavar': Chi2DataVar, 'chi2gehrels': Chi2Gehrels,
-                      'chi2modvar': Chi2ModVar, 'chi2xspecvar': Chi2XspecVar,
+    _sherpa_values = {'cash': Cash, 'wstat': WStat, 'cstat': CStat,
+                      'chi2': Chi2, 'chi2constvar': Chi2ConstVar,
+                      'chi2datavar': Chi2DataVar,
+                      'chi2gehrels': Chi2Gehrels,
+                      'chi2modvar': Chi2ModVar,
+                      'chi2xspecvar': Chi2XspecVar,
                       'leastsq': LeastSq}
     value = None
 
@@ -245,8 +249,13 @@ class Dataset(SherpaWrapper):
 
             if bkg is None:
                 bkg = len(x) * [None]
+            try:
+                iter(bkg_scale)
+            except TypeError:
+                bkg_scale = len(x) * [bkg_scale]
 
-            for nn, (xx, yy, zz, xxe, yye, zze, bkg) in enumerate(zip(x, y, z, xerr, yerr, zerr, bkg, bkg_scale)):
+
+            for nn, (xx, yy, zz, xxe, yye, zze, bkg, bkg_scale) in enumerate(zip(x, y, z, xerr, yerr, zerr, bkg, bkg_scale)):
                 data.append(self._make_dataset(n_dim, x=xx, y=yy, z=zz, xerr=xxe, yerr=yye, zerr=zze, bkg=bkg, bkg_scale=bkg_scale, n=nn))
             self.data = DataSimulFit("wrapped_data", data)
             self.ndata = nn + 1
