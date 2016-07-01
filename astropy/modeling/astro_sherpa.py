@@ -13,38 +13,102 @@ from sherpa.estmethods import Confidence, Covariance, Projection
 __all__ = ('SherpaFitter',)
 
 
-class SherpaFitter(Fitter):
+class SherpaWrapper(object):
+    def __init__(self, value=None):
+        if value is not None:
+            self.set(value)
+
+    def set(self, value):
+        try:
+            self.value = self._sherpa_values[value.lower()]
+        except KeyError:
+            UserWarning("Value not found")  # todo handle
+
+
+class Stat(SherpaWrapper):
+    """
+    A wrapper for the fit statistics of sherpa
+
+    Parameter:
+        value: String
+            the name of a sherpa statistics.
+    """
+
+    _sherpa_values = {'chi2': Chi2, 'chi2constvar': Chi2ConstVar,
+                      'chi2datavar': Chi2DataVar, 'chi2gehrels': Chi2Gehrels,
+                      'chi2modvar': Chi2ModVar, 'chi2xspecvar': Chi2XspecVar,
+                      'leastsq': LeastSq}
+    value = None
+
+
+class OptMethod(SherpaWrapper):
 
     """
+    A wrapper for the optimization methods of sherpa
+
+    Parameter:
+        value: String
+            the name of a sherpa optimization method.
+    """
+    _sherpa_values = {'simplex': GridSearch, 'levmar': LevMar,
+                      'moncar': MonCar, 'neldermead': NelderMead}
+
+    value = None
+
+
+class EstMethod(SherpaWrapper):
+    """
+    A wrapper for the error estimation methods of sherpa
+
+    Parameter:
+        value: String
+            the name of a sherpa statistics.
+    """
+
+    _sherpa_values = {'confidence': Confidence, 'covariance': Covariance,
+                      'projection': Projection}
+    value = None
+
+
+class SherpaFitter(Fitter):
+    __doc__ = """
     Sherpa Fitter for astropy models. Yay :)
 
     Parameters
         ----------
         optimizer : string
             the name of a sherpa optimizer.
+            posible options include:
+                {opt}
         statistic : string
             the name of a sherpa statistic.
+            posible options include:
+                {stat}
         estmethod : string
             the name of a sherpa estmethod.
-    """
+            posible options include:
+                {est}
+    """.format(opt=", ".join(OptMethod._sherpa_values.keys()),
+               stat=", ".join(Stat._sherpa_values.keys()),
+               est=", ".join(EstMethod._sherpa_values.keys()))  # is this evil?
 
     def __init__(self, optimizer="levmar", statistic="leastsq", estmethod="covariance"):
         try:
-            optimizer = optimizer.optmethod
+            optimizer = optimizer.value
         except AttributeError:
-            optimizer = OptMethod(optimizer).optmethod
+            optimizer = OptMethod(optimizer).value
 
         try:
-            statistic = statistic.stat
+            statistic = statistic.value
         except AttributeError:
-            statistic = Stat(statistic).stat
+            statistic = Stat(statistic).value
 
         super(SherpaFitter, self).__init__(optimizer=optimizer, statistic=statistic)
 
         try:
-            self._est_method = estmethod.estmethod
+            self._est_method = estmethod.value
         except AttributeError:
-            self._est_method = EstMethod(estmethod).estmethod
+            self._est_method = EstMethod(estmethod).value
 
         self.fit_info = {}
         self._fitter = None  # a handle for sherpa fit function
@@ -134,117 +198,7 @@ class SherpaFitter(Fitter):
         return self._fitter.est_errors(methoddict=methoddict, parlist=parlist)
 
 
-class SherpaWrapper(object):
-    pass
-
-sherpa_stats = {'chi2': Chi2, 'chi2constvar': Chi2ConstVar, 'chi2datavar': Chi2DataVar, 'chi2gehrels': Chi2Gehrels, 'chi2modvar': Chi2ModVar, 'chi2xspecvar': Chi2XspecVar, 'leastsq': LeastSq}
-
-
-class Stat(SherpaWrapper):
-    """
-    A wrapper for the fit statistics of sherpa
-
-    Parameter:
-        statname: String
-            the name of a sherpa statistics.
-    """
-
-    stat = None
-
-    def __init__(self, statname=None):
-        if statname is not None:
-            self.set_stat(statname)
-
-    def set_stat(self, statname):
-        """
-        Set the sherpa fit statistic
-
-        statname: String
-            the name of a sherpa fit statistic.
-        """
-        if statname.lower() in sherpa_stats:
-            self.stat = sherpa_stats[statname.lower()]
-
-    def list_stats(self,):
-        """
-        Returns a list of the sherpa fit statistics supported.
-        """
-        return sherpa_stats.keys()
-
-
-sherpa_optmethods = {'simplex': GridSearch, 'levmar': LevMar, 'moncar': MonCar, 'neldermead': NelderMead}
-
-
-class OptMethod(SherpaWrapper):
-
-    """
-    A wrapper for the optimization methods of sherpa
-
-    Parameter:
-        optmethoname: String
-            the name of a sherpa optimization method.
-    """
-
-    optmethod = None
-
-    def __init__(self, optmethodname=None):
-        if optmethodname is not None:
-            self.set_optmethod(optmethodname)
-
-    def set_optmethod(self, optmethodname):
-        """
-        Set the sherpa optimization method
-
-        estmethoname: String
-            the name of a sherpa optimization method.
-        """
-
-        if optmethodname.lower() in sherpa_optmethods:
-            self.optmethod = sherpa_optmethods[optmethodname.lower()]
-
-    def list_optmethods(self,):
-        """
-        Returns a list of the sherpa optimization methods supported.
-        """
-        return sherpa_optmethods.keys()
-
-sherpa_estmethods = {'confidence': Confidence, 'covariance': Covariance, 'projection': Projection}
-
-
-class EstMethod(SherpaWrapper):
-    """
-    A wrapper for the error estimation methods of sherpa
-
-    Parameter:
-        estmethoname: String
-            the name of a sherpa error estimation method.
-    """
-
-    estmethod = None
-
-    def __init__(self, estmethodname=None):
-        if estmethodname is not None:
-            self.set_estmethod(estmethodname)
-
-    def set_estmethod(self, estmethodname):
-        """
-        Set the sherpa error estimation method
-        Parameter:
-            estmethoname: String
-                the name of a sherpa error estimation method.
-        """
-
-        if estmethodname.lower() in sherpa_estmethods:
-            self.estmethod = sherpa_estmethods[estmethodname.lower()]
-
-    def list_estmethods(self,):
-        """
-        Returns a list of the sherpa error estimation methods supported.
-        """
-        return sherpa_estmethods.keys()
-
-
-class Dataset(SherpaWrapper):
+class Dataset(object):
     """
     Parameters
         ----------
@@ -385,7 +339,7 @@ class Dataset(SherpaWrapper):
         self.ndata = numdata + 1
 
 
-class ConvertedModel(SherpaWrapper):
+class ConvertedModel(object):
     """
     This  wraps the model convertion to sherpa models and from astropy models and back!
 
