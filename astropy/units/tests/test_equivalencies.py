@@ -407,6 +407,49 @@ def test_spectraldensity4():
     assert_allclose(u.ABmag.to(
         photlam, flux_abmag, u.spectral_density(wave)), flux_photlam, rtol=1e-6)
 
+def test_spectraldensity5():
+    """ Test photon luminosity density conversions. """
+    L_la = u.erg / (u.s * u.AA)
+    L_nu = u.erg / (u.s * u.Hz)
+    phot_L_la = u.photon / (u.s * u.AA)
+    phot_L_nu = u.photon / (u.s * u.Hz)
+
+    wave = u.Quantity([4956.8, 4959.55, 4962.3], u.AA)
+    flux_phot_L_la = [9.7654e-3, 1.003896e-2, 9.78473e-3]
+    flux_phot_L_nu = [8.00335589e-14, 8.23668949e-14, 8.03700310e-14]
+    flux_L_la = [3.9135e-14, 4.0209e-14, 3.9169e-14]
+    flux_L_nu = [3.20735792e-25, 3.29903646e-25, 3.21727226e-25]
+
+    # PHOTLAM <--> FLAM
+    assert_allclose(phot_L_la.to(
+        L_la, flux_phot_L_la, u.spectral_density(wave)), flux_L_la, rtol=1e-6)
+    assert_allclose(L_la.to(
+        phot_L_la, flux_L_la, u.spectral_density(wave)), flux_phot_L_la, rtol=1e-6)
+
+    # PHOTLAM <--> FNU
+    assert_allclose(phot_L_la.to(
+        L_nu, flux_phot_L_la, u.spectral_density(wave)), flux_L_nu, rtol=1e-6)
+    assert_allclose(L_nu.to(
+        phot_L_la, flux_L_nu, u.spectral_density(wave)), flux_phot_L_la, rtol=1e-6)
+
+    # PHOTLAM <--> PHOTNU
+    assert_allclose(phot_L_la.to(
+        phot_L_nu, flux_phot_L_la, u.spectral_density(wave)), flux_phot_L_nu, rtol=1e-6)
+    assert_allclose(phot_L_nu.to(
+        phot_L_la, flux_phot_L_nu, u.spectral_density(wave)), flux_phot_L_la, rtol=1e-6)
+
+    # PHOTNU <--> FNU
+    assert_allclose(phot_L_nu.to(
+        L_nu, flux_phot_L_nu, u.spectral_density(wave)), flux_L_nu, rtol=1e-6)
+    assert_allclose(L_nu.to(
+        phot_L_nu, flux_L_nu, u.spectral_density(wave)), flux_phot_L_nu, rtol=1e-6)
+
+    # PHOTNU <--> FLAM
+    assert_allclose(phot_L_nu.to(
+        L_la, flux_phot_L_nu, u.spectral_density(wave)), flux_L_la, rtol=1e-6)
+    assert_allclose(L_la.to(
+        phot_L_nu, flux_L_la, u.spectral_density(wave)), flux_phot_L_nu, rtol=1e-6)
+
 
 def test_equivalent_units():
     from .. import imperial

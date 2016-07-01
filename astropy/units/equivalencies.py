@@ -179,11 +179,23 @@ def spectral_density(wav, factor=None):
 
     # for luminosity density
     converter_L_nu_to_nu_L_nu = converter_f_nu_to_nu_f_nu
-    converter_L_la_to_la_L_la = converter_f_la_to_la_f_la
     iconverter_L_nu_to_nu_L_nu = iconverter_f_nu_to_nu_f_nu
+    converter_L_la_to_la_L_la = converter_f_la_to_la_f_la
     iconverter_L_la_to_la_L_la = iconverter_f_la_to_la_f_la
 
+    converter_phot_L_la_to_L_la = converter_phot_f_la_to_f_la
+    iconverter_phot_L_la_to_L_la = iconverter_phot_f_la_to_f_la
+    converter_phot_L_la_to_L_nu = converter_phot_f_la_to_f_nu
+    iconverter_phot_L_la_to_L_nu = iconverter_phot_f_la_to_f_nu
+    converter_phot_L_la_phot_L_nu = converter_phot_f_la_phot_f_nu
+    iconverter_phot_L_la_phot_L_nu = iconverter_phot_f_la_phot_f_nu
+    converter_phot_L_nu_to_L_nu = converter_phot_f_nu_to_f_nu
+    iconverter_phot_L_nu_to_L_nu = iconverter_phot_f_nu_to_f_nu
+    converter_phot_L_nu_to_L_la = converter_phot_f_nu_to_f_la
+    iconverter_phot_L_nu_to_L_la = iconverter_phot_f_nu_to_f_la
+
     return [
+        # flux
         (f_la, f_nu, converter, iconverter),
         (f_nu, nu_f_nu, converter_f_nu_to_nu_f_nu, iconverter_f_nu_to_nu_f_nu),
         (f_la, la_f_la, converter_f_la_to_la_f_la, iconverter_f_la_to_la_f_la),
@@ -192,9 +204,15 @@ def spectral_density(wav, factor=None):
         (phot_f_la, phot_f_nu, converter_phot_f_la_phot_f_nu, iconverter_phot_f_la_phot_f_nu),
         (phot_f_nu, f_nu, converter_phot_f_nu_to_f_nu, iconverter_phot_f_nu_to_f_nu),
         (phot_f_nu, f_la, converter_phot_f_nu_to_f_la, iconverter_phot_f_nu_to_f_la),
-        (L_la, L_nu, converter, iconverter), # luminosity
+        # luminosity
+        (L_la, L_nu, converter, iconverter),
         (L_nu, nu_L_nu, converter_L_nu_to_nu_L_nu, iconverter_L_nu_to_nu_L_nu),
-        (L_la, la_L_la, converter_L_la_to_la_L_la, iconverter_L_la_to_la_L_la)
+        (L_la, la_L_la, converter_L_la_to_la_L_la, iconverter_L_la_to_la_L_la),
+        (phot_L_la, L_la, converter_phot_L_la_to_L_la, iconverter_phot_L_la_to_L_la),
+        (phot_L_la, L_nu, converter_phot_L_la_to_L_nu, iconverter_phot_L_la_to_L_nu),
+        (phot_L_la, phot_L_nu, converter_phot_L_la_phot_L_nu, iconverter_phot_L_la_phot_L_nu),
+        (phot_L_nu, L_nu, converter_phot_L_nu_to_L_nu, iconverter_phot_L_nu_to_L_nu),
+        (phot_L_nu, L_la, converter_phot_L_nu_to_L_la, iconverter_phot_L_nu_to_L_la),
     ]
 
 
