@@ -15,6 +15,7 @@ __all__ = ('SherpaFitter',)
 
 
 class SherpaWrapper(object):
+    value = None
 
     def __init__(self, value=None):
         if value is not None:
@@ -44,7 +45,6 @@ class Stat(SherpaWrapper):
                       'chi2modvar': Chi2ModVar,
                       'chi2xspecvar': Chi2XspecVar,
                       'leastsq': LeastSq}
-    value = None
 
 
 class OptMethod(SherpaWrapper):
@@ -59,8 +59,6 @@ class OptMethod(SherpaWrapper):
     _sherpa_values = {'simplex': GridSearch, 'levmar': LevMar,
                       'moncar': MonCar, 'neldermead': NelderMead}
 
-    value = None
-
 
 class EstMethod(SherpaWrapper):
 
@@ -74,7 +72,6 @@ class EstMethod(SherpaWrapper):
 
     _sherpa_values = {'confidence': Confidence, 'covariance': Covariance,
                       'projection': Projection}
-    value = None
 
 
 class SherpaFitter(Fitter):
