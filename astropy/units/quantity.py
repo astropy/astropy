@@ -401,7 +401,7 @@ class Quantity(np.ndarray):
                                 .format(function.__name__, type(self)))
 
             if self.__quantity_subclass__(result_unit)[0] is not type(self):
-                raise TypeError(
+                raise UnitTypeError(
                     "Cannot store output with unit '{0}' from {1} function "
                     "in {2} instance.  Use {3} instance instead."
                     .format(result_unit, function.__name__, type(self),
@@ -1326,9 +1326,9 @@ class Quantity(np.ndarray):
             else:
                 ok_class =  (out.__quantity_subclass__(out, unit)[0]
                              if isinstance(out, Quantity) else Quantity)
-                raise TypeError("out cannot be assigned to a {0} instance; "
-                                "use a {1} instance instead.".format(
-                                    out.__class__, ok_class))
+                raise UnitTypeError("out cannot be assigned to a {0} instance; "
+                                    "use a {1} instance instead.".format(
+                                        out.__class__, ok_class))
 
         value = function(self.view(np.ndarray), *args, **kwargs)
         if out is None:
