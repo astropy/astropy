@@ -602,7 +602,6 @@ class FunctionQuantity(Quantity):
                     ", so cannot set it to '{0}'.".format(unit))
 
         self._unit = unit
-        return self
 
     # ↓↓↓ methods overridden to change behaviour
     def __mul__(self, other):

@@ -548,7 +548,8 @@ class Quantity(np.ndarray):
             if result_unit is None:  # return a plain array
                 return obj.view(np.ndarray)
             elif obj is self:  # all OK now, so set unit.
-                return obj._set_unit(result_unit)
+                obj._set_unit(result_unit)
+                return obj
             else:
                 return obj
 
@@ -648,7 +649,6 @@ class Quantity(np.ndarray):
                     .format(type(self).__name__, UnitBase, type(unit)))
 
         self._unit = unit
-        return self
 
     def __reduce__(self):
         # patch to pickle Quantity objects (ndarray subclasses), see
@@ -854,7 +854,8 @@ class Quantity(np.ndarray):
         """In-place multiplication between `Quantity` objects and others."""
 
         if isinstance(other, (UnitBase, six.string_types)):
-            return self._set_unit(other * self.unit)
+            self._set_unit(other * self.unit)
+            return self
 
         return super(Quantity, self).__imul__(other)
 
@@ -880,7 +881,8 @@ class Quantity(np.ndarray):
         """Inplace division between `Quantity` objects and other objects."""
 
         if isinstance(other, (UnitBase, six.string_types)):
-            return self._set_unit(self.unit / other)
+            self._set_unit(self.unit / other)
+            return self
 
         return super(Quantity, self).__itruediv__(other)
 
@@ -1334,7 +1336,8 @@ class Quantity(np.ndarray):
         if out is None:
             return self._new_view(value, unit)
         else:
-            return out._set_unit(unit)
+            out._set_unit(unit)
+            return out
 
     def clip(self, a_min, a_max, out=None):
         return self._wrap_function(np.clip, self._to_own_unit(a_min),
@@ -1503,4 +1506,4 @@ class SpecificTypeQuantity(Quantity):
                 (", but no unit was given." if unit is None else
                  ", so cannot set it to '{0}'.".format(unit)))
 
-        return super(SpecificTypeQuantity, self)._set_unit(unit)
+        super(SpecificTypeQuantity, self)._set_unit(unit)
