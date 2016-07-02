@@ -116,12 +116,21 @@ def spectral_density(wav, factor=None):
     h_cgs = _si.h.cgs.value  # erg * s
     hc = c_Aps * h_cgs
 
-    fla = cgs.erg / si.angstrom / si.cm ** 2 / si.s
-    fnu = cgs.erg / si.Hz / si.cm ** 2 / si.s
-    nufnu = cgs.erg / si.cm ** 2 / si.s
-    lafla = nufnu
-    photlam = astrophys.photon / (si.cm ** 2 * si.s * si.AA)
-    photnu = astrophys.photon / (si.cm ** 2 * si.s * si.Hz)
+    # flux density
+    f_la = cgs.erg / si.angstrom / si.cm ** 2 / si.s
+    f_nu = cgs.erg / si.Hz / si.cm ** 2 / si.s
+    nu_f_nu = cgs.erg / si.cm ** 2 / si.s
+    la_f_la = nu_f_nu
+    phot_f_la = astrophys.photon / (si.cm ** 2 * si.s * si.AA)
+    phot_f_nu = astrophys.photon / (si.cm ** 2 * si.s * si.Hz)
+
+    # luminosity density
+    L_nu = cgs.erg / si.s / si.Hz
+    L_la = cgs.erg / si.s / si.angstrom
+    nu_L_nu = cgs.erg / si.s
+    la_L_la = nu_L_nu
+    phot_L_la = astrophys.photon / (si.s * si.AA)
+    phot_L_nu = astrophys.photon / (si.s * si.Hz)
 
     def converter(x):
         return x * (wav.to(si.AA, spectral()).value ** 2 / c_Aps)
@@ -129,55 +138,81 @@ def spectral_density(wav, factor=None):
     def iconverter(x):
         return x / (wav.to(si.AA, spectral()).value ** 2 / c_Aps)
 
-    def converter_fnu_nufnu(x):
+    def converter_f_nu_to_nu_f_nu(x):
         return x * wav.to(si.Hz, spectral()).value
 
-    def iconverter_fnu_nufnu(x):
+    def iconverter_f_nu_to_nu_f_nu(x):
         return x / wav.to(si.Hz, spectral()).value
 
-    def converter_fla_lafla(x):
+    def converter_f_la_to_la_f_la(x):
         return x * wav.to(si.AA, spectral()).value
 
-    def iconverter_fla_lafla(x):
+    def iconverter_f_la_to_la_f_la(x):
         return x / wav.to(si.AA, spectral()).value
 
-    def converter_photlam_fla(x):
+    def converter_phot_f_la_to_f_la(x):
         return hc * x / wav.to(si.AA, spectral()).value
 
-    def iconverter_photlam_fla(x):
+    def iconverter_phot_f_la_to_f_la(x):
         return x * wav.to(si.AA, spectral()).value / hc
 
-    def converter_photlam_fnu(x):
+    def converter_phot_f_la_to_f_nu(x):
         return h_cgs * x * wav.to(si.AA, spectral()).value
 
-    def iconverter_photlam_fnu(x):
+    def iconverter_phot_f_la_to_f_nu(x):
         return x / (wav.to(si.AA, spectral()).value * h_cgs)
 
-    def converter_photlam_photnu(x):
+    def converter_phot_f_la_phot_f_nu(x):
         return x * wav.to(si.AA, spectral()).value ** 2 / c_Aps
 
-    def iconverter_photlam_photnu(x):
+    def iconverter_phot_f_la_phot_f_nu(x):
         return c_Aps * x / wav.to(si.AA, spectral()).value ** 2
 
-    converter_photnu_fnu = converter_photlam_fla
+    converter_phot_f_nu_to_f_nu = converter_phot_f_la_to_f_la
+    iconverter_phot_f_nu_to_f_nu = iconverter_phot_f_la_to_f_la
 
-    iconverter_photnu_fnu = iconverter_photlam_fla
-
-    def converter_photnu_fla(x):
+    def converter_phot_f_nu_to_f_la(x):
         return x * hc * c_Aps / wav.to(si.AA, spectral()).value ** 3
 
-    def iconverter_photnu_fla(x):
+    def iconverter_phot_f_nu_to_f_la(x):
         return x * wav.to(si.AA, spectral()).value ** 3 / (hc * c_Aps)
 
+    # for luminosity density
+    converter_L_nu_to_nu_L_nu = converter_f_nu_to_nu_f_nu
+    iconverter_L_nu_to_nu_L_nu = iconverter_f_nu_to_nu_f_nu
+    converter_L_la_to_la_L_la = converter_f_la_to_la_f_la
+    iconverter_L_la_to_la_L_la = iconverter_f_la_to_la_f_la
+
+    converter_phot_L_la_to_L_la = converter_phot_f_la_to_f_la
+    iconverter_phot_L_la_to_L_la = iconverter_phot_f_la_to_f_la
+    converter_phot_L_la_to_L_nu = converter_phot_f_la_to_f_nu
+    iconverter_phot_L_la_to_L_nu = iconverter_phot_f_la_to_f_nu
+    converter_phot_L_la_phot_L_nu = converter_phot_f_la_phot_f_nu
+    iconverter_phot_L_la_phot_L_nu = iconverter_phot_f_la_phot_f_nu
+    converter_phot_L_nu_to_L_nu = converter_phot_f_nu_to_f_nu
+    iconverter_phot_L_nu_to_L_nu = iconverter_phot_f_nu_to_f_nu
+    converter_phot_L_nu_to_L_la = converter_phot_f_nu_to_f_la
+    iconverter_phot_L_nu_to_L_la = iconverter_phot_f_nu_to_f_la
+
     return [
-        (fla, fnu, converter, iconverter),
-        (fnu, nufnu, converter_fnu_nufnu, iconverter_fnu_nufnu),
-        (fla, lafla, converter_fla_lafla, iconverter_fla_lafla),
-        (photlam, fla, converter_photlam_fla, iconverter_photlam_fla),
-        (photlam, fnu, converter_photlam_fnu, iconverter_photlam_fnu),
-        (photlam, photnu, converter_photlam_photnu, iconverter_photlam_photnu),
-        (photnu, fnu, converter_photnu_fnu, iconverter_photnu_fnu),
-        (photnu, fla, converter_photnu_fla, iconverter_photnu_fla)
+        # flux
+        (f_la, f_nu, converter, iconverter),
+        (f_nu, nu_f_nu, converter_f_nu_to_nu_f_nu, iconverter_f_nu_to_nu_f_nu),
+        (f_la, la_f_la, converter_f_la_to_la_f_la, iconverter_f_la_to_la_f_la),
+        (phot_f_la, f_la, converter_phot_f_la_to_f_la, iconverter_phot_f_la_to_f_la),
+        (phot_f_la, f_nu, converter_phot_f_la_to_f_nu, iconverter_phot_f_la_to_f_nu),
+        (phot_f_la, phot_f_nu, converter_phot_f_la_phot_f_nu, iconverter_phot_f_la_phot_f_nu),
+        (phot_f_nu, f_nu, converter_phot_f_nu_to_f_nu, iconverter_phot_f_nu_to_f_nu),
+        (phot_f_nu, f_la, converter_phot_f_nu_to_f_la, iconverter_phot_f_nu_to_f_la),
+        # luminosity
+        (L_la, L_nu, converter, iconverter),
+        (L_nu, nu_L_nu, converter_L_nu_to_nu_L_nu, iconverter_L_nu_to_nu_L_nu),
+        (L_la, la_L_la, converter_L_la_to_la_L_la, iconverter_L_la_to_la_L_la),
+        (phot_L_la, L_la, converter_phot_L_la_to_L_la, iconverter_phot_L_la_to_L_la),
+        (phot_L_la, L_nu, converter_phot_L_la_to_L_nu, iconverter_phot_L_la_to_L_nu),
+        (phot_L_la, phot_L_nu, converter_phot_L_la_phot_L_nu, iconverter_phot_L_la_phot_L_nu),
+        (phot_L_nu, L_nu, converter_phot_L_nu_to_L_nu, iconverter_phot_L_nu_to_L_nu),
+        (phot_L_nu, L_la, converter_phot_L_nu_to_L_la, iconverter_phot_L_nu_to_L_la),
     ]
 
 

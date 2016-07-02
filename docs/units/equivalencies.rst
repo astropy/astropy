@@ -142,23 +142,26 @@ These three conventions are implemented in
     >>> (116e9 * u.Hz).to(u.km / u.s, equivalencies=freq_to_vel)  # doctest: +FLOAT_CMP
     <Quantity -1895.4321928669085 km / s>
 
-Spectral Flux Density Units
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Spectral Flux / Luminosity Density Units
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-There is also support for spectral flux density units. Their use is
-more complex, since it is necessary to also supply the location in the
-spectrum for which the conversions will be done, and the units of
-those spectral locations.  The function that handles these unit
-conversions is :func:`~astropy.units.equivalencies.spectral_density`. This
-function takes as its arguments the |quantity| for the spectral
-location. For example::
+There is also support for spectral flux and luminosity density units. Their use
+is more complex, since it is necessary to also supply the location in the
+spectrum for which the conversions will be done, and the units of those spectral
+locations.  The function that handles these unit conversions is
+:func:`~astropy.units.equivalencies.spectral_density`. This function takes as
+its arguments the |quantity| for the spectral location. For example::
 
-    >>> (1.5 * u.Jy).to(u.erg / u.cm**2 / u.s / u.Hz,
-    ...                 equivalencies=u.spectral_density(3500 * u.AA))
-    <Quantity 1.5e-23 erg / (cm2 Hz s)>
-    >>> (1.5 * u.Jy).to(u.erg / u.cm**2 / u.s / u.micron,
+    >>> (1.5 * u.Jy).to(u.photon / u.cm**2 / u.s / u.Hz,
+    ...                 equivalencies=u.spectral_density(3500 * u.AA)) # doctest: +FLOAT_CMP
+    <Quantity 2.6429114293019694e-12 ph / (cm2 Hz s)>
+    >>> (1.5 * u.Jy).to(u.photon / u.cm**2 / u.s / u.micron,
     ...                 equivalencies=u.spectral_density(3500 * u.AA))  # doctest: +FLOAT_CMP
-    <Quantity 3.670928057142856e-08 erg / (cm2 micron s)>
+    <Quantity 6467.9584789120845 ph / (cm2 micron s)>
+    >>> a = 1. * u.photon / u.s / u.angstrom
+    >>> a.to(u.erg / u.s / u.Hz,
+    ...      equivalencies=u.spectral_density(5500 * u.AA)) # doctest: +FLOAT_CMP
+    <Quantity 3.6443382634999996e-23 erg / (Hz s)>
 
 Brightness Temperature / Flux Density Equivalency
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

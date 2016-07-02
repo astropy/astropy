@@ -43,6 +43,9 @@ New Features
 
   - Added ``pixel_scale`` and ``plate_scale`` equivalencies. [#4987]
 
+  - The ``spectral_density`` equivalency now supports transformations of
+    luminosity density. [#5151]
+
 - ``astropy.utils``
 
 - ``astropy.vo``
