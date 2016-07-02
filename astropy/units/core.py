@@ -464,12 +464,15 @@ class UnitConversionError(UnitsError, ValueError):
 class UnitTypeError(UnitsError, TypeError):
     """
     Used specifically for errors in setting to units not allowed by a class.
+
+    E.g., would be raised if the unit of an `~astropy.coordinates.Angle`
+    instances were set to a non-angular unit.
     """
 
 
 class UnitsWarning(AstropyWarning):
     """
-    The base class for unit-specific exceptions.
+    The base class for unit-specific warnings.
     """
 
 
