@@ -13,8 +13,9 @@ import numpy as np
 
 from ..earth import EarthLocation, ELLIPSOIDS
 from ..angles import Longitude, Latitude
-from ...tests.helper import pytest, quantity_allclose
+from ...tests.helper import pytest, quantity_allclose, remote_data
 from ... import units as u
+from ..name_resolve import NameResolveError
 
 def allclose_m14(a, b, rtol=1.e-14, atol=None):
     if atol is None:
@@ -266,3 +267,13 @@ def test_repr_latex():
     somelocation._repr_latex_()
     somelocation2 = EarthLocation(lon=[1., 2.]*u.deg, lat=[-1., 9.]*u.deg)
     somelocation2._repr_latex_()
+
+
+@remote_data
+def test_from_address():
+    with pytest.raises(NameResolveError):
+        EarthLocation.from_address("lkjasdflkja")
+
+    loc = EarthLocation.from_address("New York, NY")
+    quantity_allclose(loc.latitude, 40.7128*u.degree)
+    quantity_allclose(loc.longitude, -74.0059*u.degree)
