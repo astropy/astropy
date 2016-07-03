@@ -26,6 +26,8 @@ matrix:
 platform:
     -x64
 
+os: Previous Visual Studio 2015
+
 install:
     - "git clone git://github.com/astropy/ci-helpers.git"
     - "powershell ci-helpers/appveyor/install-miniconda.ps1"
