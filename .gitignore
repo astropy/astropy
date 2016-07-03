@@ -1,15 +1,53 @@
-build
-docs/_build
+# Compiled files
+*.py[cod]
+*.a
+*.o
+*.so
 __pycache__
-dist
-docs/api
-wcsaxes.egg-info
+
+# Ignore .c files by default to avoid including generated code. If you want to
+# add a non-generated .c extension, use `git add -f filename.c`.
+*.c
+
+# Other generated files
+*/version.py
+*/cython_version.py
 htmlcov
-*.pyc
-wcsaxes/version.py
+.coverage
+MANIFEST
+.ipynb_checkpoints
+
+# Sphinx
+docs/api
+docs/_build
+
+# Eclipse editor project files
 .project
 .pydevproject
 .settings
+
+# Pycharm editor project files
 .idea
-.coverage
-*/cython_version.py
+
+# Packages/installer info
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+distribute-*.tar.gz
+
+# Other
+.cache
+.tox
+.*.sw[op]
+*~
+
+# Mac OSX
+.DS_Store

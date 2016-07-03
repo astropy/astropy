@@ -42,8 +42,12 @@ except ImportError:
 from astropy_helpers.sphinx.conf import *
 
 # Get configuration information from setup.cfg
-from distutils import config
-conf = config.ConfigParser()
+try:
+    from ConfigParser import ConfigParser
+except ImportError:
+    from configparser import ConfigParser
+conf = ConfigParser()
+
 conf.read([os.path.join(os.path.dirname(__file__), '..', 'setup.cfg')])
 setup_cfg = dict(conf.items('metadata'))
 
@@ -91,22 +95,28 @@ release = package.__version__
 # variables set in the global configuration. The variables set in the
 # global configuration are listed below, commented out.
 
+html_theme_options = {
+    'logotext1': 'wcs',  # white,  semi-bold
+    'logotext2': 'axes',  # orange, light
+    'logotext3': ':docs'   # white,  light
+    }
+
 # Add any paths that contain custom themes here, relative to this directory.
 # To use a different custom theme, add the directory containing the theme.
-html_theme_path = []
+#html_theme_path = []
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes. To override the custom theme, set this to the
 # name of a builtin theme or the name of a custom theme in html_theme_path.
-html_theme = 'default'
+#html_theme = None
 
 # Custom sidebar templates, maps document names to template names.
-html_sidebars = {}
+#html_sidebars = {}
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-html_favicon = ''
+#html_favicon = ''
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -182,16 +192,6 @@ plot_template = """
 
 """
 
-# on_rtd is whether we are on readthedocs.org
-import os
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-
-if not on_rtd:  # only import and set the theme if we're building docs locally
-    import sphinx_rtd_theme
-    html_theme = 'sphinx_rtd_theme'
-    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-
-# otherwise, readthedocs.org uses their theme by default, so no need to specify it
 
 # Enable nitpicky mode - which ensures that all references in the docs
 # resolve.
