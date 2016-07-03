@@ -12,6 +12,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 # Standard library
 import numbers
 from fractions import Fraction
+import warnings
 
 import numpy as np
 
@@ -464,9 +465,19 @@ class Quantity(np.ndarray):
         # unit output will get (setting _unit could prematurely change input
         # if obj is self, which happens for in-place operations; see above)
         result._result_unit = result_unit
+
+        self._catch_warnings = warnings.catch_warnings()
+        self._catch_warnings.__enter__()
+        warnings.filterwarnings('ignore',
+                                message='invalid value encountered in',
+                                category=RuntimeWarning)
+
         return result
 
     def __array_wrap__(self, obj, context=None):
+        self._catch_warnings.__exit__()
+        del self._catch_warnings
+
         if context is None:
             # Methods like .squeeze() created a new `ndarray` and then call
             # __array_wrap__ to turn the array into self's subclass.
