@@ -475,8 +475,9 @@ class Quantity(np.ndarray):
         return result
 
     def __array_wrap__(self, obj, context=None):
-        self._catch_warnings.__exit__()
-        del self._catch_warnings
+        if hasattr(self, '_catch_warnings'):
+            self._catch_warnings.__exit__()
+            del self._catch_warnings
 
         if context is None:
             # Methods like .squeeze() created a new `ndarray` and then call
