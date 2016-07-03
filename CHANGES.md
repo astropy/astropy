@@ -1,7 +1,7 @@
-0.9 (unreleased)
+0.9 (2016-07-03)
 ----------------
 
-- No changes yet.
+- Fix compatibility with Python 3.5. [#207]
 
 0.8 (2016-05-24)
 ----------------
