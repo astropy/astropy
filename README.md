@@ -34,7 +34,7 @@ Developers and Contributors
 Build and coverage status
 =========================
 
-[![Build Status](https://travis-ci.org/astrofrog/wcsaxes.png?branch=master)](https://travis-ci.org/astrofrog/wcsaxes)
+[![Build Status](https://travis-ci.org/astrofrog/wcsaxes.svg?branch=master)](https://travis-ci.org/astrofrog/wcsaxes)
 [![Coverage Status](https://coveralls.io/repos/astrofrog/wcsaxes/badge.svg?branch=master)](https://coveralls.io/r/astrofrog/wcsaxes?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/wcsaxes/badge/?version=latest)](https://wcsaxes.readthedocs.io/en/latest/)
 [![asv](http://img.shields.io/badge/benchmarked%20by-asv-green.svg?style=flat)](http://astrofrog.github.io/wcsaxes-benchmarks/)
