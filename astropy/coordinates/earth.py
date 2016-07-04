@@ -46,6 +46,35 @@ def _check_ellipsoid(ellipsoid=None, default='WGS84'):
                          .format(ellipsoid, ELLIPSOIDS))
     return ellipsoid
 
+def _get_json_result(url, err_str):
+    try:
+        # Retrieve JSON response from Google maps API
+        resp = urllib.request.urlopen(url, timeout=data.conf.remote_timeout)
+        resp_data = json.loads(resp.read().decode('utf8'))
+
+    except urllib.error.URLError as e:
+        # This catches a timeout error, see:
+        #   http://stackoverflow.com/questions/2712524/handling-urllib2s-timeout-python
+        if isinstance(e.reason, socket.timeout):
+            raise NameResolveError(err_str.format(msg="connection timed out"))
+        else:
+            raise NameResolveError(err_str.format(msg=e.reason))
+
+    except socket.timeout:
+        # There are some cases where urllib2 does not catch socket.timeout
+        # especially while receiving response data on an already previously
+        # working request
+        raise NameResolveError(err_str.format(msg="connection timed out"))
+
+    results = resp_data.get('results', [])
+
+    if len(results) == 0:
+        raise NameResolveError(err_str.format(msg="no results returned"))
+
+    if resp_data.get('status', None) != 'OK':
+        raise NameResolveError(err_str.format(msg="unknown failure with Google maps API"))
+
+    return results
 
 class EarthLocation(u.Quantity):
     """
@@ -241,7 +270,7 @@ class EarthLocation(u.Quantity):
             return newel
 
     @classmethod
-    def from_address(cls, address):
+    def from_address(cls, address, get_height=False):
         """
         Return an object of this class for a given address by querying the Google
         maps geocoding API.
@@ -264,6 +293,9 @@ class EarthLocation(u.Quantity):
             The address to get the location for. As per the Google maps API, this
             can be a fully specified street address (e.g., 123 Main St., New York,
             NY) or a city name (e.g., Danbury, CT), or etc.
+        get_height : bool (optional)
+            Use the retrieved location to perform a second query to the Google maps
+            elevation API to retrieve the height of the input address.
 
         Returns
         -------
@@ -273,46 +305,36 @@ class EarthLocation(u.Quantity):
         See Also
         --------
         https://developers.google.com/maps/documentation/geocoding/intro
+        https://developers.google.com/maps/documentation/elevation/intro
 
         """
 
         pars = urllib.parse.urlencode({'address': address})
-        url = "https://maps.googleapis.com/maps/api/geocode/json?{0}".format(pars)
+        geo_url = "https://maps.googleapis.com/maps/api/geocode/json?{0}".format(pars)
 
-        # common error message
+        # get longitude and latitude location
         err_str = ("Unable to retrieve coordinates for address '{address}'; {{msg}}"
                    .format(address=address))
+        geo_result = _get_json_result(geo_url, err_str=err_str)
+        loc = geo_result[0]['geometry']['location']
 
-        try:
-            # Retrieve JSON response from Google maps API
-            resp = urllib.request.urlopen(url, timeout=data.conf.remote_timeout)
-            resp_data = json.loads(resp.read().decode('utf8'))
+        if get_height:
+            pars = {'locations': '{lat:.8f},{lng:.8f}'.format(lat=loc['lat'],
+                                                              lng=loc['lng'])}
+            pars = urllib.parse.urlencode(pars)
+            ele_url = "https://maps.googleapis.com/maps/api/elevation/json?{0}".format(pars)
 
-        except urllib.error.URLError as e:
-            # This catches a timeout error, see:
-            #   http://stackoverflow.com/questions/2712524/handling-urllib2s-timeout-python
-            if isinstance(e.reason, socket.timeout):
-                raise NameResolveError(err_str.format(msg="connection timed out"))
-            else:
-                raise NameResolveError(err_str.format(msg=e.reason))
+            err_str = ("Unable to retrieve elevation for address '{address}'; {{msg}}"
+                       .format(address=address))
+            ele_result = _get_json_result(ele_url, err_str=err_str)
+            height = ele_result[0]['elevation']*u.meter
 
-        except socket.timeout:
-            # There are some cases where urllib2 does not catch socket.timeout
-            # especially while receiving response data on an already previously
-            # working request
-            raise NameResolveError(err_str.format(msg="connection timed out"))
+        else:
+            height = 0.
 
-        results = resp_data.get('results', [])
-
-        if len(results) == 0:
-            raise NameResolveError(err_str.format(msg="no results returned"))
-
-        if resp_data.get('status', None) != 'OK':
-            raise NameResolveError(err_str.format(msg="unknown failure with Google maps API"))
-
-        loc = results[0]['geometry']['location']
         return cls.from_geodetic(lon=loc['lng']*u.degree,
-                                 lat=loc['lat']*u.degree)
+                                 lat=loc['lat']*u.degree,
+                                 height=height)
 
     @classmethod
     def get_site_names(cls):
