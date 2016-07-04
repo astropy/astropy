@@ -66,6 +66,9 @@ API Changes
 
 - ``astropy.coordinates``
 
+  - Representations can now be reshaped using methods named like the numpy ones
+    for ``ndarray`` (i.e., ``reshape``, ``swapaxes``, etc.) [#4123]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
