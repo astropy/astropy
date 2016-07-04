@@ -198,6 +198,13 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - Inplace operations on ``Angle`` and ``Distance`` instances now raise an
+    exception if the final unit is not equivalent to radian and meter, resp.
+    Similarly, views as ``Angle`` and ``Distance`` can now only be taken
+    from quantities with appropriate units, and views as ``Quantity`` can only
+    be taken from logarithmic quanties such as ``Magnitude`` if the physical
+    unit is dimensionless. [#5070]
+
 - ``astropy.utils``
 
 - ``astropy.visualization``
