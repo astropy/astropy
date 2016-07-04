@@ -1485,7 +1485,7 @@ class SpecificTypeQuantity(Quantity):
     _equivalent_unit = None
 
     # The default unit used for views.  Even with `None`, views of arrays
-    # without units are possible, but will have an uninitalized units.
+    # without units are possible, but will have an uninitalized unit.
     _unit = None
 
     # Default unit for initialization through the constructor.
