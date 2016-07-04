@@ -9,7 +9,7 @@ from abc import ABCMeta, abstractmethod, abstractproperty
 import numpy as np
 
 from ...extern import six
-from .. import (Unit, UnitBase, UnitsError,
+from .. import (Unit, UnitBase, UnitsError, UnitTypeError,
                 dimensionless_unscaled, Quantity, quantity_helper as qh)
 
 __all__ = ['FunctionUnitBase', 'FunctionQuantity']
@@ -489,10 +489,6 @@ class FunctionQuantity(Quantity):
     # Ensure priority over ndarray, regular Unit & Quantity, and FunctionUnit.
     __array_priority__ = 40000
 
-    # Store unit in different private property than is done by Quantity,
-    # to allow a Quantity view with just the function unit (stored in _unit)
-    _full_unit = None
-
     # Define functions that work on FunctionQuantity.
     _supported_ufuncs = SUPPORTED_UFUNCS
     _supported_functions = SUPPORTED_FUNCTIONS
@@ -528,13 +524,10 @@ class FunctionQuantity(Quantity):
             # convert to target unit
             value = unit.from_physical(value.to(unit.physical_unit).value)
 
-        # initialise Quantity
-        self = super(FunctionQuantity, cls).__new__(
-            cls, value, unit.function_unit, dtype=dtype, copy=copy,
-            order=order, subok=subok, ndmin=ndmin)
-        # set the full unit returned by self.unit
-        self._full_unit = unit
-        return self
+        # initialise!
+        return super(FunctionQuantity,
+                     cls).__new__(cls, value, unit, dtype=dtype, copy=copy,
+                                  order=order, subok=subok, ndmin=ndmin)
 
     # ↓↓↓ properties not found in Quantity
     @property
@@ -548,25 +541,7 @@ class FunctionQuantity(Quantity):
 
         Use `~astropy.units.quantity.Quantity.value` for just the value.
         """
-        return self._new_view(self, self.unit.function_unit)
-
-    # ↓↓↓ properties overridden to point to different places
-    @property
-    def unit(self):
-        """Function unit of the quantity, containing the physical unit.
-
-        Represented by a `~astropy.units.function.FunctionUnitBase` object.
-        """
-        return self._full_unit
-
-    @property
-    def equivalencies(self):
-        """Equivalencies applied by default during unit conversions.
-
-        Contains the list to convert between function and physical unit,
-        as set by the `~astropy.units.function.FunctionUnitBase` unit.
-        """
-        return self.unit.equivalencies
+        return self._new_view(unit=self.unit.function_unit)
 
     # ↓↓↓ methods overridden to change the behaviour
     @property
@@ -587,34 +562,6 @@ class FunctionQuantity(Quantity):
         return self.__class__(self.physical.decompose(bases))
 
     # ↓↓↓ methods overridden to add additional behaviour
-    def to(self, unit, equivalencies=[]):
-        """Returns a new quantity with the specified units.
-
-        Parameters
-        ----------
-        unit : `~astropy.units.UnitBase` instance, str
-            An object that represents the unit to convert to. Must be
-            an `~astropy.units.UnitBase` object or a string parseable
-            by the `~astropy.units` package.
-
-        equivalencies : list of equivalence pairs, optional
-            A list of equivalence pairs to try if the units are not
-            directly convertible.  See :ref:`unit_equivalencies`.
-            This list is in meant to treat only equivalencies between different
-            physical units; the build-in equivalency between the function
-            unit and the physical one is automatically taken into account.
-        """
-        result = super(FunctionQuantity, self).to(unit, equivalencies)
-        if isinstance(unit, FunctionUnitBase):
-            result._full_unit = unit
-        return result
-
-    def __array_finalize__(self, obj):
-        if isinstance(obj, FunctionQuantity):
-            self._full_unit = obj._full_unit
-
-        super(FunctionQuantity, self).__array_finalize__(obj)
-
     def __array_prepare__(self, obj, context=None):
         """Check that the ufunc can deal with a FunctionQuantity."""
 
@@ -635,33 +582,6 @@ class FunctionQuantity(Quantity):
 
         return super(FunctionQuantity, self).__array_prepare__(obj, context)
 
-    def __array_wrap__(self, obj, context=None):
-        """Reorder units properly after ufunc calculation."""
-
-        obj = super(FunctionQuantity, self).__array_wrap__(obj, context)
-
-        if isinstance(obj, FunctionQuantity):
-            obj._full_unit = obj._unit
-            obj._unit = obj._full_unit.function_unit
-            # Check for changes in the function unit (e.g., "mag" -> "2 mag").
-            if obj._unit != obj._full_unit._default_function_unit:
-                if obj._full_unit.physical_type != dimensionless_unscaled:
-                    raise UnitsError(
-                        "Unexpected production in "
-                        "FunctionQuantity.__array_wrap__ "
-                        "of a '{0}' instance with a physical dimension yet "
-                        "function_unit '{1}' when '{2}' was expected. "
-                        "Please alert the astropy developers."
-                        .format(obj.__class__.__name__, obj._unit,
-                                obj._full_unit._default_function_unit))
-
-                if not obj._unit.is_equivalent(
-                        obj._full_unit._default_function_unit):
-                    # For dimensionless, fall back to regular quantity.
-                    obj = self._new_view(obj, obj._unit)
-
-        return obj
-
     def __quantity_subclass__(self, unit):
         if isinstance(unit, FunctionUnitBase):
             return self.__class__, True
@@ -669,12 +589,19 @@ class FunctionQuantity(Quantity):
             return super(FunctionQuantity,
                          self).__quantity_subclass__(unit)[0], False
 
-    def _new_view(self, obj, unit=None):
-        view = super(FunctionQuantity, self)._new_view(obj, unit)
-        if unit is not None and isinstance(view, FunctionQuantity):
-            view._full_unit = unit
-            view._unit = unit.function_unit
-        return view
+    def _set_unit(self, unit):
+        if not isinstance(unit, self._unit_class):
+            # Have to take care of, e.g., (10*u.mag).view(u.Magnitude)
+            try:
+                # "or 'nonsense'" ensures `None` breaks, just in case.
+                unit = self._unit_class(function_unit=unit or 'nonsense')
+            except:
+                raise UnitTypeError(
+                    "{0} instances require {1} function units"
+                    .format(type(self).__name__, self._unit_class.__name__) +
+                    ", so cannot set it to '{0}'.".format(unit))
+
+        self._unit = unit
 
     # ↓↓↓ methods overridden to change behaviour
     def __mul__(self, other):
@@ -741,10 +668,12 @@ class FunctionQuantity(Quantity):
             return super(FunctionQuantity,
                          self)._wrap_function(function, *args, **kwargs)
 
+        # For dimensionless, we can convert to regular quantities.
         if all(arg.unit.physical_unit == dimensionless_unscaled
                for arg in (self,) + args
                if (hasattr(arg, 'unit') and
                    hasattr(arg.unit, 'physical_unit'))):
+            args = tuple(getattr(arg, '_function_view', arg) for arg in args)
             return self._function_view._wrap_function(function, *args, **kwargs)
 
         raise TypeError("Cannot use method that uses function '{0}' with "
