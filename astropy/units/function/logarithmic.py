@@ -245,7 +245,7 @@ class LogQuantity(FunctionQuantity):
         # Do calculation in-place using _function_view of array.
         function_view = self._function_view
         function_view += getattr(other, '_function_view', other)
-        self._full_unit = new_unit
+        self._set_unit(new_unit)
         return self
 
     def __sub__(self, other):
@@ -270,7 +270,7 @@ class LogQuantity(FunctionQuantity):
         # Do calculation in-place using _function_view of array.
         function_view = self._function_view
         function_view -= getattr(other, '_function_view', other)
-        self._full_unit = new_unit
+        self._set_unit(new_unit)
         return self
 
     # Could add __mul__ and __div__ and try interpreting other as a power,

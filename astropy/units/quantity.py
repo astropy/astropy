@@ -17,8 +17,8 @@ import numpy as np
 
 # AstroPy
 from ..extern import six
-from .core import (Unit, dimensionless_unscaled, UnitBase, UnitsError,
-                   get_current_unit_registry, UnitConversionError)
+from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
+                   UnitBase, UnitsError, UnitConversionError, UnitTypeError)
 from .format.latex import Latex
 from ..utils.compat import NUMPY_LT_1_8, NUMPY_LT_1_9
 from ..utils.compat.misc import override__dir__
@@ -27,7 +27,7 @@ from ..utils.data_info import ParentDtypeInfo
 from .. import config as _config
 
 
-__all__ = ["Quantity"]
+__all__ = ["Quantity", "SpecificTypeQuantity"]
 
 
 # We don't want to run doctests in the docstrings we inherit from Numpy
@@ -190,6 +190,13 @@ class Quantity(np.ndarray):
     # Constants can not initialize properly
     _equivalencies = []
 
+    # Default unit for initialization; can be overridden by subclasses,
+    # possibly to `None` to indicate there is no default unit.
+    _default_unit = dimensionless_unscaled
+
+    # Ensures views have an undefined unit.
+    _unit = None
+
     __array_priority__ = 10000
 
     def __new__(cls, value, unit=None, dtype=None, copy=True, order=None,
@@ -237,7 +244,7 @@ class Quantity(np.ndarray):
             if value_unit is None:
                 # Default to dimensionless for no (initialized) unit attribute.
                 if unit is None:
-                    unit = dimensionless_unscaled
+                    unit = cls._default_unit
                 value_unit = unit  # signal below that no conversion is needed
             else:
                 try:
@@ -270,7 +277,7 @@ class Quantity(np.ndarray):
             value = value.astype(np.float)
 
         value = value.view(cls)
-        value._unit = value_unit
+        value._set_unit(value_unit)
         if unit is value_unit:
             return value
         else:
@@ -279,7 +286,11 @@ class Quantity(np.ndarray):
             return value.to(unit)
 
     def __array_finalize__(self, obj):
-        self._unit = getattr(obj, '_unit', None)
+        # If our unit is not set and obj has a valid one, use it.
+        if self._unit is None:
+            unit = getattr(obj, '_unit', None)
+            if unit is not None:
+                self._set_unit(unit)
 
         # Copy info if the original had `info` defined.  Because of the way the
         # DataInfo works, `'info' in obj.__dict__` is False until the
@@ -390,7 +401,7 @@ class Quantity(np.ndarray):
                                 .format(function.__name__, type(self)))
 
             if self.__quantity_subclass__(result_unit)[0] is not type(self):
-                raise TypeError(
+                raise UnitTypeError(
                     "Cannot store output with unit '{0}' from {1} function "
                     "in {2} instance.  Use {3} instance instead."
                     .format(result_unit, function.__name__, type(self),
@@ -535,11 +546,12 @@ class Quantity(np.ndarray):
                     obj = self._new_view(out, result_unit)
 
             if result_unit is None:  # return a plain array
-                obj = obj.view(np.ndarray)
+                return obj.view(np.ndarray)
+            elif obj is self:  # all OK now, so set unit.
+                obj._set_unit(result_unit)
+                return obj
             else:
-                obj._unit = result_unit
-
-        return obj
+                return obj
 
     def __deepcopy__(self, memo):
         # If we don't define this, ``copy.deepcopy(quantity)`` will
@@ -564,7 +576,7 @@ class Quantity(np.ndarray):
         """
         return Quantity, True
 
-    def _new_view(self, obj, unit=None):
+    def _new_view(self, obj=None, unit=None):
         """
         Create a Quantity view of obj, and set the unit
 
@@ -576,39 +588,67 @@ class Quantity(np.ndarray):
 
         Parameters
         ----------
-        obj : ndarray or scalar
+        obj : ndarray or scalar, optional
             The array to create a view of.  If obj is a numpy or python scalar,
-            it will be converted to an array scalar.
+            it will be converted to an array scalar.  By default, ``self``
+            is converted.
 
-        unit : `UnitBase`, or anything convertible to a :class:`~astropy.units.Unit`, or `None`
+        unit : `UnitBase`, or anything convertible to a :class:`~astropy.units.Unit`, optional
             The unit of the resulting object.  It is used to select a
-            subclass, and explicitly assigned to the view if not `None`.
-            If `None` (default), the unit is set by `__array_finalize__`
-            to self._unit.
+            subclass, and explicitly assigned to the view if given.
+            If not given, the subclass and unit will be that of ``self``.
 
         Returns
         -------
         view : Quantity subclass
         """
-        # python and numpy scalars cannot be viewed as arrays and thus not as
-        # Quantity either; turn them into zero-dimensional arrays
-        # (These are turned back into scalar in `.value`)
-        if not isinstance(obj, np.ndarray):
-            obj = np.array(obj)
-
+        # Determine the unit and quantity subclass that we need for the view.
         if unit is None:
-            subclass = self.__class__
+            unit = self.unit
+            quantity_subclass = self.__class__
         else:
             unit = Unit(unit)
-            subclass, subok = self.__quantity_subclass__(unit)
+            quantity_subclass, subok = self.__quantity_subclass__(unit)
             if subok:
-                subclass = self.__class__
+                quantity_subclass = self.__class__
 
-        view = obj.view(subclass)
+        # We only want to propagate information from ``self`` to our new view,
+        # so obj should be a regular array.  By using ``np.array``, we also
+        # convert python and numpy scalars, which cannot be viewed as arrays
+        # and thus not as Quantity either, to zero-dimensional arrays.
+        # (These are turned back into scalar in `.value`)
+        if obj is None:
+            obj = self.view(np.ndarray)
+        else:
+            obj = np.array(obj, copy=False)
+
+        # Take the view, set the unit, and update possible other properties
+        # such as ``info``, ``wrap_angle`` in `Longitude`, etc.
+        view = obj.view(quantity_subclass)
+        view._set_unit(unit)
         view.__array_finalize__(self)
-        if unit is not None:
-            view._unit = unit
         return view
+
+    def _set_unit(self, unit):
+        """Set the unit.
+
+        This is used anywhere the unit is set or modified, i.e., in the
+        initilizer, in ``__imul__`` and ``__itruediv__`` for in-place
+        multiplication and division by another unit, as well as in
+        ``__array_finalize__`` for wrapping up views.  For Quantity, it just
+        sets the unit, but subclasses can override it to check that, e.g.,
+        a unit is consistent.  It should return ``self`` after modification.
+        """
+        if not isinstance(unit, UnitBase):
+            # Trying to go through a string ensures that, e.g., Magnitudes with
+            # dimensionless physical unit become Quantity with units of mag.
+            unit = Unit(str(unit), parse_strict='silent')
+            if not isinstance(unit, UnitBase):
+                raise UnitTypeError(
+                    "{0} instances require {1} units, not {2} instances."
+                    .format(type(self).__name__, UnitBase, type(unit)))
+
+        self._unit = unit
 
     def __reduce__(self):
         # patch to pickle Quantity objects (ndarray subclasses), see
@@ -672,9 +712,6 @@ class Quantity(np.ndarray):
         """
 
         return self._unit
-
-    # this ensures that if we do a view, __repr__ and __str__ do not balk
-    _unit = None
 
     @property
     def equivalencies(self):
@@ -817,7 +854,7 @@ class Quantity(np.ndarray):
         """In-place multiplication between `Quantity` objects and others."""
 
         if isinstance(other, (UnitBase, six.string_types)):
-            self._unit = other * self.unit
+            self._set_unit(other * self.unit)
             return self
 
         return super(Quantity, self).__imul__(other)
@@ -844,7 +881,7 @@ class Quantity(np.ndarray):
         """Inplace division between `Quantity` objects and other objects."""
 
         if isinstance(other, (UnitBase, six.string_types)):
-            self._unit = self.unit / other
+            self._set_unit(self.unit / other)
             return self
 
         return super(Quantity, self).__itruediv__(other)
@@ -1288,19 +1325,18 @@ class Quantity(np.ndarray):
                 out.__quantity_subclass__(unit)[0] is type(out)):
                 # Set out to ndarray view to prevent calling __array_prepare__.
                 kwargs['out'] = out.view(np.ndarray)
-
             else:
                 ok_class =  (out.__quantity_subclass__(out, unit)[0]
                              if isinstance(out, Quantity) else Quantity)
-                raise TypeError("out cannot be assigned to a {0} instance; "
-                                "use a {1} instance instead.".format(
-                                    out.__class__, ok_class))
+                raise UnitTypeError("out cannot be assigned to a {0} instance; "
+                                    "use a {1} instance instead.".format(
+                                        out.__class__, ok_class))
 
         value = function(self.view(np.ndarray), *args, **kwargs)
         if out is None:
             return self._new_view(value, unit)
         else:
-            out._unit = unit
+            out._set_unit(unit)
             return out
 
     def clip(self, a_min, a_max, out=None):
@@ -1430,3 +1466,44 @@ class Quantity(np.ndarray):
         """
         out_array = np.insert(self.value, obj, self._to_own_unit(values), axis)
         return self._new_view(out_array)
+
+
+class SpecificTypeQuantity(Quantity):
+    """Superclass for Quantities of specific physical type.
+
+    Subclasses of these work just like :class:`~astropy.units.Quantity`, except
+    that they are for specific physical types (and may have methods that are
+    only appropriate for that type).  Astropy examples are
+    :class:`~astropy.coordinates.Angle` and
+    :class:`~astropy.coordinates.Distance`
+
+    At a minimum, subclasses should set ``_equivalent_unit`` to the unit
+    associated with the physical type.
+    """
+    # The unit for the specific physical type.  Instances can only be created
+    # with units that are equivalent to this.
+    _equivalent_unit = None
+
+    # The default unit used for views.  Even with `None`, views of arrays
+    # without units are possible, but will have an uninitalized unit.
+    _unit = None
+
+    # Default unit for initialization through the constructor.
+    _default_unit = None
+
+    def __quantity_subclass__(self, unit):
+        if unit.is_equivalent(self._equivalent_unit):
+            return type(self), True
+        else:
+            return super(SpecificTypeQuantity,
+                         self).__quantity_subclass__(unit)[0], False
+
+    def _set_unit(self, unit):
+        if unit is None or not unit.is_equivalent(self._equivalent_unit):
+            raise UnitTypeError(
+                "{0} instances require units equivalent to '{1}'"
+                .format(type(self).__name__, self._equivalent_unit) +
+                (", but no unit was given." if unit is None else
+                 ", so cannot set it to '{0}'.".format(unit)))
+
+        super(SpecificTypeQuantity, self)._set_unit(unit)

@@ -30,7 +30,7 @@ dms_tuple = namedtuple('dms_tuple', ('d', 'm', 's'))
 signed_dms_tuple = namedtuple('signed_dms_tuple', ('sign', 'd', 'm', 's'))
 
 
-class Angle(u.Quantity):
+class Angle(u.SpecificTypeQuantity):
     """
     One or more angular value(s) with units equivalent to radians or degrees.
 
@@ -83,6 +83,7 @@ class Angle(u.Quantity):
     `~astropy.units.UnitsError`
         If a unit is not provided or it is not an angular unit.
     """
+    _equivalent_unit = u.radian
     _include_easy_conversion_members = True
 
     def __new__(cls, angle, unit=None, dtype=None, copy=True):
@@ -111,20 +112,8 @@ class Angle(u.Quantity):
                        angle.dtype.kind not in 'SUVO')):
                 angle = [Angle(x, unit, copy=False) for x in angle]
 
-        self = super(Angle, cls).__new__(cls, angle, unit, dtype=dtype,
+        return super(Angle, cls).__new__(cls, angle, unit, dtype=dtype,
                                          copy=copy)
-
-        if not isinstance(angle, Angle):
-            self._unit = cls._convert_unit_to_angle_unit(self.unit)
-            if not self.unit.is_equivalent(u.radian):
-                if self.unit is u.dimensionless_unscaled:
-                    raise u.UnitsError("No unit was given - "
-                                       "must be some kind of angle")
-                else:
-                    raise u.UnitsError("Unit {0} is not an angle"
-                                       .format(self.unit))
-
-        return self
 
     @staticmethod
     def _tuple_to_float(angle, unit):
@@ -140,16 +129,12 @@ class Angle(u.Quantity):
         else:
             raise u.UnitsError("Can not parse '{0}' as unit '{1}'"
                                .format(angle, unit))
-
     @staticmethod
     def _convert_unit_to_angle_unit(unit):
         return u.hourangle if unit is u.hour else unit
 
-    def __quantity_subclass__(self, unit):
-        if unit.is_equivalent(u.radian):
-            return Angle, True
-        else:
-            return super(Angle, self).__quantity_subclass__(unit)[0], False
+    def _set_unit(self, unit):
+        super(Angle, self)._set_unit(self._convert_unit_to_angle_unit(unit))
 
     @property
     def hour(self):
@@ -258,8 +243,7 @@ class Angle(u.Quantity):
         if unit is None:
             unit = self.unit
         else:
-            unit = u.Unit(unit)
-        unit = self._convert_unit_to_angle_unit(unit)
+            unit = self._convert_unit_to_angle_unit(u.Unit(unit))
 
         separators = {
             None: {

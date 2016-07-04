@@ -17,7 +17,7 @@ __all__ = ['Distance']
 __doctest_requires__ = {'*': ['scipy.integrate']}
 
 
-class Distance(u.Quantity):
+class Distance(u.SpecificTypeQuantity):
     """
     A one-dimensional distance.
 
@@ -87,6 +87,7 @@ class Distance(u.Quantity):
     >>> d7 = Distance(Distance(10 * u.Mpc))
     """
 
+    _equivalent_unit = u.m
     _include_easy_conversion_members = True
 
     def __new__(cls, value=None, unit=None, z=None, cosmology=None,
@@ -144,20 +145,11 @@ class Distance(u.Quantity):
             cls, value, unit, dtype=dtype, copy=copy, order=order,
             subok=subok, ndmin=ndmin)
 
-        if not distance.unit.is_equivalent(u.m):
-            raise u.UnitsError('Unit "{0}" is not a length type'.format(unit))
-
         if not allow_negative and np.any(distance.value < 0):
             raise ValueError("Distance must be >= 0.  Use the argument "
                              "'allow_negative=True' to allow negative values.")
 
         return distance
-
-    def __quantity_subclass__(self, unit):
-        if unit.is_equivalent(u.m):
-            return Distance, True
-        else:
-            return super(Distance, self).__quantity_subclass__(unit)[0], False
 
     @property
     def z(self):
