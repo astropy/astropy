@@ -12,6 +12,9 @@ New Features
 
 - ``astropy.coordinates``
 
+  - Added a ``from_address`` classmethod to ``EarthLocation`` to enable fast creation of
+    ``EarthLocation`` objects given an address by querying the Google maps API [#5154].
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
