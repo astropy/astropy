@@ -379,24 +379,34 @@ class CartesianRepresentation(BaseRepresentation):
                        [ 1.23205081, 1.59807621],
                        [ 3.        , 4.        ]] pc>
         """
+        # Avoid doing gratuitous np.array for things that look like arrays.
+        try:
+            matrix_shape = matrix.shape
+        except AttributeError:
+            matrix = np.array(matrix)
+            matrix_shape = matrix.shape
+
+        if matrix_shape[-2:] != (3, 3):
+            raise ValueError("tried to do matrix multiplication with an array "
+                             "that doesn't end in 3x3")
 
         # TODO: since this is likely to be a widely used function in coordinate
         # transforms, it should be optimized (for example in Cython).
 
         # Get xyz once since it's an expensive operation
-        xyz = self.xyz
+        oldxyz = self.xyz
+        # Note that neither dot nor einsum handles Quantity properly, so we use
+        # the arrays and put the unit back in the end.
+        if self.isscalar and not matrix_shape[:-2]:
+            # a fast path for scalar coordinates.
+            newxyz = matrix.dot(oldxyz.value)
+        else:
+            # Matrix multiply all pmat items and coordinates, broadcasting the
+            # remaining dimensions.
+            newxyz = np.einsum('...ij,j...->i...', matrix, oldxyz.value)
 
-        # Since the underlying data can be n-dimensional, reshape to a
-        # 2-dimensional (3, N) array.
-        vec = xyz.reshape((3, xyz.size // 3))
-
-        # Do the transformation
-        vec_new = np.dot(np.asarray(matrix), vec)
-
-        # Restore the original shape
-        vec_new = vec_new.reshape(xyz.shape)
-
-        return self.__class__(*vec_new)
+        newxyz = u.Quantity(newxyz, oldxyz.unit, copy=False)
+        return self.__class__(*newxyz, copy=False)
 
 
 class UnitSphericalRepresentation(BaseRepresentation):

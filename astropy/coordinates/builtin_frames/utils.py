@@ -18,7 +18,6 @@ from ... import _erfa as erfa
 from ...time import Time
 from ...utils import iers
 from ...utils.exceptions import AstropyWarning
-from ..representation import CartesianRepresentation
 
 # The UTC time scale is not properly defined prior to 1960, so Time('B1950',
 # scale='utc') will emit a warning. Instead, we use Time('B1950', scale='tai')
@@ -73,25 +72,10 @@ def cartrepr_from_matmul(pmat, coo, transpose=False):
     ValueError :
         If the last two dimensions of ``pmat`` do not equal 3, 3.
     """
-    if pmat.shape[-2:] != (3, 3):
-        raise ValueError("tried to do matrix multiplication with an array that "
-                         "doesn't end in 3x3")
     if transpose:
         pmat = matrix_transpose(pmat)
 
-    oldxyz = coo.cartesian.xyz
-    # Note that neither dot nor einsum handles Quantity properly, so we use
-    # the arrays and put the unit back in the end.
-    if coo.isscalar and not pmat.shape[:-2]:
-        # a fast path for scalar coordinates.
-        newxyz = pmat.dot(oldxyz.value)
-    else:
-        # Matrix multiply all pmat items and coordinates, broadcasting the
-        # remaining dimensions.
-        newxyz = np.einsum('...ij,j...->i...', pmat, oldxyz.value)
-
-    newxyz = u.Quantity(newxyz, oldxyz.unit, copy=False)
-    return CartesianRepresentation(newxyz, copy=False)
+    return coo.cartesian.transform(pmat)
 
 
 def get_polar_motion(time):
