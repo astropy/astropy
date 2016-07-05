@@ -283,7 +283,7 @@ class EarthLocation(u.Quantity):
 
         .. warning::
             If the query returns more than one location (e.g., searching on
-            ``address='springfield'``), this function will use the _first_ returned
+            ``address='springfield'``), this function will use the **first** returned
             location.
 
         Parameters
