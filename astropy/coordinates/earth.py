@@ -279,8 +279,7 @@ class EarthLocation(u.Quantity):
         locations. In the background, this just issues a query to the Google maps
         geocoding API. It is not meant to be abused! Google uses IP-based query
         limiting and will ban your IP if you send more than a few thousand queries
-        per hour. See the Google maps geocoding documentation for more information:
-        https://developers.google.com/maps/documentation/geocoding/intro
+        per hour [1]_.
 
         .. warning::
             If the query returns more than one location (e.g., searching on
@@ -295,17 +294,17 @@ class EarthLocation(u.Quantity):
             NY) or a city name (e.g., Danbury, CT), or etc.
         get_height : bool (optional)
             Use the retrieved location to perform a second query to the Google maps
-            elevation API to retrieve the height of the input address.
+            elevation API to retrieve the height of the input address [2]_.
 
         Returns
         -------
         location : This class (a `~astropy.coordinates.EarthLocation` or subclass)
             The location of the input address.
 
-        See Also
-        --------
-        https://developers.google.com/maps/documentation/geocoding/intro
-        https://developers.google.com/maps/documentation/elevation/intro
+        References
+        ----------
+        .. [1] https://developers.google.com/maps/documentation/geocoding/intro
+        .. [2] https://developers.google.com/maps/documentation/elevation/intro
 
         """
 
