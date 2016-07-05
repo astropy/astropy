@@ -68,7 +68,7 @@ def _get_json_result(url, err_str):
 
     results = resp_data.get('results', [])
 
-    if len(results) == 0:
+    if not results:
         raise NameResolveError(err_str.format(msg="no results returned"))
 
     if resp_data.get('status', None) != 'OK':
