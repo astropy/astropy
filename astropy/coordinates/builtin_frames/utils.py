@@ -49,35 +49,6 @@ def matrix_transpose(m):
     return m.swapaxes(-2, -1)
 
 
-def cartrepr_from_matmul(pmat, coo, transpose=False):
-    """Transform a coordinate by matrix multiplication.
-
-    Parameters
-    ----------
-    pmat : `~numpy.ndarray`
-        If two-dimensional, a Matrix; if higher-dimensional, a stack of matrices
-        residing in the last two dimensions.  The higher dimensions will be
-        broadcast against ``coo``.
-    coo : coordinate or coordinate representation
-        Assumed to have a ``cartesian`` property that returns a
-        `~astropy.coordinates.CartesianRepresentation`.
-
-    Returns
-    -------
-    newcoo: `~astropy.coordinates.CartesianRepresentation`
-        The transformed representation of ``coo``.
-
-    Raises
-    ------
-    ValueError :
-        If the last two dimensions of ``pmat`` do not equal 3, 3.
-    """
-    if transpose:
-        pmat = matrix_transpose(pmat)
-
-    return coo.cartesian.transform(pmat)
-
-
 def get_polar_motion(time):
     """
     gets the two polar motion components in radians for use with apio13
