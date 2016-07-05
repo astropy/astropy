@@ -21,6 +21,7 @@ addons:
 env:
     global:
         # Set defaults to avoid repeating in most cases
+        - PYTHON_VERSION=3.5
         - NUMPY_VERSION=stable
         - MAIN_CMD='python setup.py'
         - CONDA_DEPENDENCIES='Cython jinja2'
@@ -42,7 +43,7 @@ matrix:
 
         # Try MacOS X
         - os: osx
-          env: PYTHON_VERSION=2.7 SETUP_CMD='test'
+          env: SETUP_CMD='test'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='jplephem'
 
@@ -68,35 +69,35 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.10 SETUP_CMD='test --open-files'
 
-        # Now try with all optional dependencies on 2.7 and an appropriate 3.x
-        # build (with latest numpy). We also note the code coverage on Python
-        # 2.7.
+        # Now try with all optional dependencies the latest 3.x and on 2.7.
+        # (with latest numpy). We also note the code coverage on Python 2.7.
+        # NOTE: move coverage to 3.x once speed issues have been solved; #4826
+        - os: linux
+          env: SETUP_CMD='test'
+               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+               PIP_DEPENDENCIES='jplephem'
+               LC_CTYPE=C.ascii LC_ALL=C
         - os: linux
           env: PYTHON_VERSION=2.7 SETUP_CMD='test --coverage'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='cpp-coveralls objgraph jplephem'
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
-        - os: linux
-          env: PYTHON_VERSION=3.5 SETUP_CMD='test'
-               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES='jplephem'
-               LC_CTYPE=C.ascii LC_ALL=C
 
         # Try developer version of Numpy without optional dependencies
         - os: linux
-          env: PYTHON_VERSION=2.7 NUMPY_VERSION=dev SETUP_CMD='test'
+          env: NUMPY_VERSION=dev SETUP_CMD='test'
 
         # Try pre-release version of Numpy without optional dependencies
         - os: linux
-          env: PYTHON_VERSION=2.7 NUMPY_VERSION=prerelease SETUP_CMD='test'
+          env: NUMPY_VERSION=prerelease SETUP_CMD='test'
 
         # Do a PEP8 test
         - os: linux
-          env: PYTHON_VERSION=2.7 MAIN_CMD='pep8 astropy --count' SETUP_CMD=''
+          env: MAIN_CMD='pep8 astropy --count' SETUP_CMD=''
 
     allow_failures:
-      - env: PYTHON_VERSION=2.7 NUMPY_VERSION=dev SETUP_CMD='test'
+      - env: NUMPY_VERSION=dev SETUP_CMD='test'
 
 install:
     - git clone git://github.com/astropy/ci-helpers.git
