@@ -51,7 +51,7 @@ matrix:
         # runs for a long time. The sphinx build also has some additional
         # dependencies.
         - os: linux
-          env: PYTHON_VERSION=2.7 SETUP_CMD='build_docs -w'
+          env: SETUP_CMD='build_docs -w'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='sphinx-gallery>=0.1.2 pillow wcsaxes --no-deps jplephem'
 
