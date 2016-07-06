@@ -31,7 +31,7 @@ New Features
 - ``astropy.stats``
 
   - Added ``axis`` keyword to ``biweight_location`` and
-    ``biweight_midvariance``. [#5127]
+    ``biweight_midvariance``. [#5127, #5158]
 
 - ``astropy.sphinx``
 
