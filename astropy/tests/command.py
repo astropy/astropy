@@ -148,6 +148,7 @@ class AstropyTest(Command, object):
         """
         Run the tests!
         """
+        # Install the runtime and test dependencies.
         if self.distribution.install_requires:
             self.distribution.fetch_build_eggs(
                 self.distribution.install_requires)
