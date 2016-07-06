@@ -194,6 +194,14 @@ def test_biweight_midvariance_small():
     assert abs(scl-1.529) < 1e-3
 
 
+def test_biweight_midvariance_5127():
+    # test a regression introduced in #5127
+    rand = np.random.RandomState(12345)
+    data = rand.normal(loc=0., scale=20., size=(100, 100))
+    scl = funcs.biweight_midvariance(data)
+    assert_allclose(scl, 20.171003621738148)    # test against previous code
+
+
 def test_biweight_midvariance_axis():
     """Test a 2D array with the axis keyword."""
     with NumpyRNGContext(12345):
