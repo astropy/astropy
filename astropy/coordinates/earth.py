@@ -2,14 +2,20 @@
 from __future__ import absolute_import, division, print_function
 
 from warnings import warn
+import socket
+import json
 
 import numpy as np
 from .. import units as u
 from ..extern import six
+from ..extern.six.moves import urllib
 from ..utils.exceptions import AstropyUserWarning
 from . import Longitude, Latitude
 from .builtin_frames import ITRS, GCRS
 from .errors import UnknownSiteException
+from ..utils import data
+
+from .name_resolve import NameResolveError
 
 try:
     # Not guaranteed available at setup time.
@@ -40,6 +46,35 @@ def _check_ellipsoid(ellipsoid=None, default='WGS84'):
                          .format(ellipsoid, ELLIPSOIDS))
     return ellipsoid
 
+def _get_json_result(url, err_str):
+    try:
+        # Retrieve JSON response from Google maps API
+        resp = urllib.request.urlopen(url, timeout=data.conf.remote_timeout)
+        resp_data = json.loads(resp.read().decode('utf8'))
+
+    except urllib.error.URLError as e:
+        # This catches a timeout error, see:
+        #   http://stackoverflow.com/questions/2712524/handling-urllib2s-timeout-python
+        if isinstance(e.reason, socket.timeout):
+            raise NameResolveError(err_str.format(msg="connection timed out"))
+        else:
+            raise NameResolveError(err_str.format(msg=e.reason))
+
+    except socket.timeout:
+        # There are some cases where urllib2 does not catch socket.timeout
+        # especially while receiving response data on an already previously
+        # working request
+        raise NameResolveError(err_str.format(msg="connection timed out"))
+
+    results = resp_data.get('results', [])
+
+    if not results:
+        raise NameResolveError(err_str.format(msg="no results returned"))
+
+    if resp_data.get('status', None) != 'OK':
+        raise NameResolveError(err_str.format(msg="unknown failure with Google maps API"))
+
+    return results
 
 class EarthLocation(u.Quantity):
     """
@@ -233,6 +268,72 @@ class EarthLocation(u.Quantity):
             newel = cls.from_geodetic(*el.to_geodetic())
             newel.info.name = el.info.name
             return newel
+
+    @classmethod
+    def of_address(cls, address, get_height=False):
+        """
+        Return an object of this class for a given address by querying the Google
+        maps geocoding API.
+
+        This is intended as a quick convenience function to get fast access to
+        locations. In the background, this just issues a query to the Google maps
+        geocoding API. It is not meant to be abused! Google uses IP-based query
+        limiting and will ban your IP if you send more than a few thousand queries
+        per hour [1]_.
+
+        .. warning::
+            If the query returns more than one location (e.g., searching on
+            ``address='springfield'``), this function will use the **first** returned
+            location.
+
+        Parameters
+        ----------
+        address : str
+            The address to get the location for. As per the Google maps API, this
+            can be a fully specified street address (e.g., 123 Main St., New York,
+            NY) or a city name (e.g., Danbury, CT), or etc.
+        get_height : bool (optional)
+            Use the retrieved location to perform a second query to the Google maps
+            elevation API to retrieve the height of the input address [2]_.
+
+        Returns
+        -------
+        location : This class (a `~astropy.coordinates.EarthLocation` or subclass)
+            The location of the input address.
+
+        References
+        ----------
+        .. [1] https://developers.google.com/maps/documentation/geocoding/intro
+        .. [2] https://developers.google.com/maps/documentation/elevation/intro
+
+        """
+
+        pars = urllib.parse.urlencode({'address': address})
+        geo_url = "https://maps.googleapis.com/maps/api/geocode/json?{0}".format(pars)
+
+        # get longitude and latitude location
+        err_str = ("Unable to retrieve coordinates for address '{address}'; {{msg}}"
+                   .format(address=address))
+        geo_result = _get_json_result(geo_url, err_str=err_str)
+        loc = geo_result[0]['geometry']['location']
+
+        if get_height:
+            pars = {'locations': '{lat:.8f},{lng:.8f}'.format(lat=loc['lat'],
+                                                              lng=loc['lng'])}
+            pars = urllib.parse.urlencode(pars)
+            ele_url = "https://maps.googleapis.com/maps/api/elevation/json?{0}".format(pars)
+
+            err_str = ("Unable to retrieve elevation for address '{address}'; {{msg}}"
+                       .format(address=address))
+            ele_result = _get_json_result(ele_url, err_str=err_str)
+            height = ele_result[0]['elevation']*u.meter
+
+        else:
+            height = 0.
+
+        return cls.from_geodetic(lon=loc['lng']*u.degree,
+                                 lat=loc['lat']*u.degree,
+                                 height=height)
 
     @classmethod
     def get_site_names(cls):
