@@ -878,8 +878,8 @@ class ShapedLikeNDArray(object):
             Any keyword arguments for ``method``.
         """
 
-    # Typically, ndim and size will be overridden, but we might as well set
-    # sensible defaults.
+    # Typically, ndim, size, and isscalar will be overridden, but we might as
+    # well set sensible defaults.
     @property
     def ndim(self):
         """The number of dimensions of the instance and underlying arrays."""
@@ -892,6 +892,10 @@ class ShapedLikeNDArray(object):
         for sh in self.shape:
             size *= sh
         return size
+
+    @property
+    def isscalar(self):
+        return self.shape == ()
 
     def __getitem__(self, item):
         if self.isscalar:
