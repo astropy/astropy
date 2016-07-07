@@ -206,7 +206,7 @@ for a particular named object::
         (83.82208, -5.39111)>
 
 For sites (primarily observatories) on the Earth, `astropy.coordinates` provides
-a similar quick way to get an `~astropy.coordinates.EarthLocation`::
+a quick way to get an `~astropy.coordinates.EarthLocation`::
 
     >>> from astropy.coordinates import EarthLocation
     >>> EarthLocation.of_site('Apache Point Observatory')  # doctest: +REMOTE_DATA +FLOAT_CMP
@@ -215,16 +215,32 @@ a similar quick way to get an `~astropy.coordinates.EarthLocation`::
 To see the list of site names available, use
 :func:`astropy.coordinates.EarthLocation.get_site_names`.
 
-.. note::
-    `~astropy.coordinates.SkyCoord.from_name` and
-    `~astropy.coordinates.EarthLocation.of_site` are for convenience, and hence
-    are by design rather simple. If you need precise coordinates for an object
-    you should find the appropriate reference and input the coordinates
-    manually, or use more specialized functionality like that in the
-    `astroquery <http://www.astropy.org/astroquery/>`_ or
-    `astroplan <http://astroplan.readthedocs.io/>`_ affiliated packages.
+For arbitrary Earth addresses (e.g., not observatory sites), use the
+`~astropy.coordinates.EarthLocation.of_address` classmethod. Any address passed
+to this function uses Google maps to retrieve the latitude and longitude and can
+also (optionally) query Google maps to get the height of the location. As with
+Google maps, this works with fully specified addresses, location names, city
+names, and etc.::
 
-    Also note that these two methods retrieve data from the internet to
+    >>> EarthLocation.of_address('1002 Holy Grail Court, St. Louis, MO')  # doctest: +REMOTE_DATA +FLOAT_CMP
+    <EarthLocation (-26727.247396719715, -4997012.160946069, 3950268.2727357596) m>
+    >>> EarthLocation.of_address('1002 Holy Grail Court, St. Louis, MO',
+    ...                          get_height=True)  # doctest: +REMOTE_DATA +FLOAT_CMP
+    <EarthLocation (-26727.890243898288, -4997132.349722762, 3950363.9254298285) m>
+    >>> EarthLocation.of_address('Danbury, CT')  # doctest: +REMOTE_DATA +FLOAT_CMP
+    <EarthLocation (1364606.6451165068, -4593292.942827304, 4195415.936951392) m>
+
+.. note::
+    `~astropy.coordinates.SkyCoord.from_name`,
+    `~astropy.coordinates.EarthLocation.of_site`, and
+    `~astropy.coordinates.EarthLocation.of_address` are for convenience, and
+    hence are by design rather simple. If you need precise coordinates for an
+    object you should find the appropriate reference and input the coordinates
+    manually, or use more specialized functionality like that in the `astroquery
+    <http://www.astropy.org/astroquery/>`_ or `astroplan
+    <http://astroplan.readthedocs.io/>`_ affiliated packages.
+
+    Also note that these methods retrieve data from the internet to
     determine the celestial or Earth coordinates. The online data may be
     updated, so if you need to guarantee that your scripts are reproducible
     in the long term, see the :doc:`remote_methods` section.
