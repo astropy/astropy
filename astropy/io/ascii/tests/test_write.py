@@ -339,7 +339,7 @@ a b c
          ),
 ]
 
-test_def_masked_fill_value = [
+test_defs_masked_fill_value = [
     dict(kwargs=dict(),
          out="""\
 a b c
@@ -434,7 +434,7 @@ def test_write_fill_masked_different(fast_writer):
     data['a'].mask = [True, False]
     data['c'].mask = [False, True]
 
-    for test_def in test_def_masked_fill_value:
+    for test_def in test_defs_masked_fill_value:
         check_write_table(test_def, data, fast_writer)
 
 
