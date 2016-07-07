@@ -270,7 +270,7 @@ class EarthLocation(u.Quantity):
             return newel
 
     @classmethod
-    def from_address(cls, address, get_height=False):
+    def of_address(cls, address, get_height=False):
         """
         Return an object of this class for a given address by querying the Google
         maps geocoding API.
