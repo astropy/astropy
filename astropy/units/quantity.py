@@ -36,7 +36,7 @@ __doctest_skip__ = ['Quantity.*']
 
 
 _UNIT_NOT_INITIALISED = "(Unit not initialised)"
-
+_UFUNCS_FILTER_WARNINGS = {np.arcsin, np.arccos, np.arccosh, np.arctanh}
 
 class Conf(_config.ConfigNamespace):
     """
@@ -462,15 +462,18 @@ class Quantity(np.ndarray):
             # ensure we remember the scales we need
             result._converters = converters
 
+            if function in _UFUNCS_FILTER_WARNINGS:
+                # Filter out RuntimeWarning's caused by the ufunc being called on
+                # the unscaled quantity first (e.g., np.arcsin(15*u.pc/u.kpc))
+                self._catch_warnings = warnings.catch_warnings()
+                self._catch_warnings.__enter__()
+                warnings.filterwarnings('ignore',
+                                        message='invalid value encountered in',
+                                        category=RuntimeWarning)
+
         # unit output will get (setting _unit could prematurely change input
         # if obj is self, which happens for in-place operations; see above)
         result._result_unit = result_unit
-
-        self._catch_warnings = warnings.catch_warnings()
-        self._catch_warnings.__enter__()
-        warnings.filterwarnings('ignore',
-                                message='invalid value encountered in',
-                                category=RuntimeWarning)
 
         return result
 
