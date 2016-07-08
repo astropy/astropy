@@ -879,9 +879,11 @@ def test_no_truncate_crval():
     w.wcs.cdelt = [1e-3, 1e-3, 1e8]
     w.wcs.ctype = ['RA---TAN', 'DEC--TAN', 'FREQ']
     w.wcs.set()
+
+    header = w.to_header()
     for ii in range(3):
-        assert w.to_header()['CRVAL{0}'.format(ii + 1)] == w.wcs.crval[ii]
-        assert w.to_header()['CDELT{0}'.format(ii + 1)] == w.wcs.cdelt[ii]
+        assert header['CRVAL{0}'.format(ii + 1)] == w.wcs.crval[ii]
+        assert header['CDELT{0}'.format(ii + 1)] == w.wcs.cdelt[ii]
 
 
 def test_no_truncate_crval_try2():
@@ -896,9 +898,29 @@ def test_no_truncate_crval_try2():
     w.wcs.crpix = [1, 1, 1]
     w.wcs.restfrq = 2.34e11
     w.wcs.set()
+
+    header = w.to_header()
     for ii in range(3):
-        assert w.to_header()['CRVAL{0}'.format(ii + 1)] == w.wcs.crval[ii]
-        assert w.to_header()['CDELT{0}'.format(ii + 1)] == w.wcs.cdelt[ii]
+        assert header['CRVAL{0}'.format(ii + 1)] == w.wcs.crval[ii]
+        assert header['CDELT{0}'.format(ii + 1)] == w.wcs.cdelt[ii]
+
+
+def test_no_truncate_crval_p17():
+    """
+    Regression test for https://github.com/astropy/astropy/issues/5162
+    """
+    w = wcs.WCS(naxis=2)
+    w.wcs.crval = [50.1234567890123456, 50.1234567890123456]
+    w.wcs.cdelt = [1e-3, 1e-3]
+    w.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+    w.wcs.set()
+
+    header = w.to_header()
+    assert header['CRVAL1'] != w.wcs.crval[0]
+    assert header['CRVAL2'] != w.wcs.crval[1]
+    header = w.to_header(relax=wcs.WCSHDO_P17)
+    assert header['CRVAL1'] == w.wcs.crval[0]
+    assert header['CRVAL2'] == w.wcs.crval[1]
 
 
 def test_no_truncate_using_compare():

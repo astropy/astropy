@@ -129,7 +129,7 @@ else:
 
 
 # Additional relax bit flags
-WCSHDO_SIP = 0x30000
+WCSHDO_SIP = 0x80000
 
 # Regular expression defining SIP keyword It matches keyword that starts with A
 # or B, optionally followed by P, followed by an underscore then a number in
