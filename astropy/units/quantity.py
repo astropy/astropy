@@ -478,9 +478,6 @@ class Quantity(np.ndarray):
         return result
 
     def __array_wrap__(self, obj, context=None):
-        if hasattr(self, '_catch_warnings'):
-            self._catch_warnings.__exit__()
-            del self._catch_warnings
 
         if context is None:
             # Methods like .squeeze() created a new `ndarray` and then call
@@ -501,6 +498,10 @@ class Quantity(np.ndarray):
 
                 converters = obj._converters
                 del obj._converters
+
+                if hasattr(self, '_catch_warnings'):
+                    self._catch_warnings.__exit__()
+                    del self._catch_warnings
 
                 # For in-place operations, input will get overwritten with
                 # junk. To avoid that, we hid it in a new object in
