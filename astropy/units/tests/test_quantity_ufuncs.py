@@ -1,6 +1,8 @@
 # The purpose of these tests are to ensure that calling ufuncs with quantities
 # returns quantities with the right units, or raises exceptions.
 
+import warnings
+
 import numpy as np
 from numpy.testing.utils import assert_allclose
 
@@ -60,6 +62,14 @@ class TestQuantityTrigonometricFuncs(object):
             np.arcsin(3. * u.m)
         assert exc.value.args[0] == ("Can only apply 'arcsin' function to "
                                      "dimensionless quantities")
+
+    def test_arcsin_no_warning_on_unscaled_quantity(self):
+        a = 15 * u.kpc
+        b = 27 * u.pc
+
+        with warnings.catch_warnings():
+            warnings.filterwarnings('error')
+            np.arcsin(b/a)
 
     def test_cos_scalar(self):
         q = np.cos(np.pi / 3. * u.radian)
