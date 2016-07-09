@@ -12,6 +12,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 # Standard library
 import numbers
 from fractions import Fraction
+import warnings
 
 import numpy as np
 
@@ -35,7 +36,7 @@ __doctest_skip__ = ['Quantity.*']
 
 
 _UNIT_NOT_INITIALISED = "(Unit not initialised)"
-
+_UFUNCS_FILTER_WARNINGS = {np.arcsin, np.arccos, np.arccosh, np.arctanh}
 
 class Conf(_config.ConfigNamespace):
     """
@@ -450,12 +451,23 @@ class Quantity(np.ndarray):
             # ensure we remember the scales we need
             result._converters = converters
 
+            if function in _UFUNCS_FILTER_WARNINGS:
+                # Filter out RuntimeWarning's caused by the ufunc being called on
+                # the unscaled quantity first (e.g., np.arcsin(15*u.pc/u.kpc))
+                self._catch_warnings = warnings.catch_warnings()
+                self._catch_warnings.__enter__()
+                warnings.filterwarnings('ignore',
+                                        message='invalid value encountered in',
+                                        category=RuntimeWarning)
+
         # unit output will get (setting _unit could prematurely change input
         # if obj is self, which happens for in-place operations; see above)
         result._result_unit = result_unit
+
         return result
 
     def __array_wrap__(self, obj, context=None):
+
         if context is None:
             # Methods like .squeeze() created a new `ndarray` and then call
             # __array_wrap__ to turn the array into self's subclass.
@@ -475,6 +487,10 @@ class Quantity(np.ndarray):
 
                 converters = obj._converters
                 del obj._converters
+
+                if hasattr(self, '_catch_warnings'):
+                    self._catch_warnings.__exit__()
+                    del self._catch_warnings
 
                 # For in-place operations, input will get overwritten with
                 # junk. To avoid that, we hid it in a new object in
