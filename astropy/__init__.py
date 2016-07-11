@@ -256,8 +256,9 @@ def _get_bibtex():
     import re
     if os.path.exists('CITATION'):
         with open('CITATION', 'r') as citation:
-            refcontents = re.findall(r'\{[^()]*\}', citation.read())[0]
-            bibtexreference = "@ARTICLE{0}".format(refcontents)
+            refs = re.findall(r'\{[^()]*\}', citation.read())
+            if len(refs) == 0: return ''
+            bibtexreference = "@ARTICLE{0}".format(refs[0])
         return bibtexreference
     else:
         return ''
