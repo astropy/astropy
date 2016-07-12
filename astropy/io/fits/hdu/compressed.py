@@ -22,7 +22,7 @@ from ..util import (_is_pseudo_unsigned, _unsigned_zero, _is_int,
 
 from ....extern.six import string_types, iteritems
 from ....extern.six.moves import range
-from ....utils import lazyproperty, deprecated
+from ....utils import lazyproperty
 from ....utils.compat import suppress
 from ....utils.exceptions import (AstropyPendingDeprecationWarning,
                                   AstropyUserWarning)
@@ -1362,21 +1362,6 @@ class CompImageHDU(BinTableHDU):
             for _ in range(required_blanks - table_blanks):
                 self._header.append()
 
-    @deprecated('0.3', alternative='(refactor your code)', pending=True)
-    def updateHeaderData(self, image_header,
-                         name=None,
-                         compressionType=None,
-                         tileSize=None,
-                         hcompScale=None,
-                         hcompSmooth=None,
-                         quantizeLevel=None):
-        self._update_header_data(image_header, name=name,
-                                 compression_type=compressionType,
-                                 tile_size=tileSize,
-                                 hcomp_scale=hcompScale,
-                                 hcomp_smooth=hcompSmooth,
-                                 quantize_level=quantizeLevel)
-
     @lazyproperty
     def data(self):
         # The data attribute is the image data (not the table data).
@@ -1466,12 +1451,6 @@ class CompImageHDU(BinTableHDU):
             # since this reference leak can sometimes hang around longer than
             # welcome go ahead and force a garbage collection
             gc.collect()
-
-    @lazyproperty
-    @deprecated('0.3', alternative='the ``compressed_data`` attribute',
-                pending=True)
-    def compData(self):
-        return self.compressed_data
 
     @property
     def shape(self):
@@ -1699,16 +1678,6 @@ class CompImageHDU(BinTableHDU):
         self.compressed_data._heapoffset = self._theap
         self.compressed_data._heapsize = heapsize
 
-    @deprecated('0.3', alternative='(refactor your code)')
-    def updateCompressedData(self):
-        self._update_compressed_data()
-
-    @deprecated('0.3',
-                alternative='(refactor your code; this function no '
-                            'longer does anything)')
-    def updateHeader(self):
-        pass
-
     def scale(self, type=None, option='old', bscale=1, bzero=0):
         """
         Scale image data by using ``BSCALE`` and ``BZERO``.
@@ -1881,9 +1850,6 @@ class CompImageHDU(BinTableHDU):
         if (closed and self._data_loaded and
                 _get_array_mmap(self.compressed_data) is not None):
             del self.compressed_data
-            # Close off the deprected compData attribute as well if it has been
-            # used
-            del self.compData
 
     # TODO: This was copied right out of _ImageBaseHDU; get rid of it once we
     # find a way to rewrite this class as either a subclass or wrapper for an
