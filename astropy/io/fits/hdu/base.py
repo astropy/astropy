@@ -19,7 +19,7 @@ from ..verify import _Verify, _ErrList
 
 from ....extern.six import string_types, add_metaclass
 from ....extern.six.moves import range
-from ....utils import lazyproperty, deprecated
+from ....utils import lazyproperty
 from ....utils.compat import suppress
 from ....utils.compat.funcsigs import signature, Parameter
 from ....utils.exceptions import AstropyUserWarning
@@ -240,102 +240,6 @@ class _BaseHDU(object):
     @property
     def _has_data(self):
         return self._data_loaded and self.data is not None
-
-    @property
-    @deprecated('0.3', alternative='the `._header_offset` attribute',
-                pending=True)
-    def _hdrLoc(self):
-        """The byte offset of this HDU's header in the file it came from;
-        available for backwards compatibility--use ._header_offset instead.
-        """
-
-        return self._header_offset
-
-    @_hdrLoc.setter
-    @deprecated('0.3', alternative='the `._header_offset` attribute',
-                pending=True)
-    def _hdrLoc(self, value):
-        self._header_offset = value
-
-    @property
-    @deprecated('0.3', alternative='the `._data_offset` attribute',
-                pending=True)
-    def _datLoc(self):
-        """The byte offset of this HDU's data portion in the file it came from;
-        available for backwards compatibility--use ._data_offset instead.
-        """
-
-        return self._data_offset
-
-    @_datLoc.setter
-    @deprecated('0.3', alternative='the `._data_offset` attribute',
-                pending=True)
-    def _datLoc(self, value):
-        self._data_offset = value
-
-    @property
-    @deprecated('0.3', alternative='the `._data_size` attribute',
-                pending=True)
-    def _datSpan(self):
-        """The byte size of this HDU's data portion in the file it came from;
-        available for backwards compatibility--use ._data_size instead.
-        """
-
-        return self._data_size
-
-    @_datSpan.setter
-    @deprecated('0.3', alternative='the `._data_size` attribute',
-                pending=True)
-    def _datSpan(self, value):
-        self._data_size = value
-
-    @property
-    @deprecated('0.3', alternative='the `._header_offset` attribute',
-                pending=True)
-    def _hdrLoc(self):
-        """The byte offset of this HDU's header in the file it came from;
-        available for backwards compatibility--use ._header_offset instead.
-        """
-
-        return self._header_offset
-
-    @_hdrLoc.setter
-    @deprecated('0.3', alternative='the `._header_offset` attribute',
-                pending=True)
-    def _hdrLoc(self, value):
-        self._header_offset = value
-
-    @property
-    @deprecated('0.3', alternative='the `._data_offset` attribute',
-                pending=True)
-    def _datLoc(self):
-        """The byte offset of this HDU's data portion in the file it came from;
-        available for backwards compatibility--use ._data_offset instead.
-        """
-
-        return self._data_offset
-
-    @_datLoc.setter
-    @deprecated('0.3', alternative='the `._data_offset` attribute',
-                pending=True)
-    def _datLoc(self, value):
-        self._data_offset = value
-
-    @property
-    @deprecated('0.3', alternative='the `._data_size` attribute',
-                pending=True)
-    def _datSpan(self):
-        """The byte size of this HDU's data portion in the file it came from;
-        available for backwards compatibility--use ._data_size instead.
-        """
-
-        return self._data_size
-
-    @_datSpan.setter
-    @deprecated('0.3', alternative='the `._data_size` attribute',
-                pending=True)
-    def _datSpan(self, value):
-        self._data_size = value
 
     @classmethod
     def register_hdu(cls, hducls):
@@ -1056,98 +960,6 @@ class _ValidHDU(_BaseHDU, _Verify):
         else:
             data = None
         return self.__class__(data=data, header=self._header.copy())
-
-    @deprecated('0.3', alternative='the ``.name`` attribute or `Header.set`',
-                pending=True)
-    def update_ext_name(self, value, comment=None, before=None,
-                        after=None, savecomment=False):
-        """
-        Update the extension name associated with the HDU.
-
-        If the keyword already exists in the Header, it's value and/or comment
-        will be updated.  If it does not exist, a new card will be created
-        and it will be placed before or after the specified location.
-        If no ``before`` or ``after`` is specified, it will be appended at
-        the end.
-
-        Parameters
-        ----------
-        value : str
-            Value to be used for the new extension name
-
-        comment : str, optional
-            To be used for updating, default=None.
-
-        before : str or int, optional
-            Name of the keyword, or index of the `Card` before which the new
-            card will be placed in the Header.  The argument ``before`` takes
-            precedence over ``after`` if both are specified.
-
-        after : str or int, optional
-            Name of the keyword, or index of the `Card` after which
-            the new card will be placed in the Header
-
-        savecomment : bool, optional
-            When `True`, preserve the current comment for an existing
-            keyword.  The argument ``savecomment`` takes precedence over
-            ``comment`` if both specified.  If ``comment`` is not
-            specified then the current comment will automatically be
-            preserved.
-        """
-
-        if 'EXTNAME' in self._header and savecomment:
-            comment = None
-
-        self._header.set('EXTNAME', value, comment, before, after)
-        # This may seem redundant, but the previous header.set call just
-        # handles anyone who might use the before/after keywords to set the
-        # position of the EXTNAME keyword.  Setting self.name = name does some
-        # additional processing on the value such as handling
-        # conf.extension_name_case_sensitive
-        self.name = value
-
-    @deprecated('0.3', alternative='the ``.ver`` attribute or `Header.set`',
-                pending=True)
-    def update_ext_version(self, value, comment=None, before=None,
-                           after=None, savecomment=False):
-        """
-        Update the extension version associated with the HDU.
-
-        If the keyword already exists in the Header, it's value and/or comment
-        will be updated.  If it does not exist, a new card will be created
-        and it will be placed before or after the specified location.
-        If no ``before`` or ``after`` is specified, it will be appended at
-        the end.
-
-        Parameters
-        ----------
-        value : str
-            Value to be used for the new extension version
-
-        comment : str, optional
-            To be used for updating; default=None.
-
-        before : str or int, optional
-            Name of the keyword, or index of the `Card` before which the new
-            card will be placed in the Header.  The argument ``before`` takes
-            precedence over ``after`` if both are specified.
-
-        after : str or int, optional
-            Name of the keyword, or index of the `Card` after which
-            the new card will be placed in the Header.
-
-        savecomment : bool, optional
-            When `True`, preserve the current comment for an existing
-            keyword.  The argument ``savecomment`` takes precedence over
-            ``comment`` if both specified.  If ``comment`` is not
-            specified then the current comment will automatically be
-            preserved.
-        """
-
-        if 'EXTVER' in self._header and savecomment:
-            comment = None
-
-        self._header.set('EXTVER', value, comment, before, after)
 
     def _verify(self, option='warn'):
         errs = _ErrList([], unit='Card')
