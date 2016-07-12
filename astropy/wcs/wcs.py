@@ -2511,6 +2511,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             relax &= ~WCSHDO_SIP
         else:
             do_sip = relax
+            relax = WCSHDO_all if relax is True else WCSHDO_safe
 
         relax = precision | relax
 
