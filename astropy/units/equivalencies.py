@@ -507,6 +507,20 @@ def brightness_temperature(beam_area, disp):
 
     return [(astrophys.Jy, si.K, convert_Jy_to_K, convert_K_to_Jy)]
 
+def beam_angular_area(beam_area):
+    """
+    Convert between the `beam` unit, which is commonly used to express the area
+    of a radio telescope resolution element, and an area on the sky.
+    """
+    beam = beam_area.to(si.sr).value
+
+    def convert_beam_to_sr(x_beam):
+        return x_beam * beam
+
+    def convert_sr_to_beam(x_sr):
+        return x_sr / beam
+
+    return [(astrophys.beam, si.sr, convert_beam_to_sr, convert_sr_to_beam)]
 
 def temperature():
     """Convert between Kelvin, Celsius, and Fahrenheit here because
