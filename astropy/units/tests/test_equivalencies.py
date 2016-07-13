@@ -525,6 +525,11 @@ def test_brightness_temperature():
         1.0, tb.to_value(
             u.Jy, equivalencies=u.brightness_temperature(omega_B, nu)))
 
+def test_beam():
+    omega_B = np.pi * (50 * u.arcsec) ** 2
+    new_beam = (5*u.beam).to(u.sr, u.beam_angular_area(omega_B))
+    np.testing.assert_almost_equal(omega_B.value * 5, new_beam.value)
+    assert new_beam.is_equivalent(u.sr)
 
 def test_equivalency_context():
     with u.set_enabled_equivalencies(u.dimensionless_angles()):
