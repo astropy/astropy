@@ -161,6 +161,9 @@ Other Changes and Additions
 - Initialization of ``Angle`` has been sped up for ``Quantity`` and ``Angle``
   input. [#4970]
 
+- To build the documentation, the ``build_sphinx`` command has been deprecated
+  in favor of ``build_docs``. [#5179]
+
 1.2.2 (unreleased)
 ------------------
 
