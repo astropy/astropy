@@ -594,13 +594,15 @@ class Quantity(np.ndarray):
 
     def _new_view(self, obj=None, unit=None):
         """
-        Create a Quantity view of obj, and set the unit
+        Create a Quantity view of some array-like input, and set the unit
 
-        By default, return a view of ``obj`` of the same class as ``self``
-        and with the unit passed on, or that of ``self``.  Subclasses can
-        override the type of class used with ``__quantity_subclass__``, and
-        can ensure other properties of ``self`` are copied using
-        `__array_finalize__`.
+        By default, return a view of ``obj`` of the same class as ``self`` and
+        with the same unit.  Subclasses can override the type of class for a
+        given unit using ``__quantity_subclass__``, and can ensure properties
+        other than the unit are copied using ``__array_finalize__``.
+
+        If the given unit defines a ``_quantity_class`` of which ``self``
+        is not an instance, a view using this class is taken.
 
         Parameters
         ----------
@@ -624,9 +626,11 @@ class Quantity(np.ndarray):
             quantity_subclass = self.__class__
         else:
             unit = Unit(unit)
-            quantity_subclass, subok = self.__quantity_subclass__(unit)
-            if subok:
-                quantity_subclass = self.__class__
+            quantity_subclass = getattr(unit, '_quantity_class', Quantity)
+            if isinstance(self, quantity_subclass):
+                quantity_subclass, subok = self.__quantity_subclass__(unit)
+                if subok:
+                    quantity_subclass = self.__class__
 
         # We only want to propagate information from ``self`` to our new view,
         # so obj should be a regular array.  By using ``np.array``, we also

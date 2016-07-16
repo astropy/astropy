@@ -377,6 +377,23 @@ class TestLogQuantityCreation(object):
         assert (q2._function_view / u.mag).to(1).value == -5.
 
 
+def test_conversion_to_and_from_physical_quantities():
+    """Ensures we can convert from regular quantities."""
+    mst = [10., 12., 14.] * u.STmag
+    flux_lambda = mst.physical
+    mst_roundtrip = flux_lambda.to(u.STmag)
+    # check we return a logquantity; see #5178.
+    assert isinstance(mst_roundtrip, u.Magnitude)
+    assert mst_roundtrip.unit == mst.unit
+    assert_allclose(mst_roundtrip.value, mst.value)
+    wave = [4956.8, 4959.55, 4962.3] * u.AA
+    flux_nu = mst.to(u.Jy, equivalencies=u.spectral_density(wave))
+    mst_roundtrip2 = flux_nu.to(u.STmag, u.spectral_density(wave))
+    assert isinstance(mst_roundtrip2, u.Magnitude)
+    assert mst_roundtrip2.unit == mst.unit
+    assert_allclose(mst_roundtrip2.value, mst.value)
+
+
 class TestLogQuantityViews(object):
     def setup(self):
         self.lq = u.Magnitude(np.arange(10.) * u.Jy)
