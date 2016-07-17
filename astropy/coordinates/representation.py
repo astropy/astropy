@@ -122,11 +122,17 @@ class BaseRepresentation(ShapedLikeNDArray):
     def _replicate(self, method, *args, **kwargs):
         """Replicate a coordinate object while applying a method to the arrays.
 
+        The method is any of the shape-changing methods for `~numpy.ndarray`
+        (``reshape``, ``swapaxes``, etc.), as well as those picking particular
+        elements (``__getitem__``, ``take``, etc.). It will be applied to the
+        underlying arrays (e.g., ``x``, ``y``, and ``z`` for
+        `~astropy.coordinates.CartesianRepresentation`), with the results used
+        to create a new instance.
+
         Parameters
         ----------
         method : str
             The method is applied to the internal ``components``.
-            Example methods: ``copy``, ``__getitem__``, ``reshape``.
         args : tuple
             Any positional arguments for ``method``.
         kwargs : dict

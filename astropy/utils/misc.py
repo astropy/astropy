@@ -856,7 +856,21 @@ def set_locale(name):
 class ShapedLikeNDArray(object):
     """Mixin class to provide shape-changing methods.
 
-    The class proper must define a ``shape`` property and ``_replicate`` method.
+    The class proper is assumed to have some underlying data, which are arrays
+    or array-like structures. It must define a ``shape`` property, which gives
+    the shape of those data, as well as a ``_replicate`` method that creates a
+    new instance in which a `~numpy.ndarray` method has been applied to those.
+
+    Furthermore, for consistency with `~numpy.ndarray`, it is recommended to
+    define a setter for the ``shape`` property, which, like the
+    `~numpy.ndarray.shape` property allows in-place reshaping the internal data
+    (and, unlike the ``reshape`` method raises an exception if this is not
+    possible).
+
+    This class also defines default implementations for ``ndim`` and ``size``
+    properties, calculating those from the ``shape``.  These can be overridden
+    by subclasses if there are faster ways to obtain those numbers.
+
     """
 
     @abc.abstractproperty
@@ -865,17 +879,23 @@ class ShapedLikeNDArray(object):
 
     @abc.abstractmethod
     def _replicate(method, *args, **kwargs):
-        """Replicate an instance, applying ``method`` to the underlying arrays.
+        """Replicate an instance, applying ``method`` to the underlying data.
+
+        The method is any of the shape-changing methods for `~numpy.ndarray`
+        (``reshape``, ``swapaxes``, etc.), as well as those picking particular
+        elements (``__getitem__``, ``take``, etc.). It will be applied to the
+        underlying arrays (e.g., ``jd1`` and ``jd2`` in `~astropy.time.Time`),
+        with the results used to create a new instance.
 
         Parameters
         ----------
         method : str
-            Method to be be applied to the internal arrays holding the instance
-            data (e.g., ``jd1`` and ``jd2`` for `~astropy.time.Time`)
+            Method to be applied to the instance's internal data arrays.
         args : tuple
             Any positional arguments for ``method``.
         kwargs : dict
             Any keyword arguments for ``method``.
+
         """
 
     # Typically, ndim, size, and isscalar will be overridden, but we might as
@@ -908,8 +928,10 @@ class ShapedLikeNDArray(object):
 
         Parameters are as for :meth:`~numpy.ndarray.reshape`.  Note that it is
         not always possible to change the shape of an array without copying the
-        data. If you want an error to be raise if the data is copied, you
-        should assign the new shape to the shape attribute.
+        data (see :func:`~numpy.reshape` documentation). If you want an error
+        to be raise if the data is copied, you should assign the new shape to
+        the shape attribute (note: this may not be implemented for all classes
+        using ``ShapedLikeNDArray``).
         """
         return self._replicate('reshape', *args, **kwargs)
 
@@ -953,8 +975,9 @@ class ShapedLikeNDArray(object):
     def swapaxes(self, *args, **kwargs):
         """Return an instance with the given axes interchanged.
 
-        Parameters are as for :meth:`~numpy.ndarray.swapaxes`.  All internal
-        data are views of the data of the original.
+        Parameters are as for :meth:`~numpy.ndarray.swapaxes`:
+        ``axis1, axis2``.  All internal data are views of the data of the
+        original.
         """
         return self._replicate('swapaxes', *args, **kwargs)
 
@@ -975,7 +998,7 @@ class ShapedLikeNDArray(object):
         return self._replicate('squeeze', *args, **kwargs)
 
     def take(self, indices, axis=None, mode='raise'):
-        """Return a new instance formed from the elements the given indices.
+        """Return a new instance formed from the elements at the given indices.
 
         Parameters are as for :meth:`~numpy.ndarray.take`, except that,
         obviously, no output array can be given.
