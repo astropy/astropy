@@ -35,18 +35,31 @@ PIOVER2 = np.pi / 2.
 _DEFAULT_PM = (0.035, 0.29)*u.arcsec
 
 
-def matrix_product(*args):
+def matrix_product(*matrices):
     """Matrix multiply all arguments together.
 
     Arguments should have dimension 2 or larger. Larger dimensional objects
     are interpreted as stacks of matrices residing in the last two dimensions.
+
+    This function mostly exists for readability: using `~numpy.matmul`
+    directly, one would have ``matmul(matmul(m1, m2), m3)``, etc. For even
+    better readability, one might consider using `~numpy.matrix` for the
+    arguments (so that one could write ``m1 * m2 * m3``), but then it is not
+    possible to handle stacks of matrices. Once only python >=3.5 is supported,
+    this function can be replaced by ``m1 @ m2 @ m3``.
     """
-    return reduce(matmul, args)
+    return reduce(matmul, matrices)
 
 
-def matrix_transpose(m):
-    """Transpose a matrix or stack of matrices by swapping the last two axes."""
-    return m.swapaxes(-2, -1)
+def matrix_transpose(matrix):
+    """Transpose a matrix or stack of matrices by swapping the last two axes.
+
+    This function mostly exists for readability; seeing ``.swapaxes(-2, -1)``
+    it is not that obvious that one does a transpose.  Note that one cannot
+    use `~numpy.ndarray.T`, as this transposes all axes and thus does not
+    work for stacks of matrices.
+    """
+    return matrix.swapaxes(-2, -1)
 
 
 def get_polar_motion(time):
