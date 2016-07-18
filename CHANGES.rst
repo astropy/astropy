@@ -212,6 +212,9 @@ Bug Fixes
     that occur from evaluating the function on the unscaled quantity value
     between __array_prepare__ and __array_wrap__. [#5153]
 
+  - Conversion from quantities to logarithmic units now correctly causes a
+    logarithmic quantity such as ``Magnitude`` to be returned. [#5183]
+  
 - ``astropy.utils``
 
 - ``astropy.visualization``
