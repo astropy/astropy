@@ -226,6 +226,8 @@ Bug Fixes
   - Fix use of the ``relax`` keyword in ``to_header`` when used to change the
     output precision. [#5164]
 
+  - Fix rotateCD().
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
