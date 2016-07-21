@@ -478,10 +478,6 @@ class Time(ShapedLikeNDArray):
         del self.cache
 
     @property
-    def ndim(self):
-        return self._time.jd1.ndim
-
-    @property
     def shape(self):
         """The shape of the time instances.
 
@@ -506,20 +502,12 @@ class Time(ShapedLikeNDArray):
             if val is not None and val.size > 1:
                 val.shape = shape
 
-    @property
-    def size(self):
-        return self._time.jd1.size
-
     def __bool__(self):
         """Any time should evaluate to True, except when it is empty."""
         return self.size > 0
 
     # In python2, __bool__ is not defined.
     __nonzero__ = __bool__
-
-    @property
-    def isscalar(self):
-        return self.shape == ()
 
     def _shaped_like_input(self, value):
         return value if self._time.jd1.shape else value.item()

@@ -160,18 +160,6 @@ class BaseRepresentation(ShapedLikeNDArray):
         return getattr(self, self.components[0]).shape
 
     @property
-    def ndim(self):
-        return getattr(self, self.components[0]).ndim
-
-    @property
-    def size(self):
-        return getattr(self, self.components[0]).size
-
-    @property
-    def isscalar(self):
-        return getattr(self, self.components[0]).isscalar
-
-    @property
     def _values(self):
         """Turn the coordinates into a record array with the coordinate values.
 
