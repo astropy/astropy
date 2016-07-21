@@ -119,8 +119,8 @@ class BaseRepresentation(ShapedLikeNDArray):
             name = name[:-14]
         return name
 
-    def _replicate(self, method, *args, **kwargs):
-        """Replicate a coordinate object while applying a method to the arrays.
+    def _apply(self, method, *args, **kwargs):
+        """Create a new coordinate object with ``method`` applied to the arrays.
 
         The method is any of the shape-changing methods for `~numpy.ndarray`
         (``reshape``, ``swapaxes``, etc.), as well as those picking particular

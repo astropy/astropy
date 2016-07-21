@@ -727,7 +727,7 @@ class Time(ShapedLikeNDArray):
         tm : Time object
             Copy of this object
         """
-        return self._replicate(format=format, method='copy')
+        return self._apply(format=format, method='copy')
 
     def replicate(self, format=None, copy=False):
         """
@@ -758,15 +758,10 @@ class Time(ShapedLikeNDArray):
         tm : Time object
             Replica of this object
         """
-        # To avoid recalculating integer day + fraction, no longer just
-        # instantiate a new class instance, but rather do the steps by hand.
-        # This also avoids quite a bit of unnecessary work in __init__
-        #  tm = self.__class__(self._time.jd1, self._time.jd2,
-        #                      format='jd', scale=self.scale, copy=copy)
-        return self._replicate(format=format, method='copy' if copy else None)
+        return self._apply(format=format, method='copy' if copy else None)
 
-    def _replicate(self, method=None, *args, **kwargs):
-        """Replicate a time object, possibly applying a method to the arrays.
+    def _apply(self, method=None, *args, **kwargs):
+        """Create a new time object, possibly applying a method to the arrays.
 
         Parameters
         ----------
