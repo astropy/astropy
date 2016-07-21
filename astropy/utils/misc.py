@@ -858,8 +858,8 @@ class ShapedLikeNDArray(object):
 
     The class proper is assumed to have some underlying data, which are arrays
     or array-like structures. It must define a ``shape`` property, which gives
-    the shape of those data, as well as a ``_replicate`` method that creates a
-    new instance in which a `~numpy.ndarray` method has been applied to those.
+    the shape of those data, as well as an ``_apply`` method that creates a new
+    instance in which a `~numpy.ndarray` method has been applied to those.
 
     Furthermore, for consistency with `~numpy.ndarray`, it is recommended to
     define a setter for the ``shape`` property, which, like the
@@ -878,8 +878,8 @@ class ShapedLikeNDArray(object):
         """The shape of the instance and underlying arrays."""
 
     @abc.abstractmethod
-    def _replicate(method, *args, **kwargs):
-        """Replicate an instance, applying ``method`` to the underlying data.
+    def _apply(method, *args, **kwargs):
+        """Create a new instance, with ``method`` applied to underlying data.
 
         The method is any of the shape-changing methods for `~numpy.ndarray`
         (``reshape``, ``swapaxes``, etc.), as well as those picking particular
@@ -921,7 +921,7 @@ class ShapedLikeNDArray(object):
         if self.isscalar:
             raise TypeError('scalar {0!r} object is not subscriptable.'.format(
                 self.__class__.__name__))
-        return self._replicate('__getitem__', item)
+        return self._apply('__getitem__', item)
 
     def reshape(self, *args, **kwargs):
         """Returns an instance containing the same data with a new shape.
@@ -933,7 +933,7 @@ class ShapedLikeNDArray(object):
         the shape attribute (note: this may not be implemented for all classes
         using ``ShapedLikeNDArray``).
         """
-        return self._replicate('reshape', *args, **kwargs)
+        return self._apply('reshape', *args, **kwargs)
 
     def ravel(self, *args, **kwargs):
         """Return an instance with the array collapsed into one dimension.
@@ -943,14 +943,14 @@ class ShapedLikeNDArray(object):
         If you want an error to be raise if the data is copied, you should
         should assign shape ``(-1,)`` to the shape attribute.
         """
-        return self._replicate('ravel', *args, **kwargs)
+        return self._apply('ravel', *args, **kwargs)
 
     def flatten(self, *args, **kwargs):
         """Return a copy with the array collapsed into one dimension.
 
         Parameters are as for :meth:`~numpy.ndarray.flatten`.
         """
-        return self._replicate('flatten', *args, **kwargs)
+        return self._apply('flatten', *args, **kwargs)
 
     def transpose(self, *args, **kwargs):
         """Return an instance with the data transposed.
@@ -958,7 +958,7 @@ class ShapedLikeNDArray(object):
         Parameters are as for :meth:`~numpy.ndarray.transpose`.  All internal
         data are views of the data of the original.
         """
-        return self._replicate('transpose', *args, **kwargs)
+        return self._apply('transpose', *args, **kwargs)
 
     @property
     def T(self):
@@ -979,7 +979,7 @@ class ShapedLikeNDArray(object):
         ``axis1, axis2``.  All internal data are views of the data of the
         original.
         """
-        return self._replicate('swapaxes', *args, **kwargs)
+        return self._apply('swapaxes', *args, **kwargs)
 
     def diagonal(self, *args, **kwargs):
         """Return an instance with the specified diagonals.
@@ -987,7 +987,7 @@ class ShapedLikeNDArray(object):
         Parameters are as for :meth:`~numpy.ndarray.diagonal`.  All internal
         data are views of the data of the original.
         """
-        return self._replicate('diagonal', *args, **kwargs)
+        return self._apply('diagonal', *args, **kwargs)
 
     def squeeze(self, *args, **kwargs):
         """Return an instance with single-dimensional shape entries removed
@@ -995,7 +995,7 @@ class ShapedLikeNDArray(object):
         Parameters are as for :meth:`~numpy.ndarray.squeeze`.  All internal
         data are views of the data of the original.
         """
-        return self._replicate('squeeze', *args, **kwargs)
+        return self._apply('squeeze', *args, **kwargs)
 
     def take(self, indices, axis=None, mode='raise'):
         """Return a new instance formed from the elements at the given indices.
@@ -1003,4 +1003,4 @@ class ShapedLikeNDArray(object):
         Parameters are as for :meth:`~numpy.ndarray.take`, except that,
         obviously, no output array can be given.
         """
-        return self._replicate('take', indices, axis=axis, mode=mode)
+        return self._apply('take', indices, axis=axis, mode=mode)
