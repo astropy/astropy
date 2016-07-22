@@ -6,7 +6,8 @@ from __future__ import (absolute_import, unicode_literals, division,
 import numpy as np
 
 from ... import units as u
-from ..angles import Angle, rotation_matrix
+from ..angles import Angle
+from ..matrix_utilities import rotation_matrix
 from ..representation import CartesianRepresentation, UnitSphericalRepresentation
 from ..baseframe import (BaseCoordinateFrame, FrameAttribute,
                          frame_transform_graph)
