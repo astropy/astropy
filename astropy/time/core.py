@@ -482,25 +482,41 @@ class Time(ShapedLikeNDArray):
         """The shape of the time instances.
 
         Like `~numpy.ndarray.shape`, can be set to a new shape by assigning a
-        tuple.
+        tuple.  Note that if different instances share some but not all
+        underlying data, setting the shape of one instance can make the other
+        instance unusable.  Hence, it is strongly recommended to get new,
+        reshaped instances with the ``reshape`` method.
 
         Raises
         ------
-        AttributeError: if the shape of the ``jd1``, ``jd2``, ``location``,
-        ``delta_ut1_utc``, or ``delta_tdb_tt`` attributes cannot be changed
-        without the arrays being copied.  For these cases, use the
-        `Time.reshape` method.
+        AttributeError
+            If the shape of the ``jd1``, ``jd2``, ``location``,
+            ``delta_ut1_utc``, or ``delta_tdb_tt`` attributes cannot be changed
+            without the arrays being copied.  For these cases, use the
+            `Time.reshape` method (which copies any arrays that cannot be
+            reshaped in-place).
         """
         return self._time.jd1.shape
 
     @shape.setter
     def shape(self, shape):
-        self._time.jd1.shape = shape
-        self._time.jd2.shape = shape
-        for attr in ('_delta_ut1_utc', '_delta_tdb_tt', 'location'):
+        # We have to keep track of arrays that were already reshaped,
+        # since we may have to return those to their original shape if a later
+        # shape-setting fails.
+        reshaped = []
+        oldshape = self.shape
+        for attr in ('jd1', 'jd2', '_delta_ut1_utc', '_delta_tdb_tt',
+                     'location'):
             val = getattr(self, attr, None)
             if val is not None and val.size > 1:
-                val.shape = shape
+                try:
+                    val.shape = shape
+                except AttributeError:
+                    for val2 in reshaped:
+                        val2.shape = oldshape
+                    raise
+                else:
+                    reshaped.append(val)
 
     def __bool__(self):
         """Any time should evaluate to True, except when it is empty."""
