@@ -3,7 +3,7 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from ..angles import rotation_matrix
+from ..matrix_utilities import rotation_matrix
 from ..baseframe import frame_transform_graph
 from ..transformations import StaticMatrixTransform
 

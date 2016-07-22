@@ -15,7 +15,7 @@ import numpy as np
 
 from ..time import Time
 from .. import units as u
-from .angles import rotation_matrix
+from .matrix_utilities import rotation_matrix
 from .builtin_frames.utils import matrix_product, matrix_transpose
 
 

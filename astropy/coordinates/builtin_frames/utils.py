@@ -7,8 +7,8 @@ the ``builtin_frames`` package.
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-import warnings
 from functools import reduce
+import warnings
 
 import numpy as np
 from ...utils.compat.numpy import matmul

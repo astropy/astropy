@@ -9,7 +9,7 @@ from ..transformations import DynamicMatrixTransform, FunctionTransform
 from ..baseframe import (CoordinateAttribute, QuantityFrameAttribute,
                          frame_transform_graph, RepresentationMapping,
                          BaseCoordinateFrame)
-from ..angles import rotation_matrix
+from ..matrix_utilities import rotation_matrix
 from .utils import matrix_product, matrix_transpose
 from ...utils.compat import namedtuple_asdict
 

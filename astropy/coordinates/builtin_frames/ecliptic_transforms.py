@@ -9,7 +9,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 from ... import units as u
 from ..baseframe import frame_transform_graph
 from ..transformations import FunctionTransform, DynamicMatrixTransform
-from ..angles import rotation_matrix
+from ..matrix_utilities import rotation_matrix
 from ..representation import CartesianRepresentation
 from ... import _erfa as erfa
 
