@@ -104,6 +104,45 @@ class TestManipulation():
         assert s1_reshape2.distance.shape == (3, 14)
         assert np.may_share_memory(s1_reshape2.distance, self.s1.distance)
 
+    def test_shape_setting(self):
+        # Shape-setting should be on the object itself, since copying removes
+        # zero-strides due to broadcasting.  We reset the objects at the end.
+        self.s0.shape = (2, 3, 7)
+        assert self.s0.shape == (2, 3, 7)
+        assert self.s0.lon.shape == (2, 3, 7)
+        assert self.s0.lat.shape == (2, 3, 7)
+        assert self.s0.distance.shape == (2, 3, 7)
+        # this works with the broadcasting.
+        self.s1.shape = (2, 3, 7)
+        assert self.s1.shape == (2, 3, 7)
+        assert self.s1.lon.shape == (2, 3, 7)
+        assert self.s1.lat.shape == (2, 3, 7)
+        assert self.s1.distance.shape == (2, 3, 7)
+        assert self.s1.distance.strides == (0, 0, 0)
+        # but this one does not.
+        oldshape = self.s1.shape
+        with pytest.raises(AttributeError):
+            self.s1.shape = (42,)
+        assert self.s1.shape == oldshape
+        assert self.s1.lon.shape == oldshape
+        assert self.s1.lat.shape == oldshape
+        assert self.s1.distance.shape == oldshape
+        # Finally, a more complicated one that checks that things get reset
+        # properly if it is not the first component that fails.
+        s2 = SphericalRepresentation(self.s1.lon.copy(), self.s1.lat,
+                                     self.s1.distance, copy=False)
+        assert 0 not in s2.lon.strides
+        assert 0 in s2.lat.strides
+        with pytest.raises(AttributeError):
+            s2.shape = (42,)
+        assert s2.shape == oldshape
+        assert s2.lon.shape == oldshape
+        assert s2.lat.shape == oldshape
+        assert s2.distance.shape == oldshape
+        assert 0 not in s2.lon.strides
+        assert 0 in s2.lat.strides
+        self.setup()
+
     def test_squeeze(self):
         s0_squeeze = self.s0.reshape(3, 1, 2, 1, 7).squeeze()
         assert s0_squeeze.shape == (3, 2, 7)
