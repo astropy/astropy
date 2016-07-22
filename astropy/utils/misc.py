@@ -898,8 +898,6 @@ class ShapedLikeNDArray(object):
 
         """
 
-    # Typically, ndim, size, and isscalar will be overridden, but we might as
-    # well set sensible defaults.
     @property
     def ndim(self):
         """The number of dimensions of the instance and underlying arrays."""
