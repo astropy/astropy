@@ -9,11 +9,12 @@ import numpy as np
 
 from ..baseframe import frame_transform_graph
 from ..transformations import DynamicMatrixTransform
+from ..matrix_utilities import matrix_product, matrix_transpose
+
 
 from .fk4 import FK4NoETerms
 from .fk5 import FK5
-from .utils import (EQUINOX_B1950, EQUINOX_J2000,
-                    matrix_product, matrix_transpose)
+from .utils import EQUINOX_B1950, EQUINOX_J2000
 
 
 # FK5 to/from FK4 ------------------->

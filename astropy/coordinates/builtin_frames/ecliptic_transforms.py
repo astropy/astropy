@@ -9,14 +9,15 @@ from __future__ import (absolute_import, unicode_literals, division,
 from ... import units as u
 from ..baseframe import frame_transform_graph
 from ..transformations import FunctionTransform, DynamicMatrixTransform
-from ..matrix_utilities import rotation_matrix
+from ..matrix_utilities import (rotation_matrix,
+                                matrix_product, matrix_transpose)
 from ..representation import CartesianRepresentation
 from ... import _erfa as erfa
 
 from .icrs import ICRS
 from .gcrs import GCRS
 from .ecliptic import GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic
-from .utils import get_jd12, matrix_product, matrix_transpose
+from .utils import get_jd12
 from ..errors import UnitsError
 
 

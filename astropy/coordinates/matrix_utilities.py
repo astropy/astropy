@@ -4,10 +4,39 @@
 """
 This module contains utililies used for constructing rotation matrices.
 """
+from functools import reduce
 import numpy as np
+from ..utils.compat.numpy import matmul
 
 from .. import units as u
 from .angles import Angle
+
+
+def matrix_product(*matrices):
+    """Matrix multiply all arguments together.
+
+    Arguments should have dimension 2 or larger. Larger dimensional objects
+    are interpreted as stacks of matrices residing in the last two dimensions.
+
+    This function mostly exists for readability: using `~numpy.matmul`
+    directly, one would have ``matmul(matmul(m1, m2), m3)``, etc. For even
+    better readability, one might consider using `~numpy.matrix` for the
+    arguments (so that one could write ``m1 * m2 * m3``), but then it is not
+    possible to handle stacks of matrices. Once only python >=3.5 is supported,
+    this function can be replaced by ``m1 @ m2 @ m3``.
+    """
+    return reduce(matmul, matrices)
+
+
+def matrix_transpose(matrix):
+    """Transpose a matrix or stack of matrices by swapping the last two axes.
+
+    This function mostly exists for readability; seeing ``.swapaxes(-2, -1)``
+    it is not that obvious that one does a transpose.  Note that one cannot
+    use `~numpy.ndarray.T`, as this transposes all axes and thus does not
+    work for stacks of matrices.
+    """
+    return matrix.swapaxes(-2, -1)
 
 
 def rotation_matrix(angle, axis='z', unit=None):

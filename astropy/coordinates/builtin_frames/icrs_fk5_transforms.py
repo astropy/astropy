@@ -3,13 +3,14 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from ..matrix_utilities import rotation_matrix
+from ..matrix_utilities import (rotation_matrix,
+                                matrix_product, matrix_transpose)
 from ..baseframe import frame_transform_graph
 from ..transformations import DynamicMatrixTransform
 
 from .fk5 import FK5
 from .icrs import ICRS
-from .utils import EQUINOX_J2000, matrix_product, matrix_transpose
+from .utils import EQUINOX_J2000
 
 
 def _icrs_to_fk5_matrix():

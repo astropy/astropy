@@ -3,13 +3,13 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from ..matrix_utilities import rotation_matrix
+from ..matrix_utilities import (rotation_matrix,
+                                matrix_product, matrix_transpose)
 from ..baseframe import frame_transform_graph
 from ..transformations import StaticMatrixTransform
 
 from .galactic import Galactic
 from .supergalactic import Supergalactic
-from .utils import matrix_product, matrix_transpose
 
 
 @frame_transform_graph.transform(StaticMatrixTransform, Galactic, Supergalactic)

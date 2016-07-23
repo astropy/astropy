@@ -9,8 +9,8 @@ from ..transformations import DynamicMatrixTransform, FunctionTransform
 from ..baseframe import (CoordinateAttribute, QuantityFrameAttribute,
                          frame_transform_graph, RepresentationMapping,
                          BaseCoordinateFrame)
-from ..matrix_utilities import rotation_matrix
-from .utils import matrix_product, matrix_transpose
+from ..matrix_utilities import (rotation_matrix,
+                                matrix_product, matrix_transpose)
 from ...utils.compat import namedtuple_asdict
 
 _skyoffset_cache = {}
