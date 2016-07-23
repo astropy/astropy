@@ -344,8 +344,8 @@ class LinearLSQFitter(object):
 class FittingWithOutlierRemoval(object):
     """
     This class combines an outlier removal technique with a fitting procedure.
-    Basically, given a number of iterations `niter`, outliers are removed and
-    fitting is performed for each iteration.
+    Basically, given a number of iterations ``niter``, outliers are removed
+    and fitting is performed for each iteration.
 
     Parameters
     ----------
