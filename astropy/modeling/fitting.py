@@ -344,10 +344,10 @@ class LinearLSQFitter(object):
 class FittingWithOutlierRemoval(object):
     """
     This class combines an outlier removal technique with a fitting procedure.
-    Basically, given a number of iterations `niter`, outliers are removed in
-    and fitting is performed for each iteration.
+    Basically, given a number of iterations `niter`, outliers are removed and
+    fitting is performed for each iteration.
 
-    Attributes
+    Parameters
     ----------
     fitter : An Astropy fitter
         An instance of any Astropy fitter, i.e., LinearLSQFitter,
@@ -366,41 +366,8 @@ class FittingWithOutlierRemoval(object):
         self.niter = niter
         self.outlier_kwargs = outlier_kwargs
 
-    @property
-    def fitter(self):
-        return self._fitter
-
-    @fitter.setter
-    def fitter(self, fitter):
-        if isinstance(type(fitter), _FitterMeta):
-            self._fitter = fitter
-        else:
-            raise ValueError('fitter is expected to be an Astropy Fitter.')
-
-    @property
-    def outlier_func(self):
-        return self._outlier_func
-
-    @outlier_func.setter
-    def outlier_func(self, outlier_func):
-        if inspect.isfunction(outlier_func):
-            self._outlier_func = outlier_func
-        else:
-            raise ValueError('outlier_func is expected to be a callable.')
-
-    @property
-    def niter(self):
-        return self._niter
-
-    @niter.setter
-    def niter(self, niter):
-        if isinstance(niter, type(1)):
-            self._niter = niter
-        else:
-            raise ValueError('niter is expected to be an integer.')
-
     def __str__(self):
-        return ("Fitter: {0}\nOutlier function: {1}\nNum. of iterations: {2}" +
+        return ("Fitter: {0}\nOutlier function: {1}\nNum. of iterations: {2}"+
                 ("\nOutlier func. args.: {3}"))\
                 .format(self.fitter__class__.__name__,\
                         self.outlier_func.__name__, self.niter,\

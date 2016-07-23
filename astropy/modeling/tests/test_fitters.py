@@ -463,16 +463,16 @@ class Test2DFittingWithOutlierRemoval(object):
         """computes the centroid of the data as the initial guess for the
         center position"""
 
-        wx = x*data
-        wy = y*data
+        wx = x * data
+        wy = y * data
         total_intensity = np.sum(data)
-        x_mean = np.sum(wx)/total_intensity
-        y_mean = np.sum(wy)/total_intensity
+        x_mean = np.sum(wx) / total_intensity
+        y_mean = np.sum(wy) / total_intensity
 
-        x_to_pixel = x[0].size/(x[x[0].size-1][x[0].size-1] - x[0][0])
-        y_to_pixel = y[0].size/(y[y[0].size-1][y[0].size-1] - y[0][0])
-        x_pos = np.around(x_mean*x_to_pixel + x[0].size/2.).astype(int)
-        y_pos = np.around(y_mean*y_to_pixel + y[0].size/2.).astype(int)
+        x_to_pixel = x[0].size / (x[x[0].size - 1][x[0].size - 1] - x[0][0])
+        y_to_pixel = y[0].size / (y[y[0].size - 1][y[0].size - 1] - y[0][0])
+        x_pos = np.around(x_mean * x_to_pixel + x[0].size / 2.).astype(int)
+        y_pos = np.around(y_mean * y_to_pixel + y[0].size / 2.).astype(int)
 
         amplitude = data[y_pos][x_pos]
 
