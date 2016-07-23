@@ -7,7 +7,7 @@ import numpy as np
 
 from ... import units as u
 from ..angles import Angle
-from ..matrix_utilities import rotation_matrix
+from ..matrix_utilities import rotation_matrix, matrix_product
 from ..representation import CartesianRepresentation, UnitSphericalRepresentation
 from ..baseframe import (BaseCoordinateFrame, FrameAttribute,
                          frame_transform_graph)
@@ -15,7 +15,6 @@ from ..transformations import FunctionTransform
 from ..errors import ConvertError
 
 from .icrs import ICRS
-from .utils import matrix_product
 
 # Measured by minimizing the difference between a plane of coordinates along
 #   l=0, b=[-90,90] and the Galactocentric x-z plane

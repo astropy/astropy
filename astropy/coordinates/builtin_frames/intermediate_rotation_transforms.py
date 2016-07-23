@@ -12,12 +12,13 @@ import numpy as np
 
 from ..baseframe import frame_transform_graph
 from ..transformations import FunctionTransform
+from ..matrix_utilities import matrix_transpose
 from ... import _erfa as erfa
 
 from .gcrs import GCRS, PrecessedGeocentric
 from .cirs import CIRS
 from .itrs import ITRS
-from .utils import get_polar_motion, get_jd12, matrix_transpose
+from .utils import get_polar_motion, get_jd12
 
 # # first define helper functions
 def gcrs_to_cirs_mat(time):
