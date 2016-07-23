@@ -119,6 +119,12 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - The use of ``np.matrix`` instances in the transformations has been
+    deprecated, since this class does not allow stacks of matrices.  As a
+    result, the semi-public functions ``angles.rotation_matrix`` and
+    ``angles.angle_axis`` are also deprecated, in favour of the new routines
+    with the same name in ``coordinates.matrix_utilities``. [#5104]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
