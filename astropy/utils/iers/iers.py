@@ -11,11 +11,6 @@ celestial-to-terrestrial coordinate transformations
 
 from warnings import warn
 
-try:
-    from urlparse import urlparse
-except ImportError:
-    from urllib.parse import urlparse
-
 import numpy as np
 
 from ... import config as _config
@@ -26,6 +21,7 @@ from ... import utils
 from ...utils.exceptions import AstropyWarning
 from ...tests import disable_internet
 from ...extern.six.moves.urllib.error import HTTPError
+from ...extern.six.moves.urllib.parse import urlparse
 
 __all__ = ['Conf', 'conf',
            'IERS', 'IERS_B', 'IERS_A', 'IERS_Auto',
@@ -102,7 +98,7 @@ class Conf(_config.ConfigNamespace):
 
     iers_auto_url_backup = _config.ConfigItem(
         IERS_A_URL_BACKUP,
-        'URL for auto-downloading IERS file data')
+        'Backup URL for auto-downloading IERS file data')
 
     remote_timeout = _config.ConfigItem(
         10.0,
