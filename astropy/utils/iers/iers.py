@@ -33,9 +33,8 @@ __all__ = ['Conf', 'conf',
 
 # IERS-A default file name, URL, and ReadMe with content description
 IERS_A_FILE = 'finals2000A.all'
-IERS_A_URL = 'http://maia.usno.navy.mil/ser7/finals2000A.all'
+IERS_A_URL = 'http://maia.usno.navy.mil/ser7/finals2000A.all,https://datacenter.iers.org/eop/-/somos/5Rgv/latest/7'
 IERS_A_README = get_pkg_data_filename('data/ReadMe.finals2000A')
-IERS_A_URL_BACKUP = 'https://datacenter.iers.org/eop/-/somos/5Rgv/latest/7'
 
 # IERS-B default file name, URL, and ReadMe with content description
 IERS_B_FILE = get_pkg_data_filename('data/eopc04_IAU2000.62-now')
@@ -95,10 +94,6 @@ class Conf(_config.ConfigNamespace):
     iers_auto_url = _config.ConfigItem(
         IERS_A_URL,
         'URL for auto-downloading IERS file data.')
-
-    iers_auto_url_backup = _config.ConfigItem(
-        IERS_A_URL_BACKUP,
-        'Backup URL for auto-downloading IERS file data')
 
     remote_timeout = _config.ConfigItem(
         10.0,
@@ -577,10 +572,6 @@ class IERS_Auto(IERS_A):
 
         try:
             filename = download_file(conf.iers_auto_url, cache=True)
-        except HTTPError:
-            global IERS_A_URL
-            IERS_A_URL = IERS_A_URL_BACKUP
-            filename = download_file(conf.iers_auto_url_backup, cache=True)
         except Exception as err:
             # Issue a warning here, perhaps user is offline.  An exception
             # will be raised downstream when actually trying to interpolate
