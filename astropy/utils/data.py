@@ -990,90 +990,103 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
 
     url_key = remote_url
 
-    try:
-        if cache:
-            # We don't need to acquire the lock here, since we are only reading
-            with shelve.open(urlmapfn) as url2hash:
-                if url_key in url2hash:
-                    return url2hash[url_key]
+    url_key_list = url_key.split(',')
 
-        with contextlib.closing(urllib.request.urlopen(
-                remote_url, timeout=timeout)) as remote:
-            # keep a hash to rename the local file to the hashed name
-            hash = hashlib.md5()
+    # Going through the alternative URLs until the first one works
 
-            info = remote.info()
-            if 'Content-Length' in info:
-                try:
-                    size = int(info['Content-Length'])
-                except ValueError:
-                    size = None
-            else:
-                size = None
-
-            if size is not None:
-                check_free_space_in_dir(gettempdir(), size)
-                if cache:
-                    check_free_space_in_dir(dldir, size)
-
-            if show_progress:
-                progress_stream = sys.stdout
-            else:
-                progress_stream = io.StringIO()
-
-            dlmsg = "Downloading {0}".format(remote_url)
-            with ProgressBarOrSpinner(size, dlmsg, file=progress_stream) as p:
-                with NamedTemporaryFile(delete=False) as f:
-                    try:
-                        bytes_read = 0
-                        block = remote.read(conf.download_block_size)
-                        while block:
-                            f.write(block)
-                            hash.update(block)
-                            bytes_read += len(block)
-                            p.update(bytes_read)
-                            block = remote.read(conf.download_block_size)
-                    except BaseException:
-                        if os.path.exists(f.name):
-                            os.remove(f.name)
-                        raise
-
-        if cache:
-            _acquire_download_cache_lock()
-            try:
-                with shelve.open(urlmapfn) as url2hash:
-                    # We check now to see if another process has
-                    # inadvertently written the file underneath us
-                    # already
+    error = None
+    for url_key in url_key_list:
+        try:
+            if cache:
+                # We don't need to acquire the lock here, since we are only
+                # reading
+                with _open_shelve(urlmapfn, True) as url2hash:
                     if url_key in url2hash:
                         return url2hash[url_key]
-                    local_path = os.path.join(dldir, hash.hexdigest())
-                    shutil.move(f.name, local_path)
-                    url2hash[url_key] = local_path
-            finally:
-                _release_download_cache_lock()
-        else:
-            local_path = f.name
-            if missing_cache:
-                msg = ('File downloaded to temporary location due to problem '
-                       'with cache directory and will not be cached.')
-                warn(CacheMissingWarning(msg, local_path))
-            if conf.delete_temporary_downloads_at_exit:
-                global _tempfilestodel
-                _tempfilestodel.append(local_path)
-    except urllib.error.URLError as e:
-        if hasattr(e, 'reason') and hasattr(e.reason, 'errno') and e.reason.errno == 8:
-            e.reason.strerror = e.reason.strerror + '. requested URL: ' + remote_url
-            e.reason.args = (e.reason.errno, e.reason.strerror)
-        raise e
-    except socket.timeout as e:
-        # this isn't supposed to happen, but occasionally a socket.timeout gets
-        # through.  It's supposed to be caught in `urrlib2` and raised in this
-        # way, but for some reason in mysterious circumstances it doesn't. So
-        # we'll just re-raise it here instead
-        raise urllib.error.URLError(e)
 
-    return local_path
+            with contextlib.closing(urllib.request.urlopen(
+                    remote_url, timeout=timeout)) as remote:
+                #keep a hash to rename the local file to the hashed name
+                hash = hashlib.md5()
+
+                info = remote.info()
+                if 'Content-Length' in info:
+                    try:
+                        size = int(info['Content-Length'])
+                    except ValueError:
+                        size = None
+                else:
+                    size = None
+
+                if size is not None:
+                    check_free_space_in_dir(gettempdir(), size)
+                    if cache:
+                        check_free_space_in_dir(dldir, size)
+
+                if show_progress:
+                    progress_stream = sys.stdout
+                else:
+                    progress_stream = io.StringIO()
+
+                dlmsg = "Downloading {0}".format(remote_url)
+                with ProgressBarOrSpinner(size, dlmsg, file=progress_stream) as p:
+                    with NamedTemporaryFile(delete=False) as f:
+                        try:
+                            bytes_read = 0
+                            block = remote.read(conf.download_block_size)
+
+                            while block:
+                                f.write(block)
+                                hash.update(block)
+                                bytes_read += len(block)
+                                p.update(bytes_read)
+                                block = remote.read(conf.download_block_size)
+                        except BaseException:
+                            if os.path.exists(f.name):
+                                os.remove(f.name)
+                            raise
+
+            if cache:
+                _acquire_download_cache_lock()
+                try:
+                    with _open_shelve(urlmapfn, True) as url2hash:
+                        # We check now to see if another process has
+                        # inadvertently written the file underneath us
+                        # already
+                        if url_key in url2hash:
+                            return url2hash[url_key]
+                        local_path = os.path.join(dldir, hash.hexdigest())
+                        shutil.move(f.name, local_path)
+                        url2hash[url_key] = local_path
+                finally:
+                    _release_download_cache_lock()
+            else:
+                local_path = f.name
+                if missing_cache:
+                    msg = ('File downloaded to temporary location due to '
+                           'problem with cache directory and will not be cached.')
+                    warn(CacheMissingWarning(msg, local_path))
+                if conf.delete_temporary_downloads_at_exit:
+                    global _tempfilestodel
+                    _tempfilestodel.append(local_path)
+            return local_path
+        except urllib.error.URLError as e:
+            if (hasattr(e, 'reason') and hasattr(e.reason, 'errno') and
+                    e.reason.errno == 8):
+                e.reason.strerror = (e.reason.strerror +
+                                     '. requested URL: ' + remote_url)
+                e.reason.args = (e.reason.errno, e.reason.strerror)
+            error = e
+        except socket.timeout as e:
+            # this isn't supposed to happen, but occasionally a
+            # socket.timeout gets through.  It's supposed to be caught in
+            # `urrlib2` and raised in this way, but for some reason in
+            # mysterious circumstances it doesn't. So we'll just re-raise it
+            # here instead
+            error = urllib.error.URLError(e)
+
+    if error is not None:
+        raise error
 
 
 def is_url_in_cache(url_key):
