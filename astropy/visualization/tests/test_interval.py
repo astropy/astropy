@@ -19,6 +19,17 @@ class TestInterval(object):
         np.testing.assert_allclose(vmin, -10.)
         np.testing.assert_allclose(vmax, +15.)
 
+    def test_manual_defaults(self):
+        interval = ManualInterval(vmin=-10.)
+        vmin, vmax = interval.get_limits(self.data)
+        np.testing.assert_allclose(vmin, -10.)
+        np.testing.assert_allclose(vmax, np.max(self.data))
+
+        interval = ManualInterval(vmax=15.)
+        vmin, vmax = interval.get_limits(self.data)
+        np.testing.assert_allclose(vmin, np.min(self.data))
+        np.testing.assert_allclose(vmax, 15.)
+
     def test_minmax(self):
         interval = MinMaxInterval()
         vmin, vmax = interval.get_limits(self.data)
