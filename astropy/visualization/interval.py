@@ -56,18 +56,22 @@ class ManualInterval(BaseInterval):
 
     Parameters
     ----------
-    vmin : float
-        The minimum value in the scaling
-    vmax : float
-        The maximum value in the scaling
+    vmin : float, optional
+        The minimum value in the scaling.  Defaults to the image
+        minimum.
+    vmax : float, optional
+        The maximum value in the scaling.  Defaults to the image
+        maximum.
     """
 
-    def __init__(self, vmin, vmax):
+    def __init__(self, vmin=None, vmax=None):
         self.vmin = vmin
         self.vmax = vmax
 
     def get_limits(self, values):
-        return self.vmin, self.vmax
+        vmin = self.vmin or np.min(values)
+        vmax = self.vmax or np.max(values)
+        return vmin, vmax
 
 
 class MinMaxInterval(BaseInterval):
