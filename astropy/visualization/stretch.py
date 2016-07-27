@@ -76,9 +76,7 @@ class BaseStretch(BaseTransform):
 
     @property
     def inverse(self):
-        """
-        Return a stretch that performs the inverse operation.
-        """
+        """A stretch object that performs the inverse operation."""
 
 
 class LinearStretch(BaseStretch):
@@ -96,6 +94,7 @@ class LinearStretch(BaseStretch):
 
     @property
     def inverse(self):
+        """A stretch object that performs the inverse operation."""
         return LinearStretch()
 
 
@@ -116,6 +115,7 @@ class SqrtStretch(BaseStretch):
 
     @property
     def inverse(self):
+        """A stretch object that performs the inverse operation."""
         return PowerStretch(2)
 
 
@@ -145,6 +145,7 @@ class PowerStretch(BaseStretch):
 
     @property
     def inverse(self):
+        """A stretch object that performs the inverse operation."""
         return PowerStretch(1. / self.power)
 
 
@@ -179,6 +180,7 @@ class PowerDistStretch(BaseStretch):
 
     @property
     def inverse(self):
+        """A stretch object that performs the inverse operation."""
         return InvertedPowerDistStretch(a=self.exp)
 
 
@@ -214,6 +216,7 @@ class InvertedPowerDistStretch(BaseStretch):
 
     @property
     def inverse(self):
+        """A stretch object that performs the inverse operation."""
         return PowerDistStretch(a=self.exp)
 
 
@@ -232,6 +235,7 @@ class SquaredStretch(PowerStretch):
 
     @property
     def inverse(self):
+        """A stretch object that performs the inverse operation."""
         return SqrtStretch()
 
 
@@ -264,6 +268,7 @@ class LogStretch(BaseStretch):
 
     @property
     def inverse(self):
+        """A stretch object that performs the inverse operation."""
         return InvertedLogStretch(self.exp)
 
 
@@ -296,6 +301,7 @@ class InvertedLogStretch(BaseStretch):
 
     @property
     def inverse(self):
+        """A stretch object that performs the inverse operation."""
         return LogStretch(self.exp)
 
 
@@ -331,6 +337,7 @@ class AsinhStretch(BaseStretch):
 
     @property
     def inverse(self):
+        """A stretch object that performs the inverse operation."""
         return SinhStretch(a=1. / np.arcsinh(1. / self.a))
 
 
@@ -362,6 +369,7 @@ class SinhStretch(BaseStretch):
 
     @property
     def inverse(self):
+        """A stretch object that performs the inverse operation."""
         return AsinhStretch(a=1. / np.sinh(1. / self.a))
 
 
@@ -399,6 +407,7 @@ class HistEqStretch(BaseStretch):
 
     @property
     def inverse(self):
+        """A stretch object that performs the inverse operation."""
         return InvertedHistEqStretch(self.data, values=self.values)
 
 
@@ -429,6 +438,7 @@ class InvertedHistEqStretch(BaseStretch):
 
     @property
     def inverse(self):
+        """A stretch object that performs the inverse operation."""
         return HistEqStretch(self.data, values=self.values)
 
 
@@ -473,6 +483,7 @@ class ContrastBiasStretch(BaseStretch):
 
     @property
     def inverse(self):
+        """A stretch object that performs the inverse operation."""
         return InvertedContrastBiasStretch(self.contrast, self.bias)
 
 
@@ -511,4 +522,5 @@ class InvertedContrastBiasStretch(BaseStretch):
 
     @property
     def inverse(self):
+        """A stretch object that performs the inverse operation."""
         return ContrastBiasStretch(self.contrast, self.bias)
