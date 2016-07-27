@@ -937,7 +937,8 @@ def check_free_space_in_dir(path, size):
                 path, human_file_size(size)))
 
 
-def download_file(remote_url, cache=False, show_progress=True, timeout=None):
+def download_file(remote_url, cache=False, show_progress=True, timeout=None,
+                  delimiter=','):
     """
     Accepts a URL, downloads and optionally caches the result
     returning the filename, with a name determined by the file's MD5
@@ -947,18 +948,23 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
     Parameters
     ----------
     remote_url : str
-        The URL of the file to download
+        The URL(s) of the file to download. Multiple alternative URLs can be
+        specified separated by the ``delimiter``. Only the first working URL
+        will be downloaded.
 
     cache : bool, optional
-        Whether to use the cache
+        Whether to use the cache.
 
     show_progress : bool, optional
         Whether to display a progress bar during the download (default
-        is `True`)
+        is `True`).
 
     timeout : float, optional
         The timeout, in seconds.  Otherwise, use
         `astropy.utils.data.Conf.remote_timeout`.
+
+    delimiter : str
+        The delimiter between urls in ``remote_url`` (default is ``','``).
 
     Returns
     -------
@@ -990,7 +996,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
 
     url_key = remote_url
 
-    url_key_list = url_key.split(',')
+    url_key_list = url_key.split(delimiter)
 
     # Going through the alternative URLs until the first one works
 
