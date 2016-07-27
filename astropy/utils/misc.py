@@ -32,7 +32,8 @@ from ..extern.six.moves import urllib
 __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
            'find_api_page', 'is_path_hidden', 'walk_skip_hidden',
            'JsonCustomEncoder', 'indent', 'InheritDocstrings',
-           'OrderedDescriptor', 'OrderedDescriptorContainer', 'set_locale']
+           'OrderedDescriptor', 'OrderedDescriptorContainer', 'set_locale',
+           'ShapedLikeNDArray']
 
 
 def isiterable(obj):
@@ -798,8 +799,7 @@ class OrderedDescriptorContainer(type):
                     obj_cls_base = descr_bases[obj.__class__]
                     descriptors[obj_cls_base].append((obj, name))
 
-            if not (isinstance(mro_cls, type(cls)) and
-                        mro_cls._inherit_descriptors_):
+            if not getattr(mro_cls, '_inherit_descriptors_', False):
                 # If _inherit_descriptors_ is undefined then we don't inherit
                 # any OrderedDescriptors from any of the base classes, and
                 # there's no reason to continue through the MRO
@@ -850,3 +850,155 @@ def set_locale(name):
                 yield
             finally:
                 locale.setlocale(locale.LC_ALL, saved)
+
+
+@six.add_metaclass(abc.ABCMeta)
+class ShapedLikeNDArray(object):
+    """Mixin class to provide shape-changing methods.
+
+    The class proper is assumed to have some underlying data, which are arrays
+    or array-like structures. It must define a ``shape`` property, which gives
+    the shape of those data, as well as an ``_apply`` method that creates a new
+    instance in which a `~numpy.ndarray` method has been applied to those.
+
+    Furthermore, for consistency with `~numpy.ndarray`, it is recommended to
+    define a setter for the ``shape`` property, which, like the
+    `~numpy.ndarray.shape` property allows in-place reshaping the internal data
+    (and, unlike the ``reshape`` method raises an exception if this is not
+    possible).
+
+    This class also defines default implementations for ``ndim`` and ``size``
+    properties, calculating those from the ``shape``.  These can be overridden
+    by subclasses if there are faster ways to obtain those numbers.
+
+    """
+
+    @abc.abstractproperty
+    def shape(self):
+        """The shape of the instance and underlying arrays."""
+
+    @abc.abstractmethod
+    def _apply(method, *args, **kwargs):
+        """Create a new instance, with ``method`` applied to underlying data.
+
+        The method is any of the shape-changing methods for `~numpy.ndarray`
+        (``reshape``, ``swapaxes``, etc.), as well as those picking particular
+        elements (``__getitem__``, ``take``, etc.). It will be applied to the
+        underlying arrays (e.g., ``jd1`` and ``jd2`` in `~astropy.time.Time`),
+        with the results used to create a new instance.
+
+        Parameters
+        ----------
+        method : str
+            Method to be applied to the instance's internal data arrays.
+        args : tuple
+            Any positional arguments for ``method``.
+        kwargs : dict
+            Any keyword arguments for ``method``.
+
+        """
+
+    @property
+    def ndim(self):
+        """The number of dimensions of the instance and underlying arrays."""
+        return len(self.shape)
+
+    @property
+    def size(self):
+        """The size of the object, as calculated from its shape."""
+        size = 1
+        for sh in self.shape:
+            size *= sh
+        return size
+
+    @property
+    def isscalar(self):
+        return self.shape == ()
+
+    def __getitem__(self, item):
+        if self.isscalar:
+            raise TypeError('scalar {0!r} object is not subscriptable.'.format(
+                self.__class__.__name__))
+        return self._apply('__getitem__', item)
+
+    def reshape(self, *args, **kwargs):
+        """Returns an instance containing the same data with a new shape.
+
+        Parameters are as for :meth:`~numpy.ndarray.reshape`.  Note that it is
+        not always possible to change the shape of an array without copying the
+        data (see :func:`~numpy.reshape` documentation). If you want an error
+        to be raise if the data is copied, you should assign the new shape to
+        the shape attribute (note: this may not be implemented for all classes
+        using ``ShapedLikeNDArray``).
+        """
+        return self._apply('reshape', *args, **kwargs)
+
+    def ravel(self, *args, **kwargs):
+        """Return an instance with the array collapsed into one dimension.
+
+        Parameters are as for :meth:`~numpy.ndarray.ravel`. Note that it is
+        not always possible to unravel an array without copying the data.
+        If you want an error to be raise if the data is copied, you should
+        should assign shape ``(-1,)`` to the shape attribute.
+        """
+        return self._apply('ravel', *args, **kwargs)
+
+    def flatten(self, *args, **kwargs):
+        """Return a copy with the array collapsed into one dimension.
+
+        Parameters are as for :meth:`~numpy.ndarray.flatten`.
+        """
+        return self._apply('flatten', *args, **kwargs)
+
+    def transpose(self, *args, **kwargs):
+        """Return an instance with the data transposed.
+
+        Parameters are as for :meth:`~numpy.ndarray.transpose`.  All internal
+        data are views of the data of the original.
+        """
+        return self._apply('transpose', *args, **kwargs)
+
+    @property
+    def T(self):
+        """Return an instance with the data transposed.
+
+        Parameters are as for :attr:`~numpy.ndarray.T`.  All internal
+        data are views of the data of the original.
+        """
+        if self.ndim < 2:
+            return self
+        else:
+            return self.transpose()
+
+    def swapaxes(self, *args, **kwargs):
+        """Return an instance with the given axes interchanged.
+
+        Parameters are as for :meth:`~numpy.ndarray.swapaxes`:
+        ``axis1, axis2``.  All internal data are views of the data of the
+        original.
+        """
+        return self._apply('swapaxes', *args, **kwargs)
+
+    def diagonal(self, *args, **kwargs):
+        """Return an instance with the specified diagonals.
+
+        Parameters are as for :meth:`~numpy.ndarray.diagonal`.  All internal
+        data are views of the data of the original.
+        """
+        return self._apply('diagonal', *args, **kwargs)
+
+    def squeeze(self, *args, **kwargs):
+        """Return an instance with single-dimensional shape entries removed
+
+        Parameters are as for :meth:`~numpy.ndarray.squeeze`.  All internal
+        data are views of the data of the original.
+        """
+        return self._apply('squeeze', *args, **kwargs)
+
+    def take(self, indices, axis=None, mode='raise'):
+        """Return a new instance formed from the elements at the given indices.
+
+        Parameters are as for :meth:`~numpy.ndarray.take`, except that,
+        obviously, no output array can be given.
+        """
+        return self._apply('take', indices, axis=axis, mode=mode)
