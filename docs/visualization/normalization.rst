@@ -112,9 +112,11 @@ but this can be disabled::
 Combining transformations
 =========================
 
-Any stretches and intervals can be chained by using the ``+`` operator, which
-returns a new transformation. For example, to apply normalization based on a
-percentile value, followed by a square root stretch, you can do::
+Any intervals and stretches can be chained by using the ``+``
+operator, which returns a new transformation. When combining intervals
+and stretches, the stretch object must come before the interval
+object. For example, to apply normalization based on a percentile
+value, followed by a square root stretch, you can do::
 
     >>> transform = SqrtStretch() + PercentileInterval(90.)
     >>> transform([1, 3, 4, 5, 6])
