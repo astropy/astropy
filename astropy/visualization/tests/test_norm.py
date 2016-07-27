@@ -2,106 +2,85 @@
 
 import numpy as np
 from numpy import ma
-
 from numpy.testing import assert_allclose
+from ...tests.helper import pytest
+from ..mpl_normalize import ImageNormalize
+from ..stretch import SqrtStretch
 
 try:
-    import matplotlib  # pylint: disable=W0611
+    import matplotlib    # pylint: disable=W0611
     HAS_MATPLOTLIB = True
 except:
     HAS_MATPLOTLIB = False
 
-from ..mpl_normalize import ImageNormalize
 
-from ...tests.helper import pytest
-from ..stretch import SqrtStretch
+DATA = np.linspace(0., 15., 6)
 
 
 @pytest.mark.skipif('HAS_MATPLOTLIB')
-def test_error_message():
+def test_normalize_error_message():
     with pytest.raises(ImportError) as exc:
         ImageNormalize()
-    assert exc.value.args[0] == "matplotlib is required in order to use this class"
+    assert (exc.value.args[0] == "matplotlib is required in order to use "
+            "this class")
 
 
 @pytest.mark.skipif('not HAS_MATPLOTLIB')
-def test_normalize_scalar():
+class TestNormalize(object):
 
-    n = ImageNormalize(vmin=2., vmax=10., stretch=SqrtStretch(), clip=True)
+    def test_scalar(self):
+        norm = ImageNormalize(vmin=2., vmax=10., stretch=SqrtStretch(),
+                              clip=True)
+        assert_allclose(norm(6), 0.70710678)
 
-    assert_allclose(n(6), 0.70710678)
+    def test_clip(self):
+        norm = ImageNormalize(vmin=2., vmax=10., stretch=SqrtStretch(),
+                              clip=True)
+        output = norm(DATA)
+        expected = [0., 0.35355339, 0.70710678, 0.93541435, 1., 1.]
+        assert_allclose(output, expected)
+        assert_allclose(output.mask, [0, 0, 0, 0, 0, 0])
 
+    def test_noclip(self):
+        norm = ImageNormalize(vmin=2., vmax=10., stretch=SqrtStretch(),
+                              clip=False)
+        output = norm(DATA)
+        expected = [np.nan, 0.35355339, 0.70710678, 0.93541435, 1.11803399,
+                    1.27475488]
+        assert_allclose(output, expected)
+        assert_allclose(output.mask, [0, 0, 0, 0, 0, 0])
+        assert_allclose(norm.inverse(norm(DATA))[1:], DATA[1:])
 
-@pytest.mark.skipif('not HAS_MATPLOTLIB')
-def test_normalize_clip():
+    def test_implicit_autoscale(self):
+        norm = ImageNormalize(vmin=None, vmax=10., stretch=SqrtStretch(),
+                              clip=False)
+        norm(DATA)
+        assert norm.vmin == np.min(DATA)
+        assert norm.vmax == 10.
 
-    data = np.linspace(0., 15., 6)
-    n = ImageNormalize(vmin=2., vmax=10., stretch=SqrtStretch(), clip=True)
+        norm = ImageNormalize(vmin=2., vmax=None, stretch=SqrtStretch(),
+                              clip=False)
+        norm(DATA)
+        assert norm.vmin == 2.
+        assert norm.vmax == np.max(DATA)
 
-    output = n(data)
+    def test_masked_clip(self):
+        mdata = ma.array(DATA, mask=[0, 0, 1, 0, 0, 0])
+        norm = ImageNormalize(vmin=2., vmax=10., stretch=SqrtStretch(),
+                              clip=True)
+        output = norm(mdata)
+        expected = [0., 0.35355339, 1., 0.93541435, 1., 1.]
+        assert_allclose(output.filled(-10), expected)
+        assert_allclose(output.mask, [0, 0, 0, 0, 0, 0])
 
-    assert_allclose(output, [0., 0.35355339, 0.70710678, 0.93541435, 1., 1.])
+    def test_masked_noclip(self):
+        mdata = ma.array(DATA, mask=[0, 0, 1, 0, 0, 0])
+        norm = ImageNormalize(vmin=2., vmax=10., stretch=SqrtStretch(),
+                              clip=False)
+        output = norm(mdata)
+        expected = [np.nan, 0.35355339, -10, 0.93541435, 1.11803399,
+                    1.27475488]
+        assert_allclose(output.filled(-10), expected)
+        assert_allclose(output.mask, [0, 0, 1, 0, 0, 0])
 
-    assert_allclose(output.mask, [0, 0, 0, 0, 0, 0])
-
-
-@pytest.mark.skipif('not HAS_MATPLOTLIB')
-def test_normalize_noclip():
-
-    data = np.linspace(0., 15., 6)
-    n = ImageNormalize(vmin=2., vmax=10., stretch=SqrtStretch(), clip=False)
-
-    output = n(data)
-
-    assert_allclose(output, [np.nan, 0.35355339, 0.70710678, 0.93541435, 1.11803399, 1.27475488])
-
-    assert_allclose(output.mask, [0, 0, 0, 0, 0, 0])
-
-    assert_allclose(n.inverse(n(data))[1:], data[1:])
-
-
-@pytest.mark.skipif('not HAS_MATPLOTLIB')
-def test_normalize_implicit_autoscale():
-
-    data = np.linspace(0., 15., 6)
-
-    n = ImageNormalize(vmin=None, vmax=10., stretch=SqrtStretch(), clip=False)
-    n(data)
-
-    assert n.vmin == np.min(data)
-    assert n.vmax == 10.
-
-    n = ImageNormalize(vmin=2., vmax=None, stretch=SqrtStretch(), clip=False)
-    n(data)
-
-    assert n.vmin == 2.
-    assert n.vmax == np.max(data)
-
-
-@pytest.mark.skipif('not HAS_MATPLOTLIB')
-def test_masked_normalize_clip():
-
-    data = np.linspace(0., 15., 6)
-    mdata = ma.array(data, mask=[0, 0, 1, 0, 0, 0])
-
-    n = ImageNormalize(vmin=2., vmax=10., stretch=SqrtStretch(), clip=True)
-
-    output = n(mdata)
-
-    assert_allclose(output.filled(-10), [0., 0.35355339, 1., 0.93541435, 1., 1.])
-    assert_allclose(output.mask, [0, 0, 0, 0, 0, 0])
-
-
-@pytest.mark.skipif('not HAS_MATPLOTLIB')
-def test_masked_normalize_noclip():
-
-    data = np.linspace(0., 15., 6)
-    mdata = ma.array(data, mask=[0, 0, 1, 0, 0, 0])
-    n = ImageNormalize(vmin=2., vmax=10., stretch=SqrtStretch(), clip=False)
-
-    output = n(mdata)
-
-    assert_allclose(output.filled(-10), [np.nan, 0.35355339, -10, 0.93541435, 1.11803399, 1.27475488])
-    assert_allclose(output.mask, [0, 0, 1, 0, 0, 0])
-
-    assert_allclose(n.inverse(n(data))[1:], data[1:])
+        assert_allclose(norm.inverse(norm(DATA))[1:], DATA[1:])
