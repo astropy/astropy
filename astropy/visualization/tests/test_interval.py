@@ -59,14 +59,12 @@ class TestInterval(object):
 class TestIntervalList(TestInterval):
 
     # Make sure intervals work with lists
-
     data = np.linspace(-20., 60., 100).tolist()
 
 
 class TestInterval2D(TestInterval):
 
     # Make sure intervals work with 2d arrays
-
     data = np.linspace(-20., 60., 100).reshape(100, 1)
 
 
@@ -92,7 +90,6 @@ def test_zscale():
 
 
 def test_integers():
-
     # Need to make sure integers get cast to float
     interval = MinMaxInterval()
     values = interval([1, 3, 4, 5, 6])
@@ -102,7 +99,8 @@ def test_integers():
     out = np.zeros(5, dtype=int)
     with pytest.raises(TypeError) as exc:
         values = interval([1, 3, 4, 5, 6], out=out)
-    assert exc.value.args[0] == "Can only do in-place scaling for floating-point arrays"
+    assert exc.value.args[0] == ("Can only do in-place scaling for "
+                                 "floating-point arrays")
 
     # But integer input and floating point output is fine
     out = np.zeros(5, dtype=float)
