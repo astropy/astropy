@@ -98,14 +98,16 @@ but this can be disabled::
     >>> stretch([-1., 0., 0.5, 1., 1.5], clip=False)
     array([        nan,  0.        ,  0.70710678,  1.        ,  1.22474487])
 
-.. note:: The stretch functions are similar but not always strictly identical
-          to those used in e.g. `DS9 <http://ds9.si.edu/site/Home.html>`_
-          (although they should have the same behavior). The equations for the
-          DS9 stretches can be found `here <http://ds9.si.edu/ref/how.html>`_
-          and can be compared to the equations for our stretches provided in
-          the `astropy.visualization` API section. The main difference between our
-          stretches and DS9 is that we have adjusted them so that the [0:1]
-          range always maps exactly to the [0:1] range.
+.. note::
+    The stretch functions are similar but not always strictly
+    identical to those used in e.g. `DS9
+    <http://ds9.si.edu/site/Home.html>`_ (although they should have
+    the same behavior). The equations for the DS9 stretches can be
+    found `here <http://ds9.si.edu/doc/ref/how.html>`_ and can be
+    compared to the equations for our stretches provided in the
+    `astropy.visualization` API section. The main difference between
+    our stretches and DS9 is that we have adjusted them so that the
+    [0:1] range always maps exactly to the [0:1] range.
 
 Combining transformations
 =========================
