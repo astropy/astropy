@@ -19,6 +19,9 @@ class TestManipulation():
                        location=('45d', '50d'))
         self.t2 = Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc',
                        location=(np.arange(len(frac)), np.arange(len(frac))))
+        # Note: location is along last axis only.
+        self.t2 = Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc',
+                       location=(np.arange(len(frac)), np.arange(len(frac))))
 
     def test_ravel(self):
         t0_ravel = self.t0.ravel()
@@ -172,6 +175,10 @@ class TestManipulation():
         t0_reshape_t = t0_reshape.T
         with pytest.raises(AttributeError):
             t0_reshape_t.shape = (10, 5)
+        # check no shape was changed.
+        assert t0_reshape_t.shape == t0_reshape.T.shape
+        assert t0_reshape_t.jd1.shape == t0_reshape.T.shape
+        assert t0_reshape_t.jd2.shape == t0_reshape.T.shape
         t1_reshape = self.t1.copy()
         t1_reshape.shape = (2, 5, 5)
         assert t1_reshape.shape == (2, 5, 5)
@@ -179,16 +186,25 @@ class TestManipulation():
         # location is a single element, so its shape should not change.
         assert t1_reshape.location.shape == ()
         # For reshape(5, 2, 5), the location array can remain the same.
-        t2_reshape = self.t2.copy()
-        t2_reshape.shape = (5, 2, 5)
-        assert t2_reshape.shape == (5, 2, 5)
-        assert np.all(t2_reshape.jd1 == self.t2.jd1.reshape(5, 2, 5))
-        assert t2_reshape.location.shape == t2_reshape.shape
-        # But for reshape(5, 5, 2), location would need to be copied, so this
+        # Note that we need to work directly on self.t2 here, since any
+        # copy would cause location to have the full shape.
+        self.t2.shape = (5, 2, 5)
+        assert self.t2.shape == (5, 2, 5)
+        assert self.t2.jd1.shape == (5, 2, 5)
+        assert self.t2.jd2.shape == (5, 2, 5)
+        assert self.t2.location.shape == (5, 2, 5)
+        assert self.t2.location.strides == (0, 0, 24)
+        # But for reshape(50), location would need to be copied, so this
         # should fail.
-        t2_reshape_t = t2_reshape.T
+        oldshape = self.t2.shape
         with pytest.raises(AttributeError):
-            t2_reshape_t.shape = (5, 5, 2)
+            self.t2.shape = (50,)
+        # check no shape was changed.
+        assert self.t2.jd1.shape == oldshape
+        assert self.t2.jd2.shape == oldshape
+        assert self.t2.location.shape == oldshape
+        # reset t2 to its original.
+        self.setup()
 
     def test_squeeze(self):
         t0_squeeze = self.t0.reshape(5, 1, 2, 1, 5).squeeze()
