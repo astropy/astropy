@@ -143,7 +143,8 @@ def fk4_e_terms(equinox):
     equinox : Time object
         The equinox for which to compute the e-terms
     """
-    # Constant of aberration at J2000
+    # Constant of aberration at J2000; from Explanatory Supplement to the
+    # Astronomical Almanac (Seidelmann, 2005).
     k = 0.0056932  # in degrees (v_earth/c ~ 1e-4 rad ~ 0.0057 deg)
     k = np.radians(k)
 

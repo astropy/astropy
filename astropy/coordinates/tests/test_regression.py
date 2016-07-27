@@ -13,7 +13,8 @@ import numpy as np
 
 from ... import units as u
 from .. import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS,
-                GeocentricTrueEcliptic, Longitude, Latitude, GCRS)
+                GeocentricTrueEcliptic, Longitude, Latitude, GCRS,
+                FK4,FK4NoETerms)
 from ...time import Time
 from ...utils import iers
 
@@ -225,3 +226,37 @@ def test_regression_4996():
 
     # this is intentionally not allclose - they should be *exactly* the same
     assert np.all(suncoo.ra.ravel() == suncoo2.ra.ravel())
+
+
+def test_regression_4293():
+    """Really just an extra test on FK4 no e, after finding that the units
+    were not always taken correctly.  This test is against explicitly doing
+    the transformations on pp170 of Explanatory Supplement to the Astronomical
+    Almanac (Seidelmann, 2005).
+
+    See https://github.com/astropy/astropy/pull/4293#issuecomment-234973086
+    """
+    # Check all over sky, but avoiding poles (note that FK4 did not ignore
+    # e terms within 10∘ of the poles...  see p170 of explan.supp.).
+    ra, dec = np.meshgrid(np.arange(0, 359, 45), np.arange(-80, 81, 40))
+    fk4 = FK4(ra.ravel() * u.deg, dec.ravel() * u.deg)
+
+    Dc = -0.065838*u.arcsec
+    Dd = +0.335299*u.arcsec
+    # Dc * tan(obliquity), as given on p.170
+    Dctano = -0.028553*u.arcsec
+
+    fk4noe_dec = (fk4.dec - (Dd*np.cos(fk4.ra) -
+                             Dc*np.sin(fk4.ra))*np.sin(fk4.dec) -
+                  Dctano*np.cos(fk4.dec))
+    fk4noe_ra = fk4.ra - (Dc*np.cos(fk4.ra) +
+                          Dd*np.sin(fk4.ra)) / np.cos(fk4.dec)
+
+    fk4noe = fk4.transform_to(FK4NoETerms)
+    # Tolerance here just set to how well the coordinates match, which is much
+    # better than the claimed accuracy of <1 mas for this first-order in
+    # v_earth/c approximation.
+    # Interestingly, if one divides by np.cos(fk4noe_dec) in the ra correction,
+    # the match becomes good to 2 μas.
+    assert_quantity_allclose(fk4noe.ra, fk4noe_ra, atol=11.*u.uas, rtol=0)
+    assert_quantity_allclose(fk4noe.dec, fk4noe_dec, atol=3.*u.uas, rtol=0)
