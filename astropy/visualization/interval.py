@@ -8,15 +8,18 @@ various criteria.
 from __future__ import division, print_function
 import abc
 import numpy as np
+from ..extern import six
+from ..utils.misc import InheritDocstrings
 from .transform import BaseTransform
 from .zscale import zscale
 
 
 __all__ = ['BaseInterval', 'ManualInterval', 'MinMaxInterval',
-           'PercentileInterval', 'AsymmetricPercentileInterval',
+           'AsymmetricPercentileInterval', 'PercentileInterval',
            'ZScaleInterval']
 
 
+@six.add_metaclass(InheritDocstrings)
 class BaseInterval(BaseTransform):
     """
     Base class for the interval classes, which, when called with an
