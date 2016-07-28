@@ -227,8 +227,8 @@ def test_regression_4996():
     assert np.all(suncoo.ra.ravel() == suncoo2.ra.ravel())
 
 
- def test_regression_4926():
-     times = Time('2010-01-1') + np.arange(20)*u.day
-     green = get_builtin_sites()['greenwich']
+def test_regression_4926():
+    times = Time('2010-01-1') + np.arange(20)*u.day
+    green = get_builtin_sites()['greenwich']
 
-     get_moon(times, green)
+    get_moon(times, green)
