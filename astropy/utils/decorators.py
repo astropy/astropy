@@ -19,7 +19,7 @@ from ..extern import six
 
 __all__ = ['deprecated', 'deprecated_attribute', 'classproperty',
            'lazyproperty', 'sharedmethod', 'wraps',
-           'format_doc']
+           'format_doc', 'replaced_parameter']
 
 
 def deprecated(since, message='', name='', alternative='', pending=False,
@@ -936,3 +936,93 @@ def format_doc(docstring, *args, **kwargs):
             obj.__doc__ = doc.format(*args, **kwargs)
         return obj
     return set_docstring
+
+
+def replaced_parameter(oldkeyword, newkeyword, since):
+    """Enable a function with a new keyword signature, to still use the
+    deprecated old keyword.
+
+    The decorated function should follow the new signature: the
+    definition should use ``newkeyword`` instead of ``oldkeyword``.
+    The new parameter should behave the same as the old parameter.
+
+    An AstropyDeprecationWarning is given if ``oldkeyword`` is used,
+    and a TypeError is raised if both ``oldkeyword`` and
+    ``newkeyword`` are used in the decorated function.
+
+    Parameters
+    ----------
+
+    oldkeyword : str
+        The keyword in the function signature that has been replaced
+
+    newkeyword : str
+        The keyword in the function signature replaces oldkeyword
+
+    since : str
+        The release when this change was made.
+
+
+    Raises
+    ------
+
+    TypeError
+        If both ``newkeyword`` and ``oldkeyword`` are used.
+
+    Example
+    -------
+
+    This decorator originated when replacing the `clobber` parameter
+    with `overwrite`. For example, a function::
+
+        def test(a, b=10, clobber=False):
+            ...
+
+    becomes, when replacing clobber with overwrite::
+
+        @replaced_parameter('clobber', 'overwrite', since='1.3')
+        def test(a, b=10, overwrite=False):
+            ...
+
+    """
+    def decorator(function):
+        # Avoid circular import
+        from .compat.funcsigs import signature
+        # We update the doc string (if it exists), *before* functools.wraps
+        if function.__doc__:
+            function.__doc__ += ("\n.. versionchanged:: {version}"
+                                 "\n   ``{new}`` replaces the deprecated "
+                                 "``{old}`` keyword\n".format(
+                                 version=since, new=newkeyword,
+                                 old=oldkeyword))
+        @functools.wraps(function)
+        def wrapper(*args, **kwargs):
+            # Determine the position of the possible newkeyword
+            # positional parameter
+            posargs = list(signature(function).parameters.keys())
+            position = posargs.index(newkeyword)
+            # The only way to have oldkeyword inside the function is
+            # that it is passed as kwarg because the oldkeyword
+            # parameter was renamed to newkeyword
+            if oldkeyword in kwargs:
+                value = kwargs.pop(oldkeyword)
+                warnings.warn(
+                    "The use of the {} parameter is deprecated. "
+                    "Please use {} in the future.".format(oldkeyword, newkeyword),
+                    AstropyDeprecationWarning)
+
+                # Check if the newkeyword was given as well
+                newkeyword_in_args = len(args) > position
+                newkeyword_in_kwargs = newkeyword in kwargs
+
+                # It's an error if both the new and old keywords are given
+                if newkeyword_in_args or newkeyword_in_kwargs:
+                    raise TypeError(
+                        "cannot specify both {} and {}".format(
+                            oldkeyword, newkeyword))
+                # Otherwise use oldkeyword as newkeyword
+                kwargs[newkeyword] = value
+
+            return function(*args, **kwargs)
+        return wrapper
+    return decorator

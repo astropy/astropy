@@ -8,7 +8,7 @@ import pickle
 
 from ..decorators import (deprecated_attribute, deprecated, wraps,
                           sharedmethod, classproperty,
-                          format_doc)
+                          format_doc, replaced_parameter)
 from ..exceptions import AstropyDeprecationWarning
 from ...extern import six
 from ...tests.helper import pytest, catch_warnings
@@ -554,3 +554,40 @@ def test_format_doc_onClass():
         pass
 
     assert inspect.getdoc(TestClass) == 'what we do is strange.'
+
+
+def test_replaced_parameter():
+    @replaced_parameter('clobber', 'overwrite', since='1.3')
+    def test(a, overwrite=False, c=10):
+        """A simple test function
+
+        Parameters
+        ----------
+        a : int, float
+        overwrite : bool
+        c : int
+
+        """
+        return (a, overwrite, c)
+
+    assert test(1, False, 2) == (1, False, 2)
+    assert test(2, True) == (2, True, 10)
+    assert test(3, overwrite=False, c=4) == (3, False, 4)
+    with pytest.warns(AstropyDeprecationWarning):
+        test(4, clobber=True, c=5)
+    with pytest.warns(AstropyDeprecationWarning):
+        test(5, clobber=False, c=6)
+    with pytest.raises(TypeError):
+        test(6, clobber=False, overwrite=True)
+    with pytest.raises(TypeError):
+        test(7, True, 10, clobber=False)
+
+    assert test.__doc__.endswith(
+        ".. versionchanged:: 1.3\n"
+        "   ``overwrite`` replaces the deprecated ``clobber`` keyword\n")
+
+    # Test when there's no doc-string to add to
+    @replaced_parameter('clobber', 'overwrite', since='1.3')
+    def nodocstring(a, overwrite=False, c=10):
+        pass
+    assert nodocstring.__doc__ is None
