@@ -13,7 +13,8 @@ import numpy as np
 
 from ... import units as u
 from .. import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS,
-                GeocentricTrueEcliptic, Longitude, Latitude, GCRS, get_moon)
+                GeocentricTrueEcliptic, Longitude, Latitude, GCRS, get_moon,
+                get_builtin_sites)
 from ...time import Time
 from ...utils import iers
 
