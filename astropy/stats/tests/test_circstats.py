@@ -40,8 +40,10 @@ def test_circmean():
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_circmean_against_scipy():
     # testing against scipy.stats.circmean function
-    data = np.random.uniform(-np.pi, np.pi, size=(100, 5))
-    answer = scipy.stats.circmean(data, np.pi, -np.pi)
+    # the data is the same as the test before, but in radians
+    data = np.array([0.89011792, 1.1693706, 0.6981317, 1.90240888, 0.54105207,
+                     6.24827872])
+    answer = scipy.stats.circmean(data)
     assert_equal(np.around(answer, 2), np.around(circmean(data), 2))
 
 
