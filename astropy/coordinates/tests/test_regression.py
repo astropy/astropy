@@ -13,8 +13,9 @@ import numpy as np
 
 from ... import units as u
 from .. import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS,
-                GeocentricTrueEcliptic, Longitude, Latitude, GCRS,
-                FK4,FK4NoETerms)
+                GeocentricTrueEcliptic, Longitude, Latitude, GCRS, HCRS,
+                get_moon, FK4, FK4NoETerms)
+from ..sites import get_builtin_sites
 from ...time import Time
 from ...utils import iers
 
@@ -260,3 +261,17 @@ def test_regression_4293():
     # the match becomes good to 2 μas.
     assert_quantity_allclose(fk4noe.ra, fk4noe_ra, atol=11.*u.uas, rtol=0)
     assert_quantity_allclose(fk4noe.dec, fk4noe_dec, atol=3.*u.uas, rtol=0)
+
+
+def test_regression_4926():
+    times = Time('2010-01-1') + np.arange(20)*u.day
+    green = get_builtin_sites()['greenwich']
+    # this is the regression test
+    moon = get_moon(times, green)
+
+    # this is an additional test to make sure the GCRS->ICRS transform works for complex shapes
+    moon.transform_to(ICRS())
+
+    # and some others to increase coverage of transforms
+    moon.transform_to(HCRS(obstime="J2000"))
+    moon.transform_to(HCRS(obstime=times))
