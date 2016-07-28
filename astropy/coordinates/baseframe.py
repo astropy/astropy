@@ -30,7 +30,7 @@ from .representation import (BaseRepresentation, CartesianRepresentation,
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame',
            'FrameAttribute', 'TimeFrameAttribute', 'QuantityFrameAttribute',
-           'EarthLocationAttribute', 'RepresentationMapping',
+           'EarthLocationAttribute', 'RepresentationMapping', 'CartesianRepresentationFrameAttribute',
            'CoordinateAttribute']
 
 
@@ -274,6 +274,68 @@ class TimeFrameAttribute(FrameAttribute):
             converted = True
 
         return out, converted
+
+
+class CartesianRepresentationFrameAttribute(FrameAttribute):
+    """
+    A frame attribute that is a CartesianRepresentation with specified units.
+
+    Parameters
+    ----------
+    default : object
+        Default value for the attribute if not provided
+    secondary_attribute : str
+        Name of a secondary instance attribute which supplies the value if
+        ``default is None`` and no value was supplied during initialization.
+    unit : unit object or None
+        Name of a unit that the input will be converted into. If None, no
+        unit-checking or conversion is performed
+    """
+    def __init__(self, default=None, secondary_attribute='', unit=None):
+        super(CartesianRepresentationFrameAttribute, self).__init__(default, secondary_attribute)
+        self.unit = unit
+
+    def convert_input(self, value):
+        """
+        Checks that the input is a CartesianRepresentation with the correct unit, or
+        the special value ``[0, 0, 0]``.
+
+        Parameters
+        ----------
+        value : object
+            Input value to be converted.
+
+        Returns
+        -------
+        out, converted : correctly-typed object, boolean
+            Tuple consisting of the correctly-typed object and a boolean which
+            indicates if conversion was actually performed.
+
+        Raises
+        ------
+        ValueError
+            If the input is not valid for this attribute.
+        """
+        if (isinstance(value, list) and np.all([v == 0 for v in value]) and
+                len(value) == 3 and self.unit is not None):
+            return CartesianRepresentation(np.zeros(3) * self.unit), True
+        else:
+            # is it a CartesianRepresentation with correct unit?
+            if hasattr(value, 'xyz') and value.xyz.unit == self.unit:
+                return value, False
+
+            converted = True
+            # if it's a CartesianRepresentation, get the xyz Quantity
+            value = getattr(value, 'xyz', value)
+            if not (hasattr(value, 'unit')):
+                raise TypeError('tried to set a CartesianRepresentationFrameAttribute with '
+                                'something that does not have a unit.')
+
+            value = value.to(self.unit)
+
+            # now try and make a CartesianRepresentation.
+            cartrep = CartesianRepresentation(value, copy=False)
+            return cartrep, converted
 
 
 class QuantityFrameAttribute(FrameAttribute):
@@ -936,7 +998,7 @@ class BaseCoordinateFrame(object):
         """
         if self.__class__ == other.__class__:
             for frame_attr_name in self.get_frame_attr_names():
-                if getattr(self, frame_attr_name) != getattr(other, frame_attr_name):
+                if np.any(getattr(self, frame_attr_name) != getattr(other, frame_attr_name)):
                     return False
             return True
         elif not isinstance(other, BaseCoordinateFrame):
