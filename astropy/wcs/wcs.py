@@ -676,7 +676,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         Returns
         -------
         coord : (4, 2) array of (*x*, *y*) coordinates.
-            The order is counter-clockwise starting with the bottom left corner.
+            The order is clockwise starting with the bottom left corner.
         """
         if axes is not None:
             naxis1, naxis2 = axes
