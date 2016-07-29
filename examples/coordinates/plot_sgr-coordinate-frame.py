@@ -55,7 +55,7 @@ plt.style.use(astropy_mpl_style)
 # Import the packages necessary for coordinates
 
 from astropy.coordinates import frame_transform_graph
-from astropy.coordinates.matrix_utilities import rotation_matrix
+from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product
 import astropy.coordinates as coord
 import astropy.units as u
 
@@ -118,7 +118,7 @@ SGR_PSI = np.radians(180+14.111534)
 D = rotation_matrix(SGR_PHI, "z", unit=u.radian)
 C = rotation_matrix(SGR_THETA, "x", unit=u.radian)
 B = rotation_matrix(SGR_PSI, "z", unit=u.radian)
-SGR_MATRIX = np.array(B.dot(C).dot(D))
+SGR_MATRIX = matrix_product(B, C, D)
 
 ##############################################################################
 # This is done at the module level, since it will be used by both the
