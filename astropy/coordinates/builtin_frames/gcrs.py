@@ -34,13 +34,13 @@ class GCRS(BaseCoordinateFrame):
         position of the Earth.
     * ``obsgeoloc``
         The position of the observer relative to the center-of-mass of the Earth,
-        oriented the same as BCRS/ICRS.
-        Either 0, a CartesianRepresentation, or a Quantity of shape (3, ...)
-        Defaults to 0,  meaning "true" GCRS.
+        oriented the same as BCRS/ICRS. Either 0, `~astropy.coordinates.CartesianRepresentation`,
+        or proper input for one, i.e., a `~astropy.units.Quantity` with shape (3, ...) and length units.
+        Defaults to 0, meaning "true" GCRS.
     * ``obsgeovel``
         The velocity of the observer relative to the center-of-mass of the Earth,
-        oriented the same as BCRS/ICRS.
-        Either 0, a CartesianRepresentation, or a Quantity of shape (3, ...)
+        oriented the same as BCRS/ICRS. Either 0, `~astropy.coordinates.CartesianRepresentation`,
+        or proper input for one, i.e., a `~astropy.units.Quantity` with shape (3, ...) and velocity units.
         Defaults to 0, meaning "true" GCRS.
 
     Parameters
@@ -95,14 +95,14 @@ class PrecessedGeocentric(BaseCoordinateFrame):
         position of the Earth.
     * ``obsgeoloc``
         The position of the observer relative to the center-of-mass of the Earth,
-        oriented the same as BCRS/ICRS.
-        Either 0, a CartesianRepresentation, or a Quantity of shape (3, ...)
-        Defaults to 0,  meaning "true" GCRS.
+        oriented the same as BCRS/ICRS. Either 0, `~astropy.coordinates.CartesianRepresentation`,
+        or proper input for one, i.e., a `~astropy.units.Quantity` with shape (3, ...) and length units.
+        Defaults to 0, meaning "true" Geocentric.
     * ``obsgeovel``
         The velocity of the observer relative to the center-of-mass of the Earth,
-        oriented the same as BCRS/ICRS.
-        Either 0, a CartesianRepresentation, or a Quantity of shape (3, ...)
-        Defaults to 0, meaning "true" GCRS.
+        oriented the same as BCRS/ICRS. Either 0, `~astropy.coordinates.CartesianRepresentation`,
+        or proper input for one, i.e., a `~astropy.units.Quantity` with shape (3, ...) and velocity units.
+        Defaults to 0, meaning "true" Geocentric.
 
     Parameters
     ----------
