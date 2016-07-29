@@ -12,7 +12,7 @@ import numpy as np
 
 from ..baseframe import frame_transform_graph
 from ..transformations import FunctionTransform
-from .utils import cartrepr_from_matmul
+from ..matrix_utilities import matrix_transpose
 from ... import _erfa as erfa
 
 from .gcrs import GCRS, PrecessedGeocentric
@@ -53,7 +53,7 @@ def gcrs_to_cirs(gcrs_coo, cirs_frame):
 
     #now get the pmatrix
     pmat = gcrs_to_cirs_mat(cirs_frame.obstime)
-    crepr = cartrepr_from_matmul(pmat, gcrs_coo2)
+    crepr = gcrs_coo2.cartesian.transform(pmat)
     return cirs_frame.realize_frame(crepr)
 
 
@@ -61,7 +61,7 @@ def gcrs_to_cirs(gcrs_coo, cirs_frame):
 def cirs_to_gcrs(cirs_coo, gcrs_frame):
     #compute the pmatrix, and then multiply by its transpose
     pmat = gcrs_to_cirs_mat(cirs_coo.obstime)
-    newrepr = cartrepr_from_matmul(pmat, cirs_coo, transpose=True)
+    newrepr = cirs_coo.cartesian.transform(matrix_transpose(pmat))
     gcrs = GCRS(newrepr, obstime=cirs_coo.obstime)
 
     #now do any needed offsets (no-op if same obstime and 0 pos/vel)
@@ -75,7 +75,7 @@ def cirs_to_itrs(cirs_coo, itrs_frame):
 
     #now get the pmatrix
     pmat = cirs_to_itrs_mat(itrs_frame.obstime)
-    crepr = cartrepr_from_matmul(pmat, cirs_coo2)
+    crepr = cirs_coo2.cartesian.transform(pmat)
     return itrs_frame.realize_frame(crepr)
 
 
@@ -83,7 +83,7 @@ def cirs_to_itrs(cirs_coo, itrs_frame):
 def itrs_to_cirs(itrs_coo, cirs_frame):
     #compute the pmatrix, and then multiply by its transpose
     pmat = cirs_to_itrs_mat(itrs_coo.obstime)
-    newrepr = cartrepr_from_matmul(pmat, itrs_coo, transpose=True)
+    newrepr = itrs_coo.cartesian.transform(matrix_transpose(pmat))
     cirs = CIRS(newrepr, obstime=itrs_coo.obstime)
 
     #now do any needed offsets (no-op if same obstime)
@@ -111,7 +111,7 @@ def gcrs_to_precessedgeo(from_coo, to_frame):
 
     # now precess to the requested equinox
     pmat = gcrs_precession_mat(to_frame.equinox)
-    crepr = cartrepr_from_matmul(pmat, gcrs_coo)
+    crepr = gcrs_coo.cartesian.transform(pmat)
     return to_frame.realize_frame(crepr)
 
 
@@ -119,7 +119,7 @@ def gcrs_to_precessedgeo(from_coo, to_frame):
 def precessedgeo_to_gcrs(from_coo, to_frame):
     # first un-precess
     pmat = gcrs_precession_mat(from_coo.equinox)
-    crepr = cartrepr_from_matmul(pmat, from_coo, transpose=True)
+    crepr = from_coo.cartesian.transform(matrix_transpose(pmat))
     gcrs_coo = GCRS(crepr, obstime=to_frame.obstime,
                            obsgeoloc=to_frame.obsgeoloc,
                            obsgeovel=to_frame.obsgeovel)
