@@ -119,10 +119,10 @@ def cirs_to_cirs(from_coo, to_frame):
 @frame_transform_graph.transform(FunctionTransform, ICRS, GCRS)
 def icrs_to_gcrs(icrs_coo, gcrs_frame):
     # first set up the astrometry context for ICRS<->GCRS
-    pv = np.array([gcrs_frame.obsgeoloc.xyz.value,
-                   gcrs_frame.obsgeovel.xyz.value])
-    if pv.ndim > 2:
-        pv = np.rollaxis(pv, -1, 0)
+    loc = gcrs_frame.obsgeoloc.xyz.value
+    vel = gcrs_frame.obsgeovel.xyz.value
+    pv = np.stack((np.rollaxis(loc, 0, loc.ndim),
+                   np.rollaxis(vel, 0, vel.ndim)), axis=-2)
 
     jd1, jd2 = get_jd12(gcrs_frame.obstime, 'tdb')
     astrom = erfa.apcs13(jd1, jd2, pv)
@@ -167,10 +167,10 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
 
     # set up the astrometry context for ICRS<->GCRS and then convert to BCRS
     # coordinate direction
-    pv = np.array([gcrs_coo.obsgeoloc.xyz.value,
-                   gcrs_coo.obsgeovel.xyz.value])
-    if pv.ndim > 2:
-        pv = np.rollaxis(pv, -1, 0)
+    loc = gcrs_frame.obsgeoloc.xyz.value
+    vel = gcrs_frame.obsgeovel.xyz.value
+    pv = np.stack((np.rollaxis(loc, 0, loc.ndim),
+                   np.rollaxis(vel, 0, vel.ndim)), axis=-2)
 
     jd1, jd2 = get_jd12(gcrs_coo.obstime, 'tdb')
     astrom = erfa.apcs13(jd1, jd2, pv)
@@ -229,10 +229,10 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
 
     # set up the astrometry context for ICRS<->GCRS and then convert to ICRS
     # coordinate direction
-    pv = np.array([gcrs_coo.obsgeoloc.xyz.value,
-                   gcrs_coo.obsgeovel.xyz.value])
-    if pv.ndim > 2:
-        pv = np.rollaxis(pv, -1, 0)
+    loc = gcrs_frame.obsgeoloc.xyz.value
+    vel = gcrs_frame.obsgeovel.xyz.value
+    pv = np.stack((np.rollaxis(loc, 0, loc.ndim),
+                   np.rollaxis(vel, 0, vel.ndim)), axis=-2)
 
     jd1, jd2 = get_jd12(hcrs_frame.obstime, 'tdb')
     astrom = erfa.apcs13(jd1, jd2, pv)
