@@ -128,8 +128,6 @@ Bug Fixes
   - Made TFORMx keyword check more flexible in test of compressed images to
     enable compatibility of the test with cfitsio 3.380. [#4646]
 
-  - Handle unicode FITS BinTable column names on Python 2 [#5204, #4805]
-
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -185,6 +183,8 @@ Bug Fixes
 - ``astropy.io.ascii``
 
 - ``astropy.io.fits``
+
+  - Handle unicode FITS BinTable column names on Python 2 [#5204, #4805]
 
 - ``astropy.io.misc``
 
