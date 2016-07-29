@@ -167,8 +167,8 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
 
     # set up the astrometry context for ICRS<->GCRS and then convert to BCRS
     # coordinate direction
-    loc = gcrs_frame.obsgeoloc.xyz.value
-    vel = gcrs_frame.obsgeovel.xyz.value
+    loc = gcrs_coo.obsgeoloc.xyz.value
+    vel = gcrs_coo.obsgeovel.xyz.value
     pv = np.stack((np.rollaxis(loc, 0, loc.ndim),
                    np.rollaxis(vel, 0, vel.ndim)), axis=-2)
 
@@ -229,8 +229,8 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
 
     # set up the astrometry context for ICRS<->GCRS and then convert to ICRS
     # coordinate direction
-    loc = gcrs_frame.obsgeoloc.xyz.value
-    vel = gcrs_frame.obsgeovel.xyz.value
+    loc = gcrs_coo.obsgeoloc.xyz.value
+    vel = gcrs_coo.obsgeovel.xyz.value
     pv = np.stack((np.rollaxis(loc, 0, loc.ndim),
                    np.rollaxis(vel, 0, vel.ndim)), axis=-2)
 
