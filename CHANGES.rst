@@ -161,8 +161,17 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Initialization of ``Angle`` has been sped up for ``Quantity`` and ``Angle``
-  input. [#4970]
+- ``astropy.coordinates``
+
+  - Initialization of ``Angle`` has been sped up for ``Quantity`` and ``Angle``
+    input. [#4970]
+
+  - The use of ``np.matrix`` instances in the transformations has been
+    deprecated, since this class does not allow stacks of matrices.  As a
+    result, the semi-public functions ``angles.rotation_matrix`` and
+    ``angles.angle_axis`` are also deprecated, in favour of the new routines
+    with the same name in ``coordinates.matrix_utilities``. [#5104]
+
 
 1.2.2 (unreleased)
 ------------------
@@ -217,7 +226,7 @@ Bug Fixes
 
   - Conversion from quantities to logarithmic units now correctly causes a
     logarithmic quantity such as ``Magnitude`` to be returned. [#5183]
-  
+
 - ``astropy.utils``
 
 - ``astropy.visualization``

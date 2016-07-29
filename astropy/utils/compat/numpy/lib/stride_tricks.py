@@ -17,6 +17,7 @@ from __future__ import division, absolute_import, print_function
 import numpy as np
 
 __all__ = ['broadcast_arrays', 'broadcast_to', 'GE1P10']
+__doctest_skip__ = ['*']
 
 
 def GE1P10(module=np):

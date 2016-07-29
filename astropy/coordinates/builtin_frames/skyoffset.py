@@ -9,7 +9,8 @@ from ..transformations import DynamicMatrixTransform, FunctionTransform
 from ..baseframe import (CoordinateAttribute, QuantityFrameAttribute,
                          frame_transform_graph, RepresentationMapping,
                          BaseCoordinateFrame)
-from ..angles import rotation_matrix
+from ..matrix_utilities import (rotation_matrix,
+                                matrix_product, matrix_transpose)
 from ...utils.compat import namedtuple_asdict
 
 _skyoffset_cache = {}
@@ -129,8 +130,7 @@ def make_skyoffset_cls(framecls):
         mat1 = rotation_matrix(-skyoffset_frame.rotation, 'x')
         mat2 = rotation_matrix(-origin.lat, 'y')
         mat3 = rotation_matrix(origin.lon, 'z')
-        R = mat1 * mat2 * mat3
-        return R
+        return matrix_product(mat1, mat2, mat3)
 
     @frame_transform_graph.transform(DynamicMatrixTransform, _SkyOffsetFramecls, framecls)
     def skyoffset_to_reference(skyoffset_coord, reference_frame):
@@ -138,7 +138,8 @@ def make_skyoffset_cls(framecls):
 
         # use the forward transform, but just invert it
         R = reference_to_skyoffset(reference_frame, skyoffset_coord)
-        return R.T  # this is the inverse because R is a rotation matrix
+        # transpose is the inverse because R is a rotation matrix
+        return matrix_transpose(R)
 
     _skyoffset_cache[framecls] = _SkyOffsetFramecls
     return _SkyOffsetFramecls
