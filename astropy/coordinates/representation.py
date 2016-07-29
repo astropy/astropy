@@ -238,6 +238,9 @@ class BaseRepresentation(ShapedLikeNDArray):
             except:
                 return False
 
+    def __ne__(self, other):
+        return not self == other
+
     def __str__(self):
         return '{0} {1:s}'.format(self._values, self._unitstr)
 
