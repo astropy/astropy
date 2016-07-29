@@ -326,7 +326,7 @@ class CartesianRepresentationFrameAttribute(FrameAttribute):
                 raise TypeError('Tried to set a CartesianRepresentationFrameAttribute with '
                                 'something that does not have a unit.')
             oldvalue = value
-            value = u.Quantity(oldvalue, copy=False).to(self.unit)
+            value = u.Quantity(oldvalue, self.unit, copy=False)
             if (oldvalue.unit == value.unit and hasattr(oldvalue, 'value') and
                 np.all(oldvalue.value == value.value)):
                 converted = False
