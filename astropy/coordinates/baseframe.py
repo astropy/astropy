@@ -332,7 +332,7 @@ class CartesianRepresentationFrameAttribute(FrameAttribute):
                 converted = False
 
             # now try and make a CartesianRepresentation. Aim to be flexible
-            cartrep = CartesianRepresentation(value)
+            cartrep = CartesianRepresentation(value, copy=False)
             return cartrep, converted
 
 
