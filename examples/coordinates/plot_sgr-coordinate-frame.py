@@ -209,9 +209,9 @@ fig,axes = plt.subplots(2, 1, figsize=(6,12),
                         subplot_kw={'projection': 'aitoff'})
 
 axes[0].set_title("Sagittarius")
-axes[0].plot(sgr.Lambda.wrap_at(180*u.deg).radian, sgr.Beta.radian, linestyle='none')
+axes[0].scatter(sgr.Lambda.wrap_at(180*u.deg).radian, sgr.Beta.radian)
 
 axes[1].set_title("ICRS")
-axes[1].plot(icrs.ra.wrap_at(180*u.deg).radian, icrs.dec.radian, linestyle='none')
+axes[1].scatter(icrs.ra.wrap_at(180*u.deg).radian, icrs.dec.radian)
 
 plt.show()
