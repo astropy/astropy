@@ -453,7 +453,7 @@ def test_representation():
     assert icrs_cart.x == icrs.x
     assert icrs_cart.y == icrs.y
     assert icrs_cart.z == icrs.z
-    assert icrs.data == data
+    assert all(icrs.data == data)
 
     # Testing that an ICRS object in CartesianRepresentation must not have spherical attributes.
     for attr in ('ra', 'dec', 'distance'):
