@@ -35,12 +35,12 @@ class GCRS(BaseCoordinateFrame):
     * ``obsgeoloc``
         The position of the observer relative to the center-of-mass of the Earth,
         oriented the same as BCRS/ICRS.
-        Either 0, a CartesianRepresentation, or a Quantity of shape (..., 3) or (3, ...)
+        Either 0, a CartesianRepresentation, or a Quantity of shape (3, ...)
         Defaults to 0,  meaning "true" GCRS.
     * ``obsgeovel``
         The velocity of the observer relative to the center-of-mass of the Earth,
         oriented the same as BCRS/ICRS.
-        Either 0, a CartesianRepresentation, or a Quantity of shape (..., 3) or (3, ...)
+        Either 0, a CartesianRepresentation, or a Quantity of shape (3, ...)
         Defaults to 0, meaning "true" GCRS.
 
     Parameters
@@ -96,12 +96,12 @@ class PrecessedGeocentric(BaseCoordinateFrame):
     * ``obsgeoloc``
         The position of the observer relative to the center-of-mass of the Earth,
         oriented the same as BCRS/ICRS.
-        Either 0, a CartesianRepresentation, or a Quantity of shape (..., 3) or (3, ...)
+        Either 0, a CartesianRepresentation, or a Quantity of shape (3, ...)
         Defaults to 0,  meaning "true" GCRS.
     * ``obsgeovel``
         The velocity of the observer relative to the center-of-mass of the Earth,
         oriented the same as BCRS/ICRS.
-        Either 0, a CartesianRepresentation, or a Quantity of shape (..., 3) or (3, ...)
+        Either 0, a CartesianRepresentation, or a Quantity of shape (3, ...)
         Defaults to 0, meaning "true" GCRS.
 
     Parameters

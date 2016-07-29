@@ -332,11 +332,7 @@ class CartesianRepresentationFrameAttribute(FrameAttribute):
                 converted = False
 
             # now try and make a CartesianRepresentation. Aim to be flexible
-            try:
-                cartrep = CartesianRepresentation(value)
-            except:
-                value = value.swapaxes(0,-1)
-                cartrep = CartesianRepresentation(value)
+            cartrep = CartesianRepresentation(value)
             return cartrep, converted
 
 
