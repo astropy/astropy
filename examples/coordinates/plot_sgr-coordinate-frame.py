@@ -134,18 +134,18 @@ def galactic_to_sgr(gal_coord, sgr_frame):
     l = np.atleast_1d(gal_coord.l.radian)
     b = np.atleast_1d(gal_coord.b.radian)
 
-    X = np.cos(b)*np.cos(l)
-    Y = np.cos(b)*np.sin(l)
-    Z = np.sin(b)
+    x = np.cos(b)*np.cos(l)
+    y = np.cos(b)*np.sin(l)
+    z = np.sin(b)
 
-    # Calculate X,Y,Z,distance in the Sgr system
-    Xs, Ys, Zs = SGR_MATRIX.dot(np.array([X, Y, Z]))
-    Zs = -Zs
+    # Calculate x,y,z,distance in the Sgr system
+    xs, ys, zs = SGR_MATRIX.dot(np.array([x, y, z]))
+    zs = -zs
 
     # Calculate the angular coordinates lambda,beta
-    Lambda = np.arctan2(Ys,Xs)*u.radian
+    Lambda = np.arctan2(ys,xs)*u.radian
     Lambda[Lambda < 0] = Lambda[Lambda < 0] + 2.*np.pi*u.radian
-    Beta = np.arcsin(Zs/np.sqrt(Xs*Xs+Ys*Ys+Zs*Zs))*u.radian
+    Beta = np.arcsin(zs/np.sqrt(xs*xs+ys*ys+zs*zs))*u.radian
 
     return Sagittarius(Lambda=Lambda, Beta=Beta,
                        distance=gal_coord.distance)
@@ -170,15 +170,15 @@ def sgr_to_galactic(sgr_coord, gal_frame):
     L = np.atleast_1d(sgr_coord.Lambda.radian)
     B = np.atleast_1d(sgr_coord.Beta.radian)
 
-    Xs = np.cos(B)*np.cos(L)
-    Ys = np.cos(B)*np.sin(L)
-    Zs = np.sin(B)
-    Zs = -Zs
+    xs = np.cos(B)*np.cos(L)
+    ys = np.cos(B)*np.sin(L)
+    zs = np.sin(B)
+    zs = -zs
 
-    X, Y, Z = SGR_MATRIX.T.dot(np.array([Xs, Ys, Zs]))
+    x, y, z = SGR_MATRIX.T.dot(np.array([xs, ys, zs]))
 
-    l = np.arctan2(Y,X)*u.radian
-    b = np.arcsin(Z/np.sqrt(X*X+Y*Y+Z*Z))*u.radian
+    l = np.arctan2(y, x)*u.radian
+    b = np.arcsin(z/np.sqrt(x*x + y*y + z*z))*u.radian
 
     l[l<=0] += 2*np.pi*u.radian
 
