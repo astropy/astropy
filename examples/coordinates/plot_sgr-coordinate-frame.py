@@ -139,7 +139,7 @@ def galactic_to_sgr(gal_coord, sgr_frame):
     z = np.sin(b)
 
     # Calculate x,y,z,distance in the Sgr system
-    xs, ys, zs = SGR_MATRIX.dot(np.array([x, y, z]))
+    xs, ys, zs = matrix_product(SGR_MATRIX, np.array([x, y, z]))
     zs = -zs
 
     # Calculate the angular coordinates lambda,beta
@@ -175,7 +175,7 @@ def sgr_to_galactic(sgr_coord, gal_frame):
     zs = np.sin(B)
     zs = -zs
 
-    x, y, z = SGR_MATRIX.T.dot(np.array([xs, ys, zs]))
+    x, y, z = matrix_product(SGR_MATRIX.T, np.array([xs, ys, zs]))
 
     l = np.arctan2(y, x)*u.radian
     b = np.arcsin(z/np.sqrt(x*x + y*y + z*z))*u.radian
