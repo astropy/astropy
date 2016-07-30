@@ -51,6 +51,10 @@ New Features
 
 - ``astropy.utils``
 
+  - New decorator: replaced_argument. This can be used for functions
+    that have renamed a keyword, but still want to allow for use of
+    the older keyword.
+	
 - ``astropy.vo``
 
 - ``astropy.wcs``
