@@ -56,8 +56,8 @@ matrix:
                PIP_DEPENDENCIES='sphinx-gallery>=0.1.2 pillow wcsaxes --no-deps jplephem'
 
         # Try all python versions and Numpy versions. Since we can assume that
-        # the Numpy developers have taken care of testing Numpy with different 
-        # versions of Python, we can vary Python and Numpy versions at the same 
+        # the Numpy developers have taken care of testing Numpy with different
+        # versions of Python, we can vary Python and Numpy versions at the same
         # time. Since we test the latest Numpy as part of the builds with all
         # optional dependencies below, we can focus on older builds here.
         - os: linux
@@ -92,9 +92,9 @@ matrix:
         - os: linux
           env: NUMPY_VERSION=prerelease SETUP_CMD='test'
 
-        # Do a PEP8 test
+        # Do a PEP8 test with pycodestyle
         - os: linux
-          env: MAIN_CMD='pep8 astropy --count' SETUP_CMD=''
+          env: MAIN_CMD='pycodestyle astropy --count' SETUP_CMD=''
 
     allow_failures:
       - env: NUMPY_VERSION=dev SETUP_CMD='test'

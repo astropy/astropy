@@ -4,7 +4,7 @@
 
 .. _flymake: http://www.emacswiki.org/emacs/FlyMake
 .. _pyflakes: http://pypi.python.org/pypi/pyflakes
-.. _pep8: http://pypi.python.org/pypi/pep8
+.. _pycodestyle: http://pypi.python.org/pypi/pycodestyle
 .. include:: workflow/known_projects.inc
 
 The Astropy coding guidelines are listed in :doc:`codeguide`. This
@@ -14,7 +14,7 @@ be configured in several different ways. So instead of providing a drop
 in configuration file, only the individual configurations are presented
 below.
 
-For this setup we will need flymake_, pyflakes_ and the pep8_ Python
+For this setup we will need flymake_, pyflakes_ and the pycodestyle_ Python
 script, in addition to ``python-mode``.
 
 Flymake comes with Emacs 23. The rest can be obtained from their websites,
@@ -118,7 +118,7 @@ red. When cursor is on such a line a message is displayed in the
 mini-buffer. When mouse pointer is on such a line a "tool tip" message
 is also shown.
 
-For flymake to work with `pep8`_ and `pyflakes`_, create an
+For flymake to work with `pycodestyle`_ and `pyflakes`_, create an
 executable file named `pychecker`_ with the following contents. This
 file must be in the system path.
 
@@ -127,7 +127,7 @@ file must be in the system path.
   #!/bin/bash
 
   pyflakes "$1"
-  pep8 --ignore=E221,E701,E202 --repeat "$1"
+  pycodestyle --ignore=E221,E701,E202 --repeat "$1"
   true
 
 Also download `flymake-cursor.el

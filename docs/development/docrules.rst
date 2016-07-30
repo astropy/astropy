@@ -30,7 +30,7 @@ Use a code checker:
 
  * `pylint <http://www.logilab.org/857>`_
  * `pyflakes <http://pypi.python.org/pypi/pyflakes>`_
- * `pep8.py <https://github.com/jcrocholl/pep8>`_
+ * `pycodestyle <https://github.com/PyCQA/pycodestyle>`_
 
 The following import conventions are used throughout the Astropy source
 and documentation::
