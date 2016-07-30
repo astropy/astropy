@@ -172,6 +172,8 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Handle unicode FITS BinTable column names on Python 2 [#5204, #4805]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
