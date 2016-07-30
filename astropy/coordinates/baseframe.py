@@ -996,7 +996,7 @@ class BaseCoordinateFrame(object):
         """
         if self.__class__ == other.__class__:
             for frame_attr_name in self.get_frame_attr_names():
-                if getattr(self, frame_attr_name) != getattr(other, frame_attr_name):
+                if np.any(getattr(self, frame_attr_name) != getattr(other, frame_attr_name)):
                     return False
             return True
         elif not isinstance(other, BaseCoordinateFrame):
