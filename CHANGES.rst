@@ -85,6 +85,9 @@ API Changes
 
 - ``astropy.io.registry``
 
+  - ``.fts`` and ``.fts.gz`` files will be automatically identified as
+    ``io.fits`` files if no explicit ``format`` is given.
+
 - ``astropy.io.votable``
 
 - ``astropy.modeling``
