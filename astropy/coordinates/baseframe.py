@@ -328,7 +328,7 @@ class CartesianRepresentationFrameAttribute(FrameAttribute):
             # if it's a CartesianRepresentation, get the xyz Quantity
             value = getattr(value, 'xyz', value)
             if not (hasattr(value, 'unit')):
-                raise TypeError('Tried to set a CartesianRepresentationFrameAttribute with '
+                raise TypeError('tried to set a CartesianRepresentationFrameAttribute with '
                                 'something that does not have a unit.')
 
             value = value.to(self.unit)
