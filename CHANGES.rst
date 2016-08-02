@@ -95,6 +95,9 @@ API Changes
 
 - ``astropy.table``
 
+  - Allow ``collections.Mapping``-like ``data`` attribute when initializing a
+    ``Table`` object (``dict``-like was already possible). [#5213]
+
 - ``astropy.time``
 
 - ``astropy.units``
