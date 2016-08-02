@@ -28,7 +28,7 @@ def _logn(n, x, out=None):
         return out
 
 
-def _prepare(values, out=None, clip=True):
+def _prepare(values, clip=True, out=None):
     """
     Prepare the data by optionally clipping and copying, and return the
     array that should be subsequently used for in-place calculations.
@@ -90,7 +90,7 @@ class LinearStretch(BaseStretch):
     """
 
     def __call__(self, values, clip=True, out=None):
-        return _prepare(values, out=out, clip=clip)
+        return _prepare(values, clip=clip, out=out)
 
     @property
     def inverse(self):
@@ -109,7 +109,7 @@ class SqrtStretch(BaseStretch):
     """
 
     def __call__(self, values, clip=True, out=None):
-        values = _prepare(values, out=out, clip=clip)
+        values = _prepare(values, clip=clip, out=out)
         np.sqrt(values, out=values)
         return values
 
@@ -139,7 +139,7 @@ class PowerStretch(BaseStretch):
         self.power = a
 
     def __call__(self, values, clip=True, out=None):
-        values = _prepare(values, out=out, clip=clip)
+        values = _prepare(values, clip=clip, out=out)
         np.power(values, self.power, out=values)
         return values
 
@@ -172,7 +172,7 @@ class PowerDistStretch(BaseStretch):
         self.exp = a
 
     def __call__(self, values, clip=True, out=None):
-        values = _prepare(values, out=out, clip=clip)
+        values = _prepare(values, clip=clip, out=out)
         np.power(self.exp, values, out=values)
         np.subtract(values, 1, out=values)
         np.true_divide(values, self.exp - 1.0, out=values)
@@ -208,7 +208,7 @@ class InvertedPowerDistStretch(BaseStretch):
         self.exp = a
 
     def __call__(self, values, clip=True, out=None):
-        values = _prepare(values, out=out, clip=clip)
+        values = _prepare(values, clip=clip, out=out)
         np.multiply(values, self.exp - 1.0, out=values)
         np.add(values, 1, out=values)
         _logn(self.exp, values, out=values)
@@ -259,7 +259,7 @@ class LogStretch(BaseStretch):
         self.exp = a
 
     def __call__(self, values, clip=True, out=None):
-        values = _prepare(values, out=out, clip=clip)
+        values = _prepare(values, clip=clip, out=out)
         np.multiply(values, self.exp, out=values)
         np.add(values, 1., out=values)
         np.log(values, out=values)
@@ -292,7 +292,7 @@ class InvertedLogStretch(BaseStretch):
         self.exp = a
 
     def __call__(self, values, clip=True, out=None):
-        values = _prepare(values, out=out, clip=clip)
+        values = _prepare(values, clip=clip, out=out)
         np.multiply(values, np.log(self.exp + 1.), out=values)
         np.exp(values, out=values)
         np.subtract(values, 1., out=values)
@@ -329,7 +329,7 @@ class AsinhStretch(BaseStretch):
         self.a = a
 
     def __call__(self, values, clip=True, out=None):
-        values = _prepare(values, out=out, clip=clip)
+        values = _prepare(values, clip=clip, out=out)
         np.true_divide(values, self.a, out=values)
         np.arcsinh(values, out=values)
         np.true_divide(values, np.arcsinh(1. / self.a), out=values)
@@ -361,7 +361,7 @@ class SinhStretch(BaseStretch):
         self.a = a
 
     def __call__(self, values, clip=True, out=None):
-        values = _prepare(values, out=out, clip=clip)
+        values = _prepare(values, clip=clip, out=out)
         np.true_divide(values, self.a, out=values)
         np.sinh(values, out=values)
         np.true_divide(values, np.sinh(1. / self.a), out=values)
@@ -401,7 +401,7 @@ class HistEqStretch(BaseStretch):
             self.values = values
 
     def __call__(self, values, clip=True, out=None):
-        values = _prepare(values, out=out, clip=clip)
+        values = _prepare(values, clip=clip, out=out)
         values[:] = np.interp(values, self.data, self.values)
         return values
 
@@ -432,7 +432,7 @@ class InvertedHistEqStretch(BaseStretch):
             self.values = values
 
     def __call__(self, values, clip=True, out=None):
-        values = _prepare(values, out=out, clip=clip)
+        values = _prepare(values, clip=clip, out=out)
         values[:] = np.interp(values, self.values, self.data)
         return values
 
@@ -470,7 +470,7 @@ class ContrastBiasStretch(BaseStretch):
     def __call__(self, values, clip=True, out=None):
         # As a special case here, we only clip *after* the
         # transformation since it does not map [0:1] to [0:1]
-        values = _prepare(values, out=out, clip=False)
+        values = _prepare(values, clip=False, out=out)
 
         np.subtract(values, self.bias, out=values)
         np.multiply(values, self.contrast, out=values)
@@ -510,7 +510,7 @@ class InvertedContrastBiasStretch(BaseStretch):
     def __call__(self, values, clip=True, out=None):
         # As a special case here, we only clip *after* the
         # transformation since it does not map [0:1] to [0:1]
-        values = _prepare(values, out=out, clip=False)
+        values = _prepare(values, clip=False, out=out)
         np.subtract(values, 0.5, out=values)
         np.true_divide(values, self.contrast, out=values)
         np.add(values, self.bias, out=values)
