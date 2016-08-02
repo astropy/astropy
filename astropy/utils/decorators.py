@@ -404,6 +404,12 @@ def deprecated_renamed_argument(old_name, new_name, since,
                             '"**kwargs" then set "arg_in_kwargs" to "True".'
                             ''.format(new_name))
 
+        if function.__doc__:
+            function.__doc__ += ("\n.. versionchanged:: {0}"
+                                 "\n   ``{1}`` replaces the deprecated "
+                                 "``{2}`` argument.\n"
+                                 "".format(since, new_name, old_name))
+
         @functools.wraps(function)
         def wrapper(*args, **kwargs):
             # The only way to have oldkeyword inside the function is
