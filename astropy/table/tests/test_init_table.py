@@ -13,9 +13,8 @@ from ...tests.helper import pytest
 from ...table import Column, TableColumns
 
 # Unfortunatly the python2 UserDict.UserDict is not a Mapping so it is not
-# possible to use "from six.moves import UserDict" but instead we have to use
-# IterableUserDict (which is a Mapping).
-# here.
+# possible to use "from six.moves import UserDict". Instead we have to use
+# IterableUserDict (which is a Mapping) here.
 if six.PY2:
     from UserDict import IterableUserDict as UserDict
 else:
