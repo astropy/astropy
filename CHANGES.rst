@@ -205,7 +205,7 @@ Bug Fixes
 
   - New decorator: ``deprecated_renamed_argument``. This can be used when
     renaming a function argument, but still want to allow for use of
-    the older parameter name.
+    the older parameter name. [#5214]
 
 - ``astropy.vo``
 
