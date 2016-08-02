@@ -8,7 +8,7 @@ from .index import TableIndices, TableLoc, TableILoc
 
 import re
 import sys
-from collections import OrderedDict
+from collections import OrderedDict, Mapping
 
 from copy import deepcopy
 
@@ -317,7 +317,7 @@ class Table(object):
                     data = data[np.newaxis, :]
                 n_cols = data.shape[1]
 
-        elif isinstance(data, dict):
+        elif isinstance(data, Mapping):
             init_func = self._init_from_dict
             default_names = list(data)
             n_cols = len(default_names)
