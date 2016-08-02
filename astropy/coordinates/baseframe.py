@@ -291,7 +291,7 @@ class CartesianRepresentationFrameAttribute(FrameAttribute):
         Name of a unit that the input will be converted into. If None, no
         unit-checking or conversion is performed
     """
-    def __init__(self, default=None, secondary_attribute='', unit=None, shape=None):
+    def __init__(self, default=None, secondary_attribute='', unit=None):
         super(CartesianRepresentationFrameAttribute, self).__init__(default, secondary_attribute)
         self.unit = unit
 
@@ -319,19 +319,20 @@ class CartesianRepresentationFrameAttribute(FrameAttribute):
         if np.all(value == 0) and self.unit is not None:
             return CartesianRepresentation(np.zeros(3) * self.unit), True
         else:
+            # is it a CartesianRepresentation with correct unit?
+            if hasattr(value, 'xyz') and value.xyz.unit == self.unit:
+                return value, False
+
             converted = True
             # if it's a CartesianRepresentation, get the xyz Quantity
             value = getattr(value, 'xyz', value)
-            if not (hasattr(value, 'unit') ):
+            if not (hasattr(value, 'unit')):
                 raise TypeError('Tried to set a CartesianRepresentationFrameAttribute with '
                                 'something that does not have a unit.')
-            oldvalue = value
-            value = u.Quantity(oldvalue, self.unit, copy=False)
-            if (oldvalue.unit == value.unit and hasattr(oldvalue, 'value') and
-                np.all(oldvalue.value == value.value)):
-                converted = False
 
-            # now try and make a CartesianRepresentation. Aim to be flexible
+            value = value.to(self.unit)
+
+            # now try and make a CartesianRepresentation.
             cartrep = CartesianRepresentation(value, copy=False)
             return cartrep, converted
 
