@@ -203,6 +203,10 @@ Bug Fixes
 
 - ``astropy.utils``
 
+  - New decorator: ``deprecated_renamed_argument``. This can be used when
+    renaming a function argument, but still want to allow for use of
+    the older parameter name.
+
 - ``astropy.vo``
 
 - ``astropy.wcs``

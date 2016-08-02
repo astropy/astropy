@@ -268,8 +268,7 @@ def test_deprecated_argument():
         def test3(self, overwrite):
             return overwrite
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '1.3',
-                                 relax=False)
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3', relax=False)
     def test1(overwrite):
         return overwrite
 
@@ -324,8 +323,7 @@ def test_deprecated_argument_in_kwargs():
 
 
 def test_deprecated_argument_relaxed():
-    @deprecated_renamed_argument('clobber', 'overwrite', '1.3',
-                                 relax=True)
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3', relax=True)
     def test(overwrite):
         return overwrite
 
@@ -350,6 +348,20 @@ def test_deprecated_argument_relaxed():
     with catch_warnings(AstropyUserWarning) as w:
         assert test(1, clobber=2) == 1
     assert len(w) == 1
+
+
+def test_deprecated_argument_docstring():
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+    def test1(overwrite):
+        """Some docstring."""
+        return overwrite
+
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+    def test2(overwrite):
+        return overwrite
+
+    assert '.. versionchanged:: 1.3' in test1.__doc__
+    assert not test2.__doc__
 
 
 def test_deprecated_argument_not_allowed_use():
