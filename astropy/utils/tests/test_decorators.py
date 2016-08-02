@@ -8,8 +8,8 @@ import pickle
 
 from ..decorators import (deprecated_attribute, deprecated, wraps,
                           sharedmethod, classproperty,
-                          format_doc)
-from ..exceptions import AstropyDeprecationWarning
+                          format_doc, deprecated_renamed_argument)
+from ..exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from ...extern import six
 from ...tests.helper import pytest, catch_warnings
 
@@ -248,6 +248,125 @@ def test_deprecated_static_and_classmethod():
     assert len(w) == 1
     if A.__doc__ is not None:
         assert 'deprecated' in A.C.__doc__
+
+
+def test_deprecated_argument():
+
+    class Test(object):
+
+        @classmethod
+        @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+        def test1(cls, overwrite):
+            return overwrite
+
+        @staticmethod
+        @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+        def test2(overwrite):
+            return overwrite
+
+        @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+        def test3(self, overwrite):
+            return overwrite
+
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3',
+                                 relax=False)
+    def test1(overwrite):
+        return overwrite
+
+    for method in [Test().test1, Test().test2, Test().test3, test1]:
+        # As positional argument only
+        assert method(1) == 1
+
+        # As new keyword argument
+        assert method(overwrite=1) == 1
+
+        # Using the deprecated name
+        with catch_warnings(AstropyDeprecationWarning) as w:
+            assert method(clobber=1) == 1
+
+        assert len(w) == 1
+        assert '1.3' in str(w[0].message)
+
+        # Using both. Both keyword
+        with pytest.raises(TypeError):
+            method(clobber=2, overwrite=1)
+        # One positional, one keyword
+        with pytest.raises(TypeError):
+            method(1, clobber=2)
+
+
+def test_deprecated_argument_in_kwargs():
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3',
+                                 arg_in_kwargs=True)
+    def test(**kwargs):
+        return kwargs['overwrite']
+
+    # As positional argument only
+    with pytest.raises(TypeError):
+        test(1)
+
+    # As new keyword argument
+    assert test(overwrite=1) == 1
+
+    # Using the deprecated name
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        assert test(clobber=1) == 1
+
+    assert len(w) == 1
+    assert '1.3' in str(w[0].message)
+
+    # Using both. Both keyword
+    with pytest.raises(TypeError):
+        test(clobber=2, overwrite=1)
+    # One positional, one keyword
+    with pytest.raises(TypeError):
+        test(1, clobber=2)
+
+
+def test_deprecated_argument_relaxed():
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3',
+                                 relax=True)
+    def test(overwrite):
+        return overwrite
+
+    # As positional argument only
+    assert test(1) == 1
+
+    # As new keyword argument
+    assert test(overwrite=1) == 1
+
+    # Using the deprecated name
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        assert test(clobber=1) == 1
+
+    assert len(w) == 1
+    assert '1.3' in str(w[0].message)
+
+    # Using both. Both keyword
+    with catch_warnings(AstropyUserWarning) as w:
+        assert test(clobber=2, overwrite=1) == 1
+    assert len(w) == 1
+    # One positional, one keyword
+    with catch_warnings(AstropyUserWarning) as w:
+        assert test(1, clobber=2) == 1
+    assert len(w) == 1
+
+
+def test_deprecated_argument_not_allowed_use():
+    with pytest.raises(TypeError):
+        @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+        def test1(**kwargs):
+            return kwargs['overwrite']
+
+    with pytest.raises(TypeError):
+        @deprecated_renamed_argument('kwargs', 'overwrite', '1.3')
+        def test2(*args):
+            return args
+
+    with pytest.raises(TypeError):
+        @deprecated_renamed_argument('kwargs', 'overwrite', '1.3')
+        def test3(**kwargs):
+            return kwargs
 
 
 @pytest.mark.skipif('not six.PY2')

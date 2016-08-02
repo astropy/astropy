@@ -12,7 +12,7 @@ import types
 import warnings
 
 from .codegen import make_function_with_signature
-from .exceptions import (AstropyDeprecationWarning,
+from .exceptions import (AstropyDeprecationWarning, AstropyUserWarning,
                          AstropyPendingDeprecationWarning)
 from ..extern import six
 from ..extern.six.moves import zip
@@ -20,7 +20,7 @@ from ..extern.six.moves import zip
 
 __all__ = ['deprecated', 'deprecated_attribute', 'classproperty',
            'lazyproperty', 'sharedmethod', 'wraps',
-           'format_doc']
+           'format_doc', 'deprecated_renamed_argument']
 
 
 def deprecated(since, message='', name='', alternative='', pending=False,
@@ -271,6 +271,175 @@ def deprecated_attribute(name, since, message=None, alternative=None,
         delattr(self, private_name)
 
     return property(get, set, delete)
+
+
+def deprecated_renamed_argument(old_name, new_name, since,
+                                arg_in_kwargs=False, relax=False):
+    """Deprecate a _renamed_ function argument.
+
+    The decorator assumes that the argument with the ``old_name`` was removed
+    from the function signature and the ``new_name`` replaced it at the
+    **same position** in the signature.  If the ``old_name`` argument is
+    given when calling the decorated function the decorator will catch it and
+    issue a deprecation warning and pass it on as ``new_name`` argument.
+
+    Parameters
+    ----------
+    old_name : str
+        The old name of the argument.
+
+    new_name : str
+        The new name of the argument.
+
+    since : str or number
+        The release at which the old argument became deprecated.
+
+    arg_in_kwargs : bool, optional
+        If the argument is not a named argument (for example it
+        was meant to be consumed by ``**kwargs``) set this to
+        ``True``.  Otherwise the decorator will throw an Exception
+        if the ``new_name`` cannot be found in the signature of
+        the decorated function.
+        Default is ``False``.
+
+    relax : bool, optional
+        If ``False`` a ``TypeError`` is raised if both ``new_name`` and
+        ``old_name`` are given.  If ``True`` the value for ``new_name`` is used
+        and a Warning is issued.
+        Default is ``False``.
+
+    Raises
+    ------
+    TypeError
+        If the new argument name cannot be found in the function
+        signature and arg_in_kwargs was False or if it is used to
+        deprecate the name of the ``*args``-, ``**kwargs``-like arguments.
+        At runtime such an Error is raised if both the new_name
+        and old_name were specified when calling the function and
+        "relax=False".
+
+    Notes
+    -----
+    The decorator should be applied to a function where the **name**
+    of an argument was changed but it applies the same logic.
+
+    Examples
+    --------
+    The deprecation warnings are not shown in the following examples.
+
+    To deprecate a positional or keyword argument::
+
+        >>> from astropy.utils.decorators import deprecated_renamed_argument
+        >>> @deprecated_renamed_argument('sig', 'sigma', '1.0')
+        ... def test(sigma):
+        ...     return sigma
+
+        >>> test(2)
+        2
+        >>> test(sigma=2)
+        2
+        >>> test(sig=2)
+        2
+
+    To deprecate an argument catched inside the ``**kwargs`` the
+    ``arg_in_kwargs`` has to be set::
+
+        >>> @deprecated_renamed_argument('sig', 'sigma', '1.0',
+        ...                             arg_in_kwargs=True)
+        ... def test(**kwargs):
+        ...     return kwargs['sigma']
+
+        >>> test(sigma=2)
+        2
+        >>> test(sig=2)
+        2
+
+    By default providing the new and old keyword will lead to an Exception. If
+    a Warning is desired set the ``relax`` argument::
+
+        >>> @deprecated_renamed_argument('sig', 'sigma', '1.0', relax=True)
+        ... def test(sigma):
+        ...     return sigma
+
+        >>> test(sig=2)
+        2
+    """
+    def decorator(function):
+        # Lazy import to avoid cyclic imports
+        from .compat.funcsigs import signature
+
+        # Named arguments of the function
+        arguments = signature(function).parameters
+
+        # Determine the position of the argument.
+        if new_name in arguments:
+            param = arguments[new_name]
+            # There are several possibilities now:
+
+            # 1.) Positional or keyword argument
+            if param.kind == param.POSITIONAL_OR_KEYWORD:
+                position = list(arguments.keys()).index(new_name)
+
+            # 2.) Keyword only argument (Python 3 only)
+            elif param.kind == param.KEYWORD_ONLY:
+                # These cannot be specified by position
+                position = None
+
+            # 3.) positional-only argument, varargs, varkwargs or some unknown
+            #     type
+            else:
+                raise TypeError('cannot replace argument "{0}" of kind {1}.'
+                                ''.format(new_name, repr(param.kind)))
+
+        # In case the argument is not found in the list of arguments
+        # the only remaining possibility is that it should be catched
+        # by some kind of **kwargs argument.
+        # This case has to be explicitly specified, otherwise throw
+        # an exception!
+        elif arg_in_kwargs:
+            position = None
+        else:
+            raise TypeError('"{0}" was not specified in the function '
+                            'signature. If it was meant to be part of '
+                            '"**kwargs" then set "arg_in_kwargs" to "True".'
+                            ''.format(new_name))
+
+        @functools.wraps(function)
+        def wrapper(*args, **kwargs):
+            # The only way to have oldkeyword inside the function is
+            # that it is passed as kwarg because the oldkeyword
+            # parameter was renamed to newkeyword
+            if old_name in kwargs:
+                value = kwargs.pop(old_name)
+                warnings.warn('"{0}" was deprecated in version {1} '
+                              'and will be removed in a future version. '
+                              'Use argument "{2}" instead.'
+                              ''.format(old_name, since, new_name),
+                              AstropyDeprecationWarning)
+
+                # Check if the newkeyword was given as well
+                newarg_in_args = position is not None and len(args) > position
+                newarg_in_kwargs = new_name in kwargs
+
+                if newarg_in_args or newarg_in_kwargs:
+                    # If both are given print a Warning if relax is True or
+                    # raise an Exception is relax is False.
+                    if relax:
+                        warnings.warn('"{0}" and "{1}" keywords were set. '
+                                      'Using the value of "{1}".'
+                                      ''.format(old_name, new_name),
+                                      AstropyUserWarning)
+                    else:
+                        raise TypeError('cannot specify both "{}" and "{}".'
+                                        ''.format(old_name, new_name))
+                else:
+                    # If the new argument isn't specified use pass the old one
+                    # with the name of the new argument to the function.
+                    kwargs[new_name] = value
+            return function(*args, **kwargs)
+
+        return wrapper
+    return decorator
 
 
 # TODO: This can still be made to work for setters by implementing an
