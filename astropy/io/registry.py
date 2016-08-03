@@ -6,6 +6,7 @@ from __future__ import (absolute_import, division, print_function,
 import re
 import sys
 from collections import OrderedDict
+from operator import itemgetter
 
 import numpy as np
 
@@ -55,27 +56,26 @@ def get_formats(data_class=None):
         Table of available I/O formats
     """
     from ..table import Table
-    format_classes = sorted(set(_readers) | set(_writers),
-                            key=lambda tup: tup[0])
+    format_classes = sorted(set(_readers) | set(_writers), key=itemgetter(0))
     rows = []
 
     for format_class in format_classes:
-        if (data_class is not None
-                and not _is_best_match(data_class, format_class[1], format_classes)):
+        if (data_class is not None and
+                not _is_best_match(data_class, format_class[1], format_classes)):
             continue
 
         has_read = 'Yes' if format_class in _readers else 'No'
         has_write = 'Yes' if format_class in _writers else 'No'
         has_identify = 'Yes' if format_class in _identifiers else 'No'
 
-        # Check if this is a short name (e.g. 'rdb') which is deprecated in favor
-        # of the full 'ascii.rdb'.
+        # Check if this is a short name (e.g. 'rdb') which is deprecated in
+        # favor of the full 'ascii.rdb'.
         ascii_format_class = ('ascii.' + format_class[0], format_class[1])
 
         deprecated = 'Yes' if ascii_format_class in format_classes else ''
 
-        rows.append((format_class[1].__name__, format_class[0], has_read, has_write,
-                     has_identify, deprecated))
+        rows.append((format_class[1].__name__, format_class[0], has_read,
+                     has_write, has_identify, deprecated))
 
     data = list(zip(*rows)) if rows else None
     format_table = Table(data, names=('Data class', 'Format', 'Read', 'Write',
@@ -108,7 +108,7 @@ def _update__doc__(data_class, readwrite):
     # Find the location of the existing formats table if it exists
     sep_indices = [ii for ii, line in enumerate(lines) if FORMATS_TEXT in line]
     if sep_indices:
-        # Chop off the existing formats table, including the initial blank line.
+        # Chop off the existing formats table, including the initial blank line
         chop_index = sep_indices[0]
         lines = lines[:chop_index]
 
@@ -124,8 +124,8 @@ def _update__doc__(data_class, readwrite):
     format_table = format_table[has_readwrite]
     format_table.remove_column('Data class')
 
-    # Get the available formats as a table, then munge the output of pformat() a bit and
-    # put it into the docstring.
+    # Get the available formats as a table, then munge the output of pformat()
+    # a bit and put it into the docstring.
     new_lines = format_table.pformat(max_lines=-1, max_width=80)
     table_rst_sep = re.sub('-', '=', new_lines[1])
     new_lines[1] = table_rst_sep
@@ -135,9 +135,9 @@ def _update__doc__(data_class, readwrite):
     # Check for deprecated names and include a warning at the end.
     if 'Deprecated' in format_table.colnames:
         new_lines.extend(['',
-                          'Deprecated format names like ``aastex`` will be removed in a '
-                          'future version.',
-                          'Use the full name (e.g. ``ascii.aastex``) instead.'])
+                          'Deprecated format names like ``aastex`` will be '
+                          'removed in a future version. Use the full ',
+                          'name (e.g. ``ascii.aastex``) instead.'])
 
     new_lines = [FORMATS_TEXT, ''] + new_lines
     lines.extend([' ' * left_indent + line for line in new_lines])
@@ -264,7 +264,7 @@ def identify_format(origin, data_class_required, path, fileobj, args, kwargs):
     for data_format, data_class in _identifiers:
         if _is_best_match(data_class_required, data_class, _identifiers):
             if _identifiers[(data_format, data_class)](
-                origin, path, fileobj, *args, **kwargs):
+                    origin, path, fileobj, *args, **kwargs):
                 valid_formats.append(data_format)
 
     return valid_formats
@@ -314,10 +314,7 @@ def read(cls, *args, **kwargs):
     The arguments passed to this method depend on the format
     """
 
-    if 'format' in kwargs:
-        format = kwargs.pop('format')
-    else:
-        format = None
+    format = kwargs.pop('format', None)
 
     ctx = None
     try:
@@ -355,15 +352,16 @@ def read(cls, *args, **kwargs):
         if not isinstance(data, cls):
             if issubclass(cls, data.__class__):
                 # User has read with a subclass where only the parent class is
-                # registered.  This returns the parent class, so try coercing to
-                # desired subclass.
+                # registered.  This returns the parent class, so try coercing
+                # to desired subclass.
                 try:
                     data = cls(data)
                 except:
-                    raise TypeError('could not convert reader output to {0} class'
-                                    .format(cls.__name__))
+                    raise TypeError('could not convert reader output to {0} '
+                                    'class.'.format(cls.__name__))
             else:
-                raise TypeError("reader should return a {0} instance".format(cls.__name__))
+                raise TypeError("reader should return a {0} instance"
+                                "".format(cls.__name__))
     finally:
         if ctx is not None:
             ctx.__exit__(*sys.exc_info())
@@ -378,10 +376,7 @@ def write(data, *args, **kwargs):
     The arguments passed to this method depend on the format
     """
 
-    if 'format' in kwargs:
-        format = kwargs.pop('format')
-    else:
-        format = None
+    format = kwargs.pop('format', None)
 
     if format is None:
         path = None
@@ -415,9 +410,10 @@ def _is_best_match(class1, class2, format_classes):
         In this case the subclass will use the parent reader/writer.
     """
     classes = [cls for fmt, cls in format_classes]
-    is_best_match = ((class1 is class2) or (issubclass(class1, class2)
-                                            and class1 not in classes))
+    is_best_match = ((class1 is class2) or (issubclass(class1, class2) and
+                                            class1 not in classes))
     return is_best_match
+
 
 def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
     """
@@ -425,21 +421,16 @@ def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
     question.  Mode can be either 'read' or 'write'.
     """
 
-    if mode == 'read':
-        funcs = _readers
-    elif mode == 'write':
-        funcs = _writers
-
     valid_formats = identify_format(mode, cls, path, fileobj, args, kwargs)
 
     if len(valid_formats) == 0:
         format_table_str = _get_format_table_str(cls, mode.capitalize())
         raise IORegistryError("Format could not be identified.\n"
-                        "The available formats are:\n"
-                        "{0}".format(format_table_str))
+                              "The available formats are:\n"
+                              "{0}".format(format_table_str))
     elif len(valid_formats) > 1:
         raise IORegistryError(
             "Format is ambiguous - options are: {0}".format(
-                ', '.join(sorted(valid_formats, key=lambda tup: tup[0]))))
+                ', '.join(sorted(valid_formats, key=itemgetter(0)))))
 
     return valid_formats[0]
