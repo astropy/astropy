@@ -40,8 +40,8 @@ from .optimizers import (SLSQP, Simplex)
 from .statistic import (leastsquare)
 
 
-__all__ = ['LinearLSQFitter', 'LevMarLSQFitter', 'SLSQPLSQFitter',
-           'SimplexLSQFitter', 'JointFitter', 'Fitter']
+__all__ = ['LinearLSQFitter', 'LevMarLSQFitter', 'FittingWithOutlierRemoval',
+           'SLSQPLSQFitter', 'SimplexLSQFitter', 'JointFitter', 'Fitter']
 
 
 
@@ -339,6 +339,96 @@ class LinearLSQFitter(object):
 
         _fitter_to_model_params(model_copy, lacoef.flatten())
         return model_copy
+
+
+class FittingWithOutlierRemoval(object):
+    """
+    This class combines an outlier removal technique with a fitting procedure.
+    Basically, given a number of iterations ``niter``, outliers are removed
+    and fitting is performed for each iteration.
+
+    Parameters
+    ----------
+    fitter : An Astropy fitter
+        An instance of any Astropy fitter, i.e., LinearLSQFitter,
+        LevMarLSQFitter, SLSQPLSQFitter, SimplexLSQFitter, JointFitter.
+    outlier_func : function
+        A function for outlier removal.
+    niter : int (optional)
+        Number of iterations.
+    outlier_kwargs : dict (optional)
+        Keyword arguments for outlier_func.
+    """
+
+    def __init__(self, fitter, outlier_func, niter=3, **outlier_kwargs):
+        self.fitter = fitter
+        self.outlier_func = outlier_func
+        self.niter = niter
+        self.outlier_kwargs = outlier_kwargs
+
+    def __str__(self):
+        return ("Fitter: {0}\nOutlier function: {1}\nNum. of iterations: {2}"+
+                ("\nOutlier func. args.: {3}"))\
+                .format(self.fitter__class__.__name__,\
+                        self.outlier_func.__name__, self.niter,\
+                        self.outlier_kwargs)
+
+    def __repr__(self):
+        return ("{0}(fitter: {1}, outlier_func: {2}," +
+                " niter: {3}, outlier_kwargs: {4})")\
+                 .format(self.__class__.__name__,
+                         self.fitter.__class__.__name__,
+                         self.outlier_func.__name__, self.niter,
+                         self.outlier_kwargs)
+
+    def __call__(self, model, x, y, z=None, weights=None, **kwargs):
+        """
+        Parameters
+        ----------
+        model : `~astropy.modeling.FittableModel`
+            An analytic model which will be fit to the provided data.
+            This also contains the initial guess for an optimization
+            algorithm.
+        x : array-like
+            Input coordinates.
+        y : array-like
+            Data measurements (1D case) or input coordinates (2D case).
+        z : array-like (optional)
+            Data measurements (2D case).
+        weights : array-like (optional)
+            Weights to be passed to the fitter.
+        kwargs : dict (optional)
+            Keyword arguments to be passed to the fitter.
+
+        Returns
+        -------
+        filtered_data : numpy.ma.core.MaskedArray
+            Data used to perform the fitting after outlier removal.
+        fitted_model : `~astropy.modeling.FittableModel`
+            Fitted model after outlier removal.
+        """
+
+        fitted_model = self.fitter(model, x, y, z, weights, **kwargs)
+        if z is None:
+            filtered_data = y
+            for n in range(self.niter):
+                filtered_data = self.outlier_func(filtered_data,
+                                                  **self.outlier_kwargs)
+                fitted_model = self.fitter(fitted_model,
+                               x[~filtered_data.mask],
+                               filtered_data.data[~filtered_data.mask],
+                               **kwargs)
+        else:
+            filtered_data = z
+            for n in range(self.niter):
+                filtered_data = self.outlier_func(filtered_data,
+                                                  **self.outlier_kwargs)
+                fitted_model = self.fitter(fitted_model,
+                               x[~filtered_data.mask],
+                               y[~filtered_data.mask],
+                               filtered_data.data[~filtered_data.mask],
+                               **kwargs)
+        return filtered_data, fitted_model
 
 
 @six.add_metaclass(_FitterMeta)
