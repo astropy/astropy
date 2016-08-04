@@ -178,6 +178,9 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Changed obsgeoloc and obsgeovel frame attributes to CartesianRepresentation. Fixes creation of
+    GCRS frames representing a location on Earth with multiple obstimes. [#5207]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
@@ -217,7 +220,7 @@ Bug Fixes
 
   - Conversion from quantities to logarithmic units now correctly causes a
     logarithmic quantity such as ``Magnitude`` to be returned. [#5183]
-  
+
 - ``astropy.utils``
 
 - ``astropy.visualization``
