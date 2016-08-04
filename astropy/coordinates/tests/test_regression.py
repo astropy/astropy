@@ -12,7 +12,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 
 from ... import units as u
-from .. import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS,
+from .. import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS, HCRS, CIRS, ITRS,
                 GeocentricTrueEcliptic, Longitude, Latitude, GCRS, get_moon)
 from ..sites import get_builtin_sites
 from ...time import Time
@@ -231,5 +231,12 @@ def test_regression_4996():
 def test_regression_4926():
     times = Time('2010-01-1') + np.arange(20)*u.day
     green = get_builtin_sites()['greenwich']
+    # this is the regression test
+    moon = get_moon(times, green)
 
-    get_moon(times, green)
+    # this is an additional test to make sure the GCRS->ICRS transform works for complex shapes
+    moon.transform_to(ICRS())
+
+    # and some others to increase coverage of transforms
+    moon.transform_to(HCRS(obstime="J2000"))
+    moon.transform_to(HCRS(obstime=times))
