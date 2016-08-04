@@ -6,7 +6,8 @@ from __future__ import (absolute_import, unicode_literals, division,
 from ... import units as u
 from ..representation import SphericalRepresentation
 from ..baseframe import (BaseCoordinateFrame, RepresentationMapping,
-                         TimeFrameAttribute, QuantityFrameAttribute)
+                         TimeFrameAttribute, QuantityFrameAttribute,
+                         CartesianFrameAttribute)
 from .utils import DEFAULT_OBSTIME, EQUINOX_J2000
 
 
@@ -70,8 +71,8 @@ class GCRS(BaseCoordinateFrame):
     default_representation = SphericalRepresentation
 
     obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
-    obsgeoloc = QuantityFrameAttribute(default=0, unit=u.m, shape=(3,))
-    obsgeovel = QuantityFrameAttribute(default=0, unit=u.m/u.s, shape=(3,))
+    obsgeoloc = CartesianFrameAttribute(default=0, unit=u.m)
+    obsgeovel = CartesianFrameAttribute(default=0, unit=u.m/u.s)
 
 # The "self-transform" is defined in icrs_cirs_transformations.py, because in
 # the current implementation it goes through ICRS (like CIRS)
@@ -130,5 +131,5 @@ class PrecessedGeocentric(BaseCoordinateFrame):
 
     equinox = TimeFrameAttribute(default=EQUINOX_J2000)
     obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
-    obsgeoloc = QuantityFrameAttribute(default=0, unit=u.m, shape=(3,))
-    obsgeovel = QuantityFrameAttribute(default=0, unit=u.m/u.s, shape=(3,))
+    obsgeoloc = CartesianFrameAttribute(default=0, unit=u.m)
+    obsgeovel = CartesianFrameAttribute(default=0, unit=u.m/u.s)

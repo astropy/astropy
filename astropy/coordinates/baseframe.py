@@ -30,7 +30,7 @@ from .representation import (BaseRepresentation, CartesianRepresentation,
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame',
            'FrameAttribute', 'TimeFrameAttribute', 'QuantityFrameAttribute',
-           'EarthLocationAttribute', 'RepresentationMapping',
+           'CartesianFrameAttribute', 'EarthLocationAttribute', 'RepresentationMapping',
            'CoordinateAttribute']
 
 
@@ -333,6 +333,63 @@ class QuantityFrameAttribute(FrameAttribute):
                 raise ValueError('The provided value has shape "{0}", but '
                                  'should have shape "{1}"'.format(value.shape,
                                                                   self.shape))
+            if (oldvalue.unit == value.unit and hasattr(oldvalue, 'value') and
+                np.all(oldvalue.value == value.value)):
+                converted = False
+            return value, converted
+
+
+class CartesianFrameAttribute(FrameAttribute):
+    """
+    A frame attribute that is a quantity with the specified units and shape (3, N).
+
+    Parameters
+    ----------
+    default : object
+        Default value for the attribute if not specified
+    secondary_attribute : str
+        Name of a secondary instance attribute which supplies the value if
+        ``default is None`` and no value was supplied during initialization.
+    unit : unit object or None
+        Name of a unit that the input will be converted into. If None, no
+        unit-checking or conversion is performed
+    """
+    def __init__(self, default=None,  secondary_attribute='', unit=None):
+        super(CartesianFrameAttribute, self).__init__(default, secondary_attribute)
+        self.unit = unit
+
+    def convert_input(self, value):
+        """
+        Checks that the input is a Quantity with the necessary units and shape.
+
+        Parameters
+        ----------
+        value : object
+            Input value to be converted. Can also be the special value ``0``.
+
+        Returns
+        -------
+        out, converted : correctly-typed object, boolean
+            Tuple consisting of the correctly-typed object and a boolean which
+            indicates if conversion was actually performed.
+
+        Raises
+        ------
+        ValueError
+            If the input is not valid for this attribute.
+        """
+        if np.all(value == 0):
+            return u.Quantity(np.zeros((3,)), self.unit), True
+        else:
+            converted = True
+            if not (hasattr(value, 'unit')):
+                raise TypeError('Tried to set a CartesianFrameAttribute with '
+                                'something that does not have a unit.')
+            oldvalue = value
+            value = u.Quantity(oldvalue, copy=False).to(self.unit)
+            if value.shape[0] != 3:
+                raise ValueError('The provided value has shape "{0}", but '
+                                 'should have shape (3, N)')
             if (oldvalue.unit == value.unit and hasattr(oldvalue, 'value') and
                 np.all(oldvalue.value == value.value)):
                 converted = False
