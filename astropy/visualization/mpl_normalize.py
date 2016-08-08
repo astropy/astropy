@@ -3,9 +3,9 @@ Normalization class for Matplotlib that can be used to produce colorbars.
 """
 
 from __future__ import division, print_function
-
 import numpy as np
 from numpy import ma
+from .stretch import LinearStretch
 
 try:
     import matplotlib  # pylint: disable=W0611
@@ -18,7 +18,8 @@ try:
 except ImportError:
     class Normalize(object):
         def __init__(self, *args, **kwargs):
-            raise ImportError("matplotlib is required in order to use this class")
+            raise ImportError('matplotlib is required in order to use this '
+                              'class')
 
 
 __all__ = ['ImageNormalize']
@@ -38,16 +39,18 @@ class ImageNormalize(Normalize):
         Whether to clip the output values to the [0:1] range
     """
 
-    def __init__(self, vmin=None, vmax=None, stretch=None, clip=False):
+    def __init__(self, vmin=None, vmax=None, stretch=LinearStretch(),
+                 clip=False):
+        # this super call checks for matplotlib
         super(ImageNormalize, self).__init__(vmin=vmin, vmax=vmax, clip=clip)
 
         self.vmin = vmin
         self.vmax = vmax
         self.stretch = stretch
         self.inverse_stretch = stretch.inverse
+        self.clip = clip
 
     def __call__(self, values, clip=None):
-
         if clip is None:
             clip = self.clip
 
@@ -72,7 +75,6 @@ class ImageNormalize(Normalize):
 
         # Normalize based on vmin and vmax
         np.subtract(values, self.vmin, out=values)
-
         np.true_divide(values, self.vmax - self.vmin, out=values)
 
         # Clip to the 0 to 1 range
@@ -86,7 +88,6 @@ class ImageNormalize(Normalize):
         return ma.array(values, mask=mask)
 
     def inverse(self, values):
-
         # Find unstretched values in range 0 to 1
         values_norm = self.inverse_stretch(values, clip=False)
 
