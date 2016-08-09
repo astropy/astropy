@@ -104,5 +104,6 @@ setup(name=NAME,
       zip_safe=False,
       use_2to3=False,
       entry_points=entry_points,
+      python_requires='>=2.7',
       **package_info
 )
