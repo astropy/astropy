@@ -270,19 +270,19 @@ def test_repr_latex():
 
 
 @remote_data
-def test_from_address():
+def test_of_address():
     # no match
     with pytest.raises(NameResolveError):
-        EarthLocation.from_address("lkjasdflkja")
+        EarthLocation.of_address("lkjasdflkja")
 
     # just a location
-    loc = EarthLocation.from_address("New York, NY")
+    loc = EarthLocation.of_address("New York, NY")
     assert quantity_allclose(loc.latitude, 40.7128*u.degree)
     assert quantity_allclose(loc.longitude, -74.0059*u.degree)
     assert np.allclose(loc.height.value, 0.)
 
     # a location and height
-    loc = EarthLocation.from_address("New York, NY", get_height=True)
+    loc = EarthLocation.of_address("New York, NY", get_height=True)
     assert quantity_allclose(loc.latitude, 40.7128*u.degree)
     assert quantity_allclose(loc.longitude, -74.0059*u.degree)
     assert quantity_allclose(loc.height, 10.438659669*u.meter)
