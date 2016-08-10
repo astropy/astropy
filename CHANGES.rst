@@ -182,6 +182,9 @@ Other Changes and Additions
     with the same name in ``coordinates.matrix_utilities``. [#5104]
 
 
+- To build the documentation, the ``build_sphinx`` command has been deprecated
+  in favor of ``build_docs``. [#5179]
+
 1.2.2 (unreleased)
 ------------------
 
