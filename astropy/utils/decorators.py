@@ -641,7 +641,8 @@ def wraps(wrapped, assigned=functools.WRAPPER_ASSIGNMENTS,
     return wrapper
 
 
-if isinstance(wraps.__doc__, six.string_types):
+if (isinstance(wraps.__doc__, six.string_types) and
+        wraps.__doc__ is not None and functools.wraps.__doc__ is not None):
     wraps.__doc__ += functools.wraps.__doc__
 
 
