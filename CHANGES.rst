@@ -224,8 +224,8 @@ Bug Fixes
 - ``astropy.coordinates``
 
   - GCRS frames representing a location on Earth with multiple obstimes are now allowed. This means that
-   the solar system routines ``get_body``, ``get_moon`` and ``get_sun`` now work with non-scalar times and
-   a none geocentric observer. [#5207]
+    the solar system routines ``get_body``, ``get_moon`` and ``get_sun`` now work with non-scalar times and
+    a none geocentric observer. [#5207]
 
 - ``astropy.cosmology``
 
