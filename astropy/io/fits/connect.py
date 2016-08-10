@@ -70,7 +70,8 @@ def is_fits(origin, filepath, fileobj, *args, **kwargs):
         fileobj.seek(pos)
         return sig == FITS_SIGNATURE
     elif filepath is not None:
-        if filepath.lower().endswith(('.fits', '.fits.gz', '.fit', '.fit.gz')):
+        if filepath.lower().endswith(('.fits', '.fits.gz', '.fit', '.fit.gz',
+                                      '.fts', '.fts.gz')):
             return True
     elif isinstance(args[0], (HDUList, TableHDU, BinTableHDU, GroupsHDU)):
         return True
