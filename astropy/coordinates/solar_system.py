@@ -53,7 +53,6 @@ PLAN94_BODY_NAME_TO_PLANET_INDEX = OrderedDict(
     (('mercury', 1),
      ('venus', 2),
      ('earth-moon-barycenter', 3),
-     ('moon', 301),
      ('mars', 4),
      ('jupiter', 5),
      ('saturn', 6),
@@ -74,7 +73,7 @@ If needed, the ephemeris file will be downloaded (and cached).
 
 One can check which bodies are covered by a given ephemeris using::
     >>> solar_system_ephemeris.bodies
-    ('earth', 'sun', 'mercury', 'venus', 'earth-moon-barycenter', 'moon', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune')
+    ('earth', 'sun', 'moon', 'mercury', 'venus', 'earth-moon-barycenter', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune')
 """[1:-1]
 
 
@@ -137,7 +136,7 @@ class solar_system_ephemeris(ScienceState):
         if cls._value is None:
             return None
         if cls._value.lower() == 'builtin':
-            return (('earth', 'sun') +
+            return (('earth', 'sun', 'moon') +
                     tuple(PLAN94_BODY_NAME_TO_PLANET_INDEX.keys()))
         else:
             return tuple(BODY_NAME_TO_KERNEL_SPEC.keys())
