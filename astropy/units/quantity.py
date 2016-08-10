@@ -189,7 +189,7 @@ class Quantity(np.ndarray):
     Notes
     -----
     Quantities can also be created by multiplying a number or array with a
-    :class:`~astropy.unit.Unit`. See http://docs.astropy.org/en/latest/units/ 
+    :class:`~astropy.unit.Unit`. See http://docs.astropy.org/en/latest/units/
 
     """
     # Need to set a class-level default for _equivalencies, or
