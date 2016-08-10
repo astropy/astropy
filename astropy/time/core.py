@@ -803,12 +803,15 @@ class Time(ShapedLikeNDArray):
             # Apply the method to any value arrays (though skip if there is only
             # a single element and the method would return a view, since in
             # that case nothing would change).
-            if method is not None and val is not None:
-                if method == 'copy' or method == 'flatten' and val.size == 1:
+            if method is not None and val is not None and hasattr(val, method):
+                if val.size > 1 or method == 'copy':
+                    val = getattr(val, method)(*args, **kwargs)
+                elif method == 'flatten':
+                    # flatten should copy also for a single element array, but
+                    # we cannot use it directly for array scalars, since it
+                    # always returns a one-dimensional array. So, just copy.
                     val = val.copy()
 
-                elif val.size > 1:
-                    val = getattr(val, method)(*args, **kwargs)
 
             setattr(tm, attr, val)
 

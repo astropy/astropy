@@ -1566,6 +1566,9 @@ Bug Fixes
 
 - ``astropy.time``
 
+  - Ensure ``Time`` instances holding a single ``delta_ut1_utc`` can be copied,
+    flattened, etc. [#5225]
+
 - ``astropy.units``
 
   - Fixed bug in Ci definition. [#5106]
