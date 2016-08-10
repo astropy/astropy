@@ -37,7 +37,7 @@ class TestSingleTable(object):
                              dtype=[(str('a'), int), (str('b'), str('U1')), (str('c'), float)])
 
     def test_simple(self, tmpdir):
-        filename = str(tmpdir.join('test_simple.fits'))
+        filename = str(tmpdir.join('test_simple.fts'))
         t1 = Table(self.data)
         t1.write(filename, overwrite=True)
         t2 = Table.read(filename)
@@ -45,7 +45,7 @@ class TestSingleTable(object):
 
     @pytest.mark.skipif('not HAS_PATHLIB')
     def test_simple_pathlib(self, tmpdir):
-        filename = pathlib.Path(str(tmpdir.join('test_simple.fits')))
+        filename = pathlib.Path(str(tmpdir.join('test_simple.fit')))
         t1 = Table(self.data)
         t1.write(filename, overwrite=True)
         t2 = Table.read(filename)
