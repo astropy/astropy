@@ -27,6 +27,8 @@ env:
         - PIP_DEPENDENCIES='pytest-mpl'
         - SETUP_XVFB=True
         - SETUP_CMD='test --remote-data'
+        - CONDA_CHANNELS='astropy-ci-extras'
+
     matrix:
         - SETUP_CMD='egg_info'
         - SETUP_CMD='test --remote-data'
