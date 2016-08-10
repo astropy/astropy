@@ -418,6 +418,11 @@ New Features
   - Enable test runner to obtain documentation source files from directory
     other than "docs". [#4748]
 
+  - Install both runtime and test dependencies when running the
+    ./setup.py test command. These dependencies are specified by the
+    install_requires and tests_require keywords via setuptools.
+    [#5092, astropy-helpers #212]
+
 - ``astropy.time``
 
   - Added caching of scale and format transformations for improved performance.
