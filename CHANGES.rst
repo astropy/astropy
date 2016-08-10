@@ -15,6 +15,9 @@ New Features
   - Added an ``of_address`` classmethod to ``EarthLocation`` to enable fast creation of
     ``EarthLocation`` objects given an address by querying the Google maps API [#5154].
 
+  - In addition to positions, ``get_body_barycentric`` now also allows one to
+    calculate velocities for solar system bodies. [#5231]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
