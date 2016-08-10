@@ -6,7 +6,10 @@ colorbars.
 from __future__ import division, print_function
 import numpy as np
 from numpy import ma
-from .stretch import LinearStretch
+from .interval import (PercentileInterval, AsymmetricPercentileInterval,
+                       ManualInterval, MinMaxInterval)
+from .stretch import (LinearStretch, SqrtStretch, PowerStretch, LogStretch,
+                      AsinhStretch)
 
 try:
     import matplotlib    # pylint: disable=W0611
@@ -23,7 +26,7 @@ except ImportError:
                               'class')
 
 
-__all__ = ['ImageNormalize']
+__all__ = ['ImageNormalize', 'mpl_norm']
 
 
 class ImageNormalize(Normalize):
@@ -116,3 +119,103 @@ class ImageNormalize(Normalize):
 
         # Scale to original range
         return values_norm * (self.vmax - self.vmin) + self.vmin
+
+
+def mpl_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
+             max_cut=None, min_percent=None, max_percent=None, percent=None,
+             clip=True):
+    """
+    Return a Normalization class that can be used for displaying images
+    with Matplotlib.
+
+    This function enables only a subset of image stretching functions
+    available in `astropy.visualization`.
+
+    This function is used by the
+    ``astropy.visualization.scripts.fits2bitmap`` script.
+
+    Parameters
+    ----------
+    data : `~numpy.ndarray`
+        The image array.
+
+    stretch : {{'linear', 'sqrt', 'power', log', 'asinh'}}, optional
+        The stretch function to apply to the image.  The default is
+        'linear'.
+
+    power : float, optional
+        The power index for ``stretch='power'``.  The default is 1.0.
+
+    asinh_a : float, optional
+        For ``stretch='asinh'``, the value where the asinh curve
+        transitions from linear to logarithmic behavior, expressed as a
+        fraction of the normalized image.  Must be in the range between
+        0 and 1.
+
+    min_cut : float, optional
+        The pixel value of the minimum cut level.  Data values less than
+        ``min_cut`` will set to ``min_cut`` before stretching the image.
+        The default is the image minimum.  ``min_cut`` overrides
+        ``min_percent``.
+
+    max_cut : float, optional
+        The pixel value of the maximum cut level.  Data values greater
+        than ``min_cut`` will set to ``min_cut`` before stretching the
+        image.  The default is the image maximum.  ``max_cut`` overrides
+        ``max_percent``.
+
+    min_percent : float, optional
+        The percentile value used to determine the pixel value of
+        minimum cut level.  The default is 0.0.  ``min_percent``
+        overrides ``percent``.
+
+    max_percent : float, optional
+        The percentile value used to determine the pixel value of
+        maximum cut level.  The default is 100.0.  ``max_percent``
+        overrides ``percent``.
+
+    percent : float, optional
+        The percentage of the image values used to determine the pixel
+        values of the minimum and maximum cut levels.  The lower cut
+        level will set at the ``(100 - percent) / 2`` percentile, while
+        the upper cut level will be set at the ``(100 + percent) / 2``
+        percentile.  The default is 100.0.  ``percent`` is ignored if
+        either ``min_percent`` or ``max_percent`` is input.
+
+    clip : bool, optional
+        If `True` (default), data values outside the [0:1] range are
+        clipped to the [0:1] range.
+
+    Returns
+    -------
+    result : `ImageNormalize` instance
+        An `ImageNormalize` instance that can be used for displaying
+        images with Matplotlib.
+    """
+
+    if percent is not None:
+        interval = PercentileInterval(percent)
+    elif min_percent is not None or max_percent is not None:
+        interval = AsymmetricPercentileInterval(min_percent or 0.,
+                                                max_percent or 100.)
+    elif min_cut is not None or max_cut is not None:
+        interval = ManualInterval(min_cut, max_cut)
+    else:
+        interval = MinMaxInterval()
+
+    if stretch == 'linear':
+        stretch = LinearStretch()
+    elif stretch == 'sqrt':
+        stretch = SqrtStretch()
+    elif stretch == 'power':
+        stretch = PowerStretch(power)
+    elif stretch == 'log':
+        stretch = LogStretch()
+    elif stretch == 'asinh':
+        stretch = AsinhStretch(asinh_a)
+    else:
+        raise ValueError('Unknown stretch: {0}'.format(stretch))
+
+    vmin, vmax = interval.get_limits(data)
+
+    return ImageNormalize(vmin=vmin, vmax=vmax, stretch=stretch, clip=clip)
