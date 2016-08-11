@@ -32,14 +32,18 @@ except ImportError:
 
 def create_reader_kwargs_from_writer_kwargs(test_write_def):
     """Create a test definition with appropriate kwargs for a Reader."""
-    remove_col_for_read = ('formats', 'include_names', 'exclude_names', 'strip_whitespace')
+    remove_col_for_read = ('formats', 'include_names', 'exclude_names',
+                           'strip_whitespace')
 
     test_read_def = copy.deepcopy(test_write_def)
     if 'Writer' in test_read_def['kwargs']:
         test_read_def['kwargs']['Reader'] = test_write_def['kwargs']['Writer']
         del test_read_def['kwargs']['Writer']
-    # Delimiter is a special case.  In general, we want to keep the delimiter as set
-    # But in the special case of 'delimiter=None', we want to remove 'delimiter' from 'kwargs'.
+    # Delimiter is a special case.
+    # In general, we want to keep the 'delimiter' option unchanged.
+    # But in the special case of 'delimiter=None',
+    #   we want to remove 'delimiter' from 'kwargs'
+    #   because it can confuse the Reader.
     if 'delimiter' in test_read_def['kwargs']:
         if test_read_def['kwargs']['delimiter'] is None:
             del test_read_def['kwargs']['delimiter']
@@ -83,7 +87,8 @@ def check_read_write_table_via_table(test_def, table, fast_writer):
     test_write_def = copy.deepcopy(test_def)
     # Table would like 'format' text string instead of 'Writer' and 'Reader'.
     if 'Writer' in test_def['kwargs']:
-        format_name = 'ascii.{0}'.format(test_write_def['kwargs']['Writer']._format_name)
+        format_name = 'ascii.{0}'.format(
+            test_write_def['kwargs']['Writer']._format_name)
         test_write_def['kwargs']['format'] = format_name
         del test_write_def['kwargs']['Writer']
 
@@ -131,17 +136,18 @@ def writer_or_format_is_html(def_kwargs):
 check_functions = \
     (check_read_write_table_via_ascii, check_read_write_table_via_table)
 
+
 @pytest.mark.parametrize("test_def", test_defs)
 @pytest.mark.parametrize("check_function", check_functions)
 @pytest.mark.parametrize("fast_writer", [True, False])
 def test_read_write_table(check_function, test_def, fast_writer):
     table = ascii.get_reader(Reader=ascii.Daophot)
-    data = table.read('t/daophot.dat')  # Chosen as a representative sample of test data.
+    data = table.read('t/daophot.dat')  # A small sample of test data.
 
     # If BeautifulSoup is not imported.
     # Then skip this test_def if this is an HTML write/read
-    if not HAS_BEAUTIFUL_SOUP:
-        if writer_or_format_is_html(test_def['kwargs']):
-            pytest.skip("BeautifulSoup not installed.  Skipping write+read HTML test.")
+    if not HAS_BEAUTIFUL_SOUP and writer_or_format_is_html(test_def['kwargs']):
+        msg = "BeautifulSoup not installed.  Skipping write+read HTML test."
+        pytest.skip(msg)
 
     check_function(test_def, data, fast_writer)
