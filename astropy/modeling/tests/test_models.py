@@ -372,7 +372,7 @@ class Fittable1DModelTester(object):
         sub_arr = model(x1)
 
         # check for flux agreement
-        assert abs(arr.sum() - sub_arr.sum()) < arr.sum() * 1e-7
+        np.allclose(arr.sum() - sub_arr.sum(), 0)
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_fitter1D(self, model_class, test_parameters):

@@ -4,17 +4,22 @@
 
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
+from ..extern.six.moves import map, zip
+
+# STDLIB
 import warnings
+from functools import partial
+
+# THIRD-PARTY
 import numpy as np
+
+# LOCAL
 from .core import (Fittable1DModel, Fittable2DModel, Model,
                    ModelDefinitionError, custom_model)
 from .parameters import Parameter, InputParameterError
-from .utils import ellipse_extent
+from .utils import (ellipse_extent, get_inputs_and_params)
 from ..utils import deprecated
-from ..extern import six
-from .utils import get_inputs_and_params
 from ..utils.exceptions import AstropyDeprecationWarning
-
 
 __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D',
@@ -110,6 +115,11 @@ class Gaussian1D(Fittable1DModel):
     mean = Parameter(default=0)
     stddev = Parameter(default=1)
 
+    @property
+    def fwhm(self):
+        """Full width at half maximum calculated from `stddev`."""
+        return self.stddev * 0.5 / np.sqrt(2 * np.log(2))
+
     def bounding_box(self, factor=5.5):
         """
         Tuple defining the default ``bounding_box`` limits,
@@ -143,6 +153,34 @@ class Gaussian1D(Fittable1DModel):
         return (x0 - dx, x0 + dx)
 
     @staticmethod
+    def _calc_sampleset(w1, w2, dw):
+        """Calculate sampleset for each model."""
+        return np.arange(w1, w2 + dw, dw)
+
+    def sampleset(self, factor_step=0.1, **kwargs):
+        """Return ``x`` array that samples the feature.
+
+        Parameters
+        ----------
+        factor_step : float
+            Factor for sample step calculation. The step is calculated
+            using ``factor_step * self.stddev``.
+
+        kwargs : dict
+            Keyword(s) for `bounding_box` calculation.
+
+        """
+        w1, w2 = self.bounding_box(**kwargs)
+        dw = factor_step * self.stddev
+
+        if self._n_models == 1:
+            w = self._calc_sampleset(w1, w2, dw)
+        else:
+            w = list(map(self._calc_sampleset, w1, w2, dw))
+
+        return w
+
+    @staticmethod
     def evaluate(x, amplitude, mean, stddev):
         """
         Gaussian1D model function.
@@ -161,7 +199,7 @@ class Gaussian1D(Fittable1DModel):
         return [d_amplitude, d_mean, d_stddev]
 
 
-class GaussianAbsorption1D(Fittable1DModel):
+class GaussianAbsorption1D(Gaussian1D):
     """
     One dimensional Gaussian absorption line model.
 
@@ -205,41 +243,6 @@ class GaussianAbsorption1D(Fittable1DModel):
     Gaussian1D
     """
 
-    amplitude = Parameter(default=1)
-    mean = Parameter(default=0)
-    stddev = Parameter(default=1)
-
-    def bounding_box(self, factor=5.5):
-        """
-        Tuple defining the default ``bounding_box`` limits,
-        ``(x_low, x_high)``
-
-        Parameters
-        ----------
-        factor : float
-            The multiple of `stddev` used to define the limits.
-            The default is 5.5, corresponding to a relative error < 1e-7.
-
-        Examples
-        --------
-        >>> from astropy.modeling.models import Gaussian1D
-        >>> model = Gaussian1D(mean=0, stddev=2)
-        >>> model.bounding_box
-        (-11.0, 11.0)
-
-        This range can be set directly (see: ``help(model.bounding_box)``) or by
-        using a different factor, like:
-
-        >>> model.bounding_box = model.bounding_box(factor=2)
-        >>> model.bounding_box
-        (-4.0, 4.0)
-        """
-
-        x0 = self.mean.value
-        dx = factor * self.stddev
-
-        return (x0 - dx, x0 + dx)
-
     @staticmethod
     def evaluate(x, amplitude, mean, stddev):
         """
@@ -253,8 +256,8 @@ class GaussianAbsorption1D(Fittable1DModel):
         GaussianAbsorption1D model function derivatives.
         """
         import operator
-        return list(six.moves.map(
-            operator.neg, Gaussian1D.fit_deriv(x, amplitude, mean, stddev)))
+        return list(map(
+                operator.neg, Gaussian1D.fit_deriv(x, amplitude, mean, stddev)))
 
 
 class Gaussian2D(Fittable2DModel):
@@ -856,6 +859,55 @@ class Lorentz1D(Fittable1DModel):
         d_fwhm = 2 * amplitude * d_amplitude / fwhm * (1 - d_amplitude)
         return [d_amplitude, d_x_0, d_fwhm]
 
+    @property
+    def stddev(self):
+        """Standard deviation based on FWHM."""
+        return self.fwhm * 0.5 / np.sqrt(2 * np.log(2))
+
+    def bounding_box(self, factor=25):
+        """Tuple defining the default ``bounding_box`` limits,
+        ``(x_low, x_high)``.
+
+        Parameters
+        ----------
+        factor : float
+            The multiple of `stddev` used to define the limits.
+            Similar to :class:`Gaussian1D`.
+
+        """
+        x0 = self.x_0.value
+        dx = factor * self.stddev
+
+        return (x0 - dx, x0 + dx)
+
+    @staticmethod
+    def _calc_sampleset(w1, w2, dw):
+        """Calculate sampleset for each model."""
+        return np.arange(w1, w2 + dw, dw)
+
+    def sampleset(self, factor_step=0.1, **kwargs):
+        """Return ``x`` array that samples the feature.
+
+        Parameters
+        ----------
+        factor_step : float
+            Factor for sample step calculation. The step is calculated
+            using ``factor_step * self.stddev``.
+
+        kwargs : dict
+            Keyword(s) for `bounding_box` calculation.
+
+        """
+        w1, w2 = self.bounding_box(**kwargs)
+        dw = factor_step * self.stddev
+
+        if self._n_models == 1:
+            w = self._calc_sampleset(w1, w2, dw)
+        else:
+            w = list(map(self._calc_sampleset, w1, w2, dw))
+
+        return w
+
 
 class Voigt1D(Fittable1DModel):
     """
@@ -1401,6 +1453,39 @@ class Box1D(Fittable1DModel):
 
         return (self.x_0 - dx, self.x_0 + dx)
 
+    @staticmethod
+    def _calc_sampleset(w1, w2, step, minimal):
+        """Calculate sampleset for each model."""
+        if minimal:
+            arr = [w1 - step, w1, w2, w2 + step]
+        else:
+            arr = np.arange(w1 - step, w2 + step + step, step)
+
+        return arr
+
+    def sampleset(self, step=0.01, minimal=False):
+        """Return ``x`` array that samples the feature.
+
+        Parameters
+        ----------
+        step : float
+            Distance of first and last points w.r.t. bounding box.
+
+        minimal : bool
+            Only return the minimal points needed to define the box;
+            i.e., box edges and a point outside on each side.
+
+        """
+        w1, w2 = self.bounding_box
+
+        if self._n_models == 1:
+            w = self._calc_sampleset(w1, w2, step, minimal)
+        else:
+            f = partial(self._calc_sampleset, step=step, minimal=minimal)
+            w = list(map(f, w1, w2))
+
+        return w
+
 
 class Box2D(Fittable2DModel):
     """
@@ -1549,6 +1634,20 @@ class Trapezoid1D(Fittable1DModel):
 
         return (self.x_0 - dx, self.x_0 + dx)
 
+    def sampleset(self):
+        """Return ``x`` array that samples the feature."""
+        x1, x4 = self.bounding_box
+        dw = self.width * 0.5
+        x2 = self.x_0 - dw
+        x3 = self.x_0 + dw
+
+        if self._n_models == 1:
+            w = [x1, x2, x3, x4]
+        else:
+            w = list(zip(x1, x2, x3, x4))
+
+        return w
+
 
 class TrapezoidDisk2D(Fittable2DModel):
     """
@@ -1662,6 +1761,50 @@ class MexicanHat1D(Fittable1DModel):
 
         xx_ww = (x - x_0) ** 2 / (2 * sigma ** 2)
         return amplitude * (1 - 2 * xx_ww) * np.exp(-xx_ww)
+
+    def bounding_box(self, factor=7.5):
+        """Tuple defining the default ``bounding_box`` limits,
+        ``(x_low, x_high)``.
+
+        Parameters
+        ----------
+        factor : float
+            The multiple of ``sigma`` used to define the limits.
+            Similar to :class:`Gaussian1D`.
+
+        """
+        x0 = self.x_0.value
+        dx = factor * self.sigma
+
+        return (x0 - dx, x0 + dx)
+
+    @staticmethod
+    def _calc_sampleset(w1, w2, dw):
+        """Calculate sampleset for each model."""
+        return np.arange(w1, w2 + dw, dw)
+
+    def sampleset(self, factor_step=0.1, **kwargs):
+        """Return ``x`` array that samples the feature.
+
+        Parameters
+        ----------
+        factor_step : float
+            Factor for sample step calculation. The step is calculated
+            using ``factor_step * self.sigma``.
+
+        kwargs : dict
+            Keyword(s) for `bounding_box` calculation.
+
+        """
+        w1, w2 = self.bounding_box(**kwargs)
+        dw = factor_step * self.sigma
+
+        if self._n_models == 1:
+            w = self._calc_sampleset(w1, w2, dw)
+        else:
+            w = list(map(self._calc_sampleset, w1, w2, dw))
+
+        return w
 
 
 class MexicanHat2D(Fittable2DModel):

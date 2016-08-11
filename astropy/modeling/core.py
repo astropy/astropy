@@ -43,7 +43,7 @@ from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import (array_repr_oneline, check_broadcast, combine_labels,
                     make_binary_operator_eval, ExpressionTree,
                     IncompatibleShapeError, AliasDict, get_inputs_and_params,
-                    _BoundingBox)
+                    _BoundingBox, merge_sampleset)
 from ..nddata.utils import add_array, extract_array
 
 from .parameters import Parameter, InputParameterError
@@ -1035,6 +1035,12 @@ class Model(object):
 
     # *** Public methods ***
 
+    # NOTE: This could be like special property like bounding box above but
+    #       that would be too complicated to maintain. Just easier as method.
+    def sampleset(self):
+        """Return ``x`` array that samples the feature."""
+        return None
+
     @abc.abstractmethod
     def evaluate(self, *args, **kwargs):
         """Evaluate the model on some input variables."""
@@ -1755,6 +1761,64 @@ BINARY_OPERATORS = {
 }
 
 
+def _get_sampleset(m):
+    if isinstance(m, Model):
+        if m._n_models == 1:
+            sampleset = m.sampleset()
+        else:
+            sampleset = None  # Does not support n_models > 1
+    else:  # Already an array (last step of ExpressionTree operation)
+        sampleset = m
+    return sampleset
+
+
+def _merge_sampleset(f, g):
+    # Merging is for most of the compound model operations.
+    fs = _get_sampleset(f)
+    gs = _get_sampleset(g)
+    return merge_sampleset(fs, gs)
+
+
+def _shift_sampleset(f, g):
+    # Comparing names to avoid circular import from subclassed models.
+    # Python class names are case-sensitive.
+    classes = ['RedshiftScaleFactor', 'Redshift', 'Shift', 'Scale']
+    fcls = f.__class__.__name__
+    gcls = g.__class__.__name__
+
+    # Nothing to be done.
+    if fcls in classes and gcls in classes:
+        sampleset = None
+
+    # Shift/scale happens after model evaluation, it is done to y, not x,
+    # so just use first model sampleset.
+    elif gcls in classes:
+        sampleset = _get_sampleset(f)
+
+    # Inverse is applied to sample correctly
+    elif fcls in classes:
+        gs = _get_sampleset(g)
+        sampleset = f.inverse(gs)
+
+    # Not sure what is going on, so just set to unknown.
+    else:
+        sampleset = None
+
+    return sampleset
+
+
+# This is for joining samplesets in a compound model. Keys must match
+# BINARY_OPERATORS above.
+SAMPLESET_OPERATORS = {
+    '+': _merge_sampleset,
+    '-': _merge_sampleset,
+    '*': _merge_sampleset,
+    '/': _merge_sampleset,
+    '**': _merge_sampleset,
+    '|': _shift_sampleset,
+    '&': _merge_sampleset
+}
+
 _ORDER_OF_OPERATORS = [('|',), ('&',), ('+', '-'), ('*', '/'), ('**',)]
 OPERATOR_PRECEDENCE = {}
 for idx, ops in enumerate(_ORDER_OF_OPERATORS):
@@ -2465,6 +2529,14 @@ class _CompoundModel(Model):
     @sharedmethod
     def _get_submodels(self):
         return self.__class__._get_submodels()
+
+    # We let ExpressionTree handle combining the sampleset of individual models.
+    # NOTE: If someone changes sampleset in Model to be a property, this
+    #       also needs to change.
+    @sharedmethod
+    def sampleset(self):
+        """Return ``x`` array that samples the feature."""
+        return self._tree.evaluate(SAMPLESET_OPERATORS, getter=None)
 
 
 def custom_model(*args, **kwargs):
