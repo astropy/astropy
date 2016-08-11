@@ -15,6 +15,10 @@ from __future__ import (absolute_import, division, print_function,
 import math
 import numpy as np
 
+from warnings import warn
+
+from ..utils.compat import NUMPY_LT_1_10
+from ..utils.decorators import deprecated_renamed_argument
 from ..utils import isiterable
 from ..extern.six.moves import range
 
@@ -718,7 +722,8 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
     return conf_interval
 
 
-def median_absolute_deviation(a, axis=None, func=None):
+@deprecated_renamed_argument('a', 'data', '2.0')
+def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
     """
     Calculate the median absolute deviation (MAD).
 
@@ -726,7 +731,7 @@ def median_absolute_deviation(a, axis=None, func=None):
 
     Parameters
     ----------
-    a : array-like
+    data : array-like
         Input array or object that can be converted to an array.
     axis : {int, sequence of int, None}, optional
         Axis along which the MADs are computed.  The default (`None`) is
@@ -734,6 +739,11 @@ def median_absolute_deviation(a, axis=None, func=None):
     func : callable, optional
         The function used to compute the median. Defaults to `numpy.ma.median`
         for masked arrays, otherwise to `numpy.median`.
+    ignore_nan : bool
+        Ignore NaN values (treat them as if they are not in the array) when
+        computing the median.  This will use `numpy.ma.median` if ``axis`` is
+        specified, or `numpy.nanmedian` if ``axis==None`` and numpy's version
+        is >1.10 because nanmedian is slightly faster in this case.
 
     Returns
     -------
@@ -765,26 +775,52 @@ def median_absolute_deviation(a, axis=None, func=None):
         # See https://github.com/numpy/numpy/issues/7330 why using np.ma.median
         # for normal arrays should not be done (summary: np.ma.median always
         # returns an masked array even if the result should be scalar). (#4658)
-        if isinstance(a, np.ma.MaskedArray):
+        if isinstance(data, np.ma.MaskedArray):
+            is_masked = True
             func = np.ma.median
+            if ignore_nan:
+                data = np.ma.masked_invalid(data)
+        elif ignore_nan:
+            is_masked = False
+            func = np.nanmedian
         else:
+            is_masked = False
             func = np.median
+    else:
+        is_masked = None
 
-    a = np.asanyarray(a)
-    a_median = func(a, axis=axis)
+    if not ignore_nan and NUMPY_LT_1_10 and np.any(np.isnan(data)):
+        warn("Numpy versions <1.10 will return a number rather than NaN for "
+             "the median of arrays containing NaNs.  This behavior is "
+             "unlikely to be what you expect.")
+
+    data = np.asanyarray(data)
+    # np.nanmedian has `keepdims`, which is a good option if we're not allowing
+    # user-passed functions here
+    data_median = func(data, axis=axis)
 
     # broadcast the median array before subtraction
     if axis is not None:
         if isiterable(axis):
             for ax in sorted(list(axis)):
-                a_median = np.expand_dims(a_median, axis=ax)
+                data_median = np.expand_dims(data_median, axis=ax)
         else:
-            a_median = np.expand_dims(a_median, axis=axis)
+            data_median = np.expand_dims(data_median, axis=axis)
 
-    return func(np.abs(a - a_median), axis=axis)
+    result = func(np.abs(data - data_median), axis=axis, overwrite_input=True)
+
+    if axis is None and np.ma.isMaskedArray(result):
+        # return scalar version
+        result = result.item()
+    elif np.ma.isMaskedArray(result) and is_masked == False:
+        # if the input array was not a masked array, we don't want to return a
+        # masked array
+        result = result.filled(fill_value=np.nan)
+
+    return result
 
 
-def mad_std(data, axis=None, func=None):
+def mad_std(data, axis=None, func=None, ignore_nan=False):
     r"""
     Calculate a robust standard deviation using the `median absolute
     deviation (MAD)
@@ -811,6 +847,11 @@ def mad_std(data, axis=None, func=None):
     func : callable, optional
         The function used to compute the median. Defaults to `numpy.ma.median`
         for masked arrays, otherwise to `numpy.median`.
+    ignore_nan : bool
+        Ignore NaN values (treat them as if they are not in the array) when
+        computing the median.  This will use `numpy.ma.median` if ``axis`` is
+        specified, or `numpy.nanmedian` if ``axis=None`` and numpy's version is
+        >1.10 because nanmedian is slightly faster in this case.
 
     Returns
     -------
@@ -834,7 +875,8 @@ def mad_std(data, axis=None, func=None):
     """
 
     # NOTE: 1. / scipy.stats.norm.ppf(0.75) = 1.482602218505602
-    return median_absolute_deviation(data, axis=axis, func=func) * 1.482602218505602
+    MAD = median_absolute_deviation(data, axis=axis, func=func, ignore_nan=ignore_nan)
+    return MAD * 1.482602218505602
 
 
 def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix,
