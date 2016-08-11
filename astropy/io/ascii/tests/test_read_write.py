@@ -11,6 +11,8 @@ from ....table import Table
 #   so that test files are read from the right place
 from .common import setup_function, teardown_function
 
+# We will test that test tables that can be written (test_write.test_defs)
+#  can also be read in.
 from .test_write import test_defs
 
 debug = False
@@ -93,7 +95,7 @@ def check_read_write_table_via_table(test_def, table, fast_writer):
 @pytest.mark.parametrize("fast_writer", [True, False])
 def test_write_table(fast_writer):
     table = ascii.get_reader(Reader=ascii.Daophot)
-    data = table.read('t/daophot.dat')
+    data = table.read('t/daophot.dat')  # Chosen as a representative sample of test data.
 
     for test_def in test_defs:
         check_read_write_table(test_def, data, fast_writer)
