@@ -110,6 +110,7 @@ class TestNormalize(object):
         assert_allclose(output, norm2(mdata))
 
 
+@pytest.mark.skipif('not HAS_MATPLOTLIB')
 class TestImageScaling(object):
 
     def test_linear(self):
