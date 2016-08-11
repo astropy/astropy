@@ -1,5 +1,6 @@
 """
-Normalization class for Matplotlib that can be used to produce colorbars.
+Normalization class for Matplotlib that can be used to produce
+colorbars.
 """
 
 from __future__ import division, print_function
@@ -8,7 +9,7 @@ from numpy import ma
 from .stretch import LinearStretch
 
 try:
-    import matplotlib  # pylint: disable=W0611
+    import matplotlib    # pylint: disable=W0611
     from matplotlib.colors import Normalize
 
     # On older versions of matplotlib Normalize is an old-style class
@@ -31,22 +32,44 @@ class ImageNormalize(Normalize):
 
     Parameters
     ----------
+    data : `~numpy.ndarray`, optional
+        The image array.  This input is used only if ``interval`` is
+        also input.  ``data`` and ``interval`` are used to compute the
+        vmin and/or vmax values only if ``vmin`` or ``vmax`` are not input.
+    interval : `~astropy.visualization.BaseInterval` subclass instance, optional
+        The interval object to apply to the input ``data`` to determine
+        the ``vmin`` and ``vmax`` values.  This input is used only if
+        ``data`` is also input.  ``data`` and ``interval`` are used to
+        compute the vmin and/or vmax values only if ``vmin`` or ``vmax``
+        are not input.
     vmin, vmax : float
-        The minimum and maximum levels to show for the data
-    stretch : :class:`~astropy.visualization.BaseStretch` instance
-        The stretch to use for the normalization
+        The minimum and maximum levels to show for the data.  The
+        ``vmin`` and ``vmax`` inputs override any calculated values from
+        the ``interval`` and ``data`` inputs.
+    stretch : `~astropy.visualization.BaseStretch` subclass instance, optional
+        The stretch object to apply to the data.  The default is
+        `~astropy.visualization.LinearStretch`.
     clip : bool, optional
-        Whether to clip the output values to the [0:1] range
+        If `True` (default), data values outside the [0:1] range are
+        clipped to the [0:1] range.
     """
 
-    def __init__(self, vmin=None, vmax=None, stretch=LinearStretch(),
-                 clip=False):
+    def __init__(self, data=None, interval=None, vmin=None, vmax=None,
+                 stretch=LinearStretch(), clip=False):
         # this super call checks for matplotlib
         super(ImageNormalize, self).__init__(vmin=vmin, vmax=vmax, clip=clip)
 
         self.vmin = vmin
         self.vmax = vmax
+        if data is not None and interval is not None:
+            _vmin, _vmax = interval.get_limits(data)
+            if self.vmin is None:
+                self.vmin = _vmin
+            if self.vmax is None:
+                self.vmax = _vmax
+
         self.stretch = stretch
+        self.interval = interval
         self.inverse_stretch = stretch.inverse
         self.clip = clip
 
