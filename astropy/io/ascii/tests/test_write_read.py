@@ -21,6 +21,14 @@ from .test_write import test_defs
 
 debug = False
 
+# BeautifulSoup is required to *read* HTML Files
+# Check to see if the BeautifulSoup dependency is present.
+try:
+    from bs4 import BeautifulSoup, FeatureNotFound
+    HAS_BEAUTIFUL_SOUP = True
+except ImportError:
+    HAS_BEAUTIFUL_SOUP = False
+
 
 def create_reader_kwargs_from_writer_kwargs(test_write_def):
     """Create a test definition with appropriate kwargs for a Reader."""
@@ -99,6 +107,27 @@ def check_read_write_table_via_table(test_def, table, fast_writer):
            [x.strip() for x in test_def['out'].strip().splitlines()]
 
 
+def writer_or_format_is_html(def_kwargs):
+    """Identify a test_def that will write/read HTML.
+
+    If 'Writer': ascii.HTML or 'format': 'ascii.html'
+    then return False
+    Otherwise return True
+    >>> print(writer_or_format_is_html({'Writer': ascii.HTML}))
+    True
+    >>> print(writer_or_format_is_html({'format': 'ascii.html'}))
+    True
+    >>> print(writer_or_format_is_html({'Writer': ascii.Csv}))
+    False
+    """
+    if 'Writer' in def_kwargs and def_kwargs['Writer'] == ascii.HTML:
+        return True
+    if 'format' in def_kwargs and def_kwargs['format'] == 'ascii.html':
+        return True
+
+    return False
+
+
 check_functions = \
     (check_read_write_table_via_ascii, check_read_write_table_via_table)
 
@@ -108,5 +137,11 @@ check_functions = \
 def test_read_write_table(check_function, test_def, fast_writer):
     table = ascii.get_reader(Reader=ascii.Daophot)
     data = table.read('t/daophot.dat')  # Chosen as a representative sample of test data.
+
+    # If BeautifulSoup is not imported.
+    # Then skip this test_def if this is an HTML write/read
+    if not HAS_BEAUTIFUL_SOUP:
+        if writer_or_format_is_html(test_def['kwargs']):
+            pytest.skip("BeautifulSoup not installed.  Skipping write+read HTML test.")
 
     check_function(test_def, data, fast_writer)
