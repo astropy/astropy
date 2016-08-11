@@ -24,20 +24,21 @@ for td in test_read_defs:
     if 'Writer' in td['kwargs']:
         td = {'Reader': td['kwargs']['Writer']}
 
+remove_col_for_read = ('formats', 'include_names', 'exclude_names', 'strip_whitespace')
 
 def check_read_write_table(test_def, table, fast_writer):
     in_out = StringIO()
 
-    test_read_def = {}
-    if 'Writer' in test_def['kwargs']:
-        test_read_def['kwargs'] = {'Reader': test_def['kwargs']['Writer']}
-    else:
-        test_read_def['kwargs'] = {}
-
-#    if 'kwargs' in test_def and 'format' in test_def['kwargs']:
-#        # astropy.io.ascii expects 'basic',
-#        # while astropy.table expects 'ascii.basic'
-#        test_def['kwargs']['format'] = test_def['kwargs']['format'].replace('ascii.', '')
+    test_read_def = copy.deepcopy(test_def)
+    if 'Writer' in test_read_def['kwargs']:
+        test_read_def['kwargs']['Reader'] = test_def['kwargs']['Writer']
+        del test_read_def['kwargs']['Writer']
+    if 'delimiter' in test_read_def['kwargs']:
+        if test_read_def['kwargs']['delimiter'] is None:
+            del test_read_def['kwargs']['delimiter']
+    for name in remove_col_for_read:
+        if name in test_read_def['kwargs']:
+            del test_read_def['kwargs'][name]
 
     try:
         if debug:
@@ -65,9 +66,15 @@ def check_read_write_table_via_table(test_def, table, fast_writer):
     if 'Writer' in test_def['kwargs']:
         format_name = 'ascii.{0}'.format(test_write_def['kwargs']['Writer']._format_name)
         test_write_def['kwargs']['format'] = format_name
-        test_read_def = {'kwargs': {'format': format_name}}
-
         del test_write_def['kwargs']['Writer']
+
+    test_read_def = copy.deepcopy(test_write_def)
+    if 'delimiter' in test_read_def['kwargs']:
+        if test_read_def['kwargs']['delimiter'] is None:
+            del test_read_def['kwargs']['delimiter']
+    for name in remove_col_for_read:
+        if name in test_read_def['kwargs']:
+            del test_read_def['kwargs'][name]
 
     try:
         table.write(in_out, fast_writer=fast_writer,
