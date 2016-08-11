@@ -136,7 +136,7 @@ class QuantityInfo(ParentDtypeInfo):
 
 @six.add_metaclass(InheritDocstrings)
 class Quantity(np.ndarray):
-    """ A `~astropy.units.Quantity` represents a number with some associated unit.
+    """A `~astropy.units.Quantity` represents a number with some associated unit.
 
     Parameters
     ----------
@@ -186,6 +186,12 @@ class Quantity(np.ndarray):
     TypeError
         If the unit provided is not either a :class:`~astropy.units.Unit`
         object or a parseable string unit.
+
+    Notes
+    -----
+    Quantities can also be created by multiplying a number or array with a
+    :class:`~astropy.units.Unit`. See http://docs.astropy.org/en/latest/units/
+
     """
     # Need to set a class-level default for _equivalencies, or
     # Constants can not initialize properly
