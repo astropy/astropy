@@ -14,6 +14,8 @@ from .common import setup_function, teardown_function
 from .test_write import test_defs
 
 
+debug = False
+
 test_write_defs = copy.deepcopy(test_defs)
 test_read_defs = copy.deepcopy(test_defs)
 read_kwarg_names = ('format')
@@ -38,7 +40,9 @@ def check_read_write_table(test_def, table, fast_writer):
 #        test_def['kwargs']['format'] = test_def['kwargs']['format'].replace('ascii.', '')
 
     try:
-        print(test_def['kwargs'])
+        if debug:
+            print(test_def['kwargs'])
+            print(test_read_def['kwargs'])
         ascii.write(table, in_out, fast_writer=fast_writer,
                     **test_def['kwargs'])
         foo = ascii.read(in_out, **test_read_def['kwargs'])
@@ -46,9 +50,10 @@ def check_read_write_table(test_def, table, fast_writer):
         if 'not in the list of formats with fast writers' not in str(e):
             raise e
         return
-    print('Expected:\n%s' % test_def['out'])
-    print('Actual:\n%s' % in_out.getvalue())
-    print('Read:\n%s' % str(foo))
+    if debug:
+        print('Expected:\n%s' % test_def['out'])
+        print('Actual:\n%s' % in_out.getvalue())
+        print('Read:\n%s' % str(foo))
     assert [x.strip() for x in in_out.getvalue().strip().splitlines()] == \
            [x.strip() for x in test_def['out'].strip().splitlines()]
 
@@ -72,9 +77,10 @@ def check_read_write_table_via_table(test_def, table, fast_writer):
         if 'not in the list of formats with fast writers' not in str(e):
             raise e
         return
-    print('Expected:\n%s' % test_def['out'])
-    print('Actual:\n%s' % in_out.getvalue())
-    print('Read:\n%s' % str(foo))
+    if debug:
+        print('Expected:\n%s' % test_def['out'])
+        print('Actual:\n%s' % in_out.getvalue())
+        print('Read:\n%s' % str(foo))
     assert [x.strip() for x in in_out.getvalue().strip().splitlines()] == \
            [x.strip() for x in test_def['out'].strip().splitlines()]
 
