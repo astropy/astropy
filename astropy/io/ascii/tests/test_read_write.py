@@ -13,26 +13,20 @@ from .common import setup_function, teardown_function
 
 from .test_write import test_defs
 
-
 debug = False
 
-test_write_defs = copy.deepcopy(test_defs)
-test_read_defs = copy.deepcopy(test_defs)
-read_kwarg_names = ('format')
 
-for td in test_read_defs:
-    if 'Writer' in td['kwargs']:
-        td = {'Reader': td['kwargs']['Writer']}
+def create_reader_kwargs_from_writer_kwargs(test_write_def):
+    """Create a test definition with appropriate kwargs for a Reader."""
 
-remove_col_for_read = ('formats', 'include_names', 'exclude_names', 'strip_whitespace')
+    remove_col_for_read = ('formats', 'include_names', 'exclude_names', 'strip_whitespace')
 
-def check_read_write_table(test_def, table, fast_writer):
-    in_out = StringIO()
-
-    test_read_def = copy.deepcopy(test_def)
+    test_read_def = copy.deepcopy(test_write_def)
     if 'Writer' in test_read_def['kwargs']:
-        test_read_def['kwargs']['Reader'] = test_def['kwargs']['Writer']
+        test_read_def['kwargs']['Reader'] = test_write_def['kwargs']['Writer']
         del test_read_def['kwargs']['Writer']
+    # Delimiter is a special case.  In general, we want to keep the delimiter as set
+    # But in the special case of 'delimiter=None', we want to remove 'delimiter' from 'kwargs'.
     if 'delimiter' in test_read_def['kwargs']:
         if test_read_def['kwargs']['delimiter'] is None:
             del test_read_def['kwargs']['delimiter']
@@ -40,6 +34,14 @@ def check_read_write_table(test_def, table, fast_writer):
         if name in test_read_def['kwargs']:
             del test_read_def['kwargs'][name]
 
+    return test_read_def
+
+
+def check_read_write_table(test_def, table, fast_writer):
+    """Check reading and writing using the astropy.io.ascii interface."""
+    in_out = StringIO()
+
+    test_read_def = create_reader_kwargs_from_writer_kwargs(test_def)
     try:
         if debug:
             print(test_def['kwargs'])
@@ -60,21 +62,17 @@ def check_read_write_table(test_def, table, fast_writer):
 
 
 def check_read_write_table_via_table(test_def, table, fast_writer):
+    """Check reading and writing using the astropy.table.Table interface."""
     in_out = StringIO()
 
     test_write_def = copy.deepcopy(test_def)
+    # Table would like 'format' text string instead of 'Writer' and 'Reader'.
     if 'Writer' in test_def['kwargs']:
         format_name = 'ascii.{0}'.format(test_write_def['kwargs']['Writer']._format_name)
         test_write_def['kwargs']['format'] = format_name
         del test_write_def['kwargs']['Writer']
 
-    test_read_def = copy.deepcopy(test_write_def)
-    if 'delimiter' in test_read_def['kwargs']:
-        if test_read_def['kwargs']['delimiter'] is None:
-            del test_read_def['kwargs']['delimiter']
-    for name in remove_col_for_read:
-        if name in test_read_def['kwargs']:
-            del test_read_def['kwargs'][name]
+    test_read_def = create_reader_kwargs_from_writer_kwargs(test_write_def)
 
     try:
         table.write(in_out, fast_writer=fast_writer,
