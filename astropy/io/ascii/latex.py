@@ -321,6 +321,16 @@ class AASTexHeaderSplitter(LatexSplitter):
     This splitter expects the following LaTeX code **in a single line**:
 
         \tablehead{\colhead{col1} & ... & \colhead{coln}}
+
+    If the \tablehead defines multiple output lines separated by \\
+        only the first line is read
+        e.g., A table with units written by the astropy.io.ascii.latex
+        can be read back in, but without the units.
+
+        \tablehead{\colhead{col1} & ... & \colhead{coln}\\ \colhead{days} & ... & \colhead{mag}}
+
+        A \tablehead that spans several lines in the input file
+        will fail to read.
     '''
     def process_line(self, line):
         """extract column names from tablehead
@@ -332,6 +342,12 @@ class AASTexHeaderSplitter(LatexSplitter):
             line = line[1:-1]
         else:
             raise core.InconsistentTableError(r'\tablehead is missing {}')
+
+        # If '\\'' to separate lines then split to just first and replace with '}'
+        multiple_lines = line.split(r'\\')
+        if len(multiple_lines) >= 2:
+            line = multiple_lines[0]
+
         return line.replace(r'\colhead', '')
 
     def join(self, vals):
