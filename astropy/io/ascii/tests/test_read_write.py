@@ -20,7 +20,6 @@ debug = False
 
 def create_reader_kwargs_from_writer_kwargs(test_write_def):
     """Create a test definition with appropriate kwargs for a Reader."""
-
     remove_col_for_read = ('formats', 'include_names', 'exclude_names', 'strip_whitespace')
 
     test_read_def = copy.deepcopy(test_write_def)
@@ -55,10 +54,12 @@ def check_read_write_table(test_def, table, fast_writer):
         if 'not in the list of formats with fast writers' not in str(e):
             raise e
         return
+
     if debug:
         print('Expected:\n%s' % test_def['out'])
         print('Actual:\n%s' % in_out.getvalue())
         print('Read:\n%s' % str(foo))
+
     assert [x.strip() for x in in_out.getvalue().strip().splitlines()] == \
            [x.strip() for x in test_def['out'].strip().splitlines()]
 
@@ -84,10 +85,12 @@ def check_read_write_table_via_table(test_def, table, fast_writer):
         if 'not in the list of formats with fast writers' not in str(e):
             raise e
         return
+
     if debug:
         print('Expected:\n%s' % test_def['out'])
         print('Actual:\n%s' % in_out.getvalue())
         print('Read:\n%s' % str(foo))
+
     assert [x.strip() for x in in_out.getvalue().strip().splitlines()] == \
            [x.strip() for x in test_def['out'].strip().splitlines()]
 
