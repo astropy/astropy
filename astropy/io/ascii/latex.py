@@ -79,18 +79,7 @@ class LatexSplitter(core.BaseSplitter):
     '''
     delimiter = '&'
 
-    def process_line(self, line):
-        """Remove whitespace at the beginning or end of line. Also remove
-        \\ at end of line"""
-        line = line.split('%')[0]
-        line = line.strip()
-        if line[-2:] == r'\\':
-            line = line.strip(r'\\')
-        else:
-            raise core.InconsistentTableError(r'Lines in LaTeX table have to end with \\')
-        return line
-
-    def process_any_line(self, line, last_line=False):
+    def process_line(self, line, last_line=False):
         """Remove whitespace at the beginning or end of line. Also remove
         \\ at end of line"""
         line = line.split('%')[0]
@@ -100,16 +89,6 @@ class LatexSplitter(core.BaseSplitter):
         else:
             if not last_line:
                 raise core.InconsistentTableError(r'Lines in LaTeX table have to end with \\')
-        return line
-
-    def process_last_line(self, line):
-        """Remove whitespace at the beginning or end of line. Also remove
-        \\ at end of line"""
-        line = line.split('%')[0]
-        line = line.strip()
-        if line[-2:] == r'\\':
-            line = line.strip(r'\\')
-
         return line
 
     def process_val(self, val):
@@ -123,7 +102,7 @@ class LatexSplitter(core.BaseSplitter):
         '''Generator function that processes lines and last line specially.'''
         for x in lines[0:-1]:
             yield self.process_line(x)
-        yield self.process_last_line(lines[-1])
+        yield self.process_line(lines[-1], last_line=True)
 
     def __call__(self, lines):
         '''Treat the last line of a table specially because it's allowed to not end with \\.'''
@@ -361,7 +340,7 @@ class AASTexHeaderSplitter(LatexSplitter):
 
         \tablehead{\colhead{col1} & ... & \colhead{coln}}
     '''
-    def process_line(self, line):
+    def process_line(self, line, last_line=False):
         """extract column names from tablehead
         """
         line = line.split('%')[0]
