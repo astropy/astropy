@@ -38,7 +38,7 @@ def create_reader_kwargs_from_writer_kwargs(test_write_def):
     return test_read_def
 
 
-def check_read_write_table(test_def, table, fast_writer):
+def check_read_write_table_via_ascii(test_def, table, fast_writer):
     """Check reading and writing using the astropy.io.ascii interface."""
     in_out = StringIO()
 
@@ -95,11 +95,14 @@ def check_read_write_table_via_table(test_def, table, fast_writer):
            [x.strip() for x in test_def['out'].strip().splitlines()]
 
 
+check_functions = \
+    (check_read_write_table_via_ascii, check_read_write_table_via_table)
+
+@pytest.mark.parametrize("test_def", test_defs)
+@pytest.mark.parametrize("check_function", check_functions)
 @pytest.mark.parametrize("fast_writer", [True, False])
-def test_write_table(fast_writer):
+def test_read_write_table(check_function, test_def, fast_writer):
     table = ascii.get_reader(Reader=ascii.Daophot)
     data = table.read('t/daophot.dat')  # Chosen as a representative sample of test data.
 
-    for test_def in test_defs:
-        check_read_write_table(test_def, data, fast_writer)
-        check_read_write_table_via_table(test_def, data, fast_writer)
+    check_function(test_def, data, fast_writer)
