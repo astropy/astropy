@@ -90,12 +90,51 @@ class LatexSplitter(core.BaseSplitter):
             raise core.InconsistentTableError(r'Lines in LaTeX table have to end with \\')
         return line
 
+    def process_any_line(self, line, last_line=False):
+        """Remove whitespace at the beginning or end of line. Also remove
+        \\ at end of line"""
+        line = line.split('%')[0]
+        line = line.strip()
+        if line[-2:] == r'\\':
+            line = line.strip(r'\\')
+        else:
+            if not last_line:
+                raise core.InconsistentTableError(r'Lines in LaTeX table have to end with \\')
+        return line
+
+    def process_last_line(self, line):
+        """Remove whitespace at the beginning or end of line. Also remove
+        \\ at end of line"""
+        line = line.split('%')[0]
+        line = line.strip()
+        if line[-2:] == r'\\':
+            line = line.strip(r'\\')
+
+        return line
+
     def process_val(self, val):
         """Remove whitespace and {} at the beginning or end of value."""
         val = val.strip()
         if val and (val[0] == '{') and (val[-1] == '}'):
             val = val[1:-1]
         return val
+
+    def gen_process_lines(self, lines):
+        '''Generator function that processes lines and last line specially.'''
+        for x in lines[0:-1]:
+            yield self.process_line(x)
+        yield self.process_last_line(lines[-1])
+
+    def __call__(self, lines):
+        '''Treat the last line of a table specially because it's allowed to not end with \\.'''
+        if self.process_line:
+            lines = self.gen_process_lines(lines)
+        for line in lines:
+            vals = line.split(self.delimiter)
+            if self.process_val:
+                yield [self.process_val(x) for x in vals]
+            else:
+                yield vals
 
     def join(self, vals):
         '''Join values together and add a few extra spaces for readability'''
