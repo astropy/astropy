@@ -31,6 +31,7 @@ New Features
 
   - Add a class to combine astropy fitters and functions to remove outliers
     e. g., sigma clip. [#4760]
+  - Added a ``Tabular`` model. [#5105]
 
 - ``astropy.nddata``
 

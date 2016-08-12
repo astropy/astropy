@@ -338,12 +338,15 @@ Reference/API
 =============
 
 .. automodapi:: astropy.modeling
-.. automodapi:: astropy.modeling.mappings
 .. automodapi:: astropy.modeling.functional_models
 .. automodapi:: astropy.modeling.powerlaws
 .. automodapi:: astropy.modeling.polynomial
 .. automodapi:: astropy.modeling.projections
 .. automodapi:: astropy.modeling.rotations
+.. automodapi:: astropy.modeling.tabular
+.. autoclass::  astropy.modeling.tabular.Tabular1D
+.. autoclass::  astropy.modeling.tabular.Tabular2D
+.. automodapi:: astropy.modeling.mappings
 .. automodapi:: astropy.modeling.fitting
 .. automodapi:: astropy.modeling.optimizers
 .. automodapi:: astropy.modeling.statistic
