@@ -5,7 +5,7 @@
 World Coordinate System (`astropy.wcs`)
 ***************************************
 
-.. _FITS WCS standard: http://fits.gsfc.nasa.gov/fits_wcs.html
+.. _wcslib: http://www.atnf.csiro.au/people/mcalabre/WCS/wcslib/index.html
 .. _distortion paper: http://www.atnf.csiro.au/people/mcalabre/WCS/dcs_20040422.pdf
 .. _SIP: http://irsa.ipac.caltech.edu/data/SPITZER/docs/files/spitzer/shupeADASS.pdf
 
@@ -24,7 +24,7 @@ It performs three separate classes of WCS transformations:
   Calabretta's `wcslib`_.  (Also includes ``TPV`` and ``TPD``
   distortion, but not ``SIP``).
 
-- Simple Imaging Polynomial (`SIP`_) convention.
+- Simple Imaging Polynomial (`SIP`_) convention. (See :doc:`note about SIP in headers <note_sip>`.)
 
 - table lookup distortions as defined in the FITS WCS `distortion
   paper`_.
@@ -262,6 +262,7 @@ Other information
 
    relax
    history
+
 
 See Also
 ========
