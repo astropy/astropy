@@ -118,6 +118,8 @@ API Changes
 
 - ``astropy.wcs``
 
+  - ``wcs.rotateCD()`` was deprecated without a replacement. [#5240]
+
 Bug Fixes
 ^^^^^^^^^
 
