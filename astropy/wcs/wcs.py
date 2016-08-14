@@ -2678,7 +2678,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         _mrot = np.zeros(shape=(2, 2), dtype=np.double)
         _mrot[0] = (np.cos(_theta), np.sin(_theta))
         _mrot[1] = (-np.sin(_theta), np.cos(_theta))
-        new_cd = np.dot(self.wcs.cd, _mrot)
+        new_cd = np.dot(_mrot, self.wcs.cd)
         self.wcs.cd = new_cd
 
     def printwcs(self):
