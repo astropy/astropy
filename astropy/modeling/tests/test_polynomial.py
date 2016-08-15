@@ -16,8 +16,8 @@ from .. import fitting
 from ...tests.helper import pytest
 from ... import wcs
 from ...io import fits
-from ..polynomial import (Chebyshev1D, Legendre1D, Polynomial1D,
-                          Chebyshev2D, Legendre2D, Polynomial2D, SIP,
+from ..polynomial import (Chebyshev1D, Hermite1D, Legendre1D, Polynomial1D,
+                          Chebyshev2D, Hermite2D, Legendre2D, Polynomial2D, SIP,
                           PolynomialBase, OrthoPolynomialBase)
 from ..functional_models import Linear1D
 from ...utils.data import get_pkg_data_filename
@@ -31,6 +31,12 @@ except ImportError:
 
 linear1d = {
     Chebyshev1D: {
+        'args': (3,),
+        'kwargs': {'domain': [1, 10]},
+        'parameters': {'c0': 1.2, 'c1': 2, 'c2': 2.3, 'c3': 0.2},
+        'constraints': {'fixed': {'c0': 1.2}}
+    },
+    Hermite1D: {
         'args': (3,),
         'kwargs': {'domain': [1, 10]},
         'parameters': {'c0': 1.2, 'c1': 2, 'c2': 2.3, 'c3': 0.2},
@@ -59,6 +65,12 @@ linear1d = {
 
 linear2d = {
     Chebyshev2D: {
+        'args': (1, 1),
+        'kwargs': {'x_domain': [0, 99], 'y_domain': [0, 82]},
+        'parameters': {'c0_0': 1.2, 'c1_0': 2, 'c0_1': 2.3, 'c1_1': 0.2},
+        'constraints': {'fixed': {'c0_0': 1.2}}
+    },
+    Hermite2D: {
         'args': (1, 1),
         'kwargs': {'x_domain': [0, 99], 'y_domain': [0, 82]},
         'parameters': {'c0_0': 1.2, 'c1_0': 2, 'c0_1': 2.3, 'c1_1': 0.2},
