@@ -32,6 +32,8 @@ New Features
   - Add a class to combine astropy fitters and functions to remove outliers
     e. g., sigma clip. [#4760]
 
+  - Added ``Hermite1D`` and ``Hermite2D`` polynomial models [#5242]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
