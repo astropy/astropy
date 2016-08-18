@@ -116,7 +116,7 @@ Bug Fixes
   - Made TFORMx keyword check more flexible in test of compressed images to
     enable copatibility of the test with cfitsio 3.380. [#4646]
 
-  - Converting a header card to a string now calls ``self.verify('warn')``
+  - Converting a header card to a string now calls ``self.verify('fix+warn')``
     instead of ``self.verify('fix')`` so headers with invalid keywords will
     not raise a ``VerifyError`` on printing. [#887,#5054]
 
