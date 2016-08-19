@@ -873,6 +873,13 @@ class ShapedLikeNDArray(object):
 
     """
 
+    # Note to developers: if new methods are added here, be sure to check that
+    # they work properly with the classes that use this, such as Time and
+    # BaseRepresentation, i.e., look at their ``_apply`` methods and add
+    # relevant tests.  This is particularly important for methods that imply
+    # copies rather than views of data (see the special-case treatment of
+    # 'flatten' in Time).
+
     @abc.abstractproperty
     def shape(self):
         """The shape of the instance and underlying arrays."""

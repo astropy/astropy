@@ -2,6 +2,7 @@
 
 # TEST_UNICODE_LITERALS
 import itertools
+import copy
 import numpy as np
 
 from .. import Time
@@ -359,3 +360,17 @@ class TestArithmetic():
         # Bit superfluous, but good to check.
         assert np.all(self.t0.sort(-1)[:, :, 0] == self.t0.min(-1))
         assert np.all(self.t0.sort(-1)[:, :, -1] == self.t0.max(-1))
+
+
+def test_regression():
+    # For #5225, where a time with a single-element delta_ut1_utc could not
+    # be copied, flattened, or ravelled. (For copy, it is in test_basic.)
+    t = Time(49580.0, scale='tai', format='mjd')
+    t_ut1 = t.ut1
+    t_ut1_copy = copy.deepcopy(t_ut1)
+    assert type(t_ut1_copy.delta_ut1_utc) is float
+    t_ut1_flatten = t_ut1.flatten()
+    assert type(t_ut1_flatten.delta_ut1_utc) is float
+    t_ut1_ravel = t_ut1.ravel()
+    assert type(t_ut1_ravel.delta_ut1_utc) is float
+    assert t_ut1_copy.delta_ut1_utc == t_ut1.delta_ut1_utc
