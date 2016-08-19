@@ -1037,16 +1037,20 @@ reduce these to 2 dimensions using the naxis kwarg.
             ctype=[header['CTYPE{0}'.format(nax)] for nax in range(1, self.naxis + 1)]
             if any([ctyp[-4 :] != '-SIP' for ctyp in ctype]):
                 message = """
-                Inconsistent SIP distortion information is present in header:
-                SIP coefficients were detected, but CTYPE is missing "-SIP" suffix,
+                Inconsistent SIP distortion information is present in the FITS header and the WCS object:
+                SIP coefficients were detected, but CTYPE is missing a "-SIP" suffix.
+                astropy.wcs is using the SIP distortion coefficients,
                 therefore the coordinates calculated here might be incorrect.
 
-                If image is already distortion-corrected (eg, drizzled) then
-                distortion components should not apply. For such distortion-corrected
-                images, please use ``wcs_pix2world`` or ``wcs_world2pix`` instead.
+                If you do not want to apply the SIP distortion coefficients,
+                please remove the SIP coefficients from the FITS header or the
+                WCS object.  As an example, if the image is already distortion-corrected
+                (e.g., drizzled) then distortion components should not apply and the SIP
+                coefficients should be removed.
 
-                If image is not yet distortion-corrected (eg, not yet drizzled), then
-                please inspect the header and make appropriate changes before rerunning.
+                While the SIP distortion coefficients are being applied here, if that was indeed the intent,
+                for consistency please append "-SIP" to the CTYPE in the FITS header or the WCS object.
+
                 """
                 log.info(message)
         elif str("B_ORDER") in header and header[str('B_ORDER')] > 1:
@@ -2581,18 +2585,6 @@ reduce these to 2 dimensions using the naxis kwarg.
             CTYPE if it is missing.
         """
 
-        _strip_sip_from_ctype = """
-        Warning: to_header() was invoked without ``relax=True``: stripping all SIP
-        coefficients from output header, and stripping "-SIP" from output CTYPE
-        if it was originally present.
-
-        Therefore astrometry obtained for output image may be different from
-        original image because SIP is no longer present.
-
-        Please inspect the headers of input and output images to verify, and
-        modify the headers if necessary.
-        """
-
         _add_sip_to_ctype = """
         Inconsistent SIP distortion information is present in the current WCS:
         SIP coefficients were detected, but CTYPE is missing "-SIP" suffix,
@@ -2606,14 +2598,13 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Therefore, if current WCS is already distortion-corrected (eg, drizzled)
         then SIP distortion components should not apply. In that case, for a WCS
-        that is already distortion-corrected, please do not set relax=True.
+        that is already distortion-corrected, please remove the SIP coefficients
+        from the header.
 
         """
         if log_message:
             if add_sip:
                 log.info(_add_sip_to_ctype)
-            else:
-                log.info(_strip_sip_from_ctype)
         for i in range(1, self.naxis+1):
             # strip() must be called here to cover the case of alt key= " "
             kw = 'CTYPE{0}{1}'.format(i, self.wcs.alt).strip()
@@ -2622,7 +2613,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                     val = header[kw].strip("-SIP") + "-SIP"
                 else:
                     val = header[kw].strip("-SIP")
-                    header[kw] = val
+                header[kw] = val
             else:
                 continue
         return header

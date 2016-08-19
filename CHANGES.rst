@@ -219,6 +219,11 @@ Bug Fixes
   - Fix use of the ``relax`` keyword in ``to_header`` when used to change the
     output precision. [#5164]
 
+  - ``wcs.to_header(relax=True)`` adds a "-SIP" suffix to ``CTYPE`` when SIP
+    distortion is present in the WCS object. [#5239]
+
+  - Improved log messages in ``to_header``. [#5239]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

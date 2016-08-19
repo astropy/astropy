@@ -984,8 +984,8 @@ def inconsistent_sip():
     ########## broken header ###########
     # Test that "-SIP" is added to CTYPE if relax=True and
     # "-SIP" was not in the original header
-    hdr['CTYPE1'] = 'RA---TAN'
     w = WCS(hdr)
+    w.wcs.ctype = ['RA---TAN', 'DEC--TAN']
     newhdr = w.to_header(relax=True)
     assert(all([ctyp[-4 :] == '-SIP' for ctyp in self.wcs.ctype]))
     del hdr['CTYPE2']
