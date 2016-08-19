@@ -731,7 +731,7 @@ class Time(ShapedLikeNDArray):
         tm : Time object
             Copy of this object
         """
-        return self._apply(format=format, method='copy')
+        return self._apply('copy', format=format)
 
     def replicate(self, format=None, copy=False):
         """
@@ -762,18 +762,20 @@ class Time(ShapedLikeNDArray):
         tm : Time object
             Replica of this object
         """
-        return self._apply(format=format, method='copy' if copy else None)
+        return self._apply('copy' if copy else 'replicate', format=format)
 
-    def _apply(self, method=None, *args, **kwargs):
+    def _apply(self, method, *args, **kwargs):
         """Create a new time object, possibly applying a method to the arrays.
 
         Parameters
         ----------
-        method : str, optional
-            If given, the method is applied to the internal ``jd1`` and ``jd2``
-            arrays, as well as to possible ``location``, ``_delta_ut1_utc``,
-            and ``_delta_tdb_tt`` arrays, broadcasting the latter as required.
-            Example methods: ``copy``, ``__getitem__``, ``reshape``.
+        method : str
+            Can be 'replicate'  or the name of a relevant `~numpy.ndarray`
+            method. In the former case, a new time instance with unchanged
+            internal data is created, while in the latter the method is applied
+            to the internal ``jd1`` and ``jd2`` arrays, as well as to possible
+            ``location``, ``_delta_ut1_utc``, and ``_delta_tdb_tt`` arrays.
+            Example methods: 'copy', '__getitem__', 'reshape'.
         args : tuple
             Any positional arguments for ``method``.
         kwargs : dict
@@ -786,7 +788,7 @@ class Time(ShapedLikeNDArray):
             new_format = self.format
 
         jd1, jd2 = self._time.jd1, self._time.jd2
-        if method is not None:
+        if method != 'replicate':
             jd1 = getattr(jd1, method)(*args, **kwargs)
             jd2 = getattr(jd2, method)(*args, **kwargs)
 
@@ -803,12 +805,15 @@ class Time(ShapedLikeNDArray):
             # Apply the method to any value arrays (though skip if there is only
             # a single element and the method would return a view, since in
             # that case nothing would change).
-            if method is not None and val is not None:
-                if method == 'copy' or method == 'flatten' and val.size == 1:
+            val_method = getattr(val, method, None)
+            if val_method:
+                if val.size > 1 or method == 'copy':
+                    val = val_method(*args, **kwargs)
+                elif method == 'flatten':
+                    # flatten should copy also for a single element array, but
+                    # we cannot use it directly for array scalars, since it
+                    # always returns a one-dimensional array. So, just copy.
                     val = val.copy()
-
-                elif val.size > 1:
-                    val = getattr(val, method)(*args, **kwargs)
 
             setattr(tm, attr, val)
 
