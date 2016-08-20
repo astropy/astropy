@@ -100,7 +100,7 @@ class SiteRegistry(Mapping):
             self._names.append(name)
 
     @classmethod
-    def from_json(cls, jsondb):
+    def from_json(cls, jsondb, with_aliases=True):
         reg = cls()
         for site in jsondb:
             site_info = jsondb[site]
@@ -108,24 +108,26 @@ class SiteRegistry(Mapping):
                                                    site_info['latitude'] * u.Unit(site_info['latitude_unit']),
                                                    site_info['elevation'] * u.Unit(site_info['elevation_unit']))
             location.info.name = site_info['name']
-
-            reg.add_site([site] + site_info['aliases'], location)
+            if with_aliases:
+              reg.add_site([site] + site_info['aliases'], location)
+            else:
+              reg.add_site([site], location)
         reg._loaded_jsondb = jsondb
         return reg
 
 
-def get_builtin_sites():
+def get_builtin_sites(with_aliases=True):
     """
     Load observatory database from data/observatories.json and parse them into
     a SiteRegistry.
     """
     jsondb = json.loads(get_pkg_data_contents('data/sites.json'))
-    return SiteRegistry.from_json(jsondb)
+    return SiteRegistry.from_json(jsondb, with_aliases=with_aliases)
 
 
-def get_downloaded_sites(jsonurl='http://data.astropy.org/coordinates/sites.json'):
+def get_downloaded_sites(jsonurl='http://data.astropy.org/coordinates/sites.json', with_aliases=True):
     """
     Load observatory database from data.astropy.org and parse into a SiteRegistry
     """
     jsondb = json.loads(get_file_contents(jsonurl, show_progress=False))
-    return SiteRegistry.from_json(jsondb)
+    return SiteRegistry.from_json(jsondb, with_aliases=with_aliases)
