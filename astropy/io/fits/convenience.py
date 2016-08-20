@@ -55,6 +55,7 @@ explanation of all the different formats.
 """
 
 
+import operator
 import os
 import warnings
 
@@ -210,9 +211,9 @@ def getdata(filename, *args, **kwargs):
     # Change case of names if requested
     trans = None
     if lower:
-        trans = lambda s: s.lower()
+        trans = operator.methodcaller('lower')
     elif upper:
-        trans = lambda s: s.upper()
+        trans = operator.methodcaller('upper')
     if trans:
         if data.dtype.names is None:
             # this data does not have fields

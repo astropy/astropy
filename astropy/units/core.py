@@ -13,8 +13,10 @@ if six.PY2:
     import cmath
 
 import inspect
+import operator
 import textwrap
 import warnings
+
 import numpy as np
 
 from ..utils.decorators import lazyproperty, deprecated
@@ -1102,7 +1104,7 @@ class UnitBase(object):
                 cached_results[key] = results
                 return results
 
-        partial_results.sort(key=lambda x: x[0])
+        partial_results.sort(key=operator.itemgetter(0))
 
         # ...we have to recurse and try to further compose
         results = []
@@ -1120,7 +1122,7 @@ class UnitBase(object):
                     (len(subcomposed.bases), subcomposed, tunit))
 
         if len(results):
-            results.sort(key=lambda x: x[0])
+            results.sort(key=operator.itemgetter(0))
 
             min_length = results[0][0]
             subresults = set()
