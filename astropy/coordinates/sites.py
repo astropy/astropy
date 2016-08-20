@@ -100,7 +100,7 @@ class SiteRegistry(Mapping):
             self._names.append(name)
 
     @classmethod
-    def from_json(cls, jsondb):
+    def from_json(cls, jsondb, add_aliases=True):
         reg = cls()
         for site in jsondb:
             site_info = jsondb[site]
@@ -108,8 +108,10 @@ class SiteRegistry(Mapping):
                                                    site_info['latitude'] * u.Unit(site_info['latitude_unit']),
                                                    site_info['elevation'] * u.Unit(site_info['elevation_unit']))
             location.info.name = site_info['name']
-
-            reg.add_site([site] + site_info['aliases'], location)
+            if add_aliases:
+              reg.add_site([site] + site_info['aliases'], location)
+            else:
+              reg.add_site([site], location)
         reg._loaded_jsondb = jsondb
         return reg
 
