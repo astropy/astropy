@@ -10,6 +10,7 @@ from ...extern.six.moves import zip
 
 import copy
 import keyword
+import operator
 import re
 import warnings
 
@@ -213,7 +214,7 @@ class VOUnit(generic.Generic):
                 s += ' '.join(parts)
 
             pairs = list(zip(unit.bases, unit.powers))
-            pairs.sort(key=lambda x: x[1], reverse=True)
+            pairs.sort(key=operator.itemgetter(1), reverse=True)
 
             s += cls._format_unit_list(pairs)
         elif isinstance(unit, core.NamedUnit):
