@@ -191,6 +191,51 @@ Other Changes and Additions
 1.2.2 (unreleased)
 ------------------
 
+API Changes
+^^^^^^^^^^^
+
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+  - The ``obsgeoloc`` and ``obsgeovel`` attributes of ``GCRS`` and ``PrecessedGeocentric``
+    frames are now stored and returned as ``CartesianRepresentation`` objects, rather than
+    ``Quantity`` objects.
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
 Bug Fixes
 ^^^^^^^^^
 
@@ -201,6 +246,10 @@ Bug Fixes
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
+
+  - GCRS frames representing a location on Earth with multiple obstimes are now allowed. This means that
+    the solar system routines ``get_body``, ``get_moon`` and ``get_sun`` now work with non-scalar times and
+    a none geocentric observer. [#5207]
 
 - ``astropy.cosmology``
 

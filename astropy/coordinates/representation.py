@@ -223,6 +223,24 @@ class BaseRepresentation(ShapedLikeNDArray):
                            for component in self.components]))
         return unitstr
 
+    def __eq__(self, other):
+        """
+        Check for equality with another representation.
+        """
+        try:
+            return np.array([getattr(self, component) == getattr(other, component)
+                             for component in self.components])
+        except:
+            try:
+                newrep = other.represent_as(self.__class__)
+                return np.array([getattr(self, component) == getattr(newrep, component)
+                                 for component in self.components])
+            except:
+                return False
+
+    def __ne__(self, other):
+        return ~(self == other)
+
     def __str__(self):
         return '{0} {1:s}'.format(self._values, self._unitstr)
 
