@@ -216,7 +216,7 @@ class EarthLocation(u.Quantity):
         # get geocentric coordinates. Have to give one-dimensional array.
         xyz = erfa.gd2gc(getattr(erfa, ellipsoid), _lon.ravel(),
                                  _lat.ravel(), _height.ravel())
-        self = xyz.view(cls._location_dtype, cls).reshape(lon.shape)
+        self = xyz.view(cls._location_dtype, cls).reshape(_lon.shape)
         self._unit = u.meter
         self._ellipsoid = ellipsoid
         return self.to(height.unit)
