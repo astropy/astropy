@@ -15,7 +15,7 @@ dependencies:
   - cython
   - matplotlib
   - scipy
+  - pillow
   - pip:
-    - pillow
     - sphinx-gallery>=0.1.3
     - jplephem
