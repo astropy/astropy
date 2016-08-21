@@ -39,6 +39,15 @@ except ImportError:
     # If that doesn't work trying to import from astropy_helpers below will
     # still blow up
 
+# We now check for any dependencies that are required to build the docs that
+# depend on Astropy, since these may not be installed yet. For instance, on
+# ReadTheDocs, we can't set up wcsaxes with conda since that would result in the
+# astropy conda package getting installed, which would shadow the developer
+# version installed just prior to building the docs. So we should set up any
+# such dependencies here.
+from setuptools import Distribution
+Distribution({'setup_requires': 'wcsaxes'})
+
 # Load all of the global Astropy configuration
 from astropy_helpers.sphinx.conf import *
 from astropy.extern import six
@@ -229,7 +238,8 @@ try:
             'astropy': None,
             'matplotlib': 'http://matplotlib.org/',
             'numpy': 'http://docs.scipy.org/doc/numpy/',
-        }
+        },
+        'abort_on_example_error': False
     }
 
     # TODO: remove the code below once a better solution is implemented in
@@ -242,8 +252,7 @@ try:
     # Therefore, for now we simply check if we are on Travis, and if so, we
     # enabled the abort_on_example_error.
     if os.environ.get('TRAVIS', 'false') == 'true':
-        def setup(app):
-            app.config.values['abort_on_example_error'] = (True, 'html', ())
+        sphinx_gallery_conf['abort_on_example_error'] = True
 
 except ImportError:
     def setup(app):
