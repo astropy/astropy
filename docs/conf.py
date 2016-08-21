@@ -25,6 +25,9 @@
 # Thus, any C-extensions that are needed to build the documentation will *not*
 # be accessible, and the documentation will not build correctly.
 
+import os
+ON_RTD = os.environ.get('READTHEDOCS') == 'True'
+
 try:
     import astropy_helpers
 except ImportError:
@@ -45,8 +48,9 @@ except ImportError:
 # astropy conda package getting installed, which would shadow the developer
 # version installed just prior to building the docs. So we should set up any
 # such dependencies here.
-from setuptools import Distribution
-Distribution({'setup_requires': 'wcsaxes'})
+if ON_RTD:
+    from setuptools import Distribution
+    Distribution({'setup_requires': 'wcsaxes'})
 
 # Load all of the global Astropy configuration
 from astropy_helpers.sphinx.conf import *
