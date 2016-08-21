@@ -9,6 +9,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 # Standard library
+import abc
 import inspect
 from copy import deepcopy
 from collections import namedtuple, OrderedDict
@@ -21,7 +22,8 @@ from ..utils.compat.misc import override__dir__
 from ..extern import six
 from ..extern.six.moves import zip
 from .. import units as u
-from ..utils import OrderedDescriptor, OrderedDescriptorContainer
+from ..utils import (OrderedDescriptor, OrderedDescriptorContainer,
+                     ShapedLikeNDArray)
 from .transformations import TransformGraph
 from .representation import (BaseRepresentation, CartesianRepresentation,
                              SphericalRepresentation,
@@ -57,7 +59,11 @@ def _get_repr_cls(value):
     return value
 
 
-class FrameMeta(OrderedDescriptorContainer):
+# Need to subclass ABCMeta as well, so that this meta class can be combined
+# with ShapedLikeNDArray below (which is an ABC); without it, one gets
+# "TypeError: metaclass conflict: the metaclass of a derived class must be a
+#  (non-strict) subclass of the metaclasses of all its bases"
+class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
     def __new__(mcls, name, bases, members):
         if 'default_representation' in members:
             default_repr = members.pop('default_representation')
@@ -535,7 +541,7 @@ class RepresentationMapping(_RepresentationMappingBase):
 
 
 @six.add_metaclass(FrameMeta)
-class BaseCoordinateFrame(object):
+class BaseCoordinateFrame(ShapedLikeNDArray):
     """
     The base class for coordinate frames.
 
@@ -1062,13 +1068,28 @@ class BaseCoordinateFrame(object):
         return ', '.join([attrnm + '=' + str(getattr(self, attrnm))
                           for attrnm in self.get_frame_attr_names()])
 
-    def __getitem__(self, view):
-        if self.has_data:
-            out = self.realize_frame(self.data[view])
-            out.representation = self.representation
-            return out
-        else:
-            raise ValueError('Cannot index a frame with no data')
+    def _apply(self, method, *args, **kwargs):
+        if not self.has_data:
+            raise ValueError('Cannot {0} a frame with no data'
+                             .format('index' if method == '__getitem__'
+                                     else 'change shape of'))
+
+        data = getattr(self.data, method)(*args, **kwargs)
+        frattrs = {}
+        for attr in self.get_frame_attr_names():
+            if attr not in self._attr_names_with_defaults:
+                value = getattr(self, attr)
+                value_method = getattr(value, method, None)
+                if value_method is not None:
+                    if getattr(value, 'size', 1) > 1:
+                        value = value_method(*args, **kwargs)
+                    elif method == 'flatten':
+                        value = value.copy()
+                frattrs[attr] = value
+
+        out = self.__class__(data, **frattrs)
+        out.representation = self.representation
+        return out
 
     @override__dir__
     def __dir__(self):
