@@ -389,22 +389,20 @@ class QuantityFrameAttribute(FrameAttribute):
         ValueError
             If the input is not valid for this attribute.
         """
-        if np.all(value == 0) and self.unit is not None and self.unit is not None:
+        if np.all(value == 0) and self.unit is not None:
             return u.Quantity(np.zeros(self.shape), self.unit), True
         else:
-            converted = True
-            if not (hasattr(value, 'unit') ):
+            if not hasattr(value, 'unit'):
                 raise TypeError('Tried to set a QuantityFrameAttribute with '
                                 'something that does not have a unit.')
             oldvalue = value
-            value = u.Quantity(oldvalue, copy=False).to(self.unit)
+            value = u.Quantity(oldvalue, self.unit, copy=False)
             if self.shape is not None and value.shape != self.shape:
                 raise ValueError('The provided value has shape "{0}", but '
                                  'should have shape "{1}"'.format(value.shape,
                                                                   self.shape))
-            if (oldvalue.unit == value.unit and hasattr(oldvalue, 'value') and
-                np.all(oldvalue.value == value.value)):
-                converted = False
+            converted = not (oldvalue is value or
+                             np.may_share_memory(value, oldvalue))
             return value, converted
 
 
