@@ -10,6 +10,7 @@ from .. import units as u
 from ..extern import six
 from ..extern.six.moves import urllib
 from ..utils.exceptions import AstropyUserWarning
+from ..utils.compat.numpy import broadcast_to
 from .angles import Longitude, Latitude
 from .builtin_frames import ITRS, GCRS
 from .representation import CartesianRepresentation
@@ -499,6 +500,11 @@ class EarthLocation(u.Quantity):
         itrs : `~astropy.coordinates.ITRS`
             The new object in the ITRS frame
         """
+        # Broadcast for a single position at multiple times, but don't attempt
+        # to be more general here.
+        if obstime and self.size == 1 and obstime.size > 1:
+            self = broadcast_to(self, obstime.shape, subok=True)
+
         return ITRS(x=self.x, y=self.y, z=self.z, obstime=obstime)
 
     itrs = property(get_itrs, doc="""An `~astropy.coordinates.ITRS` object  with

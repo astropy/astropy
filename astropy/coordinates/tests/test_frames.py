@@ -374,8 +374,12 @@ def test_time_inputs():
         c = FK4(1 * u.deg, 2 * u.deg, obstime='hello')
     assert 'Invalid time input' in str(err)
 
-    #should work fine without a warning even with vector times not always working
-    FK4(1 * u.deg, 2 * u.deg, obstime=['J2000', 'J2001'])
+    # A vector time should work if the shapes match, but we don't automatically
+    # broadcast the basic data (just like time).
+    FK4([1, 2]* u.deg, [2, 3] * u.deg, obstime=['J2000', 'J2001'])
+    with pytest.raises(ValueError) as err:
+        FK4(1 * u.deg, 2 * u.deg, obstime=['J2000', 'J2001'])
+    assert 'shape' in str(err)
 
 
 def test_is_frame_attr_default():
