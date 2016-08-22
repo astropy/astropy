@@ -1555,6 +1555,9 @@ Bug Fixes
   - Fixed bug that caused an ignored exception to be displayed under certain
     conditions when terminating a script after using fits.getdata(). [#4977]
 
+  - Fixed usage of inplace operations that were raising an exception with
+    recent versions of Numpy due to implicit casting. [#5250]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``

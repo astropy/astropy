@@ -1405,7 +1405,11 @@ class CompImageHDU(BinTableHDU):
             if self._bscale != 1:
                 np.multiply(data, self._bscale, data)
             if self._bzero != 0:
-                data += self._bzero
+                # We have to explcitly cast self._bzero to prevent numpy from
+                # raising an error when doing self.data += self._bzero, and we
+                # do this instead of self.data = self.data + self._bzero to
+                # avoid doubling memory usage.
+                np.add(data, self._bzero, out=data, casting='unsafe')
 
             if zblank is not None:
                 data = np.where(blanks, np.nan, data)
