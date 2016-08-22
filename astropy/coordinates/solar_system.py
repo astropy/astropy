@@ -270,7 +270,7 @@ def get_body_barycentric(body, time, ephemeris=None, get_velocity=False):
             spk = kernel[pair]
             if spk.data_type == 3:
                 # Type 3 kernels contain both position and velocity.
-                posvel = kernel.compute(jd1, jd2)
+                posvel = spk.compute(jd1, jd2)
                 if get_velocity:
                     body_posvel_bary += posvel.reshape(body_posvel_bary.shape)
                 else:
