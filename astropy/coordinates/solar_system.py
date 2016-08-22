@@ -237,10 +237,12 @@ def get_body_barycentric(body, time, ephemeris=None, get_velocity=False):
                 body_pv_helio = erfa.plan94(jd1, jd2, body_index)
                 body_pv_bary = body_pv_helio + sun_pv_bary
 
-        body_posvel_bary = np.rollaxis(body_pv_bary, -1, 0)
-        body_pos_bary = u.Quantity(body_posvel_bary[..., 0], u.au, copy=False)
+        # Move coordinate components to front, as needed for
+        # CartesianRepresentation.
+        body_pv_bary = np.rollaxis(body_pv_bary, -1, 0)
+        body_pos_bary = u.Quantity(body_pv_bary[..., 0], u.au, copy=False)
         if get_velocity:
-            body_vel_bary = u.Quantity(body_posvel_bary[..., 1], u.au/u.day,
+            body_vel_bary = u.Quantity(body_pv_bary[..., 1], u.au/u.day,
                                        copy=False)
 
     else:
