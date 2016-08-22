@@ -27,6 +27,7 @@
 
 import os
 ON_RTD = os.environ.get('READTHEDOCS') == 'True'
+ON_TRAVIS = os.environ.get('TRAVIS', 'false') == 'true'
 
 try:
     import astropy_helpers
@@ -255,7 +256,7 @@ try:
     # sphinx-gallery: https://github.com/sphinx-gallery/sphinx-gallery/pull/97
     # Therefore, for now we simply check if we are on Travis, and if so, we
     # enabled the abort_on_example_error.
-    if os.environ.get('TRAVIS', 'false') == 'true':
+    if ON_TRAVIS:
         sphinx_gallery_conf['abort_on_example_error'] = True
 
 except ImportError:
