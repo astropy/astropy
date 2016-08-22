@@ -258,15 +258,21 @@ def get_body_barycentric(body, time, ephemeris=None, get_velocity=False):
             # passed in a kernel chain
             kernel_spec = body
 
+        # jplephem cannot handle multi-D arrays, so convert to 1D here.
+        jd1_shape = getattr(jd1, 'shape', ())
+        if len(jd1_shape) > 1:
+            jd1, jd2 = jd1.ravel(), jd2.ravel()
+        # Note that we use the new jd1.shape here to create a 1D result array.
+        # It is reshaped below.
         body_posvel_bary = np.zeros((2 if get_velocity else 1, 3) +
-                                    getattr(jd1, 'shape', ()))
+                                     getattr(jd1, 'shape', ()))
         for pair in kernel_spec:
             spk = kernel[pair]
             if spk.data_type == 3:
                 # Type 3 kernels contain both position and velocity.
                 posvel = kernel.compute(jd1, jd2)
                 if get_velocity:
-                    body_posvel_bary += posvel.reshape(2, 3, posvel.shape[1:])
+                    body_posvel_bary += posvel.reshape(body_posvel_bary.shape)
                 else:
                     body_posvel_bary[0] += posvel[:4]
             else:
@@ -278,6 +284,7 @@ def get_body_barycentric(body, time, ephemeris=None, get_velocity=False):
                                                spk.generate(jd1, jd2)):
                     body_p_or_v += p_or_v
 
+        body_posvel_bary.shape = body_posvel_bary.shape[:2] + jd1_shape
         body_pos_bary = u.Quantity(body_posvel_bary[0], u.km, copy=False)
         if get_velocity:
             body_vel_bary = u.Quantity(body_posvel_bary[1], u.km/u.day,
