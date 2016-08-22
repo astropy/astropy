@@ -10,8 +10,9 @@ from .. import units as u
 from ..extern import six
 from ..extern.six.moves import urllib
 from ..utils.exceptions import AstropyUserWarning
-from . import Longitude, Latitude
+from .angles import Longitude, Latitude
 from .builtin_frames import ITRS, GCRS
+from .representation import CartesianRepresentation
 from .errors import UnknownSiteException
 from ..utils import data
 
@@ -29,13 +30,13 @@ __all__ = ['EarthLocation']
 # Available ellipsoids (defined in erfam.h, with numbers exposed in erfa).
 ELLIPSOIDS = ('WGS84', 'GRS80', 'WGS72')
 
+OMEGA_EARTH = u.Quantity(7.292115855306589e-5, 1./u.s)
 """
 Rotational velocity of Earth. In UT1 seconds, this would be 2 pi / (24 * 3600),
 but we need the value in SI seconds.
 See Explanatory Supplement to the Astronomical Almanac, ed. P. Kenneth Seidelmann (1992),
 University Science Books.
 """
-V_EARTH = u.Quantity([0, 0, 7.292115855306589e-5])*u.rad/u.s
 
 
 def _check_ellipsoid(ellipsoid=None, default='WGS84'):
@@ -516,19 +517,19 @@ class EarthLocation(u.Quantity):
 
         Returns
         --------
-        obsgeoloc : `~astropy.units.Quantity`
+        obsgeoloc : `~astropy.coordinates.CartesianRepresentation`
             The GCRS position of the object
-        obsgeovel : `~astropy.units.Quantity`
+        obsgeovel : `~astropy.coordinates.CartesianRepresentation`
             The GCRS velocity of the object
         """
         itrs = self.get_itrs(obstime)
         geocentric_frame = GCRS(obstime=obstime)
         # GCRS position
-        obsgeoloc = itrs.transform_to(geocentric_frame).cartesian.xyz.to(u.m)
-
-        vel_arr = np.cross(V_EARTH, np.rollaxis(obsgeoloc, 0, obsgeoloc.ndim))
-        vel_arr = np.rollaxis(vel_arr, -1, 0)
-        obsgeovel = u.Quantity(vel_arr, u.m/u.s, copy=False)
+        obsgeoloc = itrs.transform_to(geocentric_frame).cartesian
+        vel_x = -OMEGA_EARTH * obsgeoloc.y
+        vel_y = OMEGA_EARTH * obsgeoloc.x
+        vel_z = 0. * vel_x.unit
+        obsgeovel = CartesianRepresentation(vel_x, vel_y, vel_z)
         return obsgeoloc, obsgeovel
 
     @property
