@@ -13,7 +13,8 @@ from ..solar_system import (get_body, get_moon, BODY_NAME_TO_KERNEL_SPEC,
                             _apparent_position_in_true_coordinates,
                             get_body_barycentric)
 from ..funcs import get_sun
-from ...tests.helper import pytest, assert_quantity_allclose, remote_data
+from ...tests.helper import (pytest, remote_data, assert_quantity_allclose,
+                             quantity_allclose)
 
 try:
     import jplephem  # pylint: disable=W0611
@@ -317,15 +318,40 @@ def test_earth_barycentric_velocity_rough():
     assert_quantity_allclose(ev.xyz, expected, atol=1.*u.km/u.s)
 
 
+def test_earth_barycentric_velocity_multi_d():
+    # Might as well test it with a multidimensional array too.
+    t = Time('2016-03-20T12:30:00') + np.arange(8.).reshape(2,2,2) * u.yr / 2.
+    ep, ev = get_body_barycentric('earth', t, get_velocity=True)
+    # note: assert_quantity_allclose doesn't like the shape mismatch.
+    # this is a problem with np.testing.assert_allclose.
+    assert quantity_allclose(np.rollaxis(ep.xyz, 0, ep.xyz.ndim),
+                             [[-1., 0., 0.], [+1., 0., 0.]]*u.AU,
+                             atol=0.06*u.AU)
+    expected = u.Quantity([0.*u.one,
+                           np.cos(23.5*u.deg),
+                           np.sin(23.5*u.deg)]) * ([[-30.], [30.]] * u.km / u.s)
+    assert quantity_allclose(np.rollaxis(ev.xyz, 0, ev.xyz.ndim),
+                             expected, atol=2.*u.km/u.s)
+
+
 @remote_data
 @pytest.mark.skipif('not HAS_JPLEPHEM')
 @pytest.mark.parametrize(('body', 'pos_tol', 'vel_tol'),
-                         (('mercury', 600.*u.km, 1.*u.km/u.s),
+                         (('mercury', 1000.*u.km, 1.*u.km/u.s),
                           ('jupiter', 100000.*u.km, 2.*u.km/u.s),
                           ('earth', 10*u.km, 10*u.mm/u.s)))
 def test_barycentric_velocity_consistency(body, pos_tol, vel_tol):
-    # Tolerances are about 1.5 times the rms listed for plan94 and epv00.
+    # Tolerances are about 1.5 times the rms listed for plan94 and epv00,
+    # except for Mercury (which nominally is 334 km rms)
     t = Time('2016-03-20T12:30:00')
+    ep, ev = get_body_barycentric(body, t, ephemeris='builtin',
+                                  get_velocity=True)
+    dp, dv = get_body_barycentric(body, t, ephemeris='de432s',
+                                  get_velocity=True)
+    assert_quantity_allclose(ep.xyz, dp.xyz, atol=pos_tol)
+    assert_quantity_allclose(ev.xyz, dv.xyz, atol=vel_tol)
+    # Might as well test it with a multidimensional array too.
+    t = Time('2016-03-20T12:30:00') + np.arange(8.).reshape(2,2,2) * u.yr / 2.
     ep, ev = get_body_barycentric(body, t, ephemeris='builtin',
                                   get_velocity=True)
     dp, dv = get_body_barycentric(body, t, ephemeris='de432s',
