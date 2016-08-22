@@ -27,7 +27,7 @@
 
 import os
 ON_RTD = os.environ.get('READTHEDOCS') == 'True'
-ON_TRAVIS = os.environ.get('TRAVIS', 'false') == 'true'
+ON_TRAVIS = os.environ.get('TRAVIS') == 'true'
 
 try:
     import astropy_helpers
