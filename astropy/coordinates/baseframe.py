@@ -19,6 +19,7 @@ import numpy as np
 
 # Project
 from ..utils.compat.misc import override__dir__
+from ..utils.compat.numpy import broadcast_to
 from ..extern import six
 from ..extern.six.moves import zip
 from .. import units as u
@@ -401,8 +402,7 @@ class QuantityFrameAttribute(FrameAttribute):
                 raise ValueError('The provided value has shape "{0}", but '
                                  'should have shape "{1}"'.format(value.shape,
                                                                   self.shape))
-            converted = not (oldvalue is value or
-                             np.may_share_memory(value, oldvalue))
+            converted = oldvalue is not value
             return value, converted
 
 
@@ -593,21 +593,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         # if not set below, this is a frame with no data
         representation_data = None
 
-        for fnm, fdefault in self.get_frame_attr_names().items():
-            # Read-only frame attributes are defined as FrameAttribue
-            # descriptors which are not settable, so set 'real' attributes as
-            # the name prefaced with an underscore.
-
-            if fnm in kwargs:
-                value = kwargs.pop(fnm)
-                setattr(self, '_' + fnm, value)
-            else:
-                setattr(self, '_' + fnm, fdefault)
-                self._attr_names_with_defaults.append(fnm)
-
-            # Validate input by getting the attribute here.
-            getattr(self, fnm)
-
         args = list(args)  # need to be able to pop them
         if (len(args) > 0) and (isinstance(args[0], BaseRepresentation) or
                                 args[0] is None):
@@ -643,10 +628,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             raise TypeError(
                 '{0}.__init__ had {1} remaining unhandled arguments'.format(
                     self.__class__.__name__, len(args)))
-        if kwargs:
-            raise TypeError(
-                'Coordinate frame got unexpected keywords: {0}'.format(
-                    list(kwargs)))
 
         self._data = representation_data
 
@@ -655,6 +636,43 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         if self._data is not None:
             self._rep_cache = dict()
             self._rep_cache[self._data.__class__.__name__, False] = self._data
+
+        for fnm, fdefault in self.get_frame_attr_names().items():
+            # Read-only frame attributes are defined as FrameAttribue
+            # descriptors which are not settable, so set 'real' attributes as
+            # the name prefaced with an underscore.
+
+            if fnm in kwargs:
+                value = kwargs.pop(fnm)
+                setattr(self, '_' + fnm, value)
+                # Check shape is OK.  As a useful side product, getting the
+                # attribute also validates it.
+                value = getattr(self, fnm)
+                if self.has_data and (getattr(value, 'size', 1) > 1 and
+                                      value.shape != self.shape):
+                    if isinstance(value, np.ndarray):
+                        try:
+                            value = broadcast_to(value, self.shape, subok=True)
+                        except ValueError:
+                            raise ValueError(
+                                "frame attribute have a shape that can be "
+                                "broadcast to {0}, not {1}"
+                                .format(self.shape, value.shape))
+                        else:
+                            setattr(self, '_' + fnm, value)
+                    else:
+                        raise ValueError(
+                            "frame attribute should have no shape or shape={0}"
+                            ", not {1}".format(self.shape, value.shape))
+
+            else:
+                setattr(self, '_' + fnm, fdefault)
+                self._attr_names_with_defaults.append(fnm)
+
+        if kwargs:
+            raise TypeError(
+                'Coordinate frame got unexpected keywords: {0}'.format(
+                    list(kwargs)))
 
     @property
     def data(self):
