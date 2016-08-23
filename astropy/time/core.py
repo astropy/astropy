@@ -12,6 +12,8 @@ from __future__ import (absolute_import, division, print_function,
 
 import itertools
 import copy
+import operator
+import functools
 from datetime import datetime
 from collections import defaultdict
 
@@ -771,28 +773,49 @@ class Time(ShapedLikeNDArray):
 
         Parameters
         ----------
-        method : str
-            Can be 'replicate'  or the name of a relevant `~numpy.ndarray`
-            method. In the former case, a new time instance with unchanged
-            internal data is created, while in the latter the method is applied
-            to the internal ``jd1`` and ``jd2`` arrays, as well as to possible
-            ``location``, ``_delta_ut1_utc``, and ``_delta_tdb_tt`` arrays.
-            Example methods: 'copy', '__getitem__', 'reshape'.
+        method : str or callable
+            If string, can be 'replicate'  or the name of a relevant
+            `~numpy.ndarray` method. In the former case, a new time instance
+            with unchanged internal data is created, while in the latter the
+            method is applied to the internal ``jd1`` and ``jd2`` arrays, as
+            well as to possible ``location``, ``_delta_ut1_utc``, and
+            ``_delta_tdb_tt`` arrays.
+            If a callable, it is directly applied to the above arrays.
+            Examples: 'copy', '__getitem__', 'reshape', `~numpy.broadcast_to`.
         args : tuple
             Any positional arguments for ``method``.
         kwargs : dict
             Any keyword arguments for ``method``.  If the ``format`` keyword
             argument is present, this will be used as the Time format of the
             replica.
+
+        Examples
+        --------
+        Some ways this is used internally::
+
+            copy : ``_apply('copy')``
+            replicate : ``_apply('replicate')``
+            reshape : ``_apply('reshape', new_shape)``
+            index or slice : ``_apply('__getitem__', item)``
+            broadcast : ``_apply(np.broadcast, shape=new_shape)``
         """
         new_format = kwargs.pop('format', None)
         if new_format is None:
             new_format = self.format
 
+        if callable(method):
+            apply_method = functools.partial(method, *args, **kwargs)
+            method = str(apply_method)
+        else:
+            if method == 'replicate':
+                apply_method = None
+            else:
+                apply_method = operator.methodcaller(method, *args, **kwargs)
+
         jd1, jd2 = self._time.jd1, self._time.jd2
-        if method != 'replicate':
-            jd1 = getattr(jd1, method)(*args, **kwargs)
-            jd2 = getattr(jd2, method)(*args, **kwargs)
+        if apply_method:
+            jd1 = apply_method(jd1)
+            jd2 = apply_method(jd2)
 
         tm = super(Time, self.__class__).__new__(self.__class__)
         tm._time = TimeJD(jd1, jd2, self.scale, self.precision,
@@ -805,17 +828,17 @@ class Time(ShapedLikeNDArray):
             except AttributeError:
                 continue
 
-            if method != 'replicate' and getattr(val, 'size', 1) > 1:
+            if apply_method:
                 # Apply the method to any value arrays (though skip if there is
-                # onlya single element and the method would return a view,
+                # only a single element and the method would return a view,
                 # since in that case nothing would change).
-                val_method = getattr(val, method)
-                val = val_method(*args, **kwargs)
-            elif method == 'copy' or method == 'flatten':
-                # flatten should copy also for a single element array, but
-                # we cannot use it directly for array scalars, since it
-                # always returns a one-dimensional array. So, just copy.
-                val = copy.copy(val)
+                if getattr(val, 'size', 1) > 1:
+                    val = apply_method(val)
+                elif method == 'copy' or method == 'flatten':
+                    # flatten should copy also for a single element array, but
+                    # we cannot use it directly for array scalars, since it
+                    # always returns a one-dimensional array. So, just copy.
+                    val = copy.copy(val)
 
             setattr(tm, attr, val)
 
