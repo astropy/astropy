@@ -19,7 +19,7 @@ import numpy as np
 
 # Project
 from ..utils.compat.misc import override__dir__
-from ..utils.compat.numpy import broadcast_to
+from ..utils.compat.numpy import broadcast_to as np_broadcast_to
 from ..extern import six
 from ..extern.six.moves import zip
 from .. import units as u
@@ -206,20 +206,52 @@ class FrameAttribute(OrderedDescriptor):
         """
         return value, False
 
+    def broadcast_to(self, value, shape):
+        """Broadcast to the desired shape.
+
+        Subclasses that are able to broadcast values to a given shape should
+        override this.  The base method simply raises an exception.
+
+        Parameters
+        ----------
+        value : object
+            Input value to be broadcast
+        shape : tuple
+            The shape of the desired object.
+
+        Returns
+        -------
+        broadcast : object
+            A new instance with a broadcast view of the internal data.
+
+        Raises
+        ------
+        `ValueError`
+            If broadcasting is not possible at all, or if the object cannot be
+            broadcast to the desired shape.
+        """
+        raise ValueError("attribute {0} should be scalar or have shape {1}, "
+                         "but it has shape {1} and could not be broadcast."
+                         .format(self.name, shape, value.shape))
+
     def __get__(self, instance, frame_cls=None):
-        out = None
-
-        if instance is not None:
-            out = getattr(instance, '_' + self.name, None)
-            if out is None and self.default is None:
-                out = getattr(instance, self.secondary_attribute, None)
-
-        if out is None:
+        if instance is None:
             out = self.default
+        else:
+            out = getattr(instance, '_' + self.name, self.default)
+            if out is None:
+                out = getattr(instance, self.secondary_attribute, self.default)
 
         out, converted = self.convert_input(out)
-        if instance is not None and converted:
-            setattr(instance, '_' + self.name, out)
+        if instance is not None:
+            instance_shape = getattr(instance, 'shape', None)
+            if instance_shape is not None and (getattr(out, 'size', 1) > 1 and
+                                               out.shape != instance_shape):
+                out = self.broadcast_to(out, instance_shape)
+                converted = True
+
+            if converted:
+                setattr(instance, '_' + self.name, out)
 
         return out
 
@@ -405,6 +437,31 @@ class QuantityFrameAttribute(FrameAttribute):
             converted = oldvalue is not value
             return value, converted
 
+    def broadcast_to(self, out, shape):
+        """Broadcast to the desired shape.
+
+        Parameters
+        ----------
+        value : object
+            Input value to be broadcast
+        shape : tuple
+            The shape of the desired object.
+
+        Returns
+        -------
+        broadcast : object
+            A new instance with a broadcast view of the internal data.
+
+        Raises
+        ------
+        `ValueError`
+            If the object cannot be broadcast to the desired shape.
+        """
+        try:
+            return np_broadcast_to(out, shape, subok=True)
+        except:  # raise more informative exception.
+            super(QuantityFrameAttribute, self).broadcast_to(out, shape)
+
 
 class EarthLocationAttribute(FrameAttribute):
     """
@@ -457,6 +514,31 @@ class EarthLocationAttribute(FrameAttribute):
                                  '"transform_to" method'.format(value))
             itrsobj = value.transform_to(ITRS)
             return itrsobj.earth_location, True
+
+    def broadcast_to(self, out, shape):
+        """Broadcast to the desired shape.
+
+        Parameters
+        ----------
+        value : object
+            Input value to be broadcast
+        shape : tuple
+            The shape of the desired object.
+
+        Returns
+        -------
+        broadcast : object
+            A new instance with a broadcast view of the internal data.
+
+        Raises
+        ------
+        `ValueError`
+            If the object cannot be broadcast to the desired shape.
+        """
+        try:
+            return np_broadcast_to(out, shape, subok=True)
+        except:  # raise more informative exception.
+            super(EarthLocationAttribute, self).broadcast_to(out, shape)
 
 
 class CoordinateAttribute(FrameAttribute):
@@ -536,7 +618,6 @@ class RepresentationMapping(_RepresentationMappingBase):
         return super(RepresentationMapping, cls).__new__(cls, reprname,
                                                          framename,
                                                          defaultunit)
-
 
 @six.add_metaclass(FrameMeta)
 class BaseCoordinateFrame(ShapedLikeNDArray):
@@ -645,26 +726,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             if fnm in kwargs:
                 value = kwargs.pop(fnm)
                 setattr(self, '_' + fnm, value)
-                # Check shape is OK.  As a useful side product, getting the
-                # attribute also validates it.
+                # Validate attribute and check its shape is OK by getting it.
                 value = getattr(self, fnm)
-                if self.has_data and (getattr(value, 'size', 1) > 1 and
-                                      value.shape != self.shape):
-                    if isinstance(value, np.ndarray):
-                        try:
-                            value = broadcast_to(value, self.shape, subok=True)
-                        except ValueError:
-                            raise ValueError(
-                                "frame attribute have a shape that can be "
-                                "broadcast to {0}, not {1}"
-                                .format(self.shape, value.shape))
-                        else:
-                            setattr(self, '_' + fnm, value)
-                    else:
-                        raise ValueError(
-                            "frame attribute should have no shape or shape={0}"
-                            ", not {1}".format(self.shape, value.shape))
-
             else:
                 setattr(self, '_' + fnm, fdefault)
                 self._attr_names_with_defaults.append(fnm)
@@ -704,7 +767,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
     @property
     def shape(self):
-        return self.data.shape
+        if self._data is None:
+            # We cannot rely on the ValueError from self.data here, since
+            # then  `getattr(data, 'shape', 0)` would not work.
+            raise AttributeError('a frame without data does not have a shape.')
+        return self._data.shape
 
     @property
     def isscalar(self):
