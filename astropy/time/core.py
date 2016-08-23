@@ -11,6 +11,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import itertools
+import copy
 from datetime import datetime
 from collections import defaultdict
 
@@ -797,31 +798,24 @@ class Time(ShapedLikeNDArray):
         tm._time = TimeJD(jd1, jd2, self.scale, self.precision,
                           self.in_subfmt, self.out_subfmt, from_jd=True)
         # Optional ndarray attributes.
-        for attr in ('_delta_ut1_utc', '_delta_tdb_tt', 'location'):
+        for attr in ('_delta_ut1_utc', '_delta_tdb_tt', 'location',
+                     'precision', 'in_subfmt', 'out_subfmt'):
             try:
                 val = getattr(self, attr)
             except AttributeError:
                 continue
 
-            # Apply the method to any value arrays (though skip if there is only
-            # a single element and the method would return a view, since in
-            # that case nothing would change).
-            val_method = getattr(val, method, None)
-            if val_method:
-                if val.size > 1 or method == 'copy':
-                    val = val_method(*args, **kwargs)
-                elif method == 'flatten':
-                    # flatten should copy also for a single element array, but
-                    # we cannot use it directly for array scalars, since it
-                    # always returns a one-dimensional array. So, just copy.
-                    val = val.copy()
-
-            setattr(tm, attr, val)
-
-        for attr in ('precision', 'in_subfmt', 'out_subfmt'):
-            val = getattr(self, attr)
-            if method in ('copy', 'flatten') and hasattr(val, 'copy'):
-                val = val.copy()
+            if method != 'replicate' and getattr(val, 'size', 1) > 1:
+                # Apply the method to any value arrays (though skip if there is
+                # onlya single element and the method would return a view,
+                # since in that case nothing would change).
+                val_method = getattr(val, method)
+                val = val_method(*args, **kwargs)
+            elif method == 'copy' or method == 'flatten':
+                # flatten should copy also for a single element array, but
+                # we cannot use it directly for array scalars, since it
+                # always returns a one-dimensional array. So, just copy.
+                val = copy.copy(val)
 
             setattr(tm, attr, val)
 
