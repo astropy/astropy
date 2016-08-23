@@ -98,3 +98,13 @@ def test_set_locale():
 
     with misc.set_locale(current):
         assert date.strftime('%a, %b') == day_mon
+
+
+def test_check_broadcast():
+    assert misc.check_broadcast((10, 1), (3,)) == (10, 3)
+    assert misc.check_broadcast((10, 1), (3,), (4, 1, 1, 3)) == (4, 1, 10, 3)
+    with pytest.raises(ValueError):
+        misc.check_broadcast((10, 2), (3,))
+
+    with pytest.raises(ValueError):
+        misc.check_broadcast((10, 1), (3,), (4, 1, 2, 3))

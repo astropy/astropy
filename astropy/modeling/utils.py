@@ -14,7 +14,7 @@ import numpy as np
 from ..extern import six
 from ..extern.six.moves import range, zip_longest, zip
 
-from ..utils import isiterable
+from ..utils import isiterable, check_broadcast
 from ..utils.compat.funcsigs import signature
 
 
@@ -446,60 +446,6 @@ def make_binary_operator_eval(oper, f, g):
     return lambda inputs, params: \
             tuple(oper(x, y) for x, y in zip(f(inputs, params),
                                              g(inputs, params)))
-
-
-class IncompatibleShapeError(ValueError):
-    def __init__(self, shape_a, shape_a_idx, shape_b, shape_b_idx):
-        super(IncompatibleShapeError, self).__init__(
-                shape_a, shape_a_idx, shape_b, shape_b_idx)
-
-
-def check_broadcast(*shapes):
-    """
-    Determines whether two or more Numpy arrays can be broadcast with each
-    other based on their shape tuple alone.
-
-    Parameters
-    ----------
-    *shapes : tuple
-        All shapes to include in the comparison.  If only one shape is given it
-        is passed through unmodified.  If no shapes are given returns an empty
-        `tuple`.
-
-    Returns
-    -------
-    broadcast : `tuple`
-        If all shapes are mutually broadcastable, returns a tuple of the full
-        broadcast shape.
-    """
-
-    if len(shapes) == 0:
-        return ()
-    elif len(shapes) == 1:
-        return shapes[0]
-
-    reversed_shapes = (reversed(shape) for shape in shapes)
-
-    full_shape = []
-
-    for dims in zip_longest(*reversed_shapes, fillvalue=1):
-        max_dim = 1
-        max_dim_idx = None
-        for idx, dim in enumerate(dims):
-            if dim == 1:
-                continue
-
-            if max_dim == 1:
-                # The first dimension of size greater than 1
-                max_dim = dim
-                max_dim_idx = idx
-            elif dim != max_dim:
-                raise IncompatibleShapeError(
-                    shapes[max_dim_idx], max_dim_idx, shapes[idx], idx)
-
-        full_shape.append(max_dim)
-
-    return tuple(full_shape[::-1])
 
 
 def poly_map_domain(oldx, domain, window):

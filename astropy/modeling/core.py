@@ -35,14 +35,15 @@ from ..extern import six
 from ..extern.six.moves import copyreg, zip
 from ..table import Table
 from ..utils import (sharedmethod, find_current_module,
+                     check_broadcast, IncompatibleShapeError,
                      InheritDocstrings, OrderedDescriptorContainer)
 from ..utils.codegen import make_function_with_signature
 from ..utils.compat import suppress
 from ..utils.compat.funcsigs import signature
 from ..utils.exceptions import AstropyDeprecationWarning
-from .utils import (array_repr_oneline, check_broadcast, combine_labels,
+from .utils import (array_repr_oneline, combine_labels,
                     make_binary_operator_eval, ExpressionTree,
-                    IncompatibleShapeError, AliasDict, get_inputs_and_params,
+                    AliasDict, get_inputs_and_params,
                     _BoundingBox)
 from ..nddata.utils import add_array, extract_array
 
