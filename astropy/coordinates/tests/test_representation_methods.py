@@ -7,6 +7,7 @@ from ... import units as u
 from .. import SphericalRepresentation, Longitude, Latitude
 from ...tests.helper import pytest
 from ...utils.compat.numpycompat import NUMPY_LT_1_9
+from ...utils.compat.numpy import broadcast_to as np_broadcast_to
 
 
 class TestManipulation():
@@ -159,3 +160,24 @@ class TestManipulation():
         s0_take = self.s0.take((5, 2))
         assert s0_take.shape == (2,)
         assert np.all(s0_take.lon == self.s0.lon.take((5, 2)))
+
+    def test_broadcast_to(self):
+        s0_broadcast = self.s0._apply(np_broadcast_to, shape=(3, 6, 7),
+                                      subok=True)
+        assert s0_broadcast.shape == (3, 6, 7)
+        assert np.all(s0_broadcast.lon == self.s0.lon)
+        assert np.all(s0_broadcast.lat == self.s0.lat)
+        assert np.all(s0_broadcast.distance == self.s0.distance)
+        assert np.may_share_memory(s0_broadcast.lon, self.s0.lon)
+        assert np.may_share_memory(s0_broadcast.lat, self.s0.lat)
+        assert np.may_share_memory(s0_broadcast.distance, self.s0.distance)
+        s1_broadcast = self.s1._apply(np_broadcast_to, shape=(3, 6, 7),
+                                      subok=True)
+        assert s1_broadcast.shape == (3, 6, 7)
+        assert np.all(s1_broadcast.lat == self.s1.lat)
+        assert np.all(s1_broadcast.lon == self.s1.lon)
+        assert np.all(s1_broadcast.distance == self.s1.distance)
+        assert s1_broadcast.distance.shape == (3, 6, 7)
+        assert np.may_share_memory(s1_broadcast.lat, self.s1.lat)
+        assert np.may_share_memory(s1_broadcast.lon, self.s1.lon)
+        assert np.may_share_memory(s1_broadcast.distance, self.s1.distance)

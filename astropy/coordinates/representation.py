@@ -9,6 +9,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import abc
 import functools
+import operator
 from collections import OrderedDict
 
 import numpy as np
@@ -120,25 +121,33 @@ class BaseRepresentation(ShapedLikeNDArray):
     def _apply(self, method, *args, **kwargs):
         """Create a new coordinate object with ``method`` applied to the arrays.
 
-        The method is any of the shape-changing methods for `~numpy.ndarray`
-        (``reshape``, ``swapaxes``, etc.), as well as those picking particular
-        elements (``__getitem__``, ``take``, etc.). It will be applied to the
-        underlying arrays (e.g., ``x``, ``y``, and ``z`` for
+        In typical usage, the method is any of the shape-changing methods for
+        `~numpy.ndarray` (``reshape``, ``swapaxes``, etc.), as well as those
+        picking particular elements (``__getitem__``, ``take``, etc.), which
+        are all defined in `~astropy.utils.misc.ShapedLikeNDArray`. It will be
+        applied to the underlying arrays (e.g., ``x``, ``y``, and ``z`` for
         `~astropy.coordinates.CartesianRepresentation`), with the results used
         to create a new instance.
 
+        Internally, it is also used to apply functions to the components
+        (in particular, `~numpy.broadcast_to`).
+
         Parameters
         ----------
-        method : str
-            The method is applied to the internal ``components``.
+        method : str or callable
+            If str, it is the name of a method that is applied to the internal
+            ``components``. If callable, the function is applied.
         args : tuple
             Any positional arguments for ``method``.
         kwargs : dict
             Any keyword arguments for ``method``.
         """
-        return self.__class__(
-            *[getattr(getattr(self, component), method)(*args, **kwargs)
-              for component in self.components], copy=False)
+        if callable(method):
+            apply_method = functools.partial(method, *args, **kwargs)
+        else:
+            apply_method = operator.methodcaller(method, *args, **kwargs)
+        return self.__class__( *[apply_method(getattr(self, component))
+                                 for component in self.components], copy=False)
 
     def __len__(self):
         if self.isscalar:
