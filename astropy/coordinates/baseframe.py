@@ -765,12 +765,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         self._data = representation_data
 
-        # We do ``is not None`` because self._data might evaluate to false for
-        # empty arrays or data == 0
-        if self._data is not None:
-            self._rep_cache = dict()
-            self._rep_cache[self._data.__class__.__name__, False] = self._data
-
+        values = {}
         for fnm, fdefault in self.get_frame_attr_names().items():
             # Read-only frame attributes are defined as FrameAttribue
             # descriptors which are not settable, so set 'real' attributes as
@@ -779,8 +774,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             if fnm in kwargs:
                 value = kwargs.pop(fnm)
                 setattr(self, '_' + fnm, value)
-                # Validate attribute and check its shape is OK by getting it.
-                value = getattr(self, fnm)
+                # Validate attribute by getting it.  If the instance has data,
+                # this also checks its shape is OK.  If not, we do it below.
+                values[fnm] = getattr(self, fnm)
             else:
                 setattr(self, '_' + fnm, fdefault)
                 self._attr_names_with_defaults.append(fnm)
@@ -789,6 +785,30 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             raise TypeError(
                 'Coordinate frame got unexpected keywords: {0}'.format(
                     list(kwargs)))
+
+        # We do ``is None`` because self._data might evaluate to false for
+        # empty arrays or data == 0
+        if self._data is None:
+            # No data: we still need to check that the attribute shapes are OK.
+            shaped_values = {fnm: value for fnm, value in six.iteritems(values)
+                             if getattr(value, 'size', 1) > 1}
+            if shaped_values:
+                try:
+                    broadcast = np.broadcast(*six.itervalues(shaped_values))
+                except ValueError:
+                    raise ValueError("non-scalar attributes with inconsistent "
+                                     "shapes: {0}".format(shaped_values))
+                self._no_data_shape = broadcast.shape
+                for fnm in shaped_values:
+                    # validate new shape
+                    getattr(self, fnm)
+            else:
+                self._no_data_shape = ()
+        else:
+            # Set up representation cache.
+            self._rep_cache = dict()
+            self._rep_cache[self._data.__class__.__name__, False] = self._data
+
 
     @property
     def data(self):
@@ -820,11 +840,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
     @property
     def shape(self):
-        if self._data is None:
-            # We cannot rely on the ValueError from self.data here, since
-            # then  `getattr(data, 'shape', 0)` would not work.
-            raise AttributeError('a frame without data does not have a shape.')
-        return self._data.shape
+        return self.data.shape if self.has_data else self._no_data_shape
+
+    @property
+    def size(self):
+        return self.data.size
 
     @property
     def isscalar(self):
