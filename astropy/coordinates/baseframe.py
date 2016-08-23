@@ -10,8 +10,10 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 # Standard library
 import abc
+import copy
+import functools
 import inspect
-from copy import deepcopy
+import operator
 from collections import namedtuple, OrderedDict
 
 # Dependencies
@@ -110,7 +112,7 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
                                    default_repr)
         mcls.readonly_prop_factory(members,
                                    'frame_specific_representation_info',
-                                   deepcopy(repr_info))
+                                   copy.deepcopy(repr_info))
 
         # now set the frame name as lower-case class name, if it isn't explicit
         if 'name' not in members:
@@ -315,6 +317,31 @@ class TimeFrameAttribute(FrameAttribute):
 
         return out, converted
 
+    def broadcast_to(self, value, shape):
+        """Broadcast to the desired shape.
+
+        Parameters
+        ----------
+        value : object
+            Input value to be broadcast
+        shape : tuple
+            The shape of the desired object.
+
+        Returns
+        -------
+        broadcast : object
+            A new instance with a broadcast view of the internal data.
+
+        Raises
+        ------
+        `ValueError`
+            If the object cannot be broadcast to the desired shape.
+        """
+        try:
+            return value._apply(np_broadcast_to, shape=shape, subok=True)
+        except:  # raise more informative exception.
+            super(TimeFrameAttribute, self).broadcast_to(value, shape)
+
 
 class CartesianRepresentationFrameAttribute(FrameAttribute):
     """
@@ -377,6 +404,32 @@ class CartesianRepresentationFrameAttribute(FrameAttribute):
             cartrep = CartesianRepresentation(value, copy=False)
             return cartrep, converted
 
+    def broadcast_to(self, value, shape):
+        """Broadcast to the desired shape.
+
+        Parameters
+        ----------
+        value : object
+            Input value to be broadcast
+        shape : tuple
+            The shape of the desired object.
+
+        Returns
+        -------
+        broadcast : object
+            A new instance with a broadcast view of the internal data.
+
+        Raises
+        ------
+        `ValueError`
+            If the object cannot be broadcast to the desired shape.
+        """
+        try:
+            return value._apply(np_broadcast_to, shape=shape, subok=True)
+        except:  # raise more informative exception.
+            super(CartesianRepresentationFrameAttribute,
+                  self).broadcast_to(value, shape)
+
 
 class QuantityFrameAttribute(FrameAttribute):
     """
@@ -437,7 +490,7 @@ class QuantityFrameAttribute(FrameAttribute):
             converted = oldvalue is not value
             return value, converted
 
-    def broadcast_to(self, out, shape):
+    def broadcast_to(self, value, shape):
         """Broadcast to the desired shape.
 
         Parameters
@@ -458,9 +511,9 @@ class QuantityFrameAttribute(FrameAttribute):
             If the object cannot be broadcast to the desired shape.
         """
         try:
-            return np_broadcast_to(out, shape, subok=True)
+            return np_broadcast_to(value, shape, subok=True)
         except:  # raise more informative exception.
-            super(QuantityFrameAttribute, self).broadcast_to(out, shape)
+            super(QuantityFrameAttribute, self).broadcast_to(value, shape)
 
 
 class EarthLocationAttribute(FrameAttribute):
@@ -515,7 +568,7 @@ class EarthLocationAttribute(FrameAttribute):
             itrsobj = value.transform_to(ITRS)
             return itrsobj.earth_location, True
 
-    def broadcast_to(self, out, shape):
+    def broadcast_to(self, value, shape):
         """Broadcast to the desired shape.
 
         Parameters
@@ -536,9 +589,9 @@ class EarthLocationAttribute(FrameAttribute):
             If the object cannot be broadcast to the desired shape.
         """
         try:
-            return np_broadcast_to(out, shape, subok=True)
+            return np_broadcast_to(value, shape, subok=True)
         except:  # raise more informative exception.
-            super(EarthLocationAttribute, self).broadcast_to(out, shape)
+            super(EarthLocationAttribute, self).broadcast_to(value, shape)
 
 
 class CoordinateAttribute(FrameAttribute):
@@ -1152,22 +1205,38 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                           for attrnm in self.get_frame_attr_names()])
 
     def _apply(self, method, *args, **kwargs):
-        if not self.has_data:
-            raise ValueError('Cannot {0} a frame with no data'
-                             .format('index' if method == '__getitem__'
-                                     else 'change shape of'))
+        """Create a new time object, possibly applying a method to the arrays.
 
-        data = getattr(self.data, method)(*args, **kwargs)
+        Parameters
+        ----------
+        method : str
+            The name of a relevant `~numpy.ndarray` method, which will be
+            applied to the internal data as well as any frame attributes
+            if those are array-like.
+            Examples: 'copy', '__getitem__', 'reshape'.
+        args : tuple
+            Any positional arguments for ``method``.
+        kwargs : dict
+            Any keyword arguments for ``method``.  If the ``format`` keyword
+            argument is present, this will be used as the Time format of the
+            replica.
+        """
+        apply_method = operator.methodcaller(method, *args, **kwargs)
+
+        data = apply_method(self.data) if self.has_data else None
+
         frattrs = {}
         for attr in self.get_frame_attr_names():
             if attr not in self._attr_names_with_defaults:
                 value = getattr(self, attr)
-                value_method = getattr(value, method, None)
-                if value_method is not None:
-                    if getattr(value, 'size', 1) > 1:
-                        value = value_method(*args, **kwargs)
-                    elif method == 'flatten':
-                        value = value.copy()
+                if getattr(value, 'size', 1) > 1:
+                    value = apply_method(value)
+                elif method == 'copy' or method == 'flatten':
+                    # flatten should copy also for a single element array, but
+                    # we cannot use it directly for array scalars, since it
+                    # always returns a one-dimensional array. So, just copy.
+                    value = copy.copy(value)
+
                 frattrs[attr] = value
 
         out = self.__class__(data, **frattrs)

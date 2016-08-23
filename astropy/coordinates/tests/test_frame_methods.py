@@ -6,7 +6,7 @@ import numpy as np
 from ... import units as u
 from .. import Longitude, Latitude, EarthLocation
 # test on frame with most complicated frame attributes.
-from ..builtin_frames import ICRS, AltAz
+from ..builtin_frames import ICRS, AltAz, GCRS
 from ...time import Time
 from ...utils.compat.numpycompat import NUMPY_LT_1_9
 
@@ -25,9 +25,15 @@ class TestManipulation():
         # With same-sized arrays, no attributes
         self.s0 = ICRS(lon[:, np.newaxis] * np.ones(lat.shape),
                        lat * np.ones(lon.shape)[:, np.newaxis])
-        self.obstime = Time('2012-01-01')
+        # Make an AltAz frame since that has many types of attributes.
+        # Match one axis with times.
+        self.obstime = (Time('2012-01-01') +
+                        np.arange(len(lon))[:, np.newaxis] * u.s)
+        # And another with location.
         self.location = EarthLocation(20.*u.deg, lat, 100*u.m)
+        # Ensure we have a quantity scalar.
         self.pressure = 1000 * u.hPa
+        # As well as an array.
         self.temperature = np.random.uniform(
             0., 20., size=(lon.size, lat.size)) * u.deg_C
         self.s1 = AltAz(az=lon[:, np.newaxis], alt=lat,
@@ -35,7 +41,14 @@ class TestManipulation():
                         location=self.location,
                         pressure=self.pressure,
                         temperature=self.temperature)
-
+        # For some tests, also try a GCRS, since that has representation
+        # attributes.  We match the second dimension (via the location)
+        self.obsgeoloc, self.obsgeovel = self.location.get_gcrs_posvel(
+            self.obstime[0, 0])
+        self.s2 = GCRS(ra=lon[:, np.newaxis], dec=lat,
+                       obstime=self.obstime,
+                       obsgeoloc=self.obsgeoloc,
+                       obsgeovel=self.obsgeovel)
 
     def test_ravel(self):
         s0_ravel = self.s0.ravel()
@@ -48,12 +61,24 @@ class TestManipulation():
         assert s1_ravel.shape == (self.s1.size,)
         assert np.all(s1_ravel.data.lon == self.s1.data.lon.ravel())
         assert not np.may_share_memory(s1_ravel.data.lat, self.s1.data.lat)
-        assert s1_ravel.obstime == self.s1.obstime
+        assert np.all(s1_ravel.obstime == self.s1.obstime.ravel())
+        assert not np.may_share_memory(s1_ravel.obstime.jd1,
+                                       self.s1.obstime.jd1)
         assert np.all(s1_ravel.location == self.s1.location.ravel())
         assert not np.may_share_memory(s1_ravel.location, self.s1.location)
         assert np.all(s1_ravel.temperature == self.s1.temperature.ravel())
         assert np.may_share_memory(s1_ravel.temperature, self.s1.temperature)
         assert s1_ravel.pressure == self.s1.pressure
+        s2_ravel = self.s2.ravel()
+        assert s2_ravel.shape == (self.s2.size,)
+        assert np.all(s2_ravel.data.lon == self.s2.data.lon.ravel())
+        assert not np.may_share_memory(s2_ravel.data.lat, self.s2.data.lat)
+        assert np.all(s2_ravel.obstime == self.s2.obstime.ravel())
+        assert not np.may_share_memory(s2_ravel.obstime.jd1,
+                                       self.s2.obstime.jd1)
+        assert np.all(s2_ravel.obsgeoloc == self.s2.obsgeoloc.ravel())
+        assert not np.may_share_memory(s2_ravel.obsgeoloc.x,
+                                       self.s2.obsgeoloc.x)
 
     def test_flatten(self):
         s0_flatten = self.s0.flatten()
@@ -65,7 +90,9 @@ class TestManipulation():
         assert s1_flatten.shape == (self.s1.size,)
         assert np.all(s1_flatten.data.lat == self.s1.data.lat.flatten())
         assert not np.may_share_memory(s1_flatten.data.lon, self.s1.data.lat)
-        assert s1_flatten.obstime == self.s1.obstime
+        assert np.all(s1_flatten.obstime == self.s1.obstime.flatten())
+        assert not np.may_share_memory(s1_flatten.obstime.jd1,
+                                       self.s1.obstime.jd1)
         assert np.all(s1_flatten.location == self.s1.location.flatten())
         assert not np.may_share_memory(s1_flatten.location, self.s1.location)
         assert np.all(s1_flatten.temperature == self.s1.temperature.flatten())
@@ -82,7 +109,9 @@ class TestManipulation():
         assert s1_transpose.shape == (7, 6)
         assert np.all(s1_transpose.data.lat == self.s1.data.lat.transpose())
         assert np.may_share_memory(s1_transpose.data.lon, self.s1.data.lon)
-        assert s1_transpose.obstime == self.s1.obstime
+        assert np.all(s1_transpose.obstime == self.s1.obstime.transpose())
+        assert np.may_share_memory(s1_transpose.obstime.jd1,
+                                   self.s1.obstime.jd1)
         assert np.all(s1_transpose.location == self.s1.location.transpose())
         assert np.may_share_memory(s1_transpose.location, self.s1.location)
         assert np.all(s1_transpose.temperature ==
@@ -108,7 +137,9 @@ class TestManipulation():
         assert s1_swapaxes.shape == (7, 6)
         assert np.all(s1_swapaxes.data.lat == self.s1.data.lat.swapaxes(0, 1))
         assert np.may_share_memory(s1_swapaxes.data.lat, self.s1.data.lat)
-        assert s1_swapaxes.obstime == self.s1.obstime
+        assert np.all(s1_swapaxes.obstime == self.s1.obstime.swapaxes(0, 1))
+        assert np.may_share_memory(s1_swapaxes.obstime.jd1,
+                                   self.s1.obstime.jd1)
         assert np.all(s1_swapaxes.location == self.s1.location.swapaxes(0, 1))
         assert s1_swapaxes.location.shape == (7, 6)
         assert np.may_share_memory(s1_swapaxes.location, self.s1.location)
@@ -129,7 +160,9 @@ class TestManipulation():
         assert s1_reshape.shape == (3, 2, 7)
         assert np.all(s1_reshape.data.lat == self.s1.data.lat.reshape(3, 2, 7))
         assert np.may_share_memory(s1_reshape.data.lat, self.s1.data.lat)
-        assert s1_reshape.obstime == self.s1.obstime
+        assert np.all(s1_reshape.obstime == self.s1.obstime.reshape(3, 2, 7))
+        assert np.may_share_memory(s1_reshape.obstime.jd1,
+                                   self.s1.obstime.jd1)
         assert np.all(s1_reshape.location == self.s1.location.reshape(3, 2, 7))
         assert np.may_share_memory(s1_reshape.location, self.s1.location)
         assert np.all(s1_reshape.temperature ==
@@ -137,12 +170,14 @@ class TestManipulation():
         assert np.may_share_memory(s1_reshape.temperature,
                                    self.s1.temperature)
         assert s1_reshape.pressure == self.s1.pressure
-        # For reshape(3, 14), copying is necessary for lon, lat, location
+        # For reshape(3, 14), copying is necessary for lon, lat, location, time
         s1_reshape2 = self.s1.reshape(3, 14)
         assert s1_reshape2.shape == (3, 14)
         assert np.all(s1_reshape2.data.lon == self.s1.data.lon.reshape(3, 14))
         assert not np.may_share_memory(s1_reshape2.data.lon, self.s1.data.lon)
-        assert s1_reshape2.obstime == self.s1.obstime
+        assert np.all(s1_reshape2.obstime == self.s1.obstime.reshape(3, 14))
+        assert not np.may_share_memory(s1_reshape2.obstime.jd1,
+                                       self.s1.obstime.jd1)
         assert np.all(s1_reshape2.location == self.s1.location.reshape(3, 14))
         assert not np.may_share_memory(s1_reshape2.location, self.s1.location)
         assert np.all(s1_reshape2.temperature ==
@@ -150,6 +185,15 @@ class TestManipulation():
         assert np.may_share_memory(s1_reshape2.temperature,
                                    self.s1.temperature)
         assert s1_reshape2.pressure == self.s1.pressure
+        s2_reshape = self.s2.reshape(3, 2, 7)
+        assert s2_reshape.shape == (3, 2, 7)
+        assert np.all(s2_reshape.data.lon == self.s2.data.lon.reshape(3, 2, 7))
+        assert np.may_share_memory(s2_reshape.data.lat, self.s2.data.lat)
+        assert np.all(s2_reshape.obstime == self.s2.obstime.reshape(3, 2, 7))
+        assert np.may_share_memory(s2_reshape.obstime.jd1, self.s2.obstime.jd1)
+        assert np.all(s2_reshape.obsgeoloc ==
+                      self.s2.obsgeoloc.reshape(3, 2, 7))
+        assert np.may_share_memory(s2_reshape.obsgeoloc.x, self.s2.obsgeoloc.x)
 
     def test_squeeze(self):
         s0_squeeze = self.s0.reshape(3, 1, 2, 1, 7).squeeze()
