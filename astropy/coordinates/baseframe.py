@@ -11,7 +11,6 @@ from __future__ import (absolute_import, unicode_literals, division,
 # Standard library
 import abc
 import copy
-import functools
 import inspect
 import operator
 from collections import namedtuple, OrderedDict
@@ -26,7 +25,7 @@ from ..extern import six
 from ..extern.six.moves import zip
 from .. import units as u
 from ..utils import (OrderedDescriptor, OrderedDescriptorContainer,
-                     ShapedLikeNDArray)
+                     ShapedLikeNDArray, check_broadcast)
 from .transformations import TransformGraph
 from .representation import (BaseRepresentation, CartesianRepresentation,
                              SphericalRepresentation,
@@ -789,19 +788,25 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         # We do ``is None`` because self._data might evaluate to false for
         # empty arrays or data == 0
         if self._data is None:
-            # No data: we still need to check that the attribute shapes are OK.
-            shaped_values = {fnm: value for fnm, value in six.iteritems(values)
-                             if getattr(value, 'size', 1) > 1}
-            if shaped_values:
-                try:
-                    broadcast = np.broadcast(*six.itervalues(shaped_values))
-                except ValueError:
-                    raise ValueError("non-scalar attributes with inconsistent "
-                                     "shapes: {0}".format(shaped_values))
-                self._no_data_shape = broadcast.shape
-                for fnm in shaped_values:
-                    # validate new shape
-                    getattr(self, fnm)
+            # No data: we still need to check that any non-scalar attributes
+            # have consistent shapes.
+            shapes = {fnm: value.shape for fnm, value in values.items()
+                      if getattr(value, 'size', 1) > 1}
+            if shapes:
+                if len(shapes) > 1:
+                    try:
+                        self._no_data_shape = check_broadcast(*shapes.values())
+                    except ValueError:
+                        raise ValueError(
+                            "non-scalar attributes with inconsistent "
+                            "shapes: {0}".format(shapes))
+
+                    for fnm in shapes:
+                        # validate new shape
+                        getattr(self, fnm)
+                else:
+                    self._no_data_shape = shapes.popitem()[1]
+
             else:
                 self._no_data_shape = ()
         else:
