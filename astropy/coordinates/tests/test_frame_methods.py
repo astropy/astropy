@@ -49,6 +49,10 @@ class TestManipulation():
                        obstime=self.obstime,
                        obsgeoloc=self.obsgeoloc,
                        obsgeovel=self.obsgeovel)
+        # For completeness, also some tests on an empty frame.
+        self.s3 = GCRS(obstime=self.obstime,
+                       obsgeoloc=self.obsgeoloc,
+                       obsgeovel=self.obsgeovel)
 
     def test_ravel(self):
         s0_ravel = self.s0.ravel()
@@ -79,6 +83,14 @@ class TestManipulation():
         assert np.all(s2_ravel.obsgeoloc == self.s2.obsgeoloc.ravel())
         assert not np.may_share_memory(s2_ravel.obsgeoloc.x,
                                        self.s2.obsgeoloc.x)
+        s3_ravel = self.s3.ravel()
+        assert s3_ravel.shape == (42,)  # cannot use .size on frame w/o data.
+        assert np.all(s3_ravel.obstime == self.s3.obstime.ravel())
+        assert not np.may_share_memory(s3_ravel.obstime.jd1,
+                                       self.s3.obstime.jd1)
+        assert np.all(s3_ravel.obsgeoloc == self.s3.obsgeoloc.ravel())
+        assert not np.may_share_memory(s3_ravel.obsgeoloc.x,
+                                       self.s3.obsgeoloc.x)
 
     def test_flatten(self):
         s0_flatten = self.s0.flatten()
@@ -194,6 +206,13 @@ class TestManipulation():
         assert np.all(s2_reshape.obsgeoloc ==
                       self.s2.obsgeoloc.reshape(3, 2, 7))
         assert np.may_share_memory(s2_reshape.obsgeoloc.x, self.s2.obsgeoloc.x)
+        s3_reshape = self.s3.reshape(3, 2, 7)
+        assert s3_reshape.shape == (3, 2, 7)
+        assert np.all(s3_reshape.obstime == self.s3.obstime.reshape(3, 2, 7))
+        assert np.may_share_memory(s3_reshape.obstime.jd1, self.s3.obstime.jd1)
+        assert np.all(s3_reshape.obsgeoloc ==
+                      self.s3.obsgeoloc.reshape(3, 2, 7))
+        assert np.may_share_memory(s3_reshape.obsgeoloc.x, self.s3.obsgeoloc.x)
 
     def test_squeeze(self):
         s0_squeeze = self.s0.reshape(3, 1, 2, 1, 7).squeeze()
