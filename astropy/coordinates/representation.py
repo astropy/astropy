@@ -9,6 +9,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import abc
 import functools
+import operator
 from collections import OrderedDict
 
 import numpy as np
@@ -226,18 +227,21 @@ class BaseRepresentation(ShapedLikeNDArray):
         Check for equality with another representation.
         """
         try:
-            return np.array([getattr(self, component) == getattr(other, component)
-                             for component in self.components])
+            comparisons = [getattr(self, component) ==
+                           getattr(other, component)
+                           for component in self.components]
         except:
             try:
                 newrep = other.represent_as(self.__class__)
-                return np.array([getattr(self, component) == getattr(newrep, component)
-                                 for component in self.components])
+                comparisons = [getattr(self, component) ==
+                               getattr(newrep, component)
+                               for component in self.components]
             except:
                 return False
+        return functools.reduce(operator.and_, comparisons)
 
     def __ne__(self, other):
-        return ~(self == other)
+        return np.logical_not(self.__eq__(other))
 
     def __str__(self):
         return '{0} {1:s}'.format(self._values, self._unitstr)
