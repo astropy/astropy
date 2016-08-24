@@ -25,8 +25,7 @@ _asecperrad = u.radian.to(u.arcsec)
 
 def eccentricity(jd):
     """
-    Computes the eccentricity of the Earth's orbit at the requested Julian
-    Date.
+    Eccentricity of the Earth's orbit at the requested Julian Date.
 
     Parameters
     ----------
@@ -36,7 +35,7 @@ def eccentricity(jd):
     returns
     -------
     eccentricity : scalar or array
-        The eccentricity in degrees (or array of eccentricities)
+        The eccentricity (or array of eccentricities)
 
     References
     ----------
