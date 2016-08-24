@@ -25,6 +25,10 @@
 # Thus, any C-extensions that are needed to build the documentation will *not*
 # be accessible, and the documentation will not build correctly.
 
+import os
+ON_RTD = os.environ.get('READTHEDOCS') == 'True'
+ON_TRAVIS = os.environ.get('TRAVIS') == 'true'
+
 try:
     import astropy_helpers
 except ImportError:
@@ -38,6 +42,16 @@ except ImportError:
 
     # If that doesn't work trying to import from astropy_helpers below will
     # still blow up
+
+# We now check for any dependencies that are required to build the docs that
+# depend on Astropy, since these may not be installed yet. For instance, on
+# ReadTheDocs, we can't set up wcsaxes with conda since that would result in the
+# astropy conda package getting installed, which would shadow the developer
+# version installed just prior to building the docs. So we should set up any
+# such dependencies here.
+if ON_RTD:
+    from setuptools import Distribution
+    Distribution({'setup_requires': 'wcsaxes'})
 
 # Load all of the global Astropy configuration
 from astropy_helpers.sphinx.conf import *
@@ -229,8 +243,10 @@ try:
             'astropy': None,
             'matplotlib': 'http://matplotlib.org/',
             'numpy': 'http://docs.scipy.org/doc/numpy/',
-        }
+        },
+        'abort_on_example_error': True
     }
+
 except ImportError:
     def setup(app):
         app.warn('The sphinx_gallery extension is not installed, so the '
