@@ -55,7 +55,7 @@ class SiteRegistry(Mapping):
         if site_name.lower() not in self._lowercase_names_to_locations:
             # If site name not found, find close matches and suggest them in error
             close_names = get_close_matches(site_name, self._lowercase_names_to_locations)
-            close_names = sorted(close_names, key=lambda x: len(x))
+            close_names = sorted(close_names, key=len)
 
             raise UnknownSiteException(site_name, "the 'names' attribute", close_names=close_names)
 

@@ -4,6 +4,7 @@ from __future__ import division  # confidence high
 
 import contextlib
 import csv
+import operator
 import os
 import re
 import sys
@@ -653,15 +654,16 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                                        num))
 
         # First delete
-        for idx, keyword, _, num in sorted(table_keywords,
-                                           key=lambda k: k[0], reverse=True):
+        rev_sorted_idx_0 = sorted(table_keywords, key=operator.itemgetter(0),
+                                  reverse=True)
+        for idx, keyword, _, num in rev_sorted_idx_0:
             if index is None or index == num:
                 del self._header[idx]
 
         # Now shift up remaining column keywords if only one column was cleared
         if index is not None:
-            for _, keyword, base_keyword, num in sorted(table_keywords,
-                                                        key=lambda k: k[3]):
+            sorted_idx_3 = sorted(table_keywords, key=operator.itemgetter(3))
+            for _, keyword, base_keyword, num in sorted_idx_3:
                 if num <= index:
                     continue
 

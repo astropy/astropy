@@ -12,6 +12,7 @@ import numpy as np
 
 import copy
 import keyword
+import operator
 
 from . import core, generic, utils
 
@@ -121,7 +122,7 @@ class Fits(generic.Generic):
 
             pairs = list(zip(unit.bases, unit.powers))
             if len(pairs):
-                pairs.sort(key=lambda x: x[1], reverse=True)
+                pairs.sort(key=operator.itemgetter(1), reverse=True)
                 parts.append(cls._format_unit_list(pairs))
 
             s = ' '.join(parts)

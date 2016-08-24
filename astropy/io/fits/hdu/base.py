@@ -1151,7 +1151,7 @@ class _ValidHDU(_BaseHDU, _Verify):
     def _verify(self, option='warn'):
         errs = _ErrList([], unit='Card')
 
-        is_valid = lambda v: v in [8, 16, 32, 64, -32, -64]
+        is_valid = BITPIX2DTYPE.__contains__
 
         # Verify location and value of mandatory keywords.
         # Do the first card here, instead of in the respective HDU classes, so
