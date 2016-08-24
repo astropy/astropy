@@ -15,6 +15,8 @@ from .. import earth_orientation as earth
 
 from .utils import EQUINOX_B1950
 
+from ...extern.six.moves import range
+
 
 class FK4(BaseCoordinateFrame):
     """

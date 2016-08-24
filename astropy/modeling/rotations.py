@@ -28,6 +28,7 @@ import numpy as np
 
 from .core import Model
 from .parameters import Parameter
+from ..extern.six.moves import zip
 
 
 __all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D',

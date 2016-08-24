@@ -2,11 +2,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
-
-try:
     import h5py  # pylint: disable=W0611
 except ImportError:
     HAS_H5PY = False
@@ -23,7 +18,7 @@ import numpy as np
 import copy
 
 from ...extern import six
-from ...extern.six.moves import cPickle as pickle
+from ...extern.six.moves import cPickle as pickle, cStringIO as StringIO
 from ...tests.helper import pytest
 from ...table import Table, QTable, join, hstack, vstack, Column, NdarrayMixin
 from ... import time

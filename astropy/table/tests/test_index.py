@@ -8,6 +8,7 @@ from ..table import QTable, Row
 from ... import units as u
 from ...time import Time
 from ..column import BaseColumn
+from ...extern.six.moves import range
 
 @pytest.fixture(params=[BST, FastRBT, SortedArray])
 def engine(request):

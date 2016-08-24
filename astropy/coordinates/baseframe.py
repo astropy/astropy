@@ -19,6 +19,7 @@ import numpy as np
 # Project
 from ..utils.compat.misc import override__dir__
 from ..extern import six
+from ..extern.six.moves import zip
 from .. import units as u
 from ..utils import OrderedDescriptor, OrderedDescriptorContainer
 from .transformations import TransformGraph

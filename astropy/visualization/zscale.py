@@ -15,6 +15,8 @@ from __future__ import absolute_import, division
 
 import numpy as np
 
+from ..extern.six.moves import range
+
 __all__ = ['zscale']
 
 

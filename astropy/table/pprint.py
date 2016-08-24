@@ -3,8 +3,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
 from ..extern.six import text_type
-from ..extern.six.moves import zip as izip
-from ..extern.six.moves import xrange
+from ..extern.six.moves import zip, range
 
 import os
 import sys
@@ -472,7 +471,7 @@ class TableFormatter(object):
             raise TypeError('align keyword must be str or list or tuple (got {0})'
                             .format(type(align)))
 
-        for align_, col in izip(align, table.columns.values()):
+        for align_, col in zip(align, table.columns.values()):
             lines, outs = self._pformat_col(col, max_lines, show_name=show_name,
                                             show_unit=show_unit, show_dtype=show_dtype,
                                             align=align_)
@@ -601,8 +600,8 @@ class TableFormatter(object):
                     pass  # No worries if clear screen call fails
                 lines = tabcol[i0:i1].pformat(**kwargs)
                 colors = ('red' if i < n_header else 'default'
-                          for i in xrange(len(lines)))
-                for color, line in izip(colors, lines):
+                          for i in range(len(lines)))
+                for color, line in zip(colors, lines):
                     color_print(line, color)
             showlines = True
             print()

@@ -11,6 +11,7 @@ from ..utils import (extract_array, add_array, subpixel_indices,
 from ...wcs import WCS
 from ...coordinates import SkyCoord
 from ... import units as u
+from ...extern.six.moves import zip
 
 try:
     import skimage  # pylint: disable=W0611

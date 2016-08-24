@@ -36,6 +36,7 @@ import numpy as np
 from .utils import poly_map_domain
 from ..utils.exceptions import AstropyUserWarning
 from ..extern import six
+from ..extern.six.moves import range
 from .optimizers import (SLSQP, Simplex)
 from .statistic import (leastsquare)
 

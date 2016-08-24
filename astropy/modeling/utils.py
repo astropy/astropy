@@ -12,7 +12,7 @@ from collections import deque, MutableMapping
 import numpy as np
 
 from ..extern import six
-from ..extern.six.moves import xrange, zip_longest
+from ..extern.six.moves import range, zip_longest, zip
 
 from ..utils import isiterable
 from ..utils.compat.funcsigs import signature
@@ -537,7 +537,7 @@ def comb(N, k):
     if (k > N) or (N < 0) or (k < 0):
         return 0
     val = 1
-    for j in xrange(min(k, N - k)):
+    for j in range(min(k, N - k)):
         val = (val * (N - j)) / (j + 1)
     return val
 

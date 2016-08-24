@@ -13,7 +13,7 @@ import numpy as np
 
 from ....extern import six
 from ....extern.six import u, iterkeys, itervalues, iteritems
-from ....extern.six.moves import zip
+from ....extern.six.moves import zip, range
 from ....io import fits
 from ....io.fits.verify import VerifyWarning
 from ....tests.helper import pytest, catch_warnings, ignore_warnings
@@ -34,7 +34,7 @@ def test_init_with_dict():
 
 def test_init_with_ordereddict():
     # Create a list of tuples. Each tuple consisting of a letter and the number
-    list1 = [(i, j) for i, j in zip('abcdefghijklmnopqrstuvwxyz', range(26))]
+    list1 = [(i, j) for j, i in enumerate('abcdefghijklmnopqrstuvwxyz')]
     # Create an ordered dictionary and a header from this dictionary
     dict1 = collections.OrderedDict(list1)
     h1 = fits.Header(dict1)

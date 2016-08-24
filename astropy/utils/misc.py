@@ -26,7 +26,7 @@ from contextlib import contextmanager
 from collections import defaultdict, OrderedDict
 
 from ..extern import six
-from ..extern.six.moves import urllib
+from ..extern.six.moves import urllib, range
 
 
 __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',

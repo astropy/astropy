@@ -17,14 +17,17 @@ try:
 except ImportError:
     HAVE_STRINGIO = False
 
+from . import FitsTestCase
+
+from ..convenience import _getext
+from ..diff import FITSDiff
+from ..file import _File, GZIP_MAGIC
+
+from ....extern.six.moves import range, zip
 from ....io import fits
 from ....tests.helper import pytest, raises, catch_warnings, ignore_warnings
 from ....utils.exceptions import AstropyDeprecationWarning
 from ....utils.data import get_pkg_data_filename
-from . import FitsTestCase
-from ..convenience import _getext
-from ..diff import FITSDiff
-from ..file import _File, GZIP_MAGIC
 
 try:
     import pathlib

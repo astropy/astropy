@@ -30,7 +30,7 @@ from ..util import _is_int, _str_to_num
 
 from ....extern import six
 from ....extern.six import string_types
-from ....extern.six.moves import xrange as range
+from ....extern.six.moves import range, zip
 from ....utils import deprecated, lazyproperty
 from ....utils.compat import suppress
 from ....utils.exceptions import AstropyUserWarning
