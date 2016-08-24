@@ -10,15 +10,18 @@ core.py:
 
 from __future__ import absolute_import, division, print_function
 
+import copy
+import csv
+import functools
+import itertools
+import operator
 import os
 import re
-import csv
-import itertools
-import functools
-import numpy
 import warnings
-import copy
+
 from collections import OrderedDict
+
+import numpy
 
 from ...extern import six
 from ...extern.six.moves import zip
@@ -1450,7 +1453,7 @@ def _get_writer(Writer, fast_writer, **kwargs):
             # Restore the default SplitterClass process_val method which strips
             # whitespace.  This may have been changed in the Writer
             # initialization (e.g. Rdb and Tab)
-            writer.data.splitter.process_val = lambda x: x.strip()
+            writer.data.splitter.process_val = operator.methodcaller('strip')
         else:
             writer.data.splitter.process_val = None
     if 'names' in kwargs:

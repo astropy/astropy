@@ -2,14 +2,15 @@
 
 from __future__ import division, with_statement
 
+import bz2
+import gzip
 import mmap
+import operator
 import os
 import sys
 import tempfile
 import warnings
 import zipfile
-import bz2
-import gzip
 
 from functools import reduce
 
@@ -282,7 +283,7 @@ class _File(object):
             return np.ndarray(shape=shape, dtype=dtype, offset=offset,
                               buffer=self._mmap)
         else:
-            count = reduce(lambda x, y: x * y, shape)
+            count = reduce(operator.mul, shape)
             pos = self._file.tell()
             self._file.seek(offset)
             data = _array_from_file(self._file, dtype, count, '')

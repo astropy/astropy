@@ -6,6 +6,7 @@ import gzip
 import itertools
 import io
 import mmap
+import operator
 import os
 import platform
 import signal
@@ -208,7 +209,7 @@ def itersubclasses(cls, _seen=None):
         subs = cls.__subclasses__()
     except TypeError:  # fails only when cls is type
         subs = cls.__subclasses__(cls)
-    for sub in sorted(subs, key=lambda s: s.__name__):
+    for sub in sorted(subs, key=operator.attrgetter('__name__')):
         if sub not in _seen:
             _seen.add(sub)
             yield sub

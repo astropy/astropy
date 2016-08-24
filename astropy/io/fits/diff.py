@@ -12,8 +12,9 @@ import fnmatch
 import functools
 import glob
 import io
-import textwrap
+import operator
 import os.path
+import textwrap
 
 from collections import defaultdict
 from itertools import islice
@@ -23,7 +24,7 @@ import numpy as np
 from ... import __version__
 from ...extern import six
 from ...extern.six import u, string_types
-from ...extern.six.moves import zip, xrange, reduce
+from ...extern.six.moves import zip, xrange, reduce, map
 from ...utils import indent
 from ...utils.compat.funcsigs import signature
 from .card import Card, BLANK_CARD
@@ -575,11 +576,11 @@ class HeaderDiff(_BaseDiff):
 
         # Keywords common to each header but having different values (excluding
         # keywords in ignore_keywords)
-        self.diff_keyword_values = defaultdict(lambda: [])
+        self.diff_keyword_values = defaultdict(list)
 
         # Keywords common to each header but having different comments
         # (excluding keywords in ignore_keywords or in ignore_comments)
-        self.diff_keyword_comments = defaultdict(lambda: [])
+        self.diff_keyword_comments = defaultdict(list)
 
         if isinstance(a, string_types):
             a = Header.fromstring(a)
@@ -1039,7 +1040,7 @@ class TableDataDiff(_BaseDiff):
         colsa_set = set(colsa.values())
         colsb_set = set(colsb.values())
         self.common_columns = sorted(colsa_set.intersection(colsb_set),
-                                     key=lambda c: c.name)
+                                     key=operator.attrgetter('name'))
 
         self.common_column_names = set([col.name.lower()
                                         for col in self.common_columns])
@@ -1230,8 +1231,7 @@ def report_diff_values(fileobj, a, b, ind=0):
 
     if isinstance(a, np.ndarray) and isinstance(b, np.ndarray):
         diff_indices = np.where(a != b)
-        num_diffs = reduce(lambda x, y: x * y,
-                           (len(d) for d in diff_indices), 1)
+        num_diffs = reduce(operator.mul, map(len, diff_indices), 1)
         for idx in islice(zip(*diff_indices), 3):
             fileobj.write(indent(u('  at %r:\n') % list(idx), ind))
             report_diff_values(fileobj, a[idx], b[idx], ind=ind + 1)
