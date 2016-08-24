@@ -70,8 +70,10 @@ API Changes
 
 - ``astropy.coordinates``
 
-  - Representations can now be reshaped using methods named like the numpy ones
-    for ``ndarray`` (i.e., ``reshape``, ``swapaxes``, etc.) [#4123]
+  - ``SkyCoord``, ``ICRS``, and other coordinate objects, as well as the
+    underlying representations such as ``SphericalRepresentation`` and
+    ``CartesianRepresentation`` can now be reshaped using methods named like the
+    numpy ones for ``ndarray`` (``reshape``, ``swapaxes``, etc.) [#4123, #5254]
 
   - The ``obsgeoloc`` and ``obsgeovel`` attributes of ``GCRS`` and
     ``PrecessedGeocentric`` frames are now stored and returned as
