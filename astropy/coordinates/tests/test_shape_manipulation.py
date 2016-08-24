@@ -4,7 +4,7 @@
 import numpy as np
 
 from ... import units as u
-from .. import Longitude, Latitude, EarthLocation
+from .. import Longitude, Latitude, EarthLocation, SkyCoord
 # test on frame with most complicated frame attributes.
 from ..builtin_frames import ICRS, AltAz, GCRS
 from ...time import Time
@@ -53,6 +53,8 @@ class TestManipulation():
         self.s3 = GCRS(obstime=self.obstime,
                        obsgeoloc=self.obsgeoloc,
                        obsgeovel=self.obsgeovel)
+        # And make a SkyCoord
+        self.sc = SkyCoord(ra=lon[:, np.newaxis], dec=lat, frame=self.s3)
 
     def test_ravel(self):
         s0_ravel = self.s0.ravel()
@@ -91,6 +93,16 @@ class TestManipulation():
         assert np.all(s3_ravel.obsgeoloc == self.s3.obsgeoloc.ravel())
         assert not np.may_share_memory(s3_ravel.obsgeoloc.x,
                                        self.s3.obsgeoloc.x)
+        sc_ravel = self.sc.ravel()
+        assert sc_ravel.shape == (self.sc.size,)
+        assert np.all(sc_ravel.data.lon == self.sc.data.lon.ravel())
+        assert not np.may_share_memory(sc_ravel.data.lat, self.sc.data.lat)
+        assert np.all(sc_ravel.obstime == self.sc.obstime.ravel())
+        assert not np.may_share_memory(sc_ravel.obstime.jd1,
+                                       self.sc.obstime.jd1)
+        assert np.all(sc_ravel.obsgeoloc == self.sc.obsgeoloc.ravel())
+        assert not np.may_share_memory(sc_ravel.obsgeoloc.x,
+                                       self.sc.obsgeoloc.x)
 
     def test_flatten(self):
         s0_flatten = self.s0.flatten()
@@ -213,6 +225,27 @@ class TestManipulation():
         assert np.all(s3_reshape.obsgeoloc ==
                       self.s3.obsgeoloc.reshape(3, 2, 7))
         assert np.may_share_memory(s3_reshape.obsgeoloc.x, self.s3.obsgeoloc.x)
+        sc_reshape = self.sc.reshape(3, 2, 7)
+        assert sc_reshape.shape == (3, 2, 7)
+        assert np.all(sc_reshape.data.lon == self.sc.data.lon.reshape(3, 2, 7))
+        assert np.may_share_memory(sc_reshape.data.lat, self.sc.data.lat)
+        assert np.all(sc_reshape.obstime == self.sc.obstime.reshape(3, 2, 7))
+        assert np.may_share_memory(sc_reshape.obstime.jd1, self.sc.obstime.jd1)
+        assert np.all(sc_reshape.obsgeoloc ==
+                      self.sc.obsgeoloc.reshape(3, 2, 7))
+        assert np.may_share_memory(sc_reshape.obsgeoloc.x, self.sc.obsgeoloc.x)
+        # For reshape(3, 14), the arrays all need to be copied.
+        sc_reshape2 = self.sc.reshape(3, 14)
+        assert sc_reshape2.shape == (3, 14)
+        assert np.all(sc_reshape2.data.lon == self.sc.data.lon.reshape(3, 14))
+        assert not np.may_share_memory(sc_reshape2.data.lat,
+                                       self.sc.data.lat)
+        assert np.all(sc_reshape2.obstime == self.sc.obstime.reshape(3, 14))
+        assert not np.may_share_memory(sc_reshape2.obstime.jd1,
+                                       self.sc.obstime.jd1)
+        assert np.all(sc_reshape2.obsgeoloc == self.sc.obsgeoloc.reshape(3, 14))
+        assert not np.may_share_memory(sc_reshape2.obsgeoloc.x,
+                                       self.sc.obsgeoloc.x)
 
     def test_squeeze(self):
         s0_squeeze = self.s0.reshape(3, 1, 2, 1, 7).squeeze()
