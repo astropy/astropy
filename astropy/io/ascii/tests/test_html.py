@@ -16,7 +16,7 @@ import numpy as np
 
 from .common import setup_function, teardown_function
 from ....tests.helper import pytest
-from ....extern.six.moves import cStringIO
+from ....extern.six.moves import range, cStringIO as StringIO
 from ....utils.xml.writer import HAS_BLEACH
 
 # Check to see if the BeautifulSoup dependency is present.
@@ -546,7 +546,7 @@ def test_raw_html_write():
     t = Table([['<em>x</em>'], ['<em>y</em>']], names=['a', 'b'])
 
     # One column contains raw HTML (string input)
-    out = cStringIO()
+    out = StringIO()
     t.write(out, format='ascii.html', htmldict={'raw_html_cols': 'a'})
     expected = """\
    <tr>
@@ -556,12 +556,12 @@ def test_raw_html_write():
     assert expected in out.getvalue()
 
     # One column contains raw HTML (list input)
-    out = cStringIO()
+    out = StringIO()
     t.write(out, format='ascii.html', htmldict={'raw_html_cols': ['a']})
     assert expected in out.getvalue()
 
     # Two columns contains raw HTML (list input)
-    out = cStringIO()
+    out = StringIO()
     t.write(out, format='ascii.html', htmldict={'raw_html_cols': ['a', 'b']})
     expected = """\
    <tr>
@@ -581,7 +581,7 @@ def test_raw_html_write_clean():
     t = Table([['<script>x</script>'], ['<p>y</p>'], ['<em>y</em>']], names=['a', 'b', 'c'])
 
     # Confirm that <script> and <p> get escaped but not <em>
-    out = cStringIO()
+    out = StringIO()
     t.write(out, format='ascii.html', htmldict={'raw_html_cols': t.colnames})
     expected = """\
    <tr>
@@ -592,7 +592,7 @@ def test_raw_html_write_clean():
     assert expected in out.getvalue()
 
     # Confirm that we can whitelist <p>
-    out = cStringIO()
+    out = StringIO()
     t.write(out, format='ascii.html',
             htmldict={'raw_html_cols': t.colnames,
                       'raw_html_clean_kwargs': {'tags': bleach.ALLOWED_TAGS + ['p']}})

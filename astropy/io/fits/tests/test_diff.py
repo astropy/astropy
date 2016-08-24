@@ -12,6 +12,7 @@ from ..hdu import HDUList, PrimaryHDU, ImageHDU
 from ..hdu.table import BinTableHDU
 from ..header import Header
 
+from ....extern.six.moves import range
 from ....io import fits
 
 from . import FitsTestCase

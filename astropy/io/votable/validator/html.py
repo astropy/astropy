@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ....extern import six
-from ....extern.six.moves import xrange
+from ....extern.six.moves import range
 
 # STDLIB
 import contextlib
@@ -234,7 +234,7 @@ def write_table(basename, name, results, root="results", chunk_size=500):
         with w.tag('center'):
             if j > 0:
                 w.element('a', '<< ', href='%s_%02d.html' % (basename, j-1))
-            for i in xrange(npages):
+            for i in range(npages):
                 if i == j:
                     w.data(six.text_type(i+1))
                 else:
@@ -247,7 +247,7 @@ def write_table(basename, name, results, root="results", chunk_size=500):
 
     npages = int(ceil(float(len(results)) / chunk_size))
 
-    for i, j in enumerate(xrange(0, max(len(results), 1), chunk_size)):
+    for i, j in enumerate(range(0, max(len(results), 1), chunk_size)):
         subresults = results[j:j+chunk_size]
         path = os.path.join(root, '%s_%02d.html' % (basename, i))
         with io.open(path, 'w', encoding='utf-8') as fd:

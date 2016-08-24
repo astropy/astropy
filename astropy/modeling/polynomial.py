@@ -14,6 +14,7 @@ from .functional_models import Shift
 from .parameters import Parameter
 from .utils import poly_map_domain, comb, check_broadcast
 from ..utils import indent
+from ..extern.six.moves import range
 
 
 __all__ = [

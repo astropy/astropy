@@ -20,6 +20,7 @@ from .util import (pairwise, _is_int, _convert_array, encode_ascii, cmp,
 from .verify import VerifyError, VerifyWarning
 
 from ...extern.six import string_types, iteritems, PY2
+from ...extern.six.moves import range, zip
 from ...utils import lazyproperty, isiterable, indent
 from ...utils.compat import suppress
 from ...utils.exceptions import AstropyDeprecationWarning

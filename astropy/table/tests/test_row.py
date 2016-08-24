@@ -11,6 +11,7 @@ from ... import table
 from ...table import Row
 from ...utils.compat import NUMPY_LT_1_8
 from ...utils.exceptions import AstropyDeprecationWarning
+from ...extern.six.moves import zip
 from .conftest import MaskedTable
 
 

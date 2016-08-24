@@ -5,6 +5,7 @@ try:
 except ImportError: # cStringIO doesn't exist in Python 3
     from io import BytesIO
     StringIO = lambda x: BytesIO(x.encode('ascii'))
+
 import os
 import functools
 
@@ -22,6 +23,7 @@ from ..fastbasic import FastBasic, FastCsv, FastTab, FastCommentedHeader, \
 from .common import assert_equal, assert_almost_equal, assert_true
 from ....tests.helper import pytest
 from ....extern import six
+from ....extern.six.moves import range
 
 TRAVIS = os.environ.get('TRAVIS', False)
 

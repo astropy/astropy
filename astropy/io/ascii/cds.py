@@ -19,6 +19,7 @@ from . import core
 from . import fixedwidth
 
 from ...utils.compat import suppress
+from ...extern.six.moves import range
 
 
 __doctest_skip__ = ['*']

@@ -2,14 +2,12 @@
 
 # TEST_UNICODE_LITERALS
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
+from ....extern.six.moves import cStringIO as StringIO
 
 import numpy as np
 
 from ... import ascii
+from ....extern.six.moves import zip
 
 from .common import assert_equal, setup_function, teardown_function
 

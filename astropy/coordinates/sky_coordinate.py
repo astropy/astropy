@@ -8,7 +8,7 @@ import numpy as np
 
 from ..utils.compat.misc import override__dir__
 from ..extern import six
-from ..extern.six.moves import zip
+from ..extern.six.moves import zip, range
 from ..units import Unit, IrreducibleUnit
 from .. import units as u
 from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord

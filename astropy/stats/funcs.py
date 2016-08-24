@@ -13,7 +13,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 
-from ..extern.six.moves import xrange
+from ..extern.six.moves import range
 
 
 __all__ = ['binom_conf_interval', 'binned_binom_proportion',
@@ -1164,7 +1164,7 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
     # create empty boot array
     boot = np.empty(resultdims)
 
-    for i in xrange(bootnum):
+    for i in range(bootnum):
         bootarr = np.random.randint(low=0, high=data.shape[0], size=samples)
         if bootfunc is None:
             boot[i] = data[bootarr]

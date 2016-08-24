@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import numpy as np
 from .. import units as u
+from ..extern.six.moves import range
 
 __doctest_skip__ = ['wcs_to_celestial_frame']
 
