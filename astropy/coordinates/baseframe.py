@@ -30,8 +30,8 @@ from .representation import (BaseRepresentation, CartesianRepresentation,
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame',
            'FrameAttribute', 'TimeFrameAttribute', 'QuantityFrameAttribute',
-           'EarthLocationAttribute', 'RepresentationMapping', 'CartesianRepresentationFrameAttribute',
-           'CoordinateAttribute']
+           'EarthLocationAttribute', 'RepresentationMapping',
+           'CartesianRepresentationFrameAttribute', 'CoordinateAttribute']
 
 
 # the graph used for all transformations between frames
@@ -297,8 +297,8 @@ class CartesianRepresentationFrameAttribute(FrameAttribute):
 
     def convert_input(self, value):
         """
-        Checks that the input is a CartesianRepresentation with the correct unit, or
-        the special value ``[0, 0, 0]``.
+        Checks that the input is a CartesianRepresentation with the correct
+        unit, or the special value ``[0, 0, 0]``.
 
         Parameters
         ----------
@@ -327,7 +327,7 @@ class CartesianRepresentationFrameAttribute(FrameAttribute):
             converted = True
             # if it's a CartesianRepresentation, get the xyz Quantity
             value = getattr(value, 'xyz', value)
-            if not (hasattr(value, 'unit')):
+            if not hasattr(value, 'unit'):
                 raise TypeError('tried to set a CartesianRepresentationFrameAttribute with '
                                 'something that does not have a unit.')
 
@@ -998,7 +998,8 @@ class BaseCoordinateFrame(object):
         """
         if self.__class__ == other.__class__:
             for frame_attr_name in self.get_frame_attr_names():
-                if np.any(getattr(self, frame_attr_name) != getattr(other, frame_attr_name)):
+                if np.any(getattr(self, frame_attr_name) !=
+                          getattr(other, frame_attr_name)):
                     return False
             return True
         elif not isinstance(other, BaseCoordinateFrame):

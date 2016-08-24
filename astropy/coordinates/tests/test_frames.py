@@ -439,7 +439,7 @@ def test_representation():
     assert icrs_cart.x == icrs.x
     assert icrs_cart.y == icrs.y
     assert icrs_cart.z == icrs.z
-    assert all(icrs.data == data)
+    assert icrs.data == data
 
     # Testing that an ICRS object in CartesianRepresentation must not have spherical attributes.
     for attr in ('ra', 'dec', 'distance'):
@@ -451,7 +451,7 @@ def test_representation():
     icrs.representation = representation.CylindricalRepresentation
 
     assert icrs.representation == representation.CylindricalRepresentation
-    assert all(icrs.data == data)
+    assert icrs.data == data
 
     # Testing setter input using text argument for spherical.
     icrs.representation = 'spherical'
@@ -460,7 +460,7 @@ def test_representation():
     assert icrs_spher.lat == icrs.dec
     assert icrs_spher.lon == icrs.ra
     assert icrs_spher.distance == icrs.distance
-    assert all(icrs.data == data)
+    assert icrs.data == data
 
     # Testing that an ICRS object in SphericalRepresentation must not have cartesian attributes.
     for attr in ('x', 'y', 'z'):
@@ -472,7 +472,7 @@ def test_representation():
     icrs.representation = 'cylindrical'
 
     assert icrs.representation is representation.CylindricalRepresentation
-    assert all(icrs.data == data)
+    assert icrs.data == data
 
     with pytest.raises(ValueError) as err:
         icrs.representation = 'WRONG'
