@@ -13,7 +13,7 @@ from __future__ import absolute_import, division, print_function
 import warnings
 
 from ...extern import six
-from ...extern.six.moves import zip as izip
+from ...extern.six.moves import zip, range
 
 from . import core
 from ...table import Column
@@ -157,7 +157,7 @@ class HTMLOutputter(core.TableOutputter):
                 # Join elements of spanned columns together into list of tuples
                 span_cols = cols[col_num:col_num + col.colspan]
                 new_col = core.Column(col.name)
-                new_col.str_vals = list(izip(*[x.str_vals for x in span_cols]))
+                new_col.str_vals = list(zip(*[x.str_vals for x in span_cols]))
                 new_cols.append(new_col)
                 col_num += col.colspan
             else:
@@ -397,7 +397,7 @@ class HTML(core.BaseReader):
                                 w.end(indent=False)
                         col_str_iters = []
                         new_cols_escaped = []
-                        for col, col_escaped in izip(cols, cols_escaped):
+                        for col, col_escaped in zip(cols, cols_escaped):
                             if len(col.shape) > 1 and self.html['multicol']:
                                 span = col.shape[1]
                                 for i in range(span):
@@ -409,9 +409,9 @@ class HTML(core.BaseReader):
                                 col_str_iters.append(col.info.iter_str_vals())
                                 new_cols_escaped.append(col_escaped)
 
-                    for row in izip(*col_str_iters):
+                    for row in zip(*col_str_iters):
                         with w.tag('tr'):
-                            for el, col_escaped in izip(row, new_cols_escaped):
+                            for el, col_escaped in zip(row, new_cols_escaped):
                                 # Potentially disable HTML escaping for column
                                 method = ('escape_xml' if col_escaped else 'bleach_clean')
                                 with w.xml_cleaning_method(method, **raw_html_clean_kwargs):

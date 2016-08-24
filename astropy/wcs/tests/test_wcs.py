@@ -23,6 +23,7 @@ from ...utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
 from ...utils.misc import NumpyRNGContext
 from ...io import fits
+from ...extern.six.moves import range
 
 
 # test_maps() is a generator

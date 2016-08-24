@@ -16,7 +16,7 @@ import numpy as np
 from numpy.testing.utils import assert_allclose
 
 from ...extern import six
-from ...extern.six.moves import cPickle as pickle
+from ...extern.six.moves import range, cPickle as pickle
 from ...tests.helper import pytest, raises, catch_warnings
 
 from ... import units as u

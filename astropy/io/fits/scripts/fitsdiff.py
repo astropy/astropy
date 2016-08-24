@@ -8,6 +8,7 @@ import textwrap
 
 from ... import fits
 from ..util import fill
+from ....extern.six.moves import zip
 
 
 log = logging.getLogger('fitsdiff')

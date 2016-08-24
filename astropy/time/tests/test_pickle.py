@@ -3,7 +3,7 @@
 import numpy as np
 
 from .. import Time
-from ...extern.six.moves import cPickle as pickle
+from ...extern.six.moves import range, cPickle as pickle
 
 
 class TestPickle():

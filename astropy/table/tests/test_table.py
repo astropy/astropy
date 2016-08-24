@@ -20,7 +20,7 @@ from ... import table
 from ... import units as u
 from .conftest import MaskedTable
 
-from ...extern.six.moves import zip as izip, cStringIO as StringIO
+from ...extern.six.moves import zip, range, cStringIO as StringIO
 
 try:
     with ignore_warnings(DeprecationWarning):
@@ -339,7 +339,7 @@ class TestColumnAccess():
     def test_itercols(self, table_types):
         names = ['a', 'b', 'c']
         t = table_types.Table([[1], [2], [3]], names=names)
-        for name, col in izip(names, t.itercols()):
+        for name, col in zip(names, t.itercols()):
             assert name == col.name
             assert isinstance(col, table_types.Column)
 

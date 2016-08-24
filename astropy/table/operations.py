@@ -9,7 +9,7 @@ High-level table operations:
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
-from ..extern.six.moves import zip
+from ..extern.six.moves import zip, range
 
 from copy import deepcopy
 import warnings

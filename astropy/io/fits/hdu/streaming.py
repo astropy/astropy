@@ -3,12 +3,15 @@
 import gzip
 import os
 
-from ..file import _File
-from ..header import _pad_length
 from .base import _BaseHDU, BITPIX2DTYPE
 from .hdulist import HDUList
 from .image import PrimaryHDU
+
+from ..file import _File
+from ..header import _pad_length
 from ..util import fileobj_name
+
+from ....extern.six.moves import range
 
 
 class StreamingHDU(object):

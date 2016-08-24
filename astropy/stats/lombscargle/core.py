@@ -7,6 +7,7 @@ from .implementations import lombscargle, available_methods
 from .implementations.mle import periodic_fit
 from ... import units
 from ...utils.compat.numpy import broadcast_arrays
+from ...extern.six.moves import map
 
 
 def has_units(obj):

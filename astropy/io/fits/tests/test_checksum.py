@@ -9,6 +9,7 @@ from .test_table import comparerecords
 from ..hdu.base import _ValidHDU
 from ....io import fits
 from ....tests.helper import pytest
+from ....extern.six.moves import zip
 
 from . import FitsTestCase
 

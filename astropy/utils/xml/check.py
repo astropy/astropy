@@ -6,7 +6,7 @@ standards compliance.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ...extern.six.moves import xrange, urllib
+from ...extern.six.moves import range, urllib
 
 import re
 
@@ -54,7 +54,7 @@ def check_mime_content_type(content_type):
     Returns `True` if *content_type* is a valid MIME content type
     (syntactically at least), as defined by RFC 2045.
     """
-    ctrls = ''.join(chr(x) for x in xrange(0, 0x20))
+    ctrls = ''.join(chr(x) for x in range(0, 0x20))
     token_regex = '[^()<>@,;:\\\"/[\]?= %s\x7f]+' % ctrls
     return re.match(
         r'(?P<type>%s)/(?P<subtype>%s)$' % (token_regex, token_regex),

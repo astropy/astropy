@@ -5,6 +5,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 
 from ..modeling.core import FittableModel, custom_model
+from ..extern.six.moves import range
 
 __all__ = ['discretize_model']
 

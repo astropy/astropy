@@ -48,8 +48,10 @@ from __future__ import (absolute_import, division, print_function,
 import sys
 
 from ... import fits
+
 from .... import table
 from .... import log
+from ....extern.six.moves import range
 
 
 class ExtensionNotFoundException(Exception):

@@ -8,6 +8,7 @@ import warnings
 from ..utils import wraps
 from ..utils.exceptions import AstropyUserWarning
 from ..utils.compat.funcsigs import signature
+from ..extern.six.moves import zip
 
 from .nddata import NDData
 

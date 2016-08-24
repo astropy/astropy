@@ -2,6 +2,7 @@ import numpy as np
 from numpy.testing import assert_allclose
 
 from .....tests.helper import pytest
+from .....extern.six.moves import range
 from ..mle import design_matrix, periodic_fit
 
 

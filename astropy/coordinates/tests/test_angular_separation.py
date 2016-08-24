@@ -11,6 +11,7 @@ Tests for the projected separation stuff
 import numpy as np
 
 from ...tests.helper import pytest, assert_quantity_allclose as assert_allclose
+from ...extern.six.moves import zip
 from ... import units as u
 from ..builtin_frames import ICRS, FK5, Galactic
 from .. import Angle, Distance

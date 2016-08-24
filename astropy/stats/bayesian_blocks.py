@@ -46,6 +46,7 @@ import numpy as np
 
 from ..utils.compat.funcsigs import signature
 from ..utils.exceptions import AstropyUserWarning
+from ..extern.six.moves import range
 
 # TODO: implement other fitness functions from appendix B of Scargle 2012
 

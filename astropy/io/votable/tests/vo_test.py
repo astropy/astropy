@@ -9,7 +9,7 @@ This is a set of regression tests for vo.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ....extern import six
-from ....extern.six.moves import xrange
+from ....extern.six.moves import range, zip
 
 # STDLIB
 import difflib
@@ -975,7 +975,7 @@ def test_resource_structure():
 
     assert len(vtf2.resources) == 3
 
-    for r in xrange(len(vtf2.resources)):
+    for r in range(len(vtf2.resources)):
         res = vtf2.resources[r]
         assert len(res.tables) == 2
         assert len(res.resources) == 0

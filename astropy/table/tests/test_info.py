@@ -9,6 +9,7 @@ from collections import OrderedDict
 import numpy as np
 
 from ...extern import six
+from ...extern.six.moves import cStringIO as StringIO
 from ... import units as u
 from ... import time
 from ... import coordinates
@@ -55,7 +56,7 @@ def test_table_info_attributes(table_types):
     assert np.all(tinfo['class'] == [cls, cls, cls, cls, 'Time', 'SkyCoord'])
 
     # Test that repr(t.info) is same as t.info()
-    out = six.moves.cStringIO()
+    out = StringIO()
     t.info(out=out)
     assert repr(t.info) == out.getvalue()
 
@@ -71,7 +72,7 @@ def test_table_info_stats(table_types):
 
     # option = 'stats'
     masked = 'masked=True ' if t.masked else ''
-    out = six.moves.cStringIO()
+    out = StringIO()
     t.info('stats', out=out)
     table_header_line = '<{0} {1}length=4>'.format(t.__class__.__name__, masked)
     exp = [table_header_line,
@@ -92,7 +93,7 @@ def test_table_info_stats(table_types):
     assert np.all(tinfo['min'] == ['1', '1.0', '--', '1.0'])
     assert np.all(tinfo['max'] == ['2', '2.0', '--', '2.0'])
 
-    out = six.moves.cStringIO()
+    out = StringIO()
     t.info('stats', out=out)
     exp = [table_header_line,
            'name mean std min max',
@@ -106,7 +107,7 @@ def test_table_info_stats(table_types):
     # option = ['attributes', custom]
     custom = data_info_factory(names=['sum', 'first'],
                                funcs=[np.sum, lambda col: col[0]])
-    out = six.moves.cStringIO()
+    out = StringIO()
     tinfo = t.info(['attributes', custom], out=None)
     assert tinfo.colnames == ['name', 'dtype', 'shape', 'unit', 'format', 'description',
                               'class', 'sum', 'first', 'n_bad', 'length']
@@ -138,7 +139,7 @@ def test_data_info():
                                      ('length', 3)])
 
         # Test the console (string) version which omits trivial values
-        out = six.moves.cStringIO()
+        out = StringIO()
         c.info(out=out)
         exp = ['name = name',
                'dtype = float64',
@@ -194,7 +195,7 @@ def test_scalar_info():
 
 def test_empty_table():
     t = table.Table()
-    out = six.moves.cStringIO()
+    out = StringIO()
     t.info(out=out)
     exp = ['<Table length=0>', '<No columns>']
     assert out.getvalue().splitlines() == exp
@@ -222,7 +223,7 @@ def test_class_attribute():
     for table_cls, exp in ((table.Table, texp),
                            (table.QTable, qexp)):
         t = table_cls(vals)
-        out = six.moves.cStringIO()
+        out = StringIO()
         t.info(out=out)
         assert out.getvalue().splitlines() == exp
 

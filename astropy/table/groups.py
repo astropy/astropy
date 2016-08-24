@@ -2,7 +2,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
-from ..extern.six.moves import zip as izip
+from ..extern.six.moves import zip
 
 import platform
 import warnings
@@ -86,7 +86,7 @@ def _table_group_by(table, keys):
     # If the sort is not stable (preserves original table order) then sort idx_sort in
     # place within each group.
     if not stable_sort:
-        for i0, i1 in izip(indices[:-1], indices[1:]):
+        for i0, i1 in zip(indices[:-1], indices[1:]):
             idx_sort[i0:i1].sort()
 
     # Make a new table and set the _groups to the appropriate TableGroups object.
@@ -195,7 +195,7 @@ class BaseGroups(object):
                                 'numpy mask or int array')
             mask = np.zeros(len(parent), dtype=np.bool)
             # Is there a way to vectorize this in numpy?
-            for i0, i1 in izip(i0s, i1s):
+            for i0, i1 in zip(i0s, i1s):
                 mask[i0:i1] = True
             out = parent[mask]
             out.groups._keys = parent.groups.keys[item]
@@ -254,7 +254,7 @@ class ColumnGroups(BaseGroups):
                         func = np.add
                     vals = func.reduceat(par_col, i0s)
             else:
-                vals = np.array([func(par_col[i0: i1]) for i0, i1 in izip(i0s, i1s)])
+                vals = np.array([func(par_col[i0: i1]) for i0, i1 in zip(i0s, i1s)])
         except Exception:
             raise TypeError("Cannot aggregate column '{0}' with type '{1}'"
                             .format(par_col.info.name,

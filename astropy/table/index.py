@@ -36,6 +36,7 @@ from copy import deepcopy
 import numpy as np
 
 from ..extern import six
+from ..extern.six.moves import range
 from .bst import MinValue, MaxValue
 from .sorted_array import SortedArray
 from ..time import Time
