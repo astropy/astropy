@@ -1230,7 +1230,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                           for attrnm in self.get_frame_attr_names()])
 
     def _apply(self, method, *args, **kwargs):
-        """Create a new time object, possibly applying a method to the arrays.
+        """Create a new coordinate object, applying a method to the arrays.
 
         Parameters
         ----------
