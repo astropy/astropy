@@ -1492,6 +1492,22 @@ Other Changes and Additions
 Bug Fixes
 ^^^^^^^^^
 
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+  - Fix errors in the implementation of the conversion to and from FK4 frames
+    without e-terms, which will have affected coordinates not on the unit
+    sphere (i.e., with distances). [#4293]
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
 - ``astropy.io.fits``
 
   - Removed raising of AssertionError that could occur after closing or

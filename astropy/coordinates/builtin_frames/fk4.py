@@ -143,12 +143,13 @@ def fk4_e_terms(equinox):
     equinox : Time object
         The equinox for which to compute the e-terms
     """
-    # Constant of aberration at J2000
-    k = 0.0056932
+    # Constant of aberration at J2000; from Explanatory Supplement to the
+    # Astronomical Almanac (Seidelmann, 2005).
+    k = 0.0056932  # in degrees (v_earth/c ~ 1e-4 rad ~ 0.0057 deg)
+    k = np.radians(k)
 
     # Eccentricity of the Earth's orbit
     e = earth.eccentricity(equinox.jd)
-    e = np.radians(e)
 
     # Mean longitude of perigee of the solar orbit
     g = earth.mean_lon_of_perigee(equinox.jd)
@@ -170,7 +171,8 @@ def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
     r = np.asarray(c.reshape((3, c.size // 3)))
 
     # Find distance (for re-normalization)
-    d_orig = np.sqrt(np.sum(r ** 2))
+    d_orig = np.sqrt(np.sum(r ** 2, axis=0))
+    r /= d_orig
 
     # Apply E-terms of aberration. Note that this depends on the equinox (not
     # the observing time/epoch) of the coordinates. See issue #1496 for a
@@ -179,10 +181,10 @@ def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
     r = r - eterms_a.reshape(3, 1) + np.dot(eterms_a, r) * r
 
     # Find new distance (for re-normalization)
-    d_new = np.sqrt(np.sum(r ** 2))
+    d_new = np.sqrt(np.sum(r ** 2, axis=0))
 
     # Renormalize
-    r = r * d_orig / d_new
+    r *= d_orig / d_new
 
     subshape = c.shape[1:]
     x = r[0].reshape(subshape)
@@ -220,7 +222,8 @@ def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
     r = np.asarray(c.reshape((3, c.size // 3)))
 
     # Find distance (for re-normalization)
-    d_orig = np.sqrt(np.sum(r ** 2))
+    d_orig = np.sqrt(np.sum(r ** 2, axis=0))
+    r /= d_orig
 
     # Apply E-terms of aberration. Note that this depends on the equinox (not
     # the observing time/epoch) of the coordinates. See issue #1496 for a
@@ -231,10 +234,10 @@ def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
         r = (eterms_a.reshape(3, 1) + r0) / (1. + np.dot(eterms_a, r))
 
     # Find new distance (for re-normalization)
-    d_new = np.sqrt(np.sum(r ** 2))
+    d_new = np.sqrt(np.sum(r ** 2, axis=0))
 
     # Renormalize
-    r = r * d_orig / d_new
+    r *= d_orig / d_new
 
     subshape = c.shape[1:]
     x = r[0].reshape(subshape)
