@@ -202,9 +202,11 @@ API Changes
 
 - ``astropy.coordinates``
 
-  - The ``obsgeoloc`` and ``obsgeovel`` attributes of ``GCRS`` and ``PrecessedGeocentric``
-    frames are now stored and returned as ``CartesianRepresentation`` objects, rather than
-    ``Quantity`` objects.
+  - The ``obsgeoloc`` and ``obsgeovel`` attributes of ``GCRS`` and
+    ``PrecessedGeocentric`` frames are now stored and returned as
+    ``CartesianRepresentation`` objects, rather than ``Quantity`` objects.
+    Similarly, ``EarthLocation.get_gcrs_posvel`` now returns a tuple of
+    ``CartesianRepresentation`` objects. [#5253]
 
 - ``astropy.cosmology``
 
@@ -247,9 +249,10 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
-  - GCRS frames representing a location on Earth with multiple obstimes are now allowed. This means that
-    the solar system routines ``get_body``, ``get_moon`` and ``get_sun`` now work with non-scalar times and
-    a none geocentric observer. [#5207]
+  - GCRS frames representing a location on Earth with multiple obstimes are now
+    allowed. This means that the solar system routines ``get_body``,
+    ``get_moon`` and ``get_sun`` now work with non-scalar times and a
+    non-geocentric observer. [#5253]
 
 - ``astropy.cosmology``
 
