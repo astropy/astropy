@@ -6,7 +6,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 from ... import units as u
 from ..representation import SphericalRepresentation
 from ..baseframe import (BaseCoordinateFrame, RepresentationMapping,
-                         TimeFrameAttribute, QuantityFrameAttribute,
+                         TimeFrameAttribute,
                          CartesianRepresentationFrameAttribute)
 from .utils import DEFAULT_OBSTIME, EQUINOX_J2000
 

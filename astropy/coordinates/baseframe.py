@@ -316,8 +316,8 @@ class CartesianRepresentationFrameAttribute(FrameAttribute):
         ValueError
             If the input is not valid for this attribute.
         """
-        if (isinstance(value, list) and np.all([v == 0 for v in value]) and
-                len(value) == 3 and self.unit is not None):
+        if (isinstance(value, list) and len(value) == 3 and
+                all(v == 0 for v in value) and self.unit is not None):
             return CartesianRepresentation(np.zeros(3) * self.unit), True
         else:
             # is it a CartesianRepresentation with correct unit?
