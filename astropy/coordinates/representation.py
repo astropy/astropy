@@ -9,7 +9,6 @@ from __future__ import (absolute_import, division, print_function,
 
 import abc
 import functools
-import operator
 from collections import OrderedDict
 
 import numpy as np
@@ -227,18 +226,17 @@ class BaseRepresentation(ShapedLikeNDArray):
         Check for equality with another representation.
         """
         try:
-            comparisons = [getattr(self, component) ==
-                           getattr(other, component)
-                           for component in self.components]
-        except:
-            try:
-                newrep = other.represent_as(self.__class__)
-                comparisons = [getattr(self, component) ==
-                               getattr(newrep, component)
-                               for component in self.components]
-            except:
-                return False
-        return functools.reduce(operator.and_, comparisons)
+            # this ensures that other can be compared sensibly to self.
+            # note that it immediately returns if the classes are the same.
+            other = other.represent_as(self.__class__)
+        except Exception:
+            return False
+
+        # Ensure we return a bool or array of bool as appropriate.
+        return functools.reduce(np.logical_and,
+                                (getattr(self, component) ==
+                                 getattr(other, component)
+                                 for component in self.components))
 
     def __ne__(self, other):
         return np.logical_not(self.__eq__(other))

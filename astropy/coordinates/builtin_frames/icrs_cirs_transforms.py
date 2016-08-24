@@ -123,7 +123,7 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
                    gcrs_frame.obsgeovel.xyz.value])
     # roll axes 0 and 1 to end
     if pv.ndim > 2:
-            pv = np.rollaxis(np.rollaxis(pv, 0, pv.ndim), 0, pv.ndim)
+        pv = np.rollaxis(np.rollaxis(pv, 0, pv.ndim), 0, pv.ndim)
 
     jd1, jd2 = get_jd12(gcrs_frame.obstime, 'tdb')
     astrom = erfa.apcs13(jd1, jd2, pv)
@@ -172,7 +172,7 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
                    gcrs_coo.obsgeovel.xyz.value])
     # roll axes 0 and 1 to end
     if pv.ndim > 2:
-            pv = np.rollaxis(np.rollaxis(pv, 0, pv.ndim), 0, pv.ndim)
+        pv = np.rollaxis(np.rollaxis(pv, 0, pv.ndim), 0, pv.ndim)
 
     jd1, jd2 = get_jd12(gcrs_coo.obstime, 'tdb')
     astrom = erfa.apcs13(jd1, jd2, pv)
@@ -235,7 +235,7 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
                    gcrs_coo.obsgeovel.xyz.value])
     # roll axes 0 and 1 to end
     if pv.ndim > 2:
-            pv = np.rollaxis(np.rollaxis(pv, 0, pv.ndim), 0, pv.ndim)
+        pv = np.rollaxis(np.rollaxis(pv, 0, pv.ndim), 0, pv.ndim)
 
     jd1, jd2 = get_jd12(hcrs_frame.obstime, 'tdb')
     astrom = erfa.apcs13(jd1, jd2, pv)
