@@ -106,7 +106,7 @@ class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
 
         split_path = self.path.split('?')
 
-        if split_path[0] in ['/translator/%s' % clid for clid in self.server.clients]:
+        if split_path[0] in ['/translator/{}'.format(clid) for clid in self.server.clients]:
             # Request of a file proxying
             urlpath = parse_qs(split_path[1])
             try:
@@ -125,7 +125,7 @@ class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
     def is_http_path_valid(self):
 
         valid_paths = (["/clientaccesspolicy.xml", "/crossdomain.xml"] +
-                       ['/translator/%s' % clid for clid in self.server.clients])
+                       ['/translator/{}'.format(clid) for clid in self.server.clients])
         return self.path.split('?')[0] in valid_paths
 
 
@@ -166,15 +166,15 @@ def web_profile_text_dialog(request, queue):
     text = \
         """A Web application which declares to be
 
-Name: %s
-Origin: %s
+Name: {}
+Origin: {}
 
 is requesting to be registered with the SAMP Hub.
 Pay attention that if you permit its registration, such
 application will acquire all current user privileges, like
 file read/write.
 
-Do you give your consent? [yes|no]""" % (samp_name, request[2])
+Do you give your consent? [yes|no]""".format(samp_name, request[2])
 
     print(text)
     answer = input(">>> ")
