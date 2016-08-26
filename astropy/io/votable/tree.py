@@ -3,7 +3,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ...extern import six
-from ...extern.six.moves import xrange, urllib
+from ...extern.six.moves import range, urllib, zip
 
 # STDLIB
 import base64
@@ -2781,7 +2781,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 fields = [(i, field.converter.output,
                            field.converter.supports_empty_values(kwargs))
                           for i, field in enumerate(fields)]
-                for row in xrange(len(array)):
+                for row in range(len(array)):
                     write(tr_start)
                     array_row = array.data[row]
                     mask_row = array.mask[row]
@@ -2817,7 +2817,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                                 for (i, field) in enumerate(fields)]
 
                 data = io.BytesIO()
-                for row in xrange(len(array)):
+                for row in range(len(array)):
                     array_row = array.data[row]
                     array_mask = array.mask[row]
 

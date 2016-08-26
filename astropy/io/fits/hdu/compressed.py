@@ -21,6 +21,7 @@ from ..util import (_is_pseudo_unsigned, _unsigned_zero, _is_int,
                     _get_array_mmap)
 
 from ....extern.six import string_types, iteritems
+from ....extern.six.moves import range
 from ....utils import lazyproperty, deprecated
 from ....utils.compat import suppress
 from ....utils.exceptions import (AstropyPendingDeprecationWarning,

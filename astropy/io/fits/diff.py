@@ -17,6 +17,7 @@ import os.path
 import textwrap
 
 from collections import defaultdict
+from functools import reduce
 from itertools import islice
 
 import numpy as np
@@ -24,7 +25,8 @@ import numpy as np
 from ... import __version__
 from ...extern import six
 from ...extern.six import u, string_types
-from ...extern.six.moves import zip, xrange, reduce, map
+from ...extern.six.moves import zip, range, map
+
 from ...utils import indent
 from ...utils.compat.funcsigs import signature
 from .card import Card, BLANK_CARD
@@ -1111,7 +1113,7 @@ class TableDataDiff(_BaseDiff):
                 diffs = where_not_allclose(arra, arrb, atol=0.0,
                                            rtol=self.tolerance)
             elif 'P' in col.format:
-                diffs = ([idx for idx in xrange(len(arra))
+                diffs = ([idx for idx in range(len(arra))
                           if not np.allclose(arra[idx], arrb[idx], atol=0.0,
                                              rtol=self.tolerance)],)
             else:

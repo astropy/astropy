@@ -8,7 +8,7 @@ from __future__ import (absolute_import, division, print_function,
 
 from ...extern import six  # pylint: disable=W0611
 from ...extern.six import next
-from ...extern.six.moves import xrange
+from ...extern.six.moves import range
 
 import io
 import locale
@@ -164,7 +164,7 @@ def test_progress_bar():
 
 
 def test_progress_bar2():
-    for x in console.ProgressBar(xrange(50)):
+    for x in console.ProgressBar(range(50)):
         pass
 
 
@@ -172,7 +172,7 @@ def test_progress_bar3():
     def do_nothing(*args, **kwargs):
         pass
 
-    console.ProgressBar.map(do_nothing, xrange(50))
+    console.ProgressBar.map(do_nothing, range(50))
 
 
 def test_zero_progress_bar():
@@ -182,7 +182,7 @@ def test_zero_progress_bar():
 
 def test_progress_bar_as_generator():
     sum = 0
-    for x in console.ProgressBar(xrange(50)):
+    for x in console.ProgressBar(range(50)):
         sum += x
     assert sum == 1225
 

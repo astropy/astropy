@@ -15,6 +15,7 @@ from ..utils.compat import NUMPY_LT_1_8
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
 from ..utils.data_info import BaseColumnInfo, dtype_info_name
+from ..extern.six.moves import range
 from . import groups
 from . import pprint
 from .np_utils import fix_column_name

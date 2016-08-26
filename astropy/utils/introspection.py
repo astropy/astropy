@@ -11,6 +11,7 @@ import inspect
 import types
 
 from ..extern import six
+from ..extern.six.moves import range, zip
 
 
 __all__ = ['resolve_name', 'minversion', 'find_current_module',

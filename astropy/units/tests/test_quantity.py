@@ -20,7 +20,7 @@ from ...tests.helper import raises, pytest
 from ...utils import isiterable, minversion
 from ... import units as u
 from ...units.quantity import _UNIT_NOT_INITIALISED
-from ...extern.six.moves import xrange
+from ...extern.six.moves import range
 from ...extern.six.moves import cPickle as pickle
 from ...extern import six
 
@@ -848,7 +848,7 @@ def test_arrays():
     assert qkpc1x == qkpcx1
 
     # can also create from lists, will auto-convert to arrays
-    qsec = u.Quantity(list(xrange(10)), u.second)
+    qsec = u.Quantity(list(range(10)), u.second)
     assert isinstance(qsec.value, np.ndarray)
 
     # quantity math should work with arrays

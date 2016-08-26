@@ -6,19 +6,18 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ...extern import six
-
-from ...tests.helper import remote_data, raises, pytest, catch_warnings
-
 import hashlib
 import io
 import os
 import sys
 import tempfile
-from ...extern.six.moves.urllib.request import pathname2url
 
 from ..data import (_get_download_cache_locs, CacheMissingWarning,
                     get_pkg_data_filename, get_readable_fileobj)
+
+from ...extern import six
+from ...extern.six.moves import urllib
+from ...tests.helper import remote_data, raises, pytest, catch_warnings
 
 TESTURL = 'http://www.astropy.org'
 
@@ -130,7 +129,7 @@ def test_find_by_hash():
     from ..data import get_pkg_data_filename
 
     #this is of course not a real data file and not on any remote server, but it should *try* to go to the remote server
-    with pytest.raises(six.moves.urllib.error.URLError):
+    with pytest.raises(urllib.error.URLError):
         get_pkg_data_filename('kjfrhgjklahgiulrhgiuraehgiurhgiuhreglhurieghruelighiuerahiulruli')
 
 
@@ -376,10 +375,9 @@ def test_invalid_location_download():
     checks that download_file gives a URLError and not an AttributeError,
     as its code pathway involves some fiddling with the exception.
     """
-    from ...extern.six.moves.urllib_error import URLError
     from ..data import download_file
 
-    with pytest.raises(URLError):
+    with pytest.raises(urllib.error.URLError):
         download_file('http://astropy.org/nonexistentfile')
 
 
@@ -407,7 +405,7 @@ def test_get_readable_fileobj_cleans_up_temporary_files(tmpdir, monkeypatch):
     """checks that get_readable_fileobj leaves no temporary files behind"""
     # Create a 'file://' URL pointing to a path on the local filesystem
     local_filename = get_pkg_data_filename(os.path.join('data', 'local.dat'))
-    url = 'file://' + pathname2url(local_filename)
+    url = 'file://' + urllib.request.pathname2url(local_filename)
 
     # Save temporary files to a known location
     monkeypatch.setattr(tempfile, 'tempdir', str(tmpdir))

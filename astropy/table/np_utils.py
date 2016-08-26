@@ -11,7 +11,7 @@ Redistribution license restrictions apply.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
-from ..extern.six.moves import zip as izip
+from ..extern.six.moves import zip, range
 from ..utils.decorators import deprecated
 
 from itertools import chain
@@ -102,7 +102,7 @@ def get_descrs(arrays, col_name_map):
 
     for out_name, in_names in six.iteritems(col_name_map):
         # List of input arrays that contribute to this output column
-        in_cols = [arr[name] for arr, name in izip(arrays, in_names) if name is not None]
+        in_cols = [arr[name] for arr, name in zip(arrays, in_names) if name is not None]
 
         # List of names of the columns that contribute to this output column.
         names = [name for name in in_names if name is not None]
@@ -395,7 +395,7 @@ def vstack(arrays, join_type='inner', col_name_map=None):
 
     for out_name, in_names in six.iteritems(col_name_map):
         idx0 = 0
-        for name, array in izip(in_names, arrays):
+        for name, array in zip(in_names, arrays):
             idx1 = idx0 + len(array)
             if name in array.dtype.names:
                 out[out_name][idx0:idx1] = array[name]
@@ -501,7 +501,7 @@ def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
         out = np.empty(n_rows, dtype=out_descrs)
 
     for out_name, in_names in six.iteritems(col_name_map):
-        for name, array, arr_len in izip(in_names, arrays, arr_lens):
+        for name, array, arr_len in zip(in_names, arrays, arr_lens):
             if name is not None:
                 out[out_name][:arr_len] = array[name]
 

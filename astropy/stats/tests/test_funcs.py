@@ -24,6 +24,7 @@ else:
     HAS_MPMATH = True
 
 from ...tests.helper import pytest
+from ...extern.six.moves import range
 
 from .. import funcs
 

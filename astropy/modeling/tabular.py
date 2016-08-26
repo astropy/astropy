@@ -22,6 +22,7 @@ import abc
 import numpy as np
 from .core import Model
 from ..utils import minversion
+from ..extern.six.moves import range
 
 try:
     import scipy

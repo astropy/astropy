@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 
 import numpy as np
+from ....extern.six.moves import range, map
 
 
 def design_matrix(t, frequency, dy=None, bias=True, nterms=1):

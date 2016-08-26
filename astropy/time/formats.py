@@ -14,6 +14,7 @@ import numpy as np
 from .. import units as u
 from .. import _erfa as erfa
 from ..extern import six
+from ..extern.six.moves import zip
 from .utils import day_frac, two_sum
 
 
@@ -709,7 +710,7 @@ class TimeString(TimeUnique):
                     continue
                 tm = tm.groupdict()
                 vals = [int(tm.get(component, default)) for component, default
-                        in six.moves.zip(components, defaults)]
+                        in zip(components, defaults)]
 
             # Add fractional seconds
             vals[-1] = vals[-1] + fracsec

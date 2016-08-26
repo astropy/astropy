@@ -24,6 +24,7 @@ from ..core import FittableModel
 from ..polynomial import PolynomialBase
 from ...tests.helper import pytest
 from ...utils import minversion
+from ...extern.six.moves import zip
 
 try:
     import scipy

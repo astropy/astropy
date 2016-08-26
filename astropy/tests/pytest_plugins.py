@@ -9,7 +9,7 @@ from __future__ import (absolute_import, division, print_function,
 import __future__
 
 from ..extern import six
-from ..extern.six.moves import filter
+from ..extern.six.moves import filter, range
 
 import ast
 import doctest

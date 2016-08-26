@@ -7,6 +7,7 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 from ...extern import six
+from ...extern.six.moves import zip
 
 import itertools
 import numpy as np
