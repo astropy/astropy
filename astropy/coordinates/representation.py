@@ -23,8 +23,6 @@ __all__ = ["BaseRepresentation", "CartesianRepresentation",
            "SphericalRepresentation", "UnitSphericalRepresentation",
            "PhysicsSphericalRepresentation", "CylindricalRepresentation"]
 
-NUMPY_LT_1P7 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 7]
-
 # Module-level dict mapping representation string alias names to class.
 # This is populated by the metaclass init so all representation classes
 # get registered automatically.
@@ -190,14 +188,8 @@ class BaseRepresentation(object):
                 ', '.join(format_val(x[name]) for name in names))
         }
 
-        if NUMPY_LT_1P7:
-            arrstr = np.array2string(v, separator=', ',
-                                     prefix=prefixstr)
-
-        else:
-            arrstr = np.array2string(v, formatter=formatter,
-                                     separator=', ',
-                                     prefix=prefixstr)
+        arrstr = np.array2string(v, formatter=formatter,
+                                 separator=', ', prefix=prefixstr)
 
         if self._values.shape == ():
             arrstr = arrstr[1:-1]
