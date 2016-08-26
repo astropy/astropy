@@ -1,4 +1,4 @@
-from ...extern.six.moves import cPickle as pickle
+from ...extern.six.moves import zip, cPickle as pickle
 from ...coordinates import Longitude
 from ... import coordinates as coord
 from ...tests.helper import pytest, pickle_protocol, check_pickling_recovery

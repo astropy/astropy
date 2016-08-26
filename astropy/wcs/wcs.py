@@ -45,6 +45,7 @@ import numpy as np
 # LOCAL
 from .. import log
 from ..extern import six
+from ..extern.six.moves import range, zip, map
 from ..io import fits
 from . import _docutil as __
 try:

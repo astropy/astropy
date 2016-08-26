@@ -14,6 +14,7 @@ from ...io import fits
 from ... import wcs
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
+from ...extern.six.moves import range, zip
 
 
 def test_Projection_properties():

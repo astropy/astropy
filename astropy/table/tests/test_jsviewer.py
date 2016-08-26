@@ -4,6 +4,7 @@ import textwrap
 from ..table import Table
 from ... import extern
 from ...tests.helper import pytest
+from ...extern.six.moves import zip
 
 try:
     import IPython  # pylint: disable=W0611

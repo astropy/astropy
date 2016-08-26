@@ -28,6 +28,7 @@ from collections import OrderedDict
 
 from ..extern import six
 from ..utils.compat import NUMPY_LT_1_8
+from ..extern.six.moves import zip, cStringIO as StringIO
 
 # Tuple of filterwarnings kwargs to ignore when calling info
 IGNORE_WARNINGS = (dict(category=RuntimeWarning,
@@ -367,7 +368,7 @@ class DataInfo(object):
         if self._parent is None:
             return super(DataInfo, self).__repr__()
 
-        out = six.moves.cStringIO()
+        out = StringIO()
         self.__call__(out=out)
         return out.getvalue()
 

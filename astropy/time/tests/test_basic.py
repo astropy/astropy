@@ -13,6 +13,7 @@ import numpy as np
 from ...tests.helper import pytest, catch_warnings
 from ...tests.disable_internet import INTERNET_OFF
 from ...extern import six
+from ...extern.six.moves import zip
 from ...utils import isiterable
 from .. import Time, ScaleValueError, TIME_SCALES, TimeString, TimezoneInfo
 from ...coordinates import EarthLocation

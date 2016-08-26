@@ -15,7 +15,7 @@ except ImportError:
     HAVE_OBJGRAPH = False
 
 from ....extern import six
-from ....extern.six.moves import range
+from ....extern.six.moves import range, zip
 from ....extern.six.moves import cPickle as pickle
 from ....io import fits
 from ....tests.helper import pytest, catch_warnings, ignore_warnings

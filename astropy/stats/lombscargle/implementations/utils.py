@@ -3,6 +3,7 @@ from __future__ import print_function, division
 import warnings
 from math import factorial
 import numpy as np
+from ....extern.six.moves import range, map
 
 
 def add_at(arr, ind, vals):

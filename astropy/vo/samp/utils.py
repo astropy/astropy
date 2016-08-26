@@ -9,7 +9,7 @@ from __future__ import (absolute_import, division, print_function,
 import inspect
 import traceback
 
-from ...extern.six.moves import queue
+from ...extern.six.moves import queue, range
 from ...extern.six.moves.urllib.request import urlopen
 from ...extern.six.moves import xmlrpc_client as xmlrpc
 from ...extern.six import StringIO

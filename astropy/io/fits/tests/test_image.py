@@ -10,6 +10,7 @@ import warnings
 
 import numpy as np
 
+from ....extern.six.moves import range
 from ....io import fits
 from ....utils.exceptions import (AstropyDeprecationWarning,
                                   AstropyPendingDeprecationWarning)

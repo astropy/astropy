@@ -29,6 +29,7 @@ import numpy as np
 from ..utils.compat import suppress
 from ..utils.compat.funcsigs import signature
 from ..extern import six
+from ..extern.six.moves import range
 
 
 __all__ = ['TransformGraph', 'CoordinateTransform', 'FunctionTransform',

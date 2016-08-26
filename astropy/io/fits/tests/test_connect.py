@@ -4,12 +4,15 @@ import warnings
 import numpy as np
 from numpy.testing import assert_allclose
 
-from ... import fits
 from .. import HDUList, PrimaryHDU, BinTableHDU
-from ....table import Table
+
+from ... import fits
+
 from .... import units as u
+from ....extern.six.moves import range, zip
+from ....table import Table
 from ....tests.helper import pytest, catch_warnings
-from astropy.units.format.fits import UnitScaleError
+from ....units.format.fits import UnitScaleError
 
 DATA = os.path.join(os.path.dirname(__file__), 'data')
 

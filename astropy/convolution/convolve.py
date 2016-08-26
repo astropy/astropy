@@ -10,8 +10,9 @@ import numpy as np
 from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
 from ..utils.exceptions import AstropyUserWarning
 from ..utils.console import human_file_size
+from .. import units as u
 
-from astropy import units as u
+from ..extern.six.moves import range, zip
 
 
 # Disabling all doctests in this module until a better way of handling warnings

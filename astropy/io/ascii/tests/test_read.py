@@ -10,7 +10,7 @@ import locale
 import numpy as np
 import platform
 
-from ....extern.six.moves import cStringIO as StringIO
+from ....extern.six.moves import zip, cStringIO as StringIO
 from ....tests.helper import pytest
 from ... import ascii
 from ....table import Table

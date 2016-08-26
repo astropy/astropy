@@ -12,6 +12,7 @@ from .parameters import Parameter, InputParameterError
 from .utils import ellipse_extent
 from ..utils import deprecated
 from ..extern import six
+from ..extern.six.moves import map
 from .utils import get_inputs_and_params
 from ..utils.exceptions import AstropyDeprecationWarning
 
@@ -253,7 +254,7 @@ class GaussianAbsorption1D(Fittable1DModel):
         GaussianAbsorption1D model function derivatives.
         """
         import operator
-        return list(six.moves.map(
+        return list(map(
             operator.neg, Gaussian1D.fit_deriv(x, amplitude, mean, stddev)))
 
 

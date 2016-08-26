@@ -11,6 +11,7 @@ import warnings
 from fractions import Fraction
 
 from ...extern import six
+from ...extern.six.moves import zip
 from ...utils.misc import did_you_mean
 
 

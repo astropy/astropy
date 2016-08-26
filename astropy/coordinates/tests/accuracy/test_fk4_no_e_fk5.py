@@ -11,6 +11,7 @@ from ....time import Time
 from ....table import Table
 from ...angle_utilities import angular_separation
 from ....utils.data import get_pkg_data_contents
+from ....extern.six.moves import range
 
 #the number of tests to run
 from . import N_ACCURACY_TESTS

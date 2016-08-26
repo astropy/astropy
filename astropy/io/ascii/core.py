@@ -24,7 +24,7 @@ from collections import OrderedDict
 import numpy
 
 from ...extern import six
-from ...extern.six.moves import zip
+from ...extern.six.moves import zip, range
 from ...extern.six.moves import cStringIO as StringIO
 from ...utils.exceptions import AstropyWarning
 

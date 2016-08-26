@@ -15,6 +15,7 @@ from .codegen import make_function_with_signature
 from .exceptions import (AstropyDeprecationWarning,
                          AstropyPendingDeprecationWarning)
 from ..extern import six
+from ..extern.six.moves import zip
 
 
 __all__ = ['deprecated', 'deprecated_attribute', 'classproperty',

@@ -7,6 +7,8 @@ import time
 
 from collections import namedtuple
 
+from ....extern.six.moves import zip
+
 
 __author__ = 'Brian Quinlan (brian@sweetapp.com)'
 
