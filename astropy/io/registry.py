@@ -77,9 +77,13 @@ def get_formats(data_class=None):
         rows.append((format_class[1].__name__, format_class[0], has_read,
                      has_write, has_identify, deprecated))
 
-    data = None
+    # Sorting the list of tuples is much faster than sorting it after the table
+    # is created. (#5262)
     if rows:
+        # Indices represent "Data Class", "Deprecated" and "Format".
         data = list(zip(*sorted(rows, key=itemgetter(0, 5, 1))))
+    else:
+        data = None
     format_table = Table(data, names=('Data class', 'Format', 'Read', 'Write',
                                       'Auto-identify', 'Deprecated'))
 
