@@ -9,12 +9,16 @@ from numpy.random import randn, normal
 from numpy.testing import assert_equal
 from numpy.testing.utils import assert_allclose
 
+from astropy.utils import minversion
+
 try:
     import scipy  # pylint: disable=W0611
 except ImportError:
     HAS_SCIPY = False
+    SCIPY_LT_0_14 = True
 else:
     HAS_SCIPY = True
+    SCIPY_LT_0_14 = not minversion(scipy, '0.14.0')
 
 try:
     import mpmath  # pylint: disable=W0611
@@ -611,7 +615,7 @@ def test_poisson_conf_gehrels86(n):
         rtol=0.02)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif('SCIPY_LT_0_14')
 def test_scipy_poisson_limit():
     '''Test that the lower-level routine gives the snae number.
 
@@ -656,7 +660,7 @@ def test_poisson_conf_value_errors():
     assert 'Invalid method' in str(e.value)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif('SCIPY_LT_0_14')
 def test_poisson_conf_kbn_value_errors():
     with pytest.raises(ValueError) as e:
         funcs.poisson_conf_interval(5., 'kraft-burrows-nousek',
