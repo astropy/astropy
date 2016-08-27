@@ -6,6 +6,8 @@ Contains the transformation functions for getting to/from ecliptic systems.
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+import numpy as np
+
 from ... import units as u
 from ..baseframe import frame_transform_graph
 from ..transformations import FunctionTransform, DynamicMatrixTransform
@@ -69,16 +71,21 @@ def icrs_to_helioecliptic(from_coo, to_frame):
     if not u.m.is_equivalent(from_coo.cartesian.x.unit):
         raise UnitsError(_NEED_ORIGIN_HINT.format(from_coo.__class__.__name__))
 
-    pvh, pvb = erfa.epv00(*get_jd12(to_frame.equinox, 'tdb'))
-    delta_bary_to_helio = pvh[..., 0, :] - pvb[..., 0, :]
+    # get barycentric sun coordinate
+    # this goes here to avoid circular import errors
+    from ..solar_system import get_body_barycentric, solar_system_ephemeris
+    ephemeris = solar_system_ephemeris.get()
+    bary_sun_pos = get_body_barycentric('sun', to_frame.equinox, ephemeris=ephemeris)
+    delta_bary_to_helio = bary_sun_pos.xyz
 
-    # first offset to heliocentric
-    heliocart = (from_coo.cartesian.xyz).T + delta_bary_to_helio * u.au
+    # offset to heliocentric
+    new_vector = np.rollaxis(from_coo.cartesian.xyz, -1, 0) + np.rollaxis(delta_bary_to_helio, -1, 0)
+    heliocart = CartesianRepresentation(np.rollaxis(new_vector, 0, new_vector.ndim))
 
     # now compute the matrix to precess to the right orientation
     rmat = _ecliptic_rotation_matrix(to_frame.equinox)
 
-    newrepr = CartesianRepresentation(heliocart.T).transform(rmat)
+    newrepr = heliocart.transform(rmat)
     return to_frame.realize_frame(newrepr)
 
 
@@ -92,8 +99,15 @@ def helioecliptic_to_icrs(from_coo, to_frame):
     intermed_repr = from_coo.cartesian.transform(matrix_transpose(rmat))
 
     # now offset back to barycentric, which is the correct center for ICRS
-    pvh, pvb = erfa.epv00(*get_jd12(from_coo.equinox, 'tdb'))
-    delta_bary_to_helio = pvh[..., 0, :] - pvb[..., 0, :]
-    newrepr = CartesianRepresentation((intermed_repr.to_cartesian().xyz.T - delta_bary_to_helio*u.au).T)
 
+    # this goes here to avoid circular import errors
+    from ..solar_system import get_body_barycentric, solar_system_ephemeris
+
+    # get barycentric sun coordinate
+    ephemeris = solar_system_ephemeris.get()
+    bary_sun_pos = get_body_barycentric('sun', from_coo.equinox, ephemeris=ephemeris)
+    delta_bary_to_helio = bary_sun_pos.xyz
+
+    new_vector = np.rollaxis(intermed_repr.xyz, -1, 0) - np.rollaxis(delta_bary_to_helio, -1, 0)
+    newrepr = CartesianRepresentation(np.rollaxis(new_vector, 0, new_vector.ndim))
     return to_frame.realize_frame(newrepr)
