@@ -305,9 +305,9 @@ def hcrs_to_icrs(hcrs_coo, icrs_frame):
 
     ephemeris = solar_system_ephemeris.get()
     bary_sun_pos = get_body_barycentric('sun', hcrs_coo.obstime, ephemeris=ephemeris)
-    sun_vector = bary_sun_pos.xyz
-    new_vector = np.rollaxis(hcrs_coo.cartesian.xyz, -1, 0) + np.rollaxis(sun_vector, -1, 0)
-    newrep = CartesianRepresentation(np.rollaxis(new_vector, 0, new_vector.ndim))
+    hcrs_cart = hcrs_coo.cartesian
+    newrep = CartesianRepresentation(hcrs_cart.x + bary_sun_pos.x, hcrs_cart.y + bary_sun_pos.y,
+                                     hcrs_cart.z + bary_sun_pos.z)
     return icrs_frame.realize_frame(newrep)
 
 
@@ -322,9 +322,9 @@ def icrs_to_hcrs(icrs_coo, hcrs_frame):
 
     ephemeris = solar_system_ephemeris.get()
     bary_sun_pos = get_body_barycentric('sun', hcrs_frame.obstime, ephemeris=ephemeris)
-    sun_vector = bary_sun_pos.xyz
-    new_vector = np.rollaxis(icrs_coo.cartesian.xyz, -1, 0) - np.rollaxis(sun_vector, -1, 0)
-    newrep = CartesianRepresentation(np.rollaxis(new_vector, 0, new_vector.ndim))
+    icrs_cart = icrs_coo.cartesian
+    newrep = CartesianRepresentation(icrs_cart.x - bary_sun_pos.x, icrs_cart.y - bary_sun_pos.y,
+                                     icrs_cart.z - bary_sun_pos.z)
     return hcrs_frame.realize_frame(newrep)
 
 

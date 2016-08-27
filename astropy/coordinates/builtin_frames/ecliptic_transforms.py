@@ -6,8 +6,6 @@ Contains the transformation functions for getting to/from ecliptic systems.
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-import numpy as np
-
 from ... import units as u
 from ..baseframe import frame_transform_graph
 from ..transformations import FunctionTransform, DynamicMatrixTransform
@@ -76,11 +74,10 @@ def icrs_to_helioecliptic(from_coo, to_frame):
     from ..solar_system import get_body_barycentric, solar_system_ephemeris
     ephemeris = solar_system_ephemeris.get()
     bary_sun_pos = get_body_barycentric('sun', to_frame.equinox, ephemeris=ephemeris)
-    delta_bary_to_helio = bary_sun_pos.xyz
 
     # offset to heliocentric
-    new_vector = np.rollaxis(from_coo.cartesian.xyz, -1, 0) + np.rollaxis(delta_bary_to_helio, -1, 0)
-    heliocart = CartesianRepresentation(np.rollaxis(new_vector, 0, new_vector.ndim))
+    heliocart = CartesianRepresentation(from_coo.cartesian.x + bary_sun_pos.x, from_coo.cartesian.y + bary_sun_pos.y,
+                                        from_coo.cartesian.z + bary_sun_pos.z)
 
     # now compute the matrix to precess to the right orientation
     rmat = _ecliptic_rotation_matrix(to_frame.equinox)
@@ -106,8 +103,7 @@ def helioecliptic_to_icrs(from_coo, to_frame):
     # get barycentric sun coordinate
     ephemeris = solar_system_ephemeris.get()
     bary_sun_pos = get_body_barycentric('sun', from_coo.equinox, ephemeris=ephemeris)
-    delta_bary_to_helio = bary_sun_pos.xyz
 
-    new_vector = np.rollaxis(intermed_repr.xyz, -1, 0) - np.rollaxis(delta_bary_to_helio, -1, 0)
-    newrepr = CartesianRepresentation(np.rollaxis(new_vector, 0, new_vector.ndim))
+    newrepr = CartesianRepresentation(intermed_repr.x - bary_sun_pos.x, intermed_repr.y - bary_sun_pos.y,
+                                      intermed_repr.z - bary_sun_pos.z)
     return to_frame.realize_frame(newrepr)
