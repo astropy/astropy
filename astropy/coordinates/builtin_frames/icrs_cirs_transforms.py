@@ -58,6 +58,25 @@ def prepare_earth_position_vel(time):
 
 
 def get_cip(jd1, jd2):
+    """
+    Find the X, Y coordinates of the CIP and the CIO locator, s.
+
+    Parameters
+    ----------
+    jd1 : float or `np.ndarray`
+        First part of two part Julian date (TDB)
+    jd2 : float or `np.ndarray`
+        Second part of two part Julian date (TDB)
+
+    Returns
+    --------
+    x : float or `np.ndarray`
+        x coordinate of the CIP
+    y : float or `np.ndarray`
+        y coordinate of the CIP
+    s : float or `np.ndarray`
+        CIO locator, s
+    """
     # classical NPB matrix, IAU 2006/2000A
     rpnb = erfa.pnm06a(jd1, jd2)
     # CIP X, Y coordinates from array
