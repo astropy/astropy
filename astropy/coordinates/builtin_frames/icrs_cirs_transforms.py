@@ -351,15 +351,20 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
     return hcrs_frame.realize_frame(newrep)
 
 
+_NEED_ORIGIN_HINT = ("The input {0} coordinates do not have length units. This "
+                     "probably means you created coordinates with lat/lon but "
+                     "no distance.  Heliocentric<->ICRS transforms cannot "
+                     "function in this case because there is an origin shift.")
+
+
 @frame_transform_graph.transform(FunctionTransform, HCRS, ICRS)
 def hcrs_to_icrs(hcrs_coo, icrs_frame):
+    # this is just an origin translation so without a distance it cannot go ahead
+    if hcrs_coo.data.__class__ == UnitSphericalRepresentation:
+        raise u.UnitsError(_NEED_ORIGIN_HINT.format(hcrs_coo.__class__.__name__))
+
     # this goes here to avoid circular import errors
     from ..solar_system import get_body_barycentric, solar_system_ephemeris
-
-    # this is just an origin translation so without a distance it
-    # does not change the data
-    if hcrs_coo.data.__class__ == UnitSphericalRepresentation:
-        return icrs_frame.realize_frame(hcrs_coo.data)
 
     ephemeris = solar_system_ephemeris.get()
     bary_sun_pos = get_body_barycentric('sun', hcrs_coo.obstime, ephemeris=ephemeris)
@@ -371,13 +376,12 @@ def hcrs_to_icrs(hcrs_coo, icrs_frame):
 
 @frame_transform_graph.transform(FunctionTransform, ICRS, HCRS)
 def icrs_to_hcrs(icrs_coo, hcrs_frame):
+    # this is just an origin translation so without a distance it cannot go ahead
+    if icrs_coo.data.__class__ == UnitSphericalRepresentation:
+        raise u.UnitsError(_NEED_ORIGIN_HINT.format(icrs_coo.__class__.__name__))
+
     # this goes here to avoid circular import errors
     from ..solar_system import get_body_barycentric, solar_system_ephemeris
-
-    # this is just an origin translation so without a distance it
-    # does not change the data
-    if icrs_coo.data.__class__ == UnitSphericalRepresentation:
-        return hcrs_frame.realize_frame(icrs_coo.data)
 
     ephemeris = solar_system_ephemeris.get()
     bary_sun_pos = get_body_barycentric('sun', hcrs_frame.obstime, ephemeris=ephemeris)
