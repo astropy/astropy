@@ -23,11 +23,58 @@ from .hcrs import HCRS
 from .utils import get_jd12, aticq, atciqz
 
 
+def prepare_earth_position_vel(time):
+    """
+    Get barycentric position and velocity, and heliocentric position of Earth
+
+    Parameters
+    -----------
+    time : `~astropy.time.Time`
+        time at which to calculate position and velocity of Earth
+
+    Returns
+    --------
+    earth_pv : `np.ndarray`
+        Barycentric position and velocity of Earth, in au and au/day
+    earth_helio : `np.ndarray`
+        Heliocentric position of Earth in au
+    """
+    # this goes here to avoid circular import errors
+    from ..solar_system import get_body_barycentric, solar_system_ephemeris
+    # get barycentric position and velocity of earth
+    ephemeris = solar_system_ephemeris.get()
+    earth_pv = get_body_barycentric('earth', time,
+                                    ephemeris=ephemeris, get_velocity=True)
+
+    # get heliocentric position of earth
+    sun = get_body_barycentric('sun', time, ephemeris=ephemeris)
+    earth_heliocentric = (earth_pv[0].xyz - sun.xyz).to(u.au)
+
+    # prepare to pass to erfa
+    earth_pv = np.array([earth_pv[0].xyz.to(u.au), earth_pv[1].xyz.to(u.au/u.d)])
+    earth_pv = np.rollaxis(np.rollaxis(earth_pv, 0, earth_pv.ndim), 0, earth_pv.ndim)
+    earth_heliocentric = np.rollaxis(earth_heliocentric, 0, earth_heliocentric.ndim)
+    return earth_pv, earth_heliocentric
+
+
+def get_cip(jd1, jd2):
+    # classical NPB matrix, IAU 2006/2000A
+    rpnb = erfa.pnm06a(jd1, jd2)
+    # CIP X, Y coordinates from array
+    x, y = erfa.bpn2xy(rpnb)
+    # CIO locator, s
+    s = erfa.s06(jd1, jd2, x, y)
+    return x, y, s
+
+
 # First the ICRS/CIRS related transforms
 @frame_transform_graph.transform(FunctionTransform, ICRS, CIRS)
 def icrs_to_cirs(icrs_coo, cirs_frame):
     # first set up the astrometry context for ICRS<->CIRS
-    astrom, eo = erfa.apci13(*get_jd12(cirs_frame.obstime, 'tdb'))
+    jd1, jd2 = get_jd12(cirs_frame.obstime, 'tdb')
+    x, y, s = get_cip(jd1, jd2)
+    earth_pv, earth_heliocentric = prepare_earth_position_vel(cirs_frame.obstime)
+    astrom = erfa.apci(jd1, jd2, earth_pv, earth_heliocentric, x, y, s)
 
     if icrs_coo.data.get_name() == 'unitspherical' or icrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just do the infinite-distance/no parallax calculation
@@ -70,7 +117,10 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
 
     # set up the astrometry context for ICRS<->cirs and then convert to
     # astrometric coordinate direction
-    astrom, eo = erfa.apci13(*get_jd12(cirs_coo.obstime, 'tdb'))
+    jd1, jd2 = get_jd12(cirs_coo.obstime, 'tdb')
+    x, y, s = get_cip(jd1, jd2)
+    earth_pv, earth_heliocentric = prepare_earth_position_vel(cirs_coo.obstime)
+    astrom = erfa.apci(jd1, jd2, earth_pv, earth_heliocentric, x, y, s)
     i_ra, i_dec = aticq(cirs_ra, cirs_dec, astrom)
 
     if cirs_coo.data.get_name() == 'unitspherical' or cirs_coo.data.to_cartesian().x.unit == u.one:
@@ -118,6 +168,7 @@ def cirs_to_cirs(from_coo, to_frame):
 
 @frame_transform_graph.transform(FunctionTransform, ICRS, GCRS)
 def icrs_to_gcrs(icrs_coo, gcrs_frame):
+
     # first set up the astrometry context for ICRS<->GCRS
     pv = np.array([gcrs_frame.obsgeoloc.xyz.value,
                    gcrs_frame.obsgeovel.xyz.value])
@@ -126,7 +177,10 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
         pv = np.rollaxis(np.rollaxis(pv, 0, pv.ndim), 0, pv.ndim)
 
     jd1, jd2 = get_jd12(gcrs_frame.obstime, 'tdb')
-    astrom = erfa.apcs13(jd1, jd2, pv)
+    earth_pv, earth_heliocentric = prepare_earth_position_vel(gcrs_frame.obstime)
+
+    # get astrometry context
+    astrom = erfa.apcs(jd1, jd2, pv, earth_pv, earth_heliocentric)
 
     if icrs_coo.data.get_name() == 'unitspherical' or icrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just do the infinite-distance/no parallax calculation
@@ -175,7 +229,9 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
         pv = np.rollaxis(np.rollaxis(pv, 0, pv.ndim), 0, pv.ndim)
 
     jd1, jd2 = get_jd12(gcrs_coo.obstime, 'tdb')
-    astrom = erfa.apcs13(jd1, jd2, pv)
+
+    earth_pv, earth_heliocentric = prepare_earth_position_vel(gcrs_coo.obstime)
+    astrom = erfa.apcs(jd1, jd2, pv, earth_pv, earth_heliocentric)
 
     i_ra, i_dec = aticq(gcrs_ra, gcrs_dec, astrom)
 
@@ -238,7 +294,8 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
         pv = np.rollaxis(np.rollaxis(pv, 0, pv.ndim), 0, pv.ndim)
 
     jd1, jd2 = get_jd12(hcrs_frame.obstime, 'tdb')
-    astrom = erfa.apcs13(jd1, jd2, pv)
+    earth_pv, earth_heliocentric = prepare_earth_position_vel(gcrs_coo.obstime)
+    astrom = erfa.apcs(jd1, jd2, pv, earth_pv, earth_heliocentric)
 
     i_ra, i_dec = aticq(gcrs_ra, gcrs_dec, astrom)
 
@@ -277,22 +334,36 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
 
 @frame_transform_graph.transform(FunctionTransform, HCRS, ICRS)
 def hcrs_to_icrs(hcrs_coo, icrs_frame):
-    jd1, jd2 = get_jd12(hcrs_coo.obstime, 'tdb')
-    earth_pv_helio, earth_pv_bary = erfa.epv00(jd1, jd2)
-    bary_sun_pos = earth_pv_bary[..., 0, :] - earth_pv_helio[..., 0, :]
-    sun_vector = u.Quantity(bary_sun_pos, u.au)
-    new_vector = np.rollaxis(hcrs_coo.cartesian.xyz, -1, 0) + sun_vector
+    # this goes here to avoid circular import errors
+    from ..solar_system import get_body_barycentric, solar_system_ephemeris
+
+    # this is just an origin translation so without a distance it
+    # does not change the data
+    if hcrs_coo.data.__class__ == UnitSphericalRepresentation:
+        return icrs_frame.realize_frame(hcrs_coo.data)
+
+    ephemeris = solar_system_ephemeris.get()
+    bary_sun_pos = get_body_barycentric('sun', hcrs_coo.obstime, ephemeris=ephemeris)
+    sun_vector = bary_sun_pos.xyz
+    new_vector = np.rollaxis(hcrs_coo.cartesian.xyz, -1, 0) + np.rollaxis(sun_vector, -1, 0)
     newrep = CartesianRepresentation(np.rollaxis(new_vector, 0, new_vector.ndim))
     return icrs_frame.realize_frame(newrep)
 
 
 @frame_transform_graph.transform(FunctionTransform, ICRS, HCRS)
 def icrs_to_hcrs(icrs_coo, hcrs_frame):
-    jd1, jd2 = get_jd12(hcrs_frame.obstime, 'tdb')
-    earth_pv_helio, earth_pv_bary = erfa.epv00(jd1, jd2)
-    bary_sun_pos = earth_pv_bary[..., 0, :] - earth_pv_helio[..., 0, :]
-    sun_vector = u.Quantity(bary_sun_pos, u.au)
-    new_vector = np.rollaxis(icrs_coo.cartesian.xyz, -1, 0) - sun_vector
+    # this goes here to avoid circular import errors
+    from ..solar_system import get_body_barycentric, solar_system_ephemeris
+
+    # this is just an origin translation so without a distance it
+    # does not change the data
+    if icrs_coo.data.__class__ == UnitSphericalRepresentation:
+        return hcrs_frame.realize_frame(icrs_coo.data)
+
+    ephemeris = solar_system_ephemeris.get()
+    bary_sun_pos = get_body_barycentric('sun', hcrs_frame.obstime, ephemeris=ephemeris)
+    sun_vector = bary_sun_pos.xyz
+    new_vector = np.rollaxis(icrs_coo.cartesian.xyz, -1, 0) - np.rollaxis(sun_vector, -1, 0)
     newrep = CartesianRepresentation(np.rollaxis(new_vector, 0, new_vector.ndim))
     return hcrs_frame.realize_frame(newrep)
 
