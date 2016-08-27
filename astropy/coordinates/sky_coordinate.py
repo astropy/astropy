@@ -1490,6 +1490,10 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
                                      "frames: {0} != {1}".format(sc, scs[0]))
                 if allunitsphrepr and not isinstance(sc.data, UnitSphericalRepresentation):
                     allunitsphrepr = False
+            # special case of the above logic for edge case where we have a list of one
+            # SkyCoord
+            if len(scs) == 1:
+                allunitsphrepr = isinstance(scs[0].data, UnitSphericalRepresentation)
 
             # get the frame attributes from the first one, because from above we
             # know it matches all the others
