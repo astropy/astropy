@@ -104,10 +104,12 @@ dynamical models).
 To use the JPL ephemerides, use the `~astropy.coordinates.solar_system_ephemeris` context
 manager, as shown below:
 
+.. doctest-requires:: jplephem
+
     >>> from astropy.coordinates import solar_system_ephemeris
     >>> from astropy.coordinates import GCRS
-    >>> with solar_system_ephemeris.set('jpl'):
-    >>>     fk5c.transform_to(GCRS(obstime=Time("J2000")))
+    >>> with solar_system_ephemeris.set('jpl'): # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    ...     fk5c.transform_to(GCRS(obstime=Time("J2000"))) # doctest: +REMOTE_DATA +IGNORE_OUTPUT
 
 For locations at large distances from the Solar system, using the JPL ephemerides will make a
 negligible difference, on the order of micro-arcseconds. For nearby objects, such as the Moon,
