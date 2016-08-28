@@ -1014,11 +1014,13 @@ class MetaBaseReader(type):
 
         for io_format in io_formats:
             func = functools.partial(connect.io_read, io_format)
-            connect.io_registry.register_reader(io_format, Table, func)
+            connect.io_registry.register_reader(io_format, Table, func,
+                                                update_docs=False)
 
             if dct.get('_io_registry_can_write', True):
                 func = functools.partial(connect.io_write, io_format)
-                connect.io_registry.register_writer(io_format, Table, func)
+                connect.io_registry.register_writer(io_format, Table, func,
+                                                    update_docs=False)
 
 
 def _is_number(x):

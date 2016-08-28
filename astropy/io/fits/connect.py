@@ -219,6 +219,6 @@ def write_table_fits(input, output, overwrite=False):
 
     table_hdu.writeto(output)
 
-io_registry.register_reader('fits', Table, read_table_fits)
-io_registry.register_writer('fits', Table, write_table_fits)
+io_registry.register_reader('fits', Table, read_table_fits, update_docs=False)
+io_registry.register_writer('fits', Table, write_table_fits, update_docs=False)
 io_registry.register_identifier('fits', Table, is_fits)
