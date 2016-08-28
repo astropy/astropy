@@ -282,6 +282,8 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Transformations between coordinate systems can use the more accurate JPL ephemerides.
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
@@ -311,6 +313,8 @@ Bug Fixes
     subclass (such as ``Magnitude`` or ``Dex``). [#5345]
 
 - ``astropy.time``
+
+ - `light_travel_time` can now use more accurate JPL ephemerides.
 
 - ``astropy.units``
 

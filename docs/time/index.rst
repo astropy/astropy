@@ -928,6 +928,24 @@ the TDB timescale::
 
     >>> time_barycentre = times.tdb + ltt_bary
 
+By default, the light travel time is calculated using the position and velocity
+of Earth and the Sun from built-in `ERFA <https://github.com/liberfa/erfa>`_ routines,
+but one can also use more precise calculations using the JPL ephemerides (which are derived from
+dynamical models). An example using the JPL ephemerides is:
+
+    >>> ltt_bary_jpl = times.light_travel_time(ip_peg, ephemeris='jpl')
+
+The difference between the builtin ephemerides and the JPL ephemerides is normally
+of the order of 1/100th of a millisecond, so the builtin ephemerides should be suitable
+for most purposes. For more details about what ephemerides are available,
+see :ref:`astropy-coordinates-solarsystem`.
+
+.. note::
+   Using JPL ephemerides requires that the `jplephem
+   <https://pypi.python.org/pypi/jplephem>`_ package be installed. This is
+   most easily achieved via ``pip install jplephem``, although whatever
+   package management system you use might have it as well.
+
 Interaction with Time-like Quantities
 -------------------------------------
 
