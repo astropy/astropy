@@ -20,14 +20,17 @@ from .icrs import ICRS
 from .gcrs import GCRS
 from .cirs import CIRS
 from .hcrs import HCRS
-from .utils import get_jd12, aticq, atciqz
+from .utils import get_jd12, aticq, atciqz, get_cip, prepare_earth_position_vel
 
 
 # First the ICRS/CIRS related transforms
 @frame_transform_graph.transform(FunctionTransform, ICRS, CIRS)
 def icrs_to_cirs(icrs_coo, cirs_frame):
     # first set up the astrometry context for ICRS<->CIRS
-    astrom, eo = erfa.apci13(*get_jd12(cirs_frame.obstime, 'tdb'))
+    jd1, jd2 = get_jd12(cirs_frame.obstime, 'tdb')
+    x, y, s = get_cip(jd1, jd2)
+    earth_pv, earth_heliocentric = prepare_earth_position_vel(cirs_frame.obstime)
+    astrom = erfa.apci(jd1, jd2, earth_pv, earth_heliocentric, x, y, s)
 
     if icrs_coo.data.get_name() == 'unitspherical' or icrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just do the infinite-distance/no parallax calculation
@@ -70,7 +73,10 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
 
     # set up the astrometry context for ICRS<->cirs and then convert to
     # astrometric coordinate direction
-    astrom, eo = erfa.apci13(*get_jd12(cirs_coo.obstime, 'tdb'))
+    jd1, jd2 = get_jd12(cirs_coo.obstime, 'tdb')
+    x, y, s = get_cip(jd1, jd2)
+    earth_pv, earth_heliocentric = prepare_earth_position_vel(cirs_coo.obstime)
+    astrom = erfa.apci(jd1, jd2, earth_pv, earth_heliocentric, x, y, s)
     i_ra, i_dec = aticq(cirs_ra, cirs_dec, astrom)
 
     if cirs_coo.data.get_name() == 'unitspherical' or cirs_coo.data.to_cartesian().x.unit == u.one:
@@ -118,12 +124,16 @@ def cirs_to_cirs(from_coo, to_frame):
 
 @frame_transform_graph.transform(FunctionTransform, ICRS, GCRS)
 def icrs_to_gcrs(icrs_coo, gcrs_frame):
+
     # first set up the astrometry context for ICRS<->GCRS
     pv = np.array([gcrs_frame.obsgeoloc.value,
                    gcrs_frame.obsgeovel.value])
 
     jd1, jd2 = get_jd12(gcrs_frame.obstime, 'tdb')
-    astrom = erfa.apcs13(jd1, jd2, pv)
+    earth_pv, earth_heliocentric = prepare_earth_position_vel(gcrs_frame.obstime)
+
+    # get astrometry context
+    astrom = erfa.apcs(jd1, jd2, pv, earth_pv, earth_heliocentric)
 
     if icrs_coo.data.get_name() == 'unitspherical' or icrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just do the infinite-distance/no parallax calculation
@@ -168,7 +178,9 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
     pv = np.array([gcrs_coo.obsgeoloc.value,
                    gcrs_coo.obsgeovel.value])
     jd1, jd2 = get_jd12(gcrs_coo.obstime, 'tdb')
-    astrom = erfa.apcs13(jd1, jd2, pv)
+
+    earth_pv, earth_heliocentric = prepare_earth_position_vel(gcrs_coo.obstime)
+    astrom = erfa.apcs(jd1, jd2, pv, earth_pv, earth_heliocentric)
 
     i_ra, i_dec = aticq(gcrs_ra, gcrs_dec, astrom)
 
@@ -228,7 +240,8 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
                    gcrs_coo.obsgeovel.value])
 
     jd1, jd2 = get_jd12(hcrs_frame.obstime, 'tdb')
-    astrom = erfa.apcs13(jd1, jd2, pv)
+    earth_pv, earth_heliocentric = prepare_earth_position_vel(gcrs_coo.obstime)
+    astrom = erfa.apcs(jd1, jd2, pv, earth_pv, earth_heliocentric)
 
     i_ra, i_dec = aticq(gcrs_ra, gcrs_dec, astrom)
 
@@ -251,10 +264,10 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
                                               copy=False)
 
         newxyz = intermedrep.to_cartesian().xyz
-        # roll astrom['eh'] to the last axis and scale
-        eh = np.rollaxis(astrom['eh'], 0, astrom['eh'].ndim) * astrom['em'] * u.au
-        # roll astrom['eh'] back to the first axis
-        eh = np.rollaxis(eh, -1, 0)
+        # roll astrom['eh'] to the first axis and scale
+        eh = np.rollaxis(astrom['eh'], -1, 0) * astrom['em'] * u.au
+        # roll astrom['eh'] back to the last axis
+        eh = np.rollaxis(eh, 0, eh.ndim)
 
         # roll xyz to last axis and add the heliocentre position
         newxyz = np.rollaxis(newxyz, 0, newxyz.ndim) + eh
@@ -265,25 +278,43 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
     return hcrs_frame.realize_frame(newrep)
 
 
+_NEED_ORIGIN_HINT = ("The input {0} coordinates do not have length units. This "
+                     "probably means you created coordinates with lat/lon but "
+                     "no distance.  Heliocentric<->ICRS transforms cannot "
+                     "function in this case because there is an origin shift.")
+
+
 @frame_transform_graph.transform(FunctionTransform, HCRS, ICRS)
 def hcrs_to_icrs(hcrs_coo, icrs_frame):
-    jd1, jd2 = get_jd12(hcrs_coo.obstime, 'tdb')
-    earth_pv_helio, earth_pv_bary = erfa.epv00(jd1, jd2)
-    bary_sun_pos = earth_pv_bary[..., 0, :] - earth_pv_helio[..., 0, :]
-    sun_vector = u.Quantity(bary_sun_pos, u.au)
-    new_vector = np.rollaxis(hcrs_coo.cartesian.xyz, -1, 0) + sun_vector
-    newrep = CartesianRepresentation(np.rollaxis(new_vector, 0, new_vector.ndim))
+    # this is just an origin translation so without a distance it cannot go ahead
+    if hcrs_coo.data.__class__ == UnitSphericalRepresentation:
+        raise u.UnitsError(_NEED_ORIGIN_HINT.format(hcrs_coo.__class__.__name__))
+
+    # this goes here to avoid circular import errors
+    from ..solar_system import get_body_barycentric, solar_system_ephemeris
+
+    ephemeris = solar_system_ephemeris.get()
+    bary_sun_pos = get_body_barycentric('sun', hcrs_coo.obstime, ephemeris=ephemeris)
+    hcrs_cart = hcrs_coo.cartesian
+    newrep = CartesianRepresentation(hcrs_cart.x + bary_sun_pos.x, hcrs_cart.y + bary_sun_pos.y,
+                                     hcrs_cart.z + bary_sun_pos.z)
     return icrs_frame.realize_frame(newrep)
 
 
 @frame_transform_graph.transform(FunctionTransform, ICRS, HCRS)
 def icrs_to_hcrs(icrs_coo, hcrs_frame):
-    jd1, jd2 = get_jd12(hcrs_frame.obstime, 'tdb')
-    earth_pv_helio, earth_pv_bary = erfa.epv00(jd1, jd2)
-    bary_sun_pos = earth_pv_bary[..., 0, :] - earth_pv_helio[..., 0, :]
-    sun_vector = u.Quantity(bary_sun_pos, u.au)
-    new_vector = np.rollaxis(icrs_coo.cartesian.xyz, -1, 0) - sun_vector
-    newrep = CartesianRepresentation(np.rollaxis(new_vector, 0, new_vector.ndim))
+    # this is just an origin translation so without a distance it cannot go ahead
+    if icrs_coo.data.__class__ == UnitSphericalRepresentation:
+        raise u.UnitsError(_NEED_ORIGIN_HINT.format(icrs_coo.__class__.__name__))
+
+    # this goes here to avoid circular import errors
+    from ..solar_system import get_body_barycentric, solar_system_ephemeris
+
+    ephemeris = solar_system_ephemeris.get()
+    bary_sun_pos = get_body_barycentric('sun', hcrs_frame.obstime, ephemeris=ephemeris)
+    icrs_cart = icrs_coo.cartesian
+    newrep = CartesianRepresentation(icrs_cart.x - bary_sun_pos.x, icrs_cart.y - bary_sun_pos.y,
+                                     icrs_cart.z - bary_sun_pos.z)
     return hcrs_frame.realize_frame(newrep)
 
 
