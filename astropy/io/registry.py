@@ -170,7 +170,8 @@ def _update__doc__(data_class, readwrite):
         class_readwrite_func.__func__.__doc__ = '\n'.join(lines)
 
 
-def register_reader(data_format, data_class, function, force=False):
+def register_reader(data_format, data_class, function, force=False,
+                    update_docs=True):
     """
     Register a reader function.
 
@@ -194,10 +195,12 @@ def register_reader(data_format, data_class, function, force=False):
                               'already defined'.format(data_format,
                                                        data_class.__name__))
 
-    _update__doc__(data_class, 'read')
+    if update_docs:
+        _update__doc__(data_class, 'read')
 
 
-def register_writer(data_format, data_class, function, force=False):
+def register_writer(data_format, data_class, function, force=False,
+                    update_docs=True):
     """
     Register a table writer function.
 
@@ -221,7 +224,8 @@ def register_writer(data_format, data_class, function, force=False):
                               'already defined'.format(data_format,
                                                        data_class.__name__))
 
-    _update__doc__(data_class, 'write')
+    if update_docs:
+        _update__doc__(data_class, 'write')
 
 
 def register_identifier(data_format, data_class, identifier, force=False):

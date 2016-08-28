@@ -39,3 +39,8 @@ from ..io.fits import connect
 from ..io.misc import connect
 from ..io.votable import connect
 from . import jsviewer
+
+from ..io import registry
+
+registry._update__doc__(Table, 'read')
+registry._update__doc__(Table, 'write')
