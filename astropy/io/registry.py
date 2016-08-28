@@ -41,7 +41,7 @@ class IORegistryError(Exception):
     pass
 
 
-def get_formats(data_class=None):
+def get_formats(data_class=None, readwrite=None):
     """
     Get the list of registered I/O formats as a Table.
 
@@ -50,12 +50,17 @@ def get_formats(data_class=None):
     data_class : classobj
         Filter readers/writer to match data class (default = all classes)
 
+    readwrite : str or None
+        Search only for readers or writers. If None search for both.
+        Default is None.
+
     Returns
     -------
     format_table: Table
         Table of available I/O formats
     """
     from ..table import Table
+
     format_classes = sorted(set(_readers) | set(_writers), key=itemgetter(0))
     rows = []
 
@@ -76,6 +81,15 @@ def get_formats(data_class=None):
 
         rows.append((format_class[1].__name__, format_class[0], has_read,
                      has_write, has_identify, deprecated))
+
+    if readwrite is not None:
+        if readwrite == 'Read':
+            rows = [row for row in rows if row[2] == 'Yes']
+        elif readwrite == 'Write':
+            rows = [row for row in rows if row[3] == 'Yes']
+        else:
+            raise ValueError('unrecognized value for "readwrite": {0}.\n'
+                             'Allowed are "Read" and "Write".')
 
     # Sorting the list of tuples is much faster than sorting it after the table
     # is created. (#5262)
@@ -119,14 +133,15 @@ def _update__doc__(data_class, readwrite):
 
     # Find the minimum indent, skipping the first line because it might be odd
     matches = [re.search('(\S)', line) for line in lines[1:]]
-    left_indent = min(match.start() for match in matches if match)
+    left_indent = ' ' * min(match.start() for match in matches if match)
 
     # Get the available unified I/O formats for this class
-    format_table = get_formats(data_class)
+    format_table = get_formats(data_class, readwrite.capitalize())
 
     # Include only formats that have a reader, and drop the 'Data class' column
-    has_readwrite = format_table[readwrite.capitalize()] == 'Yes'
-    format_table = format_table[has_readwrite]
+    #has_readwrite = format_table[readwrite.capitalize()] == 'Yes'
+    #print(has_readwrite)
+    #format_table = format_table[has_readwrite]
     format_table.remove_column('Data class')
 
     # Get the available formats as a table, then munge the output of pformat()
@@ -145,7 +160,7 @@ def _update__doc__(data_class, readwrite):
                           'name (e.g. ``ascii.aastex``) instead.'])
 
     new_lines = [FORMATS_TEXT, ''] + new_lines
-    lines.extend([' ' * left_indent + line for line in new_lines])
+    lines.extend([left_indent + line for line in new_lines])
 
     # Depending on Python version and whether class_readwrite_func is
     # an instancemethod or classmethod, one of the following will work.
@@ -414,9 +429,14 @@ def _is_best_match(class1, class2, format_classes):
       - OR class1 is a subclass of class2 and class1 is not in classes.
         In this case the subclass will use the parent reader/writer.
     """
-    classes = [cls for fmt, cls in format_classes]
-    is_best_match = ((class1 is class2) or (issubclass(class1, class2) and
-                                            class1 not in classes))
+    # Short-circuit if both classes are identical
+    if class1 is class2:
+        return True
+
+    # Set so a subsequent check for "in" or "not in" is faster and we don't
+    # need to keep duplicates.
+    classes = {cls for fmt, cls in format_classes}
+    is_best_match = (issubclass(class1, class2) and class1 not in classes)
     return is_best_match
 
 
