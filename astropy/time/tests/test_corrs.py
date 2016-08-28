@@ -1,7 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from ... import units as u
-from ...coordinates import EarthLocation, SkyCoord
+from ...coordinates import EarthLocation, SkyCoord, solar_system_ephemeris
 from .. import Time, TimeDelta
+from ...tests.helper import (pytest, remote_data)
+
+try:
+    import jplephem  # pylint: disable=W0611
+except ImportError:
+    HAS_JPLEPHEM = False
+else:
+    HAS_JPLEPHEM = True
 
 
 class TestHelioBaryCentric():
@@ -44,3 +52,13 @@ class TestHelioBaryCentric():
         assert hval_arr[1]-hval2 < 1. * u.us
         assert bval_arr[0]-bval1 < 1. * u.us
         assert bval_arr[1]-bval2 < 1. * u.us
+
+    @remote_data
+    @pytest.mark.skipif('not HAS_JPLEPHEM')
+    def test_ephemerides(self):
+        bval1 = self.obstime.light_travel_time(self.star, 'barycentric')
+        with solar_system_ephemeris.set('jpl'):
+            bval2 = self.obstime.light_travel_time(self.star, 'barycentric', ephemeris='jpl')
+        # should differ by less than 0.1 ms, but not be the same
+        assert abs(bval1 - bval2) < 1. * u.ms
+        assert abs(bval1 - bval2) > 1. * u.us

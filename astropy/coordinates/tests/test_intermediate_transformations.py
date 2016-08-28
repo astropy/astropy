@@ -8,19 +8,27 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 
 from ... import units as u
-from ...tests.helper import (pytest,
+from ...tests.helper import (pytest, remote_data,
                              quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
 from ...time import Time
 from .. import (EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz,
                 PrecessedGeocentric, CartesianRepresentation, SkyCoord,
-                SphericalRepresentation)
+                SphericalRepresentation, HCRS, HeliocentricTrueEcliptic)
 
 
 from ..._erfa import epv00
 
 from .utils import randomly_sample_sphere
 from ..builtin_frames.utils import get_jd12
+from .. import solar_system_ephemeris
+
+try:
+    import jplephem  # pylint: disable=W0611
+except ImportError:
+    HAS_JPLEPHEM = False
+else:
+    HAS_JPLEPHEM = True
 
 
 def test_icrs_cirs():
@@ -451,3 +459,45 @@ def test_gcrs_self_transform_closeby():
     transformed = moon_geocentric.transform_to(moon_lapalma.frame)
     delta = transformed.separation_3d(moon_lapalma)
     assert_allclose(delta, 0.0*u.m, atol=1*u.m)
+
+
+@remote_data
+@pytest.mark.skipif('not HAS_JPLEPHEM')
+def test_ephemerides():
+    """
+    We test that using different ephemerides gives very similar results
+    for transformations
+    """
+    t = Time("2014-12-25T07:00")
+    moon = SkyCoord(GCRS(318.10579159*u.deg,
+                         -11.65281165*u.deg,
+                         365042.64880308*u.km, obstime=t))
+
+    icrs_frame = ICRS()
+    hcrs_frame = HCRS(obstime=t)
+    ecl_frame = HeliocentricTrueEcliptic(equinox=t)
+    cirs_frame = CIRS(obstime=t)
+
+    moon_icrs_builtin = moon.transform_to(icrs_frame)
+    moon_hcrs_builtin = moon.transform_to(hcrs_frame)
+    moon_helioecl_builtin = moon.transform_to(ecl_frame)
+    moon_cirs_builtin = moon.transform_to(cirs_frame)
+
+    with solar_system_ephemeris.set('jpl'):
+        moon_icrs_jpl = moon.transform_to(icrs_frame)
+        moon_hcrs_jpl = moon.transform_to(hcrs_frame)
+        moon_helioecl_jpl = moon.transform_to(ecl_frame)
+        moon_cirs_jpl = moon.transform_to(cirs_frame)
+
+    # most transformations should differ by an amount which is
+    # non-zero but of order milliarcsecs
+    sep_icrs = moon_icrs_builtin.separation(moon_icrs_jpl)
+    sep_hcrs = moon_hcrs_builtin.separation(moon_hcrs_jpl)
+    sep_helioecl = moon_helioecl_builtin.separation(moon_helioecl_jpl)
+    sep_cirs = moon_cirs_builtin.separation(moon_cirs_jpl)
+
+    assert_allclose([sep_icrs, sep_hcrs, sep_helioecl], 0.0*u.deg, atol=10*u.mas)
+    assert all(sep > 10*u.microarcsecond for sep in (sep_icrs, sep_hcrs, sep_helioecl))
+
+    # CIRS should be the same
+    assert_allclose(sep_cirs, 0.0*u.deg, atol=1*u.microarcsecond)
