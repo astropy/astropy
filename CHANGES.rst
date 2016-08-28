@@ -210,6 +210,8 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Transformations between coordinate systems can use the more accurate JPL ephemerides.
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
@@ -235,6 +237,8 @@ Bug Fixes
 - ``astropy.table``
 
 - ``astropy.time``
+
+ - `light_travel_time` can now use more accurate JPL ephemerides.
 
 - ``astropy.units``
 
