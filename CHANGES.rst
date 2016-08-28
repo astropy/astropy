@@ -314,7 +314,7 @@ Bug Fixes
 
 - ``astropy.time``
 
- - `light_travel_time` can now use more accurate JPL ephemerides.
+ - ``light_travel_time`` can now use more accurate JPL ephemerides.
 
 - ``astropy.units``
 
