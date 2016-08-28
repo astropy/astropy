@@ -933,7 +933,9 @@ of Earth and the Sun from built-in `ERFA <https://github.com/liberfa/erfa>`_ rou
 but one can also use more precise calculations using the JPL ephemerides (which are derived from
 dynamical models). An example using the JPL ephemerides is:
 
-    >>> ltt_bary_jpl = times.light_travel_time(ip_peg, ephemeris='jpl')
+.. doctest-requires:: jplephem
+
+    >>> ltt_bary_jpl = times.light_travel_time(ip_peg, ephemeris='jpl') # doctest: +REMOTE_DATA +IGNORE_OUTPUT
 
 The difference between the builtin ephemerides and the JPL ephemerides is normally
 of the order of 1/100th of a millisecond, so the builtin ephemerides should be suitable
