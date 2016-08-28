@@ -134,6 +134,17 @@ class QuantityInfo(ParentDtypeInfo):
     def default_format(val):
         return '{0.value:}'.format(val)
 
+    @staticmethod
+    def possible_string_format_functions(format_):
+        """Iterate through possible string-derived format functions.
+
+        A string can either be a format specifier for the format built-in,
+        a new-style format string, or an old-style format string.
+        """
+        yield lambda format_, val: format(val.value, format_)
+        yield lambda format_, val: format_.format(val.value)
+        yield lambda format_, val: format_ % val.value
+
 
 @six.add_metaclass(InheritDocstrings)
 class Quantity(np.ndarray):
