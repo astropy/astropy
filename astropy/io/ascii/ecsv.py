@@ -170,7 +170,7 @@ class Ecsv(basic.Basic):
 
       # %ECSV 0.9
       # ---
-      # columns:
+      # datatype:
       # - {name: a, unit: m / s, type: int64, format: '%03d'}
       # - {name: b, unit: km, type: int64, description: This is column b}
       a b
