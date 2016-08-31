@@ -6,7 +6,8 @@ from __future__ import (absolute_import, unicode_literals, division,
 from ... import units as u
 from ..representation import SphericalRepresentation
 from ..baseframe import (BaseCoordinateFrame, RepresentationMapping,
-                         TimeFrameAttribute, QuantityFrameAttribute)
+                         TimeFrameAttribute,
+                         CartesianRepresentationFrameAttribute)
 from .utils import DEFAULT_OBSTIME, EQUINOX_J2000
 
 
@@ -32,15 +33,17 @@ class GCRS(BaseCoordinateFrame):
         The time at which the observation is taken.  Used for determining the
         position of the Earth.
     * ``obsgeoloc``
-        Vector giving the position of the observer relative to the
-        center-of-mass of the Earth, oriented the same as BCRS/ICRS.
-        The leading dimension of this vector needs to be 3.
-        Defaults to 0,  meaning "true" GCRS.
+        The position of the observer relative to the center-of-mass of the
+        Earth, oriented the same as BCRS/ICRS. Either [0, 0, 0],
+        `~astropy.coordinates.CartesianRepresentation`, or proper input for one,
+        i.e., a `~astropy.units.Quantity` with shape (3, ...) and length units.
+        Defaults to [0, 0, 0], meaning "true" GCRS.
     * ``obsgeovel``
-        Vector giving the velocity of the observer relative to the
-        center-of-mass of the Earth, oriented the same as BCRS/ICRS.
-        The leading dimension of this vector needs to be 3.
-        Defaults to 0, meaning "true" GCRS.
+        The velocity of the observer relative to the center-of-mass of the
+        Earth, oriented the same as BCRS/ICRS. Either [0, 0, 0],
+        `~astropy.coordinates.CartesianRepresentation`, or proper input for one,
+        i.e., a `~astropy.units.Quantity` with shape (3, ...) and velocity
+        units.  Defaults to [0, 0, 0], meaning "true" GCRS.
 
     Parameters
     ----------
@@ -70,8 +73,10 @@ class GCRS(BaseCoordinateFrame):
     default_representation = SphericalRepresentation
 
     obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
-    obsgeoloc = QuantityFrameAttribute(default=0, unit=u.m, shape=(3,))
-    obsgeovel = QuantityFrameAttribute(default=0, unit=u.m/u.s, shape=(3,))
+    obsgeoloc = CartesianRepresentationFrameAttribute(default=[0, 0, 0],
+                                                      unit=u.m)
+    obsgeovel = CartesianRepresentationFrameAttribute(default=[0, 0, 0],
+                                                      unit=u.m/u.s)
 
 # The "self-transform" is defined in icrs_cirs_transformations.py, because in
 # the current implementation it goes through ICRS (like CIRS)
@@ -93,13 +98,15 @@ class PrecessedGeocentric(BaseCoordinateFrame):
         The time at which the observation is taken.  Used for determining the
         position of the Earth.
     * ``obsgeoloc``
-        3-vector giving the position of the observer relative to the
-        center-of-mass of the Earth, oriented the same as BCRS/ICRS.
-        Defaults to 0,  meaning "true" GCRS.
+        The position of the observer relative to the center-of-mass of the Earth,
+        oriented the same as BCRS/ICRS. Either [0, 0, 0], `~astropy.coordinates.CartesianRepresentation`,
+        or proper input for one, i.e., a `~astropy.units.Quantity` with shape (3, ...) and length units.
+        Defaults to [0, 0, 0], meaning "true" Geocentric.
     * ``obsgeovel``
-        3-vector giving the velocity of the observer relative to the
-        center-of-mass of the Earth, oriented the same as BCRS/ICRS.
-        Defaults to 0, meaning "true" GCRS.
+        The velocity of the observer relative to the center-of-mass of the Earth,
+        oriented the same as BCRS/ICRS. Either 0, `~astropy.coordinates.CartesianRepresentation`,
+        or proper input for one, i.e., a `~astropy.units.Quantity` with shape (3, ...) and velocity units.
+        Defaults to [0, 0, 0], meaning "true" Geocentric.
 
     Parameters
     ----------
@@ -130,5 +137,5 @@ class PrecessedGeocentric(BaseCoordinateFrame):
 
     equinox = TimeFrameAttribute(default=EQUINOX_J2000)
     obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
-    obsgeoloc = QuantityFrameAttribute(default=0, unit=u.m, shape=(3,))
-    obsgeovel = QuantityFrameAttribute(default=0, unit=u.m/u.s, shape=(3,))
+    obsgeoloc = CartesianRepresentationFrameAttribute(default=[0, 0, 0], unit=u.m)
+    obsgeovel = CartesianRepresentationFrameAttribute(default=[0, 0, 0], unit=u.m/u.s)
