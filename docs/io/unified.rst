@@ -236,10 +236,10 @@ HDF5
 ^^^^^^^^
 
 .. _HDF5: http://www.hdfgroup.org/HDF5/
-.. _H5PY: http://www.h5py.org/
+.. _h5py: http://www.h5py.org/
 
 Reading/writing from/to HDF5_ files is
-supported with ``format='hdf5'`` (this requires H5PY_
+supported with ``format='hdf5'`` (this requires h5py_
 to be installed). However, the ``.hdf5``
 file extension is automatically recognized when writing files, and HDF5 files
 are automatically identified (even with a different extension) when reading
