@@ -82,7 +82,10 @@ class TestManipulation():
         assert np.all(s2_ravel.obstime == self.s2.obstime.ravel())
         assert not np.may_share_memory(s2_ravel.obstime.jd1,
                                        self.s2.obstime.jd1)
-        assert np.all(s2_ravel.obsgeoloc == self.s2.obsgeoloc.ravel())
+        # TODO: right now, we cannot compare CartesianRepresentation instances,
+        # so instead we compare the xyz quantities.  This can be made a direct
+        # comparison once CartesianRepresentation.__eq__ is implemented.
+        assert np.all(s2_ravel.obsgeoloc.xyz == self.s2.obsgeoloc.ravel().xyz)
         assert not np.may_share_memory(s2_ravel.obsgeoloc.x,
                                        self.s2.obsgeoloc.x)
         s3_ravel = self.s3.ravel()
@@ -90,7 +93,7 @@ class TestManipulation():
         assert np.all(s3_ravel.obstime == self.s3.obstime.ravel())
         assert not np.may_share_memory(s3_ravel.obstime.jd1,
                                        self.s3.obstime.jd1)
-        assert np.all(s3_ravel.obsgeoloc == self.s3.obsgeoloc.ravel())
+        assert np.all(s3_ravel.obsgeoloc.xyz == self.s3.obsgeoloc.ravel().xyz)
         assert not np.may_share_memory(s3_ravel.obsgeoloc.x,
                                        self.s3.obsgeoloc.x)
         sc_ravel = self.sc.ravel()
@@ -100,7 +103,7 @@ class TestManipulation():
         assert np.all(sc_ravel.obstime == self.sc.obstime.ravel())
         assert not np.may_share_memory(sc_ravel.obstime.jd1,
                                        self.sc.obstime.jd1)
-        assert np.all(sc_ravel.obsgeoloc == self.sc.obsgeoloc.ravel())
+        assert np.all(sc_ravel.obsgeoloc.xyz == self.sc.obsgeoloc.ravel().xyz)
         assert not np.may_share_memory(sc_ravel.obsgeoloc.x,
                                        self.sc.obsgeoloc.x)
 
@@ -215,15 +218,15 @@ class TestManipulation():
         assert np.may_share_memory(s2_reshape.data.lat, self.s2.data.lat)
         assert np.all(s2_reshape.obstime == self.s2.obstime.reshape(3, 2, 7))
         assert np.may_share_memory(s2_reshape.obstime.jd1, self.s2.obstime.jd1)
-        assert np.all(s2_reshape.obsgeoloc ==
-                      self.s2.obsgeoloc.reshape(3, 2, 7))
+        assert np.all(s2_reshape.obsgeoloc.xyz ==
+                      self.s2.obsgeoloc.reshape(3, 2, 7).xyz)
         assert np.may_share_memory(s2_reshape.obsgeoloc.x, self.s2.obsgeoloc.x)
         s3_reshape = self.s3.reshape(3, 2, 7)
         assert s3_reshape.shape == (3, 2, 7)
         assert np.all(s3_reshape.obstime == self.s3.obstime.reshape(3, 2, 7))
         assert np.may_share_memory(s3_reshape.obstime.jd1, self.s3.obstime.jd1)
-        assert np.all(s3_reshape.obsgeoloc ==
-                      self.s3.obsgeoloc.reshape(3, 2, 7))
+        assert np.all(s3_reshape.obsgeoloc.xyz ==
+                      self.s3.obsgeoloc.reshape(3, 2, 7).xyz)
         assert np.may_share_memory(s3_reshape.obsgeoloc.x, self.s3.obsgeoloc.x)
         sc_reshape = self.sc.reshape(3, 2, 7)
         assert sc_reshape.shape == (3, 2, 7)
@@ -231,8 +234,8 @@ class TestManipulation():
         assert np.may_share_memory(sc_reshape.data.lat, self.sc.data.lat)
         assert np.all(sc_reshape.obstime == self.sc.obstime.reshape(3, 2, 7))
         assert np.may_share_memory(sc_reshape.obstime.jd1, self.sc.obstime.jd1)
-        assert np.all(sc_reshape.obsgeoloc ==
-                      self.sc.obsgeoloc.reshape(3, 2, 7))
+        assert np.all(sc_reshape.obsgeoloc.xyz ==
+                      self.sc.obsgeoloc.reshape(3, 2, 7).xyz)
         assert np.may_share_memory(sc_reshape.obsgeoloc.x, self.sc.obsgeoloc.x)
         # For reshape(3, 14), the arrays all need to be copied.
         sc_reshape2 = self.sc.reshape(3, 14)
@@ -243,7 +246,8 @@ class TestManipulation():
         assert np.all(sc_reshape2.obstime == self.sc.obstime.reshape(3, 14))
         assert not np.may_share_memory(sc_reshape2.obstime.jd1,
                                        self.sc.obstime.jd1)
-        assert np.all(sc_reshape2.obsgeoloc == self.sc.obsgeoloc.reshape(3, 14))
+        assert np.all(sc_reshape2.obsgeoloc.xyz ==
+                      self.sc.obsgeoloc.reshape(3, 14).xyz)
         assert not np.may_share_memory(sc_reshape2.obsgeoloc.x,
                                        self.sc.obsgeoloc.x)
 
