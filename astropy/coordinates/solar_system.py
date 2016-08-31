@@ -173,7 +173,8 @@ def _get_kernel(value):
     return SPK.open(download_file(value, cache=True))
 
 
-def get_body_barycentric(body, time, ephemeris=None, get_velocity=False):
+def _get_body_barycentric_posvel(body, time, ephemeris=None,
+                                 get_velocity=True):
     """Calculate the barycentric position (and velocity) of a solar system body.
 
     Parameters
@@ -189,9 +190,6 @@ def get_body_barycentric(body, time, ephemeris=None, get_velocity=False):
         ``astropy.coordinates.solar_system_ephemeris.set``
     get_velocity : bool, optional
         Whether or not to calculate the velocity as well as the position.
-        Note that no velocity can be calculated with the built-in ephemeris for
-        the Moon, and that the execution time for most JPL ephemeris files
-        roughly doubles if the velocities are calculated as well.
 
     Returns
     -------
@@ -200,6 +198,11 @@ def get_body_barycentric(body, time, ephemeris=None, get_velocity=False):
 
     Notes
     -----
+    No velocity can be calculated with the built-in ephemeris for the Moon.
+
+    Whether or not velocities are calculated makes little difference for the
+    built-in ephemerides, but for most JPL ephemeris files, the execution time
+    roughly doubles.
     """
 
     if ephemeris is None:
@@ -296,6 +299,75 @@ def get_body_barycentric(body, time, ephemeris=None, get_velocity=False):
         return body_pos_bary, body_vel_bary
     else:
         return body_pos_bary
+
+def get_body_barycentric_posvel(body, time, ephemeris=None):
+    """Calculate the barycentric position and velocity of a solar system body.
+
+    Parameters
+    ----------
+    body : str or other
+        The solar system body for which to calculate positions.  Can also be a
+        kernel specifier (list of 2-tuples) if the ``ephemeris`` is a JPL
+        kernel.
+    time : `~astropy.time.Time`
+        Time of observation.
+    ephemeris : str, optional
+        Ephemeris to use.  By default, use the one set with
+        ``astropy.coordinates.solar_system_ephemeris.set``
+
+    Returns
+    -------
+    position, velocity : tuple of `~astropy.coordinates.CartesianRepresentation`
+        Tuple of barycentric (ICRS) position and velocity.
+
+    See also
+    --------
+    get_body_barycentric : to calculate position only.
+        This is faster by about a factor two for JPL kernels, but has no
+        speed advantage for the built-in ephemeris.
+
+    Notes
+    -----
+    The velocity cannot be calculated for the Moon.  To just get the position,
+    use :func:`~astropy.coordinates.get_body_barycentric`.
+
+    """
+    return _get_body_barycentric_posvel(body, time, ephemeris)
+
+
+get_body_barycentric_posvel.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
+
+
+def get_body_barycentric(body, time, ephemeris=None):
+    """Calculate the barycentric position of a solar system body.
+
+    Parameters
+    ----------
+    body : str or other
+        The solar system body for which to calculate positions.  Can also be a
+        kernel specifier (list of 2-tuples) if the ``ephemeris`` is a JPL
+        kernel.
+    time : `~astropy.time.Time`
+        Time of observation.
+    ephemeris : str, optional
+        Ephemeris to use.  By default, use the one set with
+        ``astropy.coordinates.solar_system_ephemeris.set``
+
+    Returns
+    -------
+    position : `~astropy.coordinates.CartesianRepresentation`
+        Barycentric (ICRS) position of the body in cartesian coordinates
+
+    See also
+    --------
+    get_body_barycentric_posvel : to calculate both position and velocity.
+
+    Notes
+    -----
+    """
+    return _get_body_barycentric_posvel(body, time, ephemeris,
+                                        get_velocity=False)
+
 
 get_body_barycentric.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
 
