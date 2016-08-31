@@ -11,7 +11,7 @@ from ..earth import EarthLocation
 from ..sky_coordinate import SkyCoord
 from ..solar_system import (get_body, get_moon, BODY_NAME_TO_KERNEL_SPEC,
                             _apparent_position_in_true_coordinates,
-                            get_body_barycentric)
+                            get_body_barycentric, get_body_barycentric_posvel)
 from ..funcs import get_sun
 from ...tests.helper import (pytest, remote_data, assert_quantity_allclose,
                              quantity_allclose)
@@ -307,10 +307,16 @@ def test_get_moon_nonscalar_regression():
     get_moon(times, ephemeris='builtin')
 
 
+def test_barycentric_pos_posvel_same():
+    # Check that the two routines give identical results.
+    ep1 = get_body_barycentric('earth', Time('2016-03-20T12:30:00'))
+    ep2, _ = get_body_barycentric_posvel('earth', Time('2016-03-20T12:30:00'))
+    assert np.all(ep1.xyz == ep2.xyz)
+
+
 def test_earth_barycentric_velocity_rough():
     # Check that a time near the equinox gives roughly the right result.
-    ep, ev = get_body_barycentric('earth', Time('2016-03-20T12:30:00'),
-                                  get_velocity=True)
+    ep, ev = get_body_barycentric_posvel('earth', Time('2016-03-20T12:30:00'))
     assert_quantity_allclose(ep.xyz, [-1., 0., 0.]*u.AU, atol=0.01*u.AU)
     expected = u.Quantity([0.*u.one,
                            np.cos(23.5*u.deg),
@@ -321,7 +327,7 @@ def test_earth_barycentric_velocity_rough():
 def test_earth_barycentric_velocity_multi_d():
     # Might as well test it with a multidimensional array too.
     t = Time('2016-03-20T12:30:00') + np.arange(8.).reshape(2,2,2) * u.yr / 2.
-    ep, ev = get_body_barycentric('earth', t, get_velocity=True)
+    ep, ev = get_body_barycentric_posvel('earth', t)
     # note: assert_quantity_allclose doesn't like the shape mismatch.
     # this is a problem with np.testing.assert_allclose.
     assert quantity_allclose(np.rollaxis(ep.xyz, 0, ep.xyz.ndim),
@@ -344,17 +350,13 @@ def test_barycentric_velocity_consistency(body, pos_tol, vel_tol):
     # Tolerances are about 1.5 times the rms listed for plan94 and epv00,
     # except for Mercury (which nominally is 334 km rms)
     t = Time('2016-03-20T12:30:00')
-    ep, ev = get_body_barycentric(body, t, ephemeris='builtin',
-                                  get_velocity=True)
-    dp, dv = get_body_barycentric(body, t, ephemeris='de432s',
-                                  get_velocity=True)
+    ep, ev = get_body_barycentric_posvel(body, t, ephemeris='builtin')
+    dp, dv = get_body_barycentric_posvel(body, t, ephemeris='de432s')
     assert_quantity_allclose(ep.xyz, dp.xyz, atol=pos_tol)
     assert_quantity_allclose(ev.xyz, dv.xyz, atol=vel_tol)
     # Might as well test it with a multidimensional array too.
     t = Time('2016-03-20T12:30:00') + np.arange(8.).reshape(2,2,2) * u.yr / 2.
-    ep, ev = get_body_barycentric(body, t, ephemeris='builtin',
-                                  get_velocity=True)
-    dp, dv = get_body_barycentric(body, t, ephemeris='de432s',
-                                  get_velocity=True)
+    ep, ev = get_body_barycentric_posvel(body, t, ephemeris='builtin')
+    dp, dv = get_body_barycentric_posvel(body, t, ephemeris='de432s')
     assert_quantity_allclose(ep.xyz, dp.xyz, atol=pos_tol)
     assert_quantity_allclose(ev.xyz, dv.xyz, atol=vel_tol)
