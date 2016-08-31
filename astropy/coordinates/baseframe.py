@@ -207,34 +207,6 @@ class FrameAttribute(OrderedDescriptor):
         """
         return value, False
 
-    def broadcast_to(self, value, shape):
-        """Broadcast to the desired shape.
-
-        Subclasses that are able to broadcast values to a given shape should
-        override this.  The base method simply raises an exception.
-
-        Parameters
-        ----------
-        value : object
-            Input value to be broadcast
-        shape : tuple
-            The shape of the desired object.
-
-        Returns
-        -------
-        broadcast : object
-            A new instance with a broadcast view of the internal data.
-
-        Raises
-        ------
-        `ValueError`
-            If broadcasting is not possible at all, or if the object cannot be
-            broadcast to the desired shape.
-        """
-        raise ValueError("attribute {0} should be scalar or have shape {1}, "
-                         "but it has shape {1} and could not be broadcast."
-                         .format(self.name, shape, value.shape))
-
     def __get__(self, instance, frame_cls=None):
         if instance is None:
             out = self.default
@@ -248,7 +220,20 @@ class FrameAttribute(OrderedDescriptor):
             instance_shape = getattr(instance, 'shape', None)
             if instance_shape is not None and (getattr(out, 'size', 1) > 1 and
                                                out.shape != instance_shape):
-                out = self.broadcast_to(out, instance_shape)
+                # If the shapes do not match, try broadcasting.
+                try:
+                    if isinstance(out, ShapedLikeNDArray):
+                        out = out._apply(np_broadcast_to, shape=instance_shape,
+                                         subok=True)
+                    else:
+                        out = np_broadcast_to(out, instance_shape, subok=True)
+                except ValueError:
+                    # raise more informative exception.
+                    raise ValueError(
+                        "attribute {0} should be scalar or have shape {1}, "
+                        "but is has shape {2} and could not be broadcast."
+                        .format(self.name, instance_shape, out.shape))
+
                 converted = True
 
             if converted:
@@ -316,31 +301,6 @@ class TimeFrameAttribute(FrameAttribute):
 
         return out, converted
 
-    def broadcast_to(self, value, shape):
-        """Broadcast to the desired shape.
-
-        Parameters
-        ----------
-        value : object
-            Input value to be broadcast
-        shape : tuple
-            The shape of the desired object.
-
-        Returns
-        -------
-        broadcast : object
-            A new instance with a broadcast view of the internal data.
-
-        Raises
-        ------
-        `ValueError`
-            If the object cannot be broadcast to the desired shape.
-        """
-        try:
-            return value._apply(np_broadcast_to, shape=shape, subok=True)
-        except:  # raise more informative exception.
-            super(TimeFrameAttribute, self).broadcast_to(value, shape)
-
 
 class CartesianRepresentationFrameAttribute(FrameAttribute):
     """
@@ -403,32 +363,6 @@ class CartesianRepresentationFrameAttribute(FrameAttribute):
             cartrep = CartesianRepresentation(value, copy=False)
             return cartrep, converted
 
-    def broadcast_to(self, value, shape):
-        """Broadcast to the desired shape.
-
-        Parameters
-        ----------
-        value : object
-            Input value to be broadcast
-        shape : tuple
-            The shape of the desired object.
-
-        Returns
-        -------
-        broadcast : object
-            A new instance with a broadcast view of the internal data.
-
-        Raises
-        ------
-        `ValueError`
-            If the object cannot be broadcast to the desired shape.
-        """
-        try:
-            return value._apply(np_broadcast_to, shape=shape, subok=True)
-        except:  # raise more informative exception.
-            super(CartesianRepresentationFrameAttribute,
-                  self).broadcast_to(value, shape)
-
 
 class QuantityFrameAttribute(FrameAttribute):
     """
@@ -489,31 +423,6 @@ class QuantityFrameAttribute(FrameAttribute):
             converted = oldvalue is not value
             return value, converted
 
-    def broadcast_to(self, value, shape):
-        """Broadcast to the desired shape.
-
-        Parameters
-        ----------
-        value : object
-            Input value to be broadcast
-        shape : tuple
-            The shape of the desired object.
-
-        Returns
-        -------
-        broadcast : object
-            A new instance with a broadcast view of the internal data.
-
-        Raises
-        ------
-        `ValueError`
-            If the object cannot be broadcast to the desired shape.
-        """
-        try:
-            return np_broadcast_to(value, shape, subok=True)
-        except:  # raise more informative exception.
-            super(QuantityFrameAttribute, self).broadcast_to(value, shape)
-
 
 class EarthLocationAttribute(FrameAttribute):
     """
@@ -566,31 +475,6 @@ class EarthLocationAttribute(FrameAttribute):
                                  '"transform_to" method'.format(value))
             itrsobj = value.transform_to(ITRS)
             return itrsobj.earth_location, True
-
-    def broadcast_to(self, value, shape):
-        """Broadcast to the desired shape.
-
-        Parameters
-        ----------
-        value : object
-            Input value to be broadcast
-        shape : tuple
-            The shape of the desired object.
-
-        Returns
-        -------
-        broadcast : object
-            A new instance with a broadcast view of the internal data.
-
-        Raises
-        ------
-        `ValueError`
-            If the object cannot be broadcast to the desired shape.
-        """
-        try:
-            return np_broadcast_to(value, shape, subok=True)
-        except:  # raise more informative exception.
-            super(EarthLocationAttribute, self).broadcast_to(value, shape)
 
 
 class CoordinateAttribute(FrameAttribute):
@@ -1230,23 +1114,39 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                           for attrnm in self.get_frame_attr_names()])
 
     def _apply(self, method, *args, **kwargs):
-        """Create a new coordinate object, applying a method to the arrays.
+        """Create a new instance, applying a method to the underlying data.
+
+        In typical usage, the method is any of the shape-changing methods for
+        `~numpy.ndarray` (``reshape``, ``swapaxes``, etc.), as well as those
+        picking particular elements (``__getitem__``, ``take``, etc.), which
+        are all defined in `~astropy.utils.misc.ShapedLikeNDArray`. It will be
+        applied to the underlying arrays in the representation (e.g., ``x``,
+        ``y``, and ``z`` for `~astropy.coordinates.CartesianRepresentation`),
+        as well as to any frame attributes that have a shape, with the results
+        used to create a new instance.
+
+        Internally, it is also used to apply functions to the above parts
+        (in particular, `~numpy.broadcast_to`).
 
         Parameters
         ----------
-        method : str
-            The name of a relevant `~numpy.ndarray` method, which will be
-            applied to the internal data as well as any frame attributes
-            if those are array-like.
-            Examples: 'copy', '__getitem__', 'reshape'.
+        method : str or callable
+            If str, it is the name of a method that is applied to the internal
+            ``components``. If callable, the function is applied.
         args : tuple
             Any positional arguments for ``method``.
         kwargs : dict
-            Any keyword arguments for ``method``.  If the ``format`` keyword
-            argument is present, this will be used as the Time format of the
-            replica.
+            Any keyword arguments for ``method``.
         """
-        apply_method = operator.methodcaller(method, *args, **kwargs)
+        def apply_method(value):
+            if isinstance(value, ShapedLikeNDArray):
+                return value._apply(method, *args, **kwargs)
+            else:
+                if callable(method):
+                    return method(value, *args, **kwargs)
+                else:
+                    return getattr(value, method)(*args, **kwargs)
+
 
         data = apply_method(self.data) if self.has_data else None
 
