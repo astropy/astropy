@@ -221,26 +221,6 @@ class BaseRepresentation(ShapedLikeNDArray):
                            for component in self.components]))
         return unitstr
 
-    def __eq__(self, other):
-        """
-        Check for equality with another representation.
-        """
-        try:
-            # this ensures that other can be compared sensibly to self.
-            # note that it immediately returns if the classes are the same.
-            other = other.represent_as(self.__class__)
-        except Exception:
-            return False
-
-        # Ensure we return a bool or array of bool as appropriate.
-        return functools.reduce(np.logical_and,
-                                (getattr(self, component) ==
-                                 getattr(other, component)
-                                 for component in self.components))
-
-    def __ne__(self, other):
-        return np.logical_not(self.__eq__(other))
-
     def __str__(self):
         return '{0} {1:s}'.format(self._values, self._unitstr)
 
