@@ -1159,16 +1159,22 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
 
     Notes
     -----
-    Requires `scipy`. This implementation will cause Overflow Errors for
-    about N > 100 (the exact limit depends on details of how scipy was
-    compiled).  See `~astropy.stats.mpmath_poisson_upper_limit` for an
-    implementation that is slower, but can deal with arbitrarily high
+    Requires `scipy` greater or equal than 0.14.0. This implementation will
+    cause Overflow Errors for about N > 100 (the exact limit depends on
+    details of how scipy was compiled).  See `~astropy.stats.mpmath_poisson_upper_limit`
+    for an implementation that is slower, but can deal with arbitrarily high
     numbers since it is based on the `mpmath <http://mpmath.org/>`_
     library.
     '''
+
     from scipy.optimize import brentq
     from scipy.integrate import quad
-    from scipy.special import factorial
+
+    try:
+        from scipy.special import factorial
+    except ImportError:
+        raise ImportError("scipy's version greater or equal than 0.14.0 is "
+                          "required.")
 
     def eqn8(N, B):
         n = np.arange(N + 1)
