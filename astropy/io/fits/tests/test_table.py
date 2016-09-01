@@ -15,7 +15,7 @@ except ImportError:
     HAVE_OBJGRAPH = False
 
 from ....extern import six
-from ....extern.six.moves import range
+from ....extern.six.moves import range, zip
 from ....extern.six.moves import cPickle as pickle
 from ....io import fits
 from ....tests.helper import pytest, catch_warnings, ignore_warnings
@@ -1516,6 +1516,15 @@ class TestTableFunctions(FitsTestCase):
             assert hdu.name == 'FOO'
             assert hdu.header['EXTNAME'] == 'FOO'
 
+    def test_unicode_colname(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/5204
+        "Handle unicode FITS BinTable column names on Python 2"
+        """
+        col = fits.Column(name=u'spam', format='E', array=[42.])
+        # This used to raise a TypeError, now it works
+        fits.BinTableHDU.from_columns([col])
+
     def test_bin_table_with_logical_array(self):
         c1 = fits.Column(name='flag', format='2L',
                          array=[[True, False], [False, True]])
@@ -1692,7 +1701,7 @@ class TestTableFunctions(FitsTestCase):
 
     def test_bin_table_init_from_string_array_column(self):
         """
-        Tests two ways of creatine a new `BinTableHDU` from a column of
+        Tests two ways of creating a new `BinTableHDU` from a column of
         string arrays.
 
         This tests for a couple different regressions, and ensures that
@@ -1770,7 +1779,7 @@ class TestTableFunctions(FitsTestCase):
         with open(self.temp('test.fits'), 'rb') as f:
             raw_bytes = f.read()
 
-        # Aritifically truncate TDIM in the header; this seems to be the
+        # Artificially truncate TDIM in the header; this seems to be the
         # easiest way to do this while getting around pyfits' insistence on the
         # data and header matching perfectly; again, we have no interest in
         # making it possible to write files in this format, only read them

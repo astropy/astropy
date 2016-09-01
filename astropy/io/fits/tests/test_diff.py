@@ -12,6 +12,7 @@ from ..hdu import HDUList, PrimaryHDU, ImageHDU
 from ..hdu.table import BinTableHDU
 from ..header import Header
 
+from ....extern.six.moves import range
 from ....io import fits
 
 from . import FitsTestCase
@@ -366,7 +367,7 @@ class TestDiff(FitsTestCase):
 
     def test_different_table_rows(self):
         """
-        Test tables taht are otherwise identical but one has more rows than the
+        Test tables that are otherwise identical but one has more rows than the
         other.
         """
 

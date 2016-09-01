@@ -148,10 +148,16 @@ class AstropyTest(Command, object):
         """
         Run the tests!
         """
+        # Install the runtime and test dependencies.
+        if self.distribution.install_requires:
+            self.distribution.fetch_build_eggs(
+                self.distribution.install_requires)
+        if self.distribution.tests_require:
+            self.distribution.fetch_build_eggs(self.distribution.tests_require)
 
         # Ensure there is a doc path
         if self.docs_path is None:
-            cfg_docs_dir = self.distribution.get_option_dict('build_sphinx').get('source_dir', None)
+            cfg_docs_dir = self.distribution.get_option_dict('build_docs').get('source_dir', None)
 
             # Some affiliated packages use this.
             # See astropy/package-template#157

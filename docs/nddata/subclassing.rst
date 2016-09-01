@@ -43,7 +43,7 @@ Adding another property
 .. note::
   To simplify subclassing each setter (except for ``data``) is called during
   ``__init__`` so putting restrictions on any attribute can be done inside
-  the setter and will also apply duing instance creation.
+  the setter and will also apply during instance creation.
 
 Customize the setter for a property
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -380,7 +380,7 @@ you could use ``kwargs['flags'] = self.flags`` and omit the ``[item]``.
 ----------------------------
 
 The class `~astropy.nddata.NDDataBase` is a metaclass -- when subclassing it,
-all properties of `~astropy.nddata.NDDataBase` *must* be overriden in the
+all properties of `~astropy.nddata.NDDataBase` *must* be overridden in the
 subclass.
 
 Subclassing from `~astropy.nddata.NDDataBase` gives you complete flexibility
@@ -435,7 +435,7 @@ For example to create a readonly container::
 
 .. note::
   Actually defining an ``__init__`` is not necessary and the properties could
-  return arbitary values but the properties **must** be defined.
+  return arbitrary values but the properties **must** be defined.
 
 Subclassing `~astropy.nddata.NDUncertainty`
 -------------------------------------------
@@ -550,6 +550,6 @@ override the ``_convert_uncertainty`` method as well::
 
 .. note::
     Creating a variance uncertainty like this might require more work to
-    include proper treatement of the unit of the uncertainty! And of course
+    include proper treatment of the unit of the uncertainty! And of course
     implementing also the ``_propagate_*`` for subtraction, division and
     multiplication.

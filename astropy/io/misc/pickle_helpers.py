@@ -8,6 +8,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 from ...extern import six
+from ...extern.six.moves import range
 
 
 __all__ = ['fnpickle', 'fnunpickle']
@@ -19,7 +20,7 @@ def fnunpickle(fileorname, number=0, usecPickle=True):
 
     Parameters
     ----------
-    fileorname : str or `file`-like
+    fileorname : str or file-like
         The file name or file from which to unpickle objects. If a file object,
         it should have been opened in binary mode.
     number : int
@@ -87,7 +88,7 @@ def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
     ----------
     object
         The python object to pickle.
-    fileorname : str or `file`-like
+    fileorname : str or file-like
         The filename or file into which the `object` should be pickled. If a
         file object, it should have been opened in binary mode.
     usecPickle : bool

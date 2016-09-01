@@ -202,7 +202,7 @@ surprises.  There are differences, however:
   as with a normal `dict`, ``header['NAXIS'] = 1`` will either update the NAXIS
   keyword if it already exists, or add a new NAXIS keyword with a value of
   ``1`` if it does not exist.  In the old interface this would return a
-  `~.exceptions.KeyError` if NAXIS did not exist, and the only way to add a new
+  `KeyError` if NAXIS did not exist, and the only way to add a new
   keyword was through the update() method.
 
   By default, new keywords added in this manner are added to the end of the
@@ -260,7 +260,7 @@ surprises.  There are differences, however:
   nothing.  For backwards-compatibility it is still okay to delete a
   non-existent keyword, but a warning will be raised.  In the future this
   *will* be changed so that trying to delete a non-existent keyword raises a
-  `~.exceptions.KeyError`.  This is for consistency with the behavior of Python dicts.  So
+  `KeyError`.  This is for consistency with the behavior of Python dicts.  So
   unless you know for certain that a keyword exists before deleting it, it's
   best to do something like::
 

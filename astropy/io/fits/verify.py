@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 from __future__ import unicode_literals
 
+import operator
 import warnings
 
 from ...extern.six import next
@@ -96,7 +97,7 @@ class _Verify(object):
             # Don't print *unfixable* issues, but do print fixed issues; this
             # is probably not very useful but the option exists for
             # completeness
-            line_filter = lambda x: x[0]
+            line_filter = operator.itemgetter(0)
         else:
             line_filter = None
 
@@ -109,7 +110,7 @@ class _Verify(object):
 
         if messages:
             messages.insert(0, 'Verification reported errors:')
-            messages.append('Note: PyFITS uses zero-based indexing.\n')
+            messages.append('Note: astropy.io.fits uses zero-based indexing.\n')
 
             if fix_opt == 'silentfix' and not unfixable:
                 return

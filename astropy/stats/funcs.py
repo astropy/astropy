@@ -13,14 +13,14 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 
-from ..extern.six.moves import xrange
+from ..extern.six.moves import range
 
 
 __all__ = ['binom_conf_interval', 'binned_binom_proportion',
-           'poisson_conf_interval',
-           'median_absolute_deviation', 'biweight_location',
-           'biweight_midvariance', 'signal_to_noise_oir_ccd', 'bootstrap',
-           'mad_std', 'gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm']
+           'poisson_conf_interval', 'median_absolute_deviation',
+           'mad_std', 'biweight_location', 'biweight_midvariance',
+           'signal_to_noise_oir_ccd', 'bootstrap', 'gaussian_fwhm_to_sigma',
+           'gaussian_sigma_to_fwhm']
 
 __doctest_skip__ = ['binned_binom_proportion']
 __doctest_requires__ = {'binom_conf_interval': ['scipy.special'],
@@ -447,15 +447,19 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
 
 
 def _check_poisson_conf_inputs(sigma, background, conflevel, name):
-    if sigma!=1:
-        raise ValueError("Only sigma=1 supported for interval {0}".format(name))
-    if background!=0:
-        raise ValueError("background not supported for interval {0}".format(name))
+    if sigma != 1:
+        raise ValueError("Only sigma=1 supported for interval {0}"
+                         .format(name))
+    if background != 0:
+        raise ValueError("background not supported for interval {0}"
+                         .format(name))
     if conflevel is not None:
-        raise ValueError("conflevel not supported for interval {0}".format(name))
+        raise ValueError("conflevel not supported for interval {0}"
+                         .format(name))
 
 
-def poisson_conf_interval(n, interval='root-n', sigma=1, background=0, conflevel=None):
+def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
+                          conflevel=None):
     r"""Poisson parameter confidence interval given observed counts
 
     Parameters
@@ -465,14 +469,14 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0, conflevel
     interval : {'root-n','root-n-0','pearson','sherpagehrels','frequentist-confidence', 'kraft-burrows-nousek'}, optional
         Formula used for confidence interval. See notes for details.
         Default is ``'root-n'``.
-    sigma : float
+    sigma : float, optional
         Number of sigma for confidence interval; only supported for
         the 'frequentist-confidence' mode.
-    background : float
+    background : float, optional
         Number of counts expected from the background; only supported for
         the 'kraft-burrows-nousek' mode. This number is assumed to be determined
         from a large region so that the uncertainty on its value is negligible.
-    conflevel : float
+    conflevel : float, optional
         Confidence level between 0 and 1; only supported for the
         'kraft-burrows-nousek' mode.
 
@@ -670,10 +674,10 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0, conflevel
         conf_interval = np.array([n-np.sqrt(n),
                                   n+np.sqrt(n)])
         if np.isscalar(n):
-            if n==0:
+            if n == 0:
                 conf_interval[1] = 1
         else:
-            conf_interval[1,n==0] = 1
+            conf_interval[1, n == 0] = 1
     elif interval == 'pearson':
         _check_poisson_conf_inputs(sigma, background, conflevel, interval)
         conf_interval = np.array([n+0.5-np.sqrt(n+0.25),
@@ -689,29 +693,33 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0, conflevel
         conf_interval = np.array([0.5*scipy.stats.chi2(2*n).ppf(alpha),
                                   0.5*scipy.stats.chi2(2*n+2).isf(alpha)])
         if np.isscalar(n):
-            if n==0:
+            if n == 0:
                 conf_interval[0] = 0
         else:
-            conf_interval[0,n==0] = 0
+            conf_interval[0, n == 0] = 0
     elif interval == 'kraft-burrows-nousek':
         if conflevel is None:
-            raise ValueError('Set conflevel for method {0}. (sigma is ignored.)'.format(interval))
+            raise ValueError('Set conflevel for method {0}. (sigma is '
+                             'ignored.)'.format(interval))
         conflevel = np.asanyarray(conflevel)
-        if np.any(conflevel <=0) or np.any(conflevel >= 1):
+        if np.any(conflevel <= 0) or np.any(conflevel >= 1):
             raise ValueError('Conflevel must be a number between 0 and 1.')
         background = np.asanyarray(background)
         if np.any(background < 0):
             raise ValueError('Background must be >= 0.')
-        conf_interval = np.vectorize(_kraft_burrows_nousek, cache=True)(n, background, conflevel)
+        conf_interval = np.vectorize(_kraft_burrows_nousek,
+                                     cache=True)(n, background, conflevel)
         conf_interval = np.vstack(conf_interval)
     else:
-        raise ValueError("Invalid method for Poisson confidence intervals: %s" % interval)
+        raise ValueError("Invalid method for Poisson confidence intervals: "
+                         "%s" % interval)
     return conf_interval
 
-def median_absolute_deviation(a, axis=None):
-    """Compute the median absolute deviation.
 
-    Returns the median absolute deviation (MAD) of the array elements.
+def median_absolute_deviation(a, axis=None):
+    """
+    Calculate the median absolute deviation (MAD).
+
     The MAD is defined as ``median(abs(a - median(a)))``.
 
     Parameters
@@ -719,32 +727,32 @@ def median_absolute_deviation(a, axis=None):
     a : array-like
         Input array or object that can be converted to an array.
     axis : int, optional
-        Axis along which the medians are computed. The default (axis=None)
-        is to compute the median along a flattened version of the array.
+        Axis along which the MADs are computed.  The default (`None`) is
+        to compute the MAD of the flattened array.
 
     Returns
     -------
-    median_absolute_deviation : ndarray
-        A new array holding the result. If the input contains
-        integers, or floats of smaller precision than 64, then the output
-        data-type is float64.  Otherwise, the output data-type is the same
-        as that of the input.
+    mad : float or `~numpy.ndarray`
+        The median absolute deviation of the input array.  If ``axis``
+        is `None` then a scalar will be returned, otherwise a
+        `~numpy.ndarray` will be returned.
 
     Examples
     --------
+    Generate random variates from a Gaussian distribution and return the
+    median absolute deviation for that distribution::
 
-    This will generate random variates from a Gaussian distribution and return
-    the median absolute deviation for that distribution::
-
+        >>> import numpy as np
         >>> from astropy.stats import median_absolute_deviation
+        >>> rand = np.random.RandomState(12345)
         >>> from numpy.random import randn
-        >>> randvar = randn(10000)
-        >>> mad = median_absolute_deviation(randvar)
+        >>> mad = median_absolute_deviation(rand.randn(1000))
+        >>> print(mad)    # doctest: +FLOAT_CMP
+        0.65244241428454486
 
     See Also
     --------
-    numpy.median
-
+    mad_std
     """
 
     # Check if the array has a mask and if so use np.ma.median
@@ -757,99 +765,160 @@ def median_absolute_deviation(a, axis=None):
         func = np.median
 
     a = np.asanyarray(a)
-
     a_median = func(a, axis=axis)
 
-    # re-broadcast the output median array to subtract it
+    # broadcast the median array before subtraction
     if axis is not None:
         a_median = np.expand_dims(a_median, axis=axis)
 
-    # calculated the median average deviation
     return func(np.abs(a - a_median), axis=axis)
 
 
-def biweight_location(a, c=6.0, M=None):
-    """Compute the biweight location for an array.
+def mad_std(data, axis=None):
+    """
+    Calculate a robust standard deviation using the `median absolute
+    deviation (MAD)
+    <http://en.wikipedia.org/wiki/Median_absolute_deviation>`_.
 
-    Returns the biweight location for the array elements.
-    The biweight is a robust statistic for determining the central
-    location of a distribution.
+    The standard deviation estimator is given by:
 
-    The biweight location is given by the following equation
+    .. math::
+
+        \\sigma \\approx \\frac{\\textrm{MAD}}{\Phi^{-1}(3/4)}
+            \\approx 1.4826 \ \\textrm{MAD}
+
+    where :math:`\Phi^{-1}(P)` is the normal inverse cumulative
+    distribution function evaluated at probability :math:`P = 3/4`.
+
+    Parameters
+    ----------
+    data : array-like
+        Data array or object that can be converted to an array.
+    axis : int, optional
+        Axis along which the robust standard deviations are computed.
+        The default (`None`) is to compute the robust standard deviation
+        of the flattened array.
+
+    Returns
+    -------
+    mad_std : float or `~numpy.ndarray`
+        The robust standard deviation of the input data.  If ``axis`` is
+        `None` then a scalar will be returned, otherwise a
+        `~numpy.ndarray` will be returned.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from astropy.stats import mad_std
+    >>> rand = np.random.RandomState(12345)
+    >>> madstd = mad_std(rand.normal(5, 2, (100, 100)))
+    >>> print(madstd)    # doctest: +FLOAT_CMP
+    2.0232764659422626
+
+    See Also
+    --------
+    biweight_midvariance, median_absolute_deviation
+    """
+
+    # NOTE: 1. / scipy.stats.norm.ppf(0.75) = 1.482602218505602
+    return median_absolute_deviation(data, axis=axis) * 1.482602218505602
+
+
+def biweight_location(a, c=6.0, M=None, axis=None):
+    """
+    Compute the biweight location.
+
+    The biweight location is a robust statistic for determining the
+    central location of a distribution.  It is given by:
 
     .. math::
 
         C_{bl}= M+\\frac{\Sigma_{\|u_i\|<1} (x_i-M)(1-u_i^2)^2}
         {\Sigma_{\|u_i\|<1} (1-u_i^2)^2}
 
-    where M is the sample mean or if run iterative the initial guess,
-    and u_i is given by
+    where :math:`M` is the sample median (or the input initial guess)
+    and :math:`u_i` is given by:
 
     .. math::
 
-      u_{i} = \\frac{(x_i-M)}{cMAD}
+        u_{i} = \\frac{(x_i-M)}{c\ MAD}
 
-    where MAD is the median absolute deviation.
+    where :math:`c` is the tuning constant and :math:`MAD` is the median
+    absolute deviation.
 
-    For more details, see Beers, Flynn, and Gebhardt, 1990, AJ, 100, 32B
+    For more details, see `Beers, Flynn, and Gebhardt (1990); AJ 100, 32
+    <http://adsabs.harvard.edu/abs/1990AJ....100...32B>`_.
 
     Parameters
     ----------
     a : array-like
         Input array or object that can be converted to an array.
-    c : float
+    c : float, optional
         Tuning constant for the biweight estimator.  Default value is 6.0.
-    M : float, optional
-        Initial guess for the biweight location.
+    M : float or array-like, optional
+        Initial guess for the biweight location.  An array can be input
+        when using the ``axis`` keyword.
+    axis : int, optional
+        Axis along which the biweight locations are computed.  The
+        default (`None`) is to compute the biweight location of the
+        flattened array.
 
     Returns
     -------
-    biweight_location : float
-        Returns the biweight location for the array elements.
+    biweight_location : float or `~numpy.ndarray`
+        The biweight location of the input data.  If ``axis`` is `None`
+        then a scalar will be returned, otherwise a `~numpy.ndarray`
+        will be returned.
 
     Examples
     --------
+    Generate random variates from a Gaussian distribution and return the
+    biweight location of the distribution::
 
-    This will generate random variates from a Gaussian distribution and return
-    the biweight location of the distribution::
-
-    >>> from astropy.stats.funcs import biweight_location
-    >>> from numpy.random import randn
-    >>> randvar = randn(10000)
-    >>> cbl = biweight_location(randvar)
+        >>> import numpy as np
+        >>> from astropy.stats import biweight_location
+        >>> rand = np.random.RandomState(12345)
+        >>> from numpy.random import randn
+        >>> loc = biweight_location(rand.randn(1000))
+        >>> print(loc)    # doctest: +FLOAT_CMP
+        -0.0175741540445
 
     See Also
     --------
-    median_absolute_deviation, biweight_midvariance
-
+    biweight_midvariance, median_absolute_deviation, mad_std
     """
 
-    a = np.array(a, copy=False)
+    a = np.asanyarray(a)
 
     if M is None:
-        M = np.median(a)
+        M = np.median(a, axis=axis)
+    if axis is not None:
+        M = np.expand_dims(M, axis=axis)
 
-    # set up the difference
+    # set up the differences
     d = a - M
 
     # set up the weighting
-    u = d / c / median_absolute_deviation(a)
+    mad = median_absolute_deviation(a, axis=axis)
+    if axis is not None:
+        mad = np.expand_dims(mad, axis=axis)
+    u = d / (c * mad)
 
     # now remove the outlier points
-    mask = np.abs(u) < 1
-
+    mask = (np.abs(u) >= 1)
     u = (1 - u ** 2) ** 2
-    return M + (d[mask] * u[mask]).sum() / u[mask].sum()
+    u[mask] = 0
+
+    return M.squeeze() + (d * u).sum(axis=axis) / u.sum(axis=axis)
 
 
-def biweight_midvariance(a, c=9.0, M=None):
-    """Compute the biweight midvariance for an array.
+def biweight_midvariance(a, c=9.0, M=None, axis=None):
+    """
+    Compute the biweight midvariance.
 
-    Returns the biweight midvariance for the array elements.
-    The biweight midvariance is a robust statistic for determining
-    the midvariance (i.e. the standard deviation) of a distribution.
-
-    The biweight location is given by the following equation
+    The biweight midvariance is a robust statistic for determining the
+    midvariance (i.e. the standard deviation) of a distribution.  It is
+    given by:
 
     .. math::
 
@@ -860,12 +929,14 @@ def biweight_midvariance(a, c=9.0, M=None):
 
     .. math::
 
-      u_{i} = \\frac{(x_i-M)}{cMAD}
+        u_{i} = \\frac{(x_i-M)}{c MAD}
 
-    where MAD is the median absolute deviation.
+    where :math:`c` is the tuning constant and :math:`MAD` is the median
+    absolute deviation.  The midvariance tuning constant ``c`` is
+    typically 9.0.
 
-    :math:`n'` is the number of data for which :math:`|u_i| < 1` holds, while the
-    summations are over all i up to n:
+    :math:`n'` is the number of points for which :math:`|u_i| < 1`
+    holds, while the summations are over all :math:`i` up to :math:`n`:
 
     .. math::
 
@@ -874,58 +945,77 @@ def biweight_midvariance(a, c=9.0, M=None):
     This is slightly different than given in the reference below, but
     results in a value closer to the true midvariance.
 
-    The midvariance parameter c is typically 9.0.
-
-    For more details, see Beers, Flynn, and Gebhardt, 1990, AJ, 100, 32B
+    For more details, see `Beers, Flynn, and Gebhardt (1990); AJ 100, 32
+    <http://adsabs.harvard.edu/abs/1990AJ....100...32B>`_.
 
     Parameters
     ----------
     a : array-like
         Input array or object that can be converted to an array.
-    c : float
+    c : float, optional
         Tuning constant for the biweight estimator.  Default value is 9.0.
-    M : float, optional
-        Initial guess for the biweight location.
+    M : float or array-like, optional
+        Initial guess for the biweight location.  An array can be input
+        when using the ``axis`` keyword.
+    axis : int, optional
+        Axis along which the biweight midvariances are computed.  The
+        default (`None`) is to compute the biweight midvariance of the
+        flattened array.
 
     Returns
     -------
-    biweight_midvariance : float
-        Returns the biweight midvariance for the array elements.
+    biweight_midvariance : float or `~numpy.ndarray`
+        The biweight midvariance of the input data.  If ``axis`` is
+        `None` then a scalar will be returned, otherwise a
+        `~numpy.ndarray` will be returned.
 
     Examples
     --------
+    Generate random variates from a Gaussian distribution and return the
+    biweight midvariance of the distribution::
 
-    This will generate random variates from a Gaussian distribution and return
-    the biweight midvariance of the distribution::
-
-    >>> from astropy.stats.funcs import biweight_midvariance
-    >>> from numpy.random import randn
-    >>> randvar = randn(10000)
-    >>> scl = biweight_midvariance(randvar)
+        >>> import numpy as np
+        >>> from astropy.stats import biweight_midvariance
+        >>> rand = np.random.RandomState(12345)
+        >>> from numpy.random import randn
+        >>> bmv = biweight_midvariance(rand.randn(1000))
+        >>> print(bmv)    # doctest: +FLOAT_CMP
+        0.986726249291
 
     See Also
     --------
-    median_absolute_deviation, biweight_location
+    biweight_location, mad_std, median_absolute_deviation
     """
 
-    a = np.array(a, copy=False)
+    a = np.asanyarray(a)
 
     if M is None:
-        M = np.median(a)
+        M = np.median(a, axis=axis)
+    if axis is not None:
+        M = np.expand_dims(M, axis=axis)
 
-    # set up the difference
+    # set up the differences
     d = a - M
 
     # set up the weighting
-    u = d / c / median_absolute_deviation(a)
+    mad = median_absolute_deviation(a, axis=axis)
+    if axis is not None:
+        mad = np.expand_dims(mad, axis=axis)
+    u = d / (c * mad)
 
     # now remove the outlier points
     mask = np.abs(u) < 1
-
     u = u ** 2
-    n = mask.sum()
-    return n ** 0.5 * (d[mask] * d[mask] * (1 - u[mask]) ** 4).sum() ** 0.5\
-        / np.abs(((1 - u[mask]) * (1 - 5 * u[mask])).sum())
+    n = mask.sum(axis=axis)
+
+    f1 = d * d * (1. - u)**4
+    f1[~mask] = 0.
+    f1 = f1.sum(axis=axis) ** 0.5
+    f2 = (1. - u) * (1. - 5.*u)
+    f2[~mask] = 0.
+    f2 = np.abs(f2.sum(axis=axis))
+
+    return (n ** 0.5) * f1 / f2
 
 
 def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix,
@@ -957,7 +1047,7 @@ def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix,
         DN or ADU, then multiply by the gain to get the value in electrons.
     npix : float
         Size of the aperture in pixels
-    gain : float
+    gain : float, optional
         Gain of the CCD. In units of electrons per DN.
 
     Returns
@@ -986,12 +1076,12 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
         N-D array. The bootstrap resampling will be performed on the first
         index, so the first index should access the relevant information
         to be bootstrapped.
-    bootnum : int
+    bootnum : int, optional
         Number of bootstrap resamples
-    samples : int
+    samples : int, optional
         Number of samples in each resample. The default `None` sets samples to
         the number of datapoints
-    bootfunc : function
+    bootfunc : function, optional
         Function to reduce the resampled data. Each bootstrap resample will
         be put through this function and the results returned. If `None`, the
         bootstrapped data will be returned
@@ -1074,7 +1164,7 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
     # create empty boot array
     boot = np.empty(resultdims)
 
-    for i in xrange(bootnum):
+    for i in range(bootnum):
         bootarr = np.random.randint(low=0, high=data.shape[0], size=samples)
         if bootfunc is None:
             boot[i] = data[bootarr]
@@ -1082,48 +1172,6 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
             boot[i] = bootfunc(data[bootarr])
 
     return boot
-
-def mad_std(data, axis=None):
-    """
-    Calculate a robust standard deviation using the `median absolute
-    deviation (MAD)
-    <http://en.wikipedia.org/wiki/Median_absolute_deviation>`_.
-
-    The standard deviation estimator is given by:
-
-    .. math::
-
-        \\sigma \\approx \\frac{\\textrm{MAD}}{\Phi^{-1}(3/4)} \\approx 1.4826 \ \\textrm{MAD}
-
-    where :math:`\Phi^{-1}(P)` is the normal inverse cumulative
-    distribution function evaluated at probability :math:`P = 3/4`.
-
-    Parameters
-    ----------
-    data : array-like
-        Data array or object that can be converted to an array.
-    axis : int, optional
-        Axis along which the medians are computed. The default (axis=None)
-        is to compute the median along a flattened version of the array.
-
-    Returns
-    -------
-    result : float
-        The robust standard deviation of the data.
-
-    Examples
-    --------
-    >>> from astropy.stats import mad_std
-    >>> from astropy.utils import NumpyRNGContext
-    >>> from numpy.random import normal
-    >>> with NumpyRNGContext(12345):
-    ...     data = normal(5, 2, size=(100, 100))
-    ...     mad_std(data)    # doctest: +FLOAT_CMP
-    2.02327646594
-    """
-
-    # NOTE: 1. / scipy.stats.norm.ppf(0.75) = 1.482602218505602
-    return median_absolute_deviation(data, axis=axis) * 1.482602218505602
 
 
 def _scipy_kraft_burrows_nousek(N, B, CL):
@@ -1149,33 +1197,41 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
 
     Notes
     -----
-    Requires `scipy`. This implementation will cause Overflow Errors for
-    about N > 100 (the exact limit depends on details of how scipy was compiled).
-    See `~astropy.stats.mpmath_poisson_upper_limit` for an implementation that is
-    slower, but can deal with arbitrarily high numbers since it is based on the
-    `mpmath <http://mpmath.org/>`_ library.
+    Requires `scipy` greater or equal than 0.14.0. This implementation will
+    cause Overflow Errors for about N > 100 (the exact limit depends on
+    details of how scipy was compiled).  See `~astropy.stats.mpmath_poisson_upper_limit`
+    for an implementation that is slower, but can deal with arbitrarily high
+    numbers since it is based on the `mpmath <http://mpmath.org/>`_
+    library.
     '''
+
     from scipy.optimize import brentq
     from scipy.integrate import quad
-    from scipy.special import factorial
 
+    try:
+        from scipy.special import factorial
+    except ImportError:
+        raise ImportError("scipy's version greater or equal than 0.14.0 is "
+                          "required.")
 
     def eqn8(N, B):
         n = np.arange(N + 1)
-        return 1./ (np.exp(-B) * np.sum(np.power(B, n) / factorial(n)))
+        return 1. / (np.exp(-B) * np.sum(np.power(B, n) / factorial(n)))
 
     def eqn7(S, N, B):
-        return eqn8(N, B) * (np.exp(-S -B) * (S + B)**N / factorial(N))
+        return eqn8(N, B) * (np.exp(-S - B) * (S + B)**N / factorial(N))
 
     def eqn9_left(S_min, S_max, N, B):
         return quad(eqn7, S_min, S_max, args=(N, B), limit=500)
 
     def find_s_min(S_max, N, B):
-        '''Kraft, Burrows and Nousek suggest to integrate from N-B in both
-        directions at once, so that S_min and S_max move similarly (see the article
-        for details). Here, this is implemented differently:
-        Treat S_max as the optimization parameters in func and then calculate the
-        matching s_min that has has eqn7(S_max) = eqn7(S_min) here.
+        '''
+        Kraft, Burrows and Nousek suggest to integrate from N-B in both
+        directions at once, so that S_min and S_max move similarly (see
+        the article for details). Here, this is implemented differently:
+        Treat S_max as the optimization parameters in func and then
+        calculate the matching s_min that has has eqn7(S_max) =
+        eqn7(S_min) here.
         '''
         y_S_max = eqn7(S_max, N, B)
         if eqn7(0, N, B) >= y_S_max:
@@ -1216,9 +1272,10 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
 
     Notes
     -----
-    Requires the `mpmath <http://mpmath.org/>`_ library.
-    See `~astropy.stats.scipy_poisson_upper_limit` for an implementation that is
-    based on scipy and evaluates faster, but runs only to about N = 100.
+    Requires the `mpmath <http://mpmath.org/>`_ library.  See
+    `~astropy.stats.scipy_poisson_upper_limit` for an implementation
+    that is based on scipy and evaluates faster, but runs only to about
+    N = 100.
     '''
     from mpmath import mpf, factorial, findroot, fsum, power, exp, quad
 
@@ -1228,7 +1285,7 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
 
     def eqn8(N, B):
         sumterms = [power(B, n) / factorial(n) for n in range(int(N) + 1)]
-        return 1./ (exp(-B) * fsum(sumterms))
+        return 1. / (exp(-B) * fsum(sumterms))
 
     def eqn7(S, N, B):
         return eqn8(N, B) * (exp(-S-B) * (S + B)**N / factorial(N))
@@ -1239,11 +1296,13 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
         return quad(eqn7NB, [S_min, S_max])
 
     def find_s_min(S_max, N, B):
-        '''Kraft, Burrows and Nousek suggest to integrate from N-B in both
-        directions at once, so that S_min and S_max move similarly (see the article
-        for details). Here, this is implemented differently:
-        Treat S_max as the optimization parameters in func and then calculate the
-        matching s_min that has has eqn7(S_max) = eqn7(S_min) here.
+        '''
+        Kraft, Burrows and Nousek suggest to integrate from N-B in both
+        directions at once, so that S_min and S_max move similarly (see
+        the article for details). Here, this is implemented differently:
+        Treat S_max as the optimization parameters in func and then
+        calculate the matching s_min that has has eqn7(S_max) =
+        eqn7(S_min) here.
         '''
         y_S_max = eqn7(S_max, N, B)
         if eqn7(0, N, B) >= y_S_max:
@@ -1251,7 +1310,7 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
         else:
             def eqn7ysmax(x):
                 return eqn7(x, N, B) - y_S_max
-            return findroot(eqn7ysmax , (N - B) / 2.)
+            return findroot(eqn7ysmax, (N - B) / 2.)
 
     def func(s):
         s_min = find_s_min(s, N, B)
@@ -1275,7 +1334,8 @@ def _kraft_burrows_nousek(N, B, CL):
     N : int
         Total observed count number
     B : float
-        Background count rate (assumed to be known with negligible error from a large background area).
+        Background count rate (assumed to be known with negligible error
+        from a large background area).
     CL : float
        Confidence level (number between 0 and 1)
 
@@ -1285,8 +1345,8 @@ def _kraft_burrows_nousek(N, B, CL):
 
     Notes
     -----
-    This functions has an optional dependency: Either `scipy` or
-    `mpmath <http://mpmath.org/>`_  need to be available. (Scipy only works for
+    This functions has an optional dependency: Either `scipy` or `mpmath
+    <http://mpmath.org/>`_  need to be available. (Scipy only works for
     N < 100).
     '''
     try:
@@ -1306,7 +1366,8 @@ def _kraft_burrows_nousek(N, B, CL):
             return _scipy_kraft_burrows_nousek(N, B, CL)
         except OverflowError:
             if not HAS_MPMATH:
-                raise ValueError('Need mpmath package for input numbers this large.')
+                raise ValueError('Need mpmath package for input numbers this '
+                                 'large.')
     if HAS_MPMATH:
         return _mpmath_kraft_burrows_nousek(N, B, CL)
 

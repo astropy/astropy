@@ -3,6 +3,7 @@ from __future__ import print_function, division
 import warnings
 from math import factorial
 import numpy as np
+from ....extern.six.moves import range, map
 
 
 def add_at(arr, ind, vals):
@@ -132,7 +133,7 @@ def trig_sum(t, h, df, N, f0=0, freq_factor=1,
         if True, use the approximate FFT algorithm to compute the result.
         This uses the FFT with Press & Rybicki's Lagrangian extirpolation.
     oversampling : int (default = 5)
-        oversampling freq_factor for the approximation; roughtly the number of
+        oversampling freq_factor for the approximation; roughly the number of
         time samples across the highest-frequency sinusoid. This parameter
         contains the tradeoff between accuracy and speed. Not referenced
         if use_fft is False.

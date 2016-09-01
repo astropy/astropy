@@ -13,6 +13,7 @@ import numpy as np
 from ...tests.helper import pytest, catch_warnings
 from ...tests.disable_internet import INTERNET_OFF
 from ...extern import six
+from ...extern.six.moves import zip
 from ...utils import isiterable
 from .. import Time, ScaleValueError, TIME_SCALES, TimeString, TimezoneInfo
 from ...coordinates import EarthLocation
@@ -232,7 +233,7 @@ class TestBasic():
 
     def test_transforms(self):
         """Transform from UTC to all supported time scales (TAI, TCB, TCG,
-        TDB, TT, UT1, UTC).  This requires auxilliary information (latitude and
+        TDB, TT, UT1, UTC).  This requires auxiliary information (latitude and
         longitude)."""
 
         lat = 19.48125

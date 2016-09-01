@@ -15,8 +15,10 @@ if one sets ``subok=True``; see https://github.com/numpy/numpy/pull/4622
 from __future__ import division, absolute_import, print_function
 
 import numpy as np
+from .....extern.six.moves import range
 
 __all__ = ['broadcast_arrays', 'broadcast_to', 'GE1P10']
+__doctest_skip__ = ['*']
 
 
 def GE1P10(module=np):

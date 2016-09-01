@@ -46,6 +46,7 @@ import numpy as np
 
 from ..utils.compat.funcsigs import signature
 from ..utils.exceptions import AstropyUserWarning
+from ..extern.six.moves import range
 
 # TODO: implement other fitness functions from appendix B of Scargle 2012
 
@@ -88,7 +89,7 @@ def bayesian_blocks(t, x=None, sigma=None,
           :math:`-\ln({\tt gamma})`.
 
         In all three cases, if more than one of ``p0``, ``gamma``, and
-        ``ncp_prior`` is chosen, ``ncp_prior`` takes precendence over ``gamma``
+        ``ncp_prior`` is chosen, ``ncp_prior`` takes precedence over ``gamma``
         which takes precedence over ``p0``.
 
         Alternatively, the fitness parameter can be an instance of
@@ -196,7 +197,6 @@ class FitnessFunc(object):
         self.p0 = p0
         self.gamma = gamma
         self.ncp_prior = ncp_prior
-
 
     def validate_input(self, t, x=None, sigma=None):
         """Validate inputs to the model.
@@ -340,9 +340,9 @@ class FitnessFunc(object):
         # Compute ncp_prior if not defined
         if self.ncp_prior is None:
             ncp_prior = self.compute_ncp_prior(N)
-        #-----------------------------------------------------------------
+        # ----------------------------------------------------------------
         # Start with first data cell; add one cell at each iteration
-        #-----------------------------------------------------------------
+        # ----------------------------------------------------------------
         for R in range(N):
             # Compute fit_vec : fitness of putative last block (end at R)
             kwds = {}
@@ -377,9 +377,9 @@ class FitnessFunc(object):
             last[R] = i_max
             best[R] = A_R[i_max]
 
-        #-----------------------------------------------------------------
+        # ----------------------------------------------------------------
         # Now find changepoints by iteratively peeling off the last block
-        #-----------------------------------------------------------------
+        # ----------------------------------------------------------------
         change_points = np.zeros(N, dtype=int)
         i_cp = N
         ind = N

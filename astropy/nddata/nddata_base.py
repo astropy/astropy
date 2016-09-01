@@ -14,7 +14,7 @@ __all__ = ['NDDataBase']
 @six.add_metaclass(ABCMeta)
 class NDDataBase(object):
     """Base metaclass that defines the interface for N-dimensional datasets
-    with associated meta informations used in ``astropy``.
+    with associated meta information used in ``astropy``.
 
     All properties and ``__init__`` have to be overridden in subclasses. See
     `NDData` for a subclass that defines this interface on `numpy.ndarray`-like

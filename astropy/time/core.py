@@ -20,10 +20,12 @@ from .. import units as u, constants as const
 from .. import _erfa as erfa
 from ..units import UnitConversionError
 from ..utils.decorators import lazyproperty
+from ..utils import ShapedLikeNDArray
 from ..utils.compat.misc import override__dir__
 from ..utils.data_info import MixinInfo, data_info_factory
 from ..utils.compat.numpy import broadcast_to
 from ..extern import six
+from ..extern.six.moves import zip
 from .utils import day_frac
 from .formats import (TIME_FORMATS, TIME_DELTA_FORMATS,
                       TimeJD, TimeUnique, TimeAstropyTime, TimeDatetime)
@@ -111,7 +113,7 @@ class TimeInfo(MixinInfo):
     # funcs = [lambda x: getattr(x, stat)() for stat_name in MixinInfo._stats])
 
 
-class Time(object):
+class Time(ShapedLikeNDArray):
     """
     Represent and manipulate times and dates for astronomy.
 
@@ -408,7 +410,7 @@ class Time(object):
 
         # Transform the jd1,2 pairs through the chain of scale xforms.
         jd1, jd2 = self._time.jd1, self._time.jd2
-        for sys1, sys2 in six.moves.zip(xforms[:-1], xforms[1:]):
+        for sys1, sys2 in zip(xforms[:-1], xforms[1:]):
             # Some xforms require an additional delta_ argument that is
             # provided through Time methods.  These values may be supplied by
             # the user or computed based on available approximations.  The
@@ -477,37 +479,45 @@ class Time(object):
         del self.cache
 
     @property
-    def ndim(self):
-        return self._time.jd1.ndim
-
-    @property
     def shape(self):
         """The shape of the time instances.
 
         Like `~numpy.ndarray.shape`, can be set to a new shape by assigning a
-        tuple.
+        tuple.  Note that if different instances share some but not all
+        underlying data, setting the shape of one instance can make the other
+        instance unusable.  Hence, it is strongly recommended to get new,
+        reshaped instances with the ``reshape`` method.
 
         Raises
         ------
-        AttributeError: if the shape of the ``jd1``, ``jd2``, ``location``,
-        ``delta_ut1_utc``, or ``delta_tdb_tt`` attributes cannot be changed
-        without the arrays being copied.  For these cases, use the
-        `Time.reshape` method.
+        AttributeError
+            If the shape of the ``jd1``, ``jd2``, ``location``,
+            ``delta_ut1_utc``, or ``delta_tdb_tt`` attributes cannot be changed
+            without the arrays being copied.  For these cases, use the
+            `Time.reshape` method (which copies any arrays that cannot be
+            reshaped in-place).
         """
         return self._time.jd1.shape
 
     @shape.setter
     def shape(self, shape):
-        self._time.jd1.shape = shape
-        self._time.jd2.shape = shape
-        for attr in ('_delta_ut1_utc', '_delta_tdb_tt', 'location'):
+        # We have to keep track of arrays that were already reshaped,
+        # since we may have to return those to their original shape if a later
+        # shape-setting fails.
+        reshaped = []
+        oldshape = self.shape
+        for attr in ('jd1', 'jd2', '_delta_ut1_utc', '_delta_tdb_tt',
+                     'location'):
             val = getattr(self, attr, None)
             if val is not None and val.size > 1:
-                val.shape = shape
-
-    @property
-    def size(self):
-        return self._time.jd1.size
+                try:
+                    val.shape = shape
+                except AttributeError:
+                    for val2 in reshaped:
+                        val2.shape = oldshape
+                    raise
+                else:
+                    reshaped.append(val)
 
     def __bool__(self):
         """Any time should evaluate to True, except when it is empty."""
@@ -515,10 +525,6 @@ class Time(object):
 
     # In python2, __bool__ is not defined.
     __nonzero__ = __bool__
-
-    @property
-    def isscalar(self):
-        return self.shape == ()
 
     def _shaped_like_input(self, value):
         return value if self._time.jd1.shape else value.item()
@@ -726,7 +732,7 @@ class Time(object):
         tm : Time object
             Copy of this object
         """
-        return self._replicate(format=format, method='copy')
+        return self._apply('copy', format=format)
 
     def replicate(self, format=None, copy=False):
         """
@@ -757,23 +763,20 @@ class Time(object):
         tm : Time object
             Replica of this object
         """
-        # To avoid recalculating integer day + fraction, no longer just
-        # instantiate a new class instance, but rather do the steps by hand.
-        # This also avoids quite a bit of unnecessary work in __init__
-        #  tm = self.__class__(self._time.jd1, self._time.jd2,
-        #                      format='jd', scale=self.scale, copy=copy)
-        return self._replicate(format=format, method='copy' if copy else None)
+        return self._apply('copy' if copy else 'replicate', format=format)
 
-    def _replicate(self, method=None, *args, **kwargs):
-        """Replicate a time object, possibly applying a method to the arrays.
+    def _apply(self, method, *args, **kwargs):
+        """Create a new time object, possibly applying a method to the arrays.
 
         Parameters
         ----------
-        method : str, optional
-            If given, the method is applied to the internal ``jd1`` and ``jd2``
-            arrays, as well as to possible ``location``, ``_delta_ut1_utc``,
-            and ``_delta_tdb_tt`` arrays, broadcasting the latter as required.
-            Example methods: ``copy``, ``__getitem__``, ``reshape``.
+        method : str
+            Can be 'replicate'  or the name of a relevant `~numpy.ndarray`
+            method. In the former case, a new time instance with unchanged
+            internal data is created, while in the latter the method is applied
+            to the internal ``jd1`` and ``jd2`` arrays, as well as to possible
+            ``location``, ``_delta_ut1_utc``, and ``_delta_tdb_tt`` arrays.
+            Example methods: 'copy', '__getitem__', 'reshape'.
         args : tuple
             Any positional arguments for ``method``.
         kwargs : dict
@@ -786,7 +789,7 @@ class Time(object):
             new_format = self.format
 
         jd1, jd2 = self._time.jd1, self._time.jd2
-        if method is not None:
+        if method != 'replicate':
             jd1 = getattr(jd1, method)(*args, **kwargs)
             jd2 = getattr(jd2, method)(*args, **kwargs)
 
@@ -803,12 +806,15 @@ class Time(object):
             # Apply the method to any value arrays (though skip if there is only
             # a single element and the method would return a view, since in
             # that case nothing would change).
-            if method is not None and val is not None:
-                if method == 'copy' or method == 'flatten' and val.size == 1:
+            val_method = getattr(val, method, None)
+            if val_method:
+                if val.size > 1 or method == 'copy':
+                    val = val_method(*args, **kwargs)
+                elif method == 'flatten':
+                    # flatten should copy also for a single element array, but
+                    # we cannot use it directly for array scalars, since it
+                    # always returns a one-dimensional array. So, just copy.
                     val = val.copy()
-
-                elif val.size > 1:
-                    val = getattr(val, method)(*args, **kwargs)
 
             setattr(tm, attr, val)
 
@@ -871,91 +877,6 @@ class Time(object):
                 pass
 
         return time_iter()
-
-    def __getitem__(self, item):
-        if self.isscalar:
-            raise TypeError('scalar {0!r} object is not subscriptable.'.format(
-                self.__class__.__name__))
-        return self._replicate('__getitem__', item)
-
-    def reshape(self, *args, **kwargs):
-        """Returns a time instance containing the same data with a new shape.
-
-        Parameters are as for :meth:`~numpy.ndarray.reshape`.  Note that it is
-        not always possible to change the shape of an array without copying the
-        data. If you want an error to be raise if the data is copied, you
-        should assign the new shape to the shape attribute.
-        """
-        return self._replicate('reshape', *args, **kwargs)
-
-    def ravel(self, *args, **kwargs):
-        """Return an instance with the time array collapsed into one dimension.
-
-        Parameters are as for :meth:`~numpy.ndarray.ravel`. Note that it is
-        not always possible to unravel an array without copying the data.
-        If you want an error to be raise if the data is copied, you should
-        should assign shape ``(-1,)`` to the shape attribute.
-        """
-        return self._replicate('ravel', *args, **kwargs)
-
-    def flatten(self, *args, **kwargs):
-        """Return a copy with the time array collapsed into one dimension.
-
-        Parameters are as for :meth:`~numpy.ndarray.flatten`.
-        """
-        return self._replicate('flatten', *args, **kwargs)
-
-    def transpose(self, *args, **kwargs):
-        """Return a time instance with the data transposed.
-
-        Parameters are as for :meth:`~numpy.ndarray.transpose`.  All internal
-        data are views of the data of the original.
-        """
-        return self._replicate('transpose', *args, **kwargs)
-
-    @property
-    def T(self):
-        """Return a time instance with the data transposed.
-
-        Parameters are as for :attr:`~numpy.ndarray.T`.  All internal
-        data are views of the data of the original.
-        """
-        if self.ndim < 2:
-            return self
-        else:
-            return self.transpose()
-
-    def swapaxes(self, *args, **kwargs):
-        """Return a time instance with the given axes interchanged.
-
-        Parameters are as for :meth:`~numpy.ndarray.swapaxes`.  All internal
-        data are views of the data of the original.
-        """
-        return self._replicate('swapaxes', *args, **kwargs)
-
-    def diagonal(self, *args, **kwargs):
-        """Return a time instance with the specified diagonals.
-
-        Parameters are as for :meth:`~numpy.ndarray.diagonal`.  All internal
-        data are views of the data of the original.
-        """
-        return self._replicate('diagonal', *args, **kwargs)
-
-    def squeeze(self, *args, **kwargs):
-        """Return a time instance with single-dimensional shape entries removed
-
-        Parameters are as for :meth:`~numpy.ndarray.squeeze`.  All internal
-        data are views of the data of the original.
-        """
-        return self._replicate('squeeze', *args, **kwargs)
-
-    def take(self, indices, axis=None, mode='raise'):
-        """Return a Time object formed from the elements the given indices.
-
-        Parameters are as for :meth:`~numpy.ndarray.take`, except that,
-        obviously, no output array can be given.
-        """
-        return self._replicate('take', indices, axis=axis, mode=mode)
 
     def _advanced_index(self, indices, axis=None, keepdims=False):
         """Turn argmin, argmax output into an advanced index.
@@ -1199,7 +1120,7 @@ class Time(object):
             ``astropy.utils.iers``)
         return_status : bool
             Whether to return status values.  If `False` (default), iers
-            raises `~.exceptions.IndexError` if any time is out of the range
+            raises `IndexError` if any time is out of the range
             covered by the IERS table.
 
         Returns

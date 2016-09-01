@@ -544,7 +544,7 @@ already set.
 Alternatively, if `~astropy.wcs.Wcsprm.mjdobs` is set and
 `~astropy.wcs.Wcsprm.dateobs` isn't, then `~astropy.wcs.Wcsprm.datfix`
 derives `~astropy.wcs.Wcsprm.dateobs` from it.  If both are set but
-disagree by more than half a day then `~.exceptions.ValueError` is raised.
+disagree by more than half a day then `ValueError` is raised.
 
 Returns
 -------

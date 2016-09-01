@@ -23,7 +23,7 @@ class QuantityInput(object):
         the argument is not equivalent to the unit specified to the decorator
         or in the annotation.
         If the argument has no unit attribute, i.e. it is not a Quantity object, a
-        `~exceptions.ValueError` will be raised.
+        `ValueError` will be raised.
 
         Where an equivalency is specified in the decorator, the function will be
         executed with that equivalency in force.
@@ -110,7 +110,7 @@ class QuantityInput(object):
 
                         if not equivalent:
                             raise UnitsError("Argument '{0}' to function '{1}'"
-                                             " must be in units convertable to"
+                                             " must be in units convertible to"
                                              " '{2}'.".format(param.name,
                                                      wrapped_function.__name__,
                                                      target_unit.to_string()))

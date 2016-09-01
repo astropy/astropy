@@ -42,7 +42,7 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
     else:
         # When there is a distance,  we first offset for parallax to get the
         # astrometric coordinate direction and *then* run the ERFA transform for
-        # no parallax/PM. This ensures reversiblity and is more sensible for
+        # no parallax/PM. This ensures reversibility and is more sensible for
         # inside solar system objects
         newxyz = icrs_coo.cartesian.xyz
         newxyz = np.rollaxis(newxyz, 0, newxyz.ndim) - astrom['eb'] * u.au
@@ -119,8 +119,11 @@ def cirs_to_cirs(from_coo, to_frame):
 @frame_transform_graph.transform(FunctionTransform, ICRS, GCRS)
 def icrs_to_gcrs(icrs_coo, gcrs_frame):
     # first set up the astrometry context for ICRS<->GCRS
-    pv = np.array([gcrs_frame.obsgeoloc.value,
-                   gcrs_frame.obsgeovel.value])
+    pv = np.array([gcrs_frame.obsgeoloc.xyz.value,
+                   gcrs_frame.obsgeovel.xyz.value])
+    # roll axes 0 and 1 to end
+    if pv.ndim > 2:
+        pv = np.rollaxis(np.rollaxis(pv, 0, pv.ndim), 0, pv.ndim)
 
     jd1, jd2 = get_jd12(gcrs_frame.obstime, 'tdb')
     astrom = erfa.apcs13(jd1, jd2, pv)
@@ -138,7 +141,7 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
     else:
         # When there is a distance,  we first offset for parallax to get the
         # BCRS coordinate direction and *then* run the ERFA transform for no
-        # parallax/PM. This ensures reversiblity and is more sensible for
+        # parallax/PM. This ensures reversibility and is more sensible for
         # inside solar system objects
         newxyz = icrs_coo.cartesian.xyz
         newxyz = np.rollaxis(newxyz, 0, newxyz.ndim) - astrom['eb'] * u.au
@@ -165,8 +168,12 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
 
     # set up the astrometry context for ICRS<->GCRS and then convert to BCRS
     # coordinate direction
-    pv = np.array([gcrs_coo.obsgeoloc.value,
-                   gcrs_coo.obsgeovel.value])
+    pv = np.array([gcrs_coo.obsgeoloc.xyz.value,
+                   gcrs_coo.obsgeovel.xyz.value])
+    # roll axes 0 and 1 to end
+    if pv.ndim > 2:
+        pv = np.rollaxis(np.rollaxis(pv, 0, pv.ndim), 0, pv.ndim)
+
     jd1, jd2 = get_jd12(gcrs_coo.obstime, 'tdb')
     astrom = erfa.apcs13(jd1, jd2, pv)
 
@@ -200,7 +207,8 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
 
 @frame_transform_graph.transform(FunctionTransform, GCRS, GCRS)
 def gcrs_to_gcrs(from_coo, to_frame):
-    if np.all(from_coo.obstime == to_frame.obstime):
+    if (np.all(from_coo.obstime == to_frame.obstime)
+        and np.all(from_coo.obsgeoloc == to_frame.obsgeoloc)):
         return to_frame.realize_frame(from_coo.data)
     else:
         # like CIRS, we do this self-transform via ICRS
@@ -223,8 +231,11 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
 
     # set up the astrometry context for ICRS<->GCRS and then convert to ICRS
     # coordinate direction
-    pv = np.array([gcrs_coo.obsgeoloc.value,
-                   gcrs_coo.obsgeovel.value])
+    pv = np.array([gcrs_coo.obsgeoloc.xyz.value,
+                   gcrs_coo.obsgeovel.xyz.value])
+    # roll axes 0 and 1 to end
+    if pv.ndim > 2:
+        pv = np.rollaxis(np.rollaxis(pv, 0, pv.ndim), 0, pv.ndim)
 
     jd1, jd2 = get_jd12(hcrs_frame.obstime, 'tdb')
     astrom = erfa.apcs13(jd1, jd2, pv)

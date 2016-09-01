@@ -421,7 +421,7 @@ The :class:`~astropy.stats.LombScargle` class makes available
 several complementary implementations of the Lomb-Scargle Periodogram,
 which can be selected using the ``method`` keyword of the Lomb-Scargle power.
 By design all methods will return the same results (some approximate),
-and each has its advandages and disadganvages.
+and each has its advantages and disadvantages.
 
 For example, to compute a periodogram using the fast chi-square method
 of Palmer (2009) [9]_, you can specify ``method='fastchi2'``:
@@ -508,8 +508,10 @@ In the Computational Scaling column, :math:`N` is the number of data points,
 :math:`M` is the number of frequencies, and :math:`n_f` is the number of
 Fourier terms for a multi-term fit.
 
-Example
-=======
+.. _lomb-scargle-example:
+
+RR-Lyrae Example
+================
 
 An example of computing the periodogram for a more realistic dataset is
 shown in the following figure. The data here consist of

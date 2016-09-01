@@ -4,12 +4,15 @@ import warnings
 import numpy as np
 from numpy.testing import assert_allclose
 
-from ... import fits
 from .. import HDUList, PrimaryHDU, BinTableHDU
-from ....table import Table
+
+from ... import fits
+
 from .... import units as u
+from ....extern.six.moves import range, zip
+from ....table import Table
 from ....tests.helper import pytest, catch_warnings
-from astropy.units.format.fits import UnitScaleError
+from ....units.format.fits import UnitScaleError
 
 DATA = os.path.join(os.path.dirname(__file__), 'data')
 
@@ -37,7 +40,7 @@ class TestSingleTable(object):
                              dtype=[(str('a'), int), (str('b'), str('U1')), (str('c'), float)])
 
     def test_simple(self, tmpdir):
-        filename = str(tmpdir.join('test_simple.fits'))
+        filename = str(tmpdir.join('test_simple.fts'))
         t1 = Table(self.data)
         t1.write(filename, overwrite=True)
         t2 = Table.read(filename)
@@ -45,7 +48,7 @@ class TestSingleTable(object):
 
     @pytest.mark.skipif('not HAS_PATHLIB')
     def test_simple_pathlib(self, tmpdir):
-        filename = pathlib.Path(str(tmpdir.join('test_simple.fits')))
+        filename = pathlib.Path(str(tmpdir.join('test_simple.fit')))
         t1 = Table(self.data)
         t1.write(filename, overwrite=True)
         t2 = Table.read(filename)

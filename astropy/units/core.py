@@ -13,8 +13,10 @@ if six.PY2:
     import cmath
 
 import inspect
+import operator
 import textwrap
 import warnings
+
 import numpy as np
 
 from ..utils.decorators import lazyproperty, deprecated
@@ -27,9 +29,9 @@ from . import format as unit_format
 # TODO: Support function units, e.g. log(x), ln(x)
 
 __all__ = [
-    'UnitsError', 'UnitsWarning', 'UnitConversionError', 'UnitBase',
-    'NamedUnit', 'IrreducibleUnit', 'Unit', 'def_unit', 'CompositeUnit',
-    'PrefixUnit', 'UnrecognizedUnit', 'get_current_unit_registry',
+    'UnitsError', 'UnitsWarning', 'UnitConversionError', 'UnitTypeError',
+    'UnitBase', 'NamedUnit', 'IrreducibleUnit', 'Unit', 'CompositeUnit',
+    'PrefixUnit', 'UnrecognizedUnit', 'def_unit', 'get_current_unit_registry',
     'set_enabled_units', 'add_enabled_units',
     'set_enabled_equivalencies', 'add_enabled_equivalencies',
     'dimensionless_unscaled', 'one']
@@ -461,10 +463,18 @@ class UnitConversionError(UnitsError, ValueError):
     interpreting units in terms of other units.
     """
 
+class UnitTypeError(UnitsError, TypeError):
+    """
+    Used specifically for errors in setting to units not allowed by a class.
+
+    E.g., would be raised if the unit of an `~astropy.coordinates.Angle`
+    instances were set to a non-angular unit.
+    """
+
 
 class UnitsWarning(AstropyWarning):
     """
-    The base class for unit-specific exceptions.
+    The base class for unit-specific warnings.
     """
 
 
@@ -797,7 +807,7 @@ class UnitBase(object):
             other = other.decompose()
             for a, b, forward, backward in equivalencies:
                 if b is None:
-                    # after canceling, is what's left convertable
+                    # after canceling, is what's left convertible
                     # to dimensionless (according to the equivalency)?
                     try:
                         (other/unit).decompose([a])
@@ -820,9 +830,6 @@ class UnitBase(object):
             def convert(v):
                 return func(_condition_arg(v) / scale1) * scale2
             return convert
-
-        if hasattr(other, 'equivalencies'):
-            equivalencies += other.equivalencies
 
         for funit, tunit, a, b in equivalencies:
             if tunit is None:
@@ -866,12 +873,32 @@ class UnitBase(object):
     def _get_converter(self, other, equivalencies=[]):
         other = Unit(other)
 
+        # First see if it is just a scaling.
         try:
             scale = self._to(other)
         except UnitsError:
+            pass
+        else:
+            return lambda val: scale * _condition_arg(val)
+
+        # if that doesn't work, maybe we can do it with equivalencies?
+        try:
             return self._apply_equivalencies(
                 self, other, self._normalize_equivalencies(equivalencies))
-        return lambda val: scale * _condition_arg(val)
+        except UnitsError as exc:
+            # Last hope: maybe other knows how to do it?
+            # We assume the equivalencies have the unit itself as first item.
+            # TODO: maybe better for other to have a `_back_converter` method?
+            if hasattr(other, 'equivalencies'):
+                for funit, tunit, a, b in other.equivalencies:
+                    if other is funit:
+                        try:
+                            return lambda v: b(self._get_converter(
+                                tunit, equivalencies=equivalencies)(v))
+                        except:
+                            pass
+
+            raise exc
 
     @deprecated('1.0')
     def get_converter(self, other, equivalencies=[]):
@@ -947,7 +974,7 @@ class UnitBase(object):
         other : unit object or string
             The unit to convert to.
 
-        value : scalar int or float, or sequence convertable to array, optional
+        value : scalar int or float, or sequence convertible to array, optional
             Value(s) in the current unit to be converted to the
             specified unit.  If not provided, defaults to 1.0
 
@@ -1077,7 +1104,7 @@ class UnitBase(object):
                 cached_results[key] = results
                 return results
 
-        partial_results.sort(key=lambda x: x[0])
+        partial_results.sort(key=operator.itemgetter(0))
 
         # ...we have to recurse and try to further compose
         results = []
@@ -1095,7 +1122,7 @@ class UnitBase(object):
                     (len(subcomposed.bases), subcomposed, tunit))
 
         if len(results):
-            results.sort(key=lambda x: x[0])
+            results.sort(key=operator.itemgetter(0))
 
             min_length = results[0][0]
             subresults = set()
@@ -1480,7 +1507,7 @@ class NamedUnit(UnitBase):
         elif isinstance(st, tuple):
             if not len(st) == 2:
                 raise ValueError("st must be string, list or 2-tuple")
-            self._names = st[0] + st[1]
+            self._names = st[0] + [n for n in st[1] if n not in st[0]]
             if not len(self._names):
                 raise ValueError("must provide at least one name")
             self._short_names = st[0][:]

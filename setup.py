@@ -23,7 +23,7 @@ import astropy
 NAME = 'astropy'
 
 # VERSION should be PEP386 compatible (http://www.python.org/dev/peps/pep-0386)
-VERSION = '1.2.dev'
+VERSION = '1.3.dev'
 
 # Indicates if this version is a release version
 RELEASE = 'dev' not in VERSION
@@ -94,7 +94,6 @@ setup(name=NAME,
           'Operating System :: OS Independent',
           'Programming Language :: C',
           'Programming Language :: Cython',
-          'Programming Language :: Python :: 2.6',
           'Programming Language :: Python :: 2.7',
           'Programming Language :: Python :: 3',
           'Programming Language :: Python :: Implementation :: CPython',
@@ -105,5 +104,6 @@ setup(name=NAME,
       zip_safe=False,
       use_2to3=False,
       entry_points=entry_points,
+      python_requires='>=2.7',
       **package_info
 )

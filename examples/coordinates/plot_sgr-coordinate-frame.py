@@ -55,7 +55,7 @@ plt.style.use(astropy_mpl_style)
 # Import the packages necessary for coordinates
 
 from astropy.coordinates import frame_transform_graph
-from astropy.coordinates.angles import rotation_matrix
+from astropy.coordinates.matrix_utilities import rotation_matrix
 import astropy.coordinates as coord
 import astropy.units as u
 

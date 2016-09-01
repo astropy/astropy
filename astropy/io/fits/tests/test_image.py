@@ -10,6 +10,7 @@ import warnings
 
 import numpy as np
 
+from ....extern.six.moves import range
 from ....io import fits
 from ....utils.exceptions import (AstropyDeprecationWarning,
                                   AstropyPendingDeprecationWarning)
@@ -626,6 +627,65 @@ class TestImageFunctions(FitsTestCase):
                 assert new_uint_hdu.data.dtype.name == 'uint%d' % int_size
                 assert 'BZERO' in new_uint_hdu.header
                 assert new_uint_hdu.header['BZERO'] == (2 ** (int_size - 1))
+
+    @pytest.mark.parametrize(('from_file'), (False, True))
+    @pytest.mark.parametrize(('do_not_scale'), (False,))
+    def test_uint_header_keywords_removed_after_bitpix_change(self,
+                                                              from_file,
+                                                              do_not_scale):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/4974
+
+        BZERO/BSCALE should be removed if data is converted to a floating
+        point type.
+
+        Currently excluding the case where do_not_scale_image_data=True
+        because it is not clear what the expectation should be.
+        """
+
+        arr = np.zeros(100, dtype='uint16')
+
+        if from_file:
+            # To generate the proper input file we always want to scale the
+            # data before writing it...otherwise when we open it will be
+            # regular (signed) int data.
+            tmp_uint = fits.PrimaryHDU(arr)
+            filename = 'unsigned_int.fits'
+            tmp_uint.writeto(self.temp(filename))
+            f = fits.open(self.temp(filename),
+                          do_not_scale_image_data=do_not_scale)
+
+            uint_hdu = f[0]
+            # Force a read before we close.
+            _ = uint_hdu.data
+        else:
+            uint_hdu = fits.PrimaryHDU(arr,
+                                       do_not_scale_image_data=do_not_scale)
+
+        # Make sure appropriate keywords are in the header. See
+        # https://github.com/astropy/astropy/pull/3916#issuecomment-122414532
+        # for discussion.
+        assert 'BSCALE' in uint_hdu.header
+        assert 'BZERO' in uint_hdu.header
+        assert uint_hdu.header['BSCALE'] == 1
+        assert uint_hdu.header['BZERO'] == 32768
+
+        # Convert data to floating point...
+        uint_hdu.data = uint_hdu.data * 1.0
+
+        # ...bitpix should be negative.
+        assert uint_hdu.header['BITPIX'] < 0
+
+        # BSCALE and BZERO should NOT be in header any more.
+        assert 'BSCALE' not in uint_hdu.header
+        assert 'BZERO' not in uint_hdu.header
+
+        # This is the main test...the data values should round trip
+        # as zero.
+        filename = 'test_uint_to_float.fits'
+        uint_hdu.writeto(self.temp(filename))
+        with fits.open(self.temp(filename)) as hdul:
+            assert (hdul[0].data == 0).all()
 
     def test_blanks(self):
         """Test image data with blank spots in it (which should show up as
@@ -1494,3 +1554,43 @@ class TestCompressedImage(FitsTestCase):
             # There's no good reason to have a duplicate keyword, but
             # technically it isn't invalid either :/
             assert hdul[1]._header.count('ZTENSION') == 2
+
+
+def test_set_data():
+    """
+    Test data assignment - issue #5087
+    """
+    im = fits.ImageHDU()
+    ar = np.arange(12)
+    im.data = ar
+
+
+def test_comphdu_bscale(tmpdir):
+    """
+    Regression test for a bug that caused extensions that used BZERO and BSCALE
+    that got turned into CompImageHDU to end up with BZERO/BSCALE before the
+    TFIELDS.
+    """
+
+    filename1 = tmpdir.join('3hdus.fits').strpath
+    filename2 = tmpdir.join('3hdus_comp.fits').strpath
+
+    x = np.random.random((100, 100))*100
+
+    x0 = fits.PrimaryHDU()
+    x1 = fits.ImageHDU(np.array(x-50, dtype=int), uint=True)
+    x1.header['BZERO'] = 20331
+    x1.header['BSCALE'] = 2.3
+    hdus = fits.HDUList([x0, x1])
+    hdus.writeto(filename1)
+
+    # fitsverify (based on cfitsio) should fail on this file, only seeing the
+    # first HDU.
+    hdus = fits.open(filename1)
+    hdus[1] = fits.CompImageHDU(data=hdus[1].data.astype(np.uint32),
+                                header=hdus[1].header)
+    hdus.writeto(filename2)
+
+    # open again and verify
+    hdus = fits.open(filename2)
+    hdus[1].verify('exception')

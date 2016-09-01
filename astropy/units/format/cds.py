@@ -13,6 +13,7 @@ Handles the CDS string format for units
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import operator
 import os
 import re
 
@@ -346,7 +347,7 @@ class CDS(Base):
 
             pairs = list(zip(unit.bases, unit.powers))
             if len(pairs) > 0:
-                pairs.sort(key=lambda x: x[1], reverse=True)
+                pairs.sort(key=operator.itemgetter(1), reverse=True)
 
                 s += cls._format_unit_list(pairs)
 

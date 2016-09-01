@@ -18,6 +18,7 @@ from ..util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
 from ..verify import _Verify, _ErrList
 
 from ....extern.six import string_types, add_metaclass
+from ....extern.six.moves import range
 from ....utils import lazyproperty, deprecated
 from ....utils.compat import suppress
 from ....utils.compat.funcsigs import signature, Parameter
@@ -588,7 +589,11 @@ class _BaseHDU(object):
 
         if (self._has_data and self._standard and
                 _is_pseudo_unsigned(self.data.dtype)):
-            if 'GCOUNT' in self._header:
+            # CompImageHDUs need TFIELDS immediately after GCOUNT,
+            # so BSCALE has to go after TFIELDS if it exists.
+            if 'TFIELDS' in self._header:
+                self._header.set('BSCALE', 1, after='TFIELDS')
+            elif 'GCOUNT' in self._header:
                 self._header.set('BSCALE', 1, after='GCOUNT')
             else:
                 self._header.set('BSCALE', 1)
@@ -1147,7 +1152,7 @@ class _ValidHDU(_BaseHDU, _Verify):
     def _verify(self, option='warn'):
         errs = _ErrList([], unit='Card')
 
-        is_valid = lambda v: v in [8, 16, 32, 64, -32, -64]
+        is_valid = BITPIX2DTYPE.__contains__
 
         # Verify location and value of mandatory keywords.
         # Do the first card here, instead of in the respective HDU classes, so

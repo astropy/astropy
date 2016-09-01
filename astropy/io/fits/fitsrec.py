@@ -16,7 +16,7 @@ from .column import (ASCIITNULL, FITS2NUMPY, ASCII2NUMPY, ASCII2STR, ColDefs,
                      _wrapx, _unwrapx, _makep, Delayed)
 from .util import decode_ascii, encode_ascii
 from ...extern.six import string_types
-from ...extern.six.moves import xrange
+from ...extern.six.moves import range, zip
 from ...utils import lazyproperty
 from ...utils.compat import suppress
 from ...utils.exceptions import AstropyDeprecationWarning
@@ -97,7 +97,7 @@ class FITS_record(object):
             if indx < self.start or indx > self.end - 1:
                 raise KeyError("Key '%s' does not exist." % key)
         elif isinstance(key, slice):
-            for indx in xrange(slice.start, slice.stop, slice.step):
+            for indx in range(slice.start, slice.stop, slice.step):
                 indx = self._get_indx(indx)
                 self.array.field(indx)[self.row] = value
         else:
@@ -111,7 +111,7 @@ class FITS_record(object):
         return self[slice(start, end)]
 
     def __len__(self):
-        return len(xrange(self.start, self.end, self.step))
+        return len(range(self.start, self.end, self.step))
 
     def __repr__(self):
         """
@@ -119,7 +119,7 @@ class FITS_record(object):
         """
 
         outlist = []
-        for idx in xrange(len(self)):
+        for idx in range(len(self)):
             outlist.append(repr(self[idx]))
         return '(%s)' % ', '.join(outlist)
 
@@ -546,7 +546,7 @@ class FITS_rec(np.recarray):
             start = max(0, key.start or 0)
             end = min(end, start + len(value))
 
-            for idx in xrange(start, end):
+            for idx in range(start, end):
                 self.__setitem__(idx, value[idx - start])
             return
 
@@ -633,13 +633,15 @@ class FITS_rec(np.recarray):
     def __del__(self):
         try:
             del self._coldefs
-        except AttributeError as err:  # pragma: no cover
-            pass
 
-        if self.dtype.fields is not None:
-            for col in self._col_weakrefs:
-                if col.array is not None:
-                    col.array = col.array.copy()
+            if self.dtype.fields is not None:
+                for col in self._col_weakrefs:
+                    if col.array is not None:
+                        col.array = col.array.copy()
+
+        # See issues #4690 and #4912
+        except (AttributeError, TypeError):  # pragma: no cover
+            pass
 
     @property
     def names(self):
@@ -654,7 +656,7 @@ class FITS_rec(np.recarray):
 
     @property
     def formats(self):
-        """List of column FITS foramts."""
+        """List of column FITS formats."""
 
         if hasattr(self, '_coldefs') and self._coldefs is not None:
             return self._coldefs.formats

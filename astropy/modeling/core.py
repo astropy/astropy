@@ -32,7 +32,7 @@ import numpy as np
 
 from ..utils import indent, isinstancemethod, metadata
 from ..extern import six
-from ..extern.six.moves import copyreg
+from ..extern.six.moves import copyreg, zip
 from ..table import Table
 from ..utils import (sharedmethod, find_current_module,
                      InheritDocstrings, OrderedDescriptorContainer)

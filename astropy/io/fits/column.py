@@ -19,7 +19,8 @@ from .util import (pairwise, _is_int, _convert_array, encode_ascii, cmp,
                    NotifierMixin)
 from .verify import VerifyError, VerifyWarning
 
-from ...extern.six import string_types, iteritems
+from ...extern.six import string_types, iteritems, PY2
+from ...extern.six.moves import range, zip
 from ...utils import lazyproperty, isiterable, indent
 from ...utils.compat import suppress
 from ...utils.exceptions import AstropyDeprecationWarning
@@ -268,7 +269,7 @@ class _AsciiColumnFormat(_BaseColumnFormat):
     Conversions between the two column formats can be performed using the
     ``to/from_binary`` methods on this class, or the ``to/from_ascii``
     methods on the `_ColumnFormat` class.  But again, not all conversions are
-    possible and may result in a `~.exceptions.ValueError`.
+    possible and may result in a `ValueError`.
     """
 
     def __new__(cls, format, strict=False):
@@ -1428,6 +1429,12 @@ class ColDefs(NotifierMixin):
                     dt = np.dtype((dt.char + str(dim[-1]), dim[:-1]))
                 else:
                     dt = np.dtype((dt.base, dim))
+
+            # On Python 2, force the `name` to `str`
+            # because Numpy structured arrays can't handle unicode `name`
+            # See https://github.com/astropy/astropy/issues/5204
+            if PY2:  # pragma: py2
+                name = str(name)
 
             fields.append((name, dt))
 

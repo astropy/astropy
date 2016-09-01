@@ -4,12 +4,21 @@
 
 from __future__ import print_function  # For print debugging with python 2 or 3
 
-from collections import OrderedDict
+from collections import OrderedDict, Mapping
+from ...extern import six
 
 import numpy as np
 
 from ...tests.helper import pytest
 from ...table import Column, TableColumns
+
+# Unfortunatly the python2 UserDict.UserDict is not a Mapping so it is not
+# possible to use "from six.moves import UserDict". Instead we have to use
+# IterableUserDict (which is a Mapping) here.
+if six.PY2:
+    from UserDict import IterableUserDict as UserDict
+else:
+    from collections import UserDict
 
 
 class TestTableColumnsInit():
@@ -274,6 +283,17 @@ class TestInitFromDict(BaseInitFromDictLike):
         self.data = dict([('a', Column([1, 3], name='x')),
                           ('b', [2, 4]),
                           ('c', np.array([3, 5], dtype='i8'))])
+
+
+@pytest.mark.usefixtures('table_type')
+class TestInitFromMapping(BaseInitFromDictLike):
+
+    def _setup(self, table_type):
+        self.data = UserDict([('a', Column([1, 3], name='x')),
+                              ('b', [2, 4]),
+                              ('c', np.array([3, 5], dtype='i8'))])
+        assert isinstance(self.data, Mapping)
+        assert not isinstance(self.data, dict)
 
 
 @pytest.mark.usefixtures('table_type')

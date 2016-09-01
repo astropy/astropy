@@ -112,7 +112,7 @@ Due to the FITS format's FORTRAN origins, FITS does not natively support
 unsigned integer data in images or tables.  However, there is a common
 convention to store unsigned integers as signed integers, along with a
 *shift* instruction (a ``BZERO`` keyword with value ``2 ** (BITPIX - 1)``) to
-shift up all signed integers to unsigned inters.  For example, when writing
+shift up all signed integers to unsigned integers.  For example, when writing
 the value ``0`` as an unsigned 32-bit integer, it is stored in the FITS
 file as ``-32768``, along with the header keyword ``BZERO = 32768``.
 
@@ -169,7 +169,7 @@ to get the value of the keyword targname, which is a string 'NGC121'.
 Although keyword names are always in upper case inside the FITS file,
 specifying a keyword name with Astropy is case-insensitive, for the user's
 convenience. If the specified keyword name does not exist, it will raise a
-`~.exceptions.KeyError` exception.
+`KeyError` exception.
 
 We can also get the keyword value by indexing (a la Python lists)::
 

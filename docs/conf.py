@@ -21,9 +21,13 @@
 # done. If the sys.path entry above is added, when the astropy.sphinx.conf
 # import occurs, it will import the *source* version of astropy instead of the
 # version installed (if invoked as "make html" or directly with sphinx), or the
-# version in the build directory (if "python setup.py build_sphinx" is used).
+# version in the build directory (if "python setup.py build_docs" is used).
 # Thus, any C-extensions that are needed to build the documentation will *not*
 # be accessible, and the documentation will not build correctly.
+
+import os
+ON_RTD = os.environ.get('READTHEDOCS') == 'True'
+ON_TRAVIS = os.environ.get('TRAVIS') == 'true'
 
 try:
     import astropy_helpers
@@ -38,6 +42,16 @@ except ImportError:
 
     # If that doesn't work trying to import from astropy_helpers below will
     # still blow up
+
+# We now check for any dependencies that are required to build the docs that
+# depend on Astropy, since these may not be installed yet. For instance, on
+# ReadTheDocs, we can't set up wcsaxes with conda since that would result in the
+# astropy conda package getting installed, which would shadow the developer
+# version installed just prior to building the docs. So we should set up any
+# such dependencies here.
+if ON_RTD:
+    from setuptools import Distribution
+    Distribution({'setup_requires': 'wcsaxes'})
 
 # Load all of the global Astropy configuration
 from astropy_helpers.sphinx.conf import *
@@ -69,6 +83,7 @@ del intersphinx_mapping['astropy']
 # add any custom intersphinx for astropy
 intersphinx_mapping['pytest'] = ('http://pytest.org/latest/', None)
 intersphinx_mapping['ipython'] = ('http://ipython.readthedocs.io/en/stable/', None)
+intersphinx_mapping['pandas'] = ('http://pandas.pydata.org/pandas-docs/stable/', None)
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -228,8 +243,10 @@ try:
             'astropy': None,
             'matplotlib': 'http://matplotlib.org/',
             'numpy': 'http://docs.scipy.org/doc/numpy/',
-        }
+        },
+        'abort_on_example_error': True
     }
+
 except ImportError:
     def setup(app):
         app.warn('The sphinx_gallery extension is not installed, so the '

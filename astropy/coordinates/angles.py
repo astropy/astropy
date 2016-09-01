@@ -18,7 +18,6 @@ from . import angle_utilities as util
 from .. import units as u
 from ..utils import isiterable
 
-
 __all__ = ['Angle', 'Latitude', 'Longitude']
 
 
@@ -30,7 +29,7 @@ dms_tuple = namedtuple('dms_tuple', ('d', 'm', 's'))
 signed_dms_tuple = namedtuple('signed_dms_tuple', ('sign', 'd', 'm', 's'))
 
 
-class Angle(u.Quantity):
+class Angle(u.SpecificTypeQuantity):
     """
     One or more angular value(s) with units equivalent to radians or degrees.
 
@@ -83,6 +82,7 @@ class Angle(u.Quantity):
     `~astropy.units.UnitsError`
         If a unit is not provided or it is not an angular unit.
     """
+    _equivalent_unit = u.radian
     _include_easy_conversion_members = True
 
     def __new__(cls, angle, unit=None, dtype=None, copy=True):
@@ -111,20 +111,8 @@ class Angle(u.Quantity):
                        angle.dtype.kind not in 'SUVO')):
                 angle = [Angle(x, unit, copy=False) for x in angle]
 
-        self = super(Angle, cls).__new__(cls, angle, unit, dtype=dtype,
+        return super(Angle, cls).__new__(cls, angle, unit, dtype=dtype,
                                          copy=copy)
-
-        if not isinstance(angle, Angle):
-            self._unit = cls._convert_unit_to_angle_unit(self.unit)
-            if not self.unit.is_equivalent(u.radian):
-                if self.unit is u.dimensionless_unscaled:
-                    raise u.UnitsError("No unit was given - "
-                                       "must be some kind of angle")
-                else:
-                    raise u.UnitsError("Unit {0} is not an angle"
-                                       .format(self.unit))
-
-        return self
 
     @staticmethod
     def _tuple_to_float(angle, unit):
@@ -140,16 +128,12 @@ class Angle(u.Quantity):
         else:
             raise u.UnitsError("Can not parse '{0}' as unit '{1}'"
                                .format(angle, unit))
-
     @staticmethod
     def _convert_unit_to_angle_unit(unit):
         return u.hourangle if unit is u.hour else unit
 
-    def __quantity_subclass__(self, unit):
-        if unit.is_equivalent(u.radian):
-            return Angle, True
-        else:
-            return super(Angle, self).__quantity_subclass__(unit)[0], False
+    def _set_unit(self, unit):
+        super(Angle, self)._set_unit(self._convert_unit_to_angle_unit(unit))
 
     @property
     def hour(self):
@@ -258,8 +242,7 @@ class Angle(u.Quantity):
         if unit is None:
             unit = self.unit
         else:
-            unit = u.Unit(unit)
-        unit = self._convert_unit_to_angle_unit(unit)
+            unit = self._convert_unit_to_angle_unit(u.Unit(unit))
 
         separators = {
             None: {
@@ -472,7 +455,7 @@ class Latitude(Angle):
       -90.0 * u.deg <= angle(s) <= +90.0 * u.deg
 
     Any attempt to set a value outside that range will result in a
-    `~.exceptions.ValueError`.
+    `ValueError`.
 
     The input angle(s) can be specified either as an array, list,
     scalar, tuple (see below), string,
@@ -668,8 +651,21 @@ class Longitude(Angle):
         return obj
 
 #<----------------------------------Rotations--------------------------------->
+# The main routines have been moved to matrix_utilities.  The definitions here
+# are for backward compatibility.
+from . import matrix_utilities
+from ..utils.decorators import deprecated
 
-
+_DEPRECATION_MESSAGE="""
+Numpy matrix instances are no longer used to represent rotation matrices, since
+they do not allow one to represent stacks of matrices. Instead, plain arrays
+are used. Instead of %(func)s, use %(alternative)s.
+For matrix multiplication and tranposes, it is suggested to use
+:func:`~astropy.coordinates.matrix_utilities.matrix_product` and
+:func:`~astropy.coordinates.matrix_utilities.matrix_transpose`, respectively.
+"""
+@deprecated(since='1.3', message=_DEPRECATION_MESSAGE, alternative=':func:'
+            '`~astropy.coordinates.matrix_utilities.rotation_matrix`')
 def rotation_matrix(angle, axis='z', unit=None):
     """
     Generate a 3x3 cartesian rotation matrix in for rotation about
@@ -695,40 +691,11 @@ def rotation_matrix(angle, axis='z', unit=None):
     rmat: `numpy.matrix`
         A unitary rotation matrix.
     """
-    if unit is None:
-        unit = u.degree
-
-    angle = Angle(angle, unit=unit)
-
-    s = np.sin(angle)
-    c = np.cos(angle)
-
-    # use optimized implementations for x/y/z
-    if axis == 'z':
-        return np.matrix(((c, s, 0),
-                          (-s, c, 0),
-                          (0, 0, 1)))
-    elif axis == 'y':
-        return np.matrix(((c, 0, -s),
-                          (0, 1, 0),
-                          (s, 0, c)))
-    elif axis == 'x':
-        return np.matrix(((1, 0, 0),
-                          (0, c, s),
-                          (0, -s, c)))
-    else:
-        axis = np.asarray(axis)
-        axis = axis / np.sqrt((axis * axis).sum())
-
-        R = np.diag((c, c, c))
-        R += np.outer(axis, axis) * (1. - c)
-        axis *= s
-        R += np.array([[0., axis[2], -axis[1]],
-                       [-axis[2], 0., axis[0]],
-                       [axis[1], -axis[0], 0.]])
-        return R.view(np.matrix)
+    return matrix_utilities.rotation_matrix(angle, axis, unit).view(np.matrix)
 
 
+@deprecated(since='1.3', message=_DEPRECATION_MESSAGE, alternative=':func:'
+            '`~astropy.coordinates.matrix_utilities.angle_axis`')
 def angle_axis(matrix):
     """
     Computes the angle of rotation and the rotation axis for a given rotation
@@ -748,11 +715,4 @@ def angle_axis(matrix):
         The (normalized) axis of rotation for this matrix.
     """
     m = np.asmatrix(matrix)
-    if m.shape != (3, 3):
-        raise ValueError('matrix is not 3x3')
-
-    axis = np.array((m[2, 1] - m[1, 2], m[0, 2] - m[2, 0], m[1, 0] - m[0, 1]))
-    r = np.sqrt((axis * axis).sum())
-    angle = np.arctan2(r, np.trace(m) - 1)
-
-    return Angle(angle, u.radian), -axis / r
+    return matrix_utilities.angle_axis(m.view(np.ndarray))

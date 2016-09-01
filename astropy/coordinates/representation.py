@@ -17,20 +17,23 @@ import astropy.units as u
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from ..extern import six
+from ..utils import ShapedLikeNDArray
 from ..utils.compat.numpy import broadcast_arrays
 
 __all__ = ["BaseRepresentation", "CartesianRepresentation",
            "SphericalRepresentation", "UnitSphericalRepresentation",
            "PhysicsSphericalRepresentation", "CylindricalRepresentation"]
 
-NUMPY_LT_1P7 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 7]
-
 # Module-level dict mapping representation string alias names to class.
 # This is populated by the metaclass init so all representation classes
 # get registered automatically.
 REPRESENTATION_CLASSES = {}
 
-class MetaBaseRepresentation(type):
+# Need to subclass ABCMeta rather than type, so that this meta class can be
+# combined with a ShapedLikeNDArray subclass (which is an ABC).  Without it:
+# "TypeError: metaclass conflict: the metaclass of a derived class must be a
+#  (non-strict) subclass of the metaclasses of all its bases"
+class MetaBaseRepresentation(abc.ABCMeta):
     def __init__(cls, name, bases, dct):
         super(MetaBaseRepresentation, cls).__init__(name, bases, dct)
 
@@ -61,7 +64,7 @@ def _fstyle(precision, x):
 
 
 @six.add_metaclass(MetaBaseRepresentation)
-class BaseRepresentation(object):
+class BaseRepresentation(ShapedLikeNDArray):
     """
     Base Representation object, for representing a point in a 3D coordinate
     system.
@@ -114,9 +117,28 @@ class BaseRepresentation(object):
             name = name[:-14]
         return name
 
-    def __getitem__(self, view):
-        return self.__class__(*[getattr(self, component)[view]
-                                for component in self.components])
+    def _apply(self, method, *args, **kwargs):
+        """Create a new coordinate object with ``method`` applied to the arrays.
+
+        The method is any of the shape-changing methods for `~numpy.ndarray`
+        (``reshape``, ``swapaxes``, etc.), as well as those picking particular
+        elements (``__getitem__``, ``take``, etc.). It will be applied to the
+        underlying arrays (e.g., ``x``, ``y``, and ``z`` for
+        `~astropy.coordinates.CartesianRepresentation`), with the results used
+        to create a new instance.
+
+        Parameters
+        ----------
+        method : str
+            The method is applied to the internal ``components``.
+        args : tuple
+            Any positional arguments for ``method``.
+        kwargs : dict
+            Any keyword arguments for ``method``.
+        """
+        return self.__class__(
+            *[getattr(getattr(self, component), method)(*args, **kwargs)
+              for component in self.components], copy=False)
 
     def __len__(self):
         if self.isscalar:
@@ -133,11 +155,41 @@ class BaseRepresentation(object):
 
     @property
     def shape(self):
+        """The shape of the instance and underlying arrays.
+
+        Like `~numpy.ndarray.shape`, can be set to a new shape by assigning a
+        tuple.  Note that if different instances share some but not all
+        underlying data, setting the shape of one instance can make the other
+        instance unusable.  Hence, it is strongly recommended to get new,
+        reshaped instances with the ``reshape`` method.
+
+        Raises
+        ------
+        AttributeError
+            If the shape of any of the components cannot be changed without the
+            arrays being copied.  For these cases, use the ``reshape`` method
+            (which copies any arrays that cannot be reshaped in-place).
+        """
         return getattr(self, self.components[0]).shape
 
-    @property
-    def isscalar(self):
-        return getattr(self, self.components[0]).isscalar
+    @shape.setter
+    def shape(self, shape):
+        # We keep track of arrays that were already reshaped since we may have
+        # to return those to their original shape if a later shape-setting
+        # fails. (This can happen since coordinates are broadcast together.)
+        reshaped = []
+        oldshape = self.shape
+        for component in self.components:
+            val = getattr(self, component)
+            if val.size > 1:
+                try:
+                    val.shape = shape
+                except AttributeError:
+                    for val2 in reshaped:
+                        val2.shape = oldshape
+                    raise
+                else:
+                    reshaped.append(val)
 
     @property
     def _values(self):
@@ -190,14 +242,8 @@ class BaseRepresentation(object):
                 ', '.join(format_val(x[name]) for name in names))
         }
 
-        if NUMPY_LT_1P7:
-            arrstr = np.array2string(v, separator=', ',
-                                     prefix=prefixstr)
-
-        else:
-            arrstr = np.array2string(v, formatter=formatter,
-                                     separator=', ',
-                                     prefix=prefixstr)
+        arrstr = np.array2string(v, formatter=formatter,
+                                 separator=', ', prefix=prefixstr)
 
         if self._values.shape == ():
             arrstr = arrstr[1:-1]
@@ -314,7 +360,7 @@ class CartesianRepresentation(BaseRepresentation):
 
         We now create a rotation matrix around the z axis:
 
-            >>> from astropy.coordinates.angles import rotation_matrix
+            >>> from astropy.coordinates.matrix_utilities import rotation_matrix
             >>> rotation = rotation_matrix(30 * u.deg, axis='z')
 
         Finally, we can apply this transformation:
@@ -325,24 +371,34 @@ class CartesianRepresentation(BaseRepresentation):
                        [ 1.23205081, 1.59807621],
                        [ 3.        , 4.        ]] pc>
         """
+        # Avoid doing gratuitous np.array for things that look like arrays.
+        try:
+            matrix_shape = matrix.shape
+        except AttributeError:
+            matrix = np.array(matrix)
+            matrix_shape = matrix.shape
+
+        if matrix_shape[-2:] != (3, 3):
+            raise ValueError("tried to do matrix multiplication with an array "
+                             "that doesn't end in 3x3")
 
         # TODO: since this is likely to be a widely used function in coordinate
         # transforms, it should be optimized (for example in Cython).
 
         # Get xyz once since it's an expensive operation
-        xyz = self.xyz
+        oldxyz = self.xyz
+        # Note that neither dot nor einsum handles Quantity properly, so we use
+        # the arrays and put the unit back in the end.
+        if self.isscalar and not matrix_shape[:-2]:
+            # a fast path for scalar coordinates.
+            newxyz = matrix.dot(oldxyz.value)
+        else:
+            # Matrix multiply all pmat items and coordinates, broadcasting the
+            # remaining dimensions.
+            newxyz = np.einsum('...ij,j...->i...', matrix, oldxyz.value)
 
-        # Since the underlying data can be n-dimensional, reshape to a
-        # 2-dimensional (3, N) array.
-        vec = xyz.reshape((3, xyz.size // 3))
-
-        # Do the transformation
-        vec_new = np.dot(np.asarray(matrix), vec)
-
-        # Restore the original shape
-        vec_new = vec_new.reshape(xyz.shape)
-
-        return self.__class__(*vec_new)
+        newxyz = u.Quantity(newxyz, oldxyz.unit, copy=False)
+        return self.__class__(*newxyz, copy=False)
 
 
 class UnitSphericalRepresentation(BaseRepresentation):

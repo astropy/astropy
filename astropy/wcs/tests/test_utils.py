@@ -6,6 +6,7 @@ from ...wcs import WCS
 from .. import utils
 from ..utils import proj_plane_pixel_scales, is_proj_plane_distorted, non_celestial_pixel_scales
 from ...tests.helper import pytest
+from ...extern.six.moves import range
 from ... import units as u
 
 import numpy as np

@@ -4,6 +4,7 @@ from __future__ import division  # confidence high
 
 import contextlib
 import csv
+import operator
 import os
 import re
 import sys
@@ -14,9 +15,9 @@ import numpy as np
 from numpy import char as chararray
 
 from .base import DELAYED, _ValidHDU, ExtensionHDU
-# This module may have many dependencies on pyfits.column, but pyfits.column
-# has fewer dependencies overall, so it's easier to keep table/column-related
-# utilities in pyfits.column
+# This module may have many dependencies on astropy.io.fits.column, but
+# astropy.io.fits.column has fewer dependencies overall, so it's easier to
+# keep table/column-related utilities in astropy.io.fits.column
 from .. import _numpy_hacks as nh
 from ..column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_TO_ATTRIBUTE,
                       ATTRIBUTE_TO_KEYWORD, TDEF_RE, Column, ColDefs,
@@ -29,7 +30,7 @@ from ..util import _is_int, _str_to_num
 
 from ....extern import six
 from ....extern.six import string_types
-from ....extern.six.moves import xrange as range
+from ....extern.six.moves import range, zip
 from ....utils import deprecated, lazyproperty
 from ....utils.compat import suppress
 from ....utils.exceptions import AstropyUserWarning
@@ -653,15 +654,16 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                                        num))
 
         # First delete
-        for idx, keyword, _, num in sorted(table_keywords,
-                                           key=lambda k: k[0], reverse=True):
+        rev_sorted_idx_0 = sorted(table_keywords, key=operator.itemgetter(0),
+                                  reverse=True)
+        for idx, keyword, _, num in rev_sorted_idx_0:
             if index is None or index == num:
                 del self._header[idx]
 
         # Now shift up remaining column keywords if only one column was cleared
         if index is not None:
-            for _, keyword, base_keyword, num in sorted(table_keywords,
-                                                        key=lambda k: k[3]):
+            sorted_idx_3 = sorted(table_keywords, key=operator.itemgetter(3))
+            for _, keyword, base_keyword, num in sorted_idx_3:
                 if num <= index:
                     continue
 
@@ -904,7 +906,7 @@ class BinTableHDU(_TableBaseHDU):
 
         # Creating Record objects is expensive (as in
         # `for row in self.data:` so instead we just iterate over the row
-        # indicies and get one field at a time:
+        # indices and get one field at a time:
         for idx in range(len(self.data)):
             for field in fields:
                 item = field[idx]

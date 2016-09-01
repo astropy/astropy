@@ -10,7 +10,8 @@ import os
 
 import numpy as np
 
-from astropy.table import Table, Column
+from ....table import Table, Column
+from ....extern.six.moves import range
 
 
 def ref_fk4_no_e_fk4(fnout='fk4_no_e_fk4.csv'):

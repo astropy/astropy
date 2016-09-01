@@ -2,13 +2,12 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
-from ..extern.six.moves import zip as izip
-from ..extern.six.moves import range as xrange
+from ..extern.six.moves import zip, range
 from .index import TableIndices, TableLoc, TableILoc
 
 import re
 import sys
-from collections import OrderedDict
+from collections import OrderedDict, Mapping
 
 from copy import deepcopy
 
@@ -124,7 +123,7 @@ class TableColumns(OrderedDict):
         new_names = [mapper.get(name, name) for name in self]
         cols = list(six.itervalues(self))
         self.clear()
-        self.update(list(izip(new_names, cols)))
+        self.update(list(zip(new_names, cols)))
 
     # Define keys and values for Python 2 and 3 source compatibility
     def keys(self):
@@ -317,7 +316,7 @@ class Table(object):
                     data = data[np.newaxis, :]
                 n_cols = data.shape[1]
 
-        elif isinstance(data, dict):
+        elif isinstance(data, Mapping):
             init_func = self._init_from_dict
             default_names = list(data)
             n_cols = len(default_names)
@@ -917,7 +916,7 @@ class Table(object):
         table_class : str or `None`
             A string with a list of HTML classes used to style the table.
             The special default string ('from-apy-default') means that the string
-            will be retreived from the configuration item
+            will be retrieved from the configuration item
             ``astropy.table.default_notebook_table_class``. Note that these
             table classes may make use of bootstrap, as this is loaded with the
             notebook.  See `this page <http://getbootstrap.com/css/#tables>`_
@@ -928,7 +927,7 @@ class Table(object):
         display_length : int, optional
             Number or rows to show. Defaults to 50.
         show_row_index : str or False
-            If this does not evaulate to False, a column with the given name
+            If this does not evaluate to False, a column with the given name
             will be added to the version of the table that gets displayed.
             This new column shows the index of the row in the table itself,
             even when the displayed table is re-sorted by another column. Note
@@ -1003,7 +1002,7 @@ class Table(object):
             A valid CSS string declaring the formatting for the table. Defaults
             to ``astropy.table.jsviewer.DEFAULT_CSS``.
         show_row_index : bool
-            If this does not evaulate to False, a column with the given name
+            If this does not evaluate to False, a column with the given name
             will be added to the version of the table that gets displayed.
             This new column shows the index of the row in the table itself,
             even when the displayed table is re-sorted by another column. Note
@@ -1243,7 +1242,7 @@ class Table(object):
                     raise ValueError('Right side value needs {0} elements (one for each column)'
                                      .format(n_cols))
 
-                for col, val in izip(self.columns.values(), value):
+                for col, val in zip(self.columns.values(), value):
                     col[item] = val
 
             elif (isinstance(item, slice) or
@@ -1268,7 +1267,7 @@ class Table(object):
                                          .format(n_cols))
                     vals = value
 
-                for col, val in izip(self.columns.values(), vals):
+                for col, val in zip(self.columns.values(), vals):
                     col[item] = val
 
             else:
@@ -2132,7 +2131,7 @@ class Table(object):
         columns = self.TableColumns()
         try:
             # Insert val at index for each column
-            for name, col, val, mask_ in izip(colnames, self.columns.values(), vals, mask):
+            for name, col, val, mask_ in zip(colnames, self.columns.values(), vals, mask):
                 # If the new row caused a change in self.ColumnClass then
                 # Column-based classes need to be converted first.  This is
                 # typical for adding a row with mask values to an unmasked table.

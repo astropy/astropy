@@ -95,7 +95,7 @@ def validate_method(method, dy, fit_mean, nterms,
                    and (assume_regular_frequency or _is_regular(frequency)))
     prefer_scipy = 'scipy' in methods and dy is None and not fit_mean
 
-    # automatically choose the appropiate method
+    # automatically choose the appropriate method
     if method == 'auto':
         if not fast_method_ok:
             warnings.warn("Fast Lomb-Scargle methods require numpy version "
@@ -167,7 +167,7 @@ def lombscargle(t, y, dy=None,
         Normalization to use for the periodogram.
         Options are 'standard' or 'psd'.
     fit_mean : bool (optional, default=True)
-        if True, include a constant offet as part of the model at each
+        if True, include a constant offset as part of the model at each
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage.
     center_data : bool (optional, default=True)

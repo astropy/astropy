@@ -45,6 +45,7 @@ import numpy as np
 # LOCAL
 from .. import log
 from ..extern import six
+from ..extern.six.moves import range, zip, map
 from ..io import fits
 from . import _docutil as __
 try:
@@ -65,6 +66,7 @@ if _wcs is not None:
 
 from ..utils.compat import possible_filename
 from ..utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
+from ..utils.decorators import deprecated
 
 if _wcs is not None:
     assert _wcs._sanity_check(), \
@@ -129,7 +131,7 @@ else:
 
 
 # Additional relax bit flags
-WCSHDO_SIP = 0x30000
+WCSHDO_SIP = 0x80000
 
 # Regular expression defining SIP keyword It matches keyword that starts with A
 # or B, optionally followed by P, followed by an underscore then a number in
@@ -317,7 +319,7 @@ class WCS(WCSBase):
        two dimensional.  Therefore, if you try to create a WCS object
        where the core WCS has a different number of dimensions than 2
        and that object also contains a `distortion paper`_ lookup
-       table or `SIP`_ distortion, a `~.exceptions.ValueError`
+       table or `SIP`_ distortion, a `ValueError`
        exception will be raised.  To avoid this, consider using the
        *naxis* kwarg to select two dimensions from the core WCS.
 
@@ -676,7 +678,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         Returns
         -------
         coord : (4, 2) array of (*x*, *y*) coordinates.
-            The order is counter-clockwise starting with the bottom left corner.
+            The order is clockwise starting with the bottom left corner.
         """
         if axes is not None:
             naxis1, naxis2 = axes
@@ -1037,16 +1039,20 @@ reduce these to 2 dimensions using the naxis kwarg.
             ctype=[header['CTYPE{0}'.format(nax)] for nax in range(1, self.naxis + 1)]
             if any([ctyp[-4 :] != '-SIP' for ctyp in ctype]):
                 message = """
-                Inconsistent SIP distortion information is present in header:
-                SIP coefficients were detected, but CTYPE is missing "-SIP" suffix,
+                Inconsistent SIP distortion information is present in the FITS header and the WCS object:
+                SIP coefficients were detected, but CTYPE is missing a "-SIP" suffix.
+                astropy.wcs is using the SIP distortion coefficients,
                 therefore the coordinates calculated here might be incorrect.
 
-                If image is already distortion-corrected (eg, drizzled) then
-                distortion components should not apply. For such distortion-corrected
-                images, please use ``wcs_pix2world`` or ``wcs_world2pix`` instead.
+                If you do not want to apply the SIP distortion coefficients,
+                please remove the SIP coefficients from the FITS header or the
+                WCS object.  As an example, if the image is already distortion-corrected
+                (e.g., drizzled) then distortion components should not apply and the SIP
+                coefficients should be removed.
 
-                If image is not yet distortion-corrected (eg, not yet drizzled), then
-                please inspect the header and make appropriate changes before rerunning.
+                While the SIP distortion coefficients are being applied here, if that was indeed the intent,
+                for consistency please append "-SIP" to the CTYPE in the FITS header or the WCS object.
+
                 """
                 log.info(message)
         elif str("B_ORDER") in header and header[str('B_ORDER')] > 1:
@@ -2052,22 +2058,22 @@ reduce these to 2 dimensions using the naxis kwarg.
         >>> hdulist.close()
 
         >>> ra, dec = w.all_pix2world([1,2,3], [1,1,1], 1)
-        >>> print(ra)
+        >>> print(ra)  # doctest: +FLOAT_CMP
         [ 5.52645627  5.52649663  5.52653698]
-        >>> print(dec)
+        >>> print(dec)  # doctest: +FLOAT_CMP
         [-72.05171757 -72.05171276 -72.05170795]
         >>> radec = w.all_pix2world([[1,1], [2,1], [3,1]], 1)
-        >>> print(radec)
+        >>> print(radec)  # doctest: +FLOAT_CMP
         [[  5.52645627 -72.05171757]
          [  5.52649663 -72.05171276]
          [  5.52653698 -72.05170795]]
         >>> x, y = w.all_world2pix(ra, dec, 1)
-        >>> print(x)
+        >>> print(x)  # doctest: +FLOAT_CMP
         [ 1.00000238  2.00000237  3.00000236]
-        >>> print(y)
+        >>> print(y)  # doctest: +FLOAT_CMP
         [ 0.99999996  0.99999997  0.99999997]
         >>> xy = w.all_world2pix(radec, 1)
-        >>> print(xy)
+        >>> print(xy)  # doctest: +FLOAT_CMP
         [[ 1.00000238  0.99999996]
          [ 2.00000237  0.99999997]
          [ 3.00000236  0.99999997]]
@@ -2083,13 +2089,13 @@ reduce these to 2 dimensions using the naxis kwarg.
         >>> divradec = w.all_pix2world([[1.0, 1.0],
         ...                             [10000.0, 50000.0],
         ...                             [3.0, 1.0]], 1)
-        >>> print(divradec)
+        >>> print(divradec)  # doctest: +FLOAT_CMP
         [[  5.52645627 -72.05171757]
          [  7.15976932 -70.8140779 ]
          [  5.52653698 -72.05170795]]
 
         >>> # First, turn detect_divergence on:
-        >>> try:
+        >>> try:  # doctest: +FLOAT_CMP
         ...   xy = w.all_world2pix(divradec, 1, maxiter=20,
         ...                        tolerance=1.0e-4, adaptive=False,
         ...                        detect_divergence=True,
@@ -2119,7 +2125,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         diverging at least for one input point.
 
         >>> # This time turn detect_divergence off:
-        >>> try:
+        >>> try:  # doctest: +FLOAT_CMP
         ...   xy = w.all_world2pix(divradec, 1, maxiter=20,
         ...                        tolerance=1.0e-4, adaptive=False,
         ...                        detect_divergence=False,
@@ -2511,6 +2517,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             relax &= ~WCSHDO_SIP
         else:
             do_sip = relax
+            relax = WCSHDO_all if relax is True else WCSHDO_safe
 
         relax = precision | relax
 
@@ -2580,18 +2587,6 @@ reduce these to 2 dimensions using the naxis kwarg.
             CTYPE if it is missing.
         """
 
-        _strip_sip_from_ctype = """
-        Warning: to_header() was invoked without ``relax=True``: stripping all SIP
-        coefficients from output header, and stripping "-SIP" from output CTYPE
-        if it was originally present.
-
-        Therefore astrometry obtained for output image may be different from
-        original image because SIP is no longer present.
-
-        Please inspect the headers of input and output images to verify, and
-        modify the headers if necessary.
-        """
-
         _add_sip_to_ctype = """
         Inconsistent SIP distortion information is present in the current WCS:
         SIP coefficients were detected, but CTYPE is missing "-SIP" suffix,
@@ -2605,14 +2600,13 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Therefore, if current WCS is already distortion-corrected (eg, drizzled)
         then SIP distortion components should not apply. In that case, for a WCS
-        that is already distortion-corrected, please do not set relax=True.
+        that is already distortion-corrected, please remove the SIP coefficients
+        from the header.
 
         """
         if log_message:
             if add_sip:
                 log.info(_add_sip_to_ctype)
-            else:
-                log.info(_strip_sip_from_ctype)
         for i in range(1, self.naxis+1):
             # strip() must be called here to cover the case of alt key= " "
             kw = 'CTYPE{0}{1}'.format(i, self.wcs.alt).strip()
@@ -2621,7 +2615,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                     val = header[kw].strip("-SIP") + "-SIP"
                 else:
                     val = header[kw].strip("-SIP")
-                    header[kw] = val
+                header[kw] = val
             else:
                 continue
         return header
@@ -2672,6 +2666,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             self._naxis1 = header.get('NAXIS1', 0)
             self._naxis2 = header.get('NAXIS2', 0)
 
+    @deprecated('1.3')
     def rotateCD(self, theta):
         _theta = np.deg2rad(theta)
         _mrot = np.zeros(shape=(2, 2), dtype=np.double)

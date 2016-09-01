@@ -6,6 +6,7 @@ import gzip
 import itertools
 import io
 import mmap
+import operator
 import os
 import platform
 import signal
@@ -32,7 +33,7 @@ except ImportError:
 from ...extern import six
 from ...extern.six import (string_types, integer_types, text_type,
                            binary_type, next)
-from ...extern.six.moves import zip
+from ...extern.six.moves import zip, range
 from ...utils import wraps
 from ...utils.compat import suppress
 from ...utils.exceptions import AstropyUserWarning
@@ -208,7 +209,7 @@ def itersubclasses(cls, _seen=None):
         subs = cls.__subclasses__()
     except TypeError:  # fails only when cls is type
         subs = cls.__subclasses__(cls)
-    for sub in sorted(subs, key=lambda s: s.__name__):
+    for sub in sorted(subs, key=operator.attrgetter('__name__')):
         if sub not in _seen:
             _seen.add(sub)
             yield sub
@@ -433,9 +434,15 @@ def fileobj_name(f):
 
 def fileobj_closed(f):
     """
-    Returns True if the given file-like object is closed or if f is not a
-    file-like object.
+    Returns True if the given file-like object is closed or if f is a string
+    (and assumed to be a pathname).
+
+    Returns False for all other types of objects, under the assumption that
+    they are file-like objects with no sense of a 'closed' state.
     """
+
+    if isinstance(f, string_types):
+        return True
 
     if hasattr(f, 'closed'):
         return f.closed

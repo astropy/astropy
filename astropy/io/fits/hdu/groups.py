@@ -11,6 +11,7 @@ from ..fitsrec import FITS_rec, FITS_record
 from ..util import _is_int, _is_pseudo_unsigned, _unsigned_zero
 
 from ....utils import lazyproperty
+from ....extern.six.moves import range, zip
 
 
 class Group(FITS_record):

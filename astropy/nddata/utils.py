@@ -4,13 +4,16 @@ This module includes helper functions for array operations.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-import numpy as np
 from copy import deepcopy
+
+import numpy as np
+
 from .decorators import support_nddata
-from astropy.utils import lazyproperty
-from astropy.coordinates import SkyCoord
-from astropy.wcs.utils import skycoord_to_pixel, proj_plane_pixel_scales
-from astropy import units as u
+from .. import units as u
+from ..coordinates import SkyCoord
+from ..extern.six.moves import range, zip
+from ..utils import lazyproperty
+from ..wcs.utils import skycoord_to_pixel, proj_plane_pixel_scales
 
 
 __all__ = ['extract_array', 'add_array', 'subpixel_indices',

@@ -9,11 +9,7 @@ from ... import ascii
 from ....table import Table
 from ..core import masked
 
-
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
+from ....extern.six.moves import cStringIO as StringIO
 
 
 DATA = '''

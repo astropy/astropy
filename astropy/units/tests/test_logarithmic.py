@@ -7,6 +7,7 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 from ...extern import six
+from ...extern.six.moves import zip
 
 import itertools
 import numpy as np
@@ -79,6 +80,22 @@ def test_predefined_magnitudes():
     assert_quantity_allclose((0*u.M_bol).physical, c.L_bol0)
     assert_quantity_allclose((0*u.m_bol).physical,
                              c.L_bol0/(4.*np.pi*(10.*c.pc)**2))
+
+
+def test_predefined_reinitialisation():
+    assert u.mag('ST') == u.STmag
+    assert u.mag('AB') == u.ABmag
+    assert u.mag('Bol') == u.M_bol
+    assert u.mag('bol') == u.m_bol
+
+
+def test_predefined_string_roundtrip():
+    """Ensure roundtripping; see #5015"""
+    with u.magnitude_zero_points.enable():
+        assert u.Unit(u.STmag.to_string()) == u.STmag
+        assert u.Unit(u.ABmag.to_string()) == u.ABmag
+        assert u.Unit(u.M_bol.to_string()) == u.M_bol
+        assert u.Unit(u.m_bol.to_string()) == u.m_bol
 
 
 class TestLogUnitStrings(object):
@@ -361,20 +378,53 @@ class TestLogQuantityCreation(object):
         assert (q2._function_view / u.mag).to(1).value == -5.
 
 
+def test_conversion_to_and_from_physical_quantities():
+    """Ensures we can convert from regular quantities."""
+    mst = [10., 12., 14.] * u.STmag
+    flux_lambda = mst.physical
+    mst_roundtrip = flux_lambda.to(u.STmag)
+    # check we return a logquantity; see #5178.
+    assert isinstance(mst_roundtrip, u.Magnitude)
+    assert mst_roundtrip.unit == mst.unit
+    assert_allclose(mst_roundtrip.value, mst.value)
+    wave = [4956.8, 4959.55, 4962.3] * u.AA
+    flux_nu = mst.to(u.Jy, equivalencies=u.spectral_density(wave))
+    mst_roundtrip2 = flux_nu.to(u.STmag, u.spectral_density(wave))
+    assert isinstance(mst_roundtrip2, u.Magnitude)
+    assert mst_roundtrip2.unit == mst.unit
+    assert_allclose(mst_roundtrip2.value, mst.value)
+
+
 class TestLogQuantityViews(object):
+    def setup(self):
+        self.lq = u.Magnitude(np.arange(10.) * u.Jy)
+        self.lq2 = u.Magnitude(np.arange(5.))
+
     def test_value_view(self):
-        lq = u.Magnitude(np.arange(10.) * u.Jy)
-        lq_value = lq.value
+        lq_value = self.lq.value
         assert type(lq_value) is np.ndarray
         lq_value[2] = -1.
-        assert np.all(lq.value == lq_value)
+        assert np.all(self.lq.value == lq_value)
 
-        lq_fv = lq._function_view
+    def test_function_view(self):
+        lq_fv = self.lq._function_view
         assert type(lq_fv) is u.Quantity
-        assert lq_fv.unit is lq.unit.function_unit
+        assert lq_fv.unit is self.lq.unit.function_unit
         lq_fv[3] = -2. * lq_fv.unit
-        assert np.all(lq.value == lq_fv.value)
-        assert np.all(lq.value == lq_value)
+        assert np.all(self.lq.value == lq_fv.value)
+
+    def test_quantity_view(self):
+        # Cannot view as Quantity, since the unit cannot be represented.
+        with pytest.raises(TypeError):
+            self.lq.view(u.Quantity)
+        # But a dimensionless one is fine.
+        q2 = self.lq2.view(u.Quantity)
+        assert q2.unit is u.mag
+        assert np.all(q2.value == self.lq2.value)
+        lq3 = q2.view(u.Magnitude)
+        assert type(lq3.unit) is u.MagUnit
+        assert lq3.unit.physical_unit == u.dimensionless_unscaled
+        assert np.all(lq3 == self.lq2)
 
 
 class TestLogQuantitySlicing(object):

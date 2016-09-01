@@ -12,6 +12,7 @@ from __future__ import absolute_import, division, print_function
 import re
 
 from . import core
+from ...extern.six.moves import range
 
 
 class SExtractorHeader(core.BaseHeader):

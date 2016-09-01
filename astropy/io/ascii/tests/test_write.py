@@ -9,7 +9,7 @@ from ....extern.six.moves import cStringIO as StringIO
 from ... import ascii
 from .... import table
 from ....tests.helper import pytest, catch_warnings
-from ....utils.exceptions import AstropyWarning
+from ....utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from .... import units
 
 from .common import setup_function, teardown_function
@@ -558,12 +558,7 @@ def test_byte_string_output(fast_writer):
     (['x', 'y'], ['x', 'y'], [], {}, False)
 ])
 def test_names_with_formats(names, include_names, exclude_names, formats, issues_warning):
-    """Test the fix for #4508 where i set the test cases in base of issues_warning
-    if issues_warning value is true means warning accure otherwise issues_warning
-    value false.Check that columns of include_names are same with colomns of
-    exclude_names and Check that columns  in formats specifier exist in the
-    issues_warning table when writing.
-    """
+    """Test for #4508."""
     t = table.Table([[1,2,3],[4.1,5.2,6.3]])
     with catch_warnings(AstropyWarning) as ASwarn:
         out = StringIO()
@@ -579,16 +574,13 @@ def test_names_with_formats(names, include_names, exclude_names, formats, issues
     ({}, False)
 ])
 def test_columns_names_with_formats(formats, issues_warning):
-    """Test the fix for #4508 where i set the test cases in base of issues_warning
-    if issues_warning value is true means warning accure otherwise issues_warning
-    value false and Check that columns in formats specifier exist in the
-    issues_warning table when writing.
-    """
+    """Test the fix for #4508."""
     t = table.Table([[1,2,3],[4.1,5.2,6.3]])
     with catch_warnings(AstropyWarning) as ASwarn:
         out = StringIO()
         ascii.write(t, out,formats=formats)
     assert (issues_warning == (len(ASwarn) == 1))
+
 
 @pytest.mark.parametrize("fast_writer", [True, False])
 def test_write_quoted_empty_field(fast_writer):
@@ -604,3 +596,36 @@ def test_write_quoted_empty_field(fast_writer):
     out = StringIO()
     ascii.write(t, out, fast_writer=fast_writer, delimiter=',')
     assert out.getvalue().splitlines() == ['col0,col1', 'Hello,', ',']
+
+@pytest.mark.parametrize("format", ['ascii', 'csv', 'html', 'latex',
+                                    'ascii.fixed_width', 'html'])
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_overwrite_ascii(format, fast_writer, tmpdir):
+    """Test overwrite argument for various ASCII writers"""
+    filename = tmpdir.join("table-tmp.dat").strpath
+    open(filename, 'w').close()
+    t = table.Table([['Hello', ''], ['', '']], dtype=['S10', 'S10'])
+
+    with pytest.raises(IOError) as err:
+        t.write(filename, overwrite=False, format=format,
+                fast_writer=fast_writer)
+    assert str(err.value).endswith('already exists')
+
+    with catch_warnings(AstropyDeprecationWarning) as warning:
+        t.write(filename, format=format, fast_writer=fast_writer)
+    assert len(warning) == 1
+    assert str(warning[0].message).endswith(
+        "Automatically overwriting ASCII files is deprecated. "
+        "Use the argument 'overwrite=True' in the future.")
+
+    t.write(filename, overwrite=True, format=format,
+            fast_writer=fast_writer)
+
+    # If the output is a file object, overwrite is ignored
+    with open(filename, 'w') as fp:
+        t.write(fp, format=format,
+                fast_writer=fast_writer)
+        t.write(fp, overwrite=False, format=format,
+                fast_writer=fast_writer)
+        t.write(fp, overwrite=True, format=format,
+                fast_writer=fast_writer)

@@ -6,7 +6,7 @@ to/from TABLEDATA_ and BINARY_ formats.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ...extern import six
-from ...extern.six.moves import xrange
+from ...extern.six.moves import range, zip
 
 # STDLIB
 import re
@@ -491,7 +491,7 @@ class VarArray(Array):
         result = []
         result_mask = []
         binparse = self._base.binparse
-        for i in xrange(length):
+        for i in range(length):
             val, mask = binparse(read)
             result.append(val)
             result_mask.append(mask)
@@ -526,7 +526,7 @@ class ArrayVarArray(VarArray):
             vo_raise(E02, (items, len(parts)), config, pos)
         result = []
         result_mask = []
-        for i in xrange(0, len(parts), items):
+        for i in range(0, len(parts), items):
             value, mask = parse_parts(parts[i:i+items], config, pos)
             result.append(value)
             result_mask.append(mask)
@@ -908,7 +908,7 @@ class ComplexArrayVarArray(VarArray):
             vo_raise(E02, (items, len(parts)), config, pos)
         result = []
         result_mask = []
-        for i in xrange(0, len(parts), items):
+        for i in range(0, len(parts), items):
             value, mask = parse_parts(parts[i:i + items], config, pos)
             result.append(value)
             result_mask.append(mask)
@@ -928,7 +928,7 @@ class ComplexVarArray(VarArray):
         parse_parts = self._base.parse_parts
         result = []
         result_mask = []
-        for i in xrange(0, len(parts), 2):
+        for i in range(0, len(parts), 2):
             value = [float(x) for x in parts[i:i + 2]]
             value, mask = parse_parts(value, config, pos)
             result.append(value)
@@ -960,7 +960,7 @@ class ComplexArray(NumericArray):
         base_parse = self._base.parse_parts
         result = []
         result_mask = []
-        for i in xrange(0, self._items, 2):
+        for i in range(0, self._items, 2):
             value = [float(x) for x in parts[i:i + 2]]
             value, mask = base_parse(value, config, pos)
             result.append(value)

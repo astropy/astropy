@@ -21,6 +21,7 @@ from ..util import (_is_pseudo_unsigned, _unsigned_zero, _is_int,
                     _get_array_mmap)
 
 from ....extern.six import string_types, iteritems
+from ....extern.six.moves import range
 from ....utils import lazyproperty, deprecated
 from ....utils.compat import suppress
 from ....utils.exceptions import (AstropyPendingDeprecationWarning,
@@ -947,7 +948,8 @@ class CompImageHDU(BinTableHDU):
         # dimensions in the image data array.
         self._header.set('NAXIS1', cols.dtype.itemsize,
                          'width of table in bytes')
-        self._header.set('TFIELDS', ncols, 'number of fields in each row')
+        self._header.set('TFIELDS', ncols, 'number of fields in each row',
+                         after='GCOUNT')
         self._header.set('ZIMAGE', True, 'extension contains compressed image',
                          after=after)
         self._header.set('ZBITPIX', zbitpix,

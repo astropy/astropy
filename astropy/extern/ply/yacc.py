@@ -67,6 +67,8 @@ import inspect
 import base64
 import warnings
 
+from ...extern.six.moves import zip
+
 __version__    = '3.6'
 __tabversion__ = '3.5'
 

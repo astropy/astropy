@@ -13,8 +13,10 @@ import numpy as np
 
 from ..earth import EarthLocation, ELLIPSOIDS
 from ..angles import Longitude, Latitude
-from ...tests.helper import pytest, quantity_allclose
+from ...tests.helper import pytest, quantity_allclose, remote_data
+from ...extern.six.moves import zip
 from ... import units as u
+from ..name_resolve import NameResolveError
 
 def allclose_m14(a, b, rtol=1.e-14, atol=None):
     if atol is None:
@@ -257,3 +259,31 @@ def test_pickling():
     s = pickle.dumps(el)
     el2 = pickle.loads(s)
     assert el == el2
+
+def test_repr_latex():
+    """
+    Regression test for issue #4542
+    """
+    somelocation = EarthLocation(lon='149:3:57.9', lat='-31:16:37.3')
+    somelocation._repr_latex_()
+    somelocation2 = EarthLocation(lon=[1., 2.]*u.deg, lat=[-1., 9.]*u.deg)
+    somelocation2._repr_latex_()
+
+
+@remote_data
+def test_of_address():
+    # no match
+    with pytest.raises(NameResolveError):
+        EarthLocation.of_address("lkjasdflkja")
+
+    # just a location
+    loc = EarthLocation.of_address("New York, NY")
+    assert quantity_allclose(loc.latitude, 40.7128*u.degree)
+    assert quantity_allclose(loc.longitude, -74.0059*u.degree)
+    assert np.allclose(loc.height.value, 0.)
+
+    # a location and height
+    loc = EarthLocation.of_address("New York, NY", get_height=True)
+    assert quantity_allclose(loc.latitude, 40.7128*u.degree)
+    assert quantity_allclose(loc.longitude, -74.0059*u.degree)
+    assert quantity_allclose(loc.height, 10.438659669*u.meter)

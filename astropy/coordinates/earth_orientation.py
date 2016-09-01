@@ -15,6 +15,8 @@ import numpy as np
 
 from ..time import Time
 from .. import units as u
+from .matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
+
 
 jd1950 = Time('B1950', scale='tai').jd
 jd2000 = Time('J2000', scale='utc').jd
@@ -23,8 +25,7 @@ _asecperrad = u.radian.to(u.arcsec)
 
 def eccentricity(jd):
     """
-    Computes the eccentricity of the Earth's orbit at the requested Julian
-    Date.
+    Eccentricity of the Earth's orbit at the requested Julian Date.
 
     Parameters
     ----------
@@ -34,7 +35,7 @@ def eccentricity(jd):
     returns
     -------
     eccentricity : scalar or array
-        The eccentricity in degrees (or array of eccentricities)
+        The eccentricity (or array of eccentricities)
 
     References
     ----------
@@ -143,7 +144,8 @@ def precession_matrix_Capitaine(fromepoch, toepoch):
     ----------
     USNO Circular 179
     """
-    mat_fromto2000 = _precess_from_J2000_Capitaine(fromepoch.jyear).T
+    mat_fromto2000 = matrix_transpose(
+        _precess_from_J2000_Capitaine(fromepoch.jyear))
     mat_2000toto = _precess_from_J2000_Capitaine(toepoch.jyear)
 
     return np.dot(mat_2000toto, mat_fromto2000)
@@ -161,8 +163,6 @@ def _precess_from_J2000_Capitaine(epoch):
         The epoch as a Julian year number (e.g. J2000 is 2000.0)
 
     """
-    from .angles import rotation_matrix
-
     T = (epoch - 2000.0) / 100.0
     # from USNO circular
     pzeta = (-0.0000003173, -0.000005971, 0.01801828, 0.2988499, 2306.083227, 2.650545)
@@ -172,9 +172,9 @@ def _precess_from_J2000_Capitaine(epoch):
     z = np.polyval(pz, T) / 3600.0
     theta = np.polyval(ptheta, T) / 3600.0
 
-    return rotation_matrix(-z, 'z') *\
-           rotation_matrix(theta, 'y') *\
-           rotation_matrix(-zeta, 'z')
+    return matrix_product(rotation_matrix(-z, 'z'),
+                          rotation_matrix(theta, 'y'),
+                          rotation_matrix(-zeta, 'z'))
 
 
 def _precession_matrix_besselian(epoch1, epoch2):
@@ -184,8 +184,6 @@ def _precession_matrix_besselian(epoch1, epoch2):
 
     ``epoch1`` and ``epoch2`` are in Besselian year numbers.
     """
-    from .angles import rotation_matrix
-
     # tropical years
     t1 = (epoch1 - 1850.0) / 1000.0
     t2 = (epoch2 - 1850.0) / 1000.0
@@ -209,9 +207,9 @@ def _precession_matrix_besselian(epoch1, epoch2):
     ptheta = (theta3, theta2, theta1, 0)
     theta = np.polyval(ptheta, dt) / 3600
 
-    return rotation_matrix(-z, 'z') *\
-           rotation_matrix(theta, 'y') *\
-           rotation_matrix(-zeta, 'z')
+    return matrix_product(rotation_matrix(-z, 'z'),
+                          rotation_matrix(theta, 'y'),
+                          rotation_matrix(-zeta, 'z'))
 
 
 def _load_nutation_data(datastr, seriestype):
@@ -406,13 +404,9 @@ def nutation_matrix(epoch):
     Matrix converts from mean coordinate to true coordinate as
     r_true = M * r_mean
     """
-    from .angles import rotation_matrix
-
     # TODO: implement higher precision 2006/2000A model if requested/needed
     epsa, dpsi, deps = nutation_components2000B(epoch.jd)  # all in radians
 
-    rot1 = rotation_matrix(-(epsa + deps), 'x', False)
-    rot2 = rotation_matrix(-dpsi, 'z', False)
-    rot3 = rotation_matrix(epsa, 'x', False)
-
-    return rot1 * rot2 * rot3
+    return matrix_product(rotation_matrix(-(epsa + deps), 'x', False),
+                          rotation_matrix(-dpsi, 'z', False),
+                          rotation_matrix(epsa, 'x', False))

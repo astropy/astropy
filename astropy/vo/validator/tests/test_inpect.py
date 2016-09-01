@@ -11,6 +11,7 @@ import tempfile
 from .. import inspect
 from ....vo import conf
 from ....utils.data import _find_pkg_data_path, get_pkg_data_filename
+from ....extern.six.moves import zip
 
 
 __doctest_skip__ = ['*']
