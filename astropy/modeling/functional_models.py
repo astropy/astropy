@@ -7,13 +7,10 @@ from __future__ import (absolute_import, unicode_literals, division,
 import warnings
 import numpy as np
 from .core import (Fittable1DModel, Fittable2DModel, Model,
-                   ModelDefinitionError, custom_model)
+                   ModelDefinitionError)
 from .parameters import Parameter, InputParameterError
 from .utils import ellipse_extent
-from ..utils import deprecated
-from ..extern import six
 from ..extern.six.moves import map
-from .utils import get_inputs_and_params
 from ..utils.exceptions import AstropyDeprecationWarning
 
 
@@ -1252,7 +1249,7 @@ class Ring2D(Fittable2DModel):
             f(r) = \\left \\{
                      \\begin{array}{ll}
                        A & : r_{in} \\leq r \\leq r_{out} \\\\
-                       0 & : \\textnormal{else}
+                       0 & : \\text{else}
                      \\end{array}
                    \\right.
 
@@ -1341,8 +1338,8 @@ class Box1D(Fittable1DModel):
 
             f(x) = \\left \\{
                      \\begin{array}{ll}
-                       A & : x_0 - w/2 \\geq x \\geq x_0 + w/2 \\\\
-                       0 & : \\textnormal{else}
+                       A & : x_0 - w/2 \\leq x \\leq x_0 + w/2 \\\\
+                       0 & : \\text{else}
                      \\end{array}
                    \\right.
 
@@ -1432,9 +1429,9 @@ class Box2D(Fittable2DModel):
 
             f(x, y) = \\left \\{
                      \\begin{array}{ll}
-                       A & : x_0 - w_x/2 \\geq x \\geq x_0 + w_x/2 \\\\
-                       A & : y_0 - w_y/2 \\geq y \\geq y_0 + w_y/2 \\\\
-                       0 & : \\textnormal{else}
+            A : & x_0 - w_x/2 \\leq x \\leq x_0 + w_x/2 \\text{ and} \\\\
+                & y_0 - w_y/2 \\leq y \\leq y_0 + w_y/2 \\\\
+            0 : & \\text{else}
                      \\end{array}
                    \\right.
 
