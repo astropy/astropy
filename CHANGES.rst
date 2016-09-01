@@ -222,6 +222,9 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Fix problem with padding bytes written for BinTable columns converted
+    from unicode [#5280, #5287, #5288, #5296].
+
   - Fix out-of-order TUNITn cards when writing tables to FITS. [#5720]
 
   - Recognize PrimaryHDU when non boolean values are present for the
