@@ -125,7 +125,7 @@ class RunTimePredictor(object):
     pow(10, 810)
     10000000000...
 
-    Fit a straight line assuming :math:`\\textnormal{arg}^{1}` relationship
+    Fit a straight line assuming :math:`\\text{arg}^{1}` relationship
     (coefficients are returned):
 
     >>> p.do_fit()  # doctest: +SKIP
@@ -224,7 +224,7 @@ class RunTimePredictor(object):
         ----------
         model : `astropy.modeling.Model`
             Model for the expected trend of run time (Y-axis)
-            w.r.t. :math:`\\textnormal{arg}^{\\textnormal{power}}` (X-axis).
+            w.r.t. :math:`\\text{arg}^{\\text{power}}` (X-axis).
             If `None`, will use `~astropy.modeling.polynomial.Polynomial1D`
             with ``degree=1``.
 
