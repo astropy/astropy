@@ -365,6 +365,19 @@ class TestTableFunctions(FitsTestCase):
         assert comparerecords(hdu.data, hdul[1].data)
         hdul.close()
 
+    def test_numpy_ndarray_to_bintablehdu_with_unicode(self):
+        desc = np.dtype({'names': ['order', 'name', 'mag', 'Sp'],
+                         'formats': ['int', 'U20', 'float32', 'U10']})
+        a = np.array([(1, u'Serius', -1.45, u'A1V'),
+                      (2, u'Canopys', -0.73, u'F0Ib'),
+                      (3, u'Rigil Kent', -0.1, u'G2V')], dtype=desc)
+        hdu = fits.BinTableHDU(a)
+        assert comparerecords(hdu.data, a.view(fits.FITS_rec))
+        hdu.writeto(self.temp('toto.fits'), clobber=True)
+        hdul = fits.open(self.temp('toto.fits'))
+        assert comparerecords(hdu.data, hdul[1].data)
+        hdul.close()
+
     def test_new_table_from_recarray(self):
         bright = np.rec.array([(1, 'Serius', -1.45, 'A1V'),
                                (2, 'Canopys', -0.73, 'F0Ib'),
