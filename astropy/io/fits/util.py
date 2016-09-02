@@ -824,12 +824,26 @@ def _array_to_file_like(arr, fileobj):
     `numpy.ndarray.tofile`).
     """
 
+    # If the array is empty, we can simply take a shortcut and return since
+    # there is nothing to write.
+    if len(arr) == 0:
+        return
+
     if arr.flags.contiguous:
+
         # It suffices to just pass the underlying buffer directly to the
-        # fileobj's write (assuming it supports the buffer interface, which
-        # unfortunately there's no simple way to check)
-        fileobj.write(arr.data)
-    elif hasattr(np, 'nditer'):
+        # fileobj's write (assuming it supports the buffer interface). If
+        # it does not have the buffer interface, a TypeError should be returned
+        # in which case we can fall back to the other methods.
+
+        try:
+            fileobj.write(arr.data)
+        except TypeError:
+            pass
+        else:
+            return
+
+    if hasattr(np, 'nditer'):
         # nditer version for non-contiguous arrays
         for item in np.nditer(arr):
             fileobj.write(item.tostring())
