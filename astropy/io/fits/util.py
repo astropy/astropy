@@ -824,6 +824,8 @@ def _array_to_file_like(arr, fileobj):
     `numpy.ndarray.tofile`).
     """
 
+    # If the array is empty, we can simply take a shortcut and return since
+    # there is nothing to write.
     if len(arr) == 0:
         return
 
