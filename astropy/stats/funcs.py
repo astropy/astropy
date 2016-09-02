@@ -1209,6 +1209,8 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
     from scipy.optimize import brentq
     from scipy.integrate import quad
 
+    from math import exp
+
     def eqn8(N, B):
         n = np.arange(N + 1, dtype=np.float64)
         # Create an array containing the factorials. scipy.special.factorial
@@ -1218,18 +1220,18 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
         # might also be a bit faster.
         factorial_n = np.ones(n.shape, dtype=np.float64)
         np.cumprod(n[1:], out=factorial_n[1:])
-        return 1. / (math.exp(-B) * np.sum(np.power(B, n) / factorial_n))
+        return 1. / (exp(-B) * np.sum(np.power(B, n) / factorial_n))
 
     # The parameters of eqn8 do not vary between calls so we can calculate the
     # result once and reuse it. The same is True for the factorial of N.
-    # eqn7 is called 200-1000 times so "caching" these values yields a lot of
-    # speedup (factor 10).
+    # eqn7 is called hundred times so "caching" these values yields a
+    # significant speedup (factor 10).
     eqn8_res = eqn8(N, B)
     factorial_N = float(math.factorial(N))
 
     def eqn7(S, N, B):
         SpB = S + B
-        return eqn8_res * (math.exp(-SpB) * SpB**N / factorial_N)
+        return eqn8_res * (exp(-SpB) * SpB**N / factorial_N)
 
     def eqn9_left(S_min, S_max, N, B):
         return quad(eqn7, S_min, S_max, args=(N, B), limit=500)
@@ -1302,7 +1304,7 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
 
     def eqn7(S, N, B):
         SpB = S + B
-        return eqn8_res * (exp(-SpB) * (SpB)**N / factorial_N)
+        return eqn8_res * (exp(-SpB) * SpB**N / factorial_N)
 
     def eqn9_left(S_min, S_max, N, B):
         def eqn7NB(S):
