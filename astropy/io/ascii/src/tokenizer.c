@@ -652,7 +652,7 @@ double str_to_double(tokenizer_t *self, char *str)
         {
             goto conversion_error;
         }
-        else if (errno == ERANGE)
+        else if (errno == ERANGE && val != -HUGE_VAL && val != HUGE_VAL)
         {
             self->code = OVERFLOW_ERROR;
         }
@@ -668,7 +668,7 @@ double str_to_double(tokenizer_t *self, char *str)
         {
             goto conversion_error;
         }
-        else if (errno == ERANGE)
+        else if (errno == ERANGE && val != -HUGE_VAL && val != HUGE_VAL && val != 0)
         {
             self->code = OVERFLOW_ERROR;
         }
@@ -767,6 +767,8 @@ conversion_error:
 // * Recognise alternative exponent characters passed in 'sci'; try automatic
 //   detection of allowed Fortran formats with sci='A'
 // * Require exactly 3 digits in exponent for Fortran-type format '8.7654+321'
+// Modifications by Derek Homeier, September 2016:
+// * Fixed some corner cases of very large or small exponents; proper return
 //
 
 double xstrtod(const char *str, char **endptr, char decimal,
@@ -815,6 +817,10 @@ double xstrtod(const char *str, char **endptr, char decimal,
                          1e281, 1e282, 1e283, 1e284, 1e285, 1e286, 1e287, 1e288, 1e289, 1e290,
                          1e291, 1e292, 1e293, 1e294, 1e295, 1e296, 1e297, 1e298, 1e299, 1e300,
                          1e301, 1e302, 1e303, 1e304, 1e305, 1e306, 1e307, 1e308};
+    // Cache additional negative powers of 10
+    /* static double m[] = {1e-309, 1e-310, 1e-311, 1e-312, 1e-313, 1e-314,
+                         1e-315, 1e-316, 1e-317, 1e-318, 1e-319, 1e-320,
+                         1e-321, 1e-322, 1e-323}; */
     errno = 0;
 
     // Skip leading whitespace
@@ -954,21 +960,31 @@ double xstrtod(const char *str, char **endptr, char decimal,
             exponent += n;
     }
 
-    if (exponent > 308)
+    // largest representable float64 is 1.7977e+308, closest to 0 ~4.94e-324,
+    // but multiplying exponents in in two steps gives slightly better precision
+    if (exponent > 305)
     {
-        errno = ERANGE;
-        return HUGE_VAL;
+        if (exponent > 311)
+            number *= HUGE_VAL;
+        else   // try to accommodate leading zeros, e.g. 0.166E309
+        {
+            number *= e[exponent-300];
+            number *= 1.e300;
+        }
     }
-    else if (exponent > 0)
-        number *= e[exponent];
     else if (exponent < -308) // subnormal
     {
         if (exponent < -616) // prevent invalid array access
             number = 0.;
-        number /= e[-308 - exponent];
-        number /= e[308];
+        else
+        {
+            number /= e[-308-exponent];
+            number *= 1.e-308;
+        }
     }
-    else
+    else if (exponent > 0)
+        number *= e[exponent];
+    else if (exponent < 0)
         number /= e[-exponent];
 
     if (number == HUGE_VAL || number == -HUGE_VAL)

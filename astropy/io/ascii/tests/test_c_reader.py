@@ -14,7 +14,7 @@ import numpy as np
 from numpy import ma
 
 from ....table import Table, MaskedColumn
-from ... import ascii
+from ... import ascii # as asc  # no name conflict with builtin ascii()!
 from ...ascii.core import ParameterError, FastOptionsError
 from ...ascii.cparser import CParserError
 from ..fastbasic import FastBasic, FastCsv, FastTab, FastCommentedHeader, \
@@ -897,26 +897,26 @@ def test_fast_tab_with_names(parallel, read_tab):
     False])
 def test_data_out_of_range(parallel, read_basic):
     """
-    Exponents beyond the float64 range (+-308) currently raise an error in
-    the C parser; such numbers are returned as strings instead, not so
-    with the Python parser!
+    Numbers with exponents beyond float64 range (|~4.94e-324 to 1.7977e+308|)
+    shall be returned as 0 and +-inf respectively by the C parser, just like
+    the Python parser.
     """
-    if TRAVIS:
-        pytest.xfail("Large exponents can sometimes fail on Travis CI")
-    text = 'a b c d\n10.1E+199 3.14e+313 2048e+306 0.6E-414'
-    expected = Table([[1.01e+200], ['3.14e+313'], ['2048e+306'], ['0.6E-414']],
-                     names=('a', 'b', 'c', 'd'))
+    if parallel and TRAVIS:
+        pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
+        # pytest.xfail("Large exponents can sometimes fail on Travis CI")
+    text = 'a b c d e\n10.1E+199 3.14e+313 2048e+306 0.6E-414 -2.e345'
+    expected = Table([[1.01e+200], [np.inf], [np.inf], [0.0], [-np.inf]],
+                     names=('a', 'b', 'c', 'd', 'e'))
     # currently different behaviour by the standard (Python) reader
     #table = read_basic(text, parallel=parallel)
     table = ascii.read(text, format='basic', guess=False,
                        fast_reader={'parallel': parallel})
     assert_table_equal(table, expected)
 
-    # non-standard exponent_style at this point treats very small numbers
-    # like the Python parser as zeros:
-    text = 'a b c d\n10.1D+199 3.14d+313 2048D+306 0.6d-414'
-    expected = Table([[1.01e+200], ['3.14d+313'], ['2048D+306'], [0.0]],
-                     names=('a', 'b', 'c', 'd'))
+    # test non-standard exponent_style with some corner cases
+    text = 'a b c d e\n10.1D+199 0.314d+309 2048D+306 2500d-327 0.6d-326'
+    expected = Table([[1.01e+200], [3.14e+308], [np.inf], [4.94e-324], [0.0]],
+                     names=('a', 'b', 'c', 'd', 'e'))
     table = ascii.read(text, format='basic', guess=False,
                        fast_reader={'parallel': parallel, 'exponent_style': 'D'})
     assert_table_equal(table, expected)
@@ -976,8 +976,9 @@ def test_fortran_invalid_exp(parallel):
     exponent-like patterns (no triple-digits) to make sure they are returned
     as strings instead, as with the standard C parser.
     """
-    if TRAVIS:
-        pytest.xfail("Large exponents can sometimes fail on Travis CI")
+    if parallel and TRAVIS:
+        pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
+        # pytest.xfail("Large exponents can sometimes fail on Travis CI")
 
     text = 'A B C D E\n1.0001+1 2.3+10 3+1001 2 8.e3\n.42d0 0.5 3 4.56-123.4 0.42-123'
     expected = Table([['1.0001+1', '.42d0'], ['2.3+10', '0.5'], ['3+1001', '3'],
