@@ -877,7 +877,7 @@ double xstrtod(const char *str, char **endptr, char decimal,
     if (num_digits == 0)
     {
         errno = ERANGE;
-        return 0.0;
+        number = 0.0;
     }
 
     // Correct for sign
@@ -925,7 +925,7 @@ double xstrtod(const char *str, char **endptr, char decimal,
             if (num_exp != 0 && (exp == '+' || exp == '-'))
             {
                errno = ERANGE;
-               return 0.0;
+               number = 0.0;
             }
 
             if (negative)
