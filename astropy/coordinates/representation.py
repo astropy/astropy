@@ -78,7 +78,8 @@ class BaseRepresentation(ShapedLikeNDArray):
 
     recommended_units = {}  # subclasses can override
 
-    # Ensure multiplication/division with ndarray doesn't lead to object arrays.
+    # Ensure multiplication/division with ndarray or Quantity doesn't lead to
+    # object arrays.
     __array_priority__ = 50000
 
     def represent_as(self, other_class):
@@ -277,25 +278,32 @@ class BaseRepresentation(ShapedLikeNDArray):
     def __ne__(self, other):
         return np.logical_not(self.__eq__(other))
 
+    def _scale_operation(self, op, other):
+        results = []
+        for component, cls in self.attr_classes.items():
+            value = getattr(self, component)
+            if issubclass(cls, Angle):
+                results.append(value)
+            else:
+                result = op(value, other)
+                if result is NotImplemented:
+                    return NotImplemented
+                else:
+                    results.append(result)
+
+        return self.__class__(*results)
+
     def __mul__(self, other):
-        values = (getattr(self, component) for component in self.components)
-        return self.__class__(*(
-            (value if issubclass(cls, Angle) else value * other)
-            for (component, cls), value in zip(self.attr_classes.items(),
-                                               values)))
+        return self._scale_operation(operator.mul, other)
 
     def __rmul__(self, other):
         return self.__mul__(other)
 
     def __truediv__(self, other):
-        values = (getattr(self, component) for component in self.components)
-        return self.__class__(*(
-            (value if issubclass(cls, Angle) else value / other)
-            for (component, cls), value in zip(self.attr_classes.items(),
-                                               values)))
+        return self._scale_operation(operator.truediv, other)
 
     def __div__(self, other):
-        return self.__truediv__(other)
+        return self._scale_operation(operator.truediv, other)
 
     def __abs__(self):
         return np.sqrt(functools.reduce(
@@ -304,24 +312,24 @@ class BaseRepresentation(ShapedLikeNDArray):
                            if not issubclass(cls, Angle))))
 
 
-    def _operation(self, operator, other, reverse=False):
-        result = self.to_cartesian()._operation(operator, other, reverse)
+    def _combine_operation(self, op, other, reverse=False):
+        result = self.to_cartesian()._combine_operation(op, other, reverse)
         if result is NotImplemented:
-            return result
+            return NotImplemented
         else:
             return self.from_cartesian(result)
 
     def __add__(self, other):
-        return self._operation(operator.add, other)
+        return self._combine_operation(operator.add, other)
 
     def __radd__(self, other):
-        return self._operation(operator.add, other, reverse=True)
+        return self._combine_operation(operator.add, other, reverse=True)
 
     def __sub__(self, other):
-        return self._operation(operator.sub, other)
+        return self._combine_operation(operator.sub, other)
 
     def __rsub__(self, other):
-        return self._operation(operator.sub, other, reverse=True)
+        return self._combine_operation(operator.sub, other, reverse=True)
 
     def mean(self, *args, **kwargs):
         """Return the vector mean along a given axis.
@@ -544,7 +552,7 @@ class CartesianRepresentation(BaseRepresentation):
         newxyz = u.Quantity(newxyz, oldxyz.unit, copy=False)
         return self.__class__(*newxyz, copy=False)
 
-    def _operation(self, operator, other, reverse=False):
+    def _combine_operation(self, op, other, reverse=False):
         try:
             other_c = other.to_cartesian()
         except Exception:
@@ -552,8 +560,8 @@ class CartesianRepresentation(BaseRepresentation):
 
         first, second = ((self, other_c) if not reverse else
                          (other_c, self))
-        return self.__class__(*(operator(getattr(first, component),
-                                         getattr(second, component))
+        return self.__class__(*(op(getattr(first, component),
+                                   getattr(second, component))
                                 for component in first.components))
 
     def mean(self, *args, **kwargs):
@@ -729,19 +737,12 @@ class UnitSphericalRepresentation(BaseRepresentation):
         return u.Quantity(np.ones(self.shape), u.dimensionless_unscaled,
                           copy=False)
 
-    def _operation(self, operator, other, reverse=False):
-        try:
-            other_cartesian = other.to_cartesian()
-        except Exception:
+    def _combine_operation(self, op, other, reverse=False):
+        result = self.to_cartesian()._combine_operation(op, other, reverse)
+        if result is NotImplemented:
             return NotImplemented
-
-        self_cartesian = self.to_cartesian()
-        first, second = ((self_cartesian, other_cartesian) if not reverse else
-                         (other_cartesian, self_cartesian))
-        result = first.__class__(*(operator(getattr(first, component),
-                                            getattr(second, component))
-                                   for component in first.components))
-        return self._dimensional_representation.from_cartesian(result)
+        else:
+            return self._dimensional_representation.from_cartesian(result)
 
     def mean(self, *args, **kwargs):
         """Return the vector mean along a given axis.
