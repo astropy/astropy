@@ -73,6 +73,14 @@ class TestArithmetic():
         s3 = np.array([[1.], [2.]]) * self.spherical
         assert isinstance(s3, SphericalRepresentation)
         assert np.all(s3 == s2)
+        s4 = -self.spherical
+        assert isinstance(s4, SphericalRepresentation)
+        assert np.all(s4.lon == self.spherical.lon)
+        assert np.all(s4.lat == self.spherical.lat)
+        assert np.all(s4.distance == -self.spherical.distance)
+        s5 = +self.spherical
+        assert s5 is not self.spherical
+        assert np.all(s5 == self.spherical)
 
     @pytest.mark.parametrize('representation',
                              (PhysicsSphericalRepresentation,
@@ -95,6 +103,8 @@ class TestArithmetic():
         assert r2.shape == (2, in_rep.shape[0])
         assert_quantity_allclose(abs(r2),
                                  self.distance * np.array([[1.], [2.]]))
+        r3 = -in_rep
+        assert np.all(r3 == in_rep * -1.)
 
     def test_mul_div_unit_spherical(self):
         s1 = self.unit_spherical * self.distance
@@ -107,6 +117,17 @@ class TestArithmetic():
         assert np.all(s2.lon == self.unit_spherical.lon)
         assert np.all(s2.lat == self.unit_spherical.lat)
         assert np.all(s2.distance == 1./u.s)
+        u3 = -self.unit_spherical
+        assert isinstance(u3, UnitSphericalRepresentation)
+        assert_quantity_allclose(u3.lon, self.unit_spherical.lon + 180.*u.deg)
+        assert np.all(u3.lat == -self.unit_spherical.lat)
+        assert_quantity_allclose(u3.to_cartesian().xyz,
+                                 -self.unit_spherical.to_cartesian().xyz,
+                                 atol=1.e-10*u.dimensionless_unscaled)
+        u4 = +self.unit_spherical
+        assert isinstance(u4, UnitSphericalRepresentation)
+        assert u4 is not self.unit_spherical
+        assert np.all(u4 == self.unit_spherical)
 
     def test_add_sub_cartesian(self):
         c1 = self.cartesian + self.cartesian

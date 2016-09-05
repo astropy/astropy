@@ -278,14 +278,14 @@ class BaseRepresentation(ShapedLikeNDArray):
     def __ne__(self, other):
         return np.logical_not(self.__eq__(other))
 
-    def _scale_operation(self, op, other):
+    def _scale_operation(self, op, *args):
         results = []
         for component, cls in self.attr_classes.items():
             value = getattr(self, component)
             if issubclass(cls, Angle):
                 results.append(value)
             else:
-                result = op(value, other)
+                result = op(value, *args)
                 if result is NotImplemented:
                     return NotImplemented
                 else:
@@ -304,6 +304,14 @@ class BaseRepresentation(ShapedLikeNDArray):
 
     def __div__(self, other):
         return self._scale_operation(operator.truediv, other)
+
+    def __neg__(self):
+        return self._scale_operation(operator.neg)
+
+    # Follow numpy convention and make an independent copy.
+    def __pos__(self):
+        return self.__class__(*(getattr(self, component)
+                                for component in self.components), copy=True)
 
     def __abs__(self):
         return np.sqrt(functools.reduce(
@@ -732,6 +740,9 @@ class UnitSphericalRepresentation(BaseRepresentation):
     def __truediv__(self, other):
         return self._dimensional_representation(lon=self.lon, lat=self.lat,
                                                 distance=1. / other)
+
+    def __neg__(self):
+        return self.__class__(self.lon + 180. * u.deg, -self.lat)
 
     def __abs__(self):
         return u.Quantity(np.ones(self.shape), u.dimensionless_unscaled,
