@@ -1693,7 +1693,6 @@ class _AsciiColDefs(ColDefs):
 
     @lazyproperty
     def dtype(self):
-        _itemsize = self.spans[-1] + self.starts[-1] - 1
         dtype = {}
 
         for j in range(len(self)):
@@ -1941,7 +1940,6 @@ def _makep(array, descr_output, format, nrows=None):
 
     if not nrows:
         nrows = len(array)
-    n = min(len(array), nrows)
 
     data_output = _VLF([None] * nrows, dtype=format.dtype)
 
