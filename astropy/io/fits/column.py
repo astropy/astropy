@@ -1435,6 +1435,14 @@ class ColDefs(NotifierMixin):
         return nh.realign_dtype(np.dtype(fields), offsets)
 
     @lazyproperty
+    def names(self):
+        return [col.name for col in self.columns]
+
+    @lazyproperty
+    def formats(self):
+        return [col.format for col in self.columns]
+
+    @lazyproperty
     def _arrays(self):
         return [col.array for col in self.columns]
 
@@ -1515,6 +1523,11 @@ class ColDefs(NotifierMixin):
             if col is column:
                 break
 
+        if attr == 'name':
+            del self.names
+        elif attr == 'format':
+            del self.formats
+
         self._notify('column_attribute_changed', column, idx, attr, old_value,
                      new_value)
 
@@ -1530,6 +1543,8 @@ class ColDefs(NotifierMixin):
         del self.dtype
         del self._recformats
         del self._dims
+        del self.names
+        del self.formats
 
         self.columns.append(column)
 
@@ -1557,6 +1572,8 @@ class ColDefs(NotifierMixin):
         del self.dtype
         del self._recformats
         del self._dims
+        del self.names
+        del self.formats
 
         del self.columns[indx]
 
