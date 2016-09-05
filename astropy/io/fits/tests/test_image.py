@@ -1494,3 +1494,28 @@ class TestCompressedImage(FitsTestCase):
             # There's no good reason to have a duplicate keyword, but
             # technically it isn't invalid either :/
             assert hdul[1]._header.count('ZTENSION') == 2
+
+
+def test_scale_implicit_casting():
+
+    # Regression test for an issue that occurred because Numpy now does not
+    # allow implicit type casting during inplace operations.
+
+    hdu = fits.ImageHDU(np.array([1], dtype=np.int32))
+    hdu.scale(bzero=1.3)
+
+
+def test_bzero_implicit_casting_compressed():
+
+    # Regression test for an issue that occurred because Numpy now does not
+    # allow implicit type casting during inplace operations. Astropy is
+    # actually not able to produce a file that triggers the failure - the
+    # issue occurs when using unsigned integer types in the FITS file, in which
+    # case BZERO should be 32768. But if the keyword is stored as 32768.0, then
+    # it was possible to trigger the implicit casting error.
+
+    filename = os.path.join(os.path.dirname(__file__),
+                            'data', 'compressed_float_bzero.fits')
+
+    hdu = fits.open(filename)[1]
+    hdu.data
