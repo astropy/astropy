@@ -92,7 +92,7 @@ class FITS_record(object):
 
     def __setitem__(self, key, value):
         if isinstance(key, string_types):
-            indx = _get_index(self.array._coldefs.names, key)
+            indx = _get_index(self.array.names, key)
 
             if indx < self.start or indx > self.end - 1:
                 raise KeyError("Key '%s' does not exist." % key)
@@ -647,10 +647,10 @@ class FITS_rec(np.recarray):
     def names(self):
         """List of column names."""
 
-        if hasattr(self, '_coldefs') and self._coldefs is not None:
-            return self._coldefs.names
-        elif self.dtype.fields:
+        if self.dtype.fields:
             return list(self.dtype.names)
+        elif getattr(self, '_coldefs', None) is not None:
+            return self._coldefs.names
         else:
             return None
 
@@ -658,7 +658,7 @@ class FITS_rec(np.recarray):
     def formats(self):
         """List of column FITS formats."""
 
-        if hasattr(self, '_coldefs') and self._coldefs is not None:
+        if getattr(self, '_coldefs', None) is not None:
             return self._coldefs.formats
 
         return None
@@ -862,7 +862,7 @@ class FITS_rec(np.recarray):
         try:
             dummy = np.array(dummy, dtype=recformat)
         except ValueError as exc:
-            indx = self._coldefs.names.index(column.name)
+            indx = self.names.index(column.name)
             raise ValueError(
                 '%s; the header may be missing the necessary TNULL%d '
                 'keyword or the table contains invalid data' %
@@ -884,7 +884,7 @@ class FITS_rec(np.recarray):
         (_str, _bool, _number, _scale, _zero, bscale, bzero, dim) = \
             self._get_scale_factors(column)
 
-        indx = self._coldefs.names.index(column.name)
+        indx = self.names.index(column.name)
 
         # ASCII table, convert strings to numbers
         # TODO:
@@ -924,7 +924,7 @@ class FITS_rec(np.recarray):
                     warnings.warn(
                         'TDIM%d value %s does not fit with the size of '
                         'the array items (%d).  TDIM%d will be ignored.'
-                        % (indx + 1, self._coldefs.dims[indx],
+                        % (indx + 1, self._coldefs[indx].dims,
                            actual_nitems, indx + 1))
                     dim = None
 
@@ -1196,7 +1196,7 @@ class FITS_rec(np.recarray):
                     "cannot be encoded as ASCII as required by FITS, starting "
                     "at the index {1!r} of the column, and the index {2} of "
                     "the string at that location.".format(
-                        self._coldefs.names[col_idx],
+                        self._coldefs[col_idx].name,
                         exc.index[0] if len(exc.index) == 1 else exc.index,
                         exc.start))
         else:
@@ -1222,7 +1222,7 @@ class FITS_rec(np.recarray):
 
         starts = self._coldefs.starts[:]
         spans = self._coldefs.spans
-        format = self._coldefs.formats[col_idx]
+        format = self._coldefs[col_idx].format
 
         # The the index of the "end" column of the record, beyond
         # which we can't write
