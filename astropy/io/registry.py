@@ -136,12 +136,8 @@ def _update__doc__(data_class, readwrite):
     left_indent = ' ' * min(match.start() for match in matches if match)
 
     # Get the available unified I/O formats for this class
-    format_table = get_formats(data_class, readwrite.capitalize())
-
     # Include only formats that have a reader, and drop the 'Data class' column
-    #has_readwrite = format_table[readwrite.capitalize()] == 'Yes'
-    #print(has_readwrite)
-    #format_table = format_table[has_readwrite]
+    format_table = get_formats(data_class, readwrite.capitalize())
     format_table.remove_column('Data class')
 
     # Get the available formats as a table, then munge the output of pformat()
@@ -186,6 +182,9 @@ def register_reader(data_format, data_class, function, force=False,
         The function to read in a data object.
     force : bool
         Whether to override any existing function if already present.
+    update_docs : bool
+        Whether to immediatly replace the avaiable formats table in the
+        docstring of ``data_class.read``.
     """
 
     if not (data_format, data_class) in _readers or force:
@@ -215,6 +214,9 @@ def register_writer(data_format, data_class, function, force=False,
         The function to write out a data object.
     force : bool
         Whether to override any existing function if already present.
+    update_docs : bool
+        Whether to immediatly replace the avaiable formats table in the
+        docstring of ``data_class.write``.
     """
 
     if not (data_format, data_class) in _writers or force:
@@ -295,10 +297,7 @@ def identify_format(origin, data_class_required, path, fileobj, args, kwargs):
 
 
 def _get_format_table_str(data_class, readwrite):
-    format_table = get_formats(data_class)
-    if len(format_table) > 0:
-        has_readwrite = format_table[readwrite] == 'Yes'
-        format_table = format_table[has_readwrite]
+    format_table = get_formats(data_class, readwrite=readwrite)
     format_table.remove_column('Data class')
     format_table_str = '\n'.join(format_table.pformat(max_lines=-1))
     return format_table_str
@@ -433,15 +432,11 @@ def _is_best_match(class1, class2, format_classes):
       - OR class1 is a subclass of class2 and class1 is not in classes.
         In this case the subclass will use the parent reader/writer.
     """
-    # Short-circuit if both classes are identical
-    if class1 is class2:
-        return True
-
-    # Set so a subsequent check for "in" or "not in" is faster and we don't
-    # need to keep duplicates.
-    classes = {cls for fmt, cls in format_classes}
-    is_best_match = (issubclass(class1, class2) and class1 not in classes)
-    return is_best_match
+    # The set with the classes is only created if class1 is not class2 and
+    # class1 is a subclass of class2.
+    return (class1 is class2 or
+            (issubclass(class1, class2) and
+             class1 not in {cls for fmt, cls in format_classes}))
 
 
 def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
