@@ -201,6 +201,12 @@ Other Changes and Additions
     the time it takes to import astropy subpackages, i.e.
     ``astropy.coordinates``. [#5262]
 
+- ``astropy.units``
+
+  - The functions ``add_enabled_units``, ``set_enabled_equivalencies`` and
+    ``add_enabled_equivalencies`` have been sped up by copying the current
+    ``_UnitRegistry`` instead of building it from scratch. [#5306]
+
 - To build the documentation, the ``build_sphinx`` command has been deprecated
   in favor of ``build_docs``. [#5179]
 
