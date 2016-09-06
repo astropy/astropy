@@ -1009,7 +1009,7 @@ class Quantity(np.ndarray):
         potential for ambiguity otherwise.
         """
         return True
-    if six.PY3:
+    if not six.PY2:
         __bool__ = __nonzero__
 
     def __len__(self):

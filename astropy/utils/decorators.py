@@ -599,7 +599,7 @@ class sharedmethod(classmethod):
 
     del __getobjwrapper
 
-    if six.PY3:
+    if not six.PY2:
         # The 'instancemethod' type of Python 2 and the method type of
         # Python 3 have slightly different constructors
         @staticmethod
@@ -647,7 +647,7 @@ if (isinstance(wraps.__doc__, six.string_types) and
     wraps.__doc__ += functools.wraps.__doc__
 
 
-if six.PY3:
+if not six.PY2:
     def _get_function_args_internal(func):
         """
         Utility function for `wraps`.

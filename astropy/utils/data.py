@@ -195,10 +195,10 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
             name_or_obj = download_file(
                 name_or_obj, cache=cache, show_progress=show_progress,
                 timeout=remote_timeout)
-        if six.PY3:
-            fileobj = io.FileIO(name_or_obj, 'r')
-        elif six.PY2:
+        if six.PY2:
             fileobj = open(name_or_obj, 'rb')
+        else:
+            fileobj = io.FileIO(name_or_obj, 'r')
         if is_url and not cache:
             delete_fds.append(fileobj)
         close_fds.append(fileobj)
@@ -297,10 +297,10 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     # io.TextIOWrapper so read will return unicode based on the
     # encoding parameter.
 
-    if six.PY3:
-        needs_textio_wrapper = encoding != 'binary'
-    elif six.PY2:
+    if six.PY2:
         needs_textio_wrapper = encoding != 'binary' and encoding is not None
+    else:
+        needs_textio_wrapper = encoding != 'binary'
 
     if needs_textio_wrapper:
         # A bz2.BZ2File can not be wrapped by a TextIOWrapper,
@@ -317,10 +317,10 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
                 tmp.write(data)
                 tmp.close()
                 delete_fds.append(tmp)
-                if six.PY3:
-                    fileobj = io.FileIO(tmp.name, 'r')
-                elif six.PY2:
+                if six.PY2:
                     fileobj = open(tmp.name, 'rb')
+                else:
+                    fileobj = io.FileIO(tmp.name, 'r')
                 close_fds.append(fileobj)
 
         # On Python 2.x, we need to first wrap the regular `file`
