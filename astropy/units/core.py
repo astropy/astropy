@@ -114,8 +114,6 @@ class _UnitRegistry(object):
     Manages a registry of the enabled units.
     """
     def __init__(self, init=[], equivalencies=[]):
-        self._reset_units()
-        self._reset_equivalencies()
 
         if isinstance(init, _UnitRegistry):
             # If passed another registry we don't need to rebuild everything.
@@ -130,7 +128,10 @@ class _UnitRegistry(object):
             # registry.
             self._by_physical_type = {k: v.copy() for k, v in
                                       six.iteritems(init._by_physical_type)}
+
         else:
+            self._reset_units()
+            self._reset_equivalencies()
             self.add_enabled_units(init)
             self.add_enabled_equivalencies(equivalencies)
 
