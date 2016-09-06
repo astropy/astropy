@@ -32,7 +32,7 @@ def test_blackbody_scipy():
 
     """
     flux_unit = u.Watt / (u.m ** 2 * u.um)
-    wave = np.logspace(0, 8, 1e6) * u.AA
+    wave = np.logspace(0, 8, 100000) * u.AA
     temp = 100. * u.K
     with np.errstate(all='ignore'):
         bb_nu = blackbody_nu(wave, temp) * u.sr
