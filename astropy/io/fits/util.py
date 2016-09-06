@@ -304,7 +304,7 @@ def isreadable(f):
     sense approximation of io.IOBase.readable.
     """
 
-    if six.PY3 and hasattr(f, 'readable'):
+    if not six.PY2 and hasattr(f, 'readable'):
         return f.readable()
 
     if hasattr(f, 'closed') and f.closed:
@@ -328,7 +328,7 @@ def iswritable(f):
     sense approximation of io.IOBase.writable.
     """
 
-    if six.PY3 and hasattr(f, 'writable'):
+    if not six.PY2 and hasattr(f, 'writable'):
         return f.writable()
 
     if hasattr(f, 'closed') and f.closed:
@@ -346,7 +346,18 @@ def iswritable(f):
     return True
 
 
-if six.PY3:
+if six.PY2:
+    def isfile(f):
+        """
+        Returns True if the given object represents an OS-level file (that is,
+        ``isinstance(f, file)``).
+
+        On Python 3 this also returns True if the given object is higher level
+        wrapper on top of a FileIO object, such as a TextIOWrapper.
+        """
+
+        return isinstance(f, file)
+else:
     def isfile(f):
         """
         Returns True if the given object represents an OS-level file (that is,
@@ -363,34 +374,9 @@ if six.PY3:
         elif hasattr(f, 'raw'):
             return isfile(f.raw)
         return False
-elif six.PY2:
-    def isfile(f):
-        """
-        Returns True if the given object represents an OS-level file (that is,
-        ``isinstance(f, file)``).
-
-        On Python 3 this also returns True if the given object is higher level
-        wrapper on top of a FileIO object, such as a TextIOWrapper.
-        """
-
-        return isinstance(f, file)
 
 
-if six.PY3:
-    def fileobj_open(filename, mode):
-        """
-        A wrapper around the `open()` builtin.
-
-        This exists because in Python 3, `open()` returns an
-        `io.BufferedReader` by default.  This is bad, because
-        `io.BufferedReader` doesn't support random access, which we need in
-        some cases.  In the Python 3 case (implemented in the py3compat module)
-        we must call open with buffering=0 to get a raw random-access file
-        reader.
-        """
-
-        return open(filename, mode, buffering=0)
-elif six.PY2:
+if six.PY2:
     def fileobj_open(filename, mode):
         """
         A wrapper around the `open()` builtin.
@@ -404,6 +390,20 @@ elif six.PY2:
         """
 
         return open(filename, mode)
+else:
+    def fileobj_open(filename, mode):
+        """
+        A wrapper around the `open()` builtin.
+
+        This exists because in Python 3, `open()` returns an
+        `io.BufferedReader` by default.  This is bad, because
+        `io.BufferedReader` doesn't support random access, which we need in
+        some cases.  In the Python 3 case (implemented in the py3compat module)
+        we must call open with buffering=0 to get a raw random-access file
+        reader.
+        """
+
+        return open(filename, mode, buffering=0)
 
 
 def fileobj_name(f):
@@ -678,16 +678,7 @@ def fileobj_is_binary(f):
         return True
 
 
-if six.PY3:
-    maketrans = str.maketrans
-
-    def translate(s, table, deletechars):
-        if deletechars:
-            table = table.copy()
-            for c in deletechars:
-                table[ord(c)] = None
-        return s.translate(table)
-elif six.PY2:
+if six.PY2:
     maketrans = string.maketrans
 
     def translate(s, table, deletechars):
@@ -705,6 +696,15 @@ elif six.PY2:
             for c in deletechars:
                 table[ord(c)] = None
             return s.translate(table)
+else:
+    maketrans = str.maketrans
+
+    def translate(s, table, deletechars):
+        if deletechars:
+            table = table.copy()
+            for c in deletechars:
+                table[ord(c)] = None
+        return s.translate(table)
 
 
 def fill(text, width, *args, **kwargs):

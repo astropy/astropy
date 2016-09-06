@@ -384,7 +384,7 @@ def isinstancemethod(cls, obj):
     return _isinstancemethod(cls, obj)
 
 
-if six.PY3:
+if not six.PY2:
     def _isinstancemethod(cls, obj):
         if not isinstance(obj, types.FunctionType):
             return False

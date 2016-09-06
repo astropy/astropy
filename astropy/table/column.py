@@ -768,7 +768,7 @@ class Column(BaseColumn):
 
         lines, outs = self._formatter._pformat_col(self)
         return '\n'.join(lines)
-    if six.PY3:
+    if not six.PY2:
         __str__ = __unicode__
 
     def __bytes__(self):

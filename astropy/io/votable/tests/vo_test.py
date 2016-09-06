@@ -823,13 +823,13 @@ def test_validate(test_path_object=False):
     output = output[1:-1]
 
     for line in difflib.unified_diff(truth, output):
-        if six.PY3:
-            sys.stdout.write(
-                line.replace('\\n', '\n'))
-        else:
+        if six.PY2:
             sys.stdout.write(
                 line.encode('unicode_escape').
                 replace('\\n', '\n'))
+        else:
+            sys.stdout.write(
+                line.replace('\\n', '\n'))
 
     assert truth == output
 
@@ -909,10 +909,10 @@ def test_fileobj():
         if sys.platform == 'win32':
             fd()
         else:
-            if six.PY3:
-                assert isinstance(fd, io.FileIO)
-            elif six.PY2:
+            if six.PY2:
                 assert isinstance(fd, file)
+            else:
+                assert isinstance(fd, io.FileIO)
 
 
 def test_nonstandard_units():
@@ -1008,13 +1008,13 @@ def test_no_resource_check():
     output = output[1:-1]
 
     for line in difflib.unified_diff(truth, output):
-        if six.PY3:
-            sys.stdout.write(
-                line.replace('\\n', '\n'))
-        else:
+        if six.PY2:
             sys.stdout.write(
                 line.encode('unicode_escape').
                 replace('\\n', '\n'))
+        else:
+            sys.stdout.write(
+                line.replace('\\n', '\n'))
 
     assert truth == output
 

@@ -417,7 +417,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
     __or__ =      _model_oper('|')
     __and__ =     _model_oper('&')
 
-    if not six.PY3:
+    if six.PY2:
         # The classic __div__ operator need only be implemented for Python 2
         # without from __future__ import division
         __div__ = _model_oper('/')
@@ -699,7 +699,7 @@ class Model(object):
     __or__ =      _model_oper('|')
     __and__ =     _model_oper('&')
 
-    if not six.PY3:
+    if six.PY2:
         __div__ = _model_oper('/')
 
     # *** Properties ***

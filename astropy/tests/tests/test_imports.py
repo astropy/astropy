@@ -46,10 +46,10 @@ def test_imports():
         raise AttributeError('package to generate config items for does not '
                              'have __file__ or __path__')
 
-    if six.PY3:
-        excludes = _py2_packages
-    else:
+    if six.PY2:
         excludes = _py3_packages
+    else:
+        excludes = _py2_packages
 
     prefix = package.__name__ + '.'
 

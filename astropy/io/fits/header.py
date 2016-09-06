@@ -1980,7 +1980,7 @@ class Header(object):
 
     # Some fixes for compatibility with the Python 3 dict interface, where
     # iteritems -> items, etc.
-    if six.PY3:
+    if not six.PY2:
         keys = iterkeys
         values = itervalues
         items = iteritems
