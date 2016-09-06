@@ -89,7 +89,7 @@ class _BaseDiff(object):
 
         return not self.identical
 
-    if six.PY3:
+    if not six.PY2:
         __bool__ = __nonzero__
         del __nonzero__
 
