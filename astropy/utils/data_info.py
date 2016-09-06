@@ -30,8 +30,8 @@ from ..extern import six
 from ..utils.compat import NUMPY_LT_1_8
 
 # Tuple of filterwarnings kwargs to ignore when calling info
-IGNORE_WARNINGS = (dict(category=RuntimeWarning,
-                        module=r'numpy\.lib\.nanfunctions'),)
+IGNORE_WARNINGS = (dict(category=RuntimeWarning, message='All-NaN|'
+                        'Mean of empty slice|Degrees of freedom <= 0'),)
 
 STRING_TYPE_NAMES = {(False, 'S'): 'str',  # not PY3
                      (False, 'U'): 'unicode',
