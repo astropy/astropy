@@ -518,7 +518,7 @@ class UnitBase(object):
     def __unicode__(self):
         """Return string representation for unit"""
         return unit_format.Generic.to_string(self)
-    if six.PY3:
+    if not six.PY2:
         __str__ = __unicode__
 
     def __repr__(self):
@@ -1711,7 +1711,7 @@ class UnrecognizedUnit(IrreducibleUnit):
 
     def __unicode__(self):
         return self.name
-    if six.PY3:
+    if not six.PY2:
         __str__ = __unicode__
 
     def to_string(self, format=None):
@@ -1806,7 +1806,7 @@ class _UnitMetaClass(InheritDocstrings):
                 format = unit_format.Generic
 
             f = unit_format.get_format(format)
-            if six.PY3 and isinstance(s, bytes):
+            if not six.PY2 and isinstance(s, bytes):
                 s = s.decode('ascii')
 
             try:
