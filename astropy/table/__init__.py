@@ -40,6 +40,9 @@ from ..io.misc import connect
 from ..io.votable import connect
 from . import jsviewer
 
+
+# Finally update the read and write method documentation to include the
+# avaiable formats. (#5275)
 from ..io import registry
 
 registry._update__doc__(Table, 'read')

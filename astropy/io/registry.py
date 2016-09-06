@@ -65,8 +65,8 @@ def get_formats(data_class=None, readwrite=None):
     rows = []
 
     for format_class in format_classes:
-        if (data_class is not None and
-                not _is_best_match(data_class, format_class[1], format_classes)):
+        if (data_class is not None and not _is_best_match(
+                data_class, format_class[1], format_classes)):
             continue
 
         has_read = 'Yes' if format_class in _readers else 'No'
@@ -89,7 +89,7 @@ def get_formats(data_class=None, readwrite=None):
             rows = [row for row in rows if row[3] == 'Yes']
         else:
             raise ValueError('unrecognized value for "readwrite": {0}.\n'
-                             'Allowed are "Read" and "Write".')
+                             'Allowed are "Read" and "Write" and None.')
 
     # Sorting the list of tuples is much faster than sorting it after the table
     # is created. (#5262)
