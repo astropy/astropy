@@ -17,11 +17,10 @@ from . import FitsTestCase
 
 
 class TestHDUListFunctions(FitsTestCase):
-    @ignore_warnings()
     def test_update_name(self):
         hdul = fits.open(self.data('o4sp040b0_raw.fits'))
-        hdul[4].update_ext_name('Jim', "added by Jim")
-        hdul[4].update_ext_version(9, "added by Jim")
+        hdul[4].name = 'Jim'
+        hdul[4].ver = 9
         assert hdul[('JIM', 9)].header['extname'] == 'JIM'
 
     def test_hdu_file_bytes(self):
