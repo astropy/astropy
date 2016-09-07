@@ -50,23 +50,7 @@ class TestOldApiHeaderFunctions(FitsTestCase):
     This tests backward compatibility support for those interfaces.
     """
 
-    @ignore_warnings(AstropyDeprecationWarning)
-    def test_ascardimage_verifies_the_comment_string_to_be_ascii_text(self):
-        # the ascardimage() verifies the comment string to be ASCII text
-        c = fits.Card.fromstring('abc     = +  2.1   e + 12 / abcde\0')
-        pytest.raises(Exception, c.ascardimage)
-
-    @ignore_warnings(AstropyDeprecationWarning)
-    def test_rename_key(self):
-        """Test backwards compatibility support for Header.rename_key()"""
-        header = fits.Header([('A', 'B', 'C'), ('D', 'E', 'F')])
-        header.rename_key('A', 'B')
-        assert 'A' not in header
-        assert 'B' in header
-        assert header[0] == 'B'
-        assert header['B'] == 'B'
-        assert header.comments['B'] == 'C'
-
+    # FIXME: This one still works and does not trigger any warning
     @ignore_warnings(AstropyDeprecationWarning)
     def test_add_commentary(self):
         header = fits.Header([('A', 'B', 'C'), ('HISTORY', 1),
@@ -99,148 +83,6 @@ class TestOldApiHeaderFunctions(FitsTestCase):
         assert header.cards[1].value == 0
         assert header[''] == [0, 1, 2, 3, '', '', 4]
 
-    @ignore_warnings(AstropyDeprecationWarning)
-    def test_totxtfile(self):
-        hdul = fits.open(self.data('test0.fits'))
-        hdul[0].header.toTxtFile(self.temp('header.txt'))
-        hdu = fits.ImageHDU()
-        hdu.header.update('MYKEY', 'FOO', 'BAR')
-        hdu.header.fromTxtFile(self.temp('header.txt'), replace=True)
-        assert len(hdul[0].header.ascard) == len(hdu.header.ascard)
-        assert 'MYKEY' not in hdu.header
-        assert 'EXTENSION' not in hdu.header
-        assert 'SIMPLE' in hdu.header
-
-        # Write the hdu out and read it back in again--it should be recognized
-        # as a PrimaryHDU
-        hdu.writeto(self.temp('test.fits'), output_verify='ignore')
-        assert isinstance(fits.open(self.temp('test.fits'))[0],
-                          fits.PrimaryHDU)
-
-        hdu = fits.ImageHDU()
-        hdu.header.update('MYKEY', 'FOO', 'BAR')
-        hdu.header.fromTxtFile(self.temp('header.txt'))
-        # hdu.header should have MYKEY keyword, and also adds PCOUNT and
-        # GCOUNT, giving it 3 more keywords in total than the original
-        assert len(hdul[0].header.ascard) == len(hdu.header.ascard) - 3
-        assert 'MYKEY' in hdu.header
-        assert 'EXTENSION' not in hdu.header
-        assert 'SIMPLE' in hdu.header
-
-        with ignore_warnings():
-            hdu.writeto(self.temp('test.fits'), output_verify='ignore',
-                        clobber=True)
-        hdul2 = fits.open(self.temp('test.fits'))
-        assert len(hdul2) == 2
-        assert 'MYKEY' in hdul2[1].header
-
-    @ignore_warnings(AstropyDeprecationWarning)
-    def test_update_comment(self):
-        hdul = fits.open(self.data('arange.fits'))
-        hdul[0].header.update('FOO', 'BAR', 'BAZ')
-        assert hdul[0].header['FOO'] == 'BAR'
-        assert hdul[0].header.ascard['FOO'].comment == 'BAZ'
-
-        hdul.writeto(self.temp('test.fits'))
-
-        hdul = fits.open(self.temp('test.fits'), mode='update')
-        hdul[0].header.ascard['FOO'].comment = 'QUX'
-        hdul.close()
-
-        hdul = fits.open(self.temp('test.fits'))
-        assert hdul[0].header.ascard['FOO'].comment == 'QUX'
-
-    @ignore_warnings(AstropyDeprecationWarning)
-    def test_long_commentary_card(self):
-        # Another version of this test using new API methods is found in
-        # TestHeaderFunctions
-        header = fits.Header()
-        header.update('FOO', 'BAR')
-        header.update('BAZ', 'QUX')
-        longval = 'ABC' * 30
-        header.add_history(longval)
-        header.update('FRED', 'BARNEY')
-        header.add_history(longval)
-
-        assert len(header.ascard) == 7
-        assert header.ascard[2].key == 'FRED'
-        assert str(header.cards[3]) == 'HISTORY ' + longval[:72]
-        assert str(header.cards[4]).rstrip() == 'HISTORY ' + longval[72:]
-
-        header.add_history(longval, after='FOO')
-        assert len(header.ascard) == 9
-        assert str(header.cards[1]) == 'HISTORY ' + longval[:72]
-        assert str(header.cards[2]).rstrip() == 'HISTORY ' + longval[72:]
-
-    @ignore_warnings(AstropyDeprecationWarning)
-    def test_wildcard_slice(self):
-        """Test selecting a subsection of a header via wildcard matching."""
-
-        header = fits.Header()
-        header.update('ABC', 0)
-        header.update('DEF', 1)
-        header.update('ABD', 2)
-        cards = header.ascard['AB*']
-        assert len(cards) == 2
-        assert cards[0].value == 0
-        assert cards[1].value == 2
-
-    @ignore_warnings(AstropyDeprecationWarning)
-    def test_assign_boolean(self):
-        """
-        Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/123
-
-        Tests assigning Python and Numpy boolean values to keyword values.
-        """
-
-        fooimg = _pad('FOO     =                    T')
-        barimg = _pad('BAR     =                    F')
-        h = fits.Header()
-        h.update('FOO', True)
-        h.update('BAR', False)
-        assert h['FOO'] is True
-        assert h['BAR'] is False
-        assert h.ascard['FOO'].cardimage == fooimg
-        assert h.ascard['BAR'].cardimage == barimg
-
-        h = fits.Header()
-        h.update('FOO', np.bool_(True))
-        h.update('BAR', np.bool_(False))
-        assert h['FOO'] is True
-        assert h['BAR'] is False
-        assert h.ascard['FOO'].cardimage == fooimg
-        assert h.ascard['BAR'].cardimage == barimg
-
-        h = fits.Header()
-        h.ascard.append(fits.Card.fromstring(fooimg))
-        h.ascard.append(fits.Card.fromstring(barimg))
-        assert h['FOO'] is True
-        assert h['BAR'] is False
-        assert h.ascard['FOO'].cardimage == fooimg
-        assert h.ascard['BAR'].cardimage == barimg
-
-    @ignore_warnings(AstropyDeprecationWarning)
-    def test_cardlist_list_methods(self):
-        """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/190"""
-
-        header = fits.Header()
-        header.update('A', 'B', 'C')
-        header.update('D', 'E', 'F')
-        # The old header.update method won't let you append a duplicate keyword
-        header.append(('D', 'G', 'H'))
-
-        assert header.ascard.index(header.cards['A']) == 0
-        assert header.ascard.index(header.cards['D']) == 1
-        assert header.ascard.index(header.cards[('D', 1)]) == 2
-
-        # Since the original CardList class really only works on card objects
-        # the count method is mostly useless since cards didn't used to compare
-        # equal sensibly
-        assert header.ascard.count(header.cards['A']) == 1
-        assert header.ascard.count(header.cards['D']) == 1
-        assert header.ascard.count(header.cards[('D', 1)]) == 1
-        assert header.ascard.count(fits.Card('A', 'B', 'C')) == 0
-
 
 class TestHeaderFunctions(FitsTestCase):
     """Test Header and Card objects."""
@@ -249,10 +91,6 @@ class TestHeaderFunctions(FitsTestCase):
         """Test Card constructor with default argument values."""
 
         c = fits.Card()
-
-        with ignore_warnings():
-            assert '' == c.key
-
         assert '' == c.keyword
 
     def test_string_value_card(self):
