@@ -1149,25 +1149,8 @@ class ColDefs(NotifierMixin):
     _padding_byte = '\x00'
     _col_format_cls = _ColumnFormat
 
-    def __new__(cls, input, tbtype=None, ascii=False):
-        if tbtype is not None:
-            warnings.warn(
-                'The ``tbtype`` argument to `ColDefs` is deprecated as of '
-                'Astropy 0.4; instead the appropriate table type should be '
-                'inferred from the formats of the supplied columns.  Use the '
-                '``ascii=True`` argument to ensure that ASCII table columns '
-                'are used.', AstropyDeprecationWarning)
-        else:
-            tbtype = 'BinTableHDU'  # The old default
-
-        # Backwards-compat support
-        # TODO: Remove once the tbtype argument is removed entirely
-        if tbtype == 'BinTableHDU':
-            klass = cls
-        elif tbtype == 'TableHDU':
-            klass = _AsciiColDefs
-        else:
-            raise ValueError('Invalid table type: %s.' % tbtype)
+    def __new__(cls, input, ascii=False):
+        klass = cls
 
         if (hasattr(input, '_columns_type') and
                 issubclass(input._columns_type, ColDefs)):
@@ -1184,7 +1167,7 @@ class ColDefs(NotifierMixin):
     def __getnewargs__(self):
         return (self._arrays,)
 
-    def __init__(self, input, tbtype=None, ascii=False):
+    def __init__(self, input, ascii=False):
         """
         Parameters
         ----------
@@ -1193,16 +1176,10 @@ class ColDefs(NotifierMixin):
             An existing table HDU, an existing `ColDefs`, or any multi-field
             Numpy array or `numpy.recarray`.
 
-        **(Deprecated)** tbtype : str, optional
-            which table HDU, ``"BinTableHDU"`` (default) or
-            ``"TableHDU"`` (text table).
-            Now ColDefs for a normal (binary) table by default, but converted
-            automatically to ASCII table ColDefs in the appropriate contexts
-            (namely, when creating an ASCII table).
-
         ascii : bool
-        """
+            Use True to ensure that ASCII table columns are used.
 
+        """
         from .hdu.table import _TableBaseHDU
         from .fitsrec import FITS_rec
 
@@ -1684,7 +1661,7 @@ class _AsciiColDefs(ColDefs):
     _padding_byte = ' '
     _col_format_cls = _AsciiColumnFormat
 
-    def __init__(self, input, tbtype=None, ascii=True):
+    def __init__(self, input, ascii=True):
         super(_AsciiColDefs, self).__init__(input)
 
         # if the format of an ASCII column has no width, add one
