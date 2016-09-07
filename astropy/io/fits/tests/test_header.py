@@ -553,54 +553,54 @@ class TestHeaderFunctions(FitsTestCase):
 
         header = fits.Header()
         with catch_warnings(VerifyWarning) as w:
-            header.update('HIERARCH BLAH BLAH', 'TESTA')
+            header.update({'HIERARCH BLAH BLAH': 'TESTA'})
             assert len(w) == 0
             assert 'BLAH BLAH' in header
             assert header['BLAH BLAH'] == 'TESTA'
 
-            header.update('HIERARCH BLAH BLAH', 'TESTB')
+            header.update({'HIERARCH BLAH BLAH': 'TESTB'})
             assert len(w) == 0
             assert header['BLAH BLAH'], 'TESTB'
 
             # Update without explicitly stating 'HIERARCH':
-            header.update('BLAH BLAH', 'TESTC')
-            assert len(w) == 0
+            header.update({'BLAH BLAH': 'TESTC'})
+            assert len(w) == 1
             assert len(header) == 1
             assert header['BLAH BLAH'], 'TESTC'
 
             # Test case-insensitivity
-            header.update('HIERARCH blah blah', 'TESTD')
-            assert len(w) == 0
+            header.update({'HIERARCH blah blah': 'TESTD'})
+            assert len(w) == 1
             assert len(header) == 1
             assert header['blah blah'], 'TESTD'
 
-            header.update('blah blah', 'TESTE')
-            assert len(w) == 0
+            header.update({'blah blah': 'TESTE'})
+            assert len(w) == 2
             assert len(header) == 1
             assert header['blah blah'], 'TESTE'
 
             # Create a HIERARCH card > 8 characters without explicitly stating
             # 'HIERARCH'
-            header.update('BLAH BLAH BLAH', 'TESTA')
-            assert len(w) == 1
+            header.update({'BLAH BLAH BLAH': 'TESTA'})
+            assert len(w) == 3
             assert msg in str(w[0].message)
 
-            header.update('HIERARCH BLAH BLAH BLAH', 'TESTB')
-            assert len(w) == 1
+            header.update({'HIERARCH BLAH BLAH BLAH': 'TESTB'})
+            assert len(w) == 3
             assert header['BLAH BLAH BLAH'], 'TESTB'
 
             # Update without explicitly stating 'HIERARCH':
-            header.update('BLAH BLAH BLAH', 'TESTC')
-            assert len(w) == 1
+            header.update({'BLAH BLAH BLAH': 'TESTC'})
+            assert len(w) == 4
             assert header['BLAH BLAH BLAH'], 'TESTC'
 
             # Test case-insensitivity
-            header.update('HIERARCH blah blah blah', 'TESTD')
-            assert len(w) == 1
+            header.update({'HIERARCH blah blah blah': 'TESTD'})
+            assert len(w) == 4
             assert header['blah blah blah'], 'TESTD'
 
-            header.update('blah blah blah', 'TESTE')
-            assert len(w) == 1
+            header.update({'blah blah blah': 'TESTE'})
+            assert len(w) == 5
             assert header['blah blah blah'], 'TESTE'
 
     def test_short_hierarch_create_and_update(self):
@@ -616,28 +616,28 @@ class TestHeaderFunctions(FitsTestCase):
 
         header = fits.Header()
         with catch_warnings(VerifyWarning) as w:
-            header.update('HIERARCH BLA BLA', 'TESTA')
+            header.update({'HIERARCH BLA BLA': 'TESTA'})
             assert len(w) == 0
             assert 'BLA BLA' in header
             assert header['BLA BLA'] == 'TESTA'
 
-            header.update('HIERARCH BLA BLA', 'TESTB')
+            header.update({'HIERARCH BLA BLA': 'TESTB'})
             assert len(w) == 0
             assert header['BLA BLA'], 'TESTB'
 
             # Update without explicitly stating 'HIERARCH':
-            header.update('BLA BLA', 'TESTC')
-            assert len(w) == 0
+            header.update({'BLA BLA': 'TESTC'})
+            assert len(w) == 1
             assert header['BLA BLA'], 'TESTC'
 
             # Test case-insensitivity
-            header.update('HIERARCH bla bla', 'TESTD')
-            assert len(w) == 0
+            header.update({'HIERARCH bla bla': 'TESTD'})
+            assert len(w) == 1
             assert len(header) == 1
             assert header['bla bla'], 'TESTD'
 
-            header.update('bla bla', 'TESTE')
-            assert len(w) == 0
+            header.update({'bla bla': 'TESTE'})
+            assert len(w) == 2
             assert len(header) == 1
             assert header['bla bla'], 'TESTE'
 
@@ -645,28 +645,28 @@ class TestHeaderFunctions(FitsTestCase):
         with catch_warnings(VerifyWarning) as w:
             # Create a HIERARCH card containing invalid characters without
             # explicitly stating 'HIERARCH'
-            header.update('BLA BLA', 'TESTA')
+            header.update({'BLA BLA': 'TESTA'})
             print([x.category for x in w])
             assert len(w) == 1
             assert msg in str(w[0].message)
 
-            header.update('HIERARCH BLA BLA', 'TESTB')
+            header.update({'HIERARCH BLA BLA': 'TESTB'})
             assert len(w) == 1
             assert header['BLA BLA'], 'TESTB'
 
             # Update without explicitly stating 'HIERARCH':
-            header.update('BLA BLA', 'TESTC')
-            assert len(w) == 1
+            header.update({'BLA BLA': 'TESTC'})
+            assert len(w) == 2
             assert header['BLA BLA'], 'TESTC'
 
             # Test case-insensitivity
-            header.update('HIERARCH bla bla', 'TESTD')
-            assert len(w) == 1
+            header.update({'HIERARCH bla bla': 'TESTD'})
+            assert len(w) == 2
             assert len(header) == 1
             assert header['bla bla'], 'TESTD'
 
-            header.update('bla bla', 'TESTE')
-            assert len(w) == 1
+            header.update({'bla bla': 'TESTE'})
+            assert len(w) == 3
             assert len(header) == 1
             assert header['bla bla'], 'TESTE'
 
