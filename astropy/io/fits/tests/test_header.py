@@ -44,6 +44,16 @@ def test_init_with_ordereddict():
 class TestHeaderFunctions(FitsTestCase):
     """Test Header and Card objects."""
 
+    def test_rename_keyword(self):
+        """Test backwards compatibility support for Header.rename_key()"""
+        header = fits.Header([('A', 'B', 'C'), ('D', 'E', 'F')])
+        header.rename_keyword('A', 'B')
+        assert 'A' not in header
+        assert 'B' in header
+        assert header[0] == 'B'
+        assert header['B'] == 'B'
+        assert header.comments['B'] == 'C'
+
     def test_card_constructor_default_args(self):
         """Test Card constructor with default argument values."""
 
@@ -164,6 +174,42 @@ class TestHeaderFunctions(FitsTestCase):
         assert len(header) == 8
         assert header.cards[1].value == 0
         assert header[''] == [0, 1, 2, 3, '', '', 4]
+
+    def test_update_comment(self):
+        hdul = fits.open(self.data('arange.fits'))
+        hdul[0].header.update({'FOO': ('BAR', 'BAZ')})
+        assert hdul[0].header['FOO'] == 'BAR'
+        assert hdul[0].header.comments['FOO'] == 'BAZ'
+
+        hdul.writeto(self.temp('test.fits'))
+
+        hdul = fits.open(self.temp('test.fits'), mode='update')
+        hdul[0].header.comments['FOO'] = 'QUX'
+        hdul.close()
+
+        hdul = fits.open(self.temp('test.fits'))
+        assert hdul[0].header.comments['FOO'] == 'QUX'
+
+    def test_long_commentary_card(self):
+        # Another version of this test using new API methods is found in
+        # TestHeaderFunctions
+        header = fits.Header()
+        header.update({'FOO': 'BAR'})
+        header.update({'BAZ': 'QUX'})
+        longval = 'ABC' * 30
+        header.add_history(longval)
+        header.update({'FRED': 'BARNEY'})
+        header.add_history(longval)
+
+        assert len(header.cards) == 7
+        assert header.cards[2].keyword == 'FRED'
+        assert str(header.cards[3]) == 'HISTORY ' + longval[:72]
+        assert str(header.cards[4]).rstrip() == 'HISTORY ' + longval[72:]
+
+        header.add_history(longval, after='FOO')
+        assert len(header.cards) == 9
+        assert str(header.cards[1]) == 'HISTORY ' + longval[:72]
+        assert str(header.cards[2]).rstrip() == 'HISTORY ' + longval[72:]
 
     def test_commentary_cards(self):
         # commentary cards
@@ -1385,6 +1431,35 @@ class TestHeaderFunctions(FitsTestCase):
         assert len(header) == 9
         assert str(header.cards[1]) == 'HISTORY ' + longval[:72]
         assert str(header.cards[2]).rstrip() == 'HISTORY ' + longval[72:]
+
+    def test_totxtfile(self):
+        hdul = fits.open(self.data('test0.fits'))
+        hdul[0].header.totextfile(self.temp('header.txt'))
+        hdu = fits.ImageHDU()
+        hdu.header.update({'MYKEY': 'FOO'})
+        hdu.header.extend(hdu.header.fromtextfile(self.temp('header.txt')),
+                          update=True, update_first=True)
+
+        # Write the hdu out and read it back in again--it should be recognized
+        # as a PrimaryHDU
+        hdu.writeto(self.temp('test.fits'), output_verify='ignore')
+        assert isinstance(fits.open(self.temp('test.fits'))[0],
+                          fits.PrimaryHDU)
+
+        hdu = fits.ImageHDU()
+        hdu.header.update({'MYKEY': 'FOO'})
+        hdu.header.extend(hdu.header.fromtextfile(self.temp('header.txt')),
+                          update=True, update_first=True, strip=False)
+        assert 'MYKEY' in hdu.header
+        assert 'EXTENSION' not in hdu.header
+        assert 'SIMPLE' in hdu.header
+
+        with ignore_warnings():
+            hdu.writeto(self.temp('test.fits'), output_verify='ignore',
+                        clobber=True)
+        hdul2 = fits.open(self.temp('test.fits'))
+        assert len(hdul2) == 2
+        assert 'MYKEY' in hdul2[1].header
 
     def test_header_fromtextfile(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/122
