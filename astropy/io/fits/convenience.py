@@ -724,7 +724,7 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
     -----
     The primary use for the `tabledump` function is to allow editing in a
     standard text editor of the table data and parameters.  The
-    ``tableload`` function can be used to reassemble the table from the
+    `tableload` function can be used to reassemble the table from the
     three ASCII files.
     """
 

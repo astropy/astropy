@@ -32,7 +32,7 @@ Background
 ==========
 
 Prior to 3.1, PyFITS users interacted with FITS headers by way of three
-different classes: :class:`Card`, :class:`CardList`, and :class:`Header`.
+different classes: :class:`Card`, ``CardList``, and :class:`Header`.
 
 The Card class represents a single header card with a keyword, value, and
 comment.  It also contains all the machinery for parsing FITS header cards,
@@ -67,7 +67,7 @@ Users familiar with the FITS format know what a header is, but it's not clear
 how a "card list" is distinct from that, or why operations go through the
 Header object, while some have to be performed through the CardList.
 
-So the primary goal of this redesign was eliminate the :class:`CardList` class
+So the primary goal of this redesign was eliminate the ``CardList`` class
 altogether, and make it possible for users to perform all header manipulations
 directly through :class:`Header` objects.  It also tries to present headers as
 similar as possible to more a more familiar data structure--an ordered mapping
@@ -92,8 +92,8 @@ Two of the most common deprecation warnings related to Headers are for:
   in a mapping object like `dict` or :class:`Header`, use the ``key in d``
   syntax.  This has long been the preference in Python.
 
-- :meth:``Header.ascardlist`` and :attr:`Header.ascard`--these were used to
-  access the :class:`CardList` object underlying a header.  They should still
+- :meth:``Header.ascardlist`` and ``Header.ascard``--these were used to
+  access the ``CardList`` object underlying a header.  They should still
   work, and return a skeleton CardList implementation that should support most
   of the old CardList functionality.  But try removing as much of this as
   possible.  If direct access to the :class:`Card` objects making up a header

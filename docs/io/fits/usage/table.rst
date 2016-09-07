@@ -307,12 +307,10 @@ or directly use the :meth:`BinTableHDU.from_columns` method::
 .. note::
 
     Users familiar with older versions of PyFITS or Astropy will wonder what
-    happened to :func:`~astropy.io.fits.new_table`.  It is still there, but is
-    deprecated.  :meth:`BinTableHDU.from_columns` and its companion for ASCII
-    tables :meth:`TableHDU.from_columns` are the same as
-    :func:`~astropy.io.fits.new_table` in the arguments they accept and their
-    behavior.  They just make it more explicit what type of table HDU they
-    create.
+    happened to ``astropy.io.fits.new_table``. :meth:`BinTableHDU.from_columns`
+    and its companion for ASCII tables :meth:`TableHDU.from_columns` are the
+    same in the arguments they accept and their behavior.  They just make it
+    more explicit what type of table HDU they create.
 
 A look of the newly created HDU's header will show that relevant keywords are
 properly populated::

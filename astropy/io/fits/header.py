@@ -1202,7 +1202,7 @@ class Header(object):
             'SIMPLE' keyword.  This behavior is otherwise dumb as to whether or
             not the resulting header is a valid primary or extension header.
             This is mostly provided to support backwards compatibility with the
-            old :meth:`Header.fromTxtFile` method, and only applies if
+            old ``Header.fromTxtFile`` method, and only applies if
             ``update=True``.
 
         useblanks, bottom, end : bool, optional
