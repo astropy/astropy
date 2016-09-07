@@ -91,6 +91,24 @@ API Changes
 
 - ``astropy.io.fits``
 
+  - The following previously deprecated functions, classes and methods have been
+    removed entirely: ``CardList``, ``Card.key``, ``Card.cardimage``,
+    ``Card.ascardimage``, ``create_card``, ``create_card_from_string``,
+    ``upper_key``, ``Header.ascard``, ``Header.rename_key``,
+    ``Header.get_history``, ``Header.get_comment``, ``Header.toTxtFile``,
+    ``Header.fromTxtFile``, ``tdump``, ``tcreate``, ``BinTableHDU.tdump``,
+    ``BinTableHDU.tcreate``. [#5310]
+
+  - A few other deprecated features were removed in [#5310]:
+
+    - The ``txtfile`` argument to the ``Header`` constructor.
+
+    - The usage of ``Header.update`` with ``Header.update(keyword, value,
+      comment)`` arguments.
+
+    - The ``startColumn`` and ``endColumn`` arguments to the ``FITS_record``
+      constructor.
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
