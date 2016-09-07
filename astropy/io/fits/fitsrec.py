@@ -19,7 +19,6 @@ from ...extern.six import string_types
 from ...extern.six.moves import range, zip
 from ...utils import lazyproperty
 from ...utils.compat import suppress
-from ...utils.exceptions import AstropyDeprecationWarning
 
 
 class FITS_record(object):
@@ -51,16 +50,6 @@ class FITS_record(object):
            The ending column in the row associated with this object.
            Used for subsetting the columns of the `FITS_rec` object.
         """
-
-        # For backward compatibility...
-        for arg in [('startColumn', 'start'), ('endColumn', 'end')]:
-            if arg[0] in kwargs:
-                warnings.warn('The %s argument to FITS_record is deprecated; '
-                              'use %s instead' % arg, AstropyDeprecationWarning)
-                if arg[0] == 'startColumn':
-                    start = kwargs[arg[0]]
-                elif arg[0] == 'endColumn':
-                    end = kwargs[arg[0]]
 
         self.array = input
         self.row = row
