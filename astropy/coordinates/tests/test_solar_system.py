@@ -1,6 +1,8 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import numpy as np
+
 from ...time import Time
 from ... import units as u
 from ...constants import c
@@ -8,9 +10,11 @@ from ..builtin_frames import GCRS
 from ..earth import EarthLocation
 from ..sky_coordinate import SkyCoord
 from ..solar_system import (get_body, get_moon, BODY_NAME_TO_KERNEL_SPEC,
-                            _apparent_position_in_true_coordinates)
+                            _apparent_position_in_true_coordinates,
+                            get_body_barycentric, get_body_barycentric_posvel)
 from ..funcs import get_sun
-from ...tests.helper import pytest, assert_quantity_allclose, remote_data
+from ...tests.helper import (pytest, remote_data, assert_quantity_allclose,
+                             quantity_allclose)
 
 try:
     import jplephem  # pylint: disable=W0611
@@ -301,3 +305,58 @@ def test_get_moon_nonscalar_regression():
     times = Time(["2015-08-28 03:30", "2015-09-05 10:30"])
     # the following line will raise an Exception if the bug recurs.
     get_moon(times, ephemeris='builtin')
+
+
+def test_barycentric_pos_posvel_same():
+    # Check that the two routines give identical results.
+    ep1 = get_body_barycentric('earth', Time('2016-03-20T12:30:00'))
+    ep2, _ = get_body_barycentric_posvel('earth', Time('2016-03-20T12:30:00'))
+    assert np.all(ep1.xyz == ep2.xyz)
+
+
+def test_earth_barycentric_velocity_rough():
+    # Check that a time near the equinox gives roughly the right result.
+    ep, ev = get_body_barycentric_posvel('earth', Time('2016-03-20T12:30:00'))
+    assert_quantity_allclose(ep.xyz, [-1., 0., 0.]*u.AU, atol=0.01*u.AU)
+    expected = u.Quantity([0.*u.one,
+                           np.cos(23.5*u.deg),
+                           np.sin(23.5*u.deg)]) * -30. * u.km / u.s
+    assert_quantity_allclose(ev.xyz, expected, atol=1.*u.km/u.s)
+
+
+def test_earth_barycentric_velocity_multi_d():
+    # Might as well test it with a multidimensional array too.
+    t = Time('2016-03-20T12:30:00') + np.arange(8.).reshape(2,2,2) * u.yr / 2.
+    ep, ev = get_body_barycentric_posvel('earth', t)
+    # note: assert_quantity_allclose doesn't like the shape mismatch.
+    # this is a problem with np.testing.assert_allclose.
+    assert quantity_allclose(np.rollaxis(ep.xyz, 0, ep.xyz.ndim),
+                             [[-1., 0., 0.], [+1., 0., 0.]]*u.AU,
+                             atol=0.06*u.AU)
+    expected = u.Quantity([0.*u.one,
+                           np.cos(23.5*u.deg),
+                           np.sin(23.5*u.deg)]) * ([[-30.], [30.]] * u.km / u.s)
+    assert quantity_allclose(np.rollaxis(ev.xyz, 0, ev.xyz.ndim),
+                             expected, atol=2.*u.km/u.s)
+
+
+@remote_data
+@pytest.mark.skipif('not HAS_JPLEPHEM')
+@pytest.mark.parametrize(('body', 'pos_tol', 'vel_tol'),
+                         (('mercury', 1000.*u.km, 1.*u.km/u.s),
+                          ('jupiter', 100000.*u.km, 2.*u.km/u.s),
+                          ('earth', 10*u.km, 10*u.mm/u.s)))
+def test_barycentric_velocity_consistency(body, pos_tol, vel_tol):
+    # Tolerances are about 1.5 times the rms listed for plan94 and epv00,
+    # except for Mercury (which nominally is 334 km rms)
+    t = Time('2016-03-20T12:30:00')
+    ep, ev = get_body_barycentric_posvel(body, t, ephemeris='builtin')
+    dp, dv = get_body_barycentric_posvel(body, t, ephemeris='de432s')
+    assert_quantity_allclose(ep.xyz, dp.xyz, atol=pos_tol)
+    assert_quantity_allclose(ev.xyz, dv.xyz, atol=vel_tol)
+    # Might as well test it with a multidimensional array too.
+    t = Time('2016-03-20T12:30:00') + np.arange(8.).reshape(2,2,2) * u.yr / 2.
+    ep, ev = get_body_barycentric_posvel(body, t, ephemeris='builtin')
+    dp, dv = get_body_barycentric_posvel(body, t, ephemeris='de432s')
+    assert_quantity_allclose(ep.xyz, dp.xyz, atol=pos_tol)
+    assert_quantity_allclose(ev.xyz, dv.xyz, atol=vel_tol)
