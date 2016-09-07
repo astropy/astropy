@@ -38,10 +38,12 @@ from ...utils import wraps
 from ...utils.compat import suppress
 from ...utils.exceptions import AstropyUserWarning
 
-if six.PY3:
-    cmp = lambda a, b: (a > b) - (a < b)
-elif six.PY2:
+if six.PY2:
     cmp = cmp
+else:
+    cmp = lambda a, b: (a > b) - (a < b)
+
+all_integer_types = integer_types + (np.integer,)
 
 
 class NotifierMixin(object):
@@ -917,7 +919,7 @@ def _is_pseudo_unsigned(dtype):
 
 
 def _is_int(val):
-    return isinstance(val, integer_types + (np.integer,))
+    return isinstance(val, all_integer_types)
 
 
 def _str_to_num(val):

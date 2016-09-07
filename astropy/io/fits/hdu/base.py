@@ -478,14 +478,12 @@ class _BaseHDU(object):
         header_offset = 0
 
         if isinstance(data, _File):
-            from_file = True
             if header is None:
                 header_offset = data.tell()
                 header = Header.fromfile(data, endcard=not ignore_missing_end)
             hdu_fileobj = data
             data_offset = data.tell()  # *after* reading the header
         else:
-            from_file = False
             try:
                 # Test that the given object supports the buffer interface by
                 # ensuring an ndarray can be created from it
