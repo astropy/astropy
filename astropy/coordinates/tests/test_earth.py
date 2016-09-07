@@ -286,4 +286,4 @@ def test_of_address():
     loc = EarthLocation.of_address("New York, NY", get_height=True)
     assert quantity_allclose(loc.latitude, 40.7128*u.degree)
     assert quantity_allclose(loc.longitude, -74.0059*u.degree)
-    assert quantity_allclose(loc.height, 10.438659669*u.meter)
+    assert quantity_allclose(loc.height, 10.438659669*u.meter, atol=1.*u.cm)

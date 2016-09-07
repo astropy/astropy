@@ -15,6 +15,11 @@ New Features
   - Added an ``of_address`` classmethod to ``EarthLocation`` to enable fast creation of
     ``EarthLocation`` objects given an address by querying the Google maps API [#5154].
 
+  - A new routine, ``get_body_barycentric_posvel`` has been added that allows
+    one to calculate positions as well as velocities for solar system bodies.
+    For JPL kernels, this roughly doubles the execution time, so if one requires
+    only the positions, one should use ``get_body_barycentric``. [#5231]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
@@ -195,11 +200,21 @@ Other Changes and Additions
     ``angles.angle_axis`` are also deprecated, in favour of the new routines
     with the same name in ``coordinates.matrix_utilities``. [#5104]
 
+- ``astropy.io.fits``
+
+  - Performance improvements for tables with many columns. [#4985]
+
 - ``astropy.io.registry``
 
   - Reduced the time spent in the ``get_formats`` function. This also reduces
     the time it takes to import astropy subpackages, i.e.
     ``astropy.coordinates``. [#5262]
+
+- ``astropy.units``
+
+  - The functions ``add_enabled_units``, ``set_enabled_equivalencies`` and
+    ``add_enabled_equivalencies`` have been sped up by copying the current
+    ``_UnitRegistry`` instead of building it from scratch. [#5306]
 
 - To build the documentation, the ``build_sphinx`` command has been deprecated
   in favor of ``build_docs``. [#5179]

@@ -9,8 +9,6 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
 from ..extern.six.moves import zip
-if six.PY2:
-    import cmath
 
 import inspect
 import operator
@@ -25,6 +23,9 @@ from ..utils.misc import isiterable, InheritDocstrings
 from .utils import (is_effectively_unity, sanitize_scale, validate_power,
                     resolve_fractions)
 from . import format as unit_format
+
+if six.PY2:
+    import cmath
 
 # TODO: Support function units, e.g. log(x), ln(x)
 
@@ -113,14 +114,26 @@ class _UnitRegistry(object):
     Manages a registry of the enabled units.
     """
     def __init__(self, init=[], equivalencies=[]):
-        if isinstance(init, _UnitRegistry):
-            equivalencies = init.equivalencies
-            init = init.all_units
 
-        self._reset_units()
-        self._reset_equivalencies()
-        self.add_enabled_units(init)
-        self.add_enabled_equivalencies(equivalencies)
+        if isinstance(init, _UnitRegistry):
+            # If passed another registry we don't need to rebuild everything.
+            # but because these are mutable types we don't want to create
+            # conflicts so everything needs to be copied.
+            self._equivalencies = init._equivalencies.copy()
+            self._all_units = init._all_units.copy()
+            self._registry = init._registry.copy()
+            self._non_prefix_units = init._non_prefix_units.copy()
+            # The physical type is a dictionary containing sets as values.
+            # All of these must be copied otherwise we could alter the old
+            # registry.
+            self._by_physical_type = {k: v.copy() for k, v in
+                                      six.iteritems(init._by_physical_type)}
+
+        else:
+            self._reset_units()
+            self._reset_equivalencies()
+            self.add_enabled_units(init)
+            self.add_enabled_equivalencies(equivalencies)
 
     def _reset_units(self):
         self._all_units = set()
@@ -209,9 +222,7 @@ class _UnitRegistry(object):
         ----------
         unit : UnitBase instance
         """
-        return self._by_physical_type.get(
-            unit._get_physical_type_id(),
-            set())
+        return self._by_physical_type.get(unit._get_physical_type_id(), set())
 
     @property
     def equivalencies(self):
@@ -260,9 +271,7 @@ class _UnitRegistry(object):
 class _UnitContext(object):
     def __init__(self, init=[], equivalencies=[]):
         _unit_registries.append(
-            _UnitRegistry(
-                init=init,
-                equivalencies=equivalencies))
+            _UnitRegistry(init=init, equivalencies=equivalencies))
 
     def __enter__(self):
         pass
@@ -413,7 +422,7 @@ def set_enabled_equivalencies(equivalencies):
         <Quantity (-1+1.2246063538223773e-16j)>
     """
     # get a context with a new registry, using all units of the current one
-    context = _UnitContext(get_current_unit_registry().all_units)
+    context = _UnitContext(get_current_unit_registry())
     # in this new current registry, enable the equivalencies requested
     get_current_unit_registry().set_enabled_equivalencies(equivalencies)
     return context
@@ -462,6 +471,7 @@ class UnitConversionError(UnitsError, ValueError):
     Used specifically for errors related to converting between units or
     interpreting units in terms of other units.
     """
+
 
 class UnitTypeError(UnitsError, TypeError):
     """
@@ -663,8 +673,8 @@ class UnitBase(object):
 
         try:
             # Cannot handle this as Unit.  Here, m cannot be a Quantity,
-            # so we make it into one, fasttracking when it does not have a unit,
-            # for the common case of <array> / <unit>.
+            # so we make it into one, fasttracking when it does not have a
+            # unit, for the common case of <array> / <unit>.
             from .quantity import Quantity
             if hasattr(m, 'unit'):
                 result = Quantity(m)

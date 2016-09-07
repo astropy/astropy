@@ -269,6 +269,12 @@ files manually`_ section since this explains what many of the files do.
       or just delete it.
    #. Exit out of your text editor.
 
+#. Move the main source directory to reflect the name of your package.
+   To tell your DVCS about this move, you should use it, and not ``mv``
+   directly, to make the move.  For example, with git::
+
+    git mv packagename <packagename>
+      
 #. Update the main package docstring in ``<packagename>/__init__.py``.
 
 #. Decide what license you want to use to release your source code. If
@@ -282,17 +288,15 @@ files manually`_ section since this explains what many of the files do.
    license.
 
 #. Take a moment to look over the ``<packagename>/example_mod.py``,
-   ``<packagename>/tests/test_example.py``, ``scripts/script_example``,
-   and ``<packagename>/example_c.pyx`` files, as well as the
-   ``<packagename>/example_subpkg`` directory. These are examples of a
-   pure-python module, a test script, an example command-line script, a
+   ``<packagename>/tests/test_example.py``, and ``<packagename>/example_c.pyx``
+   files, as well as the ``<packagename>/example_subpkg`` directory.
+   These are examples of a pure-python module, a test script, a
    `Cython`_ module, and a sub-package, respectively. (`Cython`_ is a
    way to compile python-like code to C to make it run faster - see the
    project's web site for details). These are provided as examples of
    standard way to lay these out. Once you understand these, though,
    you'll want to delete them (and later replace with your own)::
 
-      git rm scripts/script_example
       git rm <packagename>/example_c.pyx
       git rm <packagename>/tests/test_example.py
       git rm -r <packagename>/example_subpkg
@@ -303,12 +307,6 @@ files manually`_ section since this explains what many of the files do.
    directly to github's web site. To do this, set ``edit_on_github`` in
    ``setup.cfg`` to ``True`` and set ``github_project`` to the name of
    your project on github.
-
-#. Move the main source directory to reflect the name of your package.
-   To tell your DVCS about this move, you should use it, and not ``mv``
-   directly, to make the move.  For example, with git::
-
-    git mv packagename <packagename>
 
 #. Update the names of the documentation files to match your package's name.
    First open ``docs/index.rst`` in a text editor and change the text
