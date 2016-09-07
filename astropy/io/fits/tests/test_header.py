@@ -17,7 +17,6 @@ from ....extern.six.moves import zip, range
 from ....io import fits
 from ....io.fits.verify import VerifyWarning
 from ....tests.helper import pytest, catch_warnings, ignore_warnings
-from ....utils.exceptions import AstropyDeprecationWarning
 
 from . import FitsTestCase
 from ..card import _pad
@@ -40,48 +39,6 @@ def test_init_with_ordereddict():
     h1 = fits.Header(dict1)
     # Check that the order is preserved of the initial list
     assert all(h1[val] == list1[i][1] for i, val in enumerate(h1))
-
-
-class TestOldApiHeaderFunctions(FitsTestCase):
-    """
-    Tests that specifically use attributes and methods from the old
-    Header/CardList API from PyFITS 3.0 and prior.
-
-    This tests backward compatibility support for those interfaces.
-    """
-
-    # FIXME: This one still works and does not trigger any warning
-    @ignore_warnings(AstropyDeprecationWarning)
-    def test_add_commentary(self):
-        header = fits.Header([('A', 'B', 'C'), ('HISTORY', 1),
-                              ('HISTORY', 2), ('HISTORY', 3), ('', '', ''),
-                              ('', '', '')])
-        header.add_history(4)
-        # One of the blanks should get used, so the length shouldn't change
-        assert len(header) == 6
-        assert header.cards[4].value == 4
-        assert header['HISTORY'] == [1, 2, 3, 4]
-
-        header.add_history(0, after='A')
-        assert len(header) == 6
-        assert header.cards[1].value == 0
-        assert header['HISTORY'] == [0, 1, 2, 3, 4]
-
-        header = fits.Header([('A', 'B', 'C'), ('', 1), ('', 2), ('', 3),
-                              ('', '', ''), ('', '', '')])
-        header.add_blank(4)
-        # This time a new blank should be added, and the existing blanks don't
-        # get used... (though this is really kinda sketchy--there's a
-        # distinction between truly blank cards, and cards with blank keywords
-        # that isn't currently made int he code)
-        assert len(header) == 7
-        assert header.cards[6].value == 4
-        assert header[''] == [1, 2, 3, '', '', 4]
-
-        header.add_blank(0, after='A')
-        assert len(header) == 8
-        assert header.cards[1].value == 0
-        assert header[''] == [0, 1, 2, 3, '', '', 4]
 
 
 class TestHeaderFunctions(FitsTestCase):
@@ -176,6 +133,37 @@ class TestHeaderFunctions(FitsTestCase):
             c = fits.Card('abc+', 9)
         assert len(w) == 1
         assert c.image == _pad('HIERARCH abc+ =                    9')
+
+    def test_add_commentary(self):
+        header = fits.Header([('A', 'B', 'C'), ('HISTORY', 1),
+                              ('HISTORY', 2), ('HISTORY', 3), ('', '', ''),
+                              ('', '', '')])
+        header.add_history(4)
+        # One of the blanks should get used, so the length shouldn't change
+        assert len(header) == 6
+        assert header.cards[4].value == 4
+        assert header['HISTORY'] == [1, 2, 3, 4]
+
+        header.add_history(0, after='A')
+        assert len(header) == 6
+        assert header.cards[1].value == 0
+        assert header['HISTORY'] == [0, 1, 2, 3, 4]
+
+        header = fits.Header([('A', 'B', 'C'), ('', 1), ('', 2), ('', 3),
+                              ('', '', ''), ('', '', '')])
+        header.add_blank(4)
+        # This time a new blank should be added, and the existing blanks don't
+        # get used... (though this is really kinda sketchy--there's a
+        # distinction between truly blank cards, and cards with blank keywords
+        # that isn't currently made int he code)
+        assert len(header) == 7
+        assert header.cards[6].value == 4
+        assert header[''] == [1, 2, 3, '', '', 4]
+
+        header.add_blank(0, after='A')
+        assert len(header) == 8
+        assert header.cards[1].value == 0
+        assert header[''] == [0, 1, 2, 3, '', '', 4]
 
     def test_commentary_cards(self):
         # commentary cards
