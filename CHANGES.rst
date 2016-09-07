@@ -15,6 +15,11 @@ New Features
   - Added an ``of_address`` classmethod to ``EarthLocation`` to enable fast creation of
     ``EarthLocation`` objects given an address by querying the Google maps API [#5154].
 
+  - A new routine, ``get_body_barycentric_posvel`` has been added that allows
+    one to calculate positions as well as velocities for solar system bodies.
+    For JPL kernels, this roughly doubles the execution time, so if one requires
+    only the positions, one should use ``get_body_barycentric``. [#5231]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
