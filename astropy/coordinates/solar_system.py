@@ -27,7 +27,7 @@ from .. import _erfa
 from ..extern import six
 
 __all__ = ["get_body", "get_moon", "get_body_barycentric",
-           "solar_system_ephemeris"]
+           "get_body_barycentric_posvel", "solar_system_ephemeris"]
 
 
 DEFAULT_JPL_EPHEMERIS = 'de430'
