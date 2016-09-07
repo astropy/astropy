@@ -82,16 +82,14 @@ ASCII_DEFAULT_WIDTHS= {'A': (1, 0), 'I': (10, 0), 'J': (15, 0),
                        'E': (15, 7), 'F': (16, 7), 'D': (25, 17)}
 
 
-
-
-# lists of column/field definition common names and keyword names, make
+# tuple of column/field definition common names and keyword names, make
 # sure to preserve the one-to-one correspondence when updating the list(s).
 # Use lists, instead of dictionaries so the names can be displayed in a
 # preferred order.
-KEYWORD_NAMES = ['TTYPE', 'TFORM', 'TUNIT', 'TNULL', 'TSCAL', 'TZERO',
-                 'TDISP', 'TBCOL', 'TDIM']
-KEYWORD_ATTRIBUTES = ['name', 'format', 'unit', 'null', 'bscale', 'bzero',
-                      'disp', 'start', 'dim']
+KEYWORD_NAMES = ('TTYPE', 'TFORM', 'TUNIT', 'TNULL', 'TSCAL', 'TZERO',
+                 'TDISP', 'TBCOL', 'TDIM')
+KEYWORD_ATTRIBUTES = ('name', 'format', 'unit', 'null', 'bscale', 'bzero',
+                      'disp', 'start', 'dim')
 """This is a list of the attributes that can be set on `Column` objects."""
 
 
@@ -431,21 +429,21 @@ class ColumnAttribute(object):
         # determined from the KEYWORD_NAMES/ATTRIBUTES lists.  This could be
         # make more flexible in the future, for example, to support custom
         # column attributes.
-        self._attr = KEYWORD_TO_ATTRIBUTE[self._keyword]
+        self._attr = '_' + KEYWORD_TO_ATTRIBUTE[self._keyword]
 
     def __get__(self, obj, objtype=None):
         if obj is None:
             return self
         else:
-            return getattr(obj, '_' + self._attr)
+            return getattr(obj, self._attr)
 
     def __set__(self, obj, value):
         if self._validator is not None:
             self._validator(obj, value)
 
-        old_value = getattr(obj, '_' + self._attr, None)
-        setattr(obj, '_' + self._attr, value)
-        obj._notify('column_attribute_changed', obj, self._attr, old_value,
+        old_value = getattr(obj, self._attr, None)
+        setattr(obj, self._attr, value)
+        obj._notify('column_attribute_changed', obj, self._attr[1:], old_value,
                     value)
 
     def __call__(self, func):
@@ -1390,16 +1388,12 @@ class ColDefs(NotifierMixin):
 
         Implements for example self.units, self.formats, etc.
         """
-
         cname = name[:-1]
         if cname in KEYWORD_ATTRIBUTES and name[-1] == 's':
             attr = []
-            for col in self:
+            for col in self.columns:
                 val = getattr(col, cname)
-                if val is not None:
-                    attr.append(val)
-                else:
-                    attr.append('')
+                attr.append(val if val is not None else '')
             return attr
         raise AttributeError(name)
 
@@ -1439,6 +1433,14 @@ class ColDefs(NotifierMixin):
             fields.append((name, dt))
 
         return nh.realign_dtype(np.dtype(fields), offsets)
+
+    @lazyproperty
+    def names(self):
+        return [col.name for col in self.columns]
+
+    @lazyproperty
+    def formats(self):
+        return [col.format for col in self.columns]
 
     @lazyproperty
     def _arrays(self):
@@ -1521,6 +1523,11 @@ class ColDefs(NotifierMixin):
             if col is column:
                 break
 
+        if attr == 'name':
+            del self.names
+        elif attr == 'format':
+            del self.formats
+
         self._notify('column_attribute_changed', column, idx, attr, old_value,
                      new_value)
 
@@ -1536,6 +1543,8 @@ class ColDefs(NotifierMixin):
         del self.dtype
         del self._recformats
         del self._dims
+        del self.names
+        del self.formats
 
         self.columns.append(column)
 
@@ -1563,6 +1572,8 @@ class ColDefs(NotifierMixin):
         del self.dtype
         del self._recformats
         del self._dims
+        del self.names
+        del self.formats
 
         del self.columns[indx]
 
@@ -1699,7 +1710,6 @@ class _AsciiColDefs(ColDefs):
 
     @lazyproperty
     def dtype(self):
-        _itemsize = self.spans[-1] + self.starts[-1] - 1
         dtype = {}
 
         for j in range(len(self)):
@@ -1947,7 +1957,6 @@ def _makep(array, descr_output, format, nrows=None):
 
     if not nrows:
         nrows = len(array)
-    n = min(len(array), nrows)
 
     data_output = _VLF([None] * nrows, dtype=format.dtype)
 

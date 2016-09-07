@@ -195,6 +195,10 @@ Other Changes and Additions
     ``angles.angle_axis`` are also deprecated, in favour of the new routines
     with the same name in ``coordinates.matrix_utilities``. [#5104]
 
+- ``astropy.io.fits``
+
+  - Performance improvements for tables with many columns. [#4985]
+
 - ``astropy.io.registry``
 
   - Reduced the time spent in the ``get_formats`` function. This also reduces
