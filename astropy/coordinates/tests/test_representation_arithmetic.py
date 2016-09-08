@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # TEST_UNICODE_LITERALS
+import functools
 import numpy as np
 
 from ... import units as u
@@ -10,6 +11,19 @@ from .. import (PhysicsSphericalRepresentation, CartesianRepresentation,
 from ..angle_utilities import angular_separation
 from ...tests.helper import pytest, assert_quantity_allclose
 
+
+def assert_representation_allclose(actual, desired, rtol=1.e-7, atol=None,
+                                   **kwargs):
+    assert_quantity_allclose(actual.to_cartesian().xyz,
+                             desired.to_cartesian().xyz,
+                             rtol, atol, **kwargs)
+
+
+def representation_equal(first, second):
+    return functools.reduce(np.logical_and,
+                            (getattr(first, component) ==
+                             getattr(second, component)
+                             for component in first.components))
 
 class TestArithmetic():
     """Test absolute value, multiplication, and division."""
@@ -23,16 +37,6 @@ class TestArithmetic():
         self.unit_spherical = self.spherical.represent_as(
             UnitSphericalRepresentation)
         self.cartesian = self.spherical.to_cartesian()
-
-    def test_equality(self):
-        assert np.all(self.spherical == self.spherical)
-        s1 = SphericalRepresentation(self.lon, self.lat, self.distance)
-        assert np.all(s1 == self.spherical)
-        assert not np.any(s1 != self.spherical)
-        s2 = SphericalRepresentation(self.lon, self.lat,
-                                     self.distance * np.arange(len(s1)))
-        assert np.all((s2 == self.spherical) == (np.arange(len(s1)) == 1))
-        assert np.all((s2 != self.spherical) == (np.arange(len(s1)) != 1))
 
     def test_abs_spherical(self):
         abs_s = abs(self.spherical)
@@ -62,7 +66,7 @@ class TestArithmetic():
         assert np.all(s0.distance == self.distance / (1. * u.Myr))
         s1 = (1./u.Myr) * self.spherical
         assert isinstance(s1, SphericalRepresentation)
-        assert np.all(s1 == s0)
+        assert np.all(representation_equal(s1, s0))
         s2 = self.spherical * np.array([[1.], [2.]])
         assert isinstance(s2, SphericalRepresentation)
         assert s2.shape == (2, self.spherical.shape[0])
@@ -72,7 +76,7 @@ class TestArithmetic():
                       self.spherical.distance * np.array([[1.], [2.]]))
         s3 = np.array([[1.], [2.]]) * self.spherical
         assert isinstance(s3, SphericalRepresentation)
-        assert np.all(s3 == s2)
+        assert np.all(representation_equal(s3, s2))
         s4 = -self.spherical
         assert isinstance(s4, SphericalRepresentation)
         assert np.all(s4.lon == self.spherical.lon)
@@ -80,7 +84,7 @@ class TestArithmetic():
         assert np.all(s4.distance == -self.spherical.distance)
         s5 = +self.spherical
         assert s5 is not self.spherical
-        assert np.all(s5 == self.spherical)
+        assert np.all(representation_equal(s5, self.spherical))
 
     @pytest.mark.parametrize('representation',
                              (PhysicsSphericalRepresentation,
@@ -104,7 +108,7 @@ class TestArithmetic():
         assert_quantity_allclose(abs(r2),
                                  self.distance * np.array([[1.], [2.]]))
         r3 = -in_rep
-        assert np.all(r3 == in_rep * -1.)
+        assert np.all(representation_equal(r3, in_rep * -1.))
 
     def test_mul_div_unit_spherical(self):
         s1 = self.unit_spherical * self.distance
@@ -127,22 +131,23 @@ class TestArithmetic():
         u4 = +self.unit_spherical
         assert isinstance(u4, UnitSphericalRepresentation)
         assert u4 is not self.unit_spherical
-        assert np.all(u4 == self.unit_spherical)
+        assert np.all(representation_equal(u4, self.unit_spherical))
 
     def test_add_sub_cartesian(self):
         c1 = self.cartesian + self.cartesian
         assert isinstance(c1, CartesianRepresentation)
-        assert np.all(c1 == 2. * self.cartesian)
+        assert np.all(representation_equal(c1, 2. * self.cartesian))
         with pytest.raises(TypeError):
             self.cartesian + 10.*u.m
         with pytest.raises(u.UnitsError):
             self.cartesian + (self.cartesian / u.s)
         c2 = self.cartesian - self.cartesian
         assert isinstance(c2, CartesianRepresentation)
-        assert np.all(c2 == CartesianRepresentation(0.*u.m, 0.*u.m, 0.*u.m))
+        assert np.all(representation_equal(
+            c2, CartesianRepresentation(0.*u.m, 0.*u.m, 0.*u.m)))
         c3 = self.cartesian - self.cartesian / 2.
         assert isinstance(c3, CartesianRepresentation)
-        assert np.all(c3 == self.cartesian / 2.)
+        assert np.all(representation_equal(c3, self.cartesian / 2.))
 
     @pytest.mark.parametrize('representation',
                              (PhysicsSphericalRepresentation,
@@ -162,14 +167,12 @@ class TestArithmetic():
             in_rep + (in_rep / u.s)
         r2 = in_rep - in_rep
         assert isinstance(r2, representation)
-        assert np.all(r2.to_cartesian() ==
-                      CartesianRepresentation(0.*u.m, 0.*u.m, 0.*u.m))
+        assert np.all(representation_equal(
+            r2.to_cartesian(), CartesianRepresentation(0.*u.m, 0.*u.m, 0.*u.m)))
         r3 = in_rep - in_rep / 2.
         assert isinstance(r3, representation)
         expected = in_rep / 2.
-        for component in in_rep.components:
-            assert_quantity_allclose(getattr(r3, component),
-                                     getattr(expected, component))
+        assert_representation_allclose(r3, expected)
 
     def test_add_sub_unit_spherical(self):
         s1 = self.unit_spherical + self.unit_spherical
@@ -303,10 +306,8 @@ class TestArithmetic():
         # Comparison with spherical is hard since some distances are zero,
         # implying the angles are undefined.
         r_cross_uv_cartesian = r_cross_uv.to_cartesian()
-        for component in expected.components:
-            assert_quantity_allclose(getattr(r_cross_uv_cartesian, component),
-                                     getattr(expected, component),
-                                     atol=1.*u.upc)
+        assert_representation_allclose(r_cross_uv_cartesian,
+                                       expected, atol=1.*u.upc)
 
     def test_cross_unit_spherical(self):
         u_cross_u = self.unit_spherical.cross(self.unit_spherical)
