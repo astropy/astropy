@@ -166,5 +166,4 @@ def write_table_jsviewer(table, filename, table_id=None, max_lines=5000,
         table = table[:max_lines]
     table.write(filename, format='html', htmldict=htmldict)
 
-io_registry.register_writer('jsviewer', Table, write_table_jsviewer,
-                            update_docs=False)
+io_registry.register_writer('jsviewer', Table, write_table_jsviewer)

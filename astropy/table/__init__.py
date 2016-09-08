@@ -29,21 +29,17 @@ from .column import Column, MaskedColumn
 from .groups import TableGroups, ColumnGroups
 from .table import Table, QTable, TableColumns, Row, TableFormatter, NdarrayMixin
 from .operations import join, hstack, vstack, unique, TableMergeError
-from .jsviewer import JSViewer
 from .bst import BST, FastBST, FastRBT
 from .sorted_array import SortedArray
 
-# Import routines that connect readers/writers to astropy.table
-from ..io.ascii import connect
-from ..io.fits import connect
-from ..io.misc import connect
-from ..io.votable import connect
-from . import jsviewer
-
-
-# Finally update the read and write method documentation to include the
-# avaiable formats. (#5275)
+# Finally import the formats for the read and write method but delay building
+# the documentation until all are loaded. (#5275)
 from ..io import registry
 
-registry._update__doc__(Table, 'read')
-registry._update__doc__(Table, 'write')
+with registry.delay_doc_updates(Table):
+    # Import routines that connect readers/writers to astropy.table
+    from .jsviewer import JSViewer
+    from ..io.ascii import connect
+    from ..io.fits import connect
+    from ..io.misc import connect
+    from ..io.votable import connect
