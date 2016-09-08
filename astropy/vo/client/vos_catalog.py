@@ -688,7 +688,7 @@ def _vo_service_request(url, pedantic, kwargs, cache=True, verbose=False):
         Invalid access URL.
 
     """
-    if len(kwargs) and not (url.endswith('?') or url.endswith('&')):
+    if len(kwargs) and not url.endswith(('?', '&')):
         raise InvalidAccessURL("url should already end with '?' or '&'")
 
     query = []
