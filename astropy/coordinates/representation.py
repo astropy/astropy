@@ -255,29 +255,6 @@ class BaseRepresentation(ShapedLikeNDArray):
         return np.array2string(values, formatter=formatter, style=fmt,
                                separator=', ', prefix=prefix)
 
-    def __eq__(self, other):
-        """Check for equality with another representation.
-
-        If either ``self`` or ``other`` are not scalar, this returns a boolean
-        array, just like is the case for ``ndarray``.  Elements are `True` only
-        if all components of that element are exactly equal.
-        """
-        try:
-            # this ensures that other can be compared sensibly to self.
-            # note that it immediately returns if the classes are the same.
-            other = other.represent_as(self.__class__)
-        except Exception:
-            return False
-
-        # Ensure we return a bool or array of bool as appropriate.
-        return functools.reduce(np.logical_and,
-                                (getattr(self, component) ==
-                                 getattr(other, component)
-                                 for component in self.components))
-
-    def __ne__(self, other):
-        return np.logical_not(self.__eq__(other))
-
     def _scale_operation(self, op, *args):
         results = []
         for component, cls in self.attr_classes.items():
