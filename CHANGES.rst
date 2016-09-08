@@ -103,9 +103,8 @@ API Changes
   - ``.fts`` and ``.fts.gz`` files will be automatically identified as
     ``io.fits`` files if no explicit ``format`` is given. [#5211]
 
-  - ``register_reader`` and ``register_writer`` now accept an ``update_docs``
-    parameter to postpone the formatting of the documentation for the ``read``
-    and ``write`` methods of the class. [#5275]
+  - ``delay_doc_updates`` contextmanager to postpone the formatting of the
+    documentation for the ``read`` and ``write`` methods of the class. [#5275]
 
 - ``astropy.io.votable``
 

@@ -3,8 +3,10 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import contextlib
 import re
 import sys
+
 from collections import OrderedDict
 from operator import itemgetter
 
@@ -15,7 +17,7 @@ from ..extern.six.moves import zip
 
 __all__ = ['register_reader', 'register_writer', 'register_identifier',
            'identify_format', 'get_reader', 'get_writer', 'read', 'write',
-           'get_formats', 'IORegistryError']
+           'get_formats', 'IORegistryError', 'delay_doc_updates']
 
 
 __doctest_skip__ = ['register_identifier']
@@ -39,6 +41,48 @@ class IORegistryError(Exception):
     """Custom error for registry clashes
     """
     pass
+
+
+# If multiple formats are added to one class the update of the docs is quite
+# expensive. Classes for which the doc update is temporarly delayed are added
+# to this set.
+_delayed_docs_classes = set()
+
+
+@contextlib.contextmanager
+def delay_doc_updates(cls):
+    """Contextmanager to disable documentation updates when registering
+    reader and writer. The documentation is only build once when the
+    contextmanager exits.
+
+    .. versionadded:: 1.3
+
+    Parameters
+    ----------
+    cls : class
+        Class for which the documentation updates should be delayed.
+
+    Notes
+    -----
+    Registering mutliple reader and writer can cause significant overhead
+    because the documentation of the corresponding ``read`` and ``write``
+    method are build every time.
+
+    .. warning::
+        This contextmanager is experimental and may be replaced by a more
+        general approach.
+
+    Examples
+    --------
+    see for example the source code of ``astropy.table.__init__``.
+    """
+    _delayed_docs_classes.add(cls)
+
+    yield
+
+    _delayed_docs_classes.discard(cls)
+    _update__doc__(cls, 'read')
+    _update__doc__(cls, 'write')
 
 
 def get_formats(data_class=None, readwrite=None):
@@ -166,8 +210,7 @@ def _update__doc__(data_class, readwrite):
         class_readwrite_func.__func__.__doc__ = '\n'.join(lines)
 
 
-def register_reader(data_format, data_class, function, force=False,
-                    update_docs=True):
+def register_reader(data_format, data_class, function, force=False):
     """
     Register a reader function.
 
@@ -182,24 +225,20 @@ def register_reader(data_format, data_class, function, force=False,
         The function to read in a data object.
     force : bool
         Whether to override any existing function if already present.
-    update_docs : bool
-        Whether to immediatly replace the avaiable formats table in the
-        docstring of ``data_class.read``.
     """
 
     if not (data_format, data_class) in _readers or force:
         _readers[(data_format, data_class)] = function
     else:
         raise IORegistryError("Reader for format '{0}' and class '{1}' is "
-                              'already defined'.format(data_format,
-                                                       data_class.__name__))
+                              'already defined'
+                              ''.format(data_format, data_class.__name__))
 
-    if update_docs:
+    if data_class not in _delayed_docs_classes:
         _update__doc__(data_class, 'read')
 
 
-def register_writer(data_format, data_class, function, force=False,
-                    update_docs=True):
+def register_writer(data_format, data_class, function, force=False):
     """
     Register a table writer function.
 
@@ -214,19 +253,16 @@ def register_writer(data_format, data_class, function, force=False,
         The function to write out a data object.
     force : bool
         Whether to override any existing function if already present.
-    update_docs : bool
-        Whether to immediatly replace the avaiable formats table in the
-        docstring of ``data_class.write``.
     """
 
     if not (data_format, data_class) in _writers or force:
         _writers[(data_format, data_class)] = function
     else:
         raise IORegistryError("Writer for format '{0}' and class '{1}' is "
-                              'already defined'.format(data_format,
-                                                       data_class.__name__))
+                              'already defined'
+                              ''.format(data_format, data_class.__name__))
 
-    if update_docs:
+    if data_class not in _delayed_docs_classes:
         _update__doc__(data_class, 'write')
 
 
