@@ -78,6 +78,7 @@ def _convert_to_fd_or_read_function(fd):
                 else:
                     yield new_fd.read
 
+
 def _fast_iterparse(fd, buffersize=2 ** 10):
     from xml.parsers import expat
 
