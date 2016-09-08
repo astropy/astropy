@@ -47,8 +47,9 @@ Value Access, Updating, and Creating
 """"""""""""""""""""""""""""""""""""
 
 As shown in the :ref:`Getting Started <tutorial>` tutorial, keyword values can
-be accessed via keyword name or index of an HDU's header attribute. Here is a
-quick summary::
+be accessed via keyword name or index of an HDU's header attribute. You can
+also use the wildcard character ``*`` to get the keyword value pairs that match
+your search string. Here is a quick summary::
 
     >>> hdulist = fits.open('input.fits')  # open a FITS file
     >>> prihdr = hdulist[0].header  # the primary HDU header
@@ -57,7 +58,9 @@ quick summary::
     >>> prihdr[3] = 20  # change its value
     >>> prihdr['DARKCORR']  # get the value of the keyword 'darkcorr'
     'OMIT'
-    >>> prihdr['darkcorr'] = 'PERFORM'  # change darkcorr's value
+    >>> prihdr['DARKCOR*']  # get keyword values using wildcard matching
+    DARKCORR= 'OMIT    '           / Subtract dark image
+    >>> prihdr['darkcorr'] = 'PERFORM'  # change darkcorr's value    
 
 Keyword names are case-insensitive except in a few special cases (see the
 sections on HIERARCH card and record-valued cards). Thus, ``prihdr['abc']``,
