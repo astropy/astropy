@@ -67,7 +67,7 @@ class CdsHeader(core.BaseHeader):
                 line = line.strip()
                 if in_header:
                     lines.append(line)
-                    if line.startswith('------') or line.startswith('======='):
+                    if line.startswith(('------', '=======')):
                         comment_lines += 1
                         if comment_lines == 3:
                             break
@@ -110,7 +110,7 @@ class CdsHeader(core.BaseHeader):
 
         cols = []
         for line in itertools.islice(lines, i_col_def+4, None):
-            if line.startswith('------') or line.startswith('======='):
+            if line.startswith(('------', '=======')):
                 break
             match = re_col_def.match(line)
             if match:
@@ -169,8 +169,8 @@ class CdsData(core.BaseData):
         # attribute.
         if self.header.readme and self.table_name:
             return lines
-        i_sections = [i for (i, x) in enumerate(lines)
-                      if x.startswith('------') or x.startswith('=======')]
+        i_sections = [i for i, x in enumerate(lines)
+                      if x.startswith(('------', '======='))]
         if not i_sections:
             raise core.InconsistentTableError('No CDS section delimiter found')
         return lines[i_sections[-1]+1:]

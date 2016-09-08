@@ -2584,9 +2584,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
             string_io.seek(0)
             read = string_io.read
         else:
-            if not (href.startswith('http') or
-                    href.startswith('ftp') or
-                    href.startswith('file')):
+            if not href.startswith(('http', 'ftp', 'file')):
                 vo_raise(
                     "The vo package only supports remote data through http, " +
                     "ftp or file",
@@ -2683,9 +2681,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 else:
                     break
 
-        if not (href.startswith('http') or
-                href.startswith('ftp') or
-                href.startswith('file')):
+        if not href.startswith(('http', 'ftp', 'file')):
             vo_raise(
                 "The vo package only supports remote data through http, "
                 "ftp or file",
