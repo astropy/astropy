@@ -442,7 +442,7 @@ start make a branch to serve as a backup copy of your work::
 
 The actual rebasing is usually easy::
 
-    git fetch astropy/master  # get the latest development astropy
+    git fetch astropy master # get the latest development astropy
     git rebase astropy/master my-new-feature
 
 You are more likely to run into *conflicts* here--places where the changes you
