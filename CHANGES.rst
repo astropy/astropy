@@ -301,6 +301,13 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- ``astropy.stats``
+
+  - ``poisson_conf_interval`` with ``'kraft-burrows-nousek'`` interval is now
+    faster and useable with SciPy versions < 0.14. [#5064, #5290]
+
+
+
 1.2.1 (2016-06-22)
 ------------------
 
