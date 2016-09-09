@@ -52,7 +52,7 @@ _delayed_docs_classes = set()
 @contextlib.contextmanager
 def delay_doc_updates(cls):
     """Contextmanager to disable documentation updates when registering
-    reader and writer. The documentation is only build once when the
+    reader and writer. The documentation is only built once when the
     contextmanager exits.
 
     .. versionadded:: 1.3
@@ -64,9 +64,9 @@ def delay_doc_updates(cls):
 
     Notes
     -----
-    Registering mutliple reader and writer can cause significant overhead
+    Registering mutliple readers and writers can cause significant overhead
     because the documentation of the corresponding ``read`` and ``write``
-    method are build every time.
+    methods are build every time.
 
     .. warning::
         This contextmanager is experimental and may be replaced by a more
@@ -92,16 +92,18 @@ def get_formats(data_class=None, readwrite=None):
     Parameters
     ----------
     data_class : classobj
-        Filter readers/writer to match data class (default = all classes)
+        Filter readers/writer to match data class (default = all classes).
 
     readwrite : str or None
-        Search only for readers or writers. If None search for both.
-        Default is None.
+        Search only for readers (``"Read"``) or writers (``"Write"``). If None
+        search for both.  Default is None.
+
+        .. versionadded:: 1.3
 
     Returns
     -------
     format_table: Table
-        Table of available I/O formats
+        Table of available I/O formats.
     """
     from ..table import Table
 
