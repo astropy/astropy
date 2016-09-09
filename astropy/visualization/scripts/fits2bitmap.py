@@ -5,7 +5,7 @@ from __future__ import (absolute_import, division, print_function,
 import os
 from ... import log
 from ...io.fits import getdata
-from ..mpl_normalize import mpl_norm
+from ..mpl_normalize import simple_norm
 
 
 def fits2bitmap(filename, ext=0, out_fn=None, stretch='linear',
@@ -97,9 +97,10 @@ def fits2bitmap(filename, ext=0, out_fn=None, stretch='linear',
                      .format(cmap))
         return 1
 
-    norm = mpl_norm(image, stretch=stretch, power=power, asinh_a=asinh_a,
-                    min_cut=min_cut, max_cut=max_cut, min_percent=min_percent,
-                    max_percent=max_percent, percent=percent)
+    norm = simple_norm(image, stretch=stretch, power=power, asinh_a=asinh_a,
+                       min_cut=min_cut, max_cut=max_cut,
+                       min_percent=min_percent, max_percent=max_percent,
+                       percent=percent)
 
     mimg.imsave(out_fn, norm(image), cmap=cmap)
     log.info('Saved file to {0}'.format(out_fn))

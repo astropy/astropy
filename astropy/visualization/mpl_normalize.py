@@ -26,7 +26,7 @@ except ImportError:
                               'class')
 
 
-__all__ = ['ImageNormalize', 'mpl_norm']
+__all__ = ['ImageNormalize', 'simple_norm']
 
 
 class ImageNormalize(Normalize):
@@ -121,15 +121,15 @@ class ImageNormalize(Normalize):
         return values_norm * (self.vmax - self.vmin) + self.vmin
 
 
-def mpl_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
-             max_cut=None, min_percent=None, max_percent=None, percent=None,
-             clip=True):
+def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
+                max_cut=None, min_percent=None, max_percent=None,
+                percent=None, clip=True):
     """
     Return a Normalization class that can be used for displaying images
     with Matplotlib.
 
     This function enables only a subset of image stretching functions
-    available in `astropy.visualization`.
+    available in `~astropy.visualization.mpl_normalize.ImageNormalize`.
 
     This function is used by the
     ``astropy.visualization.scripts.fits2bitmap`` script.

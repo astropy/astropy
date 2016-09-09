@@ -4,7 +4,7 @@ import numpy as np
 from numpy import ma
 from numpy.testing import assert_allclose
 from ...tests.helper import pytest
-from ..mpl_normalize import ImageNormalize, mpl_norm
+from ..mpl_normalize import ImageNormalize, simple_norm
 from ..interval import ManualInterval
 from ..stretch import SqrtStretch
 
@@ -115,48 +115,48 @@ class TestImageScaling(object):
 
     def test_linear(self):
         """Test linear scaling."""
-        norm = mpl_norm(DATA2, stretch='linear')
+        norm = simple_norm(DATA2, stretch='linear')
         assert_allclose(norm(DATA2), DATA2SCL, atol=0, rtol=1.e-5)
 
     def test_sqrt(self):
         """Test sqrt scaling."""
-        norm = mpl_norm(DATA2, stretch='sqrt')
+        norm = simple_norm(DATA2, stretch='sqrt')
         assert_allclose(norm(DATA2), np.sqrt(DATA2SCL), atol=0, rtol=1.e-5)
 
     def test_power(self):
         """Test power scaling."""
         power = 3.0
-        norm = mpl_norm(DATA2, stretch='power', power=power)
+        norm = simple_norm(DATA2, stretch='power', power=power)
         assert_allclose(norm(DATA2), DATA2SCL ** power, atol=0, rtol=1.e-5)
 
     def test_log(self):
         """Test log10 scaling."""
-        norm = mpl_norm(DATA2, stretch='log')
+        norm = simple_norm(DATA2, stretch='log')
         ref = np.log10(1000 * DATA2SCL + 1.0) / np.log10(1001.0)
         assert_allclose(norm(DATA2), ref, atol=0, rtol=1.e-5)
 
     def test_asinh(self):
         """Test asinh scaling."""
         a = 0.1
-        norm = mpl_norm(DATA2, stretch='asinh', asinh_a=a)
+        norm = simple_norm(DATA2, stretch='asinh', asinh_a=a)
         ref = np.arcsinh(DATA2SCL / a) / np.arcsinh(1. / a)
         assert_allclose(norm(DATA2), ref, atol=0, rtol=1.e-5)
 
     def test_min(self):
         """Test linear scaling."""
-        norm = mpl_norm(DATA2, stretch='linear', min_cut=1.)
+        norm = simple_norm(DATA2, stretch='linear', min_cut=1.)
         assert_allclose(norm(DATA2), [0., 0., 1.], atol=0, rtol=1.e-5)
 
     def test_percent(self):
         """Test percent keywords."""
-        norm = mpl_norm(DATA2, stretch='linear', percent=99.)
+        norm = simple_norm(DATA2, stretch='linear', percent=99.)
         assert_allclose(norm(DATA2), DATA2SCL, atol=0, rtol=1.e-5)
 
-        norm2 = mpl_norm(DATA2, stretch='linear', min_percent=0.5,
+        norm2 = simple_norm(DATA2, stretch='linear', min_percent=0.5,
                          max_percent=99.5)
         assert_allclose(norm(DATA2), norm2(DATA2), atol=0, rtol=1.e-5)
 
     def test_invalid_stretch(self):
         """Test invalid stretch keyword."""
         with pytest.raises(ValueError):
-            mpl_norm(DATA2, stretch='invalid')
+            simple_norm(DATA2, stretch='invalid')

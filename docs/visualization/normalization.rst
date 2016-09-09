@@ -211,7 +211,7 @@ also be the vmin and vmax limits, which you can determine from the
     fig.colorbar(im)
 
 Finally, we also provide a convenience
-:func:`~astropy.visualization.mpl_normalize.mpl_norm` function that
+:func:`~astropy.visualization.mpl_normalize.simple_norm` function that
 can be useful for quick interactive analysis (it is also used by the
 ``fits2bitmap`` command-line script).  However, it is not recommended
 to be used in scripted programs; it's better to use
@@ -223,15 +223,13 @@ to be used in scripted programs; it's better to use
 
     import numpy as np
     import matplotlib.pyplot as plt
-
-    from astropy.visualization import MinMaxInterval, SqrtStretch
-    from astropy.visualization.mpl_normalize import mpl_norm
+    from astropy.visualization.mpl_normalize import simple_norm
 
     # Generate a test image
     image = np.arange(65536).reshape((256, 256))
 
     # Create an ImageNormalize object
-    norm = mpl_norm(image, 'sqrt')
+    norm = simple_norm(image, 'sqrt')
 
     # Display the image
     fig = plt.figure()
