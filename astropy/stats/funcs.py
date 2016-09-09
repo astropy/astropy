@@ -11,6 +11,8 @@ access.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import math
+
 import numpy as np
 
 from ..extern.six.moves import range
@@ -1197,29 +1199,39 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
 
     Notes
     -----
-    Requires `scipy` greater or equal than 0.14.0. This implementation will
-    cause Overflow Errors for about N > 100 (the exact limit depends on
-    details of how scipy was compiled).  See `~astropy.stats.mpmath_poisson_upper_limit`
-    for an implementation that is slower, but can deal with arbitrarily high
-    numbers since it is based on the `mpmath <http://mpmath.org/>`_
-    library.
+    Requires `scipy`. This implementation will cause Overflow Errors for about
+    N > 100 (the exact limit depends on details of how scipy was compiled).
+    See `~astropy.stats.mpmath_poisson_upper_limit` for an implementation that
+    is slower, but can deal with arbitrarily high numbers since it is based on
+    the `mpmath <http://mpmath.org/>`_ library.
     '''
 
     from scipy.optimize import brentq
     from scipy.integrate import quad
 
-    try:
-        from scipy.special import factorial
-    except ImportError:
-        raise ImportError("scipy's version greater or equal than 0.14.0 is "
-                          "required.")
+    from math import exp
 
     def eqn8(N, B):
-        n = np.arange(N + 1)
-        return 1. / (np.exp(-B) * np.sum(np.power(B, n) / factorial(n)))
+        n = np.arange(N + 1, dtype=np.float64)
+        # Create an array containing the factorials. scipy.special.factorial
+        # requires SciPy 0.14 (#5064) therefore this is calculated by using
+        # numpy.cumprod. This could be replaced by factorial again as soon as
+        # older SciPy are not supported anymore but the cumprod alternative
+        # might also be a bit faster.
+        factorial_n = np.ones(n.shape, dtype=np.float64)
+        np.cumprod(n[1:], out=factorial_n[1:])
+        return 1. / (exp(-B) * np.sum(np.power(B, n) / factorial_n))
+
+    # The parameters of eqn8 do not vary between calls so we can calculate the
+    # result once and reuse it. The same is True for the factorial of N.
+    # eqn7 is called hundred times so "caching" these values yields a
+    # significant speedup (factor 10).
+    eqn8_res = eqn8(N, B)
+    factorial_N = float(math.factorial(N))
 
     def eqn7(S, N, B):
-        return eqn8(N, B) * (np.exp(-S - B) * (S + B)**N / factorial(N))
+        SpB = S + B
+        return eqn8_res * (exp(-SpB) * SpB**N / factorial_N)
 
     def eqn9_left(S_min, S_max, N, B):
         return quad(eqn7, S_min, S_max, args=(N, B), limit=500)
@@ -1287,8 +1299,12 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
         sumterms = [power(B, n) / factorial(n) for n in range(int(N) + 1)]
         return 1. / (exp(-B) * fsum(sumterms))
 
+    eqn8_res = eqn8(N, B)
+    factorial_N = factorial(N)
+
     def eqn7(S, N, B):
-        return eqn8(N, B) * (exp(-S-B) * (S + B)**N / factorial(N))
+        SpB = S + B
+        return eqn8_res * (exp(-SpB) * SpB**N / factorial_N)
 
     def eqn9_left(S_min, S_max, N, B):
         def eqn7NB(S):
