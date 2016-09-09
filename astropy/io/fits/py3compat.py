@@ -3,7 +3,7 @@
 from ...extern import six
 from ...utils.compat.numpycompat import NUMPY_LT_1_10
 
-if six.PY3:
+if not six.PY2:
     # Stuff to do if Python 3
 
     # Make the decode_ascii utility function actually work

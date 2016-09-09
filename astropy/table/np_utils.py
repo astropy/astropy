@@ -570,7 +570,7 @@ def fix_column_name(val):
         try:
             val = str(val)
         except UnicodeEncodeError:
-            if not six.PY3:
+            if six.PY2:
                 raise ValueError(
                     "Column names must not contain Unicode characters "
                     "on Python 2")

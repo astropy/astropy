@@ -2022,11 +2022,11 @@ class TestHeaderFunctions(FitsTestCase):
         """
 
         h = fits.Header()
-        if six.PY3:
+        if six.PY2:
+            pytest.raises(ValueError, h.set, 'TEST', str('ñ'))
+        else:
             pytest.raises(ValueError, h.set, 'TEST',
                           bytes('Hello', encoding='ascii'))
-        elif six.PY2:
-            pytest.raises(ValueError, h.set, 'TEST', str('ñ'))
 
     def test_header_strip_whitespace(self):
         """

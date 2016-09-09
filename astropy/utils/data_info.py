@@ -69,7 +69,7 @@ def dtype_info_name(dtype):
     dtype = np.dtype(dtype)
     if dtype.kind in ('S', 'U'):
         length = re.search(r'(\d+)', dtype.str).group(1)
-        type_name = STRING_TYPE_NAMES[(six.PY3, dtype.kind)]
+        type_name = STRING_TYPE_NAMES[(not six.PY2, dtype.kind)]
         out = type_name + length
     else:
         out = dtype.name

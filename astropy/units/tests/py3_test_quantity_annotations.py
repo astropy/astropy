@@ -10,8 +10,8 @@ from ...tests.helper import pytest
 
 
 def py3only(func):
-    if not six.PY3:
-        return pytest.mark.skipif('not six.PY3')(func)
+    if six.PY2:
+        return pytest.mark.skipif('six.PY2')(func)
     else:
         @wraps(func)
         def wrapper(*args, **kwargs):

@@ -119,10 +119,10 @@ class AstropyTest(Command, object):
             cmd_pre += pre
             cmd_post += post
 
-        if six.PY3:
-            set_flag = "import builtins; builtins._ASTROPY_TEST_ = True"
-        else:
+        if six.PY2:
             set_flag = "import __builtin__; __builtin__._ASTROPY_TEST_ = True"
+        else:
+            set_flag = "import builtins; builtins._ASTROPY_TEST_ = True"
 
         cmd = ('{cmd_pre}{0}; import {1.package_name}, sys; result = ('
                '{1.package_name}.test('
@@ -261,7 +261,7 @@ class AstropyTest(Command, object):
         # as being specifically for Python 2 or Python 3
         with open(coveragerc, 'r') as fd:
             coveragerc_content = fd.read()
-        if six.PY3:
+        if not six.PY2:
             ignore_python_version = '2'
         else:
             ignore_python_version = '3'

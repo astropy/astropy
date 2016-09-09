@@ -1601,8 +1601,8 @@ class Param(Field):
     def value(self, value):
         if value is None:
             value = ""
-        if ((six.PY3 and isinstance(value, six.text_type)) or
-            (not six.PY3 and isinstance(value, six.string_types))):
+        if ((not six.PY2 and isinstance(value, six.text_type)) or
+            (six.PY2 and isinstance(value, six.string_types))):
             self._value = self.converter.parse(
                 value, self._config, self._pos)[0]
         else:
@@ -2069,7 +2069,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
     def __unicode__(self):
         return six.text_type(self.to_table())
-    if six.PY3:
+    if not six.PY2:
         __str__ = __unicode__
 
     @property
@@ -2223,17 +2223,17 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
             dtype = []
             for x in fields:
-                if six.PY3:
-                    if x._unique_name == x.ID:
-                        id = x.ID
-                    else:
-                        id = (x._unique_name, x.ID)
-                else:
+                if six.PY2:
                     if x._unique_name == x.ID:
                         id = x.ID.encode('utf-8')
                     else:
                         id = (x._unique_name.encode('utf-8'),
                               x.ID.encode('utf-8'))
+                else:
+                    if x._unique_name == x.ID:
+                        id = x.ID
+                    else:
+                        id = (x._unique_name, x.ID)
                 dtype.append((id, x.converter.format))
 
             array = np.recarray((nrows,), dtype=np.dtype(dtype))

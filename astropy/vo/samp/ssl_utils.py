@@ -8,10 +8,10 @@ import socket
 
 from ...extern import six
 
-if six.PY3:
-    from xmlrpc.server import SimpleXMLRPCRequestHandler
-else:
+if six.PY2:
     from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
+else:
+    from xmlrpc.server import SimpleXMLRPCRequestHandler
 
 from ...extern.six.moves import xmlrpc_client as xmlrpc
 from .standard_profile import ThreadingXMLRPCServer

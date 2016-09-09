@@ -250,7 +250,7 @@ def test_deprecated_static_and_classmethod():
         assert 'deprecated' in A.C.__doc__
 
 
-@pytest.mark.skipif('six.PY3')
+@pytest.mark.skipif('not six.PY2')
 def test_sharedmethod_imfunc():
     """
     Test that the im_func of a sharedmethod always points to the correct

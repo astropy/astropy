@@ -46,19 +46,19 @@ if os.environ.get('ASTROPY_USE_SYSTEM_PYTEST') or '_pytest' in sys.modules:
 else:
     from ..extern import pytest as extern_pytest
 
-    if six.PY3:
+    if six.PY2:
+        exec("def do_exec_def(co, loc): exec co in loc\n")
+        extern_pytest.do_exec = do_exec_def
+
+        unpacked_sources = pickle.loads(
+            zlib.decompress(base64.decodestring(extern_pytest.sources)))
+    else:
         exec("def do_exec_def(co, loc): exec(co, loc)\n")
         extern_pytest.do_exec = do_exec_def
 
         unpacked_sources = extern_pytest.sources.encode("ascii")
         unpacked_sources = pickle.loads(
             zlib.decompress(base64.decodebytes(unpacked_sources)), encoding='utf-8')
-    elif six.PY2:
-        exec("def do_exec_def(co, loc): exec co in loc\n")
-        extern_pytest.do_exec = do_exec_def
-
-        unpacked_sources = pickle.loads(
-            zlib.decompress(base64.decodestring(extern_pytest.sources)))
 
     importer = extern_pytest.DictImporter(unpacked_sources)
     sys.meta_path.insert(0, importer)
