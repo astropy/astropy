@@ -408,7 +408,7 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
                 {
                     // In this case we don't want to left-strip the field,
                     // so we backtrack
-                    int tmp = self->source_pos;
+                    long tmp = self->source_pos;
                     --self->source_pos;
 
                     while (self->source_pos >= 0 &&
