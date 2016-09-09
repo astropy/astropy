@@ -109,7 +109,7 @@ environment.
     + Make an environment called ``ENV`` with all of the packages in your normal
       python environment::
 
-         ``mkvirtualenv --system-site-packages ENV``
+         mkvirtualenv --system-site-packages ENV
 
     + Omit the option ``--system-site-packages`` to create an environment
       without the python packages installed in your normal python environment.
@@ -122,7 +122,7 @@ environment.
     + Make an environment called ``ENV`` with all of the packages in your main
       anaconda environment::
 
-        ``conda create -n ENV anaconda``
+        conda create -n ENV anaconda
 
     + More details, and examples that start with none of the packages from
       your normal python environment, are in the
