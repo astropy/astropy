@@ -3,8 +3,10 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import contextlib
 import re
 import sys
+
 from collections import OrderedDict
 from operator import itemgetter
 
@@ -15,7 +17,7 @@ from ..extern.six.moves import zip
 
 __all__ = ['register_reader', 'register_writer', 'register_identifier',
            'identify_format', 'get_reader', 'get_writer', 'read', 'write',
-           'get_formats', 'IORegistryError']
+           'get_formats', 'IORegistryError', 'delay_doc_updates']
 
 
 __doctest_skip__ = ['register_identifier']
@@ -41,27 +43,76 @@ class IORegistryError(Exception):
     pass
 
 
-def get_formats(data_class=None):
+# If multiple formats are added to one class the update of the docs is quite
+# expensive. Classes for which the doc update is temporarly delayed are added
+# to this set.
+_delayed_docs_classes = set()
+
+
+@contextlib.contextmanager
+def delay_doc_updates(cls):
+    """Contextmanager to disable documentation updates when registering
+    reader and writer. The documentation is only built once when the
+    contextmanager exits.
+
+    .. versionadded:: 1.3
+
+    Parameters
+    ----------
+    cls : class
+        Class for which the documentation updates should be delayed.
+
+    Notes
+    -----
+    Registering mutliple readers and writers can cause significant overhead
+    because the documentation of the corresponding ``read`` and ``write``
+    methods are build every time.
+
+    .. warning::
+        This contextmanager is experimental and may be replaced by a more
+        general approach.
+
+    Examples
+    --------
+    see for example the source code of ``astropy.table.__init__``.
+    """
+    _delayed_docs_classes.add(cls)
+
+    yield
+
+    _delayed_docs_classes.discard(cls)
+    _update__doc__(cls, 'read')
+    _update__doc__(cls, 'write')
+
+
+def get_formats(data_class=None, readwrite=None):
     """
     Get the list of registered I/O formats as a Table.
 
     Parameters
     ----------
     data_class : classobj
-        Filter readers/writer to match data class (default = all classes)
+        Filter readers/writer to match data class (default = all classes).
+
+    readwrite : str or None
+        Search only for readers (``"Read"``) or writers (``"Write"``). If None
+        search for both.  Default is None.
+
+        .. versionadded:: 1.3
 
     Returns
     -------
     format_table: Table
-        Table of available I/O formats
+        Table of available I/O formats.
     """
     from ..table import Table
+
     format_classes = sorted(set(_readers) | set(_writers), key=itemgetter(0))
     rows = []
 
     for format_class in format_classes:
-        if (data_class is not None and
-                not _is_best_match(data_class, format_class[1], format_classes)):
+        if (data_class is not None and not _is_best_match(
+                data_class, format_class[1], format_classes)):
             continue
 
         has_read = 'Yes' if format_class in _readers else 'No'
@@ -76,6 +127,15 @@ def get_formats(data_class=None):
 
         rows.append((format_class[1].__name__, format_class[0], has_read,
                      has_write, has_identify, deprecated))
+
+    if readwrite is not None:
+        if readwrite == 'Read':
+            rows = [row for row in rows if row[2] == 'Yes']
+        elif readwrite == 'Write':
+            rows = [row for row in rows if row[3] == 'Yes']
+        else:
+            raise ValueError('unrecognized value for "readwrite": {0}.\n'
+                             'Allowed are "Read" and "Write" and None.')
 
     # Sorting the list of tuples is much faster than sorting it after the table
     # is created. (#5262)
@@ -119,14 +179,11 @@ def _update__doc__(data_class, readwrite):
 
     # Find the minimum indent, skipping the first line because it might be odd
     matches = [re.search('(\S)', line) for line in lines[1:]]
-    left_indent = min(match.start() for match in matches if match)
+    left_indent = ' ' * min(match.start() for match in matches if match)
 
     # Get the available unified I/O formats for this class
-    format_table = get_formats(data_class)
-
     # Include only formats that have a reader, and drop the 'Data class' column
-    has_readwrite = format_table[readwrite.capitalize()] == 'Yes'
-    format_table = format_table[has_readwrite]
+    format_table = get_formats(data_class, readwrite.capitalize())
     format_table.remove_column('Data class')
 
     # Get the available formats as a table, then munge the output of pformat()
@@ -145,7 +202,7 @@ def _update__doc__(data_class, readwrite):
                           'name (e.g. ``ascii.aastex``) instead.'])
 
     new_lines = [FORMATS_TEXT, ''] + new_lines
-    lines.extend([' ' * left_indent + line for line in new_lines])
+    lines.extend([left_indent + line for line in new_lines])
 
     # Depending on Python version and whether class_readwrite_func is
     # an instancemethod or classmethod, one of the following will work.
@@ -176,10 +233,11 @@ def register_reader(data_format, data_class, function, force=False):
         _readers[(data_format, data_class)] = function
     else:
         raise IORegistryError("Reader for format '{0}' and class '{1}' is "
-                              'already defined'.format(data_format,
-                                                       data_class.__name__))
+                              'already defined'
+                              ''.format(data_format, data_class.__name__))
 
-    _update__doc__(data_class, 'read')
+    if data_class not in _delayed_docs_classes:
+        _update__doc__(data_class, 'read')
 
 
 def register_writer(data_format, data_class, function, force=False):
@@ -203,10 +261,11 @@ def register_writer(data_format, data_class, function, force=False):
         _writers[(data_format, data_class)] = function
     else:
         raise IORegistryError("Writer for format '{0}' and class '{1}' is "
-                              'already defined'.format(data_format,
-                                                       data_class.__name__))
+                              'already defined'
+                              ''.format(data_format, data_class.__name__))
 
-    _update__doc__(data_class, 'write')
+    if data_class not in _delayed_docs_classes:
+        _update__doc__(data_class, 'write')
 
 
 def register_identifier(data_format, data_class, identifier, force=False):
@@ -276,10 +335,7 @@ def identify_format(origin, data_class_required, path, fileobj, args, kwargs):
 
 
 def _get_format_table_str(data_class, readwrite):
-    format_table = get_formats(data_class)
-    if len(format_table) > 0:
-        has_readwrite = format_table[readwrite] == 'Yes'
-        format_table = format_table[has_readwrite]
+    format_table = get_formats(data_class, readwrite=readwrite)
     format_table.remove_column('Data class')
     format_table_str = '\n'.join(format_table.pformat(max_lines=-1))
     return format_table_str
@@ -414,10 +470,11 @@ def _is_best_match(class1, class2, format_classes):
       - OR class1 is a subclass of class2 and class1 is not in classes.
         In this case the subclass will use the parent reader/writer.
     """
-    classes = [cls for fmt, cls in format_classes]
-    is_best_match = ((class1 is class2) or (issubclass(class1, class2) and
-                                            class1 not in classes))
-    return is_best_match
+    # The set with the classes is only created if class1 is not class2 and
+    # class1 is a subclass of class2.
+    return (class1 is class2 or
+            (issubclass(class1, class2) and
+             class1 not in {cls for fmt, cls in format_classes}))
 
 
 def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
