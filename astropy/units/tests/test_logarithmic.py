@@ -628,7 +628,7 @@ class TestLogQuantityComparisons(object):
         lq = u.Magnitude(np.arange(1.,10.)*u.Jy)
         # On python2, ordering operations always succeed, given essentially
         # meaningless results.
-        if six.PY3:
+        if not six.PY2:
             with pytest.raises(TypeError):
                 lq > 'a'
 

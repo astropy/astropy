@@ -114,7 +114,7 @@ def test_color_print_invalid_color():
     console.color_print("foo", "unknown")
 
 
-@pytest.mark.skipif(str('six.PY3'))
+@pytest.mark.skipif(str('not six.PY2'))
 def test_color_print_no_default_encoding():
     """Regression test for #1244
 

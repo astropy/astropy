@@ -420,7 +420,7 @@ class W08(VOTableSpecWarning):
     make more sense.
     """
 
-    if six.PY3:
+    if not six.PY2:
         message_template = "'%s' must be a str or bytes object"
     else:
         message_template = "'%s' must be a str or unicode object"

@@ -197,7 +197,7 @@ class Row(object):
     def __unicode__(self):
         index = self.index if (self.index >= 0) else self.index + len(self._table)
         return '\n'.join(self.table[index:index + 1].pformat(max_width=-1))
-    if six.PY3:
+    if not six.PY2:
         __str__ = __unicode__
 
     def __bytes__(self):

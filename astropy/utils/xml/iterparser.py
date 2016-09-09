@@ -67,13 +67,13 @@ def _convert_to_fd_or_read_function(fd):
         if sys.platform.startswith('win'):
             yield new_fd.read
         else:
-            if six.PY3:
-                if isinstance(new_fd, io.FileIO):
+            if six.PY2:
+                if isinstance(new_fd, file):
                     yield new_fd
                 else:
                     yield new_fd.read
-            elif six.PY2:
-                if isinstance(new_fd, file):
+            else:
+                if isinstance(new_fd, io.FileIO):
                     yield new_fd
                 else:
                     yield new_fd.read
