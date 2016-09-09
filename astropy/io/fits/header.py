@@ -1569,7 +1569,7 @@ class Header(object):
         keyword = keyword.upper()
         if keyword.startswith('HIERARCH '):
             keyword = keyword[9:]
-        
+
         if (keyword not in Card._commentary_keywords and
                 keyword in self._keyword_indices):
             # Easy; just update the value/comment
