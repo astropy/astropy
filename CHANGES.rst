@@ -103,8 +103,8 @@ API Changes
   - ``.fts`` and ``.fts.gz`` files will be automatically identified as
     ``io.fits`` files if no explicit ``format`` is given. [#5211]
 
-  - ``delay_doc_updates`` contextmanager to postpone the formatting of the
-    documentation for the ``read`` and ``write`` methods of the class. [#5275]
+  - optional ``readwrite`` parameter for ``get_formats`` to filter formats for
+    read or write. [#5275]
 
 - ``astropy.io.votable``
 
@@ -218,6 +218,9 @@ Other Changes and Additions
   - The functions ``add_enabled_units``, ``set_enabled_equivalencies`` and
     ``add_enabled_equivalencies`` have been sped up by copying the current
     ``_UnitRegistry`` instead of building it from scratch. [#5306]
+  - ``delay_doc_updates`` contextmanager to postpone the formatting of the
+    documentation for the ``read`` and ``write`` methods of the class to
+    further reduce the import time. [#5275]
 
 - To build the documentation, the ``build_sphinx`` command has been deprecated
   in favor of ``build_docs``. [#5179]
