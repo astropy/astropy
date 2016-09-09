@@ -6,8 +6,10 @@ various criteria.
 """
 
 from __future__ import division, print_function
+
 import abc
 import numpy as np
+
 from ..extern import six
 from ..utils.misc import InheritDocstrings
 from .transform import BaseTransform
@@ -131,7 +133,7 @@ class AsymmetricPercentileInterval(BaseInterval):
     n_samples : int, optional
         Maximum number of values to use. If this is specified, and there
         are more values in the dataset as this, then values are randomly
-        sampled from the array (with replacement)
+        sampled from the array (with replacement).
     """
 
     def __init__(self, lower_percentile, upper_percentile, n_samples=None):
@@ -170,7 +172,7 @@ class PercentileInterval(AsymmetricPercentileInterval):
     n_samples : int, optional
         Maximum number of values to use. If this is specified, and there
         are more values in the dataset as this, then values are randomly
-        sampled from the array (with replacement)
+        sampled from the array (with replacement).
     """
 
     def __init__(self, percentile, n_samples=None):
@@ -193,22 +195,22 @@ class ZScaleInterval(BaseInterval):
         Input array.
     nsamples : int, optional
         Number of points in array to sample for determining scaling
-        factors.  Default to 1000.
+        factors.  Defaults to 1000.
     contrast : float, optional
         Scaling factor (between 0 and 1) for determining min and max.
         Larger values increase the difference between min and max values
-        used for display. Default to 0.25.
+        used for display. Defaults to 0.25.
     max_reject : float, optional
         If more than ``max_reject * npixels`` pixels are rejected, then
-        the returned values are the min and max of the data. Default to
+        the returned values are the min and max of the data. Defaults to
         0.5.
     min_npixels : int, optional
         If less than ``min_npixels`` pixels are rejected, then the
-        returned values are the min and max of the data. Default to 5.
+        returned values are the min and max of the data. Defaults to 5.
     krej : float, optional
-        Number of sigma used for the rejection. Default to 2.5.
+        Number of sigma used for the rejection. Defaults to 2.5.
     max_iterations : int, optional
-        Maximum number of iterations for the rejection. Default to 5.
+        Maximum number of iterations for the rejection. Defaults to 5.
     """
 
     def __init__(self, nsamples=1000, contrast=0.25, max_reject=0.5,

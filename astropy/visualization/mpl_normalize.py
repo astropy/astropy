@@ -4,15 +4,17 @@ colorbars.
 """
 
 from __future__ import division, print_function
+
 import numpy as np
 from numpy import ma
+
 from .interval import (PercentileInterval, AsymmetricPercentileInterval,
                        ManualInterval, MinMaxInterval)
 from .stretch import (LinearStretch, SqrtStretch, PowerStretch, LogStretch,
                       AsinhStretch)
 
 try:
-    import matplotlib    # pylint: disable=W0611
+    import matplotlib  # pylint: disable=W0611
     from matplotlib.colors import Normalize
 
     # On older versions of matplotlib Normalize is an old-style class
@@ -23,7 +25,7 @@ except ImportError:
     class Normalize(object):
         def __init__(self, *args, **kwargs):
             raise ImportError('matplotlib is required in order to use this '
-                              'class')
+                              'class.')
 
 
 __all__ = ['ImageNormalize', 'simple_norm']
@@ -38,7 +40,8 @@ class ImageNormalize(Normalize):
     data : `~numpy.ndarray`, optional
         The image array.  This input is used only if ``interval`` is
         also input.  ``data`` and ``interval`` are used to compute the
-        vmin and/or vmax values only if ``vmin`` or ``vmax`` are not input.
+        vmin and/or vmax values only if ``vmin`` or ``vmax`` are not
+        input.
     interval : `~astropy.visualization.BaseInterval` subclass instance, optional
         The interval object to apply to the input ``data`` to determine
         the ``vmin`` and ``vmax`` values.  This input is used only if
@@ -139,7 +142,7 @@ def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
     data : `~numpy.ndarray`
         The image array.
 
-    stretch : {{'linear', 'sqrt', 'power', log', 'asinh'}}, optional
+    stretch : {'linear', 'sqrt', 'power', log', 'asinh'}, optional
         The stretch function to apply to the image.  The default is
         'linear'.
 
@@ -150,7 +153,7 @@ def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
         For ``stretch='asinh'``, the value where the asinh curve
         transitions from linear to logarithmic behavior, expressed as a
         fraction of the normalized image.  Must be in the range between
-        0 and 1.
+        0 and 1.  The default is 0.1.
 
     min_cut : float, optional
         The pixel value of the minimum cut level.  Data values less than
@@ -214,7 +217,7 @@ def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
     elif stretch == 'asinh':
         stretch = AsinhStretch(asinh_a)
     else:
-        raise ValueError('Unknown stretch: {0}'.format(stretch))
+        raise ValueError('Unknown stretch: {0}.'.format(stretch))
 
     vmin, vmax = interval.get_limits(data)
 
