@@ -25,7 +25,7 @@ def test_normalize_error_message():
     with pytest.raises(ImportError) as exc:
         ImageNormalize()
     assert (exc.value.args[0] == "matplotlib is required in order to use "
-            "this class")
+            "this class.")
 
 
 @pytest.mark.skipif('not HAS_MATPLOTLIB')

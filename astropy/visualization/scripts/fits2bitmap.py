@@ -37,7 +37,7 @@ def fits2bitmap(filename, ext=0, out_fn=None, stretch='linear',
         For ``stretch='asinh'``, the value where the asinh curve
         transitions from linear to logarithmic behavior, expressed as a
         fraction of the normalized image.  Must be in the range between
-        0 and 1.
+        0 and 1.  The default is 0.1.
     min_cut : float, optional
         The pixel value of the minimum cut level.  Data values less than
         ``min_cut`` will set to ``min_cut`` before stretching the image.
@@ -93,7 +93,7 @@ def fits2bitmap(filename, ext=0, out_fn=None, stretch='linear',
         out_fn += '.png'
 
     if cmap not in cm.datad:
-        log.critical('{0} is not a valid matplotlib colormap name'
+        log.critical('{0} is not a valid matplotlib colormap name.'
                      .format(cmap))
         return 1
 
@@ -103,7 +103,7 @@ def fits2bitmap(filename, ext=0, out_fn=None, stretch='linear',
                        percent=percent)
 
     mimg.imsave(out_fn, norm(image), cmap=cmap)
-    log.info('Saved file to {0}'.format(out_fn))
+    log.info('Saved file to {0}.'.format(out_fn))
 
 
 def main(args=None):

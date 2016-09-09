@@ -8,7 +8,6 @@ Zscale implementation based on the one from the STScI Numdisplay package.
 Original implementation from Numdisplay is BSD licensed:
 https://trac.stsci.edu/ssb/stsci_python/browser/stsci_python/trunk/numdisplay/lib/stsci/numdisplay/zscale.py?rev=19347
 https://trac.stsci.edu/ssb/stsci_python/browser/stsci_python/trunk/numdisplay/LICENSE.txt?rev=19347
-
 """
 
 from __future__ import absolute_import, division
@@ -16,6 +15,7 @@ from __future__ import absolute_import, division
 import numpy as np
 
 from ..extern.six.moves import range
+
 
 __all__ = ['zscale']
 
@@ -30,21 +30,21 @@ def zscale(image, nsamples=1000, contrast=0.25, max_reject=0.5, min_npixels=5,
         Input array.
     nsamples : int, optional
         Number of points in array to sample for determining scaling factors.
-        Default to 1000.
+        Defaults to 1000.
     contrast : float, optional
         Scaling factor (between 0 and 1) for determining min and max. Larger
         values increase the difference between min and max values used for
-        display. Default to 0.25.
+        display. Defaults to 0.25.
     max_reject : float, optional
         If more than ``max_reject * npixels`` pixels are rejected, then the
-        returned values are the min and max of the data. Default to 0.5.
+        returned values are the min and max of the data. Defaults to 0.5.
     min_npixels : int, optional
         If less than ``min_npixels`` pixels are rejected, then the
-        returned values are the min and max of the data. Default to 5.
+        returned values are the min and max of the data. Defaults to 5.
     krej : float, optional
-        Number of sigma used for the rejection. Default to 2.5.
+        Number of sigma used for the rejection. Defaults to 2.5.
     max_iterations : int, optional
-        Maximum number of iterations for the rejection. Default to 5.
+        Maximum number of iterations for the rejection. Defaults to 5.
 
     Returns
     -------
