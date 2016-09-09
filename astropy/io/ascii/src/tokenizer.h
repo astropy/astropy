@@ -55,7 +55,7 @@ typedef struct
 {
     char *source;          // single string containing all of the input
     unsigned long source_len; // length of the input
-    unsigned long source_pos; // current index in source for tokenization
+    long source_pos;       // current index in source for tokenization
     char delimiter;        // delimiter character
     char comment;          // comment character
     char quotechar;        // quote character

@@ -45,8 +45,8 @@ cdef extern from "src/tokenizer.h":
 
     ctypedef struct tokenizer_t:
         char *source           # single string containing all of the input
-        int source_len         # length of the input
-        int source_pos         # current index in source for tokenization
+        unsigned long source_len # length of the input
+        long source_pos        # current index in source for tokenization
         char delimiter         # delimiter character
         char comment           # comment character
         char quotechar         # quote character
@@ -383,7 +383,7 @@ cdef class CParser:
                                   try_string, num_rows)
 
     def _read_parallel(self, try_int, try_float, try_string):
-        cdef int source_len = len(self.source)
+        cdef unsigned long source_len = len(self.source)
         self.tokenizer.source_pos = 0
 
         if skip_lines(self.tokenizer, self.data_start, 0) != 0:
@@ -397,17 +397,21 @@ cdef class CParser:
         except (ImportError, NotImplementedError, AttributeError, OSError):
             self.raise_error("shared semaphore implementation required "
                              "but not available")
-        cdef int offset = self.tokenizer.source_pos
+        cdef long offset = self.tokenizer.source_pos
 
         if offset == source_len: # no data
             return (dict((name, np.array([], dtype=np.int_)) for name in
                          self.names), [])
 
-        cdef int chunksize = math.ceil((source_len - offset) / float(N))
+        cdef unsigned long chunksize = math.ceil((source_len - offset) /
+                                                 float(N))
         cdef list chunkindices = [offset]
 
         # This queue is used to signal processes to reconvert if necessary
         reconvert_queue = multiprocessing.Queue()
+
+        cdef int i
+        cdef unsigned long index
 
         for i in range(1, N):
             index = max(offset + chunksize * i, chunkindices[i - 1])
