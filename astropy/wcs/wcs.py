@@ -107,9 +107,7 @@ if _wcs is not None:
 
     # Copy all the constants from the C extension into this module's namespace
     for key, val in _wcs.__dict__.items():
-        if (key.startswith('WCSSUB') or
-            key.startswith('WCSHDR') or
-            key.startswith('WCSHDO')):
+        if key.startswith(('WCSSUB', 'WCSHDR', 'WCSHDO')):
             locals()[key] = val
             __all__.append(key)
 else:
