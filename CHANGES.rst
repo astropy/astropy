@@ -65,7 +65,7 @@ New Features
   - Added ``data`` and ``interval`` inputs to the ``ImageNormalize``
     class. [#5206]
 
-  - Added a new ``mpl_norm`` convenience function. [#5206]
+  - Added a new ``simple_norm`` convenience function. [#5206]
 
   - Added a default stretch for the ``Normalization`` class. [#5206].
 

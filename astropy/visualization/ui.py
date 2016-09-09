@@ -12,7 +12,7 @@ __all__ = ['scale_image']
 
 
 @deprecated('1.3',
-            alternative='`~astropy.visualization.mpl_normalize.mpl_norm`')
+            alternative='`~astropy.visualization.mpl_normalize.simple_norm`')
 def scale_image(image, scale='linear', power=1.0, asinh_a=0.1, min_cut=None,
                 max_cut=None, min_percent=None, max_percent=None,
                 percent=None, clip=True):
