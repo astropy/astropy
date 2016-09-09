@@ -46,7 +46,7 @@ def is_hdf5(origin, filepath, fileobj, *args, **kwargs):
             fileobj.seek(loc)
         return signature == HDF5_SIGNATURE
     elif filepath is not None:
-        return filepath.endswith('.hdf5') or filepath.endswith('.h5')
+        return filepath.endswith(('.hdf5', '.h5'))
 
     try:
         import h5py
