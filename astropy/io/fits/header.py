@@ -221,6 +221,7 @@ class Header(object):
         card = self._cards[idx]
         keyword = card.keyword
         del self._cards[idx]
+        keyword = Card.normalize_keyword(keyword)
         indices = self._keyword_indices[keyword]
         indices.remove(idx)
         if not indices:
@@ -1408,6 +1409,7 @@ class Header(object):
         # All the keyword indices above the insertion point must be updated
         self._updateindices(idx)
 
+        keyword = Card.normalize_keyword(keyword)
         self._keyword_indices[keyword].append(idx)
         count = len(self._keyword_indices[keyword])
         if count > 1:
@@ -1567,7 +1569,7 @@ class Header(object):
         keyword = keyword.upper()
         if keyword.startswith('HIERARCH '):
             keyword = keyword[9:]
-
+        
         if (keyword not in Card._commentary_keywords and
                 keyword in self._keyword_indices):
             # Easy; just update the value/comment
@@ -1660,6 +1662,7 @@ class Header(object):
             idx += len(self._cards) - 1
 
         keyword = self._cards[idx].keyword
+        keyword = Card.normalize_keyword(keyword)
         repeat = self._keyword_indices[keyword].index(idx)
         return keyword, repeat
 
@@ -1727,7 +1730,6 @@ class Header(object):
         For all cards with index above idx, increment or decrement its index
         value in the keyword_indices dict.
         """
-
         if idx > len(self._cards):
             # Save us some effort
             return
