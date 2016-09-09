@@ -611,7 +611,7 @@ class TestHeaderFunctions(FitsTestCase):
         del header['abcdefghij']
         header.insert(2, ('abcdefghij', 10))
         del header[2]
-        assert header.keys()[2]=='abcdefg'.upper()
+        assert list(header.keys())[2]=='abcdefg'.upper()
 
     def test_hierarch_create_and_update(self):
         """
