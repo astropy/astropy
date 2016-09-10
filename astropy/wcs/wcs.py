@@ -515,17 +515,18 @@ reduce these to 2 dimensions using the naxis kwarg.
         return new_copy
 
     def __deepcopy__(self, memo):
+        from copy import deepcopy
+
         new_copy = self.__class__()
-        new_copy.naxis = copy.deepcopy(self.naxis, memo)
-        WCSBase.__init__(new_copy, copy.deepcopy(self.sip, memo),
-                         (copy.deepcopy(self.cpdis1, memo),
-                          copy.deepcopy(self.cpdis2, memo)),
-                         copy.deepcopy(self.wcs, memo),
-                         (copy.deepcopy(self.det2im1, memo),
-                          copy.deepcopy(self.det2im2, memo)))
-        for key in self.__dict__:
-            val = self.__dict__[key]
-            new_copy.__dict__[key] = copy.deepcopy(val, memo)
+        new_copy.naxis = deepcopy(self.naxis, memo)
+        WCSBase.__init__(new_copy, deepcopy(self.sip, memo),
+                         (deepcopy(self.cpdis1, memo),
+                          deepcopy(self.cpdis2, memo)),
+                         deepcopy(self.wcs, memo),
+                         (deepcopy(self.det2im1, memo),
+                          deepcopy(self.det2im2, memo)))
+        for key, val in six.iteritems(self.__dict__):
+            new_copy.__dict__[key] = deepcopy(val, memo)
         return new_copy
 
     def copy(self):
@@ -534,6 +535,10 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Convenience method so user doesn't have to import the
         :mod:`copy` stdlib module.
+
+        .. warning::
+            Use `deepcopy` instead of `copy` unless you know why you need a
+            shallow copy.
         """
         return copy.copy(self)
 
