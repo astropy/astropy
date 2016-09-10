@@ -87,11 +87,17 @@ class Header(object):
             The cards to initialize the header with. Also allowed are other
             `Header` (or `dict`-like) objects.
 
+            .. versionchanged:: 1.2
+                Allowed ``cards`` to be a `dict`-like object.
+
+            .. versionchanged:: 1.3
+                If ``cards`` is a Header the new Header is a deepcopy instead
+                of a shallow copy.
         """
         self.clear()
 
         if isinstance(cards, Header):
-            cards = cards.cards
+            cards = (copy.copy(card) for card in cards._cards)
         elif isinstance(cards, dict):
             cards = six.iteritems(cards)
 
@@ -761,7 +767,7 @@ class Header(object):
             A new :class:`Header` instance.
         """
 
-        tmp = Header([copy.copy(card) for card in self._cards])
+        tmp = Header(self)
         if strip:
             tmp._strip()
         return tmp
