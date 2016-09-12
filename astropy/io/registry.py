@@ -38,7 +38,7 @@ else:
 
 
 class IORegistryError(Exception):
-    """Custom error for registry clashes
+    """Custom error for registry clashes.
     """
     pass
 
@@ -91,10 +91,10 @@ def get_formats(data_class=None, readwrite=None):
 
     Parameters
     ----------
-    data_class : classobj
+    data_class : classobj, optional
         Filter readers/writer to match data class (default = all classes).
 
-    readwrite : str or None
+    readwrite : str or None, optional
         Search only for readers (``"Read"``) or writers (``"Write"``). If None
         search for both.  Default is None.
 
@@ -102,7 +102,7 @@ def get_formats(data_class=None, readwrite=None):
 
     Returns
     -------
-    format_table: Table
+    format_table : Table
         Table of available I/O formats.
     """
     from ..table import Table
@@ -219,21 +219,22 @@ def register_reader(data_format, data_class, function, force=False):
     Parameters
     ----------
     data_format : str
-        The data type identifier. This is the string that will be used to
+        The data format identifier. This is the string that will be used to
         specify the data type when reading.
     data_class : classobj
-        The class of the object that the reader produces
+        The class of the object that the reader produces.
     function : function
         The function to read in a data object.
-    force : bool
+    force : bool, optional
         Whether to override any existing function if already present.
+        Default is ``False``.
     """
 
     if not (data_format, data_class) in _readers or force:
         _readers[(data_format, data_class)] = function
     else:
         raise IORegistryError("Reader for format '{0}' and class '{1}' is "
-                              'already defined'
+                              'already defined.'
                               ''.format(data_format, data_class.__name__))
 
     if data_class not in _delayed_docs_classes:
@@ -247,21 +248,22 @@ def register_writer(data_format, data_class, function, force=False):
     Parameters
     ----------
     data_format : str
-        The data type identifier. This is the string that will be used to
+        The data format identifier. This is the string that will be used to
         specify the data type when writing.
     data_class : classobj
-        The class of the object that can be written
+        The class of the object that can be written.
     function : function
         The function to write out a data object.
-    force : bool
+    force : bool, optional
         Whether to override any existing function if already present.
+        Default is ``False``.
     """
 
     if not (data_format, data_class) in _writers or force:
         _writers[(data_format, data_class)] = function
     else:
         raise IORegistryError("Writer for format '{0}' and class '{1}' is "
-                              'already defined'
+                              'already defined.'
                               ''.format(data_format, data_class.__name__))
 
     if data_class not in _delayed_docs_classes:
@@ -275,10 +277,10 @@ def register_identifier(data_format, data_class, identifier, force=False):
     Parameters
     ----------
     data_format : str
-        The data type identifier. This is the string that is used to
+        The data format identifier. This is the string that is used to
         specify the data type when reading/writing.
     data_class : classobj
-        The class of the object that can be written
+        The class of the object that can be written.
     identifier : function
         A function that checks the argument specified to `read` or `write` to
         determine whether the input can be interpreted as a table of type
@@ -299,12 +301,12 @@ def register_identifier(data_format, data_class, identifier, force=False):
 
         The function should return True if the input can be identified
         as being of format ``data_format``, and False otherwise.
-    force : bool
+    force : bool, optional
         Whether to override any existing function if already present.
+        Default is ``False``.
 
     Examples
     --------
-
     To set the identifier based on extensions, for formats that take a
     filename as a first argument, you can do for example::
 
@@ -318,12 +320,20 @@ def register_identifier(data_format, data_class, identifier, force=False):
         _identifiers[(data_format, data_class)] = identifier
     else:
         raise IORegistryError("Identifier for format '{0}' and class '{1}' is "
-                              'already defined'.format(data_format,
-                                                       data_class.__name__))
+                              'already defined.'.format(data_format,
+                                                        data_class.__name__))
 
 
 def identify_format(origin, data_class_required, path, fileobj, args, kwargs):
-    # Loop through identifiers to see which formats match
+    """Loop through identifiers to see which formats match.
+
+    For the parameter description see `register_identifier`.
+
+    Returns
+    -------
+    valid_formats : list
+        List of matching formats.
+    """
     valid_formats = []
     for data_format, data_class in _identifiers:
         if _is_best_match(data_class_required, data_class, _identifiers):
@@ -342,7 +352,21 @@ def _get_format_table_str(data_class, readwrite):
 
 
 def get_reader(data_format, data_class):
-    # Get all the readers that work for `data_format`
+    """Get reader for ``data_format``.
+
+    Parameters
+    ----------
+    data_format : str
+        The data format identifier. This is the string that is used to
+        specify the data type when reading/writing.
+    data_class : classobj
+        The class of the object that can be written.
+
+    Returns
+    -------
+    reader : callable
+        The registered reader function for this format and class.
+    """
     readers = [(fmt, cls) for fmt, cls in _readers if fmt == data_format]
     for reader_format, reader_class in readers:
         if _is_best_match(data_class, reader_class, readers):
@@ -356,6 +380,21 @@ def get_reader(data_format, data_class):
 
 
 def get_writer(data_format, data_class):
+    """Get writer for ``data_format``.
+
+    Parameters
+    ----------
+    data_format : str
+        The data format identifier. This is the string that is used to
+        specify the data type when reading/writing.
+    data_class : classobj
+        The class of the object that can be written.
+
+    Returns
+    -------
+    writer : callable
+        The registered writer function for this format and class.
+    """
     writers = [(fmt, cls) for fmt, cls in _writers if fmt == data_format]
     for writer_format, writer_class in writers:
         if _is_best_match(data_class, writer_class, writers):
@@ -370,9 +409,9 @@ def get_writer(data_format, data_class):
 
 def read(cls, *args, **kwargs):
     """
-    Read in data
+    Read in data.
 
-    The arguments passed to this method depend on the format
+    The arguments passed to this method depend on the format.
     """
 
     format = kwargs.pop('format', None)
@@ -421,7 +460,7 @@ def read(cls, *args, **kwargs):
                     raise TypeError('could not convert reader output to {0} '
                                     'class.'.format(cls.__name__))
             else:
-                raise TypeError("reader should return a {0} instance"
+                raise TypeError("reader should return a {0} instance."
                                 "".format(cls.__name__))
     finally:
         if ctx is not None:
@@ -432,9 +471,9 @@ def read(cls, *args, **kwargs):
 
 def write(data, *args, **kwargs):
     """
-    Write out data
+    Write out data.
 
-    The arguments passed to this method depend on the format
+    The arguments passed to this method depend on the format.
     """
 
     format = kwargs.pop('format', None)
@@ -492,7 +531,7 @@ def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
                               "{0}".format(format_table_str))
     elif len(valid_formats) > 1:
         raise IORegistryError(
-            "Format is ambiguous - options are: {0}".format(
+            "Format is ambiguous - options are: {0}.".format(
                 ', '.join(sorted(valid_formats, key=itemgetter(0)))))
 
     return valid_formats[0]
