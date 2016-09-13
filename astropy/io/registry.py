@@ -234,7 +234,7 @@ def register_reader(data_format, data_class, function, force=False):
         _readers[(data_format, data_class)] = function
     else:
         raise IORegistryError("Reader for format '{0}' and class '{1}' is "
-                              'already defined.'
+                              'already defined'
                               ''.format(data_format, data_class.__name__))
 
     if data_class not in _delayed_docs_classes:
@@ -263,7 +263,7 @@ def register_writer(data_format, data_class, function, force=False):
         _writers[(data_format, data_class)] = function
     else:
         raise IORegistryError("Writer for format '{0}' and class '{1}' is "
-                              'already defined.'
+                              'already defined'
                               ''.format(data_format, data_class.__name__))
 
     if data_class not in _delayed_docs_classes:
@@ -286,15 +286,15 @@ def register_identifier(data_format, data_class, identifier, force=False):
         determine whether the input can be interpreted as a table of type
         ``data_format``. This function should take the following arguments:
 
-           - ``origin``: A string `read` or `write` identifying whether
+           - ``origin``: A string ``"read"`` or ``"write"`` identifying whether
              the file is to be opened for reading or writing.
            - ``path``: The path to the file.
            - ``fileobj``: An open file object to read the file's contents, or
              `None` if the file could not be opened.
-           - ``*args``: A list of positional arguments to the `read` or
-             `write` function.
-           - ``**kwargs``: A list of keyword arguments to the `read` or
-             `write` function.
+           - ``*args``: Positional arguments for the `read` or `write`
+             function.
+           - ``**kwargs``: Keyword arguments for the `read` or `write`
+             function.
 
         One or both of ``path`` or ``fileobj`` may be `None`.  If they are
         both `None`, the identifier will need to work from ``args[0]``.
@@ -320,14 +320,32 @@ def register_identifier(data_format, data_class, identifier, force=False):
         _identifiers[(data_format, data_class)] = identifier
     else:
         raise IORegistryError("Identifier for format '{0}' and class '{1}' is "
-                              'already defined.'.format(data_format,
-                                                        data_class.__name__))
+                              'already defined'.format(data_format,
+                                                       data_class.__name__))
 
 
 def identify_format(origin, data_class_required, path, fileobj, args, kwargs):
     """Loop through identifiers to see which formats match.
 
-    For the parameter description see `register_identifier`.
+    Parameters
+    ----------
+    origin : str
+        A string ``"read`` or ``"write"`` identifying whether the file is to be
+        opened for reading or writing.
+    data_class_required : object
+        The specified class for the result of `read` or the class that is to be
+        written.
+    path : str, other path object or None
+        The path to the file or None.
+    fileobj : File object or None.
+        An open file object to read the file's contents, or ``None`` if the
+        file could not be opened.
+    args : sequence
+        Positional arguments for the `read` or `write` function. Note that
+        these must be provided as sequence.
+    kwargs : dict-like
+        Keyword arguments for the `read` or `write` function. Note that this
+        parameter must be `dict`-like.
 
     Returns
     -------
@@ -460,7 +478,7 @@ def read(cls, *args, **kwargs):
                     raise TypeError('could not convert reader output to {0} '
                                     'class.'.format(cls.__name__))
             else:
-                raise TypeError("reader should return a {0} instance."
+                raise TypeError("reader should return a {0} instance"
                                 "".format(cls.__name__))
     finally:
         if ctx is not None:
@@ -531,7 +549,7 @@ def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
                               "{0}".format(format_table_str))
     elif len(valid_formats) > 1:
         raise IORegistryError(
-            "Format is ambiguous - options are: {0}.".format(
+            "Format is ambiguous - options are: {0}".format(
                 ', '.join(sorted(valid_formats, key=itemgetter(0)))))
 
     return valid_formats[0]

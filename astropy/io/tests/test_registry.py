@@ -83,7 +83,7 @@ def test_register_reader_invalid():
     with pytest.raises(io_registry.IORegistryError) as exc:
         io_registry.register_reader('test', TestData, empty_reader)
     assert (str(exc.value) == "Reader for format 'test' and class 'TestData' "
-                              "is already defined.")
+                              "is already defined")
 
 
 def test_register_writer_invalid():
@@ -91,7 +91,7 @@ def test_register_writer_invalid():
     with pytest.raises(io_registry.IORegistryError) as exc:
         io_registry.register_writer('test', TestData, empty_writer)
     assert (str(exc.value) == "Writer for format 'test' and class 'TestData' "
-                              "is already defined.")
+                              "is already defined")
 
 
 def test_register_identifier_invalid():
@@ -99,7 +99,7 @@ def test_register_identifier_invalid():
     with pytest.raises(io_registry.IORegistryError) as exc:
         io_registry.register_identifier('test', TestData, empty_identifier)
     assert (str(exc.value) == "Identifier for format 'test' and class "
-                              "'TestData' is already defined.")
+                              "'TestData' is already defined")
 
 
 def test_register_reader_force():
@@ -172,7 +172,7 @@ def test_read_toomanyformats():
     io_registry.register_identifier('test2', TestData, lambda o, *x, **y: True)
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData.read()
-    assert str(exc.value) == "Format is ambiguous - options are: test1, test2."
+    assert str(exc.value) == "Format is ambiguous - options are: test1, test2"
 
 
 def test_write_toomanyformats():
@@ -180,7 +180,7 @@ def test_write_toomanyformats():
     io_registry.register_identifier('test2', TestData, lambda o, *x, **y: True)
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData().write()
-    assert str(exc.value) == "Format is ambiguous - options are: test1, test2."
+    assert str(exc.value) == "Format is ambiguous - options are: test1, test2"
 
 
 def test_read_format_noreader():
@@ -277,7 +277,7 @@ def test_read_invalid_return():
     io_registry.register_reader('test', TestData, lambda: 'spam')
     with pytest.raises(TypeError) as exc:
         TestData.read(format='test')
-    assert str(exc.value) == "reader should return a TestData instance."
+    assert str(exc.value) == "reader should return a TestData instance"
 
 
 def test_non_existing_unknown_ext():
