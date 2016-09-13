@@ -2,8 +2,9 @@
 
 import numpy as np
 from numpy.testing import assert_allclose
-
 from ..ui import scale_image
+from ...tests.helper import pytest
+
 
 DATA = np.array([0, 1., 2.])
 DATASCL = 0.5 * DATA
@@ -44,3 +45,17 @@ class TestImageScaling(object):
         """Test linear scaling."""
         img = scale_image(DATA, scale='linear', min_cut=1.)
         assert_allclose(img, [0., 0., 1.], atol=0, rtol=1.e-5)
+
+    def test_percent(self):
+        """Test percent keywords."""
+        img = scale_image(DATA, scale='linear', percent=99.)
+        assert_allclose(img, DATASCL, atol=0, rtol=1.e-5)
+
+        img2 = scale_image(DATA, scale='linear', min_percent=0.5,
+                           max_percent=99.5)
+        assert_allclose(img, img2, atol=0, rtol=1.e-5)
+
+    def test_invalid_stretch(self):
+        """Test invalid stretch keyword."""
+        with pytest.raises(ValueError):
+            scale_image(DATA, scale='invalid')

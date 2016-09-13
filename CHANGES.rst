@@ -62,6 +62,18 @@ New Features
 
 - ``astropy.utils``
 
+- ``astropy.visualization``
+
+  - Added ``data`` and ``interval`` inputs to the ``ImageNormalize``
+    class. [#5206]
+
+  - Added a new ``simple_norm`` convenience function. [#5206]
+
+  - Added a default stretch for the ``Normalization`` class. [#5206].
+
+  - Added a default ``vmin/vmax`` for the ``ManualInterval`` class.
+    [#5206].
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
@@ -129,6 +141,10 @@ API Changes
 
   - Renamed ``ignored`` context manager in ``compat.misc`` to ``suppress``
     to be consistent with https://bugs.python.org/issue19266 . [#5003]
+
+- ``astropy.visualization``
+
+  - Deprecated the ``scale_image`` function. [#5206]
 
 - ``astropy.vo``
 
