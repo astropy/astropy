@@ -18,8 +18,8 @@ from ..extern.six.moves import range
 
 
 __all__ = [
-    'Chebyshev1D', 'Chebyshev2D', 'InverseSIP',
-    'Legendre1D', 'Legendre2D', 'Polynomial1D',
+    'Chebyshev1D', 'Chebyshev2D', 'Hermite1D', 'Hermite2D',
+    'InverseSIP','Legendre1D', 'Legendre2D', 'Polynomial1D',
     'Polynomial2D', 'SIP', 'OrthoPolynomialBase',
     'PolynomialModel'
 ]
@@ -404,6 +404,203 @@ class Chebyshev1D(PolynomialModel):
                 c1 = tmp + c1 * x2
         return c0 + c1 * x
 
+class Hermite1D(PolynomialModel):
+    """
+    1D Hermite Polynomials ("Physicist's kind")
+
+    Parameters
+    ----------
+    degree : int
+        degree of the series
+    domain : list or None, optional
+    window : list or None, optional
+        If None, it is set to [-1,1]
+        Fitters will remap the domain to this window
+    **params : dict
+        keyword : value pairs, representing parameter_name: value
+    """
+
+    inputs = ('x')
+    outputs = ('y')
+
+    def __init__(self, degree, domain=None, window=[-1, 1], n_models=None,
+                 model_set_axis=None, name=None, meta=None, **params):
+        self.domain = domain
+        self.window = window
+        super(Hermite1D, self).__init__(
+            degree, n_models=n_models, model_set_axis=model_set_axis,
+            name=name, meta=meta, **params)
+
+    def fit_deriv(self, x, *params):
+        """
+        Computes the Vandermonde matrix.
+
+        Parameters
+        ----------
+        x : ndarray
+            input
+        params : throw away parameter
+            parameter list returned by non-linear fitters
+
+        Returns
+        -------
+        result : ndarray
+            The Vandermonde matrix
+        """
+
+        x = np.array(x, dtype=np.float, copy=False, ndmin=1)
+        v = np.empty((self.degree + 1,) + x.shape, dtype=x.dtype)
+        v[0] = 1
+        if self.degree > 0:
+            x2 = 2 * x
+            v[1] = 2 * x
+            for i in range(2, self.degree + 1):
+                v[i] = x2 * v[i - 1] - 2 * (i - 1) * v[i - 2]
+        return np.rollaxis(v, 0, v.ndim)
+
+    def prepare_inputs(self, x, **kwargs):
+        inputs, format_info = \
+                super(PolynomialModel, self).prepare_inputs(x, **kwargs)
+
+        x = inputs[0]
+
+        return (x,), format_info
+
+    def evaluate(self, x, *coeffs):
+        if self.domain is not None:
+            x = poly_map_domain(x, self.domain, self.window)
+        return self.clenshaw(x, coeffs)
+
+    @staticmethod
+    def clenshaw(x, coeffs):
+        x2 = x * 2
+        if len(coeffs) == 1:
+            c0 = coeffs[0]
+            c1 = 0
+        elif len(coeffs) == 2:
+            c0 = coeffs[0]
+            c1 = coeffs[1]
+        else:
+            nd = len(coeffs)
+            c0 = coeffs[-2]
+            c1 = coeffs[-1]
+            for i in range(3, len(coeffs) + 1):
+                temp = c0
+                nd = nd - 1
+                c0 = coeffs[-i] - c1 * (2 * (nd - 1))
+                c1 = temp + c1 * x2
+        return c0 + c1 * x2
+
+class Hermite2D(OrthoPolynomialBase):
+    """
+    2D Hermite polynomial.
+
+    It is defined as
+
+    .. math:: P_{n_m}(x,y) = \sum c_{n_m}  H_n(x) H_m(y)
+
+    Parameters
+    ----------
+
+    x_degree : int
+        degree in x
+    y_degree : int
+        degree in y
+    x_domain : list or None, optional
+        domain of the x independent variable
+    y_domain : list or None, optional
+        domain of the y independent variable
+    x_window : list or None, optional
+        range of the x independent variable
+    y_window : list or None, optional
+        range of the y independent variable
+    **params : dict
+        keyword: value pairs, representing parameter_name: value
+
+    """
+
+    def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],
+                 y_domain=None, y_window=[-1,1], n_models=None,
+                 model_set_axis=None, name=None, meta=None, **params):
+        super(Hermite2D, self).__init__(
+            x_degree, y_degree, x_domain=x_domain, y_domain=y_domain,
+            x_window=x_window, y_window=y_window, n_models=n_models,
+            model_set_axis=model_set_axis, name=name, meta=meta, **params)
+
+    def _fcache(self, x, y):
+        """
+        Calculate the individual Hermite functions once and store them in a
+        dictionary to be reused.
+        """
+
+        x_terms = self.x_degree + 1
+        y_terms = self.y_degree + 1
+        kfunc = {}
+        kfunc[0] = np.ones(x.shape)
+        kfunc[1] = 2 * x.copy()
+        kfunc[x_terms] = np.ones(y.shape)
+        kfunc[x_terms + 1] = 2 * y.copy()
+        for n in range(2, x_terms):
+            kfunc[n] = 2 * x * kfunc[n - 1] - 2 * (n - 1) * kfunc[n - 2]
+        for n in range(x_terms + 2, x_terms + y_terms):
+            kfunc[n] = 2 * y * kfunc[n - 1] - 2 * (n - 1) * kfunc[n - 2]
+        return kfunc
+
+    def fit_deriv(self, x, y, *params):
+        """
+        Derivatives with respect to the coefficients.
+
+        This is an array with Hermite polynomials:
+
+        .. math::
+
+            H_{x_0}H_{y_0}, H_{x_1}H_{y_0}...H_{x_n}H_{y_0}...H_{x_n}H_{y_m}
+
+        Parameters
+        ----------
+        x : ndarray
+            input
+        y : ndarray
+            input
+        params : throw away parameter
+            parameter list returned by non-linear fitters
+
+        Returns
+        -------
+        result : ndarray
+            The Vandermonde matrix
+        """
+
+        if x.shape != y.shape:
+            raise ValueError("x and y must have the same shape")
+
+        x = x.flatten()
+        y = y.flatten()
+        x_deriv = self._hermderiv1d(x, self.x_degree + 1).T
+        y_deriv = self._hermderiv1d(y, self.y_degree + 1).T
+
+        ij = []
+        for i in range(self.y_degree + 1):
+            for j in range(self.x_degree + 1):
+                ij.append(x_deriv[j] * y_deriv[i])
+
+        v = np.array(ij)
+        return v.T
+
+    def _hermderiv1d(self, x, deg):
+        """
+        Derivative of 1D Hermite series
+        """
+
+        x = np.array(x, dtype=np.float, copy=False, ndmin=1)
+        d = np.empty((deg + 1, len(x)), dtype=x.dtype)
+        d[0] = x * 0 + 1
+        if deg > 0:
+            x2 = 2 * x
+            d[1] = x2
+            for i in range(2, deg + 1):
+                d[i] = x2 * d[i - 1] - 2 * (i - 1) * d[i - 2]
+        return np.rollaxis(d, 0, d.ndim)
 
 class Legendre1D(PolynomialModel):
     """
