@@ -38,6 +38,8 @@ New Features
     e. g., sigma clip. [#4760]
   - Added a ``Tabular`` model. [#5105]
 
+  - Added ``Hermite1D`` and ``Hermite2D`` polynomial models [#5242]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
