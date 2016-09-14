@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import pytest
+from ...tests.helper import pytest
 import numpy as np
 from .test_table import SetupData
 from ..bst import BST, FastRBT

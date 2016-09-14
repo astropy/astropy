@@ -1,7 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from ..sorted_array import SortedArray
 from ..table import Table
-import pytest
+from ...extern.six.moves import range
+from ...tests.helper import pytest
 import numpy as np
 
 @pytest.fixture
