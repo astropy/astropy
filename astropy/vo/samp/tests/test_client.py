@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
-
+from ....tests.helper import pytest
 from ..hub_proxy import SAMPHubProxy
 from ..client import SAMPClient
 from ..integrated_client import SAMPIntegratedClient
