@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from ..bst import BST
 from ...extern.six.moves import range
-import pytest
+from ...tests.helper import pytest
 
 def get_tree(TreeType):
     b = TreeType([], [])
