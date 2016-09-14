@@ -72,6 +72,6 @@ def check_anyuri(uri):
         return False
     try:
         urllib.parse.urlparse(uri)
-    except:
+    except Exception:
         return False
     return True

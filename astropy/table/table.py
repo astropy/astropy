@@ -342,7 +342,7 @@ class Table(object):
                     dtype = np.dtype(dtype)
                     names = dtype.names
                     dtype = [dtype[name] for name in names]
-                except:
+                except Exception:
                     raise ValueError('dtype was specified but could not be '
                                      'parsed for column names')
             # names is guaranteed to be set at this point

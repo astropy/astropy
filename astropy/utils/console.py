@@ -167,7 +167,7 @@ def terminal_size(file=None):
         if lines <= 0 or width <= 0:
             raise Exception('unable to get terminal size')
         return (lines, width)
-    except:
+    except Exception:
         try:
             # see if POSIX standard variables will work
             return (int(os.environ.get('LINES')),

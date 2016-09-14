@@ -105,10 +105,10 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             val = val.strip()
             try:
                 val = int(val)
-            except:
+            except Exception:
                 try:
                     val = float(val)
-                except:
+                except Exception:
                     # Strip leading/trailing quote.  The spec says that a matched pair
                     # of quotes is required, but this code will allow a non-quoted value.
                     for quote in ('"', "'"):
@@ -279,7 +279,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             try:
                 format_func = _format_funcs.get(col_format, _auto_format_func)
                 nullist.append((format_func(col_format, null)).strip())
-            except:
+            except Exception:
                 # It is possible that null and the column values have different
                 # data types (e.g. number and null = 'null' (i.e. a string).
                 # This could cause all kinds of exceptions, so a catch all

@@ -190,7 +190,7 @@ class BaseGroups(object):
             indices0, indices1 = self.indices[:-1], self.indices[1:]
             try:
                 i0s, i1s = indices0[item], indices1[item]
-            except:
+            except Exception:
                 raise TypeError('Index item for groups attribute must be a slice, '
                                 'numpy mask or int array')
             mask = np.zeros(len(parent), dtype=np.bool)

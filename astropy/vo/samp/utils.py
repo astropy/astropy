@@ -27,7 +27,7 @@ def internet_on():
         try:
             urlopen('http://google.com', timeout=1.)
             return True
-        except:
+        except Exception:
             return False
 
 __all__ = ["SAMPMsgReplierWrapper"]
@@ -117,7 +117,7 @@ class SAMPMsgReplierWrapper(object):
                         self.cli.hub.reply(self.cli.get_private_key(), args[2],
                                            {"samp.status": SAMP_STATUS_ERROR,
                                             "samp.result": result})
-                except:
+                except Exception:
                     err = StringIO()
                     traceback.print_exc(file=err)
                     txt = err.getvalue()

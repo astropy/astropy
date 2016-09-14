@@ -588,7 +588,7 @@ if sys.platform.startswith('win32'):
                 # cdll.msvcrt directly. Not sure if that may cause problems.
                 # https://bugs.python.org/issue26727
                 msvcrt = cdll.msvcrt
-            except:
+            except Exception:
                 # TODO: This except probably should need some Exceptions to
                 # catch ... but since we return a Warning the user is likely
                 # to know that there is something wrong altogether.
@@ -956,7 +956,7 @@ def _words_group(input, strlen):
             offset = blank_loc[loc - 1] + 1
             if loc == 0:
                 offset = -1
-        except:
+        except Exception:
             offset = len(input)
 
         # check for one word longer than strlen, break in the middle

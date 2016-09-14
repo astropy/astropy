@@ -130,7 +130,7 @@ def _teardown_log():
                     del loggerDict[key]
         finally:
             logging._releaseLock()
-    except:
+    except Exception:
         pass
 
 
@@ -200,7 +200,7 @@ class AstropyLogger(Logger):
                     # Believe it or not this can fail in some cases:
                     # https://github.com/astropy/astropy/issues/2671
                     path = os.path.splitext(getattr(mod, '__file__', ''))[0]
-                except:
+                except Exception:
                     continue
                 if path == mod_path:
                     mod_name = mod.__name__
@@ -211,7 +211,7 @@ class AstropyLogger(Logger):
                     if getattr(mod, '__file__', '') == mod_path:
                         mod_name = mod.__name__
                         break
-                except:
+                except Exception:
                     continue
 
         if mod_name is not None:

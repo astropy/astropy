@@ -177,7 +177,7 @@ def validate_power(p, support_tuples=False):
     else:
         try:
             p = float(p)
-        except:
+        except Exception:
             if not np.isscalar(p):
                 raise ValueError("Quantities and Units may only be raised "
                                  "to a scalar power")

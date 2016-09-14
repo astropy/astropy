@@ -1062,7 +1062,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
                             bytes_read += len(block)
                             p.update(bytes_read)
                             block = remote.read(conf.download_block_size)
-                    except:
+                    except BaseException:
                         if os.path.exists(f.name):
                             os.remove(f.name)
                         raise

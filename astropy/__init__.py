@@ -184,7 +184,7 @@ def _initialize_astropy():
 
             try:
                 _rebuild_extensions()
-            except:
+            except BaseException as exc:
                 _rollback_import(
                     'An error occurred while attempting to rebuild the '
                     'extension modules.  Please try manually running '
@@ -192,6 +192,12 @@ def _initialize_astropy():
                     '--inplace` to see what the issue was.  Extension '
                     'modules must be successfully compiled and importable '
                     'in order to import astropy.')
+                # Reraise the Exception only in case it wasn't an Exception,
+                # for example if a "SystemExit" or "KeyboardInterrupt" was
+                # invoked.
+                if not isinstance(exc, Exception):
+                    raise
+
         else:
             # Outright broken installation; don't be nice.
             raise

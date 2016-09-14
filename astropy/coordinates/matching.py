@@ -403,7 +403,7 @@ def _get_cartesian_kdtree(coord, attrname_or_kdt='_kdtree', forceunit=None):
     from scipy import spatial
     try:
         KDTree = spatial.cKDTree
-    except:
+    except Exception:
         warn('C-based KD tree not found, falling back on (much slower) '
              'python implementation')
         KDTree = spatial.KDTree

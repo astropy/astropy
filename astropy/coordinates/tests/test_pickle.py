@@ -8,7 +8,7 @@ import numpy as np
 try:
     import scipy  # pylint: disable=W0611
     HAS_SCIPY = True
-except:
+except ImportError:
     HAS_SCIPY = False
 
 def test_basic():
