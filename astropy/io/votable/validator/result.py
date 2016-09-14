@@ -64,7 +64,7 @@ class Result(object):
             try:
                 with open(path, 'rb') as fd:
                     self._attributes = pickle.load(fd)
-            except:
+            except Exception:
                 shutil.rmtree(self.get_dirpath())
                 os.makedirs(self.get_dirpath())
                 self._attributes = {}

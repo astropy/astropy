@@ -9,7 +9,7 @@ try:
     import matplotlib  # pylint: disable=W0611
     HAS_MATPLOTLIB = True
     from ..fits2bitmap import fits2bitmap, main
-except:
+except ImportError:
     HAS_MATPLOTLIB = False
 
 

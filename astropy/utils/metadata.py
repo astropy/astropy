@@ -200,7 +200,7 @@ def _both_isinstance(left, right, cls):
 def _not_equal(left, right):
     try:
         return bool(left != right)
-    except:
+    except Exception:
         return True
 
 

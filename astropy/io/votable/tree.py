@@ -861,7 +861,7 @@ class Values(Element, _IDProperty):
             try:
                 null_val = self._field.converter.parse_scalar(
                     null, self._config, self._pos)[0]
-            except:
+            except Exception:
                 warn_or_raise(W36, W36, null, self._config, self._pos)
                 null_val = self._field.converter.parse_scalar(
                     '0', self._config, self._pos)[0]

@@ -65,7 +65,7 @@ def _probably_html(table, maxchars=100000):
                 if size > maxchars:
                     break
             table = os.linesep.join(table[:i+1])
-        except:
+        except Exception:
             pass
 
     if isinstance(table, six.string_types):
@@ -289,7 +289,7 @@ def read(table, guess=None, **kwargs):
                     table = fileobj.read()
             except ValueError:  # unreadable or invalid binary file
                 raise
-            except:
+            except Exception:
                 pass
             else:
                 # Ensure that `table` has at least one \r or \n in it

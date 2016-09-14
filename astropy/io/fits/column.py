@@ -573,7 +573,7 @@ class Column(NotifierMixin):
             try:  # try to convert to a ndarray first
                 if array is not None:
                     array = np.array(array)
-            except:
+            except Exception:
                 try:  # then try to convert it to a strings array
                     itemsize = int(recformat[1:])
                     array = chararray.array(array, itemsize=itemsize)
@@ -1288,7 +1288,7 @@ class ColDefs(NotifierMixin):
             key = TDEF_RE.match(keyword)
             try:
                 keyword = key.group('label')
-            except:
+            except Exception:
                 continue  # skip if there is no match
             if keyword in KEYWORD_NAMES:
                 col = int(key.group('num'))
@@ -1787,7 +1787,7 @@ class _VLF(np.ndarray):
                 # this handles ['abc'] and [['a','b','c']]
                 # equally, beautiful!
                 input = [chararray.array(x, itemsize=1) for x in input]
-            except:
+            except Exception:
                 raise ValueError(
                     'Inconsistent input data array: {0}'.format(input))
 
@@ -1993,7 +1993,7 @@ def _parse_tformat(tform):
 
     try:
         (repeat, format, option) = TFORMAT_RE.match(tform.strip()).groups()
-    except:
+    except Exception:
         # TODO: Maybe catch this error use a default type (bytes, maybe?) for
         # unrecognized column types.  As long as we can determine the correct
         # byte width somehow..

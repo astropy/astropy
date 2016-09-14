@@ -645,7 +645,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             match = TDEF_RE.match(keyword)
             try:
                 base_keyword = match.group('label')
-            except:
+            except Exception:
                 continue                # skip if there is no match
 
             if base_keyword in KEYWORD_TO_ATTRIBUTE:

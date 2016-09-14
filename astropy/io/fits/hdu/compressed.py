@@ -1539,7 +1539,7 @@ class CompImageHDU(BinTableHDU):
         for keyword in list(image_header['NAXIS?*']):
             try:
                 n = int(keyword[5:])
-            except:
+            except Exception:
                 continue
 
             if n > naxis:

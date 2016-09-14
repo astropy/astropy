@@ -195,7 +195,7 @@ class IERS(QTable):
         """
         try:  # see if this is a Time object
             jd1, jd2 = jd1.utc.jd1, jd1.utc.jd2
-        except:
+        except Exception:
             pass
         mjd = np.floor(jd1 - MJD_ZERO + jd2)
         utc = jd1 - (MJD_ZERO+mjd) + jd2
@@ -353,7 +353,7 @@ class IERS(QTable):
         from astropy.time import Time
         try:
             return self._time_now
-        except:
+        except Exception:
             return Time.now()
 
 
