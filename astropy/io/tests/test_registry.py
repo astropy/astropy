@@ -48,14 +48,14 @@ def empty_identifier(*args, **kwargs):
 def test_get_reader_invalid():
     with pytest.raises(io_registry.IORegistryError) as exc:
         io_registry.get_reader('test', TestData)
-    assert exc.value.args[0].startswith(
+    assert str(exc.value).startswith(
         "No reader defined for format 'test' and class 'TestData'")
 
 
 def test_get_writer_invalid():
     with pytest.raises(io_registry.IORegistryError) as exc:
         io_registry.get_writer('test', TestData)
-    assert exc.value.args[0].startswith(
+    assert str(exc.value).startswith(
         "No writer defined for format 'test' and class 'TestData'")
 
 
@@ -82,21 +82,24 @@ def test_register_reader_invalid():
     io_registry.register_reader('test', TestData, empty_reader)
     with pytest.raises(io_registry.IORegistryError) as exc:
         io_registry.register_reader('test', TestData, empty_reader)
-    assert exc.value.args[0] == "Reader for format 'test' and class 'TestData' is already defined"
+    assert (str(exc.value) == "Reader for format 'test' and class 'TestData' "
+                              "is already defined")
 
 
 def test_register_writer_invalid():
     io_registry.register_writer('test', TestData, empty_writer)
     with pytest.raises(io_registry.IORegistryError) as exc:
         io_registry.register_writer('test', TestData, empty_writer)
-    assert exc.value.args[0] == "Writer for format 'test' and class 'TestData' is already defined"
+    assert (str(exc.value) == "Writer for format 'test' and class 'TestData' "
+                              "is already defined")
 
 
 def test_register_identifier_invalid():
     io_registry.register_identifier('test', TestData, empty_identifier)
     with pytest.raises(io_registry.IORegistryError) as exc:
         io_registry.register_identifier('test', TestData, empty_identifier)
-    assert exc.value.args[0] == "Identifier for format 'test' and class 'TestData' is already defined"
+    assert (str(exc.value) == "Identifier for format 'test' and class "
+                              "'TestData' is already defined")
 
 
 def test_register_reader_force():
@@ -117,13 +120,13 @@ def test_register_identifier_force():
 def test_read_noformat():
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData.read()
-    assert exc.value.args[0].startswith("Format could not be identified.")
+    assert str(exc.value).startswith("Format could not be identified.")
 
 
 def test_write_noformat():
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData().write()
-    assert exc.value.args[0].startswith("Format could not be identified.")
+    assert str(exc.value).startswith("Format could not be identified.")
 
 
 def test_read_noformat_arbitrary():
@@ -131,7 +134,7 @@ def test_read_noformat_arbitrary():
     _identifiers.update(_IDENTIFIERS_ORIGINAL)
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData.read(object())
-    assert exc.value.args[0].startswith("Format could not be identified.")
+    assert str(exc.value).startswith("Format could not be identified.")
 
 
 def test_read_noformat_arbitrary_file(tmpdir):
@@ -143,7 +146,7 @@ def test_read_noformat_arbitrary_file(tmpdir):
 
     with pytest.raises(io_registry.IORegistryError) as exc:
         Table.read(testfile)
-    assert exc.value.args[0].startswith("Format could not be identified.")
+    assert str(exc.value).startswith("Format could not be identified.")
 
 
 def test_write_noformat_arbitrary():
@@ -151,7 +154,7 @@ def test_write_noformat_arbitrary():
     _identifiers.update(_IDENTIFIERS_ORIGINAL)
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData().write(object())
-    assert exc.value.args[0].startswith("Format could not be identified.")
+    assert str(exc.value).startswith("Format could not be identified.")
 
 
 def test_write_noformat_arbitrary_file(tmpdir):
@@ -161,7 +164,7 @@ def test_write_noformat_arbitrary_file(tmpdir):
 
     with pytest.raises(io_registry.IORegistryError) as exc:
         Table().write(testfile)
-    assert exc.value.args[0].startswith("Format could not be identified.")
+    assert str(exc.value).startswith("Format could not be identified.")
 
 
 def test_read_toomanyformats():
@@ -169,7 +172,7 @@ def test_read_toomanyformats():
     io_registry.register_identifier('test2', TestData, lambda o, *x, **y: True)
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData.read()
-    assert exc.value.args[0] == "Format is ambiguous - options are: test1, test2"
+    assert str(exc.value) == "Format is ambiguous - options are: test1, test2"
 
 
 def test_write_toomanyformats():
@@ -177,20 +180,20 @@ def test_write_toomanyformats():
     io_registry.register_identifier('test2', TestData, lambda o, *x, **y: True)
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData().write()
-    assert exc.value.args[0] == "Format is ambiguous - options are: test1, test2"
+    assert str(exc.value) == "Format is ambiguous - options are: test1, test2"
 
 
 def test_read_format_noreader():
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData.read(format='test')
-    assert exc.value.args[0].startswith(
+    assert str(exc.value).startswith(
         "No reader defined for format 'test' and class 'TestData'")
 
 
 def test_write_format_nowriter():
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData().write(format='test')
-    assert exc.value.args[0].startswith(
+    assert str(exc.value).startswith(
         "No writer defined for format 'test' and class 'TestData'")
 
 
@@ -204,21 +207,21 @@ def test_read_identifier(tmpdir):
         lambda o, path, fileobj, *x, **y: path.endswith('b'))
 
     # Now check that we got past the identifier and are trying to get
-    # the reader. The io_registry.get_reader will fail but the error message will
-    # tell us if the identifier worked.
+    # the reader. The io_registry.get_reader will fail but the error message
+    # will tell us if the identifier worked.
 
     filename = tmpdir.join("testfile.a").strpath
     open(filename, 'w').close()
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData.read(filename)
-    assert exc.value.args[0].startswith(
+    assert str(exc.value).startswith(
         "No reader defined for format 'test1' and class 'TestData'")
 
     filename = tmpdir.join("testfile.b").strpath
     open(filename, 'w').close()
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData.read(filename)
-    assert exc.value.args[0].startswith(
+    assert str(exc.value).startswith(
         "No reader defined for format 'test2' and class 'TestData'")
 
 
@@ -228,17 +231,17 @@ def test_write_identifier():
     io_registry.register_identifier('test2', TestData, lambda o, *x, **y: x[0].startswith('b'))
 
     # Now check that we got past the identifier and are trying to get
-    # the reader. The io_registry.get_writer will fail but the error message will
-    # tell us if the identifier worked.
+    # the reader. The io_registry.get_writer will fail but the error message
+    # will tell us if the identifier worked.
 
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData().write('abc')
-    assert exc.value.args[0].startswith(
+    assert str(exc.value).startswith(
         "No writer defined for format 'test1' and class 'TestData'")
 
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData().write('bac')
-    assert exc.value.args[0].startswith(
+    assert str(exc.value).startswith(
         "No writer defined for format 'test2' and class 'TestData'")
 
 
@@ -255,12 +258,12 @@ def test_identifier_origin():
 
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData.read(format='test2')
-    assert exc.value.args[0].startswith(
+    assert str(exc.value).startswith(
         "No reader defined for format 'test2' and class 'TestData'")
 
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData().write(format='test1')
-    assert exc.value.args[0].startswith(
+    assert str(exc.value).startswith(
         "No writer defined for format 'test1' and class 'TestData'")
 
 
@@ -274,7 +277,7 @@ def test_read_invalid_return():
     io_registry.register_reader('test', TestData, lambda: 'spam')
     with pytest.raises(TypeError) as exc:
         TestData.read(format='test')
-    assert exc.value.args[0] == "reader should return a TestData instance"
+    assert str(exc.value) == "reader should return a TestData instance"
 
 
 def test_non_existing_unknown_ext():
