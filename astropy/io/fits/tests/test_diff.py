@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import io
-import pytest
+from ....tests.helper import pytest
 
 import numpy as np
 
