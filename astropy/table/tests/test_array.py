@@ -2,7 +2,7 @@
 from ..sorted_array import SortedArray
 from ..table import Table
 from ...extern.six.moves import range
-import pytest
+from ...tests.helper import pytest
 import numpy as np
 
 @pytest.fixture
