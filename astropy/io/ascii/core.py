@@ -745,7 +745,7 @@ class BaseData(object):
             # when we write tables the columns may be astropy.table.Columns
             # which don't carry a fill_values by default
             for col in cols:
-                if ~hasattr(col, 'fill_values'):
+                if not hasattr(col, 'fill_values'):
                     col.fill_values = {}
 
             # if input is only one <fill_spec>, then make it a list
