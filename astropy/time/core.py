@@ -220,7 +220,7 @@ class Time(ShapedLikeNDArray):
                 # check the location can be broadcast to self's shape.
                 self.location = broadcast_to(self.location, self.shape,
                                              subok=True)
-            except:
+            except Exception:
                 raise ValueError('The location with shape {0} cannot be '
                                  'broadcast against time with shape {1}. '
                                  'Typically, either give a single location or '
@@ -603,7 +603,7 @@ class Time(ShapedLikeNDArray):
         # get location of observatory in ITRS coordinates at this Time
         try:
             itrs = location.get_itrs(obstime=self)
-        except:
+        except Exception:
             raise ValueError("Supplied location does not have a valid `get_itrs` method")
 
         if kind.lower() == 'heliocentric':
@@ -1101,7 +1101,7 @@ class Time(ShapedLikeNDArray):
             try:
                 # check the value can be broadcast to the shape of self.
                 val = broadcast_to(val, self.shape, subok=True)
-            except:
+            except Exception:
                 raise ValueError('Attribute shape must match or be '
                                  'broadcastable to that of Time object. '
                                  'Typically, give either a single value or '
@@ -1265,7 +1265,7 @@ class Time(ShapedLikeNDArray):
         if not isinstance(other, Time):
             try:
                 other = TimeDelta(other)
-            except:
+            except Exception:
                 raise OperandTypeError(self, other, '-')
 
         # Tdelta - something is dealt with in TimeDelta, so we have
@@ -1313,7 +1313,7 @@ class Time(ShapedLikeNDArray):
         if not isinstance(other, Time):
             try:
                 other = TimeDelta(other)
-            except:
+            except Exception:
                 raise OperandTypeError(self, other, '+')
 
         # Tdelta + something is dealt with in TimeDelta, so we have
@@ -1362,7 +1362,7 @@ class Time(ShapedLikeNDArray):
         if other.__class__ is not self.__class__:
             try:
                 other = self.__class__(other, scale=self.scale)
-            except:
+            except Exception:
                 raise OperandTypeError(self, other, op)
 
         if(self.scale is not None and self.scale not in other.SCALES or
@@ -1474,7 +1474,7 @@ class TimeDelta(Time):
                     val = val.to(u.day)
                     if val2 is not None:
                         val2 = val2.to(u.day)
-                except:
+                except Exception:
                     raise ValueError('Only Quantities with Time units can '
                                      'be used to initiate {0} instances .'
                                      .format(self.__class__.__name__))
@@ -1523,7 +1523,7 @@ class TimeDelta(Time):
         else:
             try:
                 other = TimeDelta(other)
-            except:
+            except Exception:
                 raise OperandTypeError(self, other, '+')
 
         # the scales should be compatible (e.g., cannot convert TDB to TAI)
@@ -1555,7 +1555,7 @@ class TimeDelta(Time):
         else:
             try:
                 other = TimeDelta(other)
-            except:
+            except Exception:
                 raise OperandTypeError(self, other, '-')
 
         # the scales should be compatible (e.g., cannot convert TDB to TAI)
@@ -1604,7 +1604,7 @@ class TimeDelta(Time):
 
         try:   # convert to straight float if dimensionless quantity
             other = other.to(1)
-        except:
+        except Exception:
             pass
 
         try:
@@ -1613,7 +1613,7 @@ class TimeDelta(Time):
         except Exception as err:  # try downgrading self to a quantity
             try:
                 return self.to(u.day) * other
-            except:
+            except Exception:
                 raise err
 
         if self.format != 'jd':
@@ -1637,7 +1637,7 @@ class TimeDelta(Time):
         # cannot do __mul__(1./other) as that looses precision
         try:
             other = other.to(1)
-        except:
+        except Exception:
             pass
 
         try:   # convert to straight float if dimensionless quantity
@@ -1646,7 +1646,7 @@ class TimeDelta(Time):
         except Exception as err:  # try downgrading self to a quantity
             try:
                 return self.to(u.day) / other
-            except:
+            except Exception:
                 raise err
 
         if self.format != 'jd':

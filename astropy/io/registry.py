@@ -30,7 +30,7 @@ _identifiers = OrderedDict()
 PATH_TYPES = six.string_types
 try:
     import pathlib
-except:
+except ImportError:
     HAS_PATHLIB = False
 else:
     HAS_PATHLIB = True
@@ -474,7 +474,7 @@ def read(cls, *args, **kwargs):
                 # to desired subclass.
                 try:
                     data = cls(data)
-                except:
+                except Exception:
                     raise TypeError('could not convert reader output to {0} '
                                     'class.'.format(cls.__name__))
             else:

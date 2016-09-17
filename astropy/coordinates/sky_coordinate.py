@@ -360,7 +360,7 @@ class SkyCoord(object):
         # Frame name (string) or frame class?  Coerce into an instance.
         try:
             frame = _get_frame_class(frame)()
-        except:
+        except Exception:
             pass
 
         if isinstance(frame, SkyCoord):
@@ -1399,7 +1399,7 @@ def _get_units(args, kwargs):
             units.extend(None for x in range(3 - len(units)))
             if len(units) > 3:
                 raise ValueError()
-        except:
+        except Exception:
             raise ValueError('Unit keyword must have one to three unit values as '
                              'tuple or comma-separated string')
 
@@ -1529,7 +1529,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             # lengths the same
             try:
                 n_coords = sorted(set(len(x) for x in vals))
-            except:
+            except Exception:
                 raise ValueError('One or more elements of input sequence does not have a length')
 
             if len(n_coords) > 1:

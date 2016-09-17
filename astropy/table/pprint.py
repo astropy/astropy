@@ -83,7 +83,7 @@ def _auto_format_func(format_, val):
         # it directly.  Otherwise, wrap it in a function that traps them.
         try:
             format_func(format_, np.ma.masked)
-        except:
+        except Exception:
             format_func = _use_str_for_masked_values(format_func)
     else:
         # For a masked element, we cannot set string-based format functions yet,
@@ -98,7 +98,7 @@ def _auto_format_func(format_, val):
                 out = format_func(format_, val)
                 # Require that the format statement actually did something.
                 assert out != format_
-            except:
+            except Exception:
                 continue
             else:
                 break
@@ -596,7 +596,7 @@ class TableFormatter(object):
             if showlines:  # Don't always show the table (e.g. after help)
                 try:
                     os.system('cls' if os.name == 'nt' else 'clear')
-                except:
+                except Exception:
                     pass  # No worries if clear screen call fails
                 lines = tabcol[i0:i1].pformat(**kwargs)
                 colors = ('red' if i < n_header else 'default'
@@ -610,7 +610,7 @@ class TableFormatter(object):
             while True:
                 try:
                     key = inkey().lower()
-                except:
+                except Exception:
                     print("\n")
                     log.error('Console does not support getting a character'
                               ' as required by more().  Use pprint() instead.')

@@ -11,7 +11,7 @@ from ..stretch import SqrtStretch
 try:
     import matplotlib    # pylint: disable=W0611
     HAS_MATPLOTLIB = True
-except:
+except ImportError:
     HAS_MATPLOTLIB = False
 
 

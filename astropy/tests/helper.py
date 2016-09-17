@@ -520,7 +520,7 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
     rtol =  u.Quantity(rtol, subok=True, copy=False)
     try:
         rtol = rtol.to(u.dimensionless_unscaled)
-    except:
+    except Exception:
         raise u.UnitsError("`rtol` should be dimensionless")
 
     return actual.value, desired.value, rtol.value, atol.value

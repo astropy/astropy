@@ -29,7 +29,7 @@ def test_make_function_with_signature_lineno():
 
     try:
         wrapped(1, 2)
-    except:
+    except Exception:
         exc_cls, exc, tb = sys.exc_info()
         assert exc_cls is ZeroDivisionError
         # The *last* line in the traceback should be the 1 / 0 line in

@@ -115,7 +115,7 @@ def data_info_factory(names, funcs):
                     out = getattr(dat, func)()
                 else:
                     out = func(dat)
-            except:
+            except Exception:
                 outs.append('--')
             else:
                 outs.append(str(out))
@@ -348,7 +348,7 @@ class DataInfo(object):
         else:
             try:
                 n_bad = np.count_nonzero(np.isinf(dat) | np.isnan(dat))
-            except:
+            except Exception:
                 n_bad = 0
         info['n_bad'] = n_bad
 

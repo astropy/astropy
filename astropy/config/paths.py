@@ -71,7 +71,7 @@ def _find_home():
                 homedir = wreg.QueryValueEx(key, 'Personal')[0]
                 homedir = decodepath(homedir)
                 key.Close()
-            except:
+            except Exception:
                 # As a final possible resort, see if HOME is present
                 if 'HOME' in os.environ:
                     homedir = decodepath(os.environ['HOME'])

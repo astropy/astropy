@@ -262,7 +262,7 @@ class _ImageBaseHDU(_ValidHDU):
             # some level, for most objects
             try:
                 data = np.array(data)
-            except:
+            except Exception:
                 raise TypeError('data object %r could not be coerced into an '
                                 'ndarray' % data)
 

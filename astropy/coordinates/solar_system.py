@@ -159,7 +159,7 @@ def _get_kernel(value):
     else:
         try:
             six.moves.urllib.parse.urlparse(value)
-        except:
+        except Exception:
             raise ValueError('{} was not one of the standard strings and '
                              'could not be parsed as a URL'.format(value))
 

@@ -77,7 +77,7 @@ BZIP2_MAGIC = b('\x42\x5a')
 
 try:
     import pathlib
-except:
+except ImportError:
     HAS_PATHLIB = False
 else:
     HAS_PATHLIB = True

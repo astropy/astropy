@@ -688,7 +688,7 @@ class TimeString(TimeUnique):
         # floating fraction of a second.
         try:
             idot = timestr.rindex('.')
-        except:
+        except Exception:
             fracsec = 0.0
         else:
             timestr, fracsec = timestr[:idot], timestr[idot:]

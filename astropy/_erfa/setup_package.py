@@ -63,7 +63,7 @@ def preprocess_source():
         # If jinja2 isn't present, then print a warning and use existing files
         try:
             import jinja2  # pylint: disable=W0611
-        except:
+        except ImportError:
             log.warn("WARNING: jinja2 could not be imported, so the existing "
                      "ERFA core.py and core.c files will be used")
             return
