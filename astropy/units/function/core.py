@@ -505,7 +505,7 @@ class FunctionQuantity(Quantity):
             # if iterable, see if first item has a unit; mixed lists fail below
             try:
                 value_unit = getattr(value[0], 'unit')
-            except:
+            except Exception:
                 pass
 
         if isinstance(value_unit, FunctionUnitBase):
@@ -595,7 +595,7 @@ class FunctionQuantity(Quantity):
             try:
                 # "or 'nonsense'" ensures `None` breaks, just in case.
                 unit = self._unit_class(function_unit=unit or 'nonsense')
-            except:
+            except Exception:
                 raise UnitTypeError(
                     "{0} instances require {1} function units"
                     .format(type(self).__name__, self._unit_class.__name__) +
@@ -635,7 +635,7 @@ class FunctionQuantity(Quantity):
                 self._to_own_unit(other, check_precision=False))
         except UnitsError:
             raise
-        except:
+        except Exception:
             return NotImplemented
 
     def __eq__(self, other):

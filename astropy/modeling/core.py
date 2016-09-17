@@ -470,7 +470,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
                     parts.append('{0}: {1}'.format(keyword, value))
 
             return '\n'.join(parts)
-        except:
+        except Exception:
             # If any of the above formatting fails fall back on the basic repr
             # (this is particularly useful in debugging)
             return parts[0]

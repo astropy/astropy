@@ -822,7 +822,7 @@ class UnitBase(object):
                     try:
                         (other/unit).decompose([a])
                         return True
-                    except:
+                    except Exception:
                         pass
                 else:
                     if(a._is_equivalent(unit) and b._is_equivalent(other) or
@@ -905,7 +905,7 @@ class UnitBase(object):
                         try:
                             return lambda v: b(self._get_converter(
                                 tunit, equivalencies=equivalencies)(v))
-                        except:
+                        except Exception:
                             pass
 
             raise exc

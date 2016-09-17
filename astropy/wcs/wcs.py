@@ -1244,7 +1244,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 xy, origin = args
                 xy = np.asarray(xy)
                 origin = int(origin)
-            except:
+            except Exception:
                 raise TypeError(
                     "When providing two arguments, they must be "
                     "(coords[N][{0}], origin)".format(self.naxis))
@@ -1258,7 +1258,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             try:
                 axes = [np.asarray(x) for x in axes]
                 origin = int(origin)
-            except:
+            except Exception:
                 raise TypeError(
                     "When providing more than two arguments, they must be " +
                     "a 1-D array for each axis, followed by an origin.")

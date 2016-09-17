@@ -599,8 +599,6 @@ class TestFileFunctions(FitsTestCase):
             fits.open(self.temp('foobar.fits'))
         except IOError as e:
             assert 'No such file or directory' in str(e)
-        except:
-            raise
 
         # But opening in ostream or append mode should be okay, since they
         # allow writing new files

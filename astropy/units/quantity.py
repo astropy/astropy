@@ -1040,7 +1040,7 @@ class Quantity(np.ndarray):
         try:
             assert self.unit.is_unity()
             return self.value.__index__()
-        except:
+        except Exception:
             raise TypeError('Only integer dimensionless scalar quantities '
                             'can be converted to a Python index')
 

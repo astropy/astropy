@@ -242,7 +242,7 @@ def test_configitem_setters():
     try:
         with conf.set_temp('tstnm12', 47):
             raise Exception
-    except:
+    except Exception:
         pass
 
     assert conf.tstnm12 == 43
