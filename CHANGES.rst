@@ -282,6 +282,10 @@ Bug Fixes
 
 - ``astropy.table``
 
+  - Assigning a logarithmic unit to a ``QTable`` column that did not have a
+    unit yet now correctly turns it into the appropriate function quantity
+    subclass (such as ``Magnitude`` or ``Dex``). [#5345]
+
 - ``astropy.time``
 
 - ``astropy.units``
