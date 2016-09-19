@@ -4,10 +4,13 @@
 
 import os
 import copy
+from itertools import chain
 
+import numpy as np
 from ....extern.six.moves import cStringIO as StringIO
 from ... import ascii
 from .... import table
+from ....table.table_helpers import simple_table
 from ....tests.helper import pytest, catch_warnings
 from ....utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from .... import units
@@ -343,8 +346,8 @@ test_def_masked_fill_value = [
     dict(kwargs=dict(),
          out="""\
 a b c
--- 2 3
-1 1 --
+"" 2 3
+1 1 ""
 """
          ),
     dict(kwargs=dict(fill_values=[('1', 'w'), (ascii.masked, 'X')]),
@@ -629,3 +632,33 @@ def test_write_overwrite_ascii(format, fast_writer, tmpdir):
                 fast_writer=fast_writer)
         t.write(fp, overwrite=True, format=format,
                 fast_writer=fast_writer)
+
+
+fmt_name_classes = list(chain(ascii.core.FAST_CLASSES.items(),
+                              ascii.core.FORMAT_CLASSES.items()))
+@pytest.mark.parametrize("fmt_name_class", fmt_name_classes)
+def test_roundtrip_masked(fmt_name_class):
+    """
+    Round trip a simple masked table through every writable format and confirm
+    that reading back gives the same result.
+    """
+    fmt_name, fmt_cls = fmt_name_class
+
+    if not getattr(fmt_cls, '_io_registry_can_write', True):
+        return
+
+    # Skip certain readers.  Aastex should be OK after #????
+    if fmt_name in ['html', 'fixed_width', 'aastex', 'latex']:
+        return
+
+    t = simple_table(masked=True)
+
+    out = StringIO()
+    fast = fmt_name in ascii.core.FAST_CLASSES
+    ascii.write(t, out, format=fmt_name, fast_writer=fast)
+
+    # No-header formats need to be told the column names
+    kwargs = {'names': t.colnames} if 'no_header' in fmt_name else {}
+
+    t2 = ascii.read(out.getvalue(), format=fmt_name, fast_reader=fast, guess=False, **kwargs)
+    assert np.all(t2 == t)

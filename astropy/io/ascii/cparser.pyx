@@ -985,7 +985,7 @@ cdef class FastWriter:
 
                 if orig_field is None: # tolist() converts ma.masked to None
                     field = core.masked
-                    rows[i % N][j] = '--'
+                    rows[i % N][j] = ''
 
                 elif self.format_funcs[j] is not None:
                     field = self.format_funcs[j](self.formats[j], orig_field)
