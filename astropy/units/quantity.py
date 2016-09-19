@@ -664,7 +664,7 @@ class Quantity(np.ndarray):
         multiplication and division by another unit, as well as in
         ``__array_finalize__`` for wrapping up views.  For Quantity, it just
         sets the unit, but subclasses can override it to check that, e.g.,
-        a unit is consistent.  It should return ``self`` after modification.
+        a unit is consistent.
         """
         if not isinstance(unit, UnitBase):
             # Trying to go through a string ensures that, e.g., Magnitudes with
