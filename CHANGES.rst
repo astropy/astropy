@@ -304,6 +304,8 @@ Bug Fixes
   - Conversion from quantities to logarithmic units now correctly causes a
     logarithmic quantity such as ``Magnitude`` to be returned. [#5183]
 
+  - Ensure ``!=`` also works for function units such as ``MagUnit`` [#5345]
+
 - ``astropy.utils``
 
 - ``astropy.visualization``
