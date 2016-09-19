@@ -10,6 +10,7 @@
 #include <math.h>
 #include <float.h>
 #include <ctype.h>
+#include <sys/types.h>
 
 #ifdef _MSC_VER
     #define inline __inline
@@ -54,8 +55,8 @@ typedef enum
 typedef struct
 {
     char *source;          // single string containing all of the input
-    unsigned long source_len; // length of the input
-    long source_pos;       // current index in source for tokenization
+    off_t source_len;      // length of the input
+    off_t source_pos;      // current index in source for tokenization
     char delimiter;        // delimiter character
     char comment;          // comment character
     char quotechar;        // quote character
