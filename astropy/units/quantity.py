@@ -140,6 +140,9 @@ class QuantityInfo(ParentDtypeInfo):
 
         A string can either be a format specifier for the format built-in,
         a new-style format string, or an old-style format string.
+
+        This method is overridden in order to suppress printing the unit
+        in each row since it is already at the top in the column header.
         """
         yield lambda format_, val: format(val.value, format_)
         yield lambda format_, val: format_.format(val.value)
