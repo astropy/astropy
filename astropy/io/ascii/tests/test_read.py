@@ -1192,8 +1192,8 @@ def test_initial_column_fill_values():
         def _set_cols_from_names(self):
             self.cols = [ascii.Column(name=x) for x in self.names]
             # Set some initial fill values
-            for i in self.cols:
-                i.fill_values = {'--': 0}
+            for col in self.cols:
+                col.fill_values = {'--': '0'}
 
     class Tester(ascii.Basic):
         header_class = TestHeader
@@ -1202,7 +1202,7 @@ def test_initial_column_fill_values():
 
     assert reader.read("""# Column definition is the first uncommented line
 # Default delimiter is the space character.
-apples oranges pears
+a b c
 # Data starts after the header column definition, blank lines ignored
 -- 2 3
-4 5 6 """)['apples'][0] is np.ma.masked
+4 5 6 """)['a'][0] is np.ma.masked
