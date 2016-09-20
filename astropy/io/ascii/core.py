@@ -1473,7 +1473,12 @@ def _get_writer(Writer, fast_writer, **kwargs):
     if 'exclude_names' in kwargs:
         writer.exclude_names = kwargs['exclude_names']
     if 'fill_values' in kwargs:
-        # Prepend user-specified values to the class default.  Both are lists.
+        # Prepend user-specified values to the class default.
+        with suppress(TypeError, IndexError):
+            # Test if it looks like (match, replace_string, optional_colname),
+            # in which case make it a list
+            kwargs['fill_values'][1] + ''
+            kwargs['fill_values'] = [kwargs['fill_values']]
         writer.data.fill_values = kwargs['fill_values'] + writer.data.fill_values
     if 'fill_include_names' in kwargs:
         writer.data.fill_include_names = kwargs['fill_include_names']
