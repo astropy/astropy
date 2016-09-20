@@ -1435,7 +1435,7 @@ def _get_writer(Writer, fast_writer, **kwargs):
     # machinery expects a list.  The easiest here is to just pop the value off,
     # i.e. fill_values=None is the same as not providing it at all.
     if 'fill_values' in kwargs and kwargs['fill_values'] is None:
-        kwargs.pop('fill_values')
+        del kwargs['fill_values']
 
     if issubclass(Writer, FastBasic): # Fast writers handle args separately
         return Writer(**kwargs)
