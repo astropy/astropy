@@ -51,6 +51,8 @@ New Features
 
 - ``astropy.table``
 
+  - Support generalized value formatting for mixin columns in tables. [#5274]
+
 - ``astropy.time``
 
 - ``astropy.units``

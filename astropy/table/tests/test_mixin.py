@@ -512,3 +512,33 @@ def test_ndarray_mixin():
                            "(2, 'b') (20, 'bb') (200, 'rbb') 2 .. 3",
                            "(3, 'c') (30, 'cc') (300, 'rcc') 4 .. 5",
                            "(4, 'd') (40, 'dd') (400, 'rdd') 6 .. 7"]
+
+
+def test_possible_string_format_functions():
+    """
+    The QuantityInfo info class for Quantity implements a
+    possible_string_format_functions() method that overrides the
+    standard pprint._possible_string_format_functions() function.
+    Test this.
+    """
+    t = QTable([[1, 2] * u.m])
+    t['col0'].info.format = '%.3f'
+    assert t.pformat() == [' col0',
+                           '  m  ',
+                           '-----',
+                           '1.000',
+                           '2.000']
+
+    t['col0'].info.format = 'hi {:.3f}'
+    assert t.pformat() == ['  col0  ',
+                           '   m    ',
+                           '--------',
+                           'hi 1.000',
+                           'hi 2.000']
+
+    t['col0'].info.format = '.4f'
+    assert t.pformat() == [' col0 ',
+                           '  m   ',
+                           '------',
+                           '1.0000',
+                           '2.0000']

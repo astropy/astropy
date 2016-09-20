@@ -913,7 +913,7 @@ cdef class FastWriter:
                     self.format_funcs.append(None)
                 else:
                     self.format_funcs.append(pprint._format_funcs.get(
-                        col.format, pprint._auto_format_func))
+                        (col.format, col.name), pprint.get_auto_format_func(col.name)))
                 # col is a numpy.ndarray, so we convert it to
                 # an ordinary list because csv.writer will call
                 # np.array_str() on each numpy value, which is
