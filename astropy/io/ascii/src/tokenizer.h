@@ -106,7 +106,7 @@ double xstrtod(const char *str, char **endptr, char decimal,
 void start_iteration(tokenizer_t *self, int col);
 char *next_field(tokenizer_t *self, int *size);
 long file_len(FILE *fhandle);
-char *get_line(char *ptr, int *len, int map_len);
+char *get_line(char *ptr, size_t *len, size_t map_len);
 void reset_comments(tokenizer_t *self);
 
 #endif

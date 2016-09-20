@@ -90,7 +90,7 @@ cdef extern from "src/tokenizer.h":
     double str_to_double(tokenizer_t *self, char *str)
     void start_iteration(tokenizer_t *self, int col)
     char *next_field(tokenizer_t *self, int *size)
-    char *get_line(char *ptr, int *len, int map_len)
+    char *get_line(char *ptr, size_t *len, size_t map_len)
     void reset_comments(tokenizer_t *self)
 
 cdef extern from "Python.h":
@@ -152,8 +152,8 @@ cdef class FileString:
         """
         cdef char *ptr = <char *>self.mmap_ptr
         cdef char *tmp
-        cdef int line_len
-        cdef int map_len = <int>len(self.mmap)
+        cdef size_t line_len
+        cdef size_t map_len = len(self.mmap)
 
         while ptr:
             tmp = get_line(ptr, &line_len, map_len)

@@ -924,9 +924,9 @@ char *next_field(tokenizer_t *self, int *size)
 }
 
 
-char *get_line(char *ptr, int *len, int map_len)
+char *get_line(char *ptr, size_t *len, size_t map_len)
 {
-    int pos = 0;
+    size_t pos = 0;
 
     while (pos < map_len)
     {
