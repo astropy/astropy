@@ -648,7 +648,7 @@ def test_roundtrip_masked(fmt_name_class):
         return
 
     # Skip certain readers.  Aastex should be OK after #????
-    if fmt_name in ['html', 'fixed_width', 'aastex', 'latex']:
+    if fmt_name in ['fixed_width', 'aastex', 'latex']:
         return
 
     t = simple_table(masked=True)

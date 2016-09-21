@@ -12,7 +12,9 @@ from __future__ import absolute_import, division, print_function
 
 import warnings
 import numpy
+from contextlib import contextmanager
 
+import numpy as np
 from ...extern import six
 from ...extern.six.moves import zip, range
 
@@ -21,6 +23,19 @@ from ...table import Column
 from ...utils.xml import writer
 
 from copy import deepcopy
+
+@contextmanager
+def _set_numpy_masked_string(value):
+    """
+    Internal context manager to temporarily set the numpy masked
+    value output to ``value``.  This is used so masked values in
+    HTML writer output are the empty string "".
+    """
+    current = np.ma.masked_print_option.display()
+    np.ma.masked_print_option.set_display(value)
+    yield
+    np.ma.masked_print_option.set_display(current)
+
 
 class SoupString(str):
     """
@@ -427,15 +442,20 @@ class HTML(core.BaseReader):
 
                                 new_cols_escaped.append(col_escaped)
 
-                    for row in zip(*col_str_iters):
-                        with w.tag('tr'):
-                            for el, col_escaped in zip(row, new_cols_escaped):
-                                # Potentially disable HTML escaping for column
-                                method = ('escape_xml' if col_escaped else 'bleach_clean')
-                                with w.xml_cleaning_method(method, **raw_html_clean_kwargs):
-                                    w.start('td')
-                                    w.data(el.strip())
-                                    w.end(indent=False)
+                    with _set_numpy_masked_string(''):
+                        # Do all the output formatting within the context manager so
+                        # that masked values are replaced by an empty string instead of
+                        # the numpy default '--'.  This is a bit of a hack because the
+                        # io.ascii fill_values machinery is entirely ignored.  See #5354.
+                        for row in zip(*col_str_iters):
+                            with w.tag('tr'):
+                                for el, col_escaped in zip(row, new_cols_escaped):
+                                    # Potentially disable HTML escaping for column
+                                    method = ('escape_xml' if col_escaped else 'bleach_clean')
+                                    with w.xml_cleaning_method(method, **raw_html_clean_kwargs):
+                                        w.start('td')
+                                        w.data(el.strip())
+                                        w.end(indent=False)
 
         # Fixes XMLWriter's insertion of unwanted line breaks
         return [''.join(lines)]
