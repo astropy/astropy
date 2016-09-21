@@ -50,7 +50,7 @@ Blackbody flux is calculated with Planck law
     B_{\nu}(T) = \frac{2 h \nu^{3} / c^{2}}{exp(h \nu / k T) - 1}
 
 where the unit of :math:`B_{\lambda}(T)` is
-:math:`erg \; s^{-1} cm^{-2} \AA^{-1} sr^{-1}`, and :math:`B_{\nu}(T)` is
+:math:`erg \; s^{-1} cm^{-2} \mathring{A}^{-1} sr^{-1}`, and :math:`B_{\nu}(T)` is
 :math:`erg \; s^{-1} cm^{-2} Hz^{-1} sr^{-1}`.
 :func:`~astropy.analytic_functions.blackbody.blackbody_lambda` and
 :func:`~astropy.analytic_functions.blackbody.blackbody_nu` calculate the
