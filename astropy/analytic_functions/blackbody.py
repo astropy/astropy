@@ -120,7 +120,7 @@ def blackbody_lambda(in_x, temperature):
     -------
     flux : `~astropy.units.Quantity`
         Blackbody monochromatic flux in
-        :math:`erg \\; cm^{-2} s^{-1} \\AA^{-1} sr^{-1}`.
+        :math:`erg \\; cm^{-2} s^{-1} \\mathring{A}^{-1} sr^{-1}`.
 
     """
     if getattr(in_x, 'unit', None) is None:
