@@ -14,8 +14,15 @@ from numpy.testing.utils import assert_allclose, assert_array_equal
 from ..angles import Longitude, Latitude, Angle, rotation_matrix, angle_axis
 from ...tests.helper import pytest, catch_warnings
 from ... import units as u
+from ...units import cds
 from ..errors import IllegalSecondError, IllegalMinuteError, IllegalHourError
 from ...utils.exceptions import AstropyDeprecationWarning
+
+
+def test_angle_cds():
+    # Regression test for KeyError in #5350.
+    with u.cds.enable():
+        Angle('10d')
 
 
 def test_create_angles():
