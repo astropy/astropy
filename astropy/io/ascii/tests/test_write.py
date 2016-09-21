@@ -652,6 +652,7 @@ def test_roundtrip_masked(fmt_name_class):
         return
 
     t = simple_table(masked=True)
+    t['a'][1] = 2 ** 40  # Force a big value so fast reader on Windows returns int64
 
     out = StringIO()
     fast = fmt_name in ascii.core.FAST_CLASSES
