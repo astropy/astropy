@@ -47,8 +47,8 @@ class _AngleParser(object):
     def _get_simple_unit_names(cls):
         simple_units = set(
             u.radian.find_equivalent_units(include_prefix_units=True))
-        simple_units.remove(u.deg)
-        simple_units.remove(u.hourangle)
+        simple_units.discard(u.deg)
+        simple_units.discard(u.hourangle)
         simple_unit_names = set()
         for unit in simple_units:
             simple_unit_names.update(unit.names)
