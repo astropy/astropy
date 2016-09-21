@@ -1183,3 +1183,26 @@ def test_no_units_for_char_columns():
     ascii.write(t1, out, format="ipac")
     t2 = ascii.read(out.getvalue(), format="ipac", guess=False)
     assert t2["B"].unit == None
+
+
+def test_initial_column_fill_values():
+    """Regression test for #5336, #5338."""
+
+    class TestHeader(ascii.BasicHeader):
+        def _set_cols_from_names(self):
+            self.cols = [ascii.Column(name=x) for x in self.names]
+            # Set some initial fill values
+            for col in self.cols:
+                col.fill_values = {'--': '0'}
+
+    class Tester(ascii.Basic):
+        header_class = TestHeader
+
+    reader = ascii.get_reader(Reader=Tester)
+
+    assert reader.read("""# Column definition is the first uncommented line
+# Default delimiter is the space character.
+a b c
+# Data starts after the header column definition, blank lines ignored
+-- 2 3
+4 5 6 """)['a'][0] is np.ma.masked
