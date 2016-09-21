@@ -652,7 +652,6 @@ def test_roundtrip_masked(fmt_name_class):
         return
 
     t = simple_table(masked=True)
-    t['a'][1] = 2 ** 40  # Force a big value so fast reader on Windows returns int64
 
     out = StringIO()
     fast = fmt_name in ascii.core.FAST_CLASSES
@@ -665,4 +664,8 @@ def test_roundtrip_masked(fmt_name_class):
     kwargs = {'names': t.colnames} if 'no_header' in fmt_name else {}
 
     t2 = ascii.read(out.getvalue(), format=fmt_name, fast_reader=fast, guess=False, **kwargs)
-    assert np.all(t2 == t)
+
+    assert t.colnames == t2.colnames
+    for col, col2 in zip(t.itercols(), t2.itercols()):
+        assert col.dtype.kind == col2.dtype.kind
+        assert np.all(col == col2)
