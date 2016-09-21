@@ -495,12 +495,7 @@ def _fileobj_normalize_mode(f):
     """
     mode = f.mode
 
-    # FIXME: Since we only passed the "fileobj" attribute it's _highly_
-    # unlikely (impossible?) that this if will evaluate True .... might as well
-    # delete it __OR__ send the file as is from "fileobj_mode" here.
-    # Since gzip has a shortcut it wouldn't matter much lateron. For all the
-    # other cases it must be the file-buffer because we want to check the
-    # "fileno()" return later.
+    # Special case: Gzip modes:
     if isinstance(f, gzip.GzipFile):
         # GzipFiles can be either readonly or writeonly
         if mode == gzip.READ:
@@ -508,12 +503,10 @@ def _fileobj_normalize_mode(f):
         elif mode == gzip.WRITE:
             return 'wb'
         else:
-            # This shouldn't happen?
-            return None
+            return None  # This shouldn't happen?
 
-    # I've noticed that sometimes Python can produce modes like 'r+b' which I
-    # would consider kind of a bug--mode strings should be normalized. Let's
-    # normalize it for them:
+    # Sometimes Python can produce modes like 'r+b' which will be normalized
+    # here to 'rb+'
     if '+' in mode:
         mode = mode.replace('+', '')
         mode += '+'

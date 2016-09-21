@@ -44,9 +44,6 @@ class TestUtilMode(FitsTestCase):
     The high-level tests are partially covered by
     test_core.TestConvenienceFunctions.test_fileobj_mode_guessing
     but added some low-level tests as well.
-
-    TODO: These are regression tests for
-    https://github.com/astropy/astropy/pull/4793
     """
 
     def test_mode_strings(self):
