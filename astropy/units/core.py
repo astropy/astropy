@@ -521,7 +521,7 @@ class UnitBase(object):
 
     def __bytes__(self):
         """Return string representation for unit"""
-        return unit_format.Generic.to_string(self).encode('ascii')
+        return unit_format.Generic.to_string(self).encode('unicode_escape')
     if six.PY2:
         __str__ = __bytes__
 

@@ -276,6 +276,14 @@ def test_cds_units_available():
     u_format.CDS._units
 
 
+def test_cds_non_ascii_unit():
+    """Regression test for #5350.  This failed with a decoding error as
+    μas could not be represented in ascii."""
+    from .. import cds
+    with cds.enable():
+        u.radian.find_equivalent_units(include_prefix_units=True)
+
+
 def test_latex():
     fluxunit = u.erg / (u.cm ** 2 * u.s)
     assert fluxunit.to_string('latex') == r'$\mathrm{\frac{erg}{s\,cm^{2}}}$'
