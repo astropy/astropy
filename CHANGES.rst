@@ -56,6 +56,10 @@ Bug Fixes
 
   - Fixed bug in Ci definition. [#5106]
 
+  - Non-ascii cds unit strings are now correctly represented using ``str`` also
+    on python2. This solves bugs in parsing coordinates involving strings too.
+    [#5355]
+
 - ``astropy.utils``
 
 - ``astropy.vo``
