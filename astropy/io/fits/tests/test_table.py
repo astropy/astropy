@@ -367,7 +367,7 @@ class TestTableFunctions(FitsTestCase):
         bright = np.rec.array([(1, 'Serius', -1.45, 'A1V'),
                                (2, 'Canopys', -0.73, 'F0Ib'),
                                (3, 'Rigil Kent', -0.1, 'G2V')],
-                              formats='int16,a20,float32,a10',
+                              formats='int16,a20,float64,a10',
                               names='order,name,mag,Sp')
         hdu = fits.TableHDU.from_columns(bright, nrows=2)
 
@@ -424,7 +424,7 @@ class TestTableFunctions(FitsTestCase):
         assert hdu.data[0][1] == 'Serius'
         assert hdu.data[1][1] == 'Canopys'
         assert (hdu.data.field(2) ==
-                np.array([-1.45, -0.73], dtype=np.float32)).all()
+                np.array([-1.45, -0.73], dtype=np.float64)).all()
         assert hdu.data[0][3] == 'A1V'
         assert hdu.data[1][3] == 'F0Ib'
 
@@ -437,7 +437,7 @@ class TestTableFunctions(FitsTestCase):
             assert hdul[1].data[0][1] == 'Serius'
             assert hdul[1].data[1][1] == 'Canopys'
             assert (hdul[1].data.field(2) ==
-                    np.array([-1.45, -0.73], dtype=np.float32)).all()
+                    np.array([-1.45, -0.73], dtype=np.float64)).all()
             assert hdul[1].data[0][3] == 'A1V'
             assert hdul[1].data[1][3] == 'F0Ib'
         del hdul
@@ -445,7 +445,7 @@ class TestTableFunctions(FitsTestCase):
         hdu = fits.BinTableHDU.from_columns(bright, nrows=2)
         tmp = np.rec.array([(1, 'Serius', -1.45, 'A1V'),
                             (2, 'Canopys', -0.73, 'F0Ib')],
-                           formats='int16,a20,float32,a10',
+                           formats='int16,a20,float64,a10',
                            names='order,name,mag,Sp')
         assert comparerecords(hdu.data, tmp)
         with ignore_warnings():
@@ -2218,7 +2218,11 @@ class TestTableFunctions(FitsTestCase):
                 tbdata2 = hdul2[1].data
                 assert np.all(tbdata['c1'] == tbdata2['c1'])
                 assert np.all(tbdata['c2'] == tbdata2['c2'])
-                assert np.all(tbdata['c3'] == tbdata2['c3'])
+                # c3 gets converted from float32 to float64 when writing
+                # test.fits, so cast to float32 before testing that the correct
+                # value is retrieved
+                assert np.all(tbdata['c3'].astype(np.float32) ==
+                              tbdata2['c3'].astype(np.float32))
                 # c4 is a boolean column in the original table; we want ASCII
                 # columns to convert these to columns of 'T'/'F' strings
                 assert np.all(np.where(tbdata['c4'], 'T', 'F') ==
