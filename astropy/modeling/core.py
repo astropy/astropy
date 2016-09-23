@@ -1432,9 +1432,9 @@ class Model(object):
                 default = getattr(self, name).default
 
                 if default is None:
-                    # No value was supplied for the parameter, and the
-                    # parameter does not have a default--therefor the model is
-                    # underspecified
+                    # No value was supplied for the parameter and the
+                    # parameter does not have a default, therefore the model
+                    # is underspecified
                     raise TypeError(
                         "{0}.__init__() requires a value for parameter "
                         "{1!r}".format(self.__class__.__name__, name))
