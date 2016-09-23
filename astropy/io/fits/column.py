@@ -43,7 +43,7 @@ FITS2NUMPY = {'L': 'i1', 'B': 'u1', 'I': 'i2', 'J': 'i4', 'K': 'i8', 'E': 'f4',
               'D': 'f8', 'C': 'c8', 'M': 'c16', 'A': 'a'}
 
 # the inverse dictionary of the above
-NUMPY2FITS = dict([(val, key) for key, val in iteritems(FITS2NUMPY)])
+NUMPY2FITS = {val: key for key, val in iteritems(FITS2NUMPY)}
 # Normally booleans are represented as ints in pyfits, but if passed in a numpy
 # boolean array, that should be supported
 NUMPY2FITS['b1'] = 'L'
@@ -60,7 +60,7 @@ NUMPY2FITS['f2'] = 'E'
 FORMATORDER = ['L', 'B', 'I', 'J', 'K', 'D', 'M', 'A']
 
 # Convert single precision floating point/complex to double precision.
-FITSUPCONVERTERS = {'E' : 'D', 'C' : 'M'}
+FITSUPCONVERTERS = {'E': 'D', 'C': 'M'}
 
 # mapping from ASCII table TFORM data type to numpy data type
 # A: Character
@@ -78,8 +78,8 @@ ASCII2STR = {'A': 's', 'I': 'd', 'J': 'd', 'F': 'f', 'E': 'E', 'D': 'E'}
 
 # For each ASCII table format code, provides a default width (and decimal
 # precision) for when one isn't given explicitly in the column format
-ASCII_DEFAULT_WIDTHS= {'A': (1, 0), 'I': (10, 0), 'J': (15, 0),
-                       'E': (15, 7), 'F': (16, 7), 'D': (25, 17)}
+ASCII_DEFAULT_WIDTHS = {'A': (1, 0), 'I': (10, 0), 'J': (15, 0),
+                        'E': (15, 7), 'F': (16, 7), 'D': (25, 17)}
 
 
 # tuple of column/field definition common names and keyword names, make
@@ -93,14 +93,9 @@ KEYWORD_ATTRIBUTES = ('name', 'format', 'unit', 'null', 'bscale', 'bzero',
 """This is a list of the attributes that can be set on `Column` objects."""
 
 
-KEYWORD_TO_ATTRIBUTE = \
-    OrderedDict((keyword, attr)
-                for keyword, attr in zip(KEYWORD_NAMES, KEYWORD_ATTRIBUTES))
+KEYWORD_TO_ATTRIBUTE = OrderedDict(zip(KEYWORD_NAMES, KEYWORD_ATTRIBUTES))
 
-
-ATTRIBUTE_TO_KEYWORD = \
-    OrderedDict((value, key)
-                for key, value in KEYWORD_TO_ATTRIBUTE.items())
+ATTRIBUTE_TO_KEYWORD = OrderedDict(zip(KEYWORD_ATTRIBUTES, KEYWORD_NAMES))
 
 
 # TODO: Define a list of default comments to associate with each table keyword
