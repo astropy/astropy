@@ -97,6 +97,17 @@ def test_predefined_string_roundtrip():
         assert u.Unit(u.m_bol.to_string()) == u.m_bol
 
 
+def test_inequality():
+    """Check __ne__ works (regresssion for #5342)."""
+    lu1 = u.mag(u.Jy)
+    lu2 = u.dex(u.Jy)
+    lu3 = u.mag(u.Jy**2)
+    lu4 = lu3 - lu1
+    assert lu1 != lu2
+    assert lu1 != lu3
+    assert lu1 == lu4
+
+
 class TestLogUnitStrings(object):
 
     def test_str(self):

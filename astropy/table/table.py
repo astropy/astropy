@@ -2603,7 +2603,10 @@ class QTable(Table):
 
     def _convert_col_for_table(self, col):
         if (isinstance(col, Column) and getattr(col, 'unit', None) is not None):
-            qcol = Quantity(col, unit=col.unit, copy=False)
+            # We need to turn the column into a quantity, or a subclass
+            # identified in the unit (such as u.mag()).
+            q_cls = getattr(col.unit, '_quantity_class', Quantity)
+            qcol = q_cls(col.data, col.unit, copy=False)
             qcol.info = col.info
             col = qcol
         else:

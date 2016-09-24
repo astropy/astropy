@@ -286,9 +286,7 @@ class FunctionUnitBase(object):
                 self.function_unit == getattr(other, 'function_unit', other))
 
     def __ne__(self, other):
-        return (self.physical_unit != getattr(other, 'physical_unit',
-                                              dimensionless_unscaled) or
-                self.funtional_unit != getattr(other, 'function_unit', other))
+        return not self.__eq__(other)
 
     def __mul__(self, other):
         if isinstance(other, (six.string_types, UnitBase, FunctionUnitBase)):

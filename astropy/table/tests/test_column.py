@@ -542,3 +542,8 @@ def test_qtable_column_conversion():
     assert isinstance(qtab[0]['i'], u.Quantity)
     assert not isinstance(qtab['f'][0], u.Quantity)
     assert not isinstance(qtab[0]['f'], u.Quantity)
+
+    # Regression test for #5342: if a function unit is assigned, the column
+    # should become the appropriate FunctionQuantity subclass.
+    qtab['f'].unit = u.dex(u.cm/u.s**2)
+    assert isinstance(qtab['f'], u.Dex)
