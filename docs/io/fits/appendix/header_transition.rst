@@ -87,12 +87,12 @@ This will output any deprecation warnings to the console.
 
 Two of the most common deprecation warnings related to Headers are for:
 
-- :meth:``Header.has_key``--this has actually been deprecated since PyFITS 3.0,
+- ``Header.has_key``--this has actually been deprecated since PyFITS 3.0,
   just as Python's `dict.has_key` is deprecated.  For checking a key's presence
   in a mapping object like `dict` or :class:`Header`, use the ``key in d``
   syntax.  This has long been the preference in Python.
 
-- :meth:``Header.ascardlist`` and ``Header.ascard``--these were used to
+- ``Header.ascardlist`` and ``Header.ascard``--these were used to
   access the ``CardList`` object underlying a header.  They should still
   work, and return a skeleton CardList implementation that should support most
   of the old CardList functionality.  But try removing as much of this as
@@ -337,7 +337,7 @@ much--the deprecated interfaces will not be removed for several more versions
 because of this.
 
 - The first change worth making, which is supported by any PyFITS version in
-  the last several years, is remove any use of :meth:``Header.has_key`` and
+  the last several years, is remove any use of ``Header.has_key`` and
   replace it with ``keyword in header`` syntax.  It's worth making this change
   for any dict as well, since `dict.has_key` is deprecated.  Running the
   following regular expression over your code may help with most (but not all)
