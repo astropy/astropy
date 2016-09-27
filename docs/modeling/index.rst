@@ -11,7 +11,7 @@ Introduction
 
 `astropy.modeling` provides a framework for representing models and performing
 model evaluation and fitting. It currently supports 1-D and 2-D models and
-:doc:`fitting` with parameter constraints.
+:doc:`fitting <fitting>` with parameter constraints.
 
 It is designed to be easily extensible and flexible.  Models do not reference
 fitting algorithms explicitly and new fitting algorithms may be added without
