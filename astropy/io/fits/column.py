@@ -69,7 +69,7 @@ FITSUPCONVERTERS = {'E': 'D', 'C': 'M'}
 # F: Float (32-bit; fixed decimal notation)
 # E: Float (32-bit; exponential notation)
 # D: Float (64-bit; exponential notation, always 64-bit by convention)
-ASCII2NUMPY = {'A': 'a', 'I': 'i4', 'J': 'i8', 'F': 'f4', 'E': 'f4',
+ASCII2NUMPY = {'A': 'a', 'I': 'i4', 'J': 'i8', 'F': 'f8', 'E': 'f8',
                'D': 'f8'}
 
 # Maps FITS ASCII column format codes to the appropriate Python string
@@ -2287,14 +2287,6 @@ def _convert_ascii_format(format, reverse=False):
         # values [for the non-standard J format code just always force 64-bit]
         if format == 'I' and width <= 4:
             recformat = 'i2'
-        elif format == 'F' and width > 7:
-            # 32-bit floats (the default) may not be accurate enough to support
-            # all values that can fit in this field, so upgrade to 64-bit
-            recformat = 'f8'
-        elif format == 'E' and precision > 6:
-            # Again upgrade to a 64-bit int if we require greater decimal
-            # precision
-            recformat = 'f8'
         elif format == 'A':
             recformat += str(width)
 
