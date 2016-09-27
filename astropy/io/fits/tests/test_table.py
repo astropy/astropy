@@ -2739,7 +2739,7 @@ class TestColumnFunctions(FitsTestCase):
 
         with fits.open(self.temp('test.fits')) as hdul:
             assert hdul[1].header['TFORM1'] == 'F5.0'
-            assert hdul[1].data['TEST'].dtype == np.dtype('float32')
+            assert hdul[1].data['TEST'].dtype == np.dtype('float64')
             assert np.all(hdul[1].data['TEST'] == [1.0, 2.0, 3.0])
 
             # Check how the raw data looks
