@@ -1049,7 +1049,7 @@ class Header(object):
 
         if other is None:
             pass
-        elif hasattr(other, 'iteritems'):
+        elif hasattr(other, 'items'):
             for k, v in iteritems(other):
                 update_from_dict(k, v)
         elif hasattr(other, 'keys'):
