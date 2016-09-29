@@ -12,8 +12,7 @@ import numpy as np
 
 from ....extern.six.moves import range
 from ....io import fits
-from ....utils.exceptions import (AstropyDeprecationWarning,
-                                  AstropyPendingDeprecationWarning)
+from ....utils.exceptions import AstropyPendingDeprecationWarning
 from ....tests.helper import pytest, raises, catch_warnings, ignore_warnings
 from ..hdu.compressed import SUBTRACTIVE_DITHER_1, DITHER_SEED_CHECKSUM
 from .test_table import comparerecords
@@ -118,11 +117,7 @@ class TestImageFunctions(FitsTestCase):
         with fits.open(self.temp('test.fits')) as hdul:
             assert hdul[0].name == 'XPRIMARY2'
 
-    @ignore_warnings(AstropyDeprecationWarning)
     def test_io_manipulation(self):
-        # This legacy test also tests numerous deprecated interfaces for
-        # backwards compatibility
-
         # Get a keyword value.  An extension can be referred by name or by
         # number.  Both extension and keyword names are case insensitive.
         with fits.open(self.data('test0.fits')) as r:
@@ -137,19 +132,19 @@ class TestImageFunctions(FitsTestCase):
             # append (using "update()") a new card
             r[0].header['xxx'] = 1.234e56
 
-            assert (str(r[0].header.ascard[-3:]) ==
+            assert ('\n'.join(str(x) for x in r[0].header.cards[-3:]) ==
                     "EXPFLAG = 'NORMAL            ' / Exposure interruption indicator                \n"
                     "FILENAME= 'vtest3.fits'        / File name                                      \n"
                     "XXX     =            1.234E+56                                                  ")
 
             # rename a keyword
-            r[0].header.rename_key('filename', 'fname')
-            pytest.raises(ValueError, r[0].header.rename_key, 'fname',
+            r[0].header.rename_keyword('filename', 'fname')
+            pytest.raises(ValueError, r[0].header.rename_keyword, 'fname',
                           'history')
 
-            pytest.raises(ValueError, r[0].header.rename_key, 'fname',
+            pytest.raises(ValueError, r[0].header.rename_keyword, 'fname',
                           'simple')
-            r[0].header.rename_key('fname', 'filename')
+            r[0].header.rename_keyword('fname', 'filename')
 
             # get a subsection of data
             assert np.array_equal(r[2].data[:3, :3],
@@ -253,7 +248,7 @@ class TestImageFunctions(FitsTestCase):
         hdu2 = fits.ImageHDU(header=r[1].header, data=np.array([1, 2],
                              dtype='int32'))
 
-        assert (str(hdu2.header.ascard[1:5]) ==
+        assert ('\n'.join(str(x) for x in hdu2.header.cards[1:5]) ==
             "BITPIX  =                   32 / array data type                                \n"
             "NAXIS   =                    1 / number of array dimensions                     \n"
             "NAXIS1  =                    2                                                  \n"

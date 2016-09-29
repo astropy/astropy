@@ -112,6 +112,25 @@ API Changes
 
 - ``astropy.io.fits``
 
+  - The old ``Header`` interface, deprecated since Astropy 0.1 (PyFITS 3.1), has
+    been removed entirely. See :ref:`header-transition-guide` for explanations
+    on this change and help on the transition. [#5310]
+
+    - The following functions, classes and methods have been removed:
+      ``CardList``, ``Card.key``, ``Card.cardimage``, ``Card.ascardimage``,
+      ``create_card``, ``create_card_from_string``, ``upper_key``,
+      ``Header.ascard``, ``Header.rename_key``, ``Header.get_history``,
+      ``Header.get_comment``, ``Header.toTxtFile``, ``Header.fromTxtFile``,
+      ``tdump``, ``tcreate``, ``BinTableHDU.tdump``, ``BinTableHDU.tcreate``.
+
+    - Removed ``txtfile`` argument to the ``Header`` constructor.
+
+    - Removed usage of ``Header.update`` with ``Header.update(keyword, value,
+      comment)`` arguments.
+
+    - Removed ``startColumn`` and ``endColumn`` arguments to the ``FITS_record``
+      constructor.
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``

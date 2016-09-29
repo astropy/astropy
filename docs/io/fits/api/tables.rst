@@ -50,10 +50,6 @@ Tables
 Table Functions
 ^^^^^^^^^^^^^^^
 
-:func:`new_table`
-"""""""""""""""""
-.. autofunction:: new_table
-
 :func:`tabledump`
 """""""""""""""""
 .. autofunction:: tabledump

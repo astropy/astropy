@@ -72,13 +72,12 @@ from .fitsrec import FITS_rec
 from ...units.format.fits import UnitScaleError
 from ...extern import six
 from ...extern.six import string_types
-from ...utils import deprecated
 from ...utils.exceptions import AstropyUserWarning
 
 
 __all__ = ['getheader', 'getdata', 'getval', 'setval', 'delval', 'writeto',
-           'append', 'update', 'info', 'tdump', 'tcreate', 'tabledump',
-           'tableload', 'table_to_hdu']
+           'append', 'update', 'info', 'tabledump', 'tableload',
+           'table_to_hdu']
 
 
 def getheader(filename, *args, **kwargs):
@@ -725,7 +724,7 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
     -----
     The primary use for the `tabledump` function is to allow editing in a
     standard text editor of the table data and parameters.  The
-    ``tcreate`` function can be used to reassemble the table from the
+    `tableload` function can be used to reassemble the table from the
     three ASCII files.
     """
 
@@ -752,12 +751,6 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
 
 if isinstance(tabledump.__doc__, string_types):
     tabledump.__doc__ += BinTableHDU._tdump_file_format.replace('\n', '\n    ')
-
-
-@deprecated('0.1', alternative=':func:`tabledump`')
-def tdump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
-          clobber=False):
-    tabledump(filename, datafile, cdfile, hfile, ext, clobber)
 
 
 def tableload(datafile, cdfile, hfile=None):
@@ -796,11 +789,6 @@ def tableload(datafile, cdfile, hfile=None):
 
 if isinstance(tableload.__doc__, string_types):
     tableload.__doc__ += BinTableHDU._tdump_file_format.replace('\n', '\n    ')
-
-
-@deprecated('0.1', alternative=':func:`tableload`')
-def tcreate(datafile, cdfile, hfile=None):
-    return tableload(datafile, cdfile, hfile)
 
 
 def _getext(filename, mode, *args, **kwargs):
