@@ -246,6 +246,9 @@ Other Changes and Additions
 
   - Performance improvements for tables with many columns. [#4985]
 
+  - Removed obsolete code that was previously needed to properly
+    implement the append mode. [#4793]
+
 - ``astropy.io.registry``
 
   - Reduced the time spent in the ``get_formats`` function. This also reduces
