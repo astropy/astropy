@@ -31,7 +31,7 @@ from ..util import _is_int, _str_to_num
 from ....extern import six
 from ....extern.six import string_types
 from ....extern.six.moves import range, zip
-from ....utils import deprecated, lazyproperty
+from ....utils import lazyproperty
 from ....utils.compat import suppress
 from ....utils.exceptions import AstropyUserWarning
 
@@ -82,9 +82,7 @@ class _TableLikeHDU(_ValidHDU):
         the class this method was called on using the column definition from
         the input.
 
-        This is an alternative to the now deprecated `new_table` function,
-        and otherwise accepts the same arguments.  See also
-        `FITS_rec.from_columns`.
+        See also `FITS_rec.from_columns`.
 
         Parameters
         ----------
@@ -1033,10 +1031,6 @@ class BinTableHDU(_TableBaseHDU):
     if isinstance(dump.__doc__, string_types):
         dump.__doc__ += _tdump_file_format.replace('\n', '\n        ')
 
-    @deprecated('0.1', alternative=':meth:`dump`')
-    def tdump(self, datafile=None, cdfile=None, hfile=None, clobber=False):
-        self.dump(datafile, cdfile, hfile, clobber)
-
     def load(cls, datafile, cdfile=None, hfile=None, replace=False,
              header=None):
         """
@@ -1121,12 +1115,6 @@ class BinTableHDU(_TableBaseHDU):
     load = classmethod(load)
     # Have to create a classmethod from this here instead of as a decorator;
     # otherwise we can't update __doc__
-
-    @deprecated('0.1', alternative=':meth:`load`')
-    @classmethod
-    def tcreate(cls, datafile, cdfile=None, hfile=None, replace=False,
-                header=None):
-        return cls.load(datafile, cdfile, hfile, replace, header)
 
     def _dump_data(self, fileobj):
         """
@@ -1299,8 +1287,7 @@ class BinTableHDU(_TableBaseHDU):
 
         # TODO: In the future maybe enable loading a bit at a time so that we
         # can convert from this format to an actual FITS file on disk without
-        # needing enough physical memory to hold the entire thing at once;
-        # new_table() could use a similar feature.
+        # needing enough physical memory to hold the entire thing at once
         hdu = BinTableHDU.from_columns(np.recarray(shape=1, dtype=dtype),
                                        nrows=nrows, fill=True)
 
@@ -1402,67 +1389,6 @@ class BinTableHDU(_TableBaseHDU):
             fileobj.close()
 
         return ColDefs(columns)
-
-
-@deprecated('0.4',
-            alternative=':meth:`BinTableHDU.from_columns` for new BINARY '
-                        'tables or :meth:`TableHDU.from_columns` for new '
-                        'ASCII tables')
-def new_table(input, header=None, nrows=0, fill=False, tbtype=BinTableHDU):
-    """
-    Create a new table from the input column definitions.
-
-    Warning: Creating a new table using this method creates an in-memory *copy*
-    of all the column arrays in the input.  This is because if they are
-    separate arrays they must be combined into a single contiguous array.
-
-    If the column data is already in a single contiguous array (such as an
-    existing record array) it may be better to create a `BinTableHDU` instance
-    directly.  See the Astropy documentation for more details.
-
-    Parameters
-    ----------
-    input : sequence of `Column` or a `ColDefs`
-        The data to create a table from
-
-    header : `Header` instance
-        Header to be used to populate the non-required keywords
-
-    nrows : int
-        Number of rows in the new table
-
-    fill : bool
-        If `True`, will fill all cells with zeros or blanks.  If
-        `False`, copy the data from input, undefined cells will still
-        be filled with zeros/blanks.
-
-    tbtype : str or type
-        Table type to be created (`BinTableHDU` or `TableHDU`) or the class
-        name as a string.  Currently only `BinTableHDU` and `TableHDU` (ASCII
-        tables) are supported.
-    """
-
-    # tbtype defaults to classes now, but in all prior version of PyFITS it was
-    # a string, so we still support that use case as well
-    if not isinstance(tbtype, string_types):
-        cls = tbtype
-        tbtype = cls.__name__
-    else:
-        # Right now the string input must be one of 'TableHDU' or 'BinTableHDU'
-        # and nothing else, though we will allow this to be case insensitive
-        # This could be done more generically through the HDU registry, but my
-        # hope is to deprecate this function anyways so there's not much point
-        # in trying to make it more "generic".
-        if tbtype.lower() == 'tablehdu':
-            cls = TableHDU
-        elif tbtype.lower() == 'bintablehdu':
-            cls = BinTableHDU
-        else:
-            raise ValueError("tbtype must be one of 'TableHDU' or "
-                             "'BinTableHDU'")
-
-    # construct a table HDU of the requested type
-    return cls.from_columns(input, header=header, nrows=nrows, fill=fill)
 
 
 @contextlib.contextmanager

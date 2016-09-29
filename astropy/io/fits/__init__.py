@@ -73,7 +73,6 @@ from .hdu import *
 from .hdu.groups import GroupData
 from .hdu.hdulist import fitsopen as open
 from .hdu.image import Section
-from .hdu.table import new_table
 from .header import Header
 from .verify import VerifyError
 
@@ -81,4 +80,4 @@ from .verify import VerifyError
 __all__ = (['Conf', 'conf'] + card.__all__ + column.__all__ +
            convenience.__all__ + hdu.__all__ +
            ['FITS_record', 'FITS_rec', 'GroupData', 'open', 'Section',
-            'new_table', 'Header', 'VerifyError', 'conf'])
+            'Header', 'VerifyError', 'conf'])
