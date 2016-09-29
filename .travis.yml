@@ -84,10 +84,6 @@ matrix:
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
 
-        # Try developer version of Numpy without optional dependencies
-        - os: linux
-          env: NUMPY_VERSION=dev SETUP_CMD='test'
-
         # Try pre-release version of Numpy without optional dependencies
         - os: linux
           env: NUMPY_VERSION=prerelease SETUP_CMD='test'
@@ -96,8 +92,17 @@ matrix:
         - os: linux
           env: MAIN_CMD='pycodestyle astropy --count' SETUP_CMD=''
 
+        # Try developer version of Numpy with optional dependencies and also
+        # run remote tests. Since both cases will be potentially unstable, we
+        # combine them into a single unstable build that we can mark as an
+        # allowed failure below.
+        - os: linux
+          env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
+               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+
     allow_failures:
-      - env: NUMPY_VERSION=dev SETUP_CMD='test'
+      - env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
+             CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
 
 install:
     - git clone git://github.com/astropy/ci-helpers.git
