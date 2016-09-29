@@ -149,6 +149,9 @@ class TestConeSearch(object):
         async_search = conesearch.AsyncConeSearch(
             SCS_CENTER, SCS_RADIUS, pedantic=self.pedantic)
 
+        # Wait a little for the instance to set up properly
+        time.sleep(3)
+
         tab = async_search.get(timeout=data.conf.remote_timeout)
 
         assert async_search.done()
