@@ -85,7 +85,7 @@ def conesearch(center, radius, verb=1, **kwargs):
     center : `~astropy.coordinates.SkyCoord`, `~astropy.coordinates.BaseCoordinateFrame`, or sequence of length 2
         Position of the center of the cone to search. It may be specified as an
         object from the :ref:`astropy-coordinates` package, or as a length 2
-        sequence.  If a sequence, it is assumed to be ``(RA, DEC)`` in the
+        sequence. If a sequence, it is assumed to be ``(RA, DEC)`` in the
         ICRS coordinate frame, given in decimal degrees.
 
     radius : float or `~astropy.units.quantity.Quantity`
@@ -142,8 +142,8 @@ def conesearch(center, radius, verb=1, **kwargs):
 
     pedantic : bool or `None`
         When `True`, raise an error when the file violates the spec,
-        otherwise issue a warning.  Warnings may be controlled using
-        :py:mod:`warnings` module.  When not provided, uses the
+        otherwise issue a warning. Warnings may be controlled using
+        :py:mod:`warnings` module. When not provided, uses the
         configuration setting `astropy.io.votable.Conf.pedantic`,
         which defaults to `False`.
 
