@@ -1,9 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Tests for `astropy.vo.client.conesearch` and `astropy.vo.client.async`."""
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 # STDLIB
 import os
+import time
 
 # THIRD-PARTY
 import numpy as np
@@ -46,7 +48,8 @@ class TestConeSearch(object):
     """
     def setup_class(self):
         # If this link is broken, use the next in database that works
-        self.url = 'http://vizier.u-strasbg.fr/viz-bin/votable/-A?-out.all&-source=I/252/out&'
+        self.url = ('http://vizier.u-strasbg.fr/viz-bin/votable/-A?-out.all&'
+                    '-source=I/252/out&')
         self.catname = 'USNO-A2'
 
         # Avoid downloading the full database
@@ -66,7 +69,7 @@ class TestConeSearch(object):
 
     def test_no_result(self):
         with pytest.raises(VOSError):
-            tab_1 = conesearch.conesearch(
+            conesearch.conesearch(
                 SCS_CENTER, 0.001, catalog_db=self.url,
                 pedantic=self.pedantic, verbose=self.verbose)
 
@@ -96,15 +99,12 @@ class TestConeSearch(object):
 
     def test_timeout(self):
         """Test time out error."""
-        try:
+        with pytest.raises(VOSError) as e:
             with data.conf.set_temp('remote_timeout', 0.001):
-                tab = conesearch.conesearch(
+                conesearch.conesearch(
                     SCS_CENTER, SCS_RADIUS, pedantic=self.pedantic,
                     verbose=self.verbose, catalog_db=self.url, cache=False)
-        except VOSError as e:
-            assert 'timed out' in str(e), 'test_timeout failed'
-        else:
-            raise Exception('test_timeout failed')
+            assert 'timed out' in e.info, 'test_timeout failed'
 
     def test_searches(self):
         tab_2 = conesearch.conesearch(
@@ -158,9 +158,13 @@ class TestConeSearch(object):
         async_search_all = conesearch.AsyncSearchAll(
             SCS_CENTER, SCS_RADIUS, pedantic=self.pedantic)
 
-        all_results = async_search_all.get(timeout=(data.conf.remote_timeout * 3))
+        # Wait a little for the instance to set up properly
+        time.sleep(3)
+
+        all_results = async_search_all.get(timeout=data.conf.remote_timeout*3)
 
         assert async_search_all.done()
+
         for tab in all_results.values():
             assert tab.array.size > 0
 
@@ -224,7 +228,7 @@ class TestErrorResponse(object):
 
         url = get_pkg_data_filename(os.path.join(self.datadir, xmlfile))
         try:
-            r = vos_catalog._vo_service_request(url, self.pedantic, {})
+            vos_catalog._vo_service_request(url, self.pedantic, {})
         except VOSError as e:
             assert msg in str(e)
 
