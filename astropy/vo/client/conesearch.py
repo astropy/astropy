@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Support VO Simple Cone Search capabilities."""
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 # STDLIB
 import warnings
@@ -13,7 +14,8 @@ from . import vos_catalog
 from .async import AsyncBase
 from .exceptions import ConeSearchError, VOSError
 from ... import units as u
-from ...coordinates import ICRS, BaseCoordinateFrame, Longitude, Latitude, SkyCoord
+from ...coordinates import (ICRS, BaseCoordinateFrame, Longitude, Latitude,
+                            SkyCoord)
 from ...units import Quantity
 from ...utils.timer import timefunc, RunTimePredictor
 from ...utils.exceptions import AstropyUserWarning
@@ -81,9 +83,9 @@ def conesearch(center, radius, verb=1, **kwargs):
     Parameters
     ----------
     center : `~astropy.coordinates.SkyCoord`, `~astropy.coordinates.BaseCoordinateFrame`, or sequence of length 2
-        Position of the center of the cone to search.  It may be specified as an
+        Position of the center of the cone to search. It may be specified as an
         object from the :ref:`astropy-coordinates` package, or as a length 2
-        sequence.  If a sequence, it is assumed to be ``(RA, DEC)`` in the
+        sequence. If a sequence, it is assumed to be ``(RA, DEC)`` in the
         ICRS coordinate frame, given in decimal degrees.
 
     radius : float or `~astropy.units.quantity.Quantity`
@@ -140,8 +142,8 @@ def conesearch(center, radius, verb=1, **kwargs):
 
     pedantic : bool or `None`
         When `True`, raise an error when the file violates the spec,
-        otherwise issue a warning.  Warnings may be controlled using
-        :py:mod:`warnings` module.  When not provided, uses the
+        otherwise issue a warning. Warnings may be controlled using
+        :py:mod:`warnings` module. When not provided, uses the
         configuration setting `astropy.io.votable.Conf.pedantic`,
         which defaults to `False`.
 
@@ -203,7 +205,7 @@ class AsyncSearchAll(AsyncBase):
     >>> from astropy import coordinates as coord
     >>> from astropy import units as u
     >>> c = coord.ICRS(6.0223 * u.degree, -72.0814 * u.degree)
-    >>> async_searchall = conesearch.AsyncSearchAll(c, 0.5 * u.degree)
+    >>> async_search = conesearch.AsyncSearchAll(c, 0.5 * u.degree)
 
     Check search status:
 
@@ -412,11 +414,13 @@ def predict_search(url, *args, **kwargs):
     t_est = cs_pred.predict_time(sr)
 
     if t_est < 0 or t_coeffs[1] < 0:  # pragma: no cover
-        warnings.warn('Estimated runtime ({0} s) is non-physical with slope of '
-                      '{1}'.format(t_est, t_coeffs[1]), AstropyUserWarning)
+        warnings.warn(
+            'Estimated runtime ({0} s) is non-physical with slope of '
+            '{1}'.format(t_est, t_coeffs[1]), AstropyUserWarning)
     elif t_est > data.conf.remote_timeout:  # pragma: no cover
-        warnings.warn('Estimated runtime is longer than timeout of '
-                      '{0} s'.format(data.conf.remote_timeout), AstropyUserWarning)
+        warnings.warn(
+            'Estimated runtime is longer than timeout of '
+            '{0} s'.format(data.conf.remote_timeout), AstropyUserWarning)
 
     # Predict number of objects
     sr_arr = sorted(cs_pred.results)  # Orig with floating point error
