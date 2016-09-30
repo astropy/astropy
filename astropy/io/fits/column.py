@@ -66,11 +66,10 @@ FITSUPCONVERTERS = {'E': 'D', 'C': 'M'}
 # A: Character
 # I: Integer (32-bit)
 # J: Integer (64-bit; non-standard)
-# F: Float (32-bit; fixed decimal notation)
-# E: Float (32-bit; exponential notation)
+# F: Float (64-bit; fixed decimal notation)
+# E: Float (64-bit; exponential notation)
 # D: Float (64-bit; exponential notation, always 64-bit by convention)
-ASCII2NUMPY = {'A': 'a', 'I': 'i4', 'J': 'i8', 'F': 'f8', 'E': 'f8',
-               'D': 'f8'}
+ASCII2NUMPY = {'A': 'a', 'I': 'i4', 'J': 'i8', 'F': 'f8', 'E': 'f8', 'D': 'f8'}
 
 # Maps FITS ASCII column format codes to the appropriate Python string
 # formatting codes for that type.
