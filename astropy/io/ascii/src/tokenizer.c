@@ -351,6 +351,9 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
         else
             c = self->source[self->source_pos];
 
+        if (c == '\r')
+            c = '\n';
+
         parse_newline = 0;
 
         switch (self->state)
