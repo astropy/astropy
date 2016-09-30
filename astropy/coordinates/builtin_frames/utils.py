@@ -142,11 +142,11 @@ def prepare_earth_position_vel(time):
         Heliocentric position of Earth in au
     """
     # this goes here to avoid circular import errors
-    from ..solar_system import get_body_barycentric, solar_system_ephemeris
+    from ..solar_system import (get_body_barycentric, get_body_barycentric_posvel,
+                                solar_system_ephemeris)
     # get barycentric position and velocity of earth
     ephemeris = solar_system_ephemeris.get()
-    earth_pv = get_body_barycentric('earth', time,
-                                    ephemeris=ephemeris, get_velocity=True)
+    earth_pv = get_body_barycentric_posvel('earth', time, ephemeris=ephemeris)
 
     # get heliocentric position of earth
     sun = get_body_barycentric('sun', time, ephemeris=ephemeris)
