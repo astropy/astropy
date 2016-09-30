@@ -17,6 +17,13 @@ from .... import units
 
 from .common import setup_function, teardown_function
 
+# Check to see if the BeautifulSoup dependency is present.
+try:
+    from bs4 import BeautifulSoup, FeatureNotFound
+    HAS_BEAUTIFUL_SOUP = True
+except ImportError:
+    HAS_BEAUTIFUL_SOUP = False
+
 test_defs = [
     dict(kwargs=dict(),
          out="""\
@@ -649,6 +656,9 @@ def test_roundtrip_masked(fmt_name_class):
 
     # Skip certain readers.  Aastex should be OK after #????
     if fmt_name in ['fixed_width', 'aastex', 'latex']:
+        return
+
+    if fmt_name == 'html' and not HAS_BEAUTIFUL_SOUP:
         return
 
     t = simple_table(masked=True)
