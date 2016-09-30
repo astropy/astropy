@@ -1644,6 +1644,8 @@ Bug Fixes
 
 - ``astropy.io.ascii``
 
+  - Fix a bug with empty value at end of tab-delimited table on Windows. [#5370]
+
 - ``astropy.io.fits``
 
   - Removed raising of AssertionError that could occur after closing or
