@@ -246,9 +246,6 @@ static inline int end_line(tokenizer_t *self, int col, int header, int end,
 #define END_LINE() if (end_line(self, col, header, end, &old_state) != -1) return self->code
 
 
-#define HANDLE_CR() old_state = self->state; self->state = CARRIAGE_RETURN
-
-
 int skip_lines(tokenizer_t *self, int offset, int header)
 {
     int signif_chars = 0;
@@ -361,11 +358,6 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
         case START_LINE:
             if (c == '\n')
                 break;
-            else if (c == '\r')
-            {
-                HANDLE_CR();
-                break;
-            }
             else if ((c == ' ' || c == '\t') && self->strip_whitespace_lines)
                 break;
             else if (self->comment != 0 && c == self->comment)
@@ -394,11 +386,6 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
             {
                 END_FIELD();
                 BEGIN_FIELD();
-                break;
-            }
-            else if (c == '\r')
-            {
-                HANDLE_CR();
                 break;
             }
             else if (c == '\n')
@@ -433,7 +420,8 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
                     }
 
                     // backtracked to line beginning
-                    if (self->source_pos == -1 || self->source[self->source_pos] == '\n'
+                    if (self->source_pos == -1
+                        || self->source[self->source_pos] == '\n'
                         || self->source[self->source_pos] == '\r')
                     {
                         self->source_pos = tmp;
@@ -490,10 +478,6 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
                 END_FIELD();
                 BEGIN_FIELD();
             }
-            else if (c == '\r')
-            {
-                HANDLE_CR();
-            }
             else if (c == '\n')
             {
                 // Line ending, stop parsing both field and line
@@ -533,11 +517,6 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
             else if (((c == ' ' || c == '\t') && self->strip_whitespace_lines)
                      || c == '\n')
                 break;
-            else if (c == '\r')
-            {
-                HANDLE_CR();
-                break;
-            }
             else if (c == self->quotechar)
             {
                 self->state = FIELD;
@@ -554,10 +533,6 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
                 self->state = FIELD;
             else if (c == '\n')
                 self->state = QUOTED_FIELD_NEWLINE;
-            else if (c == '\r')
-            {
-                HANDLE_CR();
-            }
             else
             {
                 PUSH(c);
@@ -571,23 +546,10 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
                 if (!header)
                     end_comment(self);
             }
-            else if (c == '\r')
-            {
-                HANDLE_CR();
-            }
             else if (!header)
                 push_comment(self, c);
             break; // keep looping until we find a newline
 
-        case CARRIAGE_RETURN:
-            self->state = old_state;
-            --self->source_pos; // parse the newline in the old state
-            if (c != '\n') // CR line terminator
-            {
-                --self->source_pos; // backtrack to the carriage return
-                parse_newline = 1; // explicitly treat the CR as a newline
-            }
-            break;
         }
 
         ++self->source_pos;
