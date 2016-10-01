@@ -11,7 +11,7 @@ from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
                          CoordinateTransform)
 from .coordinates_map import CoordinatesMap
 from .utils import get_coord_meta
-from .frame import RectangularFrame
+from .frame import EllipticalFrame, RectangularFrame
 import numpy as np
 
 __all__ = ['WCSAxes', 'WCSAxesSubplot']
@@ -185,6 +185,22 @@ class WCSAxes(Axes):
                     self.coords[coord_index].set_axislabel_position('')
                     self.coords[coord_index].set_ticklabel_position('')
                     self.coords[coord_index].set_ticks_position('')
+        # Common default settings for Elliptical Frame
+        elif self.frame_class is EllipticalFrame:
+            for coord_index in range(len(self.slices)):
+                if self.slices[coord_index] == 'x':
+                    self.coords[coord_index].set_axislabel_position('h')
+                    self.coords[coord_index].set_ticklabel_position('h')
+                    self.coords[coord_index].set_ticks_position('h')
+                elif self.slices[coord_index] == 'y':
+                    self.coords[coord_index].set_ticks_position('c')
+                    self.coords[coord_index].set_axislabel_position('c')
+                    self.coords[coord_index].set_ticklabel_position('c')
+                else:
+                    self.coords[coord_index].set_axislabel_position('')
+                    self.coords[coord_index].set_ticklabel_position('')
+                    self.coords[coord_index].set_ticks_position('')
+
 
     def draw(self, renderer, inframe=False):
 
