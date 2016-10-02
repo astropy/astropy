@@ -24,6 +24,15 @@ smaller improvements and bug fixes, which are described in the
 * xxx pull requests have been merged since v1.2
 * xxx distinct people have contributed code
 
+.. _whatsnew-1.3-cosmo:
+
+Improvements to cosmology sub-package
+-------------------------------------
+
+The default cosmology in the :ref:`astropy-cosmology` sub-package is
+now the Planck 2015 cosmology, and the references have been updated
+to reflect the published papers.
+
 Other significant changes
 -------------------------
 

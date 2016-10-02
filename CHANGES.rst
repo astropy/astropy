@@ -275,6 +275,11 @@ Other Changes and Additions
     ``angles.angle_axis`` are also deprecated, in favour of the new routines
     with the same name in ``coordinates.matrix_utilities``. [#5104]
 
+- ``astropy.cosmology``
+
+  - The default cosmological model has been changed to Planck 2015,
+    and the citation strings have been updated. [#5372]
+
 - ``astropy.io.fits``
 
   - Performance improvements for tables with many columns. [#4985]
