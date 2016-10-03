@@ -20,6 +20,8 @@ Bug Fixes
 
 - ``astropy.io.ascii``
 
+  - Fix a bug with empty value at end of tab-delimited table on Windows. [#5370]
+
 - ``astropy.io.fits``
 
   - Fixed ``io.fits`` convenience functions to not close open file
