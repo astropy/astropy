@@ -1,3 +1,5 @@
+.. _doc_standard_units:
+
 Standard units
 ==============
 
@@ -45,6 +47,8 @@ all the existing predefined units of a given type::
     t            | 1000 kg         | tonne                            ,
     u            | 1.66054e-27 kg  | Da, Dalton                       ,
   ]
+
+.. _doc_dimensionless_unit:
 
 The dimensionless unit
 ----------------------
