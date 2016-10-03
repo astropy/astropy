@@ -39,7 +39,6 @@ typedef enum
     QUOTED_FIELD,
     QUOTED_FIELD_NEWLINE,
     COMMENT,
-    CARRIAGE_RETURN
 } tokenizer_state;
 
 typedef enum
