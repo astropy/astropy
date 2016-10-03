@@ -17,7 +17,7 @@ import astropy.units as u
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from ..extern import six
-from ..utils import ShapedLikeNDArray
+from ..utils import ShapedLikeNDArray, classproperty
 from ..utils.compat import NUMPY_LT_1_12
 from ..utils.compat.numpy import broadcast_arrays
 
@@ -73,8 +73,6 @@ class BaseRepresentation(ShapedLikeNDArray):
     maps component names to the units they are best presented to users in.  Note
     that frame classes may override this with their own preferred units.
     """
-
-    attr_classes = OrderedDict()
 
     recommended_units = {}  # subclasses can override
 
@@ -317,24 +315,34 @@ class BaseRepresentation(ShapedLikeNDArray):
         return self._combine_operation(operator.sub, other, reverse=True)
 
     def mean(self, *args, **kwargs):
-        """Return the vector mean along a given axis.
+        """Vector mean along a given axis.
 
-        The representation is converted to cartesian, the means of the x, y,
-        and z components are calculated, and the result is converted back to
-        the same representation as the input.
+        Averaging is done by converting the representation to cartesian, and
+        taking the mean of the x, y, and z components. The result is converted
+        back to the same representation as the input.
 
-        Refer to `numpy.mean` for full documentation of the arguments.
+        Refer to `~numpy.mean` for full documentation of the arguments.
+
+        Returns
+        -------
+        mean : `~astropy.coordinates.BaseRepresentation`
+            Vector mean, in the same representation as that of the input.
         """
         return self.from_cartesian(self.to_cartesian().mean(*args, **kwargs))
 
     def sum(self, *args, **kwargs):
-        """Return the vector sum along a given axis.
+        """Vector sum along a given axis.
 
-        The representation is converted to cartesian, the sums of the x, y,
-        and z components are calculated, and the result is converted back to
-        the same representation as the input.
+        Adding is done by converting the representation to cartesian, and
+        summing the x, y, and z components. The result is converted back to the
+        same representation as the input.
 
-        Refer to `numpy.sum` for full documentation of the arguments.
+        Refer to `~numpy.sum` for full documentation of the arguments.
+
+        Returns
+        -------
+        sum : `~astropy.coordinates.BaseRepresentation`
+            Vector sum, in the same representation as that of the input.
         """
         return self.from_cartesian(self.to_cartesian().sum(*args, **kwargs))
 
@@ -352,8 +360,8 @@ class BaseRepresentation(ShapedLikeNDArray):
         Returns
         -------
         dot_product : `~astropy.units.Quantity`
-            The sum of the product of the x, y, and z components of ``self``
-            and ``other``.
+            The sum of the product of the x, y, and z components of the
+            cartesian representations of ``self`` and ``other``.
         """
         return self.to_cartesian().dot(other)
 
@@ -555,7 +563,7 @@ class CartesianRepresentation(BaseRepresentation):
         Returns a new CartesianRepresentation instance with the means of the
         x, y, and z components.
 
-        Refer to `numpy.mean` for full documentation of the arguments.
+        Refer to `~numpy.mean` for full documentation of the arguments.
         """
         return self._apply('mean', *args, **kwargs)
 
@@ -565,7 +573,7 @@ class CartesianRepresentation(BaseRepresentation):
         Returns a new CartesianRepresentation instance with the sums of the
         x, y, and z components.
 
-        Refer to `numpy.sum` for full documentation of the arguments.
+        Refer to `~numpy.sum` for full documentation of the arguments.
         """
         return self._apply('sum', *args, **kwargs)
 
@@ -637,7 +645,10 @@ class UnitSphericalRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('lon', Longitude),
                                 ('lat', Latitude)])
     recommended_units = {'lon': u.deg, 'lat': u.deg}
-    _dimensional_representation = None  # set to SphericalRepresentation below
+
+    @classproperty
+    def _dimensional_representation(cls):
+        return SphericalRepresentation
 
     def __init__(self, lon, lat, copy=True):
 
@@ -739,7 +750,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         and z components are calculated, and the result is converted to a
         `~astropy.coordinates.SphericalRepresentation`.
 
-        Refer to `numpy.mean` for full documentation of the arguments.
+        Refer to `~numpy.mean` for full documentation of the arguments.
         """
         return self._dimensional_representation.from_cartesian(
             self.to_cartesian().mean(*args, **kwargs))
@@ -752,7 +763,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         `~astropy.coordinates.SphericalRepresentation`.
 
 
-        Refer to `numpy.sum` for full documentation of the arguments.
+        Refer to `~numpy.sum` for full documentation of the arguments.
         """
         return self._dimensional_representation.from_cartesian(
             self.to_cartesian().sum(*args, **kwargs))
@@ -1124,7 +1135,3 @@ class CylindricalRepresentation(BaseRepresentation):
         z = self.z
 
         return CartesianRepresentation(x=x, y=y, z=z, copy=False)
-
-
-# This has to be set after SphericalRepresentation becomes defined.
-UnitSphericalRepresentation._dimensional_representation = SphericalRepresentation
