@@ -22,6 +22,12 @@ New Features
 
   - Transformations between coordinate systems can use the more accurate JPL
     ephemerides. [#5273, #5436]
+  - Arithmetic on representations, such as addition of two representations,
+    multiplication with a ``Quantity``, or calculating the norm via ``abs``,
+    has now become possible. Furthermore, there are new methods ``mean``,
+    ``sum``, ``dot``, and ``cross``. For all these, the representations are
+    treated as vectors in cartesian space (temporarily converting to
+    ``CartesianRepresentation`` if necessary).  [#5301]
 
 - ``astropy.cosmology``
 
