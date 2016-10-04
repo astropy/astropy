@@ -13,9 +13,14 @@ import numpy as np
 
 from ... import units as u
 from .. import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS,
+<<<<<<< fc47f12ab0e84e9ca11e31341db490795fe5152f
                 GeocentricTrueEcliptic, Longitude, Latitude, GCRS, HCRS,
                 get_moon, FK4, FK4NoETerms)
 from ..sites import get_builtin_sites
+=======
+                GeocentricTrueEcliptic, Longitude, Latitude, GCRS,
+                FK4, FK4NoETerms, get_moon)
+>>>>>>> added regresion test and changelog entry
 from ...time import Time
 from ...utils import iers
 
@@ -275,3 +280,11 @@ def test_regression_4926():
     # and some others to increase coverage of transforms
     moon.transform_to(HCRS(obstime="J2000"))
     moon.transform_to(HCRS(obstime=times))
+
+
+def test_regression_5209():
+    "check that distances are not lost on SkyCoord init"
+    time = Time('2015-01-01')
+    moon = get_moon(time)
+    new_coord = SkyCoord([moon])
+    assert_quantity_allclose(new_coord[0].distance, moon.distance)
