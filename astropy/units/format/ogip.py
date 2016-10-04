@@ -19,6 +19,7 @@ from ...extern import six
 import keyword
 import math
 import os
+import copy
 import warnings
 from fractions import Fraction
 

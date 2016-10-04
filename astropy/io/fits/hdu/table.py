@@ -616,7 +616,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             else:
                 for after_keyword in KEYWORD_NAMES[keyword_idx + 1:]:
                     after_keyword += str(col_idx + 1)
-                    if after_keyword in header:
+                    if after_keyword in self._header:
                         self._header.insert(after_keyword,
                                             (keyword, new_value))
                         break
