@@ -246,6 +246,15 @@ class HTMLData(core.BaseData):
             return None
         return last_index + 1
 
+    def set_fill_values(self, header, cols, fill_values):
+        """sets fill_values on the columns for replacement during generation"""
+        self.header = header
+        self.header.cols = cols
+        self.fill_values = fill_values
+        self.cols = cols
+        self._set_fill_values(cols)
+
+
 class HTML(core.BaseReader):
     """Read and write HTML tables.
 
@@ -336,8 +345,11 @@ class HTML(core.BaseReader):
         """
         Return data in ``table`` converted to HTML as a list of strings.
         """
-
         cols = list(six.itervalues(table.columns))
+
+        # Set fill_vals on the columns for replacement
+        HTML.data_class().fill_vals(self.header, cols, self.data.fill_values)
+
         lines = []
 
         # Set HTML escaping to False for any column in the raw_html_cols input
@@ -403,10 +415,15 @@ class HTML(core.BaseReader):
                                 for i in range(span):
                                     # Split up multicolumns into separate columns
                                     new_col = Column([el[i] for el in col])
-                                    col_str_iters.append(new_col.info.iter_str_vals())
+
+                                    new_col_iter_str_vals = self.fill_values(col.fill_values, new_col.info.iter_str_vals())
+                                    col_str_iters.append(new_col_iter_str_vals)
                                     new_cols_escaped.append(col_escaped)
                             else:
-                                col_str_iters.append(col.info.iter_str_vals())
+
+                                col_iter_str_vals = self.fill_values(col.fill_values, col.info.iter_str_vals())
+                                col_str_iters.append(col_iter_str_vals)
+
                                 new_cols_escaped.append(col_escaped)
 
                     for row in zip(*col_str_iters):
@@ -421,3 +438,14 @@ class HTML(core.BaseReader):
 
         # Fixes XMLWriter's insertion of unwanted line breaks
         return [''.join(lines)]
+
+    def fill_values(self, fill_values, col_str_iters):
+        """
+        return an iterator of the values with replacements based on fill_values
+        """
+        for col_str in col_str_iters:
+            if col_str in fill_values:
+                yield fill_values[col_str]
+                continue
+
+            yield col_str
