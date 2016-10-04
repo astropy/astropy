@@ -386,6 +386,15 @@ def test_to_fits():
     assert header_string == wfits[0].header[-8:]
 
 
+def test_to_fits_1():
+    fits_name = get_pkg_data_filename('data/dist.fits')
+    w = wcs.WCS(fits_name)
+    wfits = w.to_fits()
+    assert isinstance(wfits, fits.HDUList)
+    assert isinstance(wfits[0], fits.PrimaryHDU)
+    assert isinstance(wfits[1], fits.ImageHDU)
+
+
 def test_to_header_warning():
     fits_name = get_pkg_data_filename('data/sip.fits')
     x = wcs.WCS(fits_name)

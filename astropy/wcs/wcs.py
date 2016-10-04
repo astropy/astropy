@@ -856,8 +856,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                                      'Coordinate increment along axis')
             header[str('CDELT2')] = (det2im.cdelt[1],
                                      'Coordinate increment along axis')
-            image.ver = int(hdulist[0].header[str('{0}{1:d}.EXTVER')
-                                              .format(d_kw, num)])
+            image.ver =  int(hdulist[0].header[str('{0}{1:d}.EXTVER').format(d_kw, num)])
             hdulist.append(image)
         write_d2i(1, self.det2im1)
         write_d2i(2, self.det2im2)
@@ -976,8 +975,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             header[str('CRVAL2')] = (cpdis.crval[1], 'Coordinate system value at reference pixel')
             header[str('CDELT1')] = (cpdis.cdelt[0], 'Coordinate increment along axis')
             header[str('CDELT2')] = (cpdis.cdelt[1], 'Coordinate increment along axis')
-            image.update_ext_version(
-                int(hdulist[0].header[str('{0}{1:d}.EXTVER').format(d_kw, num)]))
+            image.ver = int(hdulist[0].header[str('{0}{1:d}.EXTVER').format(d_kw, num)])
             hdulist.append(image)
 
         write_dist(1, self.cpdis1)
