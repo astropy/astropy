@@ -15,6 +15,7 @@ from ....table import Table
 import numpy as np
 
 from .common import setup_function, teardown_function
+from ... import ascii
 from ....tests.helper import pytest
 from ....extern.six.moves import range, cStringIO as StringIO
 from ....utils.xml.writer import HAS_BLEACH
@@ -603,3 +604,94 @@ def test_raw_html_write_clean():
     <td><em>y</em></td>
    </tr>"""
     assert expected in out.getvalue()
+
+def test_write_table_html_fill_values():
+    """
+    Test that passing fill_values should replace any matching row
+    """
+    buffer_output = StringIO()
+    t = Table([[1], [2]], names=('a', 'b'))
+    ascii.write(t, buffer_output, fill_values=('1', 'Hello world'),
+        format='html')
+
+    t_expected = Table([['Hello world'], [2]], names=('a', 'b'))
+    buffer_expected = StringIO()
+    ascii.write(t_expected, buffer_expected, format='html')
+
+    assert buffer_output.getvalue() == buffer_expected.getvalue()
+
+def test_write_table_html_fill_values_optional_columns():
+    """
+    Test that passing optional column in fill_values should only replace
+    matching columns
+    """
+    buffer_output = StringIO()
+    t = Table([[1], [1]], names=('a', 'b'))
+    ascii.write(t, buffer_output, fill_values=('1', 'Hello world', 'b'),
+        format='html')
+
+    t_expected = Table([[1], ['Hello world']], names=('a', 'b'))
+    buffer_expected = StringIO()
+    ascii.write(t_expected, buffer_expected, format='html')
+
+    assert buffer_output.getvalue() == buffer_expected.getvalue()
+
+def test_write_table_html_fill_values_masked():
+    """
+    Test that passing masked values in fill_values should only replace
+    masked columns or values
+    """
+    buffer_output = StringIO()
+    t = Table([[1], [1]], names=('a', 'b'), masked=True, dtype=('i4', 'i8'))
+    t['a'] = np.ma.masked
+    ascii.write(t, buffer_output, fill_values=(ascii.masked, 'TEST'),
+        format='html')
+
+    t_expected = Table([['TEST'], [1]], names=('a', 'b'))
+    buffer_expected = StringIO()
+    ascii.write(t_expected, buffer_expected, format='html')
+
+    assert buffer_output.getvalue() == buffer_expected.getvalue()
+
+def test_multicolumn_table_html_fill_values():
+    """
+    Test to make sure that the HTML writer writes multidimensional
+    columns with correctly replaced fill_values.
+    """
+    col1 = [1, 2, 3]
+    col2 = [(1.0, 1.0), (2.0, 2.0), (3.0, 3.0)]
+    col3 = [('a', 'a', 'a'), ('b', 'b', 'b'), ('c', 'c', 'c')]
+
+    buffer_output = StringIO()
+    t = Table([col1, col2, col3], names=('C1', 'C2', 'C3'))
+    ascii.write(t, buffer_output, fill_values=('a', 'z'),
+        format='html')
+
+    col1 = [1, 2, 3]
+    col2 = [(1.0, 1.0), (2.0, 2.0), (3.0, 3.0)]
+    col3 = [('z', 'z', 'z'), ('b', 'b', 'b'), ('c', 'c', 'c')]
+
+    buffer_expected = StringIO()
+    t_expected = Table([col1, col2, col3], names=('C1', 'C2', 'C3'))
+    ascii.write(t_expected, buffer_expected, format='html')
+
+    assert buffer_output.getvalue() == buffer_expected.getvalue()
+
+def test_multi_column_write_table_html_fill_values_masked():
+    """
+    Test that passing masked values in fill_values should only replace
+    masked columns or values for multidimensional tables
+    """
+    buffer_output = StringIO()
+    t = Table([[1, 2, 3, 4], ['--', 'a', '--', 'b']], names=('a', 'b'), masked=True)
+    t['a'][0:2] = np.ma.masked
+    t['b'][0:2] = np.ma.masked
+    ascii.write(t, buffer_output, fill_values=[(ascii.masked, 'MASKED')],
+        format='html')
+
+    t_expected = Table([['MASKED', 'MASKED', 3, 4], ['MASKED', 'MASKED', '--', 'b']], names=('a', 'b'))
+    buffer_expected = StringIO()
+    ascii.write(t_expected, buffer_expected, format='html')
+    print(buffer_expected.getvalue())
+
+    assert buffer_output.getvalue() == buffer_expected.getvalue()
