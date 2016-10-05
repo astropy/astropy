@@ -32,6 +32,7 @@ fitting routines (while making it reasonably easy to do when necessary).
     us know on the `astropy-dev mailing list`_ or at
     http://feedback.astropy.org
 
+.. _modeling-getting-started:
 
 Getting started
 ===============
@@ -91,6 +92,7 @@ inputs according to the standard `Numpy broadcasting rules`_ for arrays.
 Models can therefore already be useful to evaluate common functions,
 independently of the fitting features of the package.
 
+.. _modeling-getting-started-1d-fitting:
 
 Simple 1-D model fitting
 ------------------------
@@ -136,6 +138,7 @@ As shown above, once instantiated, the fitter class can be used as a function
 that takes the initial model (``t_init`` or ``g_init``) and the data values
 (``x`` and ``y``), and returns a fitted model (``t`` or ``g``).
 
+.. _modeling-getting-started-2d-fitting:
 
 Simple 2-D model fitting
 ------------------------
@@ -187,6 +190,7 @@ weighting of datapoints, fixing or linking parameters, and placing lower or
 upper limits on parameters. For more information on these, take a look at the
 :doc:`fitting` documentation.
 
+.. _modeling-getting-started-model-sets:
 
 Model sets
 ----------
@@ -318,6 +322,7 @@ are some complexities involved in correctly matching up the inputs and outputs
 of all models used to build a compound model.  You can learn more details in
 the :doc:`compound-models` documentation.
 
+.. _modeling-using:
 
 Using `astropy.modeling`
 ========================
