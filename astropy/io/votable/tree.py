@@ -418,6 +418,9 @@ class Element(object):
     A base class for all classes that represent XML elements in the
     VOTABLE file.
     """
+    _element_name = ''
+    _attr_list = []
+
     def _add_unknown_tag(self, iterator, tag, data, config, pos):
         warn_or_raise(W10, W10, tag, config, pos)
 
@@ -3010,7 +3013,8 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
 
     def __repr__(self):
         buff = io.StringIO()
-        XMLWriter(buff).element(
+        w = XMLWriter(buff)
+        w.element(
             self._element_name,
             attrib=w.object_attrs(self, self._attr_list))
         return buff.getvalue().strip()

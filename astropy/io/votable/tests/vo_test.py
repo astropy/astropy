@@ -614,6 +614,9 @@ class TestParse:
         # Smoke test
         repr(list(self.votable.iter_groups()))
 
+        # Resource
+        assert repr(self.votable.resources) == '[</>]'
+
 
 class TestThroughTableData(TestParse):
     def setup_class(self):
