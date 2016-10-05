@@ -18,6 +18,7 @@ from numpy.testing import (
 
 from ...tests.helper import raises, catch_warnings, pytest
 from ... import wcs
+from .. import _wcs
 from ...utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
 from ...utils.misc import NumpyRNGContext
