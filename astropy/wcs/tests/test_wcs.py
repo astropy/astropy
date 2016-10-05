@@ -18,7 +18,6 @@ from numpy.testing import (
 
 from ...tests.helper import raises, catch_warnings, pytest
 from ... import wcs
-from .. import _wcs  # pylint: disable=W0611
 from ...utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
 from ...utils.misc import NumpyRNGContext
@@ -384,15 +383,6 @@ def test_to_fits():
     assert isinstance(wfits, fits.HDUList)
     assert isinstance(wfits[0], fits.PrimaryHDU)
     assert header_string == wfits[0].header[-8:]
-
-
-def test_to_fits_1():
-    fits_name = get_pkg_data_filename('data/dist.fits')
-    w = wcs.WCS(fits_name)
-    wfits = w.to_fits()
-    assert isinstance(wfits, fits.HDUList)
-    assert isinstance(wfits[0], fits.PrimaryHDU)
-    assert isinstance(wfits[1], fits.ImageHDU)
 
 
 def test_to_header_warning():
