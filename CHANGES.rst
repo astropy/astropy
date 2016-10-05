@@ -1663,6 +1663,9 @@ Bug Fixes
 
 - ``astropy.io.votable``
 
+  - Fixed bug of ``Resource.__repr__()`` having undefined attributes and
+    variables. [#5382]
+
 - ``astropy.modeling``
 
 - ``astropy.nddata``
