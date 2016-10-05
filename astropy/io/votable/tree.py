@@ -417,6 +417,9 @@ class Element(object):
     A base class for all classes that represent XML elements in the
     VOTABLE file.
     """
+    _element_name = ''
+    _attr_list = []
+
     def _add_unknown_tag(self, iterator, tag, data, config, pos):
         warn_or_raise(W10, W10, tag, config, pos)
 
