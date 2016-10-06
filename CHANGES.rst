@@ -58,14 +58,18 @@ New Features
 
 - ``astropy.modeling``
 
-  - Add a class to combine astropy fitters and functions to remove outliers
+  - Added a class to combine astropy fitters and functions to remove outliers
     e. g., sigma clip. [#4760]
+
   - Added a ``Tabular`` model. [#5105]
 
   - Added ``Hermite1D`` and ``Hermite2D`` polynomial models [#5242]
 
   - Added the injection of EntryPoints into astropy.modeling.fitting if
     they inherit from Fitters class. [#5241]
+
+  - Added bounding box to ``Lorentz1D`` and ``MexicanHat1D`` models. Also added
+    ``stddev`` property to ``Lorentz1D`` to complement its ``fwhm``. [#5393]
 
 - ``astropy.nddata``
 

@@ -837,6 +837,12 @@ class Lorentz1D(Fittable1DModel):
     x_0 = Parameter(default=0)
     fwhm = Parameter(default=1)
 
+    @property
+    def stddev(self):
+        """Standard deviation based on FWHM."""
+        from ..stats.funcs import gaussian_fwhm_to_sigma
+        return self.fwhm * gaussian_fwhm_to_sigma
+
     @staticmethod
     def evaluate(x, amplitude, x_0, fwhm):
         """One dimensional Lorentzian model function"""
@@ -853,6 +859,22 @@ class Lorentz1D(Fittable1DModel):
                  (fwhm ** 2 + (x - x_0) ** 2))
         d_fwhm = 2 * amplitude * d_amplitude / fwhm * (1 - d_amplitude)
         return [d_amplitude, d_x_0, d_fwhm]
+
+    def bounding_box(self, factor=50):
+        """Tuple defining the default ``bounding_box`` limits,
+        ``(x_low, x_high)``.
+
+        Parameters
+        ----------
+        factor : float
+            The multiple of standard deviation used to define the limits.
+            Similar to `Gaussian1D`.
+
+        """
+        x0 = self.x_0.value
+        dx = factor * self.stddev
+
+        return (x0 - dx, x0 + dx)
 
 
 class Voigt1D(Fittable1DModel):
@@ -1660,6 +1682,22 @@ class MexicanHat1D(Fittable1DModel):
 
         xx_ww = (x - x_0) ** 2 / (2 * sigma ** 2)
         return amplitude * (1 - 2 * xx_ww) * np.exp(-xx_ww)
+
+    def bounding_box(self, factor=10.0):
+        """Tuple defining the default ``bounding_box`` limits,
+        ``(x_low, x_high)``.
+
+        Parameters
+        ----------
+        factor : float
+            The multiple of sigma used to define the limits.
+            Similar to `Gaussian1D`.
+
+        """
+        x0 = self.x_0.value
+        dx = factor * self.sigma
+
+        return (x0 - dx, x0 + dx)
 
 
 class MexicanHat2D(Fittable2DModel):
