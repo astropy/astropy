@@ -15,14 +15,59 @@ from ..utils.exceptions import AstropyDeprecationWarning
 
 
 __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
-           'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D',
+           'Const2D', 'Ellipse2D', 'Disk2D', 'BaseGaussian1D', 'Gaussian1D',
            'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D', 'Lorentz1D',
            'MexicanHat1D', 'MexicanHat2D', 'RedshiftScaleFactor', 'Redshift',
            'Scale', 'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D',
            'TrapezoidDisk2D', 'Ring2D', 'Voigt1D']
 
 
-class Gaussian1D(Fittable1DModel):
+class BaseGaussian1D(Fittable1DModel):
+    """Base class for 1D Gaussian models. Do not use this directly.
+
+    See Also
+    --------
+    Gaussian1D, GaussianAbsorption1D
+    """
+
+    amplitude = Parameter(default=1)
+    mean = Parameter(default=0)
+    stddev = Parameter(default=1)
+
+    def bounding_box(self, factor=5.5):
+        """
+        Tuple defining the default ``bounding_box`` limits,
+        ``(x_low, x_high)``
+
+        Parameters
+        ----------
+        factor : float
+            The multiple of `stddev` used to define the limits.
+            The default is 5.5, corresponding to a relative error < 1e-7.
+
+        Examples
+        --------
+        >>> from astropy.modeling.models import Gaussian1D
+        >>> model = Gaussian1D(mean=0, stddev=2)
+        >>> model.bounding_box
+        (-11.0, 11.0)
+
+        This range can be set directly (see: `Model.bounding_box
+        <astropy.modeling.Model.bounding_box>`) or by using a different factor,
+        like:
+
+        >>> model.bounding_box = model.bounding_box(factor=2)
+        >>> model.bounding_box
+        (-4.0, 4.0)
+        """
+
+        x0 = self.mean.value
+        dx = factor * self.stddev
+
+        return (x0 - dx, x0 + dx)
+
+
+class Gaussian1D(BaseGaussian1D):
     """
     One dimensional Gaussian model.
 
@@ -104,42 +149,6 @@ class Gaussian1D(Fittable1DModel):
     Gaussian2D, Box1D, Moffat1D, Lorentz1D
     """
 
-    amplitude = Parameter(default=1)
-    mean = Parameter(default=0)
-    stddev = Parameter(default=1)
-
-    def bounding_box(self, factor=5.5):
-        """
-        Tuple defining the default ``bounding_box`` limits,
-        ``(x_low, x_high)``
-
-        Parameters
-        ----------
-        factor : float
-            The multiple of `stddev` used to define the limits.
-            The default is 5.5, corresponding to a relative error < 1e-7.
-
-        Examples
-        --------
-        >>> from astropy.modeling.models import Gaussian1D
-        >>> model = Gaussian1D(mean=0, stddev=2)
-        >>> model.bounding_box
-        (-11.0, 11.0)
-
-        This range can be set directly (see: `Model.bounding_box
-        <astropy.modeling.Model.bounding_box>`) or by using a different factor,
-        like:
-
-        >>> model.bounding_box = model.bounding_box(factor=2)
-        >>> model.bounding_box
-        (-4.0, 4.0)
-        """
-
-        x0 = self.mean.value
-        dx = factor * self.stddev
-
-        return (x0 - dx, x0 + dx)
-
     @staticmethod
     def evaluate(x, amplitude, mean, stddev):
         """
@@ -159,7 +168,7 @@ class Gaussian1D(Fittable1DModel):
         return [d_amplitude, d_mean, d_stddev]
 
 
-class GaussianAbsorption1D(Fittable1DModel):
+class GaussianAbsorption1D(BaseGaussian1D):
     """
     One dimensional Gaussian absorption line model.
 
@@ -202,41 +211,6 @@ class GaussianAbsorption1D(Fittable1DModel):
     --------
     Gaussian1D
     """
-
-    amplitude = Parameter(default=1)
-    mean = Parameter(default=0)
-    stddev = Parameter(default=1)
-
-    def bounding_box(self, factor=5.5):
-        """
-        Tuple defining the default ``bounding_box`` limits,
-        ``(x_low, x_high)``
-
-        Parameters
-        ----------
-        factor : float
-            The multiple of `stddev` used to define the limits.
-            The default is 5.5, corresponding to a relative error < 1e-7.
-
-        Examples
-        --------
-        >>> from astropy.modeling.models import Gaussian1D
-        >>> model = Gaussian1D(mean=0, stddev=2)
-        >>> model.bounding_box
-        (-11.0, 11.0)
-
-        This range can be set directly (see: ``help(model.bounding_box)``) or by
-        using a different factor, like:
-
-        >>> model.bounding_box = model.bounding_box(factor=2)
-        >>> model.bounding_box
-        (-4.0, 4.0)
-        """
-
-        x0 = self.mean.value
-        dx = factor * self.stddev
-
-        return (x0 - dx, x0 + dx)
 
     @staticmethod
     def evaluate(x, amplitude, mean, stddev):
