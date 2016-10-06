@@ -855,8 +855,9 @@ class FITS_rec(np.recarray):
             int_null_fill = encode_ascii(str(0).rjust(format.width))
             dummy = np.where(np.char.strip(dummy) == '', int_null_fill, dummy)
 
-        # If there's a blank string in a float column, fill in the nullval.
-        dummy = np.where(np.char.strip(dummy) == '', nullval, dummy)
+        # Replace blank values in float columns with nullval.
+        if format.startswith('F'):
+            dummy = np.where(np.char.strip(dummy) == '', nullval, dummy)
 
         try:
             dummy = np.array(dummy, dtype=recformat)
