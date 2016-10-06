@@ -2136,6 +2136,34 @@ class TestTableFunctions(FitsTestCase):
                          "the header may be missing the necessary TNULL1 "
                          "keyword or the table contains invalid data")
 
+    def test_ascii_number_null_value(self):
+        """Regression test for https://github.com/astropy/astropy/issues/5134"""
+
+        # Test an integer column with blank string as null
+        nullval = ' '
+        c1 = fits.Column('F1', format='I8', null=nullval,
+                        array=np.array([0, 1, 2, 3, 4]),
+                        ascii=True)
+        table = fits.TableHDU.from_columns([c1])
+        table.writeto(self.temp('ascii_null.fits'), clobber=True)
+
+        # Replace the 3rd row with a null field
+        with open(self.temp('ascii_null.fits'), mode='r+') as h:
+            nulled = h.read().replace('2       ', '        ')
+            h.seek(0)
+            h.write(nulled)
+
+        # Now try to open it
+        with fits.open(self.temp('ascii_null.fits'), memmap=True) as f:
+            assert f[1].data[2][0] == 0
+
+        ## Test a float column
+        #c2 = fits.Column('F1', format='F12.8', null='NaN',
+        #                 array=np.array([1.0, 2.0, '', 3.0]),
+        #                 ascii=True)
+        #table = fits.TableHDU.from_columns([c2])
+
+
     def test_column_array_type_mismatch(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/218"""
 
