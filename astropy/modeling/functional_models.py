@@ -159,7 +159,7 @@ class Gaussian1D(Fittable1DModel):
         return [d_amplitude, d_mean, d_stddev]
 
 
-class GaussianAbsorption1D(Fittable1DModel):
+class GaussianAbsorption1D(Gaussian1D):
     """
     One dimensional Gaussian absorption line model.
 
@@ -202,41 +202,6 @@ class GaussianAbsorption1D(Fittable1DModel):
     --------
     Gaussian1D
     """
-
-    amplitude = Parameter(default=1)
-    mean = Parameter(default=0)
-    stddev = Parameter(default=1)
-
-    def bounding_box(self, factor=5.5):
-        """
-        Tuple defining the default ``bounding_box`` limits,
-        ``(x_low, x_high)``
-
-        Parameters
-        ----------
-        factor : float
-            The multiple of `stddev` used to define the limits.
-            The default is 5.5, corresponding to a relative error < 1e-7.
-
-        Examples
-        --------
-        >>> from astropy.modeling.models import Gaussian1D
-        >>> model = Gaussian1D(mean=0, stddev=2)
-        >>> model.bounding_box
-        (-11.0, 11.0)
-
-        This range can be set directly (see: ``help(model.bounding_box)``) or by
-        using a different factor, like:
-
-        >>> model.bounding_box = model.bounding_box(factor=2)
-        >>> model.bounding_box
-        (-4.0, 4.0)
-        """
-
-        x0 = self.mean.value
-        dx = factor * self.stddev
-
-        return (x0 - dx, x0 + dx)
 
     @staticmethod
     def evaluate(x, amplitude, mean, stddev):
