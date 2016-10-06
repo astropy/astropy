@@ -290,6 +290,10 @@ Bug Fixes
 
   - Handle unicode FITS BinTable column names on Python 2 [#5204, #4805]
 
+  - Fix reading of float values from ASCII tables, that could be read as
+    float32 instead of float64 (with the E and F formats). These values are now
+    always read as float64. [#5362]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
