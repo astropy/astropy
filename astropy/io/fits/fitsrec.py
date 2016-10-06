@@ -848,6 +848,16 @@ class FITS_rec(np.recarray):
         null_fill = encode_ascii(str(ASCIITNULL).rjust(format.width))
         dummy = np.where(np.char.strip(dummy) == nullval, null_fill, dummy)
 
+        # If there's a blank string in a float column, fill in the nullval.
+        #dummy = np.where(np.char.strip(dummy) == '', nullval, dummy)
+
+        # But if the nullval itself is a blank string and it's an int column,
+        # it must be converted to a 0 before being loaded into the numpy array.
+        # The nullval for an empty string is the string 'None'.
+        if nullval == 'None' and format.startswith('I'):
+            int_null_fill = encode_ascii(str(0).rjust(format.width))
+            dummy = np.where(np.char.strip(dummy) == '', int_null_fill, dummy)
+
         try:
             dummy = np.array(dummy, dtype=recformat)
         except ValueError as exc:
