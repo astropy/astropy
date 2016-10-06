@@ -422,8 +422,7 @@ class TestBasic():
             Time('2000-01-02T03:04:05(UT(NIST)')
 
     def test_utc_leap_sec(self):
-        """Time behaves properly near or in UTC leap second.  This
-        uses the 2012-06-30 leap second for testing."""
+        """Time behaves properly near or in UTC leap second."""
         for year in ('2012', '2015'):
             # Start with a day without a leap second and note rollover
             t1 = Time(year + '-06-01 23:59:60.0', scale='utc')
@@ -446,6 +445,23 @@ class TestBasic():
             t0 = Time(year + '-06-30 23:59:59', scale='utc')
             t1 = Time(year + '-07-01 00:00:00', scale='utc')
             assert allclose_sec((t1 - t0).sec, 2.0)
+
+        t1 = Time('2016-12-31 23:59:59.900', scale='utc')
+        assert t1.iso == '2016-12-31 23:59:59.900'
+
+        t1 = Time('2016-12-31 23:59:60.000', scale='utc')
+        assert t1.iso == '2016-12-31 23:59:60.000'
+
+        t1 = Time('2016-12-31 23:59:60.999', scale='utc')
+        assert t1.iso == '2016-12-31 23:59:60.999'
+
+        t1 = Time('2016-12-31 23:59:61.0', scale='utc')
+        assert t1.iso == '2017-01-01 00:00:00.000'
+
+        # Delta time gives 2 seconds here as expected
+        t0 = Time('2016-12-31 23:59:59', scale='utc')
+        t1 = Time('2016-01-01 00:00:00', scale='utc')
+        assert allclose_sec((t1 - t0).sec, 2.0)
 
     def test_init_from_time_objects(self):
         """Initialize from one or more Time objects"""
