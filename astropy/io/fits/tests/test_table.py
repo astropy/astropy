@@ -2136,33 +2136,55 @@ class TestTableFunctions(FitsTestCase):
                          "the header may be missing the necessary TNULL1 "
                          "keyword or the table contains invalid data")
 
-    def test_ascii_number_null_value(self):
-        """Regression test for https://github.com/astropy/astropy/issues/5134"""
+    def test_ascii_column_null(self):
+        """Regression test for https://github.com/astropy/astropy/issues/5134
+
+        Blank values in numerical columns of ASCII tables should be replaced 
+        before being placed in numpy arrays.
+
+        (fitsverify reports that this is valid FITS.)
+
+        Null strings in integer columns with blank-string TNULL* values 
+        should be replaced with 0.
+        Null strings in float columns should be properly replaced with the
+        TNULL* value. 
+
+        TODO: What to do about blank-string TNULL* values for float cols?"""
 
         # Test an integer column with blank string as null
-        nullval = ' '
-        c1 = fits.Column('F1', format='I8', null=nullval,
+        nullval1 = ' '
+        
+        c1 = fits.Column('F1', format='I8', null=nullval1,
                         array=np.array([0, 1, 2, 3, 4]),
                         ascii=True)
         table = fits.TableHDU.from_columns([c1])
-        table.writeto(self.temp('ascii_null.fits'), clobber=True)
+        table.writeto(self.temp('ascii_null.fits'))
 
-        # Replace the 3rd row with a null field
+        # Replace the 1st col, 3rd row, with a null field.
         with open(self.temp('ascii_null.fits'), mode='r+') as h:
             nulled = h.read().replace('2       ', '        ')
             h.seek(0)
             h.write(nulled)
 
-        # Now try to open it
         with fits.open(self.temp('ascii_null.fits'), memmap=True) as f:
             assert f[1].data[2][0] == 0
 
-        ## Test a float column
-        #c2 = fits.Column('F1', format='F12.8', null='NaN',
-        #                 array=np.array([1.0, 2.0, '', 3.0]),
-        #                 ascii=True)
-        #table = fits.TableHDU.from_columns([c2])
+        # Test a float column with NaN as null.
+        nullval2 = 'NaN'
+        c2 = fits.Column('F1', format='F12.8', null=nullval2,
+                         array=np.array([1.0, 2.0, 3.0, 4.0]),
+                         ascii=True)
+        table = fits.TableHDU.from_columns([c2])
+        table.writeto(self.temp('ascii_null2.fits'))
 
+        # Replace the 1st col, 3rd row, with a null field.
+        with open(self.temp('ascii_null2.fits'), mode='r+') as h:
+            nulled = h.read().replace('3.00000000', '          ')
+            h.seek(0)
+            h.write(nulled)
+
+        with fits.open(self.temp('ascii_null2.fits'), memmap=True) as f:
+            assert np.isnan(f[1].data[2][0])
 
     def test_column_array_type_mismatch(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/218"""
