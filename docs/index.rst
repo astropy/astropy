@@ -128,7 +128,7 @@ If you want to get help or discuss issues with other Astropy users, you can sign
 up for the `astropy mailing list`_. Alternatively, the `astropy-dev mailing
 list`_ is where you should go to discuss more technical aspects of Astropy with
 the developers. You can also email the astropy developers privately at
-`astropy-feedback@googlegroups.com`_...but remember that questions you ask
+`feedback@astropy.org`_...but remember that questions you ask
 publicly serve as resources for other users!
 
 .. _reporting_issues:
@@ -145,7 +145,7 @@ account <https://github.com>`_ on GitHub if you do not have one.
 If you prefer not to create a GitHub account, please report the issue to either
 the `astropy mailing list`_, the `astropy-dev mailing list`_ or sending a
 private email to the astropy core developers at
-`astropy-feedback@googlegroups.com <mailto:astropy-feedback@googlegroups.com>`_.
+`feedback@astropy.org <mailto:feedback@astropy.org>`_.
 
 Please include an example that demonstrates the issue that will allow the
 developers to reproduce and fix the problem. You may be asked to also provide
@@ -227,4 +227,4 @@ Indices and Tables
 * :ref:`search`
 
 .. _astropy mailing list: http://mail.scipy.org/mailman/listinfo/astropy
-.. _astropy-feedback@googlegroups.com: mailto:astropy-feedback@googlegroups.com
+.. _feedback@astropy.org: mailto:feedback@astropy.org
