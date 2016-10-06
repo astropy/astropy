@@ -60,8 +60,8 @@ binary table, they are:
 
     Aw         Character string
     Iw         (Decimal) Integer
-    Fw.d       Single precision real
-    Ew.d       Single precision real, in exponential notation
+    Fw.d       Double precision real
+    Ew.d       Double precision real, in exponential notation
     Dw.d       Double precision real, in exponential notation
 
 where, w is the width, and d the number of digits after the decimal point. The
@@ -109,7 +109,7 @@ technically require a character width for each column, such as ``'I10'`` to
 create a column that can hold integers up to 10 characters wide.
 
 However, PyFITS allows the width specification to be omitted in some cases.
-When it is ommitted from ``'I'`` format columns the minimum width needed to
+When it is omitted from ``'I'`` format columns the minimum width needed to
 accurately represent all integers in the column is used.  The only problem with
 using this shortcut is its ambiguity with the binary table ``'I'`` format, so
 specifying ``ascii=True`` is a good practice (though PyFITS will still figure
