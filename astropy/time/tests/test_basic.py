@@ -460,7 +460,7 @@ class TestBasic():
 
         # Delta time gives 2 seconds here as expected
         t0 = Time('2016-12-31 23:59:59', scale='utc')
-        t1 = Time('2016-01-01 00:00:00', scale='utc')
+        t1 = Time('2017-01-01 00:00:00', scale='utc')
         assert allclose_sec((t1 - t0).sec, 2.0)
 
     def test_init_from_time_objects(self):
