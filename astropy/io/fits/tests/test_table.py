@@ -2142,7 +2142,7 @@ class TestTableFunctions(FitsTestCase):
         Blank values in numerical columns of ASCII tables should be replaced 
         before being placed in numpy arrays.
 
-        (fitsverify reports that this is valid FITS.)
+        (fitsverify reports that this is valid)
 
         Null strings in integer columns with blank-string TNULL* values 
         should be replaced with 0.
@@ -2162,7 +2162,7 @@ class TestTableFunctions(FitsTestCase):
 
         # Replace the 1st col, 3rd row, with a null field.
         with open(self.temp('ascii_null.fits'), mode='r+') as h:
-            nulled = h.read().replace('2       ', '        ')
+            nulled = h.read().replace(u'2       ', u'        ')
             h.seek(0)
             h.write(nulled)
 
@@ -2179,7 +2179,7 @@ class TestTableFunctions(FitsTestCase):
 
         # Replace the 1st col, 3rd row, with a null field.
         with open(self.temp('ascii_null2.fits'), mode='r+') as h:
-            nulled = h.read().replace('3.00000000', '          ')
+            nulled = h.read().replace(u'3.00000000', u'          ')
             h.seek(0)
             h.write(nulled)
 
