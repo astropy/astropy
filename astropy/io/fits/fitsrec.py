@@ -851,13 +851,13 @@ class FITS_rec(np.recarray):
         # But if the nullval itself is a blank string and it's an int column,
         # it must be converted to a 0 before being loaded into the numpy array.
         # The nullval for an empty string is the string 'None'.
-        if nullval == 'None' and format.startswith('I'):
+        if nullval == b'None' and format.startswith('I'):
             int_null_fill = encode_ascii(str(0).rjust(format.width))
-            dummy = np.where(np.char.strip(dummy) == '', int_null_fill, dummy)
+            dummy = np.where(np.char.strip(dummy) == b'', int_null_fill, dummy)
 
         # Replace blank values in float columns with nullval.
         if format.startswith('F'):
-            dummy = np.where(np.char.strip(dummy) == '', nullval, dummy)
+            dummy = np.where(np.char.strip(dummy) == b'', nullval, dummy)
 
         try:
             dummy = np.array(dummy, dtype=recformat)
