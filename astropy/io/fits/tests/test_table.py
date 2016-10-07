@@ -2142,7 +2142,7 @@ class TestTableFunctions(FitsTestCase):
         Blank values in numerical columns of ASCII tables should be replaced
         before being placed in numpy arrays.
 
-        Null strings in integer columns with blank-string TNULL* values 
+        Null strings in integer columns with blank-string TNULL* values
         should be replaced with 0.
         Null strings in float columns should be properly replaced with the
         TNULL* value."""
