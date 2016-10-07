@@ -2139,24 +2139,20 @@ class TestTableFunctions(FitsTestCase):
     def test_ascii_column_null(self):
         """Regression test for https://github.com/astropy/astropy/issues/5134
 
-        Blank values in numerical columns of ASCII tables should be replaced 
+        Blank values in numerical columns of ASCII tables should be replaced
         before being placed in numpy arrays.
-
-        (fitsverify reports that this is valid)
 
         Null strings in integer columns with blank-string TNULL* values 
         should be replaced with 0.
         Null strings in float columns should be properly replaced with the
-        TNULL* value. 
-
-        TODO: What to do about blank-string TNULL* values for float cols?"""
+        TNULL* value."""
 
         # Test an integer column with blank string as null
-        nullval1 = ' '
-        
+        nullval1 = u' '
+
         c1 = fits.Column('F1', format='I8', null=nullval1,
-                        array=np.array([0, 1, 2, 3, 4]),
-                        ascii=True)
+                         array=np.array([0, 1, 2, 3, 4]),
+                         ascii=True)
         table = fits.TableHDU.from_columns([c1])
         table.writeto(self.temp('ascii_null.fits'))
 
