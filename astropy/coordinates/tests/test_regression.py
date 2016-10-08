@@ -275,3 +275,11 @@ def test_regression_4926():
     # and some others to increase coverage of transforms
     moon.transform_to(HCRS(obstime="J2000"))
     moon.transform_to(HCRS(obstime=times))
+
+
+def test_regression_5209():
+    "check that distances are not lost on SkyCoord init"
+    time = Time('2015-01-01')
+    moon = get_moon(time)
+    new_coord = SkyCoord([moon])
+    assert_quantity_allclose(new_coord[0].distance, moon.distance)

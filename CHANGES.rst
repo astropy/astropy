@@ -189,6 +189,9 @@ Bug Fixes
     ``get_moon`` and ``get_sun`` now work with non-scalar times and a
     non-geocentric observer. [#5253]
 
+  - Initialising a SkyCoord from a list containing a single SkyCoord no longer removes
+    the distance from the coordinate. [#5270]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
