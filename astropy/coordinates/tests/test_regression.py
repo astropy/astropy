@@ -12,7 +12,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 
 from ... import units as u
-from .. import AltAz, EarthLocation, SkyCoord, get_sun, ICRS
+from .. import AltAz, EarthLocation, SkyCoord, get_sun, ICRS, GCRS
 from ...time import Time
 
 from ...tests.helper import pytest, assert_quantity_allclose
@@ -143,3 +143,14 @@ def test_regression_4996():
 
     # this is intentially not allclose - they should be *exactly* the same
     assert np.all(suncoo.ra.ravel() == suncoo2.ra.ravel())
+
+
+def test_regression_5209():
+    "check that distances are not lost on SkyCoord init"
+    time = Time('2015-01-01')
+    # this regression test was written for a later astropy with get_moon, but we
+    # can just mock it up
+    #moon = get_moon(time)
+    moon = GCRS(10*u.deg, 20*u.deg, distance=384000*u.km, obstime=time)
+    new_coord = SkyCoord([moon])
+    assert_quantity_allclose(new_coord[0].distance, moon.distance)
