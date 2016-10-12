@@ -372,6 +372,17 @@ Under Python 3 you can use the annotations syntax to provide the units:
     >>> myfunction(100*u.arcsec)  # doctest: +SKIP
     Unit("arcsec")
 
+Representing vectors with units
+-------------------------------
+
+|quantity| objects can, like numpy arrays, be used to represent vectors or
+matrices by assigning specific dimensions to represent the coordinates or
+matrix elements, but that implies tracking those dimensions carefully. For
+vectors, one can use instead the representations underlying coordinates, which
+allow one to use representations other than cartesian (such as spherical or
+cylindrical), as well as simple vector arithmetic.  For details, see
+:ref:`astropy-coordinates-representations`.
+
 Known issues with conversion to numpy arrays
 --------------------------------------------
 
