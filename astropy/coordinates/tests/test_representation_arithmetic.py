@@ -29,6 +29,8 @@ class TestArithmetic():
     """Test absolute value, multiplication, and division."""
 
     def setup(self):
+        # Choose some specific coordinates, for which ``sum`` and ``dot``
+        # works out nicely.
         self.lon = Longitude(np.arange(0, 12.1, 2), u.hourangle)
         self.lat = Latitude(np.arange(-90, 91, 30), u.deg)
         self.distance = [5., 12., 4., 2., 4., 12., 5.] * u.kpc
