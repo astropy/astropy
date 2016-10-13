@@ -16,6 +16,8 @@ from .. import registry as io_registry
 from ...table import Table
 from ...extern.six.moves import zip, range
 from ...extern.six import StringIO
+from .. import ascii
+
 
 _READERS_ORIGINAL = copy(_readers)
 _WRITERS_ORIGINAL = copy(_writers)
@@ -307,6 +309,30 @@ def test_register_readers_with_same_name_on_different_classes():
     assert isinstance(t, TestData)
     tbl = Table.read(format='test')
     assert isinstance(tbl, Table)
+
+def test_write_table_html():
+    """passing fill_values should replace any matching row"""
+    buffer_output = StringIO()
+    t = Table([[1], [2]], names=('a', 'b'))
+    ascii.write(t, buffer_output, fill_values=('1', 'Hello world'), format='html')
+
+    t_expected = Table([['Hello world'], [2]], names=('a', 'b'))
+    buffer_expected = StringIO()
+    ascii.write(t_expected, buffer_expected, format='html')
+
+    assert buffer_output.getvalue() == buffer_expected.getvalue()
+
+def test_write_table_html_optional_columns():
+    """passing optional column in fill_values should only replace matching columns"""
+    buffer_output = StringIO()
+    t = Table([[1], [1]], names=('a', 'b'))
+    ascii.write(t, buffer_output, fill_values=('1', 'Hello world', 'b'), format='html')
+
+    t_expected = Table([[1], ['Hello world']], names=('a', 'b'))
+    buffer_expected = StringIO()
+    ascii.write(t_expected, buffer_expected, format='html')
+
+    assert buffer_output.getvalue() == buffer_expected.getvalue()
 
 
 def teardown_function(function):
