@@ -70,7 +70,7 @@ supported by the basic `~astropy.modeling.custom_model` factory function.
 
 The details are explained below with a 1-D Gaussian model as an example.  There
 are two base classes for models. If the model is fittable, it should inherit
-from `~astropy.modeling.FittableModel`; if not it should subclass
+from `~astropy.modeling.Fittable1DModel`; if not it should subclass
 `~astropy.modeling.Model`.
 
 If the model takes parameters they should be specified as class attributes in
@@ -86,9 +86,9 @@ example if it must be non-negative).  See the example in
 
 ::
 
-    from astropy.modeling import FittableModel, Parameter
+    from astropy.modeling import Fittable1DModel, Parameter
 
-    class Gaussian1D(FittableModel):
+    class Gaussian1D(Fittable1DModel):
         inputs = ('x',)
         outputs = ('y',)
 
@@ -209,9 +209,9 @@ Full example
 
 .. code-block:: python
 
-    from astropy.modeling import FittableModel, Parameter
+    from astropy.modeling import Fittable1DModel, Parameter
 
-    class Gaussian1D(FittableModel):
+    class Gaussian1D(Fittable1DModel):
         amplitude = Parameter()
         mean = Parameter()
         stddev = Parameter()
@@ -244,10 +244,10 @@ input``.
 
 .. code-block:: python
 
-    from astropy.modeling import FittableModel, Parameter
+    from astropy.modeling import Fittable1DModel, Parameter
     import numpy as np
 
-    class LineModel(FittableModel):
+    class LineModel(Fittable1DModel):
         slope = Parameter()
         intercept = Parameter()
         linear = True
