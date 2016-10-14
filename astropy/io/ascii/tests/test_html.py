@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
@@ -695,3 +697,15 @@ def test_multi_column_write_table_html_fill_values_masked():
     print(buffer_expected.getvalue())
 
     assert buffer_output.getvalue() == buffer_expected.getvalue()
+
+@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+def test_read_html_unicode():
+    """
+    Test reading an HTML table with unicode values
+    """
+    table_in = [u'<table>',
+                u'<tr><td>&#x0394;</td></tr>',
+                u'<tr><td>Δ</td></tr>',
+                u'</table>']
+    dat = Table.read(table_in, format='ascii.html')
+    assert np.all(dat['col1'] == [u'Δ', u'Δ'])
