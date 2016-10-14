@@ -70,7 +70,7 @@ supported by the basic `~astropy.modeling.custom_model` factory function.
 
 The details are explained below with a 1-D Gaussian model as an example.  There
 are two base classes for models. If the model is fittable, it should inherit
-from `~astropy.modeling.Fittable1DModel`; if not it should subclass
+from `~astropy.modeling.FittableModel`; if not it should subclass
 `~astropy.modeling.Model`.
 
 If the model takes parameters they should be specified as class attributes in
