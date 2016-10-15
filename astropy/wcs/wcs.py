@@ -46,7 +46,7 @@ import numpy as np
 # LOCAL
 from .. import log
 from ..extern import six
-from ..extern.six.moves import range, zip, map
+from ..extern.six.moves import range, zip, map, builtins
 from ..io import fits
 from . import _docutil as __
 try:
@@ -2954,7 +2954,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 else:
                     wcs_new.wcs.crpix[wcs_index] -= iview.start
 
-            nitems = len(range(self._naxis[wcs_index])[iview])
+            nitems = len(builtins.range(self._naxis[wcs_index])[iview])
             wcs_new._naxis[wcs_index] = nitems
 
         return wcs_new
