@@ -34,7 +34,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import copy
 import io
 import itertools
-import math
 import os
 import re
 import textwrap
@@ -2722,8 +2721,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 s += sfmt
                 description.append(s.format(*self.wcs.cd[i]))
 
-        description.append('NAXIS    : {0!r} {1!r}'.format(self._naxis1,
-                           self._naxis2))
+        description.append('NAXIS : {}'.format('  '.join(map(str, self._naxis))))
         return '\n'.join(description)
 
     def get_axis_types(self):
@@ -2955,6 +2953,10 @@ reduce these to 2 dimensions using the naxis kwarg.
                     wcs_new.wcs.cdelt[wcs_index] = cdelt * iview.step
                 else:
                     wcs_new.wcs.crpix[wcs_index] -= iview.start
+
+            nitems = len(range(self._naxis[wcs_index])[iview])
+            wcs_new._naxis[wcs_index] = nitems
+
         return wcs_new
 
     def __getitem__(self, item):

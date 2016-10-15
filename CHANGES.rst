@@ -353,6 +353,9 @@ Bug Fixes
 
   - Improved log messages in ``to_header``. [#5239]
 
+  - Update the ``_naxisx`` attributes when calling ``WCS.slice``. [#5411]
+
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
