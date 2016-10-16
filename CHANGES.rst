@@ -24,6 +24,8 @@ New Features
 
 - ``astropy.io.ascii``
 
+  - Allow reading HTML tables with unicode column values in Python 2.7. [#5410]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``
