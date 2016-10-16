@@ -37,7 +37,7 @@ def logarithmic():
     """Allow logarithmic units to be converted to dimensionless fractions"""
     return [
         (dimensionless_unscaled, function_units.dex,
-         lambda x: np.log10(x), lambda x: 10.**x)
+         np.log10, lambda x: 10.**x)
     ]
 
 
