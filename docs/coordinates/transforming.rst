@@ -114,10 +114,5 @@ manager, as shown below:
 For locations at large distances from the Solar system, using the JPL ephemerides will make a
 negligible difference, on the order of micro-arcseconds. For nearby objects, such as the Moon,
 the difference can be of the order of milli-arcseconds. For more details about what ephemerides
-are available, see :ref:`astropy-coordinates-solarsystem`.
+are available, including the requirements for using JPL ephemerides, see :ref:`astropy-coordinates-solarsystem`.
 
-.. note::
-   Using JPL ephemerides requires that the `jplephem
-   <https://pypi.python.org/pypi/jplephem>`_ package be installed. This is
-   most easily achieved via ``pip install jplephem``, although whatever
-   package management system you use might have it as well.
