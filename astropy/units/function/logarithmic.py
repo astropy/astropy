@@ -70,9 +70,9 @@ class LogUnit(FunctionUnitBase):
         # u.dex, and u.dB are OK, i.e., other does not have to be LogUnit
         # (this will indirectly test whether other is a unit at all).
         try:
-            self._function_unit._to(getattr(other, 'function_unit', other))
+            getattr(other, 'function_unit', other)._to(self._function_unit)
         except AttributeError:
-            # if other is not a unit (_to cannot decompose).
+            # if other is not a unit (i.e., does not have _to).
             return NotImplemented
         except UnitsError:
             raise UnitsError("Can only add/subtract logarithmic units of"
