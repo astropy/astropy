@@ -4,6 +4,7 @@
 
 from __future__ import division, with_statement
 
+import copy
 import warnings
 import collections
 
@@ -22,6 +23,21 @@ from . import FitsTestCase
 from ..card import _pad
 from ..header import _pad_length
 from ..util import encode_ascii
+
+
+def test_shallow_copy():
+    """Make sure that operations on a shallow copy do not alter the original.
+    #4990."""
+    original_header = fits.Header([('a', 1), ('b', 1)])
+    copied_header = copy.copy(original_header)
+
+    # Modifying the original dict should not alter the copy
+    original_header['c'] = 100
+    assert 'c' not in copied_header
+
+    # and changing the copy should not change the original.
+    copied_header['a'] = 0
+    assert original_header['a'] == 1
 
 
 def test_init_with_dict():
