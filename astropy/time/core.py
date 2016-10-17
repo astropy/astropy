@@ -574,8 +574,9 @@ class Time(ShapedLikeNDArray):
             If no location is given, the ``location`` attribute of the Time
             object is used
         ephemeris : str, optional
-            Solar system ephemeris to use. By default, use the one set with
-            ``astropy.coordinates.solar_system_ephemeris.set``
+            Solar system ephemeris to use (e.g., 'builtin', 'jpl'). By default,
+            use the one set with ``astropy.coordinates.solar_system_ephemeris.set``.
+            For more information, see `~astropy.coordinates.solar_system_ephemeris`.
 
         Returns
         -------
