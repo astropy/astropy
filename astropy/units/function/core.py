@@ -14,10 +14,10 @@ from .. import (Unit, UnitBase, UnitsError, UnitTypeError,
 
 __all__ = ['FunctionUnitBase', 'FunctionQuantity']
 
-SUPPORTED_UFUNCS = set([getattr(np.core.umath, ufunc) for ufunc in (
+SUPPORTED_UFUNCS = set(getattr(np.core.umath, ufunc) for ufunc in (
     'isfinite', 'isinf', 'isnan', 'sign', 'signbit',
     'rint', 'floor', 'ceil', 'trunc', 'power',
-    '_ones_like', 'ones_like') if hasattr(np.core.umath, ufunc)])
+    '_ones_like', 'ones_like') if hasattr(np.core.umath, ufunc))
 
 # TODO: the following could work if helper changed relative to Quantity:
 # - spacing should return dimensionless, not same unit
