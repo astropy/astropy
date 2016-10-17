@@ -599,10 +599,6 @@ class Time(ShapedLikeNDArray):
         from ..coordinates import (UnitSphericalRepresentation, CartesianRepresentation,
                                    HCRS, ICRS, GCRS, solar_system_ephemeris)
 
-        # get the ephemeris for later (we don't want to set it to None)
-        if ephemeris is None:
-            ephemeris = solar_system_ephemeris.get()
-
         # ensure sky location is ICRS compatible
         if not skycoord.is_transformable_to(ICRS()):
             raise ValueError("Given skycoord is not transformable to the ICRS")
