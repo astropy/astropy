@@ -20,7 +20,42 @@ from .icrs import ICRS
 from .gcrs import GCRS
 from .cirs import CIRS
 from .hcrs import HCRS
-from .utils import get_jd12, aticq, atciqz, get_cip, prepare_earth_position_vel
+from .utils import get_jd12, aticq, atciqz, get_cip
+
+
+# utility function for transforms
+def prepare_earth_position_vel(time):
+    """
+    Get barycentric position and velocity, and heliocentric position of Earth
+
+    Parameters
+    -----------
+    time : `~astropy.time.Time`
+        time at which to calculate position and velocity of Earth
+
+    Returns
+    --------
+    earth_pv : `np.ndarray`
+        Barycentric position and velocity of Earth, in au and au/day
+    earth_helio : `np.ndarray`
+        Heliocentric position of Earth in au
+    """
+    # this goes here to avoid circular import errors
+    from ..solar_system import (get_body_barycentric, get_body_barycentric_posvel,
+                                solar_system_ephemeris)
+    # get barycentric position and velocity of earth
+    ephemeris = solar_system_ephemeris.get()
+    earth_pv = get_body_barycentric_posvel('earth', time, ephemeris=ephemeris)
+
+    # get heliocentric position of earth
+    sun = get_body_barycentric('sun', time, ephemeris=ephemeris)
+    earth_heliocentric = (earth_pv[0].xyz - sun.xyz).to(u.au)
+
+    # prepare to pass to erfa
+    earth_pv = np.array([earth_pv[0].xyz.to(u.au), earth_pv[1].xyz.to(u.au/u.d)])
+    earth_pv = np.rollaxis(np.rollaxis(earth_pv, 0, earth_pv.ndim), 0, earth_pv.ndim)
+    earth_heliocentric = np.rollaxis(earth_heliocentric, 0, earth_heliocentric.ndim)
+    return earth_pv, earth_heliocentric
 
 
 # First the ICRS/CIRS related transforms
