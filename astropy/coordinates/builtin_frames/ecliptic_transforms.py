@@ -71,9 +71,8 @@ def icrs_to_helioecliptic(from_coo, to_frame):
 
     # get barycentric sun coordinate
     # this goes here to avoid circular import errors
-    from ..solar_system import get_body_barycentric, solar_system_ephemeris
-    ephemeris = solar_system_ephemeris.get()
-    bary_sun_pos = get_body_barycentric('sun', to_frame.equinox, ephemeris=ephemeris)
+    from ..solar_system import get_body_barycentric
+    bary_sun_pos = get_body_barycentric('sun', to_frame.equinox)
 
     # offset to heliocentric
     heliocart = CartesianRepresentation(from_coo.cartesian.x + bary_sun_pos.x, from_coo.cartesian.y + bary_sun_pos.y,
@@ -98,11 +97,10 @@ def helioecliptic_to_icrs(from_coo, to_frame):
     # now offset back to barycentric, which is the correct center for ICRS
 
     # this goes here to avoid circular import errors
-    from ..solar_system import get_body_barycentric, solar_system_ephemeris
+    from ..solar_system import get_body_barycentric
 
     # get barycentric sun coordinate
-    ephemeris = solar_system_ephemeris.get()
-    bary_sun_pos = get_body_barycentric('sun', from_coo.equinox, ephemeris=ephemeris)
+    bary_sun_pos = get_body_barycentric('sun', from_coo.equinox)
 
     newrepr = CartesianRepresentation(intermed_repr.x - bary_sun_pos.x, intermed_repr.y - bary_sun_pos.y,
                                       intermed_repr.z - bary_sun_pos.z)
