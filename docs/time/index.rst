@@ -901,10 +901,14 @@ calculate light travel times to the barycentre as follows::
     >>> times = time.Time([56325.95833333, 56325.978254], format='mjd',
     ...                   scale='utc', location=greenwich)
     >>> ltt_bary = times.light_travel_time(ip_peg)
+    >>> ltt_bary
+    <TimeDelta object: scale='tdb' format='jd' value=[-0.0037715  -0.00377286]>
 
 If you desire the light travel time to the heliocentre instead then use::
 
     >>> ltt_helio = times.light_travel_time(ip_peg, 'heliocentric')
+    >>> ltt_helio
+    <TimeDelta object: scale='tdb' format='jd' value=[-0.00376576 -0.00376712]>
 
 The method returns an |TimeDelta| object, which can be added to
 your times to give the arrival time of the photons at the barycentre or
@@ -936,6 +940,10 @@ dynamical models). An example using the JPL ephemerides is:
 .. doctest-requires:: jplephem
 
     >>> ltt_bary_jpl = times.light_travel_time(ip_peg, ephemeris='jpl') # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    >>> ltt_bary_jpl # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    <TimeDelta object: scale='tdb' format='jd' value=[-0.0037715  -0.00377286]> # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    >>> (ltt_bary_jpl - ltt_bary).to(u.ms) # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    <Quantity [-0.00132325,-0.00132861] ms> # doctest: +REMOTE_DATA +IGNORE_OUTPUT
 
 The difference between the builtin ephemerides and the JPL ephemerides is normally
 of the order of 1/100th of a millisecond, so the builtin ephemerides should be suitable
