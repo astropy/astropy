@@ -107,29 +107,21 @@ class _Tabular(Model):
                                  "{0} dimensions".format(self.lookup_table.ndim))
             self.lookup_table = lookup_table
         if points is None:
-            self._points = tuple(np.arange(x, dtype=np.float)
-                                 for x in self.lookup_table.shape)
+            self.points = tuple(np.arange(x, dtype=np.float)
+                                for x in self.lookup_table.shape)
         else:
-            if self.lookup_table.ndim == 1:
-                self._points = (points,)
+            if self.lookup_table.ndim == 1 and not isinstance(points, tuple):
+                self.points = (points,)
             else:
-                self._points = points
-            if len(self._points) != self.lookup_table.ndim:
+                self.points = points
+            if len(self.points) != self.lookup_table.ndim:
                 raise ValueError("Expected grid points in "
                                  "{0} directions, got {1}".format(self.lookup_table.ndim,
-                                                                  len(self._points)))
+                                                                  len(self.points)))
 
         self.bounds_error = bounds_error
         self.method = method
         self.fill_value = fill_value
-
-    @property
-    def points(self):
-        """
-        An iterable of points defining the values in the lookup table.
-        """
-
-        return np.squeeze(self._points)
 
     def __repr__(self):
         fmt = "<{0}(points={1}, lookup_table={2})>".format(self.__class__.__name__,
@@ -174,7 +166,7 @@ class _Tabular(Model):
         ((2, 4), (1, 3))
 
         """
-        bbox = [(min(p), max(p)) for p in self._points][::-1]
+        bbox = [(min(p), max(p)) for p in self.points][::-1]
         if len(bbox) == 1:
             bbox = bbox[0]
         return tuple(bbox)
@@ -192,7 +184,7 @@ class _Tabular(Model):
         inputs = np.array(inputs[: self.n_inputs]).T
         if not has_scipy:
             raise ImportError("This model requires scipy >= v0.14")
-        return interpn(self._points, self.lookup_table, inputs,
+        return interpn(self.points, self.lookup_table, inputs,
                        method=self.method, bounds_error=self.bounds_error,
                        fill_value=self.fill_value)
 
