@@ -304,7 +304,8 @@ def hcrs_to_icrs(hcrs_coo, icrs_frame):
     from ..solar_system import get_body_barycentric
     bary_sun_pos = get_body_barycentric('sun', hcrs_coo.obstime)
     hcrs_cart = hcrs_coo.cartesian
-    newrep = CartesianRepresentation(hcrs_cart.x + bary_sun_pos.x, hcrs_cart.y + bary_sun_pos.y,
+    newrep = CartesianRepresentation(hcrs_cart.x + bary_sun_pos.x,
+                                     hcrs_cart.y + bary_sun_pos.y,
                                      hcrs_cart.z + bary_sun_pos.z)
     return icrs_frame.realize_frame(newrep)
 
@@ -319,7 +320,8 @@ def icrs_to_hcrs(icrs_coo, hcrs_frame):
     from ..solar_system import get_body_barycentric
     bary_sun_pos = get_body_barycentric('sun', hcrs_frame.obstime)
     icrs_cart = icrs_coo.cartesian
-    newrep = CartesianRepresentation(icrs_cart.x - bary_sun_pos.x, icrs_cart.y - bary_sun_pos.y,
+    newrep = CartesianRepresentation(icrs_cart.x - bary_sun_pos.x,
+                                     icrs_cart.y - bary_sun_pos.y,
                                      icrs_cart.z - bary_sun_pos.z)
     return hcrs_frame.realize_frame(newrep)
 
