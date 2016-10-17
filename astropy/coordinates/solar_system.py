@@ -109,6 +109,9 @@ class solar_system_ephemeris(ScienceState):
 
     @classmethod
     def validate(cls, value):
+        # make no changes if value is None
+        if value is None:
+            return cls._value
         # Set up Kernel; if the file is not in cache, this will download it.
         cls.get_kernel(value)
         return value
