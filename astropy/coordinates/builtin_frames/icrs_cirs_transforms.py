@@ -159,7 +159,6 @@ def cirs_to_cirs(from_coo, to_frame):
 
 @frame_transform_graph.transform(FunctionTransform, ICRS, GCRS)
 def icrs_to_gcrs(icrs_coo, gcrs_frame):
-
     # first set up the astrometry context for ICRS<->GCRS
     pv = np.array([gcrs_frame.obsgeoloc.xyz.value,
                    gcrs_frame.obsgeovel.xyz.value])
@@ -309,9 +308,14 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
                                               copy=False)
 
         newxyz = intermedrep.to_cartesian().xyz
-        # roll astrom['eh'] to the first axis and scale
+
+        # astrom['eh'] and astrom['em'] contain Sun to observer unit vector,
+        # and distance, respectively. Shapes are (X) and (X,3), where (X) is the
+        # shape resulting from broadcasting the shape of the times object
+        # against the shape of the pv array.
+        # roll 3-vector of astrom['eh'] to the first axis and scale
         eh = np.rollaxis(astrom['eh'], -1, 0) * astrom['em'] * u.au
-        # roll astrom['eh'] back to the last axis
+        # roll 3-vector of astrom['eh'] back to the last axis
         eh = np.rollaxis(eh, 0, eh.ndim)
 
         # roll xyz to last axis and add the heliocentre position
