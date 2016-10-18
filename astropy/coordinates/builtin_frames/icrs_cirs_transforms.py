@@ -52,7 +52,7 @@ def prepare_earth_position_vel(time):
     # prepare to pass to erfa
     earth_pv = np.array([earth_pv[0].xyz.to(u.au), earth_pv[1].xyz.to(u.au/u.d)])
     earth_pv = np.rollaxis(np.rollaxis(earth_pv, 0, earth_pv.ndim), 0, earth_pv.ndim)
-    earth_heliocentric = np.rollaxis(earth_heliocentric, 0, earth_heliocentric.ndim)
+    earth_heliocentric = np.rollaxis(earth_heliocentric.value, 0, earth_heliocentric.ndim)
     return earth_pv, earth_heliocentric
 
 
