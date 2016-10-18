@@ -9,6 +9,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 from ...extern import six
 from ...extern.six.moves import zip
 
+import pickle
 import itertools
 import numpy as np
 from numpy.testing.utils import assert_allclose
@@ -54,8 +55,14 @@ class TestLogUnitCreation(object):
         assert lu1.physical_unit == physical_unit
         assert lu1.function_unit == lu1._default_function_unit
 
-    @pytest.mark.parametrize('lu_cls, physical_unit',
-                             itertools.product(lu_subclasses, pu_sample))
+    def test_call_invalid_unit(self):
+        with pytest.raises(TypeError):
+            u.mag([])
+        with pytest.raises(ValueError):
+            u.mag(u.mag())
+
+    @pytest.mark.parametrize('lu_cls, physical_unit', itertools.product(
+        lu_subclasses + [u.LogUnit], pu_sample))
     def test_subclass_creation(self, lu_cls, physical_unit):
         """Create a LogUnit subclass object for given physical unit,
         and do basic check that output is right."""
@@ -134,6 +141,7 @@ class TestLogUnitStrings(object):
         assert lu4.to_string('generic') == 'mag(ct)'
         assert lu4.to_string('latex') == ('$\\mathrm{mag}$$\\mathrm{\\left( '
                                           '\\mathrm{ct} \\right)}$')
+        assert lu4._repr_latex_() == lu4.to_string('latex')
 
 
 class TestLogUnitConversion(object):
@@ -212,6 +220,19 @@ class TestLogUnitConversion(object):
         with pytest.raises(u.UnitsError):
             flu.to(tlu4, values)
 
+    def test_unit_decomposition(self):
+        lu = u.mag(u.Jy)
+        assert lu.decompose() == u.mag(u.Jy.decompose())
+        assert lu.decompose().physical_unit.bases == [u.kg, u.s]
+        assert lu.si == u.mag(u.Jy.si)
+        assert lu.si.physical_unit.bases == [u.kg, u.s]
+        assert lu.cgs == u.mag(u.Jy.cgs)
+        assert lu.cgs.physical_unit.bases == [u.g, u.s]
+
+    def test_unit_multiple_possible_equivalencies(self):
+        lu = u.mag(u.Jy)
+        assert lu.is_equivalent(pu_sample)
+
 
 class TestLogUnitArithmetic(object):
     def test_multiplication_division(self):
@@ -269,6 +290,16 @@ class TestLogUnitArithmetic(object):
         assert not isinstance(t3, type(lu2))
         assert t3 == u.m
 
+        # For completeness, also ensure non-sensical operations fail
+        with pytest.raises(TypeError):
+            lu1 * object()
+        with pytest.raises(TypeError):
+            slice(None) * lu1
+        with pytest.raises(TypeError):
+            lu1 / []
+        with pytest.raises(TypeError):
+            1 / lu1
+
     @pytest.mark.parametrize('power', (2, 0.5, 1, 0))
     def test_raise_to_power(self, power):
         """Check that raising LogUnits to some power is only possible when the
@@ -314,6 +345,14 @@ class TestLogUnitArithmetic(object):
         with pytest.raises(u.UnitsError):
             other - lu1
 
+    def test_addition_subtraction_to_non_units_fails(self):
+        lu1 = u.mag(u.Jy)
+        with pytest.raises(TypeError):
+            lu1 + 1.
+
+        with pytest.raises(TypeError):
+            lu1 - [1.,2.,3.]
+
     @pytest.mark.parametrize(
         'other', (u.mag, u.mag(), u.mag(u.Jy), u.mag(u.m),
                   u.Unit(2*u.mag), u.MagUnit('', 2.*u.mag)))
@@ -341,10 +380,38 @@ class TestLogUnitArithmetic(object):
         lu_absST = u.STmag - lu_dm
         assert lu_absST.is_equivalent(u.erg/u.s/u.AA)
 
+    def test_neg_pos(self):
+        lu1 = u.mag(u.Jy)
+        neg_lu = -lu1
+        assert neg_lu != lu1
+        assert neg_lu.physical_unit == u.Jy**-1
+        assert -neg_lu == lu1
+        pos_lu = +lu1
+        assert pos_lu is not lu1
+        assert pos_lu == lu1
+
+
+def test_pickle():
+    lu1 = u.dex(u.cm/u.s**2)
+    s = pickle.dumps(lu1)
+    lu2 = pickle.loads(s)
+    assert lu1 == lu2
+
+
+def test_hashable():
+    lu1 = u.dB(u.mW)
+    lu2 = u.dB(u.m)
+    lu3 = u.dB(u.mW)
+    assert hash(lu1) != hash(lu2)
+    assert hash(lu1) == hash(lu3)
+    luset = {lu1, lu2, lu3}
+    assert len(luset) == 2
+
 
 class TestLogQuantityCreation(object):
 
-    @pytest.mark.parametrize('lq, lu', zip(lq_subclasses, lu_subclasses))
+    @pytest.mark.parametrize('lq, lu', zip(lq_subclasses + [u.LogQuantity],
+                                           lu_subclasses + [u.LogUnit]))
     def test_logarithmic_quantities(self, lq, lu):
         """Check logarithmic quantities are all set up correctly"""
         assert lq._unit_class == lu
@@ -372,6 +439,17 @@ class TestLogQuantityCreation(object):
         assert q.unit.function_unit == getattr(unit, 'function_unit', unit)
         assert q.unit.physical_unit is getattr(unit, 'physical_unit',
                                                u.dimensionless_unscaled)
+    @pytest.mark.parametrize('value, unit', (
+        (1.*u.mag(u.Jy), None),
+        (1.*u.dex(u.Jy), None),
+        (1.*u.mag(u.W/u.m**2/u.Hz), u.mag(u.Jy)),
+        (1.*u.dex(u.W/u.m**2/u.Hz), u.mag(u.Jy))))
+    def test_function_values(self, value, unit):
+        lq = u.Magnitude(value, unit)
+        assert lq == value
+        assert lq.unit.function_unit == u.mag
+        assert lq.unit.physical_unit == getattr(unit, 'physical_unit',
+                                                value.unit.physical_unit)
 
     @pytest.mark.parametrize(
         'unit', (u.mag(), u.mag(u.Jy), u.mag(u.m), u.MagUnit('', 2.*u.mag),
@@ -382,11 +460,26 @@ class TestLogQuantityCreation(object):
         assert q1.value == 2.5
         assert q1.unit == unit
         pv = 100. * unit.physical_unit
-        q2 = pv * unit
+        q2 = unit * pv
         assert q2.unit == unit
         assert q2.unit.physical_unit == pv.unit
         assert q2.to(unit.physical_unit).value == 100.
         assert (q2._function_view / u.mag).to(1).value == -5.
+        q3 = unit / 0.4
+        assert q3 == q1
+
+    def test_from_view(self):
+        # Cannot view a physical quantity as a function quantity, since the
+        # values would change.
+        q = [100., 1000.] * u.cm/u.s**2
+        with pytest.raises(TypeError):
+            q.view(u.Dex)
+        # But fine if we have the right magnitude.
+        q = [2., 3.] * u.dex
+        lq = q.view(u.Dex)
+        assert isinstance(lq, u.Dex)
+        assert lq.unit.physical_unit == u.dimensionless_unscaled
+        assert np.all(q == lq)
 
 
 def test_conversion_to_and_from_physical_quantities():
@@ -404,6 +497,16 @@ def test_conversion_to_and_from_physical_quantities():
     assert isinstance(mst_roundtrip2, u.Magnitude)
     assert mst_roundtrip2.unit == mst.unit
     assert_allclose(mst_roundtrip2.value, mst.value)
+
+
+def test_quantity_decomposition():
+    lq = 10.*u.mag(u.Jy)
+    assert lq.decompose() == lq
+    assert lq.decompose().unit.physical_unit.bases == [u.kg, u.s]
+    assert lq.si == lq
+    assert lq.si.unit.physical_unit.bases == [u.kg, u.s]
+    assert lq.cgs == lq
+    assert lq.cgs.unit.physical_unit.bases == [u.g, u.s]
 
 
 class TestLogQuantityViews(object):
@@ -659,7 +762,20 @@ class TestLogQuantityComparisons(object):
         assert lq1 != lq4
         with pytest.raises(u.UnitsError):
             lq1 < lq4
-
+        q5 = 1.5 * u.Jy
+        assert np.all((lq1 > q5) == np.array([True, False, False]))
+        assert np.all((q5 < lq1) == np.array([True, False, False]))
+        with pytest.raises(u.UnitsError):
+            lq1 >= 2.*u.m
+        with pytest.raises(u.UnitsError):
+            lq1 <= lq1.value * u.mag
+        # For physically dimensionless, we can compare with the function unit.
+        lq6 = u.Magnitude(np.arange(1., 4.))
+        fv6 = lq6.value * u.mag
+        assert np.all(lq6 == fv6)
+        # but not some arbitrary unit, of course.
+        with pytest.raises(u.UnitsError):
+            lq6 < 2.*u.m
 
 class TestLogQuantityMethods(object):
     def setup(self):
@@ -668,13 +784,13 @@ class TestLogQuantityMethods(object):
         self.mags = (self.mJy, self.m1)
 
     @pytest.mark.parametrize('method', ('mean', 'min', 'max', 'round', 'trace',
-                                        'std', 'var', 'diff', 'ediff1d'))
+                                        'std', 'var', 'ptp', 'diff', 'ediff1d'))
     def test_always_ok(self, method):
         for mag in self.mags:
             res = getattr(mag, method)()
             assert np.all(res.value ==
                           getattr(mag._function_view, method)().value)
-            if method in ('std', 'diff', 'ediff1d'):
+            if method in ('std', 'ptp', 'diff', 'ediff1d'):
                 assert res.unit == u.mag()
             elif method == 'var':
                 assert res.unit == u.mag**2
@@ -706,3 +822,24 @@ class TestLogQuantityMethods(object):
 
         with pytest.raises(ValueError):
             getattr(self.m1, method)()
+
+
+class TestLogQuantityUfuncs(object):
+    """Spot checks on ufuncs."""
+    def setup(self):
+        self.mJy = np.arange(1., 5.).reshape(2, 2) * u.mag(u.Jy)
+        self.m1 = np.arange(1., 5.5, 0.5).reshape(3, 3) * u.mag()
+        self.mags = (self.mJy, self.m1)
+
+    def test_power(self):
+        assert np.all(np.power(self.mJy, 0.) == 1.)
+        assert np.all(np.power(self.m1, 1.) == self.m1)
+        assert np.all(np.power(self.mJy, 1.) == self.mJy)
+        assert np.all(np.power(self.m1, 2.) == self.m1 ** 2)
+        with pytest.raises(u.UnitsError):
+            np.power(self.mJy, 2.)
+
+    def test_not_implemented_with_physical_unit(self):
+        with pytest.raises(u.UnitsError):
+            np.square(self.mJy)
+        assert np.all(np.square(self.m1) == self.m1 ** 2)
