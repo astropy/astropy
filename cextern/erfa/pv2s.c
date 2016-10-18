@@ -34,11 +34,12 @@ void eraPv2s(double pv[2][3],
 **  2) If the position is a pole, theta, td and pd are indeterminate.
 **     In such cases zeroes are returned for all three.
 **
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double x, y, z, xd, yd, zd, rxy2, rxy, r2, rtrue, rw, xyp;
+
 
 /* Components of position/velocity vector. */
    x  = pv[0][0];
@@ -91,7 +92,7 @@ void eraPv2s(double pv[2][3],
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

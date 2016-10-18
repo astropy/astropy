@@ -14,11 +14,12 @@ double eraAnp(double a)
 **  Returned (function value):
 **              double     angle in range 0-2pi
 **
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double w;
+
 
    w = fmod(a, ERFA_D2PI);
    if (w < 0) w += ERFA_D2PI;
@@ -29,7 +30,7 @@ double eraAnp(double a)
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

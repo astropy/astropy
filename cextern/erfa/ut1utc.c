@@ -62,13 +62,14 @@ int eraUt1utc(double ut11, double ut12, double dut1,
 **     Explanatory Supplement to the Astronomical Almanac,
 **     P. Kenneth Seidelmann (ed), University Science Books (1992)
 **
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    int big1;
    int i, iy, im, id, js;
    double duts, u1, u2, d1, dats1, d2, fd, dats2, ddats, us1, us2, du;
+
 
 /* UT1-UTC in seconds. */
    duts = dut1;
@@ -140,7 +141,7 @@ int eraUt1utc(double ut11, double ut12, double dut1,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International
