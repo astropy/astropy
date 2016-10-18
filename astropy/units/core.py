@@ -27,7 +27,6 @@ from . import format as unit_format
 if six.PY2:
     import cmath
 
-# TODO: Support function units, e.g. log(x), ln(x)
 
 __all__ = [
     'UnitsError', 'UnitsWarning', 'UnitConversionError', 'UnitTypeError',
