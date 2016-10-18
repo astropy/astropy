@@ -183,18 +183,18 @@ def test_frame_repr():
     i3 = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.kpc)
 
     assert repr(i2) == ('<ICRS Coordinate: (ra, dec) in deg\n'
-                        '    (1.0, 2.0)>')
+                        '    ( 1.,  2.)>')
     assert repr(i3) == ('<ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)\n'
-                        '    (1.0, 2.0, 3.0)>')
+                        '    ( 1.,  2.,  3.)>')
 
     # try with arrays
     i2 = ICRS(ra=[1.1,2.1]*u.deg, dec=[2.1,3.1]*u.deg)
     i3 = ICRS(ra=[1.1,2.1]*u.deg, dec=[-15.6,17.1]*u.deg, distance=[11.,21.]*u.kpc)
 
     assert repr(i2) == ('<ICRS Coordinate: (ra, dec) in deg\n'
-                        '    [(1.1, 2.1), (2.1, 3.1)]>')
+                        '    [( 1.1,  2.1), ( 2.1,  3.1)]>')
     assert repr(i3) == ('<ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)\n'
-                        '    [(1.1, -15.6, 11.0), (2.1, 17.1, 21.0)]>')
+                        '    [( 1.1, -15.6,  11.), ( 2.1,  17.1,  21.)]>')
 
 
 def test_converting_units():
@@ -664,7 +664,7 @@ def test_representation_subclass():
     # A similar issue then happened in __repr__ with subclasses of
     # SphericalRepresentation.
     assert repr(frame) == ("<FK5 Coordinate (equinox=J2000.000): (lon, lat) in deg\n"
-                           "    (32.0, 20.0)>")
+                           "    ( 32.,  20.)>")
 
     # A more subtle issue is when specifying a custom
     # UnitSphericalRepresentation subclass for the data and

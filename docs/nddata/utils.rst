@@ -287,7 +287,7 @@ positions::
     >>> x_cutout, y_cutout = (5, 10)
     >>> pixel_to_skycoord(x_cutout, y_cutout, cutout.wcs)    # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
-        (197.8747893, -1.32207626)>
+        ( 197.8747893, -1.32207626)>
 
 We now find the corresponding pixel in the original ``data`` array and
 its sky coordinates::
@@ -295,7 +295,7 @@ its sky coordinates::
     >>> x_data, y_data = cutout.to_original_position((x_cutout, y_cutout))
     >>> pixel_to_skycoord(x_data, y_data, wcs)    # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
-        (197.8747893, -1.32207626)>
+        ( 197.8747893, -1.32207626)>
 
 As expected, the sky coordinates in the original ``data`` and the
 cutout array agree.

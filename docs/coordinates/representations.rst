@@ -46,7 +46,7 @@ objects::
     >>> car = CartesianRepresentation(3 * u.kpc, 5 * u.kpc, 4 * u.kpc)
     >>> car
     <CartesianRepresentation (x, y, z) in kpc
-        (3.0, 5.0, 4.0)>
+        ( 3.,  5.,  4.)>
 
 Representations can be converted to other representations using the
 ``represent_as`` method::
@@ -55,11 +55,11 @@ Representations can be converted to other representations using the
     >>> sph = car.represent_as(SphericalRepresentation)
     >>> sph  # doctest: +FLOAT_CMP
     <SphericalRepresentation (lon, lat, distance) in (rad, rad, kpc)
-        (1.03037682652, 0.601264216679, 7.07106781187)>
+        ( 1.03037683,  0.60126422,  7.07106781)>
     >>> cyl = car.represent_as(CylindricalRepresentation)
     >>> cyl  # doctest: +FLOAT_CMP
     <CylindricalRepresentation (rho, phi, z) in (kpc, rad, kpc)
-        (5.83095189485, 1.03037682652, 4.0)>
+        ( 5.83095189,  1.03037684, 4.)>
 
 All representations can be converted to each other without loss of
 information, with the exception of
@@ -72,7 +72,7 @@ dimensionless sphere::
     >>> sph_unit = car.represent_as(UnitSphericalRepresentation)
     >>> sph_unit  # doctest: +FLOAT_CMP
     <UnitSphericalRepresentation (lon, lat) in rad
-        (1.03037682652, 0.601264216679)>
+        ( 1.03037683,  0.60126422)>
 
 Converting back to cartesian, the absolute scaling information has been
 removed, and the points are still located on a unit sphere:
@@ -80,7 +80,7 @@ removed, and the points are still located on a unit sphere:
     >>> sph_unit = car.represent_as(UnitSphericalRepresentation)
     >>> sph_unit.represent_as(CartesianRepresentation) # doctest: +FLOAT_CMP
     <CartesianRepresentation (x, y, z) [dimensionless]
-        (0.424264068712, 0.707106781187, 0.565685424949)>
+        ( 0.42426407,  0.70710678,  0.56568542)>
 
 
 Array values and numpy array method analogs
@@ -97,16 +97,16 @@ methods as are available to `~numpy.ndarray`::
   >>> car_array = CartesianRepresentation(x * u.m, y * u.m, z * u.m)
   >>> car_array
   <CartesianRepresentation (x, y, z) in m
-      [(0.0, 10.0, 20.0), (1.0, 11.0, 21.0), (2.0, 12.0, 22.0),
-       (3.0, 13.0, 23.0), (4.0, 14.0, 24.0), (5.0, 15.0, 25.0)]>
+      [( 0.,  10.,  20.), ( 1.,  11.,  21.), ( 2.,  12.,  22.),
+       ( 3.,  13.,  23.), ( 4.,  14.,  24.), ( 5.,  15.,  25.)]>
   >>> car_array[2]
   <CartesianRepresentation (x, y, z) in m
-      (2.0, 12.0, 22.0)>
+      ( 2.,  12.,  22.)>
   >>> car_array.reshape(3, 2)
   <CartesianRepresentation (x, y, z) in m
-      [[(0.0, 10.0, 20.0), (1.0, 11.0, 21.0)],
-       [(2.0, 12.0, 22.0), (3.0, 13.0, 23.0)],
-       [(4.0, 14.0, 24.0), (5.0, 15.0, 25.0)]]>
+      [[( 0.,  10.,  20.), ( 1.,  11.,  21.)],
+       [( 2.,  12.,  22.), ( 3.,  13.,  23.)],
+       [( 4.,  14.,  24.), ( 5.,  15.,  25.)]]>
 
 .. _astropy-coordinates-create-repr:
 

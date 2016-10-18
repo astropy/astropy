@@ -94,8 +94,8 @@ positional offsets (e.g., for astrometry)::
     >>> target = ICRS(11*u.deg, 46*u.deg)
     >>> target.transform_to(SkyOffsetFrame(origin=center))  # doctest: +FLOAT_CMP
     <SkyOffsetICRS Coordinate (rotation=0.0 deg, origin=<ICRS Coordinate: (ra, dec) in deg
-        (10.0, 45.0)>): (lon, lat) in deg
-        (0.69474685, 1.00428706)>
+        ( 10.,  45.)>): (lon, lat) in deg
+        ( 0.69474685,  1.00428706)>
 
 
 Alternatively, the convenience method
@@ -106,12 +106,12 @@ frame from an already-existing |SkyCoord|::
     >>> aframe = center.skyoffset_frame()
     >>> target.transform_to(aframe)  # doctest: +FLOAT_CMP
     <SkyOffsetICRS Coordinate (rotation=0.0 deg, origin=<ICRS Coordinate: (ra, dec) in deg
-        (10.0, 45.0)>): (lon, lat) in deg
-        (0.69474685, 1.00428706)>
+        ( 10.,  45.)>): (lon, lat) in deg
+        ( 0.69474685,  1.00428706)>
     >>> other = SkyCoord(9*u.deg, 44*u.deg, frame='fk5')
     >>> other.transform_to(aframe)  # doctest: +FLOAT_CMP
     <SkyCoord (SkyOffsetICRS: rotation=0.0 deg, origin=<ICRS Coordinate: (ra, dec) in deg
-        (10.0, 45.0)>): (lon, lat) in deg
+        ( 10.,  45.)>): (lon, lat) in deg
         (-0.71943945, -0.99556216)>
 
 .. note ::

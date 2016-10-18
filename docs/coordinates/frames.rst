@@ -71,10 +71,10 @@ equatorial systems)::
     >>> from astropy import units as u
     >>> ICRS(ra=1.1*u.deg, dec=2.2*u.deg)
     <ICRS Coordinate: (ra, dec) in deg
-        (1.1, 2.2)>
+        ( 1.1,  2.2)>
     >>> FK5(ra=1.1*u.deg, dec=2.2*u.deg, equinox='J1975')
     <FK5 Coordinate (equinox=J1975.000): (ra, dec) in deg
-        (1.1, 2.2)>
+        ( 1.1,  2.2)>
 
 These same attributes can be used to access the data in the frames, as
 |Angle| objects (or |Angle| subclasses)::
@@ -106,7 +106,7 @@ One can get the data in a different representation if needed::
 
     >>> icrs.represent_as('cartesian')  # doctest: +FLOAT_CMP
     <CartesianRepresentation (x, y, z) [dimensionless]
-         (0.99923861, 0.01744177, 0.0348995)>
+         ( 0.99923861,  0.01744177,  0.0348995)>
 
 The representation of the coordinate object can also be changed directly, as
 shown below.  This actually does *nothing* to the object internal data which
@@ -122,7 +122,7 @@ space.::
     >>> icrs.representation = CartesianRepresentation
     >>> icrs  # doctest: +FLOAT_CMP
     <ICRS Coordinate: (x, y, z) [dimensionless]
-        (0.999238614955, 0.0174417749028, 0.0348994967025)>
+        ( 0.99923861, 0.01744177, 0.0348995)>
     >>> icrs.x  # doctest: +FLOAT_CMP
     <Quantity 0.9992386149554826>
 
@@ -132,7 +132,7 @@ example to create a coordinate with cartesian data do::
 
     >>> ICRS(x=1*u.kpc, y=2*u.kpc, z=3*u.kpc, representation=CartesianRepresentation)
     <ICRS Coordinate: (x, y, z) in kpc
-        (1.0, 2.0, 3.0)>
+        ( 1.,  2.,  3.)>
 
 For more information about the use of representations in coordinates see the
 :ref:`astropy-skycoord-representations` section, and for details about the
@@ -146,7 +146,7 @@ any  frame attributes required::
     >>> rep = SphericalRepresentation(lon=1.1*u.deg, lat=2.2*u.deg, distance=3.3*u.kpc)
     >>> FK5(rep, equinox='J1975')
     <FK5 Coordinate (equinox=J1975.000): (ra, dec, distance) in (deg, deg, kpc)
-        (1.1, 2.2, 3.3)>
+        ( 1.1,  2.2,  3.3)>
 
 A final way is to create a frame object from an already existing frame
 (either one with or without data), using the ``realize_frame`` method. This
@@ -158,7 +158,7 @@ will yield a frame with the same attributes, but new data::
     >>> rep = SphericalRepresentation(lon=1.1*u.deg, lat=2.2*u.deg, distance=3.3*u.kpc)
     >>> f1.realize_frame(rep)
     <FK5 Coordinate (equinox=J1975.000): (ra, dec, distance) in (deg, deg, kpc)
-        (1.1, 2.2, 3.3)>
+        ( 1.1,  2.2,  3.3)>
 
 You can check if a frame object has data using the ``has_data`` attribute, and
 if it is preset, it can be accessed from the ``data`` attribute::
@@ -170,7 +170,7 @@ if it is preset, it can be accessed from the ``data`` attribute::
     True
     >>> cooi.data
     <UnitSphericalRepresentation (lon, lat) in deg
-        (1.1, 2.2)>
+        ( 1.1,  2.2)>
 
 All of the above methods can also accept array data (in the form of
 class:`~astropy.units.Quantity`, or other Python sequences) to create arrays of
@@ -178,14 +178,14 @@ coordinates::
 
     >>> ICRS(ra=[1.5, 2.5]*u.deg, dec=[3.5, 4.5]*u.deg)
     <ICRS Coordinate: (ra, dec) in deg
-        [(1.5, 3.5), (2.5, 4.5)]>
+        [( 1.5,  3.5), ( 2.5,  4.5)]>
 
 If you pass in mixed arrays and scalars, the arrays will be broadcast
 over the scalars appropriately::
 
     >>> ICRS(ra=[1.5, 2.5]*u.deg, dec=[3.5, 4.5]*u.deg, distance=5*u.kpc)
     <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
-        [(1.5, 3.5, 5.0), (2.5, 4.5, 5.0)]>
+        [( 1.5,  3.5,  5.), ( 2.5,  4.5,  5.)]>
 
 Similar broadcasting happens if you transform to another frame.  E.g.::
 
@@ -196,7 +196,7 @@ Similar broadcasting happens if you transform to another frame.  E.g.::
     ...            obstime=['2012-03-21T00:00:00', '2012-06-21T00:00:00'])
     >>> coo.transform_to(lf)  # doctest: +FLOAT_CMP
     <AltAz Coordinate (obstime=['2012-03-21T00:00:00.000' '2012-06-21T00:00:00.000'], location=(3980608.9024681724, -102.47522910648239, 4966861.273100675) m, pressure=0.0 hPa, temperature=0.0 deg_C, relative_humidity=0, obswl=1.0 micron): (az, alt) in deg
-        [(94.71264994, 89.2142425), (307.69488826, 37.98077772)]>
+        [(  94.71264994,  89.2142425 ), ( 307.69488826,  37.98077772)]>
 
 Above, the shapes -- ``()`` for ``coo`` and ``(2,)`` for ``lf`` -- were
 broadcast against each other.  If you wished to determine the positions for a
@@ -219,10 +219,10 @@ set of coordinates, you'd need to make sure that the shapes allowed this::
       '2012-03-21T00:00:00.000']
      ['2012-06-21T00:00:00.000' '2012-06-21T00:00:00.000'
       '2012-06-21T00:00:00.000']], location=(3980608.9024681724, -102.47522910648239, 4966861.273100675) m, pressure=0.0 hPa, temperature=0.0 deg_C, relative_humidity=0, obswl=1.0 micron): (az, alt) in deg
-        [[(93.09845202, 89.21613119), (126.85789652, 25.46600543),
-          (51.37993229, 37.18532521)],
-         [(307.71713699, 37.99437658), (231.37407871, 26.36768329),
-          (85.42187335, 89.69297997)]]>
+        [[(  93.09845202,  89.21613119), ( 126.85789652,  25.46600543),
+          (  51.37993229,  37.18532521)],
+         [( 307.71713699,  37.99437658), ( 231.37407871,  26.36768329),
+          (  85.42187335,  89.69297997)]]>
 
 .. Note::
    One sees that frames without data have a ``shape`` that is determined by
@@ -242,10 +242,10 @@ data)::
     >>> cooi = ICRS(1.5*u.deg, 2.5*u.deg)
     >>> cooi.transform_to(FK5)  # doctest: +FLOAT_CMP
     <FK5 Coordinate (equinox=J2000.000): (ra, dec) in deg
-        (1.50000660527, 2.50000238221)>
+        ( 1.50000661,  2.50000238)>
     >>> cooi.transform_to(FK5(equinox='J1975'))  # doctest: +FLOAT_CMP
     <FK5 Coordinate (equinox=J1975.000): (ra, dec) in deg
-        (1.17960348105, 2.36085320826)>
+        ( 1.17960348,  2.36085321)>
 
 The :ref:`astropy-coordinates-api` includes a list of all of the frames built
 into `astropy.coordinates`, as well as the defined transformations between
@@ -297,7 +297,7 @@ the way you want.  As an example::
   >>> c = MyFrame(R=10*u.deg, D=20*u.deg)
   >>> c  # doctest: +FLOAT_CMP
   <MyFrame Coordinate (location=None, equinox=B1950.000, obstime=B1950.000): (R, D) in rad
-      (0.174532925199, 0.349065850399)>
+      ( 0.17453293,  0.34906585)>
   >>> c.equinox
   <Time object: scale='utc' format='byear_str' value=B1950.000>
 

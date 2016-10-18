@@ -931,26 +931,26 @@ def test_no_unnecessary_copies():
 def test_representation_repr():
     r1 = SphericalRepresentation(lon=1 * u.deg, lat=2.5 * u.deg, distance=1 * u.kpc)
     assert repr(r1) == ('<SphericalRepresentation (lon, lat, distance) in (deg, deg, kpc)\n'
-                        '    (1.0, 2.5, 1.0)>')
+                        '    ( 1.,  2.5,  1.)>')
 
     r2 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
     assert repr(r2) == ('<CartesianRepresentation (x, y, z) in kpc\n'
-                        '    (1.0, 2.0, 3.0)>')
+                        '    ( 1.,  2.,  3.)>')
 
     r3 = CartesianRepresentation(x=[1, 2, 3] * u.kpc, y=4 * u.kpc, z=[9, 10, 11] * u.kpc)
     assert repr(r3) == ('<CartesianRepresentation (x, y, z) in kpc\n'
-                        '    [(1.0, 4.0, 9.0), (2.0, 4.0, 10.0), (3.0, 4.0, 11.0)]>')
+                        '    [( 1.,  4.,   9.), ( 2.,  4.,  10.), ( 3.,  4.,  11.)]>')
 
 
 def test_representation_str():
     r1 = SphericalRepresentation(lon=1 * u.deg, lat=2.5 * u.deg, distance=1 * u.kpc)
-    assert str(r1) == '(1.0, 2.5, 1.0) (deg, deg, kpc)'
+    assert str(r1) == '( 1.,  2.5,  1.) (deg, deg, kpc)'
 
     r2 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
-    assert str(r2) == '(1.0, 2.0, 3.0) kpc'
+    assert str(r2) == '( 1.,  2.,  3.) kpc'
 
     r3 = CartesianRepresentation(x=[1, 2, 3] * u.kpc, y=4 * u.kpc, z=[9, 10, 11] * u.kpc)
-    assert str(r3) == '[(1.0, 4.0, 9.0) (2.0, 4.0, 10.0) (3.0, 4.0, 11.0)] kpc'
+    assert str(r3) == '[( 1.,  4.,   9.), ( 2.,  4.,  10.), ( 3.,  4.,  11.)] kpc'
 
 
 def test_subclass_representation():
