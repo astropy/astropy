@@ -504,7 +504,8 @@ class TestInvariantUfuncs(object):
         q_o = ufunc(q_i1, arbitrary_unit_value)
         assert isinstance(q_o, u.Quantity)
         assert q_o.unit == q_i1.unit
-        assert_allclose(q_o.value, ufunc(q_i1.value, arbitrary_unit_value))
+        assert_allclose(q_o.value, ufunc(q_i1.value, arbitrary_unit_value),
+                        equal_nan=True)
 
     @pytest.mark.parametrize(('ufunc'), [np.add, np.subtract, np.hypot,
                                          np.maximum, np.minimum, np.nextafter,

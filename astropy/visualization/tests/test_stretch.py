@@ -101,4 +101,5 @@ def test_clip_invalid():
     np.testing.assert_allclose(values, [0., 0., 0.70710678, 1., 1.])
 
     values = stretch([-1., 0., 0.5, 1., 1.5], clip=False)
-    np.testing.assert_allclose(values, [np.nan, 0., 0.70710678, 1., 1.2247448])
+    np.testing.assert_allclose(values, [np.nan, 0., 0.70710678, 1., 1.2247448],
+                               equal_nan=True)
