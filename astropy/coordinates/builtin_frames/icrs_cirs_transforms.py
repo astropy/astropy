@@ -311,10 +311,8 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
         # and distance, respectively. Shapes are (X) and (X,3), where (X) is the
         # shape resulting from broadcasting the shape of the times object
         # against the shape of the pv array.
-        # roll 3-vector of astrom['eh'] to the first axis and scale
-        eh = np.rollaxis(astrom['eh'], -1, 0) * astrom['em'] * u.au
-        # roll 3-vector of astrom['eh'] back to the last axis
-        eh = np.rollaxis(eh, 0, eh.ndim)
+        # broadcast em to eh and scale eh
+        eh = astrom['eh'] * astrom['em'][..., np.newaxis] * u.au
 
         # roll xyz to last axis and add the heliocentre position
         newxyz = np.rollaxis(newxyz, 0, newxyz.ndim) + eh
