@@ -86,9 +86,9 @@ example if it must be non-negative).  See the example in
 
 ::
 
-    from astropy.modeling import FittableModel, Parameter
+    from astropy.modeling import Fittable1DModel, Parameter
 
-    class Gaussian1D(FittableModel):
+    class Gaussian1D(Fittable1DModel):
         inputs = ('x',)
         outputs = ('y',)
 
@@ -209,9 +209,9 @@ Full example
 
 .. code-block:: python
 
-    from astropy.modeling import FittableModel, Parameter
+    from astropy.modeling import Fittable1DModel, Parameter
 
-    class Gaussian1D(FittableModel):
+    class Gaussian1D(Fittable1DModel):
         amplitude = Parameter()
         mean = Parameter()
         stddev = Parameter()
@@ -244,10 +244,10 @@ input``.
 
 .. code-block:: python
 
-    from astropy.modeling import FittableModel, Parameter
+    from astropy.modeling import Fittable1DModel, Parameter
     import numpy as np
 
-    class LineModel(FittableModel):
+    class LineModel(Fittable1DModel):
         slope = Parameter()
         intercept = Parameter()
         linear = True
