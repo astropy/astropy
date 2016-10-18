@@ -260,13 +260,15 @@ class BaseRepresentation(ShapedLikeNDArray):
             if issubclass(cls, Angle):
                 results.append(value)
             else:
-                result = op(value, *args)
-                if result is NotImplemented:
-                    return NotImplemented
-                else:
-                    results.append(result)
+                results.append(op(value, *args))
 
-        return self.__class__(*results)
+        # try/except catches anything that cannot initialize the class, such
+        # as operations that returned NotImplemented or a representation
+        # instead of a quantity (as would happen for, e.g., rep * rep).
+        try:
+            return self.__class__(*results)
+        except Exception:
+            return NotImplemented
 
     def __mul__(self, other):
         return self._scale_operation(operator.mul, other)
