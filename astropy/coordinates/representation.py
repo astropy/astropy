@@ -909,7 +909,7 @@ class SphericalRepresentation(BaseRepresentation):
         return cls(lon=lon, lat=lat, distance=r, copy=False)
 
     def __abs__(self):
-        return self.distance
+        return np.abs(self.distance)
 
 
 class PhysicsSphericalRepresentation(BaseRepresentation):
@@ -1041,7 +1041,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         return cls(phi=phi, theta=theta, r=r, copy=False)
 
     def __abs__(self):
-        return self.r
+        return np.abs(self.r)
 
 
 class CylindricalRepresentation(BaseRepresentation):
