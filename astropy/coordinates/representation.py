@@ -54,14 +54,10 @@ class MetaBaseRepresentation(abc.ABCMeta):
         REPRESENTATION_CLASSES[repr_name] = cls
 
 def _fstyle(precision, x):
-    fmt_str = '{0:.{precision}f}'
+    fmt_str = '{0: .{precision}f}'
     s = fmt_str.format(x, precision=precision)
     s_trunc = s.rstrip('0')
-    if s_trunc[-1] == '.':
-        # Ensure there is one trailing 0 after a bare decimal point
-        return s_trunc + '0'
-    else:
-        return s_trunc
+    return s_trunc
 
 
 @six.add_metaclass(MetaBaseRepresentation)
@@ -230,32 +226,33 @@ class BaseRepresentation(ShapedLikeNDArray):
                            for component in self.components]))
         return unitstr
 
-    def __str__(self):
-        return '{0} {1:s}'.format(self._values, self._unitstr)
+    def _array2string(self, prefix=''):
+        v = self._values
+        dtype = v.dtype
+        names = v.dtype.names
+        if not self.shape:
+            # temporarily make it a 1-dimensional array to work around
+            # array2string issues.
+            v = [tuple(v[nm] for nm in names)]
+            v = np.array(v, dtype=dtype)
 
-    def __repr__(self):
-        prefixstr = '    '
-
-        if self._values.shape == ():
-            v = [tuple([self._values[nm] for nm in self._values.dtype.names])]
-            v = np.array(v, dtype=self._values.dtype)
-        else:
-            v = self._values
-
-        names = self._values.dtype.names
         precision = np.get_printoptions()['precision']
         fstyle = functools.partial(_fstyle, precision)
         format_val = lambda val: np.array2string(val, style=fstyle)
-        formatter = {
-            'numpystr': lambda x: '({0})'.format(
-                ', '.join(format_val(x[name]) for name in names))
-        }
+        formatter = {'numpystr': lambda x: '({0})'.format(
+            ', '.join(format_val(x[name]) for name in names))}
 
         arrstr = np.array2string(v, formatter=formatter,
-                                 separator=', ', prefix=prefixstr)
+                                 separator=', ', prefix=prefix)
+        return arrstr if self.shape else arrstr[1:-1]
 
-        if self._values.shape == ():
-            arrstr = arrstr[1:-1]
+    def __str__(self):
+        return '{0} {1:s}'.format(self._array2string(), self._unitstr)
+
+    def __repr__(self):
+        prefixstr = '    '
+        arrstr = self._array2string(prefix=prefixstr)
+
 
         unitstr = ('in ' + self._unitstr) if self._unitstr else '[dimensionless]'
         return '<{0} ({1}) {2:s}\n{3}{4}>'.format(
