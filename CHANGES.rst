@@ -1727,6 +1727,9 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- The bundled ERFA was updated to version 1.3.0.  This includes the
+  leap second planned for 2016 Dec 13. [#5418]
+
 1.0.10 (2016-06-09)
 -------------------
 
