@@ -68,12 +68,13 @@ void eraLd(double bm, double p[3], double q[3], double e[3],
 **     eraPdp       scalar product of two p-vectors
 **     eraPxp       vector product of two p-vectors
 **
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    int i;
    double qpe[3], qdqpe, w, eq[3], peq[3];
+
 
 /* q . (q + e). */
    for (i = 0; i < 3; i++) {
@@ -99,7 +100,7 @@ void eraLd(double bm, double p[3], double q[3], double e[3],
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

@@ -60,7 +60,7 @@ double eraGmst82(double dj1, double dj2)
 **
 **     Aoki et al., Astron. Astrophys. 105, 359-361 (1982).
 **
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -75,6 +75,7 @@ double eraGmst82(double dj1, double dj2)
 /* at noon.                                                    */
 
    double d1, d2, t, f, gmst;
+
 
 /* Julian centuries since fundamental epoch. */
    if (dj1 < dj2) {
@@ -98,7 +99,7 @@ double eraGmst82(double dj1, double dj2)
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International
