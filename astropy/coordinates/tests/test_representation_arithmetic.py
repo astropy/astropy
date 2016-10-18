@@ -60,6 +60,25 @@ class TestArithmetic():
         assert abs_rep.unit == u.dimensionless_unscaled
         assert np.all(abs_rep == 1. * u.dimensionless_unscaled)
 
+    @pytest.mark.parametrize('representation',
+                             (SphericalRepresentation,
+                              PhysicsSphericalRepresentation,
+                              CartesianRepresentation,
+                              CylindricalRepresentation,
+                              UnitSphericalRepresentation))
+    def test_neg_pos(self, representation):
+        in_rep = self.cartesian.represent_as(representation)
+        pos_rep = +in_rep
+        assert type(pos_rep) is type(in_rep)
+        assert pos_rep is not in_rep
+        assert np.all(representation_equal(pos_rep, in_rep))
+        neg_rep = -in_rep
+        assert type(neg_rep) is type(in_rep)
+        assert np.all(abs(neg_rep) == abs(in_rep))
+        in_rep_xyz = in_rep.to_cartesian().xyz
+        assert_quantity_allclose(neg_rep.to_cartesian().xyz,
+                                 -in_rep_xyz, atol=1.e-10*in_rep_xyz.unit)
+
     def test_mul_div_spherical(self):
         s0 = self.spherical / (1. * u.Myr)
         assert isinstance(s0, SphericalRepresentation)
