@@ -23,7 +23,6 @@ from .representation import CartesianRepresentation
 from .orbital_elements import calc_moon
 from .builtin_frames import GCRS, ICRS
 from .builtin_frames.utils import get_jd12
-from .. import _erfa
 from ..extern import six
 
 __all__ = ["get_body", "get_moon", "get_body_barycentric",
@@ -507,6 +506,6 @@ def _apparent_position_in_true_coordinates(skycoord):
     are defined w.r.t to the true equinox and poles of the Earth
     """
     jd1, jd2 = get_jd12(skycoord.obstime, 'tt')
-    _, _, _, _, _, _, _, rbpn = _erfa.pn00a(jd1, jd2)
+    _, _, _, _, _, _, _, rbpn = erfa.pn00a(jd1, jd2)
     return SkyCoord(skycoord.frame.realize_frame(
         skycoord.cartesian.transform(rbpn)))
