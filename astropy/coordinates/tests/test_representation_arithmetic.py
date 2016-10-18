@@ -130,6 +130,10 @@ class TestArithmetic():
                                  self.distance * np.array([[1.], [2.]]))
         r3 = -in_rep
         assert np.all(representation_equal(r3, in_rep * -1.))
+        with pytest.raises(TypeError):
+            in_rep * in_rep
+        with pytest.raises(TypeError):
+            dict() * in_rep
 
     def test_mul_div_unit_spherical(self):
         s1 = self.unit_spherical * self.distance
@@ -183,7 +187,7 @@ class TestArithmetic():
             assert_quantity_allclose(getattr(r1, component),
                                      getattr(expected, component))
         with pytest.raises(TypeError):
-            in_rep + 10.*u.m
+            10.*u.m + in_rep
         with pytest.raises(u.UnitsError):
             in_rep + (in_rep / u.s)
         r2 = in_rep - in_rep
@@ -203,7 +207,7 @@ class TestArithmetic():
             assert_quantity_allclose(getattr(s1, component),
                                      getattr(expected, component))
         with pytest.raises(TypeError):
-            self.unit_spherical + 10.*u.m
+            10.*u.m - self.unit_spherical
         with pytest.raises(u.UnitsError):
             self.unit_spherical + (self.unit_spherical / u.s)
         s2 = self.unit_spherical - self.unit_spherical / 2.
@@ -282,6 +286,8 @@ class TestArithmetic():
             assert_quantity_allclose(in_rep.dot(project),
                                      getattr(self.cartesian, axis),
                                      atol=1.*u.upc)
+        with pytest.raises(TypeError):
+            in_rep.dot(self.cartesian.xyz)
 
     def test_dot_unit_spherical(self):
         u_dot_u = self.unit_spherical.dot(self.unit_spherical)
@@ -329,6 +335,8 @@ class TestArithmetic():
         r_cross_uv_cartesian = r_cross_uv.to_cartesian()
         assert_representation_allclose(r_cross_uv_cartesian,
                                        expected, atol=1.*u.upc)
+        with pytest.raises(TypeError):
+            in_rep.cross(self.cartesian.xyz)
 
     def test_cross_unit_spherical(self):
         u_cross_u = self.unit_spherical.cross(self.unit_spherical)
