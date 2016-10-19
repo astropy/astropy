@@ -40,6 +40,13 @@ from ..extern.six.moves import range
 from .optimizers import (SLSQP, Simplex)
 from .statistic import (leastsquare)
 
+#Check pkg_resources exists
+try:
+    from pkg_resources import iter_entry_points
+    HAS_PKG=True
+except ImportError:
+    HAS_PKG=False
+
 
 __all__ = ['LinearLSQFitter', 'LevMarLSQFitter', 'FittingWithOutlierRemoval',
            'SLSQPLSQFitter', 'SimplexLSQFitter', 'JointFitter', 'Fitter']
@@ -1069,3 +1076,50 @@ def _validate_model(model, supported_constraints):
 
     model_copy = model.copy()
     return model_copy
+
+
+def populate_entry_points(entry_points):
+    """
+    This injects entry points into the `astropy.modeling.fitting` namespace.
+    This provides a means of inserting a fitting routine without requirement
+    of it being merged into astropy's core.
+
+    Parameters
+    ----------
+
+    entry_points: a list of `~pkg_resources.EntryPoint`
+                  entry_points are objects which encapsulate
+                  importable objects and are defined on the
+                  installation of a package.
+    Notes
+    -----
+    An explanation of entry points can be found `here <http://setuptools.readthedocs.io/en/latest/setuptools.html#dynamic-discovery-of-services-and-plugins>`
+
+    """
+
+    for entry_point in entry_points:
+        name = entry_point.name
+        try:
+            entry_point = entry_point.load()
+        except Exception as e:
+            # This stops the fitting from choking if an entry_point produces an error.
+            warnings.warn(AstropyUserWarning('{type} error occurred in entry '
+                                             'point {name}.' .format(type=type(e).__name__, name=name)))
+        else:
+            if not inspect.isclass(entry_point):
+                warnings.warn(AstropyUserWarning(
+                    'Modeling entry point {0} expected to be a '
+                    'Class.' .format(name)))
+            else:
+                if issubclass(entry_point, Fitter):
+                    name = entry_point.__name__
+                    globals()[name] = entry_point
+                    __all__.append(name)
+                else:
+                    warnings.warn(AstropyUserWarning(
+                        'Modeling entry point {0} expected to extend '
+                        'astropy.modeling.Fitter' .format(name)))
+
+# this is so fitting doesn't choke if pkg_resources doesn't exist
+if HAS_PKG:
+    populate_entry_points(iter_entry_points(group='astropy.modeling', name=None))

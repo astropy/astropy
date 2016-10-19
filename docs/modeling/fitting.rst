@@ -163,3 +163,35 @@ bounds internally.
     ['fixed', 'tied', 'bounds']
     >>> fitting.SLSQPLSQFitter.supported_constraints
     ['bounds', 'eqcons', 'ineqcons', 'fixed', 'tied']
+
+Plugin Fitters
+--------------
+
+
+Fitters defined outside of astropy's core can be inserted into the
+`astropy.modeling.fitting` namespace through the use of entry points. 
+Entry points are references to importable objects. A tutorial on 
+defining entry points can be found in `setuptools' documentation 
+<http://setuptools.readthedocs.io/en/latest/setuptools.html#dynamic-discovery-of-services-and-plugins>`_.
+Plugin fitters are required to extend from the `~astropy.modeling.fitting.Fitter` 
+base class. For the fitter to be discovered and inserted into 
+`astropy.modeling.fitting` the entry points must be inserted into 
+the `astropy.modeling` entry point group
+
+.. doctest-skip::
+
+    setup(
+          # ...
+          entry_points = {'astropy.modeling': 'PluginFitterName = fitter_module:PlugFitterClass'}
+    )
+
+This would allow users to import the ``PlugFitterName`` through `astropy.modeling.fitting` by
+
+.. doctest-skip::
+
+    from astropy.modeling.fitting import PlugFitterName
+
+One project which uses this functionality is `Saba <https://saba.readthedocs.io/>`_, 
+which insert its `SherpaFitter <http://saba.readthedocs.io/en/stable/api.html#saba.SherpaFitter>`_
+class and thus allows astropy users to use `Sherpa's <http://cxc.cfa.harvard.edu/contrib/sherpa/>`_
+fitting routine.
