@@ -39,6 +39,8 @@ New Features
   - Added a ``Tabular`` model. [#5105]
 
   - Added ``Hermite1D`` and ``Hermite2D`` polynomial models [#5242]
+  - Added the injection of EntryPoints into astropy.modeling.fitting if 
+    they inherit from Fitters class. [#5241]
 
 - ``astropy.nddata``
 
@@ -79,6 +81,7 @@ New Features
 - ``astropy.vo``
 
 - ``astropy.wcs``
+
 
 API Changes
 ^^^^^^^^^^^
