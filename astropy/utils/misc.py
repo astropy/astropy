@@ -923,10 +923,17 @@ class ShapedLikeNDArray(object):
         return self.shape == ()
 
     def __getitem__(self, item):
-        if self.isscalar:
+        if not self.shape:
             raise TypeError('scalar {0!r} object is not subscriptable.'.format(
                 self.__class__.__name__))
         return self._apply('__getitem__', item)
+
+    def copy(self, *args, **kwargs):
+        """Return an instance containing copies of the internal data.
+
+        Parameters are as for :meth:`~numpy.ndarray.copy`.
+        """
+        return self._apply('copy', *args, **kwargs)
 
     def reshape(self, *args, **kwargs):
         """Returns an instance containing the same data with a new shape.

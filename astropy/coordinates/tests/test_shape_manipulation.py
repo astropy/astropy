@@ -82,9 +82,9 @@ class TestManipulation():
         assert np.all(s2_ravel.obstime == self.s2.obstime.ravel())
         assert not np.may_share_memory(s2_ravel.obstime.jd1,
                                        self.s2.obstime.jd1)
-        # TODO: right now, we cannot compare CartesianRepresentation instances,
-        # so instead we compare the xyz quantities.  This can be made a direct
-        # comparison once CartesianRepresentation.__eq__ is implemented.
+        # CartesianRepresentation do not allow direct comparisons, as this is
+        # too tricky to get right in the face of rounding issues.  Here, though,
+        # it cannot be an issue, so we compare the xyz quantities.
         assert np.all(s2_ravel.obsgeoloc.xyz == self.s2.obsgeoloc.ravel().xyz)
         assert not np.may_share_memory(s2_ravel.obsgeoloc.x,
                                        self.s2.obsgeoloc.x)
