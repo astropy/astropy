@@ -13,7 +13,6 @@ from __future__ import (absolute_import, division, print_function,
 import itertools
 import copy
 import operator
-import functools
 from datetime import datetime
 from collections import defaultdict
 
@@ -804,8 +803,7 @@ class Time(ShapedLikeNDArray):
             new_format = self.format
 
         if callable(method):
-            apply_method = functools.partial(method, *args, **kwargs)
-            method = str(apply_method)
+            apply_method = lambda array: method(array, *args, **kwargs)
         else:
             if method == 'replicate':
                 apply_method = None

@@ -119,7 +119,7 @@ class BaseRepresentation(ShapedLikeNDArray):
         return name
 
     def _apply(self, method, *args, **kwargs):
-        """Create a new coordinate object with ``method`` applied to the arrays.
+        """Create a new representation with ``method`` applied to the arrays.
 
         In typical usage, the method is any of the shape-changing methods for
         `~numpy.ndarray` (``reshape``, ``swapaxes``, etc.), as well as those
@@ -143,7 +143,7 @@ class BaseRepresentation(ShapedLikeNDArray):
             Any keyword arguments for ``method``.
         """
         if callable(method):
-            apply_method = functools.partial(method, *args, **kwargs)
+            apply_method = lambda array: method(array, *args, **kwargs)
         else:
             apply_method = operator.methodcaller(method, *args, **kwargs)
         return self.__class__( *[apply_method(getattr(self, component))

@@ -12,7 +12,6 @@ from __future__ import (absolute_import, unicode_literals, division,
 import abc
 import copy
 import inspect
-import operator
 from collections import namedtuple, OrderedDict
 
 # Dependencies
@@ -673,7 +672,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         # empty arrays or data == 0
         if self._data is None:
             # No data: we still need to check that any non-scalar attributes
-            # have consistent shapes.
+            # have consistent shapes. Collect them for all attributes with
+            # size > 1 (which should be array-like and thus have a shape).
             shapes = {fnm: value.shape for fnm, value in values.items()
                       if getattr(value, 'size', 1) > 1}
             if shapes:
@@ -685,8 +685,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                             "non-scalar attributes with inconsistent "
                             "shapes: {0}".format(shapes))
 
+                    # Above, we checked that it is possible to broadcast all
+                    # shapes.  By getting and thus validating the attributes,
+                    # we verify that the attributes can in fact be broadcast.
                     for fnm in shapes:
-                        # validate new shape
                         getattr(self, fnm)
                 else:
                     self._no_data_shape = shapes.popitem()[1]
