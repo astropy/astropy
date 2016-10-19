@@ -8,7 +8,6 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import abc
-import functools
 import operator
 from collections import OrderedDict
 
@@ -19,6 +18,7 @@ from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from ..extern import six
 from ..utils import ShapedLikeNDArray
+from ..utils.compat import NUMPY_LT_1_12
 from ..utils.compat.numpy import broadcast_arrays
 
 __all__ = ["BaseRepresentation", "CartesianRepresentation",
@@ -52,12 +52,6 @@ class MetaBaseRepresentation(abc.ABCMeta):
             raise ValueError("Representation class {0} already defined".format(repr_name))
 
         REPRESENTATION_CLASSES[repr_name] = cls
-
-def _fstyle(precision, x):
-    fmt_str = '{0: .{precision}f}'
-    s = fmt_str.format(x, precision=precision)
-    s_trunc = s.rstrip('0')
-    return s_trunc
 
 
 @six.add_metaclass(MetaBaseRepresentation)
@@ -227,24 +221,33 @@ class BaseRepresentation(ShapedLikeNDArray):
         return unitstr
 
     def _array2string(self, prefix=''):
-        v = self._values
-        dtype = v.dtype
-        names = v.dtype.names
-        if not self.shape:
-            # temporarily make it a 1-dimensional array to work around
-            # array2string issues.
-            v = [tuple(v[nm] for nm in names)]
-            v = np.array(v, dtype=dtype)
+        # Mimic numpy >=1.12 array2string, in which structured arrays are
+        # typeset taking into account all printoptions.
+        # TODO: in final numpy 1.12, the scalar case should work as well;
+        # see https://github.com/numpy/numpy/issues/8172
+        values = self._values
+        if NUMPY_LT_1_12 or self.isscalar:
+            # Mimic StructureFormat from numpy >=1.12 assuming float-only data.
+            from numpy.core.arrayprint import FloatFormat
+            opts = np.get_printoptions()
+            format_functions = [FloatFormat(np.atleast_1d(values[component]).ravel(),
+                                            precision=opts['precision'],
+                                            suppress_small=opts['suppress'])
+                                for component in self.components]
 
-        precision = np.get_printoptions()['precision']
-        fstyle = functools.partial(_fstyle, precision)
-        format_val = lambda val: np.array2string(val, style=fstyle)
-        formatter = {'numpystr': lambda x: '({0})'.format(
-            ', '.join(format_val(x[name]) for name in names))}
+            def fmt(x):
+                return '({})'.format(', '.join(format_function(field)
+                                               for field, format_function in
+                                               zip(x, format_functions)))
+            # Before 1.12, structures arrays were set as "numpystr",
+            # so that is the formmater we need to replace.
+            formatter = {'numpystr': fmt}
+        else:
+            fmt = repr
+            formatter = {}
 
-        arrstr = np.array2string(v, formatter=formatter,
-                                 separator=', ', prefix=prefix)
-        return arrstr if self.shape else arrstr[1:-1]
+        return np.array2string(values, formatter=formatter, style=fmt,
+                               separator=', ', prefix=prefix)
 
     def __str__(self):
         return '{0} {1:s}'.format(self._array2string(), self._unitstr)
