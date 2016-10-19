@@ -157,17 +157,19 @@ def cirs_to_cirs(from_coo, to_frame):
 
 @frame_transform_graph.transform(FunctionTransform, ICRS, GCRS)
 def icrs_to_gcrs(icrs_coo, gcrs_frame):
-    # first set up the astrometry context for ICRS<->GCRS
+    # first set up the astrometry context for ICRS<->GCRS. There are a few steps...
+    # get the position and velocity arrays for the observatory
     pv = np.array([gcrs_frame.obsgeoloc.xyz.value,
                    gcrs_frame.obsgeovel.xyz.value])
     # roll axes 0 and 1 to end
     if pv.ndim > 2:
         pv = np.rollaxis(np.rollaxis(pv, 0, pv.ndim), 0, pv.ndim)
 
+    # find the position and velocity of earth
     jd1, jd2 = get_jd12(gcrs_frame.obstime, 'tdb')
     earth_pv, earth_heliocentric = prepare_earth_position_vel(gcrs_frame.obstime)
 
-    # get astrometry context
+    # get astrometry context object, astrom.
     astrom = erfa.apcs(jd1, jd2, pv, earth_pv, earth_heliocentric)
 
     if icrs_coo.data.get_name() == 'unitspherical' or icrs_coo.data.to_cartesian().x.unit == u.one:
