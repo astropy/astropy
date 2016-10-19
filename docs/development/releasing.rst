@@ -280,8 +280,8 @@ The procedure for this is straightforward:
 
    You'll then need to edit ``docs/whatsnew/<next_version>.rst``, removing all
    the content but leaving the basic structure.  You'll also want to be sure to
-   rplace the "by the numbers" numbers with "xxx" as a reminder to update them
-   before the next release. The add the new version to the top of
+   replace the "by the numbers" numbers with "xxx" as a reminder to update them
+   before the next release. Then add the new version to the top of
    ``docs/whatsnew/index.rst``, and commit these changes ::
 
       $ git add docs/whatsnew/<next_version>.rst
