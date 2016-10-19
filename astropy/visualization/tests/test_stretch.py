@@ -6,7 +6,10 @@ from ..stretch import (LinearStretch, SqrtStretch, PowerStretch,
                        PowerDistStretch, SquaredStretch, LogStretch,
                        AsinhStretch, SinhStretch, HistEqStretch,
                        ContrastBiasStretch)
+from ...utils.compat import NUMPY_LT_1_10
 
+
+EQUAL_NAN = {} if NUMPY_LT_1_10 else {'equal_nan': True}
 
 DATA = np.array([0.00, 0.25, 0.50, 0.75, 1.00])
 
@@ -102,4 +105,4 @@ def test_clip_invalid():
 
     values = stretch([-1., 0., 0.5, 1., 1.5], clip=False)
     np.testing.assert_allclose(values, [np.nan, 0., 0.70710678, 1., 1.2247448],
-                               equal_nan=True)
+                               **EQUAL_NAN)
