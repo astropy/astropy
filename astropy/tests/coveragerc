@@ -10,7 +10,7 @@ omit =
    astropy/utils/compat/*
    astropy/version*
    astropy/wcs/docstrings*
-   astropy/_erfa/erfa_generator.py
+   astropy/_erfa/*
 
 [report]
 exclude_lines =
