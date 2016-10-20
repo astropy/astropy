@@ -271,30 +271,39 @@ It is possible to store arrays of coordinates in a |SkyCoord| object, and
 manipulations done in this way will be orders of magnitude faster than
 looping over a list of individual |SkyCoord| objects::
 
-  >>> ra = np.random.uniform(0, 360, size=1000) * u.deg
-  >>> dec = np.random.uniform(-90, 90, size=1000) * u.deg
+  >>> ra = np.linspace(0, 36000, 1001) * u.deg
+  >>> dec = np.linspace(-90, 90, 1001) * u.deg
 
-  >>> sc_list = [SkyCoord(r, d, frame='icrs') for r, d in zip(ra, dec)]
+  >>> sc_list = [SkyCoord(r, d, frame='icrs') for r, d in zip(ra, dec)]  # doctest: +SKIP
   >>> timeit sc_gal_list = [c.galactic for c in sc_list]  # doctest: +SKIP
-  1 loops, best of 3: 7.66 s per loop
+  1 loops, best of 3: 20.4 s per loop
 
   >>> sc = SkyCoord(ra, dec, frame='icrs')
   >>> timeit sc_gal = sc.galactic  # doctest: +SKIP
-  100 loops, best of 3: 8.92 ms per loop
+  100 loops, best of 3: 21.8 ms per loop
 
-In addition to vectorized transformations, you can do the usual array
-slicing, dicing, and selection::
+In addition to vectorized transformations, you can do the usual array slicing,
+dicing, and selection, using the same methods and attributes that one uses for
+`~numpy.ndarray` instances::
 
   >>> north_mask = sc.dec > 0
   >>> sc_north = sc[north_mask]
-  >>> len(sc_north)  # doctest: +SKIP
-  504
-  >>> sc[2:4]  # doctest: +SKIP
+  >>> len(sc_north)
+  500
+  >>> sc[2:4]  # doctest: +FLOAT_CMP
   <SkyCoord (ICRS): (ra, dec) in deg
-      [(304.304015..., 6.900282...),
-       (322.560148..., 34.872244...)]>
-  >>> sc[2]  # doctest: +SKIP
-  <SkyCoord (ICRS): ra=304.304015... deg, dec=6.900282... deg>
+      [(72.0, -89.64), (108.0, -89.46)]>
+  >>> sc[500]  # doctest: +FLOAT_CMP
+  <SkyCoord (ICRS): (ra, dec) in deg
+      (0.0, 0.0)>
+  >>> sc[0:-1:100].reshape(2, 5)  # doctest: +FLOAT_CMP
+  <SkyCoord (ICRS): (ra, dec) in deg
+      [[(0.0, -90.0), (0.0, -72.0), (0.0, -54.0), (0.0, -36.0), (0.0, -18.0)],
+       [(0.0, 0.0), (0.0, 18.0), (0.0, 36.0), (0.0, 54.0), (0.0, 72.0)]]>
+
+Note that similarly to the `~numpy.ndarray` methods, all but ``flatten`` try to
+use new views of the data, with the data copied only if that it is impossible
+(as discussed, e.g., in the documentation for numpy :func:`~numpy.reshape`).
 
 
 Attributes
@@ -312,26 +321,48 @@ documentation::
 
   >>> sc = SkyCoord(1, 2, frame='icrs', unit='deg', obstime='2013-01-02 14:25:36')
   >>> sc.<TAB>  # doctest: +SKIP
-  sc.cartesian                           sc.match_to_catalog_3d
-  sc.data                                sc.match_to_catalog_sky
-  sc.dec                                 sc.name
-  sc.default_representation              sc.obstime
-  sc.distance                            sc.position_angle
+  sc.T                                   sc.match_to_catalog_3d
+  sc.altaz                               sc.match_to_catalog_sky
+  sc.barycentrictrueecliptic             sc.name
+  sc.cartesian                           sc.ndim
+  sc.cirs                                sc.obsgeoloc
+  sc.copy                                sc.obsgeovel
+  sc.data                                sc.obstime
+  sc.dec                                 sc.obswl
+  sc.default_representation              sc.position_angle
+  sc.diagonal                            sc.precessedgeocentric
+  sc.distance                            sc.pressure
   sc.equinox                             sc.ra
-  sc.fk4                                 sc.realize_frame
-  sc.fk4noeterms                         sc.represent_as
-  sc.fk5                                 sc.representation
-  sc.frame                               sc.representation_component_names
-  sc.frame_attr_names                    sc.representation_component_units
-  sc.frame_specific_representation_info  sc.representation_info
-  sc.from_name                           sc.separation
-  sc.galactic                            sc.separation_3d
-  sc.get_frame_attr_names                sc.shape
-  sc.has_data                            sc.spherical
-  sc.icrs                                sc.time_attr_names
+  sc.fk4                                 sc.ravel
+  sc.fk4noeterms                         sc.realize_frame
+  sc.fk5                                 sc.relative_humidity
+  sc.flatten                             sc.represent_as
+  sc.frame                               sc.representation
+  sc.frame_attributes                    sc.representation_component_names
+  sc.frame_specific_representation_info  sc.representation_component_units
+  sc.from_name                           sc.representation_info
+  sc.from_pixel                          sc.reshape
+  sc.galactic                            sc.roll
+  sc.galactocentric                      sc.search_around_3d
+  sc.galcen_dec                          sc.search_around_sky
+  sc.galcen_distance                     sc.separation
+  sc.galcen_ra                           sc.separation_3d
+  sc.gcrs                                sc.shape
+  sc.geocentrictrueecliptic              sc.size
+  sc.get_constellation                   sc.skyoffset_frame
+  sc.get_frame_attr_names                sc.spherical
+  sc.guess_from_table                    sc.spherical_offsets_to
+  sc.has_data                            sc.squeeze
+  sc.hcrs                                sc.supergalactic
+  sc.heliocentrictrueecliptic            sc.swapaxes
+  sc.icrs                                sc.take
+  sc.info                                sc.temperature
+  sc.is_equivalent_frame                 sc.to_pixel
   sc.is_frame_attr_default               sc.to_string
   sc.is_transformable_to                 sc.transform_to
-  sc.isscalar
+  sc.isscalar                            sc.transpose
+  sc.itrs                                sc.z_sun
+  sc.location
 
 Here we see a bunch of stuff there but much of it should be recognizable or
 easily guessed.  The most obvious may be the longitude and latitude attributes
@@ -366,10 +397,10 @@ coordinates.  How does the object know what to call its values?  The answer
 lies in some less-obvious attributes::
 
   >>> sc_gal.representation_component_names
-  OrderedDict([(u'l', u'lon'), (u'b', u'lat'), (u'distance', u'distance')])
+  OrderedDict([('l', 'lon'), ('b', 'lat'), ('distance', 'distance')])
 
   >>> sc_gal.representation_component_units
-  OrderedDict([(u'l', Unit("deg")), (u'b', Unit("deg"))])
+  OrderedDict([('l', Unit("deg")), ('b', Unit("deg"))])
 
   >>> sc_gal.representation
   <class 'astropy.coordinates.representation.SphericalRepresentation'>
@@ -384,9 +415,8 @@ Another important attribute is ``frame_attr_names``, which defines the
 additional attributes that are required to fully define the frame::
 
   >>> sc_fk4 = SkyCoord(1, 2, frame='fk4', unit='deg')
-  >>> sc_fk4.get_frame_attr_names()  # doctest: +SKIP
-  {u'equinox': <Time object: scale='tai' format='byear_str' value=B1950.000>,
-   u'obstime': None}
+  >>> sc_fk4.get_frame_attr_names()
+  OrderedDict([('equinox', <Time object: scale='tai' format='byear_str' value=B1950.000>), ('obstime', None)])
 
 The key values correspond to the defaults if no explicit value is provide by
 the user.  This example shows that the `~astropy.coordinates.FK4` frame has two
@@ -397,7 +427,8 @@ Some trickery is happening here because many of these attributes are
 actually owned by the underlying coordinate ``frame`` object which does much of
 the real work.  This is the middle layer in the three-tiered system of objects:
 representation (spherical, cartesian, etc.), frame (aka low-level frame class),
-and |SkyCoord| (aka high-level class)::
+and |SkyCoord| (aka high-level class; see :ref:`astropy-coordinates-overview`
+and :ref:`astropy-coordinates-definitions`)::
 
   >>> sc.frame
   <ICRS Coordinate: (ra, dec) in deg
@@ -407,23 +438,30 @@ and |SkyCoord| (aka high-level class)::
   True
 
   >>> sc.frame.<TAB>  # doctest: +SKIP
-  sc.frame.cartesian                           sc.frame.ra
-  sc.frame.data                                sc.frame.realize_frame
-  sc.frame.dec                                 sc.frame.represent_as
-  sc.frame.default_representation              sc.frame.representation
-  sc.frame.distance                            sc.frame.representation_component_names
-  sc.frame.frame_attr_names                    sc.frame.representation_component_units
-  sc.frame.frame_specific_representation_info  sc.frame.representation_info
-  sc.frame.get_frame_attr_names                sc.frame.separation
-  sc.frame.has_data                            sc.frame.separation_3d
-  sc.frame.is_frame_attr_default               sc.frame.shape
-  sc.frame.is_transformable_to                 sc.frame.spherical
-  sc.frame.isscalar                            sc.frame.time_attr_names
+  sc.frame.T                                   sc.frame.ra
+  sc.frame.cartesian                           sc.frame.ravel
+  sc.frame.copy                                sc.frame.realize_frame
+  sc.frame.data                                sc.frame.represent_as
+  sc.frame.dec                                 sc.frame.representation
+  sc.frame.default_representation              sc.frame.representation_component_names
+  sc.frame.diagonal                            sc.frame.representation_component_units
+  sc.frame.distance                            sc.frame.representation_info
+  sc.frame.flatten                             sc.frame.reshape
+  sc.frame.frame_attributes                    sc.frame.separation
+  sc.frame.frame_specific_representation_info  sc.frame.separation_3d
+  sc.frame.get_frame_attr_names                sc.frame.shape
+  sc.frame.has_data                            sc.frame.size
+  sc.frame.is_equivalent_frame                 sc.frame.spherical
+  sc.frame.is_frame_attr_default               sc.frame.squeeze
+  sc.frame.is_transformable_to                 sc.frame.swapaxes
+  sc.frame.isscalar                            sc.frame.take
   sc.frame.name                                sc.frame.transform_to
+  sc.frame.ndim                                sc.frame.transpose
+
   >>> sc.frame.name
   'icrs'
 
-The |SkyCoord| object exposes the ``frame`` object attributes as its own.  Though
+The |SkyCoord| object exposes the ``frame`` object attributes as its own. Though
 it might seem a tad confusing at first, this a good thing because it makes
 |SkyCoord| objects and `~astropy.coordinates.BaseCoordinateFrame` objects
 behave very similarly and most routines can accept either one as input without
@@ -434,7 +472,7 @@ The lowest layer in the stack is the abstract
 
   >>> sc_gal.frame.data  # doctest: +FLOAT_CMP
   <UnitSphericalRepresentation (lon, lat) in rad
-      (1.73900863429, -1.02467744452)>
+      (1.73900863, -1.02467744)>
 
 Transformations
 ^^^^^^^^^^^^^^^^^
@@ -604,20 +642,20 @@ without any data, and then print the ``representation_info`` property::
 
     >>> ICRS().representation_info  # doctest: +SKIP
     {astropy.coordinates.representation.CartesianRepresentation:
-      {u'names': (u'x', u'y', u'z'),
-       u'units': (None, None, None)},
+      {'names': ('x', 'y', 'z'),
+       'units': (None, None, None)},
      astropy.coordinates.representation.SphericalRepresentation:
-      {u'names': (u'ra', u'dec', u'distance'),
-       u'units': (Unit("deg"), Unit("deg"), None)},
+      {'names': ('ra', 'dec', 'distance'),
+       'units': (Unit("deg"), Unit("deg"), None)},
      astropy.coordinates.representation.UnitSphericalRepresentation:
-      {u'names': (u'ra', u'dec'),
-       u'units': (Unit("deg"), Unit("deg"))},
+      {'names': ('ra', 'dec'),
+       'units': (Unit("deg"), Unit("deg"))},
      astropy.coordinates.representation.PhysicsSphericalRepresentation:
-      {u'names': (u'phi', u'theta', u'r'),
-       u'units': (Unit("deg"), Unit("deg"), None)},
+      {'names': ('phi', 'theta', 'r'),
+       'units': (Unit("deg"), Unit("deg"), None)},
      astropy.coordinates.representation.CylindricalRepresentation:
-      {u'names': (u'rho', u'phi', u'z'),
-       u'units': (None, Unit("deg"), None)}
+      {'names': ('rho', 'phi', 'z'),
+       'units': (None, Unit("deg"), None)}
     }
 
 This is a bit messy but it shows that for each representation there is a
@@ -639,7 +677,7 @@ names for that frame to the component name on the representation class::
     >>> icrs.representation
     <class 'astropy.coordinates.representation.SphericalRepresentation'>
     >>> icrs.representation_component_names
-    OrderedDict([(u'ra', u'lon'), (u'dec', u'lat'), (u'distance', u'distance')])
+    OrderedDict([('ra', 'lon'), ('dec', 'lat'), ('distance', 'distance')])
 
 Changing representation
 """"""""""""""""""""""""""

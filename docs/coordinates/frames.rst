@@ -23,7 +23,7 @@ Frames without Data
 Frame objects have two distinct (but related) uses.  The first is
 storing the information needed to uniquely define a frame (e.g.,
 equinox, observation time). This information is stored on the frame
-objects as (read-only) Python attributes, which are set with the object
+objects as (read-only) Python attributes, which are set when the object
 is first created::
 
     >>> from astropy.coordinates import ICRS, FK5
@@ -100,18 +100,23 @@ class::
     >>> icrs.representation
     <class 'astropy.coordinates.representation.SphericalRepresentation'>
     >>> icrs.representation_component_names
-    OrderedDict([(u'ra', u'lon'), (u'dec', u'lat'), (u'distance', u'distance')])
+    OrderedDict([('ra', 'lon'), ('dec', 'lat'), ('distance', 'distance')])
 
-The representation of the coordinate object can be changed, as shown
-below.  This actually does *nothing* to the object internal data which
-stores the coordinate values, but it changes the external view of that
-data in two ways: (1) the object prints itself in accord with the
-new representation, and (2) the available attributes change to match
-those of the new representation (e.g. from ``ra, dec, distance`` to
-``x, y, z``).  Setting the ``representation`` thus changes a *property*
-of the object (how it appears) without changing the intrinsic object
-itself which represents a point in 3d space.
-::
+One can get the data in a different representation if needed::
+
+    >>> icrs.represent_as('cartesian')  # doctest: +FLOAT_CMP
+    <CartesianRepresentation (x, y, z) [dimensionless]
+         (0.99923861, 0.01744177, 0.0348995)>
+
+The representation of the coordinate object can also be changed directly, as
+shown below.  This actually does *nothing* to the object internal data which
+stores the coordinate values, but it changes the external view of that data in
+two ways: (1) the object prints itself in accord with the new representation,
+and (2) the available attributes change to match those of the new
+representation (e.g. from ``ra, dec, distance`` to ``x, y, z``).  Setting the
+``representation`` thus changes a *property* of the object (how it appears)
+without changing the intrinsic object itself which represents a point in 3d
+space.::
 
     >>> from astropy.coordinates import CartesianRepresentation
     >>> icrs.representation = CartesianRepresentation
@@ -167,8 +172,9 @@ if it is preset, it can be accessed from the ``data`` attribute::
     <UnitSphericalRepresentation (lon, lat) in deg
         (1.1, 2.2)>
 
-All of the above methods can also accept array data (or other Python
-sequences) to create arrays of coordinates::
+All of the above methods can also accept array data (in the form of
+class:`~astropy.unit.Quantity`, or other Python sequences) to create arrays of
+coordinates::
 
     >>> ICRS(ra=[1.5, 2.5]*u.deg, dec=[3.5, 4.5]*u.deg)
     <ICRS Coordinate: (ra, dec) in deg
@@ -181,15 +187,48 @@ over the scalars appropriately::
     <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
         [(1.5, 3.5, 5.0), (2.5, 4.5, 5.0)]>
 
-An additional operation that may be useful is the ability to extract the
-data in different representations.  E.g., to get the Cartesian form of
-an ICRS coordinate::
+Similar broadcasting happens if you transform to another frame.  E.g.::
 
-    >>> from astropy.coordinates import CartesianRepresentation
-    >>> cooi = ICRS(ra=0*u.deg, dec=45*u.deg, distance=10*u.pc)
-    >>> cooi.represent_as(CartesianRepresentation)  # doctest: +FLOAT_CMP
-    <CartesianRepresentation (x, y, z) in pc
-        (7.07106781187, 0.0, 7.07106781187)>
+    >>> import numpy as np
+    >>> from astropy.coordinates import EarthLocation, AltAz
+    >>> coo = ICRS(ra=180.*u.deg, dec=51.477811*u.deg)
+    >>> lf = AltAz(location=EarthLocation.of_site('greenwich'),
+    ...            obstime=['2012-03-21T00:00:00', '2012-06-21T00:00:00'])
+    >>> coo.transform_to(lf)  # doctest: +FLOAT_CMP
+    <AltAz Coordinate (obstime=['2012-03-21T00:00:00.000' '2012-06-21T00:00:00.000'], location=(3980608.9024681724, -102.47522910648239, 4966861.273100675) m, pressure=0.0 hPa, temperature=0.0 deg_C, relative_humidity=0, obswl=1.0 micron): (az, alt) in deg
+        [(94.71264994, 89.2142425), (307.69488826, 37.98077772)]>
+
+Above, the shapes -- ``()`` for ``coo`` and ``(2,)`` for ``lf`` -- were
+broadcast against each other.  If you wished to determine the positions for a
+set of coordinates, you'd need to make sure that the shapes allowed this::
+
+    >>> coo2 = ICRS(ra=[180., 225., 270.]*u.deg, dec=[51.5, 0., 51.5]*u.deg)
+    >>> coo2.transform_to(lf)
+    Traceback (most recent call last):
+    ...
+    ValueError: shape mismatch: objects cannot be broadcast to a single shape
+    >>> coo2.shape
+    (3,)
+    >>> lf.shape
+    (2,)
+    >>> lf2 = lf[:, np.newaxis]
+    >>> lf2.shape
+    (2, 1)
+    >>> coo2.transform_to(lf2)  # doctest: +FLOAT_CMP
+    <AltAz Coordinate (obstime=[['2012-03-21T00:00:00.000' '2012-03-21T00:00:00.000'
+      '2012-03-21T00:00:00.000']
+     ['2012-06-21T00:00:00.000' '2012-06-21T00:00:00.000'
+      '2012-06-21T00:00:00.000']], location=(3980608.9024681724, -102.47522910648239, 4966861.273100675) m, pressure=0.0 hPa, temperature=0.0 deg_C, relative_humidity=0, obswl=1.0 micron): (az, alt) in deg
+        [[(93.09845202, 89.21613119), (126.85789652, 25.46600543),
+          (51.37993229, 37.18532521)],
+         [(307.71713699, 37.99437658), (231.37407871, 26.36768329),
+          (85.42187335, 89.69297997)]]>
+
+.. Note::
+   One sees that frames without data have a ``shape`` that is determined by
+   their frame attributes.  For frames with data the ``shape`` always is that
+   of the data; any non-scalar attributes are broadcast to have matching shape
+   (as can be seen for ``obstime`` in the last line above).
 
 Transforming between Frames
 ===========================
