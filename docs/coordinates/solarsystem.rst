@@ -54,14 +54,14 @@ downloaded and cached when the ephemeris is set):
   >>> solar_system_ephemeris.set('de432s') # doctest: +REMOTE_DATA, +IGNORE_OUTPUT
   <ScienceState solar_system_ephemeris: 'de432s'>
   >>> get_body('jupiter', t, loc) # doctest: +REMOTE_DATA, +FLOAT_CMP
-  <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=(3949481.689878457, -550931.9118835592, 4961151.737334465) m, obsgeovel=(40.174593298404744, 288.00078051005755, -0.0) m / s): (ra, dec, distance) in (deg, deg, km)
-    (136.90234781, 17.03160686, 889196019.15383542)>
+  <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=( 3949481.68990897, -550931.9118838,  4961151.73733447) m, obsgeovel=( 40.1745933,  288.00078051,  0.) m / s): (ra, dec, distance) in (deg, deg, km)
+      ( 136.90234781,  17.03160686,   8.89196019e+08)>
   >>> get_moon(t, loc) # doctest: +REMOTE_DATA, +FLOAT_CMP
-  <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=(3949481.689878457, -550931.9118835592, 4961151.737334465) m, obsgeovel=(40.174593298404744, 288.00078051005755, -0.0) m / s): (ra, dec, distance) in (deg, deg, km)
-    (165.51840735, 2.32900633, 407226.68749643)>
+  <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=( 3949481.68990897, -550931.9118838,  4961151.73733447) m, obsgeovel=( 40.1745933,  288.00078051,  0.) m / s): (ra, dec, distance) in (deg, deg, km)
+      ( 165.51840735,  2.32900633,  407226.68749646)>
   >>> get_body_barycentric('moon', t) # doctest: +REMOTE_DATA, +FLOAT_CMP
   <CartesianRepresentation (x, y, z) in km
-      (150107535.1073409, -866789.11996916, -418963.55218495)>
+      (  1.50107535e+08, -866789.11996916, -418963.55218495)>
 
 For one-off calculations with a given ephemeris, one can also pass it directly
 to the various functions:
@@ -71,11 +71,11 @@ to the various functions:
   >>> get_body_barycentric('moon', t, ephemeris='de432s')
   ... # doctest: +REMOTE_DATA, +FLOAT_CMP
   <CartesianRepresentation (x, y, z) in km
-      (150107535.1073409, -866789.11996916, -418963.55218495)>
+      (  1.50107535e+08, -866789.11996916, -418963.55218495)>
   >>> get_body_barycentric('moon', t, ephemeris='builtin')
   ... # doctest: +FLOAT_CMP
   <CartesianRepresentation (x, y, z) in km
-      (150107516.42468676, -866828.92708201, -418980.15909655)>
+      (  1.50107516e+08, -866828.92708201, -418980.15909655)>
 
 For a list of the bodies for which positions can be calculated, do:
 
