@@ -90,3 +90,29 @@ objects use any frame attributes they have for all transformation
 steps.  So |skycoord| can always transform from one frame to another and
 back again without change, while low-level classes may lose information
 and hence often do not round-trip.
+
+Transformations and Solar-system ephemerides
+--------------------------------------------
+
+Some transformations (e.g. the transformation between `~astropy.coordinates.ICRS` and
+`~astropy.coordinates.GCRS`) require the use of a Solar-system ephemeris to calculate
+the position and velocity of the Earth and Sun. By default, transformations are
+calculated using built-in `ERFA <https://github.com/liberfa/erfa>`_ routines,
+but they can also use more precise ones using the JPL ephemerides (which are derived from
+dynamical models).
+
+To use the JPL ephemerides, use the `~astropy.coordinates.solar_system_ephemeris` context
+manager, as shown below:
+
+.. doctest-requires:: jplephem
+
+    >>> from astropy.coordinates import solar_system_ephemeris
+    >>> from astropy.coordinates import GCRS
+    >>> with solar_system_ephemeris.set('jpl'): # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    ...     fk5c.transform_to(GCRS(obstime=Time("J2000"))) # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+
+For locations at large distances from the Solar system, using the JPL ephemerides will make a
+negligible difference, on the order of micro-arcseconds. For nearby objects, such as the Moon,
+the difference can be of the order of milli-arcseconds. For more details about what ephemerides
+are available, including the requirements for using JPL ephemerides, see :ref:`astropy-coordinates-solarsystem`.
+
