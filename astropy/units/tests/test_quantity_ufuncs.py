@@ -9,10 +9,6 @@ from numpy.testing.utils import assert_allclose
 from ... import units as u
 from ...tests.helper import pytest, raises
 from ...extern.six.moves import zip
-from ...utils.compat import NUMPY_LT_1_10
-
-
-EQUAL_NAN = {} if NUMPY_LT_1_10 else {'equal_nan': True}
 
 
 class TestUfuncCoverage(object):
@@ -508,8 +504,7 @@ class TestInvariantUfuncs(object):
         q_o = ufunc(q_i1, arbitrary_unit_value)
         assert isinstance(q_o, u.Quantity)
         assert q_o.unit == q_i1.unit
-        assert_allclose(q_o.value, ufunc(q_i1.value, arbitrary_unit_value),
-                        **EQUAL_NAN)
+        assert_allclose(q_o.value, ufunc(q_i1.value, arbitrary_unit_value))
 
     @pytest.mark.parametrize(('ufunc'), [np.add, np.subtract, np.hypot,
                                          np.maximum, np.minimum, np.nextafter,
