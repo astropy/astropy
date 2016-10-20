@@ -552,7 +552,7 @@ class Time(ShapedLikeNDArray):
         # the ``value`` attribute is cached.
         return getattr(self, self.format)
 
-    def light_travel_time(self, skycoord, kind='barycentric', location=None):
+    def light_travel_time(self, skycoord, kind='barycentric', location=None, ephemeris=None):
         """Light travel time correction to the barycentre or heliocentre.
 
         The frame transformations used to calculate the location of the solar
@@ -573,6 +573,10 @@ class Time(ShapedLikeNDArray):
             The location of the observatory to calculate the correction for.
             If no location is given, the ``location`` attribute of the Time
             object is used
+        ephemeris : str, optional
+            Solar system ephemeris to use (e.g., 'builtin', 'jpl'). By default,
+            use the one set with ``astropy.coordinates.solar_system_ephemeris.set``.
+            For more information, see `~astropy.coordinates.solar_system_ephemeris`.
 
         Returns
         -------
@@ -594,7 +598,7 @@ class Time(ShapedLikeNDArray):
             location = self.location
 
         from ..coordinates import (UnitSphericalRepresentation, CartesianRepresentation,
-                                   HCRS, ICRS, GCRS, EarthLocation, SkyCoord)
+                                   HCRS, ICRS, GCRS, solar_system_ephemeris)
 
         # ensure sky location is ICRS compatible
         if not skycoord.is_transformable_to(ICRS()):
@@ -606,15 +610,16 @@ class Time(ShapedLikeNDArray):
         except Exception:
             raise ValueError("Supplied location does not have a valid `get_itrs` method")
 
-        if kind.lower() == 'heliocentric':
-            # convert to heliocentric coordinates, aligned with ICRS
-            cpos = itrs.transform_to(HCRS(obstime=self)).cartesian.xyz
-        else:
-            # first we need to convert to GCRS coordinates with the correct
-            # obstime, since ICRS coordinates have no frame time
-            gcrs_coo = itrs.transform_to(GCRS(obstime=self))
-            # convert to barycentric (BCRS) coordinates, aligned with ICRS
-            cpos = gcrs_coo.transform_to(ICRS()).cartesian.xyz
+        with solar_system_ephemeris.set(ephemeris):
+            if kind.lower() == 'heliocentric':
+                # convert to heliocentric coordinates, aligned with ICRS
+                cpos = itrs.transform_to(HCRS(obstime=self)).cartesian.xyz
+            else:
+                # first we need to convert to GCRS coordinates with the correct
+                # obstime, since ICRS coordinates have no frame time
+                gcrs_coo = itrs.transform_to(GCRS(obstime=self))
+                # convert to barycentric (BCRS) coordinates, aligned with ICRS
+                cpos = gcrs_coo.transform_to(ICRS()).cartesian.xyz
 
         # get unit ICRS vector to star
         spos = (skycoord.icrs.represent_as(UnitSphericalRepresentation).
