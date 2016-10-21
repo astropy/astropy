@@ -1532,6 +1532,9 @@ class SpecificTypeQuantity(Quantity):
     # Default unit for initialization through the constructor.
     _default_unit = None
 
+    # ensure that we get precedence over our superclass.
+    __array_priority__ = Quantity.__array_priority__ + 10
+
     def __quantity_subclass__(self, unit):
         if unit.is_equivalent(self._equivalent_unit):
             return type(self), True
