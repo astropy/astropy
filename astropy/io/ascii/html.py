@@ -336,8 +336,15 @@ class HTML(core.BaseReader):
         """
         Return data in ``table`` converted to HTML as a list of strings.
         """
-
         cols = list(six.itervalues(table.columns))
+
+        self.data.header.cols = cols
+
+        if isinstance(self.data.fill_values, tuple):
+            self.data.fill_values = [self.data.fill_values]
+
+        self.data._set_fill_values(cols)
+
         lines = []
 
         # Set HTML escaping to False for any column in the raw_html_cols input
@@ -403,10 +410,15 @@ class HTML(core.BaseReader):
                                 for i in range(span):
                                     # Split up multicolumns into separate columns
                                     new_col = Column([el[i] for el in col])
-                                    col_str_iters.append(new_col.info.iter_str_vals())
+
+                                    new_col_iter_str_vals = self.fill_values(col, new_col.info.iter_str_vals())
+                                    col_str_iters.append(new_col_iter_str_vals)
                                     new_cols_escaped.append(col_escaped)
                             else:
-                                col_str_iters.append(col.info.iter_str_vals())
+
+                                col_iter_str_vals = self.fill_values(col, col.info.iter_str_vals())
+                                col_str_iters.append(col_iter_str_vals)
+
                                 new_cols_escaped.append(col_escaped)
 
                     for row in izip(*col_str_iters):
@@ -421,3 +433,24 @@ class HTML(core.BaseReader):
 
         # Fixes XMLWriter's insertion of unwanted line breaks
         return [''.join(lines)]
+
+    def fill_values(self, col, col_str_iters):
+        """
+        Return an iterator of the values with replacements based on fill_values
+        """
+        # check if the col is a masked column and has fill values
+        is_masked_column = hasattr(col, 'mask')
+        has_fill_values = hasattr(col, 'fill_values')
+
+        for idx, col_str in enumerate(col_str_iters):
+            if is_masked_column and has_fill_values:
+                if col.mask[idx]:
+                    yield col.fill_values[core.masked]
+                    continue
+
+            if has_fill_values:
+                if col_str in col.fill_values:
+                    yield col.fill_values[col_str]
+                    continue
+
+            yield col_str
