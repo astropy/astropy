@@ -13,7 +13,6 @@ import numpy as np
 from numpy import linalg
 from numpy.testing.utils import assert_raises
 from numpy.testing.utils import assert_allclose, assert_almost_equal
-
 from . import irafutil
 from .. import models
 from ..core import Fittable2DModel, Parameter
@@ -24,11 +23,30 @@ from ...tests.helper import pytest
 from .utils import ignore_non_integer_warning
 from ...stats import sigma_clip
 
+from ...utils.exceptions import AstropyUserWarning
+from ..fitting import populate_entry_points
+import warnings
+
 try:
     from scipy import optimize
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
+
+HAS_MOCK = True
+try:
+    from unittest import mock
+except ImportError:
+    try:
+        import mock
+    except ImportError:
+        HAS_MOCK = False
+
+try:
+    from pkg_resources import EntryPoint
+    HAS_PKG = True
+except ImportError:
+    HAS_PKG = False
 
 
 fitters = [SimplexLSQFitter, SLSQPLSQFitter]
@@ -405,6 +423,96 @@ class TestNonLinearFitters(object):
 
         assert_allclose(fmod.parameters, beta.A.ravel())
         assert_allclose(olscov, fitter.fit_info['param_cov'])
+
+
+@pytest.mark.skipif('not HAS_MOCK')
+@pytest.mark.skipif('not HAS_PKG')
+class TestEntryPoint(object):
+    """Tests population of fitting with entry point fitters"""
+
+    def setup_class(self):
+        self.exception_not_thrown = Exception("The test should not have gotten here. There was no exception thrown")
+
+    def successfulimport(self):
+            # This should work
+            class goodclass(Fitter):
+                __name__ = "GoodClass"
+            return goodclass
+
+    def raiseimporterror(self):
+        #  This should fail as it raises an Import Error
+        raise ImportError
+
+    def returnbadfunc(self):
+        def badfunc():
+            # This should import but it should fail type check
+            pass
+        return badfunc
+
+    def returnbadclass(self):
+        # This should import But it should fail subclass type check
+        class badclass(object):
+            pass
+        return badclass
+
+    def test_working(self):
+        """This should work fine"""
+        mock_entry_working = mock.create_autospec(EntryPoint)
+        mock_entry_working.name = "Working"
+        mock_entry_working.load = self.successfulimport
+        populate_entry_points([mock_entry_working])
+
+
+    def test_import_error(self):
+        """This raises an import error on load to test that it is handled correctly"""
+        with warnings.catch_warnings():
+            warnings.filterwarnings('error')
+            try:
+                mock_entry_importerror = mock.create_autospec(EntryPoint)
+                mock_entry_importerror.name = "IErr"
+                mock_entry_importerror.load = self.raiseimporterror
+                populate_entry_points([mock_entry_importerror])
+            except AstropyUserWarning as w:
+                if "ImportError" in w.args[0]:  # any error for this case should have this in it.
+                    pass
+                else:
+                    raise w
+            else:
+                raise self.exception_not_thrown
+
+    def test_bad_func(self):
+        """This returns a function which fails the type check"""
+        with warnings.catch_warnings():
+            warnings.filterwarnings('error')
+            try:
+                mock_entry_badfunc = mock.create_autospec(EntryPoint)
+                mock_entry_badfunc.name = "BadFunc"
+                mock_entry_badfunc.load = self.returnbadfunc
+                populate_entry_points([mock_entry_badfunc])
+            except AstropyUserWarning as w:
+                if "Class" in w.args[0]:  # any error for this case should have this in it.
+                    pass
+                else:
+                    raise w
+            else:
+                raise self.exception_not_thrown
+
+    def test_bad_class(self):
+        """This returns a class which doesn't inherient from fitter """
+        with warnings.catch_warnings():
+            warnings.filterwarnings('error')
+            try:
+                mock_entry_badclass = mock.create_autospec(EntryPoint)
+                mock_entry_badclass.name = "BadClass"
+                mock_entry_badclass.load = self.returnbadclass
+                populate_entry_points([mock_entry_badclass])
+            except AstropyUserWarning as w:
+                if 'modeling.Fitter' in w.args[0]:  # any error for this case should have this in it.
+                    pass
+                else:
+                    raise w
+            else:
+                raise self.exception_not_thrown
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
