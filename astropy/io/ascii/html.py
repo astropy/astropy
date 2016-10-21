@@ -11,6 +11,7 @@ must be installed to read HTML tables.
 from __future__ import absolute_import, division, print_function
 
 import warnings
+import numpy
 
 from ...extern import six
 from ...extern.six.moves import zip, range
@@ -143,6 +144,11 @@ class HTMLOutputter(core.TableOutputter):
     multidimensional columns (defined using the colspan attribute
     of <th>).
     """
+
+    default_converters = [core.convert_numpy(numpy.int),
+                          core.convert_numpy(numpy.float),
+                          core.convert_numpy(numpy.str),
+                          core.convert_numpy(numpy.unicode)]
 
     def __call__(self, cols, meta):
         """
