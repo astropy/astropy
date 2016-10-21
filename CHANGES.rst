@@ -1657,6 +1657,9 @@ Bug Fixes
 
   - Fix a bug with empty value at end of tab-delimited table on Windows. [#5370]
 
+  - Fix a bug where the ``fill_values`` parameter was ignored when writing a
+    table to HTML format. [#5379]
+
 - ``astropy.io.fits``
 
   - Removed raising of AssertionError that could occur after closing or
