@@ -9,8 +9,9 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 # Standard library
+import abc
+import copy
 import inspect
-from copy import deepcopy
 from collections import namedtuple, OrderedDict
 
 # Dependencies
@@ -18,10 +19,12 @@ import numpy as np
 
 # Project
 from ..utils.compat.misc import override__dir__
+from ..utils.compat.numpy import broadcast_to as np_broadcast_to
 from ..extern import six
 from ..extern.six.moves import zip
 from .. import units as u
-from ..utils import OrderedDescriptor, OrderedDescriptorContainer
+from ..utils import (OrderedDescriptor, OrderedDescriptorContainer,
+                     ShapedLikeNDArray, check_broadcast)
 from .transformations import TransformGraph
 from .representation import (BaseRepresentation, CartesianRepresentation,
                              SphericalRepresentation,
@@ -57,7 +60,11 @@ def _get_repr_cls(value):
     return value
 
 
-class FrameMeta(OrderedDescriptorContainer):
+# Need to subclass ABCMeta as well, so that this meta class can be combined
+# with ShapedLikeNDArray below (which is an ABC); without it, one gets
+# "TypeError: metaclass conflict: the metaclass of a derived class must be a
+#  (non-strict) subclass of the metaclasses of all its bases"
+class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
     def __new__(mcls, name, bases, members):
         if 'default_representation' in members:
             default_repr = members.pop('default_representation')
@@ -103,7 +110,7 @@ class FrameMeta(OrderedDescriptorContainer):
                                    default_repr)
         mcls.readonly_prop_factory(members,
                                    'frame_specific_representation_info',
-                                   deepcopy(repr_info))
+                                   copy.deepcopy(repr_info))
 
         # now set the frame name as lower-case class name, if it isn't explicit
         if 'name' not in members:
@@ -200,19 +207,36 @@ class FrameAttribute(OrderedDescriptor):
         return value, False
 
     def __get__(self, instance, frame_cls=None):
-        out = None
-
-        if instance is not None:
-            out = getattr(instance, '_' + self.name, None)
-            if out is None and self.default is None:
-                out = getattr(instance, self.secondary_attribute, None)
-
-        if out is None:
+        if instance is None:
             out = self.default
+        else:
+            out = getattr(instance, '_' + self.name, self.default)
+            if out is None:
+                out = getattr(instance, self.secondary_attribute, self.default)
 
         out, converted = self.convert_input(out)
-        if instance is not None and converted:
-            setattr(instance, '_' + self.name, out)
+        if instance is not None:
+            instance_shape = getattr(instance, 'shape', None)
+            if instance_shape is not None and (getattr(out, 'size', 1) > 1 and
+                                               out.shape != instance_shape):
+                # If the shapes do not match, try broadcasting.
+                try:
+                    if isinstance(out, ShapedLikeNDArray):
+                        out = out._apply(np_broadcast_to, shape=instance_shape,
+                                         subok=True)
+                    else:
+                        out = np_broadcast_to(out, instance_shape, subok=True)
+                except ValueError:
+                    # raise more informative exception.
+                    raise ValueError(
+                        "attribute {0} should be scalar or have shape {1}, "
+                        "but is has shape {2} and could not be broadcast."
+                        .format(self.name, instance_shape, out.shape))
+
+                converted = True
+
+            if converted:
+                setattr(instance, '_' + self.name, out)
 
         return out
 
@@ -383,22 +407,19 @@ class QuantityFrameAttribute(FrameAttribute):
         ValueError
             If the input is not valid for this attribute.
         """
-        if np.all(value == 0) and self.unit is not None and self.unit is not None:
+        if np.all(value == 0) and self.unit is not None:
             return u.Quantity(np.zeros(self.shape), self.unit), True
         else:
-            converted = True
-            if not (hasattr(value, 'unit') ):
+            if not hasattr(value, 'unit'):
                 raise TypeError('Tried to set a QuantityFrameAttribute with '
                                 'something that does not have a unit.')
             oldvalue = value
-            value = u.Quantity(oldvalue, copy=False).to(self.unit)
+            value = u.Quantity(oldvalue, self.unit, copy=False)
             if self.shape is not None and value.shape != self.shape:
                 raise ValueError('The provided value has shape "{0}", but '
                                  'should have shape "{1}"'.format(value.shape,
                                                                   self.shape))
-            if (oldvalue.unit == value.unit and hasattr(oldvalue, 'value') and
-                np.all(oldvalue.value == value.value)):
-                converted = False
+            converted = oldvalue is not value
             return value, converted
 
 
@@ -533,9 +554,8 @@ class RepresentationMapping(_RepresentationMappingBase):
                                                          framename,
                                                          defaultunit)
 
-
 @six.add_metaclass(FrameMeta)
-class BaseCoordinateFrame(object):
+class BaseCoordinateFrame(ShapedLikeNDArray):
     """
     The base class for coordinate frames.
 
@@ -589,21 +609,6 @@ class BaseCoordinateFrame(object):
         # if not set below, this is a frame with no data
         representation_data = None
 
-        for fnm, fdefault in self.get_frame_attr_names().items():
-            # Read-only frame attributes are defined as FrameAttribue
-            # descriptors which are not settable, so set 'real' attributes as
-            # the name prefaced with an underscore.
-
-            if fnm in kwargs:
-                value = kwargs.pop(fnm)
-                setattr(self, '_' + fnm, value)
-            else:
-                setattr(self, '_' + fnm, fdefault)
-                self._attr_names_with_defaults.append(fnm)
-
-            # Validate input by getting the attribute here.
-            getattr(self, fnm)
-
         args = list(args)  # need to be able to pop them
         if (len(args) > 0) and (isinstance(args[0], BaseRepresentation) or
                                 args[0] is None):
@@ -639,18 +644,62 @@ class BaseCoordinateFrame(object):
             raise TypeError(
                 '{0}.__init__ had {1} remaining unhandled arguments'.format(
                     self.__class__.__name__, len(args)))
+
+        self._data = representation_data
+
+        values = {}
+        for fnm, fdefault in self.get_frame_attr_names().items():
+            # Read-only frame attributes are defined as FrameAttribue
+            # descriptors which are not settable, so set 'real' attributes as
+            # the name prefaced with an underscore.
+
+            if fnm in kwargs:
+                value = kwargs.pop(fnm)
+                setattr(self, '_' + fnm, value)
+                # Validate attribute by getting it.  If the instance has data,
+                # this also checks its shape is OK.  If not, we do it below.
+                values[fnm] = getattr(self, fnm)
+            else:
+                setattr(self, '_' + fnm, fdefault)
+                self._attr_names_with_defaults.append(fnm)
+
         if kwargs:
             raise TypeError(
                 'Coordinate frame got unexpected keywords: {0}'.format(
                     list(kwargs)))
 
-        self._data = representation_data
-
-        # We do ``is not None`` because self._data might evaluate to false for
+        # We do ``is None`` because self._data might evaluate to false for
         # empty arrays or data == 0
-        if self._data is not None:
+        if self._data is None:
+            # No data: we still need to check that any non-scalar attributes
+            # have consistent shapes. Collect them for all attributes with
+            # size > 1 (which should be array-like and thus have a shape).
+            shapes = {fnm: value.shape for fnm, value in values.items()
+                      if getattr(value, 'size', 1) > 1}
+            if shapes:
+                if len(shapes) > 1:
+                    try:
+                        self._no_data_shape = check_broadcast(*shapes.values())
+                    except ValueError:
+                        raise ValueError(
+                            "non-scalar attributes with inconsistent "
+                            "shapes: {0}".format(shapes))
+
+                    # Above, we checked that it is possible to broadcast all
+                    # shapes.  By getting and thus validating the attributes,
+                    # we verify that the attributes can in fact be broadcast.
+                    for fnm in shapes:
+                        getattr(self, fnm)
+                else:
+                    self._no_data_shape = shapes.popitem()[1]
+
+            else:
+                self._no_data_shape = ()
+        else:
+            # Set up representation cache.
             self._rep_cache = dict()
             self._rep_cache[self._data.__class__.__name__, False] = self._data
+
 
     @property
     def data(self):
@@ -682,7 +731,11 @@ class BaseCoordinateFrame(object):
 
     @property
     def shape(self):
-        return self.data.shape
+        return self.data.shape if self.has_data else self._no_data_shape
+
+    @property
+    def size(self):
+        return self.data.size
 
     @property
     def isscalar(self):
@@ -1062,13 +1115,60 @@ class BaseCoordinateFrame(object):
         return ', '.join([attrnm + '=' + str(getattr(self, attrnm))
                           for attrnm in self.get_frame_attr_names()])
 
-    def __getitem__(self, view):
-        if self.has_data:
-            out = self.realize_frame(self.data[view])
-            out.representation = self.representation
-            return out
-        else:
-            raise ValueError('Cannot index a frame with no data')
+    def _apply(self, method, *args, **kwargs):
+        """Create a new instance, applying a method to the underlying data.
+
+        In typical usage, the method is any of the shape-changing methods for
+        `~numpy.ndarray` (``reshape``, ``swapaxes``, etc.), as well as those
+        picking particular elements (``__getitem__``, ``take``, etc.), which
+        are all defined in `~astropy.utils.misc.ShapedLikeNDArray`. It will be
+        applied to the underlying arrays in the representation (e.g., ``x``,
+        ``y``, and ``z`` for `~astropy.coordinates.CartesianRepresentation`),
+        as well as to any frame attributes that have a shape, with the results
+        used to create a new instance.
+
+        Internally, it is also used to apply functions to the above parts
+        (in particular, `~numpy.broadcast_to`).
+
+        Parameters
+        ----------
+        method : str or callable
+            If str, it is the name of a method that is applied to the internal
+            ``components``. If callable, the function is applied.
+        args : tuple
+            Any positional arguments for ``method``.
+        kwargs : dict
+            Any keyword arguments for ``method``.
+        """
+        def apply_method(value):
+            if isinstance(value, ShapedLikeNDArray):
+                return value._apply(method, *args, **kwargs)
+            else:
+                if callable(method):
+                    return method(value, *args, **kwargs)
+                else:
+                    return getattr(value, method)(*args, **kwargs)
+
+
+        data = apply_method(self.data) if self.has_data else None
+
+        frattrs = {}
+        for attr in self.get_frame_attr_names():
+            if attr not in self._attr_names_with_defaults:
+                value = getattr(self, attr)
+                if getattr(value, 'size', 1) > 1:
+                    value = apply_method(value)
+                elif method == 'copy' or method == 'flatten':
+                    # flatten should copy also for a single element array, but
+                    # we cannot use it directly for array scalars, since it
+                    # always returns a one-dimensional array. So, just copy.
+                    value = copy.copy(value)
+
+                frattrs[attr] = value
+
+        out = self.__class__(data, **frattrs)
+        out.representation = self.representation
+        return out
 
     @override__dir__
     def __dir__(self):

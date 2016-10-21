@@ -83,24 +83,30 @@ removed, and the points are still located on a unit sphere:
         (0.424264068712, 0.707106781187, 0.565685424949)>
 
 
-Array values
-^^^^^^^^^^^^
+Array values and numpy array method analogs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Array `~astropy.units.Quantity` objects can also be passed to
-representations::
+Array `~astropy.units.Quantity` objects can also be passed to representations,
+and such representations can be sliced, reshaped, etc., using the same
+methods as are available to `~numpy.ndarray`::
 
   >>> import numpy as np
-  >>> x = np.random.random(100)
-  >>> y = np.random.random(100)
-  >>> z = np.random.random(100)
+  >>> x = np.linspace(0., 5., 6)
+  >>> y = np.linspace(10., 15., 6)
+  >>> z = np.linspace(20., 25., 6)
   >>> car_array = CartesianRepresentation(x * u.m, y * u.m, z * u.m)
-  >>> car_array  # doctest: +SKIP
+  >>> car_array
   <CartesianRepresentation (x, y, z) in m
-      [(0.7093..., 0.7788..., 0.3842...),
-       (0.8434..., 0.4543..., 0.9579...),
-       ...
-       (0.0179..., 0.8587..., 0.4916...),
-       (0.0207..., 0.3355..., 0.2799...)]>
+      [(0.0, 10.0, 20.0), (1.0, 11.0, 21.0), (2.0, 12.0, 22.0),
+       (3.0, 13.0, 23.0), (4.0, 14.0, 24.0), (5.0, 15.0, 25.0)]>
+  >>> car_array[2]
+  <CartesianRepresentation (x, y, z) in m
+      (2.0, 12.0, 22.0)>
+  >>> car_array.reshape(3, 2)
+  <CartesianRepresentation (x, y, z) in m
+      [[(0.0, 10.0, 20.0), (1.0, 11.0, 21.0)],
+       [(2.0, 12.0, 22.0), (3.0, 13.0, 23.0)],
+       [(4.0, 14.0, 24.0), (5.0, 15.0, 25.0)]]>
 
 .. _astropy-coordinates-create-repr:
 

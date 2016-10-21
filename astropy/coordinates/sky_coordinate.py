@@ -12,8 +12,9 @@ from ..extern.six.moves import zip, range
 from ..units import Unit, IrreducibleUnit
 from .. import units as u
 from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord
-from ..utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils.data_info import MixinInfo
+from ..utils import ShapedLikeNDArray
 
 from .distances import Distance
 from .angles import Angle
@@ -80,7 +81,7 @@ class SkyCoordInfo(MixinInfo):
         return repr_data
 
 
-class SkyCoord(object):
+class SkyCoord(ShapedLikeNDArray):
     """High-level object providing a flexible interface for celestial coordinate
     representation, manipulation, and transformation between systems.
 
@@ -235,13 +236,42 @@ class SkyCoord(object):
     def __bool__(self):  # Py 3.x
         return self.frame.__bool__()
 
-    def __getitem__(self, item):
+    @property
+    def shape(self):
+        return self.frame.shape
+
+    def _apply(self, method, *args, **kwargs):
+        """Create a new instance, applying a method to the underlying data.
+
+        In typical usage, the method is any of the shape-changing methods for
+        `~numpy.ndarray` (``reshape``, ``swapaxes``, etc.), as well as those
+        picking particular elements (``__getitem__``, ``take``, etc.), which
+        are all defined in `~astropy.utils.misc.ShapedLikeNDArray`. It will be
+        applied to the underlying arrays in the representation (e.g., ``x``,
+        ``y``, and ``z`` for `~astropy.coordinates.CartesianRepresentation`),
+        as well as to any frame attributes that have a shape, with the results
+        used to create a new instance.
+
+        Internally, it is also used to apply functions to the above parts
+        (in particular, `~numpy.broadcast_to`).
+
+        Parameters
+        ----------
+        method : str or callable
+            If str, it is the name of a method that is applied to the internal
+            ``components``. If callable, the function is applied.
+        args : tuple
+            Any positional arguments for ``method``.
+        kwargs : dict
+            Any keyword arguments for ``method``.
+        """
+
         self_frame = self._sky_coord_frame
         try:
             # First turn `self` into a mockup of the thing we want - we can copy
             # this to get all the right attributes
-            self._sky_coord_frame = self_frame[item]
-            out = SkyCoord(self, representation=self.representation)
+            self._sky_coord_frame = self_frame._apply(method, *args, **kwargs)
+            out = SkyCoord(self, representation=self.representation, copy=False)
 
             # Copy other 'info' attr only if it has actually been defined.
             # See PR #3898 for further explanation and justification, along

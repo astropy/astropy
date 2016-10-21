@@ -50,16 +50,21 @@ they store multiple coordinates in a single object.  When you're going
 to apply the same operation to many different coordinates (say, from a
 catalog), this is a better choice than a list of |skycoord| objects,
 because it will be *much* faster than applying the operation to each
-|skycoord| in a for loop.
-::
+|skycoord| in a for loop. Like the underlying `~numpy.ndarray` instances
+holding the data, |skycoord| objects can be sliced, reshaped, etc.::
 
-    >>> c = SkyCoord(ra=[10, 11]*u.degree, dec=[41, -5]*u.degree)
+    >>> c = SkyCoord(ra=[10, 11, 12, 13]*u.degree, dec=[41, -5, 42, 0]*u.degree)
     >>> c
     <SkyCoord (ICRS): (ra, dec) in deg
-        [(10.0, 41.0), (11.0, -5.0)]>
+        [(10.0, 41.0), (11.0, -5.0), (12.0, 42.0), (13.0, 0.0)]>
     >>> c[1]
     <SkyCoord (ICRS): (ra, dec) in deg
         (11.0, -5.0)>
+    >>> c.reshape(2, 2)
+    <SkyCoord (ICRS): (ra, dec) in deg
+        [[(10.0, 41.0), (11.0, -5.0)],
+         [(12.0, 42.0), (13.0, 0.0)]]>
+
 
 Coordinate access
 -----------------

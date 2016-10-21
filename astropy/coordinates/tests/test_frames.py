@@ -156,6 +156,19 @@ def test_create_nodata_frames():
     assert f4.obstime in (FK4.get_frame_attr_names()['obstime'],
                           FK4.get_frame_attr_names()['equinox'])
 
+def test_no_data_nonscalar_frames():
+    from ..builtin_frames import AltAz
+    from astropy.time import Time
+    a1 = AltAz(obstime=Time('2012-01-01') + np.arange(10.) * u.day,
+               temperature=np.ones((3, 1)) * u.deg_C)
+    assert a1.obstime.shape == (3, 10)
+    assert a1.temperature.shape == (3, 10)
+    assert a1.shape == (3, 10)
+    with pytest.raises(ValueError) as exc:
+        AltAz(obstime=Time('2012-01-01') + np.arange(10.) * u.day,
+              temperature=np.ones((3,)) * u.deg_C)
+    assert 'inconsistent shapes' in str(exc)
+
 
 def test_frame_repr():
     from ..builtin_frames import ICRS, FK5
@@ -339,6 +352,18 @@ def test_transform():
     assert_allclose(i1.ra, i2.ra)
     assert_allclose(i1.dec, i2.dec)
 
+
+def test_transform_to_nonscalar_nodata_frame():
+    # https://github.com/astropy/astropy/pull/5254#issuecomment-241592353
+    from ..builtin_frames import ICRS, FK5
+    from ...time import Time
+    times = Time('2016-08-23') + np.linspace(0,10,12)*u.day
+    coo1 = ICRS(ra=[[0.], [10.], [20.]]*u.deg,
+                dec=[[-30.], [30.], [60.]]*u.deg)
+    coo2 = coo1.transform_to(FK5(equinox=times))
+    assert coo2.shape == (3, 12)
+
+
 def test_sep():
     from ..builtin_frames import ICRS
 
@@ -374,8 +399,12 @@ def test_time_inputs():
         c = FK4(1 * u.deg, 2 * u.deg, obstime='hello')
     assert 'Invalid time input' in str(err)
 
-    #should work fine without a warning even with vector times not always working
-    FK4(1 * u.deg, 2 * u.deg, obstime=['J2000', 'J2001'])
+    # A vector time should work if the shapes match, but we don't automatically
+    # broadcast the basic data (just like time).
+    FK4([1, 2]* u.deg, [2, 3] * u.deg, obstime=['J2000', 'J2001'])
+    with pytest.raises(ValueError) as err:
+        FK4(1 * u.deg, 2 * u.deg, obstime=['J2000', 'J2001'])
+    assert 'shape' in str(err)
 
 
 def test_is_frame_attr_default():

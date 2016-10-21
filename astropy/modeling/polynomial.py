@@ -12,8 +12,8 @@ import numpy as np
 from .core import FittableModel, Model
 from .functional_models import Shift
 from .parameters import Parameter
-from .utils import poly_map_domain, comb, check_broadcast
-from ..utils import indent
+from .utils import poly_map_domain, comb
+from ..utils import indent, check_broadcast
 from ..extern.six.moves import range
 
 

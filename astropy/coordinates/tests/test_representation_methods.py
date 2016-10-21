@@ -7,6 +7,7 @@ from ... import units as u
 from .. import SphericalRepresentation, Longitude, Latitude
 from ...tests.helper import pytest
 from ...utils.compat.numpycompat import NUMPY_LT_1_9
+from ...utils.compat.numpy import broadcast_to as np_broadcast_to
 
 
 class TestManipulation():
@@ -32,6 +33,7 @@ class TestManipulation():
 
     def test_ravel(self):
         s0_ravel = self.s0.ravel()
+        assert type(s0_ravel) is type(self.s0)
         assert s0_ravel.shape == (self.s0.size,)
         assert np.all(s0_ravel.lon == self.s0.lon.ravel())
         assert np.may_share_memory(s0_ravel.lon, self.s0.lon)
@@ -39,9 +41,18 @@ class TestManipulation():
         assert np.may_share_memory(s0_ravel.distance, self.s0.distance)
         # Since s1 was broadcast, ravel needs to make a copy.
         s1_ravel = self.s1.ravel()
+        assert type(s1_ravel) is type(self.s1)
         assert s1_ravel.shape == (self.s1.size,)
         assert np.all(s1_ravel.lon == self.s1.lon.ravel())
         assert not np.may_share_memory(s1_ravel.lat, self.s1.lat)
+
+    def test_copy(self):
+        s0_copy = self.s0.copy()
+        assert s0_copy.shape == self.s0.shape
+        assert np.all(s0_copy.lon == self.s0.lon)
+        assert np.all(s0_copy.lat == self.s0.lat)
+        # Check copy was made of internal data.
+        assert not np.may_share_memory(s0_copy.distance, self.s0.distance)
 
     def test_flatten(self):
         s0_flatten = self.s0.flatten()
@@ -159,3 +170,35 @@ class TestManipulation():
         s0_take = self.s0.take((5, 2))
         assert s0_take.shape == (2,)
         assert np.all(s0_take.lon == self.s0.lon.take((5, 2)))
+
+    def test_broadcast_to(self):
+        s0_broadcast = self.s0._apply(np_broadcast_to, (3, 6, 7), subok=True)
+        assert type(s0_broadcast) is type(self.s0)
+        assert s0_broadcast.shape == (3, 6, 7)
+        assert np.all(s0_broadcast.lon == self.s0.lon)
+        assert np.all(s0_broadcast.lat == self.s0.lat)
+        assert np.all(s0_broadcast.distance == self.s0.distance)
+        assert np.may_share_memory(s0_broadcast.lon, self.s0.lon)
+        assert np.may_share_memory(s0_broadcast.lat, self.s0.lat)
+        assert np.may_share_memory(s0_broadcast.distance, self.s0.distance)
+        s1_broadcast = self.s1._apply(np_broadcast_to, shape=(3, 6, 7),
+                                      subok=True)
+        assert s1_broadcast.shape == (3, 6, 7)
+        assert np.all(s1_broadcast.lat == self.s1.lat)
+        assert np.all(s1_broadcast.lon == self.s1.lon)
+        assert np.all(s1_broadcast.distance == self.s1.distance)
+        assert s1_broadcast.distance.shape == (3, 6, 7)
+        assert np.may_share_memory(s1_broadcast.lat, self.s1.lat)
+        assert np.may_share_memory(s1_broadcast.lon, self.s1.lon)
+        assert np.may_share_memory(s1_broadcast.distance, self.s1.distance)
+
+        # A final test that "may_share_memory" equals "does_share_memory"
+        # Do this on a copy, to keep self.s0 unchanged.
+        sc = self.s0.copy()
+        assert not np.may_share_memory(sc.lon, self.s0.lon)
+        assert not np.may_share_memory(sc.lat, self.s0.lat)
+        sc_broadcast = sc._apply(np_broadcast_to, (3, 6, 7), subok=True)
+        assert np.may_share_memory(sc_broadcast.lon, sc.lon)
+        # Can only write to copy, not to broadcast version.
+        sc.lon[0, 0] = 22. * u.hourangle
+        assert np.all(sc_broadcast.lon[:, 0, 0] == 22. * u.hourangle)
