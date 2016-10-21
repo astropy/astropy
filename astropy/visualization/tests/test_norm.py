@@ -7,7 +7,6 @@ from ...tests.helper import pytest
 from ..mpl_normalize import ImageNormalize, simple_norm
 from ..interval import ManualInterval
 from ..stretch import SqrtStretch
-from ...utils.compat import NUMPY_LT_1_10
 
 try:
     import matplotlib    # pylint: disable=W0611
@@ -15,8 +14,6 @@ try:
 except ImportError:
     HAS_MATPLOTLIB = False
 
-
-EQUAL_NAN = {} if NUMPY_LT_1_10 else {'equal_nan': True}
 
 DATA = np.linspace(0., 15., 6)
 DATA2 = np.arange(3)
@@ -61,10 +58,10 @@ class TestNormalize(object):
         output = norm(DATA)
         expected = [np.nan, 0.35355339, 0.70710678, 0.93541435, 1.11803399,
                     1.27475488]
-        assert_allclose(output, expected, **EQUAL_NAN)
+        assert_allclose(output, expected)
         assert_allclose(output.mask, [0, 0, 0, 0, 0, 0])
         assert_allclose(norm.inverse(norm(DATA))[1:], DATA[1:])
-        assert_allclose(output, norm2(DATA), **EQUAL_NAN)
+        assert_allclose(output, norm2(DATA))
 
     def test_implicit_autoscale(self):
         norm = ImageNormalize(vmin=None, vmax=10., stretch=SqrtStretch(),
@@ -83,7 +80,7 @@ class TestNormalize(object):
         output = norm(DATA)
         assert norm.vmin == 2.
         assert norm.vmax == np.max(DATA)
-        assert_allclose(output, norm2(DATA), **EQUAL_NAN)
+        assert_allclose(output, norm2(DATA))
 
     def test_masked_clip(self):
         mdata = ma.array(DATA, mask=[0, 0, 1, 0, 0, 0])
@@ -106,11 +103,11 @@ class TestNormalize(object):
         output = norm(mdata)
         expected = [np.nan, 0.35355339, -10, 0.93541435, 1.11803399,
                     1.27475488]
-        assert_allclose(output.filled(-10), expected, **EQUAL_NAN)
+        assert_allclose(output.filled(-10), expected)
         assert_allclose(output.mask, [0, 0, 1, 0, 0, 0])
 
         assert_allclose(norm.inverse(norm(DATA))[1:], DATA[1:])
-        assert_allclose(output, norm2(mdata), **EQUAL_NAN)
+        assert_allclose(output, norm2(mdata))
 
 
 @pytest.mark.skipif('not HAS_MATPLOTLIB')
