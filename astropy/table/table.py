@@ -989,7 +989,7 @@ class Table(object):
         browser : str
             Any legal browser name, e.g. ``'firefox'``, ``'chrome'``,
             ``'safari'`` (for mac, you may need to use ``'open -a
-            "/Applications/Google Chrome.app" %s'`` for Chrome).  If
+            "/Applications/Google Chrome.app" {}'`` for Chrome).  If
             ``'default'``, will use the system default browser.
         jskwargs : dict
             Passed to the `astropy.table.JSViewer` init. Defaults to
@@ -1044,7 +1044,7 @@ class Table(object):
         try:
             br = webbrowser.get(None if browser == 'default' else browser)
         except webbrowser.Error:
-            log.error("Browser '%s' not found." % browser)
+            log.error("Browser '{}' not found.".format(browser))
         else:
             br.open(urljoin('file:', pathname2url(path)))
 

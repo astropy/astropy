@@ -56,7 +56,7 @@ def write_lockfile(lockfilename, lockfiledict):
 
     lockfile = open(lockfilename, "w")
     now_iso = datetime.datetime.now().isoformat()
-    lockfile.write("# SAMP lockfile written on %s\n" % now_iso)
+    lockfile.write("# SAMP lockfile written on {}\n".format(now_iso))
     lockfile.write("# Standard Profile required keys\n")
     for key, value in six.iteritems(lockfiledict):
         lockfile.write("{0}={1}\n".format(key, value))
@@ -80,8 +80,8 @@ def create_lock_file(lockfilename=None, mode=None, hub_id=None,
             lockfile_parsed = urlparse(lockfilename)
 
             if lockfile_parsed[0] != 'file':
-                warnings.warn("Unable to start a Hub with lockfile %s. "
-                              "Start-up process aborted." % lockfilename,
+                warnings.warn("Unable to start a Hub with lockfile {}. "
+                              "Start-up process aborted.".format(lockfilename),
                               SAMPWarning)
                 return False
             else:
@@ -109,7 +109,7 @@ def create_lock_file(lockfilename=None, mode=None, hub_id=None,
                              stat.S_IREAD + stat.S_IWRITE + stat.S_IEXEC)
 
                 lockfilename = os.path.join(lockfiledir,
-                                            "samp-hub-%s" % hub_id)
+                                            "samp-hub-{}".format(hub_id))
 
         else:
             log.debug("Running mode: multiple")
