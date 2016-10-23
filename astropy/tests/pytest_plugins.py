@@ -415,7 +415,7 @@ class DocTestFinderPlus(doctest.DocTestFinder):
                         return False
 
                 reqs = getattr(obj, '__doctest_requires__', {})
-                for pats, mods in list(six.iteritems(reqs)):
+                for pats, mods in six.iteritems(reqs):
                     if not isinstance(pats, tuple):
                         pats = (pats,)
                     for pat in pats:
