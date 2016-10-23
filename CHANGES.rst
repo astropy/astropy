@@ -339,6 +339,11 @@ Bug Fixes
     be taken from logarithmic quanties such as ``Magnitude`` if the physical
     unit is dimensionless. [#5070]
 
+  - Operations involving ``Angle`` or ``Distance``, or any other 
+    ``SpecificTypeQuantity`` instance, now also keep return an instance of the
+    same type if the instance was the second argument (if the resulting unit
+    is consistent with the specific type). [#5327]
+
   - For inverse trig functions that operate on quantities, catch any warnings
     that occur from evaluating the function on the unscaled quantity value
     between __array_prepare__ and __array_wrap__. [#5153]
