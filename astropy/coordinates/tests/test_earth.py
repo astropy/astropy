@@ -107,12 +107,12 @@ class TestInput():
         assert self.location.ellipsoid == EarthLocation._ellipsoid
 
     def test_geo_attributes(self):
-        assert all([np.all(_1 == _2)
-                    for _1, _2 in zip(self.location.geodetic,
-                                      self.location.to_geodetic())])
-        assert all([np.all(_1 == _2)
-                    for _1, _2 in zip(self.location.geocentric,
-                                      self.location.to_geocentric())])
+        assert all(np.all(_1 == _2)
+                   for _1, _2 in zip(self.location.geodetic,
+                                     self.location.to_geodetic()))
+        assert all(np.all(_1 == _2)
+                   for _1, _2 in zip(self.location.geocentric,
+                                     self.location.to_geocentric()))
 
     def test_attribute_classes(self):
         """Test that attribute classes are correct (and not EarthLocation)"""

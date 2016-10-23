@@ -67,7 +67,7 @@ class ConstantMeta(InheritDocstrings):
                        '__dir__', '__getattr__', '__init__', '__str__',
                        '__repr__', '__hash__', '__iter__', '__getitem__',
                        '__len__', '__nonzero__', '__quantity_subclass__'])
-        for attr, value in list(six.iteritems(vars(Quantity))):
+        for attr, value in six.iteritems(vars(Quantity)):
             if (isinstance(value, types.FunctionType) and
                     attr.startswith('__') and attr.endswith('__') and
                     attr not in exclude):

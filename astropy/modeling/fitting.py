@@ -1034,17 +1034,16 @@ def _validate_constraints(supported_constraints, model):
 
     message = 'Optimizer cannot handle {0} constraints.'
 
-    if (any(model.fixed.values()) and
+    if (any(six.itervalues(model.fixed)) and
             'fixed' not in supported_constraints):
         raise UnsupportedConstraintError(
                 message.format('fixed parameter'))
 
-    if (any(model.tied.values()) and
-            'tied' not in supported_constraints):
+    if any(six.itervalues(model.tied)) and 'tied' not in supported_constraints:
         raise UnsupportedConstraintError(
                 message.format('tied parameter'))
 
-    if (any([tuple(b) != (None, None) for b in model.bounds.values()]) and
+    if (any(tuple(b) != (None, None) for b in six.itervalues(model.bounds)) and
             'bounds' not in supported_constraints):
         raise UnsupportedConstraintError(
                 message.format('bound parameter'))
@@ -1052,8 +1051,7 @@ def _validate_constraints(supported_constraints, model):
     if model.eqcons and 'eqcons' not in supported_constraints:
         raise UnsupportedConstraintError(message.format('equality'))
 
-    if (model.ineqcons and
-            'ineqcons' not in supported_constraints):
+    if model.ineqcons and 'ineqcons' not in supported_constraints:
         raise UnsupportedConstraintError(message.format('inequality'))
 
 

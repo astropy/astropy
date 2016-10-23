@@ -1254,7 +1254,7 @@ def clear_download_cache(hashorurl=None):
                     hash_key = hashorurl
 
                 if os.path.exists(filepath):
-                    for k, v in list(six.iteritems(url2hash)):
+                    for k, v in six.iteritems(url2hash):
                         if v == filepath:
                             del url2hash[k]
                     os.unlink(filepath)
