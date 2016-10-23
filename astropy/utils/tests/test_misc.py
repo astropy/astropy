@@ -24,9 +24,8 @@ def test_isiterable():
 
 
 def test_signal_number_to_name_no_failure():
-    # Regression test that the signal_number_to_name throws no
-    # AttributeError (it tried accessing ".iteritems()" which was removed in
-    # Python3).
+    # Regression test for #5340: ensure signal_number_to_name throws no
+    # AttributeError (it used ".iteritems()" which was removed in Python3).
     misc.signal_number_to_name(0)
 
 
