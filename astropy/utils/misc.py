@@ -281,8 +281,8 @@ def signal_number_to_name(signum):
     # Since these numbers and names are platform specific, we use the
     # builtin signal module and build a reverse mapping.
 
-    signal_to_name_map = dict(
-        (k, v) for v, k in signal.__dict__.iteritems() if v.startswith('SIG'))
+    signal_to_name_map = dict((k, v) for v, k in six.iteritems(signal.__dict__)
+                              if v.startswith('SIG'))
 
     return signal_to_name_map.get(signum, 'UNKNOWN')
 

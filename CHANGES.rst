@@ -67,6 +67,9 @@ Bug Fixes
 
 - ``astropy.utils``
 
+  - Fixed AttributeError when calling ``utils.misc.signal_number_to_name`` with
+    Python3 [#5430].
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
