@@ -66,7 +66,7 @@ def _make_transform_graph_docs():
     from ..baseframe import BaseCoordinateFrame, frame_transform_graph
 
     isclass = inspect.isclass
-    coosys = [item for item in list(six.itervalues(globals()))
+    coosys = [item for item in six.itervalues(globals())
               if isclass(item) and issubclass(item, BaseCoordinateFrame)]
     graphstr = frame_transform_graph.to_dot_graph(addnodes=coosys)
 
