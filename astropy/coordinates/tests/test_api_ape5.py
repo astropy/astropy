@@ -181,7 +181,7 @@ def test_frame_api():
 
     # There is also a class-level attribute that lists the attributes needed to
     # identify the frame.  These include attributes like `equinox` shown above.
-    assert all([nm in ('equinox', 'obstime') for nm in fk5.get_frame_attr_names()])
+    assert all(nm in ('equinox', 'obstime') for nm in fk5.get_frame_attr_names())
 
     # the result of `get_frame_attr_names` is called for particularly in  the
     # high-level class (discussed below) to allow round-tripping between various

@@ -291,7 +291,7 @@ def merge(left, right, merge_func=None, metadata_conflicts='warn'):
 
     out = deepcopy(left)
 
-    for key, val in list(six.iteritems(right)):
+    for key, val in six.iteritems(right):
         # If no conflict then insert val into out dict and continue
         if key not in out:
             out[key] = deepcopy(val)

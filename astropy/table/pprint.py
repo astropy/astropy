@@ -516,7 +516,7 @@ class TableFormatter(object):
         cols = []
 
         if show_unit is None:
-            show_unit = any([col.info.unit for col in six.itervalues(table.columns)])
+            show_unit = any(col.info.unit for col in six.itervalues(table.columns))
 
         # Coerce align into a correctly-sized list of alignments (if possible)
         n_cols = len(table.columns)

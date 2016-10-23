@@ -329,7 +329,7 @@ def find_mod_objs(modname, onlylocals=False):
     if onlylocals:
         if onlylocals is True:
             onlylocals = [modname]
-        valids = [any([fqn.startswith(nm) for nm in onlylocals]) for fqn in fqnames]
+        valids = [any(fqn.startswith(nm) for nm in onlylocals) for fqn in fqnames]
         localnames = [e for i, e in enumerate(localnames) if valids[i]]
         fqnames = [e for i, e in enumerate(fqnames) if valids[i]]
         objs = [e for i, e in enumerate(objs) if valids[i]]
