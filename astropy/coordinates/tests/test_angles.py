@@ -169,9 +169,17 @@ def test_angle_ops():
     assert a1 < a5
     assert a1 <= a5
 
+    # check operations with non-angular result give Quantity.
     a6 = Angle(45., u.degree)
     a7 = a6 * a5
     assert type(a7) is u.Quantity
+
+    # but those with angular result yield Angle.
+    # (a9 is regression test for #5327)
+    a8 = a1 + 1.*u.deg
+    assert type(a8) is Angle
+    a9 = 1.*u.deg + a1
+    assert type(a9) is Angle
 
     with pytest.raises(TypeError):
         a6 *= a5

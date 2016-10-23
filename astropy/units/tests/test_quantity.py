@@ -1188,6 +1188,65 @@ def test_repr_array_of_quantity():
     assert str(a) == '[<Quantity 1.0 m> <Quantity 2.0 s>]'
 
 
+class TestSpecificTypeQuantity(object):
+    def setup(self):
+        class Length(u.SpecificTypeQuantity):
+            _equivalent_unit = u.m
+
+        class Length2(Length):
+            _default_unit = u.m
+
+        class Length3(Length):
+            _unit = u.m
+
+        self.Length = Length
+        self.Length2 = Length2
+        self.Length3 = Length3
+
+    def test_creation(self):
+        l = self.Length(np.arange(10.)*u.km)
+        assert type(l) is self.Length
+        with pytest.raises(u.UnitTypeError):
+            self.Length(np.arange(10.) * u.hour)
+
+        with pytest.raises(u.UnitTypeError):
+            self.Length(np.arange(10.))
+
+        l2 = self.Length2(np.arange(5.))
+        assert type(l2) is self.Length2
+        assert l2._default_unit is self.Length2._default_unit
+
+        with pytest.raises(u.UnitTypeError):
+            self.Length3(np.arange(10.))
+
+    def test_view(self):
+        l = (np.arange(5.) * u.km).view(self.Length)
+        assert type(l) is self.Length
+        with pytest.raises(u.UnitTypeError):
+            (np.arange(5.) * u.s).view(self.Length)
+
+        v = np.arange(5.).view(self.Length)
+        assert type(v) is self.Length
+        assert v._unit is None
+
+        l3 = np.ones((2,2)).view(self.Length3)
+        assert type(l3) is self.Length3
+        assert l3.unit is self.Length3._unit
+
+    def test_operation_precedence_and_fallback(self):
+        l = self.Length(np.arange(5.)*u.cm)
+        sum1 = l + 1.*u.m
+        assert type(sum1) is self.Length
+        sum2 = 1.*u.km + l
+        assert type(sum2) is self.Length
+        sum3 = l + l
+        assert type(sum3) is self.Length
+        res1 = l * (1.*u.m)
+        assert type(res1) is u.Quantity
+        res2 = l * l
+        assert type(res2) is u.Quantity
+
+
 @pytest.mark.skipif('not HAS_MATPLOTLIB')
 @pytest.mark.xfail('MATPLOTLIB_LT_14')
 class TestQuantityMatplotlib(object):
