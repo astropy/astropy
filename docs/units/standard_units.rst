@@ -152,6 +152,6 @@ To enable just specific units, use `~astropy.units.add_enabled_units`::
 
     >>> from astropy import units as u
     >>> from astropy.units import imperial
-    >>> with u.add_enabled_units_context([imperial.knot]):
+    >>> with u.add_enabled_units([imperial.knot]):
     ...     u.m.find_equivalent_units()  # doctest: +SKIP
     ...
