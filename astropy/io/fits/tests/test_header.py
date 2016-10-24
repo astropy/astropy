@@ -45,7 +45,7 @@ class TestHeaderFunctions(FitsTestCase):
     """Test Header and Card objects."""
 
     def test_rename_keyword(self):
-        """Test backwards compatibility support for Header.rename_key()"""
+        """Test renaming keyword with rename_keyword."""
         header = fits.Header([('A', 'B', 'C'), ('D', 'E', 'F')])
         header.rename_keyword('A', 'B')
         assert 'A' not in header
@@ -189,27 +189,6 @@ class TestHeaderFunctions(FitsTestCase):
 
         hdul = fits.open(self.temp('test.fits'))
         assert hdul[0].header.comments['FOO'] == 'QUX'
-
-    def test_long_commentary_card(self):
-        # Another version of this test using new API methods is found in
-        # TestHeaderFunctions
-        header = fits.Header()
-        header.update({'FOO': 'BAR'})
-        header.update({'BAZ': 'QUX'})
-        longval = 'ABC' * 30
-        header.add_history(longval)
-        header.update({'FRED': 'BARNEY'})
-        header.add_history(longval)
-
-        assert len(header.cards) == 7
-        assert header.cards[2].keyword == 'FRED'
-        assert str(header.cards[3]) == 'HISTORY ' + longval[:72]
-        assert str(header.cards[4]).rstrip() == 'HISTORY ' + longval[72:]
-
-        header.add_history(longval, after='FOO')
-        assert len(header.cards) == 9
-        assert str(header.cards[1]) == 'HISTORY ' + longval[:72]
-        assert str(header.cards[2]).rstrip() == 'HISTORY ' + longval[72:]
 
     def test_commentary_cards(self):
         # commentary cards
@@ -1300,7 +1279,6 @@ class TestHeaderFunctions(FitsTestCase):
         assert list(header) == ['C']
         assert header[0] == 'D'
 
-
     def test_header_comments(self):
         header = fits.Header([('A', 'B', 'C'), ('DEF', 'G', 'H')])
         assert (repr(header.comments) ==
@@ -1331,18 +1309,6 @@ class TestHeaderFunctions(FitsTestCase):
 
         header.comments['A*'] = ['M', 'N']
         assert list(header.comments) == ['M', 'L', 'N']
-
-    def test_update_comment(self):
-        hdul = fits.open(self.data('arange.fits'))
-        hdul[0].header['FOO'] = ('BAR', 'BAZ')
-        hdul.writeto(self.temp('test.fits'))
-
-        hdul = fits.open(self.temp('test.fits'), mode='update')
-        hdul[0].header.comments['FOO'] = 'QUX'
-        hdul.close()
-
-        hdul = fits.open(self.temp('test.fits'))
-        assert hdul[0].header.comments['FOO'] == 'QUX'
 
     def test_commentary_slicing(self):
         header = fits.Header()
@@ -1429,6 +1395,24 @@ class TestHeaderFunctions(FitsTestCase):
 
         header.set('HISTORY', longval, after='FOO')
         assert len(header) == 9
+        assert str(header.cards[1]) == 'HISTORY ' + longval[:72]
+        assert str(header.cards[2]).rstrip() == 'HISTORY ' + longval[72:]
+
+        header = fits.Header()
+        header.update({'FOO': 'BAR'})
+        header.update({'BAZ': 'QUX'})
+        longval = 'ABC' * 30
+        header.add_history(longval)
+        header.update({'FRED': 'BARNEY'})
+        header.add_history(longval)
+
+        assert len(header.cards) == 7
+        assert header.cards[2].keyword == 'FRED'
+        assert str(header.cards[3]) == 'HISTORY ' + longval[:72]
+        assert str(header.cards[4]).rstrip() == 'HISTORY ' + longval[72:]
+
+        header.add_history(longval, after='FOO')
+        assert len(header.cards) == 9
         assert str(header.cards[1]) == 'HISTORY ' + longval[:72]
         assert str(header.cards[2]).rstrip() == 'HISTORY ' + longval[72:]
 
