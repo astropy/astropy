@@ -146,6 +146,7 @@ enable additional units::
     >>> from astropy.units import imperial
     >>> with imperial.enable():
     ...     print(u.m.find_equivalent_units())
+          Primary name | Unit definition | Aliases
     ...
 
 To enable just specific units, use `~astropy.units.add_enabled_units`::
@@ -154,4 +155,5 @@ To enable just specific units, use `~astropy.units.add_enabled_units`::
     >>> from astropy.units import imperial
     >>> with u.add_enabled_units([imperial.knot]):
     ...     print(u.m.find_equivalent_units())
+          Primary name | Unit definition | Aliases
     ...
