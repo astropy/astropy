@@ -175,13 +175,35 @@ class TestHeaderFunctions(FitsTestCase):
         assert header.cards[1].value == 0
         assert header[''] == [0, 1, 2, 3, '', '', 4]
 
+    def test_update(self):
+        class FakeHeader(list):
+            def keys(self):
+                return [l[0] for l in self]
+
+            def __getitem__(self, key):
+                return next(l[1:] for l in self if l[0] == key)
+
+        header = fits.Header()
+        header.update({'FOO': ('BAR', 'BAZ')})
+        header.update(FakeHeader([('A', 1), ('B', 2, 'comment')]))
+        assert set(header.keys()) == {'FOO', 'A', 'B'}
+        assert header.comments['B'] == 'comment'
+
+        header.update(NAXIS1=100, NAXIS2=100)
+        assert set(header.keys()) == {'FOO', 'A', 'B', 'NAXIS1', 'NAXIS2'}
+        assert set(header.values()) == {'BAR', 1, 2, 100, 100}
+
     def test_update_comment(self):
         hdul = fits.open(self.data('arange.fits'))
         hdul[0].header.update({'FOO': ('BAR', 'BAZ')})
         assert hdul[0].header['FOO'] == 'BAR'
         assert hdul[0].header.comments['FOO'] == 'BAZ'
 
+        with pytest.raises(ValueError):
+            hdul[0].header.update({'FOO2': ('BAR', 'BAZ', 'EXTRA')})
+
         hdul.writeto(self.temp('test.fits'))
+        hdul.close()
 
         hdul = fits.open(self.temp('test.fits'), mode='update')
         hdul[0].header.comments['FOO'] = 'QUX'
@@ -189,6 +211,10 @@ class TestHeaderFunctions(FitsTestCase):
 
         hdul = fits.open(self.temp('test.fits'))
         assert hdul[0].header.comments['FOO'] == 'QUX'
+
+        hdul[0].header.add_comment(0, after='FOO')
+        assert str(hdul[0].header.cards[-1]).strip() == 'COMMENT 0'
+        hdul.close()
 
     def test_commentary_cards(self):
         # commentary cards
@@ -694,7 +720,9 @@ class TestHeaderFunctions(FitsTestCase):
     def test_header_setitem_1tuple(self):
         header = fits.Header()
         header['FOO'] = ('BAR',)
+        header['FOO2'] = (None,)
         assert header['FOO'] == 'BAR'
+        assert header['FOO2'] == ''
         assert header[0] == 'BAR'
         assert header.comments[0] == ''
         assert header.comments['FOO'] == ''
@@ -702,10 +730,13 @@ class TestHeaderFunctions(FitsTestCase):
     def test_header_setitem_2tuple(self):
         header = fits.Header()
         header['FOO'] = ('BAR', 'BAZ')
+        header['FOO2'] = (None, None)
         assert header['FOO'] == 'BAR'
+        assert header['FOO2'] == ''
         assert header[0] == 'BAR'
         assert header.comments[0] == 'BAZ'
         assert header.comments['FOO'] == 'BAZ'
+        assert header.comments['FOO2'] == ''
 
     def test_header_set_value_to_none(self):
         """
