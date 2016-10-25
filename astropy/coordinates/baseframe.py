@@ -1294,12 +1294,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             raise ValueError('The other object does not have a distance; '
                              'cannot compute 3d separation.')
 
-        dx = self.cartesian.x - other_in_self_system.cartesian.x
-        dy = self.cartesian.y - other_in_self_system.cartesian.y
-        dz = self.cartesian.z - other_in_self_system.cartesian.z
-
-        distval = (dx.value ** 2 + dy.value ** 2 + dz.value ** 2) ** 0.5
-        return Distance(distval, dx.unit)
+        return Distance((self.cartesian -
+                         other_in_self_system.cartesian).norm())
 
     @property
     def cartesian(self):

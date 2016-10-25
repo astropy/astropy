@@ -169,42 +169,34 @@ def fk4_e_terms(equinox):
 @frame_transform_graph.transform(FunctionTransform, FK4, FK4NoETerms)
 def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
     # Extract cartesian vector
-    c = fk4coord.cartesian.xyz
-    r = np.asarray(c.reshape((3, c.size // 3)))
+    rep = fk4coord.cartesian
 
     # Find distance (for re-normalization)
-    d_orig = np.sqrt(np.sum(r ** 2, axis=0))
-    r /= d_orig
+    d_orig = rep.norm()
+    rep /= d_orig
 
     # Apply E-terms of aberration. Note that this depends on the equinox (not
     # the observing time/epoch) of the coordinates. See issue #1496 for a
     # discussion of this.
-    eterms_a = np.asarray(fk4_e_terms(fk4coord.equinox))
-    r = r - eterms_a.reshape(3, 1) + np.dot(eterms_a, r) * r
+    eterms_a = CartesianRepresentation(
+        u.Quantity(fk4_e_terms(fk4coord.equinox), u.dimensionless_unscaled,
+                   copy=False), copy=False)
+    rep = rep - eterms_a + eterms_a.dot(rep) * rep
 
     # Find new distance (for re-normalization)
-    d_new = np.sqrt(np.sum(r ** 2, axis=0))
+    d_new = rep.norm()
 
     # Renormalize
-    r *= d_orig / d_new
-
-    subshape = c.shape[1:]
-    x = r[0].reshape(subshape)
-    y = r[1].reshape(subshape)
-    z = r[2].reshape(subshape)
+    rep *= d_orig / d_new
 
     #now re-cast into an appropriate Representation, and precess if need be
     if isinstance(fk4coord.data, UnitSphericalRepresentation):
-        representation = CartesianRepresentation(x=x*u.one, y=y*u.one, z=z*u.one)
-        representation = representation.represent_as(UnitSphericalRepresentation)
-    else:
-        representation = CartesianRepresentation(x=x*c.unit, y=y*c.unit, z=z*c.unit)
+        rep = rep.represent_as(UnitSphericalRepresentation)
 
     # if no obstime was given in the new frame, use the old one for consistency
     newobstime = fk4coord._obstime if fk4noeframe._obstime is None else fk4noeframe._obstime
 
-    fk4noe = FK4NoETerms(representation, equinox=fk4coord.equinox,
-                         obstime=newobstime)
+    fk4noe = FK4NoETerms(rep, equinox=fk4coord.equinox, obstime=newobstime)
     if fk4coord.equinox != fk4noeframe.equinox:
         #precession
         fk4noe = fk4noe.transform_to(fk4noeframe)
@@ -220,37 +212,31 @@ def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
         fk4noecoord = fk4noecoord.transform_to(fk4noe_w_fk4equinox)
 
     # Extract cartesian vector
-    c = fk4noecoord.cartesian.xyz
-    r = np.asarray(c.reshape((3, c.size // 3)))
+    rep = fk4noecoord.cartesian
 
     # Find distance (for re-normalization)
-    d_orig = np.sqrt(np.sum(r ** 2, axis=0))
-    r /= d_orig
+    d_orig = rep.norm()
+    rep /= d_orig
 
     # Apply E-terms of aberration. Note that this depends on the equinox (not
     # the observing time/epoch) of the coordinates. See issue #1496 for a
     # discussion of this.
-    eterms_a = np.asarray(fk4_e_terms(fk4noecoord.equinox))
-    r0 = r.copy()
+    eterms_a = CartesianRepresentation(
+        u.Quantity(fk4_e_terms(fk4noecoord.equinox), u.dimensionless_unscaled,
+                   copy=False), copy=False)
+
+    rep0 = rep.copy()
     for _ in range(10):
-        r = (eterms_a.reshape(3, 1) + r0) / (1. + np.dot(eterms_a, r))
+        rep = (eterms_a + rep0) / (1. + eterms_a.dot(rep))
 
     # Find new distance (for re-normalization)
-    d_new = np.sqrt(np.sum(r ** 2, axis=0))
+    d_new = rep.norm()
 
     # Renormalize
-    r *= d_orig / d_new
-
-    subshape = c.shape[1:]
-    x = r[0].reshape(subshape)
-    y = r[1].reshape(subshape)
-    z = r[2].reshape(subshape)
+    rep *= d_orig / d_new
 
     #now re-cast into an appropriate Representation, and precess if need be
     if isinstance(fk4noecoord.data, UnitSphericalRepresentation):
-        representation = CartesianRepresentation(x=x*u.one, y=y*u.one, z=z*u.one)
-        representation = representation.represent_as(UnitSphericalRepresentation)
-    else:
-        representation = CartesianRepresentation(x=x*c.unit, y=y*c.unit, z=z*c.unit)
+        rep = rep.represent_as(UnitSphericalRepresentation)
 
-    return fk4frame.realize_frame(representation)
+    return fk4frame.realize_frame(rep)

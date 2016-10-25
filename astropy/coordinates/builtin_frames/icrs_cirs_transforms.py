@@ -47,11 +47,10 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
         # astrometric coordinate direction and *then* run the ERFA transform for
         # no parallax/PM. This ensures reversibility and is more sensible for
         # inside solar system objects
-        newxyz = icrs_coo.cartesian.xyz
-        newxyz = np.rollaxis(newxyz, 0, newxyz.ndim) - astrom['eb'] * u.au
-        # roll xyz back to the first axis
-        newxyz = np.rollaxis(newxyz, -1, 0)
-        newcart = CartesianRepresentation(newxyz)
+        astrom_eb = CartesianRepresentation(
+            u.Quantity(np.rollaxis(astrom['eb'], -1, 0), u.au, copy=False),
+            copy=False)
+        newcart = icrs_coo.cartesian - astrom_eb
 
         srepr = newcart.represent_as(SphericalRepresentation)
         i_ra = srepr.lon.to(u.radian).value
@@ -96,12 +95,10 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
                                               distance=cirs_coo.distance,
                                               copy=False)
 
-        newxyz = intermedrep.to_cartesian().xyz
-        # roll xyz to last axis and add the barycentre position
-        newxyz = np.rollaxis(newxyz, 0, newxyz.ndim) + astrom['eb'] * u.au
-        # roll xyz back to the first axis
-        newxyz = np.rollaxis(newxyz, -1, 0)
-        newrep = CartesianRepresentation(newxyz).represent_as(SphericalRepresentation)
+        astrom_eb = CartesianRepresentation(
+            u.Quantity(np.rollaxis(astrom['eb'], -1, 0), u.au, copy=False),
+            copy=False)
+        newrep = intermedrep + astrom_eb
 
     return icrs_frame.realize_frame(newrep)
 
@@ -154,10 +151,10 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
         # BCRS coordinate direction and *then* run the ERFA transform for no
         # parallax/PM. This ensures reversibility and is more sensible for
         # inside solar system objects
-        newxyz = icrs_coo.cartesian.xyz
-        newxyz = np.rollaxis(newxyz, 0, newxyz.ndim) - astrom['eb'] * u.au
-        newxyz = np.rollaxis(newxyz, -1, 0)
-        newcart = CartesianRepresentation(newxyz)
+        astrom_eb = CartesianRepresentation(
+            u.Quantity(np.rollaxis(astrom['eb'], -1, 0), u.au, copy=False),
+            copy=False)
+        newcart = icrs_coo.cartesian - astrom_eb
 
         srepr = newcart.represent_as(SphericalRepresentation)
         i_ra = srepr.lon.to(u.radian).value
@@ -209,12 +206,11 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
                                               distance=gcrs_coo.distance,
                                               copy=False)
 
-        newxyz = intermedrep.to_cartesian().xyz
-        # roll xyz to last axis and add the heliocentre position
-        newxyz = np.rollaxis(newxyz, 0, newxyz.ndim) + astrom['eb'] * u.au
-        # roll xyz back to the first axis
-        newxyz = np.rollaxis(newxyz, -1, 0)
-        newrep = CartesianRepresentation(newxyz).represent_as(SphericalRepresentation)
+        astrom_eb = CartesianRepresentation(
+            u.Quantity(np.rollaxis(astrom['eb'], -1, 0), u.au, copy=False),
+            copy=False)
+        newrep = intermedrep + astrom_eb
+
     return icrs_frame.realize_frame(newrep)
 
 
@@ -274,20 +270,17 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
                                               distance=gcrs_coo.distance,
                                               copy=False)
 
-        newxyz = intermedrep.to_cartesian().xyz
-
         # astrom['eh'] and astrom['em'] contain Sun to observer unit vector,
         # and distance, respectively. Shapes are (X) and (X,3), where (X) is the
         # shape resulting from broadcasting the shape of the times object
         # against the shape of the pv array.
         # broadcast em to eh and scale eh
-        eh = astrom['eh'] * astrom['em'][..., np.newaxis] * u.au
+        eh = astrom['eh'] * astrom['em'][..., np.newaxis]
+        eh = CartesianRepresentation(
+            u.Quantity(np.rollaxis(eh, -1, 0), u.au, copy=False),
+            copy=False)
 
-        # roll xyz to last axis and add the heliocentre position
-        newxyz = np.rollaxis(newxyz, 0, newxyz.ndim) + eh
-        # roll xyz back to the first axis
-        newxyz = np.rollaxis(newxyz, -1, 0)
-        newrep = CartesianRepresentation(newxyz).represent_as(SphericalRepresentation)
+        newrep = intermedrep.to_cartesian() + eh
 
     return hcrs_frame.realize_frame(newrep)
 
@@ -307,10 +300,7 @@ def hcrs_to_icrs(hcrs_coo, icrs_frame):
     # this goes here to avoid circular import errors
     from ..solar_system import get_body_barycentric
     bary_sun_pos = get_body_barycentric('sun', hcrs_coo.obstime)
-    hcrs_cart = hcrs_coo.cartesian
-    newrep = CartesianRepresentation(hcrs_cart.x + bary_sun_pos.x,
-                                     hcrs_cart.y + bary_sun_pos.y,
-                                     hcrs_cart.z + bary_sun_pos.z)
+    newrep = hcrs_coo.cartesian + bary_sun_pos
     return icrs_frame.realize_frame(newrep)
 
 
@@ -323,10 +313,7 @@ def icrs_to_hcrs(icrs_coo, hcrs_frame):
     # this goes here to avoid circular import errors
     from ..solar_system import get_body_barycentric
     bary_sun_pos = get_body_barycentric('sun', hcrs_frame.obstime)
-    icrs_cart = icrs_coo.cartesian
-    newrep = CartesianRepresentation(icrs_cart.x - bary_sun_pos.x,
-                                     icrs_cart.y - bary_sun_pos.y,
-                                     icrs_cart.z - bary_sun_pos.z)
+    newrep = icrs_coo.cartesian - bary_sun_pos
     return hcrs_frame.realize_frame(newrep)
 
 
