@@ -411,8 +411,7 @@ def _get_apparent_body_position(body, time, ephemeris):
     earth_loc = get_body_barycentric('earth', time, ephemeris)
     while np.any(np.fabs(delta_light_travel_time) > 1.0e-8*u.s):
         body_loc = get_body_barycentric(body, emitted_time, ephemeris)
-        earth_body_vector = body_loc.xyz - earth_loc.xyz
-        earth_distance = np.sqrt(np.sum(earth_body_vector**2, axis=0))
+        earth_distance = (body_loc - earth_loc).norm()
         delta_light_travel_time = (light_travel_time -
                                    earth_distance/speed_of_light)
         light_travel_time = earth_distance/speed_of_light
