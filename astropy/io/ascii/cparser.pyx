@@ -239,6 +239,7 @@ cdef class CParser:
                                           strip_line_whitespace,
                                           strip_line_fields,
                                           use_fast_converter)
+
         self.source = None
         if source is not None:
             self.setup_tokenizer(source)

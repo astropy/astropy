@@ -1,16 +1,19 @@
+# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # TEST_UNICODE_LITERALS
 
 import re
-from io import BytesIO
+from io import BytesIO, open
 from collections import OrderedDict
 import locale
 import platform
+import os
 
 import pytest
 import numpy as np
 
+from ....extern import six
 from ....extern.six.moves import zip, cStringIO as StringIO
 from ... import ascii
 from ....table import Table
@@ -157,6 +160,50 @@ def test_read_all_files_via_table(fast_reader):
                 test_opts['fast_reader'] = fast_reader
             table = Table.read(testfile['name'], format=format, **test_opts)
             assert_equal(table.dtype.names, testfile['cols'])
+            for colname in table.dtype.names:
+                assert_equal(len(table[colname]), testfile['nrows'])
+
+
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_read_all_files_with_encoding(fast_reader, tmpdir):
+    from ....table import Column
+    formats = {v: k for k, v in core.FORMAT_CLASSES.items()}
+
+    for testfile in get_testfiles():
+        if testfile.get('skip'):
+            print('\n\n******** SKIPPING %s' % testfile['name'])
+            continue
+
+        tmpfile = str(tmpdir.join(os.path.basename(testfile['name'])))
+
+        table = ascii.read(testfile['name'], **testfile['opts'])
+        if table.columns[0].dtype.kind == 's':
+            name = u'à' if not six.PY2 else 'alpha'
+            col = Column(name=name, data=[six.u(x) for x in table.columns[0]])
+            table.add_column(col, 0)
+            table[0][0] = u"àéö"
+            cols = (name, ) + testfile['cols']
+        else:
+            cols = testfile['cols']
+
+        format = formats.get(testfile['opts'].get('Reader'))
+
+        with open(tmpfile, mode='w', encoding='latin1') as fout:
+            ascii.write(table, fout, fast_writer=False, format=format)
+
+        print('\n\n******** READING %s' % testfile['name'])
+        for guess in (True, False):
+            test_opts = testfile['opts'].copy()
+            test_opts['encoding'] = 'latin1'
+            if 'guess' not in test_opts:
+                test_opts['guess'] = guess
+            if 'Reader' in test_opts and \
+                    'fast_{0}'.format(test_opts['Reader']._format_name) \
+                    in core.FAST_CLASSES:  # has fast version
+                if 'Inputter' not in test_opts:  # fast reader doesn't allow this
+                    test_opts['fast_reader'] = fast_reader
+            table = ascii.read(tmpfile, **test_opts)
+            assert_equal(table.dtype.names, cols)
             for colname in table.dtype.names:
                 assert_equal(len(table[colname]), testfile['nrows'])
 
