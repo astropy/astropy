@@ -30,6 +30,8 @@ New Features
 
 - ``astropy.io.ascii``
 
+  - Allow to specify encoding in ``ascii.read``. [#5448]
+
 - ``astropy.io.fits``
 
   - Checking available disk space before writing out file. [#5550, #4065]
