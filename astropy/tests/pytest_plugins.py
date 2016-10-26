@@ -134,7 +134,7 @@ def pytest_configure(config):
 
     # Monkeypatch to deny access to remote resources unless explicitly told
     # otherwise
-    if not config.getoption('remote_data'):
+    if not config.getoption('remote_data', default=False):
         turn_off_internet(verbose=config.option.verbose)
 
     doctest_plugin = config.pluginmanager.getplugin('doctest')
