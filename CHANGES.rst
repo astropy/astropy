@@ -20,6 +20,9 @@ New Features
     For JPL kernels, this roughly doubles the execution time, so if one requires
     only the positions, one should use ``get_body_barycentric``. [#5231]
 
+  - Transformations between coordinate systems can use the more accurate JPL
+    ephemerides. [#5273, #5436]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
@@ -41,7 +44,8 @@ New Features
   - Added a ``Tabular`` model. [#5105]
 
   - Added ``Hermite1D`` and ``Hermite2D`` polynomial models [#5242]
-  - Added the injection of EntryPoints into astropy.modeling.fitting if 
+
+  - Added the injection of EntryPoints into astropy.modeling.fitting if
     they inherit from Fitters class. [#5241]
 
 - ``astropy.nddata``
@@ -58,6 +62,8 @@ New Features
   - Support generalized value formatting for mixin columns in tables. [#5274]
 
 - ``astropy.time``
+
+  - ``light_travel_time`` can now use more accurate JPL ephemerides. [#5273, #5436]
 
 - ``astropy.units``
 
@@ -292,8 +298,6 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
-  - Transformations between coordinate systems can use the more accurate JPL ephemerides.
-
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
@@ -328,8 +332,6 @@ Bug Fixes
 
 - ``astropy.time``
 
- - ``light_travel_time`` can now use more accurate JPL ephemerides.
-
 - ``astropy.units``
 
   - Inplace operations on ``Angle`` and ``Distance`` instances now raise an
@@ -339,7 +341,7 @@ Bug Fixes
     be taken from logarithmic quanties such as ``Magnitude`` if the physical
     unit is dimensionless. [#5070]
 
-  - Operations involving ``Angle`` or ``Distance``, or any other 
+  - Operations involving ``Angle`` or ``Distance``, or any other
     ``SpecificTypeQuantity`` instance, now also keep return an instance of the
     same type if the instance was the second argument (if the resulting unit
     is consistent with the specific type). [#5327]
