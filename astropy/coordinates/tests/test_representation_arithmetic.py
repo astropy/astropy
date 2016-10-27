@@ -26,7 +26,6 @@ def representation_equal(first, second):
                              for component in first.components))
 
 class TestArithmetic():
-    """Test absolute value, multiplication, and division."""
 
     def setup(self):
         # Choose some specific coordinates, for which ``sum`` and ``dot``
@@ -40,25 +39,27 @@ class TestArithmetic():
             UnitSphericalRepresentation)
         self.cartesian = self.spherical.to_cartesian()
 
-    def test_abs_spherical(self):
-        abs_s = abs(self.spherical)
-        assert isinstance(abs_s, u.Quantity)
-        assert np.all(abs_s == self.distance)
+    def test_norm_spherical(self):
+        norm_s = self.spherical.norm()
+        assert isinstance(norm_s, u.Quantity)
+        # Just to be sure, test against getting object arrays.
+        assert norm_s.dtype.kind == 'f'
+        assert np.all(norm_s == self.distance)
 
     @pytest.mark.parametrize('representation',
                              (PhysicsSphericalRepresentation,
                               CartesianRepresentation,
                               CylindricalRepresentation))
-    def test_abs(self, representation):
+    def test_norm(self, representation):
         in_rep = self.spherical.represent_as(representation)
-        abs_rep = abs(in_rep)
-        assert isinstance(abs_rep, u.Quantity)
-        assert_quantity_allclose(abs_rep, self.distance)
+        norm_rep = in_rep.norm()
+        assert isinstance(norm_rep, u.Quantity)
+        assert_quantity_allclose(norm_rep, self.distance)
 
-    def test_abs_unitspherical(self):
-        abs_rep = abs(self.unit_spherical)
-        assert abs_rep.unit == u.dimensionless_unscaled
-        assert np.all(abs_rep == 1. * u.dimensionless_unscaled)
+    def test_norm_unitspherical(self):
+        norm_rep = self.unit_spherical.norm()
+        assert norm_rep.unit == u.dimensionless_unscaled
+        assert np.all(norm_rep == 1. * u.dimensionless_unscaled)
 
     @pytest.mark.parametrize('representation',
                              (SphericalRepresentation,
@@ -74,7 +75,7 @@ class TestArithmetic():
         assert np.all(representation_equal(pos_rep, in_rep))
         neg_rep = -in_rep
         assert type(neg_rep) is type(in_rep)
-        assert np.all(abs(neg_rep) == abs(in_rep))
+        assert np.all(neg_rep.norm() == in_rep.norm())
         in_rep_xyz = in_rep.to_cartesian().xyz
         assert_quantity_allclose(neg_rep.to_cartesian().xyz,
                                  -in_rep_xyz, atol=1.e-10*in_rep_xyz.unit)
@@ -82,6 +83,7 @@ class TestArithmetic():
     def test_mul_div_spherical(self):
         s0 = self.spherical / (1. * u.Myr)
         assert isinstance(s0, SphericalRepresentation)
+        assert s0.distance.dtype.kind == 'f'
         assert np.all(s0.lon == self.spherical.lon)
         assert np.all(s0.lat == self.spherical.lat)
         assert np.all(s0.distance == self.distance / (1. * u.Myr))
@@ -126,7 +128,7 @@ class TestArithmetic():
         r2 = np.array([[1.], [2.]]) * in_rep
         assert isinstance(r2, representation)
         assert r2.shape == (2, in_rep.shape[0])
-        assert_quantity_allclose(abs(r2),
+        assert_quantity_allclose(r2.norm(),
                                  self.distance * np.array([[1.], [2.]]))
         r3 = -in_rep
         assert np.all(representation_equal(r3, in_rep * -1.))
@@ -161,6 +163,7 @@ class TestArithmetic():
     def test_add_sub_cartesian(self):
         c1 = self.cartesian + self.cartesian
         assert isinstance(c1, CartesianRepresentation)
+        assert c1.x.dtype.kind == 'f'
         assert np.all(representation_equal(c1, 2. * self.cartesian))
         with pytest.raises(TypeError):
             self.cartesian + 10.*u.m
@@ -311,41 +314,53 @@ class TestArithmetic():
         in_rep = self.cartesian.represent_as(representation)
         r_cross_r = in_rep.cross(in_rep)
         assert isinstance(r_cross_r, representation)
-        assert_quantity_allclose(abs(r_cross_r), 0.*u.kpc**2, atol=1.*u.mpc**2)
+        assert_quantity_allclose(r_cross_r.norm(), 0.*u.kpc**2,
+                                 atol=1.*u.mpc**2)
         r_cross_r_rev = in_rep.cross(in_rep[::-1])
         sep = angular_separation(self.lon, self.lat,
                                  self.lon[::-1], self.lat[::-1])
         expected = self.distance * self.distance[::-1] * np.sin(sep)
-        assert_quantity_allclose(abs(r_cross_r_rev), expected,
+        assert_quantity_allclose(r_cross_r_rev.norm(), expected,
                                  atol=1.*u.mpc**2)
         unit_vectors = CartesianRepresentation(
             [1., 0., 0.]*u.one,
             [0., 1., 0.]*u.one,
             [0., 0., 1.]*u.one)[:, np.newaxis]
         r_cross_uv = in_rep.cross(unit_vectors)
+        assert r_cross_uv.shape == (3, 7)
+        assert_quantity_allclose(r_cross_uv.dot(unit_vectors), 0.*u.kpc,
+                                 atol=1.*u.upc)
+        assert_quantity_allclose(r_cross_uv.dot(in_rep), 0.*u.kpc**2,
+                                 atol=1.*u.mpc**2)
         zeros = np.zeros(len(in_rep)) * u.kpc
         expected = CartesianRepresentation(
             u.Quantity((zeros, -self.cartesian.z, self.cartesian.y)),
             u.Quantity((self.cartesian.z, zeros, -self.cartesian.x)),
             u.Quantity((-self.cartesian.y, self.cartesian.x, zeros)))
-        assert_quantity_allclose(abs(r_cross_uv), abs(expected),
-                                 atol=1.*u.upc)
         # Comparison with spherical is hard since some distances are zero,
         # implying the angles are undefined.
         r_cross_uv_cartesian = r_cross_uv.to_cartesian()
         assert_representation_allclose(r_cross_uv_cartesian,
                                        expected, atol=1.*u.upc)
+        # A final check, with the side benefit of ensuring __div__ and norm
+        # work on multi-D representations.
+        r_cross_uv_by_distance = r_cross_uv / self.distance
+        uv_sph = unit_vectors.represent_as(UnitSphericalRepresentation)
+        sep = angular_separation(self.lon, self.lat, uv_sph.lon, uv_sph.lat)
+        assert_quantity_allclose(r_cross_uv_by_distance.norm(), np.sin(sep),
+                                 atol=1e-9)
+
         with pytest.raises(TypeError):
             in_rep.cross(self.cartesian.xyz)
 
     def test_cross_unit_spherical(self):
         u_cross_u = self.unit_spherical.cross(self.unit_spherical)
         assert isinstance(u_cross_u, SphericalRepresentation)
-        assert_quantity_allclose(abs(u_cross_u), 0.*u.one, atol=1.e-10*u.one)
+        assert_quantity_allclose(u_cross_u.norm(), 0.*u.one, atol=1.e-10*u.one)
         u_cross_u_rev = self.unit_spherical.cross(self.unit_spherical[::-1])
         assert isinstance(u_cross_u_rev, SphericalRepresentation)
         sep = angular_separation(self.lon, self.lat,
                                  self.lon[::-1], self.lat[::-1])
         expected = np.sin(sep)
-        assert_quantity_allclose(abs(u_cross_u_rev), expected,
+        assert_quantity_allclose(u_cross_u_rev.norm(), expected,
                                  atol=1.e-10*u.one)
