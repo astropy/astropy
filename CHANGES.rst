@@ -21,7 +21,7 @@ New Features
     only the positions, one should use ``get_body_barycentric``. [#5231]
 
   - Transformations between coordinate systems can use the more accurate JPL
-    ephemerides. [#5273]
+    ephemerides. [#5273, #5436]
 
 - ``astropy.cosmology``
 
@@ -63,7 +63,7 @@ New Features
 
 - ``astropy.time``
 
-  - ``light_travel_time`` can now use more accurate JPL ephemerides. [#5273]
+  - ``light_travel_time`` can now use more accurate JPL ephemerides. [#5273, #5436]
 
 - ``astropy.units``
 
