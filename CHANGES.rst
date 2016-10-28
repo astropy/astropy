@@ -87,6 +87,10 @@ New Features
 
 - ``astropy.utils``
 
+  - Added a new decorator: ``deprecated_renamed_argument``. This can be used to
+    rename a function argument, while it still allows for the use of the older
+    argument name. [#5214]
+
 - ``astropy.visualization``
 
   - Added ``data`` and ``interval`` inputs to the ``ImageNormalize``
