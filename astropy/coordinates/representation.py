@@ -201,12 +201,12 @@ class BaseRepresentation(ShapedLikeNDArray):
 
         The record array fields will have the component names.
         """
-        allcomp = np.array([getattr(self, component).value
-                            for component in self.components])
+        sh = self.shape + (1,)
+        allcomp = np.concatenate([getattr(self, component).reshape(sh).value
+                                  for component in self.components], axis=-1)
         dtype = np.dtype([(str(component), getattr(self, component).dtype)
                           for component in self.components])
-        return (np.rollaxis(allcomp, 0, len(allcomp.shape))
-                .copy().view(dtype).squeeze())
+        return allcomp.view(dtype).squeeze()
 
     @property
     def _units(self):
@@ -421,39 +421,56 @@ class CartesianRepresentation(BaseRepresentation):
 
     Parameters
     ----------
-    x, y, z : `~astropy.units.Quantity`
-        The x, y, and z coordinates of the point(s). If ``x``, ``y``, and
-        ``z`` have different shapes, they should be broadcastable.
-
+    x, y, z : `~astropy.units.Quantity` or array
+        The x, y, and z coordinates of the point(s). If ``x``, ``y``, and ``z``
+        have different shapes, they should be broadcastable. If not quantity,
+        ``unit`` should be set.  If only ``x`` is given, it is assumed that it
+        contains an array with the 3 coordinates are stored along ``axis``.
+    unit : `~astropy.unit.Unit` or str
+        If given, the coordinates will be converted to this unit (or taken to
+        be in this unit if not given.
+    axis : int, optional
+        The axis along which the coordinates are stored for the case an array
+        of vectors is passed in (default: 0).
     copy : bool, optional
-        If True arrays will be copied rather than referenced.
+        If True (default), arrays will be copied rather than referenced.
     """
 
     attr_classes = OrderedDict([('x', u.Quantity),
                                 ('y', u.Quantity),
                                 ('z', u.Quantity)])
 
-    def __init__(self, x, y=None, z=None, copy=True):
+    def __init__(self, x, y=None, z=None, unit=None, axis=0, copy=True):
+
+        if unit is None and not hasattr(x, 'unit'):
+            raise TypeError('x should have a unit unless an explicit unit '
+                            'is passed in.')
 
         if y is None and z is None:
+            if axis != 0:
+                x = np.rollaxis(x, axis, 0)
             x, y, z = x
         elif (y is None and z is not None) or (y is not None and z is None):
-            raise ValueError("x, y, and z are required to instantiate CartesianRepresentation")
+            raise ValueError("x, y, and z are required to instantiate {0}"
+                             .format(self.__class__.__name__))
 
-        if not isinstance(x, self.attr_classes['x']):
-            raise TypeError('x should be a {0}'.format(self.attr_classes['x'].__name__))
+        try:
+            x = self.attr_classes['x'](x, unit=unit, copy=copy)
+            y = self.attr_classes['y'](y, unit=unit, copy=copy)
+            z = self.attr_classes['z'](z, unit=unit, copy=copy)
+        except u.UnitsError:
+            raise u.UnitsError('x, y, and z should have a unit consistent with '
+                               '{0}'.format(unit))
+        except:
+            raise TypeError('x, y, and z should be able to initialize ' +
+                            ('a {0}'.format(self.attr_classes['x'].__name__))
+                             if len(set(self.attr_classes.values)) == 1 else
+                            ('{0}, {1}, and {2}, resp.'.format(
+                                cls.__name__ for cls in
+                                self.attr_classes.values())))
 
-        if not isinstance(y, self.attr_classes['x']):
-            raise TypeError('y should be a {0}'.format(self.attr_classes['y'].__name__))
-
-        if not isinstance(z, self.attr_classes['x']):
-            raise TypeError('z should be a {0}'.format(self.attr_classes['z'].__name__))
-
-        x = self.attr_classes['x'](x, copy=copy)
-        y = self.attr_classes['y'](y, copy=copy)
-        z = self.attr_classes['z'](z, copy=copy)
-
-        if not (x.unit.physical_type == y.unit.physical_type == z.unit.physical_type):
+        if not (x.unit.physical_type ==
+                y.unit.physical_type == z.unit.physical_type):
             raise u.UnitsError("x, y, and z should have matching physical types")
 
         try:
@@ -486,9 +503,41 @@ class CartesianRepresentation(BaseRepresentation):
         """
         return self._z
 
-    @property
-    def xyz(self):
-        return u.Quantity((self._x, self._y, self._z))
+    def get_xyz(self, axis=0):
+        """Return a vector array of the x, y, and z coordinates.
+
+        Parameters
+        ----------
+        axis : int, optional
+            The axis in the final array along which the x, y, z components
+            should be stored (default: 0).
+
+        Returns
+        -------
+        xyz : `~astropy.units.Quantity`
+            With dimension 3 along ``axis``.
+        """
+        # Add new axis in x, y, z so one can concatenate them around it.
+        # NOTE: just use np.stack once our minimum numpy version is 1.10.
+        result_ndim = self.ndim + 1
+        if not -result_ndim <= axis < result_ndim:
+            raise IndexError('axis {0} out of bounds [-{1}, {1})'
+                             .format(axis, result_ndim))
+        if axis < 0:
+            axis += result_ndim
+
+        sh = self.shape
+        sh = sh[:axis] + (1,) + sh[axis:]
+        # Get x, y, z to the same units (this is very fast for identical units)
+        # since np.concatenate cannot deal with quantity.
+        cls = self._x.__class__
+        x = self._x.reshape(sh)
+        y = cls(self._y, x.unit, copy=False).reshape(sh)
+        z = cls(self._z, x.unit, copy=False).reshape(sh)
+        return cls(np.concatenate((x.value, y.value, z.value), axis=axis),
+                   unit=x.unit, copy=False)
+
+    xyz = property(get_xyz)
 
     @classmethod
     def from_cartesian(cls, other):

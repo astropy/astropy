@@ -330,14 +330,13 @@ def test_earth_barycentric_velocity_multi_d():
     ep, ev = get_body_barycentric_posvel('earth', t)
     # note: assert_quantity_allclose doesn't like the shape mismatch.
     # this is a problem with np.testing.assert_allclose.
-    assert quantity_allclose(np.rollaxis(ep.xyz, 0, ep.xyz.ndim),
+    assert quantity_allclose(ep.get_xyz(axis=-1),
                              [[-1., 0., 0.], [+1., 0., 0.]]*u.AU,
                              atol=0.06*u.AU)
     expected = u.Quantity([0.*u.one,
                            np.cos(23.5*u.deg),
                            np.sin(23.5*u.deg)]) * ([[-30.], [30.]] * u.km / u.s)
-    assert quantity_allclose(np.rollaxis(ev.xyz, 0, ev.xyz.ndim),
-                             expected, atol=2.*u.km/u.s)
+    assert quantity_allclose(ev.get_xyz(axis=-1), expected, atol=2.*u.km/u.s)
 
 
 @remote_data
