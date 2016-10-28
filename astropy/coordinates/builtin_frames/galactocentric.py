@@ -156,30 +156,24 @@ def icrs_to_galactocentric(icrs_coord, galactocentric_frame):
                            "a 3D coordinate, e.g. (angle, angle, distance) or"
                            " (x, y, z).")
 
-    xyz = icrs_coord.cartesian.xyz
-
     # define rotation matrix to align x(ICRS) with the vector to the Galactic center
     mat1 = rotation_matrix(-galactocentric_frame.galcen_dec, 'y')
     mat2 = rotation_matrix(galactocentric_frame.galcen_ra, 'z')
     # extra roll away from the Galactic x-z plane
     mat0 = rotation_matrix(galactocentric_frame.get_roll0() - galactocentric_frame.roll, 'x')
 
-    # construct transformation matrix
+    # construct transformation matrix and use it
     R = matrix_product(mat0, mat1, mat2)
+    intrep = icrs_coord.cartesian.transform(R)
 
-    # some reshape hacks to handle ND arrays
-    orig_shape = xyz.shape
-    xyz = R.dot(xyz.reshape(xyz.shape[0], np.prod(xyz.shape[1:]))).reshape(orig_shape)
-
-    # translate by Sun-Galactic center distance along new x axis
-    xyz[0] = xyz[0] - galactocentric_frame.galcen_distance
-
+    # Now need to translate by Sun-Galactic center distance around x' and
     # rotate about y' to account for tilt due to Sun's height above the plane
+    translation = CartesianRepresentation(galactocentric_frame.galcen_distance *
+                                          np.array([1., 0., 0.]))
     z_d = (galactocentric_frame.z_sun / galactocentric_frame.galcen_distance).decompose()
-    R = rotation_matrix(-np.arcsin(z_d), 'y')
-    xyz = R.dot(xyz.reshape(xyz.shape[0], np.prod(xyz.shape[1:]))).reshape(orig_shape)
+    rotation = rotation_matrix(-np.arcsin(z_d), 'y')
+    representation = (intrep - translation).transform(rotation)
 
-    representation = CartesianRepresentation(xyz)
     return galactocentric_frame.realize_frame(representation)
 
 @frame_transform_graph.transform(FunctionTransform, Galactocentric, ICRS)
@@ -189,18 +183,14 @@ def galactocentric_to_icrs(galactocentric_coord, icrs_frame):
                            "a 3D coordinate, e.g. (angle, angle, distance) or"
                            " (x, y, z).")
 
-    xyz = galactocentric_coord.cartesian.xyz
-
     # rotate about y' to account for tilt due to Sun's height above the plane
+    # and translate by Sun-Galactic center distance along x axis
     z_d = (galactocentric_coord.z_sun / galactocentric_coord.galcen_distance).decompose()
-    R = rotation_matrix(np.arcsin(z_d), 'y')
+    rotation = rotation_matrix(np.arcsin(z_d), 'y')
+    translation = CartesianRepresentation(galactocentric_coord.galcen_distance *
+                                          np.array([1., 0., 0.]))
 
-    # some reshape hacks to handle ND arrays
-    orig_shape = xyz.shape
-    xyz = R.dot(xyz.reshape(xyz.shape[0], np.prod(xyz.shape[1:]))).reshape(orig_shape)
-
-    # translate by Sun-Galactic center distance along x axis
-    xyz[0] = xyz[0] + galactocentric_coord.galcen_distance
+    intrep = galactocentric_coord.cartesian.transform(rotation) + translation
 
     # define inverse rotation matrix that aligns x(ICRS) with the vector to the Galactic center
     mat1 = rotation_matrix(-galactocentric_coord.galcen_dec, 'y')
@@ -211,9 +201,7 @@ def galactocentric_to_icrs(galactocentric_coord, icrs_frame):
 
     # construct transformation matrix
     R = matrix_product(mat0, mat1, mat2)
-
+    R = np.linalg.inv(R)
     # rotate into ICRS frame
-    xyz = np.linalg.inv(R).dot(xyz.reshape(xyz.shape[0], np.prod(xyz.shape[1:]))).reshape(orig_shape)
-
-    representation = CartesianRepresentation(xyz)
+    representation = intrep.transform(R)
     return icrs_frame.realize_frame(representation)
