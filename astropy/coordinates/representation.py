@@ -8,6 +8,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import abc
+import functools
 import operator
 from collections import OrderedDict
 
@@ -17,7 +18,7 @@ import astropy.units as u
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from ..extern import six
-from ..utils import ShapedLikeNDArray
+from ..utils import ShapedLikeNDArray, classproperty
 from ..utils.compat import NUMPY_LT_1_12
 from ..utils.compat.numpy import broadcast_arrays
 
@@ -75,6 +76,10 @@ class BaseRepresentation(ShapedLikeNDArray):
     """
 
     recommended_units = {}  # subclasses can override
+
+    # Ensure multiplication/division with ndarray or Quantity doesn't lead to
+    # object arrays.
+    __array_priority__ = 50000
 
     def represent_as(self, other_class):
         if other_class == self.__class__:
@@ -249,6 +254,153 @@ class BaseRepresentation(ShapedLikeNDArray):
         return np.array2string(values, formatter=formatter, style=fmt,
                                separator=', ', prefix=prefix)
 
+    def _scale_operation(self, op, *args):
+        results = []
+        for component, cls in self.attr_classes.items():
+            value = getattr(self, component)
+            if issubclass(cls, Angle):
+                results.append(value)
+            else:
+                results.append(op(value, *args))
+
+        # try/except catches anything that cannot initialize the class, such
+        # as operations that returned NotImplemented or a representation
+        # instead of a quantity (as would happen for, e.g., rep * rep).
+        try:
+            return self.__class__(*results)
+        except Exception:
+            return NotImplemented
+
+    def __mul__(self, other):
+        return self._scale_operation(operator.mul, other)
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def __truediv__(self, other):
+        return self._scale_operation(operator.truediv, other)
+
+    def __div__(self, other):
+        return self._scale_operation(operator.truediv, other)
+
+    def __neg__(self):
+        return self._scale_operation(operator.neg)
+
+    # Follow numpy convention and make an independent copy.
+    def __pos__(self):
+        return self.__class__(*(getattr(self, component)
+                                for component in self.components), copy=True)
+
+    def _combine_operation(self, op, other, reverse=False):
+        result = self.to_cartesian()._combine_operation(op, other, reverse)
+        if result is NotImplemented:
+            return NotImplemented
+        else:
+            return self.from_cartesian(result)
+
+    def __add__(self, other):
+        return self._combine_operation(operator.add, other)
+
+    def __radd__(self, other):
+        return self._combine_operation(operator.add, other, reverse=True)
+
+    def __sub__(self, other):
+        return self._combine_operation(operator.sub, other)
+
+    def __rsub__(self, other):
+        return self._combine_operation(operator.sub, other, reverse=True)
+
+    def norm(self):
+        """Vector norm.
+
+        The norm is the standard Frobenius norm, i.e., the square root of the
+        sum of the squares of all components with non-angular units.
+
+        Returns
+        -------
+        norm : `astropy.units.Quantity`
+            Vector norm, with the same shape as the representation.
+        """
+        return np.sqrt(functools.reduce(
+            operator.add, (getattr(self, component)**2
+                           for component, cls in self.attr_classes.items()
+                           if not issubclass(cls, Angle))))
+
+    def mean(self, *args, **kwargs):
+        """Vector mean.
+
+        Averaging is done by converting the representation to cartesian, and
+        taking the mean of the x, y, and z components. The result is converted
+        back to the same representation as the input.
+
+        Refer to `~numpy.mean` for full documentation of the arguments, noting
+        that ``axis`` is the entry in the ``shape`` of the representation, and
+        that the ``out`` argument cannot be used.
+
+        Returns
+        -------
+        mean : representation
+            Vector mean, in the same representation as that of the input.
+        """
+        return self.from_cartesian(self.to_cartesian().mean(*args, **kwargs))
+
+    def sum(self, *args, **kwargs):
+        """Vector sum.
+
+        Adding is done by converting the representation to cartesian, and
+        summing the x, y, and z components. The result is converted back to the
+        same representation as the input.
+
+        Refer to `~numpy.sum` for full documentation of the arguments, noting
+        that ``axis`` is the entry in the ``shape`` of the representation, and
+        that the ``out`` argument cannot be used.
+
+        Returns
+        -------
+        sum : representation
+            Vector sum, in the same representation as that of the input.
+        """
+        return self.from_cartesian(self.to_cartesian().sum(*args, **kwargs))
+
+    def dot(self, other):
+        """Dot product of two representations.
+
+        The calculation is done by converting both ``self`` and ``other``
+        to `~astropy.coordinates.CartesianRepresentation`.
+
+        Parameters
+        ----------
+        other : `~astropy.coordinates.BaseRepresentation`
+            The representation to take the dot product with.
+
+        Returns
+        -------
+        dot_product : `~astropy.units.Quantity`
+            The sum of the product of the x, y, and z components of the
+            cartesian representations of ``self`` and ``other``.
+        """
+        return self.to_cartesian().dot(other)
+
+    def cross(self, other):
+        """Vector cross product of two representations.
+
+        The calculation is done by converting both ``self`` and ``other``
+        to `~astropy.coordinates.CartesianRepresentation`, and converting the
+        result back to the type of representation of ``self``.
+
+        Parameters
+        ----------
+        other : representation
+            The representation to take the cross product with.
+
+        Returns
+        -------
+        cross_product : representation
+            With vectors perpendicular to both ``self`` and ``other``, in the
+            same type of representation as ``self``.
+        """
+        return self.from_cartesian(self.to_cartesian().cross(other))
+
     def __str__(self):
         return '{0} {1:s}'.format(self._array2string(), self._unitstr)
 
@@ -409,6 +561,89 @@ class CartesianRepresentation(BaseRepresentation):
         newxyz = u.Quantity(newxyz, oldxyz.unit, copy=False)
         return self.__class__(*newxyz, copy=False)
 
+    def _combine_operation(self, op, other, reverse=False):
+        try:
+            other_c = other.to_cartesian()
+        except Exception:
+            return NotImplemented
+
+        first, second = ((self, other_c) if not reverse else
+                         (other_c, self))
+        return self.__class__(*(op(getattr(first, component),
+                                   getattr(second, component))
+                                for component in first.components))
+
+    def mean(self, *args, **kwargs):
+        """Vector mean.
+
+        Returns a new CartesianRepresentation instance with the means of the
+        x, y, and z components.
+
+        Refer to `~numpy.mean` for full documentation of the arguments, noting
+        that ``axis`` is the entry in the ``shape`` of the representation, and
+        that the ``out`` argument cannot be used.
+        """
+        return self._apply('mean', *args, **kwargs)
+
+    def sum(self, *args, **kwargs):
+        """Vector sum.
+
+        Returns a new CartesianRepresentation instance with the sums of the
+        x, y, and z components.
+
+        Refer to `~numpy.sum` for full documentation of the arguments, noting
+        that ``axis`` is the entry in the ``shape`` of the representation, and
+        that the ``out`` argument cannot be used.
+        """
+        return self._apply('sum', *args, **kwargs)
+
+    def dot(self, other):
+        """Dot product of two representations.
+
+        Parameters
+        ----------
+        other : representation
+            If not already cartesian, it is converted.
+
+        Returns
+        -------
+        dot_product : `~astropy.units.Quantity`
+            The sum of the product of the x, y, and z components of ``self``
+            and ``other``.
+        """
+        try:
+            other_c = other.to_cartesian()
+        except Exception:
+            raise TypeError("cannot only take dot product with another "
+                            "representation, not a {0} instance."
+                            .format(type(other)))
+        return functools.reduce(operator.add,
+                                (getattr(self, component) *
+                                 getattr(other_c, component)
+                                 for component in self.components))
+    def cross(self, other):
+        """Cross product of two representations.
+
+        Parameters
+        ----------
+        other : representation
+            If not already cartesian, it is converted.
+
+        Returns
+        -------
+        cross_product : `~astropy.coordinates.CartesianRepresentation`
+            With vectors perpendicular to both ``self`` and ``other``.
+        """
+        try:
+            other_c = other.to_cartesian()
+        except Exception:
+            raise TypeError("cannot only take cross product with another "
+                            "representation, not a {0} instance."
+                            .format(type(other)))
+        return self.__class__(self.y * other_c.z - self.z * other_c.y,
+                              self.z * other_c.x - self.x * other_c.z,
+                              self.x * other_c.y - self.y * other_c.x)
+
 
 class UnitSphericalRepresentation(BaseRepresentation):
     """
@@ -430,6 +665,10 @@ class UnitSphericalRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('lon', Longitude),
                                 ('lat', Latitude)])
     recommended_units = {'lon': u.deg, 'lat': u.deg}
+
+    @classproperty
+    def _dimensional_representation(cls):
+        return SphericalRepresentation
 
     def __init__(self, lon, lat, copy=True):
 
@@ -502,6 +741,87 @@ class UnitSphericalRepresentation(BaseRepresentation):
             return super(UnitSphericalRepresentation,
                          self).represent_as(other_class)
 
+    def __mul__(self, other):
+        return self._dimensional_representation(lon=self.lon, lat=self.lat,
+                                                distance=1. * other)
+
+    def __truediv__(self, other):
+        return self._dimensional_representation(lon=self.lon, lat=self.lat,
+                                                distance=1. / other)
+
+    def __neg__(self):
+        return self.__class__(self.lon + 180. * u.deg, -self.lat)
+
+    def norm(self):
+        """Vector norm.
+
+        The norm is the standard Frobenius norm, i.e., the square root of the
+        sum of the squares of all components with non-angular units, which is
+        always unity for vectors on the unit sphere.
+
+        Returns
+        -------
+        norm : `~astropy.units.Quantity`
+            Dimensionless ones, with the same shape as the representation.
+        """
+        return u.Quantity(np.ones(self.shape), u.dimensionless_unscaled,
+                          copy=False)
+
+    def _combine_operation(self, op, other, reverse=False):
+        result = self.to_cartesian()._combine_operation(op, other, reverse)
+        if result is NotImplemented:
+            return NotImplemented
+        else:
+            return self._dimensional_representation.from_cartesian(result)
+
+    def mean(self, *args, **kwargs):
+        """Vector mean.
+
+        The representation is converted to cartesian, the means of the x, y,
+        and z components are calculated, and the result is converted to a
+        `~astropy.coordinates.SphericalRepresentation`.
+
+        Refer to `~numpy.mean` for full documentation of the arguments, noting
+        that ``axis`` is the entry in the ``shape`` of the representation, and
+        that the ``out`` argument cannot be used.
+        """
+        return self._dimensional_representation.from_cartesian(
+            self.to_cartesian().mean(*args, **kwargs))
+
+    def sum(self, *args, **kwargs):
+        """Vector sum.
+
+        The representation is converted to cartesian, the sums of the x, y,
+        and z components are calculated, and the result is converted to a
+        `~astropy.coordinates.SphericalRepresentation`.
+
+        Refer to `~numpy.sum` for full documentation of the arguments, noting
+        that ``axis`` is the entry in the ``shape`` of the representation, and
+        that the ``out`` argument cannot be used.
+        """
+        return self._dimensional_representation.from_cartesian(
+            self.to_cartesian().sum(*args, **kwargs))
+
+    def cross(self, other):
+        """Cross product of two representations.
+
+        The calculation is done by converting both ``self`` and ``other``
+        to `~astropy.coordinates.CartesianRepresentation`, and converting the
+        result back to `~astropy.coordinates.SphericalRepresentation`.
+
+        Parameters
+        ----------
+        other : representation
+            The representation to take the cross product with.
+
+        Returns
+        -------
+        cross_product : `~astropy.coordinates.SphericalRepresentation`
+            With vectors perpendicular to both ``self`` and ``other``.
+        """
+        return self._dimensional_representation.from_cartesian(
+            self.to_cartesian().cross(other))
+
 
 class SphericalRepresentation(BaseRepresentation):
     """
@@ -529,7 +849,6 @@ class SphericalRepresentation(BaseRepresentation):
                                 ('lat', Latitude),
                                 ('distance', u.Quantity)])
     recommended_units = {'lon': u.deg, 'lat': u.deg}
-
     _unit_representation = UnitSphericalRepresentation
 
     def __init__(self, lon, lat, distance, copy=True):
@@ -622,6 +941,20 @@ class SphericalRepresentation(BaseRepresentation):
         lat = np.arctan2(cart.z, s)
 
         return cls(lon=lon, lat=lat, distance=r, copy=False)
+
+    def norm(self):
+        """Vector norm.
+
+        The norm is the standard Frobenius norm, i.e., the square root of the
+        sum of the squares of all components with non-angular units.  For
+        spherical coordinates, this is just the absolute value of the distance.
+
+        Returns
+        -------
+        norm : `astropy.units.Quantity`
+            Vector norm, with the same shape as the representation.
+        """
+        return np.abs(self.distance)
 
 
 class PhysicsSphericalRepresentation(BaseRepresentation):
@@ -751,6 +1084,20 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         theta = np.arctan2(s, cart.z)
 
         return cls(phi=phi, theta=theta, r=r, copy=False)
+
+    def norm(self):
+        """Vector norm.
+
+        The norm is the standard Frobenius norm, i.e., the square root of the
+        sum of the squares of all components with non-angular units.  For
+        spherical coordinates, this is just the absolute value of the radius.
+
+        Returns
+        -------
+        norm : `astropy.units.Quantity`
+            Vector norm, with the same shape as the representation.
+        """
+        return np.abs(self.r)
 
 
 class CylindricalRepresentation(BaseRepresentation):

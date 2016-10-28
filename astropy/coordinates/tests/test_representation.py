@@ -10,7 +10,8 @@ import numpy as np
 from numpy.testing import assert_allclose
 
 from ... import units as u
-from ...tests.helper import pytest
+from ...tests.helper import (pytest, assert_quantity_allclose as
+                             assert_allclose_quantity)
 from ..angles import Longitude, Latitude, Angle
 from ..distances import Distance
 from ..representation import (REPRESENTATION_CLASSES,
@@ -28,10 +29,6 @@ def setup_function(func):
 def teardown_function(func):
     REPRESENTATION_CLASSES.clear()
     REPRESENTATION_CLASSES.update(func.REPRESENTATION_CLASSES_ORIG)
-
-
-def assert_allclose_quantity(q1, q2):
-    assert_allclose(q1.value, q2.to(q1.unit).value)
 
 
 class TestSphericalRepresentation(object):
