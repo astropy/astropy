@@ -4,6 +4,7 @@ from __future__ import division, with_statement, print_function
 import contextlib
 import copy
 import gc
+import re
 
 import numpy as np
 from numpy import char as chararray
@@ -825,9 +826,11 @@ class TestTableFunctions(FitsTestCase):
 
         hdul = fits.open(self.temp('newtable.fits'))
 
-        assert str(hdu.data) == "[('NGC1002', 12.3) ('NGC1003', 15.2)]"
-
-        assert str(hdul[1].data) == "[('NGC1002', 12.3) ('NGC1003', 15.2)]"
+        # numpy >= 1.12 changes how structured arrays are printed, so we
+        # match to a regex rather than a specific string.
+        expect = r"\[\('NGC1002',\s+12.3[0-9]*\) \(\'NGC1003\',\s+15.[0-9]+\)\]"
+        assert re.match(expect, str(hdu.data))
+        assert re.match(expect, str(hdul[1].data))
 
         t.close()
         hdul.close()
