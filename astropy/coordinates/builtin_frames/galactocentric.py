@@ -93,16 +93,16 @@ class Galactocentric(BaseCoordinateFrame):
         ...                distance=[11.5, 24.12] * u.kpc)
         >>> c.transform_to(coord.Galactocentric) # doctest: +FLOAT_CMP
         <Galactocentric Coordinate (galcen_distance=8.3 kpc, galcen_ra=266d24m18.36s, galcen_dec=-28d56m10.23s, z_sun=27.0 pc, roll=0.0 deg): (x, y, z) in kpc
-            [(-9.6083818980977, -9.400621883358546, 6.520560663896347),
-             (-21.283023068029138, 18.763340128812384, 7.846938548636718)]>
+            [( -9.6083819 , -9.40062188,  6.52056066),
+             (-21.28302307, 18.76334013,  7.84693855)]>
 
     To specify a custom set of parameters, you have to include extra keyword
     arguments when initializing the Galactocentric frame object::
 
         >>> c.transform_to(coord.Galactocentric(galcen_distance=8.1*u.kpc)) # doctest: +FLOAT_CMP
         <Galactocentric Coordinate (galcen_distance=8.1 kpc, galcen_ra=266d24m18.36s, galcen_dec=-28d56m10.23s, z_sun=27.0 pc, roll=0.0 deg): (x, y, z) in kpc
-            [(-9.407859235565343, -9.400621883358546, 6.520665737962164),
-             (-21.08239383088295, 18.763340128812384, 7.84798134569032)]>
+            [( -9.40785924,  -9.40062188,  6.52066574),
+             (-21.08239383,  18.76334013,  7.84798135)]>
 
     Similarly, transforming from the Galactocentric frame to another coordinate frame::
 
@@ -111,8 +111,8 @@ class Galactocentric(BaseCoordinateFrame):
         ...                          z=[0.027, 24.12] * u.kpc)
         >>> c.transform_to(coord.ICRS) # doctest: +FLOAT_CMP
         <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
-            [(86.22349058727241, 28.8389413808627, 4.391577882957292e-05),
-             (289.6680265194508, 49.88763881149547, 85.96407345372828)]>
+            [(  86.22349059, 28.83894138,  4.39157788e-05),
+             ( 289.66802652, 49.88763881,  8.59640735e+01)]>
 
     Or, with custom specification of the Galactic center::
 
@@ -122,8 +122,8 @@ class Galactocentric(BaseCoordinateFrame):
         ...                          z_sun=21 * u.pc, galcen_distance=8. * u.kpc)
         >>> c.transform_to(coord.ICRS) # doctest: +FLOAT_CMP
         <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
-            [(86.25852490164378, 28.85773187391088, 2.7562547481200286e-05),
-             (289.77285254989323, 50.062904565432014, 85.92160096237191)]>
+            [(  86.2585249 ,  28.85773187,  2.75625475e-05),
+             ( 289.77285255,  50.06290457,  8.59216010e+01)]>
 
     """
     default_representation = CartesianRepresentation

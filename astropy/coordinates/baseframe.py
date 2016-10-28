@@ -891,12 +891,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         >>> coord = SkyCoord(0*u.deg, 0*u.deg)
         >>> coord.represent_as(CartesianRepresentation)
         <CartesianRepresentation (x, y, z) [dimensionless]
-                (1.0, 0.0, 0.0)>
+                ( 1.,  0.,  0.)>
 
         >>> coord.representation = CartesianRepresentation
         >>> coord
         <SkyCoord (ICRS): (x, y, z) [dimensionless]
-            (1.0, 0.0, 0.0)>
+            ( 1.,  0.,  0.)>
         """
         new_representation = _get_repr_cls(new_representation)
 

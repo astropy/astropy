@@ -33,7 +33,7 @@ equivalent::
     >>> c = SkyCoord('00:42.5 +41:12', unit=(u.hourangle, u.deg))
     >>> c
     <SkyCoord (ICRS): (ra, dec) in deg
-        (10.625, 41.2)>
+        ( 10.625,  41.2)>
 
 The examples above illustrate a few simple rules to follow when creating a coordinate
 object:
@@ -56,15 +56,14 @@ holding the data, |skycoord| objects can be sliced, reshaped, etc.::
     >>> c = SkyCoord(ra=[10, 11, 12, 13]*u.degree, dec=[41, -5, 42, 0]*u.degree)
     >>> c
     <SkyCoord (ICRS): (ra, dec) in deg
-        [(10.0, 41.0), (11.0, -5.0), (12.0, 42.0), (13.0, 0.0)]>
+        [( 10.,  41.), ( 11.,  -5.), ( 12.,  42.), ( 13.,   0.)]>
     >>> c[1]
     <SkyCoord (ICRS): (ra, dec) in deg
-        (11.0, -5.0)>
+        ( 11.,  -5.)>
     >>> c.reshape(2, 2)
     <SkyCoord (ICRS): (ra, dec) in deg
-        [[(10.0, 41.0), (11.0, -5.0)],
-         [(12.0, 42.0), (13.0, 0.0)]]>
-
+        [[( 10., 41.), ( 11., -5.)],
+         [( 12., 42.), ( 13.,  0.)]]>
 
 Coordinate access
 -----------------
@@ -112,7 +111,7 @@ the Galactic frame use::
     >>> c_icrs = SkyCoord(ra=10.68458*u.degree, dec=41.26917*u.degree, frame='icrs')
     >>> c_icrs.galactic  # doctest: +FLOAT_CMP
     <SkyCoord (Galactic): (l, b) in deg
-        (121.174241811, -21.5728855724)>
+        ( 121.17424181, -21.57288557)>
 
 For more control, you can use the `~astropy.coordinates.SkyCoord.transform_to`
 method, which accepts a frame name, frame class, or frame instance::
@@ -120,12 +119,12 @@ method, which accepts a frame name, frame class, or frame instance::
     >>> c_fk5 = c_icrs.transform_to('fk5')  # c_icrs.fk5 does the same thing
     >>> c_fk5  # doctest: +FLOAT_CMP
     <SkyCoord (FK5: equinox=J2000.000): (ra, dec) in deg
-        (10.6845915393, 41.2691714591)>
+        ( 10.68459154,  41.26917146)>
 
     >>> from astropy.coordinates import FK5
     >>> c_fk5.transform_to(FK5(equinox='J1975'))  # precess to a different equinox  # doctest: +FLOAT_CMP
     <SkyCoord (FK5: equinox=J1975.000): (ra, dec) in deg
-        (10.3420913461, 41.1323211229)>
+        ( 10.34209135,  41.13232112)>
 
 This form of `~astropy.coordinates.SkyCoord.transform_to` also makes it
 straightforward to convert from celestial coordinates to
@@ -152,14 +151,14 @@ coordinate objects::
     >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', representation='cartesian')
     >>> c
     <SkyCoord (ICRS): (x, y, z) in kpc
-        (1.0, 2.0, 3.0)>
+        ( 1.,  2.,  3.)>
     >>> c.x, c.y, c.z
     (<Quantity 1.0 kpc>, <Quantity 2.0 kpc>, <Quantity 3.0 kpc>)
 
     >>> c.representation = 'cylindrical'
     >>> c  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (rho, phi, z) in (kpc, deg, kpc)
-        (2.2360679775, 63.4349488229, 3.0)>
+        ( 2.23606798,  63.43494882,  3.)>
 
 For all the details see :ref:`astropy-skycoord-representations`.
 
@@ -208,7 +207,7 @@ for a particular named object::
 
     >>> SkyCoord.from_name("M42")  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
-        (83.82208, -5.39111)>
+        ( 83.82208, -5.39111)>
 
 For sites (primarily observatories) on the Earth, `astropy.coordinates` provides
 a quick way to get an `~astropy.coordinates.EarthLocation`::

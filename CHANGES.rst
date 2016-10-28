@@ -1732,6 +1732,9 @@ Other Changes and Additions
 - The bundled ERFA was updated to version 1.3.0.  This includes the
   leap second planned for 2016 Dec 13. [#5418]
 
+- Coordinates and their representations are printed with a slightly different
+  format, following how numpy >= 1.12 prints structured arrays. [#5423]
+
 1.0.10 (2016-06-09)
 -------------------
 
