@@ -62,14 +62,14 @@ methods with the same names as those for `~numpy.ndarray`, such as ``reshape``,
   >>> car_array = CartesianRepresentation(x, y, z)
   >>> car_array
   <CartesianRepresentation (x, y, z) in m
-      [[(1.0, 0.0, 0.0), (0.0, 2.0, 0.0), (0.0, 0.0, 3.0)],
-       [(3.0, 4.0, 0.0), (5.0, 0.0, 12.0), (3.0, -4.0, -12.0)]]>
+      [[( 1.,  0.,   0.), ( 0.,  2.,   0.), ( 0.,  0.,   3.)],
+       [( 3.,  4.,   0.), ( 5.,  0.,  12.), ( 3., -4., -12.)]]>
   >>> car_array.shape
   (2, 3)
   >>> car_array.ravel()
   <CartesianRepresentation (x, y, z) in m
-      [(1.0, 0.0, 0.0), (0.0, 2.0, 0.0), (0.0, 0.0, 3.0), (3.0, 4.0, 0.0),
-       (5.0, 0.0, 12.0), (3.0, -4.0, -12.0)]>
+      [( 1.,  0.,   0.), ( 0.,  2.,   0.), ( 0.,  0.,   3.), ( 3.,  4.,   0.),
+       ( 5.,  0.,  12.), ( 3., -4., -12.)]>
 
 Representations can be converted to other representations using the
 ``represent_as`` method::
@@ -155,25 +155,28 @@ To see how the operations work, consider the following examples::
   ...                                     [[0., 0., 3.], [0.,12.,-12.]] * u.m)
   >>> car_array
   <CartesianRepresentation (x, y, z) in m
-      [[(1.0, 0.0, 0.0), (0.0, 2.0, 0.0), (0.0, 0.0, 3.0)],
-       [(3.0, 4.0, 0.0), (5.0, 0.0, 12.0), (3.0, -4.0, -12.0)]]>
+      [[( 1.,  0.,   0.), ( 0.,  2.,   0.), ( 0.,  0.,   3.)],
+       [( 3.,  4.,   0.), ( 5.,  0.,  12.), ( 3., -4., -12.)]]>
   >>> car_array.norm()  # doctest: +FLOAT_CMP
   <Quantity [[  1.,  2.,  3.],
              [  5., 13., 13.]] m>
   >>> car_array / car_array.norm()  # doctest: +FLOAT_CMP
   <CartesianRepresentation (x, y, z) [dimensionless]
-      [[(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)],
-       [(0.6, 0.8, 0.0), (0.38461538, 0.0, 0.92307692),
-        (0.23076923, -0.30769231, -0.92307692)]]>
+      [[( 1.        ,  0.        ,  0.        ),
+        ( 0.        ,  1.        ,  0.        ),
+        ( 0.        ,  0.        ,  1.        )],
+       [( 0.6       ,  0.8       ,  0.        ),
+        ( 0.38461538,  0.        ,  0.92307692),
+        ( 0.23076923, -0.30769231, -0.92307692)]]>
   >>> (car_array[1] - car_array[0]) / (10. * u.s)  # doctest: +FLOAT_CMP
   <CartesianRepresentation (x, y, z) in m / s
-      [(0.2, 0.4, 0.0), (0.5, -0.2, 1.2), (0.3, -0.4, -1.5)]>
+      [( 0.2,  0.4,  0. ), ( 0.5, -0.2,  1.2), ( 0.3, -0.4, -1.5)]>
   >>> car_array.sum()  # doctest: +FLOAT_CMP
   <CartesianRepresentation (x, y, z) in m
-      (12.0, 2.0, 3.0)>
+      ( 12.,  2.,  3.)>
   >>> car_array.mean(axis=0)  # doctest: +FLOAT_CMP
   <CartesianRepresentation (x, y, z) in m
-      [(2.0, 2.0, 0.0), (2.5, 1.0, 6.0), (1.5, -2.0, -4.5)]>
+      [( 2. ,  2.,  0. ), ( 2.5,  1.,  6. ), ( 1.5, -2., -4.5)]>
 
   >>> unit_x = UnitSphericalRepresentation(0.*u.deg, 0.*u.deg)
   >>> unit_y = UnitSphericalRepresentation(90.*u.deg, 0.*u.deg)
@@ -189,8 +192,8 @@ To see how the operations work, consider the following examples::
              [  1.83697020e-16,  1.20000000e+01, -1.20000000e+01]] m>
   >>> car_array.cross(unit_x)  # doctest: +FLOAT_CMP
   <CartesianRepresentation (x, y, z) in m
-      [[(0.0, 0.0, 0.0), (0.0, 0.0, -2.0), (0.0, 3.0, 0.0)],
-       [(0.0, 0.0, -4.0), (0.0, 12.0, 0.0), (0.0, -12.0, 4.0)]]>
+      [[( 0.,  0.,  0.), ( 0.,   0., -2.), ( 0.,   3.,  0.)],
+       [( 0.,  0., -4.), ( 0.,  12.,  0.), ( 0., -12.,  4.)]]>
 
   >>> from astropy.coordinates.matrix_utilities import rotation_matrix
   >>> rotation = rotation_matrix(90 * u.deg, axis='z')
@@ -200,8 +203,12 @@ To see how the operations work, consider the following examples::
          [  0.00000000e+00,   0.00000000e+00,   1.00000000e+00]])
   >>> car_array.transform(rotation)  # doctest: +FLOAT_CMP
   <CartesianRepresentation (x, y, z) in m
-      [[(0.0, -1.0, 0.0), (2.0, 0.0, 0.0), (0.0, 0.0, 3.0)],
-       [(4.0, -3.0, 0.0), (0.0, -5.0, 12.0), (-4.0, -3.0, -12.0)]]>
+      [[(  6.12323400e-17,  -1.00000000e+00,   0.),
+        (  2.00000000e+00,   1.22464680e-16,   0.),
+        (  0.00000000e+00,   0.00000000e+00,   3.)],
+       [(  4.00000000e+00,  -3.00000000e+00,   0.),
+        (  3.06161700e-16,  -5.00000000e+00,  12.),
+        ( -4.00000000e+00,  -3.00000000e+00, -12.)]]>
 
 .. _astropy-coordinates-create-repr:
 
