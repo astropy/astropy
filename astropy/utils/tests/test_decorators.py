@@ -251,6 +251,7 @@ def test_deprecated_static_and_classmethod():
 
 
 def test_deprecated_argument():
+    # Tests the decorator with function, method, staticmethod and classmethod.
 
     class Test(object):
 
@@ -282,9 +283,8 @@ def test_deprecated_argument():
         # Using the deprecated name
         with catch_warnings(AstropyDeprecationWarning) as w:
             assert method(clobber=1) == 1
-
-        assert len(w) == 1
-        assert '1.3' in str(w[0].message)
+            assert len(w) == 1
+            assert '1.3' in str(w[0].message)
 
         # Using both. Both keyword
         with pytest.raises(TypeError):
@@ -295,6 +295,8 @@ def test_deprecated_argument():
 
 
 def test_deprecated_argument_in_kwargs():
+    # To rename an argument that is consumed by "kwargs" the "arg_in_kwargs"
+    # parameter is used.
     @deprecated_renamed_argument('clobber', 'overwrite', '1.3',
                                  arg_in_kwargs=True)
     def test(**kwargs):
@@ -310,9 +312,8 @@ def test_deprecated_argument_in_kwargs():
     # Using the deprecated name
     with catch_warnings(AstropyDeprecationWarning) as w:
         assert test(clobber=1) == 1
-
-    assert len(w) == 1
-    assert '1.3' in str(w[0].message)
+        assert len(w) == 1
+        assert '1.3' in str(w[0].message)
 
     # Using both. Both keyword
     with pytest.raises(TypeError):
@@ -323,6 +324,8 @@ def test_deprecated_argument_in_kwargs():
 
 
 def test_deprecated_argument_relaxed():
+    # Relax turns the TypeError if both old and new keyword are used into
+    # a warning.
     @deprecated_renamed_argument('clobber', 'overwrite', '1.3', relax=True)
     def test(overwrite):
         return overwrite
@@ -336,18 +339,18 @@ def test_deprecated_argument_relaxed():
     # Using the deprecated name
     with catch_warnings(AstropyDeprecationWarning) as w:
         assert test(clobber=1) == 1
-
-    assert len(w) == 1
-    assert '1.3' in str(w[0].message)
+        assert len(w) == 1
+        assert '1.3' in str(w[0].message)
 
     # Using both. Both keyword
     with catch_warnings(AstropyUserWarning) as w:
         assert test(clobber=2, overwrite=1) == 1
-    assert len(w) == 1
+        assert len(w) == 1
+
     # One positional, one keyword
     with catch_warnings(AstropyUserWarning) as w:
         assert test(1, clobber=2) == 1
-    assert len(w) == 1
+        assert len(w) == 1
 
 
 def test_deprecated_argument_docstring():
@@ -360,23 +363,78 @@ def test_deprecated_argument_docstring():
     def test2(overwrite):
         return overwrite
 
+    # The sphinx directive is added only if the function already has a
+    # docstring.
     assert '.. versionchanged:: 1.3' in test1.__doc__
     assert not test2.__doc__
 
 
+def test_deprecated_argument_multi_deprecation():
+    @deprecated_renamed_argument(['x', 'y', 'z'], ['a', 'b', 'c'],
+                                 [1.3, 1.2, 1.3], relax=True)
+    def test(a, b, c):
+        """blub."""
+        return a, b, c
+
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        assert test(x=1, y=2, z=3) == (1, 2, 3)
+        assert len(w) == 3
+
+    # Make sure relax is valid for all arguments
+    with catch_warnings(AstropyUserWarning) as w:
+        assert test(x=1, y=2, z=3, b=3) == (1, 3, 3)
+        assert len(w) == 1
+
+    with catch_warnings(AstropyUserWarning) as w:
+        assert test(x=1, y=2, z=3, a=3) == (3, 2, 3)
+        assert len(w) == 1
+
+    with catch_warnings(AstropyUserWarning) as w:
+        assert test(x=1, y=2, z=3, c=5) == (1, 2, 5)
+        assert len(w) == 1
+
+    msg = ('blub.\n\n.. versionchanged:: 1.2\n   ``b`` replaces the deprecated'
+           ' ``y`` argument.\n\n.. versionchanged:: 1.3\n   ``a`` replaces the'
+           ' deprecated ``x`` argument.\n   ``c`` replaces the deprecated '
+           '``z`` argument.')
+    assert test.__doc__ == msg
+
+
+def test_deprecated_argument_multi_deprecation_2():
+    @deprecated_renamed_argument(['x', 'y', 'z'], ['a', 'b', 'c'],
+                                 [1.3, 1.2, 1.3], relax=[True, True, False])
+    def test(a, b, c):
+        return a, b, c
+
+    with catch_warnings(AstropyUserWarning) as w:
+        assert test(x=1, y=2, z=3, b=3) == (1, 3, 3)
+        assert len(w) == 1
+
+    with catch_warnings(AstropyUserWarning) as w:
+        assert test(x=1, y=2, z=3, a=3) == (3, 2, 3)
+        assert len(w) == 1
+
+    with pytest.raises(TypeError):
+        assert test(x=1, y=2, z=3, c=5) == (1, 2, 5)
+
+
 def test_deprecated_argument_not_allowed_use():
+    # If the argument is supposed to be inside the kwargs one needs to set the
+    # arg_in_kwargs parameter. Without it it raises a TypeError.
     with pytest.raises(TypeError):
         @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
         def test1(**kwargs):
             return kwargs['overwrite']
 
+    # Cannot replace "*args".
     with pytest.raises(TypeError):
-        @deprecated_renamed_argument('kwargs', 'overwrite', '1.3')
+        @deprecated_renamed_argument('overwrite', 'args', '1.3')
         def test2(*args):
             return args
 
+    # Cannot replace "**kwargs".
     with pytest.raises(TypeError):
-        @deprecated_renamed_argument('kwargs', 'overwrite', '1.3')
+        @deprecated_renamed_argument('overwrite', 'kwargs', '1.3')
         def test3(**kwargs):
             return kwargs
 
