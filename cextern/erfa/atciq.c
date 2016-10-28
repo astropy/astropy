@@ -64,11 +64,12 @@ void eraAtciq(double rc, double dc,
 **     eraC2s       p-vector to spherical
 **     eraAnp       normalize angle into range 0 to 2pi
 **
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double pco[3], pnat[3], ppr[3], pi[3], w;
+
 
 /* Proper motion and parallax, giving BCRS coordinate direction. */
    eraPmpx(rc, dc, pr, pd, px, rv, astrom->pmt, astrom->eb, pco);
@@ -92,7 +93,7 @@ void eraAtciq(double rc, double dc,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

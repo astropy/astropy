@@ -102,13 +102,14 @@ void eraApcg(double date1, double date2,
 **  Called:
 **     eraApcs      astrometry parameters, ICRS-GCRS, space observer
 **
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
 /* Geocentric observer */
    double pv[2][3] = { { 0.0, 0.0, 0.0 },
                        { 0.0, 0.0, 0.0 } };
+
 
 /* Compute the star-independent astrometry parameters. */
    eraApcs(date1, date2, pv, ebpv, ehp, astrom);
@@ -119,7 +120,7 @@ void eraApcg(double date1, double date2,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

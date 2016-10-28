@@ -45,11 +45,12 @@ int eraTttdb(double tt1, double tt2, double dtr,
 **
 **     IAU 2006 Resolution 3
 **
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double dtrd;
+
 
 /* Result, safeguarding precision. */
    dtrd = dtr / ERFA_DAYSEC;
@@ -68,7 +69,7 @@ int eraTttdb(double tt1, double tt2, double dtr,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

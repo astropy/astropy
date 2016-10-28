@@ -30,11 +30,12 @@ void eraPvxpv(double a[2][3], double b[2][3], double axb[2][3])
 **     eraPxp       vector product of two p-vectors
 **     eraPpp       p-vector plus p-vector
 **
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double wa[2][3], wb[2][3], axbd[3], adxb[3];
+
 
 /* Make copies of the inputs. */
    eraCpv(a, wa);
@@ -54,7 +55,7 @@ void eraPvxpv(double a[2][3], double b[2][3], double axb[2][3])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International
