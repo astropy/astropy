@@ -36,7 +36,7 @@ void eraFk5hip(double r5h[3][3], double s5h[3])
 **
 **     F.Mignard & M.Froeschle, Astron. Astrophys. 354, 732-739 (2000).
 **
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -45,6 +45,7 @@ void eraFk5hip(double r5h[3][3], double s5h[3])
 /* FK5 wrt Hipparcos orientation and spin (radians, radians/year) */
    double epx, epy, epz;
    double omx, omy, omz;
+
 
    epx = -19.9e-3 * ERFA_DAS2R;
    epy =  -9.1e-3 * ERFA_DAS2R;
@@ -73,7 +74,7 @@ void eraFk5hip(double r5h[3][3], double s5h[3])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

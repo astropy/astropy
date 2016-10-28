@@ -62,11 +62,12 @@ double eraGst94(double uta, double utb)
 **
 **     IAU Resolution C7, Recommendation 3 (1994)
 **
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double gmst82, eqeq94, gst;
+
 
    gmst82 = eraGmst82(uta, utb);
    eqeq94 = eraEqeq94(uta, utb);
@@ -78,7 +79,7 @@ double eraGst94(double uta, double utb)
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International
