@@ -726,12 +726,8 @@ class SkyCoord(ShapedLikeNDArray):
             raise ValueError('The other object does not have a distance; '
                              'cannot compute 3d separation.')
 
-        dx = self_in_other_system.cartesian.x - other.cartesian.x
-        dy = self_in_other_system.cartesian.y - other.cartesian.y
-        dz = self_in_other_system.cartesian.z - other.cartesian.z
-
-        distval = (dx.value ** 2 + dy.value ** 2 + dz.value ** 2) ** 0.5
-        return Distance(distval, dx.unit)
+        return Distance((self_in_other_system.cartesian -
+                         other.cartesian).norm())
 
     def spherical_offsets_to(self, tocoord):
         r"""

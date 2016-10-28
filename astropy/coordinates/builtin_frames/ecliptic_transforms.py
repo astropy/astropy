@@ -75,10 +75,7 @@ def icrs_to_helioecliptic(from_coo, to_frame):
     bary_sun_pos = get_body_barycentric('sun', to_frame.equinox)
 
     # offset to heliocentric
-    from_coo_cartesian = from_coo.cartesian
-    heliocart = CartesianRepresentation(from_coo_cartesian.x + bary_sun_pos.x,
-                                        from_coo_cartesian.y + bary_sun_pos.y,
-                                        from_coo_cartesian.z + bary_sun_pos.z)
+    heliocart = from_coo.cartesian + bary_sun_pos
 
     # now compute the matrix to precess to the right orientation
     rmat = _ecliptic_rotation_matrix(to_frame.equinox)
@@ -104,7 +101,5 @@ def helioecliptic_to_icrs(from_coo, to_frame):
     # get barycentric sun coordinate
     bary_sun_pos = get_body_barycentric('sun', from_coo.equinox)
 
-    newrepr = CartesianRepresentation(intermed_repr.x - bary_sun_pos.x,
-                                      intermed_repr.y - bary_sun_pos.y,
-                                      intermed_repr.z - bary_sun_pos.z)
+    newrepr = intermed_repr - bary_sun_pos
     return to_frame.realize_frame(newrepr)
