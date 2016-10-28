@@ -59,13 +59,14 @@ void eraAticq(double ri, double di, eraASTROM *astrom,
 **     eraC2s       p-vector to spherical
 **     eraAnp       normalize angle into range +/- pi
 **
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    int j, i;
    double pi[3], ppr[3], pnat[3], pco[3], w, d[3], before[3], r2, r,
           after[3];
+
 
 /* CIRS RA,Dec to Cartesian. */
    eraS2c(ri, di, pi);
@@ -137,7 +138,7 @@ void eraAticq(double ri, double di, eraASTROM *astrom,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International
