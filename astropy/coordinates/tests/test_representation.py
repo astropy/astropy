@@ -581,7 +581,7 @@ class TestCartesianRepresentation(object):
             s1 = CartesianRepresentation(x=[1 * u.kpc, 2 * u.Mpc],
                                          y=[3 * u.kpc, 4 * u.pc],
                                          z=[5. * u.cm, 6 * u.m])
-        assert exc.value.args[0] == "x should be a Quantity"
+        assert exc.value.args[0].startswith("x should")
 
     def test_readonly(self):
 
