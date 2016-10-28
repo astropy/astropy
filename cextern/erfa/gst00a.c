@@ -69,11 +69,12 @@ double eraGst00a(double uta, double utb, double tta, double ttb)
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double gmst00, ee00a, gst;
+
 
    gmst00 = eraGmst00(uta, utb, tta, ttb);
    ee00a = eraEe00a(tta, ttb);
@@ -85,7 +86,7 @@ double eraGst00a(double uta, double utb, double tta, double ttb)
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

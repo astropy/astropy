@@ -13,7 +13,7 @@ in this source distribution.
 Differences from SOFA
 ---------------------
 
-This version of ERFA (v1.2.0) is based on SOFA version "20150209_a", with the
+This version of ERFA (v1.3.0) is based on SOFA version "20160503_a", with the
 differences outlined below.
 
 ERFA branding
@@ -34,10 +34,15 @@ Bugfixes
 ERFA includes smaller changes that may or may not eventually make it into SOFA,
 addressing localized bugs or similar smaller issues:
 
-* Typos have been corrected in the documentation of atco13 and atio13 (see https://github.com/liberfa/erfa/issues/29).
+* ERFA 1.3.0 and SOFA "20160503_a"
 
-Note: Issues identified in ERFA should always be reported upstream to SOFA
-at sofa@ukho.gov.uk.
+  + There are no differences between ERFA 1.3.0 and SOFA "20160503_a".
+
+* ERFA 1.2.0 and SOFA "20150209_a"
+
+  + Typos have been corrected in the documentation of atco13 and atio13 (see https://github.com/liberfa/erfa/issues/29).
+
+Note that issues identified in ERFA should generally also be reported upstream to SOFA at sofa@ukho.gov.uk.
 
 Building and installing ERFA
 ----------------------------

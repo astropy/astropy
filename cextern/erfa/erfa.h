@@ -1,5 +1,3 @@
-// This copy of ERFA is bundled with Astropy, based on ERFA v1.2.0
-
 #ifndef ERFAHDEF
 #define ERFAHDEF
 
@@ -10,7 +8,7 @@
 **
 **  Prototype function declarations for ERFA library.
 **
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 
@@ -194,6 +192,10 @@ void eraFw2m(double gamb, double phib, double psi, double eps,
              double r[3][3]);
 void eraFw2xy(double gamb, double phib, double psi, double eps,
               double *x, double *y);
+void eraLtp(double epj, double rp[3][3]);
+void eraLtpb(double epj, double rpb[3][3]);
+void eraLtpecl(double epj, double vec[3]);
+void eraLtpequ(double epj, double veq[3]);
 void eraNum00a(double date1, double date2, double rmatn[3][3]);
 void eraNum00b(double date1, double date2, double rmatn[3][3]);
 void eraNum06a(double date1, double date2, double rmatn[3][3]);
@@ -307,9 +309,19 @@ int eraStarpm(double ra1, double dec1,
               double *ra2, double *dec2,
               double *pmr2, double *pmd2, double *px2, double *rv2);
 
+/* Astronomy/EclipticCoordinates */
+void eraEceq06(double date1, double date2, double dl, double db,
+               double *dr, double *dd);
+void eraEcm06(double date1, double date2, double rm[3][3]);
+void eraEqec06(double date1, double date2, double dr, double dd,
+               double *dl, double *db);
+void eraLteceq(double epj, double dl, double db, double *dr, double *dd);
+void eraLtecm(double epj, double rm[3][3]);
+void eraLteqec(double epj, double dr, double dd, double *dl, double *db);
+
 /* Astronomy/GalacticCoordinates */
-void eraG2icrs ( double dl, double db, double *dr, double *dd );
-void eraIcrs2g ( double dr, double dd, double *dl, double *db );
+void eraG2icrs(double dl, double db, double *dr, double *dd);
+void eraIcrs2g(double dr, double dd, double *dl, double *db);
 
 /* Astronomy/GeodeticGeocentric */
 int eraEform(int n, double *a, double *f);
@@ -440,11 +452,11 @@ void eraSxpv(double s, double pv[2][3], double spv[2][3]);
 
 #endif
 
-/* Copyright2 */
+
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

@@ -423,27 +423,34 @@ class TestBasic():
     def test_utc_leap_sec(self):
         """Time behaves properly near or in UTC leap second.  This
         uses the 2012-06-30 leap second for testing."""
-        for year in ('2012', '2015'):
+        for year, month, day in ((2012, 6, 30), (2016, 12, 31)):
             # Start with a day without a leap second and note rollover
-            t1 = Time(year + '-06-01 23:59:60.0', scale='utc')
-            assert t1.iso == year + '-06-02 00:00:00.000'
+            yyyy_mm = '{:04d}-{:02d}'.format(year, month)
+            yyyy_mm_dd = '{:04d}-{:02d}-{:02d}'.format(year, month, day)
+            t1 = Time(yyyy_mm + '-01 23:59:60.0', scale='utc')
+            assert t1.iso == yyyy_mm + '-02 00:00:00.000'
 
             # Leap second is different
-            t1 = Time(year + '-06-30 23:59:59.900', scale='utc')
-            assert t1.iso == year + '-06-30 23:59:59.900'
+            t1 = Time(yyyy_mm_dd + ' 23:59:59.900', scale='utc')
+            assert t1.iso == yyyy_mm_dd + ' 23:59:59.900'
 
-            t1 = Time(year + '-06-30 23:59:60.000', scale='utc')
-            assert t1.iso == year + '-06-30 23:59:60.000'
+            t1 = Time(yyyy_mm_dd + ' 23:59:60.000', scale='utc')
+            assert t1.iso == yyyy_mm_dd + ' 23:59:60.000'
 
-            t1 = Time(year + '-06-30 23:59:60.999', scale='utc')
-            assert t1.iso == year + '-06-30 23:59:60.999'
+            t1 = Time(yyyy_mm_dd + ' 23:59:60.999', scale='utc')
+            assert t1.iso == yyyy_mm_dd + ' 23:59:60.999'
 
-            t1 = Time(year + '-06-30 23:59:61.0', scale='utc')
-            assert t1.iso == year + '-07-01 00:00:00.000'
+            if month == 6:
+                yyyy_mm_dd_plus1 = '{:04d}-07-01'.format(year)
+            else:
+                yyyy_mm_dd_plus1 = '{:04d}-01-01'.format(year+1)
+
+            t1 = Time(yyyy_mm_dd + ' 23:59:61.0', scale='utc')
+            assert t1.iso == yyyy_mm_dd_plus1 + ' 00:00:00.000'
 
             # Delta time gives 2 seconds here as expected
-            t0 = Time(year + '-06-30 23:59:59', scale='utc')
-            t1 = Time(year + '-07-01 00:00:00', scale='utc')
+            t0 = Time(yyyy_mm_dd + ' 23:59:59', scale='utc')
+            t1 = Time(yyyy_mm_dd_plus1 + ' 00:00:00', scale='utc')
             assert allclose_sec((t1 - t0).sec, 2.0)
 
     def test_init_from_time_objects(self):

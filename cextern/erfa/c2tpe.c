@@ -83,12 +83,13 @@ void eraC2tpe(double tta, double ttb, double uta, double utb,
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double epsa, rb[3][3], rp[3][3], rbp[3][3], rn[3][3],
           rbpn[3][3], gmst, ee, sp, rpom[3][3];
+
 
 /* Form the celestial-to-true matrix for this TT. */
    eraPn00(tta, ttb, dpsi, deps, &epsa, rb, rp, rbp, rn, rbpn);
@@ -114,7 +115,7 @@ void eraC2tpe(double tta, double ttb, double uta, double utb,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

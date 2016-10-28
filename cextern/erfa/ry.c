@@ -28,11 +28,12 @@ void eraRy(double theta, double r[3][3])
 **         (                                        )
 **         (  + sin(theta)     0      + cos(theta)  )
 **
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double s, c, a00, a01, a02, a20, a21, a22;
+
 
    s = sin(theta);
    c = cos(theta);
@@ -57,7 +58,7 @@ void eraRy(double theta, double r[3][3])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2015, NumFOCUS Foundation.
+**  Copyright (C) 2013-2016, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International
