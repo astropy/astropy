@@ -19,7 +19,7 @@ from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from ..extern import six
 from ..utils import ShapedLikeNDArray, classproperty
-from ..utils.compat import NUMPY_LT_1_12
+from ..utils.compat import NUMPY_LT_1_8, NUMPY_LT_1_12
 from ..utils.compat.numpy import broadcast_arrays
 
 __all__ = ["BaseRepresentation", "CartesianRepresentation",
@@ -201,12 +201,17 @@ class BaseRepresentation(ShapedLikeNDArray):
 
         The record array fields will have the component names.
         """
+        coordinates = [getattr(self, c) for c in self.components]
+        if NUMPY_LT_1_8:
+            # numpy 1.7 has problems concatenating broadcasted arrays.
+            coordinates = [(coo.copy() if 0 in coo.strides else coo)
+                           for coo in coordinates]
+
         sh = self.shape + (1,)
-        allcomp = np.concatenate([getattr(self, component).reshape(sh).value
-                                  for component in self.components], axis=-1)
-        dtype = np.dtype([(str(component), getattr(self, component).dtype)
-                          for component in self.components])
-        return allcomp.view(dtype).squeeze()
+        dtype = np.dtype([(str(c), coo.dtype)
+                          for c, coo in zip(self.components, coordinates)])
+        return np.concatenate([coo.reshape(sh).value for coo in coordinates],
+                              axis=-1).view(dtype).squeeze()
 
     @property
     def _units(self):
@@ -426,7 +431,7 @@ class CartesianRepresentation(BaseRepresentation):
         have different shapes, they should be broadcastable. If not quantity,
         ``unit`` should be set.  If only ``x`` is given, it is assumed that it
         contains an array with the 3 coordinates are stored along ``axis``.
-    unit : `~astropy.unit.Unit` or str
+    unit : `~astropy.units.Unit` or str
         If given, the coordinates will be converted to this unit (or taken to
         be in this unit if not given.
     axis : int, optional
@@ -526,16 +531,21 @@ class CartesianRepresentation(BaseRepresentation):
         if axis < 0:
             axis += result_ndim
 
-        sh = self.shape
-        sh = sh[:axis] + (1,) + sh[axis:]
         # Get x, y, z to the same units (this is very fast for identical units)
         # since np.concatenate cannot deal with quantity.
         cls = self._x.__class__
-        x = self._x.reshape(sh)
-        y = cls(self._y, x.unit, copy=False).reshape(sh)
-        z = cls(self._z, x.unit, copy=False).reshape(sh)
-        return cls(np.concatenate((x.value, y.value, z.value), axis=axis),
-                   unit=x.unit, copy=False)
+        x = self._x
+        y = cls(self._y, x.unit, copy=False)
+        z = cls(self._z, x.unit, copy=False)
+        if NUMPY_LT_1_8:
+            # numpy 1.7 has problems concatenating broadcasted arrays.
+            x, y, z =  [(c.copy() if 0 in c.strides else c) for c in (x, y, z)]
+
+        sh = self.shape
+        sh = sh[:axis] + (1,) + sh[axis:]
+        xyz_value = np.concatenate([c.reshape(sh).value for c in (x, y, z)],
+                                   axis=axis)
+        return cls(xyz_value, unit=x.unit, copy=False)
 
     xyz = property(get_xyz)
 
