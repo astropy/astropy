@@ -1111,8 +1111,8 @@ reduce these to 2 dimensions using the naxis kwarg.
             raise ValueError(
                 "Header has SIP keywords without CRPIX keywords")
 
-        crpix1 = header.get("CRPIX1{0}".format(wcskey))
-        crpix2 = header.get("CRPIX2{0}".format(wcskey))
+        crpix1 = header.get("CRPIX1")
+        crpix2 = header.get("CRPIX2")
 
         return Sip(a, b, ap, bp, (crpix1, crpix2))
 

@@ -449,6 +449,9 @@ Bug Fixes
 
   - Improved log messages in ``to_header``. [#5239]
 
+  - SIP distortion for an alternate WCS is correctly initialized now by
+    looking at the "CTYPE" values matching the alternate WCS. [#5443]
+
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
