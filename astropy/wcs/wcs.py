@@ -444,7 +444,7 @@ class WCS(WCSBase):
             det2im = self._read_det2im_kw(header, fobj, err=minerr)
             cpdis = self._read_distortion_kw(
                 header, fobj, dist='CPDIS', err=minerr)
-            sip = self._read_sip_kw(header)
+            sip = self._read_sip_kw(header, wcskey=key)
             self._remove_sip_kw(header)
 
             header_string = header.tostring()
@@ -997,7 +997,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                     if m is not None):
             del header[key]
 
-    def _read_sip_kw(self, header):
+    def _read_sip_kw(self, header, wcskey=""):
         """
         Reads `SIP`_ header keywords and returns a `~astropy.wcs.Sip`
         object.
@@ -1038,7 +1038,8 @@ reduce these to 2 dimensions using the naxis kwarg.
 
             del header[str('A_ORDER')]
             del header[str('B_ORDER')]
-            ctype=[header['CTYPE{0}'.format(nax)] for nax in range(1, self.naxis + 1)]
+
+            ctype = [header['CTYPE{0}{1}'.format(nax, wcskey)] for nax in range(1, self.naxis + 1)]
             if any(not ctyp.endswith('-SIP') for ctyp in ctype):
                 message = """
                 Inconsistent SIP distortion information is present in the FITS header and the WCS object:
@@ -1110,8 +1111,8 @@ reduce these to 2 dimensions using the naxis kwarg.
             raise ValueError(
                 "Header has SIP keywords without CRPIX keywords")
 
-        crpix1 = header.get("CRPIX1")
-        crpix2 = header.get("CRPIX2")
+        crpix1 = header.get("CRPIX1{0}".format(wcskey))
+        crpix2 = header.get("CRPIX2{0}".format(wcskey))
 
         return Sip(a, b, ap, bp, (crpix1, crpix2))
 
