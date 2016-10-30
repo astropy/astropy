@@ -24,19 +24,19 @@ Each cosmology has the following parameters defined:
 The list of cosmologies available are given by the tuple
 `available`. Current cosmologies available:
 
-Planck 15 parameters from Planck Collaboration 2015, arXiv: 1502.01589
+Planck 2015 (Planck15) parameters from Planck Collaboration 2016, A&A, 594, A13
  (Paper XIII), Table 4 (TT, TE, EE + lowP + lensing + ext)
 
-Planck13 parameters from Planck Collaboration 2013, arXiv:1303.5076
+Planck 2013 (Planck13) parameters from Planck Collaboration 2014, A&A, 571, A16
  (Paper XVI), Table 5 (Planck + WP + highL + BAO)
 
-WMAP 9 year parameters from Hinshaw et al. 2013, ApJS, 208, 19,
+WMAP 9 year (WMAP9) parameters from Hinshaw et al. 2013, ApJS, 208, 19,
 doi: 10.1088/0067-0049/208/2/19. Table 4 (WMAP9 + eCMB + BAO + H0)
 
-WMAP 7 year parameters from Komatsu et al. 2011, ApJS, 192, 18,
+WMAP 7 year (WMAP7) parameters from Komatsu et al. 2011, ApJS, 192, 18,
 doi: 10.1088/0067-0049/192/2/18. Table 1 (WMAP + BAO + H0 ML).
 
-WMAP 5 year parameters from Komatsu et al. 2009, ApJS, 180, 330,
+WMAP 5 year (WMAP5) parameters from Komatsu et al. 2009, ApJS, 180, 330,
 doi: 10.1088/0067-0049/180/2/330. Table 1 (WMAP + BAO + SN ML).
 
 """
@@ -69,7 +69,7 @@ Planck15 = dict(
     Neff=3.046,
     flat=True,
     m_nu=[0., 0., 0.06],
-    reference=("Planck Collaboration 2015, Paper XII, arXiv:1502.01589"
+    reference=("Planck Collaboration 2016, A&A, 594, A13 (Paper XIII),"
                " Table 4 (TT, TE, EE + lowP + lensing + ext)")
 )
 
@@ -88,7 +88,7 @@ Planck13 = dict(
     Neff=3.046,
     flat=True,
     m_nu=[0., 0., 0.06],
-    reference=("Planck Collaboration 2013, Paper XVI, arXiv:1303.5076"
+    reference=("Planck Collaboration 2014, A&A, 571, A16 (Paper XVI),"
                " Table 5 (Planck + WP + highL + BAO)")
 )
 
