@@ -518,12 +518,18 @@ class TestCartesianRepresentation(object):
 
     def test_init_one_array_size_fail(self):
         with pytest.raises(ValueError) as exc:
-            s1 = CartesianRepresentation(x=[1, 2, 3, 4] * u.pc)
+            CartesianRepresentation(x=[1, 2, 3, 4] * u.pc)
         assert exc.value.args[0].startswith("too many values to unpack")
+
+    def test_init_xyz_but_more_than_one_array_fail(self):
+        with pytest.raises(ValueError) as exc:
+            CartesianRepresentation(x=[1, 2, 3] * u.pc, y=[2, 3, 4] * u.pc,
+                                    z=[3, 4, 5] * u.pc, xyz_axis=0)
+        assert 'xyz_axis should only be set' in str(exc)
 
     def test_init_one_array_yz_fail(self):
         with pytest.raises(ValueError) as exc:
-            s1 = CartesianRepresentation(x=[1, 2, 3, 4] * u.pc, y=[1, 2] * u.pc)
+            CartesianRepresentation(x=[1, 2, 3, 4] * u.pc, y=[1, 2] * u.pc)
         assert exc.value.args[0] == ("x, y, and z are required to instantiate "
                                      "CartesianRepresentation")
 
