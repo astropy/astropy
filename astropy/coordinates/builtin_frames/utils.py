@@ -282,11 +282,12 @@ def prepare_earth_position_vel(time):
 
     # get heliocentric position of earth, preparing it for passing to erfa.
     sun = get_body_barycentric('sun', time)
-    earth_heliocentric = (earth_pv[0] - sun).get_xyz(axis=-1).to(u.au).value
+    earth_heliocentric = (earth_pv[0] -
+                          sun).get_xyz(xyz_axis=-1).to(u.au).value
 
     # also prepare earth_pv for passing to erfa.
     earth_pv = np.concatenate(
-        (earth_pv[0].get_xyz(axis=-1).to(u.au)[..., np.newaxis, :],
-         earth_pv[1].get_xyz(axis=-1).to(u.au/u.d)[..., np.newaxis, :]),
+        (earth_pv[0].get_xyz(xyz_axis=-1).to(u.au)[..., np.newaxis, :],
+         earth_pv[1].get_xyz(xyz_axis=-1).to(u.au/u.d)[..., np.newaxis, :]),
         axis=-2)
     return earth_pv, earth_heliocentric

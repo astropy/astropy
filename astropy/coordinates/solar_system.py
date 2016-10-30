@@ -242,12 +242,12 @@ def _get_body_barycentric_posvel(body, time, ephemeris=None,
                 body_pv_helio = erfa.plan94(jd1, jd2, body_index)
                 body_pv_bary = body_pv_helio + sun_pv_bary
 
-        body_pos_bary = CartesianRepresentation(body_pv_bary[..., 0, :],
-                                                unit=u.au, axis=-1, copy=False)
+        body_pos_bary = CartesianRepresentation(
+            body_pv_bary[..., 0, :], unit=u.au, xyz_axis=-1, copy=False)
         if get_velocity:
-            body_vel_bary = CartesianRepresentation(body_pv_bary[..., 1, :],
-                                                    unit=u.au/u.day, axis=-1,
-                                                    copy=False)
+            body_vel_bary = CartesianRepresentation(
+                body_pv_bary[..., 1, :], unit=u.au/u.day, xyz_axis=-1,
+                copy=False)
 
     else:
         if isinstance(body, six.string_types):

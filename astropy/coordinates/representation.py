@@ -430,13 +430,13 @@ class CartesianRepresentation(BaseRepresentation):
         The x, y, and z coordinates of the point(s). If ``x``, ``y``, and ``z``
         have different shapes, they should be broadcastable. If not quantity,
         ``unit`` should be set.  If only ``x`` is given, it is assumed that it
-        contains an array with the 3 coordinates are stored along ``axis``.
+        contains an array with the 3 coordinates are stored along ``xyz_axis``.
     unit : `~astropy.units.Unit` or str
         If given, the coordinates will be converted to this unit (or taken to
         be in this unit if not given.
-    axis : int, optional
-        The axis along which the coordinates are stored for the case an array
-        of vectors is passed in (default: 0).
+    xyz_axis : int, optional
+        The axis along which the coordinates are stored when a single array is
+        provided rather than distinct ``x``, ``y``, and ``z`` (default: 0).
     copy : bool, optional
         If True (default), arrays will be copied rather than referenced.
     """
@@ -445,16 +445,20 @@ class CartesianRepresentation(BaseRepresentation):
                                 ('y', u.Quantity),
                                 ('z', u.Quantity)])
 
-    def __init__(self, x, y=None, z=None, unit=None, axis=0, copy=True):
+    def __init__(self, x, y=None, z=None, unit=None, xyz_axis=None, copy=True):
 
         if unit is None and not hasattr(x, 'unit'):
             raise TypeError('x should have a unit unless an explicit unit '
                             'is passed in.')
 
         if y is None and z is None:
-            if axis != 0:
-                x = np.rollaxis(x, axis, 0)
+            if xyz_axis is not None and xyz_axis != 0:
+                x = np.rollaxis(x, xyz_axis, 0)
             x, y, z = x
+        elif xyz_axis is not None:
+            raise ValueError("xyz_axis should only be set if x, y, and z are "
+                             "in a single array passed in through x, "
+                             "i.e., y and z should not be not given.")
         elif (y is None and z is not None) or (y is not None and z is None):
             raise ValueError("x, y, and z are required to instantiate {0}"
                              .format(self.__class__.__name__))
@@ -508,12 +512,12 @@ class CartesianRepresentation(BaseRepresentation):
         """
         return self._z
 
-    def get_xyz(self, axis=0):
+    def get_xyz(self, xyz_axis=0):
         """Return a vector array of the x, y, and z coordinates.
 
         Parameters
         ----------
-        axis : int, optional
+        xyz_axis : int, optional
             The axis in the final array along which the x, y, z components
             should be stored (default: 0).
 
@@ -525,11 +529,11 @@ class CartesianRepresentation(BaseRepresentation):
         # Add new axis in x, y, z so one can concatenate them around it.
         # NOTE: just use np.stack once our minimum numpy version is 1.10.
         result_ndim = self.ndim + 1
-        if not -result_ndim <= axis < result_ndim:
-            raise IndexError('axis {0} out of bounds [-{1}, {1})'
-                             .format(axis, result_ndim))
-        if axis < 0:
-            axis += result_ndim
+        if not -result_ndim <= xyz_axis < result_ndim:
+            raise IndexError('xyz_axis {0} out of bounds [-{1}, {1})'
+                             .format(xyz_axis, result_ndim))
+        if xyz_axis < 0:
+            xyz_axis += result_ndim
 
         # Get x, y, z to the same units (this is very fast for identical units)
         # since np.concatenate cannot deal with quantity.
@@ -542,9 +546,9 @@ class CartesianRepresentation(BaseRepresentation):
             x, y, z =  [(c.copy() if 0 in c.strides else c) for c in (x, y, z)]
 
         sh = self.shape
-        sh = sh[:axis] + (1,) + sh[axis:]
+        sh = sh[:xyz_axis] + (1,) + sh[xyz_axis:]
         xyz_value = np.concatenate([c.reshape(sh).value for c in (x, y, z)],
-                                   axis=axis)
+                                   axis=xyz_axis)
         return cls(xyz_value, unit=x.unit, copy=False)
 
     xyz = property(get_xyz)
