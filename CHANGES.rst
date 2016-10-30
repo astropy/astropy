@@ -38,9 +38,9 @@ New Features
 
   - ``CartesianRepresentation`` can be initialized with plain arrays by passing
     in a ``unit``. Furthermore, for input with a vector array, the coordinates
-    no longer have to be in the first dimension, but can be at any ``axis``.
-    To complement the latter, a new ``get_xyz(axis)`` method allows one to get
-    a vector array out along a given axis. [#5439]
+    no longer have to be in the first dimension, but can be at any ``xyz_axis``.
+    To complement the latter, a new ``get_xyz(xyz_axis)`` method allows one to
+    get a vector array out along a given axis. [#5439]
 
 - ``astropy.cosmology``
 
