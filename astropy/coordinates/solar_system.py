@@ -242,13 +242,12 @@ def _get_body_barycentric_posvel(body, time, ephemeris=None,
                 body_pv_helio = erfa.plan94(jd1, jd2, body_index)
                 body_pv_bary = body_pv_helio + sun_pv_bary
 
-        # Move coordinate components to front, as needed for
-        # CartesianRepresentation.
-        body_pv_bary = np.rollaxis(body_pv_bary, -1, 0)
-        body_pos_bary = u.Quantity(body_pv_bary[..., 0], u.au, copy=False)
+        body_pos_bary = CartesianRepresentation(
+            body_pv_bary[..., 0, :], unit=u.au, xyz_axis=-1, copy=False)
         if get_velocity:
-            body_vel_bary = u.Quantity(body_pv_bary[..., 1], u.au/u.day,
-                                       copy=False)
+            body_vel_bary = CartesianRepresentation(
+                body_pv_bary[..., 1, :], unit=u.au/u.day, xyz_axis=-1,
+                copy=False)
 
     else:
         if isinstance(body, six.string_types):
@@ -290,17 +289,14 @@ def _get_body_barycentric_posvel(body, time, ephemeris=None,
                     body_p_or_v += p_or_v
 
         body_posvel_bary.shape = body_posvel_bary.shape[:2] + jd1_shape
-        body_pos_bary = u.Quantity(body_posvel_bary[0], u.km, copy=False)
+        body_pos_bary = CartesianRepresentation(body_posvel_bary[0],
+                                                unit=u.km, copy=False)
         if get_velocity:
-            body_vel_bary = u.Quantity(body_posvel_bary[1], u.km/u.day,
-                                       copy=False)
+            body_vel_bary = CartesianRepresentation(body_posvel_bary[1],
+                                                    unit=u.km/u.day, copy=False)
 
-    body_pos_bary = CartesianRepresentation(body_pos_bary, copy=False)
-    if get_velocity:
-        body_vel_bary = CartesianRepresentation(body_vel_bary, copy=False)
-        return body_pos_bary, body_vel_bary
-    else:
-        return body_pos_bary
+    return (body_pos_bary, body_vel_bary) if get_velocity else body_pos_bary
+
 
 def get_body_barycentric_posvel(body, time, ephemeris=None):
     """Calculate the barycentric position and velocity of a solar system body.

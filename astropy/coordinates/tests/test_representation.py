@@ -516,14 +516,44 @@ class TestCartesianRepresentation(object):
         assert_allclose(s1.y.value, 2)
         assert_allclose(s1.z.value, 3)
 
+        r = np.arange(27.).reshape(3, 3, 3) * u.kpc
+        s2 = CartesianRepresentation(r, xyz_axis=0)
+        assert s2.shape == (3, 3)
+        assert s2.x.unit == u.kpc
+        assert np.all(s2.x == r[0])
+        assert np.all(s2.xyz == r)
+        assert np.all(s2.get_xyz(xyz_axis=0) == r)
+        s3 = CartesianRepresentation(r, xyz_axis=1)
+        assert s3.shape == (3, 3)
+        assert np.all(s3.x == r[:, 0])
+        assert np.all(s3.y == r[:, 1])
+        assert np.all(s3.z == r[:, 2])
+        assert np.all(s3.get_xyz(xyz_axis=1) == r)
+        s4 = CartesianRepresentation(r, xyz_axis=2)
+        assert s4.shape == (3, 3)
+        assert np.all(s4.x == r[:, :, 0])
+        assert np.all(s4.get_xyz(xyz_axis=2) == r)
+        s5 = CartesianRepresentation(r, unit=u.pc)
+        assert s5.x.unit == u.pc
+        assert np.all(s5.xyz == r)
+        s6 = CartesianRepresentation(r.value, unit=u.pc, xyz_axis=2)
+        assert s6.x.unit == u.pc
+        assert np.all(s6.get_xyz(xyz_axis=2).value == r.value)
+
     def test_init_one_array_size_fail(self):
         with pytest.raises(ValueError) as exc:
-            s1 = CartesianRepresentation(x=[1, 2, 3, 4] * u.pc)
+            CartesianRepresentation(x=[1, 2, 3, 4] * u.pc)
         assert exc.value.args[0].startswith("too many values to unpack")
+
+    def test_init_xyz_but_more_than_one_array_fail(self):
+        with pytest.raises(ValueError) as exc:
+            CartesianRepresentation(x=[1, 2, 3] * u.pc, y=[2, 3, 4] * u.pc,
+                                    z=[3, 4, 5] * u.pc, xyz_axis=0)
+        assert 'xyz_axis should only be set' in str(exc)
 
     def test_init_one_array_yz_fail(self):
         with pytest.raises(ValueError) as exc:
-            s1 = CartesianRepresentation(x=[1, 2, 3, 4] * u.pc, y=[1, 2] * u.pc)
+            CartesianRepresentation(x=[1, 2, 3, 4] * u.pc, y=[1, 2] * u.pc)
         assert exc.value.args[0] == ("x, y, and z are required to instantiate "
                                      "CartesianRepresentation")
 
@@ -581,7 +611,7 @@ class TestCartesianRepresentation(object):
             s1 = CartesianRepresentation(x=[1 * u.kpc, 2 * u.Mpc],
                                          y=[3 * u.kpc, 4 * u.pc],
                                          z=[5. * u.cm, 6 * u.m])
-        assert exc.value.args[0] == "x should be a Quantity"
+        assert exc.value.args[0].startswith("x should")
 
     def test_readonly(self):
 

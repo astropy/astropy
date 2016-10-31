@@ -280,12 +280,16 @@ def prepare_earth_position_vel(time):
     # get barycentric position and velocity of earth
     earth_pv = get_body_barycentric_posvel('earth', time)
 
-    # get heliocentric position of earth
+    # get heliocentric position of earth, preparing it for passing to erfa.
     sun = get_body_barycentric('sun', time)
-    earth_heliocentric = (earth_pv[0].xyz - sun.xyz).to(u.au)
+    earth_heliocentric = (earth_pv[0] -
+                          sun).get_xyz(xyz_axis=-1).to(u.au).value
 
-    # prepare to pass to erfa
-    earth_pv = np.array([earth_pv[0].xyz.to(u.au), earth_pv[1].xyz.to(u.au/u.d)])
-    earth_pv = np.rollaxis(np.rollaxis(earth_pv, 0, earth_pv.ndim), 0, earth_pv.ndim)
-    earth_heliocentric = np.rollaxis(earth_heliocentric.value, 0, earth_heliocentric.ndim)
+    # Also prepare earth_pv for passing to erfa, which wants xyz in last
+    # dimension, and pos/vel in one-but-last.
+    # (Note could use np.stack once our minimum numpy version is >=1.10.)
+    earth_pv = np.concatenate((earth_pv[0].get_xyz(xyz_axis=-1).to(u.au)
+                               [..., np.newaxis, :].value,
+                               earth_pv[1].get_xyz(xyz_axis=-1).to(u.au/u.d)
+                               [..., np.newaxis, :].value), axis=-2)
     return earth_pv, earth_heliocentric
