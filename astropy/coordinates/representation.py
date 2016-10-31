@@ -524,7 +524,7 @@ class CartesianRepresentation(BaseRepresentation):
         Returns
         -------
         xyz : `~astropy.units.Quantity`
-            With dimension 3 along ``axis``.
+            With dimension 3 along ``xyz_axis``.
         """
         # Add new axis in x, y, z so one can concatenate them around it.
         # NOTE: just use np.stack once our minimum numpy version is 1.10.
