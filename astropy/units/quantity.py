@@ -430,7 +430,8 @@ class Quantity(np.ndarray):
             # and that we can handle the type (e.g., that we are not int when
             # float is required).
             check_output(obj, result_unit, (args + tuple(
-                (float if converter and converter(1.) % 1. != 0. else int)
+                (np.float16 if converter and converter(1.) % 1. != 0.
+                 else np.int8)
                 for converter in converters)),
                          function=function)
             result = obj  # no view needed since already a Quantity.
