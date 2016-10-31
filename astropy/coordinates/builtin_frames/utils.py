@@ -285,9 +285,11 @@ def prepare_earth_position_vel(time):
     earth_heliocentric = (earth_pv[0] -
                           sun).get_xyz(xyz_axis=-1).to(u.au).value
 
-    # also prepare earth_pv for passing to erfa.
-    earth_pv = np.concatenate(
-        (earth_pv[0].get_xyz(xyz_axis=-1).to(u.au)[..., np.newaxis, :],
-         earth_pv[1].get_xyz(xyz_axis=-1).to(u.au/u.d)[..., np.newaxis, :]),
-        axis=-2)
+    # Also prepare earth_pv for passing to erfa, which wants xyz in last
+    # dimension, and pos/vel in one-but-last.
+    # (Note could use np.stack once our minimum numpy version is >=1.10.)
+    earth_pv = np.concatenate((earth_pv[0].get_xyz(xyz_axis=-1).to(u.au)
+                               [..., np.newaxis, :].value,
+                               earth_pv[1].get_xyz(xyz_axis=-1).to(u.au/u.d)
+                               [..., np.newaxis, :].value), axis=-2)
     return earth_pv, earth_heliocentric
