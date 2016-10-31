@@ -41,7 +41,7 @@ New Features
   - Added a ``Tabular`` model. [#5105]
 
   - Added ``Hermite1D`` and ``Hermite2D`` polynomial models [#5242]
-  - Added the injection of EntryPoints into astropy.modeling.fitting if 
+  - Added the injection of EntryPoints into astropy.modeling.fitting if
     they inherit from Fitters class. [#5241]
 
 - ``astropy.nddata``
@@ -339,7 +339,7 @@ Bug Fixes
     be taken from logarithmic quanties such as ``Magnitude`` if the physical
     unit is dimensionless. [#5070]
 
-  - Operations involving ``Angle`` or ``Distance``, or any other 
+  - Operations involving ``Angle`` or ``Distance``, or any other
     ``SpecificTypeQuantity`` instance, now also keep return an instance of the
     same type if the instance was the second argument (if the resulting unit
     is consistent with the specific type). [#5327]
@@ -376,6 +376,9 @@ Other Changes and Additions
 
   - ``poisson_conf_interval`` with ``'kraft-burrows-nousek'`` interval is now
     faster and useable with SciPy versions < 0.14. [#5064, #5290]
+
+- The testing machinery now includes a default for ``remote_data``, allowing
+  ``py.test`` command line invokations to work. [#5435]
 
 
 
