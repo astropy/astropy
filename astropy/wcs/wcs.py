@@ -31,6 +31,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 # STDLIB
 import copy
 import io
+import itertools
 import os
 import textwrap
 import warnings
@@ -41,6 +42,7 @@ import numpy as np
 
 # LOCAL
 from ..extern import six
+from ..extern.six.moves import range, zip, map, builtins
 from ..io import fits
 from . import _docutil as __
 try:
@@ -2448,13 +2450,28 @@ reduce these to 2 dimensions using the naxis kwarg.
         f.write(') # color={0}, width={1:d} \n'.format(color, width))
         f.close()
 
+    @property
+    def _naxis1(self):
+        return self._naxis[0]
+
+    @property
+    def _naxis2(self):
+        return self._naxis[1]
+
     def _get_naxis(self, header=None):
-        self._naxis1 = 0
-        self._naxis2 = 0
+        _naxis = []
         if (header is not None and
-            not isinstance(header, (six.text_type, six.binary_type))):
-            self._naxis1 = header.get('NAXIS1', 0)
-            self._naxis2 = header.get('NAXIS2', 0)
+                not isinstance(header, (six.text_type, six.binary_type))):
+            for naxis in itertools.count(1):
+                try:
+                    _naxis.append(header['NAXIS{}'.format(naxis)])
+                except KeyError:
+                    break
+        if len(_naxis) == 0:
+            _naxis = [0, 0]
+        elif len(_naxis) == 1:
+            _naxis.append(0)
+        self._naxis = _naxis
 
     def rotateCD(self, theta):
         _theta = np.deg2rad(theta)
@@ -2495,7 +2512,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 s += sfmt
                 print(s.format(*self.wcs.cd[i]))
 
-        print('NAXIS    : {0!r} {1!r}'.format(self._naxis1, self._naxis2))
+        print('NAXIS : {}'.format('  '.join(map(str, self._naxis))))
 
     def get_axis_types(self):
         """
@@ -2691,13 +2708,18 @@ reduce these to 2 dimensions using the naxis kwarg.
         elif not hasattr(view, '__len__'): # view MUST be an iterable
             view = [view]
 
-        if not all([isinstance(x, slice) for x in view]):
+        if not all(isinstance(x, slice) for x in view):
             raise ValueError("Cannot downsample a WCS with indexing.  Use "
                              "wcs.sub or wcs.dropaxis if you want to remove "
                              "axes.")
 
         wcs_new = self.deepcopy()
         for i, iview in enumerate(view):
+            if numpy_order:
+                wcs_index = self.wcs.naxis - 1 - i
+            else:
+                wcs_index = i
+
             if iview.step is not None and iview.start is None:
                 # Slice from "None" is equivalent to slice from 0 (but one
                 # might want to downsample, so allow slices with
@@ -2705,11 +2727,6 @@ reduce these to 2 dimensions using the naxis kwarg.
                 iview = slice(0, iview.stop, iview.step)
 
             if iview.start is not None:
-                if numpy_order:
-                    wcs_index = self.wcs.naxis - 1 - i
-                else:
-                    wcs_index = i
-
                 if iview.step not in (None, 1):
                     crpix = self.wcs.crpix[wcs_index]
                     cdelt = self.wcs.cdelt[wcs_index]
@@ -2722,6 +2739,10 @@ reduce these to 2 dimensions using the naxis kwarg.
                     wcs_new.wcs.cdelt[wcs_index] = cdelt * iview.step
                 else:
                     wcs_new.wcs.crpix[wcs_index] -= iview.start
+
+            nitems = len(builtins.range(self._naxis[wcs_index])[iview])
+            wcs_new._naxis[wcs_index] = nitems
+
         return wcs_new
 
     def __getitem__(self, item):
