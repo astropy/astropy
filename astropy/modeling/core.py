@@ -316,12 +316,9 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
         def __call__(self, **kwargs):
             return func(self._model, **kwargs)
 
+        # Already checked for sig.parameters > 1 in _create_integral_property()
         kwargs = []
-        for idx, param in enumerate(sig.parameters.values()):
-            if idx == 0:
-                # Presumed to be a 'self' argument
-                continue
-
+        for param in islice(sig.parameters.values(), 1, None):  # [0] = self
             if param.default is param.empty:
                 raise ModelDefinitionError(
                     'The integral method for {0} is not correctly '
@@ -407,12 +404,10 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
         def __call__(self, **kwargs):
             return func(self._model, **kwargs)
 
+        # Already checked for sig.parameters > 1 in
+        # _create_bounding_box_property()
         kwargs = []
-        for idx, param in enumerate(sig.parameters.values()):
-            if idx == 0:
-                # Presumed to be a 'self' argument
-                continue
-
+        for param in islice(sig.parameters.values(), 1, None):  # [0] = self
             if param.default is param.empty:
                 raise ModelDefinitionError(
                     'The bounding_box method for {0} is not correctly '
@@ -988,7 +983,7 @@ class Model(object):
 
         Even on models that don't have an integral defined, this property can
         be set with a manually-defined integral, such a pre-computed or
-        experimentally determined integral, but not by requirement).
+        experimentally determined integral, but it is not required).
 
         A custom integral can be deleted with ``del model.integral``.  In this
         case the model's integral is reset to its default, if a default exists
@@ -1024,21 +1019,14 @@ class Model(object):
             # instance of it (that can be called to recompute the integral
             # with any optional parameters)
             # (In other words, in this case self._integral is a *class*)
-            integral = self._integral(_model=self)()
             return self._integral(_model=self)
 
     @integral.setter
     def integral(self, integral):
         if integral is None:
-            cls = None
             # We use this to explicitly set an unimplemented integral (as
             # opposed to no user integral defined)
             integral = NotImplemented
-        elif (isinstance(self._integral, type) and
-                issubclass(self._integral, _Integral)):
-            cls = self._integral
-        else:
-            cls = _Integral
 
         self._user_integral = integral
 

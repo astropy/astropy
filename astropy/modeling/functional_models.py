@@ -19,7 +19,7 @@ __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D', 'Lorentz1D',
            'MexicanHat1D', 'MexicanHat2D', 'RedshiftScaleFactor', 'Redshift',
            'Scale', 'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D',
-           'TrapezoidDisk2D', 'Ring2D', 'Voigt1D', 'RampForBox1D']
+           'TrapezoidDisk2D', 'Ring2D', 'Voigt1D', 'Ramp1D']
 
 
 class Gaussian1D(Fittable1DModel):
@@ -1313,21 +1313,23 @@ class Delta2D(Fittable2DModel):
         raise ModelDefinitionError("Not implemented")
 
 
-class RampForBox1D(Fittable1DModel):
-    """One dimensional Ramp model for Box integration.
+class Ramp1D(Fittable1DModel):
+    """One dimensional Ramp model.
+
+    .. note:: Used for `Box1D` integration.
 
     Parameters
     ----------
     amplitude : float
-        Amplitude A
+        Amplitude, *A*
     x_0 : float
-        Position of the center of the box function
+        Position of the center, :math:`x_0`
     width : float
-        Width of the box
+        Width, *w*
 
     See Also
     --------
-    Box1D, Box2D
+    Box1D
 
     Notes
     -----
@@ -1335,7 +1337,13 @@ class RampForBox1D(Fittable1DModel):
 
         .. math::
 
-              f(x) = A \\; w \\; \\textnormal{np.clip}((x - (x_0 - w/2)) / w, 0, 1)
+              f(x) = \\left \\{
+                       \\begin{array}{ll}
+                         0 & : x < x_0 - w/2 \\\\
+                         A & : x > x_0 + w/2 \\\\
+                         A (0.5 + (x - x_0)/w) & : \\text{else}
+                       \\end{array}
+                     \\right.
 
     Examples
     --------
@@ -1345,10 +1353,10 @@ class RampForBox1D(Fittable1DModel):
         import numpy as np
         import matplotlib.pyplot as plt
 
-        from astropy.modeling.models import RampForBox1D
+        from astropy.modeling.models import Ramp1D
 
         plt.figure()
-        s1 = RampForBox1D()
+        s1 = Ramp1D()
         r = np.arange(-5, 5, .01)
 
         for factor in range(1, 4):
@@ -1366,8 +1374,7 @@ class RampForBox1D(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, amplitude, x_0, width):
-        return (amplitude * width *
-                np.clip((x - (x_0 - width / 2.)) / width, 0., 1.))
+        return amplitude * np.clip((x - (x_0 - 0.5 * width)) / width, 0., 1.)
 
     @property
     def bounding_box(self):
@@ -1474,12 +1481,12 @@ class Box1D(Fittable1DModel):
 
         Returns
         -------
-        result : `RampForBox1D`
+        result : `Ramp1D`
             Integration model.
 
         """
-        return RampForBox1D(amplitude=self.amplitude, x_0=self.x_0,
-                            width=self.width)
+        return Ramp1D(amplitude=self.amplitude*self.width, x_0=self.x_0,
+                      width=self.width)
 
 
 class Box2D(Fittable2DModel):
@@ -1548,53 +1555,6 @@ class Box2D(Fittable2DModel):
 
         return ((self.y_0 - dy, self.y_0 + dy),
                 (self.x_0 - dx, self.x_0 + dx))
-
-    def integral(self, axis='x'):
-        """Integral for two dimensional Box model.
-
-        Parameters
-        ----------
-        axis : {'x', 'y'}
-            Integral is defined for the given axis.
-
-        Returns
-        -------
-        result : `RampForBox1D`
-            Integration model for the given axis.
-
-        Raises
-        ------
-        ValueError
-            Invalid axis.
-
-        """
-        if isinstance(axis, six.string_types):
-            args = None
-
-            if axis == 'x':
-                x_0 = self.x_0
-                width = self.x_width
-            elif axis == 'y':
-                x_0 = self.y_0
-                width = self.y_width
-            else:
-                raise ValueError('axis must be "x" or "y"')
-
-        # TODO: This is an ugly hack to get around fancy integral property
-        #       not able to distinguish if argument is for the model to
-        #       return or its own subclass. Need to consult Erik Bray
-        #       after initial PR review, if necessary.
-        else:
-            args = axis
-            x_0 = self.x_0
-            width = self.x_width
-
-        m = RampForBox1D(amplitude=self.amplitude, x_0=x_0, width=width)
-
-        if args is not None:
-            m = m(args)
-
-        return m
 
 
 class Trapezoid1D(Fittable1DModel):

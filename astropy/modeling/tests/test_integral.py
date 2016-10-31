@@ -2,7 +2,6 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-#import numpy as np
 from numpy.testing import assert_allclose
 
 from .. import models
@@ -20,7 +19,7 @@ def test_no_integral():
     """
     model = models.RedshiftScaleFactor()
     with pytest.raises(NotImplementedError):
-        x = model.integral
+        model.integral
 
 
 def test_Box1D():
@@ -35,7 +34,7 @@ def test_Box1D():
     bbox = model.bounding_box
     intg_model = model.integral
 
-    assert isinstance(intg_model, models.RampForBox1D)
+    assert isinstance(intg_model, models.Ramp1D)
 
     # Integrate over the whole range.
     y = intg_model(bbox)
@@ -46,14 +45,14 @@ def test_Box1D():
     assert_allclose(intg_model(6) - intg_model(0), 15)
     assert_allclose(intg_model(20) - intg_model(10), 0)
 
-    # User-defined integral ??? del ? set to None?
+    # User-defined integral
     model.integral = models.Const1D(100)
     assert model.has_user_integral
     assert model.integral(20) == 100
 
     model.integral = None
     with pytest.raises(NotImplementedError):
-        x = model.integral
+        model.integral
 
     del model.integral
     assert not model.has_user_integral
@@ -62,25 +61,5 @@ def test_Box1D():
     # n_models > 1
     model = models.Box1D(amplitude=[3, 3], x_0=[0, 4], width=[10, 5])
     assert_allclose(model.integral([0, 4]), [15, 7.5])
-
-
-def test_Box2D():
-    """Test Box2D integration."""
-    model = models.Box2D(
-        amplitude=3., x_0=0., x_width=10., y_0=4., y_width=5.)
-    bbox_y, bbox_x = model.bounding_box
-
-    with pytest.raises(ValueError):
-        x = model.integral(axis='z')
-
-    # Over X-axis
-    intg_model = model.integral
-    assert_allclose(intg_model(bbox_x[1]) - intg_model(bbox_x[0]), 30)
-    assert_allclose(intg_model(6) - intg_model(0), 15)
-    assert_allclose(intg_model(20) - intg_model(10), 0)
-
-    # Over Y-axis
-    intg_model = model.integral(axis='y')
-    assert_allclose(intg_model(bbox_y[1]) - intg_model(bbox_y[0]), 15)
-    assert_allclose(intg_model(4) - intg_model(-1), 7.5)
-    assert_allclose(intg_model(-9) - intg_model(-10), 0)
+    y = model.integral(model.bounding_box)
+    assert_allclose(y[1] - y[0], [30, 15])
