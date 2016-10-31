@@ -47,9 +47,8 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
         # astrometric coordinate direction and *then* run the ERFA transform for
         # no parallax/PM. This ensures reversibility and is more sensible for
         # inside solar system objects
-        astrom_eb = CartesianRepresentation(
-            u.Quantity(np.rollaxis(astrom['eb'], -1, 0), u.au, copy=False),
-            copy=False)
+        astrom_eb = CartesianRepresentation(astrom['eb'], unit=u.au,
+                                            xyz_axis=-1, copy=False)
         newcart = icrs_coo.cartesian - astrom_eb
 
         srepr = newcart.represent_as(SphericalRepresentation)
@@ -95,9 +94,8 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
                                               distance=cirs_coo.distance,
                                               copy=False)
 
-        astrom_eb = CartesianRepresentation(
-            u.Quantity(np.rollaxis(astrom['eb'], -1, 0), u.au, copy=False),
-            copy=False)
+        astrom_eb = CartesianRepresentation(astrom['eb'], unit=u.au,
+                                            xyz_axis=-1, copy=False)
         newrep = intermedrep + astrom_eb
 
     return icrs_frame.realize_frame(newrep)
@@ -122,12 +120,13 @@ def cirs_to_cirs(from_coo, to_frame):
 @frame_transform_graph.transform(FunctionTransform, ICRS, GCRS)
 def icrs_to_gcrs(icrs_coo, gcrs_frame):
     # first set up the astrometry context for ICRS<->GCRS. There are a few steps...
-    # get the position and velocity arrays for the observatory
-    pv = np.array([gcrs_frame.obsgeoloc.xyz.value,
-                   gcrs_frame.obsgeovel.xyz.value])
-    # roll axes 0 and 1 to end
-    if pv.ndim > 2:
-        pv = np.rollaxis(np.rollaxis(pv, 0, pv.ndim), 0, pv.ndim)
+    # get the position and velocity arrays for the observatory.  Need to
+    # have xyz in last dimension, and pos/vel in one-but-last.
+    # (Note could use np.stack once our minimum numpy version is >=1.10.)
+    pv = np.concatenate(
+        (gcrs_frame.obsgeoloc.get_xyz(xyz_axis=-1).value[..., np.newaxis, :],
+         gcrs_frame.obsgeovel.get_xyz(xyz_axis=-1).value[..., np.newaxis, :]),
+        axis=-2)
 
     # find the position and velocity of earth
     jd1, jd2 = get_jd12(gcrs_frame.obstime, 'tdb')
@@ -151,9 +150,8 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
         # BCRS coordinate direction and *then* run the ERFA transform for no
         # parallax/PM. This ensures reversibility and is more sensible for
         # inside solar system objects
-        astrom_eb = CartesianRepresentation(
-            u.Quantity(np.rollaxis(astrom['eb'], -1, 0), u.au, copy=False),
-            copy=False)
+        astrom_eb = CartesianRepresentation(astrom['eb'], unit=u.au,
+                                            xyz_axis=-1, copy=False)
         newcart = icrs_coo.cartesian - astrom_eb
 
         srepr = newcart.represent_as(SphericalRepresentation)
@@ -176,11 +174,10 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
 
     # set up the astrometry context for ICRS<->GCRS and then convert to BCRS
     # coordinate direction
-    pv = np.array([gcrs_coo.obsgeoloc.xyz.value,
-                   gcrs_coo.obsgeovel.xyz.value])
-    # roll axes 0 and 1 to end
-    if pv.ndim > 2:
-        pv = np.rollaxis(np.rollaxis(pv, 0, pv.ndim), 0, pv.ndim)
+    pv = np.concatenate(
+        (gcrs_coo.obsgeoloc.get_xyz(xyz_axis=-1).value[..., np.newaxis, :],
+         gcrs_coo.obsgeovel.get_xyz(xyz_axis=-1).value[..., np.newaxis, :]),
+        axis=-2)
 
     jd1, jd2 = get_jd12(gcrs_coo.obstime, 'tdb')
 
@@ -206,9 +203,8 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
                                               distance=gcrs_coo.distance,
                                               copy=False)
 
-        astrom_eb = CartesianRepresentation(
-            u.Quantity(np.rollaxis(astrom['eb'], -1, 0), u.au, copy=False),
-            copy=False)
+        astrom_eb = CartesianRepresentation(astrom['eb'], unit=u.au,
+                                            xyz_axis=-1, copy=False)
         newrep = intermedrep + astrom_eb
 
     return icrs_frame.realize_frame(newrep)
@@ -240,11 +236,10 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
 
     # set up the astrometry context for ICRS<->GCRS and then convert to ICRS
     # coordinate direction
-    pv = np.array([gcrs_coo.obsgeoloc.xyz.value,
-                   gcrs_coo.obsgeovel.xyz.value])
-    # roll axes 0 and 1 to end
-    if pv.ndim > 2:
-        pv = np.rollaxis(np.rollaxis(pv, 0, pv.ndim), 0, pv.ndim)
+    pv = np.concatenate(
+        (gcrs_coo.obsgeoloc.get_xyz(xyz_axis=-1).value[..., np.newaxis, :],
+         gcrs_coo.obsgeovel.get_xyz(xyz_axis=-1).value[..., np.newaxis, :]),
+        axis=-2)
 
     jd1, jd2 = get_jd12(hcrs_frame.obstime, 'tdb')
     earth_pv, earth_heliocentric = prepare_earth_position_vel(gcrs_coo.obstime)
@@ -276,9 +271,7 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
         # against the shape of the pv array.
         # broadcast em to eh and scale eh
         eh = astrom['eh'] * astrom['em'][..., np.newaxis]
-        eh = CartesianRepresentation(
-            u.Quantity(np.rollaxis(eh, -1, 0), u.au, copy=False),
-            copy=False)
+        eh = CartesianRepresentation(eh, unit=u.au, xyz_axis=-1, copy=False)
 
         newrep = intermedrep.to_cartesian() + eh
 
