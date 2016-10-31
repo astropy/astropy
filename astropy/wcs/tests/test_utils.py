@@ -77,16 +77,20 @@ def test_slice():
     mywcs.wcs.crval = [1,1]
     mywcs.wcs.cdelt = [0.1,0.1]
     mywcs.wcs.crpix = [1,1]
+    mywcs._naxis = [1000, 500]
 
     slice_wcs = mywcs.slice([slice(1,None),slice(0,None)])
     assert np.all(slice_wcs.wcs.crpix == np.array([1,0]))
+    assert slice_wcs._naxis == [1000, 499]
 
     slice_wcs = mywcs.slice([slice(1,None,2),slice(0,None,4)])
     assert np.all(slice_wcs.wcs.crpix == np.array([0.625, 0.25]))
     assert np.all(slice_wcs.wcs.cdelt == np.array([0.4,0.2]))
+    assert slice_wcs._naxis == [250, 250]
 
     slice_wcs = mywcs.slice([slice(None,None,2),slice(0,None,2)])
     assert np.all(slice_wcs.wcs.cdelt == np.array([0.2,0.2]))
+    assert slice_wcs._naxis == [500, 250]
 
 def test_slice_getitem():
     mywcs = WCS(naxis=2)
