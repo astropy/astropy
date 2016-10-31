@@ -393,6 +393,7 @@ Bug Fixes
 
   - Improved log messages in ``to_header``. [#5239]
 
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -1747,6 +1748,9 @@ Bug Fixes
 - ``astropy.vo``
 
 - ``astropy.wcs``
+
+  - Update the ``_naxis{x}`` attributes when calling ``WCS.slice``. [#5411]
+
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
