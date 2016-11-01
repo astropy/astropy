@@ -149,7 +149,7 @@ def coerce_range_list_param(p, frames=None, numeric=True):
 
     def numeric_or_range(x):
         if isinstance(x, tuple) and len(x) == 2:
-            return '%s/%s' % (str_or_none(x[0]), str_or_none(x[1]))
+            return '{}/{}'.format(str_or_none(x[0]), str_or_none(x[1]))
         else:
             return str_or_none(x)
 
@@ -171,7 +171,7 @@ def coerce_range_list_param(p, frames=None, numeric=True):
         if has_frame_of_reference:
             if frames is not None and p[-1] not in frames:
                 raise ValueError(
-                    "'%s' is not a valid frame of reference" % p[-1])
+                    "'{}' is not a valid frame of reference".format(p[-1]))
             out += ';' + p[-1]
             length += 1
 
@@ -187,19 +187,19 @@ def coerce_range_list_param(p, frames=None, numeric=True):
             p)
 
         if match is None:
-            raise ValueError("'%s' is not a valid range list" % p)
+            raise ValueError("'{}' is not a valid range list".format(p))
 
         frame = match.groupdict()['frame']
         if frames is not None and frame is not None and frame not in frames:
             raise ValueError(
-                "'%s' is not a valid frame of reference" % frame)
+                "'{}' is not a valid frame of reference".format(frame))
         return p, p.count(',') + p.count(';') + 1
 
     try:
         float(p)
         return str(p), 1
     except TypeError:
-        raise ValueError("'%s' is not a valid range list" % p)
+        raise ValueError("'{}' is not a valid range list".format(p))
 
 
 def version_compare(a, b):
