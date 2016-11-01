@@ -212,7 +212,7 @@ the input string parsing and the output.
 
 The supported subformats are ``date_hms``, ``date_hm``, and ``date``
 for all but the :class:`~astropy.time.TimeFITS` format; the latter
-does not support ``data_hm`` but does support ``longdate_hms`` and
+does not support ``date_hm`` but does support ``longdate_hms`` and
 ``longdate`` for years before the year 0 and after the year 10000.  The
 table below illustrates these subformats for ``iso``, ``fits``, ``yday``
 formats:
