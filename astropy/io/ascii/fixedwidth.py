@@ -112,7 +112,8 @@ class FixedWidthHeader(basic.BasicHeader):
                     'No data lines found so cannot autogenerate column names')
             vals, starts, ends = self.get_fixedwidth_params(data_lines[0])
 
-            self.names = [self.auto_format % i for i in range(1, len(vals) + 1)]
+            self.names = [self.auto_format.format(i)
+                          for i in range(1, len(vals) + 1)]
 
         else:
             # This bit of code handles two cases:
@@ -251,7 +252,8 @@ class FixedWidthData(basic.BasicData):
         if self.header.position_line is not None:
             char = self.header.position_char
             if len(char) != 1:
-                raise ValueError('Position_char="%s" must be a single character' % char)
+                raise ValueError('Position_char="{}" must be a single '
+                                 'character'.format(char))
             vals = [char * col.width for col in self.cols]
             lines.append(self.splitter.join(vals, widths))
 

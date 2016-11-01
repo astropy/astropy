@@ -210,7 +210,7 @@ class Header(object):
                 # if keyword is not present raise KeyError.
                 # To delete keyword without caring if they were present,
                 # Header.remove(Keyword) can be used with optional argument ignore_missing as True
-                raise KeyError("Keyword '%s' not found." % key)
+                raise KeyError("Keyword '{}' not found.".format(key))
 
             for idx in reversed(indices[key]):
                 # Have to copy the indices list since it will be modified below
@@ -667,10 +667,11 @@ class Header(object):
             blocks = self.tostring(sep=sep, endcard=endcard, padding=padding)
             actual_block_size = _block_size(sep)
             if padding and len(blocks) % actual_block_size != 0:
-                raise IOError('Header size (%d) is not a multiple of block '
-                              'size (%d).' %
-                              (len(blocks) - actual_block_size + BLOCK_SIZE,
-                               BLOCK_SIZE))
+                raise IOError(
+                    'Header size ({}) is not a multiple of block '
+                    'size ({}).'.format(
+                        len(blocks) - actual_block_size + BLOCK_SIZE,
+                        BLOCK_SIZE))
 
             if not fileobj.simulateonly:
                 fileobj.flush()
@@ -934,7 +935,7 @@ class Header(object):
 
         if len(args) > 2:
             raise TypeError('Header.pop expected at most 2 arguments, got '
-                            '%d' % len(args))
+                            '{}'.format(len(args)))
 
         if len(args) == 0:
             key = -1

@@ -158,7 +158,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             if col_type_key.startswith(col.raw_type.lower()):
                 return col_type
         else:
-            raise ValueError('Unknown data type ""%s"" for column "%s"' % (
+            raise ValueError('Unknown data type ""{}"" for column "{}"'.format(
                 col.raw_type, col.name))
 
     def get_cols(self, lines):

@@ -117,9 +117,9 @@ def test_read_with_names_arg(fast_reader):
 def test_read_all_files(fast_reader):
     for testfile in get_testfiles():
         if testfile.get('skip'):
-            print('\n\n******** SKIPPING %s' % testfile['name'])
+            print('\n\n******** SKIPPING {}'.format(testfile['name']))
             continue
-        print('\n\n******** READING %s' % testfile['name'])
+        print('\n\n******** READING {}'.format(testfile['name']))
         for guess in (True, False):
             test_opts = testfile['opts'].copy()
             if 'guess' not in test_opts:
@@ -138,9 +138,9 @@ def test_read_all_files(fast_reader):
 def test_read_all_files_via_table(fast_reader):
     for testfile in get_testfiles():
         if testfile.get('skip'):
-            print('\n\n******** SKIPPING %s' % testfile['name'])
+            print('\n\n******** SKIPPING {}'.format(testfile['name']))
             continue
-        print('\n\n******** READING %s' % testfile['name'])
+        print('\n\n******** READING {}'.format(testfile['name']))
         for guess in (True, False):
             test_opts = testfile['opts'].copy()
             if 'guess' not in test_opts:
@@ -161,11 +161,11 @@ def test_read_all_files_via_table(fast_reader):
 def test_guess_all_files():
     for testfile in get_testfiles():
         if testfile.get('skip'):
-            print('\n\n******** SKIPPING %s' % testfile['name'])
+            print('\n\n******** SKIPPING {}'.format(testfile['name']))
             continue
         if not testfile['opts'].get('guess', True):
             continue
-        print('\n\n******** READING %s' % testfile['name'])
+        print('\n\n******** READING {}'.format(testfile['name']))
         for filter_read_opts in (['Reader', 'delimiter', 'quotechar'], []):
             # Copy read options except for those in filter_read_opts
             guess_opts = dict((k, v) for k, v in testfile['opts'].items()

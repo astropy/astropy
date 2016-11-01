@@ -845,15 +845,15 @@ class JointFitter(object):
 
     def _verify_input(self):
         if len(self.models) <= 1:
-            raise TypeError("Expected >1 models, %d is given" %
-                            len(self.models))
+            raise TypeError("Expected >1 models, {} is given".format(
+                    len(self.models)))
         if len(self.jointparams.keys()) < 2:
             raise TypeError("At least two parameters are expected, "
-                            "%d is given" % len(self.jointparams.keys()))
+                            "{} is given".format(len(self.jointparams.keys())))
         for j in self.jointparams.keys():
             if len(self.jointparams[j]) != len(self.initvals):
-                raise TypeError("%d parameter(s) provided but %d expected" %
-                                (len(self.jointparams[j]), len(self.initvals)))
+                raise TypeError("{} parameter(s) provided but {} expected".format(
+                        len(self.jointparams[j]), len(self.initvals)))
 
     def __call__(self, *args):
         """
@@ -864,9 +864,9 @@ class JointFitter(object):
         from scipy import optimize
 
         if len(args) != reduce(lambda x, y: x + 1 + y + 1, self.modeldims):
-            raise ValueError("Expected %d coordinates in args but %d provided"
-                             % (reduce(lambda x, y: x + 1 + y + 1,
-                                       self.modeldims), len(args)))
+            raise ValueError("Expected {} coordinates in args but {} provided"
+                             .format(reduce(lambda x, y: x + 1 + y + 1,
+                                            self.modeldims), len(args)))
 
         self.fitparams[:], _ = optimize.leastsq(self.objective_function,
                                                 self.fitparams, args=args)

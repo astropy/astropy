@@ -60,10 +60,10 @@ class Card(_Verify):
     # This regex helps delete leading zeros from numbers, otherwise
     # Python might evaluate them as octal values (this is not-greedy, however,
     # so it may not strip leading zeros from a float, which is fine)
-    _number_FSC_RE = re.compile(r'(?P<sign>[+-])?0*?(?P<digt>%s)'
-                                % _digits_FSC)
-    _number_NFSC_RE = re.compile(r'(?P<sign>[+-])? *0*?(?P<digt>%s)'
-                                 % _digits_NFSC)
+    _number_FSC_RE = re.compile(r'(?P<sign>[+-])?0*?(?P<digt>{})'.format(
+            _digits_FSC))
+    _number_NFSC_RE = re.compile(r'(?P<sign>[+-])? *0*?(?P<digt>{})'.format(
+            _digits_NFSC))
 
     # FSC commentary card string which must contain printable ASCII characters.
     # Note: \Z matches the end of the string without allowing newlines

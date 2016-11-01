@@ -509,7 +509,7 @@ class BaseHeader(object):
     """
     Base table header reader
     """
-    auto_format = 'col%d'
+    auto_format = 'col{}'
     """ format string for auto-generating column names """
     start_line = None
     """ None, int, or a function of ``lines`` that returns None or int """
@@ -567,7 +567,8 @@ class BaseHeader(object):
                 raise InconsistentTableError('No data lines found so cannot autogenerate '
                                              'column names')
             n_data_cols = len(first_data_vals)
-            self.names = [self.auto_format % i for i in range(1, n_data_cols + 1)]
+            self.names = [self.auto_format.format(i)
+                          for i in range(1, n_data_cols + 1)]
 
         else:
             for i, line in enumerate(self.process_lines(lines)):
@@ -615,7 +616,7 @@ class BaseHeader(object):
             type_map_key = self.get_type_map_key(col)
             return self.col_type_map[type_map_key.lower()]
         except KeyError:
-            raise ValueError('Unknown data type ""%s"" for column "%s"' % (
+            raise ValueError('Unknown data type ""{}"" for column "{}"'.format(
                 col.raw_type, col.name))
 
     def check_column_names(self, names, strict_names, guessing):
@@ -919,8 +920,8 @@ class BaseOutputter(object):
                     converters_out.append((converter_func, converter_type))
 
         except (ValueError, TypeError):
-            raise ValueError('Error: invalid format for converters, see documentation\n%s' %
-                             converters)
+            raise ValueError('Error: invalid format for converters, see '
+                             'documentation\n{}'.format(converters))
         return converters_out
 
     def _convert_vals(self, cols):
@@ -1169,11 +1170,13 @@ class BaseReader(object):
 
                 # otherwise, we raise an error only if it is still inconsistent
                 if len(str_vals) != n_cols:
-                    errmsg = ('Number of header columns (%d) inconsistent with '
-                              'data columns (%d) at data line %d\n'
-                              'Header values: %s\n'
-                              'Data values: %s' % (n_cols, len(str_vals), i,
-                                                   [x.name for x in cols], str_vals))
+                    errmsg = ('Number of header columns ({}) inconsistent with'
+                              ' data columns ({}) at data line {}\n'
+                              'Header values: {}\n'
+                              'Data values: {}'.format(
+                            n_cols, len(str_vals), i,
+                            [x.name for x in cols], str_vals))
+
                     raise InconsistentTableError(errmsg)
 
             for j, col in enumerate(cols):

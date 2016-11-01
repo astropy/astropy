@@ -192,7 +192,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
                 message = ('The %(func)s %(obj_type)s is deprecated and may '
                            'be removed in a future version.')
             if alternative:
-                altmessage = '\n        Use %s instead.' % alternative
+                altmessage = '\n        Use {} instead.'.format(alternative)
 
         message = ((message % {
             'func': name,

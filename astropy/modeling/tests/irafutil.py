@@ -118,7 +118,7 @@ class Record(object):
         try:
             farr = np.array(xyz)
         except Exception:
-            log.debug("Could not read array field %s" % fieldlist[0].split()[0])
+            log.debug("Could not read array field {}".format(fieldlist[0].split()[0]))
         return farr.astype(np.float64)
 
 

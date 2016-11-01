@@ -43,7 +43,7 @@ class _Verify(object):
             fixable = False
         # fix the value
         elif not fixable:
-            text = 'Unfixable error: %s' % text
+            text = 'Unfixable error: {}'.format(text)
         else:
             if fix:
                 fix()
@@ -165,7 +165,7 @@ class _ErrList(list):
                     if self.unit:
                         # This line is sort of a header for the next level in
                         # the hierarchy
-                        yield None, indent('%s %s:' % (self.unit, element),
+                        yield None, indent('{} {}:'.format(self.unit, element),
                                            shift=shift)
                     yield first_line
 

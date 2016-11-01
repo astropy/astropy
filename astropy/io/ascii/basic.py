@@ -343,7 +343,7 @@ class RdbHeader(TabHeader):
             raise ValueError('RDB header mismatch between number of column names and column types')
 
         if any(not re.match(r'\d*(N|S)$', x, re.IGNORECASE) for x in raw_types):
-            raise ValueError('RDB types definitions do not all match [num](N|S): %s' % raw_types)
+            raise ValueError('RDB types definitions do not all match [num](N|S): {}'.format(raw_types))
 
         self._set_cols_from_names()
         for col, raw_type in zip(self.cols, raw_types):

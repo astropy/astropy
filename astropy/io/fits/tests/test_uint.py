@@ -6,7 +6,6 @@ import numpy as np
 
 from ....io import fits
 from . import FitsTestCase
-import platform
 from ....tests.helper import pytest, ignore_warnings
 
 
@@ -54,7 +53,7 @@ class TestUintFunctions(FitsTestCase):
                         # TODO: Enable these lines if CompImageHDUs ever grow
                         # .section support
                         sec = hdul[hdu_number].section[:1]
-                        assert sec.dtype.name == 'uint%s' % bits
+                        assert sec.dtype.name == 'uint{}'.format(bits)
                         assert (sec == d1[:1]).all()
 
     @pytest.mark.parametrize('utype', ('u2', 'u4', 'u8'))
