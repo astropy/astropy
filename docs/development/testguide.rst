@@ -14,7 +14,9 @@ packages).
 Testing Framework
 =================
 
-The testing framework used by Astropy is the `py.test`_ framework.
+The testing framework used by Astropy (and affiliated packages using the
+:doc:`package template <affiliated-packages>`) is the `py.test`_ framework,
+accessed through the ``python setup.py test`` command.
 
 .. _py.test: http://pytest.org/latest/
 .. _pytest.main: http://pytest.org/latest/builtin.html#pytest.main
