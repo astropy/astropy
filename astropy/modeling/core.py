@@ -44,7 +44,7 @@ from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import (array_repr_oneline, combine_labels,
                     make_binary_operator_eval, ExpressionTree,
                     AliasDict, get_inputs_and_params,
-                    _BoundingBox, _Integral)
+                    _BoundingBox, _Primitive)
 from ..nddata.utils import add_array, extract_array
 
 from .parameters import Parameter, InputParameterError
@@ -129,7 +129,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
                 cls.param_names = tuple(cls._parameters_)
 
         cls._create_inverse_property(members)
-        cls._create_integral_property(members)
+        cls._create_primitive_property(members)
         cls._create_bounding_box_property(members)
         cls._handle_special_methods(members)
 
@@ -267,71 +267,71 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
         cls._inverse = inverse
         del cls.inverse
 
-    def _create_integral_property(cls, members):
+    def _create_primitive_property(cls, members):
         """
-        Takes any integral defined on a concrete Model subclass (either
+        Takes any primitive defined on a concrete Model subclass (either
         as a property or method) and wraps it in the generic
-        getter/setter interface for the integral attribute.
+        getter/setter interface for the primitive attribute.
         """
 
-        integral = members.get('integral')
-        if integral is None or cls.__bases__[0] is object:
+        primitive = members.get('primitive')
+        if primitive is None or cls.__bases__[0] is object:
             # The latter clause is the prevent the below code from running on
             # the Model base class, which implements the default getter and
-            # setter for .integral
+            # setter for .primitive
             return
 
-        if isinstance(integral, property):
+        if isinstance(primitive, property):
             # We allow the @property decorator to be omitted entirely from
             # the class definition, though its use should be encouraged for
             # clarity
-            integral = integral.fget
+            primitive = primitive.fget
 
-        if not callable(integral):
-            raise ModelDefinitionError('Integral must be callable')
+        if not callable(primitive):
+            raise ModelDefinitionError('Primitive must be callable')
 
-        sig = signature(integral)
+        sig = signature(primitive)
         if len(sig.parameters) > 1:
-            integral = cls._create_integral_subclass(integral, sig)
+            primitive = cls._create_primitive_subclass(primitive, sig)
 
-        if six.PY2 and isinstance(integral, types.MethodType):
-            integral = integral.__func__
+        if six.PY2 and isinstance(primitive, types.MethodType):
+            primitive = primitive.__func__
 
-        # Store the integral getter internally, then delete the given .integral
-        # attribute so that cls.integral resolves to Model.integral instead
-        cls._integral = integral
-        del cls.integral
+        # Store the primitive getter internally, then delete the given .primitive
+        # attribute so that cls.primitive resolves to Model.primitive instead
+        cls._primitive = primitive
+        del cls.primitive
 
-    def _create_integral_subclass(cls, func, sig):
+    def _create_primitive_subclass(cls, func, sig):
         """
-        For Models that take optional arguments for defining their integral,
-        we create a subclass of _Integral with a ``__call__`` method
+        For Models that take optional arguments for defining their primitive,
+        we create a subclass of _Primitive with a ``__call__`` method
         that supports those additional arguments.
 
         Takes the function's Signature as an argument since that is already
-        computed in _create_integral_property, so no need to duplicate that
+        computed in _create_primitive_property, so no need to duplicate that
         effort.
         """
 
         def __call__(self, **kwargs):
             return func(self._model, **kwargs)
 
-        # Already checked for sig.parameters > 1 in _create_integral_property()
+        # Already checked for sig.parameters > 1 in _create_primitive_property()
         kwargs = []
         for param in islice(sig.parameters.values(), 1, None):  # [0] = self
             if param.default is param.empty:
                 raise ModelDefinitionError(
-                    'The integral method for {0} is not correctly '
+                    'The primitive method for {0} is not correctly '
                     'defined: If defined as a method all arguments to that '
                     'method (besides self) must be keyword arguments with '
                     'default values that can be used to compute a default '
-                    'integral.'.format(cls.name))
+                    'primitive.'.format(cls.name))
 
             kwargs.append((param.name, param.default))
 
         __call__ = make_function_with_signature(__call__, ('self',), kwargs)
 
-        return type(str('_{0}Integral'.format(cls.name)), (_Integral,),
+        return type(str('_{0}Primitive'.format(cls.name)), (_Primitive,),
                     {'__call__': __call__})
 
     def _create_bounding_box_property(cls, members):
@@ -711,8 +711,8 @@ class Model(object):
     _inverse = None
     _user_inverse = None
 
-    _integral = None
-    _user_integral = None
+    _primitive = None
+    _user_primitive = None
 
     _bounding_box = None
     _user_bounding_box = None
@@ -976,77 +976,90 @@ class Model(object):
         return self._user_inverse is not None
 
     @property
-    def integral(self):
+    def primitive(self):
         """
-        Returns a new `~astropy.modeling.Model` instance which performs the
-        integration, if an analytic integral is defined for this model.
+        Returns a new `~astropy.modeling.Model` instance which is the
+        primitive integral (antiderivative) defined for this model.
 
-        Even on models that don't have an integral defined, this property can
-        be set with a manually-defined integral, such a pre-computed or
-        experimentally determined integral, but it is not required).
+        Even on models that don't have a primitive defined, this property can
+        be set with a manually-defined primitive, such a pre-computed or
+        experimentally determined integral, but it is not required.
 
-        A custom integral can be deleted with ``del model.integral``.  In this
-        case the model's integral is reset to its default, if a default exists
+        A custom primitive can be deleted with ``del model.primitive``. In this
+        case the model's primitive is reset to its default, if a default exists
         (otherwise the default is to raise `NotImplementedError`).
 
-        Note to authors of `~astropy.modeling.Model` subclasses:  To define an
-        integral for a model simply override this property to return the
-        appropriate model representing the integral.  The machinery that will
-        make the integral manually-overridable is added automatically by the
+        Note to authors of `~astropy.modeling.Model` subclasses:  To define a
+        primitive for a model simply override this property to return the
+        appropriate model representing the primitive.  The machinery that will
+        make the primitive manually-overridable is added automatically by the
         base class.
         """
 
-        if self._user_integral is not None:
-            if self._user_integral is NotImplemented:
+        if self._user_primitive is not None:
+            if self._user_primitive is NotImplemented:
                 raise NotImplementedError(
-                    "No integral is defined for this model (note: the "
-                    "integral was explicitly disabled for this model; "
-                    "use `del model.integral` to restore the default "
-                    "integral, if one is defined for this model).")
-            return self._user_integral
-        elif self._integral is None:
+                    "No primitive is defined for this model (note: the "
+                    "primitive was explicitly disabled for this model; "
+                    "use `del model.primitive` to restore the default "
+                    "primitive, if one is defined for this model).")
+            return self._user_primitive
+        elif self._primitive is None:
             raise NotImplementedError(
-                    "No integral is defined for this model.")
-        elif isinstance(self._integral, _Integral):
-            # This typically implies a hard-coded integral.  This will
+                    "No primitive is defined for this model.")
+        elif isinstance(self._primitive, _Primitive):
+            # This typically implies a hard-coded primitive.  This will
             # probably be rare, but it is an option
-            return self._integral
-        elif isinstance(self._integral, types.MethodType):
-            return self._integral()
+            return self._primitive
+        elif isinstance(self._primitive, types.MethodType):
+            return self._primitive()
         else:
-            # The only other allowed possibility is that it's a _Integral
+            # The only other allowed possibility is that it's a _Primitive
             # subclass, so we call it with its default arguments and return an
-            # instance of it (that can be called to recompute the integral
+            # instance of it (that can be called to recompute the primitive
             # with any optional parameters)
-            # (In other words, in this case self._integral is a *class*)
-            return self._integral(_model=self)
+            # (In other words, in this case self._primitive is a *class*)
+            return self._primitive(_model=self)
 
-    @integral.setter
-    def integral(self, integral):
-        if integral is None:
-            # We use this to explicitly set an unimplemented integral (as
-            # opposed to no user integral defined)
-            integral = NotImplemented
+    @primitive.setter
+    def primitive(self, primitive):
+        if primitive is None:
+            # We use this to explicitly set an unimplemented primitive (as
+            # opposed to no user primitive defined)
+            primitive = NotImplemented
 
-        self._user_integral = integral
+        self._user_primitive = primitive
 
-    @integral.deleter
-    def integral(self):
+    @primitive.deleter
+    def primitive(self):
         """
-        Resets the model's integral to its default (if one exists, otherwise
-        the model will have no integral).
+        Resets the model's primitive to its default (if one exists, otherwise
+        the model will have no primitive).
         """
 
-        del self._user_integral
+        del self._user_primitive
 
     @property
-    def has_user_integral(self):
+    def has_user_primitive(self):
         """
-        A flag indicating whether or not a custom integral model has been
-        assigned to this model by a user, via assignment to ``model.integral``.
+        A flag indicating whether or not a custom primitive model has been
+        assigned to this model by a user, via assignment to
+        ``model.primitive``.
         """
 
-        return self._user_integral is not None
+        return self._user_primitive is not None
+
+    def integrate(self, start, stop):
+        """Perform integration on the model at given start and stop
+        values. This uses ``model.primitive``, if available, or
+        raise `NotImplementedError` if not.
+        """
+        try:
+            m = self.primitive
+        except NotImplementedError:
+            raise NotImplementedError('Define model.primitive first before'
+                                      'performing integration')
+        return m(stop) - m(start)
 
     @property
     def bounding_box(self):

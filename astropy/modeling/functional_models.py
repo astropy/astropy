@@ -1476,13 +1476,13 @@ class Box1D(Fittable1DModel):
         return (self.x_0 - dx, self.x_0 + dx)
 
     @property
-    def integral(self):
-        """Integral for one dimensional Box model.
+    def primitive(self):
+        """Primitive for one dimensional Box model.
 
         Returns
         -------
         result : `Ramp1D`
-            Integration model.
+            Primitive integral (antiderivative) model.
 
         """
         return Ramp1D(amplitude=self.amplitude*self.width, x_0=self.x_0,

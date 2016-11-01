@@ -12,7 +12,7 @@ from collections import deque, MutableMapping
 import numpy as np
 
 from ..extern import six
-from ..extern.six.moves import range, zip_longest, zip
+from ..extern.six.moves import range, zip
 
 from ..utils import isiterable, check_broadcast
 from ..utils.compat.funcsigs import signature
@@ -350,8 +350,8 @@ class AliasDict(MutableMapping):
         return repr(store_copy)
 
 
-class _Integral(object):
-    """Base class for models with custom integral templates.
+class _Primitive(object):
+    """Base class for models with custom primitive templates.
     This is similar concept as bounding box, except it does not return
     a tuple.
     """
@@ -359,9 +359,9 @@ class _Integral(object):
     _model = None
 
     def __new__(cls, _model=None):
-        self = super(_Integral, cls).__new__(cls)
+        self = super(_Primitive, cls).__new__(cls)
         if _model is not None:
-            # Bind this _Integral (most likely a subclass) to a Model
+            # Bind this _Primitive (most likely a subclass) to a Model
             # instance so that its __call__ can access the model
             self._model = _model
 
@@ -369,7 +369,7 @@ class _Integral(object):
 
     def __call__(self, *args, **kwargs):
         raise NotImplementedError(
-            "This integral is fixed by the model and does not have "
+            "This primitive is fixed by the model and does not have "
             "adjustable parameters.")
 
 
