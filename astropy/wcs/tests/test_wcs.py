@@ -1016,3 +1016,18 @@ def test_bounds_check():
     ra, dec = w.wcs_pix2world(300,0,0)
     assert_allclose(ra, -180)
     assert_allclose(dec, -30)
+
+
+def test_naxis():
+    w = wcs.WCS(naxis=2)
+    w.wcs.crval = [1, 1]
+    w.wcs.cdelt = [0.1, 0.1]
+    w.wcs.crpix = [1, 1]
+    w._naxis = [1000, 500]
+
+    assert w._naxis1 == 1000
+    assert w._naxis2 == 500
+
+    w._naxis1 = 99
+    w._naxis2 = 59
+    assert w._naxis == [99, 59]
