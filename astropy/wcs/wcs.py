@@ -1039,7 +1039,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             del header[str('A_ORDER')]
             del header[str('B_ORDER')]
             ctype=[header['CTYPE{0}'.format(nax)] for nax in range(1, self.naxis + 1)]
-            if any([ctyp[-4 :] != '-SIP' for ctyp in ctype]):
+            if any(not ctyp.endswith('-SIP') for ctyp in ctype):
                 message = """
                 Inconsistent SIP distortion information is present in the FITS header and the WCS object:
                 SIP coefficients were detected, but CTYPE is missing a "-SIP" suffix.
@@ -2537,7 +2537,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             header = fits.Header()
 
         if do_sip and self.sip is not None:
-            if self.wcs is not None and any([ctyp[-4 :] != '-SIP' for ctyp in self.wcs.ctype]):
+            if self.wcs is not None and any(not ctyp.endswith('-SIP') for ctyp in self.wcs.ctype):
                 self._fix_ctype(header, add_sip=True)
 
             for kw, val in self._write_sip_kw().items():
