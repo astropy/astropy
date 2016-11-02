@@ -236,7 +236,7 @@ class BaseRepresentation(ShapedLikeNDArray):
         # TODO: in final numpy 1.12, the scalar case should work as well;
         # see https://github.com/numpy/numpy/issues/8172
         values = self._values
-        if NUMPY_LT_1_12 or self.isscalar:
+        if NUMPY_LT_1_12:
             # Mimic StructureFormat from numpy >=1.12 assuming float-only data.
             from numpy.core.arrayprint import FloatFormat
             opts = np.get_printoptions()
