@@ -2,6 +2,8 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import math
+
 import numpy as np
 
 from .core import Kernel1D, Kernel2D, Kernel
@@ -18,7 +20,7 @@ __all__ = ['Gaussian1DKernel', 'Gaussian2DKernel', 'CustomKernel',
 
 
 def _round_up_to_odd_integer(value):
-    i = int(np.ceil(value))
+    i = int(math.ceil(value))  # TODO: int() call is only needed for six.PY2
     if i % 2 == 0:
         return i + 1
     else:
@@ -1004,7 +1006,7 @@ class CustomKernel(Kernel):
             raise TypeError("Must be list or array.")
 
         # Check if array is odd in all axes
-        odd = np.all([axes_size % 2 != 0 for axes_size in self.shape])
+        odd = all(axes_size % 2 != 0 for axes_size in self.shape)
         if not odd:
             raise KernelSizeError("Kernel size must be odd in all axes.")
 
