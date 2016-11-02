@@ -10,6 +10,7 @@ from .. import units as u
 from ..extern import six
 from ..extern.six.moves import urllib
 from ..utils.exceptions import AstropyUserWarning
+from ..utils.compat.numpycompat import NUMPY_LT_1_12
 from ..utils.compat.numpy import broadcast_to
 from .angles import Longitude, Latitude
 from .builtin_frames import ITRS, GCRS
@@ -577,6 +578,14 @@ class EarthLocation(u.Quantity):
         return self._new_view(converted.view(self.dtype).reshape(self.shape),
                               unit)
     to.__doc__ = u.Quantity.to.__doc__
+
+    if NUMPY_LT_1_12:
+        def __repr__(self):
+            # Use the numpy >=1.12 way to format structured arrays.
+            from  .representation import _array2string
+            prefixstr = '<' + self.__class__.__name__ + ' '
+            arrstr = _array2string(self.view(np.ndarray), prefix=prefixstr)
+            return '{0}{1}{2:s}>'.format(prefixstr, arrstr, self._unitstr)
 
 
 # need to do this here at the bottom to avoid circular dependencies
