@@ -152,6 +152,21 @@ def test_Shift_inverse():
     m = models.Shift(1.2345)
     assert_allclose(m.inverse(m(6.789)), 6.789)
 
+def test_CartesianShapelets():
+    """
+    Test that CartesianShapelets agrees with Gaussian2D.
+    https://github.com/astropy/astropy/pull/5243
+    """
+    x,y = np.meshgrid(np.arange(11), np.arange(11))
+    shape_model = models.CartesianShapelets(beta0=1, beta1=1, nmax=1, phi=0, x_0=5, y_0=5)
+    shapelet = shape_model(x,y)
+    shapelet *= np.sqrt(np.pi) # should create Gaussian w/ amplitude 1, mean at (5,5) and sigma_x = sigma_y = 1
+
+    gauss = models.Gaussian2D(amplitude=1, x_mean=5, y_mean=5, x_stddev=1, y_stddev=1)
+    g = gauss(x,y)
+
+    assert_allclose(shapelet, g, rtol=0, atol=1e-6)
+
 
 @pytest.mark.skipif("not HAS_SCIPY")
 def test_Voigt1D():

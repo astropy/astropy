@@ -14,7 +14,7 @@ from ..extern.six.moves import map
 from ..utils.exceptions import AstropyDeprecationWarning
 
 
-__all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
+__all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'CartesianShapelets', 'Const1D',
            'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D',
            'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D', 'Lorentz1D',
            'MexicanHat1D', 'MexicanHat2D', 'RedshiftScaleFactor', 'Redshift',
@@ -2012,3 +2012,122 @@ class Sersic2D(Fittable2DModel):
         z = np.sqrt((x_maj / a) ** 2 + (x_min / b) ** 2)
 
         return amplitude * np.exp(-bn * (z ** (1 / n) - 1))
+
+class CartesianShapelets(Fittable2DModel):
+    """
+    Two dimensional cartesian shapelets model.
+    Also computes Fourier Transform of shapelets.
+
+    Parameters
+    ----------
+    beta0 : float
+        Characteristic scale parameter for first
+        dimension basis functions.
+    beta1 : float
+        Characteristic scale parameter for second
+        dimension basis functions.
+    nmax : int
+        Maximum number of basis functions to use for each dimension.
+    phi : float, optional
+        Rotation angle in radians, counterclockwise from
+        the positive x-axis.
+    x_0 : float, optional
+        x position of the center.
+    y_0 : float, optional
+        y position of the center.
+
+    Notes
+    -----
+    Model formula:
+
+    .. math::
+
+        f(x) = \\sum_n f_n B_n (x; \\beta)
+
+    for :math:`f(x)` the flux of an object and
+    :math:`B_n (x; \\beta) = B_{n_1} (x_1; \\beta) B_{n_2} (x_2; \\beta)`,
+    where
+
+    .. math::
+
+        B_n (x; \\beta) = \\left[2^n \\pi ^ {1/2} n! \\beta \\right]^{-1/2} H_n \\left( \\frac{x}{\\beta} \\right) e^{-\\frac{x^2}{2\\beta^2}}
+
+    (where :math:`H_n(x)` is a Hermite polynomial of order :math:`n`) and
+
+    .. math::
+
+        f_n = \\int_{-\\infty} ^{\\infty} d^2 x \\ f(x) B_n (x; \\beta)
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        from astropy.modeling.models import CartesianShapelets
+        import matplotlib.pyplot as plt
+
+        x,y = np.meshgrid(np.arange(31), np.arange(31))
+        mod = CartesianShapelets(beta0=2, beta1=2, nmax=6, phi=0,
+            x_0=15, y_0=15,)
+        img = mod(x, y) # returns gaussian by default
+
+        plt.figure()
+        plt.imshow(img, origin='lower', interpolation='nearest')
+        plt.xlabel('x')
+        plt.ylabel('y')
+        plt.show()
+
+    References
+    ----------
+    .. [1] Refregier, A. 2003, MNRAS 338, 35
+    .. [2] Refregier, A., & Bacon, D. 2003, MNRAS 338, 48
+    """
+
+    beta0 = Parameter(default=2.)
+    beta1 = Parameter(default=2.)
+    nmax = Parameter(default=6)
+    phi = Parameter(default=0)
+    x_0 = Parameter(default=0)
+    y_0 = Parameter(default=0)
+    _hermite = None
+
+    @staticmethod
+    def herm_gauss(h, beta, x):
+        """Returns Hermite - Gaussian polynomial for Shapelets basis functions
+        for given Hermite polynomial and beta."""
+        return h(x / beta) * np.exp(-.5 * ((x / beta) ** 2))
+
+    @classmethod
+    def evaluate(cls, x, y, beta0, beta1, nmax, phi, x_0, y_0, ft=False):
+        from scipy.misc import factorial
+        basis_func_arr = []
+        sqrt_pi = np.sqrt(np.pi)
+        if cls._hermite == None:
+            try:
+                from scipy.special import hermite
+            except ValueError:
+                raise ImportError('CartesianShapelets model requires scipy > 0.11.')
+        rotation_matrix = np.array([[np.cos(phi),-1.*np.sin(phi)],[np.sin(phi),np.cos(phi)]])
+
+        for n0 in range(nmax):
+            for n1 in range(nmax):
+                h0 = hermite(n0)
+                h1 = hermite(n1)
+                const0 = 1
+                const1 = 1
+                if ft: # compute Fourier Transform
+                    beta0 = 1 / beta0
+                    beta1 = 1 / beta1
+                    const0 = 1j ** n0
+                    const1 = 1j ** n1
+                h0 *= const0 * (beta0 ** -.5) * ((2 ** n0) * sqrt_pi * factorial(n0)) ** -.5
+                h1 *= const1 * (beta1 ** -.5) * ((2 ** n1) * sqrt_pi * factorial(n1)) ** -.5
+                basis_func = cls.herm_gauss(h0, beta0, rotation_matrix[0,0] * (y - y_0) + rotation_matrix[0,1] * (x - x_0)) *\
+                 cls.herm_gauss(h1, beta1, rotation_matrix[1,0] * (y - y_0) + rotation_matrix[1,1] * (x - x_0))
+                basis_func_arr.append(basis_func.flatten())
+        basis_func_arr = np.array(basis_func_arr)
+        coeffs = np.zeros(nmax * nmax)
+        coeffs[0] = 1
+        mdl = np.dot(basis_func_arr.transpose(), coeffs).reshape(y.shape[0], x.shape[0])
+        return mdl
