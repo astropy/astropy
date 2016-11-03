@@ -760,6 +760,53 @@ class Linear1D(Fittable1DModel):
         return self.__class__(slope=new_slope, intercept=new_intercept)
 
 
+class Planar2D(Fittable2DModel):
+    """
+    Two dimensional Plane model.
+
+    Parameters
+    ----------
+    slope_x : float
+        Slope of the straight line in X
+
+    slope_y: float
+        Slope of the straight line in Y
+
+    intercept : float
+        Z-intercept of the straight line
+
+    See Also
+    --------
+    Linear1D, Polynomial2D
+
+    Notes
+    -----
+    Model formula:
+
+        .. math:: f(x, y) = a x + b y + c
+    """
+
+    slope_x = Parameter(default=1)
+    slope_y = Parameter(default=1)
+    intercept = Parameter(default=0)
+    linear = True
+
+    @staticmethod
+    def evaluate(x, y, slope_x, slope_y, intercept):
+        """Two dimensional Plane model function"""
+
+        return slope_x * x + slope_y * y + intercept
+
+    @staticmethod
+    def fit_deriv(x, y, slope_x, slope_y, intercept):
+        """Two dimensional Plane model derivative with respect to parameters"""
+
+        d_slope_x = x
+        d_slope_y = y
+        d_intercept = np.ones_like(x)
+        return [d_slope_x, d_slope_y, d_intercept]
+
+
 class Lorentz1D(Fittable1DModel):
     """
     One dimensional Lorentzian model.
