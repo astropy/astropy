@@ -68,8 +68,7 @@ New Features
   - Added the injection of EntryPoints into astropy.modeling.fitting if
     they inherit from Fitters class. [#5241]
 
-  - Added bounding box to ``Lorentz1D`` and ``MexicanHat1D`` models. Also added
-    ``stddev`` property to ``Lorentz1D`` to complement its ``fwhm``. [#5393]
+  - Added bounding box to ``Lorentz1D`` and ``MexicanHat1D`` models. [#5393]
 
 - ``astropy.nddata``
 
