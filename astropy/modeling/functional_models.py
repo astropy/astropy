@@ -34,6 +34,8 @@ class Gaussian1D(Fittable1DModel):
         Mean of the Gaussian.
     stddev : float
         Standard deviation of the Gaussian.
+        This can also be indirectly set via ``fwhm`` keyword;
+        If both are given, ``fwhm`` overrides ``stddev``.
 
     Notes
     -----
@@ -108,6 +110,14 @@ class Gaussian1D(Fittable1DModel):
     mean = Parameter(default=0)
     stddev = Parameter(default=1)
 
+    def __init__(self, *args, **kwargs):
+        fwhm = kwargs.pop('fwhm', None)
+        super(Gaussian1D, self).__init__(*args, **kwargs)
+
+        if fwhm is not None:
+            from ..stats.funcs import gaussian_fwhm_to_sigma
+            self.stddev = fwhm * gaussian_fwhm_to_sigma
+
     def bounding_box(self, factor=5.5):
         """
         Tuple defining the default ``bounding_box`` limits,
@@ -171,6 +181,8 @@ class GaussianAbsorption1D(Fittable1DModel):
         Mean of the gaussian.
     stddev : float
         Standard deviation of the gaussian.
+        This can also be indirectly set via ``fwhm`` keyword;
+        If both are given, ``fwhm`` overrides ``stddev``.
 
     Notes
     -----
@@ -206,6 +218,14 @@ class GaussianAbsorption1D(Fittable1DModel):
     amplitude = Parameter(default=1)
     mean = Parameter(default=0)
     stddev = Parameter(default=1)
+
+    def __init__(self, *args, **kwargs):
+        fwhm = kwargs.pop('fwhm', None)
+        super(GaussianAbsorption1D, self).__init__(*args, **kwargs)
+
+        if fwhm is not None:
+            from ..stats.funcs import gaussian_fwhm_to_sigma
+            self.stddev = fwhm * gaussian_fwhm_to_sigma
 
     def bounding_box(self, factor=5.5):
         """
