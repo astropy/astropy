@@ -368,15 +368,21 @@ class Fittable1DModelTester(object):
         except NotImplementedError:
             pytest.skip("Bounding_box is not defined for model.")
 
-        dx = np.diff(bbox) / 2
-        x1 = np.mgrid[slice(bbox[0], bbox[1] + 1)]
-        x2 = np.mgrid[slice(bbox[0] - dx, bbox[1] + dx + 1)]
+        if isinstance(model, models.Lorentz1D):
+            rtol = 0.01  # 1% agreement is enough due to very extended wings
+            ddx = 0.1  # Finer sampling to "integrate" flux for narrow peak
+        else:
+            rtol = 1e-7
+            ddx = 1
 
+        dx = np.diff(bbox) / 2
+        x1 = np.mgrid[slice(bbox[0], bbox[1] + 1, ddx)]
+        x2 = np.mgrid[slice(bbox[0] - dx, bbox[1] + dx + 1, ddx)]
         arr = model(x2)
         sub_arr = model(x1)
 
         # check for flux agreement
-        assert abs(arr.sum() - sub_arr.sum()) < arr.sum() * 1e-7
+        assert abs(arr.sum() - sub_arr.sum()) < arr.sum() * rtol
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_fitter1D(self, model_class, test_parameters):
@@ -489,7 +495,7 @@ def test_ShiftModel():
     m = models.Shift([42, 43], n_models=2)
     utils.assert_equal(m(0), [42, 43])
     utils.assert_equal(m([1, 2], model_set_axis=False),
-                       [[ 43,  44], [ 44,  45]])
+                       [[43, 44], [44, 45]])
 
 
 def test_ScaleModel():
@@ -502,7 +508,7 @@ def test_ScaleModel():
     m = models.Scale([42, 43], n_models=2)
     utils.assert_equal(m(0), [0, 0])
     utils.assert_equal(m([1, 2], model_set_axis=False),
-                       [[ 42,  84], [ 43,  86]])
+                       [[42, 84], [43, 86]])
 
 
 def test_voigt_model():
@@ -540,13 +546,16 @@ def test_tabular_interp_1d():
     with pytest.raises(ValueError):
         model([0., .7, 1.4, 2.1, 3.9, 4.1])
     # test extrapolation and fill value
-    model = LookupTable(lookup_table=values, bounds_error=False, fill_value=None)
-    utils.assert_allclose(model([0., .7, 1.4, 2.1, 3.9, 4.1]), [ 1. ,  7.3,  6.8,  6.3,  1.8, -7.8])
+    model = LookupTable(lookup_table=values, bounds_error=False,
+                        fill_value=None)
+    utils.assert_allclose(model([0., .7, 1.4, 2.1, 3.9, 4.1]),
+                          [1., 7.3, 6.8, 6.3, 1.8, -7.8])
 
 
 @pytest.mark.skipif("not HAS_SCIPY_14")
 def test_tabular_interp_2d():
-    table = np.array([[-0.04614432, -0.02512547, -0.00619557, 0.0144165 , 0.0297525 ],
+    table = np.array([
+       [-0.04614432, -0.02512547, -0.00619557, 0.0144165, 0.0297525],
        [-0.04510594, -0.03183369, -0.01118008, 0.01201388, 0.02496205],
        [-0.05464094, -0.02804499, -0.00960086, 0.01134333, 0.02284104],
        [-0.04879338, -0.02539565, -0.00440462, 0.01795145, 0.02122417],
@@ -558,7 +567,8 @@ def test_tabular_interp_2d():
     LookupTable = models.tabular_model(2)
     model = LookupTable(points, table)
     znew = model(xnew, xnew)
-    result = np.array([-0.04614432, -0.03450009, -0.02241028, -0.0069727 ,  0.01938675])
+    result = np.array(
+        [-0.04614432, -0.03450009, -0.02241028, -0.0069727, 0.01938675])
     utils.assert_allclose(znew, result, atol=10**-7)
     with pytest.raises(ValueError):
         model = LookupTable(points=([1.2, 2.3], [1.2, 6.7], [3, 4]))
