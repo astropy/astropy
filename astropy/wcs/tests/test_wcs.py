@@ -721,3 +721,18 @@ def test_no_iteration():
     with pytest.raises(TypeError) as exc:
         iter(w)
     assert exc.value.args[0] == "'NewWCS' object is not iterable"
+
+
+def test_naxis():
+    w = wcs.WCS(naxis=2)
+    w.wcs.crval = [1, 1]
+    w.wcs.cdelt = [0.1, 0.1]
+    w.wcs.crpix = [1, 1]
+    w._naxis = [1000, 500]
+
+    assert w._naxis1 == 1000
+    assert w._naxis2 == 500
+
+    w._naxis1 = 99
+    w._naxis2 = 59
+    assert w._naxis == [99, 59]
