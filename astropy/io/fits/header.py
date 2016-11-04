@@ -719,6 +719,10 @@ class Header(object):
         """
         Make a copy of the :class:`Header`.
 
+        .. versionchanged:: 1.3
+            `copy.copy` and `copy.deepcopy` on a `Header` will call this
+            method.
+
         Parameters
         ----------
         strip : bool, optional
@@ -736,6 +740,12 @@ class Header(object):
         if strip:
             tmp._strip()
         return tmp
+
+    def __copy__(self):
+        return self.copy()
+
+    def __deepcopy__(self, *args, **kwargs):
+        return self.copy()
 
     @classmethod
     def fromkeys(cls, iterable, value=None):

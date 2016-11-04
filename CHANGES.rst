@@ -237,6 +237,10 @@ Bug Fixes
   - Made TFORMx keyword check more flexible in test of compressed images to
     enable compatibility of the test with cfitsio 3.380. [#4646]
 
+  - Copying a ``fits.Header`` using ``copy`` or ``deepcopy`` from the ``copy``
+    module will use ``Header.copy`` to ensure that modifying the copy will
+    not alter the other original Header and vice-versa. [#4990, #5323]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
