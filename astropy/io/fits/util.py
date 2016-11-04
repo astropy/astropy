@@ -204,7 +204,7 @@ def itersubclasses(cls, _seen=None):
 
     if not isinstance(cls, type):
         raise TypeError('itersubclasses must be called with '
-                        'new-style classes, not %.100r' % cls)
+                        'new-style classes, not {:.100r}'.format(cls))
     if _seen is None:
         _seen = set()
     try:
@@ -238,8 +238,9 @@ def ignore_sigint(func):
                 self.sigint_received = False
 
             def __call__(self, signum, frame):
-                warnings.warn('KeyboardInterrupt ignored until %s is '
-                              'complete!' % func.__name__, AstropyUserWarning)
+                warnings.warn('KeyboardInterrupt ignored until {} is '
+                              'complete!'.format(func.__name__),
+                              AstropyUserWarning)
                 self.sigint_received = True
 
         sigint_handler = SigintHandler()

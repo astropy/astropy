@@ -67,7 +67,7 @@ class _Verify(object):
 
         opt = option.lower()
         if opt not in VERIFY_OPTIONS:
-            raise ValueError('Option %r not recognized.' % option)
+            raise ValueError('Option {!r} not recognized.'.format(option))
 
         if opt == 'ignore':
             return

@@ -61,7 +61,7 @@ behavior of fitsdiff on a global level, such as in a set of regression tests.
 
 class HelpFormatter(optparse.TitledHelpFormatter):
     def format_epilog(self, epilog):
-        return '\n%s\n' % fill(epilog, self.width)
+        return '\n{}\n'.format(fill(epilog, self.width))
 
 
 def handle_options(argv=None):
@@ -73,14 +73,14 @@ def handle_options(argv=None):
         if value and value[0] == '@':
             value = value[1:]
             if not os.path.exists(value):
-                log.warning('%s argument %s does not exist' % (opt, value))
+                log.warning('{} argument {} does not exist'.format(opt, value))
                 return
             try:
                 values = [v.strip() for v in open(value, 'r').readlines()]
                 setattr(parser.values, option.dest, values)
             except IOError as exc:
-                log.warning('reading %s for %s failed: %s; ignoring this '
-                            'argument' % (value, opt, exc))
+                log.warning('reading {} for {} failed: {}; ignoring this '
+                            'argument'.format(value, opt, exc))
                 del exc
         else:
             setattr(parser.values, option.dest,
@@ -212,8 +212,8 @@ def match_files(paths):
         if glob.has_magic(path):
             files = [os.path.abspath(f) for f in glob.glob(path)]
             if not files:
-                log.error(
-                    'Wildcard pattern %r did not match any files.' % path)
+                log.error('Wildcard pattern {!r} did not match '
+                          'any files.'.format(path))
                 sys.exit(2)
             filelists.append(files)
         elif os.path.isdir(path):
@@ -222,8 +222,8 @@ def match_files(paths):
             filelists.append([path])
         else:
             log.error(
-                '%r is not an existing file, directory, or wildcard pattern; '
-                'see `fitsdiff --help` for more usage help.' % path)
+                '{!r} is not an existing file, directory, or wildcard pattern; '
+                'see `fitsdiff --help` for more usage help.'.format(path))
             sys.exit(2)
 
     filelists[0].sort()
@@ -232,7 +232,7 @@ def match_files(paths):
     for a, b in [(0, 1), (1, 0)]:
         if len(filelists[a]) > len(filelists[b]):
             for extra in filelists[a][len(filelists[b]):]:
-                log.warning('%r has no match in %r' % (extra, paths[b]))
+                log.warning('{!r} has no match in {!r}'.format(extra, paths[b]))
             filelists[a] = filelists[a][:len(filelists[b])]
             break
 

@@ -122,7 +122,7 @@ class _File(object):
                 mode = 'readonly'  # The default
 
         if mode not in PYFITS_MODES:
-            raise ValueError("Mode '%s' not recognized" % mode)
+            raise ValueError("Mode '{}' not recognized".format(mode))
 
         if (isinstance(fileobj, string_types) and
             mode not in ('ostream', 'append') and
@@ -191,8 +191,8 @@ class _File(object):
                 self.memmap = False
 
     def __repr__(self):
-        return '<%s.%s %s>' % (self.__module__, self.__class__.__name__,
-                               self._file)
+        return '<{}.{} {}>'.format(self.__module__, self.__class__.__name__,
+                                   self._file)
 
     # Support the 'with' statement
     def __enter__(self):
@@ -236,7 +236,7 @@ class _File(object):
             dtype = np.dtype(dtype)
 
         if size and size % dtype.itemsize != 0:
-            raise ValueError('size %d not a multiple of %s' % (size, dtype))
+            raise ValueError('size {} not a multiple of {}'.format(size, dtype))
 
         if isinstance(shape, int):
             shape = (shape,)
@@ -253,11 +253,11 @@ class _File(object):
             actualsize = np.prod(shape) * dtype.itemsize
 
             if actualsize < size:
-                raise ValueError('size %d is too few bytes for a %s array of '
-                                 '%s' % (size, shape, dtype))
+                raise ValueError('size {} is too few bytes for a {} array of '
+                                 '{}'.format(size, shape, dtype))
             if actualsize < size:
-                raise ValueError('size %d is too many bytes for a %s array of '
-                                 '%s' % (size, shape, dtype))
+                raise ValueError('size {} is too many bytes for a {} array of '
+                                 '{}'.format(size, shape, dtype))
 
         if self.memmap:
             if self._mmap is None:
@@ -334,8 +334,8 @@ class _File(object):
         pos = self._file.tell()
         if self.size and pos > self.size:
             warnings.warn('File may have been truncated: actual file length '
-                          '(%i) is smaller than the expected size (%i)' %
-                          (self.size, pos), AstropyUserWarning)
+                          '({}) is smaller than the expected size ({})'.format(
+                    self.size, pos), AstropyUserWarning)
 
     def tell(self):
         if not hasattr(self._file, 'tell'):
@@ -393,7 +393,7 @@ class _File(object):
                         fileobj.close()
                     os.remove(self.name)
             else:
-                raise IOError("File %r already exists." % self.name)
+                raise IOError("File {!r} already exists.".format(self.name))
 
     def _open_fileobj(self, fileobj, mode, clobber):
         """Open a FITS file from a file object or a GzipFile object."""
@@ -416,8 +416,8 @@ class _File(object):
                      not ('w' in fmode or 'a' in fmode or '+' in fmode)) or
                     (mode == 'update' and fmode not in ('rb+', 'wb+'))):
                 raise ValueError(
-                    "Mode argument '%s' does not match mode of the input "
-                    "file (%s)." % (mode, fmode))
+                    "Mode argument '{}' does not match mode of the input "
+                    "file ({}).".format(mode, fmode))
             self._file = fileobj
         elif isfile(fileobj):
             self._file = fileobj_open(self.name, PYFITS_MODES[mode])
@@ -439,7 +439,7 @@ class _File(object):
 
         if fileobj_closed(fileobj):
             raise IOError("Cannot read from/write to a closed file-like "
-                          "object (%r)." % fileobj)
+                          "object ({!r}).".format(fileobj))
 
         if isinstance(fileobj, zipfile.ZipFile):
             self._open_zipfile(fileobj, mode)
@@ -461,14 +461,12 @@ class _File(object):
         if (self.mode in ('update', 'append', 'ostream') and
             not hasattr(self._file, 'write')):
             raise IOError("File-like object does not have a 'write' "
-                          "method, required for mode '%s'."
-                          % self.mode)
+                          "method, required for mode '{}'.".format(self.mode))
 
         # Any mode except for 'ostream' requires readability
         if self.mode != 'ostream' and not hasattr(self._file, 'read'):
             raise IOError("File-like object does not have a 'read' "
-                          "method, required for mode %r."
-                          % self.mode)
+                          "method, required for mode {!r}.".format(self.mode))
 
     def _open_filename(self, filename, mode, clobber):
         """Open a FITS file from a filename string."""
@@ -528,9 +526,9 @@ class _File(object):
             try:
                 mm = mmap.mmap(tmpfd, 1, access=mmap.ACCESS_WRITE)
             except mmap.error as e:
-                warnings.warn('Failed to create mmap: %s; mmap use will be '
-                              'disabled' % str(e), AstropyUserWarning)
-                del exc
+                warnings.warn('Failed to create mmap: {}; mmap use will be '
+                              'disabled'.format(str(e)), AstropyUserWarning)
+                del e
                 return False
             try:
                 mm.flush()

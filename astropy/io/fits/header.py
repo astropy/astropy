@@ -1074,10 +1074,10 @@ class Header(object):
                     self._update(Card(*card))
                 else:
                     raise ValueError(
-                        'Header update sequence item #%d is invalid; '
+                        'Header update sequence item #{} is invalid; '
                         'the item must either be a 2-tuple containing '
                         'a keyword and value, or a 3-tuple containing '
-                        'a keyword, value, and comment string.' % idx)
+                        'a keyword, value, and comment string.'.format(idx))
         if kwargs:
             self.update(kwargs)
 
@@ -1130,7 +1130,7 @@ class Header(object):
         elif not isinstance(card, Card):
             raise ValueError(
                 'The value appended to a Header must be either a keyword or '
-                '(keyword, value, [comment]) tuple; got: %r' % card)
+                '(keyword, value, [comment]) tuple; got: {!r}'.format(card))
 
         if not end and card.is_blank:
             # Blank cards should always just be appended to the end
@@ -1293,7 +1293,7 @@ class Header(object):
         # We have to look before we leap, since otherwise _keyword_indices,
         # being a defaultdict, will create an entry for the nonexistent keyword
         if keyword not in self._keyword_indices:
-            raise KeyError("Keyword %r not found." % keyword)
+            raise KeyError("Keyword {!r} not found.".format(keyword))
 
         return len(self._keyword_indices[keyword])
 
@@ -1333,7 +1333,8 @@ class Header(object):
             if self._cards[idx].keyword.upper() == norm_keyword:
                 return idx
         else:
-            raise ValueError('The keyword %r is not in the header.' % keyword)
+            raise ValueError('The keyword {!r} is not in the '
+                             ' header.'.format(keyword))
 
     def insert(self, key, card, useblanks=True, after=False):
         """
@@ -1391,7 +1392,7 @@ class Header(object):
         elif not isinstance(card, Card):
             raise ValueError(
                 'The value inserted into a Header must be either a keyword or '
-                '(keyword, value, [comment]) tuple; got: %r' % card)
+                '(keyword, value, [comment]) tuple; got: {!r}'.format(card))
 
         self._cards.insert(idx, card)
 
@@ -1413,8 +1414,8 @@ class Header(object):
             # There were already keywords with this same name
             if keyword not in Card._commentary_keywords:
                 warnings.warn(
-                    'A %r keyword already exists in this header.  Inserting '
-                    'duplicate keyword.' % keyword, AstropyUserWarning)
+                    'A {!r} keyword already exists in this header.  Inserting '
+                    'duplicate keyword.'.format(keyword), AstropyUserWarning)
             self._keyword_indices[keyword].sort()
 
         if card.field_specifier is not None:
@@ -1454,7 +1455,7 @@ class Header(object):
                 while keyword in self._keyword_indices:
                     del self[self._keyword_indices[keyword][0]]
         elif not ignore_missing:
-            raise KeyError("Keyword '%s' not found." % keyword)
+            raise KeyError("Keyword '{}' not found.".format(keyword))
 
 
     def rename_keyword(self, oldkeyword, newkeyword, force=False):
@@ -1488,8 +1489,8 @@ class Header(object):
                 raise ValueError('Regular and commentary keys can not be '
                                  'renamed to each other.')
         elif not force and newkeyword in self:
-            raise ValueError('Intended keyword %s already exists in header.'
-                             % newkeyword)
+            raise ValueError('Intended keyword {} already exists in header.'
+                            .format(newkeyword))
 
         idx = self.index(oldkeyword)
         card = self.cards[idx]
@@ -1630,19 +1631,19 @@ class Header(object):
 
         if keyword and not indices:
             if len(keyword) > KEYWORD_LENGTH or '.' in keyword:
-                raise KeyError("Keyword %r not found." % keyword)
+                raise KeyError("Keyword {!r} not found.".format(keyword))
             else:
                 # Maybe it's a RVKC?
                 indices = self._rvkc_indices.get(keyword, None)
 
         if not indices:
-            raise KeyError("Keyword %r not found." % keyword)
+            raise KeyError("Keyword {!r} not found.".format(keyword))
 
         try:
             return indices[n]
         except IndexError:
-            raise IndexError('There are only %d %r cards in the header.' %
-                             (len(indices), keyword))
+            raise IndexError('There are only {} {!r} cards in the '
+                             'header.'.format(len(indices), keyword))
 
     def _keyword_from_index(self, idx):
         """
@@ -1996,7 +1997,8 @@ class _HeaderComments(_CardAccessor):
         keyword_length = KEYWORD_LENGTH
         for card in self._header._cards:
             keyword_length = max(keyword_length, len(card.keyword))
-        return '\n'.join('%*s  %s' % (keyword_length, c.keyword, c.comment)
+        return '\n'.join('{:>{len}}  {}'.format(c.keyword, c.comment,
+                                                len=keyword_length)
                          for c in self._header._cards)
 
     def __getitem__(self, item):
@@ -2058,7 +2060,7 @@ class _HeaderCommentaryCards(_CardAccessor):
             n._indices = idx.indices(self._count)
             return n
         elif not isinstance(idx, int):
-            raise ValueError('%s index must be an integer' % self._keyword)
+            raise ValueError('{} index must be an integer'.format(self._keyword))
 
         idx = list(range(*self._indices))[idx]
         return self._header[(self._keyword, idx)]
