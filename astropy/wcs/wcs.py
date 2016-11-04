@@ -2667,9 +2667,17 @@ reduce these to 2 dimensions using the naxis kwarg.
     def _naxis1(self):
         return self._naxis[0]
 
+    @_naxis1.setter
+    def _naxis1(self, value):
+        self._naxis[0] = value
+
     @property
     def _naxis2(self):
         return self._naxis[1]
+
+    @_naxis2.setter
+    def _naxis2(self, value):
+        self._naxis[1] = value
 
     def _get_naxis(self, header=None):
         _naxis = []
