@@ -862,7 +862,9 @@ class Lorentz1D(Fittable1DModel):
         ----------
         factor : float
             The multiple of FWHM used to define the limits.
-            Similar to `Gaussian1D`.
+            Default is chosen to include most (99%) of the
+            area under the curve, while still showing the
+            central feature of interest.
 
         """
         x0 = self.x_0.value
@@ -1685,7 +1687,6 @@ class MexicanHat1D(Fittable1DModel):
         ----------
         factor : float
             The multiple of sigma used to define the limits.
-            Similar to `Gaussian1D`.
 
         """
         x0 = self.x_0.value
