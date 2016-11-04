@@ -282,8 +282,9 @@ Bug Fixes
   - Copying a ``fits.Header`` using ``copy`` or ``deepcopy`` from the ``copy``
     module will use ``Header.copy`` to ensure that modifying the copy will
     not alter the other original Header and vice-versa. [#4990, #5323]
+
   - Creating a ``fits.Header`` from another Header makes a deep copy instead
-    of a shallow copy. [#5005]
+    of a shallow copy. [#5005, #5326]
 
   - ``HDUList.info()`` no longer raises ``AttributeError`` in presence of
     ``BZERO``. [#5508]
