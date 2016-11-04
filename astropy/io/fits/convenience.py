@@ -803,9 +803,9 @@ def _getext(filename, mode, *args, **kwargs):
     extname = kwargs.pop('extname', None)
     extver = kwargs.pop('extver', None)
 
-    err_msg = ('Redundant/conflicting extension arguments(s): %s' %
-               ({'args': args, 'ext': ext,  'extname': extname,
-                 'extver': extver},))
+    err_msg = ('Redundant/conflicting extension arguments(s): {}'.format(
+            {'args': args, 'ext': ext,  'extname': extname,
+             'extver': extver},))
 
     # This code would be much simpler if just one way of specifying an
     # extension were picked.  But now we need to support all possible ways for
@@ -914,7 +914,7 @@ def _get_file_mode(filename, default='readonly'):
         mode = FILE_MODES.get(fmode)
         if mode is None:
             raise IOError(
-                "File mode of the input file object (%r) cannot be used to "
-                "read/write FITS files." % fmode)
+                "File mode of the input file object ({!r}) cannot be used to "
+                "read/write FITS files.".format(fmode))
 
     return mode, closed
