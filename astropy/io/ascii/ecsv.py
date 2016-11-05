@@ -12,6 +12,8 @@ from ...extern import six
 from . import core, basic
 from ...table import meta
 
+__doctest_requires__ = {'Ecsv': ['yaml']}
+
 ECSV_VERSION = '0.9'
 DELIMITERS = (' ', ',')
 
