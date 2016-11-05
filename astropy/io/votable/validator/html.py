@@ -82,7 +82,7 @@ def write_source_line(w, line, nchar=0):
 
     w.write('  ')
     w.write(part1)
-    w.write('<span class="highlight">%s</span>' % char)
+    w.write('<span class="highlight">{}</span>'.format(char))
     w.write(part2)
     w.write('\n\n')
 
@@ -92,9 +92,9 @@ def write_warning(w, line, xml_lines):
     if not warning['is_something']:
         w.data(line)
     else:
-        w.write('Line %d: ' % warning['nline'])
+        w.write('Line {:d}: '.format(warning['nline']))
         if warning['warning']:
-            w.write('<a href="%s/%s">%s</a>: ' % (
+            w.write('<a href="{}/{}">{}</a>: '.format(
                 online_docs_root, warning['doc_url'], warning['warning']))
         msg = warning['message']
         if not isinstance(warning['message'], six.text_type):
@@ -108,8 +108,8 @@ def write_warning(w, line, xml_lines):
 def write_votlint_warning(w, line, xml_lines):
     match = re.search("(WARNING|ERROR|INFO) \(l.(?P<line>[0-9]+), c.(?P<column>[0-9]+)\): (?P<rest>.*)", line)
     if match:
-        w.write('Line %d: %s\n' %
-                (int(match.group('line')), xml_escape(match.group('rest'))))
+        w.write('Line {:d}: {}\n'.format(
+                int(match.group('line')), xml_escape(match.group('rest'))))
         write_source_line(
             w, xml_lines[int(match.group('line')) - 1],
             int(match.group('column')) - 1)
@@ -171,7 +171,7 @@ def write_result_row(w, result):
                 w.data(result.url.decode('ascii'))
             else:
                 w.element('a', result.url.decode('ascii'),
-                          href='%s/index.html' % result.get_htmlpath())
+                          href='{}/index.html'.format(result.get_htmlpath()))
 
         if 'network_error' in result and result['network_error'] is not None:
             w.element('td', six.text_type(result['network_error']),
@@ -233,23 +233,23 @@ def write_table(basename, name, results, root="results", chunk_size=500):
             return
         with w.tag('center'):
             if j > 0:
-                w.element('a', '<< ', href='%s_%02d.html' % (basename, j-1))
+                w.element('a', '<< ', href='{}_{:02d}.html'.format(basename, j-1))
             for i in range(npages):
                 if i == j:
                     w.data(six.text_type(i+1))
                 else:
                     w.element(
                         'a', six.text_type(i+1),
-                        href='%s_%02d.html' % (basename, i))
+                        href='{}_{:02d}.html'.format(basename, i))
                 w.data(' ')
             if j < npages - 1:
-                w.element('a', '>>', href='%s_%02d.html' % (basename, j+1))
+                w.element('a', '>>', href='{}_{:02d}.html'.format(basename, j+1))
 
     npages = int(ceil(float(len(results)) / chunk_size))
 
     for i, j in enumerate(range(0, max(len(results), 1), chunk_size)):
         subresults = results[j:j+chunk_size]
-        path = os.path.join(root, '%s_%02d.html' % (basename, i))
+        path = os.path.join(root, '{}_{:02d}.html'.format(basename, i))
         with io.open(path, 'w', encoding='utf-8') as fd:
             w = XMLWriter(fd)
             with make_html_header(w):
@@ -284,10 +284,10 @@ def add_subset(w, basename, name, subresults, inside=['p'], total=None):
         with w.tag('td'):
             for element in inside:
                 w.start(element)
-            w.element('a', name, href='%s_00.html' % basename)
+            w.element('a', name, href='{}_00.html'.format(basename))
             for element in reversed(inside):
                 w.end(element)
-        numbers = '%d (%.2f%%)' % (len(subresults), percentage * 100.0)
+        numbers = '{:d} ({:.2%})'.format(len(subresults), percentage)
         with w.tag('td'):
             w.data(numbers)
 
@@ -309,5 +309,5 @@ def write_index_table(root, basename, name, subresults, inside=None,
     if total is None:
         total = len(subresults)
     percentage = (float(len(subresults)) / total)
-    numbers = '%d (%.2f%%)' % (len(subresults), percentage * 100.0)
+    numbers = '{:d} ({:.2%})'.format(len(subresults), percentage)
     write_table(basename, name + ' ' + numbers, subresults, root, chunk_size)
