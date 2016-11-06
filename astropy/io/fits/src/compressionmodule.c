@@ -963,6 +963,7 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
     tmp = (PyArrayObject*) PyArray_SimpleNewFromData(1, &znaxis, NPY_UBYTE,
                                                      outbuf);
 
+    PyArray_ENABLEFLAGS(tmp, NPY_ARRAY_OWNDATA);
 
     // Leaves refcount of tmp untouched, so its refcount should remain as 1
     retval = Py_BuildValue("KN", heapsize, tmp);
