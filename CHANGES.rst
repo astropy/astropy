@@ -48,6 +48,8 @@ New Features
 
   - Allow reading HTML tables with unicode column values in Python 2.7. [#5410]
 
+  - Check for self-consistency of ECSV header column names. [#5463]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``

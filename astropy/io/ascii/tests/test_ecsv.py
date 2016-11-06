@@ -185,3 +185,17 @@ def test_round_trip_empty_table():
     t2 = Table.read(out.getvalue(), format='ascii.ecsv')
     assert t.dtype == t2.dtype
     assert len(t2) == 0
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_csv_ecsv_colnames_mismatch():
+    """
+    Test that mismatch in column names from normal CSV header vs.
+    ECSV YAML header raises the expected exception.
+    """
+    lines = copy.copy(SIMPLE_LINES)
+    header_index = lines.index('a b c')
+    lines[header_index] = 'a b d'
+    with pytest.raises(ValueError) as err:
+        ascii.read(lines, format='ecsv')
+    assert "column names from ECSV header ['a', 'b', 'c']" in str(err)
