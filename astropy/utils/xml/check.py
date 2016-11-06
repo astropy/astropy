@@ -55,9 +55,9 @@ def check_mime_content_type(content_type):
     (syntactically at least), as defined by RFC 2045.
     """
     ctrls = ''.join(chr(x) for x in range(0, 0x20))
-    token_regex = '[^()<>@,;:\\\"/[\]?= %s\x7f]+' % ctrls
+    token_regex = '[^()<>@,;:\\\"/[\]?= {}\x7f]+'.format(ctrls)
     return re.match(
-        r'(?P<type>%s)/(?P<subtype>%s)$' % (token_regex, token_regex),
+        r'(?P<type>{})/(?P<subtype>{})$'.format(token_regex, token_regex),
         content_type) is not None
 
 
