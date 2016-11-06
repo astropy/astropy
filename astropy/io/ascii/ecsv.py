@@ -12,6 +12,8 @@ from ...extern import six
 from . import core, basic
 from ...table.column import col_getattr
 
+__doctest_requires__ = {'Ecsv': ['yaml']}
+
 ECSV_VERSION = '0.9'
 DELIMITERS = (' ', ',')
 
@@ -410,16 +412,28 @@ class Ecsv(basic.Basic):
     and column meta-data, in particular the data type and unit.  For details
     see: https://github.com/astropy/astropy-APEs/blob/master/APE6.rst.
 
-    For example::
 
-      # %ECSV 0.9
-      # ---
-      # columns:
-      # - {name: a, unit: m / s, type: int64, format: '%03d'}
-      # - {name: b, unit: km, type: int64, description: This is column b}
-      a b
-      001 2
-      004 3
+    Examples
+    --------
+
+    >>> from astropy.table import Table
+    >>> ecsv_content = '''# %ECSV 0.9
+    ... # ---
+    ... # datatype:
+    ... # - {name: a, unit: m / s, datatype: int64, format: '%03d'}
+    ... # - {name: b, unit: km, datatype: int64, description: This is column b}
+    ... a b
+    ... 001 2
+    ... 004 3
+    ... '''
+    >>> Table.read(ecsv_content, format='ascii.ecsv')
+    <Table length=2>
+      a     b
+    m / s   km
+    int64 int64
+    ----- -----
+      001     2
+      004     3
     """
     _format_name = 'ecsv'
     _description = 'Enhanced CSV'
