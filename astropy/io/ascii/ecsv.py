@@ -96,6 +96,9 @@ class EcsvHeader(basic.BasicHeader):
             List of table lines
 
         """
+        # Cache a copy of the original input lines before processing below
+        raw_lines = lines
+
         # Extract non-blank comment (header) lines with comment character stripped
         lines = list(self.process_lines(lines))
 
@@ -134,6 +137,18 @@ class EcsvHeader(basic.BasicHeader):
         # Create the list of io.ascii column objects from `header`
         header_cols = OrderedDict((x['name'], x) for x in header['datatype'])
         self.names = [x['name'] for x in header['datatype']]
+
+        # Read the first non-commented line of table and split to get the CSV
+        # header column names.  This is essentially what the Basic reader does.
+        header_line = next(super(EcsvHeader, self).process_lines(raw_lines))
+        header_names = next(self.splitter([header_line]))
+
+        # Check for consistency of the ECSV vs. CSV header column names
+        if header_names != self.names:
+            raise ValueError('column names from ECSV header {} do not '
+                             'match names from header line of CSV data {}'
+                             .format(self.names, header_names))
+
         self._set_cols_from_names()  # BaseHeader method to create self.cols
 
         # Transfer attributes from the column descriptor stored in the input
