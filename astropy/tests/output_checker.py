@@ -55,7 +55,7 @@ class AstropyOutputChecker(doctest.OutputChecker):
 
         exp = r'(?:e[+-]?\d+)'
 
-        got_floats = r'([+-]?\d+\.\d*%s?|[+-]?\.\d+%s?|[+-]?\d+%s)' % (exp, exp, exp)
+        got_floats = r'([+-]?\d+\.\d*{}?|[+-]?\.\d+{}?|[+-]?\d+{})'.format(exp, exp, exp)
 
         # floats in the 'want' string may contain ellipses
         want_floats = got_floats + r'(\.{3})?'
@@ -63,13 +63,13 @@ class AstropyOutputChecker(doctest.OutputChecker):
         front_sep = r'\s|[*+-,<=(\[]'
         back_sep = front_sep + r'|[>j)\]]'
 
-        fbeg = r'^%s(?=%s|$)' % (got_floats, back_sep)
-        fmidend = r'(?<=%s)%s(?=%s|$)' % (front_sep, got_floats, back_sep)
-        self.num_got_rgx = re.compile(r'(%s|%s)' %(fbeg, fmidend))
+        fbeg = r'^{}(?={}|$)'.format(got_floats, back_sep)
+        fmidend = r'(?<={}){}(?={}|$)'.format(front_sep, got_floats, back_sep)
+        self.num_got_rgx = re.compile(r'({}|{})'.format(fbeg, fmidend))
 
-        fbeg = r'^%s(?=%s|$)' % (want_floats, back_sep)
-        fmidend = r'(?<=%s)%s(?=%s|$)' % (front_sep, want_floats, back_sep)
-        self.num_want_rgx = re.compile(r'(%s|%s)' %(fbeg, fmidend))
+        fbeg = r'^{}(?={}|$)'.format(want_floats, back_sep)
+        fmidend = r'(?<={}){}(?={}|$)'.format(front_sep, want_floats, back_sep)
+        self.num_want_rgx = re.compile(r'({}|{})'.format(fbeg, fmidend))
 
     def do_fixes(self, want, got):
         want = re.sub(self._str_literal_re, r'\1\2', want)
@@ -120,14 +120,14 @@ class AstropyOutputChecker(doctest.OutputChecker):
                 if not np.allclose(float(ng), float(nw)):
                     return False
 
-            got = self.num_got_rgx.sub(r'%s', got)
-            got = got % tuple(nw_)
+            got = self.num_got_rgx.sub(r'{}', got)
+            got = got.format(*tuple(nw_))
 
         # <BLANKLINE> can be used as a special sequence to signify a
         # blank line, unless the DONT_ACCEPT_BLANKLINE flag is used.
         if not (flags & doctest.DONT_ACCEPT_BLANKLINE):
             # Replace <BLANKLINE> in want with a blank line.
-            want = re.sub('(?m)^%s\s*?$' % re.escape(doctest.BLANKLINE_MARKER),
+            want = re.sub('(?m)^{}\s*?$'.format(re.escape(doctest.BLANKLINE_MARKER)),
                           '', want)
             # If a line in got contains only spaces, then remove the
             # spaces.
