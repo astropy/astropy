@@ -410,7 +410,7 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
                 {
                     // In this case we don't want to left-strip the field,
                     // so we backtrack
-                    int tmp = self->source_pos;
+                    off_t tmp = self->source_pos;
                     --self->source_pos;
 
                     while (self->source_pos >= 0 &&
@@ -926,9 +926,9 @@ char *next_field(tokenizer_t *self, int *size)
 }
 
 
-char *get_line(char *ptr, int *len, int map_len)
+char *get_line(char *ptr, size_t *len, size_t map_len)
 {
-    int pos = 0;
+    size_t pos = 0;
 
     while (pos < map_len)
     {

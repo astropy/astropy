@@ -1694,6 +1694,11 @@ Bug Fixes
 
   - Fix a bug with empty value at end of tab-delimited table on Windows. [#5370]
 
+  - Fix a bug where the ``fill_values`` parameter was ignored when writing a
+    table to HTML format. [#5379]
+  - Fix reading of big ASCII tables (more than 2Gb) with the fast reader.
+    [#5319]
+
 - ``astropy.io.fits``
 
   - Fixed ``io.fits`` convenience functions to not close open file
