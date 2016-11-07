@@ -14,7 +14,7 @@ from textwrap import dedent
 import numpy as np
 from numpy import ma
 
-from ....table import Table, MaskedColumn
+from ....table import Table, MaskedColumn, Column
 from ... import ascii
 from ...ascii.core import ParameterError, FastOptionsError
 from ...ascii.cparser import CParserError
@@ -895,3 +895,37 @@ def test_fast_tab_with_names(parallel, read_tab):
     head = ['A{0}'.format(i) for i in range(28)]
     table = read_tab(content, data_start=1,
                      parallel=parallel, names=head)
+
+
+@pytest.mark.skipif(not os.getenv('TEST_READ_HUGE_FILE'),
+                    reason='Environment variable TEST_READ_HUGE_FILE must be '
+                    'defined to run this test')
+def test_read_big_table(tmpdir):
+    """Test reading of a huge file.
+
+    This test generates a huge CSV file (~2.3Gb) before reading it (see
+    https://github.com/astropy/astropy/pull/5319). The test is run only if the
+    environment variable ``TEST_READ_HUGE_FILE`` is defined. Note that running
+    the test requires quite a lot of memory (~18Gb when reading the file) !!
+
+    """
+    NB_ROWS = 250000
+    NB_COLS = 500
+    filename = str(tmpdir.join("big_table.csv"))
+
+    print("Creating a {} rows table ({} columns).".format(NB_ROWS, NB_COLS))
+    data = np.random.random(NB_ROWS)
+    t = Table(data=[data]*NB_COLS, names=[str(i) for i in range(NB_COLS)])
+    data = None
+
+    print("Saving the table to {}".format(filename))
+    t.write(filename, format='ascii.csv', overwrite=True)
+    t = None
+
+    print("Counting the number of lines in the csv, it should be {}"
+          " + 1 (header).".format(NB_ROWS))
+    assert sum(1 for line in open(filename)) == NB_ROWS + 1
+
+    print("Reading the file with astropy.")
+    t = Table.read(filename, format='ascii.csv', fast_reader=True)
+    assert len(t) == NB_ROWS
