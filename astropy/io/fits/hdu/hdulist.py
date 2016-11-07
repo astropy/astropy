@@ -753,7 +753,7 @@ class HDUList(list, _Verify):
         results = ['Filename: {}'.format(name),
                    'No.    Name         Type      Cards   Dimensions   Format']
 
-        format = '{:3d}  {:10}  {:11}  {:5d}   {:10}   {}   {}'
+        format = '{:3d}  {:10}  {:11}  {:5d}   {}   {}   {}'
         default = ('', '', 0, (), '', '')
         for idx, hdu in enumerate(self):
             summary = hdu._summary()
