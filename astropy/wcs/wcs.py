@@ -2966,8 +2966,8 @@ reduce these to 2 dimensions using the naxis kwarg.
             except TypeError as exc:
                 if 'indices must be integers' not in str(exc):
                     raise
-                warnings.warn("NAXIS{0} could not be updated because one or "
-                              "multiple indices ('{1}') were not integral."
+                warnings.warn("NAXIS{0} attribute is not updated because at "
+                              "least one indix ('{1}') is no integer."
                               "".format(wcs_index, iview), AstropyUserWarning)
             else:
                 wcs_new._naxis[wcs_index] = nitems
