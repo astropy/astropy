@@ -522,17 +522,17 @@ class TestCore(FitsTestCase):
             # Open a second handle to the original file and compare it to hdul1
             # (We only compare part of the one header that was modified)
             # Compare also with the second writeto output
-            with fits.open(self.data('test0.fits')) as hdu2:
+            with fits.open(self.data('test0.fits')) as hdul2:
                 with fits.open(self.temp('test2.fits')) as hdul3:
                     for hdul in (hdul1, hdul3):
-                        for idx, hdus in enumerate(zip(hdul1, hdul)):
-                            hdu1, hdu2 = hdus
+                        for idx, hdus in enumerate(zip(hdul2, hdul)):
+                            hdu2, hdu = hdus
                             if idx != 1:
-                                assert hdu1.header == hdu2.header
+                                assert hdu.header == hdu2.header
                             else:
-                                assert (hdu1.header ==
-                                        hdu2.header[:len(hdu1.header)])
-                            assert np.all(hdu1.data == hdu2.data)
+                                assert (hdu2.header ==
+                                        hdu.header[:len(hdu2.header)])
+                            assert np.all(hdu.data == hdu2.data)
 
 
 class TestConvenienceFunctions(FitsTestCase):
