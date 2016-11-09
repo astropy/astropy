@@ -85,6 +85,8 @@ New Features
 
   - Support generalized value formatting for mixin columns in tables. [#5274]
 
+  - Support persistence of table indices when pickling and copying table. [#5468]
+
 - ``astropy.time``
 
   - ``light_travel_time`` can now use more accurate JPL ephemerides. [#5273, #5436]
