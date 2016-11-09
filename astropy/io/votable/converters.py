@@ -690,7 +690,7 @@ class FloatingPoint(Numeric):
         elif precision.startswith("F"):
             format_parts.append('.{:d}f'.format(int(precision[1:])))
         else:
-            format_parts.append('.{:d}'.format(int(precision)))
+            format_parts.append('.{:d}f'.format(int(precision)))
 
         format_parts.append('}')
 

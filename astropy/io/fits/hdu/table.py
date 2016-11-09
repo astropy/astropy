@@ -1164,7 +1164,7 @@ class BinTableHDU(_TableBaseHDU):
                     # the length of the array for this row and set the format
                     # for the VLA data
                     line.append('VLA_Length=')
-                    line.append('{:-21d}'.format(len(row[column.name])))
+                    line.append('{:21d}'.format(len(row[column.name])))
                     _, dtype, option = _parse_tformat(column.format)
                     vla_format = FITS2NUMPY[option[0]][0]
 
