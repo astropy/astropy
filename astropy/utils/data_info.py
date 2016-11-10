@@ -483,7 +483,18 @@ class BaseColumnInfo(DataInfo):
 
 
 class MixinInfo(BaseColumnInfo):
-    pass
+
+    def __setattr__(self, attr, value):
+        # For mixin columns that live within a table, rename the column in the
+        # table when setting the name attribute.  This mirrors the same
+        # functionality in the BaseColumn class.
+        if attr == 'name' and self.parent_table is not None:
+            from ..table.np_utils import fix_column_name
+            new_name = fix_column_name(value)  # Ensure col name is numpy compatible
+            self.parent_table.columns._rename_column(self.name, new_name)
+
+        super(MixinInfo, self).__setattr__(attr, value)
+
 
 class ParentDtypeInfo(MixinInfo):
     """Mixin that gets info.dtype from parent"""

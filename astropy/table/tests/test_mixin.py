@@ -542,3 +542,20 @@ def test_possible_string_format_functions():
                            '------',
                            '1.0000',
                            '2.0000']
+
+
+def test_rename_mixin_columns(mixin_cols):
+    """
+    Rename a mixin column.
+    """
+    t = QTable(mixin_cols)
+    tc = t.copy()
+    t.rename_column('m', 'mm')
+    assert t.colnames == ['i', 'a', 'b', 'mm']
+    if isinstance(t['mm'], table_helpers.ArrayWrapper):
+        assert np.all(t['mm'].data == tc['m'].data)
+    elif isinstance(t['mm'], coordinates.SkyCoord):
+        assert np.all(t['mm'].ra == tc['m'].ra)
+        assert np.all(t['mm'].dec == tc['m'].dec)
+    else:
+        assert np.all(t['mm'] == tc['m'])
