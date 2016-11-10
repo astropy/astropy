@@ -186,6 +186,8 @@ Bug Fixes
     float32 instead of float64 (with the E and F formats). These values are now
     always read as float64. [#5362]
 
+  - Fixed memoryleak when using the compression module. [#5399, #5464]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
