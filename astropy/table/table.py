@@ -116,6 +116,9 @@ class TableColumns(OrderedDict):
         return "<{1} names=({0})>".format(",".join(names), self.__class__.__name__)
 
     def _rename_column(self, name, new_name):
+        if name == new_name:
+            return
+
         if new_name in self:
             raise KeyError("Column {0} already exists".format(new_name))
 
@@ -1975,9 +1978,6 @@ class Table(object):
 
         if name not in self.keys():
             raise KeyError("Column {0} does not exist".format(name))
-
-        if not isinstance(self.columns[name], BaseColumn):
-            raise NotImplementedError('cannot rename a mixin column')
 
         self.columns[name].info.name = new_name
 
