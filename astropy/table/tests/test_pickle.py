@@ -110,7 +110,7 @@ def test_pickle_indexed_table(protocol):
     t.add_index(['a', 'b'])
     ts = pickle.dumps(t)
     tp = pickle.loads(ts)
-    
+
     assert len(t.indices) == len(tp.indices)
     for index, indexp in zip(t.indices, tp.indices):
         assert np.all(index.data.data == indexp.data.data)
