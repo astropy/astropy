@@ -80,10 +80,20 @@ header.tofile('large.fits')
 with open('large.fits', 'rb+') as fobj:
     # Seek past the length of the header, plus the length of the
     # Data we want to write.
+    # 8 is the number of bytes per value, i.e. abs(header['BITPIX'])/8
+    # (this example is assuming a 64-bit float)
     # The -1 is to account for the final byte that we are about to
     # write:
     fobj.seek(len(header.tostring()) + (40000 * 40000 * 8) - 1)
-    fobj.write('\0')
+    fobj.write(b'\0')
+    
+##############################################################################
+# More generally, this can be written:
+
+shape = tuple(header['NAXIS{0}'.format(ii)] for ii in range(1, header['NAXIS']+1))
+with open('large.fits', 'rb+') as fobj:
+    fobj.seek(len(header.tostring()) + (np.product(shape) * np.abs(header['BITPIX']//8)) - 1)
+    fobj.write(b'\0')
 
 ##############################################################################
 # On modern operating systems this will cause the file (past the header) to be
