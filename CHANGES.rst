@@ -72,6 +72,8 @@ New Features
 
   - Added bounding box to ``Lorentz1D`` and ``MexicanHat1D`` models. [#5393]
 
+  - Added ``Planar2D`` functional model. [#5456]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
