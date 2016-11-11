@@ -57,7 +57,7 @@ from ..functional_models import (
     MexicanHat1D, Trapezoid1D, Const1D, Moffat1D,
     Gaussian2D, Const2D, Box2D, MexicanHat2D,
     TrapezoidDisk2D, AiryDisk2D, Moffat2D, Disk2D,
-    Ring2D, Sersic1D, Sersic2D, Voigt1D)
+    Ring2D, Sersic1D, Sersic2D, Voigt1D, Planar2D)
 from ..polynomial import Polynomial1D, Polynomial2D
 from ..powerlaws import (
     PowerLaw1D, BrokenPowerLaw1D, ExponentialCutoffPowerLaw1D,
@@ -316,5 +316,15 @@ models_2D = {
         'requires_scipy': True,
         'x_lim': [1, 1e10],
         'y_lim': [1, 1e10]
+    },
+
+    Planar2D: {
+        'parameters': [1, 1, 0],
+        'x_values': [0, np.pi, 42, -1],
+        'y_values': [np.pi, 0, -1, 42],
+        'z_values': [np.pi, np.pi, 41, 41],
+        'x_lim': [-10, 10],
+        'y_lim': [-10, 10],
+        'integral': 0
     }
 }
