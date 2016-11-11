@@ -83,6 +83,8 @@ New Features
 
 - ``astropy.table``
 
+  - Allow renaming mixin columns. [#5469]
+
   - Support generalized value formatting for mixin columns in tables. [#5274]
 
 - ``astropy.time``
