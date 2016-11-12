@@ -713,20 +713,20 @@ class HeaderDiff(_BaseDiff):
                     val = self.a[keyword][0]
                 else:
                     val = self.a[keyword]
-                self._writeln(u(' Extra keyword {!r} in a: {!r}').format(
+                self._writeln(u(' Extra keyword {!r:8} in a: {!r}').format(
                                 keyword, val))
             for keyword in self.diff_keywords[1]:
                 if keyword in Card._commentary_keywords:
                     val = self.b[keyword][0]
                 else:
                     val = self.b[keyword]
-                self._writeln(u(' Extra keyword {!r} in b: {!r}').format(
+                self._writeln(u(' Extra keyword {!r:8} in b: {!r}').format(
                                 keyword, val))
 
         if self.diff_duplicate_keywords:
             for keyword, count in sorted(self.diff_duplicate_keywords.items()):
                 self._writeln(u(' Inconsistent duplicates of keyword '
-                                '{!r}:').format(keyword))
+                                '{!r:8}:').format(keyword))
                 self._writeln(u('  Occurs {} time(s) in a, {} times '
                                 'in (b)').format(count))
 
