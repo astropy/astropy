@@ -676,21 +676,20 @@ class FloatingPoint(Numeric):
         width = field.width
 
         if precision is None:
-            format_parts = ['{0']
+            format_parts = ['{!r:>']
         else:
             format_parts = ['{:']
 
         if width is not None:
             format_parts.append(six.text_type(width))
 
-        if precision is None:
-            format_parts.append('!r')
-        elif precision.startswith("E"):
-            format_parts.append('.{:d}g'.format(int(precision[1:])))
-        elif precision.startswith("F"):
-            format_parts.append('.{:d}f'.format(int(precision[1:])))
-        else:
-            format_parts.append('.{:d}f'.format(int(precision)))
+        if precision is not None:
+            if precision.startswith("E"):
+                format_parts.append('.{:d}g'.format(int(precision[1:])))
+            elif precision.startswith("F"):
+                format_parts.append('.{:d}f'.format(int(precision[1:])))
+            else:
+                format_parts.append('.{:d}f'.format(int(precision)))
 
         format_parts.append('}')
 
@@ -745,7 +744,7 @@ class FloatingPoint(Numeric):
             result = self._output_format.format(value)
             if result.startswith('array'):
                 raise RuntimeError()
-            if (self._output_format[-2] == 'r' and
+            if (self._output_format[2] == 'r' and
                 result.endswith('.0')):
                 result = result[:-2]
             return result
@@ -1014,7 +1013,7 @@ class Complex(FloatingPoint, Array):
                 value = self.null
         real = self._output_format.format(float(value.real))
         imag = self._output_format.format(float(value.imag))
-        if self._output_format[-2] == 'r':
+        if self._output_format[2] == 'r':
             if real.endswith('.0'):
                 real = real[:-2]
             if imag.endswith('.0'):
