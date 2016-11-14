@@ -371,6 +371,8 @@ class JsonCustomEncoder(json.JSONEncoder):
         * Complex number
         * Set
         * Bytes (Python 3)
+        * astropy.UnitBase
+        * astropy.Quantity
 
     Examples
     --------
@@ -383,8 +385,11 @@ class JsonCustomEncoder(json.JSONEncoder):
     """
 
     def default(self, obj):
+        from .. import units as u
         import numpy as np
-        if isinstance(obj, (np.ndarray, np.number)):
+        if isinstance(obj, u.Quantity):
+            return dict(value=obj.value, unit=obj.unit.to_string())
+        if isinstance(obj, (np.number, np.ndarray)):
             return obj.tolist()
         elif isinstance(obj, (complex, np.complex)):
             return [obj.real, obj.imag]
@@ -392,6 +397,12 @@ class JsonCustomEncoder(json.JSONEncoder):
             return list(obj)
         elif isinstance(obj, bytes):  # pragma: py3
             return obj.decode()
+        elif isinstance(obj, (u.UnitBase, u.FunctionUnitBase)):
+            if obj == u.dimensionless_unscaled:
+                obj = 'dimensionless_unit'
+            else:
+                return obj.to_string()
+        #
         return json.JSONEncoder.default(self, obj)
 
 
