@@ -214,7 +214,7 @@ a quick way to get an `~astropy.coordinates.EarthLocation`::
 
     >>> from astropy.coordinates import EarthLocation
     >>> EarthLocation.of_site('Apache Point Observatory')  # doctest: +REMOTE_DATA +FLOAT_CMP
-    <EarthLocation (-1463969.3018517173, -5166673.342234327, 3434985.7120456537) m>
+    <EarthLocation (-1463969.30185172, -5166673.34223433,  3434985.71204565) m>
 
 To see the list of site names available, use
 :func:`astropy.coordinates.EarthLocation.get_site_names`.
@@ -227,12 +227,12 @@ Google maps, this works with fully specified addresses, location names, city
 names, and etc.::
 
     >>> EarthLocation.of_address('1002 Holy Grail Court, St. Louis, MO')  # doctest: +REMOTE_DATA +FLOAT_CMP
-    <EarthLocation (-26727.247396719715, -4997012.160946069, 3950268.2727357596) m>
+    <EarthLocation (-26727.24739672, -4997012.16094607,  3950268.27273576) m>
     >>> EarthLocation.of_address('1002 Holy Grail Court, St. Louis, MO',
     ...                          get_height=True)  # doctest: +REMOTE_DATA +FLOAT_CMP
-    <EarthLocation (-26727.890243898288, -4997132.349722762, 3950363.9254298285) m>
+    <EarthLocation (-26727.8902439, -4997132.34972276,  3950363.92542983) m>
     >>> EarthLocation.of_address('Danbury, CT')  # doctest: +REMOTE_DATA +FLOAT_CMP
-    <EarthLocation (1364606.6451165068, -4593292.942827304, 4195415.936951392) m>
+    <EarthLocation ( 1364606.64511651, -4593292.9428273,  4195415.93695139) m>
 
 .. note::
     `~astropy.coordinates.SkyCoord.from_name`,
