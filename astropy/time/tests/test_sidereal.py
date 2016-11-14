@@ -30,8 +30,8 @@ class TestERFATestCases():
     # reproduce this exactly. Now it does not really matter,
     # but may as well fake this (and avoid IERS table lookup here)
     time_ut1.delta_ut1_utc = 0.
-    time_ut1.delta_ut1_utc = 24*3600*(time_ut1.tt.jd2-time_tt.jd2)
-    assert np.allclose(time_ut1.tt.jd2 - time_tt.jd2, 0., atol=1.e-14)
+    time_ut1.delta_ut1_utc = 24*3600*(time_ut1.tt - time_tt).jd
+    assert np.allclose((time_ut1.tt - time_tt).jd, 0., atol=1.e-14)
 
     @pytest.mark.parametrize('erfa_test_input',
                              ((1.754174972210740592, 1e-12, "eraGmst00"),
