@@ -136,8 +136,8 @@ class SAMPHubProxy(object):
                 raise SAMPHubError("Unauthorized access. Basic Authentication "
                                    "required or failed.")
             else:
-                raise SAMPHubError("Protocol Error %d: %s" % (p.errcode,
-                                                              p.errmsg))
+                raise SAMPHubError("Protocol Error {}: {}".format(p.errcode,
+                                                                  p.errmsg))
 
     def disconnect(self):
         """

@@ -179,7 +179,8 @@ def _create_and_install_waiters(fs, return_when):
             waiter = _AllCompletedWaiter(pending_count,
                                          stop_on_exception=False)
         else:
-            raise ValueError("Invalid return condition: %r" % return_when)
+            raise ValueError("Invalid return condition: "
+                             "{!r}".format(return_when))
 
     for f in fs:
         f._waiters.append(waiter)
@@ -232,7 +233,7 @@ def as_completed(fs, timeout=None):
                 wait_timeout = end_time - time.time()
                 if wait_timeout < 0:
                     raise TimeoutError(
-                        '%d (of %d) futures unfinished' % (
+                        '{} (of {}) futures unfinished'.format(
                         len(pending), len(fs)))
 
             waiter.event.wait(wait_timeout)
@@ -334,16 +335,16 @@ class Future(object):
         with self._condition:
             if self._state == FINISHED:
                 if self._exception:
-                    return '<Future at %s state=%s raised %s>' % (
+                    return '<Future at {} state={} raised {}>'.format(
                         hex(id(self)),
                         _STATE_TO_DESCRIPTION_MAP[self._state],
                         self._exception.__class__.__name__)
                 else:
-                    return '<Future at %s state=%s returned %s>' % (
+                    return '<Future at {} state={} returned {}>'.format(
                         hex(id(self)),
                         _STATE_TO_DESCRIPTION_MAP[self._state],
                         self._result.__class__.__name__)
-            return '<Future at %s state=%s>' % (
+            return '<Future at {} state={}>'.format(
                 hex(id(self)), _STATE_TO_DESCRIPTION_MAP[self._state])
 
     def cancel(self):

@@ -714,7 +714,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
         conf_interval = np.vstack(conf_interval)
     else:
         raise ValueError("Invalid method for Poisson confidence intervals: "
-                         "%s" % interval)
+                         "{}".format(interval))
     return conf_interval
 
 

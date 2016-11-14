@@ -7,11 +7,8 @@ import re
 import warnings
 from collections import OrderedDict
 
-import numpy as np
-
 from .. import registry as io_registry
 from ... import units as u
-from ...extern import six
 from ...extern.six import string_types
 from ...table import Table
 from ...utils.exceptions import AstropyUserWarning

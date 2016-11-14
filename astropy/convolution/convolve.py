@@ -404,9 +404,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     array_size_B = (np.product(arrayshape, dtype=np.int64) *
                     np.dtype(complex_dtype).itemsize)*u.byte
     if array_size_B > 1*u.GB and not allow_huge:
-        raise ValueError("Size Error: Arrays will be %s.  Use "
+        raise ValueError("Size Error: Arrays will be {}.  Use "
                          "allow_huge=True to override this exception."
-                         % human_file_size(array_size_B.to(u.byte).value))
+                         .format(human_file_size(array_size_B.to(u.byte).value)))
 
     # mask catching - masks must be turned into NaNs for use later
     if np.ma.is_masked(array):
@@ -506,9 +506,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     array_size_C = (np.product(newshape, dtype=np.int64) *
                     np.dtype(complex_dtype).itemsize)*u.byte
     if array_size_C > 1*u.GB and not allow_huge:
-        raise ValueError("Size Error: Arrays will be %s.  Use "
+        raise ValueError("Size Error: Arrays will be {}.  Use "
                          "allow_huge=True to override this exception."
-                         % human_file_size(array_size_C.to(u.byte).value))
+                         .format(human_file_size(array_size_C.to(u.byte).value)))
 
     # For future reference, this can be used to predict "almost exactly"
     # how much *additional* memory will be used.

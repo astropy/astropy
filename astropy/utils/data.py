@@ -923,8 +923,8 @@ def get_free_space_in_dir(path):
         retval = ctypes.windll.kernel32.GetDiskFreeSpaceExW(
                 ctypes.c_wchar_p(path), None, None, ctypes.pointer(free_bytes))
         if retval == 0:
-            raise IOError('Checking free space on %r failed unexpectedly.' %
-                          path)
+            raise IOError('Checking free space on {!r} failed '
+                          'unexpectedly.'.format(path))
         return free_bytes.value
     else:
         stat = os.statvfs(path)

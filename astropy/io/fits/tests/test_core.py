@@ -150,7 +150,7 @@ class TestCore(FitsTestCase):
 
         header = fits.Header()
         comment = 'number of bits per data pixel'
-        card = fits.Card.fromstring('BITPIX  = 32 / %s' % comment)
+        card = fits.Card.fromstring('BITPIX  = 32 / {}'.format(comment))
         header.append(card)
 
         header['BITPIX'] = 32
@@ -231,7 +231,7 @@ class TestCore(FitsTestCase):
                 hdu.verify('ignore')
             except Exception as e:
                 self.fail('An exception occurred when the verification error '
-                          'should have been ignored: %s' % exc)
+                          'should have been ignored: {}'.format(e))
         # Make sure the error wasn't fixed either, silently or otherwise
         assert 'NAXIS' not in hdu.header
 
@@ -263,7 +263,7 @@ class TestCore(FitsTestCase):
                 hdu.verify('silentfix+ignore')
             except Exception as exc:
                 self.fail('An exception occurred when the verification error '
-                          'should have been ignored: %s' % exc)
+                          'should have been ignored: {}'.format(exc))
 
         # silentfix+warn should be quiet about the fixed HDU and only warn
         # about the unfixable one
@@ -514,7 +514,7 @@ class TestCore(FitsTestCase):
             # Add a bunch of header keywords so that the data will be forced to
             # new offsets within the file:
             for idx in range(40):
-                hdul1[1].header['TEST%d' % idx] = 'test'
+                hdul1[1].header['TEST{}'.format(idx)] = 'test'
 
             hdul1.writeto(self.temp('test1.fits'))
             hdul1.writeto(self.temp('test2.fits'))
@@ -525,14 +525,14 @@ class TestCore(FitsTestCase):
             with fits.open(self.data('test0.fits')) as hdul2:
                 with fits.open(self.temp('test2.fits')) as hdul3:
                     for hdul in (hdul1, hdul3):
-                        for idx, hdus in enumerate(zip(hdul1, hdul)):
-                            hdu1, hdu2 = hdus
+                        for idx, hdus in enumerate(zip(hdul2, hdul)):
+                            hdu2, hdu = hdus
                             if idx != 1:
-                                assert hdu1.header == hdu2.header
+                                assert hdu.header == hdu2.header
                             else:
-                                assert (hdu1.header ==
-                                        hdu2.header[:len(hdu1.header)])
-                            assert np.all(hdu1.data == hdu2.data)
+                                assert (hdu2.header ==
+                                        hdu.header[:len(hdu2.header)])
+                            assert np.all(hdu.data == hdu2.data)
 
 
 class TestConvenienceFunctions(FitsTestCase):

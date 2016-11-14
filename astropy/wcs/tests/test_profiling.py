@@ -46,9 +46,8 @@ def test_maps():
 
     if len(hdr_file_list) != n_data_files:
         assert False, (
-            "test_maps has wrong number data files: found %d, expected "
-            " %d" % (
-                len(hdr_file_list), n_data_files))
+            "test_maps has wrong number data files: found {}, expected "
+            " {}".format(len(hdr_file_list), n_data_files))
         # b.t.w.  If this assert happens, py.test reports one more test
         # than it would have otherwise.
 
@@ -85,8 +84,7 @@ def test_spectra():
 
     if len(hdr_file_list) != n_data_files:
         assert False, (
-            "test_spectra has wrong number data files: found %d, expected "
-            " %d" % (
-                len(hdr_file_list), n_data_files))
+            "test_spectra has wrong number data files: found {}, expected "
+            " {}".format(len(hdr_file_list), n_data_files))
         # b.t.w.  If this assert happens, py.test reports one more test
         # than it would have otherwise.

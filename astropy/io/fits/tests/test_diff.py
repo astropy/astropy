@@ -540,7 +540,7 @@ class TestDiff(FitsTestCase):
         assert 'Headers contain differences' not in report
         assert 'Data contains differences' in report
         for y in range(10):
-            assert 'Data differs at [%d, 1]' % (y + 1) in report
+            assert 'Data differs at [{}, 1]'.format(y + 1) in report
         assert '100 different pixels found (100.00% different).' in report
 
     def test_diff_nans(self):
