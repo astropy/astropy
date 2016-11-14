@@ -161,7 +161,7 @@ class CompImageHeader(Header):
             keyword, index = key, None
 
         if key not in self:
-            raise KeyError("Keyword %r not found." % key)
+            raise KeyError("Keyword {!r} not found.".format(key))
 
         super(CompImageHeader, self).__delitem__(key)
 
@@ -185,7 +185,7 @@ class CompImageHeader(Header):
         elif not isinstance(card, Card):
             raise ValueError(
                 'The value appended to a Header must be either a keyword or '
-                '(keyword, value, [comment]) tuple; got: %r' % card)
+                '(keyword, value, [comment]) tuple; got: {!r}'.format(card))
 
         if self._is_reserved_keyword(card.keyword):
             return
@@ -218,7 +218,7 @@ class CompImageHeader(Header):
         elif not isinstance(card, Card):
             raise ValueError(
                 'The value inserted into a Header must be either a keyword or '
-                '(keyword, value, [comment]) tuple; got: %r' % card)
+                '(keyword, value, [comment]) tuple; got: {!r}'.format(card))
 
         if self._is_reserved_keyword(card.keyword):
             return
@@ -291,9 +291,9 @@ class CompImageHeader(Header):
 
     @classmethod
     def _is_reserved_keyword(cls, keyword, warn=True):
-        msg = ('Keyword %r is reserved for use by the FITS Tiled Image '
+        msg = ('Keyword {!r} is reserved for use by the FITS Tiled Image '
                'Convention and will not be stored in the header for the '
-               'image being compressed.' % keyword)
+               'image being compressed.'.format(keyword))
 
         if keyword == 'TFIELDS':
             if warn:
@@ -337,7 +337,7 @@ class CompImageHeader(Header):
                 is_naxisn = index > 0
 
         if is_naxisn:
-            return 'ZNAXIS%d' % index
+            return 'ZNAXIS{}'.format(index)
 
         # If the keyword does not need to be remapped then just return the
         # original keyword
@@ -610,9 +610,9 @@ class CompImageHDU(BinTableHDU):
         compression_opts = {}
         for oldarg, newarg in self.DEPRECATED_KWARGS.items():
             if oldarg in kwargs:
-                warnings.warn('Keyword argument %s to %s is pending '
-                              'deprecation; use %s instead' %
-                              (oldarg, self.__class__.__name__, newarg),
+                warnings.warn('Keyword argument {} to {} is pending '
+                              'deprecation; use {} instead'.format(
+                        oldarg, self.__class__.__name__, newarg),
                               AstropyPendingDeprecationWarning)
                 compression_opts[newarg] = kwargs[oldarg]
                 del kwargs[oldarg]
@@ -776,8 +776,8 @@ class CompImageHDU(BinTableHDU):
             if huge_hdu and not CFITSIO_SUPPORTS_Q_FORMAT:
                 raise IOError(
                     "Astropy cannot compress images greater than 4 GB in size "
-                    "(%s is %s bytes) without CFITSIO >= 3.35" %
-                    ((self.name, self.ver), self.data.nbytes))
+                    "({} is {} bytes) without CFITSIO >= 3.35".format(
+                        (self.name, self.ver), self.data.nbytes))
         else:
             huge_hdu = False
 
@@ -798,8 +798,8 @@ class CompImageHDU(BinTableHDU):
             if compression_type not in ['RICE_1', 'GZIP_1', 'PLIO_1',
                                         'HCOMPRESS_1']:
                 warnings.warn('Unknown compression type provided.  Default '
-                              '(%s) compression used.' %
-                              DEFAULT_COMPRESSION_TYPE, AstropyUserWarning)
+                              '({}) compression used.'.format(
+                        DEFAULT_COMPRESSION_TYPE), AstropyUserWarning)
                 compression_type = DEFAULT_COMPRESSION_TYPE
 
             self._header.set('ZCMPTYPE', compression_type,
@@ -1219,7 +1219,7 @@ class CompImageHDU(BinTableHDU):
                                            SUBTRACTIVE_DITHER_2]:
                     name = QUANTIZE_METHOD_NAMES[DEFAULT_QUANTIZE_METHOD]
                     warnings.warn('Unknown quantization method provided.  '
-                                  'Default method (%s) used.' % name)
+                                  'Default method ({}) used.'.format(name))
                     quantize_method = DEFAULT_QUANTIZE_METHOD
 
                 if quantize_method == NO_DITHER:
@@ -1409,9 +1409,9 @@ class CompImageHDU(BinTableHDU):
     def data(self, data):
         if (data is not None) and (not isinstance(data, np.ndarray) or
                 data.dtype.fields is not None):
-            raise TypeError('CompImageHDU data has incorrect type:%s; '
-                            'dtype.fields = %s' %
-                            (type(data), data.dtype.fields))
+            raise TypeError('CompImageHDU data has incorrect type:{}; '
+                            'dtype.fields = {}'.format(
+                    type(data), data.dtype.fields))
 
     @lazyproperty
     def compressed_data(self):
@@ -1634,7 +1634,7 @@ class CompImageHDU(BinTableHDU):
             # Convert the unsigned array to signed
             self.data = np.array(
                 self.data - _unsigned_zero(self.data.dtype),
-                dtype='=i%d' % self.data.dtype.itemsize)
+                dtype='=i{}'.format(self.data.dtype.itemsize))
             should_swap = False
         else:
             should_swap = not self.data.dtype.isnative
@@ -1907,12 +1907,12 @@ class CompImageHDU(BinTableHDU):
                 "Seed for random dithering must be either between 1 and "
                 "10000 inclusive, 0 for autogeneration from the system "
                 "clock, or -1 for autogeneration from a checksum of the first "
-                "image tile (got %s)" % seed)
+                "image tile (got {})".format(seed))
 
         if seed == DITHER_SEED_CHECKSUM:
             # Determine the tile dimensions from the ZTILEn keywords
             naxis = self._header['ZNAXIS']
-            tile_dims = [self._header['ZTILE%d' % (idx + 1)]
+            tile_dims = [self._header['ZTILE{}'.format(idx + 1)]
                          for idx in range(naxis)]
             tile_dims.reverse()
 

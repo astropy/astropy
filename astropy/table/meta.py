@@ -77,23 +77,22 @@ def _construct_odict(load, node):
     yield omap
     if not isinstance(node, yaml.SequenceNode):
         raise yaml.constructor.ConstructorError(
-            "while constructing an ordered map",
-            node.start_mark,
-            "expected a sequence, but found %s" % node.id, node.start_mark
-        )
+            "while constructing an ordered map", node.start_mark,
+            "expected a sequence, but found {}".format(node.id), node.start_mark)
+
     for subnode in node.value:
         if not isinstance(subnode, yaml.MappingNode):
             raise yaml.constructor.ConstructorError(
                 "while constructing an ordered map", node.start_mark,
-                "expected a mapping of length 1, but found %s" % subnode.id,
-                subnode.start_mark
-            )
+                "expected a mapping of length 1, but found {}".format(subnode.id),
+                subnode.start_mark)
+
         if len(subnode.value) != 1:
             raise yaml.constructor.ConstructorError(
                 "while constructing an ordered map", node.start_mark,
-                "expected a single mapping item, but found %d items" % len(subnode.value),
-                subnode.start_mark
-            )
+                "expected a single mapping item, but found {} items".format(len(subnode.value)),
+                subnode.start_mark)
+
         key_node, value_node = subnode.value[0]
         key = load.construct_object(key_node)
         value = load.construct_object(value_node)

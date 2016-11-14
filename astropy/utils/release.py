@@ -46,16 +46,16 @@ def releaser_middle(data):
     # version number
     def _my_create_tag(self, version):
         version = 'v' + version
-        msg = "Tagging %s" % (version,)
-        cmd = 'git tag -s %s -m "%s"' % (version, msg)
+        msg = "Tagging {}".format(version,)
+        cmd = 'git tag -s {} -m "{}"'.format(version, msg)
         if os.path.isdir('.git/svn'):
             print("\nEXPERIMENTAL support for git-svn tagging!\n")
             cur_branch = open('.git/HEAD').read().strip().split('/')[-1]
-            print("You are on branch %s." % (cur_branch,))
+            print("You are on branch {}.".format(cur_branch,))
             if cur_branch != 'master':
                 print("Only the master branch is supported for git-svn tagging.")
                 print("Please tag yourself.")
-                print("'git tag' needs to list tag named %s." % (version,))
+                print("'git tag' needs to list tag named {}.".format(version,))
                 sys.exit()
             cmd = [cmd]
             local_head = open('.git/refs/heads/master').read()
@@ -65,7 +65,7 @@ def releaser_middle(data):
                 # dcommit before local tagging
                 cmd.insert(0, 'git svn dcommit')
             # create tag in svn
-            cmd.append('git svn tag -m "%s" %s' % (msg, version))
+            cmd.append('git svn tag -m "{}" {}'.format(msg, version))
         return cmd
 
     # Similarly copied from zest.releaser to support use of 'v' in front
@@ -86,11 +86,12 @@ def releaser_middle(data):
                 print(os.system(cmd))
             else:
                 # all commands are needed in order to proceed normally
-                print("Please create a tag for %s yourself and rerun." % \
-                        (self.data['version'],))
+                print("Please create a tag for {} yourself and rerun.".format(
+                        self.data['version'],))
+
                 sys.exit()
         if not self.vcs.tag_exists('v' + self.data['version']):
-            print("\nFailed to create tag %s!" % (self.data['version'],))
+            print("\nFailed to create tag {}!".format(self.data['version'],))
             sys.exit()
 
     # Normally all this does is to return '--formats=zip', which is currently

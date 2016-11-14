@@ -62,7 +62,7 @@ def _format_message(message, name, config=None, pos=None):
     if pos is None:
         pos = ('?', '?')
     filename = config.get('filename', '?')
-    return '%s:%s:%s: %s: %s' % (filename, pos[0], pos[1], name, message)
+    return '{}:{}:{}: {}: {}'.format(filename, pos[0], pos[1], name, message)
 
 
 def _suppressed_warning(warning, config, stacklevel=2):
@@ -196,7 +196,10 @@ class VOWarning(AstropyWarning):
     def __init__(self, args, config=None, pos=None):
         if config is None:
             config = {}
-        msg = self.message_template % args
+        if not isinstance(args, tuple):
+            args = (args, )
+        msg = self.message_template.format(*args)
+
         self.formatted_message = _format_message(
             msg, self.__class__.__name__, config, pos)
         Warning.__init__(self, self.formatted_message)
@@ -207,7 +210,7 @@ class VOWarning(AstropyWarning):
     @classmethod
     def get_short_name(cls):
         if len(cls.default_args):
-            return cls.message_template % cls.default_args
+            return cls.message_template.format(*cls.default_args)
         return cls.message_template
 
 
@@ -289,7 +292,7 @@ class W02(VOTableSpecWarning):
     `XML Names <http://www.w3.org/TR/REC-xml/#NT-Name>`__
     """
 
-    message_template = "%s attribute '%s' is invalid.  Must be a standard XML id"
+    message_template = "{} attribute '{}' is invalid.  Must be a standard XML id"
     default_args = ('x', 'y')
 
 
@@ -342,7 +345,7 @@ class W03(VOTableChangeWarning):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:name>`__
     """
 
-    message_template = "Implicitly generating an ID from a name '%s' -> '%s'"
+    message_template = "Implicitly generating an ID from a name '{}' -> '{}'"
     default_args = ('x', 'y')
 
 
@@ -359,7 +362,7 @@ class W04(VOTableSpecWarning):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:link>`__
     """
 
-    message_template = "content-type '%s' must be a valid MIME content type"
+    message_template = "content-type '{}' must be a valid MIME content type"
     default_args = ('x',)
 
 
@@ -369,7 +372,7 @@ class W05(VOTableSpecWarning):
     <http://www.ietf.org/rfc/rfc2396.txt>`_.
     """
 
-    message_template = "'%s' is not a valid URI"
+    message_template = "'{}' is not a valid URI"
     default_args = ('x',)
 
 
@@ -389,7 +392,7 @@ class W06(VOTableSpecWarning):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:ucd>`__
     """
 
-    message_template = "Invalid UCD '%s': %s"
+    message_template = "Invalid UCD '{}': {}"
     default_args = ('x', 'explanation')
 
 
@@ -409,7 +412,7 @@ class W07(VOTableSpecWarning):
         </xs:simpleType>
     """
 
-    message_template = "Invalid astroYear in %s: '%s'"
+    message_template = "Invalid astroYear in {}: '{}'"
     default_args = ('x', 'y')
 
 
@@ -421,9 +424,9 @@ class W08(VOTableSpecWarning):
     """
 
     if not six.PY2:
-        message_template = "'%s' must be a str or bytes object"
+        message_template = "'{}' must be a str or bytes object"
     else:
-        message_template = "'%s' must be a str or unicode object"
+        message_template = "'{}' must be a str or unicode object"
     default_args = ('x',)
 
 
@@ -459,7 +462,7 @@ class W10(VOTableSpecWarning):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#ToC58>`__
     """
 
-    message_template = "Unknown tag '%s'.  Ignoring"
+    message_template = "Unknown tag '{}'.  Ignoring"
     default_args = ('x',)
 
 
@@ -499,7 +502,7 @@ class W12(VOTableChangeWarning):
     """
 
     message_template = (
-        "'%s' element must have at least one of 'ID' or 'name' attributes")
+        "'{}' element must have at least one of 'ID' or 'name' attributes")
     default_args = ('x',)
 
 
@@ -527,7 +530,7 @@ class W13(VOTableSpecWarning):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:datatypes>`__
     """
 
-    message_template = "'%s' is not a valid VOTable datatype, should be '%s'"
+    message_template = "'{}' is not a valid VOTable datatype, should be '{}'"
     default_args = ('x', 'y')
 
 
@@ -548,7 +551,7 @@ class W15(VOTableSpecWarning):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:name>`__
     """
 
-    message_template = "%s element missing required 'name' attribute"
+    message_template = "{} element missing required 'name' attribute"
     default_args = ('x',)
 
 # W16: Deprecated
@@ -569,7 +572,7 @@ class W17(VOTableSpecWarning):
     to VOTable 1.2.
     """
 
-    message_template = "%s element contains more than one DESCRIPTION element"
+    message_template = "{} element contains more than one DESCRIPTION element"
     default_args = ('x',)
 
 
@@ -587,7 +590,7 @@ class W18(VOTableSpecWarning):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#ToC10>`__
     """
 
-    message_template = 'TABLE specified nrows=%s, but table contains %s rows'
+    message_template = 'TABLE specified nrows={}, but table contains {} rows'
     default_args = ('x', 'y')
 
 
@@ -609,7 +612,7 @@ class W20(VOTableSpecWarning):
     parser assumes it is written to the VOTable 1.1 specification.
     """
 
-    message_template = 'No version number specified in file.  Assuming %s'
+    message_template = 'No version number specified in file.  Assuming {}'
     default_args = ('1.1',)
 
 
@@ -621,7 +624,7 @@ class W21(UnimplementedWarning):
 
     message_template = (
         'vo.table is designed for VOTable version 1.1, 1.2 and 1.3, but ' +
-        'this file is %s')
+        'this file is {}')
     default_args = ('x',)
 
 
@@ -648,7 +651,7 @@ class W23(IOWarning):
     locally.
     """
 
-    message_template = "Unable to update service information for '%s'"
+    message_template = "Unable to update service information for '{}'"
     default_args = ('x',)
 
 
@@ -670,7 +673,7 @@ class W25(IOWarning):
     services fail, an exception will be raised.
     """
 
-    message_template = "'%s' failed with: %s"
+    message_template = "'{}' failed with: {}"
     default_args = ('service', '...')
 
 
@@ -682,7 +685,7 @@ class W26(VOTableSpecWarning):
     be written out to the file.
     """
 
-    message_template = "'%s' inside '%s' added in VOTable %s"
+    message_template = "'{}' inside '{}' added in VOTable {}"
     default_args = ('child', 'parent', 'X.X')
 
 
@@ -707,7 +710,7 @@ class W28(VOTableSpecWarning):
     the file.
     """
 
-    message_template = "'%s' on '%s' added in VOTable %s"
+    message_template = "'{}' on '{}' added in VOTable {}"
     default_args = ('attribute', 'element', 'X.X')
 
 
@@ -722,7 +725,7 @@ class W29(VOTableSpecWarning):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#ToC58>`__
     """
 
-    message_template = "Version specified in non-standard form '%s'"
+    message_template = "Version specified in non-standard form '{}'"
     default_args = ('v1.0',)
 
 
@@ -738,7 +741,7 @@ class W30(VOTableSpecWarning):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:datatypes>`__
     """
 
-    message_template = "Invalid literal for float '%s'.  Treating as empty."
+    message_template = "Invalid literal for float '{}'.  Treating as empty."
     default_args = ('x',)
 
 
@@ -778,7 +781,7 @@ class W32(VOTableSpecWarning):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:name>`__
     """
 
-    message_template = "Duplicate ID '%s' renamed to '%s' to ensure uniqueness"
+    message_template = "Duplicate ID '{}' renamed to '{}' to ensure uniqueness"
     default_args = ('x', 'x_2')
 
 
@@ -794,7 +797,7 @@ class W33(VOTableChangeWarning):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:name>`__
     """
 
-    message_template = "Column name '%s' renamed to '%s' to ensure uniqueness"
+    message_template = "Column name '{}' renamed to '{}' to ensure uniqueness"
     default_args = ('x', 'x_2')
 
 
@@ -805,7 +808,7 @@ class W34(VOTableSpecWarning):
     <http://www.w3.org/TR/2000/WD-xml-2e-20000814#NT-Nmtoken>`__.
     """
 
-    message_template = "'%s' is an invalid token for attribute '%s'"
+    message_template = "'{}' is an invalid token for attribute '{}'"
     default_args = ('x', 'y')
 
 
@@ -820,7 +823,7 @@ class W35(VOTableSpecWarning):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#ToC32>`__
     """
 
-    message_template = "'%s' attribute required for INFO elements"
+    message_template = "'{}' attribute required for INFO elements"
     default_args = ('x',)
 
 
@@ -835,7 +838,7 @@ class W36(VOTableSpecWarning):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:values>`__
     """
 
-    message_template = "null value '%s' does not match field datatype, setting to 0"
+    message_template = "null value '{}' does not match field datatype, setting to 0"
     default_args = ('x',)
 
 
@@ -850,7 +853,7 @@ class W37(UnimplementedWarning):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:data>`__
     """
 
-    message_template = "Unsupported data format '%s'"
+    message_template = "Unsupported data format '{}'"
     default_args = ('x',)
 
 
@@ -860,7 +863,7 @@ class W38(VOTableSpecWarning):
     specification is base64.
     """
 
-    message_template = "Inline binary data must be base64 encoded, got '%s'"
+    message_template = "Inline binary data must be base64 encoded, got '{}'"
     default_args = ('x',)
 
 
@@ -909,7 +912,7 @@ class W41(VOTableSpecWarning):
 
     message_template = (
         "An XML namespace is specified, but is incorrect.  Expected " +
-        "'%s', got '%s'")
+        "'{}', got '{}'")
     default_args = ('x', 'y')
 
 
@@ -936,7 +939,7 @@ class W43(VOTableSpecWarning):
        attribute prior to referencing it whenever possible.
     """
 
-    message_template = "%s ref='%s' which has not already been defined"
+    message_template = "{} ref='{}' which has not already been defined"
     default_args = ('element', 'x',)
 
 
@@ -955,7 +958,7 @@ class W44(VOTableSpecWarning):
         attribute, as e.g. ``<VALUES ref="RAdomain"/>``
     """
 
-    message_template = "VALUES element with ref attribute has content ('%s')"
+    message_template = "VALUES element with ref attribute has content ('{}')"
     default_args = ('element',)
 
 
@@ -978,7 +981,7 @@ class W45(VOWarning, ValueError):
     <http://www.ivoa.net/documents/VOTable/20130315/PR-VOTable-1.3-20130315.html#sec:link>`__
     """
 
-    message_template = "content-role attribute '%s' invalid"
+    message_template = "content-role attribute '{}' invalid"
     default_args = ('x',)
 
 
@@ -988,7 +991,7 @@ class W46(VOTableSpecWarning):
     field length.
     """
 
-    message_template = "%s value is too long for specified length of %s"
+    message_template = "{} value is too long for specified length of {}"
     default_args = ('char or unicode', 'x')
 
 
@@ -1006,7 +1009,7 @@ class W48(VOTableSpecWarning):
     The attribute is not defined in the specification.
     """
 
-    message_template = "Unknown attribute '%s' on %s"
+    message_template = "Unknown attribute '{}' on {}"
     default_args = ('attribute', 'element')
 
 
@@ -1032,7 +1035,7 @@ class W50(VOTableSpecWarning):
     in this file conform to another specification.
     """
 
-    message_template = "Invalid unit string '%s'"
+    message_template = "Invalid unit string '{}'"
     default_args = ('x',)
 
 
@@ -1041,7 +1044,7 @@ class W51(VOTableSpecWarning):
     The integer value is out of range for the size of the field.
     """
 
-    message_template = "Value '%s' is out of range for a %s integer field"
+    message_template = "Value '{}' is out of range for a {} integer field"
     default_args = ('x', 'n-bit')
 
 
@@ -1052,7 +1055,7 @@ class W52(VOTableSpecWarning):
     """
 
     message_template = ("The BINARY2 format was introduced in VOTable 1.3, but "
-               "this file is declared as version '%s'")
+               "this file is declared as version '{}'")
     default_args = ('1.2',)
 
 
@@ -1084,7 +1087,7 @@ class E01(VOWarning, ValueError):
     fixed-length array of variable-length strings.
     """
 
-    message_template = "Invalid size specifier '%s' for a %s field (in field '%s')"
+    message_template = "Invalid size specifier '{}' for a {} field (in field '{}')"
     default_args = ('x', 'char/unicode', 'y')
 
 
@@ -1096,7 +1099,7 @@ class E02(VOWarning, ValueError):
 
     message_template = (
         "Incorrect number of elements in array. " +
-        "Expected multiple of %s, got %s")
+        "Expected multiple of {}, got {}")
     default_args = ('x', 'y')
 
 
@@ -1110,7 +1113,7 @@ class E03(VOWarning, ValueError):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:datatypes>`__
     """
 
-    message_template = "'%s' does not parse as a complex number"
+    message_template = "'{}' does not parse as a complex number"
     default_args = ('x',)
 
 
@@ -1124,7 +1127,7 @@ class E04(VOWarning, ValueError):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:datatypes>`__
     """
 
-    message_template = "Invalid bit value '%s'"
+    message_template = "Invalid bit value '{}'"
     default_args = ('x',)
 
 
@@ -1145,7 +1148,7 @@ class E05(VOWarning, ValueError):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:datatypes>`__
     """
 
-    message_template = "Invalid boolean value '%s'"
+    message_template = "Invalid boolean value '{}'"
     default_args = ('x',)
 
 
@@ -1178,7 +1181,7 @@ class E06(VOWarning, ValueError):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:datatypes>`__
     """
 
-    message_template = "Unknown datatype '%s' on field '%s'"
+    message_template = "Unknown datatype '{}' on field '{}'"
     default_args = ('x', 'y')
 
 # E07: Deprecated
@@ -1195,7 +1198,7 @@ class E08(VOWarning, ValueError):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:values>`__
     """
 
-    message_template = "type must be 'legal' or 'actual', but is '%s'"
+    message_template = "type must be 'legal' or 'actual', but is '{}'"
     default_args = ('x',)
 
 
@@ -1210,7 +1213,7 @@ class E09(VOWarning, ValueError):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:values>`__
     """
 
-    message_template = "'%s' must have a value attribute"
+    message_template = "'{}' must have a value attribute"
     default_args = ('x',)
 
 
@@ -1225,7 +1228,7 @@ class E10(VOWarning, ValueError):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#elem:FIELD>`__
     """
 
-    message_template = "'datatype' attribute required on all '%s' elements"
+    message_template = "'datatype' attribute required on all '{}' elements"
     default_args = ('FIELD',)
 
 
@@ -1247,7 +1250,7 @@ class E11(VOWarning, ValueError):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:form>`__
     """
 
-    message_template = "precision '%s' is invalid"
+    message_template = "precision '{}' is invalid"
     default_args = ('x',)
 
 
@@ -1263,7 +1266,7 @@ class E12(VOWarning, ValueError):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:form>`__
     """
 
-    message_template = "width must be a positive integer, got '%s'"
+    message_template = "width must be a positive integer, got '{}'"
     default_args = ('x',)
 
 
@@ -1305,7 +1308,7 @@ class E13(VOWarning, ValueError):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:dim>`__
     """
 
-    message_template = "Invalid arraysize attribute '%s'"
+    message_template = "Invalid arraysize attribute '{}'"
     default_args = ('x',)
 
 
@@ -1347,7 +1350,7 @@ class E16(VOTableSpecWarning):
     <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#elem:COOSYS>`__
     """
 
-    message_template = "Invalid system attribute '%s'"
+    message_template = "Invalid system attribute '{}'"
     default_args = ('x',)
 
 
@@ -1375,7 +1378,7 @@ class E18(VOWarning, ValueError):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#ToC58>`__
     """
 
-    message_template = "type must be 'results' or 'meta', not '%s'"
+    message_template = "type must be 'results' or 'meta', not '{}'"
     default_args = ('x',)
 
 
@@ -1394,7 +1397,7 @@ class E20(VOTableSpecError):
     columns than that.
     """
 
-    message_template = "Data has more columns than are defined in the header (%s)"
+    message_template = "Data has more columns than are defined in the header ({})"
     default_args = ('x',)
 
 
@@ -1404,7 +1407,7 @@ class E21(VOWarning, ValueError):
     columns.
     """
 
-    message_template = "Data has fewer columns (%s) than are defined in the header (%s)"
+    message_template = "Data has fewer columns ({}) than are defined in the header ({})"
     default_args = ('x', 'y')
 
 
@@ -1424,8 +1427,8 @@ def _build_doc_string():
         out = io.StringIO()
 
         for name, cls in classes:
-            out.write(".. _%s:\n\n" % name)
-            msg = "%s: %s" % (cls.__name__, cls.get_short_name())
+            out.write(".. _{}:\n\n".format(name))
+            msg = "{}: {}".format(cls.__name__, cls.get_short_name())
             if not isinstance(msg, six.text_type):
                 msg = msg.decode('utf-8')
             out.write(msg)

@@ -130,7 +130,7 @@ class TestHeaderFunctions(FitsTestCase):
                     "ABC     =                    9 "
                     "/ abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeab")
             c = fits.Card('abc', 'a' * 68, 'abcdefg')
-            assert str(c) == "ABC     = '%s'" % ('a' * 68)
+            assert str(c) == "ABC     = '{}'".format('a' * 68)
 
     def test_constructor_filter_illegal_data_structures(self):
         """Test that Card constructor raises exceptions on bad arguments"""

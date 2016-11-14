@@ -102,7 +102,7 @@ def raises(*exceptions):
             except exceptions:
                 pass
             else:
-                message = "%s() did not raise %s" % (name, valid)
+                message = "{}() did not raise {}".format(name, valid)
                 raise AssertionError(message)
         newfunc = make_decorator(func)(newfunc)
         return newfunc

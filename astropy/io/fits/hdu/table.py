@@ -572,8 +572,8 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             ncols = self._header['TFIELDS']
             format = ', '.join([self._header['TFORM' + str(j + 1)]
                                 for j in range(ncols)])
-            format = '[%s]' % format
-        dims = "%dR x %dC" % (nrows, ncols)
+            format = '[{}]'.format(format)
+        dims = "{}R x {}C".format(nrows, ncols)
         ncards = len(self._header)
 
         return (self.name, class_name, ncards, dims, format)
@@ -720,7 +720,7 @@ class TableHDU(_TableBaseHDU):
         dup = np.rec.find_duplicate(names)
 
         if dup:
-            raise ValueError("Duplicate field names: %s" % dup)
+            raise ValueError("Duplicate field names: {}".format(dup))
 
         # TODO: Determine if this extra logic is necessary--I feel like the
         # _AsciiColDefs class should be responsible for telling the table what
@@ -1007,14 +1007,15 @@ class BinTableHDU(_TableBaseHDU):
             if isinstance(f, string_types):
                 if os.path.exists(f) and os.path.getsize(f) != 0:
                     if clobber:
-                        warnings.warn("Overwriting existing file '%s'." % f,
-                                      AstropyUserWarning)
+                        warnings.warn(
+                            "Overwriting existing file '{}'.".format(f),
+                            AstropyUserWarning)
                         os.remove(f)
                     else:
                         exist.append(f)
 
         if exist:
-            raise IOError('  '.join(["File '%s' already exists." % f
+            raise IOError('  '.join(["File '{}' already exists.".format(f)
                                      for f in exist]))
 
         # Process the data
@@ -1138,15 +1139,19 @@ class BinTableHDU(_TableBaseHDU):
         def format_value(val, format):
             if format[0] == 'S':
                 itemsize = int(format[1:])
-                return '%-*s' % (itemsize, val)
+                return '{:{size}}'.format(val, size=itemsize)
             elif format in np.typecodes['AllInteger']:
                 # output integer
-                return '%21d' % val
+                return '{:21d}'.format(val)
             elif format in np.typecodes['Complex']:
-                return '%21.15g+%.15gj' % (val.real, val.imag)
+                return '{:21.15g}+{:.15g}j'.format(val.real, val.imag)
             elif format in np.typecodes['Float']:
                 # output floating point
-                return '%#21.15g' % val
+                # workaround as py2 doesn't support alternate form for format()
+                if six.PY2:
+                    return '%#21.15g' % val
+                else:
+                    return '{:#21.15g}'.format(val)
 
         for row in self.data:
             line = []   # the line for this row of the table
@@ -1163,7 +1168,7 @@ class BinTableHDU(_TableBaseHDU):
                     # the length of the array for this row and set the format
                     # for the VLA data
                     line.append('VLA_Length=')
-                    line.append('%-21d' % len(row[column.name]))
+                    line.append('{:21d}'.format(len(row[column.name])))
                     _, dtype, option = _parse_tformat(column.format)
                     vla_format = FITS2NUMPY[option[0]][0]
 
@@ -1207,7 +1212,7 @@ class BinTableHDU(_TableBaseHDU):
         for column in self.columns:
             line = [column.name, column.format]
             attrs = ['disp', 'unit', 'dim', 'null', 'bscale', 'bzero']
-            line += ['%-16s' % (value if value else '""')
+            line += ['{:16s}'.format(value if value else '""')
                      for value in (getattr(column, attr) for attr in attrs)]
             fileobj.write(' '.join(line))
             fileobj.write('\n')

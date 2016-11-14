@@ -192,7 +192,7 @@ class FastNoHeader(FastBasic):
     """
     This class uses the fast C engine to read tables with no header line. If
     the names parameter is unspecified, the columns will be autonamed with
-    "col%d".
+    "col{}".
     """
     _format_name = 'fast_no_header'
     _description = 'Basic table with no headers using the fast C engine'

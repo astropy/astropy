@@ -394,13 +394,13 @@ class _BaseHDU(object):
                 np.ndarray((), dtype='ubyte', buffer=data)
             except TypeError:
                 raise TypeError(
-                    'The provided object %r does not contain an underlying '
+                    'The provided object {!r} does not contain an underlying '
                     'memory buffer.  fromstring() requires an object that '
                     'supports the buffer interface such as bytes, str '
                     '(in Python 2.x but not in 3.x), buffer, memoryview, '
                     'ndarray, etc.  This restriction is to ensure that '
                     'efficient access to the array/table data is possible.'
-                    % data)
+                    .format(data))
 
             if header is None:
                 def block_iter(nbytes):
@@ -996,8 +996,8 @@ class _ValidHDU(_BaseHDU, _Verify):
                         if number <= 0 or number > naxis:
                             raise ValueError
                     except ValueError:
-                        err_text = ("NAXISj keyword out of range ('%s' when "
-                                    "NAXIS == %d)" % (keyword, naxis))
+                        err_text = ("NAXISj keyword out of range ('{}' when "
+                                    "NAXIS == {})".format(keyword, naxis))
 
                         def fix(self=self, keyword=keyword):
                             del self._header[keyword]
@@ -1097,8 +1097,8 @@ class _ValidHDU(_BaseHDU, _Verify):
 
         # if the card does not exist
         if index is None:
-            err_text = "'%s' card does not exist." % keyword
-            fix_text = "Fixed by inserting a new '%s' card." % keyword
+            err_text = "'{}' card does not exist.".format(keyword)
+            fix_text = "Fixed by inserting a new '{}' card.".format(keyword)
             if fixable:
                 # use repr to accommodate both string and non-string types
                 # Boolean is also OK in this constructor
@@ -1113,11 +1113,10 @@ class _ValidHDU(_BaseHDU, _Verify):
             # if the supposed location is specified
             if pos is not None:
                 if not pos(index):
-                    err_text = ("'%s' card at the wrong place (card %d)." %
-                                (keyword, index))
-
+                    err_text = ("'{}' card at the wrong place "
+                                "(card {}).".format(keyword, index))
                     fix_text = ("Fixed by moving it to the right place "
-                                "(card %d)." % insert_pos)
+                                "(card {}).".format(insert_pos))
 
                     def fix(self=self, index=index, insert_pos=insert_pos):
                         card = self._header.cards[index]
@@ -1131,9 +1130,10 @@ class _ValidHDU(_BaseHDU, _Verify):
             if test:
                 val = self._header[keyword]
                 if not test(val):
-                    err_text = ("'%s' card has invalid value '%s'." %
-                                (keyword, val))
-                    fix_text = "Fixed by setting a new value '%s'." % fix_value
+                    err_text = ("'{}' card has invalid value '{}'.".format(
+                            keyword, val))
+                    fix_text = ("Fixed by setting a new value '{}'.".format(
+                            fix_value))
 
                     if fixable:
                         def fix(self=self, keyword=keyword, val=fix_value):
@@ -1180,7 +1180,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         cs = self._calculate_datasum(blocking)
 
         if when is None:
-            when = 'data unit checksum updated %s' % self._get_timestamp()
+            when = 'data unit checksum updated {}'.format(self._get_timestamp())
 
         self._header[datasum_keyword] = (str(cs), when)
         return cs
@@ -1233,7 +1233,7 @@ class _ValidHDU(_BaseHDU, _Verify):
             data_cs = self._calculate_datasum(blocking)
 
         if when is None:
-            when = 'HDU checksum updated %s' % self._get_timestamp()
+            when = 'HDU checksum updated {}'.format(self._get_timestamp())
 
         # Add the CHECKSUM card to the header with a value of all zeros.
         if datasum_keyword in self._header:

@@ -37,7 +37,7 @@ class CdsHeader(core.BaseHeader):
     def get_type_map_key(self, col):
         match = re.match(r'\d*(\S)', col.raw_type.lower())
         if not match:
-            raise ValueError('Unrecognized CDS format "%s" for column "%s"' % (
+            raise ValueError('Unrecognized CDS format "{}" for column "{}"'.format(
                 col.raw_type, col.name))
         return match.group(1)
 
@@ -149,7 +149,7 @@ class CdsHeader(core.BaseHeader):
                 if cols:
                     cols[-1].description += line.strip()
                 else:
-                    raise ValueError('Line "%s" not parsable as CDS header' % line)
+                    raise ValueError('Line "{}" not parsable as CDS header'.format(line))
 
         self.names = [x.name for x in cols]
 

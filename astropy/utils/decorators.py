@@ -81,9 +81,9 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         if not old_doc:
             old_doc = ''
         old_doc = textwrap.dedent(old_doc).strip('\n')
-        new_doc = (('\n.. deprecated:: %(since)s'
-                    '\n    %(message)s\n\n' %
-                    {'since': since, 'message': message.strip()}) + old_doc)
+        new_doc = (('\n.. deprecated:: {since}'
+                    '\n    {message}\n\n'.format(
+                    **{'since': since, 'message': message.strip()})) + old_doc)
         if not old_doc:
             # This is to prevent a spurious 'unexpected unindent' warning from
             # docutils when the original docstring was blank.
@@ -186,19 +186,19 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         altmessage = ''
         if not message or type(message) is type(deprecate):
             if pending:
-                message = ('The %(func)s %(obj_type)s will be deprecated in a '
+                message = ('The {func} {obj_type} will be deprecated in a '
                            'future version.')
             else:
-                message = ('The %(func)s %(obj_type)s is deprecated and may '
+                message = ('The {func} {obj_type} is deprecated and may '
                            'be removed in a future version.')
             if alternative:
-                altmessage = '\n        Use %s instead.' % alternative
+                altmessage = '\n        Use {} instead.'.format(alternative)
 
-        message = ((message % {
+        message = ((message.format(**{
             'func': name,
             'name': name,
             'alternative': alternative,
-            'obj_type': obj_type_name}) +
+            'obj_type': obj_type_name})) +
             altmessage)
 
         if isinstance(obj, type):

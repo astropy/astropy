@@ -81,8 +81,8 @@ class Group(FITS_record):
                     for i in range(len(indx)):
                         self.array[self.row][indx[i]] = value[i]
                 else:
-                    raise ValueError('Parameter value must be a sequence '
-                                     'with %d arrays/numbers.' % len(indx))
+                    raise ValueError('Parameter value must be a sequence with '
+                                     '{} arrays/numbers.'.format(len(indx)))
 
 
 class GroupData(FITS_rec):
@@ -141,7 +141,7 @@ class GroupData(FITS_rec):
                 parbzeros = [None] * npars
 
             if parnames is None:
-                parnames = ['PAR%d' % (idx + 1) for idx in range(npars)]
+                parnames = ['PAR{}'.format(idx + 1) for idx in range(npars)]
 
             if len(parnames) != npars:
                 raise ValueError('The number of parameter data arrays does '
@@ -154,7 +154,7 @@ class GroupData(FITS_rec):
 
             fits_fmt = GroupsHDU._bitpix2tform[bitpix]  # -32 -> 'E'
             format = FITS2NUMPY[fits_fmt]  # 'E' -> 'f4'
-            data_fmt = '%s%s' % (str(input.shape[1:]), format)
+            data_fmt = '{}{}'.format(str(input.shape[1:]), format)
             formats = ','.join(([format] * npars) + [data_fmt])
             gcount = input.shape[0]
 
@@ -472,7 +472,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
                 # Convert the unsigned array to signed
                 output = np.array(
                     self.data - _unsigned_zero(self.data.dtype),
-                    dtype='>i%d' % self.data.dtype.itemsize)
+                    dtype='>i{}'.format(self.data.dtype.itemsize))
                 should_swap = False
             else:
                 output = self.data
@@ -565,7 +565,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
                 format = self.columns[0].dtype.name
 
         # Update the GCOUNT report
-        gcount = '%d Groups  %d Parameters' % (self._gcount, self._pcount)
+        gcount = '{} Groups  {} Parameters'.format(self._gcount, self._pcount)
         return (name, classname, length, shape, format, gcount)
 
 

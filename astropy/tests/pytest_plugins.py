@@ -402,8 +402,8 @@ class DocTestFinderPlus(doctest.DocTestFinder):
                 name = obj.__name__
             else:
                 raise ValueError("DocTestFinder.find: name must be given "
-                                 "when obj.__name__ doesn't exist: %r" %
-                                 (type(obj),))
+                                 "when obj.__name__ doesn't exist: {!r}".format(
+                        (type(obj),)))
 
             def test_filter(test):
                 for pat in getattr(obj, '__doctest_skip__', []):
@@ -664,14 +664,12 @@ class Pair(pytest.File):
             e = sys.exc_info()[1]
             raise self.CollectError(
                 "import file mismatch:\n"
-                "imported module %r has this __file__ attribute:\n"
-                "  %s\n"
+                "imported module {!r} has this __file__ attribute:\n"
+                "  {}\n"
                 "which is not the same as the test file we want to collect:\n"
-                "  %s\n"
+                "  {}\n"
                 "HINT: remove __pycache__ / .pyc files and/or use a "
-                "unique basename for your test file modules"
-                % e.args
-            )
+                "unique basename for your test file modules".format(e.args))
 
         # Now get the file's content.
         with io.open(six.text_type(self.fspath), 'rb') as fd:

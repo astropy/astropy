@@ -67,7 +67,7 @@ class FITS_record(object):
             indx = _get_index(self.array.names, key)
 
             if indx < self.start or indx > self.end - 1:
-                raise KeyError("Key '%s' does not exist." % key)
+                raise KeyError("Key '{}' does not exist.".format(key))
         elif isinstance(key, slice):
             return type(self)(self.array, self.row, key.start, key.stop,
                               key.step, self)
@@ -84,7 +84,7 @@ class FITS_record(object):
             indx = _get_index(self.array.names, key)
 
             if indx < self.start or indx > self.end - 1:
-                raise KeyError("Key '%s' does not exist." % key)
+                raise KeyError("Key '{}' does not exist.".format(key))
         elif isinstance(key, slice):
             for indx in range(slice.start, slice.stop, slice.step):
                 indx = self._get_indx(indx)
@@ -110,7 +110,7 @@ class FITS_record(object):
         outlist = []
         for idx in range(len(self)):
             outlist.append(repr(self[idx]))
-        return '(%s)' % ', '.join(outlist)
+        return '({})'.format(', '.join(outlist))
 
     def field(self, field):
         """
@@ -547,8 +547,8 @@ class FITS_rec(np.recarray):
                 for idx in range(self._nfields):
                     self.field(idx)[key] = value[idx]
             else:
-                raise ValueError('Input tuple or list required to have %s '
-                                 'elements.' % self._nfields)
+                raise ValueError('Input tuple or list required to have {} '
+                                 'elements.'.format(self._nfields))
         else:
             raise TypeError('Assignment requires a FITS_record, tuple, or '
                             'list as input.')
@@ -687,8 +687,8 @@ class FITS_rec(np.recarray):
 
         if format.dtype.itemsize == 0:
             warnings.warn(
-                'Field %r has a repeat count of 0 in its format code, '
-                'indicating an empty field.' % key)
+                'Field {!r} has a repeat count of 0 in its format code, '
+                'indicating an empty field.'.format(key))
             return np.array([], dtype=format.dtype)
 
         # If field's base is a FITS_rec, we can run into trouble because it
@@ -794,8 +794,8 @@ class FITS_rec(np.recarray):
 
         if raw_data is None:
             raise IOError(
-                "Could not find heap data for the %r variable-length "
-                "array column." % column.name)
+                "Could not find heap data for the {!r} variable-length "
+                "array column.".format(column.name))
 
         for idx in range(len(self)):
             offset = field[idx, 1] + self._heapoffset
@@ -853,9 +853,9 @@ class FITS_rec(np.recarray):
         except ValueError as exc:
             indx = self.names.index(column.name)
             raise ValueError(
-                '%s; the header may be missing the necessary TNULL%d '
-                'keyword or the table contains invalid data' %
-                (exc, indx + 1))
+                '{}; the header may be missing the necessary TNULL{} '
+                'keyword or the table contains invalid data'.format(
+                    exc, indx + 1))
 
         return dummy
 
@@ -911,10 +911,10 @@ class FITS_rec(np.recarray):
                     actual_nitems = field.shape[1]
                 if nitems > actual_nitems:
                     warnings.warn(
-                        'TDIM%d value %s does not fit with the size of '
-                        'the array items (%d).  TDIM%d will be ignored.'
-                        % (indx + 1, self._coldefs[indx].dims,
-                           actual_nitems, indx + 1))
+                        'TDIM{} value {:d} does not fit with the size of '
+                        'the array items ({:d}).  TDIM{:d} will be ignored.'
+                        .format(indx + 1, self._coldefs[indx].dims,
+                                actual_nitems, indx + 1))
                     dim = None
 
         # further conversion for both ASCII and binary tables
@@ -978,7 +978,7 @@ class FITS_rec(np.recarray):
                 field = field[:, :nitems]
             if _str:
                 fmt = field.dtype.char
-                dtype = ('|%s%d' % (fmt, dim[-1]), dim[:-1])
+                dtype = ('|{}{}'.format(fmt, dim[-1]), dim[:-1])
                 field.dtype = dtype
             else:
                 field.shape = (field.shape[0],) + dim
@@ -1224,24 +1224,25 @@ class FITS_rec(np.recarray):
             lead = 0
 
         if lead < 0:
-            warnings.warn('Column %r starting point overlaps the previous '
-                          'column.' % (col_idx + 1))
+            warnings.warn('Column {!r} starting point overlaps the previous '
+                          'column.'.format(col_idx + 1))
 
         trail = starts[col_idx + 1] - starts[col_idx] - spans[col_idx]
 
         if trail < 0:
-            warnings.warn('Column %r ending point overlaps the next '
-                          'column.' % (col_idx + 1))
+            warnings.warn('Column {!r} ending point overlaps the next '
+                          'column.'.format(col_idx + 1))
 
         # TODO: It would be nice if these string column formatting
         # details were left to a specialized class, as is the case
         # with FormatX and FormatP
+        print(format)
         if 'A' in format:
-            _pc = '%-'
+            _pc = '{:'
         else:
-            _pc = '%'
+            _pc = '{:>'
 
-        fmt = ''.join([_pc, format[1:], ASCII2STR[format[0]],
+        fmt = ''.join([_pc, format[1:], ASCII2STR[format[0]], '}',
                        (' ' * trail)])
 
         # Even if the format precision is 0, we should output a decimal point
@@ -1253,11 +1254,11 @@ class FITS_rec(np.recarray):
         # not using numarray.strings's num2char because the
         # result is not allowed to expand (as C/Python does).
         for jdx, value in enumerate(input_field):
-            value = fmt % value
+            value = fmt.format(value)
             if len(value) > starts[col_idx + 1] - starts[col_idx]:
                 raise ValueError(
-                    "Value %r does not fit into the output's itemsize of "
-                    "%s." % (value, spans[col_idx]))
+                    "Value {!r} does not fit into the output's itemsize of "
+                    "{}.".format(value, spans[col_idx]))
 
             if trailing_decimal and value[0] == ' ':
                 # We have some extra space in the field for the trailing
