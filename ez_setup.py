@@ -100,7 +100,7 @@ def archive_context(filename):
     The unzipped target is cleaned up after.
     """
     tmpdir = tempfile.mkdtemp()
-    log.warn('Extracting in %s', tmpdir)
+    log.warn('Extracting in {}'.format(tmpdir))
     old_wd = os.getcwd()
     try:
         os.chdir(tmpdir)
@@ -110,7 +110,7 @@ def archive_context(filename):
         # going in the directory
         subdir = os.path.join(tmpdir, os.listdir(tmpdir)[0])
         os.chdir(subdir)
-        log.warn('Now working in %s', subdir)
+        log.warn('Now working in {}'.format(subdir))
         yield
 
     finally:
@@ -120,8 +120,7 @@ def archive_context(filename):
 
 def _do_download(version, download_base, to_dir, download_delay):
     """Download Setuptools."""
-    egg = os.path.join(to_dir, 'setuptools-%s-py%d.%d.egg'
-                       % (version, sys.version_info[0], sys.version_info[1]))
+    egg = os.path.join(to_dir, 'setuptools-{}-py{:d}.{:d}.egg'.format(version, sys.version_info[0], sys.version_info[1]))
     if not os.path.exists(egg):
         archive = download_setuptools(version, download_base,
                                       to_dir, download_delay)
@@ -336,11 +335,11 @@ def download_setuptools(
     version = _resolve_version(version)
     # making sure we use the absolute path
     to_dir = os.path.abspath(to_dir)
-    zip_name = "setuptools-%s.zip" % version
+    zip_name = "setuptools-{}.zip".format(version)
     url = download_base + zip_name
     saveto = os.path.join(to_dir, zip_name)
     if not os.path.exists(saveto):  # Avoid repeated downloads
-        log.warn("Downloading %s", url)
+        log.warn("Downloading {}".format(url))
         downloader = downloader_factory()
         downloader(url, saveto)
     return os.path.realpath(saveto)
