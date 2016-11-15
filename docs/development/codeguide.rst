@@ -741,11 +741,11 @@ might read::
     __all__ = ('foo', 'AClass')
 
     def foo(bar):
-        #the function would be defined here
+        # the function would be defined here
         pass
 
     class AClass(object):
-        #the class is defined here
+        # the class is defined here
         pass
 
 This ensures that ``from submodule import *`` only imports ``':func:`foo'``
