@@ -14,10 +14,17 @@ packages).
 Testing Framework
 =================
 
-The testing framework used by Astropy is the `py.test`_ framework.
+The testing framework used by Astropy (and affiliated packages using the
+:doc:`package template <affiliated-packages>`) is the `pytest`_ framework,
+accessed through the ``python setup.py test`` command.
 
-.. _py.test: http://pytest.org/latest/
+.. _pytest: http://pytest.org/latest/
 .. _pytest.main: http://pytest.org/latest/builtin.html#pytest.main
+
+.. note::
+
+    The ``pytest`` project was formerly called ``py.test``, and you may
+    see the two spellings used interchangeably in the documentation.
 
 .. _running-tests:
 
@@ -25,7 +32,7 @@ Running Tests
 =============
 
 There are currently three different ways to invoke Astropy tests. Each
-method invokes `py.test`_ to run the tests but offers different options when
+method invokes `pytest`_ to run the tests but offers different options when
 calling.
 
 In addition to running the Astropy tests, these methods can also be called
@@ -38,76 +45,43 @@ separately.
 setup.py test
 -------------
 
-The safest way to run the astropy test suite is via the setup command ``test``.
-This is invoked by running ``python setup.py test`` while in the astropy source
-code directory. Run ``python setup.py test --help`` to see the options to the
+Astropy and the affiliated package template provide a ``test`` setup command,
+invoked by running ``python setup.py test`` while in the package root
+directory. Run ``python setup.py test --help`` to see the options to the
 test command.
 
-Turn on PEP8 checking by passing ``--pep8`` to the ``test`` command. This will
-turn off regular testing and enable PEP8 testing.
+Since ``python setup.py test`` wraps the widely-used pytest framework, you may
+from time to time want to pass options to the ``pytest`` command itself. For
+example, the ``-x`` option to stop after the first failure can be passed
+through with the ``--args`` argument::
 
-.. note::
+    > python setup.py test --args "-x"
 
-    This method of running the tests defaults to the version of `py.test`_
-    that is bundled with Astropy. To use the locally-installed version, you
-    can set the ``ASTROPY_USE_SYSTEM_PYTEST`` environment variable, eg.::
-
-        > ASTROPY_USE_SYSTEM_PYTEST=1 python setup.py test
-
-py.test
--------
-
-An alternative way to run tests from the command line is to switch to the source
-code directory of astropy and simply type::
-
-    py.test
-
-`py.test`_ will look for files that `look like tests
+`pytest`_ will look for files that `look like tests
 <http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_
 in the current directory and all recursive directories then run all the code that
 `looks like tests
 <http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_
 within those files.
 
-.. note::
-    To test any compiled C/Cython extensions, you must run ``python setup.py
-    develop`` prior to running the py.test command-line script.  Otherwise,
-    any tests that make use of these extensions will not succeed.
-
-You may specify a specific test file or directory at the command line::
-
-    py.test test_file.py
-
-To run a specific test within a file use the ``-k`` option::
-
-    py.test test_file.py -k "test_function"
-
-You may also use the ``-k`` option to not run tests py putting a ``-`` in front
-of the matching string::
-
-    py.test test_file.py -k "-test_function"
-
-py.test has a number of `command line usage options.
-<http://pytest.org/latest/usage.html>`_
-
-Turn on PEP8 testing by adding the ``--pep8`` flag to the `py.test`_ call. By
-default regular tests will also be run but these can be turned off by adding
-``-k pep8``::
-
-  py.test some_dir --pep8 -k pep8
+Turn on PEP8 checking by passing ``--pep8`` to the ``test`` command. This will
+turn off regular testing and enable PEP8 testing.
 
 .. note::
-    This method of running the tests uses the locally-installed version of
-    `py.test`_ rather than the bundled one, and hence will fail if the local
-    version it is not up-to-date enough (`py.test`_ 2.2 as of this writing).
+
+    This method of running the tests defaults to the version of `pytest`_
+    that is bundled with Astropy. To use the locally-installed version, you
+    can set the ``ASTROPY_USE_SYSTEM_PYTEST`` environment variable, eg.::
+
+        > ASTROPY_USE_SYSTEM_PYTEST=1 python setup.py test
 
 .. _astropy.test():
 
 astropy.test()
 --------------
 
-AstroPy includes a standalone version of py.test that allows to tests
-to be run even if py.test is not installed. Tests can be run from within
+AstroPy includes a standalone version of pytest that allows to tests
+to be run even if pytest is not installed. Tests can be run from within
 AstroPy with::
 
     import astropy
@@ -143,9 +117,9 @@ Enable PEP8 compliance testing with ``pep8=True`` in the call to
 
 .. note::
     This method of running the tests defaults to the version of
-    `py.test`_ that is bundled with Astropy. To use the locally-installed
+    `pytest`_ that is bundled with Astropy. To use the locally-installed
     version, you should set the ``ASTROPY_USE_SYSTEM_PYTEST`` environment
-    variable (see :doc:`/config/index`) or the `py.test`_ method described
+    variable (see :doc:`/config/index`) or the `pytest`_ method described
     above.
 
 Tox
@@ -269,7 +243,7 @@ Similarly, this feature can be invoked from Python::
 Writing tests
 =============
 
-``py.test`` has the following test discovery rules:
+``pytest`` has the following test discovery rules:
 
  * ``test_*.py`` or ``*_test.py`` files
  * ``Test`` prefixed classes (without an ``__init__`` method)
@@ -278,7 +252,7 @@ Writing tests
 Consult the `test discovery rules
 <http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_
 for detailed information on how to name files and tests so that they are
-automatically discovered by `py.test`_.
+automatically discovered by `pytest`_.
 
 Simple example
 --------------
@@ -296,7 +270,7 @@ function::
 
 If we place this in a ``test.py`` file and then run::
 
-    py.test test.py
+    pytest test.py
 
 The result is::
 
@@ -369,7 +343,7 @@ Tests that may retrieve remote data should be marked with the
 by ``astropy.test()`` to prevent test runs from taking too long. These
 tests can be run by ``astropy.test()`` by adding the
 ``remote_data=True`` flag.  Turn on the remote data tests at the
-command line with ``py.test --remote-data``.
+command line with ``pytest --remote-data``.
 
 Examples
 ^^^^^^^^
@@ -420,7 +394,7 @@ a context manager within a test to temporarily set the cache to a custom
 location, or as a *decorator* that takes effect for an entire test function
 (not including setup or teardown, which would have to be decorated separately).
 
-Furthermore, it is possible to set an option ``cache_dir`` in the py.test
+Furthermore, it is possible to set an option ``cache_dir`` in the pytest
 config file which sets the cache location for the entire test run.  A
 ``--cache-dir`` command-line option is also supported (which overrides all
 other settings).  Currently it is not directly supported by the
@@ -435,7 +409,7 @@ Tests that create files
 
 Tests may often be run from directories where users do not have write
 permissions so tests which create files should always do so in
-temporary directories. This can be done with the `py.test tmpdir
+temporary directories. This can be done with the `pytest tmpdir
 function argument <http://pytest.org/latest/tmpdir.html>`_ or with
 Python's built-in `tempfile module
 <http://docs.python.org/library/tempfile.html#module-tempfile>`_.
@@ -572,7 +546,7 @@ Parametrizing tests
 -------------------
 
 If you want to run a test several times for slightly different values, then
-it can be advantageous to use the ``py.test`` option to parametrize tests.
+it can be advantageous to use the ``pytest`` option to parametrize tests.
 For example, instead of writing::
 
     def test1():
@@ -616,10 +590,10 @@ In this way, the test is run if Scipy is present, and skipped if
 not. No tests should fail simply because an optional dependency is not
 present.
 
-Using py.test helper functions
-------------------------------
+Using pytest helper functions
+-----------------------------
 
-If your tests need to use `py.test helper functions
+If your tests need to use `pytest helper functions
 <http://pytest.org/latest/builtin.html#pytest-helpers>`_, such as
 ``pytest.raises``, import ``pytest`` into your test module like so::
 
@@ -627,8 +601,8 @@ If your tests need to use `py.test helper functions
 
 You may need to adjust the relative import to work for the depth of
 your module.  ``tests.helper`` imports ``pytest`` either from the
-user's system or ``extern.pytest`` if the user does not have py.test
-installed. This is so that users need not install py.test to run
+user's system or ``extern.pytest`` if the user does not have pytest
+installed. This is so that users need not install pytest to run
 AstroPy's tests.
 
 
@@ -655,7 +629,7 @@ a real-world example::
 
 .. note::
 
-   Within `py.test`_ there is also the option of using the ``recwarn``
+   Within `pytest`_ there is also the option of using the ``recwarn``
    function argument to test that warnings are triggered.  This method has
    been found to be problematic in at least one case (`pull request 1174
    <https://github.com/astropy/astropy/pull/1174#issuecomment-20249309>`_)
@@ -926,10 +900,10 @@ Astropy and many affiliated packages use an external package called
 `ci-helpers <https://github.com/astropy/astropy-helpers>`_ to provide
 support for the generic parts of the CI systems. ``ci-helpers`` consists of
 a set of scripts that are used by the ``.travis.yml`` and ``appveyor.yml``
-files to setting up the conda environment, and installing dependencies.
+files to set up the conda environment, and install dependencies.
 
 Dependencies can be customized for different packages using the appropriate
-environmental variables in ``.travis.yml`` and ``appveyor.yml``. For more
+environment variables in ``.travis.yml`` and ``appveyor.yml``. For more
 details on how to set up this machinery, see the `package-template
 <https://github.com/astropy/package-template>`_ and `ci-helpers`_.
 
