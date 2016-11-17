@@ -206,17 +206,20 @@ UFUNC_HELPERS[np.true_divide] = helper_division
 
 
 def helper_power(f, unit1, unit2):
+    # TODO: find a better way to do this, currently need to signal that one
+    # still needs to raise power of unit1 in main code
     if unit2 is None:
-        return [None, None], _d(unit1)
+        return [None, None], False
 
-    # TODO: find a better way to do this, currently
-    # need to raise power of unit1 in main code
     try:
-        return [None, get_converter(unit2, dimensionless_unscaled)], _d(unit1)
+        return [None, get_converter(unit2, dimensionless_unscaled)], False
     except UnitsError:
         raise TypeError("Can only raise something to a dimensionless quantity")
 
 UFUNC_HELPERS[np.power] = helper_power
+# float_power was added in numpy 1.12
+if isinstance(getattr(np, 'float_power', None), np.ufunc):
+    UFUNC_HELPERS[np.float_power] = helper_power
 
 
 def helper_ldexp(f, unit1, unit2):
