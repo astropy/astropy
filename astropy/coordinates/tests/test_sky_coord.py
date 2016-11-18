@@ -534,8 +534,15 @@ def test_ops():
 
     assert sc_arr[0].isscalar
     assert len(sc_arr[:1]) == 1
+    # A scalar shouldn't be indexable
     with pytest.raises(TypeError):
-        sc[0:]  # scalar, so it shouldn't be indexable
+        sc[0:]
+    # but it should be possible to just get an item
+    sc_item = sc[()]
+    assert sc_item.shape == ()
+    # and to turn it into an array
+    sc_1d = sc[np.newaxis]
+    assert sc_1d.shape == (1,)
 
     with pytest.raises(TypeError):
         iter(sc)
