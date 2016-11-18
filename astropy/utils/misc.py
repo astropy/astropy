@@ -937,10 +937,14 @@ class ShapedLikeNDArray(object):
         return self.size > 0
 
     def __getitem__(self, item):
-        if self.isscalar:
-            raise TypeError('scalar {0!r} object is not subscriptable.'
-                            .format(self.__class__.__name__))
-        return self._apply('__getitem__', item)
+        try:
+            return self._apply('__getitem__', item)
+        except IndexError:
+            if self.isscalar:
+                raise TypeError('scalar {0!r} object is not subscriptable.'
+                                .format(self.__class__.__name__))
+            else:
+                raise
 
     def __iter__(self):
         if self.isscalar:
