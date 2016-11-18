@@ -27,8 +27,8 @@ from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
                             frame_transform_graph)
 from ...coordinates import Latitude, EarthLocation
 from ...time import Time
-from ...utils import minversion
-from ...utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+from ...utils import minversion, isiterable
+from ...utils.exceptions import AstropyDeprecationWarning
 
 RA = 1.0 * u.deg
 DEC = 2.0 * u.deg
@@ -535,7 +535,13 @@ def test_ops():
     assert sc_arr[0].isscalar
     assert len(sc_arr[:1]) == 1
     with pytest.raises(TypeError):
-        assert sc[0:]  # scalar, so it shouldn't be indexable
+        sc[0:]  # scalar, so it shouldn't be indexable
+
+    with pytest.raises(TypeError):
+        iter(sc)
+    assert not isiterable(sc)
+    assert isiterable(sc_arr)
+    assert isiterable(sc_empty)
 
 
 def test_none_transform():
