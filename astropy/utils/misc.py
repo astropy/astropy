@@ -938,14 +938,14 @@ class ShapedLikeNDArray(object):
 
     def __getitem__(self, item):
         if self.isscalar:
-            raise TypeError('scalar {0!r} object is not subscriptable.'.format(
-                self.__class__.__name__))
+            raise TypeError('scalar {0!r} object is not subscriptable.'
+                            .format(self.__class__.__name__))
         return self._apply('__getitem__', item)
 
     def __iter__(self):
         if self.isscalar:
-            raise TypeError('scalar {0!r} object is not iterable.'.format(
-                self.__class__.__name__))
+            raise TypeError('scalar {0!r} object is not iterable.'
+                            .format(self.__class__.__name__))
 
         # We cannot just write a generator here, since then the above error
         # would only be raised once we try to use the iterator, rather than

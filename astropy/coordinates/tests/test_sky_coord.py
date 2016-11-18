@@ -542,6 +542,11 @@ def test_ops():
     assert not isiterable(sc)
     assert isiterable(sc_arr)
     assert isiterable(sc_empty)
+    it = iter(sc_arr)
+    assert next(it).dec == sc_arr[0].dec
+    assert next(it).dec == sc_arr[1].dec
+    with pytest.raises(StopIteration):
+        next(it)
 
 
 def test_none_transform():
