@@ -1763,7 +1763,8 @@ Bug Fixes
     on python2. This solves bugs in parsing coordinates involving strings too.
     [#5355]
 
-  - Add support ``np.float_power``, which is new in numpy 1.12. [#5480]
+  - Ensure ``Quantity`` supports ``np.float_power``, which is new in numpy 1.12.
+    [#5480]
 
 - ``astropy.utils``
 
