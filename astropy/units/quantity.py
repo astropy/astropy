@@ -385,29 +385,31 @@ class Quantity(np.ndarray):
                                         args[0].__class__.__name__,
                                         args[1].__class__.__name__))
 
-        # In the case of np.power, the unit itself needs to be modified by an
-        # amount that depends on one of the input values, so we need to treat
-        # this as a special case.
-        # TODO: find a better way to deal with this case
-        if function is np.power and result_unit != dimensionless_unscaled:
-
-            if units[1] is None:
-                p = args[1]
+        # In the case of np.power and np.float_power, the unit itself needs to
+        # be modified by an amount that depends on one of the input values,
+        # so we need to treat this as a special case.
+        # TODO: find a better way to deal with this.
+        if result_unit is False:
+            if units[0] is None or units[0] == dimensionless_unscaled:
+                result_unit = dimensionless_unscaled
             else:
-                p = args[1].to(dimensionless_unscaled).value
-
-            try:
-                result_unit = result_unit ** p
-            except ValueError as exc:
-                # Changing the unit does not work for, e.g., array-shaped
-                # power, but this is OK if we're (scaled) dimensionless.
-                try:
-                    converters[0] = units[0]._get_converter(
-                        dimensionless_unscaled)
-                except UnitConversionError:
-                    raise exc
+                if units[1] is None:
+                    p = args[1]
                 else:
-                    result_unit = dimensionless_unscaled
+                    p = args[1].to(dimensionless_unscaled).value
+
+                try:
+                    result_unit = units[0] ** p
+                except ValueError as exc:
+                    # Changing the unit does not work for, e.g., array-shaped
+                    # power, but this is OK if we're (scaled) dimensionless.
+                    try:
+                        converters[0] = units[0]._get_converter(
+                            dimensionless_unscaled)
+                    except UnitConversionError:
+                        raise exc
+                    else:
+                        result_unit = dimensionless_unscaled
 
         # We now prepare the output object
         if self is obj:
