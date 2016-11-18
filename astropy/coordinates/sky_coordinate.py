@@ -227,15 +227,6 @@ class SkyCoord(ShapedLikeNDArray):
     def representation(self, value):
         self.frame.representation = value
 
-    def __len__(self):
-        return len(self.frame)
-
-    def __nonzero__(self):  # Py 2.x
-        return self.frame.__nonzero__()
-
-    def __bool__(self):  # Py 3.x
-        return self.frame.__bool__()
-
     @property
     def shape(self):
         return self.frame.shape

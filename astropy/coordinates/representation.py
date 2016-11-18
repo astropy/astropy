@@ -172,19 +172,6 @@ class BaseRepresentation(ShapedLikeNDArray):
         return self.__class__( *[apply_method(getattr(self, component))
                                  for component in self.components], copy=False)
 
-    def __len__(self):
-        if self.isscalar:
-            raise TypeError("'{cls}' object with scalar values have no "
-                            "len()".format(cls=self.__class__.__name__))
-        else:
-            return len(getattr(self, self.components[0]))
-
-    def __nonzero__(self):  # Py 2.x
-        return self.isscalar or len(self) != 0
-
-    def __bool__(self):  # Py 3.x
-        return self.isscalar or len(self) != 0
-
     @property
     def shape(self):
         """The shape of the instance and underlying arrays.
