@@ -40,6 +40,9 @@ class _AngleParser(object):
     instead.
     """
     def __init__(self):
+        # TODO: in principle, the parser should be invalidated if we change unit
+        # system (from CDS to FITS, say).  Might want to keep a link to the
+        # unit_registry used, and regenerate the parser/lexer if it changes.
         if '_parser' not in _AngleParser.__dict__:
             _AngleParser._parser, _AngleParser._lexer = self._make_parser()
 
@@ -47,11 +50,12 @@ class _AngleParser(object):
     def _get_simple_unit_names(cls):
         simple_units = set(
             u.radian.find_equivalent_units(include_prefix_units=True))
-        simple_units.remove(u.deg)
-        simple_units.remove(u.hourangle)
         simple_unit_names = set()
+        # We filter out degree and hourangle, since those are treated
+        # separately.
         for unit in simple_units:
-            simple_unit_names.update(unit.names)
+            if unit != u.deg and unit != u.hourangle:
+                simple_unit_names.update(unit.names)
         return list(simple_unit_names)
 
     @classmethod
