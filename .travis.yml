@@ -24,7 +24,7 @@ before_install:
   - pip install --only-binary=numpy numpy
   - pip install cython
   - pip install jinja2
-  - pip install pytest
+  - pip install pytest==2.8.3
 
 
 install:
