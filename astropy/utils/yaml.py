@@ -1,7 +1,7 @@
 import base64
 import numpy as np
 
-from astropy.time import Time
+from astropy.time import Time, TimeDelta
 import astropy.units as u
 import astropy.coordinates as coords
 from astropy.coordinates.sky_coordinate import FRAME_ATTR_NAMES_SET
@@ -52,6 +52,30 @@ def time_constructor(loader, node):
         out._delta_ut1_utc = delta_ut1_utc
     if delta_tdb_tt is not None:
         out._delta_tdb_tt = delta_tdb_tt
+
+    return out
+
+
+def timedelta_representer(dumper, obj):
+    out = {}
+    for attr in ('jd1', 'jd2', 'format', 'scale'):
+        val = getattr(obj, attr, None)
+        if val is not None:
+            out[attr] = val
+
+    return dumper.represent_mapping(u'!astropy.time.TimeDelta', out)
+
+
+def timedelta_constructor(loader, node):
+    map = loader.construct_mapping(node)
+    format = map.pop('format')
+
+    map['format'] = 'jd'
+    map['val'] = map.pop('jd1')
+    map['val2'] = map.pop('jd2')
+
+    out = TimeDelta(**map)
+    out.format = format
 
     return out
 
@@ -155,7 +179,8 @@ AstropyDumper.add_multi_representer(u.Unit, unit_representer)
 AstropyDumper.add_representer(tuple, yaml.Dumper.represent_tuple)
 AstropyDumper.add_representer(np.ndarray, ndarray_representer)
 AstropyDumper.add_multi_representer(u.Quantity, quantity_representer)
-AstropyDumper.add_multi_representer(Time, time_representer)
+AstropyDumper.add_representer(Time, time_representer)
+AstropyDumper.add_representer(TimeDelta, timedelta_representer)
 AstropyDumper.add_representer(coords.EarthLocation, earthlocation_representer)
 AstropyDumper.add_representer(coords.SkyCoord, skycoord_representer)
 
@@ -165,6 +190,7 @@ AstropyLoader.add_constructor('!astropy.units.Unit', unit_constructor)
 AstropyLoader.add_constructor('!numpy.ndarray', ndarray_constructor)
 AstropyLoader.add_constructor('!astropy.units.Quantity', quantity_constructor)
 AstropyLoader.add_constructor('!astropy.time.Time', time_constructor)
+AstropyLoader.add_constructor('!astropy.time.TimeDelta', timedelta_constructor)
 AstropyLoader.add_constructor('!astropy.coordinates.earth.EarthLocation',
                               earthlocation_constructor)
 AstropyLoader.add_constructor('!astropy.coordinates.sky_coordinate.SkyCoord',

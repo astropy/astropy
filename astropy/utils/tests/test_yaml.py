@@ -83,6 +83,7 @@ def test_time():
     t = _get_time()
     ty = load(dump(t))
 
+    assert type(t) is type(ty)
     for attr in ('shape', 'jd1', 'jd2', 'format', 'scale', 'precision', 'in_subfmt',
                  'out_subfmt', 'location', 'delta_ut1_utc', 'delta_tdb_tt'):
         assert np.all(getattr(t, attr) == getattr(ty, attr))
@@ -90,8 +91,9 @@ def test_time():
 
 def test_timedelta():
     t = _get_time()
-    dt = t - t
+    dt = t - t + 0.1234556 * u.s
     dty = load(dump(dt))
 
+    assert type(dt) is type(dty)
     for attr in ('shape', 'jd1', 'jd2', 'format', 'scale'):
         assert np.all(getattr(dt, attr) == getattr(dty, attr))
