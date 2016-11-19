@@ -12,6 +12,8 @@ except ImportError:
     raise ImportError('`import yaml` failed, PyYAML package is required for YAML')
 
 
+__all__ = ['AstropyLoader', 'AstropyDumper', 'load', 'load_all', 'dump']
+
 def unit_representer(dumper, obj):
     out = {'name': obj.to_string()}
     return dumper.represent_mapping(u'!astropy.units.Unit', out)
@@ -23,7 +25,6 @@ def unit_constructor(loader, node):
 
 
 def time_representer(dumper, obj):
-    # TODO serialize delta_tdb_tt and delta_ut1_utc
     out = {}
     for attr in ('jd1', 'jd2', 'format', 'scale', 'precision', 'in_subfmt',
                  'out_subfmt', 'location', '_delta_ut1_utc', '_delta_tdb_tt'):
@@ -170,3 +171,59 @@ AstropyLoader.add_constructor('!astropy.coordinates.sky_coordinate.SkyCoord',
                               skycoord_constructor)
 
 
+def load(stream):
+    """Parse the first YAML document in a stream using the AstropyLoader and
+    produce the corresponding Python object.
+
+    Parameters
+    ----------
+    stream : str or file-like object
+        YAML input
+
+    Returns
+    -------
+    obj : object
+        Object corresponding to YAML document
+    """
+    return yaml.load(stream, Loader=AstropyLoader)
+
+
+def load_all(stream):
+    """Parse the all YAML documents in a stream using the AstropyLoader class and
+    produce the corresponding Python object.
+
+    Parameters
+    ----------
+    stream : str or file-like object
+        YAML input
+
+    Returns
+    -------
+    obj : object
+        Object corresponding to YAML document
+
+    """
+    return yaml.load_all(stream, Loader=AstropyLoader)
+
+
+def dump(data, stream=None, **kwargs):
+    """Serialize a Python object into a YAML stream using the AstropyDumper class.
+    If stream is None, return the produced string instead.
+
+    Parameters
+    ----------
+    data: object
+        Object to serialize to YAML
+    stream : file-like object, optional
+        YAML output (if not supplied a string is returned)
+    **kwargs
+        Other keyword arguments that get passed to yaml.dump()
+
+    Returns
+    -------
+    out : str or None
+        If no ``stream`` is supplied then YAML output is returned as str
+
+    """
+    kwargs['Dumper'] = AstropyDumper
+    return yaml.dump(data, stream=stream, **kwargs)
