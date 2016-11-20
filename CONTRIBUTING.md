@@ -68,6 +68,9 @@ Other Tips
 
         $ git commit --amend
 
+- To skip only the AppVeyor (Windows) CI builds you can use "[skip appveyor]".
+  But there is (currently) no possibility to only skip the Travis CI builds.
+
 Checklist for Contributed Code
 ------------------------------
 
