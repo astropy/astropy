@@ -1533,6 +1533,9 @@ Bug Fixes
     without e-terms, which will have affected coordinates not on the unit
     sphere (i.e., with distances). [#4293]
 
+  - Fix bug where with cds units enabled it was no longer possible to initialize
+    an ``Angle``. [#5483]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
