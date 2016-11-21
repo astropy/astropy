@@ -883,3 +883,19 @@ def test_repr_latex():
     # make sure the ... appears for large arrays
     bigarrangle = Angle(np.ones(50000)/50000., u.deg)
     assert '...' in bigarrangle._repr_latex_()
+
+
+def test_angle_with_cds_units_enabled():
+    """Regression test for #5350
+
+    Especially the example in
+    https://github.com/astropy/astropy/issues/5350#issuecomment-248770151
+    """
+    from ...units import cds
+    # the problem is with the parser, so remove it temporarily
+    from ..angle_utilities import _AngleParser
+    del _AngleParser._parser
+    with cds.enable():
+        Angle('5d')
+    del _AngleParser._parser
+    Angle('5d')
