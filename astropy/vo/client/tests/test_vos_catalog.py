@@ -186,6 +186,9 @@ class TestWriteJson(object):
         outfile = os.path.join(self.outdir, 'test_1.json')
         db = vos_catalog.VOSDatabase.from_json(DB_FILE)
         db.to_json(outfile)
+        with pytest.raises(OSError) as exc:
+            db.to_json(outfile)
+        assert str(exc.value).endswith("test_1.json exists.")
         with catch_warnings(AstropyDeprecationWarning) as warning_lines:
             db.to_json(outfile, clobber=True)
             assert warning_lines[0].category == AstropyDeprecationWarning
