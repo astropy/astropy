@@ -442,7 +442,7 @@ class VOSDatabase(VOSBase):
             File exists.
 
         """
-        if os.path.exists(filename) and not overwrite:  # pragma: no cover
+        if os.path.exists(filename) and not overwrite:
             raise OSError('{0} exists.'.format(filename))
 
         with open(filename, 'w') as fd:
