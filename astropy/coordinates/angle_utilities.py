@@ -43,6 +43,10 @@ class _AngleParser(object):
         # TODO: in principle, the parser should be invalidated if we change unit
         # system (from CDS to FITS, say).  Might want to keep a link to the
         # unit_registry used, and regenerate the parser/lexer if it changes.
+        # Alternatively, perhaps one should not worry at all and just pre-
+        # generate the parser for each release (as done for unit formats).
+        # For some discussion of this problem, see
+        # https://github.com/astropy/astropy/issues/5350#issuecomment-248770151
         if '_parser' not in _AngleParser.__dict__:
             _AngleParser._parser, _AngleParser._lexer = self._make_parser()
 
