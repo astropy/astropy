@@ -879,3 +879,19 @@ def test_angle_axis_deprecation():
         an1, ax1 = angle_axis(m)
     assert_allclose(an1.to(u.deg).value, 90.)
     assert_allclose(ax1, [0., 0., 1.])
+
+
+def test_angle_with_cds_units_enabled():
+    """Regression test for #5350
+
+    Especially the example in
+    https://github.com/astropy/astropy/issues/5350#issuecomment-248770151
+    """
+    from ...units import cds
+    # the problem is with the parser, so remove it temporarily
+    from ..angle_utilities import _AngleParser
+    del _AngleParser._parser
+    with cds.enable():
+        Angle('5d')
+    del _AngleParser._parser
+    Angle('5d')
