@@ -229,6 +229,10 @@ API Changes
 
 - ``astropy.vo``
 
+  - ``VOSDatabase.to_json()`` now accepts an ``overwrite`` argument.
+    If ``clobber`` is used, an ``AstropyDeprecationWarning`` is
+    issued. If both are used, a ``TypeError`` is raised. [#5171]
+
 - ``astropy.wcs``
 
   - ``wcs.rotateCD()`` was deprecated without a replacement. [#5240]
