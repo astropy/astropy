@@ -247,6 +247,14 @@ class HDUList(list, _Verify):
 
         return super(HDUList, self).__len__()
 
+    def __repr__(self):
+        # In order to correctly repr an HDUList we need to load all the
+        # HDUs as well
+        while self._read_next_hdu():
+            pass
+
+        return super(HDUList, self).__repr__()
+
     def __iter__(self):
         idx = 0
         while True:
@@ -667,8 +675,6 @@ class HDUList(list, _Verify):
                 'Extension %s is out of bound or not found.' % index)
 
         return len(self) + index
-
-
 
     def readall(self):
         """
