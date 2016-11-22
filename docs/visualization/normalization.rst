@@ -152,8 +152,8 @@ the data and the interval and stretch objects:
     import numpy as np
     import matplotlib.pyplot as plt
 
-    from astropy.visualization import MinMaxInterval, SqrtStretch
-    from astropy.visualization.mpl_normalize import ImageNormalize
+    from astropy.visualization import (MinMaxInterval, SqrtStretch,
+                                       ImageNormalize)
 
     # Generate a test image
     image = np.arange(65536).reshape((256, 256))
@@ -191,8 +191,8 @@ also be the vmin and vmax limits, which you can determine from the
     import numpy as np
     import matplotlib.pyplot as plt
 
-    from astropy.visualization import MinMaxInterval, SqrtStretch
-    from astropy.visualization.mpl_normalize import ImageNormalize
+    from astropy.visualization import (MinMaxInterval, SqrtStretch,
+                                       ImageNormalize)
 
     # Generate a test image
     image = np.arange(65536).reshape((256, 256))
@@ -223,7 +223,7 @@ to be used in scripted programs; it's better to use
 
     import numpy as np
     import matplotlib.pyplot as plt
-    from astropy.visualization.mpl_normalize import simple_norm
+    from astropy.visualization import simple_norm
 
     # Generate a test image
     image = np.arange(65536).reshape((256, 256))
