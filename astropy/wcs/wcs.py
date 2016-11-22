@@ -2629,7 +2629,8 @@ reduce these to 2 dimensions using the naxis kwarg.
         """
         return str(self.to_header(relax))
 
-    def footprint_to_file(self, filename=None, color='green', width=2):
+    def footprint_to_file(self, filename=None, color='green', width=2,
+                          coordsys=None):
         """
         Writes out a `ds9`_ style regions file. It can be loaded
         directly by `ds9`_.
@@ -2644,21 +2645,26 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         width : int, optional
             Width of the region line.
+
+        coordsys : str, optional
+            Coordinate system. If not specified (default), the ``radesys``
+            value is used. For all possible values, see
+            http://ds9.si.edu/doc/ref/region.html#RegionFileFormat
+
         """
         if not filename:
             filename = 'footprint.reg'
-        comments = '# Region file format: DS9 version 4.0 \n'
-        comments += ('# global color=green font="helvetica 12 bold ' +
-                     'select=1 highlite=1 edit=1 move=1 delete=1 ' +
-                     'include=1 fixed=0 source\n')
+        comments = ('# Region file format: DS9 version 4.0 \n'
+                    '# global color=green font="helvetica 12 bold '
+                    'select=1 highlite=1 edit=1 move=1 delete=1 '
+                    'include=1 fixed=0 source\n')
 
-        f = open(filename, 'a')
-        f.write(comments)
-        f.write('linear\n')
-        f.write('polygon(')
-        self.calc_footprint().tofile(f, sep=',')
-        f.write(') # color={0}, width={1:d} \n'.format(color, width))
-        f.close()
+        with open(filename, mode='w') as f:
+            f.write(comments)
+            f.write('{}\n'.format(self.wcs.radesys))
+            f.write('polygon(')
+            self.calc_footprint().tofile(f, sep=',')
+            f.write(') # color={0}, width={1:d} \n'.format(color, width))
 
     @property
     def _naxis1(self):
