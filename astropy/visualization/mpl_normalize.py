@@ -30,6 +30,8 @@ except ImportError:
 
 __all__ = ['ImageNormalize', 'simple_norm']
 
+__doctest_requires__ = {'*': ['matplotlib']}
+
 
 class ImageNormalize(Normalize):
     """
