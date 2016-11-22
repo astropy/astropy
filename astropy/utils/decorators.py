@@ -8,6 +8,7 @@ from __future__ import print_function
 import functools
 import inspect
 import itertools
+import re
 import textwrap
 import types
 import warnings
@@ -23,6 +24,9 @@ from ..extern.six.moves import zip
 __all__ = ['classproperty', 'deprecated', 'deprecated_attribute',
            'deprecated_renamed_argument', 'format_doc',
            'lazyproperty', 'sharedmethod', 'wraps']
+
+
+_BLANKLINE_REGEX = re.compile(r'\n\s*\n')
 
 
 def deprecated(since, message='', name='', alternative='', pending=False,
@@ -459,7 +463,9 @@ def deprecated_renamed_argument(old_name, new_name, since,
         if function.__doc__:
             # Remove indentation of the original documentation so it will be
             # correctly rendered.
-            doc = [textwrap.dedent(function.__doc__).strip('\n')]
+            doc = []
+            original_doc = _BLANKLINE_REGEX.split(inspect.getdoc(function),
+                                                  maxsplit=1)
 
             # Append the deprecation messages ordered by their "since".
             def item2(x):
@@ -475,6 +481,12 @@ def deprecated_renamed_argument(old_name, new_name, since,
                 for old, new, _ in vals:
                     doc.append("   ``{}`` replaces the deprecated "
                                "``{}`` argument.".format(new, old))
+
+            doc.insert(0, original_doc[0])
+            if len(original_doc) > 1 and original_doc[1].strip():
+                # Also append an empty string so there is an empty line between
+                # directives and the remaining parts of the original docs.
+                doc.extend(('', original_doc[1]))
 
             function.__doc__ = '\n'.join(doc)
 
