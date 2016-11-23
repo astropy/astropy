@@ -23,8 +23,10 @@ information. The original FITS file can be downloaded from `here
    :nofigs:
 
     from astropy.wcs import WCS
-    from astropy.visualization.wcsaxes import datasets
-    hdu = datasets.fetch_l1448_co_hdu()
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
+    filename = get_pkg_data_filename('l1448/l1448_13co.fits')
+    hdu = fits.open(filename)[0]
     wcs = WCS(hdu.header)
     image_data = hdu.data
 
@@ -92,8 +94,10 @@ If we don't want to reverse the dimensions plotted, we can simply do:
    :nofigs:
 
     from astropy.wcs import WCS
-    from astropy.visualization.wcsaxes import datasets
-    hdu = datasets.fetch_l1448_co_hdu()
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
+    filename = get_pkg_data_filename('l1448/l1448_13co.fits')
+    hdu = fits.open(filename)[0]
     wcs = WCS(hdu.header)
     image_data = hdu.data
 

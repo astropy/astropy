@@ -1,10 +1,15 @@
+**********************************************
 Making plots with coordinate systems (WCSAxes)
-==============================================
+**********************************************
 
 WCSAxes is a framework for making plots of Astronomical data in Matplotlib.
 
+Getting started
+===============
+
+
 Using WCSAxes
--------------
+=============
 
 .. toctree::
    :maxdepth: 1
@@ -19,7 +24,7 @@ Using WCSAxes
    custom_frames
 
 Reference/API
--------------
+=============
 
 .. automodapi:: astropy.visualization.wcsaxes
    :no-inheritance-diagram:

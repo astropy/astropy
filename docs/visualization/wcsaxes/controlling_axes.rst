@@ -15,9 +15,11 @@ can change the unit to an equivalent one by:
    :nofigs:
 
     from astropy.wcs import WCS
-    from astropy.visualization.wcsaxes import datasets
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
 
-    hdu = datasets.fetch_l1448_co_hdu()
+    filename = get_pkg_data_filename('l1448/l1448_13co.fits')
+    hdu = fits.open(filename)[0]
     wcs = WCS(hdu.header)
 
     import matplotlib.pyplot as plt
@@ -53,4 +55,3 @@ so we want to flip an axis so that it goes in the opposite direction. To do this
    :align: center
 
     ax.invert_xaxis()
-

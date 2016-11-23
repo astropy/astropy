@@ -13,13 +13,14 @@ following example shows how to use the built-in
    :align: center
 
     from astropy.wcs import WCS
-    from astropy.visualization.wcsaxes import datasets
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
     from astropy.visualization.wcsaxes.frame import EllipticalFrame
-
-    hdu = datasets.fetch_msx_hdu()
-    wcs = WCS(hdu.header)
-
     import matplotlib.pyplot as plt
+
+    filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
+    hdu = fits.open(filename)[0]
+    wcs = WCS(hdu.header)
 
     fig = plt.figure()
     ax = fig.add_axes([0.15, 0.15, 0.7, 0.7], projection=wcs,
@@ -42,14 +43,15 @@ all-sky plots such as Aitoff projections:
    :align: center
 
     from astropy.wcs import WCS
-    from astropy.visualization.wcsaxes import datasets
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
     from astropy.visualization.wcsaxes.frame import EllipticalFrame
     from matplotlib import patheffects
-
-    hdu = datasets.fetch_rosat_hdu()
-    wcs = WCS(hdu.header)
-
     import matplotlib.pyplot as plt
+
+    filename = get_pkg_data_filename('allsky/allsky_rosat.fits')
+    hdu = fits.open(filename)[0]
+    wcs = WCS(hdu.header)
 
     fig = plt.figure(figsize=(7, 4))
     ax = fig.add_axes([0.05, 0.05, 0.9, 0.9], projection=wcs,
@@ -107,12 +109,13 @@ which we can then use:
     :align: center
 
      from astropy.wcs import WCS
-     from astropy.visualization.wcsaxes import datasets
-
-     hdu = datasets.fetch_msx_hdu()
-     wcs = WCS(hdu.header)
-
+     from astropy.io import fits
+     from astropy.utils.data import get_pkg_data_filename
      import matplotlib.pyplot as plt
+
+     filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
+     hdu = fits.open(filename)[0]
+     wcs = WCS(hdu.header)
 
      fig = plt.figure()
      ax = fig.add_axes([0.15, 0.15, 0.7, 0.7], projection=wcs,

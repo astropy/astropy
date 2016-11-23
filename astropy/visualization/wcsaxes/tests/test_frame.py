@@ -6,7 +6,6 @@ from astropy.wcs import WCS
 from astropy.tests.helper import pytest, remote_data
 
 from .. import WCSAxes
-from .. import datasets
 from ..frame import BaseFrame
 
 from . import baseline_dir
