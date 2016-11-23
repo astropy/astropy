@@ -992,6 +992,9 @@ class BinTableHDU(_TableBaseHDU):
         overwrite : bool, optional
             If ``True``, overwrite the output file if exists.
 
+            .. versionchanged:: 1.3
+               ``overwrite`` replaces the deprecated ``clobber`` argument
+
         Notes
         -----
         The primary use for the `dump` method is to allow viewing and editing

@@ -663,6 +663,9 @@ class HDUList(list, _Verify):
         overwrite : bool, optional
             If ``True``, overwrite the output file if exists.
 
+            .. versionchanged:: 1.3
+               ``overwrite`` replaces the deprecated ``clobber`` argument
+
         checksum : bool
             When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards
             to the headers of all HDU's written to the file.

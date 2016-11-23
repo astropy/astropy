@@ -436,6 +436,9 @@ class VOSDatabase(VOSBase):
         overwrite : bool
             If ``True``, overwrite the output file if it exists.
 
+            .. versionchanged:: 1.3
+               ``overwrite`` replaces the deprecated ``clobber`` argument
+
         Raises
         ------
         OSError
