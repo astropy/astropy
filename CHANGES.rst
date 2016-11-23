@@ -212,6 +212,10 @@ API Changes
 
   - Deprecated the ``scale_image`` function. [#5206]
 
+  - The ``mpl_normalize`` module (containing the ``ImageNormalize``
+    class) is now automatically imported with the ``visualization``
+    subpackage. [#5491]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
