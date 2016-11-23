@@ -1,5 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from astropy.extern import six
+
+from __future__ import print_function, division, absolute_import
+
+from ...extern import six
+
 from .coordinate_helpers import CoordinateHelper
 from .transforms import WCSPixel2WorldTransform
 from .utils import coord_type_from_ctype

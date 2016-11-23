@@ -1,8 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+from __future__ import print_function, division, absolute_import
+
 from numpy.testing import assert_almost_equal
 
-from astropy import units as u
-from astropy.wcs import WCS
+from .... import units as u
 
 from ..utils import (select_step_degree, select_step_hour, select_step_scalar,
                      coord_type_from_ctype)

@@ -1,10 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from __future__ import print_function, division, absolute_import
+
 import abc
 from collections import OrderedDict
+
 import numpy as np
 
-from astropy.extern import six
+from ...extern import six
 
 from matplotlib.lines import Line2D, Path
 from matplotlib.patches import PathPatch

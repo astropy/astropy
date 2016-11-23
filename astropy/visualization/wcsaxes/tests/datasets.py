@@ -4,8 +4,8 @@
 
 import time
 
-from astropy.utils.data import download_file
-from astropy.io import fits
+from ....utils.data import download_file
+from ....io import fits
 
 __all__ = ['fetch_msx_hdu',
            'fetch_rosat_hdu',

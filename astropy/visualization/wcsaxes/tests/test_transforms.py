@@ -1,7 +1,12 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+from __future__ import print_function, division, absolute_import
+
 import numpy as np
-from astropy.wcs import WCS
 
 from matplotlib.transforms import Affine2D
+
+from ....wcs import WCS
 
 from ..transforms import (WCSWorld2PixelTransform, WCSPixel2WorldTransform,
                           CoordinateTransform)

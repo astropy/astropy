@@ -1,3 +1,7 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+from __future__ import print_function, division, absolute_import
+
 """
 This is a backport of the rc_context class from matplotlib 1.2.
 """

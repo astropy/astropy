@@ -1,9 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+from __future__ import print_function, division, absolute_import
+
 import numpy as np
 
-from astropy import units as u
-from astropy.extern import six
-from astropy.coordinates import BaseCoordinateFrame
+from ... import units as u
+from ...extern import six
+from ...coordinates import BaseCoordinateFrame
 
 # Modified from axis_artist, supports astropy.units
 

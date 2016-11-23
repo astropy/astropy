@@ -1,9 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 import numpy as np
 from numpy.testing import assert_almost_equal
-from astropy import units as u
-from astropy.extern import six
-from astropy.tests.helper import pytest
+
+from .... import units as u
+from ....extern import six
+from ....tests.helper import pytest
 from ..formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 
 

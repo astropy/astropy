@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from __future__ import print_function, division, absolute_import
+
 # Note: This file incldues code dervived from pywcsgrid2
 #
 # This file contains Matplotlib transformation objects (e.g. from pixel to world
@@ -12,14 +14,14 @@ import numpy as np
 from matplotlib.path import Path
 from matplotlib.transforms import Transform
 
-from astropy import units as u
-from astropy.wcs import WCS
-from astropy.wcs.utils import wcs_to_celestial_frame
-from astropy.extern import six
-from astropy.coordinates import (SkyCoord, frame_transform_graph,
-                                 SphericalRepresentation,
-                                 UnitSphericalRepresentation,
-                                 BaseCoordinateFrame)
+from ... import units as u
+from ...wcs import WCS
+from ...wcs.utils import wcs_to_celestial_frame
+from ...extern import six
+from ...coordinates import (SkyCoord, frame_transform_graph,
+                            SphericalRepresentation,
+                            UnitSphericalRepresentation,
+                            BaseCoordinateFrame)
 
 
 @six.add_metaclass(abc.ABCMeta)

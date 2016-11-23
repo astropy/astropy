@@ -1,17 +1,21 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+from __future__ import print_function, division, absolute_import
+
 """
 This file defines the classes used to represent a 'coordinate', which includes
 axes, ticks, tick labels, and grid lines.
 """
 
 import numpy as np
-from astropy import units as u
-from astropy.extern import six
 
 from matplotlib.ticker import Formatter
 from matplotlib.transforms import Affine2D, ScaledTranslation
 from matplotlib.patches import PathPatch
 from matplotlib import rcParams
+
+from ... import units as u
+from ...extern import six
 
 from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 from .ticks import Ticks
