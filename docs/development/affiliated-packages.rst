@@ -409,7 +409,9 @@ files manually`_ section since this explains what many of the files do.
    package on `Read the Docs <https://readthedocs.org>`_ should work:
 
    - activate ``Install your project inside a virtualenv using setup.py install``
-   - Requirements file: ``docs/rtd-pip-requirements``
+   - copy these additional files from the package template into the top-level
+     directory of your package: ``.rtd-environment.yml`` and ``readthedocs.yml``.
+     Edit ``.rtd-environment.yml`` with your package name and requirements.
    - activate ``Give the virtual environment access to the global site-packages dir.``
 
    All other settings can stay on their default value.
