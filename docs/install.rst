@@ -46,7 +46,7 @@ Astropy also depends on other packages for optional features:
 
 - `setuptools <https://pythonhosted.org/setuptools/>`_: Used for discovery of entry points which are used to insert fitters into modeling.fitting
 
-- `mock <https://github.com/testing-cabal/mock>`_ (python <= 3.2) or `unittest.mock <https://docs.python.org/dev/library/unittest.mock.html>`_ (python > 3.3): 
+- `mock <https://github.com/testing-cabal/mock>`_ (python <= 3.2) or `unittest.mock <https://docs.python.org/dev/library/unittest.mock.html>`_ (python > 3.3):
   Used for testing the entry point discovery functionality in `astropy.modeling.fitting`
 
 However, note that these only need to be installed if those particular features
@@ -164,7 +164,7 @@ Prerequisites
 You will need a compiler suite and the development headers for Python and
 Numpy in order to build Astropy.
 
-You will also need `Cython <http://cython.org/>`_ (v0.19 or later) and
+You will also need `Cython <http://cython.org/>`_ (v0.22 or later) and
 `jinja2 <http://jinja.pocoo.org/docs/dev/>`_ (v2.7 or later) installed
 to build from source, unless you are installing a numbered release. (The
 releases packages have the necessary C files packaged with them, and hence do
@@ -403,7 +403,7 @@ Any astropy affiliated package can be installed the same way (e.g. the
 `spectral-cube <http://spectral-cube.readthedocs.io/en/latest/>`_ or other
 packages that may be useful for radioastronomy).
 
-.. note:: The above instructions have been tested and are known to work on 
+.. note:: The above instructions have been tested and are known to work on
           MacOS X with CASA 4.3.1 and Linux with CASA 4.3.1, 4.4.0, 4.5.3, and
           pre-releases of CASA 4.7. However, due to missing header files in
           CASA, they are known to **not** work on Linux with CASA 4.2.1 and
