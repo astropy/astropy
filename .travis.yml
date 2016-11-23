@@ -23,7 +23,7 @@ env:
         # to repeat them for all configurations.
         - NUMPY_VERSION=stable
         - ASTROPY_VERSION=stable
-        - CONDA_DEPENDENCIES='pyqt nose matplotlib pillow'
+        - CONDA_DEPENDENCIES='pyqt nose matplotlib pillow pyqt=4'
         - PIP_DEPENDENCIES='pytest-mpl'
         - SETUP_XVFB=True
         - SETUP_CMD='test --remote-data'
