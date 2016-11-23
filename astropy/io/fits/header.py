@@ -659,6 +659,9 @@ class Header(object):
         overwrite : bool, optional
             If ``True``, overwrite the output file if exists.
 
+            .. versionchanged:: 1.3
+               ``overwrite`` replaces the deprecated ``clobber`` argument
+
         """
 
         close_file = fileobj_closed(fileobj)

@@ -413,6 +413,9 @@ def writeto(filename, data, header=None, output_verify='exception',
     overwrite : bool, optional
         If ``True``, overwrite the output file if exists.
 
+        .. versionchanged:: 1.3
+           ``overwrite`` replaces the deprecated ``clobber`` argument
+
     checksum : bool, optional
         If `True`, adds both ``DATASUM`` and ``CHECKSUM`` cards to the
         headers of all HDU's written to the file.
@@ -721,6 +724,9 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
 
     overwrite : bool, optional
         If ``True``, overwrite the output file if exists.
+
+        .. versionchanged:: 1.3
+           ``overwrite`` replaces the deprecated ``clobber`` argument
 
     Notes
     -----
