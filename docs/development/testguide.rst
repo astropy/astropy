@@ -916,11 +916,17 @@ doctest.  The values are otherwise compared exactly, so more significant
 Continuous integration
 ----------------------
 
-Astropy uses `Travis <https://travis-ci.org/astropy/astropy>`_ for continuous
-integration (CI) on Linux and OSX setups, and `Appveyor
-<https://ci.appveyor.com/project/Astropy/astropy>`_ on Windows. These
-continuously test the package for each commit and pull request that is pushed
-to GitHub to notice when something breaks.
+Overview
+^^^^^^^^
+
+Astropy uses the following continuous integration (CI) services:
+
+* `Travis <https://travis-ci.org/astropy/astropy>`_ for 64-bit Linux and OS X setups
+* `Appveyor <https://ci.appveyor.com/project/Astropy/astropy>`_ for Windows
+* `CircleCI <https://circleci.com>`_ for 32-bit Linux
+
+These continuously test the package for each commit and pull request that is
+pushed to GitHub to notice when something breaks.
 
 Astropy and many affiliated packages use an external package called
 `ci-helpers <https://github.com/astropy/astropy-helpers>`_ to provide
@@ -933,3 +939,53 @@ environmental variables in ``.travis.yml`` and ``appveyor.yml``. For more
 details on how to set up this machinery, see the `package-template
 <https://github.com/astropy/package-template>`_ and `ci-helpers`_.
 
+The 32-bit tests on CircleCI use a pre-defined Docker image defined `here
+<https://github.com/astropy/astropy-docker/tree/master/32bit>`_ which includes
+a 32-bit Python environment. If you want to run tests for Astropy affiliated
+packages in the same way, you can use the same set-up on CircleCI as the core
+package, but just be sure to install Astropy first using::
+
+    easy_install pip
+    pip install astropy
+
+For convenience, you can also use the ``astropy/affiliated-32bit-test-env``
+Docker image instead of ``astropy/astropy-32bit-test-env`` - the former includes
+the latest stable version of Astropy pre-installed.
+
+In some cases, you may see failures on continuous integration services that
+you do not see locally, for example because the operating system is different,
+or because the failure happens with only 32-bit Python. The following sections
+explain how you can reproduce specific builds locally.
+
+Reproducing failing 32-bit builds
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you want to run your tests in the same 32-bit Python environment that
+CircleCI uses, start off by installing `Docker <https://www.docker.com>`_ if you
+don't already have it installed. Docker can be installed on a variety of
+different operating systems.
+
+Then, make sure you have a version of the git repository (either the main
+Astropy repository or your fork) for which you want to run the tests. Go to that
+directory, then run Docker with::
+
+    $ docker run -i -v ${PWD}:/astropy_src -t astropy/astropy-32bit-test-env:1.6 bash
+
+This will put you in the bash shell inside the Docker container. Once inside,
+you can go to the ``astropy_src`` directory, and you should see the files that
+are in your local git repository::
+
+    root@5e2b89d7b07c:/# cd /astropy_src
+    root@5e2b89d7b07c:/astropy_src# ls
+    ah_bootstrap.py  CONTRIBUTING.md       pip-requirements-doc
+    appveyor.yml     docs                  README.rst
+    astropy          examples              readthedocs.yml
+    astropy_helpers  ez_setup.py           setup.cfg
+    cextern          licenses              setup.py
+    CHANGES.rst      MANIFEST.in           static
+    circle.yml       pip-requirements      tox.ini
+    CITATION         pip-requirements-dev
+
+You can then run the tests with::
+
+    root@5e2b89d7b07c:/astropy_src# python setup.py test
