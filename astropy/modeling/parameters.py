@@ -19,7 +19,6 @@ import numpy as np
 
 from ..units import Quantity, UnitsError
 from ..utils import isiterable, OrderedDescriptor
-from ..utils.compat import ignored
 from ..extern import six
 from ..extern.six.moves import zip
 from .utils import array_repr_oneline

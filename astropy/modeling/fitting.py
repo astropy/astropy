@@ -465,7 +465,7 @@ class FittingWithOutlierRemoval(object):
             Fitted model after outlier removal.
         """
 
-        fitted_model = self.fitter(model, x, y, z, weights, **kwargs)
+        fitted_model = self.fitter(model, x, y, z, weights=weights, **kwargs)
         if z is None:
             filtered_data = y
             for n in range(self.niter):

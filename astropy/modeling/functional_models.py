@@ -14,12 +14,8 @@ from .parameters import Parameter, InputParameterError
 from .utils import ellipse_extent
 from ..extern.six.moves import map
 from ..stats.funcs import gaussian_sigma_to_fwhm
-from ..utils import deprecated
-from ..extern import six
-from .utils import get_inputs_and_params, _parameter_with_unit, _parameter_without_unit
 from ..units import dimensionless_unscaled
 from ..utils.exceptions import AstropyDeprecationWarning
-from ..units import Quantity
 
 __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'Const2D', 'Ellipse2D', 'Disk2D', 'BaseGaussian1D', 'Gaussian1D',
