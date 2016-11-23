@@ -7,7 +7,13 @@ from matplotlib.patches import Polygon
 
 from astropy import units as u
 from astropy.coordinates.representation import UnitSphericalRepresentation, CartesianRepresentation
-from astropy.coordinates.angles import rotation_matrix
+
+try:
+    from astropy.coordinates.matrix_utilities import rotation_matrix as rotation_array
+    def rotation_matrix(*args, **kwargs):
+        return np.matrix(rotation_array(*args, **kwargs))
+except ImportError:
+    from astropy.coordinates.angles import rotation_matrix
 
 __all__ = ['SphericalCircle']
 
