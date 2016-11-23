@@ -202,7 +202,7 @@ class RectangularFrame(BaseFrame):
 
 class EllipticalFrame(BaseFrame):
 
-    spine_names = 'c'
+    spine_names = 'chv'
 
     def update_spines(self):
 
@@ -218,3 +218,30 @@ class EllipticalFrame(BaseFrame):
         theta = np.linspace(0., 2 * np.pi, 1000)
         self['c'].data = np.array([xmid + dx * np.cos(theta),
                                    ymid + dy * np.sin(theta)]).transpose()
+        self['h'].data = np.array([np.linspace(xmin, xmax, 1000),
+                                   np.repeat(ymid, 1000)]).transpose()
+        self['v'].data = np.array([np.repeat(xmid, 1000),
+                                   np.linspace(ymin, ymax, 1000)]).transpose()
+
+    def _update_patch_path(self):
+        """Override path patch to include only the outer ellipse,
+        not the major and minor axes in the middle."""
+
+        self.update_spines()
+        vertices = self['c'].data
+
+        if self._path is None:
+            self._path = Path(vertices)
+        else:
+            self._path.vertices = vertices
+
+    def draw(self, renderer):
+        """Override to draw only the outer ellipse,
+        not the major and minor axes in the middle.
+
+        FIXME: we may want to add a general method to give the user control
+        over which spines are drawn."""
+        axis = 'c'
+        x, y = self[axis].pixel[:, 0], self[axis].pixel[:, 1]
+        line = Line2D(x, y, linewidth=self._linewidth, color=self._color, zorder=1000)
+        line.draw(renderer)

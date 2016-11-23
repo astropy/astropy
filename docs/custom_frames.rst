@@ -33,6 +33,38 @@ following example shows how to use the built-in
     # Clip the image to the frame
     im.set_clip_path(ax.coords.frame.patch)
 
+The :class:`~wcsaxes.frame.EllipticalFrame` class is especially useful for
+all-sky plots such as Aitoff projections:
+
+.. plot::
+   :context: reset
+   :include-source:
+   :align: center
+
+    from astropy.wcs import WCS
+    from wcsaxes import datasets
+    from wcsaxes.frame import EllipticalFrame
+    from matplotlib import patheffects
+
+    hdu = datasets.fetch_rosat_hdu()
+    wcs = WCS(hdu.header)
+
+    import matplotlib.pyplot as plt
+
+    fig = plt.figure(figsize=(7, 4))
+    ax = fig.add_axes([0.05, 0.05, 0.9, 0.9], projection=wcs,
+                      frame_class=EllipticalFrame)
+
+    path_effects=[patheffects.withStroke(linewidth=3, foreground='black')]
+    ax.coords.grid(color='white')
+    ax.coords['glon'].set_ticklabel(color='white', path_effects=path_effects)
+
+    im = ax.imshow(hdu.data, vmin=0., vmax=300.,
+              cmap=plt.cm.inferno, origin='lower')
+
+    # Clip the image to the frame
+    im.set_clip_path(ax.coords.frame.patch)
+
 However, you can also write your own frame class. The idea is to set up any
 number of connecting spines that define the frame. You can define a frame as a
 spine, but if you define it as multiple spines you will be able to control on

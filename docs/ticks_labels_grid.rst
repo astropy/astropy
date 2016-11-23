@@ -258,6 +258,11 @@ We can set the defaults back using:
     lat.set_ticklabel_position('l')
     lat.set_axislabel_position('l')
 
+On plots with elliptical frames, three alternate tick positions are supported:
+``c`` for the outer circular or elliptical border, ``h`` for the horizontal
+axis (which is usually the major axis of the ellipse), and ``v`` for the
+vertical axis (which is usually the minor axis of the ellipse).
+
 
 Hiding ticks and tick labels
 ============================
