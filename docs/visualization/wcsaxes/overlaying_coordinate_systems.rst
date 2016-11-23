@@ -10,9 +10,12 @@ For the example in the following page we start from the example introduced in
    :nofigs:
 
     from astropy.wcs import WCS
-    from astropy.visualization.wcsaxes import datasets
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
 
-    hdu = datasets.fetch_msx_hdu()
+    filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
+
+    hdu = fits.open(filename)[0]
     wcs = WCS(hdu.header)
 
     import matplotlib.pyplot as plt
@@ -24,9 +27,9 @@ For the example in the following page we start from the example introduced in
               origin='lower')
 
 The coordinates shown by default in a plot will be those derived from the WCS
-or transformation passed to the `astropy.visualization.wcsaxes.WCSAxes` class.
+or transformation passed to the :class:`~astropy.visualization.wcsaxes.WCSAxes` class.
 However, it is possible to overlay different coordinate systems using the
-:meth:`astropy.visualization.wcsaxes.WCSAxes.get_coords_overlay` method:
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.get_coords_overlay` method:
 
 .. plot::
    :context:

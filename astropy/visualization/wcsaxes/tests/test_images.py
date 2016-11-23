@@ -14,8 +14,8 @@ from astropy.coordinates import SkyCoord
 from ..rc_utils import rc_context
 
 from ..patches import SphericalCircle
-from .. import datasets, WCSAxes
-
+from .. import WCSAxes
+from . import datasets
 from . import baseline_dir
 
 

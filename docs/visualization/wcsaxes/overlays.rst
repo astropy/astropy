@@ -10,12 +10,14 @@ For the example in the following page we start from the example introduced in
    :nofigs:
 
     from astropy.wcs import WCS
-    from astropy.visualization.wcsaxes import datasets
-
-    hdu = datasets.fetch_msx_hdu()
-    wcs = WCS(hdu.header)
-
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
     import matplotlib.pyplot as plt
+
+    filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
+
+    hdu = fits.open(filename)[0]
+    wcs = WCS(hdu.header)
 
     fig = plt.figure()
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=wcs)
@@ -110,13 +112,15 @@ For example, you can add markers with positions defined in the FK5 system using:
    :nofigs:
 
     from astropy.wcs import WCS
-    from astropy.visualization.wcsaxes import datasets
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
     from matplotlib.patches import Rectangle
-
-    hdu = datasets.fetch_msx_hdu()
-    wcs = WCS(hdu.header)
-
     import matplotlib.pyplot as plt
+
+    filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
+
+    hdu = fits.open(filename)[0]
+    wcs = WCS(hdu.header)
 
     fig = plt.figure()
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=wcs)
@@ -148,13 +152,14 @@ in FK5 equatorial coordinates:
    :nofigs:
 
     from astropy.wcs import WCS
-    from astropy.visualization.wcsaxes import datasets
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
     from matplotlib.patches import Rectangle
-
-    hdu = datasets.fetch_msx_hdu()
-    wcs = WCS(hdu.header)
-
     import matplotlib.pyplot as plt
+
+    filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
+    hdu = fits.open(filename)[0]
+    wcs = WCS(hdu.header)
 
     fig = plt.figure()
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=wcs)
@@ -215,13 +220,14 @@ image to plot the contours for:
    :nofigs:
 
     from astropy.wcs import WCS
-    from astropy.visualization.wcsaxes import datasets
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
     from matplotlib.patches import Rectangle
-
-    hdu = datasets.fetch_msx_hdu()
-    wcs = WCS(hdu.header)
-
     import matplotlib.pyplot as plt
+
+    filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
+    hdu = fits.open(filename)[0]
+    wcs = WCS(hdu.header)
 
     fig = plt.figure()
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=wcs)
@@ -236,7 +242,9 @@ image to plot the contours for:
    :include-source:
    :align: center
 
-    hdu = datasets.fetch_bolocam_hdu()
+
+    filename = get_pkg_data_filename('galactic_center/gc_bolocam_gps.fits')
+    hdu = fits.open(filename)[0]
     ax.contour(hdu.data, transform=ax.get_transform(WCS(hdu.header)),
                levels=[1,2,3,4,5,6], colors='white')
 
@@ -250,13 +258,14 @@ In the case where you are making a plot of a celestial image, and want to plot a
    :nofigs:
 
     from astropy.wcs import WCS
-    from astropy.visualization.wcsaxes import datasets
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
     from matplotlib.patches import Rectangle
-
-    hdu = datasets.fetch_msx_hdu()
-    wcs = WCS(hdu.header)
-
     import matplotlib.pyplot as plt
+
+    filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
+    hdu = fits.open(filename)[0]
+    wcs = WCS(hdu.header)
 
     fig = plt.figure()
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=wcs)
