@@ -3078,16 +3078,8 @@ reduce these to 2 dimensions using the naxis kwarg.
         and this will generate a plot with the correct WCS coordinates on the
         axes. See http://wcsaxes.readthedocs.io for more information.
         """
-
-        try:
-            from wcsaxes import WCSAxes
-        except ImportError:
-            raise ImportError("Using WCS instances as Matplotlib projections "
-                              "requires the WCSAxes package to be installed. "
-                              "See http://wcsaxes.readthedocs.io for more "
-                              "details.")
-        else:
-            return WCSAxes, {'wcs': self}
+        from ..visualization.wcsaxes import WCSAxes
+        return WCSAxes, {'wcs': self}
 
 
 def __WCS_unpickle__(cls, dct, fits_data):
