@@ -694,10 +694,16 @@ class Header(object):
     @classmethod
     def fromtextfile(cls, fileobj, endcard=False):
         """
+        Read a header from a simple text file or file-like object.
+
         Equivalent to::
 
             >>> Header.fromfile(fileobj, sep='\\n', endcard=False,
             ...                 padding=False)
+
+        See Also
+        --------
+        fromfile
         """
 
         return cls.fromfile(fileobj, sep='\n', endcard=endcard, padding=False)
@@ -705,10 +711,19 @@ class Header(object):
     @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
     def totextfile(self, fileobj, endcard=False, overwrite=False):
         """
+        Write the header as text to a file or a file-like object.
+
         Equivalent to::
 
             >>> Header.tofile(fileobj, sep='\\n', endcard=False,
             ...               padding=False, overwrite=overwrite)
+
+        .. versionchanged:: 1.3
+           ``overwrite`` replaces the deprecated ``clobber`` argument.
+
+        See Also
+        --------
+        tofile
         """
 
         self.tofile(fileobj, sep='\n', endcard=endcard, padding=False,
