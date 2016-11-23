@@ -1,22 +1,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from distutils.version import LooseVersion
+from __future__ import print_function, division, absolute_import
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-import astropy
-from astropy import units as u
-from astropy.wcs import WCS
-from astropy.tests.helper import pytest, remote_data
+from .... import units as u
+from ....wcs import WCS
+from ....tests.helper import pytest, remote_data
 
 from .. import WCSAxes
 from .test_images import BaseImageTests
 from ..transforms import CurvedTransform
 
 from . import baseline_dir
-
-requires_astropy_10 = pytest.mark.skipif(str(LooseVersion(astropy.__version__) < LooseVersion("1.0")))
 
 # Create fake transforms that roughly mimic a polar projection
 
@@ -108,7 +105,6 @@ class TestTransformCoordMeta(BaseImageTests):
 
         return fig
 
-    @requires_astropy_10
     @remote_data
     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='coords_overlay_auto_coord_meta.png', tolerance=1.5)
     def test_coords_overlay_auto_coord_meta(self):

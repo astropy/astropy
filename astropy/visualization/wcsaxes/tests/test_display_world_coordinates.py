@@ -3,11 +3,10 @@ from ..core import WCSAxes
 import matplotlib.pyplot as plt
 from matplotlib.backend_bases import KeyEvent
 
-from astropy.wcs import WCS
-from astropy.extern import six
-from astropy.tests.helper import pytest
-from astropy.coordinates import FK5
-from astropy.time import Time
+from ....wcs import WCS
+from ....extern import six
+from ....coordinates import FK5
+from ....time import Time
 
 from .test_images import BaseImageTests
 

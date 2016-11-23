@@ -1,9 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 import numpy as np
 import matplotlib.pyplot as plt
 
-from astropy.wcs import WCS
-from astropy.tests.helper import pytest, remote_data
+from ....wcs import WCS
+from ....tests.helper import pytest, remote_data
 
 from .. import WCSAxes
 from ..frame import BaseFrame

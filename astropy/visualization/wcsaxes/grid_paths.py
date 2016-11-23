@@ -1,9 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+from __future__ import print_function, division, absolute_import
+
 import numpy as np
 
 from matplotlib.lines import Path
 
-from astropy.coordinates.angle_utilities import angular_separation
+from ...coordinates.angle_utilities import angular_separation
 
 # Tolerance for WCS round-tripping
 ROUND_TRIP_TOL = 1e-1

@@ -5,17 +5,16 @@ from __future__ import print_function, division, absolute_import
 import numpy as np
 from matplotlib.patches import Polygon
 
-from astropy import units as u
-from astropy.coordinates.representation import UnitSphericalRepresentation, CartesianRepresentation
+from ... import units as u
+from ...coordinates.representation import UnitSphericalRepresentation, CartesianRepresentation
+from ...coordinates.matrix_utilities import rotation_matrix as rotation_array
 
-try:
-    from astropy.coordinates.matrix_utilities import rotation_matrix as rotation_array
-    def rotation_matrix(*args, **kwargs):
-        return np.matrix(rotation_array(*args, **kwargs))
-except ImportError:
-    from astropy.coordinates.angles import rotation_matrix
 
 __all__ = ['SphericalCircle']
+
+
+def rotation_matrix(*args, **kwargs):
+    return np.matrix(rotation_array(*args, **kwargs))
 
 
 def _transform_cartesian(representation, matrix):

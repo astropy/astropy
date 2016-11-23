@@ -1,4 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+from __future__ import print_function, division, absolute_import
+
 import numpy as np
 
 from matplotlib.text import Text
