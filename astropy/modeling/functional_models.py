@@ -583,7 +583,7 @@ class Sersic1D(Fittable1DModel):
 
     .. math::
 
-        I(r)=I_e exp\left[-b_n\left(\frac{r}{r_{e}}\right)^{(1/n)}-1\right]
+        I(r)=I_e\exp\left\{-b_n\left[\left(\frac{r}{r_{e}}\right)^{(1/n)}-1\right]\right\}
 
     The constant :math:`b_n` is defined such that :math:`r_e` contains half the total
     luminosity, and can be solved for numerically.
@@ -1997,7 +1997,7 @@ class Sersic2D(Fittable2DModel):
 
     .. math::
 
-        I(x,y) = I(r) = I_e\exp\left[-b_n\left(\frac{r}{r_{e}}\right)^{(1/n)}-1\right]
+        I(x,y) = I(r) = I_e\exp\left\{-b_n\left[\left(\frac{r}{r_{e}}\right)^{(1/n)}-1\right]\right\}
 
     The constant :math:`b_n` is defined such that :math:`r_e` contains half the total
     luminosity, and can be solved for numerically.
