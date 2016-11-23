@@ -21,6 +21,7 @@ Using `astropy.visualization`
 
    normalization.rst
    histogram.rst
+   wcsaxes/index.rst
 
 
 .. _fits2bitmap:
