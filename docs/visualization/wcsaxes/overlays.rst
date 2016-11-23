@@ -10,7 +10,7 @@ For the example in the following page we start from the example introduced in
    :nofigs:
 
     from astropy.wcs import WCS
-    from wcsaxes import datasets
+    from astropy.visualization.wcsaxes import datasets
 
     hdu = datasets.fetch_msx_hdu()
     wcs = WCS(hdu.header)
@@ -28,7 +28,7 @@ Pixel coordinates
 =================
 
 Apart from the handling of the ticks, tick labels, and grid lines, the
-`~wcsaxes.WCSAxes` class behaves like a normal Matplotlib
+`~astropy.visualization.wcsaxes.WCSAxes` class behaves like a normal Matplotlib
 ``Axes`` instance, and methods such as
 :meth:`~matplotlib.axes.Axes.imshow`,
 :meth:`~matplotlib.axes.Axes.contour`,
@@ -66,15 +66,15 @@ which will transform the input from world to pixel coordinates before it is
 passed to Matplotlib and plotted. For instance::
 
     ax.scatter(..., transform=...)
-    
+
 will take the values passed to :meth:`~matplotlib.axes.Axes.scatter` and will
 transform them using the transformation passed to ``transform=``, in order to
 end up with the final pixel coordinates.
 
-The `~wcsaxes.WCSAxes` class includes a :meth:`~wcsaxes.WCSAxes.get_transform`
+The `~astropy.visualization.wcsaxes.WCSAxes` class includes a :meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform`
 method that can be used to get the appropriate transformation object to convert
 from various world coordinate systems to the final pixel coordinate system
-required by Matplotlib. The :meth:`~wcsaxes.WCSAxes.get_transform` method can
+required by Matplotlib. The :meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform` method can
 take a number of different inputs, which are desribed in this and subsequent
 sections. The two simplest inputs to this method are ``'world'`` and
 ``'pixel'``.
@@ -82,8 +82,8 @@ sections. The two simplest inputs to this method are ``'world'`` and
 For example, if your WCS defines an image where the coordinate system consists of an angle in degrees and a wavelength in nanometers, you can do::
 
     ax.scatter([34], [3.2], transform=ax.get_transform('world'))
-    
-to plot a marker at (34deg, 3.2nm). 
+
+to plot a marker at (34deg, 3.2nm).
 
 Using ``ax.get_transform('pixel')`` is equivalent to not using any
 transformation at all (and things then behave as described in the `Pixel
@@ -93,7 +93,7 @@ Celestial coordinates
 =====================
 
 For the special case where the WCS represents celestial coordinates, a number
-of other inputs can be passed to :meth:`~wcsaxes.WCSAxes.get_transform`. These
+of other inputs can be passed to :meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform`. These
 are:
 
 * ``'fk4'``: B1950 FK4 equatorial coordinates
@@ -110,7 +110,7 @@ For example, you can add markers with positions defined in the FK5 system using:
    :nofigs:
 
     from astropy.wcs import WCS
-    from wcsaxes import datasets
+    from astropy.visualization.wcsaxes import datasets
     from matplotlib.patches import Rectangle
 
     hdu = datasets.fetch_msx_hdu()
@@ -133,14 +133,14 @@ For example, you can add markers with positions defined in the FK5 system using:
 
     ax.scatter(266.78238, -28.769255, transform=ax.get_transform('fk5'), s=300,
                edgecolor='white', facecolor='none')
-    
+
 In the case of :meth:`~matplotlib.axes.Axes.scatter` and :meth:`~matplotlib.axes.Axes.plot`, the positions of the center of the markers is transformed, but the markers themselves are drawn in the frame of reference of the image, which means that they will not look distorted.
 
 Patches/shapes/lines
 ====================
 
 Transformations can also be passed to Matplotlib patches. For example, we can
-use the :meth:`~wcsaxes.WCSAxes.get_transform` method above to plot a rectangle
+use the :meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform` method above to plot a rectangle
 in FK5 equatorial coordinates:
 
 .. plot::
@@ -148,7 +148,7 @@ in FK5 equatorial coordinates:
    :nofigs:
 
     from astropy.wcs import WCS
-    from wcsaxes import datasets
+    from astropy.visualization.wcsaxes import datasets
     from matplotlib.patches import Rectangle
 
     hdu = datasets.fetch_msx_hdu()
@@ -192,7 +192,7 @@ In this case, the rectangle will be plotted at FK5 J2000 coordinates (266deg, -2
 
 
 
-.. important:: If what you are interested is simply plotting circles around 
+.. important:: If what you are interested is simply plotting circles around
                sources to highlight them, then we recommend using
                :meth:`~matplotlib.axes.Axes.scatter`, since for the circular
                marker (the default), the circles will be guaranteed to be
@@ -206,8 +206,8 @@ Contours
 ========
 
 Overplotting contours is also simple using the
-:meth:`~wcsaxes.WCSAxes.get_transform` method. For contours,
-:meth:`~wcsaxes.WCSAxes.get_transform` should be given the WCS of the
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform` method. For contours,
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform` should be given the WCS of the
 image to plot the contours for:
 
 .. plot::
@@ -215,7 +215,7 @@ image to plot the contours for:
    :nofigs:
 
     from astropy.wcs import WCS
-    from wcsaxes import datasets
+    from astropy.visualization.wcsaxes import datasets
     from matplotlib.patches import Rectangle
 
     hdu = datasets.fetch_msx_hdu()
@@ -243,14 +243,14 @@ image to plot the contours for:
 Spherical patches
 =================
 
-In the case where you are making a plot of a celestial image, and want to plot a circle that represents the area within a certain angle of a longitude/latitude, the `~matplotlib.patches.Circle` patch is not appropriate, since it will result in a distorted shape (because longitude is not the same as the angle on the sky). For this use case, you can instead use `~wcsaxes.SphericalCircle`, which takes a tuple of `~astropy.units.Quantity` as the input, and a `~astropy.units.Quantity` as the radius:
+In the case where you are making a plot of a celestial image, and want to plot a circle that represents the area within a certain angle of a longitude/latitude, the `~matplotlib.patches.Circle` patch is not appropriate, since it will result in a distorted shape (because longitude is not the same as the angle on the sky). For this use case, you can instead use `~astropy.visualization.wcsaxes.SphericalCircle`, which takes a tuple of `~astropy.units.Quantity` as the input, and a `~astropy.units.Quantity` as the radius:
 
 .. plot::
    :context: reset
    :nofigs:
 
     from astropy.wcs import WCS
-    from wcsaxes import datasets
+    from astropy.visualization.wcsaxes import datasets
     from matplotlib.patches import Rectangle
 
     hdu = datasets.fetch_msx_hdu()
@@ -272,8 +272,8 @@ In the case where you are making a plot of a celestial image, and want to plot a
    :align: center
 
     from astropy import units as u
-    from wcsaxes import SphericalCircle
-    
+    from astropy.visualization.wcsaxes import SphericalCircle
+
     r = SphericalCircle((266.4 * u.deg, -29.1 * u.deg), 0.15 * u.degree,
                          edgecolor='yellow', facecolor='none',
                          transform=ax.get_transform('fk5'))

@@ -10,7 +10,7 @@ For the example in the following page we start from the example introduced in
    :nofigs:
 
     from astropy.wcs import WCS
-    from wcsaxes import datasets
+    from astropy.visualization.wcsaxes import datasets
 
     hdu = datasets.fetch_msx_hdu()
     wcs = WCS(hdu.header)
@@ -24,9 +24,9 @@ For the example in the following page we start from the example introduced in
               origin='lower')
 
 The coordinates shown by default in a plot will be those derived from the WCS
-or transformation passed to the `wcsaxes.WCSAxes` class.
+or transformation passed to the `astropy.visualization.wcsaxes.WCSAxes` class.
 However, it is possible to overlay different coordinate systems using the
-:meth:`wcsaxes.WCSAxes.get_coords_overlay` method:
+:meth:`astropy.visualization.wcsaxes.WCSAxes.get_coords_overlay` method:
 
 .. plot::
    :context:
@@ -35,7 +35,7 @@ However, it is possible to overlay different coordinate systems using the
 
     overlay = ax.get_coords_overlay('fk5')
 
-The object returned is a :class:`~wcsaxes.coordinates_map.CoordinatesMap`, the
+The object returned is a :class:`~astropy.visualization.wcsaxes.coordinates_map.CoordinatesMap`, the
 same type of object as ``ax.coord``. It can therefore be used in the same way
 as ``ax.coord`` to set the ticks, tick labels, and axis labels properties:
 

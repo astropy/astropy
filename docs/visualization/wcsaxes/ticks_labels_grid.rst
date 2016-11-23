@@ -10,7 +10,7 @@ For the example in the following page we start from the example introduced in
    :nofigs:
 
     from astropy.wcs import WCS
-    from wcsaxes import datasets
+    from astropy.visualization.wcsaxes import datasets
 
     hdu = datasets.fetch_msx_hdu()
     wcs = WCS(hdu.header)
@@ -57,7 +57,7 @@ celestial coordinate systems - for all other systems, you should use the index
 of the coordinate (``0`` or ``1``).
 
 Each coordinate is an instance of the
-:class:`~wcsaxes.coordinate_helpers.CoordinateHelper` class, which can be used
+:class:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper` class, which can be used
 to control the appearance of the ticks, tick labels, grid lines, and axis
 labels associated with that coordinate.
 
@@ -65,7 +65,7 @@ Axis labels
 ===========
 
 Axis labels can be added using the
-:meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_axislabel` method:
+:meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_axislabel` method:
 
 .. plot::
    :context:
@@ -166,7 +166,7 @@ Tick/label spacing and properties
 
 The spacing of ticks/tick labels should have a sensible default, but you may
 want to be able to manually specify the spacing. This can be done using the
-:meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks` method. There
+:meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks` method. There
 are different options that can be used:
 
 * Set the tick positions manually as an Astropy :class:`~astropy.units.quantity.Quantity`::
@@ -184,7 +184,7 @@ are different options that can be used:
 
 In the case of angular axes, specifying the spacing as an Astropy
 :class:`~astropy.units.quantity.Quantity` avoids roundoff errors. The
-:meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks` method can also
+:meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks` method can also
 be used to set the appearance (color and size) of the ticks, using the
 ``color=`` and ``size=`` options. There is also the option
 ``exclude_overlapping=True`` to prevent overlapping tick labels from being
@@ -206,7 +206,7 @@ Minor ticks
 
 WCSAxes does not display minor ticks by default but these can be shown by
 using the
-:meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.display_minor_ticks`
+:meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.display_minor_ticks`
 method. The default frequency of minor ticks is 5 but this can also be
 specified.
 
@@ -226,8 +226,8 @@ By default, the tick and axis labels for the first coordinate are shown on the
 x-axis, and the tick and axis labels for the second coordinate are shown on
 the y-axis. In addition, the ticks for both coordinates are shown on all axes.
 This can be customized using the
-:meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks_position` and
-:meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_ticklabel_position` methods, which each
+:meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks_position` and
+:meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_ticklabel_position` methods, which each
 take a string that can contain any or several of ``l``, ``b``, ``r``, or ``t``
 (indicating the ticks or tick labels should be shown on the left, bottom,
 right, or top axes respectively):
@@ -270,8 +270,8 @@ Hiding ticks and tick labels
 Sometimes it's desirable to hide ticks and tick labels. A common scenario
 is where WCSAxes is being used in a grid of subplots and the tick labels
 are redundant across rows or columns. Tick labels and ticks can be hidden with
-the :meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_ticklabel_visible`
-and :meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks_visible`
+the :meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_ticklabel_visible`
+and :meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks_visible`
 methods, respectively:
 
 .. plot::

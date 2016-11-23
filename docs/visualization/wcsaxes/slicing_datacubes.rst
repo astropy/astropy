@@ -23,7 +23,7 @@ information. The original FITS file can be downloaded from `here
    :nofigs:
 
     from astropy.wcs import WCS
-    from wcsaxes import datasets
+    from astropy.visualization.wcsaxes import datasets
     hdu = datasets.fetch_l1448_co_hdu()
     wcs = WCS(hdu.header)
     image_data = hdu.data
@@ -41,7 +41,7 @@ header information by::
 
 The header keyword 'NAXIS' gives the number of dimensions of the dataset. The keywords 'CTYPE1', 'CTYPE2' and 'CTYPE3' give the data type of these dimensions to be right ascension, declination and velocity respectively.
 
-We then instantiate the `~wcsaxes.WCSAxes` using the
+We then instantiate the `~astropy.visualization.wcsaxes.WCSAxes` using the
 :class:`~astropy.wcs.WCS` object and select the slices we want to plot:
 
 .. plot::
@@ -92,7 +92,7 @@ If we don't want to reverse the dimensions plotted, we can simply do:
    :nofigs:
 
     from astropy.wcs import WCS
-    from wcsaxes import datasets
+    from astropy.visualization.wcsaxes import datasets
     hdu = datasets.fetch_l1448_co_hdu()
     wcs = WCS(hdu.header)
     image_data = hdu.data

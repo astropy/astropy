@@ -5,11 +5,11 @@ Getting started
 Initialization
 ==============
 
-To make a plot using `~wcsaxes.WCSAxes`, we first read in the
+To make a plot using `~astropy.visualization.wcsaxes.WCSAxes`, we first read in the
 data using `astropy.io.fits
 <http://docs.astropy.org/en/stable/io/fits/index.html>`_ and parse the WCS
 information. In this example, we will use a FITS file from the
-``wcsaxes.datasets`` module:
+``astropy.visualization.wcsaxes.datasets`` module:
 
 .. plot::
    :context: reset
@@ -18,7 +18,7 @@ information. In this example, we will use a FITS file from the
    :align: center
 
     from astropy.wcs import WCS
-    from wcsaxes import datasets
+    from astropy.visualization.wcsaxes import datasets
 
     hdu = datasets.fetch_msx_hdu()
     wcs = WCS(hdu.header)
@@ -42,7 +42,7 @@ We then create a figure using Matplotlib and create the axes using the
     fig = plt.figure()
     ax = fig.add_axes([0.15, 0.1, 0.8, 0.8], projection=wcs)
 
-The ``ax`` object created is an instance of the :class:`~wcsaxes.WCSAxes`
+The ``ax`` object created is an instance of the :class:`~astropy.visualization.wcsaxes.WCSAxes`
 class. For more information about the different ways of initializing axes,
 see :doc:`initializing_axes`.
 

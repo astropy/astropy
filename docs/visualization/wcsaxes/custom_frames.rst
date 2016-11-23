@@ -2,10 +2,10 @@
 Using a custom frame
 ====================
 
-By default, `~wcsaxes.WCSAxes` will make use of a rectangular
+By default, `~astropy.visualization.wcsaxes.WCSAxes` will make use of a rectangular
 frame for a plot, but this can be changed to provide any custom frame. The
 following example shows how to use the built-in
-:class:`~wcsaxes.frame.EllipticalFrame` class, which is an ellipse which extends to the same limits as the built-in rectangular frame:
+:class:`~astropy.visualization.wcsaxes.frame.EllipticalFrame` class, which is an ellipse which extends to the same limits as the built-in rectangular frame:
 
 .. plot::
    :context: reset
@@ -13,8 +13,8 @@ following example shows how to use the built-in
    :align: center
 
     from astropy.wcs import WCS
-    from wcsaxes import datasets
-    from wcsaxes.frame import EllipticalFrame
+    from astropy.visualization.wcsaxes import datasets
+    from astropy.visualization.wcsaxes.frame import EllipticalFrame
 
     hdu = datasets.fetch_msx_hdu()
     wcs = WCS(hdu.header)
@@ -33,7 +33,7 @@ following example shows how to use the built-in
     # Clip the image to the frame
     im.set_clip_path(ax.coords.frame.patch)
 
-The :class:`~wcsaxes.frame.EllipticalFrame` class is especially useful for
+The :class:`~astropy.visualization.wcsaxes.frame.EllipticalFrame` class is especially useful for
 all-sky plots such as Aitoff projections:
 
 .. plot::
@@ -42,8 +42,8 @@ all-sky plots such as Aitoff projections:
    :align: center
 
     from astropy.wcs import WCS
-    from wcsaxes import datasets
-    from wcsaxes.frame import EllipticalFrame
+    from astropy.visualization.wcsaxes import datasets
+    from astropy.visualization.wcsaxes.frame import EllipticalFrame
     from matplotlib import patheffects
 
     hdu = datasets.fetch_rosat_hdu()
@@ -77,7 +77,7 @@ The following example shows how you could for example define a hexagonal frame:
    :include-source:
    :nofigs:
 
-    from wcsaxes.frame import BaseFrame
+    from astropy.visualization.wcsaxes.frame import BaseFrame
 
     class HexagonalFrame(BaseFrame):
 
@@ -107,7 +107,7 @@ which we can then use:
     :align: center
 
      from astropy.wcs import WCS
-     from wcsaxes import datasets
+     from astropy.visualization.wcsaxes import datasets
 
      hdu = datasets.fetch_msx_hdu()
      wcs = WCS(hdu.header)

@@ -15,7 +15,7 @@ can change the unit to an equivalent one by:
    :nofigs:
 
     from astropy.wcs import WCS
-    from wcsaxes import datasets
+    from astropy.visualization.wcsaxes import datasets
 
     hdu = datasets.fetch_l1448_co_hdu()
     wcs = WCS(hdu.header)
