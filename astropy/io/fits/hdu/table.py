@@ -27,6 +27,7 @@ from ..column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_TO_ATTRIBUTE,
 from ..fitsrec import FITS_rec, _get_recarray_field, _has_unicode_fields
 from ..header import Header, _pad_length
 from ..util import _is_int, _str_to_num
+
 from ....extern import six
 from ....extern.six import string_types
 from ....extern.six.moves import range, zip
@@ -990,10 +991,12 @@ class BinTableHDU(_TableBaseHDU):
             no header parameters output is produced.
 
         overwrite : bool, optional
-            If ``True``, overwrite the output file if exists.
+            If ``True``, overwrite the output file if it exists. Raises an
+            ``OSError`` (``IOError`` for Python 2) if ``False`` and the
+            output file exists. Default is ``False``.
 
             .. versionchanged:: 1.3
-               ``overwrite`` replaces the deprecated ``clobber`` argument
+               ``overwrite`` replaces the deprecated ``clobber`` argument.
 
         Notes
         -----

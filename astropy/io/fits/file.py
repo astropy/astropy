@@ -25,6 +25,7 @@ from ...utils.data import download_file, _is_url
 from ...utils.decorators import classproperty, deprecated_renamed_argument
 from ...utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
+
 # Maps PyFITS-specific file mode names to the appropriate file modes to use
 # for the underlying raw files
 # TODO: This should probably renamed IO_FITS_MODES or something, but since it's

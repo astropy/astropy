@@ -657,11 +657,12 @@ class Header(object):
             multiple of 2880 characters
 
         overwrite : bool, optional
-            If ``True``, overwrite the output file if exists.
+            If ``True``, overwrite the output file if it exists. Raises an
+            ``OSError`` (``IOError`` for Python 2) if ``False`` and the
+            output file exists. Default is ``False``.
 
             .. versionchanged:: 1.3
-               ``overwrite`` replaces the deprecated ``clobber`` argument
-
+               ``overwrite`` replaces the deprecated ``clobber`` argument.
         """
 
         close_file = fileobj_closed(fileobj)
