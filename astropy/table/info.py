@@ -52,15 +52,15 @@ def table_info(tbl, option='attributes', out=''):
 
     Parameters
     ----------
-    option: str, function, list of (str or function)
+    option : str, function, list of (str or function)
         Info option (default='attributes')
-    out: file-like object, None
+    out : file-like object, None
         Output destination (default=sys.stdout).  If None then a
         Table with information attributes is returned
 
     Returns
     -------
-    info: `~astropy.table.Table` if out==None else None
+    info : `~astropy.table.Table` if out==None else None
     """
     from .table import Table
 

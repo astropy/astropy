@@ -1043,7 +1043,7 @@ def format_doc(docstring, *args, **kwargs):
             num1, num2 : Numbers
             Returns
             -------
-            result: Number
+            result : Number
 
     in case one might want to format it further::
 
@@ -1077,7 +1077,7 @@ def format_doc(docstring, *args, **kwargs):
             num1, num2 : Numbers
             Returns
             -------
-            result: Number
+            result : Number
                 result of num1 + num2
         >>> help(subtract) # doctest: +SKIP
         Help on function subtract in module __main__:
@@ -1089,9 +1089,9 @@ def format_doc(docstring, *args, **kwargs):
             num1, num2 : Numbers
             Returns
             -------
-            result: Number
+            result : Number
                 result of num1 - num2
-            Notes: This one has additional notes.
+            Notes : This one has additional notes.
 
     These methods can be combined an even taking the docstring from another
     object is possible as docstring attribute. You just have to specify the
@@ -1111,7 +1111,7 @@ def format_doc(docstring, *args, **kwargs):
             num1, num2 : Numbers
             Returns
             -------
-            result: Number
+            result : Number
                 result of num1 + num2
 
     But be aware that this decorator *only* formats the given docstring not
@@ -1133,7 +1133,7 @@ def format_doc(docstring, *args, **kwargs):
             num1, num2 : Numbers
             Returns
             -------
-            result: Number
+            result : Number
                 result of num1 + num2
             This one is good for {0}.
 

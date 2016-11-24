@@ -40,7 +40,7 @@ def add_dictval_to_list(adict, key, alist):
     ----------
     adict : dictionary
     key : hashable
-    alist: list
+    alist : list
         List where value should be added
     '''
     if key in adict:

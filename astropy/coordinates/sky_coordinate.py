@@ -161,7 +161,7 @@ class SkyCoord(ShapedLikeNDArray):
         Specifies the representation, e.g. 'spherical', 'cartesian', or
         'cylindrical'.  This affects the positional args and other keyword args
         which must correspond to the given representation.
-    copy: bool, optional
+    copy : bool, optional
         If `True` (default), a copy of any coordinate data is made.  This
         argument can only be passed in as a keyword argument.
     **keyword_args

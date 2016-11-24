@@ -467,7 +467,7 @@ def _replace_tab_with_space(line, escapechar, quotechar):
         String containing tabs to be replaced with spaces.
     escapechar : str
         Character in ``line`` used to escape special characters.
-    quotechar: str
+    quotechar : str
         Character in ``line`` indicating the start/end of a substring.
 
     Returns
@@ -1040,7 +1040,7 @@ def _apply_include_exclude_names(table, names, include_names, exclude_names):
         List of names to override those in table (set to None to use existing names)
     include_names : list
         List of names to include in output
-    exclude_names: list
+    exclude_names : list
         List of names to exclude from output (applied after ``include_names``)
 
     """
