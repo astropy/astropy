@@ -55,8 +55,8 @@ typedef enum
 typedef struct
 {
     char *source;          // single string containing all of the input
-    off_t source_len;      // length of the input
-    off_t source_pos;      // current index in source for tokenization
+    size_t source_len;      // length of the input
+    size_t source_pos;      // current index in source for tokenization
     char delimiter;        // delimiter character
     char comment;          // comment character
     char quotechar;        // quote character
