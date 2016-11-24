@@ -426,7 +426,8 @@ class VOSDatabase(VOSBase):
 
     @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
     def to_json(self, filename, overwrite=False):
-        """Write database content to a JSON file.
+        """
+        Write database content to a JSON file.
 
         Parameters
         ----------
@@ -437,13 +438,12 @@ class VOSDatabase(VOSBase):
             If ``True``, overwrite the output file if it exists.
 
             .. versionchanged:: 1.3
-               ``overwrite`` replaces the deprecated ``clobber`` argument
+               ``overwrite`` replaces the deprecated ``clobber`` argument.
 
         Raises
         ------
         OSError
-            File exists.
-
+            If the file exists and ``overwrite`` is ``False``.
         """
         if os.path.exists(filename) and not overwrite:
             raise OSError('{0} exists.'.format(filename))

@@ -21,6 +21,7 @@ from ....extern.six.moves import cPickle as pickle
 from ....io import fits
 from ....tests.helper import pytest, catch_warnings, ignore_warnings
 from ....utils.exceptions import AstropyDeprecationWarning
+
 from ..column import Delayed, NUMPY2FITS
 from ..util import decode_ascii
 from ..verify import VerifyError

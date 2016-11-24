@@ -336,7 +336,8 @@ class _BaseHDU(object):
     @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
     def writeto(self, name, output_verify='exception', overwrite=False,
                 checksum=False):
-        """Write the HDU to a new file.  This is a convenience method to
+        """
+        Write the HDU to a new file. This is a convenience method to
         provide a user easier output interface if only one HDU needs
         to be written to a file.
 
@@ -354,12 +355,16 @@ class _BaseHDU(object):
             (e.g. ``"fix+warn"``).  See :ref:`verify` for more info.
 
         overwrite : bool, optional
-            If ``True``, overwrite the output file if exists.
+            If ``True``, overwrite the output file if it exists. Raises an
+            ``OSError`` (``IOError`` for Python 2) if ``False`` and the
+            output file exists. Default is ``False``.
+
+            .. versionchanged:: 1.3
+               ``overwrite`` replaces the deprecated ``clobber`` argument.
 
         checksum : bool
             When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards
             to the header of the HDU when written to the file.
-
         """
 
         from .hdulist import HDUList
@@ -1574,6 +1579,9 @@ class ExtensionHDU(_ValidHDU):
         Works similarly to the normal writeto(), but prepends a default
         `PrimaryHDU` are required by extension HDUs (which cannot stand on
         their own).
+
+        .. versionchanged:: 1.3
+           ``overwrite`` replaces the deprecated ``clobber`` argument.
         """
 
         from .hdulist import HDUList

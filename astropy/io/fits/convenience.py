@@ -411,10 +411,12 @@ def writeto(filename, data, header=None, output_verify='exception',
         for more info.
 
     overwrite : bool, optional
-        If ``True``, overwrite the output file if exists.
+        If ``True``, overwrite the output file if it exists. Raises an
+        ``OSError`` (``IOError`` for Python 2) if ``False`` and the
+        output file exists. Default is ``False``.
 
         .. versionchanged:: 1.3
-           ``overwrite`` replaces the deprecated ``clobber`` argument
+           ``overwrite`` replaces the deprecated ``clobber`` argument.
 
     checksum : bool, optional
         If `True`, adds both ``DATASUM`` and ``CHECKSUM`` cards to the
@@ -723,10 +725,12 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
         dumped.
 
     overwrite : bool, optional
-        If ``True``, overwrite the output file if exists.
+        If ``True``, overwrite the output file if it exists. Raises an
+        ``OSError`` (``IOError`` for Python 2) if ``False`` and the
+        output file exists. Default is ``False``.
 
         .. versionchanged:: 1.3
-           ``overwrite`` replaces the deprecated ``clobber`` argument
+           ``overwrite`` replaces the deprecated ``clobber`` argument.
 
     Notes
     -----

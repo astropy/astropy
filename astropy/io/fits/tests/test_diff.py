@@ -11,6 +11,7 @@ from ..diff import (FITSDiff, HeaderDiff, ImageDataDiff, TableDataDiff,
 from ..hdu import HDUList, PrimaryHDU, ImageHDU
 from ..hdu.table import BinTableHDU
 from ..header import Header
+
 from ....tests.helper import catch_warnings
 from ....utils.exceptions import AstropyDeprecationWarning
 from ....extern.six.moves import range

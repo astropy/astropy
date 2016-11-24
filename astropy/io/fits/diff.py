@@ -137,7 +137,8 @@ class _BaseDiff(object):
 
     @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
     def report(self, fileobj=None, indent=0, overwrite=False):
-        """Generates a text report on the differences (if any) between two
+        """
+        Generates a text report on the differences (if any) between two
         objects, and either returns it as a string or writes it to a file-like
         object.
 
@@ -153,10 +154,12 @@ class _BaseDiff(object):
             The number of 4 space tabs to indent the report.
 
         overwrite : bool, optional
-            If ``True``, overwrite the output file if exists.
+            If ``True``, overwrite the output file if it exists. Raises an
+            ``OSError`` (``IOError`` for Python 2) if ``False`` and the
+            output file exists. Default is ``False``.
 
             .. versionchanged:: 1.3
-               ``overwrite`` replaces the deprecated ``clobber`` argument
+               ``overwrite`` replaces the deprecated ``clobber`` argument.
 
         Returns
         -------
