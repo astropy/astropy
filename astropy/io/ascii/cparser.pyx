@@ -13,7 +13,6 @@ from libc cimport stdio
 from cpython.buffer cimport PyBUF_SIMPLE
 from cpython.buffer cimport Py_buffer
 from cpython.buffer cimport PyObject_GetBuffer, PyBuffer_Release
-from posix.types cimport off_t
 
 from ...utils.data import get_readable_fileobj
 from ...table import pprint
@@ -24,6 +23,13 @@ try:
     import Queue
 except ImportError: # in python 3, the module is named queue
     import queue as Queue
+
+
+# Import off_t directly to avoid needing a recent version of Cython for
+# posix.types (Cython 0.21)
+cdef extern from "<sys/types.h>":
+    ctypedef long off_t
+
 
 cdef extern from "src/tokenizer.h":
     ctypedef enum tokenizer_state:
