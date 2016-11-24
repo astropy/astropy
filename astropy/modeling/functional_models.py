@@ -769,7 +769,7 @@ class Planar2D(Fittable2DModel):
     slope_x : float
         Slope of the straight line in X
 
-    slope_y: float
+    slope_y : float
         Slope of the straight line in Y
 
     intercept : float

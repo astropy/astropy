@@ -58,12 +58,12 @@ def dtype_info_name(dtype):
 
     Parameters
     ----------
-    dtype: str, np.dtype, type
+    dtype : str, np.dtype, type
         Input dtype as an object that can be converted via np.dtype()
 
     Returns
     -------
-    dtype_info_name: str
+    dtype_info_name : str
         String name of ``dtype``
     """
     dtype = np.dtype(dtype)
@@ -97,14 +97,14 @@ def data_info_factory(names, funcs):
 
     Parameters
     ----------
-    names: list
+    names : list
         List of information attribute names
-    funcs: list
+    funcs : list
         List of functions that compute the corresponding information attribute
 
     Returns
     -------
-    func: function
+    func : function
         Function that can be used as a data info option
     """
     def func(dat):
@@ -310,15 +310,15 @@ class DataInfo(object):
 
         Parameters
         ----------
-        option: str, function, list of (str or function)
+        option : str, function, list of (str or function)
             Info option (default='attributes')
-        out: file-like object, None
+        out : file-like object, None
             Output destination (default=sys.stdout).  If None then the
             OrderedDict with information attributes is returned
 
         Returns
         -------
-        info: OrderedDict if out==None else None
+        info : OrderedDict if out==None else None
         """
         if out == '':
             out = sys.stdout

@@ -60,7 +60,7 @@ def rotation_matrix(angle, axis='z', unit=None):
 
     Returns
     -------
-    rmat: `numpy.matrix`
+    rmat : `numpy.matrix`
         A unitary rotation matrix.
     """
     if unit is None:

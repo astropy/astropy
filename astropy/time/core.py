@@ -567,11 +567,11 @@ class Time(ShapedLikeNDArray):
 
         Parameters
         ----------
-        skycoord: `~astropy.coordinates.SkyCoord`
+        skycoord : `~astropy.coordinates.SkyCoord`
             The sky location to calculate the correction for.
-        kind: str, optional
+        kind : str, optional
             ``'barycentric'`` (default) or ``'heliocentric'``
-        location: `~astropy.coordinates.EarthLocation`, optional
+        location : `~astropy.coordinates.EarthLocation`, optional
             The location of the observatory to calculate the correction for.
             If no location is given, the ``location`` attribute of the Time
             object is used
@@ -582,7 +582,7 @@ class Time(ShapedLikeNDArray):
 
         Returns
         -------
-        time_offset: `~astropy.time.TimeDelta`
+        time_offset : `~astropy.time.TimeDelta`
             The time offset between the barycentre or Heliocentre and Earth,
             in TDB seconds.  Should be added to the original time to get the
             time in the Solar system barycentre or the Heliocentre.

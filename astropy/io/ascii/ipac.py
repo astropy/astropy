@@ -443,7 +443,7 @@ class Ipac(basic.Basic):
 
         Parameters
         ----------
-        table: `~astropy.table.Table`
+        table : `~astropy.table.Table`
             Input table data
 
         Returns
