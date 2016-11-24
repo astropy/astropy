@@ -13,7 +13,6 @@ from libc cimport stdio
 from cpython.buffer cimport PyBUF_SIMPLE
 from cpython.buffer cimport Py_buffer
 from cpython.buffer cimport PyObject_GetBuffer, PyBuffer_Release
-from posix.types cimport off_t
 
 from ...utils.data import get_readable_fileobj
 from ...table import pprint
@@ -46,8 +45,8 @@ cdef extern from "src/tokenizer.h":
 
     ctypedef struct tokenizer_t:
         char *source           # single string containing all of the input
-        off_t source_len       # length of the input
-        off_t source_pos       # current index in source for tokenization
+        size_t source_len       # length of the input
+        size_t source_pos       # current index in source for tokenization
         char delimiter         # delimiter character
         char comment           # comment character
         char quotechar         # quote character
@@ -273,7 +272,7 @@ cdef class CParser:
                 self.tokenizer.source = <char *>fstring.mmap_ptr
                 self.source_ptr = <char *>fstring.mmap_ptr
                 self.source = fstring
-                self.tokenizer.source_len = <off_t>len(fstring)
+                self.tokenizer.source_len = <size_t>len(fstring)
                 return
             # Otherwise, source is the actual data so we leave it be
         elif hasattr(source, 'read'): # file-like object
@@ -282,7 +281,7 @@ cdef class CParser:
         elif isinstance(source, FileString):
             self.tokenizer.source = <char *>((<FileString>source).mmap_ptr)
             self.source = source
-            self.tokenizer.source_len = <off_t>len(source)
+            self.tokenizer.source_len = <size_t>len(source)
             return
         else:
             try:
@@ -296,7 +295,7 @@ cdef class CParser:
         # encode in ASCII for char * handling
         self.source_bytes = self.source.encode('ascii')
         self.tokenizer.source = self.source_bytes
-        self.tokenizer.source_len = <off_t>len(self.source_bytes)
+        self.tokenizer.source_len = <size_t>len(self.source_bytes)
 
     def read_header(self):
         self.tokenizer.source_pos = 0
@@ -381,7 +380,7 @@ cdef class CParser:
                                   try_string, num_rows)
 
     def _read_parallel(self, try_int, try_float, try_string):
-        cdef off_t source_len = <off_t>len(self.source)
+        cdef size_t source_len = <size_t>len(self.source)
         self.tokenizer.source_pos = 0
 
         if skip_lines(self.tokenizer, self.data_start, 0) != 0:
@@ -395,7 +394,7 @@ cdef class CParser:
         except (ImportError, NotImplementedError, AttributeError, OSError):
             self.raise_error("shared semaphore implementation required "
                              "but not available")
-        cdef off_t offset = self.tokenizer.source_pos
+        cdef size_t offset = self.tokenizer.source_pos
 
         if offset == source_len: # no data
             return (dict((name, np.array([], dtype=np.int_)) for name in
@@ -408,7 +407,7 @@ cdef class CParser:
         reconvert_queue = multiprocessing.Queue()
 
         cdef int i
-        cdef off_t index
+        cdef size_t index
 
         for i in range(1, N):
             index = max(offset + chunksize * i, chunkindices[i - 1])
