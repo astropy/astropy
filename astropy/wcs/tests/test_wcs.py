@@ -621,8 +621,11 @@ def test_footprint_to_file(tmpdir):
         lines = f.readlines()
 
     assert len(lines) == 4
-    assert lines[2] == 'ICRS\n'
+    assert lines[2] == 'FK5\n'
     assert 'color=red' in lines[3]
+
+    with pytest.raises(ValueError):
+        w.footprint_to_file(testfile, coordsys='FOO')
 
 
 def test_validate_faulty_wcs():
