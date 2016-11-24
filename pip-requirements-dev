@@ -1,6 +1,6 @@
 -r pip-requirements
 -r pip-requirements-doc
-Cython
+Cython>=0.21
 jinja2
 pyyaml
 scipy
