@@ -122,6 +122,10 @@ New Features
 
 - ``astropy.wcs``
 
+  - Improved ``footprint_to_file``: allow to specify the coordinate system, and
+    use by default the one from ``RADESYS``. Overwrite the file instead of
+    appending to it. [#5494]
+
 
 API Changes
 ^^^^^^^^^^^
