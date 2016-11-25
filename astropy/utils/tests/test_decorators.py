@@ -353,27 +353,10 @@ def test_deprecated_argument_relaxed():
         assert len(w) == 1
 
 
-def test_deprecated_argument_docstring():
-    @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
-    def test1(overwrite):
-        """Some docstring."""
-        return overwrite
-
-    @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
-    def test2(overwrite):
-        return overwrite
-
-    # The sphinx directive is added only if the function already has a
-    # docstring.
-    assert '.. versionchanged:: 1.3' in test1.__doc__
-    assert not test2.__doc__
-
-
 def test_deprecated_argument_multi_deprecation():
     @deprecated_renamed_argument(['x', 'y', 'z'], ['a', 'b', 'c'],
                                  [1.3, 1.2, 1.3], relax=True)
     def test(a, b, c):
-        """blub."""
         return a, b, c
 
     with catch_warnings(AstropyDeprecationWarning) as w:
@@ -392,12 +375,6 @@ def test_deprecated_argument_multi_deprecation():
     with catch_warnings(AstropyUserWarning) as w:
         assert test(x=1, y=2, z=3, c=5) == (1, 2, 5)
         assert len(w) == 1
-
-    msg = ('blub.\n\n.. versionchanged:: 1.2\n   ``b`` replaces the deprecated'
-           ' ``y`` argument.\n\n.. versionchanged:: 1.3\n   ``a`` replaces the'
-           ' deprecated ``x`` argument.\n   ``c`` replaces the deprecated '
-           '``z`` argument.')
-    assert test.__doc__ == msg
 
 
 def test_deprecated_argument_multi_deprecation_2():
