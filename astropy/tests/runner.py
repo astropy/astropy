@@ -18,9 +18,8 @@ from ..utils import wraps, find_current_module
 from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
 class keyword(object):
-    def __init__(self, default_value, include_doc_string=True, priority=0):
+    def __init__(self, default_value, priority=0):
         self.default_value = default_value
-        self.include_doc_string = include_doc_string
         self.priority = priority
 
     def __call__(self, f):
@@ -28,8 +27,7 @@ class keyword(object):
             return f(*args, **kwargs)
         keyword._default_value = self.default_value
         keyword._priority = self.priority
-        if self.include_doc_string:
-            keyword.__doc__ = f.__doc__
+        keyword.__doc__ = f.__doc__
         return keyword
 
 
