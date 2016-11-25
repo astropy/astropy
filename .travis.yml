@@ -43,7 +43,7 @@ matrix:
 
         # Try MacOS X
         - os: osx
-          env: SETUP_CMD='test'
+          env: SETUP_CMD='test --remote-data=astropy'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='jplephem'
 
@@ -59,32 +59,30 @@ matrix:
         # the Numpy developers have taken care of testing Numpy with different
         # versions of Python, we can vary Python and Numpy versions at the same
         # time. Since we test the latest Numpy as part of the builds with all
-        # optional dependencies below, we can focus on older builds here. While
-        # we're at it we also use these builds to check that things work if
-        # setting --remote-data=none (since the default is --remote-data=astropy)
+        # optional dependencies below, we can focus on older builds here.
         - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.7
-               SETUP_CMD='test --open-files --remote-data=none'
+               SETUP_CMD='test --open-files'
         - os: linux
           env: PYTHON_VERSION=3.3 NUMPY_VERSION=1.8
-               SETUP_CMD='test --open-files --remote-data=none'
+               SETUP_CMD='test --open-files'
         - os: linux
           env: PYTHON_VERSION=3.4 NUMPY_VERSION=1.9
-               SETUP_CMD='test --open-files --remote-data=none'
+               SETUP_CMD='test --open-files'
         - os: linux
           env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.10
-               SETUP_CMD='test --open-files --remote-data=none'
+               SETUP_CMD='test --open-files'
 
         # Now try with all optional dependencies the latest 3.x and on 2.7.
         # (with latest numpy).
         - os: linux
-          env: PYTHON_VERSION=2.7 SETUP_CMD='test'
+          env: PYTHON_VERSION=2.7 SETUP_CMD='test --remote-data=astropy'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='jplephem mock'
                LC_CTYPE=C.ascii LC_ALL=C
 
         - os: linux
-          env: SETUP_CMD='test --coverage'
+          env: SETUP_CMD='test --coverage --remote-data=astropy'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='cpp-coveralls objgraph jplephem'
                LC_CTYPE=C.ascii LC_ALL=C

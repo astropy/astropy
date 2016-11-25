@@ -21,7 +21,7 @@ class TestRunner(object):
         self.base_path = os.path.abspath(base_path)
 
     def run_tests(self, package=None, test_path=None, args=None, plugins=None,
-                  verbose=False, pastebin=None, remote_data='astropy',
+                  verbose=False, pastebin=None, remote_data='none',
                   pep8=False, pdb=False, coverage=False, open_files=False,
                   parallel=0, docs_path=None, skip_docs=False, repeat=None):
         """
@@ -60,7 +60,7 @@ class TestRunner(object):
             Controls whether to run tests marked with @remote_data. This can be
             set to run no tests with remote data (``no``), only ones that use
             data from http://data.astropy.org (``astropy``), or all tests that
-            use remote data (``any``). The default is ``astropy``.
+            use remote data (``any``). The default is ``none``.
 
         pep8 : bool, optional
             Turn on PEP8 checking via the pytest-pep8 plugin and disable normal
