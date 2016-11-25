@@ -67,7 +67,7 @@ class AstropyTest(Command, object):
         ('args=', 'a',
          'Additional arguments to be passed to pytest.'),
         ('remote-data=', 'R', 'Run tests that download remote data. Should be '
-         'one of none/astropy/any.'),
+         'one of none/astropy/any (defaults to none).'),
         ('pep8', '8',
          'Enable PEP8 checking and disable regular tests. '
          'Requires the pytest-pep8 plugin.'),
@@ -107,7 +107,7 @@ class AstropyTest(Command, object):
         self.plugins = None
         self.pastebin = None
         self.args = None
-        self.remote_data = 'astropy'
+        self.remote_data = 'none'
         self.pep8 = False
         self.pdb = False
         self.coverage = False

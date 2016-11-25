@@ -346,8 +346,8 @@ data tests at the command line with ``python setup.py test --remote-data=any``.
 
 It is possible to mark tests using ``@remote_data(source='astropy')``, which can
 be used to indicate that the only required data is from the
-http://data.astropy.org server. These tests are run by default. To disable these
-tests, you can run the tests with ``python setup.py test --remote-data=none``.
+http://data.astropy.org server. To enable just these tests, you can run the
+tests with ``python setup.py test --remote-data=astropy``.
 
 Examples
 ^^^^^^^^
