@@ -707,7 +707,7 @@ blocks from coverage, without requiring the pragma comment::
 Image tests with pytest-mpl
 ---------------------------
 
-We make use of the `pytest-mpl <https://pypi.python.org/pypi/pytest-mpl/0.6>`
+We make use of the `pytest-mpl <https://pypi.python.org/pypi/pytest-mpl>`_
 plugin to create tests where we can compare the output of plotting commands
 with reference files (this is used for instance in
 :ref:`astropy.visualization.wcsaxes <wcsaxes>`).
