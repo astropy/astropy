@@ -43,29 +43,13 @@ except ImportError:  # Python 2.7
 # specific command line options.
 
 
-class remote_data_action(argparse.Action):
-    """
-    For backward-compatibility with old versions of astropy-helpers, we need to
-    pre-process the options for --remote-data and transform them into the new
-    options. This can be removed once astropy core and all affiliated packages
-    use a version of astropy-helpers that recognizes the none/astropy/any
-    options.
-    """
-    def __call__(self, parser, namespace, value, option_string=None):
-        if value == 'False':
-            value = 'none'
-        if value == '1':
-            value = 'any'
-        setattr(namespace, self.dest, value)
-
-
 def pytest_addoption(parser):
 
     # The following means that if --remote-data is not specified, the default
     # is 'astropy', but if it is specified without arguments, it defaults to
     # 'all'.
     parser.addoption("--remote-data", nargs="?", const='any', default='astropy',
-                     help="run tests with online data", action=remote_data_action)
+                     help="run tests with online data")
 
     parser.addoption("--open-files", action="store_true",
                      help="fail if any test leaves files open")

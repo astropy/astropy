@@ -59,15 +59,21 @@ matrix:
         # the Numpy developers have taken care of testing Numpy with different
         # versions of Python, we can vary Python and Numpy versions at the same
         # time. Since we test the latest Numpy as part of the builds with all
-        # optional dependencies below, we can focus on older builds here.
+        # optional dependencies below, we can focus on older builds here. While
+        # we're at it we also use these builds to check that things work if
+        # setting --remote-data=none (since the default is --remote-data=astropy)
         - os: linux
-          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.7 SETUP_CMD='test --open-files'
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.7
+               SETUP_CMD='test --open-files --remote-data=none'
         - os: linux
-          env: PYTHON_VERSION=3.3 NUMPY_VERSION=1.8 SETUP_CMD='test --open-files'
+          env: PYTHON_VERSION=3.3 NUMPY_VERSION=1.8
+               SETUP_CMD='test --open-files --remote-data=none'
         - os: linux
-          env: PYTHON_VERSION=3.4 NUMPY_VERSION=1.9 SETUP_CMD='test --open-files'
+          env: PYTHON_VERSION=3.4 NUMPY_VERSION=1.9
+               SETUP_CMD='test --open-files --remote-data=none'
         - os: linux
-          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.10 SETUP_CMD='test --open-files'
+          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.10
+               SETUP_CMD='test --open-files --remote-data=none'
 
         # Now try with all optional dependencies the latest 3.x and on 2.7.
         # (with latest numpy).
@@ -93,7 +99,7 @@ matrix:
           env: MAIN_CMD='pycodestyle astropy --count' SETUP_CMD=''
 
         # Try developer version of Numpy with optional dependencies and also
-        # run remote tests. Since both cases will be potentially unstable, we
+        # run all remote tests. Since both cases will be potentially unstable, we
         # combine them into a single unstable build that we can mark as an
         # allowed failure below.
         - os: linux
