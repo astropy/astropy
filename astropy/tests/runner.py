@@ -12,8 +12,6 @@ import tempfile
 import warnings
 from collections import OrderedDict
 
-import pytest
-
 from ..config.paths import set_temp_config, set_temp_cache
 from ..extern import six
 from ..utils import wraps, find_current_module
@@ -361,6 +359,10 @@ class TestRunner(object):
         pytest.main : py.test function wrapped by `run_tests`.
 
         """
+
+        # Don't import pytest until it's actually needed to run the tests
+        from .helper import pytest
+
         # Raise error for undefined kwargs
         allowed_kwargs = set(self.keywords.keys())
         passed_kwargs = set(kwargs.keys())
