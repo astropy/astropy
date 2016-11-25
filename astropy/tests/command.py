@@ -107,7 +107,7 @@ class AstropyTest(Command, object):
         self.plugins = None
         self.pastebin = None
         self.args = None
-        self.remote_data = None
+        self.remote_data = 'astropy'
         self.pep8 = False
         self.pdb = False
         self.coverage = False
