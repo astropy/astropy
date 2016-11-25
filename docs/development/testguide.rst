@@ -340,10 +340,14 @@ local copy of the file.
 Tests that may retrieve remote data should be marked with the
 ``@remote_data`` decorator, or, if a doctest, flagged with the
 ``REMOTE_DATA`` flag.  Tests marked in this way will be skipped by default
-by ``astropy.test()`` to prevent test runs from taking too long. These
-tests can be run by ``astropy.test()`` by adding the
-``remote_data=True`` flag.  Turn on the remote data tests at the
-command line with ``pytest --remote-data``.
+by ``astropy.test()`` to prevent test runs from taking too long. These tests can be run by
+``astropy.test()`` by adding the ``remote_data='any'`` flag.  Turn on the remote
+data tests at the command line with ``python setup.py test --remote-data=any``.
+
+It is possible to mark tests using ``@remote_data(source='astropy')``, which can
+be used to indicate that the only required data is from the
+http://data.astropy.org server. These tests are run by default. To disable these
+tests, you can run the tests with ``python setup.py test --remote-data=none``.
 
 Examples
 ^^^^^^^^
