@@ -951,7 +951,7 @@ Continuous integration
 ======================
 
 Overview
-^^^^^^^^
+--------
 
 Astropy uses the following continuous integration (CI) services:
 
@@ -992,7 +992,7 @@ or because the failure happens with only 32-bit Python. The following sections
 explain how you can reproduce specific builds locally.
 
 Reproducing failing 32-bit builds
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------
 
 If you want to run your tests in the same 32-bit Python environment that
 CircleCI uses, start off by installing `Docker <https://www.docker.com>`_ if you
