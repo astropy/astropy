@@ -6,6 +6,7 @@ from __future__ import (absolute_import, division, print_function,
 
 from ..helper import remote_data
 from ..helper import pytest
+from ...utils.data import get_pkg_data_filename, download_file
 
 
 @remote_data
@@ -18,8 +19,12 @@ def test_skip_remote_data(pytestconfig):
         pytest.fail('@remote_data was not skipped with remote_data=none')
     elif pytestconfig.getoption('remote_data') == 'astropy':
         pytest.fail('@remote_data was not skipped with remote_data=astropy')
-    else:
-        pass
+
+    # Test Astropy URL
+    get_pkg_data_filename('galactic_center/gc_2mass_k.fits')
+
+    # Test non-Astropy URL
+    download_file('http://www.google.com')
 
 
 @remote_data(source='astropy')
@@ -31,4 +36,15 @@ def test_skip_remote_data_astropy(pytestconfig):
     if pytestconfig.getoption('remote_data') == 'none':
         pytest.fail('@remote_data was not skipped with remote_data=none')
     else:
-        pass
+        get_pkg_data_filename('galactic_center/gc_2mass_k.fits')
+
+    # Test Astropy URL
+    get_pkg_data_filename('galactic_center/gc_2mass_k.fits')
+
+    # Test non-Astropy URL
+    if pytestconfig.getoption('remote_data') == 'astropy':
+        with pytest.raises(Exception) as exc:
+            download_file('http://www.google.com')
+        assert "An attempt was made to connect to the internet" in str(exc.value)
+    else:
+        download_file('http://www.google.com')
