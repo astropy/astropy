@@ -1,5 +1,4 @@
 """Implements the Astropy TestRunner which is a thin wrapper around py.test."""
-
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -53,7 +52,11 @@ class TestRunner(object):
         signature.
         """
         # Get all 'function' members as the wrapped methods are functions
-        functions = inspect.getmembers(cls, predicate=inspect.isfunction)
+        if six.PY2:
+            functions = inspect.getmembers(cls, predicate=inspect.ismethod)
+        else:
+            functions = inspect.getmembers(cls, predicate=inspect.isfunction)
+
         # Filter out anything that's not got the name 'keyword'
         keywords = filter(lambda func: func[1].__name__ == 'keyword', functions)
         # Sort all keywords based on the priority flag.
@@ -65,8 +68,10 @@ class TestRunner(object):
             cls.keywords[name] = func._default_value
             if func.__doc__:
                 doc_keywords += func.__doc__
-
-        cls.run_tests.__doc__ = cls.run_tests.__doc__.format(keywords=doc_keywords)
+        if six.PY2:
+            cls.run_tests.__func__.__doc__ = cls.run_tests.__doc__.format(keywords=doc_keywords)
+        else:
+            cls.run_tests.__doc__ = cls.run_tests.__doc__.format(keywords=doc_keywords)
 
         return super(TestRunner, cls).__new__(cls)
 
