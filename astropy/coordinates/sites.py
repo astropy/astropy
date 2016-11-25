@@ -92,7 +92,7 @@ class SiteRegistry(Mapping):
         ----------
         names : list of str
             All the names this site should go under
-        locationobj: `~astropy.coordinates.EarthLocation`
+        locationobj : `~astropy.coordinates.EarthLocation`
             The actual site object
         """
         for name in names:
