@@ -30,6 +30,9 @@ py:class astropy.table.groups.BaseGroups
 # astropy.time
 py:class astropy.time.core.TimeUnique
 
+# astropy.visualization
+py:class matplotlib.axes._subplots.WCSAxesSubplot
+
 # numpy inherited docstrings
 py:obj dtype
 py:obj a
