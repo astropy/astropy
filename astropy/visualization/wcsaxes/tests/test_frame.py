@@ -9,7 +9,7 @@ from ....tests.helper import pytest, remote_data
 from .. import WCSAxes
 from ..frame import BaseFrame
 
-from . import baseline_dir
+from ....tests.image_tests import IMAGE_REFERENCE_DIR
 from .test_images import BaseImageTests
 
 class HexagonalFrame(BaseFrame):
@@ -36,7 +36,7 @@ class HexagonalFrame(BaseFrame):
 class TestFrame(BaseImageTests):
 
     @remote_data
-    @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='custom_frame.png', tolerance=1.5)
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR, filename='custom_frame.png', tolerance=1.5)
     def test_custom_frame(self):
 
         wcs = WCS(self.msx_header)
@@ -76,7 +76,7 @@ class TestFrame(BaseImageTests):
         return fig
 
     @remote_data
-    @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='update_clip_path_rectangular.png', tolerance=1.5)
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR, filename='update_clip_path_rectangular.png', tolerance=1.5)
     def test_update_clip_path_rectangular(self, tmpdir):
 
         fig = plt.figure()
@@ -98,7 +98,7 @@ class TestFrame(BaseImageTests):
         return fig
 
     @remote_data
-    @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='update_clip_path_nonrectangular.png', tolerance=1.5)
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR, filename='update_clip_path_nonrectangular.png', tolerance=1.5)
     def test_update_clip_path_nonrectangular(self, tmpdir):
 
         fig = plt.figure()
@@ -121,7 +121,7 @@ class TestFrame(BaseImageTests):
         return fig
 
     @remote_data
-    @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='update_clip_path_change_wcs.png', tolerance=1.5)
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR, filename='update_clip_path_change_wcs.png', tolerance=1.5)
     def test_update_clip_path_change_wcs(self, tmpdir):
 
         # When WCS is changed, a new frame is created, so we need to make sure
