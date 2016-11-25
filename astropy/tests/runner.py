@@ -178,6 +178,12 @@ class TestRunner(object):
                 raise ValueError("pastebin should be 'failed' or 'all'")
 
         # run @remote_data tests
+
+        if remote_data is True:
+            remote_data = 'any'
+        elif remote_data is False:
+            remote_data = 'none'
+
         all_args.append('--remote-data={0}'.format(remote_data))
 
         if pep8:
