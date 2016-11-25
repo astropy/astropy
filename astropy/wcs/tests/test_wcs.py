@@ -604,8 +604,28 @@ def test_footprint_to_file(tmpdir):
                  'CTYPE2': 'DEC--ZPN', 'CRUNIT2': 'deg',
                  'CRPIX2': 3.0453999e+03, 'CRVAL2': 4.388538000000e+01,
                  'PV2_1': 1., 'PV2_3': 220.})
-    # Just check that this doesn't raise an exception:
-    w.footprint_to_file(str(tmpdir.join('test.txt')))
+
+    testfile = str(tmpdir.join('test.txt'))
+    w.footprint_to_file(testfile)
+
+    with open(testfile, 'r') as f:
+        lines = f.readlines()
+
+    assert len(lines) == 4
+    assert lines[2] == 'ICRS\n'
+    assert 'color=green' in lines[3]
+
+    w.footprint_to_file(testfile, coordsys='FK5', color='red')
+
+    with open(testfile, 'r') as f:
+        lines = f.readlines()
+
+    assert len(lines) == 4
+    assert lines[2] == 'FK5\n'
+    assert 'color=red' in lines[3]
+
+    with pytest.raises(ValueError):
+        w.footprint_to_file(testfile, coordsys='FOO')
 
 
 def test_validate_faulty_wcs():
