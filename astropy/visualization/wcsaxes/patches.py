@@ -58,12 +58,7 @@ def _rotate_polygon(lon, lat, lon0, lat0):
 
     # Apply 3D rotation
     polygon = polygon.to_cartesian()
-
-    try:
-        polygon = polygon.transform(transform_matrix)
-    except:  # TODO: remove once Astropy 1.1 is no longer supported
-        polygon = _transform_cartesian(polygon, transform_matrix)
-
+    polygon = polygon.transform(transform_matrix)
     polygon = UnitSphericalRepresentation.from_cartesian(polygon)
 
     return polygon.lon, polygon.lat
