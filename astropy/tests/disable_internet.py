@@ -26,7 +26,7 @@ _orig_opener = None
 # ::1 is apparently another valid name for localhost?
 # it is returned by getaddrinfo when that function is given localhost
 
-def check_internet_off(original_function):
+def check_internet_off(original_function, allow_astropy_data=False):
     """
     Wraps ``original_function``, which in most cases is assumed
     to be a `socket.socket` method, to raise an `IOError` for any operations
@@ -54,6 +54,9 @@ def check_internet_off(original_function):
             addr_arg = 0
             valid_hosts = ('localhost', '127.0.0.1')
 
+        if allow_astropy_data:
+            valid_hosts += ('data.astropy.org')
+
         hostname = socket.gethostname()
         fqdn = socket.getfqdn()
 
@@ -70,7 +73,7 @@ def check_internet_off(original_function):
     return new_function
 
 
-def turn_off_internet(verbose=False):
+def turn_off_internet(verbose=False, allow_astropy_data=False):
     """
     Disable internet access via python by preventing connections from being
     created using the socket module.  Presumably this could be worked around by
@@ -98,9 +101,9 @@ def turn_off_internet(verbose=False):
     opener = urllib.request.build_opener(no_proxy_handler)
     urllib.request.install_opener(opener)
 
-    socket.create_connection = check_internet_off(socket_create_connection)
-    socket.socket.bind = check_internet_off(socket_bind)
-    socket.socket.connect = check_internet_off(socket_connect)
+    socket.create_connection = check_internet_off(socket_create_connection, allow_astropy_data=allow_astropy_data)
+    socket.socket.bind = check_internet_off(socket_bind, allow_astropy_data=allow_astropy_data)
+    socket.socket.connect = check_internet_off(socket_connect, allow_astropy_data=allow_astropy_data)
 
     return socket
 
