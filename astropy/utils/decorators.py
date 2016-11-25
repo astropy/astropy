@@ -7,11 +7,9 @@ from __future__ import print_function
 
 import functools
 import inspect
-import itertools
 import textwrap
 import types
 import warnings
-from distutils.version import LooseVersion
 
 from .codegen import make_function_with_signature
 from .exceptions import (AstropyDeprecationWarning, AstropyUserWarning,
@@ -310,12 +308,6 @@ def deprecated_renamed_argument(old_name, new_name, since,
         and a Warning is issued.
         Default is ``False``.
 
-    .. warning::
-        If ``old_name`` is a list or tuple the ``new_name`` and ``since`` must
-        also be a list or tuple with the same number of entries. ``relax`` and
-        ``arg_in_kwarg`` can be a single bool (applied to all) or also a
-        list/tuple with the same number of entries like ``new_name``, etc.
-
     Raises
     ------
     TypeError
@@ -330,6 +322,12 @@ def deprecated_renamed_argument(old_name, new_name, since,
     -----
     The decorator should be applied to a function where the **name**
     of an argument was changed but it applies the same logic.
+
+    .. warning::
+        If ``old_name`` is a list or tuple the ``new_name`` and ``since`` must
+        also be a list or tuple with the same number of entries. ``relax`` and
+        ``arg_in_kwarg`` can be a single bool (applied to all) or also a
+        list/tuple with the same number of entries like ``new_name``, etc.
 
     Examples
     --------
@@ -455,28 +453,6 @@ def deprecated_renamed_argument(old_name, new_name, since,
                                 'signature. If it was meant to be part of '
                                 '"**kwargs" then set "arg_in_kwargs" to "True"'
                                 '.'.format(new_name[i]))
-
-        if function.__doc__:
-            # Remove indentation of the original documentation so it will be
-            # correctly rendered.
-            doc = [textwrap.dedent(function.__doc__).strip('\n')]
-
-            # Append the deprecation messages ordered by their "since".
-            def item2(x):
-                return LooseVersion(str(x[2]))
-
-            # Add the "versionchanged" directive to the docstring of the
-            # function, but in _sorted_ order and _grouped_ by version.
-            # Note that groupby only groups successive identical elements so
-            # the sorting is required.
-            sorted_zipped = sorted(zip(old_name, new_name, since), key=item2)
-            for k, vals in itertools.groupby(sorted_zipped, key=item2):
-                doc.append("\n.. versionchanged:: {}".format(k))
-                for old, new, _ in vals:
-                    doc.append("   ``{}`` replaces the deprecated "
-                               "``{}`` argument.".format(new, old))
-
-            function.__doc__ = '\n'.join(doc)
 
         @functools.wraps(function)
         def wrapper(*args, **kwargs):
