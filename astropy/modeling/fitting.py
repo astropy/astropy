@@ -1085,7 +1085,7 @@ def populate_entry_points(entry_points):
     Parameters
     ----------
 
-    entry_points: a list of `~pkg_resources.EntryPoint`
+    entry_points : a list of `~pkg_resources.EntryPoint`
                   entry_points are objects which encapsulate
                   importable objects and are defined on the
                   installation of a package.

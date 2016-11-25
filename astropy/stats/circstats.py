@@ -177,7 +177,7 @@ def circmoment(data, p=1.0, centered=False, axis=None, weights=None):
 
     Returns
     -------
-    circmoment: numpy.ndarray or Quantity
+    circmoment : numpy.ndarray or Quantity
         The first and second elements correspond to the direction and length of
         the ``p``-th circular moment, respectively.
 

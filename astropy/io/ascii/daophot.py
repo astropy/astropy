@@ -154,7 +154,7 @@ class DaophotHeader(core.BaseHeader):
 
         Parameters
         ----------
-        lines: list
+        lines : list
             List of table lines
 
         Returns

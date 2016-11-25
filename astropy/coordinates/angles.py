@@ -688,7 +688,7 @@ def rotation_matrix(angle, axis='z', unit=None):
 
     Returns
     -------
-    rmat: `numpy.matrix`
+    rmat : `numpy.matrix`
         A unitary rotation matrix.
     """
     return matrix_utilities.rotation_matrix(angle, axis, unit).view(np.matrix)

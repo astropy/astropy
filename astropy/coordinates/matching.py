@@ -386,7 +386,7 @@ def _get_cartesian_kdtree(coord, attrname_or_kdt='_kdtree', forceunit=None):
         If a string, will store the KD-Tree used for the computation
         in the ``coord``, as an attribute in ``coord`` with the
         provided name. If given as a KD-Tree, it will just be used directly.
-    forceunit: unit or None
+    forceunit : unit or None
         If a unit, the cartesian coordinates will convert to that unit before
         being put in the KD-Tree.  If None, whatever unit it's already in
         will be used
