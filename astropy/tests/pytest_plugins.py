@@ -23,6 +23,7 @@ import os
 import re
 import sys
 import types
+import argparse
 from collections import OrderedDict
 
 from ..config.paths import set_temp_config, set_temp_cache
@@ -42,9 +43,30 @@ except ImportError:  # Python 2.7
 # specific command line options.
 
 
+class remote_data_action(argparse.Action):
+    """
+    For backward-compatibility with old versions of astropy-helpers, we need to
+    pre-process the options for --remote-data and transform them into the new
+    options. This can be removed once astropy core and all affiliated packages
+    use a version of astropy-helpers that recognizes the none/astropy/any
+    options.
+    """
+    def __call__(self, parser, namespace, value, option_string=None):
+        if value == 'False':
+            value = 'none'
+        if value == '1':
+            value = 'any'
+        setattr(namespace, self.dest, value)
+
+
 def pytest_addoption(parser):
-    parser.addoption("--remote-data", action="store_true",
-                     help="run tests with online data")
+
+    # The following means that if --remote-data is not specified, the default
+    # is 'astropy', but if it is specified without arguments, it defaults to
+    # 'all'.
+    parser.addoption("--remote-data", nargs="?", const='any', default='astropy',
+                     help="run tests with online data", action=remote_data_action)
+
     parser.addoption("--open-files", action="store_true",
                      help="fail if any test leaves files open")
 
@@ -134,8 +156,10 @@ def pytest_configure(config):
 
     # Monkeypatch to deny access to remote resources unless explicitly told
     # otherwise
-    if not config.getoption('remote_data'):
-        turn_off_internet(verbose=config.option.verbose)
+
+    if config.getoption('remote_data') != 'any':
+        turn_off_internet(verbose=config.option.verbose,
+                          allow_astropy_data=config.getoption('remote_data') == 'astropy')
 
     doctest_plugin = config.pluginmanager.getplugin('doctest')
     if (doctest_plugin is None or config.option.doctestmodules or not
@@ -175,7 +199,7 @@ def pytest_configure(config):
             runner = doctest.DebugRunner(verbose=False, optionflags=opts)
             for test in finder.find(module):
                 if test.examples:  # skip empty doctests
-                    if not config.getvalue("remote_data"):
+                    if config.getvalue("remote_data") != 'any':
                         for example in test.examples:
                             if example.options.get(REMOTE_DATA):
                                 example.options[doctest.SKIP] = True
@@ -267,7 +291,7 @@ def pytest_configure(config):
                         not DocTestFinderPlus.check_required_modules(required)):
                         entry.options[doctest.SKIP] = True
 
-                    if (not config.getvalue('remote_data') and
+                    if (config.getvalue('remote_data') != 'any' and
                         entry.options.get(REMOTE_DATA)):
                         entry.options[doctest.SKIP] = True
 
@@ -479,10 +503,23 @@ def pytest_runtest_setup(item):
     if item.config.getvalue('open_files'):
         item.open_files = _get_open_file_list()
 
-    if ('remote_data' in item.keywords and
-            not item.config.getvalue("remote_data")):
-        pytest.skip("need --remote-data option to run")
+    remote_data = item.keywords.get('remote_data')
 
+    remote_data_config = item.config.getvalue("remote_data")
+
+    if remote_data is not None:
+
+        source = remote_data.kwargs.get('source', 'any')
+
+        if source not in ('astropy', 'any'):
+            raise ValueError("source should be 'astropy' or 'any'")
+
+        if remote_data_config == 'none':
+            if source in ('astropy', 'any'):
+                pytest.skip("need --remote-data option to run")
+        elif remote_data_config == 'astropy':
+            if source == 'any':
+                pytest.skip("need --remote-data option to run")
 
 def pytest_runtest_teardown(item, nextitem):
     if hasattr(item, 'set_temp_cache'):

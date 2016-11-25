@@ -21,9 +21,9 @@ class TestRunner(object):
         self.base_path = os.path.abspath(base_path)
 
     def run_tests(self, package=None, test_path=None, args=None, plugins=None,
-                  verbose=False, pastebin=None, remote_data=False, pep8=False,
-                  pdb=False, coverage=False, open_files=False, parallel=0,
-                  docs_path=None, skip_docs=False, repeat=None):
+                  verbose=False, pastebin=None, remote_data='astropy',
+                  pep8=False, pdb=False, coverage=False, open_files=False,
+                  parallel=0, docs_path=None, skip_docs=False, repeat=None):
         """
         Run Astropy tests using py.test. A proper set of arguments is
         constructed and passed to `pytest.main`.
@@ -56,10 +56,11 @@ class TestRunner(object):
             'failed' to upload info for failed tests, or 'all' to upload info
             for all tests.
 
-        remote_data : bool, optional
-            Controls whether to run tests marked with @remote_data. These
-            tests use online data and are not run by default. Set to True to
-            run these tests.
+        remote_data : {'none', 'astropy', 'any'}, optional
+            Controls whether to run tests marked with @remote_data. This can be
+            set to run no tests with remote data (``no``), only ones that use
+            data from http://data.astropy.org (``astropy``), or all tests that
+            use remote data (``any``). The default is ``astropy``.
 
         pep8 : bool, optional
             Turn on PEP8 checking via the pytest-pep8 plugin and disable normal
@@ -177,8 +178,7 @@ class TestRunner(object):
                 raise ValueError("pastebin should be 'failed' or 'all'")
 
         # run @remote_data tests
-        if remote_data:
-            all_args.append('--remote-data')
+        all_args.append('--remote-data={0}'.format(remote_data))
 
         if pep8:
             try:
