@@ -60,6 +60,8 @@ matrix:
         # versions of Python, we can vary Python and Numpy versions at the same
         # time. Since we test the latest Numpy as part of the builds with all
         # optional dependencies below, we can focus on older builds here.
+        # For the image tests, we also include Matplotlib 1.4 in the Numpy 1.9
+        # build.
         - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.7
                SETUP_CMD='test --open-files'
@@ -74,19 +76,22 @@ matrix:
                SETUP_CMD='test --open-files'
 
         # Now try with all optional dependencies the latest 3.x and on 2.7.
-        # (with latest numpy).
+        # (with latest numpy). We also test the two latest matplotlib versions
+        # for the image tests.
         - os: linux
-          env: PYTHON_VERSION=2.7 SETUP_CMD='test --remote-data=astropy'
+          env: PYTHON_VERSION=2.7 SETUP_CMD='test --remote-data=astropy -a "--mpl"'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='jplephem mock'
                LC_CTYPE=C.ascii LC_ALL=C
+               MATPLOTLIB_VERSION=1.4
 
         - os: linux
-          env: SETUP_CMD='test --coverage --remote-data=astropy'
+          env: SETUP_CMD='test --coverage --remote-data=astropy -a "--mpl"'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='cpp-coveralls objgraph jplephem'
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
+               MATPLOTLIB_VERSION=1.5
 
         # Try pre-release version of Numpy without optional dependencies
         - os: linux
