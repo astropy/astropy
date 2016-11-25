@@ -55,7 +55,7 @@ def check_internet_off(original_function, allow_astropy_data=False):
             valid_hosts = ('localhost', '127.0.0.1')
 
         if allow_astropy_data:
-            valid_hosts += ('data.astropy.org')
+            valid_hosts += ('data.astropy.org',)
 
         hostname = socket.gethostname()
         fqdn = socket.getfqdn()
@@ -69,7 +69,8 @@ def check_internet_off(original_function, allow_astropy_data=False):
             return original_function(*args, **kwargs)
         else:
             raise IOError("An attempt was made to connect to the internet "
-                          "by a test that was not marked `remote_data`.")
+                          "by a test that was not marked `remote_data`. The "
+                          "requested host was: {0}".format(host))
     return new_function
 
 
