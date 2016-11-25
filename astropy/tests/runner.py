@@ -124,7 +124,7 @@ class TestRunner(object):
                         "Can not test .rst files without a docs_path "
                         "specified.")
 
-                abs_docs_path = os.path.abspath(docs_path)
+                abs_docs_path = os.path.abspath(kwargs['docs_path'])
                 abs_test_path = os.path.abspath(
                     os.path.join(abs_docs_path, os.pardir, test_path))
 
@@ -268,7 +268,7 @@ class TestRunner(object):
 
         """
         if open_files:
-            if parallel != 0:
+            if kwargs['parallel'] != 0:
                 raise SystemError(
                     "open file detection may not be used in conjunction with "
                     "parallel testing.")
