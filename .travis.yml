@@ -27,6 +27,7 @@ env:
         - CONDA_DEPENDENCIES='Cython jinja2'
         - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath'
         - PIP_DEPENDENCIES=''
+        - SETUP_XVFB=True
 
     matrix:
         - PYTHON_VERSION=2.7 SETUP_CMD='egg_info'

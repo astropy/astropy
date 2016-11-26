@@ -29,7 +29,7 @@ try:
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     from distutils.version import LooseVersion
-    MATPLOTLIB_LT_14 = LooseVersion(matplotlib.__version__) < LooseVersion("1.4")
+    MATPLOTLIB_LT_15 = LooseVersion(matplotlib.__version__) < LooseVersion("1.5")
     HAS_MATPLOTLIB = True
 except ImportError:
     HAS_MATPLOTLIB = False
@@ -1248,7 +1248,7 @@ class TestSpecificTypeQuantity(object):
 
 
 @pytest.mark.skipif('not HAS_MATPLOTLIB')
-@pytest.mark.xfail('MATPLOTLIB_LT_14')
+@pytest.mark.xfail('MATPLOTLIB_LT_15')
 class TestQuantityMatplotlib(object):
     """Test if passing matplotlib quantities works.
 
