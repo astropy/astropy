@@ -12,6 +12,7 @@ from numpy.testing import assert_allclose
 from ... import units as u
 from ...tests.helper import (pytest, assert_quantity_allclose as
                              assert_allclose_quantity)
+from ...utils import isiterable
 from ..angles import Longitude, Latitude, Angle
 from ..distances import Distance
 from ..representation import (REPRESENTATION_CLASSES,
@@ -173,7 +174,7 @@ class TestSphericalRepresentation(object):
         with pytest.raises(AttributeError):
             s1.distance = 1. * u.kpc
 
-    def test_getitem(self):
+    def test_getitem_len_iterable(self):
 
         s = SphericalRepresentation(lon=np.arange(10) * u.deg,
                                     lat=-np.arange(10) * u.deg,
@@ -185,7 +186,10 @@ class TestSphericalRepresentation(object):
         assert_allclose_quantity(s_slc.lat, [-2, -4, -6] * u.deg)
         assert_allclose_quantity(s_slc.distance, [1, 1, 1] * u.kpc)
 
-    def test_getitem_scalar(self):
+        assert len(s) == 10
+        assert isiterable(s)
+
+    def test_getitem_len_iterable_scalar(self):
 
         s = SphericalRepresentation(lon=1 * u.deg,
                                     lat=-2 * u.deg,
@@ -193,6 +197,9 @@ class TestSphericalRepresentation(object):
 
         with pytest.raises(TypeError):
             s_slc = s[0]
+        with pytest.raises(TypeError):
+            len(s)
+        assert not isiterable(s)
 
 
 class TestUnitSphericalRepresentation(object):

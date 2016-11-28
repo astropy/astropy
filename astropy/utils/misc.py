@@ -922,11 +922,43 @@ class ShapedLikeNDArray(object):
     def isscalar(self):
         return self.shape == ()
 
+    def __len__(self):
+        if self.isscalar:
+            raise TypeError("Scalar {0!r} object has no len()"
+                            .format(self.__class__.__name__))
+        return self.shape[0]
+
+    def __bool__(self):  # Python 3
+        """Any instance should evaluate to True, except when it is empty."""
+        return self.size > 0
+
+    def __nonzero__(self):  # Python 2
+        """Any instance should evaluate to True, except when it is empty."""
+        return self.size > 0
+
     def __getitem__(self, item):
-        if not self.shape:
-            raise TypeError('scalar {0!r} object is not subscriptable.'.format(
-                self.__class__.__name__))
-        return self._apply('__getitem__', item)
+        try:
+            return self._apply('__getitem__', item)
+        except IndexError:
+            if self.isscalar:
+                raise TypeError('scalar {0!r} object is not subscriptable.'
+                                .format(self.__class__.__name__))
+            else:
+                raise
+
+    def __iter__(self):
+        if self.isscalar:
+            raise TypeError('scalar {0!r} object is not iterable.'
+                            .format(self.__class__.__name__))
+
+        # We cannot just write a generator here, since then the above error
+        # would only be raised once we try to use the iterator, rather than
+        # upon its definition using iter(self).
+        def self_iter():
+            for idx in range(len(self)):
+                yield self[idx]
+
+        return self_iter()
 
     def copy(self, *args, **kwargs):
         """Return an instance containing copies of the internal data.

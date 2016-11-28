@@ -720,18 +720,20 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         """
         return self._data is not None
 
+    @property
+    def shape(self):
+        return self.data.shape if self.has_data else self._no_data_shape
+
+    # We have to override the ShapedLikeNDArray definitions, since our shape
+    # does not have to be that of the data.
     def __len__(self):
         return len(self.data)
 
     def __nonzero__(self):  # Py 2.x
-        return self.isscalar or len(self) != 0
+        return self.has_data and self.size > 0
 
     def __bool__(self):  # Py 3.x
-        return self.isscalar or len(self) != 0
-
-    @property
-    def shape(self):
-        return self.data.shape if self.has_data else self._no_data_shape
+        return self.has_data and self.size > 0
 
     @property
     def size(self):
@@ -739,7 +741,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
     @property
     def isscalar(self):
-        return self.data.isscalar
+        return self.has_data and self.data.isscalar
 
     @classmethod
     def get_frame_attr_names(cls):
