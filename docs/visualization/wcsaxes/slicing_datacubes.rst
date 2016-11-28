@@ -10,7 +10,7 @@ data cube and plot an image from it.
 Slicing the WCS object
 ======================
 
-Like the example introduced in :doc:`getting_started`, we will read in the
+Like the example introduced in :ref:`initialization`, we will read in the
 data using `astropy.io.fits
 <http://docs.astropy.org/en/stable/io/fits/index.html>`_ and parse the WCS
 information. The original FITS file can be downloaded from `here
