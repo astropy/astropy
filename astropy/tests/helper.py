@@ -211,7 +211,7 @@ def treat_deprecations_as_exceptions():
     warning state.
     """
     # First, totally reset the warning state
-    for module in six.itervalues(sys.modules):
+    for module in list(six.itervalues(sys.modules)):
         # We don't want to deal with six.MovedModules, only "real"
         # modules.
         if (isinstance(module, types.ModuleType) and
