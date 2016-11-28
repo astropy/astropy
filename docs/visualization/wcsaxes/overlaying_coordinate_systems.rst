@@ -3,7 +3,7 @@ Overlaying coordinate systems
 =============================
 
 For the example in the following page we start from the example introduced in
-:doc:`getting_started`.
+:ref:`initialization`.
 
 .. plot::
    :context: reset

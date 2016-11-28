@@ -229,30 +229,30 @@ area can be extracted with the utility function
 Matplotlib plots with correct WCS projection
 ============================================
 
-The `WCSAxes <http://wcsaxes.readthedocs.io>`_ affiliated package adds the
-ability to use the :class:`~astropy.wcs.WCS` to define projections in
-Matplotlib. More information on installing and using WCSAxes can be found `here
-<http://wcsaxes.readthedocs.io>`__.
+The :ref:`WCSAxes <wcsaxes>` framework, now included in Astropy, allows the
+:class:`~astropy.wcs.WCS` to define projections in Matplotlib. More information
+on using WCSAxes can be found :ref:`here <wcsaxes>`.
 
 .. plot::
+    :context: reset
     :include-source:
+    :align: center
 
     from matplotlib import pyplot as plt
     from astropy.io import fits
     from astropy.wcs import WCS
-    from astropy.utils.data import download_file
+    from astropy.utils.data import get_pkg_data_filename
 
-    fits_file = 'http://data.astropy.org/tutorials/FITS-images/HorseHead.fits'
-    image_file = download_file(fits_file, cache=True)
-    hdu = fits.open(image_file)[0]
+    filename = get_pkg_data_filename('tutorials/FITS-images/HorseHead.fits')
+
+    hdu = fits.open(filename)[0]
     wcs = WCS(hdu.header)
 
     fig = plt.figure()
     fig.add_subplot(111, projection=wcs)
-    plt.imshow(hdu.data, origin='lower', cmap='cubehelix')
+    plt.imshow(hdu.data, origin='lower', cmap=plt.cm.viridis)
     plt.xlabel('RA')
     plt.ylabel('Dec')
-    plt.show()
 
 Other information
 =================
