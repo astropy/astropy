@@ -40,6 +40,8 @@ DEFAULT_VERSION = LATEST
 DEFAULT_URL = "https://pypi.io/packages/source/s/setuptools/"
 DEFAULT_SAVE_DIR = os.curdir
 
+MEANINGFUL_INVALID_ZIP_ERR_MSG = 'Maybe {0} is corrupted, delete it and try again.'
+
 
 def _python_cmd(*args):
     """
@@ -104,8 +106,16 @@ def archive_context(filename):
     old_wd = os.getcwd()
     try:
         os.chdir(tmpdir)
-        with ContextualZipFile(filename) as archive:
-            archive.extractall()
+        try:
+            with ContextualZipFile(filename) as archive:
+                archive.extractall()
+        except zipfile.BadZipfile as err:
+            if not err.args:
+                err.args = ('', )
+            err.args = err.args + (
+                MEANINGFUL_INVALID_ZIP_ERR_MSG.format(filename),
+            )
+            raise
 
         # going in the directory
         subdir = os.path.join(tmpdir, os.listdir(tmpdir)[0])
@@ -120,11 +130,12 @@ def archive_context(filename):
 
 def _do_download(version, download_base, to_dir, download_delay):
     """Download Setuptools."""
-    egg = os.path.join(to_dir, 'setuptools-%s-py%d.%d.egg'
-                       % (version, sys.version_info[0], sys.version_info[1]))
+    py_desig = 'py{sys.version_info[0]}.{sys.version_info[1]}'.format(sys=sys)
+    tp = 'setuptools-{version}-{py_desig}.egg'
+    egg = os.path.join(to_dir, tp.format(**locals()))
     if not os.path.exists(egg):
         archive = download_setuptools(version, download_base,
-                                      to_dir, download_delay)
+            to_dir, download_delay)
         _build_egg(egg, archive, to_dir)
     sys.path.insert(0, egg)
 
