@@ -10,7 +10,6 @@ astronomy.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import itertools
 import copy
 import operator
 from datetime import datetime
@@ -521,13 +520,6 @@ class Time(ShapedLikeNDArray):
                 else:
                     reshaped.append(val)
 
-    def __bool__(self):
-        """Any time should evaluate to True, except when it is empty."""
-        return self.size > 0
-
-    # In python2, __bool__ is not defined.
-    __nonzero__ = __bool__
-
     def _shaped_like_input(self, value):
         return value if self._time.jd1.shape else value.item()
 
@@ -882,21 +874,6 @@ class Time(ShapedLikeNDArray):
         copy of the JD arrays.
         """
         return self.copy()
-
-    def __iter__(self):
-        if self.isscalar:
-            raise TypeError('scalar {0!r} object is not iterable.'.format(
-                self.__class__.__name__))
-
-        def time_iter():
-            try:
-                for idx in itertools.count():
-                    yield self[idx]
-            except IndexError:
-                # Results in StopIteration
-                pass
-
-        return time_iter()
 
     def _advanced_index(self, indices, axis=None, keepdims=False):
         """Turn argmin, argmax output into an advanced index.
@@ -1274,12 +1251,6 @@ class Time(ShapedLikeNDArray):
     # called with the optional jd1 and jd2 args.
     delta_tdb_tt = property(_get_delta_tdb_tt, _set_delta_tdb_tt)
     """TDB - TT time scale offset"""
-
-    def __len__(self):
-        if self.isscalar:
-            raise TypeError("Scalar {0} object has no len()"
-                            .format(self.__class__.__name__))
-        return len(self.jd1)
 
     def __sub__(self, other):
         if not isinstance(other, Time):
