@@ -28,7 +28,7 @@ can change the unit to an equivalent one by:
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=wcs,
                       slices=(50, 'y', 'x'))
 
-    ax.imshow(hdu.data[:, :, 50].transpose(), cmap=plt.cm.gist_heat)
+    ax.imshow(hdu.data[:, :, 50].transpose())
 
 .. plot::
    :context:

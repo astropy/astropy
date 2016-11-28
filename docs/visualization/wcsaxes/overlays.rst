@@ -22,8 +22,7 @@ For the example in the following page we start from the example introduced in
     fig = plt.figure()
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=wcs)
 
-    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, cmap=plt.cm.gist_heat,
-              origin='lower')
+    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
 
 
 Pixel coordinates
@@ -125,7 +124,7 @@ For example, you can add markers with positions defined in the FK5 system using:
     fig = plt.figure()
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=wcs)
 
-    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, cmap=plt.cm.gist_heat,
+    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4,
               origin='lower')
 
     ax.set_autoscale_on(False)
@@ -164,7 +163,7 @@ in FK5 equatorial coordinates:
     fig = plt.figure()
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=wcs)
 
-    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, cmap=plt.cm.gist_heat,
+    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4,
               origin='lower')
 
     ax.set_autoscale_on(False)
@@ -232,7 +231,7 @@ image to plot the contours for:
     fig = plt.figure()
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=wcs)
 
-    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, cmap=plt.cm.gist_heat,
+    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4,
               origin='lower')
 
     ax.set_autoscale_on(False)
@@ -270,7 +269,7 @@ In the case where you are making a plot of a celestial image, and want to plot a
     fig = plt.figure()
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=wcs)
 
-    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, cmap=plt.cm.gist_heat,
+    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4,
               origin='lower')
 
     ax.set_autoscale_on(False)

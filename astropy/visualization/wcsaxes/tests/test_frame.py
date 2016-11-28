@@ -50,7 +50,7 @@ class TestFrame(BaseImageTests):
 
         ax.coords.grid(color='white')
 
-        im = ax.imshow(np.ones((149, 149)), vmin=0., vmax=2., cmap=plt.cm.gist_heat,
+        im = ax.imshow(np.ones((149, 149)), vmin=0., vmax=2.,
                        origin='lower')
 
         minpad = {}

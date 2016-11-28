@@ -23,8 +23,7 @@ For the example in the following page we start from the example introduced in
     fig = plt.figure()
     ax = fig.add_axes([0.25, 0.25, 0.6, 0.6], projection=wcs)
 
-    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, cmap=plt.cm.gist_heat,
-              origin='lower')
+    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
 
 The coordinates shown by default in a plot will be those derived from the WCS
 or transformation passed to the :class:`~astropy.visualization.wcsaxes.WCSAxes` class.

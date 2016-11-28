@@ -28,8 +28,7 @@ following example shows how to use the built-in
 
     ax.coords.grid(color='white')
 
-    im = ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, cmap=plt.cm.gist_heat,
-              origin='lower')
+    im = ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
 
     # Clip the image to the frame
     im.set_clip_path(ax.coords.frame.patch)
@@ -61,8 +60,7 @@ all-sky plots such as Aitoff projections:
     ax.coords.grid(color='white')
     ax.coords['glon'].set_ticklabel(color='white', path_effects=path_effects)
 
-    im = ax.imshow(hdu.data, vmin=0., vmax=300.,
-              cmap=plt.cm.inferno, origin='lower')
+    im = ax.imshow(hdu.data, vmin=0., vmax=300., origin='lower')
 
     # Clip the image to the frame
     im.set_clip_path(ax.coords.frame.patch)
@@ -123,7 +121,7 @@ which we can then use:
 
      ax.coords.grid(color='white')
 
-     im = ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, cmap=plt.cm.gist_heat,
+     im = ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4,
                origin='lower')
 
      # Clip the image to the frame
