@@ -191,6 +191,8 @@ class ZScaleInterval(BaseInterval):
     Original implementation:
     https://trac.stsci.edu/ssb/stsci_python/browser/stsci_python/trunk/numdisplay/lib/stsci/numdisplay/zscale.py?rev=19347
 
+    Licensed under a 3-clause BSD style license (see AURA_LICENSE.rst).
+
     Parameters
     ----------
     nsamples : int, optional
