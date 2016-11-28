@@ -210,7 +210,9 @@ def treat_deprecations_as_exceptions():
     This completely resets the warning filters and any "already seen"
     warning state.
     """
-    # First, totally reset the warning state
+    # First, totally reset the warning state. The modules may change during
+    # this iteration thus we copy the original state to a list to iterate
+    # on. See https://github.com/astropy/astropy/pull/5513.
     for module in list(six.itervalues(sys.modules)):
         # We don't want to deal with six.MovedModules, only "real"
         # modules.
