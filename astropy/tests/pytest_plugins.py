@@ -46,8 +46,8 @@ except ImportError:  # Python 2.7
 def pytest_addoption(parser):
 
     # The following means that if --remote-data is not specified, the default
-    # is 'astropy', but if it is specified without arguments, it defaults to
-    # 'any'.
+    # is 'none', but if it is specified without arguments (--remote-data), it
+    # defaults to '--remote-data=any'.
     parser.addoption("--remote-data", nargs="?", const='any', default='astropy',
                      help="run tests with online data")
 
@@ -499,8 +499,7 @@ def pytest_runtest_setup(item):
             raise ValueError("source should be 'astropy' or 'any'")
 
         if remote_data_config == 'none':
-            if source in ('astropy', 'any'):
-                pytest.skip("need --remote-data option to run")
+            pytest.skip("need --remote-data option to run")
         elif remote_data_config == 'astropy':
             if source == 'any':
                 pytest.skip("need --remote-data option to run")
