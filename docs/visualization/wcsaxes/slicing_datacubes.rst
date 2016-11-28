@@ -76,7 +76,7 @@ We then add the axes to the image and plot it using the method
    :align: center
 
     ax.coords[2].set_ticks(exclude_overlapping=True)
-    ax.imshow(image_data[:, :, 50].transpose(), cmap=plt.cm.gist_heat)
+    ax.imshow(image_data[:, :, 50].transpose())
 
 Here, ``image_data`` is an :class:`~numpy.ndarray` object. In Numpy, the order
 of the axes is reversed so the first dimension in the FITS file appears last,
@@ -108,4 +108,4 @@ If we don't want to reverse the dimensions plotted, we can simply do:
 
     fig = plt.figure(figsize=(6,3))
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=wcs, slices=(50, 'x', 'y'))
-    ax.imshow(image_data[:, :, 50], cmap=plt.cm.gist_heat)
+    ax.imshow(image_data[:, :, 50])
