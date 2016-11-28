@@ -13,7 +13,6 @@ import numpy as np
 from ..extern import six
 from ..utils.misc import InheritDocstrings
 from .transform import BaseTransform
-from .zscale import zscale
 
 
 __all__ = ['BaseInterval', 'ManualInterval', 'MinMaxInterval',
@@ -189,28 +188,32 @@ class ZScaleInterval(BaseInterval):
 
     http://iraf.net/forum/viewtopic.php?showtopic=134139
 
+    Original implementation:
+    https://trac.stsci.edu/ssb/stsci_python/browser/stsci_python/trunk/numdisplay/lib/stsci/numdisplay/zscale.py?rev=19347
+
     Parameters
     ----------
-    image : array_like
-        Input array.
     nsamples : int, optional
-        Number of points in array to sample for determining scaling
-        factors.  Defaults to 1000.
+        The number of points in the array to sample for determining
+        scaling factors.  Defaults to 1000.
     contrast : float, optional
-        Scaling factor (between 0 and 1) for determining min and max.
-        Larger values increase the difference between min and max values
-        used for display. Defaults to 0.25.
+        The scaling factor (between 0 and 1) for determining the minimum
+        and maximum value.  Larger values increase the difference
+        between the minimum and maximum values used for display.
+        Defaults to 0.25.
     max_reject : float, optional
         If more than ``max_reject * npixels`` pixels are rejected, then
-        the returned values are the min and max of the data. Defaults to
-        0.5.
+        the returned values are the minimum and maximum of the data.
+        Defaults to 0.5.
     min_npixels : int, optional
         If less than ``min_npixels`` pixels are rejected, then the
-        returned values are the min and max of the data. Defaults to 5.
+        returned values are the minimum and maximum of the data.
+        Defaults to 5.
     krej : float, optional
-        Number of sigma used for the rejection. Defaults to 2.5.
+        The number of sigma used for the rejection. Defaults to 2.5.
     max_iterations : int, optional
-        Maximum number of iterations for the rejection. Defaults to 5.
+        The maximum number of iterations for the rejection. Defaults to
+        5.
     """
 
     def __init__(self, nsamples=1000, contrast=0.25, max_reject=0.5,
@@ -223,7 +226,61 @@ class ZScaleInterval(BaseInterval):
         self.max_iterations = max_iterations
 
     def get_limits(self, values):
-        return zscale(values, nsamples=self.nsamples, contrast=self.contrast,
-                      max_reject=self.max_reject,
-                      min_npixels=self.min_npixels, krej=self.krej,
-                      max_iterations=self.max_iterations)
+        # Sample the image
+        values = np.asarray(values)
+        values = values[np.isfinite(values)]
+        stride = int(max(1.0, values.size / self.nsamples))
+        samples = values[::stride][:self.nsamples]
+        samples.sort()
+
+        npix = len(samples)
+        vmin = samples[0]
+        vmax = samples[-1]
+
+        # Fit a line to the sorted array of samples
+        minpix = max(self.min_npixels, int(npix * self.max_reject))
+        x = np.arange(npix)
+        ngoodpix = npix
+        last_ngoodpix = npix + 1
+
+        # Bad pixels mask used in k-sigma clipping
+        badpix = np.zeros(npix, dtype=bool)
+
+        # Kernel used to dilate the bad pixels mask
+        ngrow = max(1, int(npix * 0.01))
+        kernel = np.ones(ngrow, dtype=bool)
+
+        for niter in six.moves.range(self.max_iterations):
+            if ngoodpix >= last_ngoodpix or ngoodpix < minpix:
+                break
+
+            fit = np.polyfit(x, samples, deg=1, w=(~badpix).astype(int))
+            fitted = np.poly1d(fit)(x)
+
+            # Subtract fitted line from the data array
+            flat = samples - fitted
+
+            # Compute the k-sigma rejection threshold
+            threshold = self.krej * flat[~badpix].std()
+
+            # Detect and reject pixels further than k*sigma from the
+            # fitted line
+            badpix[(flat < - threshold) | (flat > threshold)] = True
+
+            # Convolve with a kernel of length ngrow
+            badpix = np.convolve(badpix, kernel, mode='same')
+
+            last_ngoodpix = ngoodpix
+            ngoodpix = np.sum(~badpix)
+
+        slope, intercept = fit
+
+        if ngoodpix >= minpix:
+            if self.contrast > 0:
+                slope = slope / self.contrast
+            center_pixel = (npix - 1) // 2
+            median = np.median(samples)
+            vmin = max(vmin, median - (center_pixel - 1) * slope)
+            vmax = min(vmax, median + (npix - center_pixel) * slope)
+
+        return vmin, vmax
