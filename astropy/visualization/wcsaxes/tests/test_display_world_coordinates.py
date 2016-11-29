@@ -16,7 +16,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
     def test_overlay_coords(self, tmpdir):
         wcs = WCS(self.msx_header)
 
-        fig = plt.figure(figsize=(4,4))
+        fig = plt.figure(figsize=(4, 4))
         canvas = fig.canvas
 
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs)
@@ -87,7 +87,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         fig.savefig(tmpdir.join('test4.png').strpath)
 
         event6 = KeyEvent('test_pixel_coords', canvas, 'w')
-        fig.canvas.key_press_event(event5.key, guiEvent=event4)
+        fig.canvas.key_press_event(event5.key, guiEvent=event6)
         # Test that it displays the overlay world coordinates
         string_world5 = ax._display_world_coords(0.523412, 0.518311)
 
@@ -96,7 +96,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
     def test_cube_coords(self, tmpdir):
         wcs = WCS(self.cube_header)
 
-        fig = plt.figure(figsize=(4,4))
+        fig = plt.figure(figsize=(4, 4))
         canvas = fig.canvas
 
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs, slices=('y', 50, 'x'))

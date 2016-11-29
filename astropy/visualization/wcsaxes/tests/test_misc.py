@@ -31,11 +31,11 @@ def test_format_coord_regression(tmpdir):
     fig = plt.figure(figsize=(3, 3))
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8])
     fig.add_axes(ax)
-    assert ax.format_coord(10,10) == ""
+    assert ax.format_coord(10, 10) == ""
     assert ax.coords[0].format_coord(10) == ""
     assert ax.coords[1].format_coord(10) == ""
     fig.savefig(tmpdir.join('nothing').strpath)
-    assert ax.format_coord(10,10) == "11.0 11.0 (world)"
+    assert ax.format_coord(10, 10) == "11.0 11.0 (world)"
     assert ax.coords[0].format_coord(10) == "10.0"
     assert ax.coords[1].format_coord(10) == "10.0"
 
@@ -57,13 +57,14 @@ CUNIT2  = 'deg     '
 COORDSYS= 'icrs    '
 """, sep='\n')
 
+
 def test_no_numpy_warnings():
 
     # Make sure that no warnings are raised if some pixels are outside WCS
     # (since this is normal)
 
-    ax = plt.subplot(1,1,1, projection=WCS(TARGET_HEADER))
-    ax.imshow(np.zeros((100,200)))
+    ax = plt.subplot(1, 1, 1, projection=WCS(TARGET_HEADER))
+    ax.imshow(np.zeros((100, 200)))
     ax.coords.grid(color='white')
 
     with catch_warnings(RuntimeWarning) as ws:
@@ -79,7 +80,7 @@ def test_no_numpy_warnings():
 def test_invalid_frame_overlay():
 
     # Make sure a nice error is returned if a frame doesn't exist
-    ax = plt.subplot(1,1,1, projection=WCS(TARGET_HEADER))
+    ax = plt.subplot(1, 1, 1, projection=WCS(TARGET_HEADER))
     with pytest.raises(ValueError) as exc:
         ax.get_coords_overlay('banana')
     assert exc.value.args[0] == 'Unknown frame: banana'

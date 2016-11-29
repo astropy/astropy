@@ -153,7 +153,6 @@ class TickLabels(Text):
                     # label.
                     width = bb.width
                     height = bb.height
-                    theta = np.tan(height / width)
 
                     # Project axis angle onto bounding box
                     ax = np.cos(np.radians(self.angle[axis][i]))
