@@ -1241,7 +1241,6 @@ def test_spherical_offsets():
     dra, ddec = i00s.spherical_offsets_to(i01s)
     assert_allclose(dra, 0*u.arcmin)
     assert_allclose(ddec, np.arange(4)*u.arcmin)
-    1/0
 
 
 def test_frame_attr_changes():
