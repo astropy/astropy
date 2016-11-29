@@ -1241,7 +1241,7 @@ def report_diff_values(fileobj, a, b, ind=0):
             fileobj.write(indent(u('  at {!r}:\n').format(list(idx)), ind))
             report_diff_values(fileobj, a[idx], b[idx], ind=ind + 1)
 
-        if num_diffs:
+        if num_diffs > 3:
             fileobj.write(indent(u('  ...and at {} more indices.\n').format(
                                         num_diffs - 3), ind))
         return

@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import io
+import re
 from ....tests.helper import pytest
 
 import numpy as np
@@ -473,9 +474,10 @@ class TestDiff(FitsTestCase):
                 '    a> True\n'
                 '    b> False') in report
         assert ('...and at 13 more indices.\n'
-                'Column D data differs in row 0:') in report
+                ' Column D data differs in row 0:') in report
         assert ('13 different table data element(s) found (65.00% different)'
                 in report)
+        assert len(re.findall('more indices', report)) == 1
 
     def test_identical_files_basic(self):
         """Test identicality of two simple, extensionless files."""
