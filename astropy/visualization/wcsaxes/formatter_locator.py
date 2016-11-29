@@ -92,7 +92,8 @@ class BaseFormatterLocator(object):
         values = np.delete(values, np.s_[index::frequency])
         return values * minor_spacing * self._unit
 
-    def _locate_values(self, value_min, value_max, spacing):
+    @staticmethod
+    def _locate_values(value_min, value_max, spacing):
         imin = np.ceil(value_min / spacing)
         imax = np.floor(value_max / spacing)
         values = np.arange(imin, imax + 1, dtype=int)
@@ -345,7 +346,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
 
     @format_unit.setter
     def format_unit(self, unit):
-        if (not issubclass(unit.__class__, u.UnitBase)):
+        if not issubclass(unit.__class__, u.UnitBase):
             raise TypeError("unit should be an astropy UnitBase subclass")
         self._format_unit = unit
 

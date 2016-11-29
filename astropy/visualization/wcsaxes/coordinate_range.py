@@ -19,12 +19,12 @@ def wrap_180(values):
 
 
 def find_coordinate_range(transform, extent, coord_types, coord_units):
-    '''
+    """
     Find the range of coordinates to use for ticks/grids
 
     Parameters
     ----------
-    pix2world : func
+    transform : func
         Function to transform pixel to world coordinates. Should take two
         values (the pixel coordinates) and return two values (the world
         coordinates).
@@ -36,13 +36,13 @@ def find_coordinate_range(transform, extent, coord_types, coord_units):
         ``'scalar'`` value.
     coord_units : list of `astropy.units.Unit`
         The units for each coordinate
-    '''
+    """
 
     # Sample coordinates on a NX x NY grid.
     from . import conf
-    NX = NY = conf.coordinate_range_samples
-    x = np.linspace(extent[0], extent[1], NX + 1)
-    y = np.linspace(extent[2], extent[3], NY + 1)
+    nx = ny = conf.coordinate_range_samples
+    x = np.linspace(extent[0], extent[1], nx + 1)
+    y = np.linspace(extent[2], extent[3], ny + 1)
     xp, yp = np.meshgrid(x, y)
     world = transform.transform(np.vstack([xp.ravel(), yp.ravel()]).transpose())
 
@@ -89,7 +89,7 @@ def find_coordinate_range(transform, extent, coord_types, coord_units):
                 xw_min_check = np.nanmin(xw % 360.)
                 xw_max_check = np.nanmax(xw % 360.)
 
-            if xw_max - xw_min < 360. and xw_max - xw_min >= xw_max_check - xw_min_check:
+            if xw_max_check - xw_min_check <= xw_max - xw_min < 360.:
                 xw_min = xw_min_check
                 xw_max = xw_max_check
 
