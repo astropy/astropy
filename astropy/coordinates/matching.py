@@ -226,6 +226,12 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='_kdtree_3d'):
                          '``coord1.separation_3d(coord2) < distlimit`` to find '
                          'the coordinates near a scalar coordinate.')
 
+    if len(coords1) == 0 or len(coords2) == 0:
+        # Empty array input: return empty match
+        return (np.array([], dtype=np.int), np.array([], dtype=np.int),
+                u.Quantity([], u.deg),
+                u.Quantity([], u.dimensionless_unscaled))
+
     kdt2 = _get_cartesian_kdtree(coords2, storekdtree)
     cunit = coords2.cartesian.x.unit
 
@@ -245,8 +251,8 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='_kdtree_3d'):
         for match in matches:
             idxs1.append(i)
             idxs2.append(match)
-    idxs1 = np.array(idxs1)
-    idxs2 = np.array(idxs2)
+    idxs1 = np.array(idxs1, dtype=np.int)
+    idxs2 = np.array(idxs2, dtype=np.int)
 
     if idxs1.size == 0:
         d2ds = u.Quantity([], u.deg)
@@ -321,6 +327,12 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
                          '``coord1.separation(coord2) < seplimit`` to find the '
                          'coordinates near a scalar coordinate.')
 
+    if len(coords1) == 0 or len(coords2) == 0:
+        # Empty array input: return empty match
+        return (np.array([], dtype=np.int), np.array([], dtype=np.int),
+                u.Quantity([], u.deg),
+                u.Quantity([], u.dimensionless_unscaled))
+
     # we convert coord1 to match coord2's frame.  We do it this way
     # so that if the conversion does happen, the KD tree of coord2 at least gets
     # saved. (by convention, coord2 is the "catalog" if that makes sense)
@@ -354,8 +366,8 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
         for match in matches:
             idxs1.append(i)
             idxs2.append(match)
-    idxs1 = np.array(idxs1)
-    idxs2 = np.array(idxs2)
+    idxs1 = np.array(idxs1, dtype=np.int)
+    idxs2 = np.array(idxs2, dtype=np.int)
 
     if idxs1.size == 0:
         d2ds = u.Quantity([], u.deg)
