@@ -310,6 +310,10 @@ Other Changes and Additions
   - The default cosmological model has been changed to Planck 2015,
     and the citation strings have been updated. [#5372]
 
+- ``astropy.extern``
+
+  - Updated te bundled ``six`` module to version 1.10.0. [#5521]
+
 - ``astropy.io.fits``
 
   - Performance improvements for tables with many columns. [#4985]
