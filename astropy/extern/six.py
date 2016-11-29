@@ -8,7 +8,7 @@ import imp
 from distutils.version import StrictVersion
 
 
-_SIX_MIN_VERSION = StrictVersion('1.7.3')
+_SIX_MIN_VERSION = StrictVersion('1.10.0')
 
 # Update this to prevent Astropy from using its bundled copy of six
 # (but only if some other version of at least _SIX_MIN_VERSION can
