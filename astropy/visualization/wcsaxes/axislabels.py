@@ -65,7 +65,7 @@ class AxisLabels(Text):
             normal_angle = self._frame[axis].normal_angle[imin] + 180.
 
             label_angle = (normal_angle - 90.) % 360.
-            if label_angle < 225 and label_angle > 135:
+            if 135 < label_angle < 225:
                 label_angle += 180
             self.set_rotation(label_angle)
 

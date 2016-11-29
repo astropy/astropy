@@ -26,7 +26,7 @@ def get_lon_lat_path(lon_lat, pixel, lon_lat_check):
         array.
     pixel : `~numpy.ndarray`
         The pixel coordinates corresponding to ``lon_lat``
-    lon_lat : `~numpy.ndarray`
+    lon_lat_check : `~numpy.ndarray`
         The world coordinates derived from converting from ``pixel``, which is
         used to ensure round-tripping.
     """

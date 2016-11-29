@@ -6,7 +6,7 @@ import numpy as np
 from matplotlib.patches import Polygon
 
 from ... import units as u
-from ...coordinates.representation import UnitSphericalRepresentation, CartesianRepresentation
+from ...coordinates.representation import UnitSphericalRepresentation
 from ...coordinates.matrix_utilities import rotation_matrix as rotation_array
 
 

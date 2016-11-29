@@ -258,7 +258,7 @@ class CoordinateHelper(object):
         unit : class:`~astropy.units.Unit`
             The unit to which the tick labels should be converted to.
         """
-        if (not issubclass(unit.__class__, u.UnitBase)):
+        if not issubclass(unit.__class__, u.UnitBase):
             raise TypeError("unit should be an astropy UnitBase subclass")
         self._formatter_locator.format_unit = unit
 
@@ -432,7 +432,7 @@ class CoordinateHelper(object):
 
         renderer.open_group('coordinate_axis')
 
-        self._update_ticks(renderer)
+        self._update_ticks()
 
         self.ticks.draw(renderer)
         self.ticklabels.draw(renderer, bboxes=bboxes,
@@ -471,7 +471,7 @@ class CoordinateHelper(object):
 
         renderer.close_group('axis labels')
 
-    def _update_ticks(self, renderer):
+    def _update_ticks(self):
 
         # TODO: this method should be optimized for speed
 
@@ -744,7 +744,7 @@ class CoordinateHelper(object):
         xmin, xmax = self.parent_axes.get_xlim()
         ymin, ymax = self.parent_axes.get_ylim()
 
-        X, Y, field = self.transform.get_coord_slices(xmin, xmax, ymin, ymax, 200, 200)
+        x, y, field = self.transform.get_coord_slices(xmin, xmax, ymin, ymax, 200, 200)
 
         coord_range = self.parent_map.get_coord_range()
 
@@ -771,6 +771,6 @@ class CoordinateHelper(object):
             field[1:, 1:][reset] = np.nan
 
         if len(tick_world_coordinates_values) > 0:
-            self._grid = self.parent_axes.contour(X, Y, field.transpose(), levels=np.sort(tick_world_coordinates_values))
+            self._grid = self.parent_axes.contour(x, y, field.transpose(), levels=np.sort(tick_world_coordinates_values))
         else:
             self._grid = None
