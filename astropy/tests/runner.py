@@ -16,17 +16,35 @@ from ..extern import six
 from ..utils import wraps, find_current_module
 from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
+
 class keyword(object):
-    def __init__(self, default_value, priority=0):
+    """
+    A decorator to mark a method as keyword argument for the ``TestRunner``.
+
+    Parameters
+    ----------
+    default_value : `object`
+        The default value for the keyword argument. (Default: `None`)
+
+    priority : `int`
+        keyword argument methods are executed in order of descending priority.
+
+    """
+
+    def __init__(self, default_value=None, priority=0):
         self.default_value = default_value
         self.priority = priority
 
     def __call__(self, f):
         def keyword(*args, **kwargs):
             return f(*args, **kwargs)
+
         keyword._default_value = self.default_value
         keyword._priority = self.priority
+        # Set __doc__ explicitly here rather than using wraps because we want
+        # to keep the function name as keyword so we can inspect it later.
         keyword.__doc__ = f.__doc__
+
         return keyword
 
 
@@ -75,7 +93,8 @@ class TestRunner(object):
 
         return super(TestRunner, cls).__new__(cls)
 
-    @keyword(None, priority=100)
+    # Increase priority so this warning is displayed first.
+    @keyword(priority=1000)
     def coverage(self, coverage, kwargs):
         if coverage:
             warnings.warn(
@@ -86,7 +105,9 @@ class TestRunner(object):
 
         return []
 
-    @keyword(None, priority=1)
+    # test_path depends on self.package_path so make sure this runs before
+    # test_path.
+    @keyword(priority=1)
     def package(self, package, kwargs):
         """
         package : str, optional
@@ -108,7 +129,7 @@ class TestRunner(object):
 
         return []
 
-    @keyword(None)
+    @keyword
     def test_path(self, test_path, kwargs):
         """
         test_path : str, optional
@@ -152,8 +173,7 @@ class TestRunner(object):
 
         return []
 
-
-    @keyword(None)
+    @keyword
     def args(self, args, kwargs):
         """
         args : str, optional
@@ -162,12 +182,11 @@ class TestRunner(object):
 
         """
         if args:
-            return shlex.split(args,
-                               posix=not sys.platform.startswith('win'))
+            return shlex.split(args, posix=not sys.platform.startswith('win'))
 
         return []
 
-    @keyword(None)
+    @keyword
     def plugins(self, plugins, kwargs):
         """
         plugins : list, optional
@@ -177,7 +196,7 @@ class TestRunner(object):
         """
         return []
 
-    @keyword(None)
+    @keyword
     def verbose(self, verbose, kwargs):
         """
         verbose : bool, optional
@@ -190,7 +209,7 @@ class TestRunner(object):
 
         return []
 
-    @keyword(None)
+    @keyword
     def pastebin(self, pastebin, kwargs):
         """
         pastebin : {{'failed', 'all', None}}, optional
@@ -207,7 +226,7 @@ class TestRunner(object):
 
         return []
 
-    @keyword(None)
+    @keyword
     def remote_data(self, remote_data, kwargs):
         """
         remote_data : {'none', 'astropy', 'any'}, optional
@@ -232,7 +251,7 @@ class TestRunner(object):
 
         return '--remote-data={0}'.format(remote_data)
 
-    @keyword(None)
+    @keyword
     def pep8(self, pep8, kwargs):
         """
         pep8 : bool, optional
@@ -251,7 +270,7 @@ class TestRunner(object):
 
         return []
 
-    @keyword(None)
+    @keyword
     def pdb(self, pdb, kwargs):
         """
         pdb : bool, optional
@@ -263,7 +282,7 @@ class TestRunner(object):
             return ['--pdb']
         return []
 
-    @keyword(None)
+    @keyword
     def open_files(self, open_files, kwargs):
         """
         open_files : bool, optional
@@ -305,7 +324,7 @@ class TestRunner(object):
 
         return []
 
-    @keyword(None)
+    @keyword
     def docs_path(self, docs_path, kwargs):
         """
         docs_path : str, optional
@@ -326,7 +345,7 @@ class TestRunner(object):
 
         return []
 
-    @keyword(None)
+    @keyword
     def skip_docs(self, skip_docs, kwargs):
         """
         skip_docs : bool, optional
@@ -336,7 +355,7 @@ class TestRunner(object):
         # Skip docs is a bool used by docs_path only.
         return []
 
-    @keyword(None)
+    @keyword
     def repeat(self, repeat, kwargs):
         """
         repeat : int, optional
@@ -348,7 +367,6 @@ class TestRunner(object):
             return ['--repeat={0}'.format(repeat)]
 
         return []
-
 
     def run_tests(self, **kwargs):
         """
