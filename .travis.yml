@@ -45,10 +45,7 @@ matrix:
         - os: osx
           env: SETUP_CMD='test'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               if [[ $PYTHON_VERSION == 2.7 ]]; 
-               then PIP_DEPENDENCIES='jplephem mock';
-               else PIP_DEPENDENCIES='jplephem';
-               fi
+               PIP_DEPENDENCIES='jplephem'
 
         # Check for sphinx doc build warnings - we do this first because it
         # runs for a long time. The sphinx build also has some additional
@@ -77,10 +74,7 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=2.7 SETUP_CMD='test'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               if [[ $PYTHON_VERSION == 2.7 ]]; 
-               then PIP_DEPENDENCIES='jplephem mock';
-               else PIP_DEPENDENCIES='jplephem'; 
-               fi
+               PIP_DEPENDENCIES='jplephem mock'
                LC_CTYPE=C.ascii LC_ALL=C
 
         - os: linux
