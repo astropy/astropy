@@ -30,6 +30,51 @@ IDENTITY.wcs.cdelt = [1., 1.]
 
 
 class WCSAxes(Axes):
+    """
+    The main axes class that can be used to show world coordinates from a WCS.
+
+    Parameters
+    ----------
+    fig : `~matplotlib.figure.Figure`
+        The figure to add the axes to
+    rect : list
+        The position of the axes in the figure in relative units. Should be
+        given as ``[left, bottom, width, height]``.
+    wcs : :class:`~astropy.wcs.WCS`, optional
+        The WCS for the data. If this is specified, ``transform`` cannot be
+        specified.
+    transform : `~matplotlib.transforms.Transform`, optional
+        The transform for the data. If this is specified, ``wcs`` cannot be
+        specified.
+    coord_meta : dict, optional
+        A dictionary providing additional metadata when ``transform`` is
+        specified. This should include the keys ``type``, ``wrap``, and
+        ``unit``. Each of these should be a list with as many items as the
+        dimension of the WCS. The ``type`` entries should be one of
+        ``longitude``, ``latitude``, or ``scalar``, the ``wrap`` entries should
+        give, for the longitude, the angle at which the coordinate wraps (and
+        `None` otherwise), and the ``unit`` should give the unit of the
+        coordinates as :class:`~astropy.units.Unit` instances.
+    transData : `~matplotlib.transforms.Transform`, optional
+        Can be used to override the default data -> pixel mapping.
+    slices : tuple, optional
+        For WCS transformations with more than two dimensions, we need to
+        choose which dimensions are being shown in the 2D image. The slice
+        should contain one ``x`` entry, one ``y`` entry, and the rest of the
+        values should be integers indicating the slice through the data. The
+        order of the items in the slice should be the same as the order of the
+        dimensions in the :class:`~astropy.wcs.WCS`, and the opposite of the
+        order of the dimensions in Numpy. For example, ``(50, 'x', 'y')`` means
+        that the first WCS dimension (last Numpy dimension) will be sliced at
+        an index of 50, the second WCS and Numpy dimension will be shown on the
+        x axis, and the final WCS dimension (first Numpy dimension) will be
+        shown on the y-axis (and therefore the data will be plotted using
+        ``data[:, :, 50].transpose()``)
+    frame_class : type, optional
+        The class for the frame, which should be a subclass of
+        :class:`~astropy.visualization.wcsaxes.frame.BaseFrame`. The default is to use a
+        :class:`~astropy.visualization.wcsaxes.frame.RectangularFrame`
+    """
 
     def __init__(self, fig, rect, wcs=None, transform=None, coord_meta=None,
                  transData=None, slices=None, frame_class=RectangularFrame,
@@ -454,4 +499,7 @@ class WCSAxes(Axes):
 
 
 class WCSAxesSubplot(subplot_class_factory(WCSAxes)):
+    """
+    A subclass class for WCSAxes
+    """
     pass

@@ -34,6 +34,34 @@ def wrap_angle_at(values, coord_wrap):
 
 
 class CoordinateHelper(object):
+    """
+    Helper class to control one of the coordinates in the
+    :class:`~astropy.visualization.wcsaxes.WCSAxes`.
+
+    Parameters
+    ----------
+    parent_axes : :class:`~astropy.visualization.wcsaxes.WCSAxes`
+        The axes the coordinate helper belongs to.
+    parent_map : :class:`~astropy.visualization.wcsaxes.CoordinatesMap`
+        The :class:`~astropy.visualization.wcsaxes.CoordinatesMap` object this
+        coordinate belongs to.
+    transform : `~matplotlib.transforms.Transform`
+        The transform corresponding to this coordinate system.
+    coord_index : int
+        The index of this coordinate in the
+        :class:`~astropy.visualization.wcsaxes.CoordinatesMap`.
+    coord_type : {'longitude', 'latitude', 'scalar'}
+        The type of this coordinate, which is used to determine the wrapping and
+        boundary behavior of coordinates. Longitudes wrap at ``coord_wrap``,
+        latitudes have to be in the range -90 to 90, and scalars are unbounded
+        and do not wrap.
+    coord_unit : `~astropy.units.Unit`
+        The unit that this coordinate is in given the output of transform.
+    coord_wrap : float
+        The angle at which the longitude wraps (defaults to 360)
+    frame : `~astropy.visualization.wcsaxes.frame.BaseFrame`
+        The frame of the :class:`~astropy.visualization.wcsaxes.WCSAxes`.
+    """
 
     def __init__(self, parent_axes=None, parent_map=None, transform=None, coord_index=None,
                  coord_type='scalar', coord_unit=None, coord_wrap=None, frame=None):

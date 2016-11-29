@@ -12,6 +12,54 @@ from .coordinate_range import find_coordinate_range
 
 
 class CoordinatesMap(object):
+    """
+    A container for coordinate helpers that represents a coordinate system.
+
+    This object can be used to access coordinate helpers by index (like a list)
+    or by name (like a dictionary).
+
+    Parameters
+    ----------
+    axes : :class:`~astropy.visualization.wcsaxes.WCSAxes`
+        The axes the coordinate map belongs to.
+    wcs : :class:`~astropy.wcs.WCS`, optional
+        The WCS for the data. If this is specified, ``transform`` cannot be
+        specified.
+    transform : `~matplotlib.transforms.Transform`, optional
+        The transform for the data. If this is specified, ``wcs`` cannot be
+        specified.
+    coord_meta : dict, optional
+        A dictionary providing additional metadata when ``transform`` is
+        specified. This should include the keys ``type``, ``wrap``, and
+        ``unit``. Each of these should be a list with as many items as the
+        dimension of the WCS. The ``type`` entries should be one of
+        ``longitude``, ``latitude``, or ``scalar``, the ``wrap`` entries should
+        give, for the longitude, the angle at which the coordinate wraps (and
+        `None` otherwise), and the ``unit`` should give the unit of the
+        coordinates as :class:`~astropy.units.Unit` instances.
+    slice : tuple, optional
+        For WCS transformations with more than two dimensions, we need to
+        choose which dimensions are being shown in the 2D image. The slice
+        should contain one ``x`` entry, one ``y`` entry, and the rest of the
+        values should be integers indicating the slice through the data. The
+        order of the items in the slice should be the same as the order of the
+        dimensions in the :class:`~astropy.wcs.WCS`, and the opposite of the
+        order of the dimensions in Numpy. For example, ``(50, 'x', 'y')`` means
+        that the first WCS dimension (last Numpy dimension) will be sliced at
+        an index of 50, the second WCS and Numpy dimension will be shown on the
+        x axis, and the final WCS dimension (first Numpy dimension) will be
+        shown on the y-axis (and therefore the data will be plotted using
+        ``data[:, :, 50].transpose()``)
+    frame_class : type, optional
+        The class for the frame, which should be a subclass of
+        :class:`~astropy.visualization.wcsaxes.frame.BaseFrame`. The default is to use a
+        :class:`~astropy.visualization.wcsaxes.frame.RectangularFrame`
+    previous_frame_path : `~matplotlib.path.Path`, optional
+        When changing the WCS of the axes, the frame instance will change but
+        we might want to keep re-using the same underlying matplotlib
+        `~matplotlib.path.Path` - in that case, this can be passed to this
+        keyword argument.
+    """
 
     def __init__(self, axes, wcs=None, transform=None, coord_meta=None,
                  slice=None, frame_class=RectangularFrame,
@@ -77,12 +125,6 @@ class CoordinatesMap(object):
             return self._coords[item]
 
     def set_visible(self, visibility):
-        raise NotImplementedError()
-
-    def enable_offset_mode(self, reference_coordinates):
-        raise NotImplementedError()
-
-    def disable_offset_mode(self):
         raise NotImplementedError()
 
     def __iter__(self):
