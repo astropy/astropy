@@ -9,6 +9,15 @@
 # -----------------------------------------------------------------------------
 from __future__ import generators
 
+import sys
+
+# Some Python 3 compatibility shims
+if sys.version_info.major < 3:
+    STRING_TYPES = (str, unicode)
+else:
+    STRING_TYPES = str
+    xrange = range
+
 # -----------------------------------------------------------------------------
 # Default preprocessor lexer definitions.   These tokens are enough to get
 # a basic preprocessor working.   Other modules may import these if they want
@@ -79,8 +88,6 @@ import re
 import copy
 import time
 import os.path
-
-from ...extern.six.moves import range
 
 # -----------------------------------------------------------------------------
 # trigraph()
@@ -273,7 +280,7 @@ class Preprocessor(object):
     def group_lines(self,input):
         lex = self.lexer.clone()
         lines = [x.rstrip() for x in input.splitlines()]
-        for i in range(len(lines)):
+        for i in xrange(len(lines)):
             j = i+1
             while lines[i].endswith('\\') and (j < len(lines)):
                 lines[i] = lines[i][:-1]+lines[j]
@@ -592,7 +599,7 @@ class Preprocessor(object):
         expr = expr.replace("!"," not ")
         try:
             result = eval(expr)
-        except StandardError:
+        except Exception:
             self.error(self.source,tokens[0].lineno,"Couldn't evaluate expression")
             result = 0
         return result
@@ -783,7 +790,7 @@ class Preprocessor(object):
     # ----------------------------------------------------------------------
 
     def define(self,tokens):
-        if isinstance(tokens,(str,unicode)):
+        if isinstance(tokens,STRING_TYPES):
             tokens = self.tokenize(tokens)
 
         linetok = tokens
