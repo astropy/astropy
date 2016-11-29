@@ -17,28 +17,6 @@ def rotation_matrix(*args, **kwargs):
     return np.matrix(rotation_array(*args, **kwargs))
 
 
-def _transform_cartesian(representation, matrix):
-
-    # Get xyz once since it's an expensive operation
-    xyz = representation.xyz
-
-    # Since the underlying data can be n-dimensional, reshape to a
-    # 2-dimensional (3, N) array.
-    vec = xyz.reshape((3, xyz.size // 3))
-
-    # Do the transformation
-    vec_new = np.dot(np.asarray(matrix), vec)
-
-    # Reshape to preserve the original shape
-    subshape = xyz.shape[1:]
-    x = vec_new[0].reshape(subshape)
-    y = vec_new[1].reshape(subshape)
-    z = vec_new[2].reshape(subshape)
-
-    # Make a new representation and return
-    return CartesianRepresentation(x, y, z)
-
-
 def _rotate_polygon(lon, lat, lon0, lat0):
     """
     Given a polygon with vertices defined by (lon, lat), rotate the polygon

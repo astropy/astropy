@@ -3,6 +3,8 @@
 import numpy as np
 from numpy.testing import assert_almost_equal
 
+from matplotlib import rc_context
+
 from .... import units as u
 from ....extern import six
 from ....tests.helper import pytest
@@ -152,7 +154,6 @@ class TestAngleFormatterLocator(object):
     def test_latex_format(self):
         fl = AngleFormatterLocator(number=5, format="dd:mm:ss")
         assert fl.formatter([15.392231] * u.degree, None)[0] == six.u('15\xb023\'32"')
-        from ..rc_utils import rc_context
         with rc_context(rc={'text.usetex': True}):
             assert fl.formatter([15.392231] * u.degree, None)[0] == "15$^\circ$23'32\""
 
