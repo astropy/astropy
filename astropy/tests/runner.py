@@ -28,7 +28,6 @@ class keyword(object):
 
     priority : `int`
         keyword argument methods are executed in order of descending priority.
-
     """
 
     def __init__(self, default_value=None, priority=0):
@@ -47,8 +46,8 @@ class keyword(object):
 
         return keyword
 
-
-class TestRunner(object):
+@six.add_metaclass(InheritDocstrings)
+class TestRunnerBase(object):
 
     def __init__(self, base_path):
         self.base_path = os.path.abspath(base_path)
@@ -85,312 +84,18 @@ class TestRunner(object):
         for name, func in sorted_keywords:
             cls.keywords[name] = func._default_value
             if func.__doc__:
-                doc_keywords += func.__doc__
+                doc_keywords += ' '*8
+                doc_keywords += func.__doc__.strip()
+                doc_keywords += '\n\n'
+
         if six.PY2:
             cls.run_tests.__func__.__doc__ = cls.run_tests.__doc__.format(keywords=doc_keywords)
         else:
             cls.run_tests.__doc__ = cls.run_tests.__doc__.format(keywords=doc_keywords)
 
-        return super(TestRunner, cls).__new__(cls)
+        return super(TestRunnerBase, cls).__new__(cls)
 
-    # Increase priority so this warning is displayed first.
-    @keyword(priority=1000)
-    def coverage(self, coverage, kwargs):
-        if coverage:
-            warnings.warn(
-                "The coverage option is ignored on run_tests, since it "
-                "can not be made to work in that context.  Use "
-                "'python setup.py test --coverage' instead.",
-                AstropyWarning)
-
-        return []
-
-    # test_path depends on self.package_path so make sure this runs before
-    # test_path.
-    @keyword(priority=1)
-    def package(self, package, kwargs):
-        """
-        package : str, optional
-            The name of a specific package to test, e.g. 'io.fits' or 'utils'.
-            If nothing is specified all default Astropy tests are run.
-
-        """
-        if package is None:
-            self.package_path = self.base_path
-        else:
-            self.package_path = os.path.join(self.base_path,
-                                        package.replace('.', os.path.sep))
-
-            if not os.path.isdir(self.package_path):
-                raise ValueError('Package not found: {0}'.format(package))
-
-        if not kwargs['test_path']:
-            return [self.package_path]
-
-        return []
-
-    @keyword
-    def test_path(self, test_path, kwargs):
-        """
-        test_path : str, optional
-            Specify location to test by path. May be a single file or
-            directory. Must be specified absolutely or relative to the
-            calling directory.
-
-        """
-        # Ensure that the package kwarg has been run.
-        self.package(kwargs['package'], kwargs)
-        if test_path:
-            base, ext = os.path.splitext(test_path)
-
-            if ext in ('.rst', ''):
-                if kwargs['docs_path'] is None:
-                    # This shouldn't happen from "python setup.py test"
-                    raise ValueError(
-                        "Can not test .rst files without a docs_path "
-                        "specified.")
-
-                abs_docs_path = os.path.abspath(kwargs['docs_path'])
-                abs_test_path = os.path.abspath(
-                    os.path.join(abs_docs_path, os.pardir, test_path))
-
-                common = os.path.commonprefix((abs_docs_path, abs_test_path))
-
-                if os.path.exists(abs_test_path) and common == abs_docs_path:
-                    # Since we aren't testing any Python files within
-                    # the astropy tree, we need to forcibly load the
-                    # astropy py.test plugins, and then turn on the
-                    # doctest_rst plugin.
-                    all_args.extend(['-p', 'astropy.tests.pytest_plugins',
-                                     '--doctest-rst'])
-                    test_path = abs_test_path
-
-            if not (os.path.isdir(test_path) or ext in ('.py', '.rst')):
-                raise ValueError("Test path must be a directory or a path to "
-                                 "a .py or .rst file")
-
-            return [test_path]
-
-        return []
-
-    @keyword
-    def args(self, args, kwargs):
-        """
-        args : str, optional
-            Additional arguments to be passed to `pytest.main` in the `args`
-            keyword argument.
-
-        """
-        if args:
-            return shlex.split(args, posix=not sys.platform.startswith('win'))
-
-        return []
-
-    @keyword
-    def plugins(self, plugins, kwargs):
-        """
-        plugins : list, optional
-            Plugins to be passed to `pytest.main` in the `plugins` keyword
-            argument.
-
-        """
-        return []
-
-    @keyword
-    def verbose(self, verbose, kwargs):
-        """
-        verbose : bool, optional
-            Convenience option to turn on verbose output from py.test. Passing
-            True is the same as specifying `-v` in `args`.
-
-        """
-        if verbose:
-            return ['-v']
-
-        return []
-
-    @keyword
-    def pastebin(self, pastebin, kwargs):
-        """
-        pastebin : {{'failed', 'all', None}}, optional
-            Convenience option for turning on py.test pastebin output. Set to
-            'failed' to upload info for failed tests, or 'all' to upload info
-            for all tests.
-
-        """
-        if pastebin is not None:
-            if pastebin in ['failed', 'all']:
-                return ['--pastebin={0}'.format(pastebin)]
-            else:
-                raise ValueError("pastebin should be 'failed' or 'all'")
-
-        return []
-
-    @keyword
-    def remote_data(self, remote_data, kwargs):
-        """
-        remote_data : {'none', 'astropy', 'any'}, optional
-            Controls whether to run tests marked with @remote_data. This can be
-            set to run no tests with remote data (``none``), only ones that use
-            data from http://data.astropy.org (``astropy``), or all tests that
-            use remote data (``any``). The default is ``none``.
-
-        """
-
-        if remote_data is True:
-            remote_data = 'any'
-        elif remote_data is False:
-            remote_data = 'none'
-        elif remote_data not in ('none', 'astropy', 'any'):
-            warnings.warn("The remote_data option should be one of "
-                          "none/astropy/any. For backward-compatibility, "
-                          "assuming 'any', but you should change the option to be "
-                          "one of the supported ones to avoid issues in future.",
-                          AstropyDeprecationWarning)
-            remote_data = 'any'
-
-        return '--remote-data={0}'.format(remote_data)
-
-    @keyword
-    def pep8(self, pep8, kwargs):
-        """
-        pep8 : bool, optional
-            Turn on PEP8 checking via the pytest-pep8 plugin and disable normal
-            tests. Same as specifying `--pep8 -k pep8` in `args`.
-
-        """
-        if pep8:
-            try:
-                import pytest_pep8  # pylint: disable=W0611
-            except ImportError:
-                raise ImportError('PEP8 checking requires pytest-pep8 plugin: '
-                                  'http://pypi.python.org/pypi/pytest-pep8')
-            else:
-                return ['--pep8', '-k', 'pep8']
-
-        return []
-
-    @keyword
-    def pdb(self, pdb, kwargs):
-        """
-        pdb : bool, optional
-            Turn on PDB post-mortem analysis for failing tests. Same as
-            specifying `--pdb` in `args`.
-
-        """
-        if pdb:
-            return ['--pdb']
-        return []
-
-    @keyword
-    def open_files(self, open_files, kwargs):
-        """
-        open_files : bool, optional
-            Fail when any tests leave files open.  Off by default, because
-            this adds extra run time to the test suite.  Requires the
-            ``psutil`` package.
-
-        """
-        if open_files:
-            if kwargs['parallel'] != 0:
-                raise SystemError(
-                    "open file detection may not be used in conjunction with "
-                    "parallel testing.")
-
-            try:
-                import psutil  # pylint: disable=W0611
-            except ImportError:
-                raise SystemError(
-                    "open file detection requested, but psutil package "
-                    "is not installed.")
-
-            return ['--open-files']
-
-            print("Checking for unclosed files")
-
-        return []
-
-    @keyword(0)
-    def parallel(self, parallel, kwargs):
-        """
-        parallel : int, optional
-            When provided, run the tests in parallel on the specified
-            number of CPUs.  If parallel is negative, it will use the all
-            the cores on the machine.  Requires the `pytest-xdist` plugin.
-
-        """
-        if parallel != 0:
-            return ['-n', six.text_type(parallel)]
-
-        return []
-
-    @keyword
-    def docs_path(self, docs_path, kwargs):
-        """
-        docs_path : str, optional
-            The path to the documentation .rst files.
-
-        """
-        if docs_path is not None and not kwargs['skip_docs']:
-            if kwargs['package'] is not None:
-                docs_path = os.path.join(
-                    docs_path, kwargs['package'].replace('.', os.path.sep))
-            if not os.path.exists(docs_path):
-                warnings.warn(
-                    "Can not test .rst docs, since docs path "
-                    "({0}) does not exist.".format(docs_path))
-                docs_path = None
-        if docs_path and not kwargs['skip_docs'] and not kwargs['test_path']:
-            return [docs_path, '--doctest-rst']
-
-        return []
-
-    @keyword
-    def skip_docs(self, skip_docs, kwargs):
-        """
-        skip_docs : bool, optional
-            When `True`, skips running the doctests in the .rst files.
-
-        """
-        # Skip docs is a bool used by docs_path only.
-        return []
-
-    @keyword
-    def repeat(self, repeat, kwargs):
-        """
-        repeat : int, optional
-            If set, specifies how many times each test should be run. This is
-            useful for diagnosing sporadic failures.
-
-        """
-        if repeat:
-            return ['--repeat={0}'.format(repeat)]
-
-        return []
-
-    def run_tests(self, **kwargs):
-        """
-        Run the tests
-
-        Parameters
-        ----------
-        {keywords}
-        See Also
-        --------
-        pytest.main : py.test function wrapped by `run_tests`.
-
-        """
-
-        # Don't import pytest until it's actually needed to run the tests
-        from .helper import pytest
-
-        # Raise error for undefined kwargs
-        allowed_kwargs = set(self.keywords.keys())
-        passed_kwargs = set(kwargs.keys())
-        if not passed_kwargs.issubset(allowed_kwargs):
-            wrong_kwargs = list(passed_kwargs.difference(allowed_kwargs))
-            raise TypeError("run_tests() got an unexpected keyword argument {}".format(wrong_kwargs[0]))
-
+    def _generate_args(self, **kwargs):
         # Update default values with passed kwargs
         self.keywords.update(kwargs)
         # Iterate through the keywords (in order of priority)
@@ -411,15 +116,36 @@ class TestRunner(object):
         if six.PY2:
             args = [x.encode('utf-8') for x in args]
 
+        return args
+
+    def run_tests(self, **kwargs):
+        """
+        Run the tests
+
+        Parameters
+        ----------
+{keywords}
+        See Also
+        --------
+        pytest.main : py.test function wrapped by `run_tests`.
+        """
+
+        # Don't import pytest until it's actually needed to run the tests
+        from .helper import pytest
+
+        # Raise error for undefined kwargs
+        allowed_kwargs = set(self.keywords.keys())
+        passed_kwargs = set(kwargs.keys())
+        if not passed_kwargs.issubset(allowed_kwargs):
+            wrong_kwargs = list(passed_kwargs.difference(allowed_kwargs))
+            raise TypeError("run_tests() got an unexpected keyword argument {}".format(wrong_kwargs[0]))
+
+        args = self._generate_args(**kwargs)
+
         # override the config locations to not make a new directory nor use
         # existing cache or config
         astropy_config = tempfile.mkdtemp('astropy_config')
         astropy_cache = tempfile.mkdtemp('astropy_cache')
-
-        # This prevents cyclical import problems that make it
-        # impossible to test packages that define Table types on their
-        # own.
-        from ..table import Table  # pylint: disable=W0611
 
         # Have to use nested with statements for cross-Python support
         # Note, using these context managers here is superfluous if the
@@ -461,3 +187,287 @@ class TestRunner(object):
             del test.__wrapped__
 
         return test
+
+
+class TestRunner(TestRunnerBase):
+
+    # Increase priority so this warning is displayed first.
+    @keyword(priority=1000)
+    def coverage(self, coverage, kwargs):
+        if coverage:
+            warnings.warn(
+                "The coverage option is ignored on run_tests, since it "
+                "can not be made to work in that context.  Use "
+                "'python setup.py test --coverage' instead.",
+                AstropyWarning)
+
+        return []
+
+    # test_path depends on self.package_path so make sure this runs before
+    # test_path.
+    @keyword(priority=1)
+    def package(self, package, kwargs):
+        """
+        package : str, optional
+            The name of a specific package to test, e.g. 'io.fits' or 'utils'.
+            If nothing is specified all default Astropy tests are run.
+        """
+        if package is None:
+            self.package_path = self.base_path
+        else:
+            self.package_path = os.path.join(self.base_path,
+                                        package.replace('.', os.path.sep))
+
+            if not os.path.isdir(self.package_path):
+                raise ValueError('Package not found: {0}'.format(package))
+
+        if not kwargs['test_path']:
+            return [self.package_path]
+
+        return []
+
+    @keyword()
+    def test_path(self, test_path, kwargs):
+        """
+        test_path : str, optional
+            Specify location to test by path. May be a single file or
+            directory. Must be specified absolutely or relative to the
+            calling directory.
+        """
+        # Ensure that the package kwarg has been run.
+        self.package(kwargs['package'], kwargs)
+        if test_path:
+            base, ext = os.path.splitext(test_path)
+
+            if ext in ('.rst', ''):
+                if kwargs['docs_path'] is None:
+                    # This shouldn't happen from "python setup.py test"
+                    raise ValueError(
+                        "Can not test .rst files without a docs_path "
+                        "specified.")
+
+                abs_docs_path = os.path.abspath(kwargs['docs_path'])
+                abs_test_path = os.path.abspath(
+                    os.path.join(abs_docs_path, os.pardir, test_path))
+
+                common = os.path.commonprefix((abs_docs_path, abs_test_path))
+
+                if os.path.exists(abs_test_path) and common == abs_docs_path:
+                    # Since we aren't testing any Python files within
+                    # the astropy tree, we need to forcibly load the
+                    # astropy py.test plugins, and then turn on the
+                    # doctest_rst plugin.
+                    all_args.extend(['-p', 'astropy.tests.pytest_plugins',
+                                     '--doctest-rst'])
+                    test_path = abs_test_path
+
+            if not (os.path.isdir(test_path) or ext in ('.py', '.rst')):
+                raise ValueError("Test path must be a directory or a path to "
+                                 "a .py or .rst file")
+
+            return [test_path]
+
+        return []
+
+    @keyword()
+    def args(self, args, kwargs):
+        """
+        args : str, optional
+            Additional arguments to be passed to `pytest.main` in the `args`
+            keyword argument.
+        """
+        if args:
+            return shlex.split(args, posix=not sys.platform.startswith('win'))
+
+        return []
+
+    @keyword()
+    def plugins(self, plugins, kwargs):
+        """
+        plugins : list, optional
+            Plugins to be passed to `pytest.main` in the `plugins` keyword
+            argument.
+        """
+        return []
+
+    @keyword()
+    def verbose(self, verbose, kwargs):
+        """
+        verbose : bool, optional
+            Convenience option to turn on verbose output from py.test. Passing
+            True is the same as specifying `-v` in `args`.
+        """
+        if verbose:
+            return ['-v']
+
+        return []
+
+    @keyword()
+    def pastebin(self, pastebin, kwargs):
+        """
+        pastebin : ('failed', 'all', None), optional
+            Convenience option for turning on py.test pastebin output. Set to
+            'failed' to upload info for failed tests, or 'all' to upload info
+            for all tests.
+        """
+        if pastebin is not None:
+            if pastebin in ['failed', 'all']:
+                return ['--pastebin={0}'.format(pastebin)]
+            else:
+                raise ValueError("pastebin should be 'failed' or 'all'")
+
+        return []
+
+    @keyword()
+    def remote_data(self, remote_data, kwargs):
+        """
+        remote_data : {'none', 'astropy', 'any'}, optional
+            Controls whether to run tests marked with @remote_data. This can be
+            set to run no tests with remote data (``none``), only ones that use
+            data from http://data.astropy.org (``astropy``), or all tests that
+            use remote data (``any``). The default is ``none``.
+        """
+
+        if remote_data is True:
+            remote_data = 'any'
+        elif remote_data is False:
+            remote_data = 'none'
+        elif remote_data not in ('none', 'astropy', 'any'):
+            warnings.warn("The remote_data option should be one of "
+                          "none/astropy/any. For backward-compatibility, "
+                          "assuming 'any', but you should change the option to be "
+                          "one of the supported ones to avoid issues in future.",
+                          AstropyDeprecationWarning)
+            remote_data = 'any'
+
+        return '--remote-data={0}'.format(remote_data)
+
+    @keyword()
+    def pep8(self, pep8, kwargs):
+        """
+        pep8 : bool, optional
+            Turn on PEP8 checking via the pytest-pep8 plugin and disable normal
+            tests. Same as specifying `--pep8 -k pep8` in `args`.
+        """
+        if pep8:
+            try:
+                import pytest_pep8  # pylint: disable=W0611
+            except ImportError:
+                raise ImportError('PEP8 checking requires pytest-pep8 plugin: '
+                                  'http://pypi.python.org/pypi/pytest-pep8')
+            else:
+                return ['--pep8', '-k', 'pep8']
+
+        return []
+
+    @keyword()
+    def pdb(self, pdb, kwargs):
+        """
+        pdb : bool, optional
+            Turn on PDB post-mortem analysis for failing tests. Same as
+            specifying `--pdb` in `args`.
+        """
+        if pdb:
+            return ['--pdb']
+        return []
+
+    @keyword()
+    def open_files(self, open_files, kwargs):
+        """
+        open_files : bool, optional
+            Fail when any tests leave files open.  Off by default, because
+            this adds extra run time to the test suite.  Requires the
+            ``psutil`` package.
+        """
+        if open_files:
+            if kwargs['parallel'] != 0:
+                raise SystemError(
+                    "open file detection may not be used in conjunction with "
+                    "parallel testing.")
+
+            try:
+                import psutil  # pylint: disable=W0611
+            except ImportError:
+                raise SystemError(
+                    "open file detection requested, but psutil package "
+                    "is not installed.")
+
+            return ['--open-files']
+
+            print("Checking for unclosed files")
+
+        return []
+
+    @keyword(0)
+    def parallel(self, parallel, kwargs):
+        """
+        parallel : int, optional
+            When provided, run the tests in parallel on the specified
+            number of CPUs.  If parallel is negative, it will use the all
+            the cores on the machine.  Requires the `pytest-xdist` plugin.
+        """
+        if parallel != 0:
+            return ['-n', six.text_type(parallel)]
+
+        return []
+
+    @keyword()
+    def docs_path(self, docs_path, kwargs):
+        """
+        docs_path : str, optional
+            The path to the documentation .rst files.
+        """
+        if docs_path is not None and not kwargs['skip_docs']:
+            if kwargs['package'] is not None:
+                docs_path = os.path.join(
+                    docs_path, kwargs['package'].replace('.', os.path.sep))
+            if not os.path.exists(docs_path):
+                warnings.warn(
+                    "Can not test .rst docs, since docs path "
+                    "({0}) does not exist.".format(docs_path))
+                docs_path = None
+        if docs_path and not kwargs['skip_docs'] and not kwargs['test_path']:
+            return [docs_path, '--doctest-rst']
+
+        return []
+
+    @keyword()
+    def skip_docs(self, skip_docs, kwargs):
+        """
+        skip_docs : bool, optional
+            When `True`, skips running the doctests in the .rst files.
+        """
+        # Skip docs is a bool used by docs_path only.
+        return []
+
+    @keyword()
+    def repeat(self, repeat, kwargs):
+        """
+        repeat : int, optional
+            If set, specifies how many times each test should be run. This is
+            useful for diagnosing sporadic failures.
+        """
+        if repeat:
+            return ['--repeat={0}'.format(repeat)]
+
+        return []
+
+    # Override run_tests for astropy-specific fixes
+    def run_tests(self, **kwargs):
+        """
+        Run the tests
+
+        Parameters
+        ----------
+{keywords}
+        See Also
+        --------
+        pytest.main : py.test function wrapped by `run_tests`.
+        """
+
+        # This prevents cyclical import problems that make it
+        # impossible to test packages that define Table types on their
+        # own.
+        from ..table import Table  # pylint: disable=W0611
+
+        return super(TestRunner, self).run_tests(**kwargs)
