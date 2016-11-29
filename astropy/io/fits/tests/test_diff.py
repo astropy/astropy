@@ -607,18 +607,6 @@ class TestDiff(FitsTestCase):
         assert 'Extension levels differ' in report
         assert 'a: 1\n    b: 2' in report
 
-    def test_diff_types(self):
-        phdu = PrimaryHDU()
-        ehdu = ImageHDU()
-        hdula = HDUList([phdu, ehdu])
-        ehdu = BinTableHDU()
-        hdulb = HDUList([phdu, ehdu])
-        diff = FITSDiff(hdula, hdulb)
-        assert not diff.identical
-        assert diff.diff_hdus[0][0] == 1
-
-
-
     def test_diff_nans(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/204"""
 
