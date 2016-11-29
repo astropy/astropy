@@ -16,7 +16,7 @@ from ... import config as _config
 
 class Conf(_config.ConfigNamespace):
     """
-    Configuration parameters for `astropy.table`.
+    Configuration parameters for `astropy.visualization.wcsaxes`.
     """
 
     coordinate_range_samples = _config.ConfigItem(50,

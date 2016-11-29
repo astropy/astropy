@@ -65,13 +65,6 @@ Using WCSAxes
    controlling_axes
    custom_frames
 
-Notes for developers
-====================
-
-This sub-package makes use of image testing with the `pytest-mpl
-<https://pypi.python.org/pypi/pytest-mpl/0.6>`_ package. For more information
-on writing image tests, see :ref:`image-tests`.
-
 Reference/API
 =============
 

@@ -16,6 +16,12 @@ __all__ = ['Spine', 'BaseFrame', 'RectangularFrame', 'EllipticalFrame']
 
 
 class Spine(object):
+    """
+    A single side of an axes.
+
+    This does not need to be a straight line, but represents a 'side' when
+    determining which part of the frame to put labels and ticks on.
+    """
 
     def __init__(self, parent_axes, transform):
 
@@ -83,6 +89,10 @@ class Spine(object):
 
 @six.add_metaclass(abc.ABCMeta)
 class BaseFrame(OrderedDict):
+    """
+    Base class for frames, which are collections of
+    :class:`~astropy.visualization.wcsaxes.frame.Spine` instances.
+    """
 
     def __init__(self, parent_axes, transform, path=None):
 
@@ -189,6 +199,9 @@ class BaseFrame(OrderedDict):
 
 
 class RectangularFrame(BaseFrame):
+    """
+    A classic rectangular frame.
+    """
 
     spine_names = 'brtl'
 
@@ -204,6 +217,9 @@ class RectangularFrame(BaseFrame):
 
 
 class EllipticalFrame(BaseFrame):
+    """
+    An elliptical frame.
+    """
 
     spine_names = 'chv'
 
