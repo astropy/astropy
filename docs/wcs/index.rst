@@ -229,9 +229,9 @@ area can be extracted with the utility function
 Matplotlib plots with correct WCS projection
 ============================================
 
-The :ref:`WCSAxes <wcsaxes>` framework, now included in Astropy, allows the
-:class:`~astropy.wcs.WCS` to define projections in Matplotlib. More information
-on using WCSAxes can be found :ref:`here <wcsaxes>`.
+The :ref:`WCSAxes <wcsaxes>` framework, previously a standalone package, allows
+the :class:`~astropy.wcs.WCS` to be used to define projections in Matplotlib.
+More information on using WCSAxes can be found :ref:`here <wcsaxes>`.
 
 .. plot::
     :context: reset
