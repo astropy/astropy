@@ -38,12 +38,10 @@ class Ticks(Line2D):
         self.set_tick_out(tick_out)
         # FIXME: tick_out is incompatible with Matplotlib tickdir option
         self.clear()
-        line2d_kwargs = {
-            'color': rcParams['xtick.color'],
-            # For the linewidth we need to set a default since old versions of
-            # matplotlib don't have this.
-            'linewidth': rcParams.get('xtick.major.width', 1)
-        }
+        line2d_kwargs = {'color': rcParams['xtick.color'],
+                         # For the linewidth we need to set a default since old versions of
+                         # matplotlib don't have this.
+                         'linewidth': rcParams.get('xtick.major.width', 1)}
         line2d_kwargs.update(kwargs)
         Line2D.__init__(self, [0.], [0.], **line2d_kwargs)
         self.set_visible_axes('all')
@@ -164,7 +162,7 @@ class Ticks(Line2D):
 
         for axis in self.get_visible_axes():
 
-            if not axis in pixel_array:
+            if axis not in pixel_array:
                 continue
 
             for loc, angle in zip(pixel_array[axis], angle_array[axis]):

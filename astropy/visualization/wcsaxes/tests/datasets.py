@@ -32,6 +32,8 @@ def fetch_hdu(filename, cache=True):
                 time.sleep(TIME_BETWEEN_RETRIES)
         else:
             break
+    else:
+        raise Exception("Failed to download file {0}".format(filename))
     return fits.open(path)[0]
 
 

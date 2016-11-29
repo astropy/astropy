@@ -8,8 +8,7 @@ from matplotlib.transforms import Affine2D
 
 from ....wcs import WCS
 
-from ..transforms import (WCSWorld2PixelTransform, WCSPixel2WorldTransform,
-                          CoordinateTransform)
+from ..transforms import WCSWorld2PixelTransform
 
 WCS2D = WCS(naxis=2)
 WCS2D.wcs.ctype = ['x', 'y']
@@ -45,9 +44,9 @@ def test_3d():
 
     world = np.ones((10, 3))
 
-    w1 = WCSWorld2PixelTransform(WCS3D, slice=('y',0,'x')) + Affine2D()
+    w1 = WCSWorld2PixelTransform(WCS3D, slice=('y', 0, 'x')) + Affine2D()
     pixel = w1.transform(world)
     world_2 = w1.inverted().transform(pixel)
 
-    np.testing.assert_allclose(world[:,0], world_2[:,0])
-    np.testing.assert_allclose(world[:,2], world_2[:,2])
+    np.testing.assert_allclose(world[:, 0], world_2[:, 0])
+    np.testing.assert_allclose(world[:, 2], world_2[:, 2])

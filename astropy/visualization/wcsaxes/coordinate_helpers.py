@@ -101,16 +101,14 @@ class CoordinateHelper(object):
         #
         # Matplotlib's gridlines use Line2D, but ours use PathPatch.
         # Patches take a slightly different format of linestyle argument.
-        lines_to_patches_linestyle = {
-            '-': 'solid',
-            '--': 'dashed',
-            '-.': 'dashdot',
-            ':': 'dotted',
-            'none': 'none',
-            'None': 'none',
-            ' ': 'none',
-            '': 'none'
-        }
+        lines_to_patches_linestyle = {'-': 'solid',
+                                      '--': 'dashed',
+                                      '-.': 'dashdot',
+                                      ':': 'dotted',
+                                      'none': 'none',
+                                      'None': 'none',
+                                      ' ': 'none',
+                                      '': 'none'}
         self.grid_lines_kwargs = {'visible': False,
                                   'facecolor': 'none',
                                   'edgecolor': rcParams['grid.color'],
@@ -173,7 +171,8 @@ class CoordinateHelper(object):
         if coord_type == 'longitude' and coord_wrap is None:
             self.coord_wrap = 360
         elif coord_type != 'longitude' and coord_wrap is not None:
-            raise NotImplementedError('coord_wrap is not yet supported for non-longitude coordinates')
+            raise NotImplementedError('coord_wrap is not yet supported '
+                                      'for non-longitude coordinates')
         else:
             self.coord_wrap = coord_wrap
 

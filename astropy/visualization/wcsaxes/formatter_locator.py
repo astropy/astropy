@@ -119,9 +119,10 @@ class AngleFormatterLocator(BaseFormatterLocator):
 
     @spacing.setter
     def spacing(self, spacing):
-        if spacing is not None and (not isinstance(spacing, u.Quantity)
-                                    or spacing.unit.physical_type != 'angle'):
-            raise TypeError("spacing should be an astropy.units.Quantity instance with units of angle")
+        if spacing is not None and (not isinstance(spacing, u.Quantity) or
+                                    spacing.unit.physical_type != 'angle'):
+            raise TypeError("spacing should be an astropy.units.Quantity "
+                            "instance with units of angle")
         self._number = None
         self._spacing = spacing
         self._values = None
