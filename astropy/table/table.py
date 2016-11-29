@@ -714,6 +714,18 @@ class Table(object):
         newcols = [self._convert_col_for_table(col) for col in cols]
         self._make_table_from_cols(self, newcols)
 
+        # Deduplicate indices.  It may happen that after pickling or when
+        # initing from an existing table that column indices which had been
+        # references to a single index object got *copied* into an independent
+        # object.  This results in duplicates which will cause downstream problems.
+        index_dict = {}
+        for col in self.itercols():
+            for i, index in enumerate(col.info.indices or []):
+                names = tuple(ind_col.info.name for ind_col in index.columns)
+                if names in index_dict:
+                    col.info.indices[i] = index_dict[names]
+                else:
+                    index_dict[names] = index
 
     def _new_from_slice(self, slice_):
         """Create a new table as a referenced slice from self."""

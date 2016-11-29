@@ -3,6 +3,7 @@ from ...extern.six.moves import cPickle as pickle
 import numpy as np
 
 from ...table import Table, Column, MaskedColumn, QTable
+from ...table.table_helpers import simple_table
 from ...units import Quantity, deg
 from ...time import Time
 from ...coordinates import SkyCoord
@@ -98,3 +99,19 @@ def test_pickle_masked_table(protocol):
     assert tp['a'].attrs_equal(t['a'])
     assert tp['b'].attrs_equal(t['b'])
     assert tp.meta == t.meta
+
+
+def test_pickle_indexed_table(protocol):
+    """
+    Ensure that any indices that have been added will survive pickling.
+    """
+    t = simple_table()
+    t.add_index('a')
+    t.add_index(['a', 'b'])
+    ts = pickle.dumps(t)
+    tp = pickle.loads(ts)
+
+    assert len(t.indices) == len(tp.indices)
+    for index, indexp in zip(t.indices, tp.indices):
+        assert np.all(index.data.data == indexp.data.data)
+        assert index.data.data.colnames == indexp.data.data.colnames
