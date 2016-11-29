@@ -28,8 +28,8 @@ SUPPORTED_PROPERTIES = ['data', 'uncertainty', 'mask', 'meta', 'unit', 'wcs',
 def support_nddata(_func=None, accepts=NDData,
                    repack=False, returns=None, keeps=None,
                    **attribute_argument_mapping):
-    """Decorator to wrap functions that could accept an unwrapped NDData
-    instance.
+    """Decorator to wrap functions that could accept an NDData instance with
+    its properties passed as function arguments.
 
     Parameters
     ----------
@@ -70,12 +70,6 @@ def support_nddata(_func=None, accepts=NDData,
         .. note::
            Must be ``None`` if ``repack=False``.
 
-        .. warning::
-           If the decorated function should work with ``ccdproc.CCDData`` or
-           similar, you *probably* need to specify ``keeps=['unit']``, unless
-           the function returns a `~astropy.units.Quantity` or CCDData-like
-           object with unit.
-
     attribute_argument_mapping :
         Keyword parameters that optionally indicate which function argument
         should be interpreted as which attribute on the input. By default
@@ -91,12 +85,23 @@ def support_nddata(_func=None, accepts=NDData,
 
     Notes
     -----
-    This is a slightly modified version of `~astropy.nddata.support_nddata`, so
-    for more hints checkout their documentation or have a look at the
-    ``ccdproc.core.py`` code.
+    If properties of ``NDData`` are set but have no corresponding function
+    argument a Warning is shown.
+
+    If a property is set of the ``NDData`` are set and an explicit argument is
+    given, the explicitly given argument is used and a Warning is shown.
+
+    The supported properties are:
+
+    - ``mask``
+    - ``unit``
+    - ``wcs``
+    - ``meta``
+    - ``uncertainty``
+    - ``flags``
     """
     if (returns is not None or keeps is not None) and not repack:
-        raise ValueError('returns or keep should only be set if repack=True.')
+        raise ValueError('returns or keeps should only be set if repack=True.')
     elif returns is None and repack:
         raise ValueError('returns should be set if repack=True.')
     else:
@@ -132,37 +137,6 @@ def support_nddata(_func=None, accepts=NDData,
                              "argument is `{0}`"
                              "".format(attr_arg_map.get('data', 'data')))
 
-        # Get all supported properties that match a parameter in the signature.
-        supported_properties = [prop for prop in islice(SUPPORTED_PROPERTIES, 1, None)
-                                if attr_arg_map.get(prop, prop) in func_kwargs]
-
-        """
-        # Create a Table to store the information about the wrapped function.
-        # Can be used to create a Table that can be inserted in the docstring.
-        # Note: Creating and writing an astropy Table takes very long so
-        #       creating the docstring at import time may be a severe time
-        #       consumer...
-        #       Maybe worth investigating if some templating engine might
-        #       generate them faster.
-        from astropy.io.ascii import RST
-        from astropy.table import Table
-
-        _names = SUPPORTED_PROPERTIES
-        _used, _calc, _copy = [], [], []
-        for prop in _names:
-            _used.append('X' if prop in supported_properties else '--')
-            _calc.append('X' if prop in returns else '--')
-            _copy.append('X' if prop in keeps else '--')
-        # Data is always used!
-        _used[0] = 'X'
-        _tbl = Table([_names, _used, _calc, _copy],
-                     names=('attribute', 'used', 'calculated', 'copied'))
-        _tbl = ascii.RST().write(_tbl)
-        _doc = '\n'.join(_tbl)
-        print(_doc)  # print to get the nice output.
-        # # End of Table creation.
-        """
-
         @wraps(func)
         def wrapper(data, *args, **kwargs):
             unpack = isinstance(data, accepts)
@@ -189,9 +163,8 @@ def support_nddata(_func=None, accepts=NDData,
                         continue
                     elif value is None:
                         continue
-                    # Warn if the property is set and explicitly given
+                    # Warn if the property is set but not used by the function.
                     propmatch = attr_arg_map.get(prop, prop)
-
                     if propmatch not in func_kwargs:
                         ignored.append(prop)
                         continue
@@ -222,7 +195,7 @@ def support_nddata(_func=None, accepts=NDData,
                             continue
                     # Otherwise use the property as input for the function.
                     kwargs[propmatch] = value
-                # Finally, replace data by the data itself
+                # Finally, replace data by the data attribute
                 data = data.data
 
                 if ignored:
@@ -236,7 +209,7 @@ def support_nddata(_func=None, accepts=NDData,
             if unpack and repack:
                 # If there are multiple required returned arguments make sure
                 # the result is a tuple (because we don't want to unpack
-                # numpy arrays or compare to their length, never!) and has the
+                # numpy arrays or compare their length, never!) and has the
                 # same length.
                 if len(returns) > 1:
                     if (not isinstance(result, tuple) or

@@ -41,11 +41,10 @@ of the arguments are also properties of the ``NDData`` object, and passes them
 as individual arguments. The function can also be called with separate
 arguments as if it wasn't decorated.
 
-An exception is raised if an ``NDData`` property is set but the function does
+An warning is emitted if an ``NDData`` property is set but the function does
 not accept it - for example, if ``wcs`` is set, but the function cannot support
-WCS objects, an error would be raised. On the other hand, if an argument in the
-function does not exist in the ``NDData`` object or is not set, it is simply
-left to its default value.
+WCS objects. On the other hand, if an argument in the function does not exist
+in the ``NDData`` object or is not set, it is simply left to its default value.
 
 If the function call succeeds, then the decorator returns the values from the
 function unmodified by default. However, in some cases we may want to return
