@@ -465,17 +465,17 @@ class HDUDiff(_BaseDiff):
             self._writeln(u(" No differences found."))
         if self.diff_extension_types:
             self._writeln(u(" Extension types differ:\n  a: {}\n  "
-                            "b: {}").format(self.diff_extension_types))
+                            "b: {}").format(*self.diff_extension_types))
         if self.diff_extnames:
             self._writeln(u(" Extension names differ:\n  a: {}\n  "
-                            "b: {}").format(self.diff_extnames))
+                            "b: {}").format(*self.diff_extnames))
         if self.diff_extvers:
             self._writeln(u(" Extension versions differ:\n  a: {}\n  "
-                            "b: {}").format(self.diff_extvers))
+                            "b: {}").format(*self.diff_extvers))
 
         if self.diff_extlevels:
             self._writeln(u(" Extension levels differ:\n  a: {}\n  "
-                            "b: {}").format(self.diff_extlevels))
+                            "b: {}").format(*self.diff_extlevels))
 
         if not self.diff_headers.identical:
             self._fileobj.write(u('\n'))

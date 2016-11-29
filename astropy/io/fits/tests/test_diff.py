@@ -7,7 +7,7 @@ import numpy as np
 
 from ..column import Column
 from ..diff import (FITSDiff, HeaderDiff, ImageDataDiff, TableDataDiff,
-                    report_diff_values)
+                    HDUDiff, report_diff_values)
 from ..hdu import HDUList, PrimaryHDU, ImageHDU
 from ..hdu.table import BinTableHDU
 from ..header import Header
@@ -23,6 +23,10 @@ class TestDiff(FitsTestCase):
         ha = Header([('A', 1), ('B', 2), ('C', 3)])
         hb = ha.copy()
         assert HeaderDiff(ha, hb).identical
+        assert HeaderDiff(ha.tostring(), hb.tostring()).identical
+
+        with pytest.raises(TypeError):
+            HeaderDiff(1, 2)
 
     def test_slightly_different_headers(self):
         ha = Header([('A', 1), ('B', 2), ('C', 3)])
@@ -472,6 +476,13 @@ class TestDiff(FitsTestCase):
         assert 'Extension HDU' not in report
         assert 'No differences found.' in report
 
+        a = np.arange(10)
+        ehdu = ImageHDU(data=a)
+        diff = HDUDiff(ehdu, ehdu)
+        assert diff.identical
+        report = diff.report()
+        assert 'No differences found.' in report
+
     def test_partially_identical_files1(self):
         """
         Test files that have some identical HDUs but a different extension
@@ -542,6 +553,52 @@ class TestDiff(FitsTestCase):
         for y in range(10):
             assert 'Data differs at [{}, 1]'.format(y + 1) in report
         assert '100 different pixels found (100.00% different).' in report
+
+    def test_partially_identical_files3(self):
+        """
+        Test files that have some identical HDUs but a different extension
+        name.
+        """
+
+        phdu = PrimaryHDU()
+        ehdu = ImageHDU(name='FOO')
+        hdula = HDUList([phdu, ehdu])
+        ehdu = BinTableHDU(name='BAR')
+        ehdu.header['EXTVER'] = 2
+        ehdu.header['EXTLEVEL'] = 3
+        hdulb = HDUList([phdu, ehdu])
+        diff = FITSDiff(hdula, hdulb)
+        assert not diff.identical
+
+        assert diff.diff_hdus[0][0] == 1
+
+        hdu_diff = diff.diff_hdus[0][1]
+        assert hdu_diff.diff_extension_types == ('IMAGE', 'BINTABLE')
+        assert hdu_diff.diff_extnames == ('FOO', 'BAR')
+        assert hdu_diff.diff_extvers == (1, 2)
+        assert hdu_diff.diff_extlevels == (1, 3)
+
+        report = diff.report()
+        assert 'Extension types differ' in report
+        assert 'a: IMAGE\n    b: BINTABLE' in report
+        assert 'Extension names differ' in report
+        assert 'a: FOO\n    b: BAR' in report
+        assert 'Extension versions differ' in report
+        assert 'a: 1\n    b: 2' in report
+        assert 'Extension levels differ' in report
+        assert 'a: 1\n    b: 2' in report
+
+    def test_diff_types(self):
+        phdu = PrimaryHDU()
+        ehdu = ImageHDU()
+        hdula = HDUList([phdu, ehdu])
+        ehdu = BinTableHDU()
+        hdulb = HDUList([phdu, ehdu])
+        diff = FITSDiff(hdula, hdulb)
+        assert not diff.identical
+        assert diff.diff_hdus[0][0] == 1
+
+
 
     def test_diff_nans(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/204"""
