@@ -35,8 +35,6 @@ def test_skip_remote_data_astropy(pytestconfig):
 
     if pytestconfig.getoption('remote_data') == 'none':
         pytest.fail('@remote_data was not skipped with remote_data=none')
-    else:
-        get_pkg_data_filename('galactic_center/gc_2mass_k.fits')
 
     # Test Astropy URL
     get_pkg_data_filename('galactic_center/gc_2mass_k.fits')
