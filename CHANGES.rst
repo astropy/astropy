@@ -334,6 +334,13 @@ Other Changes and Additions
 - To build the documentation, the ``build_sphinx`` command has been deprecated
   in favor of ``build_docs``. [#5179]
 
+- The ``--remote-data`` option to ``python setup.py test`` can now take
+  different arguments: ``--remote-data=none`` is the same as not specifying
+  ``--remote-data`` (skip all tests that require the internet),
+  ``--remote-data=astropy`` skips all tests that need remote data except those
+  that require only data from data.astropy.org, and ``--remote-data=any`` is
+  the same as ``--remote-data`` (run all tests that use remote data). [#5506]
+
 1.2.2 (unreleased)
 ------------------
 
