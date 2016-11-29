@@ -241,14 +241,8 @@ class CoordinateTransform(CurvedTransform):
 
         x_in, y_in = input_coords[:, 0], input_coords[:, 1]
 
-        try:
-            c_in = SkyCoord(x_in, y_in, unit=(u.deg, u.deg),
-                            frame=self.input_system)
-        except:  # Astropy < 1.0
-            c_in = SkyCoord(x_in, y_in, unit=(u.deg, u.deg),
-                            frame=self.input_system.name,
-                            **dict((key, getattr(self.input_system, key))
-                                   for key in self.input_system.get_frame_attr_names().keys()))
+        c_in = SkyCoord(x_in, y_in, unit=(u.deg, u.deg),
+                        frame=self.input_system)
 
         c_out = c_in.transform_to(self.output_system)
 

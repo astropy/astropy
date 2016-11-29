@@ -104,31 +104,19 @@ def get_coord_meta(frame):
     coord_meta['wrap'] = (None, None)
     coord_meta['unit'] = (u.deg, u.deg)
 
-    try:
+    from astropy.coordinates import frame_transform_graph
 
-        from astropy.coordinates import frame_transform_graph
+    if isinstance(frame, six.string_types):
+        initial_frame = frame
+        frame = frame_transform_graph.lookup_name(frame)
+        if frame is None:
+            raise ValueError("Unknown frame: {0}".format(initial_frame))
 
-        if isinstance(frame, six.string_types):
-            initial_frame = frame
-            frame = frame_transform_graph.lookup_name(frame)
-            if frame is None:
-                raise ValueError("Unknown frame: {0}".format(initial_frame))
+    if not isinstance(frame, BaseCoordinateFrame):
+        frame = frame()
 
-        if not isinstance(frame, BaseCoordinateFrame):
-            frame = frame()
-
-        names = list(frame.representation_component_names.keys())
-        coord_meta['name'] = names[:2]
-
-    except ImportError:
-
-        if isinstance(frame, six.string_types):
-            if frame in ('fk4', 'fk5', 'icrs'):
-                coord_meta['name'] = ('ra', 'dec')
-            elif frame == 'galactic':
-                coord_meta['name'] = ('l', 'b')
-            else:
-                raise ValueError("Unknown frame: {0}".format(frame))
+    names = list(frame.representation_component_names.keys())
+    coord_meta['name'] = names[:2]
 
     return coord_meta
 
