@@ -346,6 +346,10 @@ class TestDiff(FitsTestCase):
         assert diff.diff_ratio == 0
         assert diff.diff_total == 0
 
+        report = diff.report()
+        assert 'Extra column B of format L in a' in report
+        assert 'Extra column C of format L in b' in report
+
     def test_different_table_field_counts(self):
         """
         Test tables with some common columns, but different number of columns
@@ -368,6 +372,10 @@ class TestDiff(FitsTestCase):
         assert diff.diff_column_names == ([], ['A', 'C'])
         assert diff.diff_ratio == 0
         assert diff.diff_total == 0
+
+        report = diff.report()
+        assert ' Tables have different number of columns:' in report
+        assert '  a: 1\n  b: 3' in report
 
     def test_different_table_rows(self):
         """
@@ -459,6 +467,15 @@ class TestDiff(FitsTestCase):
 
         assert diff.diff_total == 13
         assert diff.diff_ratio == 0.65
+
+        report = diff.report()
+        assert ('Column A data differs in row 0:\n'
+                '    a> True\n'
+                '    b> False') in report
+        assert ('...and at 13 more indices.\n'
+                'Column D data differs in row 0:') in report
+        assert ('13 different table data element(s) found (65.00% different)'
+                in report)
 
     def test_identical_files_basic(self):
         """Test identicality of two simple, extensionless files."""
