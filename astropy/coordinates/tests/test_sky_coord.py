@@ -1235,6 +1235,14 @@ def test_spherical_offsets():
     assert_allclose(dra, 1*u.deg)
     assert_allclose(ddec, 1*u.deg)
 
+    # make sure an abbreviated array-based version of the above also works
+    i00s = SkyCoord([0]*4*u.arcmin, [0]*4*u.arcmin, frame='icrs')
+    i01s = SkyCoord([0]*4*u.arcmin, np.arange(4)*u.arcmin, frame='icrs')
+    dra, ddec = i00s.spherical_offsets_to(i01s)
+    assert_allclose(dra, 0*u.arcmin)
+    assert_allclose(ddec, np.arange(4)*u.arcmin)
+
+
 def test_frame_attr_changes():
     """
     This tests the case where a frame is added with a new frame attribute after
