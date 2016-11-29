@@ -1691,6 +1691,13 @@ Bug Fixes
   - Fix bug where with cds units enabled it was no longer possible to initialize
     an ``Angle``. [#5483]
 
+  - Ensure that ``search_around_sky`` and ``search_around_3d`` return
+    integer type index arrays for empty (non) matches. [#4877]
+
+  - Return an empty set of matches for ``search_around_sky`` and
+    ``search_around_3d`` when one or both of the input coordinate
+    arrays is empty. [#4875]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
