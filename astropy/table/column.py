@@ -2,6 +2,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
+from ..extern.six.moves import zip
 
 import weakref
 
@@ -224,8 +225,10 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         purposes.  This requires that the last element of ``state`` is a
         5-tuple that has Column-specific state values.
         """
-        # Get the Column attributes and meta
-        name, unit, format, description, meta = state[-1]
+        # Get the Column attributes
+        names = ('_name', 'unit', 'format', 'description', 'meta', 'indices')
+        attrs = {name: val for name, val in zip(names, state[-1])}
+
         state = state[:-1]
 
         # Using super(type(self), self).__setstate__() gives an infinite
@@ -234,12 +237,9 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         super_class = ma.MaskedArray if isinstance(self, ma.MaskedArray) else np.ndarray
         super_class.__setstate__(self, state)
 
-        # Set the Column attributes and meta
-        self._name = name
-        self.unit = unit
-        self.format = format
-        self.description = description
-        self.meta = meta
+        # Set the Column attributes
+        for name, val in attrs.items():
+            setattr(self, name, val)
         self._parent_table = None
 
     def __reduce__(self):
@@ -253,7 +253,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
         # Define Column-specific attrs and meta that gets added to state.
         column_state = (self.name, self.unit, self.format, self.description,
-                        self.meta)
+                        self.meta, self.indices)
         state = state + (column_state,)
 
         return reconstruct_func, reconstruct_func_args, state
