@@ -2,16 +2,16 @@
 import os
 
 import numpy as np
+
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, Rectangle
+from matplotlib import rc_context
 
 from .... import units as u
 from ....io import fits
 from ....tests.helper import pytest, remote_data
 from ....wcs import WCS
 from ....coordinates import SkyCoord
-
-from ..rc_utils import rc_context
 
 from ..patches import SphericalCircle
 from .. import WCSAxes

@@ -8,8 +8,6 @@ import numpy as np
 
 from ... import units as u
 
-from . import settings
-
 # Algorithm inspired by PGSBOX from WCSLIB by M. Calabretta
 
 
@@ -41,7 +39,8 @@ def find_coordinate_range(transform, extent, coord_types, coord_units):
     '''
 
     # Sample coordinates on a NX x NY grid.
-    NX = NY = settings.COORDINATE_RANGE_SAMPLES
+    from . import conf
+    NX = NY = conf.coordinate_range_samples
     x = np.linspace(extent[0], extent[1], NX + 1)
     y = np.linspace(extent[2], extent[3], NY + 1)
     xp, yp = np.meshgrid(x, y)
