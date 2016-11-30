@@ -7,7 +7,7 @@ import numpy as np
 
 from ..column import Column
 from ..diff import (FITSDiff, HeaderDiff, ImageDataDiff, TableDataDiff,
-                    report_diff_values)
+                    HDUDiff, report_diff_values)
 from ..hdu import HDUList, PrimaryHDU, ImageHDU
 from ..hdu.table import BinTableHDU
 from ..header import Header
@@ -23,6 +23,10 @@ class TestDiff(FitsTestCase):
         ha = Header([('A', 1), ('B', 2), ('C', 3)])
         hb = ha.copy()
         assert HeaderDiff(ha, hb).identical
+        assert HeaderDiff(ha.tostring(), hb.tostring()).identical
+
+        with pytest.raises(TypeError):
+            HeaderDiff(1, 2)
 
     def test_slightly_different_headers(self):
         ha = Header([('A', 1), ('B', 2), ('C', 3)])
@@ -342,6 +346,10 @@ class TestDiff(FitsTestCase):
         assert diff.diff_ratio == 0
         assert diff.diff_total == 0
 
+        report = diff.report()
+        assert 'Extra column B of format L in a' in report
+        assert 'Extra column C of format L in b' in report
+
     def test_different_table_field_counts(self):
         """
         Test tables with some common columns, but different number of columns
@@ -364,6 +372,10 @@ class TestDiff(FitsTestCase):
         assert diff.diff_column_names == ([], ['A', 'C'])
         assert diff.diff_ratio == 0
         assert diff.diff_total == 0
+
+        report = diff.report()
+        assert ' Tables have different number of columns:' in report
+        assert '  a: 1\n  b: 3' in report
 
     def test_different_table_rows(self):
         """
@@ -456,6 +468,16 @@ class TestDiff(FitsTestCase):
         assert diff.diff_total == 13
         assert diff.diff_ratio == 0.65
 
+        report = diff.report()
+        assert ('Column A data differs in row 0:\n'
+                '    a> True\n'
+                '    b> False') in report
+        assert ('...and at 13 more indices.\n'
+                ' Column D data differs in row 0:') in report
+        assert ('13 different table data element(s) found (65.00% different)'
+                in report)
+        assert report.count('more indices') == 1
+
     def test_identical_files_basic(self):
         """Test identicality of two simple, extensionless files."""
 
@@ -470,6 +492,13 @@ class TestDiff(FitsTestCase):
         # Primary HDUs should contain no differences
         assert 'Primary HDU' not in report
         assert 'Extension HDU' not in report
+        assert 'No differences found.' in report
+
+        a = np.arange(10)
+        ehdu = ImageHDU(data=a)
+        diff = HDUDiff(ehdu, ehdu)
+        assert diff.identical
+        report = diff.report()
         assert 'No differences found.' in report
 
     def test_partially_identical_files1(self):
@@ -542,6 +571,40 @@ class TestDiff(FitsTestCase):
         for y in range(10):
             assert 'Data differs at [{}, 1]'.format(y + 1) in report
         assert '100 different pixels found (100.00% different).' in report
+
+    def test_partially_identical_files3(self):
+        """
+        Test files that have some identical HDUs but a different extension
+        name.
+        """
+
+        phdu = PrimaryHDU()
+        ehdu = ImageHDU(name='FOO')
+        hdula = HDUList([phdu, ehdu])
+        ehdu = BinTableHDU(name='BAR')
+        ehdu.header['EXTVER'] = 2
+        ehdu.header['EXTLEVEL'] = 3
+        hdulb = HDUList([phdu, ehdu])
+        diff = FITSDiff(hdula, hdulb)
+        assert not diff.identical
+
+        assert diff.diff_hdus[0][0] == 1
+
+        hdu_diff = diff.diff_hdus[0][1]
+        assert hdu_diff.diff_extension_types == ('IMAGE', 'BINTABLE')
+        assert hdu_diff.diff_extnames == ('FOO', 'BAR')
+        assert hdu_diff.diff_extvers == (1, 2)
+        assert hdu_diff.diff_extlevels == (1, 3)
+
+        report = diff.report()
+        assert 'Extension types differ' in report
+        assert 'a: IMAGE\n    b: BINTABLE' in report
+        assert 'Extension names differ' in report
+        assert 'a: FOO\n    b: BAR' in report
+        assert 'Extension versions differ' in report
+        assert 'a: 1\n    b: 2' in report
+        assert 'Extension levels differ' in report
+        assert 'a: 1\n    b: 2' in report
 
     def test_diff_nans(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/204"""
