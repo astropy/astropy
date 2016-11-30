@@ -448,6 +448,20 @@ def test_write_no_data_ipac(fast_writer):
         check_write_table(test_def, data, fast_writer)
         check_write_table_via_table(test_def, data, fast_writer)
 
+def test_write_extra_meta_ipac():
+    """Write an IPAC table that contains no data but has extra metadata and
+    therefore should raise a warning, and check that the warning has been
+    raised"""
+    table = ascii.get_reader(Reader=ascii.Ipac)
+    data = table.read('t/no_data_ipac.dat')
+    data.meta['blah'] = 'extra'
+
+    with catch_warnings(AstropyWarning) as ASwarn:
+        out = StringIO()
+        data.write(out, format='ascii.ipac')
+    assert len(ASwarn) == 1
+
+
 @pytest.mark.parametrize("fast_writer", [True, False])
 def test_write_comments(fast_writer):
     """Write comments in output originally read by io.ascii."""
