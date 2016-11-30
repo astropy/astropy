@@ -786,7 +786,8 @@ class _ImageBaseHDU(_ValidHDU):
             if (format and not self._do_not_scale_image_data and
                     (self._orig_bscale != 1 or self._orig_bzero != 0)):
                 new_dtype = self._dtype_for_bitpix()
-                format += ' (rescales to {0})'.format(new_dtype.name)
+                if new_dtype is not None:
+                    format += ' (rescales to {0})'.format(new_dtype.name)
 
         # Display shape in FITS-order
         shape = tuple(reversed(self.shape))
