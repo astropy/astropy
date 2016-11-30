@@ -448,10 +448,10 @@ def test_write_no_data_ipac(fast_writer):
         check_write_table(test_def, data, fast_writer)
         check_write_table_via_table(test_def, data, fast_writer)
 
-def test_write_extra_meta_ipac():
-    """Write an IPAC table that contains no data but has extra metadata and
-    therefore should raise a warning, and check that the warning has been
-    raised"""
+def test_write_invalid_toplevel_meta_ipac():
+    """Write an IPAC table that contains no data but has invalid (incorrectly
+    specified) metadata stored in the top-level metadata and therefore should
+    raise a warning, and check that the warning has been raised"""
     table = ascii.get_reader(Reader=ascii.Ipac)
     data = table.read('t/no_data_ipac.dat')
     data.meta['blah'] = 'extra'
@@ -460,6 +460,34 @@ def test_write_extra_meta_ipac():
         out = StringIO()
         data.write(out, format='ascii.ipac')
     assert len(ASwarn) == 1
+    assert "were not written" in str(ASwarn[0].message)
+
+def test_write_invalid_keyword_meta_ipac():
+    """Write an IPAC table that contains no data but has invalid (incorrectly
+    specified) metadata stored appropriately in the ``keywords`` section
+    of the metadata but with invalid format and therefore should raise a
+    warning, and check that the warning has been raised"""
+    table = ascii.get_reader(Reader=ascii.Ipac)
+    data = table.read('t/no_data_ipac.dat')
+    data.meta['keywords']['blah'] = 'invalid'
+
+    with catch_warnings(AstropyWarning) as ASwarn:
+        out = StringIO()
+        data.write(out, format='ascii.ipac')
+    assert len(ASwarn) == 1
+    assert "has been skipped" in str(ASwarn[0].message)
+
+def test_write_valid_meta_ipac():
+    """Write an IPAC table that contains no data and has *correctly* specified
+    metadata.  No warnings should be issued"""
+    table = ascii.get_reader(Reader=ascii.Ipac)
+    data = table.read('t/no_data_ipac.dat')
+    data.meta['keywords']['blah'] = {'value': 'invalid'}
+
+    with catch_warnings(AstropyWarning) as ASwarn:
+        out = StringIO()
+        data.write(out, format='ascii.ipac')
+    assert len(ASwarn) == 0
 
 
 @pytest.mark.parametrize("fast_writer", [True, False])

@@ -490,12 +490,15 @@ class Ipac(basic.Basic):
                 except TypeError:
                     warn("Table metadata keyword {0} has been skipped.  "
                          "IPAC metadata must be in the form {{'keywords':"
-                         "{{'keyword': {{'value': value}} }}".format(keyword))
+                         "{{'keyword': {{'value': value}} }}".format(keyword),
+                         AstropyUserWarning)
         ignored_keys = [key for key in table.meta if key not in ('keywords','comments')]
         if any(ignored_keys):
             warn("Table metadata keyword(s) {0} were not written.  "
                  "IPAC metadata must be in the form {{'keywords':"
-                 "{{'keyword': {{'value': value}} }}".format(ignored_keys))
+                 "{{'keyword': {{'value': value}} }}".format(ignored_keys),
+                 AstropyUserWarning
+                )
 
         # Usually, this is done in data.write, but since the header is written
         # first, we need that here.
