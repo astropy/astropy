@@ -261,6 +261,9 @@ Bug Fixes
     module will use ``Header.copy`` to ensure that modifying the copy will
     not alter the other original Header and vice-versa. [#4990, #5323]
 
+  - ``HDUList.info()`` no longer raises ``AttributeError`` in presence of
+    ``BZERO``. [#5508]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``

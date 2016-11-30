@@ -1614,3 +1614,15 @@ def test_bzero_implicit_casting_compressed():
 
     hdu = fits.open(filename)[1]
     hdu.data
+
+def test_bzero_mishandled_info(tmpdir):
+    # Regression test for #5507:
+    # Calling HDUList.info() on a dataset which applies a zeropoint
+    # from BZERO but which astropy.io.fits does not think it needs
+    # to resize to a new dtype results in an AttributeError.
+    filename = tmpdir.join('floatimg_with_bzero.fits').strpath
+    hdu = fits.ImageHDU(np.zeros((10, 10)))
+    hdu.header['BZERO'] = 10
+    hdu.writeto(filename, clobber=True)
+    hdul = fits.open(filename)
+    hdul.info()
