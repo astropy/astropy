@@ -465,17 +465,17 @@ class HDUDiff(_BaseDiff):
             self._writeln(u(" No differences found."))
         if self.diff_extension_types:
             self._writeln(u(" Extension types differ:\n  a: {}\n  "
-                            "b: {}").format(self.diff_extension_types))
+                            "b: {}").format(*self.diff_extension_types))
         if self.diff_extnames:
             self._writeln(u(" Extension names differ:\n  a: {}\n  "
-                            "b: {}").format(self.diff_extnames))
+                            "b: {}").format(*self.diff_extnames))
         if self.diff_extvers:
             self._writeln(u(" Extension versions differ:\n  a: {}\n  "
-                            "b: {}").format(self.diff_extvers))
+                            "b: {}").format(*self.diff_extvers))
 
         if self.diff_extlevels:
             self._writeln(u(" Extension levels differ:\n  a: {}\n  "
-                            "b: {}").format(self.diff_extlevels))
+                            "b: {}").format(*self.diff_extlevels))
 
         if not self.diff_headers.identical:
             self._fileobj.write(u('\n'))
@@ -1186,7 +1186,8 @@ class TableDataDiff(_BaseDiff):
 
         # Finally, let's go through and report column data differences:
         for indx, values in self.diff_values:
-            self._writeln(u(' Column {} data differs in row {}:').format(indx))
+            self._writeln(u(' Column {} data differs in row {}:')
+                          .format(*indx))
             report_diff_values(self._fileobj, values[0], values[1],
                                ind=self._indent + 1)
 
@@ -1240,7 +1241,7 @@ def report_diff_values(fileobj, a, b, ind=0):
             fileobj.write(indent(u('  at {!r}:\n').format(list(idx)), ind))
             report_diff_values(fileobj, a[idx], b[idx], ind=ind + 1)
 
-        if num_diffs:
+        if num_diffs > 3:
             fileobj.write(indent(u('  ...and at {} more indices.\n').format(
                                         num_diffs - 3), ind))
         return
