@@ -48,7 +48,7 @@ def pytest_addoption(parser):
     # The following means that if --remote-data is not specified, the default
     # is 'none', but if it is specified without arguments (--remote-data), it
     # defaults to '--remote-data=any'.
-    parser.addoption("--remote-data", nargs="?", const='any', default='astropy',
+    parser.addoption("--remote-data", nargs="?", const='any', default='none',
                      help="run tests with online data")
 
     parser.addoption("--open-files", action="store_true",
