@@ -13,7 +13,7 @@ import warnings
 from ..config.paths import set_temp_config, set_temp_cache
 from ..extern import six
 from ..utils import wraps, find_current_module
-from ..utils.exceptions import AstropyWarning
+from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
 
 class TestRunner(object):
@@ -183,6 +183,13 @@ class TestRunner(object):
             remote_data = 'any'
         elif remote_data is False:
             remote_data = 'none'
+        elif remote_data not in ('none', 'astropy', 'any'):
+            warnings.warn("The remote_data option should be one of "
+                          "none/astropy/any. For backward-compatibility, "
+                          "assuming 'any', but you should change the option to be "
+                          "one of the supported ones to avoid issues in future.",
+                          AstropyDeprecationWarning)
+            remote_data = 'any'
 
         all_args.append('--remote-data={0}'.format(remote_data))
 
