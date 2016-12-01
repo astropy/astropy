@@ -112,12 +112,6 @@ class Kernel(object):
         else:
             np.divide(self._array, normalization, self._array)
 
-            if np.abs(1.0 / normalization) > MAX_NORMALIZATION:
-                warnings.warn('The kernel normalization factor is '
-                              'exceptionally large,'
-                              ' > {0}.'.format(MAX_NORMALIZATION),
-                              AstropyUserWarning)
-
         self._kernel_sum = self._array.sum()
 
     @property
