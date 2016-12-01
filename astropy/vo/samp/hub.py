@@ -1330,7 +1330,7 @@ class SAMPHubServer(object):
                 return
 
         # If we are here, then the above attempts failed
-        error_message = method_name + " failed after " + tries + " attempts"
+        error_message = samp_method_name + " failed after " + conf.n_retries + " attempts"
         raise SAMPHubError(error_message)
 
 
