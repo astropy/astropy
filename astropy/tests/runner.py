@@ -46,7 +46,7 @@ class keyword(object):
 
         return keyword
 
-@six.add_metaclass(InheritDocstrings)
+
 class TestRunnerBase(object):
 
     def __init__(self, base_path):
@@ -89,9 +89,9 @@ class TestRunnerBase(object):
                 doc_keywords += '\n\n'
 
         if six.PY2:
-            cls.run_tests.__func__.__doc__ = cls.run_tests.__doc__.format(keywords=doc_keywords)
+            cls.run_tests.__func__.__doc__ = cls.RUN_TESTS_DOCSTRING.format(keywords=doc_keywords)
         else:
-            cls.run_tests.__doc__ = cls.run_tests.__doc__.format(keywords=doc_keywords)
+            cls.run_tests.__doc__ = cls.RUN_TESTS_DOCSTRING.format(keywords=doc_keywords)
 
         return super(TestRunnerBase, cls).__new__(cls)
 
@@ -107,8 +107,9 @@ class TestRunnerBase(object):
             # Allow disabaling of options in a subclass
             if result is NotImplemented:
                 raise TypeError("run_tests() got an unexpected keyword argument {}".format(keyword))
+
             # keyword methods must return a list
-            elif not isinstance(result, list):
+            if not isinstance(result, list):
                 raise TypeError("{} keyword method must return a list".format(keyword))
 
             args += result
@@ -118,17 +119,20 @@ class TestRunnerBase(object):
 
         return args
 
-    def run_tests(self, **kwargs):
+    RUN_TESTS_DOCSTRING = \
         """
-        Run the tests
+        Run the tests for the package.
 
         Parameters
         ----------
-{keywords}
+        {keywords}
         See Also
         --------
-        pytest.main : py.test function wrapped by `run_tests`.
+        pytest.main : This method builds arguments for and then calls this function.
         """
+    def run_tests(self, **kwargs):
+        # The docstring for this method is defined as a class variable.
+        # This allows it to be built for each subclass in __new__.
 
         # Don't import pytest until it's actually needed to run the tests
         from .helper import pytest
@@ -234,6 +238,7 @@ class TestRunner(TestRunnerBase):
             directory. Must be specified absolutely or relative to the
             calling directory.
         """
+        all_args = []
         # Ensure that the package kwarg has been run.
         self.package(kwargs['package'], kwargs)
         if test_path:
@@ -265,7 +270,7 @@ class TestRunner(TestRunnerBase):
                 raise ValueError("Test path must be a directory or a path to "
                                  "a .py or .rst file")
 
-            return [test_path]
+            return all_args + [test_path]
 
         return []
 
@@ -454,16 +459,6 @@ class TestRunner(TestRunnerBase):
 
     # Override run_tests for astropy-specific fixes
     def run_tests(self, **kwargs):
-        """
-        Run the tests
-
-        Parameters
-        ----------
-{keywords}
-        See Also
-        --------
-        pytest.main : py.test function wrapped by `run_tests`.
-        """
 
         # This prevents cyclical import problems that make it
         # impossible to test packages that define Table types on their
