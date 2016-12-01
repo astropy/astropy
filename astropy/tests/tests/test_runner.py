@@ -1,18 +1,31 @@
 from astropy.tests.runner import TestRunner, TestRunnerBase, keyword
 from astropy.tests.helper import pytest
 
-@pytest.fixture
-def runner():
-    return TestRunner('.')
-
 
 def test_disable_kwarg():
     class no_remote_data(TestRunner):
-        @keyword
+        @keyword()
         def remote_data(self, remote_data, kwargs):
             return NotImplemented
 
     r = no_remote_data('.')
+    with pytest.raises(TypeError):
+        r.run_tests(remote_data='bob')
+
+
+def test_wrong_kwarg():
+    r = TestRunner('.')
+    with pytest.raises(TypeError):
+        r.run_tests(spam='eggs')
+
+
+def test_invalid_kwarg():
+    class bad_return(TestRunnerBase):
+        @keyword()
+        def remote_data(self, remote_data, kwargs):
+            return 'bob'
+
+    r = bad_return('.')
     with pytest.raises(TypeError):
         r.run_tests(remote_data='bob')
 
@@ -46,6 +59,7 @@ def test_priority():
 
     assert ['eggs', 'spam'] == args
 
+
 def test_docs():
     class Spam(TestRunnerBase):
         @keyword()
@@ -63,6 +77,5 @@ def test_docs():
             return [eggs]
 
     r = Spam('.')
-    help(r.run_tests)
     assert "eggs" in r.run_tests.__doc__
     assert "Spam Spam Spam" in r.run_tests.__doc__
