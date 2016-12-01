@@ -582,6 +582,7 @@ def test_tabular_interp_2d():
         model = LookupTable(points=([1.2, 2.3], [1.2, 6.7], [3, 4]))
 
 
+@pytest.mark.skipif("not HAS_SCIPY_14")
 def test_tabular_nd():
     a = np.arange(24).reshape((2, 3, 4))
     x, y, z = np.mgrid[:2, :3, :4]
