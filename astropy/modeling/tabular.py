@@ -181,7 +181,7 @@ class _Tabular(Model):
             Input coordinates. The number of inputs must be equal
             to the dimensions of the lookup table.
         """
-        inputs = [inp.flatten()for inp in inputs[: self.n_inputs]]
+        inputs = [inp.flatten() for inp in inputs[: self.n_inputs]]
         inputs = np.array(inputs).T
         if not has_scipy:
             raise ImportError("This model requires scipy >= v0.14")
