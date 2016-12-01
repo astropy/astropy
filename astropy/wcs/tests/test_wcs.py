@@ -983,26 +983,26 @@ def test_inconsistent_sip():
     newhdr = w.to_header(relax=None)
     # CTYPE should not include "-SIP" if relax is None
     wnew = wcs.WCS(newhdr)
-    assert(all([ctyp[-4 :] != '-SIP' for ctyp in wnew.wcs.ctype]))
+    assert all(not ctyp.endswith('-SIP') for ctyp in wnew.wcs.ctype)
     newhdr = w.to_header(relax=False)
     assert('A_0_2' not in newhdr)
     # CTYPE should not include "-SIP" if relax is False
     wnew = wcs.WCS(newhdr)
-    assert(all([ctyp[-4 :] != '-SIP' for ctyp in wnew.wcs.ctype]))
+    assert all(not ctyp.endswith('-SIP') for ctyp in wnew.wcs.ctype)
     newhdr = w.to_header(key="C")
     assert('A_0_2' not in newhdr)
     # Test writing header with a different key
     wnew = wcs.WCS(newhdr, key='C')
-    assert(all([ctyp[-4 :] != '-SIP' for ctyp in wnew.wcs.ctype]))
+    assert all(not ctyp.endswith('-SIP') for ctyp in wnew.wcs.ctype)
     newhdr = w.to_header(key=" ")
     # Test writing a primary WCS to header
     wnew = wcs.WCS(newhdr)
-    assert(all([ctyp[-4 :] != '-SIP' for ctyp in wnew.wcs.ctype]))
+    assert all(not ctyp.endswith('-SIP') for ctyp in wnew.wcs.ctype)
     # Test that "-SIP" is kept into CTYPE if relax=True and
     # "-SIP" was in the original header
     newhdr = w.to_header(relax=True)
     wnew = wcs.WCS(newhdr)
-    assert(all([ctyp[-4 :] == '-SIP' for ctyp in wnew.wcs.ctype]))
+    assert all(ctyp.endswith('-SIP') for ctyp in wnew.wcs.ctype)
     assert('A_0_2' in newhdr)
     # Test that SIP coefficients are also written out.
     assert wnew.sip is not None
@@ -1014,7 +1014,7 @@ def test_inconsistent_sip():
     w.wcs.ctype = ['RA---TAN', 'DEC--TAN']
     newhdr = w.to_header(relax=True)
     wnew = wcs.WCS(newhdr)
-    assert(all([ctyp[-4 :] == '-SIP' for ctyp in wnew.wcs.ctype]))
+    assert all(ctyp.endswith('-SIP') for ctyp in wnew.wcs.ctype)
 
 
 def test_bounds_check():
