@@ -724,11 +724,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         Update the data in this frame.
 
         .. warning::
-            This is a low-level in-place operation on this frame. A safer
-            method of changing the data of a frame is
+            This is a low-level in-place operation on this frame that is
+            provided for applications where speed is required. No validity or
+            consistency checks are performed. A safer method of changing the
+            data of a frame is
             `~astropy.coordinates.baseframe.BaseCoordinateFrame.realize_frame`
-            this method is provided for performance purposes where inplace
-            mofifications are desired.
+            which returns a copy of the frame with the new data.
 
         Parameters
         ----------
