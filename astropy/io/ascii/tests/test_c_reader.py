@@ -363,7 +363,7 @@ def test_invalid_parameters():
         table = FastBasic(Outputter=ascii.TableOutputter).read('1 2 3\n4 5 6')
 
 
-def test_too_many_cols():
+def test_too_many_cols1():
     """
     If a row contains too many columns, the C reader should raise an error.
     """
@@ -379,9 +379,23 @@ A B C
     assert 'CParserError: an error occurred while parsing table data: too many ' \
         'columns found in line 3 of data' in str(e)
 
+
+def test_too_many_cols2():
     text = """\
 aaa,bbb
 1,2,
+3,4,
+"""
+    with pytest.raises(CParserError) as e:
+        table = FastCsv().read(text)
+    assert 'CParserError: an error occurred while parsing table data: too many ' \
+        'columns found in line 1 of data' in str(e)
+
+
+def test_too_many_cols3():
+    text = """\
+aaa,bbb
+1,2,,
 3,4,
 """
     with pytest.raises(CParserError) as e:
