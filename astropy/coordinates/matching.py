@@ -198,7 +198,7 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='_kdtree_3d'):
         and ``idx2``.
     dist3d : `~astropy.units.Quantity`
         The 3D distance between the coordinates. Shape matches ``idx1`` and
-        ``idx2``.
+        ``idx2``. The unit is that of ``coords1``.
 
     Notes
     -----
@@ -230,7 +230,7 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='_kdtree_3d'):
         # Empty array input: return empty match
         return (np.array([], dtype=np.int), np.array([], dtype=np.int),
                 u.Quantity([], u.deg),
-                u.Quantity([], u.dimensionless_unscaled))
+                u.Quantity([], coords1.distance.unit))
 
     kdt2 = _get_cartesian_kdtree(coords2, storekdtree)
     cunit = coords2.cartesian.x.unit
@@ -256,7 +256,7 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='_kdtree_3d'):
 
     if idxs1.size == 0:
         d2ds = u.Quantity([], u.deg)
-        d3ds = u.Quantity([], u.dimensionless_unscaled)
+        d3ds = u.Quantity([], coords1.distance.unit)
     else:
         d2ds = coords1[idxs1].separation(coords2[idxs2])
         d3ds = coords1[idxs1].separation_3d(coords2[idxs2])
@@ -300,10 +300,11 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
         The on-sky separation between the coordinates. Shape matches ``idx1``
         and ``idx2``.
     dist3d : `~astropy.units.Quantity`
-        The 3D distance between the coordinates. Shape matches ``idx1`` and
-        ``idx2``. If either ``coords1`` or ``coords2`` don't have a distance,
-        this is the 3D distance on the unit sphere, rather than a physical
-        distance.
+        The 3D distance between the coordinates. Shape matches ``idx1``
+        and ``idx2``; the unit is that of ``coords1``.
+        If either ``coords1`` or ``coords2`` don't have a distance,
+        this is the 3D distance on the unit sphere, rather than a
+        physical distance.
 
     Notes
     -----
@@ -331,7 +332,7 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
         # Empty array input: return empty match
         return (np.array([], dtype=np.int), np.array([], dtype=np.int),
                 u.Quantity([], u.deg),
-                u.Quantity([], u.dimensionless_unscaled))
+                u.Quantity([], coords1.distance.unit))
 
     # we convert coord1 to match coord2's frame.  We do it this way
     # so that if the conversion does happen, the KD tree of coord2 at least gets
@@ -371,7 +372,7 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
 
     if idxs1.size == 0:
         d2ds = u.Quantity([], u.deg)
-        d3ds = u.Quantity([], u.dimensionless_unscaled)
+        d3ds = u.Quantity([], coords1.distance.unit)
     else:
 
         d2ds = coords1[idxs1].separation(coords2[idxs2])
