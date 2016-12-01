@@ -711,6 +711,14 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                              'data'.format(repr(self)))
         return self._data
 
+    def _invalidate_cache(self):
+        """
+        Invalidate any cached data.
+
+        This should be called if the underlying data of the frame is changed.
+        """
+        self._rep_cache = dict()
+
     def update_representation_data(self, representation_data):
         """
         Update the data in this frame.
@@ -729,7 +737,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             The representation to set the data to.
 
         """
-        self._rep_cache = dict()
+        self._invalidate_cache()
+
         self._data = representation_data
 
         # We do ``is not None`` because self._data might evaluate to false for
