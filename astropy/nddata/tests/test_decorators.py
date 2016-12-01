@@ -9,6 +9,7 @@ import numpy as np
 
 from ...extern import six
 from ...tests.helper import catch_warnings, pytest
+from ...utils.exceptions import AstropyUserWarning
 from ... import units as u
 
 from ..nddata import NDData
@@ -277,6 +278,14 @@ def test_setup_failures11():
             pass
 
 
+def test_setup_numpyarray_default():
+    # It should be possible (even if it's not advisable to use mutable
+    # defaults) to have a numpy array as default value.
+    @support_nddata
+    def func(data, wcs=np.array([1, 2, 3])):
+        return wcs
+
+
 def test_still_accepts_other_input():
     @support_nddata(repack=True, returns=['data'])
     def test(data):
@@ -296,8 +305,26 @@ def test_accepting_property_normal():
     assert test(ndd) is None
     ndd._mask = np.zeros((3, 3))
     assert np.all(test(ndd) == 0)
-    # Use the explicitly given one (raises a Warning but too lazy to check!)
-    assert test(ndd, mask=10) == 10
+    # Use the explicitly given one (raises a Warning)
+    with catch_warnings(AstropyUserWarning) as w:
+        assert test(ndd, mask=10) == 10
+        assert len(w) == 1
+
+
+def test_parameter_default_identical_to_explicit_passed_argument():
+    # If the default is identical to the explicitly passed argument this
+    # should still raise a Warning and use the explicit one.
+    @support_nddata
+    def func(data, wcs=[1, 2, 3]):
+        return wcs
+
+    with catch_warnings(AstropyUserWarning) as w:
+        assert func(NDData(1, wcs=[1, 2]), [1, 2, 3]) == [1, 2, 3]
+        assert len(w) == 1
+
+    with catch_warnings(AstropyUserWarning) as w:
+        assert func(NDData(1, wcs=[1, 2])) == [1, 2]
+        assert len(w) == 0
 
 
 def test_accepting_property_notexist():
@@ -320,8 +347,10 @@ def test_accepting_property_translated():
     assert test(ndd) is None
     ndd._mask = np.zeros((3, 3))
     assert np.all(test(ndd) == 0)
-    # Use the explicitly given one (raises a Warning but too lazy to check!)
-    assert test(ndd, masked=10) == 10
+    # Use the explicitly given one (raises a Warning)
+    with catch_warnings(AstropyUserWarning) as w:
+        assert test(ndd, masked=10) == 10
+        assert len(w) == 1
 
 
 def test_accepting_property_meta_empty():

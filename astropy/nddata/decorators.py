@@ -7,8 +7,6 @@ from copy import deepcopy
 from itertools import islice
 import warnings
 
-import numpy as np
-
 from ..utils import wraps
 from ..utils.exceptions import AstropyUserWarning
 from ..utils.compat.funcsigs import signature
@@ -20,7 +18,7 @@ from .nddata import NDData
 __all__ = ['support_nddata']
 
 
-# All supported properties except "data" which is mandatory!
+# All supported properties are optional except "data" which is mandatory!
 SUPPORTED_PROPERTIES = ['data', 'uncertainty', 'mask', 'meta', 'unit', 'wcs',
                         'flags']
 
@@ -34,7 +32,10 @@ def support_nddata(_func=None, accepts=NDData,
     Parameters
     ----------
     _func : callable, None, optional
-        The function to decorate or ``None`` if used as factory.
+        The function to decorate or ``None`` if used as factory. The first
+        positional argument should be ``data`` and take a numpy array. It is
+        possible to overwrite the name, see ``attribute_argument_mapping``
+        argument.
         Default is ``None``.
 
     accepts : cls, optional
@@ -126,10 +127,21 @@ def support_nddata(_func=None, accepts=NDData,
         for param_name, param in six.iteritems(sig):
             if param.kind in (param.VAR_POSITIONAL, param.VAR_KEYWORD):
                 raise ValueError("func may not have *args or **kwargs.")
-            elif param.default == param.empty:
-                func_args.append(param_name)
-            else:
-                func_kwargs.append(param_name)
+            try:
+                if param.default == param.empty:
+                    func_args.append(param_name)
+                else:
+                    func_kwargs.append(param_name)
+            # The comparison to param.empty may fail if the default is a
+            # numpy array or something similar. So if the comparison fails then
+            # it's quite obvious that there was a default and it should be
+            # appended to the "func_kwargs".
+            except ValueError as exc:
+                if ('The truth value of an array with more than one element '
+                        'is ambiguous.') in str(exc):
+                    func_kwargs.append(param_name)
+                else:
+                    raise
 
         # First argument should be data
         if not func_args or func_args[0] != attr_arg_map.get('data', 'data'):
@@ -175,16 +187,20 @@ def support_nddata(_func=None, accepts=NDData,
                         # If it's in the func_args it's trivial but if it was
                         # in the func_kwargs we need to compare it to the
                         # default.
-                        # FIXME: This obviously fails if the explicitly given
-                        # value is identical to the default. No idea how that
-                        # could be achieved without replacing the signature or
-                        # parts of it. That would have other drawbacks like
-                        # making double-decorating nearly impossible and
-                        # violating the sphinx-documentation for that function.
+                        # Comparison to the default is done by comparing their
+                        # identity, this works because defaults in function
+                        # signatures are only created once and always reference
+                        # the same item.
+                        # FIXME: Python interns some values, for example the
+                        # integers from -5 to 255 (any maybe some other types
+                        # as well). In that case the default is
+                        # indistinguishable from an explicitly passed kwarg
+                        # and it won't notice that and use the attribute of the
+                        # NDData.
                         if (propmatch in func_args or
                                 (propmatch in func_kwargs and
-                                 not np.array_equal(kwargs[propmatch],
-                                                    sig[propmatch].default))):
+                                 (kwargs[propmatch] is not
+                                  sig[propmatch].default))):
                             warnings.warn(
                                 "Property {0} has been passed explicitly and "
                                 "as an NDData property{1}, using explicitly "
