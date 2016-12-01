@@ -312,7 +312,7 @@ Other Changes and Additions
 
 - ``astropy.extern``
 
-  - Updated te bundled ``six`` module to version 1.10.0. [#5521]
+  - Updated the bundled ``six`` module to version 1.10.0. [#5521]
 
 - ``astropy.io.fits``
 
