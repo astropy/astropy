@@ -5,6 +5,7 @@ omit =
    astropy/conftest.py
    astropy/*setup*
    astropy/*/tests/*
+   astropy/tests/test_*
    astropy/extern/*
    astropy/sphinx/*
    astropy/utils/compat/*
