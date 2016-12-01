@@ -12,7 +12,7 @@ from ..verify import VerifyWarning
 
 from ....extern.six import string_types
 from ....extern.six.moves import range, zip
-from ....utils import isiterable, lazyproperty, classproperty, deprecated
+from ....utils import isiterable, lazyproperty, classproperty
 
 
 class _ImageBaseHDU(_ValidHDU):
@@ -835,18 +835,6 @@ class _ImageBaseHDU(_ValidHDU):
             # all.  This can also be handled in a generic manner.
             return super(_ImageBaseHDU, self)._calculate_datasum(
                 blocking=blocking)
-
-    @classproperty
-    @deprecated('1.1.0', alternative='the module level constant BITPIX2DTYPE',
-                obj_type='class attribute')
-    def NumCode(cls):
-        return BITPIX2DTYPE
-
-    @classproperty
-    @deprecated('1.1.0', alternative='the module level constant DTYPE2BITPIX',
-                obj_type='class attribute')
-    def ImgCode(cls):
-        return DTYPE2BITPIX
 
 
 class Section(object):
