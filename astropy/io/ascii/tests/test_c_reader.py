@@ -379,6 +379,16 @@ A B C
     assert 'CParserError: an error occurred while parsing table data: too many ' \
         'columns found in line 3 of data' in str(e)
 
+    text = """\
+aaa,bbb
+1,2,
+3,4,
+"""
+    with pytest.raises(CParserError) as e:
+        table = FastCsv().read(text)
+    assert 'CParserError: an error occurred while parsing table data: too many ' \
+        'columns found in line 1 of data' in str(e)
+
 
 @pytest.mark.parametrize("parallel", [True, False])
 def test_not_enough_cols(parallel, read_csv):
