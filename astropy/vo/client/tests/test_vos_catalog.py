@@ -19,7 +19,8 @@ import tempfile
 from .. import vos_catalog
 from ..exceptions import (VOSError, MissingCatalog, DuplicateCatalogName,
                           DuplicateCatalogURL)
-from ....tests.helper import pytest, remote_data
+from ....tests.helper import pytest, remote_data, catch_warnings
+from ....utils.exceptions import AstropyDeprecationWarning
 from ....utils.data import get_pkg_data_filename
 
 
@@ -185,6 +186,16 @@ class TestWriteJson(object):
         outfile = os.path.join(self.outdir, 'test_1.json')
         db = vos_catalog.VOSDatabase.from_json(DB_FILE)
         db.to_json(outfile)
+        with pytest.raises(OSError) as exc:
+            db.to_json(outfile)
+        assert str(exc.value).endswith("test_1.json exists.")
+        with catch_warnings(AstropyDeprecationWarning) as warning_lines:
+            db.to_json(outfile, clobber=True)
+            assert warning_lines[0].category == AstropyDeprecationWarning
+            assert (str(warning_lines[0].message) == '"clobber" was '
+                    'deprecated in version 1.3 and will be removed in a '
+                    'future version. Use argument "overwrite" instead.')
+        db.to_json(outfile, overwrite=True)
 
         # Read it back in
         db2 = vos_catalog.VOSDatabase.from_json(outfile)

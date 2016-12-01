@@ -11,7 +11,7 @@ from ..verify import VerifyError
 from ....extern.six.moves import range
 from ....io import fits
 from ....tests.helper import pytest, raises, catch_warnings, ignore_warnings
-from ....utils.exceptions import AstropyUserWarning
+from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
 from . import FitsTestCase
 
@@ -697,9 +697,9 @@ class TestHDUListFunctions(FitsTestCase):
 
         def test(mmap_a, mmap_b):
             hdu_a = fits.PrimaryHDU(data=arr_a)
-            hdu_a.writeto(self.temp('test_a.fits'), clobber=True)
+            hdu_a.writeto(self.temp('test_a.fits'), overwrite=True)
             hdu_b = fits.PrimaryHDU(data=arr_b)
-            hdu_b.writeto(self.temp('test_b.fits'), clobber=True)
+            hdu_b.writeto(self.temp('test_b.fits'), overwrite=True)
 
             hdul_a = fits.open(self.temp('test_a.fits'), mode='update',
                                memmap=mmap_a)
@@ -738,9 +738,9 @@ class TestHDUListFunctions(FitsTestCase):
             col_a = fits.Column(name='a', format='J', array=arr_a)
             col_b = fits.Column(name='b', format='J', array=arr_b)
             hdu_a = fits.BinTableHDU.from_columns([col_a])
-            hdu_a.writeto(self.temp('test_a.fits'), clobber=True)
+            hdu_a.writeto(self.temp('test_a.fits'), overwrite=True)
             hdu_b = fits.BinTableHDU.from_columns([col_b])
-            hdu_b.writeto(self.temp('test_b.fits'), clobber=True)
+            hdu_b.writeto(self.temp('test_b.fits'), overwrite=True)
 
             hdul_a = fits.open(self.temp('test_a.fits'), mode='update',
                                memmap=mmap_a)
@@ -782,3 +782,14 @@ class TestHDUListFunctions(FitsTestCase):
         assert ('a', 2) not in hdulist
         assert ('b', 1) not in hdulist
         assert ('b', 2) not in hdulist
+
+    def test_overwrite_vs_clobber(self):
+        hdulist = fits.HDUList([fits.PrimaryHDU()])
+        hdulist.writeto(self.temp('test_overwrite.fits'))
+        hdulist.writeto(self.temp('test_overwrite.fits'), overwrite=True)
+        with catch_warnings(AstropyDeprecationWarning) as warning_lines:
+            hdulist.writeto(self.temp('test_overwrite.fits'), clobber=True)
+            assert warning_lines[0].category == AstropyDeprecationWarning
+            assert (str(warning_lines[0].message) == '"clobber" was '
+                    'deprecated in version 1.3 and will be removed in a '
+                    'future version. Use argument "overwrite" instead.')

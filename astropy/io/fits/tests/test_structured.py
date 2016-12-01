@@ -80,7 +80,7 @@ class TestStructured(FitsTestCase):
         st = get_test_data()
 
         outfile = self.temp('test.fits')
-        fits.writeto(outfile, data1, clobber=True)
+        fits.writeto(outfile, data1, overwrite=True)
         fits.append(outfile, data2)
 
         fits.append(outfile, st)

@@ -17,6 +17,7 @@ from ...extern.six import string_types, itervalues, iteritems, next
 from ...extern.six.moves import zip, range, zip_longest
 from ...utils import isiterable
 from ...utils.exceptions import AstropyUserWarning
+from ...utils.decorators import deprecated_renamed_argument
 
 
 BLOCK_SIZE = 2880  # the FITS block size
@@ -626,8 +627,9 @@ class Header(object):
             s += ' ' * _pad_length(len(s))
         return s
 
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
     def tofile(self, fileobj, sep='', endcard=True, padding=True,
-               clobber=False):
+               overwrite=False):
         r"""
         Writes the header to file or file-like object.
 
@@ -654,14 +656,19 @@ class Header(object):
             If `True` (default) pads the string with spaces out to the next
             multiple of 2880 characters
 
-        clobber : bool, optional
-            If `True`, overwrites the output file if it already exists
+        overwrite : bool, optional
+            If ``True``, overwrite the output file if it exists. Raises an
+            ``OSError`` (``IOError`` for Python 2) if ``False`` and the
+            output file exists. Default is ``False``.
+
+            .. versionchanged:: 1.3
+               ``overwrite`` replaces the deprecated ``clobber`` argument.
         """
 
         close_file = fileobj_closed(fileobj)
 
         if not isinstance(fileobj, _File):
-            fileobj = _File(fileobj, mode='ostream', clobber=clobber)
+            fileobj = _File(fileobj, mode='ostream', overwrite=overwrite)
 
         try:
             blocks = self.tostring(sep=sep, endcard=endcard, padding=padding)
@@ -688,24 +695,40 @@ class Header(object):
     @classmethod
     def fromtextfile(cls, fileobj, endcard=False):
         """
+        Read a header from a simple text file or file-like object.
+
         Equivalent to::
 
             >>> Header.fromfile(fileobj, sep='\\n', endcard=False,
             ...                 padding=False)
+
+        See Also
+        --------
+        fromfile
         """
 
         return cls.fromfile(fileobj, sep='\n', endcard=endcard, padding=False)
 
-    def totextfile(self, fileobj, endcard=False, clobber=False):
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+    def totextfile(self, fileobj, endcard=False, overwrite=False):
         """
+        Write the header as text to a file or a file-like object.
+
         Equivalent to::
 
             >>> Header.tofile(fileobj, sep='\\n', endcard=False,
-            ...               padding=False, clobber=clobber)
+            ...               padding=False, overwrite=overwrite)
+
+        .. versionchanged:: 1.3
+           ``overwrite`` replaces the deprecated ``clobber`` argument.
+
+        See Also
+        --------
+        tofile
         """
 
         self.tofile(fileobj, sep='\n', endcard=endcard, padding=False,
-                    clobber=clobber)
+                    overwrite=overwrite)
 
     def clear(self):
         """

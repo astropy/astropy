@@ -34,6 +34,7 @@ from ....extern.six.moves import range, zip
 from ....utils import lazyproperty
 from ....utils.compat import suppress
 from ....utils.exceptions import AstropyUserWarning
+from ....utils.decorators import deprecated_renamed_argument
 
 
 class FITSTableDumpDialect(csv.excel):
@@ -967,7 +968,8 @@ class BinTableHDU(_TableBaseHDU):
           image.
       """)
 
-    def dump(self, datafile=None, cdfile=None, hfile=None, clobber=False):
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+    def dump(self, datafile=None, cdfile=None, hfile=None, overwrite=False):
         """
         Dump the table HDU to a file in ASCII format.  The table may be dumped
         in three separate files, one containing column definitions, one
@@ -988,8 +990,13 @@ class BinTableHDU(_TableBaseHDU):
             Output header parameters file.  The default is `None`,
             no header parameters output is produced.
 
-        clobber : bool
-            Overwrite the output files if they exist.
+        overwrite : bool, optional
+            If ``True``, overwrite the output file if it exists. Raises an
+            ``OSError`` (``IOError`` for Python 2) if ``False`` and the
+            output file exists. Default is ``False``.
+
+            .. versionchanged:: 1.3
+               ``overwrite`` replaces the deprecated ``clobber`` argument.
 
         Notes
         -----
@@ -1006,7 +1013,7 @@ class BinTableHDU(_TableBaseHDU):
         for f in files:
             if isinstance(f, string_types):
                 if os.path.exists(f) and os.path.getsize(f) != 0:
-                    if clobber:
+                    if overwrite:
                         warnings.warn(
                             "Overwriting existing file '{}'.".format(f),
                             AstropyUserWarning)
