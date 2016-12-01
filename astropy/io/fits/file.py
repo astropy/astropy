@@ -505,9 +505,10 @@ class _File(object):
             os.fsync(tmpfd)
             try:
                 mm = mmap.mmap(tmpfd, 1, access=mmap.ACCESS_WRITE)
-            except mmap.error as e:
+
+            except mmap.error as exc:
                 warnings.warn('Failed to create mmap: %s; mmap use will be '
-                              'disabled' % str(e), AstropyUserWarning)
+                              'disabled' % str(exc), AstropyUserWarning)
                 del exc
                 mmap_available = False
             try:

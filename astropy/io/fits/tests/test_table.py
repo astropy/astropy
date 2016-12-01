@@ -2881,3 +2881,14 @@ class TestColumnFunctions(FitsTestCase):
         assert c4.format == c3.format
         assert np.all(c4.array[0] == c3.array[0])
         assert np.all(c4.array[1] == c3.array[1])
+
+
+def test_regression_5383():
+
+    # Regression test for an undefined variable
+
+    x = np.array([1, 2, 3])
+    col = fits.Column(name='a', array=x, format='E')
+    hdu = fits.BinTableHDU.from_columns([col])
+    del hdu._header['TTYPE1']
+    hdu.columns[0].name = 'b'
