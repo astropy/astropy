@@ -1609,23 +1609,23 @@ class TestCompressedImage(FitsTestCase):
         hdu2.scale('int16', bzero=99)
         assert np.allclose(hdu1.data, hdu2.data)
 
-        def test_scale_back_compressed_uint_assignment(self):
-            """
-            Extend fix for #4600 to assignment to data
+    def test_scale_back_compressed_uint_assignment(self):
+        """
+        Extend fix for #4600 to assignment to data
 
-            Identical to test_scale_back_uint_assignment() but uses a compressed
-            image.
+        Identical to test_scale_back_uint_assignment() but uses a compressed
+        image.
 
-            Suggested by:
-            https://github.com/astropy/astropy/pull/4602#issuecomment-208713748
-            """
+        Suggested by:
+        https://github.com/astropy/astropy/pull/4602#issuecomment-208713748
+        """
 
-            a = np.arange(100, 200, dtype=np.uint16)
-            fits.CompImageHDU(a).writeto(self.temp('test.fits'))
-            with fits.open(self.temp('test.fits'), mode="update",
-                           scale_back=True) as hdul:
-                hdul[1].data[:] = 0
-                assert np.allclose(hdul[1].data, 0)
+        a = np.arange(100, 200, dtype=np.uint16)
+        fits.CompImageHDU(a).writeto(self.temp('test.fits'))
+        with fits.open(self.temp('test.fits'), mode="update",
+                       scale_back=True) as hdul:
+            hdul[1].data[:] = 0
+            assert np.allclose(hdul[1].data, 0)
 
 
 def test_comphdu_bscale(tmpdir):
