@@ -1,13 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
-__doctest_requires__ = {'*': ['matplotlib']}
-
 """ This module contains dictionaries that can be used to set a
 matplotlib plotting style.
+
 It is mostly here to allow a consistent plotting style in tutorials,
 but can be used to prepare any matplotlib figure.
 
-Using a matplotlib version > 1.4 you can do::
+Using a matplotlib version >= 1.5 you can do::
 
     >>> import matplotlib.pyplot as plt
     >>> from astropy.visualization import astropy_mpl_style
@@ -30,8 +28,9 @@ example), you should reset the matplotlib settings to the library defaults
     >>> from astropy.visualization import astropy_mpl_style
     >>> mpl.rcdefaults()
     >>> mpl.rcParams.update(astropy_mpl_style)
-"""
+    """
 
+__doctest_requires__ = {'*': ['matplotlib']}
 
 astropy_mpl_style_1 = {
 
