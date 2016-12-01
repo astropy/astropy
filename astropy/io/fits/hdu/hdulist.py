@@ -20,6 +20,7 @@ from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from ....extern.six import string_types
 from ....utils import indent
 from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
+from ....utils.decorators import deprecated_renamed_argument
 from ....extern.six.moves import range
 
 
@@ -640,7 +641,8 @@ class HDUList(list, _Verify):
                 n = hdr['NAXIS']
                 hdr.set('EXTEND', True, after='NAXIS' + str(n))
 
-    def writeto(self, fileobj, output_verify='exception', clobber=False,
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+    def writeto(self, fileobj, output_verify='exception', overwrite=False,
                 checksum=False):
         """
         Write the `HDUList` to a new file.
@@ -658,8 +660,13 @@ class HDUList(list, _Verify):
             ``"silentfix"`` with ``"+ignore"``, ``+warn``, or ``+exception"
             (e.g. ``"fix+warn"``).  See :ref:`verify` for more info.
 
-        clobber : bool
-            When `True`, overwrite the output file if exists.
+        overwrite : bool, optional
+            If ``True``, overwrite the output file if it exists. Raises an
+            ``OSError`` (``IOError`` for Python 2) if ``False`` and the
+            output file exists. Default is ``False``.
+
+            .. versionchanged:: 1.3
+               ``overwrite`` replaces the deprecated ``clobber`` argument.
 
         checksum : bool
             When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards
@@ -684,7 +691,7 @@ class HDUList(list, _Verify):
         # sensible mode to require is 'ostream'.  This can accept an open
         # file object that's open to write only, or in append/update modes
         # but only if the file doesn't exist.
-        fileobj = _File(fileobj, mode='ostream', clobber=clobber)
+        fileobj = _File(fileobj, mode='ostream', overwrite=overwrite)
         hdulist = self.fromfile(fileobj)
 
         for hdu in self:

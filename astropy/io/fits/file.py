@@ -22,8 +22,8 @@ from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
                    _array_to_file, _write_string)
 from ...extern.six import b, string_types
 from ...utils.data import download_file, _is_url
-from ...utils.decorators import classproperty
-from ...utils.exceptions import AstropyUserWarning
+from ...utils.decorators import classproperty, deprecated_renamed_argument
+from ...utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
 
 # Maps PyFITS-specific file mode names to the appropriate file modes to use
@@ -87,7 +87,8 @@ class _File(object):
     Represents a FITS file on disk (or in some other file-like object).
     """
 
-    def __init__(self, fileobj=None, mode=None, memmap=None, clobber=False,
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+    def __init__(self, fileobj=None, mode=None, memmap=None, overwrite=False,
                  cache=True):
         self.strict_memmap = bool(memmap)
         memmap = True if memmap is None else memmap
@@ -146,11 +147,11 @@ class _File(object):
 
         # Initialize the internal self._file object
         if _is_random_access_file_backed(fileobj):
-            self._open_fileobj(fileobj, mode, clobber)
+            self._open_fileobj(fileobj, mode, overwrite)
         elif isinstance(fileobj, string_types):
-            self._open_filename(fileobj, mode, clobber)
+            self._open_filename(fileobj, mode, overwrite)
         else:
-            self._open_filelike(fileobj, mode, clobber)
+            self._open_filelike(fileobj, mode, overwrite)
 
         self.fileobj_mode = fileobj_mode(self._file)
 
@@ -375,8 +376,8 @@ class _File(object):
             self._mmap.close()
             self._mmap = None
 
-    def _overwrite_existing(self, clobber, fileobj, closed):
-        """Overwrite an existing file if ``clobber`` is ``True``, otherwise
+    def _overwrite_existing(self, overwrite, fileobj, closed):
+        """Overwrite an existing file if ``overwrite`` is ``True``, otherwise
         raise an IOError.  The exact behavior of this method depends on the
         _File object state and is only meant for use within the ``_open_*``
         internal methods.
@@ -385,7 +386,7 @@ class _File(object):
         # The file will be overwritten...
         if ((self.file_like and hasattr(fileobj, 'len') and fileobj.len > 0) or
             (os.path.exists(self.name) and os.path.getsize(self.name) != 0)):
-            if clobber:
+            if overwrite:
                 if self.file_like and hasattr(fileobj, 'truncate'):
                     fileobj.truncate(0)
                 else:
@@ -395,14 +396,14 @@ class _File(object):
             else:
                 raise IOError("File {!r} already exists.".format(self.name))
 
-    def _open_fileobj(self, fileobj, mode, clobber):
+    def _open_fileobj(self, fileobj, mode, overwrite):
         """Open a FITS file from a file object or a GzipFile object."""
 
         closed = fileobj_closed(fileobj)
         fmode = fileobj_mode(fileobj) or PYFITS_MODES[mode]
 
         if mode == 'ostream':
-            self._overwrite_existing(clobber, fileobj, closed)
+            self._overwrite_existing(overwrite, fileobj, closed)
 
         if not closed:
             # Although we have a specific mapping in PYFITS_MODES from our
@@ -429,7 +430,7 @@ class _File(object):
             # append mode the file pointer is at the end of the file
             self._file.seek(0)
 
-    def _open_filelike(self, fileobj, mode, clobber):
+    def _open_filelike(self, fileobj, mode, overwrite):
         """Open a FITS file from a file-like object, i.e. one that has
         read and/or write methods.
         """
@@ -455,7 +456,7 @@ class _File(object):
             self.mode = mode = 'ostream'
 
         if mode == 'ostream':
-            self._overwrite_existing(clobber, fileobj, False)
+            self._overwrite_existing(overwrite, fileobj, False)
 
         # Any "writeable" mode requires a write() method on the file object
         if (self.mode in ('update', 'append', 'ostream') and
@@ -468,11 +469,11 @@ class _File(object):
             raise IOError("File-like object does not have a 'read' "
                           "method, required for mode {!r}.".format(self.mode))
 
-    def _open_filename(self, filename, mode, clobber):
+    def _open_filename(self, filename, mode, overwrite):
         """Open a FITS file from a filename string."""
 
         if mode == 'ostream':
-            self._overwrite_existing(clobber, None, True)
+            self._overwrite_existing(overwrite, None, True)
 
         if os.path.exists(self.name):
             with fileobj_open(self.name, 'rb') as f:

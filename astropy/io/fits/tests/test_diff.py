@@ -12,6 +12,8 @@ from ..hdu import HDUList, PrimaryHDU, ImageHDU
 from ..hdu.table import BinTableHDU
 from ..header import Header
 
+from ....tests.helper import catch_warnings
+from ....utils.exceptions import AstropyDeprecationWarning
 from ....extern.six.moves import range
 from ....io import fits
 
@@ -686,7 +688,7 @@ class TestDiff(FitsTestCase):
         report_as_string = diffobj.report()
         assert open(outpath).read() == report_as_string
 
-    def test_file_output_clobber_safety(self):
+    def test_file_output_overwrite_safety(self):
         outpath = self.temp('diff_output.txt')
         ha = Header([('A', 1), ('B', 2), ('C', 3)])
         hb = ha.copy()
@@ -697,7 +699,7 @@ class TestDiff(FitsTestCase):
         with pytest.raises(IOError):
             diffobj.report(fileobj=outpath)
 
-    def test_file_output_clobber_success(self):
+    def test_file_output_overwrite_success(self):
         outpath = self.temp('diff_output.txt')
         ha = Header([('A', 1), ('B', 2), ('C', 3)])
         hb = ha.copy()
@@ -705,6 +707,23 @@ class TestDiff(FitsTestCase):
         diffobj = HeaderDiff(ha, hb)
         diffobj.report(fileobj=outpath)
         report_as_string = diffobj.report()
-        diffobj.report(fileobj=outpath, clobber=True)
-        assert open(outpath).read() == report_as_string, ("clobbered output "
+        diffobj.report(fileobj=outpath, overwrite=True)
+        assert open(outpath).read() == report_as_string, ("overwritten output "
             "file is not identical to report string")
+
+    def test_file_output_overwrite_vs_clobber(self):
+        """Verify uses of clobber and overwrite."""
+
+        outpath = self.temp('diff_output.txt')
+        ha = Header([('A', 1), ('B', 2), ('C', 3)])
+        hb = ha.copy()
+        hb['C'] = 4
+        diffobj = HeaderDiff(ha, hb)
+        diffobj.report(fileobj=outpath)
+        report_as_string = diffobj.report()
+        with catch_warnings(AstropyDeprecationWarning) as warning_lines:
+            diffobj.report(fileobj=outpath, clobber=True)
+            assert warning_lines[0].category == AstropyDeprecationWarning
+            assert (str(warning_lines[0].message) == '"clobber" was '
+                    'deprecated in version 1.3 and will be removed in a '
+                    'future version. Use argument "overwrite" instead.')

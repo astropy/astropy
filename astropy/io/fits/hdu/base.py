@@ -23,6 +23,7 @@ from ....utils import lazyproperty
 from ....utils.compat import suppress
 from ....utils.compat.funcsigs import signature, Parameter
 from ....utils.exceptions import AstropyUserWarning
+from ....utils.decorators import deprecated_renamed_argument
 
 
 class _Delayed(object):
@@ -332,10 +333,11 @@ class _BaseHDU(object):
         fileobj.seek(hdu._data_offset + hdu._data_size, os.SEEK_SET)
         return hdu
 
-    def writeto(self, name, output_verify='exception', clobber=False,
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+    def writeto(self, name, output_verify='exception', overwrite=False,
                 checksum=False):
         """
-        Write the HDU to a new file.  This is a convenience method to
+        Write the HDU to a new file. This is a convenience method to
         provide a user easier output interface if only one HDU needs
         to be written to a file.
 
@@ -352,8 +354,13 @@ class _BaseHDU(object):
             ``"silentfix"`` with ``"+ignore"``, ``+warn``, or ``+exception"
             (e.g. ``"fix+warn"``).  See :ref:`verify` for more info.
 
-        clobber : bool
-            Overwrite the output file if exists.
+        overwrite : bool, optional
+            If ``True``, overwrite the output file if it exists. Raises an
+            ``OSError`` (``IOError`` for Python 2) if ``False`` and the
+            output file exists. Default is ``False``.
+
+            .. versionchanged:: 1.3
+               ``overwrite`` replaces the deprecated ``clobber`` argument.
 
         checksum : bool
             When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards
@@ -363,7 +370,7 @@ class _BaseHDU(object):
         from .hdulist import HDUList
 
         hdulist = HDUList([self])
-        hdulist.writeto(name, output_verify, clobber=clobber,
+        hdulist.writeto(name, output_verify, overwrite=overwrite,
                         checksum=checksum)
 
     @classmethod
@@ -1565,19 +1572,23 @@ class ExtensionHDU(_ValidHDU):
 
         raise NotImplementedError
 
-    def writeto(self, name, output_verify='exception', clobber=False,
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+    def writeto(self, name, output_verify='exception', overwrite=False,
                 checksum=False):
         """
         Works similarly to the normal writeto(), but prepends a default
         `PrimaryHDU` are required by extension HDUs (which cannot stand on
         their own).
+
+        .. versionchanged:: 1.3
+           ``overwrite`` replaces the deprecated ``clobber`` argument.
         """
 
         from .hdulist import HDUList
         from .image import PrimaryHDU
 
         hdulist = HDUList([PrimaryHDU(), self])
-        hdulist.writeto(name, output_verify, clobber=clobber,
+        hdulist.writeto(name, output_verify, overwrite=overwrite,
                         checksum=checksum)
 
     def _verify(self, option='warn'):

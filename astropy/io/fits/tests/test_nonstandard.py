@@ -50,7 +50,7 @@ class TestNonstandardHdus(FitsTestCase):
         # Just to be meta, let's append to the same hdulist that the fitshdu
         # encapuslates
         hdul_orig.append(fitshdu)
-        hdul_orig.writeto(self.temp('tmp.fits'), clobber=True)
+        hdul_orig.writeto(self.temp('tmp.fits'), overwrite=True)
         del hdul_orig[-1]
 
         hdul = fits.open(self.temp('tmp.fits'))

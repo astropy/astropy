@@ -1878,7 +1878,7 @@ class TestHeaderFunctions(FitsTestCase):
         while len(hdu.header) < 36:
             hdu.header.append()
         with ignore_warnings():
-            hdu.writeto(self.temp('test.fits'), clobber=True)
+            hdu.writeto(self.temp('test.fits'), overwrite=True)
 
         with fits.open(self.temp('test.fits')) as hdul:
             assert 'TESTKW' in hdul[0].header

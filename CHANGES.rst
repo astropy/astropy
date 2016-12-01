@@ -183,6 +183,13 @@ API Changes
     - Removed ``startColumn`` and ``endColumn`` arguments to the ``FITS_record``
       constructor.
 
+  - The ``clobber`` argument in FITS writers has been renamed to
+    ``overwrite``. This change affects the following functions and
+    methods: ``tabledump``, ``writeto``, ``Header.tofile``,
+    ``Header.totextfile``, ``_BaseDiff.report``,
+    ``_BaseHDU.overwrite``, ``BinTableHDU.dump`` and
+    ``HDUList.writeto``. [#5171]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -224,6 +231,9 @@ API Changes
     subpackage. [#5491]
 
 - ``astropy.vo``
+
+  - The ``clobber`` argument in ``VOSDatabase.to_json()`` has been
+    renamed to ``overwrite``. [#5171]
 
 - ``astropy.wcs``
 
