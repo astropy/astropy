@@ -36,7 +36,7 @@ class HexagonalFrame(BaseFrame):
 
 class TestFrame(BaseImageTests):
 
-    @remote_data
+    @remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='custom_frame.png',
                                    tolerance=1.5)
@@ -78,7 +78,7 @@ class TestFrame(BaseImageTests):
 
         return fig
 
-    @remote_data
+    @remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='update_clip_path_rectangular.png',
                                    tolerance=1.5)
@@ -102,7 +102,7 @@ class TestFrame(BaseImageTests):
 
         return fig
 
-    @remote_data
+    @remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='update_clip_path_nonrectangular.png',
                                    tolerance=1.5)
@@ -127,7 +127,7 @@ class TestFrame(BaseImageTests):
 
         return fig
 
-    @remote_data
+    @remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='update_clip_path_change_wcs.png',
                                    tolerance=1.5)
