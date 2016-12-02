@@ -210,6 +210,33 @@ class FITSFixedWarning(AstropyWarning):
     pass
 
 
+class _NaxisProperty(object):
+    """
+    Create a property for each ``NAXISj`` keyword.
+
+    Parameters
+    ----------
+    name : str
+        Name or property, e.g. ``naxis1``.
+
+    """
+    def __init__(self, name):
+        self.name = name
+
+    def __get__(self, obj, objtype):
+        naxis_data = getattr(obj, "_naxis_size")
+        # convert to 0-based index
+        idx = int(self.name[-1]) - 1
+        return naxis_data[idx]
+
+    def __set__(self, obj, val):
+        naxis_data = getattr(obj, "_naxis_size")
+        # convert to 0-based index
+        idx = int(self.name[-1]) - 1
+        naxis_data[idx] = val
+        setattr(obj, "_naxis_size", naxis_data)
+
+
 class WCS(WCSBase):
     """WCS objects perform standard WCS transformations, and correct for
     `SIP`_ and `distortion paper`_ table-lookup transformations, based
@@ -493,8 +520,14 @@ reduce these to 2 dimensions using the naxis kwarg.
                     "The WCS transformation has more axes ({0:d}) than the "
                     "image it is associated with ({1:d})".format(
                         wcsprm.naxis, header_naxis), FITSFixedWarning)
+        # Create a list of NAXISj values for the attached dataset.
+        # Values default to 0 if there is no data and wcsprm.naxis is used
+        # for the number of items.
+        self._naxis_size = self._get_naxis(header)
+        for j, n in enumerate(self._naxis_size):
+            name = "naxis{0}".format(j+1)
+            setattr(self.__class__, name, _NaxisProperty(name))
 
-        self._get_naxis(header)
         WCSBase.__init__(self, sip, cpdis, wcsprm, det2im)
 
         if fix:
@@ -691,8 +724,8 @@ reduce these to 2 dimensions using the naxis kwarg.
                 try:
                     # classes that inherit from WCS and define naxis1/2
                     # do not require a header parameter
-                    naxis1 = self._naxis1
-                    naxis2 = self._naxis2
+                    naxis1 = self.naxis1
+                    naxis2 = self.naxis2
                 except AttributeError:
                     warnings.warn("Need a valid header in order to calculate footprint\n", AstropyUserWarning)
                     return None
@@ -2674,22 +2707,6 @@ reduce these to 2 dimensions using the naxis kwarg.
             self.calc_footprint().tofile(f, sep=',')
             f.write(') # color={0}, width={1:d} \n'.format(color, width))
 
-    @property
-    def _naxis1(self):
-        return self._naxis[0]
-
-    @_naxis1.setter
-    def _naxis1(self, value):
-        self._naxis[0] = value
-
-    @property
-    def _naxis2(self):
-        return self._naxis[1]
-
-    @_naxis2.setter
-    def _naxis2(self, value):
-        self._naxis[1] = value
-
     def _get_naxis(self, header=None):
         _naxis = []
         if (header is not None and
@@ -2703,7 +2720,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             _naxis = [0, 0]
         elif len(_naxis) == 1:
             _naxis.append(0)
-        self._naxis = _naxis
+        return _naxis
 
     @deprecated('1.3')
     def rotateCD(self, theta):
@@ -2748,7 +2765,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 s += sfmt
                 description.append(s.format(*self.wcs.cd[i]))
 
-        description.append('NAXIS : {}'.format('  '.join(map(str, self._naxis))))
+        description.append('NAXIS : {}'.format('  '.join(map(str, self._naxis_size))))
         return '\n'.join(description)
 
     def get_axis_types(self):
@@ -2981,8 +2998,8 @@ reduce these to 2 dimensions using the naxis kwarg.
                 else:
                     wcs_new.wcs.crpix[wcs_index] -= iview.start
 
-            nitems = len(builtins.range(self._naxis[wcs_index])[iview])
-            wcs_new._naxis[wcs_index] = nitems
+            nitems = len(builtins.range(self._naxis_size[wcs_index])[iview])
+            wcs_new._naxis_size[wcs_index] = nitems
 
         return wcs_new
 
