@@ -96,7 +96,7 @@ class Mapping(object):
             raise ValueError("please provide 1 or 3 values for minimum.")
 
         self.minimum = minimum
-        self._image = image
+        self._image = np.asarray(image)
 
     def makeRgbImage(self, imageR=None, imageG=None, imageB=None,
                      xSize=None, ySize=None, rescaleFactor=None):
@@ -131,11 +131,18 @@ class Mapping(object):
                 raise RuntimeError("you must provide an image or pass one "
                                    "to the constructor.")
             imageR = self._image
+        else:
+            imageR = np.asarray(imageR)
 
         if imageG is None:
             imageG = imageR
+        else:
+            imageG = np.asarray(imageG)
+
         if imageB is None:
             imageB = imageR
+        else:
+            imageB = np.asarray(imageB)
 
         if xSize is not None or ySize is not None:
             if rescaleFactor is not None:
@@ -386,7 +393,6 @@ class AsinhZScaleMapping(AsinhMapping):
             if len(pedestal) != 3:
                 raise ValueError("please provide 1 or 3 pedestals.")
 
-
             image = list(image)        # needs to be mutable
             for i, im in enumerate(image):
                 if pedestal[i] != 0.0:
@@ -448,8 +454,9 @@ def makeRGB(imageR, imageG=None, imageB=None, minimum=0, dataRange=5, Q=8,
     rgb : `~numpy.ndarray`
         RGB color image.
     """
+    imageR = np.asarray(imageR)
     if imageG is None:
-        imageG = imageR
+        imageG = np.asarray(imageR)
     if imageB is None:
         imageB = imageR
 
