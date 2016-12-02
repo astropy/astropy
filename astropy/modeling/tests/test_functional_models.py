@@ -5,7 +5,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
-from .. import models
+from .. import models, InputParameterError
 from ...coordinates import Angle
 from .. import fitting
 from ...tests.helper import pytest
@@ -88,6 +88,28 @@ def test_Gaussian2DRotation():
     value1 = g1(*point1)
     value2 = g2(*point2)
     assert_allclose(value1, value2)
+
+
+def test_Gaussian2D_invalid_inputs():
+    x_stddev = 5.1
+    y_stddev = 3.3
+    theta = 10
+    cov_matrix = [[49., -16.], [-16., 9.]]
+
+    # first make sure the valid ones are OK
+    models.Gaussian2D()
+    models.Gaussian2D(x_stddev=x_stddev, y_stddev=y_stddev, theta=theta)
+    models.Gaussian2D(x_stddev=None, y_stddev=y_stddev, theta=theta)
+    models.Gaussian2D(x_stddev=x_stddev, y_stddev=None, theta=theta)
+    models.Gaussian2D(x_stddev=x_stddev, y_stddev=y_stddev, theta=None)
+    models.Gaussian2D(cov_matrix=cov_matrix)
+
+    with pytest.raises(InputParameterError):
+        models.Gaussian2D(x_stddev=0, cov_matrix=cov_matrix)
+    with pytest.raises(InputParameterError):
+        models.Gaussian2D(y_stddev=0, cov_matrix=cov_matrix)
+    with pytest.raises(InputParameterError):
+        models.Gaussian2D(theta=0, cov_matrix=cov_matrix)
 
 
 def test_RedshiftScaleFactor():
