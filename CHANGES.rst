@@ -50,6 +50,9 @@ New Features
 
   - Check for self-consistency of ECSV header column names. [#5463]
 
+  - Produce warnings when writing an IPAC table from an astropy table that
+    contains metadata not supported by the IPAC format [#4700]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``
