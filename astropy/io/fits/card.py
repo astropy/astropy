@@ -842,7 +842,7 @@ class Card(_Verify):
             # Remove 'HIERARCH' from HIERARCH keywords; this could lead to
             # ambiguity if there is actually a keyword card containing
             # "HIERARCH HIERARCH", but shame on you if you do that.
-            return keyword[9:].strip()
+            return keyword[9:].strip().upper()
         else:
             # A normal FITS keyword, but provided in non-standard case
             return keyword.strip().upper()

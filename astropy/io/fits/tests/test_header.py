@@ -704,6 +704,22 @@ class TestHeaderFunctions(FitsTestCase):
         # should be treated case-insensitively when performing lookups
         assert 'ABCDEFGHI' in header
 
+    def test_hierarch_card_delete(self):
+        header = fits.Header()
+        header['hierarch abcdefghi'] = 10
+        del header['hierarch abcdefghi']
+
+    def test_hierarch_card_insert_delete(self):
+        header = fits.Header()
+        header['abcdefghi'] = 10
+        header['abcdefgh'] = 10
+        header['abcdefg'] = 10
+        header.insert(2, ('abcdefghij', 10))
+        del header['abcdefghij']
+        header.insert(2, ('abcdefghij', 10))
+        del header[2]
+        assert list(header.keys())[2]=='abcdefg'.upper()
+
     def test_hierarch_create_and_update(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/158
