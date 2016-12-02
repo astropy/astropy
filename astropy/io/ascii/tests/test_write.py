@@ -654,11 +654,9 @@ def test_roundtrip_masked(fmt_name_class):
     if not getattr(fmt_cls, '_io_registry_can_write', True):
         return
 
-    # Skip certain readers.  Aastex should be OK after #????
-    if fmt_name in ['fixed_width', 'aastex', 'latex']:
-        return
-
-    if fmt_name == 'html' and not HAS_BEAUTIFUL_SOUP:
+    # Skip tests for fixed_width or HTML without bs4
+    if ((fmt_name == 'html' and not HAS_BEAUTIFUL_SOUP)
+            or fmt_name == 'fixed_width'):
         return
 
     t = simple_table(masked=True)
