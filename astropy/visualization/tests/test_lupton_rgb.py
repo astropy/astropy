@@ -17,8 +17,12 @@ from ...convolution import convolve, Gaussian2DKernel
 from ...tests.helper import pytest
 from .. import lupton_rgb
 
-import matplotlib
-matplotlib.use('TkAgg')
+try:
+    import matplotlib
+    matplotlib.use('TkAgg')
+    HAS_MATPLOTLIB = True
+except ImportError:
+    HAS_MATPLOTLIB = False
 
 try:
     import scipy.misc
@@ -199,6 +203,7 @@ class TestLuptonRgb(object):
 
         rgbImage = lupton_rgb.AsinhZScaleMapping(self.imageR).makeRgbImage()
 
+    @pytest.mark.skipif('not HAS_MATPLOTLIB')
     def testMakeRGB(self):
         """Test the function that does it all"""
         satValue = 1000.0
@@ -332,6 +337,7 @@ class TestLuptonRgb(object):
     def testStarsResizeSpecifications_frac_twice(self):
         self._testStarsResizeSpecifications(frac=2)
 
+    @pytest.mark.skipif('not HAS_MATPLOTLIB')
     @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
     def testMakeRGBResize(self):
         """Test the function that does it all, including rescaling"""
