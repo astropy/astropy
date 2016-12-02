@@ -180,7 +180,8 @@ class WCSAxes(Axes):
         Plot `~astropy.coordinates.SkyCoord` or
         `~astropy.coordinates.BaseCoordinateFrame` objects onto the axes.
 
-        The first argument to `~wcsaxes.WCSAxes.plot_coord` should be a
+        The first argument to
+        :meth:`~astropy.visualization.wcsaxes.WCSAxes.plot_coord` should be a
         coordinate, which will then be converted to the first two parameters to
         `matplotlib.axes.Axes.plot`. All other arguments are the same as
         `matplotlib.axes.Axes.plot`. If not specified a ``transform`` keyword
