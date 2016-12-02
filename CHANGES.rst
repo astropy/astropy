@@ -81,6 +81,9 @@ New Features
 
   - Added ``Planar2D`` functional model. [#5456]
 
+  - Updated ``Gaussian2D`` to accept no arguments (will use default x/y_stddev
+    and theta). [#5537]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
@@ -215,6 +218,9 @@ API Changes
 - ``astropy.io.votable``
 
 - ``astropy.modeling``
+
+  - ``Gaussian2D`` now raises an error if ``theta`` is set at the same time as
+    ``cov_matrix`` (previously ``theta`` was silently ignored). [#5537]
 
 - ``astropy.nddata``
 
