@@ -2,9 +2,7 @@
 # because if they do, the conda version of Astropy will get installed. If that
 # happens, then that version will take precendence over the latest developer
 # version of Astropy that gets installed just before the documentation build,
-# and Sphinx will pick up only the older stable conda package. For this reason
-# we can't list wcsaxes here but have to put it in conf.py so that it gets
-# installed at the last minute.
+# and Sphinx will pick up only the older stable conda package.
 
 name: astropy
 
