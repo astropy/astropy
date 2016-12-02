@@ -304,6 +304,9 @@ Bug Fixes
 
 - ``astropy.wcs``
 
+  - SIP distortion for an alternate WCS is correctly initialized now by
+    looking at the "CTYPE" values matching the alternate WCS. [#5443]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -448,10 +451,6 @@ Bug Fixes
     distortion is present in the WCS object. [#5239]
 
   - Improved log messages in ``to_header``. [#5239]
-
-  - SIP distortion for an alternate WCS is correctly initialized now by
-    looking at the "CTYPE" values matching the alternate WCS. [#5443]
-
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
