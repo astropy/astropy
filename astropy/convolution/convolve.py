@@ -11,6 +11,7 @@ from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
 from ..utils.exceptions import AstropyUserWarning
 from ..utils.console import human_file_size
 from .. import units as u
+from ..nddata import support_nddata
 
 from ..extern.six.moves import range, zip
 
@@ -20,6 +21,7 @@ from ..extern.six.moves import range, zip
 __doctest_skip__ = ['*']
 
 
+@support_nddata(data='array')
 def convolve(array, kernel, boundary='fill', fill_value=0.,
              normalize_kernel=False, mask=None):
     '''
@@ -237,6 +239,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         return result
 
 
+@support_nddata(data='array')
 def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
                  return_fft=False, fft_pad=None, psf_pad=None,
                  interpolate_nan=False, quiet=False, ignore_edge_zeros=False,
