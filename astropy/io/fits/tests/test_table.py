@@ -2179,7 +2179,9 @@ class TestTableFunctions(FitsTestCase):
             h.write(nulled)
 
         with fits.open(self.temp('ascii_null2.fits'), memmap=True) as f:
-            assert f[1].data[2][0] == 0.0
+            # (Currently it should evaluate to 0.0, but if a TODO in fitsrec is
+            # completed, then it should evaluate to NaN.)
+            assert f[1].data[2][0] == 0.0 or np.isnan(f[1].data[2][0])
 
     def test_column_array_type_mismatch(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/218"""
