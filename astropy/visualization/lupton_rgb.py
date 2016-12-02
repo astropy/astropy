@@ -11,7 +11,6 @@ Example usage:
     imageG = np.random.random((100,100))
     imageB = np.random.random((100,100))
     image = lupton_rgb.makeRGB(imageR, imageG, imageB, fileName='randoms.png')
-    lupton_rgb.displayRGB(image)
 """
 
 import numpy as np
@@ -24,6 +23,7 @@ __all__ = ['makeRGB', 'Mapping', 'LinearMapping', 'AsinhMapping',
 
 try:
     import scipy.misc
+    scipy.misc.imresize  # checking if it exists
     HAVE_SCIPY_MISC = True
 except ImportError:
     HAVE_SCIPY_MISC = False
@@ -138,7 +138,7 @@ class Mapping(object):
 
         if size is not None:
             if not HAVE_SCIPY_MISC:
-                raise RuntimeError("Unable to rescale as scipy.misc is unavailable.")
+                raise RuntimeError("Unable to rescale as scipy.misc.imresize is unavailable.")
 
             imageR = scipy.misc.imresize(imageR, size, interp='bilinear', mode='F')
             imageG = scipy.misc.imresize(imageG, size, interp='bilinear', mode='F')
