@@ -29,6 +29,25 @@ def _fix_user_options(options):
     return [tuple(to_str_or_none(x) for x in y) for y in options]
 
 
+class FixRemoteDataOption(type):
+    """
+    This metaclass is used to catch cases where the user is running the tests
+    with --remote-data. We've now changed the --remote-data option so that it
+    takes arguments, but we still want --remote-data to work as before and to
+    enable all remote tests. With this metaclass, we can modify sys.argv
+    before distutils/setuptools try to parse the command-line options.
+    """
+    def __init__(cls, name, bases, dct):
+        try:
+            idx = sys.argv.index('--remote-data')
+        except ValueError:
+            pass
+        else:
+            sys.argv[idx] = '--remote-data=any'
+        return super(FixRemoteDataOption, cls).__init__(name, bases, dct)
+
+
+@six.add_metaclass(FixRemoteDataOption)
 class AstropyTest(Command, object):
     description = 'Run the tests for this package'
 
@@ -50,7 +69,8 @@ class AstropyTest(Command, object):
          "Enable pytest pastebin output. Either 'all' or 'failed'."),
         ('args=', 'a',
          'Additional arguments to be passed to pytest.'),
-        ('remote-data', 'R', 'Run tests that download remote data.'),
+        ('remote-data=', 'R', 'Run tests that download remote data. Should be '
+         'one of none/astropy/any (defaults to none).'),
         ('pep8', '8',
          'Enable PEP8 checking and disable regular tests. '
          'Requires the pytest-pep8 plugin.'),
@@ -90,7 +110,7 @@ class AstropyTest(Command, object):
         self.plugins = None
         self.pastebin = None
         self.args = None
-        self.remote_data = False
+        self.remote_data = 'none'
         self.pep8 = False
         self.pdb = False
         self.coverage = False
