@@ -27,9 +27,6 @@ try:
 except (ImportError, AttributeError):
     HAVE_SCIPY_MISC = False
 
-# set to True to have the finished RGBs displayed on your screen.
-display = False
-
 
 def my_name():
     """Return the name of the current method."""
@@ -172,26 +169,17 @@ class TestLuptonRgb(object):
         asinhMap = lupton_rgb.AsinhMapping(self.min_, self.range_, self.Q)
         rgbImage = asinhMap.makeRgbImage(self.imageR, self.imageG, self.imageB)
 
-        if display:
-            lupton_rgb.displayRGB(rgbImage, title=my_name())
-
     def testStarsAsinhZscale(self):
         """Test creating an RGB image using an asinh stretch estimated using zscale"""
 
         map = lupton_rgb.AsinhZScaleMapping(self.imageR, self.imageG, self.imageB)
         rgbImage = map.makeRgbImage(self.imageR, self.imageG, self.imageB)
 
-        if display:
-            lupton_rgb.displayRGB(rgbImage, title=my_name())
-
     def testStarsAsinhZscaleIntensity(self):
         """Test creating an RGB image using an asinh stretch estimated using zscale on the intensity"""
 
         map = lupton_rgb.AsinhZScaleMapping(self.imageR, self.imageG, self.imageB)
         rgbImage = map.makeRgbImage(self.imageR, self.imageG, self.imageB)
-
-        if display:
-            lupton_rgb.displayRGB(rgbImage, title=my_name())
 
     def testStarsAsinhZscaleIntensityPedestal(self):
         """Test creating an RGB image using an asinh stretch estimated using zscale on the intensity
@@ -205,17 +193,11 @@ class TestLuptonRgb(object):
         map = lupton_rgb.AsinhZScaleMapping(self.imageR, self.imageG, self.imageB, pedestal=pedestal)
         rgbImage = map.makeRgbImage(self.imageR, self.imageG, self.imageB)
 
-        if display:
-            lupton_rgb.displayRGB(rgbImage, title=my_name())
-
     def testStarsAsinhZscaleIntensityBW(self):
         """Test creating a black-and-white image using an asinh stretch estimated
         using zscale on the intensity"""
 
         rgbImage = lupton_rgb.AsinhZScaleMapping(self.imageR).makeRgbImage()
-
-        if display:
-            lupton_rgb.displayRGB(rgbImage, title=my_name())
 
     def testMakeRGB(self):
         """Test the function that does it all"""
@@ -242,9 +224,6 @@ class TestLuptonRgb(object):
 
         rgbImage = lupton_rgb.LinearMapping(-8.45, 13.44).makeRgbImage(self.imageR)
 
-        if display:
-            lupton_rgb.displayRGB(rgbImage, title=my_name())
-
     def testLinearMinMax(self):
         """Test using a min/max linear stretch
 
@@ -253,16 +232,10 @@ class TestLuptonRgb(object):
 
         rgbImage = lupton_rgb.LinearMapping(image=self.imageR).makeRgbImage()
 
-        if display:
-            lupton_rgb.displayRGB(rgbImage, title=my_name())
-
     def testZScale(self):
         """Test using a zscale stretch"""
 
         rgbImage = lupton_rgb.ZScaleMapping(self.imageR).makeRgbImage()
-
-        if display:
-            lupton_rgb.displayRGB(rgbImage, title=my_name())
 
     def testWriteStars(self):
         """Test writing RGB files to disk"""
@@ -296,9 +269,6 @@ class TestLuptonRgb(object):
         asinhMap = lupton_rgb.AsinhMapping(self.min_, self.range_, self.Q)
         rgbImage = asinhMap.makeRgbImage(self.imageR, self.imageG, self.imageB)
 
-        if display:
-            lupton_rgb.displayRGB(rgbImage, title=my_name())
-
     @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
     def testStarsResizeToSize(self):
         """Test creating an RGB image of a specified size"""
@@ -307,9 +277,6 @@ class TestLuptonRgb(object):
         ySize = self.imageR.shape[1]/2
         asinhZ = lupton_rgb.AsinhZScaleMapping(self.imageR)
         rgbImage = asinhZ.makeRgbImage(self.imageR, self.imageG, self.imageB, xSize=xSize, ySize=ySize)
-
-        if display:
-            lupton_rgb.displayRGB(rgbImage, title=my_name())
 
     @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
     def testStarsResizeToSize_uint(self):
@@ -322,9 +289,6 @@ class TestLuptonRgb(object):
         imageB = np.array(self.imageB, dtype=np.uint16)
         asinhZ = lupton_rgb.AsinhZScaleMapping(imageR)
         rgbImage = asinhZ.makeRgbImage(imageR, imageG, imageB, xSize=xSize, ySize=ySize)
-
-        if display:
-            lupton_rgb.displayRGB(rgbImage, title=my_name())
 
     def _testStarsResizeSpecifications(self, xSize=None, ySize=None, frac=None):
         """Test creating an RGB image changing the output """
@@ -343,9 +307,6 @@ class TestLuptonRgb(object):
         if frac is not None:
             assert int(frac*self.imageR.shape[1]) == w
             assert int(frac*self.imageR.shape[0]) == h
-
-        if display:
-            lupton_rgb.displayRGB(rgbImage, title=my_name())
 
     @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
     def testStarsResizeSpecificaions_xSize_ySize(self):
