@@ -17,8 +17,9 @@ Example usage:
 import numpy as np
 
 
-__all__ = ['makeRGB', 'writeRGB', 'Mapping', 'LinearMapping',
-           'AsinhMapping', 'AsinhZScaleMapping']
+__all__ = ['makeRGB', 'Mapping', 'LinearMapping', 'AsinhMapping',
+           'AsinhZScaleMapping']
+
 
 try:
     import scipy.misc
@@ -460,31 +461,7 @@ def makeRGB(imageR, imageG=None, imageB=None, minimum=0, dataRange=5, Q=8,
                                 xSize=xSize, ySize=ySize, rescaleFactor=rescaleFactor)
 
     if fileName:
-        writeRGB(fileName, rgb)
+        import matplotlib.image
+        matplotlib.image.imsave(fileName, rgb)
 
     return rgb
-
-
-def writeRGB(fileName, rgbImage):
-    """
-    Write an RGB image to disk.
-
-    Parameters
-    ----------
-    fileName : str
-        The output file.  The extension defines the format, and must be
-        supported by `~matplotlib.imsave()`.
-    rgbImage : `~numpy.ndarray`
-        The RGB image to save.
-
-    Notes
-    -----
-    Most versions of matplotlib support png and pdf (although the
-    eps/pdf/svg writers may be buggy, possibly due an interaction with
-    useTeX=True in the matplotlib settings).
-
-    If your matplotlib bundles pil/pillow you should also be able to write
-    jpeg and tiff files.
-    """
-    import matplotlib.image
-    matplotlib.image.imsave(fileName, rgbImage)
