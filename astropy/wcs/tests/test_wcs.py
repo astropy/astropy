@@ -859,6 +859,7 @@ def test_hst_wcs():
     assert w.sip.bp_order == 0
     assert_array_equal(w.sip.crpix, [2048., 1024.])
     wcs.WCS(hdulist[1].header, hdulist)
+    hdulist.close()
 
 
 def test_list_naxis():
@@ -881,6 +882,7 @@ def test_list_naxis():
     w = wcs.WCS(content, naxis=['spectral'])
     assert w.naxis == 0
     assert w.wcs.naxis == 0
+    hdulist.close()
 
 
 def test_sip_broken():
@@ -972,6 +974,7 @@ def test_passing_ImageHDU():
     wcs_hdu = wcs.WCS(hdulist[1])
     wcs_header = wcs.WCS(hdulist[1].header)
     assert wcs_hdu.wcs.compare(wcs_header.wcs)
+    hdulist.close()
 
 
 def test_inconsistent_sip():
