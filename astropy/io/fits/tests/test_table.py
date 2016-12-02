@@ -2136,6 +2136,53 @@ class TestTableFunctions(FitsTestCase):
                          "the header may be missing the necessary TNULL1 "
                          "keyword or the table contains invalid data")
 
+    def test_blank_field_zero(self):
+        """Regression test for https://github.com/astropy/astropy/issues/5134
+
+        Blank values in numerical columns of ASCII tables should be replaced
+        with zeros, so they can be loaded into numpy arrays.
+
+        When a TNULL value is set and there are blank fields not equal to that
+        value, they should be replaced with zeros.
+        """
+
+        # Test an integer column with blank string as null
+        nullval1 = u' '
+
+        c1 = fits.Column('F1', format='I8', null=nullval1,
+                         array=np.array([0, 1, 2, 3, 4]),
+                         ascii=True)
+        table = fits.TableHDU.from_columns([c1])
+        table.writeto(self.temp('ascii_null.fits'))
+
+        # Replace the 1st col, 3rd row, with a null field.
+        with open(self.temp('ascii_null.fits'), mode='r+') as h:
+            nulled = h.read().replace(u'2       ', u'        ')
+            h.seek(0)
+            h.write(nulled)
+
+        with fits.open(self.temp('ascii_null.fits'), memmap=True) as f:
+            assert f[1].data[2][0] == 0
+
+        # Test a float column with a null value set and blank fields.
+        nullval2 = 'NaN'
+        c2 = fits.Column('F1', format='F12.8', null=nullval2,
+                         array=np.array([1.0, 2.0, 3.0, 4.0]),
+                         ascii=True)
+        table = fits.TableHDU.from_columns([c2])
+        table.writeto(self.temp('ascii_null2.fits'))
+
+        # Replace the 1st col, 3rd row, with a null field.
+        with open(self.temp('ascii_null2.fits'), mode='r+') as h:
+            nulled = h.read().replace(u'3.00000000', u'          ')
+            h.seek(0)
+            h.write(nulled)
+
+        with fits.open(self.temp('ascii_null2.fits'), memmap=True) as f:
+            # (Currently it should evaluate to 0.0, but if a TODO in fitsrec is
+            # completed, then it should evaluate to NaN.)
+            assert f[1].data[2][0] == 0.0 or np.isnan(f[1].data[2][0])
+
     def test_column_array_type_mismatch(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/218"""
 
