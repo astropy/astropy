@@ -585,6 +585,9 @@ New Features
     rename a function argument, while it still allows for the use of the older
     argument name. [#5214]
 
+  - Added a new ``dataurl_mirror`` configuration item in ``astropy.utils.data``
+    that is used to indicate a mirror for the astropy data server.
+
 - ``astropy.visualization``
 
   - Added a ``make_lupton_rgb`` function to generate color images from three
