@@ -306,6 +306,9 @@ Bug Fixes
     instead of ``self.verify('fix')`` so headers with invalid keywords will
     not raise a ``VerifyError`` on printing. [#887,#5054]
 
+  - ``FITS_Record._convert_ascii`` now converts blank fields to 0 when a
+    non-blank null column value is set. [#5134, #5394]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
