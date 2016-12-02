@@ -55,7 +55,7 @@ plt.style.use(astropy_mpl_style)
 # Import the packages necessary for coordinates
 
 from astropy.coordinates import frame_transform_graph
-from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product
+from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
 import astropy.coordinates as coord
 import astropy.units as u
 
@@ -118,71 +118,37 @@ SGR_PSI = np.radians(180+14.111534)
 D = rotation_matrix(SGR_PHI, "z", unit=u.radian)
 C = rotation_matrix(SGR_THETA, "x", unit=u.radian)
 B = rotation_matrix(SGR_PSI, "z", unit=u.radian)
-SGR_MATRIX = matrix_product(B, C, D)
+A = np.diag([1.,1.,-1.])
+SGR_MATRIX = matrix_product(A, B, C, D)
 
 ##############################################################################
-# This is done at the module level, since it will be used by both the
-# transformation from Sgr to Galactic as well as the inverse from Galactic to
-# Sgr. Now we can define our first transformation function:
+# This rotation matrix is defines at the module level, since it will be used
+# by both the transformation from Sgr to Galactic as well as the inverse from
+# Galactic to Sgr. Now we can define our first transformation function:
 
-@frame_transform_graph.transform(coord.FunctionTransform, coord.Galactic, Sagittarius)
-def galactic_to_sgr(gal_coord, sgr_frame):
-    """ Compute the transformation from Galactic spherical to
+@frame_transform_graph.transform(coord.StaticMatrixTransform, coord.Galactic, Sagittarius)
+def galactic_to_sgr():
+    """ Compute the transformation matrix from Galactic spherical to
         heliocentric Sgr coordinates.
     """
-
-    l = np.atleast_1d(gal_coord.l.radian)
-    b = np.atleast_1d(gal_coord.b.radian)
-
-    x = np.cos(b)*np.cos(l)
-    y = np.cos(b)*np.sin(l)
-    z = np.sin(b)
-
-    # Calculate x,y,z,distance in the Sgr system
-    xs, ys, zs = matrix_product(SGR_MATRIX, np.array([x, y, z]))
-    zs = -zs
-
-    # Calculate the angular coordinates lambda,beta
-    Lambda = np.arctan2(ys,xs)*u.radian
-    Lambda[Lambda < 0] = Lambda[Lambda < 0] + 2.*np.pi*u.radian
-    Beta = np.arcsin(zs/np.sqrt(xs*xs+ys*ys+zs*zs))*u.radian
-
-    return Sagittarius(Lambda=Lambda, Beta=Beta,
-                       distance=gal_coord.distance)
+    return SGR_MATRIX
 
 ##############################################################################
-# The decorator ``@frame_transform_graph.transform(coord.FunctionTransform,
+# The decorator ``@frame_transform_graph.transform(coord.StaticMatrixTransform,
 # coord.Galactic, Sagittarius)``  registers this function on the
 # ``frame_transform_graph`` as a coordinate transformation. Inside the function,
-# we simply follow the same procedure as detailed by David Law's `transformation
-# code <http://www.astro.virginia.edu/~srm4n/Sgr/code.html>`_. Note that in this
-# case, both coordinate systems are heliocentric, so we can simply copy any
-# distance from the `~astropy.coordinates.Galactic` object.
+# we simply construct a rotation matrix using the Euler angles (and the
+# z-axis flip matrix) since both systems are heliocentric.
 #
 # We then register the inverse transformation by using the transpose of the
 # rotation matrix (which is faster to compute than the inverse):
 
-@frame_transform_graph.transform(coord.FunctionTransform, Sagittarius, coord.Galactic)
-def sgr_to_galactic(sgr_coord, gal_frame):
-    """ Compute the transformation from heliocentric Sgr coordinates to
+@frame_transform_graph.transform(coord.StaticMatrixTransform, Sagittarius, coord.Galactic)
+def sgr_to_galactic():
+    """ Compute the transformation matrix from heliocentric Sgr coordinates to
         spherical Galactic.
     """
-    L = np.atleast_1d(sgr_coord.Lambda.radian)
-    B = np.atleast_1d(sgr_coord.Beta.radian)
-
-    xs = np.cos(B)*np.cos(L)
-    ys = np.cos(B)*np.sin(L)
-    zs = np.sin(B)
-    zs = -zs
-
-    x, y, z = matrix_product(SGR_MATRIX.T, np.array([xs, ys, zs]))
-
-    l = np.arctan2(y, x)*u.radian
-    b = np.arcsin(z/np.sqrt(x*x + y*y + z*z))*u.radian
-
-    l[l<=0] += 2*np.pi*u.radian
-
-    return coord.Galactic(l=l, b=b, distance=sgr_coord.distance)
+    return matrix_transpose(SGR_MATRIX)
 
 ##############################################################################
 # Now that we've registered these transformations between ``Sagittarius`` and
