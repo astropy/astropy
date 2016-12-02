@@ -394,6 +394,9 @@ Bug Fixes
 
   - Fixed memoryleak when using the compression module. [#5399, #5464]
 
+  - Able to insert and remove lower case HIERARCH keywords in a consistent
+    manner [#5313, #5321]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
