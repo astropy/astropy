@@ -110,7 +110,7 @@ table.  For example the following writes a table as a simple space-delimited
 file::
 
   >>> import numpy as np
-  >>> from astropy.table import Table, Column
+  >>> from astropy.table import Table, Column, MaskedColumn
   >>> x = np.array([1, 2, 3])
   >>> y = x ** 2
   >>> data = Table([x, y], names=['x', 'y'])
@@ -148,11 +148,13 @@ To disable this engine, use the parameter ``fast_writer``::
 Finally, one can write data in the `ECSV table format
 <https://github.com/astropy/astropy-APEs/blob/master/APE6.rst>`_ which allows
 preserving table meta-data such as column data types and units.  In this way a
-data table can be stored and read back as ASCII with no loss of information.
+data table (including one with masked entries) can be stored and read back as
+ASCII with no loss of information.
 
-  >>> t = Table()
-  >>> t['x'] = Column([1.0, 2.0], unit='m', dtype='float32')
-  >>> t['y'] = Column([False, True], dtype='bool')
+  >>> t = Table(masked=True)
+  >>> t['x'] = MaskedColumn([1.0, 2.0], unit='m', dtype='float32')
+  >>> t['x'][1] = np.ma.masked
+  >>> t['y'] = MaskedColumn([False, True], dtype='bool')
 
   >>> from astropy.extern.six.moves import StringIO
   >>> fh = StringIO()
@@ -161,21 +163,29 @@ data table can be stored and read back as ASCII with no loss of information.
   >>> print(table_string)               # doctest: +SKIP
   # %ECSV 0.9
   # ---
-  # columns:
-  # - {name: x, unit: m, type: float32}
-  # - {name: y, type: bool}
+  # datatype:
+  # - {name: x, unit: m, datatype: float32}
+  # - {name: y, datatype: bool}
   x y
   1.0 False
-  2.0 True
+  "" True
 
   >>> Table.read(table_string, format='ascii')  # doctest: +SKIP
-  <Table length=2>
+  <Table masked=True length=2>
      x      y
      m
   float32  bool
   ------- -----
       1.0 False
-      2.0  True
+       --  True
+
+.. Note::
+
+   For most supported formats one can write a masked table and then
+   read it back without losing information about the masked table
+   entries.  This is accomplished by using a blank string entry to
+   indicate a masked (missing) value.  See the :ref:`replace_bad_or_missing_values`
+   section for more information.
 
 .. _supported_formats:
 

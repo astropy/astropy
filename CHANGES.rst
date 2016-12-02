@@ -46,6 +46,10 @@ New Features
 
 - ``astropy.io.ascii``
 
+  - Allow round-tripping masked data tables in most formats by using an
+    empty string ``''`` as the default representation of masked values
+    when writing. [#5347]
+
   - Allow reading HTML tables with unicode column values in Python 2.7. [#5410]
 
   - Check for self-consistency of ECSV header column names. [#5463]
@@ -161,6 +165,11 @@ API Changes
     issued when overwriting an existing file unless ``overwrite=True``.
     In a future version this will be changed from a warning to an
     exception to prevent accidentally overwriting a file. [#5007]
+
+  - The default representation of masked values when writing tables was
+    changed from ``'--'`` to the empty string ``''``.  Previously any
+    user-supplied ``fill_values`` parameter would overwrite the class
+    default, but now the values are prepended to the class default. [#5347]
 
 - ``astropy.io.fits``
 

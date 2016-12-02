@@ -4,15 +4,25 @@
 
 import os
 import copy
+from itertools import chain
 
+import numpy as np
 from ....extern.six.moves import cStringIO as StringIO
 from ... import ascii
 from .... import table
+from ....table.table_helpers import simple_table
 from ....tests.helper import pytest, catch_warnings
 from ....utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from .... import units
 
 from .common import setup_function, teardown_function
+
+# Check to see if the BeautifulSoup dependency is present.
+try:
+    from bs4 import BeautifulSoup, FeatureNotFound
+    HAS_BEAUTIFUL_SOUP = True
+except ImportError:
+    HAS_BEAUTIFUL_SOUP = False
 
 test_defs = [
     dict(kwargs=dict(),
@@ -343,8 +353,8 @@ test_def_masked_fill_value = [
     dict(kwargs=dict(),
          out="""\
 a b c
--- 2 3
-1 1 --
+"" 2 3
+1 1 ""
 """
          ),
     dict(kwargs=dict(fill_values=[('1', 'w'), (ascii.masked, 'X')]),
@@ -629,3 +639,41 @@ def test_write_overwrite_ascii(format, fast_writer, tmpdir):
                 fast_writer=fast_writer)
         t.write(fp, overwrite=True, format=format,
                 fast_writer=fast_writer)
+
+
+fmt_name_classes = list(chain(ascii.core.FAST_CLASSES.items(),
+                              ascii.core.FORMAT_CLASSES.items()))
+@pytest.mark.parametrize("fmt_name_class", fmt_name_classes)
+def test_roundtrip_masked(fmt_name_class):
+    """
+    Round trip a simple masked table through every writable format and confirm
+    that reading back gives the same result.
+    """
+    fmt_name, fmt_cls = fmt_name_class
+
+    if not getattr(fmt_cls, '_io_registry_can_write', True):
+        return
+
+    # Skip tests for fixed_width or HTML without bs4
+    if ((fmt_name == 'html' and not HAS_BEAUTIFUL_SOUP)
+            or fmt_name == 'fixed_width'):
+        return
+
+    t = simple_table(masked=True)
+
+    out = StringIO()
+    fast = fmt_name in ascii.core.FAST_CLASSES
+    try:
+        ascii.write(t, out, format=fmt_name, fast_writer=fast)
+    except ImportError:  # Some failed dependency, e.g. PyYAML, skip test
+        return
+
+    # No-header formats need to be told the column names
+    kwargs = {'names': t.colnames} if 'no_header' in fmt_name else {}
+
+    t2 = ascii.read(out.getvalue(), format=fmt_name, fast_reader=fast, guess=False, **kwargs)
+
+    assert t.colnames == t2.colnames
+    for col, col2 in zip(t.itercols(), t2.itercols()):
+        assert col.dtype.kind == col2.dtype.kind
+        assert np.all(col == col2)
