@@ -196,7 +196,7 @@ class TestBasic(BaseImageTests):
         return fig
 
     @remote_data
-    @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='plot_coord.png', tolerance=1.5)
+    @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, tolerance=1.5)
     def test_plot_coord(self):
         fig = plt.figure(figsize=(6, 6))
         ax = fig.add_axes([0.15, 0.15, 0.8, 0.8],
@@ -205,13 +205,13 @@ class TestBasic(BaseImageTests):
         ax.set_xlim(-0.5, 720.5)
         ax.set_ylim(-0.5, 720.5)
 
-        c = SkyCoord(266*u.deg, -29*u.deg)
+        c = SkyCoord(266 * u.deg, -29 * u.deg)
         ax.plot_coord(c, 'o')
 
         return fig
 
     @remote_data
-    @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='plot_line.png', tolerance=1.5)
+    @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, tolerance=1.5)
     def test_plot_line(self):
         fig = plt.figure(figsize=(6, 6))
         ax = fig.add_axes([0.15, 0.15, 0.8, 0.8],
@@ -220,7 +220,7 @@ class TestBasic(BaseImageTests):
         ax.set_xlim(-0.5, 720.5)
         ax.set_ylim(-0.5, 720.5)
 
-        c = SkyCoord([266, 266.8]*u.deg, [-29, -28.9]*u.deg)
+        c = SkyCoord([266, 266.8] * u.deg, [-29, -28.9] * u.deg)
         ax.plot_coord(c)
 
         return fig

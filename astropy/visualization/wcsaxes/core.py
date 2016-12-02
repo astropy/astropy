@@ -150,12 +150,11 @@ class WCSAxes(Axes):
         matplotlib.Axes.plot : This method is called from this function with all arguments passed to it.
 
         """
-        args = list(args)
-        coord_instances = (SkyCoord, BaseCoordinateFrame)
-        if isinstance(args[0], coord_instances):
+
+        if isinstance(args[0], (SkyCoord, BaseCoordinateFrame)):
 
             # Extract the frame from the first argument.
-            frame0 = args.pop(0)
+            frame0 = args[0]
             if isinstance(frame0, SkyCoord):
                 frame0 = frame0.frame
 
@@ -174,9 +173,9 @@ class WCSAxes(Axes):
                                 " as it is automatically determined by the input coordinate frame.")
 
             transform = self.get_transform(frame0)
-            kwargs.update({'transform':transform})
+            kwargs.update({'transform': transform})
 
-            args = plot_data + args
+            args = tuple(plot_data) + args[1:]
 
         super(WCSAxes, self).plot(*args, **kwargs)
 
