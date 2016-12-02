@@ -21,8 +21,7 @@ import numpy as np
 from ..extern import six
 from ..extern.six.moves import zip
 from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
-                   UnitBase, CompositeUnit,
-                   UnitsError, UnitConversionError, UnitTypeError)
+                   UnitBase, UnitsError, UnitConversionError, UnitTypeError)
 from .format.latex import Latex
 from ..utils.compat import NUMPY_LT_1_8, NUMPY_LT_1_9
 from ..utils.compat.misc import override__dir__
@@ -264,13 +263,18 @@ class Quantity(np.ndarray):
         value_unit = None
         if not isinstance(value, np.ndarray):
             if isinstance(value, six.string_types):
-                v = re.match(r'\s*[+-]?((\d+\.?\d*)|(\.\d+))([eE][+-]?\d+)?',
-                             value)
-                if v is None:
+                # The first part of the regex string matches any integer/float;
+                # the second parts adds possible trailing .+-, which will break
+                # the float function below and ensure things like 1.2.3deg
+                # will not work.
+                v = re.match(r'\s*[+-]?((\d+\.?\d*)|(\.\d+))([eE][+-]?\d+)?'
+                             r'[.+-]?', value)
+                try:
+                    value = float(v.group())
+                except Exception:
                     raise TypeError('Cannot parse "{0}" as a {1}. It does not '
                                     'start with a number.'
                                     .format(value, cls.__name__))
-                value = float(v.group())
                 unit_string = v.string[v.end():].strip()
                 if unit_string:
                     value_unit = Unit(unit_string)
