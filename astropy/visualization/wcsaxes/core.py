@@ -497,7 +497,7 @@ class WCSAxes(Axes):
         if not hasattr(self, 'coords'):
             return
 
-        which = kwargs.pop('which', 'both')
+        which = kwargs.pop('which', 'major')
         if which != 'major':
             raise NotImplementedError('Plotting the grid for the minor ticks is '
                                       'not supported.')
