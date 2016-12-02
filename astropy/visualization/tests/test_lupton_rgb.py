@@ -8,7 +8,6 @@ from __future__ import division, print_function
 
 import sys
 import os
-import unittest
 import tempfile
 
 import numpy as np
@@ -91,44 +90,8 @@ def test_compute_intensity_3_uint():
     assert_equal(intensity, (imageR+imageG+imageB)//3)
 
 
-class TestLuptonRgb(unittest.TestCase):
+class TestLuptonRgb(object):
     """A test case for Rgb"""
-
-    def setUp(self):
-        np.random.seed(1000)  # so we always get the same images.
-
-        self.min, self.range, self.Q = 0, 5, 20  # asinh
-
-        width, height = 85, 75
-        self.images = []
-
-        shape = (width, height)
-        self.imageR = np.zeros(shape)
-        self.imageG = np.zeros(shape)
-        self.imageB = np.zeros(shape)
-
-        # pixel locations, values and colors
-        points = [[15, 15], [50, 45], [30, 30], [45, 15]]
-        values = [1000, 5500, 600, 20000]
-        g_r = [1.0, -1.0, 1.0, 1.0]
-        r_i = [2.0, -0.5, 2.5, 1.0]
-
-        # Put pixels in the images.
-        for p, v, gr, ri in zip(points, values, g_r, r_i):
-            self.imageR[p[0], p[1]] = v*pow(10, 0.4*ri)
-            self.imageG[p[0], p[1]] = v*pow(10, 0.4*gr)
-            self.imageB[p[0], p[1]] = v
-
-        # convolve the image with a reasonable PSF, and add Gaussian background noise
-        def convolve_with_noise(image, psf):
-            convolvedImage = convolve(image, psf, boundary='extend', normalize_kernel=True)
-            randomImage = np.random.normal(0, 2, image.shape)
-            return randomImage + convolvedImage
-
-        psf = Gaussian2DKernel(2.5)
-        self.imageR = convolve_with_noise(self.imageR, psf)
-        self.imageG = convolve_with_noise(self.imageG, psf)
-        self.imageB = convolve_with_noise(self.imageB, psf)
 
         # TBD: Old version. converted to the above.
         # TBD: remove when it's clear the above is what was meant/works.
@@ -164,6 +127,40 @@ class TestLuptonRgb(unittest.TestCase):
         #     self.images[i][:] = convolvedImage
         # del convolvedImage
         # del randomImage
+    np.random.seed(1000)  # so we always get the same images.
+
+    min_, range_, Q = 0, 5, 20  # asinh
+
+    width, height = 85, 75
+    images = []
+
+    shape = (width, height)
+    imageR = np.zeros(shape)
+    imageG = np.zeros(shape)
+    imageB = np.zeros(shape)
+
+    # pixel locations, values and colors
+    points = [[15, 15], [50, 45], [30, 30], [45, 15]]
+    values = [1000, 5500, 600, 20000]
+    g_r = [1.0, -1.0, 1.0, 1.0]
+    r_i = [2.0, -0.5, 2.5, 1.0]
+
+    # Put pixels in the images.
+    for p, v, gr, ri in zip(points, values, g_r, r_i):
+        imageR[p[0], p[1]] = v*pow(10, 0.4*ri)
+        imageG[p[0], p[1]] = v*pow(10, 0.4*gr)
+        imageB[p[0], p[1]] = v
+
+    # convolve the image with a reasonable PSF, and add Gaussian background noise
+    def convolve_with_noise(image, psf):
+        convolvedImage = convolve(image, psf, boundary='extend', normalize_kernel=True)
+        randomImage = np.random.normal(0, 2, image.shape)
+        return randomImage + convolvedImage
+
+    psf = Gaussian2DKernel(2.5)
+    imageR = convolve_with_noise(imageR, psf)
+    imageG = convolve_with_noise(imageG, psf)
+    imageB = convolve_with_noise(imageB, psf)
 
     def tearDown(self):
         for im in self.images:
@@ -172,7 +169,7 @@ class TestLuptonRgb(unittest.TestCase):
 
     def testStarsAsinh(self):
         """Test creating an RGB image using an asinh stretch"""
-        asinhMap = lupton_rgb.AsinhMapping(self.min, self.range, self.Q)
+        asinhMap = lupton_rgb.AsinhMapping(self.min_, self.range_, self.Q)
         rgbImage = asinhMap.makeRgbImage(self.imageR, self.imageG, self.imageB)
 
         if display:
@@ -227,7 +224,7 @@ class TestLuptonRgb(unittest.TestCase):
             red = saturate(self.imageR, satValue)
             green = saturate(self.imageG, satValue)
             blue = saturate(self.imageB, satValue)
-            lupton_rgb.makeRGB(red, green, blue, self.min, self.range, self.Q, fileName=temp)
+            lupton_rgb.makeRGB(red, green, blue, self.min_, self.range_, self.Q, fileName=temp)
             assert os.path.exists(temp.name)
 
     def testMakeRGB_saturated_fix(self):
@@ -237,7 +234,7 @@ class TestLuptonRgb(unittest.TestCase):
             red = saturate(self.imageR, satValue)
             green = saturate(self.imageG, satValue)
             blue = saturate(self.imageB, satValue)
-            lupton_rgb.makeRGB(red, green, blue, self.min, self.range, self.Q,
+            lupton_rgb.makeRGB(red, green, blue, self.min_, self.range_, self.Q,
                                saturatedBorderWidth=1, saturatedPixelValue=2000)
 
     def testLinear(self):
@@ -269,7 +266,7 @@ class TestLuptonRgb(unittest.TestCase):
 
     def testWriteStars(self):
         """Test writing RGB files to disk"""
-        asinhMap = lupton_rgb.AsinhMapping(self.min, self.range, self.Q)
+        asinhMap = lupton_rgb.AsinhMapping(self.min_, self.range_, self.Q)
         rgbImage = asinhMap.makeRgbImage(self.imageR, self.imageG, self.imageB)
         with tempfile.NamedTemporaryFile(suffix=".png") as temp:
             lupton_rgb.writeRGB(temp, rgbImage)
@@ -296,13 +293,13 @@ class TestLuptonRgb(unittest.TestCase):
         self.imagesR = self.imagesG.getImage()
         self.imagesR = self.imagesB.getImage()
 
-        asinhMap = lupton_rgb.AsinhMapping(self.min, self.range, self.Q)
+        asinhMap = lupton_rgb.AsinhMapping(self.min_, self.range_, self.Q)
         rgbImage = asinhMap.makeRgbImage(self.imageR, self.imageG, self.imageB)
 
         if display:
             lupton_rgb.displayRGB(rgbImage, title=my_name())
 
-    @pytest.mark.skipif('not HAVE_SCIPY_MISC', "Resizing images requires scipy.misc")
+    @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
     def testStarsResizeToSize(self):
         """Test creating an RGB image of a specified size"""
 
@@ -314,7 +311,7 @@ class TestLuptonRgb(unittest.TestCase):
         if display:
             lupton_rgb.displayRGB(rgbImage, title=my_name())
 
-    @pytest.mark.skipif('not HAVE_SCIPY_MISC', "Resizing images requires scipy.misc")
+    @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
     def testStarsResizeToSize_uint(self):
         """Test creating an RGB image of a specified size"""
 
@@ -350,31 +347,31 @@ class TestLuptonRgb(unittest.TestCase):
         if display:
             lupton_rgb.displayRGB(rgbImage, title=my_name())
 
-    @pytest.mark.skipif('not HAVE_SCIPY_MISC', "Resizing images requires scipy.misc")
+    @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
     def testStarsResizeSpecificaions_xSize_ySize(self):
         self._testStarsResizeSpecifications(xSize=self.imageR.shape[0]/2, ySize=self.imageR.shape[1]/2)
 
-    @pytest.mark.skipif('not HAVE_SCIPY_MISC', "Resizing images requires scipy.misc")
+    @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
     def testStarsResizeSpecifications_twice_xSize(self):
         self._testStarsResizeSpecifications(xSize=2*self.imageR.shape[0])
 
-    @pytest.mark.skipif('not HAVE_SCIPY_MISC', "Resizing images requires scipy.misc")
+    @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
     def testStarsResizeSpecifications_half_xSize(self):
         self._testStarsResizeSpecifications(xSize=self.imageR.shape[0]/2)
 
-    @pytest.mark.skipif('not HAVE_SCIPY_MISC', "Resizing images requires scipy.misc")
+    @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
     def testStarsResizeSpecifications_half_ySize(self):
         self._testStarsResizeSpecifications(ySize=self.imageR.shape[0]/2)
 
-    @pytest.mark.skipif('not HAVE_SCIPY_MISC', "Resizing images requires scipy.misc")
+    @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
     def testStarsResizeSpecifications_frac_half(self):
         self._testStarsResizeSpecifications(frac=0.5)
 
-    @pytest.mark.skipif('not HAVE_SCIPY_MISC', "Resizing images requires scipy.misc")
+    @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
     def testStarsResizeSpecifications_frac_twice(self):
         self._testStarsResizeSpecifications(frac=2)
 
-    @pytest.mark.skipif('not HAVE_SCIPY_MISC', "Resizing images requires scipy.misc")
+    @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
     def testMakeRGBResize(self):
         """Test the function that does it all, including rescaling"""
         lupton_rgb.makeRGB(self.imageR, self.imageG, self.imageB, xSize=40, ySize=60)
