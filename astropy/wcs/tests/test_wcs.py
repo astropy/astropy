@@ -859,6 +859,7 @@ def test_hst_wcs():
     assert w.sip.bp_order == 0
     assert_array_equal(w.sip.crpix, [2048., 1024.])
     wcs.WCS(hdulist[1].header, hdulist)
+    hdulist.close()
 
 
 def test_list_naxis():
@@ -881,6 +882,7 @@ def test_list_naxis():
     w = wcs.WCS(content, naxis=['spectral'])
     assert w.naxis == 0
     assert w.wcs.naxis == 0
+    hdulist.close()
 
 
 def test_sip_broken():
@@ -972,6 +974,7 @@ def test_passing_ImageHDU():
     wcs_hdu = wcs.WCS(hdulist[1])
     wcs_header = wcs.WCS(hdulist[1].header)
     assert wcs_hdu.wcs.compare(wcs_header.wcs)
+    hdulist.close()
 
 
 def test_inconsistent_sip():
@@ -1043,3 +1046,33 @@ def test_naxis():
     w._naxis1 = 99
     w._naxis2 = 59
     assert w._naxis == [99, 59]
+
+
+def test_sip_with_altkey():
+    """
+    Test that when creating a WCS object using a key, CTYPE with
+    that key is looked at and not the primary CTYPE.
+    fix for #5443.
+    """
+    with fits.open(get_pkg_data_filename('data/sip.fits')) as f:
+        w = wcs.WCS(f[0].header)
+    # create a header with two WCSs.
+    h1 = w.to_header(relax=True, key='A')
+    h2 = w.to_header(relax=False)
+    h1['CTYPE1A'] = "RA---SIN-SIP"
+    h1['CTYPE2A'] = "DEC--SIN-SIP"
+    h1.update(h2)
+    w = wcs.WCS(h1, key='A')
+    assert (w.wcs.ctype == np.array(['RA---SIN-SIP', 'DEC--SIN-SIP'])).all()
+
+
+def test_to_fits_1():
+    """
+    Test to_fits() with LookupTable distortion.
+    """
+    fits_name = get_pkg_data_filename('data/dist.fits')
+    w = wcs.WCS(fits_name)
+    wfits = w.to_fits()
+    assert isinstance(wfits, fits.HDUList)
+    assert isinstance(wfits[0], fits.PrimaryHDU)
+    assert isinstance(wfits[1], fits.ImageHDU)
