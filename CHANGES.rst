@@ -167,7 +167,9 @@ API Changes
     exception to prevent accidentally overwriting a file. [#5007]
 
   - The default representation of masked values when writing tables was
-    changed from ``'--'`` to the empty string ``''``. [#5347]
+    changed from ``'--'`` to the empty string ``''``.  Previously any
+    user-supplied ``fill_values`` parameter would overwrite the class
+    default, but now the values are prepended to the class default. [#5347]
 
 - ``astropy.io.fits``
 
