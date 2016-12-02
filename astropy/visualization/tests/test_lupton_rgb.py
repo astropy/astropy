@@ -31,10 +31,18 @@ try:
 except (ImportError, AttributeError):
     HAVE_SCIPY_MISC = False
 
+# Set display=True to get matplotlib imshow windows to help with debugging.
+display = False
 
-def my_name():
-    """Return the name of the current method."""
-    return sys._getframe().f_code.co_name
+
+def display_rgb(rgb, title=None):
+    """Display an rgb image using matplotlib (useful for debugging)"""
+    import matplotlib.pyplot as plt
+    plt.imshow(rgb, interpolation='nearest', origin='lower')
+    if title:
+        plt.title(title)
+    plt.show()
+    return plt
 
 
 def saturate(image, satValue):
@@ -94,40 +102,6 @@ def test_compute_intensity_3_uint():
 class TestLuptonRgb(object):
     """A test case for Rgb"""
 
-        # TBD: Old version. converted to the above.
-        # TBD: remove when it's clear the above is what was meant/works.
-
-        # self.images.append(afwImage.ImageF(afwGeom.ExtentI(width, height)))
-        # self.images.append(afwImage.ImageF(afwGeom.ExtentI(width, height)))
-        # self.images.append(afwImage.ImageF(afwGeom.ExtentI(width, height)))
-
-        # for (x, y, A, g_r, r_i) in [(15, 15, 1000,  1.0,  2.0),
-        #                             (50, 45, 5500, -1.0, -0.5),
-        #                             (30, 30,  600,  1.0,  2.5),
-        #                             (45, 15, 20000,  1.0,  1.0),
-        #                             ]:
-        #     for i in range(len(self.images)):
-        #         if i == B:
-        #             amp = A
-        #         elif i == G:
-        #             amp = A*math.pow(10, 0.4*g_r)
-        #         elif i == R:
-        #             amp = A*math.pow(10, 0.4*r_i)
-
-        #         self.images[i].set(x, y, amp)
-
-        # psf = afwMath.AnalyticKernel(15, 15, afwMath.GaussianFunction2D(2.5, 1.5, 0.5))
-        # convolvedImage = type(self.images[0])(self.images[0].getDimensions())
-        # randomImage = type(self.images[0])(self.images[0].getDimensions())
-        # rand = afwMath.Random("MT19937", 666)
-        # for i in range(len(self.images)):
-        #     afwMath.convolve(convolvedImage, self.images[i], psf, True, True)
-        #     afwMath.randomGaussianImage(randomImage, rand)
-        #     randomImage *= 2
-        #     convolvedImage += randomImage
-        #     self.images[i][:] = convolvedImage
-        # del convolvedImage
-        # del randomImage
     np.random.seed(1000)  # so we always get the same images.
 
     min_, range_, Q = 0, 5, 20  # asinh
@@ -172,18 +146,24 @@ class TestLuptonRgb(object):
         """Test creating an RGB image using an asinh stretch"""
         asinhMap = lupton_rgb.AsinhMapping(self.min_, self.range_, self.Q)
         rgbImage = asinhMap.makeRgbImage(self.imageR, self.imageG, self.imageB)
+        if display:
+            display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
     def testStarsAsinhZscale(self):
         """Test creating an RGB image using an asinh stretch estimated using zscale"""
 
         map = lupton_rgb.AsinhZScaleMapping(self.imageR, self.imageG, self.imageB)
         rgbImage = map.makeRgbImage(self.imageR, self.imageG, self.imageB)
+        if display:
+            display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
     def testStarsAsinhZscaleIntensity(self):
         """Test creating an RGB image using an asinh stretch estimated using zscale on the intensity"""
 
         map = lupton_rgb.AsinhZScaleMapping(self.imageR, self.imageG, self.imageB)
         rgbImage = map.makeRgbImage(self.imageR, self.imageG, self.imageB)
+        if display:
+            display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
     def testStarsAsinhZscaleIntensityPedestal(self):
         """Test creating an RGB image using an asinh stretch estimated using zscale on the intensity
@@ -196,12 +176,16 @@ class TestLuptonRgb(object):
 
         map = lupton_rgb.AsinhZScaleMapping(self.imageR, self.imageG, self.imageB, pedestal=pedestal)
         rgbImage = map.makeRgbImage(self.imageR, self.imageG, self.imageB)
+        if display:
+            display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
     def testStarsAsinhZscaleIntensityBW(self):
         """Test creating a black-and-white image using an asinh stretch estimated
         using zscale on the intensity"""
 
         rgbImage = lupton_rgb.AsinhZScaleMapping(self.imageR).makeRgbImage()
+        if display:
+            display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
     @pytest.mark.skipif('not HAS_MATPLOTLIB')
     def testMakeRGB(self):
@@ -228,6 +212,8 @@ class TestLuptonRgb(object):
         """Test using a specified linear stretch"""
 
         rgbImage = lupton_rgb.LinearMapping(-8.45, 13.44).makeRgbImage(self.imageR)
+        if display:
+            display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
     def testLinearMinMax(self):
         """Test using a min/max linear stretch
@@ -236,6 +222,8 @@ class TestLuptonRgb(object):
         """
 
         rgbImage = lupton_rgb.LinearMapping(image=self.imageR).makeRgbImage()
+        if display:
+            display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
     def testSaturated(self):
         """Test interpolating saturated pixels"""
@@ -260,6 +248,8 @@ class TestLuptonRgb(object):
 
         asinhMap = lupton_rgb.AsinhMapping(self.min_, self.range_, self.Q)
         rgbImage = asinhMap.makeRgbImage(self.imageR, self.imageG, self.imageB)
+        if display:
+            display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
     @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
     def testStarsResizeToSize(self):
@@ -269,6 +259,8 @@ class TestLuptonRgb(object):
         ySize = self.imageR.shape[1]/2
         asinhZ = lupton_rgb.AsinhZScaleMapping(self.imageR)
         rgbImage = asinhZ.makeRgbImage(self.imageR, self.imageG, self.imageB, xSize=xSize, ySize=ySize)
+        if display:
+            display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
     @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
     def testStarsResizeToSize_uint(self):
@@ -281,6 +273,8 @@ class TestLuptonRgb(object):
         imageB = np.array(self.imageB, dtype=np.uint16)
         asinhZ = lupton_rgb.AsinhZScaleMapping(imageR)
         rgbImage = asinhZ.makeRgbImage(imageR, imageG, imageB, xSize=xSize, ySize=ySize)
+        if display:
+            display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
     def _testStarsResizeSpecifications(self, xSize=None, ySize=None, frac=None):
         """Test creating an RGB image changing the output """
