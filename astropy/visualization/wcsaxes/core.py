@@ -491,6 +491,17 @@ class WCSAxes(Axes):
         draw_grid : bool
             Whether to show the gridlines
         """
+        # these kwargs mock up the interface to plt.grid, allowing it to be used
+        # to set the grid
+        which = kwargs.pop('which', 'major')
+        if which != 'major':
+            raise ValueError('WCSAxes can only draw major gridlines')
+        axis = kwargs.pop('axis', 'both')
+        if axis != 'both':
+            raise ValueError('WCSAxes can only draw gridlines on both axes')
+        if 'b' in kwargs:
+            draw_grid = kwargs.pop('b')
+
         if draw_grid and hasattr(self, 'coords'):
             self.coords.grid(draw_grid=draw_grid, **kwargs)
 
