@@ -71,9 +71,9 @@ def_unit(['arcsec', 'arcsecond'], 1.0 / 3600.0 * deg, namespace=_ns,
 # These special formats should only be used for the non-prefix versions
 arcsec._format = {'latex': r'{}^{\prime\prime}', 'unicode': '″'}
 def_unit(['mas'], 0.001 * arcsec, namespace=_ns,
-         doc="arc second: angular measurement")
+         doc="milli arc second: angular measurement")
 def_unit(['uas'], 0.000001 * arcsec, namespace=_ns,
-         doc="arc second: angular measurement",
+         doc="micro arc second: angular measurement",
          format={'latex': r'\mu as', 'unicode': 'μas'})
 
 def_unit(['sr', 'steradian'], rad ** 2, namespace=_ns, prefixes=True,
