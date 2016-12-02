@@ -345,7 +345,7 @@ class TestRunner(TestRunnerBase):
                           AstropyDeprecationWarning)
             remote_data = 'any'
 
-        return '--remote-data={0}'.format(remote_data)
+        return ['--remote-data={0}'.format(remote_data)]
 
     @keyword()
     def pep8(self, pep8, kwargs):
