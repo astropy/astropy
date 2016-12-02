@@ -32,6 +32,8 @@ latexdicts = {'AA':  {'tabletype': 'table',
               }
 
 
+RE_COMMENT = re.compile(r'(?<!\\)%')  # % character but not \%
+
 def add_dictval_to_list(adict, key, alist):
     '''
     Add a value from a dictionary to a list
@@ -80,13 +82,21 @@ class LatexSplitter(core.BaseSplitter):
     '''
     delimiter = '&'
 
+    def __call__(self, lines):
+        last_line = RE_COMMENT.split(lines[-1])[0].strip()
+        if not last_line.endswith(r'\\'):
+            print(last_line)
+            lines[-1] = last_line + r'\\'
+
+        return super(LatexSplitter, self).__call__(lines)
+
     def process_line(self, line):
         """Remove whitespace at the beginning or end of line. Also remove
         \\ at end of line"""
-        line = line.split('%')[0]
+        line = RE_COMMENT.split(line)[0]
         line = line.strip()
-        if line[-2:] == r'\\':
-            line = line.strip(r'\\')
+        if line.endswith(r'\\'):
+            line = line.rstrip(r'\\')
         else:
             raise core.InconsistentTableError(r'Lines in LaTeX table have to end with \\')
         return line
@@ -323,6 +333,9 @@ class AASTexHeaderSplitter(LatexSplitter):
 
         \tablehead{\colhead{col1} & ... & \colhead{coln}}
     '''
+    def __call__(self, lines):
+        return super(LatexSplitter, self).__call__(lines)
+
     def process_line(self, line):
         """extract column names from tablehead
         """
