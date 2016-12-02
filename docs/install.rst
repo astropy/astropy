@@ -436,6 +436,8 @@ packages:
 
     - `Pillow <http://python-pillow.org/>`_
 
+    - (optional) `sphinx-gallery <http://sphinx-gallery.readthedocs.io/>`_
+
 .. note::
 
     Sphinx also requires a reasonably modern LaTeX installation to render
@@ -451,6 +453,15 @@ packages:
     For other LaTeX distributions your mileage may vary. To build the PDF
     documentation using LaTeX, the ``fonts-extra`` TexLive package or the
     ``inconsolata`` CTAN package are also required.
+
+.. note::
+
+    If sphinx-gallery is not installed, you will see many Sphinx warnings
+    building the documentation, e.g.::
+
+        .../docs/coordinates/frames.rst:278: WARNING: undefined label:
+            sphx_glr_generated_examples_coordinates_plot_sgr-coordinate-frame.py
+            (if the link has no caption the label must precede a section header)
 
 There are two ways to build the Astropy documentation. The most straightforward
 way is to execute the command (from the astropy source directory)::
