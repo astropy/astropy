@@ -41,16 +41,23 @@ def compute_intensity(imageR, imageG=None, imageB=None):
     Parameters
     ----------
     imageR : `~numpy.ndarray`
-        Intensity of image to be mapped to red; or total intensity if imageG and
-        imageB are None.
+        Intensity of image to be mapped to red; or total intensity if ``imageG``
+        and ``imageB`` are None.
     imageG : `~numpy.ndarray`, optional
         Intensity of image to be mapped to green.
     imageB : `~numpy.ndarray`, optional
         Intensity of image to be mapped to blue.
 
+    Returns
+    -------
+    intensity : `~numpy.ndarray`
+        Total intensity from the red, blue and green intensities, or ``imageR``
+        if green and blue images are not provided.
+
     Notes
     -----
-    Inputs may be MaskedImages, Images, or numpy arrays and the return is of the same type.
+    Inputs may be MaskedImages, Images, or numpy arrays and the return is
+    of the same type.
     """
     if imageG is None or imageB is None:
         if not (imageG is None and imageB is None):
@@ -113,6 +120,11 @@ class Mapping(object):
         rescaleFactor : float, optional
             Make size of output image rescaleFactor*size of the input image.
             Cannot be specified if xSize or ySize are given.
+
+        Returns
+        -------
+        RGBimage : `~numpy.ndarray`
+            An image formed by stacking the input images.
         """
         if imageR is None:
             if self._image is None:
@@ -159,6 +171,22 @@ class Mapping(object):
         """
         Return the total intensity from the red, blue, and green intensities.
         This is a naive computation, and may be overridden by subclasses.
+
+        Parameters
+        ----------
+        imageR : `~numpy.ndarray`
+            Intensity of image to be mapped to red; or total intensity if
+            ``imageG`` and ``imageB`` are None.
+        imageG : `~numpy.ndarray`, optional
+            Intensity of image to be mapped to green.
+        imageB : `~numpy.ndarray`, optional
+            Intensity of image to be mapped to blue.
+
+        Returns
+        -------
+        intensity : `~numpy.ndarray`
+            Total intensity from the red, blue and green intensities, or
+            ``imageR`` if green and blue images are not provided.
         """
         return compute_intensity(imageR, imageG, imageB)
 
@@ -169,6 +197,16 @@ class Mapping(object):
 
         The intensity is assumed to have had minimum subtracted (as that can be
         done per-band).
+
+        Parameters
+        ----------
+        I : `~numpy.ndarray`
+            Intensity to be mapped.
+
+        Returns
+        -------
+        mapped_I : `~numpy.ndarray`
+            ``I`` mapped to uint8
         """
         with np.errstate(invalid='ignore', divide='ignore'):  # n.b. np.where can't and doesn't short-circuit
             return np.where(I <= 0, 0, np.where(I < self._uint8Max, I, self._uint8Max))
@@ -404,6 +442,11 @@ def makeRGB(imageR, imageG=None, imageB=None, minimum=0, dataRange=5, Q=8,
     rescaleFactor : float
         Make size of output image rescaleFactor*size of the input image.
         Cannot be specified if xSize or ySize are given.
+
+    Returns
+    -------
+    rgb : `~numpy.ndarray`
+        RGB color image.
     """
     if imageG is None:
         imageG = imageR
