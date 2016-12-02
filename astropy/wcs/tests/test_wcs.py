@@ -1016,26 +1016,8 @@ def test_inconsistent_sip():
     w = wcs.WCS(hdr)
     w.wcs.ctype = ['RA---TAN', 'DEC--TAN']
     newhdr = w.to_header(relax=True)
-    assert(all([ctyp[-4 :] == '-SIP' for ctyp in self.wcs.ctype]))
-    del hdr['CTYPE2']
-    newhdr = w.to_header(relax=True)
-    assert(all([ctyp[-4 :] == '-SIP' for ctyp in self.wcs.ctype]))
-    w = wcs.WCS()
-    newhdr = w.to_header()
-    assert('CTYPE1' not in newhdr)
-    # Test that when creating a WCS object using a key, CTYPE with
-    # that key is looked at and not the primary CTYPE.
-    # fix for #5443.
-    with fits.open(get_pkg_data_filename('data/sip.fits')) as f:
-        w = wcs.WCS(f[0].header)
-    # create a header with two WCSs.
-    h1 = w.to_header(relax=True, key='A')
-    h2 = w.to_header(relax=False)
-    h1['CTYPE1A'] = "RA---SIN-SIP"
-    h1['CTYPE2A'] = "DEC--SIN-SIP"
-    h1.update(h2)
-    w = wcs.WCS(h1, key='A')
-    assert w.wcs.ctype == ['RA---SIN-SIP', 'DEC--SIN-SIP']
+    wnew = wcs.WCS(newhdr)
+    assert all(ctyp.endswith('-SIP') for ctyp in wnew.wcs.ctype)
 
 
 def test_bounds_check():
@@ -1064,3 +1046,21 @@ def test_naxis():
     w._naxis1 = 99
     w._naxis2 = 59
     assert w._naxis == [99, 59]
+
+
+def test_sip_with_altkey():
+    """
+    Test that when creating a WCS object using a key, CTYPE with
+    that key is looked at and not the primary CTYPE.
+    fix for #5443.
+    """
+    with fits.open(get_pkg_data_filename('data/sip.fits')) as f:
+        w = wcs.WCS(f[0].header)
+    # create a header with two WCSs.
+    h1 = w.to_header(relax=True, key='A')
+    h2 = w.to_header(relax=False)
+    h1['CTYPE1A'] = "RA---SIN-SIP"
+    h1['CTYPE2A'] = "DEC--SIN-SIP"
+    h1.update(h2)
+    w = wcs.WCS(h1, key='A')
+    assert w.wcs.ctype == ['RA---SIN-SIP', 'DEC--SIN-SIP']
