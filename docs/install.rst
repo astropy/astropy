@@ -33,8 +33,6 @@ Astropy also depends on other packages for optional features:
 
 - `matplotlib <http://matplotlib.org/>`_: To provide plotting functionality that `astropy.visualization` enhances.
 
-- `WCSAxes <http://wcsaxes.readthedocs.io/en/latest/>`_: To use `astropy.wcs` to define projections in Matplotlib.
-
 - `pytz <http://pythonhosted.org/pytz/>`_: To specify and convert between timezones.
 
 - `scikit-image <http://scikit-image.org/>`_: To downsample a data array in `astropy.nddata.utils`.
@@ -431,8 +429,6 @@ packages:
     - `Astropy-helpers <https://github.com/astropy/astropy-helpers>`_ (Astropy
       and most affiliated packages include this as a submodule in the source
       repository, so it does not need to be installed separately.)
-
-    - `WCSAxes <http://wcsaxes.readthedocs.io/en/latest/>`_
 
     - `Pillow <http://python-pillow.org/>`_
 
