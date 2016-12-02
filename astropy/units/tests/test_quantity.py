@@ -1086,6 +1086,14 @@ def test_quantity_initialisation_from_string():
     with pytest.raises(TypeError):
         u.Quantity('m')
     with pytest.raises(TypeError):
+        u.Quantity('1.2.3 deg')
+    with pytest.raises(TypeError):
+        u.Quantity('1+deg')
+    with pytest.raises(TypeError):
+        u.Quantity('1-2deg')
+    with pytest.raises(TypeError):
+        u.Quantity('1.2e-13.3m')
+    with pytest.raises(TypeError):
         u.Quantity(['5'])
     with pytest.raises(TypeError):
         u.Quantity(np.array(['5']))
