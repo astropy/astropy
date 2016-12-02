@@ -228,12 +228,12 @@ class TestLuptonRgb(unittest.TestCase):
             green = saturate(self.imageG, satValue)
             blue = saturate(self.imageB, satValue)
             lupton_rgb.makeRGB(red, green, blue, self.min, self.range, self.Q, fileName=temp)
-            self.assertTrue(os.path.exists(temp.name))
+            assert os.path.exists(temp.name)
 
     def testMakeRGB_saturated_fix(self):
         satValue = 1000.0
         # TODO: Cannot test with these options yet, as that part of the code is not implemented.
-        with self.assertRaises(NotImplementedError):
+        with pytest.raises(NotImplementedError):
             red = saturate(self.imageR, satValue)
             green = saturate(self.imageG, satValue)
             blue = saturate(self.imageB, satValue)
@@ -273,7 +273,7 @@ class TestLuptonRgb(unittest.TestCase):
         rgbImage = asinhMap.makeRgbImage(self.imageR, self.imageG, self.imageB)
         with tempfile.NamedTemporaryFile(suffix=".png") as temp:
             lupton_rgb.writeRGB(temp, rgbImage)
-            self.assertTrue(os.path.exists(temp.name))
+            assert os.path.exists(temp.name)
 
     def testSaturated(self):
         """Test interpolating saturated pixels"""
@@ -286,9 +286,9 @@ class TestLuptonRgb(unittest.TestCase):
 
         lupton_rgb.replaceSaturatedPixels(self.imageR, self.imageG, self.imageB, 1, 2000)
         # Check that we replaced those NaNs with some reasonable value
-        self.assertTrue(np.isfinite(self.imageR.getImage().getArray()).all())
-        self.assertTrue(np.isfinite(self.imageG.getImage().getArray()).all())
-        self.assertTrue(np.isfinite(self.imageB.getImage().getArray()).all())
+        assert np.isfinite(self.imageR.getImage().getArray()).all()
+        assert np.isfinite(self.imageG.getImage().getArray()).all()
+        assert np.isfinite(self.imageB.getImage().getArray()).all()
 
         # Prepare for generating an output file
         # TBD: FROMAFW
@@ -340,12 +340,12 @@ class TestLuptonRgb(unittest.TestCase):
         # afw and numpy have different conventions!
         h, w, _ = rgbImage.shape
         if xSize is not None:
-            self.assertEqual(int(xSize), w)
+            assert int(xSize) == w
         if ySize is not None:
-            self.assertEqual(int(ySize), h)
+            assert int(ySize) == h
         if frac is not None:
-            self.assertEqual(int(frac*self.imageR.shape[1]), w)
-            self.assertEqual(int(frac*self.imageR.shape[0]), h)
+            assert int(frac*self.imageR.shape[1]) == w
+            assert int(frac*self.imageR.shape[0]) == h
 
         if display:
             lupton_rgb.displayRGB(rgbImage, title=my_name())
@@ -381,4 +381,4 @@ class TestLuptonRgb(unittest.TestCase):
 
         with tempfile.NamedTemporaryFile(suffix=".png") as temp:
             lupton_rgb.makeRGB(self.imageR, self.imageG, self.imageB, fileName=temp, rescaleFactor=0.5)
-            self.assertTrue(os.path.exists(temp.name))
+            assert os.path.exists(temp.name)
