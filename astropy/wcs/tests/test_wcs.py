@@ -1063,4 +1063,16 @@ def test_sip_with_altkey():
     h1['CTYPE2A'] = "DEC--SIN-SIP"
     h1.update(h2)
     w = wcs.WCS(h1, key='A')
-    assert w.wcs.ctype == ['RA---SIN-SIP', 'DEC--SIN-SIP']
+    assert (w.wcs.ctype == np.array(['RA---SIN-SIP', 'DEC--SIN-SIP'])).all()
+
+
+def test_to_fits_1():
+    """
+    Test to_fits() with LookupTable distortion.
+    """
+    fits_name = get_pkg_data_filename('data/dist.fits')
+    w = wcs.WCS(fits_name)
+    wfits = w.to_fits()
+    assert isinstance(wfits, fits.HDUList)
+    assert isinstance(wfits[0], fits.PrimaryHDU)
+    assert isinstance(wfits[1], fits.ImageHDU)
