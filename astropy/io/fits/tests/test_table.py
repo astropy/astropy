@@ -2136,16 +2136,15 @@ class TestTableFunctions(FitsTestCase):
                          "the header may be missing the necessary TNULL1 "
                          "keyword or the table contains invalid data")
 
-    def test_ascii_column_null(self):
+    def test_blank_field_zero(self):
         """Regression test for https://github.com/astropy/astropy/issues/5134
 
         Blank values in numerical columns of ASCII tables should be replaced
-        before being placed in numpy arrays.
+        with zeros, so they can be loaded into numpy arrays.
 
-        Null strings in integer columns with blank-string TNULL* values
-        should be replaced with 0.
-        Null strings in float columns should be properly replaced with the
-        TNULL* value."""
+        When a TNULL value is set and there are blank fields not equal to that
+        value, they should be replaced with zeros.
+        """
 
         # Test an integer column with blank string as null
         nullval1 = u' '
@@ -2165,7 +2164,7 @@ class TestTableFunctions(FitsTestCase):
         with fits.open(self.temp('ascii_null.fits'), memmap=True) as f:
             assert f[1].data[2][0] == 0
 
-        # Test a float column with NaN as null.
+        # Test a float column with a null value set and blank fields.
         nullval2 = 'NaN'
         c2 = fits.Column('F1', format='F12.8', null=nullval2,
                          array=np.array([1.0, 2.0, 3.0, 4.0]),
@@ -2180,7 +2179,7 @@ class TestTableFunctions(FitsTestCase):
             h.write(nulled)
 
         with fits.open(self.temp('ascii_null2.fits'), memmap=True) as f:
-            assert np.isnan(f[1].data[2][0])
+            assert f[1].data[2][0] == 0.0
 
     def test_column_array_type_mismatch(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/218"""
