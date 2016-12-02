@@ -191,7 +191,16 @@ def getdata(filename, *args, **kwargs):
     upper = kwargs.pop('upper', None)
     view = kwargs.pop('view', None)
 
-    hdulist, extidx = _getext(filename, mode, *args, **kwargs)
+    # TODO this can be simplified as _getext when hdulist becomes lazy
+    extidx = _parse_ext(args, kwargs)
+    # return extension 1 data if extension 0 is empty
+    # so always load at least 2 extensions
+    if _is_int(extidx) and extidx == 0:
+        loadext = 1
+    else:
+        loadext = extidx
+
+    hdulist = fitsopen(filename, mode=mode, _last_read_ext=loadext, **kwargs)
     try:
         hdu = hdulist[extidx]
         data = hdu.data
@@ -803,12 +812,13 @@ if isinstance(tableload.__doc__, string_types):
     tableload.__doc__ += BinTableHDU._tdump_file_format.replace('\n', '\n    ')
 
 
-def _getext(filename, mode, *args, **kwargs):
+def _parse_ext(args, kwargs):
     """
-    Open the input file, return the `HDUList` and the extension.
+    parse arguments for extension selection
+    returns integer (extname, integer) tuple
+    modifies kwargs
 
-    This supports several different styles of extension selection.  See the
-    :func:`getdata()` documentation for the different possibilities.
+    See the :func:`getdata()` documentation for the different possibilities.
     """
 
     ext = kwargs.pop('ext', None)
@@ -872,7 +882,18 @@ def _getext(filename, mode, *args, **kwargs):
     elif extver and extname is None:
         raise TypeError('extver alone cannot specify an extension.')
 
-    hdulist = fitsopen(filename, mode=mode, **kwargs)
+    return ext
+
+
+def _getext(filename, mode, *args, **kwargs):
+    """
+    Open the input file, return the `HDUList` and the extension.
+
+    This supports several different styles of extension selection.  See the
+    :func:`getdata()` documentation for the different possibilities.
+    """
+    ext = _parse_ext(args, kwargs)
+    hdulist = fitsopen(filename, mode=mode, _last_read_ext=ext, **kwargs)
 
     return hdulist, ext
 

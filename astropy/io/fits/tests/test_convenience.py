@@ -27,6 +27,44 @@ class TestConvenience(FitsTestCase):
             header = fits.getheader(self.data('test0.fits'))
             assert len(w) == 0
 
+    def test_getdata(self):
+        """
+        Basic getdata tests
+        """
+        f = self.data('test0.fits')
+        # empty primary -> getdata loads ext 1
+        d = fits.getdata(f)
+        d2 = fits.getdata(f, 0)
+        np.testing.assert_array_equal(d, d2)
+        d2 = fits.getdata(f, 1)
+        np.testing.assert_array_equal(d, d2)
+        d2 = fits.getdata(f, ext=0)
+        np.testing.assert_array_equal(d, d2)
+        d2 = fits.getdata(f, ext=1)
+        np.testing.assert_array_equal(d, d2)
+        d2 = fits.getdata(f, ext=('SCI', 1))
+        np.testing.assert_array_equal(d, d2)
+        d2 = fits.getdata(f, extname='SCI')
+        np.testing.assert_array_equal(d, d2)
+        # extname case, leading and trailing space does not matter
+        d2 = fits.getdata(f, extname=' Sci  ')
+        np.testing.assert_array_equal(d, d2)
+        d2 = fits.getdata(f, extname='SCI', extver=1)
+        np.testing.assert_array_equal(d, d2)
+
+        d2 = fits.getdata(f, ext=2)
+        assert (not np.array_equal(d, d2))
+
+        np.testing.assert_array_equal(fits.getdata(f, ext=('SCI', 2)),
+                                      fits.getdata(f, ext=2))
+
+        np.testing.assert_array_equal(fits.getdata(f, ext=('SCI', 3)),
+                                      fits.getdata(f, ext=3))
+
+        pytest.raises(IndexError, fits.getdata, f, 5)
+        pytest.raises(IndexError, fits.getdata, f, 'PRIMARY')
+
+
     def test_fileobj_not_closed(self):
         """
         Tests that file-like objects are not closed after being passed
