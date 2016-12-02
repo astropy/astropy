@@ -110,7 +110,7 @@ table.  For example the following writes a table as a simple space-delimited
 file::
 
   >>> import numpy as np
-  >>> from astropy.table import Table, Column
+  >>> from astropy.table import Table, Column, MaskedColumn
   >>> x = np.array([1, 2, 3])
   >>> y = x ** 2
   >>> data = Table([x, y], names=['x', 'y'])
