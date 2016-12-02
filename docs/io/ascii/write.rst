@@ -231,14 +231,6 @@ details.
       N/A 3
       2 4
 
-  If no ``fill_values`` is applied for masked values in ``astropy.io.ascii``, the default set
-  with ``numpy.ma.masked_print_option.set_display`` applies (usually that is also ``'--'``)::
-
-      >>> ascii.write(t, sys.stdout, fill_values=[])
-      a b
-      "" 3
-      2 4
-
   Note that when writing a table all values are converted to strings, before
   any value is replaced. Because ``fill_values`` only replaces cells that
   are an exact match to the specification, you need to provide the string
