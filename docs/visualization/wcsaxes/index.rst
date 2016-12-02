@@ -4,8 +4,9 @@
 Making plots with world coordinates (WCSAxes)
 *********************************************
 
-WCSAxes is a framework for making plots of Astronomical data in Matplotlib. It
-was previously distributed as a standalone package, but is now included in
+WCSAxes is a framework for making plots of Astronomical data in 
+`Matplotlib <http://matplotlib.org/>`_. It was previously distributed 
+as a standalone package, but is now included in
 :ref:`astropy.visualization <astropy-visualization>`.
 
 .. _wcsaxes-getting-started:
@@ -38,9 +39,9 @@ package:
     plt.xlabel('Galactic Longitude')
     plt.ylabel('Galactic Latitude')
 
-This example uses the 'pyplot' interface to Matplotlib, but WCSAxes can be used
-with any of the other ways of using Matplotlib (some examples of which are given
-in :ref:`initialization`). For example, using the partially object-oriented
+This example uses the :mod:`matplotlib.pyplot` interface to Matplotlib, but WCSAxes
+can be used with any of the other ways of using Matplotlib (some examples of which 
+are given in :ref:`initialization`). For example, using the partially object-oriented
 interface, you can do::
 
     ax = plt.subplot(projection=wcs)
@@ -49,8 +50,8 @@ interface, you can do::
     ax.set_xlabel('Galactic Longitude')
     ax.set_ylabel('Galactic Latitude')
 
-Having access to the axes object is needed to access some of the more advanced
-functionality of WCSAxes:
+However, the axes object is needed to access some of the more advanced functionality 
+of WCSAxes.  An example of this usage is:
 
 .. plot::
    :context:
@@ -71,8 +72,8 @@ functionality of WCSAxes:
     overlay[1].set_axislabel('Declination (J2000)')
 
 In the rest of this documentation we will assume that you have kept a reference
-to the axes object, which we will refer to as ``ax``. However, we also include
-notes when things can be done directly using the pyplot interface.
+to the axes object, which we will refer to as ``ax``. However, we also note
+when something can be done directly with the pyplot interface.
 
 WCSAxes supports a number of advanced plotting options, including the ability to
 control which axes to show labels on for which coordinates, overlaying contours
