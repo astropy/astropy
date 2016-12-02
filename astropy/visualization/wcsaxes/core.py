@@ -499,8 +499,9 @@ class WCSAxes(Axes):
         axis = kwargs.pop('axis', 'both')
         if axis != 'both':
             raise ValueError('WCSAxes can only draw gridlines on both axes')
-        if 'b' in kwargs:
-            draw_grid = kwargs.pop('b')
+        b = kwargs.pop('b', True)
+        if not b:
+            raise ValueError('WCSAxes cannot have grids removed once they are on')
 
         if draw_grid and hasattr(self, 'coords'):
             self.coords.grid(draw_grid=draw_grid, **kwargs)
