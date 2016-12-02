@@ -12,7 +12,7 @@ Example usage:
     imageB = np.random.random((100,100))
     image = lupton_rgb.makeRGB(imageR, imageG, imageB, fileName='randoms.png')
 """
-from __future__ import absolute_import, division
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import numpy as np
 from . import ZScaleInterval
