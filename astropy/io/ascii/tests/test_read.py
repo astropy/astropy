@@ -1025,3 +1025,37 @@ def test_table_with_no_newline():
         t = ascii.read(table, **kwargs)
         assert t.colnames == ['a', 'b']
         assert len(t) == 0
+
+def test_latex_no_trailing_backslash():
+    """
+    Test that latex/aastex file with no trailing backslash can be read.
+    """
+    lines = r"""
+\begin{table}
+\begin{tabular}{ccc}
+a & b & c \\
+1 & 1.0 & c \\ % comment
+3\% & 3.0 & e  % comment
+\end{tabular}
+\end{table}
+"""
+    dat = ascii.read(lines, format='latex')
+    assert dat.colnames == ['a', 'b', 'c']
+    assert np.all(dat['a'] == ['1', r'3\%'])
+    assert np.all(dat['c'] == ['c', 'e'])
+
+def text_aastex_no_trailing_backslash():
+    lines = r"""
+\begin{deluxetable}{ccc}
+\tablehead{\colhead{a} & \colhead{b} & \colhead{c}}
+\startdata
+1 & 1.0 & c \\
+2 & 2.0 & d \\ % comment
+3\% & 3.0 & e  % comment
+\enddata
+\end{deluxetable}
+"""
+    dat = ascii.read(lines, format='aastex')
+    assert dat.colnames == ['a', 'b', 'c']
+    assert np.all(dat['a'] == ['1', r'3\%'])
+    assert np.all(dat['c'] == ['c', 'e'])
