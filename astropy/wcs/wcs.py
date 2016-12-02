@@ -3060,11 +3060,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         """
         Compatibility hook for Matplotlib and WCSAxes.
 
-        This functionality requires the WCSAxes package to work. The reason
-        we include this here is that it allows users to use WCSAxes without
-        having to explicitly import WCSAxes, which means that if in future we
-        merge WCSAxes into the Astropy core package, the API will remain the
-        same. With this method, one can do:
+        With this method, one can do:
 
             from astropy.wcs import WCS
             import matplotlib.pyplot as plt
@@ -3076,18 +3072,10 @@ reduce these to 2 dimensions using the naxis kwarg.
             ...
 
         and this will generate a plot with the correct WCS coordinates on the
-        axes. See http://wcsaxes.readthedocs.io for more information.
+        axes.
         """
-
-        try:
-            from wcsaxes import WCSAxes
-        except ImportError:
-            raise ImportError("Using WCS instances as Matplotlib projections "
-                              "requires the WCSAxes package to be installed. "
-                              "See http://wcsaxes.readthedocs.io for more "
-                              "details.")
-        else:
-            return WCSAxes, {'wcs': self}
+        from ..visualization.wcsaxes import WCSAxes
+        return WCSAxes, {'wcs': self}
 
 
 def __WCS_unpickle__(cls, dct, fits_data):

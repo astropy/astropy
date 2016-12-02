@@ -125,3 +125,6 @@ astropy_mpl_docs_style['axes.color_cycle'] = [
 ]
 
 astropy_mpl_docs_style['axes.grid'] = False
+astropy_mpl_docs_style['figure.figsize'] = (6, 6)
+astropy_mpl_docs_style['savefig.facecolor'] = 'none'
+astropy_mpl_docs_style['savefig.bbox'] = 'tight'

@@ -702,6 +702,63 @@ blocks from coverage, without requiring the pragma comment::
     elif six.PY2:
         do_it_the_python2_way()
 
+.. _image-tests:
+
+Image tests with pytest-mpl
+---------------------------
+
+We make use of the `pytest-mpl <https://pypi.python.org/pypi/pytest-mpl>`_
+plugin to create tests where we can compare the output of plotting commands
+with reference files (this is used for instance in
+:ref:`astropy.visualization.wcsaxes <wcsaxes>`).
+
+To run the Astropy tests with the image comparison, use::
+
+    python setup.py test -a "--mpl" --remote-data
+
+The `README.md <https://github.com/astrofrog/pytest-mpl/blob/master/README.md>`__
+for the plugin contains information on writing tests with this plugin. The only
+key addition compared to those instructions is that you should set
+``baseline_dir``::
+
+    from astropy.tests.image_tests import IMAGE_REFERENCE_DIR
+
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR)
+
+This is because since the reference image files would contribute significantly
+to the repository size, we instead store them on the http://data.astropy.org
+site. The downside is that it is a little more complicated to create or
+re-generate reference files, but we describe the process here.
+
+Once you have a test for which you want to (re-)generate reference images,
+run the tests with the ``--mpl-generate-path`` argument, e.g::
+
+    python setup.py test -a "--mpl --mpl-generate-path=reference_tmp" --remote-data
+
+This will create a ``reference_tmp`` folder and put the generated reference
+images inside it.
+
+Next, we need to add these images to the http://data.astropy.org server. To do
+this, open a pull request to `this <https://github.com/astropy/astropy-data>`_
+repository. The reference images for Astropy tests should go inside the
+`testing/astropy <https://github.com/astropy/astropy-data/tree/gh-pages/testing/astropy>`_
+directory. In that directory are folders named as timestamps. If you are simply
+adding new tests, add the reference files to the most recent directory.
+
+If you are re-generating baseline images due to changes in Astropy, make a new
+timestamp directory by copying one the most recent one, then replace any
+baseline images that have changed. Note that due to changes between Matplotlib
+versions, we need to add the whole set of reference images for each major
+Matplotlib version. Therefore, in each timestamp folder, there are folders named
+e.g. ``1.4.x`` and ``1.5.x``.
+
+Once the reference images are merged in and available on
+http://data.astropy.org, update the timestamp in the ``IMAGE_REFERENCE_DIR``
+variable in the ``astropy.tests.image_tests`` sub-module. Because the timestamp
+is hard-coded, adding a new timestamp directory will not mess with testing for
+released versions of Astropy, so you can easily add and tweak a new timestamp
+directory while still working on a pull request to Astropy.
+
 .. _doctests:
 
 Writing doctests
@@ -890,12 +947,11 @@ differences in representation of roundoff digits will be ignored by the
 doctest.  The values are otherwise compared exactly, so more significant
 (albeit possibly small) differences will still be caught by these tests.
 
-
 Continuous integration
-----------------------
+======================
 
 Overview
-^^^^^^^^
+--------
 
 Astropy uses the following continuous integration (CI) services:
 
@@ -936,7 +992,7 @@ or because the failure happens with only 32-bit Python. The following sections
 explain how you can reproduce specific builds locally.
 
 Reproducing failing 32-bit builds
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------
 
 If you want to run your tests in the same 32-bit Python environment that
 CircleCI uses, start off by installing `Docker <https://www.docker.com>`_ if you

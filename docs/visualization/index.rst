@@ -8,17 +8,16 @@ Introduction
 ============
 
 `astropy.visualization` provides functionality that can be helpful when
-visualizing data.
-At the moment, functionalities include enhanced histograms,
-image normalizing (including both scaling and stretching),
-and custom plotting styles for matplotlib.
-
-Using `astropy.visualization`
-=============================
+visualizing data. This includes a framework for plotting Astronomical images
+with coordinates with Matplotlib (previously the standalone **wcsaxes**
+package), functionality related to image normaliation (including both scaling
+and stretching), smart histogram plotting, and custom plotting styles for
+Matplotlib.
 
 .. toctree::
    :maxdepth: 2
 
+   wcsaxes/index.rst
    normalization.rst
    histogram.rst
 
