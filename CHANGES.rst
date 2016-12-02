@@ -208,6 +208,10 @@ API Changes
     ``_BaseHDU.overwrite``, ``BinTableHDU.dump`` and
     ``HDUList.writeto``. [#5171]
 
+  - Added an optional ``copy`` parameter to ``fits.Header`` which controls if
+    a copy is made when creating an ``Header`` from another ``Header``.
+    [#5005, #5326]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``

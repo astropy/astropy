@@ -40,6 +40,19 @@ def test_shallow_copy():
     assert original_header['a'] == 1
 
 
+def test_init_with_header():
+    """Make sure that creating a Header from another Header makes a copy if
+    copy is True."""
+
+    original_header = fits.Header([('a', 10)])
+    new_header = fits.Header(original_header, copy=True)
+    original_header['a'] = 20
+    assert new_header['a'] == 10
+
+    new_header['a'] = 0
+    assert original_header['a'] == 20
+
+
 def test_init_with_dict():
     dict1 = {'a': 11, 'b': 12, 'c': 13, 'd': 14, 'e': 15}
     h1 = fits.Header(dict1)
