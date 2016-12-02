@@ -241,20 +241,22 @@ class Gaussian2D(Fittable2DModel):
         Mean of the Gaussian in x.
     y_mean : float
         Mean of the Gaussian in y.
-    x_stddev : float
-        Standard deviation of the Gaussian in x before rotating by theta.
-        ``x_stddev`` and ``y_stddev`` must be specified unless a covariance
-        matrix (``cov_matrix``) is input.
-    y_stddev : float
-        Standard deviation of the Gaussian in y before rotating by theta.
-        ``x_stddev`` and ``y_stddev`` must be specified unless a covariance
-        matrix (``cov_matrix``) is input.
+    x_stddev : float or None
+        Standard deviation of the Gaussian in x before rotating by theta. Must
+        be None if a covariance matrix (``cov_matrix``) is provided. If no
+        ``cov_matrix`` is given, ``None`` means the default value (1).
+    y_stddev : float or None
+        Standard deviation of the Gaussian in y before rotating by theta. Must
+        be None if a covariance matrix (``cov_matrix``) is provided. If no
+        ``cov_matrix`` is given, ``None`` means the default value (1).
     theta : float, optional
         Rotation angle in radians. The rotation angle increases
-        counterclockwise.
+        counterclockwise.  Must be None if a covariance matrix (``cov_matrix``)
+        is provided. If no ``cov_matrix`` is given, ``None`` means the default
+        value (0).
     cov_matrix : ndarray, optional
         A 2x2 covariance matrix. If specified, overrides the ``x_stddev``,
-        ``y_stddev``, and ``theta`` specification.
+        ``y_stddev``, and ``theta`` defaults.
 
     Notes
     -----
@@ -311,43 +313,37 @@ class Gaussian2D(Fittable2DModel):
     y_mean = Parameter(default=0)
     x_stddev = Parameter(default=1)
     y_stddev = Parameter(default=1)
-    theta = Parameter(default=0)
+    theta = Parameter(default=0.0)
 
     def __init__(self, amplitude=amplitude.default, x_mean=x_mean.default,
                  y_mean=y_mean.default, x_stddev=None, y_stddev=None,
-                 theta=0.0, cov_matrix=None, **kwargs):
-        if y_stddev is None and cov_matrix is None:
-            raise InputParameterError(
-                "Either x/y_stddev must be specified, or a "
-                "covariance matrix.")
-        elif x_stddev is None and cov_matrix is None:
-            raise InputParameterError(
-                "Either x/y_stddev must be specified, or a "
-                "covariance matrix.")
-        elif cov_matrix is not None and (x_stddev is not None or
-                                         y_stddev is not None):
-            raise InputParameterError(
-                "Cannot specify both cov_matrix and x/y_stddev")
+                 theta=None, cov_matrix=None, **kwargs):
+        if cov_matrix is None:
+            if x_stddev is None:
+                x_stddev = self.__class__.x_stddev.default
+            if y_stddev is None:
+                y_stddev = self.__class__.y_stddev.default
+            if theta is None:
+                theta = self.__class__.theta.default
+        else:
+            if x_stddev is not None or y_stddev is not None or theta is not None:
+                raise InputParameterError("Cannot specify both cov_matrix and "
+                                          "x/y_stddev/theta")
+            else:
+                # Compute principle coordinate system transformation
+                cov_matrix = np.array(cov_matrix)
 
-        # Compute principle coordinate system transformation
-        elif cov_matrix is not None:
-            if (x_stddev is not None or y_stddev is not None):
-                raise InputParameterError(
-                    "Cannot specify both cov_matrix and x/y_stddev")
-            # Compute principle coordinate system transformation
-            cov_matrix = np.array(cov_matrix)
+                if cov_matrix.shape != (2, 2):
+                    # TODO: Maybe it should be possible for the covariance matrix
+                    # to be some (x, y, ..., z, 2, 2) array to be broadcast with
+                    # other parameters of shape (x, y, ..., z)
+                    # But that's maybe a special case to work out if/when needed
+                    raise ValueError("Covariance matrix must be 2x2")
 
-            if cov_matrix.shape != (2, 2):
-                # TODO: Maybe it should be possible for the covariance matrix
-                # to be some (x, y, ..., z, 2, 2) array to be broadcast with
-                # other parameters of shape (x, y, ..., z)
-                # But that's maybe a special case to work out if/when needed
-                raise ValueError("Covariance matrix must be 2x2")
-
-            eig_vals, eig_vecs = np.linalg.eig(cov_matrix)
-            x_stddev, y_stddev = np.sqrt(eig_vals)
-            y_vec = eig_vecs[:, 0]
-            theta = np.arctan2(y_vec[1], y_vec[0])
+                eig_vals, eig_vecs = np.linalg.eig(cov_matrix)
+                x_stddev, y_stddev = np.sqrt(eig_vals)
+                y_vec = eig_vecs[:, 0]
+                theta = np.arctan2(y_vec[1], y_vec[0])
 
         super(Gaussian2D, self).__init__(
             amplitude=amplitude, x_mean=x_mean, y_mean=y_mean,
