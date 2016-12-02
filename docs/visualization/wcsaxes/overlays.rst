@@ -19,9 +19,7 @@ For the example in the following page we start from the example introduced in
     hdu = fits.open(filename)[0]
     wcs = WCS(hdu.header)
 
-    fig = plt.figure()
-    ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=wcs)
-
+    ax = plt.subplot(projection=wcs)
     ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
 
 
@@ -121,11 +119,8 @@ For example, you can add markers with positions defined in the FK5 system using:
     hdu = fits.open(filename)[0]
     wcs = WCS(hdu.header)
 
-    fig = plt.figure()
-    ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=wcs)
-
-    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4,
-              origin='lower')
+    ax = plt.subplot(projection=wcs)
+    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
 
     ax.set_autoscale_on(False)
 
@@ -160,11 +155,8 @@ in FK5 equatorial coordinates:
     hdu = fits.open(filename)[0]
     wcs = WCS(hdu.header)
 
-    fig = plt.figure()
-    ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=wcs)
-
-    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4,
-              origin='lower')
+    ax = plt.subplot(projection=wcs)
+    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
 
     ax.set_autoscale_on(False)
 
@@ -228,11 +220,8 @@ image to plot the contours for:
     hdu = fits.open(filename)[0]
     wcs = WCS(hdu.header)
 
-    fig = plt.figure()
-    ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=wcs)
-
-    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4,
-              origin='lower')
+    ax = plt.subplot(projection=wcs)
+    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
 
     ax.set_autoscale_on(False)
 
@@ -240,7 +229,6 @@ image to plot the contours for:
    :context:
    :include-source:
    :align: center
-
 
     filename = get_pkg_data_filename('galactic_center/gc_bolocam_gps.fits')
     hdu = fits.open(filename)[0]
@@ -266,11 +254,8 @@ In the case where you are making a plot of a celestial image, and want to plot a
     hdu = fits.open(filename)[0]
     wcs = WCS(hdu.header)
 
-    fig = plt.figure()
-    ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=wcs)
-
-    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4,
-              origin='lower')
+    ax = plt.subplot(projection=wcs)
+    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
 
     ax.set_autoscale_on(False)
 
