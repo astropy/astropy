@@ -386,6 +386,8 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
             }
             else if (c == self->delimiter) // field ends before it begins
             {
+                if (col >= self->num_cols)
+                    RETURN(TOO_MANY_COLS);
                 END_FIELD();
                 BEGIN_FIELD();
                 break;
@@ -402,6 +404,8 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
                     // e.g. '1,2, '->['1','2','']
                     else
                     {
+                        if (col >= self->num_cols)
+                            RETURN(TOO_MANY_COLS);
                         END_FIELD();
                     }
                 }

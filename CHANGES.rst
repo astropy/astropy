@@ -1706,8 +1706,11 @@ Bug Fixes
 
   - Fix a bug where the ``fill_values`` parameter was ignored when writing a
     table to HTML format. [#5379]
+
   - Fix reading of big ASCII tables (more than 2Gb) with the fast reader.
     [#5319]
+
+  - Fix segfault with FastCsv and row with too many columns. [#5534]
 
 - ``astropy.io.fits``
 
