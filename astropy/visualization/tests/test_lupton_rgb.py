@@ -237,16 +237,6 @@ class TestLuptonRgb(object):
 
         rgbImage = lupton_rgb.LinearMapping(image=self.imageR).makeRgbImage()
 
-
-    @pytest.mark.skipif('not HAS_MATPLOTLIB')
-    def testWriteStars(self):
-        """Test writing RGB files to disk"""
-        asinhMap = lupton_rgb.AsinhMapping(self.min_, self.range_, self.Q)
-        with tempfile.NamedTemporaryFile(suffix=".png") as temp:
-            rgbImage = asinhMap.makeRgbImage(self.imageR, self.imageG,
-                                             self.imageB, fileName=temp)
-            assert os.path.exists(temp.name)
-
     def testSaturated(self):
         """Test interpolating saturated pixels"""
         pytest.skip('replaceSaturatedPixels is not implemented in astropy yet')
