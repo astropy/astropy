@@ -15,6 +15,7 @@ Example usage:
 """
 
 import numpy as np
+from . import ZScaleInterval
 
 
 __all__ = ['makeRGB', 'Mapping', 'LinearMapping', 'AsinhMapping',
@@ -59,40 +60,6 @@ def compute_intensity(imageR, imageG=None, imageB=None):
 
     # Repack into whatever type was passed to us
     return np.array(intensity, dtype=imageR.dtype)
-
-
-def zscale(image, nSamples=1000, contrast=0.25):
-    """
-    TBD: replace with newly added astropy.zscale function.
-
-    This emulates ds9's zscale feature. Returns the suggested minimum and
-    maximum values to display.
-
-    Parameters
-    ----------
-    image : `~numpy.ndarray`
-        The image to compute the scaling on.
-    nSamples :  int, optional
-        How many samples to take when building the histogram. Default is 1000.
-    contrast : float, optional
-        ???
-    """
-
-    stride = image.size/nSamples
-    samples = image.flatten()[::stride]
-    samples.sort()
-    chop_size = int(0.10*len(samples))
-    subset = samples[chop_size:-chop_size]
-
-    i_midpoint = int(len(subset)/2)
-    I_mid = subset[i_midpoint]
-
-    fit = np.polyfit(np.arange(len(subset)) - i_midpoint, subset, 1)
-    # fit = [ slope, intercept]
-
-    z1 = I_mid + fit[0]/contrast * (1-i_midpoint)/1.0
-    z2 = I_mid + fit[0]/contrast * (len(subset)-i_midpoint)/1.0
-    return z1, z2
 
 
 class Mapping(object):
@@ -268,30 +235,6 @@ class LinearMapping(Mapping):
                             np.where(I >= self._range, self._uint8Max/I, self._uint8Max/self._range))
 
 
-class ZScaleMapping(LinearMapping):
-    """
-    A mapping for a linear stretch chosen by the zscale algorithm.
-    (preserving colours independent of brightness)
-
-    x = (I - minimum)/range
-    """
-
-    def __init__(self, image, nSamples=1000, contrast=0.25):
-        """
-        A linear stretch from [z1, z2] chosen by the zscale algorithm.
-
-        Parameters
-        ----------
-        nSamples : int
-            The number of samples to use to estimate the zscale parameters.
-        contrast : float
-            The number of samples to use to estimate the zscale parameters.
-        """
-
-        z1, z2 = zscale(image, nSamples, contrast)
-        LinearMapping.__init__(self, z1, z2, image)
-
-
 class AsinhMapping(Mapping):
     """
     A mapping for an asinh stretch (preserving colours independent of brightness)
@@ -398,7 +341,8 @@ class AsinhZScaleMapping(AsinhMapping):
 
         image = compute_intensity(*image)
 
-        zscale = ZScaleMapping(image)
+        zscale_limits = ZScaleInterval().get_limits(image)
+        zscale = LinearMapping(*zscale_limits, image=image)
         dataRange = zscale.maximum - zscale.minimum[0]  # zscale.minimum is always a triple
         minimum = zscale.minimum
 
