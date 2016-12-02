@@ -2,7 +2,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-This package defines colloquially used Imperial units.
+This package defines colloquially used Imperial units.  They are
+available in the `astropy.units.imperial` namespace, but not in the
+top-level `astropy.units` namespace, e.g.::
+
+    >>> import astropy.units as u
+    >>> mph = u.imperial.mile / u.hour
+    >>> mph
+    Unit("mi / h")
 
 To include them in `~astropy.units.UnitBase.compose` and the results of
 `~astropy.units.UnitBase.find_equivalent_units`, do::
