@@ -134,20 +134,20 @@ class WCSAxes(Axes):
 
         The first argument to `~wcsaxes.WCSAxes.plot_coord` should be a
         coordinate, which will then be converted to the first two parameters to
-        `matplotlib.Axes.plot`. All other arguments are the same as
-        `matplotlib.Axes.plot`. If not specified a ``transform`` keyword
+        `matplotlib.axes.Axes.plot`. All other arguments are the same as
+        `matplotlib.axes.Axes.plot`. If not specified a ``transform`` keyword
         argument will be created based on the coordinate.
 
         Parameters
         ----------
         coordinate : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
             The coordinate object to plot on the axes. This is converted to the
-            first two arguments to `matplotlib.Axes.plot`.
+            first two arguments to `matplotlib.axes.Axes.plot`.
 
         See Also
         --------
 
-        matplotlib.Axes.plot : This method is called from this function with all arguments passed to it.
+        matplotlib.axes.Axes.plot : This method is called from this function with all arguments passed to it.
 
         """
 
