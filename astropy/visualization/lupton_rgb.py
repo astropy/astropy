@@ -16,9 +16,9 @@ Example usage:
 
 import numpy as np
 
-__all__ = ['displayRGB', 'makeRGB', 'writeRGB', 'zscale',
-           'Mapping', 'LinearMapping', 'ZScaleMapping', 'AsinhMapping',
-           'AsinhZScaleMapping']
+
+__all__ = ['makeRGB', 'writeRGB', 'Mapping', 'LinearMapping',
+           'AsinhMapping', 'AsinhZScaleMapping']
 
 try:
     import scipy.misc
@@ -463,28 +463,6 @@ def makeRGB(imageR, imageG=None, imageB=None, minimum=0, dataRange=5, Q=8,
         writeRGB(fileName, rgb)
 
     return rgb
-
-
-def displayRGB(rgb, show=True, title=None):
-    """
-    Display an rgb image using matplotlib.
-
-    Parameters
-    ----------
-    rgb : `~numpy.ndarray`
-        The RGB image to display
-    show : bool
-        If true, call `~matplotlib.pyplot.show()`
-    title : str
-        Title to use for the displayed image.
-    """
-    import matplotlib.pyplot as plt
-    plt.imshow(rgb, interpolation='nearest', origin="lower")
-    if title:
-        plt.title(title)
-    if show:
-        plt.show()
-    return plt
 
 
 def writeRGB(fileName, rgbImage):
