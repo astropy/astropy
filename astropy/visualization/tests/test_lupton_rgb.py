@@ -15,6 +15,7 @@ import numpy as np
 from numpy.testing import assert_equal
 
 from ...convolution import convolve, Gaussian2DKernel
+from ...tests.helper import pytest
 from .. import lupton_rgb
 
 import matplotlib
@@ -274,9 +275,9 @@ class TestLuptonRgb(unittest.TestCase):
             lupton_rgb.writeRGB(temp, rgbImage)
             self.assertTrue(os.path.exists(temp.name))
 
-    @unittest.skip('replaceSaturatedPixels is not implemented in astropy yet')
     def testSaturated(self):
         """Test interpolating saturated pixels"""
+        pytest.skip('replaceSaturatedPixels is not implemented in astropy yet')
 
         satValue = 1000.0
         self.imageR = saturate(self.imageR, satValue)
@@ -301,7 +302,7 @@ class TestLuptonRgb(unittest.TestCase):
         if display:
             lupton_rgb.displayRGB(rgbImage, title=my_name())
 
-    @unittest.skipUnless(HAVE_SCIPY_MISC, "Resizing images requires scipy.misc")
+    @pytest.mark.skipif('not HAVE_SCIPY_MISC', "Resizing images requires scipy.misc")
     def testStarsResizeToSize(self):
         """Test creating an RGB image of a specified size"""
 
@@ -313,7 +314,7 @@ class TestLuptonRgb(unittest.TestCase):
         if display:
             lupton_rgb.displayRGB(rgbImage, title=my_name())
 
-    @unittest.skipUnless(HAVE_SCIPY_MISC, "Resizing images requires scipy.misc")
+    @pytest.mark.skipif('not HAVE_SCIPY_MISC', "Resizing images requires scipy.misc")
     def testStarsResizeToSize_uint(self):
         """Test creating an RGB image of a specified size"""
 
@@ -349,31 +350,31 @@ class TestLuptonRgb(unittest.TestCase):
         if display:
             lupton_rgb.displayRGB(rgbImage, title=my_name())
 
-    @unittest.skipUnless(HAVE_SCIPY_MISC, "Resizing images requires scipy.misc")
+    @pytest.mark.skipif('not HAVE_SCIPY_MISC', "Resizing images requires scipy.misc")
     def testStarsResizeSpecificaions_xSize_ySize(self):
         self._testStarsResizeSpecifications(xSize=self.imageR.shape[0]/2, ySize=self.imageR.shape[1]/2)
 
-    @unittest.skipUnless(HAVE_SCIPY_MISC, "Resizing images requires scipy.misc")
+    @pytest.mark.skipif('not HAVE_SCIPY_MISC', "Resizing images requires scipy.misc")
     def testStarsResizeSpecifications_twice_xSize(self):
         self._testStarsResizeSpecifications(xSize=2*self.imageR.shape[0])
 
-    @unittest.skipUnless(HAVE_SCIPY_MISC, "Resizing images requires scipy.misc")
+    @pytest.mark.skipif('not HAVE_SCIPY_MISC', "Resizing images requires scipy.misc")
     def testStarsResizeSpecifications_half_xSize(self):
         self._testStarsResizeSpecifications(xSize=self.imageR.shape[0]/2)
 
-    @unittest.skipUnless(HAVE_SCIPY_MISC, "Resizing images requires scipy.misc")
+    @pytest.mark.skipif('not HAVE_SCIPY_MISC', "Resizing images requires scipy.misc")
     def testStarsResizeSpecifications_half_ySize(self):
         self._testStarsResizeSpecifications(ySize=self.imageR.shape[0]/2)
 
-    @unittest.skipUnless(HAVE_SCIPY_MISC, "Resizing images requires scipy.misc")
+    @pytest.mark.skipif('not HAVE_SCIPY_MISC', "Resizing images requires scipy.misc")
     def testStarsResizeSpecifications_frac_half(self):
         self._testStarsResizeSpecifications(frac=0.5)
 
-    @unittest.skipUnless(HAVE_SCIPY_MISC, "Resizing images requires scipy.misc")
+    @pytest.mark.skipif('not HAVE_SCIPY_MISC', "Resizing images requires scipy.misc")
     def testStarsResizeSpecifications_frac_twice(self):
         self._testStarsResizeSpecifications(frac=2)
 
-    @unittest.skipUnless(HAVE_SCIPY_MISC, "Resizing images requires scipy.misc")
+    @pytest.mark.skipif('not HAVE_SCIPY_MISC', "Resizing images requires scipy.misc")
     def testMakeRGBResize(self):
         """Test the function that does it all, including rescaling"""
         lupton_rgb.makeRGB(self.imageR, self.imageG, self.imageB, xSize=40, ySize=60)
