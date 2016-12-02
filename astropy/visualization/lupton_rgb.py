@@ -26,6 +26,8 @@ try:
 except ImportError:
     HAVE_SCIPY_MISC = False
 
+# NOTE: these methods would have come from LSST C++ code. They won't be available
+# in astropy until they are converted somehow.
 # from lsst.afw.display.displayLib import replaceSaturatedPixels, getZScale
 
 
