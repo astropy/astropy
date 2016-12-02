@@ -31,7 +31,9 @@ and returns a filename):
     wcs = WCS(hdu.header)
 
 We then create a figure using Matplotlib and create the axes using the
-:class:`~astropy.wcs.WCS` object created above:
+:class:`~astropy.wcs.WCS` object created above. The following example shows how
+to do this with the Matplotlib 'pyplot' interface, keeping a reference to the
+axes object:
 
 .. plot::
    :context:
@@ -39,20 +41,18 @@ We then create a figure using Matplotlib and create the axes using the
    :align: center
 
     import matplotlib.pyplot as plt
-    fig = plt.figure()
-    ax = fig.add_axes([0.15, 0.1, 0.8, 0.8], projection=wcs)
+    ax = plt.subplot(projection=wcs)
 
 The ``ax`` object created is an instance of the
-:class:`~astropy.visualization.wcsaxes.WCSAxes`
-class. For more information about the different ways of initializing axes,
-see :doc:`initializing_axes`.
+:class:`~astropy.visualization.wcsaxes.WCSAxes` class. Note that if no WCS
+transformation is specified, the transformation will default to identity,
+meaning that the world coordinates will match the pixel coordinates.
 
-The field of view shown is, as for standard matplotlib axes, 0 to
-1 in both directions, in pixel coordinates. The
-:meth:`~matplotlib.axes.Axes.set_xlim` and
-:meth:`~matplotlib.axes.Axes.set_ylim` methods can be used to re-set the
-pixel coordinates. For example, we can set the limits to the edge of the FITS
-image in pixel coordinates:
+The field of view shown is, as for standard matplotlib axes, 0 to 1 in both
+directions, in pixel coordinates. As soon as you show an image (see
+:doc:`images_contours`), the limits will be adjusted, but if you want you can
+also adjust the limits manually. Adjusting the limits is done using the
+same functions/methods as for a normal Matplotlib plot:
 
 .. plot::
    :context:
@@ -62,8 +62,8 @@ image in pixel coordinates:
     ax.set_xlim(-0.5, hdu.data.shape[1] - 0.5)
     ax.set_ylim(-0.5, hdu.data.shape[0] - 0.5)
 
-If no WCS transformation is specified, the transformation will default to
-identity, meaning that the world coordinates will match the pixel coordinates.
+.. note:: If you use the pyplot interface, you can also replace ``ax.set_xlim`` and
+          ``ax.set_ylim`` by ``plt.xlim`` and ``plt.ylim``.
 
 Alternative methods
 ===================
@@ -72,25 +72,11 @@ As in Matplotlib, there are in fact several ways you can initialize the
 :class:`~astropy.visualization.wcsaxes.WCSAxes`.
 
 As shown above, the simplest way is to make use of the :class:`~astropy.wcs.WCS`
-class and pass this to the :meth:`~matplotlib.figure.Figure.add_subplot`
-method::
-
-    from astropy.wcs import WCS
-    import matplotlib.pyplot as plt
-
-    wcs = WCS(...)
+class and pass this to ``plt.subplot``. If you normally use the (partially)
+object-oriented interface of Matplotlib, you can also do::
 
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1, projection=wcs)
-
-    ax.imshow(...)
-
-However, if you normally make plots directly with pyplot directly instead of
-creating axes and figure instances, you can also do::
-
-
-    plt.subplot(1, 1, 1, projection=wcs)
-    plt.imshow(...)
 
 Note that this also works with :meth:`~matplotlib.figure.Figure.add_axes` and
 :func:`~matplotlib.pyplot.axes`, e.g.::
@@ -125,6 +111,5 @@ figure::
     wcs = WCS(...)
 
     fig = plt.figure()
-
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs)
     fig.add_axes(ax)  # note that the axes have to be explicitly added to the figure

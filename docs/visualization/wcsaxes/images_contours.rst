@@ -20,9 +20,7 @@ For the example in the following page we start from the example introduced in
 
     import matplotlib.pyplot as plt
 
-    fig = plt.figure()
-    ax = fig.add_axes([0.25, 0.25, 0.6, 0.6], projection=wcs)
-
+    ax = plt.subplot(projection=wcs)
     ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
 
 Plotting images as bitmaps or contours should be done via the usual matplotlib
@@ -49,3 +47,7 @@ and we can also add contours corresponding to the same image using:
 
 To show contours for an image in a different coordinate system, see
 :doc:`overlays`.
+
+.. note:: If you like using the pyplot interface, you can also call
+          ``plt.imshow`` and ``plt.contour`` instead of ``ax.imshow`` and
+          ``ax.contour``.

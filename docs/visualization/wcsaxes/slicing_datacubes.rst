@@ -53,8 +53,7 @@ We then instantiate the `~astropy.visualization.wcsaxes.WCSAxes` using the
    :nofigs:
 
     import matplotlib.pyplot as plt
-    fig = plt.figure()
-    ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=wcs, slices=(50, 'y', 'x'))
+    ax = plt.subplot(projection=wcs, slices=(50, 'y', 'x'))
 
 By setting ``slices=(50, 'y', 'x')``, we have chosen to plot the second
 dimension on the y-axis and the third dimension on the x-axis. Even though we
@@ -106,6 +105,5 @@ If we don't want to reverse the dimensions plotted, we can simply do:
    :include-source:
    :align: center
 
-    fig = plt.figure(figsize=(6,3))
-    ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=wcs, slices=(50, 'x', 'y'))
+    ax = plt.subplot(projection=wcs, slices=(50, 'x', 'y'))
     ax.imshow(image_data[:, :, 50])

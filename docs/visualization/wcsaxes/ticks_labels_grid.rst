@@ -20,11 +20,10 @@ For the example in the following page we start from the example introduced in
 
     import matplotlib.pyplot as plt
 
-    fig = plt.figure()
-    ax = fig.add_axes([0.25, 0.25, 0.6, 0.6], projection=wcs)
-
+    ax = plt.subplot(projection=wcs)
     ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
 
+.. _coordinateobjects:
 
 Coordinate objects
 ==================
@@ -36,8 +35,20 @@ coupling between x- and y-axis to actual coordinates become less well-defined.
 
 Therefore rather than referring to ``x`` and ``y`` ticks as Matplotlib does,
 we use specialized objects to access the coordinates. The coordinates used in
-the plot can be accessed using the ``coords`` attribute. The coordinates can
-either be accessed by index::
+the plot can be accessed using the ``coords`` attribute of the axes. As a
+reminder, if you use the pyplot interface, you can grab a reference to the axes
+when creating a subplot::
+
+    ax = plt.subplot()
+
+or you can call ``plt.gca()`` at any time to get the current active axes::
+
+    ax = plt.gca()
+
+If you use the object-oriented interface to Matplotlib, you should already
+have a reference to the axes.
+
+Once you have an axes object, the coordinates can either be accessed by index::
 
     lon = ax.coords[0]
     lat = ax.coords[1]
@@ -97,6 +108,11 @@ allowed.
 
     lon.set_axislabel('Galactic Longitude', minpad=1)
     lat.set_axislabel('Galactic Latitude', minpad=1)
+
+.. note:: Note that, as shown in :ref:`wcsaxes-getting-started`, it is also
+          possible to use the normal ``plt.xlabel`` or ``ax.set_xlabel``
+          notation to set the axis labels in the case where they do appear on
+          the x and y axis.
 
 .. _tick_label_format:
 
@@ -328,3 +344,6 @@ one command:
    :align: center
 
     ax.coords.grid(color='white', alpha=0.5, linestyle='solid')
+
+.. note:: If you use the pyplot interface, you can also plot the grid using
+          ``plt.grid()``.

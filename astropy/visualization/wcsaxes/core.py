@@ -479,32 +479,37 @@ class WCSAxes(Axes):
         else:
             return self.get_window_extent(renderer)
 
-    def grid(self, draw_grid=True, **kwargs):
+    def grid(self, b=None, axis='both', **kwargs):
         """
         Plot gridlines for both coordinates.
 
         Standard matplotlib appearance options (color, alpha, etc.) can be
-        passed as keyword arguments.
+        passed as keyword arguments. This behaves like `matplotlib.axes.Axes`
+        except that if no arguments are specified, the grid is shown rather
+        than toggled.
 
         Parameters
         ----------
-        draw_grid : bool
-            Whether to show the gridlines
+        b : bool
+            Whether to show the gridlines.
         """
-        # these kwargs mock up the interface to plt.grid, allowing it to be used
-        # to set the grid
-        which = kwargs.pop('which', 'major')
-        if which != 'major':
-            raise ValueError('WCSAxes can only draw major gridlines')
-        axis = kwargs.pop('axis', 'both')
-        if axis != 'both':
-            raise ValueError('WCSAxes can only draw gridlines on both axes')
-        b = kwargs.pop('b', True)
-        if not b:
-            raise ValueError('WCSAxes cannot have grids removed once they are on')
 
-        if draw_grid and hasattr(self, 'coords'):
-            self.coords.grid(draw_grid=draw_grid, **kwargs)
+        if not hasattr(self, 'coords'):
+            return
+
+        which = kwargs.pop('which', 'both')
+        if which != 'major':
+            raise NotImplementedError('Plotting the grid for the minor ticks is '
+                                      'not supported.')
+
+        if axis == 'both':
+            self.coords.grid(draw_grid=b, **kwargs)
+        elif axis == 'x':
+            self.coords[0].grid(draw_grid=b, **kwargs)
+        elif axis == 'y':
+            self.coords[1].grid(draw_grid=b, **kwargs)
+        else:
+            raise ValueError('axis should be one of x/y/both')
 
 # In the following, we put the generated subplot class in a temporary class and
 # we then inherit it - if we don't do this, the generated class appears to

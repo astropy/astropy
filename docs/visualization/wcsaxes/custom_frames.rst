@@ -22,9 +22,7 @@ following example shows how to use the built-in
     hdu = fits.open(filename)[0]
     wcs = WCS(hdu.header)
 
-    fig = plt.figure()
-    ax = fig.add_axes([0.15, 0.15, 0.7, 0.7], projection=wcs,
-                      frame_class=EllipticalFrame)
+    ax = plt.subplot(projection=wcs, frame_class=EllipticalFrame)
 
     ax.coords.grid(color='white')
 
@@ -52,9 +50,7 @@ all-sky plots such as Aitoff projections:
     hdu = fits.open(filename)[0]
     wcs = WCS(hdu.header)
 
-    fig = plt.figure(figsize=(7, 4))
-    ax = fig.add_axes([0.05, 0.05, 0.9, 0.9], projection=wcs,
-                      frame_class=EllipticalFrame)
+    ax = plt.subplot(projection=wcs, frame_class=EllipticalFrame)
 
     path_effects=[patheffects.withStroke(linewidth=3, foreground='black')]
     ax.coords.grid(color='white')
@@ -115,14 +111,11 @@ which we can then use:
      hdu = fits.open(filename)[0]
      wcs = WCS(hdu.header)
 
-     fig = plt.figure()
-     ax = fig.add_axes([0.15, 0.15, 0.7, 0.7], projection=wcs,
-                       frame_class=HexagonalFrame)
+     ax = plt.subplot(projection=wcs, frame_class=HexagonalFrame)
 
      ax.coords.grid(color='white')
 
-     im = ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4,
-               origin='lower')
+     im = ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
 
      # Clip the image to the frame
      im.set_clip_path(ax.coords.frame.patch)

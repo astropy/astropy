@@ -8,18 +8,13 @@ WCSAxes is a framework for making plots of Astronomical data in Matplotlib. It
 was previously distributed as a standalone package, but is now included in
 :ref:`astropy.visualization <astropy-visualization>`.
 
-Compared to packages such as `APLpy <http://aplpy.readthedocs.io>`__, WCSAxes is
-a framework that is closer to the Matplotlib API and allows more advanced plots
-to be made, but on the other hand requires more code for simple plots. APLpy
-will in future be updated to make use of WCSAxes and provide a simpler
-interface for making common plots.
+.. _wcsaxes-getting-started:
 
 Getting started
 ===============
 
-The following is a simple example of plotting an image with the WCSAxes
-package, and overlaying the coordinate grid from the image as well as an
-equatorial coordinate grid.
+The following is a very simple example of plotting an image with the WCSAxes
+package:
 
 .. plot::
    :context: reset
@@ -27,6 +22,7 @@ equatorial coordinate grid.
    :align: center
 
     import matplotlib.pyplot as plt
+
     from astropy.wcs import WCS
     from astropy.io import fits
     from astropy.utils.data import get_pkg_data_filename
@@ -36,12 +32,36 @@ equatorial coordinate grid.
     hdu = fits.open(filename)[0]
     wcs = WCS(hdu.header)
 
-    fig = plt.figure()
-    ax = fig.add_axes([0.15, 0.1, 0.8, 0.8], projection=wcs)
+    plt.subplot(projection=wcs)
+    plt.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
+    plt.grid(color='white', ls='solid')
+    plt.xlabel('Galactic Longitude')
+    plt.ylabel('Galactic Latitude')
+
+This example uses the 'pyplot' interface to Matplotlib, but WCSAxes can be used
+with any of the other ways of using Matplotlib (some examples of which are given
+in :ref:`initialization`). For example, using the partially object-oriented
+interface, you can do::
+
+    ax = plt.subplot(projection=wcs)
+    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
+    ax.grid(color='white', ls='solid')
+    ax.set_xlabel('Galactic Longitude')
+    ax.set_ylabel('Galactic Latitude')
+
+Having access to the axes object is needed to access some of the more advanced
+functionality of WCSAxes:
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+    ax = plt.subplot(projection=wcs)
 
     ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
 
-    ax.coords.grid(color='white', ls='solid')
+    ax.coords.grid(True, color='white', ls='solid')
     ax.coords[0].set_axislabel('Galactic Longitude')
     ax.coords[1].set_axislabel('Galactic Latitude')
 
@@ -49,6 +69,16 @@ equatorial coordinate grid.
     overlay.grid(color='white', ls='dotted')
     overlay[0].set_axislabel('Right Ascension (J2000)')
     overlay[1].set_axislabel('Declination (J2000)')
+
+In the rest of this documentation we will assume that you have kept a reference
+to the axes object, which we will refer to as ``ax``. However, we also include
+notes when things can be done directly using the pyplot interface.
+
+WCSAxes supports a number of advanced plotting options, including the ability to
+control which axes to show labels on for which coordinates, overlaying contours
+from data with different coordinate systems, overlaying grids for different
+coordinate systems, dealing with plotting slices from data with more than two
+dimensions, and defining custom (non-rectangular) frames.
 
 Using WCSAxes
 =============
