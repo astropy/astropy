@@ -202,6 +202,10 @@ API Changes
     ``_BaseHDU.overwrite``, ``BinTableHDU.dump`` and
     ``HDUList.writeto``. [#5171]
 
+  - Added an optional ``copy`` parameter to ``fits.Header`` which controls if
+    a copy is made when creating an ``Header`` from another ``Header``.
+    [#5005, #5326]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -282,9 +286,6 @@ Bug Fixes
   - Copying a ``fits.Header`` using ``copy`` or ``deepcopy`` from the ``copy``
     module will use ``Header.copy`` to ensure that modifying the copy will
     not alter the other original Header and vice-versa. [#4990, #5323]
-
-  - Creating a ``fits.Header`` from another Header makes a deep copy instead
-    of a shallow copy. [#5005, #5326]
 
   - ``HDUList.info()`` no longer raises ``AttributeError`` in presence of
     ``BZERO``. [#5508]

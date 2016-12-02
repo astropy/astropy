@@ -41,10 +41,11 @@ def test_shallow_copy():
 
 
 def test_init_with_header():
-    """Make sure that creating a Header from another Header makes a copy."""
+    """Make sure that creating a Header from another Header makes a copy if
+    copy is True."""
 
     original_header = fits.Header([('a', 10)])
-    new_header = fits.Header(original_header)
+    new_header = fits.Header(original_header, copy=True)
     original_header['a'] = 20
     assert new_header['a'] == 10
 

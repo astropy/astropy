@@ -77,7 +77,7 @@ class Header(object):
     See the Astropy documentation for more details on working with headers.
     """
 
-    def __init__(self, cards=[]):
+    def __init__(self, cards=[], copy=False):
         """
         Construct a `Header` from an iterable and/or text file.
 
@@ -90,14 +90,20 @@ class Header(object):
             .. versionchanged:: 1.2
                 Allowed ``cards`` to be a `dict`-like object.
 
-            .. versionchanged:: 1.3
-                If ``cards`` is a Header the new Header is a deepcopy instead
-                of a shallow copy.
+        copy : bool, optional
+
+            If ``True`` copies the ``cards`` if they were another `Header`
+            instance.
+            Default is ``False``.
+
+            .. versionadded:: 1.3
         """
         self.clear()
 
         if isinstance(cards, Header):
-            cards = (copy.copy(card) for card in cards._cards)
+            if copy:
+                cards = cards.copy()
+            cards = cards.cards
         elif isinstance(cards, dict):
             cards = six.iteritems(cards)
 
@@ -767,7 +773,7 @@ class Header(object):
             A new :class:`Header` instance.
         """
 
-        tmp = Header(self)
+        tmp = Header((copy.copy(card) for card in self._cards))
         if strip:
             tmp._strip()
         return tmp
