@@ -12,6 +12,7 @@ Example usage:
     imageB = np.random.random((100,100))
     image = lupton_rgb.makeRGB(imageR, imageG, imageB, fileName='randoms.png')
 """
+from __future__ import absolute_import, division
 
 import numpy as np
 from . import ZScaleInterval
@@ -52,8 +53,9 @@ def compute_intensity(imageR, imageG=None, imageB=None):
     Inputs may be MaskedImages, Images, or numpy arrays and the return is of the same type.
     """
     if imageG is None or imageB is None:
-        assert imageG is None and imageB is None, \
-            "Please specify either a single image or red, green, and blue images"
+        if not (imageG is None and imageB is None):
+            raise ValueError("please specify either a single image "
+                             "or red, green, and blue images.")
         return imageR
 
     intensity = (imageR + imageG + imageB)/3.0
@@ -83,7 +85,8 @@ class Mapping(object):
             len(minimum)
         except TypeError:
             minimum = 3*[minimum]
-        assert len(minimum) == 3, "Please provide 1 or 3 values for minimum"
+        if len(minimum) != 3:
+            raise ValueError("please provide 1 or 3 values for minimum.")
 
         self.minimum = minimum
         self._image = image
@@ -113,7 +116,8 @@ class Mapping(object):
         """
         if imageR is None:
             if self._image is None:
-                raise RuntimeError("You must provide an image or pass one to the constructor")
+                raise RuntimeError("you must provide an image or pass one "
+                                   "to the constructor.")
             imageR = self._image
 
         if imageG is None:
@@ -122,7 +126,8 @@ class Mapping(object):
             imageB = imageR
 
         if xSize is not None or ySize is not None:
-            assert rescaleFactor is None, "You may not specify a size and rescaleFactor"
+            if rescaleFactor is not None:
+                raise ValueError("you may not specify a size and rescaleFactor.")
             h, w = imageR.shape
             if ySize is None:
                 ySize = int(xSize*h/float(w) + 0.5)
@@ -138,11 +143,15 @@ class Mapping(object):
 
         if size is not None:
             if not HAVE_SCIPY_MISC:
-                raise RuntimeError("Unable to rescale as scipy.misc.imresize is unavailable.")
+                raise RuntimeError("unable to rescale as scipy.misc.imresize "
+                                   "is unavailable.")
 
-            imageR = scipy.misc.imresize(imageR, size, interp='bilinear', mode='F')
-            imageG = scipy.misc.imresize(imageG, size, interp='bilinear', mode='F')
-            imageB = scipy.misc.imresize(imageB, size, interp='bilinear', mode='F')
+            imageR = scipy.misc.imresize(imageR, size, interp='bilinear',
+                                         mode='F')
+            imageG = scipy.misc.imresize(imageG, size, interp='bilinear',
+                                         mode='F')
+            imageB = scipy.misc.imresize(imageB, size, interp='bilinear',
+                                         mode='F')
 
         return np.dstack(self._convertImagesToUint8(imageR, imageG, imageB)).astype(np.uint8)
 
@@ -213,8 +222,9 @@ class LinearMapping(Mapping):
         """
 
         if minimum is None or maximum is None:
-            assert image is not None, "You must provide an image if you don't set both minimum and maximum"
-
+            if image is None:
+                raise ValueError("you must provide an image if you don't "
+                                 "set both minimum and maximum")
             if minimum is None:
                 minimum = image.min()
             if maximum is None:
@@ -226,7 +236,8 @@ class LinearMapping(Mapping):
         if maximum is None:
             self._range = None
         else:
-            assert maximum - minimum != 0, "minimum and maximum values must not be equal"
+            if maximum == minimum:
+                raise ValueError("minimum and maximum values must not be equal")
             self._range = float(maximum - minimum)
 
     def mapIntensityToUint8(self, I):
@@ -321,16 +332,22 @@ class AsinhZScaleMapping(AsinhMapping):
         """
 
         if image2 is None or image3 is None:
-            assert image2 is None and image3 is None, "Please specify either a single image or three images."
+            if not (image2 is None and image3 is None):
+                raise ValueError("please specify either a single image "
+                                 "or three images.")
             image = [image1]
         else:
             image = [image1, image2, image3]
 
         if pedestal is not None:
             try:
-                assert len(pedestal) in (1, 3,), "Please provide 1 or 3 pedestals."
+                len(pedestal)
             except TypeError:
                 pedestal = 3*[pedestal]
+
+            if len(pedestal) != 3:
+                raise ValueError("please provide 1 or 3 pedestals.")
+
 
             image = list(image)        # needs to be mutable
             for i, im in enumerate(image):
@@ -395,7 +412,8 @@ def makeRGB(imageR, imageG=None, imageB=None, minimum=0, dataRange=5, Q=8,
 
     if saturatedBorderWidth:
         if saturatedPixelValue is None:
-            raise ValueError("saturatedPixelValue must be set if saturatedBorderWidth is set")
+            raise ValueError("saturatedPixelValue must be set if "
+                             "saturatedBorderWidth is set.")
         msg = "Cannot do this until we extract replaceSaturatedPixels out of afw/display/saturated.cc"
         raise NotImplementedError(msg)
         # replaceSaturatedPixels(imageR, imageG, imageB, saturatedBorderWidth, saturatedPixelValue)
