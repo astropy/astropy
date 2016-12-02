@@ -1850,6 +1850,9 @@ Bug Fixes
 
   - Fix problem reading a zero-length ECSV table with a bool type column. [#5010]
 
+  - Fix problem reading an AASTex format table that does not have ``\\``
+    at the end of the last table row. [#5427]
+
 - ``astropy.io.fits``
 
   - Fix convenience functions (``getdata``, ``getheader``, ``append``,
