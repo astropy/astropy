@@ -274,6 +274,9 @@ Bug Fixes
   - ``HDUList.info()`` no longer raises ``AttributeError`` in presence of
     ``BZERO``. [#5508]
 
+  - Avoid exceptions with numpy 1.10 and up when using scaled integer data
+    where ``BZERO`` has float type but integer value. [#4639]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``

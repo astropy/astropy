@@ -1743,7 +1743,11 @@ class CompImageHDU(BinTableHDU):
 
         # Do the scaling
         if _zero != 0:
-            self.data += -_zero
+            # We have to explicitly cast self._bzero to prevent numpy from
+            # raising an error when doing self.data -= _zero, and we
+            # do this instead of self.data = self.data - _zero to
+            # avoid doubling memory usage.
+            np.subtract(self.data, _zero, out=self.data, casting='unsafe')
             self.header['BZERO'] = _zero
         else:
             # Delete from both headers
