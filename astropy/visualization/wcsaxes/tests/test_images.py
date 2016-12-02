@@ -9,6 +9,7 @@ from astropy import units as u
 from astropy.io import fits
 from astropy.tests.helper import pytest, remote_data
 from astropy.wcs import WCS
+from astropy.coordinates import SkyCoord
 
 from ..rc_utils import rc_context
 
@@ -191,6 +192,36 @@ class TestBasic(BaseImageTests):
 
         ax.coords[0].grid(grid_type='contours', color='blue', linestyle='solid')
         ax.coords[1].grid(grid_type='contours', color='red', linestyle='solid')
+
+        return fig
+
+    @remote_data
+    @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='plot_coord.png', tolerance=1.5)
+    def test_plot_coord(self):
+        fig = plt.figure(figsize=(6, 6))
+        ax = fig.add_axes([0.15, 0.15, 0.8, 0.8],
+                          projection=WCS(self.twoMASS_k_header),
+                          aspect='equal')
+        ax.set_xlim(-0.5, 720.5)
+        ax.set_ylim(-0.5, 720.5)
+
+        c = SkyCoord(266*u.deg, -29*u.deg)
+        ax.plot_coord(c, 'o')
+
+        return fig
+
+    @remote_data
+    @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir, filename='plot_line.png', tolerance=1.5)
+    def test_plot_line(self):
+        fig = plt.figure(figsize=(6, 6))
+        ax = fig.add_axes([0.15, 0.15, 0.8, 0.8],
+                          projection=WCS(self.twoMASS_k_header),
+                          aspect='equal')
+        ax.set_xlim(-0.5, 720.5)
+        ax.set_ylim(-0.5, 720.5)
+
+        c = SkyCoord([266, 266.8]*u.deg, [-29, -28.9]*u.deg)
+        ax.plot_coord(c)
 
         return fig
 

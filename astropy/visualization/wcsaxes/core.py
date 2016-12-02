@@ -3,6 +3,7 @@
 from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
 
+from astropy.coordinates import SkyCoord, BaseCoordinateFrame
 from astropy.wcs import WCS
 from astropy.wcs.utils import wcs_to_celestial_frame
 from astropy.extern import six
@@ -125,6 +126,59 @@ class WCSAxes(Axes):
                 kwargs['origin'] = 'lower'
 
         return super(WCSAxes, self).imshow(X, *args, **kwargs)
+
+    def plot_coord(self, *args, **kwargs):
+        """
+        Plot `~astropy.coordinates.SkyCoord` or
+        `~astropy.coordinates.BaseCoordinateFrame` objects onto the axes.
+
+        The first argument to `~wcsaxes.WCSAxes.plot_coord` should be a
+        coordinate, which will then be converted to the first two parameters to
+        `matplotlib.Axes.plot`. All other arguments are the same as
+        `matplotlib.Axes.plot`. If not specified a ``transform`` keyword
+        argument will be created based on the coordinate.
+
+        Parameters
+        ----------
+        coordinate : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
+            The coordinate object to plot on the axes. This is converted to the
+            first two arguments to `matplotlib.Axes.plot`.
+
+        See Also
+        --------
+
+        matplotlib.Axes.plot : This method is called from this function with all arguments passed to it.
+
+        """
+        args = list(args)
+        coord_instances = (SkyCoord, BaseCoordinateFrame)
+        if isinstance(args[0], coord_instances):
+
+            # Extract the frame from the first argument.
+            frame0 = args.pop(0)
+            if isinstance(frame0, SkyCoord):
+                frame0 = frame0.frame
+
+            plot_data = []
+            for coord in self.coords:
+                if coord.coord_type == 'longitude':
+                    plot_data.append(frame0.data.lon.to(coord.coord_unit).value)
+                elif coord.coord_type == 'latitude':
+                    plot_data.append(frame0.data.lat.to(coord.coord_unit).value)
+                else:
+                    raise NotImplementedError("Coordinates cannot be plotted with this "
+                                              "method because the WCS does not represent longitude/latitude.")
+
+            if 'transform' in kwargs.keys():
+                raise TypeError("The 'transform' keyword argument is not allowed,"
+                                " as it is automatically determined by the input coordinate frame.")
+
+            transform = self.get_transform(frame0)
+            kwargs.update({'transform':transform})
+
+            args = plot_data + args
+
+        super(WCSAxes, self).plot(*args, **kwargs)
 
     def reset_wcs(self, wcs=None, slices=None, transform=None, coord_meta=None):
         """

@@ -1,10 +1,14 @@
 from __future__ import print_function
 
+import os
+
 import numpy as np
 import matplotlib.pyplot as plt
 
+import astropy.units as u
 from astropy.wcs import WCS
 from astropy.io import fits
+from astropy.coordinates import SkyCoord
 from astropy.tests.helper import catch_warnings, pytest
 
 from ..core import WCSAxes
@@ -81,3 +85,18 @@ def test_invalid_frame_overlay():
     with pytest.raises(ValueError) as exc:
         get_coord_meta('banana')
     assert exc.value.args[0] == 'Unknown frame: banana'
+
+def test_plot_coord_transform():
+
+    twoMASS_k_header = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), 'data')), '2MASS_k_header')
+    twoMASS_k_header = fits.Header.fromtextfile(twoMASS_k_header)
+    fig = plt.figure(figsize=(6, 6))
+    ax = fig.add_axes([0.15, 0.15, 0.8, 0.8],
+                        projection=WCS(twoMASS_k_header),
+                        aspect='equal')
+    ax.set_xlim(-0.5, 720.5)
+    ax.set_ylim(-0.5, 720.5)
+
+    c = SkyCoord(359.76045223*u.deg, 0.26876217*u.deg)
+    with pytest.raises(TypeError):
+        ax.plot_coord(c, 'o', transform=ax.get_transform('galactic'))
