@@ -92,6 +92,7 @@ def test_compute_intensity_3_uint():
 
 class TestLuptonRgb(unittest.TestCase):
     """A test case for Rgb"""
+
     def setUp(self):
         np.random.seed(1000)  # so we always get the same images.
 
@@ -225,9 +226,18 @@ class TestLuptonRgb(unittest.TestCase):
             red = saturate(self.imageR, satValue)
             green = saturate(self.imageG, satValue)
             blue = saturate(self.imageB, satValue)
-            lupton_rgb.makeRGB(red, green, blue, self.min, self.range, self.Q, fileName=temp,
-                               saturatedBorderWidth=1, saturatedPixelValue=2000)
+            lupton_rgb.makeRGB(red, green, blue, self.min, self.range, self.Q, fileName=temp)
             self.assertTrue(os.path.exists(temp.name))
+
+    def testMakeRGB_saturated_fix(self):
+        satValue = 1000.0
+        # TODO: Cannot test with these options yet, as that part of the code is not implemented.
+        with self.assertRaises(NotImplementedError):
+            red = saturate(self.imageR, satValue)
+            green = saturate(self.imageG, satValue)
+            blue = saturate(self.imageB, satValue)
+            lupton_rgb.makeRGB(red, green, blue, self.min, self.range, self.Q,
+                               saturatedBorderWidth=1, saturatedPixelValue=2000)
 
     def testLinear(self):
         """Test using a specified linear stretch"""
@@ -264,6 +274,7 @@ class TestLuptonRgb(unittest.TestCase):
             lupton_rgb.writeRGB(temp, rgbImage)
             self.assertTrue(os.path.exists(temp.name))
 
+    @unittest.skip('replaceSaturatedPixels is not implemented in astropy yet')
     def testSaturated(self):
         """Test interpolating saturated pixels"""
 
@@ -317,32 +328,50 @@ class TestLuptonRgb(unittest.TestCase):
         if display:
             lupton_rgb.displayRGB(rgbImage, title=my_name())
 
-    @unittest.skipUnless(HAVE_SCIPY_MISC, "Resizing images requires scipy.misc")
-    def testStarsResizeSpecifications(self):
+    def _testStarsResizeSpecifications(self, xSize=None, ySize=None, frac=None):
         """Test creating an RGB image changing the output """
 
         map = lupton_rgb.AsinhZScaleMapping(self.imageR)
+        rgbImage = map.makeRgbImage(self.imageR, self.imageG, self.imageB,
+                                    xSize=xSize, ySize=ySize, rescaleFactor=frac)
 
-        for xSize, ySize, frac in [(self.imageR.shape[0]/2, self.imageR.shape[1]/2, None),
-                                   (2*self.imageR.shape[0], None,                         None),
-                                   (self.imageR.shape[0]/2, None,                         None),
-                                   (None,                        self.imageR.shape[1]/2, None),
-                                   (None,                        None,                         0.5),
-                                   (None,                        None,                         2),
-                                   ]:
-            rgbImage = map.makeRgbImage(self.imageR, self.imageG, self.imageB,
-                                        xSize=xSize, ySize=ySize, rescaleFactor=frac)
+        # TODO: I'm not positive that I got the width/height values correct:
+        # afw and numpy have different conventions!
+        h, w, _ = rgbImage.shape
+        if xSize is not None:
+            self.assertEqual(int(xSize), w)
+        if ySize is not None:
+            self.assertEqual(int(ySize), h)
+        if frac is not None:
+            self.assertEqual(int(frac*self.imageR.shape[1]), w)
+            self.assertEqual(int(frac*self.imageR.shape[0]), h)
 
-            h, w, _ = rgbImage.shape
-            # NOTE: This fails because h,w are somehow reversed.
-            # Did I screw something up in the conversion from AFW to numpy?
-            self.assertTrue(xSize is None or int(xSize) == w)
-            self.assertTrue(ySize is None or int(ySize) == h)
-            self.assertTrue(frac is None or w == int(frac*self.imageR.shape[0]),
-                            "%g == %g" % (w, int((frac if frac else 1)*self.imageR.shape[0])))
+        if display:
+            lupton_rgb.displayRGB(rgbImage, title=my_name())
 
-            if display:
-                lupton_rgb.displayRGB(rgbImage, title=my_name())
+    @unittest.skipUnless(HAVE_SCIPY_MISC, "Resizing images requires scipy.misc")
+    def testStarsResizeSpecificaions_xSize_ySize(self):
+        self._testStarsResizeSpecifications(xSize=self.imageR.shape[0]/2, ySize=self.imageR.shape[1]/2)
+
+    @unittest.skipUnless(HAVE_SCIPY_MISC, "Resizing images requires scipy.misc")
+    def testStarsResizeSpecifications_twice_xSize(self):
+        self._testStarsResizeSpecifications(xSize=2*self.imageR.shape[0])
+
+    @unittest.skipUnless(HAVE_SCIPY_MISC, "Resizing images requires scipy.misc")
+    def testStarsResizeSpecifications_half_xSize(self):
+        self._testStarsResizeSpecifications(xSize=self.imageR.shape[0]/2)
+
+    @unittest.skipUnless(HAVE_SCIPY_MISC, "Resizing images requires scipy.misc")
+    def testStarsResizeSpecifications_half_ySize(self):
+        self._testStarsResizeSpecifications(ySize=self.imageR.shape[0]/2)
+
+    @unittest.skipUnless(HAVE_SCIPY_MISC, "Resizing images requires scipy.misc")
+    def testStarsResizeSpecifications_frac_half(self):
+        self._testStarsResizeSpecifications(frac=0.5)
+
+    @unittest.skipUnless(HAVE_SCIPY_MISC, "Resizing images requires scipy.misc")
+    def testStarsResizeSpecifications_frac_twice(self):
+        self._testStarsResizeSpecifications(frac=2)
 
     @unittest.skipUnless(HAVE_SCIPY_MISC, "Resizing images requires scipy.misc")
     def testMakeRGBResize(self):
