@@ -237,10 +237,6 @@ class TestLuptonRgb(object):
 
         rgbImage = lupton_rgb.LinearMapping(image=self.imageR).makeRgbImage()
 
-    def testZScale(self):
-        """Test using a zscale stretch"""
-
-        rgbImage = lupton_rgb.ZScaleMapping(self.imageR).makeRgbImage()
 
     @pytest.mark.skipif('not HAS_MATPLOTLIB')
     def testWriteStars(self):
