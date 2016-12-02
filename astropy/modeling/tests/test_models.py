@@ -570,5 +570,23 @@ def test_tabular_interp_2d():
     result = np.array(
         [-0.04614432, -0.03450009, -0.02241028, -0.0069727, 0.01938675])
     utils.assert_allclose(znew, result, atol=10**-7)
+
+    # test 2D arrays as input
+    a = np.arange(12).reshape((3, 4))
+    y, x = np.mgrid[:3, :4]
+    t = models.Tabular2D(lookup_table=a)
+    result = t(y, x)
+    utils.assert_allclose(a, result)
+
     with pytest.raises(ValueError):
         model = LookupTable(points=([1.2, 2.3], [1.2, 6.7], [3, 4]))
+
+
+@pytest.mark.skipif("not HAS_SCIPY_14")
+def test_tabular_nd():
+    a = np.arange(24).reshape((2, 3, 4))
+    x, y, z = np.mgrid[:2, :3, :4]
+    tab = models.tabular_model(3)
+    t = tab(lookup_table=a)
+    result = t(x, y, z)
+    utils.assert_allclose(a, result)
