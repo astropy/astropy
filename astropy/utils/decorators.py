@@ -189,8 +189,8 @@ def deprecated(since, message='', name='', alternative='', pending=False,
             else:
                 message = ('The {func} {obj_type} is deprecated and may '
                            'be removed in a future version.')
-            if alternative:
-                altmessage = '\n        Use {} instead.'.format(alternative)
+        if alternative:
+            altmessage = '\n        Use {} instead.'.format(alternative)
 
         message = ((message.format(**{
             'func': name,

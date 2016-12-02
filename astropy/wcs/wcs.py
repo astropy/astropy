@@ -67,7 +67,7 @@ if _wcs is not None:
 
 from ..utils.compat import possible_filename
 from ..utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
-from ..utils.decorators import deprecated
+from ..utils.decorators import deprecated, deprecated_attribute
 
 if _wcs is not None:
     assert _wcs._sanity_check(), \
@@ -2706,6 +2706,26 @@ reduce these to 2 dimensions using the naxis kwarg.
             f.write('polygon(')
             self.calc_footprint().tofile(f, sep=',')
             f.write(') # color={0}, width={1:d} \n'.format(color, width))
+
+    @property
+    @deprecated("1.3", name="_naxis1", alternative="naxis1", obj_type="attribute")
+    def _naxis1(self):
+        return self._naxis_size[0]
+
+    @_naxis1.setter
+    @deprecated("1.3", name="_naxis1", alternative="naxis1", obj_type="attribute")
+    def _naxis1(self, value):
+        self._naxis_size[0] = value
+
+    @property
+    @deprecated("1.3", name="_naxis2", alternative="naxis2", obj_type="attribute")
+    def _naxis2(self):
+        return self._naxis_size[1]
+
+    @_naxis2.setter
+    @deprecated("1.3", name="_naxis2", alternative="naxis2", obj_type="attribute")
+    def _naxis2(self, value):
+        self._naxis_size[1] = value
 
     def _get_naxis(self, header=None):
         _naxis = []
