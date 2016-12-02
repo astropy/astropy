@@ -22,6 +22,7 @@ from ...utils.xml import writer
 
 from copy import deepcopy
 
+
 class SoupString(str):
     """
     Allows for strings to hold BeautifulSoup data.

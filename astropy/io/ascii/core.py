@@ -671,8 +671,7 @@ class BaseData(object):
     write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
     fill_include_names = None
     fill_exclude_names = None
-    # Currently, the default matches the numpy default for masked values.
-    fill_values = [(masked, '--')]
+    fill_values = [(masked, '')]
     formats = {}
 
     def __init__(self):
@@ -1430,6 +1429,13 @@ def _get_writer(Writer, fast_writer, **kwargs):
 
     from .fastbasic import FastBasic
 
+    # A value of None for fill_values imply getting the default string
+    # representation of masked values (depending on the writer class), but the
+    # machinery expects a list.  The easiest here is to just pop the value off,
+    # i.e. fill_values=None is the same as not providing it at all.
+    if 'fill_values' in kwargs and kwargs['fill_values'] is None:
+        del kwargs['fill_values']
+
     if issubclass(Writer, FastBasic): # Fast writers handle args separately
         return Writer(**kwargs)
     elif fast_writer and 'fast_{0}'.format(Writer._format_name) in FAST_CLASSES:
@@ -1466,7 +1472,13 @@ def _get_writer(Writer, fast_writer, **kwargs):
     if 'exclude_names' in kwargs:
         writer.exclude_names = kwargs['exclude_names']
     if 'fill_values' in kwargs:
-        writer.data.fill_values = kwargs['fill_values']
+        # Prepend user-specified values to the class default.
+        with suppress(TypeError, IndexError):
+            # Test if it looks like (match, replace_string, optional_colname),
+            # in which case make it a list
+            kwargs['fill_values'][1] + ''
+            kwargs['fill_values'] = [kwargs['fill_values']]
+        writer.data.fill_values = kwargs['fill_values'] + writer.data.fill_values
     if 'fill_include_names' in kwargs:
         writer.data.fill_include_names = kwargs['fill_include_names']
     if 'fill_exclude_names' in kwargs:

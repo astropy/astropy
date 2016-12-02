@@ -209,13 +209,13 @@ details.
   Exclude these names from the list of output columns.  This is applied *after*
   the ``include_names`` filtering.  If not specified then no columns are excluded.
 
-**fill_values**: fill value specifier of lists
+**fill_values**: list of fill value specifiers
   This can be used to fill missing values in the table or replace values with special meaning.
 
   See the :ref:`replace_bad_or_missing_values` section for more information on the syntax.
   The syntax is almost the same as when reading a table.
   There is a special value ``astropy.io.ascii.masked`` that is used a say "output this string
-  for all masked values in a masked table (the default is to use a ``'--'``)::
+  for all masked values in a masked table (the default is to use an empty string ``""``)::
 
       >>> import sys
       >>> from astropy.table import Table, Column, MaskedColumn
@@ -224,19 +224,11 @@ details.
       >>> t['a'].mask = [True, False]
       >>> ascii.write(t, sys.stdout)
       a b
-      -- 3
+      "" 3
       2 4
       >>> ascii.write(t, sys.stdout, fill_values=[(ascii.masked, 'N/A')])
       a b
       N/A 3
-      2 4
-
-  If no ``fill_values`` is applied for masked values in ``astropy.io.ascii``, the default set
-  with ``numpy.ma.masked_print_option.set_display`` applies (usually that is also ``'--'``)::
-
-      >>> ascii.write(t, sys.stdout, fill_values=[])
-      a b
-      -- 3
       2 4
 
   Note that when writing a table all values are converted to strings, before
