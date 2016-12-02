@@ -275,7 +275,7 @@ Bug Fixes
     ``BZERO``. [#5508]
 
   - Avoid exceptions with numpy 1.10 and up when using scaled integer data
-    where ``BZERO`` has float type but integer value. [#4639]
+    where ``BZERO`` has float type but integer value. [#4639, #5527]
 
 - ``astropy.io.misc``
 
