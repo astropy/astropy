@@ -25,7 +25,7 @@ def test_builtin_sites():
         reg['nonexistent site']
     assert exc.value.args[0] == "Site 'nonexistent site' not in database. Use the 'names' attribute to see available sites."
 
-@remote_data
+@remote_data(source='astropy')
 def test_online_stes():
     reg = get_downloaded_sites()
 
@@ -50,7 +50,7 @@ def test_online_stes():
     assert exc.value.args[0] == "Site 'kec' not in database. Use the 'names' attribute to see available sites. Did you mean one of: 'keck'?'"
 
 
-@remote_data
+@remote_data(source='astropy')
 # this will *try* the online so we have to make it remote_data, even though it
 # could fall back on the non-remote version
 def test_EarthLocation_basic():
@@ -82,7 +82,7 @@ def test_EarthLocation_state_offline():
     assert oldreg is not newreg
 
 
-@remote_data
+@remote_data(source='astropy')
 def test_EarthLocation_state_online():
     EarthLocation._site_registry = None
     EarthLocation._get_site_registry(force_download=True)
