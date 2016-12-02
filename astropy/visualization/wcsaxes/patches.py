@@ -7,14 +7,10 @@ from matplotlib.patches import Polygon
 
 from ... import units as u
 from ...coordinates.representation import UnitSphericalRepresentation
-from ...coordinates.matrix_utilities import rotation_matrix as rotation_array
+from ...coordinates.matrix_utilities import rotation_matrix, matrix_product
 
 
 __all__ = ['SphericalCircle']
-
-
-def rotation_matrix(*args, **kwargs):
-    return np.matrix(rotation_array(*args, **kwargs))
 
 
 def _rotate_polygon(lon, lat, lon0, lat0):
@@ -32,7 +28,7 @@ def _rotate_polygon(lon, lat, lon0, lat0):
     # on the correct longitude/latitude.
     m1 = rotation_matrix(-(0.5 * np.pi * u.radian - lat0), axis='y')
     m2 = rotation_matrix(-lon0, axis='z')
-    transform_matrix = m2 * m1
+    transform_matrix = matrix_product(m2, m1)
 
     # Apply 3D rotation
     polygon = polygon.to_cartesian()
