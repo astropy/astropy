@@ -52,7 +52,7 @@ def add_dictval_to_list(adict, key, alist):
 
 def find_latex_line(lines, latex):
     '''
-    Find the first line which matches a patters
+    Find the first line which matches a pattern
 
     Parameters
     ----------
@@ -76,11 +76,11 @@ def find_latex_line(lines, latex):
 
 
 class LatexSplitter(core.BaseSplitter):
-    '''Split LaTeX table date. Default delimiter is `&`.
+    '''Split LaTeX table data. Default delimiter is `&`.
     '''
     delimiter = '&'
 
-    def process_line(self, line):
+    def process_line(self, line, last_line=False):
         """Remove whitespace at the beginning or end of line. Also remove
         \\ at end of line"""
         line = line.split('%')[0]
@@ -88,7 +88,8 @@ class LatexSplitter(core.BaseSplitter):
         if line[-2:] == r'\\':
             line = line.strip(r'\\')
         else:
-            raise core.InconsistentTableError(r'Lines in LaTeX table have to end with \\')
+            if not last_line:
+                raise core.InconsistentTableError(r'Lines in LaTeX table have to end with \\')
         return line
 
     def process_val(self, val):
@@ -97,6 +98,23 @@ class LatexSplitter(core.BaseSplitter):
         if val and (val[0] == '{') and (val[-1] == '}'):
             val = val[1:-1]
         return val
+
+    def gen_process_lines(self, lines):
+        '''Generator function that processes lines and last line specially.'''
+        for x in lines[0:-1]:
+            yield self.process_line(x)
+        yield self.process_line(lines[-1], last_line=True)
+
+    def __call__(self, lines):
+        '''Treat the last line of a table specially because it's allowed to not end with \\.'''
+        if self.process_line:
+            lines = self.gen_process_lines(lines)
+        for line in lines:
+            vals = line.split(self.delimiter)
+            if self.process_val:
+                yield [self.process_val(x) for x in vals]
+            else:
+                yield vals
 
     def join(self, vals):
         '''Join values together and add a few extra spaces for readability'''
@@ -323,7 +341,7 @@ class AASTexHeaderSplitter(LatexSplitter):
 
         \tablehead{\colhead{col1} & ... & \colhead{coln}}
     '''
-    def process_line(self, line):
+    def process_line(self, line, last_line=False):
         """extract column names from tablehead
         """
         line = line.split('%')[0]
@@ -387,7 +405,7 @@ class AASTexData(LatexData):
         lines.append(self.data_start)
         lines_length_initial = len(lines)
         core.BaseData.write(self, lines)
-        # To remove extra space(s) and // appended which creates an extra new line
+        # To remove extra space(s) and \\ appended which creates an extra new line
         # in the end.
         if len(lines) > lines_length_initial:
             # we compile separately because py2.6 doesn't have a flags keyword in re.sub
