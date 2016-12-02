@@ -242,12 +242,13 @@ class TestLuptonRgb(object):
 
         rgbImage = lupton_rgb.ZScaleMapping(self.imageR).makeRgbImage()
 
+    @pytest.mark.skipif('not HAS_MATPLOTLIB')
     def testWriteStars(self):
         """Test writing RGB files to disk"""
         asinhMap = lupton_rgb.AsinhMapping(self.min_, self.range_, self.Q)
-        rgbImage = asinhMap.makeRgbImage(self.imageR, self.imageG, self.imageB)
         with tempfile.NamedTemporaryFile(suffix=".png") as temp:
-            lupton_rgb.writeRGB(temp, rgbImage)
+            rgbImage = asinhMap.makeRgbImage(self.imageR, self.imageG,
+                                             self.imageB, fileName=temp)
             assert os.path.exists(temp.name)
 
     def testSaturated(self):
