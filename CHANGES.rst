@@ -138,6 +138,9 @@ API Changes
 
 - ``astropy.convolution``
 
+  - ``discretize_model`` now raises an exception if non-integer ranges are used.
+    Previously it had incorrect behavior but did not raise an exception. [#5538]
+
 - ``astropy.coordinates``
 
   - ``SkyCoord``, ``ICRS``, and other coordinate objects, as well as the
