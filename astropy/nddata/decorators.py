@@ -100,6 +100,32 @@ def support_nddata(_func=None, accepts=NDData,
     - ``meta``
     - ``uncertainty``
     - ``flags``
+
+    Examples
+    --------
+
+    This function takes a Numpy array for the data, and some WCS information
+    with the ``wcs`` keyword argument::
+
+        def downsample(data, wcs=None):
+            # downsample data and optionally WCS here
+            pass
+
+    However, you might have an NDData instance that has the ``wcs`` property
+    set and you would like to be able to call the function with
+    ``downsample(my_nddata)`` and have the WCS information, if present,
+    automatically be passed to the ``wcs`` keyword argument.
+
+    This decorator can be used to make this possible::
+
+        @support_nddata
+        def downsample(data, wcs=None):
+            # downsample data and optionally WCS here
+            pass
+
+    This function can now either be called as before, specifying the data and
+    WCS separately, or an NDData instance can be passed to the ``data``
+    argument.
     """
     if (returns is not None or keeps is not None) and not repack:
         raise ValueError('returns or keeps should only be set if repack=True.')
