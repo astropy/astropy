@@ -846,18 +846,15 @@ class FITS_rec(np.recarray):
         dummy = np.char.ljust(field, format.width)
         dummy = np.char.replace(dummy, encode_ascii('D'), encode_ascii('E'))
         null_fill = encode_ascii(str(ASCIITNULL).rjust(format.width))
+
+        # Convert all fields equal to the TNULL value (nullval) to empty fields.
+        # TODO: These fields really should be conerted to NaN or something else undefined.
+        # Currently they are converted to empty fields, which are then set to zero.
         dummy = np.where(np.char.strip(dummy) == nullval, null_fill, dummy)
 
-        # But if the nullval itself is a blank string and it's an int column,
-        # it must be converted to a 0 before being loaded into the numpy array.
-        # The nullval for an empty string is the string 'None'.
-        if nullval == b'None' and format.startswith('I'):
-            int_null_fill = encode_ascii(str(0).rjust(format.width))
-            dummy = np.where(np.char.strip(dummy) == b'', int_null_fill, dummy)
-
-        # Replace blank values in float columns with nullval.
-        if format.startswith('F'):
-            dummy = np.where(np.char.strip(dummy) == b'', nullval, dummy)
+        # always replace empty fields, see https://github.com/astropy/astropy/pull/5394
+        if nullval != b'':
+            dummy = np.where(np.char.strip(dummy) == b'', null_fill, dummy)
 
         try:
             dummy = np.array(dummy, dtype=recformat)
