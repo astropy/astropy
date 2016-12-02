@@ -671,7 +671,6 @@ class BaseData(object):
     write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
     fill_include_names = None
     fill_exclude_names = None
-    # Currently, the default matches the numpy default for masked values.
     fill_values = [(masked, '')]
     formats = {}
 
@@ -1430,7 +1429,7 @@ def _get_writer(Writer, fast_writer, **kwargs):
 
     from .fastbasic import FastBasic
 
-    # A values of None for fill_values imply getting the default string
+    # A value of None for fill_values imply getting the default string
     # representation of masked values (depending on the writer class), but the
     # machinery expects a list.  The easiest here is to just pop the value off,
     # i.e. fill_values=None is the same as not providing it at all.
