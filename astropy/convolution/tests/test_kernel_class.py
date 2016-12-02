@@ -473,16 +473,6 @@ class TestKernels(object):
             kernel = CustomKernel(np.ones(3))
             kernel.normalize(mode='invalid')
 
-    def test_kernel_normalization_large(self, recwarn):
-        """
-        Test that a warning is issued when the inverse normalization factor
-        is large.
-        """
-        kernel = CustomKernel(np.ones(3) * 1.e-3)
-        kernel.normalize()
-        w = recwarn.pop(AstropyUserWarning)
-        assert issubclass(w.category, AstropyWarning)
-
     def test_kernel1d_int_size(self):
         """
         Test that an error is raised if ``Kernel1D`` ``x_size`` is not
