@@ -26,7 +26,7 @@ try:
     import scipy.misc
     scipy.misc.imresize  # checking if it exists
     HAVE_SCIPY_MISC = True
-except ImportError:
+except (ImportError, AttributeError):
     HAVE_SCIPY_MISC = False
 
 # NOTE: these methods would have come from LSST C++ code. They won't be available
