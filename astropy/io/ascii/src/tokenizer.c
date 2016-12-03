@@ -652,9 +652,13 @@ double str_to_double(tokenizer_t *self, char *str)
         {
             goto conversion_error;
         }
-        else if (errno == ERANGE && val != -HUGE_VAL && val != HUGE_VAL)
+        else if (errno == ERANGE)
         {
             self->code = OVERFLOW_ERROR;
+        }
+        else if (errno == EDOM)        // xstrtod signalling invalid exponents
+        {
+            self->code = CONVERSION_ERROR;
         }
 
         return val;
@@ -668,9 +672,13 @@ double str_to_double(tokenizer_t *self, char *str)
         {
             goto conversion_error;
         }
-        else if (errno == ERANGE && val != -HUGE_VAL && val != HUGE_VAL && val != 0)
+        else if (errno == ERANGE)
         {
             self->code = OVERFLOW_ERROR;
+        }
+        else if (errno == EDOM)
+        {
+            self->code = CONVERSION_ERROR;
         }
 
         return val;
@@ -767,8 +775,9 @@ conversion_error:
 // * Recognise alternative exponent characters passed in 'sci'; try automatic
 //   detection of allowed Fortran formats with sci='A'
 // * Require exactly 3 digits in exponent for Fortran-type format '8.7654+321'
-// Modifications by Derek Homeier, September 2016:
+// Modifications by Derek Homeier, September-December 2016:
 // * Fixed some corner cases of very large or small exponents; proper return
+// * do not increment num_digits until nonzero digit read in
 //
 
 double xstrtod(const char *str, char **endptr, char decimal,
@@ -784,6 +793,7 @@ double xstrtod(const char *str, char **endptr, char decimal,
     int num_decimals;
     int max_digits = 17;
     int num_exp = 3;
+    int non_zero;
     int n;
     // Cache powers of 10 in memory
     static double e[] = {1., 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10,
@@ -838,6 +848,7 @@ double xstrtod(const char *str, char **endptr, char decimal,
     exponent = 0;
     num_digits = 0;
     num_decimals = 0;
+    non_zero = 0;
 
     // Process string of digits
     while (isdigit(*p))
@@ -845,7 +856,8 @@ double xstrtod(const char *str, char **endptr, char decimal,
         if (num_digits < max_digits)
         {
             number = number * 10. + (*p - '0');
-            num_digits++;
+            non_zero += (*p != '0');
+            if(non_zero) num_digits++;
         }
         else
             ++exponent;
@@ -862,9 +874,10 @@ double xstrtod(const char *str, char **endptr, char decimal,
         while (num_digits < max_digits && isdigit(*p))
         {
             number = number * 10. + (*p - '0');
-            p++;
-            num_digits++;
+            non_zero += (*p != '0');
+            if(non_zero) num_digits++;
             num_decimals++;
+            p++;
         }
 
         if (num_digits >= max_digits) // consume extra decimal digits
@@ -924,7 +937,7 @@ double xstrtod(const char *str, char **endptr, char decimal,
             // Trigger error if not exactly three digits
             if (num_exp != 0 && (exp == '+' || exp == '-'))
             {
-               errno = ERANGE;
+               errno = EDOM;
                number = 0.0;
             }
 
@@ -962,33 +975,39 @@ double xstrtod(const char *str, char **endptr, char decimal,
 
     // largest representable float64 is 1.7977e+308, closest to 0 ~4.94e-324,
     // but multiplying exponents in in two steps gives slightly better precision
-    if (exponent > 305)
-    {
-        if (exponent > 311)
-            number *= HUGE_VAL;
-        else   // try to accommodate leading zeros, e.g. 0.166E309
+    if (number != 0.0) {
+        if (exponent > 305)
         {
-            number *= e[exponent-300];
-            number *= 1.e300;
+            if (exponent > 308)   // leading zeros already subtracted from exp
+                number *= HUGE_VAL;
+            else
+            {
+                number *= e[exponent-300];
+                number *= 1.e300;
+            }
         }
-    }
-    else if (exponent < -308) // subnormal
-    {
-        if (exponent < -616) // prevent invalid array access
-            number = 0.;
-        else
+        else if (exponent < -308) // subnormal
         {
-            number /= e[-308-exponent];
-            number *= 1.e-308;
+            if (exponent < -616) // prevent invalid array access
+                number = 0.;
+            else
+            {
+                number /= e[-308-exponent];
+                number *= 1.e-308;
+            }
+            // trigger warning if resolution is > ~1.e-15;
+            // strtod does so for |number| <~ 2.25e-308
+            // if (number > -4.94e-309 && number < 4.94e-309)
+            errno = ERANGE;
         }
-    }
-    else if (exponent > 0)
-        number *= e[exponent];
-    else if (exponent < 0)
-        number /= e[-exponent];
+        else if (exponent > 0)
+            number *= e[exponent];
+        else if (exponent < 0)
+            number /= e[-exponent];
 
-    if (number == HUGE_VAL || number == -HUGE_VAL)
-        errno = ERANGE;
+        if (number == HUGE_VAL || number == -HUGE_VAL)
+            errno = ERANGE;
+    }
 
     if (skip_trailing) {
         // Skip trailing whitespace

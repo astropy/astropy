@@ -5,6 +5,7 @@ import os
 import math
 import multiprocessing
 import mmap
+import warnings
 
 import numpy as np
 cimport numpy as np
@@ -15,6 +16,7 @@ from cpython.buffer cimport Py_buffer
 from cpython.buffer cimport PyObject_GetBuffer, PyBuffer_Release
 
 from ...utils.data import get_readable_fileobj
+from ...utils.exceptions import AstropyWarning
 from ...table import pprint
 from ...extern import six
 from . import core
@@ -578,7 +580,17 @@ cdef class CParser:
                 try:
                     if try_float and not try_float[name]:
                         raise ValueError()
+                    if t.code == OVERFLOW_ERROR:
+                        # Overflow during int conversion (extending range)
+                        warnings.warn("OverflowError converting to {0} in column {1}, reverting to Float."
+                                  .format('IntType', name), AstropyWarning)
+                        t.code = NO_ERROR
                     cols[name] = self._convert_float(t, i, num_rows)
+                    if t.code == OVERFLOW_ERROR:
+                        # Overflow during float conversion (extending range)
+                        warnings.warn("OverflowError converting to {0} in column {1}, possibly resulting in degraded precision."
+                                  .format('FloatType', name), AstropyWarning)
+                        t.code = NO_ERROR
                 except ValueError:
                     if try_string and not try_string[name]:
                         raise ValueError('Column {0} failed to convert'.format(name))
@@ -633,7 +645,8 @@ cdef class CParser:
 
             if t.code in (CONVERSION_ERROR, OVERFLOW_ERROR):
                 # no dice
-                t.code = NO_ERROR
+                if t.code == CONVERSION_ERROR:
+                    t.code = NO_ERROR
                 raise ValueError()
 
             data[row] = converted
@@ -660,6 +673,7 @@ cdef class CParser:
         cdef char *empty_field = t.buf
         cdef bytes new_value
         cdef int replacing
+        cdef err_code overflown = NO_ERROR # store any OVERFLOW to raise warning
         mask = set()
 
         start_iteration(t, i)
@@ -689,12 +703,13 @@ cdef class CParser:
             if t.code == CONVERSION_ERROR:
                 t.code = NO_ERROR
                 raise ValueError()
-            elif t.code == OVERFLOW_ERROR:
-                t.code = NO_ERROR
-                raise ValueError()
             else:
                 data[row] = converted
+            if t.code == OVERFLOW_ERROR:
+                t.code = NO_ERROR
+                overflown = OVERFLOW_ERROR
             row += 1
+        t.code = overflown
 
         if mask:
             return ma.masked_array(col, mask=[1 if i in mask else 0 for i in
