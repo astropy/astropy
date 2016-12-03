@@ -17,17 +17,24 @@ except ImportError:
 
 __all__ = ['AstropyLoader', 'AstropyDumper', 'load', 'load_all', 'dump']
 
-def unit_representer(dumper, obj):
+def _unit_representer(dumper, obj):
     out = {'name': str(obj.to_string())}
     return dumper.represent_mapping(u'!astropy.units.Unit', out)
 
 
-def unit_constructor(loader, node):
+def _unit_constructor(loader, node):
     map = loader.construct_mapping(node)
     return u.Unit(map['name'])
 
 
-def get_obj_attrs_map(obj, attrs):
+def _get_obj_attrs_map(obj, attrs):
+    """
+    Get the values for object ``attrs`` and return as a dict.  This
+    ignores any attributes that are None and in Py2 converts any unicode
+    attribute names or values to str.  In the context of serializing the
+    supported core astropy classes this conversion will succeed and results
+    in more succinct and less python-specific YAML.
+    """
     out = {}
     for attr in attrs:
         val = getattr(obj, attr, None)
@@ -40,14 +47,14 @@ def get_obj_attrs_map(obj, attrs):
     return out
 
 
-def time_representer(dumper, obj):
+def _time_representer(dumper, obj):
     attrs = ('jd1', 'jd2', 'format', 'scale', 'precision', 'in_subfmt',
              'out_subfmt', 'location', '_delta_ut1_utc', '_delta_tdb_tt')
-    out = get_obj_attrs_map(obj, attrs)
+    out = _get_obj_attrs_map(obj, attrs)
     return dumper.represent_mapping(u'!astropy.time.Time', out)
 
 
-def time_constructor(loader, node):
+def _time_constructor(loader, node):
     map = loader.construct_mapping(node)
     format = map.pop('format')
     delta_ut1_utc = map.pop('_delta_ut1_utc', None)
@@ -68,13 +75,13 @@ def time_constructor(loader, node):
     return out
 
 
-def timedelta_representer(dumper, obj):
+def _timedelta_representer(dumper, obj):
     attrs = ('jd1', 'jd2', 'format', 'scale')
-    out = get_obj_attrs_map(obj, attrs)
+    out = _get_obj_attrs_map(obj, attrs)
     return dumper.represent_mapping(u'!astropy.time.TimeDelta', out)
 
 
-def timedelta_constructor(loader, node):
+def _timedelta_constructor(loader, node):
     map = loader.construct_mapping(node)
     format = map.pop('format')
 
@@ -88,7 +95,7 @@ def timedelta_constructor(loader, node):
     return out
 
 
-def ndarray_representer(dumper, obj):
+def _ndarray_representer(dumper, obj):
     if obj.flags['C_CONTIGUOUS']:
         obj_data = obj.data
     else:
@@ -103,7 +110,7 @@ def ndarray_representer(dumper, obj):
     return dumper.represent_mapping(u'!numpy.ndarray', out)
 
 
-def ndarray_constructor(loader, node):
+def _ndarray_constructor(loader, node):
     map = loader.construct_mapping(node)
     data = base64.b64decode(map['__ndarray__'])
     return np.frombuffer(data, map['dtype']).reshape(map['shape'])
@@ -113,7 +120,7 @@ def ndarray_constructor(loader, node):
 QUANTITY_CLASSES = {cls.__name__: cls for cls in
                     (u.Quantity, coords.Angle, coords.Longitude, coords.Latitude)}
 
-def quantity_representer(dumper, obj):
+def _quantity_representer(dumper, obj):
     out = {'class': obj.__class__.__name__,
            'value': obj.value,
            'unit': obj.unit}
@@ -123,19 +130,19 @@ def quantity_representer(dumper, obj):
     return dumper.represent_mapping(u'!astropy.units.Quantity', out)
 
 
-def quantity_constructor(loader, node):
+def _quantity_constructor(loader, node):
     map = loader.construct_mapping(node)
     cls = map.pop('class')
     value = map.pop('value')
     return QUANTITY_CLASSES[cls](value, **map)
 
 
-def earthlocation_representer(dumper, obj):
-    out = get_obj_attrs_map(obj, ('x', 'y', 'z', 'ellipsoid'))
+def _earthlocation_representer(dumper, obj):
+    out = _get_obj_attrs_map(obj, ('x', 'y', 'z', 'ellipsoid'))
     return dumper.represent_mapping(u'!astropy.coordinates.earth.EarthLocation', out)
 
 
-def earthlocation_constructor(loader, node):
+def _earthlocation_constructor(loader, node):
     map = loader.construct_mapping(node)
     ellipsoid = map.pop('ellipsoid')
     out = coords.EarthLocation(**map)
@@ -143,10 +150,10 @@ def earthlocation_constructor(loader, node):
     return out
 
 
-def skycoord_representer(dumper, obj):
+def _skycoord_representer(dumper, obj):
     attrs = list(obj.representation_component_names)
     attrs += list(FRAME_ATTR_NAMES_SET())
-    out = get_obj_attrs_map(obj, attrs)
+    out = _get_obj_attrs_map(obj, attrs)
 
     # Don't output distance if it is all unitless 1.0
     if 'distance' in out and np.all(out['distance'] == 1.0):
@@ -158,7 +165,7 @@ def skycoord_representer(dumper, obj):
     return dumper.represent_mapping(u'!astropy.coordinates.sky_coordinate.SkyCoord',
                                     out)
 
-def skycoord_constructor(loader, node):
+def _skycoord_constructor(loader, node):
     map = loader.construct_mapping(node)
     out = coords.SkyCoord(**map)
     return out
@@ -180,30 +187,30 @@ class AstropyDumper(yaml.SafeDumper):
     def represent_tuple(self, data):
         return self.represent_sequence(u'tag:yaml.org,2002:python/tuple', data)
 
-AstropyDumper.add_representer(u.IrreducibleUnit, unit_representer)
-AstropyDumper.add_representer(u.CompositeUnit, unit_representer)
-AstropyDumper.add_multi_representer(u.Unit, unit_representer)
+AstropyDumper.add_representer(u.IrreducibleUnit, _unit_representer)
+AstropyDumper.add_representer(u.CompositeUnit, _unit_representer)
+AstropyDumper.add_multi_representer(u.Unit, _unit_representer)
 AstropyDumper.add_representer(tuple, AstropyDumper.represent_tuple)
-AstropyDumper.add_representer(np.ndarray, ndarray_representer)
-AstropyDumper.add_multi_representer(u.Quantity, quantity_representer)
-AstropyDumper.add_representer(Time, time_representer)
-AstropyDumper.add_representer(TimeDelta, timedelta_representer)
-AstropyDumper.add_representer(coords.EarthLocation, earthlocation_representer)
-AstropyDumper.add_representer(coords.SkyCoord, skycoord_representer)
+AstropyDumper.add_representer(np.ndarray, _ndarray_representer)
+AstropyDumper.add_multi_representer(u.Quantity, _quantity_representer)
+AstropyDumper.add_representer(Time, _time_representer)
+AstropyDumper.add_representer(TimeDelta, _timedelta_representer)
+AstropyDumper.add_representer(coords.EarthLocation, _earthlocation_representer)
+AstropyDumper.add_representer(coords.SkyCoord, _skycoord_representer)
 
 AstropyLoader.add_constructor(u'tag:yaml.org,2002:python/tuple',
                               AstropyLoader.construct_python_tuple)
 AstropyLoader.add_constructor(u'tag:yaml.org,2002:python/unicode',
                               AstropyLoader.construct_python_unicode)
-AstropyLoader.add_constructor('!astropy.units.Unit', unit_constructor)
-AstropyLoader.add_constructor('!numpy.ndarray', ndarray_constructor)
-AstropyLoader.add_constructor('!astropy.units.Quantity', quantity_constructor)
-AstropyLoader.add_constructor('!astropy.time.Time', time_constructor)
-AstropyLoader.add_constructor('!astropy.time.TimeDelta', timedelta_constructor)
+AstropyLoader.add_constructor('!astropy.units.Unit', _unit_constructor)
+AstropyLoader.add_constructor('!numpy.ndarray', _ndarray_constructor)
+AstropyLoader.add_constructor('!astropy.units.Quantity', _quantity_constructor)
+AstropyLoader.add_constructor('!astropy.time.Time', _time_constructor)
+AstropyLoader.add_constructor('!astropy.time.TimeDelta', _timedelta_constructor)
 AstropyLoader.add_constructor('!astropy.coordinates.earth.EarthLocation',
-                              earthlocation_constructor)
+                              _earthlocation_constructor)
 AstropyLoader.add_constructor('!astropy.coordinates.sky_coordinate.SkyCoord',
-                              skycoord_constructor)
+                              _skycoord_constructor)
 
 
 def load(stream):
