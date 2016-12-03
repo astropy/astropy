@@ -184,6 +184,7 @@ class DataInfo(object):
     attr_names = set(['name', 'unit', 'dtype', 'format', 'description', 'meta'])
     _attrs_no_copy = set()
     _info_summary_attrs = ('dtype', 'shape', 'unit', 'format', 'description', 'class')
+    _represent_as_dict_attrs= ()
     _parent = None
 
     def __init__(self, bound=False):
@@ -274,6 +275,13 @@ class DataInfo(object):
             value = None if value is None else weakref.ref(value)
 
         self._attrs[attr] = value
+
+    def _represent_as_dict(self):
+        """
+        Get the values for the parent ``attrs`` and return as a dict.
+        This is typically used for serializing the parent.
+        """
+        return _get_obj_attrs_map(self._parent, self._represent_as_dict_attrs)
 
     info_summary_attributes = staticmethod(
         data_info_factory(names=_info_summary_attrs,
