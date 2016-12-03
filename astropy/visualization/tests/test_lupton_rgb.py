@@ -189,7 +189,7 @@ class TestLuptonRgb(object):
             red = saturate(self.image_r, satValue)
             green = saturate(self.image_g, satValue)
             blue = saturate(self.image_b, satValue)
-            lupton_rgb.make_rgb(red, green, blue, self.min_, self.range_, self.Q, filename=temp)
+            lupton_rgb.make_lupton_rgb(red, green, blue, self.min_, self.range_, self.Q, filename=temp)
             assert os.path.exists(temp.name)
 
     def test_make_rgb_saturated_fix(self):
@@ -199,8 +199,8 @@ class TestLuptonRgb(object):
             red = saturate(self.image_r, satValue)
             green = saturate(self.image_g, satValue)
             blue = saturate(self.image_b, satValue)
-            lupton_rgb.make_rgb(red, green, blue, self.min_, self.range_, self.Q,
-                                saturated_border_width=1, saturated_pixel_value=2000)
+            lupton_rgb.make_lupton_rgb(red, green, blue, self.min_, self.range_, self.Q,
+                                       saturated_border_width=1, saturated_pixel_value=2000)
 
     def test_linear(self):
         """Test using a specified linear stretch"""
@@ -305,8 +305,8 @@ class TestLuptonRgb(object):
     @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
     def test_make_rgb_resize(self):
         """Test the function that does it all, including rescaling"""
-        lupton_rgb.make_rgb(self.image_r, self.image_g, self.image_b, x_size=40, y_size=60)
+        lupton_rgb.make_lupton_rgb(self.image_r, self.image_g, self.image_b, x_size=40, y_size=60)
 
         with tempfile.NamedTemporaryFile(suffix=".png") as temp:
-            lupton_rgb.make_rgb(self.image_r, self.image_g, self.image_b, filename=temp, rescale=0.5)
+            lupton_rgb.make_lupton_rgb(self.image_r, self.image_g, self.image_b, filename=temp, rescale=0.5)
             assert os.path.exists(temp.name)

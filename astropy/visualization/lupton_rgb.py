@@ -10,7 +10,7 @@ Example usage:
     image_r = np.random.random((100,100))
     image_g = np.random.random((100,100))
     image_b = np.random.random((100,100))
-    image = lupton_rgb.make_rgb(image_r, image_g, image_b, filename='randoms.png')
+    image = lupton_rgb.make_lupton_rgb(image_r, image_g, image_b, filename='randoms.png')
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
@@ -18,7 +18,7 @@ import numpy as np
 from . import ZScaleInterval
 
 
-__all__ = ['make_rgb', 'Mapping', 'LinearMapping', 'AsinhMapping',
+__all__ = ['make_lupton_rgb', 'Mapping', 'LinearMapping', 'AsinhMapping',
            'AsinhZScaleMapping']
 
 
@@ -411,10 +411,10 @@ class AsinhZScaleMapping(AsinhMapping):
         self._image = image
 
 
-def make_rgb(image_r, image_g=None, image_b=None, minimum=0, data_range=5, Q=8,
-             saturated_border_width=0, saturated_pixel_value=None,
-             x_size=None, y_size=None, rescale=None,
-             filename=None):
+def make_lupton_rgb(image_r, image_g=None, image_b=None, minimum=0, data_range=5, Q=8,
+                    saturated_border_width=0, saturated_pixel_value=None,
+                    x_size=None, y_size=None, rescale=None,
+                    filename=None):
     """
     Make an RGB color image from 3 images using an asinh stretch.
 
