@@ -1249,8 +1249,17 @@ class Table(object):
             n_cols = len(self.columns)
 
             if isinstance(item, six.string_types):
-                # Set an existing column
-                self.columns[item][:] = value
+                # Set *in-place* an existing column
+                col = self.columns[item]
+                col[:] = value
+
+                # Transfer attributes when setting to a Column instance.
+                # TODO later: generalize to mixin columns on the right side (value)
+                if isinstance(value, Column):
+                    for attr in ('description', 'unit', 'format', 'meta'):
+                        setattr(col.info, attr, getattr(value, attr))
+                        # Note that setattr(col.info, ...) is used instead of setattr(col, ..)
+                        # because this generalizes to mixins (on the left side).
 
             elif isinstance(item, (int, np.integer)):
                 # Set the corresponding row assuming value is an iterable.
