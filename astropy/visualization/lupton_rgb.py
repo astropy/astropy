@@ -18,8 +18,7 @@ import numpy as np
 from . import ZScaleInterval
 
 
-__all__ = ['make_lupton_rgb', 'Mapping', 'LinearMapping', 'AsinhMapping',
-           'AsinhZScaleMapping']
+__all__ = ['make_lupton_rgb']
 
 
 try:
