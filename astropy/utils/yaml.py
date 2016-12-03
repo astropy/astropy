@@ -7,7 +7,7 @@ from ..time import Time, TimeDelta
 from .. import units as u
 from .. import coordinates as coords
 from ..coordinates.sky_coordinate import FRAME_ATTR_NAMES_SET
-from ..extern import six
+from .data_info import _get_obj_attrs_map
 
 try:
     import yaml
@@ -25,26 +25,6 @@ def _unit_representer(dumper, obj):
 def _unit_constructor(loader, node):
     map = loader.construct_mapping(node)
     return u.Unit(map['name'])
-
-
-def _get_obj_attrs_map(obj, attrs):
-    """
-    Get the values for object ``attrs`` and return as a dict.  This
-    ignores any attributes that are None and in Py2 converts any unicode
-    attribute names or values to str.  In the context of serializing the
-    supported core astropy classes this conversion will succeed and results
-    in more succinct and less python-specific YAML.
-    """
-    out = {}
-    for attr in attrs:
-        val = getattr(obj, attr, None)
-        if val is not None:
-            if six.PY2:
-                attr = str(attr)
-                if isinstance(val, six.text_type):
-                    val = str(val)
-            out[attr] = val
-    return out
 
 
 def _time_representer(dumper, obj):
