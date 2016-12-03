@@ -51,12 +51,6 @@ def saturate(image, satValue):
 
     Simulates saturation on an image, so we can test 'replaceSaturatedPixels'
     """
-    # TBD: FROMAFW
-    # image = afwImage.makeMaskedImage(image)
-    # afwDetect.FootprintSet(image, afwDetect.Threshold(satValue), "SAT")
-    # arr = image.getImage().getArray()
-    # arr[np.where(arr >= satValue)] = np.nan
-
     result = image.copy()
     saturated = image > satValue
     result[saturated] = np.nan
