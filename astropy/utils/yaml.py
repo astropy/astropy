@@ -28,50 +28,24 @@ def _unit_constructor(loader, node):
 
 
 def _time_representer(dumper, obj):
-    attrs = ('jd1', 'jd2', 'format', 'scale', 'precision', 'in_subfmt',
-             'out_subfmt', 'location', '_delta_ut1_utc', '_delta_tdb_tt')
-    out = _get_obj_attrs_map(obj, attrs)
+    out = obj.info._represent_as_dict()
     return dumper.represent_mapping(u'!astropy.time.Time', out)
 
 
 def _time_constructor(loader, node):
     map = loader.construct_mapping(node)
-    format = map.pop('format')
-    delta_ut1_utc = map.pop('_delta_ut1_utc', None)
-    delta_tdb_tt = map.pop('_delta_tdb_tt', None)
-
-    map['format'] = 'jd'
-    map['val'] = map.pop('jd1')
-    map['val2'] = map.pop('jd2')
-
-    out = Time(**map)
-    out.format = format
-
-    if delta_ut1_utc is not None:
-        out._delta_ut1_utc = delta_ut1_utc
-    if delta_tdb_tt is not None:
-        out._delta_tdb_tt = delta_tdb_tt
-
+    out = Time.info._construct_from_dict(map)
     return out
 
 
 def _timedelta_representer(dumper, obj):
-    attrs = ('jd1', 'jd2', 'format', 'scale')
-    out = _get_obj_attrs_map(obj, attrs)
+    out = obj.info._represent_as_dict()
     return dumper.represent_mapping(u'!astropy.time.TimeDelta', out)
 
 
 def _timedelta_constructor(loader, node):
     map = loader.construct_mapping(node)
-    format = map.pop('format')
-
-    map['format'] = 'jd'
-    map['val'] = map.pop('jd1')
-    map['val2'] = map.pop('jd2')
-
-    out = TimeDelta(**map)
-    out.format = format
-
+    out = TimeDelta.info._construct_from_dict(map)
     return out
 
 
