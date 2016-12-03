@@ -124,6 +124,26 @@ def data_info_factory(names, funcs):
     return func
 
 
+def _get_obj_attrs_map(obj, attrs):
+    """
+    Get the values for object ``attrs`` and return as a dict.  This
+    ignores any attributes that are None and in Py2 converts any unicode
+    attribute names or values to str.  In the context of serializing the
+    supported core astropy classes this conversion will succeed and results
+    in more succinct and less python-specific YAML.
+    """
+    out = {}
+    for attr in attrs:
+        val = getattr(obj, attr, None)
+        if val is not None:
+            if six.PY2:
+                attr = str(attr)
+                if isinstance(val, six.text_type):
+                    val = str(val)
+            out[attr] = val
+    return out
+
+
 def _get_data_attribute(dat, attr=None):
     """
     Get a data object attribute for the ``attributes`` info summary method
