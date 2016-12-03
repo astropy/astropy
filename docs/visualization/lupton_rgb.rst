@@ -15,7 +15,7 @@ color PNG file with the default (arcsinh) scaling:
 >>> imageR = np.random.random((100,100))
 >>> imageG = np.random.random((100,100))
 >>> imageB = np.random.random((100,100))
->>> image = lupton_rgb.make_rgb(image_r, image_g, image_b, filename='randoms.png')
+>>> image = lupton_rgb.make_lupton_rgb(image_r, image_g, image_b, filename='randoms.png')
 
 This method requires that the three images be aligned and have the same pixel
 scale and size.
