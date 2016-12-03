@@ -129,6 +129,7 @@ class QuantityInfo(ParentDtypeInfo):
     """
     attrs_from_parent = set(['dtype', 'unit'])  # dtype and unit taken from parent
     _supports_indexing = True
+    _represent_as_dict_attrs = ('value', 'unit', '__class__')
 
     @staticmethod
     def default_format(val):
@@ -147,6 +148,13 @@ class QuantityInfo(ParentDtypeInfo):
         yield lambda format_, val: format(val.value, format_)
         yield lambda format_, val: format_.format(val.value)
         yield lambda format_, val: format_ % val.value
+
+    def _construct_from_dict(self, map):
+        map.pop('__class__')
+        # Need to pop value because different Quantity subclasses use
+        # different first arg name for the value.  :-(
+        value = map.pop('value')
+        return self._parent_cls(value, **map)
 
 
 @six.add_metaclass(InheritDocstrings)
