@@ -105,23 +105,14 @@ def _earthlocation_constructor(loader, node):
 
 
 def _skycoord_representer(dumper, obj):
-    attrs = list(obj.representation_component_names)
-    attrs += list(FRAME_ATTR_NAMES_SET())
-    out = _get_obj_attrs_map(obj, attrs)
-
-    # Don't output distance if it is all unitless 1.0
-    if 'distance' in out and np.all(out['distance'] == 1.0):
-        del out['distance']
-
-    out['representation'] = obj.representation.get_name()
-    out['frame'] = obj.frame.name
-
-    return dumper.represent_mapping(u'!astropy.coordinates.sky_coordinate.SkyCoord',
-                                    out)
+    map = obj.info._represent_as_dict()
+    out = dumper.represent_mapping(u'!astropy.coordinates.sky_coordinate.SkyCoord',
+                                   map)
+    return out
 
 def _skycoord_constructor(loader, node):
     map = loader.construct_mapping(node)
-    out = coords.SkyCoord(**map)
+    out = coords.SkyCoord.info._construct_from_dict(map)
     return out
 
 

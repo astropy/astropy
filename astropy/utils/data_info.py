@@ -197,6 +197,7 @@ class DataInfo(object):
         if instance is None:
             # This is an unbound descriptor on the class
             info = self
+            info._parent_cls = owner_cls
         else:
             info = instance.__dict__.get('info')
             if info is None:
@@ -282,6 +283,9 @@ class DataInfo(object):
         This is typically used for serializing the parent.
         """
         return _get_obj_attrs_map(self._parent, self._represent_as_dict_attrs)
+
+    def _construct_from_dict(self, map):
+        return self._parent_cls(**map)
 
     info_summary_attributes = staticmethod(
         data_info_factory(names=_info_summary_attrs,
