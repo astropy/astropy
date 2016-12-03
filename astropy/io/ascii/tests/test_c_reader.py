@@ -904,7 +904,7 @@ def test_data_out_of_range(parallel, read_basic):
     if parallel and TRAVIS:
         pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
         # pytest.xfail("Large exponents can sometimes fail on Travis CI")
-    text = 'a b c d e\n10.1E+199 3.14e+313 2048e+306 0.6E-414 -2.e345'
+    text = 'a b c d e\n10.1E+199 3.14e+313 2048e+306 0.6E-325 -2.e345'
     expected = Table([[1.01e+200], [np.inf], [np.inf], [0.0], [-np.inf]],
                      names=('a', 'b', 'c', 'd', 'e'))
     # currently different behaviour by the standard (Python) reader
@@ -914,7 +914,7 @@ def test_data_out_of_range(parallel, read_basic):
     assert_table_equal(table, expected)
 
     # test non-standard exponent_style with some corner cases
-    text = 'a b c d e\n10.1D+199 0.314d+309 2048D+306 2500d-327 0.6d-326'
+    text = 'a b c d e\n10.1D+199 0.00000314d+314 2048D+306 2500d-327 0.6d-325'
     expected = Table([[1.01e+200], [3.14e+308], [np.inf], [4.94e-324], [0.0]],
                      names=('a', 'b', 'c', 'd', 'e'))
     table = ascii.read(text, format='basic', guess=False,
