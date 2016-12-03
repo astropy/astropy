@@ -75,20 +75,17 @@ QUANTITY_CLASSES = {cls.__name__: cls for cls in
                     (u.Quantity, coords.Angle, coords.Longitude, coords.Latitude)}
 
 def _quantity_representer(dumper, obj):
-    out = {'class': obj.__class__.__name__,
-           'value': obj.value,
-           'unit': obj.unit}
-    if out['class'] not in QUANTITY_CLASSES:
+    out = obj.info._represent_as_dict()
+    if out['__class__'] not in QUANTITY_CLASSES:
         raise TypeError('cannot represent quantity subclass {}'
-                        .format(out['class']))
+                        .format(out['__class__']))
     return dumper.represent_mapping(u'!astropy.units.Quantity', out)
 
 
 def _quantity_constructor(loader, node):
     map = loader.construct_mapping(node)
-    cls = map.pop('class')
-    value = map.pop('value')
-    return QUANTITY_CLASSES[cls](value, **map)
+    cls = map['__class__']
+    return QUANTITY_CLASSES[cls].info._construct_from_dict(map)
 
 
 def _earthlocation_representer(dumper, obj):
