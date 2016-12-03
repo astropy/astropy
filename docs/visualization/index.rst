@@ -20,6 +20,7 @@ Matplotlib.
    wcsaxes/index.rst
    normalization.rst
    histogram.rst
+   lupton_rgb.rst
 
 
 .. _fits2bitmap:
