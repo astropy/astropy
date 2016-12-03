@@ -136,14 +136,14 @@ class TestLuptonRgb(object):
             del im
         del self.images
 
-    def testStarsAsinh(self):
+    def test_Asinh(self):
         """Test creating an RGB image using an asinh stretch"""
         asinhMap = lupton_rgb.AsinhMapping(self.min_, self.range_, self.Q)
         rgbImage = asinhMap.makeRgbImage(self.imageR, self.imageG, self.imageB)
         if display:
             display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
-    def testStarsAsinhZscale(self):
+    def test_AsinhZscale(self):
         """Test creating an RGB image using an asinh stretch estimated using zscale"""
 
         map = lupton_rgb.AsinhZScaleMapping(self.imageR, self.imageG, self.imageB)
@@ -151,7 +151,7 @@ class TestLuptonRgb(object):
         if display:
             display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
-    def testStarsAsinhZscaleIntensity(self):
+    def test_AsinhZscaleIntensity(self):
         """Test creating an RGB image using an asinh stretch estimated using zscale on the intensity"""
 
         map = lupton_rgb.AsinhZScaleMapping(self.imageR, self.imageG, self.imageB)
@@ -159,7 +159,7 @@ class TestLuptonRgb(object):
         if display:
             display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
-    def testStarsAsinhZscaleIntensityPedestal(self):
+    def test_AsinhZscaleIntensityPedestal(self):
         """Test creating an RGB image using an asinh stretch estimated using zscale on the intensity
         where the images each have a pedestal added"""
 
@@ -173,7 +173,7 @@ class TestLuptonRgb(object):
         if display:
             display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
-    def testStarsAsinhZscaleIntensityBW(self):
+    def test_AsinhZscaleIntensityBW(self):
         """Test creating a black-and-white image using an asinh stretch estimated
         using zscale on the intensity"""
 
@@ -182,7 +182,7 @@ class TestLuptonRgb(object):
             display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
     @pytest.mark.skipif('not HAS_MATPLOTLIB')
-    def testMakeRGB(self):
+    def test_MakeRGB(self):
         """Test the function that does it all"""
         satValue = 1000.0
         with tempfile.NamedTemporaryFile(suffix=".png") as temp:
@@ -192,7 +192,7 @@ class TestLuptonRgb(object):
             lupton_rgb.makeRGB(red, green, blue, self.min_, self.range_, self.Q, fileName=temp)
             assert os.path.exists(temp.name)
 
-    def testMakeRGB_saturated_fix(self):
+    def test_makeRGB_saturated_fix(self):
         satValue = 1000.0
         # TODO: Cannot test with these options yet, as that part of the code is not implemented.
         with pytest.raises(NotImplementedError):
@@ -202,14 +202,14 @@ class TestLuptonRgb(object):
             lupton_rgb.makeRGB(red, green, blue, self.min_, self.range_, self.Q,
                                saturatedBorderWidth=1, saturatedPixelValue=2000)
 
-    def testLinear(self):
+    def test_linear(self):
         """Test using a specified linear stretch"""
 
         rgbImage = lupton_rgb.LinearMapping(-8.45, 13.44).makeRgbImage(self.imageR)
         if display:
             display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
-    def testLinearMinMax(self):
+    def test_linear_min_max(self):
         """Test using a min/max linear stretch
 
         N.b. also checks that an image passed to the ctor is used as the default in makeRgbImage()
@@ -219,7 +219,7 @@ class TestLuptonRgb(object):
         if display:
             display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
-    def testSaturated(self):
+    def test_saturated(self):
         """Test interpolating saturated pixels"""
         pytest.skip('replaceSaturatedPixels is not implemented in astropy yet')
 
@@ -246,18 +246,7 @@ class TestLuptonRgb(object):
             display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
     @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
-    def testStarsResizeToSize(self):
-        """Test creating an RGB image of a specified size"""
-
-        xSize = self.imageR.shape[0]/2
-        ySize = self.imageR.shape[1]/2
-        asinhZ = lupton_rgb.AsinhZScaleMapping(self.imageR)
-        rgbImage = asinhZ.makeRgbImage(self.imageR, self.imageG, self.imageB, xSize=xSize, ySize=ySize)
-        if display:
-            display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
-
-    @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
-    def testStarsResizeToSize_uint(self):
+    def test_resize_to_uint(self):
         """Test creating an RGB image of a specified size"""
 
         xSize = self.imageR.shape[0]/2
@@ -270,7 +259,7 @@ class TestLuptonRgb(object):
         if display:
             display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
-    def _testStarsResizeSpecifications(self, xSize=None, ySize=None, frac=None):
+    def _test_resize(self, xSize=None, ySize=None, frac=None):
         """Test creating an RGB image changing the output """
 
         map = lupton_rgb.AsinhZScaleMapping(self.imageR)
@@ -289,28 +278,28 @@ class TestLuptonRgb(object):
             assert int(frac*self.imageR.shape[0]) == h
 
     @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
-    def testStarsResizeSpecificaions_xSize_ySize(self):
-        self._testStarsResizeSpecifications(xSize=self.imageR.shape[0]/2, ySize=self.imageR.shape[1]/2)
+    def test_resize_xSize_ySize(self):
+        self._test_resize(xSize=self.imageR.shape[0]/2, ySize=self.imageR.shape[1]/2)
 
     @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
-    def testStarsResizeSpecifications_twice_xSize(self):
-        self._testStarsResizeSpecifications(xSize=2*self.imageR.shape[0])
+    def test_resize_twice_xSize(self):
+        self._test_resize(xSize=2*self.imageR.shape[0])
 
     @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
-    def testStarsResizeSpecifications_half_xSize(self):
-        self._testStarsResizeSpecifications(xSize=self.imageR.shape[0]/2)
+    def test_resize_half_xSize(self):
+        self._test_resize(xSize=self.imageR.shape[0]/2)
 
     @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
-    def testStarsResizeSpecifications_half_ySize(self):
-        self._testStarsResizeSpecifications(ySize=self.imageR.shape[0]/2)
+    def test_resize_half_ySize(self):
+        self._test_resize(ySize=self.imageR.shape[0]/2)
 
     @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
-    def testStarsResizeSpecifications_frac_half(self):
-        self._testStarsResizeSpecifications(frac=0.5)
+    def test_resize_frac_half(self):
+        self._test_resize(frac=0.5)
 
     @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
-    def testStarsResizeSpecifications_frac_twice(self):
-        self._testStarsResizeSpecifications(frac=2)
+    def test_resize_frac_twice(self):
+        self._test_resize(frac=2)
 
     @pytest.mark.skipif('not HAS_MATPLOTLIB')
     @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
