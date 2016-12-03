@@ -8,6 +8,7 @@ is implemented in `astropy.visualization.lupton_rgb` as a set of classes
 providing different scalings and a convenience wraper function. To generate a
 color PNG file with the default (arcsinh) scaling:
 
+>>> import numpy as np
 >>> from astropy.visualization import lupton_rgb
 >>> imageR = np.random.random((100,100))
 >>> imageG = np.random.random((100,100))
