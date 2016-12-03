@@ -327,11 +327,8 @@ class AsinhMapping(Mapping):
             if Q > Qmax:
                 Q = Qmax
 
-        if False:
-            self._slope = self._uint8Max/Q  # gradient at origin is self._slope
-        else:
-            frac = 0.1                  # gradient estimated using frac*range is _slope
-            self._slope = frac*self._uint8Max/np.arcsinh(frac*Q)
+        frac = 0.1                  # gradient estimated using frac*range is _slope
+        self._slope = frac*self._uint8Max/np.arcsinh(frac*Q)
 
         self._soften = Q/float(dataRange)
 
