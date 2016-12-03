@@ -7,10 +7,10 @@ For details, see : http://adsabs.harvard.edu/abs/2004PASP..116..133L
 The three images must be aligned and have the same pixel scale and size.
 
 Example usage:
-    imageR = np.random.random((100,100))
-    imageG = np.random.random((100,100))
-    imageB = np.random.random((100,100))
-    image = lupton_rgb.makeRGB(imageR, imageG, imageB, fileName='randoms.png')
+    image_r = np.random.random((100,100))
+    image_g = np.random.random((100,100))
+    image_b = np.random.random((100,100))
+    image = lupton_rgb.make_rgb(image_r, image_g, image_b, filename='randoms.png')
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
@@ -18,7 +18,7 @@ import numpy as np
 from . import ZScaleInterval
 
 
-__all__ = ['makeRGB', 'Mapping', 'LinearMapping', 'AsinhMapping',
+__all__ = ['make_rgb', 'Mapping', 'LinearMapping', 'AsinhMapping',
            'AsinhZScaleMapping']
 
 
@@ -34,24 +34,24 @@ except (ImportError, AttributeError):
 # from lsst.afw.display.displayLib import replaceSaturatedPixels, getZScale
 
 
-def compute_intensity(imageR, imageG=None, imageB=None):
+def compute_intensity(image_r, image_g=None, image_b=None):
     """
     Return a naive total intensity from the red, blue, and green intensities.
 
     Parameters
     ----------
-    imageR : `~numpy.ndarray`
-        Intensity of image to be mapped to red; or total intensity if ``imageG``
-        and ``imageB`` are None.
-    imageG : `~numpy.ndarray`, optional
+    image_r : `~numpy.ndarray`
+        Intensity of image to be mapped to red; or total intensity if ``image_g``
+        and ``image_b`` are None.
+    image_g : `~numpy.ndarray`, optional
         Intensity of image to be mapped to green.
-    imageB : `~numpy.ndarray`, optional
+    image_b : `~numpy.ndarray`, optional
         Intensity of image to be mapped to blue.
 
     Returns
     -------
     intensity : `~numpy.ndarray`
-        Total intensity from the red, blue and green intensities, or ``imageR``
+        Total intensity from the red, blue and green intensities, or ``image_r``
         if green and blue images are not provided.
 
     Notes
@@ -59,16 +59,16 @@ def compute_intensity(imageR, imageG=None, imageB=None):
     Inputs may be MaskedImages, Images, or numpy arrays and the return is
     of the same type.
     """
-    if imageG is None or imageB is None:
-        if not (imageG is None and imageB is None):
+    if image_g is None or image_b is None:
+        if not (image_g is None and image_b is None):
             raise ValueError("please specify either a single image "
                              "or red, green, and blue images.")
-        return imageR
+        return image_r
 
-    intensity = (imageR + imageG + imageB)/3.0
+    intensity = (image_r + image_g + image_b)/3.0
 
     # Repack into whatever type was passed to us
-    return np.array(intensity, dtype=imageR.dtype)
+    return np.array(intensity, dtype=image_r.dtype)
 
 
 class Mapping(object):
@@ -84,7 +84,7 @@ class Mapping(object):
             Intensity that should be mapped to black (a scalar or array for R, G, B).
         image : `~numpy.ndarray`, optional
             The image to be used to calculate the mapping.
-            If provided, it is also used as the default for makeRgbImage().
+            If provided, it is also used as the default for make_rgb_image().
         """
         self._uint8Max = float(np.iinfo(np.uint8).max)
 
@@ -98,65 +98,65 @@ class Mapping(object):
         self.minimum = minimum
         self._image = np.asarray(image)
 
-    def makeRgbImage(self, imageR=None, imageG=None, imageB=None,
-                     xSize=None, ySize=None, rescaleFactor=None):
+    def make_rgb_image(self, image_r=None, image_g=None, image_b=None,
+                       x_size=None, y_size=None, rescale=None):
         """
-        Convert 3 arrays, imageR, imageG, and imageB into a numpy RGB image.
+        Convert 3 arrays, image_r, image_g, and image_b into a numpy RGB image.
 
         Parameters
         ----------
-        imageR : `~numpy.ndarray`, optional
+        image_r : `~numpy.ndarray`, optional
             Image to map to red (if None, use the image passed to the
             constructor).
-        imageG : `~numpy.ndarray`, optional
-            Image to map to green (if None, use imageR).
-        imageB : `~numpy.ndarray`, optional
-            Image to map to blue (if None, use imageR).
-        xSize : int, optional
-            Desired width of RGB image (or None).  If ySize is None, preserve
+        image_g : `~numpy.ndarray`, optional
+            Image to map to green (if None, use image_r).
+        image_b : `~numpy.ndarray`, optional
+            Image to map to blue (if None, use image_r).
+        x_size : int, optional
+            Desired width of RGB image (or None).  If y_size is None, preserve
             aspect ratio.
-        ySize : int, optional
+        y_size : int, optional
             Desired height of RGB image (or None).
-        rescaleFactor : float, optional
-            Make size of output image rescaleFactor*size of the input image.
-            Cannot be specified if xSize or ySize are given.
+        rescale : float, optional
+            Make size of output image rescale*size of the input image.
+            Cannot be specified if x_size or y_size are given.
 
         Returns
         -------
         RGBimage : `~numpy.ndarray`
             An image formed by stacking the input images.
         """
-        if imageR is None:
+        if image_r is None:
             if self._image is None:
                 raise RuntimeError("you must provide an image or pass one "
                                    "to the constructor.")
-            imageR = self._image
+            image_r = self._image
         else:
-            imageR = np.asarray(imageR)
+            image_r = np.asarray(image_r)
 
-        if imageG is None:
-            imageG = imageR
+        if image_g is None:
+            image_g = image_r
         else:
-            imageG = np.asarray(imageG)
+            image_g = np.asarray(image_g)
 
-        if imageB is None:
-            imageB = imageR
+        if image_b is None:
+            image_b = image_r
         else:
-            imageB = np.asarray(imageB)
+            image_b = np.asarray(image_b)
 
-        if xSize is not None or ySize is not None:
-            if rescaleFactor is not None:
-                raise ValueError("you may not specify a size and rescaleFactor.")
-            h, w = imageR.shape
-            if ySize is None:
-                ySize = int(xSize*h/float(w) + 0.5)
-            elif xSize is None:
-                xSize = int(ySize*w/float(h) + 0.5)
+        if x_size is not None or y_size is not None:
+            if rescale is not None:
+                raise ValueError("you may not specify a size and rescale.")
+            h, w = image_r.shape
+            if y_size is None:
+                y_size = int(x_size*h/float(w) + 0.5)
+            elif x_size is None:
+                x_size = int(y_size*w/float(h) + 0.5)
 
             # need to cast to int when passing tuple to imresize.
-            size = (int(ySize), int(xSize))  # n.b. y, x order for scipy
-        elif rescaleFactor is not None:
-            size = float(rescaleFactor)  # a float is intepreted as a percentage
+            size = (int(y_size), int(x_size))  # n.b. y, x order for scipy
+        elif rescale is not None:
+            size = float(rescale)  # a float is intepreted as a percentage
         else:
             size = None
 
@@ -165,39 +165,39 @@ class Mapping(object):
                 raise RuntimeError("unable to rescale as scipy.misc.imresize "
                                    "is unavailable.")
 
-            imageR = scipy.misc.imresize(imageR, size, interp='bilinear',
-                                         mode='F')
-            imageG = scipy.misc.imresize(imageG, size, interp='bilinear',
-                                         mode='F')
-            imageB = scipy.misc.imresize(imageB, size, interp='bilinear',
-                                         mode='F')
+            image_r = scipy.misc.imresize(image_r, size, interp='bilinear',
+                                          mode='F')
+            image_g = scipy.misc.imresize(image_g, size, interp='bilinear',
+                                          mode='F')
+            image_b = scipy.misc.imresize(image_b, size, interp='bilinear',
+                                          mode='F')
 
-        return np.dstack(self._convertImagesToUint8(imageR, imageG, imageB)).astype(np.uint8)
+        return np.dstack(self._convert_images_to_uint8(image_r, image_g, image_b)).astype(np.uint8)
 
-    def intensity(self, imageR, imageG, imageB):
+    def intensity(self, image_r, image_g, image_b):
         """
         Return the total intensity from the red, blue, and green intensities.
         This is a naive computation, and may be overridden by subclasses.
 
         Parameters
         ----------
-        imageR : `~numpy.ndarray`
+        image_r : `~numpy.ndarray`
             Intensity of image to be mapped to red; or total intensity if
-            ``imageG`` and ``imageB`` are None.
-        imageG : `~numpy.ndarray`, optional
+            ``image_g`` and ``image_b`` are None.
+        image_g : `~numpy.ndarray`, optional
             Intensity of image to be mapped to green.
-        imageB : `~numpy.ndarray`, optional
+        image_b : `~numpy.ndarray`, optional
             Intensity of image to be mapped to blue.
 
         Returns
         -------
         intensity : `~numpy.ndarray`
             Total intensity from the red, blue and green intensities, or
-            ``imageR`` if green and blue images are not provided.
+            ``image_r`` if green and blue images are not provided.
         """
-        return compute_intensity(imageR, imageG, imageB)
+        return compute_intensity(image_r, image_g, image_b)
 
-    def mapIntensityToUint8(self, I):
+    def map_intensity_to_uint8(self, I):
         """
         Return an array which, when multiplied by an image, returns that image
         mapped to the range of a uint8, [0, 255] (but not converted to uint8).
@@ -218,24 +218,24 @@ class Mapping(object):
         with np.errstate(invalid='ignore', divide='ignore'):  # n.b. np.where can't and doesn't short-circuit
             return np.where(I <= 0, 0, np.where(I < self._uint8Max, I, self._uint8Max))
 
-    def _convertImagesToUint8(self, imageR, imageG, imageB):
-        """Use the mapping to convert images imageR, imageG, and imageB to a triplet of uint8 images"""
-        imageR = imageR - self.minimum[0]  # n.b. makes copy
-        imageG = imageG - self.minimum[1]
-        imageB = imageB - self.minimum[2]
+    def _convert_images_to_uint8(self, image_r, image_g, image_b):
+        """Use the mapping to convert images image_r, image_g, and image_b to a triplet of uint8 images"""
+        image_r = image_r - self.minimum[0]  # n.b. makes copy
+        image_g = image_g - self.minimum[1]
+        image_b = image_b - self.minimum[2]
 
-        fac = self.mapIntensityToUint8(self.intensity(imageR, imageG, imageB))
+        fac = self.map_intensity_to_uint8(self.intensity(image_r, image_g, image_b))
 
-        imageRGB = [imageR, imageG, imageB]
-        for c in imageRGB:
+        image_rgb = [image_r, image_g, image_b]
+        for c in image_rgb:
             c *= fac
             c[c < 0] = 0                # individual bands can still be < 0, even if fac isn't
 
         pixmax = self._uint8Max
-        r0, g0, b0 = imageRGB           # copies -- could work row by row to minimise memory usage
+        r0, g0, b0 = image_rgb           # copies -- could work row by row to minimise memory usage
 
         with np.errstate(invalid='ignore', divide='ignore'):  # n.b. np.where can't and doesn't short-circuit
-            for i, c in enumerate(imageRGB):
+            for i, c in enumerate(image_rgb):
                 c = np.where(r0 > g0,
                              np.where(r0 > b0,
                                       np.where(r0 >= pixmax, c*pixmax/r0, c),
@@ -245,9 +245,9 @@ class Mapping(object):
                                       np.where(b0 >= pixmax, c*pixmax/b0, c))).astype(np.uint8)
                 c[c > pixmax] = pixmax
 
-                imageRGB[i] = c
+                image_rgb[i] = c
 
-        return imageRGB
+        return image_rgb
 
 
 class LinearMapping(Mapping):
@@ -285,7 +285,7 @@ class LinearMapping(Mapping):
                 raise ValueError("minimum and maximum values must not be equal")
             self._range = float(maximum - minimum)
 
-    def mapIntensityToUint8(self, I):
+    def map_intensity_to_uint8(self, I):
         with np.errstate(invalid='ignore', divide='ignore'):  # n.b. np.where can't and doesn't short-circuit
             return np.where(I <= 0, 0,
                             np.where(I >= self._range, self._uint8Max/I, self._uint8Max/self._range))
@@ -302,18 +302,18 @@ class AsinhMapping(Mapping):
     See http://adsabs.harvard.edu/abs/2004PASP..116..133L
     """
 
-    def __init__(self, minimum, dataRange, Q=8):
+    def __init__(self, minimum, data_range, Q=8):
         """
-        asinh stretch from minimum to minimum + dataRange, scaled by Q, via:
-            x = asinh(Q (I - minimum)/dataRange)/Q
+        asinh stretch from minimum to minimum + data_range, scaled by Q, via:
+            x = asinh(Q (I - minimum)/data_range)/Q
 
         Parameters
         ----------
 
         minimum : float
             Intensity that should be mapped to black (a scalar or array for R, G, B).
-        dataRange : float
-            minimum+dataRange defines the white level of the image.
+        data_range : float
+            minimum+data_range defines the white level of the image.
         Q : float
             The asinh softening parameter.
         """
@@ -330,9 +330,9 @@ class AsinhMapping(Mapping):
         frac = 0.1                  # gradient estimated using frac*range is _slope
         self._slope = frac*self._uint8Max/np.arcsinh(frac*Q)
 
-        self._soften = Q/float(dataRange)
+        self._soften = Q/float(data_range)
 
-    def mapIntensityToUint8(self, I):
+    def map_intensity_to_uint8(self, I):
         with np.errstate(invalid='ignore', divide='ignore'):  # n.b. np.where can't and doesn't short-circuit
             return np.where(I <= 0, 0, np.arcsinh(I*self._soften)*self._slope/I)
 
@@ -401,76 +401,78 @@ class AsinhZScaleMapping(AsinhMapping):
 
         zscale_limits = ZScaleInterval().get_limits(image)
         zscale = LinearMapping(*zscale_limits, image=image)
-        dataRange = zscale.maximum - zscale.minimum[0]  # zscale.minimum is always a triple
+        data_range = zscale.maximum - zscale.minimum[0]  # zscale.minimum is always a triple
         minimum = zscale.minimum
 
         for i, level in enumerate(pedestal):
             minimum[i] += level
 
-        AsinhMapping.__init__(self, minimum, dataRange, Q)
+        AsinhMapping.__init__(self, minimum, data_range, Q)
         self._image = image
 
 
-def makeRGB(imageR, imageG=None, imageB=None, minimum=0, dataRange=5, Q=8,
-            saturatedBorderWidth=0, saturatedPixelValue=None,
-            xSize=None, ySize=None, rescaleFactor=None,
-            fileName=None):
+def make_rgb(image_r, image_g=None, image_b=None, minimum=0, data_range=5, Q=8,
+             saturated_border_width=0, saturated_pixel_value=None,
+             x_size=None, y_size=None, rescale=None,
+             filename=None):
     """
     Make an RGB color image from 3 images using an asinh stretch.
 
     Parameters
     ----------
 
-    imageR : `~numpy.ndarray`
+    image_r : `~numpy.ndarray`
         Image to map to red (if None, use the image passed to the constructor).
-    imageG : `~numpy.ndarray`
-        Image to map to green (if None, use imageR).
-    imageB : `~numpy.ndarray`
-        Image to map to blue (if None, use imageR).
+    image_g : `~numpy.ndarray`
+        Image to map to green (if None, use image_r).
+    image_b : `~numpy.ndarray`
+        Image to map to blue (if None, use image_r).
     minimum : float
         Intensity that should be mapped to black (a scalar or array for R, G, B).
-    dataRange : float
-        minimum+dataRange defines the white level of the image.
+    data_range : float
+        minimum+data_range defines the white level of the image.
     Q : float
         The asinh softening parameter.
-    saturatedBorderWidth : int
-        If saturatedBorderWidth is non-zero, replace saturated pixels with saturatedPixelValue.
+    saturated_border_width : int
+        If saturated_border_width is non-zero, replace saturated pixels with saturated_pixel_value.
         Note that replacing saturated pixels requires that the input images be MaskedImages.
-    saturatedPixelValue : float
+    saturated_pixel_value : float
         Value to replace saturated pixels with.
-    xSize : int
-        Desired width of RGB image (or None).  If ySize is None, preserve aspect ratio.
-    ySize : int
+    x_size : int
+        Desired width of RGB image (or None).  If y_size is None, preserve aspect ratio.
+    y_size : int
         Desired height of RGB image (or None).
-    rescaleFactor : float
-        Make size of output image rescaleFactor*size of the input image.
-        Cannot be specified if xSize or ySize are given.
+    rescale : float
+        Make size of output image rescale*size of the input image.
+        Cannot be specified if x_size or y_size are given.
+    filename: str
+        Write the resulting RGB image to a file (file type determined frome extension).
 
     Returns
     -------
     rgb : `~numpy.ndarray`
         RGB color image.
     """
-    imageR = np.asarray(imageR)
-    if imageG is None:
-        imageG = np.asarray(imageR)
-    if imageB is None:
-        imageB = imageR
+    image_r = np.asarray(image_r)
+    if image_g is None:
+        image_g = np.asarray(image_r)
+    if image_b is None:
+        image_b = image_r
 
-    if saturatedBorderWidth:
-        if saturatedPixelValue is None:
-            raise ValueError("saturatedPixelValue must be set if "
-                             "saturatedBorderWidth is set.")
+    if saturated_border_width:
+        if saturated_pixel_value is None:
+            raise ValueError("saturated_pixel_value must be set if "
+                             "saturated_border_width is set.")
         msg = "Cannot do this until we extract replaceSaturatedPixels out of afw/display/saturated.cc"
         raise NotImplementedError(msg)
-        # replaceSaturatedPixels(imageR, imageG, imageB, saturatedBorderWidth, saturatedPixelValue)
+        # replaceSaturatedPixels(image_r, image_g, image_b, saturated_border_width, saturated_pixel_value)
 
-    asinhMap = AsinhMapping(minimum, dataRange, Q)
-    rgb = asinhMap.makeRgbImage(imageR, imageG, imageB,
-                                xSize=xSize, ySize=ySize, rescaleFactor=rescaleFactor)
+    asinhMap = AsinhMapping(minimum, data_range, Q)
+    rgb = asinhMap.make_rgb_image(image_r, image_g, image_b,
+                                  x_size=x_size, y_size=y_size, rescale=rescale)
 
-    if fileName:
+    if filename:
         import matplotlib.image
-        matplotlib.image.imsave(fileName, rgb)
+        matplotlib.image.imsave(filename, rgb)
 
     return rgb
