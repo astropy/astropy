@@ -85,7 +85,6 @@ class LatexSplitter(core.BaseSplitter):
     def __call__(self, lines):
         last_line = RE_COMMENT.split(lines[-1])[0].strip()
         if not last_line.endswith(r'\\'):
-            print(last_line)
             lines[-1] = last_line + r'\\'
 
         return super(LatexSplitter, self).__call__(lines)
