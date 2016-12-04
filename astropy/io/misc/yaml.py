@@ -1,3 +1,73 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+This module contains functions for serializing core astropy objects via the
+YAML protocol.
+
+It provides functions `~astropy.io.misc.yaml.dump`,
+`~astropy.io.misc.yaml.load`, and `~astropy.io.misc.yaml.load_all` which
+call the corresponding functions in `PyYaml <http://pyyaml.org>`_ but use the
+`~astropy.io.misc.yaml.AstropyDumper` and `~astropy.io.misc.yaml.AstropyLoader`
+classes to define custom YAML tags for the following astropy classes:
+
+- `astropy.units.Unit`
+- `astropy.units.Quantity`
+- `astropy.time.Time`
+- `astropy.time.TimeDelta`
+- `astropy.coordinates.SkyCoord`
+- `astropy.coordinates.Angle`
+- `astropy.coordinates.Latitude`
+- `astropy.coordinates.Longitude`
+
+.. Note ::
+
+   This module requires PyYaml version 3.12 or later, which in turn requires
+   Python 2.7 or Python 3.4 or later.
+
+Example
+=======
+::
+
+  >>> from astropy.io.misc import yaml
+  >>> import astropy.units as u
+  >>> from astropy.time import Time
+  >>> from astropy.coordinates import EarthLocation
+
+  >>> t = Time(2457389.0, format='mjd',
+  ...          location=EarthLocation(1000, 2000, 3000, unit=u.km))
+  >>> td = yaml.dump(t)
+
+  >>> print(td)
+  !astropy.time.Time
+  format: mjd
+  in_subfmt: '*'
+  jd1: 4857389.5
+  jd2: 0.0
+  location: !astropy.coordinates.earth.EarthLocation
+    ellipsoid: WGS84
+    x: !astropy.units.Quantity
+      __class__: Quantity
+      unit: &id001 !astropy.units.Unit {name: km}
+      value: 1000.0
+    y: !astropy.units.Quantity
+      __class__: Quantity
+      unit: *id001
+      value: 2000.0
+    z: !astropy.units.Quantity
+      __class__: Quantity
+      unit: *id001
+      value: 3000.0
+  out_subfmt: '*'
+  precision: 3
+  scale: utc
+
+  >>> ty = yaml.load(td)
+  >>> ty
+  <Time object: scale='utc' format='mjd' value=2457389.0>
+
+  >>> ty.location
+  <EarthLocation (1000.0, 2000.0, 3000.0) km>
+"""
+
 from __future__ import absolute_import
 
 import base64
@@ -114,24 +184,39 @@ def _skycoord_constructor(loader, node):
 
 class AstropyLoader(yaml.SafeLoader):
     """
-    Custom Loader that constructs OrderedDict from an !!omap object.
-    This does nothing but provide a namespace for adding the
-    custom odict constructor.
+    Custom SafeLoader that constructs astropy core objects as well
+    as Python tuple and unicode objects.
+
+    This class is not directly instantiated by user code, but instead is
+    used to maintain the available constructor functions that are
+    called when parsing a YAML stream.  See the `PyYaml documentation
+    <http://pyyaml.org/wiki/PyYAMLDocumentation>`_ for details of the
+    class signature.
     """
-    def construct_python_tuple(self, node):
+    def _construct_python_tuple(self, node):
         return tuple(self.construct_sequence(node))
 
-    def construct_python_unicode(self, node):
+    def _construct_python_unicode(self, node):
         return self.construct_scalar(node)
 
 class AstropyDumper(yaml.SafeDumper):
-    def represent_tuple(self, data):
+    """
+    Custom SafeDumper that represents astropy core objects as well
+    as Python tuple and unicode objects.
+
+    This class is not directly instantiated by user code, but instead is
+    used to maintain the available representer functions that are
+    called when generating a YAML stream from an object.  See the
+    `PyYaml documentation <http://pyyaml.org/wiki/PyYAMLDocumentation>`_
+    for details of the class signature.
+    """
+    def _represent_tuple(self, data):
         return self.represent_sequence(u'tag:yaml.org,2002:python/tuple', data)
 
 AstropyDumper.add_representer(u.IrreducibleUnit, _unit_representer)
 AstropyDumper.add_representer(u.CompositeUnit, _unit_representer)
 AstropyDumper.add_multi_representer(u.Unit, _unit_representer)
-AstropyDumper.add_representer(tuple, AstropyDumper.represent_tuple)
+AstropyDumper.add_representer(tuple, AstropyDumper._represent_tuple)
 AstropyDumper.add_representer(np.ndarray, _ndarray_representer)
 AstropyDumper.add_multi_representer(u.Quantity, _quantity_representer)
 AstropyDumper.add_representer(Time, _time_representer)
@@ -140,9 +225,9 @@ AstropyDumper.add_representer(coords.EarthLocation, _earthlocation_representer)
 AstropyDumper.add_representer(coords.SkyCoord, _skycoord_representer)
 
 AstropyLoader.add_constructor(u'tag:yaml.org,2002:python/tuple',
-                              AstropyLoader.construct_python_tuple)
+                              AstropyLoader._construct_python_tuple)
 AstropyLoader.add_constructor(u'tag:yaml.org,2002:python/unicode',
-                              AstropyLoader.construct_python_unicode)
+                              AstropyLoader._construct_python_unicode)
 AstropyLoader.add_constructor('!astropy.units.Unit', _unit_constructor)
 AstropyLoader.add_constructor('!numpy.ndarray', _ndarray_constructor)
 AstropyLoader.add_constructor('!astropy.units.Quantity', _quantity_constructor)
