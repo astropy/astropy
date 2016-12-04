@@ -578,19 +578,24 @@ cdef class CParser:
                 cols[name] = self._convert_int(t, i, num_rows)
             except ValueError:
                 try:
-                    if try_float and not try_float[name]:
-                        raise ValueError()
                     if t.code == OVERFLOW_ERROR:
                         # Overflow during int conversion (extending range)
-                        warnings.warn("OverflowError converting to {0} in column {1}, reverting to Float."
+                        warnings.warn("OverflowError converting to {0} in column {1}, reverting to String."
                                   .format('IntType', name), AstropyWarning)
+                        if try_string and not try_string[name]:
+                            raise ValueError('Column {0} failed to convert'.format(name))
                         t.code = NO_ERROR
-                    cols[name] = self._convert_float(t, i, num_rows)
-                    if t.code == OVERFLOW_ERROR:
-                        # Overflow during float conversion (extending range)
-                        warnings.warn("OverflowError converting to {0} in column {1}, possibly resulting in degraded precision."
-                                  .format('FloatType', name), AstropyWarning)
+                        cols[name] = self._convert_str(t, i, num_rows)
+                    else:
+                        if try_float and not try_float[name]:
+                            raise ValueError()
                         t.code = NO_ERROR
+                        cols[name] = self._convert_float(t, i, num_rows)
+                        if t.code == OVERFLOW_ERROR:
+                            # Overflow during float conversion (extending range)
+                            warnings.warn("OverflowError converting to {0} in column {1}, possibly resulting in degraded precision."
+                                          .format('FloatType', name), AstropyWarning)
+                            t.code = NO_ERROR
                 except ValueError:
                     if try_string and not try_string[name]:
                         raise ValueError('Column {0} failed to convert'.format(name))
