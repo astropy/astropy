@@ -134,11 +134,7 @@ def _get_obj_attrs_map(obj, attrs):
     """
     out = {}
     for attr in attrs:
-        # Special case for __class__ attr
-        if attr == '__class__':
-            val = obj.__class__.__name__
-        else:
-            val = getattr(obj, attr, None)
+        val = getattr(obj, attr, None)
 
         if val is not None:
             if six.PY2:

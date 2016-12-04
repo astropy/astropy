@@ -45,15 +45,12 @@ Example
   location: !astropy.coordinates.earth.EarthLocation
     ellipsoid: WGS84
     x: !astropy.units.Quantity
-      __class__: Quantity
       unit: &id001 !astropy.units.Unit {name: km}
       value: 1000.0
     y: !astropy.units.Quantity
-      __class__: Quantity
       unit: *id001
       value: 2000.0
     z: !astropy.units.Quantity
-      __class__: Quantity
       unit: *id001
       value: 3000.0
   out_subfmt: '*'
@@ -139,22 +136,18 @@ def _ndarray_constructor(loader, node):
     return np.frombuffer(data, map['dtype']).reshape(map['shape'])
 
 
-# Define supported Quantity subclasses
-QUANTITY_CLASSES = {cls.__name__: cls for cls in
-                    (u.Quantity, coords.Angle, coords.Longitude, coords.Latitude)}
-
-def _quantity_representer(dumper, obj):
-    out = obj.info._represent_as_dict()
-    if out['__class__'] not in QUANTITY_CLASSES:
-        raise TypeError('cannot represent quantity subclass {}'
-                        .format(out['__class__']))
-    return dumper.represent_mapping(u'!astropy.units.Quantity', out)
+def _quantity_representer(tag):
+    def representer(dumper, obj):
+        out = obj.info._represent_as_dict()
+        return dumper.represent_mapping(tag, out)
+    return representer
 
 
-def _quantity_constructor(loader, node):
-    map = loader.construct_mapping(node)
-    cls = map['__class__']
-    return QUANTITY_CLASSES[cls].info._construct_from_dict(map)
+def _quantity_constructor(cls):
+    def constructor(loader, node):
+        map = loader.construct_mapping(node)
+        return cls.info._construct_from_dict(map)
+    return constructor
 
 
 def _earthlocation_representer(dumper, obj):
@@ -218,7 +211,6 @@ AstropyDumper.add_representer(u.CompositeUnit, _unit_representer)
 AstropyDumper.add_multi_representer(u.Unit, _unit_representer)
 AstropyDumper.add_representer(tuple, AstropyDumper._represent_tuple)
 AstropyDumper.add_representer(np.ndarray, _ndarray_representer)
-AstropyDumper.add_multi_representer(u.Quantity, _quantity_representer)
 AstropyDumper.add_representer(Time, _time_representer)
 AstropyDumper.add_representer(TimeDelta, _timedelta_representer)
 AstropyDumper.add_representer(coords.EarthLocation, _earthlocation_representer)
@@ -230,13 +222,19 @@ AstropyLoader.add_constructor(u'tag:yaml.org,2002:python/unicode',
                               AstropyLoader._construct_python_unicode)
 AstropyLoader.add_constructor('!astropy.units.Unit', _unit_constructor)
 AstropyLoader.add_constructor('!numpy.ndarray', _ndarray_constructor)
-AstropyLoader.add_constructor('!astropy.units.Quantity', _quantity_constructor)
 AstropyLoader.add_constructor('!astropy.time.Time', _time_constructor)
 AstropyLoader.add_constructor('!astropy.time.TimeDelta', _timedelta_constructor)
 AstropyLoader.add_constructor('!astropy.coordinates.earth.EarthLocation',
                               _earthlocation_constructor)
 AstropyLoader.add_constructor('!astropy.coordinates.sky_coordinate.SkyCoord',
                               _skycoord_constructor)
+
+for cls, tag in ((u.Quantity, '!astropy.units.Quantity'),
+                 (coords.Angle, '!astropy.coordinates.Angle'),
+                 (coords.Latitude, '!astropy.coordinates.Latitude'),
+                 (coords.Longitude, '!astropy.coordinates.Longitude')):
+    AstropyDumper.add_multi_representer(cls, _quantity_representer(tag))
+    AstropyLoader.add_constructor(tag, _quantity_constructor(cls))
 
 
 def load(stream):
