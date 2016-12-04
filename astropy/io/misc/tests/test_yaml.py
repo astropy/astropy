@@ -7,14 +7,14 @@ Requires `pyyaml <http://pyyaml.org/>`_ to be installed.
 """
 import numpy as np
 
-from ...coordinates import SkyCoord, EarthLocation, Angle, Longitude, Latitude
-from ... import units as u
-from ...time import Time
+from ....coordinates import SkyCoord, EarthLocation, Angle, Longitude, Latitude
+from .... import units as u
+from ....time import Time
 
-from ...tests.helper import pytest
+from ....tests.helper import pytest
 
 try:
-    from ..yaml import load, dump
+    from ..yaml import load, load_all, dump
     HAS_YAML = True
 except ImportError:
     HAS_YAML = False
