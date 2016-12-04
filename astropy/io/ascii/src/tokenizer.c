@@ -627,7 +627,7 @@ long str_to_long(tokenizer_t *self, char *str)
     char *tmp;
     long ret;
     errno = 0;
-    ret = strtol(str, &tmp, 0);
+    ret = strtol(str, &tmp, 10);
 
     if (tmp == str || *tmp != '\0')
         self->code = CONVERSION_ERROR;
