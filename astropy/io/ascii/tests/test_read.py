@@ -40,9 +40,10 @@ else:
 def test_convert_overflow(fast_reader):
     """
     Test reading an extremely large integer, which falls through to
-    string due to an overflow error (#2234).
+    string due to an overflow error (#2234). The C parsers return inf
+    for this now.
     """
-    expected_kind = ('S', 'U')
+    expected_kind = ('S', 'U', 'f')
     dat = ascii.read(['a', '1' * 10000], format='basic',
                      fast_reader=fast_reader, guess=False)
     assert dat['a'].dtype.kind in expected_kind
