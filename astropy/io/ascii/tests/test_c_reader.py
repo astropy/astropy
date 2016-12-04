@@ -5,6 +5,7 @@ try:
 except ImportError: # cStringIO doesn't exist in Python 3
     from io import BytesIO
     StringIO = lambda x: BytesIO(x.encode('ascii'))
+
 import os
 import functools
 
@@ -13,8 +14,8 @@ from textwrap import dedent
 import numpy as np
 from numpy import ma
 
-from ....table import Table, MaskedColumn
-from ... import ascii # as asc  # no name conflict with builtin ascii()!
+from ....table import Table, MaskedColumn, Column
+from ... import ascii
 from ...ascii.core import ParameterError, FastOptionsError
 from ...ascii.cparser import CParserError
 from ..fastbasic import FastBasic, FastCsv, FastTab, FastCommentedHeader, \
@@ -22,6 +23,7 @@ from ..fastbasic import FastBasic, FastCsv, FastTab, FastCommentedHeader, \
 from .common import assert_equal, assert_almost_equal, assert_true
 from ....tests.helper import pytest
 from ....extern import six
+from ....extern.six.moves import range
 
 TRAVIS = str('TRAVIS') in os.environ
 
@@ -361,7 +363,7 @@ def test_invalid_parameters():
         table = FastBasic(Outputter=ascii.TableOutputter).read('1 2 3\n4 5 6')
 
 
-def test_too_many_cols():
+def test_too_many_cols1():
     """
     If a row contains too many columns, the C reader should raise an error.
     """
@@ -376,6 +378,30 @@ A B C
         table = FastBasic().read(text)
     assert 'CParserError: an error occurred while parsing table data: too many ' \
         'columns found in line 3 of data' in str(e)
+
+
+def test_too_many_cols2():
+    text = """\
+aaa,bbb
+1,2,
+3,4,
+"""
+    with pytest.raises(CParserError) as e:
+        table = FastCsv().read(text)
+    assert 'CParserError: an error occurred while parsing table data: too many ' \
+        'columns found in line 1 of data' in str(e)
+
+
+def test_too_many_cols3():
+    text = """\
+aaa,bbb
+1,2,,
+3,4,
+"""
+    with pytest.raises(CParserError) as e:
+        table = FastCsv().read(text)
+    assert 'CParserError: an error occurred while parsing table data: too many ' \
+        'columns found in line 1 of data' in str(e)
 
 
 @pytest.mark.parametrize("parallel", [True, False])
@@ -842,10 +868,15 @@ def test_line_endings(parallel, read_basic, read_commented_header, read_rdb):
     for newline in ('\r\n', '\r'):
         table = read_commented_header(text.replace('\n', newline), parallel=parallel)
         assert_table_equal(table, expected)
-    text = 'a\tb\tc\nN\tN\tN\n1\t2\t3\n4\t5\t6\n7\t8\t9\n'
+
+    expected = Table([[1, 4, 7], [2, 5, 8], [3, 6, 9]], names=('a', 'b', 'c'), masked=True)
+    expected['a'][0] = np.ma.masked
+    expected['c'][0] = np.ma.masked
+    text = 'a\tb\tc\nN\tN\tN\n\t2\t\n4\t5\t6\n7\t8\t9\n'
     for newline in ('\r\n', '\r'):
         table = read_rdb(text.replace('\n', newline), parallel=parallel)
         assert_table_equal(table, expected)
+        assert np.all(table == expected)
 
 
 @pytest.mark.parametrize("parallel", [True, False])
@@ -890,6 +921,40 @@ def test_fast_tab_with_names(parallel, read_tab):
                      parallel=parallel, names=head)
 
 
+@pytest.mark.skipif(not os.getenv('TEST_READ_HUGE_FILE'),
+                    reason='Environment variable TEST_READ_HUGE_FILE must be '
+                    'defined to run this test')
+def test_read_big_table(tmpdir):
+    """Test reading of a huge file.
+
+    This test generates a huge CSV file (~2.3Gb) before reading it (see
+    https://github.com/astropy/astropy/pull/5319). The test is run only if the
+    environment variable ``TEST_READ_HUGE_FILE`` is defined. Note that running
+    the test requires quite a lot of memory (~18Gb when reading the file) !!
+
+    """
+    NB_ROWS = 250000
+    NB_COLS = 500
+    filename = str(tmpdir.join("big_table.csv"))
+
+    print("Creating a {} rows table ({} columns).".format(NB_ROWS, NB_COLS))
+    data = np.random.random(NB_ROWS)
+    t = Table(data=[data]*NB_COLS, names=[str(i) for i in range(NB_COLS)])
+    data = None
+
+    print("Saving the table to {}".format(filename))
+    t.write(filename, format='ascii.csv', overwrite=True)
+    t = None
+
+    print("Counting the number of lines in the csv, it should be {}"
+          " + 1 (header).".format(NB_ROWS))
+    assert sum(1 for line in open(filename)) == NB_ROWS + 1
+
+    print("Reading the file with astropy.")
+    t = Table.read(filename, format='ascii.csv', fast_reader=True)
+    assert len(t) == NB_ROWS
+
+
 # catch Windows environment since we cannot use _read() with custom fast_reader
 @pytest.mark.parametrize("parallel", [
     pytest.mark.xfail(os.name == 'nt', reason=
@@ -926,9 +991,6 @@ def test_data_out_of_range(parallel):
     pytest.mark.xfail(os.name == 'nt', reason=
                       "Multiprocessing is currently unsupported on Windows")(True),
     False])
-
-# @pytest.mark.parametrize("fast_converter", [True, False])
-#  tokenizer always uses C strtol()
 
 def test_int_out_of_range(parallel):
     """
