@@ -1093,3 +1093,4 @@ def test_fortran_invalid_exp(parallel):
                    fast_reader={'parallel': parallel, 'exponent_style': 'A'})
     read_values = [col[0] for col in t.itercols()]
     assert read_values == values
+
