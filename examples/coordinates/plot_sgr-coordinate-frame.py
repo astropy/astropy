@@ -107,8 +107,9 @@ class Sagittarius(coord.BaseCoordinateFrame):
 # other built-in coordinate system; we will use Galactic coordinates. We can do
 # this by defining functions that return transformation matrices, or by simply
 # defining a function that accepts a coordinate and returns a new coordinate in
-# the new system. We'll start by constructing the rotation matrix, using the
-# ``rotation_matrix`` helper function:
+# the new system. We'll start by constructing the transformation matrix using
+# pre-deteremined Euler angles and the ``rotation_matrix`` helper function
+# since both systems are Heliocentric::
 
 SGR_PHI = np.radians(180+3.75) # Euler angles (from Law & Majewski 2010)
 SGR_THETA = np.radians(90-13.46)
@@ -122,9 +123,9 @@ A = np.diag([1.,1.,-1.])
 SGR_MATRIX = matrix_product(A, B, C, D)
 
 ##############################################################################
-# This rotation matrix is defines at the module level, since it will be used
-# by both the transformation from Sgr to Galactic as well as the inverse from
-# Galactic to Sgr. Now we can define our first transformation function:
+# Since we already constructed the transformation (rotation) matrix above, and
+# the inverse of a rotation matrix is just its transpose, the required
+# transformation functions are very simple:
 
 @frame_transform_graph.transform(coord.StaticMatrixTransform, coord.Galactic, Sagittarius)
 def galactic_to_sgr():
@@ -137,8 +138,7 @@ def galactic_to_sgr():
 # The decorator ``@frame_transform_graph.transform(coord.StaticMatrixTransform,
 # coord.Galactic, Sagittarius)``  registers this function on the
 # ``frame_transform_graph`` as a coordinate transformation. Inside the function,
-# we simply construct a rotation matrix using the Euler angles (and the
-# z-axis flip matrix) since both systems are heliocentric.
+# we simply return the previously defined rotation matrix.
 #
 # We then register the inverse transformation by using the transpose of the
 # rotation matrix (which is faster to compute than the inverse):
