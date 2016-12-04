@@ -262,13 +262,14 @@ New Features
   - Check for self-consistency of ECSV header column names. [#5463]
 
   - Produce warnings when writing an IPAC table from an astropy table that
-    contains metadata not supported by the IPAC format [#4700]
+    contains metadata not supported by the IPAC format. [#4700]
 
 - ``astropy.io.fits``
 
   - "Lazy" loading of HDUs now occurs - when an HDU is requested, the file is
     only read up to the point where that HDU is found.  This can mean a
     substantial speedup when accessing files that have many HDUs. [#5065]
+  - Checking available disk space before writing out file. [#5500, #4065]
 
 - ``astropy.io.misc``
 
