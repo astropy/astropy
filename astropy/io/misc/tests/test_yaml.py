@@ -43,21 +43,22 @@ def test_ndarray_subclasses(c):
         assert c.unit == cy.unit
 
 
+def compare_coord(c, cy):
+    assert c.shape == cy.shape
+    assert c.frame.name == cy.frame.name
+
+    assert list(c.get_frame_attr_names()) == list(cy.get_frame_attr_names())
+    for attr in c.get_frame_attr_names():
+        assert getattr(c, attr) == getattr(cy, attr)
+
+    assert (list(c.representation_component_names) ==
+            list(cy.representation_component_names))
+    for name in c.representation_component_names:
+        assert np.all(getattr(c, attr) == getattr(cy, attr))
+
+
 @pytest.mark.parametrize('frame', ['fk4', 'altaz'])
 def test_skycoord(frame):
-    def compare_coord(c, cy):
-        assert c.shape == cy.shape
-        assert c.frame.name == cy.frame.name
-
-        assert list(c.get_frame_attr_names()) == list(cy.get_frame_attr_names())
-        for attr in c.get_frame_attr_names():
-            assert getattr(c, attr) == getattr(cy, attr)
-
-        assert (list(c.representation_component_names) ==
-                list(cy.representation_component_names))
-        for name in c.representation_component_names:
-            assert np.all(getattr(c, attr) == getattr(cy, attr))
-
 
     c = SkyCoord([[1,2],[3,4]], [[5,6], [7,8]],
                  unit='deg', frame=frame,
@@ -79,14 +80,17 @@ def _get_time():
     return t
 
 
-def test_time():
-    t = _get_time()
-    ty = load(dump(t))
-
+def compare_time(t, ty):
     assert type(t) is type(ty)
     for attr in ('shape', 'jd1', 'jd2', 'format', 'scale', 'precision', 'in_subfmt',
                  'out_subfmt', 'location', 'delta_ut1_utc', 'delta_tdb_tt'):
         assert np.all(getattr(t, attr) == getattr(ty, attr))
+
+
+def test_time():
+    t = _get_time()
+    ty = load(dump(t))
+    compare_time(t, ty)
 
 
 def test_timedelta():
@@ -97,3 +101,23 @@ def test_timedelta():
     assert type(dt) is type(dty)
     for attr in ('shape', 'jd1', 'jd2', 'format', 'scale'):
         assert np.all(getattr(dt, attr) == getattr(dty, attr))
+
+
+def test_load_all():
+    t = _get_time()
+    unit = u.m / u.s
+    c = SkyCoord([[1,2],[3,4]], [[5,6], [7,8]],
+                 unit='deg', frame='fk4',
+                 obstime=Time.now(),
+                 location=EarthLocation(1000, 2000, 3000, unit=u.km))
+
+    # Make a multi-document stream
+    out = ('---\n' + dump(t)
+           + '---\n' + dump(unit)
+           + '---\n' + dump(c))
+
+    ty, unity, cy = list(load_all(out))
+
+    compare_time(t, ty)
+    compare_coord(c, cy)
+    assert unity == unit
