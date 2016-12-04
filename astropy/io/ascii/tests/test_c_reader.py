@@ -994,20 +994,22 @@ def test_data_out_of_range(parallel):
 
 def test_int_out_of_range(parallel):
     """
-    Integer numbers outside int64 range shall be returned as string columns
+    Integer numbers outside int range shall be returned as string columns
     consistent with the standard (Python) parser (no 'upcasting' to float).
     """
-    text = 'P M S\n {0:d} -{0:d} {0:d}9'.format(2**63-1)
-    expected = Table([[2**63-1], [1-2**63], ['92233720368547758079']], 
-                     names=('P', 'M', 'S'))
+    imin = np.iinfo(np.int).min
+    imax = np.iinfo(np.int).max
+    huge = '{:d}9'.format(imax)
+
+    text = 'P M S\n {:d} {:d} {:s}'.format(imax, imin, huge)
+    expected = Table([[imax], [imin], [huge]], names=('P', 'M', 'S'))
     table = ascii.read(text, format='basic', guess=False,
                        fast_reader={'parallel': parallel})
     assert_table_equal(table, expected)
 
     # check with leading zeroes to make sure strtol does not read them as octal
-    text = 'P M S\n000{0:d} -0{0:d} 00{0:d}9'.format(2**63-1)
-    expected = Table([[2**63-1], [1-2**63], ['0092233720368547758079']], 
-                     names=('P', 'M', 'S'))
+    text = 'P M S\n000{:d} -0{:d} 00{:s}'.format(imax, -imin, huge)
+    expected = Table([[imax], [imin], ['00'+huge]], names=('P', 'M', 'S'))
     table = ascii.read(text, format='basic', guess=False,
                        fast_reader={'parallel': parallel})
     assert_table_equal(table, expected)
@@ -1015,8 +1017,8 @@ def test_int_out_of_range(parallel):
     # mixed columns should be returned as float, but if the out-of-range integer
     # shows up first, it will produce a string column - with both readers
     pytest.xfail("Integer fallback depends on order of rows")
-    text = 'A B\n 12.3 {0:d}9\n {0:d}9 45.6e7'.format(2**63-1)
-    expected = Table([[12.3, 9.22337203685e+19], [9.22337203685e+19, 4.56e8]],
+    text = 'A B\n 12.3 {0:d}9\n {0:d}9 45.6e7'.format(imax)
+    expected = Table([[12.3, 10.*imax], [10.*imax, 4.56e8]],
                      names=('A', 'B'))
 
     table = ascii.read(text, format='basic', guess=False,
