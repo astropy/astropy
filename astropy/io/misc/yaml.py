@@ -3,11 +3,10 @@ from __future__ import absolute_import
 import base64
 import numpy as np
 
-from ..time import Time, TimeDelta
-from .. import units as u
-from .. import coordinates as coords
-from ..coordinates.sky_coordinate import FRAME_ATTR_NAMES_SET
-from .data_info import _get_obj_attrs_map
+from ...time import Time, TimeDelta
+from ... import units as u
+from ... import coordinates as coords
+from ...utils.data_info import _get_obj_attrs_map
 
 try:
     import yaml
