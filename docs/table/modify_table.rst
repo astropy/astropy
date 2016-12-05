@@ -28,11 +28,11 @@ The code below shows the basics of modifying a table and its data.
 **Modify data values**
 ::
 
-  >>> t['a'] = [1, -2, 3, -4, 5]  # Set all column values
-  >>> t['a'][2] = 30              # Set row 2 of column 'a'
-  >>> t[1] = (8, 9, 10)           # Set all row values
-  >>> t[1]['b'] = -9              # Set column 'b' of row 1
-  >>> t[0:3]['c'] = 100           # Set column 'c' of rows 0, 1, 2
+  >>> t['a'][:] = [1, -2, 3, -4, 5]  # Set all column values
+  >>> t['a'][2] = 30                 # Set row 2 of column 'a'
+  >>> t[1] = (8, 9, 10)              # Set all row values
+  >>> t[1]['b'] = -9                 # Set column 'b' of row 1
+  >>> t[0:3]['c'] = 100              # Set column 'c' of rows 0, 1, 2
 
 Note that ``table[row][column]`` assignments will not work with
 `numpy` "fancy" ``row`` indexing (in that case ``table[row]`` would be
@@ -111,15 +111,24 @@ Finally, columns can also be added from
 
 **Replace a column**
 
-For a table with an existing column ``a``, an expression like ``t['a'] = [1, 2,
-3]`` or ``t['a'] = 1`` replaces the data *values* without changing the data
-type or anything else about the column.  In order to entirely replace the
-column with a new column (and potentially change the data type), use the
-:meth:`~astropy.table.Table.replace_column` method.  For instance, to change
-the data type of the ``a`` column from ``int`` to ``float``:
+One can entirely replace an existing column with a new column by setting the
+column to any object that could be used to initialize a table column (e.g.  a
+list or numpy array).  For example, one could change the data type of the ``a``
+column from ``int`` to ``float`` using::
 
-  >>> a_float = t['a'].astype(float)
-  >>> t.replace_column('a', a_float)
+  >>> t['a'] = t['a'].astype(float)
+
+If the right hand side value is not column-like, then an in-place update
+using broadcasting will be done, e.g.::
+
+  >>> t['a'] = 1  # Internally does t['a'][:] = 1
+
+.. Note ::
+
+   Prior to astropy version 1.3, assignment as shown above performed
+   an in-place update of the existing column values and it was not possible
+   to change the data type in this way.  Prior to 1.3 it was necessary
+   to use the :meth:`~astropy.table.Table.replace_column` method in this case.
 
 **Rename columns**
 ::

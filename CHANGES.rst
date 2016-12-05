@@ -241,6 +241,13 @@ API Changes
 
 - ``astropy.table``
 
+  - Setting an existing table column (e.g. ``t['a'] = [1, 2, 3]``) now defaults
+    to *replacing* the column with a column corresponding to the new value
+    (using ``t.replace_column()``) instead of doing an in-place update.  An
+    in-place update is still done when the new value is not a valid column,
+    e.g. ``t['a'] = 0``.  To force an in-place update use the pattern
+    ``t['a'][:] = [1, 2, 3]``. [#5556]
+
   - Allow ``collections.Mapping``-like ``data`` attribute when initializing a
     ``Table`` object (``dict``-like was already possible). [#5213]
 
