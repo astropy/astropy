@@ -13,7 +13,7 @@ from ..builtin_frames import ICRS, AltAz
 from ..builtin_frames.utils import get_jd12
 from .. import EarthLocation
 from .. import SkyCoord
-from ...tests.helper import pytest
+from ...tests.helper import pytest, catch_warnings
 from ... import _erfa as erfa
 from ...utils import iers
 from .utils import randomly_sample_sphere
@@ -138,7 +138,7 @@ def test_fiducial_roudtrip(fullstack_icrs, fullstack_fiducial_altaz):
     npt.assert_allclose(fullstack_icrs.dec.deg, icrs2.dec.deg)
 
 
-def test_future_altaz(recwarn):
+def test_future_altaz():
     """
     While this does test the full stack, it is mostly meant to check that a
     warning is raised when attempting to get to AltAz in the future (beyond
@@ -152,10 +152,12 @@ def test_future_altaz(recwarn):
     if hasattr(utils, '__warningregistry__'):
         utils.__warningregistry__.clear()
 
-    location = EarthLocation(lat=0*u.deg, lon=0*u.deg)
-    t = Time('J2161')
+    with catch_warnings() as found_warnings:
 
-    SkyCoord(1*u.deg, 2*u.deg).transform_to(AltAz(location=location, obstime=t))
+        location = EarthLocation(lat=0*u.deg, lon=0*u.deg)
+        t = Time('J2161')
+
+        SkyCoord(1*u.deg, 2*u.deg).transform_to(AltAz(location=location, obstime=t))
 
     # check that these message(s) appear among any other warnings.  If tests are run with
     # --remote-data then the IERS table will be an instance of IERS_Auto which is
@@ -167,7 +169,7 @@ def test_future_altaz(recwarn):
         messages_to_find.append("(some) times are outside of range covered by IERS table.")
 
     messages_found = [False for _ in messages_to_find]
-    for w in recwarn.list:
+    for w in found_warnings:
         if issubclass(w.category, AstropyWarning):
             for i, message_to_find in enumerate(messages_to_find):
                 if message_to_find in str(w.message):

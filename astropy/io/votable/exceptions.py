@@ -268,7 +268,7 @@ class W01(VOTableSpecWarning):
 
 
 class W02(VOTableSpecWarning):
-    """
+    r"""
     XML ids must match the following regular expression::
 
         ^[A-Za-z_][A-Za-z0-9_\.\-]*$
@@ -1132,15 +1132,15 @@ class E04(VOWarning, ValueError):
 
 
 class E05(VOWarning, ValueError):
-    """
+    r"""
     A ``boolean`` value should be one of the following strings (case
     insensitive) in the ``TABLEDATA`` format::
 
-        'TRUE', 'FALSE', '1', '0', 'T', 'F', '\\0', ' ', '?'
+        'TRUE', 'FALSE', '1', '0', 'T', 'F', '\0', ' ', '?'
 
     and in ``BINARY`` format::
 
-        'T', 'F', '1', '0', '\\0', ' ', '?'
+        'T', 'F', '1', '0', '\0', ' ', '?'
 
     **References**: `1.1
     <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`__,
@@ -1271,7 +1271,7 @@ class E12(VOWarning, ValueError):
 
 
 class E13(VOWarning, ValueError):
-    """
+    r"""
     From the VOTable 1.2 spec:
 
         A table cell can contain an array of a given primitive type,

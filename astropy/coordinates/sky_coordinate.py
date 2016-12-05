@@ -1169,7 +1169,7 @@ class SkyCoord(ShapedLikeNDArray):
     # Table interactions
     @classmethod
     def guess_from_table(cls, table, **coord_kwargs):
-        """
+        r"""
         A convenience method to create and return a new `SkyCoord` from the data
         in an astropy Table.
 

@@ -176,7 +176,7 @@ def pytest_configure(config):
                     # Just ignore searching modules that can't be imported when
                     # collecting doctests
                 except ImportError:
-                    raise StopIteration
+                    return
 
             # uses internal doctest module parsing mechanism
             finder = DocTestFinderPlus()

@@ -2,6 +2,7 @@
 
 import numpy as np
 from .. import core as erfa
+from ...tests.helper import catch_warnings
 
 
 def test_erfa_wrapper():
@@ -93,7 +94,7 @@ def test_spherical_cartesian():
     np.testing.assert_allclose(pv, [[0.0,np.sqrt(2.0),np.sqrt(2.0)],[-1.0,0.0,0.0]], atol=1e-14)
 
 
-def test_errwarn_reporting(recwarn):
+def test_errwarn_reporting():
     """
     Test that the ERFA error reporting mechanism works as it should
     """
@@ -102,14 +103,18 @@ def test_errwarn_reporting(recwarn):
     erfa.dat(1990, 1, 1, 0.5)
 
     # check warning is raised for a scalar
-    erfa.dat(100, 1, 1, 0.5)
-    w = recwarn.pop(erfa.ErfaWarning)
-    assert '1 of "dubious year (Note 1)"' in str(w.message)
+    with catch_warnings() as w:
+        erfa.dat(100, 1, 1, 0.5)
+        assert len(w) == 1
+        assert w[0].category == erfa.ErfaWarning
+        assert '1 of "dubious year (Note 1)"' in str(w[0].message)
 
     # and that the count is right for a vector.
-    erfa.dat([100, 200, 1990], 1, 1, 0.5)
-    w = recwarn.pop(erfa.ErfaWarning)
-    assert '2 of "dubious year (Note 1)"' in str(w.message)
+    with catch_warnings() as w:
+        erfa.dat([100, 200, 1990], 1, 1, 0.5)
+        assert len(w) == 1
+        assert w[0].category == erfa.ErfaWarning
+        assert '2 of "dubious year (Note 1)"' in str(w[0].message)
 
     try:
         erfa.dat(1990, [1, 34, 2], [1, 1, 43], 0.5)

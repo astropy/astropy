@@ -570,8 +570,8 @@ b & 2
     out = StringIO()
     ascii.write(t, out, format='aastex', latexdict=ascii.latexdicts['AA'])
     assert out.getvalue() == expected.replace(
-        'colhead{s}', 'colhead{$\mathrm{s}$}').replace(
-        'colhead{ }', 'colhead{$\mathrm{yr}$}')
+        'colhead{s}', r'colhead{$\mathrm{s}$}').replace(
+        'colhead{ }', r'colhead{$\mathrm{yr}$}')
 
 
 @pytest.mark.parametrize("fast_writer", [True, False])
