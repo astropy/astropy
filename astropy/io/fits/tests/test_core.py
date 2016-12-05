@@ -1030,7 +1030,7 @@ class TestFileFunctions(FitsTestCase):
             monkeypatch.setattr(fits.hdu.base._BaseHDU, "_writeto", _writeto)
             monkeypatch.setattr(data, "get_free_space_in_dir", get_free_space_in_dir)
 
-            n = np.arange(0, 1000)
+            n = np.arange(0, 1000, dtype='int64')
             hdu = fits.PrimaryHDU(n)
             hdulist = fits.HDUList(hdu)
             filename = self.temp('test.fits')
@@ -1049,7 +1049,7 @@ class TestFileFunctions(FitsTestCase):
         filename = self.temp('test.fits')
         hdul = [fits.PrimaryHDU(), fits.ImageHDU()]
         hdul = fits.HDUList(hdul)
-        hdul[0].data = np.arange(0, 1000)
+        hdul[0].data = np.arange(0, 1000, dtype='int64')
         hdul.writeto(filename)
 
         def _writedata(self, fileobj):
@@ -1064,7 +1064,7 @@ class TestFileFunctions(FitsTestCase):
 
         with pytest.raises(OSError) as exc:
             with fits.open(filename, mode='update') as hdul:
-                hdul[0].data = np.arange(0, 1000)
+                hdul[0].data = np.arange(0, 1000, dtype='int64')
                 hdul.insert(1, fits.ImageHDU())
                 hdul.flush()
 
