@@ -195,7 +195,7 @@ class TestTableInit(SetupData):
         assert np.all(t.mask['a'] == np.array([False, False, False]))
         assert np.all(t.mask['b'] == np.array([True, True, True]))
         # Check that setting mask from table mask has the desired effect on column
-        t.mask['b'] = np.array([False, True, False])
+        t.mask['b'][:] = np.array([False, True, False])
         assert np.all(t['b'].mask == np.array([False, True, False]))
         # Non-masked table returns None for mask attribute
         t2 = Table([self.ca], masked=False)

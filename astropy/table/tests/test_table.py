@@ -1712,6 +1712,29 @@ def test_replace_column_qtable():
     assert t['a'].info.meta is None
     assert t['a'].info.format is None
 
+def test_replace_update_column_via_setitem():
+    """
+    Test table update like ``t['a'] = value``.  This leverages off the
+    already well-tested ``replace_column`` and in-place update
+    ``t['a'][:] = value``, so this testing is fairly light.
+    """
+    a = [1, 2] * u.m
+    b = [3, 4]
+    t = table.QTable([a, b], names=['a', 'b'])
+    assert isinstance(t['a'], u.Quantity)
+
+    # Inplace update
+    ta = t['a']
+    t['a'] = 5 * u.m
+    assert np.all(t['a'] == [5, 5] * u.m)
+    assert t['a'] is ta
+
+    # Replace
+    t['a'] = [5, 6]
+    assert np.all(t['a'] == [5, 6])
+    assert isinstance(t['a'], table.Column)
+    assert t['a'] is not ta
+
 def test_primary_key_is_inherited():
     """Test whether a new Table inherits the primary_key attribute from
     its parent Table. Issue #4672"""
