@@ -3,101 +3,79 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import inspect
 import multiprocessing
 import os
 import shlex
 import sys
 import tempfile
 import warnings
+from collections import OrderedDict
+
+import pytest
 
 from ..config.paths import set_temp_config, set_temp_cache
 from ..extern import six
 from ..utils import wraps, find_current_module
 from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
+class keyword(object):
+    def __init__(self, default_value, include_doc_string=True, priority=0):
+        self.default_value = default_value
+        self.include_doc_string = include_doc_string
+        self.priority = priority
+
+    def __call__(self, f):
+        def keyword(*args, **kwargs):
+            return f(*args, **kwargs)
+        keyword._default_value = self.default_value
+        keyword._priority = self.priority
+        if self.include_doc_string:
+            keyword.__doc__ = f.__doc__
+        return keyword
+
 
 class TestRunner(object):
+
     def __init__(self, base_path):
         self.base_path = os.path.abspath(base_path)
 
-    def run_tests(self, package=None, test_path=None, args=None, plugins=None,
-                  verbose=False, pastebin=None, remote_data='none',
-                  pep8=False, pdb=False, coverage=False, open_files=False,
-                  parallel=0, docs_path=None, skip_docs=False, repeat=None):
+    def __new__(cls, *args, **kwargs):
         """
-        Run Astropy tests using py.test. A proper set of arguments is
-        constructed and passed to `pytest.main`.
+        Before constructing the class parse all the methods that have been
+        decorated with ``keyword``.
 
-        Parameters
-        ----------
-        package : str, optional
-            The name of a specific package to test, e.g. 'io.fits' or 'utils'.
-            If nothing is specified all default Astropy tests are run.
+        The objective of this method is to construct a default set of keyword
+        arguments to the ``run_tests`` method. It does this by inspecting the
+        methods of the class for functions with the name ``keyword`` which is
+        the name of the decorator wrapping function. Once it has created this
+        dictionary, it also formats the docstring of ``run_tests`` to be
+        comprised of the docstrings for the ``keyword`` methods.
 
-        test_path : str, optional
-            Specify location to test by path. May be a single file or
-            directory. Must be specified absolutely or relative to the
-            calling directory.
-
-        args : str, optional
-            Additional arguments to be passed to `pytest.main` in the `args`
-            keyword argument.
-
-        plugins : list, optional
-            Plugins to be passed to `pytest.main` in the `plugins` keyword
-            argument.
-
-        verbose : bool, optional
-            Convenience option to turn on verbose output from py.test. Passing
-            True is the same as specifying `-v` in `args`.
-
-        pastebin : {'failed','all',None}, optional
-            Convenience option for turning on py.test pastebin output. Set to
-            'failed' to upload info for failed tests, or 'all' to upload info
-            for all tests.
-
-        remote_data : {'none', 'astropy', 'any'}, optional
-            Controls whether to run tests marked with @remote_data. This can be
-            set to run no tests with remote data (``none``), only ones that use
-            data from http://data.astropy.org (``astropy``), or all tests that
-            use remote data (``any``). The default is ``none``.
-
-        pep8 : bool, optional
-            Turn on PEP8 checking via the pytest-pep8 plugin and disable normal
-            tests. Same as specifying `--pep8 -k pep8` in `args`.
-
-        pdb : bool, optional
-            Turn on PDB post-mortem analysis for failing tests. Same as
-            specifying `--pdb` in `args`.
-
-        open_files : bool, optional
-            Fail when any tests leave files open.  Off by default, because
-            this adds extra run time to the test suite.  Requires the
-            ``psutil`` package.
-
-        parallel : int, optional
-            When provided, run the tests in parallel on the specified
-            number of CPUs.  If parallel is negative, it will use the all
-            the cores on the machine.  Requires the `pytest-xdist` plugin.
-
-        docs_path : str, optional
-            The path to the documentation .rst files.
-
-        skip_docs : bool, optional
-            When `True`, skips running the doctests in the .rst files.
-
-        repeat : int, optional
-            If set, specifies how many times each test should be run. This is
-            useful for diagnosing sporadic failures.
-
-        See Also
-        --------
-        pytest.main : py.test function wrapped by `run_tests`.
+        To add a keyword argument to the ``run_tests`` method, define a new
+        method decorated with ``@keyword`` and with the ``self, name, kwargs``
+        signature.
         """
+        # Get all 'function' members as the wrapped methods are functions
+        functions = inspect.getmembers(cls, predicate=inspect.isfunction)
+        # Filter out anything that's not got the name 'keyword'
+        keywords = filter(lambda func: func[1].__name__ == 'keyword', functions)
+        # Sort all keywords based on the priority flag.
+        sorted_keywords = sorted(keywords, key=lambda x: x[1]._priority, reverse=True)
 
-        # Don't import pytest until it's actually needed to run the tests
-        from .helper import pytest
+        cls.keywords = OrderedDict()
+        doc_keywords = ""
+        for name, func in sorted_keywords:
+            cls.keywords[name] = func._default_value
+            if func.__doc__:
+                doc_keywords += func.__doc__
 
+        cls.run_tests.__doc__ = cls.run_tests.__doc__.format(keywords=doc_keywords)
+
+        return super(TestRunner, cls).__new__(cls)
+
+    @keyword(None, priority=100)
+    def coverage(self, coverage, kwargs):
         if coverage:
             warnings.warn(
                 "The coverage option is ignored on run_tests, since it "
@@ -105,32 +83,46 @@ class TestRunner(object):
                 "'python setup.py test --coverage' instead.",
                 AstropyWarning)
 
-        all_args = []
+        return []
 
+    @keyword(None, priority=1)
+    def package(self, package, kwargs):
+        """
+        package : str, optional
+            The name of a specific package to test, e.g. 'io.fits' or 'utils'.
+            If nothing is specified all default Astropy tests are run.
+
+        """
         if package is None:
-            package_path = self.base_path
+            self.package_path = self.base_path
         else:
-            package_path = os.path.join(self.base_path,
+            self.package_path = os.path.join(self.base_path,
                                         package.replace('.', os.path.sep))
 
-            if not os.path.isdir(package_path):
+            if not os.path.isdir(self.package_path):
                 raise ValueError('Package not found: {0}'.format(package))
 
-        if docs_path is not None and not skip_docs:
-            if package is not None:
-                docs_path = os.path.join(
-                    docs_path, package.replace('.', os.path.sep))
-            if not os.path.exists(docs_path):
-                warnings.warn(
-                    "Can not test .rst docs, since docs path "
-                    "({0}) does not exist.".format(docs_path))
-                docs_path = None
+        if not kwargs['test_path']:
+            return [self.package_path]
 
+        return []
+
+    @keyword(None)
+    def test_path(self, test_path, kwargs):
+        """
+        test_path : str, optional
+            Specify location to test by path. May be a single file or
+            directory. Must be specified absolutely or relative to the
+            calling directory.
+
+        """
+        # Ensure that the package kwarg has been run.
+        self.package(kwargs['package'], kwargs)
         if test_path:
             base, ext = os.path.splitext(test_path)
 
             if ext in ('.rst', ''):
-                if docs_path is None:
+                if kwargs['docs_path'] is None:
                     # This shouldn't happen from "python setup.py test"
                     raise ValueError(
                         "Can not test .rst files without a docs_path "
@@ -155,29 +147,75 @@ class TestRunner(object):
                 raise ValueError("Test path must be a directory or a path to "
                                  "a .py or .rst file")
 
-            all_args.append(test_path)
-        else:
-            all_args.append(package_path)
-            if docs_path is not None and not skip_docs:
-                all_args.extend([docs_path, '--doctest-rst'])
+            return [test_path]
 
-        # add any additional args entered by the user
-        if args is not None:
-            all_args.extend(
-                shlex.split(args, posix=not sys.platform.startswith('win')))
+        return []
 
-        # add verbosity flag
+
+    @keyword(None)
+    def args(self, args, kwargs):
+        """
+        args : str, optional
+            Additional arguments to be passed to `pytest.main` in the `args`
+            keyword argument.
+
+        """
+        if args:
+            return shlex.split(args,
+                               posix=not sys.platform.startswith('win'))
+
+        return []
+
+    @keyword(None)
+    def plugins(self, plugins, kwargs):
+        """
+        plugins : list, optional
+            Plugins to be passed to `pytest.main` in the `plugins` keyword
+            argument.
+
+        """
+        return []
+
+    @keyword(None)
+    def verbose(self, verbose, kwargs):
+        """
+        verbose : bool, optional
+            Convenience option to turn on verbose output from py.test. Passing
+            True is the same as specifying `-v` in `args`.
+
+        """
         if verbose:
-            all_args.append('-v')
+            return ['-v']
 
-        # turn on pastebin output
+        return []
+
+    @keyword(None)
+    def pastebin(self, pastebin, kwargs):
+        """
+        pastebin : {{'failed', 'all', None}}, optional
+            Convenience option for turning on py.test pastebin output. Set to
+            'failed' to upload info for failed tests, or 'all' to upload info
+            for all tests.
+
+        """
         if pastebin is not None:
             if pastebin in ['failed', 'all']:
-                all_args.append('--pastebin={0}'.format(pastebin))
+                return ['--pastebin={0}'.format(pastebin)]
             else:
                 raise ValueError("pastebin should be 'failed' or 'all'")
 
-        # run @remote_data tests
+        return []
+
+    @keyword(None)
+    def remote_data(self, remote_data, kwargs):
+        """
+        remote_data : {'none', 'astropy', 'any'}, optional
+            Controls whether to run tests marked with @remote_data. This can be
+            set to run no tests with remote data (``none``), only ones that use
+            data from http://data.astropy.org (``astropy``), or all tests that
+            use remote data (``any``). The default is ``none``.
+
+        """
 
         if remote_data is True:
             remote_data = 'any'
@@ -191,8 +229,16 @@ class TestRunner(object):
                           AstropyDeprecationWarning)
             remote_data = 'any'
 
-        all_args.append('--remote-data={0}'.format(remote_data))
+        return '--remote-data={0}'.format(remote_data)
 
+    @keyword(None)
+    def pep8(self, pep8, kwargs):
+        """
+        pep8 : bool, optional
+            Turn on PEP8 checking via the pytest-pep8 plugin and disable normal
+            tests. Same as specifying `--pep8 -k pep8` in `args`.
+
+        """
         if pep8:
             try:
                 import pytest_pep8  # pylint: disable=W0611
@@ -200,13 +246,31 @@ class TestRunner(object):
                 raise ImportError('PEP8 checking requires pytest-pep8 plugin: '
                                   'http://pypi.python.org/pypi/pytest-pep8')
             else:
-                all_args.extend(['--pep8', '-k', 'pep8'])
+                return ['--pep8', '-k', 'pep8']
 
-        # activate post-mortem PDB for failing tests
+        return []
+
+    @keyword(None)
+    def pdb(self, pdb, kwargs):
+        """
+        pdb : bool, optional
+            Turn on PDB post-mortem analysis for failing tests. Same as
+            specifying `--pdb` in `args`.
+
+        """
         if pdb:
-            all_args.append('--pdb')
+            return ['--pdb']
+        return []
 
-        # check for opened files after each test
+    @keyword(None)
+    def open_files(self, open_files, kwargs):
+        """
+        open_files : bool, optional
+            Fail when any tests leave files open.  Off by default, because
+            this adds extra run time to the test suite.  Requires the
+            ``psutil`` package.
+
+        """
         if open_files:
             if parallel != 0:
                 raise SystemError(
@@ -220,33 +284,109 @@ class TestRunner(object):
                     "open file detection requested, but psutil package "
                     "is not installed.")
 
-            all_args.append('--open-files')
+            return ['--open-files']
 
             print("Checking for unclosed files")
 
+        return []
+
+    @keyword(0)
+    def parallel(self, parallel, kwargs):
+        """
+        parallel : int, optional
+            When provided, run the tests in parallel on the specified
+            number of CPUs.  If parallel is negative, it will use the all
+            the cores on the machine.  Requires the `pytest-xdist` plugin.
+
+        """
         if parallel != 0:
-            try:
-                import xdist  # pylint: disable=W0611
-            except ImportError:
-                raise ImportError(
-                    'Parallel testing requires the pytest-xdist plugin '
-                    'https://pypi.python.org/pypi/pytest-xdist')
+            return ['-n', six.text_type(parallel)]
 
-            try:
-                parallel = int(parallel)
-            except ValueError:
-                raise ValueError(
-                    "parallel must be an int, got {0}".format(parallel))
+        return []
 
-            if parallel < 0:
-                parallel = multiprocessing.cpu_count()
-            all_args.extend(['-n', six.text_type(parallel)])
+    @keyword(None)
+    def docs_path(self, docs_path, kwargs):
+        """
+        docs_path : str, optional
+            The path to the documentation .rst files.
 
+        """
+        if docs_path is not None and not kwargs['skip_docs']:
+            if kwargs['package'] is not None:
+                docs_path = os.path.join(
+                    docs_path, kwargs['package'].replace('.', os.path.sep))
+            if not os.path.exists(docs_path):
+                warnings.warn(
+                    "Can not test .rst docs, since docs path "
+                    "({0}) does not exist.".format(docs_path))
+                docs_path = None
+        if docs_path and not kwargs['skip_docs'] and not kwargs['test_path']:
+            return [docs_path, '--doctest-rst']
+
+        return []
+
+    @keyword(None)
+    def skip_docs(self, skip_docs, kwargs):
+        """
+        skip_docs : bool, optional
+            When `True`, skips running the doctests in the .rst files.
+
+        """
+        # Skip docs is a bool used by docs_path only.
+        return []
+
+    @keyword(None)
+    def repeat(self, repeat, kwargs):
+        """
+        repeat : int, optional
+            If set, specifies how many times each test should be run. This is
+            useful for diagnosing sporadic failures.
+
+        """
         if repeat:
-            all_args.append('--repeat={0}'.format(repeat))
+            return ['--repeat={0}'.format(repeat)]
+
+        return []
+
+
+    def run_tests(self, **kwargs):
+        """
+        Run the tests
+
+        Parameters
+        ----------
+        {keywords}
+        See Also
+        --------
+        pytest.main : py.test function wrapped by `run_tests`.
+
+        """
+        # Raise error for undefined kwargs
+        allowed_kwargs = set(self.keywords.keys())
+        passed_kwargs = set(kwargs.keys())
+        if not passed_kwargs.issubset(allowed_kwargs):
+            wrong_kwargs = list(passed_kwargs.difference(allowed_kwargs))
+            raise TypeError("run_tests() got an unexpected keyword argument {}".format(wrong_kwargs[0]))
+
+        # Update default values with passed kwargs
+        self.keywords.update(kwargs)
+        # Iterate through the keywords (in order of priority)
+        args = []
+        for keyword in self.keywords.keys():
+            func = getattr(self, keyword)
+            result = func(self.keywords[keyword], self.keywords)
+
+            # Allow disabaling of options in a subclass
+            if result is NotImplemented:
+                raise TypeError("run_tests() got an unexpected keyword argument {}".format(keyword))
+            # keyword methods must return a list
+            elif not isinstance(result, list):
+                raise TypeError("{} keyword method must return a list".format(keyword))
+
+            args += result
 
         if six.PY2:
-            all_args = [x.encode('utf-8') for x in all_args]
+            args = [x.encode('utf-8') for x in args]
 
         # override the config locations to not make a new directory nor use
         # existing cache or config
@@ -264,7 +404,7 @@ class TestRunner(object):
         # also harmless to nest the contexts
         with set_temp_config(astropy_config, delete=True):
             with set_temp_cache(astropy_cache, delete=True):
-                return pytest.main(args=all_args, plugins=plugins)
+                return pytest.main(args=args, plugins=self.keywords['plugins'])
 
     @classmethod
     def make_test_runner_in(cls, path):
@@ -281,8 +421,8 @@ class TestRunner(object):
         runner = cls(path)
 
         @wraps(runner.run_tests, ('__doc__',), exclude_args=('self',))
-        def test(*args, **kwargs):
-            return runner.run_tests(*args, **kwargs)
+        def test(**kwargs):
+            return runner.run_tests(**kwargs)
 
         module = find_current_module(2)
         if module is not None:
