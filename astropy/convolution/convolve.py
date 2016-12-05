@@ -155,13 +155,24 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         raise Exception('array and kernel have differing number of '
                         'dimensions.')
 
-    # anything that's masked must be turned into NaNs for the interpolation
+    # anything that's masked must be turned into NaNs for the interpolation.
+    # This requires copying the array_internal
+    array_internal_copied = False
     if np.ma.is_masked(array):
+        if not array_internal_copied:
+            array_internal = array_internal.copy()
+            array_internal_copied = True
         array_internal[array.mask] = np.nan
     if mask is not None:
+        if not array_internal_copied:
+            array_internal = array_internal.copy()
+            array_internal_copied = True
         # mask != 0 yields a bool mask for all ints/floats/bool
         array_internal[mask != 0] = np.nan
     if np.ma.is_masked(kernel):
+        if not array_internal_copied:
+            array_internal = array_internal.copy()
+            array_internal_copied = True
         kernel_internal[kernel.mask] = np.nan
 
     # Because the Cython routines have to normalize the kernel on the fly, we
