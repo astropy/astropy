@@ -697,12 +697,12 @@ class _BaseHDU(object):
             if self._data_loaded:
                 if self.data is not None:
                     # Seek through the array's bases for an memmap'd array; we
-                    # can't rely on the _File object to give us this info since the
-                    # user may have replaced the previous mmap'd array
+                    # can't rely on the _File object to give us this info since
+                    # the user may have replaced the previous mmap'd array
                     if copy or self._data_replaced:
-                        # Of course, if we're copying the data to a new file we
-                        # don't care about flushing the original mmap; instead just
-                        # read it into the new file
+                        # Of course, if we're copying the data to a new file
+                        # we don't care about flushing the original mmap;
+                        # instead just read it into the new file
                         array_mmap = None
                     else:
                         array_mmap = _get_array_mmap(self.data)

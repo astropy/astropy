@@ -1067,10 +1067,9 @@ class TestFileFunctions(FitsTestCase):
                 hdul[0].data = np.arange(0, 1000)
                 hdul.insert(1, fits.ImageHDU())
                 hdul.flush()
+
         assert ("Not enough space on disk. Fake error raised when writing "
                 "file.") == exc.value.args[0]
-
-        hdul._file.close()
 
     def _test_write_string_bytes_io(self, fileobj):
         """

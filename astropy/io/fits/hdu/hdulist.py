@@ -926,16 +926,19 @@ class HDUList(list, _Verify):
         maintained only for backwards-compatibility.
         """
 
-        if self._file:
-            if self._file.mode in ['append', 'update']:
-                self.flush(output_verify=output_verify, verbose=verbose)
+        try:
+            if self._file:
+                if (self._file.mode in ['append', 'update']
+                        and not self._file.closed):
+                    self.flush(output_verify=output_verify, verbose=verbose)
+        finally:
+            if self._file:
+                if closed and hasattr(self._file, 'close'):
+                    self._file.close()
 
-            if closed and hasattr(self._file, 'close'):
-                self._file.close()
-
-        # Give individual HDUs an opportunity to do on-close cleanup
-        for hdu in self:
-            hdu._close(closed=closed)
+            # Give individual HDUs an opportunity to do on-close cleanup
+            for hdu in self:
+                hdu._close(closed=closed)
 
     def info(self, output=None):
         """
@@ -1285,8 +1288,8 @@ class HDUList(list, _Verify):
                 for hdu in self:
                     hdu._writeto(hdulist._file, inplace=True, copy=True)
                 if sys.platform.startswith('win'):
-                    # Collect a list of open mmaps to the data; this well be used
-                    # later.  See below.
+                    # Collect a list of open mmaps to the data; this well be
+                    # used later.  See below.
                     mmaps = [(idx, _get_array_mmap(hdu.data), hdu.data)
                              for idx, hdu in enumerate(self) if hdu._has_data]
 
