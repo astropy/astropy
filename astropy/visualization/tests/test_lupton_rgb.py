@@ -98,7 +98,7 @@ class TestLuptonRgb(object):
 
     np.random.seed(1000)  # so we always get the same images.
 
-    min_, range_, Q = 0, 5, 20  # asinh
+    min_, stretch_, Q = 0, 5, 20  # asinh
 
     width, height = 85, 75
     images = []
@@ -138,7 +138,7 @@ class TestLuptonRgb(object):
 
     def test_Asinh(self):
         """Test creating an RGB image using an asinh stretch"""
-        asinhMap = lupton_rgb.AsinhMapping(self.min_, self.range_, self.Q)
+        asinhMap = lupton_rgb.AsinhMapping(self.min_, self.stretch_, self.Q)
         rgbImage = asinhMap.make_rgb_image(self.image_r, self.image_g, self.image_b)
         if display:
             display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
@@ -189,7 +189,7 @@ class TestLuptonRgb(object):
             red = saturate(self.image_r, satValue)
             green = saturate(self.image_g, satValue)
             blue = saturate(self.image_b, satValue)
-            lupton_rgb.make_lupton_rgb(red, green, blue, self.min_, self.range_, self.Q, filename=temp)
+            lupton_rgb.make_lupton_rgb(red, green, blue, self.min_, self.stretch_, self.Q, filename=temp)
             assert os.path.exists(temp.name)
 
     def test_make_rgb_saturated_fix(self):
@@ -199,7 +199,7 @@ class TestLuptonRgb(object):
             red = saturate(self.image_r, satValue)
             green = saturate(self.image_g, satValue)
             blue = saturate(self.image_b, satValue)
-            lupton_rgb.make_lupton_rgb(red, green, blue, self.min_, self.range_, self.Q,
+            lupton_rgb.make_lupton_rgb(red, green, blue, self.min_, self.stretch_, self.Q,
                                        saturated_border_width=1, saturated_pixel_value=2000)
 
     def test_linear(self):
@@ -240,7 +240,7 @@ class TestLuptonRgb(object):
         self.imagesR = self.imagesG.getImage()
         self.imagesR = self.imagesB.getImage()
 
-        asinhMap = lupton_rgb.AsinhMapping(self.min_, self.range_, self.Q)
+        asinhMap = lupton_rgb.AsinhMapping(self.min_, self.stretch_, self.Q)
         rgbImage = asinhMap.make_rgb_image(self.image_r, self.image_g, self.image_b)
         if display:
             display_rgb(rgbImage, title=sys._getframe().f_code.co_name)

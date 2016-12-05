@@ -290,18 +290,18 @@ class AsinhMapping(Mapping):
     See http://adsabs.harvard.edu/abs/2004PASP..116..133L
     """
 
-    def __init__(self, minimum, data_range, Q=8):
+    def __init__(self, minimum, stretch, Q=8):
         """
-        asinh stretch from minimum to minimum + data_range, scaled by Q, via:
-            x = asinh(Q (I - minimum)/data_range)/Q
+        asinh stretch from minimum to minimum + stretch, scaled by Q, via:
+            x = asinh(Q (I - minimum)/stretch)/Q
 
         Parameters
         ----------
 
         minimum : float
             Intensity that should be mapped to black (a scalar or array for R, G, B).
-        data_range : float
-            minimum+data_range defines the white level of the image.
+        stretch : float
+            The linear stretch of the image.
         Q : float
             The asinh softening parameter.
         """
@@ -315,10 +315,10 @@ class AsinhMapping(Mapping):
             if Q > Qmax:
                 Q = Qmax
 
-        frac = 0.1                  # gradient estimated using frac*range is _slope
+        frac = 0.1                  # gradient estimated using frac*stretch is _slope
         self._slope = frac*self._uint8Max/np.arcsinh(frac*Q)
 
-        self._soften = Q/float(data_range)
+        self._soften = Q/float(stretch)
 
     def map_intensity_to_uint8(self, I):
         with np.errstate(invalid='ignore', divide='ignore'):  # n.b. np.where can't and doesn't short-circuit
@@ -389,17 +389,17 @@ class AsinhZScaleMapping(AsinhMapping):
 
         zscale_limits = ZScaleInterval().get_limits(image)
         zscale = LinearMapping(*zscale_limits, image=image)
-        data_range = zscale.maximum - zscale.minimum[0]  # zscale.minimum is always a triple
+        stretch = zscale.maximum - zscale.minimum[0]  # zscale.minimum is always a triple
         minimum = zscale.minimum
 
         for i, level in enumerate(pedestal):
             minimum[i] += level
 
-        AsinhMapping.__init__(self, minimum, data_range, Q)
+        AsinhMapping.__init__(self, minimum, stretch, Q)
         self._image = image
 
 
-def make_lupton_rgb(image_r, image_g=None, image_b=None, minimum=0, data_range=5, Q=8,
+def make_lupton_rgb(image_r, image_g=None, image_b=None, minimum=0, stretch=5, Q=8,
                     saturated_border_width=0, saturated_pixel_value=None,
                     x_size=None, y_size=None, rescale=None,
                     filename=None):
@@ -421,8 +421,8 @@ def make_lupton_rgb(image_r, image_g=None, image_b=None, minimum=0, data_range=5
         Image to map to blue (if None, use image_r).
     minimum : float
         Intensity that should be mapped to black (a scalar or array for R, G, B).
-    data_range : float
-        minimum+data_range defines the white level of the image.
+    stretch : float
+        The linear stretch of the image.
     Q : float
         The asinh softening parameter.
     saturated_border_width : int
@@ -458,7 +458,7 @@ def make_lupton_rgb(image_r, image_g=None, image_b=None, minimum=0, data_range=5
         raise NotImplementedError(msg)
         # replaceSaturatedPixels(image_r, image_g, image_b, saturated_border_width, saturated_pixel_value)
 
-    asinhMap = AsinhMapping(minimum, data_range, Q)
+    asinhMap = AsinhMapping(minimum, stretch, Q)
     rgb = asinhMap.make_rgb_image(image_r, image_g, image_b,
                                   x_size=x_size, y_size=y_size, rescale=rescale)
 
