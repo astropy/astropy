@@ -109,7 +109,7 @@ class Sagittarius(coord.BaseCoordinateFrame):
 # defining a function that accepts a coordinate and returns a new coordinate in
 # the new system. We'll start by constructing the transformation matrix using
 # pre-deteremined Euler angles and the ``rotation_matrix`` helper function
-# since both systems are Heliocentric::
+# since both systems are Heliocentric:
 
 SGR_PHI = np.radians(180+3.75) # Euler angles (from Law & Majewski 2010)
 SGR_THETA = np.radians(90-13.46)
