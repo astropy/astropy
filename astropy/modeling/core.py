@@ -1760,6 +1760,12 @@ class _CompoundModelMeta(_ModelMeta):
             instance._custom_inverse = mcls._make_custom_inverse(
                     operator, left, right)
 
+            if left._n_models == right._n_models:
+                instance._n_models = left._n_models
+            else:
+                raise ValueError('Model sets must have the same number of '
+                                 'components.')
+
             return instance
 
         # Otherwise return the new uninstantiated class itself
