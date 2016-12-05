@@ -162,14 +162,16 @@ sgr = icrs.transform_to(Sagittarius)
 print(sgr)
 
 ##############################################################################
-# Or, to transform from the ``Sagittarius`` frame to ICRS coordinates:
+# Or, to transform from the ``Sagittarius`` frame to ICRS coordinates (in this
+# case, a line along the ``Sagittarius`` x-y plane):
 
-sgr = Sagittarius(Lambda=np.linspace(0,2*np.pi,128)*u.radian,
+sgr = Sagittarius(Lambda=np.linspace(0, 2*np.pi, 128)*u.radian,
                   Beta=np.zeros(128)*u.radian)
 icrs = sgr.transform_to(coord.ICRS)
+print(icrs)
 
 ##############################################################################
-# Plot the points in both coordinate systems:
+# And then to plot the points in both coordinate systems:
 
 fig, axes = plt.subplots(2, 1, figsize=(8, 10),
                          subplot_kw={'projection': 'aitoff'})
