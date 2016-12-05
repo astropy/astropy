@@ -1582,6 +1582,8 @@ Bug Fixes
 
 - ``astropy.modeling``
 
+  - CompoundModel now correctly inherits _n_models, allowing the use of model sets [#5358]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
