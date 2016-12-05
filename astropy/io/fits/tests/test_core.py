@@ -1023,12 +1023,12 @@ class TestFileFunctions(FitsTestCase):
         to a full disk.
         """
         def _writeto(self, array):
-            raise IOError("Fake error raised when writing file.")
+            raise OSError("Fake error raised when writing file.")
 
         def get_free_space_in_dir(path):
             return 0
 
-        with pytest.raises(IOError) as exc:
+        with pytest.raises(OSError) as exc:
             monkeypatch.setattr(fits.hdu.base._BaseHDU, "_writeto", _writeto)
             monkeypatch.setattr(data, "get_free_space_in_dir", get_free_space_in_dir)
 
@@ -1036,10 +1036,12 @@ class TestFileFunctions(FitsTestCase):
             hdu = fits.PrimaryHDU(n)
             hdulist = fits.HDUList(hdu)
             filename = self.temp('test.fits')
-            hdulist.writeto(filename)
-            hdulist.close()
 
-            assert "Not enough space on disk. Fake error raised for writing to files" in exc.value
+            with open(filename, mode='wb+') as fileobj:
+                hdulist.writeto(fileobj)
+
+        assert ("Not enough space on disk. Fake error raised when writing "
+                "file.") == exc.value.args[0]
 
     def test_flush_full_disk(self, monkeypatch):
         """

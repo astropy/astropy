@@ -860,16 +860,21 @@ def _get_array_mmap(array):
             return base.base
         base = base.base
 
+
 @contextmanager
-def _free_space_check(hdulist):
+def _free_space_check(hdulist, dirname=None):
     try:
         yield
-    except IOError as exc:
-        dirname = os.path.dirname(hdulist._file.name)
+    except OSError as exc:
+        if not isinstance(hdulist, list):
+            hdulist = [hdulist, ]
+        if dirname is None:
+            dirname = os.path.dirname(hdulist._file.name)
         if os.path.isdir(dirname):
             free_space = data.get_free_space_in_dir(dirname)
             hdulist_size = np.sum(hdu.size for hdu in hdulist)
-            if not hdulist._file.file_like and free_space < hdulist_size:
-                raise IOError("Not enough space on disk. " + str(exc))
-            else:
-                raise
+            for hdu in hdulist:
+                hdu._close()
+            if free_space < hdulist_size:
+                raise OSError("Not enough space on disk. " + str(exc))
+        raise

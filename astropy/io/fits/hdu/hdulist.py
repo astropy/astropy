@@ -869,13 +869,13 @@ class HDUList(list, _Verify):
         # but only if the file doesn't exist.
         fileobj = _File(fileobj, mode='ostream', overwrite=overwrite)
         hdulist = self.fromfile(fileobj)
+        dirname = os.path.dirname(hdulist._file.name)
 
-        for hdu in self:
-            hdu._prewriteto(checksum=checksum)
-            with _free_space_check(hdulist):
+        with _free_space_check(self, dirname=dirname):
+            for hdu in self:
+                hdu._prewriteto(checksum=checksum)
                 hdu._writeto(hdulist._file)
-            hdu._postwriteto()
-
+                hdu._postwriteto()
         hdulist.close(output_verify=output_verify, closed=closed)
 
     def close(self, output_verify='exception', verbose=False, closed=True):
