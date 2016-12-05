@@ -1899,7 +1899,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                HST's ACS/WFC detector, which has the strongest
                distortions of all HST instruments, testing has
                shown that enabling this option would lead to a about
-               50-100\% penalty in computational time (depending on
+               50-100% penalty in computational time (depending on
                specifics of the image, geometric distortions, and
                number of input points to be converted). Therefore,
                for HST and possibly instruments, it is recommended
@@ -1962,7 +1962,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
             .. note::
                Based on our testing using HST ACS/WFC images, setting
-               ``detect_divergence`` to `True` will incur about 5-20\%
+               ``detect_divergence`` to `True` will incur about 5-20%
                performance penalty with the larger penalty
                corresponding to ``adaptive`` set to `True`.
                Because the benefits of enabling this

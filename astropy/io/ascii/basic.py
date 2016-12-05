@@ -41,7 +41,7 @@ class BasicData(core.BaseData):
 
 
 class Basic(core.BaseReader):
-    """
+    r"""
     Read a character-delimited table with a single header line at the top
     followed by data lines to the end of the table.  Lines beginning with # as
     the first non-whitespace character are comments.  This reader is highly

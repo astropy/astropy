@@ -300,7 +300,7 @@ class Function(object):
             else:
                 filecontents = f.read()
 
-        pattern = "\n([^\n]+{0} ?\([^)]+\)).+?(/\*.+?\*/)".format(name)
+        pattern = r"\n([^\n]+{0} ?\([^)]+\)).+?(/\*.+?\*/)".format(name)
         p = re.compile(pattern, flags=re.DOTALL|re.MULTILINE)
 
         search = p.search(filecontents)
@@ -308,7 +308,7 @@ class Function(object):
         self.doc = FunctionDoc(search.group(2))
 
         self.args = []
-        for arg in re.search("\(([^)]+)\)", self.cfunc).group(1).split(', '):
+        for arg in re.search(r"\(([^)]+)\)", self.cfunc).group(1).split(', '):
             self.args.append(Argument(arg, self.doc))
         self.ret = re.search("^(.*){0}".format(name), self.cfunc).group(1).strip()
         if self.ret != 'void':
@@ -391,14 +391,14 @@ def main(srcdir, outfn, templateloc, verbose=True):
         erfa_h = f.read()
 
     funcs = OrderedDict()
-    section_subsection_functions = re.findall('/\* (\w*)/(\w*) \*/\n(.*?)\n\n',
+    section_subsection_functions = re.findall(r'/\* (\w*)/(\w*) \*/\n(.*?)\n\n',
                                               erfa_h, flags=re.DOTALL|re.MULTILINE)
     for section, subsection, functions in section_subsection_functions:
         print_("{0}.{1}".format(section, subsection))
         if ((section == "Astronomy") or (subsection == "AngleOps")
             or (subsection == "SphericalCartesian")
             or (subsection == "MatrixVectorProducts")):
-            func_names = re.findall(' (\w+)\(.*?\);', functions, flags=re.DOTALL)
+            func_names = re.findall(r' (\w+)\(.*?\);', functions, flags=re.DOTALL)
             for name in func_names:
                 print_("{0}.{1}.{2}...".format(section, subsection, name))
                 if multifilserc:
@@ -409,7 +409,7 @@ def main(srcdir, outfn, templateloc, verbose=True):
                     # the start of the header declaration, otherwise it
                     # might find a *call* of the function instead of the
                     # definition
-                    for line in functions.split('\n'):
+                    for line in functions.split(r'\n'):
                         if name in line:
                             # [:-1] is to remove trailing semicolon, and
                             # splitting on '(' is because the header and
@@ -433,9 +433,9 @@ def main(srcdir, outfn, templateloc, verbose=True):
         erfa_m_h = f.read()
     constants = []
     for chunk in erfa_m_h.split("\n\n"):
-        result = re.findall("#define (ERFA_\w+?) (.+?)$", chunk, flags=re.DOTALL|re.MULTILINE)
+        result = re.findall(r"#define (ERFA_\w+?) (.+?)$", chunk, flags=re.DOTALL|re.MULTILINE)
         if result:
-            doc = re.findall("/\* (.+?) \*/\n", chunk, flags=re.DOTALL)
+            doc = re.findall(r"/\* (.+?) \*/\n", chunk, flags=re.DOTALL)
             for (name, value) in result:
                 constants.append(Constant(name, value, doc))
 

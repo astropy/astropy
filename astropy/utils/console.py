@@ -365,7 +365,7 @@ def strip_ansi_codes(s):
     """
     Remove ANSI color codes from the string.
     """
-    return re.sub('\033\[([0-9]+)(;[0-9]+)*m', '', s)
+    return re.sub('\033\\[([0-9]+)(;[0-9]+)*m', '', s)
 
 
 def human_time(seconds):

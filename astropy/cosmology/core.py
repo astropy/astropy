@@ -801,7 +801,7 @@ class FLRW(Cosmology):
         return 1.0 + self.w(z)
 
     def de_density_scale(self, z):
-        """ Evaluates the redshift dependence of the dark energy density.
+        r""" Evaluates the redshift dependence of the dark energy density.
 
         Parameters
         ----------
@@ -815,13 +815,13 @@ class FLRW(Cosmology):
 
         Notes
         -----
-        The scaling factor, I, is defined by :math:`\\rho(z) = \\rho_0 I`,
+        The scaling factor, I, is defined by :math:`\rho(z) = \rho_0 I`,
         and is given by
 
         .. math::
 
-            I = \\exp \\left( 3 \int_{a}^1 \\frac{ da^{\\prime} }{ a^{\\prime} }
-            \\left[ 1 + w\\left( a^{\\prime} \\right) \\right] \\right)
+            I = \exp \left( 3 \int_{a}^1 \frac{ da^{\prime} }{ a^{\prime} }
+            \left[ 1 + w\left( a^{\prime} \right) \right] \right)
 
         It will generally helpful for subclasses to overload this method if
         the integral can be done analytically for the particular dark
@@ -2367,7 +2367,7 @@ class w0waCDM(FLRW):
         return self._w0 + self._wa * z / (1.0 + z)
 
     def de_density_scale(self, z):
-        """ Evaluates the redshift dependence of the dark energy density.
+        r""" Evaluates the redshift dependence of the dark energy density.
 
         Parameters
         ----------
@@ -2386,8 +2386,8 @@ class w0waCDM(FLRW):
 
         .. math::
 
-          I = \\left(1 + z\\right)^{3 \\left(1 + w_0 + w_a\\right)}
-          \exp \\left(-3 w_a \\frac{z}{1+z}\\right)
+          I = \left(1 + z\right)^{3 \left(1 + w_0 + w_a\right)}
+          \exp \left(-3 w_a \frac{z}{1+z}\right)
 
         """
         if isiterable(z):
@@ -2651,7 +2651,7 @@ class wpwaCDM(FLRW):
         return self._wp + self._wa * (apiv - 1.0 / (1. + z))
 
     def de_density_scale(self, z):
-        """ Evaluates the redshift dependence of the dark energy density.
+        r""" Evaluates the redshift dependence of the dark energy density.
 
         Parameters
         ----------
@@ -2670,10 +2670,10 @@ class wpwaCDM(FLRW):
 
         .. math::
 
-          a_p = \\frac{1}{1 + z_p}
+          a_p = \frac{1}{1 + z_p}
 
-          I = \\left(1 + z\\right)^{3 \\left(1 + w_p + a_p w_a\\right)}
-          \exp \\left(-3 w_a \\frac{z}{1+z}\\right)
+          I = \left(1 + z\right)^{3 \left(1 + w_p + a_p w_a\right)}
+          \exp \left(-3 w_a \frac{z}{1+z}\right)
         """
 
         if isiterable(z):
@@ -2825,7 +2825,7 @@ class w0wzCDM(FLRW):
         return self._w0 + self._wz * z
 
     def de_density_scale(self, z):
-        """ Evaluates the redshift dependence of the dark energy density.
+        r""" Evaluates the redshift dependence of the dark energy density.
 
         Parameters
         ----------
@@ -2844,8 +2844,8 @@ class w0wzCDM(FLRW):
 
         .. math::
 
-          I = \\left(1 + z\\right)^{3 \\left(1 + w_0 - w_z\\right)}
-          \exp \\left(-3 w_z z\\right)
+          I = \left(1 + z\right)^{3 \left(1 + w_0 - w_z\right)}
+          \exp \left(-3 w_z z\right)
         """
 
         if isiterable(z):

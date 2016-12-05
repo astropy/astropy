@@ -770,7 +770,7 @@ def get_testfiles(name=None):
         {'name': 't/whitespace.dat',
          'cols': ('quoted colname with tab\tinside', 'col2', 'col3'),
          'nrows': 2,
-         'opts': {'delimiter': '\s'}},
+         'opts': {'delimiter': r'\s'}},
         {'name': 't/simple_csv.csv',
          'cols': ('a','b','c'),
          'nrows': 2,

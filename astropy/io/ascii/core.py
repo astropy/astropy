@@ -392,7 +392,7 @@ class DefaultSplitter(BaseSplitter):
         """Remove whitespace at the beginning or end of line.  This is especially useful for
         whitespace-delimited files to prevent spurious columns at the beginning or end.
         If splitting on whitespace then replace unquoted tabs with space first"""
-        if self.delimiter == '\s':
+        if self.delimiter == r'\s':
             line = _replace_tab_with_space(line, self.escapechar, self.quotechar)
         return line.strip()
 
@@ -420,7 +420,7 @@ class DefaultSplitter(BaseSplitter):
         quotechar = None if self.quotechar is None else str(self.quotechar)
         delimiter = None if self.delimiter is None else str(self.delimiter)
 
-        if delimiter == '\s':
+        if delimiter == r'\s':
             delimiter = ' '
 
         csv_reader = csv.reader(lines,

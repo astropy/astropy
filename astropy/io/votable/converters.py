@@ -1050,13 +1050,13 @@ class BitArray(NumericArray):
 
     @staticmethod
     def _splitter_pedantic(value, config=None, pos=None):
-        return list(re.sub('\s', '', value))
+        return list(re.sub(r'\s', '', value))
 
     @staticmethod
     def _splitter_lax(value, config=None, pos=None):
         if ',' in value:
             vo_warn(W01, (), config, pos)
-        return list(re.sub('\s|,', '', value))
+        return list(re.sub(r'\s|,', '', value))
 
     def output(self, value, mask):
         if np.any(mask):

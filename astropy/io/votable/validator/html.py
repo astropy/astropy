@@ -106,7 +106,7 @@ def write_warning(w, line, xml_lines):
 
 
 def write_votlint_warning(w, line, xml_lines):
-    match = re.search("(WARNING|ERROR|INFO) \(l.(?P<line>[0-9]+), c.(?P<column>[0-9]+)\): (?P<rest>.*)", line)
+    match = re.search(r"(WARNING|ERROR|INFO) \(l.(?P<line>[0-9]+), c.(?P<column>[0-9]+)\): (?P<rest>.*)", line)
     if match:
         w.write('Line {:d}: {}\n'.format(
                 int(match.group('line')), xml_escape(match.group('rest'))))

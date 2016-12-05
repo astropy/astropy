@@ -237,7 +237,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                                   'This causes duplicate column names: {0}'.format(doublenames))
 
         for name in namelist:
-            m = re.match('\w+', name)
+            m = re.match(r'\w+', name)
             if m.end() != len(name):
                 raise IpacFormatE('{0} - Only alphanumeric characters and _ '
                                   'are allowed in column names.'.format(name))
@@ -324,7 +324,7 @@ class IpacData(fixedwidth.FixedWidthData):
 
 
 class Ipac(basic.Basic):
-    """Read or write an IPAC format table.  See
+    r"""Read or write an IPAC format table.  See
     http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html::
 
       \\name=value

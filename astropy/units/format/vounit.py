@@ -25,8 +25,8 @@ class VOUnit(generic.Generic):
     <http://www.ivoa.net/Documents/VOUnits/>`_.
     """
     _explicit_custom_unit_regex = re.compile(
-        "^[YZEPTGMkhdcmunpfazy]?'((?!\d)\w)+'$")
-    _custom_unit_regex = re.compile("^((?!\d)\w)+$")
+        r"^[YZEPTGMkhdcmunpfazy]?'((?!\d)\w)+'$")
+    _custom_unit_regex = re.compile(r"^((?!\d)\w)+$")
     _custom_units = {}
 
     @staticmethod

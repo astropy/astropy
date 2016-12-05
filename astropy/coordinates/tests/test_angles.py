@@ -856,7 +856,7 @@ def test_repr_latex():
     arrangle = Angle([1, 2.1], u.deg)
     rlarrangle = arrangle._repr_latex_()
 
-    assert rlscangle == '$2^\circ06{}^\prime00{}^{\prime\prime}$'
+    assert rlscangle == r'$2^\circ06{}^\prime00{}^{\prime\prime}$'
     assert rlscangle.split('$')[1] in rlarrangle
 
     # make sure the ... appears for large arrays

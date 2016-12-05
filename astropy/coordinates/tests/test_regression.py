@@ -19,7 +19,7 @@ from ..sites import get_builtin_sites
 from ...time import Time
 from ...utils import iers
 
-from ...tests.helper import pytest, assert_quantity_allclose
+from ...tests.helper import pytest, assert_quantity_allclose, catch_warnings
 from .test_matching import HAS_SCIPY, OLDER_SCIPY
 
 
@@ -182,7 +182,7 @@ def test_regression_4210():
         eclobj.distance
 
 
-def test_regression_futuretimes_4302(recwarn):
+def test_regression_futuretimes_4302():
     """
     Checks that an error is not raised for future times not covered by IERS
     tables (at least in a simple transform like CIRS->ITRS that simply requires
@@ -198,14 +198,14 @@ def test_regression_futuretimes_4302(recwarn):
     if hasattr(utils, '__warningregistry__'):
         utils.__warningregistry__.clear()
 
-    future_time = Time('2511-5-1')
-
-    c = CIRS(1*u.deg, 2*u.deg, obstime=future_time)
-    c.transform_to(ITRS(obstime=future_time))
+    with catch_warnings() as found_warnings:
+        future_time = Time('2511-5-1')
+        c = CIRS(1*u.deg, 2*u.deg, obstime=future_time)
+        c.transform_to(ITRS(obstime=future_time))
 
     if not isinstance(iers.IERS_Auto.iers_table, iers.IERS_Auto):
         saw_iers_warnings = False
-        for w in recwarn.list:
+        for w in found_warnings:
             if issubclass(w.category, AstropyWarning):
                 if '(some) times are outside of range covered by IERS table' in str(w.message):
                     saw_iers_warnings = True
