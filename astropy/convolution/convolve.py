@@ -43,6 +43,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     kernel : `numpy.ndarray` or `~astropy.convolution.Kernel`
         The convolution kernel. The number of dimensions should match those
         for the array, and the dimensions should be odd in all directions.
+        If a masked array, the masked values will be replaced by ``fill_value``.
     boundary : str, optional
         A flag indicating how to handle boundaries:
             * `None`
@@ -170,8 +171,8 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         # mask != 0 yields a bool mask for all ints/floats/bool
         array_internal[mask != 0] = np.nan
     if np.ma.is_masked(kernel):
-        kernel_internal = kernel_internal.copy()
-        kernel_internal[kernel.mask] = np.nan
+        # *kernel* doesn't support NaN interpolation, so instead we just fill it
+        kernel_internal = kernel.filled(fill_value)
 
     # Because the Cython routines have to normalize the kernel on the fly, we
     # explicitly normalize the kernel here, and then scale the image at the
@@ -280,7 +281,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
           Array to be convolved with ``kernel``
     kernel : `numpy.ndarray`
           Will be normalized if ``normalize_kernel`` is set.  Assumed to be
-          centered (i.e., shifts may result if your kernel is asymmetric)
+          centered (i.e., shifts may result if your kernel is asymmetric).
+          If a masked array, the masked values will be replaced by ``fill_value``.
     boundary : {'fill', 'wrap'}, optional
         A flag indicating how to handle boundaries:
 
@@ -437,7 +439,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
                          "allow_huge=True to override this exception."
                          .format(human_file_size(array_size_B.to(u.byte).value)))
 
-    # mask catching - masks must be turned into NaNs for use later
+    # mask catching - masks must be turned into NaNs for use later in the image
     if np.ma.is_masked(array):
         mamask = array.mask
         array = np.array(array)
@@ -449,10 +451,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     if mask is not None:
         # mask != 0 yields a bool mask for all ints/floats/bool
         array[mask != 0] = np.nan
+    # the *kenrel* doesn't support NaN interpolation, so instead we just fill it
     if np.ma.is_masked(kernel):
-        kmask = kernel.mask
-        kernel = np.array(kernel)
-        kernel[kmask] = np.nan
+        kernel = kernel.filled(fill_value)
 
     # NaN and inf catching
     nanmaskarray = np.isnan(array) | np.isinf(array)
