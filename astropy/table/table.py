@@ -1250,7 +1250,10 @@ class Table(object):
 
             if isinstance(item, six.string_types):
                 # Set an existing column
-                self.columns[item][:] = value
+                try:
+                    self.replace_column(item, value)
+                except Exception:
+                    self.columns[item][:] = value
 
             elif isinstance(item, (int, np.integer)):
                 # Set the corresponding row assuming value is an iterable.
