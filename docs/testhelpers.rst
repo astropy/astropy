@@ -1,9 +1,11 @@
 .. _testhelpers:
 
-************************************************
-Astropy Testing helpers (`astropy.tests.helper`)
-************************************************
+***************
+Astropy Testing
+***************
 
+`astropy.tests.helper` Module
+=============================
 To ease development of tests that work with Astropy, the
 `astropy.tests.helper` module provides some utility functions to make
 tests that use Astropy conventions or classes easier to work with. e.g.,
@@ -33,10 +35,25 @@ This test will now only run if the test suite is invoked as
 
 
 Reference/API
-=============
+-------------
 
 .. module:: astropy.tests.helper
 
 .. automodapi:: astropy.tests.helper
     :no-main-docstr:
     :no-inheritance-diagram:
+
+
+Astropy Test Runner
+===================
+
+When executing tests with either `astropy.test` or ``python setup.py test`` the call to pytest is controlled by the `astropy.tests.runner.TestRunner` class.
+
+
+Reference/API
+-------------
+
+.. module:: astropy.tests.runner
+
+.. automodapi:: astropy.tests.runner
+    :no-main-docstr:
