@@ -29,7 +29,7 @@ class DaophotHeader(core.BaseHeader):
     comment = r'\s*#K'
 
     # Regex for extracting the format strings
-    re_format = re.compile('%-?(\d+)\.?\d?[sdfg]')
+    re_format = re.compile(r'%-?(\d+)\.?\d?[sdfg]')
     re_header_keyword = re.compile(r'[#]K'
                                    r'\s+ (?P<name> \w+)'
                                    r'\s* = (?P<stuff> .+) $',

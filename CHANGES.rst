@@ -404,6 +404,11 @@ Other Changes and Additions
   that require only data from data.astropy.org, and ``--remote-data=any`` is
   the same as ``--remote-data`` (run all tests that use remote data). [#5506]
 
+- The pytest ``recwarn`` fixture has been removed from the tests in favor of
+  ``utils.catch_warnings``. [#5489]
+
+- Deprecated escape sequences in strings (Python 3.6) have been removed. [#5489]
+
 1.2.2 (unreleased)
 ------------------
 

@@ -187,7 +187,7 @@ class PowerDistStretch(BaseStretch):
 
 
 class InvertedPowerDistStretch(BaseStretch):
-    """
+    r"""
     Inverse transformation for
     `~astropy.image.scaling.PowerDistStretch`.
 
@@ -275,7 +275,7 @@ class LogStretch(BaseStretch):
 
 
 class InvertedLogStretch(BaseStretch):
-    """
+    r"""
     Inverse transformation for `~astropy.image.scaling.LogStretch`.
 
     The stretch is given by:
@@ -445,13 +445,13 @@ class InvertedHistEqStretch(BaseStretch):
 
 
 class ContrastBiasStretch(BaseStretch):
-    """
+    r"""
     A stretch that takes into account contrast and bias.
 
     The stretch is given by:
 
     .. math::
-        y = (x - {\\rm bias}) * {\\rm contrast} + 0.5
+        y = (x - {\rm bias}) * {\rm contrast} + 0.5
 
     and the output values are clipped to the [0:1] range.
 

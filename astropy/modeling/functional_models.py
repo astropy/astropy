@@ -230,7 +230,7 @@ class GaussianAbsorption1D(BaseGaussian1D):
 
 
 class Gaussian2D(Fittable2DModel):
-    """
+    r"""
     Two dimensional Gaussian model.
 
     Parameters
@@ -264,35 +264,35 @@ class Gaussian2D(Fittable2DModel):
 
         .. math::
 
-            f(x, y) = A e^{-a\\left(x - x_{0}\\right)^{2}  -b\\left(x - x_{0}\\right)
-            \\left(y - y_{0}\\right)  -c\\left(y - y_{0}\\right)^{2}}
+            f(x, y) = A e^{-a\left(x - x_{0}\right)^{2}  -b\left(x - x_{0}\right)
+            \left(y - y_{0}\right)  -c\left(y - y_{0}\right)^{2}}
 
     Using the following definitions:
 
         .. math::
-            a = \\left(\\frac{\\cos^{2}{\\left (\\theta \\right )}}{2 \\sigma_{x}^{2}} +
-            \\frac{\\sin^{2}{\\left (\\theta \\right )}}{2 \\sigma_{y}^{2}}\\right)
+            a = \left(\frac{\cos^{2}{\left (\theta \right )}}{2 \sigma_{x}^{2}} +
+            \frac{\sin^{2}{\left (\theta \right )}}{2 \sigma_{y}^{2}}\right)
 
-            b = \\left(\\frac{\\sin{\\left (2 \\theta \\right )}}{2 \\sigma_{x}^{2}} -
-            \\frac{\\sin{\\left (2 \\theta \\right )}}{2 \\sigma_{y}^{2}}\\right)
+            b = \left(\frac{\sin{\left (2 \theta \right )}}{2 \sigma_{x}^{2}} -
+            \frac{\sin{\left (2 \theta \right )}}{2 \sigma_{y}^{2}}\right)
 
-            c = \\left(\\frac{\\sin^{2}{\\left (\\theta \\right )}}{2 \\sigma_{x}^{2}} +
-            \\frac{\\cos^{2}{\\left (\\theta \\right )}}{2 \\sigma_{y}^{2}}\\right)
+            c = \left(\frac{\sin^{2}{\left (\theta \right )}}{2 \sigma_{x}^{2}} +
+            \frac{\cos^{2}{\left (\theta \right )}}{2 \sigma_{y}^{2}}\right)
 
     If using a ``cov_matrix``, the model is of the form:
         .. math::
-            f(x, y) = A e^{-0.5 \\left(\\vec{x} - \\vec{x}_{0}\\right)^{T} \\Sigma^{-1} \\left(\\vec{x} - \\vec{x}_{0}\\right)}
+            f(x, y) = A e^{-0.5 \left(\vec{x} - \vec{x}_{0}\right)^{T} \Sigma^{-1} \left(\vec{x} - \vec{x}_{0}\right)}
 
-    where :math:`\\vec{x} = [x, y]`, :math:`\\vec{x}_{0} = [x_{0}, y_{0}]`,
-    and :math:`\\Sigma` is the covariance matrix:
+    where :math:`\vec{x} = [x, y]`, :math:`\vec{x}_{0} = [x_{0}, y_{0}]`,
+    and :math:`\Sigma` is the covariance matrix:
 
         .. math::
-            \\Sigma = \\left(\\begin{array}{ccc}
-            \\sigma_x^2               & \\rho \\sigma_x \\sigma_y \\\\
-            \\rho \\sigma_x \\sigma_y & \\sigma_y^2
-            \end{array}\\right)
+            \Sigma = \left(\begin{array}{ccc}
+            \sigma_x^2               & \rho \sigma_x \sigma_y \\
+            \rho \sigma_x \sigma_y   & \sigma_y^2
+            \end{array}\right)
 
-    :math:`\\rho` is the correlation between ``x`` and ``y``, which should
+    :math:`\rho` is the correlation between ``x`` and ``y``, which should
     be between -1 and +1.  Positive correlation corresponds to a
     ``theta`` in the range 0 to 90 degrees.  Negative correlation
     corresponds to a ``theta`` in the range of 0 to -90 degrees.

@@ -492,7 +492,7 @@ class Hermite1D(PolynomialModel):
         return c0 + c1 * x2
 
 class Hermite2D(OrthoPolynomialBase):
-    """
+    r"""
     2D Hermite polynomial.
 
     It is defined as
@@ -910,7 +910,7 @@ class Polynomial2D(PolynomialModel):
 
 
 class Chebyshev2D(OrthoPolynomialBase):
-    """
+    r"""
     2D Chebyshev polynomial of the 1st kind.
 
     It is defined as

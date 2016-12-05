@@ -105,15 +105,15 @@ def parse_ucd(ucd, check_controlled_vocabulary=False, has_colon=False):
         _ucd_singleton = UCDWords()
 
     if has_colon:
-        m = re.search('[^A-Za-z0-9_.:;\-]', ucd)
+        m = re.search(r'[^A-Za-z0-9_.:;\-]', ucd)
     else:
-        m = re.search('[^A-Za-z0-9_.;\-]', ucd)
+        m = re.search(r'[^A-Za-z0-9_.;\-]', ucd)
     if m is not None:
         raise ValueError("UCD has invalid character '{}' in '{}'".format(
                 m.group(0), ucd))
 
-    word_component_re = '[A-Za-z0-9][A-Za-z0-9\-_]*'
-    word_re = '{}(\.{})*'.format(word_component_re, word_component_re)
+    word_component_re = r'[A-Za-z0-9][A-Za-z0-9\-_]*'
+    word_re = r'{}(\.{})*'.format(word_component_re, word_component_re)
 
     parts = ucd.split(';')
     words = []
