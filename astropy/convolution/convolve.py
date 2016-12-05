@@ -170,9 +170,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         # mask != 0 yields a bool mask for all ints/floats/bool
         array_internal[mask != 0] = np.nan
     if np.ma.is_masked(kernel):
-        if not array_internal_copied:
-            array_internal = array_internal.copy()
-            array_internal_copied = True
+        kernel_internal = kernel_internal.copy()
         kernel_internal[kernel.mask] = np.nan
 
     # Because the Cython routines have to normalize the kernel on the fly, we
