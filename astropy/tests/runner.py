@@ -3,7 +3,6 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import inspect
-import multiprocessing
 import os
 import shlex
 import sys
@@ -15,6 +14,8 @@ from ..config.paths import set_temp_config, set_temp_cache
 from ..extern import six
 from ..utils import wraps, find_current_module
 from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
+
+__all__ = ['TestRunner', 'TestRunnerBase', 'keyword']
 
 
 class keyword(object):
@@ -48,26 +49,52 @@ class keyword(object):
 
 
 class TestRunnerBase(object):
+    """
+    The base class for the TestRunner.
+
+    A test runner can be constructed by creating a subclass of this class and
+    defining 'keyword' methods. These are methods that have the
+    `~astropy.tests.runner.keyword` decorator, these methods are used to
+    construct allowed keyword arguments to the
+    `~astropy.tests.runner.TestRunnerBase.run_tests` method as a way to allow
+    customization of individual keyword arguments (and associated logic)
+    without having to re-implement the whole
+    `~astropy.tests.runner.TestRunnerBase.run_tests` method.
+
+    Examples
+    --------
+
+    A simple keyword method::
+
+        class MyRunner(TestRunnerBase):
+
+            @keyword('default_value'):
+            def spam(self, spam, kwargs):
+                \"\"\"
+                spam : `str`
+                    The parameter description for the run_tests docstring.
+                \"\"\"
+                # Return value must be a list with a CLI parameter for pytest.
+                return ['--spam={}'.format(spam)]
+    """
 
     def __init__(self, base_path):
         self.base_path = os.path.abspath(base_path)
 
     def __new__(cls, *args, **kwargs):
-        """
-        Before constructing the class parse all the methods that have been
-        decorated with ``keyword``.
+        # Before constructing the class parse all the methods that have been
+        # decorated with ``keyword``.
 
-        The objective of this method is to construct a default set of keyword
-        arguments to the ``run_tests`` method. It does this by inspecting the
-        methods of the class for functions with the name ``keyword`` which is
-        the name of the decorator wrapping function. Once it has created this
-        dictionary, it also formats the docstring of ``run_tests`` to be
-        comprised of the docstrings for the ``keyword`` methods.
+        # The objective of this method is to construct a default set of keyword
+        # arguments to the ``run_tests`` method. It does this by inspecting the
+        # methods of the class for functions with the name ``keyword`` which is
+        # the name of the decorator wrapping function. Once it has created this
+        # dictionary, it also formats the docstring of ``run_tests`` to be
+        # comprised of the docstrings for the ``keyword`` methods.
 
-        To add a keyword argument to the ``run_tests`` method, define a new
-        method decorated with ``@keyword`` and with the ``self, name, kwargs``
-        signature.
-        """
+        # To add a keyword argument to the ``run_tests`` method, define a new
+        # method decorated with ``@keyword`` and with the ``self, name, kwargs``
+        # signature.
         # Get all 'function' members as the wrapped methods are functions
         if six.PY2:
             functions = inspect.getmembers(cls, predicate=inspect.ismethod)
@@ -194,6 +221,9 @@ class TestRunnerBase(object):
 
 
 class TestRunner(TestRunnerBase):
+    """
+    A test runner for astropy tests
+    """
 
     # Increase priority so this warning is displayed first.
     @keyword(priority=1000)

@@ -122,6 +122,11 @@ Enable PEP8 compliance testing with ``pep8=True`` in the call to
     variable (see :doc:`/config/index`) or the `pytest`_ method described
     above.
 
+Astropy Test Function
+#####################
+
+.. autofunction:: astropy.test
+
 Tox
 ---
 
