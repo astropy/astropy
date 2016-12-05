@@ -55,7 +55,7 @@ plt.style.use(astropy_mpl_style)
 # Import the packages necessary for coordinates
 
 from astropy.coordinates import frame_transform_graph
-from astropy.coordinates.matrix_utilities import rotation_matrix
+from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
 import astropy.coordinates as coord
 import astropy.units as u
 
@@ -107,8 +107,9 @@ class Sagittarius(coord.BaseCoordinateFrame):
 # other built-in coordinate system; we will use Galactic coordinates. We can do
 # this by defining functions that return transformation matrices, or by simply
 # defining a function that accepts a coordinate and returns a new coordinate in
-# the new system. We'll start by constructing the rotation matrix, using the
-# ``rotation_matrix`` helper function:
+# the new system. We'll start by constructing the transformation matrix using
+# pre-deteremined Euler angles and the ``rotation_matrix`` helper function
+# since both systems are Heliocentric:
 
 SGR_PHI = np.radians(180+3.75) # Euler angles (from Law & Majewski 2010)
 SGR_THETA = np.radians(90-13.46)
@@ -118,71 +119,36 @@ SGR_PSI = np.radians(180+14.111534)
 D = rotation_matrix(SGR_PHI, "z", unit=u.radian)
 C = rotation_matrix(SGR_THETA, "x", unit=u.radian)
 B = rotation_matrix(SGR_PSI, "z", unit=u.radian)
-SGR_MATRIX = np.array(B.dot(C).dot(D))
+A = np.diag([1.,1.,-1.])
+SGR_MATRIX = matrix_product(A, B, C, D)
 
 ##############################################################################
-# This is done at the module level, since it will be used by both the
-# transformation from Sgr to Galactic as well as the inverse from Galactic to
-# Sgr. Now we can define our first transformation function:
+# Since we already constructed the transformation (rotation) matrix above, and
+# the inverse of a rotation matrix is just its transpose, the required
+# transformation functions are very simple:
 
-@frame_transform_graph.transform(coord.FunctionTransform, coord.Galactic, Sagittarius)
-def galactic_to_sgr(gal_coord, sgr_frame):
-    """ Compute the transformation from Galactic spherical to
+@frame_transform_graph.transform(coord.StaticMatrixTransform, coord.Galactic, Sagittarius)
+def galactic_to_sgr():
+    """ Compute the transformation matrix from Galactic spherical to
         heliocentric Sgr coordinates.
     """
-
-    l = np.atleast_1d(gal_coord.l.radian)
-    b = np.atleast_1d(gal_coord.b.radian)
-
-    X = np.cos(b)*np.cos(l)
-    Y = np.cos(b)*np.sin(l)
-    Z = np.sin(b)
-
-    # Calculate X,Y,Z,distance in the Sgr system
-    Xs, Ys, Zs = SGR_MATRIX.dot(np.array([X, Y, Z]))
-    Zs = -Zs
-
-    # Calculate the angular coordinates lambda,beta
-    Lambda = np.arctan2(Ys,Xs)*u.radian
-    Lambda[Lambda < 0] = Lambda[Lambda < 0] + 2.*np.pi*u.radian
-    Beta = np.arcsin(Zs/np.sqrt(Xs*Xs+Ys*Ys+Zs*Zs))*u.radian
-
-    return Sagittarius(Lambda=Lambda, Beta=Beta,
-                       distance=gal_coord.distance)
+    return SGR_MATRIX
 
 ##############################################################################
-# The decorator ``@frame_transform_graph.transform(coord.FunctionTransform,
+# The decorator ``@frame_transform_graph.transform(coord.StaticMatrixTransform,
 # coord.Galactic, Sagittarius)``  registers this function on the
 # ``frame_transform_graph`` as a coordinate transformation. Inside the function,
-# we simply follow the same procedure as detailed by David Law's `transformation
-# code <http://www.astro.virginia.edu/~srm4n/Sgr/code.html>`_. Note that in this
-# case, both coordinate systems are heliocentric, so we can simply copy any
-# distance from the `~astropy.coordinates.Galactic` object.
+# we simply return the previously defined rotation matrix.
 #
 # We then register the inverse transformation by using the transpose of the
 # rotation matrix (which is faster to compute than the inverse):
 
-@frame_transform_graph.transform(coord.FunctionTransform, Sagittarius, coord.Galactic)
-def sgr_to_galactic(sgr_coord, gal_frame):
-    """ Compute the transformation from heliocentric Sgr coordinates to
+@frame_transform_graph.transform(coord.StaticMatrixTransform, Sagittarius, coord.Galactic)
+def sgr_to_galactic():
+    """ Compute the transformation matrix from heliocentric Sgr coordinates to
         spherical Galactic.
     """
-    L = np.atleast_1d(sgr_coord.Lambda.radian)
-    B = np.atleast_1d(sgr_coord.Beta.radian)
-
-    Xs = np.cos(B)*np.cos(L)
-    Ys = np.cos(B)*np.sin(L)
-    Zs = np.sin(B)
-    Zs = -Zs
-
-    X, Y, Z = SGR_MATRIX.T.dot(np.array([Xs, Ys, Zs]))
-
-    l = np.arctan2(Y,X)*u.radian
-    b = np.arcsin(Z/np.sqrt(X*X+Y*Y+Z*Z))*u.radian
-
-    l[l<=0] += 2*np.pi*u.radian
-
-    return coord.Galactic(l=l, b=b, distance=sgr_coord.distance)
+    return matrix_transpose(SGR_MATRIX)
 
 ##############################################################################
 # Now that we've registered these transformations between ``Sagittarius`` and
@@ -196,22 +162,26 @@ sgr = icrs.transform_to(Sagittarius)
 print(sgr)
 
 ##############################################################################
-# Or, to transform from the ``Sagittarius`` frame to ICRS coordinates:
+# Or, to transform from the ``Sagittarius`` frame to ICRS coordinates (in this
+# case, a line along the ``Sagittarius`` x-y plane):
 
-sgr = Sagittarius(Lambda=np.linspace(0,2*np.pi,128)*u.radian,
+sgr = Sagittarius(Lambda=np.linspace(0, 2*np.pi, 128)*u.radian,
                   Beta=np.zeros(128)*u.radian)
 icrs = sgr.transform_to(coord.ICRS)
+print(icrs)
 
 ##############################################################################
-# Plot the points in both coordinate systems:
+# And then to plot the points in both coordinate systems:
 
-fig,axes = plt.subplots(2, 1, figsize=(6,12),
-                        subplot_kw={'projection': 'aitoff'})
+fig, axes = plt.subplots(2, 1, figsize=(8, 10),
+                         subplot_kw={'projection': 'aitoff'})
 
 axes[0].set_title("Sagittarius")
-axes[0].plot(sgr.Lambda.wrap_at(180*u.deg).radian, sgr.Beta.radian, linestyle='none')
+axes[0].plot(sgr.Lambda.wrap_at(180*u.deg).radian, sgr.Beta.radian,
+             linestyle='none', marker='.')
 
 axes[1].set_title("ICRS")
-axes[1].plot(icrs.ra.wrap_at(180*u.deg).radian, icrs.dec.radian, linestyle='none')
+axes[1].plot(icrs.ra.wrap_at(180*u.deg).radian, icrs.dec.radian,
+             linestyle='none', marker='.')
 
 plt.show()
