@@ -1,17 +1,18 @@
-**********************************
+.. _astropy-visualization-rgb:
+
+*************************
 Creating color RGB images
-**********************************
+*************************
 
 `Lupton et al. (2004)`_ describe an "optimal" algorithm for producing red-green-
 blue composite images from three separate high-dynamic range arrays. This method
-is implemented in `~astropy.visualization.lupton_rgb` as a set of classes
-providing different scalings and a convenience wraper function. To generate a
-color PNG file with the default (arcsinh) scaling:
+is implemented in `~astropy.visualization.make_lupton_rgb` as a convenience wraper function and an associated set of classes to provide alternate scalings. To
+generate a color PNG file with the default (arcsinh) scaling:
 
 .. doctest-skip::
 
 >>> import numpy as np
->>> from astropy.visualization import lupton_rgb
+>>> from astropy.visualization import make_lupton_rgb
 >>> imageR = np.random.random((100,100))
 >>> imageG = np.random.random((100,100))
 >>> imageB = np.random.random((100,100))
