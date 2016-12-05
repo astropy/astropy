@@ -866,6 +866,7 @@ def _free_space_check(hdulist, dirname=None):
     try:
         yield
     except OSError as exc:
+        error_message = ''
         if not isinstance(hdulist, list):
             hdulist = [hdulist, ]
         if dirname is None:
@@ -873,8 +874,11 @@ def _free_space_check(hdulist, dirname=None):
         if os.path.isdir(dirname):
             free_space = data.get_free_space_in_dir(dirname)
             hdulist_size = np.sum(hdu.size for hdu in hdulist)
-            for hdu in hdulist:
-                hdu._close()
             if free_space < hdulist_size:
-                raise OSError("Not enough space on disk. " + str(exc))
-        raise
+                error_message = ("Not enough space on disk: requested {}, "
+                                 "available {}. ".format(hdulist_size, free_space))
+
+        for hdu in hdulist:
+            hdu._close()
+
+        raise OSError(error_message + str(exc))
