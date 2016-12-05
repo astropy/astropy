@@ -51,7 +51,7 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
     save_backup : bool, optional
         If the file was opened in update or append mode, this ensures that a
         backup of the original file is saved before any changes are flushed.
-        The backup has the same name as the original file  ".bak" appended.
+        The backup has the same name as the original file with ".bak" appended.
         If "file.bak" already exists then "file.bak.1" is used, and so on.
 
     cache : bool, optional
@@ -868,7 +868,10 @@ class HDUList(list, _Verify):
         # but only if the file doesn't exist.
         fileobj = _File(fileobj, mode='ostream', overwrite=overwrite)
         hdulist = self.fromfile(fileobj)
-        dirname = os.path.dirname(hdulist._file.name)
+        try:
+            dirname = os.path.dirname(hdulist._file.name)
+        except AttributeError:
+            dirname = None
 
         with _free_space_check(self, dirname=dirname):
             for hdu in self:
@@ -927,14 +930,12 @@ class HDUList(list, _Verify):
         """
 
         try:
-            if self._file:
-                if (self._file.mode in ['append', 'update']
-                        and not self._file.closed):
-                    self.flush(output_verify=output_verify, verbose=verbose)
+            if (self._file and self._file.mode in ['append', 'update']
+                    and not self._file.closed):
+                self.flush(output_verify=output_verify, verbose=verbose)
         finally:
-            if self._file:
-                if closed and hasattr(self._file, 'close'):
-                    self._file.close()
+            if self._file and closed and hasattr(self._file, 'close'):
+                self._file.close()
 
             # Give individual HDUs an opportunity to do on-close cleanup
             for hdu in self:
