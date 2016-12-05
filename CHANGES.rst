@@ -86,6 +86,8 @@ New Features
 
 - ``astropy.nddata``
 
+  - Added ``keep`` and ``**kwargs`` parameter to ``support_nddata``. [#5477]
+
 - ``astropy.stats``
 
   - Added ``axis`` keyword to ``biweight_location`` and
