@@ -1038,14 +1038,14 @@ def test_naxis():
     w.wcs.crval = [1, 1]
     w.wcs.cdelt = [0.1, 0.1]
     w.wcs.crpix = [1, 1]
-    w._naxis = [1000, 500]
+    w._naxis_size = [1000, 500]
 
-    assert w._naxis1 == 1000
-    assert w._naxis2 == 500
+    assert w.naxis1 == 1000
+    assert w.naxis2 == 500
 
-    w._naxis1 = 99
-    w._naxis2 = 59
-    assert w._naxis == [99, 59]
+    w.naxis1 = 99
+    w.naxis2 = 59
+    assert w._naxis_size == [99, 59]
 
 
 def test_sip_with_altkey():
