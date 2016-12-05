@@ -780,9 +780,9 @@ class HDUList(list, _Verify):
                             print('append HDU', hdu.name, extver)
                         hdu._new = False
                     hdu._postwriteto()
+
         elif self._file.mode == 'update':
-            with _free_space_check(self):
-                self._flush_update()
+            self._flush_update()
 
     def update_extend(self):
         """
@@ -1280,20 +1280,18 @@ class HDUList(list, _Verify):
             else:
                 new_file = name
 
-            hdulist = self.fromfile(new_file, mode='append')
+            with self.fromfile(new_file, mode='append') as hdulist:
 
-            for hdu in self:
-                hdu._writeto(hdulist._file, inplace=True, copy=True)
+                for hdu in self:
+                    hdu._writeto(hdulist._file, inplace=True, copy=True)
+                if sys.platform.startswith('win'):
+                    # Collect a list of open mmaps to the data; this well be used
+                    # later.  See below.
+                    mmaps = [(idx, _get_array_mmap(hdu.data), hdu.data)
+                             for idx, hdu in enumerate(self) if hdu._has_data]
 
-            if sys.platform.startswith('win'):
-                # Collect a list of open mmaps to the data; this well be used
-                # later.  See below.
-                mmaps = [(idx, _get_array_mmap(hdu.data), hdu.data)
-                         for idx, hdu in enumerate(self) if hdu._has_data]
-
-            hdulist._file.close()
-            self._file.close()
-
+                hdulist._file.close()
+                self._file.close()
             if sys.platform.startswith('win'):
                 # Close all open mmaps to the data.  This is only necessary on
                 # Windows, which will not allow a file to be renamed or deleted
