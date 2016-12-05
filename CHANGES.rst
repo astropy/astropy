@@ -371,6 +371,8 @@ Other Changes and Additions
 
   - Updated the bundled ``six`` module to version 1.10.0. [#5521]
 
+  - Updated the astropy shipped version of ``PLY`` to version 3.9. [#5526]
+
 - ``astropy.io.fits``
 
   - Performance improvements for tables with many columns. [#4985]
