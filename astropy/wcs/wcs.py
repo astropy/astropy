@@ -2748,8 +2748,18 @@ reduce these to 2 dimensions using the naxis kwarg.
                 else:
                     wcs_new.wcs.crpix[wcs_index] -= iview.start
 
-            nitems = len(builtins.range(self._naxis[wcs_index])[iview])
-            wcs_new._naxis[wcs_index] = nitems
+            try:
+                # range requires integers but the other attributes can also
+                # handle arbitary values, so this needs to be in a try/except.
+                nitems = len(builtins.range(self._naxis[wcs_index])[iview])
+            except TypeError as exc:
+                if 'indices must be integers' not in str(exc):
+                    raise
+                warnings.warn("NAXIS{0} attribute is not updated because at "
+                              "least one indix ('{1}') is no integer."
+                              "".format(wcs_index, iview), AstropyUserWarning)
+            else:
+                wcs_new._naxis[wcs_index] = nitems
 
         return wcs_new
 
