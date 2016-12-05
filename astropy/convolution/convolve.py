@@ -62,8 +62,10 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         Whether to normalize the kernel prior to convolving
     mask : None or `numpy.ndarray`
         A "mask" array.  Shape must match ``array``, and anything that is masked
-        (i.e., not 0/False) will be set to NaN for the convolution.  If None, no
-        masking will be performed unless ``array`` is a masked array.
+        (i.e., not 0/`False`) will be set to NaN for the convolution.  If
+        `None`, no masking will be performed unless ``array`` is a masked array.
+        If ``mask`` is not `None` *and* ``array`` is a masked array, a pixel is
+        masked of it is masked in either ``mask`` *or* ``array.mask``.
 
     Returns
     -------
@@ -311,10 +313,12 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         e.g., ``normalize_kernel=np.sum`` means that kernel will be modified to be:
         ``kernel = kernel / np.sum(kernel)``.  If True, defaults to
         ``normalize_kernel = np.sum``.
-    mask : None or `numpy.ndarray`
+    mask : `None` or `numpy.ndarray`
         A "mask" array.  Shape must match ``array``, and anything that is masked
-        (i.e., not 0/False) will be set to NaN for the convolution.  If None, no
-        masking will be performed unless ``array`` is a masked array.
+        (i.e., not 0/`False`) will be set to NaN for the convolution.  If
+        `None`, no masking will be performed unless ``array`` is a masked array.
+        If ``mask`` is not `None` *and* ``array`` is a masked array, a pixel is
+        masked of it is masked in either ``mask`` *or* ``array.mask``.
 
     Other Parameters
     ----------------
