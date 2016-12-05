@@ -51,6 +51,34 @@ def test_two_model_class_arithmetic_1d(expr, result):
 
 
 @pytest.mark.parametrize(('expr', 'result'),
+                         [(lambda x, y: x + y, [5.0, 5.0]),
+                          (lambda x, y: x - y, [-1.0, -1.0]),
+                          (lambda x, y: x * y, [6.0, 6.0]),
+                          (lambda x, y: x / y, [2.0 / 3.0, 2.0 / 3.0]),
+                          (lambda x, y: x ** y, [8.0, 8.0])])
+def test_model_set(expr, result):
+    s = expr(Const1D((2, 2), n_models=2), Const1D((3, 3), n_models=2))
+    out = s(0, model_set_axis=False)
+
+    assert_array_equal(out, result)
+
+
+@pytest.mark.parametrize(('expr', 'result'),
+                         [(lambda x, y: x + y, [5.0, 5.0]),
+                          (lambda x, y: x - y, [-1.0, -1.0]),
+                          (lambda x, y: x * y, [6.0, 6.0]),
+                          (lambda x, y: x / y, [2.0 / 3.0, 2.0 / 3.0]),
+                          (lambda x, y: x ** y, [8.0, 8.0])])
+def test_model_set_raises_value_error(expr, result):
+    """Check that creating model sets with components whose _n_models are
+       different raise a value error
+    """
+
+    with pytest.raises(ValueError):
+        s = expr(Const1D((2, 2), n_models=2), Const1D(3, n_models=1))
+
+
+@pytest.mark.parametrize(('expr', 'result'),
                          [(lambda x, y: x + y, 5.0),
                           (lambda x, y: x - y, -1.0),
                           (lambda x, y: x * y, 6.0),
