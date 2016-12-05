@@ -157,9 +157,10 @@ def test_deprecated_class():
 
     # The only thing that should be different about the new class
     # is __doc__, __init__, __bases__ and __subclasshook__.
+    # and __init_subclass__ for Python 3.6+.
     for x in dir(orig_A):
         if x not in ('__doc__', '__init__', '__bases__', '__dict__',
-                     '__subclasshook__'):
+                     '__subclasshook__', '__init_subclass__'):
             assert getattr(TA, x) == getattr(orig_A, x)
 
     with catch_warnings(AstropyDeprecationWarning) as w:

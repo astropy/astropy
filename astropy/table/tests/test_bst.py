@@ -12,7 +12,7 @@ def get_tree(TreeType):
 @pytest.fixture
 def tree():
     return get_tree(BST)
-    '''
+    r'''
          5
        /   \
       2     9

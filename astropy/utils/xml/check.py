@@ -45,7 +45,7 @@ def check_token(token):
     """
     return (token == '' or
             re.match(
-                "[^\r\n\t ]?([^\r\n\t ]| [^\r\n\t ])*[^\r\n\t ]?$", token)
+                r"[^\r\n\t ]?([^\r\n\t ]| [^\r\n\t ])*[^\r\n\t ]?$", token)
             is not None)
 
 
@@ -55,7 +55,7 @@ def check_mime_content_type(content_type):
     (syntactically at least), as defined by RFC 2045.
     """
     ctrls = ''.join(chr(x) for x in range(0, 0x20))
-    token_regex = '[^()<>@,;:\\\"/[\]?= {}\x7f]+'.format(ctrls)
+    token_regex = '[^()<>@,;:\\\"/[\\]?= {}\x7f]+'.format(ctrls)
     return re.match(
         r'(?P<type>{})/(?P<subtype>{})$'.format(token_regex, token_regex),
         content_type) is not None

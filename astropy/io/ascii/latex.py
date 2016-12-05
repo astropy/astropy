@@ -326,7 +326,7 @@ class Latex(core.BaseReader):
 
 
 class AASTexHeaderSplitter(LatexSplitter):
-    '''Extract column names from a `deluxetable`_.
+    r'''Extract column names from a `deluxetable`_.
 
     This splitter expects the following LaTeX code **in a single line**:
 
@@ -352,7 +352,7 @@ class AASTexHeaderSplitter(LatexSplitter):
 
 
 class AASTexHeader(LatexHeader):
-    '''In a `deluxetable
+    r'''In a `deluxetable
     <http://fits.gsfc.nasa.gov/standard30/deluxetable.sty>`_ some header
     keywords differ from standard LaTeX.
 
@@ -387,7 +387,7 @@ class AASTexHeader(LatexHeader):
 
 
 class AASTexData(LatexData):
-    '''In a `deluxetable`_ the data is enclosed in `\startdata` and `\enddata`
+    r'''In a `deluxetable`_ the data is enclosed in `\startdata` and `\enddata`
     '''
     data_start = r'\startdata'
     data_end = r'\enddata'

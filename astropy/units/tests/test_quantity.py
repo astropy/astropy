@@ -719,11 +719,11 @@ class TestQuantityDisplay(object):
         from ...units.quantity import conf
 
         q2scalar = u.Quantity(1.5e14, 'm/s')
-        assert self.scalarintq._repr_latex_() == '$1 \\; \\mathrm{m}$'
-        assert self.scalarfloatq._repr_latex_() == '$1.3 \\; \\mathrm{m}$'
+        assert self.scalarintq._repr_latex_() == r'$1 \; \mathrm{m}$'
+        assert self.scalarfloatq._repr_latex_() == r'$1.3 \; \mathrm{m}$'
         assert (q2scalar._repr_latex_() ==
-                '$1.5 \\times 10^{14} \\; \\mathrm{\\frac{m}{s}}$')
-        assert self.arrq._repr_latex_() == '$[1,~2.3,~8.9] \; \mathrm{m}$'
+                r'$1.5 \times 10^{14} \; \mathrm{\frac{m}{s}}$')
+        assert self.arrq._repr_latex_() == r'$[1,~2.3,~8.9] \; \mathrm{m}$'
 
         qmed = np.arange(100)*u.m
         qbig = np.arange(1000)*u.m
