@@ -60,7 +60,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         The value to use outside the array when using ``boundary='fill'``
     normalize_kernel : bool, optional
         Whether to normalize the kernel prior to convolving
-    mask : None or `numpy.ndarray`
+    mask : `None` or `numpy.ndarray`
         A "mask" array.  Shape must match ``array``, and anything that is masked
         (i.e., not 0/`False`) will be set to NaN for the convolution.  If
         `None`, no masking will be performed unless ``array`` is a masked array.
