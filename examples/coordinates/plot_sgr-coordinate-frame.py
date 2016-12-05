@@ -55,7 +55,7 @@ plt.style.use(astropy_mpl_style)
 # Import the packages necessary for coordinates
 
 from astropy.coordinates import frame_transform_graph
-from astropy.coordinates.matrix_utilities import rotation_matrix
+from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product
 import astropy.coordinates as coord
 import astropy.units as u
 
@@ -118,7 +118,7 @@ SGR_PSI = np.radians(180+14.111534)
 D = rotation_matrix(SGR_PHI, "z", unit=u.radian)
 C = rotation_matrix(SGR_THETA, "x", unit=u.radian)
 B = rotation_matrix(SGR_PSI, "z", unit=u.radian)
-SGR_MATRIX = np.array(B.dot(C).dot(D))
+SGR_MATRIX = matrix_product(B, C, D)
 
 ##############################################################################
 # This is done at the module level, since it will be used by both the
@@ -134,18 +134,18 @@ def galactic_to_sgr(gal_coord, sgr_frame):
     l = np.atleast_1d(gal_coord.l.radian)
     b = np.atleast_1d(gal_coord.b.radian)
 
-    X = np.cos(b)*np.cos(l)
-    Y = np.cos(b)*np.sin(l)
-    Z = np.sin(b)
+    x = np.cos(b)*np.cos(l)
+    y = np.cos(b)*np.sin(l)
+    z = np.sin(b)
 
-    # Calculate X,Y,Z,distance in the Sgr system
-    Xs, Ys, Zs = SGR_MATRIX.dot(np.array([X, Y, Z]))
-    Zs = -Zs
+    # Calculate x,y,z,distance in the Sgr system
+    xs, ys, zs = matrix_product(SGR_MATRIX, np.array([x, y, z]))
+    zs = -zs
 
     # Calculate the angular coordinates lambda,beta
-    Lambda = np.arctan2(Ys,Xs)*u.radian
+    Lambda = np.arctan2(ys,xs)*u.radian
     Lambda[Lambda < 0] = Lambda[Lambda < 0] + 2.*np.pi*u.radian
-    Beta = np.arcsin(Zs/np.sqrt(Xs*Xs+Ys*Ys+Zs*Zs))*u.radian
+    Beta = np.arcsin(zs/np.sqrt(xs*xs+ys*ys+zs*zs))*u.radian
 
     return Sagittarius(Lambda=Lambda, Beta=Beta,
                        distance=gal_coord.distance)
@@ -170,15 +170,15 @@ def sgr_to_galactic(sgr_coord, gal_frame):
     L = np.atleast_1d(sgr_coord.Lambda.radian)
     B = np.atleast_1d(sgr_coord.Beta.radian)
 
-    Xs = np.cos(B)*np.cos(L)
-    Ys = np.cos(B)*np.sin(L)
-    Zs = np.sin(B)
-    Zs = -Zs
+    xs = np.cos(B)*np.cos(L)
+    ys = np.cos(B)*np.sin(L)
+    zs = np.sin(B)
+    zs = -zs
 
-    X, Y, Z = SGR_MATRIX.T.dot(np.array([Xs, Ys, Zs]))
+    x, y, z = matrix_product(SGR_MATRIX.T, np.array([xs, ys, zs]))
 
-    l = np.arctan2(Y,X)*u.radian
-    b = np.arcsin(Z/np.sqrt(X*X+Y*Y+Z*Z))*u.radian
+    l = np.arctan2(y, x)*u.radian
+    b = np.arcsin(z/np.sqrt(x*x + y*y + z*z))*u.radian
 
     l[l<=0] += 2*np.pi*u.radian
 
@@ -205,13 +205,15 @@ icrs = sgr.transform_to(coord.ICRS)
 ##############################################################################
 # Plot the points in both coordinate systems:
 
-fig,axes = plt.subplots(2, 1, figsize=(6,12),
-                        subplot_kw={'projection': 'aitoff'})
+fig, axes = plt.subplots(2, 1, figsize=(8, 10),
+                         subplot_kw={'projection': 'aitoff'})
 
 axes[0].set_title("Sagittarius")
-axes[0].plot(sgr.Lambda.wrap_at(180*u.deg).radian, sgr.Beta.radian, linestyle='none')
+axes[0].plot(sgr.Lambda.wrap_at(180*u.deg).radian, sgr.Beta.radian,
+             linestyle='none', marker='.')
 
 axes[1].set_title("ICRS")
-axes[1].plot(icrs.ra.wrap_at(180*u.deg).radian, icrs.dec.radian, linestyle='none')
+axes[1].plot(icrs.ra.wrap_at(180*u.deg).radian, icrs.dec.radian,
+             linestyle='none', marker='.')
 
 plt.show()
