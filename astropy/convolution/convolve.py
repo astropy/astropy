@@ -36,10 +36,11 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 
     Parameters
     ----------
-    array : `numpy.ndarray`
+    array : `numpy.ndarray` or `~astropy.nddata.NDData`
         The array to convolve. This should be a 1, 2, or 3-dimensional array
         or a list or a set of nested lists representing a 1, 2, or
-        3-dimensional array.
+        3-dimensional array.  If an `~astropy.nddata.NDData`, the ``mask`` of
+        the `~astropy.nddata.NDData` will be used as the ``mask`` argument.
     kernel : `numpy.ndarray` or `~astropy.convolution.Kernel`
         The convolution kernel. The number of dimensions should match those
         for the array, and the dimensions should be odd in all directions.
@@ -279,8 +280,10 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
 
     Parameters
     ----------
-    array : `numpy.ndarray`
-          Array to be convolved with ``kernel``
+    array : `numpy.ndarray` or `~astropy.nddata.NDData`
+          Array to be convolved with ``kernel``. If `~astropy.nddata.NDData`,
+          the ``mask`` of the `~astropy.nddata.NDData` will be used as the
+          ``mask`` argument.
     kernel : `numpy.ndarray`
           Will be normalized if ``normalize_kernel`` is set.  Assumed to be
           centered (i.e., shifts may result if your kernel is asymmetric).
