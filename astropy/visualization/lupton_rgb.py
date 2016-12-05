@@ -2,15 +2,9 @@
 """
 Combine 3 images to produce a properly-scaled RGB image following Lupton et al. (2004).
 
-For details, see : http://adsabs.harvard.edu/abs/2004PASP..116..133L
-
 The three images must be aligned and have the same pixel scale and size.
 
-Example usage:
-    image_r = np.random.random((100,100))
-    image_g = np.random.random((100,100))
-    image_b = np.random.random((100,100))
-    image = lupton_rgb.make_lupton_rgb(image_r, image_g, image_b, filename='randoms.png')
+For details, see : http://adsabs.harvard.edu/abs/2004PASP..116..133L
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
@@ -52,11 +46,6 @@ def compute_intensity(image_r, image_g=None, image_b=None):
     intensity : `~numpy.ndarray`
         Total intensity from the red, blue and green intensities, or ``image_r``
         if green and blue images are not provided.
-
-    Notes
-    -----
-    Inputs may be MaskedImages, Images, or numpy arrays and the return is
-    of the same type.
     """
     if image_g is None or image_b is None:
         if not (image_g is None and image_b is None):
@@ -100,7 +89,7 @@ class Mapping(object):
     def make_rgb_image(self, image_r=None, image_g=None, image_b=None,
                        x_size=None, y_size=None, rescale=None):
         """
-        Convert 3 arrays, image_r, image_g, and image_b into a numpy RGB image.
+        Convert 3 arrays, image_r, image_g, and image_b into an 8-bit RGB image.
 
         Parameters
         ----------
@@ -123,7 +112,7 @@ class Mapping(object):
         Returns
         -------
         RGBimage : `~numpy.ndarray`
-            An image formed by stacking the input images.
+            RGB (integer, 8-bits per channel) color image as an NxNx3 numpy array.
         """
         if image_r is None:
             if self._image is None:
@@ -415,7 +404,11 @@ def make_lupton_rgb(image_r, image_g=None, image_b=None, minimum=0, data_range=5
                     x_size=None, y_size=None, rescale=None,
                     filename=None):
     """
-    Make an RGB color image from 3 images using an asinh stretch.
+    Return a Red/Green/Blue color image from up to 3 images using an asinh stretch.
+    The input images can be int or float, and in any range or bit-depth.
+
+    For a more detailed look at the use of this method, see the document
+    :ref:`astropy-visualization-rgb`.
 
     Parameters
     ----------
@@ -434,7 +427,6 @@ def make_lupton_rgb(image_r, image_g=None, image_b=None, minimum=0, data_range=5
         The asinh softening parameter.
     saturated_border_width : int
         If saturated_border_width is non-zero, replace saturated pixels with saturated_pixel_value.
-        Note that replacing saturated pixels requires that the input images be MaskedImages.
     saturated_pixel_value : float
         Value to replace saturated pixels with.
     x_size : int
@@ -450,11 +442,11 @@ def make_lupton_rgb(image_r, image_g=None, image_b=None, minimum=0, data_range=5
     Returns
     -------
     rgb : `~numpy.ndarray`
-        RGB color image.
+        RGB (integer, 8-bits per channel) color image as an NxNx3 numpy array.
     """
-    image_r = np.asarray(image_r)
+    image_r = image_r
     if image_g is None:
-        image_g = np.asarray(image_r)
+        image_g = image_r
     if image_b is None:
         image_b = image_r
 
