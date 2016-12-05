@@ -489,7 +489,6 @@ class _BaseHDU(object):
         # Handle checksum
         self._update_checksum(checksum)
 
-
     def _update_uint_scale_keywords(self):
         """
         If the data is unsigned int 16, 32, or 64 add BSCALE/BZERO cards to
@@ -638,7 +637,6 @@ class _BaseHDU(object):
 
         If this proves too slow a more direct approach may be used.
         """
-
         raw = self._get_raw_data(self._data_size, 'ubyte', self._data_offset)
         if raw is not None:
             fileobj.writearray(raw)

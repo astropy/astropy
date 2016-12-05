@@ -27,7 +27,6 @@ from ....extern.six.moves import range, zip
 from ....io import fits
 from ....tests.helper import pytest, raises, catch_warnings, ignore_warnings
 from ....utils.data import get_pkg_data_filename
-from ....utils.exceptions import AstropyDeprecationWarning
 from ....utils import data
 
 
@@ -787,7 +786,6 @@ class TestFileFunctions(FitsTestCase):
 
         old_mode = os.stat(filename).st_mode
 
-        filename = self.temp('test.fits')
         hdul = fits.open(filename, mode='update')
         hdul.insert(1, fits.ImageHDU())
         hdul.flush()

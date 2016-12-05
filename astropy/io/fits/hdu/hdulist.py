@@ -9,7 +9,6 @@ import shutil
 import sys
 import textwrap
 import warnings
-import numpy as np
 
 import numpy as np
 
@@ -1185,7 +1184,6 @@ class HDUList(list, _Verify):
         return True
 
     def _verify(self, option='warn'):
-        text = ''
         errs = _ErrList([], unit='HDU')
 
         # the first (0th) element must be a primary HDU
