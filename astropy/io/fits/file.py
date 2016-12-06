@@ -23,16 +23,12 @@ from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
 from ...extern.six import b, string_types
 from ...utils.data import download_file, _is_url
 from ...utils.decorators import classproperty, deprecated_renamed_argument
-from ...utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
+from ...utils.exceptions import AstropyUserWarning
 
 
-# Maps PyFITS-specific file mode names to the appropriate file modes to use
-# for the underlying raw files
-# TODO: This should probably renamed IO_FITS_MODES or something, but since it's
-# used primarily internally I'm going to leave PYFITS in the name for now for
-# in the off chance any third-party software is trying to do anything with this
-# object.
-PYFITS_MODES = {
+# Maps astropy.io.fits-specific file mode names to the appropriate file
+# modes to use for the underlying raw files
+IO_FITS_MODES = {
     'readonly': 'rb',
     'copyonwrite': 'rb',
     'update': 'rb+',
@@ -40,15 +36,11 @@ PYFITS_MODES = {
     'ostream': 'wb',
     'denywrite': 'rb'}
 
-# This is the old name of the PYFITS_MODES dict; it is maintained here for
-# backwards compatibility and should be removed no sooner than PyFITS 3.4
-PYTHON_MODES = PYFITS_MODES
-
-# Maps OS-level file modes to the appropriate PyFITS specific mode to use
-# when given file objects but no mode specified; obviously in PYFITS_MODES
-# there are overlaps; for example 'readonly' and 'denywrite' both require
-# the file to be opened in 'rb' mode.  But 'readonly' is the default
-# behavior for such files if not otherwise specified.
+# Maps OS-level file modes to the appropriate astropy.io.fits specific mode
+# to use when given file objects but no mode specified; obviously in
+# IO_FITS_MODES there are overlaps; for example 'readonly' and 'denywrite'
+# both require the file to be opened in 'rb' mode.  But 'readonly' is the
+# default behavior for such files if not otherwise specified.
 # Note: 'ab' is only supported for 'ostream' which is output-only.
 FILE_MODES = {
     'rb': 'readonly', 'rb+': 'update',
@@ -122,7 +114,7 @@ class _File(object):
             else:
                 mode = 'readonly'  # The default
 
-        if mode not in PYFITS_MODES:
+        if mode not in IO_FITS_MODES:
             raise ValueError("Mode '{}' not recognized".format(mode))
 
         if (isinstance(fileobj, string_types) and
@@ -400,13 +392,13 @@ class _File(object):
         """Open a FITS file from a file object or a GzipFile object."""
 
         closed = fileobj_closed(fileobj)
-        fmode = fileobj_mode(fileobj) or PYFITS_MODES[mode]
+        fmode = fileobj_mode(fileobj) or IO_FITS_MODES[mode]
 
         if mode == 'ostream':
             self._overwrite_existing(overwrite, fileobj, closed)
 
         if not closed:
-            # Although we have a specific mapping in PYFITS_MODES from our
+            # Although we have a specific mapping in IO_FITS_MODES from our
             # custom file modes to raw file object modes, many of the latter
             # can be used appropriately for the former.  So determine whether
             # the modes match up appropriately
@@ -421,9 +413,9 @@ class _File(object):
                     "file ({}).".format(mode, fmode))
             self._file = fileobj
         elif isfile(fileobj):
-            self._file = fileobj_open(self.name, PYFITS_MODES[mode])
+            self._file = fileobj_open(self.name, IO_FITS_MODES[mode])
         else:
-            self._file = gzip.open(self.name, PYFITS_MODES[mode])
+            self._file = gzip.open(self.name, IO_FITS_MODES[mode])
 
         if fmode == 'ab+':
             # Return to the beginning of the file--in Python 3 when opening in
@@ -485,7 +477,7 @@ class _File(object):
 
         if ext == '.gz' or magic.startswith(GZIP_MAGIC):
             # Handle gzip files
-            self._file = gzip.open(self.name, PYFITS_MODES[mode])
+            self._file = gzip.open(self.name, IO_FITS_MODES[mode])
             self.compression = 'gzip'
         elif ext == '.zip' or magic.startswith(PKZIP_MAGIC):
             # Handle zip files
@@ -499,7 +491,7 @@ class _File(object):
             bzip2_mode = 'w' if mode == 'ostream' else 'r'
             self._file = bz2.BZ2File(self.name, bzip2_mode)
         else:
-            self._file = fileobj_open(self.name, PYFITS_MODES[mode])
+            self._file = fileobj_open(self.name, IO_FITS_MODES[mode])
 
         # Make certain we're back at the beginning of the file
         # BZ2File does not support seek when the file is open for writing, but
