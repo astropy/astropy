@@ -15,14 +15,6 @@ from . import ZScaleInterval
 __all__ = ['make_lupton_rgb']
 
 
-try:
-    import scipy.misc
-    scipy.misc.imresize  # checking if it exists
-    HAVE_SCIPY_MISC = True
-except (ImportError, AttributeError):
-    HAVE_SCIPY_MISC = False
-
-
 def compute_intensity(image_r, image_g=None, image_b=None):
     """
     Return a naive total intensity from the red, blue, and green intensities.
@@ -82,8 +74,7 @@ class Mapping(object):
         self.minimum = minimum
         self._image = np.asarray(image)
 
-    def make_rgb_image(self, image_r=None, image_g=None, image_b=None,
-                       x_size=None, y_size=None, rescale=None):
+    def make_rgb_image(self, image_r=None, image_g=None, image_b=None):
         """
         Convert 3 arrays, image_r, image_g, and image_b into an 8-bit RGB image.
 
@@ -96,14 +87,6 @@ class Mapping(object):
             Image to map to green (if None, use image_r).
         image_b : `~numpy.ndarray`, optional
             Image to map to blue (if None, use image_r).
-        x_size : int, optional
-            Desired width of RGB image (or None).  If y_size is None, preserve
-            aspect ratio.
-        y_size : int, optional
-            Desired height of RGB image (or None).
-        rescale : float, optional
-            Make size of output image rescale*size of the input image.
-            Cannot be specified if x_size or y_size are given.
 
         Returns
         -------
@@ -112,8 +95,7 @@ class Mapping(object):
         """
         if image_r is None:
             if self._image is None:
-                raise RuntimeError("you must provide an image or pass one "
-                                   "to the constructor.")
+                raise ValueError("you must provide an image or pass one to the constructor.")
             image_r = self._image
         else:
             image_r = np.asarray(image_r)
@@ -128,33 +110,9 @@ class Mapping(object):
         else:
             image_b = np.asarray(image_b)
 
-        if x_size is not None or y_size is not None:
-            if rescale is not None:
-                raise ValueError("you may not specify a size and rescale.")
-            h, w = image_r.shape
-            if y_size is None:
-                y_size = int(x_size*h/float(w) + 0.5)
-            elif x_size is None:
-                x_size = int(y_size*w/float(h) + 0.5)
-
-            # need to cast to int when passing tuple to imresize.
-            size = (int(y_size), int(x_size))  # n.b. y, x order for scipy
-        elif rescale is not None:
-            size = float(rescale)  # a float is intepreted as a percentage
-        else:
-            size = None
-
-        if size is not None:
-            if not HAVE_SCIPY_MISC:
-                raise RuntimeError("unable to rescale as scipy.misc.imresize "
-                                   "is unavailable.")
-
-            image_r = scipy.misc.imresize(image_r, size, interp='bilinear',
-                                          mode='F')
-            image_g = scipy.misc.imresize(image_g, size, interp='bilinear',
-                                          mode='F')
-            image_b = scipy.misc.imresize(image_b, size, interp='bilinear',
-                                          mode='F')
+        if (image_r.shape != image_g.shape) or (image_g.shape != image_b.shape):
+            msg = "The image shapes must match. r: {}, g: {} b: {}"
+            raise ValueError(msg.format(image_r.shape, image_g.shape, image_b.shape))
 
         return np.dstack(self._convert_images_to_uint8(image_r, image_g, image_b)).astype(np.uint8)
 
@@ -396,7 +354,6 @@ class AsinhZScaleMapping(AsinhMapping):
 
 
 def make_lupton_rgb(image_r, image_g, image_b, minimum=0, stretch=5, Q=8,
-                    x_size=None, y_size=None, rescale=None,
                     filename=None):
     """
     Return a Red/Green/Blue color image from up to 3 images using an asinh stretch.
@@ -420,13 +377,6 @@ def make_lupton_rgb(image_r, image_g, image_b, minimum=0, stretch=5, Q=8,
         The linear stretch of the image.
     Q : float
         The asinh softening parameter.
-    x_size : int
-        Desired width of RGB image (or None).  If y_size is None, preserve aspect ratio.
-    y_size : int
-        Desired height of RGB image (or None).
-    rescale : float
-        Make size of output image rescale*size of the input image.
-        Cannot be specified if x_size or y_size are given.
     filename: str
         Write the resulting RGB image to a file (file type determined frome extension).
 
@@ -436,8 +386,7 @@ def make_lupton_rgb(image_r, image_g, image_b, minimum=0, stretch=5, Q=8,
         RGB (integer, 8-bits per channel) color image as an NxNx3 numpy array.
     """
     asinhMap = AsinhMapping(minimum, stretch, Q)
-    rgb = asinhMap.make_rgb_image(image_r, image_g, image_b,
-                                  x_size=x_size, y_size=y_size, rescale=rescale)
+    rgb = asinhMap.make_rgb_image(image_r, image_g, image_b)
 
     if filename:
         import matplotlib.image
