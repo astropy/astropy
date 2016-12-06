@@ -96,45 +96,40 @@ def test_compute_intensity_3_uint():
 class TestLuptonRgb(object):
     """A test case for Rgb"""
 
-    np.random.seed(1000)  # so we always get the same images.
+    def setup_method(self, method):
+        np.random.seed(1000)  # so we always get the same images.
 
-    min_, stretch_, Q = 0, 5, 20  # asinh
+        self.min_, self.stretch_, self.Q = 0, 5, 20  # asinh
 
-    width, height = 85, 75
-    images = []
+        width, height = 85, 75
 
-    shape = (width, height)
-    image_r = np.zeros(shape)
-    image_g = np.zeros(shape)
-    image_b = np.zeros(shape)
+        shape = (width, height)
+        image_r = np.zeros(shape)
+        image_g = np.zeros(shape)
+        image_b = np.zeros(shape)
 
-    # pixel locations, values and colors
-    points = [[15, 15], [50, 45], [30, 30], [45, 15]]
-    values = [1000, 5500, 600, 20000]
-    g_r = [1.0, -1.0, 1.0, 1.0]
-    r_i = [2.0, -0.5, 2.5, 1.0]
+        # pixel locations, values and colors
+        points = [[15, 15], [50, 45], [30, 30], [45, 15]]
+        values = [1000, 5500, 600, 20000]
+        g_r = [1.0, -1.0, 1.0, 1.0]
+        r_i = [2.0, -0.5, 2.5, 1.0]
 
-    # Put pixels in the images.
-    for p, v, gr, ri in zip(points, values, g_r, r_i):
-        image_r[p[0], p[1]] = v*pow(10, 0.4*ri)
-        image_g[p[0], p[1]] = v*pow(10, 0.4*gr)
-        image_b[p[0], p[1]] = v
+        # Put pixels in the images.
+        for p, v, gr, ri in zip(points, values, g_r, r_i):
+            image_r[p[0], p[1]] = v*pow(10, 0.4*ri)
+            image_g[p[0], p[1]] = v*pow(10, 0.4*gr)
+            image_b[p[0], p[1]] = v
 
-    # convolve the image with a reasonable PSF, and add Gaussian background noise
-    def convolve_with_noise(image, psf):
-        convolvedImage = convolve(image, psf, boundary='extend', normalize_kernel=True)
-        randomImage = np.random.normal(0, 2, image.shape)
-        return randomImage + convolvedImage
+        # convolve the image with a reasonable PSF, and add Gaussian background noise
+        def convolve_with_noise(image, psf):
+            convolvedImage = convolve(image, psf, boundary='extend', normalize_kernel=True)
+            randomImage = np.random.normal(0, 2, image.shape)
+            return randomImage + convolvedImage
 
-    psf = Gaussian2DKernel(2.5)
-    image_r = convolve_with_noise(image_r, psf)
-    image_g = convolve_with_noise(image_g, psf)
-    image_b = convolve_with_noise(image_b, psf)
-
-    def tearDown(self):
-        for im in self.images:
-            del im
-        del self.images
+        psf = Gaussian2DKernel(2.5)
+        self.image_r = convolve_with_noise(image_r, psf)
+        self.image_g = convolve_with_noise(image_g, psf)
+        self.image_b = convolve_with_noise(image_b, psf)
 
     def test_Asinh(self):
         """Test creating an RGB image using an asinh stretch"""
@@ -214,7 +209,8 @@ class TestLuptonRgb(object):
     def test_linear_min_max(self):
         """Test using a min/max linear stretch
 
-        N.b. also checks that an image passed to the ctor is used as the default in make_rgb_image()
+        Also checks that an image passed to the constructor is used as the
+        default in make_rgb_image().
         """
 
         rgbImage = lupton_rgb.LinearMapping(image=self.image_r).make_rgb_image()
