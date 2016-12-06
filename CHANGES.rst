@@ -42,6 +42,26 @@ New Features
 
 - ``astropy.utils``
 
+  - Added a new decorator: ``deprecated_renamed_argument``. This can be used to
+    rename a function argument, while it still allows for the use of the older
+    argument name. [#5214]
+
+- ``astropy.visualization``
+
+  - Added ``data`` and ``interval`` inputs to the ``ImageNormalize``
+    class. [#5206]
+
+  - Added a new ``simple_norm`` convenience function. [#5206]
+
+  - Added a default stretch for the ``Normalization`` class. [#5206].
+
+  - Added a default ``vmin/vmax`` for the ``ManualInterval`` class.
+    [#5206].
+
+  - The ``wcsaxes`` subpackage has now been integrated in astropy as
+    ``astropy.visualization.wcsaxes``.  This allows plotting of astronomical
+    data/coordinate systems in Matplotlib. [#5496]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
@@ -210,6 +230,9 @@ Bug Fixes
   - Assigning a logarithmic unit to a ``QTable`` column that did not have a
     unit yet now correctly turns it into the appropriate function quantity
     subclass (such as ``Magnitude`` or ``Dex``). [#5345]
+
+  - Fix default value for ``show_row_index`` in ``Table.show_in_browser``.
+    [#5562]
 
 - ``astropy.time``
 
