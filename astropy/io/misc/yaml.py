@@ -116,24 +116,24 @@ def _timedelta_constructor(loader, node):
 
 
 def _ndarray_representer(dumper, obj):
-    if obj.flags['C_CONTIGUOUS']:
-        obj_data = obj.data
-    else:
-        cont_obj = np.ascontiguousarray(obj)
-        assert(cont_obj.flags['C_CONTIGUOUS'])
-        obj_data = cont_obj.data
-    data_b64 = base64.b64encode(bytes(obj_data))
-    out = dict(__ndarray__=data_b64,
+    if not (obj.flags['C_CONTIGUOUS'] or obj.flags['F_CONTIGUOUS']):
+        obj = np.ascontiguousarray(obj)
+    order = 'C' if obj.flags['C_CONTIGUOUS'] else 'F'
+
+    data_b64 = base64.b64encode(bytes(obj.data))
+
+    out = dict(buffer=data_b64,
                dtype=str(obj.dtype),
-               shape=obj.shape)
+               shape=obj.shape,
+               order=order)
 
     return dumper.represent_mapping('!numpy.ndarray', out)
 
 
 def _ndarray_constructor(loader, node):
     map = loader.construct_mapping(node)
-    data = base64.b64decode(map['__ndarray__'])
-    return np.frombuffer(data, map['dtype']).reshape(map['shape'])
+    map['buffer'] = base64.b64decode(map['buffer'])
+    return np.ndarray(**map)
 
 
 def _quantity_representer(tag):

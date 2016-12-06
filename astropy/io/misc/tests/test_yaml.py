@@ -35,13 +35,26 @@ def test_unit(c):
                                Longitude('1 2 3', unit='deg'),
                                Latitude('1 2 3', unit='deg'),
                                [[1], [3]] * u.m,
-                               np.array([[1], [3]])])
+                               np.array([[1, 2], [3, 4]], order='F'),
+                               np.array([[1, 2], [3, 4]], order='C'),
+                               np.array([1, 2, 3, 4])[::2]])
 def test_ndarray_subclasses(c):
     cy = load(dump(c))
 
     assert np.all(c == cy)
     assert c.shape == cy.shape
     assert type(c) is type(cy)
+
+    cc = 'C_CONTIGUOUS'
+    fc = 'F_CONTIGUOUS'
+    if c.flags[cc] or c.flags[fc]:
+        assert c.flags[cc] == cy.flags[cc]
+        assert c.flags[fc] == cy.flags[fc]
+    else:
+        # Original was not contiguous but round-trip version
+        # should be c-contig.
+        assert cy.flags[cc]
+
     if hasattr(c, 'unit'):
         assert c.unit == cy.unit
 
