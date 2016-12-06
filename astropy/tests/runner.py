@@ -308,7 +308,7 @@ class TestRunner(TestRunnerBase):
     def args(self, args, kwargs):
         """
         args : str, optional
-            Additional arguments to be passed to `pytest.main` in the `args`
+            Additional arguments to be passed to ``pytest.main`` in the ``args``
             keyword argument.
         """
         if args:
@@ -320,7 +320,7 @@ class TestRunner(TestRunnerBase):
     def plugins(self, plugins, kwargs):
         """
         plugins : list, optional
-            Plugins to be passed to `pytest.main` in the `plugins` keyword
+            Plugins to be passed to ``pytest.main`` in the ``plugins`` keyword
             argument.
         """
         return []
@@ -330,7 +330,7 @@ class TestRunner(TestRunnerBase):
         """
         verbose : bool, optional
             Convenience option to turn on verbose output from py.test. Passing
-            True is the same as specifying `-v` in `args`.
+            True is the same as specifying ``-v`` in ``args``.
         """
         if verbose:
             return ['-v']
@@ -382,7 +382,7 @@ class TestRunner(TestRunnerBase):
         """
         pep8 : bool, optional
             Turn on PEP8 checking via the pytest-pep8 plugin and disable normal
-            tests. Same as specifying `--pep8 -k pep8` in `args`.
+            tests. Same as specifying ``--pep8 -k pep8`` in ``args``.
         """
         if pep8:
             try:
@@ -400,7 +400,7 @@ class TestRunner(TestRunnerBase):
         """
         pdb : bool, optional
             Turn on PDB post-mortem analysis for failing tests. Same as
-            specifying `--pdb` in `args`.
+            specifying ``--pdb`` in ``args``.
         """
         if pdb:
             return ['--pdb']
@@ -439,7 +439,7 @@ class TestRunner(TestRunnerBase):
         parallel : int, optional
             When provided, run the tests in parallel on the specified
             number of CPUs.  If parallel is negative, it will use the all
-            the cores on the machine.  Requires the `pytest-xdist` plugin.
+            the cores on the machine.  Requires the ``pytest-xdist`` plugin.
         """
         if parallel != 0:
             return ['-n', six.text_type(parallel)]
@@ -469,7 +469,7 @@ class TestRunner(TestRunnerBase):
     @keyword()
     def skip_docs(self, skip_docs, kwargs):
         """
-        skip_docs : bool, optional
+        skip_docs : `bool`, optional
             When `True`, skips running the doctests in the .rst files.
         """
         # Skip docs is a bool used by docs_path only.
@@ -478,7 +478,7 @@ class TestRunner(TestRunnerBase):
     @keyword()
     def repeat(self, repeat, kwargs):
         """
-        repeat : int, optional
+        repeat : `int`, optional
             If set, specifies how many times each test should be run. This is
             useful for diagnosing sporadic failures.
         """

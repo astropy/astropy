@@ -123,7 +123,7 @@ Enable PEP8 compliance testing with ``pep8=True`` in the call to
     above.
 
 Astropy Test Function
-#####################
+^^^^^^^^^^^^^^^^^^^^^
 
 .. autofunction:: astropy.test
 
