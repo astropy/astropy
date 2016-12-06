@@ -56,7 +56,7 @@ def compute_intensity(image_r, image_g=None, image_b=None):
     intensity = (image_r + image_g + image_b)/3.0
 
     # Repack into whatever type was passed to us
-    return np.array(intensity, dtype=image_r.dtype)
+    return np.asarray(intensity, dtype=image_r.dtype)
 
 
 class Mapping(object):
@@ -203,8 +203,8 @@ class Mapping(object):
         mapped_I : `~numpy.ndarray`
             ``I`` mapped to uint8
         """
-        with np.errstate(invalid='ignore', divide='ignore'):  # n.b. np.where can't and doesn't short-circuit
-            return np.where(I <= 0, 0, np.where(I < self._uint8Max, I, self._uint8Max))
+        with np.errstate(invalid='ignore', divide='ignore'):
+            return np.clip(I, 0, self._uint8Max)
 
     def _convert_images_to_uint8(self, image_r, image_g, image_b):
         """Use the mapping to convert images image_r, image_g, and image_b to a triplet of uint8 images"""
@@ -414,7 +414,7 @@ def make_lupton_rgb(image_r, image_g=None, image_b=None, minimum=0, stretch=5, Q
     ----------
 
     image_r : `~numpy.ndarray`
-        Image to map to red (if None, use the image passed to the constructor).
+        Image to map to red.
     image_g : `~numpy.ndarray`
         Image to map to green (if None, use image_r).
     image_b : `~numpy.ndarray`
