@@ -163,10 +163,8 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # This requires copying the array_internal
     array_internal_copied = False
     if np.ma.is_masked(array):
-        if not array_internal_copied:
-            array_internal = array_internal.copy()
-            array_internal_copied = True
-        array_internal[array.mask] = np.nan
+        array_internal = array_internal.filled(np.nan)
+        array_internal_copied = True
     if mask is not None:
         if not array_internal_copied:
             array_internal = array_internal.copy()
