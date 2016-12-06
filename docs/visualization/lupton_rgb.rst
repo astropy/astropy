@@ -15,12 +15,12 @@ To generate a color PNG file with the default (arcsinh) scaling:
 
 .. doctest-skip::
 
->>> import numpy as np
->>> from astropy.visualization import make_lupton_rgb
->>> imageR = np.random.random((100,100))
->>> imageG = np.random.random((100,100))
->>> imageB = np.random.random((100,100))
->>> image = make_lupton_rgb(image_r, image_g, image_b, filename='randoms.png')
+    import numpy as np
+    from astropy.visualization import make_lupton_rgb
+    imageR = np.random.random((100,100))
+    imageG = np.random.random((100,100))
+    imageB = np.random.random((100,100))
+    image = make_lupton_rgb(image_r, image_g, image_b, filename='randoms.png')
 
 This method requires that the three images be aligned and have the same pixel
 scale and size. Changing ``minimum`` will change the black level, while
