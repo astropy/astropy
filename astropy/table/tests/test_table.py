@@ -1747,3 +1747,18 @@ def test_qtable_read_for_ipac_table_with_char_columns():
     t1.write(out, format="ascii.ipac")
     t2 = table.QTable.read(out.getvalue(), format="ascii.ipac", guess=False)
     assert t2["B"].unit is None
+
+
+def test_table_setitem_column():
+    """
+    Test that setitem with a `Column` works properly.
+
+    Regression test for https://github.com/astropy/astropy/issues/2630
+    """
+    t = table.Table()
+    t['a'] = table.Column([1, 2, 3], unit='m', description='old')
+    t['a'] = table.Column([4, 5, 6], unit='s', description='new')
+
+    assert_allclose(t['a'].data, [4, 5, 6])
+    assert t['a'].unit == u.Unit('s')
+    assert t['a'].description == 'new'
