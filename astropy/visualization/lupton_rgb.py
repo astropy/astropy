@@ -59,8 +59,7 @@ class Mapping(object):
         minimum : float or sequence(3)
             Intensity that should be mapped to black (a scalar or array for R, G, B).
         image : `~numpy.ndarray`, optional
-            The image to be used to calculate the mapping.
-            If provided, it is also used as the default for make_rgb_image().
+            An image used to calculate some parameters of sopme mappings.
         """
         self._uint8Max = float(np.iinfo(np.uint8).max)
 
@@ -74,41 +73,27 @@ class Mapping(object):
         self.minimum = minimum
         self._image = np.asarray(image)
 
-    def make_rgb_image(self, image_r=None, image_g=None, image_b=None):
+    def make_rgb_image(self, image_r, image_g, image_b):
         """
         Convert 3 arrays, image_r, image_g, and image_b into an 8-bit RGB image.
 
         Parameters
         ----------
-        image_r : `~numpy.ndarray`, optional
-            Image to map to red (if None, use the image passed to the
-            constructor).
-        image_g : `~numpy.ndarray`, optional
-            Image to map to green (if None, use image_r).
-        image_b : `~numpy.ndarray`, optional
-            Image to map to blue (if None, use image_r).
+        image_r : `~numpy.ndarray`
+            Image to map to red.
+        image_g : `~numpy.ndarray`
+            Image to map to green.
+        image_b : `~numpy.ndarray`
+            Image to map to blue.
 
         Returns
         -------
         RGBimage : `~numpy.ndarray`
             RGB (integer, 8-bits per channel) color image as an NxNx3 numpy array.
         """
-        if image_r is None:
-            if self._image is None:
-                raise ValueError("you must provide an image or pass one to the constructor.")
-            image_r = self._image
-        else:
-            image_r = np.asarray(image_r)
-
-        if image_g is None:
-            image_g = image_r
-        else:
-            image_g = np.asarray(image_g)
-
-        if image_b is None:
-            image_b = image_r
-        else:
-            image_b = np.asarray(image_b)
+        image_r = np.asarray(image_r)
+        image_g = np.asarray(image_g)
+        image_b = np.asarray(image_b)
 
         if (image_r.shape != image_g.shape) or (image_g.shape != image_b.shape):
             msg = "The image shapes must match. r: {}, g: {} b: {}"

@@ -167,7 +167,8 @@ class TestLuptonRgb(object):
         """Test creating a black-and-white image using an asinh stretch estimated
         using zscale on the intensity"""
 
-        rgbImage = lupton_rgb.AsinhZScaleMapping(self.image_r).make_rgb_image()
+        map = lupton_rgb.AsinhZScaleMapping(self.image_r)
+        rgbImage = map.make_rgb_image(self.image_r, self.image_r, self.image_r)
         if display:
             display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
@@ -197,18 +198,16 @@ class TestLuptonRgb(object):
     def test_linear(self):
         """Test using a specified linear stretch"""
 
-        rgbImage = lupton_rgb.LinearMapping(-8.45, 13.44).make_rgb_image(self.image_r)
+        map = lupton_rgb.LinearMapping(-8.45, 13.44)
+        rgbImage = map.make_rgb_image(self.image_r, self.image_g, self.image_b)
         if display:
             display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
     def test_linear_min_max(self):
-        """Test using a min/max linear stretch
+        """Test using a min/max linear stretch determined from one image"""
 
-        Also checks that an image passed to the constructor is used as the
-        default in make_rgb_image().
-        """
-
-        rgbImage = lupton_rgb.LinearMapping(image=self.image_r).make_rgb_image()
+        map = lupton_rgb.LinearMapping(image=self.image_b)
+        rgbImage = map.make_rgb_image(self.image_r, self.image_g, self.image_b)
         if display:
             display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
