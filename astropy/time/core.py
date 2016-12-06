@@ -125,7 +125,7 @@ class TimeInfo(MixinInfo):
         map['val'] = map.pop('jd1')
         map['val2'] = map.pop('jd2')
 
-        out = Time(**map)
+        out = self._parent_cls(**map)
         out.format = format
 
         if delta_ut1_utc is not None:
@@ -145,7 +145,7 @@ class TimeDeltaInfo(TimeInfo):
         map['val'] = map.pop('jd1')
         map['val2'] = map.pop('jd2')
 
-        out = TimeDelta(**map)
+        out = self._parent_cls(**map)
         out.format = format
 
         return out

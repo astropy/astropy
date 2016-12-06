@@ -25,7 +25,10 @@ pytestmark = pytest.mark.skipif('not HAS_YAML')
 @pytest.mark.parametrize('c', [u.m, u.m / u.s, u.hPa, u.dimensionless_unscaled])
 def test_unit(c):
     cy = load(dump(c))
-    assert c == cy
+    if isinstance(c, u.CompositeUnit):
+        assert c == cy
+    else:
+        assert c is cy
 
 
 @pytest.mark.parametrize('c', [Angle('1 2 3', unit='deg'),
@@ -62,7 +65,7 @@ def test_skycoord(frame):
 
     c = SkyCoord([[1,2],[3,4]], [[5,6], [7,8]],
                  unit='deg', frame=frame,
-                 obstime=Time.now(),
+                 obstime=Time('2016-01-02'),
                  location=EarthLocation(1000, 2000, 3000, unit=u.km))
     cy = load(dump(c))
     compare_coord(c, cy)
@@ -82,6 +85,7 @@ def _get_time():
 
 def compare_time(t, ty):
     assert type(t) is type(ty)
+    assert np.all(t == ty)
     for attr in ('shape', 'jd1', 'jd2', 'format', 'scale', 'precision', 'in_subfmt',
                  'out_subfmt', 'location', 'delta_ut1_utc', 'delta_tdb_tt'):
         assert np.all(getattr(t, attr) == getattr(ty, attr))
@@ -108,7 +112,7 @@ def test_load_all():
     unit = u.m / u.s
     c = SkyCoord([[1,2],[3,4]], [[5,6], [7,8]],
                  unit='deg', frame='fk4',
-                 obstime=Time.now(),
+                 obstime=Time('2016-01-02'),
                  location=EarthLocation(1000, 2000, 3000, unit=u.km))
 
     # Make a multi-document stream
