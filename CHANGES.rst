@@ -131,8 +131,8 @@ New Features
 
   - Added a default ``vmin/vmax`` for the ``ManualInterval`` class.
     [#5206].
-    
-  - The ``wcsaxes`` subpackage has now been integrated in astropy as 
+
+  - The ``wcsaxes`` subpackage has now been integrated in astropy as
     ``astropy.visualization.wcsaxes``.  This allows plotting of astronomical
     data/coordinate systems in Matplotlib. [#5496]
 
@@ -454,6 +454,9 @@ Bug Fixes
   - Assigning a logarithmic unit to a ``QTable`` column that did not have a
     unit yet now correctly turns it into the appropriate function quantity
     subclass (such as ``Magnitude`` or ``Dex``). [#5345]
+
+  - Fix default value for ``show_row_index`` in ``Table.show_in_browser``.
+    [#5562]
 
 - ``astropy.time``
 
