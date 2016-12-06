@@ -193,14 +193,16 @@ class TestLuptonRgb(object):
             assert os.path.exists(temp.name)
 
     def test_make_rgb_saturated_fix(self):
+        pytest.skip('saturation correction is not implemented')
         satValue = 1000.0
         # TODO: Cannot test with these options yet, as that part of the code is not implemented.
-        with pytest.raises(NotImplementedError):
+        with tempfile.NamedTemporaryFile(suffix=".png") as temp:
             red = saturate(self.image_r, satValue)
             green = saturate(self.image_g, satValue)
             blue = saturate(self.image_b, satValue)
             lupton_rgb.make_lupton_rgb(red, green, blue, self.min_, self.stretch_, self.Q,
-                                       saturated_border_width=1, saturated_pixel_value=2000)
+                                       saturated_border_width=1, saturated_pixel_value=2000,
+                                       filename=temp)
 
     def test_linear(self):
         """Test using a specified linear stretch"""
