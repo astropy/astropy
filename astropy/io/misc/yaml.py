@@ -45,7 +45,7 @@ Example
   location: !astropy.coordinates.earth.EarthLocation
     ellipsoid: WGS84
     x: !astropy.units.Quantity
-      unit: &id001 !astropy.units.Unit {name: km}
+      unit: &id001 !astropy.units.Unit {unit: km}
       value: 1000.0
     y: !astropy.units.Quantity
       unit: *id001
@@ -84,13 +84,13 @@ except ImportError:
 __all__ = ['AstropyLoader', 'AstropyDumper', 'load', 'load_all', 'dump']
 
 def _unit_representer(dumper, obj):
-    out = {'name': str(obj.to_string())}
+    out = {'unit': str(obj.to_string())}
     return dumper.represent_mapping('!astropy.units.Unit', out)
 
 
 def _unit_constructor(loader, node):
     map = loader.construct_mapping(node)
-    return u.Unit(map['name'])
+    return u.Unit(map['unit'])
 
 
 def _time_representer(dumper, obj):
