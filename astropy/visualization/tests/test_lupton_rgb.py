@@ -24,13 +24,6 @@ try:
 except ImportError:
     HAS_MATPLOTLIB = False
 
-try:
-    import scipy.misc
-    scipy.misc.imresize  # just checking if it exists.
-    HAVE_SCIPY_MISC = True
-except (ImportError, AttributeError):
-    HAVE_SCIPY_MISC = False
-
 # Set display=True to get matplotlib imshow windows to help with debugging.
 display = False
 
@@ -102,6 +95,8 @@ class TestLuptonRgb(object):
         self.min_, self.stretch_, self.Q = 0, 5, 20  # asinh
 
         width, height = 85, 75
+        self.width = width
+        self.height = height
 
         shape = (width, height)
         image_r = np.zeros(shape)
@@ -218,7 +213,7 @@ class TestLuptonRgb(object):
             display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
     def test_saturated(self):
-        """Test interpolating saturated pixels"""
+        """Test interpolationolating saturated pixels"""
         pytest.skip('replaceSaturatedPixels is not implemented in astropy yet')
 
         satValue = 1000.0
@@ -233,7 +228,6 @@ class TestLuptonRgb(object):
         assert np.isfinite(self.image_b.getImage().getArray()).all()
 
         # Prepare for generating an output file
-        # TBD: FROMAFW
         self.imagesR = self.imagesR.getImage()
         self.imagesR = self.imagesG.getImage()
         self.imagesR = self.imagesB.getImage()
@@ -243,68 +237,9 @@ class TestLuptonRgb(object):
         if display:
             display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
-    @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
-    def test_resize_to_uint(self):
-        """Test creating an RGB image of a specified size"""
-
-        x_size = self.image_r.shape[0]/2
-        y_size = self.image_r.shape[1]/2
-        image_r = np.array(self.image_r, dtype=np.uint16)
-        image_g = np.array(self.image_g, dtype=np.uint16)
-        image_b = np.array(self.image_b, dtype=np.uint16)
-        asinhZ = lupton_rgb.AsinhZScaleMapping(image_r)
-        rgbImage = asinhZ.make_rgb_image(image_r, image_g, image_b, x_size=x_size, y_size=y_size)
-        if display:
-            display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
-
-    def _test_resize(self, x_size=None, y_size=None, frac=None):
-        """Test creating an RGB image changing the output """
-
-        map = lupton_rgb.AsinhZScaleMapping(self.image_r)
-        rgbImage = map.make_rgb_image(self.image_r, self.image_g, self.image_b,
-                                      x_size=x_size, y_size=y_size, rescale=frac)
-
-        # TODO: I'm not positive that I got the width/height values correct:
-        # afw and numpy have different conventions!
-        h, w, _ = rgbImage.shape
-        if x_size is not None:
-            assert int(x_size) == w
-        if y_size is not None:
-            assert int(y_size) == h
-        if frac is not None:
-            assert int(frac*self.image_r.shape[1]) == w
-            assert int(frac*self.image_r.shape[0]) == h
-
-    @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
-    def test_resize_x_size_y_size(self):
-        self._test_resize(x_size=self.image_r.shape[0]/2, y_size=self.image_r.shape[1]/2)
-
-    @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
-    def test_resize_twice_x_size(self):
-        self._test_resize(x_size=2*self.image_r.shape[0])
-
-    @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
-    def test_resize_half_x_size(self):
-        self._test_resize(x_size=self.image_r.shape[0]/2)
-
-    @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
-    def test_resize_half_y_size(self):
-        self._test_resize(y_size=self.image_r.shape[0]/2)
-
-    @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
-    def test_resize_frac_half(self):
-        self._test_resize(frac=0.5)
-
-    @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
-    def test_resize_frac_twice(self):
-        self._test_resize(frac=2)
-
-    @pytest.mark.skipif('not HAS_MATPLOTLIB')
-    @pytest.mark.skipif('not HAVE_SCIPY_MISC', reason="Resizing images requires scipy.misc")
-    def test_make_rgb_resize(self):
-        """Test the function that does it all, including rescaling"""
-        lupton_rgb.make_lupton_rgb(self.image_r, self.image_g, self.image_b, x_size=40, y_size=60)
-
-        with tempfile.NamedTemporaryFile(suffix=".png") as temp:
-            lupton_rgb.make_lupton_rgb(self.image_r, self.image_g, self.image_b, filename=temp, rescale=0.5)
-            assert os.path.exists(temp.name)
+    def test_different_shapes_asserts(self):
+        with pytest.raises(ValueError) as excinfo:
+            # just swap the dimensions to get a differently-shaped 'r'
+            image_r = self.image_r.reshape(self.height, self.width)
+            lupton_rgb.make_lupton_rgb(image_r, self.image_g, self.image_b)
+        assert "shapes must match" in str(excinfo.value)
