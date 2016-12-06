@@ -22,7 +22,7 @@ from ..helper import pytest
 # run_tests should raise ValueError when asked to run on a module it can't find
 def test_module_not_found():
     with helper.pytest.raises(ValueError):
-        run_tests('fake.module')
+        run_tests(package='fake.module')
 
 
 # run_tests should raise ValueError when passed an invalid pastebin= option
