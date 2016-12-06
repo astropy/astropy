@@ -10,6 +10,9 @@ New Features
 
 - ``astropy.convolution``
 
+  - The ``convolve`` and ``convolve_fft`` arguments now support a ``mask`` keyword,
+    which allows them to also support ``NDData`` objects as inputs. [#5554]
+
 - ``astropy.coordinates``
 
   - Added an ``of_address`` classmethod to ``EarthLocation`` to enable fast creation of
