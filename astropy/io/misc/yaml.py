@@ -118,9 +118,14 @@ def _timedelta_constructor(loader, node):
 def _ndarray_representer(dumper, obj):
     if not (obj.flags['C_CONTIGUOUS'] or obj.flags['F_CONTIGUOUS']):
         obj = np.ascontiguousarray(obj)
-    order = 'C' if obj.flags['C_CONTIGUOUS'] else 'F'
 
-    data_b64 = base64.b64encode(bytes(obj.data))
+    if np.isfortran(obj):
+        obj = obj.T
+        order = 'F'
+    else:
+        order = 'C'
+
+    data_b64 = base64.b64encode(obj.tostring())
 
     out = dict(buffer=data_b64,
                dtype=str(obj.dtype),
