@@ -131,8 +131,8 @@ New Features
 
   - Added a default ``vmin/vmax`` for the ``ManualInterval`` class.
     [#5206].
-    
-  - The ``wcsaxes`` subpackage has now been integrated in astropy as 
+
+  - The ``wcsaxes`` subpackage has now been integrated in astropy as
     ``astropy.visualization.wcsaxes``.  This allows plotting of astronomical
     data/coordinate systems in Matplotlib. [#5496]
 
@@ -376,6 +376,9 @@ Other Changes and Additions
   - Updated the bundled ``six`` module to version 1.10.0. [#5521]
 
   - Updated the astropy shipped version of ``PLY`` to version 3.9. [#5526]
+
+  - Updated the astropy shipped version of jQuery to v3.3.1, and dataTables
+    to v1.10.12. [#5564]
 
 - ``astropy.io.fits``
 
