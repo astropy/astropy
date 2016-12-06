@@ -65,7 +65,7 @@ Example
   <EarthLocation ( 1000.,  2000.,  3000.) km>
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 
 import base64
 import numpy as np
@@ -85,7 +85,7 @@ __all__ = ['AstropyLoader', 'AstropyDumper', 'load', 'load_all', 'dump']
 
 def _unit_representer(dumper, obj):
     out = {'name': str(obj.to_string())}
-    return dumper.represent_mapping(u'!astropy.units.Unit', out)
+    return dumper.represent_mapping('!astropy.units.Unit', out)
 
 
 def _unit_constructor(loader, node):
@@ -95,7 +95,7 @@ def _unit_constructor(loader, node):
 
 def _time_representer(dumper, obj):
     out = obj.info._represent_as_dict()
-    return dumper.represent_mapping(u'!astropy.time.Time', out)
+    return dumper.represent_mapping('!astropy.time.Time', out)
 
 
 def _time_constructor(loader, node):
@@ -106,7 +106,7 @@ def _time_constructor(loader, node):
 
 def _timedelta_representer(dumper, obj):
     out = obj.info._represent_as_dict()
-    return dumper.represent_mapping(u'!astropy.time.TimeDelta', out)
+    return dumper.represent_mapping('!astropy.time.TimeDelta', out)
 
 
 def _timedelta_constructor(loader, node):
@@ -127,7 +127,7 @@ def _ndarray_representer(dumper, obj):
                dtype=str(obj.dtype),
                shape=obj.shape)
 
-    return dumper.represent_mapping(u'!numpy.ndarray', out)
+    return dumper.represent_mapping('!numpy.ndarray', out)
 
 
 def _ndarray_constructor(loader, node):
@@ -152,7 +152,7 @@ def _quantity_constructor(cls):
 
 def _skycoord_representer(dumper, obj):
     map = obj.info._represent_as_dict()
-    out = dumper.represent_mapping(u'!astropy.coordinates.sky_coordinate.SkyCoord',
+    out = dumper.represent_mapping('!astropy.coordinates.sky_coordinate.SkyCoord',
                                    map)
     return out
 
@@ -191,7 +191,7 @@ class AstropyDumper(yaml.SafeDumper):
     for details of the class signature.
     """
     def _represent_tuple(self, data):
-        return self.represent_sequence(u'tag:yaml.org,2002:python/tuple', data)
+        return self.represent_sequence('tag:yaml.org,2002:python/tuple', data)
 
 AstropyDumper.add_representer(u.IrreducibleUnit, _unit_representer)
 AstropyDumper.add_representer(u.CompositeUnit, _unit_representer)
@@ -202,9 +202,9 @@ AstropyDumper.add_representer(Time, _time_representer)
 AstropyDumper.add_representer(TimeDelta, _timedelta_representer)
 AstropyDumper.add_representer(coords.SkyCoord, _skycoord_representer)
 
-AstropyLoader.add_constructor(u'tag:yaml.org,2002:python/tuple',
+AstropyLoader.add_constructor('tag:yaml.org,2002:python/tuple',
                               AstropyLoader._construct_python_tuple)
-AstropyLoader.add_constructor(u'tag:yaml.org,2002:python/unicode',
+AstropyLoader.add_constructor('tag:yaml.org,2002:python/unicode',
                               AstropyLoader._construct_python_unicode)
 AstropyLoader.add_constructor('!astropy.units.Unit', _unit_constructor)
 AstropyLoader.add_constructor('!numpy.ndarray', _ndarray_constructor)
