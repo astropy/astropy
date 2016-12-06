@@ -227,8 +227,8 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
                  return_fft=False, fft_pad=None, psf_pad=None,
                  interpolate_nan=False, quiet=False, ignore_edge_zeros=False,
-                 min_wt=0.0, normalize_kernel=False, allow_huge=False,
-                 fftn=np.fft.fftn, ifftn=np.fft.ifftn,
+                 min_wt=0.0, normalize_kernel=False, normalized_epsilon=1e-8, 
+                 allow_huge=False, fftn=np.fft.fftn, ifftn=np.fft.ifftn,
                  complex_dtype=np.complex):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with
@@ -313,6 +313,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         256.
     quiet : bool, optional
         Silence warning message about NaN interpolation
+    normalized_epsilon: float, optional
+        The upper limit on the deviation of the kernel sum with respect to unity.
+        Will be checked only if ``normalize_kernel`` is False. Default is "1e-8".
     allow_huge : bool, optional
         Allow huge arrays in the FFT?  If False, will raise an exception if the
         array or kernel size is >1 GB
@@ -441,7 +444,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         kernel = kernel / normalize_kernel(kernel)
         kernel_is_normalized = True
     else:
-        if np.abs(kernel.sum() - 1) < 1e-8:
+        if np.abs(kernel.sum() - 1) < normalized_epsilon:
             kernel_is_normalized = True
         else:
             kernel_is_normalized = False
