@@ -72,13 +72,13 @@ Lupton et al. (2004):
 
 This will produce the following two images.
 
-.. figure:: https://astropy.stsci.edu/data/visualization/ngc6976-default.jpeg
+.. figure:: https://data.astropy.org/visualization/ngc6976-default.jpeg
     :scale: 30 %
     :alt: default rgb image
 
     Image generated with the default parameters.
 
-.. figure:: https://astropy.stsci.edu/data/visualization/ngc6976.jpeg
+.. figure:: https://data.astropy.org/visualization/ngc6976.jpeg
     :scale: 30 %
     :alt: wider stretch image
 
