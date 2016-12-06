@@ -363,9 +363,6 @@ class TestCore(FitsTestCase):
         runtime works.
         """
 
-        if 'IO_FITS_EXTENSION_NAME_CASE_SENSITIVE' in os.environ:
-            del os.environ['IO_FITS_EXTENSION_NAME_CASE_SENSITIVE']
-
         hdu = fits.ImageHDU()
         hdu.name = 'sCi'
         assert hdu.name == 'SCI'
