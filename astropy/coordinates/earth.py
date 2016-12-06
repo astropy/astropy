@@ -7,6 +7,7 @@ import json
 
 import numpy as np
 from .. import units as u
+from ..units.quantity import QuantityInfo
 from ..extern import six
 from ..extern.six.moves import urllib
 from ..utils.exceptions import AstropyUserWarning
@@ -79,6 +80,24 @@ def _get_json_result(url, err_str):
 
     return results
 
+
+class EarthLocationInfo(QuantityInfo):
+    """
+    Container for meta information like name, description, format.  This is
+    required when the object is used as a mixin column within a table, but can
+    be used as a general way to store meta information.
+    """
+    _represent_as_dict_attrs = ('x', 'y', 'z', 'ellipsoid')
+
+    def _construct_from_dict(self, map):
+        # Need to pop ellipsoid off and update post-instantiation.  This is
+        # on the to-fix list in #4261.
+        ellipsoid = map.pop('ellipsoid')
+        out = self._parent_cls(**map)
+        out.ellipsoid = ellipsoid
+        return out
+
+
 class EarthLocation(u.Quantity):
     """
     Location on the Earth.
@@ -108,6 +127,8 @@ class EarthLocation(u.Quantity):
     _location_dtype = np.dtype({'names': ['x', 'y', 'z'],
                                 'formats': [np.float64]*3})
     _array_dtype = np.dtype((np.float64, (3,)))
+
+    info = EarthLocationInfo()
 
     def __new__(cls, *args, **kwargs):
         try:

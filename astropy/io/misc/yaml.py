@@ -62,7 +62,7 @@ Example
   <Time object: scale='utc' format='mjd' value=2457389.0>
 
   >>> ty.location
-  <EarthLocation (1000.0, 2000.0, 3000.0) km>
+  <EarthLocation ( 1000.,  2000.,  3000.) km>
 """
 
 from __future__ import absolute_import
@@ -150,19 +150,6 @@ def _quantity_constructor(cls):
     return constructor
 
 
-def _earthlocation_representer(dumper, obj):
-    out = _get_obj_attrs_map(obj, ('x', 'y', 'z', 'ellipsoid'))
-    return dumper.represent_mapping(u'!astropy.coordinates.earth.EarthLocation', out)
-
-
-def _earthlocation_constructor(loader, node):
-    map = loader.construct_mapping(node)
-    ellipsoid = map.pop('ellipsoid')
-    out = coords.EarthLocation(**map)
-    out.ellipsoid = ellipsoid
-    return out
-
-
 def _skycoord_representer(dumper, obj):
     map = obj.info._represent_as_dict()
     out = dumper.represent_mapping(u'!astropy.coordinates.sky_coordinate.SkyCoord',
@@ -213,7 +200,6 @@ AstropyDumper.add_representer(tuple, AstropyDumper._represent_tuple)
 AstropyDumper.add_representer(np.ndarray, _ndarray_representer)
 AstropyDumper.add_representer(Time, _time_representer)
 AstropyDumper.add_representer(TimeDelta, _timedelta_representer)
-AstropyDumper.add_representer(coords.EarthLocation, _earthlocation_representer)
 AstropyDumper.add_representer(coords.SkyCoord, _skycoord_representer)
 
 AstropyLoader.add_constructor(u'tag:yaml.org,2002:python/tuple',
@@ -224,15 +210,14 @@ AstropyLoader.add_constructor('!astropy.units.Unit', _unit_constructor)
 AstropyLoader.add_constructor('!numpy.ndarray', _ndarray_constructor)
 AstropyLoader.add_constructor('!astropy.time.Time', _time_constructor)
 AstropyLoader.add_constructor('!astropy.time.TimeDelta', _timedelta_constructor)
-AstropyLoader.add_constructor('!astropy.coordinates.earth.EarthLocation',
-                              _earthlocation_constructor)
 AstropyLoader.add_constructor('!astropy.coordinates.sky_coordinate.SkyCoord',
                               _skycoord_constructor)
 
 for cls, tag in ((u.Quantity, '!astropy.units.Quantity'),
                  (coords.Angle, '!astropy.coordinates.Angle'),
                  (coords.Latitude, '!astropy.coordinates.Latitude'),
-                 (coords.Longitude, '!astropy.coordinates.Longitude')):
+                 (coords.Longitude, '!astropy.coordinates.Longitude'),
+                 (coords.EarthLocation, '!astropy.coordinates.earth.EarthLocation')):
     AstropyDumper.add_multi_representer(cls, _quantity_representer(tag))
     AstropyLoader.add_constructor(tag, _quantity_constructor(cls))
 
