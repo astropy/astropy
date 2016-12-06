@@ -934,7 +934,7 @@ class Table(object):
             multiple times.
         table_class : str or `None`
             A string with a list of HTML classes used to style the table.
-            The special default string ('from-apy-default') means that the string
+            The special default string ('astropy-default') means that the string
             will be retrieved from the configuration item
             ``astropy.table.default_notebook_table_class``. Note that these
             table classes may make use of bootstrap, as this is loaded with the
@@ -986,7 +986,7 @@ class Table(object):
     def show_in_browser(self, max_lines=5000, jsviewer=False,
                         browser='default', jskwargs={'use_local_files': True},
                         tableid=None, table_class="display compact",
-                        css=None, show_row_index=True):
+                        css=None, show_row_index='idx'):
 
         """Render the table in HTML and show it in a web browser.
 
@@ -1020,7 +1020,7 @@ class Table(object):
         css : string
             A valid CSS string declaring the formatting for the table. Defaults
             to ``astropy.table.jsviewer.DEFAULT_CSS``.
-        show_row_index : bool
+        show_row_index : str or False
             If this does not evaluate to False, a column with the given name
             will be added to the version of the table that gets displayed.
             This new column shows the index of the row in the table itself,
