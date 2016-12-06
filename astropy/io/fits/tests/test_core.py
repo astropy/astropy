@@ -363,8 +363,8 @@ class TestCore(FitsTestCase):
         runtime works.
         """
 
-        if 'PYFITS_EXTENSION_NAME_CASE_SENSITIVE' in os.environ:
-            del os.environ['PYFITS_EXTENSION_NAME_CASE_SENSITIVE']
+        if 'IO_FITS_EXTENSION_NAME_CASE_SENSITIVE' in os.environ:
+            del os.environ['IO_FITS_EXTENSION_NAME_CASE_SENSITIVE']
 
         hdu = fits.ImageHDU()
         hdu.name = 'sCi'
@@ -795,7 +795,7 @@ class TestFileFunctions(FitsTestCase):
         assert old_mode == os.stat(filename).st_mode
 
     def test_fileobj_mode_guessing(self):
-        """Tests whether a file opened without a specified pyfits mode
+        """Tests whether a file opened without a specified io.fits mode
         ('readonly', etc.) is opened in a mode appropriate for the given file
         object.
         """
