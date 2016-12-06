@@ -13,14 +13,17 @@ To generate a color PNG file with the default (arcsinh) scaling:
 
 .. _Lupton et al. (2004): http://adsabs.harvard.edu/abs/2004PASP..116..133L
 
-.. doctest-skip::
+.. plot::
+    :include-source:
 
     import numpy as np
+    import matplotlib.pyplot as plt
     from astropy.visualization import make_lupton_rgb
-    imageR = np.random.random((100,100))
-    imageG = np.random.random((100,100))
-    imageB = np.random.random((100,100))
-    image = make_lupton_rgb(image_r, image_g, image_b, filename='randoms.png')
+    image_r = np.random.random((100,100))
+    image_g = np.random.random((100,100))
+    image_b = np.random.random((100,100))
+    image = make_lupton_rgb(image_r, image_g, image_b, stretch=0.5)
+    plt.imshow(image)
 
 This method requires that the three images be aligned and have the same pixel
 scale and size. Changing ``minimum`` will change the black level, while
@@ -67,4 +70,19 @@ Lupton et al. (2004):
    # this scaling is very similar to the one used in Lupton et al. (2004)
    rgb = make_lupton_rgb(i_new, r_new, g.data, Q=10, stretch=0.5, filename="ngc6976.jpeg")
 
-TODO: show example files in this document right here? How?
+This will produce the following two images.
+
+.. figure:: https://astropy.stsci.edu/data/visualization/ngc6976-default.jpeg
+    :scale: 30 %
+    :alt: default rgb image
+
+    Image generated with the default parameters.
+
+.. figure:: https://astropy.stsci.edu/data/visualization/ngc6976.jpeg
+    :scale: 30 %
+    :alt: wider stretch image
+
+    Image generated with Q=10, stretch=0.5, showing faint features of the galaxies.
+    Comapre with Fig. 1 of `Lupton et al. (2004)`_ or the `SDSS Skyserver image`_.
+
+.. _SDSS Skyserver image: http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra=179.68929&dec=-0.45438&opt=
