@@ -1256,13 +1256,16 @@ class Table(object):
             n_cols = len(self.columns)
 
             if isinstance(item, six.string_types):
-                # Set an existing column
-                try:
-                    # See definition of mask property for discussion of next line.
-                    assert not getattr(self, '_setitem_inplace', False)
-                    self.replace_column(item, value)
-                except Exception:
-                    self.columns[item][:] = value
+                # Set an existing column by first trying to replace, and if
+                # this fails do an in-place update.  See definition of mask
+                # property for discussion of the _setitem_inplace attribute.
+                if not getattr(self, '_setitem_inplace', False):
+                    try:
+                        self.replace_column(item, value)
+                        return
+                    except Exception:
+                        pass
+                self.columns[item][:] = value
 
             elif isinstance(item, (int, np.integer)):
                 # Set the corresponding row assuming value is an iterable.

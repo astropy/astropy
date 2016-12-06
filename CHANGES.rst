@@ -243,7 +243,8 @@ API Changes
 
   - Setting an existing table column (e.g. ``t['a'] = [1, 2, 3]``) now defaults
     to *replacing* the column with a column corresponding to the new value
-    (using ``t.replace_column()``) instead of doing an in-place update.  An
+    (using ``t.replace_column()``) instead of doing an in-place update.  Any
+    existing meta-data in the column (e.g. the unit) is discarded.  An
     in-place update is still done when the new value is not a valid column,
     e.g. ``t['a'] = 0``.  To force an in-place update use the pattern
     ``t['a'][:] = [1, 2, 3]``. [#5556]
