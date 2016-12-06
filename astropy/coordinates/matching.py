@@ -62,6 +62,10 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree='_
     This function requires `SciPy <http://www.scipy.org>`_ to be installed
     or it will fail.
     """
+    if catalogcoord.isscalar or len(catalogcoord) < 1:
+        raise ValueError('The catalog for coordinate matching cannot be a '
+                         'scalar or length-0.')
+
     kdt = _get_cartesian_kdtree(catalogcoord, storekdtree)
 
     #make sure coordinate systems match
@@ -130,6 +134,9 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='
     This function requires `SciPy <http://www.scipy.org>`_ to be installed
     or it will fail.
     """
+    if catalogcoord.isscalar or len(catalogcoord) < 1:
+        raise ValueError('The catalog for coordinate matching cannot be a '
+                         'scalar or length-0.')
 
     # send to catalog frame
     newmatch = matchcoord.transform_to(catalogcoord)
