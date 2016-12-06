@@ -395,7 +395,7 @@ class AsinhZScaleMapping(AsinhMapping):
         self._image = image
 
 
-def make_lupton_rgb(image_r, image_g=None, image_b=None, minimum=0, stretch=5, Q=8,
+def make_lupton_rgb(image_r, image_g, image_b, minimum=0, stretch=5, Q=8,
                     x_size=None, y_size=None, rescale=None,
                     filename=None):
     """
@@ -411,9 +411,9 @@ def make_lupton_rgb(image_r, image_g=None, image_b=None, minimum=0, stretch=5, Q
     image_r : `~numpy.ndarray`
         Image to map to red.
     image_g : `~numpy.ndarray`
-        Image to map to green (if None, use image_r).
+        Image to map to green.
     image_b : `~numpy.ndarray`
-        Image to map to blue (if None, use image_r).
+        Image to map to blue.
     minimum : float
         Intensity that should be mapped to black (a scalar or array for R, G, B).
     stretch : float
@@ -435,12 +435,6 @@ def make_lupton_rgb(image_r, image_g=None, image_b=None, minimum=0, stretch=5, Q
     rgb : `~numpy.ndarray`
         RGB (integer, 8-bits per channel) color image as an NxNx3 numpy array.
     """
-    image_r = image_r
-    if image_g is None:
-        image_g = image_r
-    if image_b is None:
-        image_b = image_r
-
     asinhMap = AsinhMapping(minimum, stretch, Q)
     rgb = asinhMap.make_rgb_image(image_r, image_g, image_b,
                                   x_size=x_size, y_size=y_size, rescale=rescale)
