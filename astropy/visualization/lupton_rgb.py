@@ -22,10 +22,6 @@ try:
 except (ImportError, AttributeError):
     HAVE_SCIPY_MISC = False
 
-# NOTE: these methods would have come from LSST C++ code. They won't be available
-# in astropy until they are converted somehow.
-# from lsst.afw.display.displayLib import replaceSaturatedPixels, getZScale
-
 
 def compute_intensity(image_r, image_g=None, image_b=None):
     """
@@ -400,7 +396,6 @@ class AsinhZScaleMapping(AsinhMapping):
 
 
 def make_lupton_rgb(image_r, image_g=None, image_b=None, minimum=0, stretch=5, Q=8,
-                    saturated_border_width=0, saturated_pixel_value=None,
                     x_size=None, y_size=None, rescale=None,
                     filename=None):
     """
@@ -425,10 +420,6 @@ def make_lupton_rgb(image_r, image_g=None, image_b=None, minimum=0, stretch=5, Q
         The linear stretch of the image.
     Q : float
         The asinh softening parameter.
-    saturated_border_width : int
-        If saturated_border_width is non-zero, replace saturated pixels with saturated_pixel_value.
-    saturated_pixel_value : float
-        Value to replace saturated pixels with.
     x_size : int
         Desired width of RGB image (or None).  If y_size is None, preserve aspect ratio.
     y_size : int
@@ -449,14 +440,6 @@ def make_lupton_rgb(image_r, image_g=None, image_b=None, minimum=0, stretch=5, Q
         image_g = image_r
     if image_b is None:
         image_b = image_r
-
-    if saturated_border_width:
-        if saturated_pixel_value is None:
-            raise ValueError("saturated_pixel_value must be set if "
-                             "saturated_border_width is set.")
-        msg = "Cannot do this until we extract replaceSaturatedPixels out of afw/display/saturated.cc"
-        raise NotImplementedError(msg)
-        # replaceSaturatedPixels(image_r, image_g, image_b, saturated_border_width, saturated_pixel_value)
 
     asinhMap = AsinhMapping(minimum, stretch, Q)
     rgb = asinhMap.make_rgb_image(image_r, image_g, image_b,
