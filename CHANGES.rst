@@ -171,6 +171,10 @@ API Changes
     Similarly, ``EarthLocation.get_gcrs_posvel`` now returns a tuple of
     ``CartesianRepresentation`` objects. [#5253]
 
+  - ``search_around_3d`` and ``search_around_sky`` now return units
+    for the distance matching their input argument when no match is
+    found, instead of ``dimensionless_unscaled``. [#5528]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
