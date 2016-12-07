@@ -19,7 +19,6 @@ from .. import lupton_rgb
 
 try:
     import matplotlib
-    matplotlib.use('TkAgg')
     HAS_MATPLOTLIB = True
 except ImportError:
     HAS_MATPLOTLIB = False
