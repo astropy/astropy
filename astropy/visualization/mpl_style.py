@@ -31,18 +31,13 @@ example), you should reset the matplotlib settings to the library defaults
     >>> mpl.rcdefaults()
     >>> mpl.rcParams.update(astropy_mpl_style)
 """
-try:
-    import matplotlib
-    HAS_MATPLOTLIB = True
-except:
-    HAS_MATPLOTLIB = False
+from ..utils import minversion
+# This returns False if matplotlib cannot be imported
+MATPLOTLIB_GE_1_5 = minversion('matplotlib', '1.5')
 
-try:
-    from cycler import cycler
-    HAS_CYCLER = True
-except:
-    HAS_CYCLER = False
 
+__all__ = ['astropy_mpl_style_1', 'astropy_mpl_style',
+           'astropy_mpl_docs_style']
 
 astropy_mpl_style_1 = {
 
@@ -100,23 +95,21 @@ astropy_mpl_style_1 = {
     # Other
     'savefig.dpi': 72,
 }
+color_cycle = ['#348ABD',   # blue
+               '#7A68A6',   # purple
+               '#A60628',   # red
+               '#467821',   # green
+               '#CF4457',   # pink
+               '#188487',   # turquoise
+               '#E24A33']  # orange
 
-if HAS_MATPLOTLIB and HAS_CYCLER and matplotlib.__version__ >= '1.5':
-    astropy_mpl_style_1['axes.prop_cycle'] = cycler('color',['#348ABD',   # blue
-                             '#7A68A6',   # purple
-                             '#A60628',   # red
-                             '#467821',   # green
-                             '#CF4457',   # pink
-                             '#188487',   # turquoise
-                             '#E24A33'])  # orange
+if MATPLOTLIB_GE_1_5:
+    # This is a dependency of matplotlib, so should be present.
+    from cycler import cycler
+    astropy_mpl_style_1['axes.prop_cycle'] = cycler('color', color_cycle)
+
 else:
-    astropy_mpl_style_1['axes.color_cycle'] = ['#348ABD',   # blue
-                     '#7A68A6',   # purple
-                     '#A60628',   # red
-                     '#467821',   # green
-                     '#CF4457',   # pink
-                     '#188487',   # turquoise
-                     '#E24A33']  # orange
+    astropy_mpl_style_1['axes.color_cycle'] = color_cycle
 
 
 '''
@@ -137,25 +130,21 @@ astropy_mpl_docs_style = astropy_mpl_style_1.copy()
 The style used in the astropy documentation.
 '''
 
-if HAS_MATPLOTLIB and HAS_CYCLER and matplotlib.__version__ >= '1.5':
-    astropy_mpl_docs_style['axes.prop_cycle'] = cycler('color', [
-        '#348ABD',   # blue
-        '#7A68A6',   # purple
-        '#A60628',   # red
-        '#467821',   # green
-        '#CF4457',   # pink
-        '#188487',   # turquoise
-        '#E24A33'])  # orange
+color_cycle_docs = [
+    '#E24A33',   # orange
+    '#348ABD',   # blue
+    '#467821',   # green
+    '#A60628',   # red
+    '#7A68A6',   # purple
+    '#CF4457',   # pink
+    '#188487'    # turquoise
+]
+
+if MATPLOTLIB_GE_1_5:
+    astropy_mpl_docs_style['axes.prop_cycle'] = cycler('color',
+                                                       color_cycle_docs)
 else:
-        astropy_mpl_docs_style['axes.color_cycle'] = [
-        '#E24A33',   # orange
-        '#348ABD',   # blue
-        '#467821',   # green
-        '#A60628',   # red
-        '#7A68A6',   # purple
-        '#CF4457',   # pink
-        '#188487'    # turquoise
-    ]
+    astropy_mpl_docs_style['axes.color_cycle'] = color_cycle_docs
 
 astropy_mpl_docs_style['axes.grid'] = False
 astropy_mpl_docs_style['figure.figsize'] = (6, 6)
