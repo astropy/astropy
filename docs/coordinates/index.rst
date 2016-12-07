@@ -313,6 +313,7 @@ listed below.
    galactocentric
    remote_methods
    definitions
+   inplace
 
 
 In addition, another resource for the capabilities of this package is the

@@ -12,7 +12,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 import abc
 import copy
 import inspect
-from collections import namedtuple, OrderedDict
+from collections import namedtuple, OrderedDict, defaultdict
 
 # Dependencies
 import numpy as np
@@ -20,6 +20,7 @@ import numpy as np
 # Project
 from ..utils.compat.misc import override__dir__
 from ..utils.compat.numpy import broadcast_to as np_broadcast_to
+from ..utils.decorators import lazyproperty
 from ..extern import six
 from ..extern.six.moves import zip
 from .. import units as u
@@ -697,9 +698,21 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 self._no_data_shape = ()
         else:
             # Set up representation cache.
-            self._rep_cache = dict()
-            self._rep_cache[self._data.__class__.__name__, False] = self._data
+            self.cache['representation'][self._data.__class__.__name__, False] = self._data
 
+    @lazyproperty
+    def cache(self):
+        """
+        Cache for this frame.
+
+        If modifications are made to the frame not through public methods the
+        appropriate cache should be cleared by deleting elements from this
+        cache. i.e. if you update the values in the representation the cache of
+        representations should be cleared with::
+
+            del myframe.cache['representation]
+        """
+        return defaultdict(dict)
 
     @property
     def data(self):
@@ -902,8 +915,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         """
         new_representation = _get_repr_cls(new_representation)
 
-        cached_repr = self._rep_cache.get((new_representation.__name__,
-                                           in_frame_units))
+        cached_repr = self.cache['representation'].get((new_representation.__name__,
+                                                        in_frame_units))
         if not cached_repr:
             data = self.data.represent_as(new_representation)
 
@@ -918,9 +931,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                         datakwargs[comp] = datakwargs[comp].to(new_attr_unit)
                 data = data.__class__(copy=False, **datakwargs)
 
-            self._rep_cache[new_representation.__name__, in_frame_units] = data
+            self.cache['representation'][new_representation.__name__, in_frame_units] = data
 
-        return self._rep_cache[new_representation.__name__, in_frame_units]
+        return self.cache['representation'][new_representation.__name__, in_frame_units]
 
     def transform_to(self, new_frame):
         """
