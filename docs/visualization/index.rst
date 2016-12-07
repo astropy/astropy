@@ -11,15 +11,18 @@ Introduction
 visualizing data. This includes a framework for plotting Astronomical images
 with coordinates with Matplotlib (previously the standalone **wcsaxes**
 package), functionality related to image normaliation (including both scaling
-and stretching), smart histogram plotting, and custom plotting styles for
-Matplotlib.
+and stretching), smart histogram plotting, RGB color image creation from
+separate images, and custom plotting styles for Matplotlib.
 
+Using `astropy.visualization`
+=============================
 .. toctree::
    :maxdepth: 2
 
    wcsaxes/index.rst
    normalization.rst
    histogram.rst
+   lupton_rgb.rst
 
 
 .. _fits2bitmap:
