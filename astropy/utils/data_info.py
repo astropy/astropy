@@ -124,6 +124,27 @@ def data_info_factory(names, funcs):
     return func
 
 
+def _get_obj_attrs_map(obj, attrs):
+    """
+    Get the values for object ``attrs`` and return as a dict.  This
+    ignores any attributes that are None and in Py2 converts any unicode
+    attribute names or values to str.  In the context of serializing the
+    supported core astropy classes this conversion will succeed and results
+    in more succinct and less python-specific YAML.
+    """
+    out = {}
+    for attr in attrs:
+        val = getattr(obj, attr, None)
+
+        if val is not None:
+            if six.PY2:
+                attr = str(attr)
+                if isinstance(val, six.text_type):
+                    val = str(val)
+            out[attr] = val
+    return out
+
+
 def _get_data_attribute(dat, attr=None):
     """
     Get a data object attribute for the ``attributes`` info summary method
@@ -164,6 +185,7 @@ class DataInfo(object):
     attr_names = set(['name', 'unit', 'dtype', 'format', 'description', 'meta'])
     _attrs_no_copy = set()
     _info_summary_attrs = ('dtype', 'shape', 'unit', 'format', 'description', 'class')
+    _represent_as_dict_attrs= ()
     _parent = None
 
     def __init__(self, bound=False):
@@ -176,6 +198,7 @@ class DataInfo(object):
         if instance is None:
             # This is an unbound descriptor on the class
             info = self
+            info._parent_cls = owner_cls
         else:
             info = instance.__dict__.get('info')
             if info is None:
@@ -254,6 +277,16 @@ class DataInfo(object):
             value = None if value is None else weakref.ref(value)
 
         self._attrs[attr] = value
+
+    def _represent_as_dict(self):
+        """
+        Get the values for the parent ``attrs`` and return as a dict.
+        This is typically used for serializing the parent.
+        """
+        return _get_obj_attrs_map(self._parent, self._represent_as_dict_attrs)
+
+    def _construct_from_dict(self, map):
+        return self._parent_cls(**map)
 
     info_summary_attributes = staticmethod(
         data_info_factory(names=_info_summary_attrs,

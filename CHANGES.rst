@@ -64,6 +64,9 @@ New Features
 
 - ``astropy.io.misc``
 
+  - Added ``io.misc.yaml`` module to support serializing core astropy objects
+    using the YAML protocol. [#5486]
+
 - ``astropy.io.registry``
 
 - ``astropy.io.votable``
