@@ -226,3 +226,33 @@ def test_search_around_scalar():
     with pytest.raises(ValueError) as excinfo:
         cat.search_around_3d(target, Angle('2d'))
     assert 'search_around_3d' in str(excinfo.value)
+
+@pytest.mark.skipif(str('not HAS_SCIPY'))
+@pytest.mark.skipif(str('OLDER_SCIPY'))
+def test_match_catalog_empty():
+    from astropy.coordinates import SkyCoord
+
+    sc1 = SkyCoord(1, 2, unit="deg")
+    cat0  = SkyCoord([], [], unit="deg")
+    cat1  = SkyCoord([1.1], [2.1], unit="deg")
+    cat2  = SkyCoord([1.1, 3], [2.1, 5], unit="deg")
+
+    sc1.match_to_catalog_sky(cat2)
+    sc1.match_to_catalog_3d(cat2)
+
+    sc1.match_to_catalog_sky(cat1)
+    sc1.match_to_catalog_3d(cat1)
+
+    with pytest.raises(ValueError) as excinfo:
+        sc1.match_to_catalog_sky(cat1[0])
+    assert 'catalog' in str(excinfo.value)
+    with pytest.raises(ValueError) as excinfo:
+        sc1.match_to_catalog_3d(cat1[0])
+    assert 'catalog' in str(excinfo.value)
+
+    with pytest.raises(ValueError) as excinfo:
+        sc1.match_to_catalog_sky(cat0)
+    assert 'catalog' in str(excinfo.value)
+    with pytest.raises(ValueError) as excinfo:
+        sc1.match_to_catalog_3d(cat0)
+    assert 'catalog' in str(excinfo.value)
