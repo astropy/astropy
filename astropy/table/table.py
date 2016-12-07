@@ -393,10 +393,17 @@ class Table(object):
     def mask(self):
         # Dynamic view of available masks
         if self.masked:
-            return Table([col.mask for col in self.columns.values()],
-                         names=self.colnames, copy=False)
+            mask_table = Table([col.mask for col in self.columns.values()],
+                               names=self.colnames, copy=False)
+
+            # Set hidden attribute to force inplace setitem so that code like
+            # t.mask['a'] = [1, 0, 1] will correctly set the underlying mask.
+            # See #5556 for discussion.
+            mask_table._setitem_inplace = True
         else:
-            return None
+            mask_table = None
+
+        return mask_table
 
     @mask.setter
     def mask(self, val):
@@ -1249,7 +1256,15 @@ class Table(object):
             n_cols = len(self.columns)
 
             if isinstance(item, six.string_types):
-                # Set an existing column
+                # Set an existing column by first trying to replace, and if
+                # this fails do an in-place update.  See definition of mask
+                # property for discussion of the _setitem_inplace attribute.
+                if not getattr(self, '_setitem_inplace', False):
+                    try:
+                        self.replace_column(item, value)
+                        return
+                    except Exception:
+                        pass
                 self.columns[item][:] = value
 
             elif isinstance(item, (int, np.integer)):
