@@ -697,9 +697,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 self._no_data_shape = ()
         else:
             # Set up representation cache.
-            self._rep_cache = dict()
-            self._rep_cache[self._data.__class__.__name__, False] = self._data
-
+            self.update_representation_data(representation_data)
 
     @property
     def data(self):
@@ -712,6 +710,42 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             raise ValueError('The frame object "{0}" does not have associated '
                              'data'.format(repr(self)))
         return self._data
+
+    def _invalidate_cache(self):
+        """
+        Invalidate any cached data.
+
+        This should be called if the underlying data of the frame is changed.
+        """
+        self._rep_cache = dict()
+
+    def update_representation_data(self, representation_data):
+        """
+        Update the data in this frame.
+
+        .. warning::
+            This is a low-level in-place operation on this frame that is
+            provided for applications where speed is required. No validity or
+            consistency checks are performed. A safer method of changing the
+            data of a frame is
+            `~astropy.coordinates.baseframe.BaseCoordinateFrame.realize_frame`
+            which returns a copy of the frame with the new data.
+
+        Parameters
+        ----------
+
+        representation_data: `~astropy.coordinates.representation.BaseRepresentation`
+            The representation to set the data to.
+
+        """
+        self._invalidate_cache()
+
+        self._data = representation_data
+
+        # We do ``is not None`` because self._data might evaluate to false for
+        # empty arrays or data == 0
+        if self._data is not None:
+            self._rep_cache[self._data.__class__.__name__, False] = self._data
 
     @property
     def has_data(self):

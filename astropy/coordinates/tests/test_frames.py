@@ -711,3 +711,42 @@ def test_component_error_useful():
         i.lon  # lon is *not* the component name despite being the underlying representation's name
     assert "object has no attribute 'foobar'" in str(excinfo1.value)
     assert "object has no attribute 'lon'" in str(excinfo2.value)
+
+
+def test_update_rep_similar():
+    """
+    Test that updating the representation to something close to the original
+    works.
+    """
+    from ..builtin_frames import ICRS
+    i = ICRS(10*u.deg, 10*u.deg)
+
+    r = representation.UnitSphericalRepresentation(20*u.deg, 20*u.deg)
+
+    i.update_representation_data(r)
+
+    assert_allclose(i.data.lat, 20*u.deg)
+    assert_allclose(i.data.lon, 20*u.deg)
+
+
+def test_update_rep_cache():
+    """
+    This is a more complex test that verifies the frame is not caching the
+    representation.
+    """
+    from ..builtin_frames import ICRS
+
+    i = ICRS(10*u.deg, 10*u.deg)
+    i.representation = 'cartesian'
+
+    r = representation.UnitSphericalRepresentation(20*u.deg, 20*u.deg)
+    c_cart = r.represent_as(representation.CartesianRepresentation)
+
+    i.update_representation_data(c_cart)
+
+    assert_allclose(i.data.x, c_cart.x)
+    assert_allclose(i.data.y, c_cart.y)
+    assert_allclose(i.data.z, c_cart.z)
+
+    assert_allclose(i.represent_as('spherical').lat, 20*u.deg)
+    assert_allclose(i.represent_as('spherical').lon, 20*u.deg)
