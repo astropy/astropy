@@ -102,6 +102,9 @@ class TimeInfo(MixinInfo):
     """
     attrs_from_parent = set(['unit'])  # unit is read-only and None
     _supports_indexing = True
+    _represent_as_dict_attrs = ('jd1', 'jd2', 'format', 'scale', 'precision',
+                                'in_subfmt', 'out_subfmt', 'location',
+                                '_delta_ut1_utc', '_delta_tdb_tt')
 
     @property
     def unit(self):
@@ -112,6 +115,40 @@ class TimeInfo(MixinInfo):
                           funcs=[getattr(np, stat) for stat in MixinInfo._stats]))
     # When Time has mean, std, min, max methods:
     # funcs = [lambda x: getattr(x, stat)() for stat_name in MixinInfo._stats])
+
+    def _construct_from_dict(self, map):
+        format = map.pop('format')
+        delta_ut1_utc = map.pop('_delta_ut1_utc', None)
+        delta_tdb_tt = map.pop('_delta_tdb_tt', None)
+
+        map['format'] = 'jd'
+        map['val'] = map.pop('jd1')
+        map['val2'] = map.pop('jd2')
+
+        out = self._parent_cls(**map)
+        out.format = format
+
+        if delta_ut1_utc is not None:
+            out._delta_ut1_utc = delta_ut1_utc
+        if delta_tdb_tt is not None:
+            out._delta_tdb_tt = delta_tdb_tt
+
+        return out
+
+class TimeDeltaInfo(TimeInfo):
+    _represent_as_dict_attrs = ('jd1', 'jd2', 'format', 'scale')
+
+    def _construct_from_dict(self, map):
+        format = map.pop('format')
+
+        map['format'] = 'jd'
+        map['val'] = map.pop('jd1')
+        map['val2'] = map.pop('jd2')
+
+        out = self._parent_cls(**map)
+        out.format = format
+
+        return out
 
 
 class Time(ShapedLikeNDArray):
@@ -1454,6 +1491,8 @@ class TimeDelta(Time):
 
     FORMATS = TIME_DELTA_FORMATS
     """Dict of time delta formats."""
+
+    info = TimeDeltaInfo()
 
     def __init__(self, val, val2=None, format=None, scale=None, copy=False):
         if isinstance(val, TimeDelta):
