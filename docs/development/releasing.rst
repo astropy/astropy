@@ -279,13 +279,15 @@ The procedure for this is straightforward:
       $ cp docs/whatsnew/<current_version>.rst docs/whatsnew/<next_version>.rst
 
    You'll then need to edit ``docs/whatsnew/<next_version>.rst``, removing all
-   the content but leaving the basic structure.  You'll also want to be sure to
+   the content but leaving the basic structure.  You may also need  to
    replace the "by the numbers" numbers with "xxx" as a reminder to update them
    before the next release. Then add the new version to the top of
-   ``docs/whatsnew/index.rst``, and commit these changes ::
+   ``docs/whatsnew/index.rst``, update the reference in ``docs/index.rst`` to
+   point to the that version, and commit these changes ::
 
       $ git add docs/whatsnew/<next_version>.rst
       $ git add docs/whatsnew/index.rst
+      $ git add docs/index.rst
       $ git commit -m "Added <next_version> whats new section"
 
 #. Push all of these changes up to github::
