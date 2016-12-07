@@ -36,11 +36,14 @@ else:
     HAS_PATHLIB = True
 
 
-@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+@pytest.mark.parametrize('fast_reader', [True, False, {'use_fast_converter': False},
+                                         {'use_fast_converter': True}, 'force'])
 def test_convert_overflow(fast_reader):
     """
     Test reading an extremely large integer, which falls through to
-    string due to an overflow error (#2234).
+    string due to an overflow error (#2234). The C parsers used to
+    return inf (kind 'f') for this.
+    Kind should be 'S' in Python2, 'U' in Python3.
     """
     expected_kind = ('S', 'U')
     dat = ascii.read(['a', '1' * 10000], format='basic',

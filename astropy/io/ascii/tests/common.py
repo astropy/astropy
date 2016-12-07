@@ -39,8 +39,8 @@ def assert_equal(a, b):
     assert a == b
 
 
-def assert_almost_equal(a, b):
-    assert np.allclose(a, b)
+def assert_almost_equal(a, b, **kwargs):
+    assert np.allclose(a, b, **kwargs)
 
 
 def assert_true(a):

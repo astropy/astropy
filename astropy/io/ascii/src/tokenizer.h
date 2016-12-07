@@ -60,6 +60,7 @@ typedef struct
     char delimiter;        // delimiter character
     char comment;          // comment character
     char quotechar;        // quote character
+    char expchar;          // exponential character in scientific notation
     char **output_cols;    // array of output strings for each column
     char **col_ptrs;       // array of pointers to current output position for each col
     int *output_len;       // length of each output column string
@@ -90,9 +91,9 @@ output_cols: ["A\x0010\x001", "B\x005.\x002", "C\x006\x003"]
 #define INITIAL_COL_SIZE 500
 #define INITIAL_COMMENT_LEN 50
 
-tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int fill_extra_cols,
-                              int strip_whitespace_lines, int strip_whitespace_fields,
-                              int use_fast_converter);
+tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, char expchar,
+                              int fill_extra_cols, int strip_whitespace_lines,
+                              int strip_whitespace_fields, int use_fast_converter);
 void delete_tokenizer(tokenizer_t *tokenizer);
 void delete_data(tokenizer_t *tokenizer);
 void resize_col(tokenizer_t *self, int index);
@@ -102,7 +103,7 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols);
 long str_to_long(tokenizer_t *self, char *str);
 double str_to_double(tokenizer_t *self, char *str);
 double xstrtod(const char *str, char **endptr, char decimal,
-               char sci, char tsep, int skip_trailing);
+               char expchar, char tsep, int skip_trailing);
 void start_iteration(tokenizer_t *self, int col);
 char *next_field(tokenizer_t *self, int *size);
 long file_len(FILE *fhandle);
