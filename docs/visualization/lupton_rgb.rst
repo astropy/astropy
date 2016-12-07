@@ -32,8 +32,8 @@ scaled.
 
 For a more in-depth example, download the `g`_, `r`_, `i`_ SDSS frames of the
 area around the Hickson 88 group and try the example below (requires the
-`reproject package`_, installable via pip), and compare it with Figure 1 of
-Lupton et al. (2004):
+`reproject package`_, installable via the astropy conda channel, or via pip),
+and compare it with Figure 1 of Lupton et al. (2004):
 
 .. _reproject package: https://reproject.readthedocs.io/
 
@@ -72,13 +72,13 @@ Lupton et al. (2004):
 
 This will produce the following two images.
 
-.. figure:: https://data.astropy.org/visualization/ngc6976-default.jpeg
+.. figure:: http://data.astropy.org/visualization/ngc6976-default.jpeg
     :scale: 30 %
     :alt: default rgb image
 
     Image generated with the default parameters.
 
-.. figure:: https://data.astropy.org/visualization/ngc6976.jpeg
+.. figure:: http://data.astropy.org/visualization/ngc6976.jpeg
     :scale: 30 %
     :alt: wider stretch image
 
