@@ -391,6 +391,9 @@ Other Changes and Additions
 
   - Updated the astropy shipped version of ``PLY`` to version 3.9. [#5526]
 
+  - Updated the astropy shipped version of jQuery to v3.3.1, and dataTables
+    to v1.10.12. [#5564]
+
 - ``astropy.io.fits``
 
   - Performance improvements for tables with many columns. [#4985]
