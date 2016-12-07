@@ -51,12 +51,11 @@ jQuery.extend( jQuery.fn.dataTableExt.oSort, {
 
 $(document).ready(function() {
     $('#%(table_id)s').dataTable({
-     "iDisplayLength": %(length)s,
-     "aLengthMenu": [[%(display_length)s, -1], [%(display_length)s, 'All']],
-     "pagingType": "full_numbers",
-     "bJQueryUI": true,
-     "sPaginationType": "full_numbers",
-     "aoColumnDefs": [{"sType": "optionalnum", "aTargets": [0]}]
+        order: [],
+        pageLength: %(length)s,
+        lengthMenu: [[%(display_length)s, -1], [%(display_length)s, 'All']],
+        pagingType: "full_numbers",
+        columnDefs: [{targets: [0], type: "optionalnum"}]
     });
 } );  </script>
   <table class="%(table_class)s" id="%(table_id)s">

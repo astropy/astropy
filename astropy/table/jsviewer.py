@@ -41,10 +41,10 @@ require.config({{paths: {{
 require(["datatables"], function(){{
     console.log("$('#{tid}').dataTable()");
     $('#{tid}').dataTable({{
-        "order": [],
-        "iDisplayLength": {display_length},
-        "aLengthMenu": {display_length_menu},
-        "pagingType": "full_numbers"
+        order: [],
+        pageLength: {display_length},
+        lengthMenu: {display_length_menu},
+        pagingType: "full_numbers"
     }});
 }});
 </script>
@@ -69,12 +69,11 @@ jQuery.extend( jQuery.fn.dataTableExt.oSort, {{
 
 $(document).ready(function() {{
     $('#{tid}').dataTable({{
-     "iDisplayLength": {display_length},
-     "aLengthMenu": {display_length_menu},
-     "pagingType": "full_numbers",
-     "bJQueryUI": true,
-     "sPaginationType": "full_numbers",
-     "aoColumnDefs": [{{"sType": "optionalnum", "aTargets": {sort_columns}}}]
+        order: [],
+        pageLength: {display_length},
+        lengthMenu: {display_length_menu},
+        pagingType: "full_numbers",
+        columnDefs: [{{targets: {sort_columns}, type: "optionalnum"}}]
     }});
 }} );
 """
