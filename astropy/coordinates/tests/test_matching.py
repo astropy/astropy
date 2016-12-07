@@ -227,6 +227,8 @@ def test_search_around_scalar():
         cat.search_around_3d(target, Angle('2d'))
     assert 'search_around_3d' in str(excinfo.value)
 
+@pytest.mark.skipif(str('not HAS_SCIPY'))
+@pytest.mark.skipif(str('OLDER_SCIPY'))
 def test_match_catalog_empty():
     from astropy.coordinates import SkyCoord
 
