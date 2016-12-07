@@ -131,6 +131,9 @@ New Features
 
 - ``astropy.visualization``
 
+  - Added a ``make_lupton_rgb`` function to generate color images from three
+    greyscale images, following the algorithm of Lupton et al. (2004). [#5535]
+
   - Added ``data`` and ``interval`` inputs to the ``ImageNormalize``
     class. [#5206]
 
