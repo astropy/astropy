@@ -333,9 +333,10 @@ class TestImageFunctions(FitsTestCase):
         assert np.array_equal(fs[0].section[:, ::2], dat[:, ::2])
         assert np.array_equal(fs[0].section[:, [1, 2, 4], 3],
                               dat[:, [1, 2, 4], 3])
-        assert np.array_equal(
-            fs[0].section[:, np.array([True, False, True]), :],
-            dat[:, np.array([True, False, True]), :])
+        bool_index = np.array([True, False, True, True, False,
+                               False, True, True, False, True])
+        assert np.array_equal(fs[0].section[:, bool_index, :],
+                              dat[:, bool_index, :])
 
         assert np.array_equal(
             fs[0].section[3:6, 3, :, ...], dat[3:6, 3, :, ...])
