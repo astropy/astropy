@@ -48,19 +48,18 @@ def compute_intensity(image_r, image_g=None, image_b=None):
 
 
 class Mapping(object):
-    """Baseclass to map red, blue, green intensities into uint8 values."""
+    """
+    Baseclass to map red, blue, green intensities into uint8 values.
+
+    Parameters
+    ----------
+    minimum : float or sequence(3)
+        Intensity that should be mapped to black (a scalar or array for R, G, B).
+    image : `~numpy.ndarray`, optional
+        An image used to calculate some parameters of sopme mappings.
+    """
 
     def __init__(self, minimum=None, image=None):
-        """
-        Create a mapping.
-
-        Parameters
-        ----------
-        minimum : float or sequence(3)
-            Intensity that should be mapped to black (a scalar or array for R, G, B).
-        image : `~numpy.ndarray`, optional
-            An image used to calculate some parameters of sopme mappings.
-        """
         self._uint8Max = float(np.iinfo(np.uint8).max)
 
         try:
@@ -178,21 +177,21 @@ class Mapping(object):
 
 
 class LinearMapping(Mapping):
-    """A linear map map of red, blue, green intensities into uint8 values"""
+    """
+    A linear map map of red, blue, green intensities into uint8 values.
+
+    A linear stretch from [minimum, maximum].
+    If one or both are omitted use image min and/or max to set them.
+
+    Parameters
+    ----------
+    minimum : float
+        Intensity that should be mapped to black (a scalar or array for R, G, B).
+    maximum : float
+        Intensity that should be mapped to white (a scalar).
+    """
 
     def __init__(self, minimum=None, maximum=None, image=None):
-        """
-        A linear stretch from [minimum, maximum].
-        If one or both are omitted use image min and/or max to set them.
-
-        Parameters
-        ----------
-        minimum : float
-            Intensity that should be mapped to black (a scalar or array for R, G, B).
-        maximum : float
-            Intensity that should be mapped to white (a scalar).
-        """
-
         if minimum is None or maximum is None:
             if image is None:
                 raise ValueError("you must provide an image if you don't "
@@ -222,28 +221,24 @@ class AsinhMapping(Mapping):
     """
     A mapping for an asinh stretch (preserving colours independent of brightness)
 
-    x = asinh(Q (I - minimum)/range)/Q
+    x = asinh(Q (I - minimum)/stretch)/Q
 
     This reduces to a linear stretch if Q == 0
 
     See http://adsabs.harvard.edu/abs/2004PASP..116..133L
+
+    Parameters
+    ----------
+
+    minimum : float
+        Intensity that should be mapped to black (a scalar or array for R, G, B).
+    stretch : float
+        The linear stretch of the image.
+    Q : float
+        The asinh softening parameter.
     """
 
     def __init__(self, minimum, stretch, Q=8):
-        """
-        asinh stretch from minimum to minimum + stretch, scaled by Q, via:
-            x = asinh(Q (I - minimum)/stretch)/Q
-
-        Parameters
-        ----------
-
-        minimum : float
-            Intensity that should be mapped to black (a scalar or array for R, G, B).
-        stretch : float
-            The linear stretch of the image.
-        Q : float
-            The asinh softening parameter.
-        """
         Mapping.__init__(self, minimum)
 
         epsilon = 1.0/2**23            # 32bit floating point machine epsilon; sys.float_info.epsilon is 64bit
@@ -270,34 +265,28 @@ class AsinhZScaleMapping(AsinhMapping):
 
     x = asinh(Q (I - z1)/(z2 - z1))/Q
 
-    See AsinhMapping
+    Parameters
+    ----------
+    image1 : `~numpy.ndarray` or a list of arrays
+        The image to analyse, or a list of 3 images to be converted to
+        an intensity image.
+    image2 : `~numpy.ndarray`, optional
+        the second image to analyse (must be specified with image3).
+    image3 : `~numpy.ndarray`, optional
+        the third image to analyse (must be specified with image2).
+    Q : float, optional
+        The asinh softening parameter. Default is 8.
+    pedestal : float or sequence(3), optional
+        The value, or array of 3 values, to subtract from the images; or None.
 
+    Notes
+    -----
+    pedestal, if not None, is removed from the images when calculating the
+    zscale stretch, and added back into Mapping.minimum[]
     """
 
     def __init__(self, image1, image2=None, image3=None, Q=8, pedestal=None):
         """
-        Create an asinh mapping from an image, setting the linear part of the
-        stretch using zscale.
-
-        Parameters
-        ----------
-        image1 : `~numpy.ndarray` or a list of arrays
-            The image to analyse, or a list of 3 images to be converted to
-            an intensity image.
-        image2 : `~numpy.ndarray`, optional
-            the second image to analyse (must be specified with image3).
-        image3 : `~numpy.ndarray`, optional
-            the third image to analyse (must be specified with image2).
-        Q : float, optional
-            The asinh softening parameter. Default is 8.
-        pedestal : float or sequence(3), optional
-            The value, or array of 3 values, to subtract from the images; or None.
-
-        Notes
-        -----
-        N.b. pedestal, if not None, is removed from the images when
-        calculating the zscale stretch, and added back into
-        Mapping.minimum[]
         """
 
         if image2 is None or image3 is None:
