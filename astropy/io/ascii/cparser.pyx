@@ -5,6 +5,7 @@ import os
 import math
 import multiprocessing
 import mmap
+import warnings
 
 import numpy as np
 cimport numpy as np
@@ -15,6 +16,7 @@ from cpython.buffer cimport Py_buffer
 from cpython.buffer cimport PyObject_GetBuffer, PyBuffer_Release
 
 from ...utils.data import get_readable_fileobj
+from ...utils.exceptions import AstropyWarning
 from ...table import pprint
 from ...extern import six
 from . import core
@@ -50,6 +52,7 @@ cdef extern from "src/tokenizer.h":
         char delimiter         # delimiter character
         char comment           # comment character
         char quotechar         # quote character
+        char expchar           # exponential character in scientific notation
         char **output_cols     # array of output strings for each column
         char **col_ptrs        # array of pointers to current output position for each col
         int *output_len        # length of each output column string
@@ -78,7 +81,7 @@ cdef extern from "src/tokenizer.h":
         void *file_ptr
         void *handle
 
-    tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar,
+    tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, char expchar,
                                   int fill_extra_cols, int strip_whitespace_lines,
                                   int strip_whitespace_fields, int use_fast_converter)
     void delete_tokenizer(tokenizer_t *tokenizer)
@@ -210,9 +213,19 @@ cdef class CParser:
             fast_reader = {}
         elif fast_reader is False: # shouldn't happen
             raise core.ParameterError("fast_reader cannot be False for fast readers")
-        # parallel and use_fast_reader are False by default
-        use_fast_converter = fast_reader.pop('use_fast_converter', False)
+        expchar = fast_reader.pop('exponent_style', 'E').upper()
+        # parallel and use_fast_reader are False by default, but only the latter
+        # supports Fortran double precision notation 
+        if expchar == 'E':
+            use_fast_converter = fast_reader.pop('use_fast_converter', False)
+        else:
+            use_fast_converter = fast_reader.pop('use_fast_converter', True)
+            if not use_fast_converter:
+                raise core.FastOptionsError("fast_reader: exponent_style requires use_fast_converter")
+            if expchar.startswith('FORT'):
+                expchar = 'A'
         parallel = fast_reader.pop('parallel', False)
+
         if fast_reader:
             raise core.FastOptionsError("Invalid parameter in fast_reader dict")
         if parallel and os.name == 'nt':
@@ -220,7 +233,8 @@ cdef class CParser:
 
         if comment is None:
             comment = '\x00' # tokenizer ignores all comments if comment='\x00'
-        self.tokenizer = create_tokenizer(ord(delimiter), ord(comment), ord(quotechar),
+        self.tokenizer = create_tokenizer(ord(delimiter), ord(comment),
+                                          ord(quotechar), ord(expchar),
                                           fill_extra_cols,
                                           strip_line_whitespace,
                                           strip_line_fields,
@@ -567,9 +581,24 @@ cdef class CParser:
                 cols[name] = self._convert_int(t, i, num_rows)
             except ValueError:
                 try:
-                    if try_float and not try_float[name]:
-                        raise ValueError()
-                    cols[name] = self._convert_float(t, i, num_rows)
+                    if t.code == OVERFLOW_ERROR:
+                        # Overflow during int conversion (extending range)
+                        warnings.warn("OverflowError converting to {0} in column {1}, reverting to String."
+                                  .format('IntType', name), AstropyWarning)
+                        if try_string and not try_string[name]:
+                            raise ValueError('Column {0} failed to convert'.format(name))
+                        t.code = NO_ERROR
+                        cols[name] = self._convert_str(t, i, num_rows)
+                    else:
+                        if try_float and not try_float[name]:
+                            raise ValueError()
+                        t.code = NO_ERROR
+                        cols[name] = self._convert_float(t, i, num_rows)
+                        if t.code == OVERFLOW_ERROR:
+                            # Overflow during float conversion (extending range)
+                            warnings.warn("OverflowError converting to {0} in column {1}, possibly resulting in degraded precision."
+                                          .format('FloatType', name), AstropyWarning)
+                            t.code = NO_ERROR
                 except ValueError:
                     if try_string and not try_string[name]:
                         raise ValueError('Column {0} failed to convert'.format(name))
@@ -624,7 +653,8 @@ cdef class CParser:
 
             if t.code in (CONVERSION_ERROR, OVERFLOW_ERROR):
                 # no dice
-                t.code = NO_ERROR
+                if t.code == CONVERSION_ERROR:
+                    t.code = NO_ERROR
                 raise ValueError()
 
             data[row] = converted
@@ -651,6 +681,7 @@ cdef class CParser:
         cdef char *empty_field = t.buf
         cdef bytes new_value
         cdef int replacing
+        cdef err_code overflown = NO_ERROR # store any OVERFLOW to raise warning
         mask = set()
 
         start_iteration(t, i)
@@ -680,12 +711,13 @@ cdef class CParser:
             if t.code == CONVERSION_ERROR:
                 t.code = NO_ERROR
                 raise ValueError()
-            elif t.code == OVERFLOW_ERROR:
-                t.code = NO_ERROR
-                raise ValueError()
             else:
                 data[row] = converted
+            if t.code == OVERFLOW_ERROR:
+                t.code = NO_ERROR
+                overflown = OVERFLOW_ERROR
             row += 1
+        t.code = overflown
 
         if mask:
             return ma.masked_array(col, mask=[1 if i in mask else 0 for i in
@@ -755,6 +787,7 @@ cdef class CParser:
                                 dict(delimiter=chr(self.tokenizer.delimiter),
                                 comment=chr(self.tokenizer.comment),
                                 quotechar=chr(self.tokenizer.quotechar),
+                                expchar=chr(self.tokenizer.expchar),
                                 header_start=self.header_start,
                                 data_start=self.data_start,
                                 data_end=self.data_end,
@@ -835,6 +868,7 @@ cdef class FastWriter:
         list types
         list line_comments
         str quotechar
+        str expchar
         str delimiter
         int strip_whitespace
         object comment
@@ -843,6 +877,7 @@ cdef class FastWriter:
                   delimiter=',',
                   comment='# ',
                   quotechar='"',
+                  expchar='e',
                   formats=None,
                   strip_whitespace=True,
                   names=None, # ignore, already used in _get_writer

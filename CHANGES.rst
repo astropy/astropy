@@ -49,6 +49,10 @@ New Features
 
 - ``astropy.io.ascii``
 
+  - Files with "Fortran-style" columns (i.e. double-precision scientific notation
+    with a character other than "e", like ``1.495978707D+13``) can now be parsed by
+    the fast reader natively. [#5552]
+
   - Allow round-tripping masked data tables in most formats by using an
     empty string ``''`` as the default representation of masked values
     when writing. [#5347]

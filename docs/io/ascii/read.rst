@@ -419,6 +419,29 @@ The default converters for each column can be overridden with the
   ...               'col2': [ascii.convert_numpy(np.float32)]}
   >>> ascii.read('file.dat', converters=converters)  # doctest: +SKIP
 
+
+.. _fortran_style_exponents:
+
+Fortran-style exponents
+^^^^^^^^^^^^^^^^^^^^^^^
+
+The :ref:`fast converter <fast_conversion_opts>` available with the C
+input parser provides an ``exponent_style`` option to define a custom
+character instead of the standard ``'e'`` for exponential formats in
+the input file, to read for example Fortran-style double precision
+numbers like ``'1.495978707D+13'``:
+
+  >>> ascii.read('double.dat', format='basic', guess=False, 
+  ...            fast_reader={'exponent_style': 'D'})  # doctest: +SKIP
+
+The special setting ``'fortran'`` is provided to allow for the
+auto-detection of any valid Fortran exponent character (``'E'``,
+``'D'``, ``'Q'``), as well as of triple-digit exponents prefixed with no
+character at all (e.g. ``'2.1127123261674622-107'``).
+All values and exponent characters in the input data are
+case-insensitive; any value other than the default ``'E'`` implies the
+automatic setting of ``'use_fast_converter': True``.
+
 Advanced customization
 ^^^^^^^^^^^^^^^^^^^^^^
 

@@ -232,9 +232,18 @@ def read(table, guess=None, **kwargs):
         List of names to include in fill_values (default= ``None`` selects all names)
     fill_exclude_names : list
         List of names to exclude from fill_values (applied after ``fill_include_names``)
-    fast_reader : bool
+    fast_reader : bool or dict
         Whether to use the C engine, can also be a dict with options which default to ``False``
-        (default= ``True``)
+        (default= ``True``); parameters for options dict:
+
+        use_fast_converter: bool
+            enable faster but slightly imprecise floating point conversion method
+        parallel: bool or int
+            multiprocessing conversion using ``cpu_count()`` or ``'number'`` processes
+        exponent_style: str
+            One-character string defining the exponent or ``'Fortran'`` to auto-detect
+            Fortran-style scientific notation like ``'3.14159D+00'`` (``'E'``, ``'D'``, ``'Q'``),
+            all case-insensitive; default ``'E'``, all other imply ``use_fast_converter``
     Reader : `~astropy.io.ascii.BaseReader`
         Reader class (DEPRECATED) (default= :class:`Basic`).
 
@@ -363,8 +372,18 @@ def _guess(table, read_kwargs, format, fast_reader):
     format : str
         Table format
     fast_reader : bool
+    fast_reader : bool or dict
         Whether to use the C engine, can also be a dict with options which
-        default to ``False`` (default= ``True``)
+        default to ``False`` (default= ``True``); parameters for options dict:
+
+        use_fast_converter: bool
+            enable faster but slightly imprecise floating point conversion method
+        parallel: bool or int
+            multiprocessing conversion using ``cpu_count()`` or ``'number'`` processes
+        exponent_style: str
+            Character to use for exponent or ``'Fortran'`` to auto-detect any
+            Fortran-style scientific notation like ``'3.14159D+00'`` (``'E'``, ``'D'``, ``'Q'``),
+            all case-insensitive; default ``'E'``, all other imply ``use_fast_converter``
 
     Returns
     -------
