@@ -120,6 +120,9 @@ New Features
   - The ``spectral_density`` equivalency now supports transformations of
     luminosity density. [#5151]
 
+  - ``Quantity`` now accepts strings consisting of a number and unit such
+    as '10 km/s'. [#5245]
+
 - ``astropy.utils``
 
   - Added a new decorator: ``deprecated_renamed_argument``. This can be used to
