@@ -33,24 +33,7 @@ conf = Conf()
 EXTERN_JS_DIR = abspath(join(dirname(extern.__file__), 'js'))
 EXTERN_CSS_DIR = abspath(join(dirname(extern.__file__), 'css'))
 
-IPYNB_JS_SCRIPT = """
-<script>
-require.config({{paths: {{
-    datatables: '{datatables_url}'
-}}}});
-require(["datatables"], function(){{
-    console.log("$('#{tid}').dataTable()");
-    $('#{tid}').dataTable({{
-        order: [],
-        pageLength: {display_length},
-        lengthMenu: {display_length_menu},
-        pagingType: "full_numbers"
-    }});
-}});
-</script>
-"""
-
-HTML_JS_SCRIPT = """
+_SORTING_SCRIPT_PART_1 = """
 var astropy_sort_num = function(a, b) {{
     var a_num = parseFloat(a);
     var b_num = parseFloat(b);
@@ -62,11 +45,37 @@ var astropy_sort_num = function(a, b) {{
     else
         return isNaN(a_num) ? -1 : 1;
 }}
+"""
+
+_SORTING_SCRIPT_PART_2 = """
 jQuery.extend( jQuery.fn.dataTableExt.oSort, {{
     "optionalnum-asc": astropy_sort_num,
     "optionalnum-desc": function (a,b) {{ return -astropy_sort_num(a, b); }}
 }});
+"""
 
+IPYNB_JS_SCRIPT = """
+<script>
+%(sorting_script1)s
+require.config({{paths: {{
+    datatables: '{datatables_url}'
+}}}});
+require(["datatables"], function(){{
+    console.log("$('#{tid}').dataTable()");
+    %(sorting_script2)s
+    $('#{tid}').dataTable({{
+        order: [],
+        pageLength: {display_length},
+        lengthMenu: {display_length_menu},
+        pagingType: "full_numbers",
+        columnDefs: [{{targets: {sort_columns}, type: "optionalnum"}}]
+    }});
+}});
+</script>
+""" % dict(sorting_script1=_SORTING_SCRIPT_PART_1,
+           sorting_script2=_SORTING_SCRIPT_PART_2)
+
+HTML_JS_SCRIPT = _SORTING_SCRIPT_PART_1 + _SORTING_SCRIPT_PART_2 + """
 $(document).ready(function() {{
     $('#{tid}').dataTable({{
         order: [],
@@ -144,14 +153,14 @@ class JSViewer(object):
         else:
             return conf.datatables_url[:-3]
 
-    def ipynb(self, table_id, css=None):
+    def ipynb(self, table_id, css=None, sort_columns='[]'):
         html = '<style>{0}</style>'.format(css if css is not None
                                            else DEFAULT_CSS_NB)
         html += IPYNB_JS_SCRIPT.format(
             display_length=self.display_length,
             display_length_menu=self.display_length_menu,
             datatables_url=self._jstable_file(),
-            tid=table_id)
+            tid=table_id, sort_columns=sort_columns)
         return html
 
     def html_js(self, table_id='table0', sort_columns='[]'):
@@ -170,8 +179,8 @@ def write_table_jsviewer(table, filename, table_id=None, max_lines=5000,
     jskwargs = jskwargs or {}
     jsv = JSViewer(**jskwargs)
 
-    sortable_columns = list(i for i, col in enumerate(table.columns.values())
-                            if col.dtype.kind in 'iufc')
+    sortable_columns = [i for i, col in enumerate(table.columns.values())
+                        if col.dtype.kind in 'iufc']
     htmldict = {
         'table_id': table_id,
         'table_class': table_class,

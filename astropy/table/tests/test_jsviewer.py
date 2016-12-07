@@ -44,6 +44,7 @@ var astropy_sort_num = function(a, b) {
     else
         return isNaN(a_num) ? -1 : 1;
 }
+
 jQuery.extend( jQuery.fn.dataTableExt.oSort, {
     "optionalnum-asc": astropy_sort_num,
     "optionalnum-desc": function (a,b) { return -astropy_sort_num(a, b); }
