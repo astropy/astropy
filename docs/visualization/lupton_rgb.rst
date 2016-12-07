@@ -70,19 +70,19 @@ and compare it with Figure 1 of Lupton et al. (2004):
    # this scaling is very similar to the one used in Lupton et al. (2004)
    rgb = make_lupton_rgb(i_new, r_new, g.data, Q=10, stretch=0.5, filename="ngc6976.jpeg")
 
-This will produce the following two images.
+This will produce the following two images. The first is the image generated
+with the default parameters.
 
-.. figure:: http://data.astropy.org/visualization/ngc6976-default.jpeg
-    :scale: 30 %
-    :alt: default rgb image
+.. raw:: html
 
-    Image generated with the default parameters.
+    <a class="reference internal image-reference" href="http://data.astropy.org/visualization/ngc6976-default.jpeg"><img alt="default rgb image" src="http://data.astropy.org/visualization/ngc6976-default.jpeg" /></a>
 
-.. figure:: http://data.astropy.org/visualization/ngc6976.jpeg
-    :scale: 30 %
-    :alt: wider stretch image
+The second is the image generated with Q=10, stretch=0.5, showing faint features
+of the galaxies. Compare with Fig. 1 of `Lupton et al. (2004)`_ or the
+`SDSS Skyserver image`_.
 
-    Image generated with Q=10, stretch=0.5, showing faint features of the galaxies.
-    Comapre with Fig. 1 of `Lupton et al. (2004)`_ or the `SDSS Skyserver image`_.
+.. raw:: html
+
+    <a class="reference internal image-reference" href="http://data.astropy.org/visualization/ngc6976.jpeg"><img alt="wider stretch image" src="http://data.astropy.org/visualization/ngc6976.jpeg" /></a>
 
 .. _SDSS Skyserver image: http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra=179.68929&dec=-0.45438&opt=
