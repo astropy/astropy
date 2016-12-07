@@ -1,0 +1,36 @@
+.. doctest-skip-all
+
+.. _whatsnew-2.0:
+
+==========================
+What's New in Astropy 2.0?
+==========================
+
+Overview
+--------
+
+Astropy 2.0 is a major release that adds significant new functionality since
+the 1.3.x series of releases.
+
+In particular, this release includes:
+
+*
+
+In addition to these major changes, Astropy 2.0 includes a large number of
+smaller improvements and bug fixes, which are described in the
+:ref:`changelog`. By the numbers:
+
+* xxx issues have been closed since v1.3
+* xxx pull requests have been merged since v1.3
+* xxx distinct people have contributed code
+
+
+Other significant changes
+-------------------------
+
+
+Full change log
+---------------
+
+To see a detailed list of all changes in version v2.0, including changes in
+API, please see the :ref:`changelog`.
