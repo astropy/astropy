@@ -29,6 +29,13 @@ using the new data. This can be achieved by doing::
 
     >>> del c.cache['representation']
 
+or::
+
+    >>> del c.frame.cache
+
+which removes the whole cache, but can only be done on frame instances and not
+`~astropy.coordinates.SkyCoord` instances.
+
 
 It should be noted that the only way to modify the data in a frame is by using
 the ``.data`` attribute directly and not the aliases for components on the frame
