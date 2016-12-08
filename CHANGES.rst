@@ -392,7 +392,8 @@ Other Changes and Additions
 
   - A new ``BaseCoordinateFrame.cache`` dictionary has been created to expose
     the internal cache. This is useful when modifying representation data
-    inplace without using ``realize_frame`` [#5575]
+    inplace without using ``realize_frame``. Additionally, documentation for
+    inplace operations on coordinates were added. [#5575]
 
 - ``astropy.cosmology``
 

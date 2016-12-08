@@ -32,16 +32,15 @@ using the new data. This can be achieved by doing::
 
 It should be noted that the only way to modify the data in a frame is by using
 the ``.data`` attribute directly and not the aliases for components on the frame
-i.e.::
+*i.e.* the following will not work:::
 
     >>> c.ra[()] = 20 * u.deg
 
-will not work as a different representation object is used when acessing the
+This is because a different representation object is used when acessing the
 aliased component names. If you wish to inspect the mapping between frame
 attributes i.e. ``.ra`` and representation attributes i.e. ``.lon`` you can look
-at the::
+at the following dictionary.::
 
     >>> c.representation_component_names
     OrderedDict([('ra', 'lon'), ('dec', 'lat'), ('distance', 'distance')])
 
-dictionary.

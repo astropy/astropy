@@ -745,5 +745,6 @@ def test_inplace_change():
     # Clear the cache
     del i.cache['representation']
 
-    # Old repr and new repr should be different (this checks for removal of the cache)
-    assert a != repr(i)
+    # This will use a second (potentially cached rep)
+    assert i.ra == 10 * u.deg
+    assert i.dec == 2 * u.deg
