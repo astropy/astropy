@@ -303,6 +303,8 @@ The procedure for this is straightforward:
 #. On the github issue tracker, add a new milestone for the next major version.
 
 
+#. Repeat tbe above steps for the astropy-helpers, using the same version series.
+
 Maintaining Bug Fix Releases
 ----------------------------
 
