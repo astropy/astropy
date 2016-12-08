@@ -711,3 +711,39 @@ def test_component_error_useful():
         i.lon  # lon is *not* the component name despite being the underlying representation's name
     assert "object has no attribute 'foobar'" in str(excinfo1.value)
     assert "object has no attribute 'lon'" in str(excinfo2.value)
+
+
+def test_cache_clear():
+    from ..builtin_frames import ICRS
+
+    i = ICRS(1*u.deg, 2*u.deg)
+
+    # Add an in frame units version of the rep to the cache.
+    repr(i)
+
+    assert len(i.cache['representation']) == 2
+
+    del i.cache['representation']
+
+    assert len(i.cache['representation']) == 0
+
+
+def test_inplace_change():
+    from ..builtin_frames import ICRS
+
+    i = ICRS(1*u.deg, 2*u.deg)
+
+    # Add an in frame units version of the rep to the cache.
+    a = repr(i)
+
+    # Check that repr() has added a rep to the cache
+    assert len(i.cache['representation']) == 2
+
+    # Modify the data
+    i.data.lon[()] = 10*u.deg
+
+    # Clear the cache
+    del i.cache['representation']
+
+    # Old repr and new repr should be different (this checks for removal of the cache)
+    assert a != repr(i)
