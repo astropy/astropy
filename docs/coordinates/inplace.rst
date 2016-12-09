@@ -5,10 +5,9 @@ Coordinates are generally considered to be immutable. If you want to create
 another coordinate frame with different data you should use
 `~astropy.coordinates.BaseCoordinateFrame.realize_frame`, this is the safest way
 to change the data in a frame as it creates a new frame with that data.
-
-Due to the fact that this creates a new frame it is relatively slow, and in some
-situations it is required that the data is replaced inside a frame with minimal
-changes to the frame for maximum speed. This modification can be done by
+Creating a new frame can be relatively slow, however, particularly for scalar
+coordinates. Hence some situations may require that data by changed in-place in
+an already existing frame object. This modification can be done by
 modifiying the values of the representation data as follows::
 
     >>> import astropy.units as u
@@ -19,23 +18,21 @@ modifiying the values of the representation data as follows::
     <SkyCoord (ICRS): (ra, dec) in deg
         [( 10.,  3.), ( 20.,  4.)]>
 
-This changes the longitude values for the frame, however
-`~astropy.coordinates.SkyCoord` and `~astropy.coordinates.BaseCoordinateFrame`
-cache representations of the data held within the frame as they are calculated
-to speed up future operations of different representations of the same data. If
-you modify the data in the representation the frame contains it is important to
-clear this cache so future calculations of new representations are recomputed
-using the new data. This can be achieved by doing::
 
-    >>> del c.cache['representation']
+This changes the longitude values of the frame. Unfortunately, doing just this
+introduces problems: `~astropy.coordinates.SkyCoord` and
+`~astropy.coordinates.BaseCoordinateFrame` cache various kinds of information to
+speed up some repeated operations. So we need to tell the cache that it should
+be cleared so that it can be re-calculated from the new data. This can be
+achieved by doing::
+
+    >>> c.cache.clear()
 
 or::
 
     >>> del c.frame.cache
 
-which removes the whole cache, but can only be done on frame instances and not
-`~astropy.coordinates.SkyCoord` instances.
-
+which removes the whole cache.
 
 It should be noted that the only way to modify the data in a frame is by using
 the ``.data`` attribute directly and not the aliases for components on the frame
