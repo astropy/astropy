@@ -82,15 +82,15 @@ def test_kdtree_storage():
     ccatalog = ICRS([1, 2, 3, 4]*u.degree, [0, 0, 0, 0]*u.degree)
 
     idx, d2d, d3d = match_coordinates_3d(cmatch, ccatalog, storekdtree=False)
-    assert not hasattr(ccatalog, '_kdtree')
+    assert 'kdtree' not in ccatalog.cache
 
     idx, d2d, d3d = match_coordinates_3d(cmatch, ccatalog, storekdtree=True)
-    assert hasattr(ccatalog, '_kdtree')
+    assert 'kdtree' in ccatalog.cache
 
-    assert not hasattr(ccatalog, 'tislit_cheese')
+    assert 'tislit_cheese' not in ccatalog.cache
     idx, d2d, d3d = match_coordinates_3d(cmatch, ccatalog, storekdtree='tislit_cheese')
-    assert hasattr(ccatalog, 'tislit_cheese')
-    assert not hasattr(cmatch, 'tislit_cheese')
+    assert 'tislit_cheese' in ccatalog.cache
+    assert 'tislit_cheese' not in cmatch.cache
 
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
