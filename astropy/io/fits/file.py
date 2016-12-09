@@ -252,37 +252,42 @@ class _File(object):
                 raise ValueError('size {} is too many bytes for a {} array of '
                                  '{}'.format(size, shape, dtype))
 
-        if self.memmap:
-            if self._mmap is None:
-                # Instantiate Memmap array of the file offset at 0
-                # (so we can return slices of it to offset anywhere else into
-                # the file)
-                memmap = Memmap(self._file,
-                                mode=MEMMAP_MODES[self.mode],
-                                dtype=np.uint8)
+        filepos = self._file.tell()
 
-                # Now we immediately discard the memmap array; we are really
-                # just using it as a factory function to instantiate the mmap
-                # object in a convenient way (may later do away with this
-                # usage)
-                self._mmap = memmap.base
+        try:
+            if self.memmap:
+                if self._mmap is None:
+                    # Instantiate Memmap array of the file offset at 0 (so we
+                    # can return slices of it to offset anywhere else into the
+                    # file)
+                    memmap = Memmap(self._file, mode=MEMMAP_MODES[self.mode],
+                                    dtype=np.uint8)
 
-                # Prevent dorking with self._memmap._mmap by memmap.__del__ in
-                # Numpy 1.6 (see
-                # https://github.com/numpy/numpy/commit/dcc355a0b179387eeba10c95baf2e1eb21d417c7)
-                memmap._mmap = None
-                del memmap
+                    # Now we immediately discard the memmap array; we are
+                    # really just using it as a factory function to instantiate
+                    # the mmap object in a convenient way (may later do away
+                    # with this usage)
+                    self._mmap = memmap.base
 
-            return np.ndarray(shape=shape, dtype=dtype, offset=offset,
-                              buffer=self._mmap)
-        else:
-            count = reduce(operator.mul, shape)
-            pos = self._file.tell()
-            self._file.seek(offset)
-            data = _array_from_file(self._file, dtype, count, '')
-            data.shape = shape
-            self._file.seek(pos)
-            return data
+                    # Prevent dorking with self._memmap._mmap by memmap.__del__
+                    # in Numpy 1.6 (see
+                    # https://github.com/numpy/numpy/commit/dcc355a0b179387eeba10c95baf2e1eb21d417c7)
+                    memmap._mmap = None
+                    del memmap
+
+                return np.ndarray(shape=shape, dtype=dtype, offset=offset,
+                                  buffer=self._mmap)
+            else:
+                count = reduce(operator.mul, shape)
+                self._file.seek(offset)
+                data = _array_from_file(self._file, dtype, count, '')
+                data.shape = shape
+                return data
+        finally:
+            # Make sure we leave the file in the position we found it; on
+            # some platforms (e.g. Windows) mmaping a file handle can also
+            # reset its file pointer
+            self._file.seek(filepos)
 
     def writable(self):
         if self.readonly:
