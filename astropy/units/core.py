@@ -2313,14 +2313,11 @@ def _condition_arg(value):
     if isinstance(value, np.ndarray) and value.dtype.kind in ['i', 'f', 'c']:
         return value
 
-    try:
-        avalue = np.array(value)
-        assert avalue.dtype.kind in ['i', 'f', 'c']
-        return avalue
-    except (ValueError, AssertionError):
+    avalue = np.array(value)
+    if avalue.dtype.kind not in ['i', 'f', 'c']:
         raise ValueError("Value not scalar compatible or convertible to "
                          "an int, float, or complex array")
-
+    return avalue
 
 dimensionless_unscaled = CompositeUnit(1, [], [], _error_check=False)
 # Abbreviation of the above, see #1980

@@ -901,9 +901,9 @@ def _find_pkg_data_path(data_name, package=None):
     path = os.path.join(module_path, data_name)
 
     root_dir = os.path.dirname(rootpkg.__file__)
-    assert _is_inside(path, root_dir), \
-           ("attempted to get a local data file outside "
-            "of the " + rootpkgname + " tree")
+    if not _is_inside(path, root_dir):
+        raise RuntimeError("attempted to get a local data file outside "
+                           "of the {} tree.".format(rootpkgname))
 
     return path
 
@@ -1270,9 +1270,9 @@ def clear_download_cache(hashorurl=None):
         else:
             with _open_shelve(urlmapfn, True) as url2hash:
                 filepath = os.path.join(dldir, hashorurl)
-                assert _is_inside(filepath, dldir), \
-                       ("attempted to use clear_download_cache on a path "
-                        "outside the data cache directory")
+                if not _is_inside(filepath, dldir):
+                    raise RuntimeError("attempted to use clear_download_cache on"
+                                       " a path outside the data cache directory")
 
                 # shelve DBs don't accept unicode strings as keys in Python 2
                 if six.PY2 and isinstance(hashorurl, six.text_type):

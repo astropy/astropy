@@ -1455,7 +1455,8 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
 
     @values.setter
     def values(self, values):
-        assert values is None or isinstance(values, Values)
+        if not (values is None or isinstance(values, Values)):
+            raise AssertionError
         self._values = values
 
     @values.deleter
@@ -2049,7 +2050,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         self.utype = utype
         if nrows is not None:
             nrows = int(nrows)
-            assert nrows >= 0
+            if nrows < 0:
+                raise ValueError
         self._nrows = nrows
         self.description = None
         self.format = 'tabledata'
@@ -2830,7 +2832,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     for i, converter in fields_basic:
                         try:
                             chunk = converter(array_row[i], array_mask[i])
-                            assert type(chunk) == six.binary_type
+                            if type(chunk) != six.binary_type:
+                                raise TypeError
                         except Exception as e:
                             vo_reraise(
                                 e, additional="(in row {:d}, col '{}')".format(
@@ -3249,7 +3252,9 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         self._groups             = HomogeneousList(Group)
 
         version = str(version)
-        assert version in ("1.0", "1.1", "1.2")
+        if version not in ("1.0", "1.1", "1.2"):
+            raise ValueError
+
         self._version            = version
 
     def __repr__(self):

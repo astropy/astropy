@@ -1009,8 +1009,8 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
         samples = data.shape[0]
 
     # make sure the input is sane
-    assert samples > 0, "samples cannot be less than one"
-    assert bootnum > 0, "bootnum cannot be less than one"
+    if samples < 1 or bootnum < 1:
+        raise ValueError("neither 'samples' nor 'bootnum' can be less than 1.")
 
     if bootfunc is None:
         resultdims = (bootnum,) + (samples,) + data.shape[1:]

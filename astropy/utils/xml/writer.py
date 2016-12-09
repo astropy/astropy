@@ -264,11 +264,14 @@ class XMLWriter:
             If omitted, the current element is closed.
         """
         if tag:
-            assert self._tags, "unbalanced end({})".format(tag)
-            assert tag == self._tags[-1],\
-                   "expected end({}), got {}".format(self._tags[-1], tag)
+            if not self._tags:
+                raise AssertionError("unbalanced end({})".format(tag))
+            if tag != self._tags[-1]:
+                raise AssertionError("expected end({}), got {}".format(
+                        self._tags[-1], tag))
         else:
-            assert self._tags, "unbalanced end()"
+            if not self._tags:
+                raise AssertionError("unbalanced end()")
         tag = self._tags.pop()
         if self._data:
             self._flush(indent, wrap)
