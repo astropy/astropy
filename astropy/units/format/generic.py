@@ -156,9 +156,14 @@ class Generic(Base):
             raise ValueError(
                 "Invalid character at col {0}".format(t.lexpos))
 
-        lexer = lex.lex(optimize=True, lextab='generic_lextab',
-                        outputdir=os.path.dirname(__file__),
-                        reflags=re.UNICODE)
+        try:
+            from . import generic_lextab
+            lexer = lex.lex(optimize=True, lextab=generic_lextab,
+                            reflags=re.UNICODE)
+        except ImportError:
+            lexer = lex.lex(optimize=True, lextab='generic_lextab',
+                            outputdir=os.path.dirname(__file__),
+                            reflags=re.UNICODE)
 
         return lexer
 
@@ -176,7 +181,6 @@ class Generic(Base):
         formats, the only difference being the set of available unit
         strings.
         """
-
         from ...extern.ply import yacc
 
         tokens = cls._tokens
@@ -419,9 +423,14 @@ class Generic(Base):
         def p_error(p):
             raise ValueError()
 
-        parser = yacc.yacc(debug=False, tabmodule='generic_parsetab',
-                           outputdir=os.path.dirname(__file__),
-                           write_tables=True)
+        try:
+            from . import generic_parsetab
+            parser = yacc.yacc(debug=False, tabmodule=generic_parsetab,
+                               write_tables=False)
+        except ImportError:
+            parser = yacc.yacc(debug=False, tabmodule='generic_parsetab',
+                               outputdir=os.path.dirname(__file__))
+
         return parser
 
     @classmethod
