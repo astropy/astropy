@@ -16,7 +16,7 @@ __all__ = ['match_coordinates_3d', 'match_coordinates_sky', 'search_around_3d',
            'search_around_sky']
 
 
-def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree='_kdtree_3d'):
+def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree='kdtree_3d'):
     """
     Finds the nearest 3-dimensional matches of a coordinate or coordinates in
     a set of catalog coordinates.
@@ -41,7 +41,7 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree='_
         itself as the closest match).
     storekdtree : bool or str, optional
         If a string, will store the KD-Tree used for the computation
-        in the ``catalogcoord``, as an attribute in ``catalogcoord`` with the
+        in the ``catalogcoord``, as in ``catalogcoord.cache`` with the
         provided name.  This dramatically speeds up subsequent calls with the
         same catalog. If False, the KD-Tree is discarded after use.
 
@@ -68,10 +68,10 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree='_
 
     kdt = _get_cartesian_kdtree(catalogcoord, storekdtree)
 
-    #make sure coordinate systems match
+    # make sure coordinate systems match
     matchcoord = matchcoord.transform_to(catalogcoord)
 
-    #make sure units match
+    # make sure units match
     catunit = catalogcoord.cartesian.x.unit
     matchxyz = matchcoord.cartesian.xyz.to(catunit)
 
@@ -86,7 +86,7 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree='_
     return idx.reshape(matchxyz.shape[1:]), sep2d, dist.reshape(matchxyz.shape[1:]) * catunit
 
 
-def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='_kdtree_sky'):
+def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='kdtree_sky'):
     """
     Finds the nearest on-sky matches of a coordinate or coordinates in
     a set of catalog coordinates.
@@ -111,7 +111,7 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='
         itself as the closest match).
     storekdtree : bool or str, optional
         If a string, will store the KD-Tree used for the computation
-        in the ``catalogcoord`` as an attribute in ``catalogcoord`` with the
+        in the ``catalogcoord`` in ``catalogcoord.cache`` with the
         provided name.  This dramatically speeds up subsequent calls with the
         same catalog. If False, the KD-Tree is discarded after use.
 
@@ -141,18 +141,17 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='
     # send to catalog frame
     newmatch = matchcoord.transform_to(catalogcoord)
 
-    #strip out distance info
+    # strip out distance info
     match_urepr = newmatch.data.represent_as(UnitSphericalRepresentation)
     newmatch_u = newmatch.realize_frame(match_urepr)
 
     cat_urepr = catalogcoord.data.represent_as(UnitSphericalRepresentation)
     newcat_u = catalogcoord.realize_frame(cat_urepr)
 
-    if isinstance(storekdtree, six.string_types) and hasattr(catalogcoord, storekdtree):
-        # Check for a stored KD-tree on the passed-in coordinate.  Normally it
-        # will have a distinct name from the "3D" one, so it's safe to use even
-        # though it's based on UnitSphericalRepresentation.
-        storekdtree = getattr(catalogcoord, storekdtree)
+    # Check for a stored KD-tree on the passed-in coordinate. Normally it will
+    # have a distinct name from the "3D" one, so it's safe to use even though
+    # it's based on UnitSphericalRepresentation.
+    storekdtree = catalogcoord.cache.get(storekdtree, storekdtree)
 
     idx, sep2d, sep3d = match_coordinates_3d(newmatch_u, newcat_u, nthneighbor, storekdtree)
     # sep3d is *wrong* above, because the distance information was removed,
@@ -161,14 +160,14 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='
             isinstance(newmatch.data, UnitSphericalRepresentation)):
         sep3d = catalogcoord[idx].separation_3d(newmatch)
 
-    #update the kdtree on the actual passed-in coordinate
+    # update the kdtree on the actual passed-in coordinate
     if isinstance(storekdtree, six.string_types):
-        setattr(catalogcoord, storekdtree, getattr(newcat_u, storekdtree))
+        catalogcoord.cache[storekdtree] = newcat_u.cache[storekdtree]
 
     return idx, sep2d, sep3d
 
 
-def search_around_3d(coords1, coords2, distlimit, storekdtree='_kdtree_3d'):
+def search_around_3d(coords1, coords2, distlimit, storekdtree='kdtree_3d'):
     """
     Searches for pairs of points that are at least as close as a specified
     distance in 3D space.
@@ -188,9 +187,9 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='_kdtree_3d'):
     distlimit : `~astropy.units.Quantity` with distance units
         The physical radius to search within.
     storekdtree : bool or str, optional
-        If a string, will store the KD-Tree used in the search as attributes
-        with the name ``storekdtree`` in ``coords2``.  This speeds up subsequent
-        calls to this function.  If False, the KD-Trees are not saved.
+        If a string, will store the KD-Tree used in the search with the name
+        ``storekdtree`` in ``coords2.cache``. This speeds up subsequent calls
+        to this function. If False, the KD-Trees are not saved.
 
     Returns
     -------
@@ -271,7 +270,7 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='_kdtree_3d'):
     return idxs1, idxs2, d2ds, d3ds
 
 
-def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
+def search_around_sky(coords1, coords2, seplimit, storekdtree='kdtree_sky'):
     """
     Searches for pairs of points that have an angular separation at least as
     close as a specified angle.
@@ -291,9 +290,9 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
     seplimit : `~astropy.units.Quantity` with angle units
         The on-sky separation to search within.
     storekdtree : bool or str, optional
-        If a string, will store the KD-Tree used in the search as attributes
-        with the name ``storekdtree`` in ``coords2``.  This speeds up subsequent
-        calls to this function.  If False, the KD-Trees are not saved.
+        If a string, will store the KD-Tree used in the search with the name
+        ``storekdtree`` in ``coords2.cache``. This speeds up subsequent calls
+        to this function. If False, the KD-Trees are not saved.
 
     Returns
     -------
@@ -350,24 +349,24 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
     # saved. (by convention, coord2 is the "catalog" if that makes sense)
     coords1 = coords1.transform_to(coords2)
 
-    #strip out distance info
+    # strip out distance info
     urepr1 = coords1.data.represent_as(UnitSphericalRepresentation)
     ucoords1 = coords1.realize_frame(urepr1)
 
     kdt1 = _get_cartesian_kdtree(ucoords1, storekdtree)
 
-    if storekdtree and hasattr(coords2, storekdtree):
-        #just use the stored KD-Tree
-        kdt2 = getattr(coords2, storekdtree)
+    if storekdtree and coords2.cache.get(storekdtree):
+        # just use the stored KD-Tree
+        kdt2 = coords2.cache[storekdtree]
     else:
-        #strip out distance info
+        # strip out distance info
         urepr2 = coords2.data.represent_as(UnitSphericalRepresentation)
         ucoords2 = coords2.realize_frame(urepr2)
 
         kdt2 = _get_cartesian_kdtree(ucoords2, storekdtree)
         if storekdtree:
-            #save the KD-Tree in coords2, *not* ucoords2
-            setattr(coords2, storekdtree, kdt2)
+            # save the KD-Tree in coords2, *not* ucoords2
+            coords2.cache[storekdtree] = kdt2
 
     # this is the *cartesian* 3D distance that corresponds to the given angle
     r = (2 * np.sin(Angle(seplimit) / 2.0)).value
@@ -400,7 +399,7 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
     return idxs1, idxs2, d2ds, d3ds
 
 
-def _get_cartesian_kdtree(coord, attrname_or_kdt='_kdtree', forceunit=None):
+def _get_cartesian_kdtree(coord, attrname_or_kdt='kdtree', forceunit=None):
     """
     This is a utility function to retrieve (and build/cache, if necessary)
     a 3D cartesian KD-Tree from various sorts of astropy coordinate objects.
@@ -410,9 +409,9 @@ def _get_cartesian_kdtree(coord, attrname_or_kdt='_kdtree', forceunit=None):
     coord : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
         The coordinates to build the KD-Tree for.
     attrname_or_kdt : bool or str or KDTree
-        If a string, will store the KD-Tree used for the computation
-        in the ``coord``, as an attribute in ``coord`` with the
-        provided name. If given as a KD-Tree, it will just be used directly.
+        If a string, will store the KD-Tree used for the computation in the
+        ``coord``, in ``coord.cache`` with the provided name. If given as a
+        KD-Tree, it will just be used directly.
     forceunit : unit or None
         If a unit, the cartesian coordinates will convert to that unit before
         being put in the KD-Tree.  If None, whatever unit it's already in
@@ -426,7 +425,7 @@ def _get_cartesian_kdtree(coord, attrname_or_kdt='_kdtree', forceunit=None):
     """
     from warnings import warn
 
-    #without scipy this will immediately fail
+    # without scipy this will immediately fail
     from scipy import spatial
     try:
         KDTree = spatial.cKDTree
@@ -436,11 +435,11 @@ def _get_cartesian_kdtree(coord, attrname_or_kdt='_kdtree', forceunit=None):
         KDTree = spatial.KDTree
 
     if attrname_or_kdt is True:  # backwards compatibility for pre v0.4
-        attrname_or_kdt = '_kdtree'
+        attrname_or_kdt = 'kdtree'
 
     # figure out where any cached KDTree might be
     if isinstance(attrname_or_kdt, six.string_types):
-        kdt = getattr(coord, attrname_or_kdt, None)
+        kdt = coord.cache.get(attrname_or_kdt, None)
         if kdt is not None and not isinstance(kdt, KDTree):
             raise ValueError('The `attrname_or_kdt` "{0}" is not a scipy KD tree!'.format(attrname_or_kdt))
     elif isinstance(attrname_or_kdt, KDTree):
@@ -450,10 +449,10 @@ def _get_cartesian_kdtree(coord, attrname_or_kdt='_kdtree', forceunit=None):
         kdt = None
     else:
         raise ValueError('Invalid `attrname_or_kdt` argument for KD-Tree:' +
-                          str(attrname_or_kdt))
+                         str(attrname_or_kdt))
 
     if kdt is None:
-        #need to build the cartesian KD-tree for the catalog
+        # need to build the cartesian KD-tree for the catalog
         if forceunit is None:
             cartxyz = coord.cartesian.xyz
         else:
@@ -462,7 +461,7 @@ def _get_cartesian_kdtree(coord, attrname_or_kdt='_kdtree', forceunit=None):
         kdt = KDTree(flatxyz.value.T)
 
     if attrname_or_kdt:
-        #cache the kdtree in `coord`
-        setattr(coord, attrname_or_kdt, kdt)
+        # cache the kdtree in `coord`
+        coord.cache[attrname_or_kdt] = kdt
 
     return kdt
