@@ -110,7 +110,14 @@ def getheader(filename, *args, **kwargs):
         hdu = hdulist[extidx]
         header = hdu.header
     finally:
-        hdulist.close(closed=closed)
+        # Use _close instead of close to close without loading any
+        # remaining HDUs for pre-lazy-loading backwards compatibility
+        # In other words, when the full HDUList is opened by a user they
+        # previously expected to be able to look at arbitrary HDUs even
+        # after the file was closed, but for getheader and other convenience
+        # functions this is irrelevant
+        hdulist._close(closed=closed)
+
     return header
 
 
@@ -206,7 +213,8 @@ def getdata(filename, *args, **kwargs):
         if header:
             hdr = hdu.header
     finally:
-        hdulist.close(closed=closed)
+        # _close instead of close; see note in getheader
+        hdulist._close(closed=closed)
 
     # Change case of names if requested
     trans = None
@@ -342,7 +350,8 @@ def setval(filename, keyword, *args, **kwargs):
             comment = None
         hdulist[extidx].header.set(keyword, value, comment, before, after)
     finally:
-        hdulist.close(closed=closed)
+        # _close instead of close; see note in getheader
+        hdulist._close(closed=closed)
 
 
 def delval(filename, keyword, *args, **kwargs):
@@ -380,7 +389,8 @@ def delval(filename, keyword, *args, **kwargs):
     try:
         del hdulist[extidx].header[keyword]
     finally:
-        hdulist.close(closed=closed)
+        # _close instead of close; see note in getheader
+        hdulist._close(closed=closed)
 
 
 @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
@@ -586,14 +596,15 @@ def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
                 # when writing the file.
                 hdu._output_checksum = checksum
             finally:
-                f.close(closed=closed)
+                # _close instead of close; see note in getheader
+                f._close(closed=closed)
         else:
             f = _File(filename, mode='append')
             try:
                 hdu._output_checksum = checksum
                 hdu._writeto(f)
             finally:
-                f.close()
+                f._close()
 
 
 def update(filename, data, *args, **kwargs):
@@ -652,7 +663,8 @@ def update(filename, data, *args, **kwargs):
     try:
         hdulist[_ext] = new_hdu
     finally:
-        hdulist.close(closed=closed)
+        # _close instead of close; see note in getheader
+        hdulist._close(closed=closed)
 
 
 def info(filename, output=None, **kwargs):
@@ -689,7 +701,8 @@ def info(filename, output=None, **kwargs):
         ret = f.info(output=output)
     finally:
         if closed:
-            f.close()
+            # _close instead of close; see note in getheader
+            f._close()
 
     return ret
 
@@ -759,7 +772,8 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
         f[ext].dump(datafile, cdfile, hfile, overwrite)
     finally:
         if closed:
-            f.close()
+            # _close instead of close; see note in getheader
+            f._close()
 
 if isinstance(tabledump.__doc__, string_types):
     tabledump.__doc__ += BinTableHDU._tdump_file_format.replace('\n', '\n    ')
