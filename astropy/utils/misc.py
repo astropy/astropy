@@ -307,7 +307,8 @@ if sys.platform == 'win32':
             filepath = filepath.decode(sys.getfilesystemencoding())
         try:
             attrs = ctypes.windll.kernel32.GetFileAttributesW(filepath)
-            assert attrs != -1
+            if attrs == -1:
+                raise AssertionError
             result = bool(attrs & 2)
         except (AttributeError, AssertionError):
             result = False

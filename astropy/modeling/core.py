@@ -1324,19 +1324,19 @@ class Model(object):
         if coords is not None:
             coords = np.asanyarray(coords, dtype=float)
             # Check dimensions match out and model
-            assert len(coords) == ndim
+            if len(coords) != ndim:
+                raise AssertionError
             if out is not None:
-                assert coords[0].shape == out.shape
+                if coords[0].shape != out.shape:
+                    raise AssertionError
             else:
                 out = np.zeros(coords[0].shape)
 
         if out is not None:
             out = np.asanyarray(out, dtype=float)
-            try:
-                assert out.ndim == ndim
-            except AssertionError:
+            if out.ndim != ndim:
                 raise AssertionError(
-                    'The array and model must have the same number '
+                    'the array and model must have the same number '
                     'of dimensions.')
 
         if bbox is not None:
@@ -3068,14 +3068,16 @@ def render_model(model, arr=None, coords=None):
     if arr is not None:
         arr = arr.copy()
         # Check dimensions match model
-        assert arr.ndim == model.n_inputs
-
+        if arr.ndim != model.n_inputs:
+            raise AssertionError
     if coords is not None:
         # Check dimensions match arr and model
         coords = np.array(coords)
-        assert len(coords) == model.n_inputs
+        if len(coords) != model.n_inputs:
+            raise AssertionError
         if arr is not None:
-            assert coords[0].shape == arr.shape
+            if coords[0].shape != arr.shape:
+                raise AssertionError
         else:
             arr = np.zeros(coords[0].shape)
 

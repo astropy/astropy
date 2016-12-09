@@ -403,8 +403,9 @@ class _BoundingBox(tuple):
                    "containing such a sequence as its sole element.").format(
                        model.name)
 
-            assert (isiterable(bounding_box) and
-                        np.shape(bounding_box) in ((2,), (1, 2))), msg
+            if (not isiterable(bounding_box)
+                    or np.shape(bounding_box) not in ((2,), (1, 2))):
+                raise TypeError(msg)
 
             if len(bounding_box) == 1:
                 return cls((tuple(bounding_box[0]),))
@@ -416,8 +417,9 @@ class _BoundingBox(tuple):
                    "lower and upper bounds for those inputs on which to "
                    "evaluate the model.").format(model.name, nd)
 
-            assert (isiterable(bounding_box) and
-                        np.shape(bounding_box) == (nd, 2)), msg
+            if (not isiterable(bounding_box)
+                    or np.shape(bounding_box) == (nd, 2)):
+                raise TypeError(msg)
 
             return cls(tuple(bounds) for bounds in bounding_box)
 
