@@ -996,7 +996,7 @@ def test_data_out_of_range(parallel, reader):
 
     # test some additional corner cases
     fields = [ '.0101E202', '0.000000314E+314', '1777E+305', '-1799E+305', '0.2e-323',
-               '2500e-327', ' 0.0000000000000000000001024E+330' ]
+               '5200e-327', ' 0.0000000000000000000001024E+330' ]
     values = np.array([ 1.01e200, 3.14e307, 1.777e308, -np.inf, 0.0, 4.94e-324, 1.024e308 ])
     t = ascii.read(StringIO(' '.join(fields)), format='no_header',
                    fast_reader=fast_reader)
@@ -1148,23 +1148,24 @@ def test_fortran_invalid_exp(parallel):
     # iterate for (default) expchar 'E'
     for s in formats.values():
         t3 = ascii.read(StringIO(s.join(header)+'\n'+s.join(fields)),
-                fast_reader={'parallel': parallel, 'use_fast_converter': False})
-
-        assert_table_equal(t3, Table([[col] for col in vals_e], names=header),
-                                     rtol=1.0e-30, atol=0.0)
-
-    for s in formats.values():
-        t4 = ascii.read(StringIO(s.join(header)+'\n'+s.join(fields)),
                 fast_reader={'parallel': parallel, 'use_fast_converter': True})
 
-        assert_table_equal(t4, Table([[col] for col in vals_e], names=header))
+        assert_table_equal(t3, Table([[col] for col in vals_e], names=header))
 
-    # iterate for expchar 'D'
+    # iterate for regular converter (strtod)
     for s in formats.values():
-        t5 = ascii.read(StringIO(s.join(header)+'\n'+s.join(fields)),
+        t4 = ascii.read(StringIO(s.join(header)+'\n'+s.join(fields)),
                 fast_reader={'parallel': parallel, 'exponent_style': 'D'})
 
-        assert_table_equal(t5, Table([[col] for col in vals_d], names=header))
+        assert_table_equal(t4, Table([[col] for col in vals_d], names=header))
+
+    # iterate for regular converter (strtod)
+    for s in formats.values():
+        t5 = ascii.read(StringIO(s.join(header)+'\n'+s.join(fields)),
+                fast_reader={'parallel': parallel, 'use_fast_converter': False})
+
+        read_values = [col[0] for col in t5.itercols()]
+        assert read_values == vals_e
 
 
 def test_fortran_reader_notbasic():
