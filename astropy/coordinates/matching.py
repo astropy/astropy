@@ -444,14 +444,14 @@ def _get_cartesian_kdtree(coord, attrname_or_kdt='kdtree', forceunit=None):
     if isinstance(attrname_or_kdt, six.string_types):
         kdt = coord.cache.get(attrname_or_kdt, None)
         if kdt is not None and not isinstance(kdt, KDTree):
-            raise ValueError('The `attrname_or_kdt` "{0}" is not a scipy KD tree!'.format(attrname_or_kdt))
+            raise TypeError('The `attrname_or_kdt` "{0}" is not a scipy KD tree!'.format(attrname_or_kdt))
     elif isinstance(attrname_or_kdt, KDTree):
         kdt = attrname_or_kdt
         attrname_or_kdt = None
     elif not attrname_or_kdt:
         kdt = None
     else:
-        raise ValueError('Invalid `attrname_or_kdt` argument for KD-Tree:' +
+        raise TypeError('Invalid `attrname_or_kdt` argument for KD-Tree:' +
                          str(attrname_or_kdt))
 
     if kdt is None:

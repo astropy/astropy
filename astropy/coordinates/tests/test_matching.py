@@ -117,6 +117,13 @@ def test_kdtree_storage(functocheck, args, defaultkdtname, bothsaved):
     else:
         assert 'tislit_cheese' not in cmatch.cache
 
+    # now a bit of a hacky trick to make sure it at least tries to *use* it
+    ccatalog.cache['tislit_cheese'] = 1
+    cmatch.cache['tislit_cheese'] = 1
+    with pytest.raises(TypeError) as e:
+        functocheck(cmatch, ccatalog, *args, storekdtree='tislit_cheese')
+    assert 'KD' in e.value.args[0]
+
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_matching_method():
