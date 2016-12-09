@@ -218,6 +218,10 @@ New Features
 
 - ``astropy.io.fits``
 
+  - "Lazy" loading of HDUs now occurs - when an HDU is requested, the file is
+    only read up to the point where that HDU is found.  This can mean a
+    substantial speedup when accessing files that have many HDUs. [#5065]
+
 - ``astropy.io.misc``
 
   - Added ``io.misc.yaml`` module to support serializing core astropy objects
