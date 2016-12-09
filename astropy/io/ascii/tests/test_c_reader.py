@@ -1065,9 +1065,10 @@ def test_fortran_reader(parallel):
     Make sure that ascii.read() can read Fortran-style exponential notation
     using the fast_reader.
     """
-    # check
+
+    # check for nominal np.float64 precision
     rtol = 1.e-15
-    atol = 1.e-308
+    atol = 0.0
     text = 'A B C D\n100.01{:s}99       2.0  2.0{:s}-103 3\n' + \
            ' 4.2{:s}-1 5.0{:s}-1     0.6{:s}4 .017{:s}+309'
     expc = Table([[1.0001e101, 0.42], [2, 0.5], [2.e-103, 6.e3], [3, 1.7e307]],
@@ -1114,7 +1115,7 @@ def test_fortran_invalid_exp(parallel):
         pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
 
     rtol = 1.e-15
-    atol = 1.e-308
+    atol = 0.0
 
     formats = { 'basic': ' ', 'tab': '\t', 'csv': ',' }
     header = ['S1', 'F2', 'S2', 'F3', 'S3', 'F4', 'F5', 'S4', 'I1', 'F6', 'F7']
@@ -1128,12 +1129,8 @@ def test_fortran_invalid_exp(parallel):
                2, '4.56e-2.3',    8000,  '4.2-022', '.00000145e314' ]
     vals_a = [ '1.0001+1',     4.2, '2.3+10',   0.5, '3+1001',  3.e3,
                2, '4.56e-2.3',    8000,   4.2e-22,  1.45e308 ]
-    if os.name == 'nt':
-        # apparently C strtod() on Windows recognises 'd' exponents!
-        vals_c = [ '1.0001+1', 4.2, '2.3+10',   0.5, '3+1001',  3.e3,
-                   2, '4.56e-2.3',    8000,  '4.2-022', 1.45e308 ]
-    else:
-        vals_c = vals_e
+    vals_v = [ '1.0001+1', 4.2, '2.3+10',   0.5, '3+1001',  3.e3,
+               2, '4.56e-2.3',    8000,  '4.2-022', 1.45e308 ]
 
     # iterate over supported format types and separators
     for f, s in formats.items():
@@ -1171,7 +1168,11 @@ def test_fortran_invalid_exp(parallel):
                 fast_reader={'parallel': parallel, 'use_fast_converter': False})
 
         read_values = [col[0] for col in t5.itercols()]
-        assert read_values == vals_c
+        if os.name == 'nt':
+            # apparently C strtod() on (some?) MSVC recognises 'd' exponents!
+            assert read_values == vals_v or read_values == vals_e
+        else:
+            assert read_values == vals_e
 
 
 def test_fortran_reader_notbasic():
@@ -1236,4 +1237,3 @@ def test_fortran_reader_notbasic():
     with pytest.raises(ParameterError):
         t7 = ascii.read(tabrst.split('\n'), format='rst', guess=False,
                         fast_reader=dict(exponent_style='D'))
-
