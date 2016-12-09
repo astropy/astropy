@@ -163,6 +163,9 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='
     # update the kdtree on the actual passed-in coordinate
     if isinstance(storekdtree, six.string_types):
         catalogcoord.cache[storekdtree] = newcat_u.cache[storekdtree]
+    elif storekdtree is True:
+        # the old backwards-compatible name
+        catalogcoord.cache['kdtree'] = newcat_u.cache['kdtree']
 
     return idx, sep2d, sep3d
 
@@ -366,7 +369,7 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='kdtree_sky'):
         kdt2 = _get_cartesian_kdtree(ucoords2, storekdtree)
         if storekdtree:
             # save the KD-Tree in coords2, *not* ucoords2
-            coords2.cache[storekdtree] = kdt2
+            coords2.cache['kdtree' if storekdtree is True else storekdtree] = kdt2
 
     # this is the *cartesian* 3D distance that corresponds to the given angle
     r = (2 * np.sin(Angle(seplimit) / 2.0)).value
