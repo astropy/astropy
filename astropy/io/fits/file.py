@@ -292,7 +292,7 @@ class _File(object):
                 return data
         finally:
             # Make sure we leave the file in the position we found it; on
-            # some platforms (e.g. MSVCRT) mmaping a file handle can also
+            # some platforms (e.g. Windows) mmaping a file handle can also
             # reset its file pointer
             self._file.seek(filepos)
 
