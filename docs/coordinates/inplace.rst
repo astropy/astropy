@@ -28,12 +28,6 @@ achieved by doing::
 
     >>> c.cache.clear()
 
-or::
-
-    >>> del c.frame.cache
-
-which removes the whole cache.
-
 It should be noted that the only way to modify the data in a frame is by using
 the ``.data`` attribute directly and not the aliases for components on the frame
 *i.e.* the following will not work:::
