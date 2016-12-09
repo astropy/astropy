@@ -11,6 +11,7 @@ from ...extern.six.moves import zip
 from ... import units as u
 from ...utils import minversion
 
+from .. import matching
 
 """
 These are the tests for coordinate matching.
@@ -49,7 +50,6 @@ def test_matching_function():
     npt.assert_array_almost_equal(d2d.degree, [1, 0.9])
     npt.assert_array_less(d3d.value, 0.02)
 
-
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_matching_function_3d_and_sky():
     from .. import ICRS
@@ -73,24 +73,49 @@ def test_matching_function_3d_and_sky():
     assert_allclose(d3d, [4, 4.0000019] * u.kpc)
 
 
+
+@pytest.mark.parametrize('functocheck, args, defaultkdtname, bothsaved',
+                         [(matching.match_coordinates_3d, [], 'kdtree_3d', False),
+                          (matching.match_coordinates_sky, [], 'kdtree_sky', False),
+                          (matching.search_around_3d, [1*u.kpc], 'kdtree_3d', True),
+                          (matching.search_around_sky, [1*u.deg], 'kdtree_sky', False)
+                         ])
 @pytest.mark.skipif(str('not HAS_SCIPY'))
-def test_kdtree_storage():
+def test_kdtree_storage(functocheck, args, defaultkdtname, bothsaved):
     from .. import ICRS
-    from ..matching import match_coordinates_3d
 
-    cmatch = ICRS([4, 2.1]*u.degree, [0, 0]*u.degree)
-    ccatalog = ICRS([1, 2, 3, 4]*u.degree, [0, 0, 0, 0]*u.degree)
+    def make_scs():
+        cmatch = ICRS([4, 2.1]*u.degree, [0, 0]*u.degree, distance=[1, 2]*u.kpc)
+        ccatalog = ICRS([1, 2, 3, 4]*u.degree, [0, 0, 0, 0]*u.degree, distance=[1, 2, 3, 4]*u.kpc)
+        return cmatch, ccatalog
 
-    idx, d2d, d3d = match_coordinates_3d(cmatch, ccatalog, storekdtree=False)
+    cmatch, ccatalog = make_scs()
+    functocheck(cmatch, ccatalog, *args, storekdtree=False)
+    assert 'kdtree' not in ccatalog.cache
+    assert defaultkdtname not in ccatalog.cache
+
+    cmatch, ccatalog = make_scs()
+    functocheck(cmatch, ccatalog, *args)
+    assert defaultkdtname in ccatalog.cache
     assert 'kdtree' not in ccatalog.cache
 
-    idx, d2d, d3d = match_coordinates_3d(cmatch, ccatalog, storekdtree=True)
+    cmatch, ccatalog = make_scs()
+    functocheck(cmatch, ccatalog, *args, storekdtree=True)
     assert 'kdtree' in ccatalog.cache
+    assert defaultkdtname not in ccatalog.cache
 
+    cmatch, ccatalog = make_scs()
     assert 'tislit_cheese' not in ccatalog.cache
-    idx, d2d, d3d = match_coordinates_3d(cmatch, ccatalog, storekdtree='tislit_cheese')
+    functocheck(cmatch, ccatalog, *args, storekdtree='tislit_cheese')
     assert 'tislit_cheese' in ccatalog.cache
-    assert 'tislit_cheese' not in cmatch.cache
+    assert defaultkdtname not in ccatalog.cache
+    assert 'kdtree' not in ccatalog.cache
+    if bothsaved:
+        assert 'tislit_cheese' in cmatch.cache
+        assert defaultkdtname not in cmatch.cache
+        assert 'kdtree' not in cmatch.cache
+    else:
+        assert 'tislit_cheese' not in cmatch.cache
 
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
