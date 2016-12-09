@@ -12,7 +12,7 @@ import numpy as np
 from ... import units as u
 from ..baseframe import frame_transform_graph
 from ..transformations import FunctionTransform
-from ..representation import (SphericalRepresentation,
+from ..representation import (SphericalRepresentation, CartesianRepresentation,
                               UnitSphericalRepresentation)
 from ... import _erfa as erfa
 
@@ -32,9 +32,23 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
     # we use the same obstime everywhere now that we know they're the same
     obstime = cirs_coo.obstime
 
-    usrepr = cirs_coo.represent_as(UnitSphericalRepresentation)
-    cirs_ra = usrepr.lon.to(u.radian).value
-    cirs_dec = usrepr.lat.to(u.radian).value
+    if cirs_coo.distance.unit is u.one:
+        usrepr = cirs_coo.represent_as(UnitSphericalRepresentation)
+        cirs_ra = usrepr.lon.to(u.radian).value
+        cirs_dec = usrepr.lat.to(u.radian).value
+    else:
+        # compute an "astrometric" ra/dec -i.e., the direction of the
+        # displacement vector from the observer to the target in CIRS
+        loccirs = altaz_frame.location.get_itrs(cirs_coo.obstime).transform_to(cirs_coo)
+
+        loccirsxyz = loccirs.cartesian.xyz
+        if not cirs_coo.isscalar and len(loccirsxyz.shape) < 2:
+            loccirsxyz = loccirsxyz.reshape(3, 1)
+
+        diffrepr = CartesianRepresentation(cirs_coo.cartesian.xyz - loccirsxyz)
+        newrepr = diffrepr.represent_as(SphericalRepresentation)
+        cirs_ra = newrepr.lon.to(u.radian).value
+        cirs_dec = newrepr.lat.to(u.radian).value
 
     lon, lat, height = altaz_frame.location.to_geodetic('WGS84')
     xp, yp = get_polar_motion(obstime)
@@ -52,7 +66,7 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
                          altaz_frame.relative_humidity,
                          altaz_frame.obswl.value)
 
-    az, zen, ha, obs_dec, obs_ra = erfa.atioq(cirs_ra, cirs_dec, astrom)
+    az, zen, _, _, _ = erfa.atioq(cirs_ra, cirs_dec, astrom)
 
     dat = cirs_coo.data
     if dat.get_name() == 'unitspherical'  or dat.to_cartesian().x.unit == u.one:

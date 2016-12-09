@@ -322,13 +322,18 @@ def test_itrs_vals_5133():
     aaf = AltAz(obstime=time, location=el)
     aacs = [coo.transform_to(aaf) for coo in coos]
 
-    assert_quantity_allclose(aacs[0].az, 180*u.deg)
+    assert all([coo.isscalar for coo in aacs])
+
+    # the ~1 arcsec tolerance is b/c aberration makes it not exact
+    assert_quantity_allclose(aacs[0].az, 180*u.deg, atol=1*u.arcsec)
     assert aacs[0].alt < 0*u.deg
     assert aacs[0].distance > 50*u.km
 
-    assert_quantity_allclose(aacs[1].az, 90*u.deg)
+    # it should *not* actually be 90 degrees, b/c constant latitude is not
+    # straight east anywhere except the equator... but should be close-ish
+    assert_quantity_allclose(aacs[1].az, 90*u.deg, atol=5*u.deg)
     assert aacs[1].alt < 0*u.deg
     assert aacs[1].distance > 50*u.km
 
-    assert_quantity_allclose(aacs[2].alt, 90*u.deg)
+    assert_quantity_allclose(aacs[2].alt, 90*u.deg, atol=1*u.arcsec)
     assert_quantity_allclose(aacs[2].distance, 10*u.km)
