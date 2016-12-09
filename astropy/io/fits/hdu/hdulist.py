@@ -256,6 +256,11 @@ class HDUList(list, _Verify):
         return super(HDUList, self).__repr__()
 
     def __iter__(self):
+        # While effectively this does the same as:
+        # for idx in range(len(self)):
+        #     yield self[idx]
+        # the more complicated structure is here to prevent the use of len(),
+        # which would break the lazy loading
         idx = 0
         while True:
             try:
