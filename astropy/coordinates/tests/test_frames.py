@@ -711,3 +711,62 @@ def test_component_error_useful():
         i.lon  # lon is *not* the component name despite being the underlying representation's name
     assert "object has no attribute 'foobar'" in str(excinfo1.value)
     assert "object has no attribute 'lon'" in str(excinfo2.value)
+
+
+def test_cache_clear():
+    from ..builtin_frames import ICRS
+
+    i = ICRS(1*u.deg, 2*u.deg)
+
+    # Add an in frame units version of the rep to the cache.
+    repr(i)
+
+    assert len(i.cache['representation']) == 2
+
+    i.cache.clear()
+
+    assert len(i.cache['representation']) == 0
+
+
+def test_inplace_array():
+    from ..builtin_frames import ICRS
+
+    i = ICRS([[1, 2], [3, 4]]*u.deg, [[10, 20], [30, 40]]*u.deg)
+
+    # Add an in frame units version of the rep to the cache.
+    repr(i)
+
+    # Check that repr() has added a rep to the cache
+    assert len(i.cache['representation']) == 2
+
+    # Modify the data
+    i.data.lon[:, 0] = [100, 200]*u.deg
+
+    # Clear the cache
+    i.cache.clear()
+
+    # This will use a second (potentially cached rep)
+    assert_allclose(i.ra, [[100, 2], [200, 4]]*u.deg)
+    assert_allclose(i.dec, [[10, 20], [30, 40]]*u.deg)
+
+
+def test_inplace_change():
+    from ..builtin_frames import ICRS
+
+    i = ICRS(1*u.deg, 2*u.deg)
+
+    # Add an in frame units version of the rep to the cache.
+    repr(i)
+
+    # Check that repr() has added a rep to the cache
+    assert len(i.cache['representation']) == 2
+
+    # Modify the data
+    i.data.lon[()] = 10*u.deg
+
+    # Clear the cache
+    i.cache.clear()
+
+    # This will use a second (potentially cached rep)
+    assert i.ra == 10 * u.deg
+    assert i.dec == 2 * u.deg

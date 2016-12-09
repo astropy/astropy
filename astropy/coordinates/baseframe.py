@@ -12,7 +12,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 import abc
 import copy
 import inspect
-from collections import namedtuple, OrderedDict
+from collections import namedtuple, OrderedDict, defaultdict
 
 # Dependencies
 import numpy as np
@@ -20,6 +20,7 @@ import numpy as np
 # Project
 from ..utils.compat.misc import override__dir__
 from ..utils.compat.numpy import broadcast_to as np_broadcast_to
+from ..utils.decorators import lazyproperty
 from ..extern import six
 from ..extern.six.moves import zip
 from .. import units as u
@@ -697,9 +698,29 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 self._no_data_shape = ()
         else:
             # Set up representation cache.
-            self._rep_cache = dict()
-            self._rep_cache[self._data.__class__.__name__, False] = self._data
+            self.cache['representation'][self._data.__class__.__name__, False] = self._data
 
+    @lazyproperty
+    def cache(self):
+        """
+        Cache for this frame, a dict.  It stores anything that should be
+        computed from the coordinate data (*not* from the frame attributes).
+        This can be used in functions to store anything that might be
+        expensive to compute but might be re-used by some other function.
+        E.g.::
+
+            if 'user_data' in myframe.cache:
+                data = myframe.cache['user_data']
+            else:
+                myframe.cache['user_data'] = data = expensive_func(myframe.lat)
+
+        If in-place modifications are made to the frame data, the cache should
+        be cleared::
+
+            myframe.cache.clear()
+
+        """
+        return defaultdict(dict)
 
     @property
     def data(self):
@@ -902,8 +923,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         """
         new_representation = _get_repr_cls(new_representation)
 
-        cached_repr = self._rep_cache.get((new_representation.__name__,
-                                           in_frame_units))
+        cached_repr = self.cache['representation'].get((new_representation.__name__,
+                                                        in_frame_units))
         if not cached_repr:
             data = self.data.represent_as(new_representation)
 
@@ -918,9 +939,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                         datakwargs[comp] = datakwargs[comp].to(new_attr_unit)
                 data = data.__class__(copy=False, **datakwargs)
 
-            self._rep_cache[new_representation.__name__, in_frame_units] = data
+            self.cache['representation'][new_representation.__name__, in_frame_units] = data
 
-        return self._rep_cache[new_representation.__name__, in_frame_units]
+        return self.cache['representation'][new_representation.__name__, in_frame_units]
 
     def transform_to(self, new_frame):
         """
