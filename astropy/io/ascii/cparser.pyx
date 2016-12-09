@@ -380,7 +380,12 @@ cdef class CParser:
             data_end = max(self.data_end - self.data_start, 0) # read nothing if data_end < 0
 
         if tokenize(self.tokenizer, data_end, 0, <int>len(self.names)) != 0:
-            self.raise_error("an error occurred while parsing table data")
+            if self.tokenizer.code in (NOT_ENOUGH_COLS, TOO_MANY_COLS):
+                raise core.InconsistentTableError("Number of header columns " +
+                      "({0}) inconsistent with data columns in data line {1}"
+                      .format(self.tokenizer.num_cols, self.tokenizer.num_rows))
+            else:
+                self.raise_error("an error occurred while parsing table data")
         elif self.tokenizer.num_rows == 0: # no data
             return ([np.array([], dtype=np.int_)] * self.width, [])
         self._set_fill_values()

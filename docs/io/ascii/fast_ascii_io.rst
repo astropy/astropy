@@ -19,7 +19,9 @@ are currently compatible with the fast engine:
  * ``tab``
 
 The fast engine can also be enabled through the format parameter by prefixing
-a compatible format with "fast" and then an underscore. In this case, |read|
+a compatible format with "fast" and then an underscore. In this case, or
+when enforcing the fast engine by either setting ``fast_reader='force'``
+or explicitly setting any of the :ref:`fast_conversion_opts`, |read|
 will not fall back on an ordinary reader if fast reading fails.
 For example::
 
@@ -35,21 +37,24 @@ To disable the fast engine, specify ``fast_reader=False`` or
 
 .. Note:: Guessing and Fast reading
 
-   By default |read| will try to guess the format of in the input data by successively
-   trying different formats until one succeeds ([reference the guessing section]).
-   For the default ``'ascii'`` format this means that a number of pure Python readers
-   with no fast implementation will be tried before getting to the fast readers.
+   By default |read| will try to guess the format of in the input data by
+   successively trying different formats until one succeeds
+   (see the section on :ref:`guess_formats`). 
+   For the default ``'ascii'`` format it will try all fast reader formats
+   before testing any pure Python readers with no fast implementation.
 
-   **For optimum performance**, turn off guessing entirely (``guess=False``) or
-   narrow down the format options as much as possible by specifying the format
-   (e.g. ``format='csv'``) and/or other options such as the delimiter.
+   **For optimum performance** however, it is recommended to turn off
+   guessing entirely (``guess=False``) or narrow down the format options
+   as much as possible by specifying the format (e.g. ``format='csv'``)
+   and/or other options such as the delimiter.
 
 Reading
 =======
 Since the fast engine is not part of the ordinary :mod:`astropy.io.ascii`
 infrastructure, fast readers raise an error when passed certain
-parameters which are not implemented in the fast reader
-infrastructure. In this case |read| will fall back on the ordinary reader.
+parameters which are not implemented in the fast reader infrastructure.
+In this case |read| will fall back on the ordinary reader, unless the
+fast reader has been explicitly requested (see above).
 These parameters are:
 
  * Negative ``header_start`` (except for commented-header format)
