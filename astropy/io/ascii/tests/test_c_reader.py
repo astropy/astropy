@@ -1128,6 +1128,12 @@ def test_fortran_invalid_exp(parallel):
                2, '4.56e-2.3',    8000,  '4.2-022', '.00000145e314' ]
     vals_a = [ '1.0001+1',     4.2, '2.3+10',   0.5, '3+1001',  3.e3,
                2, '4.56e-2.3',    8000,   4.2e-22,  1.45e308 ]
+    if os.name == 'nt':
+        # apparently C strtod() on Windows recognises 'd' exponents!
+        vals_c = [ '1.0001+1', 4.2, '2.3+10',   0.5, '3+1001',  3.e3,
+                   2, '4.56e-2.3',    8000,  '4.2-022', 1.45e308 ]
+    else:
+        vals_c = vals_e
 
     # iterate over supported format types and separators
     for f, s in formats.items():
@@ -1165,7 +1171,7 @@ def test_fortran_invalid_exp(parallel):
                 fast_reader={'parallel': parallel, 'use_fast_converter': False})
 
         read_values = [col[0] for col in t5.itercols()]
-        assert read_values == vals_e
+        assert read_values == vals_c
 
 
 def test_fortran_reader_notbasic():
