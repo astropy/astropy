@@ -703,14 +703,22 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     @lazyproperty
     def cache(self):
         """
-        Cache for this frame.
+        Cache for this frame, a dict.  It stores anything that should be
+        computed from the coordinate data (*not* from the frame attributes).
+        This can be used in functions to store anything that might be
+        expensive to compute but might be re-used by some other function.
+        E.g.::
 
-        If modifications are made to the frame not through public methods the
-        appropriate cache should be cleared by deleting elements from this
-        cache. i.e. if you update the values in the representation the cache of
-        representations should be cleared with::
+            if 'user_data' in myframe.cache:
+                data = myframe.cache['user_data']
+            else:
+                myframe.cache['user_data'] = data = expensive_func(myframe.lat)
 
-            del myframe.cache['representation]
+        If in-place modifications are made to the frame data, the cache should
+        be cleared::
+
+            myframe.cache.clear()
+
         """
         return defaultdict(dict)
 
