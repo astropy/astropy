@@ -1278,3 +1278,18 @@ def test_frame_attr_changes():
     assert 'fakeattr' not in dir(sc_before)
     assert 'fakeattr' not in dir(sc_after1)
     assert 'fakeattr' not in dir(sc_after2)
+
+
+def test_cache_clear_sc():
+    from .. import SkyCoord
+
+    i = SkyCoord(1*u.deg, 2*u.deg)
+
+    # Add an in frame units version of the rep to the cache.
+    repr(i)
+
+    assert len(i.cache['representation']) == 2
+
+    i.cache.clear()
+
+    assert len(i.cache['representation']) == 0
