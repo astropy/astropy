@@ -770,18 +770,3 @@ def test_inplace_change():
     # This will use a second (potentially cached rep)
     assert i.ra == 10 * u.deg
     assert i.dec == 2 * u.deg
-
-
-def test_cache_clear_sc():
-    from .. import SkyCoord
-
-    i = SkyCoord(1*u.deg, 2*u.deg)
-
-    # Add an in frame units version of the rep to the cache.
-    repr(i)
-
-    assert len(i.cache['representation']) == 2
-
-    i.cache.clear()
-
-    assert len(i.cache['representation']) == 0
