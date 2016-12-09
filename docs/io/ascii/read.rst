@@ -290,6 +290,8 @@ values in with typical placeholders::
          used ``'nan'`` for the ``<match_string>`` value then integer columns
          would wind up as float.
 
+.. _guess_formats:
+
 Guess table format
 ==================
 

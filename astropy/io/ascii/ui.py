@@ -164,7 +164,10 @@ def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
     # This function is a light wrapper around core._get_reader to provide a public interface
     # with a default Reader.
     if Reader is None:
-        Reader = basic.Basic
+        if kwargs.get('fast_reader', False):
+            Reader = fastbasic.FastBasic
+        else:
+            Reader = basic.Basic
     reader = core._get_reader(Reader, Inputter=Inputter, Outputter=Outputter, **kwargs)
     return reader
 
@@ -353,8 +356,8 @@ def read(table, guess=None, **kwargs):
             guess = False
 
     if not guess:
-        reader = get_reader(**new_kwargs)
         if format is None:
+            reader = get_reader(**new_kwargs)
             format = reader._format_name
 
         # Try the fast reader version of `format` first if applicable.  Note that
@@ -376,12 +379,14 @@ def read(table, guess=None, **kwargs):
                         'fast reader {} exception: {}'
                         .format(fast_reader_rdr.__class__, err))
                 # If the fast reader doesn't work, try the slow version
+                reader = get_reader(**new_kwargs)
                 dat = reader.read(table)
                 _read_trace.append({'kwargs': new_kwargs,
                                     'Reader': reader.__class__,
                                     'status': 'Success with slow reader after failing'
                                              ' with fast (no guessing)'})
         else:
+            reader = get_reader(**new_kwargs)
             dat = reader.read(table)
             _read_trace.append({'kwargs': new_kwargs,
                                 'Reader': reader.__class__,
@@ -431,6 +436,11 @@ def _guess(table, read_kwargs, format, fast_reader):
         full_list_guess = [fast_kwargs] + full_list_guess
     else:
         fast_kwargs = None
+
+    # dictionary arguments are passed by reference per default and might
+    # (usually will!) be altered by `read()` - especially `cparser` - calls,
+    # backup them here
+    user_kwargs = copy.deepcopy(read_kwargs)
 
     # Filter the full guess list so that each entry is consistent with user kwarg inputs.
     # This also removes any duplicates from the list.
@@ -487,12 +497,19 @@ def _guess(table, read_kwargs, format, fast_reader):
     # keep track of the failed guess and move on.
     for guess_kwargs in filtered_guess_kwargs:
         t0 = time.time()
+        for key, val in user_kwargs.items():
+            # update guess_kwargs again; need a deep copy to preserve dicts
+            if key not in guess_kwargs:
+                guess_kwargs[key] = val.copy()
+            elif val != guess_kwargs[key] and guess_kwargs != fast_kwargs:
+                guess_kwargs[key] = val.copy()
         try:
             # If guessing will try all Readers then use strict req'ts on column names
             if 'Reader' not in read_kwargs:
                 guess_kwargs['strict_names'] = True
 
             reader = get_reader(**guess_kwargs)
+
             reader.guessing = True
             dat = reader.read(table)
             _read_trace.append({'kwargs': guess_kwargs,
