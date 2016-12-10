@@ -24,6 +24,25 @@ smaller improvements and bug fixes, which are described in the
 * xxx pull requests have been merged since v1.2
 * xxx distinct people have contributed code
 
+New WCSAxes framework to make Matplotlib plots with WCS coordinates
+-------------------------------------------------------------------
+
+
+New function to contruct RGB images based on Lupton et al. (2004) algorithm
+---------------------------------------------------------------------------
+
+
+Change in Table behavior when setting column
+--------------------------------------------
+
+
+Support for Fortran exponent formats in ASCII tables
+----------------------------------------------------
+
+
+Serialization of Astropy classes to YAML
+----------------------------------------
+
 .. _whatsnew-1.3-cosmo:
 
 Improvements to cosmology sub-package
@@ -33,8 +52,8 @@ The default cosmology in the :ref:`astropy-cosmology` sub-package is
 now the Planck 2015 cosmology, and the references have been updated
 to reflect the published papers.
 
-Other significant changes
--------------------------
+Improvements to coordinates sub-package
+---------------------------------------
 
 The `astropy.coordinates.GCRS` and `astropy.coordinates.PrecessedGeocentric`
 frames have been subtly changed such that their ``obsgeoloc`` and ``obsgeovel``
