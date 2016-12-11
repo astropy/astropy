@@ -808,3 +808,39 @@ class TestHDUListFunctions(FitsTestCase):
 
         for key in bad_keys:
             assert not (key in hdulist)
+
+    def test_iteration_of_lazy_loaded_hdulist(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/5585
+        """
+        hdulist = fits.HDUList(fits.PrimaryHDU())
+        hdulist.append(fits.ImageHDU(name='SCI'))
+        hdulist.append(fits.ImageHDU(name='SCI'))
+        hdulist.append(fits.ImageHDU(name='nada'))
+        hdulist.append(fits.ImageHDU(name='SCI'))
+
+        filename = self.temp('many_extension.fits')
+        hdulist.writeto(filename)
+        f = fits.open(filename)
+
+        # Check that all extensions are read if f is not sliced
+        all_exts = [ext for ext in f]
+        assert len(all_exts) == 5
+
+        # Reload the file to ensure we are still lazy loading
+        f.close()
+        f = fits.open(filename)
+
+        # Try a simple slice with no conditional on the ext. This is essentially
+        # the reported failure.
+        all_exts_but_zero = [ext for ext in f[1:]]
+        assert len(all_exts_but_zero) == 4
+
+        # Reload the file to ensure we are still lazy loading
+        f.close()
+        f = fits.open(filename)
+
+        # Check whether behavior is proper if the upper end of the slice is not
+        # omitted.
+        read_exts = [ext for ext in f[1:4] if ext.header['EXTNAME'] == 'SCI']
+        assert len(read_exts) == 2
