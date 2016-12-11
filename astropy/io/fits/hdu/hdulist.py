@@ -293,7 +293,7 @@ class HDUList(list, _Verify):
 
         try:
             self._try_while_unread_hdus(self.index_of, item)
-        except KeyError:
+        except (KeyError, TypeError):
             return False
 
         return True
