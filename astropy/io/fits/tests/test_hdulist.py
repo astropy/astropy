@@ -793,3 +793,18 @@ class TestHDUListFunctions(FitsTestCase):
             assert (str(warning_lines[0].message) == '"clobber" was '
                     'deprecated in version 1.3 and will be removed in a '
                     'future version. Use argument "overwrite" instead.')
+
+    def test_invalid_hdu_key_in_contains(self):
+        """
+        Make sure invalid keys in the 'in' operator return False.
+        Regression test for https://github.com/astropy/astropy/issues/5583
+        """
+        hdulist = fits.HDUList(fits.PrimaryHDU())
+        hdulist.append(fits.ImageHDU())
+        hdulist.append(fits.ImageHDU())
+
+        # A more or less random assortment of things which are not valid keys.
+        bad_keys = [None, 3.5, {}]
+
+        for key in bad_keys:
+            assert not (key in hdulist)
