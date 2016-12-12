@@ -1825,7 +1825,7 @@ def test_replace_update_column_via_setitem_warnings_always():
             # Make sure the warning points back to the user code line
             assert w[0].lineno == frameinfo.lineno + 1
             assert w[0].category is table.TableReplaceWarning
-            assert w[0].filename == 'astropy.table.tests.test_table'
+            assert 'test_table' in w[0].filename
 
 
 def test_replace_update_column_via_setitem_replace_inplace():
