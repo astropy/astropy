@@ -1631,7 +1631,7 @@ class Table(object):
         self.replace_column(name, col)
 
         if 'always' in warns:
-            warnings.warn("replacing column '{}'".format(name),
+            warnings.warn("replaced column '{}'".format(name),
                           TableReplaceWarning, stacklevel=3)
 
         if 'slice' in warns:
@@ -1640,8 +1640,8 @@ class Table(object):
                 # has an ndarray for the base while sliced has the same class
                 # as parent.
                 if isinstance(old_col.base, old_col.__class__):
-                    msg = ("replacing column '{}' which looks like an array slice. "
-                           "The new column will no longer share memory with the "
+                    msg = ("replaced column '{}' which looks like an array slice. "
+                           "The new column no longer shares memory with the "
                            "original array.".format(name))
                     warnings.warn(msg, TableReplaceWarning, stacklevel=3)
             except AttributeError:
@@ -1651,7 +1651,7 @@ class Table(object):
             # Did reference count change?
             new_refcount = sys.getrefcount(self[name])
             if refcount != new_refcount:
-                msg = ("replaced column '{}' and the number of the references "
+                msg = ("replaced column '{}' and the number of references "
                        "to the column changed.".format(name))
                 warnings.warn(msg, TableReplaceWarning, stacklevel=3)
 
