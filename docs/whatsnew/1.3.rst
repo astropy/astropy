@@ -39,6 +39,12 @@ Change in Table behavior when setting column
 Support for Fortran exponent formats in ASCII tables
 ----------------------------------------------------
 
+The :ref:`fast reader <fast_ascii_io>` in :ref:`io.ascii <io-ascii>` now
+supports FORTRAN-style floating point values (i.e. ``1.495978707D+13``), via
+the ``fast_reader`` option ``exponent_style``.  The fast reader also now
+supports extended precision to fully read fortran outputs. For more details see
+:ref:`fortran_style_exponents`.
+
 
 Serialization of Astropy classes to YAML
 ----------------------------------------
