@@ -36,6 +36,14 @@ Change in Table behavior when setting column
 --------------------------------------------
 
 
+Coordinate transformations can use JPL Ephemerides
+--------------------------------------------------
+
+
+Earth locations can now be obtained by address
+----------------------------------------------
+
+
 Support for Fortran exponent formats in ASCII tables
 ----------------------------------------------------
 
