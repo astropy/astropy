@@ -279,20 +279,30 @@ class HDUList(list, _Verify):
         # If the key is a slice we need to make sure the necessary HDUs
         # have been loaded before passing the slice on to super.
         if isinstance(key, slice):
-            max_idx = self._positive_index_of(key.stop)
-            if max_idx == sys.maxsize:
+            max_idx = key.stop
+            # Check for and handle the case when no maximum was
+            # specified (e.g. [1:]).
+            # The first part of the or below is for python 2.7, the second
+            # part for python 3.
+            if max_idx == sys.maxsize or max_idx is None:
                 # We need all of the HDUs, so load them
                 # and reset the maximum to the actual length.
                 max_idx = len(self)
 
+            # Just in case the max_idx is negative...
+            max_idx = self._positive_index_of(max_idx)
+
             number_loaded = super(HDUList, self).__len__()
+
             if max_idx >= number_loaded:
                 # We need more than we have, try loading up to and including
                 # max_idx. Note we do not try to be clever about skipping HDUs
                 # even though key.step might conceivably allow it.
                 for i in range(number_loaded, max_idx):
-                    print(i)
-                    self._read_next_hdu()
+                    # Read until max_idx or to the end of the file, whichever
+                    # comes first.
+                    if not self._read_next_hdu():
+                        break
 
             hdus = super(HDUList, self).__getitem__(key)
             return HDUList(hdus)
