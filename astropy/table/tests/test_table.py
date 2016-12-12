@@ -14,7 +14,7 @@ from numpy.testing import assert_allclose
 from ...extern import six
 from ...io import fits
 from ...tests.helper import (pytest, assert_follows_unicode_guidelines,
-                             ignore_warnings)
+                             ignore_warnings, catch_warnings)
 from ...utils.data import get_pkg_data_filename
 from ... import table
 from ... import units as u
@@ -1734,6 +1734,122 @@ def test_replace_update_column_via_setitem():
     assert np.all(t['a'] == [5, 6])
     assert isinstance(t['a'], table.Column)
     assert t['a'] is not ta
+
+
+def test_replace_update_column_via_setitem_warnings_normal():
+    """
+    Test warnings related to table replace change in #5556:
+    Normal warning-free replace
+    """
+    t = table.Table([[1, 2, 3], [4, 5, 6]], names=['a', 'b'])
+    with catch_warnings() as w:
+        with table.conf.set_temp('replace_warnings',
+                                 ['refcount', 'attributes', 'slice']):
+            t['a'] = 0  # in-place update
+            assert len(w) == 0
+
+            t['a'] = [10, 20, 30]  # replace column
+            assert len(w) == 0
+
+
+def test_replace_update_column_via_setitem_warnings_slice():
+    """
+    Test warnings related to table replace change in #5556:
+    Replace a slice, one warning.
+    """
+    t = table.Table([[1, 2, 3], [4, 5, 6]], names=['a', 'b'])
+    with catch_warnings() as w:
+        with table.conf.set_temp('replace_warnings',
+                                 ['refcount', 'attributes', 'slice']):
+            t2 = t[:2]
+
+            t2['a'] = 0  # in-place slice update
+            assert np.all(t['a'] == [0, 0, 3])
+            assert len(w) == 0
+
+            t2['a'] = [10, 20]  # replace slice
+            assert len(w) == 1
+            assert "replaced column 'a' which looks like an array slice" in str(w[0].message)
+
+
+def test_replace_update_column_via_setitem_warnings_attributes():
+    """
+    Test warnings related to table replace change in #5556:
+    Lost attributes.
+    """
+    t = table.Table([[1, 2, 3], [4, 5, 6]], names=['a', 'b'])
+    t['a'].unit = 'm'
+
+    with catch_warnings() as w:
+        with table.conf.set_temp('replace_warnings',
+                                 ['refcount', 'attributes', 'slice']):
+            t['a'] = [10, 20, 30]
+        assert len(w) == 1
+        assert "replaced column 'a' and column attributes ['unit']" in str(w[0].message)
+
+
+def test_replace_update_column_via_setitem_warnings_refcount():
+    """
+    Test warnings related to table replace change in #5556:
+    Reference count changes.
+    """
+    t = table.Table([[1, 2, 3], [4, 5, 6]], names=['a', 'b'])
+    ta = t['a']  # Generate an extra reference to original column
+
+    with catch_warnings() as w:
+        with table.conf.set_temp('replace_warnings',
+                                 ['refcount', 'attributes', 'slice']):
+            t['a'] = [10, 20, 30]
+        assert len(w) == 1
+        assert "replaced column 'a' and the number of references" in str(w[0].message)
+
+
+def test_replace_update_column_via_setitem_warnings_always():
+    """
+    Test warnings related to table replace change in #5556:
+    Test 'always' setting that raises warning for any replace.
+    """
+    t = table.Table([[1, 2, 3], [4, 5, 6]], names=['a', 'b'])
+
+    with catch_warnings() as w:
+        with table.conf.set_temp('replace_warnings', ['always']):
+            t['a'] = 0  # in-place slice update
+            assert len(w) == 0
+
+            from inspect import currentframe, getframeinfo
+            frameinfo = getframeinfo(currentframe())
+            t['a'] = [10, 20, 30]  # replace column
+            assert len(w) == 1
+            assert "replaced column 'a'" == str(w[0].message)
+
+            # Make sure the warning points back to the user code line
+            assert w[0].lineno == frameinfo.lineno + 1
+            assert w[0].category is table.TableReplaceWarning
+            assert 'test_table' in w[0].filename
+
+
+def test_replace_update_column_via_setitem_replace_inplace():
+    """
+    Test the replace_inplace config option related to #5556.  In this
+    case no replace is done.
+    """
+    t = table.Table([[1, 2, 3], [4, 5, 6]], names=['a', 'b'])
+    ta = t['a']
+    t['a'].unit = 'm'
+
+    with catch_warnings() as w:
+        with table.conf.set_temp('replace_inplace', True):
+            with table.conf.set_temp('replace_warnings',
+                                     ['always', 'refcount', 'attributes', 'slice']):
+                t['a'] = 0  # in-place update
+                assert len(w) == 0
+                assert ta is t['a']
+
+                t['a'] = [10, 20, 30]  # normally replaces column, but not now
+                assert len(w) == 0
+                assert ta is t['a']
+                assert np.all(t['a'] == [10, 20, 30])
+
 
 def test_primary_key_is_inherited():
     """Test whether a new Table inherits the primary_key attribute from

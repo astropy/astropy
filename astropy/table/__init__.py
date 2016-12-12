@@ -20,6 +20,21 @@ class Conf(_config.ConfigNamespace):
         'The table class to be used in Jupyter notebooks when displaying '
         'tables (and not overridden). See <http://getbootstrap.com/css/#tables '
         'for a list of useful bootstrap classes.')
+    replace_warnings = _config.ConfigItem(
+        ['slice'],
+        'List of conditions for issuing a warning when replacing a table '
+        "column using setitem, e.g. t['a'] = value.  Allowed options are "
+        "'always', 'slice', 'refcount', 'attributes'.",
+        'list',
+        )
+    replace_inplace = _config.ConfigItem(
+        False,
+        'Always use in-place update of a table column when using setitem, '
+        "e.g. t['a'] = value.  This overrides the default behavior of "
+        "replacing the column entirely with the new value when possible. "
+        "This configuration option will be deprecated and then removed in "
+        "subsequent major releases."
+        )
 
 
 conf = Conf()
@@ -27,7 +42,8 @@ conf = Conf()
 
 from .column import Column, MaskedColumn
 from .groups import TableGroups, ColumnGroups
-from .table import Table, QTable, TableColumns, Row, TableFormatter, NdarrayMixin
+from .table import (Table, QTable, TableColumns, Row, TableFormatter,
+                    NdarrayMixin, TableReplaceWarning)
 from .operations import join, hstack, vstack, unique, TableMergeError
 from .bst import BST, FastBST, FastRBT
 from .sorted_array import SortedArray
