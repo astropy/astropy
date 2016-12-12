@@ -465,6 +465,9 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Transformations between CIRS and AltAz now correctly account for the
+    location of the observer. [#xxxx]
+
   - GCRS frames representing a location on Earth with multiple obstimes are now
     allowed. This means that the solar system routines ``get_body``,
     ``get_moon`` and ``get_sun`` now work with non-scalar times and a
