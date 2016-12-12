@@ -332,6 +332,10 @@ def test_gcrs_altaz_moonish(testframe):
     # now check that the distance change is similar to earth radius
     assert 1000*u.km < np.abs(moonaa.distance - moon.distance).to(u.au) < 7000*u.km
 
+    # now check that it round-trips
+    moon2 = moonaa.transform_to(moon)
+    assert_allclose(moon.cartesian.xyz, moon2.cartesian.xyz)
+
     # also should add checks that the alt/az are different for different earth locations
 
 
