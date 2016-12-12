@@ -320,7 +320,7 @@ class HDUList(list, _Verify):
 
         try:
             self._try_while_unread_hdus(self.index_of, item)
-        except (KeyError, TypeError):
+        except KeyError:
             return False
 
         return True
@@ -661,7 +661,7 @@ class HDUList(list, _Verify):
             _ver = None
 
         if not isinstance(_key, string_types):
-            raise TypeError(
+            raise KeyError(
                 '%s indices must be integers, extension names as strings, '
                 'or (extname, version) tuples; got %r' %
                 (self.__class__.__name__, _key))
