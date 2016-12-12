@@ -8,7 +8,7 @@ from .index import TableIndices, TableLoc, TableILoc
 import re
 import sys
 from collections import OrderedDict, Mapping
-
+import warnings
 from copy import deepcopy
 
 import numpy as np
@@ -20,7 +20,7 @@ from ..units import Quantity
 from ..utils import isiterable, deprecated
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
-from ..utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo
+from ..utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo, DataInfo
 from . import groups
 from .pprint import TableFormatter
 from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
@@ -38,7 +38,19 @@ __doctest_skip__ = ['Table.read', 'Table.write',
                     ]
 
 
+class TableReplaceWarning(UserWarning):
+    """
+    Warning class for cases when a table column is replaced via the
+    Table.__setitem__ syntax e.g. t['a'] = val.
+
+    This does not inherit from AstropyWarning because we want to use
+    stacklevel=3 to show the user where the issue occurred in their code.
+    """
+    pass
+
+
 def descr(col):
+
     """Array-interface compliant full description of a column.
 
     This returns a 3-tuple (name, type, shape) that can always be
@@ -1259,9 +1271,10 @@ class Table(object):
                 # Set an existing column by first trying to replace, and if
                 # this fails do an in-place update.  See definition of mask
                 # property for discussion of the _setitem_inplace attribute.
-                if not getattr(self, '_setitem_inplace', False):
+                if (not getattr(self, '_setitem_inplace', False)
+                        and not conf.replace_inplace):
                     try:
-                        self.replace_column(item, value)
+                        self._replace_column_warnings(item, value)
                         return
                     except Exception:
                         pass
@@ -1600,6 +1613,61 @@ class Table(object):
                 existing_names.add(new_name)
 
         self._init_from_cols(newcols)
+
+    def _replace_column_warnings(self, name, col):
+        """
+        Same as replace_column but issues warnings under various circumstances.
+        """
+        warns = conf.replace_warnings
+
+        if 'refcount' in warns and name in self.colnames:
+            refcount = sys.getrefcount(self[name])
+
+        if name in self.colnames:
+            old_col = self[name]
+
+        # This may raise an exception (e.g. t['a'] = 1) in which case none of
+        # the downstream code runs.
+        self.replace_column(name, col)
+
+        if 'always' in warns:
+            warnings.warn("replaced column '{}'".format(name),
+                          TableReplaceWarning, stacklevel=3)
+
+        if 'slice' in warns:
+            try:
+                # Check for ndarray-subclass slice.  An unsliced instance
+                # has an ndarray for the base while sliced has the same class
+                # as parent.
+                if isinstance(old_col.base, old_col.__class__):
+                    msg = ("replaced column '{}' which looks like an array slice. "
+                           "The new column no longer shares memory with the "
+                           "original array.".format(name))
+                    warnings.warn(msg, TableReplaceWarning, stacklevel=3)
+            except AttributeError:
+                pass
+
+        if 'refcount' in warns:
+            # Did reference count change?
+            new_refcount = sys.getrefcount(self[name])
+            if refcount != new_refcount:
+                msg = ("replaced column '{}' and the number of references "
+                       "to the column changed.".format(name))
+                warnings.warn(msg, TableReplaceWarning, stacklevel=3)
+
+        if 'attributes' in warns:
+            # Any of the standard column attributes changed?
+            changed_attrs = []
+            new_col = self[name]
+            # Check base DataInfo attributes that any column will have
+            for attr in DataInfo.attr_names:
+                if getattr(old_col.info, attr) != getattr(new_col.info, attr):
+                    changed_attrs.append(attr)
+
+            if changed_attrs:
+                msg = ("replaced column '{}' and column attributes {} changed."
+                       .format(name, changed_attrs))
+                warnings.warn(msg, TableReplaceWarning, stacklevel=3)
 
     def replace_column(self, name, col):
         """
