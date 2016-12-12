@@ -32,7 +32,11 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
     # we use the same obstime everywhere now that we know they're the same
     obstime = cirs_coo.obstime
 
-    if cirs_coo.distance.unit is u.one:
+    # if the data are UnitSphericalRepresentation, we can skip the distance calculations
+    is_unitspherical = (isinstance(cirs_coo.data, UnitSphericalRepresentation) or
+                        cirs_coo.cartesian.x.unit == u.one)
+
+    if is_unitspherical:
         usrepr = cirs_coo.represent_as(UnitSphericalRepresentation)
         cirs_ra = usrepr.lon.to(u.radian).value
         cirs_dec = usrepr.lat.to(u.radian).value
@@ -63,8 +67,7 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
 
     az, zen, _, _, _ = erfa.atioq(cirs_ra, cirs_dec, astrom)
 
-    dat = cirs_coo.data
-    if dat.get_name() == 'unitspherical'  or dat.to_cartesian().x.unit == u.one:
+    if is_unitspherical:
         rep = UnitSphericalRepresentation(lat=u.Quantity(PIOVER2 - zen, u.radian, copy=False),
                                           lon=u.Quantity(az, u.radian, copy=False),
                                           copy=False)
@@ -104,8 +107,7 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
 
     # the 'A' indicates zen/az inputs
     cirs_ra, cirs_dec = erfa.atoiq('A', az, zen, astrom)*u.radian
-
-    if isinstance(altaz_coo.data, UnitSphericalRepresentation):
+    if isinstance(altaz_coo.data, UnitSphericalRepresentation) or altaz_coo.cartesian.x.unit == u.one:
         cirs_at_aa_time = CIRS(ra=cirs_ra, dec=cirs_dec, distance=None,
                                obstime=altaz_coo.obstime)
     else:
