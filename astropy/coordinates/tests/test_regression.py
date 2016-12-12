@@ -337,3 +337,14 @@ def test_itrs_vals_5133():
 
     assert_quantity_allclose(aacs[2].alt, 90*u.deg, atol=1*u.arcsec)
     assert_quantity_allclose(aacs[2].distance, 10*u.km)
+
+
+def test_regression_simple_5133():
+    t = Time('J2010')
+    obj = EarthLocation(-1*u.deg, 52*u.deg, height=[100., 0.]*u.km)
+    home = EarthLocation(-1*u.deg, 52*u.deg, height=10.*u.km)
+    aa = obj.get_itrs(t).transform_to(AltAz(obstime=t, location=home))
+
+    # az is more-or-less undefined for straight up or down
+    assert_quantity_allclose(aa.alt, [90, -90]*u.deg, rtol=1e-5)
+    assert_quantity_allclose(aa.distance, [90, 10]*u.km)
