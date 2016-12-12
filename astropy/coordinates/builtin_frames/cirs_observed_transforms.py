@@ -32,9 +32,22 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
     # we use the same obstime everywhere now that we know they're the same
     obstime = cirs_coo.obstime
 
-    usrepr = cirs_coo.represent_as(UnitSphericalRepresentation)
-    cirs_ra = usrepr.lon.to(u.radian).value
-    cirs_dec = usrepr.lat.to(u.radian).value
+    # if the data are UnitSphericalRepresentation, we can skip the distance calculations
+    is_unitspherical = (isinstance(cirs_coo.data, UnitSphericalRepresentation) or
+                        cirs_coo.cartesian.x.unit == u.one)
+
+    if is_unitspherical:
+        usrepr = cirs_coo.represent_as(UnitSphericalRepresentation)
+        cirs_ra = usrepr.lon.to(u.radian).value
+        cirs_dec = usrepr.lat.to(u.radian).value
+    else:
+        # compute an "astrometric" ra/dec -i.e., the direction of the
+        # displacement vector from the observer to the target in CIRS
+        loccirs = altaz_frame.location.get_itrs(cirs_coo.obstime).transform_to(cirs_coo)
+        diffrepr = (cirs_coo.cartesian - loccirs.cartesian).represent_as(UnitSphericalRepresentation)
+
+        cirs_ra = diffrepr.lon.to(u.radian).value
+        cirs_dec = diffrepr.lat.to(u.radian).value
 
     lon, lat, height = altaz_frame.location.to_geodetic('WGS84')
     xp, yp = get_polar_motion(obstime)
@@ -52,10 +65,9 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
                          altaz_frame.relative_humidity,
                          altaz_frame.obswl.value)
 
-    az, zen, ha, obs_dec, obs_ra = erfa.atioq(cirs_ra, cirs_dec, astrom)
+    az, zen, _, _, _ = erfa.atioq(cirs_ra, cirs_dec, astrom)
 
-    dat = cirs_coo.data
-    if dat.get_name() == 'unitspherical'  or dat.to_cartesian().x.unit == u.one:
+    if is_unitspherical:
         rep = UnitSphericalRepresentation(lat=u.Quantity(PIOVER2 - zen, u.radian, copy=False),
                                           lon=u.Quantity(az, u.radian, copy=False),
                                           copy=False)
@@ -95,32 +107,23 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
 
     # the 'A' indicates zen/az inputs
     cirs_ra, cirs_dec = erfa.atoiq('A', az, zen, astrom)*u.radian
-
-    if isinstance(altaz_coo.data, UnitSphericalRepresentation):
-        distance = None
+    if isinstance(altaz_coo.data, UnitSphericalRepresentation) or altaz_coo.cartesian.x.unit == u.one:
+        cirs_at_aa_time = CIRS(ra=cirs_ra, dec=cirs_dec, distance=None,
+                               obstime=altaz_coo.obstime)
     else:
-        locitrs = altaz_coo.location.get_itrs(altaz_coo.obstime)
+        # treat the output of atoiq as an "astrometric" RA/DEC, so to get the
+        # actual RA/Dec from the observers vantage point, we have to reverse
+        # the vector operation of cirs_to_altaz (see there for more detail)
 
-        # To compute the distance in a way that is reversible with cirs_to_altaz
-        # we use basic trigonometry.  The altaz_coo's distance ("d") is one leg
-        # of a triangle, and the earth center -> EarthLocation distance ("r")
-        # is a neighboring leg.  We can also easily get the angle between the
-        # earth center->target (calculated above by apio13), and
-        # earth center->EarthLocation vectors.  This is a Side-Side-Angle
-        # situation, and the formula below is the trig formula to solve for
-        # the remaining side
+        loccirs = altaz_coo.location.get_itrs(altaz_coo.obstime).transform_to(cirs_frame)
 
-        ucirs = cirs_frame.realize_frame(UnitSphericalRepresentation(lon=cirs_ra, lat=cirs_dec))
-        delta = ucirs.separation(locitrs)
-        r = locitrs.spherical.distance
-        d = altaz_coo.distance
+        astrometric_rep = SphericalRepresentation(lon=cirs_ra, lat=cirs_dec,
+                                                  distance=altaz_coo.distance)
+        newrepr = astrometric_rep + loccirs.cartesian
+        cirs_at_aa_time = CIRS(newrepr, obstime=altaz_coo.obstime)
 
-        sindoverd = np.sin(delta) / d
-        distance = np.sin(delta + np.arcsin(r*sindoverd))/sindoverd
-
-    #the final transform may be a no-op if the obstimes are the same
-    return CIRS(ra=cirs_ra, dec=cirs_dec, distance=distance,
-                obstime=altaz_coo.obstime).transform_to(cirs_frame)
+    #this final transform may be a no-op if the obstimes are the same
+    return cirs_at_aa_time.transform_to(cirs_frame)
 
 
 @frame_transform_graph.transform(FunctionTransform, AltAz, AltAz)
