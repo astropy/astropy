@@ -12,7 +12,7 @@ import numpy as np
 from ... import units as u
 from ..baseframe import frame_transform_graph
 from ..transformations import FunctionTransform
-from ..representation import (SphericalRepresentation, CartesianRepresentation,
+from ..representation import (SphericalRepresentation,
                               UnitSphericalRepresentation)
 from ... import _erfa as erfa
 
@@ -40,7 +40,7 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
         # compute an "astrometric" ra/dec -i.e., the direction of the
         # displacement vector from the observer to the target in CIRS
         loccirs = altaz_frame.location.get_itrs(cirs_coo.obstime).transform_to(cirs_coo)
-        diffrepr = (cirs_coo.cartesian-loccirs.cartesian).represent_as(SphericalRepresentation)
+        diffrepr = (cirs_coo.cartesian - loccirs.cartesian).represent_as(UnitSphericalRepresentation)
 
         cirs_ra = diffrepr.lon.to(u.radian).value
         cirs_dec = diffrepr.lat.to(u.radian).value
