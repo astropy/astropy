@@ -376,8 +376,8 @@ def test_cirs_altaz_moonish(testframe):
 @pytest.mark.parametrize('testframe', totest_frames)
 def test_cirs_altaz_nodist(testframe):
     """
-    Sanity-check that an object resembling the moon goes to the right place with
-    a CIRS<->AltAz transformation
+    Check that a UnitSphericalRepresentation coordinate round-trips for the
+    CIRS<->AltAz transformation.
     """
     coo0 = CIRS(UnitSphericalRepresentation(10*u.deg, 20*u.deg), obstime=testframe.obstime)
 
