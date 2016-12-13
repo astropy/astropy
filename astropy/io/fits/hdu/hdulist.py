@@ -438,13 +438,13 @@ class HDUList(list, _Verify):
             np.ndarray((), dtype='ubyte', buffer=data)
         except TypeError:
             raise TypeError(
-                'The provided object %r does not contain an underlying '
+                'The provided object {} does not contain an underlying '
                 'memory buffer.  fromstring() requires an object that '
                 'supports the buffer interface such as bytes, str '
                 '(in Python 2.x but not in 3.x), buffer, memoryview, '
                 'ndarray, etc.  This restriction is to ensure that '
                 'efficient access to the array/table data is possible.'
-                % data)
+                ''.format(data))
 
         return cls._readfrom(data=data, **kwargs)
 
@@ -662,9 +662,9 @@ class HDUList(list, _Verify):
 
         if not isinstance(_key, string_types):
             raise KeyError(
-                '%s indices must be integers, extension names as strings, '
-                'or (extname, version) tuples; got %r' %
-                (self.__class__.__name__, _key))
+                '{} indices must be integers, extension names as strings, '
+                'or (extname, version) tuples; got {}'
+                ''.format(self.__class__.__name__, _key))
 
         _key = (_key.strip()).upper()
 
@@ -706,7 +706,7 @@ class HDUList(list, _Verify):
 
         if abs(index) > len(self):
             raise IndexError(
-                'Extension %s is out of bound or not found.' % index)
+                'Extension {} is out of bound or not found.'.format(index))
 
         return len(self) + index
 
