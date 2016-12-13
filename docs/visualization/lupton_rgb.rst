@@ -75,7 +75,7 @@ with the default parameters.
 
 .. raw:: html
 
-    <a class="reference internal image-reference" href="http://data.astropy.org/visualization/ngc6976-default.jpeg"><img alt="default rgb image" src="http://data.astropy.org/visualization/ngc6976-default.jpeg" /></a>
+    <a class="reference internal image-reference" href="http://data.astropy.org/visualization/ngc6976-default.jpeg"><img alt="default rgb image" src="http://data.astropy.org/visualization/ngc6976-default-small.jpeg" /></a>
 
 The second is the image generated with Q=10, stretch=0.5, showing faint features
 of the galaxies. Compare with Fig. 1 of `Lupton et al. (2004)`_ or the
@@ -83,6 +83,6 @@ of the galaxies. Compare with Fig. 1 of `Lupton et al. (2004)`_ or the
 
 .. raw:: html
 
-    <a class="reference internal image-reference" href="http://data.astropy.org/visualization/ngc6976.jpeg"><img alt="wider stretch image" src="http://data.astropy.org/visualization/ngc6976.jpeg" /></a>
+    <a class="reference internal image-reference" href="http://data.astropy.org/visualization/ngc6976.jpeg"><img alt="wider stretch image" src="http://data.astropy.org/visualization/ngc6976-small.jpeg" /></a>
 
 .. _SDSS Skyserver image: http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra=179.68929&dec=-0.45438&opt=
