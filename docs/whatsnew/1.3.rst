@@ -35,6 +35,16 @@ New function to contruct RGB images based on Lupton et al. (2004) algorithm
 Change in Table behavior when setting column
 --------------------------------------------
 
+Previous to 1.3, :ref:`Tables <astropy-table>` did in-place
+modification of a table column when a column was set like
+``tab['colname'] = val``.  In 1.3, the default behavior has been set to instead
+*replace* a column.  That is, ``tab['colname'] = val`` is now more like
+``t.replace_column('a', val)`` than ``tab['colname'][:] = val``.  This behavior
+can be turned off for compatibility using the ``table.replace_inplace``
+configuration setting (although is future versions of Astropy this capability
+will be deprecated and removed).  For more details and examples on this change,
+see :ref:`table-replace-1_3`.
+
 
 Coordinate transformations can use JPL Ephemerides
 --------------------------------------------------
