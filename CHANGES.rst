@@ -269,6 +269,13 @@ New Features
 
   - Support persistence of table indices when pickling and copying table. [#5468]
 
+- ``astropy.tests``
+
+  - Install both runtime and test dependencies when running the
+    ./setup.py test command. These dependencies are specified by the
+    install_requires and tests_require keywords via setuptools.
+    [#5092, astropy-helpers #212]
+
 - ``astropy.time``
 
   - ``light_travel_time`` can now use more accurate JPL ephemerides. [#5273, #5436]
@@ -473,9 +480,6 @@ Bug Fixes
     ``get_moon`` and ``get_sun`` now work with non-scalar times and a
     non-geocentric observer. [#5253]
 
-  - Initialising a SkyCoord from a list containing a single SkyCoord no longer removes
-    the distance from the coordinate. [#5270]
-
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
@@ -517,8 +521,6 @@ Bug Fixes
 - ``astropy.nddata``
 
 - ``astropy.stats``
-
-  - Fixed broadcasting in ``sigma_clip`` when using negative ``axis``. [#4988]
 
 - ``astropy.table``
 
@@ -648,6 +650,8 @@ Bug Fixes
 - ``astropy.nddata``
 
 - ``astropy.stats``
+
+  - Fixed broadcasting in ``sigma_clip`` when using negative ``axis``. [#4988]
 
 - ``astropy.sphinx``
 
@@ -876,11 +880,6 @@ New Features
 
   - Enable test runner to obtain documentation source files from directory
     other than "docs". [#4748]
-
-  - Install both runtime and test dependencies when running the
-    ./setup.py test command. These dependencies are specified by the
-    install_requires and tests_require keywords via setuptools.
-    [#5092, astropy-helpers #212]
 
 - ``astropy.time``
 
@@ -1991,6 +1990,9 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Initialising a SkyCoord from a list containing a single SkyCoord no longer removes
+    the distance from the coordinate. [#5270]
+
   - Fix errors in the implementation of the conversion to and from FK4 frames
     without e-terms, which will have affected coordinates not on the unit
     sphere (i.e., with distances). [#4293]
@@ -2018,6 +2020,9 @@ Bug Fixes
     [#5319]
 
   - Fix segfault with FastCsv and row with too many columns. [#5534]
+
+  - Fix problem reading an AASTex format table that does not have ``\\``
+    at the end of the last table row. [#5427]
 
 - ``astropy.io.fits``
 
@@ -2105,9 +2110,6 @@ Bug Fixes
 - ``astropy.io.ascii``
 
   - Fix problem reading a zero-length ECSV table with a bool type column. [#5010]
-
-  - Fix problem reading an AASTex format table that does not have ``\\``
-    at the end of the last table row. [#5427]
 
 - ``astropy.io.fits``
 
