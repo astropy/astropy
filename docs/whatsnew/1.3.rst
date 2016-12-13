@@ -31,6 +31,18 @@ New WCSAxes framework to make Matplotlib plots with WCS coordinates
 New function to contruct RGB images based on Lupton et al. (2004) algorithm
 ---------------------------------------------------------------------------
 
+The :ref:`visualization <astropy-visualization>` subpackage now includes a
+function to create RGB composite images from individual (high dynamic range)
+images.  The technique is detailed in `Lupton et al. (2004)`_ and implemented in `~astropy.visualization.make_lupton_rgb`. For more details, see
+:ref:`astropy-visualization-rgb`.
+
+
+.. We use raw here because image directives pointing to external locations fail for some sphinx versions
+.. raw:: html
+
+    <a class="reference internal image-reference" href="http://data.astropy.org/visualization/ngc6976.jpeg"><img alt="lupton RGB image" src="http://data.astropy.org/visualization/ngc6976.jpeg" /></a>
+
+
 
 Change in Table behavior when setting column
 --------------------------------------------
@@ -99,3 +111,6 @@ Full change log
 
 To see a detailed list of all changes in version v1.2, including changes in
 API, please see the :ref:`changelog`.
+
+
+.. _Lupton et al. (2004): http://adsabs.harvard.edu/abs/2004PASP..116..133L
