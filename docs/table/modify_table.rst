@@ -209,6 +209,8 @@ temporary table disappeared once the statement was complete.  The takeaway
 is to pay attention to how certain operations are performed one step at
 a time.
 
+.. _table-replace-1_3:
+
 API change in replacing columns
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
