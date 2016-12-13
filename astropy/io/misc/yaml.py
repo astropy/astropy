@@ -73,12 +73,16 @@ import numpy as np
 from ...time import Time, TimeDelta
 from ... import units as u
 from ... import coordinates as coords
-from ...utils.data_info import _get_obj_attrs_map
+from ...utils import minversion
+
 
 try:
     import yaml
 except ImportError:
     raise ImportError('`import yaml` failed, PyYAML package is required for YAML')
+
+
+YAML_LT_3_12 = not minversion(yaml, '3.12')
 
 
 __all__ = ['AstropyLoader', 'AstropyDumper', 'load', 'load_all', 'dump']
@@ -197,6 +201,17 @@ class AstropyDumper(yaml.SafeDumper):
     """
     def _represent_tuple(self, data):
         return self.represent_sequence('tag:yaml.org,2002:python/tuple', data)
+
+    if YAML_LT_3_12:
+        # pre-3.12, ignore-aliases could not deal with ndarray, so we backport
+        # the more recent ignore_alises definition.
+        def ignore_aliases(self, data):
+            if data is None:
+                return True
+            if isinstance(data, tuple) and data == ():
+                return True
+            if isinstance(data, (str, unicode, bool, int, float)):
+                return True
 
 AstropyDumper.add_representer(u.IrreducibleUnit, _unit_representer)
 AstropyDumper.add_representer(u.CompositeUnit, _unit_representer)
