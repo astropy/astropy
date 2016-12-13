@@ -1174,7 +1174,7 @@ class HDUList(list, _Verify):
                     'uses zero-based indexing).\n{}\n'
                     'There may be extra bytes after the last HDU or the '
                     'file is corrupted.'.format(
-                        len(hdulist), indent(str(exc))), VerifyWarning)
+                        len(self), indent(str(exc))), VerifyWarning)
                 del exc
                 self._read_all = True
                 return False

@@ -844,3 +844,20 @@ class TestHDUListFunctions(FitsTestCase):
         # omitted.
         read_exts = [ext for ext in f[1:4] if ext.header['EXTNAME'] == 'SCI']
         assert len(read_exts) == 2
+
+    def test_proper_error_raised_on_non_fits_file_with_unicode(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/5594
+
+        The failure shows up when (in python 3+) you try to open a file
+        with unicode content that is not actually a FITS file. See:
+        https://github.com/astropy/astropy/issues/5594#issuecomment-266583218
+        """
+        import codecs
+        filename = self.temp('not-fits-with-unicode.fits')
+        with codecs.open(filename, mode='w', encoding='utf=8') as f:
+            f.write(u'Ce\xe7i ne marche pas')
+
+        # This should raise an IOError because there is no end card.
+        with pytest.raises(IOError):
+            fits.open(filename)
