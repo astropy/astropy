@@ -40,7 +40,7 @@ images.  The technique is detailed in `Lupton et al. (2004)`_ and implemented in
 .. We use raw here because image directives pointing to external locations fail for some sphinx versions
 .. raw:: html
 
-    <a class="reference internal image-reference" href="http://data.astropy.org/visualization/ngc6976.jpeg"><img alt="lupton RGB image" src="http://data.astropy.org/visualization/ngc6976.jpeg" /></a>
+    <a class="reference internal image-reference" href="http://data.astropy.org/visualization/ngc6976.jpeg"><img alt="lupton RGB image" src="http://data.astropy.org/visualization/ngc6976-small.jpeg" /></a>
 
 
 
