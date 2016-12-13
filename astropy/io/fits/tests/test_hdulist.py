@@ -793,3 +793,71 @@ class TestHDUListFunctions(FitsTestCase):
             assert (str(warning_lines[0].message) == '"clobber" was '
                     'deprecated in version 1.3 and will be removed in a '
                     'future version. Use argument "overwrite" instead.')
+
+    def test_invalid_hdu_key_in_contains(self):
+        """
+        Make sure invalid keys in the 'in' operator return False.
+        Regression test for https://github.com/astropy/astropy/issues/5583
+        """
+        hdulist = fits.HDUList(fits.PrimaryHDU())
+        hdulist.append(fits.ImageHDU())
+        hdulist.append(fits.ImageHDU())
+
+        # A more or less random assortment of things which are not valid keys.
+        bad_keys = [None, 3.5, {}]
+
+        for key in bad_keys:
+            assert not (key in hdulist)
+
+    def test_iteration_of_lazy_loaded_hdulist(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/5585
+        """
+        hdulist = fits.HDUList(fits.PrimaryHDU())
+        hdulist.append(fits.ImageHDU(name='SCI'))
+        hdulist.append(fits.ImageHDU(name='SCI'))
+        hdulist.append(fits.ImageHDU(name='nada'))
+        hdulist.append(fits.ImageHDU(name='SCI'))
+
+        filename = self.temp('many_extension.fits')
+        hdulist.writeto(filename)
+        f = fits.open(filename)
+
+        # Check that all extensions are read if f is not sliced
+        all_exts = [ext for ext in f]
+        assert len(all_exts) == 5
+
+        # Reload the file to ensure we are still lazy loading
+        f.close()
+        f = fits.open(filename)
+
+        # Try a simple slice with no conditional on the ext. This is essentially
+        # the reported failure.
+        all_exts_but_zero = [ext for ext in f[1:]]
+        assert len(all_exts_but_zero) == 4
+
+        # Reload the file to ensure we are still lazy loading
+        f.close()
+        f = fits.open(filename)
+
+        # Check whether behavior is proper if the upper end of the slice is not
+        # omitted.
+        read_exts = [ext for ext in f[1:4] if ext.header['EXTNAME'] == 'SCI']
+        assert len(read_exts) == 2
+
+    def test_proper_error_raised_on_non_fits_file_with_unicode(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/5594
+
+        The failure shows up when (in python 3+) you try to open a file
+        with unicode content that is not actually a FITS file. See:
+        https://github.com/astropy/astropy/issues/5594#issuecomment-266583218
+        """
+        import codecs
+        filename = self.temp('not-fits-with-unicode.fits')
+        with codecs.open(filename, mode='w', encoding='utf=8') as f:
+            f.write(u'Ce\xe7i ne marche pas')
+
+        # This should raise an IOError because there is no end card.
+        with pytest.raises(IOError):
+            fits.open(filename)

@@ -276,7 +276,34 @@ class HDUList(list, _Verify):
         Get an HDU from the `HDUList`, indexed by number or name.
         """
 
+        # If the key is a slice we need to make sure the necessary HDUs
+        # have been loaded before passing the slice on to super.
         if isinstance(key, slice):
+            max_idx = key.stop
+            # Check for and handle the case when no maximum was
+            # specified (e.g. [1:]).
+            # The first part of the or below is for python 2.7, the second
+            # part for python 3.
+            if max_idx == sys.maxsize or max_idx is None:
+                # We need all of the HDUs, so load them
+                # and reset the maximum to the actual length.
+                max_idx = len(self)
+
+            # Just in case the max_idx is negative...
+            max_idx = self._positive_index_of(max_idx)
+
+            number_loaded = super(HDUList, self).__len__()
+
+            if max_idx >= number_loaded:
+                # We need more than we have, try loading up to and including
+                # max_idx. Note we do not try to be clever about skipping HDUs
+                # even though key.step might conceivably allow it.
+                for i in range(number_loaded, max_idx):
+                    # Read until max_idx or to the end of the file, whichever
+                    # comes first.
+                    if not self._read_next_hdu():
+                        break
+
             hdus = super(HDUList, self).__getitem__(key)
             return HDUList(hdus)
 
@@ -411,13 +438,13 @@ class HDUList(list, _Verify):
             np.ndarray((), dtype='ubyte', buffer=data)
         except TypeError:
             raise TypeError(
-                'The provided object %r does not contain an underlying '
+                'The provided object {} does not contain an underlying '
                 'memory buffer.  fromstring() requires an object that '
                 'supports the buffer interface such as bytes, str '
                 '(in Python 2.x but not in 3.x), buffer, memoryview, '
                 'ndarray, etc.  This restriction is to ensure that '
                 'efficient access to the array/table data is possible.'
-                % data)
+                ''.format(data))
 
         return cls._readfrom(data=data, **kwargs)
 
@@ -634,10 +661,10 @@ class HDUList(list, _Verify):
             _ver = None
 
         if not isinstance(_key, string_types):
-            raise TypeError(
-                '%s indices must be integers, extension names as strings, '
-                'or (extname, version) tuples; got %r' %
-                (self.__class__.__name__, _key))
+            raise KeyError(
+                '{} indices must be integers, extension names as strings, '
+                'or (extname, version) tuples; got {}'
+                ''.format(self.__class__.__name__, _key))
 
         _key = (_key.strip()).upper()
 
@@ -679,7 +706,7 @@ class HDUList(list, _Verify):
 
         if abs(index) > len(self):
             raise IndexError(
-                'Extension %s is out of bound or not found.' % index)
+                'Extension {} is out of bound or not found.'.format(index))
 
         return len(self) + index
 
@@ -1147,7 +1174,7 @@ class HDUList(list, _Verify):
                     'uses zero-based indexing).\n{}\n'
                     'There may be extra bytes after the last HDU or the '
                     'file is corrupted.'.format(
-                        len(hdulist), indent(str(exc))), VerifyWarning)
+                        len(self), indent(str(exc))), VerifyWarning)
                 del exc
                 self._read_all = True
                 return False
