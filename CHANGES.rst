@@ -407,6 +407,8 @@ API Changes
 - ``astropy.io.votable``
 
 - ``astropy.modeling``
+  - Fix a bug to allow instantiation of a modeling class having a parameter
+    with a custom setter that takes two parameters ``(value, model)`` [#4586]
 
   - ``Gaussian2D`` now raises an error if ``theta`` is set at the same time as
     ``cov_matrix`` (previously ``theta`` was silently ignored). [#5537]
