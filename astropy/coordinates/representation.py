@@ -267,8 +267,11 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         else:
             apply_method = operator.methodcaller(method, *args, **kwargs)
 
-        return self.__class__(*[apply_method(getattr(self, component))
-                                for component in self.components], copy=False)
+        new = super().__new__(self.__class__)
+        for component in self.components:
+            setattr(new, '_' + component,
+                    apply_method(getattr(self, component)))
+        return new
 
     @property
     def shape(self):
