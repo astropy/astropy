@@ -117,6 +117,9 @@ class _File(object):
         if mode not in IO_FITS_MODES:
             raise ValueError("Mode '{}' not recognized".format(mode))
 
+        if hasattr(fileobj, 'geturl'):
+            fileobj = fileobj.geturl()
+
         if (isinstance(fileobj, string_types) and
             mode not in ('ostream', 'append') and
             _is_url(fileobj)): # This is an URL.

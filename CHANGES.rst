@@ -1485,6 +1485,7 @@ New Features
 
   - Support reading and writing from bzip2 compressed files. i.e. ``.fits.bz2``
     files. [#3789]
+  - Support reading of urlopen objects. [#4165]
 
   - Included a new command-line script called ``fitsinfo`` to display
     a summary of the HDUs in one or more FITS files. [#3677]
