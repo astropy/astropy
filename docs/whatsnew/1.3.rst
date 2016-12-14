@@ -57,10 +57,40 @@ configuration setting (although is future versions of Astropy this capability
 will be deprecated and removed).  For more details and examples on this change,
 see :ref:`table-replace-1_3`.
 
+.. _whatsnew-1.3-instance-shapes:
 
-Coordinate transformations can use JPL Ephemerides
---------------------------------------------------
+Times and coordinates can now be reshaped like arrays
+-----------------------------------------------------
 
+The shapes of :class:`~astropy.time.Time` and
+:class:`~astropy.coordinates.SkyCoord` instances (as well as underlying frames
+and realisations) can now be manipulated just like those of arrays, using
+methods with the same name.  For more details, see
+:ref:`astropy-time-shape-methods` and
+:ref:`astropy-coordinates-array-operations`.
+
+.. _whatsnew-1.3-jpl-ephemerides:
+
+Barycentric corrections and coordinate transformations can use JPL Ephemerides
+------------------------------------------------------------------------------
+
+JPL ephemerides, which could already be used to calculate positions of solar
+system bodies, can now also be used for :ref:`barycentric corrections
+<time-light-travel-time>` and :ref:`coordinate transformations
+<astropy-coordinates-transforming-ephemerides>`.
+
+.. _whatsnew-1.3-representation-arithmetic:
+
+Vector arithmetic using representations
+---------------------------------------
+
+:ref:`Representations <astropy-coordinates-representations>` are used inside
+coordinates as vectors to points on the sky, but they can more generally be
+seen as vectors in any frame from the origin to a given point. In the latter
+context, basic arithmetic such as addition and subtraction of vectors,
+multiplication or division with a constant, or taking the norm, are all well
+defined, and thus :ref:`have been implemented
+<astropy-coordinates-representations-arithmetic>`.
 
 Earth locations can now be obtained by address
 ----------------------------------------------
