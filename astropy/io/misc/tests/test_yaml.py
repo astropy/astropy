@@ -10,6 +10,8 @@ import numpy as np
 from ....coordinates import SkyCoord, EarthLocation, Angle, Longitude, Latitude
 from .... import units as u
 from ....time import Time
+from ....table import QTable
+from ....extern.six.moves import StringIO
 
 from ....tests.helper import pytest
 
@@ -138,3 +140,26 @@ def test_load_all():
     compare_time(t, ty)
     compare_coord(c, cy)
     assert unity == unit
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_ecsv_astropy_objects_in_meta():
+    """
+    Test that astropy core objects in ``meta`` are serialized.
+    """
+    t = QTable([[1, 2] * u.m, [4, 5]], names=['a', 'b'])
+    tm = _get_time()
+    c = SkyCoord([[1,2],[3,4]], [[5,6], [7,8]],
+                 unit='deg', frame='fk4',
+                 obstime=Time('2016-01-02'),
+                 location=EarthLocation(1000, 2000, 3000, unit=u.km))
+    unit = u.m / u.s
+
+    t.meta = {'tm': tm, 'c': c, 'unit': unit}
+    out = StringIO()
+    t.write(out, format='ascii.ecsv')
+    t2 = QTable.read(out.getvalue(), format='ascii.ecsv')
+
+    compare_time(tm, t2.meta['tm'])
+    compare_coord(c, t2.meta['c'])
+    assert t2.meta['unit'] == unit

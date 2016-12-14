@@ -231,7 +231,9 @@ def get_yaml_from_header(header):
     except ImportError:
         raise ImportError('`import yaml` failed, PyYAML package is required for ECSV format')
 
-    class TableDumper(yaml.Dumper):
+    from ..io.misc.yaml import AstropyDumper
+
+    class TableDumper(AstropyDumper):
         """
         Custom Dumper that represents OrderedDict as an !!omap object.
         """
@@ -316,7 +318,9 @@ def get_header_from_yaml(lines):
     except ImportError:
         raise ImportError('`import yaml` failed, PyYAML package is required for ECSV format')
 
-    class TableLoader(yaml.SafeLoader):
+    from ..io.misc.yaml import AstropyLoader
+
+    class TableLoader(AstropyLoader):
         """
         Custom Loader that constructs OrderedDict from an !!omap object.
         This does nothing but provide a namespace for adding the
