@@ -48,6 +48,9 @@ New Features
 
 - ``astropy.units``
 
+  - The `~astropy.units.quantity_input` decorator will now convert the output to
+    the unit specified as a return annotation under Python 3. [#5606]
+
 - ``astropy.utils``
 
 - ``astropy.visualization``
