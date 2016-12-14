@@ -227,3 +227,14 @@ def test_kwarg_default3():
 
     solarx, solary = myfunc_args(1*u.arcsec)
     """
+
+@py3only
+def test_return_annotation():
+    """
+    @u.quantity_input
+    def myfunc_args(solarx: u.arcsec) -> u.deg:
+        return solarx
+
+    solarx = myfunc_args(1*u.arcsec)
+    assert solarx.unit is u.deg
+    """
