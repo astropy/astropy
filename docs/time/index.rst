@@ -319,6 +319,8 @@ appropriate::
   <Time object: scale='utc' format='mjd' value=[ 50000.   50000.5]>
 
 
+.. _astropy-time-shape-methods:
+
 Numpy method analogs
 ^^^^^^^^^^^^^^^^^^^^
 
