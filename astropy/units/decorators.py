@@ -61,7 +61,7 @@ class QuantityInput(object):
 
             import astropy.units as u
             @u.quantity_input
-            def myfunction(myangle: u.arcsec) -> u.deg:
+            def myfunction(myangle: u.arcsec) -> u.deg**2:
                 return myangle**2
 
         Using equivalencies::
