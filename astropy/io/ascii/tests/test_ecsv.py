@@ -19,6 +19,7 @@ from ....tests.helper import pytest
 from ....extern.six.moves import StringIO
 from ..ecsv import DELIMITERS
 from ... import ascii
+from .... import units as u
 
 try:
     import yaml  # pylint: disable=W0611
@@ -199,3 +200,19 @@ def test_csv_ecsv_colnames_mismatch():
     with pytest.raises(ValueError) as err:
         ascii.read(lines, format='ecsv')
     assert "column names from ECSV header ['a', 'b', 'c']" in str(err)
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_regression_5604():
+    """
+    See https://github.com/astropy/astropy/issues/5604 for more.
+    """
+    t = Table()
+    t.meta = {"foo": 5*u.km, "foo2": u.s}
+    t["bar"] = [7]*u.km
+
+    out = StringIO()
+    t.write(out, format="ascii.ecsv")
+
+    assert '!astropy.units.Unit' in out.getvalue()
+    assert '!astropy.units.Quantity' in out.getvalue()
