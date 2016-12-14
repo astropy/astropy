@@ -332,6 +332,9 @@ Bug Fixes
 
 - ``astropy.io.ascii``
 
+  - Fix issue with units or other astropy core classes stored in table meta.
+    [#5605]
+
 - ``astropy.io.fits``
 
   - Made TFORMx keyword check more flexible in test of compressed images to
