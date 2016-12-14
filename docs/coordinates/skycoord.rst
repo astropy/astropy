@@ -264,6 +264,8 @@ If custom user-defined frames are included in the transform graph and they
 have additional frame attributes, then those attributes can also be
 set via corresponding keyword args in the |SkyCoord| initialization.
 
+.. _astropy-coordinates-array-operations:
+
 Array operations
 ^^^^^^^^^^^^^^^^^
 

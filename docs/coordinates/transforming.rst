@@ -91,6 +91,8 @@ steps.  So |skycoord| can always transform from one frame to another and
 back again without change, while low-level classes may lose information
 and hence often do not round-trip.
 
+.. _astropy-coordinates-transforming-ephemerides:
+
 Transformations and Solar-system ephemerides
 --------------------------------------------
 
