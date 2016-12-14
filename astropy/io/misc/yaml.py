@@ -74,6 +74,7 @@ from ...time import Time, TimeDelta
 from ... import units as u
 from ... import coordinates as coords
 from ...utils import minversion
+from ...extern import six
 
 
 try:
@@ -210,7 +211,7 @@ class AstropyDumper(yaml.SafeDumper):
                 return True
             if isinstance(data, tuple) and data == ():
                 return True
-            if isinstance(data, (str, unicode, bool, int, float)):
+            if isinstance(data, six.string_types + (bool, int, float)):
                 return True
 
 AstropyDumper.add_representer(u.IrreducibleUnit, _unit_representer)
