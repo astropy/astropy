@@ -364,6 +364,6 @@ def make_lupton_rgb(image_r, image_g, image_b, minimum=0, stretch=5, Q=8,
 
     if filename:
         import matplotlib.image
-        matplotlib.image.imsave(filename, rgb)
+        matplotlib.image.imsave(filename, rgb, origin='lower')
 
     return rgb
