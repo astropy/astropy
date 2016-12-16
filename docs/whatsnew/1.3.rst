@@ -67,11 +67,12 @@ Earth locations can now be obtained by address
 
 With the new :meth:`~astropy.coordinates.EarthLocation.of_address` classmethod,
 :class:`~astropy.coordinates.EarthLocation` objects can now be easily created
-using a string address, for example, "350 5th Ave, New York, NY 10118". This
-works by querying the Google Maps API to retrieve the latitude, longitude, and
-(optional) height of the specified location. This can be useful for quickly
-transforming locally to the :class:`~astropy.coordinates.AltAz` frame without
-having to look up the spherical coordinates of a location.
+using a string address, for example, `loc = EarthLocation.of_address("350 5th
+Ave, New York, NY 10118")`. This works by querying the Google Maps API to
+retrieve the latitude, longitude, and (optional) height of the specified
+location. This can be useful for quickly transforming locally to the
+:class:`~astropy.coordinates.AltAz` frame without having to look up the
+spherical coordinates of a location.
 
 
 Support for Fortran exponent formats in ASCII tables
