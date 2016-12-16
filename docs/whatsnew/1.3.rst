@@ -24,9 +24,41 @@ smaller improvements and bug fixes, which are described in the
 * xxx pull requests have been merged since v1.2
 * xxx distinct people have contributed code
 
-New WCSAxes framework to make Matplotlib plots with WCS coordinates
--------------------------------------------------------------------
+New WCSAxes framework to make plots with celestial coordinates
+--------------------------------------------------------------
 
+The :ref:`visualization <astropy-visualization>` subpackage now include the
+WCSAxes framework (previously distributed as a separate package) which makes it
+possible to make plots in Matplotlib with celestial coordinates on the axes.
+Examples and documentation are provided in :ref:`wcsaxes`.
+
+.. plot::
+   :context: reset
+   :align: center
+
+    import matplotlib.pyplot as plt
+
+    from astropy.wcs import WCS
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
+
+    filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
+
+    hdu = fits.open(filename)[0]
+    wcs = WCS(hdu.header)
+
+    ax = plt.subplot(projection=wcs)
+
+    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
+
+    ax.coords.grid(True, color='white', ls='solid')
+    ax.coords[0].set_axislabel('Galactic Longitude')
+    ax.coords[1].set_axislabel('Galactic Latitude')
+
+    overlay = ax.get_coords_overlay('fk5')
+    overlay.grid(color='white', ls='dotted')
+    overlay[0].set_axislabel('Right Ascension (J2000)')
+    overlay[1].set_axislabel('Declination (J2000)')
 
 New function to contruct RGB images based on Lupton et al. (2004) algorithm
 ---------------------------------------------------------------------------
