@@ -27,6 +27,30 @@ listed below.
 
    lombscargle.rst
 
+Constants
+=========
+
+The `astropy.stats` package defines two constants useful for
+converting between Gaussian sigma and full width at half maximum
+(FWHM):
+
+.. data:: gaussian_sigma_to_fwhm
+
+    Factor with which to multiply Gaussian 1-sigma standard deviation
+    to convert it to full width at half maximum (FWHM).
+
+    >>> from astropy.stats import gaussian_sigma_to_fwhm
+    >>> gaussian_sigma_to_fwhm
+    2.3548200450309493
+
+.. data:: gaussian_fwhm_to_sigma
+
+    Factor with which to multiply Gaussian full width at half maximum
+    (FWHM) to convert it to 1-sigma standard deviation.
+
+    >>> from astropy.stats import gaussian_fwhm_to_sigma
+    >>> gaussian_fwhm_to_sigma
+    0.42466090014400953
 
 See Also
 ========

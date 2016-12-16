@@ -33,14 +33,14 @@ __doctest_requires__ = {'binom_conf_interval': ['scipy.special'],
 
 gaussian_sigma_to_fwhm = 2.0 * np.sqrt(2.0 * np.log(2.0))
 """
-Factor with which to multiply Gaussian 1-sigma standard deviation(s) to
-convert them to full width at half maximum(s).
+Factor with which to multiply Gaussian 1-sigma standard deviation to
+convert it to full width at half maximum (FWHM).
 """
 
 gaussian_fwhm_to_sigma = 1. / gaussian_sigma_to_fwhm
 """
-Factor with which to multiply Gaussian full width at half maximum(s) to
-convert them to 1-sigma standard deviation(s).
+Factor with which to multiply Gaussian full width at half maximum (FWHM)
+to convert it to 1-sigma standard deviation.
 """
 
 
