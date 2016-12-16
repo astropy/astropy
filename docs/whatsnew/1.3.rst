@@ -24,12 +24,12 @@ smaller improvements and bug fixes, which are described in the
 * xxx pull requests have been merged since v1.2
 * xxx distinct people have contributed code
 
-New WCSAxes framework to make plots with world coordinates
-----------------------------------------------------------
+New WCSAxes framework to make plots with celestial coordinates
+--------------------------------------------------------------
 
 The :ref:`visualization <astropy-visualization>` subpackage now include the
 WCSAxes framework (previously distributed as a separate package) which makes it
-possible to make plots in Matplotlib with world coordinates on the axes.
+possible to make plots in Matplotlib with celestial coordinates on the axes.
 Examples and documentation are provided in :ref:`wcsaxes`.
 
 .. plot::
