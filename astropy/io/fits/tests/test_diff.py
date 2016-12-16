@@ -104,6 +104,11 @@ class TestDiff(FitsTestCase):
         assert (diff.diff_duplicate_keywords ==
                 {'A': (3, 1), 'B': (1, 2), 'C': (1, 2)})
 
+        report = diff.report()
+        assert ("Inconsistent duplicates of keyword 'A'     :\n"
+                "  Occurs 3 time(s) in a, 1 times in (b)") in report
+
+
     def test_floating_point_tolerance(self):
         ha = Header([('A', 1), ('B', 2.00001), ('C', 3.000001)])
         hb = ha.copy()
