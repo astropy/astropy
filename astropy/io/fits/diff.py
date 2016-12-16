@@ -734,7 +734,7 @@ class HeaderDiff(_BaseDiff):
                 self._writeln(u(' Inconsistent duplicates of keyword '
                                 '{!r:8}:').format(keyword))
                 self._writeln(u('  Occurs {} time(s) in a, {} times '
-                                'in (b)').format(count))
+                                'in (b)').format(*count))
 
         if self.diff_keyword_values or self.diff_keyword_comments:
             for keyword in self.common_keywords:
