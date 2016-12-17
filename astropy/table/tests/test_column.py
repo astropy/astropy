@@ -6,7 +6,7 @@ import operator
 
 import numpy as np
 
-from ...tests.helper import pytest, assert_follows_unicode_guidelines
+from ...tests.helper import pytest, assert_follows_unicode_guidelines, catch_warnings
 from ... import table
 from ... import units as u
 from ...extern import six
@@ -547,3 +547,39 @@ def test_qtable_column_conversion():
     # should become the appropriate FunctionQuantity subclass.
     qtab['f'].unit = u.dex(u.cm/u.s**2)
     assert isinstance(qtab['f'], u.Dex)
+
+
+def test_string_truncation_warning():
+    """
+    Test warnings associated with in-place assignment to a string
+    column that results in truncation of the right hand side.
+    """
+    t = table.Table([['aa', 'bb']], names=['a'])
+
+    with catch_warnings() as w:
+        from inspect import currentframe, getframeinfo
+        t['a'][1] = 'cc'
+        assert len(w) == 0
+
+        t['a'][:] = 'dd'
+        assert len(w) == 0
+
+    with catch_warnings() as w:
+        frameinfo = getframeinfo(currentframe())
+        t['a'][0] = 'eee'  # replace item with string that gets truncated
+        assert t['a'][0] == 'ee'
+        assert len(w) == 1
+        assert ('truncated right side string(s) longer than 2 character(s)'
+                in str(w[0].message))
+
+        # Make sure the warning points back to the user code line
+        assert w[0].lineno == frameinfo.lineno + 1
+        assert w[0].category is table.StringTruncateWarning
+        assert 'test_column' in w[0].filename
+
+    with catch_warnings() as w:
+        t['a'][:] = ['ff', 'ggg']  # replace item with string that gets truncated
+        assert np.all(t['a'] == ['ff', 'gg'])
+        assert len(w) == 1
+        assert ('truncated right side string(s) longer than 2 character(s)'
+                in str(w[0].message))
