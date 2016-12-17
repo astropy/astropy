@@ -38,12 +38,21 @@ class FixRemoteDataOption(type):
     before distutils/setuptools try to parse the command-line options.
     """
     def __init__(cls, name, bases, dct):
+
         try:
             idx = sys.argv.index('--remote-data')
         except ValueError:
             pass
         else:
             sys.argv[idx] = '--remote-data=any'
+
+        try:
+            idx = sys.argv.index('-R')
+        except ValueError:
+            pass
+        else:
+            sys.argv[idx] = '-R=any'
+
         return super(FixRemoteDataOption, cls).__init__(name, bases, dct)
 
 
