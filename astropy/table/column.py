@@ -789,16 +789,20 @@ class Column(BaseColumn):
     if six.PY2:
         __str__ = __bytes__
 
+    def _check_string_truncate(self, value):
+        value = np.asanyarray(value, dtype=self.dtype.type)
+        if value.dtype.itemsize > self.dtype.itemsize:
+            warnings.warn('truncated right side string(s) longer than {} '
+                          'character(s) during assignment'
+                          .format(self.dtype.str[2:]),
+                          StringTruncateWarning,
+                          stacklevel=3)
+
     def __setitem__(self, index, value):
         # Issue warning for string assignment that truncates ``value``
         if issubclass(self.dtype.type, np.character):
-            value = np.asanyarray(value, dtype=self.dtype.type)
-            if value.dtype.itemsize > self.dtype.itemsize:
-                warnings.warn('truncated right side string(s) longer than {} '
-                              'character(s) during assignment'
-                              .format(self.dtype.str[2:]),
-                              StringTruncateWarning,
-                              stacklevel=2)
+            self._check_string_truncate(value)
+
         # update indices
         self.info.adjust_indices(index, value, len(self))
 
@@ -809,6 +813,8 @@ class Column(BaseColumn):
     # # Set slices using a view of the underlying data, as it gives an
     # # order-of-magnitude speed-up.  Only gets called in Python 2.  [#3020]
     def __setslice__(self, start, stop, value):
+        if issubclass(self.dtype.type, np.character):
+            self._check_string_truncate(value)
         self.info.adjust_indices(slice(start, stop), value, len(self))
         self.data.__setslice__(start, stop, value)
 
