@@ -7,7 +7,7 @@ matplotlib plotting style.
 It is mostly here to allow a consistent plotting style in tutorials,
 but can be used to prepare any matplotlib figure.
 
-Using a matplotlib version > 1.4 you can do::
+Using a matplotlib version >= 1.5 you can do::
 
     >>> import matplotlib.pyplot as plt
     >>> from astropy.visualization import astropy_mpl_style
