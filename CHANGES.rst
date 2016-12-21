@@ -377,7 +377,26 @@ Bug Fixes
 
 - ``astropy.time``
 
+  - Ensure ``Time`` instances holding a single ``delta_ut1_utc`` can be copied,
+    flattened, etc. [#5225]
+
 - ``astropy.units``
+
+  - Operations involving ``Angle`` or ``Distance``, or any other
+    ``SpecificTypeQuantity`` instance, now also keep return an instance of the
+    same type if the instance was the second argument (if the resulting unit
+    is consistent with the specific type). [#5327]
+
+  - Inplace operations on ``Angle`` and ``Distance`` instances now raise an
+    exception if the final unit is not equivalent to radian and meter, resp.
+    Similarly, views as ``Angle`` and ``Distance`` can now only be taken
+    from quantities with appropriate units, and views as ``Quantity`` can only
+    be taken from logarithmic quanties such as ``Magnitude`` if the physical
+    unit is dimensionless. [#5070]
+
+  - Conversion from quantities to logarithmic units now correctly causes a
+    logarithmic quantity such as ``Magnitude`` to be returned. [#5183]
+
 
 - ``astropy.utils``
 
@@ -406,6 +425,9 @@ Other Changes and Additions
     the internal cache. This is useful when modifying representation data
     in-place without using ``realize_frame``. Additionally, documentation for
     in-place operations on coordinates were added. [#5575]
+
+  - Coordinates and their representations are printed with a slightly different
+    format, following how numpy >= 1.12 prints structured arrays. [#5423]
 
 - ``astropy.cosmology``
 
@@ -477,6 +499,9 @@ Bug Fixes
 
 - ``astropy.io.ascii``
 
+  - Fix a bug where the ``fill_values`` parameter was ignored when writing a
+    table to HTML format. [#5379]
+
 - ``astropy.io.fits``
 
   - Handle unicode FITS BinTable column names on Python 2 [#5204, #4805]
@@ -519,24 +544,9 @@ Bug Fixes
 
 - ``astropy.units``
 
-  - Inplace operations on ``Angle`` and ``Distance`` instances now raise an
-    exception if the final unit is not equivalent to radian and meter, resp.
-    Similarly, views as ``Angle`` and ``Distance`` can now only be taken
-    from quantities with appropriate units, and views as ``Quantity`` can only
-    be taken from logarithmic quanties such as ``Magnitude`` if the physical
-    unit is dimensionless. [#5070]
-
-  - Operations involving ``Angle`` or ``Distance``, or any other
-    ``SpecificTypeQuantity`` instance, now also keep return an instance of the
-    same type if the instance was the second argument (if the resulting unit
-    is consistent with the specific type). [#5327]
-
   - For inverse trig functions that operate on quantities, catch any warnings
     that occur from evaluating the function on the unscaled quantity value
     between __array_prepare__ and __array_wrap__. [#5153]
-
-  - Conversion from quantities to logarithmic units now correctly causes a
-    logarithmic quantity such as ``Magnitude`` to be returned. [#5183]
 
   - Ensure ``!=`` also works for function units such as ``MagUnit`` [#5345]
 
@@ -1864,9 +1874,6 @@ Bug Fixes
 
   - Fix a bug with empty value at end of tab-delimited table on Windows. [#5370]
 
-  - Fix a bug where the ``fill_values`` parameter was ignored when writing a
-    table to HTML format. [#5379]
-
   - Fix reading of big ASCII tables (more than 2Gb) with the fast reader.
     [#5319]
 
@@ -1909,9 +1916,6 @@ Bug Fixes
 
 - ``astropy.time``
 
-  - Ensure ``Time`` instances holding a single ``delta_ut1_utc`` can be copied,
-    flattened, etc. [#5225]
-
 - ``astropy.units``
 
   - Fixed bug in Ci definition. [#5106]
@@ -1940,9 +1944,6 @@ Other Changes and Additions
 
 - The bundled ERFA was updated to version 1.3.0.  This includes the
   leap second planned for 2016 Dec 13. [#5418]
-
-- Coordinates and their representations are printed with a slightly different
-  format, following how numpy >= 1.12 prints structured arrays. [#5423]
 
 1.0.10 (2016-06-09)
 -------------------
