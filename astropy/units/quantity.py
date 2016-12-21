@@ -340,7 +340,7 @@ class Quantity(np.ndarray):
                     p = args[1].to(dimensionless_unscaled).value
 
                 try:
-                    result_unit = units[0] ** p
+                    result_unit = units[0] ** validate_power(p)
                 except ValueError as exc:
                     # Changing the unit does not work for, e.g., array-shaped
                     # power, but this is OK if we're (scaled) dimensionless.
