@@ -427,7 +427,7 @@ class Ecsv(basic.Basic):
     ... 004 3
     ... '''
     >>> Table.read(ecsv_content, format='ascii.ecsv')
-    <Table length=2>
+    <Table masked=False length=2>
       a     b
     m / s   km
     int64 int64
