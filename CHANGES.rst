@@ -1,185 +1,3 @@
-1.3 (unreleased)
-----------------
-
-New Features
-^^^^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.sphinx``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-  - Added ``pixel_scale`` and ``plate_scale`` equivalencies. [#4987]
-
-- ``astropy.utils``
-
-  - Added a new decorator: ``deprecated_renamed_argument``. This can be used to
-    rename a function argument, while it still allows for the use of the older
-    argument name. [#5214]
-
-- ``astropy.visualization``
-
-  - Added ``data`` and ``interval`` inputs to the ``ImageNormalize``
-    class. [#5206]
-
-  - Added a new ``simple_norm`` convenience function. [#5206]
-
-  - Added a default stretch for the ``Normalization`` class. [#5206].
-
-  - Added a default ``vmin/vmax`` for the ``ManualInterval`` class.
-    [#5206].
-
-  - The ``wcsaxes`` subpackage has now been integrated in astropy as
-    ``astropy.visualization.wcsaxes``.  This allows plotting of astronomical
-    data/coordinate systems in Matplotlib. [#5496]
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
-API Changes
-^^^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-  - ASCII writers now accept an 'overwrite' argument.
-	The default behavior is changed so that a warning will be
-	issued when overwriting an existing file unless ``overwrite=True``.
-	In a future version this will be changed from a warning to an
-	exception to prevent accidentally overwriting a file. [#5007]
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-  - Renamed ``ignored`` context manager in ``compat.misc`` to ``suppress``
-    to be consistent with https://bugs.python.org/issue19266 . [#5003]
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
-Bug Fixes
-^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-  - GCRS frames representing a location on Earth with multiple obstimes are now
-    allowed. This means that the solar system routines ``get_body``,
-    ``get_moon`` and ``get_sun`` now work with non-scalar times and a
-    non-geocentric observer. [#5253]
-
-  - Initialising a SkyCoord from a list containing a single SkyCoord no longer removes
-    the distance from the coordinate. [#5270]
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-  - Made TFORMx keyword check more flexible in test of compressed images to
-    enable compatibility of the test with cfitsio 3.380. [#4646]
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-  - ``read`` now correctly raises an IOError if a file with an unknown
-    extension can't be found, instead of raising IORegistryError:
-    "Format could not be identified." [#4779]
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-  - Fixed broadcasting in ``sigma_clip`` when using negative ``axis``. [#4988]
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
-Other Changes and Additions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-- Initialization of ``Angle`` has been sped up for ``Quantity`` and ``Angle``
-  input. [#4970]
-
 1.2.2 (unreleased)
 ------------------
 
@@ -197,6 +15,9 @@ Bug Fixes
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
+
+  - Fix a bug where the ``fill_values`` parameter was ignored when writing a
+    table to HTML format. [#5379]
 
 - ``astropy.io.fits``
 
@@ -223,6 +44,8 @@ Bug Fixes
 
 - ``astropy.stats``
 
+  - Fixed broadcasting in ``sigma_clip`` when using negative ``axis``. [#4988]
+
 - ``astropy.sphinx``
 
 - ``astropy.table``
@@ -238,20 +61,9 @@ Bug Fixes
 
 - ``astropy.units``
 
-  - Inplace operations on ``Angle`` and ``Distance`` instances now raise an
-    exception if the final unit is not equivalent to radian and meter, resp.
-    Similarly, views as ``Angle`` and ``Distance`` can now only be taken
-    from quantities with appropriate units, and views as ``Quantity`` can only
-    be taken from logarithmic quanties such as ``Magnitude`` if the physical
-    unit is dimensionless. [#5070]
-
   - For inverse trig functions that operate on quantities, catch any warnings
     that occur from evaluating the function on the unscaled quantity value
     between __array_prepare__ and __array_wrap__. [#5153]
-
-  - Conversion from quantities to logarithmic units now correctly causes a
-    logarithmic quantity such as ``Magnitude`` to be returned. [#5183]
-  
 
   - Ensure ``!=`` also works for function units such as ``MagUnit`` [#5345]
 
@@ -270,7 +82,6 @@ Bug Fixes
     distortion is present in the WCS object. [#5239]
 
   - Improved log messages in ``to_header``. [#5239]
-
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -722,6 +533,8 @@ Bug fixes
 
   - Fixed a problem with the ``Quantity._repr_latex_`` method causing errors
     when showing an ``EarthLocation`` in a Jupyter notebook. [#4542, #5068]
+
+- ``astropy.cosmology``
 
 - ``astropy.io.ascii``
 
@@ -1555,6 +1368,9 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Initialising a SkyCoord from a list containing a single SkyCoord no longer removes
+    the distance from the coordinate. [#5270]
+
   - Fix errors in the implementation of the conversion to and from FK4 frames
     without e-terms, which will have affected coordinates not on the unit
     sphere (i.e., with distances). [#4293]
@@ -1575,13 +1391,13 @@ Bug Fixes
 
   - Fix a bug with empty value at end of tab-delimited table on Windows. [#5370]
 
-  - Fix a bug where the ``fill_values`` parameter was ignored when writing a
-    table to HTML format. [#5379]
-
   - Fix reading of big ASCII tables (more than 2Gb) with the fast reader.
     [#5319]
 
   - Fix segfault with FastCsv and row with too many columns. [#5534]
+
+  - Fix problem reading an AASTex format table that does not have ``\\``
+    at the end of the last table row. [#5427]
 
 - ``astropy.io.fits``
 
@@ -1663,9 +1479,6 @@ Bug Fixes
 - ``astropy.io.ascii``
 
   - Fix problem reading a zero-length ECSV table with a bool type column. [#5010]
-
-  - Fix problem reading an AASTex format table that does not have ``\\``
-    at the end of the last table row. [#5427]
 
 - ``astropy.io.fits``
 
