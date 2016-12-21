@@ -120,6 +120,8 @@ class MetaData(object):
     """
 
     def __get__(self, instance, owner):
+        if instance is None:
+            return self
         if not hasattr(instance, '_meta'):
             instance._meta = OrderedDict()
         return instance._meta
