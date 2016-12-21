@@ -27,9 +27,9 @@ env:
         - PIP_DEPENDENCIES=''
 
     matrix:
-        - PYTHON_VERSION=2.6 SETUP_CMD='egg_info'
+        - PYTHON_VERSION=2.6 SETUP_CMD='egg_info' NUMPY_VERSION='1.9'
         - PYTHON_VERSION=2.7 SETUP_CMD='egg_info'
-        - PYTHON_VERSION=3.3 SETUP_CMD='egg_info'
+        - PYTHON_VERSION=3.3 SETUP_CMD='egg_info' NUMPY_VERSION='1.9'
         - PYTHON_VERSION=3.4 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.5 SETUP_CMD='egg_info'
 
