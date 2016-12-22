@@ -154,6 +154,22 @@ Serialization of Astropy classes to YAML
 Performance improvements with lazy-loading in the io.fits sub-package
 ---------------------------------------------------------------------
 
+The :ref:`io.fits <astropy-io-fits>` sub-package now supports "lazy loading",
+where all HDUs are not loaded until they are requested (or the file is closed).
+This should provide substantial speedups for situations using the convenience
+functions (e.g., :func:`~astropy.io.fits.getheader` or
+:func:`~astropy.io.fits.getdata`) to get HDU's that are near the front of a
+file with many HDU's.
+
+In the future, this may enable larger speedups using the standard
+:func:`astropy.io.fits.open` interface, but at the price of backwards
+compatibility.  Currently the interface allows access to HDU's all the way at
+the end of a file even after the file has been closed, preventing full use of
+the "lazy" loading described above.  To begin discouraging this usage, a
+deprecation warning will now be issued when an HDU is accessed in this manner.
+Future versions of astropy may remove this capability completely to allow full
+lazy HDU loading.
+
 
 .. _whatsnew-1.3-cosmo:
 
