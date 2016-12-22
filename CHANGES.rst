@@ -229,6 +229,10 @@ New Features
 
 - ``astropy.io.registry``
 
+  - Added ``delay_doc_updates`` contextmanager to postpone the formatting of
+    the documentation for the ``read`` and ``write`` methods of the class to
+    optionally reduce the import time. [#5275]
+
 - ``astropy.io.votable``
 
 - ``astropy.modeling``
@@ -613,10 +617,6 @@ Other Changes and Additions
   - The functions ``add_enabled_units``, ``set_enabled_equivalencies`` and
     ``add_enabled_equivalencies`` have been sped up by copying the current
     ``_UnitRegistry`` instead of building it from scratch. [#5306]
-
-  - Added ``delay_doc_updates`` contextmanager to postpone the formatting of
-    the documentation for the ``read`` and ``write`` methods of the class to
-    further reduce the import time. [#5275]
 
 - To build the documentation, the ``build_sphinx`` command has been deprecated
   in favor of ``build_docs``. [#5179]
