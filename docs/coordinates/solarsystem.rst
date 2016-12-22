@@ -57,8 +57,8 @@ downloaded and cached when the ephemeris is set):
   <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=( 3949481.68990897, -550931.9118838,  4961151.73733447) m, obsgeovel=( 40.1745933,  288.00078051,  0.) m / s): (ra, dec, distance) in (deg, deg, km)
       ( 136.90234781,  17.03160686,   8.89196019e+08)>
   >>> get_moon(t, loc) # doctest: +REMOTE_DATA, +FLOAT_CMP
-  <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=( 3949481.68990897, -550931.9118838,  4961151.73733447) m, obsgeovel=( 40.1745933,  288.00078051,  0.) m / s): (ra, dec, distance) in (deg, deg, km)
-      ( 165.51840735,  2.32900633,  407226.68749646)>
+  <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=( 3949481.6899252, -550931.91194065,  4961151.73733445) m, obsgeovel=( 40.1745933,  288.00078051,  0.) m / s): (ra, dec, distance) in (deg, deg, km)
+          ( 165.51849193,  2.32863887,  407229.65033585)>
   >>> get_body_barycentric('moon', t) # doctest: +REMOTE_DATA, +FLOAT_CMP
   <CartesianRepresentation (x, y, z) in km
       (  1.50107535e+08, -866789.11996916, -418963.55218495)>
