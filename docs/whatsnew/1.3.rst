@@ -150,6 +150,19 @@ supports extended precision to fully read fortran outputs. For more details see
 Serialization of Astropy classes to YAML
 ----------------------------------------
 
+Astropy now has an :mod:`astropy.io.misc.yaml` module, which allows
+converting astropy objects into a standard `YAML <http://yaml.org/>`_ format.
+For example::
+
+    >>> from astropy.io.misc import yaml
+    >>> from astropy import units as u
+    >>> print(yaml.dump(1*u.au))
+    !astropy.units.Quantity
+    unit: !astropy.units.Unit {unit: AU}
+    value: 1.0
+
+This functionality requires PyYaml version 3.12 or later.
+
 
 Performance improvements with lazy-loading in the io.fits sub-package
 ---------------------------------------------------------------------
