@@ -2472,7 +2472,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 not isinstance(header, (six.text_type, six.binary_type))):
             for naxis in itertools.count(1):
                 try:
-                    _naxis.append(header['NAXIS{}'.format(naxis)])
+                    _naxis.append(header['NAXIS{0}'.format(naxis)])
                 except KeyError:
                     break
         if len(_naxis) == 0:
@@ -2520,7 +2520,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 s += sfmt
                 print(s.format(*self.wcs.cd[i]))
 
-        print('NAXIS : {}'.format('  '.join(map(str, self._naxis))))
+        print('NAXIS : {0}'.format('  '.join(map(str, self._naxis))))
 
     def get_axis_types(self):
         """
