@@ -180,7 +180,7 @@ compatible with v1.3 and up, simply change all instances of
 Full change log
 ---------------
 
-To see a detailed list of all changes in version v1.2, including changes in
+To see a detailed list of all changes in version v1.3, including changes in
 API, please see the :ref:`changelog`.
 
 
