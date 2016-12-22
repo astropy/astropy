@@ -127,14 +127,29 @@ defined, and thus :ref:`have been implemented
 Earth locations can now be obtained by address
 ----------------------------------------------
 
-With the new :meth:`~astropy.coordinates.EarthLocation.of_address` classmethod,
-:class:`~astropy.coordinates.EarthLocation` objects can now be easily created
-using a string address, for example, ``loc = EarthLocation.of_address("350 5th
-Ave, New York, NY 10118")``. This works by querying the Google Maps API to
+With the new :meth:`~astropy.coordinates.EarthLocation.of_address` class
+method, :class:`~astropy.coordinates.EarthLocation` objects can now be
+easily created using a string address.  For example::
+
+>>> from astropy.coordinates import EarthLocation
+>>> loc = EarthLocation.of_address("350 5th Ave, New York, NY 10118")
+>>> loc
+<EarthLocation ( 1334938.47885339, -4651088.60103721,  4141299.41836111) m>
+>>> loc.geodetic
+(<Longitude -73.9856554 deg>,
+ <Latitude 40.7484404 deg>,
+ <Quantity -1.2647149866511903e-09 m>)
+
+This works by querying the Google Maps API to
 retrieve the latitude, longitude, and (optional) height of the specified
 location. This can be useful for quickly transforming locally to the
 :class:`~astropy.coordinates.AltAz` frame without having to look up the
-spherical coordinates of a location.
+spherical coordinates of a location::
+
+>>> from astropy.coordinates import SkyCoord, AltAz
+>>> m31 = SkyCoord.from_name('M31').transform_to(AltAz(obstime='2016-12-22 0:00', location=EarthLocation.of_address("350 5th Ave, New York, NY 10118")))
+>>> m31.alt, m31.az
+(<Latitude 85.3804464651436 deg>, <Longitude 279.6441719021479 deg>)
 
 
 Support for Fortran exponent formats in ASCII tables
