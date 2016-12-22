@@ -22,8 +22,8 @@ In particular, this release includes:
   :ref:`now combine like vectors <whatsnew-1.3-representation-arithmetic>`,
   with useful mathematical operations that can be performed on them.
 * Astropy coordinates and time objects now
-  :ref:` <whatsnew-1.3-instance-shapes>` behave much more consistently like
-  arrays when they are reshaped.
+  :ref:`behave much more consistently like arrays <whatsnew-1.3-instance-shapes>`
+  when they are reshaped.
 * Earth locations can now
   :ref:`be created from a postal address <whatsnew-1.3-of-address>`.
 * JPL Ephemerides :ref:`can now be used <whatsnew-1.3-jpl-ephemerides>` in the
