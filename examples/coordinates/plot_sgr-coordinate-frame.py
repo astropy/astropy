@@ -111,14 +111,14 @@ class Sagittarius(coord.BaseCoordinateFrame):
 # pre-deteremined Euler angles and the ``rotation_matrix`` helper function
 # since both systems are Heliocentric:
 
-SGR_PHI = np.radians(180+3.75) # Euler angles (from Law & Majewski 2010)
-SGR_THETA = np.radians(90-13.46)
-SGR_PSI = np.radians(180+14.111534)
+SGR_PHI = (180 + 3.75) * u.degree # Euler angles (from Law & Majewski 2010)
+SGR_THETA = (90 - 13.46) * u.degree
+SGR_PSI = (180 + 14.111534) * u.degree
 
 # Generate the rotation matrix using the x-convention (see Goldstein)
-D = rotation_matrix(SGR_PHI, "z", unit=u.radian)
-C = rotation_matrix(SGR_THETA, "x", unit=u.radian)
-B = rotation_matrix(SGR_PSI, "z", unit=u.radian)
+D = rotation_matrix(SGR_PHI, "z")
+C = rotation_matrix(SGR_THETA, "x")
+B = rotation_matrix(SGR_PSI, "z")
 A = np.diag([1.,1.,-1.])
 SGR_MATRIX = matrix_product(A, B, C, D)
 
