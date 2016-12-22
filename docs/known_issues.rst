@@ -216,6 +216,15 @@ and using it instead of the copy built-in to your Python).
 Build/installation/test issues
 ------------------------------
 
+Documentation build yields some warnings on recent Sphinx versions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Recent versions of sphinx are known to generate two warnings for the Astropy
+v1.0.x series: ``directive 'autoattribute' is already registered`` and
+``sphinx.ext.pngmath has been deprecated``.  The documentation still generates
+correctly, but these warnings are issued.  This problem has been fixed in more
+recent versions of Astropy, but these fixes are not easy to backport to the
+1.0.x series and therefore the warnings will continue in 1.0.x versions.
+
 Anaconda users should upgrade with ``conda``, not ``pip``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
