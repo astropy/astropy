@@ -1,14 +1,8 @@
-1.0.11 (unreleased)
+1.0.11 (2016-12-22)
 -------------------
 
 Bug Fixes
 ^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
 
 - ``astropy.coordinates``
 
@@ -28,8 +22,6 @@ Bug Fixes
   - Return an empty set of matches for ``search_around_sky`` and
     ``search_around_3d`` when one or both of the input coordinate
     arrays is empty. [#4875]
-
-- ``astropy.cosmology``
 
 - ``astropy.io.ascii``
 
@@ -54,10 +46,6 @@ Bug Fixes
   - Fixed usage of inplace operations that were raising an exception with
     recent versions of Numpy due to implicit casting. [#5250]
 
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
 - ``astropy.io.votable``
 
   - Fixed bug of ``Resource.__repr__()`` having undefined attributes and
@@ -66,16 +54,6 @@ Bug Fixes
 - ``astropy.modeling``
 
   - CompoundModel now correctly inherits _n_models, allowing the use of model sets [#5358]
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.sphinx``
-
-- ``astropy.table``
-
-- ``astropy.time``
 
 - ``astropy.units``
 
@@ -93,8 +71,6 @@ Bug Fixes
   - Fixed AttributeError when calling ``utils.misc.signal_number_to_name`` with
     Python3 [#5430].
 
-- ``astropy.vo``
-
 - ``astropy.wcs``
 
   - Update the ``_naxis{x}`` attributes when calling ``WCS.slice``. [#5411]
@@ -104,7 +80,7 @@ Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - The bundled ERFA was updated to version 1.3.0.  This includes the
-  leap second planned for 2016 Dec 13. [#5418]
+  leap second planned for 2016 Dec 31. [#5418]
 
 1.0.10 (2016-06-09)
 -------------------
