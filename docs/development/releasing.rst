@@ -430,59 +430,51 @@ release. The rest of the procedure is the same as any other release as
 described in :ref:`release-procedure` (although be sure to provide the
 right version number).
 
-1. Any existing fixes to the issues assigned to the current bug fix release
-   milestone, or labeled with the relevant "backport-x.y.z" label must be
-   merged into the bug fix branch.
+1. Any existing fixes to the issues assigned to a release milestone (and older
+   LTS releases, if there are any), must be included in the maintainence branch
+   before release.
 
 2. The Astropy changelog must be updated to list all issues--especially
    user-visible issues--fixed for the current release.  The changelog should
    be updated in the master branch, and then merged into the bug fix branch.
-   Most issues *should* already have changelog entries for them. But it's
-   typical to forget this, so if doesn't exist yet please add one in
+   Most issues *should* already have changelog entries for them. But
+   occasionally these are forgotten, so if doesn't exist yet please add one in
    the process of backporting.  See :ref:`changelog-format` for more details.
 
-To aid in this process there is a `suggest_backports.py script in the astropy-tools repository <https://github.com/astropy/astropy-tools/blob/master/suggest_backports.py>`_.
-The script is not perfect and still needs a little work, but it will get most of
-the work done.  For example, if
-the current bug fix branch is called 'v1.2.x' run it like so::
+To aid this process, there are a series of related scripts in the
+`astropy-tools repository`_, in the ``pr_consistency`` directory.  These scripts
+essentially check that the above two conditions are met. Detailed documentation
+for these scripts is given in their repository, but here we summarize the basic
+workflow.  Run the scripts in order (they are numbered 1.<something>.py,
+2.<something>.py, etc.), entering your github login credentials as needed (if
+you are going to run them multiple times, using a ``~/.netrc`` file is
+recommended). The script to actually scheck consistency should be run as:
 
-    $ suggest_backports.py astropy astropy v1.2.x -f backport.sh
+    $ python 4.check_consistency.py > consistency.html
 
-This will search GitHub for all issues assigned to the next bug fix release
-milestone that's associated with the given bug fix branch ('v1.2.2' for
-example), find the commits that fix those issues, and will generate a shell
-script called ``backport.sh`` containing all the ``git cherry-pick`` commands
-to backport all those fixes.
+Which will generate a simple web page that shows all of the areas where either
+a pull request was merged into master but is *not* in the relevant release that
+it has been milestoned for, as well as any changelog irregularities (i.e., PRs
+that are in the wrong section for what the github milestone indicates).  You'll
+want to correct those irregularities *first* before starting the backport
+process (re-running the scripts in order as needed).
 
-The ``suggest_backports.py`` script will typically take a couple minutes to
-run, but once it's done simply execute the generated script from within your
-local clone of the Astropy repository::
+The end of the ``consistency.html`` page will then show a series of
+``git cherry-pick`` commands to update the maintainence branch with the PRs that
+are needed to make the milestones and branches consistent.  Make sure you're in
+the correct maintainence branch with e.g.,
 
-    $ ./backport.sh
+    $ git checkout v1.3.x
 
-This will checkout the appropriate bug fix branch ('v1.2.x' in this example),
-do a ``git pull upstream v1.2.x`` to make sure it's up to date, and then start
-doing cherry-picks into the bug fix branch.
-
-.. note::
-
-    As discussed earlier, cherry-pick may result in merge conflicts.  If this
-    occurs, the ``backport.sh`` script will exit and the conflict should be
-    resolved manually, followed by running ``git commit``.  To resume the
-    ``backport.sh`` script after the merge conflict, it is currently necessary
-    to edit the script to either remove or comment out the ``git cherry-pick``
-    commands that already ran successfully.
-
-    The author of the script hopes to improve it in the future to add
-    ``git rebase`` like functionality, such that running
-    ``backport.sh --continue`` or ``backport.sh --skip`` will be possible in
-    such cases.
+if you are doing bugfixes for the 1.3.x series. Go through the commands one at a
+time, following the cherry-picking procedure described above. If for some reason
+you determine the github milestone was in error and the backporting is
+impossible, re-label the issue on github and move on.
 
 .. warning::
 
-    It has also been noted that the ``suggest_backports.py`` script is not
-    perfect, and can either miss issues that need to be backported, and in some
-    cases can report false positives.
+    Automated scripts are never perfect, and can either miss issues that need to
+    be backported, or in some cases can report false positives.
 
     It's always a good idea before finalizing a bug fix release to look on
     GitHub through the list of closed issues in the release milestone and check
