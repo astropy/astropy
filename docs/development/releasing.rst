@@ -26,10 +26,10 @@ packages that use the full bugfix/maintenance branch approach.)
    addresses.  Look for any mis-named entries or duplicates, and add them to the
    ``.mailmap`` file (matched to the appropriate canonical name/email address.)
    Once you have finished this, you can could the number of lines in
-   ``git shortlog -s`` to get the final contributor count.  Also be sure to
-   use the names in that list to update the ``docs/credits.rst`` file. (The
-   ``author_lists.py`` script in the `astropy-tools repository`_ helps with
-   this.)
+   ``git shortlog -s`` to get the final contributor count.
+#. Also be sure to update the ``docs/credits.rst`` file to include any new
+   contributors.  This can come from the above step, or the ``author_lists.py``
+   script in the `astropy-tools repository`_ mostly automates this.
 
 #. (Optional) You may want to set up a clean environment to build the release.
    For more on setting up virtual environments, see :ref:`virtual_envs`, but
@@ -154,10 +154,6 @@ packages that use the full bugfix/maintenance branch approach.)
 
       $ git clean -dfx
 
-   Then register the release on PyPI with::
-
-      $ python setup.py register
-
 #. Upload the source distribution to PyPI; this is preceded by re-running
    the sdist command, which is necessary for the upload command to know
    which distribution to upload::
@@ -175,26 +171,28 @@ packages that use the full bugfix/maintenance branch approach.)
 
 #. Push up all these changes to the `astropy core repository`_::
 
-      $ git push --tags upstream v<version>
+      $ git push --tags upstream v<version branch>.x
 
    .. note::
 
       You may need to replace ``upstream`` here with ``astropy`` or
       whatever remote name you use for the `astropy core repository`_.
 
-#. If this is a release of the current release (not an LTS), update the
-   "stable" branch to point to the new release::
+#. If this is a release of the current release (i.e., not an LTS supported along
+   side a more recent version), update the "stable" branch to point to the new
+   release::
 
       $ git checkout stable
       $ git reset --hard v<version>
       $ git push upstream stable --force
 
-#. Update Readthedocs so that it builds docs for the corresponding github tag.
+#. Update Readthedocs so that it builds docs for the version you just released.
+   You'll find this in the "admin" tab, with checkboxes next to each github tag.
    Also verify that the ``stable`` Readthedocs version builds correctly for
    the new version (it should trigger automatically once you've done the
-   previous step.)
+   previous step).
 
-   When releasing a patch release, also set the previous version in the
+#. When releasing a patch release, also set the previous RTD version in the
    release history to "protected".  For example when releasing v1.1.2, set
    v1.1.1 to "protected".  This prevents the previous releases from
    cluttering the list of versions that users see in the version dropdown
