@@ -148,7 +148,7 @@ Matching Catalogs
 `~astropy.coordinates` supports leverages the coordinate framework to make it
 straightforward to find the closest coordinates in a catalog to a desired set
 of other coordinates. For example, assuming ``ra1``/``dec1`` and
-``ra2``/``dec2`` are numpy arrays loaded from some file::
+``ra2``/``dec2`` are numpy arrays loaded from some file using match_to_catalog_sky::
 
     >>> from astropy.coordinates import SkyCoord
     >>> from astropy import units as u
