@@ -1,12 +1,8 @@
-1.3 (unreleased)
+1.3 (2016-12-22)
 ----------------
 
 New Features
 ^^^^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
 
 - ``astropy.convolution``
 
@@ -45,8 +41,6 @@ New Features
     To complement the latter, a new ``get_xyz(xyz_axis)`` method allows one to
     get a vector array out along a given axis. [#5439]
 
-- ``astropy.cosmology``
-
 - ``astropy.io.ascii``
 
   - Files with "Fortran-style" columns (i.e. double-precision scientific notation
@@ -77,7 +71,9 @@ New Features
 
 - ``astropy.io.registry``
 
-- ``astropy.io.votable``
+  - Added ``delay_doc_updates`` contextmanager to postpone the formatting of
+    the documentation for the ``read`` and ``write`` methods of the class to
+    optionally reduce the import time. [#5275]
 
 - ``astropy.modeling``
 
@@ -106,8 +102,6 @@ New Features
 
   - Added ``axis`` keyword to ``biweight_location`` and
     ``biweight_midvariance``. [#5127, #5158]
-
-- ``astropy.sphinx``
 
 - ``astropy.table``
 
@@ -163,8 +157,6 @@ New Features
     ``astropy.visualization.wcsaxes``.  This allows plotting of astronomical
     data/coordinate systems in Matplotlib. [#5496]
 
-- ``astropy.vo``
-
 - ``astropy.wcs``
 
   - Improved ``footprint_to_file``: allow to specify the coordinate system, and
@@ -174,10 +166,6 @@ New Features
 
 API Changes
 ^^^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
 
 - ``astropy.convolution``
 
@@ -201,8 +189,6 @@ API Changes
   - ``search_around_3d`` and ``search_around_sky`` now return units
     for the distance matching their input argument when no match is
     found, instead of ``dimensionless_unscaled``. [#5528]
-
-- ``astropy.cosmology``
 
 - ``astropy.io.ascii``
 
@@ -249,8 +235,6 @@ API Changes
     a copy is made when creating an ``Header`` from another ``Header``.
     [#5005, #5326]
 
-- ``astropy.io.misc``
-
 - ``astropy.io.registry``
 
   - ``.fts`` and ``.fts.gz`` files will be automatically identified as
@@ -259,16 +243,10 @@ API Changes
   - Added an optional ``readwrite`` parameter for ``get_formats`` to filter
     formats for read or write. [#5275]
 
-- ``astropy.io.votable``
-
 - ``astropy.modeling``
 
   - ``Gaussian2D`` now raises an error if ``theta`` is set at the same time as
     ``cov_matrix`` (previously ``theta`` was silently ignored). [#5537]
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
 
 - ``astropy.table``
 
@@ -282,10 +260,6 @@ API Changes
 
   - Allow ``collections.Mapping``-like ``data`` attribute when initializing a
     ``Table`` object (``dict``-like was already possible). [#5213]
-
-- ``astropy.time``
-
-- ``astropy.units``
 
 - ``astropy.utils``
 
@@ -312,12 +286,6 @@ API Changes
 Bug Fixes
 ^^^^^^^^^
 
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
 - ``astropy.coordinates``
 
   - Transformations between CIRS and AltAz now correctly account for the
@@ -327,8 +295,6 @@ Bug Fixes
     allowed. This means that the solar system routines ``get_body``,
     ``get_moon`` and ``get_sun`` now work with non-scalar times and a
     non-geocentric observer. [#5253]
-
-- ``astropy.cosmology``
 
 - ``astropy.io.ascii``
 
@@ -357,23 +323,11 @@ Bug Fixes
   - ``FITS_Record._convert_ascii`` now converts blank fields to 0 when a
     non-blank null column value is set. [#5134, #5394]
 
-- ``astropy.io.misc``
-
 - ``astropy.io.registry``
 
   - ``read`` now correctly raises an IOError if a file with an unknown
     extension can't be found, instead of raising IORegistryError:
     "Format could not be identified." [#4779]
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
 
 - ``astropy.time``
 
@@ -398,10 +352,6 @@ Bug Fixes
     logarithmic quantity such as ``Magnitude`` to be returned. [#5183]
 
 
-- ``astropy.utils``
-
-- ``astropy.vo``
-
 - ``astropy.wcs``
 
   - SIP distortion for an alternate WCS is correctly initialized now by
@@ -409,6 +359,9 @@ Bug Fixes
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- The bundled ERFA was updated to version 1.3.0.  This includes the
+  leap second planned for 2016 Dec 31.
 
 - ``astropy.coordinates``
 
@@ -462,10 +415,6 @@ Other Changes and Additions
     ``add_enabled_equivalencies`` have been sped up by copying the current
     ``_UnitRegistry`` instead of building it from scratch. [#5306]
 
-  - Added ``delay_doc_updates`` contextmanager to postpone the formatting of
-    the documentation for the ``read`` and ``write`` methods of the class to
-    further reduce the import time. [#5275]
-
 - To build the documentation, the ``build_sphinx`` command has been deprecated
   in favor of ``build_docs``. [#5179]
 
@@ -481,21 +430,12 @@ Other Changes and Additions
 
 - Deprecated escape sequences in strings (Python 3.6) have been removed. [#5489]
 
-1.2.2 (unreleased)
+
+1.2.2 (2016-12-22)
 ------------------
 
 Bug Fixes
 ^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
 
 - ``astropy.io.ascii``
 
@@ -515,21 +455,9 @@ Bug Fixes
   - Able to insert and remove lower case HIERARCH keywords in a consistent
     manner [#5313, #5321]
 
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
 - ``astropy.stats``
 
   - Fixed broadcasting in ``sigma_clip`` when using negative ``axis``. [#4988]
-
-- ``astropy.sphinx``
 
 - ``astropy.table``
 
@@ -540,8 +468,6 @@ Bug Fixes
   - Fix default value for ``show_row_index`` in ``Table.show_in_browser``.
     [#5562]
 
-- ``astropy.time``
-
 - ``astropy.units``
 
   - For inverse trig functions that operate on quantities, catch any warnings
@@ -549,12 +475,6 @@ Bug Fixes
     between __array_prepare__ and __array_wrap__. [#5153]
 
   - Ensure ``!=`` also works for function units such as ``MagUnit`` [#5345]
-
-- ``astropy.utils``
-
-- ``astropy.visualization``
-
-- ``astropy.vo``
 
 - ``astropy.wcs``
 
@@ -568,6 +488,9 @@ Bug Fixes
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- The bundled ERFA was updated to version 1.3.0.  This includes the
+  leap second planned for 2016 Dec 31.
 
 - ``astropy.stats``
 
@@ -1837,17 +1760,11 @@ Other Changes and Additions
   in Python 2.6 (this warning can be disabled through the usual Python warning
   filtering mechanisms). [#3779]
 
-1.0.11 (unreleased)
+1.0.11 (2016-12-22)
 -------------------
 
 Bug Fixes
 ^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
 
 - ``astropy.coordinates``
 
@@ -1867,8 +1784,6 @@ Bug Fixes
   - Return an empty set of matches for ``search_around_sky`` and
     ``search_around_3d`` when one or both of the input coordinate
     arrays is empty. [#4875]
-
-- ``astropy.cosmology``
 
 - ``astropy.io.ascii``
 
@@ -1893,10 +1808,6 @@ Bug Fixes
   - Fixed usage of inplace operations that were raising an exception with
     recent versions of Numpy due to implicit casting. [#5250]
 
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
 - ``astropy.io.votable``
 
   - Fixed bug of ``Resource.__repr__()`` having undefined attributes and
@@ -1905,16 +1816,6 @@ Bug Fixes
 - ``astropy.modeling``
 
   - CompoundModel now correctly inherits _n_models, allowing the use of model sets [#5358]
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.sphinx``
-
-- ``astropy.table``
-
-- ``astropy.time``
 
 - ``astropy.units``
 
@@ -1932,8 +1833,6 @@ Bug Fixes
   - Fixed AttributeError when calling ``utils.misc.signal_number_to_name`` with
     Python3 [#5430].
 
-- ``astropy.vo``
-
 - ``astropy.wcs``
 
   - Update the ``_naxis{x}`` attributes when calling ``WCS.slice``. [#5411]
@@ -1943,7 +1842,7 @@ Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - The bundled ERFA was updated to version 1.3.0.  This includes the
-  leap second planned for 2016 Dec 13. [#5418]
+  leap second planned for 2016 Dec 31. [#5418]
 
 1.0.10 (2016-06-09)
 -------------------
