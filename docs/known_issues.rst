@@ -218,7 +218,7 @@ Build/installation/test issues
 
 Documentation build yields some warnings on recent Sphinx versions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Recent versions of sphinx are known to generate two warnings for the Astropy
+Sphinx >=1.4 is  known to generate two warnings for the Astropy
 v1.0.x series: ``directive 'autoattribute' is already registered`` and
 ``sphinx.ext.pngmath has been deprecated``.  The documentation still generates
 correctly, but these warnings are issued.  This problem has been fixed in more
