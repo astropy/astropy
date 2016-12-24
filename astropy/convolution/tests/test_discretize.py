@@ -76,35 +76,35 @@ def test_gaussian_eval_2D(mode):
     Discretize Gaussian with different modes and check
     if result is at least similar to Gaussian2D.eval()
     """
-    model = Gaussian2D(1, 0, 0, 20, 20)
+    model = Gaussian2D(0.01, 0, 0, 1, 1)
 
-    x = np.arange(-100, 101)
-    y = np.arange(-100, 101)
+    x = np.arange(-2, 3)
+    y = np.arange(-2, 3)
 
     x, y = np.meshgrid(x, y)
 
     values = model(x, y)
-    disc_values = discretize_model(model, (-100, 101), (-100, 101), mode=mode)
-    assert_allclose(values, disc_values, atol=1e-3)
+    disc_values = discretize_model(model, (-2, 3), (-2, 3), mode=mode)
+    assert_allclose(values, disc_values, atol=1e-2)
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_gaussian_eval_2D_integrate_mode():
     """
     Discretize Gaussian with integrate mode
     """
-    model_list = [Gaussian2D(1, 0, 0, 20, 20),
-                  Gaussian2D(1, 0, 0, 30, 20),
-                  Gaussian2D(1, 0, 0, 20, 30)]
+    model_list = [Gaussian2D(.01, 0, 0, 2, 2),
+                  Gaussian2D(.01, 0, 0, 1, 2),
+                  Gaussian2D(.01, 0, 0, 2, 1)]
 
-    x = np.arange(-100, 101)
-    y = np.arange(-100, 101)
+    x = np.arange(-2, 3)
+    y = np.arange(-2, 3)
 
     x, y = np.meshgrid(x, y)
 
     for model in model_list:
         values = model(x, y)
-        disc_values = discretize_model(model, (-100, 101), (-100, 101), mode='integrate')
-        assert_allclose(values, disc_values, atol=1e-3)
+        disc_values = discretize_model(model, (-2, 3), (-2, 3), mode='integrate')
+        assert_allclose(values, disc_values, atol=1e-2)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
