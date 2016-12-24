@@ -14,7 +14,6 @@ Astropy Project Coordinators
 Core Package Contributors
 =========================
 
-
 * Ryan Abernathey
 * Shailesh Ahuja
 * Tom Aldcroft
@@ -219,6 +218,7 @@ Core Package Contributors
 * Julien Woillez
 * Maneesh Yadav
 * Víctor Zabalza
+
 
 Other Credits
 =============
