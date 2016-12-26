@@ -90,12 +90,12 @@ A binary prefix is a unit prefix for multiples of units in data processing, data
 
 
      Symbol | Unit name | Value
-     Ki    |  kibi     | 2^10
-     Mi    |  mebi     | 2^20
-     Gi    |  gibi     | 2^30
-     Ti    |  tebi     | 2^40
-     Pi    |  pebi     | 2^50
-     Ei    |  exbi     | 2^60
+     Ki     |  kibi     | 2^10
+     Mi     |  mebi     | 2^20
+     Gi     |  gibi     | 2^30
+     Ti     |  tebi     | 2^40
+     Pi     |  pebi     | 2^50
+     Ei     |  exbi     | 2^60
 
 
 .. _doc_dimensionless_unit:
