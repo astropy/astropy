@@ -426,8 +426,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         256.
     quiet : bool, optional
         Silence warning message about NaN interpolation
-    normalized_epsilon: float, optional
-        The upper limit on the deviation of the kernel sum with respect to unity.
+    normalization_rtol: float, optional
+        The upper limit on the deviation of the kernel sum from unity; in other
+        words, the relative tolerance for errors in the kernel normalization.
         Will be checked only if ``normalize_kernel`` is False. Default is "1e-8".
     allow_huge : bool, optional
         Allow huge arrays in the FFT?  If False, will raise an exception if the
