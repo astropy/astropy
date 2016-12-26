@@ -89,7 +89,7 @@ Binary Prefixes
 A binary prefix is a unit prefix for multiples of units in data processing, data transmission, and digital information, notably the bit and the byte, to indicate multiplication by a power of 2. The following are supported::
 
 
-	Symbol | Unit name | Value
+     Symbol | Unit name | Value
      Ki    |  kibi     | 2^10
      Mi    |  mebi     | 2^20
      Gi    |  gibi     | 2^30
