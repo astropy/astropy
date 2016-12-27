@@ -15,6 +15,9 @@ New Features
 
   - Convolution with un-normalized and un-normalizable kernels is now possible.
     [#5782]
+  - Add a new argument, ``normalization_rtol``, to ``convolve_fft``, allowing
+    the user to specify the relative error tolerance in the normalization of
+    the convolution kernel. [#5649, #5177]
 
 - ``astropy.coordinates``
 
