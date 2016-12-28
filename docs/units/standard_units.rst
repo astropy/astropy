@@ -56,7 +56,7 @@ The unit prefixes
 In addition to these units, `astropy.units` includes the concept of unit prefixes. A unit prefix is a specifier or mnemonic that is prepended to units of measurement to indicate multiples or fractions of the units. Units of various sizes are commonly formed by the use of such prefixes.
 
 SI Prefixes
-^^^^^^^^^^^^^^
+^^^^^^^^^^^
 The prefixes of the metric system (commonly known as SI prefixes) precede a basic unit of measure to indicate a decadic multiple (base 10) and fraction of a unit. The following are supported::
 
 
@@ -84,7 +84,7 @@ The prefixes of the metric system (commonly known as SI prefixes) precede a basi
 
 
 Binary Prefixes
-^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^
 
 A binary prefix is a unit prefix for multiples of units in data processing, data transmission, and digital information, notably the bit and the byte, to indicate multiplication by a power of 2. The following are supported::
 
