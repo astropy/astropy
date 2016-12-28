@@ -10,6 +10,7 @@ from numpy.testing import assert_array_almost_equal_nulp, assert_allclose
 
 from ..convolve import convolve_fft
 from ...tests.helper import catch_warnings
+from ...utils.exceptions import AstropyUserWarning
 
 
 VALID_DTYPES = []
@@ -339,7 +340,7 @@ class TestConvolve1D(object):
 
         for err, expect_warn in zip(norm_error, expect_warnings):
             kernel = base_kernel + err
-            with catch_warnings() as warns:
+            with catch_warnings(AstropyUserWarning) as warns:
                 result = convolve_fft(array, kernel,
                                       normalize_kernel=normalize_kernel,
                                       ignore_edge_zeros=ignore_edge_zeros,
