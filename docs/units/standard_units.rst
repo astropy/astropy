@@ -48,17 +48,6 @@ all the existing predefined units of a given type::
     u            | 1.66054e-27 kg  | Da, Dalton                       ,
   ]
 
-.. _doc_prefixes:
-
-Prefixes
---------
-
-The package `astropy.units` has support for prefixes which are used to
-represent multiples (or submultiples) of a unit of measure. The two prefixes
-included are decimal prefixes used as a SI standard and binary prefixes which
-are used as IEEE 1514 standard.
-
-.. _doc_prefixes:
 
 Prefixes
 --------
