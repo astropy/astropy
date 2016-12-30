@@ -12,8 +12,8 @@ from .physical import _unit_physical_mapping
 
 def _get_allowed_units(targets):
     """
-    Given a list of possible Unit objects, string units, and string physical
-    types, return a list of allowed Unit objects.
+    From a list of target units (either as strings or unit objects) and physical
+    types, return a list of Unit objects.
     """
 
     allows_units = []
