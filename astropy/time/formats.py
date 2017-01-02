@@ -604,7 +604,7 @@ class TimeDatetime(TimeUnique):
 
         for iy, im, id, ihr, imin, isec, ifracsec, out in iterator:
             if isec >= 60:
-                raise ValueError('Time {} is within a leap second but dateime '
+                raise ValueError('Time {} is within a leap second but datetime '
                                  'does not support leap seconds'
                                  .format((iy, im, id, ihr, imin, isec, ifracsec)))
             if timezone is not None:
