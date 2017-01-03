@@ -188,22 +188,22 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
         import numpy as np
         import matplotlib.pyplot as plt
         from astropy.modeling import models
-        
+
         x = np.logspace(0.7, 2.3, 500)
         f = models.SmoothlyBrokenPowerLaw1D(amplitude=1, log_break=1.5, alpha_1=-2, alpha_2=2)
-        
+
         plt.figure()
         plt.title("amplitude=1, log_break=1.5, alpha_1=-2, alpha_2=2")
-        
+
         f.delta = 0.5
         plt.loglog(x, f(x), '--', label='delta=0.5')
-        
+
         f.delta = 0.3
         plt.loglog(x, f(x), '-.', label='delta=0.3')
-        
+
         f.delta = 0.1
         plt.loglog(x, f(x), label='delta=0.1')
-        
+
         plt.axis([x.min(), x.max(), 0.1, 1.1])
         plt.legend(loc='lower center')
         plt.grid(True)
@@ -237,25 +237,25 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
         #the `t` value since the main formula (see docstring) can be
         #significantly simplified by neglecting `1` or `t`
         #respectively.  In the following we will check whether `t` is
-        #much greater, much smaller, of comparable to 1 by comparing
+        #much greater, much smaller, or comparable to 1 by comparing
         #the `logt` value with an appropriate threshold.
         threshold = 30 #corresponding to exp(30) ~ 1e13
         i = logt > threshold
-        if (i[0].size > 0):
+        if (i.max()):
             #In this case the main formula reduces to a simple power
             #law with index `alpha_2`.
             f[i] = amplitude * xx[i] ** (-alpha_2) \
                    / (2. ** ((alpha_1-alpha_2) * delta))
 
         i = logt < -threshold
-        if (i[0].size > 0):
+        if (i.max()):
             #In this case the main formula reduces to a simple power
             #law with index `alpha_1`.
             f[i] = amplitude * xx[i] ** (-alpha_1) \
                    / (2. ** ((alpha_1-alpha_2) * delta))
 
         i = np.abs(logt) <= threshold
-        if (i[0].size > 0):
+        if (i.max()):
             #In this case the `t` value is "comparable" to 1, hence we
             #we will evaluate the whole formula.
             t = np.exp(logt[i])
@@ -285,7 +285,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
 
         threshold = 30
         i = logt > threshold
-        if (i[0].size > 0):
+        if (i.max()):
             f[i] = amplitude * xx[i] ** (-alpha_2) \
                    / (2. ** ((alpha_1 - alpha_2) * delta))
 
@@ -296,7 +296,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
             d_delta[i] = f[i] * (-(alpha_1 - alpha_2) * np.log(2))
 
         i = logt < -threshold
-        if (i[0].size > 0):
+        if (i.max()):
             f[i] = amplitude * xx[i] ** (-alpha_1) \
                    / (2. ** ((alpha_1 - alpha_2) * delta))
 
@@ -307,7 +307,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
             d_delta[i] = f[i] * (-(alpha_1 - alpha_2) * np.log(2))
 
         i = np.abs(logt) <= threshold
-        if (i[0].size > 0):
+        if (i.max()):
             t = np.exp(logt[i])
             r = (1. + t) / 2.
             f[i] = amplitude * xx[i] ** (-alpha_1) \
