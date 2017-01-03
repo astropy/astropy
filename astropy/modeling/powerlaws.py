@@ -245,14 +245,14 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
             #In this case the main formula reduces to a simple power
             #law with index `alpha_2`.
             f[i] = amplitude * xx[i] ** (-alpha_2) \
-                   / (2. ** ((alpha_1-alpha_2) * delta))
+                   / (2. ** ((alpha_1 - alpha_2) * delta))
 
         i = logt < -threshold
         if (i.max()):
             #In this case the main formula reduces to a simple power
             #law with index `alpha_1`.
             f[i] = amplitude * xx[i] ** (-alpha_1) \
-                   / (2. ** ((alpha_1-alpha_2) * delta))
+                   / (2. ** ((alpha_1 - alpha_2) * delta))
 
         i = np.abs(logt) <= threshold
         if (i.max()):
@@ -318,8 +318,8 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
                              * np.log(10)
             d_alpha_1[i] = f[i] * (-np.log(xx[i]) + delta * np.log(r))
             d_alpha_2[i] = f[i] * (-np.log(r) * delta)
-            d_delta[i] = f[i] * (alpha_1-alpha_2) \
-                         * (np.log(r) - t/(1.+t)/delta * np.log(xx[i]))
+            d_delta[i] = f[i] * (alpha_1 - alpha_2) \
+                         * (np.log(r) - t / (1.+t) / delta * np.log(xx[i]))
 
         return [d_amplitude, d_log_break, d_alpha_1, d_alpha_2, d_delta]
 
