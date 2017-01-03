@@ -312,3 +312,16 @@ def test_model_units_mismatch(data):
     with pytest.raises(ValueError) as err:
         LombScargle(t, y, dy).model(t_fit, frequency)
     assert str(err.value).startswith('Units of dy not equivalent')
+
+
+def test_autopower(data):
+    t, y, dy = data
+    ls = LombScargle(t, y, dy)
+    kwargs = dict(samples_per_peak=6, nyquist_factor=2,
+                  minimum_frequency=2, maximum_frequency=None)
+    freq1 = ls.autofrequency(**kwargs)
+    power1 = ls.power(freq1)
+    freq2, power2 = ls.autopower(**kwargs)
+
+    assert_allclose(freq1, freq2)
+    assert_allclose(power1, power2)
