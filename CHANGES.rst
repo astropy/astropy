@@ -300,8 +300,6 @@ New Features
   - Updated ``Gaussian2D`` to accept no arguments (will use default x/y_stddev
     and theta). [#5537]
 
-  - Added ``SmoothlyBrokenPowerLaw1D`` model.
-
 - ``astropy.nddata``
 
   - Added ``keep`` and ``**kwargs`` parameter to ``support_nddata``. [#5477]
@@ -1995,6 +1993,8 @@ New Features
 - ``astropy.io.votable``
 
 - ``astropy.modeling``
+
+  - Added ``SmoothlyBrokenPowerLaw1D`` model [#5656].
 
 - ``astropy.nddata``
 

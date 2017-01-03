@@ -135,134 +135,193 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
     Parameters
     ----------
     amplitude : float
-        Model amplitude at the break point
-    x_break : float
-        Break point
+        Model amplitude at the break point.
+    log_break : float
+        logarithm (base 10) of break point.
     alpha_1 : float
-        Power law index for x << x_break
+        Power law index for ``x << 10 ** log_break``.
     alpha_2 : float
-        Power law index for x >> x_break
-    smooth : float
-        Smoothness parameter
+        Power law index for ``x >> 10 ** log_break``.
+    delta : float
+        Smoothness parameter (must be positive).
 
     See Also
     --------
     BrokenPowerLaw1D
 
-    Notes ----- Model formula (with :math:`A` for ``amplitude`` and
-    :math:`\\alpha_1` for ``alpha_1`` and :math:`\\alpha_2` for
-    ``alpha_2`` and :math:`C` for ``smooth`` and :math:`S` for the
-    sign of ``alpha_1-alpha_2``):
+    Notes
+    -----
+    Model formula (with :math:`A` for ``amplitude``, :math:`x_b` for
+    ``10 ** log_break``, :math:`\\alpha_1` for ``alpha_1``,
+    :math:`\\alpha_2` for ``alpha_2`` and :math:`\\Delta` for
+    ``delta``):
 
         .. math::
 
-            f(x) = A (x / x_break) ^ {-\\alpha_1}
-                   \\left[
-                      \\frac{1 + (x / x_{break})^{|\\alpha_1-\\alpha_2| * C}}{2}
-                   \\right]}^{S / C}
+            f(x) = A \\left( \\frac{x}{x_b} \\right) ^ {-\\alpha_1}
+                   \\left\\{
+                      \\frac{1}{2}
+                      \\left[1 + \\left( \\frac{x}{x_b}\\right)^{1 / \\Delta} \\right]
+                   \\right\\}^{(\\alpha_1 - \\alpha_2) \\Delta}
+
+
+    The change of slope occurs between the values :math:`x_1`
+    and :math:`x_2` such that:
+
+        .. math::
+            \\log_{10} \\frac{x_2}{x_b} = \\log_{10} \\frac{x_b}{x_1} \\sim \\Delta
+
+
+    At values :math:`x \\lesssim x_1` and :math:`x \\gtrsim x_2` the
+    model is approximately a simple power law with index
+    :math:`\\alpha_1` and :math:`\\alpha_2` respectively.  The two
+    power laws are smoothly joined at values :math:`x_1 < x < x_2`,
+    hence the :math:`\\Delta` parameter sets the "smoothness" of the
+    slope change.
+
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+        from astropy.modeling import models
+        
+        x = np.logspace(0.7, 2.3, 500)
+        f = models.SmoothlyBrokenPowerLaw1D(amplitude=1, log_break=1.5, alpha_1=-2, alpha_2=2)
+        
+        plt.figure()
+        plt.title("amplitude=1, log_break=1.5, alpha_1=-2, alpha_2=2")
+        
+        f.delta = 0.5
+        plt.loglog(x, f(x), '--', label='delta=0.5')
+        
+        f.delta = 0.3
+        plt.loglog(x, f(x), '-.', label='delta=0.3')
+        
+        f.delta = 0.1
+        plt.loglog(x, f(x), label='delta=0.1')
+        
+        plt.axis([x.min(), x.max(), 0.1, 1.1])
+        plt.legend(loc='lower center')
+        plt.grid(True)
+        plt.show()
 
     """
 
-    amplitude = Parameter(default=1, bounds=[1.e-10, None])
-    x_break = Parameter(default=1, bounds=[1.e-10, None])
-    alpha_1 = Parameter(default=1, bounds=[-6, 6])
-    alpha_2 = Parameter(default=1, bounds=[-6, 6])
-    smooth = Parameter(default=1, bounds=[1.e-4, 1.e4])
+    amplitude = Parameter(default=1)
+    log_break = Parameter(default=1)
+    alpha_1 = Parameter(default=-2)
+    alpha_2 = Parameter(default=2)
+    delta = Parameter(default=1)
 
     @staticmethod
-    def evaluate(x, amplitude, x_break, alpha_1, alpha_2, smooth):
+    def evaluate(x, amplitude, log_break, alpha_1, alpha_2, delta):
         """One dimensional smoothly broken power law model function"""
 
-        if (amplitude <= 0):
-            raise ValueError("amplitude must be positive ("+str(amplitude)+")")
-        if (x_break <= 0):
-            raise ValueError("x_break value must be positive ("+str(x_break)+")")
-        if (smooth <= 0):
-            raise ValueError("smooth value must be positive ("+str(smooth)+")")
+        #Pre-calculate `x_b` and `x/x_b`
+        x_b = 10. ** log_break
+        xx = x / x_b
 
-        xx = x / x_break
-        logt =  np.abs(alpha_1 - alpha_2) * smooth * np.log(xx)
-        sign = np.sign(alpha_1 - alpha_2)
-        if (sign == 0):
-            sign = 1
+        #Initialize the return value
+        f = np.zeros_like(xx)
 
-        f = xx*0.
+        #The quantity `t = (x / x_b)^(1 / delta)` can become quite
+        #large.  To avoid overflow errors we will start by calculating
+        #its natural logarithm:
+        logt = np.log(xx) / delta
 
-        i = np.where(logt > 30)
+        #When `t >> 1` or `t << 1` we don't actually need to compute
+        #the `t` value since the main formula (see docstring) can be
+        #significantly simplified by neglecting `1` or `t`
+        #respectively.  In the following we will check whether `t` is
+        #much greater, much smaller, of comparable to 1 by comparing
+        #the `logt` value with an appropriate threshold.
+        threshold = 30 #corresponding to exp(30) ~ 1e13
+        i = logt > threshold
         if (i[0].size > 0):
-            f[i] = amplitude * xx[i]**(-alpha_2) / (2.**(sign/smooth))
+            #In this case the main formula reduces to a simple power
+            #law with index `alpha_2`.
+            f[i] = amplitude * xx[i] ** (-alpha_2) \
+                   / (2. ** ((alpha_1-alpha_2) * delta))
 
-        i = np.where(logt < -30)
+        i = logt < -threshold
         if (i[0].size > 0):
-            f[i] = amplitude * xx[i]**(-alpha_1) / (2.**(sign/smooth))
+            #In this case the main formula reduces to a simple power
+            #law with index `alpha_1`.
+            f[i] = amplitude * xx[i] ** (-alpha_1) \
+                   / (2. ** ((alpha_1-alpha_2) * delta))
 
-        i = np.where(np.abs(logt) <= 30)
+        i = np.abs(logt) <= threshold
         if (i[0].size > 0):
+            #In this case the `t` value is "comparable" to 1, hence we
+            #we will evaluate the whole formula.
             t = np.exp(logt[i])
             r = (1. + t) / 2.
-
-            f[i] = amplitude * xx[i]**(-alpha_1) * r**(sign/smooth)
+            f[i] = amplitude * xx[i] ** (-alpha_1) \
+                   * r ** ((alpha_1 - alpha_2) * delta)
 
         return f
 
     @staticmethod
-    def fit_deriv(x, amplitude, x_break, alpha_1, alpha_2, smooth):
-        """One dimensional smoothly broken power law derivative with respect to parameters"""
+    def fit_deriv(x, amplitude, log_break, alpha_1, alpha_2, delta):
+        """One dimensional smoothly broken power law derivative with respect
+           to parameters"""
 
-        if (amplitude <= 0):
-            raise ValueError("amplitude must be positive ("+str(amplitude)+")")
-        if (x_break <= 0):
-            raise ValueError("x_break value must be positive ("+str(x_break)+")")
-        if (smooth <= 0):
-            raise ValueError("smooth value must be positive ("+str(smooth)+")")
+        #Pre-calculate `x_b` and `x/x_b` and `logt`
+        x_b = 10. ** log_break
+        xx = x / x_b
+        logt = np.log(xx) / delta
 
-        xx = x / x_break
-        logt = np.abs(alpha_1 - alpha_2) * smooth * np.log(xx)
-        sign = np.sign(alpha_1 - alpha_2)
-        if (sign == 0):
-            sign = 1
-
-        f           = xx * 0.
-        d_amplitude = xx * 0.
-        d_x_break   = xx * 0.
-        d_alpha_1   = xx * 0.
-        d_alpha_2   = xx * 0.
-        d_smooth    = xx * 0.
+        #Initialize the return values
+        f = np.zeros_like(xx)
+        d_amplitude = np.zeros_like(xx)
+        d_log_break = np.zeros_like(xx)
+        d_alpha_1 = np.zeros_like(xx)
+        d_alpha_2 = np.zeros_like(xx)
+        d_delta = np.zeros_like(xx)
 
         threshold = 30
-        i = np.where(logt > threshold)
+        i = logt > threshold
         if (i[0].size > 0):
-            f[i] = amplitude * xx[i]**(-alpha_2) / (2.**(sign/smooth))
+            f[i] = amplitude * xx[i] ** (-alpha_2) \
+                   / (2. ** ((alpha_1 - alpha_2) * delta))
 
             d_amplitude[i] = f[i] / amplitude
-            d_x_break[i]   = f[i] * alpha_2 / x_break
-            d_alpha_1[i]   = 0.
-            d_alpha_2[i]   = f[i] * (-np.log(xx[i]))
-            d_smooth[i]    = f[i] * np.log(2.**(sign/smooth/smooth))
+            d_log_break[i] = f[i] * alpha_2 * np.log(10)
+            d_alpha_1[i] = f[i] * (-delta * np.log(2))
+            d_alpha_2[i] = f[i] * (-np.log(xx[i]) + delta * np.log(2))
+            d_delta[i] = f[i] * (-(alpha_1 - alpha_2) * np.log(2))
 
-        i = np.where(logt < -threshold)
+        i = logt < -threshold
         if (i[0].size > 0):
-            f[i] = amplitude * xx[i]**(-alpha_1) / (2.**(sign/smooth))
+            f[i] = amplitude * xx[i] ** (-alpha_1) \
+                   / (2. ** ((alpha_1 - alpha_2) * delta))
 
             d_amplitude[i] = f[i] / amplitude
-            d_x_break[i]   = f[i] * alpha_1 / x_break
-            d_alpha_1[i]   = f[i] * (-np.log(xx[i]))
-            d_alpha_2[i]   = 0.
-            d_smooth[i]    = f[i] * np.log(2.**(sign/smooth/smooth))
+            d_log_break[i] = f[i] * alpha_1 * np.log(10)
+            d_alpha_1[i] = f[i] * (-np.log(xx[i]) - delta * np.log(2))
+            d_alpha_2[i] = f[i] * delta * np.log(2)
+            d_delta[i] = f[i] * (-(alpha_1 - alpha_2) * np.log(2))
 
-        i = np.where(np.abs(logt) <= threshold)
+        i = np.abs(logt) <= threshold
         if (i[0].size > 0):
             t = np.exp(logt[i])
             r = (1. + t) / 2.
-            f[i] = amplitude * xx[i]**(-alpha_1) * r**(sign/smooth)
+            f[i] = amplitude * xx[i] ** (-alpha_1) \
+                   * r ** ((alpha_1 - alpha_2) * delta)
 
             d_amplitude[i] = f[i] / amplitude
-            d_x_break[i]   = f[i] * 1./x_break * (alpha_1 - (alpha_1-alpha_2) * t/2. / r)
-            d_alpha_1[i]   = f[i] * np.log(xx[i]) * (-1. + t/2. / r)
-            d_alpha_2[i]   = f[i] * (-np.log(xx[i]) * t/2. / r)
-            d_smooth[i]    = f[i] / smooth**2. * (-sign * np.log(r) - (alpha_1-alpha_2)*smooth/(1.+t) * np.log(xx[i]) * t)
+            d_log_break[i] = f[i] * (alpha_1 - (alpha_1 - alpha_2) * t/2. / r) \
+                             * np.log(10)
+            d_alpha_1[i] = f[i] * (-np.log(xx[i]) + delta * np.log(r))
+            d_alpha_2[i] = f[i] * (-np.log(r) * delta)
+            d_delta[i] = f[i] * (alpha_1-alpha_2) \
+                         * (np.log(r) - t/(1.+t)/delta * np.log(xx[i]))
 
-        return [d_amplitude, d_x_break, d_alpha_1, d_alpha_2, d_smooth]
+        return [d_amplitude, d_log_break, d_alpha_1, d_alpha_2, d_delta]
 
 
 class ExponentialCutoffPowerLaw1D(Fittable1DModel):

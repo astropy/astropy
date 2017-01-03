@@ -160,11 +160,11 @@ models_1D = {
     },
 
     SmoothlyBrokenPowerLaw1D: {
-        'parameters': [1, 1, 2, 3, 1000],
-        'constraints': {'fixed': {'smooth': True}},
-        'x_values': [0.1, 1, 10, 100],
-        'y_values': [1.00069339e+02, 1.00000000e+00, 1.00069339e-03, 1.00069339e-06],
-        'x_lim': [0.1, 100],
+        'parameters': [1, 0, -2, 2, 0.5],
+        'constraints': {'fixed': {'log_break': True, 'delta': True}},
+        'x_values': [0.01, 1, 100],
+        'y_values': [3.99920012e-04, 1.0, 3.99920012e-04],
+        'x_lim': [0.01, 100],
         'log_fit': True
     },
 
