@@ -656,69 +656,72 @@ class _BaseHDU(object):
             dirname = None
 
         with _free_space_check(self, dirname):
-            # For now fileobj is assumed to be a _File object
-            if not inplace or self._new:
-                header_offset, _ = self._writeheader(fileobj)
-                data_offset, data_size = self._writedata(fileobj)
+            self._writeto_internal(fileobj, inplace, copy)
 
-                # Set the various data location attributes on newly-written HDUs
-                if self._new:
-                    self._header_offset = header_offset
-                    self._data_offset = data_offset
-                    self._data_size = data_size
-                return
+    def _writeto_internal(self, fileobj, inplace, copy):
+        # For now fileobj is assumed to be a _File object
+        if not inplace or self._new:
+            header_offset, _ = self._writeheader(fileobj)
+            data_offset, data_size = self._writedata(fileobj)
 
-            hdrloc = self._header_offset
-            hdrsize = self._data_offset - self._header_offset
-            datloc = self._data_offset
-            datsize = self._data_size
+            # Set the various data location attributes on newly-written HDUs
+            if self._new:
+                self._header_offset = header_offset
+                self._data_offset = data_offset
+                self._data_size = data_size
+            return
 
-            if self._header._modified:
-                # Seek to the original header location in the file
-                self._file.seek(hdrloc)
-                # This should update hdrloc with he header location in the new file
-                hdrloc, hdrsize = self._writeheader(fileobj)
+        hdrloc = self._header_offset
+        hdrsize = self._data_offset - self._header_offset
+        datloc = self._data_offset
+        datsize = self._data_size
 
-                # If the data is to be written below with self._writedata, that
-                # will also properly update the data location; but it should be
-                # updated here too
-                datloc = hdrloc + hdrsize
-            elif copy:
-                # Seek to the original header location in the file
-                self._file.seek(hdrloc)
-                # Before writing, update the hdrloc with the current file position,
-                # which is the hdrloc for the new file
-                hdrloc = fileobj.tell()
-                fileobj.write(self._file.read(hdrsize))
-                # The header size is unchanged, but the data location may be
-                # different from before depending on if previous HDUs were resized
-                datloc = fileobj.tell()
+        if self._header._modified:
+            # Seek to the original header location in the file
+            self._file.seek(hdrloc)
+            # This should update hdrloc with he header location in the new file
+            hdrloc, hdrsize = self._writeheader(fileobj)
 
-            if self._data_loaded:
-                if self.data is not None:
-                    # Seek through the array's bases for an memmap'd array; we
-                    # can't rely on the _File object to give us this info since
-                    # the user may have replaced the previous mmap'd array
-                    if copy or self._data_replaced:
-                        # Of course, if we're copying the data to a new file
-                        # we don't care about flushing the original mmap;
-                        # instead just read it into the new file
-                        array_mmap = None
-                    else:
-                        array_mmap = _get_array_mmap(self.data)
+            # If the data is to be written below with self._writedata, that
+            # will also properly update the data location; but it should be
+            # updated here too
+            datloc = hdrloc + hdrsize
+        elif copy:
+            # Seek to the original header location in the file
+            self._file.seek(hdrloc)
+            # Before writing, update the hdrloc with the current file position,
+            # which is the hdrloc for the new file
+            hdrloc = fileobj.tell()
+            fileobj.write(self._file.read(hdrsize))
+            # The header size is unchanged, but the data location may be
+            # different from before depending on if previous HDUs were resized
+            datloc = fileobj.tell()
 
-                    if array_mmap is not None:
-                        array_mmap.flush()
-                    else:
-                        self._file.seek(self._data_offset)
-                        datloc, datsize = self._writedata(fileobj)
-            elif copy:
-                datsize = self._writedata_direct_copy(fileobj)
+        if self._data_loaded:
+            if self.data is not None:
+                # Seek through the array's bases for an memmap'd array; we
+                # can't rely on the _File object to give us this info since
+                # the user may have replaced the previous mmap'd array
+                if copy or self._data_replaced:
+                    # Of course, if we're copying the data to a new file
+                    # we don't care about flushing the original mmap;
+                    # instead just read it into the new file
+                    array_mmap = None
+                else:
+                    array_mmap = _get_array_mmap(self.data)
 
-            self._header_offset = hdrloc
-            self._data_offset = datloc
-            self._data_size = datsize
-            self._data_replaced = False
+                if array_mmap is not None:
+                    array_mmap.flush()
+                else:
+                    self._file.seek(self._data_offset)
+                    datloc, datsize = self._writedata(fileobj)
+        elif copy:
+            datsize = self._writedata_direct_copy(fileobj)
+
+        self._header_offset = hdrloc
+        self._data_offset = datloc
+        self._data_size = datsize
+        self._data_replaced = False
 
     def _close(self, closed=True):
         # If the data was mmap'd, close the underlying mmap (this will
