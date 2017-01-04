@@ -30,8 +30,13 @@ Astropy matplotlib style
 The visualization package contains two dictionaries that can be used to
 set the Matplotlib plotting style:
 
-* ``astropy_mpl_style``:  improves some settings over the matplotlib default
-* ``astropy_mpl_docs_style``:  used by the Astropy documentation
+.. data:: astropy_mpl_style
+
+    Improves some settings over the matplotlib default style.
+
+.. data:: astropy_mpl_docs_style
+
+    Matplotlib style used by the Astropy documentation.
 
 To apply the custom style on top of your existing matplotlib style,
 perform the following:
