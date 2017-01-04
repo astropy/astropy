@@ -24,6 +24,36 @@ Using `astropy.visualization`
    histogram.rst
    lupton_rgb.rst
 
+Astropy matplotlib style
+=========================
+
+This module contains dictionaries that can be used to set a matplotlib
+plotting style.  It is mostly here to allow a consistent plotting style
+in tutorials, but can be used to prepare any matplotlib figure.
+
+Using matplotlib version >= 1.5 you can do::
+
+    >>> import matplotlib.pyplot as plt
+    >>> from astropy.visualization import astropy_mpl_style
+    >>> plt.style.use(astropy_mpl_style)
+
+For older versions of matplotlib the following works::
+
+    >>> import matplotlib as mpl
+    >>> from astropy.visualization import astropy_mpl_style
+    >>> mpl.rcParams.update(astropy_mpl_style)
+
+This applies the astropy style on top of your existing matplotlib
+default parameters. If you want an exactly reproducible plot (again,
+this is useful if you are writing teaching material and you want the
+plot to come out exactly the same, independent of the users
+configuration for example), you should reset the matplotlib settings to
+the library defaults *before* applying the astropy style, e.g.::
+
+    >>> import matplotlib as mpl
+    >>> from astropy.visualization import astropy_mpl_style
+    >>> mpl.rcdefaults()
+    >>> mpl.rcParams.update(astropy_mpl_style)
 
 .. _fits2bitmap:
 
