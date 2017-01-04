@@ -19,7 +19,7 @@ from .image import PrimaryHDU, ImageHDU
 from ..file import _File
 from ..header import _pad_length
 from ..util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
-                    _get_array_mmap)
+                    _get_array_mmap, _free_space_check)
 from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from ....extern.six import string_types
 from ....utils import indent
@@ -774,13 +774,13 @@ class HDUList(list, _Verify):
                 # only append HDU's which are "new"
                 if hdu._new:
                     hdu._prewriteto(checksum=hdu._output_checksum)
-                    try:
+                    with _free_space_check(self):
                         hdu._writeto(self._file)
                         if verbose:
                             print('append HDU', hdu.name, extver)
                         hdu._new = False
-                    finally:
-                        hdu._postwriteto()
+                    hdu._postwriteto()
+
         elif self._file.mode == 'update':
             self._flush_update()
 
@@ -868,14 +868,16 @@ class HDUList(list, _Verify):
         # but only if the file doesn't exist.
         fileobj = _File(fileobj, mode='ostream', overwrite=overwrite)
         hdulist = self.fromfile(fileobj)
+        try:
+            dirname = os.path.dirname(hdulist._file.name)
+        except AttributeError:
+            dirname = None
 
-        for hdu in self:
-            hdu._prewriteto(checksum=checksum)
-            try:
+        with _free_space_check(self, dirname=dirname):
+            for hdu in self:
+                hdu._prewriteto(checksum=checksum)
                 hdu._writeto(hdulist._file)
-            finally:
                 hdu._postwriteto()
-
         hdulist.close(output_verify=output_verify, closed=closed)
 
     def close(self, output_verify='exception', verbose=False, closed=True):
@@ -927,16 +929,17 @@ class HDUList(list, _Verify):
         maintained only for backwards-compatibility.
         """
 
-        if self._file:
-            if self._file.mode in ['append', 'update']:
+        try:
+            if (self._file and self._file.mode in ['append', 'update']
+                    and not self._file.closed):
                 self.flush(output_verify=output_verify, verbose=verbose)
-
-            if closed and hasattr(self._file, 'close'):
+        finally:
+            if self._file and closed and hasattr(self._file, 'close'):
                 self._file.close()
 
-        # Give individual HDUs an opportunity to do on-close cleanup
-        for hdu in self:
-            hdu._close(closed=closed)
+            # Give individual HDUs an opportunity to do on-close cleanup
+            for hdu in self:
+                hdu._close(closed=closed)
 
     def info(self, output=None):
         """
@@ -1185,7 +1188,6 @@ class HDUList(list, _Verify):
         return True
 
     def _verify(self, option='warn'):
-        text = ''
         errs = _ErrList([], unit='HDU')
 
         # the first (0th) element must be a primary HDU
@@ -1282,20 +1284,18 @@ class HDUList(list, _Verify):
             else:
                 new_file = name
 
-            hdulist = self.fromfile(new_file, mode='append')
+            with self.fromfile(new_file, mode='append') as hdulist:
 
-            for hdu in self:
-                hdu._writeto(hdulist._file, inplace=True, copy=True)
+                for hdu in self:
+                    hdu._writeto(hdulist._file, inplace=True, copy=True)
+                if sys.platform.startswith('win'):
+                    # Collect a list of open mmaps to the data; this well be
+                    # used later.  See below.
+                    mmaps = [(idx, _get_array_mmap(hdu.data), hdu.data)
+                             for idx, hdu in enumerate(self) if hdu._has_data]
 
-            if sys.platform.startswith('win'):
-                # Collect a list of open mmaps to the data; this well be used
-                # later.  See below.
-                mmaps = [(idx, _get_array_mmap(hdu.data), hdu.data)
-                         for idx, hdu in enumerate(self) if hdu._has_data]
-
-            hdulist._file.close()
-            self._file.close()
-
+                hdulist._file.close()
+                self._file.close()
             if sys.platform.startswith('win'):
                 # Close all open mmaps to the data.  This is only necessary on
                 # Windows, which will not allow a file to be renamed or deleted

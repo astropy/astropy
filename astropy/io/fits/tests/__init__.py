@@ -6,10 +6,8 @@ import shutil
 import stat
 import tempfile
 import time
-import warnings
 
 from ... import fits
-from .... import log
 
 
 class FitsTestCase(object):

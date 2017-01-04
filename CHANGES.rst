@@ -18,6 +18,8 @@ New Features
 
 - ``astropy.io.fits``
 
+  - Checking available disk space before writing out file. [#5500, #4065]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -262,7 +264,7 @@ New Features
   - Check for self-consistency of ECSV header column names. [#5463]
 
   - Produce warnings when writing an IPAC table from an astropy table that
-    contains metadata not supported by the IPAC format [#4700]
+    contains metadata not supported by the IPAC format. [#4700]
 
 - ``astropy.io.fits``
 
