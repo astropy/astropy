@@ -41,13 +41,20 @@ set the Matplotlib plotting style:
 To apply the custom style on top of your existing matplotlib style,
 perform the following:
 
-Using matplotlib version >= 1.5::
+Using matplotlib version >= 1.5:
+
+.. NOTE:  skip this doctest because the travis-ci py2.7 test uses
+.. matplotlib 1.4.3, which does not support "axes.axisbelow"
+
+.. doctest-skip::
 
     >>> import matplotlib.pyplot as plt
     >>> from astropy.visualization import astropy_mpl_style
     >>> plt.style.use(astropy_mpl_style)
 
-For older versions of matplotlib::
+For older versions of matplotlib:
+
+.. doctest-requires:: matplotlib
 
     >>> import matplotlib as mpl
     >>> from astropy.visualization import astropy_mpl_style
@@ -59,14 +66,21 @@ plot to come out exactly the same independent of the user
 configuration), you should reset the matplotlib settings to the
 defaults *before* applying the astropy style.
 
-Using matplotlib version >= 1.5::
+Using matplotlib version >= 1.5:
+
+.. NOTE:  skip this doctest because the travis-ci py2.7 test uses
+.. matplotlib 1.4.3, which does not support "axes.axisbelow"
+
+.. doctest-skip::
 
     >>> import matplotlib.pyplot as plt
     >>> from astropy.visualization import astropy_mpl_style
     >>> plt.style.use('default')
     >>> plt.style.use(astropy_mpl_style)
 
-For older versions of matplotlib::
+For older versions of matplotlib:
+
+.. doctest-requires:: matplotlib
 
     >>> import matplotlib as mpl
     >>> from astropy.visualization import astropy_mpl_style
