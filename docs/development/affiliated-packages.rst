@@ -242,16 +242,17 @@ configuration file. You can also tweak aspects of the documentation theme by
 creating a custom CSS file in your package documentation.
 
 To do this, create a new CSS file in ``<packagename>/_static/`` -- let's call it
-``custom.css``::
+``<packagename>.css``::
 
     cd <packagename>/_static/
-    touch custom.css
+    touch <packagename>.css
 
-We're going to set the HTML style to this new ``custom.css`` stylesheet, so we
-need to import the original ``bootstrap-astropy`` style before we start
-modifying entries. To the first line of your ``custom.css`` file, import the
-default style. We can add any custom CSS below the import. For example, to hide
-the Astropy logo and Astropy link from your project's documentation menu bar:
+We're going to set the HTML style to this new ``<packagename>.css`` stylesheet,
+so we need to import the original ``bootstrap-astropy`` style before we start
+modifying entries. To the first line of your ``<packagename>.css`` file, import
+the default style. We can add any custom CSS below the import. For example, to
+hide the Astropy logo and Astropy link from your project's documentation menu
+bar:
 
 .. code-block:: css
 
@@ -267,13 +268,13 @@ the Astropy logo and Astropy link from your project's documentation menu bar:
         background-image: none;
     }
 
-We now have to include the ``custom.css`` in the documentation, and tell Sphinx
-to use the new style. To do this, edit your ``<packagename>/docs/conf.py`` file
-and add the lines::
+We now have to include the ``<packagename>.css`` in the documentation, and tell
+Sphinx to use the new style. To do this, edit your
+``<packagename>/docs/conf.py`` file and add the lines::
 
     # Static files to copy after template files
     html_static_path = ['_static']
-    html_style = 'custom.css'
+    html_style = '<packagename>.css'
 
 Managing the template files via git
 ===================================
