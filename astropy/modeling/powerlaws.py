@@ -13,8 +13,8 @@ from .core import Fittable1DModel
 from .parameters import Parameter
 
 
-__all__ = ['PowerLaw1D', 'BrokenPowerLaw1D', 'SmoothlyBrokenPowerLaw1D', 'ExponentialCutoffPowerLaw1D',
-           'LogParabola1D']
+__all__ = ['PowerLaw1D', 'BrokenPowerLaw1D', 'SmoothlyBrokenPowerLaw1D',
+           'ExponentialCutoffPowerLaw1D', 'LogParabola1D']
 
 
 class PowerLaw1D(Fittable1DModel):
@@ -314,12 +314,13 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
                    * r ** ((alpha_1 - alpha_2) * delta)
 
             d_amplitude[i] = f[i] / amplitude
-            d_log_break[i] = f[i] * (alpha_1 - (alpha_1 - alpha_2) * t/2. / r) \
+            d_log_break[i] = f[i] \
+                             * (alpha_1 - (alpha_1 - alpha_2) * t / 2. / r) \
                              * np.log(10)
             d_alpha_1[i] = f[i] * (-np.log(xx[i]) + delta * np.log(r))
-            d_alpha_2[i] = f[i] * (-np.log(r) * delta)
+            d_alpha_2[i] = f[i] * (-delta * np.log(r))
             d_delta[i] = f[i] * (alpha_1 - alpha_2) \
-                         * (np.log(r) - t / (1.+t) / delta * np.log(xx[i]))
+                         * (np.log(r) - t / (1. + t) / delta * np.log(xx[i]))
 
         return [d_amplitude, d_log_break, d_alpha_1, d_alpha_2, d_delta]
 
