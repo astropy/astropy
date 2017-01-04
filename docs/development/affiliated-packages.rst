@@ -231,6 +231,49 @@ You can find out what the latest version of astropy-helpers is by checking the
 `astropy-helpers <https://pypi.python.org/pypi/astropy-helpers/>`__ entry on
 PyPI.
 
+Customizing the documentation CSS
+---------------------------------
+
+As described in the documentation configuration file (`teplate/docs/conf.py
+<>`_), the documentation uses a custom theme based on `bootstrap <>`_. You can
+swap out this theme by editing the configuration file. You can also tweak
+aspects of the documentation theme by creating a custom CSS file in your package
+documentation.
+
+To do this, create a new CSS file in ``<packagename>/_static/`` -- let's call it
+``custom.css``::
+
+    cd <packagename>/_static/
+    touch custom.css
+
+We're going to set the HTML style to this new ``custom.css`` stylesheet, so we
+need to import the original ``bootstrap-astropy`` style before we start
+modifying entries. To the first line of your ``custom.css`` file, import the
+default style. We can add any custom CSS below the import. For example, to hide
+the Astropy logo and Astropy link from your project's documentation menu bar:
+
+.. code-block:: css
+
+    @import url("bootstrap-astropy.css");
+
+    div.topbar a.brand {
+        background: none;
+        background-image: none;
+    }
+
+    div.topbar ul li a.homelink {
+        background: none;
+        background-image: none;
+    }
+
+We now have to include the ``custom.css`` in the documentation, and tell Sphinx
+to use the new style. To do this, edit your ``<packagename>/docs/conf.py`` file
+and add the lines::
+
+    # Static files to copy after template files
+    html_static_path = ['_static']
+    html_style = 'gala.css'
+
 Managing the template files via git
 ===================================
 
@@ -274,7 +317,7 @@ files manually`_ section since this explains what many of the files do.
    directly, to make the move.  For example, with git::
 
     git mv packagename <packagename>
-      
+
 #. Update the main package docstring in ``<packagename>/__init__.py``.
 
 #. Decide what license you want to use to release your source code. If
