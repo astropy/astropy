@@ -18,7 +18,7 @@ New Features
 
 - ``astropy.io.fits``
 
-  - Checking available disk space before writing out file. [#5500, #4065]
+  - Checking available disk space before writing out file. [#5550, #4065]
 
 - ``astropy.io.misc``
 
