@@ -272,7 +272,7 @@ and add the lines::
 
     # Static files to copy after template files
     html_static_path = ['_static']
-    html_style = 'gala.css'
+    html_style = 'custom.css'
 
 Managing the template files via git
 ===================================
