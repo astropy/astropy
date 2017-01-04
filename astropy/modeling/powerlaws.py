@@ -161,7 +161,9 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
             f(x) = A \\left( \\frac{x}{x_b} \\right) ^ {-\\alpha_1}
                    \\left\\{
                       \\frac{1}{2}
-                      \\left[1 + \\left( \\frac{x}{x_b}\\right)^{1 / \\Delta} \\right]
+                      \\left[
+                        1 + \\left( \\frac{x}{x_b}\\right)^{1 / \\Delta}
+                      \\right]
                    \\right\\}^{(\\alpha_1 - \\alpha_2) \\Delta}
 
 
@@ -169,7 +171,8 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
     and :math:`x_2` such that:
 
         .. math::
-            \\log_{10} \\frac{x_2}{x_b} = \\log_{10} \\frac{x_b}{x_1} \\sim \\Delta
+            \\log_{10} \\frac{x_2}{x_b} = \\log_{10} \\frac{x_b}{x_1}
+            \\sim \\Delta
 
 
     At values :math:`x \\lesssim x_1` and :math:`x \\gtrsim x_2` the
@@ -190,7 +193,8 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
         from astropy.modeling import models
 
         x = np.logspace(0.7, 2.3, 500)
-        f = models.SmoothlyBrokenPowerLaw1D(amplitude=1, log_break=1.5, alpha_1=-2, alpha_2=2)
+        f = models.SmoothlyBrokenPowerLaw1D(amplitude=1, log_break=1.5,
+                                            alpha_1=-2, alpha_2=2)
 
         plt.figure()
         plt.title("amplitude=1, log_break=1.5, alpha_1=-2, alpha_2=2")
@@ -270,7 +274,8 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
         """One dimensional smoothly broken power law derivative with respect
            to parameters"""
 
-        #Pre-calculate `x_b` and `x/x_b` and `logt`
+        #Pre-calculate `x_b` and `x/x_b` and `logt` (see comments in
+        #SmoothlyBrokenPowerLaw1D.evaluate)
         x_b = 10. ** log_break
         xx = x / x_b
         logt = np.log(xx) / delta
@@ -283,7 +288,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
         d_alpha_2 = np.zeros_like(xx)
         d_delta = np.zeros_like(xx)
 
-        threshold = 30
+        threshold = 30 #(see comments in SmoothlyBrokenPowerLaw1D.evaluate)
         i = logt > threshold
         if (i.max()):
             f[i] = amplitude * xx[i] ** (-alpha_2) \
