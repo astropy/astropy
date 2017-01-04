@@ -214,7 +214,9 @@ class LombScargle(object):
         return f0 + df * np.arange(Nf)
 
     def autopower(self, method='auto', method_kwds=None,
-                  normalization='standard', **kwargs):
+                  normalization='standard', samples_per_peak=5,
+                  nyquist_factor=5, minimum_frequency=None,
+                  maximum_frequency=None):
         """Compute Lomb-Scargle power at automatically-determined frequencies
 
         Parameters
@@ -242,15 +244,27 @@ class LombScargle(object):
         normalization : string (optional, default='standard')
             Normalization to use for the periodogram.
             Options are 'standard', 'model', or 'psd'.
-        **kwargs :
-            additional keyword arguments will be passed to autofrequency()
+        samples_per_peak : float (optional, default=5)
+            The approximate number of desired samples across the typical peak
+        nyquist_factor : float (optional, default=5)
+            The multiple of the average nyquist frequency used to choose the
+            maximum frequency if maximum_frequency is not provided.
+        minimum_frequency : float (optional)
+            If specified, then use this minimum frequency rather than one
+            chosen based on the size of the baseline.
+        maximum_frequency : float (optional)
+            If specified, then use this maximum frequency rather than one
+            chosen based on the average nyquist frequency.
 
         Returns
         -------
         frequency, power : ndarrays
             The frequency and Lomb-Scargle power
         """
-        frequency = self.autofrequency(**kwargs)
+        frequency = self.autofrequency(samples_per_peak=samples_per_peak,
+                                       nyquist_factor=nyquist_factor,
+                                       minimum_frequency=minimum_frequency,
+                                       maximum_frequency=maximum_frequency)
         power = self.power(frequency,
                            normalization=normalization,
                            method=method, method_kwds=method_kwds,
