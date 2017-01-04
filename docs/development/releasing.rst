@@ -214,6 +214,9 @@ packages that use the full bugfix/maintenance branch approach.)
    be better off just copying-and-pasting the relevant parts of the maintenance
    branch's ``CHANGES.rst`` into master.
 
+#. Create a github milestone for the next bugfix version, move any remaining
+   issues from the version you just released, and close the milestone.
+
 Modifications for a beta/release candidate release
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -302,8 +305,7 @@ The procedure for this is straightforward:
 
 #. On the github issue tracker, add a new milestone for the next major version.
 
-
-#. Repeat tbe above steps for the astropy-helpers, using the same version series.
+#. Repeat the above steps for the astropy-helpers, using the same version series.
 
 Maintaining Bug Fix Releases
 ----------------------------
