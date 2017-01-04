@@ -235,10 +235,11 @@ Customizing the documentation CSS
 ---------------------------------
 
 As described in the documentation configuration file (`teplate/docs/conf.py
-<>`_), the documentation uses a custom theme based on `bootstrap <>`_. You can
-swap out this theme by editing the configuration file. You can also tweak
-aspects of the documentation theme by creating a custom CSS file in your package
-documentation.
+<https://github.com/astropy/package-template/blob/master/docs/conf.py#L95>`_),
+the documentation uses a custom theme based on `bootstrap
+<http://getbootstrap.com/css/>`_. You can swap out this theme by editing the
+configuration file. You can also tweak aspects of the documentation theme by
+creating a custom CSS file in your package documentation.
 
 To do this, create a new CSS file in ``<packagename>/_static/`` -- let's call it
 ``custom.css``::
