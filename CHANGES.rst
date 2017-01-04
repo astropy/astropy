@@ -313,6 +313,9 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - ``solMass``, ``jupiterMass``, and ``earthMass`` no longer have their
+    prefixed units included. [#5661]
+
 - ``astropy.utils``
 
 - ``astropy.visualization``
