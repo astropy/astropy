@@ -92,8 +92,8 @@ Examples and documentation are provided in :ref:`wcsaxes`.
 
 .. _whatsnew-1.3-rgb:
 
-New function to contruct RGB images based on Lupton et al. (2004) algorithm
----------------------------------------------------------------------------
+New function to construct RGB images based on Lupton et al. (2004) algorithm
+----------------------------------------------------------------------------
 
 The :ref:`visualization <astropy-visualization>` subpackage now includes a
 function to create RGB composite images from individual (high dynamic range)
@@ -184,7 +184,7 @@ modification of a table column when a column was set like
 *replace* a column.  That is, ``tab['colname'] = val`` is now more like
 ``t.replace_column('a', val)`` than ``tab['colname'][:] = val``.  This behavior
 can be turned off for compatibility using the ``table.replace_inplace``
-configuration setting (although is future versions of Astropy this capability
+configuration setting (although in future versions of Astropy this capability
 will be deprecated and removed).  For more details and examples on this change,
 see :ref:`table-replace-1_3`.
 
