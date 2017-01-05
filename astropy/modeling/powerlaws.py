@@ -10,7 +10,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 import numpy as np
 
 from .core import Fittable1DModel
-from .parameters import Parameter
+from .parameters import Parameter, InputParameterError
 
 
 __all__ = ['PowerLaw1D', 'BrokenPowerLaw1D', 'SmoothlyBrokenPowerLaw1D',
@@ -215,11 +215,26 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
 
     """
 
-    amplitude = Parameter(default=1)
+    amplitude = Parameter(default=1, min=0)
     log_break = Parameter(default=1)
     alpha_1 = Parameter(default=-2)
     alpha_2 = Parameter(default=2)
-    delta = Parameter(default=1)
+    delta = Parameter(default=1, min=1.e-3)
+
+    @amplitude.validator
+    def amplitude(self, value):
+        if np.any(value <= 0):
+            raise InputParameterError(
+                "amplitude parameter must be > 0")
+
+    @delta.validator
+    def delta(self, value):
+        if np.any(value < 0.001):
+            raise InputParameterError(
+                "delta parameter must be >= 0.001")
+
+
+
 
     @staticmethod
     def evaluate(x, amplitude, log_break, alpha_1, alpha_2, delta):
