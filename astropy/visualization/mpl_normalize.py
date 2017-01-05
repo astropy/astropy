@@ -9,9 +9,9 @@ import numpy as np
 from numpy import ma
 
 from .interval import (PercentileInterval, AsymmetricPercentileInterval,
-                       ManualInterval, MinMaxInterval)
+                       ManualInterval, MinMaxInterval, BaseInterval)
 from .stretch import (LinearStretch, SqrtStretch, PowerStretch, LogStretch,
-                      AsinhStretch)
+                      AsinhStretch, BaseStretch)
 
 try:
     import matplotlib  # pylint: disable=W0611
@@ -76,8 +76,16 @@ class ImageNormalize(Normalize):
             if self.vmax is None:
                 self.vmax = _vmax
 
+        if stretch is not None and not isinstance(stretch, BaseStretch):
+            raise TypeError('stretch must be an instance of a BaseStretch '
+                            'subclass')
         self.stretch = stretch
+
+        if interval is not None and not isinstance(interval, BaseInterval):
+            raise TypeError('interval must be an instance of a BaseInterval '
+                            'subclass')
         self.interval = interval
+
         self.inverse_stretch = stretch.inverse
         self.clip = clip
 
