@@ -30,6 +30,15 @@ def test_normalize_error_message():
 
 @pytest.mark.skipif('not HAS_MATPLOTLIB')
 class TestNormalize(object):
+    def test_invalid_interval(self):
+        with pytest.raises(TypeError):
+            ImageNormalize(vmin=2., vmax=10., interval=ManualInterval,
+                           clip=True)
+
+    def test_invalid_stretch(self):
+        with pytest.raises(TypeError):
+            ImageNormalize(vmin=2., vmax=10., stretch=SqrtStretch,
+                           clip=True)
 
     def test_scalar(self):
         norm = ImageNormalize(vmin=2., vmax=10., stretch=SqrtStretch(),
