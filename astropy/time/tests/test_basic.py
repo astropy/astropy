@@ -1056,6 +1056,9 @@ def test_to_datetime():
         assert tz.tzname(dt) == tz_dt.tzname()
     assert np.all(time == forced_to_astropy_time)
 
+    with pytest.raises(ValueError):
+        Time('2015-06-30 23:59:60.000').to_datetime()
+
 @pytest.mark.skipif('not HAS_PYTZ')
 def test_to_datetime_pytz():
 
@@ -1075,6 +1078,9 @@ def test_to_datetime_pytz():
     for dt, tz_dt in zip(time.datetime, tz_aware_datetime):
         assert tz.tzname(dt) == tz_dt.tzname()
     assert np.all(time == forced_to_astropy_time)
+
+    with pytest.raises(ValueError):
+        Time('2015-06-30 23:59:60.000').to_datetime()
 
 def test_cache():
     t = Time('2010-09-03 00:00:00')
