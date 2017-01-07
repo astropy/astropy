@@ -69,6 +69,7 @@ from .hdu.table import BinTableHDU
 from .header import Header
 from .util import fileobj_closed, fileobj_name, fileobj_mode, _is_int
 from .fitsrec import FITS_rec
+from ...units import Unit
 from ...units.format.fits import UnitScaleError
 from ...extern import six
 from ...extern.six import string_types
@@ -510,6 +511,9 @@ def table_to_hdu(table):
                 warnings.warn(
                     "The unit '{0}' could not be saved to FITS format".format(
                         unit.to_string()), AstropyUserWarning)
+
+            # Try creating a Unit to issue a warning if the unit is not FITS compliant
+            Unit(col.unit, format='fits', parse_strict='warn')
 
     for key, value in table.meta.items():
         if is_column_keyword(key.upper()) or key.upper() in REMOVE_KEYWORDS:

@@ -46,7 +46,14 @@ class TestConvenience(FitsTestCase):
     def test_table_to_hdu(self, tmpdir):
         table = Table([[1, 2, 3], ['a', 'b', 'c'], [2.3, 4.5, 6.7]],
                       names=['a', 'b', 'c'], dtype=['i', 'U1', 'f'])
-        hdu = fits.table_to_hdu(table)
+        table['a'].unit = 'm/s'
+        table['b'].unit = 'not-a-unit'
+
+        with catch_warnings() as w:
+            hdu = fits.table_to_hdu(table)
+            assert len(w) == 1
+            assert str(w[0].message).startswith("'not-a-unit' did not parse as fits unit")
+
         assert isinstance(hdu, fits.BinTableHDU)
         filename = str(tmpdir.join('test_table_to_hdu.fits'))
         hdu.writeto(filename, overwrite=True)
