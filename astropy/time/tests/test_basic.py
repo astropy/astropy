@@ -1058,7 +1058,7 @@ def test_to_datetime():
 
     with pytest.raises(ValueError) as e:
         Time('2015-06-30 23:59:60.000').to_datetime()
-        assert 'does not support leap seconds' in str(e.message) 
+        assert 'does not support leap seconds' in str(e.message)
 
 @pytest.mark.skipif('not HAS_PYTZ')
 def test_to_datetime_pytz():
