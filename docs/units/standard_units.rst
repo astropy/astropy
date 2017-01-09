@@ -52,10 +52,8 @@ all the existing predefined units of a given type::
 Prefixes
 --------
 
-The package `astropy.units` has support for prefixes which are used to
-represent multiples (or submultiples) of a unit of measure. The two prefixes
-included are decimal prefixes used as a SI standard and binary prefixes which
-are used as IEEE 1514 standard.
+Most units can be used with prefixes, with both the standard SI prefixes and
+the IEEE 1514 binary prefixes (for ``bit`` and ``byte``) supported:
 
 +------------------------------+
 |  Available decimal prefixes  |
