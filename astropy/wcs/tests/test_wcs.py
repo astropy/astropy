@@ -26,99 +26,67 @@ from ...io import fits
 from ...extern.six.moves import range
 
 
-# test_maps() is a generator
-def test_maps():
+class TestMaps(object):
+    def setup(self):
+        # get the list of the hdr files that we want to test
+        self._file_list = list(get_pkg_data_filenames("maps", pattern="*.hdr"))
 
-    # test_map() is the function that is called to perform the generated test
-    def test_map(filename):
+    def test_consistency(self):
+        # Check to see that we actually have the list we expect, so that we
+        # do not get in a situation where the list is empty or incomplete and
+        # the tests still seem to pass correctly.
 
-        # the test parameter is the base name of the file to use; find
-        # the file in the installed wcs test directory
-        header = get_pkg_data_contents(
-            os.path.join("maps", filename), encoding='binary')
-        wcsobj = wcs.WCS(header)
+        # how many do we expect to see?
+        n_data_files = 28
 
-        world = wcsobj.wcs_pix2world([[97, 97]], 1)
-
-        assert_array_almost_equal(world, [[285.0, -66.25]], decimal=1)
-
-        pix = wcsobj.wcs_world2pix([[285.0, -66.25]], 1)
-
-        assert_array_almost_equal(pix, [[97, 97]], decimal=0)
-
-    # get the list of the hdr files that we want to test
-    hdr_file_list = list(get_pkg_data_filenames("maps", pattern="*.hdr"))
-
-    # actually perform a test for each one
-    for filename in hdr_file_list:
-
-        # use the base name of the file, because everything we yield
-        # will show up in the test name in the pandokia report
-        filename = os.path.basename(filename)
-
-        # yield a function name and parameters to make a generated test
-        yield test_map, filename
-
-    # AFTER we tested with every file that we found, check to see that we
-    # actually have the list we expect.  If N=0, we will not have performed
-    # any tests at all.  If N < n_data_files, we are missing some files,
-    # so we will have skipped some tests.  Without this check, both cases
-    # happen silently!
-
-    # how many do we expect to see?
-    n_data_files = 28
-
-    if len(hdr_file_list) != n_data_files:
-        assert False, (
-            "test_maps has wrong number data files: found {}, expected "
-            " {}".format(len(hdr_file_list), n_data_files))
-        # b.t.w.  If this assert happens, py.test reports one more test
-        # than it would have otherwise.
-
-
-# test_spectra() is a generator
-def test_spectra():
-
-    # test_spectrum() is the function that is called to perform the
-    # generated test
-    def test_spectrum(filename):
-
-        # the test parameter is the base name of the file to use; find
-        # the file in the installed wcs test directory
-        header = get_pkg_data_contents(
-            os.path.join("spectra", filename), encoding='binary')
-
-        all_wcs = wcs.find_all_wcs(header)
-        assert len(all_wcs) == 9
-
-    # get the list of the hdr files that we want to test
-    hdr_file_list = list(get_pkg_data_filenames("spectra", pattern="*.hdr"))
-
-    # actually perform a test for each one
-    for filename in hdr_file_list:
-
-        # use the base name of the file, because everything we yield
-        # will show up in the test name in the pandokia report
-        filename = os.path.basename(filename)
-
-        # yield a function name and parameters to make a generated test
-        yield test_spectrum, filename
-
-    # AFTER we tested with every file that we found, check to see that we
-    # actually have the list we expect.  If N=0, we will not have performed
-    # any tests at all.  If N < n_data_files, we are missing some files,
-    # so we will have skipped some tests.  Without this check, both cases
-    # happen silently!
-
-    # how many do we expect to see?
-    n_data_files = 6
-
-    if len(hdr_file_list) != n_data_files:
-        assert False, (
+        assert len(self._file_list) == n_data_files, (
             "test_spectra has wrong number data files: found {}, expected "
-            " {}".format(len(hdr_file_list), n_data_files))
-        # b.t.w.  If this assert happens, py.test reports one more test
-        # than it would have otherwise.
+            " {}".format(len(self._file_list), n_data_files))
+
+    def test_maps(self):
+        for filename in self._file_list:
+            # use the base name of the file, so we get more useful messages
+            # for failing tests.
+            filename = os.path.basename(filename)
+            # Now find the associated file in the installed wcs test directory.
+            header = get_pkg_data_contents(
+                os.path.join("maps", filename), encoding='binary')
+            # finally run the test.
+            wcsobj = wcs.WCS(header)
+            world = wcsobj.wcs_pix2world([[97, 97]], 1)
+            assert_array_almost_equal(world, [[285.0, -66.25]], decimal=1)
+            pix = wcsobj.wcs_world2pix([[285.0, -66.25]], 1)
+            assert_array_almost_equal(pix, [[97, 97]], decimal=0)
+
+
+class TestSpectra(object):
+    def setup(self):
+        self._file_list = list(get_pkg_data_filenames("spectra",
+                                                      pattern="*.hdr"))
+
+    def test_consistency(self):
+        # Check to see that we actually have the list we expect, so that we
+        # do not get in a situation where the list is empty or incomplete and
+        # the tests still seem to pass correctly.
+
+        # how many do we expect to see?
+        n_data_files = 6
+
+        assert len(self._file_list) == n_data_files, (
+            "test_spectra has wrong number data files: found {}, expected "
+            " {}".format(len(self._file_list), n_data_files))
+
+    def test_spectra(self):
+        for filename in self._file_list:
+            # use the base name of the file, so we get more useful messages
+            # for failing tests.
+            filename = os.path.basename(filename)
+            # Now find the associated file in the installed wcs test directory.
+            header = get_pkg_data_contents(
+                os.path.join("spectra", filename), encoding='binary')
+            # finally run the test.
+            all_wcs = wcs.find_all_wcs(header)
+            assert len(all_wcs) == 9
 
 
 def test_fixes():
