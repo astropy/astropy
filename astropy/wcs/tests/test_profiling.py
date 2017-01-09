@@ -65,5 +65,3 @@ def test_spectrum(filename):
         x = np.random.rand(2 ** 16, wcsobj.wcs.naxis)
         world = wcsobj.wcs_pix2world(x, 1)
         pix = wcsobj.wcs_world2pix(x, 1)
-
-
