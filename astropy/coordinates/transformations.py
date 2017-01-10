@@ -309,7 +309,7 @@ class TransformGraph(object):
         """
         if not inspect.isclass(fromsys):
             raise TypeError('fromsys is not a class')
-        if not inspect.isclass(fromsys):
+        if not inspect.isclass(tosys):
             raise TypeError('tosys is not a class')
 
         path, distance = self.find_shortest_path(fromsys, tosys)
