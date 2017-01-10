@@ -195,7 +195,7 @@ Bug Fixes
 - ``astropy.visualization``
 
   - Avoid importing matplotlib.pyplot when importing
-    astropy.visualization.wcsaxes. [#5680]
+    astropy.visualization.wcsaxes. [#5680, #5684]
 
 - ``astropy.vo``
 
