@@ -162,6 +162,9 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Fixed a bug where ``get_transform`` could sometimes produce confusing errors
+    because of a typo in the input validation. [#5645]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
