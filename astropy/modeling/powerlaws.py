@@ -143,7 +143,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
     alpha_2 : float
         Power law index for ``x >> 10 ** log_break``.
     delta : float
-        Smoothness parameter (must be positive).
+        Smoothness parameter.
 
     See Also
     --------
@@ -181,6 +181,13 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
     power laws are smoothly joined at values :math:`x_1 < x < x_2`,
     hence the :math:`\\Delta` parameter sets the "smoothness" of the
     slope change.
+
+    The ``delta`` parameter is bounded to values greater than 1e-3
+    (corresponding to :math:`x_2 / x_1 \\gtrsim 1.002`) to avoid
+    overflow errors.
+
+    The ``amplitude`` parameter is bounded to positive values since
+    this model is typically used to represent positive quantities.
 
 
     Examples
