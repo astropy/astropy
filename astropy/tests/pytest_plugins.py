@@ -195,6 +195,21 @@ def pytest_configure(config):
             return
 
     class DocTestTextfilePlus(doctest_plugin.DoctestTextfile):
+        def collect(self):
+            # inspired by doctest.testfile; ideally we would use it directly,
+            # but it doesn't support passing a custom checker
+            text = self.fspath.read()
+            filename = str(self.fspath)
+            name = self.fspath.basename
+            globs = {'__name__': '__main__'}
+
+            runner = doctest.DebugRunner(verbose=0, optionflags=opts)
+
+            parser = DocTestParserPlus()
+            test = parser.get_doctest(text, globs, name, filename, 0)
+            if test.examples:
+                yield doctest_plugin.DoctestItem(test.name, self, runner, test)
+
         def runtest(self):
             # satisfy `FixtureRequest` constructor...
             self.funcargs = {}
