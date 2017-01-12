@@ -90,6 +90,7 @@ API Changes
 - ``astropy.utils``
 
 - ``astropy.visualization``
+  - Created param labelpad in set_xlabel and set_ylabel functions. It is directly passed to set_axislabel as minpad.
 
 - ``astropy.vo``
 
