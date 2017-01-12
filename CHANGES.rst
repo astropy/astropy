@@ -203,7 +203,8 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Nothing changed yet.
+- Fixed a deprecation warning that occurred when running tests with
+  astropy.test(). [#5689]
 
 
 1.3 (2016-12-22)

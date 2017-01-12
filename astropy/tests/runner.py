@@ -353,7 +353,7 @@ class TestRunner(TestRunnerBase):
 
         return []
 
-    @keyword()
+    @keyword(default_value='none')
     def remote_data(self, remote_data, kwargs):
         """
         remote_data : {'none', 'astropy', 'any'}, optional
@@ -369,9 +369,10 @@ class TestRunner(TestRunnerBase):
             remote_data = 'none'
         elif remote_data not in ('none', 'astropy', 'any'):
             warnings.warn("The remote_data option should be one of "
-                          "none/astropy/any. For backward-compatibility, "
+                          "none/astropy/any (found {0}). For backward-compatibility, "
                           "assuming 'any', but you should change the option to be "
-                          "one of the supported ones to avoid issues in future.",
+                          "one of the supported ones to avoid issues in "
+                          "future.".format(remote_data),
                           AstropyDeprecationWarning)
             remote_data = 'any'
 
