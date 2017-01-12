@@ -27,7 +27,7 @@ env:
         - MAIN_CMD='python setup.py'
         - CONDA_DEPENDENCIES='Cython jinja2'
         - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath'
-        - PIP_DEPENDENCIES=''
+        - PIP_DEPENDENCIES='pytest>=3'
         - SETUP_XVFB=True
         - SPHINX_VERSION='<1.5'
 
