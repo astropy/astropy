@@ -1,9 +1,11 @@
-from astropy.tests.runner import TestRunner, TestRunnerBase, keyword
+from astropy.tests.runner import TestRunner as T_Runner
+from astropy.tests.runner import TestRunnerBase as T_RunnerBase
+from astropy.tests.runner import keyword
 from astropy.tests.helper import pytest
 
 
 def test_disable_kwarg():
-    class no_remote_data(TestRunner):
+    class no_remote_data(T_Runner):
         @keyword()
         def remote_data(self, remote_data, kwargs):
             return NotImplemented
@@ -14,13 +16,13 @@ def test_disable_kwarg():
 
 
 def test_wrong_kwarg():
-    r = TestRunner('.')
+    r = T_Runner('.')
     with pytest.raises(TypeError):
         r.run_tests(spam='eggs')
 
 
 def test_invalid_kwarg():
-    class bad_return(TestRunnerBase):
+    class bad_return(T_RunnerBase):
         @keyword()
         def remote_data(self, remote_data, kwargs):
             return 'bob'
@@ -31,7 +33,7 @@ def test_invalid_kwarg():
 
 
 def test_new_kwarg():
-    class Spam(TestRunnerBase):
+    class Spam(T_RunnerBase):
         @keyword()
         def spam(self, spam, kwargs):
             return [spam]
@@ -44,7 +46,7 @@ def test_new_kwarg():
 
 
 def test_priority():
-    class Spam(TestRunnerBase):
+    class Spam(T_RunnerBase):
         @keyword()
         def spam(self, spam, kwargs):
             return [spam]
@@ -61,7 +63,7 @@ def test_priority():
 
 
 def test_docs():
-    class Spam(TestRunnerBase):
+    class Spam(T_RunnerBase):
         @keyword()
         def spam(self, spam, kwargs):
             """
