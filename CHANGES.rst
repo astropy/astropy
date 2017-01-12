@@ -20,6 +20,8 @@ New Features
 
   - Checking available disk space before writing out file. [#5550, #4065]
 
+  - Add .wcs method to ImageBaseHDU objects which returns WCS directly. [#5690]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
