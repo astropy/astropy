@@ -13,7 +13,7 @@ from ..verify import VerifyWarning
 from ....extern.six import string_types
 from ....extern.six.moves import range, zip
 from ....utils import isiterable, lazyproperty, classproperty, deprecated
-from ....wcs import wcs
+from ....wcs import WCS
 
 class _ImageBaseHDU(_ValidHDU):
     """FITS image HDU base class.
@@ -251,7 +251,7 @@ class _ImageBaseHDU(_ValidHDU):
         Returns the WCS of the images
         """
 
-        wcs1 = wcs.WCS(self.header)
+        wcs1 = WCS(self.header)
         return wcs1
 
     @data.setter
