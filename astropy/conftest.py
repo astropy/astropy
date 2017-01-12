@@ -14,3 +14,6 @@ else:
 enable_deprecations_as_exceptions(include_astropy_deprecations=False)
 
 PYTEST_HEADER_MODULES['Cython'] = 'cython'
+
+# To avoid warnings in pytest 3.x
+collect_ignore = ['astropy/tests/runner.py']
