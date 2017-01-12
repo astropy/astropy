@@ -251,7 +251,8 @@ class _ImageBaseHDU(_ValidHDU):
         Returns the WCS of the images
         """
 
-        return wcs.WCS(self.header)
+        wcs1 = wcs.WCS(self.header)
+        return wcs1
 
     @data.setter
     def data(self, data):
