@@ -132,6 +132,23 @@ class FalseArray(np.ndarray):
             self.__setitem__(slice(start, stop), val)
 
 
+def _encode_str_latin1(value):
+    """
+    Encode anything that is unicode-ish as latin1.  This method is used
+    in Column and is only called for Py3+.
+    """
+    if isinstance(value, str):
+        value = value.encode('latin1')
+    elif isinstance(value, bytes):
+        pass
+    else:
+        value = np.asarray(value)
+        if value.dtype.char == 'U':
+            value = np.char.encode(value, encoding='latin1')
+
+    return value
+
+
 class ColumnInfo(BaseColumnInfo):
     """
     Container for meta information like name, description, format.
@@ -173,7 +190,7 @@ class ColumnInfo(BaseColumnInfo):
         return self._parent_cls(length=length, **attrs)
 
 
-class BaseColumn(_ColumnGetitemShim, np.ndarray):
+class BaseColumn(np.ndarray):  # _ColumnGetitemShim (temporarily remove fast getitem shim)
 
     meta = MetaData()
 
@@ -332,14 +349,6 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         state = state + (column_state,)
 
         return reconstruct_func, reconstruct_func_args, state
-
-    # avoid == and != to be done based on type of subclass
-    # (helped solve #1446; see also __array_wrap__)
-    def __eq__(self, other):
-        return self.data.__eq__(other)
-
-    def __ne__(self, other):
-        return self.data.__ne__(other)
 
     def __array_finalize__(self, obj):
         # Obj will be none for direct call to Column() creator
@@ -873,6 +882,9 @@ class Column(BaseColumn):
                           stacklevel=3)
 
     def __setitem__(self, index, value):
+        if not six.PY2 and self.dtype.char == 'S':
+            value = _encode_str_latin1(value)
+
         # Issue warning for string assignment that truncates ``value``
         if issubclass(self.dtype.type, np.character):
             self._check_string_truncate(value)
@@ -889,6 +901,41 @@ class Column(BaseColumn):
         # self.__setitem__, which is much faster (see above).  [#3020]
         def __setslice__(self, start, stop, value):
             self.__setitem__(slice(start, stop), value)
+
+    def __getitem__(self, item):
+        # Temporarily use pure-Python version instead of fast cython shim
+        if self.ndim > 1 and isinstance(item, INTEGER_TYPES):
+            return self.data[item]
+
+        value = super(Column, self).__getitem__(item)
+
+        # In Py3+ return a scalar bytes value as latin1-encoded str
+        if not six.PY2:
+            try:
+                if value.dtype.char == 'S' and not value.shape:
+                    value = value.decode('latin1')
+            except AttributeError:
+                pass
+
+        return value
+
+    def _make_compare(oper):
+        """
+        Make comparison methods which encode the ``other`` object to latin1
+        in the case of a bytestring dtype for Py3+.
+        """
+        def _compare(self, other):
+            if not six.PY2 and self.dtype.char == 'S':
+                other = _encode_str_latin1(other)
+            return getattr(self.data, oper)(other)
+        return _compare
+
+    __eq__ = _make_compare('__eq__')
+    __ne__ = _make_compare('__ne__')
+    __gt__ = _make_compare('__gt__')
+    __lt__ = _make_compare('__lt__')
+    __ge__ = _make_compare('__ge__')
+    __le__ = _make_compare('__le__')
 
     def insert(self, obj, values, axis=0):
         """
