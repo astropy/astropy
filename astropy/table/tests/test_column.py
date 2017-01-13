@@ -627,3 +627,100 @@ def test_string_truncation_warning_masked():
         assert len(w) == 1
         assert ('truncated right side string(s) longer than 2 character(s)'
                 in str(w[0].message))
+
+
+def test_col_unicode_sandwich_bytes():
+    """
+    Create a bytestring Column and ensure that it works in Python 3 in
+    a convenient way like in Python 2.
+    """
+    c = table.Column([b'abc', b'def'])
+    assert c[0] == 'abc'
+    assert isinstance(c[0], str)
+    assert isinstance(c[:0], table.Column)
+    assert np.all(c[:2] == np.array(['abc', 'def']))
+
+    assert isinstance(c[:], table.Column)
+    assert c[:].dtype.char == 'S'
+
+    assert np.all(c == ['abc', 'def'])
+    assert np.all(c == [b'abc', b'def'])
+    assert np.all(c == np.array([u'abc', u'def']))
+    assert np.all(c == np.array([b'abc', b'def']))
+
+    for cmp in (u'abc', b'abc'):
+        ok = c == cmp
+        assert type(ok) is np.ndarray
+        assert np.all(ok == [True, False])
+
+
+def test_col_unicode_sandwich_unicode():
+    """
+    Sanity check that Unicode Column behaves normally.
+    """
+    c = table.Column(['abc', 'def'], dtype='U')
+    assert c[0] == 'abc'
+    assert isinstance(c[:0], table.Column)
+    assert isinstance(c[0], six.text_type)
+    assert np.all(c[:2] == np.array(['abc', 'def']))
+
+    assert isinstance(c[:], table.Column)
+    assert c[:].dtype.char == 'U'
+
+    assert np.all(c == ['abc', 'def'])
+    assert np.all(c != [b'abc', b'def'])
+    assert np.all(c == np.array([u'abc', u'def']))
+    assert np.all(c != np.array([b'abc', b'def']))
+
+
+def test_masked_col_unicode_sandwich():
+    """
+    Create a bytestring MaskedColumn and ensure that it works in Python 3 in
+    a convenient way like in Python 2.
+    """
+    c = table.MaskedColumn([b'abc', b'def'])
+    c[1] = np.ma.masked
+    assert isinstance(c[:0], table.MaskedColumn)
+    assert isinstance(c[0], six.text_type)
+
+    assert c[0] == 'abc'
+    assert c[1] is np.ma.masked
+    assert isinstance(c[0], str)
+
+    assert isinstance(c[:], table.MaskedColumn)
+    assert c[:].dtype.char == 'S'
+
+    ok = c == ['abc', 'def']
+    assert ok[0] == True
+    assert ok[1] is np.ma.masked
+    #assert c == [b'abc', b'def']
+    #assert c == np.array([u'abc', u'def'])
+    #assert c == np.array([b'abc', b'def'])
+
+    for cmp in (u'abc', b'abc'):
+        ok = c == cmp
+        assert type(ok) is np.ma.MaskedArray
+        assert ok[0] == True
+        assert ok[1] is np.ma.masked
+
+
+@pytest.mark.parametrize('Column', (table.Column, table.MaskedColumn))
+def test_unicode_sandwich_set(Column):
+    """
+    Test setting
+    """
+    c = Column([b'abc', b'def'])
+    c[0] = b'aa'
+    assert np.all(c == ['aa', 'def'])
+    c[0] = u'bb'
+    assert np.all(c == ['bb', 'def'])
+    c[:] = b'cc'
+    assert np.all(c == ['cc', 'cc'])
+    c[:] = u'dd'
+    assert np.all(c == ['dd', 'dd'])
+
+
+def test_unicode_sandwich_non_ascii():
+    c = table.Column([b'abc', bytes(bytearray([40, 200, 230]))])
+    assert c.dtype.char == 'S'
+    assert c[1] == u'(Èæ'
