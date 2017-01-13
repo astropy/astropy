@@ -9,11 +9,13 @@ from __future__ import (absolute_import, division, print_function,
 """Test initialization of angles not already covered by the API tests"""
 
 import pickle
+
+import pytest
 import numpy as np
 
 from ..earth import EarthLocation, ELLIPSOIDS
 from ..angles import Longitude, Latitude
-from ...tests.helper import pytest, quantity_allclose, remote_data
+from ...tests.helper import quantity_allclose, remote_data
 from ...extern.six.moves import zip
 from ... import units as u
 from ..name_resolve import NameResolveError

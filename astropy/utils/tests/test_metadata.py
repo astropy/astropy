@@ -2,9 +2,10 @@ import abc
 
 from collections import OrderedDict
 
+import pytest
+
 from ..metadata import MetaData, MergeConflictError, merge, enable_merge_strategies
 from ...utils import metadata
-from ...tests.helper import pytest
 from ...io import fits
 
 

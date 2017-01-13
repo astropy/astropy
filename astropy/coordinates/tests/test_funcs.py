@@ -8,10 +8,10 @@ Tests for miscellaneous functionality in the `funcs` module
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import pytest
 import numpy as np
 from numpy import testing as npt
 
-from ...tests.helper import pytest
 from ...extern import six
 
 from ... import units as u

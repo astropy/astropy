@@ -14,11 +14,11 @@ from .. import html
 from .. import core
 from ....table import Table
 
+import pytest
 import numpy as np
 
 from .common import setup_function, teardown_function
 from ... import ascii
-from ....tests.helper import pytest
 from ....extern.six.moves import range, cStringIO as StringIO
 from ....utils.xml.writer import HAS_BLEACH
 

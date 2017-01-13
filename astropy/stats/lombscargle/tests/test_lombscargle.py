@@ -1,8 +1,9 @@
+import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
 from .... import units
-from ....tests.helper import pytest, assert_quantity_allclose
+from ....tests.helper import assert_quantity_allclose
 from .. import LombScargle
 
 

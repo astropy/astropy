@@ -16,12 +16,12 @@ from ...extern import six
 import time
 
 # THIRD-PARTY
+import pytest
 import numpy as np
 
 # LOCAL
 from ..timer import RunTimePredictor
 from ...modeling.fitting import ModelsError
-from ...tests.helper import pytest
 
 
 def func_to_time(x):

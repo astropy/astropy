@@ -6,13 +6,12 @@ from __future__ import (absolute_import, unicode_literals, division,
 import inspect
 from copy import deepcopy
 
+import pytest
 import numpy as np
 
-from numpy.testing.utils import (assert_allclose, assert_array_equal,
-                                 assert_almost_equal)
+from numpy.testing.utils import assert_allclose, assert_array_equal
 
 from ...extern.six.moves import cPickle as pickle
-from ...tests.helper import pytest
 
 from ..core import Model, ModelDefinitionError
 from ..parameters import Parameter

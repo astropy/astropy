@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import functools
 
+import pytest
 import numpy as np
 
-from ...tests.helper import pytest
 from .. import Time, TimeDelta, OperandTypeError
 from ... import units as u
 from ...table import Column

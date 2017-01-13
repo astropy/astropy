@@ -3,6 +3,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import pytest
 import numpy as np
 
 from numpy.random import randn
@@ -14,8 +15,6 @@ except ImportError:
     HAS_SCIPY = False
 else:
     HAS_SCIPY = True
-
-from ...tests.helper import pytest
 
 from ..sigma_clipping import sigma_clip, sigma_clipped_stats
 from ...utils.misc import NumpyRNGContext

@@ -8,12 +8,12 @@ import os
 
 from itertools import product
 
+import pytest
 import numpy as np
 
 from numpy.testing.utils import assert_allclose
 
 from .. import fitting
-from ...tests.helper import pytest
 from ... import wcs
 from ...io import fits
 from ..polynomial import (Chebyshev1D, Hermite1D, Legendre1D, Polynomial1D,

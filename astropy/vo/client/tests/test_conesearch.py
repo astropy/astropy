@@ -9,6 +9,7 @@ import time
 import warnings
 
 # THIRD-PARTY
+import pytest
 import numpy as np
 
 # LOCAL
@@ -17,7 +18,7 @@ from ..exceptions import VOSError, ConeSearchError
 from ... import conf
 from .... import units as u
 from ....coordinates import ICRS, SkyCoord
-from ....tests.helper import pytest, remote_data
+from ....tests.helper import remote_data
 from ....utils.data import get_pkg_data_filename
 from ....utils.exceptions import AstropyDeprecationWarning
 from ....utils import data

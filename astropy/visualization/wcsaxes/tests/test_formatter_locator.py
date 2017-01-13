@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import pytest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
@@ -7,7 +8,6 @@ from matplotlib import rc_context
 
 from .... import units as u
 from ....extern import six
-from ....tests.helper import pytest
 from ..formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 
 

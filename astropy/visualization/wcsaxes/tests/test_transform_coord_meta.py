@@ -2,12 +2,13 @@
 
 from __future__ import print_function, division, absolute_import
 
+import pytest
 import numpy as np
 import matplotlib.pyplot as plt
 
 from .... import units as u
 from ....wcs import WCS
-from ....tests.helper import pytest, remote_data
+from ....tests.helper import remote_data
 
 from .. import WCSAxes
 from .test_images import BaseImageTests

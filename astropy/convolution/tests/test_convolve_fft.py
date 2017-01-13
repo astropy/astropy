@@ -4,11 +4,11 @@ from __future__ import (absolute_import, division, print_function,
 
 import itertools
 
+import pytest
 import numpy as np
 from numpy.testing import assert_array_almost_equal_nulp, assert_allclose
 
 from ..convolve import convolve_fft
-from ...tests.helper import pytest
 
 
 VALID_DTYPES = []

@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
 
+import pytest
 import numpy as np
 
 import matplotlib.pyplot as plt
@@ -9,7 +10,7 @@ from matplotlib import rc_context
 
 from .... import units as u
 from ....io import fits
-from ....tests.helper import pytest, remote_data
+from ....tests.helper import remote_data
 from ....wcs import WCS
 from ....coordinates import SkyCoord
 
