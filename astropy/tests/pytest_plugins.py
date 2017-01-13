@@ -122,11 +122,6 @@ def pytest_generate_tests(metafunc):
         metafunc.fixturenames.append('tmp_ct')
         metafunc.parametrize('tmp_ct', range(count))
 
-# We monkey-patch in our replacement doctest OutputChecker.  Not
-# great, but there isn't really an API to replace the checker when
-# using doctest.testfile, unfortunately.
-doctest.OutputChecker = AstropyOutputChecker
-
 
 REMOTE_DATA = doctest.register_optionflag('REMOTE_DATA')
 
@@ -179,7 +174,8 @@ def pytest_configure(config):
 
             # uses internal doctest module parsing mechanism
             finder = DocTestFinderPlus()
-            runner = doctest.DebugRunner(verbose=False, optionflags=opts)
+            runner = doctest.DebugRunner(verbose=False, optionflags=opts,
+                                         checker=AstropyOutputChecker())
             for test in finder.find(module):
                 if test.examples:  # skip empty doctests
                     if config.getvalue("remote_data") != 'any':
@@ -190,10 +186,6 @@ def pytest_configure(config):
                     yield doctest_plugin.DoctestItem(
                         test.name, self, runner, test)
 
-        # This is for py.test prior to 2.4.0
-        def runtest(self):
-            return
-
     class DocTestTextfilePlus(doctest_plugin.DoctestTextfile):
         def collect(self):
             # inspired by doctest.testfile; ideally we would use it directly,
@@ -203,29 +195,14 @@ def pytest_configure(config):
             name = self.fspath.basename
             globs = {'__name__': '__main__'}
 
-            runner = doctest.DebugRunner(verbose=0, optionflags=opts)
+            runner = doctest.DebugRunner(verbose=0, optionflags=opts,
+                                         checker=AstropyOutputChecker())
 
             parser = DocTestParserPlus()
             test = parser.get_doctest(text, globs, name, filename, 0)
             if test.examples:
                 yield doctest_plugin.DoctestItem(test.name, self, runner, test)
 
-        def runtest(self):
-            # satisfy `FixtureRequest` constructor...
-            self.funcargs = {}
-            try:
-                self._fixtureinfo = doctest_plugin.FuncFixtureInfo((), [], {})
-                fixture_request = doctest_plugin.FixtureRequest(self)
-            except AttributeError:  # pytest >= 2.8.0
-                python_plugin = config.pluginmanager.getplugin('python')
-                self._fixtureinfo = python_plugin.FuncFixtureInfo((), [], {})
-                fixture_request = python_plugin.FixtureRequest(self)
-
-            failed, tot = doctest.testfile(
-                str(self.fspath), module_relative=False,
-                optionflags=opts, parser=DocTestParserPlus(),
-                extraglobs=dict(getfixture=fixture_request.getfuncargvalue),
-                raise_on_error=True, verbose=False, encoding='utf-8')
 
     class DocTestParserPlus(doctest.DocTestParser):
         """
