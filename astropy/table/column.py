@@ -28,7 +28,6 @@ from ._column_mixins import _ColumnGetitemShim, _MaskedColumnGetitemShim
 # Create a generic TableFormatter object for use by bare columns with no
 # parent table.
 FORMATTER = pprint.TableFormatter()
-INTEGER_TYPES = (int, long, np.integer) if six.PY2 else (int, np.integer)
 
 class StringTruncateWarning(UserWarning):
     """
@@ -190,7 +189,7 @@ class ColumnInfo(BaseColumnInfo):
         return self._parent_cls(length=length, **attrs)
 
 
-class BaseColumn(np.ndarray):  # _ColumnGetitemShim (temporarily remove fast getitem shim)
+class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     meta = MetaData()
 
@@ -901,23 +900,6 @@ class Column(BaseColumn):
         # self.__setitem__, which is much faster (see above).  [#3020]
         def __setslice__(self, start, stop, value):
             self.__setitem__(slice(start, stop), value)
-
-    def __getitem__(self, item):
-        # Temporarily use pure-Python version instead of fast cython shim
-        if self.ndim > 1 and isinstance(item, INTEGER_TYPES):
-            return self.data[item]
-
-        value = super(Column, self).__getitem__(item)
-
-        # In Py3+ return a scalar bytes value as latin1-encoded str
-        if not six.PY2:
-            try:
-                if value.dtype.char == 'S' and not value.shape:
-                    value = value.decode('latin1')
-            except AttributeError:
-                pass
-
-        return value
 
     def _make_compare(oper):
         """
