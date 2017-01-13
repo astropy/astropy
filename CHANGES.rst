@@ -178,6 +178,8 @@ Bug Fixes
 - ``astropy.io.registry``
 
 - ``astropy.io.votable``
+  - Fixed a bug where stdlib ``realloc()`` was used instead of
+   ``PyMem_Realloc()`` [#4739, #2100]
 
 - ``astropy.modeling``
 
