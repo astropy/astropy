@@ -3,12 +3,13 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
+
 from .. import models, InputParameterError
 from ...coordinates import Angle
 from .. import fitting
-from ...tests.helper import pytest
 
 try:
     from scipy import optimize  # pylint: disable=W0611

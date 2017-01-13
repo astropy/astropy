@@ -8,9 +8,10 @@ from __future__ import (absolute_import, division, print_function,
 Tests for the projected separation stuff
 """
 
+import pytest
 import numpy as np
 
-from ...tests.helper import pytest, assert_quantity_allclose as assert_allclose
+from ...tests.helper import assert_quantity_allclose as assert_allclose
 from ...extern.six.moves import zip
 from ... import units as u
 from ..builtin_frames import ICRS, FK5, Galactic

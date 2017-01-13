@@ -1,9 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import pytest
 import numpy as np
 from numpy.testing import assert_allclose
+
 from ..ui import scale_image
-from ...tests.helper import pytest
 
 
 DATA = np.array([0, 1., 2.])

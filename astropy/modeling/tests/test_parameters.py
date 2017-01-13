@@ -8,6 +8,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import itertools
 
+import pytest
 import numpy as np
 from numpy.testing import utils
 
@@ -16,7 +17,6 @@ from .. import models, fitting
 from ..core import Model, FittableModel
 from ..parameters import Parameter, InputParameterError
 from ...utils.data import get_pkg_data_filename
-from ...tests.helper import pytest
 
 
 def setter1(val):

@@ -12,12 +12,13 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 from fractions import Fraction
 
+import pytest
 import numpy as np
 from numpy.testing.utils import assert_allclose
 
 from ...extern import six
 from ...extern.six.moves import range, cPickle as pickle
-from ...tests.helper import pytest, raises, catch_warnings
+from ...tests.helper import raises, catch_warnings
 
 from ... import units as u
 from ... import constants as c

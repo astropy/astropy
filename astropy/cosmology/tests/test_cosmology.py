@@ -4,10 +4,11 @@ from __future__ import (absolute_import, division, print_function,
 
 from io import StringIO
 
+import pytest
 import numpy as np
 
 from .. import core, funcs
-from ...tests.helper import pytest, quantity_allclose as allclose
+from ...tests.helper import quantity_allclose as allclose
 from ... import units as u
 
 try:

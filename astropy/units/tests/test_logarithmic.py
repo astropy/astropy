@@ -11,10 +11,12 @@ from ...extern.six.moves import zip
 
 import pickle
 import itertools
+
+import pytest
 import numpy as np
 from numpy.testing.utils import assert_allclose
 
-from ...tests.helper import pytest, assert_quantity_allclose
+from ...tests.helper import assert_quantity_allclose
 from ... import units as u, constants as c
 
 lu_units = [u.dex, u.mag, u.decibel]

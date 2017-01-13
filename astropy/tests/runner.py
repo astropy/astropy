@@ -181,7 +181,7 @@ class TestRunnerBase(object):
         # This allows it to be built for each subclass in __new__.
 
         # Don't import pytest until it's actually needed to run the tests
-        from .helper import pytest
+        import pytest
 
         # Raise error for undefined kwargs
         allowed_kwargs = set(self.keywords.keys())

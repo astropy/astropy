@@ -4,13 +4,14 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 # THIRD-PARTY
+import pytest
 import numpy as np
 
 # LOCAL
 from ..blackbody import blackbody_nu, blackbody_lambda, FNU
 from ... import units as u
 from ... import constants as const
-from ...tests.helper import pytest, catch_warnings
+from ...tests.helper import catch_warnings
 from ...utils.exceptions import AstropyUserWarning
 
 try:

@@ -6,14 +6,14 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ...extern import six  # pylint: disable=W0611
-from ...extern.six import next
-from ...extern.six.moves import range
-
 import io
 import locale
 
-from ...tests.helper import pytest
+from ...extern import six  # noqa
+from ...extern.six import next
+from ...extern.six.moves import range
+
+import pytest
 from .. import console
 from ... import units as u
 

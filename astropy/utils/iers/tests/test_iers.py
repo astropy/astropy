@@ -3,16 +3,16 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import os
-import numpy as np
-import contextlib
 
-from ....tests.helper import pytest, assert_quantity_allclose, catch_warnings, remote_data
+import pytest
+import numpy as np
+
+from ....tests.helper import assert_quantity_allclose, catch_warnings, remote_data
 from .. import iers
 from .... import units as u
 from ....table import QTable
 from ....time import Time
 from ....extern.six.moves import urllib
-from ....utils.data import get_pkg_data_filename
 
 
 FILE_NOT_FOUND_ERROR = getattr(__builtins__, 'FileNotFoundError', IOError)

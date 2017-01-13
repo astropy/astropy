@@ -3,6 +3,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import pytest
 import numpy as np
 
 from numpy.random import randn, normal
@@ -23,7 +24,6 @@ except ImportError:
 else:
     HAS_MPMATH = True
 
-from ...tests.helper import pytest
 from ...extern.six.moves import range
 
 from .. import funcs

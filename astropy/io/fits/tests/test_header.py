@@ -10,6 +10,7 @@ import collections
 
 from io import StringIO, BytesIO
 
+import pytest
 import numpy as np
 
 from ....extern import six
@@ -17,7 +18,7 @@ from ....extern.six import u, iterkeys, itervalues, iteritems
 from ....extern.six.moves import zip, range
 from ....io import fits
 from ....io.fits.verify import VerifyWarning
-from ....tests.helper import pytest, catch_warnings, ignore_warnings
+from ....tests.helper import catch_warnings, ignore_warnings
 
 from . import FitsTestCase
 from ..card import _pad

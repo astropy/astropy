@@ -8,7 +8,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import numpy as np
 
-from astropy.tests.helper import pytest
+import pytest
 
 from ..core.multiarray import matmul, GE1P10
 

@@ -8,10 +8,10 @@ from __future__ import (absolute_import, division, print_function,
 This includes tests for the Distance class and related calculations
 """
 
+import pytest
 import numpy as np
 from numpy import testing as npt
 
-from ...tests.helper import pytest
 from ... import units as u
 from .. import Longitude, Latitude, Distance, CartesianRepresentation
 from ..builtin_frames import ICRS, Galactic

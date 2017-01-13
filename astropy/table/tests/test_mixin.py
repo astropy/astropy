@@ -14,12 +14,13 @@ try:
 except ImportError:
     HAS_YAML = False
 
-import numpy as np
 import copy
+
+import pytest
+import numpy as np
 
 from ...extern import six
 from ...extern.six.moves import cPickle as pickle, cStringIO as StringIO
-from ...tests.helper import pytest
 from ...table import Table, QTable, join, hstack, vstack, Column, NdarrayMixin
 from ... import time
 from ... import coordinates

@@ -6,9 +6,9 @@ Test broadcast_arrays replacement on Quantity class.
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+import pytest
 import numpy as np
 
-from astropy.tests.helper import pytest
 import astropy.units as u
 
 from ..lib.stride_tricks import broadcast_arrays, broadcast_to, GE1P10

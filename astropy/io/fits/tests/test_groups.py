@@ -4,12 +4,12 @@ from __future__ import with_statement
 import os
 import time
 
+import pytest
 import numpy as np
 
 from . import FitsTestCase
 from .test_table import comparerecords
 from ....io import fits
-from ....tests.helper import pytest
 
 
 class TestGroupsFunctions(FitsTestCase):

@@ -2,7 +2,9 @@
 
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
-from ...tests.helper import pytest
+
+import pytest
+
 from ..models import Shift, Rotation2D, Identity, Mapping
 import numpy as np
 from numpy.testing.utils import (assert_allclose, assert_array_equal)

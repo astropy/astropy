@@ -6,12 +6,12 @@ import re
 from io import BytesIO
 from collections import OrderedDict
 import locale
-
-import numpy as np
 import platform
 
+import pytest
+import numpy as np
+
 from ....extern.six.moves import zip, cStringIO as StringIO
-from ....tests.helper import pytest
 from ... import ascii
 from ....table import Table
 from ....units import Unit

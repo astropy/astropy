@@ -4,13 +4,14 @@
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-from ...extern import six
 
 import copy
 
+import pytest
+
 from .. import Constant
 from ...units import Quantity as Q
-from ...tests.helper import pytest
+from ...extern import six
 
 
 def test_c():
