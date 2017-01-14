@@ -57,11 +57,11 @@ cdef inline object base_getitem(object self, object item, item_getter getitem):
 
     value = getitem(self, item)
 
-    # In Py3+ return a scalar bytes value as latin1-encoded str
+    # In Py3+ return a scalar bytes value as utf-8-encoded str
     if PYV != 2:
         try:
             if value.dtype.char == 'S' and not value.shape:
-                value = value.decode('latin1')
+                value = value.decode('utf-8')
         except AttributeError:
             pass
 
