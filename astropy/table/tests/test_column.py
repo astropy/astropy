@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # TEST_UNICODE_LITERALS
@@ -668,9 +669,11 @@ def test_col_unicode_sandwich_unicode():
     assert c[:].dtype.char == 'U'
 
     assert np.all(c == ['abc', 'def'])
-    assert np.all(c != [b'abc', b'def'])
+    if not six.PY2:
+        assert np.all(c != [b'abc', b'def'])
     assert np.all(c == np.array([u'abc', u'def']))
-    assert np.all(c != np.array([b'abc', b'def']))
+    if not six.PY2:
+        assert np.all(c != np.array([b'abc', b'def']))
 
 
 def test_masked_col_unicode_sandwich():
@@ -681,11 +684,10 @@ def test_masked_col_unicode_sandwich():
     c = table.MaskedColumn([b'abc', b'def'])
     c[1] = np.ma.masked
     assert isinstance(c[:0], table.MaskedColumn)
-    assert isinstance(c[0], six.text_type)
+    assert isinstance(c[0], str)
 
     assert c[0] == 'abc'
     assert c[1] is np.ma.masked
-    assert isinstance(c[0], str)
 
     assert isinstance(c[:], table.MaskedColumn)
     assert c[:].dtype.char == 'S'
@@ -718,9 +720,3 @@ def test_unicode_sandwich_set(Column):
     assert np.all(c == ['cc', 'cc'])
     c[:] = u'dd'
     assert np.all(c == ['dd', 'dd'])
-
-
-def test_unicode_sandwich_non_ascii():
-    c = table.Column([b'abc', bytes(bytearray([40, 200, 230]))])
-    assert c.dtype.char == 'S'
-    assert c[1] == u'(Èæ'
