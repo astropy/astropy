@@ -245,14 +245,13 @@ class _ImageBaseHDU(_ValidHDU):
 
         return data
 
-    @lazyproperty
-    def wcs(self):
+    def get_wcs(self):
         """
         Returns the WCS of the images
         """
 
-        wcs1 = WCS(self.header)
-        return wcs1
+        wcs = WCS(self.header)
+        return wcs
 
     @data.setter
     def data(self, data):
