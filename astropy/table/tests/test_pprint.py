@@ -535,10 +535,10 @@ def test_pprint_py3_bytes():
     Also make sure special characters are printed in Python 2.
     """
     val = str('val') if PY2 else bytes('val', encoding='utf-8')
-    blah = u'bläh'.encode('latin1')
+    blah = u'bläh'.encode('utf-8')
     dat = np.array([val, blah], dtype=[(str('col'), 'S10')])
     t = table.Table(dat)
-    assert t['col'].pformat() == ['col ', '----', ' val', u'bl\xe4h']
+    assert t['col'].pformat() == ['col ', '----', ' val', u'bläh']
 
 
 def test_pprint_nameless_col():
