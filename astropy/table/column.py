@@ -131,19 +131,19 @@ class FalseArray(np.ndarray):
             self.__setitem__(slice(start, stop), val)
 
 
-def _encode_str_latin1(value):
+def _encode_str_utf8(value):
     """
-    Encode anything that is unicode-ish as latin1.  This method is used
+    Encode anything that is unicode-ish as utf-8.  This method is used
     in Column and is only called for Py3+.
     """
     if isinstance(value, str):
-        value = value.encode('latin1')
+        value = value.encode('utf-8')
     elif isinstance(value, bytes):
         pass
     else:
         value = np.asarray(value)
         if value.dtype.char == 'U':
-            value = np.char.encode(value, encoding='latin1')
+            value = np.char.encode(value, encoding='utf-8')
 
     return value
 
@@ -882,7 +882,7 @@ class Column(BaseColumn):
 
     def __setitem__(self, index, value):
         if not six.PY2 and self.dtype.char == 'S':
-            value = _encode_str_latin1(value)
+            value = _encode_str_utf8(value)
 
         # Issue warning for string assignment that truncates ``value``
         if issubclass(self.dtype.type, np.character):
@@ -903,12 +903,12 @@ class Column(BaseColumn):
 
     def _make_compare(oper):
         """
-        Make comparison methods which encode the ``other`` object to latin1
+        Make comparison methods which encode the ``other`` object to utf-8
         in the case of a bytestring dtype for Py3+.
         """
         def _compare(self, other):
             if not six.PY2 and self.dtype.char == 'S':
-                other = _encode_str_latin1(other)
+                other = _encode_str_utf8(other)
             return getattr(self.data, oper)(other)
         return _compare
 
