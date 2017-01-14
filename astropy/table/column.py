@@ -138,7 +138,7 @@ def _encode_str_utf8(value):
     """
     if isinstance(value, str):
         value = value.encode('utf-8')
-    elif isinstance(value, bytes):
+    elif isinstance(value, bytes) or value is np.ma.masked:
         pass
     else:
         value = np.asarray(value)
@@ -1213,6 +1213,9 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
     def __setitem__(self, index, value):
         # Issue warning for string assignment that truncates ``value``
+        if not six.PY2 and self.dtype.char == 'S':
+            value = _encode_str_utf8(value)
+
         if issubclass(self.dtype.type, np.character):
             # Account for a bug in np.ma.MaskedArray setitem.
             # https://github.com/numpy/numpy/issues/8624
