@@ -71,7 +71,7 @@ _buffer_realloc(
         return -1;
     }
 
-    new_mem = realloc((void *)*buffer, n * sizeof(CHAR));
+    new_mem = PyMem_Realloc((void *)*buffer, n * sizeof(CHAR));
     if (new_mem == NULL) {
         PyErr_SetString(PyExc_MemoryError, "Out of memory for XML text.");
         return -1;
