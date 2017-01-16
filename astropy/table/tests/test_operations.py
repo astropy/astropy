@@ -923,3 +923,16 @@ def test_unique():
                                '  2   a 4.0  --',
                                '  2   b 7.0   0',
                                ' --   c 3.0   5']
+
+
+def test_vstack_bytes():
+    """
+    Test for issue #5617 when vstack'ing bytes columns in Py3.
+    This is really an upsteam numpy issue numpy/numpy/#8403.
+    """
+    t = table.Table([[b'a']], names=['a'])
+    assert t['a'].itemsize == 1
+
+    t2 = table.vstack([t, t])
+    assert len(t2) == 2
+    assert t2['a'].itemsize == 1
