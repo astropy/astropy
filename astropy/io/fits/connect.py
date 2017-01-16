@@ -158,7 +158,7 @@ def read_table_fits(input, hdu=None):
     for col in table.columns:
         if col.unit is not None:
             t[col.name].unit = u.Unit(
-                col.unit, format='fits', parse_strict='warn')
+                col.unit, format='fits', parse_strict='silent')
 
     # TODO: deal properly with unsigned integers
 
