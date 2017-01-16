@@ -138,6 +138,8 @@ Bug Fixes
 
 - ``astropy.table``
 
+  - Fix a problem with vstack for bytes columns in Python 3. [#5628]
+
 - ``astropy.time``
 
 - ``astropy.units``
