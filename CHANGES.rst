@@ -20,6 +20,9 @@ New Features
 
   - Checking available disk space before writing out file. [#5550, #4065]
 
+  - Change behavior to warn about units that are not FITS-compliant when
+    writing a FITS file but not when reading. [#5675]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
