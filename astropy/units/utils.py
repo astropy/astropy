@@ -19,6 +19,7 @@ import numpy as np
 from numpy import finfo
 
 from ..extern import six
+from .. import units as u
 
 _float_finfo = finfo(float)
 # take float here to ensure comparison with another float is fast
@@ -219,3 +220,12 @@ def resolve_fractions(a, b):
     elif not a_is_fraction and b_is_fraction:
         a = Fraction(a)
     return a, b
+
+
+def quantity_asanyarray(a, dtype=None):
+    if isinstance(a, np.ndarray):
+        return np.asanyarray(a, dtype=dtype)
+    elif any(isinstance(x, u.Quantity) for x in a):
+        return u.Quantity(a, dtype=dtype)
+    else:
+        raise ValueError("Unexpected object passed to quantity_asanyarray: {0}".format(a))
