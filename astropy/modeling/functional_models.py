@@ -64,7 +64,7 @@ class BaseGaussian1D(Fittable1DModel):
         (-4.0, 4.0)
         """
 
-        x0 = self.mean.value
+        x0 = self.mean
         dx = factor * self.stddev
 
         return (x0 - dx, x0 + dx)

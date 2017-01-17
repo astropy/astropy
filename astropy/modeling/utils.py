@@ -17,6 +17,7 @@ from ..extern.six.moves import range, zip
 from ..utils import isiterable, check_broadcast
 from ..utils.compat.funcsigs import signature
 
+from .. import units as u
 
 __all__ = ['ExpressionTree', 'AliasDict', 'check_broadcast',
            'poly_map_domain', 'comb', 'ellipse_extent']
@@ -520,12 +521,13 @@ def ellipse_extent(a, b, theta):
 
     Parameters
     ----------
-    a : float
+    a : float or `~astropy.units.Quantity`
         Major axis.
-    b : float
+    b : float or `~astropy.units.Quantity`
         Minor axis.
-    theta : float
-        Rotation angle in radians.
+    theta : float or `~astropy.units.Quantity`
+        Rotation angle. If given as a floating-point value, it is assumed to be
+        in radians.
 
     Returns
     -------
@@ -571,7 +573,10 @@ def ellipse_extent(a, b, theta):
     t = np.arctan2(b, a * np.tan(theta))
     dy = b * np.sin(t) * np.cos(theta) + a * np.cos(t) * np.sin(theta)
 
-    return np.abs([dx, dy])
+    if isinstance(dx, u.Quantity) or isinstance(dy, u.Quantity):
+        return np.abs(u.Quantity([dx, dy]))
+    else:
+        return np.abs([dx, dy])
 
 
 def get_inputs_and_params(func):
