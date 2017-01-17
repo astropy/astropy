@@ -19,7 +19,6 @@ import numpy as np
 from numpy import finfo
 
 from ..extern import six
-from .. import units as u
 
 _float_finfo = finfo(float)
 # take float here to ensure comparison with another float is fast
@@ -223,7 +222,8 @@ def resolve_fractions(a, b):
 
 
 def quantity_asanyarray(a, dtype=None):
-    if not isinstance(a, np.ndarray) and not np.isscalar(a) and any(isinstance(x, u.Quantity) for x in a):
-        return u.Quantity(a, dtype=dtype)
+    from .quantity import Quantity
+    if not isinstance(a, np.ndarray) and not np.isscalar(a) and any(isinstance(x, Quantity) for x in a):
+        return Quantity(a, dtype=dtype)
     else:
         return np.asanyarray(a, dtype=dtype)
