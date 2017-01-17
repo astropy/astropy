@@ -87,80 +87,6 @@ def test_parameter_set_incompatible_units():
                                  "unitless value")
 
 
-def test_parameter_set_incompatible_units_with_equivalencies():
-    """
-    Check that parameters can only be set to quantities with equivalent units,
-    taking into account equivalencies defined in the parameter initializers.
-    """
-
-    class TestModel(BaseTestModel):
-        a = Parameter(default=1.0, unit=u.m)
-        b = Parameter(default=1.0, unit=u.m, equivalencies=u.spectral())
-        c = Parameter(default=1.0, unit=u.K, equivalencies=u.temperature_energy())
-
-    model = TestModel()
-
-    with pytest.raises(UnitsError) as exc:
-        model.a = 3 * u.Hz
-    assert exc.value.args[0] == "The 'a' parameter should be given as a Quantity with units equivalent to m"
-
-    model.b = 3 * u.Hz
-
-    with pytest.raises(UnitsError) as exc:
-        model.c = 3 * u.Hz
-    assert exc.value.args[0] == "The 'c' parameter should be given as a Quantity with units equivalent to K"
-
-    model.c = 3 * u.eV
-
-
-def test_parameter_equivalencies_used_in_init():
-    """
-    Check that equivalencies are taken into account when initializing a model
-    with quantities, if using a model where the parameters have specific
-    equivalencies defined.
-    """
-
-    class TestModel(Model):
-        a = Parameter(default=1.0, unit=u.m)
-        b = Parameter(default=1.0, unit=u.m, equivalencies=u.spectral())
-        @staticmethod
-        def evaluate(x, a):
-            return x
-
-    with pytest.raises(InputParameterError) as exc:
-        model = TestModel(a=2 * u.Hz)
-    assert exc.value.args[0] == ('TestModel.__init__() requires parameter \'a\' to '
-                                 'be in units equivalent to Unit("m") (got Unit("Hz"))')
-
-    model = TestModel(b=2 * u.Hz)
-
-    with pytest.raises(InputParameterError) as exc:
-        TestModel(b=2 * u.s)
-    assert exc.value.args[0] == ('TestModel.__init__() requires parameter \'b\' to '
-                                 'be in units equivalent to Unit("m") (got Unit("s"))')
-
-
-def test_parameter_set_equivalency():
-    """
-    Test that we can set equivalencies on an existing model.
-    """
-    g = Gaussian1D(1 * u.Jy, 3 * u.m, 0.1 * u.nm)
-
-    with pytest.raises(UnitsError) as exc:
-        g.mean = 3 * u.Hz
-    assert exc.value.args[0] == ("The 'mean' parameter should be given as a "
-                                 "Quantity with units equivalent to m")
-
-    g.mean.equivalencies = u.spectral()
-
-    g.mean = 3 * u.Hz
-
-    # Note that we can't use this for equivalencies that rely on the values at
-    # which the model is evaluated (such as brightness_temperature which
-    # depends on spectral coordinate) because we won't know what values to use
-    # until evaluation.
-
-
 def test_parameter_change_unit():
     """
     Test that changing the unit on a parameter works as expected (units can
@@ -183,27 +109,6 @@ def test_parameter_change_unit():
         g.mean.unit = u.Hz
     assert exc.value.args[0] == ("Cannot set parameter units to Hz since it is "
                                  "not equivalent with the original units of cm")
-
-    # Now we test a more complex example with equivalencies
-    class TestModel(Model):
-        a = Parameter(default=1.0, unit=u.m, equivalencies=u.spectral())
-        @staticmethod
-        def evaluate(x, a):
-            return x
-
-    model = TestModel()
-
-    # This should work as before
-    model.a.unit = u.cm
-
-    # This should now work because of the equivalency
-    model.a.unit = u.Hz
-
-    # But this should still not work
-    with pytest.raises(UnitsError) as exc:
-        model.a.unit = u.Jy
-    assert exc.value.args[0] == ("Cannot set parameter units to Jy since it is "
-                                 "not equivalent with the original units of Hz")
 
 
 def test_parameter_set_value():

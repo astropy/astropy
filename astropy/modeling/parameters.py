@@ -174,8 +174,6 @@ class Parameter(OrderedDescriptor):
         if specified, the parameter will be in these units, and when the
         parameter is updated in future, it should be set to a
         :`~astropy.units.Quantity` that has equivalent units.
-    equivalencies : list of equivalent pairs
-        equivalencies to apply when updating the parameter value
     getter : callable
         a function that wraps the raw (internal) value of the parameter
         when returning the value through the parameter proxy (eg. a
@@ -215,8 +213,8 @@ class Parameter(OrderedDescriptor):
     _name_attribute_ = '_name'
 
     def __init__(self, name='', description='', default=None, unit=None,
-                 equivalencies=None, getter=None, setter=None, fixed=False,
-                 tied=False, min=None, max=None, bounds=None, model=None):
+                 getter=None, setter=None, fixed=False, tied=False, min=None,
+                 max=None, bounds=None, model=None):
         super(Parameter, self).__init__()
 
         self._name = name
@@ -234,7 +232,6 @@ class Parameter(OrderedDescriptor):
 
         self._default = default
         self._unit = unit
-        self._equivalencies = equivalencies
 
         # NOTE: These are *default* constraints--on model instances constraints
         # are taken from the model if set, otherwise the defaults set here are
@@ -288,20 +285,19 @@ class Parameter(OrderedDescriptor):
 
         # Check that units are compatible with default or units already set
         param_unit = obj._param_metrics[self.name]['orig_unit']
-        param_equiv = obj._param_metrics[self.name]['equivalencies']
         if param_unit is None:
             if isinstance(value, Quantity):
                 raise UnitsError("The '{0}' parameter should be given as a "
                                  "unitless value".format(self._name))
         else:
-            if not isinstance(value, Quantity) or not value.unit.is_equivalent(param_unit, equivalencies=param_equiv):
+            if not isinstance(value, Quantity) or not value.unit.is_equivalent(param_unit):
                 raise UnitsError("The '{0}' parameter should be given as a "
                                  "Quantity with units equivalent to "
                                  "{1}".format(self._name, param_unit))
             else:
                 # We need to convert the value here since the units are dropped
                 # below when setting the parameter value with np.array.
-                value = value.to(param_unit, equivalencies=param_equiv)
+                value = value.to(param_unit)
 
         # Call the validator before the setter
         if self._validator is not None:
@@ -469,7 +465,6 @@ class Parameter(OrderedDescriptor):
         # returned to the user when they access this parameter
 
         # We now check that the new units are equivalent to the existing ones
-        # (including any equivalencies)
 
         orig_unit = self._model._param_metrics[self.name]['orig_unit']
 
@@ -478,7 +473,7 @@ class Parameter(OrderedDescriptor):
                 'Cannot attach units to parameters that were not initially '
                 'specified with units')
 
-        if not force and not orig_unit.is_equivalent(unit, equivalencies=self._equivalencies):
+        if not force and not orig_unit.is_equivalent(unit):
             raise UnitsError("Cannot set parameter units to {0} since it is "
                              "not equivalent with the original units of "
                              "{1}".format(unit, orig_unit))
@@ -496,24 +491,6 @@ class Parameter(OrderedDescriptor):
     def quantity(self, quantity):
         self.value = quantity.value
         self.unit = quantity.unit
-
-    @property
-    def equivalencies(self):
-        """
-        The active equivalencies in this parameter
-        """
-        if self._model is None:
-            return self._equivalencies
-        else:
-            # orig_unit may be undefined early on in model instantiation
-            return self._model._param_metrics[self.name].get('equivalencies',
-                                                             self._equivalencies)
-
-    @equivalencies.setter
-    def equivalencies(self, value):
-        if self._model is None:
-            raise AttributeError('Cannot set equivalencies on a parameter definition')
-        self._model._param_metrics[self.name]['equivalencies'] = value
 
     @property
     def shape(self):
