@@ -198,10 +198,8 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
     filtered_data = np.ma.array(data, copy=copy)
 
     if iters is None:
-        i = -1
         lastrej = filtered_data.count() + 1
         while filtered_data.count() != lastrej:
-            i += 1
             lastrej = filtered_data.count()
             perform_clip(filtered_data, kwargs)
     else:
