@@ -8,7 +8,6 @@ from astropy.coordinates import ITRS
 
 class ENU(BaseCoordinateFrame):
     """
-    Written by Joshua G. Albert - albert@strw.leidenuniv.nl
     A coordinate or frame in the East-North-Up (ENU) system.  
 
     This frame has the following frame attributes, which are necessary for
@@ -35,10 +34,6 @@ class ENU(BaseCoordinateFrame):
     up : :class:`~astropy.units.Quantity`, optional, must be keyword
         The east coordinate for this object (``north`` and ``east`` must also be given and
         ``representation`` must be None).
-
-    Notes
-    -----
-    This is useful as an intermediate frame between ITRS and UVW for radio astronomy
 
     """
 
