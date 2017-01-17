@@ -223,9 +223,7 @@ def resolve_fractions(a, b):
 
 
 def quantity_asanyarray(a, dtype=None):
-    if isinstance(a, np.ndarray):
-        return np.asanyarray(a, dtype=dtype)
-    elif any(isinstance(x, u.Quantity) for x in a):
+    if not isinstance(a, np.ndarray) and not np.isscalar(a) and any(isinstance(x, u.Quantity) for x in a):
         return u.Quantity(a, dtype=dtype)
     else:
-        raise ValueError("Unexpected object passed to quantity_asanyarray: {0}".format(a))
+        return np.asanyarray(a, dtype=dtype)
