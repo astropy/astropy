@@ -1,21 +1,9 @@
-# An East-North-Up right handed coordinate system
-# Written by Joshua G. Albert - albert@strw.leidenuniv.nl
-
-
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
+from __future__ import (absolute_import, unicode_literals, division, print_function)
 import numpy as np
-
 import astropy.units as u
-
-from astropy.coordinates.baseframe import (BaseCoordinateFrame, FrameAttribute,
-                         TimeFrameAttribute, QuantityFrameAttribute,
-                         RepresentationMapping, EarthLocationAttribute,
-                              frame_transform_graph)
-
+from astropy.coordinates.baseframe import (BaseCoordinateFrame, FrameAttribute,TimeFrameAttribute, QuantityFrameAttribute, RepresentationMapping, EarthLocationAttribute, frame_transform_graph)
 from astropy.coordinates.transformations import FunctionTransform
-from astropy.coordinates.representation import (SphericalRepresentation,
-                              UnitSphericalRepresentation,CartesianRepresentation)
+from astropy.coordinates.representation import ( UnitSphericalRepresentation,CartesianRepresentation)
 from astropy.coordinates import ITRS
 
 class ENU(BaseCoordinateFrame):
@@ -64,10 +52,6 @@ class ENU(BaseCoordinateFrame):
 
     obstime = TimeFrameAttribute(default=None)
     location = EarthLocationAttribute(default=None)
-    #pressure = QuantityFrameAttribute(default=0, unit=u.hPa)
-    #temperature = QuantityFrameAttribute(default=0, unit=u.deg_C)
-    #relative_humidity = FrameAttribute(default=0)
-    #obswl = QuantityFrameAttribute(default=1*u.micron, unit=u.micron)
 
     def __init__(self, *args, **kwargs):
         super(ENU, self).__init__(*args, **kwargs)
@@ -81,9 +65,7 @@ class ENU(BaseCoordinateFrame):
 
 @frame_transform_graph.transform(FunctionTransform, ITRS, ENU)
 def itrs_to_enu(itrs_coo, enu_frame):
-    '''Defines the transformation between ITRS and the ENU frame.
-    ITRS usually has units attached but ENU does not require units 
-    if it specifies a direction.'''
+    '''Defines the transformation between ITRS and the ENU frame.'''
     
     if np.any(itrs_coo.obstime != enu_frame.obstime):
         itrs_coo = itrs_coo.transform_to(ITRS(obstime=enu_frame.obstime))
@@ -132,10 +114,7 @@ def itrs_to_enu(itrs_coo, enu_frame):
 
 @frame_transform_graph.transform(FunctionTransform, ENU, ITRS)
 def enu_to_itrs(enu_coo, itrs_frame):
-    #p = itrs_frame.cartesian.xyz.to(u.m).value
-    #p0 = np.array(enu_coo.location.to(u.m).value)
-    #p = np.array(itrs_frame.location.to(u.m).value)
-    
+  '''Defines the transformation between ENU and the ITRS frame.'''
     
     lon, lat, height = enu_coo.location.to_geodetic('WGS84')
     sinlat = np.sin(lat.to(u.radian).value)
@@ -159,9 +138,7 @@ def enu_to_itrs(enu_coo, itrs_frame):
     else:
         diff = R.T.dot(enu_coo.cartesian.xyz)
         p0 = ITRS(*enu_coo.location.geocentric,obstime=enu_coo.obstime).cartesian.xyz
-        #print (R,diff)
         p = (diff.T + p0).T
-        #print (p)
         rep = CartesianRepresentation(x = p[0],#u.Quantity(p[0],u.m,copy=False),
                                      y = p[1],#u.Quantity(p[1],u.m,copy=False),
                                      z = p[2],#u.Quantity(p[2],u.m,copy=False),
@@ -169,34 +146,8 @@ def enu_to_itrs(enu_coo, itrs_frame):
 
     return itrs_frame.realize_frame(rep)
     
-    #return ITRS(*p*u.m,obstime=enu_coo.obstime).transform_to(itrs_frame)
-    
 @frame_transform_graph.transform(FunctionTransform, ENU, ENU)
 def enu_to_enu(from_coo, to_frame):
     # for now we just implement this through ITRS to make sure we get everything
     # covered
     return from_coo.transform_to(ITRS(obstime=from_coo.obstime,location=from_coo.location)).transform_to(to_frame)
-
-if __name__ == '__main__':
-    import astropy.coordinates as ac
-    import astropy.time as at
-    
-    #test to see if vector input works both ways
-    
-    loc = ac.EarthLocation(x=6731*u.km,y=1*u.km,z=1*u.km)
-    time = at.Time(1,format='gps')
-    enu = ENU(obstime=time,location=loc)
-    print("With dim test:")
-    enucoords = ac.SkyCoord(east = np.array([0,1])*u.m,
-                            north=np.array([0,1])*u.m,
-                            up=np.array([0,1])*u.m,frame=enu)
-    print (enucoords)
-    print(enucoords.transform_to('itrs'))
-    print(enucoords.transform_to('itrs').transform_to(enu))
-    print("Without dim test:")
-    enucoords = ac.SkyCoord(east = np.array([0,1]),
-                            north=np.array([0,1]),
-                            up=np.array([0,1]),frame=enu)
-    print (enucoords)
-    print(enucoords.transform_to('itrs'))
-    print(enucoords.transform_to('itrs').transform_to(enu))
