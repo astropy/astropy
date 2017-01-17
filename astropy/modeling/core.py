@@ -1118,16 +1118,16 @@ class Model(object):
 
         model = self.copy()
 
-        xunit = x.unit if isinstance(x, Quantity) else dimensionless_unscaled
-        yunit = y.unit if isinstance(y, Quantity) else dimensionless_unscaled
-        zunit = z.unit if z is not None and isinstance(z, Quantity) else dimensionless_unscaled
+        xunit = getattr(x, 'unit', dimensionless_unscaled)
+        yunit = getattr(y, 'unit', dimensionless_unscaled)
+        zunit = getattr(z, 'unit', dimensionless_unscaled)
 
         parameter_units = self._parameter_units_for_data_units(xunit, yunit, zunit)
 
         for name, unit in parameter_units.items():
             parameter = getattr(model, name)
             if parameter.unit is not None:
-                parameter.value *= parameter.unit.to(unit)
+                parameter.value = parameter.quantity.to(unit).value
                 parameter._set_unit(None, force=True)
 
         return model
@@ -1140,9 +1140,9 @@ class Model(object):
 
         model = self.copy()
 
-        xunit = x.unit if isinstance(x, Quantity) else dimensionless_unscaled
-        yunit = y.unit if isinstance(y, Quantity) else dimensionless_unscaled
-        zunit = z.unit if z is not None and isinstance(z, Quantity) else dimensionless_unscaled
+        xunit = getattr(x, 'unit', dimensionless_unscaled)
+        yunit = getattr(y, 'unit', dimensionless_unscaled)
+        zunit = getattr(z, 'unit', dimensionless_unscaled)
 
         parameter_units = self._parameter_units_for_data_units(xunit, yunit, zunit)
 
