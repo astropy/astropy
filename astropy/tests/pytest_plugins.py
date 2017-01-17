@@ -122,6 +122,11 @@ def pytest_generate_tests(metafunc):
         metafunc.fixturenames.append('tmp_ct')
         metafunc.parametrize('tmp_ct', range(count))
 
+# We monkey-patch in our replacement doctest OutputChecker.  Not
+# great, but there isn't really an API to replace the checker when
+# using doctest.testfile, unfortunately.
+doctest.OutputChecker = AstropyOutputChecker
+
 
 REMOTE_DATA = doctest.register_optionflag('REMOTE_DATA')
 
@@ -186,23 +191,17 @@ def pytest_configure(config):
                     yield doctest_plugin.DoctestItem(
                         test.name, self, runner, test)
 
-    class DocTestTextfilePlus(doctest_plugin.DoctestTextfile):
-        def collect(self):
-            # inspired by doctest.testfile; ideally we would use it directly,
-            # but it doesn't support passing a custom checker
-            text = self.fspath.read()
-            filename = str(self.fspath)
-            name = self.fspath.basename
-            globs = {'__name__': '__main__'}
+    class DocTestTextfilePlus(doctest_plugin.DoctestItem, pytest.Module):
+        def runtest(self):
+            # satisfy `FixtureRequest` constructor...
+            self.funcargs = {}
+            fixture_request = doctest_plugin._setup_fixtures(self)
 
-            runner = doctest.DebugRunner(verbose=0, optionflags=opts,
-                                         checker=AstropyOutputChecker())
-
-            parser = DocTestParserPlus()
-            test = parser.get_doctest(text, globs, name, filename, 0)
-            if test.examples:
-                yield doctest_plugin.DoctestItem(test.name, self, runner, test)
-
+            failed, tot = doctest.testfile(
+                str(self.fspath), module_relative=False,
+                optionflags=opts, parser=DocTestParserPlus(),
+                extraglobs=dict(getfixture=fixture_request.getfuncargvalue),
+                raise_on_error=True, verbose=False, encoding='utf-8')
 
     class DocTestParserPlus(doctest.DocTestParser):
         """
