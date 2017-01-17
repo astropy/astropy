@@ -35,6 +35,7 @@ from ..extern import six
 from ..extern.six.moves import copyreg, zip
 from ..table import Table
 from ..units import Quantity, UnitBase, UnitsError, dimensionless_unscaled
+from ..units.utils import quantity_asanyarray
 from ..utils import (sharedmethod, find_current_module,
                      InheritDocstrings, OrderedDescriptorContainer,
                      check_broadcast, IncompatibleShapeError)
@@ -1523,7 +1524,8 @@ class Model(object):
             if arg is None:
                 # A value of None implies using the default value, if exists
                 continue
-            params[self.param_names[idx]] = np.asanyarray(arg, dtype=np.float)
+            params[self.param_names[idx]] = quantity_asanyarray(arg, dtype=np.float)
+
 
         # At this point the only remaining keyword arguments should be
         # parameter names; any others are in error.
@@ -1537,7 +1539,7 @@ class Model(object):
                 if value is None:
                     continue
                 else:
-                    params[param_name] = np.asanyarray(value, dtype=np.float)
+                    params[param_name] = quantity_asanyarray(value, dtype=np.float)
 
         if kwargs:
             # If any keyword arguments were left over at this point they are
