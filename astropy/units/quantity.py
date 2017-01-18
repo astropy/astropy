@@ -580,7 +580,7 @@ class Quantity(np.ndarray):
             else:
                 return obj
 
-    def __numpy_ufunc__(self, function, method, i, inputs, **kwargs):
+    def __array_ufunc__(self, function, method, inputs, **kwargs):
         """Wrap numpy ufunc and other functions, taking care of units.
 
         Parameters
@@ -590,9 +590,6 @@ class Quantity(np.ndarray):
         method : str
             Callable attribute of ``function`` to use.  Should generally be
             ``__call__``, but can also be ``at``, ``reduce``, etc., for ufuncs.
-        i : int
-            Position of ``self`` among the inputs.  Part of the standard
-            ``__numpy_ufunc__`` signature, but not used here.
         inputs : tuple
             Input arrays and other positional arguments.
         kwargs : keyword arguments
@@ -1474,7 +1471,7 @@ class Quantity(np.ndarray):
             Result of the function call, with the unit set properly.
         """
         kwargs.setdefault('unit', self.unit)
-        return self.__numpy_ufunc__(function, '__call__', 0, (self,) + args,
+        return self.__array_ufunc__(function, '__call__', (self,) + args,
                                     **kwargs)
 
     def clip(self, a_min, a_max, out=None):
