@@ -301,6 +301,46 @@ def test_distribution(null_data, normalization):
     assert_allclose(hist, pdf, rtol=0.03, atol=0.04 * pdf[0])
 
 
+def test_distribution_units(null_data):
+    t, y, dy = null_data
+
+    t_days = t * units.day
+    y_mag = y * units.mag
+    dy_mag = dy * units.mag
+
+    # unnormalized: this should fail
+    ls = LombScargle(t_days, y_mag)
+    freq, power = ls.autopower(normalization='psd',
+                               maximum_frequency=1 / units.day)
+    assert power.unit == units.mag ** 2
+
+    with pytest.raises(ValueError) as err:
+        pdf = ls.distribution(power, normalization='psd')
+    assert str(err.value).startswith('The distribution can be computed')
+
+    with pytest.raises(ValueError) as err:
+        cdf = ls.cumulative_distribution(power, normalization='psd')
+    assert str(err.value).startswith('The distribution can be computed')
+
+    # normalized: case with units should match case without units
+    ls = LombScargle(t_days, y_mag, dy_mag)
+    freq, power = ls.autopower(normalization='psd',
+                               maximum_frequency=1 / units.day)
+    assert power.unit == units.dimensionless_unscaled
+
+    pdf_with_units = ls.distribution(power, normalization='psd')
+    cdf_with_units = ls.cumulative_distribution(power, normalization='psd')
+
+    ls = LombScargle(t, y, dy)
+    freq, power = ls.autopower(normalization='psd',
+                               maximum_frequency=1)
+    pdf_no_units = ls.distribution(power, normalization='psd')
+    cdf_no_units = ls.cumulative_distribution(power, normalization='psd')
+
+    assert_allclose(pdf_with_units, pdf_no_units)
+    assert_allclose(cdf_with_units, cdf_no_units)
+
+
 @pytest.mark.parametrize('t_unit', [units.second, units.day])
 @pytest.mark.parametrize('frequency_unit', [units.Hz, 1. / units.second])
 @pytest.mark.parametrize('y_unit', [units.mag, units.jansky])

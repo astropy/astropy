@@ -379,8 +379,12 @@ class LombScargle(object):
         -----
         Expressions used here are adapted from Baluev 2008, Table 1.
         """
-        # TODO: handle units in z?
-        z = np.asarray(z)
+        if isinstance(z, units.Quantity):
+            if z.unit == units.dimensionless_unscaled:
+                z = z.value
+            else:
+                raise ValueError('The distribution can be computed only for '
+                                 'normalized (unitless) periodograms.')
 
         N = len(self.t)
         if self.nterms != 1:
@@ -426,8 +430,12 @@ class LombScargle(object):
         -----
         Expressions used here are adapted from Baluev 2008, Table 1.
         """
-        # TODO: handle units in z?
-        z = np.asarray(z)
+        if isinstance(z, units.Quantity):
+            if z.unit == units.dimensionless_unscaled:
+                z = z.value
+            else:
+                raise ValueError('The distribution can be computed only for '
+                                 'normalized (unitless) periodograms.')
 
         N = len(self.t)
         if self.nterms != 1:
