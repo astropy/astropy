@@ -280,7 +280,8 @@ API Changes
       ``create_card``, ``create_card_from_string``, ``upper_key``,
       ``Header.ascard``, ``Header.rename_key``, ``Header.get_history``,
       ``Header.get_comment``, ``Header.toTxtFile``, ``Header.fromTxtFile``,
-      ``tdump``, ``tcreate``, ``BinTableHDU.tdump``, ``BinTableHDU.tcreate``.
+      ``new_table``, ``tdump``, ``tcreate``, ``BinTableHDU.tdump``,
+      ``BinTableHDU.tcreate``.
 
     - Removed ``txtfile`` argument to the ``Header`` constructor.
 
