@@ -19,7 +19,7 @@ class TestUfuncCoverage(object):
         all_np_ufuncs = set([ufunc for ufunc in np.core.umath.__dict__.values()
                              if type(ufunc) == np.ufunc])
 
-        # in numpy >=1.10, with __numpy_ufunc__, np.dot behaves like a ufunc.
+        # in numpy >=1.13, with __array_ufunc__, np.dot behaves like a ufunc.
         if not NUMPY_LT_1_13:
             all_np_ufuncs |= set([np.dot])
 
@@ -663,7 +663,7 @@ class TestInplaceUfuncs(object):
         np.modf(v3, v3, tmp)
         assert check3 is v3
         assert check3.unit == u.dimensionless_unscaled
-        # in np<1.12, without __numpy_ufunc__, one cannot replace input with
+        # in np<1.13, without __array_ufunc__, one cannot replace input with
         # first output when scaling
         v4 = v_copy.copy()
         if NUMPY_LT_1_13:

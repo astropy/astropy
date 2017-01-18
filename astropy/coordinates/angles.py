@@ -539,8 +539,8 @@ class Latitude(Angle):
         obj = super(Angle, self).__array_wrap__(obj, context=context)
         return _no_angle_subclass(obj)
 
-    def __numpy_ufunc__(self, *args, **kwargs):
-        results = super(Latitude, self).__numpy_ufunc__(*args, **kwargs)
+    def __array_ufunc__(self, *args, **kwargs):
+        results = super(Latitude, self).__array_ufunc__(*args, **kwargs)
         return _no_angle_subclass(results)
 
 
@@ -658,6 +658,6 @@ class Longitude(Angle):
         obj = super(Angle, self).__array_wrap__(obj, context=context)
         return _no_angle_subclass(obj)
 
-    def __numpy_ufunc__(self, *args, **kwargs):
-        results = super(Longitude, self).__numpy_ufunc__(*args, **kwargs)
+    def __array_ufunc__(self, *args, **kwargs):
+        results = super(Longitude, self).__array_ufunc__(*args, **kwargs)
         return _no_angle_subclass(results)
