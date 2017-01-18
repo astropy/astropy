@@ -26,6 +26,16 @@ def data(N=100, period=1, theta=[10, 2, 3], dy=1, rseed=0):
     return t, y, dy
 
 
+@pytest.fixture
+def null_data(N=1000, dy=1, rseed=0):
+    """Generate null hypothesis data"""
+    rng = np.random.RandomState(rseed)
+    t = 100 * rng.rand(N)
+    dy = 0.5 * dy * (1 + rng.rand(N))
+    y = dy * rng.randn(N)
+    return t, y, dy
+
+
 @pytest.mark.parametrize('method', ALL_METHODS_NO_AUTO)
 @pytest.mark.parametrize('center_data', [True, False])
 @pytest.mark.parametrize('fit_mean', [True, False])
@@ -267,6 +277,28 @@ def test_model(fit_mean, with_units, freq):
     ls = LombScargle(t, y, center_data=False, fit_mean=fit_mean)
     y_fit = ls.model(t, freq)
     assert_quantity_allclose(y_fit, y)
+
+
+@pytest.mark.parametrize('normalization', NORMALIZATIONS)
+def test_distribution(null_data, normalization):
+    t, y, dy = null_data
+    ls = LombScargle(t, y, dy)
+    freq, power = ls.autopower(normalization=normalization,
+                               maximum_frequency=40)
+    z = np.linspace(0, power.max(), 1000)
+
+    # Test that pdf and cdf are consistent
+    dz = z[1] - z[0]
+    z_mid = z[:-1] + 0.5 * dz
+    pdf = ls.distribution(z_mid, normalization=normalization)
+    cdf = ls.cumulative_distribution(z, normalization=normalization)
+    assert_allclose(pdf, np.diff(cdf) / dz, rtol=1E-5, atol=1E-8)
+
+    # Test that observed power is distributed according to the theoretical pdf
+    hist, bins = np.histogram(power, 30, normed=True)
+    midpoints = 0.5 * (bins[1:] + bins[:-1])
+    pdf = ls.distribution(midpoints, normalization)
+    assert_allclose(hist, pdf, rtol=0.03, atol=0.04 * pdf[0])
 
 
 @pytest.mark.parametrize('t_unit', [units.second, units.day])
