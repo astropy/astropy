@@ -87,6 +87,9 @@ API Changes
 
 - ``astropy.stats``
 
+  Removed the deprecated ``sig`` and ``varfunc`` keywords in the
+  ``sigma_clip`` function. [#5715]
+
 - ``astropy.sphinx``
 
 - ``astropy.table``
