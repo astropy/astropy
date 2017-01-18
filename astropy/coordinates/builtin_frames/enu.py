@@ -109,16 +109,13 @@ def itrs_to_enu(itrs_coo, enu_frame):
 
 @frame_transform_graph.transform(FunctionTransform, ENU, ITRS)
 def enu_to_itrs(enu_coo, itrs_frame):
-  '''Defines the transformation between ENU and the ITRS frame.'''
-    
+    '''Defines the transformation between ENU and the ITRS frame.'''
     lon, lat, height = enu_coo.location.to_geodetic('WGS84')
     sinlat = np.sin(lat.to(u.radian).value)
     coslat = np.cos(lat.to(u.radian).value)
     sinlon = np.sin(lon.to(u.radian).value)
     coslon = np.cos(lon.to(u.radian).value)
-    north = [-sinlat*coslon,
-                      -sinlat*sinlon,
-                      coslat]
+    north = [-sinlat*coslon, -sinlat*sinlon, coslat]
     east = [-sinlon,coslon,0]
     up = [coslat*coslon,coslat*sinlon,sinlat]
     R = np.array([east,north,up])
