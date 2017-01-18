@@ -35,6 +35,9 @@ New Features
 
 - ``astropy.stats``
 
+  - Add the ``distribution()`` and ``cumulative_distribution()`` methods to
+    the Lomb-Scargle periodogram [#5713]
+
 - ``astropy.sphinx``
 
 - ``astropy.table``
@@ -133,6 +136,9 @@ Bug Fixes
 - ``astropy.nddata``
 
 - ``astropy.stats``
+
+  - Fix the psd normalization for Lomb-Scargle periodograms in the presence
+    of noise [#5713]
 
 - ``astropy.sphinx``
 
