@@ -109,7 +109,7 @@ def enu_to_itrs(enu_coo, itrs_frame):
     north = [-sinlat*coslon, -sinlat*sinlon, coslat]
     east = [-sinlon,coslon,0]
     up = [coslat*coslon,coslat*sinlon,sinlat]
-    R = np.array([east,north,up])  
+    R = np.array([east,north,up])
     if isinstance(enu_coo.data, UnitSphericalRepresentation) or enu_coo.cartesian.x.unit == u.one:
         diff = R.T.dot(enu_coo.cartesian.xyz)
         p = diff
