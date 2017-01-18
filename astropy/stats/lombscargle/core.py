@@ -360,7 +360,7 @@ class LombScargle(object):
     def cumulative_distribution(self, z, normalization='standard'):
         """
         Compute the theoretical cumulative distribution of the periodogram
-        for the null hypothesis – i.e. data consisting of Gaussian noise.
+        for the null hypothesis - i.e. data consisting of Gaussian noise.
 
         Parameters
         ----------
@@ -407,7 +407,7 @@ class LombScargle(object):
     def distribution(self, z, normalization='standard'):
         """
         Compute the theoretical probability density function of the periodogram
-        for the null hypothesis – i.e. data consisting of Gaussian noise.
+        for the null hypothesis - i.e. data consisting of Gaussian noise.
 
         Parameters
         ----------
