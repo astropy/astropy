@@ -360,36 +360,9 @@ def test_distribution(null_data, normalization):
     assert_allclose(hist, pdf, rtol=0.05, atol=0.05 * pdf[0])
 
 
-def test_distribution_units(null_data):
-    t, y, dy = null_data
-    N = len(t)
-
-    t_days = t * units.day
-    y_mag = y * units.mag
-    dy_mag = dy * units.mag
-
-    # normalized: case with units should match case without units
-    ls = LombScargle(t_days, y_mag, dy_mag)
-    freq, power = ls.autopower(normalization='psd',
-                               maximum_frequency=1 / units.day)
-    assert power.unit == units.dimensionless_unscaled
-
-    pdf_with_units = _lombscargle_pdf(power, N, normalization='psd')
-    cdf_with_units = _lombscargle_cdf(power, N, normalization='psd')
-
-    ls = LombScargle(t, y, dy)
-    freq, power = ls.autopower(normalization='psd',
-                               maximum_frequency=1)
-    pdf_no_units = _lombscargle_pdf(power, N, normalization='psd')
-    cdf_no_units = _lombscargle_cdf(power, N, normalization='psd')
-
-    assert_allclose(pdf_with_units, pdf_no_units)
-    assert_allclose(cdf_with_units, cdf_no_units)
-
-
 # The following are convenience functions used to compute statistics of the
 # periodogram under various normalizations; they are used in the preceding
-# two tests.
+# test.
 
 
 def _lombscargle_pdf(z, N, normalization, dH=1, dK=3):
