@@ -124,7 +124,7 @@ def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='standard',
     p = np.array([compute_power(i) for i in range(Nf)])
 
     if normalization == 'psd':
-        p *= 0.5 * t.size / ws
+        p *= 0.5
     elif normalization == 'standard':
         p /= chi2_ref
     elif normalization == 'log':
