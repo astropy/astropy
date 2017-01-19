@@ -368,20 +368,6 @@ def test_distribution_units(null_data):
     y_mag = y * units.mag
     dy_mag = dy * units.mag
 
-    # unnormalized: this should fail
-    ls = LombScargle(t_days, y_mag)
-    freq, power = ls.autopower(normalization='psd',
-                               maximum_frequency=1 / units.day)
-    assert power.unit == units.mag ** 2
-
-    with pytest.raises(ValueError) as err:
-        pdf = _lombscargle_pdf(power, N, normalization='psd')
-    assert str(err.value).startswith('The distribution can be computed')
-
-    with pytest.raises(ValueError) as err:
-        cdf = _lombscargle_cdf(power, N, normalization='psd')
-    assert str(err.value).startswith('The distribution can be computed')
-
     # normalized: case with units should match case without units
     ls = LombScargle(t_days, y_mag, dy_mag)
     freq, power = ls.autopower(normalization='psd',
@@ -443,13 +429,6 @@ def _lombscargle_pdf(z, N, normalization, dH=1, dK=3):
         raise NotImplementedError("Degrees of freedom != 2")
     Nk = N - dK
 
-    if isinstance(z, units.Quantity):
-        if z.unit == units.dimensionless_unscaled:
-            z = z.value
-        else:
-            raise ValueError('The distribution can be computed only for '
-                             'normalized (unitless) periodograms.')
-
     if normalization == 'psd':
         return np.exp(-z)
     elif normalization == 'standard':
@@ -499,13 +478,6 @@ def _lombscargle_cdf(z, N, normalization, dH=1, dK=3):
     if dK - dH != 2:
         raise NotImplementedError("Degrees of freedom != 2")
     Nk = N - dK
-
-    if isinstance(z, units.Quantity):
-        if z.unit == units.dimensionless_unscaled:
-            z = z.value
-        else:
-            raise ValueError('The distribution can be computed only for '
-                             'normalized (unitless) periodograms.')
 
     if normalization == 'psd':
         return 1 - np.exp(-z)
