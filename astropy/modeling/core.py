@@ -38,7 +38,7 @@ from ..units import Quantity, UnitBase, UnitsError, dimensionless_unscaled
 from ..units.utils import quantity_asanyarray
 from ..utils import (sharedmethod, find_current_module,
                      InheritDocstrings, OrderedDescriptorContainer,
-                     check_broadcast, IncompatibleShapeError)
+                     check_broadcast, IncompatibleShapeError, isiterable)
 from ..utils.codegen import make_function_with_signature
 from ..utils.compat import suppress
 from ..utils.compat.funcsigs import signature
@@ -1314,6 +1314,10 @@ class Model(object):
         # Check that the units are correct, if applicable
 
         if self.input_units is not None:
+            if isiterable(self.input_units):
+                input_units = self.input_units
+                if len(input_units) != len(inputs):
+                    raise ValueError("Input units is not the same length as inputs")
             if isinstance(self.input_units, UnitBase):
                 input_units = (self.input_units,) * len(inputs)
             for i in range(len(inputs)):
