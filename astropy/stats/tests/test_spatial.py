@@ -40,11 +40,17 @@ def test_ripley_K_implementation():
 def test_ripley_uniform_property():
     # Ripley's K function converges to the area when the number of points
     # and the argument radii are large enough, i.e., K(x) --> area as x --> inf
-    x = np.random.uniform(low=0, high=10, size=100)
-    y = np.random.uniform(low=5, high=10, size=100)
-    z = np.array([x, y]).T
+    z = np.random.uniform(low=5, high=10, size=(100, 2))
 
     area = 50
     Kest = RipleysKEstimate(data=z, area=area)
     r = np.linspace(0, 20, 5)
     assert_allclose(area, Kest(radii=r)[4])
+
+def test_ripley_large_density():
+    z = np.random.uniform(low=0, high=1, size=(500, 2))
+
+    Kest = RipleysKEstimate(data=z, area=1, max_height=1, max_width=1)
+    r = np.linspace(0, 0.25, 100)
+
+    assert_allclose(Kest.poisson(r), Kest(r, mode='translation'), atol=1e-2)
