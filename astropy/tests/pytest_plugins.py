@@ -179,7 +179,8 @@ def pytest_configure(config):
 
             # uses internal doctest module parsing mechanism
             finder = DocTestFinderPlus()
-            runner = doctest.DebugRunner(verbose=False, optionflags=opts)
+            runner = doctest.DebugRunner(verbose=False, optionflags=opts,
+                                         checker=AstropyOutputChecker())
             for test in finder.find(module):
                 if test.examples:  # skip empty doctests
                     if config.getvalue("remote_data") != 'any':
@@ -190,21 +191,11 @@ def pytest_configure(config):
                     yield doctest_plugin.DoctestItem(
                         test.name, self, runner, test)
 
-        # This is for py.test prior to 2.4.0
-        def runtest(self):
-            return
-
-    class DocTestTextfilePlus(doctest_plugin.DoctestTextfile):
+    class DocTestTextfilePlus(doctest_plugin.DoctestItem, pytest.Module):
         def runtest(self):
             # satisfy `FixtureRequest` constructor...
             self.funcargs = {}
-            try:
-                self._fixtureinfo = doctest_plugin.FuncFixtureInfo((), [], {})
-                fixture_request = doctest_plugin.FixtureRequest(self)
-            except AttributeError:  # pytest >= 2.8.0
-                python_plugin = config.pluginmanager.getplugin('python')
-                self._fixtureinfo = python_plugin.FuncFixtureInfo((), [], {})
-                fixture_request = python_plugin.FixtureRequest(self)
+            fixture_request = doctest_plugin._setup_fixtures(self)
 
             failed, tot = doctest.testfile(
                 str(self.fspath), module_relative=False,
