@@ -128,6 +128,15 @@ install:
     - git clone git://github.com/astropy/ci-helpers.git
     - source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh
 
+    # Workaround for Python 3.3, for which pytest 2.8 or greater is not available.
+    # This can be removed after Astropy 2.0 is released since the next version
+    # will only support Python 3.4+ (see APE 10)
+    - if [[ $PYTHON_VERSION == 3.3 ]]; then
+        conda remove pytest --force;
+        pip install pytest>=2.8;
+      fi
+
+
 script:
     - $MAIN_CMD $SETUP_CMD
 
