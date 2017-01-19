@@ -21,6 +21,8 @@ class RipleysKEstimate(object):
         estimate Ripley's K function.
     area : float
         Area of study from which the points where observed.
+    max_height, max_width : float, float
+        Maximum rectangular dimensions of the area of study.
 
     Examples
     --------
@@ -43,11 +45,15 @@ class RipleysKEstimate(object):
        <https://cran.r-project.org/web/packages/spatstat/spatstat.pdf>
     .. [3] Cressie, N.A.C. (1991). Statistics for Spatial Data,
        Wiley, New York.
+    .. [4] Stoyan, D., Stoyan, H. (1992). Fractals, Random Shapes and
+       Point Fields, Akademie Verlag GmbH, Chichester.
     """
 
-    def __init__(self, data, area):
+    def __init__(self, data, area=None, max_height=None, max_width=None):
         self.data = data
         self.area = area
+        self.max_height = max_height
+        self.max_width = max_width
 
     @property
     def data(self):
@@ -70,18 +76,39 @@ class RipleysKEstimate(object):
     @area.setter
     def area(self, value):
         if not isinstance(value, (float, int)) or value < 0:
-            raise ValueError('density is expected to be positive either '
-                             'float or int. Got {}.'.format(type(value)))
-        elif value < 0:
-            raise ValueError('crit_separation is expected to be a positive '
-                             'real number. Got {}'.format(value))
+            raise ValueError('area is expected to be a positive number.'
+                             'Got {}.'.format(value))
         else:
             self._area = value
 
-    def __call__(self, radii):
-        return self.evaluate(radii=radii)
+    @property
+    def max_height(self):
+        return self._max_height
 
-    def evaluate(self, radii):
+    @max_height.setter
+    def max_height(self, value):
+        if not isinstance(value, (float, int)) or value < 0:
+            raise ValueError('max_height is expected to be a positive number.'
+                             'Got {}.'.format(value))
+        else:
+            self._max_height = value
+
+    @property
+    def max_width(self):
+        return self._max_width
+
+    @max_width.setter
+    def max_width(self, value):
+        if not isinstance(value, (float, int)) or value < 0:
+            raise ValueError('max_width is expected to be a positive number.'
+                             'Got {}.'.format(value))
+        else:
+            self._max_width = value
+
+    def __call__(self, radii, mode='none'):
+        return self.evaluate(radii=radii, mode=mode)
+
+    def evaluate(self, radii, mode='none'):
         """
         Evaluates the Ripley K estimator for a given set of values ``radii``.
 
@@ -90,6 +117,8 @@ class RipleysKEstimate(object):
         radii : 1D array
             Set of distances in which Ripley's K estimator will be evaluated.
             Usually, it's common to consider max(radii) < (area/2)**0.5.
+        mode : str
+            Keyword which indicates the method for edge effects correction.
 
         Returns
         -------
@@ -99,19 +128,33 @@ class RipleysKEstimate(object):
 
         self.data = np.asarray(self.data)
         npts = len(self.data)
+        ripley = np.zeros(len(radii))
         distances = np.zeros((npts * (npts - 1)) // 2, dtype=np.double)
+        diff = np.zeros(shape=(npts * (npts - 1) // 2, 2), dtype=np.double)
 
         k = 0
-        for i in range(0, npts - 1):
+        for i in range(npts - 1):
             for j in range(i + 1, npts):
-                diff = abs(self.data[i] - self.data[j])
-                distances[k] = math.sqrt((diff * diff).sum())
+                diff[k] = abs(self.data[i] - self.data[j])
+                distances[k] = math.sqrt((diff[k] * diff[k]).sum())
                 k = k + 1
 
-        ripley = np.zeros(len(radii))
+        if mode == 'none':
+            for idx in range(len(radii)):
+                ripley[idx] = (distances < radii[idx]).sum()
+            ripley = self.area * 2. * ripley / (npts * (npts - 1))
+        elif mode == 'poisson':
+            ripley = np.pi * radii * radii
+        # eq. 15.11 Stoyan book
+        elif mode == 'translation':
+            height_diff, width_diff = diff[:][:, 0], diff[:][:, 1]
+            for idx in range(len(radii)):
+                dist_indicator = distances <  radii[idx]
+                intersec_area = ((self.max_height - height_diff) *
+                                 (self.max_width - width_diff))
+                ripley[idx] = ((1 / intersec_area) * dist_indicator).sum()
+            ripley = (self.area**2 / npts**2) * 2 * ripley
+        else:
+            raise ValueError('mode {} is not implemented'.format(mode))
 
-        for idx in range(len(radii)):
-            ripley[idx] = (distances < radii[idx]).sum()
-
-
-        return self.area * 2. * ripley / (npts * (npts - 1))
+        return ripley
