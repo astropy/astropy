@@ -21,8 +21,9 @@ class RipleysKEstimate(object):
         estimate Ripley's K function.
     area : float
         Area of study from which the points where observed.
-    max_height, max_width : float, float
+    max_height, max_width : float, float, optional
         Maximum rectangular dimensions of the area of study.
+        Required if ``mode = 'translation'``.
 
     Examples
     --------
@@ -35,7 +36,7 @@ class RipleysKEstimate(object):
     >>> area = 25
     >>> Kest = RipleysKEstimate(data=z, area=area)
     >>> r = np.linspace(0, 2.5, 100)
-    >>> plt.plot(r, Kest(r))
+    >>> plt.plot(r, Kest(r)) # doctest: +SKIP
 
     References
     ----------
