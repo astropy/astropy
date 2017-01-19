@@ -153,7 +153,7 @@ class RipleysKEstimate(object):
                 intersec_area = ((self.max_height - height_diff) *
                                  (self.max_width - width_diff))
                 ripley[idx] = ((1 / intersec_area) * dist_indicator).sum()
-            ripley = (self.area**2 / npts**2) * 2 * ripley
+            ripley = (self.area**2 / (npts * (npts - 1))) * 2 * ripley
         else:
             raise ValueError('mode {} is not implemented'.format(mode))
 
