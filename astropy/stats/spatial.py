@@ -28,15 +28,15 @@ class RipleysKEstimate(object):
     Examples
     --------
     >>> import numpy as np
-    >>> import matplotlib.pyplot as plt
+    >>> from matplotlib import pyplot as plt
     >>> from astropy.stats import RipleysKEstimate
-    >>> x = np.random.uniform(low=5, high=10, size=100)
-    >>> y = np.random.uniform(low=5, high=10, size=100)
-    >>> z = np.array([x,y]).T
+    >>> z = np.random.uniform(low=5, high=10, size=(100, 2))
     >>> area = 25
-    >>> Kest = RipleysKEstimate(data=z, area=area)
+    >>> Kest = RipleysKEstimate(data=z, area=area, max_height=10, max_width=10)
     >>> r = np.linspace(0, 2.5, 100)
-    >>> plt.plot(r, Kest(r)) # doctest: +SKIP
+    >>> plt.plot(r, Kest.poisson(r)) # doctest: +SKIP
+    >>> plt.plot(r, Kest(r, mode='none')) # doctest: +SKIP
+    >>> plt.plot(r, Kest(r, mode='translation')) # doctest: +SKIP
 
     References
     ----------
@@ -77,7 +77,7 @@ class RipleysKEstimate(object):
     @area.setter
     def area(self, value):
         if isinstance(value, (float, int)) and value > 0:
-            self._max_height = value
+            self._area = value
         else:
             raise ValueError('area is expected to be a positive number. '
                              'Got {}.'.format(value))
