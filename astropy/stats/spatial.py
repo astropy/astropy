@@ -49,7 +49,7 @@ class RipleysKEstimate(object):
        Point Fields, Akademie Verlag GmbH, Chichester.
     """
 
-    def __init__(self, data, area=None, max_height=None, max_width=None):
+    def __init__(self, data, area, max_height=None, max_width=None):
         self.data = data
         self.area = area
         self.max_height = max_height
@@ -75,11 +75,11 @@ class RipleysKEstimate(object):
 
     @area.setter
     def area(self, value):
-        if not isinstance(value, (float, int)) or value < 0:
-            raise ValueError('area is expected to be a positive number.'
-                             'Got {}.'.format(value))
+        if isinstance(value, (float, int)) and value > 0:
+            self._max_height = value
         else:
-            self._area = value
+            raise ValueError('area is expected to be a positive number. '
+                             'Got {}.'.format(value))
 
     @property
     def max_height(self):
@@ -87,11 +87,11 @@ class RipleysKEstimate(object):
 
     @max_height.setter
     def max_height(self, value):
-        if not isinstance(value, (float, int)) or value < 0:
-            raise ValueError('max_height is expected to be a positive number.'
-                             'Got {}.'.format(value))
-        else:
+        if value is None or (isinstance(value, (float, int)) and value > 0):
             self._max_height = value
+        else:
+            raise ValueError('max_height is expected to be a positive number '
+                             'or None. Got {}.'.format(value))
 
     @property
     def max_width(self):
@@ -99,14 +99,32 @@ class RipleysKEstimate(object):
 
     @max_width.setter
     def max_width(self, value):
-        if not isinstance(value, (float, int)) or value < 0:
-            raise ValueError('max_width is expected to be a positive number.'
-                             'Got {}.'.format(value))
-        else:
+        if value is None or (isinstance(value, (float, int)) and value > 0):
             self._max_width = value
+        else:
+            raise ValueError('max_width is expected to be a positive number '
+                             'or None. Got {}.'.format(value))
 
     def __call__(self, radii, mode='none'):
         return self.evaluate(radii=radii, mode=mode)
+
+    def poisson(self, radii):
+        """
+        Evaluates the Ripley K function for the homongeneous Poisson process,
+        also known as Complete State of Randomness (CSR).
+
+        Parameters
+        ----------
+        radii : 1D array
+            Set of distances in which Ripley's K function will be evaluated.
+
+        Returns
+        -------
+        output : 1D array
+            Ripley's K function evaluated at ``radii``.
+        """
+
+        return np.pi * radii * radii
 
     def evaluate(self, radii, mode='none'):
         """
@@ -119,10 +137,16 @@ class RipleysKEstimate(object):
             Usually, it's common to consider max(radii) < (area/2)**0.5.
         mode : str
             Keyword which indicates the method for edge effects correction.
+            Available methods are {'none', 'translation'}.
 
+            * 'none' : this method does not take into account any edge effects
+                whatsoever.
+            * 'translation' : computes the intersection of rectangular areas
+                centered at the given points provided the upper bounds of the
+                dimensions of the rectangular area of study.
         Returns
         -------
-        output : 1D array
+        ripley : 1D array
             Ripley's K function estimator evaluated at ``radii``.
         """
 
@@ -143,8 +167,6 @@ class RipleysKEstimate(object):
             for idx in range(len(radii)):
                 ripley[idx] = (distances < radii[idx]).sum()
             ripley = self.area * 2. * ripley / (npts * (npts - 1))
-        elif mode == 'poisson':
-            ripley = np.pi * radii * radii
         # eq. 15.11 Stoyan book
         elif mode == 'translation':
             height_diff, width_diff = diff[:][:, 0], diff[:][:, 1]
