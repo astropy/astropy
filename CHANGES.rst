@@ -198,6 +198,9 @@ Bug Fixes
 
 - ``astropy.stats``
 
+  - Fix the psd normalization for Lomb-Scargle periodograms in the presence
+    of noise [#5713]
+
 - ``astropy.sphinx``
 
 - ``astropy.table``
@@ -224,7 +227,6 @@ Other Changes and Additions
 
 - Fixed a deprecation warning that occurred when running tests with
   astropy.test(). [#5689]
-
 
 1.3 (2016-12-22)
 ----------------
