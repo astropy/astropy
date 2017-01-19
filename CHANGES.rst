@@ -228,9 +228,6 @@ Other Changes and Additions
 - Fixed a deprecation warning that occurred when running tests with
   astropy.test(). [#5689]
 
-- Add ``astropy.stats.lombscargle.statistics`` for computing common
-  periodogram statistics. [#5713]
-
 1.3 (2016-12-22)
 ----------------
 
