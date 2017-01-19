@@ -19,6 +19,7 @@ environment:
           NUMPY_VERSION: "stable"
         - PYTHON_VERSION: "3.5"
           NUMPY_VERSION: "stable"
+          ASTROPY_USE_SYSTEM_PYTEST: 1
 
 matrix:
     fast_finish: true
