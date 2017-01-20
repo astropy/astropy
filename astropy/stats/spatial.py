@@ -36,11 +36,12 @@ class RipleysKEstimate(object):
     >>> from astropy.stats import RipleysKEstimate
     >>> z = np.random.uniform(low=5, high=10, size=(100, 2))
     >>> area = 25
-    >>> Kest = RipleysKEstimate(data=z, area=area, max_height=10, max_width=10)
+    >>> Kest = RipleysKEstimate(data=z, area=area, x_max=10, y_max=10)
     >>> r = np.linspace(0, 2.5, 100)
     >>> plt.plot(r, Kest.poisson(r)) # doctest: +SKIP
     >>> plt.plot(r, Kest(r, mode='none')) # doctest: +SKIP
     >>> plt.plot(r, Kest(r, mode='translation')) # doctest: +SKIP
+    >>> plt.plot(r, Kest(r, mode='ohser')) # doctest: +SKIP
 
     References
     ----------
