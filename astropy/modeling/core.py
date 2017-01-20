@@ -1291,8 +1291,15 @@ class Model(object):
 
     @property
     def input_units(self):
-        # None means any unit is accepted
-        return None
+        if hasattr(self.evaluate, '__annotations__'):
+            annotations = self.evaluate.__annotations__.copy()
+            annotations.pop('return')
+            if annotations:
+                # If there are not annotations for all inputs this will error.
+                return tuple([self.evaluate.__annotations__[name] for name in self.inputs])
+        else:
+            # None means any unit is accepted
+            return None
 
     @property
     def _supports_unit_fitting(self):
