@@ -117,11 +117,11 @@ class RipleysKEstimate(object):
 
     @lratio.setter
     def lratio(self, value):
-        if value is None or (isinstance(value, (float, int)) and value > 0):
+        if value is None or (isinstance(value, (float, int)) and value >= 1):
             self._lratio = value
         else:
             raise ValueError('lratio is expected to be a positive number'
-                             ' (> 1) or None. Got {}.'.format(value))
+                             ' (>= 1) or None. Got {}.'.format(value))
 
     def __call__(self, radii, mode='none'):
         return self.evaluate(radii=radii, mode=mode)
