@@ -182,23 +182,22 @@ class RipleysKEstimate(object):
                 k = k + 1
 
         if mode == 'none':
-            for idx in range(len(radii)):
-                ripley[idx] = (distances < radii[idx]).sum()
+            for r in range(len(radii)):
+                ripley[r] = (distances < radii[r]).sum()
 
             ripley = self.area * 2. * ripley / (npts * (npts - 1))
         # eq. 15.11 Stoyan book page 283
         elif mode == 'translation':
-            x_diff, y_diff = diff[:][:, 0], diff[:][:, 1]
-            intersec_area = ((self.x_max - x_diff) * (self.y_max - y_diff))
+            intersec_area = ((self.x_max - diff[:][:, 0]) *
+                             (self.y_max - diff[:][:, 1]))
 
-            for idx in range(len(radii)):
-                dist_indicator = distances < radii[idx]
-                ripley[idx] = ((1 / intersec_area) * dist_indicator).sum()
+            for r in range(len(radii)):
+                dist_indicator = distances < radii[r]
+                ripley[r] = ((1 / intersec_area) * dist_indicator).sum()
 
             ripley = (self.area**2 / (npts * (npts - 1))) * 2 * ripley
+        # Stoyan book page 123 and eq 15.13
         elif mode == 'ohser':
-            # Stoyan book page 123
-            # Stoyan book eq 15.13
             a, b = self.area, self.lratio
             x = distances / math.sqrt(a / b)
             u = np.sqrt((x * x - 1) * (x > 1))
@@ -213,16 +212,12 @@ class RipleysKEstimate(object):
                                        + c2 * (x > 1) * (x <= b)
                                        + c3 * (b < x) * (x < math.sqrt(b ** 2 + 1))))
 
-            for idx in range(len(radii)):
-                dist_indicator = distances < radii[idx]
-                ripley[idx] = ((1 / cov_func) * dist_indicator).sum()
+            for r in range(len(radii)):
+                dist_indicator = distances < radii[r]
+                ripley[r] = ((1 / cov_func) * dist_indicator).sum()
 
             ripley = (self.area**2 / (npts * (npts - 1))) * 2 * ripley
-        elif mode == 'ripley':
-            # Stoyan book eq 15.14
-            pass
-
         else:
-            raise ValueError('mode {} is not implemented'.format(mode))
+            raise ValueError('mode {} is not implemented.'.format(mode))
 
         return ripley
