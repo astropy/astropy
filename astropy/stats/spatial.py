@@ -23,9 +23,11 @@ class RipleysKEstimate(object):
         Area of study from which the points where observed.
     x_max, y_max : float, float, optional
         Maximum rectangular dimensions of the area of study.
-        Required if ``mode = 'translation'``.
+        Required if ``mode == 'translation'``.
     lratio : float, optional
-        Length ratio (> 1).
+        Greatest ratio between lengths of the rectangular window of study,
+        i.e., ``lratio = max(width/height, height/width)``.
+        Required if ``mode == 'ohser'``.
 
     Examples
     --------
@@ -52,7 +54,7 @@ class RipleysKEstimate(object):
        Point Fields, Akademie Verlag GmbH, Chichester.
     """
 
-    def __init__(self, data, area, x_max=None, y_max=None):
+    def __init__(self, data, area, x_max=None, y_max=None, lratio=None):
         self.data = data
         self.area = area
         self.x_max = x_max
@@ -108,6 +110,18 @@ class RipleysKEstimate(object):
         else:
             raise ValueError('x_max is expected to be a positive number '
                              'or None. Got {}.'.format(value))
+
+    @property
+    def lratio(self):
+        return self._lratio
+
+    @lratio.setter
+    def lratio(self, value):
+        if value is None or (isinstance(value, (float, int)) and value > 0):
+            self._lratio = value
+        else:
+            raise ValueError('lratio is expected to be a positive number'
+                             ' (> 1) or None. Got {}.'.format(value))
 
     def __call__(self, radii, mode='none'):
         return self.evaluate(radii=radii, mode=mode)
@@ -170,36 +184,44 @@ class RipleysKEstimate(object):
         if mode == 'none':
             for idx in range(len(radii)):
                 ripley[idx] = (distances < radii[idx]).sum()
+
             ripley = self.area * 2. * ripley / (npts * (npts - 1))
         # eq. 15.11 Stoyan book page 283
         elif mode == 'translation':
             x_diff, y_diff = diff[:][:, 0], diff[:][:, 1]
+            intersec_area = ((self.x_max - x_diff) * (self.y_max - y_diff))
+
             for idx in range(len(radii)):
                 dist_indicator = distances < radii[idx]
-                intersec_area = ((self.x_max - x_diff) *
-                                 (self.y_max - y_diff))
                 ripley[idx] = ((1 / intersec_area) * dist_indicator).sum()
+
             ripley = (self.area**2 / (npts * (npts - 1))) * 2 * ripley
         elif mode == 'ohser':
             # Stoyan book page 123
+            # Stoyan book eq 15.13
             a, b = self.area, self.lratio
             x = distances / math.sqrt(a / b)
-            u = np.sqrt(x * x - 1)
-            v = np.sqrt(x * x - b ** 2)
-            c_1 = np.pi - 2 * x * (1 + 1 / b) + x * x / b
-            c_2 = 2 * np.arcsin(1 / x) - 1 / b - 2 * (x - u)
-            c_3 = (2 * np.arcsin((b - u * v) / (x * x)) + 2 * u + 2 * v / b
-                   - b - (1 + x * x) / b)
+            u = np.sqrt((x * x - 1) * (x > 1))
+            v = np.sqrt((x * x - b ** 2) * (x < math.sqrt(b**2 + 1)) * (x > b))
+            c1 = np.pi - 2 * x * (1 + 1 / b) + x * x / b
+            c2 = 2 * np.arcsin((1 / x) * (x > 1)) - 1 / b - 2 * (x - u)
+            c3 = (2 * np.arcsin(((b - u * v) / (x * x))
+                                * (x > b) * (x < math.sqrt(b**2 + 1)))
+                  + 2 * u + 2 * v / b - b - (1 + x * x) / b)
 
-            cov_func = ((a / np.pi) * (c1 * (0 <= x <= 1) + c2 * (1 < x <= b)
-                                       + c3 * (b < x < math.sqrt(b**2 + 1))
-                                       + np.zeros_like(distances) *\
-                                               (x >= math.sqrt(b * b + 1))))
+            cov_func = ((a / np.pi) * (c1 * (x >= 0) * (x <= 1)
+                                       + c2 * (x > 1) * (x <= b)
+                                       + c3 * (b < x) * (x < math.sqrt(b ** 2 + 1))))
 
             for idx in range(len(radii)):
                 dist_indicator = distances < radii[idx]
-                ripley[idx] = ((1 / cov_fuc) * dist_indicator).sum()
+                ripley[idx] = ((1 / cov_func) * dist_indicator).sum()
+
             ripley = (self.area**2 / (npts * (npts - 1))) * 2 * ripley
+        elif mode == 'ripley':
+            # Stoyan book eq 15.14
+            pass
+
         else:
             raise ValueError('mode {} is not implemented'.format(mode))
 
