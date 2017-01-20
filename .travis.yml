@@ -74,7 +74,7 @@ matrix:
 
         # Now try with all optional dependencies the latest 3.x and on 2.7.
         # (with latest numpy). We also test the two latest matplotlib versions
-        # for the image tests, and with the system rather than build-in pytest.
+        # for the image tests.
         - os: linux
           env: PYTHON_VERSION=2.7 SETUP_CMD='test --remote-data=astropy -a "--mpl"'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
@@ -82,7 +82,6 @@ matrix:
                LC_CTYPE=C.ascii LC_ALL=C
                NUMPY_VERSION=1.10
                MATPLOTLIB_VERSION=1.5
-               ASTROPY_USE_SYSTEM_PYTEST=1
                EVENT_TYPE='push pull_request cron'
 
         - os: linux
@@ -92,7 +91,6 @@ matrix:
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
                MATPLOTLIB_VERSION=2.0
-               ASTROPY_USE_SYSTEM_PYTEST=1
                EVENT_TYPE='push pull_request cron'
 
         # Try pre-release version of Numpy without optional dependencies
