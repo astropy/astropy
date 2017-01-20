@@ -33,7 +33,7 @@ Running Tests
 There are currently three different ways to invoke Astropy tests. Each
 method invokes `pytest`_ to run the tests but offers different options when
 calling. To run the tests, you will need to make sure you have the `pytest`_
-package installed.
+package (version 2.8 or later) installed.
 
 In addition to running the Astropy tests, these methods can also be called
 so that they check Python source code for `PEP8 compliance
