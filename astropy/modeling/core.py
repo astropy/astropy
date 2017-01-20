@@ -662,6 +662,8 @@ class Model(object):
 
     # Enforce strict units on inputs to evaluate
     input_units_strict = False
+    # Allow dimensionless input (and corresponding output)
+    input_units_allow_dimensionless = True
 
     def __init__(self, *args, **kwargs):
         super(Model, self).__init__()
@@ -693,6 +695,7 @@ class Model(object):
         """
 
         inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
+        inputs_are_quantity = all([isinstance(i, Quantity) for i in inputs])
 
         parameters = self._param_sets(raw=True, units=True)
         with_bbox = kwargs.pop('with_bounding_box', False)
@@ -756,7 +759,7 @@ class Model(object):
 
         outputs = self.prepare_outputs(format_info, *outputs, **kwargs)
 
-        if self.return_units:
+        if self.return_units and inputs_are_quantity:
             # We allow a non-iterable unit only if there is one output
             if self.n_outputs == 1 and not isiterable(self.return_units):
                 return_units = (self.return_units,)
@@ -1342,12 +1345,15 @@ class Model(object):
         # Check that the units are correct, if applicable
 
         if self.input_units is not None:
-            if isiterable(self.input_units):
+            if self.n_inputs == 1 and not isiterable(self.return_units):
+                input_units = (self.input_units,)
+
+            elif len(self.input_units) != self.n_inputs:
+                raise ValueError("Number of input units must match number of inputs")
+
+            else:
                 input_units = self.input_units
-                if len(input_units) != len(inputs):
-                    raise ValueError("Input units is not the same length as inputs")
-            if isinstance(self.input_units, UnitBase):
-                input_units = (self.input_units,) * len(inputs)
+
             for i in range(len(inputs)):
                 if isinstance(inputs[i], Quantity):
                     if inputs[i].unit.is_equivalent(input_units[i], equivalencies=equivalencies):
@@ -1369,7 +1375,8 @@ class Model(object):
                                                                 input_units[i],
                                                                 input_units[i].physical_type))
                 else:
-                    if input_units[i] is not dimensionless_unscaled:
+                    if (not self.input_units_allow_dimensionless and
+                        input_units[i] is not dimensionless_unscaled):
                         if np.any(inputs[i] != 0):
                             raise UnitsError("Units of input '{0}', (dimensionless), could not be "
                                              "converted to required input units of "
