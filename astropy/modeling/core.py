@@ -1316,7 +1316,7 @@ class Model(object):
             annotations.pop('return', None)
             if annotations:
                 # If there are not annotations for all inputs this will error.
-                return tuple([self.evaluate.__annotations__[name] for name in self.inputs])
+                return tuple([annotations[name] for name in self.inputs])
         else:
             # None means any unit is accepted
             return None
