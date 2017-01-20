@@ -32,7 +32,8 @@ Running Tests
 
 There are currently three different ways to invoke Astropy tests. Each
 method invokes `pytest`_ to run the tests but offers different options when
-calling.
+calling. To run the tests, you will need to make sure you have the `pytest`
+package installed.
 
 In addition to running the Astropy tests, these methods can also be called
 so that they check Python source code for `PEP8 compliance
@@ -65,14 +66,6 @@ within those files.
 
 Turn on PEP8 checking by passing ``--pep8`` to the ``test`` command. This will
 turn off regular testing and enable PEP8 testing.
-
-.. note::
-
-    This method of running the tests defaults to the version of `pytest`_
-    that is bundled with Astropy. To use the locally-installed version, you
-    can set the ``ASTROPY_USE_SYSTEM_PYTEST`` environment variable, eg.::
-
-        > ASTROPY_USE_SYSTEM_PYTEST=1 python setup.py test
 
 .. _astropy.test():
 
