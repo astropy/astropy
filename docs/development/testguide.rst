@@ -32,7 +32,7 @@ Running Tests
 
 There are currently three different ways to invoke Astropy tests. Each
 method invokes `pytest`_ to run the tests but offers different options when
-calling. To run the tests, you will need to make sure you have the `pytest`
+calling. To run the tests, you will need to make sure you have the `pytest`_
 package installed.
 
 In addition to running the Astropy tests, these methods can also be called
@@ -72,14 +72,12 @@ turn off regular testing and enable PEP8 testing.
 astropy.test()
 --------------
 
-AstroPy includes a standalone version of pytest that allows to tests
-to be run even if pytest is not installed. Tests can be run from within
-AstroPy with::
+Tests can be run from within Astropy with::
 
     import astropy
     astropy.test()
 
-This will run all the default tests for AstroPy.
+This will run all the default tests for Astropy.
 
 Tests for a specific package can be run by specifying the package in the call
 to the ``test()`` function::
@@ -106,13 +104,6 @@ and convenience options ``verbose=`` and ``pastebin=``.
 
 Enable PEP8 compliance testing with ``pep8=True`` in the call to
 ``astropy.test``. This will enable PEP8 checking and disable regular tests.
-
-.. note::
-    This method of running the tests defaults to the version of
-    `pytest`_ that is bundled with Astropy. To use the locally-installed
-    version, you should set the ``ASTROPY_USE_SYSTEM_PYTEST`` environment
-    variable (see :doc:`/config/index`) or the `pytest`_ method described
-    above.
 
 Astropy Test Function
 ^^^^^^^^^^^^^^^^^^^^^
@@ -604,7 +595,7 @@ You may need to adjust the relative import to work for the depth of
 your module.  ``tests.helper`` imports ``pytest`` either from the
 user's system or ``extern.pytest`` if the user does not have pytest
 installed. This is so that users need not install pytest to run
-AstroPy's tests.
+Astropy's tests.
 
 
 Testing warnings
