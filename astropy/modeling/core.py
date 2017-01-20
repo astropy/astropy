@@ -660,6 +660,9 @@ class Model(object):
     # model hasn't completed initialization yet
     _n_models = 1
 
+    # Enforce strict units on inputs to evaluate
+    _strict_unit_inputs = False
+
     def __init__(self, *args, **kwargs):
         super(Model, self).__init__()
         meta = kwargs.pop('meta', None)
@@ -848,6 +851,21 @@ class Model(object):
         stop = self._param_metrics[self.param_names[-1]]['slice'].stop
 
         return self._parameters[start:stop]
+
+    @property
+    def strict_unit_inputs(self):
+        """
+        If ``strict_unit_inputs`` is true, inputs to ``evaluate`` will be
+        parsed with the units specified in ``input_units`` rather than in
+        compatible units. (This does not apply to parameters).
+        """
+        return self._strict_unit_inputs
+
+    @strict_unit_inputs.setter
+    def strict_unit_inputs(self, val):
+        if not isinstance(val, bool):
+            raise ValueError("strict_unit_inputs must be Boolean")
+        self._strict_unit_inputs = val
 
     @parameters.setter
     def parameters(self, value):
@@ -1323,15 +1341,15 @@ class Model(object):
             for i in range(len(inputs)):
                 if isinstance(inputs[i], Quantity):
                     if inputs[i].unit.is_equivalent(input_units[i], equivalencies=equivalencies):
-                        if equivalencies is not None:
+                        if equivalencies is not None or self.strict_unit_inputs:
                             inputs[i] = inputs[i].to(input_units[i], equivalencies=equivalencies)
                     else:
                         if input_units[i] is dimensionless_unscaled:
                             raise UnitsError("Units of input '{0}', {1} ({2}), could not be "
                                              "converted to required dimensionless "
                                              "input".format(self.inputs[i],
-                                                                inputs[i].unit,
-                                                                inputs[i].unit.physical_type))
+                                                            inputs[i].unit,
+                                                            inputs[i].unit.physical_type))
                         else:
                             raise UnitsError("Units of input '{0}', {1} ({2}), could not be "
                                              "converted to required input units of "
@@ -1345,7 +1363,8 @@ class Model(object):
                         if np.any(inputs[i] != 0):
                             raise UnitsError("Units of input '{0}', (dimensionless), could not be "
                                              "converted to required input units of "
-                                             "{1} ({2})".format(self.inputs[i], input_units[i], input_units[i].physical_type))
+                                             "{1} ({2})".format(self.inputs[i], input_units[i],
+                                                                input_units[i].physical_type))
 
         # The input formatting required for single models versus a multiple
         # model set are different enough that they've been split into separate
