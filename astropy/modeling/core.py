@@ -661,9 +661,9 @@ class Model(object):
     _n_models = 1
 
     # Enforce strict units on inputs to evaluate
-    _strict_input_units = False
+    strict_input_units = False
     # Enforce units on output of evaluate
-    _strict_return_units = False
+    strict_return_units = False
 
     def __init__(self, *args, **kwargs):
         super(Model, self).__init__()
@@ -861,36 +861,6 @@ class Model(object):
         stop = self._param_metrics[self.param_names[-1]]['slice'].stop
 
         return self._parameters[start:stop]
-
-    @property
-    def strict_input_units(self):
-        """
-        If ``strict_input_units`` is `True`, inputs to ``evaluate`` will be
-        parsed with the units specified in ``input_units`` rather than in
-        compatible units. (This does not apply to parameters).
-        """
-        return self._strict_input_units
-
-    @strict_input_units.setter
-    def strict_input_units(self, val):
-        if not isinstance(val, bool):
-            raise ValueError("strict_input_units must be Boolean")
-        self._strict_input_units = val
-
-    @property
-    def strict_return_units(self):
-        """
-        If ``strict_return_units`` is `True`, the return value of ``evaluate`` will be
-        converted to a `~astropy.units.Quantity` object with the return units.
-        """
-        return self._strict_return_units
-
-    @strict_return_units.setter
-    def strict_return_units(self, val):
-        if not isinstance(val, bool):
-            raise ValueError("strict_input_units must be Boolean")
-        self._strict_return_units = val
-
 
     @parameters.setter
     def parameters(self, value):
