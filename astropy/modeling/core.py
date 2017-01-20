@@ -661,7 +661,9 @@ class Model(object):
     _n_models = 1
 
     # Enforce strict units on inputs to evaluate
-    _strict_unit_inputs = False
+    _strict_input_units = False
+    # Enforce units on output of evaluate
+    _strict_return_units = False
 
     def __init__(self, *args, **kwargs):
         super(Model, self).__init__()
@@ -755,6 +757,9 @@ class Model(object):
             outputs = (outputs,)
 
         outputs = self.prepare_outputs(format_info, *outputs, **kwargs)
+
+        if self.return_units and self.strict_return_units:
+            outputs = [Quantity(out, self.return_units) for out in outputs]
 
         if self.n_outputs == 1:
             return outputs[0]
@@ -853,19 +858,34 @@ class Model(object):
         return self._parameters[start:stop]
 
     @property
-    def strict_unit_inputs(self):
+    def strict_input_units(self):
         """
-        If ``strict_unit_inputs`` is true, inputs to ``evaluate`` will be
+        If ``strict_input_units`` is `True`, inputs to ``evaluate`` will be
         parsed with the units specified in ``input_units`` rather than in
         compatible units. (This does not apply to parameters).
         """
-        return self._strict_unit_inputs
+        return self._strict_input_units
 
-    @strict_unit_inputs.setter
-    def strict_unit_inputs(self, val):
+    @strict_input_units.setter
+    def strict_input_units(self, val):
         if not isinstance(val, bool):
-            raise ValueError("strict_unit_inputs must be Boolean")
-        self._strict_unit_inputs = val
+            raise ValueError("strict_input_units must be Boolean")
+        self._strict_input_units = val
+
+    @property
+    def strict_return_units(self):
+        """
+        If ``strict_return_units`` is `True`, the return value of ``evaluate`` will be
+        converted to a `~astropy.units.Quantity` object with the return units.
+        """
+        return self._strict_return_units
+
+    @strict_return_units.setter
+    def strict_return_units(self, val):
+        if not isinstance(val, bool):
+            raise ValueError("strict_input_units must be Boolean")
+        self._strict_return_units = val
+
 
     @parameters.setter
     def parameters(self, value):
@@ -1293,10 +1313,19 @@ class Model(object):
     def input_units(self):
         if hasattr(self.evaluate, '__annotations__'):
             annotations = self.evaluate.__annotations__.copy()
-            annotations.pop('return')
+            annotations.pop('return', None)
             if annotations:
                 # If there are not annotations for all inputs this will error.
                 return tuple([self.evaluate.__annotations__[name] for name in self.inputs])
+        else:
+            # None means any unit is accepted
+            return None
+
+    @property
+    def return_units(self):
+        if hasattr(self.evaluate, '__annotations__'):
+            return_units = self.evaluate.__annotations__.get('return', None)
+            return return_units
         else:
             # None means any unit is accepted
             return None
@@ -1348,7 +1377,7 @@ class Model(object):
             for i in range(len(inputs)):
                 if isinstance(inputs[i], Quantity):
                     if inputs[i].unit.is_equivalent(input_units[i], equivalencies=equivalencies):
-                        if equivalencies is not None or self.strict_unit_inputs:
+                        if equivalencies is not None or self.strict_input_units:
                             inputs[i] = inputs[i].to(input_units[i], equivalencies=equivalencies)
                     else:
                         if input_units[i] is dimensionless_unscaled:
