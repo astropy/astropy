@@ -29,7 +29,7 @@ def test_ripley_K_implementation():
     a = np.array([[1, 4], [2, 5], [3, 6]])
     area = 100
     r = np.linspace(0, 2.5, 5)
-    Kest = RipleysKEstimate(data=a, area=area, max_height=10, max_width=10)
+    Kest = RipleysKEstimate(data=a, area=area, x_max=10, y_max=10)
 
     ANS_NONE = np.array([0, 0, 0, 66.667, 66.667])
     assert_allclose(ANS_NONE, Kest(radii=r, mode='none'), atol=1e-3)
@@ -50,7 +50,7 @@ def test_ripley_uniform_property():
 def test_ripley_large_density():
     z = np.random.uniform(low=0, high=1, size=(500, 2))
 
-    Kest = RipleysKEstimate(data=z, area=1, max_height=1, max_width=1)
+    Kest = RipleysKEstimate(data=z, area=1, x_max=1, y_max=1)
     r = np.linspace(0, 0.25, 100)
 
     assert_allclose(Kest.poisson(r), Kest(r, mode='translation'), atol=1e-2)
