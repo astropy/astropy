@@ -59,7 +59,7 @@ homogeneous).  The sections below show a few examples.
 Table or NumPy structured array
 """""""""""""""""""""""""""""""
 
-An AstroPy |Table| object or a NumPy `structured array`_ (or record array) can
+An Astropy |Table| object or a NumPy `structured array`_ (or record array) can
 serve as input to the |write| function.
 
 ::

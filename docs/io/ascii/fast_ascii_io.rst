@@ -150,7 +150,7 @@ are very similar in terms of speed, while ``read_csv`` is slightly faster
 than the fast engine for integer and floating-point data; for pure
 floating-point data, enabling the fast converter yields a speedup of about
 50%. Also note that Pandas uses the exact same method as the fast
-converter in AstroPy when converting floating-point data.
+converter in Astropy when converting floating-point data.
 
 The difference in performance between the fast engine and Pandas for
 text data depends on the extent to which data values are repeated, as
@@ -170,7 +170,7 @@ IPython doesn't work well with ``multiprocessing``, there is a
 available for testing the performance of the fast engine in parallel,
 and a sample result may be viewed `here
 <http://amras1.github.io/ascii-profiling/>`__. This profile uses the
-fast converter for both the serial and parallel AstroPy
+fast converter for both the serial and parallel Astropy
 readers.
 
 Another point worth noting is that the fast engine uses memory mapping
