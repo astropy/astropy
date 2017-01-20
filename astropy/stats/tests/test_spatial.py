@@ -50,7 +50,7 @@ def test_ripley_uniform_property():
 def test_ripley_large_density():
     z = np.random.uniform(low=0, high=1, size=(500, 2))
 
-    Kest = RipleysKEstimate(data=z, area=1, x_max=1, y_max=1)
+    Kest = RipleysKEstimate(data=z, area=1, x_max=1, y_max=1, lratio=1)
     r = np.linspace(0, 0.25, 100)
 
     assert_allclose(Kest.poisson(r), Kest(r, mode='ohser'), atol=1e-2)
