@@ -1890,7 +1890,7 @@ class _CompoundModelMeta(_ModelMeta):
 
         names = tuple(k[0] for k in names)
 
-        cls._submodels_names = names
+        cls._submodel_names = names
         return names
 
     @property
@@ -1919,7 +1919,7 @@ class _CompoundModelMeta(_ModelMeta):
             # but it is necessary on Python 2 since looking up cls._evaluate
             # will return an unbound method otherwise
             cls._evaluate = staticmethod(func)
-
+        print('args', args)
         inputs = args[:cls.n_inputs]
         params = iter(args[cls.n_inputs:])
         result = cls._evaluate(inputs, params)
@@ -2159,6 +2159,8 @@ class _CompoundModelMeta(_ModelMeta):
                 # Take the parameter's default from the model's value for that
                 # parameter
                 default = orig_param.value
+            #elif isinstance(submodel, _CompoundModel):
+                #default =
             else:
                 default = orig_param.default
 
@@ -2172,6 +2174,7 @@ class _CompoundModelMeta(_ModelMeta):
             new_param = orig_param.copy(name=param_name, default=default,
                                         **constraints)
 
+            #setattr(cls, param_name, orig_param)
             setattr(cls, param_name, new_param)
 
     def _init_param_names(cls):

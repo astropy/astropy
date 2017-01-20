@@ -887,3 +887,13 @@ def test_pickle_compound_fallback():
     gg = (Gaussian1D + Gaussian1D)()
     with pytest.raises(RuntimeError):
         pickle.dumps(gg)
+
+
+def test_update_parameters():
+    g = Gaussian1D(10, 2, 1) | Const1D(4)
+    p = Polynomial1D(1) | Scale(1)
+    m = g | p
+
+    assert(m(1) == 0)
+    m[1].c1_0 = 100
+    assert(m(1) == 100)
