@@ -28,7 +28,6 @@ env:
         - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath'
         - PIP_DEPENDENCIES=''
         - SETUP_XVFB=True
-        - SPHINX_VERSION='<1.5'
         - EVENT_TYPE='push pull_request'
 
     matrix:
