@@ -21,9 +21,11 @@ class RipleysKEstimate(object):
         estimate Ripley's K function.
     area : float
         Area of study from which the points where observed.
-    max_height, max_width : float, float, optional
+    x_max, y_max : float, float, optional
         Maximum rectangular dimensions of the area of study.
         Required if ``mode = 'translation'``.
+    lratio : float, optional
+        Length ratio (> 1).
 
     Examples
     --------
@@ -50,11 +52,12 @@ class RipleysKEstimate(object):
        Point Fields, Akademie Verlag GmbH, Chichester.
     """
 
-    def __init__(self, data, area, max_height=None, max_width=None):
+    def __init__(self, data, area, x_max=None, y_max=None):
         self.data = data
         self.area = area
-        self.max_height = max_height
-        self.max_width = max_width
+        self.x_max = x_max
+        self.y_max = y_max
+        self.lratio = lratio
 
     @property
     def data(self):
@@ -83,27 +86,27 @@ class RipleysKEstimate(object):
                              'Got {}.'.format(value))
 
     @property
-    def max_height(self):
-        return self._max_height
+    def y_max(self):
+        return self._y_max
 
-    @max_height.setter
-    def max_height(self, value):
+    @y_max.setter
+    def y_max(self, value):
         if value is None or (isinstance(value, (float, int)) and value > 0):
-            self._max_height = value
+            self._y_max = value
         else:
-            raise ValueError('max_height is expected to be a positive number '
+            raise ValueError('y_max is expected to be a positive number '
                              'or None. Got {}.'.format(value))
 
     @property
-    def max_width(self):
-        return self._max_width
+    def x_max(self):
+        return self._x_max
 
-    @max_width.setter
-    def max_width(self, value):
+    @x_max.setter
+    def x_max(self, value):
         if value is None or (isinstance(value, (float, int)) and value > 0):
-            self._max_width = value
+            self._x_max = value
         else:
-            raise ValueError('max_width is expected to be a positive number '
+            raise ValueError('x_max is expected to be a positive number '
                              'or None. Got {}.'.format(value))
 
     def __call__(self, radii, mode='none'):
@@ -138,7 +141,7 @@ class RipleysKEstimate(object):
             Usually, it's common to consider max(radii) < (area/2)**0.5.
         mode : str
             Keyword which indicates the method for edge effects correction.
-            Available methods are {'none', 'translation'}.
+            Available methods are {'none', 'translation', 'ohser'}.
 
             * 'none' : this method does not take into account any edge effects
                 whatsoever.
@@ -168,14 +171,34 @@ class RipleysKEstimate(object):
             for idx in range(len(radii)):
                 ripley[idx] = (distances < radii[idx]).sum()
             ripley = self.area * 2. * ripley / (npts * (npts - 1))
-        # eq. 15.11 Stoyan book
+        # eq. 15.11 Stoyan book page 283
         elif mode == 'translation':
-            height_diff, width_diff = diff[:][:, 0], diff[:][:, 1]
+            x_diff, y_diff = diff[:][:, 0], diff[:][:, 1]
             for idx in range(len(radii)):
-                dist_indicator = distances <  radii[idx]
-                intersec_area = ((self.max_height - height_diff) *
-                                 (self.max_width - width_diff))
+                dist_indicator = distances < radii[idx]
+                intersec_area = ((self.x_max - x_diff) *
+                                 (self.y_max - y_diff))
                 ripley[idx] = ((1 / intersec_area) * dist_indicator).sum()
+            ripley = (self.area**2 / (npts * (npts - 1))) * 2 * ripley
+        elif mode == 'ohser':
+            # Stoyan book page 123
+            a, b = self.area, self.lratio
+            x = distances / math.sqrt(a / b)
+            u = np.sqrt(x * x - 1)
+            v = np.sqrt(x * x - b ** 2)
+            c_1 = np.pi - 2 * x * (1 + 1 / b) + x * x / b
+            c_2 = 2 * np.arcsin(1 / x) - 1 / b - 2 * (x - u)
+            c_3 = (2 * np.arcsin((b - u * v) / (x * x)) + 2 * u + 2 * v / b
+                   - b - (1 + x * x) / b)
+
+            cov_func = ((a / np.pi) * (c1 * (0 <= x <= 1) + c2 * (1 < x <= b)
+                                       + c3 * (b < x < math.sqrt(b**2 + 1))
+                                       + np.zeros_like(distances) *\
+                                               (x >= math.sqrt(b * b + 1))))
+
+            for idx in range(len(radii)):
+                dist_indicator = distances < radii[idx]
+                ripley[idx] = ((1 / cov_fuc) * dist_indicator).sum()
             ripley = (self.area**2 / (npts * (npts - 1))) * 2 * ripley
         else:
             raise ValueError('mode {} is not implemented'.format(mode))
