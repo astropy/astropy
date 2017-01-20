@@ -759,7 +759,12 @@ class Model(object):
         outputs = self.prepare_outputs(format_info, *outputs, **kwargs)
 
         if self.return_units and self.strict_return_units:
-            outputs = [Quantity(out, self.return_units) for out in outputs]
+            if not isiterable(self.return_units):
+                return_units = [self.return_units] * self.n_outputs
+            else:
+                return_units = self.return_units
+
+            outputs = [Quantity(out, unit, subok=True) for out, unit in zip(outputs, return_units)]
 
         if self.n_outputs == 1:
             return outputs[0]
@@ -1325,7 +1330,10 @@ class Model(object):
     def return_units(self):
         if hasattr(self.evaluate, '__annotations__'):
             return_units = self.evaluate.__annotations__.get('return', None)
-            return return_units
+            if isiterable(return_units):
+                return return_units
+            else:
+                return tuple([return_units] * self.n_outputs)
         else:
             # None means any unit is accepted
             return None
