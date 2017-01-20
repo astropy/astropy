@@ -661,9 +661,7 @@ class Model(object):
     _n_models = 1
 
     # Enforce strict units on inputs to evaluate
-    strict_input_units = False
-    # Enforce units on output of evaluate
-    strict_return_units = False
+    input_units_strict = False
 
     def __init__(self, *args, **kwargs):
         super(Model, self).__init__()
@@ -758,13 +756,15 @@ class Model(object):
 
         outputs = self.prepare_outputs(format_info, *outputs, **kwargs)
 
-        if self.return_units and self.strict_return_units:
-            if not isiterable(self.return_units):
-                return_units = [self.return_units] * self.n_outputs
+        if self.return_units:
+            # We allow a non-iterable unit only if there is one output
+            if self.n_outputs == 1 and not isiterable(self.return_units):
+                return_units = (self.return_units,)
             else:
                 return_units = self.return_units
 
-            outputs = [Quantity(out, unit, subok=True) for out, unit in zip(outputs, return_units)]
+            outputs = tuple([Quantity(out, unit, subok=True)
+                             for out, unit in zip(outputs, return_units)])
 
         if self.n_outputs == 1:
             return outputs[0]
@@ -1299,11 +1299,7 @@ class Model(object):
     @property
     def return_units(self):
         if hasattr(self.evaluate, '__annotations__'):
-            return_units = self.evaluate.__annotations__.get('return', None)
-            if isiterable(return_units):
-                return return_units
-            else:
-                return tuple([return_units] * self.n_outputs)
+            return self.evaluate.__annotations__.get('return', None)
         else:
             # None means any unit is accepted
             return None
@@ -1355,7 +1351,7 @@ class Model(object):
             for i in range(len(inputs)):
                 if isinstance(inputs[i], Quantity):
                     if inputs[i].unit.is_equivalent(input_units[i], equivalencies=equivalencies):
-                        if equivalencies is not None or self.strict_input_units:
+                        if equivalencies is not None or self.input_units_strict:
                             inputs[i] = inputs[i].to(input_units[i], equivalencies=equivalencies)
                     else:
                         if input_units[i] is dimensionless_unscaled:

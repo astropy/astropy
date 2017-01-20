@@ -107,17 +107,6 @@ class Projection(Model):
     # the radius of the projection sphere, by which x,y are scaled
     r0 = 180 / np.pi
 
-    _strict_input_units = True
-    _strict_return_units = True
-
-    @property
-    def input_units(self):
-        return tuple([u.deg] * self.n_inputs)
-
-    @property
-    def return_units(self):
-        return u.deg
-
     @abc.abstractproperty
     def inverse(self):
         """
@@ -131,12 +120,32 @@ class Pix2SkyProjection(Projection):
     inputs = ('x', 'y')
     outputs = ('phi', 'theta')
 
+    input_units_strict = True
+
+    @property
+    def input_units(self):
+        return [u.pixel] * self.n_inputs
+
+    @property
+    def return_units(self):
+        return [u.deg] * self.n_outputs
+
 
 class Sky2PixProjection(Projection):
     """Base class for all Sky2Pix projections."""
 
     inputs = ('phi', 'theta')
     outputs = ('x', 'y')
+
+    input_units_strict = True
+
+    @property
+    def input_units(self):
+        return [u.deg] * self.n_inputs
+
+    @property
+    def return_units(self):
+        return [u.pixel] * self.n_outputs
 
 
 class Zenithal(Projection):
