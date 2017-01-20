@@ -24,6 +24,7 @@ from .core import Model
 from .parameters import Parameter, InputParameterError
 
 from ..utils import deprecated
+from .. import units as u
 
 from . import _projections
 
@@ -105,6 +106,17 @@ class Projection(Model):
 
     # the radius of the projection sphere, by which x,y are scaled
     r0 = 180 / np.pi
+
+    _strict_input_units = True
+    _strict_return_units = True
+
+    @property
+    def input_units(self):
+        return tuple([u.deg] * self.n_inputs)
+
+    @property
+    def return_units(self):
+        return u.deg
 
     @abc.abstractproperty
     def inverse(self):
