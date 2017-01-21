@@ -4,8 +4,8 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 
 from numpy.testing.utils import assert_allclose
-
 from ..spatial import RipleysKEstimate
+from ...utils.misc import NumpyRNGContext
 
 def test_ripley_K_implementation():
     """
@@ -40,19 +40,21 @@ def test_ripley_K_implementation():
 def test_ripley_uniform_property():
     # Ripley's K function converges to the area when the number of points
     # and the argument radii are large enough, i.e., K(x) --> area as x --> inf
-    z = np.random.uniform(low=5, high=10, size=(100, 2))
+    with NumpyRNGContext(123):
+        z = np.random.uniform(low=5, high=10, size=(100, 2))
 
-    area = 50
-    Kest = RipleysKEstimate(data=z, area=area)
-    r = np.linspace(0, 20, 5)
-    assert_allclose(area, Kest(radii=r, mode='none')[4])
+        area = 50
+        Kest = RipleysKEstimate(data=z, area=area)
+        r = np.linspace(0, 20, 5)
+        assert_allclose(area, Kest(radii=r, mode='none')[4])
 
 def test_ripley_large_density():
-    z = np.random.uniform(low=0, high=1, size=(500, 2))
+    with NumpyRNGContext(123):
+        z = np.random.uniform(low=0, high=1, size=(500, 2))
 
-    Kest = RipleysKEstimate(data=z, area=1, x_max=1, y_max=1, lratio=1)
-    r = np.linspace(0, 0.25, 100)
+        Kest = RipleysKEstimate(data=z, area=1, x_max=1, y_max=1, lratio=1)
+        r = np.linspace(0, 0.25, 100)
 
-    assert_allclose(Kest.poisson(r), Kest(r, mode='ohser'), atol=1e-2)
-    assert_allclose(Kest.poisson(r), Kest(r, mode='variable-width'), atol=1e-2)
-    assert_allclose(Kest.poisson(r), Kest(r, mode='translation'), atol=1e-2)
+        assert_allclose(Kest.poisson(r), Kest(r, mode='ohser'), atol=1e-2)
+        assert_allclose(Kest.poisson(r), Kest(r, mode='variable-width'), atol=1e-2)
+        assert_allclose(Kest.poisson(r), Kest(r, mode='translation'), atol=1e-2)
