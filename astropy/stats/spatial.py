@@ -158,6 +158,27 @@ class RipleysKEstimate(object):
     def __call__(self, radii, mode='none'):
         return self.evaluate(radii=radii, mode=mode)
 
+    def _pairwise_diffs(self):
+        npts = len(self.data)
+        diff = np.zeros(shape=(npts * (npts - 1) // 2, 2), dtype=np.double)
+        k = 0
+        for i in range(npts - 1):
+            for j in range(i + 1, npts):
+                diff[k] = abs(self.data[i] - self.data[j])
+                k = k + 1
+
+        return diff
+
+    def _pairwise_distances(self):
+        npts = len(self.data)
+        distances = np.zeros((npts * (npts - 1)) // 2, dtype=np.double)
+        diff = self._pairwise_diffs()
+        for k in range(len(distances)):
+            distances[k] = math.sqrt((diff[k] * diff[k]).sum())
+
+        return distances
+
+
     def poisson(self, radii):
         """
         Evaluates the Ripley K function for the homongeneous Poisson process,
@@ -205,23 +226,17 @@ class RipleysKEstimate(object):
         self.data = np.asarray(self.data)
         npts = len(self.data)
         ripley = np.zeros(len(radii))
-        distances = np.zeros((npts * (npts - 1)) // 2, dtype=np.double)
-        diff = np.zeros(shape=(npts * (npts - 1) // 2, 2), dtype=np.double)
-
-        k = 0
-        for i in range(npts - 1):
-            for j in range(i + 1, npts):
-                diff[k] = abs(self.data[i] - self.data[j])
-                distances[k] = math.sqrt((diff[k] * diff[k]).sum())
-                k = k + 1
 
         if mode == 'none':
+            distances = self._pairwise_distances()
             for r in range(len(radii)):
                 ripley[r] = (distances < radii[r]).sum()
 
             ripley = self.area * 2. * ripley / (npts * (npts - 1))
         # eq. 15.11 Stoyan book page 283
         elif mode == 'translation':
+            diff = self._pairwise_diffs()
+            distances = self._pairwise_distances()
             intersec_area = (((self.x_max - self.x_min) - diff[:][:, 0]) *
                              ((self.y_max - self.y_min) - diff[:][:, 1]))
 
@@ -232,6 +247,7 @@ class RipleysKEstimate(object):
             ripley = (self.area**2 / (npts * (npts - 1))) * 2 * ripley
         # Stoyan book page 123 and eq 15.13
         elif mode == 'ohser':
+            distances = self._pairwise_distances()
             a, b = self.area, self.lratio
             x = distances / math.sqrt(a / b)
             u = np.sqrt((x * x - 1) * (x > 1))
@@ -268,7 +284,8 @@ class RipleysKEstimate(object):
                             dist = math.sqrt((diff * diff).sum())
                             if dist < radii[r] and lt_dist[i] > radii[r]:
                                 ripley[r] = ripley[r] + 1
-                ripley[r] = ripley[r] / (lt_dist > radii[r]).sum()
+                if not (lt_dist > radii[r]).sum() == 0:
+                    ripley[r] = ripley[r] / (lt_dist > radii[r]).sum()
 
             ripley = self.area * ripley / npts
         else:
