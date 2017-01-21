@@ -193,7 +193,9 @@ class RipleysKEstimate(object):
                 whatsoever.
             * 'translation' : computes the intersection of rectangular areas
                 centered at the given points provided the upper bounds of the
-                dimensions of the rectangular area of study.
+                dimensions of the rectangular area of study. It assumes that
+                all the points lie in a bounded rectangular region satisfying
+                x_min < x_i < x_max; y_min < y_i < y_max.
         Returns
         -------
         ripley : 1D array
@@ -220,8 +222,8 @@ class RipleysKEstimate(object):
             ripley = self.area * 2. * ripley / (npts * (npts - 1))
         # eq. 15.11 Stoyan book page 283
         elif mode == 'translation':
-            intersec_area = ((self.x_max - diff[:][:, 0]) *
-                             (self.y_max - diff[:][:, 1]))
+            intersec_area = (((self.x_max - self.x_min) - diff[:][:, 0]) *
+                             ((self.y_max - self.y_min) - diff[:][:, 1]))
 
             for r in range(len(radii)):
                 dist_indicator = distances < radii[r]
