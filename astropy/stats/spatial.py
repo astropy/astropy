@@ -16,9 +16,6 @@ class RipleysKEstimate(object):
 
     Parameters
     ----------
-    data : 2D array
-        Set of observed points in as a n by 2 array which will be used to
-        estimate Ripley's K function.
     area : float
         Area of study from which the points where observed.
     x_max, y_max : float, float, optional
@@ -59,9 +56,8 @@ class RipleysKEstimate(object):
        Point Fields, Akademie Verlag GmbH, Chichester.
     """
 
-    def __init__(self, data, area, x_max=None, y_max=None, x_min=0, y_min=0,
+    def __init__(self, area, x_max=None, y_max=None, x_min=0, y_min=0,
                  lratio=None):
-        self.data = data
         self.area = area
         self.x_max = x_max
         self.y_max = y_max
@@ -69,19 +65,7 @@ class RipleysKEstimate(object):
         self.y_min = y_min
         self.lratio = lratio
 
-    @property
-    def data(self):
-        return self._data
 
-    @data.setter
-    def data(self, value):
-        value = np.asarray(value)
-
-        if value.shape[1] == 2:
-            self._data = value
-        else:
-            raise ValueError('data must be an n by 2 array, where n is the '
-                             'number of observed points.')
 
     @property
     def area(self):
@@ -155,24 +139,24 @@ class RipleysKEstimate(object):
             raise ValueError('lratio is expected to be a real number'
                              ' (>= 1) or None. Got {}.'.format(value))
 
-    def __call__(self, radii, mode='none'):
-        return self.evaluate(radii=radii, mode=mode)
+    def __call__(self, data, radii, mode='none'):
+        return self.evaluate(data=data, radii=radii, mode=mode)
 
-    def _pairwise_diffs(self):
-        npts = len(self.data)
+    def _pairwise_diffs(self, data):
+        npts = len(data)
         diff = np.zeros(shape=(npts * (npts - 1) // 2, 2), dtype=np.double)
         k = 0
         for i in range(npts - 1):
             for j in range(i + 1, npts):
-                diff[k] = abs(self.data[i] - self.data[j])
+                diff[k] = abs(data[i] - data[j])
                 k = k + 1
 
         return diff
 
-    def _pairwise_distances(self):
-        npts = len(self.data)
+    def _pairwise_distances(self, data):
+        npts = len(data)
         distances = np.zeros((npts * (npts - 1)) // 2, dtype=np.double)
-        diff = self._pairwise_diffs()
+        diff = self._pairwise_diffs(data)
         for k in range(len(distances)):
             distances[k] = math.sqrt((diff[k] * diff[k]).sum())
 
@@ -197,12 +181,15 @@ class RipleysKEstimate(object):
 
         return np.pi * radii * radii
 
-    def evaluate(self, radii, mode='none'):
+    def evaluate(self, data, radii, mode='none'):
         """
         Evaluates the Ripley K estimator for a given set of values ``radii``.
 
         Parameters
         ----------
+        data : 2D array
+            Set of observed points in as a n by 2 array which will be used to
+            estimate Ripley's K function.
         radii : 1D array
             Set of distances in which Ripley's K estimator will be evaluated.
             Usually, it's common to consider max(radii) < (area/2)**0.5.
@@ -223,20 +210,25 @@ class RipleysKEstimate(object):
             Ripley's K function estimator evaluated at ``radii``.
         """
 
-        self.data = np.asarray(self.data)
-        npts = len(self.data)
+        data = np.asarray(data)
+
+        if not data.shape[1] == 2:
+            raise ValueError('data must be an n by 2 array, where n is the '
+                             'number of observed points.')
+
+        npts = len(data)
         ripley = np.zeros(len(radii))
 
         if mode == 'none':
-            distances = self._pairwise_distances()
+            distances = self._pairwise_distances(data)
             for r in range(len(radii)):
                 ripley[r] = (distances < radii[r]).sum()
 
             ripley = self.area * 2. * ripley / (npts * (npts - 1))
         # eq. 15.11 Stoyan book page 283
         elif mode == 'translation':
-            diff = self._pairwise_diffs()
-            distances = self._pairwise_distances()
+            diff = self._pairwise_diffs(data)
+            distances = self._pairwise_distances(data)
             intersec_area = (((self.x_max - self.x_min) - diff[:][:, 0]) *
                              ((self.y_max - self.y_min) - diff[:][:, 1]))
 
@@ -247,7 +239,7 @@ class RipleysKEstimate(object):
             ripley = (self.area**2 / (npts * (npts - 1))) * 2 * ripley
         # Stoyan book page 123 and eq 15.13
         elif mode == 'ohser':
-            distances = self._pairwise_distances()
+            distances = self._pairwise_distances(data)
             a, b = self.area, self.lratio
             x = distances / math.sqrt(a / b)
             u = np.sqrt((x * x - 1) * (x > 1))
@@ -268,19 +260,19 @@ class RipleysKEstimate(object):
 
             ripley = (self.area**2 / (npts * (npts - 1))) * 2 * ripley
         # Cressie book eq 8.2.20 page 616
-        elif mode == 'variable-width':
-            lt_dist = np.zeros(len(self.data), dtype=np.double)
-            for l in range(len(self.data)):
-                lt_dist[l] = min(self.x_max - self.data[l][0],
-                                 self.y_max - self.data[l][1],
-                                 self.data[l][0] - self.x_min,
-                                 self.data[l][1] - self.y_min)
+        elif mode == 'var-width':
+            lt_dist = np.zeros(npts, dtype=np.double)
+            for k in range(npts):
+                lt_dist[k] = min(self.x_max - data[k][0],
+                                 self.y_max - data[k][1],
+                                 data[k][0] - self.x_min,
+                                 data[k][1] - self.y_min)
 
             for r in range(len(radii)):
                 for i in range(npts):
                     for j in range(npts):
                         if i != j:
-                            diff = abs(self.data[i] - self.data[j])
+                            diff = abs(data[i] - data[j])
                             dist = math.sqrt((diff * diff).sum())
                             if dist < radii[r] and lt_dist[i] > radii[r]:
                                 ripley[r] = ripley[r] + 1
