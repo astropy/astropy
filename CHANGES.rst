@@ -25,7 +25,7 @@ New Features
 - ``astropy.io.votable``
 
 - ``astropy.modeling``
-  - Added ``SmoothlyBrokenPowerLaw1D`` model [#5656].
+  - Added ``SmoothlyBrokenPowerLaw1D`` model. [#5656]
 
 - ``astropy.nddata``
 

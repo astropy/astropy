@@ -240,9 +240,6 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
             raise InputParameterError(
                 "delta parameter must be >= 0.001")
 
-
-
-
     @staticmethod
     def evaluate(x, amplitude, log_break, alpha_1, alpha_2, delta):
         """One dimensional smoothly broken power law model function"""
