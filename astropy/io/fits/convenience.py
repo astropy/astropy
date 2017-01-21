@@ -473,8 +473,7 @@ def table_to_hdu(table):
             if column.dtype.kind == 'f' and np.allclose(fill_value, 1e20):
                 column.set_fill_value(np.nan)
 
-        fits_rec = FITS_rec.from_columns(np.array(table.filled()))
-        table_hdu = BinTableHDU(fits_rec)
+        table_hdu = BinTableHDU.from_columns(np.array(table.filled()))
         for col in table_hdu.columns:
             # Binary FITS tables support TNULL *only* for integer data columns
             # TODO: Determine a schema for handling non-integer masked columns
@@ -491,8 +490,7 @@ def table_to_hdu(table):
 
             col.null = fill_value.astype(table[col.name].dtype)
     else:
-        fits_rec = FITS_rec.from_columns(np.array(table.filled()))
-        table_hdu = BinTableHDU(fits_rec)
+        table_hdu = BinTableHDU.from_columns(np.array(table.filled()))
 
     # Set units for output HDU
     for col in table_hdu.columns:
