@@ -35,14 +35,14 @@ class RipleysKEstimate(object):
     >>> from matplotlib import pyplot as plt # doctest: +SKIP
     >>> from astropy.stats import RipleysKEstimate
     >>> z = np.random.uniform(low=5, high=10, size=(100, 2))
-    >>> Kest = RipleysKEstimate(data=z, area=25, x_max=10, y_max=10,
+    >>> Kest = RipleysKEstimate(area=25, x_max=10, y_max=10,
     ... x_min=5, y_min=5, lratio=1)
     >>> r = np.linspace(0, 2.5, 100)
     >>> plt.plot(r, Kest.poisson(r)) # doctest: +SKIP
-    >>> plt.plot(r, Kest(r, mode='none')) # doctest: +SKIP
-    >>> plt.plot(r, Kest(r, mode='translation')) # doctest: +SKIP
-    >>> plt.plot(r, Kest(r, mode='ohser')) # doctest: +SKIP
-    >>> plt.plot(r, Kest(r, mode='ohser')) # doctest: +SKIP
+    >>> plt.plot(r, Kest(data=z, radii=r, mode='none')) # doctest: +SKIP
+    >>> plt.plot(r, Kest(data=z, radii=r, mode='translation')) # doctest: +SKIP
+    >>> plt.plot(r, Kest(data=z, radii=r, mode='ohser')) # doctest: +SKIP
+    >>> plt.plot(r, Kest(data=z, radii=r, mode='var-width')) # doctest: +SKIP
 
     References
     ----------
@@ -203,7 +203,17 @@ class RipleysKEstimate(object):
                 centered at the given points provided the upper bounds of the
                 dimensions of the rectangular area of study. It assumes that
                 all the points lie in a bounded rectangular region satisfying
-                x_min < x_i < x_max; y_min < y_i < y_max.
+                x_min < x_i < x_max; y_min < y_i < y_max. A detailed
+                description of this method can be found on ref [4].
+            * 'ohser' :  this method uses the isotropized set covariance
+                function of the window of study as a weigth to correct for
+                edge-effects. A detailed description of this method can be
+                found on ref [4].
+            * 'var-width' : this method considers the distance of each
+                observed point to the nearest boundary of the study window as
+                a factor to account for edge-effects. See [3] for a brief
+                description of this method.
+
         Returns
         -------
         ripley : 1D array

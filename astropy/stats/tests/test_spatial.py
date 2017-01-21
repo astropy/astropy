@@ -38,8 +38,9 @@ def test_ripley_K_implementation():
     assert_allclose(ANS_TRANS, Kest(data=a, radii=r, mode='translation'), atol=1e-3)
 
 def test_ripley_uniform_property():
-    # Ripley's K function converges to the area when the number of points
-    # and the argument radii are large enough, i.e., K(x) --> area as x --> inf
+    # Ripley's K function without edge-correction converges to the area when
+    # the number of points and the argument radii are large enough, i.e.,
+    # K(x) --> area as x --> inf
     with NumpyRNGContext(123):
         z = np.random.uniform(low=5, high=10, size=(100, 2))
 
