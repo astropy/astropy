@@ -9,6 +9,7 @@ from ..spatial import RipleysKEstimate
 
 def test_ripley_K_implementation():
     """
+    Test against Ripley's K function implemented in R package `spatstat`
         +-+---------+---------+----------+---------+-+
       6 +                                          * +
         |                                            |
@@ -25,7 +26,6 @@ def test_ripley_K_implementation():
         +-+---------+---------+----------+---------+-+
           1        1.5        2         2.5        3
     """
-    # Test against Ripley's K function implemented in R package `spatstat`
     a = np.array([[1, 4], [2, 5], [3, 6]])
     area = 100
     r = np.linspace(0, 2.5, 5)
@@ -54,4 +54,5 @@ def test_ripley_large_density():
     r = np.linspace(0, 0.25, 100)
 
     assert_allclose(Kest.poisson(r), Kest(r, mode='ohser'), atol=1e-2)
+    assert_allclose(Kest.poisson(r), Kest(r, mode='variable-width'), atol=1e-2)
     assert_allclose(Kest.poisson(r), Kest(r, mode='translation'), atol=1e-2)

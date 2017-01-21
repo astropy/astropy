@@ -22,8 +22,11 @@ class RipleysKEstimate(object):
     area : float
         Area of study from which the points where observed.
     x_max, y_max : float, float, optional
-        Maximum rectangular dimensions of the area of study.
+        Maximum rectangular coordinates of the area of study.
         Required if ``mode == 'translation'``.
+    x_min, y_min : float, float, optional
+        Minimum rectangular coordinates of the area of study.
+        Required if ``mode == 'variable-width'``.
     lratio : float, optional
         Greatest ratio between lengths of the rectangular window of study,
         i.e., ``lratio = max(width/height, height/width)``.
@@ -32,15 +35,16 @@ class RipleysKEstimate(object):
     Examples
     --------
     >>> import numpy as np
-    >>> from matplotlib import pyplot as plt
+    >>> from matplotlib import pyplot as plt # doctest: +SKIP
     >>> from astropy.stats import RipleysKEstimate
     >>> z = np.random.uniform(low=5, high=10, size=(100, 2))
-    >>> area = 25
-    >>> Kest = RipleysKEstimate(data=z, area=area, x_max=10, y_max=10)
+    >>> Kest = RipleysKEstimate(data=z, area=25, x_max=10, y_max=10,
+    ... x_min=5, y_min=5, lratio=1)
     >>> r = np.linspace(0, 2.5, 100)
     >>> plt.plot(r, Kest.poisson(r)) # doctest: +SKIP
     >>> plt.plot(r, Kest(r, mode='none')) # doctest: +SKIP
     >>> plt.plot(r, Kest(r, mode='translation')) # doctest: +SKIP
+    >>> plt.plot(r, Kest(r, mode='ohser')) # doctest: +SKIP
     >>> plt.plot(r, Kest(r, mode='ohser')) # doctest: +SKIP
 
     References
@@ -55,11 +59,14 @@ class RipleysKEstimate(object):
        Point Fields, Akademie Verlag GmbH, Chichester.
     """
 
-    def __init__(self, data, area, x_max=None, y_max=None, lratio=None):
+    def __init__(self, data, area, x_max=None, y_max=None, x_min=0, y_min=0,
+                 lratio=None):
         self.data = data
         self.area = area
         self.x_max = x_max
         self.y_max = y_max
+        self.x_min = x_min
+        self.y_min = y_min
         self.lratio = lratio
 
     @property
@@ -113,6 +120,30 @@ class RipleysKEstimate(object):
                              'or None. Got {}.'.format(value))
 
     @property
+    def y_min(self):
+        return self._y_min
+
+    @y_min.setter
+    def y_min(self, value):
+        if isinstance(value, (float, int)) and value >= 0:
+            self._y_min = value
+        else:
+            raise ValueError('y_min is expected to be a nonnegative number. '
+                             'Got {}.'.format(value))
+
+    @property
+    def x_min(self):
+        return self._x_min
+
+    @x_min.setter
+    def x_min(self, value):
+        if isinstance(value, (float, int)) and value >= 0:
+            self._x_min = value
+        else:
+            raise ValueError('x_min is expected to be a nonnegative number. '
+                             'Got {}.'.format(value))
+
+    @property
     def lratio(self):
         return self._lratio
 
@@ -121,7 +152,7 @@ class RipleysKEstimate(object):
         if value is None or (isinstance(value, (float, int)) and value >= 1):
             self._lratio = value
         else:
-            raise ValueError('lratio is expected to be a positive number'
+            raise ValueError('lratio is expected to be a real number'
                              ' (>= 1) or None. Got {}.'.format(value))
 
     def __call__(self, radii, mode='none'):
@@ -218,6 +249,26 @@ class RipleysKEstimate(object):
                 ripley[r] = ((1 / cov_func) * dist_indicator).sum()
 
             ripley = (self.area**2 / (npts * (npts - 1))) * 2 * ripley
+        # Cressie book eq 8.2.20 page 616
+        elif mode == 'variable-width':
+            lt_dist = np.zeros(len(self.data), dtype=np.double)
+            for l in range(len(self.data)):
+                lt_dist[l] = min(self.x_max - self.data[l][0],
+                                 self.y_max - self.data[l][1],
+                                 self.data[l][0] - self.x_min,
+                                 self.data[l][1] - self.y_min)
+
+            for r in range(len(radii)):
+                for i in range(npts):
+                    for j in range(npts):
+                        if i != j:
+                            diff = abs(self.data[i] - self.data[j])
+                            dist = math.sqrt((diff * diff).sum())
+                            if dist < radii[r] and lt_dist[i] > radii[r]:
+                                ripley[r] = ripley[r] + 1
+                ripley[r] = ripley[r] / (lt_dist > radii[r]).sum()
+
+            ripley = self.area * ripley / npts
         else:
             raise ValueError('mode {} is not implemented.'.format(mode))
 
