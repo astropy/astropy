@@ -191,6 +191,8 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Fix out-of-order TUNITn cards when writing tables to FITS. [#5720]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
