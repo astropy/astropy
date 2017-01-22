@@ -362,7 +362,41 @@ class SkyCoord(ShapedLikeNDArray):
 
         return valid_kwargs
 
-    def transform_to(self, frame):
+    def transforms(self, other, accepting_defaults=False):
+        """
+        The other coordinate transformed to this frame.
+
+        The reverse of transform_to, in the sense
+        c0.transforms(c1) == c1.transform_to(c0)
+
+        Parameters
+        ----------
+        other : `BaseCoordinateFrame` class / instance or `SkyCoord` instance
+            The object to transform to self's coordinate system.
+        accepting_defaults : the destination frame's default parameters override the original frame's explicit parameters
+
+        Returns
+        -------
+        newother
+            A new object (or the same object if no transformation is necessary)
+            in the  coordinate represented in the `frame` frame.
+
+        Raises
+        ------
+        ValueError
+            If there is no possible transformation route.
+        TypeError
+            if other doesn't have a transform_to method
+        """
+        try:
+            if self.is_equivalent_frame(other):
+                return other
+            else:
+                return other.transform_to(self, accepting_defaults=accepting_defaults)
+        except AttributeError as e:
+            raise TypeError("other object doesn't know how to transform to this frame.")
+
+    def transform_to(self, frame, accepting_defaults=False):
         """
         Transform this coordinate to a new frame.
 
@@ -371,13 +405,14 @@ class SkyCoord(ShapedLikeNDArray):
         supplied ``frame``, with the following precedence:
 
         1. Non-default value in the supplied frame
-        2. Non-default value in the SkyCoord instance
+        2. Non-default value in the SkyCoord instance (unless accepting_defaults)
         3. Default value in the supplied frame
 
         Parameters
         ----------
         frame : str or `BaseCoordinateFrame` class / instance or `SkyCoord` instance
             The frame to transform this coordinate into.
+        accepting_defaults : the destination frame's default parameters override the original frame's explicit parameters
 
         Returns
         -------
@@ -409,12 +444,12 @@ class SkyCoord(ShapedLikeNDArray):
             # transform.  Frame attributes track whether they were explicitly
             # set by user or are just reflecting default values.  Precedence:
             # 1. Non-default value in the supplied frame instance
-            # 2. Non-default value in the self instance
+            # 2. Non-default value in the self instance (unless accepting_defaults)
             # 3. Default value in the supplied frame instance
             for attr in FRAME_ATTR_NAMES_SET():
                 self_val = getattr(self, attr, None)
                 frame_val = getattr(frame, attr, None)
-                if frame_val is not None and not frame.is_frame_attr_default(attr):
+                if frame_val is not None and (accepting_defaults or not frame.is_frame_attr_default(attr)):
                     frame_kwargs[attr] = frame_val
                 elif self_val is not None and not self.is_frame_attr_default(attr):
                     frame_kwargs[attr] = self_val
@@ -678,19 +713,16 @@ class SkyCoord(ShapedLikeNDArray):
         from . import Angle
         from .angle_utilities import angular_separation
 
-        if isinstance(other, SkyCoord):
-            self_in_other_system = self.transform_to(other.frame)
-        elif isinstance(other, BaseCoordinateFrame) and other.has_data:
-            # it's a frame
-            self_in_other_system = self.transform_to(other)
-        else:
+        try:
+            other_in_self_frame = self.transforms(other, accepting_defaults=True)
+        except TypeError as e:
             raise TypeError('Can only get separation to another SkyCoord or a '
                             'coordinate frame with data')
 
-        lon1 = self_in_other_system.spherical.lon
-        lat1 = self_in_other_system.spherical.lat
-        lon2 = other.spherical.lon
-        lat2 = other.spherical.lat
+        lon1 = self.spherical.lon
+        lat1 = self.spherical.lat
+        lon2 = other_in_self_frame.spherical.lon
+        lat2 = other_in_self_frame.spherical.lat
 
         # Get the separation as a Quantity, convert to Angle in degrees
         sep = angular_separation(lon1, lat1, lon2, lat2)
@@ -720,14 +752,6 @@ class SkyCoord(ShapedLikeNDArray):
             If this or the other coordinate do not have distances.
         """
 
-        if isinstance(other, SkyCoord):
-            self_in_other_system = self.transform_to(other.frame)
-        elif isinstance(other, BaseCoordinateFrame) and other.has_data:
-            # it's a frame
-            self_in_other_system = self.transform_to(other)
-        else:
-            raise TypeError('Can only get separation to another SkyCoord or a '
-                            'coordinate frame with data')
 
         if issubclass(self.data.__class__, UnitSphericalRepresentation):
             raise ValueError('This object does not have a distance; cannot '
@@ -736,8 +760,14 @@ class SkyCoord(ShapedLikeNDArray):
             raise ValueError('The other object does not have a distance; '
                              'cannot compute 3d separation.')
 
-        return Distance((self_in_other_system.cartesian -
-                         other.cartesian).norm())
+        try:
+            other_in_self_frame = self.transforms(other, accepting_defaults=True)
+        except TypeError as e:
+            raise TypeError('Can only get separation to another SkyCoord or a '
+                            'coordinate frame with data')
+
+        return Distance((self.cartesian -
+                         other_in_self_frame.cartesian).norm())
 
     def spherical_offsets_to(self, tocoord):
         r"""
@@ -900,9 +930,13 @@ class SkyCoord(ShapedLikeNDArray):
         """
         from .matching import match_coordinates_3d
 
+
         if (isinstance(catalogcoord, (SkyCoord, BaseCoordinateFrame))
                 and catalogcoord.has_data):
-            self_in_catalog_frame = self.transform_to(catalogcoord)
+            if self.is_equivalent_frame(catalogcoord):
+                self_in_catalog_frame = self
+            else:
+                self_in_catalog_frame = self.transform_to(catalogcoord)
         else:
             raise TypeError('Can only get separation to another SkyCoord or a '
                             'coordinate frame with data')
@@ -1061,10 +1095,11 @@ class SkyCoord(ShapedLikeNDArray):
         """
         from . import angle_utilities
 
-        if self.frame.name == other.frame.name:
-            other_in_self_frame = other
-        else:
-            other_in_self_frame = other.frame.transform_to(self.frame)
+        try:
+            other_in_self_frame = self.transforms(other, accepting_defaults=True)
+        except TypeError as e:
+            raise TypeError('Can only get position_angle to another SkyCoord or a '
+                            'coordinate frame with data')
 
         slat = self.represent_as(UnitSphericalRepresentation).lat
         slon = self.represent_as(UnitSphericalRepresentation).lon
