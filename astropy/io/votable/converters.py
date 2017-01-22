@@ -1177,6 +1177,8 @@ class Boolean(Converter):
             return False, True
         mapping = {'TRUE'  : (True, False),
                    'FALSE' : (False, False),
+                   'YES'   : (True, False),
+                   'NO'    : (False, False),
                    '1'     : (True, False),
                    '0'     : (False, False),
                    'T'     : (True, False),
