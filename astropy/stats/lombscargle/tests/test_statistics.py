@@ -69,6 +69,23 @@ def test_inverse_single(N, normalization):
     assert_allclose(fap, fap_out)
 
 
+@pytest.mark.parametrize('normalization', NORMALIZATIONS)
+def test_inverse_bootstrap(null_data, normalization, fmax=5):
+    t, y, dy = null_data
+
+    fap = np.linspace(0, 1, 10)
+    method = 'bootstrap'
+    method_kwds = METHOD_KWDS['bootstrap']
+
+    z = false_alarm_level(fap, fmax, t, y, dy, normalization,
+                          method=method, method_kwds=method_kwds)
+    fap_out = false_alarm_probability(z, fmax, t, y, dy, normalization,
+                                      method=method, method_kwds=method_kwds)
+
+    # atol = 1 / n_bootstraps
+    assert_allclose(fap, fap_out, atol=0.05)
+
+
 @pytest.mark.parametrize('method', set(METHODS) - {'bootstrap'})
 @pytest.mark.parametrize('normalization', NORMALIZATIONS)
 @pytest.mark.parametrize('N', [10, 100, 1000])
@@ -76,7 +93,7 @@ def test_inverses(method, normalization, N, T=5, fmax=5):
     t, y, dy = data(N, rseed=543)
     method_kwds = METHOD_KWDS.get(method, None)
 
-    fap = np.linspace(0.01, 0.99, 10)
+    fap = np.logspace(-10, 0, 10)
 
     z = false_alarm_level(fap, fmax, t, y, dy, normalization,
                           method=method, method_kwds=method_kwds)
@@ -84,9 +101,6 @@ def test_inverses(method, normalization, N, T=5, fmax=5):
                                       method=method, method_kwds=method_kwds)
 
     assert_allclose(fap, fap_out)
-
-
-# TODO: test boostrap inverse
 
 
 @pytest.mark.parametrize('method', METHODS)
@@ -117,7 +131,7 @@ def test_false_alarm_smoketest(method, normalization, data):
 def test_false_alarm_equivalence(method, normalization, data):
     # Note: the PSD normalization is not equivalent to the others, in that it
     # depends on the absolute errors rather than relative errors. Because the
-    # scaling has a statistical component, it cannot be converted directly
+    # scaling contributes to the distribution, it cannot be converted directly
     # from any of the three normalized versions.
 
     kwds = METHOD_KWDS.get(method, None)
