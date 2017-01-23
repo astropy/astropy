@@ -168,22 +168,14 @@ class TestRow():
                                                   '<tr><td>1</td><td>4</td></tr>',
                                                   '</table>']
 
-    def test_data_and_as_void(self, table_types):
-        """Test the deprecated data property and as_void() method"""
+    def test_as_void(self, table_types):
+        """Test the as_void() method"""
         self._setup(table_types)
         table = self.t
         row = table[0]
 
-        # row.data is now deprecated because it is slow, generic and abusable
-        with catch_warnings(AstropyDeprecationWarning) as warning_lines:
-            row_data = row.data
-            assert isinstance(row_data, (np.void, np.ma.mvoid))
-
-            assert warning_lines[0].category == AstropyDeprecationWarning
-            assert ("The data function is deprecated" in str(warning_lines[0].message))
-
-        # If masked then with no masks, issue numpy/numpy#483 should come into play.
-        # Make sure as_void() code is working.
+        # If masked then with no masks, issue numpy/numpy#483 should come
+        # into play.  Make sure as_void() code is working.
         row_void = row.as_void()
         if table.masked:
             assert isinstance(row_void, np.ma.mvoid)
