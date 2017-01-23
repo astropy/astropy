@@ -156,6 +156,7 @@ class Generic(Base):
             raise ValueError(
                 "Invalid character at col {0}".format(t.lexpos))
 
+        # PY2: need str() to ensure we do not pass on a unicode object.
         lexer = lex.lex(optimize=True, lextab=str('generic_lextab'),
                         outputdir=os.path.dirname(__file__),
                         reflags=re.UNICODE)
@@ -418,6 +419,7 @@ class Generic(Base):
         def p_error(p):
             raise ValueError()
 
+        # PY2: need str() to ensure we do not pass on a unicode object.
         parser = yacc.yacc(debug=False, tabmodule=str('generic_parsetab'),
                            outputdir=os.path.dirname(__file__))
 
