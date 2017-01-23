@@ -3,6 +3,7 @@ from numpy.testing import assert_allclose
 
 from ....tests.helper import pytest
 from .. import LombScargle
+from .. import statistics
 from ..statistics import cdf_single, pdf_single, false_alarm_probability, METHODS
 from ..utils import convert_normalization, compute_chi2_ref
 
@@ -54,6 +55,26 @@ def test_distribution(null_data, normalization):
     midpoints = 0.5 * (bins[1:] + bins[:-1])
     pdf = pdf_single(midpoints, N, normalization=normalization)
     assert_allclose(hist, pdf, rtol=0.05, atol=0.05 * pdf[0])
+
+
+@pytest.mark.parametrize('normalization', NORMALIZATIONS)
+@pytest.mark.parametrize('N', [10, 100, 1000])
+def test_inverses(normalization, N, T=5, fmax=5):
+    t, y, dy = null_data(N, rseed=543)
+
+    fap = np.linspace(0.01, 0.99, 10)
+
+    z = statistics.inv_fap_single(fap, N, normalization)
+    fap_out = statistics.fap_single(z, N, normalization)
+    assert_allclose(fap, fap_out)
+
+    z = statistics.inv_fap_simple(fap, fmax, t, y, dy, normalization)
+    fap_out = statistics.fap_simple(z, fmax, t, y, dy, normalization)
+    assert_allclose(fap, fap_out)
+
+    z = statistics.inv_fap_baluev(fap, fmax, t, y, dy, normalization)
+    fap_out = statistics.fap_baluev(z, fmax, t, y, dy, normalization)
+    assert_allclose(fap, fap_out)
 
 
 @pytest.mark.parametrize('method', METHODS)

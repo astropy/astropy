@@ -1,8 +1,11 @@
 """
 Utilities for computing periodogram statistics.
 """
+from functools import wraps
+
 import numpy as np
 from scipy.special import gammaln
+from scipy import optimize
 
 from .core import LombScargle
 
@@ -26,6 +29,15 @@ def _gamma(N):
 
 def _log_gamma(N):
     return 0.5 * np.log(2 / N) + gammaln(N / 2) - gammaln((N - 1) / 2)
+
+
+def vectorize_first_argument(func):
+    @wraps(func)
+    def new_func(x, *args, **kwargs):
+        x = np.asarray(x)
+        return np.array([func(xi, *args, **kwargs)
+                         for xi in x]).reshape(x.shape)
+    return new_func
 
 
 def pdf_single(z, N, normalization, dH=1, dK=3):
@@ -129,6 +141,24 @@ def fap_single(z, N, normalization, dH=1, dK=3):
                          "".format(normalization))
 
 
+def inv_fap_single(fap, N, normalization, dH=1, dK=3):
+    if dK - dH != 2:
+        raise NotImplementedError("Degrees of freedom != 2")
+    Nk = N - dK
+
+    if normalization == 'psd':
+        return - np.log(fap)
+    elif normalization == 'standard':
+        return 1 - fap ** (2 / Nk)
+    elif normalization == 'model':
+        return -1 + fap ** (-2 / Nk)
+    elif normalization == 'log':
+        return -2 / Nk * np.log(fap)
+    else:
+        raise ValueError("normalization='{0}' is not recognized"
+                         "".format(normalization))
+
+
 def cdf_single(z, N, normalization, dH=1, dK=3):
     """Cumulative distribution for the Lomb-Scargle periodogram
 
@@ -197,10 +227,19 @@ def fap_simple(Z, fmax, t, y, dy, normalization='standard'):
     N = len(t)
     T = max(t) - min(t)
     N_eff = fmax * T
-    p_s = cdf_single(Z, N, normalization=normalization)
-    print(Z)
-    print(p_s)
-    return 1 - p_s ** N_eff
+    fap_s = fap_single(Z, N, normalization=normalization)
+    # result is 1 - (1 - fap) ** N_eff
+    # this is much more precise for small numbers
+    return -np.expm1(N_eff * np.log1p(-fap_s))
+
+
+def inv_fap_simple(fap, fmax, t, y, dy, normalization='standard'):
+    N = len(t)
+    T = max(t) - min(t)
+    N_eff = fmax * T
+    #fap_s = 1 - (1 - fap) ** (1 / N_eff)
+    fap_s = -np.expm1(np.log(1 - fap) / N_eff)
+    return inv_fap_single(fap_s, N, normalization)
 
 
 def fap_davies(Z, fmax, t, y, dy, normalization='standard'):
@@ -219,25 +258,50 @@ def fap_baluev(Z, fmax, t, y, dy, normalization='standard'):
 
     (Eqn 6 of Baluev 2008)
     """
-    cdf = cdf_single(Z, len(t), normalization)
+    fap_s = fap_single(Z, len(t), normalization)
     tau = tau_davies(Z, fmax, t, y, dy, normalization=normalization)
-    return 1 - cdf * np.exp(-tau)
+    # result is 1 - (1 - fap_s) * np.exp(-tau)
+    # this is much more precise for small numbers
+    return -np.expm1(-tau) + fap_s * np.exp(-tau)
 
 
-def fap_bootstrap(Z, fmax, t, y, dy, normalization='standard',
-                  n_bootstraps=1000, random_seed=None):
+@vectorize_first_argument
+def inv_fap_baluev(p, fmax, t, y, dy, normalization='standard'):
+    """TODO"""
+    args = (fmax, t, y, dy, normalization)
+    z0 = inv_fap_simple(p, *args)
+    func = lambda z, *args: fap_baluev(z, *args) - p
+    res = optimize.root(func, z0, args=args, method='lm')
+    if not res.success:
+        raise ValueError('inv_fap_baluev did not converge for p={0}'.format(p))
+    return res.x
+
+
+def _bootstrap(t, y, dy, fmax, normalization, random_seed):
     rng = np.random.RandomState(random_seed)
-
-    def bootstrapped_power():
+    while True:
         resample = rng.randint(0, len(y), len(y))  # sample with replacement
         ls_boot = LombScargle(t, y[resample], dy[resample])
         freq, power = ls_boot.autopower(normalization=normalization,
                                         maximum_frequency=fmax)
-        return power.max()
+        yield power.max()
 
-    pmax = np.array([bootstrapped_power() for i in range(n_bootstraps)])
+
+def fap_bootstrap(Z, fmax, t, y, dy, normalization='standard',
+                  n_bootstraps=1000, random_seed=None):
+    pmax = np.fromiter(_bootstrap(t, y, dy, fmax, normalization, random_seed),
+                       np.float, n_bootstraps)
     pmax.sort()
     return 1 - np.searchsorted(pmax, Z) / len(pmax)
+
+
+def inv_fap_bootstrap(fap, fmax, t, y, dy, normalization='standard',
+                      n_bootstraps=1000, random_seed=None):
+    pmax = np.fromiter(_bootstrap(t, y, dy, fmax, normalization, random_seed),
+                       np.float, n_bootstraps)
+    pmax.sort()
+    return pmax[np.clip(np.floor((1 - fap) * len(pmax)).astype(int),
+                        0, len(pmax) - 1)]
 
 
 METHODS = {'simple': fap_simple,
@@ -264,3 +328,21 @@ def false_alarm_probability(Z, fmax, t, y, dy, normalization,
     method_kwds = method_kwds or {}
 
     return method(Z, fmax, t, y, dy, normalization, **method_kwds)
+
+
+def false_alarm_level(p, fmax, t, y, dy, normalization,
+                      method='baluev', method_kwds=None):
+    """Approximate the False Alarm Level
+
+    Parameters
+    ----------
+    TODO
+
+    Returns
+    -------
+    TODO
+    """
+    if method == 'bootstrap':
+        return sig_bootstrap(p, fmax, t, y, dy, normalization=normalization,
+                             method=method, method_kwds=method_kwds)
+    raise NotImplementedError()
