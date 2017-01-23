@@ -36,7 +36,7 @@ def vectorize_first_argument(func):
     def new_func(x, *args, **kwargs):
         x = np.asarray(x)
         return np.array([func(xi, *args, **kwargs)
-                         for xi in x]).reshape(x.shape)
+                         for xi in x.flat]).reshape(x.shape)
     return new_func
 
 
@@ -112,7 +112,7 @@ def fap_single(z, N, normalization, dH=1, dK=3):
     Returns
     -------
     fap : np.ndarray
-        The expected cumulative distribution function
+        The single-frequency false alarm probability
 
     Notes
     -----
@@ -142,12 +142,44 @@ def fap_single(z, N, normalization, dH=1, dK=3):
 
 
 def inv_fap_single(fap, N, normalization, dH=1, dK=3):
+    """Single-frequency inverse false alarm probability
+
+    This function computes the periodogram value associated with the specified
+    single-frequency false alarm probability. This should not be confused with
+    the false alarm level of the largest peak.
+
+    Parameters
+    ----------
+    fap : array-like
+        the false alarm probability
+    N : int
+        the number of data points from which the periodogram was computed
+    normalization : string
+        The periodogram normalization. Must be one of
+        ['standard', 'model', 'log', 'psd']
+    dH, dK : integers (optional)
+        The number of parameters in the null hypothesis and the model
+
+    Returns
+    -------
+    z : np.ndarray
+
+    Notes
+    -----
+    For normalization='psd', the distribution can only be computed for
+    periodograms constructed with errors specified.
+    All expressions used here are adapted from Table 1 of Baluev 2008 [1]_.
+
+    References
+    ----------
+    .. [1] Baluev, R.V. MNRAS 385, 1279 (2008)
+    """
     if dK - dH != 2:
         raise NotImplementedError("Degrees of freedom != 2")
     Nk = N - dK
 
     if normalization == 'psd':
-        return - np.log(fap)
+        return -np.log(fap)
     elif normalization == 'standard':
         return 1 - fap ** (2 / Nk)
     elif normalization == 'model':
@@ -201,7 +233,7 @@ def tau_davies(Z, fmax, t, y, dy, normalization='standard', dH=1, dK=3):
     NH = N - dH  # DOF for null hypothesis
     NK = N - dK  # DOF for periodic hypothesis
     Dt = _weighted_var(t, dy)
-    Teff = np.sqrt(4 * np.pi * Dt)
+    Teff = np.sqrt(4 * np.pi * Dt)  # Effective baseline
     W = fmax * Teff
     if normalization == 'psd':
         # 'psd' normalization is same as Baluev's z
@@ -228,8 +260,8 @@ def fap_simple(Z, fmax, t, y, dy, normalization='standard'):
     T = max(t) - min(t)
     N_eff = fmax * T
     fap_s = fap_single(Z, N, normalization=normalization)
-    # result is 1 - (1 - fap) ** N_eff
-    # this is much more precise for small numbers
+    # result is 1 - (1 - fap_s) ** N_eff
+    # this is much more precise for small Z / large N
     return -np.expm1(N_eff * np.log1p(-fap_s))
 
 
@@ -255,7 +287,7 @@ def fap_davies(Z, fmax, t, y, dy, normalization='standard'):
 
 @vectorize_first_argument
 def inv_fap_davies(p, fmax, t, y, dy, normalization='standard'):
-    """TODO"""
+    """Inverse of the davies upper-bound"""
     args = (fmax, t, y, dy, normalization)
     z0 = inv_fap_simple(p, *args)
     func = lambda z, *args: fap_davies(z, *args) - p
@@ -279,7 +311,7 @@ def fap_baluev(Z, fmax, t, y, dy, normalization='standard'):
 
 @vectorize_first_argument
 def inv_fap_baluev(p, fmax, t, y, dy, normalization='standard'):
-    """TODO"""
+    """Inverse of the Baluev alias-free approximation"""
     args = (fmax, t, y, dy, normalization)
     z0 = inv_fap_simple(p, *args)
     func = lambda z, *args: fap_baluev(z, *args) - p
@@ -301,6 +333,7 @@ def _bootstrap(t, y, dy, fmax, normalization, random_seed):
 
 def fap_bootstrap(Z, fmax, t, y, dy, normalization='standard',
                   n_bootstraps=1000, random_seed=None):
+    """Bootstrap estimate of the false alarm probability"""
     pmax = np.fromiter(_bootstrap(t, y, dy, fmax, normalization, random_seed),
                        np.float, n_bootstraps)
     pmax.sort()
@@ -309,6 +342,7 @@ def fap_bootstrap(Z, fmax, t, y, dy, normalization='standard',
 
 def inv_fap_bootstrap(fap, fmax, t, y, dy, normalization='standard',
                       n_bootstraps=1000, random_seed=None):
+    """Bootstrap estimate of the inverse false alarm probability"""
     pmax = np.fromiter(_bootstrap(t, y, dy, fmax, normalization, random_seed),
                        np.float, n_bootstraps)
     pmax.sort()
@@ -326,17 +360,49 @@ INV_METHODS = {'simple': inv_fap_simple,
                'bootstrap': inv_fap_bootstrap}
 
 
-def false_alarm_probability(Z, fmax, t, y, dy, normalization,
+def false_alarm_probability(Z, fmax, t, y, dy, normalization='standard',
                             method='baluev', method_kwds=None):
-    """Approximate the False Alarm Probability
+    """Compute the approximate false alarm probability for periodogram peaks Z
+
+    This gives an estimate of the false alarm probability for the largest value
+    in a periodogram, based on the null hypothesis of non-varying data with
+    Gaussian noise. The true probability cannot be computed analytically, so
+    each method available here is an approximation to the true value.
 
     Parameters
     ----------
-    TODO
+    Z : array-like
+        the periodogram value
+    fmax : float
+        the maximum frequency of the periodogram
+    t, y, dy : arrays
+        the data times, values, and errors
+    normalization : string
+        The periodogram normalization. Must be one of
+        ['standard', 'model', 'log', 'psd']
+    method : string
+        The approximation method to use. Must be one of
+        ['baluev', 'davies', 'simple', 'bootstrap']
+    method_kwds : dict (optional)
+        Additional method-specific keywords
 
     Returns
     -------
-    TODO
+    fap : np.ndarray
+        The false alarm probability
+
+    Notes
+    -----
+    For normalization='psd', the distribution can only be computed for
+    periodograms constructed with errors specified.
+
+    See Also
+    --------
+    false_alarm_level : compute the periodogram level for a particular fap
+
+    References
+    ----------
+    .. [1] Baluev, R.V. MNRAS 385, 1279 (2008)
     """
     if method not in METHODS:
         raise ValueError("Unrecognized method: {0}".format(method))
@@ -348,15 +414,48 @@ def false_alarm_probability(Z, fmax, t, y, dy, normalization,
 
 def false_alarm_level(p, fmax, t, y, dy, normalization,
                       method='baluev', method_kwds=None):
-    """Approximate the False Alarm Level
+    """Compute the approximate periodogram level given a false alarm probability
+
+    This gives an estimate of the periodogram level corresponding to a specified
+    false alarm probability for the largest peak, assuming a null hypothesis
+    of non-varying data with Gaussian noise. The true level cannot be computed
+    analytically, so each method available here is an approximation to the true
+    value.
 
     Parameters
     ----------
-    TODO
+    fap : array-like
+        the false alarm probability (0 < fap < 1)
+    fmax : float
+        the maximum frequency of the periodogram
+    t, y, dy : arrays
+        the data times, values, and errors
+    normalization : string
+        The periodogram normalization. Must be one of
+        ['standard', 'model', 'log', 'psd']
+    method : string
+        The approximation method to use. Must be one of
+        ['baluev', 'davies', 'simple', 'bootstrap']
+    method_kwds : dict (optional)
+        Additional method-specific keywords
 
     Returns
     -------
-    TODO
+    z : np.ndarray
+        The periodogram level
+
+    Notes
+    -----
+    For normalization='psd', the distribution can only be computed for
+    periodograms constructed with errors specified.
+
+    See Also
+    --------
+    false_alarm_probability : compute the fap for a given periodogram level
+
+    References
+    ----------
+    .. [1] Baluev, R.V. MNRAS 385, 1279 (2008)
     """
     if method not in INV_METHODS:
         raise ValueError("Unrecognized method: {0}".format(method))
