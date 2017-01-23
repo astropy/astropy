@@ -9,10 +9,9 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 import math
 
-class RipleysKEstimate(object):
+class RipleysKEstimator(object):
     """
-    This class implements an estimator for Ripley's K function in a two
-    dimensional space.
+    Estimators for Ripley's K function for two-dimensional spatial data.
 
     Parameters
     ----------
@@ -35,7 +34,7 @@ class RipleysKEstimate(object):
     >>> from matplotlib import pyplot as plt # doctest: +SKIP
     >>> from astropy.stats import RipleysKEstimate
     >>> z = np.random.uniform(low=5, high=10, size=(100, 2))
-    >>> Kest = RipleysKEstimate(area=25, x_max=10, y_max=10,
+    >>> Kest = RipleysKEstimator(area=25, x_max=10, y_max=10,
     ... x_min=5, y_min=5, lratio=1)
     >>> r = np.linspace(0, 2.5, 100)
     >>> plt.plot(r, Kest.poisson(r)) # doctest: +SKIP
@@ -64,8 +63,6 @@ class RipleysKEstimate(object):
         self.x_min = x_min
         self.y_min = y_min
         self.lratio = lratio
-
-
 
     @property
     def area(self):
@@ -195,24 +192,34 @@ class RipleysKEstimate(object):
             Usually, it's common to consider max(radii) < (area/2)**0.5.
         mode : str
             Keyword which indicates the method for edge effects correction.
-            Available methods are {'none', 'translation', 'ohser'}.
+            Available methods are 'none', 'translation', 'ohser', 'var-width'.
 
-            * 'none' : this method does not take into account any edge effects
+            * 'none'
+                this method does not take into account any edge effects
                 whatsoever.
-            * 'translation' : computes the intersection of rectangular areas
-                centered at the given points provided the upper bounds of the
+            * 'translation'
+                computes the intersection of rectangular areas centered at
+                the given points provided the upper bounds of the
                 dimensions of the rectangular area of study. It assumes that
                 all the points lie in a bounded rectangular region satisfying
                 x_min < x_i < x_max; y_min < y_i < y_max. A detailed
                 description of this method can be found on ref [4].
-            * 'ohser' :  this method uses the isotropized set covariance
-                function of the window of study as a weigth to correct for
+            * 'ohser'
+                this method uses the isotropized set covariance function of
+                the window of study as a weigth to correct for
                 edge-effects. A detailed description of this method can be
                 found on ref [4].
-            * 'var-width' : this method considers the distance of each
-                observed point to the nearest boundary of the study window as
-                a factor to account for edge-effects. See [3] for a brief
-                description of this method.
+            * 'var-width'
+                this method considers the distance of each observed point to
+                the nearest boundary of the study window as a factor to
+                account for edge-effects. See [3] for a brief description of
+                this method.
+            * 'ripley'
+                this method is known as Ripley's edge-corrected estimator.
+                The weight for edge-correction is a function of the
+                proportions of circumferences centered at each data point
+                which crosses another data point of interest. See [3] for
+                a detailed description of this method.
 
         Returns
         -------
@@ -290,6 +297,31 @@ class RipleysKEstimate(object):
                     ripley[r] = ripley[r] / (lt_dist > radii[r]).sum()
 
             ripley = self.area * ripley / npts
+        # Cressie book eq 8.4.22 page 640
+        elif mode == 'ripley':
+            hor_dist = np.array([])
+            ver_dist = np.array([])
+
+            for k in range(npts - 1):
+                min_hor_dist = min(self.x_max - data[k][0], data[k][0] - self.x_min)
+                min_ver_dist = min(self.y_max - data[k][1], data[k][1] - self.y_min)
+                hor_dist = np.append(hor_dist, min_hor_dist * np.ones(npts - 1 - k))
+                ver_dist = np.append(ver_dist, min_ver_dist * np.ones(npts - 1 - k))
+
+            dist = self._pairwise_distances(data)
+            dist_ind = dist <= np.hypot(hor_dist, ver_dist)
+
+            w1 = (1 - (np.arccos(np.minimum(ver_dist, dist) / dist) +
+                       np.arccos(np.minimum(hor_dist, dist) / dist)) / np.pi)
+            w2 = (3 / 4 - 0.5 * (np.arccos(ver_dist / dist * ~dist_ind) +
+                                 np.arccos(hor_dist / dist * ~dist_ind)) / np.pi)
+
+            weight = dist_ind * w1 + ~dist_ind * w2
+
+            for r in range(len(radii)):
+                ripley[r] = ((dist < radii[r]) / weight).sum()
+
+            ripley = self.area * 2. * ripley / (npts * (npts - 1))
         else:
             raise ValueError('mode {} is not implemented.'.format(mode))
 
