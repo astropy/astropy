@@ -124,7 +124,7 @@ class CDS(Base):
             raise ValueError(
                 "Invalid character at col {0}".format(t.lexpos))
 
-        lexer = lex.lex(optimize=True, lextab='cds_lextab',
+        lexer = lex.lex(optimize=True, lextab=str('cds_lextab'),
                         outputdir=os.path.dirname(__file__),
                         reflags=re.UNICODE)
 
@@ -257,7 +257,7 @@ class CDS(Base):
         def p_error(p):
             raise ValueError()
 
-        parser = yacc.yacc(debug=False, tabmodule='cds_parsetab',
+        parser = yacc.yacc(debug=False, tabmodule=str('cds_parsetab'),
                            outputdir=os.path.dirname(__file__),
                            write_tables=True)
 
