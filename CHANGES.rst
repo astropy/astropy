@@ -225,6 +225,8 @@ Bug Fixes
 
 - ``astropy.extern``
 
+  - Fixed a bug where PLY was overwriting its generated files. [#5728]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
