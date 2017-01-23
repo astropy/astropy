@@ -253,6 +253,18 @@ def fap_davies(Z, fmax, t, y, dy, normalization='standard'):
     return fap_s + tau
 
 
+@vectorize_first_argument
+def inv_fap_davies(p, fmax, t, y, dy, normalization='standard'):
+    """TODO"""
+    args = (fmax, t, y, dy, normalization)
+    z0 = inv_fap_simple(p, *args)
+    func = lambda z, *args: fap_davies(z, *args) - p
+    res = optimize.root(func, z0, args=args, method='lm')
+    if not res.success:
+        raise ValueError('inv_fap_baluev did not converge for p={0}'.format(p))
+    return res.x
+
+
 def fap_baluev(Z, fmax, t, y, dy, normalization='standard'):
     """Alias-free approximation to false alarm probability
 
@@ -308,6 +320,10 @@ METHODS = {'simple': fap_simple,
            'davies': fap_davies,
            'baluev': fap_baluev,
            'bootstrap': fap_bootstrap}
+INV_METHODS = {'simple': inv_fap_simple,
+               'davies': inv_fap_davies,
+               'baluev': inv_fap_baluev,
+               'bootstrap': inv_fap_bootstrap}
 
 
 def false_alarm_probability(Z, fmax, t, y, dy, normalization,
@@ -342,7 +358,9 @@ def false_alarm_level(p, fmax, t, y, dy, normalization,
     -------
     TODO
     """
-    if method == 'bootstrap':
-        return sig_bootstrap(p, fmax, t, y, dy, normalization=normalization,
-                             method=method, method_kwds=method_kwds)
-    raise NotImplementedError()
+    if method not in INV_METHODS:
+        raise ValueError("Unrecognized method: {0}".format(method))
+    method = INV_METHODS[method]
+    method_kwds = method_kwds or {}
+
+    return method(p, fmax, t, y, dy, normalization, **method_kwds)
