@@ -30,6 +30,7 @@ New Features
 - ``astropy.io.votable``
 
 - ``astropy.modeling``
+  - Added ``SmoothlyBrokenPowerLaw1D`` model. [#5656]
 
 - ``astropy.nddata``
 
@@ -1993,7 +1994,6 @@ Other Changes and Additions
   Python 2.6.  A deprecation warning will now be issued when using Astropy
   in Python 2.6 (this warning can be disabled through the usual Python warning
   filtering mechanisms). [#3779]
-
 
 1.0.12 (unreleased)
 -------------------
