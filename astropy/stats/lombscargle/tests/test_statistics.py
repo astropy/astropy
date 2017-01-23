@@ -95,10 +95,18 @@ def test_inverses(method, normalization, N, T=5, fmax=5):
 
     fap = np.logspace(-10, 0, 10)
 
-    z = false_alarm_level(fap, fmax, t, y, dy, normalization,
-                          method=method, method_kwds=method_kwds)
-    fap_out = false_alarm_probability(z, fmax, t, y, dy, normalization,
-                                      method=method, method_kwds=method_kwds)
+    ls = LombScargle(t, y, dy)
+    z = ls.false_alarm_level(fap, fmax, normalization,
+                             method=method,
+                             method_kwds=method_kwds)
+    fap_out = ls.false_alarm_probability(z, fmax, normalization,
+                                         method=method,
+                                         method_kwds=method_kwds)
+
+    #z = false_alarm_level(fap, fmax, t, y, dy, normalization,
+    #                      method=method, method_kwds=method_kwds)
+    #fap_out = false_alarm_probability(z, fmax, t, y, dy, normalization,
+    #                                  method=method, method_kwds=method_kwds)
 
     assert_allclose(fap, fap_out)
 

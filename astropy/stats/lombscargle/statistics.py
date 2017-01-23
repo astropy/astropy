@@ -7,8 +7,6 @@ import numpy as np
 from scipy.special import gammaln
 from scipy import optimize
 
-from .core import LombScargle
-
 
 def _weighted_sum(val, dy):
     return (val / dy ** 2).sum()
@@ -266,6 +264,7 @@ def fap_simple(Z, fmax, t, y, dy, normalization='standard'):
 
 
 def inv_fap_simple(fap, fmax, t, y, dy, normalization='standard'):
+    """Inverse FAP based on estimated number of indep frequencies"""
     N = len(t)
     T = max(t) - min(t)
     N_eff = fmax * T
@@ -321,7 +320,9 @@ def inv_fap_baluev(p, fmax, t, y, dy, normalization='standard'):
     return res.x
 
 
-def _bootstrap(t, y, dy, fmax, normalization, random_seed):
+def _bootstrap_max(t, y, dy, fmax, normalization, random_seed):
+    """Generate a sequence of bootstrap estimates of the max"""
+    from .core import LombScargle
     rng = np.random.RandomState(random_seed)
     while True:
         resample = rng.randint(0, len(y), len(y))  # sample with replacement
@@ -334,7 +335,8 @@ def _bootstrap(t, y, dy, fmax, normalization, random_seed):
 def fap_bootstrap(Z, fmax, t, y, dy, normalization='standard',
                   n_bootstraps=1000, random_seed=None):
     """Bootstrap estimate of the false alarm probability"""
-    pmax = np.fromiter(_bootstrap(t, y, dy, fmax, normalization, random_seed),
+    pmax = np.fromiter(_bootstrap_max(t, y, dy, fmax,
+                                      normalization, random_seed),
                        np.float, n_bootstraps)
     pmax.sort()
     return 1 - np.searchsorted(pmax, Z) / len(pmax)
@@ -343,7 +345,8 @@ def fap_bootstrap(Z, fmax, t, y, dy, normalization='standard',
 def inv_fap_bootstrap(fap, fmax, t, y, dy, normalization='standard',
                       n_bootstraps=1000, random_seed=None):
     """Bootstrap estimate of the inverse false alarm probability"""
-    pmax = np.fromiter(_bootstrap(t, y, dy, fmax, normalization, random_seed),
+    pmax = np.fromiter(_bootstrap_max(t, y, dy, fmax,
+                                      normalization, random_seed),
                        np.float, n_bootstraps)
     pmax.sort()
     return pmax[np.clip(np.floor((1 - fap) * len(pmax)).astype(int),
@@ -354,10 +357,6 @@ METHODS = {'simple': fap_simple,
            'davies': fap_davies,
            'baluev': fap_baluev,
            'bootstrap': fap_bootstrap}
-INV_METHODS = {'simple': inv_fap_simple,
-               'davies': inv_fap_davies,
-               'baluev': inv_fap_baluev,
-               'bootstrap': inv_fap_bootstrap}
 
 
 def false_alarm_probability(Z, fmax, t, y, dy, normalization='standard',
@@ -404,12 +403,19 @@ def false_alarm_probability(Z, fmax, t, y, dy, normalization='standard',
     ----------
     .. [1] Baluev, R.V. MNRAS 385, 1279 (2008)
     """
+    # TODO: handle units
     if method not in METHODS:
         raise ValueError("Unrecognized method: {0}".format(method))
     method = METHODS[method]
     method_kwds = method_kwds or {}
 
     return method(Z, fmax, t, y, dy, normalization, **method_kwds)
+
+
+INV_METHODS = {'simple': inv_fap_simple,
+               'davies': inv_fap_davies,
+               'baluev': inv_fap_baluev,
+               'bootstrap': inv_fap_bootstrap}
 
 
 def false_alarm_level(p, fmax, t, y, dy, normalization,
@@ -457,6 +463,7 @@ def false_alarm_level(p, fmax, t, y, dy, normalization,
     ----------
     .. [1] Baluev, R.V. MNRAS 385, 1279 (2008)
     """
+    # TODO: handle units
     if method not in INV_METHODS:
         raise ValueError("Unrecognized method: {0}".format(method))
     method = INV_METHODS[method]

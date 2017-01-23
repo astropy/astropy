@@ -5,6 +5,7 @@ import numpy as np
 
 from .implementations import lombscargle, available_methods
 from .implementations.mle import periodic_fit
+from . import statistics
 from ... import units
 from ...utils.compat.numpy import broadcast_arrays
 from ...extern.six.moves import map
@@ -356,3 +357,107 @@ class LombScargle(object):
                              fit_mean=self.fit_mean,
                              nterms=self.nterms)
         return y_fit * get_unit(self.y)
+
+    def false_alarm_probability(self, power, fmax, normalization,
+                                method='baluev', method_kwds=None):
+        """Compute the approximate false alarm probability
+
+        This gives an estimate of the false alarm probability given the height
+        of the largest peak in the periodogram, based on the null hypothesis
+        of non-varying data with Gaussian noise. The true probability cannot
+        be computed analytically, so each method available here is an
+        approximation to the true value.
+
+        Parameters
+        ----------
+        power : array-like
+            the periodogram value
+        fmax : float
+            the maximum frequency of the periodogram
+        normalization : string
+            The periodogram normalization. Must be one of
+            ['standard', 'model', 'log', 'psd']
+        method : string
+            The approximation method to use. Must be one of
+            ['baluev', 'davies', 'simple', 'bootstrap']
+        method_kwds : dict (optional)
+            Additional method-specific keywords
+
+        Returns
+        -------
+        fap : np.ndarray
+            The false alarm probability
+
+        Notes
+        -----
+        For normalization='psd', the distribution can only be computed for
+        periodograms constructed with errors specified.
+
+        References
+        ----------
+        .. [1] Baluev, R.V. MNRAS 385, 1279 (2008)
+        """
+        if self.nterms != 1:
+            raise NotImplementedError("false alarm probability is not "
+                                      "implemented for multiterm periodograms.")
+        if not (self.fit_mean or self.center_data):
+            raise NotImplementedError("false alarm probability is implemented "
+                                      "only for periodograms of centered data.")
+        return statistics.false_alarm_probability(power, fmax=fmax, t=self.t,
+                                                  y=self.y, dy=self.dy,
+                                                  normalization=normalization,
+                                                  method=method,
+                                                  method_kwds=method_kwds)
+
+    def false_alarm_level(self, false_alarm_probability, fmax,
+                          normalization, method='baluev', method_kwds=None):
+        """Compute the periodogram peak level at a given false alarm probability
+
+        This gives an estimate of the periodogram level corresponding to a
+        specified false alarm probability for the largest peak, assuming a
+        null hypothesis of non-varying data with Gaussian noise. The true
+        level cannot be computed analytically, so each method available here
+        is an approximation to the true value.
+
+        Parameters
+        ----------
+        false_alarm_probability : array-like
+            the false alarm probability (0 < fap < 1)
+        fmax : float
+            the maximum frequency of the periodogram
+        normalization : string
+            The periodogram normalization. Must be one of
+            ['standard', 'model', 'log', 'psd']
+        method : string
+            The approximation method to use. Must be one of
+            ['baluev', 'davies', 'simple', 'bootstrap']
+        method_kwds : dict (optional)
+            Additional method-specific keywords
+
+        Returns
+        -------
+        power : np.ndarray
+            The periodogram peak height corresponding to the specified
+            false alarm probability
+
+        Notes
+        -----
+        For normalization='psd', the distribution can only be computed for
+        periodograms constructed with errors specified.
+
+        References
+        ----------
+        .. [1] Baluev, R.V. MNRAS 385, 1279 (2008)
+        """
+        if self.nterms != 1:
+           raise NotImplementedError("false alarm probability is not "
+                                     "implemented for multiterm periodograms.")
+        if not (self.fit_mean or self.center_data):
+           raise NotImplementedError("false alarm probability is implemented "
+                                     "only for periodograms of centered data.")
+        return statistics.false_alarm_level(false_alarm_probability,
+                                            fmax=fmax, t=self.t,
+                                            y=self.y, dy=self.dy,
+                                            normalization=normalization,
+                                            method=method,
+                                            method_kwds=method_kwds)
