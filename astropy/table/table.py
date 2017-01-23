@@ -17,7 +17,7 @@ from numpy import ma
 from .. import log
 from ..io import registry as io_registry
 from ..units import Quantity
-from ..utils import isiterable, deprecated
+from ..utils import isiterable
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
 from ..utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo, DataInfo
@@ -197,18 +197,6 @@ class Table(object):
     MaskedColumn = MaskedColumn
     TableColumns = TableColumns
     TableFormatter = TableFormatter
-
-    @property
-    @deprecated('0.4', alternative=':attr:`Table.as_array`')
-    def _data(self):
-        """
-        Return a new copy of the table in the form of a structured np.ndarray or
-        np.ma.MaskedArray object (as appropriate).
-
-        Prior to version 1.0 of astropy this private property was a modifiable
-        view of the table data, but since 1.0 it is a copy.
-        """
-        return self.as_array()
 
     def as_array(self, keep_byteorder=False):
         """

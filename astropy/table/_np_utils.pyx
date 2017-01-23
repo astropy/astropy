@@ -1,7 +1,7 @@
 """
 Cython utilities for numpy structured arrays.
 
-join_inner():  Do the inner-loop cartesian product for np_utils.join() processing.
+join_inner():  Do the inner-loop cartesian product for operations.join() processing.
                (The "inner" is about the inner loop, not inner join).
 """
 
