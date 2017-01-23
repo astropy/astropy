@@ -197,7 +197,7 @@ Bug Fixes
 
 - ``astropy.modeling``
  
-  - Fixed a problem with setting ``bounding_box`` on 1D models. [5718]
+  - Fixed a problem with setting ``bounding_box`` on 1D models. [#5718]
 
 - ``astropy.nddata``
 
