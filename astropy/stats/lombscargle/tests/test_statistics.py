@@ -4,7 +4,9 @@ from numpy.testing import assert_allclose
 from ....tests.helper import pytest
 from .. import LombScargle
 from .. import statistics
-from ..statistics import cdf_single, pdf_single, false_alarm_probability, METHODS
+from ..statistics import (cdf_single, pdf_single, METHODS,
+                          false_alarm_probability,
+                          false_alarm_level)
 from ..utils import convert_normalization, compute_chi2_ref
 
 METHOD_KWDS = dict(bootstrap={'n_bootstraps': 20, 'random_seed': 42})
@@ -57,24 +59,34 @@ def test_distribution(null_data, normalization):
     assert_allclose(hist, pdf, rtol=0.05, atol=0.05 * pdf[0])
 
 
-@pytest.mark.parametrize('normalization', NORMALIZATIONS)
 @pytest.mark.parametrize('N', [10, 100, 1000])
-def test_inverses(normalization, N, T=5, fmax=5):
-    t, y, dy = null_data(N, rseed=543)
-
-    fap = np.linspace(0.01, 0.99, 10)
+@pytest.mark.parametrize('normalization', NORMALIZATIONS)
+def test_inverse_single(N, normalization):
+    fap = np.linspace(0, 1, 100)
 
     z = statistics.inv_fap_single(fap, N, normalization)
     fap_out = statistics.fap_single(z, N, normalization)
     assert_allclose(fap, fap_out)
 
-    z = statistics.inv_fap_simple(fap, fmax, t, y, dy, normalization)
-    fap_out = statistics.fap_simple(z, fmax, t, y, dy, normalization)
+
+@pytest.mark.parametrize('method', set(METHODS) - {'bootstrap'})
+@pytest.mark.parametrize('normalization', NORMALIZATIONS)
+@pytest.mark.parametrize('N', [10, 100, 1000])
+def test_inverses(method, normalization, N, T=5, fmax=5):
+    t, y, dy = data(N, rseed=543)
+    method_kwds = METHOD_KWDS.get(method, None)
+
+    fap = np.linspace(0.01, 0.99, 10)
+
+    z = false_alarm_level(fap, fmax, t, y, dy, normalization,
+                          method=method, method_kwds=method_kwds)
+    fap_out = false_alarm_probability(z, fmax, t, y, dy, normalization,
+                                      method=method, method_kwds=method_kwds)
+
     assert_allclose(fap, fap_out)
 
-    z = statistics.inv_fap_baluev(fap, fmax, t, y, dy, normalization)
-    fap_out = statistics.fap_baluev(z, fmax, t, y, dy, normalization)
-    assert_allclose(fap, fap_out)
+
+# TODO: test boostrap inverse
 
 
 @pytest.mark.parametrize('method', METHODS)
