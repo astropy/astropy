@@ -106,9 +106,9 @@ matrix:
           env: NUMPY_VERSION=prerelease SETUP_CMD='test'
                EVENT_TYPE='push pull_request cron'
 
-        # Do a PEP8 test with pycodestyle
+        # Do a PEP8/pyflakes test with flake8
         - os: linux
-          env: MAIN_CMD='pycodestyle astropy --count' SETUP_CMD=''
+          env: MAIN_CMD='flake8 astropy --count' SETUP_CMD=''
 
         # Try developer version of Numpy with optional dependencies and also
         # run all remote tests. Since both cases will be potentially unstable, we
