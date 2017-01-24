@@ -26,6 +26,8 @@ import math
 
 import numpy as np
 
+from ..coordinates.geometry import (spherical_to_cartesian_degree,
+                                    cartesian_to_spherical_degree)
 from .core import Model
 from .parameters import Parameter
 from ..extern.six.moves import zip
@@ -66,22 +68,6 @@ class _EulerRotation(object):
         return np.dot(matrices[2], np.dot(matrices[1], matrices[0]))
 
     @staticmethod
-    def spherical2cartesian(alpha, delta):
-        alpha = np.deg2rad(alpha)
-        delta = np.deg2rad(delta)
-        x = np.cos(alpha) * np.cos(delta)
-        y = np.cos(delta) * np.sin(alpha)
-        z = np.sin(delta)
-        return np.array([x, y, z])
-
-    @staticmethod
-    def cartesian2spherical(x, y, z):
-        h = np.hypot(x, y)
-        alpha  = np.rad2deg(np.arctan2(y, x))
-        delta = np.rad2deg(np.arctan2(z, h))
-        return alpha, delta
-
-    @staticmethod
     def rotation_matrix_from_angle(angle):
         """
         Clockwise rotation matrix.
@@ -100,10 +86,10 @@ class _EulerRotation(object):
             alpha = alpha.flatten()
             delta = delta.flatten()
             shape = alpha.shape
-        inp = self.spherical2cartesian(alpha, delta)
+        inp = spherical_to_cartesian_degree(alpha, delta)
         matrix = self._create_matrix(phi, theta, psi, axes_order)
         result = np.dot(matrix, inp)
-        a, b = self.cartesian2spherical(*result)
+        a, b, _ = cartesian_to_spherical_degree(*result)
         if shape is not None:
             a.shape = shape
             b.shape = shape
@@ -159,10 +145,10 @@ class EulerAngleRotation(_EulerRotation, Model):
             alpha = alpha.flatten()
             delta = delta.flatten()
             shape = alpha.shape
-        inp = self.spherical2cartesian(alpha, delta)
+        inp = spherical_to_cartesian_degree(alpha, delta)
         matrix = self._create_matrix(phi, theta, psi, self.axes_order)
         result = np.dot(matrix, inp)
-        a, b = self.cartesian2spherical(*result)
+        a, b, _ = cartesian_to_spherical_degree(*result)
         if shape is not None:
             a.shape = shape
             b.shape = shape
