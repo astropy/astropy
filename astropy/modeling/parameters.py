@@ -309,11 +309,6 @@ class Parameter(OrderedDescriptor):
 
         return self._name
 
-    @name.setter
-    def name(self, val):
-        """Parameter name"""
-
-        self._name = val
 
     @property
     def default(self):
@@ -697,7 +692,6 @@ class Parameter(OrderedDescriptor):
                     "as the current value does".format(self._name, param_size))
 
             model._parameters[param_slice] = np.array(value).ravel()
-        #print('model1', self._name, value, model)
         _update_parameter_value(model, self._name, value)
         if hasattr(model, "_param_map"):
             submodel_ind, param_name = model._param_map[self._name]

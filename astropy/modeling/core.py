@@ -1919,7 +1919,6 @@ class _CompoundModelMeta(_ModelMeta):
             # but it is necessary on Python 2 since looking up cls._evaluate
             # will return an unbound method otherwise
             cls._evaluate = staticmethod(func)
-        print('args', args)
         inputs = args[:cls.n_inputs]
         params = iter(args[cls.n_inputs:])
         result = cls._evaluate(inputs, params)
@@ -1961,14 +1960,16 @@ class _CompoundModelMeta(_ModelMeta):
         ``standard_broadcasting``, and ``__module__`.  This is currently for
         internal use only.
         """
-
+        import copy
         # Note, currently this only supports binary operators, but could be
         # easily extended to support unary operators (namely '-') if/when
         # needed
         children = []
         for child in (left, right):
             if isinstance(child, (_CompoundModelMeta, _CompoundModel)):
-                children.append(child._tree)
+                children.append(copy.deepcopy(child._tree))
+            elif isinstance(child, Model):
+                children.append(ExpressionTree(child.copy()))
             else:
                 children.append(ExpressionTree(child))
 
@@ -2159,8 +2160,6 @@ class _CompoundModelMeta(_ModelMeta):
                 # Take the parameter's default from the model's value for that
                 # parameter
                 default = orig_param.value
-            #elif isinstance(submodel, _CompoundModel):
-                #default =
             else:
                 default = orig_param.default
 
