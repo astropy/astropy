@@ -353,7 +353,8 @@ def inv_fap_bootstrap(fap, fmax, t, y, dy, normalization='standard',
                         0, len(pmax) - 1)]
 
 
-METHODS = {'simple': fap_simple,
+METHODS = {'single': fap_single,
+           'simple': fap_simple,
            'davies': fap_davies,
            'baluev': fap_baluev,
            'bootstrap': fap_bootstrap}
@@ -403,8 +404,9 @@ def false_alarm_probability(Z, fmax, t, y, dy, normalization='standard',
     ----------
     .. [1] Baluev, R.V. MNRAS 385, 1279 (2008)
     """
-    # TODO: handle units
-    if method not in METHODS:
+    if method == 'single':
+        return fap_single(Z, len(t), normalization)
+    elif method not in METHODS:
         raise ValueError("Unrecognized method: {0}".format(method))
     method = METHODS[method]
     method_kwds = method_kwds or {}
@@ -412,7 +414,8 @@ def false_alarm_probability(Z, fmax, t, y, dy, normalization='standard',
     return method(Z, fmax, t, y, dy, normalization, **method_kwds)
 
 
-INV_METHODS = {'simple': inv_fap_simple,
+INV_METHODS = {'single': inv_fap_single,
+               'simple': inv_fap_simple,
                'davies': inv_fap_davies,
                'baluev': inv_fap_baluev,
                'bootstrap': inv_fap_bootstrap}
@@ -463,8 +466,9 @@ def false_alarm_level(p, fmax, t, y, dy, normalization,
     ----------
     .. [1] Baluev, R.V. MNRAS 385, 1279 (2008)
     """
-    # TODO: handle units
-    if method not in INV_METHODS:
+    if method == 'single':
+        return inv_fap_single(p, len(t), normalization)
+    elif method not in INV_METHODS:
         raise ValueError("Unrecognized method: {0}".format(method))
     method = INV_METHODS[method]
     method_kwds = method_kwds or {}

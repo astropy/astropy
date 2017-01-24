@@ -48,14 +48,18 @@ def test_distribution(null_data, normalization):
     # Test that pdf and cdf are consistent
     dz = z[1] - z[0]
     z_mid = z[:-1] + 0.5 * dz
-    pdf = pdf_single(z_mid, N, normalization=normalization)
-    cdf = cdf_single(z, N, normalization=normalization)
+    ls = LombScargle(t, y, dy)
+    pdf = ls.distribution(z_mid, normalization=normalization)
+    cdf = ls.distribution(z, normalization=normalization, cumulative=True)
+    #pdf = pdf_single(z_mid, N, normalization=normalization)
+    #cdf = cdf_single(z, N, normalization=normalization)
     assert_allclose(pdf, np.diff(cdf) / dz, rtol=1E-5, atol=1E-8)
 
     # Test that observed power is distributed according to the theoretical pdf
     hist, bins = np.histogram(power, 30, normed=True)
     midpoints = 0.5 * (bins[1:] + bins[:-1])
-    pdf = pdf_single(midpoints, N, normalization=normalization)
+    pdf = ls.distribution(midpoints, normalization=normalization)
+    #pdf = pdf_single(midpoints, N, normalization=normalization)
     assert_allclose(hist, pdf, rtol=0.05, atol=0.05 * pdf[0])
 
 
@@ -102,12 +106,6 @@ def test_inverses(method, normalization, N, T=5, fmax=5):
     fap_out = ls.false_alarm_probability(z, fmax, normalization,
                                          method=method,
                                          method_kwds=method_kwds)
-
-    #z = false_alarm_level(fap, fmax, t, y, dy, normalization,
-    #                      method=method, method_kwds=method_kwds)
-    #fap_out = false_alarm_probability(z, fmax, t, y, dy, normalization,
-    #                                  method=method, method_kwds=method_kwds)
-
     assert_allclose(fap, fap_out)
 
 
