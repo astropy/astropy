@@ -589,14 +589,14 @@ If your tests need to use `pytest helper functions
 <https://pytest.org/en/latest/builtin.html#pytest-helpers>`_, such as
 ``pytest.raises``, import ``pytest`` into your test module like so::
 
+    import pytest
+
+Prior to Astropy 2.0, it was possible to import pytest from a
+bundled version using e.g.::
+
     from ...tests.helper import pytest
 
-You may need to adjust the relative import to work for the depth of
-your module.  ``tests.helper`` imports ``pytest`` either from the
-user's system or ``extern.pytest`` if the user does not have pytest
-installed. This is so that users need not install pytest to run
-Astropy's tests.
-
+but this is no longer the recommended method.
 
 Testing warnings
 ----------------
