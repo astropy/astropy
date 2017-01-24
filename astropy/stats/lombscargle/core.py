@@ -359,7 +359,7 @@ class LombScargle(object):
         return y_fit * get_unit(self.y)
 
     def distribution(self, power, normalization, cumulative=False):
-        """Compute the expected null-hypothesis periodogram distribution
+        """Expected periodogram distribution under the null hypothesis
 
         This computes the expected probability distribution or cumulative
         probability distribution of periodogram power, under the null
@@ -376,6 +376,11 @@ class LombScargle(object):
         cumulative : bool (optional)
             if True, then return the cumulative distribution
 
+        See Also
+        --------
+        false_alarm_probability
+        false_alarm_level
+
         Returns
         -------
         dist : np.ndarray
@@ -387,9 +392,9 @@ class LombScargle(object):
         dist = statistics.cdf_single if cumulative else statistics.pdf_single
         return dist(power, len(self.t), normalization, dH=dH, dK=dK)
 
-    def false_alarm_probability(self, power, fmax, normalization,
+    def false_alarm_probability(self, power, maximum_frequency, normalization,
                                 method='baluev', method_kwds=None):
-        """Compute the approximate false alarm probability
+        """False alarm probability of periodogram maxima under the null hypothesis
 
         This gives an estimate of the false alarm probability given the height
         of the largest peak in the periodogram, based on the null hypothesis
@@ -399,14 +404,14 @@ class LombScargle(object):
         ----------
         power : array-like
             the periodogram value
-        fmax : float
+        maximum_frequency : float
             the maximum frequency of the periodogram
         normalization : string
             The periodogram normalization. Must be one of
             ['standard', 'model', 'log', 'psd']
         method : string
             The approximation method to use; default='baluev'. Must be one of
-            ['baluev', 'davies', 'simple', 'bootstrap', 'singe;']
+            ['baluev', 'davies', 'simple', 'bootstrap']
         method_kwds : dict (optional)
             Additional method-specific keywords
 
@@ -432,6 +437,11 @@ class LombScargle(object):
         - "bootstrap" : the approximate probability based on bootstrap
           resamplings of the input data.
 
+        See Also
+        --------
+        distribution
+        false_alarm_level
+
         References
         ----------
         .. [1] Baluev, R.V. MNRAS 385, 1279 (2008)
@@ -442,15 +452,17 @@ class LombScargle(object):
         if not (self.fit_mean or self.center_data):
             raise NotImplementedError("false alarm probability is implemented "
                                       "only for periodograms of centered data.")
-        return statistics.false_alarm_probability(power, fmax=fmax, t=self.t,
+        return statistics.false_alarm_probability(power,
+                                                  fmax=maximum_frequency,
+                                                  t=self.t,
                                                   y=self.y, dy=self.dy,
                                                   normalization=normalization,
                                                   method=method,
                                                   method_kwds=method_kwds)
 
-    def false_alarm_level(self, false_alarm_probability, fmax,
+    def false_alarm_level(self, false_alarm_probability, maximum_frequency,
                           normalization, method='baluev', method_kwds=None):
-        """Compute the periodogram peak level at a given false alarm probability
+        """Level of maximum at a given false alarm probability
 
         This gives an estimate of the periodogram level corresponding to a
         specified false alarm probability for the largest peak, assuming a
@@ -460,14 +472,14 @@ class LombScargle(object):
         ----------
         false_alarm_probability : array-like
             the false alarm probability (0 < fap < 1)
-        fmax : float
+        maximum_frequency : float
             the maximum frequency of the periodogram
         normalization : string
             The periodogram normalization. Must be one of
             ['standard', 'model', 'log', 'psd']
         method : string
             The approximation method to use; default='baluev'. Must be one of
-            ['baluev', 'davies', 'simple', 'bootstrap', 'single']
+            ['baluev', 'davies', 'simple', 'bootstrap']
         method_kwds : dict (optional)
             Additional method-specific keywords
 
@@ -494,6 +506,11 @@ class LombScargle(object):
         - "bootstrap" : the approximate probability based on bootstrap
           resamplings of the input data.
 
+        See Also
+        --------
+        distribution
+        false_alarm_probability
+
         References
         ----------
         .. [1] Baluev, R.V. MNRAS 385, 1279 (2008)
@@ -505,8 +522,8 @@ class LombScargle(object):
            raise NotImplementedError("false alarm probability is implemented "
                                      "only for periodograms of centered data.")
         return statistics.false_alarm_level(false_alarm_probability,
-                                            fmax=fmax, t=self.t,
-                                            y=self.y, dy=self.dy,
+                                            fmax=maximum_frequency,
+                                            t=self.t, y=self.y, dy=self.dy,
                                             normalization=normalization,
                                             method=method,
                                             method_kwds=method_kwds)
