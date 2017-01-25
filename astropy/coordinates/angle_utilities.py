@@ -126,7 +126,8 @@ class _AngleParser(object):
                 "Invalid character at col {0}".format(t.lexpos))
 
         # Build the lexer
-        lexer = lex.lex(optimize=True, lextab='angle_lextab',
+        # PY2: need str() to ensure we do not pass on a unicode object.
+        lexer = lex.lex(optimize=True, lextab=str('angle_lextab'),
                         outputdir=os.path.dirname(__file__))
 
         def p_angle(p):
@@ -251,7 +252,8 @@ class _AngleParser(object):
         def p_error(p):
             raise ValueError
 
-        parser = yacc.yacc(debug=False, tabmodule='angle_parsetab',
+        # PY2: need str() to ensure we do not pass on a unicode object.
+        parser = yacc.yacc(debug=False, tabmodule=str('angle_parsetab'),
                            outputdir=os.path.dirname(__file__),
                            write_tables=True)
 
