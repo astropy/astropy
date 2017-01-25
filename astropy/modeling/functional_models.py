@@ -180,7 +180,7 @@ class Gaussian1D(BaseGaussian1D):
     @property
     def input_units(self):
         if self.mean.unit is None:
-            return dimensionless_unscaled
+            return None
         else:
             return self.mean.unit
 
