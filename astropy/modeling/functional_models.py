@@ -2105,10 +2105,6 @@ class Sersic2D(Fittable2DModel):
         return amplitude * np.exp(-bn * (z ** (1 / n) - 1))
 
 
-# TODO: determine how to deal with sr properly
-BLACKBODY_NU_UNITS = u.erg / u.cm**2 / u.s / u.Hz / u.sr
-
-
 class BlackBody1D(Fittable1DModel):
     """
     One dimensional blackbody model.
@@ -2121,7 +2117,7 @@ class BlackBody1D(Fittable1DModel):
     """
 
     temperature = Parameter(default=5000 * u.K, min=0)
-    amplitude = Parameter(default=1 * BLACKBODY_NU_UNITS * u.sr)
+    bolometric_flux = Parameter(default=1 * u.erg / u.cm ** 2 / u.s)
 
     input_units_allow_dimensionless = True
 
@@ -2142,12 +2138,25 @@ class BlackBody1D(Fittable1DModel):
             Blackbody radiation in FNU per steradian.
 
         """
+
+        from ..constants import sigma_sb
         from ..analytic_functions.blackbody import blackbody_nu
-        return blackbody_nu(x, temperature).to(BLACKBODY_NU_UNITS).value * amplitude
+
+        temperature = u.Quantity(temperature, u.K)
+
+        # We normalize the returned blackbody so that the integral would be
+        # unity, and we then multiply by the bolometric flux
+        fnu = (np.pi * u.sr * blackbody_nu(x, temperature) /
+               sigma_sb / temperature ** 4).to(1 / u.Hz) * self.bolometric_flux
+
+        if self.bolometric_flux.unit is None:
+            return fnu.value
+        else:
+            return fnu
 
     @property
     def input_units(self):
         return u.Hz
 
     def _parameter_units_for_data_units(self, xunit, yunit, zunit=None):
-        return OrderedDict([('temperature', u.K), ('amplitude', yunit)])
+        return OrderedDict([('temperature', u.K), ('bolometric_flux', yunit * u.Hz)])
