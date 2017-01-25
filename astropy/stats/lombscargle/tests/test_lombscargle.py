@@ -79,9 +79,11 @@ def test_all_methods(data, method, center_data, fit_mean,
     if not with_errors:
         dy = None
 
-    kwds = dict(normalization=normalization)
-    ls = LombScargle(t, y, dy, center_data=center_data, fit_mean=fit_mean)
-    P_expected = ls.power(frequency, **kwds)
+    kwds = {}
+
+    ls = LombScargle(t, y, dy, center_data=center_data, fit_mean=fit_mean,
+                     normalization=normalization)
+    P_expected = ls.power(frequency)
 
     # don't use the fft approximation here; we'll test this elsewhere
     if method in FAST_METHODS:
@@ -127,14 +129,11 @@ def test_integer_inputs(data, method, center_data, fit_mean, with_errors,
         dy_int = None
 
     kwds = dict(center_data=center_data,
-                fit_mean=fit_mean)
-    P_float = LombScargle(t, y, dy, **kwds).power(frequency,
-                                                  method=method,
-                                                  normalization=normalization)
+                fit_mean=fit_mean,
+                normalization=normalization)
+    P_float = LombScargle(t, y, dy, **kwds).power(frequency,method=method)
     P_int = LombScargle(t_int, y_int, dy_int,
-                        **kwds).power(frequency,
-                                      method=method,
-                                      normalization=normalization)
+                        **kwds).power(frequency, method=method)
     assert_allclose(P_float, P_int)
 
 
@@ -152,18 +151,18 @@ def test_nterms_methods(method, center_data, fit_mean, with_errors,
         dy = None
 
     ls = LombScargle(t, y, dy, center_data=center_data,
-                     fit_mean=fit_mean, nterms=nterms)
-
-    kwds = dict(normalization=normalization)
+                     fit_mean=fit_mean, nterms=nterms,
+                     normalization=normalization)
 
     if nterms == 0 and not fit_mean:
         with pytest.raises(ValueError) as err:
-            ls.power(frequency, method=method, **kwds)
+            ls.power(frequency, method=method)
         assert 'nterms' in str(err.value) and 'bias' in str(err.value)
     else:
-        P_expected = ls.power(frequency, **kwds)
+        P_expected = ls.power(frequency)
 
         # don't use fast fft approximations here
+        kwds = {}
         if 'fast' in method:
             kwds['method_kwds'] = dict(use_fft=False)
         P_method = ls.power(frequency, method=method, **kwds)
@@ -184,10 +183,11 @@ def test_fast_approximations(method, center_data, fit_mean,
         dy = None
 
     ls = LombScargle(t, y, dy, center_data=center_data,
-                     fit_mean=fit_mean, nterms=nterms)
+                     fit_mean=fit_mean, nterms=nterms,
+                     normalization='standard')
 
     # use only standard normalization because we compare via absolute tolerance
-    kwds = dict(method=method, normalization='standard')
+    kwds = dict(method=method)
 
     if method == 'fast' and nterms != 1:
         with pytest.raises(ValueError) as err:

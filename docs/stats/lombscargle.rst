@@ -366,8 +366,8 @@ where *N* is the number of data points, which in the no-uncertainty case
 will have units ``y.unit ** 2``. This normalization is constructed to be
 comparable to the standard Fourier power spectral density (PSD):
 
->>> ls = LombScargle(t_days, y_mags)
->>> frequency, power = ls.autopower(normalization='psd')
+>>> ls = LombScargle(t_days, y_mags, normalization='psd')
+>>> frequency, power = ls.autopower()
 >>> power.unit
 Unit("mag2")
 
@@ -377,8 +377,8 @@ even the unnormalized PSD periodogram will be dimensionless; this is due to
 the scaling of data by uncertainty within the Lomb-Scargle computation:
 
 >>> # with uncertainties, PSD power is unitless
->>> ls = LombScargle(t_days, y_mags, dy_mags)
->>> frequency, power = ls.autopower(normalization='psd')
+>>> ls = LombScargle(t_days, y_mags, dy_mags, normalization='psd')
+>>> frequency, power = ls.autopower()
 >>> power.unit
 Unit(dimensionless)
 
@@ -400,7 +400,8 @@ Next we compute the two versions of the PSD from uniformly-sampled data:
 >>> t_days = np.arange(100) * u.day
 >>> y_mags = rand.randn(100) * u.mag
 >>> frequency, PSD_fourier = fourier_periodogram(t_days, y_mags)
->>> PSD_LS = LombScargle(t_days, y_mags).power(frequency, normalization='psd')
+>>> ls = LombScargle(t_days, y_mags, normalization='psd')
+>>> PSD_LS = ls.power(frequency)
 
 Examining the results, we see that the two outputs match:
 
@@ -448,27 +449,25 @@ data consisting of Gaussian noise:
 
     N = 100
     t = 5 * rng.rand(N)
-    t -= 0.7 * (t % 1)
+    t -= 0.5 * (t % 1)  # create alias-inducing structure in the window function
     dy = 0.5 * (1 + rng.rand(N))
     y = dy * rng.randn(N)
 
-    ls = LombScargle(t, y, dy)
+    ls = LombScargle(t, y, dy, normalization='standard')
     z = np.linspace(1E-3, 0.15, 1000)
 
     def false_alarm(method):
-        return ls.false_alarm_probability(z, normalization='standard',
-                                          method=method, maximum_frequency=5)
+        return ls.false_alarm_probability(z, method=method, maximum_frequency=5)
 
-    fa_boot = ls.false_alarm_probability(z, normalization='standard',
-                                         method='bootstrap',
+    fa_boot = ls.false_alarm_probability(z, method='bootstrap',
                                          maximum_frequency=5,
                                          method_kwds=dict(random_seed=42))
 
     fig, ax = plt.subplots(figsize=(6, 4.5))
 
-    ax.plot(z, false_alarm('simple'), label='simple estimate')
-    ax.plot(z, false_alarm('baluev'), label='baluev estimate')
-    ax.plot(z, false_alarm('davies'), ':k', label='davies bound')
+    ax.plot(z, false_alarm('naive'), label='naive estimate')
+    ax.plot(z, false_alarm('baluev'), label='Baluev estimate')
+    ax.plot(z, false_alarm('davies'), ':k', label='Davies bound')
     ax.plot(z, fa_boot, '-k', label='bootstrap estimate')
 
     ax.legend(loc='lower left')
@@ -478,7 +477,7 @@ data consisting of Gaussian noise:
            ylabel='False Alarm Probability');
 
 
-The ``"simple"`` method is not particularly accurate, because it relies on
+The ``"naive"`` method is not particularly accurate, because it relies on
 dubious reasoning about independent frequencies within the periodogram.
 The ``"baluev"`` method and the associated ``"davies"`` bound provide a
 useful estimate in the alias-free case (i.e. when the survey window does
@@ -486,7 +485,7 @@ not have any significant structure), and tend to provide a useful upper-limit
 in more realistic cases.
 The ``"bootstrap"`` method is the most accurate, but can be quite computationally
 expensive: to estimate the level corresponding to a false alarm probability
-:math:`P_{false}``, it requires on order :math:`n_{boot} \approx 10/P_{false}`
+:math:`P_{false}`, it requires on order :math:`n_{boot} \approx 10/P_{false}`
 individual periodograms to be computed for the dataset.
 
 Computing the false alarm levels is straightforward. Here we compute the
@@ -494,9 +493,8 @@ Computing the false alarm levels is straightforward. Here we compute the
 the standard normalization:
 
 >>> probabilities = [0.1, 0.05, 0.01]
->>> ls = LombScargle(t, y, dy)
+>>> ls = LombScargle(t, y, dy, normalization='standard')
 >>> ls.false_alarm_levels([0.1, 0.05, 0.01],
-...                       normalization='standard',
 ...                       method='baluev')
 array([ 0.16880942,  0.1818131 ,  0.2103278 ])
 
@@ -640,7 +638,7 @@ with lightcurve shape that is more complicated than a simple sine wave:
 
     # generate data and compute the periodogram
     t, mag, dmag = simulated_data(50)
-    ls = LombScargle(t, mag, dmag)
+    ls = LombScargle(t, mag, dmag, normalization='standard')
     freq, PLS = ls.autopower(minimum_frequency=1 / 1.2,
                              maximum_frequency=1 / 0.2)
     best_freq = freq[np.argmax(PLS)]
@@ -673,7 +671,7 @@ with lightcurve shape that is more complicated than a simple sine wave:
 
     # plot the false-alarm levels
     z_false = ls.false_alarm_level(0.01, maximum_frequency=1 / 0.2,
-                                   normalization='standard', method='baluev')
+                                   method='baluev')
     ax[1].axhline(z_false, linestyle='dotted', color='black')
 
     # plot the phased data & model in the inset

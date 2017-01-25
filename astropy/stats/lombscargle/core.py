@@ -99,12 +99,13 @@ class LombScargle(object):
     """
     available_methods = available_methods()
 
-    def __init__(self, t, y, dy=None,
-                 fit_mean=True, center_data=True, nterms=1):
+    def __init__(self, t, y, dy=None, fit_mean=True, center_data=True,
+                 nterms=1, normalization='standard'):
         self.t, self.y, self.dy = self._validate_inputs(t, y, dy)
         self.fit_mean = fit_mean
         self.center_data = center_data
         self.nterms = nterms
+        self.normalization = normalization
 
     def _validate_inputs(self, t, y, dy):
         # Validate shapes of inputs
@@ -215,7 +216,7 @@ class LombScargle(object):
         return minimum_frequency + df * np.arange(Nf)
 
     def autopower(self, method='auto', method_kwds=None,
-                  normalization='standard', samples_per_peak=5,
+                  normalization=None, samples_per_peak=5,
                   nyquist_factor=5, minimum_frequency=None,
                   maximum_frequency=None):
         """Compute Lomb-Scargle power at automatically-determined frequencies
@@ -272,7 +273,7 @@ class LombScargle(object):
                            assume_regular_frequency=True)
         return frequency, power
 
-    def power(self, frequency, normalization='standard', method='auto',
+    def power(self, frequency, normalization=None, method='auto',
               assume_regular_frequency=False, method_kwds=None):
         """Compute the Lomb-Scargle power at the given frequencies
 
@@ -322,6 +323,8 @@ class LombScargle(object):
         power : ndarray
             The Lomb-Scargle power at the specified frequency
         """
+        if normalization is None:
+            normalization = self.normalization
         frequency = self._validate_frequency(frequency)
         power = lombscargle(*strip_units(self.t, self.y, self.dy),
                             frequency=strip_units(frequency),
@@ -358,7 +361,7 @@ class LombScargle(object):
                              nterms=self.nterms)
         return y_fit * get_unit(self.y)
 
-    def distribution(self, power, normalization, cumulative=False):
+    def distribution(self, power, cumulative=False):
         """Expected periodogram distribution under the null hypothesis
 
         This computes the expected probability distribution or cumulative
@@ -371,8 +374,6 @@ class LombScargle(object):
         ----------
         power : array_like
             the periodogram power at which to compute the distribution
-        normalization : string
-            the normalization for which to compute the distribution
         cumulative : bool (optional)
             if True, then return the cumulative distribution
 
@@ -390,9 +391,9 @@ class LombScargle(object):
         dH = 1 if self.fit_mean or self.center_data else 0
         dK = dH + 2 * self.nterms
         dist = statistics.cdf_single if cumulative else statistics.pdf_single
-        return dist(power, len(self.t), normalization, dH=dH, dK=dK)
+        return dist(power, len(self.t), self.normalization, dH=dH, dK=dK)
 
-    def false_alarm_probability(self, power, maximum_frequency, normalization,
+    def false_alarm_probability(self, power, maximum_frequency,
                                 method='baluev', method_kwds=None):
         """False alarm probability of periodogram maxima under the null hypothesis
 
@@ -406,12 +407,9 @@ class LombScargle(object):
             the periodogram value
         maximum_frequency : float
             the maximum frequency of the periodogram
-        normalization : string
-            The periodogram normalization. Must be one of
-            ['standard', 'model', 'log', 'psd']
         method : string
             The approximation method to use; default='baluev'. Must be one of
-            ['baluev', 'davies', 'simple', 'bootstrap']
+            ['baluev', 'davies', 'naive', 'bootstrap']
         method_kwds : dict (optional)
             Additional method-specific keywords
 
@@ -432,7 +430,7 @@ class LombScargle(object):
         - "baluev" (default): the upper-limit to the alias-free probability,
           using the approach of Baluev (2008) [1]_.
         - "davies" : the Davies upper bound from Baluev (2008) [1]_.
-        - "simple" : the approximate probability based on an estimated
+        - "naive" : the approximate probability based on an estimated
           effective number of independent frequencies.
         - "bootstrap" : the approximate probability based on bootstrap
           resamplings of the input data.
@@ -454,14 +452,13 @@ class LombScargle(object):
                                       "only for periodograms of centered data.")
         return statistics.false_alarm_probability(power,
                                                   fmax=maximum_frequency,
-                                                  t=self.t,
-                                                  y=self.y, dy=self.dy,
-                                                  normalization=normalization,
+                                                  t=self.t, y=self.y, dy=self.dy,
+                                                  normalization=self.normalization,
                                                   method=method,
                                                   method_kwds=method_kwds)
 
     def false_alarm_level(self, false_alarm_probability, maximum_frequency,
-                          normalization, method='baluev', method_kwds=None):
+                          method='baluev', method_kwds=None):
         """Level of maximum at a given false alarm probability
 
         This gives an estimate of the periodogram level corresponding to a
@@ -474,12 +471,9 @@ class LombScargle(object):
             the false alarm probability (0 < fap < 1)
         maximum_frequency : float
             the maximum frequency of the periodogram
-        normalization : string
-            The periodogram normalization. Must be one of
-            ['standard', 'model', 'log', 'psd']
         method : string
             The approximation method to use; default='baluev'. Must be one of
-            ['baluev', 'davies', 'simple', 'bootstrap']
+            ['baluev', 'davies', 'naive', 'bootstrap']
         method_kwds : dict (optional)
             Additional method-specific keywords
 
@@ -501,7 +495,7 @@ class LombScargle(object):
         - "baluev" (default): the upper-limit to the alias-free probability,
           using the approach of Baluev (2008) [1]_.
         - "davies" : the Davies upper bound from Baluev (2008) [1]_.
-        - "simple" : the approximate probability based on an estimated
+        - "naive" : the approximate probability based on an estimated
           effective number of independent frequencies.
         - "bootstrap" : the approximate probability based on bootstrap
           resamplings of the input data.
@@ -524,6 +518,6 @@ class LombScargle(object):
         return statistics.false_alarm_level(false_alarm_probability,
                                             fmax=maximum_frequency,
                                             t=self.t, y=self.y, dy=self.dy,
-                                            normalization=normalization,
+                                            normalization=self.normalization,
                                             method=method,
                                             method_kwds=method_kwds)

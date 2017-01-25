@@ -252,7 +252,7 @@ def tau_davies(Z, fmax, t, y, dy, normalization='standard', dH=1, dK=3):
         raise NotImplementedError("normalization={0}".format(normalization))
 
 
-def fap_simple(Z, fmax, t, y, dy, normalization='standard'):
+def fap_naive(Z, fmax, t, y, dy, normalization='standard'):
     """False Alarm Probability based on estimated number of indep frequencies"""
     N = len(t)
     T = max(t) - min(t)
@@ -263,7 +263,7 @@ def fap_simple(Z, fmax, t, y, dy, normalization='standard'):
     return -np.expm1(N_eff * np.log1p(-fap_s))
 
 
-def inv_fap_simple(fap, fmax, t, y, dy, normalization='standard'):
+def inv_fap_naive(fap, fmax, t, y, dy, normalization='standard'):
     """Inverse FAP based on estimated number of indep frequencies"""
     N = len(t)
     T = max(t) - min(t)
@@ -288,7 +288,7 @@ def fap_davies(Z, fmax, t, y, dy, normalization='standard'):
 def inv_fap_davies(p, fmax, t, y, dy, normalization='standard'):
     """Inverse of the davies upper-bound"""
     args = (fmax, t, y, dy, normalization)
-    z0 = inv_fap_simple(p, *args)
+    z0 = inv_fap_naive(p, *args)
     func = lambda z, *args: fap_davies(z, *args) - p
     res = optimize.root(func, z0, args=args, method='lm')
     if not res.success:
@@ -312,7 +312,7 @@ def fap_baluev(Z, fmax, t, y, dy, normalization='standard'):
 def inv_fap_baluev(p, fmax, t, y, dy, normalization='standard'):
     """Inverse of the Baluev alias-free approximation"""
     args = (fmax, t, y, dy, normalization)
-    z0 = inv_fap_simple(p, *args)
+    z0 = inv_fap_naive(p, *args)
     func = lambda z, *args: fap_baluev(z, *args) - p
     res = optimize.root(func, z0, args=args, method='lm')
     if not res.success:
@@ -354,7 +354,7 @@ def inv_fap_bootstrap(fap, fmax, t, y, dy, normalization='standard',
 
 
 METHODS = {'single': fap_single,
-           'simple': fap_simple,
+           'naive': fap_naive,
            'davies': fap_davies,
            'baluev': fap_baluev,
            'bootstrap': fap_bootstrap}
@@ -382,7 +382,7 @@ def false_alarm_probability(Z, fmax, t, y, dy, normalization='standard',
         ['standard', 'model', 'log', 'psd']
     method : string
         The approximation method to use. Must be one of
-        ['baluev', 'davies', 'simple', 'bootstrap']
+        ['baluev', 'davies', 'naive', 'bootstrap']
     method_kwds : dict (optional)
         Additional method-specific keywords
 
@@ -415,7 +415,7 @@ def false_alarm_probability(Z, fmax, t, y, dy, normalization='standard',
 
 
 INV_METHODS = {'single': inv_fap_single,
-               'simple': inv_fap_simple,
+               'naive': inv_fap_naive,
                'davies': inv_fap_davies,
                'baluev': inv_fap_baluev,
                'bootstrap': inv_fap_bootstrap}
@@ -444,7 +444,7 @@ def false_alarm_level(p, fmax, t, y, dy, normalization,
         ['standard', 'model', 'log', 'psd']
     method : string
         The approximation method to use. Must be one of
-        ['baluev', 'davies', 'simple', 'bootstrap']
+        ['baluev', 'davies', 'naive', 'bootstrap']
     method_kwds : dict (optional)
         Additional method-specific keywords
 
