@@ -95,15 +95,28 @@ class _FitterMeta(abc.ABCMeta):
 
 def fitter_unit_support(func):
 
-    def wrapper(self, model, x, y, z=None, **kwargs):
+    def wrapper(self, model, x, y, z=None, equivalencies=None, **kwargs):
 
         if model._supports_unit_fitting:
 
             add_back_units = False
 
+            # TODO: we need to generalize the following to make sure it works
+            # for 3D models (i.e. input_units may return two units) and also
+            # we should take into account return_units. Also need to make
+            # equivalencies work for x, y, and z
+
+            if z is None:
+                model = model.without_units_for_data(x, y)
+            else:
+                model = model.without_units_for_data(x, y, z=z)
+
             if isinstance(x, Quantity):
                 add_back_units = True
-                xdata = x.value
+                if model.input_units is None:
+                    xdata = x.value
+                else:
+                    xdata = x.to(model.input_units, equivalencies=equivalencies).value
             else:
                 xdata = np.asarray(x)
 
@@ -121,12 +134,10 @@ def fitter_unit_support(func):
                     zdata = np.asarray(z)
 
             if z is None:
-                model = model.without_units_for_data(x, y)
                 model_new = func(self, model, xdata, ydata, **kwargs)
                 if add_back_units:
                     model_new = model_new.with_units_from_data(x, y)
             else:
-                model = model.without_units_for_data(x, y, z=z)
                 model_new = func(self, model, xdata, ydata, zdata, **kwargs)
                 if add_back_units:
                     model_new = model_new.with_units_from_data(x, y, z=z)
