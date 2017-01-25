@@ -40,26 +40,21 @@ def null_data(N=1000, dy=1, rseed=0):
 def test_distribution(null_data, normalization):
     t, y, dy = null_data
     N = len(t)
-    ls = LombScargle(t, y, dy)
-    freq, power = ls.autopower(normalization=normalization,
-                               maximum_frequency=40)
+    ls = LombScargle(t, y, dy, normalization=normalization)
+    freq, power = ls.autopower(maximum_frequency=40)
     z = np.linspace(0, power.max(), 1000)
 
     # Test that pdf and cdf are consistent
     dz = z[1] - z[0]
     z_mid = z[:-1] + 0.5 * dz
-    ls = LombScargle(t, y, dy)
-    pdf = ls.distribution(z_mid, normalization=normalization)
-    cdf = ls.distribution(z, normalization=normalization, cumulative=True)
-    #pdf = pdf_single(z_mid, N, normalization=normalization)
-    #cdf = cdf_single(z, N, normalization=normalization)
+    pdf = ls.distribution(z_mid)
+    cdf = ls.distribution(z, cumulative=True)
     assert_allclose(pdf, np.diff(cdf) / dz, rtol=1E-5, atol=1E-8)
 
     # Test that observed power is distributed according to the theoretical pdf
     hist, bins = np.histogram(power, 30, normed=True)
     midpoints = 0.5 * (bins[1:] + bins[:-1])
-    pdf = ls.distribution(midpoints, normalization=normalization)
-    #pdf = pdf_single(midpoints, N, normalization=normalization)
+    pdf = ls.distribution(midpoints)
     assert_allclose(hist, pdf, rtol=0.05, atol=0.05 * pdf[0])
 
 
@@ -99,11 +94,11 @@ def test_inverses(method, normalization, N, T=5, fmax=5):
 
     fap = np.logspace(-10, 0, 10)
 
-    ls = LombScargle(t, y, dy)
-    z = ls.false_alarm_level(fap, fmax, normalization,
+    ls = LombScargle(t, y, dy, normalization=normalization)
+    z = ls.false_alarm_level(fap, fmax,
                              method=method,
                              method_kwds=method_kwds)
-    fap_out = ls.false_alarm_probability(z, fmax, normalization,
+    fap_out = ls.false_alarm_probability(z, fmax,
                                          method=method,
                                          method_kwds=method_kwds)
     assert_allclose(fap, fap_out)
@@ -116,16 +111,12 @@ def test_false_alarm_smoketest(method, normalization, data):
     t, y, dy = data
     fmax = 5
 
-    freq, power = LombScargle(t, y, dy).autopower(normalization=normalization,
-                                                  maximum_frequency=fmax)
+    ls = LombScargle(t, y, dy, normalization=normalization)
+    freq, power = ls.autopower(maximum_frequency=fmax)
     Z = np.linspace(power.min(), power.max(), 30)
-    print(normalization)
-    print(Z.max())
 
-    fap = false_alarm_probability(Z, fmax, t, y, dy,
-                                  normalization=normalization,
-                                  method=method,
-                                  method_kwds=METHOD_KWDS.get(method, None))
+    fap = ls.false_alarm_probability(Z, fmax, method=method, method_kwds=kwds)
+
     assert len(fap) == len(Z)
     if method != 'davies':
         assert np.all(fap <= 1)
@@ -144,13 +135,11 @@ def test_false_alarm_equivalence(method, normalization, data):
     t, y, dy = data
     fmax = 5
 
-    freq, power = LombScargle(t, y, dy).autopower(normalization=normalization,
-                                                  maximum_frequency=fmax)
+    ls = LombScargle(t, y, dy, normalization=normalization)
+    freq, power = ls.autopower(maximum_frequency=fmax)
     Z = np.linspace(power.min(), power.max(), 30)
-    fap = false_alarm_probability(Z, fmax, t, y, dy,
-                                  normalization=normalization,
-                                  method=method,
-                                  method_kwds=METHOD_KWDS.get(method, None))
+    fap = ls.false_alarm_probability(Z, maximum_frequency=fmax,
+                                     method=method, method_kwds=kwds)
 
     # Compute the equivalent Z values in the standard normalization
     # and check that the FAP is consistent
@@ -160,7 +149,6 @@ def test_false_alarm_equivalence(method, normalization, data):
                                   chi2_ref=compute_chi2_ref(y, dy))
     fap_std = false_alarm_probability(Z_std, fmax, t, y, dy,
                                       normalization='standard',
-                                      method=method,
-                                      method_kwds=METHOD_KWDS.get(method, None))
+                                      method=method, method_kwds=kwds)
 
     assert_allclose(fap, fap_std, rtol=0.1)
