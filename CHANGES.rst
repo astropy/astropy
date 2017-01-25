@@ -88,12 +88,16 @@ API Changes
 
 - ``astropy.stats``
 
-  Removed the deprecated ``sig`` and ``varfunc`` keywords in the
-  ``sigma_clip`` function. [#5715]
+  - Removed the deprecated ``sig`` and ``varfunc`` keywords in the
+    ``sigma_clip`` function. [#5715]
 
 - ``astropy.sphinx``
 
 - ``astropy.table``
+  - Removed the deprecated ``data`` property of Row. [#5729]
+
+  - Removed the deprecated functions ``join``, ``hstack``, ``vstack`` and
+    ``get_groups`` from np_utils. [#5729]
 
 - ``astropy.time``
 
