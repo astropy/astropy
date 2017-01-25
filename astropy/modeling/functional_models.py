@@ -2105,6 +2105,10 @@ class Sersic2D(Fittable2DModel):
         return amplitude * np.exp(-bn * (z ** (1 / n) - 1))
 
 
+# TODO: determine how to deal with sr properly
+BLACKBODY_NU_UNITS = u.erg / u.cm**2 / u.s / u.Hz / u.sr
+
+
 class BlackBody1D(Fittable1DModel):
     """
     One dimensional blackbody model.
@@ -2115,11 +2119,13 @@ class BlackBody1D(Fittable1DModel):
         Blackbody temperature in Kelvin.
 
     """
-    temperature = Parameter(default=5000)
 
-    # TODO: This does not work but I wish it would work...
-    @staticmethod
-    def evaluate(x, temperature):
+    temperature = Parameter(default=5000 * u.K, min=0)
+    amplitude = Parameter(default=1 * BLACKBODY_NU_UNITS * u.sr)
+
+    input_units_allow_dimensionless = True
+
+    def evaluate(self, x, temperature, amplitude):
         """Evaluate the model.
 
         Parameters
@@ -2137,20 +2143,11 @@ class BlackBody1D(Fittable1DModel):
 
         """
         from ..analytic_functions.blackbody import blackbody_nu
+        return blackbody_nu(x, temperature).to(BLACKBODY_NU_UNITS).value * amplitude
 
-        # TODO: Add fancy unit handling here?
-        bbnu_flux = blackbody_nu(x, temperature)
-
-        return bbnu_flux
-
-    # TODO: How do I use this to define x and flux units?
     @property
     def input_units(self):
-        if self.temperature.unit is None:
-            return u.K
-        else:
-            return self.temperature.unit
+        return u.Hz
 
-    # TODO: Is this correct way to define the method for blackbody?
-    def _parameter_units_for_data_units(self, xunit, *args, **kwargs):
-        return OrderedDict([('temperature', xunit)])
+    def _parameter_units_for_data_units(self, xunit, yunit, zunit=None):
+        return OrderedDict([('temperature', u.K), ('amplitude', yunit)])
