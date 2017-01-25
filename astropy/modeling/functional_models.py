@@ -2128,7 +2128,7 @@ class BlackBody1D(Fittable1DModel):
     # in this case the input x values are assumed to be frequencies in Hz.
     input_units_allow_dimensionless = True
 
-    def evaluate(self, x, temperature, amplitude):
+    def evaluate(self, x, temperature, bolometric_flux):
         """Evaluate the model.
 
         Parameters
@@ -2167,15 +2167,15 @@ class BlackBody1D(Fittable1DModel):
         # simplified as much as possible, then we multiply by the bolometric
         # flux to get the normalization right.
         fnu = (np.pi * u.sr * blackbody_nu(x, temperature) /
-               sigma_sb / temperature ** 4).to(1 / u.Hz) * self.bolometric_flux
+               sigma_sb / temperature ** 4).to(1 / u.Hz) * bolometric_flux
 
         # If the bolometric_flux parameter has no unit, we should drop the /Hz
         # and return a unitless value. This occurs for instance during fitting,
         # since we drop the units temporarily.
-        if self.bolometric_flux.unit is None:
-            return fnu.value
-        else:
+        if hasattr(bolometric_flux, 'unit'):
             return fnu
+        else:
+            return fnu.value
 
     @property
     def input_units(self):
