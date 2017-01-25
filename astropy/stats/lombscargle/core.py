@@ -199,19 +199,18 @@ class LombScargle(object):
         baseline = self.t.max() - self.t.min()
         n_samples = self.t.size
 
-        df = 1. / baseline / samples_per_peak
+        df = 1.0 / baseline / samples_per_peak
 
-        if minimum_frequency is not None:
-            f0 = minimum_frequency
-        else:
-            f0 = 0.5 * df
+        if minimum_frequency is None:
+            minimum_frequency = 0.5 * df
 
-        if maximum_frequency is not None:
-            Nf = int(np.ceil((maximum_frequency - f0) / df))
-        else:
-            Nf = int(0.5 * samples_per_peak * nyquist_factor * n_samples)
+        if maximum_frequency is None:
+            avg_nyquist = 0.5 * n_samples / baseline
+            maximum_frequency = nyquist_factor * avg_nyquist
 
-        return f0 + df * np.arange(Nf)
+        Nf = 1 + int(np.round((maximum_frequency - minimum_frequency) / df))
+
+        return minimum_frequency + df * np.arange(Nf)
 
     def autopower(self, method='auto', method_kwds=None,
                   normalization='standard', samples_per_peak=5,

@@ -26,6 +26,37 @@ def data(N=100, period=1, theta=[10, 2, 3], dy=1, rseed=0):
     return t, y, dy
 
 
+@pytest.mark.parametrize('minimum_frequency', [None, 1.0])
+@pytest.mark.parametrize('maximum_frequency', [None, 5.0])
+@pytest.mark.parametrize('nyquist_factor', [1, 10])
+@pytest.mark.parametrize('samples_per_peak', [1, 5])
+def test_autofrequency(data, minimum_frequency, maximum_frequency,
+                       nyquist_factor, samples_per_peak):
+    t, y, dy = data
+    baseline = t.max() - t.min()
+
+    freq = LombScargle(t, y, dy).autofrequency(samples_per_peak,
+                                               nyquist_factor,
+                                               minimum_frequency,
+                                               maximum_frequency)
+    df = freq[1] - freq[0]
+
+    # Check sample spacing
+    assert_allclose(df, 1. / baseline / samples_per_peak)
+
+    # Check minimum frequency
+    if minimum_frequency is None:
+        assert_allclose(freq[0], 0.5 * df)
+    else:
+        assert_allclose(freq[0], minimum_frequency)
+
+    if maximum_frequency is None:
+        avg_nyquist = 0.5 * len(t) / baseline
+        assert_allclose(freq[-1], avg_nyquist * nyquist_factor, atol=0.5*df)
+    else:
+        assert_allclose(freq[-1], maximum_frequency, atol=0.5*df)
+
+
 @pytest.mark.parametrize('method', ALL_METHODS_NO_AUTO)
 @pytest.mark.parametrize('center_data', [True, False])
 @pytest.mark.parametrize('fit_mean', [True, False])
