@@ -360,10 +360,10 @@ Finally, it is sometimes useful to compute an unnormalized periodogram
 
 .. math::
 
-   P_{psd}(f) = \frac{N}{2}\left(\chi^2_{ref} - \chi^2(f)\right)
+   P_{psd}(f) = \frac{1}{2}\left(\chi^2_{ref} - \chi^2(f)\right)
 
-where *N* is the number of data points, which in the no-uncertainty case
-will have units ``y.unit ** 2``. This normalization is constructed to be
+which in the no-uncertainty case will have units ``y.unit ** 2``.
+This normalization is constructed to be
 comparable to the standard Fourier power spectral density (PSD):
 
 >>> ls = LombScargle(t_days, y_mags, normalization='psd')
@@ -472,6 +472,7 @@ data consisting of Gaussian noise:
 
     ax.legend(loc='lower left')
     ax.set(yscale='log',
+           title='False Alarm Estimates (N=100)',
            xlim=(0, 0.15), ylim=(0.01, 1.5),
            xlabel='Periodogram Power',
            ylabel='False Alarm Probability');
@@ -479,21 +480,22 @@ data consisting of Gaussian noise:
 
 The ``"naive"`` method is not particularly accurate, because it relies on
 dubious reasoning about independent frequencies within the periodogram.
-The ``"baluev"`` method and the associated ``"davies"`` bound provide a
-useful estimate in the alias-free case (i.e. when the survey window does
-not have any significant structure), and tend to provide a useful upper-limit
-in more realistic cases.
+The ``"baluev"`` method and the associated ``"davies"`` bound are based on
+extreme value statistics, and provide an upper-limit for the alias-free case
+(i.e. when the survey window does not have any significant structure),
+and tend to provide a useful upper-limit in more realistic cases [8]_.
 The ``"bootstrap"`` method is the most accurate, but can be quite computationally
 expensive: to estimate the level corresponding to a false alarm probability
 :math:`P_{false}`, it requires on order :math:`n_{boot} \approx 10/P_{false}`
 individual periodograms to be computed for the dataset.
 
-Computing the false alarm levels is straightforward. Here we compute the
-10%, 5%, and 1% false alarm probability levels for the above dataset, with
-the standard normalization:
+Computing the false alarm levels via these methods is straightforward with
+Astropy. Here we compute the
+10%, 5%, and 1% false alarm probability levels for the above dataset using
+the ``"baluev"`` method under the standard normalization:
 
 >>> probabilities = [0.1, 0.05, 0.01]
->>> ls = LombScargle(t, y, dy, normalization='standard')
+>>> ls = LombScargle(t, y, dy)
 >>> ls.false_alarm_levels([0.1, 0.05, 0.01],
 ...                       method='baluev')
 array([ 0.16880942,  0.1818131 ,  0.2103278 ])

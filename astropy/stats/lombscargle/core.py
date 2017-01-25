@@ -51,6 +51,9 @@ class LombScargle(object):
         of the input data. This is especially important if fit_mean = False
     nterms : int (optional, default=1)
         number of terms to use in the Fourier fit
+    normalization : string (optional, default='standard')
+        Normalization to use for the periodogram.
+        Options are 'standard', 'model', 'log', or 'psd'.
 
     Examples
     --------
@@ -243,9 +246,8 @@ class LombScargle(object):
 
         method_kwds : dict (optional)
             additional keywords to pass to the lomb-scargle method
-        normalization : string (optional, default='standard')
-            Normalization to use for the periodogram.
-            Options are 'standard', 'model', or 'psd'.
+        normalization : string (optional)
+            if specified, override the normalization specified at instantiation
         samples_per_peak : float (optional, default=5)
             The approximate number of desired samples across the typical peak
         nyquist_factor : float (optional, default=5)
@@ -305,9 +307,8 @@ class LombScargle(object):
             if True, assume that the input frequency is of the form
             freq = f0 + df * np.arange(N). Only referenced if method is 'auto'
             or 'fast'.
-        normalization : string (optional, default='standard')
-            Normalization to use for the periodogram.
-            Options are 'standard', 'model', 'log', or 'psd'.
+        normalization : string
+            if specified, override the normalization specified at instantiation
         fit_mean : bool (optional, default=True)
             if True, include a constant offset as part of the model at each
             frequency. This can lead to more accurate results, especially in
@@ -393,8 +394,10 @@ class LombScargle(object):
         dist = statistics.cdf_single if cumulative else statistics.pdf_single
         return dist(power, len(self.t), self.normalization, dH=dH, dK=dK)
 
-    def false_alarm_probability(self, power, maximum_frequency,
-                                method='baluev', method_kwds=None):
+    def false_alarm_probability(self, power, method='baluev',
+                                samples_per_peak=5, nyquist_factor=5,
+                                minimum_frequency=None, maximum_frequency=None,
+                                method_kwds=None):
         """False alarm probability of periodogram maxima under the null hypothesis
 
         This gives an estimate of the false alarm probability given the height
@@ -457,8 +460,10 @@ class LombScargle(object):
                                                   method=method,
                                                   method_kwds=method_kwds)
 
-    def false_alarm_level(self, false_alarm_probability, maximum_frequency,
-                          method='baluev', method_kwds=None):
+    def false_alarm_level(self, power, method='baluev',
+                          samples_per_peak=5, nyquist_factor=5,
+                          minimum_frequency=None, maximum_frequency=None,
+                          method_kwds=None):
         """Level of maximum at a given false alarm probability
 
         This gives an estimate of the periodogram level corresponding to a
