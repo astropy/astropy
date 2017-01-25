@@ -662,8 +662,9 @@ class Model(object):
 
     # Enforce strict units on inputs to evaluate
     input_units_strict = False
+
     # Allow dimensionless input (and corresponding output)
-    input_units_allow_dimensionless = True
+    input_units_allow_dimensionless = False
 
     def __init__(self, *args, **kwargs):
         super(Model, self).__init__()
