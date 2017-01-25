@@ -444,7 +444,7 @@ data consisting of Gaussian noise:
 
     from astropy.stats import LombScargle
 
-    rng = np.random.RandomState(0)
+    rng = np.random.RandomState(42)
 
     N = 100
     t = 5 * rng.rand(N)
@@ -459,18 +459,24 @@ data consisting of Gaussian noise:
         return ls.false_alarm_probability(z, normalization='standard',
                                           method=method, maximum_frequency=5)
 
+    fa_boot = ls.false_alarm_probability(z, normalization='standard',
+                                         method='bootstrap',
+                                         maximum_frequency=5,
+                                         method_kwds=dict(random_seed=42))
+
     fig, ax = plt.subplots(figsize=(6, 4.5))
 
     ax.plot(z, false_alarm('simple'), label='simple estimate')
     ax.plot(z, false_alarm('baluev'), label='baluev estimate')
     ax.plot(z, false_alarm('davies'), ':k', label='davies bound')
-    ax.plot(z, false_alarm('bootstrap'), '-k', label='bootstrap estimate')
+    ax.plot(z, fa_boot, '-k', label='bootstrap estimate')
 
     ax.legend(loc='lower left')
     ax.set(yscale='log',
            xlim=(0, 0.15), ylim=(0.01, 1.5),
            xlabel='Periodogram Power',
            ylabel='False Alarm Probability');
+
 
 The ``"simple"`` method is not particularly accurate, because it relies on
 dubious reasoning about independent frequencies within the periodogram.
@@ -495,8 +501,8 @@ the standard normalization:
 array([ 0.16880942,  0.1818131 ,  0.2103278 ])
 
 Keep in mind that the false alarm probability is not related to whether the
-highest peak is the *correct* peak, but rather is the probability that it may
-have arisen from chance in the absence of a signal.
+highest peak is the *correct* peak, but rather is the probability that the
+peak may have arisen by chance in the absence of a signal.
 
 Periodogram Algorithms
 ======================
@@ -634,15 +640,16 @@ with lightcurve shape that is more complicated than a simple sine wave:
 
     # generate data and compute the periodogram
     t, mag, dmag = simulated_data(50)
-    freq, PLS = LombScargle(t, mag, dmag).autopower(minimum_frequency=1 / 1.2,
-                                                    maximum_frequency=1 / 0.2)
+    ls = LombScargle(t, mag, dmag)
+    freq, PLS = ls.autopower(minimum_frequency=1 / 1.2,
+                             maximum_frequency=1 / 0.2)
     best_freq = freq[np.argmax(PLS)]
     phase = (t * best_freq) % 1
 
     # compute the best-fit model
     phase_fit = np.linspace(0, 1)
-    mag_fit = LombScargle(t, mag, dmag).model(t=phase_fit / best_freq,
-                                              frequency=best_freq)
+    mag_fit = ls.model(t=phase_fit / best_freq,
+                       frequency=best_freq)
 
     # set up the figure & axes for plotting
     fig, ax = plt.subplots(1, 2, figsize=(12, 5))
@@ -677,8 +684,9 @@ with lightcurve shape that is more complicated than a simple sine wave:
     inset.set_ylabel('mag')
 
 
-The dotted line shows the periodogram level corresponding to a false alarm
-probability of 0.1. This example demonstrates that for irregularly-sampled
+The dotted line shows the periodogram level corresponding to a maximum peak
+false alarm probability of 1%.
+This example demonstrates that for irregularly-sampled
 data, the Lomb-Scargle periodogram can be sensitive to frequencies higher
 than the average Nyquist frequency: the above data are sampled at
 an average rate of roughly one observation per night, and the periodogram
