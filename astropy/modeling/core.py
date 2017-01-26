@@ -2421,6 +2421,10 @@ class _CompoundModel(Model):
         return self.__class__.submodel_names
 
     @property
+    def n_submodels(self):
+        return len(self.submodel_names)
+
+    @property
     def param_names(self):
         return self.__class__.param_names
 
