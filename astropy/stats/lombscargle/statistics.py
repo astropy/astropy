@@ -9,11 +9,17 @@ from scipy import optimize
 
 
 def _weighted_sum(val, dy):
-    return (val / dy ** 2).sum()
+    if dy is not None:
+        return (val / dy ** 2).sum()
+    else:
+        return val.sum()
 
 
 def _weighted_mean(val, dy):
-    return _weighted_sum(val, dy) / _weighted_sum(np.ones_like(val), dy)
+    if dy is None:
+        return val.mean()
+    else:
+        return _weighted_sum(val, dy) / _weighted_sum(np.ones_like(val), dy)
 
 
 def _weighted_var(val, dy):
@@ -71,6 +77,7 @@ def pdf_single(z, N, normalization, dH=1, dK=3):
     ----------
     .. [1] Baluev, R.V. MNRAS 385, 1279 (2008)
     """
+    z = np.asarray(z)
     if dK - dH != 2:
         raise NotImplementedError("Degrees of freedom != 2")
     Nk = N - dK
@@ -122,6 +129,7 @@ def fap_single(z, N, normalization, dH=1, dK=3):
     ----------
     .. [1] Baluev, R.V. MNRAS 385, 1279 (2008)
     """
+    z = np.asarray(z)
     if dK - dH != 2:
         raise NotImplementedError("Degrees of freedom != 2")
     Nk = N - dK
@@ -172,6 +180,7 @@ def inv_fap_single(fap, N, normalization, dH=1, dK=3):
     ----------
     .. [1] Baluev, R.V. MNRAS 385, 1279 (2008)
     """
+    fap = np.asarray(fap)
     if dK - dH != 2:
         raise NotImplementedError("Degrees of freedom != 2")
     Nk = N - dK
@@ -233,6 +242,7 @@ def tau_davies(Z, fmax, t, y, dy, normalization='standard', dH=1, dK=3):
     Dt = _weighted_var(t, dy)
     Teff = np.sqrt(4 * np.pi * Dt)  # Effective baseline
     W = fmax * Teff
+    Z = np.asarray(Z)
     if normalization == 'psd':
         # 'psd' normalization is same as Baluev's z
         return W * np.exp(-Z) * np.sqrt(Z)
@@ -265,6 +275,7 @@ def fap_naive(Z, fmax, t, y, dy, normalization='standard'):
 
 def inv_fap_naive(fap, fmax, t, y, dy, normalization='standard'):
     """Inverse FAP based on estimated number of indep frequencies"""
+    fap = np.asarray(fap)
     N = len(t)
     T = max(t) - min(t)
     N_eff = fmax * T
@@ -325,10 +336,10 @@ def _bootstrap_max(t, y, dy, fmax, normalization, random_seed):
     from .core import LombScargle
     rng = np.random.RandomState(random_seed)
     while True:
-        resample = rng.randint(0, len(y), len(y))  # sample with replacement
-        ls_boot = LombScargle(t, y[resample], dy[resample])
-        freq, power = ls_boot.autopower(normalization=normalization,
-                                        maximum_frequency=fmax)
+        s = rng.randint(0, len(y), len(y))  # sample with replacement
+        ls_boot = LombScargle(t, y[s], dy if dy is None else dy[s],
+                              normalization=normalization)
+        freq, power = ls_boot.autopower(maximum_frequency=fmax)
         yield power.max()
 
 
@@ -345,6 +356,7 @@ def fap_bootstrap(Z, fmax, t, y, dy, normalization='standard',
 def inv_fap_bootstrap(fap, fmax, t, y, dy, normalization='standard',
                       n_bootstraps=1000, random_seed=None):
     """Bootstrap estimate of the inverse false alarm probability"""
+    fap = np.asarray(fap)
     pmax = np.fromiter(_bootstrap_max(t, y, dy, fmax,
                                       normalization, random_seed),
                        np.float, n_bootstraps)
@@ -433,7 +445,7 @@ def false_alarm_level(p, fmax, t, y, dy, normalization,
 
     Parameters
     ----------
-    fap : array-like
+    p : array-like
         the false alarm probability (0 < fap < 1)
     fmax : float
         the maximum frequency of the periodogram

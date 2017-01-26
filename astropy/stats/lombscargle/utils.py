@@ -4,7 +4,7 @@ import numpy as np
 NORMALIZATIONS = ['standard', 'psd', 'model', 'log']
 
 
-def compute_chi2_ref(y, dy, center_data=True, fit_mean=True):
+def compute_chi2_ref(y, dy=None, center_data=True, fit_mean=True):
     """Compute the reference chi-square for a particular dataset.
 
     Note: this is not valid center_data=False and fit_mean=False.
@@ -17,6 +17,8 @@ def compute_chi2_ref(y, dy, center_data=True, fit_mean=True):
     -------
     TODO
     """
+    if dy is None:
+        dy = 1
     y, dy = np.broadcast_arrays(y, dy)
     w = dy ** -2.0
     if center_data or fit_mean:

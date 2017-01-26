@@ -35,11 +35,15 @@ def null_data(N=1000, dy=1, rseed=0):
 
 
 @pytest.mark.parametrize('normalization', NORMALIZATIONS)
-def test_distribution(null_data, normalization):
+@pytest.mark.parametrize('with_errors', [True, False])
+def test_distribution(null_data, normalization, with_errors, fmax=40):
     t, y, dy = null_data
+    if not with_errors:
+        dy = None
+
     N = len(t)
     ls = LombScargle(t, y, dy, normalization=normalization)
-    freq, power = ls.autopower(maximum_frequency=40)
+    freq, power = ls.autopower(maximum_frequency=fmax)
     z = np.linspace(0, power.max(), 1000)
 
     # Test that pdf and cdf are consistent
@@ -49,11 +53,13 @@ def test_distribution(null_data, normalization):
     cdf = ls.distribution(z, cumulative=True)
     assert_allclose(pdf, np.diff(cdf) / dz, rtol=1E-5, atol=1E-8)
 
-    # Test that observed power is distributed according to the theoretical pdf
-    hist, bins = np.histogram(power, 30, normed=True)
-    midpoints = 0.5 * (bins[1:] + bins[:-1])
-    pdf = ls.distribution(midpoints)
-    assert_allclose(hist, pdf, rtol=0.05, atol=0.05 * pdf[0])
+    # psd normalization without specified errors produces bad results
+    if not (normalization == 'psd' and not with_errors):
+        # Test that observed power is distributed according to the theoretical pdf
+        hist, bins = np.histogram(power, 30, normed=True)
+        midpoints = 0.5 * (bins[1:] + bins[:-1])
+        pdf = ls.distribution(midpoints)
+        assert_allclose(hist, pdf, rtol=0.05, atol=0.05 * pdf[0])
 
 
 @pytest.mark.parametrize('N', [10, 100, 1000])
@@ -67,8 +73,11 @@ def test_inverse_single(N, normalization):
 
 
 @pytest.mark.parametrize('normalization', NORMALIZATIONS)
-def test_inverse_bootstrap(null_data, normalization, fmax=5):
+@pytest.mark.parametrize('use_errs', [True, False])
+def test_inverse_bootstrap(null_data, normalization, use_errs, fmax=5):
     t, y, dy = null_data
+    if not use_errs:
+        dy = None
 
     fap = np.linspace(0, 1, 10)
     method = 'bootstrap'
@@ -88,9 +97,12 @@ def test_inverse_bootstrap(null_data, normalization, fmax=5):
 
 @pytest.mark.parametrize('method', set(METHODS) - {'bootstrap'})
 @pytest.mark.parametrize('normalization', NORMALIZATIONS)
+@pytest.mark.parametrize('use_errs', [True, False])
 @pytest.mark.parametrize('N', [10, 100, 1000])
-def test_inverses(method, normalization, N, T=5, fmax=5):
+def test_inverses(method, normalization, use_errs, N, T=5, fmax=5):
     t, y, dy = data(N, rseed=543)
+    if not use_errs:
+        dy = None
     method_kwds = METHOD_KWDS.get(method, None)
 
     fap = np.logspace(-10, 0, 10)
@@ -126,8 +138,9 @@ def test_false_alarm_smoketest(method, normalization, data):
 
 
 @pytest.mark.parametrize('method', METHODS)
+@pytest.mark.parametrize('use_errs', [True, False])
 @pytest.mark.parametrize('normalization', set(NORMALIZATIONS) - {'psd'})
-def test_false_alarm_equivalence(method, normalization, data):
+def test_false_alarm_equivalence(method, normalization, use_errs, data):
     # Note: the PSD normalization is not equivalent to the others, in that it
     # depends on the absolute errors rather than relative errors. Because the
     # scaling contributes to the distribution, it cannot be converted directly
@@ -135,6 +148,8 @@ def test_false_alarm_equivalence(method, normalization, data):
 
     kwds = METHOD_KWDS.get(method, None)
     t, y, dy = data
+    if not use_errs:
+        dy = None
     fmax = 5
 
     ls = LombScargle(t, y, dy, normalization=normalization)
