@@ -279,9 +279,6 @@ def test_indexing_on_class():
 
     M = Gaussian1D + p
     assert M[0] is Gaussian1D
-    #assert M[1] is p
-    #assert M['Gaussian1D'] is M[0]
-    #assert M['p'] is M[1]
     assert isinstance(M['p'], Polynomial1D)
 
     m = g + p
@@ -903,3 +900,17 @@ def test_update_parameters():
     assert(m(1) == 200)
     m2 = m | offx
     assert(m2(1) == 242)
+
+
+def test_name():
+    offx = Shift(1)
+    scl = Scale(2)
+    m = offx | scl
+    scl.name = "scale"
+    assert m._submodel_names == ('None_0', 'None_1')
+    assert m.name is None
+    m.name = "M"
+    assert m.name == "M"
+    m1 = m.rename("M1")
+    assert m.name == "M"
+    assert m1.name == "M1"

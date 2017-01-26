@@ -710,6 +710,12 @@ class Model(object):
 
         return self._name
 
+    @name.setter
+    def name(self, val):
+        """Assign a (new) name to this model."""
+
+        self._name = val
+
     @property
     def n_inputs(self):
         """
@@ -1210,7 +1216,6 @@ class Model(object):
         """
         Return a copy of this model with a new name.
         """
-
         new_model = self.copy()
         new_model._name = name
         return new_model
@@ -1960,7 +1965,6 @@ class _CompoundModelMeta(_ModelMeta):
         ``standard_broadcasting``, and ``__module__`.  This is currently for
         internal use only.
         """
-        import copy
         # Note, currently this only supports binary operators, but could be
         # easily extended to support unary operators (namely '-') if/when
         # needed
@@ -2173,7 +2177,6 @@ class _CompoundModelMeta(_ModelMeta):
             new_param = orig_param.copy(name=param_name, default=default,
                                         **constraints)
 
-            #setattr(cls, param_name, orig_param)
             setattr(cls, param_name, new_param)
 
     def _init_param_names(cls):
