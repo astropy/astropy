@@ -181,6 +181,22 @@ def test_simple_two_model_class_compose_2d():
     r3 = R2(45, 45, 45, 45)
     assert_allclose(r3(0, 1), (0, -1), atol=1e-10)
 
+def test_n_submodels():
+    """
+    Test that CompoundModel.n_submodels properly returns the number
+    of components.
+    """
+    g2 = Gaussian1D() + Gaussian1D()
+    assert g2.n_submodels == 2
+
+    g3 = g2 + Gaussian1D()
+    assert g3.n_submodels == 3
+
+    g5 = g3 | g2
+    assert g5.n_submodels == 5
+
+    g7 = g5 / g2
+    assert g7.n_submodels == 7
 
 def test_expression_formatting():
     """
