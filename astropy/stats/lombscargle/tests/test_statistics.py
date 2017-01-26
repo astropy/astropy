@@ -4,9 +4,7 @@ from numpy.testing import assert_allclose
 from ....tests.helper import pytest
 from .. import LombScargle
 from .. import statistics
-from ..statistics import (cdf_single, pdf_single, METHODS,
-                          false_alarm_probability,
-                          false_alarm_level)
+from ..statistics import (cdf_single, pdf_single, METHODS)
 from ..utils import convert_normalization, compute_chi2_ref
 
 METHOD_KWDS = dict(bootstrap={'n_bootstraps': 20, 'random_seed': 42})
@@ -76,10 +74,13 @@ def test_inverse_bootstrap(null_data, normalization, fmax=5):
     method = 'bootstrap'
     method_kwds = METHOD_KWDS['bootstrap']
 
-    z = false_alarm_level(fap, fmax, t, y, dy, normalization,
-                          method=method, method_kwds=method_kwds)
-    fap_out = false_alarm_probability(z, fmax, t, y, dy, normalization,
-                                      method=method, method_kwds=method_kwds)
+    ls = LombScargle(t, y, dy, normalization=normalization)
+
+    z = ls.false_alarm_level(fap, maximum_frequency=fmax,
+                             method=method, method_kwds=method_kwds)
+    fap_out = ls.false_alarm_probability(z, maximum_frequency=fmax,
+                                         method=method,
+                                         method_kwds=method_kwds)
 
     # atol = 1 / n_bootstraps
     assert_allclose(fap, fap_out, atol=0.05)
@@ -95,10 +96,10 @@ def test_inverses(method, normalization, N, T=5, fmax=5):
     fap = np.logspace(-10, 0, 10)
 
     ls = LombScargle(t, y, dy, normalization=normalization)
-    z = ls.false_alarm_level(fap, fmax,
+    z = ls.false_alarm_level(fap, maximum_frequency=fmax,
                              method=method,
                              method_kwds=method_kwds)
-    fap_out = ls.false_alarm_probability(z, fmax,
+    fap_out = ls.false_alarm_probability(z, maximum_frequency=fmax,
                                          method=method,
                                          method_kwds=method_kwds)
     assert_allclose(fap, fap_out)
@@ -115,7 +116,8 @@ def test_false_alarm_smoketest(method, normalization, data):
     freq, power = ls.autopower(maximum_frequency=fmax)
     Z = np.linspace(power.min(), power.max(), 30)
 
-    fap = ls.false_alarm_probability(Z, fmax, method=method, method_kwds=kwds)
+    fap = ls.false_alarm_probability(Z, maximum_frequency=fmax,
+                                     method=method, method_kwds=kwds)
 
     assert len(fap) == len(Z)
     if method != 'davies':
@@ -147,8 +149,8 @@ def test_false_alarm_equivalence(method, normalization, data):
                                   from_normalization=normalization,
                                   to_normalization='standard',
                                   chi2_ref=compute_chi2_ref(y, dy))
-    fap_std = false_alarm_probability(Z_std, fmax, t, y, dy,
-                                      normalization='standard',
-                                      method=method, method_kwds=kwds)
+    ls = LombScargle(t, y, dy, normalization='standard')
+    fap_std = ls.false_alarm_probability(Z_std, maximum_frequency=fmax,
+                                         method=method, method_kwds=kwds)
 
     assert_allclose(fap, fap_std, rtol=0.1)
