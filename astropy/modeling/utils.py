@@ -408,7 +408,7 @@ class _BoundingBox(tuple):
             if len(bounding_box) == 1:
                 return cls((tuple(bounding_box[0]),))
             else:
-                return cls((tuple(bounding_box),))
+                return cls(tuple(bounding_box))
         else:
             msg = ("Bounding box for {0} model must be a sequence of length "
                    "{1} (the number of model inputs) consisting of pairs of "

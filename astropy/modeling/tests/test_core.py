@@ -342,3 +342,26 @@ def test_render_model_3d():
                 if (z0, y0, x0) == (8, 10, 13):
                     boxed = model.render()
                     assert (np.sum(expected) - np.sum(boxed)) == 0
+
+
+def test_custom_bounding_box_1d():
+    """
+    Tests that the bounding_box setter works.
+    """
+    # 1D models
+    g1 = models.Gaussian1D()
+    bb = g1.bounding_box
+    expected = g1.render()
+
+    # assign the same bounding_box, now through the bounding_box setter
+    g1.bounding_box = bb
+    assert_allclose(g1.render(), expected)
+
+    # 2D models
+    g2 = models.Gaussian2D()
+    bb = g2.bounding_box
+    expected = g2.render()
+
+    # assign the same bounding_box, now through the bounding_box setter
+    g2.bounding_box = bb
+    assert_allclose(g2.render(), expected)
