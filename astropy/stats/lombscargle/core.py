@@ -423,9 +423,6 @@ class LombScargle(object):
 
         Notes
         -----
-        For normalization='psd', the distribution can only be computed for
-        periodograms constructed with errors specified.
-
         The true probability distribution for the largest peak cannot be
         determined analytically, so each method here provides an approximation
         to the value. The available methods are:
@@ -437,6 +434,9 @@ class LombScargle(object):
           effective number of independent frequencies.
         - "bootstrap" : the approximate probability based on bootstrap
           resamplings of the input data.
+
+        Note also that for normalization='psd', the distribution can only be
+        computed for periodograms constructed with errors specified.
 
         See Also
         --------
@@ -460,7 +460,7 @@ class LombScargle(object):
                                                   method=method,
                                                   method_kwds=method_kwds)
 
-    def false_alarm_level(self, power, method='baluev',
+    def false_alarm_level(self, false_alarm_probability, method='baluev',
                           samples_per_peak=5, nyquist_factor=5,
                           minimum_frequency=None, maximum_frequency=None,
                           method_kwds=None):
@@ -490,9 +490,6 @@ class LombScargle(object):
 
         Notes
         -----
-        For normalization='psd', the distribution can only be computed for
-        periodograms constructed with errors specified.
-
         The true probability distribution for the largest peak cannot be
         determined analytically, so each method here provides an approximation
         to the value. The available methods are:
@@ -504,6 +501,9 @@ class LombScargle(object):
           effective number of independent frequencies.
         - "bootstrap" : the approximate probability based on bootstrap
           resamplings of the input data.
+
+        Note also that for normalization='psd', the distribution can only be
+        computed for periodograms constructed with errors specified.
 
         See Also
         --------
