@@ -209,6 +209,9 @@ Bug Fixes
   - Fix the psd normalization for Lomb-Scargle periodograms in the presence
     of noise [#5713]
 
+  - Fix bug in the autofrequency range when ``minimum_frequency`` is specified
+    but ``maximum_frequency`` is not [#5738]
+
 - ``astropy.sphinx``
 
 - ``astropy.table``
