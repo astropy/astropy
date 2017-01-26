@@ -309,7 +309,6 @@ class Parameter(OrderedDescriptor):
 
         return self._name
 
-
     @property
     def default(self):
         """Parameter default value"""
