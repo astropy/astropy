@@ -601,6 +601,16 @@ def test_position_angle():
     assert cicrs.position_angle(cfk5) > 90.0 * u.deg
     assert cicrs.position_angle(cfk5) < 91.0 * u.deg
 
+    # regression check for bug in #5702
+    cfk5B1950 = SkyCoord(1*u.deg, 0*u.deg, frame='fk5', equinox='B1950')
+    # test with both default and explicit equinox #5722 and #3106
+    for cfk5J2000 in (SkyCoord(1*u.deg, 0*u.deg, frame='fk5', equinox='J2000'),
+                      SkyCoord(1 * u.deg, 0 * u.deg, frame='fk5')):
+        posang_forward = cfk5.position_angle(cfk5B1950)
+        posang_backward = cfk5B1950.position_angle(cfk5)
+        assert posang_forward.degree != 0 and posang_backward.degree != 0
+        assert 179 < (posang_forward - posang_backward).wrap_at(360*u.deg).degree < 181
+
 
 def test_position_angle_directly():
     """Regression check for #3800: position_angle should accept floats."""
@@ -901,6 +911,16 @@ def test_frame_attr_transform_inherit():
     c2 = c.transform_to(FK5(equinox='J1990'))
     assert c2.equinox.value == 'J1990.000'
     assert c2.obstime.value == 'J1980.000'
+
+    # The work-around for #5722
+    c  = SkyCoord(1 * u.deg, 2 * u.deg, frame='fk5')
+    c1 = SkyCoord(1 * u.deg, 2 * u.deg, frame='fk5', equinox='B1950.000')
+    c2 = c1.transform_to(c)
+    assert not c2.is_equivalent_frame(c) # counterintuitive, but documented
+    assert c2.equinox.value == 'B1950.000'
+    c3 = c1.transform_to(c, accepting_defaults=True)
+    assert c3.equinox.value == 'J2000.000'
+    assert c3.is_equivalent_frame(c)
 
 
 def test_deepcopy():
