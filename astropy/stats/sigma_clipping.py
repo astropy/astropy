@@ -4,38 +4,16 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import numpy as np
 import warnings
-from ..utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from ..utils.exceptions import AstropyUserWarning
 from ..extern.six.moves import range
 
 
 __all__ = ['sigma_clip', 'sigma_clipped_stats']
 
 
-def sigma_clip(data, **kwargs):
-    # temporary function to handle deprecated and removed keywords
-    if 'sig' in kwargs:
-        warnings.warn('The "sig" keyword is now deprecated, use the '
-                      '"sigma" keyword instead.', AstropyDeprecationWarning)
-
-        if 'sigma' not in kwargs:
-            kwargs['sigma'] = kwargs['sig']
-        else:
-            warnings.warn('Both the "sig" and "sigma" keywords were set. '
-                          'Using the value of "sigma".', AstropyUserWarning)
-        del kwargs['sig']
-
-    if 'varfunc' in kwargs:
-        raise SyntaxError('The "varfunc" keyword is no longer supported. '
-                          'Please use the "stdfunc" keyword instead.')
-
-    return _sigma_clip(data, **kwargs)
-
-
-def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
-                cenfunc=np.ma.median, stdfunc=np.std, axis=None, copy=True):
+def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
+               cenfunc=np.ma.median, stdfunc=np.std, axis=None, copy=True):
     """
-    sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5, cenfunc=np.ma.median, stdfunc=np.std, axis=None, copy=True)
-
     Perform sigma-clipping on the provided data.
 
     The data will be iterated over, each time rejecting points that are
@@ -162,6 +140,7 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
     Note that along the other axis, no points would be masked, as the
     variance is higher.
     """
+
     def perform_clip(_filtered_data, _kwargs):
         """
         Perform sigma clip by comparing the data to the minimum and maximum
@@ -169,6 +148,7 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
         sigma_upper to get the correct limits. Data values less or greater
         than the minimum / maximum values will have True set in the mask array.
         """
+
         max_value = cenfunc(_filtered_data, **_kwargs)
         std = stdfunc(_filtered_data, **_kwargs)
         min_value = max_value - std * sigma_lower
@@ -198,10 +178,8 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
     filtered_data = np.ma.array(data, copy=copy)
 
     if iters is None:
-        i = -1
         lastrej = filtered_data.count() + 1
         while filtered_data.count() != lastrej:
-            i += 1
             lastrej = filtered_data.count()
             perform_clip(filtered_data, kwargs)
     else:
@@ -213,9 +191,6 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
         filtered_data.mask = False   # .mask shape will now match .data shape
 
     return filtered_data
-
-
-sigma_clip.__doc__ = _sigma_clip.__doc__
 
 
 def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,

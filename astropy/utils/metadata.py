@@ -62,9 +62,9 @@ def common_dtype(arrs):
 
     # For string-type arrays need to explicitly fill in non-zero
     # values or the final arr_common = .. step is unpredictable.
-    for arr in arrs:
+    for i, arr in enumerate(arrs):
         if arr.dtype.kind in ('S', 'U'):
-            arr[0] = '0' * arr.itemsize
+            arrs[i] = [(u'0' if arr.dtype.kind == 'U' else b'0') * arr.itemsize]
 
     arr_common = np.array([arr[0] for arr in arrs])
     return arr_common.dtype.str

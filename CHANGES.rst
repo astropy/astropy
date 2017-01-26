@@ -20,6 +20,9 @@ New Features
 
   - Checking available disk space before writing out file. [#5550, #4065]
 
+  - Change behavior to warn about units that are not FITS-compliant when
+    writing a FITS file but not when reading. [#5675]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -27,6 +30,7 @@ New Features
 - ``astropy.io.votable``
 
 - ``astropy.modeling``
+  - Added ``SmoothlyBrokenPowerLaw1D`` model. [#5656]
 
 - ``astropy.nddata``
 
@@ -84,9 +88,16 @@ API Changes
 
 - ``astropy.stats``
 
+  - Removed the deprecated ``sig`` and ``varfunc`` keywords in the
+    ``sigma_clip`` function. [#5715]
+
 - ``astropy.sphinx``
 
 - ``astropy.table``
+  - Removed the deprecated ``data`` property of Row. [#5729]
+
+  - Removed the deprecated functions ``join``, ``hstack``, ``vstack`` and
+    ``get_groups`` from np_utils. [#5729]
 
 - ``astropy.time``
 
@@ -134,6 +145,8 @@ Bug Fixes
 - ``astropy.sphinx``
 
 - ``astropy.table``
+
+  - Fix a problem with vstack for bytes columns in Python 3. [#5628]
 
 - ``astropy.time``
 
@@ -188,10 +201,18 @@ Bug Fixes
     ``PyMem_Realloc()`` [#5696, #4739, #2100]
 
 - ``astropy.modeling``
+ 
+  - Fixed a problem with setting ``bounding_box`` on 1D models. [#5718]
 
 - ``astropy.nddata``
 
 - ``astropy.stats``
+
+  - Fix the psd normalization for Lomb-Scargle periodograms in the presence
+    of noise [#5713]
+
+  - Fix bug in the autofrequency range when ``minimum_frequency`` is specified
+    but ``maximum_frequency`` is not [#5738]
 
 - ``astropy.sphinx``
 
@@ -214,12 +235,13 @@ Bug Fixes
 
 - ``astropy.extern``
 
+  - Fixed a bug where PLY was overwriting its generated files. [#5728]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Fixed a deprecation warning that occurred when running tests with
   astropy.test(). [#5689]
-
 
 1.3 (2016-12-22)
 ----------------
@@ -437,7 +459,8 @@ API Changes
       ``create_card``, ``create_card_from_string``, ``upper_key``,
       ``Header.ascard``, ``Header.rename_key``, ``Header.get_history``,
       ``Header.get_comment``, ``Header.toTxtFile``, ``Header.fromTxtFile``,
-      ``tdump``, ``tcreate``, ``BinTableHDU.tdump``, ``BinTableHDU.tcreate``.
+      ``new_table``, ``tdump``, ``tcreate``, ``BinTableHDU.tdump``,
+      ``BinTableHDU.tcreate``.
 
     - Removed ``txtfile`` argument to the ``Header`` constructor.
 
@@ -1982,7 +2005,6 @@ Other Changes and Additions
   Python 2.6.  A deprecation warning will now be issued when using Astropy
   in Python 2.6 (this warning can be disabled through the usual Python warning
   filtering mechanisms). [#3779]
-
 
 1.0.12 (unreleased)
 -------------------
