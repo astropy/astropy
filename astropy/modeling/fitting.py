@@ -99,12 +99,23 @@ def fitter_unit_support(func):
 
         if model._supports_unit_fitting:
 
+            # TODO: avoid duplicating this code with core.py
+            # We now combine any instance-level input equivalencies with user
+            # specified ones at call-time.
+            input_units_equivalencies = {}
+            for input_name in model.inputs:
+                input_units_equivalencies[input_name] = []
+                if equivalencies is not None and input_name in equivalencies:
+                    input_units_equivalencies[input_name].extend(equivalencies[input_name])
+                if model.input_units_equivalencies is not None and input_name in model.input_units_equivalencies:
+                    input_units_equivalencies[input_name].extend(model.input_units_equivalencies[input_name])
+
             add_back_units = False
 
-            # TODO: we need to generalize the following to make sure it works
-            # for 3D models (i.e. input_units may return two units) and also
-            # we should take into account return_units. Also need to make
-            # equivalencies work for x, y, and z
+            if model.input_units is not None and (equivalencies is not None or model.input_units_equivalencies is not None):
+                x = x.to(model.input_units['x'], equivalencies=input_units_equivalencies['x'])
+                if z is not None:
+                    y = y.to(model.input_units['y'], equivalencies=input_units_equivalencies['y'])
 
             if z is None:
                 model = model.without_units_for_data(x, y)
@@ -116,13 +127,19 @@ def fitter_unit_support(func):
                 if model.input_units is None:
                     xdata = x.value
                 else:
-                    xdata = x.to(model.input_units, equivalencies=equivalencies).value
+                    xdata = x.to(model.input_units['x'])
             else:
                 xdata = np.asarray(x)
 
             if isinstance(y, Quantity):
                 add_back_units = True
-                ydata = y.value
+                if z is None:  # y is output
+                    ydata = y.value
+                else:  # y is input
+                    if model.input_units is None:
+                        ydata = y.value
+                    else:
+                        ydata = y.to(model.input_units['y'])
             else:
                 ydata = np.asarray(y)
 
