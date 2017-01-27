@@ -287,17 +287,16 @@ class Parameter(OrderedDescriptor):
         param_unit = obj._param_metrics[self.name]['orig_unit']
         if param_unit is None:
             if isinstance(value, Quantity):
-                raise UnitsError("The '{0}' parameter should be given as a "
-                                 "unitless value".format(self._name))
+                obj._param_metrics[self.name]['orig_unit'] = value.unit
         else:
-            if not isinstance(value, Quantity) or not value.unit.is_equivalent(param_unit):
+            if not isinstance(value, Quantity):
                 raise UnitsError("The '{0}' parameter should be given as a "
-                                 "Quantity with units equivalent to "
-                                 "{1}".format(self._name, param_unit))
+                                 "Quantity because it was originally initialized "
+                                 "as a Quantity".format(self._name))
             else:
-                # We need to convert the value here since the units are dropped
-                # below when setting the parameter value with np.array.
-                value = value.to(param_unit)
+                # We need to make sure we update the unit because the units are
+                # then dropped from the value below.
+                obj._param_metrics[self.name]['orig_unit'] = value.unit
 
         # Call the validator before the setter
         if self._validator is not None:
@@ -472,11 +471,6 @@ class Parameter(OrderedDescriptor):
             raise ValueError(
                 'Cannot attach units to parameters that were not initially '
                 'specified with units')
-
-        if not force and not orig_unit.is_equivalent(unit):
-            raise UnitsError("Cannot set parameter units to {0} since it is "
-                             "not equivalent with the original units of "
-                             "{1}".format(unit, orig_unit))
 
         self._model._param_metrics[self.name]['orig_unit'] = unit
 

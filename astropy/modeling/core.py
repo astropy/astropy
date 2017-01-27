@@ -666,6 +666,9 @@ class Model(object):
     # Allow dimensionless input (and corresponding output)
     input_units_allow_dimensionless = False
 
+    # Default equivalencies to apply to input values
+    input_units_equivalencies = None
+
     def __init__(self, *args, **kwargs):
         super(Model, self).__init__()
         meta = kwargs.pop('meta', None)
@@ -1295,7 +1298,7 @@ class Model(object):
             annotations.pop('return', None)
             if annotations:
                 # If there are not annotations for all inputs this will error.
-                return tuple([annotations[name] for name in self.inputs])
+                return dict((name, annotations[name]) for name in self.inputs)
         else:
             # None means any unit is accepted
             return None
@@ -1346,22 +1349,32 @@ class Model(object):
         # Check that the units are correct, if applicable
 
         if self.input_units is not None:
-            if self.n_inputs == 1 and not isiterable(self.return_units):
-                input_units = (self.input_units,)
 
-            elif len(self.input_units) != self.n_inputs:
+            if len(self.input_units) != self.n_inputs:
                 raise ValueError("Number of input units must match number of inputs")
-
             else:
                 input_units = self.input_units
 
+            # We now combine any instance-level input equivalencies with user
+            # specified ones at call-time.
+            input_units_equivalencies = {}
+            for input_name in self.inputs:
+                input_units_equivalencies[input_name] = []
+                if equivalencies is not None and input_name in equivalencies:
+                    input_units_equivalencies[input_name].extend(equivalencies[input_name])
+                if self.input_units_equivalencies is not None and input_name in self.input_units_equivalencies:
+                    input_units_equivalencies[input_name].extend(self.input_units_equivalencies[input_name])
+
             for i in range(len(inputs)):
+                input_name = self.inputs[i]
+                if self.input_units is not None:
+                    input_unit = self.input_units.get(input_name, None)
                 if isinstance(inputs[i], Quantity):
-                    if inputs[i].unit.is_equivalent(input_units[i], equivalencies=equivalencies):
-                        if equivalencies is not None or self.input_units_strict:
-                            inputs[i] = inputs[i].to(input_units[i], equivalencies=equivalencies)
+                    if inputs[i].unit.is_equivalent(input_unit, equivalencies=input_units_equivalencies[input_name]):
+                        if len(input_units_equivalencies) > 0 or self.input_units_strict:
+                            inputs[i] = inputs[i].to(input_unit, equivalencies=input_units_equivalencies[input_name])
                     else:
-                        if input_units[i] is dimensionless_unscaled:
+                        if input_unit is dimensionless_unscaled:
                             raise UnitsError("Units of input '{0}', {1} ({2}), could not be "
                                              "converted to required dimensionless "
                                              "input".format(self.inputs[i],
@@ -1373,16 +1386,17 @@ class Model(object):
                                              "{3} ({4})".format(self.inputs[i],
                                                                 inputs[i].unit,
                                                                 inputs[i].unit.physical_type,
-                                                                input_units[i],
-                                                                input_units[i].physical_type))
+                                                                input_unit,
+                                                                input_unit.physical_type))
                 else:
-                    if (not self.input_units_allow_dimensionless and
-                        input_units[i] is not dimensionless_unscaled):
+                    if self.input_units_allow_dimensionless:
+                        inputs[i] = Quantity(inputs[i], input_unit)
+                    elif input_unit is not dimensionless_unscaled:
                         if np.any(inputs[i] != 0):
                             raise UnitsError("Units of input '{0}', (dimensionless), could not be "
                                              "converted to required input units of "
-                                             "{1} ({2})".format(self.inputs[i], input_units[i],
-                                                                input_units[i].physical_type))
+                                             "{1} ({2})".format(self.inputs[i], input_unit,
+                                                                input_unit.physical_type))
 
         # The input formatting required for single models versus a multiple
         # model set are different enough that they've been split into separate
