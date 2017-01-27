@@ -177,9 +177,9 @@ from the user's perspective it is treated as a single model.  However, as this
 is the default behavior it is good to be aware of.
 
 One is also able to get the number of components (also known as submodels) in
-a compound model by accessing the property ``n_submodels``::
+a compound model by accessing the method ``n_submodels``::
 
-    >>> FourGaussians.n_submodels
+    >>> FourGaussians.n_submodels()
     4
 
 

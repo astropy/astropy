@@ -2420,7 +2420,7 @@ class _CompoundModel(Model):
     def submodel_names(self):
         return self.__class__.submodel_names
 
-    @property
+    @sharedmethod
     def n_submodels(self):
         return len(self.submodel_names)
 

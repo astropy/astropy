@@ -187,16 +187,21 @@ def test_n_submodels():
     of components.
     """
     g2 = Gaussian1D() + Gaussian1D()
-    assert g2.n_submodels == 2
+    assert g2.n_submodels() == 2
 
     g3 = g2 + Gaussian1D()
-    assert g3.n_submodels == 3
+    assert g3.n_submodels() == 3
 
     g5 = g3 | g2
-    assert g5.n_submodels == 5
+    assert g5.n_submodels() == 5
 
     g7 = g5 / g2
-    assert g7.n_submodels == 7
+    assert g7.n_submodels() == 7
+
+    # make sure it works as class method
+    p = Polynomial1D + Polynomial1D
+
+    assert p.n_submodels() == 2
 
 def test_expression_formatting():
     """
