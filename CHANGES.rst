@@ -180,6 +180,9 @@ Bug Fixes
 
 - ``astropy.convolution``
 
+  - Fixed bug in ``discretize_integrate_2D`` in which x and y coordinates
+    where swapped. [#5634]
+
 - ``astropy.coordinates``
 
   - Fixed a bug where ``get_transform`` could sometimes produce confusing errors
@@ -201,7 +204,7 @@ Bug Fixes
     ``PyMem_Realloc()`` [#5696, #4739, #2100]
 
 - ``astropy.modeling``
- 
+
   - Fixed a problem with setting ``bounding_box`` on 1D models. [#5718]
 
 - ``astropy.nddata``
