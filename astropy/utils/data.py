@@ -944,7 +944,7 @@ def check_free_space_in_dir(path, size):
                 path, human_file_size(size)))
 
 
-def download_file(remote_url, cache=False, show_progress=True, timeout=None):
+def download_file(remote_url, cache=False, show_progress=True, timeout=None, pkgname='astropy'):
     """
     Accepts a URL, downloads and optionally caches the result
     returning the filename, with a name determined by the file's MD5
@@ -967,6 +967,8 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
         The timeout, in seconds.  Otherwise, use
         `astropy.utils.data.Conf.remote_timeout`.
 
+    pkgname : TODO
+
     Returns
     -------
     local_path : str
@@ -987,7 +989,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
 
     if cache:
         try:
-            dldir, urlmapfn = _get_download_cache_locs()
+            dldir, urlmapfn = _get_download_cache_locs(pkgname)
         except OSError as e:
             msg = 'Remote data cache could not be accessed due to '
             estr = '' if len(e.args) < 1 else (': ' + str(e))
@@ -1082,7 +1084,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
     return local_path
 
 
-def is_url_in_cache(url_key):
+def is_url_in_cache(url_key, pkgname='astropy'):
     """
     Check if a download from ``url_key`` is in the cache.
 
@@ -1098,7 +1100,7 @@ def is_url_in_cache(url_key):
     """
     # The code below is modified from astropy.utils.data.download_file()
     try:
-        dldir, urlmapfn = _get_download_cache_locs()
+        dldir, urlmapfn = _get_download_cache_locs(pkgname)
     except OSError as e:
         msg = 'Remote data cache could not be accessed due to '
         estr = '' if len(e.args) < 1 else (': ' + str(e))
@@ -1112,10 +1114,10 @@ def is_url_in_cache(url_key):
 
 
 def _do_download_files_in_parallel(args):
-    return download_file(*args)
+    return download_file(*args, show_progress=False)
 
 
-def download_files_in_parallel(urls, cache=True, show_progress=True,
+def download_files_in_parallel(urls, cache=False, show_progress=True,
                                timeout=None):
     """
     Downloads multiple files in parallel from the given URLs.  Blocks until
@@ -1168,6 +1170,10 @@ def download_files_in_parallel(urls, cache=True, show_progress=True,
     else:
         progress = io.BytesIO()
 
+    if timeout is None:
+        # use configfile default
+        timeout = REMOTE_TIMEOUT()
+
     # Combine duplicate URLs
     combined_urls = list(set(urls))
     combined_paths = ProgressBar.map(
@@ -1198,7 +1204,7 @@ def _deltemps():
                 os.remove(fn)
 
 
-def clear_download_cache(hashorurl=None):
+def clear_download_cache(hashorurl=None, pkgname='astropy'):
     """ Clears the data file cache by deleting the local file(s).
 
     Parameters
@@ -1210,14 +1216,14 @@ def clear_download_cache(hashorurl=None):
     """
 
     try:
-        dldir, urlmapfn = _get_download_cache_locs()
+        dldir, urlmapfn = _get_download_cache_locs(pkgname)
     except OSError as e:
         msg = 'Not clearing data cache - cache inacessable due to '
         estr = '' if len(e.args) < 1 else (': ' + str(e))
         warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
         return
 
-    _acquire_download_cache_lock()
+    _acquire_download_cache_lock(pkgname)
     try:
         if hashorurl is None:
             # dldir includes both the download files and the urlmapfn.  This structure
@@ -1252,10 +1258,10 @@ def clear_download_cache(hashorurl=None):
     finally:
         # the lock will be gone if rmtree was used above, but release otherwise
         if os.path.exists(os.path.join(dldir, 'lock')):
-            _release_download_cache_lock()
+            _release_download_cache_lock(pkgname)
 
 
-def _get_download_cache_locs():
+def _get_download_cache_locs(pkgname='astropy'):
     """ Finds the path to the data cache directory and makes them if
     they don't exist.
 
@@ -1274,7 +1280,7 @@ def _get_download_cache_locs():
     # do whatever it wants with the filename.  Filename munging can and does happen
     # in practice).
     py_version = 'py' + str(sys.version_info.major)
-    datadir = os.path.join(get_cache_dir(), 'download', py_version)
+    datadir = os.path.join(get_cache_dir(pkgname), 'download', py_version)
     shelveloc = os.path.join(datadir, 'urlmap')
 
     if not os.path.exists(datadir):
@@ -1296,13 +1302,13 @@ def _get_download_cache_locs():
 
 # the cache directory must be locked before any writes are performed.  Same for
 # the hash shelve, so this should be used for both.
-def _acquire_download_cache_lock():
+def _acquire_download_cache_lock(pkgname='astropy'):
     """
     Uses the lock directory method.  This is good because `mkdir` is
     atomic at the system call level, so it's thread-safe.
     """
 
-    lockdir = os.path.join(_get_download_cache_locs()[0], 'lock')
+    lockdir = os.path.join(_get_download_cache_locs(pkgname)[0], 'lock')
     for i in range(conf.download_cache_lock_attempts):
         try:
             os.mkdir(lockdir)
@@ -1320,8 +1326,8 @@ def _acquire_download_cache_lock():
     raise RuntimeError(msg.format(lockdir))
 
 
-def _release_download_cache_lock():
-    lockdir = os.path.join(_get_download_cache_locs()[0], 'lock')
+def _release_download_cache_lock(pkgname='astropy'):
+    lockdir = os.path.join(_get_download_cache_locs(pkgname)[0], 'lock')
 
     if os.path.isdir(lockdir):
         # if the pid file is present, be sure to remove it

@@ -17,31 +17,31 @@ from ...utils.exceptions import AstropyDeprecationWarning
 
 
 def test_paths():
-    assert 'astropy' in paths.get_config_dir()
-    assert 'astropy' in paths.get_cache_dir()
+    assert 'astropy' in paths.get_config_dir('astropy')
+    assert 'astropy' in paths.get_cache_dir('astropy')
 
 
 def test_set_temp_config(tmpdir, monkeypatch):
     monkeypatch.setattr(paths.set_temp_config, '_temp_path', None)
 
-    orig_config_dir = paths.get_config_dir()
+    orig_config_dir = paths.get_config_dir('astropy')
     temp_config_dir = str(tmpdir.mkdir('config'))
     temp_astropy_config = os.path.join(temp_config_dir, 'astropy')
 
     # Test decorator mode
     @paths.set_temp_config(temp_config_dir)
     def test_func():
-        assert paths.get_config_dir() == temp_astropy_config
+        assert paths.get_config_dir('astropy') == temp_astropy_config
 
         # Test temporary restoration of original default
         with paths.set_temp_config() as d:
-            assert d == orig_config_dir == paths.get_config_dir()
+            assert d == orig_config_dir == paths.get_config_dir('astropy')
 
     test_func()
 
     # Test context manager mode (with cleanup)
     with paths.set_temp_config(temp_config_dir, delete=True):
-        assert paths.get_config_dir() == temp_astropy_config
+        assert paths.get_config_dir('astropy') == temp_astropy_config
 
     assert not os.path.exists(temp_config_dir)
 
@@ -49,24 +49,24 @@ def test_set_temp_config(tmpdir, monkeypatch):
 def test_set_temp_cache(tmpdir, monkeypatch):
     monkeypatch.setattr(paths.set_temp_cache, '_temp_path', None)
 
-    orig_cache_dir = paths.get_cache_dir()
+    orig_cache_dir = paths.get_cache_dir('astropy')
     temp_cache_dir = str(tmpdir.mkdir('cache'))
     temp_astropy_cache = os.path.join(temp_cache_dir, 'astropy')
 
     # Test decorator mode
     @paths.set_temp_cache(temp_cache_dir)
     def test_func():
-        assert paths.get_cache_dir() == temp_astropy_cache
+        assert paths.get_cache_dir('astropy') == temp_astropy_cache
 
         # Test temporary restoration of original default
         with paths.set_temp_cache() as d:
-            assert d == orig_cache_dir == paths.get_cache_dir()
+            assert d == orig_cache_dir == paths.get_cache_dir('astropy')
 
     test_func()
 
     # Test context manager mode (with cleanup)
     with paths.set_temp_cache(temp_cache_dir, delete=True):
-        assert paths.get_cache_dir() == temp_astropy_cache
+        assert paths.get_cache_dir('astropy') == temp_astropy_cache
 
     assert not os.path.exists(temp_cache_dir)
 
@@ -190,18 +190,18 @@ def test_config_noastropy_fallback(monkeypatch):
     monkeypatch.delenv(str('XDG_CONFIG_HOME'))
     monkeypatch.setattr(paths.set_temp_config, '_temp_path', None)
 
-    # make sure the _find_or_create_astropy_dir function fails as though the
+    # make sure the _find_or_create_root_dir function fails as though the
     # astropy dir could not be accessed
-    def osraiser(dirnm, linkto):
+    def osraiser(dirnm, linkto, pkgname=None):
         raise OSError
-    monkeypatch.setattr(paths, '_find_or_create_astropy_dir', osraiser)
+    monkeypatch.setattr(paths, '_find_or_create_root_dir', osraiser)
 
     # also have to make sure the stored configuration objects are cleared
     monkeypatch.setattr(configuration, '_cfgobjs', {})
 
     with pytest.raises(OSError):
         # make sure the config dir search fails
-        paths.get_config_dir()
+        paths.get_config_dir('astropy')
 
     # now run the basic tests, and make sure the warning about no astropy
     # is present
