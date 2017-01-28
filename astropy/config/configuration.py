@@ -685,7 +685,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
     # spamming `~/.astropy/config`.
     if 'dev' not in version and cfgfn is not None:
         template_path = path.join(
-            get_config_dir(), f'{pkg}.{version}.cfg')
+            get_config_dir(pkg), f'{pkg}.{version}.cfg')
         needs_template = not path.exists(template_path)
     else:
         needs_template = False
