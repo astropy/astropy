@@ -71,18 +71,17 @@ class TransformGraph(object):
         return self._cached_frame_set.copy()
 
     @property
-    def frame_attrnames_set(self):
+    def frame_attributes(self):
         """
-        A `frozenset` of all the attribute names of all frame classes in this `TransformGraph`.
+        A `dict` of all the attributes of all frame classes in this `TransformGraph`.
         """
-        if self._cached_frame_attrnames_set is None:
-            result = set()
+        if self._cached_frame_attributes is None:
+            result = {}
             for frame_cls in self.frame_set:
-                for attr in frame_cls.get_frame_attr_names().keys():
-                    result.add(attr)
-            self._cached_frame_attrnames_set = frozenset(result)
+                result.update(frame_cls.frame_attributes)
+            self._cached_frame_attributes = result
 
-        return self._cached_frame_attrnames_set
+        return self._cached_frame_attributes
 
     def invalidate_cache(self):
         """
@@ -93,7 +92,7 @@ class TransformGraph(object):
         """
         self._cached_names_dct = None
         self._cached_frame_set = None
-        self._cached_frame_attrnames_set = None
+        self._cached_frame_attributes = None
         self._shortestpaths = {}
         self._composite_cache = {}
 

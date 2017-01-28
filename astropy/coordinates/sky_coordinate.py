@@ -71,7 +71,7 @@ class SkyCoordInfo(MixinInfo):
     def _represent_as_dict(self):
         obj = self._parent
         attrs = list(obj.representation_component_names)
-        attrs += list(frame_transform_graph.frame_attrnames_set)
+        attrs += list(frame_transform_graph.frame_attributes.keys())
         out = _get_obj_attrs_map(obj, attrs)
 
         # Don't output distance if it is all unitless 1.0
@@ -200,7 +200,7 @@ class SkyCoord(ShapedLikeNDArray):
         kwargs = self._parse_inputs(args, kwargs)
 
         # Set internal versions of object state attributes
-        for attr in frame_transform_graph.frame_attrnames_set:
+        for attr in frame_transform_graph.frame_attributes:
             setattr(self, '_' + attr, kwargs[attr])
 
         frame = kwargs['frame']
@@ -294,7 +294,7 @@ class SkyCoord(ShapedLikeNDArray):
         if 'representation' in kwargs:
             valid_kwargs['representation'] = _get_repr_cls(kwargs.pop('representation'))
 
-        for attr in frame_transform_graph.frame_attrnames_set:
+        for attr in frame_transform_graph.frame_attributes:
             valid_kwargs[attr] = kwargs.pop(attr, None)
 
         # Get units
@@ -406,7 +406,7 @@ class SkyCoord(ShapedLikeNDArray):
             new_frame_cls = frame.__class__
             # Get frame attributes, allowing defaults to be overridden by
             # explicitly set attributes of the source if ``merge_attributes``.
-            for attr in frame_transform_graph.frame_attrnames_set:
+            for attr in frame_transform_graph.frame_attributes:
                 self_val = getattr(self, attr, None)
                 frame_val = getattr(frame, attr, None)
                 if (frame_val is not None and not
@@ -453,7 +453,7 @@ class SkyCoord(ShapedLikeNDArray):
             # Anything in the set of all possible frame_attr_names is handled
             # here. If the attr is relevant for the current frame then delegate
             # to self.frame otherwise get it from self._<attr>.
-            if attr in frame_transform_graph.frame_attrnames_set:
+            if attr in frame_transform_graph.frame_attributes:
                 if attr in self.frame.get_frame_attr_names():
                     return getattr(self.frame, attr)
                 else:
@@ -497,7 +497,7 @@ class SkyCoord(ShapedLikeNDArray):
             if frame_cls is not None and self.frame.is_transformable_to(frame_cls):
                 raise AttributeError("'{0}' is immutable".format(attr))
 
-        if attr in attr in frame_transform_graph.frame_attrnames_set:
+        if attr in attr in frame_transform_graph.frame_attributes:
             # All possible frame attributes can be set, but only via a private
             # variable.  See __getattr__ above.
             attr = '_' + attr
@@ -524,7 +524,7 @@ class SkyCoord(ShapedLikeNDArray):
         dir_values.update(set(attr for attr in dir(self.frame) if not attr.startswith('_')))
 
         # Add all possible frame attributes
-        dir_values.update(frame_transform_graph.frame_attrnames_set)
+        dir_values.update(frame_transform_graph.frame_attributes.keys())
 
         return dir_values
 
@@ -637,7 +637,7 @@ class SkyCoord(ShapedLikeNDArray):
             if other.frame.name != self.frame.name:
                 return False
 
-            for fattrnm in frame_transform_graph.frame_attrnames_set:
+            for fattrnm in frame_transform_graph.frame_attributes:
                 if getattr(self, fattrnm) != getattr(other, fattrnm):
                     return False
             return True
@@ -1481,7 +1481,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             # Get the value from `data` in the eventual representation
             values.append(getattr(data, repr_attr_name))
 
-        for attr in frame_transform_graph.frame_attrnames_set:
+        for attr in frame_transform_graph.frame_attributes:
             value = getattr(coords, attr, None)
             use_value = (isinstance(coords, SkyCoord)
                          or attr not in coords._attr_names_with_defaults)
@@ -1521,7 +1521,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
 
             # get the frame attributes from the first one, because from above we
             # know it matches all the others
-            for fattrnm in frame_transform_graph.frame_attrnames_set:
+            for fattrnm in frame_transform_graph.frame_attributes:
                 valid_kwargs[fattrnm] = getattr(scs[0], fattrnm)
 
             # Now combine the values, to be used below
