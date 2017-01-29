@@ -1,5 +1,6 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 
+import copy
 import re
 import collections
 import warnings
@@ -200,11 +201,12 @@ class SkyCoord(ShapedLikeNDArray):
         kwargs = self._parse_inputs(args, kwargs)
 
         # Set internal versions of object state attributes
-        for attr in kwargs:
-            if attr in frame_transform_graph.frame_attributes:
-                setattr(self, '_' + attr, kwargs[attr])
-                # Validate it
-                frame_transform_graph.frame_attributes[attr].__get__(self)
+        self._extra_attr_names = [attr for attr in kwargs if attr in
+                                  frame_transform_graph.frame_attributes]
+        for attr in self._extra_attr_names:
+            setattr(self, '_' + attr, kwargs[attr])
+            # Validate it
+            frame_transform_graph.frame_attributes[attr].__get__(self)
 
         frame = kwargs['frame']
         coord_kwargs = {}
@@ -262,6 +264,14 @@ class SkyCoord(ShapedLikeNDArray):
         kwargs : dict
             Any keyword arguments for ``method``.
         """
+        def apply_method(value):
+            if isinstance(value, ShapedLikeNDArray):
+                return value._apply(method, *args, **kwargs)
+            else:
+                if callable(method):
+                    return method(value, *args, **kwargs)
+                else:
+                    return getattr(value, method)(*args, **kwargs)
 
         self_frame = self._sky_coord_frame
         try:
@@ -269,6 +279,16 @@ class SkyCoord(ShapedLikeNDArray):
             # this to get all the right attributes
             self._sky_coord_frame = self_frame._apply(method, *args, **kwargs)
             out = SkyCoord(self, representation=self.representation, copy=False)
+            for attr in self._extra_attr_names:
+                value = getattr(self, attr)
+                if getattr(value, 'size', 1) > 1:
+                    value = apply_method(value)
+                elif method == 'copy' or method == 'flatten':
+                    # flatten should copy also for a single element array, but
+                    # we cannot use it directly for array scalars, since it
+                    # always returns a one-dimensional array. So, just copy.
+                    value = copy.copy(value)
+                setattr(out, '_' + attr, value)
 
             # Copy other 'info' attr only if it has actually been defined.
             # See PR #3898 for further explanation and justification, along

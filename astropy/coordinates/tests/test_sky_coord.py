@@ -1344,3 +1344,18 @@ def test_set_attribute_exceptions():
     sc.relative_humidity = 0.5
     assert sc.relative_humidity == 0.5
     assert not hasattr(sc.frame, 'relative_humidity')
+
+
+def test_extra_attributes():
+    """Ensure any extra attributes are dealt with correctly.
+
+    Regression test against #5743.
+    """
+    obstime_string = ['2017-01-01T00:00','2017-01-01T00:10']
+    obstime = Time(obstime_string)
+    sc = SkyCoord([5, 10], [20, 30], unit=u.deg, obstime=obstime_string)
+    assert not hasattr(sc.frame, 'obstime')
+    assert sc.obstime.shape == (2,)
+    assert np.all(sc.obstime == obstime)
+    sc_1 = sc[1]
+    assert sc_1.obstime == obstime[1]
