@@ -1355,7 +1355,10 @@ def test_extra_attributes():
     obstime = Time(obstime_string)
     sc = SkyCoord([5, 10], [20, 30], unit=u.deg, obstime=obstime_string)
     assert not hasattr(sc.frame, 'obstime')
+    assert type(sc.obstime) is Time
     assert sc.obstime.shape == (2,)
     assert np.all(sc.obstime == obstime)
+    # ensure equivalency still works for more than one obstime.
+    assert sc.is_equivalent_frame(sc)
     sc_1 = sc[1]
     assert sc_1.obstime == obstime[1]
