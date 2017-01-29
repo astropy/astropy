@@ -121,9 +121,9 @@ def test_round_tripping(frame0, frame1, equinox0, equinox1, obstime0, obstime1):
         assert allclose(sc.ra, sc_rt.ra)
         assert allclose(sc.dec, sc_rt.dec)
     if equinox0:
-        assert Time(sc.equinox) == Time(sc_rt.equinox)
+        assert type(sc.equinox) is Time and sc.equinox == sc_rt.equinox
     if obstime0:
-        assert Time(sc.obstime) == Time(sc_rt.obstime)
+        assert type(sc.obstime) is Time and sc.obstime == sc_rt.obstime
 
 
 def test_coord_init_string():

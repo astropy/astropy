@@ -200,8 +200,10 @@ class SkyCoord(ShapedLikeNDArray):
         kwargs = self._parse_inputs(args, kwargs)
 
         # Set internal versions of object state attributes
-        for attr in frame_transform_graph.frame_attributes:
-            setattr(self, '_' + attr, kwargs[attr])
+        for name, attribute in frame_transform_graph.frame_attributes.items():
+            setattr(self, '_' + name, kwargs[name])
+            # Validate it
+            attribute.__get__(self)
 
         frame = kwargs['frame']
         coord_kwargs = {}
