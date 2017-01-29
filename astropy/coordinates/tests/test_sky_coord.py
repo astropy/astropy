@@ -1293,3 +1293,14 @@ def test_cache_clear_sc():
     i.cache.clear()
 
     assert len(i.cache['representation']) == 0
+
+
+def test_set_attribute_exceptions():
+    """Ensure no attrbute for any frame can be set directly.
+
+    Even if the current frame does not have it."""
+    sc = SkyCoord(1.*u.deg, 2.*u.deg, frame='fk5')
+    with pytest.raises(AttributeError):
+        sc.equinox = 'B1950'
+    with pytest.raises(AttributeError):
+        sc.relative_humidity = 0.1
