@@ -201,6 +201,10 @@ Bug Fixes
   - Fixed a bug where ``get_transform`` could sometimes produce confusing errors
     because of a typo in the input validation. [#5645]
 
+  - Ensured that frame attributes cannot be set on ``SkyCoord``, even if the
+    current frame does not have them (e.g., setting ``relative_humidity`` on an
+    ICRS ``SkyCoord`` is now properly captured). [#5750]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
