@@ -1362,3 +1362,14 @@ def test_extra_attributes():
     assert sc.is_equivalent_frame(sc)
     sc_1 = sc[1]
     assert sc_1.obstime == obstime[1]
+    # Transforming to FK4 should use sc.obstime.
+    sc_fk4 = sc.transform_to('fk4')
+    assert np.all(sc_fk4.frame.obstime == obstime)
+    # And transforming back should not loose it.
+    sc2 = sc_fk4.transform_to('icrs')
+    assert not hasattr(sc2.frame, 'obstime')
+    assert np.all(sc2.obstime == obstime)
+    # Finally, ensure obstime get taken from the SkyCoord if passed in directly.
+    # (regression test for #5749).
+    sc3 = SkyCoord([0., 1.], [2., 3.], unit='deg', frame=sc)
+    assert np.all(sc3.obstime == obstime)

@@ -200,15 +200,16 @@ class SkyCoord(ShapedLikeNDArray):
         copy = kwargs.pop('copy', True)
         kwargs = self._parse_inputs(args, kwargs)
 
+        frame = kwargs['frame']
         # Set internal versions of object state attributes
         self._extra_attr_names = [attr for attr in kwargs if attr in
-                                  frame_transform_graph.frame_attributes]
+                                  frame_transform_graph.frame_attributes and
+                                  attr not in frame.get_frame_attr_names()]
         for attr in self._extra_attr_names:
             setattr(self, '_' + attr, kwargs[attr])
             # Validate it
             frame_transform_graph.frame_attributes[attr].__get__(self)
 
-        frame = kwargs['frame']
         coord_kwargs = {}
         if 'representation' in kwargs:
             coord_kwargs['representation'] = _get_repr_cls(kwargs['representation'])
@@ -1357,6 +1358,9 @@ def _get_frame(args, kwargs):
     # make it into a class.
 
     if isinstance(frame, SkyCoord):
+        # Copy any extra attributes if they are not explicitly given.
+        for attr in frame._extra_attr_names:
+            kwargs.setdefault(attr, getattr(frame, attr))
         frame = frame.frame
 
     if isinstance(frame, BaseCoordinateFrame):
