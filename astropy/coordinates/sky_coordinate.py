@@ -200,10 +200,11 @@ class SkyCoord(ShapedLikeNDArray):
         kwargs = self._parse_inputs(args, kwargs)
 
         # Set internal versions of object state attributes
-        for name, attribute in frame_transform_graph.frame_attributes.items():
-            setattr(self, '_' + name, kwargs[name])
-            # Validate it
-            attribute.__get__(self)
+        for attr in kwargs:
+            if attr in frame_transform_graph.frame_attributes:
+                setattr(self, '_' + attr, kwargs[attr])
+                # Validate it
+                frame_transform_graph.frame_attributes[attr].__get__(self)
 
         frame = kwargs['frame']
         coord_kwargs = {}
@@ -297,7 +298,8 @@ class SkyCoord(ShapedLikeNDArray):
             valid_kwargs['representation'] = _get_repr_cls(kwargs.pop('representation'))
 
         for attr in frame_transform_graph.frame_attributes:
-            valid_kwargs[attr] = kwargs.pop(attr, None)
+            if attr in kwargs:
+                valid_kwargs[attr] = kwargs.pop(attr)
 
         # Get units
         units = _get_units(args, kwargs)
@@ -459,17 +461,7 @@ class SkyCoord(ShapedLikeNDArray):
                 if attr in self.frame.get_frame_attr_names():
                     return getattr(self.frame, attr)
                 else:
-                    try:
-                        return getattr(self, '_' + attr)
-                    except AttributeError:
-                        # this can happen because frame_attrnames_set is
-                        # dynamic.  So if a frame is added to the transform
-                        # graph after this SkyCoord was created, the "real"
-                        # underlying attribute - e.g. `_equinox` does not exist
-                        # on the SkyCoord.  So we add this case to just use
-                        # None, as it wouldn't have been possible for the user
-                        # to have set the value until the frame existed anyway
-                        return None
+                    return getattr(self, '_' + attr, None)
 
             # Some attributes might not fall in the above category but still
             # are available through self._sky_coord_frame.
