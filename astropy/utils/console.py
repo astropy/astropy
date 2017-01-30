@@ -25,52 +25,6 @@ try:
 except ImportError:
     _CAN_RESIZE_TERMINAL = False
 
-try:
-    from IPython import get_ipython
-except ImportError:
-    pass
-try:
-    get_ipython()
-except NameError:
-    OutStream = None
-    IPythonIOStream = None
-else:
-    from IPython import version_info
-    ipython_major_version = version_info[0]
-
-    try:
-        from ipykernel.iostream import OutStream
-    except ImportError:
-        try:
-            from IPython.zmq.iostream import OutStream
-        except ImportError:
-            if ipython_major_version < 4:
-                try:
-                    from IPython.kernel.zmq.iostream import OutStream
-                except ImportError:
-                    OutStream = None
-            else:
-                OutStream = None
-
-
-    if OutStream is not None:
-        from IPython.utils import io as ipyio
-        # On Windows in particular this is necessary, as the io.stdout stream
-        # in IPython gets hooked up to some pyreadline magic to handle colors
-        IPythonIOStream = ipyio.IOStream
-    else:
-        OutStream = None
-        IPythonIOStream = None
-
-    # On Windows, in IPython 2 the standard I/O streams will wrap
-    # pyreadline.Console objects if pyreadline is available; this should
-    # be considered a TTY
-    try:
-        from pyreadyline.console import Console as PyreadlineConsole
-    except ImportError:
-        # Just define a dummy class
-        class PyreadlineConsole(object): pass
-
 from ..extern import six
 from ..extern.six.moves import range
 from .. import conf
@@ -84,6 +38,30 @@ __all__ = [
     'terminal_size']
 
 _DEFAULT_ENCODING = 'utf-8'
+
+
+def _get_out_stream():
+    try:
+        from IPython import get_ipython
+    except ImportError:
+        pass
+    try:
+        get_ipython()
+    except NameError:
+        return None
+
+    try:
+        from ipykernel.iostream import OutStream
+    except ImportError:
+        try:
+            from IPython.zmq.iostream import OutStream
+        except ImportError:  # ipython < 4
+            try:
+                from IPython.kernel.zmq.iostream import OutStream
+            except ImportError:
+                return None
+
+    return OutStream
 
 
 def _get_stdout(stderr=False):
@@ -102,13 +80,17 @@ def _get_stdout(stderr=False):
         stream = 'stdout'
 
     sys_stream = getattr(sys, stream)
+    if _get_out_stream() is None or not isatty(sys_stream):
+        return sys_stream
 
-    if IPythonIOStream is None:
+    # We're in ipython and our system stream is an atty.
+    from IPython.utils import io as ipyio
+    if ipyio.IOStream is None:
         return sys_stream
 
     ipyio_stream = getattr(ipyio, stream)
 
-    if isatty(sys_stream) and isatty(ipyio_stream):
+    if isatty(ipyio_stream):
         # Use the IPython console output stream
         return ipyio_stream
     else:
@@ -131,15 +113,33 @@ def isatty(file):
 
     if hasattr(file, 'isatty'):
         return file.isatty()
-    elif (OutStream is not None and
-          isinstance(file, (OutStream, IPythonIOStream)) and
-          ((hasattr(file, 'name') and file.name == 'stdout') or
-           (hasattr(file, 'stream') and
-               isinstance(file.stream, PyreadlineConsole)))):
-        # File is an IPython OutStream or IOStream and
-        #    File name is 'stdout' or
-        #    File wraps a Console
+
+    OutStream = _get_out_stream()
+    if OutStream is None:
+        return False
+
+    if not isinstance(file, OutStream):
+        from IPython.utils import io as ipyio
+        if not isinstance(file, ipyio.IOStream):
+            return False
+
+    # File is an IPython OutStream or IOStream.  Check whether:
+    # - File name is 'stdout'; or
+    # - File wraps a Console
+    if hasattr(file, 'name') and file.name == 'stdout':
         return True
+
+    if hasattr(file, 'stream'):
+        # On Windows, in IPython 2 the standard I/O streams will wrap
+        # pyreadline.Console objects if pyreadline is available; this should
+        # be considered a TTY.
+        try:
+            from pyreadyline.console import Console as PyreadlineConsole
+        except ImportError:
+            return False
+
+        return isinstance(file.stream, PyreadlineConsole)
+
     return False
 
 
@@ -223,7 +223,7 @@ def _color_text(text, color):
         'lightcyan': '1;36',
         'white': '1;37'}
 
-    if sys.platform == 'win32' and OutStream is None:
+    if sys.platform == 'win32' and _get_out_stream() is None:
         # On Windows do not colorize text unless in IPython
         return text
 
@@ -255,14 +255,16 @@ def _write_with_fallback(s, write, fileobj):
     of a UnicodeEncodeError.  Failing that attempt to write with 'utf-8' or
     'latin-1'.
     """
-
-    if IPythonIOStream is not None and isinstance(fileobj, IPythonIOStream):
-        # If the output stream is an IPython.utils.io.IOStream object that's
-        # not going to be very helpful to us since it doesn't raise any
-        # exceptions when an error occurs writing to its underlying stream.
-        # There's no advantage to us using IOStream.write directly though;
-        # instead just write directly to its underlying stream:
-        write = fileobj.stream.write
+    if _get_out_stream() is not None:
+        from IPython.utils import io as ipyio
+        IPythonIOStream = ipyio.IOStream
+        if IPythonIOStream is not None and isinstance(fileobj, IPythonIOStream):
+            # If the output stream is an IPython.utils.io.IOStream object that's
+            # not going to be very helpful to us since it doesn't raise any
+            # exceptions when an error occurs writing to its underlying stream.
+            # There's no advantage to us using IOStream.write directly though;
+            # instead just write directly to its underlying stream:
+            write = fileobj.stream.write
 
     try:
         write(s)
