@@ -3,15 +3,20 @@
 Tools for computing velocities and velocity corrections using Astropy
 coordinates and related machinery.
 """
-
-__all__ = ['helio_corr']
-
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+from .. import units as u
+
 from .solar_system import get_body_barycentric_posvel
 from .matrix_utilities import matrix_product
-from .representation import CartesianRepresentation
+from .representation import CartesianRepresentation, UnitSphericalRepresentation
+from .builtin_frames import GCRS
+
+
+__all__ = ['helio_corr', 'helio_vector']
+
+KPS = u.km/u.s
 
 def helio_vector(t, loc):
     """
@@ -32,7 +37,7 @@ def helio_vector(t, loc):
     gcrs_p, gcrs_v = loc.get_gcrs_posvel(t)
 
     vsuntargxyz = vsunearth.xyz + gcrs_v.xyz
-    return CartesianRepresentation(vsuntargxyz.to(u.km/u.s))
+    return CartesianRepresentation(vsuntargxyz.to(KPS))
 
 
 def helio_corr(t, loc, target):
@@ -58,6 +63,7 @@ def helio_corr(t, loc, target):
     vsuntarg_cartrepr = helio_vector(t, loc)
     gcrs_p, _ = loc.get_gcrs_posvel(t)
 
-    gtarg = target.transform_to(coordinates.GCRS(obstime=t, obsgeoloc=gcrs_p))
-    targxyz = gtarg.represent_as(coordinates.UnitSphericalRepresentation).to_cartesian().xyz
+    gtarg = target.transform_to(GCRS(obstime=t, obsgeoloc=gcrs_p))
+    targxyz = gtarg.represent_as(UnitSphericalRepresentation).to_cartesian().xyz
+    
     return matrix_product(vsuntarg_cartrepr.xyz, targxyz)
