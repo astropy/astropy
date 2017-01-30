@@ -55,7 +55,10 @@ def _get_out_stream():
     except ImportError:
         try:
             from IPython.zmq.iostream import OutStream
-        except ImportError:  # ipython < 4
+        except ImportError:
+            from IPython import version_info
+            if version_info[0] >= 4:
+                return None
             try:
                 from IPython.kernel.zmq.iostream import OutStream
             except ImportError:
