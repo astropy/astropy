@@ -65,5 +65,10 @@ def helio_corr(t, loc, target):
 
     gtarg = target.transform_to(GCRS(obstime=t, obsgeoloc=gcrs_p))
     targxyz = gtarg.represent_as(UnitSphericalRepresentation).to_cartesian().xyz
-    
-    return matrix_product(vsuntarg_cartrepr.xyz, targxyz)
+
+    res = matrix_product(vsuntarg_cartrepr.xyz, targxyz)
+
+    if hasattr(res, 'unit'):
+        return res
+    else:  # for unclear reasons, matrix_product here drops the unit for scalars
+        return res*KPS
