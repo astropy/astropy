@@ -237,6 +237,9 @@ Bug Fixes
 
 - ``astropy.utils``
 
+  - Avoid importing ``ipython`` in ``utils.console`` until it is necessary, to
+    prevent deprecation warnings when importing, e.g., ``Column``. [#5755]
+
 - ``astropy.visualization``
 
   - Avoid importing matplotlib.pyplot when importing
