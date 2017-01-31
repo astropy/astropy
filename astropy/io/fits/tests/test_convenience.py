@@ -47,6 +47,11 @@ class TestConvenience(FitsTestCase):
         table = Table([[1, 2, 3], ['a', 'b', 'c'], [2.3, 4.5, 6.7]],
                       names=['a', 'b', 'c'], dtype=['i', 'U1', 'f'])
         hdu = fits.table_to_hdu(table)
+
+        # Check that TUNITn cards appear in the correct order
+        # (https://github.com/astropy/astropy/pull/5720)
+        assert hdu.header.index('TUNIT1') < hdu.header.index('TTYPE2')
+
         assert isinstance(hdu, fits.BinTableHDU)
         filename = str(tmpdir.join('test_table_to_hdu.fits'))
         hdu.writeto(filename, overwrite=True)
