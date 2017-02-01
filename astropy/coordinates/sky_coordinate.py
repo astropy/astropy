@@ -996,11 +996,11 @@ class SkyCoord(ShapedLikeNDArray):
         Notes
         -----
         Returned SkyCoord frame retains only those parameters specific
-        to the frame type.  (e.g. if the input frame is `ICRS`, an `equinox`
-        value will be retained, but an `obstime` will not.)
+        to the frame type.  (e.g. if the input frame is `~astropy.coordinates.ICRS`, an ``equinox``
+        value will be retained, but an ``obstime`` will not.)
 
-        For a more complete set of transform offsets, use the `WCS` framework.
-        `SkyOffsetFrame` can also be used to create a spherical frame with
+        For a more complete set of transform offsets, use the `~astropy.wcs.WCS` framework.
+        `~astropy.coordinates.SkyCoord` can also be used to create a spherical frame with
         (lat=0,lon=0) at a reference point, approximating an xy cartesian
         system for small offsets.
 
