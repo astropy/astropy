@@ -1369,7 +1369,10 @@ def test_extra_attributes():
     sc2 = sc_fk4.transform_to('icrs')
     assert not hasattr(sc2.frame, 'obstime')
     assert np.all(sc2.obstime == obstime)
-    # Finally, ensure obstime get taken from the SkyCoord if passed in directly.
+    # Ensure obstime get taken from the SkyCoord if passed in directly.
     # (regression test for #5749).
     sc3 = SkyCoord([0., 1.], [2., 3.], unit='deg', frame=sc)
     assert np.all(sc3.obstime == obstime)
+    # Finally, check that we can delete such attributes.
+    del sc3.obstime
+    assert sc3.obstime is None
