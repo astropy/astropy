@@ -201,13 +201,14 @@ class SkyCoord(ShapedLikeNDArray):
         kwargs = self._parse_inputs(args, kwargs)
 
         frame = kwargs['frame']
+        frame_attr_names = frame.get_frame_attr_names()
         # Set internal versions of object state attributes
-        self._extra_attr_names = [attr for attr in kwargs if attr in
-                                  frame_transform_graph.frame_attributes and
-                                  attr not in frame.get_frame_attr_names()]
-        for attr in self._extra_attr_names:
-            # Setting it will also validate it.
-            setattr(self, attr, kwargs[attr])
+        self._extra_attr_names = set()
+        for attr in kwargs:
+            if (attr not in frame_attr_names and
+                attr in frame_transform_graph.frame_attributes):
+                # Setting it will also validate it.
+                setattr(self, attr, kwargs[attr])
 
         coord_kwargs = {}
         if 'representation' in kwargs:
@@ -511,16 +512,44 @@ class SkyCoord(ShapedLikeNDArray):
             if frame_cls is not None and self.frame.is_transformable_to(frame_cls):
                 raise AttributeError("'{0}' is immutable".format(attr))
 
-        if attr in attr in frame_transform_graph.frame_attributes:
+        if attr in frame_transform_graph.frame_attributes:
             # All possible frame attributes can be set, but only via a private
             # variable.  See __getattr__ above.
             super(SkyCoord, self).__setattr__('_' + attr, val)
             # Validate it
             frame_transform_graph.frame_attributes[attr].__get__(self)
+            # And add to set of extra attributes
+            self._extra_attr_names |= {attr}
 
         else:
             # Otherwise, do the standard Python attribute setting
             super(SkyCoord, self).__setattr__(attr, val)
+
+    def __delattr__(self, attr):
+        # mirror __setattr__ above
+        if '_sky_coord_frame' in self.__dict__:
+            if self.frame.name == attr:
+                raise AttributeError("'{0}' is immutable".format(attr))
+
+            if not attr.startswith('_') and hasattr(self._sky_coord_frame,
+                                                    attr):
+                delattr(self._sky_coord_frame, attr)
+                return
+
+            frame_cls = frame_transform_graph.lookup_name(attr)
+            if frame_cls is not None and self.frame.is_transformable_to(frame_cls):
+                raise AttributeError("'{0}' is immutable".format(attr))
+
+        if attr in frame_transform_graph.frame_attributes:
+            # All possible frame attributes can be deleted, but need to remove
+            # the corresponding private variable.  See __getattr__ above.
+            super(SkyCoord, self).__delattr__('_' + attr)
+            # Also remove it from the set of extra attributes
+            self._extra_attr_names -= {attr}
+
+        else:
+            # Otherwise, do the standard Python attribute setting
+            super(SkyCoord, self).__delattr__(attr)
 
     @override__dir__
     def __dir__(self):
