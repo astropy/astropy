@@ -4,6 +4,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import inspect
 import os
+import copy
 import shlex
 import sys
 import tempfile
@@ -117,7 +118,9 @@ class TestRunnerBase(object):
             # going to error unless the method is just doing `return
             # NotImplemented`.
             try:
-                if func(None, None, None) is NotImplemented:
+                # Second argument is False, as it is normally a bool.
+                # The other two are placeholders for objects.
+                if func(None, False, None) is NotImplemented:
                     continue
             except:
                 pass
@@ -138,12 +141,14 @@ class TestRunnerBase(object):
 
     def _generate_args(self, **kwargs):
         # Update default values with passed kwargs
-        self.keywords.update(kwargs)
+        # but don't modify the defaults
+        keywords = copy.deepcopy(self.keywords)
+        keywords.update(kwargs)
         # Iterate through the keywords (in order of priority)
         args = []
-        for keyword in self.keywords.keys():
+        for keyword in keywords.keys():
             func = getattr(self, keyword)
-            result = func(self.keywords[keyword], self.keywords)
+            result = func(keywords[keyword], self.keywords)
 
             # Allow disabaling of options in a subclass
             if result is NotImplemented:
