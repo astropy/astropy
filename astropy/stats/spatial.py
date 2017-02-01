@@ -192,7 +192,8 @@ class RipleysKEstimator(object):
             Usually, it's common to consider max(radii) < (area/2)**0.5.
         mode : str
             Keyword which indicates the method for edge effects correction.
-            Available methods are 'none', 'translation', 'ohser', 'var-width'.
+            Available methods are 'none', 'translation', 'ohser', 'var-width',
+            and 'ripley'.
 
             * 'none'
                 this method does not take into account any edge effects
