@@ -109,6 +109,20 @@ class TestRunnerBase(object):
         cls.keywords = OrderedDict()
         doc_keywords = ""
         for name, func in sorted_keywords:
+            # Here we test if the function has been overloaded to return
+            # NotImplemented which is the way to disable arguments on
+            # subclasses. If it has been disabled we need to remove it from the
+            # default keywords dict. We do it in the try except block because
+            # we do not have access to an instance of the class, so this is
+            # going to error unless the method is just doing `return
+            # NotImplemented`.
+            try:
+                if func(None, None, None) is NotImplemented:
+                    continue
+            except:
+                pass
+
+            # Construct the default kwargs dict and docstring
             cls.keywords[name] = func._default_value
             if func.__doc__:
                 doc_keywords += ' '*8
