@@ -206,9 +206,8 @@ class SkyCoord(ShapedLikeNDArray):
                                   frame_transform_graph.frame_attributes and
                                   attr not in frame.get_frame_attr_names()]
         for attr in self._extra_attr_names:
-            setattr(self, '_' + attr, kwargs[attr])
-            # Validate it
-            frame_transform_graph.frame_attributes[attr].__get__(self)
+            # Setting it will also validate it.
+            setattr(self, attr, kwargs[attr])
 
         coord_kwargs = {}
         if 'representation' in kwargs:
@@ -515,10 +514,13 @@ class SkyCoord(ShapedLikeNDArray):
         if attr in attr in frame_transform_graph.frame_attributes:
             # All possible frame attributes can be set, but only via a private
             # variable.  See __getattr__ above.
-            attr = '_' + attr
+            super(SkyCoord, self).__setattr__('_' + attr, val)
+            # Validate it
+            frame_transform_graph.frame_attributes[attr].__get__(self)
 
-        # Otherwise, do the standard Python attribute setting
-        super(SkyCoord, self).__setattr__(attr, val)
+        else:
+            # Otherwise, do the standard Python attribute setting
+            super(SkyCoord, self).__setattr__(attr, val)
 
     @override__dir__
     def __dir__(self):
