@@ -1298,9 +1298,13 @@ def test_cache_clear_sc():
 def test_set_attribute_exceptions():
     """Ensure no attrbute for any frame can be set directly.
 
-    Even if the current frame does not have it."""
+    Though it is fine if the current frame does not have it."""
     sc = SkyCoord(1.*u.deg, 2.*u.deg, frame='fk5')
+    assert hasattr(sc.frame, 'equinox')
     with pytest.raises(AttributeError):
         sc.equinox = 'B1950'
-    with pytest.raises(AttributeError):
-        sc.relative_humidity = 0.1
+
+    assert sc.relative_humidity is None
+    sc.relative_humidity = 0.5
+    assert sc.relative_humidity == 0.5
+    assert not hasattr(sc.frame, 'relative_humidity')
