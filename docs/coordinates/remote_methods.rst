@@ -12,9 +12,9 @@ The first is the :class:`~astropy.coordinates.SkyCoord` :meth:`~astropy.coordina
 for a particular named object::
 
     >>> from astropy.coordinates import SkyCoord
-    >>> SkyCoord.from_name("M42")  # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> SkyCoord.from_name("PSR J1012+5307")  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
-        ( 83.82208, -5.39111)>
+        ( 153.1393271,  53.117343)>
 
 The second is the :class:`~astropy.coordinates.EarthLocation` :meth:`~astropy.coordinates.EarthLocation.of_site` method, which
 provides a similar quick way to get an
