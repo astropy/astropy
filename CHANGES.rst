@@ -205,6 +205,8 @@ Bug Fixes
     current ``frame`` (but are valid for other frames) are stored on the
     ``SkyCoord`` instance instead of the underlying ``frame`` instance (e.g.,
     setting ``relative_humidity`` on an ICRS ``SkyCoord`` instance.) [#5750]
+  - Ensured that ``position_angle`` and ``separation`` give correct answers for
+    frames with different equinox (see #5722). [#5762]
 
 - ``astropy.cosmology``
 
