@@ -682,16 +682,17 @@ class SkyCoord(ShapedLikeNDArray):
         from . import Angle
         from .angle_utilities import angular_separation
 
-        try:
-            other_in_self_frame = other.transform_to(self, strict=True)
-        except TypeError:
-            raise TypeError('Can only get separation to another SkyCoord or a '
-                            'coordinate frame with data')
+        if not self.is_equivalent_frame(other):
+            try:
+                other = other.transform_to(self, strict=True)
+            except TypeError:
+                raise TypeError('Can only get separation to another SkyCoord '
+                                'or a coordinate frame with data')
 
         lon1 = self.spherical.lon
         lat1 = self.spherical.lat
-        lon2 = other_in_self_frame.spherical.lon
-        lat2 = other_in_self_frame.spherical.lat
+        lon2 = other.spherical.lon
+        lat2 = other.spherical.lat
 
         # Get the separation as a Quantity, convert to Angle in degrees
         sep = angular_separation(lon1, lat1, lon2, lat2)
@@ -720,7 +721,12 @@ class SkyCoord(ShapedLikeNDArray):
         ValueError
             If this or the other coordinate do not have distances.
         """
-
+        if not self.is_equivalent_frame(other):
+            try:
+                other = other.transform_to(self, strict=True)
+            except TypeError:
+                raise TypeError('Can only get separation to another SkyCoord '
+                                'or a coordinate frame with data')
 
         if issubclass(self.data.__class__, UnitSphericalRepresentation):
             raise ValueError('This object does not have a distance; cannot '
@@ -729,14 +735,7 @@ class SkyCoord(ShapedLikeNDArray):
             raise ValueError('The other object does not have a distance; '
                              'cannot compute 3d separation.')
 
-        try:
-            other_in_self_frame = other.transform_to(self, strict=True)
-        except TypeError:
-            raise TypeError('Can only get separation to another SkyCoord or a '
-                            'coordinate frame with data')
-
-        return Distance((self.cartesian -
-                         other_in_self_frame.cartesian).norm())
+        return Distance((self.cartesian - other.cartesian).norm())
 
     def spherical_offsets_to(self, tocoord):
         r"""
@@ -1064,16 +1063,17 @@ class SkyCoord(ShapedLikeNDArray):
         """
         from . import angle_utilities
 
-        try:
-            other_in_self_frame = other.transform_to(self, strict=True)
-        except TypeError as e:
-            raise TypeError('Can only get position_angle to another SkyCoord or a '
-                            'coordinate frame with data')
+        if not self.is_equivalent_frame(other):
+            try:
+                other = other.transform_to(self, strict=True)
+            except TypeError:
+                raise TypeError('Can only get position_angle to another '
+                                'SkyCoord or a coordinate frame with data')
 
         slat = self.represent_as(UnitSphericalRepresentation).lat
         slon = self.represent_as(UnitSphericalRepresentation).lon
-        olat = other_in_self_frame.represent_as(UnitSphericalRepresentation).lat
-        olon = other_in_self_frame.represent_as(UnitSphericalRepresentation).lon
+        olat = other.represent_as(UnitSphericalRepresentation).lat
+        olon = other.represent_as(UnitSphericalRepresentation).lon
 
         return angle_utilities.position_angle(slon, slat, olon, olat)
 
