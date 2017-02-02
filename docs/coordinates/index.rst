@@ -205,9 +205,9 @@ connection. The `~astropy.coordinates.SkyCoord.from_name` method of |skycoord|
 uses `Sesame <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ to retrieve coordinates
 for a particular named object::
 
-    >>> SkyCoord.from_name("M42")  # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> SkyCoord.from_name("PSR J1012+5307")  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
-        ( 83.82208, -5.39111)>
+        ( 153.1393271,  53.117343)>
 
 For sites (primarily observatories) on the Earth, `astropy.coordinates` provides
 a quick way to get an `~astropy.coordinates.EarthLocation`::
