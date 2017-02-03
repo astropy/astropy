@@ -149,10 +149,14 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
         than the minimum / maximum values will have True set in the mask array.
         """
 
+        if _filtered_data.size == 0:
+            return _filtered_data
+
         max_value = cenfunc(_filtered_data, **_kwargs)
         std = stdfunc(_filtered_data, **_kwargs)
         min_value = max_value - std * sigma_lower
         max_value += std * sigma_upper
+
         if axis is not None:
             if axis != 0:
                 min_value = np.expand_dims(min_value, axis=axis)

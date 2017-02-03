@@ -165,3 +165,11 @@ def test_sigmaclip_empty_masked():
     data = np.ma.MaskedArray(data=[], mask=[])
     clipped_data = sigma_clip(data)
     np.ma.allequal(data, clipped_data)
+
+def test_sigmaclip_empty():
+    """Make sure a empty array is returned when sigma clipping an empty array.
+    """
+
+    data = np.array([])
+    clipped_data = sigma_clip(data)
+    assert_equal(data, clipped_data)
