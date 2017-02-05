@@ -746,14 +746,14 @@ def offset_by(lon, lat, posang, distance):
         Longitude and latitude of the starting point,
         position angle and distance to the final point.
         Quantities should be in angular units; floats in radians.
-        Polar points at lat= +/-90 are treated as +/-(90-epsilon) and same lon
+        Polar points at lat= +/-90 are treated as limit of +/-(90-epsilon) and same lon.
 
     Returns
     -------
     lon, lat : `~astropy.coordinates.Angle`
         The position of the final point.  If any of the angles are arrays,
         these will contain arrays following the appropriate `numpy` broadcasting rules.
-        0 <= lon < 2pi
+        0 <= lon < 2pi.
 
     Notes
     -----
