@@ -1000,8 +1000,8 @@ class SkyCoord(ShapedLikeNDArray):
         value will be retained, but an ``obstime`` will not.)
 
         For a more complete set of transform offsets, use the `~astropy.wcs.WCS` framework.
-        `~astropy.coordinates.SkyCoord` can also be used to create a spherical frame with
-        (lat=0,lon=0) at a reference point, approximating an xy cartesian
+        `~astropy.coordinates.SkyCoord.skyoffset_frame()` can also be used to create a spherical
+        frame with (lat=0, lon=0) at a reference point, approximating an xy cartesian
         system for small offsets.
 
         """
