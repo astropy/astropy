@@ -182,10 +182,10 @@ class Gaussian1D(BaseGaussian1D):
         else:
             return {'x': self.mean.unit}
 
-    def _parameter_units_for_data_units(self, xunit, yunit, zunit):
-        return OrderedDict([('mean', xunit),
-                            ('stddev', xunit),
-                            ('amplitude', yunit)])
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('mean', inputs_unit['x']),
+                            ('stddev', inputs_unit['x']),
+                            ('amplitude', outputs_unit['y'])])
 
 
 class GaussianAbsorption1D(BaseGaussian1D):

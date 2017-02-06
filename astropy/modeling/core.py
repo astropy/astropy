@@ -45,7 +45,7 @@ from ..utils.compat.funcsigs import signature
 from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import (combine_labels, make_binary_operator_eval,
                     ExpressionTree, AliasDict, get_inputs_and_params,
-                    _BoundingBox)
+                    _BoundingBox, _combine_equivalency_dict)
 from ..nddata.utils import add_array, extract_array
 
 from .parameters import Parameter, InputParameterError, param_repr_oneline
@@ -359,6 +359,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
                     {'__call__': __call__})
 
     def _handle_special_methods(cls, members):
+
         # Handle init creation from inputs
         def update_wrapper(wrapper, cls):
             # Set up the new __call__'s metadata attributes as though it were
@@ -373,35 +374,52 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
 
         if ('__call__' not in members and 'inputs' in members and
                 isinstance(members['inputs'], tuple)):
-            inputs = members['inputs']
-            # Done create a custom __call__ for classes that already have one
+
+            # Don't create a custom __call__ for classes that already have one
             # explicitly defined (this includes the Model base class, and any
             # other classes that manually override __call__
+
             def __call__(self, *inputs, **kwargs):
                 """Evaluate this model on the supplied inputs."""
                 return super(cls, self).__call__(*inputs, **kwargs)
 
+            # When called, models can take two optional keyword arguments:
+            #
+            # * model_set_axis, which indicates (for multi-dimensional input)
+            #   which axis is used to indicate different models
+            #
+            # * equivalencies, a dictionary of equivalencies to be applied to
+            #   the input values, where each key should correspond to one of
+            #   the inputs.
+            #
+            # The following code creates the __call__ function with these
+            # two keyword arguments.
+            inputs = members['inputs']
             args = ('self',) + inputs
             new_call = make_function_with_signature(
                     __call__, args, [('model_set_axis', None),
                                      ('with_bounding_box', False),
                                      ('fill_value', np.nan),
                                      ('equivalencies', None)])
+
+            # The following makes it look like __call__ was defined in the class
             update_wrapper(new_call, cls)
+
             cls.__call__ = new_call
 
         if ('__init__' not in members and not inspect.isabstract(cls) and
                 cls._parameters_):
+
             # If *all* the parameters have default values we can make them
-            # keyword arguments; otherwise they must all be positional
-            # arguments
-            kwargs = []
-            if all(p.default is not None
-                   for p in six.itervalues(cls._parameters_)):
+            # keyword arguments; otherwise they must all be positional arguments
+            if all(p.default is not None for p in six.itervalues(cls._parameters_)):
                 args = ('self',)
+                kwargs = []
                 for param_name in cls.param_names:
                     default = cls._parameters_[param_name].default
                     unit = cls._parameters_[param_name].unit
+                    # If the unit was specified in the parameter but the default
+                    # is not a Quantity, attach the unit to the default.
                     if unit is not None:
                         default = Quantity(default, unit, copy=False)
                     kwargs.append((param_name, default))
@@ -660,13 +678,20 @@ class Model(object):
     # model hasn't completed initialization yet
     _n_models = 1
 
-    # Enforce strict units on inputs to evaluate
+    # Enforce strict units on inputs to evaluate. If this is set to True, input
+    # values to evaluate have to be in the exact right units specified by
+    # input_units. In this case, if the input quantities are convertible to
+    # input_units, they are converted.
     input_units_strict = False
 
-    # Allow dimensionless input (and corresponding output)
+    # Allow dimensionless input (and corresponding output). If this is True,
+    # input values to evaluate will gain the units specified in input_units.
+    # Only has an effect if input_units is defined.
     input_units_allow_dimensionless = False
 
-    # Default equivalencies to apply to input values
+    # Default equivalencies to apply to input values. If set, this should be a
+    # dictionary where each key is a string that corresponds to one of the model
+    # inputs. Only has an effect if input_units is defined.
     input_units_equivalencies = None
 
     def __init__(self, *args, **kwargs):
@@ -699,6 +724,8 @@ class Model(object):
         """
 
         inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
+
+        # Check whether all the inputs are quantities
         inputs_are_quantity = all([isinstance(i, Quantity) for i in inputs])
 
         parameters = self._param_sets(raw=True, units=True)
@@ -763,15 +790,17 @@ class Model(object):
 
         outputs = self.prepare_outputs(format_info, *outputs, **kwargs)
 
+        # If input values were quantities, we use return_units to cast
+        # the return values to the units specified by return_units.
         if self.return_units and inputs_are_quantity:
             # We allow a non-iterable unit only if there is one output
             if self.n_outputs == 1 and not isiterable(self.return_units):
-                return_units = (self.return_units,)
+                return_units = {outputs[0]: self.return_units}
             else:
                 return_units = self.return_units
 
-            outputs = tuple([Quantity(out, unit, subok=True)
-                             for out, unit in zip(outputs, return_units)])
+            outputs = tuple([Quantity(out, return_units[out_name], subok=True)
+                             for out, out_name in zip(outputs, self.outputs)])
 
         if self.n_outputs == 1:
             return outputs[0]
@@ -1129,20 +1158,40 @@ class Model(object):
 
     # *** Public methods ***
 
-    def without_units_for_data(self, x, y, z=None):
+    def without_units_for_data(self, **kwargs):
         """
-        Return an instance of the model for which the parameters have been
+        Return an instance of the model for which the parameter values have been
         converted to the right units for the data, then the units have been
         stripped away.
+
+        The input and output Quantity objects should be given as keyword
+        arguments.
+
+        Notes
+        -----
+
+        This method is needed in order to be able to fit models with units in
+        the parameters, since we need to temporarily strip away the units from
+        the model during the fitting (which might be done by e.g. scipy
+        functions).
+
+        The units that the parameters should be converted to are not necessarily
+        the units of the input data, but are derived from them. Model subclasses
+        that want fitting to work in the presence of quantities need to define a
+        _parameter_units_for_data_units method that takes the input and output
+        units (as two dictionaries) and returns a dictionary giving the target
+        units for each parameter.
         """
 
         model = self.copy()
 
-        xunit = getattr(x, 'unit', dimensionless_unscaled)
-        yunit = getattr(y, 'unit', dimensionless_unscaled)
-        zunit = getattr(z, 'unit', dimensionless_unscaled)
+        inputs_unit = {inp: getattr(kwargs[inp], 'unit', dimensionless_unscaled)
+                       for inp in self.inputs if kwargs[inp] is not None}
 
-        parameter_units = self._parameter_units_for_data_units(xunit, yunit, zunit)
+        outputs_unit = {out: getattr(kwargs[out], 'unit', dimensionless_unscaled)
+                        for out in self.outputs if kwargs[out] is not None}
+
+        parameter_units = self._parameter_units_for_data_units(inputs_unit, outputs_unit)
 
         for name, unit in parameter_units.items():
             parameter = getattr(model, name)
@@ -1152,25 +1201,55 @@ class Model(object):
 
         return model
 
-    def with_units_from_data(self, x, y, z=None):
+    def with_units_from_data(self, **kwargs):
         """
         Return an instance of the model which has units for which the parameter
         values are compatible with the data units specified.
+
+        The input and output Quantity objects should be given as keyword
+        arguments.
+
+        Notes
+        -----
+
+        This method is needed in order to be able to fit models with units in
+        the parameters, since we need to temporarily strip away the units from
+        the model during the fitting (which might be done by e.g. scipy
+        functions).
+
+        The units that the parameters will gain are not necessarily the units of
+        the input data, but are derived from them. Model subclasses that want
+        fitting to work in the presence of quantities need to define a
+        _parameter_units_for_data_units method that takes the input and output
+        units (as two dictionaries) and returns a dictionary giving the target
+        units for each parameter.
         """
 
         model = self.copy()
 
-        xunit = getattr(x, 'unit', dimensionless_unscaled)
-        yunit = getattr(y, 'unit', dimensionless_unscaled)
-        zunit = getattr(z, 'unit', dimensionless_unscaled)
+        inputs_unit = {inp: getattr(kwargs[inp], 'unit', dimensionless_unscaled)
+                       for inp in self.inputs if kwargs[inp] is not None}
 
-        parameter_units = self._parameter_units_for_data_units(xunit, yunit, zunit)
+        outputs_unit = {out: getattr(kwargs[out], 'unit', dimensionless_unscaled)
+                        for out in self.outputs if kwargs[out] is not None}
 
+        parameter_units = self._parameter_units_for_data_units(inputs_unit, outputs_unit)
+
+        # We are adding units to parameters that already have a value, but we
+        # don't want to convert the parameter, just add the unit directly, hence
+        # the call to _set_unit.
         for name, unit in parameter_units.items():
             parameter = getattr(model, name)
             parameter._set_unit(unit, force=True)
 
         return model
+
+    @property
+    def _supports_unit_fitting(self):
+        # If the model has a '_parameter_units_for_data_units' method, this
+        # indicates that we have enough information to strip the units away
+        # and add them back after fitting, when fitting quantities
+        return hasattr(self, '_parameter_units_for_data_units')
 
     @abc.abstractmethod
     def evaluate(self, *args, **kwargs):
@@ -1293,6 +1372,16 @@ class Model(object):
 
     @property
     def input_units(self):
+        """
+        This property is used to indicate what units or sets of units the
+        evaluate method expects, and returns a dictionary mapping inputs to
+        units (or `None` if any units are accepted).
+
+        Model sub-classes can also use function annotations in evaluate to
+        indicate valid input units, in which case this property should
+        not be overriden since it will return the input units based on the
+        annotations.
+        """
         if hasattr(self.evaluate, '__annotations__'):
             annotations = self.evaluate.__annotations__.copy()
             annotations.pop('return', None)
@@ -1305,18 +1394,21 @@ class Model(object):
 
     @property
     def return_units(self):
+        """
+        This property is used to indicate what units or sets of units the output
+        of evaluate should be in, and returns a dictionary mapping outputs to
+        units (or `None` if any units are accepted).
+
+        Model sub-classes can also use function annotations in evaluate to
+        indicate valid output units, in which case this property should not be
+        overriden since it will return the return units based on the
+        annotations.
+        """
         if hasattr(self.evaluate, '__annotations__'):
             return self.evaluate.__annotations__.get('return', None)
         else:
             # None means any unit is accepted
             return None
-
-    @property
-    def _supports_unit_fitting(self):
-        # If the model has a '_parameter_units_for_data_units' method, this
-        # indicates that we have enough information to strip the units away
-        # and add them back after fitting, when fitting quantities
-        return hasattr(self, '_parameter_units_for_data_units')
 
     def prepare_inputs(self, *inputs, **kwargs):
         """
@@ -1328,9 +1420,10 @@ class Model(object):
         method.
         """
 
-        equivalencies = kwargs.pop('equivalencies', None)
-
+        # When we instantiate the model class, we make sure that __call__ can
+        # take the following two keyword arguments.
         model_set_axis = kwargs.pop('model_set_axis', None)
+        equivalencies = kwargs.pop('equivalencies', None)
 
         if model_set_axis is None:
             # By default the model_set_axis for the input is assumed to be the
@@ -1352,28 +1445,42 @@ class Model(object):
 
             if len(self.input_units) != self.n_inputs:
                 raise ValueError("Number of input units must match number of inputs")
-            else:
-                input_units = self.input_units
 
-            # We now combine any instance-level input equivalencies with user
+            # We combine any instance-level input equivalencies with user
             # specified ones at call-time.
-            input_units_equivalencies = {}
-            for input_name in self.inputs:
-                input_units_equivalencies[input_name] = []
-                if equivalencies is not None and input_name in equivalencies:
-                    input_units_equivalencies[input_name].extend(equivalencies[input_name])
-                if self.input_units_equivalencies is not None and input_name in self.input_units_equivalencies:
-                    input_units_equivalencies[input_name].extend(self.input_units_equivalencies[input_name])
+            input_units_equivalencies = _combine_equivalency_dict(self.inputs,
+                                                                 equivalencies,
+                                                                 self.input_units_equivalencies)
 
+            # We now iterate over the different inputs and make sure that their
+            # units are consistent with those specified in input_units.
             for i in range(len(inputs)):
+
                 input_name = self.inputs[i]
+
                 if self.input_units is not None:
                     input_unit = self.input_units.get(input_name, None)
+
                 if isinstance(inputs[i], Quantity):
+
+                    # We check for consistency of the units with input_units,
+                    # taking into account any equivalencies
                     if inputs[i].unit.is_equivalent(input_unit, equivalencies=input_units_equivalencies[input_name]):
+
+                        # If equivalencies have been specified, we need to
+                        # convert the input to the input units - this is because
+                        # some equivalencies are non-linear, and we need to be
+                        # sure that we evaluate the model in its own frame
+                        # of reference. If input_units_strict is set, we also
+                        # need to convert to the input units.
                         if len(input_units_equivalencies) > 0 or self.input_units_strict:
                             inputs[i] = inputs[i].to(input_unit, equivalencies=input_units_equivalencies[input_name])
+
                     else:
+
+                        # We consider the following two cases separately so as
+                        # to be able to raise more appropriate/nicer exceptions
+
                         if input_unit is dimensionless_unscaled:
                             raise UnitsError("Units of input '{0}', {1} ({2}), could not be "
                                              "converted to required dimensionless "
@@ -1389,6 +1496,11 @@ class Model(object):
                                                                 input_unit,
                                                                 input_unit.physical_type))
                 else:
+
+                    # If we allow dimensionless input, we add the units to the
+                    # input values without conversion, otherwise we raise an
+                    # exception.
+
                     if self.input_units_allow_dimensionless:
                         inputs[i] = Quantity(inputs[i], input_unit)
                     elif input_unit is not dimensionless_unscaled:
@@ -1573,14 +1685,16 @@ class Model(object):
                                 len(args)))
 
         self._model_set_axis = model_set_axis
-        self._param_metrics = param_metrics = defaultdict(dict)
+        self._param_metrics = defaultdict(dict)
 
         for idx, arg in enumerate(args):
             if arg is None:
                 # A value of None implies using the default value, if exists
                 continue
+            # We use quantity_asanyarray here instead of np.asanyarray because
+            # if any of the arguments are quantities, we need to return a
+            # Quantity object not a plain Numpy array.
             params[self.param_names[idx]] = quantity_asanyarray(arg, dtype=np.float)
-
 
         # At this point the only remaining keyword arguments should be
         # parameter names; any others are in error.
@@ -1594,6 +1708,9 @@ class Model(object):
                 if value is None:
                     continue
                 else:
+                    # We use quantity_asanyarray here instead of np.asanyarray because
+                    # if any of the arguments are quantities, we need to return a
+                    # Quantity object not a plain Numpy array.
                     params[param_name] = quantity_asanyarray(value, dtype=np.float)
 
         if kwargs:
@@ -1700,10 +1817,6 @@ class Model(object):
                         "units equivalent to {2!r} (got {3!r})".format(
                             self.__class__.__name__, name, param_descr.unit,
                             unit))
-
-                # A flag, for convenience, to track whether quantities were
-                # used in instantiating this model
-                self._using_quantities = True
 
             param_metrics[name]['orig_unit'] = unit
 

@@ -173,7 +173,7 @@ class Parameter(OrderedDescriptor):
     unit : `~astropy.units.Unit`
         if specified, the parameter will be in these units, and when the
         parameter is updated in future, it should be set to a
-        :`~astropy.units.Quantity` that has equivalent units.
+        :class:`~astropy.units.Quantity` that has equivalent units.
     getter : callable
         a function that wraps the raw (internal) value of the parameter
         when returning the value through the parameter proxy (eg. a
@@ -458,10 +458,8 @@ class Parameter(OrderedDescriptor):
         if self._model is None:
             raise AttributeError('Cannot set unit on a parameter definition')
 
-        # TODO: This isn't really the right thing to do, and is just a
-        # placeholder.
-        # Setting the unit on a bound parameter should only change the units
-        # returned to the user when they access this parameter
+        # TODO: decide whether changing the unit should convert the parameter
+        # or simply change the unit and keep the value the same.
 
         # We now check that the new units are equivalent to the existing ones
 
