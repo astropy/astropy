@@ -394,7 +394,7 @@ def delval(filename, keyword, *args, **kwargs):
         hdulist._close(closed=closed)
 
 
-@deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+@deprecated_renamed_argument('clobber', 'overwrite', '1.3', pending=True)
 def writeto(filename, data, header=None, output_verify='exception',
             overwrite=False, checksum=False):
     """
@@ -709,7 +709,7 @@ def info(filename, output=None, **kwargs):
     return ret
 
 
-@deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+@deprecated_renamed_argument('clobber', 'overwrite', '1.3', pending=True)
 def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
               overwrite=False):
     """
