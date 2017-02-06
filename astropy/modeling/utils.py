@@ -614,8 +614,23 @@ def _parameter_with_unit(parameter, unit):
     else:
         return parameter.quantity.to(unit)
 
+
 def _parameter_without_unit(value, old_unit, new_unit):
     if old_unit is None:
         return value
     else:
         return value * old_unit.to(new_unit)
+
+
+def _combine_equivalency_dict(keys, eq1=None, eq2=None):
+    # Given two dictionaries that give equivalencies for a set of keys, for
+    # example input value names, return a dictionary that includes all the
+    # equivalencies
+    eq = {}
+    for key in keys:
+        eq[key] = []
+        if eq1 is not None and key in eq1:
+            eq[key].extend(eq1[key])
+        if eq2 is not None and key in eq2:
+            eq[key].extend(eq2[key])
+    return eq
