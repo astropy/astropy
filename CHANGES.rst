@@ -1,6 +1,14 @@
 1.3.1 (unreleased)
 ------------------
 
+New Features
+^^^^^^^^^^^^
+
+- ``astropy.utils``
+
+  - The ``deprecated_renamed_argument`` decorator got a new ``pending``
+    parameter to suppress the deprecation warnings. [#5761]
+
 Bug Fixes
 ^^^^^^^^^
 
@@ -33,7 +41,7 @@ Bug Fixes
     ``PyMem_Realloc()`` [#5696, #4739, #2100]
 
 - ``astropy.modeling``
- 
+
   - Fixed a problem with setting ``bounding_box`` on 1D models. [#5718]
 
 - ``astropy.nddata``
@@ -74,6 +82,10 @@ Other Changes and Additions
 
 - Fixed a deprecation warning that occurred when running tests with
   astropy.test(). [#5689]
+
+- The deprecation of the ``clobber`` argument (originally deprecated in 1.3.0)
+  in the ``io.fits`` write functions was changed to a "pending" deprecation
+  (without displaying warnings) for now. [#5761]
 
 1.3 (2016-12-22)
 ----------------

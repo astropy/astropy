@@ -333,7 +333,7 @@ class _BaseHDU(object):
         fileobj.seek(hdu._data_offset + hdu._data_size, os.SEEK_SET)
         return hdu
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3', pending=True)
     def writeto(self, name, output_verify='exception', overwrite=False,
                 checksum=False):
         """
@@ -1572,7 +1572,7 @@ class ExtensionHDU(_ValidHDU):
 
         raise NotImplementedError
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3', pending=True)
     def writeto(self, name, output_verify='exception', overwrite=False,
                 checksum=False):
         """
