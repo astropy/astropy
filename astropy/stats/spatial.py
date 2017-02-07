@@ -19,14 +19,10 @@ class RipleysKEstimator(object):
         Area of study from which the points where observed.
     x_max, y_max : float, float, optional
         Maximum rectangular coordinates of the area of study.
-        Required if ``mode == 'translation'``.
+        Required if ``mode == 'translation'`` or ``mode == ohser``.
     x_min, y_min : float, float, optional
         Minimum rectangular coordinates of the area of study.
-        Required if ``mode == 'variable-width'``.
-    lratio : float, optional
-        Greatest ratio between lengths of the rectangular window of study,
-        i.e., ``lratio = max(width/height, height/width)``.
-        Required if ``mode == 'ohser'``.
+        Required if ``mode == 'variable-width'`` or ``mode == ohser``.
 
     Examples
     --------
@@ -35,7 +31,7 @@ class RipleysKEstimator(object):
     >>> from astropy.stats import RipleysKEstimator
     >>> z = np.random.uniform(low=5, high=10, size=(100, 2))
     >>> Kest = RipleysKEstimator(area=25, x_max=10, y_max=10,
-    ... x_min=5, y_min=5, lratio=1)
+    ... x_min=5, y_min=5)
     >>> r = np.linspace(0, 2.5, 100)
     >>> plt.plot(r, Kest.poisson(r)) # doctest: +SKIP
     >>> plt.plot(r, Kest(data=z, radii=r, mode='none')) # doctest: +SKIP
@@ -56,14 +52,12 @@ class RipleysKEstimator(object):
        Point Fields, Akademie Verlag GmbH, Chichester.
     """
 
-    def __init__(self, area, x_max=None, y_max=None, x_min=0, y_min=0,
-                 lratio=None):
+    def __init__(self, area, x_max=None, y_max=None, x_min=0, y_min=0):
         self.area = area
         self.x_max = x_max
         self.y_max = y_max
         self.x_min = x_min
         self.y_min = y_min
-        self.lratio = lratio
 
     @property
     def area(self):
@@ -124,18 +118,6 @@ class RipleysKEstimator(object):
         else:
             raise ValueError('x_min is expected to be a nonnegative number. '
                              'Got {}.'.format(value))
-
-    @property
-    def lratio(self):
-        return self._lratio
-
-    @lratio.setter
-    def lratio(self, value):
-        if value is None or (isinstance(value, (float, int)) and value >= 1):
-            self._lratio = value
-        else:
-            raise ValueError('lratio is expected to be a real number'
-                             ' (>= 1) or None. Got {}.'.format(value))
 
     def __call__(self, data, radii, mode='none'):
         return self.evaluate(data=data, radii=radii, mode=mode)
@@ -259,7 +241,9 @@ class RipleysKEstimator(object):
         # Stoyan book page 123 and eq 15.13
         elif mode == 'ohser':
             distances = self._pairwise_distances(data)
-            a, b = self.area, self.lratio
+            a = self.area
+            b = max((self.y_max - self.y_min) / (self.x_max - self.x_min),
+                    (self.x_max - self.x_min) / (self.y_max - self.y_min))
             x = distances / math.sqrt(a / b)
             u = np.sqrt((x * x - 1) * (x > 1))
             v = np.sqrt((x * x - b ** 2) * (x < math.sqrt(b**2 + 1)) * (x > b))
