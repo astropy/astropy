@@ -724,13 +724,9 @@ void init_output_buffer(PyObject* hdu, void** buf, size_t* bufsize) {
         goto fail;
     }
 
-    if(strstr(header,"ZNAXIS") != NULL) {
-      PyErr_SetString(PyExc_TypeError,
-                        "ZNAXIS keyword not present in header.");
-      goto fail;
-    }
-
     if (0 != get_header_int(header, "ZNAXIS", &znaxis, 0)) {
+        PyErr_SetString(PyExc_TypeError,
+                        "ZNAXIS keyword not present in header.");
         goto fail;
     }
 
@@ -751,6 +747,8 @@ void init_output_buffer(PyObject* hdu, void** buf, size_t* bufsize) {
 
     // Get the ZBITPIX header value; if this is missing we're in trouble
     if (0 != get_header_int(header, "ZBITPIX", &zbitpix, 0)) {
+        PyErr_SetString(PyExc_TypeError,
+                        "ZBITPIX keyword not present in header.");
         goto fail;
     }
 
@@ -901,7 +899,7 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
     PyObject* retval = NULL;
     tcolumn* columns = NULL;
 
-    void* outbuf;
+    void* outbuf = NULL;
     size_t outbufsize;
 
     PyArrayObject* indata = NULL;
