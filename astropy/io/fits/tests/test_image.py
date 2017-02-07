@@ -1634,6 +1634,10 @@ class TestCompressedImage(FitsTestCase):
         comp_hdu._header.pop('ZNAXIS')
         with pytest.raises(TypeError):
             comp_hdu.compressed_data
+        comp_hdu = fits.CompImageHDU(a)
+        comp_hdu._header.pop('ZBITPIX')
+        with pytest.raises(TypeError):
+            comp_hdu.compressed_data
 
 
 def test_comphdu_bscale(tmpdir):
