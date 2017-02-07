@@ -36,61 +36,74 @@ def test_parameter_quantity():
     assert g.stddev.unit is u.m
 
 
-def test_parameter_set_compatible_units():
+def test_parameter_set_quantity():
     """
-    Make sure that parameters can be set to values with compatible units
+    Make sure that parameters that start off as quantities can be set to any
+    other quantity, regardless of whether the units of the new quantity are
+    compatible with the original ones.
+
+    We basically leave it up to the evaluate method to raise errors if there
+    are issues with incompatible units, and we don't check for consistency
+    at the parameter level.
     """
+
     g = Gaussian1D(1 * u.J, 1 * u.m, 0.1 * u.m)
+
+    # Try equivalent units
+
     g.amplitude = 4 * u.kJ
     assert_quantity_allclose(g.amplitude, 4 * u.kJ)
+
     g.mean = 3 * u.km
     assert_quantity_allclose(g.mean, 3 * u.km)
+
     g.stddev = 2 * u.mm
     assert_quantity_allclose(g.stddev, 2 * u.mm)
 
+    # Try different units
 
-def test_parameter_unit_conversion():
+    g.amplitude = 2 * u.s
+    assert_quantity_allclose(g.amplitude, 2 * u.s)
+
+    g.mean = 2 * u.Jy
+    assert_quantity_allclose(g.mean, 2 * u.Jy)
+
+
+def test_parameter_lose_units():
     """
-    Check that units are converted on-the-fly if compatible. Note that this is
-    a slightly different test to above, because this is checking that the
-    quantity is converted, whether the above test makes no such assumption.
+    Check that parameters that have been set to a quantity that are then set to
+    a value with no units raise an exception. We do this because setting a
+    parameter to a value with no units is ambiguous if units were set before:
+    if a paramter is 1 * u.Jy and the parameter is then set to 4, does this mean
+    2 without units, or 2 * u.Jy?
     """
+
     g = Gaussian1D(1 * u.Jy, 3, 0.1)
-    g.amplitude = 3000 * u.mJy
-    assert g.amplitude.value == 3
-    assert g.amplitude.unit is u.Jy
-
-
-def test_parameter_set_incompatible_units():
-    """
-    Check that parameters can only be set to quantities with equivalent units.
-    """
-
-    g = Gaussian1D(1 * u.Jy, 3, 0.1)
-
-    # The amplitude should be equivalent to flux density units, but in the
-    # examples below, this is not the case.
 
     with pytest.raises(UnitsError) as exc:
         g.amplitude = 2
     assert exc.value.args[0] == ("The 'amplitude' parameter should be given as "
-                                 "a Quantity with units equivalent to Jy")
+                                 "a Quantity because it was originally "
+                                 "initialized as a Quantity")
 
-    with pytest.raises(UnitsError) as exc:
-        g.amplitude = 2 * u.s
-    assert exc.value.args[0] == ("The 'amplitude' parameter should be given as "
-                                 "a Quantity with units equivalent to Jy")
 
-    with pytest.raises(UnitsError) as exc:
-        g.mean = 2 * u.Jy
-    assert exc.value.args[0] == ("The 'mean' parameter should be given as a "
-                                 "unitless value")
+def test_parameter_add_units():
+    """
+    On the other hand, if starting from a parameter with no units, we should be
+    able to add units since this is unambiguous.
+    """
+
+    g = Gaussian1D(1, 3, 0.1)
+
+    g.amplitude = 2 * u.Jy
+    assert_quantity_allclose(g.amplitude, 2 * u.Jy)
 
 
 def test_parameter_change_unit():
     """
-    Test that changing the unit on a parameter works as expected (units can
-    only be changed to a compatible unit).
+    Test that changing the unit on a parameter does not work. This is an
+    ambiguous operation because it's not clear if it means that the value should
+    be converted or if the unit should be changed without conversion.
     """
 
     g = Gaussian1D(1, 1 * u.m, 0.1 * u.m)
@@ -101,14 +114,11 @@ def test_parameter_change_unit():
     assert exc.value.args[0] == ("Cannot attach units to parameters that were "
                                  "not initially specified with units")
 
-    # Changing to an equivalent unit should work
-    g.mean.unit = u.cm
-
-    # But changing to another unit should not
-    with pytest.raises(UnitsError) as exc:
-        g.mean.unit = u.Hz
-    assert exc.value.args[0] == ("Cannot set parameter units to Hz since it is "
-                                 "not equivalent with the original units of cm")
+    # But changing to another unit should not, even if it is an equivalent unit
+    with pytest.raises(ValueError) as exc:
+        g.mean.unit = u.cm
+    assert exc.value.args[0] == ("Cannot change the unit attribute directly, "
+                                 "instead change the parameter to a new quantity")
 
 
 def test_parameter_set_value():
@@ -155,12 +165,15 @@ def test_parameter_quantity_property():
     assert g.amplitude.value == 5
     assert g.amplitude.unit is u.mJy
 
-    # But we shouldn't be able to set .quantity to a Quantity with
-    # non-equivalent units
-    with pytest.raises(UnitsError) as exc:
-        g.amplitude.quantity = 3 * u.m
-    assert exc.value.args[0] == ("Cannot set parameter units to m since it is not "
-                                 "equivalent with the original units of mJy")
+    # And we can also set the parameter to a value with different units
+    g.amplitude.quantity = 4 * u.s
+    assert g.amplitude.value == 4
+    assert g.amplitude.unit is u.s
+
+    # But not to a value without units
+    with pytest.raises(TypeError) as exc:
+        g.amplitude.quantity = 3
+    assert exc.value.args[0] == "The .quantity attribute should be set to a Quantity object"
 
 
 def test_parameter_default_units_match():

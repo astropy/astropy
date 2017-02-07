@@ -458,19 +458,17 @@ class Parameter(OrderedDescriptor):
         if self._model is None:
             raise AttributeError('Cannot set unit on a parameter definition')
 
-        # TODO: decide whether changing the unit should convert the parameter
-        # or simply change the unit and keep the value the same.
-
-        # We now check that the new units are equivalent to the existing ones
-
         orig_unit = self._model._param_metrics[self.name]['orig_unit']
 
-        if not force and orig_unit is None:
-            raise ValueError(
-                'Cannot attach units to parameters that were not initially '
-                'specified with units')
-
-        self._model._param_metrics[self.name]['orig_unit'] = unit
+        if force:
+            self._model._param_metrics[self.name]['orig_unit'] = unit
+        else:
+            if orig_unit is None:
+                raise ValueError('Cannot attach units to parameters that were '
+                                 'not initially specified with units')
+            else:
+                raise ValueError('Cannot change the unit attribute directly, '
+                                 'instead change the parameter to a new quantity')
 
     @property
     def quantity(self):
@@ -481,8 +479,10 @@ class Parameter(OrderedDescriptor):
 
     @quantity.setter
     def quantity(self, quantity):
+        if not isinstance(quantity, Quantity):
+            raise TypeError("The .quantity attribute should be set to a Quantity object")
         self.value = quantity.value
-        self.unit = quantity.unit
+        self._set_unit(quantity.unit, force=True)
 
     @property
     def shape(self):

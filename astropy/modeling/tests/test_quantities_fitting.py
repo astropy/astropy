@@ -132,4 +132,4 @@ def test_fitting_incompatible_units():
 
     with pytest.raises(UnitsError) as exc:
         fit_g(g_init, [1, 2, 3] * u.Hz, [4, 5, 6] * u.Jy)
-    assert exc.value.args[0] == ("'m' (length) and 'Hz' (frequency) are not convertible")
+    assert exc.value.args[0] == ("'Hz' (frequency) and 'm' (length) are not convertible")
