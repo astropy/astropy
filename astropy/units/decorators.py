@@ -53,6 +53,17 @@ class QuantityInput(object):
             def myfunction(myangle: u.arcsec):
                 return myangle**2
 
+        Also in Python 3 you can specify a return value annotation, which will
+        cause the function to always return a `~astropy.units.Quantity` in that
+        unit.
+
+        .. code-block:: python3
+
+            import astropy.units as u
+            @u.quantity_input
+            def myfunction(myangle: u.arcsec) -> u.deg**2:
+                return myangle**2
+
         Using equivalencies::
 
             import astropy.units as u
@@ -127,7 +138,11 @@ class QuantityInput(object):
 
             # Call the original function with any equivalencies in force.
             with add_enabled_equivalencies(self.equivalencies):
-                return wrapped_function(*func_args, **func_kwargs)
+                return_ = wrapped_function(*func_args, **func_kwargs)
+            if wrapped_signature.return_annotation is not funcsigs.Signature.empty:
+                return return_.to(wrapped_signature.return_annotation)
+            else:
+                return return_
 
         return wrapper
 

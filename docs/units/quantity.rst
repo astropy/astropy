@@ -372,6 +372,19 @@ Under Python 3 you can use the annotations syntax to provide the units:
     >>> myfunction(100*u.arcsec)  # doctest: +SKIP
     Unit("arcsec")
 
+Also under Python 3 only you can define a return decoration, to which the return
+value will be converted, i.e.::
+
+    >>> @u.quantity_input  # doctest: +SKIP
+    ... def myfunction(myarg: u.arcsec) -> u.deg:
+    ...     return myarg*1000
+
+    >>> myfunction(100*u.arcsec)  # doctest: +SKIP
+    <Quantity 27.77777777777778 deg>
+
+This both checks that the return value of your function is consistent with what
+you expect and makes it much neater to display the results of the function.
+
 Representing vectors with units
 -------------------------------
 
