@@ -53,7 +53,7 @@ def test_ripley_large_density():
     with NumpyRNGContext(123):
         z = np.random.uniform(low=0, high=1, size=(500, 2))
 
-        Kest = RipleysKEstimator(area=1, x_max=1, y_max=1, lratio=1)
+        Kest = RipleysKEstimator(area=1, x_max=1, y_max=1)
         r = np.linspace(0, 0.25, 25)
 
         assert_allclose(Kest.poisson(r),
@@ -69,7 +69,7 @@ def test_ripley_modes():
     with NumpyRNGContext(123):
         z = np.random.uniform(low=5, high=10, size=(500, 2))
 
-        Kest = RipleysKEstimator(area=25, x_max=10, y_max=10, lratio=1, x_min=5, y_min=5)
+        Kest = RipleysKEstimator(area=25, x_max=10, y_max=10, x_min=5, y_min=5)
         r = np.linspace(0, 1.2, 25)
 
         assert_allclose(Kest.poisson(r),
