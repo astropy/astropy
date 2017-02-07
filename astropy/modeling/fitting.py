@@ -118,8 +118,9 @@ def fitter_unit_support(func):
             # ('x', 'y')
 
             if model.input_units is not None:
-                x = x.to(model.input_units['x'], equivalencies=input_units_equivalencies['x'])
-                if z is not None:
+                if isinstance(x, Quantity):
+                    x = x.to(model.input_units['x'], equivalencies=input_units_equivalencies['x'])
+                if isinstance(y, Quantity) and z is not None:
                     y = y.to(model.input_units['y'], equivalencies=input_units_equivalencies['y'])
 
             # We now strip away the units from the parameters, taking care to

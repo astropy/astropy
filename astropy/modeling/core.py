@@ -1501,9 +1501,8 @@ class Model(object):
                     # input values without conversion, otherwise we raise an
                     # exception.
 
-                    if self.input_units_allow_dimensionless:
-                        inputs[i] = Quantity(inputs[i], input_unit)
-                    elif input_unit is not dimensionless_unscaled:
+                    if (not self.input_units_allow_dimensionless and
+                       input_unit is not dimensionless_unscaled):
                         if np.any(inputs[i] != 0):
                             raise UnitsError("Units of input '{0}', (dimensionless), could not be "
                                              "converted to required input units of "
