@@ -1215,6 +1215,15 @@ class Model(object):
         new_model._name = name
         return new_model
 
+    @sharedmethod
+    def n_submodels(self):
+        """
+        Return the number of components in a single model, which is
+        obviously 1.
+        """
+
+        return 1
+
     # *** Internal methods ***
     @sharedmethod
     def _from_existing(self, existing, param_names):
