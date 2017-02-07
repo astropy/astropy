@@ -257,8 +257,8 @@ to be used for evaluation::
 In this case it is possible to directly assign a name to the compound model instance
 by using the `Model.name <astropy.modeling.Model.name>` attribute.
 
-    >>> both_gaussians.name = "BothGaussians" # doctest: +FLOAT_CMP
-    >>> print(both_gaussian)
+    >>> both_gaussians.name = "BothGaussians"
+    >>> print(both_gaussians)  # doctest: +SKIP
     Model: CompoundModel6
     Name: BothGaussians
     Inputs: ('x',)
@@ -271,7 +271,7 @@ by using the `Model.name <astropy.modeling.Model.name>` attribute.
     Parameters:
         amplitude_0 mean_0 stddev_0 amplitude_1 mean_1 stddev_1
         ----------- ------ -------- ----------- ------ --------
-        ...
+                1.0    0.0      0.2         2.5    0.5      0.1
 
 This was found to be much more convenient and natural, in this case, than
 returning a class.  It is worth understanding that the way this works under the
