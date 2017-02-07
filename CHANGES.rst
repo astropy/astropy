@@ -36,6 +36,7 @@ New Features
   - Add ``n_submodels`` shared method to single and compound models, which
     allows users to get the number of components of a given single (compound)
     model. [#5747]
+  - Added a ``name`` setter for instances of ``_CompoundModel``. [#5741]
 
 - ``astropy.nddata``
 
@@ -145,6 +146,10 @@ Bug Fixes
 - ``astropy.io.votable``
 
 - ``astropy.modeling``
+
+  - Creating a compound model where one of the submodels is
+    a compound model whose parameters were changed now uses the
+    updated parameters and not the parameters of the original model. [#5741]
 
 - ``astropy.nddata``
 
