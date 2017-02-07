@@ -809,11 +809,12 @@ class Table(object):
                 descr_vals.append('masked=True')
             descr_vals.append('length={0}'.format(len(self)))
 
-        descr = '<' + ' '.join(descr_vals) + '>\n'
-
+        descr = ' '.join(descr_vals)
         if html:
             from ..utils.xml.writer import xml_escape
-            descr = xml_escape(descr)
+            descr = '<i>{0}</i>\n'.format(xml_escape(descr))
+        else:
+            descr = '<{0}>\n'.format(descr)
 
         if tableid is None:
             tableid = 'table{id}'.format(id=id(self))
