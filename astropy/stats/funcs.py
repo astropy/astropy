@@ -1044,6 +1044,7 @@ def biweight_midcovariance(a, c=9.0, M=None):
     Returns
     -------
     biweight_covariance : `~numpy.ndarray`
+        Estimate of the covariance matrix of <a, a.T>
 
     Examples
     --------
@@ -1051,9 +1052,8 @@ def biweight_midcovariance(a, c=9.0, M=None):
     numpy covariance and the biweight_covariance
 
     >>> import numpy as np
-    >>> from scipy import stats
     >>> from astropy.stats import biweight_midcovariance
-    >>> d = np.array([stats.norm.rvs(0,1,1000), stats.norm.rvs(0,3,1000)])
+    >>> d = np.array([np.random.normal(0,1,1000), np.random.normal(0,3,1000)])
     >>> d[0,0] = 30
     >>> np_cov = np.cov(d)
     >>> bw_cov = biweight_midcovariance(d)
@@ -1085,11 +1085,10 @@ def biweight_midcovariance(a, c=9.0, M=None):
     usub1[~mask] = 0.0
 
     # now compute numerator and denominators
-    numerator = np.array(map(lambda x: d * usub1 ** 2 * x, d * usub1 ** 2)).sum(axis=2)
-    denominator = (usub1 * usub5).sum(axis=1)
-    denominator = np.array(map(lambda x: denominator * x, denominator))
+    numerator = d * usub1 ** 2
+    denominator = (usub1 * usub5).sum(axis=1)[:,np.newaxis]
 
-    return n * numerator / denominator
+    return n * np.dot(numerator, numerator.T) / np.dot(denominator, denominator.T)
 
 
 def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix,
