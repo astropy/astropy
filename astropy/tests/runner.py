@@ -122,7 +122,7 @@ class TestRunnerBase(object):
                 # The other two are placeholders for objects.
                 if func(None, False, None) is NotImplemented:
                     continue
-            except:
+            except Exception:
                 pass
 
             # Construct the default kwargs dict and docstring
