@@ -1630,6 +1630,17 @@ class TestCompressedImage(FitsTestCase):
             hdul[1].data[:] = 0
             assert np.allclose(hdul[1].data, 0)
 
+    def test_compressed_header_missing_znaxis(self):
+        a = np.arange(100, 200, dtype=np.uint16)
+        comp_hdu = fits.CompImageHDU(a)
+        comp_hdu._header.pop('ZNAXIS')
+        with pytest.raises(TypeError):
+            comp_hdu.compressed_data
+        comp_hdu = fits.CompImageHDU(a)
+        comp_hdu._header.pop('ZBITPIX')
+        with pytest.raises(TypeError):
+            comp_hdu.compressed_data
+
 
 def test_comphdu_bscale(tmpdir):
     """
