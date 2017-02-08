@@ -1085,7 +1085,7 @@ def biweight_midcovariance(a, c=9.0, M=None):
 
     # now compute numerator and denominators
     numerator = d * usub1 ** 2
-    denominator = (usub1 * usub5).sum(axis=1)[:,np.newaxis]
+    denominator = (usub1 * usub5).sum(axis=1)[:, np.newaxis]
 
     return n * np.dot(numerator, numerator.T) / np.dot(denominator, denominator.T)
 
