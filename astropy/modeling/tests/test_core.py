@@ -365,3 +365,7 @@ def test_custom_bounding_box_1d():
     # assign the same bounding_box, now through the bounding_box setter
     g2.bounding_box = bb
     assert_allclose(g2.render(), expected)
+
+def test_n_submodels_in_single_models():
+    assert models.Gaussian1D.n_submodels() == 1
+    assert models.Gaussian2D.n_submodels() == 1
