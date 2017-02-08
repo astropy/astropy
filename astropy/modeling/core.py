@@ -908,7 +908,7 @@ class Model(object):
 
     @property
     def bounding_box(self):
-        r"""
+        """
         A `tuple` of length `n_inputs` defining the bounding box limits, or
         `None` for no bounding box.
 
@@ -2008,12 +2008,6 @@ class _CompoundModelMeta(_ModelMeta):
             # computing the inverse
             instance._user_inverse = mcls._make_user_inverse(
                     operator, left, right)
-
-            if left._n_models == right._n_models:
-                instance._n_models = left._n_models
-            else:
-                raise ValueError('Model sets must have the same number of '
-                                 'components.')
 
             return instance
 
