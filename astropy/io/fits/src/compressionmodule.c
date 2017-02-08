@@ -769,10 +769,10 @@ void init_output_buffer(PyObject* hdu, void** buf, size_t* bufsize) {
 
     *buf = calloc(*bufsize, sizeof(char));
     if (*buf == NULL) {
-      // Checking if calloc failed.
-      PyErr_SetString(PyExc_TypeError,
+        // Checking if calloc failed.
+        PyErr_SetString(PyExc_MemoryError,
                         "Failed to allocate memory for output data buffer.");
-      goto fail;
+        goto fail;
     }
 
 fail:
