@@ -1058,7 +1058,8 @@ def biweight_midcovariance(a, c=9.0, M=None):
     >>> np_cov = np.cov(d)
     >>> bw_cov = biweight_midcovariance(d)
     >>> print(np.around((np.sqrt(np_cov.diagonal()), np.sqrt(bw_cov.diagonal())), 1))
-    [[ 2.3, 3.1], [ 0.9, 3.1]]
+    [[ 2.3  3.1]
+     [ 0.9  3.1]]
 
     See Also
     --------
