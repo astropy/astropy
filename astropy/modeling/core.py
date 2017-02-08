@@ -1221,7 +1221,6 @@ class Model(object):
         Return the number of components in a single model, which is
         obviously 1.
         """
-
         return 1
 
     # *** Internal methods ***
