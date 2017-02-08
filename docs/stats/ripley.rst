@@ -6,7 +6,7 @@ Ripley's K Function Estimators
 
 Ripley's K function is used to characterize spatial point processes.
 More precisely, it describes correlation in point fields.
-The :class: `~astropy.stats.RipleysKEstimator` class implements some
+The `~astropy.stats.RipleysKEstimator` class implements some
 estimators for this function which provides several methods for
 edge-effects correction.
 
@@ -25,13 +25,14 @@ argument takes a value on the following linguistic set
 different method to perform correction due to edge-effects. See the API
 documentation and references for details about these methods.
 
-Instances of :class: `~astropy.stats.RipleysKEstimator` can also be used as
+Instances of `~astropy.stats.RipleysKEstimator` can also be used as
 callables (which is equivalent to calling the ``evaluate`` method).
 
 A minimal usage example is shown as follows:
 
 .. plot::
     :include-source:
+
     import numpy as np
     from matplotlib import pyplot as plt
     from astropy.stats import RipleysKEstimator
@@ -40,12 +41,17 @@ A minimal usage example is shown as follows:
     Kest = RipleysKEstimator(area=25, x_max=10, y_max=10, x_min=5, y_min=5)
 
     r = np.linspace(0, 2.5, 100)
-    plt.plot(r, Kest.poisson(r))
-    plt.plot(r, Kest(data=z, radii=r, mode='none'))
-    plt.plot(r, Kest(data=z, radii=r, mode='translation'))
-    plt.plot(r, Kest(data=z, radii=r, mode='ohser'))
-    plt.plot(r, Kest(data=z, radii=r, mode='var-width'))
-    plt.plot(r, Kest(data=z, radii=r, mode='ripley'))
+    plt.plot(r, Kest.poisson(r), color='green', ls=':', label=r'$K_{pois}$')
+    plt.plot(r, Kest(data=z, radii=r, mode='none'), color='red', ls='--',
+             label=r'$K_{un}$')
+    plt.plot(r, Kest(data=z, radii=r, mode='translation'), color='black',
+             label=r'$K_{trans}$')
+    plt.plot(r, Kest(data=z, radii=r, mode='ohser'), color='blue', ls='-.',
+             label=r'$K_{ohser}$')
+    plt.plot(r, Kest(data=z, radii=r, mode='var-width'), color='green',
+             label=r'$K_{var-width}$')
+    plt.plot(r, Kest(data=z, radii=r, mode='ripley'), color='yellow',
+             label=r'$K_{ripley}$')
 
 References
 ==========
