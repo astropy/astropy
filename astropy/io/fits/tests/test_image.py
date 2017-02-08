@@ -1011,7 +1011,9 @@ class TestCompressedImage(FitsTestCase):
         hdu.writeto(self.temp('test.fits'))
 
         with fits.open(self.temp('test.fits')) as hdul:
-            assert (hdul['SCI'].data == cube).all()
+            # HCOMPRESSed images are allowed to deviate from the original by
+            # about 1/quantize_level of the RMS in each tile.
+            assert np.abs(hdul['SCI'].data - cube).max() < 1./15.
 
     def test_subtractive_dither_seed(self):
         """
