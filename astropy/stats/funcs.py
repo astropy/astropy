@@ -21,8 +21,8 @@ from ..extern.six.moves import range
 __all__ = ['binom_conf_interval', 'binned_binom_proportion',
            'poisson_conf_interval', 'median_absolute_deviation',
            'mad_std', 'biweight_location', 'biweight_midvariance',
-           'signal_to_noise_oir_ccd', 'bootstrap', 'gaussian_fwhm_to_sigma',
-           'gaussian_sigma_to_fwhm']
+           'biweight_midcovariance', 'signal_to_noise_oir_ccd',
+           'bootstrap', 'gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm']
 
 __doctest_skip__ = ['binned_binom_proportion']
 __doctest_requires__ = {'binom_conf_interval': ['scipy.special'],
