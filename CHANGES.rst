@@ -173,6 +173,11 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Fix out-of-order TUNITn cards when writing tables to FITS. [#5720]
+
+  - Guard against extremely unlikely problems in compressed images, which
+    could lead to memory unmapping errors. [#5775]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
