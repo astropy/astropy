@@ -1051,7 +1051,7 @@ def biweight_midcovariance(a, c=9.0, M=None):
     numpy covariance and the biweight_covariance
 
     >>> import numpy as np
-    >>> import scipy.stats as stats
+    >>> from scipy import stats
     >>> from astropy.stats import biweight_midcovariance
     >>> d = np.array([stats.norm.rvs(0,1,1000),stats.norm.rvs(0,3,1000)])
     >>> d[0,0] = 30
