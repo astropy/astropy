@@ -1054,18 +1054,16 @@ def biweight_midcovariance(a, c=9.0, M=None):
     >>> from astropy.stats import biweight_midcovariance
     >>> rng = np.random.RandomState(1)
     >>> d = np.array([rng.normal(0,1,200), rng.normal(0,3,200)])
-    >>> d[0,0] = 30
+    >>> d[0,0] = 30.0
     >>> np_cov = np.cov(d)
     >>> bw_cov = biweight_midcovariance(d)
-    >>> print(np.around((np.sqrt(np_cov.diagonal()), np.sqrt(bw_cov.diagonal())),1))
-    [[ 2.4  3.1]
-     [ 1.   3.1]]
+    >>> print(np.around((np.sqrt(np_cov.diagonal()), np.sqrt(bw_cov.diagonal())), 1))
+    [[ 2.3, 3.1], [ 0.9, 3.1]]
 
     See Also
     --------
     biweight_midvariance, biweight_location
     """
-
     a = np.asanyarray(a)
 
     if M is None:
