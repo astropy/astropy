@@ -1057,7 +1057,6 @@ def biweight_midcovariance(a, c=9.0, M=None):
     >>> np_cov = np.cov(d)
     >>> bw_cov = biweight_midcovariance(d)
     >>> print(np.sqrt(np_cov.diagonal()), np.sqrt(bw_cov.diagonal()))
-    (array([ 1.38868655,  2.97004256]), array([ 1.0232835 ,  3.02582728]))
 
     See Also
     --------
