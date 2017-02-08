@@ -28,7 +28,8 @@ __doctest_skip__ = ['binned_binom_proportion']
 __doctest_requires__ = {'binom_conf_interval': ['scipy.special'],
                         'poisson_conf_interval': ['scipy.special',
                                                   'scipy.optimize',
-                                                  'scipy.integrate']}
+                                                  'scipy.integrate',
+                                                  'scipy.stats']}
 
 
 gaussian_sigma_to_fwhm = 2.0 * np.sqrt(2.0 * np.log(2.0))
