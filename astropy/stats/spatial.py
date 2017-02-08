@@ -127,21 +127,11 @@ class RipleysKEstimator(object):
         diff = np.zeros(shape=(npts * (npts - 1) // 2, 2), dtype=np.double)
         k = 0
         for i in range(npts - 1):
-            for j in range(i + 1, npts):
-                diff[k] = abs(data[i] - data[j])
-                k = k + 1
+            size = npts - i - 1
+            diff[k:k + size] = abs(data[i] - data[i+1:])
+            k += size
 
         return diff
-
-    def _pairwise_distances(self, data):
-        npts = len(data)
-        distances = np.zeros((npts * (npts - 1)) // 2, dtype=np.double)
-        diff = self._pairwise_diffs(data)
-        for k in range(len(distances)):
-            distances[k] = math.sqrt((diff[k] * diff[k]).sum())
-
-        return distances
-
 
     def poisson(self, radii):
         """
@@ -221,7 +211,8 @@ class RipleysKEstimator(object):
         ripley = np.zeros(len(radii))
 
         if mode == 'none':
-            distances = self._pairwise_distances(data)
+            diff = self._pairwise_diffs(data)
+            distances = np.hypot(diff[:, 0], diff[:, 1])
             for r in range(len(radii)):
                 ripley[r] = (distances < radii[r]).sum()
 
@@ -229,7 +220,7 @@ class RipleysKEstimator(object):
         # eq. 15.11 Stoyan book page 283
         elif mode == 'translation':
             diff = self._pairwise_diffs(data)
-            distances = self._pairwise_distances(data)
+            distances = np.hypot(diff[:, 0], diff[:, 1])
             intersec_area = (((self.x_max - self.x_min) - diff[:][:, 0]) *
                              ((self.y_max - self.y_min) - diff[:][:, 1]))
 
@@ -240,22 +231,23 @@ class RipleysKEstimator(object):
             ripley = (self.area**2 / (npts * (npts - 1))) * 2 * ripley
         # Stoyan book page 123 and eq 15.13
         elif mode == 'ohser':
-            distances = self._pairwise_distances(data)
+            diff = self._pairwise_diffs(data)
+            distances = np.hypot(diff[:, 0], diff[:, 1])
             a = self.area
             b = max((self.y_max - self.y_min) / (self.x_max - self.x_min),
                     (self.x_max - self.x_min) / (self.y_max - self.y_min))
             x = distances / math.sqrt(a / b)
             u = np.sqrt((x * x - 1) * (x > 1))
-            v = np.sqrt((x * x - b ** 2) * (x < math.sqrt(b**2 + 1)) * (x > b))
+            v = np.sqrt((x * x - b ** 2) * (x < math.sqrt(b ** 2 + 1)) * (x > b))
             c1 = np.pi - 2 * x * (1 + 1 / b) + x * x / b
             c2 = 2 * np.arcsin((1 / x) * (x > 1)) - 1 / b - 2 * (x - u)
             c3 = (2 * np.arcsin(((b - u * v) / (x * x))
-                                * (x > b) * (x < math.sqrt(b**2 + 1)))
+                                * (x > b) * (x < math.sqrt(b ** 2 + 1)))
                   + 2 * u + 2 * v / b - b - (1 + x * x) / b)
 
             cov_func = ((a / np.pi) * (c1 * (x >= 0) * (x <= 1)
-                                       + c2 * (x > 1) * (x <= b)
-                                       + c3 * (b < x) * (x < math.sqrt(b ** 2 + 1))))
+                        + c2 * (x > 1) * (x <= b)
+                        + c3 * (b < x) * (x < math.sqrt(b ** 2 + 1))))
 
             for r in range(len(radii)):
                 dist_indicator = distances < radii[r]
@@ -294,7 +286,8 @@ class RipleysKEstimator(object):
                 hor_dist = np.append(hor_dist, min_hor_dist * np.ones(npts - 1 - k))
                 ver_dist = np.append(ver_dist, min_ver_dist * np.ones(npts - 1 - k))
 
-            dist = self._pairwise_distances(data)
+            diff = self._pairwise_diffs(data)
+            dist = np.hypot(diff[:, 0], diff[:, 1])
             dist_ind = dist <= np.hypot(hor_dist, ver_dist)
 
             w1 = (1 - (np.arccos(np.minimum(ver_dist, dist) / dist) +
