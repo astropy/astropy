@@ -30,7 +30,12 @@ New Features
 - ``astropy.io.votable``
 
 - ``astropy.modeling``
+
   - Added ``SmoothlyBrokenPowerLaw1D`` model. [#5656]
+
+  - Add ``n_submodels`` shared method to single and compound models, which
+    allows users to get the number of components of a given single (compound)
+    model. [#5747]
 
 - ``astropy.nddata``
 
