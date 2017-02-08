@@ -242,6 +242,11 @@ def test_biweight_midvariance_axis_3d():
         bwi = np.array(bwi)
         assert_allclose(bw[y], bwi)
 
+def test_biweight_midcovariance():
+    """test biweight_midcovariance method"""
+    d = np.array([np.random.normal(0,1,500), np.random.normal(0,5,500)])
+    cov = funcs.biweight_midcovariance(d)
+    assert_allclose(cov.shape[0], d.shape[0])
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_binom_conf_interval():
