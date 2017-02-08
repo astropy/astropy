@@ -28,8 +28,8 @@ __doctest_skip__ = ['binned_binom_proportion']
 __doctest_requires__ = {'binom_conf_interval': ['scipy.special'],
                         'poisson_conf_interval': ['scipy.special',
                                                   'scipy.optimize',
-                                                  'scipy.integrate',
-                                                  'scipy.stats']}
+                                                  'scipy.integrate'],
+                        'biweight_midcovariance':['scipy.stats']}
 
 
 gaussian_sigma_to_fwhm = 2.0 * np.sqrt(2.0 * np.log(2.0))
@@ -1033,13 +1033,13 @@ def biweight_midcovariance(a, c=9.0, M=None):
     Parameters
     ----------
     a : array-like, shape=(N_dims, N_samples)
-    Input array
+        Input array
 
     c : float, optional
-    Tuning constant. Default is 9.0
+        Tuning constant. Default is 9.0
 
     M : array-like, optional, shape=(N_dims,)
-    Initial guess for biweight location
+        Initial guess for biweight location
 
     Returns
     -------
@@ -1053,7 +1053,7 @@ def biweight_midcovariance(a, c=9.0, M=None):
     >>> import numpy as np
     >>> from scipy import stats
     >>> from astropy.stats import biweight_midcovariance
-    >>> d = np.array([stats.norm.rvs(0,1,1000),stats.norm.rvs(0,3,1000)])
+    >>> d = np.array([stats.norm.rvs(0,1,1000), stats.norm.rvs(0,3,1000)])
     >>> d[0,0] = 30
     >>> np_cov = np.cov(d)
     >>> bw_cov = biweight_midcovariance(d)
@@ -1080,14 +1080,14 @@ def biweight_midcovariance(a, c=9.0, M=None):
     # now remove the outlier points
     mask = np.abs(u) < 1
     n = mask.sum(axis=1)
-    usub1 = (1-u**2)
-    usub5 = (1-5*u**2)
+    usub1 = (1 - u ** 2)
+    usub5 = (1 - 5 * u ** 2)
     usub1[~mask] = 0.0
 
-    # now compute nominator and denominators
-    numerator = np.array(map(lambda x: d*usub1**2*x, d*usub1**2)).sum(axis=2)
-    denominator = (usub1*usub5).sum(axis=1)
-    denominator = np.array(map(lambda x: denominator*x, denominator))
+    # now compute numerator and denominators
+    numerator = np.array(map(lambda x: d * usub1 ** 2 * x, d * usub1 ** 2)).sum(axis=2)
+    denominator = (usub1 * usub5).sum(axis=1)
+    denominator = np.array(map(lambda x: denominator * x, denominator))
 
     return n * numerator / denominator
 
