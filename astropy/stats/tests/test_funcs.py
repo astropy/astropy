@@ -246,16 +246,16 @@ def test_biweight_midcovariance():
     """test biweight_midcovariance method"""
     # Test 1
     rng = np.random.RandomState(1)
-    d = np.array([np.random.normal(0, 2, 100) for i in range(5)])
+    d = np.array([rng.normal(0, 2, 100) for i in range(5)])
     cov = funcs.biweight_midcovariance(d)
     std = np.around(np.sqrt(cov.diagonal()), 1)
-    assert_allclose(std, [ 2.2,  2. ,  2.3,  2.3,  1.8])
+    assert_allclose(std, [ 1.8,  1.9,  2. ,  2.1,  2.1])
     # Test 2
     rng = np.random.RandomState(1)
-    d = np.array([np.random.normal(0, 2, 10) for i in range(5)])
+    d = np.array([rng.normal(0, 2, 10) for i in range(5)])
     cov = funcs.biweight_midcovariance(d)
     std = np.around(np.sqrt(cov.diagonal()), 1)
-    assert_allclose(std, [ 1.2,  1.7,  1.9,  2. ,  1.6])
+    assert_allclose(std, [ 2.6,  2.1,  1.6,  1.5,  1.9])
 
 def test_midcov_midvar():
     """
@@ -263,10 +263,10 @@ def test_midcov_midvar():
     are compatible
     """
     rng = np.random.RandomState(1)
-    d = np.array([np.random.normal(0, 2, 100) for i in range(3)])
+    d = np.array([rng.normal(0, 2, 100) for i in range(3)])
     cov = funcs.biweight_midcovariance(d)
     cov_std = np.around(np.sqrt(cov.diagonal()), 1)
-    std = np.around(map(funcs.biweight_midvariance, d)), 1)
+    std = np.around(map(funcs.biweight_midvariance, d), 1)
     assert_allclose(cov_std, std)
 
 @pytest.mark.skipif('not HAS_SCIPY')
