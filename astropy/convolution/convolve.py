@@ -251,12 +251,12 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 
 
 @support_nddata(data='array')
-def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
+def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
+                 normalize_kernel=False, mask=None, crop=True,
                  return_fft=False, fft_pad=None, psf_pad=None,
                  interpolate_nan=False, quiet=False, ignore_edge_zeros=False,
-                 min_wt=0.0, normalize_kernel=False, allow_huge=False,
-                 fftn=np.fft.fftn, ifftn=np.fft.ifftn,
-                 complex_dtype=np.complex, mask=None):
+                 min_wt=0.0, allow_huge=False, fftn=np.fft.fftn,
+                 ifftn=np.fft.ifftn, complex_dtype=np.complex, ):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with
     ``shape = array.shape``.  Assumes kernel is centered.
