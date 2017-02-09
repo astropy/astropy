@@ -34,6 +34,9 @@ class BlackBody1D(Fittable1DModel):
     # in this case the input x values are assumed to be frequencies in Hz.
     input_units_allow_dimensionless = True
 
+    # We enable the spectral equivalency by default for the spectral axis
+    input_units_equivalencies = {'x': u.spectral()}
+
     def evaluate(self, x, temperature, bolometric_flux):
         """Evaluate the model.
 
@@ -64,7 +67,10 @@ class BlackBody1D(Fittable1DModel):
         # doens't have any units. We do this because even though blackbody_nu
         # can take temperature values without units, the / temperature ** 4
         # factor needs units to be defined.
-        temperature = u.Quantity(temperature, u.K)
+        if isinstance(temperature, u.Quantity):
+            temperature = temperature.to(u.K, equivalencies=u.temperature())
+        else:
+            temperature = u.Quantity(temperature, u.K)
 
         # We normalize the returned blackbody so that the integral would be
         # unity, and we then multiply by the bolometric flux. A normalized
