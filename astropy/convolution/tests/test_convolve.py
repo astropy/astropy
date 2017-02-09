@@ -116,9 +116,7 @@ class TestConvolve1D(object):
         z = np.nan_to_num(z)
 
         if boundary is None:
-            assert np.all(z == np.array([[0., 0., 0.],
-                                         [0., 0., 0.],
-                                         [0., 0., 0.]], dtype='>f8'))
+            assert np.all(z == np.array([0., 0., 0.], dtype='>f8'))
         else:
             assert np.all(z == x)
 

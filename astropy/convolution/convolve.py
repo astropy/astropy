@@ -484,10 +484,20 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     array[nanmaskarray] = 0
     nanmaskkernel = np.isnan(kernel) | np.isinf(kernel)
     kernel[nanmaskkernel] = 0
-    if (not interpolate_nan and not quiet and (np.any(nanmaskarray) or
-                                               np.any(nanmaskkernel))):
+    anynan = (np.any(nanmaskarray) or np.any(nanmaskkernel))
+    if (not interpolate_nan and not quiet and anynan):
         warnings.warn("NOT ignoring NaN values even though they are present "
                       " (they are treated as 0)", AstropyUserWarning)
+    elif not anynan and interpolate_nan:
+        # if there are no NaNs or infs, there is no behavior change with
+        # interpolate_nan set to True, so to avoid a small performance
+        # hit (and unnecessary exceptions), we skip it.
+        interpolate_nan = False
+        if not quiet:
+            warnings.warn("interpolate_nan is set to True, but since there are"
+                          " no NaN values, it is being ignored",
+                          AstropyUserWarning)
+        
 
     if normalize_kernel is True:
         if kernel.sum() < 1. / MAX_NORMALIZATION:
