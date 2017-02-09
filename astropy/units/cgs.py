@@ -7,10 +7,12 @@ top-level `astropy.units` namespace.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import warnings
 from fractions import Fraction
 
 from . import si
 from .core import UnitBase, def_unit
+from ..utils.exceptions import AstropyDeprecationWarning
 
 
 _ns = globals()
@@ -97,6 +99,9 @@ def_unit(['Fr', 'Franklin', 'statcoulomb', 'statC', 'esu'],
 def_unit(['statA', 'statampere'], Fr * s ** -1, namespace=_ns,
          doc='statampere: CGS (ESU) unit of current')
 
+# TODO: Remove emu in v3.1
+warnings.warn('emu is deprecated due to ambiguous definition and '
+              'will be removed in a future release', AstropyDeprecationWarning)
 def_unit(['Bi', 'Biot', 'abA', 'abampere', 'emu'],
          g ** Fraction(1, 2) * cm ** Fraction(1, 2) * s ** -1, namespace=_ns,
          doc='Biot: CGS (EMU) unit of current')
