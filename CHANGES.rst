@@ -245,6 +245,8 @@ Bug Fixes
   - Avoid importing matplotlib.pyplot when importing
     astropy.visualization.wcsaxes. [#5680, #5684]
 
+  - Fix compatibility issues between WCSAxes and Matplotlib 2.x.
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
