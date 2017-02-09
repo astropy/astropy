@@ -15,6 +15,10 @@ File Handling and Convenience Functions
 ^^^^^^^^^^^^
 .. autofunction:: info
 
+:func:`printdiff`
+^^^^^^^^^^^^^^^^^
+.. autofunction:: printdiff
+
 :func:`append`
 ^^^^^^^^^^^^^^
 .. autofunction:: append

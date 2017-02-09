@@ -25,6 +25,8 @@ New Features
 
   - Added absolute tolerance parameter when comparing FITS files. [#4729]
 
+  - New convenience function ``printdiff`` to print out diff reports. [#5759]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
