@@ -516,11 +516,11 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
             kernel_is_normalized = True
         else:
             kernel_is_normalized = False
-            if interpolate_nan and not kernel_is_normalized:
-                raise ValueError("The meaning of NaN interpolation with a non-"
-                                 "normalized kernel is ambiguous.  Either interpolate"
-                                 "with a normalized kernel, averaging across the NaN"
-                                 "values, or set the NaNs to zero prior to convolution")
+            #if interpolate_nan and not kernel_is_normalized:
+            #    raise ValueError("The meaning of NaN interpolation with a non-"
+            #                     "normalized kernel is ambiguous.  Either interpolate"
+            #                     "with a normalized kernel, averaging across the NaN"
+            #                     "values, or set the NaNs to zero prior to convolution")
 
     if boundary is None:
         warnings.warn("The convolve_fft version of boundary=None is "

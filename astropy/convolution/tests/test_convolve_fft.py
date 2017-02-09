@@ -237,14 +237,13 @@ class TestConvolve1D(object):
 
         y = np.array([1., 1., 1.], dtype='float64')
 
-        if interpolate_nan and not normalize_kernel:
-            with pytest.raises(ValueError):
-                z = convolve_fft(x, y, boundary=boundary,
-                                 interpolate_nan=interpolate_nan,
-                                 normalize_kernel=normalize_kernel,
-                                 ignore_edge_zeros=ignore_edge_zeros)
-
-            return
+        # if interpolate_nan and not normalize_kernel:
+        #     with pytest.raises(ValueError):
+        #         z = convolve_fft(x, y, boundary=boundary,
+        #                          interpolate_nan=interpolate_nan,
+        #                          normalize_kernel=normalize_kernel,
+        #                          ignore_edge_zeros=ignore_edge_zeros)
+        #     return
 
         z = convolve_fft(x, y, boundary=boundary,
                          interpolate_nan=interpolate_nan,
@@ -462,15 +461,16 @@ class TestConvolve2D(object):
                       [1., 1., 1.],
                       [1., 1., 1.]], dtype='float64')
 
-        # kernel is not normalized, so this situation -> exception
-        if interpolate_nan and not normalize_kernel:
-            with pytest.raises(ValueError):
-                z = convolve_fft(x, y, boundary=boundary,
-                                 interpolate_nan=interpolate_nan,
-                                 normalize_kernel=normalize_kernel,
-                                 ignore_edge_zeros=ignore_edge_zeros,
-                                 )
-            return
+        # commented out: allow unnormalized nan-ignoring convolution
+        # # kernel is not normalized, so this situation -> exception
+        # if interpolate_nan and not normalize_kernel:
+        #     with pytest.raises(ValueError):
+        #         z = convolve_fft(x, y, boundary=boundary,
+        #                          interpolate_nan=interpolate_nan,
+        #                          normalize_kernel=normalize_kernel,
+        #                          ignore_edge_zeros=ignore_edge_zeros,
+        #                          )
+        #     return
 
         z = convolve_fft(x, y, boundary=boundary,
                          interpolate_nan=interpolate_nan,
@@ -478,6 +478,7 @@ class TestConvolve2D(object):
                          ignore_edge_zeros=ignore_edge_zeros,
                          )
 
+        # weights
         w_n = np.array([[3., 5., 3.],
                         [5., 8., 5.],
                         [3., 5., 3.]], dtype='float64')
