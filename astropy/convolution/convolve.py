@@ -231,8 +231,8 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
             result = convolve3d_boundary_none(array_internal,
                                               kernel_internal)
     else:
-        raise NotImplemented('convolve only supports 1, 2, and 3-dimensional '
-                             'arrays at this time')
+        raise NotImplementedError('convolve only supports 1, 2, and 3-dimensional '
+                                  'arrays at this time')
 
     # If normalization was not requested, we need to scale the array (since
     # the kernel was normalized prior to convolution)
