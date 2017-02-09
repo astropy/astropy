@@ -1803,19 +1803,10 @@ class Model(object):
             param_metrics[name]['slice'] = param_slice
             param_metrics[name]['shape'] = param_shape
 
-            if unit is None:
-                if param_descr.unit is not None:
-                    raise InputParameterError(
-                        "{0}.__init__() requires a Quantity with units "
-                        "equivalent to {1!r} for parameter {2!r}".format(
-                            self.__class__.__name__, param_descr.unit, name))
-            else:
-                if (param_descr.unit is not None and not unit.is_equivalent(param_descr.unit)):
-                    raise InputParameterError(
-                        "{0}.__init__() requires parameter {1!r} to be in "
-                        "units equivalent to {2!r} (got {3!r})".format(
-                            self.__class__.__name__, name, param_descr.unit,
-                            unit))
+            if unit is None and param_descr.unit is not None:
+                raise InputParameterError(
+                    "{0}.__init__() requires a Quantity for parameter "
+                    "{1!r}".format(self.__class__.__name__, name))
 
             param_metrics[name]['orig_unit'] = unit
 
