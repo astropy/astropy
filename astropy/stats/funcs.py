@@ -1108,7 +1108,6 @@ def biweight_midcovariance(a, c=9.0, M=None, transpose=False):
     return n * (np.dot(numerator, numerator.T) /
                 np.dot(denominator, denominator.T))
 
-
 def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix,
                             gain=1.0):
     """Computes the signal to noise ratio for source being observed in the
