@@ -237,6 +237,15 @@ class TestConvolve1D(object):
 
         y = np.array([1., 1., 1.], dtype='float64')
 
+        if interpolate_nan and not normalize_kernel:
+            with pytest.raises(ValueError):
+                z = convolve_fft(x, y, boundary=boundary,
+                                 interpolate_nan=interpolate_nan,
+                                 normalize_kernel=normalize_kernel,
+                                 ignore_edge_zeros=ignore_edge_zeros)
+
+            return
+
         z = convolve_fft(x, y, boundary=boundary,
                          interpolate_nan=interpolate_nan,
                          normalize_kernel=normalize_kernel,
@@ -452,6 +461,16 @@ class TestConvolve2D(object):
         y = np.array([[1., 1., 1.],
                       [1., 1., 1.],
                       [1., 1., 1.]], dtype='float64')
+
+        # kernel is not normalized, so this situation -> exception
+        if interpolate_nan and not normalize_kernel:
+            with pytest.raises(ValueError):
+                z = convolve_fft(x, y, boundary=boundary,
+                                 interpolate_nan=interpolate_nan,
+                                 normalize_kernel=normalize_kernel,
+                                 ignore_edge_zeros=ignore_edge_zeros,
+                                 )
+            return
 
         z = convolve_fft(x, y, boundary=boundary,
                          interpolate_nan=interpolate_nan,
