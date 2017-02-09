@@ -244,14 +244,30 @@ def test_biweight_midvariance_axis_3d():
 
 def test_biweight_midcovariance():
     """test biweight_midcovariance method"""
-    d = np.array([np.random.normal(0,1,500), np.random.normal(0,5,500)])
+    # Test 1
+    rng = np.random.RandomState(1)
+    d = np.array([np.random.normal(0, 2, 100) for i in range(5)])
     cov = funcs.biweight_midcovariance(d)
-    std = np.sqrt(cov.diagonal())
-    # Check array shape is correct
-    assert_allclose(cov.shape[0], d.shape[0])
-    # Check result is **roughly** correct
-    assert_allclose(std[0],1,0.5)
-    assert_allclose(std[1],5,2.5)
+    std = np.around(np.sqrt(cov.diagonal()), 1)
+    assert_allclose(std, [ 2.2,  2. ,  2.3,  2.3,  1.8])
+    # Test 2
+    rng = np.random.RandomState(1)
+    d = np.array([np.random.normal(0, 2, 10) for i in range(5)])
+    cov = funcs.biweight_midcovariance(d)
+    std = np.around(np.sqrt(cov.diagonal()), 1)
+    assert_allclose(std, [ 1.2,  1.7,  1.9,  2. ,  1.6])
+
+def test_midcov_midvar():
+    """
+    test biweight_midcovariance and biweight_midvariance
+    are compatible
+    """
+    rng = np.random.RandomState(1)
+    d = np.array([np.random.normal(0, 2, 100) for i in range(3)])
+    cov = funcs.biweight_midcovariance(d)
+    cov_std = np.around(np.sqrt(cov.diagonal()), 1)
+    std = np.around(map(funcs.biweight_midvariance, d)), 1)
+    assert_allclose(cov_std, std)
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_binom_conf_interval():
