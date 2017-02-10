@@ -297,20 +297,22 @@ class TestConvolve2D(object):
 
         if boundary is None:
             assert_array_almost_equal_nulp(z, np.array([[0., 0., 0.],
-                                                       [0., 9., 0.],
-                                                       [0., 0., 0.]], dtype='>f8'), 10)
+                                                        [0., 9., 0.],
+                                                        [0., 0., 0.]], dtype='>f8'), 10)
         elif boundary == 'fill':
-            assert_array_almost_equal_nulp(z, np.array([[2., 6., 5.],
-                                                        [5., 9., 8.],
-                                                        [5., 5., 4.]], dtype='>f8'), 10)
+            assert_array_almost_equal_nulp(z, np.array([[1., 5., 4.],
+                                                        [4., 8., 7.],
+                                                        [4., 4., 3.]], dtype='>f8'), 10)
         elif boundary == 'wrap':
-            assert_array_almost_equal_nulp(z, np.array([[9., 9., 9.],
-                                                        [9., 9., 9.],
-                                                        [9., 9., 9.]], dtype='>f8'), 10)
-        else:
+            assert_array_almost_equal_nulp(z, np.array([[8., 8., 8.],
+                                                        [8., 8., 8.],
+                                                        [8., 8., 8.]], dtype='>f8'), 10)
+        elif boundary == 'extend':
             assert_array_almost_equal_nulp(z, np.array([[3., 10., 17.],
-                                                        [6., 9., 12.],
+                                                        [6., 8., 12.],
                                                         [9., 8., 7.]], dtype='>f8'), 10)
+        else:
+            raise ValueError("Invalid boundary specification")
 
 
 class TestConvolve3D(object):
