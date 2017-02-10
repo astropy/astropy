@@ -2096,6 +2096,10 @@ class Table(object):
               1   3   5
               2   4   6
         '''
+        if len(names) != len(new_names):
+           raise ValueError("The names list and new_names list are not of the sme size.")
+
+        import itertools
 
         if isinstance(names, six.string_types):
             names = [names]
@@ -2103,10 +2107,6 @@ class Table(object):
         if isinstance(new_names, six.string_types):
             new_names = [new_names]
 
-        if len(names) != len(new_names):
-            raise ValueError("The names list and new_names list are not of the sme size.")
-
-        import itertools
         for name, new_name in itertools.izip(names, new_names):
             self.rename_column(name, new_name)
 
