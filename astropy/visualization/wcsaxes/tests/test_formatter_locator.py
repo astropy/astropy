@@ -155,7 +155,7 @@ class TestAngleFormatterLocator(object):
         fl = AngleFormatterLocator(number=5, format="dd:mm:ss")
         assert fl.formatter([15.392231] * u.degree, None)[0] == six.u('15\xb023\'32"')
         with rc_context(rc={'text.usetex': True}):
-            assert fl.formatter([15.392231] * u.degree, None)[0] == "15$^\circ$23'32\""
+            assert fl.formatter([15.392231] * u.degree, None)[0] == "15$^\\circ$23'32\""
 
     @pytest.mark.parametrize(('format'), ['x.xxx', 'dd.ss', 'dd:ss', 'mdd:mm:ss'])
     def test_invalid_formats(self, format):

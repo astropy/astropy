@@ -86,7 +86,7 @@ matrix:
                PIP_DEPENDENCIES='jplephem mock pytest-mpl'
                LC_CTYPE=C.ascii LC_ALL=C
                NUMPY_VERSION=1.10
-               MATPLOTLIB_VERSION=1.4
+               MATPLOTLIB_VERSION=1.5
                ASTROPY_USE_SYSTEM_PYTEST=1
 
         - os: linux
@@ -95,7 +95,7 @@ matrix:
                PIP_DEPENDENCIES='cpp-coveralls objgraph jplephem pytest-mpl'
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
-               MATPLOTLIB_VERSION=1.5
+               MATPLOTLIB_VERSION=2.0
                ASTROPY_USE_SYSTEM_PYTEST=1
 
         # Try pre-release version of Numpy without optional dependencies
