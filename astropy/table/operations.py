@@ -95,6 +95,59 @@ def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
                         pass
 
 
+def _merge_col_meta2(tables, col_name_map, metadata_conflicts='warn'):
+    """
+    Merge column meta data for the ``out`` table.
+
+    This merges column meta, which includes attributes unit, format,
+    and description, as well as the actual `meta` attribute.  It is
+    assumed that the ``out`` table was created by merging ``tables``.
+    The ``col_name_map`` provides the mapping from col name in ``out``
+    back to the original name (which may be different).
+    """
+    # Set column meta
+    attrs = ('unit', 'format', 'description')
+    col_attrs_map = {}
+    for out_name in col_name_map:
+        out_attrs = col_attrs_map[out_name] = {'meta': {}}
+        for idx_table, table in enumerate(tables):
+            right_name = col_name_map[out_name][idx_table]
+            if right_name:
+                right_col = table[right_name]
+                out_attrs['meta'] = metadata.merge(out_attrs['meta'],
+                                                   right_col.info.meta or {},
+                                                   metadata_conflicts=metadata_conflicts)
+                for attr in attrs:
+
+                    # Pick the metadata item that is not None, or they are both
+                    # not None, then if they are equal, there is no conflict,
+                    # and if they are different, there is a conflict and we
+                    # pick the one on the right (or raise an error).
+                    right_attr = getattr(right_col, attr, None)
+                    if right_attr is None:
+                        continue
+                    if attr not in out_attrs:
+                        out_attrs[attr] = right_attr
+                    elif out_attrs[attr] != right_attr:
+                        if metadata_conflicts == 'warn':
+                            warnings.warn("In merged column '{0}' the '{1}' attribute does not match "
+                                          "({2} != {3}).  Using {3} for merged output"
+                                          .format(out_name, attr,
+                                                  out_attrs[attr], right_attr),
+                                          metadata.MergeConflictWarning)
+                        elif metadata_conflicts == 'error':
+                            raise metadata.MergeConflictError(
+                                'In merged column {0!r} the {1!r} attribute does not match '
+                                '({2} != {3})'.format(out_name, attr,
+                                                      out_attrs[attr], right_attr))
+                        elif metadata_conflicts != 'silent':
+                            raise ValueError('metadata_conflicts argument must be one of "silent",'
+                                             ' "warn", or "error"')
+                        out_attrs[attr] = right_attr
+
+    return col_attrs_map
+
+
 def _merge_table_meta(out, tables, metadata_conflicts='warn'):
     out_meta = deepcopy(tables[0].meta)
     for table in tables[1:]:
@@ -253,7 +306,19 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
     out = _vstack(tables, join_type, col_name_map)
 
     # Merge column and table metadata
-    _merge_col_meta(out, tables, col_name_map, metadata_conflicts=metadata_conflicts)
+    col_attrs_map = _merge_col_meta2(tables, col_name_map, metadata_conflicts=metadata_conflicts)
+    for name, col_attrs in col_attrs_map.items():
+        for attr, value in col_attrs.items():
+            if attr == 'meta':
+                out[name].info.meta = value
+            else:
+                try:
+                    # It may not be allowed to set attributes, for instance `unit`
+                    # in a Quantity column.
+                    setattr(out[name], attr, value)
+                except AttributeError:
+                    pass
+
     _merge_table_meta(out, tables, metadata_conflicts=metadata_conflicts)
 
     return out
