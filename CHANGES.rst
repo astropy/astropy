@@ -251,6 +251,7 @@ Bug Fixes
     astropy.visualization.wcsaxes. [#5680, #5684]
 
   - Ignore Numpy warnings that happen in coordinate transforms in WCSAxes.
+    [#5792]
 
   - Fix compatibility issues between WCSAxes and Matplotlib 2.x. [#5786]
 
