@@ -266,7 +266,7 @@ def test_midcov_midvar():
     d = np.array([rng.normal(0, 2, 100) for i in range(3)])
     cov = funcs.biweight_midcovariance(d)
     cov_std = np.around(np.sqrt(cov.diagonal()), 1)
-    std = np.around(list(map(funcs.biweight_midvariance, d), 1))
+    std = np.around(list(map(funcs.biweight_midvariance, d)), 1)
     assert_allclose(cov_std, std)
 
 @pytest.mark.skipif('not HAS_SCIPY')
