@@ -995,7 +995,7 @@ class Quantity(np.ndarray):
                       if self.unit is not None
                       else _UNIT_NOT_INITIALISED)
 
-        return '${0} \; {1}$'.format(latex_value, latex_unit)
+        return r'${0} \; {1}$'.format(latex_value, latex_unit)
 
     def __format__(self, format_spec):
         """
