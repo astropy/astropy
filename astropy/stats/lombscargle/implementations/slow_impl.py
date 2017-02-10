@@ -37,7 +37,7 @@ def lombscargle_slow(t, y, dy, frequency, normalization='standard',
 
     References
     ----------
-    .. [1] W. Press et al, Numerical Recipies in C (2002)
+    .. [1] W. Press et al, Numerical Recipes in C (2002)
     .. [2] Scargle, J.D. 1982, ApJ 263:835-853
     .. [3] M. Zechmeister and M. Kurster, A&A 496, 577-584 (2009)
     """
