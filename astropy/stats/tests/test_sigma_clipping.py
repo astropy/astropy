@@ -144,3 +144,32 @@ def test_sigmaclip_negative_axis():
     data = np.ones((3, 4))
     # without correct expand_dims this would raise a ValueError
     sigma_clip(data, axis=-1)
+
+
+def test_sigmaclip_fully_masked():
+    """Make sure a fully masked array is returned when sigma clipping a fully
+    masked array.
+    """
+
+    data = np.ma.MaskedArray(data=[[1., 0.], [0., 1.]],
+                             mask=[[True, True], [True, True]])
+    clipped_data = sigma_clip(data)
+    np.ma.allequal(data, clipped_data)
+
+
+def test_sigmaclip_empty_masked():
+    """Make sure a empty masked array is returned when sigma clipping an empty
+    masked array.
+    """
+
+    data = np.ma.MaskedArray(data=[], mask=[])
+    clipped_data = sigma_clip(data)
+    np.ma.allequal(data, clipped_data)
+
+def test_sigmaclip_empty():
+    """Make sure a empty array is returned when sigma clipping an empty array.
+    """
+
+    data = np.array([])
+    clipped_data = sigma_clip(data)
+    assert_equal(data, clipped_data)
