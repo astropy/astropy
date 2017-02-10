@@ -150,6 +150,9 @@ Bug Fixes
 
 - ``astropy.stats``
 
+  - Ensure that a masked array is returned when sigma clipping fully masked
+    data. [#5711]
+
 - ``astropy.sphinx``
 
 - ``astropy.table``
