@@ -243,6 +243,21 @@ def treat_deprecations_as_exceptions():
     except ImportError:
         pass
 
+    try:
+        import pygments  # pylint: disable=W0611
+    except ImportError:
+        pass
+
+    try:
+        import ipykernel  # pylint: disable=W0611
+    except ImportError:
+        pass
+
+    try:
+        import setuptools  # pylint: disable=W0611
+    except ImportError:
+        pass
+
     # Now, start over again with the warning filters
     warnings.resetwarnings()
     # Now, turn DeprecationWarnings into exceptions
