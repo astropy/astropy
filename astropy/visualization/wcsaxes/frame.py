@@ -100,7 +100,7 @@ class BaseFrame(OrderedDict):
 
         self.parent_axes = parent_axes
         self._transform = transform
-        self._linewidth = None
+        self._linewidth = 1
         self._color = 'black'
         self._path = path
 
