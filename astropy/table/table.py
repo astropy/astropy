@@ -2036,7 +2036,7 @@ class Table(object):
         name : str
             The current name of the column.
         new_name : str
-            The new name for the column
+            The new name for the column.
 
         Examples
         --------
@@ -2063,6 +2063,52 @@ class Table(object):
             raise KeyError("Column {0} does not exist".format(name))
 
         self.columns[name].info.name = new_name
+
+    def rename_columns(self, names, new_names):
+        ''' ****
+        Renames multiple columns.
+
+        Parameters
+        ----------
+        names : list
+            A list of the column names to change.
+        new_names : list
+            A list containing the new column names.
+
+        Examples ****
+        --------
+        Create a table with three columns 'a', 'b' and 'c'::
+
+            >>> t = Table([[1,2],[3,4],[5,6]], names=('a','b','c'))
+            >>> print(t)
+             a   b   c
+            --- --- ---
+              1   3   5
+              2   4   6
+
+        Renaming columns 'a' to 'aa' and b to 'bb'::
+            >>> names=('a','b')
+            >>> new_names=('aa','bb')
+            >>> t.rename_columns(names, new_names)
+            >>> print(t)
+             aa  bb   c
+            --- --- ---
+              1   3   5
+              2   4   6
+        '''
+
+        if isinstance(names, six.string_types):
+            names = [names]
+
+        if isinstance(new_names, six.string_types):
+            new_names = [new_names]
+
+        if len(names) != len(new_names):
+            raise ValueError("The names list and new_names list are not of the sme size.")
+
+        import itertools
+        for name, new_name in itertools.izip(names, new_names):
+            self.rename_column(name, new_name)
 
     def add_row(self, vals=None, mask=None):
         """Add a new row to the end of the table.
