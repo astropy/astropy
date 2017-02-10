@@ -12,7 +12,7 @@ class QuantityInput(object):
 
     @classmethod
     def as_decorator(cls, func=None, **kwargs):
-        """
+        r"""
         A decorator for validating the units of arguments to functions.
 
         Unit specifications can be provided as keyword arguments to the decorator,
