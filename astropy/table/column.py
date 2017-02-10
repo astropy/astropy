@@ -99,11 +99,9 @@ class FalseArray(np.ndarray):
             raise ValueError('Cannot set any element of {0} class to True'
                              .format(self.__class__.__name__))
 
-    def __setslice__(self, start, stop, val):
-        val = np.asarray(val)
-        if np.any(val):
-            raise ValueError('Cannot set any element of {0} class to True'
-                             .format(self.__class__.__name__))
+    if six.PY2:  # avoid falling back to ndarray.__setslice__
+        def __setslice__(self, start, stop, val):
+            self.__setitem__(slice(start, stop), val)
 
 
 class ColumnInfo(BaseColumnInfo):
@@ -810,13 +808,11 @@ class Column(BaseColumn):
         # order-of-magnitude speed-up. [#2994]
         self.data[index] = value
 
-    # # Set slices using a view of the underlying data, as it gives an
-    # # order-of-magnitude speed-up.  Only gets called in Python 2.  [#3020]
-    def __setslice__(self, start, stop, value):
-        if issubclass(self.dtype.type, np.character):
-            self._check_string_truncate(value)
-        self.info.adjust_indices(slice(start, stop), value, len(self))
-        self.data.__setslice__(start, stop, value)
+    if six.PY2:
+        # avoid falling through to ndarray.__setslice__, instead using
+        # self.__setitem__, which is much faster (see above).  [#3020]
+        def __setslice__(self, start, stop, value):
+            self.__setitem__(slice(start, stop), value)
 
     def insert(self, obj, values):
         """
@@ -1123,10 +1119,6 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         # update indices
         self.info.adjust_indices(index, value, len(self))
         ma.MaskedArray.__setitem__(self, index, value)
-
-    def __setslice__(self, start, stop, value):
-        # defers to __setitem__, so we don't adjust indices here
-        ma.MaskedArray.__setslice__(self, start, stop, value)
 
     # We do this to make the methods show up in the API docs
     name = BaseColumn.name

@@ -1037,16 +1037,14 @@ class Quantity(np.ndarray):
         return out
 
     def __setitem__(self, i, value):
-        # update indices
-        if not self.isscalar:
+        # update indices if we're part of a table.
+        if not self.isscalar and 'info' in self.__dict__:
             self.info.adjust_indices(i, value, len(self))
         self.view(np.ndarray).__setitem__(i, self._to_own_unit(value))
 
-    def __setslice__(self, i, j, value):
-        # update indices
-        if not self.isscalar:
-            self.info.adjust_indices(slice(i, j), value, len(self))
-        self.view(np.ndarray).__setslice__(i, j, self._to_own_unit(value))
+    if six.PY2:  # don't fall through to ndarray.__setslice__
+        def __setslice__(self, i, j, value):
+            self.__setitem__(slice(i, j), value)
 
     # __contains__ is OK
 
