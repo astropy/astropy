@@ -254,14 +254,20 @@ class WCSAxes(Axes):
         # to continue updating it. CoordinatesMap will create a new frame
         # instance, but we can tell that instance to keep using the old path.
         if hasattr(self, 'coords'):
-            previous_frame_path = self.coords.frame._path
+            previous_frame = {'path': self.coords.frame._path,
+                              'color': self.coords.frame.get_color(),
+                              'linewidth': self.coords.frame.get_linewidth()}
         else:
-            previous_frame_path = None
+            previous_frame = {'path': None}
 
         self.coords = CoordinatesMap(self, wcs=self.wcs, slice=slices,
                                      transform=transform, coord_meta=coord_meta,
                                      frame_class=self.frame_class,
-                                     previous_frame_path=previous_frame_path)
+                                     previous_frame_path=previous_frame['path'])
+
+        if previous_frame['path'] is not None:
+            self.coords.frame.set_color(previous_frame['color'])
+            self.coords.frame.set_linewidth(previous_frame['linewidth'])
 
         self._all_coords = [self.coords]
 
