@@ -21,14 +21,13 @@ addons:
 env:
     global:
         # Set defaults to avoid repeating in most cases
-        - PYTHON_VERSION=3.5
+        - PYTHON_VERSION=3.6
         - NUMPY_VERSION=stable
         - MAIN_CMD='python setup.py'
         - CONDA_DEPENDENCIES='Cython jinja2'
         - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath'
         - PIP_DEPENDENCIES=''
         - SETUP_XVFB=True
-        - SPHINX_VERSION='<1.5'
         - EVENT_TYPE='push pull_request'
 
     matrix:
@@ -36,6 +35,7 @@ env:
         - PYTHON_VERSION=3.3 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.4 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.5 SETUP_CMD='egg_info'
+        - PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
 
 matrix:
 
