@@ -10,6 +10,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
 from ..extern.six.moves import zip, range
+from .. import units as u
 
 from copy import deepcopy
 import warnings
@@ -107,7 +108,7 @@ def _merge_col_meta2(tables, col_name_map, metadata_conflicts='warn'):
     """
     # Set column meta
     attrs = ('unit', 'format', 'description')
-    col_attrs_map = {}
+    col_attrs_map = OrderedDict()
     for out_name in col_name_map:
         out_attrs = col_attrs_map[out_name] = {'meta': {}}
         for idx_table, table in enumerate(tables):
@@ -126,24 +127,33 @@ def _merge_col_meta2(tables, col_name_map, metadata_conflicts='warn'):
                     right_attr = getattr(right_col, attr, None)
                     if right_attr is None:
                         continue
+
                     if attr not in out_attrs:
                         out_attrs[attr] = right_attr
-                    elif out_attrs[attr] != right_attr:
-                        if metadata_conflicts == 'warn':
-                            warnings.warn("In merged column '{0}' the '{1}' attribute does not match "
-                                          "({2} != {3}).  Using {3} for merged output"
-                                          .format(out_name, attr,
-                                                  out_attrs[attr], right_attr),
-                                          metadata.MergeConflictWarning)
-                        elif metadata_conflicts == 'error':
-                            raise metadata.MergeConflictError(
-                                'In merged column {0!r} the {1!r} attribute does not match '
-                                '({2} != {3})'.format(out_name, attr,
-                                                      out_attrs[attr], right_attr))
-                        elif metadata_conflicts != 'silent':
-                            raise ValueError('metadata_conflicts argument must be one of "silent",'
-                                             ' "warn", or "error"')
-                        out_attrs[attr] = right_attr
+                        continue
+
+                    if out_attrs[attr] == right_attr:
+                        continue
+
+                    # unit conflicts for Quantity columns may well resolve
+                    # (or lead to UnitsError later).
+                    if attr == 'unit' and isinstance(right_col, u.Quantity):
+                        continue
+                    # we have a real conflict
+                    if metadata_conflicts == 'warn':
+                        warnings.warn("In merged column '{0}' the '{1}' attribute does not match "
+                                      "({2} != {3}).  Using {3} for merged output"
+                                      .format(out_name, attr, out_attrs[attr], right_attr),
+                                      metadata.MergeConflictWarning)
+                    elif metadata_conflicts == 'error':
+                        raise metadata.MergeConflictError(
+                            'In merged column {0!r} the {1!r} attribute does not match '
+                            '({2} != {3})'.format(out_name, attr,
+                                                  out_attrs[attr], right_attr))
+                    elif metadata_conflicts != 'silent':
+                        raise ValueError('metadata_conflicts argument must be one of "silent",'
+                                         ' "warn", or "error"')
+                    out_attrs[attr] = right_attr
 
     return col_attrs_map
 
@@ -301,23 +311,39 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
     tables = _get_list_of_tables(tables)  # validates input
     if len(tables) == 1:
         return tables[0]  # no point in stacking a single table
-    col_name_map = OrderedDict()
 
-    out = _vstack(tables, join_type, col_name_map)
+    for table in tables:
+        if table.has_mixin_columns:
+            raise NotImplementedError('vstack not available for tables with mixin columns')
+
+    # Start by assuming an outer match where all names go to output
+    names = set(itertools.chain(*[table.colnames for table in tables]))
+    col_name_map = get_col_name_map(tables, names)
+    # If require_match is True then the output must have exactly the same
+    # number of columns as each input array.
+    if join_type == 'exact':
+        for names in six.itervalues(col_name_map):
+            if any(x is None for x in names):
+                raise TableMergeError('Inconsistent columns in input arrays '
+                                      "(use 'inner' or 'outer' join_type to "
+                                      "allow non-matching columns)")
+        join_type = 'outer'
+
+    # For an inner join, keep only columns where all input arrays have that column
+    elif join_type == 'inner':
+        col_name_map = OrderedDict((name, in_names) for name, in_names in six.iteritems(col_name_map)
+                                   if all(x is not None for x in in_names))
+        if len(col_name_map) == 0:
+            raise TableMergeError('Input arrays have no columns in common')
+
+    elif join_type != 'outer':
+        raise ValueError("`join_type` arg must be one of 'inner', 'exact' or 'outer'")
+
 
     # Merge column and table metadata
     col_attrs_map = _merge_col_meta2(tables, col_name_map, metadata_conflicts=metadata_conflicts)
-    for name, col_attrs in col_attrs_map.items():
-        for attr, value in col_attrs.items():
-            if attr == 'meta':
-                out[name].info.meta = value
-            else:
-                try:
-                    # It may not be allowed to set attributes, for instance `unit`
-                    # in a Quantity column.
-                    setattr(out[name], attr, value)
-                except AttributeError:
-                    pass
+
+    out = _vstack(tables, join_type, col_name_map, col_attrs_map)
 
     _merge_table_meta(out, tables, metadata_conflicts=metadata_conflicts)
 
@@ -777,7 +803,7 @@ def _join(left, right, keys=None, join_type='inner',
     return out
 
 
-def _vstack(arrays, join_type='outer', col_name_map=None):
+def _vstack(arrays, join_type='outer', col_name_map=None, col_attrs_map=None):
     """
     Stack Tables vertically (by rows)
 
@@ -803,41 +829,9 @@ def _vstack(arrays, join_type='outer', col_name_map=None):
     stacked_table : `~astropy.table.Table` object
         New table containing the stacked data from the input tables.
     """
-    # Store user-provided col_name_map until the end
-    _col_name_map = col_name_map
-
-    # Input validation
-    if join_type not in ('inner', 'exact', 'outer'):
-        raise ValueError("`join_type` arg must be one of 'inner', 'exact' or 'outer'")
-
     # Trivial case of one input array
     if len(arrays) == 1:
         return arrays[0]
-
-    for arr in arrays:
-        if arr.has_mixin_columns:
-            raise NotImplementedError('vstack not available for tables with mixin columns')
-
-    # Start by assuming an outer match where all names go to output
-    names = set(itertools.chain(*[arr.colnames for arr in arrays]))
-    col_name_map = get_col_name_map(arrays, names)
-
-    # If require_match is True then the output must have exactly the same
-    # number of columns as each input array
-    if join_type == 'exact':
-        for names in six.itervalues(col_name_map):
-            if any(x is None for x in names):
-                raise TableMergeError('Inconsistent columns in input arrays '
-                                      "(use 'inner' or 'outer' join_type to "
-                                      "allow non-matching columns)")
-        join_type = 'outer'
-
-    # For an inner join, keep only columns where all input arrays have that column
-    if join_type == 'inner':
-        col_name_map = OrderedDict((name, in_names) for name, in_names in six.iteritems(col_name_map)
-                                   if all(x is not None for x in in_names))
-        if len(col_name_map) == 0:
-            raise TableMergeError('Input arrays have no columns in common')
 
     # If there are any output columns where one or more input arrays are missing
     # then the output must be masked.  If any input arrays are masked then
@@ -851,15 +845,16 @@ def _vstack(arrays, join_type='outer', col_name_map=None):
     lens = [len(arr) for arr in arrays]
     n_rows = sum(lens)
     out = _get_out_class(arrays)(masked=masked)
-    out_descrs = get_descrs(arrays, col_name_map)
-    for out_descr in out_descrs:
-        name = out_descr[0]
-        dtype = out_descr[1:]
+    col_descrs = get_descrs(arrays, col_name_map)
+    cols = []
+    for (name, dtype, shape), out_attrs in zip(col_descrs, col_attrs_map.values()):
+        kwargs = dict(name=name, dtype=dtype, shape=shape, length=n_rows)
         if masked:
-            out[name] = ma.array(data=np.zeros(n_rows, dtype),
-                                 mask=np.ones(n_rows, ma.make_mask_descr(dtype)))
-        else:
-            out[name] = np.empty(n_rows, dtype=dtype)
+            kwargs['mask'] = True
+
+        kwargs.update(**out_attrs)
+        cols.append(out.ColumnClass(**kwargs))
+    out.add_columns(cols, copy=False)
 
     for out_name, in_names in six.iteritems(col_name_map):
         idx0 = 0
@@ -868,10 +863,6 @@ def _vstack(arrays, join_type='outer', col_name_map=None):
             if name in array.colnames:
                 out[out_name][idx0:idx1] = array[name]
             idx0 = idx1
-
-    # If col_name_map supplied as a dict input, then update.
-    if isinstance(_col_name_map, collections.Mapping):
-        _col_name_map.update(col_name_map)
 
     return out
 
