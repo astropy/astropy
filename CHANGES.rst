@@ -258,6 +258,9 @@ Bug Fixes
 
   - Fix compatibility issues between WCSAxes and Matplotlib 2.x. [#5786]
 
+  - Fix a bug that caused WCSAxes frame visual properties to not be copied
+    over when resetting the WCS. [#5791]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
