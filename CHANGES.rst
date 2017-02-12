@@ -190,6 +190,10 @@ New Features
   - The ``deprecated_renamed_argument`` decorator got a new ``pending``
     parameter to suppress the deprecation warnings. [#5761]
 
+- ``astropy.io.fits``
+
+  - Added absolute tolerance parameter when comparing FITS files. [#4729]
+
 Bug Fixes
 ^^^^^^^^^
 
@@ -344,8 +348,6 @@ New Features
   - "Lazy" loading of HDUs now occurs - when an HDU is requested, the file is
     only read up to the point where that HDU is found.  This can mean a
     substantial speedup when accessing files that have many HDUs. [#5065]
-
-  - Added absolute tolerance parameter when comparing FITS files using ``FITSDiff``. [#4729]
 
 - ``astropy.io.misc``
 
