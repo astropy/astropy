@@ -28,74 +28,7 @@ from .np_utils import fix_column_name, TableMergeError
 __all__ = ['join', 'hstack', 'vstack', 'unique']
 
 
-def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
-                    metadata_conflicts='warn'):
-    """
-    Merge column meta data for the ``out`` table.
-
-    This merges column meta, which includes attributes unit, format,
-    and description, as well as the actual `meta` attribute.  It is
-    assumed that the ``out`` table was created by merging ``tables``.
-    The ``col_name_map`` provides the mapping from col name in ``out``
-    back to the original name (which may be different).
-    """
-    # Set column meta
-    attrs = ('unit', 'format', 'description')
-    for out_col in six.itervalues(out.columns):
-        for idx_table, table in enumerate(tables):
-            left_col = out_col
-            right_name = col_name_map[out_col.info.name][idx_table]
-
-            if right_name:
-                right_col = table[right_name]
-                out_col.info.meta = metadata.merge(left_col.info.meta or {},
-                                                   right_col.info.meta or {},
-                                                   metadata_conflicts=metadata_conflicts)
-                for attr in attrs:
-
-                    # Pick the metadata item that is not None, or they are both
-                    # not None, then if they are equal, there is no conflict,
-                    # and if they are different, there is a conflict and we
-                    # pick the one on the right (or raise an error).
-
-                    left_attr = getattr(left_col, attr, None)
-                    right_attr = getattr(right_col, attr, None)
-
-                    if left_attr is None:
-                        # This may not seem necessary since merge_attr gets set
-                        # to right_attr, but not all objects support != which is
-                        # needed for one of the if clauses.
-                        merge_attr = right_attr
-                    elif right_attr is None:
-                        merge_attr = left_attr
-                    elif left_attr != right_attr:
-                        if metadata_conflicts == 'warn':
-                            warnings.warn("In merged column '{0}' the '{1}' attribute does not match "
-                                          "({2} != {3}).  Using {3} for merged output"
-                                          .format(out_col.info.name, attr,
-                                                  left_attr, right_attr),
-                                          metadata.MergeConflictWarning)
-                        elif metadata_conflicts == 'error':
-                            raise metadata.MergeConflictError(
-                                'In merged column {0!r} the {1!r} attribute does not match '
-                                '({2} != {3})'.format(out_col.info.name, attr,
-                                                      left_attr, right_attr))
-                        elif metadata_conflicts != 'silent':
-                            raise ValueError('metadata_conflicts argument must be one of "silent",'
-                                             ' "warn", or "error"')
-                        merge_attr = right_attr
-                    else:  # left_attr == right_attr
-                        merge_attr = right_attr
-
-                    try:
-                        # It may not be allowed to set attributes, for instance `unit`
-                        # in a Quantity column.
-                        setattr(out_col, attr, merge_attr)
-                    except AttributeError:
-                        pass
-
-
-def _merge_col_meta2(tables, col_name_map, metadata_conflicts='warn'):
+def _merge_col_meta(tables, col_name_map, metadata_conflicts='warn'):
     """
     Merge column meta data for the ``out`` table.
 
@@ -245,13 +178,39 @@ def join(left, right, keys=None, join_type='inner',
     if not isinstance(right, Table):
         right = Table(right)
 
-    col_name_map = OrderedDict()
-    out = _join(left, right, keys, join_type,
-                uniq_col_name, table_names, col_name_map)
+    if join_type not in ('inner', 'outer', 'left', 'right'):
+        raise ValueError("The 'join_type' argument should be in 'inner', "
+                         "'outer', 'left' or 'right' (got '{0}' instead)".
+                         format(join_type))
 
-    # Merge the column and table meta data. Table subclasses might override
-    # these methods for custom merge behavior.
-    _merge_col_meta(out, [left, right], col_name_map, metadata_conflicts=metadata_conflicts)
+    # If we have a single key, put it in a tuple
+    if keys is None:
+        keys = tuple(name for name in left.colnames if name in right.colnames)
+        if len(keys) == 0:
+            raise TableMergeError('No keys in common between left and right tables')
+    elif isinstance(keys, six.string_types):
+        keys = (keys,)
+
+    # Check the key columns
+    for arr, arr_label in ((left, 'Left'), (right, 'Right')):
+        for name in keys:
+            if name not in arr.colnames:
+                raise TableMergeError('{0} table does not have key column {1!r}'
+                                      .format(arr_label, name))
+            if hasattr(arr[name], 'mask') and np.any(arr[name].mask):
+                raise TableMergeError('{0} key column {1!r} has missing values'
+                                      .format(arr_label, name))
+            if not isinstance(arr[name], np.ndarray):
+                raise ValueError("non-ndarray column '{0}' not allowed as a key column")
+
+    # Joined array dtype as a list of descr (name, type_str, shape) tuples
+    col_name_map = get_col_name_map([left, right], keys, uniq_col_name, table_names)
+    col_attrs_map = _merge_col_meta([left, right], col_name_map,
+                                    metadata_conflicts=metadata_conflicts)
+    out = _join(left, right, keys, join_type,
+                uniq_col_name, table_names, col_name_map, col_attrs_map)
+
+    # Merge the table meta data.
     _merge_table_meta(out, [left, right], metadata_conflicts=metadata_conflicts)
 
     return out
@@ -356,7 +315,7 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
         raise ValueError("`join_type` arg must be one of 'inner', 'exact' or 'outer'")
 
     # Merge column and table metadata
-    col_attrs_map = _merge_col_meta2(tables, col_name_map, metadata_conflicts=metadata_conflicts)
+    col_attrs_map = _merge_col_meta(tables, col_name_map, metadata_conflicts=metadata_conflicts)
 
     out = _vstack(tables, col_name_map, col_attrs_map)
 
@@ -678,9 +637,9 @@ def common_dtype(cols):
 
 
 def _join(left, right, keys=None, join_type='inner',
-         uniq_col_name='{col_name}_{table_name}',
-         table_names=['1', '2'],
-         col_name_map=None):
+          uniq_col_name='{col_name}_{table_name}',
+          table_names=['1', '2'],
+          col_name_map=None, col_attrs_map=None):
     """
     Perform a join of the left and right Tables on specified keys.
 
@@ -701,55 +660,23 @@ def _join(left, right, keys=None, join_type='inner',
     table_names : list of str or None
         Two-element list of table names used when generating unique output
         column names.  The default is ['1', '2'].
-    col_name_map : empty dict or None
-        If passed as a dict then it will be updated in-place with the
-        mapping of output to input column names.
+    col_name_map : dict
+        Mapping of output to input column names.
 
     Returns
     -------
     joined_table : `~astropy.table.Table` object
         New table containing the result of the join operation.
     """
-    # Store user-provided col_name_map until the end
-    _col_name_map = col_name_map
-
-    if join_type not in ('inner', 'outer', 'left', 'right'):
-        raise ValueError("The 'join_type' argument should be in 'inner', "
-                         "'outer', 'left' or 'right' (got '{0}' instead)".
-                         format(join_type))
-
-    # If we have a single key, put it in a tuple
-    if keys is None:
-        keys = tuple(name for name in left.colnames if name in right.colnames)
-        if len(keys) == 0:
-            raise TableMergeError('No keys in common between left and right tables')
-    elif isinstance(keys, six.string_types):
-        keys = (keys,)
-
-    # Check the key columns
-    for arr, arr_label in ((left, 'Left'), (right, 'Right')):
-        for name in keys:
-            if name not in arr.colnames:
-                raise TableMergeError('{0} table does not have key column {1!r}'
-                                      .format(arr_label, name))
-            if hasattr(arr[name], 'mask') and np.any(arr[name].mask):
-                raise TableMergeError('{0} key column {1!r} has missing values'
-                                      .format(arr_label, name))
-            if not isinstance(arr[name], np.ndarray):
-                raise ValueError("non-ndarray column '{0}' not allowed as a key column")
-
     len_left, len_right = len(left), len(right)
 
     if len_left == 0 or len_right == 0:
         raise ValueError('input tables for join must both have at least one row')
 
 
-    # Joined array dtype as a list of descr (name, type_str, shape) tuples
-    col_name_map = get_col_name_map([left, right], keys, uniq_col_name, table_names)
-    out_descrs = get_descrs([left, right], col_name_map)
-
     # Make an array with just the key columns.  This uses a temporary
     # structured array for efficiency.
+    out_descrs = get_descrs([left, right], col_name_map)
     out_keys_dtype = [descr for descr in out_descrs if descr[0] in keys]
     out_keys = np.empty(len_left + len_right, dtype=out_keys_dtype)
     for key in keys:
@@ -775,14 +702,16 @@ def _join(left, right, keys=None, join_type='inner',
 
     out = _get_out_class([left, right])(masked=masked)
 
-    for out_name, dtype, shape in out_descrs:
+    for (out_name, dtype, shape), col_attrs in zip(out_descrs, six.itervalues(col_attrs_map)):
 
         left_name, right_name = col_name_map[out_name]
         if left_name and right_name:  # this is a key which comes from left and right
-            out[out_name] = out.ColumnClass(length=n_out, name=out_name, dtype=dtype, shape=shape)
-            out[out_name] = np.where(right_mask,
-                                     left[left_name].take(left_out),
-                                     right[right_name].take(right_out))
+            out[out_name] = out.ColumnClass(length=n_out, name=out_name, dtype=dtype, shape=shape,
+                                            **col_attrs)
+            # `np.where` would be logical, but is not safe for Quantity.
+            # right_mask is True where right is masked, i.e., should not be used.
+            out[out_name][~right_mask] = right[right_name].take(right_out)[~right_mask]
+            out[out_name][right_mask] = left[left_name].take(left_out)[right_mask]
             continue
         elif left_name:  # out_name came from the left table
             name, array, array_out, array_mask = left_name, left, left_out, left_mask
@@ -810,10 +739,6 @@ def _join(left, right, keys=None, join_type='inner',
                 raise ValueError("join requires masking column '{0}' but column"
                                  " type {1} does not support masking"
                                  .format(out_name, out[out_name].__class__.__name__))
-
-    # If col_name_map supplied as a dict input, then update.
-    if isinstance(_col_name_map, collections.Mapping):
-        _col_name_map.update(col_name_map)
 
     return out
 
