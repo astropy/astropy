@@ -163,7 +163,7 @@ class TestDiff(FitsTestCase):
             diff = HeaderDiff(ha, hb, tolerance=1e-6)
             assert warning_lines[0].category == AstropyDeprecationWarning
             assert (str(warning_lines[0].message) == '"tolerance" was '
-                    'deprecated in version 1.3 and will be removed in a '
+                    'deprecated in version 1.3.1 and will be removed in a '
                     'future version. Use argument "rtol" instead.')
 
     def test_ignore_blanks(self):
