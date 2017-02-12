@@ -212,7 +212,7 @@ class TestJoin():
             pytest.xfail('Quantity columns do not support masking.')
         self._setup(operation_table_type)
         t1 = self.t1
-        t1m = Table(self.t1, masked=True)
+        t1m = operation_table_type(self.t1, masked=True)
         t2 = self.t2
 
         # Result should be masked even though not req'd by inner join
@@ -250,9 +250,9 @@ class TestJoin():
         if operation_table_type is QTable:
             pytest.xfail('Quantity columns do not support masking.')
         t1 = self.t1
-        t1m = Table(self.t1, masked=True)
+        t1m = operation_table_type(self.t1, masked=True)
         t2 = self.t2
-        t2m = Table(self.t2, masked=True)
+        t2m = operation_table_type(self.t2, masked=True)
 
         # Result should be masked even though not req'd by inner join
         t1m2m = table.join(t1m, t2m, join_type='inner')
@@ -333,7 +333,7 @@ class TestJoin():
         if operation_table_type is QTable:
             pytest.xfail('Quantity columns do not support masking.')
         t1 = self.t1
-        t2 = Table(self.t2, masked=True)
+        t2 = operation_table_type(self.t2, masked=True)
         table.join(t1, t2)  # OK
         t2['a'].mask[0] = True
         with pytest.raises(TableMergeError):
@@ -394,11 +394,11 @@ class TestJoin():
         # Regression test for #2984, which was an issue where join did not work
         # on multi-dimensional columns.
 
-        t1 = Table()
+        t1 = operation_table_type()
         t1['a'] = [1,2,3]
         t1['b'] = np.ones((3,4))
 
-        t2 = Table()
+        t2 = operation_table_type()
         t2['a'] = [1,2,3]
         t2['c'] = [4,5,6]
 
@@ -431,8 +431,8 @@ class TestJoin():
                           [2, 2],
                           [3, 3]],
                          name='c')
-        t1 = Table([a, b])
-        t2 = Table([a2, c])
+        t1 = operation_table_type([a, b])
+        t2 = operation_table_type([a2, c])
         t12 = table.join(t1, t2, join_type='inner')
 
         assert np.all(t12['b'].mask == [[ True, False],
@@ -937,20 +937,21 @@ class TestHStack():
         assert (self.t1 == table.hstack([self.t1])).all()
 
 
-def test_unique():
-    t = table.Table.read([' a b  c  d',
-                          ' 2 b 7.0 0',
-                          ' 1 c 3.0 5',
-                          ' 2 b 6.0 2',
-                          ' 2 a 4.0 3',
-                          ' 1 a 1.0 7',
-                          ' 2 b 5.0 1',
-                          ' 0 a 0.0 4',
-                          ' 1 a 2.0 6',
-                          ' 1 c 3.0 5',
-                          ], format='ascii')
+def test_unique(operation_table_type):
+    t = operation_table_type.read(
+        [' a b  c  d',
+         ' 2 b 7.0 0',
+         ' 1 c 3.0 5',
+         ' 2 b 6.0 2',
+         ' 2 a 4.0 3',
+         ' 1 a 1.0 7',
+         ' 2 b 5.0 1',
+         ' 0 a 0.0 4',
+         ' 1 a 2.0 6',
+         ' 1 c 3.0 5',
+        ], format='ascii')
 
-    tu = table.Table(np.sort(t[:-1]))
+    tu = operation_table_type(np.sort(t[:-1]))
 
     t_all = table.unique(t)
     assert sort_eq(t_all.pformat(), tu.pformat())
@@ -1015,7 +1016,7 @@ def test_unique():
     assert exc.value.args[0] == (
         "'keep' should be one of 'first', 'last', 'none'")
 
-    t1_m = table.Table(t1a, masked=True)
+    t1_m = operation_table_type(t1a, masked=True)
     t1_m['a'].mask[1] = True
 
     with pytest.raises(ValueError) as exc:
@@ -1034,7 +1035,7 @@ def test_unique():
     with pytest.raises(ValueError) as e:
         t1_mu = table.unique(t1_m, silent=True, keys='a')
 
-    t1_m = table.Table(t, masked=True)
+    t1_m = operation_table_type(t, masked=True)
     t1_m['a'].mask[1] = True
     t1_m['d'].mask[3] = True
 
@@ -1048,12 +1049,12 @@ def test_unique():
                                ' --   c 3.0   5']
 
 
-def test_vstack_bytes():
+def test_vstack_bytes(operation_table_type):
     """
     Test for issue #5617 when vstack'ing bytes columns in Py3.
     This is really an upsteam numpy issue numpy/numpy/#8403.
     """
-    t = table.Table([[b'a']], names=['a'])
+    t = operation_table_type([[b'a']], names=['a'])
     assert t['a'].itemsize == 1
 
     t2 = table.vstack([t, t])
