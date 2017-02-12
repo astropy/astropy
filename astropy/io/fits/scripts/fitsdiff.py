@@ -297,7 +297,8 @@ def main():
                 rtol=opts.rtol,
                 atol=opts.atol,
                 ignore_blanks=opts.ignore_blanks,
-                ignore_blank_cards=opts.ignore_blank_cards)
+                ignore_blank_cards=opts.ignore_blank_cards,
+                tolerance=opts.tolerance)
             diff.report(fileobj=out_file)
             identical.append(diff.identical)
 

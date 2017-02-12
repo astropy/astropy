@@ -217,10 +217,9 @@ class FITSDiff(_BaseDiff):
       representing the differences between the two HDUs.
     """
 
-    @deprecated_renamed_argument('tolerance', 'rtol', '1.3')
     def __init__(self, a, b, ignore_keywords=[], ignore_comments=[],
                  ignore_fields=[], numdiffs=10, rtol=0.0, atol=0.0,
-                 ignore_blanks=True, ignore_blank_cards=True):
+                 ignore_blanks=True, ignore_blank_cards=True, tolerance=None):
         """
         Parameters
         ----------
@@ -275,6 +274,9 @@ class FITSDiff(_BaseDiff):
         ignore_blank_cards : bool, optional
             Ignore all cards that are blank, i.e. they only contain
             whitespace (default: True).
+
+        tolerance : float, optional
+            Alias of rtol. Deprecated, provided for backward compatibility.
         """
 
         if isinstance(a, string_types):
@@ -305,6 +307,14 @@ class FITSDiff(_BaseDiff):
         self.numdiffs = numdiffs
         self.rtol = rtol
         self.atol = atol
+
+        if tolerance is not None:
+            warnings.warn('"tolerance" was '
+                'deprecated in version 1.3 and will be removed in a '
+                'future version. Use argument "rtol" instead.',
+                AstropyDeprecationWarning)
+            self.rtol = tolerance  # when tolerance is provided *always* ignore `rtol`
+                                   # during the transition/deprecation period
 
         self.ignore_blanks = ignore_blanks
         self.ignore_blank_cards = ignore_blank_cards
@@ -424,10 +434,9 @@ class HDUDiff(_BaseDiff):
       HDUs containing non-empty data of an indeterminate type).
     """
 
-    @deprecated_renamed_argument('tolerance', 'rtol', '1.3')
     def __init__(self, a, b, ignore_keywords=[], ignore_comments=[],
                  ignore_fields=[], numdiffs=10, rtol=0.0, atol=0.0,
-                 ignore_blanks=True, ignore_blank_cards=True):
+                 ignore_blanks=True, ignore_blank_cards=True, tolerance=None):
         """
         See `FITSDiff` for explanations of the initialization parameters.
         """
@@ -438,6 +447,14 @@ class HDUDiff(_BaseDiff):
 
         self.rtol = rtol
         self.atol = atol
+
+        if tolerance is not None:
+            warnings.warn('"tolerance" was '
+                'deprecated in version 1.3 and will be removed in a '
+                'future version. Use argument "rtol" instead.',
+                AstropyDeprecationWarning)
+            self.rtol = tolerance  # when tolerance is provided *always* ignore `rtol`
+                                   # during the transition/deprecation period
 
         self.numdiffs = numdiffs
         self.ignore_blanks = ignore_blanks
@@ -556,9 +573,9 @@ class HeaderDiff(_BaseDiff):
     all keywords that appear in both headers.
     """
 
-    @deprecated_renamed_argument('tolerance', 'rtol', '1.3')
     def __init__(self, a, b, ignore_keywords=[], ignore_comments=[],
-                 rtol=0.0, atol=0.0, ignore_blanks=True, ignore_blank_cards=True):
+                 rtol=0.0, atol=0.0, ignore_blanks=True, ignore_blank_cards=True,
+                 tolerance=None):
         """
         See `FITSDiff` for explanations of the initialization parameters.
         """
@@ -568,6 +585,14 @@ class HeaderDiff(_BaseDiff):
 
         self.rtol = rtol
         self.atol = atol
+
+        if tolerance is not None:
+            warnings.warn('"tolerance" was '
+                'deprecated in version 1.3 and will be removed in a '
+                'future version. Use argument "rtol" instead.',
+                AstropyDeprecationWarning)
+            self.rtol = tolerance  # when tolerance is provided *always* ignore `rtol`
+                                   # during the transition/deprecation period
 
         self.ignore_blanks = ignore_blanks
         self.ignore_blank_cards = ignore_blank_cards
@@ -805,8 +830,7 @@ class ImageDataDiff(_BaseDiff):
       of pixels in the arrays.
     """
 
-    @deprecated_renamed_argument('tolerance', 'rtol', '1.3')
-    def __init__(self, a, b, numdiffs=10, rtol=0.0, atol=0.0):
+    def __init__(self, a, b, numdiffs=10, rtol=0.0, atol=0.0, tolerance=None):
         """
         See `FITSDiff` for explanations of the initialization parameters.
         """
@@ -814,6 +838,14 @@ class ImageDataDiff(_BaseDiff):
         self.numdiffs = numdiffs
         self.rtol = rtol
         self.atol = atol
+
+        if tolerance is not None:
+            warnings.warn('"tolerance" was '
+                'deprecated in version 1.3 and will be removed in a '
+                'future version. Use argument "rtol" instead.',
+                AstropyDeprecationWarning)
+            self.rtol = tolerance  # when tolerance is provided *always* ignore `rtol`
+                                   # during the transition/deprecation period
 
         self.diff_dimensions = ()
         self.diff_pixels = []
@@ -1008,8 +1040,8 @@ class TableDataDiff(_BaseDiff):
     those columns.
     """
 
-    @deprecated_renamed_argument('tolerance', 'rtol', '1.3')
-    def __init__(self, a, b, ignore_fields=[], numdiffs=10, rtol=0.0, atol=0.0):
+    def __init__(self, a, b, ignore_fields=[], numdiffs=10, rtol=0.0, atol=0.0,
+                 tolerance=None):
         """
         See `FITSDiff` for explanations of the initialization parameters.
         """
@@ -1018,6 +1050,14 @@ class TableDataDiff(_BaseDiff):
         self.numdiffs = numdiffs
         self.rtol = rtol
         self.atol = atol
+
+        if tolerance is not None:
+            warnings.warn('"tolerance" was '
+                'deprecated in version 1.3 and will be removed in a '
+                'future version. Use argument "rtol" instead.',
+                AstropyDeprecationWarning)
+            self.rtol = tolerance  # when tolerance is provided *always* ignore `rtol`
+                                   # during the transition/deprecation period
 
         self.common_columns = []
         self.common_column_names = set()
