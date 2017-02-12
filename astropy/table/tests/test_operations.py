@@ -19,7 +19,7 @@ def sort_eq(list1, list2):
 
 class TestJoin():
 
-    def setup_method(self, method):
+    def _setup(self, t_cls=Table):
         lines1 = [' a   b   c ',
                   '  0 foo  L1',
                   '  1 foo  L2',
@@ -30,9 +30,9 @@ class TestJoin():
                   '  1 foo  R2',
                   '  2 bar  R3',
                   '  4 bar  R4']
-        self.t1 = Table.read(lines1, format='ascii')
-        self.t2 = Table.read(lines2, format='ascii')
-        self.t3 = Table(self.t2, copy=True)
+        self.t1 = t_cls.read(lines1, format='ascii')
+        self.t2 = t_cls.read(lines2, format='ascii')
+        self.t3 = t_cls(self.t2, copy=True)
 
         self.t1.meta.update(OrderedDict([('b', [1, 2]), ('c', {'a': 1}), ('d', 1)]))
         self.t2.meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
@@ -43,11 +43,13 @@ class TestJoin():
                                        ('d', 1),
                                        ('a', 1)])
 
-    def test_table_meta_merge(self):
+    def test_table_meta_merge(self, operation_table_type):
+        self._setup(operation_table_type)
         out = table.join(self.t1, self.t2, join_type='inner')
         assert out.meta == self.meta_merge
 
-    def test_table_meta_merge_conflict(self):
+    def test_table_meta_merge_conflict(self, operation_table_type):
+        self._setup(operation_table_type)
 
         with catch_warnings() as w:
             out = table.join(self.t1, self.t3, join_type='inner')
@@ -73,23 +75,31 @@ class TestJoin():
         with pytest.raises(ValueError):
             out = table.join(self.t1, self.t3, join_type='inner', metadata_conflicts='nonsense')
 
-    def test_both_unmasked_inner(self):
+    def test_both_unmasked_inner(self, operation_table_type):
+        self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
 
         # Basic join with default parameters (inner join on common keys)
         t12 = table.join(t1, t2)
+        assert type(t12) is operation_table_type
+        assert type(t12['a']) is type(t1['a'])
+        assert type(t12['b']) is type(t1['b'])
+        assert type(t12['c']) is type(t1['c'])
+        assert type(t12['d']) is type(t2['d'])
         assert t12.masked is False
         assert sort_eq(t12.pformat(), [' a   b   c   d ',
                                        '--- --- --- ---',
                                        '  1 foo  L2  R1',
                                        '  1 foo  L2  R2',
                                        '  2 bar  L4  R3'])
-
         # Table meta merged properly
         assert t12.meta == self.meta_merge
 
-    def test_both_unmasked_left_right_outer(self):
+    def test_both_unmasked_left_right_outer(self, operation_table_type):
+        if operation_table_type is QTable:
+            pytest.xfail('Quantity columns do not support masking.')
+        self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
 
@@ -131,12 +141,19 @@ class TestJoin():
         t12b = table.join(t1, t2, join_type='outer', keys=['a', 'b'])
         assert np.all(t12a.as_array() == t12b.as_array())
 
-    def test_both_unmasked_single_key_inner(self):
+    def test_both_unmasked_single_key_inner(self, operation_table_type):
+        self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
 
         # Inner join on 'a' column
         t12 = table.join(t1, t2, keys='a')
+        assert type(t12) is operation_table_type
+        assert type(t12['a']) is type(t1['a'])
+        assert type(t12['b_1']) is type(t1['b'])
+        assert type(t12['c']) is type(t1['c'])
+        assert type(t12['b_2']) is type(t2['b'])
+        assert type(t12['d']) is type(t2['d'])
         assert t12.masked is False
         assert sort_eq(t12.pformat(), [' a  b_1  c  b_2  d ',
                                        '--- --- --- --- ---',
@@ -146,7 +163,10 @@ class TestJoin():
                                        '  1 bar  L3 foo  R2',
                                        '  2 bar  L4 bar  R3'])
 
-    def test_both_unmasked_single_key_left_right_outer(self):
+    def test_both_unmasked_single_key_left_right_outer(self, operation_table_type):
+        if operation_table_type is QTable:
+            pytest.xfail('Quantity columns do not support masking.')
+        self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
 
@@ -187,7 +207,10 @@ class TestJoin():
                                        '  2 bar  L4 bar  R3',
                                        '  4  --  -- bar  R4'])
 
-    def test_masked_unmasked(self):
+    def test_masked_unmasked(self, operation_table_type):
+        if operation_table_type is QTable:
+            pytest.xfail('Quantity columns do not support masking.')
+        self._setup(operation_table_type)
         t1 = self.t1
         t1m = Table(self.t1, masked=True)
         t2 = self.t2
@@ -221,8 +244,11 @@ class TestJoin():
                                         '  1 foo  R1 bar  --',
                                         '  2 bar  R3 bar  L4'])
 
-    def test_masked_masked(self):
+    def test_masked_masked(self, operation_table_type):
+        self._setup(operation_table_type)
         """Two masked tables"""
+        if operation_table_type is QTable:
+            pytest.xfail('Quantity columns do not support masking.')
         t1 = self.t1
         t1m = Table(self.t1, masked=True)
         t2 = self.t2
@@ -249,7 +275,8 @@ class TestJoin():
                                          '  1 bar  -- foo  R2',
                                          '  2 bar  L4 bar  --'])
 
-    def test_col_rename(self):
+    def test_col_rename(self, operation_table_type):
+        self._setup(operation_table_type)
         """
         Test auto col renaming when there is a conflict.  Use
         non-default values of uniq_col_name and table_names.
@@ -260,7 +287,8 @@ class TestJoin():
                          table_names=['L', 'R'], keys='a')
         assert t12.colnames == ['a', 'x_L_b_y', 'c', 'x_R_b_y', 'd']
 
-    def test_rename_conflict(self):
+    def test_rename_conflict(self, operation_table_type):
+        self._setup(operation_table_type)
         """
         Test that auto-column rename fails because of a conflict
         with an existing column
@@ -271,21 +299,24 @@ class TestJoin():
         with pytest.raises(TableMergeError):
             table.join(t1, t2, keys='a')
 
-    def test_missing_keys(self):
+    def test_missing_keys(self, operation_table_type):
+        self._setup(operation_table_type)
         """Merge on a key column that doesn't exist"""
         t1 = self.t1
         t2 = self.t2
         with pytest.raises(TableMergeError):
             table.join(t1, t2, keys=['a', 'not there'])
 
-    def test_bad_join_type(self):
+    def test_bad_join_type(self, operation_table_type):
+        self._setup(operation_table_type)
         """Bad join_type input"""
         t1 = self.t1
         t2 = self.t2
         with pytest.raises(ValueError):
             table.join(t1, t2, join_type='illegal value')
 
-    def test_no_common_keys(self):
+    def test_no_common_keys(self, operation_table_type):
+        self._setup(operation_table_type)
         """Merge tables with no common keys"""
         t1 = self.t1
         t2 = self.t2
@@ -296,8 +327,11 @@ class TestJoin():
         with pytest.raises(TableMergeError):
             table.join(t1, t2)
 
-    def test_masked_key_column(self):
+    def test_masked_key_column(self, operation_table_type):
+        self._setup(operation_table_type)
         """Merge on a key column that has a masked element"""
+        if operation_table_type is QTable:
+            pytest.xfail('Quantity columns do not support masking.')
         t1 = self.t1
         t2 = Table(self.t2, masked=True)
         table.join(t1, t2)  # OK
@@ -305,7 +339,8 @@ class TestJoin():
         with pytest.raises(TableMergeError):
             table.join(t1, t2)
 
-    def test_col_meta_merge(self):
+    def test_col_meta_merge(self, operation_table_type):
+        self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
         t2.rename_column('d', 'c')  # force col conflict and renaming
@@ -316,44 +351,45 @@ class TestJoin():
         t1['a'].unit = 'cm'
         t2['a'].unit = 'm'
         # Key col 'b', take first value 't1_b'
-        t1['b'].description = 't1_b'
+        t1['b'].info.description = 't1_b'
         # Key col 'b', take first non-empty value 't1_b'
-        t2['b'].format = '%6s'
+        t2['b'].info.format = '%6s'
         # Key col 'a', should be merged meta
-        t1['a'].meta = meta1
-        t2['a'].meta = meta2
+        t1['a'].info.meta = meta1
+        t2['a'].info.meta = meta2
         # Key col 'b', should be meta2
-        t2['b'].meta = meta2
+        t2['b'].info.meta = meta2
 
         # All these should pass through
-        t1['c'].unit = 'cm'
-        t1['c'].format = '%3s'
-        t1['c'].description = 't1_c'
+        t1['c'].info.format = '%3s'
+        t1['c'].info.description = 't1_c'
 
-        t2['c'].unit = 'm'
-        t2['c'].format = '%6s'
-        t2['c'].description = 't2_c'
+        t2['c'].info.format = '%6s'
+        t2['c'].info.description = 't2_c'
 
         with catch_warnings(metadata.MergeConflictWarning) as warning_lines:
             t12 = table.join(t1, t2, keys=['a', 'b'])
 
-            assert t12['a'].unit == 'm'
-            assert t12['b'].description == 't1_b'
-            assert t12['b'].format == '%6s'
-            assert t12['a'].meta == self.meta_merge
-            assert t12['b'].meta == meta2
-            assert t12['c_1'].unit == 'cm'
-            assert t12['c_1'].format == '%3s'
-            assert t12['c_1'].description == 't1_c'
-            assert t12['c_2'].unit == 'm'
-            assert t12['c_2'].format == '%6s'
-            assert t12['c_2'].description == 't2_c'
-
+        if operation_table_type is Table:
             assert warning_lines[0].category == metadata.MergeConflictWarning
             assert ("In merged column 'a' the 'unit' attribute does not match (cm != m)"
                     in str(warning_lines[0].message))
+        else:
+            assert len(warning_lines) == 0
 
-    def test_join_multidimensional(self):
+        assert t12['a'].unit == 'm'
+        assert t12['b'].info.description == 't1_b'
+        assert t12['b'].info.format == '%6s'
+        assert t12['a'].info.meta == self.meta_merge
+        assert t12['b'].info.meta == meta2
+        assert t12['c_1'].info.format == '%3s'
+        assert t12['c_1'].info.description == 't1_c'
+        assert t12['c_2'].info.format == '%6s'
+        assert t12['c_2'].info.description == 't2_c'
+
+
+    def test_join_multidimensional(self, operation_table_type):
+        self._setup(operation_table_type)
 
         # Regression test for #2984, which was an issue where join did not work
         # on multi-dimensional columns.
@@ -373,11 +409,15 @@ class TestJoin():
         np.testing.assert_allclose(t3['c'], t2['c'])
 
 
-    def test_join_multidimensional_masked(self):
+    def test_join_multidimensional_masked(self, operation_table_type):
+        self._setup(operation_table_type)
         """
         Test for outer join with multidimensional columns where masking is required.
         (Issue #4059).
         """
+        if operation_table_type is QTable:
+            pytest.xfail('Quantity columns do not support masking.')
+
         a = table.MaskedColumn([1, 2, 3], name='a')
         a2 = table.Column([1, 3, 4], name='a')
         b = table.MaskedColumn([[1, 2],
