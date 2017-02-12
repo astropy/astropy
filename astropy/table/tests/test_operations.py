@@ -506,6 +506,7 @@ class TestVStack():
 
         t12 = table.vstack([t1, t2], join_type='inner')
         assert t12.masked is False
+        assert type(t12) is operation_table_type
         assert type(t12['a']) is type(t1['a'])
         assert type(t12['b']) is type(t1['b'])
         assert t12.pformat() == [' a   b ',
@@ -516,6 +517,7 @@ class TestVStack():
                                  '3.0 sez']
 
         t124 = table.vstack([t1, t2, t4], join_type='inner')
+        assert type(t124) is operation_table_type
         assert type(t12['a']) is type(t1['a'])
         assert type(t12['b']) is type(t1['b'])
         assert t124.pformat() == [' a   b ',
@@ -692,25 +694,25 @@ class TestVStack():
 
 class TestHStack():
 
-    def setup_method(self, method):
-        self.t1 = Table.read([' a   b',
-                              ' 0 foo',
-                              ' 1 bar'], format='ascii')
+    def _setup(self, t_cls=Table):
+        self.t1 = t_cls.read([' a    b',
+                              ' 0. foo',
+                              ' 1. bar'], format='ascii')
 
-        self.t2 = Table.read([' a   b   c',
-                              ' 2  pez  4',
-                              ' 3  sez  5'], format='ascii')
+        self.t2 = t_cls.read([' a    b   c',
+                              ' 2.  pez  4',
+                              ' 3.  sez  5'], format='ascii')
 
-        self.t3 = Table.read([' d   e',
-                              ' 4   7',
-                              ' 5   8',
-                              ' 6   9'], format='ascii')
-        self.t4 = Table(self.t1, copy=True, masked=True)
+        self.t3 = t_cls.read([' d    e',
+                              ' 4.   7',
+                              ' 5.   8',
+                              ' 6.   9'], format='ascii')
+        self.t4 = t_cls(self.t1, copy=True, masked=True)
         self.t4['a'].name = 'f'
         self.t4['b'].name = 'g'
 
         # The following table has meta-data that conflicts with t1
-        self.t5 = Table(self.t1, copy=True)
+        self.t5 = t_cls(self.t1, copy=True)
 
         self.t1.meta.update(OrderedDict([('b', [1, 2]), ('c', {'a': 1}), ('d', 1)]))
         self.t2.meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
@@ -722,28 +724,32 @@ class TestHStack():
                                        ('a', 1),
                                        ('e', 1)])
 
-    def test_stack_same_table(self):
+    def test_stack_same_table(self, operation_table_type):
         """
         From #2995, test that hstack'ing references to the same table has the
         expected output.
         """
+        self._setup(operation_table_type)
         out = table.hstack([self.t1, self.t1])
         assert out.pformat() == ['a_1 b_1 a_2 b_2',
                                  '--- --- --- ---',
-                                 '  0 foo   0 foo',
-                                 '  1 bar   1 bar']
+                                 '0.0 foo 0.0 foo',
+                                 '1.0 bar 1.0 bar']
 
-    def test_stack_rows(self):
+    def test_stack_rows(self, operation_table_type):
+        self._setup(operation_table_type)
         out = table.hstack([self.t1[0], self.t2[1]])
         assert out.pformat() == ['a_1 b_1 a_2 b_2  c ',
                                  '--- --- --- --- ---',
-                                 '  0 foo   3 sez   5']
+                                 '0.0 foo 3.0 sez   5']
 
-    def test_table_meta_merge(self):
+    def test_table_meta_merge(self, operation_table_type):
+        self._setup(operation_table_type)
         out = table.hstack([self.t1, self.t2, self.t4], join_type='inner')
         assert out.meta == self.meta_merge
 
-    def test_table_meta_merge_conflict(self):
+    def test_table_meta_merge_conflict(self, operation_table_type):
+        self._setup(operation_table_type)
 
         with catch_warnings() as w:
             out = table.hstack([self.t1, self.t5], join_type='inner')
@@ -769,7 +775,8 @@ class TestHStack():
         with pytest.raises(ValueError):
             out = table.hstack([self.t1, self.t5], join_type='inner', metadata_conflicts='nonsense')
 
-    def test_bad_input_type(self):
+    def test_bad_input_type(self, operation_table_type):
+        self._setup(operation_table_type)
         with pytest.raises(TypeError):
             table.hstack([])
         with pytest.raises(TypeError):
@@ -779,7 +786,8 @@ class TestHStack():
         with pytest.raises(ValueError):
             table.hstack([self.t1, self.t2], join_type='invalid join type')
 
-    def test_stack_basic(self):
+    def test_stack_basic(self, operation_table_type):
+        self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
         t3 = self.t3
@@ -787,10 +795,15 @@ class TestHStack():
 
         out = table.hstack([t1, t2], join_type='inner')
         assert out.masked is False
+        assert type(out) is operation_table_type
+        assert type(out['a_1']) is type(t1['a'])
+        assert type(out['b_1']) is type(t1['b'])
+        assert type(out['a_2']) is type(t2['a'])
+        assert type(out['b_2']) is type(t2['b'])
         assert out.pformat() == ['a_1 b_1 a_2 b_2  c ',
                                  '--- --- --- --- ---',
-                                 '  0 foo   2 pez   4',
-                                 '  1 bar   3 sez   5']
+                                 '0.0 foo 2.0 pez   4',
+                                 '1.0 bar 3.0 sez   5']
 
         # stacking as a list gives same result
         out_list = table.hstack([t1, t2], join_type='inner')
@@ -802,75 +815,83 @@ class TestHStack():
         out = table.hstack([t1, t2, t3, t4], join_type='outer')
         assert out.pformat() == ['a_1 b_1 a_2 b_2  c   d   e   f   g ',
                                  '--- --- --- --- --- --- --- --- ---',
-                                 '  0 foo   2 pez   4   4   7   0 foo',
-                                 '  1 bar   3 sez   5   5   8   1 bar',
-                                 ' --  --  --  --  --   6   9  --  --']
+                                 '0.0 foo 2.0 pez   4 4.0   7 0.0 foo',
+                                 '1.0 bar 3.0 sez   5 5.0   8 1.0 bar',
+                                 ' --  --  --  --  -- 6.0   9  --  --']
 
         out = table.hstack([t1, t2, t3, t4], join_type='inner')
         assert out.pformat() == ['a_1 b_1 a_2 b_2  c   d   e   f   g ',
                                  '--- --- --- --- --- --- --- --- ---',
-                                 '  0 foo   2 pez   4   4   7   0 foo',
-                                 '  1 bar   3 sez   5   5   8   1 bar']
+                                 '0.0 foo 2.0 pez   4 4.0   7 0.0 foo',
+                                 '1.0 bar 3.0 sez   5 5.0   8 1.0 bar']
 
-    def test_stack_incompatible(self):
+    def test_stack_incompatible(self, operation_table_type):
+        self._setup(operation_table_type)
         # For join_type exact, which will fail here because n_rows
         # does not match
         with pytest.raises(TableMergeError):
             table.hstack([self.t1, self.t3], join_type='exact')
 
-    def test_hstack_one_masked(self):
+    def test_hstack_one_masked(self, operation_table_type):
+        if operation_table_type is QTable:
+            pytest.xfail()
+        self._setup(operation_table_type)
         t1 = self.t1
-        t2 = Table(t1, copy=True, masked=True)
+        t2 = operation_table_type(t1, copy=True, masked=True)
         t2.meta.clear()
         t2['b'].mask[1] = True
         assert table.hstack([t1, t2]).pformat() == ['a_1 b_1 a_2 b_2',
                                                     '--- --- --- ---',
-                                                    '  0 foo   0 foo',
-                                                    '  1 bar   1  --']
+                                                    '0.0 foo 0.0 foo',
+                                                    '1.0 bar 1.0  --']
 
-    def test_table_col_rename(self):
+    def test_table_col_rename(self, operation_table_type):
+        self._setup(operation_table_type)
         out = table.hstack([self.t1, self.t2], join_type='inner',
                            uniq_col_name='{table_name}_{col_name}',
                            table_names=('left', 'right'))
         assert out.masked is False
         assert out.pformat() == ['left_a left_b right_a right_b  c ',
                                  '------ ------ ------- ------- ---',
-                                 '     0    foo       2     pez   4',
-                                 '     1    bar       3     sez   5']
+                                 '   0.0    foo     2.0     pez   4',
+                                 '   1.0    bar     3.0     sez   5']
 
-    def test_col_meta_merge(self):
+    def test_col_meta_merge(self, operation_table_type):
+        self._setup(operation_table_type)
         t1 = self.t1
-        t3 = self.t3
+        t3 = self.t3[:2]
         t4 = self.t4
 
         # Just set a bunch of meta and make sure it is the same in output
         meta1 = OrderedDict([('b', [1, 2]), ('c', {'a': 1}), ('d', 1)])
         t1['a'].unit = 'cm'
-        t1['b'].description = 't1_b'
-        t4['f'].format = '%6s'
-        t1['b'].meta.update(meta1)
-        t3['d'].meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
-        t4['g'].meta.update(OrderedDict([('b', [5, 6]), ('c', {'c': 1}), ('e', 1)]))
-        t3['e'].meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
+        t1['b'].info.description = 't1_b'
+        t4['f'].info.format = '%6s'
+        t1['b'].info.meta.update(meta1)
+        t3['d'].info.meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
+        t4['g'].info.meta.update(OrderedDict([('b', [5, 6]), ('c', {'c': 1}), ('e', 1)]))
+        t3['e'].info.meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
         t3['d'].unit = 'm'
-        t3['d'].format = '%6s'
-        t3['d'].description = 't3_c'
+        t3['d'].info.format = '%6s'
+        t3['d'].info.description = 't3_c'
 
         with catch_warnings(metadata.MergeConflictWarning) as warning_lines:
-            out = table.vstack([t1, t3, t4], join_type='outer')
+            out = table.hstack([t1, t3, t4], join_type='exact')
 
-            for t in [t1, t3, t4]:
-                for name in t.colnames:
-                    for attr in ('meta', 'unit', 'format', 'description'):
-                        assert getattr(out[name], attr) == getattr(t[name], attr)
+        assert len(warning_lines) == 0
 
-            assert len(warning_lines) == 0
+        for t in [t1, t3, t4]:
+            for name in t.colnames:
+                for attr in ('meta', 'unit', 'format', 'description'):
+                    assert getattr(out[name].info, attr) == getattr(t[name].info, attr)
 
-            # Make sure we got a copy of meta, not ref
-            t1['b'].meta['b'] = None
-            assert out['b'].meta['b'] == [1, 2]
 
-    def test_hstack_one_table(self):
+        # Make sure we got a copy of meta, not ref
+        t1['b'].info.meta['b'] = None
+        assert out['b'].info.meta['b'] == [1, 2]
+
+    def test_hstack_one_table(self, operation_table_type):
+        self._setup(operation_table_type)
         """Regression test for issue #3313"""
         assert (self.t1 == table.hstack(self.t1)).all()
         assert (self.t1 == table.hstack([self.t1])).all()
