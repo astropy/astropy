@@ -7,7 +7,7 @@ from collections import OrderedDict
 import numpy as np
 
 from ...tests.helper import pytest, catch_warnings
-from ...table import Table, TableMergeError
+from ...table import Table, QTable, TableMergeError
 from ...utils import metadata
 from ...utils.metadata import MergeConflictError
 from ... import table
@@ -413,24 +413,23 @@ class TestJoin():
 
 class TestVStack():
 
-    def setup_method(self, method):
+    def _setup(self, t_cls=Table):
+        self.t1 = t_cls.read([' a   b',
+                              ' 0. foo',
+                              ' 1. bar'], format='ascii')
 
-        self.t1 = Table.read([' a   b',
-                              ' 0 foo',
-                              ' 1 bar'], format='ascii')
+        self.t2 = t_cls.read([' a    b   c',
+                              ' 2.  pez  4',
+                              ' 3.  sez  5'], format='ascii')
 
-        self.t2 = Table.read([' a   b   c',
-                              ' 2  pez  4',
-                              ' 3  sez  5'], format='ascii')
-
-        self.t3 = Table.read([' a   b',
-                              ' 4   7',
-                              ' 5   8',
-                              ' 6   9'], format='ascii')
-        self.t4 = Table(self.t1, copy=True, masked=True)
+        self.t3 = t_cls.read([' a    b',
+                              ' 4.   7',
+                              ' 5.   8',
+                              ' 6.   9'], format='ascii')
+        self.t4 = t_cls(self.t1, copy=True, masked=t_cls is Table)
 
         # The following table has meta-data that conflicts with t1
-        self.t5 = Table(self.t1, copy=True)
+        self.t5 = t_cls(self.t1, copy=True)
 
         self.t1.meta.update(OrderedDict([('b', [1, 2]), ('c', {'a': 1}), ('d', 1)]))
         self.t2.meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
@@ -442,21 +441,26 @@ class TestVStack():
                                        ('a', 1),
                                        ('e', 1)])
 
-    def test_stack_rows(self):
+    def test_stack_rows(self, operation_table_type):
+        self._setup(operation_table_type)
         t2 = self.t1.copy()
         t2.meta.clear()
         out = table.vstack([self.t1, t2[1]])
+        assert type(out['a']) is type(self.t1['a'])
+        assert type(out['b']) is type(self.t1['b'])
         assert out.pformat() == [' a   b ',
                                  '--- ---',
-                                 '  0 foo',
-                                 '  1 bar',
-                                 '  1 bar']
+                                 '0.0 foo',
+                                 '1.0 bar',
+                                 '1.0 bar']
 
-    def test_table_meta_merge(self):
+    def test_table_meta_merge(self, operation_table_type):
+        self._setup(operation_table_type)
         out = table.vstack([self.t1, self.t2, self.t4], join_type='inner')
         assert out.meta == self.meta_merge
 
-    def test_table_meta_merge_conflict(self):
+    def test_table_meta_merge_conflict(self, operation_table_type):
+        self._setup(operation_table_type)
 
         with catch_warnings() as w:
             out = table.vstack([self.t1, self.t5], join_type='inner')
@@ -483,7 +487,8 @@ class TestVStack():
             out = table.vstack([self.t1, self.t5], join_type='inner', metadata_conflicts='nonsense')
 
 
-    def test_bad_input_type(self):
+    def test_bad_input_type(self, operation_table_type):
+        self._setup(operation_table_type)
         with pytest.raises(TypeError):
             table.vstack([])
         with pytest.raises(TypeError):
@@ -493,50 +498,62 @@ class TestVStack():
         with pytest.raises(ValueError):
             table.vstack([self.t1, self.t2], join_type='invalid join type')
 
-    def test_stack_basic(self):
+    def test_stack_basic_inner(self, operation_table_type):
+        self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
         t4 = self.t4
 
         t12 = table.vstack([t1, t2], join_type='inner')
         assert t12.masked is False
+        assert type(t12['a']) is type(t1['a'])
+        assert type(t12['b']) is type(t1['b'])
         assert t12.pformat() == [' a   b ',
                                  '--- ---',
-                                 '  0 foo',
-                                 '  1 bar',
-                                 '  2 pez',
-                                 '  3 sez']
+                                 '0.0 foo',
+                                 '1.0 bar',
+                                 '2.0 pez',
+                                 '3.0 sez']
 
+        t124 = table.vstack([t1, t2, t4], join_type='inner')
+        assert type(t12['a']) is type(t1['a'])
+        assert type(t12['b']) is type(t1['b'])
+        assert t124.pformat() == [' a   b ',
+                                  '--- ---',
+                                  '0.0 foo',
+                                  '1.0 bar',
+                                  '2.0 pez',
+                                  '3.0 sez',
+                                  '0.0 foo',
+                                  '1.0 bar']
 
+    def test_stack_basic_outer(self, operation_table_type):
+        if operation_table_type is QTable:
+            pytest.xfail('Quantity columns do not support masking.')
+        self._setup(operation_table_type)
+        t1 = self.t1
+        t2 = self.t2
+        t4 = self.t4
         t12 = table.vstack([t1, t2], join_type='outer')
         assert t12.pformat() == [' a   b   c ',
                                  '--- --- ---',
-                                 '  0 foo  --',
-                                 '  1 bar  --',
-                                 '  2 pez   4',
-                                 '  3 sez   5']
+                                 '0.0 foo  --',
+                                 '1.0 bar  --',
+                                 '2.0 pez   4',
+                                 '3.0 sez   5']
 
         t124 = table.vstack([t1, t2, t4], join_type='outer')
         assert t124.pformat() == [' a   b   c ',
                                   '--- --- ---',
-                                  '  0 foo  --',
-                                  '  1 bar  --',
-                                  '  2 pez   4',
-                                  '  3 sez   5',
-                                  '  0 foo  --',
-                                  '  1 bar  --']
+                                  '0.0 foo  --',
+                                  '1.0 bar  --',
+                                  '2.0 pez   4',
+                                  '3.0 sez   5',
+                                  '0.0 foo  --',
+                                  '1.0 bar  --']
 
-        t124 = table.vstack([t1, t2, t4], join_type='inner')
-        assert t124.pformat() == [' a   b ',
-                                  '--- ---',
-                                  '  0 foo',
-                                  '  1 bar',
-                                  '  2 pez',
-                                  '  3 sez',
-                                  '  0 foo',
-                                  '  1 bar']
-
-    def test_stack_incompatible(self):
+    def test_stack_incompatible(self, operation_table_type):
+        self._setup(operation_table_type)
         with pytest.raises(TableMergeError) as excinfo:
             table.vstack([self.t1, self.t3], join_type='inner')
         assert ("The 'b' columns have incompatible types: {0}"
@@ -557,18 +574,22 @@ class TestVStack():
         assert "have different shape" in str(excinfo)
 
 
-    def test_vstack_one_masked(self):
+    def test_vstack_one_masked(self, operation_table_type):
+        if operation_table_type is QTable:
+            pytest.xfail('Quantity columns do not support masking.')
+        self._setup(operation_table_type)
         t1 = self.t1
         t4 = self.t4
         t4['b'].mask[1] = True
         assert table.vstack([t1, t4]).pformat() == [' a   b ',
                                                     '--- ---',
-                                                    '  0 foo',
-                                                    '  1 bar',
-                                                    '  0 foo',
-                                                    '  1  --']
+                                                    '0.0 foo',
+                                                    '1.0 bar',
+                                                    '0.0 foo',
+                                                    '1.0  --']
 
-    def test_col_meta_merge(self):
+    def test_col_meta_merge_table(self):
+        self._setup(Table)
         t1 = self.t1
         t2 = self.t2
         t4 = self.t4
@@ -605,24 +626,65 @@ class TestVStack():
         with catch_warnings(metadata.MergeConflictWarning) as warning_lines:
             out = table.vstack([t1, t2, t4], join_type='outer')
 
-            assert out['a'].unit == 'km'
-            assert out['a'].format == '%0d'
-            assert out['b'].description == 't1_b'
-            assert out['b'].format == '%6s'
-            assert out['a'].meta == self.meta_merge
-            assert out['b'].meta == OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)])
-            assert out['c'].unit == 'm'
-            assert out['c'].format == '%6s'
-            assert out['c'].description == 't2_c'
+        assert warning_lines[0].category == metadata.MergeConflictWarning
+        assert ("In merged column 'a' the 'unit' attribute does not match (cm != m)"
+                in str(warning_lines[0].message))
+        assert warning_lines[1].category == metadata.MergeConflictWarning
+        assert ("In merged column 'a' the 'unit' attribute does not match (m != km)"
+                in str(warning_lines[1].message))
+        assert out['a'].unit == 'km'
+        assert out['a'].format == '%0d'
+        assert out['b'].description == 't1_b'
+        assert out['b'].format == '%6s'
+        assert out['a'].meta == self.meta_merge
+        assert out['b'].meta == OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)])
+        assert out['c'].unit == 'm'
+        assert out['c'].format == '%6s'
+        assert out['c'].description == 't2_c'
 
-            assert warning_lines[0].category == metadata.MergeConflictWarning
-            assert ("In merged column 'a' the 'unit' attribute does not match (cm != m)"
-                    in str(warning_lines[0].message))
-            assert warning_lines[1].category == metadata.MergeConflictWarning
-            assert ("In merged column 'a' the 'unit' attribute does not match (m != km)"
-                    in str(warning_lines[1].message))
+    def test_col_meta_merge_qtable(self):
+        self._setup(QTable)
+        t1 = self.t1
+        t2 = self.t2
+        t4 = self.t4
 
-    def test_vstack_one_table(self):
+        # Key col 'a', should last value ('km')
+        t1['a'].info.unit = 'cm'
+        t2['a'].info.unit = 'm'
+        t4['a'].info.unit = 'km'
+
+        # Key col 'a' format should take last when all match
+        t1['a'].info.format = '%0d'
+        t2['a'].info.format = '%0d'
+        t4['a'].info.format = '%0d'
+
+        # Key col 'b', take first value 't1_b'
+        t1['b'].info.description = 't1_b'
+
+        # Key col 'b', take first non-empty value '%6s'
+        t4['b'].info.format = '%6s'
+
+        # Key col 'a', should be merged meta
+        t1['a'].info.meta.update(OrderedDict([('b', [1, 2]), ('c', {'a': 1}), ('d', 1)]))
+        t2['a'].info.meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
+        t4['a'].info.meta.update(OrderedDict([('b', [5, 6]), ('c', {'c': 1}), ('e', 1)]))
+
+        # Key col 'b', should be meta2
+        t2['b'].info.meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
+
+        with catch_warnings(metadata.MergeConflictWarning) as warning_lines:
+            out = table.vstack([t1, t2, t4], join_type='inner')
+
+        assert len(warning_lines) == 0
+        assert out['a'].info.unit == 'km'
+        assert out['a'].info.format == '%0d'
+        assert out['b'].info.description == 't1_b'
+        assert out['b'].info.format == '%6s'
+        assert out['a'].info.meta == self.meta_merge
+        assert out['b'].info.meta == OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)])
+
+    def test_vstack_one_table(self, operation_table_type):
+        self._setup(operation_table_type)
         """Regression test for issue #3313"""
         assert (self.t1 == table.vstack(self.t1)).all()
         assert (self.t1 == table.vstack([self.t1])).all()

@@ -19,7 +19,6 @@ import itertools
 from collections import OrderedDict, Counter
 
 import numpy as np
-from numpy import ma
 
 from ..utils import metadata
 
@@ -124,11 +123,16 @@ def _merge_col_meta2(tables, col_name_map, metadata_conflicts='warn'):
                     # not None, then if they are equal, there is no conflict,
                     # and if they are different, there is a conflict and we
                     # pick the one on the right (or raise an error).
-                    right_attr = getattr(right_col, attr, None)
+                    right_attr = getattr(right_col.info, attr, None)
                     if right_attr is None:
                         continue
 
-                    if attr not in out_attrs:
+                    # Use the attribute if we don't have it yet, or if it is a
+                    # unit and it is equivalent (so there won't be a problem;
+                    # using here that we always take the right-most occurrence)
+                    if (attr not in out_attrs or
+                        (attr == 'unit' and isinstance(right_col, u.Quantity) and
+                         right_attr.is_equivalent(out_attrs[attr]))):
                         out_attrs[attr] = right_attr
                         continue
 
@@ -137,8 +141,6 @@ def _merge_col_meta2(tables, col_name_map, metadata_conflicts='warn'):
 
                     # unit conflicts for Quantity columns may well resolve
                     # (or lead to UnitsError later).
-                    if attr == 'unit' and isinstance(right_col, u.Quantity):
-                        continue
                     # we have a real conflict
                     if metadata_conflicts == 'warn':
                         warnings.warn("In merged column '{0}' the '{1}' attribute does not match "
@@ -308,13 +310,18 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
         5   7
         6   8
     """
+    from .column import BaseColumn
+    from .table import QTable
     tables = _get_list_of_tables(tables)  # validates input
     if len(tables) == 1:
         return tables[0]  # no point in stacking a single table
 
-    for table in tables:
-        if table.has_mixin_columns:
-            raise NotImplementedError('vstack not available for tables with mixin columns')
+    if any(table.has_mixin_columns and
+           not (isinstance(table, QTable) and
+                all(isinstance(col, (BaseColumn, u.Quantity))
+                    for col in six.itervalues(table.columns)))
+           for table in tables):
+        raise NotImplementedError('vstack not available for tables with mixin columns')
 
     # Start by assuming an outer match where all names go to output
     names = set(itertools.chain(*[table.colnames for table in tables]))
@@ -327,23 +334,31 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
                 raise TableMergeError('Inconsistent columns in input arrays '
                                       "(use 'inner' or 'outer' join_type to "
                                       "allow non-matching columns)")
-        join_type = 'outer'
 
-    # For an inner join, keep only columns where all input arrays have that column
     elif join_type == 'inner':
+        # Keep only columns where all input arrays have that column.
         col_name_map = OrderedDict((name, in_names) for name, in_names in six.iteritems(col_name_map)
                                    if all(x is not None for x in in_names))
         if len(col_name_map) == 0:
             raise TableMergeError('Input arrays have no columns in common')
 
-    elif join_type != 'outer':
-        raise ValueError("`join_type` arg must be one of 'inner', 'exact' or 'outer'")
+    elif join_type == 'outer':
+        if any(isinstance(table, QTable) and
+               any(isinstance(table[name], u.Quantity) and
+                   any(x is None
+                       for x in col_name_map[name])
+                   for name in table.colnames)
+               for table in tables):
+            raise NotImplementedError("vstack with join_type 'outer' not "
+                                      "available for QTable input.")
 
+    else:
+        raise ValueError("`join_type` arg must be one of 'inner', 'exact' or 'outer'")
 
     # Merge column and table metadata
     col_attrs_map = _merge_col_meta2(tables, col_name_map, metadata_conflicts=metadata_conflicts)
 
-    out = _vstack(tables, join_type, col_name_map, col_attrs_map)
+    out = _vstack(tables, col_name_map, col_attrs_map)
 
     _merge_table_meta(out, tables, metadata_conflicts=metadata_conflicts)
 
@@ -803,26 +818,18 @@ def _join(left, right, keys=None, join_type='inner',
     return out
 
 
-def _vstack(arrays, join_type='outer', col_name_map=None, col_attrs_map=None):
+def _vstack(arrays, col_name_map=None, col_attrs_map=None):
     """
     Stack Tables vertically (by rows)
-
-    A ``join_type`` of 'exact' (default) means that the arrays must all
-    have exactly the same column names (though the order can vary).  If
-    ``join_type`` is 'inner' then the intersection of common columns will
-    be the output.  A value of 'outer' means the output will have the union of
-    all columns, with array values being masked where no common values are
-    available.
 
     Parameters
     ----------
     arrays : list of Tables
         Tables to stack by rows (vertically)
-    join_type : str
-        Join type ('inner' | 'exact' | 'outer'), default is 'outer'
-    col_name_map : empty dict or None
-        If passed as a dict then it will be updated in-place with the
-        mapping of output to input column names.
+    col_name_map : dict
+        Mapping of output to input column names.
+    col_attrs_map : dict
+        Attributes for the output columns to be created.
 
     Returns
     -------
