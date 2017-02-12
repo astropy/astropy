@@ -23,6 +23,8 @@ New Features
   - Change behavior to warn about units that are not FITS-compliant when
     writing a FITS file but not when reading. [#5675]
 
+  - Added absolute tolerance parameter when comparing FITS files. [#4729]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -189,10 +191,6 @@ New Features
 
   - The ``deprecated_renamed_argument`` decorator got a new ``pending``
     parameter to suppress the deprecation warnings. [#5761]
-
-- ``astropy.io.fits``
-
-  - Added absolute tolerance parameter when comparing FITS files. [#4729]
 
 Bug Fixes
 ^^^^^^^^^
