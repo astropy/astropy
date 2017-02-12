@@ -257,7 +257,7 @@ class FITSDiff(_BaseDiff):
 
             .. math::
 
-                \\left| x_1 - x_2 \\right| > \\text{atol} + \\text{rtol} \cdot \\left| x_1 \\right|
+                \\left| x_1 - x_2 \\right| > \\text{atol} + \\text{rtol} \\cdot \\left| x_1 \\right|
 
             are considered to be different.
 
