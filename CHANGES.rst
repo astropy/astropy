@@ -345,6 +345,8 @@ New Features
     only read up to the point where that HDU is found.  This can mean a
     substantial speedup when accessing files that have many HDUs. [#5065]
 
+  - Added absolute tolerance parameter when comparing FITS files using ``FITSDiff``. [#4729]
+
 - ``astropy.io.misc``
 
   - Added ``io.misc.yaml`` module to support serializing core astropy objects
