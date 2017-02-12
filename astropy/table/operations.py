@@ -427,11 +427,11 @@ def hstack(tables, join_type='outer',
     if len(tables) == 1:
         return tables[0]  # no point in stacking a single table
     col_name_map = OrderedDict()
-
+    # since every column originates from a single other one,
+    # column meta data is automatically correct.
     out = _hstack(tables, join_type, uniq_col_name, table_names,
                   col_name_map)
 
-    _merge_col_meta(out, tables, col_name_map, metadata_conflicts=metadata_conflicts)
     _merge_table_meta(out, tables, metadata_conflicts=metadata_conflicts)
 
     return out
