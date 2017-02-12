@@ -43,7 +43,7 @@ file contains one keyword.
 Example
 -------
 
-    fitsdiff -k filename,filtnam1 -n 5 -d 1.e-6 test1.fits test2
+    fitsdiff -k filename,filtnam1 -n 5 -r 1.e-6 test1.fits test2
 
 This command will compare files test1.fits and test2.fits, report maximum of 5
 different pixels values per extension, only report data values larger than
@@ -100,9 +100,23 @@ def handle_options(argv=None):
              'to report per extension (default %default).')
 
     parser.add_option(
-        '-d', '--difference-tolerance', type='float', default=0.,
-        dest='tolerance', metavar='NUMBER',
+        '-d', '--difference-tolerance', type='float', default=0.0,
+        dest='rtol', metavar='NUMBER',
+        help='DEPRECATED. Alias for "--relative-tolerance". '
+             'Deprecated, provided for backward compatibility(default %default).')
+
+    parser.add_option(
+        '-r', '--rtol', '--relative-tolerance', type='float', default=0.0,
+        dest='rtol', metavar='NUMBER',
         help='The relative tolerance for comparison of two numbers, '
+             'specifically two floating point numbers.  This applies to data '
+             'in both images and tables, and to floating point keyword values '
+             'in headers (default %default).')
+
+    parser.add_option(
+        '-a', '--atol', '--absolute-tolerance', type='float', default=0.0,
+        dest='atol', metavar='NUMBER',
+        help='The absolute tolerance for comparison of two numbers, '
              'specifically two floating point numbers.  This applies to data '
              'in both images and tables, and to floating point keyword values '
              'in headers (default %default).')
@@ -252,7 +266,8 @@ def main():
         opts.ignore_keywords = []
         opts.ignore_comments = []
         opts.ignore_fields = []
-        opts.tolerance = 0.0
+        opts.rtol = None
+        opts.atol = None
         opts.ignore_blanks = False
         opts.ignore_blank_cards = False
 
@@ -279,7 +294,8 @@ def main():
                 ignore_comments=opts.ignore_comments,
                 ignore_fields=opts.ignore_fields,
                 numdiffs=opts.numdiffs,
-                tolerance=opts.tolerance,
+                rtol=opts.rtol,
+                atol=opts.atol,
                 ignore_blanks=opts.ignore_blanks,
                 ignore_blank_cards=opts.ignore_blank_cards)
             diff.report(fileobj=out_file)
