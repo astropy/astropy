@@ -340,6 +340,8 @@ New Features
     install_requires and tests_require keywords via setuptools.
     [#5092, astropy-helpers #212]
 
+  - Enable easier subclassing of the TestRunner class. [#5505]
+
 - ``astropy.time``
 
   - ``light_travel_time`` can now use more accurate JPL ephemerides. [#5273, #5436]
@@ -526,7 +528,7 @@ Bug Fixes
 - ``astropy.io.fits``
 
   - Made TFORMx keyword check more flexible in test of compressed images to
-    enable compatibility of the test with cfitsio 3.380. [#4646]
+    enable compatibility of the test with cfitsio 3.380. [#4646, #4653]
 
   - Copying a ``fits.Header`` using ``copy`` or ``deepcopy`` from the ``copy``
     module will use ``Header.copy`` to ensure that modifying the copy will
@@ -950,7 +952,7 @@ API changes
 
 - ``astropy.cosmology``
 
-  - Improve documentation of z validity range of cosmology objects [#4882]
+  - Improve documentation of z validity range of cosmology objects [#4882, #4949]
 
 - ``astropy.io.ascii``
 
@@ -1260,7 +1262,7 @@ Bug fixes
     are written out, i.e. ``relax=True``. [#4814]
 
   - Made ``wcs.bounds_check`` call ``wcsprm_python2c``, which means it
-    works even if ``wcs.set`` has not been called yet. [#4957].
+    works even if ``wcs.set`` has not been called yet. [#4957, #4966].
   - WCS objects can no longer be reverse-indexed, which was technically
     permitted but incorrectly implemented previously [#4962]
 
@@ -2058,11 +2060,11 @@ Bug Fixes
     an ``Angle``. [#5483]
 
   - Ensure that ``search_around_sky`` and ``search_around_3d`` return
-    integer type index arrays for empty (non) matches. [#4877]
+    integer type index arrays for empty (non) matches. [#4877, #5083]
 
   - Return an empty set of matches for ``search_around_sky`` and
     ``search_around_3d`` when one or both of the input coordinate
-    arrays is empty. [#4875]
+    arrays is empty. [#4875, #5083]
 
 - ``astropy.io.ascii``
 
