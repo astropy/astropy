@@ -148,7 +148,7 @@ class TestRunnerBase(object):
         args = []
         for keyword in keywords.keys():
             func = getattr(self, keyword)
-            result = func(keywords[keyword], self.keywords)
+            result = func(keywords[keyword], keywords)
 
             # Allow disabaling of options in a subclass
             if result is NotImplemented:
