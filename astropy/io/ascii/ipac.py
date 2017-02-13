@@ -278,7 +278,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             null = col.fill_values[core.masked]
             try:
                 format_key = (col_format, col.info.name)
-                auto_format_func = get_auto_format_func(col.info.name)
+                auto_format_func = get_auto_format_func(id(col))
                 format_func = _format_funcs.get(format_key, auto_format_func)
                 nullist.append((format_func(col_format, null)).strip())
             except Exception:
