@@ -392,7 +392,7 @@ class DefaultSplitter(BaseSplitter):
         """Remove whitespace at the beginning or end of line.  This is especially useful for
         whitespace-delimited files to prevent spurious columns at the beginning or end.
         If splitting on whitespace then replace unquoted tabs with space first"""
-        if self.delimiter == '\s':
+        if self.delimiter == r'\s':
             line = _replace_tab_with_space(line, self.escapechar, self.quotechar)
         return line.strip()
 
@@ -420,7 +420,7 @@ class DefaultSplitter(BaseSplitter):
         quotechar = None if self.quotechar is None else str(self.quotechar)
         delimiter = None if self.delimiter is None else str(self.delimiter)
 
-        if delimiter == '\s':
+        if delimiter == r'\s':
             delimiter = ' '
 
         csv_reader = csv.reader(lines,
@@ -467,7 +467,7 @@ def _replace_tab_with_space(line, escapechar, quotechar):
         String containing tabs to be replaced with spaces.
     escapechar : str
         Character in ``line`` used to escape special characters.
-    quotechar: str
+    quotechar : str
         Character in ``line`` indicating the start/end of a substring.
 
     Returns
@@ -509,7 +509,7 @@ class BaseHeader(object):
     """
     Base table header reader
     """
-    auto_format = 'col%d'
+    auto_format = 'col{}'
     """ format string for auto-generating column names """
     start_line = None
     """ None, int, or a function of ``lines`` that returns None or int """
@@ -567,7 +567,8 @@ class BaseHeader(object):
                 raise InconsistentTableError('No data lines found so cannot autogenerate '
                                              'column names')
             n_data_cols = len(first_data_vals)
-            self.names = [self.auto_format % i for i in range(1, n_data_cols + 1)]
+            self.names = [self.auto_format.format(i)
+                          for i in range(1, n_data_cols + 1)]
 
         else:
             for i, line in enumerate(self.process_lines(lines)):
@@ -615,7 +616,7 @@ class BaseHeader(object):
             type_map_key = self.get_type_map_key(col)
             return self.col_type_map[type_map_key.lower()]
         except KeyError:
-            raise ValueError('Unknown data type ""%s"" for column "%s"' % (
+            raise ValueError('Unknown data type ""{}"" for column "{}"'.format(
                 col.raw_type, col.name))
 
     def check_column_names(self, names, strict_names, guessing):
@@ -670,8 +671,7 @@ class BaseData(object):
     write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
     fill_include_names = None
     fill_exclude_names = None
-    # Currently, the default matches the numpy default for masked values.
-    fill_values = [(masked, '--')]
+    fill_values = [(masked, '')]
     formats = {}
 
     def __init__(self):
@@ -919,8 +919,8 @@ class BaseOutputter(object):
                     converters_out.append((converter_func, converter_type))
 
         except (ValueError, TypeError):
-            raise ValueError('Error: invalid format for converters, see documentation\n%s' %
-                             converters)
+            raise ValueError('Error: invalid format for converters, see '
+                             'documentation\n{}'.format(converters))
         return converters_out
 
     def _convert_vals(self, cols):
@@ -1039,7 +1039,7 @@ def _apply_include_exclude_names(table, names, include_names, exclude_names):
         List of names to override those in table (set to None to use existing names)
     include_names : list
         List of names to include in output
-    exclude_names: list
+    exclude_names : list
         List of names to exclude from output (applied after ``include_names``)
 
     """
@@ -1169,11 +1169,13 @@ class BaseReader(object):
 
                 # otherwise, we raise an error only if it is still inconsistent
                 if len(str_vals) != n_cols:
-                    errmsg = ('Number of header columns (%d) inconsistent with '
-                              'data columns (%d) at data line %d\n'
-                              'Header values: %s\n'
-                              'Data values: %s' % (n_cols, len(str_vals), i,
-                                                   [x.name for x in cols], str_vals))
+                    errmsg = ('Number of header columns ({}) inconsistent with'
+                              ' data columns ({}) at data line {}\n'
+                              'Header values: {}\n'
+                              'Data values: {}'.format(
+                            n_cols, len(str_vals), i,
+                            [x.name for x in cols], str_vals))
+
                     raise InconsistentTableError(errmsg)
 
             for j, col in enumerate(cols):
@@ -1427,6 +1429,13 @@ def _get_writer(Writer, fast_writer, **kwargs):
 
     from .fastbasic import FastBasic
 
+    # A value of None for fill_values imply getting the default string
+    # representation of masked values (depending on the writer class), but the
+    # machinery expects a list.  The easiest here is to just pop the value off,
+    # i.e. fill_values=None is the same as not providing it at all.
+    if 'fill_values' in kwargs and kwargs['fill_values'] is None:
+        del kwargs['fill_values']
+
     if issubclass(Writer, FastBasic): # Fast writers handle args separately
         return Writer(**kwargs)
     elif fast_writer and 'fast_{0}'.format(Writer._format_name) in FAST_CLASSES:
@@ -1463,7 +1472,13 @@ def _get_writer(Writer, fast_writer, **kwargs):
     if 'exclude_names' in kwargs:
         writer.exclude_names = kwargs['exclude_names']
     if 'fill_values' in kwargs:
-        writer.data.fill_values = kwargs['fill_values']
+        # Prepend user-specified values to the class default.
+        with suppress(TypeError, IndexError):
+            # Test if it looks like (match, replace_string, optional_colname),
+            # in which case make it a list
+            kwargs['fill_values'][1] + ''
+            kwargs['fill_values'] = [kwargs['fill_values']]
+        writer.data.fill_values = kwargs['fill_values'] + writer.data.fill_values
     if 'fill_include_names' in kwargs:
         writer.data.fill_include_names = kwargs['fill_include_names']
     if 'fill_exclude_names' in kwargs:

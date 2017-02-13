@@ -18,6 +18,23 @@ py:class astropy.modeling.projections.Projection
 py:class astropy.io.fits.hdu.base.ExtensionHDU
 py:class astropy.io.fits.util.NotifierMixin
 
+# astropy.io.misc.yaml
+py:class yaml.dumper.SafeDumper
+py:class yaml.loader.SafeLoader
+py:class yaml.representer.SafeRepresenter
+py:class yaml.scanner.Scanner
+py:class yaml.constructor.SafeConstructor
+py:class yaml.constructor.BaseConstructor
+py:class yaml.parser.Parser
+py:class yaml.dumper.SafeDumper
+py:class yaml.representer.BaseRepresenter
+py:class yaml.reader.Reader
+py:class yaml.resolver.BaseResolver
+py:class yaml.serializer.Serializer
+py:class yaml.composer.Composer
+py:class yaml.resolver.Resolver
+py:class yaml.emitter.Emitter
+
 # astropy.utils
 py:class astropy.extern.six.Iterator
 py:class type
@@ -29,6 +46,9 @@ py:class astropy.table.groups.BaseGroups
 
 # astropy.time
 py:class astropy.time.core.TimeUnique
+
+# astropy.visualization
+py:class matplotlib.axes._subplots.WCSAxesSubplot
 
 # numpy inherited docstrings
 py:obj dtype

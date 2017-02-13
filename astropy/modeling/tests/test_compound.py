@@ -51,6 +51,34 @@ def test_two_model_class_arithmetic_1d(expr, result):
 
 
 @pytest.mark.parametrize(('expr', 'result'),
+                         [(lambda x, y: x + y, [5.0, 5.0]),
+                          (lambda x, y: x - y, [-1.0, -1.0]),
+                          (lambda x, y: x * y, [6.0, 6.0]),
+                          (lambda x, y: x / y, [2.0 / 3.0, 2.0 / 3.0]),
+                          (lambda x, y: x ** y, [8.0, 8.0])])
+def test_model_set(expr, result):
+    s = expr(Const1D((2, 2), n_models=2), Const1D((3, 3), n_models=2))
+    out = s(0, model_set_axis=False)
+
+    assert_array_equal(out, result)
+
+
+@pytest.mark.parametrize(('expr', 'result'),
+                         [(lambda x, y: x + y, [5.0, 5.0]),
+                          (lambda x, y: x - y, [-1.0, -1.0]),
+                          (lambda x, y: x * y, [6.0, 6.0]),
+                          (lambda x, y: x / y, [2.0 / 3.0, 2.0 / 3.0]),
+                          (lambda x, y: x ** y, [8.0, 8.0])])
+def test_model_set_raises_value_error(expr, result):
+    """Check that creating model sets with components whose _n_models are
+       different raise a value error
+    """
+
+    with pytest.raises(ValueError):
+        s = expr(Const1D((2, 2), n_models=2), Const1D(3, n_models=1))
+
+
+@pytest.mark.parametrize(('expr', 'result'),
                          [(lambda x, y: x + y, 5.0),
                           (lambda x, y: x - y, -1.0),
                           (lambda x, y: x * y, 6.0),
@@ -153,6 +181,27 @@ def test_simple_two_model_class_compose_2d():
     r3 = R2(45, 45, 45, 45)
     assert_allclose(r3(0, 1), (0, -1), atol=1e-10)
 
+def test_n_submodels():
+    """
+    Test that CompoundModel.n_submodels properly returns the number
+    of components.
+    """
+    g2 = Gaussian1D() + Gaussian1D()
+    assert g2.n_submodels() == 2
+
+    g3 = g2 + Gaussian1D()
+    assert g3.n_submodels() == 3
+
+    g5 = g3 | g2
+    assert g5.n_submodels() == 5
+
+    g7 = g5 / g2
+    assert g7.n_submodels() == 7
+
+    # make sure it works as class method
+    p = Polynomial1D + Polynomial1D
+
+    assert p.n_submodels() == 2
 
 def test_expression_formatting():
     """

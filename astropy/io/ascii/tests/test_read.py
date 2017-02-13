@@ -36,11 +36,14 @@ else:
     HAS_PATHLIB = True
 
 
-@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+@pytest.mark.parametrize('fast_reader', [True, False, {'use_fast_converter': False},
+                                         {'use_fast_converter': True}, 'force'])
 def test_convert_overflow(fast_reader):
     """
     Test reading an extremely large integer, which falls through to
-    string due to an overflow error (#2234).
+    string due to an overflow error (#2234). The C parsers used to
+    return inf (kind 'f') for this.
+    Kind should be 'S' in Python2, 'U' in Python3.
     """
     expected_kind = ('S', 'U')
     dat = ascii.read(['a', '1' * 10000], format='basic',
@@ -117,9 +120,9 @@ def test_read_with_names_arg(fast_reader):
 def test_read_all_files(fast_reader):
     for testfile in get_testfiles():
         if testfile.get('skip'):
-            print('\n\n******** SKIPPING %s' % testfile['name'])
+            print('\n\n******** SKIPPING {}'.format(testfile['name']))
             continue
-        print('\n\n******** READING %s' % testfile['name'])
+        print('\n\n******** READING {}'.format(testfile['name']))
         for guess in (True, False):
             test_opts = testfile['opts'].copy()
             if 'guess' not in test_opts:
@@ -138,9 +141,9 @@ def test_read_all_files(fast_reader):
 def test_read_all_files_via_table(fast_reader):
     for testfile in get_testfiles():
         if testfile.get('skip'):
-            print('\n\n******** SKIPPING %s' % testfile['name'])
+            print('\n\n******** SKIPPING {}'.format(testfile['name']))
             continue
-        print('\n\n******** READING %s' % testfile['name'])
+        print('\n\n******** READING {}'.format(testfile['name']))
         for guess in (True, False):
             test_opts = testfile['opts'].copy()
             if 'guess' not in test_opts:
@@ -161,11 +164,11 @@ def test_read_all_files_via_table(fast_reader):
 def test_guess_all_files():
     for testfile in get_testfiles():
         if testfile.get('skip'):
-            print('\n\n******** SKIPPING %s' % testfile['name'])
+            print('\n\n******** SKIPPING {}'.format(testfile['name']))
             continue
         if not testfile['opts'].get('guess', True):
             continue
-        print('\n\n******** READING %s' % testfile['name'])
+        print('\n\n******** READING {}'.format(testfile['name']))
         for filter_read_opts in (['Reader', 'delimiter', 'quotechar'], []):
             # Copy read options except for those in filter_read_opts
             guess_opts = dict((k, v) for k, v in testfile['opts'].items()
@@ -770,7 +773,7 @@ def get_testfiles(name=None):
         {'name': 't/whitespace.dat',
          'cols': ('quoted colname with tab\tinside', 'col2', 'col3'),
          'nrows': 2,
-         'opts': {'delimiter': '\s'}},
+         'opts': {'delimiter': r'\s'}},
         {'name': 't/simple_csv.csv',
          'cols': ('a','b','c'),
          'nrows': 2,
@@ -1206,3 +1209,38 @@ a b c
 # Data starts after the header column definition, blank lines ignored
 -- 2 3
 4 5 6 """)['a'][0] is np.ma.masked
+
+
+def test_latex_no_trailing_backslash():
+    """
+    Test that latex/aastex file with no trailing backslash can be read.
+    """
+    lines = r"""
+\begin{table}
+\begin{tabular}{ccc}
+a & b & c \\
+1 & 1.0 & c \\ % comment
+3\% & 3.0 & e  % comment
+\end{tabular}
+\end{table}
+"""
+    dat = ascii.read(lines, format='latex')
+    assert dat.colnames == ['a', 'b', 'c']
+    assert np.all(dat['a'] == ['1', r'3\%'])
+    assert np.all(dat['c'] == ['c', 'e'])
+
+def text_aastex_no_trailing_backslash():
+    lines = r"""
+\begin{deluxetable}{ccc}
+\tablehead{\colhead{a} & \colhead{b} & \colhead{c}}
+\startdata
+1 & 1.0 & c \\
+2 & 2.0 & d \\ % comment
+3\% & 3.0 & e  % comment
+\enddata
+\end{deluxetable}
+"""
+    dat = ascii.read(lines, format='aastex')
+    assert dat.colnames == ['a', 'b', 'c']
+    assert np.all(dat['a'] == ['1', r'3\%'])
+    assert np.all(dat['c'] == ['c', 'e'])

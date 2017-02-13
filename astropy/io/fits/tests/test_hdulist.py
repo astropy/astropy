@@ -3,6 +3,7 @@
 import glob
 import io
 import os
+import platform
 import sys
 
 import numpy as np
@@ -11,7 +12,8 @@ from ..verify import VerifyError
 from ....extern.six.moves import range
 from ....io import fits
 from ....tests.helper import pytest, raises, catch_warnings, ignore_warnings
-from ....utils.exceptions import AstropyUserWarning
+from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
+from ....utils.compat import NUMPY_LT_1_12
 
 from . import FitsTestCase
 
@@ -517,7 +519,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdu = fits.PrimaryHDU(data=data)
         idx = 1
         while len(hdu.header) < 34:
-            hdu.header['TEST%d' % idx] = idx
+            hdu.header['TEST{}'.format(idx)] = idx
             idx += 1
         hdu.writeto(self.temp('temp.fits'), checksum=True)
 
@@ -528,6 +530,9 @@ class TestHDUListFunctions(FitsTestCase):
         with fits.open(self.temp('temp.fits')) as hdul:
             assert (hdul[0].data == data).all()
 
+
+    @pytest.mark.xfail(platform.system() == 'Windows' and not NUMPY_LT_1_12,
+                       reason='https://github.com/astropy/astropy/issues/5797')
     def test_update_resized_header(self):
         """
         Test saving updates to a file where the header is one block smaller
@@ -539,7 +544,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdu = fits.PrimaryHDU(data=data)
         idx = 1
         while len(str(hdu.header)) <= 2880:
-            hdu.header['TEST%d' % idx] = idx
+            hdu.header['TEST{}'.format(idx)] = idx
             idx += 1
         orig_header = hdu.header.copy()
         hdu.writeto(self.temp('temp.fits'))
@@ -555,7 +560,7 @@ class TestHDUListFunctions(FitsTestCase):
         with fits.open(self.temp('temp.fits'), mode='update') as hdul:
             idx = 101
             while len(str(hdul[0].header)) <= 2880 * 2:
-                hdul[0].header['TEST%d' % idx] = idx
+                hdul[0].header['TEST{}'.format(idx)] = idx
                 idx += 1
             # Touch something in the data too so that it has to be rewritten
             hdul[0].data[0] = 27
@@ -587,7 +592,7 @@ class TestHDUListFunctions(FitsTestCase):
         with fits.open(self.temp('temp.fits'), mode='update') as hdul:
             idx = 1
             while len(str(hdul[0].header)) <= 2880 * 2:
-                hdul[0].header['TEST%d' % idx] = idx
+                hdul[0].header['TEST{}'.format(idx)] = idx
                 idx += 1
             hdul.flush()
             hdul.append(hdu)
@@ -697,9 +702,9 @@ class TestHDUListFunctions(FitsTestCase):
 
         def test(mmap_a, mmap_b):
             hdu_a = fits.PrimaryHDU(data=arr_a)
-            hdu_a.writeto(self.temp('test_a.fits'), clobber=True)
+            hdu_a.writeto(self.temp('test_a.fits'), overwrite=True)
             hdu_b = fits.PrimaryHDU(data=arr_b)
-            hdu_b.writeto(self.temp('test_b.fits'), clobber=True)
+            hdu_b.writeto(self.temp('test_b.fits'), overwrite=True)
 
             hdul_a = fits.open(self.temp('test_a.fits'), mode='update',
                                memmap=mmap_a)
@@ -738,9 +743,9 @@ class TestHDUListFunctions(FitsTestCase):
             col_a = fits.Column(name='a', format='J', array=arr_a)
             col_b = fits.Column(name='b', format='J', array=arr_b)
             hdu_a = fits.BinTableHDU.from_columns([col_a])
-            hdu_a.writeto(self.temp('test_a.fits'), clobber=True)
+            hdu_a.writeto(self.temp('test_a.fits'), overwrite=True)
             hdu_b = fits.BinTableHDU.from_columns([col_b])
-            hdu_b.writeto(self.temp('test_b.fits'), clobber=True)
+            hdu_b.writeto(self.temp('test_b.fits'), overwrite=True)
 
             hdul_a = fits.open(self.temp('test_a.fits'), mode='update',
                                memmap=mmap_a)
@@ -782,3 +787,83 @@ class TestHDUListFunctions(FitsTestCase):
         assert ('a', 2) not in hdulist
         assert ('b', 1) not in hdulist
         assert ('b', 2) not in hdulist
+
+    def test_overwrite_vs_clobber(self):
+        hdulist = fits.HDUList([fits.PrimaryHDU()])
+        hdulist.writeto(self.temp('test_overwrite.fits'))
+        hdulist.writeto(self.temp('test_overwrite.fits'), overwrite=True)
+        with catch_warnings(AstropyDeprecationWarning) as warning_lines:
+            hdulist.writeto(self.temp('test_overwrite.fits'), clobber=True)
+            assert len(warning_lines) == 0
+            # assert warning_lines[0].category == AstropyDeprecationWarning
+            # assert (str(warning_lines[0].message) == '"clobber" was '
+            #         'deprecated in version 1.3 and will be removed in a '
+            #         'future version. Use argument "overwrite" instead.')
+
+    def test_invalid_hdu_key_in_contains(self):
+        """
+        Make sure invalid keys in the 'in' operator return False.
+        Regression test for https://github.com/astropy/astropy/issues/5583
+        """
+        hdulist = fits.HDUList(fits.PrimaryHDU())
+        hdulist.append(fits.ImageHDU())
+        hdulist.append(fits.ImageHDU())
+
+        # A more or less random assortment of things which are not valid keys.
+        bad_keys = [None, 3.5, {}]
+
+        for key in bad_keys:
+            assert not (key in hdulist)
+
+    def test_iteration_of_lazy_loaded_hdulist(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/5585
+        """
+        hdulist = fits.HDUList(fits.PrimaryHDU())
+        hdulist.append(fits.ImageHDU(name='SCI'))
+        hdulist.append(fits.ImageHDU(name='SCI'))
+        hdulist.append(fits.ImageHDU(name='nada'))
+        hdulist.append(fits.ImageHDU(name='SCI'))
+
+        filename = self.temp('many_extension.fits')
+        hdulist.writeto(filename)
+        f = fits.open(filename)
+
+        # Check that all extensions are read if f is not sliced
+        all_exts = [ext for ext in f]
+        assert len(all_exts) == 5
+
+        # Reload the file to ensure we are still lazy loading
+        f.close()
+        f = fits.open(filename)
+
+        # Try a simple slice with no conditional on the ext. This is essentially
+        # the reported failure.
+        all_exts_but_zero = [ext for ext in f[1:]]
+        assert len(all_exts_but_zero) == 4
+
+        # Reload the file to ensure we are still lazy loading
+        f.close()
+        f = fits.open(filename)
+
+        # Check whether behavior is proper if the upper end of the slice is not
+        # omitted.
+        read_exts = [ext for ext in f[1:4] if ext.header['EXTNAME'] == 'SCI']
+        assert len(read_exts) == 2
+
+    def test_proper_error_raised_on_non_fits_file_with_unicode(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/5594
+
+        The failure shows up when (in python 3+) you try to open a file
+        with unicode content that is not actually a FITS file. See:
+        https://github.com/astropy/astropy/issues/5594#issuecomment-266583218
+        """
+        import codecs
+        filename = self.temp('not-fits-with-unicode.fits')
+        with codecs.open(filename, mode='w', encoding='utf=8') as f:
+            f.write(u'Ce\xe7i ne marche pas')
+
+        # This should raise an IOError because there is no end card.
+        with pytest.raises(IOError):
+            fits.open(filename)

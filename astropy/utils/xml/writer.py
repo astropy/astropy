@@ -136,7 +136,7 @@ class XMLWriter:
         self._data = []
         self._tags.append(tag)
         self.write(self.get_indentation_spaces(-1))
-        self.write("<%s" % tag)
+        self.write("<{}".format(tag))
         if attrib or extra:
             attrib = attrib.copy()
             attrib.update(extra)
@@ -147,7 +147,7 @@ class XMLWriter:
                     # This is just busy work -- we know our keys are clean
                     # k = xml_escape_cdata(k)
                     v = self.xml_escape(v)
-                    self.write(" %s=\"%s\"" % (k, v))
+                    self.write(" {}=\"{}\"".format(k, v))
         self._open = 1
 
         return len(self._tags)
@@ -234,7 +234,7 @@ class XMLWriter:
         """
         self._flush()
         self.write(self.get_indentation_spaces())
-        self.write("<!-- %s -->\n" % self.xml_escape_cdata(comment))
+        self.write("<!-- {} -->\n".format(self.xml_escape_cdata(comment)))
 
     def data(self, text):
         """
@@ -259,9 +259,9 @@ class XMLWriter:
             If omitted, the current element is closed.
         """
         if tag:
-            assert self._tags, "unbalanced end(%s)" % tag
+            assert self._tags, "unbalanced end({})".format(tag)
             assert tag == self._tags[-1],\
-                   "expected end(%s), got %s" % (self._tags[-1], tag)
+                   "expected end({}), got {}".format(self._tags[-1], tag)
         else:
             assert self._tags, "unbalanced end()"
         tag = self._tags.pop()
@@ -273,7 +273,7 @@ class XMLWriter:
             return
         if indent:
             self.write(self.get_indentation_spaces())
-        self.write("</%s>\n" % tag)
+        self.write("</{}>\n".format(tag))
 
     def close(self, id):
         """

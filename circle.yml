@@ -1,0 +1,11 @@
+machine:
+  services:
+    - docker
+
+dependencies:
+  override:
+    - docker pull astropy/astropy-32bit-test-env:1.7
+
+test:
+  override:
+    - ./.run_docker_tests.sh

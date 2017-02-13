@@ -16,6 +16,8 @@ from ... import coordinates
 from ... import table
 from ...utils.data_info import data_info_factory, dtype_info_name
 from ...utils.compat import NUMPY_LT_1_8
+from ..table_helpers import simple_table
+
 
 def test_table_info_attributes(table_types):
     """
@@ -232,4 +234,13 @@ def test_ignore_warnings():
     t = table.Table([[np.nan, np.nan]])
     with warnings.catch_warnings(record=True) as warns:
         t.info('stats', out=None)
+        assert len(warns) == 0
+
+
+def test_no_deprecation_warning():
+    # regression test for #5459, where numpy deprecation warnings were
+    # emitted unnecessarily.
+    t = simple_table()
+    with warnings.catch_warnings(record=True) as warns:
+        t.info()
         assert len(warns) == 0

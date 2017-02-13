@@ -2,7 +2,9 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
+from ..extern.six.moves import zip
 
+import warnings
 import weakref
 
 from copy import deepcopy
@@ -28,6 +30,18 @@ from ._column_mixins import _ColumnGetitemShim, _MaskedColumnGetitemShim
 # parent table.
 FORMATTER = pprint.TableFormatter()
 INTEGER_TYPES = (int, long, np.integer) if six.PY2 else (int, np.integer)
+
+class StringTruncateWarning(UserWarning):
+    """
+    Warning class for when a string column is assigned a value
+    that gets truncated because the base (numpy) string length
+    is too short.
+
+    This does not inherit from AstropyWarning because we want to use
+    stacklevel=2 to show the user where the issue occurred in their code.
+    """
+    pass
+
 
 def _auto_names(n_cols):
     from . import conf
@@ -224,8 +238,10 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         purposes.  This requires that the last element of ``state`` is a
         5-tuple that has Column-specific state values.
         """
-        # Get the Column attributes and meta
-        name, unit, format, description, meta = state[-1]
+        # Get the Column attributes
+        names = ('_name', 'unit', 'format', 'description', 'meta', 'indices')
+        attrs = {name: val for name, val in zip(names, state[-1])}
+
         state = state[:-1]
 
         # Using super(type(self), self).__setstate__() gives an infinite
@@ -234,12 +250,9 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         super_class = ma.MaskedArray if isinstance(self, ma.MaskedArray) else np.ndarray
         super_class.__setstate__(self, state)
 
-        # Set the Column attributes and meta
-        self._name = name
-        self.unit = unit
-        self.format = format
-        self.description = description
-        self.meta = meta
+        # Set the Column attributes
+        for name, val in attrs.items():
+            setattr(self, name, val)
         self._parent_table = None
 
     def __reduce__(self):
@@ -253,7 +266,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
         # Define Column-specific attrs and meta that gets added to state.
         column_state = (self.name, self.unit, self.format, self.description,
-                        self.meta)
+                        self.meta, self.indices)
         state = state + (column_state,)
 
         return reconstruct_func, reconstruct_func_args, state
@@ -776,16 +789,32 @@ class Column(BaseColumn):
     if six.PY2:
         __str__ = __bytes__
 
-    # Set items using a view of the underlying data, as it gives an
-    # order-of-magnitude speed-up. [#2994]
+    def _check_string_truncate(self, value):
+        value = np.asanyarray(value, dtype=self.dtype.type)
+        if value.dtype.itemsize > self.dtype.itemsize:
+            warnings.warn('truncated right side string(s) longer than {} '
+                          'character(s) during assignment'
+                          .format(self.dtype.str[2:]),
+                          StringTruncateWarning,
+                          stacklevel=3)
+
     def __setitem__(self, index, value):
+        # Issue warning for string assignment that truncates ``value``
+        if issubclass(self.dtype.type, np.character):
+            self._check_string_truncate(value)
+
         # update indices
         self.info.adjust_indices(index, value, len(self))
+
+        # Set items using a view of the underlying data, as it gives an
+        # order-of-magnitude speed-up. [#2994]
         self.data[index] = value
 
     # # Set slices using a view of the underlying data, as it gives an
     # # order-of-magnitude speed-up.  Only gets called in Python 2.  [#3020]
     def __setslice__(self, start, stop, value):
+        if issubclass(self.dtype.type, np.character):
+            self._check_string_truncate(value)
         self.info.adjust_indices(slice(start, stop), value, len(self))
         self.data.__setslice__(start, stop, value)
 

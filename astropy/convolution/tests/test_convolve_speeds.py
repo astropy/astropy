@@ -14,7 +14,8 @@ max_exponents_fft = {1: 15, 2: 10, 3: 7}
 
 if __name__ == "__main__":
     for ndims in [1, 2, 3]:
-        print("\n%i-dimensional arrays ('n' is the size of the image AND the kernel)" % ndims)
+        print("\n{}-dimensional arrays ('n' is the size of the image AND "
+              "the kernel)".format(ndims))
         print(" ".join(["%17s" % n for n in ("n", "convolve", "convolve_fft")]))
 
         for ii in range(3, max_exponents_fft[ndims]):
@@ -33,7 +34,7 @@ kernel = np.random.random([%i]*%i)""") % (2 ** ii - 1, ndims, 2 ** ii - 1, ndims
                 if ii <= max_exponents_linear[ndims]:
                     for ffttype, extra in zip(("", "_fft"),
                                               ("", "fft_pad=False")):
-                        statement = "convolve%s(array, kernel, boundary='fill', %s)" % (ffttype, extra)
+                        statement = "convolve{}(array, kernel, boundary='fill', {})".format(ffttype, extra)
                         besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
                         print("%17f" % (besttime), end=' ')
                 else:
@@ -55,7 +56,7 @@ kernel = np.random.random([%i]*%i)""") % (2 ** ii - 1, ndims, 2 ** ii - 1, ndims
 
             if ii <= max_exponents_linear[ndims]:
                 for ffttype in ("", "_fft"):
-                    statement = "convolve%s(array, kernel, boundary='fill')" % ffttype
+                    statement = "convolve{}(array, kernel, boundary='fill')".format(ffttype)
                     besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
                     print("%17f" % (besttime), end=' ')
             else:

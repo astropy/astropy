@@ -58,7 +58,7 @@ class SAMPWebHubProxy(SAMPHubProxy):
             self.ping()
             self._connected = True
         except xmlrpc.ProtocolError as p:
-            raise SAMPHubError("Protocol Error %d: %s" % (p.errcode, p.errmsg))
+            raise SAMPHubError("Protocol Error {}: {}".format(p.errcode, p.errmsg))
 
     @property
     def _samp_hub(self):

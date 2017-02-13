@@ -14,7 +14,8 @@ from ...tests.helper import (pytest, remote_data,
 from ...time import Time
 from .. import (EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz,
                 PrecessedGeocentric, CartesianRepresentation, SkyCoord,
-                SphericalRepresentation, HCRS, HeliocentricTrueEcliptic)
+                SphericalRepresentation, UnitSphericalRepresentation,
+                HCRS, HeliocentricTrueEcliptic)
 
 
 from ..._erfa import epv00
@@ -331,6 +332,10 @@ def test_gcrs_altaz_moonish(testframe):
     # now check that the distance change is similar to earth radius
     assert 1000*u.km < np.abs(moonaa.distance - moon.distance).to(u.au) < 7000*u.km
 
+    # now check that it round-trips
+    moon2 = moonaa.transform_to(moon)
+    assert_allclose(moon.cartesian.xyz, moon2.cartesian.xyz)
+
     # also should add checks that the alt/az are different for different earth locations
 
 
@@ -356,7 +361,7 @@ def test_gcrs_altaz_bothroutes(testframe):
 def test_cirs_altaz_moonish(testframe):
     """
     Sanity-check that an object resembling the moon goes to the right place with
-    a CIRS->AltAz transformation
+    a CIRS<->AltAz transformation
     """
     moon = CIRS(MOONDIST_CART, obstime=testframe.obstime)
 
@@ -366,6 +371,19 @@ def test_cirs_altaz_moonish(testframe):
     # now check that it round-trips
     moon2 = moonaa.transform_to(moon)
     assert_allclose(moon.cartesian.xyz, moon2.cartesian.xyz)
+
+
+@pytest.mark.parametrize('testframe', totest_frames)
+def test_cirs_altaz_nodist(testframe):
+    """
+    Check that a UnitSphericalRepresentation coordinate round-trips for the
+    CIRS<->AltAz transformation.
+    """
+    coo0 = CIRS(UnitSphericalRepresentation(10*u.deg, 20*u.deg), obstime=testframe.obstime)
+
+    # check that it round-trips
+    coo1 = coo0.transform_to(testframe).transform_to(coo0)
+    assert_allclose(coo0.cartesian.xyz, coo1.cartesian.xyz)
 
 
 @pytest.mark.parametrize('testframe', totest_frames)

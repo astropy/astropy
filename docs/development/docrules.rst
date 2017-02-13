@@ -61,7 +61,8 @@ function, class, or method definition. The docstring is a special attribute
 of the object (``object.__doc__``) and, for consistency, is surrounded by
 triple double quotes, i.e.::
 
-   """This is the form of a docstring.
+   """
+   This is the form of a docstring.
 
    It can be spread over several lines.
 
@@ -87,8 +88,12 @@ written pre-processors to assist Sphinx_ in its task.
 The length of docstring lines should be kept to 75 characters to
 facilitate reading the docstrings in text terminals.
 
+.. _numpydoc-sections:
+
 Sections
 --------
+
+.. highlight:: rst
 
 The sections of the docstring are:
 
@@ -100,7 +105,8 @@ The sections of the docstring are:
    ::
 
      def add(a, b):
-        """The sum of two numbers.
+        """
+        The sum of two numbers.
 
         """
 
@@ -395,6 +401,9 @@ listed by name::
   y : float
       The Y coordinate
 
+
+.. highlight:: python
+
 In general, it is not necessary to list class methods. Those that are not part
 of the public API have names that start with an underscore. In some cases,
 however, a class may have a great many methods, of which only a few are
@@ -494,7 +503,7 @@ Other points to keep in mind
   special emphasis, the reST directives for a note or warning can be used
   in the vicinity of the context of the warning (inside a section). Syntax:
 
-  ::
+  .. code-block:: rst
 
     .. warning:: Warning text.
 

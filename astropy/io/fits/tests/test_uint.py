@@ -6,7 +6,6 @@ import numpy as np
 
 from ....io import fits
 from . import FitsTestCase
-import platform
 from ....tests.helper import pytest, ignore_warnings
 
 
@@ -36,7 +35,7 @@ class TestUintFunctions(FitsTestCase):
             hdu.scale('int{0:d}'.format(bits), '', bzero=2 ** (bits-1))
 
             with ignore_warnings():
-                hdu.writeto(self.temp('tempfile.fits'), clobber=True)
+                hdu.writeto(self.temp('tempfile.fits'), overwrite=True)
 
             with fits.open(self.temp('tempfile.fits'), uint=True) as hdul:
                 assert hdul[hdu_number].data.dtype == self.utype_map[utype]
@@ -54,7 +53,7 @@ class TestUintFunctions(FitsTestCase):
                         # TODO: Enable these lines if CompImageHDUs ever grow
                         # .section support
                         sec = hdul[hdu_number].section[:1]
-                        assert sec.dtype.name == 'uint%s' % bits
+                        assert sec.dtype.name == 'uint{}'.format(bits)
                         assert (sec == d1[:1]).all()
 
     @pytest.mark.parametrize('utype', ('u2', 'u4', 'u8'))
@@ -90,7 +89,7 @@ class TestUintFunctions(FitsTestCase):
             hdulist = fits.HDUList([hdu0,table])
 
             with ignore_warnings():
-                hdulist.writeto(self.temp('tempfile.fits'), clobber=True)
+                hdulist.writeto(self.temp('tempfile.fits'), overwrite=True)
 
             # Test write of unsigned int
             del hdulist
@@ -104,7 +103,7 @@ class TestUintFunctions(FitsTestCase):
             v = u.view(dtype=[(utype, self.utype_map[utype])])
 
             with ignore_warnings():
-                fits.writeto(self.temp('tempfile2.fits'), v, clobber=True)
+                fits.writeto(self.temp('tempfile2.fits'), v, overwrite=True)
 
             with fits.open(self.temp('tempfile2.fits'), uint=True) as hdulist3:
                 hdudata3 = hdulist3[1].data

@@ -27,8 +27,8 @@ from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
                             frame_transform_graph)
 from ...coordinates import Latitude, EarthLocation
 from ...time import Time
-from ...utils import minversion
-from ...utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+from ...utils import minversion, isiterable
+from ...utils.exceptions import AstropyDeprecationWarning
 
 RA = 1.0 * u.deg
 DEC = 2.0 * u.deg
@@ -534,8 +534,26 @@ def test_ops():
 
     assert sc_arr[0].isscalar
     assert len(sc_arr[:1]) == 1
+    # A scalar shouldn't be indexable
     with pytest.raises(TypeError):
-        assert sc[0:]  # scalar, so it shouldn't be indexable
+        sc[0:]
+    # but it should be possible to just get an item
+    sc_item = sc[()]
+    assert sc_item.shape == ()
+    # and to turn it into an array
+    sc_1d = sc[np.newaxis]
+    assert sc_1d.shape == (1,)
+
+    with pytest.raises(TypeError):
+        iter(sc)
+    assert not isiterable(sc)
+    assert isiterable(sc_arr)
+    assert isiterable(sc_empty)
+    it = iter(sc_arr)
+    assert next(it).dec == sc_arr[0].dec
+    assert next(it).dec == sc_arr[1].dec
+    with pytest.raises(StopIteration):
+        next(it)
 
 
 def test_none_transform():
@@ -1217,6 +1235,14 @@ def test_spherical_offsets():
     assert_allclose(dra, 1*u.deg)
     assert_allclose(ddec, 1*u.deg)
 
+    # make sure an abbreviated array-based version of the above also works
+    i00s = SkyCoord([0]*4*u.arcmin, [0]*4*u.arcmin, frame='icrs')
+    i01s = SkyCoord([0]*4*u.arcmin, np.arange(4)*u.arcmin, frame='icrs')
+    dra, ddec = i00s.spherical_offsets_to(i01s)
+    assert_allclose(dra, 0*u.arcmin)
+    assert_allclose(ddec, np.arange(4)*u.arcmin)
+
+
 def test_frame_attr_changes():
     """
     This tests the case where a frame is added with a new frame attribute after
@@ -1252,3 +1278,18 @@ def test_frame_attr_changes():
     assert 'fakeattr' not in dir(sc_before)
     assert 'fakeattr' not in dir(sc_after1)
     assert 'fakeattr' not in dir(sc_after2)
+
+
+def test_cache_clear_sc():
+    from .. import SkyCoord
+
+    i = SkyCoord(1*u.deg, 2*u.deg)
+
+    # Add an in frame units version of the rep to the cache.
+    repr(i)
+
+    assert len(i.cache['representation']) == 2
+
+    i.cache.clear()
+
+    assert len(i.cache['representation']) == 0

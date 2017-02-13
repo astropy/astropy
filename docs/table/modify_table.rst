@@ -28,11 +28,11 @@ The code below shows the basics of modifying a table and its data.
 **Modify data values**
 ::
 
-  >>> t['a'] = [1, -2, 3, -4, 5]  # Set all column values
-  >>> t['a'][2] = 30              # Set row 2 of column 'a'
-  >>> t[1] = (8, 9, 10)           # Set all row values
-  >>> t[1]['b'] = -9              # Set column 'b' of row 1
-  >>> t[0:3]['c'] = 100           # Set column 'c' of rows 0, 1, 2
+  >>> t['a'][:] = [1, -2, 3, -4, 5]  # Set all column values
+  >>> t['a'][2] = 30                 # Set row 2 of column 'a'
+  >>> t[1] = (8, 9, 10)              # Set all row values
+  >>> t[1]['b'] = -9                 # Set column 'b' of row 1
+  >>> t[0:3]['c'] = 100              # Set column 'c' of rows 0, 1, 2
 
 Note that ``table[row][column]`` assignments will not work with
 `numpy` "fancy" ``row`` indexing (in that case ``table[row]`` would be
@@ -111,15 +111,25 @@ Finally, columns can also be added from
 
 **Replace a column**
 
-For a table with an existing column ``a``, an expression like ``t['a'] = [1, 2,
-3]`` or ``t['a'] = 1`` replaces the data *values* without changing the data
-type or anything else about the column.  In order to entirely replace the
-column with a new column (and potentially change the data type), use the
-:meth:`~astropy.table.Table.replace_column` method.  For instance, to change
-the data type of the ``a`` column from ``int`` to ``float``:
+One can entirely replace an existing column with a new column by setting the
+column to any object that could be used to initialize a table column (e.g.  a
+list or numpy array).  For example, one could change the data type of the ``a``
+column from ``int`` to ``float`` using::
 
-  >>> a_float = t['a'].astype(float)
-  >>> t.replace_column('a', a_float)
+  >>> t['a'] = t['a'].astype(float)
+
+If the right hand side value is not column-like, then an in-place update
+using broadcasting will be done, e.g.::
+
+  >>> t['a'] = 1  # Internally does t['a'][:] = 1
+
+.. Note ::
+
+   Prior to astropy version 1.3, assignment as shown above performed
+   an in-place update of the existing column values and it was not possible
+   to change the data type in this way.  Prior to 1.3 it was necessary
+   to use the :meth:`~astropy.table.Table.replace_column` method in this case.
+   See the section `API change in replacing columns`_ for additional information.
 
 **Rename columns**
 ::
@@ -172,17 +182,11 @@ as the item as shown below::
 Caveats
 ^^^^^^^
 
-Modifying the table data and properties is fairly straightforward.  There are
-only a few things to keep in mind:
-
-- The data type for a column cannot be changed in place.  In order to do this
-  you must make a copy of the table with the column type changed appropriately.
-- Adding or removing a column will generate a new copy
-  in memory of all the data.  If the table is very large this may be slow.
-- Adding a row *may* require a new copy in memory of the table data.  This
-  depends on the detailed layout of Python objects in memory and cannot be
-  reliably controlled.  In some cases it may be possible to build a table
-  row by row in less than O(N**2) time but you cannot count on it.
+Modifying the table data and properties is fairly straightforward.  One thing
+to keep in mind is that adding a row *may* require a new copy in memory of the
+table data.  This depends on the detailed layout of Python objects in memory
+and cannot be reliably controlled.  In some cases it may be possible to build a
+table row by row in less than O(N**2) time but you cannot count on it.
 
 Another subtlety to keep in mind are cases where the return value of an
 operation results in a new table in memory versus a view of the existing
@@ -204,3 +208,101 @@ row 1 of the copy.  The original ``t`` table was unaffected and the new
 temporary table disappeared once the statement was complete.  The takeaway
 is to pay attention to how certain operations are performed one step at
 a time.
+
+.. _table-replace-1_3:
+
+API change in replacing columns
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Astropy version 1.3 introduces an API change in the way that the following
+behaves::
+
+  >>> t = Table([[1, 2, 3]], names=['a'])
+  >>> t['a'] = [10.5, 20.5, 30.5]
+
+Prior to 1.3 this always did an in-place replacement of the data values so that
+the ``t['a']`` column object reference was maintained.  However, since the
+original data type was integer in this case, the replaced values would silently
+be converted to integer by truncation.
+
+Starting with astropy 1.3 the operation shown above does a *complete
+replacement* of the column object.  In this case it makes a new column
+object with float values by internally calling
+``t.replace_column('a', [10.5, 20.5, 30.5])``.  In general this behavior
+is more consistent with Python and Pandas behavior, but there is potential
+for somewhat subtle bugs in code that was written that expects the pre-1.3
+in-place behavior.
+
+**Examples**
+::
+
+  >>> t = Table([[1, 2, 3]], names=['a'])
+  >>> t['a'].description = 'My data column'
+
+  # Sliced column gets replaced
+  >>> t2 = t[:2]  # Make a slice
+
+  # In astropy 1.3 the following emits a warning about replacing a slice.
+  >>> t2['a'] = [10, 20]  # doctest: +SKIP
+
+  >>> list(t['a'])  # Outputs [10, 20, 3] prior to astropy 1.3.
+  [1, 2, 3]
+
+  # Column reference count changes
+  >>> ta = t['a']  # Make a reference to the original column
+  >>> t['a'] = [10, 20, 30]
+  >>> t['a'] is ta  # Outputs True prior to astropy 1.3
+  False
+
+  # Column attributes change
+  >>> print(t['a'].description)  # Outputs 'My data column' prior to astropy 1.3
+  None
+
+**Replicating pre-1.3 behavior**
+
+If the pre-1.3 in-place behavior is required in code, it is straightforward
+to achieve this.  Simply replace::
+
+  t[colname] = value
+
+with::
+
+  t[colname][:] = value
+
+As a *temporary* measure, or if the problematic code is in a package
+that cannot be modified, one can modify the ``table.replace_inplace``
+configuration variable::
+
+  from astropy import table
+  table.conf.replace_inplace = True
+
+This will entirely revert to the pre-1.3 behavior.  This configuration option
+will be deprecated and then subsequently removed in future releases, so it is
+meant only as a stop-gap to provide time to appropriately update all code.
+
+**Finding the source of problems**
+
+In order to find potential problems related to the API change, the
+configuration option ``table.conf.replace_warnings`` controls a set of warnings
+that are emitted under certain circumstances when a table column is replaced.
+This option must be set to a list that includes zero or more of the
+following string values:
+
+``always`` :
+  Print a warning every time a column gets replaced via the
+  setitem syntax (i.e. ``t['a'] = new_col``).
+
+``slice`` :
+  Print a warning when a column that appears to be a slice of
+  a parent column is replaced.
+
+``refcount`` :
+  Print a warning when the Python reference count for the
+  column changes.  This indicates that a stale object exists that might
+  be used elsewhere in the code and give unexpected results.
+
+``attributes`` :
+  Print a warning if any of the standard column attributes changed.
+
+The default value for the ``table.conf.replace_warnings`` option is
+``['slice']``.

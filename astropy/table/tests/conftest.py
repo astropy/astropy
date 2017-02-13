@@ -17,6 +17,7 @@ between modules.
 
 from copy import deepcopy
 from collections import OrderedDict
+import pickle
 
 import numpy as np
 
@@ -115,10 +116,10 @@ def tableclass(request):
     return table.Table if request.param else SubclassTable
 
 
-@pytest.fixture(params=[0, 1, -1])
+@pytest.fixture(params=list(range(0, pickle.HIGHEST_PROTOCOL + 1)))
 def protocol(request):
     """
-    Fixture to run all the tests for protocols 0 and 1, and -1 (most advanced).
+    Fixture to run all the tests for all available pickle protocols.
     """
     return request.param
 

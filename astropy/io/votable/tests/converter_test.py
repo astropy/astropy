@@ -164,7 +164,7 @@ def test_bit():
     x = c.parse("T")
 
 
-def test_bit_mask(recwarn):
+def test_bit_mask():
     config = {'pedantic': True}
     with catch_warnings(exceptions.W39) as w:
         field = tree.Field(

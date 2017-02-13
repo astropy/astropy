@@ -29,7 +29,7 @@ class DaophotHeader(core.BaseHeader):
     comment = r'\s*#K'
 
     # Regex for extracting the format strings
-    re_format = re.compile('%-?(\d+)\.?\d?[sdfg]')
+    re_format = re.compile(r'%-?(\d+)\.?\d?[sdfg]')
     re_header_keyword = re.compile(r'[#]K'
                                    r'\s+ (?P<name> \w+)'
                                    r'\s* = (?P<stuff> .+) $',
@@ -154,7 +154,7 @@ class DaophotHeader(core.BaseHeader):
 
         Parameters
         ----------
-        lines: list
+        lines : list
             List of table lines
 
         Returns
@@ -308,7 +308,8 @@ class DaophotInputter(core.ContinuationLinesInputter):
                     outlines.append(''.join(parts))
                     parts = []
             else:
-                raise ValueError('multiline re could not match line %i: %s' % (i, line))
+                raise ValueError('multiline re could not match line '
+                                 '{}: {}'.format(i, line))
 
         return outlines
 

@@ -29,6 +29,7 @@ from ...utils.data import conf as data_conf
 from ...utils.exceptions import AstropyUserWarning
 from ...utils.misc import JsonCustomEncoder
 from ...utils.xml.unescaper import unescape_all
+from ...utils.decorators import deprecated_renamed_argument
 
 
 __all__ = ['VOSBase', 'VOSCatalog', 'VOSDatabase', 'get_remote_catalog_db',
@@ -423,24 +424,28 @@ class VOSDatabase(VOSBase):
 
         return db
 
-    def to_json(self, filename, clobber=False):
-        """Write database content to a JSON file.
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+    def to_json(self, filename, overwrite=False):
+        """
+        Write database content to a JSON file.
 
         Parameters
         ----------
         filename : str
             JSON file.
 
-        clobber : bool
-            Overwrite existing file?
+        overwrite : bool
+            If ``True``, overwrite the output file if it exists.
+
+            .. versionchanged:: 1.3
+               ``overwrite`` replaces the deprecated ``clobber`` argument.
 
         Raises
         ------
         OSError
-            File exists.
-
+            If the file exists and ``overwrite`` is ``False``.
         """
-        if os.path.exists(filename) and not clobber:  # pragma: no cover
+        if os.path.exists(filename) and not overwrite:
             raise OSError('{0} exists.'.format(filename))
 
         with open(filename, 'w') as fd:

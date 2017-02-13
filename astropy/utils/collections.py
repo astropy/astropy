@@ -26,8 +26,8 @@ class HomogeneousList(list):
     def _assert(self, x):
         if not isinstance(x, self._types):
             raise TypeError(
-                "homogeneous list must contain only objects of type '%s'" %
-                (self._types))
+                "homogeneous list must contain only objects of "
+                "type '{}'".format(self._types))
 
     def __iadd__(self, other):
         for x in other:

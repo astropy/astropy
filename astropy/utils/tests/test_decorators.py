@@ -157,9 +157,10 @@ def test_deprecated_class():
 
     # The only thing that should be different about the new class
     # is __doc__, __init__, __bases__ and __subclasshook__.
+    # and __init_subclass__ for Python 3.6+.
     for x in dir(orig_A):
         if x not in ('__doc__', '__init__', '__bases__', '__dict__',
-                     '__subclasshook__'):
+                     '__subclasshook__', '__init_subclass__'):
             assert getattr(TA, x) == getattr(orig_A, x)
 
     with catch_warnings(AstropyDeprecationWarning) as w:
@@ -353,27 +354,39 @@ def test_deprecated_argument_relaxed():
         assert len(w) == 1
 
 
-def test_deprecated_argument_docstring():
-    @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
-    def test1(overwrite):
-        """Some docstring."""
+def test_deprecated_argument_pending():
+    # Relax turns the TypeError if both old and new keyword are used into
+    # a warning.
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3', pending=True)
+    def test(overwrite):
         return overwrite
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
-    def test2(overwrite):
-        return overwrite
+    # As positional argument only
+    assert test(1) == 1
 
-    # The sphinx directive is added only if the function already has a
-    # docstring.
-    assert '.. versionchanged:: 1.3' in test1.__doc__
-    assert not test2.__doc__
+    # As new keyword argument
+    assert test(overwrite=1) == 1
+
+    # Using the deprecated name
+    with catch_warnings(AstropyUserWarning, AstropyDeprecationWarning) as w:
+        assert test(clobber=1) == 1
+        assert len(w) == 0
+
+    # Using both. Both keyword
+    with catch_warnings(AstropyUserWarning, AstropyDeprecationWarning) as w:
+        assert test(clobber=2, overwrite=1) == 1
+        assert len(w) == 0
+
+    # One positional, one keyword
+    with catch_warnings(AstropyUserWarning, AstropyDeprecationWarning) as w:
+        assert test(1, clobber=2) == 1
+        assert len(w) == 0
 
 
 def test_deprecated_argument_multi_deprecation():
     @deprecated_renamed_argument(['x', 'y', 'z'], ['a', 'b', 'c'],
                                  [1.3, 1.2, 1.3], relax=True)
     def test(a, b, c):
-        """blub."""
         return a, b, c
 
     with catch_warnings(AstropyDeprecationWarning) as w:
@@ -392,12 +405,6 @@ def test_deprecated_argument_multi_deprecation():
     with catch_warnings(AstropyUserWarning) as w:
         assert test(x=1, y=2, z=3, c=5) == (1, 2, 5)
         assert len(w) == 1
-
-    msg = ('blub.\n\n.. versionchanged:: 1.2\n   ``b`` replaces the deprecated'
-           ' ``y`` argument.\n\n.. versionchanged:: 1.3\n   ``a`` replaces the'
-           ' deprecated ``x`` argument.\n   ``c`` replaces the deprecated '
-           '``z`` argument.')
-    assert test.__doc__ == msg
 
 
 def test_deprecated_argument_multi_deprecation_2():

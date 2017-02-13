@@ -725,6 +725,8 @@ void init_output_buffer(PyObject* hdu, void** buf, size_t* bufsize) {
     }
 
     if (0 != get_header_int(header, "ZNAXIS", &znaxis, 0)) {
+        PyErr_SetString(PyExc_TypeError,
+                        "ZNAXIS keyword not present in header.");
         goto fail;
     }
 
@@ -745,6 +747,8 @@ void init_output_buffer(PyObject* hdu, void** buf, size_t* bufsize) {
 
     // Get the ZBITPIX header value; if this is missing we're in trouble
     if (0 != get_header_int(header, "ZBITPIX", &zbitpix, 0)) {
+        PyErr_SetString(PyExc_TypeError,
+                        "ZBITPIX keyword not present in header.");
         goto fail;
     }
 
@@ -764,6 +768,13 @@ void init_output_buffer(PyObject* hdu, void** buf, size_t* bufsize) {
     }
 
     *buf = calloc(*bufsize, sizeof(char));
+    if (*buf == NULL) {
+        // Checking if calloc failed.
+        PyErr_SetString(PyExc_MemoryError,
+                        "Failed to allocate memory for output data buffer.");
+        goto fail;
+    }
+
 fail:
     Py_XDECREF(header);
     return;
@@ -888,7 +899,7 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
     PyObject* retval = NULL;
     tcolumn* columns = NULL;
 
-    void* outbuf;
+    void* outbuf = NULL;
     size_t outbufsize;
 
     PyArrayObject* indata = NULL;
@@ -963,6 +974,7 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
     tmp = (PyArrayObject*) PyArray_SimpleNewFromData(1, &znaxis, NPY_UBYTE,
                                                      outbuf);
 
+    PyArray_ENABLEFLAGS(tmp, NPY_ARRAY_OWNDATA);
 
     // Leaves refcount of tmp untouched, so its refcount should remain as 1
     retval = Py_BuildValue("KN", heapsize, tmp);

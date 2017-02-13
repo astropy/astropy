@@ -23,15 +23,13 @@ import astropy
 NAME = 'astropy'
 
 # VERSION should be PEP386 compatible (http://www.python.org/dev/peps/pep-0386)
-VERSION = '1.3.dev'
+VERSION = '2.0.dev'
 
 # Indicates if this version is a release version
 RELEASE = 'dev' not in VERSION
 
 if not RELEASE:
     VERSION += get_git_devstr(False)
-
-DOWNLOAD_BASE_URL = 'http://pypi.python.org/packages/source/a/astropy'
 
 # Populate the dict of setup command overrides; this should be done before
 # invoking any other functionality from distutils since it can potentially
@@ -84,7 +82,6 @@ setup(name=NAME,
       license='BSD',
       url='http://astropy.org',
       long_description=astropy.__doc__,
-      download_url='%s/astropy-%s.tar.gz' % (DOWNLOAD_BASE_URL, VERSION),
       keywords=['astronomy', 'astrophysics', 'cosmology', 'space', 'science',
                 'units', 'table', 'wcs', 'vo', 'samp', 'coordinate', 'fits',
                 'modeling', 'models', 'fitting', 'ascii'],

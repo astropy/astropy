@@ -33,8 +33,6 @@ Astropy also depends on other packages for optional features:
 
 - `matplotlib <http://matplotlib.org/>`_: To provide plotting functionality that `astropy.visualization` enhances.
 
-- `WCSAxes <http://wcsaxes.readthedocs.io/en/latest/>`_: To use `astropy.wcs` to define projections in Matplotlib.
-
 - `pytz <http://pythonhosted.org/pytz/>`_: To specify and convert between timezones.
 
 - `scikit-image <http://scikit-image.org/>`_: To downsample a data array in `astropy.nddata.utils`.
@@ -46,7 +44,7 @@ Astropy also depends on other packages for optional features:
 
 - `setuptools <https://pythonhosted.org/setuptools/>`_: Used for discovery of entry points which are used to insert fitters into modeling.fitting
 
-- `mock <https://github.com/testing-cabal/mock>`_ (python <= 3.2) or `unittest.mock <https://docs.python.org/dev/library/unittest.mock.html>`_ (python > 3.3): 
+- `mock <https://github.com/testing-cabal/mock>`_ (python <= 3.2) or `unittest.mock <https://docs.python.org/dev/library/unittest.mock.html>`_ (python > 3.3):
   Used for testing the entry point discovery functionality in `astropy.modeling.fitting`
 
 However, note that these only need to be installed if those particular features
@@ -164,7 +162,7 @@ Prerequisites
 You will need a compiler suite and the development headers for Python and
 Numpy in order to build Astropy.
 
-You will also need `Cython <http://cython.org/>`_ (v0.19 or later) and
+You will also need `Cython <http://cython.org/>`_ (v0.21 or later) and
 `jinja2 <http://jinja.pocoo.org/docs/dev/>`_ (v2.7 or later) installed
 to build from source, unless you are installing a numbered release. (The
 releases packages have the necessary C files packaged with them, and hence do
@@ -403,7 +401,7 @@ Any astropy affiliated package can be installed the same way (e.g. the
 `spectral-cube <http://spectral-cube.readthedocs.io/en/latest/>`_ or other
 packages that may be useful for radioastronomy).
 
-.. note:: The above instructions have been tested and are known to work on 
+.. note:: The above instructions have been tested and are known to work on
           MacOS X with CASA 4.3.1 and Linux with CASA 4.3.1, 4.4.0, 4.5.3, and
           pre-releases of CASA 4.7. However, due to missing header files in
           CASA, they are known to **not** work on Linux with CASA 4.2.1 and
@@ -432,9 +430,9 @@ packages:
       and most affiliated packages include this as a submodule in the source
       repository, so it does not need to be installed separately.)
 
-    - `WCSAxes <http://wcsaxes.readthedocs.io/en/latest/>`_
-
     - `Pillow <http://python-pillow.org/>`_
+
+    - (optional) `sphinx-gallery <http://sphinx-gallery.readthedocs.io/>`_
 
 .. note::
 
@@ -451,6 +449,15 @@ packages:
     For other LaTeX distributions your mileage may vary. To build the PDF
     documentation using LaTeX, the ``fonts-extra`` TexLive package or the
     ``inconsolata`` CTAN package are also required.
+
+.. note::
+
+    If sphinx-gallery is not installed, you will see many Sphinx warnings
+    building the documentation, e.g.::
+
+        .../docs/coordinates/frames.rst:278: WARNING: undefined label:
+            sphx_glr_generated_examples_coordinates_plot_sgr-coordinate-frame.py
+            (if the link has no caption the label must precede a section header)
 
 There are two ways to build the Astropy documentation. The most straightforward
 way is to execute the command (from the astropy source directory)::

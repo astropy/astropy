@@ -178,7 +178,7 @@ def _update__doc__(data_class, readwrite):
         lines = lines[:chop_index]
 
     # Find the minimum indent, skipping the first line because it might be odd
-    matches = [re.search('(\S)', line) for line in lines[1:]]
+    matches = [re.search(r'(\S)', line) for line in lines[1:]]
     left_indent = ' ' * min(match.start() for match in matches if match)
 
     # Get the available unified I/O formats for this class

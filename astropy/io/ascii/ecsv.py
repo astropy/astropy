@@ -12,6 +12,8 @@ from ...extern import six
 from . import core, basic
 from ...table import meta
 
+__doctest_requires__ = {'Ecsv': ['yaml']}
+
 ECSV_VERSION = '0.9'
 DELIMITERS = (' ', ',')
 
@@ -96,6 +98,9 @@ class EcsvHeader(basic.BasicHeader):
             List of table lines
 
         """
+        # Cache a copy of the original input lines before processing below
+        raw_lines = lines
+
         # Extract non-blank comment (header) lines with comment character stripped
         lines = list(self.process_lines(lines))
 
@@ -134,6 +139,18 @@ class EcsvHeader(basic.BasicHeader):
         # Create the list of io.ascii column objects from `header`
         header_cols = OrderedDict((x['name'], x) for x in header['datatype'])
         self.names = [x['name'] for x in header['datatype']]
+
+        # Read the first non-commented line of table and split to get the CSV
+        # header column names.  This is essentially what the Basic reader does.
+        header_line = next(super(EcsvHeader, self).process_lines(raw_lines))
+        header_names = next(self.splitter([header_line]))
+
+        # Check for consistency of the ECSV vs. CSV header column names
+        if header_names != self.names:
+            raise ValueError('column names from ECSV header {} do not '
+                             'match names from header line of CSV data {}'
+                             .format(self.names, header_names))
+
         self._set_cols_from_names()  # BaseHeader method to create self.cols
 
         # Transfer attributes from the column descriptor stored in the input
@@ -166,16 +183,27 @@ class Ecsv(basic.Basic):
     and column meta-data, in particular the data type and unit.  For details
     see: https://github.com/astropy/astropy-APEs/blob/master/APE6.rst.
 
-    For example::
+    Examples
+    --------
 
-      # %ECSV 0.9
-      # ---
-      # datatype:
-      # - {name: a, unit: m / s, type: int64, format: '%03d'}
-      # - {name: b, unit: km, type: int64, description: This is column b}
-      a b
-      001 2
-      004 3
+    >>> from astropy.table import Table
+    >>> ecsv_content = '''# %ECSV 0.9
+    ... # ---
+    ... # datatype:
+    ... # - {name: a, unit: m / s, datatype: int64, format: '%03d'}
+    ... # - {name: b, unit: km, datatype: int64, description: This is column b}
+    ... a b
+    ... 001 2
+    ... 004 3
+    ... '''
+    >>> Table.read(ecsv_content, format='ascii.ecsv')
+    <Table length=2>
+      a     b
+    m / s   km
+    int64 int64
+    ----- -----
+      001     2
+      004     3
     """
     _format_name = 'ecsv'
     _description = 'Enhanced CSV'

@@ -22,17 +22,13 @@ from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
                    _array_to_file, _write_string)
 from ...extern.six import b, string_types
 from ...utils.data import download_file, _is_url
-from ...utils.decorators import classproperty
+from ...utils.decorators import classproperty, deprecated_renamed_argument
 from ...utils.exceptions import AstropyUserWarning
 
 
-# Maps PyFITS-specific file mode names to the appropriate file modes to use
-# for the underlying raw files
-# TODO: This should probably renamed IO_FITS_MODES or something, but since it's
-# used primarily internally I'm going to leave PYFITS in the name for now for
-# in the off chance any third-party software is trying to do anything with this
-# object.
-PYFITS_MODES = {
+# Maps astropy.io.fits-specific file mode names to the appropriate file
+# modes to use for the underlying raw files
+IO_FITS_MODES = {
     'readonly': 'rb',
     'copyonwrite': 'rb',
     'update': 'rb+',
@@ -40,15 +36,11 @@ PYFITS_MODES = {
     'ostream': 'wb',
     'denywrite': 'rb'}
 
-# This is the old name of the PYFITS_MODES dict; it is maintained here for
-# backwards compatibility and should be removed no sooner than PyFITS 3.4
-PYTHON_MODES = PYFITS_MODES
-
-# Maps OS-level file modes to the appropriate PyFITS specific mode to use
-# when given file objects but no mode specified; obviously in PYFITS_MODES
-# there are overlaps; for example 'readonly' and 'denywrite' both require
-# the file to be opened in 'rb' mode.  But 'readonly' is the default
-# behavior for such files if not otherwise specified.
+# Maps OS-level file modes to the appropriate astropy.io.fits specific mode
+# to use when given file objects but no mode specified; obviously in
+# IO_FITS_MODES there are overlaps; for example 'readonly' and 'denywrite'
+# both require the file to be opened in 'rb' mode.  But 'readonly' is the
+# default behavior for such files if not otherwise specified.
 # Note: 'ab' is only supported for 'ostream' which is output-only.
 FILE_MODES = {
     'rb': 'readonly', 'rb+': 'update',
@@ -87,7 +79,8 @@ class _File(object):
     Represents a FITS file on disk (or in some other file-like object).
     """
 
-    def __init__(self, fileobj=None, mode=None, memmap=None, clobber=False,
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3', pending=True)
+    def __init__(self, fileobj=None, mode=None, memmap=None, overwrite=False,
                  cache=True):
         self.strict_memmap = bool(memmap)
         memmap = True if memmap is None else memmap
@@ -121,8 +114,8 @@ class _File(object):
             else:
                 mode = 'readonly'  # The default
 
-        if mode not in PYFITS_MODES:
-            raise ValueError("Mode '%s' not recognized" % mode)
+        if mode not in IO_FITS_MODES:
+            raise ValueError("Mode '{}' not recognized".format(mode))
 
         if (isinstance(fileobj, string_types) and
             mode not in ('ostream', 'append') and
@@ -146,11 +139,11 @@ class _File(object):
 
         # Initialize the internal self._file object
         if _is_random_access_file_backed(fileobj):
-            self._open_fileobj(fileobj, mode, clobber)
+            self._open_fileobj(fileobj, mode, overwrite)
         elif isinstance(fileobj, string_types):
-            self._open_filename(fileobj, mode, clobber)
+            self._open_filename(fileobj, mode, overwrite)
         else:
-            self._open_filelike(fileobj, mode, clobber)
+            self._open_filelike(fileobj, mode, overwrite)
 
         self.fileobj_mode = fileobj_mode(self._file)
 
@@ -191,8 +184,8 @@ class _File(object):
                 self.memmap = False
 
     def __repr__(self):
-        return '<%s.%s %s>' % (self.__module__, self.__class__.__name__,
-                               self._file)
+        return '<{}.{} {}>'.format(self.__module__, self.__class__.__name__,
+                                   self._file)
 
     # Support the 'with' statement
     def __enter__(self):
@@ -236,7 +229,7 @@ class _File(object):
             dtype = np.dtype(dtype)
 
         if size and size % dtype.itemsize != 0:
-            raise ValueError('size %d not a multiple of %s' % (size, dtype))
+            raise ValueError('size {} not a multiple of {}'.format(size, dtype))
 
         if isinstance(shape, int):
             shape = (shape,)
@@ -253,43 +246,48 @@ class _File(object):
             actualsize = np.prod(shape) * dtype.itemsize
 
             if actualsize < size:
-                raise ValueError('size %d is too few bytes for a %s array of '
-                                 '%s' % (size, shape, dtype))
+                raise ValueError('size {} is too few bytes for a {} array of '
+                                 '{}'.format(size, shape, dtype))
             if actualsize < size:
-                raise ValueError('size %d is too many bytes for a %s array of '
-                                 '%s' % (size, shape, dtype))
+                raise ValueError('size {} is too many bytes for a {} array of '
+                                 '{}'.format(size, shape, dtype))
 
-        if self.memmap:
-            if self._mmap is None:
-                # Instantiate Memmap array of the file offset at 0
-                # (so we can return slices of it to offset anywhere else into
-                # the file)
-                memmap = Memmap(self._file,
-                                mode=MEMMAP_MODES[self.mode],
-                                dtype=np.uint8)
+        filepos = self._file.tell()
 
-                # Now we immediately discard the memmap array; we are really
-                # just using it as a factory function to instantiate the mmap
-                # object in a convenient way (may later do away with this
-                # usage)
-                self._mmap = memmap.base
+        try:
+            if self.memmap:
+                if self._mmap is None:
+                    # Instantiate Memmap array of the file offset at 0 (so we
+                    # can return slices of it to offset anywhere else into the
+                    # file)
+                    memmap = Memmap(self._file, mode=MEMMAP_MODES[self.mode],
+                                    dtype=np.uint8)
 
-                # Prevent dorking with self._memmap._mmap by memmap.__del__ in
-                # Numpy 1.6 (see
-                # https://github.com/numpy/numpy/commit/dcc355a0b179387eeba10c95baf2e1eb21d417c7)
-                memmap._mmap = None
-                del memmap
+                    # Now we immediately discard the memmap array; we are
+                    # really just using it as a factory function to instantiate
+                    # the mmap object in a convenient way (may later do away
+                    # with this usage)
+                    self._mmap = memmap.base
 
-            return np.ndarray(shape=shape, dtype=dtype, offset=offset,
-                              buffer=self._mmap)
-        else:
-            count = reduce(operator.mul, shape)
-            pos = self._file.tell()
-            self._file.seek(offset)
-            data = _array_from_file(self._file, dtype, count, '')
-            data.shape = shape
-            self._file.seek(pos)
-            return data
+                    # Prevent dorking with self._memmap._mmap by memmap.__del__
+                    # in Numpy 1.6 (see
+                    # https://github.com/numpy/numpy/commit/dcc355a0b179387eeba10c95baf2e1eb21d417c7)
+                    memmap._mmap = None
+                    del memmap
+
+                return np.ndarray(shape=shape, dtype=dtype, offset=offset,
+                                  buffer=self._mmap)
+            else:
+                count = reduce(operator.mul, shape)
+                self._file.seek(offset)
+                data = _array_from_file(self._file, dtype, count, '')
+                data.shape = shape
+                return data
+        finally:
+            # Make sure we leave the file in the position we found it; on
+            # some platforms (e.g. Windows) mmaping a file handle can also
+            # reset its file pointer
+            self._file.seek(filepos)
 
     def writable(self):
         if self.readonly:
@@ -334,8 +332,8 @@ class _File(object):
         pos = self._file.tell()
         if self.size and pos > self.size:
             warnings.warn('File may have been truncated: actual file length '
-                          '(%i) is smaller than the expected size (%i)' %
-                          (self.size, pos), AstropyUserWarning)
+                          '({}) is smaller than the expected size ({})'.format(
+                    self.size, pos), AstropyUserWarning)
 
     def tell(self):
         if not hasattr(self._file, 'tell'):
@@ -375,8 +373,8 @@ class _File(object):
             self._mmap.close()
             self._mmap = None
 
-    def _overwrite_existing(self, clobber, fileobj, closed):
-        """Overwrite an existing file if ``clobber`` is ``True``, otherwise
+    def _overwrite_existing(self, overwrite, fileobj, closed):
+        """Overwrite an existing file if ``overwrite`` is ``True``, otherwise
         raise an IOError.  The exact behavior of this method depends on the
         _File object state and is only meant for use within the ``_open_*``
         internal methods.
@@ -385,7 +383,7 @@ class _File(object):
         # The file will be overwritten...
         if ((self.file_like and hasattr(fileobj, 'len') and fileobj.len > 0) or
             (os.path.exists(self.name) and os.path.getsize(self.name) != 0)):
-            if clobber:
+            if overwrite:
                 if self.file_like and hasattr(fileobj, 'truncate'):
                     fileobj.truncate(0)
                 else:
@@ -393,19 +391,19 @@ class _File(object):
                         fileobj.close()
                     os.remove(self.name)
             else:
-                raise IOError("File %r already exists." % self.name)
+                raise IOError("File {!r} already exists.".format(self.name))
 
-    def _open_fileobj(self, fileobj, mode, clobber):
+    def _open_fileobj(self, fileobj, mode, overwrite):
         """Open a FITS file from a file object or a GzipFile object."""
 
         closed = fileobj_closed(fileobj)
-        fmode = fileobj_mode(fileobj) or PYFITS_MODES[mode]
+        fmode = fileobj_mode(fileobj) or IO_FITS_MODES[mode]
 
         if mode == 'ostream':
-            self._overwrite_existing(clobber, fileobj, closed)
+            self._overwrite_existing(overwrite, fileobj, closed)
 
         if not closed:
-            # Although we have a specific mapping in PYFITS_MODES from our
+            # Although we have a specific mapping in IO_FITS_MODES from our
             # custom file modes to raw file object modes, many of the latter
             # can be used appropriately for the former.  So determine whether
             # the modes match up appropriately
@@ -416,20 +414,20 @@ class _File(object):
                      not ('w' in fmode or 'a' in fmode or '+' in fmode)) or
                     (mode == 'update' and fmode not in ('rb+', 'wb+'))):
                 raise ValueError(
-                    "Mode argument '%s' does not match mode of the input "
-                    "file (%s)." % (mode, fmode))
+                    "Mode argument '{}' does not match mode of the input "
+                    "file ({}).".format(mode, fmode))
             self._file = fileobj
         elif isfile(fileobj):
-            self._file = fileobj_open(self.name, PYFITS_MODES[mode])
+            self._file = fileobj_open(self.name, IO_FITS_MODES[mode])
         else:
-            self._file = gzip.open(self.name, PYFITS_MODES[mode])
+            self._file = gzip.open(self.name, IO_FITS_MODES[mode])
 
         if fmode == 'ab+':
             # Return to the beginning of the file--in Python 3 when opening in
             # append mode the file pointer is at the end of the file
             self._file.seek(0)
 
-    def _open_filelike(self, fileobj, mode, clobber):
+    def _open_filelike(self, fileobj, mode, overwrite):
         """Open a FITS file from a file-like object, i.e. one that has
         read and/or write methods.
         """
@@ -439,7 +437,7 @@ class _File(object):
 
         if fileobj_closed(fileobj):
             raise IOError("Cannot read from/write to a closed file-like "
-                          "object (%r)." % fileobj)
+                          "object ({!r}).".format(fileobj))
 
         if isinstance(fileobj, zipfile.ZipFile):
             self._open_zipfile(fileobj, mode)
@@ -455,26 +453,24 @@ class _File(object):
             self.mode = mode = 'ostream'
 
         if mode == 'ostream':
-            self._overwrite_existing(clobber, fileobj, False)
+            self._overwrite_existing(overwrite, fileobj, False)
 
         # Any "writeable" mode requires a write() method on the file object
         if (self.mode in ('update', 'append', 'ostream') and
             not hasattr(self._file, 'write')):
             raise IOError("File-like object does not have a 'write' "
-                          "method, required for mode '%s'."
-                          % self.mode)
+                          "method, required for mode '{}'.".format(self.mode))
 
         # Any mode except for 'ostream' requires readability
         if self.mode != 'ostream' and not hasattr(self._file, 'read'):
             raise IOError("File-like object does not have a 'read' "
-                          "method, required for mode %r."
-                          % self.mode)
+                          "method, required for mode {!r}.".format(self.mode))
 
-    def _open_filename(self, filename, mode, clobber):
+    def _open_filename(self, filename, mode, overwrite):
         """Open a FITS file from a filename string."""
 
         if mode == 'ostream':
-            self._overwrite_existing(clobber, None, True)
+            self._overwrite_existing(overwrite, None, True)
 
         if os.path.exists(self.name):
             with fileobj_open(self.name, 'rb') as f:
@@ -486,7 +482,7 @@ class _File(object):
 
         if ext == '.gz' or magic.startswith(GZIP_MAGIC):
             # Handle gzip files
-            self._file = gzip.open(self.name, PYFITS_MODES[mode])
+            self._file = gzip.open(self.name, IO_FITS_MODES[mode])
             self.compression = 'gzip'
         elif ext == '.zip' or magic.startswith(PKZIP_MAGIC):
             # Handle zip files
@@ -500,7 +496,7 @@ class _File(object):
             bzip2_mode = 'w' if mode == 'ostream' else 'r'
             self._file = bz2.BZ2File(self.name, bzip2_mode)
         else:
-            self._file = fileobj_open(self.name, PYFITS_MODES[mode])
+            self._file = fileobj_open(self.name, IO_FITS_MODES[mode])
 
         # Make certain we're back at the beginning of the file
         # BZ2File does not support seek when the file is open for writing, but
@@ -527,9 +523,9 @@ class _File(object):
             os.fsync(tmpfd)
             try:
                 mm = mmap.mmap(tmpfd, 1, access=mmap.ACCESS_WRITE)
-            except mmap.error as e:
-                warnings.warn('Failed to create mmap: %s; mmap use will be '
-                              'disabled' % str(e), AstropyUserWarning)
+            except mmap.error as exc:
+                warnings.warn('Failed to create mmap: {}; mmap use will be '
+                              'disabled'.format(str(exc)), AstropyUserWarning)
                 del exc
                 return False
             try:

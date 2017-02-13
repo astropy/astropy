@@ -69,10 +69,12 @@ from .hdu.table import BinTableHDU
 from .header import Header
 from .util import fileobj_closed, fileobj_name, fileobj_mode, _is_int
 from .fitsrec import FITS_rec
+from ...units import Unit
 from ...units.format.fits import UnitScaleError
 from ...extern import six
 from ...extern.six import string_types
 from ...utils.exceptions import AstropyUserWarning
+from ...utils.decorators import deprecated_renamed_argument
 
 
 __all__ = ['getheader', 'getdata', 'getval', 'setval', 'delval', 'writeto',
@@ -109,7 +111,14 @@ def getheader(filename, *args, **kwargs):
         hdu = hdulist[extidx]
         header = hdu.header
     finally:
-        hdulist.close(closed=closed)
+        # Use _close instead of close to close without loading any
+        # remaining HDUs for pre-lazy-loading backwards compatibility
+        # In other words, when the full HDUList is opened by a user they
+        # previously expected to be able to look at arbitrary HDUs even
+        # after the file was closed, but for getheader and other convenience
+        # functions this is irrelevant
+        hdulist._close(closed=closed)
+
     return header
 
 
@@ -205,7 +214,8 @@ def getdata(filename, *args, **kwargs):
         if header:
             hdr = hdu.header
     finally:
-        hdulist.close(closed=closed)
+        # _close instead of close; see note in getheader
+        hdulist._close(closed=closed)
 
     # Change case of names if requested
     trans = None
@@ -341,7 +351,8 @@ def setval(filename, keyword, *args, **kwargs):
             comment = None
         hdulist[extidx].header.set(keyword, value, comment, before, after)
     finally:
-        hdulist.close(closed=closed)
+        # _close instead of close; see note in getheader
+        hdulist._close(closed=closed)
 
 
 def delval(filename, keyword, *args, **kwargs):
@@ -379,11 +390,13 @@ def delval(filename, keyword, *args, **kwargs):
     try:
         del hdulist[extidx].header[keyword]
     finally:
-        hdulist.close(closed=closed)
+        # _close instead of close; see note in getheader
+        hdulist._close(closed=closed)
 
 
+@deprecated_renamed_argument('clobber', 'overwrite', '1.3', pending=True)
 def writeto(filename, data, header=None, output_verify='exception',
-            clobber=False, checksum=False):
+            overwrite=False, checksum=False):
     """
     Create a new FITS file using the supplied data/header.
 
@@ -408,9 +421,13 @@ def writeto(filename, data, header=None, output_verify='exception',
         ``+warn``, or ``+exception" (e.g. ``"fix+warn"``).  See :ref:`verify`
         for more info.
 
-    clobber : bool, optional
-        If `True`, and if filename already exists, it will overwrite
-        the file.  Default is `False`.
+    overwrite : bool, optional
+        If ``True``, overwrite the output file if it exists. Raises an
+        ``OSError`` (``IOError`` for Python 2) if ``False`` and the
+        output file exists. Default is ``False``.
+
+        .. versionchanged:: 1.3
+           ``overwrite`` replaces the deprecated ``clobber`` argument.
 
     checksum : bool, optional
         If `True`, adds both ``DATASUM`` and ``CHECKSUM`` cards to the
@@ -420,7 +437,7 @@ def writeto(filename, data, header=None, output_verify='exception',
     hdu = _makehdu(data, header)
     if hdu.is_image and not isinstance(hdu, PrimaryHDU):
         hdu = PrimaryHDU(data, header=header)
-    hdu.writeto(filename, clobber=clobber, output_verify=output_verify,
+    hdu.writeto(filename, overwrite=overwrite, output_verify=output_verify,
                 checksum=checksum)
 
 
@@ -456,8 +473,7 @@ def table_to_hdu(table):
             if column.dtype.kind == 'f' and np.allclose(fill_value, 1e20):
                 column.set_fill_value(np.nan)
 
-        fits_rec = FITS_rec.from_columns(np.array(table.filled()))
-        table_hdu = BinTableHDU(fits_rec)
+        table_hdu = BinTableHDU.from_columns(np.array(table.filled()))
         for col in table_hdu.columns:
             # Binary FITS tables support TNULL *only* for integer data columns
             # TODO: Determine a schema for handling non-integer masked columns
@@ -474,8 +490,7 @@ def table_to_hdu(table):
 
             col.null = fill_value.astype(table[col.name].dtype)
     else:
-        fits_rec = FITS_rec.from_columns(np.array(table.filled()))
-        table_hdu = BinTableHDU(fits_rec)
+        table_hdu = BinTableHDU.from_columns(np.array(table.filled()))
 
     # Set units for output HDU
     for col in table_hdu.columns:
@@ -494,6 +509,9 @@ def table_to_hdu(table):
                 warnings.warn(
                     "The unit '{0}' could not be saved to FITS format".format(
                         unit.to_string()), AstropyUserWarning)
+
+            # Try creating a Unit to issue a warning if the unit is not FITS compliant
+            Unit(col.unit, format='fits', parse_strict='warn')
 
     for key, value in table.meta.items():
         if is_column_keyword(key.upper()) or key.upper() in REMOVE_KEYWORDS:
@@ -580,14 +598,15 @@ def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
                 # when writing the file.
                 hdu._output_checksum = checksum
             finally:
-                f.close(closed=closed)
+                # _close instead of close; see note in getheader
+                f._close(closed=closed)
         else:
             f = _File(filename, mode='append')
             try:
                 hdu._output_checksum = checksum
                 hdu._writeto(f)
             finally:
-                f.close()
+                f._close()
 
 
 def update(filename, data, *args, **kwargs):
@@ -646,7 +665,8 @@ def update(filename, data, *args, **kwargs):
     try:
         hdulist[_ext] = new_hdu
     finally:
-        hdulist.close(closed=closed)
+        # _close instead of close; see note in getheader
+        hdulist._close(closed=closed)
 
 
 def info(filename, output=None, **kwargs):
@@ -683,13 +703,15 @@ def info(filename, output=None, **kwargs):
         ret = f.info(output=output)
     finally:
         if closed:
-            f.close()
+            # _close instead of close; see note in getheader
+            f._close()
 
     return ret
 
 
+@deprecated_renamed_argument('clobber', 'overwrite', '1.3', pending=True)
 def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
-              clobber=False):
+              overwrite=False):
     """
     Dump a table HDU to a file in ASCII format.  The table may be
     dumped in three separate files, one containing column definitions,
@@ -717,8 +739,13 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
         The number of the extension containing the table HDU to be
         dumped.
 
-    clobber : bool
-        Overwrite the output files if they exist.
+    overwrite : bool, optional
+        If ``True``, overwrite the output file if it exists. Raises an
+        ``OSError`` (``IOError`` for Python 2) if ``False`` and the
+        output file exists. Default is ``False``.
+
+        .. versionchanged:: 1.3
+           ``overwrite`` replaces the deprecated ``clobber`` argument.
 
     Notes
     -----
@@ -744,10 +771,11 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
             datafile = root + '_' + repr(ext) + '.txt'
 
         # Dump the data from the HDU to the files
-        f[ext].dump(datafile, cdfile, hfile, clobber)
+        f[ext].dump(datafile, cdfile, hfile, overwrite)
     finally:
         if closed:
-            f.close()
+            # _close instead of close; see note in getheader
+            f._close()
 
 if isinstance(tabledump.__doc__, string_types):
     tabledump.__doc__ += BinTableHDU._tdump_file_format.replace('\n', '\n    ')
@@ -803,9 +831,9 @@ def _getext(filename, mode, *args, **kwargs):
     extname = kwargs.pop('extname', None)
     extver = kwargs.pop('extver', None)
 
-    err_msg = ('Redundant/conflicting extension arguments(s): %s' %
-               ({'args': args, 'ext': ext,  'extname': extname,
-                 'extver': extver},))
+    err_msg = ('Redundant/conflicting extension arguments(s): {}'.format(
+            {'args': args, 'ext': ext,  'extname': extname,
+             'extver': extver}))
 
     # This code would be much simpler if just one way of specifying an
     # extension were picked.  But now we need to support all possible ways for
@@ -914,7 +942,7 @@ def _get_file_mode(filename, default='readonly'):
         mode = FILE_MODES.get(fmode)
         if mode is None:
             raise IOError(
-                "File mode of the input file object (%r) cannot be used to "
-                "read/write FITS files." % fmode)
+                "File mode of the input file object ({!r}) cannot be used to "
+                "read/write FITS files.".format(fmode))
 
     return mode, closed

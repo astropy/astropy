@@ -462,16 +462,16 @@ class FLRW(Cosmology):
             except AttributeError:
                 # We didn't find a property -- complain usefully
                 errstr = "Object did not have property corresponding "\
-                         "to constructor argument '%s'; perhaps it is a "\
+                         "to constructor argument '{}'; perhaps it is a "\
                          "user provided subclass that does not do so"
-                raise AttributeError(errstr % arg)
+                raise AttributeError(errstr.format(arg))
 
         # Now substitute in new arguments
         for newarg in kwargs:
             if newarg not in argdict:
-                errstr = "User provided argument '%s' not found in "\
+                errstr = "User provided argument '{}' not found in "\
                          "constructor for this object"
-                raise AttributeError(errstr % newarg)
+                raise AttributeError(errstr.format(newarg))
             argdict[newarg] = kwargs[newarg]
 
         return self.__class__(**argdict)
@@ -801,7 +801,7 @@ class FLRW(Cosmology):
         return 1.0 + self.w(z)
 
     def de_density_scale(self, z):
-        """ Evaluates the redshift dependence of the dark energy density.
+        r""" Evaluates the redshift dependence of the dark energy density.
 
         Parameters
         ----------
@@ -815,13 +815,13 @@ class FLRW(Cosmology):
 
         Notes
         -----
-        The scaling factor, I, is defined by :math:`\\rho(z) = \\rho_0 I`,
+        The scaling factor, I, is defined by :math:`\rho(z) = \rho_0 I`,
         and is given by
 
         .. math::
 
-            I = \\exp \\left( 3 \int_{a}^1 \\frac{ da^{\\prime} }{ a^{\\prime} }
-            \\left[ 1 + w\\left( a^{\\prime} \\right) \\right] \\right)
+            I = \exp \left( 3 \int_{a}^1 \frac{ da^{\prime} }{ a^{\prime} }
+            \left[ 1 + w\left( a^{\prime} \right) \right] \right)
 
         It will generally helpful for subclasses to overload this method if
         the integral can be done analytically for the particular dark
@@ -2367,7 +2367,7 @@ class w0waCDM(FLRW):
         return self._w0 + self._wa * z / (1.0 + z)
 
     def de_density_scale(self, z):
-        """ Evaluates the redshift dependence of the dark energy density.
+        r""" Evaluates the redshift dependence of the dark energy density.
 
         Parameters
         ----------
@@ -2386,8 +2386,8 @@ class w0waCDM(FLRW):
 
         .. math::
 
-          I = \\left(1 + z\\right)^{3 \\left(1 + w_0 + w_a\\right)}
-          \exp \\left(-3 w_a \\frac{z}{1+z}\\right)
+          I = \left(1 + z\right)^{3 \left(1 + w_0 + w_a\right)}
+          \exp \left(-3 w_a \frac{z}{1+z}\right)
 
         """
         if isiterable(z):
@@ -2651,7 +2651,7 @@ class wpwaCDM(FLRW):
         return self._wp + self._wa * (apiv - 1.0 / (1. + z))
 
     def de_density_scale(self, z):
-        """ Evaluates the redshift dependence of the dark energy density.
+        r""" Evaluates the redshift dependence of the dark energy density.
 
         Parameters
         ----------
@@ -2670,10 +2670,10 @@ class wpwaCDM(FLRW):
 
         .. math::
 
-          a_p = \\frac{1}{1 + z_p}
+          a_p = \frac{1}{1 + z_p}
 
-          I = \\left(1 + z\\right)^{3 \\left(1 + w_p + a_p w_a\\right)}
-          \exp \\left(-3 w_a \\frac{z}{1+z}\\right)
+          I = \left(1 + z\right)^{3 \left(1 + w_p + a_p w_a\right)}
+          \exp \left(-3 w_a \frac{z}{1+z}\right)
         """
 
         if isiterable(z):
@@ -2825,7 +2825,7 @@ class w0wzCDM(FLRW):
         return self._w0 + self._wz * z
 
     def de_density_scale(self, z):
-        """ Evaluates the redshift dependence of the dark energy density.
+        r""" Evaluates the redshift dependence of the dark energy density.
 
         Parameters
         ----------
@@ -2844,8 +2844,8 @@ class w0wzCDM(FLRW):
 
         .. math::
 
-          I = \\left(1 + z\\right)^{3 \\left(1 + w_0 - w_z\\right)}
-          \exp \\left(-3 w_z z\\right)
+          I = \left(1 + z\right)^{3 \left(1 + w_0 - w_z\right)}
+          \exp \left(-3 w_z z\right)
         """
 
         if isiterable(z):
@@ -2893,15 +2893,15 @@ for key in parameters.available:
                               m_nu=u.Quantity(par['m_nu'], u.eV),
                               name=key,
                               Ob0=par['Ob0'])
-        docstr = "%s instance of FlatLambdaCDM cosmology\n\n(from %s)"
-        cosmo.__doc__ = docstr % (key, par['reference'])
+        docstr = "{} instance of FlatLambdaCDM cosmology\n\n(from {})"
+        cosmo.__doc__ = docstr.format(key, par['reference'])
     else:
         cosmo = LambdaCDM(par['H0'], par['Om0'], par['Ode0'],
                           Tcmb0=par['Tcmb0'], Neff=par['Neff'],
                           m_nu=u.Quantity(par['m_nu'], u.eV), name=key,
                           Ob0=par['Ob0'])
-        docstr = "%s instance of LambdaCDM cosmology\n\n(from %s)"
-        cosmo.__doc__ = docstr % (key, par['reference'])
+        docstr = "{} instance of LambdaCDM cosmology\n\n(from {})"
+        cosmo.__doc__ = docstr.format(key, par['reference'])
     setattr(sys.modules[__name__], key, cosmo)
 
 # don't leave these variables floating around in the namespace
@@ -2937,7 +2937,7 @@ class default_cosmology(ScienceState):
             try:
                 cosmo = getattr(sys.modules[__name__], arg)
             except AttributeError:
-                s = "Unknown cosmology '%s'. Valid cosmologies:\n%s" % (
+                s = "Unknown cosmology '{}'. Valid cosmologies:\n{}".format(
                     arg, parameters.available)
                 raise ValueError(s)
         return cosmo

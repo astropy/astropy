@@ -4,6 +4,7 @@
 
 from __future__ import division, with_statement
 
+import copy
 import warnings
 import collections
 
@@ -22,6 +23,34 @@ from . import FitsTestCase
 from ..card import _pad
 from ..header import _pad_length
 from ..util import encode_ascii
+
+
+def test_shallow_copy():
+    """Make sure that operations on a shallow copy do not alter the original.
+    #4990."""
+    original_header = fits.Header([('a', 1), ('b', 1)])
+    copied_header = copy.copy(original_header)
+
+    # Modifying the original dict should not alter the copy
+    original_header['c'] = 100
+    assert 'c' not in copied_header
+
+    # and changing the copy should not change the original.
+    copied_header['a'] = 0
+    assert original_header['a'] == 1
+
+
+def test_init_with_header():
+    """Make sure that creating a Header from another Header makes a copy if
+    copy is True."""
+
+    original_header = fits.Header([('a', 10)])
+    new_header = fits.Header(original_header, copy=True)
+    original_header['a'] = 20
+    assert new_header['a'] == 10
+
+    new_header['a'] = 0
+    assert original_header['a'] == 20
 
 
 def test_init_with_dict():
@@ -45,7 +74,7 @@ class TestHeaderFunctions(FitsTestCase):
     """Test Header and Card objects."""
 
     def test_rename_keyword(self):
-        """Test backwards compatibility support for Header.rename_key()"""
+        """Test renaming keyword with rename_keyword."""
         header = fits.Header([('A', 'B', 'C'), ('D', 'E', 'F')])
         header.rename_keyword('A', 'B')
         assert 'A' not in header
@@ -114,7 +143,7 @@ class TestHeaderFunctions(FitsTestCase):
                     "ABC     =                    9 "
                     "/ abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeab")
             c = fits.Card('abc', 'a' * 68, 'abcdefg')
-            assert str(c) == "ABC     = '%s'" % ('a' * 68)
+            assert str(c) == "ABC     = '{}'".format('a' * 68)
 
     def test_constructor_filter_illegal_data_structures(self):
         """Test that Card constructor raises exceptions on bad arguments"""
@@ -175,13 +204,35 @@ class TestHeaderFunctions(FitsTestCase):
         assert header.cards[1].value == 0
         assert header[''] == [0, 1, 2, 3, '', '', 4]
 
+    def test_update(self):
+        class FakeHeader(list):
+            def keys(self):
+                return [l[0] for l in self]
+
+            def __getitem__(self, key):
+                return next(l[1:] for l in self if l[0] == key)
+
+        header = fits.Header()
+        header.update({'FOO': ('BAR', 'BAZ')})
+        header.update(FakeHeader([('A', 1), ('B', 2, 'comment')]))
+        assert set(header.keys()) == {'FOO', 'A', 'B'}
+        assert header.comments['B'] == 'comment'
+
+        header.update(NAXIS1=100, NAXIS2=100)
+        assert set(header.keys()) == {'FOO', 'A', 'B', 'NAXIS1', 'NAXIS2'}
+        assert set(header.values()) == {'BAR', 1, 2, 100, 100}
+
     def test_update_comment(self):
         hdul = fits.open(self.data('arange.fits'))
         hdul[0].header.update({'FOO': ('BAR', 'BAZ')})
         assert hdul[0].header['FOO'] == 'BAR'
         assert hdul[0].header.comments['FOO'] == 'BAZ'
 
+        with pytest.raises(ValueError):
+            hdul[0].header.update({'FOO2': ('BAR', 'BAZ', 'EXTRA')})
+
         hdul.writeto(self.temp('test.fits'))
+        hdul.close()
 
         hdul = fits.open(self.temp('test.fits'), mode='update')
         hdul[0].header.comments['FOO'] = 'QUX'
@@ -190,26 +241,9 @@ class TestHeaderFunctions(FitsTestCase):
         hdul = fits.open(self.temp('test.fits'))
         assert hdul[0].header.comments['FOO'] == 'QUX'
 
-    def test_long_commentary_card(self):
-        # Another version of this test using new API methods is found in
-        # TestHeaderFunctions
-        header = fits.Header()
-        header.update({'FOO': 'BAR'})
-        header.update({'BAZ': 'QUX'})
-        longval = 'ABC' * 30
-        header.add_history(longval)
-        header.update({'FRED': 'BARNEY'})
-        header.add_history(longval)
-
-        assert len(header.cards) == 7
-        assert header.cards[2].keyword == 'FRED'
-        assert str(header.cards[3]) == 'HISTORY ' + longval[:72]
-        assert str(header.cards[4]).rstrip() == 'HISTORY ' + longval[72:]
-
-        header.add_history(longval, after='FOO')
-        assert len(header.cards) == 9
-        assert str(header.cards[1]) == 'HISTORY ' + longval[:72]
-        assert str(header.cards[2]).rstrip() == 'HISTORY ' + longval[72:]
+        hdul[0].header.add_comment(0, after='FOO')
+        assert str(hdul[0].header.cards[-1]).strip() == 'COMMENT 0'
+        hdul.close()
 
     def test_commentary_cards(self):
         # commentary cards
@@ -576,6 +610,22 @@ class TestHeaderFunctions(FitsTestCase):
         # should be treated case-insensitively when performing lookups
         assert 'ABCDEFGHI' in header
 
+    def test_hierarch_card_delete(self):
+        header = fits.Header()
+        header['hierarch abcdefghi'] = 10
+        del header['hierarch abcdefghi']
+
+    def test_hierarch_card_insert_delete(self):
+        header = fits.Header()
+        header['abcdefghi'] = 10
+        header['abcdefgh'] = 10
+        header['abcdefg'] = 10
+        header.insert(2, ('abcdefghij', 10))
+        del header['abcdefghij']
+        header.insert(2, ('abcdefghij', 10))
+        del header[2]
+        assert list(header.keys())[2]=='abcdefg'.upper()
+
     def test_hierarch_create_and_update(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/158
@@ -715,7 +765,9 @@ class TestHeaderFunctions(FitsTestCase):
     def test_header_setitem_1tuple(self):
         header = fits.Header()
         header['FOO'] = ('BAR',)
+        header['FOO2'] = (None,)
         assert header['FOO'] == 'BAR'
+        assert header['FOO2'] == ''
         assert header[0] == 'BAR'
         assert header.comments[0] == ''
         assert header.comments['FOO'] == ''
@@ -723,10 +775,13 @@ class TestHeaderFunctions(FitsTestCase):
     def test_header_setitem_2tuple(self):
         header = fits.Header()
         header['FOO'] = ('BAR', 'BAZ')
+        header['FOO2'] = (None, None)
         assert header['FOO'] == 'BAR'
+        assert header['FOO2'] == ''
         assert header[0] == 'BAR'
         assert header.comments[0] == 'BAZ'
         assert header.comments['FOO'] == 'BAZ'
+        assert header.comments['FOO2'] == ''
 
     def test_header_set_value_to_none(self):
         """
@@ -1300,7 +1355,6 @@ class TestHeaderFunctions(FitsTestCase):
         assert list(header) == ['C']
         assert header[0] == 'D'
 
-
     def test_header_comments(self):
         header = fits.Header([('A', 'B', 'C'), ('DEF', 'G', 'H')])
         assert (repr(header.comments) ==
@@ -1331,18 +1385,6 @@ class TestHeaderFunctions(FitsTestCase):
 
         header.comments['A*'] = ['M', 'N']
         assert list(header.comments) == ['M', 'L', 'N']
-
-    def test_update_comment(self):
-        hdul = fits.open(self.data('arange.fits'))
-        hdul[0].header['FOO'] = ('BAR', 'BAZ')
-        hdul.writeto(self.temp('test.fits'))
-
-        hdul = fits.open(self.temp('test.fits'), mode='update')
-        hdul[0].header.comments['FOO'] = 'QUX'
-        hdul.close()
-
-        hdul = fits.open(self.temp('test.fits'))
-        assert hdul[0].header.comments['FOO'] == 'QUX'
 
     def test_commentary_slicing(self):
         header = fits.Header()
@@ -1429,6 +1471,24 @@ class TestHeaderFunctions(FitsTestCase):
 
         header.set('HISTORY', longval, after='FOO')
         assert len(header) == 9
+        assert str(header.cards[1]) == 'HISTORY ' + longval[:72]
+        assert str(header.cards[2]).rstrip() == 'HISTORY ' + longval[72:]
+
+        header = fits.Header()
+        header.update({'FOO': 'BAR'})
+        header.update({'BAZ': 'QUX'})
+        longval = 'ABC' * 30
+        header.add_history(longval)
+        header.update({'FRED': 'BARNEY'})
+        header.add_history(longval)
+
+        assert len(header.cards) == 7
+        assert header.cards[2].keyword == 'FRED'
+        assert str(header.cards[3]) == 'HISTORY ' + longval[:72]
+        assert str(header.cards[4]).rstrip() == 'HISTORY ' + longval[72:]
+
+        header.add_history(longval, after='FOO')
+        assert len(header.cards) == 9
         assert str(header.cards[1]) == 'HISTORY ' + longval[:72]
         assert str(header.cards[2]).rstrip() == 'HISTORY ' + longval[72:]
 
@@ -1847,7 +1907,7 @@ class TestHeaderFunctions(FitsTestCase):
         while len(hdu.header) < 36:
             hdu.header.append()
         with ignore_warnings():
-            hdu.writeto(self.temp('test.fits'), clobber=True)
+            hdu.writeto(self.temp('test.fits'), overwrite=True)
 
         with fits.open(self.temp('test.fits')) as hdul:
             assert 'TESTKW' in hdul[0].header

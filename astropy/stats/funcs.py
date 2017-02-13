@@ -33,14 +33,14 @@ __doctest_requires__ = {'binom_conf_interval': ['scipy.special'],
 
 gaussian_sigma_to_fwhm = 2.0 * np.sqrt(2.0 * np.log(2.0))
 """
-Factor with which to multiply Gaussian 1-sigma standard deviation(s) to
-convert them to full width at half maximum(s).
+Factor with which to multiply Gaussian 1-sigma standard deviation to
+convert it to full width at half maximum (FWHM).
 """
 
 gaussian_fwhm_to_sigma = 1. / gaussian_sigma_to_fwhm
 """
-Factor with which to multiply Gaussian full width at half maximum(s) to
-convert them to 1-sigma standard deviation(s).
+Factor with which to multiply Gaussian full width at half maximum (FWHM)
+to convert it to 1-sigma standard deviation.
 """
 
 
@@ -714,7 +714,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
         conf_interval = np.vstack(conf_interval)
     else:
         raise ValueError("Invalid method for Poisson confidence intervals: "
-                         "%s" % interval)
+                         "{}".format(interval))
     return conf_interval
 
 
@@ -777,7 +777,7 @@ def median_absolute_deviation(a, axis=None):
 
 
 def mad_std(data, axis=None):
-    """
+    r"""
     Calculate a robust standard deviation using the `median absolute
     deviation (MAD)
     <http://en.wikipedia.org/wiki/Median_absolute_deviation>`_.
@@ -786,8 +786,8 @@ def mad_std(data, axis=None):
 
     .. math::
 
-        \\sigma \\approx \\frac{\\textrm{MAD}}{\Phi^{-1}(3/4)}
-            \\approx 1.4826 \ \\textrm{MAD}
+        \sigma \approx \frac{\textrm{MAD}}{\Phi^{-1}(3/4)}
+            \approx 1.4826 \ \textrm{MAD}
 
     where :math:`\Phi^{-1}(P)` is the normal inverse cumulative
     distribution function evaluated at probability :math:`P = 3/4`.
@@ -827,7 +827,7 @@ def mad_std(data, axis=None):
 
 
 def biweight_location(a, c=6.0, M=None, axis=None):
-    """
+    r"""
     Compute the biweight location.
 
     The biweight location is a robust statistic for determining the
@@ -835,7 +835,7 @@ def biweight_location(a, c=6.0, M=None, axis=None):
 
     .. math::
 
-        C_{bl}= M+\\frac{\Sigma_{\|u_i\|<1} (x_i-M)(1-u_i^2)^2}
+        C_{bl}= M+\frac{\Sigma_{\|u_i\|<1} (x_i-M)(1-u_i^2)^2}
         {\Sigma_{\|u_i\|<1} (1-u_i^2)^2}
 
     where :math:`M` is the sample median (or the input initial guess)
@@ -843,7 +843,7 @@ def biweight_location(a, c=6.0, M=None, axis=None):
 
     .. math::
 
-        u_{i} = \\frac{(x_i-M)}{c\ MAD}
+        u_{i} = \frac{(x_i-M)}{c\ MAD}
 
     where :math:`c` is the tuning constant and :math:`MAD` is the median
     absolute deviation.
@@ -915,7 +915,7 @@ def biweight_location(a, c=6.0, M=None, axis=None):
 
 
 def biweight_midvariance(a, c=9.0, M=None, axis=None):
-    """
+    r"""
     Compute the biweight midvariance.
 
     The biweight midvariance is a robust statistic for determining the
@@ -924,14 +924,14 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None):
 
     .. math::
 
-      C_{bl}= (n')^{1/2} \\frac{[\Sigma_{|u_i|<1} (x_i-M)^2(1-u_i^2)^4]^{0.5}}
+      C_{bl}= (n')^{1/2} \frac{[\Sigma_{|u_i|<1} (x_i-M)^2(1-u_i^2)^4]^{0.5}}
       {|\Sigma_{|u_i|<1} (1-u_i^2)(1-5u_i^2)|}
 
     where :math:`u_i` is given by
 
     .. math::
 
-        u_{i} = \\frac{(x_i-M)}{c MAD}
+        u_{i} = \frac{(x_i-M)}{c MAD}
 
     where :math:`c` is the tuning constant and :math:`MAD` is the median
     absolute deviation.  The midvariance tuning constant ``c`` is

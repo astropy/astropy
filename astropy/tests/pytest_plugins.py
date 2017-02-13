@@ -43,8 +43,13 @@ except ImportError:  # Python 2.7
 
 
 def pytest_addoption(parser):
-    parser.addoption("--remote-data", action="store_true",
+
+    # The following means that if --remote-data is not specified, the default
+    # is 'none', but if it is specified without arguments (--remote-data), it
+    # defaults to '--remote-data=any'.
+    parser.addoption("--remote-data", nargs="?", const='any', default='none',
                      help="run tests with online data")
+
     parser.addoption("--open-files", action="store_true",
                      help="fail if any test leaves files open")
 
@@ -134,8 +139,10 @@ def pytest_configure(config):
 
     # Monkeypatch to deny access to remote resources unless explicitly told
     # otherwise
-    if not config.getoption('remote_data'):
-        turn_off_internet(verbose=config.option.verbose)
+
+    if config.getoption('remote_data') != 'any':
+        turn_off_internet(verbose=config.option.verbose,
+                          allow_astropy_data=config.getoption('remote_data') == 'astropy')
 
     doctest_plugin = config.pluginmanager.getplugin('doctest')
     if (doctest_plugin is None or config.option.doctestmodules or not
@@ -168,14 +175,15 @@ def pytest_configure(config):
                     # Just ignore searching modules that can't be imported when
                     # collecting doctests
                 except ImportError:
-                    raise StopIteration
+                    return
 
             # uses internal doctest module parsing mechanism
             finder = DocTestFinderPlus()
-            runner = doctest.DebugRunner(verbose=False, optionflags=opts)
+            runner = doctest.DebugRunner(verbose=False, optionflags=opts,
+                                         checker=AstropyOutputChecker())
             for test in finder.find(module):
                 if test.examples:  # skip empty doctests
-                    if not config.getvalue("remote_data"):
+                    if config.getvalue("remote_data") != 'any':
                         for example in test.examples:
                             if example.options.get(REMOTE_DATA):
                                 example.options[doctest.SKIP] = True
@@ -183,21 +191,11 @@ def pytest_configure(config):
                     yield doctest_plugin.DoctestItem(
                         test.name, self, runner, test)
 
-        # This is for py.test prior to 2.4.0
-        def runtest(self):
-            return
-
-    class DocTestTextfilePlus(doctest_plugin.DoctestTextfile):
+    class DocTestTextfilePlus(doctest_plugin.DoctestItem, pytest.Module):
         def runtest(self):
             # satisfy `FixtureRequest` constructor...
             self.funcargs = {}
-            try:
-                self._fixtureinfo = doctest_plugin.FuncFixtureInfo((), [], {})
-                fixture_request = doctest_plugin.FixtureRequest(self)
-            except AttributeError:  # pytest >= 2.8.0
-                python_plugin = config.pluginmanager.getplugin('python')
-                self._fixtureinfo = python_plugin.FuncFixtureInfo((), [], {})
-                fixture_request = python_plugin.FixtureRequest(self)
+            fixture_request = doctest_plugin._setup_fixtures(self)
 
             failed, tot = doctest.testfile(
                 str(self.fspath), module_relative=False,
@@ -267,7 +265,7 @@ def pytest_configure(config):
                         not DocTestFinderPlus.check_required_modules(required)):
                         entry.options[doctest.SKIP] = True
 
-                    if (not config.getvalue('remote_data') and
+                    if (config.getvalue('remote_data') != 'any' and
                         entry.options.get(REMOTE_DATA)):
                         entry.options[doctest.SKIP] = True
 
@@ -402,8 +400,8 @@ class DocTestFinderPlus(doctest.DocTestFinder):
                 name = obj.__name__
             else:
                 raise ValueError("DocTestFinder.find: name must be given "
-                                 "when obj.__name__ doesn't exist: %r" %
-                                 (type(obj),))
+                                 "when obj.__name__ doesn't exist: {!r}".format(
+                        (type(obj),)))
 
             def test_filter(test):
                 for pat in getattr(obj, '__doctest_skip__', []):
@@ -479,10 +477,22 @@ def pytest_runtest_setup(item):
     if item.config.getvalue('open_files'):
         item.open_files = _get_open_file_list()
 
-    if ('remote_data' in item.keywords and
-            not item.config.getvalue("remote_data")):
-        pytest.skip("need --remote-data option to run")
+    remote_data = item.keywords.get('remote_data')
 
+    remote_data_config = item.config.getvalue("remote_data")
+
+    if remote_data is not None:
+
+        source = remote_data.kwargs.get('source', 'any')
+
+        if source not in ('astropy', 'any'):
+            raise ValueError("source should be 'astropy' or 'any'")
+
+        if remote_data_config == 'none':
+            pytest.skip("need --remote-data option to run")
+        elif remote_data_config == 'astropy':
+            if source == 'any':
+                pytest.skip("need --remote-data option to run")
 
 def pytest_runtest_teardown(item, nextitem):
     if hasattr(item, 'set_temp_cache'):
@@ -623,10 +633,13 @@ def pytest_report_header(config):
     special_opts = ["remote_data", "pep8"]
     opts = []
     for op in special_opts:
-        if getattr(config.option, op, None):
+        op_value = getattr(config.option, op, None)
+        if op_value:
+            if isinstance(op_value, six.string_types):
+                op = ': '.join((op, op_value))
             opts.append(op)
     if opts:
-        s += "Using Astropy options: {0}.\n".format(" ".join(opts))
+        s += "Using Astropy options: {0}.\n".format(", ".join(opts))
 
     if six.PY2:
         s = s.encode(stdoutencoding, 'replace')
@@ -664,14 +677,12 @@ class Pair(pytest.File):
             e = sys.exc_info()[1]
             raise self.CollectError(
                 "import file mismatch:\n"
-                "imported module %r has this __file__ attribute:\n"
-                "  %s\n"
+                "imported module {!r} has this __file__ attribute:\n"
+                "  {}\n"
                 "which is not the same as the test file we want to collect:\n"
-                "  %s\n"
+                "  {}\n"
                 "HINT: remove __pycache__ / .pyc files and/or use a "
-                "unique basename for your test file modules"
-                % e.args
-            )
+                "unique basename for your test file modules".format(e.args))
 
         # Now get the file's content.
         with io.open(six.text_type(self.fspath), 'rb') as fd:

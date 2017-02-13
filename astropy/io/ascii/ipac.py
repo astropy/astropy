@@ -158,7 +158,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             if col_type_key.startswith(col.raw_type.lower()):
                 return col_type
         else:
-            raise ValueError('Unknown data type ""%s"" for column "%s"' % (
+            raise ValueError('Unknown data type ""{}"" for column "{}"'.format(
                 col.raw_type, col.name))
 
     def get_cols(self, lines):
@@ -237,7 +237,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                                   'This causes duplicate column names: {0}'.format(doublenames))
 
         for name in namelist:
-            m = re.match('\w+', name)
+            m = re.match(r'\w+', name)
             if m.end() != len(name):
                 raise IpacFormatE('{0} - Only alphanumeric characters and _ '
                                   'are allowed in column names.'.format(name))
@@ -324,7 +324,7 @@ class IpacData(fixedwidth.FixedWidthData):
 
 
 class Ipac(basic.Basic):
-    """Read or write an IPAC format table.  See
+    r"""Read or write an IPAC format table.  See
     http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html::
 
       \\name=value
@@ -443,7 +443,7 @@ class Ipac(basic.Basic):
 
         Parameters
         ----------
-        table: `~astropy.table.Table`
+        table : `~astropy.table.Table`
             Input table data
 
         Returns
@@ -488,7 +488,17 @@ class Ipac(basic.Basic):
                     lines.append('\\{0}={1!r}'.format(keyword.strip(), val))
                     # meta is not standardized: Catch some common Errors.
                 except TypeError:
-                    pass
+                    warn("Table metadata keyword {0} has been skipped.  "
+                         "IPAC metadata must be in the form {{'keywords':"
+                         "{{'keyword': {{'value': value}} }}".format(keyword),
+                         AstropyUserWarning)
+        ignored_keys = [key for key in table.meta if key not in ('keywords','comments')]
+        if any(ignored_keys):
+            warn("Table metadata keyword(s) {0} were not written.  "
+                 "IPAC metadata must be in the form {{'keywords':"
+                 "{{'keyword': {{'value': value}} }}".format(ignored_keys),
+                 AstropyUserWarning
+                )
 
         # Usually, this is done in data.write, but since the header is written
         # first, we need that here.

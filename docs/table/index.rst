@@ -200,7 +200,7 @@ columns (using column names), where the subset is returned as a new table::
 
 Modifying table values in place is flexible and works as one would expect::
 
-  >>> t['a'] = [-1, -2, -3]       # Set all column values
+  >>> t['a'][:] = [-1, -2, -3]    # Set all column values in place
   >>> t['a'][2] = 30              # Set row 2 of column 'a'
   >>> t[1] = (8, 9.0, "W")        # Set all row values
   >>> t[1]['b'] = -9              # Set column 'b' of row 1
@@ -213,11 +213,12 @@ Modifying table values in place is flexible and works as one would expect::
     8 100.000   W
    30   8.200   z
 
-Add, remove, and rename columns with the following::
+Replace, add, remove, and rename columns with the following::
 
-  >>> t['d'] = [1, 2, 3]
-  >>> del t['c']
-  >>> t.rename_column('a', 'A')
+  >>> t['b'] = ['a', 'new', 'dtype']   # Replace column b (different from in place)
+  >>> t['d'] = [1, 2, 3]               # Add column d
+  >>> del t['c']                       # Delete column c
+  >>> t.rename_column('a', 'A')        # Rename column a to A
   >>> t.colnames
   ['A', 'b', 'd']
 

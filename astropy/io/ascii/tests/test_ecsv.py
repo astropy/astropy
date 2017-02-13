@@ -19,6 +19,7 @@ from ....tests.helper import pytest
 from ....extern.six.moves import StringIO
 from ..ecsv import DELIMITERS
 from ... import ascii
+from .... import units as u
 
 try:
     import yaml  # pylint: disable=W0611
@@ -185,3 +186,33 @@ def test_round_trip_empty_table():
     t2 = Table.read(out.getvalue(), format='ascii.ecsv')
     assert t.dtype == t2.dtype
     assert len(t2) == 0
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_csv_ecsv_colnames_mismatch():
+    """
+    Test that mismatch in column names from normal CSV header vs.
+    ECSV YAML header raises the expected exception.
+    """
+    lines = copy.copy(SIMPLE_LINES)
+    header_index = lines.index('a b c')
+    lines[header_index] = 'a b d'
+    with pytest.raises(ValueError) as err:
+        ascii.read(lines, format='ecsv')
+    assert "column names from ECSV header ['a', 'b', 'c']" in str(err)
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_regression_5604():
+    """
+    See https://github.com/astropy/astropy/issues/5604 for more.
+    """
+    t = Table()
+    t.meta = {"foo": 5*u.km, "foo2": u.s}
+    t["bar"] = [7]*u.km
+
+    out = StringIO()
+    t.write(out, format="ascii.ecsv")
+
+    assert '!astropy.units.Unit' in out.getvalue()
+    assert '!astropy.units.Quantity' in out.getvalue()

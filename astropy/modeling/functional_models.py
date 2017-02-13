@@ -15,14 +15,59 @@ from ..utils.exceptions import AstropyDeprecationWarning
 
 
 __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
-           'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D',
+           'Const2D', 'Ellipse2D', 'Disk2D', 'BaseGaussian1D', 'Gaussian1D',
            'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D', 'Lorentz1D',
            'MexicanHat1D', 'MexicanHat2D', 'RedshiftScaleFactor', 'Redshift',
            'Scale', 'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D',
            'TrapezoidDisk2D', 'Ring2D', 'Voigt1D']
 
 
-class Gaussian1D(Fittable1DModel):
+class BaseGaussian1D(Fittable1DModel):
+    """Base class for 1D Gaussian models. Do not use this directly.
+
+    See Also
+    --------
+    Gaussian1D, GaussianAbsorption1D
+    """
+
+    amplitude = Parameter(default=1)
+    mean = Parameter(default=0)
+    stddev = Parameter(default=1)
+
+    def bounding_box(self, factor=5.5):
+        """
+        Tuple defining the default ``bounding_box`` limits,
+        ``(x_low, x_high)``
+
+        Parameters
+        ----------
+        factor : float
+            The multiple of `stddev` used to define the limits.
+            The default is 5.5, corresponding to a relative error < 1e-7.
+
+        Examples
+        --------
+        >>> from astropy.modeling.models import Gaussian1D
+        >>> model = Gaussian1D(mean=0, stddev=2)
+        >>> model.bounding_box
+        (-11.0, 11.0)
+
+        This range can be set directly (see: `Model.bounding_box
+        <astropy.modeling.Model.bounding_box>`) or by using a different factor,
+        like:
+
+        >>> model.bounding_box = model.bounding_box(factor=2)
+        >>> model.bounding_box
+        (-4.0, 4.0)
+        """
+
+        x0 = self.mean.value
+        dx = factor * self.stddev
+
+        return (x0 - dx, x0 + dx)
+
+
+class Gaussian1D(BaseGaussian1D):
     """
     One dimensional Gaussian model.
 
@@ -104,42 +149,6 @@ class Gaussian1D(Fittable1DModel):
     Gaussian2D, Box1D, Moffat1D, Lorentz1D
     """
 
-    amplitude = Parameter(default=1)
-    mean = Parameter(default=0)
-    stddev = Parameter(default=1)
-
-    def bounding_box(self, factor=5.5):
-        """
-        Tuple defining the default ``bounding_box`` limits,
-        ``(x_low, x_high)``
-
-        Parameters
-        ----------
-        factor : float
-            The multiple of `stddev` used to define the limits.
-            The default is 5.5, corresponding to a relative error < 1e-7.
-
-        Examples
-        --------
-        >>> from astropy.modeling.models import Gaussian1D
-        >>> model = Gaussian1D(mean=0, stddev=2)
-        >>> model.bounding_box
-        (-11.0, 11.0)
-
-        This range can be set directly (see: `Model.bounding_box
-        <astropy.modeling.Model.bounding_box>`) or by using a different factor,
-        like:
-
-        >>> model.bounding_box = model.bounding_box(factor=2)
-        >>> model.bounding_box
-        (-4.0, 4.0)
-        """
-
-        x0 = self.mean.value
-        dx = factor * self.stddev
-
-        return (x0 - dx, x0 + dx)
-
     @staticmethod
     def evaluate(x, amplitude, mean, stddev):
         """
@@ -159,7 +168,7 @@ class Gaussian1D(Fittable1DModel):
         return [d_amplitude, d_mean, d_stddev]
 
 
-class GaussianAbsorption1D(Fittable1DModel):
+class GaussianAbsorption1D(BaseGaussian1D):
     """
     One dimensional Gaussian absorption line model.
 
@@ -203,41 +212,6 @@ class GaussianAbsorption1D(Fittable1DModel):
     Gaussian1D
     """
 
-    amplitude = Parameter(default=1)
-    mean = Parameter(default=0)
-    stddev = Parameter(default=1)
-
-    def bounding_box(self, factor=5.5):
-        """
-        Tuple defining the default ``bounding_box`` limits,
-        ``(x_low, x_high)``
-
-        Parameters
-        ----------
-        factor : float
-            The multiple of `stddev` used to define the limits.
-            The default is 5.5, corresponding to a relative error < 1e-7.
-
-        Examples
-        --------
-        >>> from astropy.modeling.models import Gaussian1D
-        >>> model = Gaussian1D(mean=0, stddev=2)
-        >>> model.bounding_box
-        (-11.0, 11.0)
-
-        This range can be set directly (see: ``help(model.bounding_box)``) or by
-        using a different factor, like:
-
-        >>> model.bounding_box = model.bounding_box(factor=2)
-        >>> model.bounding_box
-        (-4.0, 4.0)
-        """
-
-        x0 = self.mean.value
-        dx = factor * self.stddev
-
-        return (x0 - dx, x0 + dx)
-
     @staticmethod
     def evaluate(x, amplitude, mean, stddev):
         """
@@ -256,7 +230,7 @@ class GaussianAbsorption1D(Fittable1DModel):
 
 
 class Gaussian2D(Fittable2DModel):
-    """
+    r"""
     Two dimensional Gaussian model.
 
     Parameters
@@ -267,20 +241,22 @@ class Gaussian2D(Fittable2DModel):
         Mean of the Gaussian in x.
     y_mean : float
         Mean of the Gaussian in y.
-    x_stddev : float
-        Standard deviation of the Gaussian in x before rotating by theta.
-        ``x_stddev`` and ``y_stddev`` must be specified unless a covariance
-        matrix (``cov_matrix``) is input.
-    y_stddev : float
-        Standard deviation of the Gaussian in y before rotating by theta.
-        ``x_stddev`` and ``y_stddev`` must be specified unless a covariance
-        matrix (``cov_matrix``) is input.
+    x_stddev : float or None
+        Standard deviation of the Gaussian in x before rotating by theta. Must
+        be None if a covariance matrix (``cov_matrix``) is provided. If no
+        ``cov_matrix`` is given, ``None`` means the default value (1).
+    y_stddev : float or None
+        Standard deviation of the Gaussian in y before rotating by theta. Must
+        be None if a covariance matrix (``cov_matrix``) is provided. If no
+        ``cov_matrix`` is given, ``None`` means the default value (1).
     theta : float, optional
         Rotation angle in radians. The rotation angle increases
-        counterclockwise.
+        counterclockwise.  Must be None if a covariance matrix (``cov_matrix``)
+        is provided. If no ``cov_matrix`` is given, ``None`` means the default
+        value (0).
     cov_matrix : ndarray, optional
         A 2x2 covariance matrix. If specified, overrides the ``x_stddev``,
-        ``y_stddev``, and ``theta`` specification.
+        ``y_stddev``, and ``theta`` defaults.
 
     Notes
     -----
@@ -288,35 +264,35 @@ class Gaussian2D(Fittable2DModel):
 
         .. math::
 
-            f(x, y) = A e^{-a\\left(x - x_{0}\\right)^{2}  -b\\left(x - x_{0}\\right)
-            \\left(y - y_{0}\\right)  -c\\left(y - y_{0}\\right)^{2}}
+            f(x, y) = A e^{-a\left(x - x_{0}\right)^{2}  -b\left(x - x_{0}\right)
+            \left(y - y_{0}\right)  -c\left(y - y_{0}\right)^{2}}
 
     Using the following definitions:
 
         .. math::
-            a = \\left(\\frac{\\cos^{2}{\\left (\\theta \\right )}}{2 \\sigma_{x}^{2}} +
-            \\frac{\\sin^{2}{\\left (\\theta \\right )}}{2 \\sigma_{y}^{2}}\\right)
+            a = \left(\frac{\cos^{2}{\left (\theta \right )}}{2 \sigma_{x}^{2}} +
+            \frac{\sin^{2}{\left (\theta \right )}}{2 \sigma_{y}^{2}}\right)
 
-            b = \\left(\\frac{\\sin{\\left (2 \\theta \\right )}}{2 \\sigma_{x}^{2}} -
-            \\frac{\\sin{\\left (2 \\theta \\right )}}{2 \\sigma_{y}^{2}}\\right)
+            b = \left(\frac{\sin{\left (2 \theta \right )}}{2 \sigma_{x}^{2}} -
+            \frac{\sin{\left (2 \theta \right )}}{2 \sigma_{y}^{2}}\right)
 
-            c = \\left(\\frac{\\sin^{2}{\\left (\\theta \\right )}}{2 \\sigma_{x}^{2}} +
-            \\frac{\\cos^{2}{\\left (\\theta \\right )}}{2 \\sigma_{y}^{2}}\\right)
+            c = \left(\frac{\sin^{2}{\left (\theta \right )}}{2 \sigma_{x}^{2}} +
+            \frac{\cos^{2}{\left (\theta \right )}}{2 \sigma_{y}^{2}}\right)
 
     If using a ``cov_matrix``, the model is of the form:
         .. math::
-            f(x, y) = A e^{-0.5 \\left(\\vec{x} - \\vec{x}_{0}\\right)^{T} \\Sigma^{-1} \\left(\\vec{x} - \\vec{x}_{0}\\right)}
+            f(x, y) = A e^{-0.5 \left(\vec{x} - \vec{x}_{0}\right)^{T} \Sigma^{-1} \left(\vec{x} - \vec{x}_{0}\right)}
 
-    where :math:`\\vec{x} = [x, y]`, :math:`\\vec{x}_{0} = [x_{0}, y_{0}]`,
-    and :math:`\\Sigma` is the covariance matrix:
+    where :math:`\vec{x} = [x, y]`, :math:`\vec{x}_{0} = [x_{0}, y_{0}]`,
+    and :math:`\Sigma` is the covariance matrix:
 
         .. math::
-            \\Sigma = \\left(\\begin{array}{ccc}
-            \\sigma_x^2               & \\rho \\sigma_x \\sigma_y \\\\
-            \\rho \\sigma_x \\sigma_y & \\sigma_y^2
-            \end{array}\\right)
+            \Sigma = \left(\begin{array}{ccc}
+            \sigma_x^2               & \rho \sigma_x \sigma_y \\
+            \rho \sigma_x \sigma_y   & \sigma_y^2
+            \end{array}\right)
 
-    :math:`\\rho` is the correlation between ``x`` and ``y``, which should
+    :math:`\rho` is the correlation between ``x`` and ``y``, which should
     be between -1 and +1.  Positive correlation corresponds to a
     ``theta`` in the range 0 to 90 degrees.  Negative correlation
     corresponds to a ``theta`` in the range of 0 to -90 degrees.
@@ -337,43 +313,37 @@ class Gaussian2D(Fittable2DModel):
     y_mean = Parameter(default=0)
     x_stddev = Parameter(default=1)
     y_stddev = Parameter(default=1)
-    theta = Parameter(default=0)
+    theta = Parameter(default=0.0)
 
     def __init__(self, amplitude=amplitude.default, x_mean=x_mean.default,
                  y_mean=y_mean.default, x_stddev=None, y_stddev=None,
-                 theta=0.0, cov_matrix=None, **kwargs):
-        if y_stddev is None and cov_matrix is None:
-            raise InputParameterError(
-                "Either x/y_stddev must be specified, or a "
-                "covariance matrix.")
-        elif x_stddev is None and cov_matrix is None:
-            raise InputParameterError(
-                "Either x/y_stddev must be specified, or a "
-                "covariance matrix.")
-        elif cov_matrix is not None and (x_stddev is not None or
-                                         y_stddev is not None):
-            raise InputParameterError(
-                "Cannot specify both cov_matrix and x/y_stddev")
+                 theta=None, cov_matrix=None, **kwargs):
+        if cov_matrix is None:
+            if x_stddev is None:
+                x_stddev = self.__class__.x_stddev.default
+            if y_stddev is None:
+                y_stddev = self.__class__.y_stddev.default
+            if theta is None:
+                theta = self.__class__.theta.default
+        else:
+            if x_stddev is not None or y_stddev is not None or theta is not None:
+                raise InputParameterError("Cannot specify both cov_matrix and "
+                                          "x/y_stddev/theta")
+            else:
+                # Compute principle coordinate system transformation
+                cov_matrix = np.array(cov_matrix)
 
-        # Compute principle coordinate system transformation
-        elif cov_matrix is not None:
-            if (x_stddev is not None or y_stddev is not None):
-                raise InputParameterError(
-                    "Cannot specify both cov_matrix and x/y_stddev")
-            # Compute principle coordinate system transformation
-            cov_matrix = np.array(cov_matrix)
+                if cov_matrix.shape != (2, 2):
+                    # TODO: Maybe it should be possible for the covariance matrix
+                    # to be some (x, y, ..., z, 2, 2) array to be broadcast with
+                    # other parameters of shape (x, y, ..., z)
+                    # But that's maybe a special case to work out if/when needed
+                    raise ValueError("Covariance matrix must be 2x2")
 
-            if cov_matrix.shape != (2, 2):
-                # TODO: Maybe it should be possible for the covariance matrix
-                # to be some (x, y, ..., z, 2, 2) array to be broadcast with
-                # other parameters of shape (x, y, ..., z)
-                # But that's maybe a special case to work out if/when needed
-                raise ValueError("Covariance matrix must be 2x2")
-
-            eig_vals, eig_vecs = np.linalg.eig(cov_matrix)
-            x_stddev, y_stddev = np.sqrt(eig_vals)
-            y_vec = eig_vecs[:, 0]
-            theta = np.arctan2(y_vec[1], y_vec[0])
+                eig_vals, eig_vecs = np.linalg.eig(cov_matrix)
+                x_stddev, y_stddev = np.sqrt(eig_vals)
+                y_vec = eig_vecs[:, 0]
+                theta = np.arctan2(y_vec[1], y_vec[0])
 
         super(Gaussian2D, self).__init__(
             amplitude=amplitude, x_mean=x_mean, y_mean=y_mean,
@@ -609,7 +579,7 @@ class Sersic1D(Fittable1DModel):
 
     .. math::
 
-        I(r)=I_e exp\left[-b_n\left(\frac{r}{r_{e}}\right)^{(1/n)}-1\right]
+        I(r)=I_e\exp\left\{-b_n\left[\left(\frac{r}{r_{e}}\right)^{(1/n)}-1\right]\right\}
 
     The constant :math:`b_n` is defined such that :math:`r_e` contains half the total
     luminosity, and can be solved for numerically.
@@ -786,6 +756,53 @@ class Linear1D(Fittable1DModel):
         return self.__class__(slope=new_slope, intercept=new_intercept)
 
 
+class Planar2D(Fittable2DModel):
+    """
+    Two dimensional Plane model.
+
+    Parameters
+    ----------
+    slope_x : float
+        Slope of the straight line in X
+
+    slope_y : float
+        Slope of the straight line in Y
+
+    intercept : float
+        Z-intercept of the straight line
+
+    See Also
+    --------
+    Linear1D, Polynomial2D
+
+    Notes
+    -----
+    Model formula:
+
+        .. math:: f(x, y) = a x + b y + c
+    """
+
+    slope_x = Parameter(default=1)
+    slope_y = Parameter(default=1)
+    intercept = Parameter(default=0)
+    linear = True
+
+    @staticmethod
+    def evaluate(x, y, slope_x, slope_y, intercept):
+        """Two dimensional Plane model function"""
+
+        return slope_x * x + slope_y * y + intercept
+
+    @staticmethod
+    def fit_deriv(x, y, slope_x, slope_y, intercept):
+        """Two dimensional Plane model derivative with respect to parameters"""
+
+        d_slope_x = x
+        d_slope_y = y
+        d_intercept = np.ones_like(x)
+        return [d_slope_x, d_slope_y, d_intercept]
+
+
 class Lorentz1D(Fittable1DModel):
     """
     One dimensional Lorentzian model.
@@ -853,6 +870,24 @@ class Lorentz1D(Fittable1DModel):
                  (fwhm ** 2 + (x - x_0) ** 2))
         d_fwhm = 2 * amplitude * d_amplitude / fwhm * (1 - d_amplitude)
         return [d_amplitude, d_x_0, d_fwhm]
+
+    def bounding_box(self, factor=25):
+        """Tuple defining the default ``bounding_box`` limits,
+        ``(x_low, x_high)``.
+
+        Parameters
+        ----------
+        factor : float
+            The multiple of FWHM used to define the limits.
+            Default is chosen to include most (99%) of the
+            area under the curve, while still showing the
+            central feature of interest.
+
+        """
+        x0 = self.x_0.value
+        dx = factor * self.fwhm
+
+        return (x0 - dx, x0 + dx)
 
 
 class Voigt1D(Fittable1DModel):
@@ -1661,6 +1696,21 @@ class MexicanHat1D(Fittable1DModel):
         xx_ww = (x - x_0) ** 2 / (2 * sigma ** 2)
         return amplitude * (1 - 2 * xx_ww) * np.exp(-xx_ww)
 
+    def bounding_box(self, factor=10.0):
+        """Tuple defining the default ``bounding_box`` limits,
+        ``(x_low, x_high)``.
+
+        Parameters
+        ----------
+        factor : float
+            The multiple of sigma used to define the limits.
+
+        """
+        x0 = self.x_0.value
+        dx = factor * self.sigma
+
+        return (x0 - dx, x0 + dx)
+
 
 class MexicanHat2D(Fittable2DModel):
     """
@@ -1943,7 +1993,7 @@ class Sersic2D(Fittable2DModel):
 
     .. math::
 
-        I(x,y) = I(r) = I_e\exp\left[-b_n\left(\frac{r}{r_{e}}\right)^{(1/n)}-1\right]
+        I(x,y) = I(r) = I_e\exp\left\{-b_n\left[\left(\frac{r}{r_{e}}\right)^{(1/n)}-1\right]\right\}
 
     The constant :math:`b_n` is defined such that :math:`r_e` contains half the total
     luminosity, and can be solved for numerically.

@@ -45,9 +45,9 @@ def sortmore(*args, **kw):
 
     Keywords
     --------
-    globalkey: None
+    globalkey : None
         revert to sorting by key function
-    globalkey: callable
+    globalkey : callable
         Sort by evaluated value for all items in the lists
         (call signature of this function needs to be such that it accepts an
         argument tuple of items from each list.

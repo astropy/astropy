@@ -5,6 +5,7 @@ import os
 import math
 import multiprocessing
 import mmap
+import warnings
 
 import numpy as np
 cimport numpy as np
@@ -15,6 +16,7 @@ from cpython.buffer cimport Py_buffer
 from cpython.buffer cimport PyObject_GetBuffer, PyBuffer_Release
 
 from ...utils.data import get_readable_fileobj
+from ...utils.exceptions import AstropyWarning
 from ...table import pprint
 from ...extern import six
 from . import core
@@ -45,11 +47,12 @@ cdef extern from "src/tokenizer.h":
 
     ctypedef struct tokenizer_t:
         char *source           # single string containing all of the input
-        int source_len         # length of the input
-        int source_pos         # current index in source for tokenization
+        size_t source_len       # length of the input
+        size_t source_pos       # current index in source for tokenization
         char delimiter         # delimiter character
         char comment           # comment character
         char quotechar         # quote character
+        char expchar           # exponential character in scientific notation
         char **output_cols     # array of output strings for each column
         char **col_ptrs        # array of pointers to current output position for each col
         int *output_len        # length of each output column string
@@ -78,7 +81,7 @@ cdef extern from "src/tokenizer.h":
         void *file_ptr
         void *handle
 
-    tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar,
+    tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, char expchar,
                                   int fill_extra_cols, int strip_whitespace_lines,
                                   int strip_whitespace_fields, int use_fast_converter)
     void delete_tokenizer(tokenizer_t *tokenizer)
@@ -89,7 +92,7 @@ cdef extern from "src/tokenizer.h":
     double str_to_double(tokenizer_t *self, char *str)
     void start_iteration(tokenizer_t *self, int col)
     char *next_field(tokenizer_t *self, int *size)
-    char *get_line(char *ptr, int *len, int map_len)
+    char *get_line(char *ptr, size_t *len, size_t map_len)
     void reset_comments(tokenizer_t *self)
 
 cdef extern from "Python.h":
@@ -151,8 +154,8 @@ cdef class FileString:
         """
         cdef char *ptr = <char *>self.mmap_ptr
         cdef char *tmp
-        cdef int line_len
-        cdef int map_len = len(self.mmap)
+        cdef size_t line_len
+        cdef size_t map_len = len(self.mmap)
 
         while ptr:
             tmp = get_line(ptr, &line_len, map_len)
@@ -210,9 +213,19 @@ cdef class CParser:
             fast_reader = {}
         elif fast_reader is False: # shouldn't happen
             raise core.ParameterError("fast_reader cannot be False for fast readers")
-        # parallel and use_fast_reader are False by default
-        use_fast_converter = fast_reader.pop('use_fast_converter', False)
+        expchar = fast_reader.pop('exponent_style', 'E').upper()
+        # parallel and use_fast_reader are False by default, but only the latter
+        # supports Fortran double precision notation 
+        if expchar == 'E':
+            use_fast_converter = fast_reader.pop('use_fast_converter', False)
+        else:
+            use_fast_converter = fast_reader.pop('use_fast_converter', True)
+            if not use_fast_converter:
+                raise core.FastOptionsError("fast_reader: exponent_style requires use_fast_converter")
+            if expchar.startswith('FORT'):
+                expchar = 'A'
         parallel = fast_reader.pop('parallel', False)
+
         if fast_reader:
             raise core.FastOptionsError("Invalid parameter in fast_reader dict")
         if parallel and os.name == 'nt':
@@ -220,7 +233,8 @@ cdef class CParser:
 
         if comment is None:
             comment = '\x00' # tokenizer ignores all comments if comment='\x00'
-        self.tokenizer = create_tokenizer(ord(delimiter), ord(comment), ord(quotechar),
+        self.tokenizer = create_tokenizer(ord(delimiter), ord(comment),
+                                          ord(quotechar), ord(expchar),
                                           fill_extra_cols,
                                           strip_line_whitespace,
                                           strip_line_fields,
@@ -273,7 +287,7 @@ cdef class CParser:
                 self.tokenizer.source = <char *>fstring.mmap_ptr
                 self.source_ptr = <char *>fstring.mmap_ptr
                 self.source = fstring
-                self.tokenizer.source_len = len(fstring)
+                self.tokenizer.source_len = <size_t>len(fstring)
                 return
             # Otherwise, source is the actual data so we leave it be
         elif hasattr(source, 'read'): # file-like object
@@ -282,7 +296,7 @@ cdef class CParser:
         elif isinstance(source, FileString):
             self.tokenizer.source = <char *>((<FileString>source).mmap_ptr)
             self.source = source
-            self.tokenizer.source_len = len(source)
+            self.tokenizer.source_len = <size_t>len(source)
             return
         else:
             try:
@@ -296,7 +310,7 @@ cdef class CParser:
         # encode in ASCII for char * handling
         self.source_bytes = self.source.encode('ascii')
         self.tokenizer.source = self.source_bytes
-        self.tokenizer.source_len = len(self.source_bytes)
+        self.tokenizer.source_len = <size_t>len(self.source_bytes)
 
     def read_header(self):
         self.tokenizer.source_pos = 0
@@ -322,7 +336,7 @@ cdef class CParser:
                         break # end of string
                 else:
                     name += chr(c)
-            self.width = len(self.header_names)
+            self.width = <int>len(self.header_names)
 
         else:
             # Get number of columns from first data row
@@ -344,7 +358,7 @@ cdef class CParser:
             self.header_names = ['col{0}'.format(i + 1) for i in range(self.width)]
 
         if self.names:
-            self.width = len(self.names)
+            self.width = <int>len(self.names)
         else:
             self.names = self.header_names
 
@@ -355,7 +369,7 @@ cdef class CParser:
         if self.exclude_names is not None:
             self.use_cols.difference_update(self.exclude_names)
 
-        self.width = len(self.names)
+        self.width = <int>len(self.names)
 
     def read(self, try_int, try_float, try_string):
         if self.parallel:
@@ -371,7 +385,7 @@ cdef class CParser:
         if self.data_end is not None and self.data_end >= 0:
             data_end = max(self.data_end - self.data_start, 0) # read nothing if data_end < 0
 
-        if tokenize(self.tokenizer, data_end, 0, len(self.names)) != 0:
+        if tokenize(self.tokenizer, data_end, 0, <int>len(self.names)) != 0:
             self.raise_error("an error occurred while parsing table data")
         elif self.tokenizer.num_rows == 0: # no data
             return ([np.array([], dtype=np.int_)] * self.width, [])
@@ -383,7 +397,7 @@ cdef class CParser:
                                   try_string, num_rows)
 
     def _read_parallel(self, try_int, try_float, try_string):
-        cdef int source_len = len(self.source)
+        cdef size_t source_len = <size_t>len(self.source)
         self.tokenizer.source_pos = 0
 
         if skip_lines(self.tokenizer, self.data_start, 0) != 0:
@@ -397,17 +411,20 @@ cdef class CParser:
         except (ImportError, NotImplementedError, AttributeError, OSError):
             self.raise_error("shared semaphore implementation required "
                              "but not available")
-        cdef int offset = self.tokenizer.source_pos
+        cdef size_t offset = self.tokenizer.source_pos
 
         if offset == source_len: # no data
             return (dict((name, np.array([], dtype=np.int_)) for name in
                          self.names), [])
 
-        cdef int chunksize = math.ceil((source_len - offset) / float(N))
+        cdef long chunksize = math.ceil((source_len - offset) / float(N))
         cdef list chunkindices = [offset]
 
         # This queue is used to signal processes to reconvert if necessary
         reconvert_queue = multiprocessing.Queue()
+
+        cdef int i
+        cdef size_t index
 
         for i in range(1, N):
             index = max(offset + chunksize * i, chunkindices[i - 1])
@@ -564,9 +581,24 @@ cdef class CParser:
                 cols[name] = self._convert_int(t, i, num_rows)
             except ValueError:
                 try:
-                    if try_float and not try_float[name]:
-                        raise ValueError()
-                    cols[name] = self._convert_float(t, i, num_rows)
+                    if t.code == OVERFLOW_ERROR:
+                        # Overflow during int conversion (extending range)
+                        warnings.warn("OverflowError converting to {0} in column {1}, reverting to String."
+                                  .format('IntType', name), AstropyWarning)
+                        if try_string and not try_string[name]:
+                            raise ValueError('Column {0} failed to convert'.format(name))
+                        t.code = NO_ERROR
+                        cols[name] = self._convert_str(t, i, num_rows)
+                    else:
+                        if try_float and not try_float[name]:
+                            raise ValueError()
+                        t.code = NO_ERROR
+                        cols[name] = self._convert_float(t, i, num_rows)
+                        if t.code == OVERFLOW_ERROR:
+                            # Overflow during float conversion (extending range)
+                            warnings.warn("OverflowError converting to {0} in column {1}, possibly resulting in degraded precision."
+                                          .format('FloatType', name), AstropyWarning)
+                            t.code = NO_ERROR
                 except ValueError:
                     if try_string and not try_string[name]:
                         raise ValueError('Column {0} failed to convert'.format(name))
@@ -621,7 +653,8 @@ cdef class CParser:
 
             if t.code in (CONVERSION_ERROR, OVERFLOW_ERROR):
                 # no dice
-                t.code = NO_ERROR
+                if t.code == CONVERSION_ERROR:
+                    t.code = NO_ERROR
                 raise ValueError()
 
             data[row] = converted
@@ -648,6 +681,7 @@ cdef class CParser:
         cdef char *empty_field = t.buf
         cdef bytes new_value
         cdef int replacing
+        cdef err_code overflown = NO_ERROR # store any OVERFLOW to raise warning
         mask = set()
 
         start_iteration(t, i)
@@ -677,12 +711,13 @@ cdef class CParser:
             if t.code == CONVERSION_ERROR:
                 t.code = NO_ERROR
                 raise ValueError()
-            elif t.code == OVERFLOW_ERROR:
-                t.code = NO_ERROR
-                raise ValueError()
             else:
                 data[row] = converted
+            if t.code == OVERFLOW_ERROR:
+                t.code = NO_ERROR
+                overflown = OVERFLOW_ERROR
             row += 1
+        t.code = overflown
 
         if mask:
             return ma.masked_array(col, mask=[1 if i in mask else 0 for i in
@@ -752,6 +787,7 @@ cdef class CParser:
                                 dict(delimiter=chr(self.tokenizer.delimiter),
                                 comment=chr(self.tokenizer.comment),
                                 quotechar=chr(self.tokenizer.quotechar),
+                                expchar=chr(self.tokenizer.expchar),
                                 header_start=self.header_start,
                                 data_start=self.data_start,
                                 data_end=self.data_end,
@@ -788,7 +824,7 @@ def _read_chunk(CParser self, start, end, try_int,
     data = None
     err = None
 
-    if tokenize(chunk_tokenizer, -1, 0, len(self.names)) != 0:
+    if tokenize(chunk_tokenizer, -1, 0, <int>len(self.names)) != 0:
         err = (chunk_tokenizer.code, chunk_tokenizer.num_rows)
     if chunk_tokenizer.num_rows == 0: # no data
         data = dict((name, np.array([], np.int_)) for name in self.get_names())
@@ -832,6 +868,7 @@ cdef class FastWriter:
         list types
         list line_comments
         str quotechar
+        str expchar
         str delimiter
         int strip_whitespace
         object comment
@@ -840,6 +877,7 @@ cdef class FastWriter:
                   delimiter=',',
                   comment='# ',
                   quotechar='"',
+                  expchar='e',
                   formats=None,
                   strip_whitespace=True,
                   names=None, # ignore, already used in _get_writer
@@ -966,8 +1004,8 @@ cdef class FastWriter:
         # or fail to take advantage of the speed boost of writerows()
         # over writerow().
         cdef int N = 100
-        cdef int num_cols = len(self.use_names)
-        cdef int num_rows = len(self.table)
+        cdef int num_cols = <int>len(self.use_names)
+        cdef int num_rows = <int>len(self.table)
         # cache string columns beforehand
         cdef set string_rows = set([i for i, type in enumerate(self.types) if
                                     type == 'S'])
@@ -982,7 +1020,7 @@ cdef class FastWriter:
 
                 if orig_field is None: # tolist() converts ma.masked to None
                     field = core.masked
-                    rows[i % N][j] = '--'
+                    rows[i % N][j] = ''
 
                 elif self.format_funcs[j] is not None:
                     field = self.format_funcs[j](self.formats[j], orig_field)

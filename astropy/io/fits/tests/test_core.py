@@ -27,6 +27,8 @@ from ....extern.six.moves import range, zip
 from ....io import fits
 from ....tests.helper import pytest, raises, catch_warnings, ignore_warnings
 from ....utils.data import get_pkg_data_filename
+from ....utils import data
+
 
 try:
     import pathlib
@@ -70,7 +72,7 @@ class TestCore(FitsTestCase):
         l.append(p)
         l.append(t)
 
-        l.writeto(self.temp('test.fits'), clobber=True)
+        l.writeto(self.temp('test.fits'), overwrite=True)
 
         with fits.open(self.temp('test.fits')) as p:
             assert p[1].data[1]['foo'] == 60000.0
@@ -116,7 +118,7 @@ class TestCore(FitsTestCase):
         assert table.data.dtype.names == ('c2', 'c4', 'foo')
         assert table.columns.names == ['c2', 'c4', 'foo']
 
-        hdulist.writeto(self.temp('test.fits'), clobber=True)
+        hdulist.writeto(self.temp('test.fits'), overwrite=True)
         with ignore_warnings():
             # TODO: The warning raised by this test is actually indication of a
             # bug and should *not* be ignored. But as it is a known issue we
@@ -150,7 +152,7 @@ class TestCore(FitsTestCase):
 
         header = fits.Header()
         comment = 'number of bits per data pixel'
-        card = fits.Card.fromstring('BITPIX  = 32 / %s' % comment)
+        card = fits.Card.fromstring('BITPIX  = 32 / {}'.format(comment))
         header.append(card)
 
         header['BITPIX'] = 32
@@ -229,9 +231,9 @@ class TestCore(FitsTestCase):
             del hdu.header['NAXIS']
             try:
                 hdu.verify('ignore')
-            except Exception as e:
+            except Exception as exc:
                 self.fail('An exception occurred when the verification error '
-                          'should have been ignored: %s' % exc)
+                          'should have been ignored: {}'.format(exc))
         # Make sure the error wasn't fixed either, silently or otherwise
         assert 'NAXIS' not in hdu.header
 
@@ -263,7 +265,7 @@ class TestCore(FitsTestCase):
                 hdu.verify('silentfix+ignore')
             except Exception as exc:
                 self.fail('An exception occurred when the verification error '
-                          'should have been ignored: %s' % exc)
+                          'should have been ignored: {}'.format(exc))
 
         # silentfix+warn should be quiet about the fixed HDU and only warn
         # about the unfixable one
@@ -362,9 +364,6 @@ class TestCore(FitsTestCase):
         Tests that setting fits.conf.extension_name_case_sensitive at
         runtime works.
         """
-
-        if 'PYFITS_EXTENSION_NAME_CASE_SENSITIVE' in os.environ:
-            del os.environ['PYFITS_EXTENSION_NAME_CASE_SENSITIVE']
 
         hdu = fits.ImageHDU()
         hdu.name = 'sCi'
@@ -514,7 +513,7 @@ class TestCore(FitsTestCase):
             # Add a bunch of header keywords so that the data will be forced to
             # new offsets within the file:
             for idx in range(40):
-                hdul1[1].header['TEST%d' % idx] = 'test'
+                hdul1[1].header['TEST{}'.format(idx)] = 'test'
 
             hdul1.writeto(self.temp('test1.fits'))
             hdul1.writeto(self.temp('test2.fits'))
@@ -525,14 +524,14 @@ class TestCore(FitsTestCase):
             with fits.open(self.data('test0.fits')) as hdul2:
                 with fits.open(self.temp('test2.fits')) as hdul3:
                     for hdul in (hdul1, hdul3):
-                        for idx, hdus in enumerate(zip(hdul1, hdul)):
-                            hdu1, hdu2 = hdus
+                        for idx, hdus in enumerate(zip(hdul2, hdul)):
+                            hdu2, hdu = hdus
                             if idx != 1:
-                                assert hdu1.header == hdu2.header
+                                assert hdu.header == hdu2.header
                             else:
-                                assert (hdu1.header ==
-                                        hdu2.header[:len(hdu1.header)])
-                            assert np.all(hdu1.data == hdu2.data)
+                                assert (hdu2.header ==
+                                        hdu.header[:len(hdu2.header)])
+                            assert np.all(hdu.data == hdu2.data)
 
 
 class TestConvenienceFunctions(FitsTestCase):
@@ -545,7 +544,7 @@ class TestConvenienceFunctions(FitsTestCase):
         data = np.zeros((100, 100))
         header = fits.Header()
         fits.writeto(self.temp('array.fits'), data, header=header,
-                     clobber=True)
+                     overwrite=True)
         hdul = fits.open(self.temp('array.fits'))
         assert len(hdul) == 1
         assert (data == hdul[0].data).all()
@@ -561,7 +560,7 @@ class TestConvenienceFunctions(FitsTestCase):
         header = fits.Header()
         header.set('CRPIX1', 1.)
         fits.writeto(self.temp('array.fits'), data, header=header,
-                     clobber=True, output_verify='silentfix')
+                     overwrite=True, output_verify='silentfix')
         hdul = fits.open(self.temp('array.fits'))
         assert len(hdul) == 1
         assert (data == hdul[0].data).all()
@@ -795,7 +794,7 @@ class TestFileFunctions(FitsTestCase):
         assert old_mode == os.stat(filename).st_mode
 
     def test_fileobj_mode_guessing(self):
-        """Tests whether a file opened without a specified pyfits mode
+        """Tests whether a file opened without a specified io.fits mode
         ('readonly', etc.) is opened in a mode appropriate for the given file
         object.
         """
@@ -1014,6 +1013,63 @@ class TestFileFunctions(FitsTestCase):
 
         with fits.open(self.temp(filename)) as hdul:
             assert np.all(hdul[0].data == hdu.data)
+
+
+    def test_writeto_full_disk(self, monkeypatch):
+        """
+        Test that it gives a readable error when trying to write an hdulist
+        to a full disk.
+        """
+        def _writeto(self, array):
+            raise OSError("Fake error raised when writing file.")
+
+        def get_free_space_in_dir(path):
+            return 0
+
+        with pytest.raises(OSError) as exc:
+            monkeypatch.setattr(fits.hdu.base._BaseHDU, "_writeto", _writeto)
+            monkeypatch.setattr(data, "get_free_space_in_dir", get_free_space_in_dir)
+
+            n = np.arange(0, 1000, dtype='int64')
+            hdu = fits.PrimaryHDU(n)
+            hdulist = fits.HDUList(hdu)
+            filename = self.temp('test.fits')
+
+            with open(filename, mode='wb+') as fileobj:
+                hdulist.writeto(fileobj)
+
+        assert ("Not enough space on disk: requested 8000, available 0. "
+                "Fake error raised when writing file.") == exc.value.args[0]
+
+    def test_flush_full_disk(self, monkeypatch):
+        """
+        Test that it gives a readable error when trying to update an hdulist
+        to a full disk.
+        """
+        filename = self.temp('test.fits')
+        hdul = [fits.PrimaryHDU(), fits.ImageHDU()]
+        hdul = fits.HDUList(hdul)
+        hdul[0].data = np.arange(0, 1000, dtype='int64')
+        hdul.writeto(filename)
+
+        def _writedata(self, fileobj):
+            raise OSError("Fake error raised when writing file.")
+
+        def get_free_space_in_dir(path):
+            return 0
+
+        monkeypatch.setattr(fits.hdu.base._BaseHDU, "_writedata", _writedata)
+        monkeypatch.setattr(data, "get_free_space_in_dir",
+                            get_free_space_in_dir)
+
+        with pytest.raises(OSError) as exc:
+            with fits.open(filename, mode='update') as hdul:
+                hdul[0].data = np.arange(0, 1000, dtype='int64')
+                hdul.insert(1, fits.ImageHDU())
+                hdul.flush()
+
+        assert ("Not enough space on disk: requested 8000, available 0. "
+                "Fake error raised when writing file.") == exc.value.args[0]
 
     def _test_write_string_bytes_io(self, fileobj):
         """

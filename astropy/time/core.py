@@ -10,7 +10,6 @@ astronomy.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import itertools
 import copy
 import operator
 from datetime import datetime
@@ -103,6 +102,9 @@ class TimeInfo(MixinInfo):
     """
     attrs_from_parent = set(['unit'])  # unit is read-only and None
     _supports_indexing = True
+    _represent_as_dict_attrs = ('jd1', 'jd2', 'format', 'scale', 'precision',
+                                'in_subfmt', 'out_subfmt', 'location',
+                                '_delta_ut1_utc', '_delta_tdb_tt')
 
     @property
     def unit(self):
@@ -113,6 +115,40 @@ class TimeInfo(MixinInfo):
                           funcs=[getattr(np, stat) for stat in MixinInfo._stats]))
     # When Time has mean, std, min, max methods:
     # funcs = [lambda x: getattr(x, stat)() for stat_name in MixinInfo._stats])
+
+    def _construct_from_dict(self, map):
+        format = map.pop('format')
+        delta_ut1_utc = map.pop('_delta_ut1_utc', None)
+        delta_tdb_tt = map.pop('_delta_tdb_tt', None)
+
+        map['format'] = 'jd'
+        map['val'] = map.pop('jd1')
+        map['val2'] = map.pop('jd2')
+
+        out = self._parent_cls(**map)
+        out.format = format
+
+        if delta_ut1_utc is not None:
+            out._delta_ut1_utc = delta_ut1_utc
+        if delta_tdb_tt is not None:
+            out._delta_tdb_tt = delta_tdb_tt
+
+        return out
+
+class TimeDeltaInfo(TimeInfo):
+    _represent_as_dict_attrs = ('jd1', 'jd2', 'format', 'scale')
+
+    def _construct_from_dict(self, map):
+        format = map.pop('format')
+
+        map['format'] = 'jd'
+        map['val'] = map.pop('jd1')
+        map['val2'] = map.pop('jd2')
+
+        out = self._parent_cls(**map)
+        out.format = format
+
+        return out
 
 
 class Time(ShapedLikeNDArray):
@@ -521,13 +557,6 @@ class Time(ShapedLikeNDArray):
                 else:
                     reshaped.append(val)
 
-    def __bool__(self):
-        """Any time should evaluate to True, except when it is empty."""
-        return self.size > 0
-
-    # In python2, __bool__ is not defined.
-    __nonzero__ = __bool__
-
     def _shaped_like_input(self, value):
         return value if self._time.jd1.shape else value.item()
 
@@ -567,11 +596,11 @@ class Time(ShapedLikeNDArray):
 
         Parameters
         ----------
-        skycoord: `~astropy.coordinates.SkyCoord`
+        skycoord : `~astropy.coordinates.SkyCoord`
             The sky location to calculate the correction for.
-        kind: str, optional
+        kind : str, optional
             ``'barycentric'`` (default) or ``'heliocentric'``
-        location: `~astropy.coordinates.EarthLocation`, optional
+        location : `~astropy.coordinates.EarthLocation`, optional
             The location of the observatory to calculate the correction for.
             If no location is given, the ``location`` attribute of the Time
             object is used
@@ -582,7 +611,7 @@ class Time(ShapedLikeNDArray):
 
         Returns
         -------
-        time_offset: `~astropy.time.TimeDelta`
+        time_offset : `~astropy.time.TimeDelta`
             The time offset between the barycentre or Heliocentre and Earth,
             in TDB seconds.  Should be added to the original time to get the
             time in the Solar system barycentre or the Heliocentre.
@@ -882,21 +911,6 @@ class Time(ShapedLikeNDArray):
         copy of the JD arrays.
         """
         return self.copy()
-
-    def __iter__(self):
-        if self.isscalar:
-            raise TypeError('scalar {0!r} object is not iterable.'.format(
-                self.__class__.__name__))
-
-        def time_iter():
-            try:
-                for idx in itertools.count():
-                    yield self[idx]
-            except IndexError:
-                # Results in StopIteration
-                pass
-
-        return time_iter()
 
     def _advanced_index(self, indices, axis=None, keepdims=False):
         """Turn argmin, argmax output into an advanced index.
@@ -1275,12 +1289,6 @@ class Time(ShapedLikeNDArray):
     delta_tdb_tt = property(_get_delta_tdb_tt, _set_delta_tdb_tt)
     """TDB - TT time scale offset"""
 
-    def __len__(self):
-        if self.isscalar:
-            raise TypeError("Scalar {0} object has no len()"
-                            .format(self.__class__.__name__))
-        return len(self.jd1)
-
     def __sub__(self, other):
         if not isinstance(other, Time):
             try:
@@ -1483,6 +1491,8 @@ class TimeDelta(Time):
 
     FORMATS = TIME_DELTA_FORMATS
     """Dict of time delta formats."""
+
+    info = TimeDeltaInfo()
 
     def __init__(self, val, val2=None, format=None, scale=None, copy=False):
         if isinstance(val, TimeDelta):

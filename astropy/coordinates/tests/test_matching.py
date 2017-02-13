@@ -11,6 +11,7 @@ from ...extern.six.moves import zip
 from ... import units as u
 from ...utils import minversion
 
+from .. import matching
 
 """
 These are the tests for coordinate matching.
@@ -49,7 +50,6 @@ def test_matching_function():
     npt.assert_array_almost_equal(d2d.degree, [1, 0.9])
     npt.assert_array_less(d3d.value, 0.02)
 
-
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_matching_function_3d_and_sky():
     from .. import ICRS
@@ -73,24 +73,56 @@ def test_matching_function_3d_and_sky():
     assert_allclose(d3d, [4, 4.0000019] * u.kpc)
 
 
+
+@pytest.mark.parametrize('functocheck, args, defaultkdtname, bothsaved',
+                         [(matching.match_coordinates_3d, [], 'kdtree_3d', False),
+                          (matching.match_coordinates_sky, [], 'kdtree_sky', False),
+                          (matching.search_around_3d, [1*u.kpc], 'kdtree_3d', True),
+                          (matching.search_around_sky, [1*u.deg], 'kdtree_sky', False)
+                         ])
 @pytest.mark.skipif(str('not HAS_SCIPY'))
-def test_kdtree_storage():
+def test_kdtree_storage(functocheck, args, defaultkdtname, bothsaved):
     from .. import ICRS
-    from ..matching import match_coordinates_3d
 
-    cmatch = ICRS([4, 2.1]*u.degree, [0, 0]*u.degree)
-    ccatalog = ICRS([1, 2, 3, 4]*u.degree, [0, 0, 0, 0]*u.degree)
+    def make_scs():
+        cmatch = ICRS([4, 2.1]*u.degree, [0, 0]*u.degree, distance=[1, 2]*u.kpc)
+        ccatalog = ICRS([1, 2, 3, 4]*u.degree, [0, 0, 0, 0]*u.degree, distance=[1, 2, 3, 4]*u.kpc)
+        return cmatch, ccatalog
 
-    idx, d2d, d3d = match_coordinates_3d(cmatch, ccatalog, storekdtree=False)
-    assert not hasattr(ccatalog, '_kdtree')
+    cmatch, ccatalog = make_scs()
+    functocheck(cmatch, ccatalog, *args, storekdtree=False)
+    assert 'kdtree' not in ccatalog.cache
+    assert defaultkdtname not in ccatalog.cache
 
-    idx, d2d, d3d = match_coordinates_3d(cmatch, ccatalog, storekdtree=True)
-    assert hasattr(ccatalog, '_kdtree')
+    cmatch, ccatalog = make_scs()
+    functocheck(cmatch, ccatalog, *args)
+    assert defaultkdtname in ccatalog.cache
+    assert 'kdtree' not in ccatalog.cache
 
-    assert not hasattr(ccatalog, 'tislit_cheese')
-    idx, d2d, d3d = match_coordinates_3d(cmatch, ccatalog, storekdtree='tislit_cheese')
-    assert hasattr(ccatalog, 'tislit_cheese')
-    assert not hasattr(cmatch, 'tislit_cheese')
+    cmatch, ccatalog = make_scs()
+    functocheck(cmatch, ccatalog, *args, storekdtree=True)
+    assert 'kdtree' in ccatalog.cache
+    assert defaultkdtname not in ccatalog.cache
+
+    cmatch, ccatalog = make_scs()
+    assert 'tislit_cheese' not in ccatalog.cache
+    functocheck(cmatch, ccatalog, *args, storekdtree='tislit_cheese')
+    assert 'tislit_cheese' in ccatalog.cache
+    assert defaultkdtname not in ccatalog.cache
+    assert 'kdtree' not in ccatalog.cache
+    if bothsaved:
+        assert 'tislit_cheese' in cmatch.cache
+        assert defaultkdtname not in cmatch.cache
+        assert 'kdtree' not in cmatch.cache
+    else:
+        assert 'tislit_cheese' not in cmatch.cache
+
+    # now a bit of a hacky trick to make sure it at least tries to *use* it
+    ccatalog.cache['tislit_cheese'] = 1
+    cmatch.cache['tislit_cheese'] = 1
+    with pytest.raises(TypeError) as e:
+        functocheck(cmatch, ccatalog, *args, storekdtree='tislit_cheese')
+    assert 'KD' in e.value.args[0]
 
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
@@ -126,7 +158,7 @@ def test_matching_method():
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 @pytest.mark.skipif(str('OLDER_SCIPY'))
 def test_search_around():
-    from .. import ICRS
+    from .. import ICRS, SkyCoord
     from ..matching import search_around_sky, search_around_3d
 
     coo1 = ICRS([4, 2.1]*u.degree, [0, 0]*u.degree, distance=[1, 5] * u.kpc)
@@ -148,6 +180,65 @@ def test_search_around():
     assert list(zip(idx1_sm, idx2_sm)) == [(0, 1), (0, 2)]
     assert_allclose(d2d_sm, [2, 1]*u.deg)
 
+    # Test for the non-matches, #4877
+    coo1 = ICRS([4.1, 2.1]*u.degree, [0, 0]*u.degree, distance=[1, 5] * u.kpc)
+    idx1, idx2, d2d, d3d = search_around_sky(coo1, coo2, 1*u.arcsec)
+    assert idx1.size == idx2.size == d2d.size == d3d.size == 0
+    assert idx1.dtype == idx2.dtype == np.int
+    assert d2d.unit == u.deg
+    assert d3d.unit == u.kpc
+    idx1, idx2, d2d, d3d = search_around_3d(coo1, coo2, 1*u.m)
+    assert idx1.size == idx2.size == d2d.size == d3d.size == 0
+    assert idx1.dtype == idx2.dtype == np.int
+    assert d2d.unit == u.deg
+    assert d3d.unit == u.kpc
+
+    # Test when one or both of the coordinate arrays is empty, #4875
+    empty = ICRS(ra=[] * u.degree, dec=[] * u.degree, distance=[] * u.kpc)
+    idx1, idx2, d2d, d3d = search_around_sky(empty, coo2, 1*u.arcsec)
+    assert idx1.size == idx2.size == d2d.size == d3d.size == 0
+    assert idx1.dtype == idx2.dtype == np.int
+    assert d2d.unit == u.deg
+    assert d3d.unit == u.kpc
+    idx1, idx2, d2d, d3d = search_around_sky(coo1, empty, 1*u.arcsec)
+    assert idx1.size == idx2.size == d2d.size == d3d.size == 0
+    assert idx1.dtype == idx2.dtype == np.int
+    assert d2d.unit == u.deg
+    assert d3d.unit == u.kpc
+    empty = ICRS(ra=[] * u.degree, dec=[] * u.degree, distance=[] * u.kpc)
+    idx1, idx2, d2d, d3d = search_around_sky(empty, empty[:], 1*u.arcsec)
+    assert idx1.size == idx2.size == d2d.size == d3d.size == 0
+    assert idx1.dtype == idx2.dtype == np.int
+    assert d2d.unit == u.deg
+    assert d3d.unit == u.kpc
+    idx1, idx2, d2d, d3d = search_around_3d(empty, coo2, 1*u.m)
+    assert idx1.size == idx2.size == d2d.size == d3d.size == 0
+    assert idx1.dtype == idx2.dtype == np.int
+    assert d2d.unit == u.deg
+    assert d3d.unit == u.kpc
+    idx1, idx2, d2d, d3d = search_around_3d(coo1, empty, 1*u.m)
+    assert idx1.size == idx2.size == d2d.size == d3d.size == 0
+    assert idx1.dtype == idx2.dtype == np.int
+    assert d2d.unit == u.deg
+    assert d3d.unit == u.kpc
+    idx1, idx2, d2d, d3d = search_around_3d(empty, empty[:], 1*u.m)
+    assert idx1.size == idx2.size == d2d.size == d3d.size == 0
+    assert idx1.dtype == idx2.dtype == np.int
+    assert d2d.unit == u.deg
+    assert d3d.unit == u.kpc
+
+    # Test that input without distance units results in a
+    # 'dimensionless_unscaled' unit
+    cempty = SkyCoord(ra=[], dec=[], unit=u.deg)
+    idx1, idx2, d2d, d3d = search_around_3d(cempty, cempty[:], 1*u.m)
+    assert d2d.unit == u.deg
+    assert d3d.unit == u.dimensionless_unscaled
+    idx1, idx2, d2d, d3d = search_around_sky(cempty, cempty[:], 1*u.m)
+    assert d2d.unit == u.deg
+    assert d3d.unit == u.dimensionless_unscaled
+
+
+
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 @pytest.mark.skipif(str('OLDER_SCIPY'))
@@ -167,3 +258,33 @@ def test_search_around_scalar():
     with pytest.raises(ValueError) as excinfo:
         cat.search_around_3d(target, Angle('2d'))
     assert 'search_around_3d' in str(excinfo.value)
+
+@pytest.mark.skipif(str('not HAS_SCIPY'))
+@pytest.mark.skipif(str('OLDER_SCIPY'))
+def test_match_catalog_empty():
+    from astropy.coordinates import SkyCoord
+
+    sc1 = SkyCoord(1, 2, unit="deg")
+    cat0  = SkyCoord([], [], unit="deg")
+    cat1  = SkyCoord([1.1], [2.1], unit="deg")
+    cat2  = SkyCoord([1.1, 3], [2.1, 5], unit="deg")
+
+    sc1.match_to_catalog_sky(cat2)
+    sc1.match_to_catalog_3d(cat2)
+
+    sc1.match_to_catalog_sky(cat1)
+    sc1.match_to_catalog_3d(cat1)
+
+    with pytest.raises(ValueError) as excinfo:
+        sc1.match_to_catalog_sky(cat1[0])
+    assert 'catalog' in str(excinfo.value)
+    with pytest.raises(ValueError) as excinfo:
+        sc1.match_to_catalog_3d(cat1[0])
+    assert 'catalog' in str(excinfo.value)
+
+    with pytest.raises(ValueError) as excinfo:
+        sc1.match_to_catalog_sky(cat0)
+    assert 'catalog' in str(excinfo.value)
+    with pytest.raises(ValueError) as excinfo:
+        sc1.match_to_catalog_3d(cat0)
+    assert 'catalog' in str(excinfo.value)

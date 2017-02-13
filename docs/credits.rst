@@ -21,6 +21,7 @@ Core Package Contributors
 * Anne Archibald
 * Cristian Ardelean
 * Matteo Bachetti
+* Steven Bamford
 * Kyle Barbary
 * Geert Barentsen
 * Pauline Barmby
@@ -57,7 +58,7 @@ Core Package Contributors
 * Ryan Cooke
 * Yannick Copin
 * Matthew Craig
-* Steve Crawford
+* Steven Crawford
 * Neil Crighton
 * Robert Cross
 * Kelle Cruz
@@ -84,6 +85,7 @@ Core Package Contributors
 * Adam Ginsburg
 * Christoph Gohlke
 * Danny Goldstein
+* J. Goutin
 * Perry Greenfield
 * Dylan Gregersen
 * Austen Groener
@@ -93,6 +95,7 @@ Core Package Contributors
 * Hans Moritz Günther
 * Chris Hanley
 * Alex Hagen
+* Christian Hettlage
 * Paul Hirst
 * Moataz Hisham
 * Michael Hoenig
@@ -100,10 +103,13 @@ Core Package Contributors
 * Derek Homeier
 * Anthony Horton
 * JC Hsu
+* Griffin Hosseinzadeh
 * Lingyi Hu
+* Jurien Huisman
 * Joe Hunkeler
 * Anchit Jain
 * Eric Jeschke
+* Graham Kanarek
 * Sarah Kendrew
 * Marten van Kerkwijk
 * Wolfgang Kerzendorf
@@ -116,9 +122,11 @@ Core Package Contributors
 * Roban Hultman Kramer
 * Aniket Kulkarni
 * Amit Kumar
+* Arie Kurniawan
 * Arne de Laat
 * Antony Lee
 * Daniel Lenz
+* Kieran Leschinski
 * Simon Liedtke
 * Pey Lian Lim
 * Stuart Littlefair
@@ -150,18 +158,18 @@ Core Package Contributors
 * Carl Osterwisch
 * Luigi Paioro
 * Asish Panda
+* John Parejko
 * Madhura Parikh
 * Neil Parley
 * Sergio Pascual
 * Pratik Patel
 * Rohit Patil
-* David Perez-Suarez
+* David Pérez-Suárez
 * Ray Plante
 * Adele Plunkett
 * Orion Poplawski
 * Adrian Price-Whelan
 * J. Xavier Prochaska
-* David Pérez-Suárez
 * Tanuj Rastogi
 * Thomas Robitaille
 * Juan Luis Cano Rodríguez
@@ -172,11 +180,12 @@ Core Package Contributors
 * Gerrit Schellenberger
 * Michael Seifert
 * Srikrishna Sekhar
+* Mathieu Servillat
 * David Shiga
 * Albert Y. Shih
 * David Shupe
 * Jonathan Sick
-* Simon
+* Max Silbiger
 * Sudheesh Singanamalla
 * Leo Singer
 * Brigitta Sipocz
@@ -187,6 +196,7 @@ Core Package Contributors
 * Matej Stuchlik
 * Bernardo Sulzbach
 * Vatsala Swaroop
+* Esteban Pardo Sánchez
 * James Taylor
 * Jeff Taylor
 * Kirill Tchernyshyov
@@ -194,9 +204,11 @@ Core Package Contributors
 * Víctor Terrón
 * Scott Thomas
 * Erik Tollerud
+* Matthew Turk
 * James Turner
 * Miguel de Val-Borro
 * Jake VanderPlas
+* Alex de la Vega
 * Zé Vinicius
 * Karl Vyhmeister
 * Lisa Walter
@@ -204,7 +216,9 @@ Core Package Contributors
 * Benjamin Alan Weaver
 * Jonathan Whitmore
 * Julien Woillez
+* Maneesh Yadav
 * Víctor Zabalza
+
 
 Other Credits
 =============

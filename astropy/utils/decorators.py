@@ -7,11 +7,9 @@ from __future__ import print_function
 
 import functools
 import inspect
-import itertools
 import textwrap
 import types
 import warnings
-from distutils.version import LooseVersion
 
 from .codegen import make_function_with_signature
 from .exceptions import (AstropyDeprecationWarning, AstropyUserWarning,
@@ -81,9 +79,9 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         if not old_doc:
             old_doc = ''
         old_doc = textwrap.dedent(old_doc).strip('\n')
-        new_doc = (('\n.. deprecated:: %(since)s'
-                    '\n    %(message)s\n\n' %
-                    {'since': since, 'message': message.strip()}) + old_doc)
+        new_doc = (('\n.. deprecated:: {since}'
+                    '\n    {message}\n\n'.format(
+                    **{'since': since, 'message': message.strip()})) + old_doc)
         if not old_doc:
             # This is to prevent a spurious 'unexpected unindent' warning from
             # docutils when the original docstring was blank.
@@ -186,19 +184,19 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         altmessage = ''
         if not message or type(message) is type(deprecate):
             if pending:
-                message = ('The %(func)s %(obj_type)s will be deprecated in a '
+                message = ('The {func} {obj_type} will be deprecated in a '
                            'future version.')
             else:
-                message = ('The %(func)s %(obj_type)s is deprecated and may '
+                message = ('The {func} {obj_type} is deprecated and may '
                            'be removed in a future version.')
             if alternative:
-                altmessage = '\n        Use %s instead.' % alternative
+                altmessage = '\n        Use {} instead.'.format(alternative)
 
-        message = ((message % {
+        message = ((message.format(**{
             'func': name,
             'name': name,
             'alternative': alternative,
-            'obj_type': obj_type_name}) +
+            'obj_type': obj_type_name})) +
             altmessage)
 
         if isinstance(obj, type):
@@ -276,7 +274,8 @@ def deprecated_attribute(name, since, message=None, alternative=None,
 
 
 def deprecated_renamed_argument(old_name, new_name, since,
-                                arg_in_kwargs=False, relax=False):
+                                arg_in_kwargs=False, relax=False,
+                                pending=False):
     """Deprecate a _renamed_ function argument.
 
     The decorator assumes that the argument with the ``old_name`` was removed
@@ -310,11 +309,10 @@ def deprecated_renamed_argument(old_name, new_name, since,
         and a Warning is issued.
         Default is ``False``.
 
-    .. warning::
-        If ``old_name`` is a list or tuple the ``new_name`` and ``since`` must
-        also be a list or tuple with the same number of entries. ``relax`` and
-        ``arg_in_kwarg`` can be a single bool (applied to all) or also a
-        list/tuple with the same number of entries like ``new_name``, etc.
+    pending : bool or list/tuple thereof, optional
+        If ``True`` this will hide the deprecation warning and ignore the
+        corresponding ``relax`` parameter value.
+        Default is ``False``.
 
     Raises
     ------
@@ -330,6 +328,12 @@ def deprecated_renamed_argument(old_name, new_name, since,
     -----
     The decorator should be applied to a function where the **name**
     of an argument was changed but it applies the same logic.
+
+    .. warning::
+        If ``old_name`` is a list or tuple the ``new_name`` and ``since`` must
+        also be a list or tuple with the same number of entries. ``relax`` and
+        ``arg_in_kwarg`` can be a single bool (applied to all) or also a
+        list/tuple with the same number of entries like ``new_name``, etc.
 
     Examples
     --------
@@ -404,6 +408,8 @@ def deprecated_renamed_argument(old_name, new_name, since,
             arg_in_kwargs = [arg_in_kwargs] * n
         if not isinstance(relax, cls_iter):
             relax = [relax] * n
+        if not isinstance(pending, cls_iter):
+            pending = [pending] * n
     else:
         # To allow a uniform approach later on, wrap all arguments in lists.
         n = 1
@@ -412,6 +418,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
         since = [since]
         arg_in_kwargs = [arg_in_kwargs]
         relax = [relax]
+        pending = [pending]
 
     def decorator(function):
         # Lazy import to avoid cyclic imports
@@ -456,28 +463,6 @@ def deprecated_renamed_argument(old_name, new_name, since,
                                 '"**kwargs" then set "arg_in_kwargs" to "True"'
                                 '.'.format(new_name[i]))
 
-        if function.__doc__:
-            # Remove indentation of the original documentation so it will be
-            # correctly rendered.
-            doc = [textwrap.dedent(function.__doc__).strip('\n')]
-
-            # Append the deprecation messages ordered by their "since".
-            def item2(x):
-                return LooseVersion(str(x[2]))
-
-            # Add the "versionchanged" directive to the docstring of the
-            # function, but in _sorted_ order and _grouped_ by version.
-            # Note that groupby only groups successive identical elements so
-            # the sorting is required.
-            sorted_zipped = sorted(zip(old_name, new_name, since), key=item2)
-            for k, vals in itertools.groupby(sorted_zipped, key=item2):
-                doc.append("\n.. versionchanged:: {}".format(k))
-                for old, new, _ in vals:
-                    doc.append("   ``{}`` replaces the deprecated "
-                               "``{}`` argument.".format(new, old))
-
-            function.__doc__ = '\n'.join(doc)
-
         @functools.wraps(function)
         def wrapper(*args, **kwargs):
             for i in range(n):
@@ -486,12 +471,15 @@ def deprecated_renamed_argument(old_name, new_name, since,
                 # parameter was renamed to newkeyword.
                 if old_name[i] in kwargs:
                     value = kwargs.pop(old_name[i])
-                    warnings.warn('"{0}" was deprecated in version {1} '
-                                  'and will be removed in a future version. '
-                                  'Use argument "{2}" instead.'
-                                  ''.format(old_name[i], since[i],
-                                            new_name[i]),
-                                  AstropyDeprecationWarning)
+                    # Display the deprecation warning only when it's only
+                    # pending.
+                    if not pending[i]:
+                        warnings.warn(
+                            '"{0}" was deprecated in version {1} '
+                            'and will be removed in a future version. '
+                            'Use argument "{2}" instead.'
+                            ''.format(old_name[i], since[i], new_name[i]),
+                            AstropyDeprecationWarning)
 
                     # Check if the newkeyword was given as well.
                     newarg_in_args = (position[i] is not None and
@@ -499,17 +487,19 @@ def deprecated_renamed_argument(old_name, new_name, since,
                     newarg_in_kwargs = new_name[i] in kwargs
 
                     if newarg_in_args or newarg_in_kwargs:
-                        # If both are given print a Warning if relax is True or
-                        # raise an Exception is relax is False.
-                        if relax[i]:
-                            warnings.warn('"{0}" and "{1}" keywords were set. '
-                                          'Using the value of "{1}".'
-                                          ''.format(old_name[i], new_name[i]),
-                                          AstropyUserWarning)
-                        else:
-                            raise TypeError('cannot specify both "{}" and "{}"'
-                                            '.'.format(old_name[i],
-                                                       new_name[i]))
+                        if not pending[i]:
+                            # If both are given print a Warning if relax is
+                            # True or raise an Exception is relax is False.
+                            if relax[i]:
+                                warnings.warn(
+                                    '"{0}" and "{1}" keywords were set. '
+                                    'Using the value of "{1}".'
+                                    ''.format(old_name[i], new_name[i]),
+                                    AstropyUserWarning)
+                            else:
+                                raise TypeError(
+                                    'cannot specify both "{}" and "{}"'
+                                    '.'.format(old_name[i], new_name[i]))
                     else:
                         # If the new argument isn't specified just pass the old
                         # one with the name of the new argument to the function
@@ -1043,7 +1033,7 @@ def format_doc(docstring, *args, **kwargs):
             num1, num2 : Numbers
             Returns
             -------
-            result: Number
+            result : Number
 
     in case one might want to format it further::
 
@@ -1077,7 +1067,7 @@ def format_doc(docstring, *args, **kwargs):
             num1, num2 : Numbers
             Returns
             -------
-            result: Number
+            result : Number
                 result of num1 + num2
         >>> help(subtract) # doctest: +SKIP
         Help on function subtract in module __main__:
@@ -1089,9 +1079,9 @@ def format_doc(docstring, *args, **kwargs):
             num1, num2 : Numbers
             Returns
             -------
-            result: Number
+            result : Number
                 result of num1 - num2
-            Notes: This one has additional notes.
+            Notes : This one has additional notes.
 
     These methods can be combined an even taking the docstring from another
     object is possible as docstring attribute. You just have to specify the
@@ -1111,7 +1101,7 @@ def format_doc(docstring, *args, **kwargs):
             num1, num2 : Numbers
             Returns
             -------
-            result: Number
+            result : Number
                 result of num1 + num2
 
     But be aware that this decorator *only* formats the given docstring not
@@ -1133,7 +1123,7 @@ def format_doc(docstring, *args, **kwargs):
             num1, num2 : Numbers
             Returns
             -------
-            result: Number
+            result : Number
                 result of num1 + num2
             This one is good for {0}.
 

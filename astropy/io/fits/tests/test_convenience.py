@@ -46,7 +46,18 @@ class TestConvenience(FitsTestCase):
     def test_table_to_hdu(self, tmpdir):
         table = Table([[1, 2, 3], ['a', 'b', 'c'], [2.3, 4.5, 6.7]],
                       names=['a', 'b', 'c'], dtype=['i', 'U1', 'f'])
-        hdu = fits.table_to_hdu(table)
+        table['a'].unit = 'm/s'
+        table['b'].unit = 'not-a-unit'
+
+        with catch_warnings() as w:
+            hdu = fits.table_to_hdu(table)
+            assert len(w) == 1
+            assert str(w[0].message).startswith("'not-a-unit' did not parse as fits unit")
+
+        # Check that TUNITn cards appear in the correct order
+        # (https://github.com/astropy/astropy/pull/5720)
+        assert hdu.header.index('TUNIT1') < hdu.header.index('TTYPE2')
+
         assert isinstance(hdu, fits.BinTableHDU)
         filename = str(tmpdir.join('test_table_to_hdu.fits'))
-        hdu.writeto(filename, clobber=True)
+        hdu.writeto(filename, overwrite=True)

@@ -39,8 +39,8 @@ def assert_equal(a, b):
     assert a == b
 
 
-def assert_almost_equal(a, b):
-    assert np.allclose(a, b)
+def assert_almost_equal(a, b, **kwargs):
+    assert np.allclose(a, b, **kwargs)
 
 
 def assert_true(a):
@@ -102,7 +102,7 @@ def raises(*exceptions):
             except exceptions:
                 pass
             else:
-                message = "%s() did not raise %s" % (name, valid)
+                message = "{}() did not raise {}".format(name, valid)
                 raise AssertionError(message)
         newfunc = make_decorator(func)(newfunc)
         return newfunc

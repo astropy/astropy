@@ -70,6 +70,14 @@ class Index(object):
     '''
     def __new__(cls, *args, **kwargs):
         self = super(Index, cls).__new__(cls)
+
+        # If (and only if) unpickling for protocol >= 2, then args and kwargs
+        # are both empty.  The class __init__ requires at least the `columns`
+        # arg.  In this case return a bare `Index` object which is then morphed
+        # by the unpickling magic into the correct SlicedIndex object.
+        if not args and not kwargs:
+            return self
+
         self.__init__(*args, **kwargs)
         return SlicedIndex(self, slice(0, 0, None), original=True)
 

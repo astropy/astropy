@@ -32,6 +32,8 @@ latexdicts = {'AA':  {'tabletype': 'table',
               }
 
 
+RE_COMMENT = re.compile(r'(?<!\\)%')  # % character but not \%
+
 def add_dictval_to_list(adict, key, alist):
     '''
     Add a value from a dictionary to a list
@@ -40,7 +42,7 @@ def add_dictval_to_list(adict, key, alist):
     ----------
     adict : dictionary
     key : hashable
-    alist: list
+    alist : list
         List where value should be added
     '''
     if key in adict:
@@ -80,13 +82,20 @@ class LatexSplitter(core.BaseSplitter):
     '''
     delimiter = '&'
 
+    def __call__(self, lines):
+        last_line = RE_COMMENT.split(lines[-1])[0].strip()
+        if not last_line.endswith(r'\\'):
+            lines[-1] = last_line + r'\\'
+
+        return super(LatexSplitter, self).__call__(lines)
+
     def process_line(self, line):
         """Remove whitespace at the beginning or end of line. Also remove
         \\ at end of line"""
-        line = line.split('%')[0]
+        line = RE_COMMENT.split(line)[0]
         line = line.strip()
-        if line[-2:] == r'\\':
-            line = line.strip(r'\\')
+        if line.endswith(r'\\'):
+            line = line.rstrip(r'\\')
         else:
             raise core.InconsistentTableError(r'Lines in LaTeX table have to end with \\')
         return line
@@ -317,12 +326,15 @@ class Latex(core.BaseReader):
 
 
 class AASTexHeaderSplitter(LatexSplitter):
-    '''Extract column names from a `deluxetable`_.
+    r'''Extract column names from a `deluxetable`_.
 
     This splitter expects the following LaTeX code **in a single line**:
 
         \tablehead{\colhead{col1} & ... & \colhead{coln}}
     '''
+    def __call__(self, lines):
+        return super(LatexSplitter, self).__call__(lines)
+
     def process_line(self, line):
         """extract column names from tablehead
         """
@@ -340,7 +352,7 @@ class AASTexHeaderSplitter(LatexSplitter):
 
 
 class AASTexHeader(LatexHeader):
-    '''In a `deluxetable
+    r'''In a `deluxetable
     <http://fits.gsfc.nasa.gov/standard30/deluxetable.sty>`_ some header
     keywords differ from standard LaTeX.
 
@@ -375,7 +387,7 @@ class AASTexHeader(LatexHeader):
 
 
 class AASTexData(LatexData):
-    '''In a `deluxetable`_ the data is enclosed in `\startdata` and `\enddata`
+    r'''In a `deluxetable`_ the data is enclosed in `\startdata` and `\enddata`
     '''
     data_start = r'\startdata'
     data_end = r'\enddata'

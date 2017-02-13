@@ -13,7 +13,7 @@ from ..units import Unit, IrreducibleUnit
 from .. import units as u
 from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord
 from ..utils.exceptions import AstropyDeprecationWarning
-from ..utils.data_info import MixinInfo
+from ..utils.data_info import MixinInfo, _get_obj_attrs_map
 from ..utils import ShapedLikeNDArray
 
 from .distances import Distance
@@ -79,6 +79,21 @@ class SkyCoordInfo(MixinInfo):
         else:
             repr_data = sc.represent_as(sc.representation, in_frame_units=True)
         return repr_data
+
+    def _represent_as_dict(self):
+        obj = self._parent
+        attrs = list(obj.representation_component_names)
+        attrs += list(FRAME_ATTR_NAMES_SET())
+        out = _get_obj_attrs_map(obj, attrs)
+
+        # Don't output distance if it is all unitless 1.0
+        if 'distance' in out and np.all(out['distance'] == 1.0):
+            del out['distance']
+
+        out['representation'] = obj.representation.get_name()
+        out['frame'] = obj.frame.name
+
+        return out
 
 
 class SkyCoord(ShapedLikeNDArray):
@@ -161,7 +176,7 @@ class SkyCoord(ShapedLikeNDArray):
         Specifies the representation, e.g. 'spherical', 'cartesian', or
         'cylindrical'.  This affects the positional args and other keyword args
         which must correspond to the given representation.
-    copy: bool, optional
+    copy : bool, optional
         If `True` (default), a copy of any coordinate data is made.  This
         argument can only be passed in as a keyword argument.
     **keyword_args
@@ -226,15 +241,6 @@ class SkyCoord(ShapedLikeNDArray):
     @representation.setter
     def representation(self, value):
         self.frame.representation = value
-
-    def __len__(self):
-        return len(self.frame)
-
-    def __nonzero__(self):  # Py 2.x
-        return self.frame.__nonzero__()
-
-    def __bool__(self):  # Py 3.x
-        return self.frame.__bool__()
 
     @property
     def shape(self):
@@ -1178,7 +1184,7 @@ class SkyCoord(ShapedLikeNDArray):
     # Table interactions
     @classmethod
     def guess_from_table(cls, table, **coord_kwargs):
-        """
+        r"""
         A convenience method to create and return a new `SkyCoord` from the data
         in an astropy Table.
 

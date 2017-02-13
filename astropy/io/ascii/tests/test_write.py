@@ -4,15 +4,25 @@
 
 import os
 import copy
+from itertools import chain
 
+import numpy as np
 from ....extern.six.moves import cStringIO as StringIO
 from ... import ascii
 from .... import table
+from ....table.table_helpers import simple_table
 from ....tests.helper import pytest, catch_warnings
 from ....utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from .... import units
 
 from .common import setup_function, teardown_function
+
+# Check to see if the BeautifulSoup dependency is present.
+try:
+    from bs4 import BeautifulSoup, FeatureNotFound
+    HAS_BEAUTIFUL_SOUP = True
+except ImportError:
+    HAS_BEAUTIFUL_SOUP = False
 
 test_defs = [
     dict(kwargs=dict(),
@@ -343,8 +353,8 @@ test_def_masked_fill_value = [
     dict(kwargs=dict(),
          out="""\
 a b c
--- 2 3
-1 1 --
+"" 2 3
+1 1 ""
 """
          ),
     dict(kwargs=dict(fill_values=[('1', 'w'), (ascii.masked, 'X')]),
@@ -380,8 +390,8 @@ def check_write_table(test_def, table, fast_writer):
         if 'not in the list of formats with fast writers' not in str(e):
             raise e
         return
-    print('Expected:\n%s' % test_def['out'])
-    print('Actual:\n%s' % out.getvalue())
+    print('Expected:\n{}'.format(test_def['out']))
+    print('Actual:\n{}'.format(out.getvalue()))
     assert [x.strip() for x in out.getvalue().strip().splitlines()] == [
         x.strip() for x in test_def['out'].strip().splitlines()]
 
@@ -402,8 +412,8 @@ def check_write_table_via_table(test_def, table, fast_writer):
         if 'not in the list of formats with fast writers' not in str(e):
             raise e
         return
-    print('Expected:\n%s' % test_def['out'])
-    print('Actual:\n%s' % out.getvalue())
+    print('Expected:\n{}'.format(test_def['out']))
+    print('Actual:\n{}'.format(out.getvalue()))
     assert [x.strip() for x in out.getvalue().strip().splitlines()] == [
         x.strip() for x in test_def['out'].strip().splitlines()]
 
@@ -447,6 +457,48 @@ def test_write_no_data_ipac(fast_writer):
     for test_def in test_defs_no_data:
         check_write_table(test_def, data, fast_writer)
         check_write_table_via_table(test_def, data, fast_writer)
+
+def test_write_invalid_toplevel_meta_ipac():
+    """Write an IPAC table that contains no data but has invalid (incorrectly
+    specified) metadata stored in the top-level metadata and therefore should
+    raise a warning, and check that the warning has been raised"""
+    table = ascii.get_reader(Reader=ascii.Ipac)
+    data = table.read('t/no_data_ipac.dat')
+    data.meta['blah'] = 'extra'
+
+    with catch_warnings(AstropyWarning) as ASwarn:
+        out = StringIO()
+        data.write(out, format='ascii.ipac')
+    assert len(ASwarn) == 1
+    assert "were not written" in str(ASwarn[0].message)
+
+def test_write_invalid_keyword_meta_ipac():
+    """Write an IPAC table that contains no data but has invalid (incorrectly
+    specified) metadata stored appropriately in the ``keywords`` section
+    of the metadata but with invalid format and therefore should raise a
+    warning, and check that the warning has been raised"""
+    table = ascii.get_reader(Reader=ascii.Ipac)
+    data = table.read('t/no_data_ipac.dat')
+    data.meta['keywords']['blah'] = 'invalid'
+
+    with catch_warnings(AstropyWarning) as ASwarn:
+        out = StringIO()
+        data.write(out, format='ascii.ipac')
+    assert len(ASwarn) == 1
+    assert "has been skipped" in str(ASwarn[0].message)
+
+def test_write_valid_meta_ipac():
+    """Write an IPAC table that contains no data and has *correctly* specified
+    metadata.  No warnings should be issued"""
+    table = ascii.get_reader(Reader=ascii.Ipac)
+    data = table.read('t/no_data_ipac.dat')
+    data.meta['keywords']['blah'] = {'value': 'invalid'}
+
+    with catch_warnings(AstropyWarning) as ASwarn:
+        out = StringIO()
+        data.write(out, format='ascii.ipac')
+    assert len(ASwarn) == 0
+
 
 @pytest.mark.parametrize("fast_writer", [True, False])
 def test_write_comments(fast_writer):
@@ -518,8 +570,8 @@ b & 2
     out = StringIO()
     ascii.write(t, out, format='aastex', latexdict=ascii.latexdicts['AA'])
     assert out.getvalue() == expected.replace(
-        'colhead{s}', 'colhead{$\mathrm{s}$}').replace(
-        'colhead{ }', 'colhead{$\mathrm{yr}$}')
+        'colhead{s}', r'colhead{$\mathrm{s}$}').replace(
+        'colhead{ }', r'colhead{$\mathrm{yr}$}')
 
 
 @pytest.mark.parametrize("fast_writer", [True, False])
@@ -629,3 +681,41 @@ def test_write_overwrite_ascii(format, fast_writer, tmpdir):
                 fast_writer=fast_writer)
         t.write(fp, overwrite=True, format=format,
                 fast_writer=fast_writer)
+
+
+fmt_name_classes = list(chain(ascii.core.FAST_CLASSES.items(),
+                              ascii.core.FORMAT_CLASSES.items()))
+@pytest.mark.parametrize("fmt_name_class", fmt_name_classes)
+def test_roundtrip_masked(fmt_name_class):
+    """
+    Round trip a simple masked table through every writable format and confirm
+    that reading back gives the same result.
+    """
+    fmt_name, fmt_cls = fmt_name_class
+
+    if not getattr(fmt_cls, '_io_registry_can_write', True):
+        return
+
+    # Skip tests for fixed_width or HTML without bs4
+    if ((fmt_name == 'html' and not HAS_BEAUTIFUL_SOUP)
+            or fmt_name == 'fixed_width'):
+        return
+
+    t = simple_table(masked=True)
+
+    out = StringIO()
+    fast = fmt_name in ascii.core.FAST_CLASSES
+    try:
+        ascii.write(t, out, format=fmt_name, fast_writer=fast)
+    except ImportError:  # Some failed dependency, e.g. PyYAML, skip test
+        return
+
+    # No-header formats need to be told the column names
+    kwargs = {'names': t.colnames} if 'no_header' in fmt_name else {}
+
+    t2 = ascii.read(out.getvalue(), format=fmt_name, fast_reader=fast, guess=False, **kwargs)
+
+    assert t.colnames == t2.colnames
+    for col, col2 in zip(t.itercols(), t2.itercols()):
+        assert col.dtype.kind == col2.dtype.kind
+        assert np.all(col == col2)

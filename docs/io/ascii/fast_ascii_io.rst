@@ -64,11 +64,13 @@ These parameters are:
  * ``data_Splitter``
  * ``header_Splitter``
 
+.. _fast_conversion_opts:
+
 Parallel and fast conversion options
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 In addition to ``True`` and ``False``, the parameter ``fast_reader`` can also
-be a dict specifying one or both of two additional parameters, ``parallel`` and
-``use_fast_converter``. For example::
+be a dict specifying any of three additional parameters, ``parallel``,
+``use_fast_converter`` and ``exponent_style``. For example::
 
    >>> ascii.read('data.txt', format='basic', fast_reader={'parallel': True, 'use_fast_converter': True}) # doctest: +SKIP
 
@@ -83,6 +85,12 @@ IPython Notebook and so enabling multiprocessing in this context is discouraged.
 
 Setting ``use_fast_converter`` to be ``True`` enables a faster but
 slightly imprecise conversion method for floating-point values, as described below.
+
+The ``exponent_style`` parameter allows to define a different character
+from the default ``'e'`` for exponential formats in the input file.
+The special setting ``'fortran'`` enables auto-detection of any valid
+exponent character under Fortran notation.
+For details see the section on :ref:`fortran_style_exponents`.
 
 Writing
 ^^^^^^^

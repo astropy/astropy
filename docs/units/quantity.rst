@@ -11,7 +11,7 @@ associated with the number.
 Creating Quantity instances
 ---------------------------
 
-|quantity| objects are created through multiplication or division with
+|quantity| objects are created through multiplication with
 :class:`~astropy.units.Unit` objects. For example, to create a |quantity|
 to represent 15 m/s:
 
@@ -19,10 +19,16 @@ to represent 15 m/s:
     >>> 15 * u.m / u.s
     <Quantity 15.0 m / s>
 
-As another example:
+This extends as expected to division by a unit, or using Numpy arrays or Python
+sequences:
 
     >>> 1.25 / u.s
     <Quantity 1.25 1 / s>
+    >>> [1, 2, 3] * u.m
+    <Quantity [ 1., 2., 3.] m>
+    >>> import numpy as np
+    >>> np.array([1, 2, 3]) * u.m
+    <Quantity [ 1., 2., 3.] m>
 
 You can also create instances using the |quantity| constructor directly, by
 specifying a value and unit:
@@ -30,22 +36,16 @@ specifying a value and unit:
     >>> u.Quantity(15, u.m / u.s)
     <Quantity 15.0 m / s>
 
-|quantity| objects can also be created automatically from Numpy arrays
-or Python sequences:
-
-    >>> [1, 2, 3] * u.m
-    <Quantity [ 1., 2., 3.] m>
-    >>> import numpy as np
-    >>> np.array([1, 2, 3]) * u.m
-    <Quantity [ 1., 2., 3.] m>
-
-|quantity| objects can also be created from sequences of |quantity|
-objects, as long as all of their units are equivalent, and will
-automatically convert to Numpy arrays:
+The constructor gives a few more options.  In particular, it allows one to
+merge sequences of |quantity| objects (as long as all of their units are
+equivalent), and to parse simple strings (which may help, e.g., to parse
+configuration files, etc.):    
 
     >>> qlst = [60 * u.s, 1 * u.min]
     >>> u.Quantity(qlst, u.minute)
     <Quantity [ 1.,  1.] min>
+    >>> u.Quantity('15 m/s')
+    <Quantity 15.0 m / s>
 
 Finally, the current unit and value can be accessed via the
 `~astropy.units.quantity.Quantity.unit` and
@@ -371,6 +371,19 @@ Under Python 3 you can use the annotations syntax to provide the units:
 
     >>> myfunction(100*u.arcsec)  # doctest: +SKIP
     Unit("arcsec")
+
+Also under Python 3 only you can define a return decoration, to which the return
+value will be converted, i.e.::
+
+    >>> @u.quantity_input  # doctest: +SKIP
+    ... def myfunction(myarg: u.arcsec) -> u.deg:
+    ...     return myarg*1000
+
+    >>> myfunction(100*u.arcsec)  # doctest: +SKIP
+    <Quantity 27.77777777777778 deg>
+
+This both checks that the return value of your function is consistent with what
+you expect and makes it much neater to display the results of the function.
 
 Representing vectors with units
 -------------------------------

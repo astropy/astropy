@@ -14,7 +14,8 @@ from .. import conf
 from ..file import _File
 from ..header import Header, _pad_length
 from ..util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
-                    itersubclasses, decode_ascii, _get_array_mmap, first)
+                    itersubclasses, decode_ascii, _get_array_mmap, first,
+                    _free_space_check)
 from ..verify import _Verify, _ErrList
 
 from ....extern.six import string_types, add_metaclass
@@ -23,6 +24,7 @@ from ....utils import lazyproperty
 from ....utils.compat import suppress
 from ....utils.compat.funcsigs import signature, Parameter
 from ....utils.exceptions import AstropyUserWarning
+from ....utils.decorators import deprecated_renamed_argument
 
 
 class _Delayed(object):
@@ -332,10 +334,11 @@ class _BaseHDU(object):
         fileobj.seek(hdu._data_offset + hdu._data_size, os.SEEK_SET)
         return hdu
 
-    def writeto(self, name, output_verify='exception', clobber=False,
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3', pending=True)
+    def writeto(self, name, output_verify='exception', overwrite=False,
                 checksum=False):
         """
-        Write the HDU to a new file.  This is a convenience method to
+        Write the HDU to a new file. This is a convenience method to
         provide a user easier output interface if only one HDU needs
         to be written to a file.
 
@@ -352,8 +355,13 @@ class _BaseHDU(object):
             ``"silentfix"`` with ``"+ignore"``, ``+warn``, or ``+exception"
             (e.g. ``"fix+warn"``).  See :ref:`verify` for more info.
 
-        clobber : bool
-            Overwrite the output file if exists.
+        overwrite : bool, optional
+            If ``True``, overwrite the output file if it exists. Raises an
+            ``OSError`` (``IOError`` for Python 2) if ``False`` and the
+            output file exists. Default is ``False``.
+
+            .. versionchanged:: 1.3
+               ``overwrite`` replaces the deprecated ``clobber`` argument.
 
         checksum : bool
             When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards
@@ -363,7 +371,7 @@ class _BaseHDU(object):
         from .hdulist import HDUList
 
         hdulist = HDUList([self])
-        hdulist.writeto(name, output_verify, clobber=clobber,
+        hdulist.writeto(name, output_verify, overwrite=overwrite,
                         checksum=checksum)
 
     @classmethod
@@ -394,13 +402,13 @@ class _BaseHDU(object):
                 np.ndarray((), dtype='ubyte', buffer=data)
             except TypeError:
                 raise TypeError(
-                    'The provided object %r does not contain an underlying '
+                    'The provided object {!r} does not contain an underlying '
                     'memory buffer.  fromstring() requires an object that '
                     'supports the buffer interface such as bytes, str '
                     '(in Python 2.x but not in 3.x), buffer, memoryview, '
                     'ndarray, etc.  This restriction is to ensure that '
                     'efficient access to the array/table data is possible.'
-                    % data)
+                    .format(data))
 
             if header is None:
                 def block_iter(nbytes):
@@ -481,7 +489,6 @@ class _BaseHDU(object):
 
         # Handle checksum
         self._update_checksum(checksum)
-
 
     def _update_uint_scale_keywords(self):
         """
@@ -631,7 +638,6 @@ class _BaseHDU(object):
 
         If this proves too slow a more direct approach may be used.
         """
-
         raw = self._get_raw_data(self._data_size, 'ubyte', self._data_offset)
         if raw is not None:
             fileobj.writearray(raw)
@@ -644,6 +650,15 @@ class _BaseHDU(object):
     # HDUList, eventually the plan is to have this be moved into writeto()
     # somehow...
     def _writeto(self, fileobj, inplace=False, copy=False):
+        try:
+            dirname = os.path.dirname(fileobj._file.name)
+        except AttributeError:
+            dirname = None
+
+        with _free_space_check(self, dirname):
+            self._writeto_internal(fileobj, inplace, copy)
+
+    def _writeto_internal(self, fileobj, inplace, copy):
         # For now fileobj is assumed to be a _File object
         if not inplace or self._new:
             header_offset, _ = self._writeheader(fileobj)
@@ -685,12 +700,12 @@ class _BaseHDU(object):
         if self._data_loaded:
             if self.data is not None:
                 # Seek through the array's bases for an memmap'd array; we
-                # can't rely on the _File object to give us this info since the
-                # user may have replaced the previous mmap'd array
+                # can't rely on the _File object to give us this info since
+                # the user may have replaced the previous mmap'd array
                 if copy or self._data_replaced:
-                    # Of course, if we're copying the data to a new file we
-                    # don't care about flushing the original mmap; instead just
-                    # read it into the new file
+                    # Of course, if we're copying the data to a new file
+                    # we don't care about flushing the original mmap;
+                    # instead just read it into the new file
                     array_mmap = None
                 else:
                     array_mmap = _get_array_mmap(self.data)
@@ -996,8 +1011,8 @@ class _ValidHDU(_BaseHDU, _Verify):
                         if number <= 0 or number > naxis:
                             raise ValueError
                     except ValueError:
-                        err_text = ("NAXISj keyword out of range ('%s' when "
-                                    "NAXIS == %d)" % (keyword, naxis))
+                        err_text = ("NAXISj keyword out of range ('{}' when "
+                                    "NAXIS == {})".format(keyword, naxis))
 
                         def fix(self=self, keyword=keyword):
                             del self._header[keyword]
@@ -1097,8 +1112,8 @@ class _ValidHDU(_BaseHDU, _Verify):
 
         # if the card does not exist
         if index is None:
-            err_text = "'%s' card does not exist." % keyword
-            fix_text = "Fixed by inserting a new '%s' card." % keyword
+            err_text = "'{}' card does not exist.".format(keyword)
+            fix_text = "Fixed by inserting a new '{}' card.".format(keyword)
             if fixable:
                 # use repr to accommodate both string and non-string types
                 # Boolean is also OK in this constructor
@@ -1113,11 +1128,10 @@ class _ValidHDU(_BaseHDU, _Verify):
             # if the supposed location is specified
             if pos is not None:
                 if not pos(index):
-                    err_text = ("'%s' card at the wrong place (card %d)." %
-                                (keyword, index))
-
+                    err_text = ("'{}' card at the wrong place "
+                                "(card {}).".format(keyword, index))
                     fix_text = ("Fixed by moving it to the right place "
-                                "(card %d)." % insert_pos)
+                                "(card {}).".format(insert_pos))
 
                     def fix(self=self, index=index, insert_pos=insert_pos):
                         card = self._header.cards[index]
@@ -1131,9 +1145,10 @@ class _ValidHDU(_BaseHDU, _Verify):
             if test:
                 val = self._header[keyword]
                 if not test(val):
-                    err_text = ("'%s' card has invalid value '%s'." %
-                                (keyword, val))
-                    fix_text = "Fixed by setting a new value '%s'." % fix_value
+                    err_text = ("'{}' card has invalid value '{}'.".format(
+                            keyword, val))
+                    fix_text = ("Fixed by setting a new value '{}'.".format(
+                            fix_value))
 
                     if fixable:
                         def fix(self=self, keyword=keyword, val=fix_value):
@@ -1180,7 +1195,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         cs = self._calculate_datasum(blocking)
 
         if when is None:
-            when = 'data unit checksum updated %s' % self._get_timestamp()
+            when = 'data unit checksum updated {}'.format(self._get_timestamp())
 
         self._header[datasum_keyword] = (str(cs), when)
         return cs
@@ -1233,7 +1248,7 @@ class _ValidHDU(_BaseHDU, _Verify):
             data_cs = self._calculate_datasum(blocking)
 
         if when is None:
-            when = 'HDU checksum updated %s' % self._get_timestamp()
+            when = 'HDU checksum updated {}'.format(self._get_timestamp())
 
         # Add the CHECKSUM card to the header with a value of all zeros.
         if datasum_keyword in self._header:
@@ -1565,19 +1580,23 @@ class ExtensionHDU(_ValidHDU):
 
         raise NotImplementedError
 
-    def writeto(self, name, output_verify='exception', clobber=False,
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3', pending=True)
+    def writeto(self, name, output_verify='exception', overwrite=False,
                 checksum=False):
         """
         Works similarly to the normal writeto(), but prepends a default
         `PrimaryHDU` are required by extension HDUs (which cannot stand on
         their own).
+
+        .. versionchanged:: 1.3
+           ``overwrite`` replaces the deprecated ``clobber`` argument.
         """
 
         from .hdulist import HDUList
         from .image import PrimaryHDU
 
         hdulist = HDUList([PrimaryHDU(), self])
-        hdulist.writeto(name, output_verify, clobber=clobber,
+        hdulist.writeto(name, output_verify, overwrite=overwrite,
                         checksum=checksum)
 
     def _verify(self, option='warn'):

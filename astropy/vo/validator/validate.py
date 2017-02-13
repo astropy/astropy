@@ -218,7 +218,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
     for key in db_file:
         n[key] = len(js_tree[key])
         n_tot += n[key]
-        js_tree[key].to_json(db_file[key], clobber=True)
+        js_tree[key].to_json(db_file[key], overwrite=True)
         if verbose:
             log.info('{0}: {1} catalog(s)'.format(key, n[key]))
 

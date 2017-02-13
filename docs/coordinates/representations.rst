@@ -132,6 +132,8 @@ methods as are available to `~numpy.ndarray`::
        [( 4.,  14.,  24.), ( 5.,  15.,  25.)]]>
 
 
+.. _astropy-coordinates-representations-arithmetic:
+
 Vector arithmetic
 ^^^^^^^^^^^^^^^^^
 

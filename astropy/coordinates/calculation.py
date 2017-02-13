@@ -18,6 +18,9 @@ from . import get_sun
 
 __all__ = []
 
+class HumanError(ValueError): pass
+class CelestialError(ValueError): pass
+
 def get_sign(dt):
     """
     """
@@ -50,6 +53,9 @@ def get_sign(dt):
 
 _VALID_SIGNS = ["capricorn", "aquarius", "pisces", "aries", "taurus", "gemini",
                 "cancer", "leo", "virgo", "libra", "scorpio", "sagittarius"]
+# Some of the constellation names map to different astrological "sign names".
+# Astrologers really needs to talk to the IAU...
+_CONST_TO_SIGNS = {'capricornus': 'capricorn', 'scorpius': 'scorpio'}
 
 def horoscope(birthday, corrected=True):
     """
@@ -86,30 +92,25 @@ def horoscope(birthday, corrected=True):
     today = datetime.now()
     if corrected:
         zodiac_sign = get_sun(birthday).get_constellation().lower()
+        zodiac_sign = _CONST_TO_SIGNS.get(zodiac_sign, zodiac_sign)
         if zodiac_sign not in _VALID_SIGNS:
-            raise ValueError('On your birthday the sun was in {}, which is not '
+            raise HumanError('On your birthday the sun was in {}, which is not '
                              'a sign of the zodiac.  You must not exist.  Or '
                              'maybe you can settle for '
                              'corrected=False.'.format(zodiac_sign.title()))
     else:
         zodiac_sign = get_sign(birthday.to_datetime())
-    url = "http://www.findyourfate.com/rss/dailyhoroscope-feed.asp?sign={sign}"
+    url = "http://www.findyourfate.com/rss/dailyhoroscope-feed.asp?sign={sign}&id=45"
 
     f = urlopen(url.format(sign=zodiac_sign.capitalize()))
     try:  # urlopen in py2 is not a decorator
         doc = parse(f)
+        item = doc.getElementsByTagName('item')[0]
+        desc = item.getElementsByTagName('description')[0].childNodes[0].nodeValue
+    except:
+        raise CelestialError("Invalid response from celestial gods (failed to load horoscope).")
     finally:
         f.close()
-
-    try:
-        item = doc.getElementsByTagName('item')[0]
-    except IndexError:
-        raise ValueError("Invalid response from celestial gods (failed to load horoscope).")
-
-    try:
-        desc = item.getElementsByTagName('description')[0].childNodes[0].nodeValue
-    except (IndexError, AttributeError):
-        raise ValueError("Invalid response from celestial gods (failed to load horoscope).")
 
     print("*"*79)
     color_print("Horoscope for {} on {}:".format(zodiac_sign.capitalize(), today.strftime("%Y-%m-%d")),

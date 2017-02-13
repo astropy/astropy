@@ -2,19 +2,10 @@
 Decorating functions to accept NDData objects
 *********************************************
 
-.. important:: The functionality described here is still experimental and will
-               likely evolve over time as more packages make use of it.
-
-Introduction
-============
-
 The `astropy.nddata` module includes a decorator
 :func:`~astropy.nddata.support_nddata` that makes it easy for developers and
 users to write functions that can accept either :class:`~astropy.nddata.NDData`
 objects and also separate arguments.
-
-Getting started
-===============
 
 Let's consider the following function::
 
@@ -41,11 +32,10 @@ of the arguments are also properties of the ``NDData`` object, and passes them
 as individual arguments. The function can also be called with separate
 arguments as if it wasn't decorated.
 
-An exception is raised if an ``NDData`` property is set but the function does
+An warning is emitted if an ``NDData`` property is set but the function does
 not accept it - for example, if ``wcs`` is set, but the function cannot support
-WCS objects, an error would be raised. On the other hand, if an argument in the
-function does not exist in the ``NDData`` object or is not set, it is simply
-left to its default value.
+WCS objects. On the other hand, if an argument in the function does not exist
+in the ``NDData`` object or is not set, it is simply left to its default value.
 
 If the function call succeeds, then the decorator returns the values from the
 function unmodified by default. However, in some cases we may want to return
@@ -68,4 +58,3 @@ sub-classes (and sub-classes of those) using the ``accepts`` option::
     @support_nddata(accepts=CCDImage)
     def test(data, wcs=None, unit=None, n_iterations=3):
         ...
-

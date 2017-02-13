@@ -52,15 +52,15 @@ def table_info(tbl, option='attributes', out=''):
 
     Parameters
     ----------
-    option: str, function, list of (str or function)
+    option : str, function, list of (str or function)
         Info option (default='attributes')
-    out: file-like object, None
+    out : file-like object, None
         Output destination (default=sys.stdout).  If None then a
         Table with information attributes is returned
 
     Returns
     -------
-    info: `~astropy.table.Table` if out==None else None
+    info : `~astropy.table.Table` if out==None else None
     """
     from .table import Table
 
@@ -89,10 +89,6 @@ def table_info(tbl, option='attributes', out=''):
 
     # Since info is going to a filehandle for viewing then remove uninteresting
     # columns.
-    for name in info.colnames:
-        if np.all(info[name] == ''):
-            del info[name]
-
     if 'class' in info.colnames:
         # Remove 'class' info column if all table columns are the same class
         # and they are the default column class for that table.
@@ -106,6 +102,10 @@ def table_info(tbl, option='attributes', out=''):
     # Standard attributes has 'length' but this is typically redundant
     if 'length' in info.colnames and np.all(info['length'] == len(tbl)):
         del info['length']
+
+    for name in info.colnames:
+        if info[name].dtype.kind in 'SU' and np.all(info[name] == ''):
+            del info[name]
 
     if tbl.colnames:
         outlines.extend(info.pformat(max_width=-1, max_lines=-1, show_unit=False))

@@ -7,11 +7,8 @@ import re
 import warnings
 from collections import OrderedDict
 
-import numpy as np
-
 from .. import registry as io_registry
 from ... import units as u
-from ...extern import six
 from ...extern.six import string_types
 from ...table import Table
 from ...utils.exceptions import AstropyUserWarning
@@ -161,7 +158,7 @@ def read_table_fits(input, hdu=None):
     for col in table.columns:
         if col.unit is not None:
             t[col.name].unit = u.Unit(
-                col.unit, format='fits', parse_strict='warn')
+                col.unit, format='fits', parse_strict='silent')
 
     # TODO: deal properly with unsigned integers
 

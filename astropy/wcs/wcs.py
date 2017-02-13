@@ -444,7 +444,7 @@ class WCS(WCSBase):
             det2im = self._read_det2im_kw(header, fobj, err=minerr)
             cpdis = self._read_distortion_kw(
                 header, fobj, dist='CPDIS', err=minerr)
-            sip = self._read_sip_kw(header)
+            sip = self._read_sip_kw(header, wcskey=key)
             self._remove_sip_kw(header)
 
             header_string = header.tostring()
@@ -997,7 +997,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                     if m is not None):
             del header[key]
 
-    def _read_sip_kw(self, header):
+    def _read_sip_kw(self, header, wcskey=""):
         """
         Reads `SIP`_ header keywords and returns a `~astropy.wcs.Sip`
         object.
@@ -1038,7 +1038,8 @@ reduce these to 2 dimensions using the naxis kwarg.
 
             del header[str('A_ORDER')]
             del header[str('B_ORDER')]
-            ctype=[header['CTYPE{0}'.format(nax)] for nax in range(1, self.naxis + 1)]
+
+            ctype = [header['CTYPE{0}{1}'.format(nax, wcskey)] for nax in range(1, self.naxis + 1)]
             if any(not ctyp.endswith('-SIP') for ctyp in ctype):
                 message = """
                 Inconsistent SIP distortion information is present in the FITS header and the WCS object:
@@ -1898,7 +1899,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                HST's ACS/WFC detector, which has the strongest
                distortions of all HST instruments, testing has
                shown that enabling this option would lead to a about
-               50-100\% penalty in computational time (depending on
+               50-100% penalty in computational time (depending on
                specifics of the image, geometric distortions, and
                number of input points to be converted). Therefore,
                for HST and possibly instruments, it is recommended
@@ -1961,7 +1962,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
             .. note::
                Based on our testing using HST ACS/WFC images, setting
-               ``detect_divergence`` to `True` will incur about 5-20\%
+               ``detect_divergence`` to `True` will incur about 5-20%
                performance penalty with the larger penalty
                corresponding to ``adaptive`` set to `True`.
                Because the benefits of enabling this
@@ -2629,7 +2630,8 @@ reduce these to 2 dimensions using the naxis kwarg.
         """
         return str(self.to_header(relax))
 
-    def footprint_to_file(self, filename=None, color='green', width=2):
+    def footprint_to_file(self, filename='footprint.reg', color='green',
+                          width=2, coordsys=None):
         """
         Writes out a `ds9`_ style regions file. It can be loaded
         directly by `ds9`_.
@@ -2644,29 +2646,49 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         width : int, optional
             Width of the region line.
-        """
-        if not filename:
-            filename = 'footprint.reg'
-        comments = '# Region file format: DS9 version 4.0 \n'
-        comments += ('# global color=green font="helvetica 12 bold ' +
-                     'select=1 highlite=1 edit=1 move=1 delete=1 ' +
-                     'include=1 fixed=0 source\n')
 
-        f = open(filename, 'a')
-        f.write(comments)
-        f.write('linear\n')
-        f.write('polygon(')
-        self.calc_footprint().tofile(f, sep=',')
-        f.write(') # color={0}, width={1:d} \n'.format(color, width))
-        f.close()
+        coordsys : str, optional
+            Coordinate system. If not specified (default), the ``radesys``
+            value is used. For all possible values, see
+            http://ds9.si.edu/doc/ref/region.html#RegionFileFormat
+
+        """
+        comments = ('# Region file format: DS9 version 4.0 \n'
+                    '# global color=green font="helvetica 12 bold '
+                    'select=1 highlite=1 edit=1 move=1 delete=1 '
+                    'include=1 fixed=0 source\n')
+
+        coordsys = coordsys or self.wcs.radesys
+
+        if coordsys not in ('PHYSICAL', 'IMAGE', 'FK4', 'B1950', 'FK5',
+                            'J2000', 'GALACTIC', 'ECLIPTIC', 'ICRS', 'LINEAR',
+                            'AMPLIFIER', 'DETECTOR'):
+            raise ValueError("Coordinate system '{}' is not supported. A valid"
+                             " one can be given with the 'coordsys' argument."
+                             .format(coordsys))
+
+        with open(filename, mode='w') as f:
+            f.write(comments)
+            f.write('{}\n'.format(coordsys))
+            f.write('polygon(')
+            self.calc_footprint().tofile(f, sep=',')
+            f.write(') # color={0}, width={1:d} \n'.format(color, width))
 
     @property
     def _naxis1(self):
         return self._naxis[0]
 
+    @_naxis1.setter
+    def _naxis1(self, value):
+        self._naxis[0] = value
+
     @property
     def _naxis2(self):
         return self._naxis[1]
+
+    @_naxis2.setter
+    def _naxis2(self, value):
+        self._naxis[1] = value
 
     def _get_naxis(self, header=None):
         _naxis = []
@@ -2959,8 +2981,18 @@ reduce these to 2 dimensions using the naxis kwarg.
                 else:
                     wcs_new.wcs.crpix[wcs_index] -= iview.start
 
-            nitems = len(builtins.range(self._naxis[wcs_index])[iview])
-            wcs_new._naxis[wcs_index] = nitems
+            try:
+                # range requires integers but the other attributes can also
+                # handle arbitary values, so this needs to be in a try/except.
+                nitems = len(builtins.range(self._naxis[wcs_index])[iview])
+            except TypeError as exc:
+                if 'indices must be integers' not in str(exc):
+                    raise
+                warnings.warn("NAXIS{0} attribute is not updated because at "
+                              "least one indix ('{1}') is no integer."
+                              "".format(wcs_index, iview), AstropyUserWarning)
+            else:
+                wcs_new._naxis[wcs_index] = nitems
 
         return wcs_new
 
@@ -3038,11 +3070,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         """
         Compatibility hook for Matplotlib and WCSAxes.
 
-        This functionality requires the WCSAxes package to work. The reason
-        we include this here is that it allows users to use WCSAxes without
-        having to explicitly import WCSAxes, which means that if in future we
-        merge WCSAxes into the Astropy core package, the API will remain the
-        same. With this method, one can do:
+        With this method, one can do:
 
             from astropy.wcs import WCS
             import matplotlib.pyplot as plt
@@ -3054,18 +3082,10 @@ reduce these to 2 dimensions using the naxis kwarg.
             ...
 
         and this will generate a plot with the correct WCS coordinates on the
-        axes. See http://wcsaxes.readthedocs.io for more information.
+        axes.
         """
-
-        try:
-            from wcsaxes import WCSAxes
-        except ImportError:
-            raise ImportError("Using WCS instances as Matplotlib projections "
-                              "requires the WCSAxes package to be installed. "
-                              "See http://wcsaxes.readthedocs.io for more "
-                              "details.")
-        else:
-            return WCSAxes, {'wcs': self}
+        from ..visualization.wcsaxes import WCSAxes
+        return WCSAxes, {'wcs': self}
 
 
 def __WCS_unpickle__(cls, dct, fits_data):

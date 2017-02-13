@@ -136,20 +136,20 @@ def verify_checksums(filename):
     except UserWarning as w:
         remainder = '.. ' + ' '.join(str(w).split(' ')[1:]).strip()
         # if "Checksum" in str(w) or "Datasum" in str(w):
-        log.warning('BAD %r %s' % (filename, remainder))
+        log.warning('BAD {!r} {}'.format(filename, remainder))
         return 1
     if not OPTIONS.ignore_missing:
         for i, hdu in enumerate(hdulist):
             if not hdu._checksum:
-                log.warning('MISSING %r .. Checksum not found in HDU #%d' %
-                         (filename, i))
+                log.warning('MISSING {!r} .. Checksum not found '
+                            'in HDU #{}'.format(filename, i))
                 return 1
             if not hdu._datasum:
-                log.warning('MISSING %r .. Datasum not found in HDU #%d' %
-                         (filename, i))
+                log.warning('MISSING {!r} .. Datasum not found '
+                            'in HDU #{}'.format(filename, i))
                 return 1
     if not errors:
-        log.info('OK %r' % filename)
+        log.info('OK {!r}'.format(filename))
     return errors
 
 
@@ -160,8 +160,8 @@ def verify_compliance(filename):
     try:
         hdulist.verify('exception')
     except fits.VerifyError as exc:
-        log.warning('NONCOMPLIANT %r .. %s' %
-                 (filename), str(exc).replace('\n', ' '))
+        log.warning('NONCOMPLIANT {!r} .. {}'.format(
+                filename), str(exc).replace('\n', ' '))
         return 1
     return 0
 
@@ -176,8 +176,8 @@ def update(filename):
     hdulist = fits.open(filename, do_not_scale_image_data=True)
     try:
         output_verify = 'silentfix' if OPTIONS.compliance else 'ignore'
-        hdulist.writeto(filename, checksum=OPTIONS.checksum_kind, clobber=True,
-                        output_verify=output_verify)
+        hdulist.writeto(filename, checksum=OPTIONS.checksum_kind,
+                        overwrite=True, output_verify=output_verify)
     except fits.VerifyError:
         pass  # unfixable errors already noted during verification phase
     finally:
@@ -200,7 +200,7 @@ def process_file(filename):
             update(filename)
         return checksum_errors + compliance_errors
     except Exception as e:
-        log.error('EXCEPTION %r .. %s' % (filename, e))
+        log.error('EXCEPTION {!r} .. {}'.format(filename, e))
         return 1
 
 
@@ -216,5 +216,5 @@ def main():
     for filename in fits_files:
         errors += process_file(filename)
     if errors:
-        log.warning('%d errors' % errors)
+        log.warning('{} errors'.format(errors))
     return int(bool(errors))

@@ -40,7 +40,7 @@ User Documentation
 
 .. only:: html
 
-    :doc:`whatsnew/1.2`
+    :doc:`whatsnew/1.3`
     -------------------
 
 .. only:: latex
@@ -159,7 +159,7 @@ necessary.
 For astropy-helpers
 -------------------
 
-As of Astropy v0.4, Astropy and many affiliated packages use a package of
+Astropy and many affiliated packages use a package of
 utilities called astropy-helpers during building and installation.  If you have
 any build/installation issue--particularly if you're getting a traceback
 mentioning the ``astropy_helpers`` or ``ah_bootstrap`` modules--please send a

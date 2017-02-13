@@ -25,10 +25,10 @@ def compare_arrays(arr1in, arr2in, verbose=False):
             if n1 not in arr1.dtype.names:
                 n1 = n1.upper()
                 if n1 not in arr1.dtype.names:
-                    raise ValueError('field name %s not found in array 1' % n2)
+                    raise ValueError('field name {} not found in array 1'.format(n2))
 
         if verbose:
-            sys.stdout.write("    testing field: '%s'\n" % n2)
+            sys.stdout.write("    testing field: '{}'\n".format(n2))
             sys.stdout.write('        shape...........')
         if arr2[n2].shape != arr1[n1].shape:
             nfail += 1
@@ -43,8 +43,8 @@ def compare_arrays(arr1in, arr2in, verbose=False):
                 nfail += 1
                 if verbose:
                     sys.stdout.write(
-                        '\n        %s elements in field %s differ\n' %
-                        (w.size, n2))
+                        '\n        {} elements in field {} differ\n'.format(
+                            w.size, n2))
             else:
                 if verbose:
                     sys.stdout.write('OK\n')
@@ -55,7 +55,7 @@ def compare_arrays(arr1in, arr2in, verbose=False):
         return True
     else:
         if verbose:
-            sys.stdout.write('%d differences found\n' % nfail)
+            sys.stdout.write('{} differences found\n'.format(nfail))
         return False
 
 
@@ -80,7 +80,7 @@ class TestStructured(FitsTestCase):
         st = get_test_data()
 
         outfile = self.temp('test.fits')
-        fits.writeto(outfile, data1, clobber=True)
+        fits.writeto(outfile, data1, overwrite=True)
         fits.append(outfile, data2)
 
         fits.append(outfile, st)
