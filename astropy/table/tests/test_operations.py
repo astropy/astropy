@@ -387,7 +387,6 @@ class TestJoin():
         assert t12['c_2'].info.format == '%6s'
         assert t12['c_2'].info.description == 't2_c'
 
-
     def test_join_multidimensional(self, operation_table_type):
         self._setup(operation_table_type)
 
@@ -630,62 +629,8 @@ class TestVStack():
                                                     '0.0 foo',
                                                     '1.0  --']
 
-    def test_col_meta_merge_table(self):
-        self._setup(Table)
-        t1 = self.t1
-        t2 = self.t2
-        t4 = self.t4
-
-        # Key col 'a', should last value ('km')
-        t1['a'].unit = 'cm'
-        t2['a'].unit = 'm'
-        t4['a'].unit = 'km'
-
-        # Key col 'a' format should take last when all match
-        t1['a'].format = '%0d'
-        t2['a'].format = '%0d'
-        t4['a'].format = '%0d'
-
-        # Key col 'b', take first value 't1_b'
-        t1['b'].description = 't1_b'
-
-        # Key col 'b', take first non-empty value '%6s'
-        t4['b'].format = '%6s'
-
-        # Key col 'a', should be merged meta
-        t1['a'].meta.update(OrderedDict([('b', [1, 2]), ('c', {'a': 1}), ('d', 1)]))
-        t2['a'].meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
-        t4['a'].meta.update(OrderedDict([('b', [5, 6]), ('c', {'c': 1}), ('e', 1)]))
-
-        # Key col 'b', should be meta2
-        t2['b'].meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
-
-        # All these should pass through
-        t2['c'].unit = 'm'
-        t2['c'].format = '%6s'
-        t2['c'].description = 't2_c'
-
-        with catch_warnings(metadata.MergeConflictWarning) as warning_lines:
-            out = table.vstack([t1, t2, t4], join_type='outer')
-
-        assert warning_lines[0].category == metadata.MergeConflictWarning
-        assert ("In merged column 'a' the 'unit' attribute does not match (cm != m)"
-                in str(warning_lines[0].message))
-        assert warning_lines[1].category == metadata.MergeConflictWarning
-        assert ("In merged column 'a' the 'unit' attribute does not match (m != km)"
-                in str(warning_lines[1].message))
-        assert out['a'].unit == 'km'
-        assert out['a'].format == '%0d'
-        assert out['b'].description == 't1_b'
-        assert out['b'].format == '%6s'
-        assert out['a'].meta == self.meta_merge
-        assert out['b'].meta == OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)])
-        assert out['c'].unit == 'm'
-        assert out['c'].format == '%6s'
-        assert out['c'].description == 't2_c'
-
-    def test_col_meta_merge_qtable(self):
-        self._setup(QTable)
+    def test_col_meta_merge_inner(self, operation_table_type):
+        self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
         t4 = self.t4
@@ -694,6 +639,77 @@ class TestVStack():
         t1['a'].info.unit = 'cm'
         t2['a'].info.unit = 'm'
         t4['a'].info.unit = 'km'
+
+        # Key col 'a' format should take last when all match
+        t1['a'].info.format = '%f'
+        t2['a'].info.format = '%f'
+        t4['a'].info.format = '%f'
+
+        # Key col 'b', take first value 't1_b'
+        t1['b'].info.description = 't1_b'
+
+        # Key col 'b', take first non-empty value '%6s'
+        t4['b'].info.format = '%6s'
+
+        # Key col 'a', should be merged meta
+        t1['a'].info.meta.update(OrderedDict([('b', [1, 2]), ('c', {'a': 1}), ('d', 1)]))
+        t2['a'].info.meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
+        t4['a'].info.meta.update(OrderedDict([('b', [5, 6]), ('c', {'c': 1}), ('e', 1)]))
+
+        # Key col 'b', should be meta2
+        t2['b'].info.meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
+
+        with catch_warnings(metadata.MergeConflictWarning) as warning_lines:
+            out = table.vstack([t1, t2, t4], join_type='inner')
+
+        if operation_table_type is Table:
+            assert warning_lines[0].category == metadata.MergeConflictWarning
+            assert ("In merged column 'a' the 'unit' attribute does not match (cm != m)"
+                    in str(warning_lines[0].message))
+            assert warning_lines[1].category == metadata.MergeConflictWarning
+            assert ("In merged column 'a' the 'unit' attribute does not match (m != km)"
+                    in str(warning_lines[1].message))
+            # Check units are suitably ignored for a regular Table
+            assert out.pformat() == ['   a       b   ',
+                                     '   km          ',
+                                     '-------- ------',
+                                     '0.000000    foo',
+                                     '1.000000    bar',
+                                     '2.000000    pez',
+                                     '3.000000    sez',
+                                     '0.000000    foo',
+                                     '1.000000    bar']
+        else:
+            assert len(warning_lines) == 0
+            # Check QTable correctly dealt with units.
+            assert out.pformat() == ['   a       b   ',
+                                     '   km          ',
+                                     '-------- ------',
+                                     '0.000000    foo',
+                                     '0.000010    bar',
+                                     '0.002000    pez',
+                                     '0.003000    sez',
+                                     '0.000000    foo',
+                                     '1.000000    bar']
+        assert out['a'].info.unit == 'km'
+        assert out['a'].info.format == '%f'
+        assert out['b'].info.description == 't1_b'
+        assert out['b'].info.format == '%6s'
+        assert out['a'].info.meta == self.meta_merge
+        assert out['b'].info.meta == OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)])
+
+    def test_col_meta_merge_outer(self, operation_table_type):
+        if operation_table_type is QTable:
+            pytest.xfail('Quantity columns do not support masking.')
+        self._setup(operation_table_type)
+        t1 = self.t1
+        t2 = self.t2
+        t4 = self.t4
+
+        # Key col 'a', should last value ('km')
+        t1['a'].unit = 'cm'
+        t2['a'].unit = 'm'
+        t4['a'].unit = 'km'
 
         # Key col 'a' format should take last when all match
         t1['a'].info.format = '%0d'
@@ -714,16 +730,29 @@ class TestVStack():
         # Key col 'b', should be meta2
         t2['b'].info.meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
 
-        with catch_warnings(metadata.MergeConflictWarning) as warning_lines:
-            out = table.vstack([t1, t2, t4], join_type='inner')
+        # All these should pass through
+        t2['c'].unit = 'm'
+        t2['c'].info.format = '%6s'
+        t2['c'].info.description = 't2_c'
 
-        assert len(warning_lines) == 0
-        assert out['a'].info.unit == 'km'
+        with catch_warnings(metadata.MergeConflictWarning) as warning_lines:
+            out = table.vstack([t1, t2, t4], join_type='outer')
+
+        assert warning_lines[0].category == metadata.MergeConflictWarning
+        assert ("In merged column 'a' the 'unit' attribute does not match (cm != m)"
+                in str(warning_lines[0].message))
+        assert warning_lines[1].category == metadata.MergeConflictWarning
+        assert ("In merged column 'a' the 'unit' attribute does not match (m != km)"
+                in str(warning_lines[1].message))
+        assert out['a'].unit == 'km'
         assert out['a'].info.format == '%0d'
         assert out['b'].info.description == 't1_b'
         assert out['b'].info.format == '%6s'
         assert out['a'].info.meta == self.meta_merge
         assert out['b'].info.meta == OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)])
+        assert out['c'].info.unit == 'm'
+        assert out['c'].info.format == '%6s'
+        assert out['c'].info.description == 't2_c'
 
     def test_vstack_one_table(self, operation_table_type):
         self._setup(operation_table_type)
