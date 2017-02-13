@@ -242,6 +242,9 @@ Bug Fixes
 
 - ``astropy.table``
 
+  - Fix problem where key for caching column format function was not
+    sufficiently unique. [#5803]
+
 - ``astropy.time``
 
 - ``astropy.units``
