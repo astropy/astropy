@@ -13,6 +13,7 @@ from numpy.testing.utils import (assert_allclose, assert_array_equal,
 
 from ...extern.six.moves import cPickle as pickle
 from ...tests.helper import pytest
+from ...utils.metadata import MergeConflictWarning
 
 from ..core import Model, ModelDefinitionError
 from ..parameters import Parameter
@@ -887,3 +888,15 @@ def test_pickle_compound_fallback():
     gg = (Gaussian1D + Gaussian1D)()
     with pytest.raises(RuntimeError):
         pickle.dumps(gg)
+
+
+def test_meta():
+    """Test combining metadata from individual models."""
+    m1 = Const1D(meta={'key1': 'foo'})
+    m2 = Const1D(meta={'key1': 'bar', 'key2': 2})
+    m = m1 + m2
+
+    with pytest.warns(MergeConflictWarning):
+        meta = m.meta
+
+    assert meta == m2.meta

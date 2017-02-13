@@ -1763,6 +1763,8 @@ BINARY_OPERATORS = {
     '&': _join_operator
 }
 
+# This is for joining metadata in a compound model.
+METADATA_OPERATORS = defaultdict(lambda: metadata.merge)
 
 _ORDER_OF_OPERATORS = [('|',), ('&',), ('+', '-'), ('*', '/'), ('**',)]
 OPERATOR_PRECEDENCE = {}
@@ -2484,6 +2486,20 @@ class _CompoundModel(Model):
     @sharedmethod
     def _get_submodels(self):
         return self.__class__._get_submodels()
+
+    @staticmethod
+    def _model_meta_getter(idx, model):
+        if isinstance(model, Model):
+            meta = model.meta
+        else:  # Already metadata (last step of ExpressionTree operation)
+            meta = model
+        return meta
+
+    @property
+    def meta(self):
+        """Merged metadata from individual models."""
+        return self._tree.evaluate(METADATA_OPERATORS,
+                                   getter=self.__class__._model_meta_getter)
 
 
 def custom_model(*args, **kwargs):
