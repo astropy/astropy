@@ -124,16 +124,13 @@ Primary HDU:\n\n   Data contains differences:
         assert err == "Cannot accept both '-r' and '-d' parameters. '-d' is deprecated and " \
                       "will be removed in a future version. Use '-r' instead."
 
-    @pytest.mark.skip(reason="Problems when capturing stderr")
-    def test_wildcard(self, capsys):
+    def test_wildcard(self):
         tmp1 = self.temp("tmp_file1")
         testargs = [tmp1+"*", "ACME"]
         sys.argv += testargs
         with pytest.raises(SystemExit) as e:
             fitsdiff.main()
         assert e.value.code == 2
-        out, err = capsys.readouterr()
-        assert err == "ERROR: Wildcard pattern '{}' did not match any files.\n".format(tmp1+"*")
 
     def test_not_quiet(self, capsys):
         a = np.arange(100).reshape((10, 10))
