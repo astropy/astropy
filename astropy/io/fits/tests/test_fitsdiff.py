@@ -1,0 +1,150 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+import sys
+
+import numpy as np
+
+from . import FitsTestCase
+from ..hdu import PrimaryHDU
+from ..scripts import fitsdiff
+from ....tests.helper import pytest
+from ....version import version
+
+class TestFITSDiff_script(FitsTestCase):
+    def setup_method(self, method):
+        self.sys_argv_orig = sys.argv
+        sys.argv = ["fitsdiff"]
+
+    def teardown_method(self, method):
+        sys.argv = self.sys_argv_orig
+
+    def test_noargs(self):
+        with pytest.raises(SystemExit) as e:
+            fitsdiff.main()
+        assert e.value.code == 2
+
+    def test_oneargargs(self):
+        testargs = ["file1"]
+        sys.argv += testargs
+        with pytest.raises(SystemExit) as e:
+            fitsdiff.main()
+        assert e.value.code == 2
+
+    def test_nodiff(self):
+        a = np.arange(100).reshape((10, 10))
+        hdu_a = PrimaryHDU(data=a)
+        b = a.copy()
+        hdu_b = PrimaryHDU(data=b)
+        tmp_a = self.temp('testa.fits')
+        tmp_b = self.temp('testb.fits')
+        hdu_a.writeto(tmp_a)
+        hdu_b.writeto(tmp_b)
+        testargs = [tmp_a, tmp_b]
+        sys.argv += testargs
+        numdiff = fitsdiff.main()
+        assert numdiff == 0
+
+    def test_onediff(self):
+        a = np.arange(100).reshape((10, 10))
+        hdu_a = PrimaryHDU(data=a)
+        b = a.copy()
+        b[1, 0] = 12
+        hdu_b = PrimaryHDU(data=b)
+        tmp_a = self.temp('testa.fits')
+        tmp_b = self.temp('testb.fits')
+        hdu_a.writeto(tmp_a)
+        hdu_b.writeto(tmp_b)
+        testargs = [tmp_a, tmp_b]
+        sys.argv += testargs
+        numdiff = fitsdiff.main()
+        assert numdiff == 1
+
+    def s_test_rtol(self):
+        a = np.arange(100).reshape((10, 10))
+        hdu_a = PrimaryHDU(data=a)
+        b = a.copy()
+        b[1, 0] = 11
+        hdu_b = PrimaryHDU(data=b)
+        tmp_a = self.temp('testa.fits')
+        tmp_b = self.temp('testb.fits')
+        hdu_a.writeto(tmp_a)
+        hdu_b.writeto(tmp_b)
+        testargs = ["-a", "2", tmp_a, tmp_b]
+        sys.argv += testargs
+        numdiff = fitsdiff.main()
+        assert numdiff == 0 # FIXME
+
+    def test_fitsdiff_script_both_d_and_r(self, capsys):
+        a = np.arange(100).reshape((10, 10))
+        hdu_a = PrimaryHDU(data=a)
+        b = a.copy()
+        hdu_b = PrimaryHDU(data=b)
+        tmp_a = self.temp('testa.fits')
+        tmp_b = self.temp('testb.fits')
+        hdu_a.writeto(tmp_a)
+        hdu_b.writeto(tmp_b)
+        testargs = ["-r", "1e-4", "-d", "1e-2", tmp_a, tmp_b]
+        sys.argv += testargs
+        with pytest.raises(SystemExit) as e:
+            fitsdiff.main()
+        assert e.value.code == 2
+        out, err = capsys.readouterr()
+        assert err == "Cannot accept both '-r' and '-d' parameters. '-d' is deprecated and will be removed in a future version. Use '-r' instead."
+
+    def test_wildcard(self, capsys):
+        a = np.arange(100).reshape((10, 10))
+        hdu_a = PrimaryHDU(data=a)
+        b = a.copy()
+        hdu_b = PrimaryHDU(data=b)
+        tmp_a = self.temp('testa.fits')
+        tmp_b = self.temp('testb.fits')
+        hdu_a.writeto(tmp_a)
+        hdu_b.writeto(tmp_b)
+        testargs = [self.temp("tmp_file1*"), self.temp("tmp_file2")]
+        sys.argv += testargs
+        with pytest.raises(SystemExit) as e:
+            fitsdiff.main()
+        assert e.value.code == 2
+        out, err = capsys.readouterr()
+        assert err == "ERROR: Wildcard pattern '{}' did not match any files.\n".format(self.temp("tmp_file1*"))
+
+    def test_not_quiet(self, capsys):
+        a = np.arange(100).reshape((10, 10))
+        hdu_a = PrimaryHDU(data=a)
+        b = a.copy()
+        hdu_b = PrimaryHDU(data=b)
+        tmp_a = self.temp('testa.fits')
+        tmp_b = self.temp('testb.fits')
+        hdu_a.writeto(tmp_a)
+        hdu_b.writeto(tmp_b)
+        testargs = [tmp_a, tmp_b]
+        sys.argv += testargs
+        numdiff = fitsdiff.main()
+        assert numdiff == 0
+        out, err = capsys.readouterr()
+        assert out == """
+ fitsdiff: {}
+ a: {}
+ b: {}
+ Maximum number of different data values to be reported: 10
+ Relative tolerance: 0.0, Absolute tolerance: 0.0
+
+No differences found.\n""".format(version, tmp_a, tmp_b)
+        assert err == ""
+
+    def test_quiet(self, capsys):
+        a = np.arange(100).reshape((10, 10))
+        hdu_a = PrimaryHDU(data=a)
+        b = a.copy()
+        hdu_b = PrimaryHDU(data=b)
+        tmp_a = self.temp('testa.fits')
+        tmp_b = self.temp('testb.fits')
+        hdu_a.writeto(tmp_a)
+        hdu_b.writeto(tmp_b)
+        testargs = ["-q", tmp_a, tmp_b]
+        sys.argv += testargs
+        numdiff = fitsdiff.main()
+        assert numdiff == 0
+        out, err = capsys.readouterr()
+        assert out == ""
+        assert err == ""
