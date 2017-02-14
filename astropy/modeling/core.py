@@ -1814,7 +1814,6 @@ class _CompoundModelMeta(_ModelMeta):
         # an attribute on a concrete compound model class and should just raise
         # the AttributeError
         if cls._tree is not None and attr in cls.param_names:
-            cls._init_param_descriptors()
             return getattr(cls, attr)
 
         raise AttributeError(attr)
@@ -1866,37 +1865,32 @@ class _CompoundModelMeta(_ModelMeta):
 
     @property
     def submodel_names(cls):
-        if cls._submodel_names is not None:
-            return cls._submodel_names
+        if cls._submodel_names is None:
+            seen = {}
+            names = []
+            for idx, submodel in enumerate(cls._get_submodels()):
+                name = submodel.name
+                if name is None:
+                    names.append(name)
+                elif name in seen:
+                    names.append('{0}_{1}'.format(name, idx))
+                    if seen[name] >= 0:
+                        jdx = seen[name]
+                        names[jdx] = '{0}_{1}'.format(names[jdx], jdx)
+                        seen[name] = -1
+                else:
+                    names.append(name)
+                    seen[name] = idx
+            cls._submodel_names = names
 
-        by_name = defaultdict(list)
-
-        for idx, submodel in enumerate(cls._get_submodels()):
-            # Keep track of the original sort order of the submodels
-            by_name[submodel.name].append(idx)
-
-        names = []
-        for basename, indices in six.iteritems(by_name):
-            if len(indices) == 1:
-                # There is only one model with this name, so it doesn't need an
-                # index appended to its name
-                names.append((basename, indices[0]))
-            else:
-                for idx in indices:
-                    names.append(('{0}_{1}'.format(basename, idx), idx))
-
-        # Sort according to the models' original sort orders
-        names.sort(key=lambda k: k[1])
-
-        names = tuple(k[0] for k in names)
-
-        cls._submodels_names = names
-        return names
+        return cls._submodel_names
 
     @property
     def param_names(cls):
         if cls._param_names is None:
             cls._init_param_names()
+            if isinstance(cls, (_CompoundModelMeta, _CompoundModel)):
+                cls._init_param_descriptors()
 
         return cls._param_names
 
