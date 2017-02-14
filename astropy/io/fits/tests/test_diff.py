@@ -153,18 +153,31 @@ class TestDiff(FitsTestCase):
         assert not diff.identical
 
     def test_deprecation_tolerance(self):
-        """Verify uses of tolerance and rtol."""
+        """Verify uses of tolerance and rtol.
+        This test should be removed in the next astropy version."""
 
-        ha = Header([('A', 1), ('B', 1.0), ('C', 0.0)])
+        ha = Header([('B', 1.0), ('C', 0.1)])
         hb = ha.copy()
         hb['B'] = 1.00001
-        hb['C'] = 0.000001
+        hb['C'] = 0.100001
         with catch_warnings(AstropyDeprecationWarning) as warning_lines:
             diff = HeaderDiff(ha, hb, tolerance=1e-6)
             assert warning_lines[0].category == AstropyDeprecationWarning
             assert (str(warning_lines[0].message) == '"tolerance" was '
                     'deprecated in version 2.0 and will be removed in a '
                     'future version. Use argument "rtol" instead.')
+            assert (diff.diff_keyword_values == {'C': [(0.1, 0.100001)],
+                                                 'B': [(1.0, 1.00001)]})
+            assert not diff.identical
+
+        with catch_warnings(AstropyDeprecationWarning) as warning_lines:
+            # `rtol` is always ignored when `tolerance` is provided
+            diff = HeaderDiff(ha, hb, rtol=1e-6, tolerance=1e-5)
+            assert warning_lines[0].category == AstropyDeprecationWarning
+            assert (str(warning_lines[0].message) == '"tolerance" was '
+                    'deprecated in version 2.0 and will be removed in a '
+                    'future version. Use argument "rtol" instead.')
+            assert diff.identical
 
     def test_ignore_blanks(self):
         with fits.conf.set_temp('strip_header_whitespace', False):
@@ -278,14 +291,14 @@ class TestDiff(FitsTestCase):
         assert diff.identical
         assert diff.diff_total == 0
 
-    def test_not_identical_within_rtol_and_atol(self):
+    def test_identical_within_rtol_and_atol(self):
         ia = np.zeros((10, 10)) - 0.00001
         ib = np.zeros((10, 10)) - 0.00002
         diff = ImageDataDiff(ia, ib, rtol=1.0e-5, atol=1.0e-5)
         assert diff.identical
         assert diff.diff_total == 0
 
-    def test_identical_within_rtol_and_atol(self):
+    def test_not_identical_within_rtol_and_atol(self):
         ia = np.zeros((10, 10)) - 0.00001
         ib = np.zeros((10, 10)) - 0.00002
         diff = ImageDataDiff(ia, ib, rtol=1.0e-5, atol=1.0e-6)
