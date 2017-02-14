@@ -100,13 +100,13 @@ def handle_options(argv=None):
              'to report per extension (default %default).')
 
     parser.add_option(
-        '-d', '--difference-tolerance', type='float', default=0.0,
-        dest='rtol', metavar='NUMBER',
+        '-d', '--difference-tolerance', type='float', default=None,
+        dest='tolerance', metavar='NUMBER',
         help='DEPRECATED. Alias for "--relative-tolerance". '
-             'Deprecated, provided for backward compatibility(default %default).')
+             'Deprecated, provided for backward compatibility (default %default).')
 
     parser.add_option(
-        '-r', '--rtol', '--relative-tolerance', type='float', default=0.0,
+        '-r', '--rtol', '--relative-tolerance', type='float', default=None,
         dest='rtol', metavar='NUMBER',
         help='The relative tolerance for comparison of two numbers, '
              'specifically two floating point numbers.  This applies to data '
@@ -114,7 +114,7 @@ def handle_options(argv=None):
              'in headers (default %default).')
 
     parser.add_option(
-        '-a', '--atol', '--absolute-tolerance', type='float', default=0.0,
+        '-a', '--atol', '--absolute-tolerance', type='float', default=None,
         dest='atol', metavar='NUMBER',
         help='The absolute tolerance for comparison of two numbers, '
              'specifically two floating point numbers.  This applies to data '
@@ -261,13 +261,25 @@ def main():
 
     opts, args = handle_options(argv)
 
+    if opts.tolerance is not None and opts.rtol is not None:
+        sys.stderr.write(
+            "Cannot accept both '-r' and '-d' parameters. '-d' is deprecated and"
+            " will be removed in a future version. Use '-r' instead.")
+        sys.exit(2)
+    if opts.tolerance is not None:
+        opts.rtol = opts.tolerance
+    if opts.rtol is None:
+        opts.rtol = 0.0
+    if opts.atol is None:
+        opts.atol = 0.0
+
     if opts.exact_comparisons:
         # override the options so that each is the most restrictive
         opts.ignore_keywords = []
         opts.ignore_comments = []
         opts.ignore_fields = []
-        opts.rtol = None
-        opts.atol = None
+        opts.rtol = 0.0
+        opts.atol = 0.0
         opts.ignore_blanks = False
         opts.ignore_blank_cards = False
 
@@ -297,8 +309,8 @@ def main():
                 rtol=opts.rtol,
                 atol=opts.atol,
                 ignore_blanks=opts.ignore_blanks,
-                ignore_blank_cards=opts.ignore_blank_cards,
-                tolerance=opts.tolerance)
+                ignore_blank_cards=opts.ignore_blank_cards)
+
             diff.report(fileobj=out_file)
             identical.append(diff.identical)
 
