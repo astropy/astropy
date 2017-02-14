@@ -215,6 +215,9 @@ Bug Fixes
   - Guard against extremely unlikely problems in compressed images, which
     could lead to memory unmapping errors. [#5775]
 
+  - Recognize PrimaryHDU when non boolean values are present for the
+    'GROUPS' header keyword. [#5808]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
