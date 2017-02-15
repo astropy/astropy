@@ -1007,8 +1007,10 @@ class PrimaryHDU(_ImageBaseHDU):
     @classmethod
     def match_header(cls, header):
         card = header.cards[0]
+        # Due to problems discussed in #5808, we cannot assume the 'GROUPS'
+        # keyword to be True/False, have to check the value
         return (card.keyword == 'SIMPLE' and
-                ('GROUPS' not in header or not header['GROUPS']) and
+                ('GROUPS' not in header or header['GROUPS'] != True) and  # noqa
                 card.value)
 
     def update_header(self):
