@@ -150,9 +150,6 @@ Bug Fixes
 
 - ``astropy.stats``
 
-  - Ensure that a masked array is returned when sigma clipping fully masked
-    data. [#5711]
-
 - ``astropy.sphinx``
 
 - ``astropy.table``
@@ -236,10 +233,13 @@ Bug Fixes
 - ``astropy.stats``
 
   - Fix the psd normalization for Lomb-Scargle periodograms in the presence
-    of noise [#5713]
+    of noise. [#5713]
 
   - Fix bug in the autofrequency range when ``minimum_frequency`` is specified
-    but ``maximum_frequency`` is not [#5738]
+    but ``maximum_frequency`` is not. [#5738]
+
+  - Ensure that a masked array is returned when sigma clipping fully masked
+    data. [#5711]
 
 - ``astropy.sphinx``
 
@@ -595,9 +595,6 @@ Bug Fixes
     [#5605]
 
 - ``astropy.io.fits``
-
-  - Made TFORMx keyword check more flexible in test of compressed images to
-    enable compatibility of the test with cfitsio 3.380. [#4646, #4653]
 
   - Copying a ``fits.Header`` using ``copy`` or ``deepcopy`` from the ``copy``
     module will use ``Header.copy`` to ensure that modifying the copy will
@@ -1252,6 +1249,9 @@ Bug fixes
 
   - Ensure scaling keywords are removed from header when unsigned integer data
     is converted to signed type. [#4974, #5053]
+
+  - Made TFORMx keyword check more flexible in test of compressed images to
+    enable compatibility of the test with cfitsio 3.380. [#4646, #4653]
 
 - ``astropy.io.misc``
 
