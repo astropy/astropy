@@ -10,7 +10,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
 from ..extern.six.moves import zip, range
-from .. import units as u
+from ..units import Quantity
 
 from copy import deepcopy
 import warnings
@@ -29,51 +29,63 @@ __all__ = ['join', 'hstack', 'vstack', 'unique']
 
 
 def _merge_col_meta(tables, col_name_map, metadata_conflicts='warn'):
-    """
-    Merge column meta data for the ``out`` table.
+    """Merge column meta data from a set of tables.
 
     This merges column meta, which includes attributes unit, format,
-    and description, as well as the actual `meta` attribute.  It is
-    assumed that the ``out`` table was created by merging ``tables``.
-    The ``col_name_map`` provides the mapping from col name in ``out``
-    back to the original name (which may be different).
+    and description, as well as the actual `meta` attribute.
+
+    Parameters
+    ----------
+    tables : list of `~astropy.table.Table`
+        Tables with columns from which to get meta data.
+    col_name_map : dict
+        For each output column name key, a list to the input column names
+        (`None` if a given table does not have that column).
+    metadata_conflicts : {'warn', 'error', 'silent'}
+        How to proceed with metadata conflicts. This should be one of:
+            * ``'warn'``: pick the last conflicting meta-data value,
+              but emit a warning (default);
+            * ``'silent'``: silently pick the last conflicting meta-data value;
+            * ``'error'``: raise an exception.
+
+    Returns
+    -------
+    col_attrs_map : dict of dict
+        Merged attributes for the output columns.
     """
-    # Set column meta
-    attrs = ('unit', 'format', 'description')
+    # Attributes to merge (other than 'meta' itself)
+    attrs = ('meta', 'unit', 'format', 'description')
+    # Initialize output attributes dicts
     col_attrs_map = OrderedDict()
     for out_name in col_name_map:
-        out_attrs = col_attrs_map[out_name] = {'meta': {}}
-        for idx_table, table in enumerate(tables):
-            right_name = col_name_map[out_name][idx_table]
-            if right_name:
-                right_col = table[right_name]
-                out_attrs['meta'] = metadata.merge(out_attrs['meta'],
-                                                   right_col.info.meta or {},
-                                                   metadata_conflicts=metadata_conflicts)
-                for attr in attrs:
+        out_attrs = {}
+        for table, right_name in zip(tables, col_name_map[out_name]):
+            if right_name is None:
+                # input table doesn't have this column.
+                continue
 
-                    # Pick the metadata item that is not None, or they are both
-                    # not None, then if they are equal, there is no conflict,
-                    # and if they are different, there is a conflict and we
-                    # pick the one on the right (or raise an error).
-                    right_attr = getattr(right_col.info, attr, None)
-                    if right_attr is None:
-                        continue
+            right_col = table[right_name]
+            for attr in attrs:
+                # Pick the metadata item that is not None, or they are both
+                # not None, then if they are equal, there is no conflict,
+                # and if they are different, there is a conflict and we
+                # pick the one on the right (or raise an error).
+                right_attr = getattr(right_col.info, attr, None)
+                if not right_attr:
+                    continue
 
-                    # Use the attribute if we don't have it yet, or if it is a
-                    # unit and it is equivalent (so there won't be a problem;
-                    # using here that we always take the right-most occurrence)
-                    if (attr not in out_attrs or
-                        (attr == 'unit' and isinstance(right_col, u.Quantity) and
-                         right_attr.is_equivalent(out_attrs[attr]))):
-                        out_attrs[attr] = right_attr
-                        continue
+                # Use the attribute if we don't have it yet, or if it is a
+                # unit and it is equivalent (so there won't be a problem;
+                # using here that we always take the right-most occurrence)
+                if (attr not in out_attrs or
+                    (attr == 'unit' and isinstance(right_col, Quantity))):
+                    out_attrs[attr] = right_attr
 
-                    if out_attrs[attr] == right_attr:
-                        continue
+                elif attr == 'meta':
+                    out_attrs[attr] = metadata.merge(out_attrs[attr], right_attr,
+                                                     metadata_conflicts=metadata_conflicts)
 
-                    # unit conflicts for Quantity columns may well resolve
-                    # (or lead to UnitsError later).
+                elif out_attrs[attr] != right_attr:
                     # we have a real conflict
                     if metadata_conflicts == 'warn':
                         warnings.warn("In merged column '{0}' the '{1}' attribute does not match "
@@ -90,20 +102,22 @@ def _merge_col_meta(tables, col_name_map, metadata_conflicts='warn'):
                                          ' "warn", or "error"')
                     out_attrs[attr] = right_attr
 
+        col_attrs_map[out_name] = out_attrs
+
     return col_attrs_map
 
 
-def _merge_table_meta(out, tables, metadata_conflicts='warn'):
+def _merge_table_meta(tables, metadata_conflicts='warn'):
     out_meta = deepcopy(tables[0].meta)
     for table in tables[1:]:
         out_meta = metadata.merge(out_meta, table.meta, metadata_conflicts=metadata_conflicts)
-    out.meta.update(out_meta)
+    return out_meta
 
 
 def _get_list_of_tables(tables):
-    """
-    Check that tables is a Table or sequence of Tables.  Returns the
-    corresponding list of Tables.
+    """Check that tables is a Table or sequence of Tables.
+
+    Returns the corresponding list of Tables.
     """
     from .table import Table, Row
 
@@ -122,11 +136,10 @@ def _get_list_of_tables(tables):
 
 
 def _get_out_class(tables):
-    """
-    From a list of table instances get the merged output table class.
-    This is just taken as the deepest subclass.  It is assumed that
-    `tables` is a list of at least one element and that they are all
-    Table (subclass) instances.  This doesn't handle complicated
+    """Get deepest subclass from a list of table instances.
+
+    It is assumed that `tables` is a list of at least one element and that they
+    are all Table (subclass) instances.  This doesn't handle complicated
     inheritance schemes.
     """
     out_class = tables[0].__class__
@@ -139,30 +152,30 @@ def _get_out_class(tables):
 def join(left, right, keys=None, join_type='inner',
          uniq_col_name='{col_name}_{table_name}',
          table_names=['1', '2'], metadata_conflicts='warn'):
-    """
-    Perform a join of the left table with the right table on specified keys.
+    """Perform a join of the left and right tables on specified keys.
 
     Parameters
     ----------
-    left : Table object or a value that will initialize a Table object
-        Left side table in the join
-    right : Table object or a value that will initialize a Table object
-        Right side table in the join
+    left : `~astropy.table.Table` or a value that will initialize one
+        Left side table in the join.
+    right : `~astropy.table.Table` or a value that will initialize one
+        Right side table in the join.
     keys : str or list of str
         Name(s) of column(s) used to match rows of left and right tables.
         Default is to use all columns which are common to both tables.
-    join_type : str
-        Join type ('inner' | 'outer' | 'left' | 'right'), default is 'inner'
-    uniq_col_name : str or None
+    join_type : {'inner', 'outer', 'left', 'right'}, optional
+        Default is 'inner'.
+    uniq_col_name : str, optional
         String generate a unique output column name in case of a conflict.
         The default is '{col_name}_{table_name}'.
-    table_names : list of str or None
+    table_names : list of str, optional
         Two-element list of table names used when generating unique output
         column names.  The default is ['1', '2'].
-    metadata_conflicts : str
+    metadata_conflicts : {'warn', 'error', 'silent'}
         How to proceed with metadata conflicts. This should be one of:
-            * ``'silent'``: silently pick the last conflicting meta-data value
-            * ``'warn'``: pick the last conflicting meta-data value, but emit a warning (default)
+            * ``'warn'``: pick the last conflicting meta-data value,
+              but emit a warning (default);
+            * ``'silent'``: silently pick the last conflicting meta-data value;
             * ``'error'``: raise an exception.
 
     Returns
@@ -183,7 +196,6 @@ def join(left, right, keys=None, join_type='inner',
                          "'outer', 'left' or 'right' (got '{0}' instead)".
                          format(join_type))
 
-    # If we have a single key, put it in a tuple
     if keys is None:
         keys = tuple(name for name in left.colnames if name in right.colnames)
         if len(keys) == 0:
@@ -192,33 +204,34 @@ def join(left, right, keys=None, join_type='inner',
         keys = (keys,)
 
     # Check the key columns
-    for arr, arr_label in ((left, 'Left'), (right, 'Right')):
+    for table, table_label in ((left, 'Left'), (right, 'Right')):
         for name in keys:
-            if name not in arr.colnames:
+            if name not in table.colnames:
                 raise TableMergeError('{0} table does not have key column {1!r}'
-                                      .format(arr_label, name))
-            if hasattr(arr[name], 'mask') and np.any(arr[name].mask):
+                                      .format(table_label, name))
+            if hasattr(table[name], 'mask') and np.any(table[name].mask):
                 raise TableMergeError('{0} key column {1!r} has missing values'
-                                      .format(arr_label, name))
-            if not isinstance(arr[name], np.ndarray):
+                                      .format(table_label, name))
+            if not isinstance(table[name], np.ndarray):
                 raise ValueError("non-ndarray column '{0}' not allowed as a key column")
 
-    # Joined array dtype as a list of descr (name, type_str, shape) tuples
+    # Get dict with list of input columns for each output column.
     col_name_map = get_col_name_map([left, right], keys, uniq_col_name, table_names)
+    # Get output column attributes by merging input column attributes.
     col_attrs_map = _merge_col_meta([left, right], col_name_map,
                                     metadata_conflicts=metadata_conflicts)
+    # Actual join.
     out = _join(left, right, keys, join_type,
                 uniq_col_name, table_names, col_name_map, col_attrs_map)
 
     # Merge the table meta data.
-    _merge_table_meta(out, [left, right], metadata_conflicts=metadata_conflicts)
-
+    out_meta = _merge_table_meta([left, right], metadata_conflicts=metadata_conflicts)
+    out.meta.update(out_meta)
     return out
 
 
 def vstack(tables, join_type='outer', metadata_conflicts='warn'):
-    """
-    Stack tables vertically (along rows)
+    """Stack tables vertically (along rows)
 
     A ``join_type`` of 'exact' means that the tables must all have exactly
     the same column names (though the order can vary).  If ``join_type``
@@ -229,14 +242,15 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
 
     Parameters
     ----------
-    tables : Table or list of Table objects
-        Table(s) to stack along rows (vertically) with the current table
-    join_type : str
-        Join type ('inner' | 'exact' | 'outer'), default is 'outer'
-    metadata_conflicts : str
+    tables : list of `~astropy.table.Table` objects
+        Table(s) to stack along rows (vertically).
+    join_type : {'outer', 'exact', 'inner'}, optional
+        Join type (see above). Default is 'outer'.
+    metadata_conflicts : {'warn', 'error', 'silent'}
         How to proceed with metadata conflicts. This should be one of:
-            * ``'silent'``: silently pick the last conflicting meta-data value
-            * ``'warn'``: pick the last conflicting meta-data value, but emit a warning (default)
+            * ``'warn'``: pick the last conflicting meta-data value,
+              but emit a warning (default);
+            * ``'silent'``: silently pick the last conflicting meta-data value;
             * ``'error'``: raise an exception.
 
     Returns
@@ -244,11 +258,31 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
     stacked_table : `~astropy.table.Table` object
         New table containing the stacked data from the input tables.
 
+    Notes
+    -----
+    Both `~astropy.table.Table` and `~astropy.table.QTable` instances can be
+    stacked, but for the latter an outer join is not generally possible, since
+    this requires output columns with partially masked data, which is not
+    supported for `~astropy.units.Quantity` columns.
+
+    The two also differ in how units are treated:
+
+     * For `~astropy.table.Table`, which hold regular `~astropy.table.Column`
+       instances, the units are treated as other attributes, i.e., when they
+       are not all the same, warnings or errors are given as set by
+       ``metadata_conflicts``, but the values in the stacked columns are simply
+       those given by the input columns.
+     * For `~astropy.table.QTable`, which hold `~astropy.units.Quantity`
+       instances, units are considered integral part of the data.  In case of
+       conflicts, the output column has the unit of the last conflicting unit,
+       and all values are converted to that unit (raising an exception if that
+       is not possible).
+
     Examples
     --------
     To stack two tables along rows do::
 
-      >>> from astropy.table import vstack, Table
+      >>> from astropy.table import vstack, Table, QTable
       >>> t1 = Table({'a': [1, 2], 'b': [3, 4]}, names=('a', 'b'))
       >>> t2 = Table({'a': [5, 6], 'b': [7, 8]}, names=('a', 'b'))
       >>> print(t1)
@@ -268,6 +302,27 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
         2   4
         5   7
         6   8
+      >>> from astropy import units as u
+      >>> t3 = QTable({'a': [1., 2.] * u.m})
+      >>> t4 = QTable({'a': [3., 4.] * u.km})
+      >>> print(vstack([t3, t4]))
+        a
+        km
+      -----
+      0.001
+      0.002
+        3.0
+        4.0
+      >>> t5 = Table(t3)
+      >>> t6 = Table(t4)
+      >>> print(vstack([t5, t6]))
+       a
+       km
+      ---
+      1.0
+      2.0
+      3.0
+      4.0
     """
     from .column import BaseColumn
     from .table import QTable
@@ -275,60 +330,64 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
     if len(tables) == 1:
         return tables[0]  # no point in stacking a single table
 
+    # we can only deal with "standard" columns: Column for Table, and
+    # Column or Quantity for QTable.
     if any(table.has_mixin_columns and
            not (isinstance(table, QTable) and
-                all(isinstance(col, (BaseColumn, u.Quantity))
+                all(isinstance(col, (BaseColumn, Quantity))
                     for col in six.itervalues(table.columns)))
            for table in tables):
         raise NotImplementedError('vstack not available for tables with mixin columns')
 
     # Start by assuming an outer match where all names go to output
     names = set(itertools.chain(*[table.colnames for table in tables]))
+    # Get dict with list of input columns for each output column.
     col_name_map = get_col_name_map(tables, names)
-    # If require_match is True then the output must have exactly the same
-    # number of columns as each input array.
     if join_type == 'exact':
+        # For 'exact', the output must have exactly the same number of columns
+        # as each input array.
         for names in six.itervalues(col_name_map):
             if any(x is None for x in names):
-                raise TableMergeError('Inconsistent columns in input arrays '
+                raise TableMergeError('Inconsistent columns in input tables '
                                       "(use 'inner' or 'outer' join_type to "
-                                      "allow non-matching columns)")
+                                      "allow non-matching columns).")
 
     elif join_type == 'inner':
-        # Keep only columns where all input arrays have that column.
+        # Keep only those columns where all input arrays have that column.
         col_name_map = OrderedDict((name, in_names) for name, in_names in six.iteritems(col_name_map)
                                    if all(x is not None for x in in_names))
         if len(col_name_map) == 0:
-            raise TableMergeError('Input arrays have no columns in common')
+            raise TableMergeError('Input tables have no columns in common')
 
     elif join_type == 'outer':
         if any(isinstance(table, QTable) and
-               any(isinstance(table[name], u.Quantity) and
+               any(isinstance(table[name], Quantity) and
                    any(x is None
                        for x in col_name_map[name])
                    for name in table.colnames)
                for table in tables):
             raise NotImplementedError("vstack with join_type 'outer' not "
-                                      "available for QTable input.")
+                                      "available for QTable input with "
+                                      "non-matching columns.")
 
     else:
-        raise ValueError("`join_type` arg must be one of 'inner', 'exact' or 'outer'")
+        raise ValueError("`join_type` must be one of 'inner', 'exact' or "
+                         "'outer', not '{0}'".format(join_type))
 
-    # Merge column and table metadata
+    # Merge column metadata to create output column attributes.
     col_attrs_map = _merge_col_meta(tables, col_name_map, metadata_conflicts=metadata_conflicts)
-
+    # Create the actual output table.
     out = _vstack(tables, col_name_map, col_attrs_map)
-
-    _merge_table_meta(out, tables, metadata_conflicts=metadata_conflicts)
-
+    # Merge input table metadata and use it to set output table metadata.
+    out_meta = _merge_table_meta(tables, metadata_conflicts=metadata_conflicts)
+    out.meta.update(out_meta)
     return out
 
 
 def hstack(tables, join_type='outer',
            uniq_col_name='{col_name}_{table_name}', table_names=None,
            metadata_conflicts='warn'):
-    """
-    Stack tables along columns (horizontally)
+    """Stack tables along columns (horizontally)
 
     A ``join_type`` of 'exact' means that the tables must all
     have exactly the same number of rows.  If ``join_type`` is 'inner' then
@@ -338,26 +397,34 @@ def hstack(tables, join_type='outer',
 
     Parameters
     ----------
-    tables : List of Table objects
-        Tables to stack along columns (horizontally) with the current table
-    join_type : str
-        Join type ('inner' | 'exact' | 'outer'), default is 'outer'
-    uniq_col_name : str or None
-        String generate a unique output column name in case of a conflict.
+    tables : List of `~astropy.table.Table` objects
+        Tables to stack along columns (horizontally).
+    join_type : {'outer', 'exact', 'inner'}, optional
+        Join type (see above). Default is 'outer'.
+    uniq_col_name : str, optional
+        String to generate a unique output column name in case of a conflict.
         The default is '{col_name}_{table_name}'.
-    table_names : list of str or None
+    table_names : list of str, optional
         Two-element list of table names used when generating unique output
         column names.  The default is ['1', '2', ..].
     metadata_conflicts : str
         How to proceed with metadata conflicts. This should be one of:
-            * ``'silent'``: silently pick the last conflicting meta-data value
-            * ``'warn'``: pick the last conflicting meta-data value, but emit a warning (default)
+            * ``'warn'``: pick the last conflicting meta-data value,
+              but emit a warning (default);
+            * ``'silent'``: silently pick the last conflicting meta-data value;
             * ``'error'``: raise an exception.
 
     Returns
     -------
     stacked_table : `~astropy.table.Table` object
         New table containing the stacked data from the input tables.
+
+    Notes
+    -----
+    Both `~astropy.table.Table` and `~astropy.table.QTable` instances can be
+    stacked, but for the latter an outer join is not generally possible, since
+    this requires output columns with partially masked data, which is not
+    supported for `~astropy.units.Quantity` columns.
 
     Examples
     --------
@@ -382,17 +449,40 @@ def hstack(tables, join_type='outer',
         1   3   5   7
         2   4   6   8
     """
+    # Input validation
     tables = _get_list_of_tables(tables)  # validates input
     if len(tables) == 1:
         return tables[0]  # no point in stacking a single table
-    col_name_map = OrderedDict()
-    # since every column originates from a single other one,
-    # column meta data is automatically correct.
-    out = _hstack(tables, join_type, uniq_col_name, table_names,
-                  col_name_map)
 
-    _merge_table_meta(out, tables, metadata_conflicts=metadata_conflicts)
+    if join_type not in ('inner', 'exact', 'outer'):
+        raise ValueError("join_type arg must be 'inner', 'exact' or 'outer', "
+                         "not '{0}'".format(join_type))
 
+    if table_names is None:
+        table_names = ['{0}'.format(ii + 1) for ii in range(len(tables))]
+    elif len(tables) != len(table_names):
+        raise ValueError('Number of tables must match number of table_names')
+
+    # Check for different lengths for 'inner' and 'exact'
+    if join_type != 'outer' and len(set(len(table) for table in tables)) > 1:
+        if join_type == 'exact':
+            # For 'exact', all input arrays must have the same length
+            raise TableMergeError("Inconsistent number of rows in input tables "
+                                  "(use 'inner' or 'outer' join_type to allow "
+                                  "non-matching rows)")
+        else:
+            # For 'inner', we only keep the common rows.
+            min_table_len = min(len(table) for table in tables)
+            tables = [table[:min_table_len] for table in tables]
+
+    # Get dict with list of input columns for each output column.
+    col_name_map = get_col_name_map(tables, [], uniq_col_name, table_names)
+    # Unlike vstack/join, no need to merge column metadata, as here every column
+    # originates from a single other one,
+    out = _hstack(tables, col_name_map)
+    # Merge the table meta data.
+    out_meta = _merge_table_meta(tables, metadata_conflicts=metadata_conflicts)
+    out.meta.update(out_meta)
     return out
 
 
@@ -405,20 +495,20 @@ def unique(input_table, keys=None, silent=False, keep='first'):
 
     input_table : `~astropy.table.Table` object or a value that
         will initialize a `~astropy.table.Table` object
-    keys : str or list of str
+    keys : str or list of str, optional
         Name(s) of column(s) used to create unique rows.
         Default is to use all columns.
-    keep : one of 'first', 'last' or 'none'
+    silent : bool, optional
+        If `True`, masked value column(s) are silently removed from
+        ``keys``. If `False`, an exception is raised when ``keys``
+        contains masked value column(s).
+        Default is `False`.
+    keep : {'first', 'last', 'none'}, optional
         Whether to keep the first or last row for each set of
         duplicates. If 'none', all rows that are duplicate are
         removed, leaving only rows that are already unique in
         the input.
         Default is 'first'.
-    silent : boolean
-        If `True`, masked value column(s) are silently removed from
-        ``keys``. If `False`, an exception is raised when ``keys``
-        contains masked value column(s).
-        Default is `False`.
 
     Returns
     -------
@@ -494,14 +584,12 @@ def unique(input_table, keys=None, silent=False, keep='first'):
 
     if isinstance(keys, six.string_types):
         keys = [keys]
-    if keys is None:
+    elif keys is None:
         keys = input_table.colnames
-    else:
-        if len(set(keys)) != len(keys):
-            raise ValueError("duplicate key names")
+    elif len(set(keys)) != len(keys):
+        raise ValueError("duplicate key names")
 
     if input_table.masked:
-        nkeys = 0
         for key in keys[:]:
             if np.any(input_table[key].mask):
                 if not silent:
@@ -527,11 +615,11 @@ def unique(input_table, keys=None, silent=False, keep='first'):
     return grouped_table[indices]
 
 
-def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name}',
+def get_col_name_map(tables, common_names, uniq_col_name='{col_name}_{table_name}',
                      table_names=None):
     """
     Find the column names mapping when merging the list of tables
-    ``arrays``.  It is assumed that col names in ``common_names`` are to be
+    ``tables``.  It is assumed that col names in ``common_names`` are to be
     merged into a single column while the rest will be uniquely represented
     in the output.  The args ``uniq_col_name`` and ``table_names`` specify
     how to rename columns in case of conflicts.
@@ -542,15 +630,15 @@ def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name
     None, ..) or (None, col_name_1, ..) etc.
     """
 
-    col_name_map = collections.defaultdict(lambda: [None] * len(arrays))
+    col_name_map = collections.defaultdict(lambda: [None] * len(tables))
     col_name_list = []
 
     if table_names is None:
-        table_names = [six.text_type(ii + 1) for ii in range(len(arrays))]
+        table_names = [six.text_type(ii + 1) for ii in range(len(tables))]
 
-    for idx, array in enumerate(arrays):
+    for idx, table in enumerate(tables):
         table_name = table_names[idx]
-        for name in array.colnames:
+        for name in table.colnames:
             out_name = name
 
             if name in common_names:
@@ -561,7 +649,7 @@ def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name
             else:
                 # If name is not one of the common column outputs, and it collides
                 # with the names in one of the other arrays, then rename
-                others = list(arrays)
+                others = list(tables)
                 others.pop(idx)
                 if any(name in other.colnames for other in others):
                     out_name = uniq_col_name.format(table_name=table_name, col_name=name)
@@ -640,8 +728,7 @@ def _join(left, right, keys=None, join_type='inner',
           uniq_col_name='{col_name}_{table_name}',
           table_names=['1', '2'],
           col_name_map=None, col_attrs_map=None):
-    """
-    Perform a join of the left and right Tables on specified keys.
+    """Perform a join of the left and right Tables on specified keys.
 
     Parameters
     ----------
@@ -673,7 +760,6 @@ def _join(left, right, keys=None, join_type='inner',
     if len_left == 0 or len_right == 0:
         raise ValueError('input tables for join must both have at least one row')
 
-
     # Make an array with just the key columns.  This uses a temporary
     # structured array for efficiency.
     out_descrs = get_descrs([left, right], col_name_map)
@@ -696,9 +782,7 @@ def _join(left, right, keys=None, join_type='inner',
         _np_utils.join_inner(idxs, idx_sort, len_left, int_join_type)
 
     # If either of the inputs are masked then the output is masked
-    if left.masked or right.masked:
-        masked = True
-    masked = bool(masked)
+    masked = left.masked or right.masked or bool(masked)
 
     out = _get_out_class([left, right])(masked=masked)
 
@@ -743,13 +827,12 @@ def _join(left, right, keys=None, join_type='inner',
     return out
 
 
-def _vstack(arrays, col_name_map=None, col_attrs_map=None):
-    """
-    Stack Tables vertically (by rows)
+def _vstack(tables, col_name_map=None, col_attrs_map=None):
+    """Stack Tables vertically (by rows)
 
     Parameters
     ----------
-    arrays : list of Tables
+    tables : list of Tables
         Tables to stack by rows (vertically)
     col_name_map : dict
         Mapping of output to input column names.
@@ -762,22 +845,22 @@ def _vstack(arrays, col_name_map=None, col_attrs_map=None):
         New table containing the stacked data from the input tables.
     """
     # Trivial case of one input array
-    if len(arrays) == 1:
-        return arrays[0]
+    if len(tables) == 1:
+        return tables[0]
 
     # If there are any output columns where one or more input arrays are missing
     # then the output must be masked.  If any input arrays are masked then
     # output is masked.
-    masked = any(getattr(arr, 'masked', False) for arr in arrays)
+    masked = any(getattr(table, 'masked', False) for table in tables)
     for names in six.itervalues(col_name_map):
         if any(x is None for x in names):
             masked = True
             break
 
-    lens = [len(arr) for arr in arrays]
+    lens = [len(table) for table in tables]
     n_rows = sum(lens)
-    out = _get_out_class(arrays)(masked=masked)
-    col_descrs = get_descrs(arrays, col_name_map)
+    out = _get_out_class(tables)(masked=masked)
+    col_descrs = get_descrs(tables, col_name_map)
     cols = []
     for (name, dtype, shape), out_attrs in zip(col_descrs, col_attrs_map.values()):
         kwargs = dict(name=name, dtype=dtype, shape=shape, length=n_rows)
@@ -790,19 +873,17 @@ def _vstack(arrays, col_name_map=None, col_attrs_map=None):
 
     for out_name, in_names in six.iteritems(col_name_map):
         idx0 = 0
-        for name, array in zip(in_names, arrays):
-            idx1 = idx0 + len(array)
-            if name in array.colnames:
-                out[out_name][idx0:idx1] = array[name]
+        for name, table in zip(in_names, tables):
+            idx1 = idx0 + len(table)
+            if name in table.colnames:
+                out[out_name][idx0:idx1] = table[name]
             idx0 = idx1
 
     return out
 
 
-def _hstack(arrays, join_type='outer', uniq_col_name='{col_name}_{table_name}',
-           table_names=None, col_name_map=None):
-    """
-    Stack tables horizontally (by columns)
+def _hstack(tables, col_name_map):
+    """Stack tables horizontally (by columns)
 
     A ``join_type`` of 'exact' (default) means that the arrays must all
     have exactly the same number of rows.  If ``join_type`` is 'inner' then
@@ -812,85 +893,42 @@ def _hstack(arrays, join_type='outer', uniq_col_name='{col_name}_{table_name}',
 
     Parameters
     ----------
-    arrays : List of tables
+    tables : List of tables
         Tables to stack by columns (horizontally)
-    join_type : str
-        Join type ('inner' | 'exact' | 'outer'), default is 'outer'
-    uniq_col_name : str or None
-        String generate a unique output column name in case of a conflict.
-        The default is '{col_name}_{table_name}'.
-    table_names : list of str or None
-        Two-element list of table names used when generating unique output
-        column names.  The default is ['1', '2', ..].
+    col_name_map : dict
+        Mapping of output to input column names.
 
     Returns
     -------
     stacked_table : `~astropy.table.Table` object
         New table containing the stacked data from the input tables.
     """
-
-    # Store user-provided col_name_map until the end
-    _col_name_map = col_name_map
-
-    # Input validation
-    if join_type not in ('inner', 'exact', 'outer'):
-        raise ValueError("join_type arg must be either 'inner', 'exact' or 'outer'")
-
-    if table_names is None:
-        table_names = ['{0}'.format(ii + 1) for ii in range(len(arrays))]
-    if len(arrays) != len(table_names):
-        raise ValueError('Number of arrays must match number of table_names')
-
-    # Trivial case of one input arrays
-    if len(arrays) == 1:
-        return arrays[0]
-
-    col_name_map = get_col_name_map(arrays, [], uniq_col_name, table_names)
-
-    # If require_match is True then all input arrays must have the same length
-    arr_lens = [len(arr) for arr in arrays]
-    if join_type == 'exact':
-        if len(set(arr_lens)) > 1:
-            raise TableMergeError("Inconsistent number of rows in input arrays "
-                                  "(use 'inner' or 'outer' join_type to allow "
-                                  "non-matching rows)")
-        join_type = 'outer'
-
-    # For an inner join, keep only the common rows
-    if join_type == 'inner':
-        min_arr_len = min(arr_lens)
-        if len(set(arr_lens)) > 1:
-            arrays = [arr[:min_arr_len] for arr in arrays]
-        arr_lens = [min_arr_len for arr in arrays]
-
+    table_lens = [len(table) for table in tables]
     # If there are any output rows where one or more input arrays are missing
     # then the output must be masked.  If any input arrays are masked then
     # output is masked.
-    masked = any(getattr(arr, 'masked', False) for arr in arrays) or len(set(arr_lens)) > 1
+    masked = (any(getattr(table, 'masked', False) for table in tables) or
+              len(set(table_lens)) > 1)
 
-    n_rows = max(arr_lens)
-    out = _get_out_class(arrays)(masked=masked)
+    n_rows = max(table_lens)
+    out = _get_out_class(tables)(masked=masked)
 
     for out_name, in_names in six.iteritems(col_name_map):
-        for name, array, arr_len in zip(in_names, arrays, arr_lens):
+        for name, table, table_len in zip(in_names, tables, table_lens):
             if name is None:
                 continue
 
-            if n_rows > arr_len:
+            if n_rows > table_len:
                 indices = np.arange(n_rows)
-                indices[arr_len:] = 0
-                out[out_name] = array[name][indices]
+                indices[table_len:] = 0
+                out[out_name] = table[name][indices]
                 try:
-                    out[out_name].mask[arr_len:] = True
+                    out[out_name].mask[table_len:] = True
                 except ValueError:
                     raise ValueError("hstack requires masking column '{0}' but column"
                                      " type {1} does not support masking"
                                      .format(out_name, out[out_name].__class__.__name__))
             else:
-                out[out_name] = array[name][:n_rows]
-
-    # If col_name_map supplied as a dict input, then update.
-    if isinstance(_col_name_map, collections.Mapping):
-        _col_name_map.update(col_name_map)
+                out[out_name] = table[name][:n_rows]
 
     return out
