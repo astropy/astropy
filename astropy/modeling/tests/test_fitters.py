@@ -640,3 +640,25 @@ def test_fitters_with_weights():
     z = p2(Xin, Yin)
     pmod = fitter(models.Polynomial2D(3), Xin, Yin, z + zsig)
     assert_allclose(pmod.parameters, p2.parameters, atol=10 ** (-2))
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_fitters_interface():
+    """
+    Test that **kwargs work with all optimizers.
+    This is a basic smoke test.
+    """
+    levmar = LevMarLSQFitter()
+    slsqp = SLSQPLSQFitter()
+    simplex = SimplexLSQFitter()
+
+    kwargs = {'maxiter': 77, 'verblevel': 1, 'epsilon': 1e-2, 'acc': 1e-6}
+    simplex_kwargs = {'maxiter': 77, 'verblevel': 1, 'acc': 1e-6}
+    model = models.Gaussian1D(10, 4, .3)
+    x = np.arange(21)
+    y = model(x)
+
+    slsqp_model = slsqp(model, x, y, **kwargs)
+    simplex_model = simplex(model, x, y, **simplex_kwargs)
+    kwargs.pop('verblevel')
+    lm_model = levmar(model, x, y, **kwargs)
