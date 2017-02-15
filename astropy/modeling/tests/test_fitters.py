@@ -618,6 +618,8 @@ class Test2DFittingWithOutlierRemoval(object):
         assert_allclose(fitted_model.parameters[0:5], self.model_params,
                         atol=1e-1)
 
+
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_fitters_with_weights():
     """Issue #5737 """
     Xin, Yin = np.mgrid[0:21, 0:21]

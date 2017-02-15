@@ -277,10 +277,7 @@ class LinearLSQFitter(object):
                                                    x=x)
             else:
                 lhs = model_copy.fit_deriv(x, *model_copy.parameters)
-            if len(y.shape) == 2:
-                rhs = y
-            else:
-                rhs = y
+            rhs = y
         else:
             x, y, z = farg
 
