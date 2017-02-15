@@ -132,7 +132,7 @@ script:
     - $MAIN_CMD $SETUP_CMD
 
 after_success:
-    - if [[ $SETUP_CMD == 'test --coverage' ]]; then
+    - if [[ $SETUP_CMD == *--coverage* ]]; then
         cpp-coveralls -E ".*convolution.*" -E ".*_erfa.*" -E ".*\.l" -E ".*\.y" -E ".*flexed.*" -E ".*cextern.*" -E ".*_np_utils.*" -E ".*cparser.*" -E ".*cython_impl.*" --dump c-coveralls.json;
         coveralls --merge=c-coveralls.json --rcfile='astropy/tests/coveragerc';
       fi
