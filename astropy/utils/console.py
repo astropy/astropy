@@ -25,57 +25,12 @@ try:
 except ImportError:
     _CAN_RESIZE_TERMINAL = False
 
-try:
-    from IPython import get_ipython
-except ImportError:
-    pass
-try:
-    get_ipython()
-except NameError:
-    OutStream = None
-    IPythonIOStream = None
-else:
-    from IPython import version_info
-    ipython_major_version = version_info[0]
-
-    try:
-        from ipykernel.iostream import OutStream
-    except ImportError:
-        try:
-            from IPython.zmq.iostream import OutStream
-        except ImportError:
-            if ipython_major_version < 4:
-                try:
-                    from IPython.kernel.zmq.iostream import OutStream
-                except ImportError:
-                    OutStream = None
-            else:
-                OutStream = None
-
-
-    if OutStream is not None:
-        from IPython.utils import io as ipyio
-        # On Windows in particular this is necessary, as the io.stdout stream
-        # in IPython gets hooked up to some pyreadline magic to handle colors
-        IPythonIOStream = ipyio.IOStream
-    else:
-        OutStream = None
-        IPythonIOStream = None
-
-    # On Windows, in IPython 2 the standard I/O streams will wrap
-    # pyreadline.Console objects if pyreadline is available; this should
-    # be considered a TTY
-    try:
-        from pyreadyline.console import Console as PyreadlineConsole
-    except ImportError:
-        # Just define a dummy class
-        class PyreadlineConsole(object): pass
-
 from ..extern import six
 from ..extern.six.moves import range
 from .. import conf
 
 from .misc import isiterable
+from .decorators import classproperty
 
 
 __all__ = [
@@ -84,6 +39,68 @@ __all__ = [
     'terminal_size']
 
 _DEFAULT_ENCODING = 'utf-8'
+
+
+class _IPython(object):
+    """Singleton class given access to IPython streams, etc."""
+
+    @classproperty
+    def get_ipython(cls):
+        try:
+            from IPython import get_ipython
+        except ImportError:
+            pass
+        return get_ipython
+
+    @classproperty
+    def OutStream(cls):
+        if not hasattr(cls, '_OutStream'):
+            cls._OutStream = None
+            try:
+                cls.get_ipython()
+            except NameError:
+                return None
+
+            try:
+                from ipykernel.iostream import OutStream
+            except ImportError:
+                try:
+                    from IPython.zmq.iostream import OutStream
+                except ImportError:
+                    from IPython import version_info
+                    if version_info[0] >= 4:
+                        return None
+
+                    try:
+                        from IPython.kernel.zmq.iostream import OutStream
+                    except ImportError:
+                        return None
+
+            cls._OutStream = OutStream
+
+        return cls._OutStream
+
+    @classproperty
+    def ipyio(cls):
+        if not hasattr(cls, '_ipyio'):
+            try:
+                from IPython.utils import io
+            except ImportError:
+                cls._ipyio = None
+            else:
+                cls._ipyio = io
+        return cls._ipyio
+
+    @classproperty
+    def IOStream(cls):
+        if cls.ipyio is None:
+            return None
+        else:
+            return cls.ipyio.IOStream
+
+    @classmethod
+    def get_stream(cls, stream):
+        return getattr(cls.ipyio, stream)
 
 
 def _get_stdout(stderr=False):
@@ -102,13 +119,13 @@ def _get_stdout(stderr=False):
         stream = 'stdout'
 
     sys_stream = getattr(sys, stream)
-
-    if IPythonIOStream is None:
+    if not isatty(sys_stream) or _IPython.OutStream is None:
         return sys_stream
 
-    ipyio_stream = getattr(ipyio, stream)
+    # Our system stream is an atty and we're in ipython.
+    ipyio_stream = _IPython.get_stream(stream)
 
-    if isatty(sys_stream) and isatty(ipyio_stream):
+    if ipyio_stream is not None and isatty(ipyio_stream):
         # Use the IPython console output stream
         return ipyio_stream
     else:
@@ -131,15 +148,30 @@ def isatty(file):
 
     if hasattr(file, 'isatty'):
         return file.isatty()
-    elif (OutStream is not None and
-          isinstance(file, (OutStream, IPythonIOStream)) and
-          ((hasattr(file, 'name') and file.name == 'stdout') or
-           (hasattr(file, 'stream') and
-               isinstance(file.stream, PyreadlineConsole)))):
-        # File is an IPython OutStream or IOStream and
-        #    File name is 'stdout' or
-        #    File wraps a Console
+
+    # Use two isinstance calls to only evaluate IOStream when necessary.
+    if (_IPython.OutStream is None or
+        (not isinstance(file, _IPython.OutStream) and
+         not isinstance(file, _IPython.IOStream))):
+        return False
+
+    # File is an IPython OutStream or IOStream.  Check whether:
+    # - File name is 'stdout'; or
+    # - File wraps a Console
+    if getattr(file, 'name', None) == 'stdout':
         return True
+
+    if hasattr(file, 'stream'):
+        # On Windows, in IPython 2 the standard I/O streams will wrap
+        # pyreadline.Console objects if pyreadline is available; this should
+        # be considered a TTY.
+        try:
+            from pyreadyline.console import Console as PyreadlineConsole
+        except ImportError:
+            return False
+
+        return isinstance(file.stream, PyreadlineConsole)
+
     return False
 
 
@@ -223,7 +255,7 @@ def _color_text(text, color):
         'lightcyan': '1;36',
         'white': '1;37'}
 
-    if sys.platform == 'win32' and OutStream is None:
+    if sys.platform == 'win32' and _IPython.OutStream is None:
         # On Windows do not colorize text unless in IPython
         return text
 
@@ -255,8 +287,8 @@ def _write_with_fallback(s, write, fileobj):
     of a UnicodeEncodeError.  Failing that attempt to write with 'utf-8' or
     'latin-1'.
     """
-
-    if IPythonIOStream is not None and isinstance(fileobj, IPythonIOStream):
+    if (_IPython.IOStream is not None and
+        isinstance(fileobj, _IPython.IOStream)):
         # If the output stream is an IPython.utils.io.IOStream object that's
         # not going to be very helpful to us since it doesn't raise any
         # exceptions when an error occurs writing to its underlying stream.
@@ -500,20 +532,10 @@ class ProgressBar(six.Iterator):
             to detect the IPython console), the progress bar will be
             completely silent.
         """
-
-        if ipython_widget:
-            # Import only if ipython_widget, i.e., widget in IPython
-            # notebook
-            if ipython_major_version < 4:
-                from IPython.html import widgets
-            else:
-                from ipywidgets import widgets
-            from IPython.display import display
-
         if file is None:
             file = _get_stdout()
 
-        if not isatty(file) and not ipython_widget:
+        if not ipython_widget and not isatty(file):
             self.update = self._silent_update
             self._silent = True
         else:
@@ -648,10 +670,12 @@ class ProgressBar(six.Iterator):
         # if none exists.
         if not hasattr(self, '_widget'):
             # Import only if an IPython widget, i.e., widget in iPython NB
-            if ipython_major_version < 4:
+            from IPython import version_info
+            if version_info[0] < 4:
                 from IPython.html import widgets
                 self._widget = widgets.FloatProgressWidget()
             else:
+                _IPython.get_ipython()
                 from ipywidgets import widgets
                 self._widget = widgets.FloatProgress()
             from IPython.display import display
