@@ -46,6 +46,9 @@ class TestConvenience(FitsTestCase):
     def test_table_to_hdu(self, tmpdir):
         table = Table([[1, 2, 3], ['a', 'b', 'c'], [2.3, 4.5, 6.7]],
                       names=['a', 'b', 'c'], dtype=['i', 'U1', 'f'])
+        table['a'].unit = 'm/s'
+        table['b'].unit = 'not-a-unit'
+
         hdu = fits.table_to_hdu(table)
 
         # Check that TUNITn cards appear in the correct order
