@@ -228,6 +228,9 @@ Bug Fixes
 
   - Fixed a problem with setting ``bounding_box`` on 1D models. [#5718]
 
+  - Fixed a broadcasting problem with weighted fitting of 2D models
+    with ``LevMarLSQFitter``. [#5737]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``

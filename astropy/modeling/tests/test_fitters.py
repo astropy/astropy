@@ -617,3 +617,26 @@ class Test2DFittingWithOutlierRemoval(object):
         _, fitted_model = fit(g2_init, self.x, self.y, self.z)
         assert_allclose(fitted_model.parameters[0:5], self.model_params,
                         atol=1e-1)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_fitters_with_weights():
+    """Issue #5737 """
+    Xin, Yin = np.mgrid[0:21, 0:21]
+    fitter = LevMarLSQFitter()
+
+    with NumpyRNGContext(_RANDOM_SEED):
+        zsig = np.random.normal(0, 0.01, size=Xin.shape)
+
+    # Non-linear model
+    g2 = models.Gaussian2D(10, 10, 9, 2, 3)
+    z = g2(Xin, Yin)
+    gmod = fitter(models.Gaussian2D(15, 7, 8, 1.3, 1.2), Xin, Yin, z + zsig)
+    assert_allclose(gmod.parameters, g2.parameters, atol=10 ** (-2))
+
+    # Linear model
+    p2=models.Polynomial2D(3)
+    p2.parameters=np.arange(10)/1.2
+    z = p2(Xin, Yin)
+    pmod = fitter(models.Polynomial2D(3), Xin, Yin, z + zsig)
+    assert_allclose(pmod.parameters, p2.parameters, atol=10 ** (-2))

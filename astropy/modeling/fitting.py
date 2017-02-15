@@ -277,10 +277,7 @@ class LinearLSQFitter(object):
                                                    x=x)
             else:
                 lhs = model_copy.fit_deriv(x, *model_copy.parameters)
-            if len(y.shape) == 2:
-                rhs = y
-            else:
-                rhs = y
+            rhs = y
         else:
             x, y, z = farg
 
@@ -619,7 +616,10 @@ class LevMarLSQFitter(object):
             if z is None:
                 return [np.ravel(_) for _ in np.ravel(weights) * np.array(model.fit_deriv(x, *params))]
             else:
-                return [np.ravel(_) for _ in (np.ravel(weights) * np.array(model.fit_deriv(x, y, *params)).T).T]
+                if not model.col_fit_deriv:
+                    return [np.ravel(_) for _ in (np.ravel(weights) * np.array(model.fit_deriv(x, y, *params)).T).T]
+                else:
+                    return [np.ravel(_) for _ in (weights * np.array(model.fit_deriv(x, y, *params)))]
 
 
 class SLSQPLSQFitter(Fitter):
