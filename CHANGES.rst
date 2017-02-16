@@ -231,7 +231,7 @@ Bug Fixes
   - Fixed a broadcasting problem with weighted fitting of 2D models
     with ``LevMarLSQFitter``. [#5737]
 
-  - Fixed a problem with passing **kwargs to fitters, specifically ``verblevel``. [#5815]
+  - Fixed a problem with passing kwargs to fitters, specifically ``verblevel``. [#5815]
 
 - ``astropy.nddata``
 
