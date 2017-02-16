@@ -40,7 +40,8 @@ def test_table_info_attributes(table_types):
 
     # All output fields including a mixin column
     t['d'] = [1, 2, 3] * u.m
-    t['d'].description = 'quantity'
+    # need to set the description via `info`, since in QTable 'd' is a Quantity
+    t['d'].info.description = 'quantity'
     t['a'].format = '%02d'
     t['e'] = time.Time([1,2,3], format='mjd')
     t['e'].info.description = 'time'
@@ -55,7 +56,8 @@ def test_table_info_attributes(table_types):
     assert np.all(tinfo['format'] == ['%02d', '', '', '', '', ''])
     assert np.all(tinfo['description'] == ['', '', '', 'quantity', 'time', 'skycoord'])
     cls = t.ColumnClass.__name__
-    assert np.all(tinfo['class'] == [cls, cls, cls, cls, 'Time', 'SkyCoord'])
+    cls_d = 'Quantity' if type(t) is table.QTable else cls
+    assert np.all(tinfo['class'] == [cls, cls, cls, cls_d, 'Time', 'SkyCoord'])
 
     # Test that repr(t.info) is same as t.info()
     out = StringIO()

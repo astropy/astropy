@@ -38,6 +38,7 @@ def Column(request):
 
 
 class MaskedTable(table.Table):
+    Column = table.MaskedColumn
     def __init__(self, *args, **kwargs):
         kwargs['masked'] = True
         table.Table.__init__(self, *args, **kwargs)
@@ -72,19 +73,19 @@ class MyTable(table.Table):
 
 # Fixture to run all the Column tests for both an unmasked (ndarray)
 # and masked (MaskedArray) column.
-@pytest.fixture(params=['unmasked', 'masked', 'subclass'])
+@pytest.fixture(params=['unmasked', 'masked', 'subclass', 'qtable'])
 def table_types(request):
     class TableTypes:
         def __init__(self, request):
             if request.param == 'unmasked':
                 self.Table = table.Table
-                self.Column = table.Column
             elif request.param == 'masked':
                 self.Table = MaskedTable
-                self.Column = table.MaskedColumn
             elif request.param == 'subclass':
                 self.Table = MyTable
-                self.Column = MyColumn
+            elif request.param == 'qtable':
+                self.Table = QTable
+            self.Column = self.Table.Column
     return TableTypes(request)
 
 
