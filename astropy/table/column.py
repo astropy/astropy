@@ -1124,12 +1124,12 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         return out
 
     def __setitem__(self, index, value):
-        # Account for a bug in np.ma.MaskedArray setitem.
-        # https://github.com/numpy/numpy/issues/8624
-        value = np.ma.asanyarray(value, dtype=self.dtype.type)
-
         # Issue warning for string assignment that truncates ``value``
         if issubclass(self.dtype.type, np.character):
+            # Account for a bug in np.ma.MaskedArray setitem.
+            # https://github.com/numpy/numpy/issues/8624
+            value = np.ma.asanyarray(value, dtype=self.dtype.type)
+
             # Turn value into a flat masked array with at least 1d
             vals = np.ma.atleast_1d(value).flatten()
 

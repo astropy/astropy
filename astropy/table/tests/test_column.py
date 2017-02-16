@@ -592,16 +592,23 @@ def test_string_truncation_warning_masked():
     to a masked column, specifically where the right hand side
     contains np.ma.masked.
     """
-    mc = table.MaskedColumn(['aa', 'bb'])
 
-    with catch_warnings() as w:
-        mc[1] = np.ma.masked
-        assert len(w) == 0
-        assert np.all(mc.mask == [False, True])
+    # Test for strings, but also cover assignment of np.ma.masked to
+    # int and float masked column setting.  This was previously only
+    # covered in an unrelated io.ascii test (test_line_endings) which
+    # showed an unexpected difference between handling of str and numeric
+    # masked arrays.
+    for values in (['a', 'b'], [1, 2], [1.0, 2.0]):
+        mc = table.MaskedColumn(values)
 
-        mc[:] = np.ma.masked
-        assert len(w) == 0
-        assert np.all(mc.mask == [True, True])
+        with catch_warnings() as w:
+            mc[1] = np.ma.masked
+            assert len(w) == 0
+            assert np.all(mc.mask == [False, True])
+
+            mc[:] = np.ma.masked
+            assert len(w) == 0
+            assert np.all(mc.mask == [True, True])
 
     mc = table.MaskedColumn(['aa', 'bb'])
 
