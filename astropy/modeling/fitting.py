@@ -727,8 +727,6 @@ class SimplexLSQFitter(Fitter):
 
         maxiter : int
             maximum number of iterations
-        epsilon : float
-            the step size for finite-difference derivative estimates
         acc : float
             Relative error in approximate solution
 
