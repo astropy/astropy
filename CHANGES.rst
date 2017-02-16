@@ -48,7 +48,7 @@ New Features
   - Issue a warning when assigning a string value to a column and
     the string gets truncated.  This can occur because numpy string
     arrays are fixed-width and silently drop characters which do not
-    fit within the fixed width. [#5624]
+    fit within the fixed width. [#5624, #5819]
 
 - ``astropy.time``
 
