@@ -50,6 +50,10 @@ New Features
     arrays are fixed-width and silently drop characters which do not
     fit within the fixed width. [#5624]
 
+  - ``vstack``, ``hstack``, and ``join`` now also work with ``QTable``
+    instances that hold ``Quantity`` columns, as long as the output
+    does not require any masking. [#5811]
+
 - ``astropy.time``
 
 - ``astropy.units``
