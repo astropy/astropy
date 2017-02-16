@@ -257,6 +257,8 @@ Bug Fixes
     sufficiently unique. [#5803]
 
   - Handle sorting NaNs and masked values in jsviewer. [#4052, #5572]
+  - Ensure mixin columns can be set to scalars if the type supports
+    broadcasting (e.g., for a ``QTable``, ``t['q'] = 3*u.m``). [#5820]
 
 - ``astropy.time``
 
