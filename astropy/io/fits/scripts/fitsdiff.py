@@ -5,10 +5,12 @@ import optparse
 import os
 import sys
 import textwrap
+import warnings
 
 from ... import fits
 from ..util import fill
 from ....extern.six.moves import zip
+from ....utils.exceptions import AstropyDeprecationWarning
 
 
 log = logging.getLogger('fitsdiff')
@@ -261,12 +263,12 @@ def main():
 
     opts, args = handle_options(argv)
 
-    if opts.tolerance is not None and opts.rtol is not None:
-        sys.stderr.write(
-            "Cannot accept both '-r' and '-d' parameters. '-d' is deprecated and"
-            " will be removed in a future version. Use '-r' instead.")
-        sys.exit(2)
     if opts.tolerance is not None:
+        warnings.warn(
+            '"-d" ("--difference-tolerance") was deprecated in version 2.0 '
+            'and will be removed in a future version. '
+            'Use "-r" ("--relative-tolerance") instead.',
+            AstropyDeprecationWarning)
         opts.rtol = opts.tolerance
     if opts.rtol is None:
         opts.rtol = 0.0

@@ -262,6 +262,9 @@ class FITSDiff(_BaseDiff):
             are considered to be different.
             The underlying function used for comparison is `numpy.allclose`.
 
+            .. versionchanged:: 2.0
+               ``rtol`` replaces the deprecated ``tolerance`` argument.
+
         atol : float, optional
             The allowed absolute difference. See also ``rtol`` parameter.
 
@@ -275,9 +278,6 @@ class FITSDiff(_BaseDiff):
         ignore_blank_cards : bool, optional
             Ignore all cards that are blank, i.e. they only contain
             whitespace (default: True).
-
-        tolerance : float, optional
-            Alias of ``rtol``. Deprecated, provided for backward compatibility.
         """
 
         if isinstance(a, string_types):
@@ -310,9 +310,9 @@ class FITSDiff(_BaseDiff):
         self.atol = atol
 
         if tolerance is not None:  # This should be removed in the next astropy version
-            warnings.warn('"tolerance" was '
-                'deprecated in version 2.0 and will be removed in a '
-                'future version. Use argument "rtol" instead.',
+            warnings.warn(
+                '"tolerance" was deprecated in version 2.0 and will be removed in '
+                'a future version. Use argument "rtol" instead.',
                 AstropyDeprecationWarning)
             self.rtol = tolerance  # when tolerance is provided *always* ignore `rtol`
                                    # during the transition/deprecation period
@@ -450,9 +450,9 @@ class HDUDiff(_BaseDiff):
         self.atol = atol
 
         if tolerance is not None:  # This should be removed in the next astropy version
-            warnings.warn('"tolerance" was '
-                'deprecated in version 2.0 and will be removed in a '
-                'future version. Use argument "rtol" instead.',
+            warnings.warn(
+                '"tolerance" was deprecated in version 2.0 and will be removed in '
+                'a future version. Use argument "rtol" instead.',
                 AstropyDeprecationWarning)
             self.rtol = tolerance  # when tolerance is provided *always* ignore `rtol`
                                    # during the transition/deprecation period
@@ -588,9 +588,9 @@ class HeaderDiff(_BaseDiff):
         self.atol = atol
 
         if tolerance is not None:  # This should be removed in the next astropy version
-            warnings.warn('"tolerance" was '
-                'deprecated in version 2.0 and will be removed in a '
-                'future version. Use argument "rtol" instead.',
+            warnings.warn(
+                '"tolerance" was deprecated in version 2.0 and will be removed in '
+                'a future version. Use argument "rtol" instead.',
                 AstropyDeprecationWarning)
             self.rtol = tolerance  # when tolerance is provided *always* ignore `rtol`
                                    # during the transition/deprecation period
@@ -841,9 +841,9 @@ class ImageDataDiff(_BaseDiff):
         self.atol = atol
 
         if tolerance is not None:  # This should be removed in the next astropy version
-            warnings.warn('"tolerance" was '
-                'deprecated in version 2.0 and will be removed in a '
-                'future version. Use argument "rtol" instead.',
+            warnings.warn(
+                '"tolerance" was deprecated in version 2.0 and will be removed in '
+                'a future version. Use argument "rtol" instead.',
                 AstropyDeprecationWarning)
             self.rtol = tolerance  # when tolerance is provided *always* ignore `rtol`
                                    # during the transition/deprecation period
@@ -1053,9 +1053,9 @@ class TableDataDiff(_BaseDiff):
         self.atol = atol
 
         if tolerance is not None:  # This should be removed in the next astropy version
-            warnings.warn('"tolerance" was '
-                'deprecated in version 2.0 and will be removed in a '
-                'future version. Use argument "rtol" instead.',
+            warnings.warn(
+                '"tolerance" was deprecated in version 2.0 and will be removed in '
+                'a future version. Use argument "rtol" instead.',
                 AstropyDeprecationWarning)
             self.rtol = tolerance  # when tolerance is provided *always* ignore `rtol`
                                    # during the transition/deprecation period
@@ -1289,7 +1289,7 @@ def diff_values(a, b, rtol=0.0, atol=0.0):
     if isinstance(a, float) and isinstance(b, float):
         if np.isnan(a) and np.isnan(b):
             return False
-        return not np.allclose(a, b, rtol, atol)
+        return not np.allclose(a, b, rtol=rtol, atol=atol)
     else:
         return a != b
 

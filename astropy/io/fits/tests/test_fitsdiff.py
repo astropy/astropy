@@ -7,9 +7,10 @@ import numpy as np
 from . import FitsTestCase
 from ..hdu import PrimaryHDU
 from ..scripts import fitsdiff
+from ....tests.helper import catch_warnings
 from ....tests.helper import pytest
+from ....utils.exceptions import AstropyDeprecationWarning
 from ....version import version
-
 
 class TestFITSDiff_script(FitsTestCase):
     def setup_method(self, method):
@@ -117,12 +118,23 @@ Primary HDU:\n\n   Data contains differences:
         hdu_b.writeto(tmp_b)
         testargs = ["-r", "1e-4", "-d", "1e-2", tmp_a, tmp_b]
         sys.argv += testargs
-        with pytest.raises(SystemExit) as e:
+        with catch_warnings(AstropyDeprecationWarning) as warning_lines:
             fitsdiff.main()
-        assert e.value.code == 2
+            # `rtol` is always ignored when `tolerance` is provided
+            assert warning_lines[0].category == AstropyDeprecationWarning
+            assert (str(warning_lines[0].message) ==
+                    '"-d" ("--difference-tolerance") was deprecated in version 2.0 '
+                    'and will be removed in a future version. '
+                    'Use "-r" ("--relative-tolerance") instead.')
         out, err = capsys.readouterr()
-        assert err == "Cannot accept both '-r' and '-d' parameters. '-d' is deprecated and " \
-                      "will be removed in a future version. Use '-r' instead."
+        assert out == """
+ fitsdiff: {}
+ a: {}
+ b: {}
+ Maximum number of different data values to be reported: 10
+ Relative tolerance: 0.01, Absolute tolerance: 0.0
+
+No differences found.\n""".format(version, tmp_a, tmp_b)
 
     def test_wildcard(self):
         tmp1 = self.temp("tmp_file1")
