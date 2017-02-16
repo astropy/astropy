@@ -253,6 +253,9 @@ Bug Fixes
   - Fix problem where key for caching column format function was not
     sufficiently unique. [#5803]
 
+  - Ensure mixin columns can be set to scalars if the type supports
+    broadcasting (e.g., for a ``QTable``, ``t['q'] = 3*u.m``). [#5820]
+
 - ``astropy.time``
 
 - ``astropy.units``
