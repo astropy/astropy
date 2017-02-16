@@ -42,6 +42,9 @@ class StringTruncateWarning(UserWarning):
     """
     pass
 
+# Always emit this warning, not just the first instance
+warnings.simplefilter('always', StringTruncateWarning)
+
 
 def _auto_names(n_cols):
     from . import conf
@@ -791,6 +794,7 @@ class Column(BaseColumn):
 
     def _check_string_truncate(self, value):
         value = np.asanyarray(value, dtype=self.dtype.type)
+
         if value.dtype.itemsize > self.dtype.itemsize:
             warnings.warn('truncated right side string(s) longer than {} '
                           'character(s) during assignment'
@@ -1120,6 +1124,28 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         return out
 
     def __setitem__(self, index, value):
+        # Account for a bug in np.ma.MaskedArray setitem.
+        # https://github.com/numpy/numpy/issues/8624
+        value = np.ma.asanyarray(value, dtype=self.dtype.type)
+
+        # Issue warning for string assignment that truncates ``value``
+        if issubclass(self.dtype.type, np.character):
+            # Turn value into a flat masked array with at least 1d
+            vals = np.ma.atleast_1d(value).flatten()
+
+            # If there are any masked elements get rid of them and turn ``vals``
+            # into a Python list.  This is because np.ma.asanyarray will have
+            # gotten the wrong string itemsize due to the np.ma.masked elements.
+            # I could not figure a clean way to get numpy to compress a string
+            # array to the smallest length without initing from a Python list
+            # of strings.
+            if np.any(vals.mask):
+                vals = vals[~vals.mask].tolist()
+
+            # Finally if there are any vals then check for string truncation
+            if len(vals) > 0:
+                self._check_string_truncate(vals)
+
         # update indices
         self.info.adjust_indices(index, value, len(self))
         ma.MaskedArray.__setitem__(self, index, value)
