@@ -1037,7 +1037,9 @@ class Quantity(np.ndarray):
         return out
 
     def __setitem__(self, i, value):
-        # update indices if we're part of a table.
+        # update indices in info if the info property has been accessed
+        # (in which case 'info' in self.__dict__ is True; this is guaranteed
+        # to be the case if we're part of a table).
         if not self.isscalar and 'info' in self.__dict__:
             self.info.adjust_indices(i, value, len(self))
         self.view(np.ndarray).__setitem__(i, self._to_own_unit(value))
