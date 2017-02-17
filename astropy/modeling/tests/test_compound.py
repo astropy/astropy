@@ -5,6 +5,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import inspect
 from copy import deepcopy
+import functools
 
 import numpy as np
 
@@ -887,3 +888,18 @@ def test_pickle_compound_fallback():
     gg = (Gaussian1D + Gaussian1D)()
     with pytest.raises(RuntimeError):
         pickle.dumps(gg)
+
+
+def test_update_parameters():
+    m = Gaussian1D(10,2,1) | Const1D(4)
+    m1 = Polynomial1D(1) | Scale(1)
+    pipe = [('d', m), ('f', m1), ('s', None)]
+
+    e = functools.reduce(lambda x,y: x | y, [t[1] for t in pipe[:-1]])
+    assert(e(1) == 0)
+    tr = pipe[1][1]
+    tr.c1_0 = 100
+    pipe[1] = (pipe[1][0], tr)
+
+    e = functools.reduce(lambda x, y: x | y, [t[1] for t in pipe[:-1]])
+    assert(e(1) == 400)

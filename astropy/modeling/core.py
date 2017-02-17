@@ -1890,7 +1890,7 @@ class _CompoundModelMeta(_ModelMeta):
 
         names = tuple(k[0] for k in names)
 
-        cls._submodels_names = names
+        cls._submodel_names = names
         return names
 
     @property
