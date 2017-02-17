@@ -201,11 +201,10 @@ Bug Fixes
   - Fixed a bug where ``get_transform`` could sometimes produce confusing errors
     because of a typo in the input validation. [#5645]
 
-  - Ensured that frame attributes cannot be set on ``SkyCoord`` if the current
-    frame has them, and that any that the frame does not have (but which are
-    valid for other frames), get set on the ``SkyCoord`` instance, not on its
-    underlying ``frame`` (e.g., setting ``relative_humidity`` on an ICRS
-    ``SkyCoord`` now stores this on the ``SkyCoord``). [#5750]
+  - Changed ``SkyCoord`` so that frame attributes which are not valid for the
+    current ``frame`` (but are valid for other frames) are stored on the
+    ``SkyCoord`` instance instead of the underlying ``frame`` instance (e.g.,
+    setting ``relative_humidity`` on an ICRS ``SkyCoord`` instance.) [#5750]
 
 - ``astropy.cosmology``
 

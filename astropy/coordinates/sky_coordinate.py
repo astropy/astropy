@@ -492,8 +492,7 @@ class SkyCoord(ShapedLikeNDArray):
             if self.frame.name == attr:
                 raise AttributeError("'{0}' is immutable".format(attr))
 
-            if not attr.startswith('_') and hasattr(self._sky_coord_frame,
-                                                    attr):
+            if not attr.startswith('_') and hasattr(self._sky_coord_frame, attr):
                 setattr(self._sky_coord_frame, attr, val)
                 return
 
