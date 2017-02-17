@@ -1971,6 +1971,15 @@ class _CompoundModelMeta(_ModelMeta):
         children = []
         for child in (left, right):
             if isinstance(child, (_CompoundModelMeta, _CompoundModel)):
+                """
+                Although the original child models were copied we make another
+                copy here to ensure that changes in this child compound model
+                parameters will not propagate to the reuslt, that is
+                cm1 = Gaussian1D(1, 5, .1) + Gaussian1D()
+                cm2 = cm1 | Scale()
+                cm1.amplitude_0 = 100
+                assert(cm2.amplitude_0 == 1)
+                """
                 children.append(copy.deepcopy(child._tree))
             elif isinstance(child, Model):
                 children.append(ExpressionTree(child.copy()))
