@@ -438,6 +438,9 @@ class Parameter(OrderedDescriptor):
             if not six.callable(value) and value not in (False, None):
                 raise TypeError("Tied must be a callable")
             self._model._constraints['tied'][self._name] = value
+            if value is not False and value is not None:
+                param_slice = self._model._param_metrics[self._name]['slice']
+                self._model._parameters[param_slice] = value(self._model)  # update parameter value
         else:
             raise AttributeError("can't set attribute 'tied' on Parameter "
                                  "definition")
@@ -690,6 +693,7 @@ class Parameter(OrderedDescriptor):
                 "Input value for parameter {0!r} does not have {1} elements "
                 "as the current value does".format(self._name, param_size))
 
+        model._evaluate_tied_parameters()
         model._parameters[param_slice] = np.array(value).ravel()
 
     @staticmethod

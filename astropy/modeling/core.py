@@ -1671,6 +1671,12 @@ class Model(object):
 
         return '\n'.join(parts)
 
+    def _evaluate_tied_parameters(self):
+        for name in self.param_names:
+            if self.tied[name] is not False:
+                param_slice = self._param_metrics[name]['slice']
+                self._parameters[param_slice] = self.tied[name](self)
+
 class FittableModel(Model):
     """
     Base class for models that can be fitted using the built-in fitting
