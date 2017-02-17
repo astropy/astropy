@@ -362,32 +362,32 @@ class SkyCoord(ShapedLikeNDArray):
 
         return valid_kwargs
 
-    def transform_to(self, frame, override_defaults=True):
+    def transform_to(self, frame, strict=False):
         """Transform this coordinate to a new frame.
 
-        The frame attributes (e.g., equinox or obstime) for the returned object
-        depend on the corresponding attributes of both the destination ``frame``
-        and the `SkyCoord` instance being transformed, with a precedence that
-        depends on whether ``override_defaults`` is set or not.
+        The precise definition of the frame to transform to depends on
+        ``strict``.  If `True`, the destination frame is used strictly as is.
+        This is often not quite what one wants; e.g., suppose one wants to
+        transform to FK4 an ICRS coordinate with an obstime set, then likely
+        one would want to keep this obstime. Thus, the default for
+        ``strict`` is `False`, in which the precedence is as follows: (1)
+        explicitly set (i.e., non-default) values in the destination frame; (2)
+        explicitly set values in the source; (3) default value in the
+        destination frame.
 
-        If ``override_defaults`` is `True`:
-
-        1. Explicitly set (i.e., non-default) values in the destination frame;
-        2. Explicitly set values in the `SkyCoord` instance;
-        3. Default value in the destination frame.
-
-        If ``override_defaults`` is `False`:
-
-        1. Any attribute, explicitly set or default, in the destination frame;
-        2. Explicitly set attributes  in the `SkyCoord` instance.
+        Note that in either case, any explicitly set attributes on the source
+        `SkyCoord` that are not part of the destination frame's definition are
+        kept (stored on the resulting `SkyCoord`).
 
         Parameters
         ----------
-        frame : str or `BaseCoordinateFrame` class / instance or `SkyCoord` instance
-            The frame to transform this coordinate into.
-        override_defaults : bool, optional
-            Whether the source frame's explicit parameters should override the
-            destination frame's default parameters (default: `True`).
+        frame : str, `BaseCoordinateFrame` class or instance, or `SkyCoord` instance
+            The frame to transform this coordinate into.  If a `SkyCoord`, the
+            underlying frame is extracted, and all other information ignored.
+        strict : bool, optional
+            Whether the destination frame should be taken strictly as is, or
+            whether its default attributes should be overridden by explicitly
+            set attributes in the source (see note above; default: `False`).
 
         Returns
         -------
@@ -398,6 +398,7 @@ class SkyCoord(ShapedLikeNDArray):
         ------
         ValueError
             If there is no possible transformation route.
+
         """
         from astropy.coordinates.errors import ConvertError
 
@@ -414,18 +415,13 @@ class SkyCoord(ShapedLikeNDArray):
 
         if isinstance(frame, BaseCoordinateFrame):
             new_frame_cls = frame.__class__
-
-            # Set the keyword args for making a new frame instance for the
-            # transform.  Frame attributes track whether they were explicitly
-            # set by user or are just reflecting default values.  Precedence:
-            # 1. Non-default value in the supplied frame instance
-            # 2. Non-default value in the self instance (unless accepting_defaults)
-            # 3. Default value in the supplied frame instance
+            # Get frame attributes, allowing defaults to be overridden by
+            # explicitly set attributes of the source if not ``strict``.
             for attr in FRAME_ATTR_NAMES_SET():
                 self_val = getattr(self, attr, None)
                 frame_val = getattr(frame, attr, None)
-                if (frame_val is not None and not
-                    (override_defaults and frame.is_frame_attr_default(attr))):
+                if (frame_val is not None and
+                    (strict or not frame.is_frame_attr_default(attr))):
                     frame_kwargs[attr] = frame_val
                 elif (self_val is not None and
                       not self.is_frame_attr_default(attr)):
@@ -692,7 +688,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         if not self.is_equivalent_frame(other):
             try:
-                other = other.transform_to(self, override_defaults=False)
+                other = other.transform_to(self, strict=True)
             except TypeError:
                 raise TypeError('Can only get separation to another SkyCoord '
                                 'or a coordinate frame with data')
@@ -731,7 +727,7 @@ class SkyCoord(ShapedLikeNDArray):
         """
         if not self.is_equivalent_frame(other):
             try:
-                other = other.transform_to(self, override_defaults=False)
+                other = other.transform_to(self, strict=True)
             except TypeError:
                 raise TypeError('Can only get separation to another SkyCoord '
                                 'or a coordinate frame with data')
@@ -1073,7 +1069,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         if not self.is_equivalent_frame(other):
             try:
-                other = other.transform_to(self, override_defaults=False)
+                other = other.transform_to(self, strict=True)
             except TypeError:
                 raise TypeError('Can only get position_angle to another '
                                 'SkyCoord or a coordinate frame with data')
