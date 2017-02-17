@@ -492,14 +492,18 @@ class SkyCoord(ShapedLikeNDArray):
             if self.frame.name == attr:
                 raise AttributeError("'{0}' is immutable".format(attr))
 
-            if (attr in FRAME_ATTR_NAMES_SET() or
-                (not attr.startswith('_') and
-                 hasattr(self._sky_coord_frame, attr))):
+            if not attr.startswith('_') and hasattr(self._sky_coord_frame, attr):
                 setattr(self._sky_coord_frame, attr, val)
+                return
 
             frame_cls = frame_transform_graph.lookup_name(attr)
             if frame_cls is not None and self.frame.is_transformable_to(frame_cls):
                 raise AttributeError("'{0}' is immutable".format(attr))
+
+        if attr in FRAME_ATTR_NAMES_SET():
+            # All possible frame attributes can be set, but only via a private
+            # variable.  See __getattr__ above.
+            attr = '_' + attr
 
         # Otherwise, do the standard Python attribute setting
         super(SkyCoord, self).__setattr__(attr, val)
