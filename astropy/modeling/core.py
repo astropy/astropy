@@ -710,6 +710,12 @@ class Model(object):
 
         return self._name
 
+    @name.setter
+    def name(self, val):
+        """Assign a (new) name to this model."""
+
+        self._name = val
+
     @property
     def n_inputs(self):
         """
@@ -1210,7 +1216,6 @@ class Model(object):
         """
         Return a copy of this model with a new name.
         """
-
         new_model = self.copy()
         new_model._name = name
         return new_model
@@ -1890,7 +1895,7 @@ class _CompoundModelMeta(_ModelMeta):
 
         names = tuple(k[0] for k in names)
 
-        cls._submodels_names = names
+        cls._submodel_names = names
         return names
 
     @property
@@ -1919,7 +1924,6 @@ class _CompoundModelMeta(_ModelMeta):
             # but it is necessary on Python 2 since looking up cls._evaluate
             # will return an unbound method otherwise
             cls._evaluate = staticmethod(func)
-
         inputs = args[:cls.n_inputs]
         params = iter(args[cls.n_inputs:])
         result = cls._evaluate(inputs, params)
@@ -1961,14 +1965,24 @@ class _CompoundModelMeta(_ModelMeta):
         ``standard_broadcasting``, and ``__module__`.  This is currently for
         internal use only.
         """
-
         # Note, currently this only supports binary operators, but could be
         # easily extended to support unary operators (namely '-') if/when
         # needed
         children = []
         for child in (left, right):
             if isinstance(child, (_CompoundModelMeta, _CompoundModel)):
-                children.append(child._tree)
+                """
+                Although the original child models were copied we make another
+                copy here to ensure that changes in this child compound model
+                parameters will not propagate to the reuslt, that is
+                cm1 = Gaussian1D(1, 5, .1) + Gaussian1D()
+                cm2 = cm1 | Scale()
+                cm1.amplitude_0 = 100
+                assert(cm2.amplitude_0 == 1)
+                """
+                children.append(copy.deepcopy(child._tree))
+            elif isinstance(child, Model):
+                children.append(ExpressionTree(child.copy()))
             else:
                 children.append(ExpressionTree(child))
 

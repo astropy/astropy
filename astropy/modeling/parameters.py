@@ -679,18 +679,23 @@ class Parameter(OrderedDescriptor):
         array) but other mechanisms may be desireable, in which case really the
         model class itself should dictate this and *not* `Parameter` itself.
         """
+        def _update_parameter_value(model, name, value):
+            # TODO: Maybe handle exception on invalid input shape
+            param_slice = model._param_metrics[name]['slice']
+            param_shape = model._param_metrics[name]['shape']
+            param_size = np.prod(param_shape)
 
-        # TODO: Maybe handle exception on invalid input shape
-        param_slice = model._param_metrics[self._name]['slice']
-        param_shape = model._param_metrics[self._name]['shape']
-        param_size = np.prod(param_shape)
+            if np.size(value) != param_size:
+                raise InputParameterError(
+                    "Input value for parameter {0!r} does not have {1} elements "
+                    "as the current value does".format(self._name, param_size))
 
-        if np.size(value) != param_size:
-            raise InputParameterError(
-                "Input value for parameter {0!r} does not have {1} elements "
-                "as the current value does".format(self._name, param_size))
-
-        model._parameters[param_slice] = np.array(value).ravel()
+            model._parameters[param_slice] = np.array(value).ravel()
+        _update_parameter_value(model, self._name, value)
+        if hasattr(model, "_param_map"):
+            submodel_ind, param_name = model._param_map[self._name]
+            if hasattr(model._submodels[submodel_ind], "_param_metrics"):
+                _update_parameter_value(model._submodels[submodel_ind], param_name, value)
 
     @staticmethod
     def _create_value_wrapper(wrapper, model):
