@@ -15,6 +15,7 @@ To generate a color PNG file with the default (arcsinh) scaling:
 
 .. plot::
     :include-source:
+    :align: center
 
     import numpy as np
     import matplotlib.pyplot as plt
@@ -31,13 +32,14 @@ scale and size. Changing ``minimum`` will change the black level, while
 scaled.
 
 For a more in-depth example, download the ``g``, ``r``, ``i`` SDSS frames
-(the will serve as the blue, green and red channels respectively) of
+(they will serve as the blue, green and red channels respectively) of
 the area around the Hickson 88 group and try the example below and compare
 it with Figure 1 of `Lupton et al. (2004)`_:
 
 .. plot::
    :context: reset
    :include-source:
+   :align: center
 
    import numpy as np
    import matplotlib.pyplot as plt
