@@ -279,9 +279,7 @@ def test_indexing_on_class():
 
     M = Gaussian1D + p
     assert M[0] is Gaussian1D
-    assert M[1] is p
-    assert M['Gaussian1D'] is M[0]
-    assert M['p'] is M[1]
+    assert isinstance(M['p'], Polynomial1D)
 
     m = g + p
     assert isinstance(m[0], Gaussian1D)
@@ -887,3 +885,32 @@ def test_pickle_compound_fallback():
     gg = (Gaussian1D + Gaussian1D)()
     with pytest.raises(RuntimeError):
         pickle.dumps(gg)
+
+
+def test_update_parameters():
+    offx = Shift(1)
+    scl = Scale(2)
+    m = offx | scl
+    assert(m(1) == 4)
+
+    offx.offset=42
+    assert(m(1) == 4)
+
+    m.factor_1 = 100
+    assert(m(1) == 200)
+    m2 = m | offx
+    assert(m2(1) == 242)
+
+
+def test_name():
+    offx = Shift(1)
+    scl = Scale(2)
+    m = offx | scl
+    scl.name = "scale"
+    assert m._submodel_names == ('None_0', 'None_1')
+    assert m.name is None
+    m.name = "M"
+    assert m.name == "M"
+    m1 = m.rename("M1")
+    assert m.name == "M"
+    assert m1.name == "M1"
