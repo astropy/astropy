@@ -23,6 +23,8 @@ New Features
   - Change behavior to warn about units that are not FITS-compliant when
     writing a FITS file but not when reading. [#5675]
 
+  - Added absolute tolerance parameter when comparing FITS files. [#4729]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
