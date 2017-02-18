@@ -56,6 +56,8 @@ def convolve1d_boundary_none(np.ndarray[DTYPE_t, ndim=1] f,
         #            fixed[i] = f[i]
         #    else:
         #        fixed[i] = f[i]
+        for i in range(nx):
+            fixed[i] = f[i]
 
         # Now run the proper convolution
         for i in range(wkx, nx - wkx):

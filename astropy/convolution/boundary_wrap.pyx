@@ -230,6 +230,8 @@ def convolve3d_boundary_wrap(np.ndarray[DTYPE_t, ndim=3] f,
         #                    fixed[i, j, k] = f[i, j, k]
         #            else:
         #                fixed[i, j, k] = f[i, j, k]
+        for i in range(nx):
+            fixed[i] = f[i]
 
         # Now run the proper convolution
         for i in range(nx):
