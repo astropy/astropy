@@ -221,8 +221,8 @@ class RipleysKEstimator(object):
         elif mode == 'translation':
             diff = self._pairwise_diffs(data)
             distances = np.hypot(diff[:, 0], diff[:, 1])
-            intersec_area = (((self.x_max - self.x_min) - diff[:][:, 0]) *
-                             ((self.y_max - self.y_min) - diff[:][:, 1]))
+            intersec_area = (((self.x_max - self.x_min) - diff[:, 0]) *
+                             ((self.y_max - self.y_min) - diff[:, 1]))
 
             for r in range(len(radii)):
                 dist_indicator = distances < radii[r]
@@ -277,14 +277,16 @@ class RipleysKEstimator(object):
             ripley = self.area * ripley / npts
         # Cressie book eq 8.4.22 page 640
         elif mode == 'ripley':
-            hor_dist = np.array([])
-            ver_dist = np.array([])
+            hor_dist = np.zeros(shape=(npts*(npts-1))//2, dtype=np.double)
+            ver_dist = np.zeros(shape=(npts*(npts-1))//2, dtype=np.double)
 
             for k in range(npts - 1):
                 min_hor_dist = min(self.x_max - data[k][0], data[k][0] - self.x_min)
                 min_ver_dist = min(self.y_max - data[k][1], data[k][1] - self.y_min)
-                hor_dist = np.append(hor_dist, min_hor_dist * np.ones(npts - 1 - k))
-                ver_dist = np.append(ver_dist, min_ver_dist * np.ones(npts - 1 - k))
+                start = (k * (2 * (npts - 1) - (k - 1))) // 2
+                end = ((k + 1) * (2 * (npts - 1) - k)) // 2
+                hor_dist[start: end] = min_hor_dist * np.ones(npts - 1 - k)
+                ver_dist[start: end] = min_ver_dist * np.ones(npts - 1 - k)
 
             diff = self._pairwise_diffs(data)
             dist = np.hypot(diff[:, 0], diff[:, 1])
