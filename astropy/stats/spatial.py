@@ -277,12 +277,16 @@ class RipleysKEstimator(object):
             ripley = self.area * ripley / npts
         # Cressie book eq 8.4.22 page 640
         elif mode == 'ripley':
-            hor_dist = np.zeros(shape=(npts*(npts-1))//2, dtype=np.double)
-            ver_dist = np.zeros(shape=(npts*(npts-1))//2, dtype=np.double)
+            hor_dist = np.zeros(shape=(npts * (npts - 1)) // 2,
+                                dtype=np.double)
+            ver_dist = np.zeros(shape=(npts * (npts -1 )) // 2,
+                                dtype=np.double)
 
             for k in range(npts - 1):
-                min_hor_dist = min(self.x_max - data[k][0], data[k][0] - self.x_min)
-                min_ver_dist = min(self.y_max - data[k][1], data[k][1] - self.y_min)
+                min_hor_dist = min(self.x_max - data[k][0],
+                                   data[k][0] - self.x_min)
+                min_ver_dist = min(self.y_max - data[k][1],
+                                   data[k][1] - self.y_min)
                 start = (k * (2 * (npts - 1) - (k - 1))) // 2
                 end = ((k + 1) * (2 * (npts - 1) - k)) // 2
                 hor_dist[start: end] = min_hor_dist * np.ones(npts - 1 - k)
@@ -295,7 +299,7 @@ class RipleysKEstimator(object):
             w1 = (1 - (np.arccos(np.minimum(ver_dist, dist) / dist) +
                        np.arccos(np.minimum(hor_dist, dist) / dist)) / np.pi)
             w2 = (3 / 4 - 0.5 * (np.arccos(ver_dist / dist * ~dist_ind) +
-                                 np.arccos(hor_dist / dist * ~dist_ind)) / np.pi)
+                            np.arccos(hor_dist / dist * ~dist_ind)) / np.pi)
 
             weight = dist_ind * w1 + ~dist_ind * w2
 
