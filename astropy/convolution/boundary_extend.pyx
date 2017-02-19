@@ -17,7 +17,9 @@ cimport cython
 
 @cython.boundscheck(False)  # turn off bounds-checking for entire function
 def convolve1d_boundary_extend(np.ndarray[DTYPE_t, ndim=1] f,
-                               np.ndarray[DTYPE_t, ndim=1] g):
+                               np.ndarray[DTYPE_t, ndim=1] g,
+                               bint normalize_kernel
+                              ):
 
     if g.shape[0] % 2 != 1:
         raise ValueError("Convolution kernel must have odd dimensions")
@@ -38,51 +40,28 @@ def convolve1d_boundary_extend(np.ndarray[DTYPE_t, ndim=1] f,
 
     # release the GIL
     with nogil:
-        ## Need a first pass to replace NaN values with value convolved from
-        ## neighboring values
-        #for i in range(nx):
-        #    if npy_isnan(f[i]):
-        #        top = 0.
-        #        bot = 0.
-        #        iimin = i - wkx
-        #        iimax = i + wkx + 1
-        #        for ii in range(iimin, iimax):
-        #            iii = int_min(int_max(ii, 0), nx - 1)
-        #            val = f[iii]
-        #            if not npy_isnan(val):
-        #                ker = g[<unsigned int>(wkx + ii - i)]
-        #                top += val * ker
-        #                bot += ker
-
-        #        if bot != 0.:
-        #            fixed[i] = top / bot
-        #        else:
-        #            fixed[i] = f[i]
-        #    else:
-        #        fixed[i] = f[i]
         for i in range(nx):
             fixed[i] = f[i]
 
         # Now run the proper convolution
         for i in range(nx):
-            if not npy_isnan(fixed[i]):
-                top = 0.
-                bot = 0.
-                iimin = i - wkx
-                iimax = i + wkx + 1
-                for ii in range(iimin, iimax):
-                    iii = int_min(int_max(ii, 0), nx - 1)
-                    val = fixed[iii]
-                    ker = g[<unsigned int>(wkx + ii - i)]
-                    if not npy_isnan(val):
-                        top += val * ker
-                        bot += ker
-                if bot != 0:
-                    conv[i] = top / bot
-                else:
-                    conv[i] = fixed[i]
-            else:
+            top = 0.
+            bot = 0.
+            iimin = i - wkx
+            iimax = i + wkx + 1
+            for ii in range(iimin, iimax):
+                iii = int_min(int_max(ii, 0), nx - 1)
+                val = fixed[iii]
+                ker = g[<unsigned int>(wkx + ii - i)]
+                if not npy_isnan(val):
+                    top += val * ker
+                    bot += ker
+            if normalize_kernel and bot != 0:
+                conv[i] = top / bot
+            elif normalize_kernel and bot == 0:
                 conv[i] = fixed[i]
+            else:
+                conv[i] = top
     # GIL acquired again here
     return conv
 
@@ -113,34 +92,9 @@ def convolve2d_boundary_extend(np.ndarray[DTYPE_t, ndim=2] f,
 
     # release the GIL
     with nogil:
-        ## Need a first pass to replace NaN values with value convolved from
-        ## neighboring values
-        #for i in range(nx):
-        #    for j in range(ny):
-        #        if npy_isnan(f[i, j]):
-        #            top = 0.
-        #            bot = 0.
-        #            iimin = i - wkx
-        #            iimax = i + wkx + 1
-        #            jjmin = j - wky
-        #            jjmax = j + wky + 1
-        #            for ii in range(iimin, iimax):
-        #                for jj in range(jjmin, jjmax):
-        #                    iii = int_min(int_max(ii, 0), nx - 1)
-        #                    jjj = int_min(int_max(jj, 0), ny - 1)
-        #                    val = f[iii, jjj]
-        #                    if not npy_isnan(val):
-        #                        ker = g[<unsigned int>(wkx + ii - i),
-        #                                <unsigned int>(wky + jj - j)]
-        #                        top += val * ker
-        #                        bot += ker
-
-        #            if bot != 0.:
-        #                fixed[i, j] = top / bot
-        #            else:
-        #                fixed[i, j] = f[i, j]
-        #        else:
-        #            fixed[i, j] = f[i, j]
+        for i in range(nx):
+            for j in range(ny):
+                fixed[i, j] = f[i, j]
 
         # Now run the proper convolution
         for i in range(nx):
@@ -201,40 +155,10 @@ def convolve3d_boundary_extend(np.ndarray[DTYPE_t, ndim=3] f,
 
     # release the GIL
     with nogil:
-        ## Need a first pass to replace NaN values with value convolved from
-        ## neighboring values
-        #for i in range(nx):
-        #    for j in range(ny):
-        #        for k in range(nz):
-        #            if npy_isnan(f[i, j, k]):
-        #                top = 0.
-        #                bot = 0.
-        #                iimin = i - wkx
-        #                iimax = i + wkx + 1
-        #                jjmin = j - wky
-        #                jjmax = j + wky + 1
-        #                kkmin = k - wkz
-        #                kkmax = k + wkz + 1
-        #                for ii in range(iimin, iimax):
-        #                    for jj in range(jjmin, jjmax):
-        #                        for kk in range(kkmin, kkmax):
-        #                            iii = int_min(int_max(ii, 0), nx - 1)
-        #                            jjj = int_min(int_max(jj, 0), ny - 1)
-        #                            kkk = int_min(int_max(kk, 0), nz - 1)
-        #                            val = f[iii, jjj, kkk]
-        #                            if not npy_isnan(val):
-        #                                ker = g[<unsigned int>(wkx + ii - i),
-        #                                        <unsigned int>(wky + jj - j),
-        #                                        <unsigned int>(wkz + kk - k)]
-        #                                top += val * ker
-        #                                bot += ker
-
-        #                if bot != 0.:
-        #                    fixed[i, j, k] = top / bot
-        #                else:
-        #                    fixed[i, j, k] = f[i, j, k]
-        #            else:
-        #                fixed[i, j, k] = f[i, j, k]
+        for i in range(nx):
+            for j in range(ny):
+                for k in range(nz):
+                    fixed[i, j, k] = f[i, j, k]
 
         # Now run the proper convolution
         for i in range(nx):

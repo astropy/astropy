@@ -23,7 +23,7 @@ __doctest_skip__ = ['*']
 
 @support_nddata(data='array')
 def convolve(array, kernel, boundary='fill', fill_value=0.,
-             normalize_kernel=False, mask=None):
+             normalize_kernel=False, mask=None, interpolate_nan=True):
     '''
     Convolve an array with a kernel.
 
@@ -175,6 +175,11 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         # *kernel* doesn't support NaN interpolation, so instead we just fill it
         kernel_internal = kernel.filled(fill_value)
 
+    # Mark the NaN values so we can replace them later if interpolate_nan is
+    # not set
+    if not interpolate_nan:
+        badvals = np.isnan(array_internal)
+
     # Because the Cython routines have to normalize the kernel on the fly, we
     # explicitly normalize the kernel here, and then scale the image at the
     # end if normalization was not requested.
@@ -184,24 +189,28 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         raise Exception("The kernel can't be normalized, because its sum is "
                         "close to zero. The sum of the given kernel is < {0}"
                         .format(1. / MAX_NORMALIZATION))
-    kernel_internal /= kernel_sum
+    #kernel_internal /= kernel_sum
 
     if array_internal.ndim == 0:
         raise Exception("cannot convolve 0-dimensional arrays")
     elif array_internal.ndim == 1:
         if boundary == 'extend':
             result = convolve1d_boundary_extend(array_internal,
-                                                kernel_internal)
+                                                kernel_internal,
+                                                normalize_kernel)
         elif boundary == 'fill':
             result = convolve1d_boundary_fill(array_internal,
                                               kernel_internal,
-                                              float(fill_value))
+                                              float(fill_value),
+                                              normalize_kernel)
         elif boundary == 'wrap':
             result = convolve1d_boundary_wrap(array_internal,
-                                              kernel_internal)
+                                              kernel_internal,
+                                              normalize_kernel)
         else:
             result = convolve1d_boundary_none(array_internal,
-                                              kernel_internal)
+                                              kernel_internal,
+                                              normalize_kernel)
     elif array_internal.ndim == 2:
         if boundary == 'extend':
             result = convolve2d_boundary_extend(array_internal,
@@ -236,8 +245,13 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 
     # If normalization was not requested, we need to scale the array (since
     # the kernel was normalized prior to convolution)
-    if not normalize_kernel:
-        result *= kernel_sum
+    # (with normalize_kernel now operating *inside* the cython functions, we
+    # don't need this)
+    #if not normalize_kernel:
+    #    result *= kernel_sum
+
+    if not interpolate_nan:
+        result[badvals] = np.nan
 
     # Try to preserve the input type if it's a floating point type
     if array_dtype.kind == 'f':
