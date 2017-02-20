@@ -76,7 +76,7 @@ def _find_home():
     return homedir
 
 
-def get_config_dir(pkgname, create=True):
+def get_config_dir(rootname, create=True):
     """
     Determines the package configuration directory name and creates the
     directory if it doesn't exist.
@@ -86,9 +86,18 @@ def get_config_dir(pkgname, create=True):
     ``$XDG_CONFIG_HOME/astropy`` directory exists, it will be that directory.
     If neither exists, the former will be created and symlinked to the latter.
 
+    Parameters
+    ----------
+    rootname : str
+        Name of the root configuration directory. For example, if
+        ``rootname = 'pkgname'``, the configuration directory will be
+        ``<home>/.pkgname/``.
+
+    create : bool, optional
+        Create the path if it doesn't exist.
+
     Returns
     -------
-    pkgname : TODO
     configdir : str
         The absolute path to the configuration directory.
 
@@ -100,7 +109,7 @@ def get_config_dir(pkgname, create=True):
     # If using set_temp_config, that overrides all
     if set_temp_config._temp_path is not None:
         xch = set_temp_config._temp_path
-        config_path = os.path.join(xch, pkgname)
+        config_path = os.path.join(xch, rootname)
         if not os.path.exists(config_path):
             os.mkdir(config_path)
         return os.path.abspath(config_path)
@@ -109,16 +118,16 @@ def get_config_dir(pkgname, create=True):
     xch = os.environ.get('XDG_CONFIG_HOME')
 
     if xch is not None and os.path.exists(xch):
-        xchpth = os.path.join(xch, pkgname)
+        xchpth = os.path.join(xch, rootname)
         if not os.path.islink(xchpth):
             if os.path.exists(xchpth):
                 return os.path.abspath(xchpth)
             else:
                 linkto = xchpth
-    return os.path.abspath(_find_or_create_root_dir('config', linkto, pkgname))
+    return os.path.abspath(_find_or_create_root_dir('config', linkto, rootname))
 
 
-def get_cache_dir(pkgname):
+def get_cache_dir(rootname):
     """
     Determines the Astropy cache directory name and creates the directory if it
     doesn't exist.
@@ -128,9 +137,15 @@ def get_cache_dir(pkgname):
     ``$XDG_CACHE_HOME/astropy`` directory exists, it will be that directory.
     If neither exists, the former will be created and symlinked to the latter.
 
+    Parameters
+    ----------
+    rootname : str
+        Name of the root cache directory. For example, if
+        ``rootname = 'pkgname'``, the cache directory will be
+        ``<cache>/.pkgname/``.
+
     Returns
     -------
-    pkgname : TODO
     cachedir : str
         The absolute path to the cache directory.
 
@@ -142,7 +157,7 @@ def get_cache_dir(pkgname):
     # If using set_temp_cache, that overrides all
     if set_temp_cache._temp_path is not None:
         xch = set_temp_cache._temp_path
-        cache_path = os.path.join(xch, pkgname)
+        cache_path = os.path.join(xch, rootname)
         if not os.path.exists(cache_path):
             os.mkdir(cache_path)
         return os.path.abspath(cache_path)
@@ -151,14 +166,14 @@ def get_cache_dir(pkgname):
     xch = os.environ.get('XDG_CACHE_HOME')
 
     if xch is not None and os.path.exists(xch):
-        xchpth = os.path.join(xch, pkgname)
+        xchpth = os.path.join(xch, rootname)
         if not os.path.islink(xchpth):
             if os.path.exists(xchpth):
                 return os.path.abspath(xchpth)
             else:
                 linkto = xchpth
 
-    return os.path.abspath(_find_or_create_root_dir('cache', linkto, pkgname))
+    return os.path.abspath(_find_or_create_root_dir('cache', linkto, rootname))
 
 
 class _SetTempPath:
