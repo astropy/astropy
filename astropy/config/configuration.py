@@ -506,6 +506,7 @@ def get_config(packageormod=None, reload=False, rootname=None):
         If ``packageormod`` is `None`, but the package this item is created
         from cannot be determined.
     """
+
     if packageormod is None:
         packageormod = find_current_module(2)
         if packageormod is None:
@@ -528,7 +529,7 @@ def get_config(packageormod=None, reload=False, rootname=None):
         if _autopkg:
             rootname = pkgname
         else:
-            rootname = 'astropy'
+            rootname = 'astropy' # so we don't break affiliated packages
 
     cobj = _cfgobjs.get(pkgname, None)
 
