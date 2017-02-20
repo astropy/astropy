@@ -472,7 +472,7 @@ def get_config_filename(packageormod=None):
 _override_config_file = None
 
 
-def get_config(packageormod=None, reload=False):
+def get_config(packageormod=None, reload=False, rootname='astropy'):
     """ Gets the configuration object or section associated with a particular
     package or module.
 
@@ -509,10 +509,10 @@ def get_config(packageormod=None, reload=False):
             packageormod = packageormod.__name__
 
     packageormodspl = packageormod.split('.')
-    rootname = packageormodspl[0]
+    pkgname = packageormodspl[0]
     secname = '.'.join(packageormodspl[1:])
 
-    cobj = _cfgobjs.get(rootname, None)
+    cobj = _cfgobjs.get(pkgname, None)
 
     if cobj is None or reload:
         cfgfn = None
@@ -534,7 +534,7 @@ def get_config(packageormod=None, reload=False):
             # function won't see it unless the module is reloaded
             cobj = configobj.ConfigObj(interpolation=False)
 
-        _cfgobjs[rootname] = cobj
+        _cfgobjs[pkgname] = cobj
 
     if secname:  # not the root package
         if secname not in cobj:
