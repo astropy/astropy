@@ -83,7 +83,7 @@ def _find_home():
             homedir = decodepath(os.environ['HOME'])
         else:
             raise OSError('Could not find a home directory to search for '
-                          'astropy config dir - are you on an unspported '
+                          'astropy config dir - are you on an unsupported '
                           'platform?')
     return homedir
 
