@@ -20,6 +20,9 @@ def test_paths():
     assert 'astropy' in paths.get_config_dir('astropy')
     assert 'astropy' in paths.get_cache_dir('astropy')
 
+    assert 'testpkg' in paths.get_config_dir('testpkg')
+    assert 'testpkg' in paths.get_cache_dir('testpkg')
+
 
 def test_set_temp_config(tmpdir, monkeypatch):
     monkeypatch.setattr(paths.set_temp_config, '_temp_path', None)
@@ -83,6 +86,10 @@ def test_config_file():
     assert cfgsec.parent.filename.endswith('astropy.cfg')
 
     reload_config('astropy')
+
+    # try with a different package name, still inside astropy config dir:
+    testcfg = get_config('testpkg', rootname='astropy')
+    assert testcfg.filename.endswith('testpkg.cfg')
 
 
 def test_configitem():
