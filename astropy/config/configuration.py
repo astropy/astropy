@@ -549,7 +549,7 @@ def get_config(packageormod=None, reload=False, rootname='astropy'):
         return cobj
 
 
-def reload_config(packageormod=None):
+def reload_config(packageormod=None, rootname='astropy'):
     """ Reloads configuration settings from a configuration file for the root
     package of the requested package/module.
 
@@ -564,7 +564,7 @@ def reload_config(packageormod=None):
     packageormod : str or None
         The package or module name - see `get_config` for details.
     """
-    sec = get_config(packageormod, True)
+    sec = get_config(packageormod, True, rootname=rootname)
     # look for the section that is its own parent - that's the base object
     while sec.parent is not sec:
         sec = sec.parent
@@ -663,7 +663,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
         # system, so just return.
         return False
 
-    cfgfn = get_config(pkg).filename
+    cfgfn = get_config(pkg, rootname='astropy').filename
 
     with open(default_cfgfn, 'rt', encoding='latin-1') as fr:
         template_content = fr.read()
@@ -690,7 +690,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
     # spamming `~/.astropy/config`.
     if 'dev' not in version and cfgfn is not None:
         template_path = path.join(
-            get_config_dir(pkg), '{0}.{1}.cfg'.format(pkg, version))
+            get_config_dir('astropy'), '{0}.{1}.cfg'.format(pkg, version))
         needs_template = not path.exists(template_path)
     else:
         needs_template = False
