@@ -301,7 +301,8 @@ The biggest impact to users is that operations such as adding or removing
 table columns is now significantly faster because there is no structured array
 to rebuild each time.
 
-For details please see :ref:`table_implementation_change`.
+For details please see `Table implementation change in 1.0
+<https://astropy.readthedocs.io/en/v1.0/table/implementation_change_1.0.html>`_.
 
 Support for 'mixin' columns
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
