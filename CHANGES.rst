@@ -245,7 +245,7 @@ Bug Fixes
 
   - Fixed a problem with passing kwargs to fitters, specifically ``verblevel``. [#5815]
 
-  - Changed FittingWithOutlierRemoval to reject on the residual to the fit
+  - Changed FittingWithOutlierRemoval to reject on the residual to the fit [#5831]
 
 - ``astropy.nddata``
 
