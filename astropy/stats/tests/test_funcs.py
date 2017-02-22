@@ -6,7 +6,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 
 from numpy.random import randn, normal
-from numpy.testing import assert_equal, assert_raises
+from numpy.testing import assert_equal
 from numpy.testing.utils import assert_allclose
 
 try:
@@ -273,8 +273,11 @@ def test_midcovariance_shape():
     """
     test that midcovariance raises error when feed 3D array
     """
-    d = np.arange(27).reshape(3,3,3)
-    assert_raises(ValueError, funcs.biweight_midcovariance, d)
+    rng = np.random.RandomState(1)
+    d = rng.normal(0,1,27).reshape(3,3,3)
+    with pytest.raises(ValueError) as e:
+        funcs.biweight_midcovariance(d)
+    assert 'a.ndim should equal 2' in str(e.value)
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_binom_conf_interval():
