@@ -56,7 +56,7 @@ Bug Fixes
   - Fixed a problem with setting ``bounding_box`` on 1D models. [#5718]
 
   - Fixed a broadcasting problem with weighted fitting of 2D models
-    with ``LevMarLSQFitter``. [#5737]
+    with ``LevMarLSQFitter``. [#5788]
 
   - Fixed a problem with passing kwargs to fitters, specifically ``verblevel``. [#5815]
 
