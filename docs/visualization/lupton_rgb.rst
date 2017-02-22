@@ -56,7 +56,7 @@ it with Figure 1 of `Lupton et al. (2004)`_:
    i = fits.open(i_name)[0].data
 
    rgb_default = make_lupton_rgb(i, r, g, filename="ngc6976-default.jpeg")
-   plt.imshow(rgb_default)
+   plt.imshow(rgb_default, origin='lower')
 
 The image above was generated with the default parameters. However using a
 different scaling, e.g Q=10, stretch=0.5, faint features
@@ -69,7 +69,8 @@ of the galaxies show up. Compare with Fig. 1 of `Lupton et al. (2004)`_ or the
    :align: center
 
    rgb = make_lupton_rgb(i, r, g, Q=10, stretch=0.5, filename="ngc6976.jpeg")
-   plt.imshow(rgb)
+   plt.imshow(rgb, origin='lower')
 
 
-.. _SDSS Skyserver image: http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra=179.68929&dec=-0.45438&opt=
+.. _SDSS Skyserver image: http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra=313.12381&dec=-5.74611
+
