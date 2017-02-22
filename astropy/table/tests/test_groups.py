@@ -11,92 +11,90 @@ from ...utils.exceptions import AstropyUserWarning
 def sort_eq(list1, list2):
     return sorted(list1) == sorted(list2)
 
-def test_column_group_by(T1):
-    for masked in (False, True):
-        t1 = Table(T1, masked=masked)
-        t1a = t1['a'].copy()
+def test_column_group_by(table_types, T1):
+    t1 = table_types.Table(T1)
+    t1a = t1['a'].copy()
 
-        # Group by a Column (i.e. numpy array)
-        t1ag = t1a.group_by(t1['a'])
-        assert np.all(t1ag.groups.indices == np.array([0, 1, 4, 8]))
+    # Group by a Column (i.e. numpy array)
+    t1ag = t1a.group_by(t1['a'])
+    assert np.all(t1ag.groups.indices == np.array([0, 1, 4, 8]))
 
-        # Group by a Table
-        t1ag = t1a.group_by(t1['a', 'b'])
-        assert np.all(t1ag.groups.indices == np.array([0, 1, 3, 4, 5, 7, 8]))
+    # Group by a Table
+    t1ag = t1a.group_by(t1['a', 'b'])
+    assert np.all(t1ag.groups.indices == np.array([0, 1, 3, 4, 5, 7, 8]))
 
-        # Group by a numpy structured array
-        t1ag = t1a.group_by(t1['a', 'b'].as_array())
-        assert np.all(t1ag.groups.indices == np.array([0, 1, 3, 4, 5, 7, 8]))
+    # Group by a numpy structured array
+    t1ag = t1a.group_by(t1['a', 'b'].as_array())
+    assert np.all(t1ag.groups.indices == np.array([0, 1, 3, 4, 5, 7, 8]))
 
-def test_table_group_by(T1):
+def test_table_group_by(table_types, T1):
     """
     Test basic table group_by functionality for possible key types and for
-    masked/unmasked tables.
+    masked/unmasked/custom/qtable tables.
     """
-    for masked in (False, True):
-        t1 = Table(T1, masked=masked)
-        # Group by a single column key specified by name
-        tg = t1.group_by('a')
-        assert np.all(tg.groups.indices == np.array([0, 1, 4, 8]))
-        assert str(tg.groups) == "<TableGroups indices=[0 1 4 8]>"
-        assert str(tg['a'].groups) == "<ColumnGroups indices=[0 1 4 8]>"
+    t1 = table_types.Table(T1)
+    # Group by a single column key specified by name
+    tg = t1.group_by('a')
+    assert np.all(tg.groups.indices == np.array([0, 1, 4, 8]))
+    assert str(tg.groups) == "<TableGroups indices=[0 1 4 8]>"
+    assert str(tg['a'].groups) == "<ColumnGroups indices=[0 1 4 8]>"
 
-        # Sorted by 'a' and in original order for rest
+    # Sorted by 'a' and in original order for rest
+    assert tg.pformat() == [' a   b   c   d ',
+                            '--- --- --- ---',
+                            '  0   a 0.0   4',
+                            '  1   b 3.0   5',
+                            '  1   a 2.0   6',
+                            '  1   a 1.0   7',
+                            '  2   c 7.0   0',
+                            '  2   b 5.0   1',
+                            '  2   b 6.0   2',
+                            '  2   a 4.0   3']
+    assert tg.meta['ta'] == 1
+    assert tg['c'].meta['a'] == 1
+    assert tg['c'].description == 'column c'
+
+    # Group by a table column
+    tg2 = t1.group_by(t1['a'])
+    assert tg.pformat() == tg2.pformat()
+
+    # Group by two columns spec'd by name
+    for keys in (['a', 'b'], ('a', 'b')):
+        tg = t1.group_by(keys)
+        assert np.all(tg.groups.indices == np.array([0, 1, 3, 4, 5, 7, 8]))
+        # Sorted by 'a', 'b' and in original order for rest
         assert tg.pformat() == [' a   b   c   d ',
                                 '--- --- --- ---',
                                 '  0   a 0.0   4',
+                                '  1   a 2.0   6',
+                                '  1   a 1.0   7',
                                 '  1   b 3.0   5',
-                                '  1   a 2.0   6',
-                                '  1   a 1.0   7',
-                                '  2   c 7.0   0',
-                                '  2   b 5.0   1',
-                                '  2   b 6.0   2',
-                                '  2   a 4.0   3']
-        assert tg.meta['ta'] == 1
-        assert tg['c'].meta['a'] == 1
-        assert tg['c'].description == 'column c'
-
-        # Group by a table column
-        tg2 = t1.group_by(t1['a'])
-        assert tg.pformat() == tg2.pformat()
-
-        # Group by two columns spec'd by name
-        for keys in (['a', 'b'], ('a', 'b')):
-            tg = t1.group_by(keys)
-            assert np.all(tg.groups.indices == np.array([0, 1, 3, 4, 5, 7, 8]))
-            # Sorted by 'a', 'b' and in original order for rest
-            assert tg.pformat() == [' a   b   c   d ',
-                                    '--- --- --- ---',
-                                    '  0   a 0.0   4',
-                                    '  1   a 2.0   6',
-                                    '  1   a 1.0   7',
-                                    '  1   b 3.0   5',
-                                    '  2   a 4.0   3',
-                                    '  2   b 5.0   1',
-                                    '  2   b 6.0   2',
-                                    '  2   c 7.0   0']
-
-        # Group by a Table
-        tg2 = t1.group_by(t1['a', 'b'])
-        assert tg.pformat() == tg2.pformat()
-
-        # Group by a structured array
-        tg2 = t1.group_by(t1['a', 'b'].as_array())
-        assert tg.pformat() == tg2.pformat()
-
-        # Group by a simple ndarray
-        tg = t1.group_by(np.array([0, 1, 0, 1, 2, 1, 0, 0]))
-        assert np.all(tg.groups.indices == np.array([0, 4, 7, 8]))
-        assert tg.pformat() == [' a   b   c   d ',
-                                '--- --- --- ---',
-                                '  2   c 7.0   0',
-                                '  2   b 6.0   2',
-                                '  1   a 2.0   6',
-                                '  1   a 1.0   7',
-                                '  2   b 5.0   1',
                                 '  2   a 4.0   3',
-                                '  1   b 3.0   5',
-                                '  0   a 0.0   4']
+                                '  2   b 5.0   1',
+                                '  2   b 6.0   2',
+                                '  2   c 7.0   0']
+
+    # Group by a Table
+    tg2 = t1.group_by(t1['a', 'b'])
+    assert tg.pformat() == tg2.pformat()
+
+    # Group by a structured array
+    tg2 = t1.group_by(t1['a', 'b'].as_array())
+    assert tg.pformat() == tg2.pformat()
+
+    # Group by a simple ndarray
+    tg = t1.group_by(np.array([0, 1, 0, 1, 2, 1, 0, 0]))
+    assert np.all(tg.groups.indices == np.array([0, 4, 7, 8]))
+    assert tg.pformat() == [' a   b   c   d ',
+                            '--- --- --- ---',
+                            '  2   c 7.0   0',
+                            '  2   b 6.0   2',
+                            '  1   a 2.0   6',
+                            '  1   a 1.0   7',
+                            '  2   b 5.0   1',
+                            '  2   a 4.0   3',
+                            '  1   b 3.0   5',
+                            '  0   a 0.0   4']
 
 
 def test_groups_keys(T1):
@@ -124,39 +122,36 @@ def test_groups_iterator(T1):
         assert group['a'][0] == tg['a'][tg.groups.indices[ii]]
 
 
-def test_grouped_copy(T1):
+def test_grouped_copy(table_types, T1):
     """
     Test that copying a table or column copies the groups properly
     """
-    for masked in (False, True):
-        t1 = Table(T1, masked=masked)
-        tg = t1.group_by('a')
-        tgc = tg.copy()
-        assert np.all(tgc.groups.indices == tg.groups.indices)
-        assert np.all(tgc.groups.keys == tg.groups.keys)
+    t1 = table_types.Table(T1)
+    tg = t1.group_by('a')
+    tgc = tg.copy()
+    assert np.all(tgc.groups.indices == tg.groups.indices)
+    assert np.all(tgc.groups.keys == tg.groups.keys)
 
-        tac = tg['a'].copy()
-        assert np.all(tac.groups.indices == tg['a'].groups.indices)
+    tac = tg['a'].copy()
+    assert np.all(tac.groups.indices == tg['a'].groups.indices)
 
-        c1 = t1['a'].copy()
-        gc1 = c1.group_by(t1['a'])
-        gc1c = gc1.copy()
-        assert np.all(gc1c.groups.indices == np.array([0, 1, 4, 8]))
+    c1 = t1['a'].copy()
+    gc1 = c1.group_by(t1['a'])
+    gc1c = gc1.copy()
+    assert np.all(gc1c.groups.indices == np.array([0, 1, 4, 8]))
 
 
-def test_grouped_slicing(T1):
+def test_grouped_slicing(table_types, T1):
     """
     Test that slicing a table removes previous grouping
     """
+    t1 = table_types.Table(T1)
 
-    for masked in (False, True):
-        t1 = Table(T1, masked=masked)
-
-        # Regular slice of a table
-        tg = t1.group_by('a')
-        tg2 = tg[3:5]
-        assert np.all(tg2.groups.indices == np.array([0, len(tg2)]))
-        assert tg2.groups.keys is None
+    # Regular slice of a table
+    tg = t1.group_by('a')
+    tg2 = tg[3:5]
+    assert np.all(tg2.groups.indices == np.array([0, len(tg2)]))
+    assert tg2.groups.keys is None
 
 
 def test_group_column_from_table(T1):
@@ -168,142 +163,136 @@ def test_group_column_from_table(T1):
     assert np.all(cg.groups.indices == np.array([0, 1, 4, 8]))
 
 
-def test_table_groups_mask_index(T1):
+def test_table_groups_mask_index(table_types, T1):
     """
     Use boolean mask as item in __getitem__ for groups
     """
-    for masked in (False, True):
-        t1 = Table(T1, masked=masked).group_by('a')
+    t1 = table_types.Table(T1).group_by('a')
 
-        t2 = t1.groups[np.array([True, False, True])]
-        assert len(t2.groups) == 2
-        assert t2.groups[0].pformat() == t1.groups[0].pformat()
-        assert t2.groups[1].pformat() == t1.groups[2].pformat()
-        assert np.all(t2.groups.keys['a'] == np.array([0, 2]))
+    t2 = t1.groups[np.array([True, False, True])]
+    assert len(t2.groups) == 2
+    assert t2.groups[0].pformat() == t1.groups[0].pformat()
+    assert t2.groups[1].pformat() == t1.groups[2].pformat()
+    assert np.all(t2.groups.keys['a'] == np.array([0, 2]))
 
 
-def test_table_groups_array_index(T1):
+def test_table_groups_array_index(table_types, T1):
     """
     Use numpy array as item in __getitem__ for groups
     """
-    for masked in (False, True):
-        t1 = Table(T1, masked=masked).group_by('a')
+    t1 = table_types.Table(T1).group_by('a')
 
-        t2 = t1.groups[np.array([0, 2])]
-        assert len(t2.groups) == 2
-        assert t2.groups[0].pformat() == t1.groups[0].pformat()
-        assert t2.groups[1].pformat() == t1.groups[2].pformat()
-        assert np.all(t2.groups.keys['a'] == np.array([0, 2]))
+    t2 = t1.groups[np.array([0, 2])]
+    assert len(t2.groups) == 2
+    assert t2.groups[0].pformat() == t1.groups[0].pformat()
+    assert t2.groups[1].pformat() == t1.groups[2].pformat()
+    assert np.all(t2.groups.keys['a'] == np.array([0, 2]))
 
 
-def test_table_groups_slicing(T1):
+def test_table_groups_slicing(table_types, T1):
     """
     Test that slicing table groups works
     """
+    t1 = table_types.Table(T1).group_by('a')
 
-    for masked in (False, True):
-        t1 = Table(T1, masked=masked).group_by('a')
+    # slice(0, 2)
+    t2 = t1.groups[0:2]
+    assert len(t2.groups) == 2
+    assert t2.groups[0].pformat() == t1.groups[0].pformat()
+    assert t2.groups[1].pformat() == t1.groups[1].pformat()
+    assert np.all(t2.groups.keys['a'] == np.array([0, 1]))
 
-        # slice(0, 2)
-        t2 = t1.groups[0:2]
-        assert len(t2.groups) == 2
-        assert t2.groups[0].pformat() == t1.groups[0].pformat()
-        assert t2.groups[1].pformat() == t1.groups[1].pformat()
-        assert np.all(t2.groups.keys['a'] == np.array([0, 1]))
+    # slice(1, 2)
+    t2 = t1.groups[1:2]
+    assert len(t2.groups) == 1
+    assert t2.groups[0].pformat() == t1.groups[1].pformat()
+    assert np.all(t2.groups.keys['a'] == np.array([1]))
 
-        # slice(1, 2)
-        t2 = t1.groups[1:2]
-        assert len(t2.groups) == 1
-        assert t2.groups[0].pformat() == t1.groups[1].pformat()
-        assert np.all(t2.groups.keys['a'] == np.array([1]))
-
-        # slice(0, 3, 2)
-        t2 = t1.groups[0:3:2]
-        assert len(t2.groups) == 2
-        assert t2.groups[0].pformat() == t1.groups[0].pformat()
-        assert t2.groups[1].pformat() == t1.groups[2].pformat()
-        assert np.all(t2.groups.keys['a'] == np.array([0, 2]))
+    # slice(0, 3, 2)
+    t2 = t1.groups[0:3:2]
+    assert len(t2.groups) == 2
+    assert t2.groups[0].pformat() == t1.groups[0].pformat()
+    assert t2.groups[1].pformat() == t1.groups[2].pformat()
+    assert np.all(t2.groups.keys['a'] == np.array([0, 2]))
 
 
-def test_grouped_item_access(T1):
+def test_grouped_item_access(table_types, T1):
     """
     Test that column slicing preserves grouping
     """
-    for masked in (False, True):
-        t1 = Table(T1, masked=masked)
+    t1 = table_types.Table(T1)
 
-        # Regular slice of a table
-        tg = t1.group_by('a')
-        tgs = tg['a', 'c', 'd']
-        assert np.all(tgs.groups.keys == tg.groups.keys)
-        assert np.all(tgs.groups.indices == tg.groups.indices)
-        tgsa = tgs.groups.aggregate(np.sum)
-        assert tgsa.pformat() == [' a   c    d ',
-                                  '--- ---- ---',
-                                  '  0  0.0   4',
-                                  '  1  6.0  18',
-                                  '  2 22.0   6']
+    # Regular slice of a table
+    tg = t1.group_by('a')
+    tgs = tg['a', 'c', 'd']
+    assert np.all(tgs.groups.keys == tg.groups.keys)
+    assert np.all(tgs.groups.indices == tg.groups.indices)
+    tgsa = tgs.groups.aggregate(np.sum)
+    assert tgsa.pformat() == [' a   c    d ',
+                              '--- ---- ---',
+                              '  0  0.0   4',
+                              '  1  6.0  18',
+                              '  2 22.0   6']
 
-        tgs = tg['c', 'd']
-        assert np.all(tgs.groups.keys == tg.groups.keys)
-        assert np.all(tgs.groups.indices == tg.groups.indices)
-        tgsa = tgs.groups.aggregate(np.sum)
-        assert tgsa.pformat() == [' c    d ',
-                                  '---- ---',
-                                  ' 0.0   4',
-                                  ' 6.0  18',
-                                  '22.0   6']
+    tgs = tg['c', 'd']
+    assert np.all(tgs.groups.keys == tg.groups.keys)
+    assert np.all(tgs.groups.indices == tg.groups.indices)
+    tgsa = tgs.groups.aggregate(np.sum)
+    assert tgsa.pformat() == [' c    d ',
+                              '---- ---',
+                              ' 0.0   4',
+                              ' 6.0  18',
+                              '22.0   6']
 
 
-def test_mutable_operations(T1):
+def test_mutable_operations(table_types, T1):
     """
     Operations like adding or deleting a row should removing grouping,
     but adding or removing or renaming a column should retain grouping.
     """
-    for masked in (False, True):
-        t1 = Table(T1, masked=masked)
+    t1 = table_types.Table(T1)
 
-        # add row
-        tg = t1.group_by('a')
-        tg.add_row((0, 'a', 3.0, 4))
-        assert np.all(tg.groups.indices == np.array([0, len(tg)]))
-        assert tg.groups.keys is None
+    # add row
+    tg = t1.group_by('a')
+    tg.add_row((0, 'a', 3.0, 4))
+    assert np.all(tg.groups.indices == np.array([0, len(tg)]))
+    assert tg.groups.keys is None
 
-        # remove row
-        tg = t1.group_by('a')
-        tg.remove_row(4)
-        assert np.all(tg.groups.indices == np.array([0, len(tg)]))
-        assert tg.groups.keys is None
+    # remove row
+    tg = t1.group_by('a')
+    tg.remove_row(4)
+    assert np.all(tg.groups.indices == np.array([0, len(tg)]))
+    assert tg.groups.keys is None
 
-        # add column
-        tg = t1.group_by('a')
-        indices = tg.groups.indices.copy()
-        tg.add_column(Column(name='e', data=np.arange(len(tg))))
-        assert np.all(tg.groups.indices == indices)
-        assert np.all(tg['e'].groups.indices == indices)
-        assert np.all(tg['e'].groups.keys == tg.groups.keys)
+    # add column
+    tg = t1.group_by('a')
+    indices = tg.groups.indices.copy()
+    tg.add_column(Column(name='e', data=np.arange(len(tg))))
+    assert np.all(tg.groups.indices == indices)
+    assert np.all(tg['e'].groups.indices == indices)
+    assert np.all(tg['e'].groups.keys == tg.groups.keys)
 
-        # remove column (not key column)
-        tg = t1.group_by('a')
-        tg.remove_column('b')
-        assert np.all(tg.groups.indices == indices)
-        # Still has original key col names
-        assert tg.groups.keys.dtype.names == ('a',)
-        assert np.all(tg['a'].groups.indices == indices)
+    # remove column (not key column)
+    tg = t1.group_by('a')
+    tg.remove_column('b')
+    assert np.all(tg.groups.indices == indices)
+    # Still has original key col names
+    assert tg.groups.keys.dtype.names == ('a',)
+    assert np.all(tg['a'].groups.indices == indices)
 
-        # remove key column
-        tg = t1.group_by('a')
-        tg.remove_column('a')
-        assert np.all(tg.groups.indices == indices)
-        assert tg.groups.keys.dtype.names == ('a',)
-        assert np.all(tg['b'].groups.indices == indices)
+    # remove key column
+    tg = t1.group_by('a')
+    tg.remove_column('a')
+    assert np.all(tg.groups.indices == indices)
+    assert tg.groups.keys.dtype.names == ('a',)
+    assert np.all(tg['b'].groups.indices == indices)
 
-        # rename key column
-        tg = t1.group_by('a')
-        tg.rename_column('a', 'aa')
-        assert np.all(tg.groups.indices == indices)
-        assert tg.groups.keys.dtype.names == ('a',)
-        assert np.all(tg['aa'].groups.indices == indices)
+    # rename key column
+    tg = t1.group_by('a')
+    tg.rename_column('a', 'aa')
+    assert np.all(tg.groups.indices == indices)
+    assert tg.groups.keys.dtype.names == ('a',)
+    assert np.all(tg['aa'].groups.indices == indices)
 
 
 def test_group_by_masked(T1):
@@ -498,21 +487,20 @@ def test_table_aggregate_reduceat(T1):
                              '  2']
 
 
-def test_column_aggregate(T1):
+def test_column_aggregate(table_types, T1):
     """
     Aggregate a single table column
     """
-    for masked in (False, True):
-        tg = Table(T1, masked=masked).group_by('a')
-        tga = tg['c'].groups.aggregate(np.sum)
-        assert tga.pformat() == [' c  ',
-                                 '----',
-                                 ' 0.0',
-                                 ' 6.0',
-                                 '22.0']
+    tg = table_types.Table(T1).group_by('a')
+    tga = tg['c'].groups.aggregate(np.sum)
+    assert tga.pformat() == [' c  ',
+                             '----',
+                             ' 0.0',
+                             ' 6.0',
+                             '22.0']
 
 
-def test_table_filter():
+def test_table_filter(table_types):
     """
     Table groups filtering
     """
@@ -524,17 +512,18 @@ def test_table_filter():
         return True
 
     # Negative value in 'a' column should not filter because it is a key col
-    t = Table.read([' a c d',
-                    ' -2 7.0 0',
-                    ' -2 5.0 1',
-                    ' 0 0.0 4',
-                    ' 1 3.0 5',
-                    ' 1 2.0 -6',
-                    ' 1 1.0 7',
-                    ' 3 3.0 5',
-                    ' 3 -2.0 6',
-                    ' 3 1.0 7',
-                    ], format='ascii')
+    t = table_types.Table.read(
+        [' a c d',
+         ' -2 7.0 0',
+         ' -2 5.0 1',
+         ' 0 0.0 4',
+         ' 1 3.0 5',
+         ' 1 2.0 -6',
+         ' 1 1.0 7',
+         ' 3 3.0 5',
+         ' 3 -2.0 6',
+         ' 3 1.0 7',
+        ], format='ascii')
     tg = t.group_by('a')
     t2 = tg.groups.filter(all_positive)
     assert t2.groups[0].pformat() == [' a   c   d ',
@@ -546,7 +535,7 @@ def test_table_filter():
                                       '  0 0.0   4']
 
 
-def test_column_filter():
+def test_column_filter(table_types):
     """
     Table groups filtering
     """
@@ -556,17 +545,18 @@ def test_column_filter():
         return True
 
     # Negative value in 'a' column should not filter because it is a key col
-    t = Table.read([' a c d',
-                    ' -2 7.0 0',
-                    ' -2 5.0 1',
-                    ' 0 0.0 4',
-                    ' 1 3.0 5',
-                    ' 1 2.0 -6',
-                    ' 1 1.0 7',
-                    ' 3 3.0 5',
-                    ' 3 -2.0 6',
-                    ' 3 1.0 7',
-                    ], format='ascii')
+    t = table_types.Table.read(
+        [' a c d',
+         ' -2 7.0 0',
+         ' -2 5.0 1',
+         ' 0 0.0 4',
+         ' 1 3.0 5',
+         ' 1 2.0 -6',
+         ' 1 1.0 7',
+         ' 3 3.0 5',
+         ' 3 -2.0 6',
+         ' 3 1.0 7',
+        ], format='ascii')
     tg = t.group_by('a')
     c2 = tg['c'].groups.filter(all_positive)
     assert len(c2.groups) == 3

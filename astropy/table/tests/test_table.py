@@ -136,14 +136,15 @@ class TestSetTableColumn(SetupData):
         """Create a new column (from a quantity) in empty table using the item access syntax"""
         self._setup(table_types)
         t = table_types.Table()
-
-        t['aa'] = np.array([1,2,3]) * u.m
-        assert np.all(t['aa'] == np.array([1,2,3]))
-        assert t['aa'].unit == u.m
-
-        t['bb'] = 3 * u.m
-        assert np.all(t['bb'] == 3)
-        assert t['bb'].unit == u.m
+        for name, value in (('aa', np.array([1,2,3]) * u.m), ('bb', 3 * u.m)):
+            t[name] = value
+            assert t[name].unit == u.m
+            if type(t) is table.QTable:
+                assert isinstance(t[name], u.Quantity)
+                assert np.all(t[name] == value)
+            else:
+                assert isinstance(t[name], table.column.BaseColumn)
+                assert np.all(t[name] == value.value)
 
     def test_set_new_col_existing_table(self, table_types):
         """Create a new column in an existing table using the item access syntax"""
@@ -181,15 +182,16 @@ class TestSetTableColumn(SetupData):
         t['f'] = 10
         assert np.all(t['f'] == 10)
 
-        # Add a column from a Quantity
-        t['g'] = np.array([1,2,3]) * u.m
-        assert np.all(t['g'].data == np.array([1,2,3]))
-        assert t['g'].unit == u.m
-
-        # Add a column from a (scalar) Quantity
-        t['g'] = 3 * u.m
-        assert np.all(t['g'].data == 3)
-        assert t['g'].unit == u.m
+        # Add a column from array and scalar Quantity
+        for name, value in (('g', np.array([1,2,3]) * u.m), ('h', 3 * u.m)):
+            t[name] = value
+            assert t[name].unit == u.m
+            if type(t) is table.QTable:
+                assert isinstance(t[name], u.Quantity)
+                assert np.all(t[name] == value)
+            else:
+                assert isinstance(t[name], table.column.BaseColumn)
+                assert np.all(t[name] == value.value)
 
     def test_set_new_unmasked_col_existing_table(self, table_types):
         """Create a new column in an existing table using the item access syntax"""

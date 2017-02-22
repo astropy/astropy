@@ -18,7 +18,6 @@ _col = [1, 2, 3, 4, 5]
 
 @pytest.fixture(params=[
     _col,
-    u.Quantity(_col),
     Time(_col, format='jyear'),
 ])
 def main_col(request):
@@ -34,10 +33,13 @@ def assert_col_equal(col, array):
 class TestIndex(SetupData):
     def _setup(self, main_col, table_types):
         super(TestIndex, self)._setup(table_types)
-        self.main_col = main_col
-        if isinstance(main_col, u.Quantity):
-            self._table_type = QTable
-        if not isinstance(main_col, list):
+        if (isinstance(main_col, list) and
+            table_types.Table is QTable):
+            self.main_col = u.Quantity(_col)
+        else:
+            self.main_col = _col
+
+        if not isinstance(self.main_col, list):
             self._column_type = lambda x: x # don't change mixin type
         self.mutable = isinstance(main_col, (list, u.Quantity))
 

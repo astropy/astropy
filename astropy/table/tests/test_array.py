@@ -6,18 +6,18 @@ from ...tests.helper import pytest
 import numpy as np
 
 @pytest.fixture
-def array():
+def array(table_types):
     # composite index
     col0 = np.array([x % 2 for x in range(1, 11)])
     col1 = np.array([x for x in range(1, 11)])
-    t = Table([col0, col1])
+    t = table_types.Table([col0, col1])
     t = t[t.argsort()]
     return SortedArray(t, t['col1'].copy())
 
 @pytest.fixture
-def wide_array():
+def wide_array(table_types):
     # array with 100 columns
-    t = Table([[x] * 10 for x in np.arange(100)])
+    t = table_types.Table([[x] * 10 for x in np.arange(100)])
     return SortedArray(t, t['col0'].copy())
 
 def test_array_find(array):

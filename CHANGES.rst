@@ -53,6 +53,10 @@ New Features
     arrays are fixed-width and silently drop characters which do not
     fit within the fixed width. [#5624]
 
+  - ``vstack``, ``hstack``, and ``join`` now also work with ``QTable``
+    instances that hold ``Quantity`` columns, as long as the output
+    does not require any masking. [#5811]
+
 - ``astropy.time``
 
 - ``astropy.units``
@@ -264,6 +268,9 @@ Bug Fixes
 
   - Fix problem where key for caching column format function was not
     sufficiently unique. [#5803]
+
+  - Ensure mixin columns can be set to scalars if the type supports
+    broadcasting (e.g., for a ``QTable``, ``t['q'] = 3*u.m``). [#5820]
 
 - ``astropy.time``
 
