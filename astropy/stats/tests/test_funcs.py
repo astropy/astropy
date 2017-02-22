@@ -6,7 +6,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 
 from numpy.random import randn, normal
-from numpy.testing import assert_equal
+from numpy.testing import assert_equal, assert_raises
 from numpy.testing.utils import assert_allclose
 
 try:
@@ -268,6 +268,13 @@ def test_midcov_midvar():
     cov_std = np.around(np.sqrt(cov.diagonal()), 1)
     std = np.around(list(map(funcs.biweight_midvariance, d)), 1)
     assert_allclose(cov_std, std)
+
+def test_midcovariance_shape():
+    """
+    test that midcovariance raises error when feed 3D array
+    """
+    d = np.arange(27).reshape(3,3,3)
+    assert_raises(ValueError, funcs.biweight_midcovariance, d)
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_binom_conf_interval():
