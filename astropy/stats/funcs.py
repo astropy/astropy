@@ -1027,12 +1027,12 @@ def biweight_midcovariance(a, c=9.0, M=None, transpose=False):
     Parameters
     ----------
     a : array-like
-        A 2D input array of shape (N_variables, N_observations)
+        A 2D numpy.ndarray of shape (N_variables, N_observations)
         Each row of a represents a variable, and each column
         a single observation of all variables (same as numpy.cov convention)
 
-    c : float, optional
-        Tuning constant. Default is 9.0
+    c : float, optional, default=9.0
+        Tuning constant.
 
     M : array-like, optional, shape=(N_dims,)
         Initial guess for biweight location
@@ -1057,12 +1057,9 @@ def biweight_midcovariance(a, c=9.0, M=None, transpose=False):
     >>> d = np.array([rng.normal(0, 1, 200), rng.normal(0, 3, 200)])
     >>> # Introduce an obvious outlier
     >>> d[0,0] = 30.0
-    >>> # Calculate numpy and biweight covariances
-    >>> np_cov = np.cov(d)
+    >>> # Calculate biweight covariances
     >>> bw_cov = biweight_midcovariance(d)
     >>> # Print out recovered standard deviations
-    >>> print(np.around(np.sqrt(np_cov.diagonal()), 1))
-    [ 2.3  3.1]
     >>> print(np.around(np.sqrt(bw_cov.diagonal()), 1))
     [ 0.9  3.1]
 
@@ -1078,8 +1075,15 @@ def biweight_midcovariance(a, c=9.0, M=None, transpose=False):
     # Ensure a is array-like
     a = np.asanyarray(a)
 
+    # Ensure a is 2D
+    if a.ndim != 2:
+        if a.ndim == 1:
+            a = a[np.newaxis,:]
+        else:
+            raise ValueError("a.ndim should equal 2")
+
     # Transpose
-    if transpose == True:
+    if transpose == True and a.ndim == 2:
         a = a.T
 
     # Estimate location if not given
