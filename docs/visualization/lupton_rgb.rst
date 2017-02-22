@@ -15,6 +15,7 @@ To generate a color PNG file with the default (arcsinh) scaling:
 
 .. plot::
     :include-source:
+    :align: center
 
     import numpy as np
     import matplotlib.pyplot as plt
@@ -30,59 +31,46 @@ scale and size. Changing ``minimum`` will change the black level, while
 ``stretch`` and ``Q`` will change how the values between black and white are
 scaled.
 
-For a more in-depth example, download the `g`_, `r`_, `i`_ SDSS frames of the
-area around the Hickson 88 group and try the example below (requires the
-`reproject package`_, installable via the astropy conda channel, or via pip),
-and compare it with Figure 1 of Lupton et al. (2004):
+For a more in-depth example, download the ``g``, ``r``, ``i`` SDSS frames
+(they will serve as the blue, green and red channels respectively) of
+the area around the Hickson 88 group and try the example below and compare
+it with Figure 1 of `Lupton et al. (2004)`_:
 
-.. _reproject package: https://reproject.readthedocs.io/
-
-.. _g: http://dr13.sdss.org/sas/dr13/eboss/photoObj/frames/301/1737/5/frame-g-001737-5-0039.fits.bz2
-.. _r: http://dr13.sdss.org/sas/dr13/eboss/photoObj/frames/301/1737/5/frame-r-001737-5-0039.fits.bz2
-.. _i: http://dr13.sdss.org/sas/dr13/eboss/photoObj/frames/301/1737/5/frame-i-001737-5-0039.fits.bz2
-
-.. doctest-skip::
+.. plot::
+   :context: reset
+   :include-source:
+   :align: center
 
    import numpy as np
+   import matplotlib.pyplot as plt
    from astropy.visualization import make_lupton_rgb
    from astropy.io import fits
-   from reproject import reproject_interp
+   from astropy.utils.data import get_pkg_data_filename
 
    # Read in the three images downloaded from here:
-   # g: http://dr13.sdss.org/sas/dr13/eboss/photoObj/frames/301/1737/5/frame-g-001737-5-0039.fits.bz2
-   # r: http://dr13.sdss.org/sas/dr13/eboss/photoObj/frames/301/1737/5/frame-r-001737-5-0039.fits.bz2
-   # i: http://dr13.sdss.org/sas/dr13/eboss/photoObj/frames/301/1737/5/frame-i-001737-5-0039.fits.bz2
-   g = fits.open('frame-g-001737-5-0039.fits.bz2')[0]
-   r = fits.open('frame-r-001737-5-0039.fits.bz2')[0]
-   i = fits.open('frame-i-001737-5-0039.fits.bz2')[0]
+   g_name = get_pkg_data_filename('visualization/reprojected_sdss_g.fits.bz2')
+   r_name = get_pkg_data_filename('visualization/reprojected_sdss_r.fits.bz2')
+   i_name = get_pkg_data_filename('visualization/reprojected_sdss_i.fits.bz2')
+   g = fits.open(g_name)[0].data
+   r = fits.open(r_name)[0].data
+   i = fits.open(i_name)[0].data
 
-   # remap r and i onto g
-   r_new, r_mask = reproject_interp(r, g.header)
-   i_new, i_mask = reproject_interp(i, g.header)
+   rgb_default = make_lupton_rgb(i, r, g, filename="ngc6976-default.jpeg")
+   plt.imshow(rgb_default, origin='lower')
 
-   # zero out the unmapped values
-   i_new[np.logical_not(i_mask)] = 0
-   r_new[np.logical_not(r_mask)] = 0
-
-   # red=i, green=r, blue=g
-   # make a file with the default scaling
-   rgb_default = make_lupton_rgb(i_new, r_new, g.data, filename="ngc6976-default.jpeg")
-   # this scaling is very similar to the one used in Lupton et al. (2004)
-   rgb = make_lupton_rgb(i_new, r_new, g.data, Q=10, stretch=0.5, filename="ngc6976.jpeg")
-
-This will produce the following two images. The first is the image generated
-with the default parameters.
-
-.. raw:: html
-
-    <a class="reference internal image-reference" href="http://data.astropy.org/visualization/ngc6976-default.jpeg"><img alt="default rgb image" src="http://data.astropy.org/visualization/ngc6976-default-small.jpeg" /></a>
-
-The second is the image generated with Q=10, stretch=0.5, showing faint features
-of the galaxies. Compare with Fig. 1 of `Lupton et al. (2004)`_ or the
+The image above was generated with the default parameters. However using a
+different scaling, e.g Q=10, stretch=0.5, faint features
+of the galaxies show up. Compare with Fig. 1 of `Lupton et al. (2004)`_ or the
 `SDSS Skyserver image`_.
 
-.. raw:: html
+.. plot::
+   :context:
+   :include-source:
+   :align: center
 
-    <a class="reference internal image-reference" href="http://data.astropy.org/visualization/ngc6976.jpeg"><img alt="wider stretch image" src="http://data.astropy.org/visualization/ngc6976-small.jpeg" /></a>
+   rgb = make_lupton_rgb(i, r, g, Q=10, stretch=0.5, filename="ngc6976.jpeg")
+   plt.imshow(rgb, origin='lower')
 
-.. _SDSS Skyserver image: http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra=179.68929&dec=-0.45438&opt=
+
+.. _SDSS Skyserver image: http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra=313.12381&dec=-5.74611
+
