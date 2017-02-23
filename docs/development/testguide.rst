@@ -92,7 +92,7 @@ This will run all the default tests for AstroPy.
 Tests for a specific package can be run by specifying the package in the call
 to the ``test()`` function::
 
-    astropy.test('io.fits')
+    astropy.test(package='io.fits')
 
 This method works only with package names that can be mapped to Astropy
 directories. As an alternative you can test a specific directory or file
@@ -106,7 +106,7 @@ or absolutely.
 By default `astropy.test()`_ will skip tests which retrieve data from the
 internet. To turn these tests on use the ``remote_data`` flag::
 
-    astropy.test('io.fits', remote_data=True)
+    astropy.test(package='io.fits', remote_data=True)
 
 In addition, the ``test`` function supports any of the options that can be
 passed to `pytest.main() <http://pytest.org/latest/builtin.html#pytest.main>`_,
