@@ -302,7 +302,7 @@ In more detail
    run just those tests::
 
      import astropy
-     astropy.test('time')
+     astropy.test(package='time')
 
 #. Make sure your code includes appropriate docstrings, described at
    :ref:`doc-rules`. If appropriate, as when you are adding a new feature,
