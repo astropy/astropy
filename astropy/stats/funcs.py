@@ -718,7 +718,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
     return conf_interval
 
 
-def median_absolute_deviation(a, axis=None):
+def median_absolute_deviation(a, axis=None, func=np.median):
     """
     Calculate the median absolute deviation (MAD).
 
@@ -763,20 +763,22 @@ def median_absolute_deviation(a, axis=None):
     # returns an masked array even if the result should be scalar). (#4658)
     if isinstance(a, np.ma.MaskedArray):
         func = np.ma.median
-    else:
-        func = np.median
 
     a = np.asanyarray(a)
     a_median = func(a, axis=axis)
 
     # broadcast the median array before subtraction
     if axis is not None:
-        a_median = np.expand_dims(a_median, axis=axis)
+        if isinstance(axis, (tuple, list)):
+            for ax in sorted(axis):
+                a_median = np.expand_dims(a_median, axis=ax)
+        else:
+            a_median = np.expand_dims(a_median, axis=axis)
 
     return func(np.abs(a - a_median), axis=axis)
 
 
-def mad_std(data, axis=None):
+def mad_std(data, axis=None, func=np.median):
     r"""
     Calculate a robust standard deviation using the `median absolute
     deviation (MAD)
@@ -823,7 +825,7 @@ def mad_std(data, axis=None):
     """
 
     # NOTE: 1. / scipy.stats.norm.ppf(0.75) = 1.482602218505602
-    return median_absolute_deviation(data, axis=axis) * 1.482602218505602
+    return median_absolute_deviation(data, axis=axis, func=func) * 1.482602218505602
 
 
 def biweight_location(a, c=6.0, M=None, axis=None):
