@@ -768,6 +768,23 @@ class Quantity(np.ndarray):
 
     info = QuantityInfo()
 
+    def is_equivalent(self, other, equivalencies=[]):
+        """
+        Returns `True` if this quantity's unit is equivalent to ``other``.
+
+        Convenience method for `quantity.unit.is_equivalent()`
+
+        Parameters
+        ----------
+        other : Quantity or Unit or string or tuple
+            The unit to convert to. If a tuple of units is specified, this
+            method returns true if the unit matches any of those in the tuple.
+        """
+        if isinstance(other, Quantity):
+            return self.unit.is_equivalent(other.unit)
+        else:
+            return self.unit.is_equivalent(other)
+
     @property
     def value(self):
         """ The numerical value of this quantity. """
