@@ -786,22 +786,18 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
     n_rows = sum(lens)
     out = _get_out_class(arrays)(masked=masked)
 
-    out_descrs = get_descrs(arrays, col_name_map)
-    for out_descr in out_descrs:
-        name = out_descr[0]
-        dtype = out_descr[1:]
-        if masked:
-            out[name] = ma.array(data=np.zeros(n_rows, dtype),
-                                 mask=np.ones(n_rows, ma.make_mask_descr(dtype)))
-        else:
-            out[name] = np.empty(n_rows, dtype=dtype)
-
     for out_name, in_names in six.iteritems(col_name_map):
+        # List of input arrays that contribute to this output column
+        cols = [arr[name] for arr, name in zip(arrays, in_names) if name is not None]
+
+        col_cls = _get_out_class(cols)
+        out[out_name] = col_cls.empty_like(cols, length=n_rows)
+
         idx0 = 0
         for name, array in zip(in_names, arrays):
             idx1 = idx0 + len(array)
-            if name in array.colnames:
-                out[out_name][idx0:idx1] = array[name]
+            val = array[name] if name in array.colnames else np.ma.masked
+            out[out_name][idx0:idx1] = val
             idx0 = idx1
 
     # If col_name_map supplied as a dict input, then update.
