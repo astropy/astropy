@@ -8,9 +8,11 @@ import numpy as np
 
 from ...tests.helper import pytest, catch_warnings
 from ...table import Table, TableMergeError
+from ...table.operations import _get_out_class
 from ...utils import metadata
 from ...utils.metadata import MergeConflictError
 from ... import table
+from ... import units as u
 
 
 def sort_eq(list1, list2):
@@ -936,3 +938,20 @@ def test_vstack_bytes():
     t2 = table.vstack([t, t])
     assert len(t2) == 2
     assert t2['a'].itemsize == 1
+
+
+def test_get_out_class():
+    c = table.Column([1, 2])
+    mc = table.MaskedColumn([1, 2])
+    q = [1, 2] * u.m
+
+    assert _get_out_class([c, mc]) is mc.__class__
+    assert _get_out_class([mc, c]) is mc.__class__
+    assert _get_out_class([c, c]) is c.__class__
+    assert _get_out_class([c]) is c.__class__
+
+    with pytest.raises(ValueError):
+        _get_out_class([c, q])
+
+    with pytest.raises(ValueError):
+        _get_out_class([q, c])

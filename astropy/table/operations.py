@@ -123,18 +123,21 @@ def _get_list_of_tables(tables):
     return tables
 
 
-def _get_out_class(tables):
+def _get_out_class(objs):
     """
-    From a list of table instances get the merged output table class.
-    This is just taken as the deepest subclass.  It is assumed that
-    `tables` is a list of at least one element and that they are all
-    Table (subclass) instances.  This doesn't handle complicated
+    From a list of input objects ``objs`` get merged output object class.
+    This is just taken as the deepest subclass. This doesn't handle complicated
     inheritance schemes.
     """
-    out_class = tables[0].__class__
-    for t in tables[1:]:
-        if issubclass(t.__class__, out_class):
-            out_class = t.__class__
+    out_class = objs[0].__class__
+    for obj in objs[1:]:
+        if issubclass(obj.__class__, out_class):
+            out_class = obj.__class__
+
+    if any(not issubclass(out_class, obj.__class__) for obj in objs):
+        raise ValueError('unmergeable object classes {}'
+                         .format([obj.__class__.__name__ for obj in objs]))
+
     return out_class
 
 
@@ -786,6 +789,7 @@ def _vstack(arrays, join_type='outer', col_name_map=None):
     lens = [len(arr) for arr in arrays]
     n_rows = sum(lens)
     out = _get_out_class(arrays)(masked=masked)
+
     out_descrs = get_descrs(arrays, col_name_map)
     for out_descr in out_descrs:
         name = out_descr[0]
