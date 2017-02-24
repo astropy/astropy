@@ -955,3 +955,12 @@ def test_get_out_class():
 
     with pytest.raises(ValueError):
         _get_out_class([q, c])
+
+
+def test_vstack_quantity():
+    a = [1, 2] * u.m
+    b = [3, 4] * u.km
+    t1 = table.QTable([a])
+    t2 = table.QTable([b])
+    t12 = table.vstack([t1, t2])
+    assert np.all(t12['col0'] == [1, 2, 3000, 4000] * u.m)

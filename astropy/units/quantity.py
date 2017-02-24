@@ -848,6 +848,12 @@ class Quantity(np.ndarray):
     # Quantity, such as `astropy.coordinates.Angle`.
     _include_easy_conversion_members = False
 
+    @classmethod
+    def empty_like(cls, cols, **kwargs):
+        from ..table.column import Column
+        length = kwargs['length']
+        return cls(Column.empty_like(cols, length=length))
+
     @override__dir__
     def __dir__(self):
         """

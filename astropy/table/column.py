@@ -113,7 +113,7 @@ def _merge_ndarray_like_cols(cols):
         raise TableMergeError('Key columns {0!r} have different shape'.format(names))
     shape = uniq_shapes.pop()
 
-    return {'dtype': dtype, 'shape': shape}
+    return {'dtype': dtype, 'shape': shape, 'unit': cols[0].info.unit}
 
 
 class FalseArray(np.ndarray):
