@@ -88,6 +88,34 @@ def col_copy(col, copy_indices=True):
     return newcol
 
 
+def _merge_ndarray_like_cols(cols):
+    """
+    Empty like
+    """
+    from ..utils import metadata
+    from .np_utils import TableMergeError
+
+    # List of names of the columns that contribute to this output column.
+    names = [col.info.name for col in cols]
+
+    # Output dtype is the superset of all dtypes in in_cols
+    try:
+        dtype = metadata.common_dtype(cols)
+    except metadata.MergeConflictError as err:
+        # Beautify the error message when we are trying to merge columns with incompatible
+        # types by including the name of the columns that originated the error.
+        raise TableMergeError("The '{0}' columns have incompatible types: {1}"
+                              .format(names[0], err._incompat_types))
+
+    # Make sure all input shapes are the same
+    uniq_shapes = set(col.shape[1:] for col in cols)
+    if len(uniq_shapes) != 1:
+        raise TableMergeError('Key columns {0!r} have different shape'.format(names))
+    shape = uniq_shapes.pop()
+
+    return {'dtype': dtype, 'shape': shape}
+
+
 class FalseArray(np.ndarray):
     def __new__(cls, shape):
         obj = np.zeros(shape, dtype=np.bool).view(cls)
@@ -637,6 +665,11 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             val = getattr(obj, attr, None)
             setattr(self, attr, val)
         self.meta = deepcopy(getattr(obj, 'meta', {}))
+
+    @classmethod
+    def empty_like(cls, cols, **kwargs):
+        merge_kwargs = _merge_ndarray_like_cols(cols)
+        return cls(**kwargs, **merge_kwargs)
 
 
 class Column(BaseColumn):
