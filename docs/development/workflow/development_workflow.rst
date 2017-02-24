@@ -304,6 +304,17 @@ In more detail
      import astropy
      astropy.test(package='time')
 
+   Tests can also be run from the command line while in the package
+   root directory, e.g.::
+
+     python setup.py test
+
+   To run the tests in only a single package, e.g. Time, you can do::
+
+     python setup.py test -P time
+
+   For more details on running tests, please see :ref:`testing-guidelines`.
+
 #. Make sure your code includes appropriate docstrings, described at
    :ref:`doc-rules`. If appropriate, as when you are adding a new feature,
    you should update the appropriate documentation in the ``docs`` directory;
