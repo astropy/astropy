@@ -12,6 +12,7 @@ from numpy import ma
 
 from .. import log
 from ..io import registry as io_registry
+from ..io.fits.util import  _is_int
 from ..units import Quantity, QuantityInfo
 from ..utils import isiterable, ShapedLikeNDArray
 from ..utils.console import color_print
@@ -1358,8 +1359,21 @@ class Table:
     def __delitem__(self, item):
         if isinstance(item, str):
             self.remove_column(item)
-        elif isinstance(item, tuple):
+
+        elif _is_int(item):
+            self.remove_row(item)
+
+        elif isinstance(item, (list, tuple, np.ndarray)) and all(isinstance(x, six.string_types) for x in item):
             self.remove_columns(item)
+
+        elif isinstance(item, (list, np.ndarray)) and np.asarray(item).dtype.kind == 'i':
+            self.remove_rows(item)
+
+        elif isinstance(item, slice):
+            self.remove_rows(item)
+
+        else:
+            raise IndexError('illegal key or index value')
 
     def field(self, item):
         """Return column[item] for recarray compatibility."""
