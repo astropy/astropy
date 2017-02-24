@@ -152,6 +152,7 @@ astropy.utils
 - ``JsonCustomEncoder`` is expanded to handle ``Quantity`` and ``UnitBase``.
   [#5471]
 - ``astropy.utils``
+
   - Added ``dcip_xy`` method to IERS
 	The data for the CIP offsets is now available for use
 	in coordinate frame conversion
