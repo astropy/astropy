@@ -571,6 +571,12 @@ API Changes
   - Allow ``collections.Mapping``-like ``data`` attribute when initializing a
     ``Table`` object (``dict``-like was already possible). [#5213]
 
+- ``astropy.tests``
+
+  - The inputs to the ``TestRunner.run_tests()`` method now must be
+    keyword arguments (no positional arguments).  This applies to the
+    ``astropy.test()`` function as well. [#5505]
+
 - ``astropy.utils``
 
   - Renamed ``ignored`` context manager in ``compat.misc`` to ``suppress``
