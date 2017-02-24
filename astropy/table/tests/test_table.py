@@ -903,6 +903,41 @@ class TestRemove(SetupData):
         assert self.t.dtype == np.dtype([(str('a'), 'int'),
                                          (str('b'), 'int')])
 
+    def test_delitem_row(self, table_types):
+        self._setup(table_types)
+        self.t.add_column(self.b)
+        self.t.add_column(self.c)
+        del self.t[1]
+        assert self.t.colnames == ['a', 'b', 'c']
+        assert np.all(self.t['a'] == np.array([1, 3]))
+
+    @pytest.mark.parametrize("idx", [[0, 2], np.array([0, 2])])
+    def test_delitem_row_list(self, table_types, idx):
+        self._setup(table_types)
+        self.t.add_column(self.b)
+        self.t.add_column(self.c)
+        del self.t[idx]
+        assert self.t.colnames == ['a', 'b', 'c']
+        assert np.all(self.t['c'] == np.array([8]))
+
+    def test_delitem_row_slice(self, table_types):
+        self._setup(table_types)
+        self.t.add_column(self.b)
+        self.t.add_column(self.c)
+        del self.t[0:2]
+        assert self.t.colnames == ['a', 'b', 'c']
+        assert np.all(self.t['c'] == np.array([9]))
+
+    def test_delitem_row_fail(self, table_types):
+        self._setup(table_types)
+        with pytest.raises(IndexError):
+            del self.t[4]
+
+    def test_delitem_row_float(self, table_types):
+        self._setup(table_types)
+        with pytest.raises(IndexError):
+            del self.t[1.]
+
     def test_delitem1(self, table_types):
         self._setup(table_types)
         del self.t['a']
