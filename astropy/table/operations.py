@@ -255,6 +255,10 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
 
     out = _vstack(tables, join_type, col_name_map, metadata_conflicts)
 
+    # Merge column and table metadata
+    _merge_col_meta(out, tables, col_name_map, metadata_conflicts=metadata_conflicts)
+    _merge_table_meta(out, tables, metadata_conflicts=metadata_conflicts)
+
     return out
 
 
@@ -803,10 +807,6 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
     # If col_name_map supplied as a dict input, then update.
     if isinstance(_col_name_map, collections.Mapping):
         _col_name_map.update(col_name_map)
-
-    # Merge column and table metadata
-    _merge_col_meta(out, arrays, col_name_map, metadata_conflicts=metadata_conflicts)
-    _merge_table_meta(out, arrays, metadata_conflicts=metadata_conflicts)
 
     return out
 
