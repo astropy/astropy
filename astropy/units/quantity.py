@@ -849,10 +849,26 @@ class Quantity(np.ndarray):
     _include_easy_conversion_members = False
 
     @classmethod
-    def empty_like(cls, cols, **kwargs):
-        from ..table.column import Column
-        length = kwargs['length']
-        return cls(Column.empty_like(cols, length=length))
+    def empty_like(cls, cols, length, metadata_conflicts='warn', name=None):
+        from ..table.column import _merge_ndarray_like_cols
+
+        # Get merged info attributes like shape, dtype, format, description, etc.
+        attrs = _merge_ndarray_like_cols(cols, metadata_conflicts, name,
+                                         ('meta', 'format', 'description'))
+
+        # Make an empty quantity filled with Nan using the unit of the first one.
+        shape = (length,) + attrs.pop('shape')
+        dtype = attrs.pop('dtype')
+        data = np.empty(shape=shape, dtype=dtype)
+        data[()] = np.nan
+        unit = cols[0].unit
+        out = cls(data, unit=unit, copy=False)
+
+        # Set remaining info attributes
+        for attr, value in attrs.items():
+            setattr(out.info, attr, value)
+
+        return out
 
     @override__dir__
     def __dir__(self):

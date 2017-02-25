@@ -255,8 +255,7 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
 
     out = _vstack(tables, join_type, col_name_map, metadata_conflicts)
 
-    # Merge column and table metadata
-    _merge_col_meta(out, tables, col_name_map, metadata_conflicts=metadata_conflicts)
+    # Merge table metadata
     _merge_table_meta(out, tables, metadata_conflicts=metadata_conflicts)
 
     return out
@@ -795,7 +794,13 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
         cols = [arr[name] for arr, name in zip(arrays, in_names) if name is not None]
 
         col_cls = _get_out_class(cols)
-        out[out_name] = col_cls.empty_like(cols, length=n_rows)
+        try:
+            out[out_name] = col_cls.empty_like(cols, n_rows, metadata_conflicts, out_name)
+        except metadata.MergeConflictError as err:
+            # Beautify the error message when we are trying to merge columns with incompatible
+            # types by including the name of the columns that originated the error.
+            raise TableMergeError("The '{0}' columns have incompatible types: {1}"
+                                  .format(out_name, err._incompat_types))
 
         idx0 = 0
         for name, array in zip(in_names, arrays):

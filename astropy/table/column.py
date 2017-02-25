@@ -88,32 +88,38 @@ def col_copy(col, copy_indices=True):
     return newcol
 
 
-def _merge_ndarray_like_cols(cols):
+def _merge_ndarray_like_cols(cols, metadata_conflicts, name, attrs):
     """
     Empty like
     """
     from ..utils import metadata
     from .np_utils import TableMergeError
 
-    # List of names of the columns that contribute to this output column.
-    names = [col.info.name for col in cols]
+    def warn_str_func(key, left, right):
+        out = ("In merged column '{0}' the '{1}' attribute does not match "
+               "({2} != {3}).  Using {3} for merged output"
+               .format(name, key, left, right))
+        return out
+
+    def getattrs(col):
+        return {attr: getattr(col.info, attr) for attr in attrs
+                if hasattr(col.info, attr)}
+
+    out = getattrs(cols[0])
+    for col in cols[1:]:
+        out = metadata.merge(out, getattrs(col), metadata_conflicts=metadata_conflicts,
+                             warn_str_func=warn_str_func)
 
     # Output dtype is the superset of all dtypes in in_cols
-    try:
-        dtype = metadata.common_dtype(cols)
-    except metadata.MergeConflictError as err:
-        # Beautify the error message when we are trying to merge columns with incompatible
-        # types by including the name of the columns that originated the error.
-        raise TableMergeError("The '{0}' columns have incompatible types: {1}"
-                              .format(names[0], err._incompat_types))
+    out['dtype'] = metadata.common_dtype(cols)
 
     # Make sure all input shapes are the same
     uniq_shapes = set(col.shape[1:] for col in cols)
     if len(uniq_shapes) != 1:
-        raise TableMergeError('Key columns {0!r} have different shape'.format(names))
-    shape = uniq_shapes.pop()
+        raise TableMergeError('columns have different shapes')
+    out['shape'] = uniq_shapes.pop()
 
-    return {'dtype': dtype, 'shape': shape, 'unit': cols[0].info.unit}
+    return out
 
 
 class FalseArray(np.ndarray):
@@ -667,9 +673,10 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         self.meta = deepcopy(getattr(obj, 'meta', {}))
 
     @classmethod
-    def empty_like(cls, cols, **kwargs):
-        merge_kwargs = _merge_ndarray_like_cols(cols)
-        return cls(**kwargs, **merge_kwargs)
+    def empty_like(cls, cols, length, metadata_conflicts='warn', name=None):
+        attrs = _merge_ndarray_like_cols(cols, metadata_conflicts, name,
+                                         ('meta', 'unit', 'format', 'description'))
+        return cls(length=length, **attrs)
 
 
 class Column(BaseColumn):
