@@ -21,6 +21,7 @@ import numpy as np
 from numpy import ma
 
 from ..utils import metadata
+from .column import Column
 
 from . import _np_utils
 from .np_utils import fix_column_name, TableMergeError
@@ -185,11 +186,10 @@ def join(left, right, keys=None, join_type='inner',
 
     col_name_map = OrderedDict()
     out = _join(left, right, keys, join_type,
-                uniq_col_name, table_names, col_name_map)
+                uniq_col_name, table_names, col_name_map, metadata_conflicts)
 
     # Merge the column and table meta data. Table subclasses might override
     # these methods for custom merge behavior.
-    _merge_col_meta(out, [left, right], col_name_map, metadata_conflicts=metadata_conflicts)
     _merge_table_meta(out, [left, right], metadata_conflicts=metadata_conflicts)
 
     return out
@@ -575,7 +575,7 @@ def common_dtype(cols):
 def _join(left, right, keys=None, join_type='inner',
          uniq_col_name='{col_name}_{table_name}',
          table_names=['1', '2'],
-         col_name_map=None):
+         col_name_map=None, metadata_conflicts='warn'):
     """
     Perform a join of the left and right Tables on specified keys.
 
@@ -638,7 +638,6 @@ def _join(left, right, keys=None, join_type='inner',
     if len_left == 0 or len_right == 0:
         raise ValueError('input tables for join must both have at least one row')
 
-
     # Joined array dtype as a list of descr (name, type_str, shape) tuples
     col_name_map = get_col_name_map([left, right], keys, uniq_col_name, table_names)
     out_descrs = get_descrs([left, right], col_name_map)
@@ -674,10 +673,22 @@ def _join(left, right, keys=None, join_type='inner',
 
         left_name, right_name = col_name_map[out_name]
         if left_name and right_name:  # this is a key which comes from left and right
-            out[out_name] = out.ColumnClass(length=n_out, name=out_name, dtype=dtype, shape=shape)
-            out[out_name] = np.where(right_mask,
-                                     left[left_name].take(left_out),
-                                     right[right_name].take(right_out))
+            cols = [left[left_name], right[right_name]]
+            col_cls = _get_out_class(cols)
+            out[out_name] = col_cls.empty_like(cols, n_out, metadata_conflicts, out_name)
+
+            if issubclass(col_cls, Column):
+                out[out_name][:] = np.where(right_mask,
+                                            left[left_name].take(left_out),
+                                            right[right_name].take(right_out))
+            else:
+                # np.where does not work for mixin columns (e.g. Quantity) so
+                # use a slower workaround.
+                left_mask = ~right_mask
+                if np.any(left_mask):
+                    out[out_name][left_mask] = left[left_name].take(left_out)
+                if np.any(right_mask):
+                    out[out_name][right_mask] = right[right_name].take(right_out)
             continue
         elif left_name:  # out_name came from the left table
             name, array, array_out, array_mask = left_name, left, left_out, left_mask

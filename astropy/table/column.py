@@ -103,7 +103,7 @@ def _merge_ndarray_like_cols(cols, metadata_conflicts, name, attrs):
 
     def getattrs(col):
         return {attr: getattr(col.info, attr) for attr in attrs
-                if hasattr(col.info, attr)}
+                if getattr(col.info, attr, None) is not None}
 
     out = getattrs(cols[0])
     for col in cols[1:]:
