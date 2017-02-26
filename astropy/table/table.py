@@ -6,7 +6,6 @@ from ..extern.six.moves import zip, range
 from .index import TableIndices, TableLoc, TableILoc
 
 import re
-import itertools
 import sys
 from collections import OrderedDict, Mapping
 import warnings
@@ -2066,8 +2065,10 @@ class Table(object):
         self.columns[name].info.name = new_name
 
     def rename_columns(self, names, new_names):
-        ''' ****
+        '''
         Renames multiple columns.
+
+        versionadded: 2.0
 
         Parameters
         ----------
@@ -2076,7 +2077,7 @@ class Table(object):
         new_names : list
             A list containing the new column names.
 
-        Examples ****
+        Examples
         --------
         Create a table with three columns 'a', 'b' and 'c'::
 
@@ -2105,9 +2106,9 @@ class Table(object):
             new_names = [new_names]
 
         if len(names) != len(new_names):
-            raise ValueError("The names list and new_names list are not of the sme size.")
+            raise ValueError("The names list and new_names list are not of the same size.")
 
-        for name, new_name in itertools.izip(names, new_names):
+        for name, new_name in zip(names, new_names):
             self.rename_column(name, new_name)
 
     def add_row(self, vals=None, mask=None):
