@@ -23,7 +23,7 @@ import numpy as np
 
 from ...tests.helper import pytest
 from ... import table
-from ...table import table_helpers, Table
+from ...table import table_helpers, Table, QTable
 from ... import time
 from ... import units as u
 from ... import coordinates
@@ -181,3 +181,8 @@ def T1(request):
     if request.param:
         T.add_index('a')
     return T
+
+
+@pytest.fixture(params=[Table, QTable])
+def operation_table_type(request):
+    return request.param
