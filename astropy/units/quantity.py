@@ -856,12 +856,12 @@ class Quantity(np.ndarray):
         attrs = _merge_ndarray_like_cols(cols, metadata_conflicts, name,
                                          ('meta', 'format', 'description'))
 
-        # Make an empty quantity filled with Nan using the unit of the first one.
+        # Make an empty quantity filled with Nan using the unit of the last one.
         shape = (length,) + attrs.pop('shape')
         dtype = attrs.pop('dtype')
         data = np.empty(shape=shape, dtype=dtype)
         data[()] = np.nan
-        unit = cols[0].unit
+        unit = cols[-1].unit
         out = cls(data, unit=unit, copy=False)
 
         # Set remaining info attributes
