@@ -751,9 +751,10 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
     if len(arrays) == 1:
         return arrays[0]
 
-    # for arr in arrays:
-    #     if arr.has_mixin_columns:
-    #        raise NotImplementedError('vstack not available for tables with mixin columns')
+    for arr in arrays:
+        if any(not hasattr(col, 'empty_like') for col in arr.columns.values()):
+            raise NotImplementedError('vstack not available for columns '
+                                      'without an empty_like() method')
 
     # Start by assuming an outer match where all names go to output
     names = set(itertools.chain(*[arr.colnames for arr in arrays]))
