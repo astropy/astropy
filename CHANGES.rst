@@ -162,6 +162,9 @@ Bug Fixes
 
 - ``astropy.convolution``
 
+  - Fixed bug in ``discretize_integrate_2D`` in which x and y coordinates
+    where swapped. [#5634]
+
 - ``astropy.coordinates``
 
   - Fixed a bug where ``get_transform`` could sometimes produce confusing errors
