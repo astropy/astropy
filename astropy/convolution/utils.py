@@ -296,6 +296,6 @@ def discretize_integrate_2D(model, x_range, y_range):
     # Integrate over all pixels
     for i in range(x.size - 1):
         for j in range(y.size - 1):
-            values[j, i] = dblquad(model, x[i], x[i + 1],
+            values[j, i] = dblquad(lambda y, x: model(x, y), x[i], x[i + 1],
                                    lambda x: y[j], lambda x: y[j + 1])[0]
     return values
