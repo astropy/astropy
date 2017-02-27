@@ -1891,6 +1891,65 @@ Other Changes and Additions
   in Python 2.6 (this warning can be disabled through the usual Python warning
   filtering mechanisms). [#3779]
 
+1.0.12 (unreleased)
+-------------------
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.sphinx``
+
+- ``astropy.table``
+
+  - Fixes the bug of setting/getting values from rows/columns of a table using
+    numpy array scalars. [#5772]
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.visualization``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+- ``astropy.extern``
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Nothing changed yet.
+
+
 1.0.11 (2016-12-22)
 -------------------
 
