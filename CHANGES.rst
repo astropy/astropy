@@ -268,6 +268,8 @@ Bug Fixes
   - Fix problem where key for caching column format function was not
     sufficiently unique. [#5803]
 
+  - Handle sorting NaNs and masked values in jsviewer. [#4052, #5572]
+
 - ``astropy.time``
 
 - ``astropy.units``
