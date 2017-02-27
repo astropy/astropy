@@ -1001,7 +1001,10 @@ class Table(object):
                                          max_lines=-1, show_dtype=False,
                                          tableclass=table_class)
 
-        html += jsv.ipynb(tableid, css=css)
+        columns = display_table.columns.values()
+        sortable_columns = [i for i, col in enumerate(columns)
+                            if col.dtype.kind in 'iufc']
+        html += jsv.ipynb(tableid, css=css, sort_columns=sortable_columns)
         return HTML(html)
 
     def show_in_browser(self, max_lines=5000, jsviewer=False,
