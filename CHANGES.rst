@@ -2112,6 +2112,9 @@ Bug Fixes
 
 - ``astropy.table``
 
+  - Fixes the bug of setting/getting values from rows/columns of a table using
+    numpy array scalars. [#5772]
+
 - ``astropy.time``
 
 - ``astropy.units``
