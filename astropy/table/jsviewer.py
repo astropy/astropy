@@ -51,12 +51,30 @@ require(["datatables"], function(){{
 """
 
 HTML_JS_SCRIPT = """
+var astropy_sort_num = function(a, b) {{
+    var a_num = parseFloat(a);
+    var b_num = parseFloat(b);
+
+    if (isNaN(a_num) && isNaN(b_num))
+        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+    else if (!isNaN(a_num) && !isNaN(b_num))
+        return ((a_num < b_num) ? -1 : ((a_num > b_num) ? 1 : 0));
+    else
+        return isNaN(a_num) ? -1 : 1;
+}}
+jQuery.extend( jQuery.fn.dataTableExt.oSort, {{
+    "optionalnum-asc": astropy_sort_num,
+    "optionalnum-desc": function (a,b) {{ return -astropy_sort_num(a, b); }}
+}});
+
 $(document).ready(function() {{
     $('#{tid}').dataTable({{
-        "order": [],
-        "iDisplayLength": {display_length},
-        "aLengthMenu": {display_length_menu},
-        "pagingType": "full_numbers"
+     "iDisplayLength": {display_length},
+     "aLengthMenu": {display_length_menu},
+     "pagingType": "full_numbers",
+     "bJQueryUI": true,
+     "sPaginationType": "full_numbers",
+     "aoColumnDefs": [{{"sType": "optionalnum", "aTargets": {sort_columns}}}]
     }});
 }} );
 """
@@ -137,11 +155,11 @@ class JSViewer(object):
             tid=table_id)
         return html
 
-    def html_js(self, table_id='table0'):
+    def html_js(self, table_id='table0', sort_columns='[]'):
         return HTML_JS_SCRIPT.format(
             display_length=self.display_length,
             display_length_menu=self.display_length_menu,
-            tid=table_id).strip()
+            tid=table_id, sort_columns=sort_columns).strip()
 
 
 def write_table_jsviewer(table, filename, table_id=None, max_lines=5000,
@@ -153,13 +171,15 @@ def write_table_jsviewer(table, filename, table_id=None, max_lines=5000,
     jskwargs = jskwargs or {}
     jsv = JSViewer(**jskwargs)
 
+    sortable_columns = list(i for i, col in enumerate(table.columns.values())
+                            if col.dtype.kind in 'iufc')
     htmldict = {
         'table_id': table_id,
         'table_class': table_class,
         'css': css,
         'cssfiles': jsv.css_urls,
         'jsfiles': jsv.jquery_urls,
-        'js':  jsv.html_js(table_id=table_id)
+        'js':  jsv.html_js(table_id=table_id, sort_columns=sortable_columns)
     }
 
     if max_lines < len(table):
