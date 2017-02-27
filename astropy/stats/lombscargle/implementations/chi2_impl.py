@@ -41,7 +41,7 @@ def lombscargle_chi2(t, y, dy, frequency, normalization='standard',
     References
     ----------
     .. [1] M. Zechmeister and M. Kurster, A&A 496, 577-584 (2009)
-    .. [2] W. Press et al, Numerical Recipies in C (2002)
+    .. [2] W. Press et al, Numerical Recipes in C (2002)
     .. [3] Scargle, J.D. 1982, ApJ 263:835-853
     """
     if dy is None:

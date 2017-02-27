@@ -4,6 +4,7 @@ from __future__ import division, with_statement
 
 import math
 import os
+import platform
 import re
 import time
 import warnings
@@ -13,7 +14,7 @@ import numpy as np
 from ....extern.six.moves import range
 from ....io import fits
 from ....utils.exceptions import AstropyPendingDeprecationWarning
-from ....utils.compat import NUMPY_LT_1_10
+from ....utils.compat import NUMPY_LT_1_12
 from ....tests.helper import pytest, raises, catch_warnings, ignore_warnings
 from ..hdu.compressed import SUBTRACTIVE_DITHER_1, DITHER_SEED_CHECKSUM
 from .test_table import comparerecords
@@ -118,6 +119,8 @@ class TestImageFunctions(FitsTestCase):
         with fits.open(self.temp('test.fits')) as hdul:
             assert hdul[0].name == 'XPRIMARY2'
 
+    @pytest.mark.xfail(platform.system() == 'Windows' and not NUMPY_LT_1_12,
+                              reason='https://github.com/astropy/astropy/issues/5797')
     def test_io_manipulation(self):
         # Get a keyword value.  An extension can be referred by name or by
         # number.  Both extension and keyword names are case insensitive.
@@ -1107,7 +1110,9 @@ class TestCompressedImage(FitsTestCase):
         hdu.writeto(self.temp('test.fits'))
 
         with fits.open(self.temp('test.fits')) as hdul:
-            assert (hdul['SCI'].data == cube).all()
+            # HCOMPRESSed images are allowed to deviate from the original by
+            # about 1/quantize_level of the RMS in each tile.
+            assert np.abs(hdul['SCI'].data - cube).max() < 1./15.
 
     def test_subtractive_dither_seed(self):
         """
@@ -1627,6 +1632,17 @@ class TestCompressedImage(FitsTestCase):
                        scale_back=True) as hdul:
             hdul[1].data[:] = 0
             assert np.allclose(hdul[1].data, 0)
+
+    def test_compressed_header_missing_znaxis(self):
+        a = np.arange(100, 200, dtype=np.uint16)
+        comp_hdu = fits.CompImageHDU(a)
+        comp_hdu._header.pop('ZNAXIS')
+        with pytest.raises(TypeError):
+            comp_hdu.compressed_data
+        comp_hdu = fits.CompImageHDU(a)
+        comp_hdu._header.pop('ZBITPIX')
+        with pytest.raises(TypeError):
+            comp_hdu.compressed_data
 
 
 def test_comphdu_bscale(tmpdir):

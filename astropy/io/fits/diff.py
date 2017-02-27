@@ -15,6 +15,7 @@ import io
 import operator
 import os.path
 import textwrap
+import warnings
 
 from collections import defaultdict
 from functools import reduce
@@ -35,7 +36,7 @@ from ...utils.decorators import deprecated_renamed_argument
 # HDUList is used in one of the doctests
 from .hdu.hdulist import fitsopen  # pylint: disable=W0611
 from .hdu.table import _TableLikeHDU
-
+from ...utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['FITSDiff', 'HDUDiff', 'HeaderDiff', 'ImageDataDiff', 'RawDataDiff',
            'TableDataDiff']
@@ -135,7 +136,7 @@ class _BaseDiff(object):
         return not any(getattr(self, attr) for attr in self.__dict__
                        if attr.startswith('diff_'))
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3', pending=True)
     def report(self, fileobj=None, indent=0, overwrite=False):
         """
         Generates a text report on the differences (if any) between two
@@ -217,8 +218,8 @@ class FITSDiff(_BaseDiff):
     """
 
     def __init__(self, a, b, ignore_keywords=[], ignore_comments=[],
-                 ignore_fields=[], numdiffs=10, tolerance=0.0,
-                 ignore_blanks=True, ignore_blank_cards=True):
+                 ignore_fields=[], numdiffs=10, rtol=0.0, atol=0.0,
+                 ignore_blanks=True, ignore_blank_cards=True, tolerance=None):
         """
         Parameters
         ----------
@@ -249,10 +250,25 @@ class FITSDiff(_BaseDiff):
             are kept in memory or output.  If a negative value is given, then
             numdiffs is treated as unlimited (default: 10).
 
-        tolerance : float, optional
+        rtol : float, optional
             The relative difference to allow when comparing two float values
             either in header values, image arrays, or table columns
-            (default: 0.0).
+            (default: 0.0). Values which satisfy the expression
+
+            .. math::
+
+                \\left| a - b \\right| > \\text{atol} + \\text{rtol} \\cdot \\left| b \\right|
+
+            are considered to be different.
+            The underlying function used for comparison is `numpy.allclose`.
+
+            .. versionchanged:: 2.0
+               ``rtol`` replaces the deprecated ``tolerance`` argument.
+
+        atol : float, optional
+            The allowed absolute difference. See also ``rtol`` parameter.
+
+            .. versionadded:: 2.0
 
         ignore_blanks : bool, optional
             Ignore extra whitespace at the end of string values either in
@@ -290,7 +306,17 @@ class FITSDiff(_BaseDiff):
         self.ignore_fields = set(k.upper() for k in ignore_fields)
 
         self.numdiffs = numdiffs
-        self.tolerance = tolerance
+        self.rtol = rtol
+        self.atol = atol
+
+        if tolerance is not None:  # This should be removed in the next astropy version
+            warnings.warn(
+                '"tolerance" was deprecated in version 2.0 and will be removed in '
+                'a future version. Use argument "rtol" instead.',
+                AstropyDeprecationWarning)
+            self.rtol = tolerance  # when tolerance is provided *always* ignore `rtol`
+                                   # during the transition/deprecation period
+
         self.ignore_blanks = ignore_blanks
         self.ignore_blank_cards = ignore_blank_cards
 
@@ -352,7 +378,8 @@ class FITSDiff(_BaseDiff):
                     wrapper.fill(ignore_fields)))
         self._writeln(u(' Maximum number of different data values to be '
                         'reported: {}').format(self.numdiffs))
-        self._writeln(u(' Data comparison level: {}').format(self.tolerance))
+        self._writeln(u(' Relative tolerance: {},'
+                        ' Absolute tolerance: {}').format(self.rtol, self.atol))
 
         if self.diff_hdu_count:
             self._fileobj.write(u('\n'))
@@ -409,8 +436,8 @@ class HDUDiff(_BaseDiff):
     """
 
     def __init__(self, a, b, ignore_keywords=[], ignore_comments=[],
-                 ignore_fields=[], numdiffs=10, tolerance=0.0,
-                 ignore_blanks=True, ignore_blank_cards=True):
+                 ignore_fields=[], numdiffs=10, rtol=0.0, atol=0.0,
+                 ignore_blanks=True, ignore_blank_cards=True, tolerance=None):
         """
         See `FITSDiff` for explanations of the initialization parameters.
         """
@@ -419,7 +446,17 @@ class HDUDiff(_BaseDiff):
         self.ignore_comments = set(k.upper() for k in ignore_comments)
         self.ignore_fields = set(k.upper() for k in ignore_fields)
 
-        self.tolerance = tolerance
+        self.rtol = rtol
+        self.atol = atol
+
+        if tolerance is not None:  # This should be removed in the next astropy version
+            warnings.warn(
+                '"tolerance" was deprecated in version 2.0 and will be removed in '
+                'a future version. Use argument "rtol" instead.',
+                AstropyDeprecationWarning)
+            self.rtol = tolerance  # when tolerance is provided *always* ignore `rtol`
+                                   # during the transition/deprecation period
+
         self.numdiffs = numdiffs
         self.ignore_blanks = ignore_blanks
 
@@ -538,7 +575,8 @@ class HeaderDiff(_BaseDiff):
     """
 
     def __init__(self, a, b, ignore_keywords=[], ignore_comments=[],
-                 tolerance=0.0, ignore_blanks=True, ignore_blank_cards=True):
+                 rtol=0.0, atol=0.0, ignore_blanks=True, ignore_blank_cards=True,
+                 tolerance=None):
         """
         See `FITSDiff` for explanations of the initialization parameters.
         """
@@ -546,7 +584,17 @@ class HeaderDiff(_BaseDiff):
         self.ignore_keywords = set(k.upper() for k in ignore_keywords)
         self.ignore_comments = set(k.upper() for k in ignore_comments)
 
-        self.tolerance = tolerance
+        self.rtol = rtol
+        self.atol = atol
+
+        if tolerance is not None:  # This should be removed in the next astropy version
+            warnings.warn(
+                '"tolerance" was deprecated in version 2.0 and will be removed in '
+                'a future version. Use argument "rtol" instead.',
+                AstropyDeprecationWarning)
+            self.rtol = tolerance  # when tolerance is provided *always* ignore `rtol`
+                                   # during the transition/deprecation period
+
         self.ignore_blanks = ignore_blanks
         self.ignore_blank_cards = ignore_blank_cards
 
@@ -676,7 +724,7 @@ class HeaderDiff(_BaseDiff):
 
             # Compare keywords' values and comments
             for a, b in zip(valuesa[keyword], valuesb[keyword]):
-                if diff_values(a, b, tolerance=self.tolerance):
+                if diff_values(a, b, rtol=self.rtol, atol=self.atol):
                     self.diff_keyword_values[keyword].append((a, b))
                 else:
                     # If there are duplicate keywords we need to be able to
@@ -783,13 +831,22 @@ class ImageDataDiff(_BaseDiff):
       of pixels in the arrays.
     """
 
-    def __init__(self, a, b, numdiffs=10, tolerance=0.0):
+    def __init__(self, a, b, numdiffs=10, rtol=0.0, atol=0.0, tolerance=None):
         """
         See `FITSDiff` for explanations of the initialization parameters.
         """
 
         self.numdiffs = numdiffs
-        self.tolerance = tolerance
+        self.rtol = rtol
+        self.atol = atol
+
+        if tolerance is not None:  # This should be removed in the next astropy version
+            warnings.warn(
+                '"tolerance" was deprecated in version 2.0 and will be removed in '
+                'a future version. Use argument "rtol" instead.',
+                AstropyDeprecationWarning)
+            self.rtol = tolerance  # when tolerance is provided *always* ignore `rtol`
+                                   # during the transition/deprecation period
 
         self.diff_dimensions = ()
         self.diff_pixels = []
@@ -811,16 +868,18 @@ class ImageDataDiff(_BaseDiff):
             return
 
         # Find the indices where the values are not equal
-        # If neither a nor b are floating point, ignore self.tolerance
+        # If neither a nor b are floating point, ignore rtol and atol
         if not ((np.issubdtype(self.a.dtype, float) or
                  np.issubdtype(self.a.dtype, complex)) or
                 (np.issubdtype(self.b.dtype, float) or
                  np.issubdtype(self.b.dtype, complex))):
-            tolerance = 0
+            rtol = 0
+            atol = 0
         else:
-            tolerance = self.tolerance
+            rtol = self.rtol
+            atol = self.atol
 
-        diffs = where_not_allclose(self.a, self.b, atol=0.0, rtol=tolerance)
+        diffs = where_not_allclose(self.a, self.b, atol=atol, rtol=rtol)
 
         self.diff_total = len(diffs[0])
 
@@ -982,14 +1041,24 @@ class TableDataDiff(_BaseDiff):
     those columns.
     """
 
-    def __init__(self, a, b, ignore_fields=[], numdiffs=10, tolerance=0.0):
+    def __init__(self, a, b, ignore_fields=[], numdiffs=10, rtol=0.0, atol=0.0,
+                 tolerance=None):
         """
         See `FITSDiff` for explanations of the initialization parameters.
         """
 
         self.ignore_fields = set(ignore_fields)
         self.numdiffs = numdiffs
-        self.tolerance = tolerance
+        self.rtol = rtol
+        self.atol = atol
+
+        if tolerance is not None:  # This should be removed in the next astropy version
+            warnings.warn(
+                '"tolerance" was deprecated in version 2.0 and will be removed in '
+                'a future version. Use argument "rtol" instead.',
+                AstropyDeprecationWarning)
+            self.rtol = tolerance  # when tolerance is provided *always* ignore `rtol`
+                                   # during the transition/deprecation period
 
         self.common_columns = []
         self.common_column_names = set()
@@ -1118,12 +1187,14 @@ class TableDataDiff(_BaseDiff):
 
             if (np.issubdtype(arra.dtype, float) and
                     np.issubdtype(arrb.dtype, float)):
-                diffs = where_not_allclose(arra, arrb, atol=0.0,
-                                           rtol=self.tolerance)
+                diffs = where_not_allclose(arra, arrb,
+                                           rtol=self.rtol,
+                                           atol=self.atol)
             elif 'P' in col.format:
                 diffs = ([idx for idx in range(len(arra))
-                          if not np.allclose(arra[idx], arrb[idx], atol=0.0,
-                                             rtol=self.tolerance)],)
+                          if not np.allclose(arra[idx], arrb[idx],
+                                             rtol=self.rtol,
+                                             atol=self.atol)],)
             else:
                 diffs = np.where(arra != arrb)
 
@@ -1209,16 +1280,16 @@ class TableDataDiff(_BaseDiff):
                                                       self.diff_ratio))
 
 
-def diff_values(a, b, tolerance=0.0):
+def diff_values(a, b, rtol=0.0, atol=0.0):
     """
     Diff two scalar values.  If both values are floats they are compared to
-    within the given relative tolerance.
+    within the given absolute and relative tolerance.
     """
 
     if isinstance(a, float) and isinstance(b, float):
         if np.isnan(a) and np.isnan(b):
             return False
-        return not np.allclose(a, b, tolerance, 0.0)
+        return not np.allclose(a, b, rtol=rtol, atol=atol)
     else:
         return a != b
 

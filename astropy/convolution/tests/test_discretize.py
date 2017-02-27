@@ -74,21 +74,43 @@ def test_pixel_sum_2D(model_class, mode):
 def test_gaussian_eval_2D(mode):
     """
     Discretize Gaussian with different modes and check
-    if result is at least similar to Gaussian1D.eval()
+    if result is at least similar to Gaussian2D.eval()
     """
-    model = Gaussian2D(1, 0, 0, 20, 20)
-    x = np.arange(-100, 101)
-    y = np.arange(-100, 101)
+    model = Gaussian2D(0.01, 0, 0, 1, 1)
+
+    x = np.arange(-2, 3)
+    y = np.arange(-2, 3)
+
     x, y = np.meshgrid(x, y)
+
     values = model(x, y)
-    disc_values = discretize_model(model, (-100, 101), (-100, 101), mode=mode)
-    assert_allclose(values, disc_values, atol=0.001)
+    disc_values = discretize_model(model, (-2, 3), (-2, 3), mode=mode)
+    assert_allclose(values, disc_values, atol=1e-2)
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_gaussian_eval_2D_integrate_mode():
+    """
+    Discretize Gaussian with integrate mode
+    """
+    model_list = [Gaussian2D(.01, 0, 0, 2, 2),
+                  Gaussian2D(.01, 0, 0, 1, 2),
+                  Gaussian2D(.01, 0, 0, 2, 1)]
+
+    x = np.arange(-2, 3)
+    y = np.arange(-2, 3)
+
+    x, y = np.meshgrid(x, y)
+
+    for model in model_list:
+        values = model(x, y)
+        disc_values = discretize_model(model, (-2, 3), (-2, 3), mode='integrate')
+        assert_allclose(values, disc_values, atol=1e-2)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_subpixel_gauss_1D():
     """
-    Test subpixel accuracy of the oversample mode with gaussian 1D model.
+    Test subpixel accuracy of the integrate mode with gaussian 1D model.
     """
     gauss_1D = Gaussian1D(1, 0, 0.1)
     values = discretize_model(gauss_1D, (-1, 2), mode='integrate', factor=100)
@@ -98,7 +120,7 @@ def test_subpixel_gauss_1D():
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_subpixel_gauss_2D():
     """
-    Test subpixel accuracy of the oversample mode with gaussian 2D model.
+    Test subpixel accuracy of the integrate mode with gaussian 2D model.
     """
     gauss_2D = Gaussian2D(1, 0, 0, 0.1, 0.1)
     values = discretize_model(gauss_2D, (-1, 2), (-1, 2), mode='integrate', factor=100)

@@ -54,7 +54,7 @@ def lombscargle_fast(t, y, dy, f0, df, Nf,
     .. [1] Press W.H. and Rybicki, G.B, "Fast algorithm for spectral analysis
         of unevenly sampled data". ApJ 1:338, p277, 1989
     .. [2] M. Zechmeister and M. Kurster, A&A 496, 577-584 (2009)
-    .. [3] W. Press et al, Numerical Recipies in C (2002)
+    .. [3] W. Press et al, Numerical Recipes in C (2002)
     """
     if dy is None:
         dy = 1

@@ -181,6 +181,27 @@ def test_simple_two_model_class_compose_2d():
     r3 = R2(45, 45, 45, 45)
     assert_allclose(r3(0, 1), (0, -1), atol=1e-10)
 
+def test_n_submodels():
+    """
+    Test that CompoundModel.n_submodels properly returns the number
+    of components.
+    """
+    g2 = Gaussian1D() + Gaussian1D()
+    assert g2.n_submodels() == 2
+
+    g3 = g2 + Gaussian1D()
+    assert g3.n_submodels() == 3
+
+    g5 = g3 | g2
+    assert g5.n_submodels() == 5
+
+    g7 = g5 / g2
+    assert g7.n_submodels() == 7
+
+    # make sure it works as class method
+    p = Polynomial1D + Polynomial1D
+
+    assert p.n_submodels() == 2
 
 def test_expression_formatting():
     """
@@ -258,9 +279,7 @@ def test_indexing_on_class():
 
     M = Gaussian1D + p
     assert M[0] is Gaussian1D
-    assert M[1] is p
-    assert M['Gaussian1D'] is M[0]
-    assert M['p'] is M[1]
+    assert isinstance(M['p'], Polynomial1D)
 
     m = g + p
     assert isinstance(m[0], Gaussian1D)
@@ -866,3 +885,32 @@ def test_pickle_compound_fallback():
     gg = (Gaussian1D + Gaussian1D)()
     with pytest.raises(RuntimeError):
         pickle.dumps(gg)
+
+
+def test_update_parameters():
+    offx = Shift(1)
+    scl = Scale(2)
+    m = offx | scl
+    assert(m(1) == 4)
+
+    offx.offset=42
+    assert(m(1) == 4)
+
+    m.factor_1 = 100
+    assert(m(1) == 200)
+    m2 = m | offx
+    assert(m2(1) == 242)
+
+
+def test_name():
+    offx = Shift(1)
+    scl = Scale(2)
+    m = offx | scl
+    scl.name = "scale"
+    assert m._submodel_names == ('None_0', 'None_1')
+    assert m.name is None
+    m.name = "M"
+    assert m.name == "M"
+    m1 = m.rename("M1")
+    assert m.name == "M"
+    assert m1.name == "M1"

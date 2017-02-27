@@ -21,20 +21,21 @@ addons:
 env:
     global:
         # Set defaults to avoid repeating in most cases
-        - PYTHON_VERSION=3.5
+        - PYTHON_VERSION=3.6
         - NUMPY_VERSION=stable
         - MAIN_CMD='python setup.py'
         - CONDA_DEPENDENCIES='Cython jinja2'
         - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath'
         - PIP_DEPENDENCIES=''
         - SETUP_XVFB=True
-        - SPHINX_VERSION='<1.5'
+        - EVENT_TYPE='push pull_request'
 
     matrix:
         - PYTHON_VERSION=2.7 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.3 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.4 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.5 SETUP_CMD='egg_info'
+        - PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
 
 matrix:
 
@@ -62,8 +63,8 @@ matrix:
         # versions of Python, we can vary Python and Numpy versions at the same
         # time. Since we test the latest Numpy as part of the builds with all
         # optional dependencies below, we can focus on older builds here.
-        # For the image tests, we also include Matplotlib 1.4 in the Numpy 1.9
-        # build.
+        # Numpy 1.10 is tested below in the image tests.
+
         - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.7
                SETUP_CMD='test --open-files'
@@ -74,7 +75,7 @@ matrix:
           env: PYTHON_VERSION=3.4 NUMPY_VERSION=1.9
                SETUP_CMD='test --open-files'
         - os: linux
-          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.10
+          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.11
                SETUP_CMD='test --open-files'
 
         # Now try with all optional dependencies the latest 3.x and on 2.7.
@@ -86,8 +87,9 @@ matrix:
                PIP_DEPENDENCIES='jplephem mock pytest-mpl'
                LC_CTYPE=C.ascii LC_ALL=C
                NUMPY_VERSION=1.10
-               MATPLOTLIB_VERSION=1.4
+               MATPLOTLIB_VERSION=1.5
                ASTROPY_USE_SYSTEM_PYTEST=1
+               EVENT_TYPE='push pull_request cron'
 
         - os: linux
           env: SETUP_CMD='test --coverage --remote-data=astropy -a "--mpl"'
@@ -95,12 +97,14 @@ matrix:
                PIP_DEPENDENCIES='cpp-coveralls objgraph jplephem pytest-mpl'
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
-               MATPLOTLIB_VERSION=1.5
+               MATPLOTLIB_VERSION=2.0
                ASTROPY_USE_SYSTEM_PYTEST=1
+               EVENT_TYPE='push pull_request cron'
 
         # Try pre-release version of Numpy without optional dependencies
         - os: linux
           env: NUMPY_VERSION=prerelease SETUP_CMD='test'
+               EVENT_TYPE='push pull_request cron'
 
         # Do a PEP8 test with pycodestyle
         - os: linux
@@ -113,10 +117,12 @@ matrix:
         - os: linux
           env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+               EVENT_TYPE='push pull_request cron'
 
     allow_failures:
       - env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
              CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+             EVENT_TYPE='push pull_request cron'
 
 install:
     - git clone git://github.com/astropy/ci-helpers.git
@@ -126,7 +132,7 @@ script:
     - $MAIN_CMD $SETUP_CMD
 
 after_success:
-    - if [[ $SETUP_CMD == 'test --coverage' ]]; then
+    - if [[ $SETUP_CMD == *--coverage* ]]; then
         cpp-coveralls -E ".*convolution.*" -E ".*_erfa.*" -E ".*\.l" -E ".*\.y" -E ".*flexed.*" -E ".*cextern.*" -E ".*_np_utils.*" -E ".*cparser.*" -E ".*cython_impl.*" --dump c-coveralls.json;
         coveralls --merge=c-coveralls.json --rcfile='astropy/tests/coveragerc';
       fi

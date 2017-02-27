@@ -58,7 +58,6 @@ class TestBasic(BaseImageTests):
         return fig
 
     @remote_data(source='astropy')
-    @remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='contour_overlay.png',
                                    tolerance=1.5)

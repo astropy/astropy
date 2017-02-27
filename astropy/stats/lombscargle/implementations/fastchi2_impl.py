@@ -45,7 +45,7 @@ def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='standard',
     References
     ----------
     .. [1] M. Zechmeister and M. Kurster, A&A 496, 577-584 (2009)
-    .. [2] W. Press et al, Numerical Recipies in C (2002)
+    .. [2] W. Press et al, Numerical Recipes in C (2002)
     .. [3] Scargle, J.D. ApJ 263:835-853 (1982)
     .. [4] Palmer, J. ApJ 695:496-502 (2009)
     """
