@@ -909,11 +909,19 @@ class BinTableHDU(_TableBaseHDU):
         for idx in range(len(self.data)):
             for field in fields:
                 item = field[idx]
+                field_width = None
 
                 if field.dtype.kind == 'U':
+                    i = field.dtype.str.index(field.dtype.kind)
+                    field_width = int(field.dtype.str[i+1:])
                     item = np.char.encode(item, 'ascii')
 
                 fileobj.writearray(item)
+                if field_width is not None:
+                    j = item.dtype.str.index(item.dtype.kind)
+                    item_length = int(item.dtype.str[j+1:])
+                    fileobj.write(('\x00'*(field_width -
+                                           item_length)).encode('ascii'))
 
     _tdump_file_format = textwrap.dedent("""
 
