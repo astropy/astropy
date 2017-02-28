@@ -768,7 +768,7 @@ class Quantity(np.ndarray):
 
     info = QuantityInfo()
 
-    def is_equivalent(self, other, equivalencies=[]):
+    def is_equivalent(self, other, equivalencies=None):
         """
         Returns `True` if this quantity's unit is equivalent to ``other``.
 
@@ -780,10 +780,10 @@ class Quantity(np.ndarray):
             The unit to convert to. If a tuple of units is specified, this
             method returns true if the unit matches any of those in the tuple.
         """
-        if isinstance(other, Quantity):
-            return self.unit.is_equivalent(other.unit)
+        if hasattr(other, 'unit'):
+            return self.unit.is_equivalent(other.unit, equivalencies=equivalencies)
         else:
-            return self.unit.is_equivalent(other)
+            return self.unit.is_equivalent(other, equivalencies=equivalencies)
 
     @property
     def value(self):
