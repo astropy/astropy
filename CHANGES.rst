@@ -162,13 +162,14 @@ Bug Fixes
 
 - ``astropy.convolution``
 
-  - Fixed bug in ``discretize_integrate_2D`` in which x and y coordinates
-    where swapped. [#5634]
-
 - ``astropy.coordinates``
 
   - Fixed a bug where ``get_transform`` could sometimes produce confusing errors
     because of a typo in the input validation. [#5645]
+  - Changed ``SkyCoord`` so that frame attributes which are not valid for the
+    current ``frame`` (but are valid for other frames) are stored on the
+    ``SkyCoord`` instance instead of the underlying ``frame`` instance (e.g.,
+    setting ``relative_humidity`` on an ICRS ``SkyCoord`` instance.) [#5750]
 
 - ``astropy.cosmology``
 
@@ -180,15 +181,14 @@ Bug Fixes
 
   - Guard against extremely unlikely problems in compressed images, which
     could lead to memory unmapping errors. [#5775]
+  - Recognize PrimaryHDU when non boolean values are present for the
+    'GROUPS' header keyword. [#5808]
 
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
 
 - ``astropy.io.votable``
-
-  - Fixed a bug where stdlib ``realloc()`` was used instead of
-    ``PyMem_Realloc()`` [#5696, #4739, #2100]
 
 - ``astropy.modeling``
 
@@ -2000,7 +2000,13 @@ Bug Fixes
 
 - ``astropy.convolution``
 
+  - Fixed bug in ``discretize_integrate_2D`` in which x and y coordinates
+    where swapped. [#5634]
+
 - ``astropy.coordinates``
+
+  - Fixed a bug where ``get_transform`` could sometimes produce confusing errors
+    because of a typo in the input validation. [#5645]
 
 - ``astropy.cosmology``
 
@@ -2008,11 +2014,17 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Guard against extremely unlikely problems in compressed images, which
+    could lead to memory unmapping errors. [#5775]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
 
 - ``astropy.io.votable``
+
+  - Fixed a bug where stdlib ``realloc()`` was used instead of
+    ``PyMem_Realloc()`` [#5696, #4739, #2100]
 
 - ``astropy.modeling``
 
