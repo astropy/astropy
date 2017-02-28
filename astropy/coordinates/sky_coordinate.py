@@ -525,7 +525,7 @@ class SkyCoord(ShapedLikeNDArray):
             if frame_cls is not None and self.frame.is_transformable_to(frame_cls):
                 raise AttributeError("'{0}' is immutable".format(attr))
 
-        if attr in FRAME_ATTR_NAMES_SET():
+        if attr in frame_transform_graph.frame_attrnames_set:
             # All possible frame attributes can be set, but only via a private
             # variable.  See __getattr__ above.
             attr = '_' + attr
