@@ -105,6 +105,7 @@ API Changes
 - ``astropy.sphinx``
 
 - ``astropy.table``
+
   - Removed the deprecated ``data`` property of Row. [#5729]
 
   - Removed the deprecated functions ``join``, ``hstack``, ``vstack`` and
@@ -140,6 +141,7 @@ Bug Fixes
 - ``astropy.io.ascii``
 
 - ``astropy.io.fits``
+
   - Fixed ``fits.Header._keyword_from_index()`` to give correct keyword and repeat number [#5827]
 
 - ``astropy.io.misc``
