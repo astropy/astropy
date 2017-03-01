@@ -2263,6 +2263,18 @@ class TestHeaderFunctions(FitsTestCase):
             else:
                 c.verify('exception')
 
+    def test_keyword_from_index(self):
+        '''
+        Testing private function for positive and negative index mapping to true correct index
+        '''
+
+        hdr = fits.Header([('MOONFRAC', 0.604829), ('MOONDIST', 82.5171118)])
+        hdr.add_blank()
+        hdr.add_blank()
+
+        assert hdr._keyword_from_index(1) == ('MOONDIST', 0)
+        assert hdr._keyword_from_index(-1) == ('', 1)   
+
 
 class TestRecordValuedKeywordCards(FitsTestCase):
     """
