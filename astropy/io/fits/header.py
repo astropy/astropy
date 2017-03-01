@@ -1698,7 +1698,7 @@ class Header(object):
 
         keyword = self._cards[idx].keyword
         keyword = Card.normalize_keyword(keyword)
-        repeat = len(self._keyword_indices[keyword]) - 1
+        repeat = self._keyword_indices[keyword].index(idx)
         return keyword, repeat
 
     def _relativeinsert(self, card, before=None, after=None, replace=False):
