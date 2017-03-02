@@ -142,8 +142,6 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
-  - Fixed ``fits.Header._keyword_from_index()`` to give correct keyword and repeat number [#5827]
-
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -223,6 +221,8 @@ Bug Fixes
 
   - Recognize PrimaryHDU when non boolean values are present for the
     'GROUPS' header keyword. [#5808]
+    
+  - Fixed ``fits.Header._keyword_from_index()`` to give correct keyword and repeat number. [#5827, #5852]
 
 - ``astropy.io.misc``
 
