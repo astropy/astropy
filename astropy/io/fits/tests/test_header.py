@@ -2270,6 +2270,9 @@ class TestHeaderFunctions(FitsTestCase):
 
         hdr = fits.Header([('MOONFRAC', 0.604829), ('MOONDIST', 82.5171118)])
 
+        hdr.append()
+        hdr.append()
+
         assert hdr._keyword_from_index(1) == ('MOONDIST', 0)
         assert hdr._keyword_from_index(-1) == ('', 1)   
 
