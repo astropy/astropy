@@ -17,7 +17,8 @@ from numpy import ma
 from .. import log
 from ..io import registry as io_registry
 from ..units import Quantity
-from ..utils import isiterable
+from ..utils import isiterable, ShapedLikeNDArray
+from ..utils.compat.numpy import broadcast_to as np_broadcast_to
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
 from ..utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo, DataInfo
@@ -1244,17 +1245,29 @@ class Table(object):
             name = item
             # If this is a column-like object that could be added directly to table
             if isinstance(value, BaseColumn) or self._add_as_mixin_column(value):
+                # If we're setting a new column to a scalar, broadcast it.
+                # (things will fail in _init_from_cols if this doesn't work)
+                if (len(self) > 0 and (getattr(value, 'isscalar', False) or
+                                       getattr(value, 'shape', None) == () or
+                                       len(value) == 1)):
+                    new_shape = (len(self),) + getattr(value, 'shape', ())[1:]
+                    if isinstance(value, np.ndarray):
+                        value = np_broadcast_to(value, shape=new_shape,
+                                                subok=True)
+                    elif isinstance(value, ShapedLikeNDArray):
+                        value = value._apply(np_broadcast_to, shape=new_shape,
+                                             subok=True)
+
                 new_column = col_copy(value)
                 new_column.info.name = name
+
             elif len(self) == 0:
                 new_column = NewColumn(value, name=name)
             else:
                 new_column = NewColumn(name=name, length=len(self), dtype=value.dtype,
-                                       shape=value.shape[1:])
+                                       shape=value.shape[1:],
+                                       unit=getattr(value, 'unit', None))
                 new_column[:] = value
-
-                if isinstance(value, Quantity):
-                    new_column.unit = value.unit
 
             # Now add new column to the table
             self.add_columns([new_column], copy=False)
