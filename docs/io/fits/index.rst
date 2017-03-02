@@ -724,6 +724,19 @@ the 3rd argument is not a header, it (and other positional arguments) are
 assumed to be the extension specification(s). Header and extension specs can
 also be keyword arguments.
 
+The :func:`printdiff` function will print a difference report of two FITS files,
+including headers and data. The first two arguments must be two FITS
+filenames or FITS file objects with matching data types (i.e., if using strings
+to specify filenames, both inputs must be strings).  The third
+argument is an optional extension specification, with the same call format
+of :func:`getheader` and :func:`getdata`.  In addition you can add any keywords
+accepted by the :class:`FITSDiff` class::
+
+  >>> # get a difference report of ext 2 of inA and inB
+  >>> printdiff('inA.fits', 'inB.fits', ext=2)
+  >>> # ignore HISTORY and COMMMENT keywords
+  >>> printdiff('inA.fits', 'inB.fits', ignore_keywords=('HISTORY','COMMENT')
+
 Finally, the :func:`info` function will print out information of the specified
 FITS file::
 
