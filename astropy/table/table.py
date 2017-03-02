@@ -1247,7 +1247,7 @@ class Table(object):
             if isinstance(value, BaseColumn) or self._add_as_mixin_column(value):
                 # If we're setting a new column to a scalar, broadcast it.
                 # (things will fail in _init_from_cols if this doesn't work)
-                if (len(self) > 1 and (getattr(value, 'isscalar', False) or
+                if (len(self) > 0 and (getattr(value, 'isscalar', False) or
                                        getattr(value, 'shape', None) == () or
                                        len(value) == 1)):
                     new_shape = (len(self),) + getattr(value, 'shape', ())[1:]
