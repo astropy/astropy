@@ -299,6 +299,15 @@ def test_add_column(mixin_cols):
             if attr != 'name':
                 assert getattr(t['m'].info, attr) == getattr(t['s'].info, attr)
 
+    # While we're add it, also check a length-1 table.
+    t = QTable([m[1:2]], names=['m'])
+    if type(s) is type(m):
+        t['s'] = m[0]
+        assert_table_name_col_equal(t, 's', m[0])
+        for attr in attrs:
+            if attr != 'name':
+                assert getattr(t['m'].info, attr) == getattr(t['s'].info, attr)
+
 
 def test_vstack():
     """
