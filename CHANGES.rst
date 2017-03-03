@@ -45,6 +45,7 @@ New Features
 - ``astropy.nddata``
 
 - ``astropy.stats``
+  - Added ``biweight_midcovariance`` method. [#5777]
 
 - ``astropy.sphinx``
 
