@@ -601,6 +601,7 @@ def test_position_angle():
     assert cicrs.position_angle(cfk5) > 90.0 * u.deg
     assert cicrs.position_angle(cfk5) < 91.0 * u.deg
 
+
 def test_position_angle_directly():
     """Regression check for #3800: position_angle should accept floats."""
     from ..angle_utilities import position_angle
