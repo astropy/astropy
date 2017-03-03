@@ -12,15 +12,7 @@ from ....tests.helper import catch_warnings
 from ....tests.helper import pytest
 from ....utils.exceptions import AstropyDeprecationWarning
 from ....version import version
-
-# sys.argv = ['fitsheader']
-# sys.argv += ['./data/test0.fits']
-# sys.stdout = open('randomfile', 'w') #fixture for each method, teardown deletes it. open in self.temp directory
-# fitsheader.main()
-# sys.stdout.close()
-# f = open('randomfile', 'r')
-# assert 
-
+ 
 # @pytest.fixture(scope=module , params=['./tests/test0.fits'])
 # def resource_testfile_setup(request):
 #     with open(request.params[0]) as test_fits:
