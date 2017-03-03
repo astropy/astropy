@@ -73,18 +73,17 @@ class TestFITSheader_script(FitsTestCase):
     
     # Different test because stderr will not be none in case of testing by existing keyword
     # fitsheader searches for a keyword in all the HDU's
-    @pytest.mark.parametrize('test_kw', [
-        ('RANDOMKEY')
-    ])    
-    def test_by_non_existing_keyword(self, test_kw, capsys, warning_regex):
+  
+    def test_by_non_existing_keyword(self, capsys, warning_regex, error_regex):
         sys.argv += ['-k']
-        sys.argv += [test_kw]
+        sys.argv += ['RANDOMKEY']
         sys.argv += [self.data('test0.fits')]
 
         fitsheader.main()
         out, err = capsys.readouterr()
 
         assert warning_regex.match(err) is not None
+        assert error_regex.match(err) is None
 
     @pytest.mark.parametrize('test_ext', [
         ('0'),
@@ -155,5 +154,8 @@ class TestFITSheader_script(FitsTestCase):
         assert re.match('[a-zA-Z0-9_/=.]+', out) is None
         assert warning_regex.match(err) is not None
         assert error_regex.match(err) is None
+
+    def test_table_formatting(self):
+        pass
 
 
