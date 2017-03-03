@@ -918,7 +918,7 @@ def test_frame_attr_transform_inherit():
     c2 = c1.transform_to(c)
     assert not c2.is_equivalent_frame(c) # counterintuitive, but documented
     assert c2.equinox.value == 'B1950.000'
-    c3 = c1.transform_to(c, strict=True)
+    c3 = c1.transform_to(c, merge_attributes=False)
     assert c3.equinox.value == 'J2000.000'
     assert c3.is_equivalent_frame(c)
 
