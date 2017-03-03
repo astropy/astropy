@@ -903,13 +903,9 @@ class SkyCoord(ShapedLikeNDArray):
         """
         from .matching import match_coordinates_3d
 
-
         if (isinstance(catalogcoord, (SkyCoord, BaseCoordinateFrame))
                 and catalogcoord.has_data):
-            if self.is_equivalent_frame(catalogcoord):
-                self_in_catalog_frame = self
-            else:
-                self_in_catalog_frame = self.transform_to(catalogcoord)
+            self_in_catalog_frame = self.transform_to(catalogcoord)
         else:
             raise TypeError('Can only get separation to another SkyCoord or a '
                             'coordinate frame with data')
