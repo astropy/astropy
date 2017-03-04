@@ -132,13 +132,13 @@ def test_trailing_spaces_in_row_definition():
     """ Trailing spaces in the row definition column shouldn't matter"""
     table = """
 # comment (with blank line above)
-   ==== ==== ====
+   ==== ==== ====    
    Col1 Col2 Col3
-   ==== ==== ====
+   ==== ==== ====  
     3    3.4  foo
     1    4.5  bar
-   ==== ==== ====
-"""  # nopep8
+   ==== ==== ====  
+"""  # noqa
     reader = ascii.get_reader(Reader=ascii.RST)
     dat = reader.read(table)
     assert_equal(dat.colnames, ["Col1", "Col2", "Col3"])
