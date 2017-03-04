@@ -610,6 +610,32 @@ def test_position_angle_directly():
     assert result.value == 0.
 
 
+def test_sep_pa_equivalence():
+    """Regression check for bug in #5702.
+
+    PA and separation from object 1 to 2 should be consistent with those
+    from 2 to 1
+    """
+    cfk5 = SkyCoord(1*u.deg, 0*u.deg, frame='fk5')
+    cfk5B1950 = SkyCoord(1*u.deg, 0*u.deg, frame='fk5', equinox='B1950')
+    # test with both default and explicit equinox #5722 and #3106
+    sep_forward = cfk5.separation(cfk5B1950)
+    sep_backward = cfk5B1950.separation(cfk5)
+    assert sep_forward != 0 and sep_backward != 0
+    assert_allclose(sep_forward, sep_backward)
+    posang_forward = cfk5.position_angle(cfk5B1950)
+    posang_backward = cfk5B1950.position_angle(cfk5)
+    assert posang_forward != 0 and posang_backward != 0
+    assert 179 < (posang_forward - posang_backward).wrap_at(360*u.deg).degree < 181
+    dcfk5 = SkyCoord(1*u.deg, 0*u.deg, frame='fk5', distance=1*u.pc)
+    dcfk5B1950 = SkyCoord(1*u.deg, 0*u.deg, frame='fk5', equinox='B1950',
+                          distance=1.*u.pc)
+    sep3d_forward = dcfk5.separation_3d(dcfk5B1950)
+    sep3d_backward = dcfk5B1950.separation_3d(dcfk5)
+    assert sep3d_forward != 0 and sep3d_backward != 0
+    assert_allclose(sep3d_forward, sep3d_backward)
+
+
 def test_table_to_coord():
     """
     Checks "end-to-end" use of `Table` with `SkyCoord` - the `Quantity`
@@ -901,6 +927,16 @@ def test_frame_attr_transform_inherit():
     c2 = c.transform_to(FK5(equinox='J1990'))
     assert c2.equinox.value == 'J1990.000'
     assert c2.obstime.value == 'J1980.000'
+
+    # The work-around for #5722
+    c  = SkyCoord(1 * u.deg, 2 * u.deg, frame='fk5')
+    c1 = SkyCoord(1 * u.deg, 2 * u.deg, frame='fk5', equinox='B1950.000')
+    c2 = c1.transform_to(c)
+    assert not c2.is_equivalent_frame(c) # counterintuitive, but documented
+    assert c2.equinox.value == 'B1950.000'
+    c3 = c1.transform_to(c, merge_attributes=False)
+    assert c3.equinox.value == 'J2000.000'
+    assert c3.is_equivalent_frame(c)
 
 
 def test_deepcopy():
