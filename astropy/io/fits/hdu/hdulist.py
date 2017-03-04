@@ -21,7 +21,7 @@ from ..header import _pad_length
 from ..util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
                     _get_array_mmap, _free_space_check)
 from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
-from ....extern.six import string_types
+from ....extern.six import string_types, PY2
 from ....utils import indent
 from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 from ....utils.decorators import deprecated_renamed_argument
@@ -370,15 +370,15 @@ class HDUList(list, _Verify):
             self._truncate = False
             self._resize = True
 
-    def __getslice__(self, start, end):
-        return self[slice(start, end)]
+    if PY2:  # don't fall through to list.__getslice__, __delslice__
+        def __getslice__(self, start, end):
+            return self.__getitem__(slice(start, end))
 
-    def __delslice__(self, start, stop):
-        """
-        Delete a slice of HDUs from the `HDUList`, indexed by number only.
-        """
-
-        del self[slice(start, stop)]
+        def __delslice__(self, start, stop):
+            """
+            Delete a slice of HDUs from the `HDUList`, indexed by number only.
+            """
+            self.__delitem__(slice(start, stop))
 
     # Support the 'with' statement
     def __enter__(self):
