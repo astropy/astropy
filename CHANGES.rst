@@ -1,12 +1,8 @@
-1.0.12 (unreleased)
+1.0.12 (2017-03-05)
 -------------------
 
 Bug Fixes
 ^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
 
 - ``astropy.convolution``
 
@@ -18,55 +14,20 @@ Bug Fixes
   - Fixed a bug where ``get_transform`` could sometimes produce confusing errors
     because of a typo in the input validation. [#5645]
 
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
 - ``astropy.io.fits``
 
   - Guard against extremely unlikely problems in compressed images, which
     could lead to memory unmapping errors. [#5775]
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
 
 - ``astropy.io.votable``
 
   - Fixed a bug where stdlib ``realloc()`` was used instead of
     ``PyMem_Realloc()`` [#5696, #4739, #2100]
 
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.sphinx``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
 - ``astropy.utils``
 
   - Fixed ImportError with NumPy < 1.7 and Python 3.x in
     ``_register_patched_dtype_reduce``. [#5848]
-
-- ``astropy.visualization``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
-- ``astropy.extern``
-
-Other Changes and Additions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-- Nothing changed yet.
 
 
 1.0.11 (2016-12-22)
