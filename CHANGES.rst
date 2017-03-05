@@ -52,6 +52,9 @@ Bug Fixes
 
 - ``astropy.utils``
 
+  - Fixed ImportError with NumPy < 1.7 and Python 3.x in
+    ``_register_patched_dtype_reduce``. [#5848]
+
 - ``astropy.visualization``
 
 - ``astropy.vo``
