@@ -20,7 +20,7 @@ from .distances import Distance
 from ..extern import six
 from ..utils import ShapedLikeNDArray, classproperty
 from ..utils.compat import NUMPY_LT_1_12
-from ..utils.compat.numpy import broadcast_arrays
+from ..utils.compat.numpy import broadcast_arrays, broadcast_to
 
 __all__ = ["BaseRepresentation", "CartesianRepresentation",
            "SphericalRepresentation", "UnitSphericalRepresentation",
@@ -493,6 +493,32 @@ class CartesianRepresentation(BaseRepresentation):
         """
         return self._z
 
+    def unit_vectors(self):
+        """Cartesian unit vectors in the direction of each component.
+
+        Returns
+        -------
+        unit_vectors : dict of `CartesianRepresentation`
+            The keys are the component names.
+        """
+        l = broadcast_to(1.*u.one, self.shape, subok=True)
+        o = broadcast_to(0.*u.one, self.shape, subok=True)
+        return OrderedDict(
+            (('x', CartesianRepresentation(l, o, o, copy=False)),
+             ('y', CartesianRepresentation(o, l, o, copy=False)),
+             ('z', CartesianRepresentation(o, o, l, copy=False))))
+
+    def scale_factors(self):
+        """Scale factors for each component's direction.
+
+        Returns
+        -------
+        scale_factors : dict of `~astropy.units.Quantity`
+            The keys are the component names.
+        """
+        l = broadcast_to(1.*u.one, self.shape, subok=True)
+        return OrderedDict((('x', l), ('y', l), ('z', l)))
+
     def get_xyz(self, xyz_axis=0):
         """Return a vector array of the x, y, and z coordinates.
 
@@ -744,15 +770,41 @@ class UnitSphericalRepresentation(BaseRepresentation):
         """
         return self._lat
 
+    def unit_vectors(self):
+        """Cartesian unit vectors in the direction of each component.
+
+        Returns
+        -------
+        unit_vectors : dict of `CartesianRepresentation`
+            The keys are the component names.
+        """
+        sinlon, coslon = np.sin(self.lon), np.cos(self.lon)
+        sinlat, coslat = np.sin(self.lat), np.cos(self.lat)
+        return OrderedDict(
+            (('lon', CartesianRepresentation(-sinlon, coslon, 0., copy=False)),
+             ('lat', CartesianRepresentation(-sinlat*coslon, -sinlat*sinlon,
+                                             coslat, copy=False))))
+
+    def scale_factors(self):
+        """Scale factors for each component's direction.
+
+        Returns
+        -------
+        scale_factors : dict of `~astropy.units.Quantity`
+            The keys are the component names.
+        """
+        coslat = np.cos(self.lat)
+        l = broadcast_to(1./u.radian, self.shape, subok=True)
+        return OrderedDict((('lon', coslat / u.radian), ('lat', l)))
+
     def to_cartesian(self):
         """
         Converts spherical polar coordinates to 3D rectangular cartesian
         coordinates.
         """
-
-        x = u.one * np.cos(self.lat) * np.cos(self.lon)
-        y = u.one * np.cos(self.lat) * np.sin(self.lon)
-        z = u.one * np.sin(self.lat)
+        x = np.cos(self.lat) * np.cos(self.lon)
+        y = np.cos(self.lat) * np.sin(self.lon)
+        z = np.sin(self.lat)
 
         return CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
@@ -939,6 +991,38 @@ class SphericalRepresentation(BaseRepresentation):
         """
         return self._distance
 
+    def unit_vectors(self):
+        """Cartesian unit vectors in the direction of each component.
+
+        Returns
+        -------
+        unit_vectors : dict of `CartesianRepresentation`
+            The keys are the component names.
+        """
+        sinlon, coslon = np.sin(self.lon), np.cos(self.lon)
+        sinlat, coslat = np.sin(self.lat), np.cos(self.lat)
+        return OrderedDict(
+            (('lon', CartesianRepresentation(-sinlon, coslon, 0., copy=False)),
+             ('lat', CartesianRepresentation(-sinlat*coslon, -sinlat*sinlon,
+                                             coslat, copy=False)),
+             ('distance', CartesianRepresentation(coslat*coslon, coslat*sinlon,
+                                                  sinlat, copy=False))))
+
+    def scale_factors(self):
+        """Scale factors for each component's direction.
+
+        Returns
+        -------
+        scale_factors : dict of `~astropy.units.Quantity`
+            The keys are the component names.
+        """
+        d = self.distance / u.radian
+        coslat = np.cos(self.lat)
+        l = broadcast_to(1.*u.one, self.shape, subok=True)
+        return OrderedDict((('lon', d * coslat),
+                            ('lat', d),
+                            ('distance', l)))
+
     def represent_as(self, other_class):
         # Take a short cut if the other class is a spherical representation
         if issubclass(other_class, PhysicsSphericalRepresentation):
@@ -1083,6 +1167,39 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         """
         return self._distance
 
+    def unit_vectors(self):
+        """Cartesian unit vectors in the direction of each component.
+
+        Returns
+        -------
+        unit_vectors : dict of `CartesianRepresentation`
+            The keys are the component names.
+        """
+        sinphi, cosphi = np.sin(self.phi), np.cos(self.phi)
+        sintheta, costheta = np.sin(self.theta), np.cos(self.theta)
+        return OrderedDict(
+            (('phi', CartesianRepresentation(-sinphi, cosphi, 0., copy=False)),
+             ('theta', CartesianRepresentation(costheta*cosphi,
+                                               costheta*sinphi,
+                                               -sintheta, copy=False)),
+             ('r', CartesianRepresentation(sintheta*cosphi, sintheta*sinphi,
+                                           costheta, copy=False))))
+
+    def scale_factors(self):
+        """Scale factors for each component's direction.
+
+        Returns
+        -------
+        scale_factors : dict of `~astropy.units.Quantity`
+            The keys are the component names.
+        """
+        r = self.r / u.radian
+        sintheta = np.sin(self.theta)
+        l = broadcast_to(1.*u.one, self.shape, subok=True)
+        return OrderedDict((('phi', r * sintheta),
+                            ('theta', r),
+                            ('r', l)))
+
     def represent_as(self, other_class):
         # Take a short cut if the other class is a spherical representation
         if issubclass(other_class, SphericalRepresentation):
@@ -1208,6 +1325,35 @@ class CylindricalRepresentation(BaseRepresentation):
         The height of the point(s).
         """
         return self._z
+
+    def unit_vectors(self):
+        """Cartesian unit vectors in the direction of each component.
+
+        Returns
+        -------
+        unit_vectors : dict of `CartesianRepresentation`
+            The keys are the component names.
+        """
+        sinphi, cosphi = np.sin(self.phi), np.cos(self.phi)
+        l = broadcast_to(1., self.shape)
+        return OrderedDict(
+            (('rho', CartesianRepresentation(cosphi, sinphi, 0, copy=False)),
+             ('phi', CartesianRepresentation(-sinphi, cosphi, 0, copy=False)),
+             ('z', CartesianRepresentation(0, 0, l, unit=u.one, copy=False))))
+
+    def scale_factors(self):
+        """Scale factors for each component's direction.
+
+        Returns
+        -------
+        scale_factors : dict of `~astropy.units.Quantity`
+            The keys are the component names.
+        """
+        rho = self.rho / u.radian
+        l = broadcast_to(1.*u.one, self.shape, subok=True)
+        return OrderedDict((('rho', l),
+                            ('phi', rho),
+                            ('z', l)))
 
     @classmethod
     def from_cartesian(cls, cart):

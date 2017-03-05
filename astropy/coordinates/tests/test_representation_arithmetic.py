@@ -366,3 +366,155 @@ class TestArithmetic():
         expected = np.sin(sep)
         assert_quantity_allclose(u_cross_u_rev.norm(), expected,
                                  atol=1.e-10*u.one)
+
+
+class TestUnitVectorsAndScales():
+
+    @staticmethod
+    def check_unit_vectors(e):
+        for v in e.values():
+            assert type(v) is CartesianRepresentation
+            assert_quantity_allclose(v.norm(), 1. * u.one)
+        return e
+
+    @staticmethod
+    def check_scale_factors(sf, rep):
+        unit = rep.norm().unit
+        for c, f in sf.items():
+            assert type(f) is u.Quantity
+            assert (f.unit * getattr(rep, c).unit).is_equivalent(unit)
+
+    def test_spherical(self):
+        s = SphericalRepresentation(lon=[0., 6., 21.] * u.hourangle,
+                                    lat=[0., -30., 85.] * u.deg,
+                                    distance=[1, 2, 3] * u.kpc)
+        e = s.unit_vectors()
+        self.check_unit_vectors(e)
+        sf = s.scale_factors()
+        self.check_scale_factors(sf, s)
+
+        s_lon = s + s.distance * 1e-5 * np.cos(s.lat) * e['lon']
+        assert_quantity_allclose(s_lon.lon, s.lon + 1e-5*u.rad,
+                                 atol=1e-10*u.rad)
+        assert_quantity_allclose(s_lon.lat, s.lat, atol=1e-10*u.rad)
+        assert_quantity_allclose(s_lon.distance, s.distance)
+        s_lon2 = s + 1e-5 * u.radian * sf['lon'] * e['lon']
+        assert_representation_allclose(s_lon2, s_lon)
+
+        s_lat = s + s.distance * 1e-5 * e['lat']
+        assert_quantity_allclose(s_lat.lon, s.lon)
+        assert_quantity_allclose(s_lat.lat, s.lat + 1e-5*u.rad,
+                                 atol=1e-10*u.rad)
+        assert_quantity_allclose(s_lon.distance, s.distance)
+        s_lat2 = s + 1.e-5 * u.radian * sf['lat'] * e['lat']
+        assert_representation_allclose(s_lat2, s_lat)
+
+        s_distance = s + 1. * u.pc * e['distance']
+        assert_quantity_allclose(s_distance.lon, s.lon, atol=1e-10*u.rad)
+        assert_quantity_allclose(s_distance.lat, s.lat, atol=1e-10*u.rad)
+        assert_quantity_allclose(s_distance.distance, s.distance + 1.*u.pc)
+        s_distance2 = s + 1. * u.pc * sf['distance'] * e['distance']
+        assert_representation_allclose(s_distance2, s_distance)
+
+    def test_unit_spherical(self):
+        s = UnitSphericalRepresentation(lon=[0., 6., 21.] * u.hourangle,
+                                        lat=[0., -30., 85.] * u.deg)
+
+        e = s.unit_vectors()
+        self.check_unit_vectors(e)
+        sf = s.scale_factors()
+        self.check_scale_factors(sf, s)
+
+        s_lon = s + 1e-5 * np.cos(s.lat) * e['lon']
+        assert_quantity_allclose(s_lon.lon, s.lon + 1e-5*u.rad,
+                                 atol=1e-10*u.rad)
+        assert_quantity_allclose(s_lon.lat, s.lat, atol=1e-10*u.rad)
+        s_lon2 = s + 1e-5 * u.radian * sf['lon'] * e['lon']
+        assert_representation_allclose(s_lon2, s_lon)
+
+        s_lat = s + 1e-5 * e['lat']
+        assert_quantity_allclose(s_lat.lon, s.lon)
+        assert_quantity_allclose(s_lat.lat, s.lat + 1e-5*u.rad,
+                                 atol=1e-10*u.rad)
+        s_lat2 = s + 1.e-5 * u.radian * sf['lat'] * e['lat']
+        assert_representation_allclose(s_lat2, s_lat)
+
+    def test_physical_spherical(self):
+
+        s = PhysicsSphericalRepresentation(phi=[0., 6., 21.] * u.hourangle,
+                                           theta=[90., 120., 5.] * u.deg,
+                                           r=[1, 2, 3] * u.kpc)
+
+        e = s.unit_vectors()
+        self.check_unit_vectors(e)
+        sf = s.scale_factors()
+        self.check_scale_factors(sf, s)
+
+        s_phi = s + s.r * 1e-5 * np.sin(s.theta) * e['phi']
+        assert_quantity_allclose(s_phi.phi, s.phi + 1e-5*u.rad,
+                                 atol=1e-10*u.rad)
+        assert_quantity_allclose(s_phi.theta, s.theta, atol=1e-10*u.rad)
+        assert_quantity_allclose(s_phi.r, s.r)
+        s_phi2 = s + 1e-5 * u.radian * sf['phi'] * e['phi']
+        assert_representation_allclose(s_phi2, s_phi)
+
+        s_theta = s + s.r * 1e-5 * e['theta']
+        assert_quantity_allclose(s_theta.phi, s.phi)
+        assert_quantity_allclose(s_theta.theta, s.theta + 1e-5*u.rad,
+                                 atol=1e-10*u.rad)
+        assert_quantity_allclose(s_theta.r, s.r)
+        s_theta2 = s + 1.e-5 * u.radian * sf['theta'] * e['theta']
+        assert_representation_allclose(s_theta2, s_theta)
+
+        s_r = s + 1. * u.pc * e['r']
+        assert_quantity_allclose(s_r.phi, s.phi, atol=1e-10*u.rad)
+        assert_quantity_allclose(s_r.theta, s.theta, atol=1e-10*u.rad)
+        assert_quantity_allclose(s_r.r, s.r + 1.*u.pc)
+        s_r2 = s + 1. * u.pc * sf['r'] * e['r']
+        assert_representation_allclose(s_r2, s_r)
+
+    def test_cartesian(self):
+
+        s = CartesianRepresentation(x=[1, 2, 3] * u.pc,
+                                    y=[2, 3, 4] * u.Mpc,
+                                    z=[3, 4, 5] * u.kpc)
+
+        e = s.unit_vectors()
+        sf = s.scale_factors()
+        for v, expected in zip(e.values(), ([1., 0., 0.] * u.one,
+                                            [0., 1., 0.] * u.one,
+                                            [0., 0., 1.] * u.one)):
+            assert np.all(v.get_xyz(xyz_axis=-1) == expected)
+        for f in sf.values():
+            assert np.all(f == 1.*u.one)
+
+    def test_cylindrical(self):
+
+        s = CylindricalRepresentation(rho=[1, 2, 3] * u.pc,
+                                      phi=[0., 90., -45.] * u.deg,
+                                      z=[3, 4, 5] * u.kpc)
+        e = s.unit_vectors()
+        self.check_unit_vectors(e)
+        sf = s.scale_factors()
+        self.check_scale_factors(sf, s)
+
+        s_rho = s + 1. * u.pc * e['rho']
+        assert_quantity_allclose(s_rho.rho, s.rho + 1.*u.pc)
+        assert_quantity_allclose(s_rho.phi, s.phi)
+        assert_quantity_allclose(s_rho.z, s.z)
+        s_rho2 = s + 1. * u.pc * sf['rho'] * e['rho']
+        assert_representation_allclose(s_rho2, s_rho)
+
+        s_phi = s + s.rho * 1e-5 * e['phi']
+        assert_quantity_allclose(s_phi.rho, s.rho)
+        assert_quantity_allclose(s_phi.phi, s.phi + 1e-5*u.rad)
+        assert_quantity_allclose(s_phi.z, s.z)
+        s_phi2 = s + 1e-5 * u.radian * sf['phi'] * e['phi']
+        assert_representation_allclose(s_phi2, s_phi)
+
+        s_z = s + 1. * u.pc * e['z']
+        assert_quantity_allclose(s_z.rho, s.rho)
+        assert_quantity_allclose(s_z.phi, s.phi, atol=1e-10*u.rad)
+        assert_quantity_allclose(s_z.z, s.z + 1.*u.pc)
+        s_z2 = s + 1. * u.pc * sf['z'] * e['z']
+        assert_representation_allclose(s_z2, s_z)
