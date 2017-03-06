@@ -13,59 +13,31 @@ from ....tests.helper import pytest
 from ....utils.exceptions import AstropyDeprecationWarning
 from ....version import version
  
-# @pytest.fixture(scope=module , params=['./tests/test0.fits'])
-# def resource_testfile_setup(request):
-#     with open(request.params[0]) as test_fits:
-#         yield test_fits
-
-@pytest.fixture(scope='module')
-def warning_regex():
-    regex = re.compile('^WARNING.*')
-    return regex
-
-@pytest.fixture(scope='module')
-def error_regex():
-    regex = re.compile('^ERROR.*')
-    return regex
 
 class TestFITSheader_script(FitsTestCase):
 
-    def setup_method(self,  method):
-        self.sys_argv_orig = sys.argv
-        sys.argv = ["fitsheader"]
-
-    def teardown_method(self, method):
-        sys.argv = self.sys_argv_orig
-
-    def test_noargs(self):
+    script_name = 'fitsheader'
+    def test_noargs(self, monkeypatch):
+        monkeypatch.setattr(sys, 'argv', [self.script_name])
         with pytest.raises(SystemExit) as e:
             fitsheader.main()
         assert e.value.code == 2
 
-    @pytest.mark.parametrize('test_file', [
-        ('test0.fits'),
-        pytest.mark.xfail(('random.fits'), reason = 'bad file')
-        
-    ])
-    def test_file_exists(self, test_file, capsys, warning_regex, error_regex):
-        sys.argv += [self.data(test_file)]
-
+    def test_file_exists(self, capsys, monkeypatch):
+        args = [self.script_name, self.data('test0.fits')]
+        monkeypatch.setattr(sys, 'argv', args)
         fitsheader.main()
         out, err = capsys.readouterr()
 
-        assert error_regex.match(err) is None
-        assert warning_regex.match(err) is None
+        assert not err.startswith('WARNING')
+        assert not err.startswith('ERROR')
 
     @pytest.mark.parametrize('test_kw,expected', [
-        ('BSCALE', 'BSCALE  =           1.000000E0 / REAL = TAPE*BSCALE + BZERO'),
-        pytest.mark.xfail(('LRFWAVE', 'LRFWAVE = 0.0 / linear ramp filter wavelength'), reason = 'bad format')
-        
+        ('BSCALE', 'BSCALE  =           1.000000E0 / REAL = TAPE*BSCALE + BZERO')
     ])
-    def test_by_existing_keyword(self, test_kw, expected, capsys, warning_regex):
-        sys.argv += ['-k']
-        sys.argv += [test_kw]
-        sys.argv += [self.data('test0.fits')]
-
+    def test_by_existing_keyword(self, test_kw, expected, capsys, monkeypatch):
+        args = [self.script_name, '-k', test_kw, self.data('test0.fits')]
+        monkeypatch.setattr(sys, 'argv', args)
         fitsheader.main()
         out, err = capsys.readouterr()
 
@@ -74,28 +46,23 @@ class TestFITSheader_script(FitsTestCase):
     # Different test because stderr will not be none in case of testing by existing keyword
     # fitsheader searches for a keyword in all the HDU's
   
-    def test_by_non_existing_keyword(self, capsys, warning_regex, error_regex):
-        sys.argv += ['-k']
-        sys.argv += ['RANDOMKEY']
-        sys.argv += [self.data('test0.fits')]
-
+    def test_by_non_existing_keyword(self, capsys, monkeypatch):
+        args = [self.script_name, '-k', 'RANDOMKEY', self.data('test0.fits')]
+        monkeypatch.setattr(sys, 'argv', args)
         fitsheader.main()
         out, err = capsys.readouterr()
 
-        assert warning_regex.match(err) is not None
-        assert error_regex.match(err) is None
+        assert err.startswith('WARNING') and 'RANDOMKEY' in err
+        assert not err.startswith('ERROR')
 
     @pytest.mark.parametrize('test_ext', [
         ('0'),
-        pytest.mark.xfail(('9')),
-        ('PRIMARY'),
-        pytest.mark.xfail(('RANDOM'))
+        ('PRIMARY')
     ])
-    def test_by_extension(self, test_ext, capsys, warning_regex, error_regex):
-        sys.argv += ['-e']
-        sys.argv += [test_ext]
-        sys.argv += [self.data('test0.fits')]
+    def test_by_extension(self, test_ext, capsys, monkeypatch):
 
+        args = [self.script_name, '-e', test_ext, self.data('test0.fits')]
+        monkeypatch.setattr(sys, 'argv', args)
         fitsheader.main()
         out, err = capsys.readouterr()
 
@@ -106,39 +73,33 @@ class TestFITSheader_script(FitsTestCase):
         out = out.split('\n', 1)[1]
 
         assert re.match('[a-zA-Z0-9_/=.]+', out) is not None
-        assert warning_regex.match(err) is None
-        assert error_regex.match(err) is None
+        assert not err.startswith('WARNING')
+        assert not err.startswith('ERROR')
 
     @pytest.mark.parametrize('test_ext,test_kw', [
         ('0' ,'BSCALE'),
         ('SCI', 'EXPNAME')
     ])
-    def test_by_correct_extension_and_keyword(self, capsys, test_ext, test_kw, warning_regex, error_regex):
-        sys.argv += ['-e']
-        sys.argv += [test_ext]
-        sys.argv += ['-k']
-        sys.argv += [test_kw]
-        sys.argv += [self.data('test0.fits')]
-
+    def test_by_correct_extension_and_keyword(self, capsys, test_ext, test_kw, monkeypatch):
+        args = [self.script_name, '-e', test_ext, '-k', test_kw, self.data('test0.fits')]
+        monkeypatch.setattr(sys, 'argv', args)
         fitsheader.main()
         out, err = capsys.readouterr()
         out = out.split('\n', 1)[1]
 
         assert re.match('[a-zA-Z0-9_/=.]+', out) is not None
-        assert warning_regex.match(err) is None
-        assert error_regex.match(err) is None
+        assert not err.startswith('WARNING')
+        assert not err.startswith('ERROR')
 
     @pytest.mark.parametrize('test_ext,test_kw', [
         ('0' ,'RANDOM'),
         ('RANDOM_EXT', 'EXPNAME'),
         ('9', 'EXPNAME')
     ])
-    def test_by_incorrect_extension_and_keyword(self, capsys, test_ext, test_kw, warning_regex, error_regex):
-        sys.argv += ['-e']
-        sys.argv += [test_ext]
-        sys.argv += ['-k']
-        sys.argv += [test_kw]
-        sys.argv += [self.data('test0.fits')]
+    def test_by_incorrect_extension_and_keyword(self, capsys, test_ext, test_kw, monkeypatch):
+        args = [self.script_name, '-e', test_ext, '-k', test_kw, self.data('test0.fits')]
+        monkeypatch.setattr(sys, 'argv', args)
+        print(args)
         fitsheader.main()
         out, err = capsys.readouterr()
 
@@ -152,8 +113,8 @@ class TestFITSheader_script(FitsTestCase):
             out = ''
 
         assert re.match('[a-zA-Z0-9_/=.]+', out) is None
-        assert warning_regex.match(err) is not None
-        assert error_regex.match(err) is None
+        assert err.startswith('WARNING')
+        assert not err.startswith('ERROR')
 
     def test_table_formatting(self):
         pass
