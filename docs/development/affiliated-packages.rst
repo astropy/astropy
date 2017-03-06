@@ -73,7 +73,9 @@ Starting a new package
     # .gitignore specifies which types of files to ignore in the repository
     cp ../template/.gitignore .
 
-    # MANIFEST.in specifies which files to include in a tar file release
+    # MANIFEST.in specifies which files to include in a tar file
+    release. Change all ``'packagename'`` text to be the name of your
+    package, <packagename>.
     cp ../template/MANIFEST.in .
 
     # ah_bootstrap.py is used by setup.py to use the astropy-helpers
@@ -95,11 +97,12 @@ Starting a new package
     #       out the line that appends 'data/*'.
     cp ../template/setup.py .
 
-   .. important:: Before proceeding, make sure you have edited ``setup.cfg`` and
-                 ``setup.py`` as indicated above!
+   .. important:: Before proceeding, make sure you have edited
+                 ``MANIFEST.in``, ``setup.cfg`` and ``setup.py`` as
+                 indicated above!
 
-   Once you have edited ``setup.cfg`` and ``setup.py``, you can commit the
-   changes::
+   Once you have edited ``MANIFEST.in``, ``setup.cfg`` and ``setup.py``, you
+   can commit the changes::
 
     git add .gitignore MANIFEST.in ah_bootstrap.py ez_setup.py setup.cfg setup.py
 
@@ -193,6 +196,9 @@ Starting a new package
 
    .. important:: Before proceeding, make sure you have edited ``.travis.yml`` as
                   indicated above!
+
+#. Double check that you have changed all the ``'packagename'`` references
+   in the configuration files to be <packagename>, the name of your package.
 
 #. Now you are ready to make your first commit::
 
