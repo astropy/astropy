@@ -138,23 +138,13 @@ def get_icrs_coordinates(name):
             resp = urllib.request.urlopen(url, timeout=data.conf.remote_timeout)
             resp_data = resp.read()
             break
-        except urllib.error.URLError as e:
-            # This catches a timeout error, see:
-            #   http://stackoverflow.com/questions/2712524/handling-urllib2s-timeout-python
-            if isinstance(e.reason, socket.timeout):
-                # If it was a timeout, try with the next URL
-                continue
-            else:
-                raise NameResolveError(
-                    "Unable to retrieve coordinates for name '{0}'; "
-                    "connection timed out".format(name))
+        except urllib.error.URLError:
+            continue
         except socket.timeout:
             # There are some cases where urllib2 does not catch socket.timeout
             # especially while receiving response data on an already previously
             # working request
-            raise NameResolveError(
-                "Unable to retrieve coordinates for name '{0}'; connection "
-                "timed out".format(name))
+            continue
 
     # All Sesame URL's timed out...
     else:
