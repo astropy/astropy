@@ -718,7 +718,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
     return conf_interval
 
 
-def median_absolute_deviation(a, axis=None, func=np.median):
+def median_absolute_deviation(a, axis=None, func=None):
     """
     Calculate the median absolute deviation (MAD).
 
@@ -731,6 +731,9 @@ def median_absolute_deviation(a, axis=None, func=np.median):
     axis : int, optional
         Axis along which the MADs are computed.  The default (`None`) is
         to compute the MAD of the flattened array.
+    func : callable, optional
+        The function used to compute the median. Defaults to `numpy.ma.median`
+        for masked arrays, otherwise to `numpy.median`.
 
     Returns
     -------
@@ -757,12 +760,15 @@ def median_absolute_deviation(a, axis=None, func=np.median):
     mad_std
     """
 
-    # Check if the array has a mask and if so use np.ma.median
-    # See https://github.com/numpy/numpy/issues/7330 why using np.ma.median
-    # for normal arrays should not be done (summary: np.ma.median always
-    # returns an masked array even if the result should be scalar). (#4658)
-    if isinstance(a, np.ma.MaskedArray):
-        func = np.ma.median
+    if func is None:
+        # Check if the array has a mask and if so use np.ma.median
+        # See https://github.com/numpy/numpy/issues/7330 why using np.ma.median
+        # for normal arrays should not be done (summary: np.ma.median always
+        # returns an masked array even if the result should be scalar). (#4658)
+        if isinstance(a, np.ma.MaskedArray):
+            func = np.ma.median
+        else:
+            func = np.median
 
     a = np.asanyarray(a)
     a_median = func(a, axis=axis)
@@ -778,7 +784,7 @@ def median_absolute_deviation(a, axis=None, func=np.median):
     return func(np.abs(a - a_median), axis=axis)
 
 
-def mad_std(data, axis=None, func=np.median):
+def mad_std(data, axis=None, func=None):
     r"""
     Calculate a robust standard deviation using the `median absolute
     deviation (MAD)
@@ -802,6 +808,9 @@ def mad_std(data, axis=None, func=np.median):
         Axis along which the robust standard deviations are computed.
         The default (`None`) is to compute the robust standard deviation
         of the flattened array.
+    func : callable, optional
+        The function used to compute the median. Defaults to `numpy.ma.median`
+        for masked arrays, otherwise to `numpy.median`.
 
     Returns
     -------
