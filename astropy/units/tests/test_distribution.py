@@ -168,6 +168,17 @@ def test_helper_normal_samples():
         assert np.all(n_dist2.pdf_std < 100*u.pc)
 
 
+def test_helper_poisson_samples():
+    centerqadu = [1, 5, 30, 400] *u.adu
+
+    with NumpyRNGContext(12345):
+        p_dist = u.PoissonDistribution(centerqadu, n_samples=100)
+        assert p_dist.shape == (100, 4)
+        assert p_dist.unit == u.adu
+        assert np.all(np.min(p_dist) >= 0)
+        assert np.all(np.abs(p_dist.pdf_mean - centerqadu) < centerqadu)
+
+
 def test_helper_normal():
     pytest.skip('distribution stretch goal not yet implemented')
     centerq = [1, 5, 30, 400] * u.kpc

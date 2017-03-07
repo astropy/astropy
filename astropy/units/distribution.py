@@ -12,7 +12,7 @@ import numpy as np
 
 from . import Quantity
 
-__all__ = ['Distribution', 'NormalDistribution']
+__all__ = ['Distribution', 'NormalDistribution', 'PoissonDistribution']
 
 
 class Distribution(Quantity):
@@ -150,4 +150,14 @@ class NormalDistribution(Distribution):
         self = super(NormalDistribution, cls).__new__(cls, distr, unit=None, **kwargs)
         self.distr_std = std
         self.distr_center = center
+        return self
+
+
+class PoissonDistribution(Distribution):
+    def __new__(cls, poissonval, n_samples=1000, **kwargs):
+        randshape = [n_samples] + list(poissonval.shape)
+        distr = np.random.poisson(poissonval.value, randshape)
+
+        self = super(PoissonDistribution, cls).__new__(cls, distr, unit=poissonval.unit, **kwargs)
+        self.distr_std = poissonval**0.5
         return self
