@@ -1336,6 +1336,7 @@ class MinimizeFitter(Fitter):
         p0, _ = _model_to_fit_params(model_copy)
 
         fitparams, self.fit_info = self._opt_method(self.objective_function, p0, farg, **kwargs)
+        self.scipy_opt_result = self._opt_method.scipy_opt_result
         _fitter_to_model_params(model_copy, fitparams)
         return model_copy
 
