@@ -601,19 +601,19 @@ class Test2DFittingWithOutlierRemoval(object):
 
         # test with Levenberg-Marquardt Least Squares fitter
         fit = FittingWithOutlierRemoval(LevMarLSQFitter(), sigma_clip,
-                                        niter=3, sigma=4.)
+                                        niter=3, sigma=3.)
         _, fitted_model = fit(g2_init, self.x, self.y, self.z)
         assert_allclose(fitted_model.parameters[0:5], self.model_params,
                         atol=1e-1)
         # test with Sequential Least Squares Programming fitter
         fit = FittingWithOutlierRemoval(SLSQPLSQFitter(), sigma_clip, niter=3,
-                                        sigma=4.)
+                                        sigma=3.)
         _, fitted_model = fit(g2_init, self.x, self.y, self.z)
         assert_allclose(fitted_model.parameters[0:5], self.model_params,
                         atol=1e-1)
         # test with Simplex LSQ fitter
         fit = FittingWithOutlierRemoval(SimplexLSQFitter(), sigma_clip,
-                                        niter=3, sigma=4.)
+                                        niter=3, sigma=3.)
         _, fitted_model = fit(g2_init, self.x, self.y, self.z)
         assert_allclose(fitted_model.parameters[0:5], self.model_params,
                         atol=1e-1)
