@@ -9,16 +9,20 @@ import numpy as np
 from ... import units as u
 from .. import (PhysicsSphericalRepresentation, CartesianRepresentation,
                 CylindricalRepresentation, SphericalRepresentation,
-                UnitSphericalRepresentation, Longitude, Latitude)
+                UnitSphericalRepresentation, SphericalOffset,
+                Longitude, Latitude)
 from ..angle_utilities import angular_separation
+from ...utils.compat.numpy import broadcast_arrays
 from ...tests.helper import assert_quantity_allclose
 
 
 def assert_representation_allclose(actual, desired, rtol=1.e-7, atol=None,
                                    **kwargs):
-    assert_quantity_allclose(actual.to_cartesian().xyz,
-                             desired.to_cartesian().xyz,
-                             rtol, atol, **kwargs)
+    actual_xyz = actual.to_cartesian().get_xyz(xyz_axis=-1)
+    desired_xyz = desired.to_cartesian().get_xyz(xyz_axis=-1)
+    actual_xyz, desired_xyz = broadcast_arrays(actual_xyz, desired_xyz,
+                                               subok=True)
+    assert_quantity_allclose(actual_xyz, desired_xyz, rtol, atol, **kwargs)
 
 
 def representation_equal(first, second):
@@ -518,3 +522,124 @@ class TestUnitVectorsAndScales():
         assert_quantity_allclose(s_z.z, s.z + 1.*u.pc)
         s_z2 = s + 1. * u.pc * sf['z'] * e['z']
         assert_representation_allclose(s_z2, s_z)
+
+
+class TestSphericalOffset():
+
+    def setup(self):
+        s = SphericalRepresentation(lon=[0., 6., 21.] * u.hourangle,
+                                    lat=[0., -30., 85.] * u.deg,
+                                    distance=[1, 2, 3] * u.kpc)
+        self.s = s
+        self.e = s.unit_vectors()
+        self.sf = s.scale_factors()
+
+    def test_simple_offsets(self):
+        s, e, sf = self.s, self.e, self.sf
+
+        o_lon = SphericalOffset(1.*u.arcsec, 0.*u.arcsec, 0.*u.kpc)
+        o_lonc = o_lon.to_cartesian(base=s)
+        o_lon2 = SphericalOffset.from_cartesian(o_lonc, base=s)
+        assert_quantity_allclose(o_lon.d_lon, o_lon2.d_lon, atol=1.*u.narcsec)
+        assert_quantity_allclose(o_lon.d_lat, o_lon2.d_lat, atol=1.*u.narcsec)
+        assert_quantity_allclose(o_lon.d_distance, o_lon2.d_distance,
+                                 atol=1.*u.npc)
+        # simple check by hand for first element.
+        assert_quantity_allclose(o_lonc[0].xyz,
+                                 [0., np.pi/180./3600., 0.]*u.kpc)
+        # check all using unit vectors and scale factors.
+        s_lon = s + 1.*u.arcsec * sf['lon'] * e['lon']
+        assert_representation_allclose(o_lonc, s_lon - s, atol=1e-10*u.kpc)
+
+        o_lat = SphericalOffset(0.*u.arcsec, 1.*u.arcsec, 0.*u.kpc)
+        o_latc = o_lat.to_cartesian(base=s)
+        assert_quantity_allclose(o_latc[0].xyz,
+                                 [0., 0., np.pi/180./3600.]*u.kpc)
+        s_lat = s + 1.*u.arcsec * sf['lat'] * e['lat']
+        assert_representation_allclose(o_latc, s_lat - s, atol=1e-10*u.kpc)
+        s_lat2 = s + o_lat
+        assert_representation_allclose(s_lat2, s_lat, atol=1e-10*u.kpc)
+
+        o_distance = SphericalOffset(0.*u.arcsec, 0.*u.arcsec, 1.*u.mpc)
+        o_distancec = o_distance.to_cartesian(base=s)
+        assert_quantity_allclose(o_distancec[0].xyz,
+                                 [1e-6, 0., 0.]*u.kpc)
+        s_distance = s + 1.*u.mpc * sf['distance'] * e['distance']
+        assert_representation_allclose(o_distancec, s_distance - s,
+                                       atol=1e-10*u.kpc)
+        s_distance2 = s + o_distance
+        assert_representation_allclose(s_distance2, s_distance)
+
+    def test_offset_arithmetic(self):
+        s = self.s
+
+        o_lon = SphericalOffset(1.*u.arcsec, 0.*u.arcsec, 0.*u.kpc)
+        o_lon_by_2 = o_lon / 2.
+        assert_representation_allclose(o_lon_by_2.to_cartesian(s) * 2.,
+                                       o_lon.to_cartesian(s), atol=1e-10*u.kpc)
+        assert_representation_allclose(s + o_lon, s + 2 * o_lon_by_2,
+                                       atol=1e-10*u.kpc)
+        o_lon2 = SphericalOffset(1.*u.mas/u.yr, 0.*u.mas/u.yr, 0.*u.km/u.s)
+        assert_quantity_allclose(o_lon2.norm(s)[0], 4.74*u.km/u.s,
+                                 atol=0.01*u.km/u.s)
+        assert_representation_allclose(o_lon2.to_cartesian(s) * 1000.*u.yr,
+                                       o_lon.to_cartesian(s), atol=1e-10*u.kpc)
+        s_off = s + o_lon
+        s_off2 = s + o_lon2 * 1000.*u.yr
+        assert_representation_allclose(s_off, s_off2, atol=1e-10*u.kpc)
+
+        s_off_big = s + o_lon * 1e5 * u.radian/u.arcsec
+
+        assert_representation_allclose(
+            s_off_big, SphericalRepresentation(s.lon + 90.*u.deg, 0.*u.deg,
+                                               1e5*s.distance*np.cos(s.lat)),
+            atol=5.*u.kpc)
+
+        o_lon3c = CartesianRepresentation(0., 4.74047, 0., unit=u.km/u.s)
+        o_lon3 = SphericalOffset.from_cartesian(o_lon3c, base=s)
+        assert_quantity_allclose(o_lon3.d_lon[0], 1.*u.mas/u.yr,
+                                 atol=1.*u.uas/u.yr)
+        s_off_big2 = s + o_lon3 * 1e5 * u.yr * u.radian/u.mas
+        assert_representation_allclose(
+            s_off_big2, SphericalRepresentation(90.*u.deg, 0.*u.deg,
+                                                1e5*u.kpc), atol=5.*u.kpc)
+
+    def test_offset_init_errors(self):
+        s = self.s
+        with pytest.raises(TypeError):
+            SphericalOffset(1.*u.arcsec, 0., 0.)
+        with pytest.raises(TypeError):
+            SphericalOffset(1.*u.arcsec, 0.*u.arcsec, 0.*u.kpc, False, False)
+        with pytest.raises(TypeError):
+            SphericalOffset(1.*u.arcsec, 0.*u.arcsec, 0.*u.kpc,
+                            copy=False, d_lon=0.*u.arcsec)
+        with pytest.raises(TypeError):
+            SphericalOffset(1.*u.arcsec, 0.*u.arcsec, 0.*u.kpc,
+                            copy=False, flying='circus')
+        with pytest.raises(ValueError):
+            SphericalOffset(np.ones(2)*u.arcsec,
+                            np.zeros(3)*u.arcsec, np.zeros(2)*u.kpc)
+        with pytest.raises(u.UnitsError):
+            SphericalOffset(1.*u.arcsec, 1.*u.s, 0.*u.kpc)
+        with pytest.raises(u.UnitsError):
+            SphericalOffset(1.*u.kpc, 1.*u.arcsec, 0.*u.kpc)
+        o = SphericalOffset(1.*u.arcsec, 1.*u.arcsec, 0.*u.km/u.s)
+        with pytest.raises(u.UnitsError):
+            o.to_cartesian(s)
+        with pytest.raises(AttributeError):
+            o.d_lon = 0.*u.arcsec
+        with pytest.raises(AttributeError):
+            del o.d_lon
+
+        o = SphericalOffset(1.*u.arcsec, 1.*u.arcsec, 0.*u.km)
+        with pytest.raises(TypeError):
+            o.to_cartesian()
+        c = CartesianRepresentation(10., 0., 0., unit=u.km)
+        with pytest.raises(TypeError):
+            SphericalOffset.to_cartesian(c)
+        with pytest.raises(TypeError):
+            SphericalOffset.from_cartesian(c)
+        with pytest.raises(TypeError):
+            SphericalOffset.from_cartesian(c, SphericalRepresentation)
+        with pytest.raises(TypeError):
+            SphericalOffset.from_cartesian(c, c)
