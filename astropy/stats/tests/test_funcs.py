@@ -32,6 +32,7 @@ from .. import funcs
 # of poisson_upper_limit
 # from ..funcs import scipy_poisson_upper_limit, mpmath_poisson_upper_limit
 
+from ...utils.compat import NUMPY_LT_1_10
 from ...utils.misc import NumpyRNGContext
 from ... import units as u
 
@@ -103,6 +104,18 @@ def test_median_absolute_deviation_masked():
         funcs.median_absolute_deviation(array, axis=0).data, [0, 1])
     np.testing.assert_array_equal(
         funcs.median_absolute_deviation(array, axis=1).data, [0, 0])
+
+
+@pytest.mark.skipif('NUMPY_LT_1_10')
+def test_median_absolute_deviation_nans():
+    array = np.array([[1, 4, 3, np.nan],
+                      [2, 5, np.nan, 4]])
+    assert_equal(funcs.median_absolute_deviation(array, func=np.nanmedian,
+                                                 axis=1),
+                 [1, 1])
+
+    array = np.ma.masked_invalid(array)
+    assert funcs.median_absolute_deviation(array) == 1
 
 
 def test_median_absolute_deviation_quantity():
