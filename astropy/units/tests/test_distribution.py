@@ -153,6 +153,21 @@ class TestDistributionStatistics():
         assert_quantity_allclose(combined_distr.pdf_var, expected)
 
 
+def test_helper_normal_samples():
+    centerq = [1, 5, 30, 400] * u.kpc
+
+    with NumpyRNGContext(12345):
+        n_dist = u.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=100)
+        assert n_dist.shape == (100, 4)
+        assert n_dist.unit == u.kpc
+        assert np.all(n_dist.pdf_std > 100*u.pc)
+
+        n_dist2 = u.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.pc, n_samples=20000)
+        assert n_dist2.shape == (20000, 4)
+        assert n_dist2.unit == u.kpc
+        assert np.all(n_dist2.pdf_std < 100*u.pc)
+
+
 def test_helper_normal():
     pytest.skip('distribution stretch goal not yet implemented')
     centerq = [1, 5, 30, 400] * u.kpc
@@ -182,17 +197,6 @@ def test_helper_uniform():
     # for consistency with Numpy, and because if we want to later do a
     # LogUniformDistribution, it will be easier to express as a range.
     u.UniformDistribution([1, 3, 2] * u.pc, [5, 4, 3] * u.pc)
-
-
-def test_helper_samples():
-    pytest.skip('distribution stretch goal not yet implemented')
-    centerq = [1, 5, 30, 400] * u.one
-
-    n_dist = u.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=100)
-    assert n_dist.shape == (100, 4)
-
-    n_dist = u.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=20000)
-    assert n_dist.shape == (20000, 4)
 
 
 def test_arithmetic():
